@@ -1,0 +1,1416 @@
+{
+  "dev_electoralkit.1_2_interactive_v_model_3_4_disabled_with_": {
+    "source_hash": "bcfc5a8250245b47fc682b3fa830654c04f96f4e7f81cc86b8dcc0d8b766438e",
+    "shape": "template",
+    "file": "Pages/Dev/ElectoralKit.vue",
+    "line": 208,
+    "status": "source"
+  },
+  "dev_electoralkit.add_write_in": {
+    "source_hash": "ef4f9a6d9e1fba60854f458cb9a9aeeb32f0e2187bb5d0ccc67825e7da67a9b3",
+    "shape": "template",
+    "file": "Pages/Dev/ElectoralKit.vue",
+    "line": 292,
+    "status": "source"
+  },
+  "dev_electoralkit.approval_phase_open": {
+    "source_hash": "30c5b0d54243c851e5b7e44721f84ca2ae510a85672d380225844bb9f2cc6da0",
+    "shape": "template",
+    "file": "Pages/Dev/ElectoralKit.vue",
+    "line": 219,
+    "status": "source"
+  },
+  "dev_electoralkit.approval_renders_nothing_except_the_regist": {
+    "source_hash": "8452c9186ae292554e4e5d98f0b4d7fe6e2965000b5714fdbc8d6dc1d05befb0",
+    "shape": "template",
+    "file": "Pages/Dev/ElectoralKit.vue",
+    "line": 190,
+    "status": "source"
+  },
+  "dev_electoralkit.approveswitch_states": {
+    "source_hash": "68d58e18b5e331a525a39c73b4f1f368208446a0486cb6742b770ed4d43ff9af",
+    "shape": "attr:title",
+    "file": "Pages/Dev/ElectoralKit.vue",
+    "line": 199,
+    "status": "source"
+  },
+  "dev_electoralkit.ballotreceipt_full_compact_non_copyable": {
+    "source_hash": "60a3b32de8978a69eea359f2f6f57cfdb0e2705facd73c8ddc74b4fdd837d325",
+    "shape": "attr:title",
+    "file": "Pages/Dev/ElectoralKit.vue",
+    "line": 316,
+    "status": "source"
+  },
+  "dev_electoralkit.ballots_exhausted": {
+    "source_hash": "cbd244591c36dc65aa657b3312a93de2f9d6829f90da7f16503dc24f200d3620",
+    "shape": "template",
+    "file": "Pages/Dev/ElectoralKit.vue",
+    "line": 406,
+    "status": "source"
+  },
+  "dev_electoralkit.ballots_so_far_droop_quota_if_closed_now": {
+    "source_hash": "33a8c1242614221f956e3d6326522492c36036b17b715792436fea9ae17c32b9",
+    "shape": "template",
+    "file": "Pages/Dev/ElectoralKit.vue",
+    "line": 337,
+    "status": "source"
+  },
+  "dev_electoralkit.candidaterow_finalistline_full_manhattan_s": {
+    "source_hash": "3a192ed1019d11bb8786374f53f7cd98d6264ae4de5928fc6a6f2a58b1653018",
+    "shape": "template",
+    "file": "Pages/Dev/ElectoralKit.vue",
+    "line": 214,
+    "status": "source"
+  },
+  "dev_electoralkit.countback_failed_ballots_exhausted": {
+    "source_hash": "754deddb1cccf2810333d4bb30d0470bb5a160189c81e1da56532ba33cb87b2c",
+    "shape": "template",
+    "file": "Pages/Dev/ElectoralKit.vue",
+    "line": 408,
+    "status": "source"
+  },
+  "dev_electoralkit.countback_re_run_stvbar_reuse": {
+    "source_hash": "1ccd315616a6f2dd9821e63c0e7b8d6026eab13a4f5b52b07933a87283e074a7",
+    "shape": "attr:title",
+    "file": "Pages/Dev/ElectoralKit.vue",
+    "line": 402,
+    "status": "source"
+  },
+  "dev_electoralkit.counting_rounds": {
+    "source_hash": "044df1350a3440ec8b61444becb5cc6761367d8eef9f25715e0b5a1328a1900b",
+    "shape": "attr:label",
+    "file": "Pages/Dev/ElectoralKit.vue",
+    "line": 357,
+    "status": "source"
+  },
+  "dev_electoralkit.droop_quota": {
+    "source_hash": "62be405b6576a114efa422b678efb528eea27fd67b6bcef9e4503ce98053cd15",
+    "shape": "template",
+    "file": "Pages/Dev/ElectoralKit.vue",
+    "line": 328,
+    "status": "source"
+  },
+  "dev_electoralkit.droop_quota_2": {
+    "source_hash": "3c3b11763970b678053365dd5f984c8cc94d1b93706ca930f0f5f93913e9aca2",
+    "shape": "template",
+    "file": "Pages/Dev/ElectoralKit.vue",
+    "line": 410,
+    "status": "source"
+  },
+  "dev_electoralkit.droop_quota_floor_votes_seats_1_1": {
+    "source_hash": "3b10f26983485e47375e0e39f7f70e67bb625ea532a185cccdfbaf6bebeda5e8",
+    "shape": "attr:label",
+    "file": "Pages/Dev/ElectoralKit.vue",
+    "line": 355,
+    "status": "source"
+  },
+  "dev_electoralkit.electoral_approveswitch_switch_revocable_n": {
+    "source_hash": "773387532889d088c529ec8c1c7f1a8a8a14c7500b562acf4cd34caead350eb3",
+    "shape": "template",
+    "file": "Pages/Dev/ElectoralKit.vue",
+    "line": 200,
+    "status": "source"
+  },
+  "dev_electoralkit.electoral_phasebanner_contexts_open_ballot": {
+    "source_hash": "6ec58c87cfb57fd2a85b889b9d38e45e04afe982f67e3a607ca60abf7cbd462d",
+    "shape": "template",
+    "file": "Pages/Dev/ElectoralKit.vue",
+    "line": 187,
+    "status": "source"
+  },
+  "dev_electoralkit.electoral_stvbar_stv_cand_family_gold_tick": {
+    "source_hash": "e403c82a1276a48c1dbe811d449836943ad34b233ba76c722a555e1bcf078699",
+    "shape": "template",
+    "file": "Pages/Dev/ElectoralKit.vue",
+    "line": 327,
+    "status": "source"
+  },
+  "dev_electoralkit.f_ind_007_receipt_shown_once_cryptographic": {
+    "source_hash": "5ca94f736c91ed0d5d011175b71f945b9b6de83bbefb889674231a205a073f9f",
+    "shape": "template",
+    "file": "Pages/Dev/ElectoralKit.vue",
+    "line": 317,
+    "status": "source"
+  },
+  "dev_electoralkit.fe_b1_harness_the_8_electoral_components_r": {
+    "source_hash": "7e7ae4f9dbfea62aa10c4d3596ad6082d7a895e99fa957804f1fbcd4ba606b4b",
+    "shape": "template",
+    "file": "Pages/Dev/ElectoralKit.vue",
+    "line": 174,
+    "status": "source"
+  },
+  "dev_electoralkit.finalist_roster_roster_row": {
+    "source_hash": "972d0ed21b0295244cdac3628fcbbb318e1976f1e4712d48a3af69fef91c4c2d",
+    "shape": "attr:title",
+    "file": "Pages/Dev/ElectoralKit.vue",
+    "line": 273,
+    "status": "source"
+  },
+  "dev_electoralkit.fixture_data_only": {
+    "source_hash": "ac6fe1b30eb77e9a258ed511da762d4b9ba348a4838c732f568d9b5e87f8ace8",
+    "shape": "attr:title",
+    "file": "Pages/Dev/ElectoralKit.vue",
+    "line": 180,
+    "status": "source"
+  },
+  "dev_electoralkit.gold_tick_the_droop_quota_reaching_it_elec": {
+    "source_hash": "acfe9fe51f17213797dc39855714b45cd417b553314316621a6a08cb59c01fc6",
+    "shape": "template",
+    "file": "Pages/Dev/ElectoralKit.vue",
+    "line": 359,
+    "status": "source"
+  },
+  "dev_electoralkit.keyboard_pass_buttons_keep_focus_on_the_mo": {
+    "source_hash": "dd9011c2d2b6a756c06248162906905dadf82df4fb70430c909cba994fd474f0",
+    "shape": "template",
+    "file": "Pages/Dev/ElectoralKit.vue",
+    "line": 306,
+    "status": "source"
+  },
+  "dev_electoralkit.live_aggregate_ranked_window": {
+    "source_hash": "ca3f223c9349ce204e75fc9a62485e7d1241db12c5a7da390c448c3f2d29d333",
+    "shape": "template",
+    "file": "Pages/Dev/ElectoralKit.vue",
+    "line": 336,
+    "status": "source"
+  },
+  "dev_electoralkit.nothing_on_this_page_touches_the_database_": {
+    "source_hash": "0d94e3f6a14e1c7a4223527124f9d538cd9edb01137e3fedb6e6465d0a061fa2",
+    "shape": "template",
+    "file": "Pages/Dev/ElectoralKit.vue",
+    "line": 180,
+    "status": "source"
+  },
+  "dev_electoralkit.phase": {
+    "source_hash": "25abad99ff9a981248e9acb1a022f66533228d10414e5effc3506e388d7566ce",
+    "shape": "template",
+    "file": "Pages/Dev/ElectoralKit.vue",
+    "line": 189,
+    "status": "source"
+  },
+  "dev_electoralkit.phasebanner_all_phases_contexts": {
+    "source_hash": "70ca98808949ffa674401a7bbdc190c44f59333603a53af2f68eeb2b350c9313",
+    "shape": "attr:title",
+    "file": "Pages/Dev/ElectoralKit.vue",
+    "line": 186,
+    "status": "source"
+  },
+  "dev_electoralkit.post_commit_lock_disabled": {
+    "source_hash": "68c5bd109acfd0233e121c65a36ba17eb75229367e8b210d51fdec08487a0015",
+    "shape": "template",
+    "file": "Pages/Dev/ElectoralKit.vue",
+    "line": 303,
+    "status": "source"
+  },
+  "dev_electoralkit.ranked": {
+    "source_hash": "3d92b4499d79da00456037f6591c9fceba9ee0386855b0f5b1c3fbd03d347555",
+    "shape": "template",
+    "file": "Pages/Dev/ElectoralKit.vue",
+    "line": 277,
+    "status": "source"
+  },
+  "dev_electoralkit.ranklist_your_ranking_ranked": {
+    "source_hash": "e3f20b57418d3b11fafb1c54f484da0b61e5fb72b807da5ec8b6214a09f5ab47",
+    "shape": "template",
+    "file": "Pages/Dev/ElectoralKit.vue",
+    "line": 298,
+    "status": "source"
+  },
+  "dev_electoralkit.re_run_of_prior_ballots_with_the_vacated_m": {
+    "source_hash": "e73307cf694cf7a77e780519039fee2a1e490cd4d2832ea9099414437bbf2c2b",
+    "shape": "template",
+    "file": "Pages/Dev/ElectoralKit.vue",
+    "line": 403,
+    "status": "source"
+  },
+  "dev_electoralkit.referendum_vote_committed_receipt": {
+    "source_hash": "4d0850e0dd8c08104d36308f17661ab288efc0947fa49d19127c761c8b227f1c",
+    "shape": "template",
+    "file": "Pages/Dev/ElectoralKit.vue",
+    "line": 320,
+    "status": "source"
+  },
+  "dev_electoralkit.row_1_switch_omitted_viewer_not_associated": {
+    "source_hash": "78a62dce91a6590e74dd92efb1efa8440db8fa1f1dbd11b7d119aaedfb6a1fa4",
+    "shape": "template",
+    "file": "Pages/Dev/ElectoralKit.vue",
+    "line": 263,
+    "status": "source"
+  },
+  "dev_electoralkit.seats_all_filled_in_one_count": {
+    "source_hash": "eded8fa03b0c002969c42cc2d45dc6e5b58400bd2a34eb80c8b86d4e75a40d87",
+    "shape": "attr:label",
+    "file": "Pages/Dev/ElectoralKit.vue",
+    "line": 356,
+    "status": "source"
+  },
+  "dev_electoralkit.struck_member_eliminated_styling_removed_f": {
+    "source_hash": "cb7cade8086ce27ccfd70663e31569e2250f62dab5aed0f5fa631c9c5a8aa962",
+    "shape": "template",
+    "file": "Pages/Dev/ElectoralKit.vue",
+    "line": 424,
+    "status": "source"
+  },
+  "dev_electoralkit.stv_with_droop_quota_fractional_gregory_su": {
+    "source_hash": "5aec284109a218506a2cbbb570524452c0df60c9f8b04b550cfbf620dde7deba",
+    "shape": "template",
+    "file": "Pages/Dev/ElectoralKit.vue",
+    "line": 398,
+    "status": "source"
+  },
+  "dev_electoralkit.stvbar_standalone_states": {
+    "source_hash": "4d336acefe4596f768d06b7b4b3c21c56e0b0f7340d1bc4c86f70e5fbd41c004",
+    "shape": "attr:title",
+    "file": "Pages/Dev/ElectoralKit.vue",
+    "line": 326,
+    "status": "source"
+  },
+  "dev_electoralkit.stvround_the_queens_count_round_by_round_2": {
+    "source_hash": "a31028dd4ef1f02099297627aab287dc28aec113dce7fff941b86f7caa63f4d1",
+    "shape": "attr:title",
+    "file": "Pages/Dev/ElectoralKit.vue",
+    "line": 352,
+    "status": "source"
+  },
+  "dev_electoralkit.toggling_approve_flips_the_switch_and_the_": {
+    "source_hash": "1bf60c4a3bf62b5e9ff9b08485f86c1b7d41a26d50c4290e162677f2877db758",
+    "shape": "template",
+    "file": "Pages/Dev/ElectoralKit.vue",
+    "line": 222,
+    "status": "source"
+  },
+  "dev_electoralkit.top_from_the_approval_phase_clk_21": {
+    "source_hash": "c57ca04b684fd82598c3be97aff089438946140751626e8fce0cad93a0163084",
+    "shape": "template",
+    "file": "Pages/Dev/ElectoralKit.vue",
+    "line": 274,
+    "status": "source"
+  },
+  "dev_electoralkit.valid_ballots": {
+    "source_hash": "2a8a1cd6b341ec96a0c4265338e95901e3cc43c87d57f77bef4e902718bd7dae",
+    "shape": "attr:label",
+    "file": "Pages/Dev/ElectoralKit.vue",
+    "line": 354,
+    "status": "source"
+  },
+  "dev_electoralkit.validated_non_finalists": {
+    "source_hash": "7595519436a815b6c7be4aa43bbaa411544a8ab9ce32974e9330e7954eb8da6f",
+    "shape": "template",
+    "file": "Pages/Dev/ElectoralKit.vue",
+    "line": 289,
+    "status": "source"
+  },
+  "dev_electoralkit.winner_found": {
+    "source_hash": "c05d1c0775e69c3417367d57a458561ea676c8ce50e6d60e538673fe1d8a9373",
+    "shape": "template",
+    "file": "Pages/Dev/ElectoralKit.vue",
+    "line": 405,
+    "status": "source"
+  },
+  "dev_electoralkit.winner_found_camille_verhoeven": {
+    "source_hash": "48d1b6bbc96db2d2af62f73db67378c873742ea869d7bea127e8552ea32a2393",
+    "shape": "template",
+    "file": "Pages/Dev/ElectoralKit.vue",
+    "line": 407,
+    "status": "source"
+  },
+  "dev_electoralkit.write_in": {
+    "source_hash": "578cebc2cb00cc5971b2346f52a03b20cb0208d536ea882254b1787ed1498905",
+    "shape": "template",
+    "file": "Pages/Dev/ElectoralKit.vue",
+    "line": 285,
+    "status": "source"
+  },
+  "dev_electoralkit.write_in_a_validated_candidate": {
+    "source_hash": "c2d78ed4ee5257ce13ff54c6ad6d75b4cc85dd7a8e396ff202482781bcc1d412",
+    "shape": "template",
+    "file": "Pages/Dev/ElectoralKit.vue",
+    "line": 287,
+    "status": "source"
+  },
+  "dev_electoralkit.your_active_approvals_revocable": {
+    "source_hash": "29e7864521c548a914d1c0351dc0843da6824fdb2ebfc23c8dd7ffd8fb9fdc32",
+    "shape": "attr:label",
+    "file": "Pages/Dev/ElectoralKit.vue",
+    "line": 220,
+    "status": "source"
+  },
+  "dev_executiveorgkit.5_of_9_meets_a_majority_but_not_ceil_9_2_3": {
+    "source_hash": "aa8da8c9bab97186f6e2477c2fce8f4604f3525447932126da93c9696b69da36",
+    "shape": "template",
+    "file": "Pages/Dev/ExecutiveOrgKit.vue",
+    "line": 103,
+    "status": "source"
+  },
+  "dev_executiveorgkit.boardstrip_compact_pip_strip_only": {
+    "source_hash": "673f6a0731db4bce6fb7cedc52cf57bf601aa872a1726944e2dcafca8d33cb01",
+    "shape": "attr:title",
+    "file": "Pages/Dev/ExecutiveOrgKit.vue",
+    "line": 247,
+    "status": "source"
+  },
+  "dev_executiveorgkit.boardstrip_composition_invalid_vacant_work": {
+    "source_hash": "e6eba5cf36deb6a54ec97f8b6271f148d7ecb1b1b08fee2a20ca02a1e0298be7",
+    "shape": "attr:title",
+    "file": "Pages/Dev/ExecutiveOrgKit.vue",
+    "line": 239,
+    "status": "source"
+  },
+  "dev_executiveorgkit.boardstrip_public_works_utilities_7_govern": {
+    "source_hash": "a15e8785e8e5dff33acea1ce4cd99fccf6b966e9952c8ced4e6127ecb73bdce1",
+    "shape": "attr:title",
+    "file": "Pages/Dev/ExecutiveOrgKit.vue",
+    "line": 226,
+    "status": "source"
+  },
+  "dev_executiveorgkit.codetscale_below_threshold_parity": {
+    "source_hash": "fa59ac62b8158b3f9c7deb1d9d6bce8e48139920b8b956fe6b4d4679eab4abf7",
+    "shape": "attr:title",
+    "file": "Pages/Dev/ExecutiveOrgKit.vue",
+    "line": 178,
+    "status": "source"
+  },
+  "dev_executiveorgkit.codetscale_formula_pins_the_a_2_unit_contr": {
+    "source_hash": "0610d21b06d8382e79aea01e4c534458ca5c62470c7b9d0a799e53f8eb4a42da",
+    "shape": "attr:title",
+    "file": "Pages/Dev/ExecutiveOrgKit.vue",
+    "line": 199,
+    "status": "source"
+  },
+  "dev_executiveorgkit.codetscale_interactive_explorer_keyboard_o": {
+    "source_hash": "31c80e83e479396210a39e9929a8de50e0d926eefbcff5350af5882d675f3c64",
+    "shape": "attr:title",
+    "file": "Pages/Dev/ExecutiveOrgKit.vue",
+    "line": 150,
+    "status": "source"
+  },
+  "dev_executiveorgkit.codetscale_static_bluefin_logistics_740_wo": {
+    "source_hash": "fc4723fff406e71be0c9b65e837f015e1a7d9b46afcf14e139f51fa1840ad50e",
+    "shape": "attr:title",
+    "file": "Pages/Dev/ExecutiveOrgKit.vue",
+    "line": 135,
+    "status": "source"
+  },
+  "dev_executiveorgkit.codetscale_thresholds_defaults_50_1_000_by": {
+    "source_hash": "e9a72110e3738f1c1796284fbaac89e570fa36f472dd4c3363596dec0a086d56",
+    "shape": "attr:title",
+    "file": "Pages/Dev/ExecutiveOrgKit.vue",
+    "line": 167,
+    "status": "source"
+  },
+  "dev_executiveorgkit.compact_invalid_still_surfaces_the_banner": {
+    "source_hash": "0c21c0ce393a941caa27fdf16c0b2f98e39ae6ea3dd5533d095002200f3c3802",
+    "shape": "template",
+    "file": "Pages/Dev/ExecutiveOrgKit.vue",
+    "line": 256,
+    "status": "source"
+  },
+  "dev_executiveorgkit.config_cga_state_machines_php_php_owned_pr": {
+    "source_hash": "3c8c26b5ea6214d75c0db1de7c5276ac43252068d0d61bda6f35983d7bfe6e2c",
+    "shape": "template",
+    "file": "Pages/Dev/ExecutiveOrgKit.vue",
+    "line": 350,
+    "status": "source"
+  },
+  "dev_executiveorgkit.constituentconsentpanel_billdetail_call_si": {
+    "source_hash": "b957484bb7966bd45c5ae33793f283648dbb83f1f6919d379ab238c66a7b9c4d",
+    "shape": "attr:title",
+    "file": "Pages/Dev/ExecutiveOrgKit.vue",
+    "line": 125,
+    "status": "source"
+  },
+  "dev_executiveorgkit.constituentconsentpanel_constituent_leg_fa": {
+    "source_hash": "89982235660bae96ec20b98b029636f61c06ea240130905f439628e5512e7e5a",
+    "shape": "attr:title",
+    "file": "Pages/Dev/ExecutiveOrgKit.vue",
+    "line": 91,
+    "status": "source"
+  },
+  "dev_executiveorgkit.constituentconsentpanel_dual_supermajority": {
+    "source_hash": "a80760ff434894783654e0e868bcfb6ad7c3e37354b22bf22403861fa8c8e148",
+    "shape": "attr:title",
+    "file": "Pages/Dev/ExecutiveOrgKit.vue",
+    "line": 69,
+    "status": "source"
+  },
+  "dev_executiveorgkit.constituentconsentpanel_one_leg_failed_own": {
+    "source_hash": "e9bd8589e75c6ce5096b196487b7e50e8d3b7c1996a0f824d7aebc0e8f5706e2",
+    "shape": "attr:title",
+    "file": "Pages/Dev/ExecutiveOrgKit.vue",
+    "line": 102,
+    "status": "source"
+  },
+  "dev_executiveorgkit.constituentconsentpanel_open_both_meters_p": {
+    "source_hash": "a46fee3bb21d506c3d0d0af706fc251ed6e2074670c5475e74f7e9be710abc65",
+    "shape": "attr:title",
+    "file": "Pages/Dev/ExecutiveOrgKit.vue",
+    "line": 83,
+    "status": "source"
+  },
+  "dev_executiveorgkit.constituentconsentpanel_server_required_re": {
+    "source_hash": "6b7a45fe8f15bd929e6d0eeb73fc2c7d91068ebb928b140c321d5b677e661c93",
+    "shape": "attr:title",
+    "file": "Pages/Dev/ExecutiveOrgKit.vue",
+    "line": 111,
+    "status": "source"
+  },
+  "dev_executiveorgkit.department_board_esm_17_current_operating": {
+    "source_hash": "131a96d4ea759cfb3bb41c8303f37c27f8d4f2ca0472f528aabaf66a22c88841",
+    "shape": "template",
+    "file": "Pages/Dev/ExecutiveOrgKit.vue",
+    "line": 357,
+    "status": "source"
+  },
+  "dev_executiveorgkit.departmentcard_the_5_department_registry_g": {
+    "source_hash": "c4ea8f6aa9f0102c744a7cf3744dd99a89daada835eb9a77eb0eaa377440cc98",
+    "shape": "attr:title",
+    "file": "Pages/Dev/ExecutiveOrgKit.vue",
+    "line": 300,
+    "status": "source"
+  },
+  "dev_executiveorgkit.detailed_true_on_the_rejected_fixture": {
+    "source_hash": "64b6a2a3734f48a0b1e86497540d23c58ae8f2ebb8698f571b0d4a9e776c78e8",
+    "shape": "template",
+    "file": "Pages/Dev/ExecutiveOrgKit.vue",
+    "line": 328,
+    "status": "source"
+  },
+  "dev_executiveorgkit.detailed_variant_order_body_the_order_life": {
+    "source_hash": "806336e06a1d72639a9cb1e7ab8e4595c08cab68b4ddea07da1c0dde418dc978",
+    "shape": "template",
+    "file": "Pages/Dev/ExecutiveOrgKit.vue",
+    "line": 326,
+    "status": "source"
+  },
+  "dev_executiveorgkit.executive_departmentcard_co_determination_": {
+    "source_hash": "af39aca775b70d0c235e2a97f7aa9806eb47f9b4f4c982e6962856feeadf1ec8",
+    "shape": "template",
+    "file": "Pages/Dev/ExecutiveOrgKit.vue",
+    "line": 301,
+    "status": "source"
+  },
+  "dev_executiveorgkit.executive_office_esm_16_current_forming_th": {
+    "source_hash": "506cbe1f30ee8f0bf488dd15756c5b98c4614d5b245e2e1ceca5e2412188751d",
+    "shape": "template",
+    "file": "Pages/Dev/ExecutiveOrgKit.vue",
+    "line": 353,
+    "status": "source"
+  },
+  "dev_executiveorgkit.executive_orderscopecard_rejected_rows_car": {
+    "source_hash": "66184908f077dc57e6c20bc9332845f3a5b6893b3ad6953dff0ac15ed2085fbf",
+    "shape": "template",
+    "file": "Pages/Dev/ExecutiveOrgKit.vue",
+    "line": 318,
+    "status": "source"
+  },
+  "dev_executiveorgkit.fe_d1_harness_the_phase_d_executive_organi": {
+    "source_hash": "8d1990ddf35342ecb81c9b6cb2c0b4da089c22b85882a9d881af3e4d8cb57bf8",
+    "shape": "template",
+    "file": "Pages/Dev/ExecutiveOrgKit.vue",
+    "line": 54,
+    "status": "source"
+  },
+  "dev_executiveorgkit.formula_pin_broken_the_explorer_no_longer_": {
+    "source_hash": "1ead2a4020d15f92b3d0b0fcb10b5c66cd4994506495acd97acabfa0a2fe0db6",
+    "shape": "attr:title",
+    "file": "Pages/Dev/ExecutiveOrgKit.vue",
+    "line": 222,
+    "status": "source"
+  },
+  "dev_executiveorgkit.legislature_constituentconsentpanel_the_mu": {
+    "source_hash": "ffbb267cbbd10a3566c7cec39daf4842a06829d2fd1e4a472cad47f9cb3e1e35",
+    "shape": "template",
+    "file": "Pages/Dev/ExecutiveOrgKit.vue",
+    "line": 70,
+    "status": "source"
+  },
+  "dev_executiveorgkit.modified_is_an_event_not_an_executive_rest": {
+    "source_hash": "59346a330a4de317367e6c0312aa6bfdbcbe2cc036d279f616e553dc5946e579",
+    "shape": "template",
+    "file": "Pages/Dev/ExecutiveOrgKit.vue",
+    "line": 365,
+    "status": "source"
+  },
+  "dev_executiveorgkit.no_stakes_table_the_board_of_governors_sta": {
+    "source_hash": "68f763d07bcb8ae6852eeb4f0dd0f150fcbd422632af136fe31151aa5db5bf07",
+    "shape": "template",
+    "file": "Pages/Dev/ExecutiveOrgKit.vue",
+    "line": 289,
+    "status": "source"
+  },
+  "dev_executiveorgkit.nothing_on_this_page_touches_the_database_": {
+    "source_hash": "e414ec043a977219ad09690aa064bfc8c5d78b03e946c9ab6379d95d9d45cc43",
+    "shape": "template",
+    "file": "Pages/Dev/ExecutiveOrgKit.vue",
+    "line": 62,
+    "status": "source"
+  },
+  "dev_executiveorgkit.orderscopecard_the_order_register_issued_e": {
+    "source_hash": "edf0b8c0e2123d69358cacc6219aeee1953d31a76292110a100c86fdda3ce31b",
+    "shape": "attr:title",
+    "file": "Pages/Dev/ExecutiveOrgKit.vue",
+    "line": 317,
+    "status": "source"
+  },
+  "dev_executiveorgkit.org_boardstrip_the_two_clock_regimes_side_": {
+    "source_hash": "2bf7c5d9c590428cd3563c0a1fd1199dcb7c850e247ef173e04db7d4ac19ff78",
+    "shape": "template",
+    "file": "Pages/Dev/ExecutiveOrgKit.vue",
+    "line": 227,
+    "status": "source"
+  },
+  "dev_executiveorgkit.org_codetscale_workerseats_is_the_engine_s": {
+    "source_hash": "e7a88aae2b0bfb50147b3b0a5b5298d3f1e625d45dac764057a09f0493b6d101",
+    "shape": "template",
+    "file": "Pages/Dev/ExecutiveOrgKit.vue",
+    "line": 136,
+    "status": "source"
+  },
+  "dev_executiveorgkit.organization_esm_18_current_active": {
+    "source_hash": "563f4e93bb7db6c9b3eb4b51029eee8a3f504c3506780dd2b09804a06f6c3d10",
+    "shape": "template",
+    "file": "Pages/Dev/ExecutiveOrgKit.vue",
+    "line": 361,
+    "status": "source"
+  },
+  "dev_executiveorgkit.ownershippanel_cgc_variant_the_ledger_12_o": {
+    "source_hash": "3b935442dc93adbf1b8666781b26ba7dbf1794dc101e3bd5431873299b04dedc",
+    "shape": "attr:title",
+    "file": "Pages/Dev/ExecutiveOrgKit.vue",
+    "line": 288,
+    "status": "source"
+  },
+  "dev_executiveorgkit.ownershippanel_equal_partnership_unanimity": {
+    "source_hash": "e1ea21879a614042c742ac616ee7cabca38be2368d85a7f750e4ee4bc5340c04",
+    "shape": "attr:title",
+    "file": "Pages/Dev/ExecutiveOrgKit.vue",
+    "line": 277,
+    "status": "source"
+  },
+  "dev_executiveorgkit.ownershippanel_stock_bluefin_1_204_shareho": {
+    "source_hash": "a21903daaf2dacf8170d0441e54560cb46519360ff98bceb5f29c8269d1e1eaf",
+    "shape": "attr:title",
+    "file": "Pages/Dev/ExecutiveOrgKit.vue",
+    "line": 268,
+    "status": "source"
+  },
+  "dev_executiveorgkit.phase_c_billcontroller_feed_consents_carry": {
+    "source_hash": "ea1db22d37b9cf3b3e96888e03c889f637e8839a0675a8895dcfc6213e7e10a8",
+    "shape": "template",
+    "file": "Pages/Dev/ExecutiveOrgKit.vue",
+    "line": 126,
+    "status": "source"
+  },
+  "dev_executiveorgkit.same_740_workers_now_yield_7_seats_the_mar": {
+    "source_hash": "5fffb92ef5c8d85f56d5c17501bbd2549f0db899088fb0ce0dff85bfc4b0cf67",
+    "shape": "template",
+    "file": "Pages/Dev/ExecutiveOrgKit.vue",
+    "line": 168,
+    "status": "source"
+  },
+  "dev_executiveorgkit.state_machines_fe_d0_config_entries_displa": {
+    "source_hash": "6287730cf70bde9435478945616d80e1fe0cc64ba4ac46e19ff54aaec0d9d890",
+    "shape": "attr:title",
+    "file": "Pages/Dev/ExecutiveOrgKit.vue",
+    "line": 349,
+    "status": "source"
+  },
+  "dev_executiveorgkit.stepper_bog_pipeline_seated_departments_ht": {
+    "source_hash": "cf196e67de21312eca75f1b1b474d1c15cd94144451d8679a7531e70d5c5c241",
+    "shape": "attr:title",
+    "file": "Pages/Dev/ExecutiveOrgKit.vue",
+    "line": 339,
+    "status": "source"
+  },
+  "dev_executiveorgkit.stepper_consent_vote_pending": {
+    "source_hash": "fe64bf1d9400919fcc698c1a6f714a769d100b77f7833a40639905765b40d954",
+    "shape": "attr:title",
+    "file": "Pages/Dev/ExecutiveOrgKit.vue",
+    "line": 343,
+    "status": "source"
+  },
+  "dev_executiveorgkit.table_rows_departmentcard_variant_pips_kee": {
+    "source_hash": "c3deb9cb8d870170fc5b6beb07dbdc44f820c1fdae985cec5926ab347c3eb425",
+    "shape": "template",
+    "file": "Pages/Dev/ExecutiveOrgKit.vue",
+    "line": 248,
+    "status": "source"
+  },
+  "dev_executiveorgkit.the_exit_criterion_2_moment_the_scale_dema": {
+    "source_hash": "ab95188118a0782c154831cf48bd546aaca95e92e09b2749293904a2262f6040",
+    "shape": "template",
+    "file": "Pages/Dev/ExecutiveOrgKit.vue",
+    "line": 240,
+    "status": "source"
+  },
+  "dev_executiveorgkit.the_one_phase_d_component_with_client_arit": {
+    "source_hash": "1dc1c1ea6c8cabc7020cc6fd8d3d2d17897c01f11e7a04a54e1882ddc6bfa731",
+    "shape": "template",
+    "file": "Pages/Dev/ExecutiveOrgKit.vue",
+    "line": 151,
+    "status": "source"
+  },
+  "dev_executiveorgkit.ui_stepper_nomination_dossier_f_exe_001_co": {
+    "source_hash": "2a4963535f22c6dca88f59ae9471b7977f0b0f2aee23854225a4047c4e43d497",
+    "shape": "template",
+    "file": "Pages/Dev/ExecutiveOrgKit.vue",
+    "line": 340,
+    "status": "source"
+  },
+  "dev_judiciarykit.12_jurors_2_alternates_drawn_at_random_fro": {
+    "source_hash": "f89e6c14152d12f18622b289b62c724b331d93562590fcbffa0ba5e079fef1a2",
+    "shape": "template",
+    "file": "Pages/Dev/JudiciaryKit.vue",
+    "line": 154,
+    "status": "source"
+  },
+  "dev_judiciarykit.answers_prop_no_submitscreening_the_questi": {
+    "source_hash": "793a6782e8e3ca1d26075cf2891e36ce19b91bde5d689540b974df05e711feca",
+    "shape": "template",
+    "file": "Pages/Dev/JudiciaryKit.vue",
+    "line": 252,
+    "status": "source"
+  },
+  "dev_judiciarykit.art4_5tracker_applied_path_c_judiciary_edi": {
+    "source_hash": "bc6daa423996c98a1b843a53fd9f9d352ac1d9b328af8bc5e68b7e239937bed5",
+    "shape": "attr:title",
+    "file": "Pages/Dev/JudiciaryKit.vue",
+    "line": 198,
+    "status": "source"
+  },
+  "dev_judiciarykit.art4_5tracker_empty_state_no_open_challeng": {
+    "source_hash": "26861fdda0d42fecc32a685b500822295efd99f6089764e0ff11b64545413e20",
+    "shape": "attr:title",
+    "file": "Pages/Dev/JudiciaryKit.vue",
+    "line": 206,
+    "status": "source"
+  },
+  "dev_judiciarykit.art4_5tracker_nov_k_curfew_3_window_open_o": {
+    "source_hash": "03bdc8bef075c688ecbd1c337b5869071a1bdcc6afcf1a29f0fe915c8e4fef37",
+    "shape": "attr:title",
+    "file": "Pages/Dev/JudiciaryKit.vue",
+    "line": 185,
+    "status": "source"
+  },
+  "dev_judiciarykit.art4_5tracker_overridden_path_b_supermajor": {
+    "source_hash": "07de67f4bccac4d16f8404b30b789f4e46a09dbffc1cfd535062217e9acca184",
+    "shape": "attr:title",
+    "file": "Pages/Dev/JudiciaryKit.vue",
+    "line": 194,
+    "status": "source"
+  },
+  "dev_judiciarykit.art4_5tracker_override_required_rendered_v": {
+    "source_hash": "519743d7ec4c9d999eb444371847513c4600bd0effec08a4943f427f8a4e7906",
+    "shape": "attr:title",
+    "file": "Pages/Dev/JudiciaryKit.vue",
+    "line": 214,
+    "status": "source"
+  },
+  "dev_judiciarykit.case_esm_case_current_jury_empaneled_the_w": {
+    "source_hash": "b4ece036edb9a9171636c626d8c252a15e88447017e20afb84738d6df4ec0a52",
+    "shape": "template",
+    "file": "Pages/Dev/JudiciaryKit.vue",
+    "line": 294,
+    "status": "source"
+  },
+  "dev_judiciarykit.caselifecycle_major_constitutional_variant": {
+    "source_hash": "f26db4ee496b9018625457fcb6fe955506546ef3eb81796b8048c152249e8ba3",
+    "shape": "attr:title",
+    "file": "Pages/Dev/JudiciaryKit.vue",
+    "line": 164,
+    "status": "source"
+  },
+  "dev_judiciarykit.caselifecycle_state_v_whitfield_stage_6_ju": {
+    "source_hash": "21cede0080230e95fef191ce5c7deba1f199a1b3dc762129dd52578b5e699145",
+    "shape": "attr:title",
+    "file": "Pages/Dev/JudiciaryKit.vue",
+    "line": 141,
+    "status": "source"
+  },
+  "dev_judiciarykit.constituentconsentpanel_judiciary_conversi": {
+    "source_hash": "e1f03962f53adad999a225f4efa0d018ed99db2d78d12628aaf65fac83373ca1",
+    "shape": "attr:title",
+    "file": "Pages/Dev/JudiciaryKit.vue",
+    "line": 263,
+    "status": "source"
+  },
+  "dev_judiciarykit.constituentconsentpanel_judiciary_conversi_2": {
+    "source_hash": "76f10a608c7fcd6fa19f9b3c444bd6e9d284a6f2823469b0390d81d705f2ca86",
+    "shape": "attr:title",
+    "file": "Pages/Dev/JudiciaryKit.vue",
+    "line": 278,
+    "status": "source"
+  },
+  "dev_judiciarykit.constitutional_challenge_esm_cc_current_le": {
+    "source_hash": "7b361dd107381b5adfcc2823d2f0bc085887e1db32217bd7d8edb18ae0b3c2d7",
+    "shape": "template",
+    "file": "Pages/Dev/JudiciaryKit.vue",
+    "line": 298,
+    "status": "source"
+  },
+  "dev_judiciarykit.constitutional_major_5_full_court_snapshot": {
+    "source_hash": "a5c85adadd2118aad67b10220cb3ec809da3fdec8121782a27ade8b218a23eb5",
+    "shape": "script:label",
+    "file": "Pages/Dev/JudiciaryKit.vue",
+    "line": 46,
+    "status": "source"
+  },
+  "dev_judiciarykit.dockets_opinions_challenges_findings_and_p": {
+    "source_hash": "ebfb8e83fbaa03aba87fd346cce2b99f7d81fa16543a9673acc96e9287e3da99",
+    "shape": "template",
+    "file": "Pages/Dev/JudiciaryKit.vue",
+    "line": 313,
+    "status": "source"
+  },
+  "dev_judiciarykit.draw_integrity_the_seed_is_published_to_th": {
+    "source_hash": "9a4d3c62085bdfbb6888c908f77bb3a4eb9648cc4c462a0cfab7c8f36c5d2051",
+    "shape": "template",
+    "file": "Pages/Dev/JudiciaryKit.vue",
+    "line": 232,
+    "status": "source"
+  },
+  "dev_judiciarykit.drawn": {
+    "source_hash": "06e9bbe2523178914974b31bd83bf9cd75ecc89bcb9b6dccae500166e2a1bc47",
+    "shape": "template",
+    "file": "Pages/Dev/JudiciaryKit.vue",
+    "line": 230,
+    "status": "source"
+  },
+  "dev_judiciarykit.f_ind_016_filing_fields_render_here_on_the": {
+    "source_hash": "1aaf97b8365b305e3e5780a95dae18526c1f0b89d223930818085c75d9d1bb8a",
+    "shape": "template",
+    "file": "Pages/Dev/JudiciaryKit.vue",
+    "line": 209,
+    "status": "source"
+  },
+  "dev_judiciarykit.fe_e1_harness_the_phase_e_judiciary_compon": {
+    "source_hash": "9508699f6bf12c1c3d6e8253b98b60cd9045be5eb37efe9a680218e33beadc70",
+    "shape": "template",
+    "file": "Pages/Dev/JudiciaryKit.vue",
+    "line": 62,
+    "status": "source"
+  },
+  "dev_judiciarykit.full_faith_credit_public_acts_records_and_": {
+    "source_hash": "00319420d1d0802e3745f3202cfde594f80c475f57ad8dc9c60f50119525f2f6",
+    "shape": "template",
+    "file": "Pages/Dev/JudiciaryKit.vue",
+    "line": 319,
+    "status": "source"
+  },
+  "dev_judiciarykit.judiciary_art4section5tracker_the_exit_cri": {
+    "source_hash": "e17c4f9d621342945aba7ee2797a2ec9e547deed427814c2e8dd7329297afeb6",
+    "shape": "template",
+    "file": "Pages/Dev/JudiciaryKit.vue",
+    "line": 186,
+    "status": "source"
+  },
+  "dev_judiciarykit.judiciary_caselifecycle_the_case_esm_state": {
+    "source_hash": "a7328968d88d2ba3b2f7e93177b40257e4b2ab49c94068fb0ee193a5a66b9438",
+    "shape": "template",
+    "file": "Pages/Dev/JudiciaryKit.vue",
+    "line": 142,
+    "status": "source"
+  },
+  "dev_judiciarykit.judiciary_jurorscreening_ui_radiogroup_per": {
+    "source_hash": "595db61224eec36df841492bbe9d418f16df37d68638c1db7afa235ba1320f62",
+    "shape": "template",
+    "file": "Pages/Dev/JudiciaryKit.vue",
+    "line": 224,
+    "status": "source"
+  },
+  "dev_judiciarykit.judiciary_paneltable_panelsize_isfullcourt": {
+    "source_hash": "7f28de7895068fafa7cf83973612d067f85e3410b357df24631f6e36dd80b1a5",
+    "shape": "template",
+    "file": "Pages/Dev/JudiciaryKit.vue",
+    "line": 78,
+    "status": "source"
+  },
+  "dev_judiciarykit.jurorscreening_clean_result_branch": {
+    "source_hash": "eec4ebd29e5653f3949e9ad9781018ff073f1b8d4a4d77cb2cc63c825bd0ef3a",
+    "shape": "attr:title",
+    "file": "Pages/Dev/JudiciaryKit.vue",
+    "line": 243,
+    "status": "source"
+  },
+  "dev_judiciarykit.jurorscreening_flagged_result_branch": {
+    "source_hash": "ba6a4cb42ec4a70be6060e2adcff2275601d5f9facd3b60cb0f18698e0ffd55f",
+    "shape": "attr:title",
+    "file": "Pages/Dev/JudiciaryKit.vue",
+    "line": 246,
+    "status": "source"
+  },
+  "dev_judiciarykit.jurorscreening_read_only_answered_discharg": {
+    "source_hash": "0f411c24d89aef1b1e57f24c69f114d88d02129ff9dd3f40eeeb5b6f364ce8c1",
+    "shape": "attr:title",
+    "file": "Pages/Dev/JudiciaryKit.vue",
+    "line": 251,
+    "status": "source"
+  },
+  "dev_judiciarykit.jurorscreening_the_voir_dire_questionnaire": {
+    "source_hash": "86ecc9be9f22060c32b11f59599f4925f64a11056513e58412e5bfe3d3199955",
+    "shape": "attr:title",
+    "file": "Pages/Dev/JudiciaryKit.vue",
+    "line": 223,
+    "status": "source"
+  },
+  "dev_judiciarykit.legislature_constituentconsentpanel_reused": {
+    "source_hash": "3a0e685a939ea435cca85549d1ff1ea6de621ac55d39d068140303c19f41c7ae",
+    "shape": "template",
+    "file": "Pages/Dev/JudiciaryKit.vue",
+    "line": 264,
+    "status": "source"
+  },
+  "dev_judiciarykit.live_record_render_no_back_advance_the_str": {
+    "source_hash": "e3f0d89c666398c0d24e01f68481f0063d2de34168148ab7796e68f8dfbdf9d9",
+    "shape": "template",
+    "file": "Pages/Dev/JudiciaryKit.vue",
+    "line": 165,
+    "status": "source"
+  },
+  "dev_judiciarykit.major_severity_but_panelsize_3_snapshot_re": {
+    "source_hash": "6970272adcaf0aff85e362d509de7e11fa28b868a0614a2ee718f35f1eaddc34",
+    "shape": "script:label",
+    "file": "Pages/Dev/JudiciaryKit.vue",
+    "line": 47,
+    "status": "source"
+  },
+  "dev_judiciarykit.nothing_on_this_page_touches_the_database_": {
+    "source_hash": "6cc4d11a870df583c0f26b7aafa9afcc0b75106b8795fe13bc723ebeae06b964",
+    "shape": "template",
+    "file": "Pages/Dev/JudiciaryKit.vue",
+    "line": 70,
+    "status": "source"
+  },
+  "dev_judiciarykit.on_both_passed_i_jud_i_jde_judges_thereaft": {
+    "source_hash": "ee33dd1682a372699bf33f4a78e85b7e453ed45643f19b5f455d9c4dc4577fe3",
+    "shape": "template",
+    "file": "Pages/Dev/JudiciaryKit.vue",
+    "line": 279,
+    "status": "source"
+  },
+  "dev_judiciarykit.panel_pin_broken_the_component_recomputed_": {
+    "source_hash": "09f4a238e4d882a3e248e4d49a8089c78d6ea3e413e8fb28d00b09b3de275310",
+    "shape": "attr:title",
+    "file": "Pages/Dev/JudiciaryKit.vue",
+    "line": 137,
+    "status": "source"
+  },
+  "dev_judiciarykit.paneltable_engine_snapshot_pins_the_a_1_un": {
+    "source_hash": "e1233a5eb17f95d2692547c291df4716dc3e58904e75611c280613eb3cd13826",
+    "shape": "attr:title",
+    "file": "Pages/Dev/JudiciaryKit.vue",
+    "line": 112,
+    "status": "source"
+  },
+  "dev_judiciarykit.paneltable_full_court_major_constitutional": {
+    "source_hash": "ccde163adf5f2a9fa7ca0418cdc243f579faf24ff4eb45e5785ffe95d9477f56",
+    "shape": "attr:title",
+    "file": "Pages/Dev/JudiciaryKit.vue",
+    "line": 92,
+    "status": "source"
+  },
+  "dev_judiciarykit.paneltable_pending_excluded_judge_draw_re_": {
+    "source_hash": "a8bf0ea590ca89ee6ff5e8c7e6d5a33d4338615fcf827df7863a27f6d560d2ea",
+    "shape": "attr:title",
+    "file": "Pages/Dev/JudiciaryKit.vue",
+    "line": 101,
+    "status": "source"
+  },
+  "dev_judiciarykit.paneltable_serious_case_3_seated_1_recused": {
+    "source_hash": "9bdc2ac587bc87b66ffcd321339d8b6452eeb58878b697d2efa107c99f9f274f",
+    "shape": "attr:title",
+    "file": "Pages/Dev/JudiciaryKit.vue",
+    "line": 77,
+    "status": "source"
+  },
+  "dev_judiciarykit.pool": {
+    "source_hash": "94f2e300f4ae3fd1859666d3606fcc8255b920d9f07e139d8d1dbc927683579a",
+    "shape": "template",
+    "file": "Pages/Dev/JudiciaryKit.vue",
+    "line": 231,
+    "status": "source"
+  },
+  "dev_judiciarykit.public_read_posture_the_defining_phase_e_r": {
+    "source_hash": "71874e71e9a31ad791e4054937a40e9528b389aa3c66b758f1e7c01a1cb838e9",
+    "shape": "attr:title",
+    "file": "Pages/Dev/JudiciaryKit.vue",
+    "line": 309,
+    "status": "source"
+  },
+  "dev_judiciarykit.random_draw_complete_voir_dire_under_way": {
+    "source_hash": "3ed981914636cdcdd56069fcb078132594ff87c615f51c16a656b0d58d0c3619",
+    "shape": "attr:title",
+    "file": "Pages/Dev/JudiciaryKit.vue",
+    "line": 154,
+    "status": "source"
+  },
+  "dev_judiciarykit.report": {
+    "source_hash": "5d04175c0699cb52def2f4e592e998d64162b40312ca8c12a71934744a5988f4",
+    "shape": "template",
+    "file": "Pages/Dev/JudiciaryKit.vue",
+    "line": 233,
+    "status": "source"
+  },
+  "dev_judiciarykit.serious_3_snapshot": {
+    "source_hash": "0f10364100f5a7bb8c37e51cbe6675fefd70b7b9d04b2865075093e96dbb1278",
+    "shape": "script:label",
+    "file": "Pages/Dev/JudiciaryKit.vue",
+    "line": 45,
+    "status": "source"
+  },
+  "dev_judiciarykit.state_machines_fe_e0_config_entries_displa": {
+    "source_hash": "fc03412d8de4aa284781933033184f06c7b74edd46b45d5de5547fbab8ddc1a6",
+    "shape": "attr:title",
+    "file": "Pages/Dev/JudiciaryKit.vue",
+    "line": 290,
+    "status": "source"
+  },
+  "dev_judiciarykit.the_exit_criterion_render_lawdiff_shows_th": {
+    "source_hash": "f33638327539741a8a603abcf777b2886032e4dfe24f45143be4d75ffe687cea",
+    "shape": "template",
+    "file": "Pages/Dev/JudiciaryKit.vue",
+    "line": 199,
+    "status": "source"
+  },
+  "dev_judiciarykit.the_three_challenge_resolution_terminals_a": {
+    "source_hash": "762bd22c43f85e5ccd55a7f8af7e4659096079b6e62d345232d22aa4321a8dcd",
+    "shape": "template",
+    "file": "Pages/Dev/JudiciaryKit.vue",
+    "line": 302,
+    "status": "source"
+  },
+  "dev_judiciarykit.where": {
+    "source_hash": "d467fc7d37d0ac093e3bdb34f478307e0efa8e623f57f761529c1c879fe30db2",
+    "shape": "template",
+    "file": "Pages/Dev/JudiciaryKit.vue",
+    "line": 234,
+    "status": "source"
+  },
+  "dev_legislaturekit.3_rings_12_20_9_dynamic_viewbox_32_type_a_": {
+    "source_hash": "db2a6c13bf4faac595802ba35bebd4bdba4bf034cf709a2c1c24538b421de4cb",
+    "shape": "template",
+    "file": "Pages/Dev/LegislatureKit.vue",
+    "line": 134,
+    "status": "source"
+  },
+  "dev_legislaturekit.agendastrip_constitutional_order_locked_sl": {
+    "source_hash": "d1144bd1f8d482b3ec3480b8a4c12f16f21605ce37fdb6596ce5d705178f67b6",
+    "shape": "attr:title",
+    "file": "Pages/Dev/LegislatureKit.vue",
+    "line": 265,
+    "status": "source"
+  },
+  "dev_legislaturekit.aisha_diop": {
+    "source_hash": "ea314b1ebb7b1950e43c7138cd6757ac19e2cc1d4e6f5151305febd918f92009",
+    "shape": "script:name",
+    "file": "Pages/Dev/LegislatureKit.vue",
+    "line": 74,
+    "status": "source"
+  },
+  "dev_legislaturekit.all_clear_variant_the_locked_slots_render_": {
+    "source_hash": "6ea0ea5608114eb286695ceb564700b65f7ac43a1e6df5b96f16d251ac1bee80",
+    "shape": "template",
+    "file": "Pages/Dev/LegislatureKit.vue",
+    "line": 276,
+    "status": "source"
+  },
+  "dev_legislaturekit.bicameral_committee_stage_per_kind_committ": {
+    "source_hash": "35d1d4a3095bf89ae5e5079232269e1f020c9fd11a9f109625ea3d2764c6ecc3",
+    "shape": "template",
+    "file": "Pages/Dev/LegislatureKit.vue",
+    "line": 227,
+    "status": "source"
+  },
+  "dev_legislaturekit.bicameral_majority_adopted_both_kinds_agre": {
+    "source_hash": "4bd6b8e32d9823f84672f6b73d19881a3a9faba2eba986eefdd0bc3d181eff7c",
+    "shape": "template",
+    "file": "Pages/Dev/LegislatureKit.vue",
+    "line": 211,
+    "status": "source"
+  },
+  "dev_legislaturekit.bicameral_majority_failed_type_b_does_not_": {
+    "source_hash": "f7f797681754565261e1c17d9f18636373b5024b3666b66d373f36da6a5a9a04",
+    "shape": "template",
+    "file": "Pages/Dev/LegislatureKit.vue",
+    "line": 215,
+    "status": "source"
+  },
+  "dev_legislaturekit.bicameral_majority_pending_floor": {
+    "source_hash": "c3dd55308900509edf9d05059083201560342ca2dea109f287638acbf57aabab",
+    "shape": "template",
+    "file": "Pages/Dev/LegislatureKit.vue",
+    "line": 207,
+    "status": "source"
+  },
+  "dev_legislaturekit.bicameral_supermajority_adopted_22_of_32_6": {
+    "source_hash": "0aa28cca2cd4ef675304a5e311b4d5afb310767f6ebe9142bf24b26246a5e626",
+    "shape": "template",
+    "file": "Pages/Dev/LegislatureKit.vue",
+    "line": 219,
+    "status": "source"
+  },
+  "dev_legislaturekit.bicameral_supermajority_failed_type_a_shor": {
+    "source_hash": "42a9ee830b2c3e1c0dffe27d4c1d862d0f7a7096a97c8fa1c7d982e652bec5e6",
+    "shape": "template",
+    "file": "Pages/Dev/LegislatureKit.vue",
+    "line": 223,
+    "status": "source"
+  },
+  "dev_legislaturekit.bill_esm_07_current_in_committee": {
+    "source_hash": "b146c412b47e8187ed37344fd5596a9fa142c1b0df661d28e2ad56f1670151c3",
+    "shape": "template",
+    "file": "Pages/Dev/LegislatureKit.vue",
+    "line": 340,
+    "status": "source"
+  },
+  "dev_legislaturekit.committee_seat_referendum_question_emergen": {
+    "source_hash": "e1a4cea7faa2e42130117f42c480947bf5ab4f7c3f3650c3edffd7c1a8442fb2",
+    "shape": "template",
+    "file": "Pages/Dev/LegislatureKit.vue",
+    "line": 353,
+    "status": "source"
+  },
+  "dev_legislaturekit.compact_list_row_variant": {
+    "source_hash": "6ddb3a5fc9709811709c0c42005daaed344fe8bd4ed812c32ffa7cc353e2e250",
+    "shape": "template",
+    "file": "Pages/Dev/LegislatureKit.vue",
+    "line": 300,
+    "status": "source"
+  },
+  "dev_legislaturekit.del_ins_carry_visually_hidden_removed_adde": {
+    "source_hash": "135aba2ddcf04bffdbf73219f5cf64ad1a9f86e8d738592668e247f705b53e23",
+    "shape": "template",
+    "file": "Pages/Dev/LegislatureKit.vue",
+    "line": 287,
+    "status": "source"
+  },
+  "dev_legislaturekit.denominator_is_the_snapshot_petitions_thre": {
+    "source_hash": "02d1d664d1821ac8175230bf08e0d9cbbefce24302013b284de528b96f5cffdb",
+    "shape": "template",
+    "file": "Pages/Dev/LegislatureKit.vue",
+    "line": 295,
+    "status": "source"
+  },
+  "dev_legislaturekit.editable_r_10_session_open": {
+    "source_hash": "f03b5d4b73c5c069873e2ea4b4df6e29ce5da3d3bee9b693185af720b3501640",
+    "shape": "template",
+    "file": "Pages/Dev/LegislatureKit.vue",
+    "line": 268,
+    "status": "source"
+  },
+  "dev_legislaturekit.emergencybanner_cross_surface_alert_shell_": {
+    "source_hash": "29f93e47dd940154f9a5b9a87077db9c1cc64efba6094e4cd0de6bd00d38fe2a",
+    "shape": "attr:title",
+    "file": "Pages/Dev/LegislatureKit.vue",
+    "line": 305,
+    "status": "source"
+  },
+  "dev_legislaturekit.empty_renders_nothing_between_the_rules": {
+    "source_hash": "4bb3f1e8de73f7e48ff45338d8a64935d7ef9c91fe3588a3d5d15c524e30e448",
+    "shape": "template",
+    "file": "Pages/Dev/LegislatureKit.vue",
+    "line": 310,
+    "status": "source"
+  },
+  "dev_legislaturekit.every_member_ranks_the_full_committee_list": {
+    "source_hash": "d5f3ac12a805f5b7f63e3a569575fde80185356275a4ad5780cecd02030156a6",
+    "shape": "template",
+    "file": "Pages/Dev/LegislatureKit.vue",
+    "line": 319,
+    "status": "source"
+  },
+  "dev_legislaturekit.f_spk_002_1_outstanding_emergency_powers_2": {
+    "source_hash": "1892a24fa30fec9c073e6e560f5aeac3dd9d5dbde8c4d5730ede7a5bca9a4789",
+    "shape": "template",
+    "file": "Pages/Dev/LegislatureKit.vue",
+    "line": 266,
+    "status": "source"
+  },
+  "dev_legislaturekit.fe_c1_harness_the_phase_c_legislature_comp": {
+    "source_hash": "e1e20339bf2eeb02abb3d275b430a361ab80de6e48140c1760c47b10564e83ae",
+    "shape": "template",
+    "file": "Pages/Dev/LegislatureKit.vue",
+    "line": 102,
+    "status": "source"
+  },
+  "dev_legislaturekit.gathering_below_threshold": {
+    "source_hash": "4119c4e379c9f5bea543657e5e55ed13fa6d82cb6b366bd30feb52e1174fd269",
+    "shape": "template",
+    "file": "Pages/Dev/LegislatureKit.vue",
+    "line": 296,
+    "status": "source"
+  },
+  "dev_legislaturekit.gold_ring_speaker_politically_neutral_vote": {
+    "source_hash": "4bbad488b05eebdae943fbe867fbf9cf222e4296be38587338e2af87424e5785",
+    "shape": "template",
+    "file": "Pages/Dev/LegislatureKit.vue",
+    "line": 126,
+    "status": "source"
+  },
+  "dev_legislaturekit.groupbykind_bicameral_surfaces": {
+    "source_hash": "60e806062b106d61397f160ae79cb97dfbed91551694b9a3bceaa68af2e034c3",
+    "shape": "template",
+    "file": "Pages/Dev/LegislatureKit.vue",
+    "line": 259,
+    "status": "source"
+  },
+  "dev_legislaturekit.highlight_roster_hover_sync": {
+    "source_hash": "6167831b0a7c4a8ed5a8a5b0526ec70ac96b251f8698b600c2ff84d4bad5675e",
+    "shape": "template",
+    "file": "Pages/Dev/LegislatureKit.vue",
+    "line": 120,
+    "status": "source"
+  },
+  "dev_legislaturekit.items_are_id_name_chips_rankedballot_maps_": {
+    "source_hash": "722a0ca06a988655a3d65a0152ce15e32313266d7be4bc0c3f7ae7def7246870",
+    "shape": "template",
+    "file": "Pages/Dev/LegislatureKit.vue",
+    "line": 330,
+    "status": "source"
+  },
+  "dev_legislaturekit.keep_focus_on_the_moved_item_s_control_and": {
+    "source_hash": "5bb3b4a8b918b202ff02b416aabef80f4eeed7a6cb3f12486b6227c2231098b9",
+    "shape": "template",
+    "file": "Pages/Dev/LegislatureKit.vue",
+    "line": 271,
+    "status": "source"
+  },
+  "dev_legislaturekit.lawdiff_server_computed_segments_law_diff_": {
+    "source_hash": "c17f02e193a1d98b0ba59b121dee2d00db27351b1b8c48a27fdec8230b8cf241",
+    "shape": "attr:title",
+    "file": "Pages/Dev/LegislatureKit.vue",
+    "line": 281,
+    "status": "source"
+  },
+  "dev_legislaturekit.legislature_seatmap_port_of_chambersvg_sen": {
+    "source_hash": "4a3fc0b5659e9b32bffe52e6181a727c4752e7a0a7848bdd70dd1aa29e62b18f",
+    "shape": "template",
+    "file": "Pages/Dev/LegislatureKit.vue",
+    "line": 117,
+    "status": "source"
+  },
+  "dev_legislaturekit.legislature_votetally_pure_renderer_of_cha": {
+    "source_hash": "2b536a08bf23bdb164d5557c437c14f35221b900a85449aaa9723d58a16adaba",
+    "shape": "template",
+    "file": "Pages/Dev/LegislatureKit.vue",
+    "line": 140,
+    "status": "source"
+  },
+  "dev_legislaturekit.member_votes_are_public_the_opposite_of_ba": {
+    "source_hash": "48b324bd03d0874281fb09997178a87b5eb6d7d9ed0cf302a2bc5208b176fb54",
+    "shape": "template",
+    "file": "Pages/Dev/LegislatureKit.vue",
+    "line": 253,
+    "status": "source"
+  },
+  "dev_legislaturekit.mockup_record_4_4_speaker_broke_the_tie_f_": {
+    "source_hash": "67947149a35d33e05c9f07f5351433711dd5aa4b99ac74daca4009fdd7c2c821",
+    "shape": "template",
+    "file": "Pages/Dev/LegislatureKit.vue",
+    "line": 158,
+    "status": "source"
+  },
+  "dev_legislaturekit.motion_esm_08_current_voted": {
+    "source_hash": "dc689e82d16fa87153b94d02e096f0abe6c138f3e3c626c1f83aa8c25d01086e",
+    "shape": "template",
+    "file": "Pages/Dev/LegislatureKit.vue",
+    "line": 344,
+    "status": "source"
+  },
+  "dev_legislaturekit.none": {
+    "source_hash": "13915b13d9ae64ddbe741da3fea94afbf3f422848a695f74accf6c6fabee2f9f",
+    "shape": "template",
+    "file": "Pages/Dev/LegislatureKit.vue",
+    "line": 122,
+    "status": "source"
+  },
+  "dev_legislaturekit.nothing_on_this_page_touches_the_database_": {
+    "source_hash": "a2158908fec43dbd8c800c2328f96ed2e73020a5230df53cc3ae81255d3b98b5",
+    "shape": "template",
+    "file": "Pages/Dev/LegislatureKit.vue",
+    "line": 109,
+    "status": "source"
+  },
+  "dev_legislaturekit.petition_esm_10_current_signature_audit": {
+    "source_hash": "b50143c47928344a395ec4dc6ae2476847bc19e0f0fcf318e3e063de29a43418",
+    "shape": "template",
+    "file": "Pages/Dev/LegislatureKit.vue",
+    "line": 348,
+    "status": "source"
+  },
+  "dev_legislaturekit.quinn_avery": {
+    "source_hash": "baabe1f979b04bb7b71967c8419f476697059846ed95e3be86be654a9c801172",
+    "shape": "script:name",
+    "file": "Pages/Dev/LegislatureKit.vue",
+    "line": 75,
+    "status": "source"
+  },
+  "dev_legislaturekit.rank_every_committee_the_assignment_algori": {
+    "source_hash": "4fa91c798dcff2903b97a09b4f405e068c510475fa5e2215f2572461f2e7245d",
+    "shape": "template",
+    "file": "Pages/Dev/LegislatureKit.vue",
+    "line": 324,
+    "status": "source"
+  },
+  "dev_legislaturekit.ranklist_removable_false_committee_prefere": {
+    "source_hash": "071e910315264d0b6754158127db86a9617d264f785d114b1cf3be893803d2a2",
+    "shape": "attr:title",
+    "file": "Pages/Dev/LegislatureKit.vue",
+    "line": 318,
+    "status": "source"
+  },
+  "dev_legislaturekit.ranklist_removable_true_chips_electoral_ca": {
+    "source_hash": "5c8907a47052e795be581ba429dbb331e029b7b7be4bedef786bb74c1f459a8a",
+    "shape": "attr:title",
+    "file": "Pages/Dev/LegislatureKit.vue",
+    "line": 329,
+    "status": "source"
+  },
+  "dev_legislaturekit.renders_nothing_when_empty_shared_prop_app": {
+    "source_hash": "622adc083247ed5dda7b85840c84640719996683b87b72059dddbfe633ec2a29",
+    "shape": "template",
+    "file": "Pages/Dev/LegislatureKit.vue",
+    "line": 306,
+    "status": "source"
+  },
+  "dev_legislaturekit.rita_alvarez": {
+    "source_hash": "8bc8c0f1314b7c2f84d7eedb184537e4a4cf4b24c33140cf74ce030a5e75978e",
+    "shape": "script:name",
+    "file": "Pages/Dev/LegislatureKit.vue",
+    "line": 76,
+    "status": "source"
+  },
+  "dev_legislaturekit.seatmap_41_seat_bicameral_san_marino_shape": {
+    "source_hash": "be8ae503265f19ab9ebe3d41acbeb9a535afc15064dc2c38a7ffc5e8abcf4edb",
+    "shape": "attr:title",
+    "file": "Pages/Dev/LegislatureKit.vue",
+    "line": 133,
+    "status": "source"
+  },
+  "dev_legislaturekit.seatmap_9_seat_unicameral_mockup_chamber": {
+    "source_hash": "8b90e48aa722189994dfb13d96066c5348ef4d4ebec8f5eea8dbe233cceb95c5",
+    "shape": "attr:title",
+    "file": "Pages/Dev/LegislatureKit.vue",
+    "line": 116,
+    "status": "source"
+  },
+  "dev_legislaturekit.segments_rendered_verbatim_what_citizens_s": {
+    "source_hash": "3d8b5590583d6c0cd157d0b5ab1a71545643a895bbd24aff308770a24e3bd3f8",
+    "shape": "template",
+    "file": "Pages/Dev/LegislatureKit.vue",
+    "line": 282,
+    "status": "source"
+  },
+  "dev_legislaturekit.signaturemeter_petition_thresholds_clk_17": {
+    "source_hash": "fa61ad5cd3db85ea15716685648cdd860f97752953cdf87c431e64a26fb756cb",
+    "shape": "attr:title",
+    "file": "Pages/Dev/LegislatureKit.vue",
+    "line": 294,
+    "status": "source"
+  },
+  "dev_legislaturekit.state_machines_fe_c0_config_entries_displa": {
+    "source_hash": "98cb8355bdc6cff37514a7c3aded463872e891885a8c88c664913f78099e22ea",
+    "shape": "attr:title",
+    "file": "Pages/Dev/LegislatureKit.vue",
+    "line": 336,
+    "status": "source"
+  },
+  "dev_legislaturekit.submitted_locked_read_only": {
+    "source_hash": "c8cd63fb37ea8b26f960c7f3ef651a0f9ea33231b57fd3cfe97ad0236ea5c42f",
+    "shape": "template",
+    "file": "Pages/Dev/LegislatureKit.vue",
+    "line": 322,
+    "status": "source"
+  },
+  "dev_legislaturekit.threshold_reached": {
+    "source_hash": "558e7f2ae290393633d5b9c837a5fd81fbb3a0e088599c23d416f6d0baa6bc1b",
+    "shape": "template",
+    "file": "Pages/Dev/LegislatureKit.vue",
+    "line": 298,
+    "status": "source"
+  },
+  "dev_legislaturekit.tied_awaiting_the_speaker": {
+    "source_hash": "3c807b66f64f49e87a5638c8c1fc44d1993e88b491509cdd9de9aa83f2b0332f",
+    "shape": "template",
+    "file": "Pages/Dev/LegislatureKit.vue",
+    "line": 161,
+    "status": "source"
+  },
+  "dev_legislaturekit.tied_broken_adopted_5_4": {
+    "source_hash": "31dbfb114118c333ffa1a59fadedc53e7f63d14392c80f536a4a11cf8431a5e2",
+    "shape": "template",
+    "file": "Pages/Dev/LegislatureKit.vue",
+    "line": 172,
+    "status": "source"
+  },
+  "dev_legislaturekit.two_active_powers_one_under_judicial_revie": {
+    "source_hash": "d787e8084688ca285a7cdf4706d44023d50933dfbad345b407b1308256e4248b",
+    "shape": "template",
+    "file": "Pages/Dev/LegislatureKit.vue",
+    "line": 308,
+    "status": "source"
+  },
+  "dev_legislaturekit.two_per_kind_blocks_peg_quorum_meter_thres": {
+    "source_hash": "3a2dad1837c8b849d345c45a60acdb199ebea091332c7fa3e870d5d3f482ef9c",
+    "shape": "template",
+    "file": "Pages/Dev/LegislatureKit.vue",
+    "line": 204,
+    "status": "source"
+  },
+  "dev_legislaturekit.votecastlist_published_positions": {
+    "source_hash": "949436fbbe829301dbe33b01cf0aab6a3a71722a499571041f791750f258ef9b",
+    "shape": "attr:title",
+    "file": "Pages/Dev/LegislatureKit.vue",
+    "line": 252,
+    "status": "source"
+  },
+  "dev_legislaturekit.votecastlist_tie_break_record_grouped_kind": {
+    "source_hash": "16b374b07d285d3c8d202a91d2f509e8d2f23fe686ac3c131e1d546dff342c6d",
+    "shape": "attr:title",
+    "file": "Pages/Dev/LegislatureKit.vue",
+    "line": 256,
+    "status": "source"
+  },
+  "dev_legislaturekit.votetally_bicameral_dual_agreement_san_mar": {
+    "source_hash": "c42d174d3443cccc013bc94dc4cb89b370c02f5d8dd1f37229a3754e3074dd76",
+    "shape": "attr:title",
+    "file": "Pages/Dev/LegislatureKit.vue",
+    "line": 203,
+    "status": "source"
+  },
+  "dev_legislaturekit.votetally_casting_cluster_emit_only": {
+    "source_hash": "809e4ea250a69384594dd828e03a0e52d576fadf97d9adc38ac12f2f56aa815c",
+    "shape": "attr:title",
+    "file": "Pages/Dev/LegislatureKit.vue",
+    "line": 233,
+    "status": "source"
+  },
+  "dev_legislaturekit.votetally_committee_majority_2_of_3_all_me": {
+    "source_hash": "3767efd4ab920d4f886ac8f976276dc2f62d7e28362e67af176942abb5fdf73f",
+    "shape": "attr:title",
+    "file": "Pages/Dev/LegislatureKit.vue",
+    "line": 186,
+    "status": "source"
+  },
+  "dev_legislaturekit.votetally_tie_speaker_tie_break_9_serving_": {
+    "source_hash": "c87092a06186f3809ccbedf1b01f9628c3d1b0ccf958d055b0356aa1685ec418",
+    "shape": "attr:title",
+    "file": "Pages/Dev/LegislatureKit.vue",
+    "line": 157,
+    "status": "source"
+  },
+  "dev_legislaturekit.votetally_unicameral_threshold_classes_mon": {
+    "source_hash": "5fcaf960ea98ec69b97979c99f5fcf9ac738fb6b6816007578fcca7b8722e436",
+    "shape": "attr:title",
+    "file": "Pages/Dev/LegislatureKit.vue",
+    "line": 139,
+    "status": "source"
+  },
+  "dev_legislaturekit.yes_no_abstain_optional_explanation_publis": {
+    "source_hash": "94535e1bfaf10988dc0468abc47a131123efde20c538906ffc92984f3ed567b6",
+    "shape": "template",
+    "file": "Pages/Dev/LegislatureKit.vue",
+    "line": 234,
+    "status": "source"
+  }
+}

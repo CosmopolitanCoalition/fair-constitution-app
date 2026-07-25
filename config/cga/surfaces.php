@@ -925,6 +925,17 @@ return [
     | Both READ-ONLY BY DESIGN — zero forms, zero actions.
     */
 
+    'system/translations' => [
+        'title'     => 'Translation status',
+        'module'    => 'system',
+        'nav'       => 'translations',
+        'roles'     => [],
+        'workflows' => ['WF-SYS-03'],
+        'forms'     => [],
+        'clocks'    => [],
+        'citation'  => 'Records publish with translations · WF-SYS-03',
+    ],
+
     'system/clocks' => [
         'title'     => 'The clocks',
         'module'    => 'system',

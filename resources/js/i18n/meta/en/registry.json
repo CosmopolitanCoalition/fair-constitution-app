@@ -1,0 +1,646 @@
+{
+  "journeys.a_bill_becomes_law": {
+    "source_hash": "00a9000d5014ad8e7378da36a39dd1ac138479e63ebbc10051d7b937b39664c1",
+    "shape": "script:title",
+    "file": "registry/journeys.js",
+    "line": 50,
+    "status": "source"
+  },
+  "journeys.a_committee_session_live": {
+    "source_hash": "e59ce1d06810fb677df5f4e94b15b464822e7b4cf223c642abede168a77a061a",
+    "shape": "script:title",
+    "file": "registry/journeys.js",
+    "line": 41,
+    "status": "source"
+  },
+  "journeys.a_court_case_end_to_end": {
+    "source_hash": "afb262e2a3833b40d7dc222e54f78939b5b7eddc000f79690804b5ca43fd1888",
+    "shape": "script:title",
+    "file": "registry/journeys.js",
+    "line": 59,
+    "status": "source"
+  },
+  "journeys.a_government_creates_a_public_service": {
+    "source_hash": "60bf4d9d8c0861117b638363ab7a6ca0666443b6deea741f37bea0ca0affa65e",
+    "shape": "script:title",
+    "file": "registry/journeys.js",
+    "line": 122,
+    "status": "source"
+  },
+  "journeys.a_government_with_itself": {
+    "source_hash": "5a86ff0e3269cd38eced57d3cb3438a469783a4bc201c550759440e7290465ba",
+    "shape": "script:label",
+    "file": "registry/journeys.js",
+    "line": 21,
+    "status": "source"
+  },
+  "journeys.an_election_end_to_end": {
+    "source_hash": "82823f1aee37d68e9102e866c010701c54b5ef49cca25b2097fb4316eabe3dc1",
+    "shape": "script:title",
+    "file": "registry/journeys.js",
+    "line": 32,
+    "status": "source"
+  },
+  "journeys.an_informal_group_forms_and_meets": {
+    "source_hash": "36150575e9e3f22c1a373d86213f20a2d0bbc3ca5f4191319b717fff75dfbc78",
+    "shape": "script:title",
+    "file": "registry/journeys.js",
+    "line": 95,
+    "status": "source"
+  },
+  "journeys.asking_for_and_giving_help": {
+    "source_hash": "1d94eb38cd2ebf012b59dae71bcebaa42f581f885060c3e6eb7e71b8f22b277b",
+    "shape": "script:title",
+    "file": "registry/journeys.js",
+    "line": 104,
+    "status": "source"
+  },
+  "journeys.enacting_a_budget": {
+    "source_hash": "e9a3988d38e93876c351b7c017191bade012eec00c31386bd34b4452b1f0d333",
+    "shape": "script:title",
+    "file": "registry/journeys.js",
+    "line": 68,
+    "status": "source"
+  },
+  "journeys.from_a_petition_to_a_referendum": {
+    "source_hash": "51a00c2f958fd8702e4891cf1f9173e74b80a553c170c0c45ce603556e26d636",
+    "shape": "script:title",
+    "file": "registry/journeys.js",
+    "line": 113,
+    "status": "source"
+  },
+  "journeys.government_with_organizations_people": {
+    "source_hash": "87dfea1fe89e54bc48cb6f337f500b4fd4d5e345e467a42f0b3873a2b785dfd2",
+    "shape": "script:label",
+    "file": "registry/journeys.js",
+    "line": 23,
+    "status": "source"
+  },
+  "journeys.governments_with_each_other": {
+    "source_hash": "d8d4211731f1e8c01cb2c8edb4905917bed722325f569b2c6b7e40bc08b613c4",
+    "shape": "script:label",
+    "file": "registry/journeys.js",
+    "line": 22,
+    "status": "source"
+  },
+  "journeys.holding_a_board_meeting": {
+    "source_hash": "d5d9ea85172cb8956e89885edd6bebb9dd85b61df3f360391490419776666336",
+    "shape": "script:title",
+    "file": "registry/journeys.js",
+    "line": 86,
+    "status": "source"
+  },
+  "journeys.organizations_people": {
+    "source_hash": "f6ab62393a58863eb259e55edf2b98e9d373ba16c7c913bf9564f23017926e6e",
+    "shape": "script:label",
+    "file": "registry/journeys.js",
+    "line": 20,
+    "status": "source"
+  },
+  "journeys.people_together": {
+    "source_hash": "bc289a3aa5e9c5bb9920f68e08328bed68f2a5bae1df90d3d6f3cc0c83a5c78a",
+    "shape": "script:label",
+    "file": "registry/journeys.js",
+    "line": 19,
+    "status": "source"
+  },
+  "journeys.starting_an_organization": {
+    "source_hash": "2efc83bed89e4d26cad55ed1e6b5291bd8bece9320e05578bc95e535ff51e53d",
+    "shape": "script:title",
+    "file": "registry/journeys.js",
+    "line": 77,
+    "status": "source"
+  },
+  "journeys.the_money_between_a_person_and_their_gover": {
+    "source_hash": "7cf0e1c3aba59c439f243018b02575ca304c9ca72044e041eb0f0fa75a343457",
+    "shape": "script:title",
+    "file": "registry/journeys.js",
+    "line": 131,
+    "status": "source"
+  },
+  "journeys.two_governments_meet_trade_and_merge": {
+    "source_hash": "32c437527b8b2544b808879aca0c41bb2824118d21d76d9ea86dd40597e807df",
+    "shape": "script:title",
+    "file": "registry/journeys.js",
+    "line": 140,
+    "status": "source"
+  },
+  "surfaces.a_juror_s_view": {
+    "source_hash": "d9acd455c143948ec0b62c105fa3bff40ae16a6e466a1e074dbf3e8df2512369",
+    "shape": "script:label",
+    "file": "registry/surfaces.js",
+    "line": 91,
+    "status": "source"
+  },
+  "surfaces.a_place_s_chamber": {
+    "source_hash": "c726f1e09d49c18b6e1ec455caec50bb5549a4bb6ec01f9782ca5878503e55f0",
+    "shape": "script:title",
+    "file": "registry/surfaces.js",
+    "line": 69,
+    "status": "source"
+  },
+  "surfaces.a_place_s_courts": {
+    "source_hash": "cecd41311f5859186a365b40ecaf7ebdcd159b6e2f9e966c7b23bac23d67f725",
+    "shape": "script:title",
+    "file": "registry/surfaces.js",
+    "line": 86,
+    "status": "source"
+  },
+  "surfaces.a_place_s_elections": {
+    "source_hash": "de3cde6c49945e6cb253d6818ca5262766d42bdec07b4d699df2dabc3eb35a4a",
+    "shape": "script:title",
+    "file": "registry/surfaces.js",
+    "line": 60,
+    "status": "source"
+  },
+  "surfaces.a_place_s_executive": {
+    "source_hash": "9c10035583680982fafc29690ebd711536dbbb322a15c5db855f3afbe66bcf8b",
+    "shape": "script:title",
+    "file": "registry/surfaces.js",
+    "line": 80,
+    "status": "source"
+  },
+  "surfaces.an_election": {
+    "source_hash": "d6de8645fd672a339b21c7d27d77a546e40991753555a7886b9ea77a6ca62d75",
+    "shape": "script:label",
+    "file": "registry/surfaces.js",
+    "line": 62,
+    "status": "source"
+  },
+  "surfaces.between_governments": {
+    "source_hash": "685155b08279b158decd7e093056707f8e617c41f025d8d20e028e60e9849f34",
+    "shape": "script:label",
+    "file": "registry/surfaces.js",
+    "line": 107,
+    "status": "source"
+  },
+  "surfaces.board_elections": {
+    "source_hash": "9ced3a9f435bd44ed196379517a91a8e5b3b088de34e7ef4fba960bbb163aec8",
+    "shape": "script:label",
+    "file": "registry/surfaces.js",
+    "line": 97,
+    "status": "source"
+  },
+  "surfaces.challenge_a_law": {
+    "source_hash": "661a0e0e179d4f6bae0e11767bb551bb04a9813a2a729288b6bde8d065f12fe3",
+    "shape": "script:label",
+    "file": "registry/surfaces.js",
+    "line": 89,
+    "status": "source"
+  },
+  "surfaces.create_your_account": {
+    "source_hash": "9e709348f582d44e3d8d788901a58db9ee74b37fb0f317af7daac5a0b4c9f97a",
+    "shape": "script:label",
+    "file": "registry/surfaces.js",
+    "line": 54,
+    "status": "source"
+  },
+  "surfaces.department_reporting": {
+    "source_hash": "45dd8968431feef4ca4a6e1d22f49169c9a083929c1118f7a2f146a6646f5b5f",
+    "shape": "script:label",
+    "file": "registry/surfaces.js",
+    "line": 84,
+    "status": "source"
+  },
+  "surfaces.emergency_powers": {
+    "source_hash": "b37da6ca959d6d1d16db98bac1acd601a0b8b08bcbc12f45938525c4f04c1d18",
+    "shape": "script:label",
+    "file": "registry/surfaces.js",
+    "line": 74,
+    "status": "source"
+  },
+  "surfaces.ethics_removals": {
+    "source_hash": "bc40a8dd390cf7998513dde00fcec4551da54fbe75df647d71d20cd3cfe56578",
+    "shape": "script:label",
+    "file": "registry/surfaces.js",
+    "line": 75,
+    "status": "source"
+  },
+  "surfaces.executive_actions": {
+    "source_hash": "85365f2a37d151bf34a27d10c629ca50c2ab136d730a44070bfacd80317a9ab2",
+    "shape": "script:label",
+    "file": "registry/surfaces.js",
+    "line": 83,
+    "status": "source"
+  },
+  "surfaces.federation_legacy": {
+    "source_hash": "5fe855e86eac9b8cea0443fcf150fcdd8f24be5c7a962fce19909f57b5a43b29",
+    "shape": "script:label",
+    "file": "registry/surfaces.js",
+    "line": 136,
+    "status": "source"
+  },
+  "surfaces.filling_an_empty_seat": {
+    "source_hash": "a6f84ed3a69a8902e785c68de5239d6d9da395a8a9666eb7d95433690142872d",
+    "shape": "script:label",
+    "file": "registry/surfaces.js",
+    "line": 66,
+    "status": "source"
+  },
+  "surfaces.found_the_instance": {
+    "source_hash": "d6445246b3729ca0d065dd87d4c8cbb46040808cffee65d536f8a5c63f2cea77",
+    "shape": "script:label",
+    "file": "registry/surfaces.js",
+    "line": 128,
+    "status": "source"
+  },
+  "surfaces.guided_tour": {
+    "source_hash": "06938153048d6d0081649439e4d4f36455a7033e444858186b9131716a546b46",
+    "shape": "script:label",
+    "file": "registry/surfaces.js",
+    "line": 36,
+    "status": "source"
+  },
+  "surfaces.learn_help": {
+    "source_hash": "bfa7e874e435c895113dc3ff27b4fd48bd64aa0f56d3d9d4041f671eaa40e58b",
+    "shape": "script:label",
+    "file": "registry/surfaces.js",
+    "line": 34,
+    "status": "source"
+  },
+  "surfaces.learn_lessons": {
+    "source_hash": "8462f159aac38991fd157dd0544fd629866ff1e2987af197c4857c574588418e",
+    "shape": "script:label",
+    "file": "registry/surfaces.js",
+    "line": 116,
+    "status": "source"
+  },
+  "surfaces.legislatures_districts": {
+    "source_hash": "e88bfc402c99ba9be225955952663d50ed4e7f6f00cde4ab342c2eead0348caf",
+    "shape": "script:label",
+    "file": "registry/surfaces.js",
+    "line": 101,
+    "status": "source"
+  },
+  "surfaces.live_halls": {
+    "source_hash": "3abc5793533661616cb7ba8fd452f2e75516783d68d1bbc4da7e4d45d8d825b6",
+    "shape": "script:label",
+    "file": "registry/surfaces.js",
+    "line": 48,
+    "status": "source"
+  },
+  "surfaces.live_rooms": {
+    "source_hash": "c25ea0dbef11cccd522cc130b48aeedff771675a0cf337733743ef4d54b78389",
+    "shape": "script:label",
+    "file": "registry/surfaces.js",
+    "line": 29,
+    "status": "source"
+  },
+  "surfaces.market_planned": {
+    "source_hash": "26fa8ba938349d506910b0340adeef18ab02b6731c71781124dcdef3401639fb",
+    "shape": "script:title",
+    "file": "registry/surfaces.js",
+    "line": 109,
+    "status": "source"
+  },
+  "surfaces.me_my_account": {
+    "source_hash": "adc12a6524f701930e4134ea48e43750bc224207d44857613b78f4002b5eb89d",
+    "shape": "script:title",
+    "file": "registry/surfaces.js",
+    "line": 52,
+    "status": "source"
+  },
+  "surfaces.merge_places_into_a_union": {
+    "source_hash": "e987316cab18eba686b6aa414eacd7271f5416ad3b6691349599f7cebb79b449",
+    "shape": "script:label",
+    "file": "registry/surfaces.js",
+    "line": 104,
+    "status": "source"
+  },
+  "surfaces.mesh_peers": {
+    "source_hash": "f91f90fd5abeebdf4f3bad5634968a52ec6985c8160c66f9f9a94d1e0c261dbf",
+    "shape": "script:label",
+    "file": "registry/surfaces.js",
+    "line": 132,
+    "status": "source"
+  },
+  "surfaces.move_somewhere_new": {
+    "source_hash": "f4bd2fc3e5bcbde1f9d2637ca93bbbe12c79b399f312e90e8f86591edf2f48b7",
+    "shape": "script:label",
+    "file": "registry/surfaces.js",
+    "line": 56,
+    "status": "source"
+  },
+  "surfaces.my_profile": {
+    "source_hash": "271c62fa2debe2d239cfed40bca3d49c597278684e7fe16618e863b7fc161c89",
+    "shape": "script:label",
+    "file": "registry/surfaces.js",
+    "line": 32,
+    "status": "source"
+  },
+  "surfaces.my_record": {
+    "source_hash": "f2298f5871da1f437335299dc272b62cc6d9ac29d86bc1ff240c9342a1104a3e",
+    "shape": "script:label",
+    "file": "registry/surfaces.js",
+    "line": 57,
+    "status": "source"
+  },
+  "surfaces.my_wallet": {
+    "source_hash": "b40423db0461634c09d95e6689b8324bff325a111b8e07797b2f47117b15286d",
+    "shape": "script:label",
+    "file": "registry/surfaces.js",
+    "line": 111,
+    "status": "source"
+  },
+  "surfaces.open_ballot": {
+    "source_hash": "c1555c6386685d22ff7160f69321fb1977deeb44691762c7b1d895c3ffc6b796",
+    "shape": "script:label",
+    "file": "registry/surfaces.js",
+    "line": 63,
+    "status": "source"
+  },
+  "surfaces.operations_legacy_console": {
+    "source_hash": "b013d3dacb9acc244c648ad60731d08226cb524a5acc87e936cdc4dfb38db323",
+    "shape": "script:label",
+    "file": "registry/surfaces.js",
+    "line": 135,
+    "status": "source"
+  },
+  "surfaces.ownership_changes": {
+    "source_hash": "022a63d03f1c6cf890eb57c1f752855e7ba8b56e25d8aab5495a569f245569e7",
+    "shape": "script:label",
+    "file": "registry/surfaces.js",
+    "line": 96,
+    "status": "source"
+  },
+  "surfaces.places_their_processes": {
+    "source_hash": "4fe3aeaa1d3e7917a9f71719c3d28e6194d7322a9b1c402041b0127962ff30b4",
+    "shape": "script:title",
+    "file": "registry/surfaces.js",
+    "line": 99,
+    "status": "source"
+  },
+  "surfaces.private_rooms_messages": {
+    "source_hash": "fc432d51ecfc92cebff891c5690f8bd10466fe7e344cb00733d0953111817c50",
+    "shape": "script:label",
+    "file": "registry/surfaces.js",
+    "line": 49,
+    "status": "source"
+  },
+  "surfaces.public_finance": {
+    "source_hash": "a99067a29dfdb1acecd597b190eaad46ba82273cf4efdf8ab29c8c5c0fdcba58",
+    "shape": "script:label",
+    "file": "registry/surfaces.js",
+    "line": 113,
+    "status": "source"
+  },
+  "surfaces.public_records": {
+    "source_hash": "eedfd56ac16a3b91b64b2752569440bd9389bc5166b7b7d547c4d4c8d11bbb0a",
+    "shape": "script:label",
+    "file": "registry/surfaces.js",
+    "line": 121,
+    "status": "source"
+  },
+  "surfaces.ranked_ballot": {
+    "source_hash": "0a06b76d04418d99bcd14ad4d136b753b3869b25d143dc996cb7ae007d0968ef",
+    "shape": "script:label",
+    "file": "registry/surfaces.js",
+    "line": 64,
+    "status": "source"
+  },
+  "surfaces.rebuild_a_lost_government": {
+    "source_hash": "88113e80661e673354cde7c6da1d68ca785d30964a0b0cb10ee4a122a93b2d78",
+    "shape": "script:label",
+    "file": "registry/surfaces.js",
+    "line": 106,
+    "status": "source"
+  },
+  "surfaces.records_the_clock": {
+    "source_hash": "b1a006594e93352ef1185b5427c51da065fe956c885e71cb928092ed916437d1",
+    "shape": "script:title",
+    "file": "registry/surfaces.js",
+    "line": 120,
+    "status": "source"
+  },
+  "surfaces.remove_a_middle_layer": {
+    "source_hash": "04a09509f59fd51e7ae6dcc72ac08d0a872f5964bbd9e62d6c40c6abf5239aca",
+    "shape": "script:label",
+    "file": "registry/surfaces.js",
+    "line": 105,
+    "status": "source"
+  },
+  "surfaces.report_an_issue": {
+    "source_hash": "635ae219ad13dc7102f5c3238921479a443419e1d7ef03ebcaafefbf53e1e47e",
+    "shape": "script:label",
+    "file": "registry/surfaces.js",
+    "line": 117,
+    "status": "source"
+  },
+  "surfaces.roles_channels": {
+    "source_hash": "59d450e63d0037894e8525f28c556bc4656299f4d8bb0367c61cd00b948a7c43",
+    "shape": "script:label",
+    "file": "registry/surfaces.js",
+    "line": 131,
+    "status": "source"
+  },
+  "surfaces.rooms_the_square": {
+    "source_hash": "26723606a5d19e06bf8a60ed260814402566cf449d8e34ac401cc7c6b6eff418",
+    "shape": "script:title",
+    "file": "registry/surfaces.js",
+    "line": 44,
+    "status": "source"
+  },
+  "surfaces.run_a_node": {
+    "source_hash": "37a70eebd3a95d53d28fce57b38280566070eaa8ccf59abac306425f23c43758",
+    "shape": "script:title",
+    "file": "registry/surfaces.js",
+    "line": 127,
+    "status": "source"
+  },
+  "surfaces.run_a_session_speaker": {
+    "source_hash": "eb9891c6d3796bf06fd83472af32201d971599b2badf0fffd65c021c8f0a37ab",
+    "shape": "script:label",
+    "file": "registry/surfaces.js",
+    "line": 76,
+    "status": "source"
+  },
+  "surfaces.say_where_you_live": {
+    "source_hash": "69452e3fd8b4e41dcb60bcf80d1030b8f286d3de3f520b5f738fa86210732e48",
+    "shape": "script:label",
+    "file": "registry/surfaces.js",
+    "line": 55,
+    "status": "source"
+  },
+  "surfaces.stand_for_office": {
+    "source_hash": "c768a06fb951ab4ccdb51ec49fe4e9458824a2a053688aa16c80111c242de1d5",
+    "shape": "script:label",
+    "file": "registry/surfaces.js",
+    "line": 61,
+    "status": "source"
+  },
+  "surfaces.terms_end_together": {
+    "source_hash": "b3b2c4b207db7443380f7bc0975272b1e4514c69331c9805cb56d3463b25d60b",
+    "shape": "script:label",
+    "file": "registry/surfaces.js",
+    "line": 124,
+    "status": "source"
+  },
+  "surfaces.the_advocate_console": {
+    "source_hash": "d186d7a23570b0ccb07a65c7510a84ede0b97ce376e84930673a614ee0ca36a7",
+    "shape": "script:label",
+    "file": "registry/surfaces.js",
+    "line": 90,
+    "status": "source"
+  },
+  "surfaces.the_atlas": {
+    "source_hash": "f4d78d0482b4453ececb0eab321fe01d0a2eb1925e5d9cf8aae198db9fac5b71",
+    "shape": "script:label",
+    "file": "registry/surfaces.js",
+    "line": 26,
+    "status": "source"
+  },
+  "surfaces.the_audit_chain": {
+    "source_hash": "a14ce8edb7d04c796556a7462330f7e289977c20e8aca99e52eba5ae7abef5d9",
+    "shape": "script:label",
+    "file": "registry/surfaces.js",
+    "line": 122,
+    "status": "source"
+  },
+  "surfaces.the_chamber": {
+    "source_hash": "0af6c16bb43bbd80679139627162c3b233a8bc738148916c443be2ee93f71743",
+    "shape": "script:label",
+    "file": "registry/surfaces.js",
+    "line": 70,
+    "status": "source"
+  },
+  "surfaces.the_chamber_s_rules": {
+    "source_hash": "d6081530f8fd2d69cb8948c77352108081b0c6d91250a9da2d23069efcaf358c",
+    "shape": "script:label",
+    "file": "registry/surfaces.js",
+    "line": 78,
+    "status": "source"
+  },
+  "surfaces.the_civic_stipend": {
+    "source_hash": "046d8898f739e9de2598fd5ab8ac9bd2025f2e5c38aaf2a0cece088c05ed615e",
+    "shape": "script:label",
+    "file": "registry/surfaces.js",
+    "line": 112,
+    "status": "source"
+  },
+  "surfaces.the_clocks": {
+    "source_hash": "af01463c99b4872f16727d93f3d8322e10e0f4567509e0f8da7c8e13203cf4fd",
+    "shape": "script:label",
+    "file": "registry/surfaces.js",
+    "line": 125,
+    "status": "source"
+  },
+  "surfaces.the_console": {
+    "source_hash": "a6edf2e71ac9d79cc08643ba77207620a2872c9a5d33c7f06e6ef405064872ee",
+    "shape": "script:label",
+    "file": "registry/surfaces.js",
+    "line": 130,
+    "status": "source"
+  },
+  "surfaces.the_courts": {
+    "source_hash": "c4039344721610016311641291868eaced44517f63c10cf7aba54f770044d9aa",
+    "shape": "script:label",
+    "file": "registry/surfaces.js",
+    "line": 88,
+    "status": "source"
+  },
+  "surfaces.the_docket": {
+    "source_hash": "61153701240c096e9f9bccb971ec21198377eedbe0d3e2fd2eee91facd0c5182",
+    "shape": "script:label",
+    "file": "registry/surfaces.js",
+    "line": 87,
+    "status": "source"
+  },
+  "surfaces.the_election_board": {
+    "source_hash": "b5132bb36ffbc60af5a2de10c77bf54a6083008b4158ea6390c40a37a7cd2f11",
+    "shape": "script:label",
+    "file": "registry/surfaces.js",
+    "line": 67,
+    "status": "source"
+  },
+  "surfaces.the_executive": {
+    "source_hash": "0259bc362085d91fde792741fc9c7d3794ab51ff7158a54dcb6b976a42dd5c9b",
+    "shape": "script:label",
+    "file": "registry/surfaces.js",
+    "line": 81,
+    "status": "source"
+  },
+  "surfaces.the_halls_testimony": {
+    "source_hash": "100a91a12abc088e3180cbc016cfed647b7dbc26a287a5f3f5a3dcba32936716",
+    "shape": "script:label",
+    "file": "registry/surfaces.js",
+    "line": 46,
+    "status": "source"
+  },
+  "surfaces.the_live_square": {
+    "source_hash": "105021bb239671a1f8bf1fcaaa8a88919d1d70fed9dc9e0d2a1bf666761ee466",
+    "shape": "script:label",
+    "file": "registry/surfaces.js",
+    "line": 47,
+    "status": "source"
+  },
+  "surfaces.the_open_market": {
+    "source_hash": "83dba0864e55650804f3a4fd5f120726cf9fc35af8d2763bf819ac940753bacf",
+    "shape": "script:label",
+    "file": "registry/surfaces.js",
+    "line": 110,
+    "status": "source"
+  },
+  "surfaces.the_operator_plane": {
+    "source_hash": "66843793d5b39b5208114fe7520ba4c7908e34b9cb79863b6227dd1d35ab80a7",
+    "shape": "script:label",
+    "file": "registry/surfaces.js",
+    "line": 129,
+    "status": "source"
+  },
+  "surfaces.the_public_square": {
+    "source_hash": "57761c5c264d780d8dd8ae2aa7cda560b6ebc27d2e0d77278f644fa3b8b0c250",
+    "shape": "script:label",
+    "file": "registry/surfaces.js",
+    "line": 45,
+    "status": "source"
+  },
+  "surfaces.the_registry": {
+    "source_hash": "18b96183fd4c449ce3140efe7e26a4fe11339dc5f0776fc3c3409a5b724603e4",
+    "shape": "script:label",
+    "file": "registry/surfaces.js",
+    "line": 94,
+    "status": "source"
+  },
+  "surfaces.the_speaker": {
+    "source_hash": "8284987431da7c6949bddf8f42fe0fd9fd4478f21ecb2894952ccba2f592c88e",
+    "shape": "script:label",
+    "file": "registry/surfaces.js",
+    "line": 77,
+    "status": "source"
+  },
+  "surfaces.the_square": {
+    "source_hash": "8d4e9a9f0e70adf0822c4a71218379c12d072272a1d52c80d68077db35a999e9",
+    "shape": "script:label",
+    "file": "registry/surfaces.js",
+    "line": 27,
+    "status": "source"
+  },
+  "surfaces.versions_upgrades": {
+    "source_hash": "dc420264e03000f9d2140ae1c0b04becfa2ccfcd0c5d9f13fa1745da563e6fcc",
+    "shape": "script:label",
+    "file": "registry/surfaces.js",
+    "line": 134,
+    "status": "source"
+  },
+  "surfaces.wake_a_place_up": {
+    "source_hash": "18a5ede5c12f76d11c48d415250770e869bc434a4f1ca675769f5bc218bfe6d7",
+    "shape": "script:label",
+    "file": "registry/surfaces.js",
+    "line": 103,
+    "status": "source"
+  },
+  "surfaces.worker_seats_on_the_board": {
+    "source_hash": "356d40c139f1aae84804ddafbd21800233878352b0fd3cb4078ac6e86a8cd5c3",
+    "shape": "script:label",
+    "file": "registry/surfaces.js",
+    "line": 95,
+    "status": "source"
+  },
+  "surfaces.you_re_invited_arrival": {
+    "source_hash": "7fca0c21ca9796d3dfac8a9d706fa4b9a7325e16759bc0b372bbc99ac9018323",
+    "shape": "script:label",
+    "file": "registry/surfaces.js",
+    "line": 53,
+    "status": "source"
+  }
+}

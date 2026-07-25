@@ -1,0 +1,191 @@
+{
+  "organizations_boardstrip.board_composition_does_not_match_the_scale": {
+    "source_hash": "df239a0608a231060f33fe319c1f0b61d0aa857e62f24b4b4519cf905d086f6c",
+    "shape": "attr:title",
+    "file": "Components/Organizations/BoardStrip.vue",
+    "line": 125,
+    "status": "source"
+  },
+  "organizations_boardstrip.board_roster_governors_on_10_yr_clk_09_civ": {
+    "source_hash": "535ce1bcae7fd1c087045c9f7352675c1fc29c63d0648b6c2786a1ddda373ba2",
+    "shape": "attr:caption",
+    "file": "Components/Organizations/BoardStrip.vue",
+    "line": 140,
+    "status": "source"
+  },
+  "organizations_boardstrip.legend_solid_pip_owner_side_seat_blue_pip_": {
+    "source_hash": "0203001e76e1e7ca089d4cd5a79606bcb8f5bca1164fa5e3663f4129e1b8f795",
+    "shape": "template",
+    "file": "Components/Organizations/BoardStrip.vue",
+    "line": 119,
+    "status": "source"
+  },
+  "organizations_boardstrip.nominated_consent_pending": {
+    "source_hash": "057acdea48fa71ddd4a047a0f5deda87d48594cd7b092bab2c3ef8582155c7d2",
+    "shape": "script:text",
+    "file": "Components/Organizations/BoardStrip.vue",
+    "line": 72,
+    "status": "source"
+  },
+  "organizations_boardstrip.owner_side_worker_elected_chair": {
+    "source_hash": "bf384da2fda787fb17e557df57cca203d574f413f09a0de185354d8cdfeaa5e7",
+    "shape": "template",
+    "file": "Components/Organizations/BoardStrip.vue",
+    "line": 115,
+    "status": "source"
+  },
+  "organizations_boardstrip.removal_requested": {
+    "source_hash": "f7265c10450aae9f4ad119c21dbeaa3f898e9f99173df241a8628e3c8b1eb721",
+    "shape": "script:text",
+    "file": "Components/Organizations/BoardStrip.vue",
+    "line": 74,
+    "status": "source"
+  },
+  "organizations_boardstrip.serving_worker_class": {
+    "source_hash": "bafecd56e7df076a0e8442228456093967dd1edfd4d0fe115bb24f088e3bb563",
+    "shape": "script:text",
+    "file": "Components/Organizations/BoardStrip.vue",
+    "line": 69,
+    "status": "source"
+  },
+  "organizations_boardstrip.term_ended": {
+    "source_hash": "02da84b136320998eda4ef6f9adc94731c00d5cd796f8949a09c69ebedbc992e",
+    "shape": "script:text",
+    "file": "Components/Organizations/BoardStrip.vue",
+    "line": 78,
+    "status": "source"
+  },
+  "organizations_boardstrip.term_expiring_renomination_open": {
+    "source_hash": "62f2c3dec0af55953deef5d0ec6acc6293d64c577d9f308a607dd01aad9010ec",
+    "shape": "script:text",
+    "file": "Components/Organizations/BoardStrip.vue",
+    "line": 65,
+    "status": "source"
+  },
+  "organizations_boardstrip.vacant": {
+    "source_hash": "55b92f58c474944d461095d20ff11b4e8eec515d9ff4bf08b7e6215a87533f0f",
+    "shape": "template",
+    "file": "Components/Organizations/BoardStrip.vue",
+    "line": 144,
+    "status": "source"
+  },
+  "organizations_codetscale.0_first_worker_seat_clk_13_parity_clk_14": {
+    "source_hash": "e7f2c80b11a238dd1767868954d4545407851ad38e7830b9d4c3989ed50c9af6",
+    "shape": "template",
+    "file": "Components/Organizations/CoDetScale.vue",
+    "line": 172,
+    "status": "source"
+  },
+  "organizations_codetscale.next_seat_at_workers_projection": {
+    "source_hash": "5b33f5420cf6124821d75c59467def256c74d32e05e1fdc2e14afd85ac27e6eb",
+    "shape": "template",
+    "file": "Components/Organizations/CoDetScale.vue",
+    "line": 186,
+    "status": "source"
+  },
+  "organizations_codetscale.owner_elected_seats_r_26": {
+    "source_hash": "0fe2b6fb7ec6f6d11853cb1a043ab70381ae17c8f16559cd095d59cb6ed567eb",
+    "shape": "attr:label",
+    "file": "Components/Organizations/CoDetScale.vue",
+    "line": 183,
+    "status": "source"
+  },
+  "organizations_codetscale.parity_worker_seats_equal_owner_seats_clk_": {
+    "source_hash": "10236d4b3b88efc8fc9d5d9dafb7c98ac685d94b3c8f645a5d560051ccaf6271",
+    "shape": "script:text",
+    "file": "Components/Organizations/CoDetScale.vue",
+    "line": 109,
+    "status": "source"
+  },
+  "organizations_codetscale.projection_the_engine_recomputes_on_real_h": {
+    "source_hash": "4931aa67a7d1196d6100ba31823eae5c5b4e8d9e98e5fa3ed593869bcc628438",
+    "shape": "template",
+    "file": "Components/Organizations/CoDetScale.vue",
+    "line": 196,
+    "status": "source"
+  },
+  "organizations_codetscale.reset_to_live_workers_seats": {
+    "source_hash": "f206d53dde6b8e6d83e9bd371417908e8085c5cf7db5f4775db1c9a73f96057c",
+    "shape": "template",
+    "file": "Components/Organizations/CoDetScale.vue",
+    "line": 199,
+    "status": "source"
+  },
+  "organizations_codetscale.scales_uniformly_between_the_first_seat_an": {
+    "source_hash": "f6907d575942ca1c92b4d5dd1dbc5a0e5eea3d24da116133015618a943d3a03c",
+    "shape": "template",
+    "file": "Components/Organizations/CoDetScale.vue",
+    "line": 209,
+    "status": "source"
+  },
+  "organizations_codetscale.scaling_between_clk_13_and_clk_14": {
+    "source_hash": "3b09636bc0a35add414b59a3057db883d5dd43abd50c89a99b88c6faf77a1ddd",
+    "shape": "script:text",
+    "file": "Components/Organizations/CoDetScale.vue",
+    "line": 111,
+    "status": "source"
+  },
+  "organizations_codetscale.worker_elected_seats_r_27": {
+    "source_hash": "c45122d089e8a47b610d01a56f727d7ac29676a9580ef2f0a2009899247864ff",
+    "shape": "attr:label",
+    "file": "Components/Organizations/CoDetScale.vue",
+    "line": 182,
+    "status": "source"
+  },
+  "organizations_codetscale.worker_headcount_explorer": {
+    "source_hash": "3e2cf7f4e4321238ed575358671e2e16e932df1cd0b8339e43a6512eee434ae5",
+    "shape": "template",
+    "file": "Components/Organizations/CoDetScale.vue",
+    "line": 141,
+    "status": "source"
+  },
+  "organizations_codetscale.workers_against_owner_side_seats": {
+    "source_hash": "c866acf61eed1b70bc8caee4cd39a2dde1c2635d60bf2f776574f8d8cc5eb89e",
+    "shape": "template",
+    "file": "Components/Organizations/CoDetScale.vue",
+    "line": 134,
+    "status": "source"
+  },
+  "organizations_codetscale.workers_r_25": {
+    "source_hash": "2363b9f49af2e40d340bd471eb265fe31dadf75abb8af657a816bdac5c07cfdf",
+    "shape": "attr:label",
+    "file": "Components/Organizations/CoDetScale.vue",
+    "line": 181,
+    "status": "source"
+  },
+  "organizations_ownershippanel.art_iii_5_6_as_implemented_ledger_12": {
+    "source_hash": "ca4eb03c067c817e03aad5367865bfd89d2c50c62f3aed2026a89cd7fdb5c14e",
+    "shape": "template",
+    "file": "Components/Organizations/OwnershipPanel.vue",
+    "line": 88,
+    "status": "source"
+  },
+  "organizations_ownershippanel.in_a_common_good_corporation_the_board_of_": {
+    "source_hash": "f2ddb3ae8fa1743f2981e93bc6aefeb09b929f40b5c8dc3b42e534d7ca16da7b",
+    "shape": "template",
+    "file": "Components/Organizations/OwnershipPanel.vue",
+    "line": 84,
+    "status": "source"
+  },
+  "organizations_ownershippanel.no_ownership_stakes_on_record_for_this_str": {
+    "source_hash": "c3240794f419a67781761e1f17a12c06907f2e37a3d79fb73f69471cf0fdffd2",
+    "shape": "template",
+    "file": "Components/Organizations/OwnershipPanel.vue",
+    "line": 111,
+    "status": "source"
+  },
+  "organizations_ownershippanel.ownership_stakes": {
+    "source_hash": "809e79a408ce933762d162963dcc5d7f4908bb46882a2bcd7057b40357ddb175",
+    "shape": "attr:caption",
+    "file": "Components/Organizations/OwnershipPanel.vue",
+    "line": 101,
+    "status": "source"
+  },
+  "organizations_ownershippanel.structure_history_preserved_append_only_re": {
+    "source_hash": "5ce78dfbec82a93752d4645931e24fbb35c5298ab46b09dcba69e62c75369433",
+    "shape": "template",
+    "file": "Components/Organizations/OwnershipPanel.vue",
+    "line": 114,
+    "status": "source"
+  }
+}

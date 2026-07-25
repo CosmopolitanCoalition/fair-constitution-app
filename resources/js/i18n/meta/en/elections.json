@@ -1,0 +1,2326 @@
+{
+  "elections_boardconsole.available_to_r_08_prereq_f_ind_011_submitt": {
+    "source_hash": "8a792385be831be413282b27f66c9a0f85db11f493140979f758763a5c6cb38c",
+    "shape": "template",
+    "file": "Pages/Elections/BoardConsole.vue",
+    "line": 290,
+    "status": "source"
+  },
+  "elections_boardconsole.available_to_r_08_prereq_legislature_seat_": {
+    "source_hash": "646feebd5aa81157779870c18c3a833334573a2b0b0c7a8d05b99b4b2595f8af",
+    "shape": "template",
+    "file": "Pages/Elections/BoardConsole.vue",
+    "line": 351,
+    "status": "source"
+  },
+  "elections_boardconsole.available_to_r_08_prereq_petition_at_thres": {
+    "source_hash": "5badfd15f33ab1bfdebf6108510e76d6a5c3d33680bf51a2bf039039db3ffbe6",
+    "shape": "template",
+    "file": "Pages/Elections/BoardConsole.vue",
+    "line": 464,
+    "status": "source"
+  },
+  "elections_boardconsole.available_to_r_08_prereq_voting_closed_tab": {
+    "source_hash": "3233957ea5f298c5fac61a3a4a480551bf833bdeafda15c1e7d040ad5a8f2bb3",
+    "shape": "template",
+    "file": "Pages/Elections/BoardConsole.vue",
+    "line": 390,
+    "status": "source"
+  },
+  "elections_boardconsole.bootstrap_election_board_temporary_replace": {
+    "source_hash": "87fdb638be79ee4027ec7edf568e5088679351ad0a3a9689cbae54855175af1d",
+    "shape": "attr:title",
+    "file": "Pages/Elections/BoardConsole.vue",
+    "line": 178,
+    "status": "source"
+  },
+  "elections_boardconsole.bootstrap_variant_a_bootstrap_board_admini": {
+    "source_hash": "75c6fadd6abff1daab5e3355627219db30c5cee039dfc77a4b5a51a36890d8f7",
+    "shape": "template",
+    "file": "Pages/Elections/BoardConsole.vue",
+    "line": 515,
+    "status": "source"
+  },
+  "elections_boardconsole.cause_for_the_audit_re_run_required": {
+    "source_hash": "cc02539d356ab24ada5b7afff24fe87601185f84a223e69a1e1e21d4f17e774f",
+    "shape": "template",
+    "file": "Pages/Elections/BoardConsole.vue",
+    "line": 434,
+    "status": "source"
+  },
+  "elections_boardconsole.certification_election_results_certificati": {
+    "source_hash": "1cf67a8965075b82ddb09013acffda3263a9be99e07912110d1d11c9a684a63f",
+    "shape": "template",
+    "file": "Pages/Elections/BoardConsole.vue",
+    "line": 385,
+    "status": "source"
+  },
+  "elections_boardconsole.certified_winners_granted_roles": {
+    "source_hash": "4bd58021ff482b54edddb812095edc82a6c525629a96d358d83555ca7c8ab8d3",
+    "shape": "template",
+    "file": "Pages/Elections/BoardConsole.vue",
+    "line": 403,
+    "status": "source"
+  },
+  "elections_boardconsole.certify_results": {
+    "source_hash": "266def02382a1813ba6ad8aaa0044821ca8a879b8449847925860b36d0392d50",
+    "shape": "template",
+    "file": "Pages/Elections/BoardConsole.vue",
+    "line": 405,
+    "status": "source"
+  },
+  "elections_boardconsole.confirm_recount_order": {
+    "source_hash": "0d5011d50c9fb72eeda5b028881f4cdffa76e76d39907bc8ed802801b9ed5904",
+    "shape": "template",
+    "file": "Pages/Elections/BoardConsole.vue",
+    "line": 438,
+    "status": "source"
+  },
+  "elections_boardconsole.contiguous_equal_subdivisions_art_ii_8": {
+    "source_hash": "dcab6a62c621110304aacf051def02b8ba2ef199ae93ab9ae25cc5e9ad1ed3ce",
+    "shape": "template",
+    "file": "Pages/Elections/BoardConsole.vue",
+    "line": 379,
+    "status": "source"
+  },
+  "elections_boardconsole.countbacks_running": {
+    "source_hash": "999632fbff029ec94ad8599fa976b85dd709e236df92e9c6c04c6cf66ec13f4b",
+    "shape": "attr:label",
+    "file": "Pages/Elections/BoardConsole.vue",
+    "line": 215,
+    "status": "source"
+  },
+  "elections_boardconsole.court_appeal_planned_phase_e": {
+    "source_hash": "d72c34bcfa569263ed7ee547a2b4107be20c3d1a5369e7e7491bc0d0b007b087",
+    "shape": "template",
+    "file": "Pages/Elections/BoardConsole.vue",
+    "line": 321,
+    "status": "source"
+  },
+  "elections_boardconsole.district_map_oversight_subdivision_boundar": {
+    "source_hash": "589975ff39237a121b1125f539eb170a402321319a981a4ffe50afcc4380b5b1",
+    "shape": "template",
+    "file": "Pages/Elections/BoardConsole.vue",
+    "line": 346,
+    "status": "source"
+  },
+  "elections_boardconsole.district_map_plans_under_oversight": {
+    "source_hash": "f3cbc323317c5d26313448b9c442b0860dda0b4b844b894bfe716554a8259670",
+    "shape": "attr:caption",
+    "file": "Pages/Elections/BoardConsole.vue",
+    "line": 361,
+    "status": "source"
+  },
+  "elections_boardconsole.draft_published_for_observation": {
+    "source_hash": "12e1ebe0e7e3eef49272baf404d9acad04639477be2a5b6f3d058720b5450dbc",
+    "shape": "template",
+    "file": "Pages/Elections/BoardConsole.vue",
+    "line": 368,
+    "status": "source"
+  },
+  "elections_boardconsole.elections_under_administration": {
+    "source_hash": "4b06ad4dbadbff9cc786de3434a615ec296ab6acbddf9351f8cbcfecf98c6763",
+    "shape": "attr:label",
+    "file": "Pages/Elections/BoardConsole.vue",
+    "line": 213,
+    "status": "source"
+  },
+  "elections_boardconsole.entered_and_stored_as_utc_the_engine_valid": {
+    "source_hash": "e4003c937619e2bfa4c786be33a7661b1aca725a135a35fd1e6834f36bbf216d",
+    "shape": "attr:hint",
+    "file": "Pages/Elections/BoardConsole.vue",
+    "line": 265,
+    "status": "source"
+  },
+  "elections_boardconsole.establish_independent_election_boards_art_": {
+    "source_hash": "50727a9562b2e5c6e6ddbbc5194d331e7a759aa0d94976d19dea033e5b433803",
+    "shape": "template",
+    "file": "Pages/Elections/BoardConsole.vue",
+    "line": 192,
+    "status": "source"
+  },
+  "elections_boardconsole.finalist_cutoff": {
+    "source_hash": "6411fa9229c84e5aa3332ccbe387439d4a63d4d9d7e74ce3a4e1f247af7c6275",
+    "shape": "attr:label",
+    "file": "Pages/Elections/BoardConsole.vue",
+    "line": 240,
+    "status": "source"
+  },
+  "elections_boardconsole.join_clk_21": {
+    "source_hash": "4b197a877049d3dceaed840cef1914c4b390eba4b173b93a0002f0c651a00ce3",
+    "shape": "bound:hint",
+    "file": "Pages/Elections/BoardConsole.vue",
+    "line": 241,
+    "status": "source"
+  },
+  "elections_boardconsole.live_signatures_threshold": {
+    "source_hash": "967f0d9e3487c026fe0ed9fb812e13ca2ebb81f1d8b2279783af9df8ec05a1f3",
+    "shape": "template",
+    "file": "Pages/Elections/BoardConsole.vue",
+    "line": 474,
+    "status": "source"
+  },
+  "elections_boardconsole.no_district_maps_under_oversight_chambers_": {
+    "source_hash": "3080de69280a3298f66f46e7ef80d4dcb86a4089465838d5f3ac4d6f0b48a930",
+    "shape": "template",
+    "file": "Pages/Elections/BoardConsole.vue",
+    "line": 372,
+    "status": "source"
+  },
+  "elections_boardconsole.no_petitions_at_threshold": {
+    "source_hash": "52310eb505c4d915c39c063e67b25f09a77d2936469967b218b3683704db7524",
+    "shape": "template",
+    "file": "Pages/Elections/BoardConsole.vue",
+    "line": 491,
+    "status": "source"
+  },
+  "elections_boardconsole.no_registrations_awaiting_validation": {
+    "source_hash": "5341b3b86ce332d801b000fa85429766e76eb2e58230391028de12690f60ba9f",
+    "shape": "template",
+    "file": "Pages/Elections/BoardConsole.vue",
+    "line": 339,
+    "status": "source"
+  },
+  "elections_boardconsole.no_vacancies_every_seat_in_the_jurisdictio": {
+    "source_hash": "f7a8c01762214da7c303aa23892100a4c397b6cd2c05d65840ab944964b16316",
+    "shape": "template",
+    "file": "Pages/Elections/BoardConsole.vue",
+    "line": 510,
+    "status": "source"
+  },
+  "elections_boardconsole.not_found_in_jurisdiction": {
+    "source_hash": "23e912e71e6c247418355ebab3ca8f8c2be7a2cbfba25f215a0137239c5e4c42",
+    "shape": "template",
+    "file": "Pages/Elections/BoardConsole.vue",
+    "line": 312,
+    "status": "source"
+  },
+  "elections_boardconsole.nothing_awaiting_certification_counts_appe": {
+    "source_hash": "b6616a779aab33f131f8135fec149a2818ca837155204becd57854a7a1f84d9d",
+    "shape": "template",
+    "file": "Pages/Elections/BoardConsole.vue",
+    "line": 448,
+    "status": "source"
+  },
+  "elections_boardconsole.of_valid": {
+    "source_hash": "f039c7a847c6d9d25bbb2c079d60dc52edeb9b15b2736385c541a7a92c492705",
+    "shape": "template",
+    "file": "Pages/Elections/BoardConsole.vue",
+    "line": 477,
+    "status": "source"
+  },
+  "elections_boardconsole.open_the_countback_view": {
+    "source_hash": "16d8fd7c2bfe402f0a79a0b626ff625285188be8a65b31d8d2f4df5c58d64b04",
+    "shape": "template",
+    "file": "Pages/Elections/BoardConsole.vue",
+    "line": 504,
+    "status": "source"
+  },
+  "elections_boardconsole.open_the_legislature_browser": {
+    "source_hash": "485898ab93f45d69cd1963dfee463c828587745227578da14624e9c38bf5cc8e",
+    "shape": "template",
+    "file": "Pages/Elections/BoardConsole.vue",
+    "line": 376,
+    "status": "source"
+  },
+  "elections_boardconsole.opens_wf_ele_05": {
+    "source_hash": "83e9c4f079c47dbc6b5f690e0adeeb1d9597781075fdfbe819c94f5dbdab0513",
+    "shape": "template",
+    "file": "Pages/Elections/BoardConsole.vue",
+    "line": 427,
+    "status": "source"
+  },
+  "elections_boardconsole.order_recount": {
+    "source_hash": "e7e1d224dac005618d7cc8f37b990acd0c884c1ca3daff71ecfd125aa1192a8c",
+    "shape": "template",
+    "file": "Pages/Elections/BoardConsole.vue",
+    "line": 420,
+    "status": "source"
+  },
+  "elections_boardconsole.pending_candidacy_registrations": {
+    "source_hash": "3e8ffe7a44f0908b97e446b8d69da16d230ccf2c546d5e8e8d70f6624ee72b2f",
+    "shape": "attr:caption",
+    "file": "Pages/Elections/BoardConsole.vue",
+    "line": 306,
+    "status": "source"
+  },
+  "elections_boardconsole.petition_audits_due": {
+    "source_hash": "ef3cbfe6d81d91a927888baef60b9ec452a95388db983e3e044bac88ae80f370",
+    "shape": "attr:label",
+    "file": "Pages/Elections/BoardConsole.vue",
+    "line": 216,
+    "status": "source"
+  },
+  "elections_boardconsole.ranked_window_closes": {
+    "source_hash": "31bdd5b02a002480515e9178c64e880901a07714e8e582afa6ded3f6e4524fb4",
+    "shape": "attr:label",
+    "file": "Pages/Elections/BoardConsole.vue",
+    "line": 264,
+    "status": "source"
+  },
+  "elections_boardconsole.ranked_window_opens": {
+    "source_hash": "c1fbd6a737e9df8a4537c3a966369930cbe1c753a9baa8fc1fc786fb7d416805",
+    "shape": "attr:label",
+    "file": "Pages/Elections/BoardConsole.vue",
+    "line": 258,
+    "status": "source"
+  },
+  "elections_boardconsole.recount_proceedings_open_wf_ele_05": {
+    "source_hash": "0cb9bb46b3695d0aad79f9ff9e932f4ab12efeebecd43f26342fcebbb5a02d84",
+    "shape": "template",
+    "file": "Pages/Elections/BoardConsole.vue",
+    "line": 416,
+    "status": "source"
+  },
+  "elections_boardconsole.recount_recount_audit_order_f_elb_006": {
+    "source_hash": "85cb5230be0c93aee0d0bbae7c16453ce36ac55068ac1ba46c3638d7ac8ab403",
+    "shape": "template",
+    "file": "Pages/Elections/BoardConsole.vue",
+    "line": 414,
+    "status": "source"
+  },
+  "elections_boardconsole.rejected_appeal_path_open": {
+    "source_hash": "476c4c8daca9a265ad26274e688be4d80df93264477efbcd00ee76fc960aeafb",
+    "shape": "template",
+    "file": "Pages/Elections/BoardConsole.vue",
+    "line": 319,
+    "status": "source"
+  },
+  "elections_boardconsole.requires_certification_first": {
+    "source_hash": "63827bddf058448e7f6ebfef1c49c7fb2f12d5429e2c1d9794d598c45b23590a",
+    "shape": "bound:title",
+    "file": "Pages/Elections/BoardConsole.vue",
+    "line": 424,
+    "status": "source"
+  },
+  "elections_boardconsole.residency_association_is_the_only_permissi": {
+    "source_hash": "cf075d332d765eeb511b6b1a84a8dd0230f06c159aaccb129b33d2826829a5e4",
+    "shape": "template",
+    "file": "Pages/Elections/BoardConsole.vue",
+    "line": 291,
+    "status": "source"
+  },
+  "elections_boardconsole.review_the_count_record": {
+    "source_hash": "df94e83581b219d98b89a2d3e8ade6614755040e84fccf949b88694652856a3c",
+    "shape": "template",
+    "file": "Pages/Elections/BoardConsole.vue",
+    "line": 399,
+    "status": "source"
+  },
+  "elections_boardconsole.rounds_seats": {
+    "source_hash": "8928600920c8354cd44c614a25513f9acc485869b1dbe95ef19bb1a097e73ee0",
+    "shape": "template",
+    "file": "Pages/Elections/BoardConsole.vue",
+    "line": 394,
+    "status": "source"
+  },
+  "elections_boardconsole.run_signature_audit_f_elb_005": {
+    "source_hash": "3f147e73bd023701c4fbdcadb7832710ae820e3aca2b7c5b36473a9375a79b9f",
+    "shape": "template",
+    "file": "Pages/Elections/BoardConsole.vue",
+    "line": 482,
+    "status": "source"
+  },
+  "elections_boardconsole.seats": {
+    "source_hash": "5697144ad55daf9e12334b4adb58a77ac3282d34acc5fe968078633257e27dc4",
+    "shape": "template",
+    "file": "Pages/Elections/BoardConsole.vue",
+    "line": 363,
+    "status": "source"
+  },
+  "elections_boardconsole.signature_audit_petition_signature_audit_f": {
+    "source_hash": "273951046708217ad24396d3203596b650578456759233434d96b817d3d288eb",
+    "shape": "template",
+    "file": "Pages/Elections/BoardConsole.vue",
+    "line": 459,
+    "status": "source"
+  },
+  "elections_boardconsole.the_board_is_an_independent_politically_ne": {
+    "source_hash": "ae1c25bde16a0cce9992ff4d4d3ce857e3a796969a41d2f1d05bb3368cbb017e",
+    "shape": "template",
+    "file": "Pages/Elections/BoardConsole.vue",
+    "line": 186,
+    "status": "source"
+  },
+  "elections_boardconsole.the_engine_rejects_an_order_without_a_stat": {
+    "source_hash": "93da276a845ff38abbb54930a68e1290643af8913a76f46031fd1b4a9eadfa07",
+    "shape": "template",
+    "file": "Pages/Elections/BoardConsole.vue",
+    "line": 436,
+    "status": "source"
+  },
+  "elections_boardconsole.this_board_exists_only_to_run_the_first_el": {
+    "source_hash": "baa4a341acec3b786b9f7ef9393c6d1da3b6a8a970313c2cb8867c9d4852cc70",
+    "shape": "template",
+    "file": "Pages/Elections/BoardConsole.vue",
+    "line": 174,
+    "status": "source"
+  },
+  "elections_boardconsole.vacancy_declaration_received_f_leg_036_cou": {
+    "source_hash": "c4a5fc63a2eecff7b7a342dc8ded723ded648d69b7ca1cc107797bb337dceecd",
+    "shape": "template",
+    "file": "Pages/Elections/BoardConsole.vue",
+    "line": 499,
+    "status": "source"
+  },
+  "elections_boardconsole.validated_in_approval_pool": {
+    "source_hash": "1c4ad7ddae000c7e337c8bbbd7d70d97aef23e12dbae7714f509fb345fa8db52",
+    "shape": "template",
+    "file": "Pages/Elections/BoardConsole.vue",
+    "line": 315,
+    "status": "source"
+  },
+  "elections_boardconsole.validation_queue_candidate_validation_f_el": {
+    "source_hash": "a5e37bfbfe8588ac0c3680b59c3846301e9b4ff124b08ffa2c0a19118a139f59",
+    "shape": "template",
+    "file": "Pages/Elections/BoardConsole.vue",
+    "line": 285,
+    "status": "source"
+  },
+  "elections_boardconsole.validations_pending": {
+    "source_hash": "87711730e7cec39b86746626ab0c7d69be30a589d01ddb3234da98cf14a05a15",
+    "shape": "attr:label",
+    "file": "Pages/Elections/BoardConsole.vue",
+    "line": 214,
+    "status": "source"
+  },
+  "elections_boardconsole.x_per_race_is_pre_published_with_this_orde": {
+    "source_hash": "9ca54d00025c453c1685ac5e28160865a2044fe4ad22488dd009a5cccc778320",
+    "shape": "bound:hint",
+    "file": "Pages/Elections/BoardConsole.vue",
+    "line": 241,
+    "status": "source"
+  },
+  "elections_candidacyregistration.candidacy_withdrawn": {
+    "source_hash": "09a22c6b438e633b7deae04517f7b3acb8c1b8854df469021c5caff6259d727b",
+    "shape": "attr:title",
+    "file": "Pages/Elections/CandidacyRegistration.vue",
+    "line": 163,
+    "status": "source"
+  },
+  "elections_candidacyregistration.closes_at_the_finalist_cutoff_reopens_at_c": {
+    "source_hash": "50280504087dd652e9354b3b5203deb89e271fd4c8e8d902e89341dc02221cf3",
+    "shape": "template",
+    "file": "Pages/Elections/CandidacyRegistration.vue",
+    "line": 252,
+    "status": "source"
+  },
+  "elections_candidacyregistration.declare_residency": {
+    "source_hash": "0069ddbc45f9bc146008d9aa98f3c9922b0ae4d9473479ca35eeabd115a912fc",
+    "shape": "template",
+    "file": "Pages/Elections/CandidacyRegistration.vue",
+    "line": 119,
+    "status": "source"
+  },
+  "elections_candidacyregistration.establish_residency_to_stand_for_office": {
+    "source_hash": "aff83f9ff79b3f7fa8ba986016499f5fdc2b9403fc7b2e79e4d752abda45679b",
+    "shape": "attr:title",
+    "file": "Pages/Elections/CandidacyRegistration.vue",
+    "line": 113,
+    "status": "source"
+  },
+  "elections_candidacyregistration.filing_rejected_by_the_constitutional_engi": {
+    "source_hash": "17a301768f2d0dd38867b10cac993629073377ca05b007c71f01bf54d12c6dc0",
+    "shape": "attr:title",
+    "file": "Pages/Elections/CandidacyRegistration.vue",
+    "line": 106,
+    "status": "source"
+  },
+  "elections_candidacyregistration.finalists_x_finalist_multiplier_seats_pre_": {
+    "source_hash": "4b0f078979b4f2ede3c9f95061efe5c4bd8975e10f0d73ae3590467b0fa6382a",
+    "shape": "template",
+    "file": "Pages/Elections/CandidacyRegistration.vue",
+    "line": 275,
+    "status": "source"
+  },
+  "elections_candidacyregistration.i_attest_that_i_reside_in_the_selected_jur": {
+    "source_hash": "e9c29e74077e43d13732528c778dffc3d037c7eb84beb3073a6893bfce69fe85",
+    "shape": "template",
+    "file": "Pages/Elections/CandidacyRegistration.vue",
+    "line": 243,
+    "status": "source"
+  },
+  "elections_candidacyregistration.if_you_live_somewhere_you_can_run_for_offi": {
+    "source_hash": "17a784eaed8d23d7dbf96733c3995a133b97e690f2227ef93bd051db4e84b30d",
+    "shape": "template",
+    "file": "Pages/Elections/CandidacyRegistration.vue",
+    "line": 85,
+    "status": "source"
+  },
+  "elections_candidacyregistration.no_race_footprint_of_this_election_contain": {
+    "source_hash": "9307489d41f051b2175c80c19367b19a78dd50f677e88ffa9001c63843bd7c11",
+    "shape": "template",
+    "file": "Pages/Elections/CandidacyRegistration.vue",
+    "line": 207,
+    "status": "source"
+  },
+  "elections_candidacyregistration.office_election_race": {
+    "source_hash": "ce8660762318ad9890abf9da56dc0bae834ad1e8317d58c87a1579499732f4af",
+    "shape": "attr:label",
+    "file": "Pages/Elections/CandidacyRegistration.vue",
+    "line": 187,
+    "status": "source"
+  },
+  "elections_candidacyregistration.only_jurisdictions_you_are_associated_with": {
+    "source_hash": "6d08670d0314dcd6e29ea0008747d5a5a0cb882ba9ee946437e9ba2a87a22a76",
+    "shape": "attr:hint",
+    "file": "Pages/Elections/CandidacyRegistration.vue",
+    "line": 188,
+    "status": "source"
+  },
+  "elections_candidacyregistration.open_your_public_profile": {
+    "source_hash": "4111d2b633da2f2547f8b63ab259e9a798865ae8beea5ca9cd4e5e4158699e80",
+    "shape": "template",
+    "file": "Pages/Elections/CandidacyRegistration.vue",
+    "line": 169,
+    "status": "source"
+  },
+  "elections_candidacyregistration.platform_statement_optional": {
+    "source_hash": "cf472c644b555ea5fbeace602b0ad03ec0c461f20792005c8383bbfb7b0b655e",
+    "shape": "attr:label",
+    "file": "Pages/Elections/CandidacyRegistration.vue",
+    "line": 213,
+    "status": "source"
+  },
+  "elections_candidacyregistration.position_tags_optional": {
+    "source_hash": "71bde888944a604d21f6e0f9f7deae815397260e48ce85026aa6067c784690b2",
+    "shape": "template",
+    "file": "Pages/Elections/CandidacyRegistration.vue",
+    "line": 229,
+    "status": "source"
+  },
+  "elections_candidacyregistration.public_self_managed_editable_any_time_via_": {
+    "source_hash": "67377528d194b14127dbcca59ddca109eba4f90c0e994fbf4b43da286044a9c0",
+    "shape": "attr:hint",
+    "file": "Pages/Elections/CandidacyRegistration.vue",
+    "line": 214,
+    "status": "source"
+  },
+  "elections_candidacyregistration.registration_rejected_no_residency_associa": {
+    "source_hash": "b7dd2f08d821076821e412f08f670aacb7bedf0ebed58bdea8c836ff82a5d833",
+    "shape": "attr:title",
+    "file": "Pages/Elections/CandidacyRegistration.vue",
+    "line": 154,
+    "status": "source"
+  },
+  "elections_candidacyregistration.registration_window_approval_phase_clk_18": {
+    "source_hash": "289caa278462ab8380785756cfb779ff33a4f665ab9b310ce46080bbbfa20f55",
+    "shape": "attr:text",
+    "file": "Pages/Elections/CandidacyRegistration.vue",
+    "line": 102,
+    "status": "source"
+  },
+  "elections_candidacyregistration.residency_verified_all_associations_rights": {
+    "source_hash": "0c41ad6eccf50dc86c9ea587a110fe3a73fc173ca2595b77a938d1c0a43223cc",
+    "shape": "template",
+    "file": "Pages/Elections/CandidacyRegistration.vue",
+    "line": 123,
+    "status": "source"
+  },
+  "elections_candidacyregistration.right_to_stand_art_i_no_fees_no_signatures": {
+    "source_hash": "7b10c1b45189d279b5b8b8ec85ca9370047fb8e0740b93814970a223f9b829ca",
+    "shape": "attr:text",
+    "file": "Pages/Elections/CandidacyRegistration.vue",
+    "line": 101,
+    "status": "source"
+  },
+  "elections_candidacyregistration.seats": {
+    "source_hash": "d1976519990451686a39ea61ad4723b9019bba2faea8347a2260b17c0db0144a",
+    "shape": "template",
+    "file": "Pages/Elections/CandidacyRegistration.vue",
+    "line": 201,
+    "status": "source"
+  },
+  "elections_candidacyregistration.select_a_race": {
+    "source_hash": "8684e2070e2b04d8a65a9f7397f8a5ac26812501e6720cfadff34feedecec24e",
+    "shape": "template",
+    "file": "Pages/Elections/CandidacyRegistration.vue",
+    "line": 200,
+    "status": "source"
+  },
+  "elections_candidacyregistration.submitted_awaiting_board_validation": {
+    "source_hash": "fb1b2c8a4edeed9c43c3c516b227a5447adca4cd14638b7a2bd87daef628b818",
+    "shape": "attr:title",
+    "file": "Pages/Elections/CandidacyRegistration.vue",
+    "line": 133,
+    "status": "source"
+  },
+  "elections_candidacyregistration.the_board_s_validation_f_elb_002_checks_re": {
+    "source_hash": "fede1afa424cc8e60987bbc80eb7554873b0676ed4b4bb11174eb11bbbc81702",
+    "shape": "template",
+    "file": "Pages/Elections/CandidacyRegistration.vue",
+    "line": 133,
+    "status": "source"
+  },
+  "elections_candidacyregistration.the_election_board_validates_your_residenc": {
+    "source_hash": "0f7815eedc79e9f8252a15edb9530e06ea42d6e8d53094fdaf7637a2b44a05b6",
+    "shape": "template",
+    "file": "Pages/Elections/CandidacyRegistration.vue",
+    "line": 262,
+    "status": "source"
+  },
+  "elections_candidacyregistration.the_only_permissible_ground_for_rejection_": {
+    "source_hash": "29c6e45a4c84684a7c4b9b67e1190f6fe673752a7179ee82748179dd5df513c9",
+    "shape": "template",
+    "file": "Pages/Elections/CandidacyRegistration.vue",
+    "line": 154,
+    "status": "source"
+  },
+  "elections_candidacyregistration.the_rejection_itself_is_on_the_audit_chain": {
+    "source_hash": "9ed10e5a6a5c7a5f82d2dbb5ccd604209aa2f2717b4e03ee89999b714e3449cb",
+    "shape": "template",
+    "file": "Pages/Elections/CandidacyRegistration.vue",
+    "line": 106,
+    "status": "source"
+  },
+  "elections_candidacyregistration.the_top_x_by_approvals_advance_to_the_rank": {
+    "source_hash": "f3e5609ddcf796aa8df81aa0d1f1bea4813b6605100da99514c41ab3938bcc0b",
+    "shape": "template",
+    "file": "Pages/Elections/CandidacyRegistration.vue",
+    "line": 270,
+    "status": "source"
+  },
+  "elections_candidacyregistration.validated_you_are_in_the_approval_pool": {
+    "source_hash": "c2847aacd7de32da414b3bc3e3034dec13310b624ebd202699b6e047226a7c65",
+    "shape": "attr:title",
+    "file": "Pages/Elections/CandidacyRegistration.vue",
+    "line": 139,
+    "status": "source"
+  },
+  "elections_candidacyregistration.voting_and_candidacy_unlock_together_the_m": {
+    "source_hash": "12cfec294b1706179f521aa174bf11882fc33a8e7e3db5e543ec01843a1f2918",
+    "shape": "template",
+    "file": "Pages/Elections/CandidacyRegistration.vue",
+    "line": 114,
+    "status": "source"
+  },
+  "elections_candidacyregistration.wf_civ_05_candidacy_lifecycle_entity_machi": {
+    "source_hash": "d3d9ff5d5e4a9523409eba58c2350944915cd2fec273c99ceb164898c97b43ae",
+    "shape": "template",
+    "file": "Pages/Elections/CandidacyRegistration.vue",
+    "line": 92,
+    "status": "source"
+  },
+  "elections_candidacyregistration.what_happens_next": {
+    "source_hash": "8f9b77e6e0b4eebac0a0786b761ecfaf5782fd7223b1fb34ae6c6bbe2fd63a9b",
+    "shape": "attr:title",
+    "file": "Pages/Elections/CandidacyRegistration.vue",
+    "line": 259,
+    "status": "source"
+  },
+  "elections_candidacyregistration.withdrawal_is_a_permanent_public_record": {
+    "source_hash": "357ffa19ae040a90f3a3586d022412c85e4194ea24e2b7219ac1d9a76c340ac6",
+    "shape": "template",
+    "file": "Pages/Elections/CandidacyRegistration.vue",
+    "line": 163,
+    "status": "source"
+  },
+  "elections_candidacyregistration.you_enter_the_approval_pool_every_associat": {
+    "source_hash": "fd5e743ed5263e3fa65bfaf4d36d077a7a81c18637e91b03ed1bbdf737ff6e78",
+    "shape": "template",
+    "file": "Pages/Elections/CandidacyRegistration.vue",
+    "line": 266,
+    "status": "source"
+  },
+  "elections_candidacyregistration.your_candidacy_in_this_election": {
+    "source_hash": "c07fe479da099e943343e9d1a9414e022d9fc30052e7c354b7ce3aae53ca8d22",
+    "shape": "attr:title",
+    "file": "Pages/Elections/CandidacyRegistration.vue",
+    "line": 129,
+    "status": "source"
+  },
+  "elections_candidateprofile.also_a_candidate": {
+    "source_hash": "892a830e87effd008773a76332e664e48e66a6016cfad8c1a5a01ab043d43d9d",
+    "shape": "template",
+    "file": "Pages/Elections/CandidateProfile.vue",
+    "line": 220,
+    "status": "source"
+  },
+  "elections_candidateprofile.approval_standing": {
+    "source_hash": "cdd3962189199a122934ebb51d8d51cbedbc3131d7efa97ed7a65c5b02422cf6",
+    "shape": "attr:title",
+    "file": "Pages/Elections/CandidateProfile.vue",
+    "line": 151,
+    "status": "source"
+  },
+  "elections_candidateprofile.approvals_aggregate_updated_daily": {
+    "source_hash": "d7dd554deec7060937dd8ea1189a45f9f4c06faabd3ddf309f0f24755db76636",
+    "shape": "attr:label",
+    "file": "Pages/Elections/CandidateProfile.vue",
+    "line": 155,
+    "status": "source"
+  },
+  "elections_candidateprofile.approvals_relative_to_the_finalist_line": {
+    "source_hash": "d2623ca7c7c60312c1076abe0bf931c4a4a36d30bc5feaff4c3e300b0de6ff83",
+    "shape": "attr:label",
+    "file": "Pages/Elections/CandidateProfile.vue",
+    "line": 163,
+    "status": "source"
+  },
+  "elections_candidateprofile.ask_an_organization_for_its_endorsement_f_": {
+    "source_hash": "2347dca8e1572ee85dcef079383dd4c837edee17c42b2ea3e1dc6c7499ab4190",
+    "shape": "attr:label",
+    "file": "Pages/Elections/CandidateProfile.vue",
+    "line": 260,
+    "status": "source"
+  },
+  "elections_candidateprofile.awaiting_board_validation_the_race_binding": {
+    "source_hash": "3b783df461c5384d76cad0959146220a40702fb0e51164b7532987eaa84f0fbe",
+    "shape": "template",
+    "file": "Pages/Elections/CandidateProfile.vue",
+    "line": 183,
+    "status": "source"
+  },
+  "elections_candidateprofile.ballot_locked_at_the_finalist_cutoff_withd": {
+    "source_hash": "a84bbc27ae877bed1ccb5ef950987d4bd2fc1af585b733e90e9adec35b61c727",
+    "shape": "attr:title",
+    "file": "Pages/Elections/CandidateProfile.vue",
+    "line": 351,
+    "status": "source"
+  },
+  "elections_candidateprofile.below_the_finalist_line_write_in_eligible": {
+    "source_hash": "357247566aed5c271bb5e6b4de44ef50da06e43cdb020de3a1f1ee5360fba43b",
+    "shape": "template",
+    "file": "Pages/Elections/CandidateProfile.vue",
+    "line": 168,
+    "status": "source"
+  },
+  "elections_candidateprofile.civic_actions": {
+    "source_hash": "d9fa9b1404526b04f7c0b3f97251bd0401c8d2ccb1cb5320f0ed0c23b8084ac3",
+    "shape": "template",
+    "file": "Pages/Elections/CandidateProfile.vue",
+    "line": 299,
+    "status": "source"
+  },
+  "elections_candidateprofile.endorsement_requests": {
+    "source_hash": "34c5c61f197eefa893395b851ad23cdc03acad8ef9da82b2db556818eb48aeaa",
+    "shape": "attr:title",
+    "file": "Pages/Elections/CandidateProfile.vue",
+    "line": 241,
+    "status": "source"
+  },
+  "elections_candidateprofile.endorsement_requests_filed_by_this_candida": {
+    "source_hash": "2b2b442fe5e1ac142d928005824a3539e1f70308d271b6d4530b48aaddbc6662",
+    "shape": "attr:caption",
+    "file": "Pages/Elections/CandidateProfile.vue",
+    "line": 247,
+    "status": "source"
+  },
+  "elections_candidateprofile.endorsements_inform_they_never_gate_art_i_": {
+    "source_hash": "18f9cd8e36b5ae9bb2530823d9510c9b976c168a08fff01b2646a2aa0725c121",
+    "shape": "template",
+    "file": "Pages/Elections/CandidateProfile.vue",
+    "line": 236,
+    "status": "source"
+  },
+  "elections_candidateprofile.finalist_places_x": {
+    "source_hash": "097e9a155cce45e98af57f200c28e0be0d3f1e54b1763db3aa8a7a1c039efbba",
+    "shape": "attr:label",
+    "file": "Pages/Elections/CandidateProfile.vue",
+    "line": 156,
+    "status": "source"
+  },
+  "elections_candidateprofile.full_race_rank": {
+    "source_hash": "902a0a2616850a752a9e5aee215da31036fb866cf0b610fd502663744d256a20",
+    "shape": "attr:label",
+    "file": "Pages/Elections/CandidateProfile.vue",
+    "line": 154,
+    "status": "source"
+  },
+  "elections_candidateprofile.gold_tick_finalist_line_top_of_clk_21": {
+    "source_hash": "da8e974829e38a18ba4fb20f0cf1fb67600b667a71d0cfda8067085540245033",
+    "shape": "template",
+    "file": "Pages/Elections/CandidateProfile.vue",
+    "line": 171,
+    "status": "source"
+  },
+  "elections_candidateprofile.individual_approvals_are_secret_art_ii_2": {
+    "source_hash": "6c7f60f6220ff99c14afdac2451f934abb5e9699bd5bd471f53fddf06c868918",
+    "shape": "template",
+    "file": "Pages/Elections/CandidateProfile.vue",
+    "line": 176,
+    "status": "source"
+  },
+  "elections_candidateprofile.individual_endorsements_public_private": {
+    "source_hash": "e496ebf37a124dbec96564f81f1f425d580bdc2de23c2ddfc33cf955167cdc04",
+    "shape": "template",
+    "file": "Pages/Elections/CandidateProfile.vue",
+    "line": 207,
+    "status": "source"
+  },
+  "elections_candidateprofile.individual_endorsers_disclose_by_choice_or": {
+    "source_hash": "77cc8e47ea58d6e1d3382dc0de78376e43b01e1ba489cdee62e549efad83b1f8",
+    "shape": "template",
+    "file": "Pages/Elections/CandidateProfile.vue",
+    "line": 230,
+    "status": "source"
+  },
+  "elections_candidateprofile.keep_standing": {
+    "source_hash": "8b4166d2ae15173eeb70ba92e52871171e36089249034fd059b21ce9ef31c562",
+    "shape": "template",
+    "file": "Pages/Elections/CandidateProfile.vue",
+    "line": 366,
+    "status": "source"
+  },
+  "elections_candidateprofile.no_active_organizations_registered_on_this": {
+    "source_hash": "e0b3b3033bcc9d3da2dd795c53377d69f9cb016754934a6f29a2ebc4b7835f42",
+    "shape": "template",
+    "file": "Pages/Elections/CandidateProfile.vue",
+    "line": 280,
+    "status": "source"
+  },
+  "elections_candidateprofile.no_organizational_endorsements_running_une": {
+    "source_hash": "e2d0741ab2d9476aac584a826ae01f6a5b11dc24637dae46a5d42ceed86aa88c",
+    "shape": "template",
+    "file": "Pages/Elections/CandidateProfile.vue",
+    "line": 212,
+    "status": "source"
+  },
+  "elections_candidateprofile.no_platform_statement_yet": {
+    "source_hash": "94e12168cc2157e209ec05465d8d62952466da287b52277120beb03b8377af4a",
+    "shape": "template",
+    "file": "Pages/Elections/CandidateProfile.vue",
+    "line": 139,
+    "status": "source"
+  },
+  "elections_candidateprofile.no_public_record_entries_yet_participation": {
+    "source_hash": "a5785efd9a4822255476d9535fadcb44e37b85b0460c1988753ac5c47bcc5851",
+    "shape": "template",
+    "file": "Pages/Elections/CandidateProfile.vue",
+    "line": 306,
+    "status": "source"
+  },
+  "elections_candidateprofile.no_requests_yet": {
+    "source_hash": "ea923f45a415c408812651a3b319fc3fbe19d63fe4261add03667a95d2c7292e",
+    "shape": "template",
+    "file": "Pages/Elections/CandidateProfile.vue",
+    "line": 256,
+    "status": "source"
+  },
+  "elections_candidateprofile.no_standings_aggregate_exists_for_this_rac": {
+    "source_hash": "24efc7a7d8f6304a623e75895789b1654268b1998dcfedc6edf60574f3ed40d5",
+    "shape": "template",
+    "file": "Pages/Elections/CandidateProfile.vue",
+    "line": 187,
+    "status": "source"
+  },
+  "elections_candidateprofile.none_not_an_incumbent_a_first_time_candida": {
+    "source_hash": "6a79d0d928c77ea8d45090befa1115c7a2b693ead6e3604d663c6e83b0108376",
+    "shape": "template",
+    "file": "Pages/Elections/CandidateProfile.vue",
+    "line": 297,
+    "status": "source"
+  },
+  "elections_candidateprofile.participation_is_public_ballot_choices_are": {
+    "source_hash": "ab043dcf882a6cb3b4f688124878d1b09322fd29aa333082454ddc19e21d4282",
+    "shape": "template",
+    "file": "Pages/Elections/CandidateProfile.vue",
+    "line": 309,
+    "status": "source"
+  },
+  "elections_candidateprofile.platform_statement": {
+    "source_hash": "8a4f0a2657b9b8762611756c1d250963c3415a128a4c2011d50340931c2ccc69",
+    "shape": "attr:label",
+    "file": "Pages/Elections/CandidateProfile.vue",
+    "line": 324,
+    "status": "source"
+  },
+  "elections_candidateprofile.public_and_self_managed_every_save_appends": {
+    "source_hash": "ecf9028a7a83f8780a971a59c5e6bdd267c6687f7efa3c0a6fff3703cda16309",
+    "shape": "attr:hint",
+    "file": "Pages/Elections/CandidateProfile.vue",
+    "line": 325,
+    "status": "source"
+  },
+  "elections_candidateprofile.public_campaign_profile_the_statement_and_": {
+    "source_hash": "1851c8192e5d75fc37e1862621f5cab56d84850092b6b64b262882b5e6c561c4",
+    "shape": "template",
+    "file": "Pages/Elections/CandidateProfile.vue",
+    "line": 107,
+    "status": "source"
+  },
+  "elections_candidateprofile.public_endorsement_web_public_individual_e": {
+    "source_hash": "3d582150c4807b2223a75bf5eb49c7fb44b06cb62802b1923154f41bed541ad5",
+    "shape": "template",
+    "file": "Pages/Elections/CandidateProfile.vue",
+    "line": 215,
+    "status": "source"
+  },
+  "elections_candidateprofile.public_record": {
+    "source_hash": "7880dfe8541fec18c55040d2b4d333749c1e5c8e54ac1c9bf76d85ffaabe5dff",
+    "shape": "attr:title",
+    "file": "Pages/Elections/CandidateProfile.vue",
+    "line": 293,
+    "status": "source"
+  },
+  "elections_candidateprofile.rank_inside_the_top_finalist_track": {
+    "source_hash": "42a8df909312bd26af929272a384775060dbc0eb08135fc60ad467471122bfc6",
+    "shape": "template",
+    "file": "Pages/Elections/CandidateProfile.vue",
+    "line": 165,
+    "status": "source"
+  },
+  "elections_candidateprofile.requests_are_managed_by_the_candidate_gran": {
+    "source_hash": "1a5079cc91080ed3ba4e11a5374708cfd71506d8d78e304336be5cbe9afa6e13",
+    "shape": "template",
+    "file": "Pages/Elections/CandidateProfile.vue",
+    "line": 285,
+    "status": "source"
+  },
+  "elections_candidateprofile.seats_top_advance_clk_21": {
+    "source_hash": "cca9e58487956bcbe891fb34d9176269baa79796e7777e78707e10ccb03f1e14",
+    "shape": "template",
+    "file": "Pages/Elections/CandidateProfile.vue",
+    "line": 143,
+    "status": "source"
+  },
+  "elections_candidateprofile.see_the_race_standings": {
+    "source_hash": "3d3b53453852d6f76fc6787b9421b4fd8260b33376a134ec4aa3b7c87cce1080",
+    "shape": "template",
+    "file": "Pages/Elections/CandidateProfile.vue",
+    "line": 192,
+    "status": "source"
+  },
+  "elections_candidateprofile.select_an_organization": {
+    "source_hash": "d19314aada997c15d6aa1c31a2d2b72bda2978dbb8c171e6efff506266a98764",
+    "shape": "template",
+    "file": "Pages/Elections/CandidateProfile.vue",
+    "line": 272,
+    "status": "source"
+  },
+  "elections_candidateprofile.the_org_s_agent_decides_via_f_org_002_a_gr": {
+    "source_hash": "729034199aebbd39f6e5cac96cd5cf7ea2d39845dfd4fb4b90e6a5c9ee242f4a",
+    "shape": "attr:hint",
+    "file": "Pages/Elections/CandidateProfile.vue",
+    "line": 261,
+    "status": "source"
+  },
+  "elections_candidateprofile.this_cannot_be_undone_withdrawal_is_a_perm": {
+    "source_hash": "628917af1bbf2922f542d651591b61755cdf72a12e755450f952d6af7e36e5ee",
+    "shape": "template",
+    "file": "Pages/Elections/CandidateProfile.vue",
+    "line": 362,
+    "status": "source"
+  },
+  "elections_candidateprofile.votes_in_office": {
+    "source_hash": "9faa46174bcc9ed4373bceb2ed56f20942c7c179f9f7f8723cbb93d8783efa28",
+    "shape": "template",
+    "file": "Pages/Elections/CandidateProfile.vue",
+    "line": 294,
+    "status": "source"
+  },
+  "elections_candidateprofile.voting_records_arrive_with_the_legislature": {
+    "source_hash": "198a23674a71a8b07f1774ee4753dd9aea380648e9e4f8883e85d4c831adc637",
+    "shape": "template",
+    "file": "Pages/Elections/CandidateProfile.vue",
+    "line": 296,
+    "status": "source"
+  },
+  "elections_candidateprofile.wf_civ_05_wf_civ_08_entity_machine_esm_06_": {
+    "source_hash": "a8e4529abf7f4878b3c23713b28ac0c0b3c53abb4582bb4736cf891c79a0a616",
+    "shape": "template",
+    "file": "Pages/Elections/CandidateProfile.vue",
+    "line": 112,
+    "status": "source"
+  },
+  "elections_candidateprofile.withdraw_candidacy": {
+    "source_hash": "573a4769ebdb2e3e9e4c9977fa8a781db0a2519f425648991994f581d0f21b94",
+    "shape": "template",
+    "file": "Pages/Elections/CandidateProfile.vue",
+    "line": 351,
+    "status": "source"
+  },
+  "elections_candidateprofile.withdraw_candidacy_f_can_003": {
+    "source_hash": "425ae118cfb3df1b464e10557cbeac01a4fd046a0a18cf0df9454f2613b88a75",
+    "shape": "attr:title",
+    "file": "Pages/Elections/CandidateProfile.vue",
+    "line": 341,
+    "status": "source"
+  },
+  "elections_candidateprofile.withdrawal_is_a_permanent_public_record_te": {
+    "source_hash": "91657bf815744b7dec91b718e90f9aac0e3d1e87d7192ac5998e13b735f93271",
+    "shape": "template",
+    "file": "Pages/Elections/CandidateProfile.vue",
+    "line": 342,
+    "status": "source"
+  },
+  "elections_candidateprofile.withdrawn_recorded_on_the_public_record": {
+    "source_hash": "6f93190908e9877c1d9abee799f481d74f675088946f97555d0a2b8a77b788d0",
+    "shape": "template",
+    "file": "Pages/Elections/CandidateProfile.vue",
+    "line": 135,
+    "status": "source"
+  },
+  "elections_candidateprofile.withdrawn_recorded_on_the_public_record_2": {
+    "source_hash": "5385ce7002a48099a886c2693d3ec38cdde204a6cbca61b7818fe40f3afc516f",
+    "shape": "template",
+    "file": "Pages/Elections/CandidateProfile.vue",
+    "line": 348,
+    "status": "source"
+  },
+  "elections_electiondetail.a_district_map_5_9_seats_each_must_be_acti": {
+    "source_hash": "46972da8c2fc3f6af548d4b7a5c9fc9d0a6d7e428bd0179359a33b8524351887",
+    "shape": "template",
+    "file": "Pages/Elections/ElectionDetail.vue",
+    "line": 225,
+    "status": "source"
+  },
+  "elections_electiondetail.all_times_stored_as_utc_shown_in_your_time": {
+    "source_hash": "693dfbafa4b990c43ccb1560f71947b1f780ad74dfa335063891fe3307f535d9",
+    "shape": "template",
+    "file": "Pages/Elections/ElectionDetail.vue",
+    "line": 292,
+    "status": "source"
+  },
+  "elections_electiondetail.cause_for_the_recount_order": {
+    "source_hash": "b4ea3e9a29cb512191478f69e7fc61871bff0e397feb7b564c8e044a840e70bf",
+    "shape": "attr:label",
+    "file": "Pages/Elections/ElectionDetail.vue",
+    "line": 423,
+    "status": "source"
+  },
+  "elections_electiondetail.certified_by_f_elb_004_winners_granted_rol": {
+    "source_hash": "33e12c3a37875c4412e4f2bb83553aecfcc07cdba2315ccb8f6ca79261fff0ac",
+    "shape": "template",
+    "file": "Pages/Elections/ElectionDetail.vue",
+    "line": 448,
+    "status": "source"
+  },
+  "elections_electiondetail.clock_form": {
+    "source_hash": "36499ef54b656c4334e0413d68bc4f30fb254012c6a92016c148ba4225042260",
+    "shape": "script:label",
+    "file": "Pages/Elections/ElectionDetail.vue",
+    "line": 68,
+    "status": "source"
+  },
+  "elections_electiondetail.current_stage": {
+    "source_hash": "6845ab1f78b654f8b3f979079d7b9129ef2866f0ff1fbddaae1357d87d464264",
+    "shape": "attr:label",
+    "file": "Pages/Elections/ElectionDetail.vue",
+    "line": 257,
+    "status": "source"
+  },
+  "elections_electiondetail.election_schedule_stages_with_their_clocks": {
+    "source_hash": "62d336c74227385fb735f0c0145a378b638037879a1bc6fb28508b815b3bd36f",
+    "shape": "attr:caption",
+    "file": "Pages/Elections/ElectionDetail.vue",
+    "line": 284,
+    "status": "source"
+  },
+  "elections_electiondetail.elections_elsewhere": {
+    "source_hash": "d220948b358b63e75193fc231f18f3f3a103d18f99a837c0cce494f4ad92a02f",
+    "shape": "attr:title",
+    "file": "Pages/Elections/ElectionDetail.vue",
+    "line": 209,
+    "status": "source"
+  },
+  "elections_electiondetail.elections_fire_from_clocks_never_from_offi": {
+    "source_hash": "4118611b7ddbe763d61514c78ecc7a372a6344d58f1cfba9f1c97c2385e3a930",
+    "shape": "template",
+    "file": "Pages/Elections/ElectionDetail.vue",
+    "line": 175,
+    "status": "source"
+  },
+  "elections_electiondetail.finalist_places_x_pre_published": {
+    "source_hash": "161025afb67f8906df962f6bb9f7718a40b65084aba8dc2a7d59ff41517354c3",
+    "shape": "attr:label",
+    "file": "Pages/Elections/ElectionDetail.vue",
+    "line": 255,
+    "status": "source"
+  },
+  "elections_electiondetail.issued_by": {
+    "source_hash": "ad7ca285f46054f213f3df2c477fde243dba856cbe0951f068ed1ac5d19a196b",
+    "shape": "template",
+    "file": "Pages/Elections/ElectionDetail.vue",
+    "line": 264,
+    "status": "source"
+  },
+  "elections_electiondetail.next_general_election_clock_fires_clk_01_a": {
+    "source_hash": "73e7275e300488f399d70090c34211015bdd459a2f75302001ac043c1c967184",
+    "shape": "template",
+    "file": "Pages/Elections/ElectionDetail.vue",
+    "line": 201,
+    "status": "source"
+  },
+  "elections_electiondetail.no_election_is_scheduled_for_your_jurisdic": {
+    "source_hash": "87bea598678da96094eb7cf12952611e21db9cbebafa3441cf76f5d50f4be19d",
+    "shape": "template",
+    "file": "Pages/Elections/ElectionDetail.vue",
+    "line": 196,
+    "status": "source"
+  },
+  "elections_electiondetail.no_election_scheduled": {
+    "source_hash": "520a0a097bf36fbbfe88ede359892b698473c45fcc0132b32fedbe6526f61fb2",
+    "shape": "attr:title",
+    "file": "Pages/Elections/ElectionDetail.vue",
+    "line": 195,
+    "status": "source"
+  },
+  "elections_electiondetail.no_other_elections_on_this_instance_right_": {
+    "source_hash": "59de9450e15c272214b3c1d4c9e0255bf2ba2af4d4b3146096e54cefeed9e34d",
+    "shape": "template",
+    "file": "Pages/Elections/ElectionDetail.vue",
+    "line": 367,
+    "status": "source"
+  },
+  "elections_electiondetail.no_races_exist_yet_race_generation_is_pend": {
+    "source_hash": "4acdbf1a232d94a35e9631fc3eae650ed3ec459ec6d361b708f1af7e2b4d304d",
+    "shape": "template",
+    "file": "Pages/Elections/ElectionDetail.vue",
+    "line": 329,
+    "status": "source"
+  },
+  "elections_electiondetail.not_yet_issued_the_schedule_below_carries_": {
+    "source_hash": "7682b935aadd048b908559a3e9a3e1056e326a3cb125550055ce7b3df7c47964",
+    "shape": "template",
+    "file": "Pages/Elections/ElectionDetail.vue",
+    "line": 268,
+    "status": "source"
+  },
+  "elections_electiondetail.open_ballot": {
+    "source_hash": "c1555c6386685d22ff7160f69321fb1977deeb44691762c7b1d895c3ffc6b796",
+    "shape": "template",
+    "file": "Pages/Elections/ElectionDetail.vue",
+    "line": 325,
+    "status": "source"
+  },
+  "elections_electiondetail.open_ballot_approve_candidates": {
+    "source_hash": "1db169d3fa5965fba5b3dd4d03408e71db39d3daf0506a72d6973dfdb8a07b56",
+    "shape": "template",
+    "file": "Pages/Elections/ElectionDetail.vue",
+    "line": 375,
+    "status": "source"
+  },
+  "elections_electiondetail.order_recount_f_elb_006": {
+    "source_hash": "5df96ed5ec83df81b5857028db6e4d96dd309e9a73b51b4bb708dcaa9cae3d11",
+    "shape": "template",
+    "file": "Pages/Elections/ElectionDetail.vue",
+    "line": 410,
+    "status": "source"
+  },
+  "elections_electiondetail.other_elections": {
+    "source_hash": "a59719b6e213fa3665977b2932aa17fb78a19b54a82e39c97f81d5324f11babf",
+    "shape": "attr:title",
+    "file": "Pages/Elections/ElectionDetail.vue",
+    "line": 357,
+    "status": "source"
+  },
+  "elections_electiondetail.race_boundary": {
+    "source_hash": "d5880ddf5107213c2bfa7bbbed92927c9befc7167385d51304478dfa89f4834c",
+    "shape": "attr:title",
+    "file": "Pages/Elections/ElectionDetail.vue",
+    "line": 336,
+    "status": "source"
+  },
+  "elections_electiondetail.races_in_this_election": {
+    "source_hash": "b311e1d1e98fd4666ac089dea13dc7aa4d78f7cc66f1b1902268d5d9bbe7ff2e",
+    "shape": "attr:caption",
+    "file": "Pages/Elections/ElectionDetail.vue",
+    "line": 323,
+    "status": "source"
+  },
+  "elections_electiondetail.races_pre_published_x": {
+    "source_hash": "733eed7c0f0b6467232b9925ac1de1ffdbdecea4ab165d846623902d45231f6c",
+    "shape": "attr:title",
+    "file": "Pages/Elections/ElectionDetail.vue",
+    "line": 313,
+    "status": "source"
+  },
+  "elections_electiondetail.rank_your_ballot_f_ind_007": {
+    "source_hash": "6efc05167ab9c25b10ef471d32c0127bf3aae2b36da16434a40c4f4a36692d6d",
+    "shape": "template",
+    "file": "Pages/Elections/ElectionDetail.vue",
+    "line": 383,
+    "status": "source"
+  },
+  "elections_electiondetail.seats_in_this_election": {
+    "source_hash": "df460913efa3de4bd1666e63c9c87ae4607900267e5661dd95b4e40fe8abe027",
+    "shape": "attr:label",
+    "file": "Pages/Elections/ElectionDetail.vue",
+    "line": 254,
+    "status": "source"
+  },
+  "elections_electiondetail.seats_x": {
+    "source_hash": "267da3564961a4ee8bb526d42e8ac461ec5f50cf034ab7ca561343cb9b87e012",
+    "shape": "template",
+    "file": "Pages/Elections/ElectionDetail.vue",
+    "line": 211,
+    "status": "source"
+  },
+  "elections_electiondetail.single_at_large_footprint_the_constitution": {
+    "source_hash": "d9ecd547d0a0f36bc51728aee3d7a2c7494c13934756fb5cbd32f8651edbd839",
+    "shape": "template",
+    "file": "Pages/Elections/ElectionDetail.vue",
+    "line": 350,
+    "status": "source"
+  },
+  "elections_electiondetail.stand_for_office_f_ind_011": {
+    "source_hash": "36554d46102adf83664f09a42790c3bbdcfe504f9b24490be84b45c90a8414d4",
+    "shape": "template",
+    "file": "Pages/Elections/ElectionDetail.vue",
+    "line": 378,
+    "status": "source"
+  },
+  "elections_electiondetail.the_approval_phase_has_not_opened_yet_part": {
+    "source_hash": "ef7dc697f0d07b9c63d3e5affc66a85e88f55dc07ba99efe464c8a3ab4273317",
+    "shape": "template",
+    "file": "Pages/Elections/ElectionDetail.vue",
+    "line": 392,
+    "status": "source"
+  },
+  "elections_electiondetail.the_engine_rejects_an_empty_cause_recounts": {
+    "source_hash": "3c8f116818b822493e52b7ae50cd1a59cad08eeb54ba35fa50406cb27725cebc",
+    "shape": "attr:hint",
+    "file": "Pages/Elections/ElectionDetail.vue",
+    "line": 424,
+    "status": "source"
+  },
+  "elections_electiondetail.this_chamber_is_above_the_9_seat_ceiling_s": {
+    "source_hash": "0d46d4916c77deb7a05d083b2798ec6daeadc2db15fd21fb79e6e5712773dd2a",
+    "shape": "attr:title",
+    "file": "Pages/Elections/ElectionDetail.vue",
+    "line": 228,
+    "status": "source"
+  },
+  "elections_electiondetail.this_chamber_is_subdivided_view_the_distri": {
+    "source_hash": "9f88eb513e048ffa0a719f88367e089863a45ccfd1840bf5e310eb692d26ae6e",
+    "shape": "template",
+    "file": "Pages/Elections/ElectionDetail.vue",
+    "line": 344,
+    "status": "source"
+  },
+  "elections_electiondetail.validated_candidates": {
+    "source_hash": "b1e0ae51e0f65d70db99defe91a860debb22d6431537713c7df3ba81e272bd5d",
+    "shape": "attr:label",
+    "file": "Pages/Elections/ElectionDetail.vue",
+    "line": 256,
+    "status": "source"
+  },
+  "elections_electiondetail.watch_the_count": {
+    "source_hash": "96ff0104a6275da602bf3a4df76191aabc3f143bae91dbb82e5bc761cb842956",
+    "shape": "template",
+    "file": "Pages/Elections/ElectionDetail.vue",
+    "line": 388,
+    "status": "source"
+  },
+  "elections_electiondetail.wf_ele_01_general_election_cycle_entity_ma": {
+    "source_hash": "627f48e580c2e9d766139f4f362af6d38ae75d26298e0f2c8afabf8dbc56ae17",
+    "shape": "template",
+    "file": "Pages/Elections/ElectionDetail.vue",
+    "line": 181,
+    "status": "source"
+  },
+  "elections_electiondetail.when_your_timezone": {
+    "source_hash": "a3c67c6e168bc89f6207560a6298feabfdd37bcc5879e03bef864f0fa38a3dda",
+    "shape": "script:label",
+    "file": "Pages/Elections/ElectionDetail.vue",
+    "line": 67,
+    "status": "source"
+  },
+  "elections_electiondetail.x_per_race_is_pre_published_with_this_orde": {
+    "source_hash": "56cdd56478f7e7ed2b22d29c67b657e2b759fd464d92018e7ec586465d1d8015",
+    "shape": "template",
+    "file": "Pages/Elections/ElectionDetail.vue",
+    "line": 271,
+    "status": "source"
+  },
+  "elections_electiondetail.x_pre_published_finalists": {
+    "source_hash": "9720bca81e9b455833dc10601d254f98f1abe380b1a8253eda24e94357a92112",
+    "shape": "script:label",
+    "file": "Pages/Elections/ElectionDetail.vue",
+    "line": 82,
+    "status": "source"
+  },
+  "elections_electiondetail.x_the_number_of_finalists_who_advance_to_t": {
+    "source_hash": "0dd00becfbf3f199ee010420cbfef6cb9a0ecaaa59cbf0ed842cf6a0eca89ffa",
+    "shape": "template",
+    "file": "Pages/Elections/ElectionDetail.vue",
+    "line": 314,
+    "status": "source"
+  },
+  "elections_openballot.action_rejected_by_the_constitutional_engi": {
+    "source_hash": "47821b70085fc949dfc3c9f8d1dd2b8715d4e5714b775b1deb901de2eca277ee",
+    "shape": "attr:title",
+    "file": "Pages/Elections/OpenBallot.vue",
+    "line": 227,
+    "status": "source"
+  },
+  "elections_openballot.alignment_questionnaire": {
+    "source_hash": "200ba48570f21ace3f9483fb42fa2f64d62a0887816ca49bedbe8ba7afda43aa",
+    "shape": "attr:title",
+    "file": "Pages/Elections/OpenBallot.vue",
+    "line": 384,
+    "status": "source"
+  },
+  "elections_openballot.answer_policy_questions_and_see_which_cand": {
+    "source_hash": "44bbc979492a17402f6aadfc153e454134e5798df290065e8779a99941dff59f",
+    "shape": "template",
+    "file": "Pages/Elections/OpenBallot.vue",
+    "line": 385,
+    "status": "source"
+  },
+  "elections_openballot.any": {
+    "source_hash": "1c87f89c07cb63a4e8129b3f56d71c7d9158f656c2616c375f2e0f89a58d5dd7",
+    "shape": "template",
+    "file": "Pages/Elections/OpenBallot.vue",
+    "line": 302,
+    "status": "source"
+  },
+  "elections_openballot.any_associated_resident_may_register_resid": {
+    "source_hash": "5a87f613622a8cc91489fbe13ed83977a14570f422a9201c34f9f4115b71bfca",
+    "shape": "template",
+    "file": "Pages/Elections/OpenBallot.vue",
+    "line": 397,
+    "status": "source"
+  },
+  "elections_openballot.choose_a_race_to_view": {
+    "source_hash": "f81812354aeb8d5584c480bcb9f67ae00d4e02488567b23dae8c9a6bbfa2e170",
+    "shape": "attr:aria-label",
+    "file": "Pages/Elections/OpenBallot.vue",
+    "line": 252,
+    "status": "source"
+  },
+  "elections_openballot.clear_filters": {
+    "source_hash": "7179ea0035fca783ec62b7185659b68c75f2a7c12b909306a57183dc9b3fa44b",
+    "shape": "template",
+    "file": "Pages/Elections/OpenBallot.vue",
+    "line": 319,
+    "status": "source"
+  },
+  "elections_openballot.endorsed_by": {
+    "source_hash": "9ceaa1ee2afea49872537c7f4094112f2ed0d88ed377eba394634372736af27b",
+    "shape": "attr:label",
+    "file": "Pages/Elections/OpenBallot.vue",
+    "line": 299,
+    "status": "source"
+  },
+  "elections_openballot.every_candidate_is_hidden_by_the_current_f": {
+    "source_hash": "0a9ba6a4d4d2e5ff11d897ad1717944d4d769d3178eef57f07b7f37a53f0965a",
+    "shape": "template",
+    "file": "Pages/Elections/OpenBallot.vue",
+    "line": 360,
+    "status": "source"
+  },
+  "elections_openballot.filter_the_standings_display_only_ranks_re": {
+    "source_hash": "ba8585ad02b4425a26db6d2870b69bbf800c42f87d352a7740a13be01231e8dd",
+    "shape": "attr:label",
+    "file": "Pages/Elections/OpenBallot.vue",
+    "line": 286,
+    "status": "source"
+  },
+  "elections_openballot.first_time_voting_here_the_election_journe": {
+    "source_hash": "7d5103ce12b36d7b14e88a03b7b99f91f21a3e8971ec8e915158feacebe65cea",
+    "shape": "template",
+    "file": "Pages/Elections/OpenBallot.vue",
+    "line": 216,
+    "status": "source"
+  },
+  "elections_openballot.future_scope": {
+    "source_hash": "f0a98b80e7cfed1ebb7490f3fd3886fc3bbcc47f6dc4b740ff0406c87e006dc4",
+    "shape": "template",
+    "file": "Pages/Elections/OpenBallot.vue",
+    "line": 390,
+    "status": "source"
+  },
+  "elections_openballot.future_scope_not_yet_built": {
+    "source_hash": "8c40afcc5ef145c273b474b7c6f3d99743d54f60de33171211bdee4db11cd386",
+    "shape": "attr:title",
+    "file": "Pages/Elections/OpenBallot.vue",
+    "line": 391,
+    "status": "source"
+  },
+  "elections_openballot.individual_endorsers": {
+    "source_hash": "f374b410c02abadbeeec26f6a36eeee5441d55adc834269647171801857bdb42",
+    "shape": "template",
+    "file": "Pages/Elections/OpenBallot.vue",
+    "line": 304,
+    "status": "source"
+  },
+  "elections_openballot.name_or_statement": {
+    "source_hash": "2d330c6befbc358e1d8da70dac50e8f9f958147f98d047dfe7fadee9e77d34c3",
+    "shape": "attr:placeholder",
+    "file": "Pages/Elections/OpenBallot.vue",
+    "line": 294,
+    "status": "source"
+  },
+  "elections_openballot.no_endorsements": {
+    "source_hash": "02cfcbbd3d555ef8b8eeb57858d78e7ccbe4473c0ea661a04b827009f0f6af38",
+    "shape": "template",
+    "file": "Pages/Elections/OpenBallot.vue",
+    "line": 305,
+    "status": "source"
+  },
+  "elections_openballot.no_races_yet": {
+    "source_hash": "a16e9e04c975678461652789336071cd6cdb527d26b263549620ffdec054634c",
+    "shape": "attr:title",
+    "file": "Pages/Elections/OpenBallot.vue",
+    "line": 241,
+    "status": "source"
+  },
+  "elections_openballot.no_validated_candidates_yet_any_associated": {
+    "source_hash": "d009413e0f92315f74c7b927bd7b831fc41a276b1be7b6e808e999910c45d14e",
+    "shape": "template",
+    "file": "Pages/Elections/OpenBallot.vue",
+    "line": 366,
+    "status": "source"
+  },
+  "elections_openballot.register_candidacy_f_ind_011": {
+    "source_hash": "ad3f22956c0bb5d247b7136d557ec694abc8e36cebf596ef93a07587ae262de6",
+    "shape": "template",
+    "file": "Pages/Elections/OpenBallot.vue",
+    "line": 401,
+    "status": "source"
+  },
+  "elections_openballot.search_candidates": {
+    "source_hash": "3ef587981def65102df6d47492b032a65b33b22966b877153a6b048c98c26470",
+    "shape": "attr:label",
+    "file": "Pages/Elections/OpenBallot.vue",
+    "line": 287,
+    "status": "source"
+  },
+  "elections_openballot.seats_in_this_race": {
+    "source_hash": "7289808818e2f43908f3f3e358952cee4a3778f73b2d15e36cce1d21d1f0b5c7",
+    "shape": "attr:label",
+    "file": "Pages/Elections/OpenBallot.vue",
+    "line": 267,
+    "status": "source"
+  },
+  "elections_openballot.show_all": {
+    "source_hash": "0f4f938c1083522189016afa487742a49641514b93282405cf0c9c8c3aaf0b4c",
+    "shape": "template",
+    "file": "Pages/Elections/OpenBallot.vue",
+    "line": 376,
+    "status": "source"
+  },
+  "elections_openballot.stand_for_office": {
+    "source_hash": "c768a06fb951ab4ccdb51ec49fe4e9458824a2a053688aa16c80111c242de1d5",
+    "shape": "attr:title",
+    "file": "Pages/Elections/OpenBallot.vue",
+    "line": 396,
+    "status": "source"
+  },
+  "elections_openballot.standings_are_aggregate_counts_updated_on_": {
+    "source_hash": "360cdc969b9f8e259e9f53fec52342317f17c2548b95b7b450cf6c4b79e5303e",
+    "shape": "template",
+    "file": "Pages/Elections/OpenBallot.vue",
+    "line": 273,
+    "status": "source"
+  },
+  "elections_openballot.start_the_questionnaire": {
+    "source_hash": "aac16b18cc352f111442959aa3d841708953c36f6ad547f2d8de90b6e8dac653",
+    "shape": "template",
+    "file": "Pages/Elections/OpenBallot.vue",
+    "line": 391,
+    "status": "source"
+  },
+  "elections_openballot.the_continuous_approval_phase_anyone_who_l": {
+    "source_hash": "7f8a2dd2af6fc22f0b152f92dc5bd82be17e811d20e515107c7cd364e5f6aef2",
+    "shape": "template",
+    "file": "Pages/Elections/OpenBallot.vue",
+    "line": 199,
+    "status": "source"
+  },
+  "elections_openballot.this_election_has_no_races_race_generation": {
+    "source_hash": "94518c3c071f2288faf9b9dc403f78c630cbee533612655dd7c7c3c9f8d93e23",
+    "shape": "template",
+    "file": "Pages/Elections/OpenBallot.vue",
+    "line": 242,
+    "status": "source"
+  },
+  "elections_openballot.wf_civ_08_approval_phase_standings_are_the": {
+    "source_hash": "49611b6f6b2c46746a69755186102638655bed44a765f95e63eeb3be3d6af0cc",
+    "shape": "template",
+    "file": "Pages/Elections/OpenBallot.vue",
+    "line": 207,
+    "status": "source"
+  },
+  "elections_openballot.you_can_browse_this_race_approving_require": {
+    "source_hash": "d6edcf7b43e7732436fc012f017ac7d40e53970cf82d8d879f860f186baa97fb",
+    "shape": "template",
+    "file": "Pages/Elections/OpenBallot.vue",
+    "line": 280,
+    "status": "source"
+  },
+  "elections_openballot.your_active_approvals_revocable": {
+    "source_hash": "29e7864521c548a914d1c0351dc0843da6824fdb2ebfc23c8dd7ffd8fb9fdc32",
+    "shape": "attr:label",
+    "file": "Pages/Elections/OpenBallot.vue",
+    "line": 270,
+    "status": "source"
+  },
+  "elections_openballot.your_approval_is_recorded_the_moment_you_t": {
+    "source_hash": "0b9537edc5ab5f696892e784fe8f037f29b7414af1285608b8c9804121b063eb",
+    "shape": "template",
+    "file": "Pages/Elections/OpenBallot.vue",
+    "line": 335,
+    "status": "source"
+  },
+  "elections_openballot.your_approvals_are_secret": {
+    "source_hash": "d6ee5573086b2158698d931c19f0cca2deacfe8a0cbc491d0092bfbdd1a653df",
+    "shape": "attr:title",
+    "file": "Pages/Elections/OpenBallot.vue",
+    "line": 273,
+    "status": "source"
+  },
+  "elections_openballot.your_own_race_is_pre_selected_from_your_as": {
+    "source_hash": "907ebe8c478929a820904d58ba79f308202053e9f6235fe6816250739062b813",
+    "shape": "template",
+    "file": "Pages/Elections/OpenBallot.vue",
+    "line": 260,
+    "status": "source"
+  },
+  "elections_rankedballot.add_write_in": {
+    "source_hash": "ef4f9a6d9e1fba60854f458cb9a9aeeb32f0e2187bb5d0ccc67825e7da67a9b3",
+    "shape": "template",
+    "file": "Pages/Elections/RankedBallot.vue",
+    "line": 383,
+    "status": "source"
+  },
+  "elections_rankedballot.anonymized_lookup_anyone_may_check_any_has": {
+    "source_hash": "f8b2076b58c7240a14aaeba91374a21de85677656f5e7bbbf33fc9609497a123",
+    "shape": "attr:hint",
+    "file": "Pages/Elections/RankedBallot.vue",
+    "line": 304,
+    "status": "source"
+  },
+  "elections_rankedballot.any_validated_candidate_may_be_written_in_": {
+    "source_hash": "b34af6ca48613e99bb2ddfc888d39d8f2be62afeb82e74c5b96baa86057d5d6b",
+    "shape": "template",
+    "file": "Pages/Elections/RankedBallot.vue",
+    "line": 359,
+    "status": "source"
+  },
+  "elections_rankedballot.ballot_committed": {
+    "source_hash": "6c971f7ebb8b0bba6a381b53a1e324da49d651b8907a6dcc8ae7a5e0c86bc344",
+    "shape": "attr:title",
+    "file": "Pages/Elections/RankedBallot.vue",
+    "line": 269,
+    "status": "source"
+  },
+  "elections_rankedballot.ballot_committed_2": {
+    "source_hash": "9b5238cdb9cd84416bf582e803e9aa5865a1f9606930d17757a023bd4719e08e",
+    "shape": "template",
+    "file": "Pages/Elections/RankedBallot.vue",
+    "line": 291,
+    "status": "source"
+  },
+  "elections_rankedballot.ballot_committed_copy_your_receipt_now_it_": {
+    "source_hash": "79b599864f3f32f1529c78a5b63751acd40d84a7804bb6b2456279057015048d",
+    "shape": "script:announce",
+    "file": "Pages/Elections/RankedBallot.vue",
+    "line": 127,
+    "status": "source"
+  },
+  "elections_rankedballot.ballot_machine_the_receipt_hash_is_your_ha": {
+    "source_hash": "3581e69a0129f44fb071fc58f9a8b5e1ef69f716a3d746322fde798ccdd5f3ab",
+    "shape": "template",
+    "file": "Pages/Elections/RankedBallot.vue",
+    "line": 282,
+    "status": "source"
+  },
+  "elections_rankedballot.ballot_submission_ranked_choice_f_ind_007_": {
+    "source_hash": "54c9d850ab6e5d281d7de25a3464f94910d37224fae7fc54ab4a752220197229",
+    "shape": "template",
+    "file": "Pages/Elections/RankedBallot.vue",
+    "line": 224,
+    "status": "source"
+  },
+  "elections_rankedballot.ballots_so_far_droop_quota_if_closed_now": {
+    "source_hash": "8d1d238b845362e7701866c355c59ba175c07425c827b65b363bd731fe340937",
+    "shape": "template",
+    "file": "Pages/Elections/RankedBallot.vue",
+    "line": 441,
+    "status": "source"
+  },
+  "elections_rankedballot.clk_18_clk_21_art_ii_2": {
+    "source_hash": "f4842d5ee800bf0946503c9d5a3ac38f746c4d4728f1fd13a9873a7ddbb2a919",
+    "shape": "attr:text",
+    "file": "Pages/Elections/RankedBallot.vue",
+    "line": 265,
+    "status": "source"
+  },
+  "elections_rankedballot.committing_encrypts_your_ballot_and_separa": {
+    "source_hash": "53847f79bdda4b4a1e6ba2cdbebd97dd05dfd3bb4b4c11a18573c514db36edcc",
+    "shape": "template",
+    "file": "Pages/Elections/RankedBallot.vue",
+    "line": 414,
+    "status": "source"
+  },
+  "elections_rankedballot.could_not_reach_the_receipt_check_try_agai": {
+    "source_hash": "13d3285be64151ded2329fa46d0433dbe286cc50a163ec257bb10392e401e0ef",
+    "shape": "script:message",
+    "file": "Pages/Elections/RankedBallot.vue",
+    "line": 193,
+    "status": "source"
+  },
+  "elections_rankedballot.cryptographic_separation_of_voter_identity": {
+    "source_hash": "fa9819bacf1a6ae3edc9b2aa095214c1867e09ac23a7e2344856736b16c7a57c",
+    "shape": "template",
+    "file": "Pages/Elections/RankedBallot.vue",
+    "line": 419,
+    "status": "source"
+  },
+  "elections_rankedballot.delegated_by_supermajority_act_f_leg_023_p": {
+    "source_hash": "17a607995ade70022ce7bb4b4e077b75f7cc51b92c128701c3733a808e926e45",
+    "shape": "template",
+    "file": "Pages/Elections/RankedBallot.vue",
+    "line": 470,
+    "status": "source"
+  },
+  "elections_rankedballot.droop_quota_the_smallest_vote_total_that_o": {
+    "source_hash": "f188e9dfba104f82e424c3dbcd4008920ab3afb6a9045cbc56f58981574367c5",
+    "shape": "template",
+    "file": "Pages/Elections/RankedBallot.vue",
+    "line": 239,
+    "status": "source"
+  },
+  "elections_rankedballot.finalists_one_count_rank_as_many_candidate": {
+    "source_hash": "d8431a911b6a19c4d691dd48bd3614d8d22bd7402e0095054cf6935e6c9f72e1",
+    "shape": "template",
+    "file": "Pages/Elections/RankedBallot.vue",
+    "line": 217,
+    "status": "source"
+  },
+  "elections_rankedballot.finalists_top_from_the_approval_phase_clk_": {
+    "source_hash": "2d0808de3c605c9a8089a95d3421df1ebf7051e09fe9c047547847c59f2333f8",
+    "shape": "template",
+    "file": "Pages/Elections/RankedBallot.vue",
+    "line": 332,
+    "status": "source"
+  },
+  "elections_rankedballot.how_the_count_works": {
+    "source_hash": "c5fa85c3eff876b1b52ef60a3f2c03d14b8cfc7e5bb0521a01c17b1db69239d7",
+    "shape": "attr:title",
+    "file": "Pages/Elections/RankedBallot.vue",
+    "line": 235,
+    "status": "source"
+  },
+  "elections_rankedballot.interaction_note_ranking_is_click_to_rank_": {
+    "source_hash": "41ad7a0ffca5ef95937521129517a1a1f3e3155d5f2dcbec80448b475125b7c4",
+    "shape": "template",
+    "file": "Pages/Elections/RankedBallot.vue",
+    "line": 479,
+    "status": "source"
+  },
+  "elections_rankedballot.keep_editing": {
+    "source_hash": "e76fd2add01005ae11754d75ec97923c1a20a5f42e37d469c80f06a14e433511",
+    "shape": "template",
+    "file": "Pages/Elections/RankedBallot.vue",
+    "line": 431,
+    "status": "source"
+  },
+  "elections_rankedballot.live_aggregate_if_the_window_closed_now": {
+    "source_hash": "2746c2382c9ffff0577ab5c8e798af17a6ca2ae1f523226974aca71e0ecd46b9",
+    "shape": "attr:title",
+    "file": "Pages/Elections/RankedBallot.vue",
+    "line": 436,
+    "status": "source"
+  },
+  "elections_rankedballot.no_validated_candidates_match": {
+    "source_hash": "c5df9788734b6f1435d7865dbc11e9c037d7f7c930dd56c6d0bdbc74df961d1e",
+    "shape": "template",
+    "file": "Pages/Elections/RankedBallot.vue",
+    "line": 385,
+    "status": "source"
+  },
+  "elections_rankedballot.paste_a_receipt_hash": {
+    "source_hash": "5d3a3e96cbf02dafd663176df4f1029fdb78792a64257e9b7f0a8f3fbc6bb699",
+    "shape": "attr:label",
+    "file": "Pages/Elections/RankedBallot.vue",
+    "line": 303,
+    "status": "source"
+  },
+  "elections_rankedballot.projection_only_surpluses_and_eliminations": {
+    "source_hash": "5cb05f2efd407f9b0dff17a7aa76d039dc5a2ffaf3ca2be286ea6c651c0f1a91",
+    "shape": "template",
+    "file": "Pages/Elections/RankedBallot.vue",
+    "line": 458,
+    "status": "source"
+  },
+  "elections_rankedballot.public_chain_of_custody_endorsing_organiza": {
+    "source_hash": "78734133856c0c2c7cc2a8167fd316849d25993b312940dfb7564879404dabb8",
+    "shape": "template",
+    "file": "Pages/Elections/RankedBallot.vue",
+    "line": 278,
+    "status": "source"
+  },
+  "elections_rankedballot.ranked": {
+    "source_hash": "228495cedbcf0e7f560ee657dfd6d9c80bc90fd59798c713303df449322dd23e",
+    "shape": "template",
+    "file": "Pages/Elections/RankedBallot.vue",
+    "line": 339,
+    "status": "source"
+  },
+  "elections_rankedballot.referendum_content_arrives_with_phase_c": {
+    "source_hash": "14c63c1b248981aa9fc42c485f7ca1b4bbfb25cbf9237a65fa011d478538a7ad",
+    "shape": "template",
+    "file": "Pages/Elections/RankedBallot.vue",
+    "line": 474,
+    "status": "source"
+  },
+  "elections_rankedballot.referendum_question_on_this_ballot": {
+    "source_hash": "2656e5c5557321be976cca9900586bab514936567f24fc27a6de56d8f9eeceab",
+    "shape": "attr:title",
+    "file": "Pages/Elections/RankedBallot.vue",
+    "line": 466,
+    "status": "source"
+  },
+  "elections_rankedballot.referendum_vote_f_ind_008_available_to_r_0": {
+    "source_hash": "53cdfab225523b800689b14e12367452e55ef8fe62480ea331695ea43140fc96",
+    "shape": "template",
+    "file": "Pages/Elections/RankedBallot.vue",
+    "line": 467,
+    "status": "source"
+  },
+  "elections_rankedballot.review_ballot": {
+    "source_hash": "be8b889a5dc287ab3a475796867951c398cdfdab078ced41704d16d603c937a3",
+    "shape": "template",
+    "file": "Pages/Elections/RankedBallot.vue",
+    "line": 401,
+    "status": "source"
+  },
+  "elections_rankedballot.review_commit": {
+    "source_hash": "96a847652b6188b240c9e2d8a9943d4cb19ecac88cca967321e38c2a5aaeaafe",
+    "shape": "attr:title",
+    "file": "Pages/Elections/RankedBallot.vue",
+    "line": 408,
+    "status": "source"
+  },
+  "elections_rankedballot.search_by_name_write_ins_are_search_driven": {
+    "source_hash": "9495f5b535e56732ea4af3467dce92c7c519b4d594dcf4eab172a5ab5130476c",
+    "shape": "attr:hint",
+    "file": "Pages/Elections/RankedBallot.vue",
+    "line": 367,
+    "status": "source"
+  },
+  "elections_rankedballot.searching": {
+    "source_hash": "c31723ab330289fe2cc4c7b69b7a862361da79a01f84893dc7b89a6de0ab4b42",
+    "shape": "template",
+    "file": "Pages/Elections/RankedBallot.vue",
+    "line": 379,
+    "status": "source"
+  },
+  "elections_rankedballot.standings_stay_visible_through_the_ranked_": {
+    "source_hash": "4fc9646641020da04ee09c2ba5ad4ea20a11074d6427bc47f0fb8e4998cc1fb4",
+    "shape": "template",
+    "file": "Pages/Elections/RankedBallot.vue",
+    "line": 437,
+    "status": "source"
+  },
+  "elections_rankedballot.stv_with_droop_quota_hardened_art_ii_2": {
+    "source_hash": "cd62c542a26232118fbe33cdfe0d3bdb872efa1f09c224fa942014cfa5fd0a71",
+    "shape": "attr:text",
+    "file": "Pages/Elections/RankedBallot.vue",
+    "line": 243,
+    "status": "source"
+  },
+  "elections_rankedballot.the_approval_phase_is_still_under_way_fina": {
+    "source_hash": "18f8692740ae347227e3ef7bda296bc9a3afe987f28d26c62ee356889006c462",
+    "shape": "template",
+    "file": "Pages/Elections/RankedBallot.vue",
+    "line": 256,
+    "status": "source"
+  },
+  "elections_rankedballot.the_ranked_window_has_closed_the_engine_wi": {
+    "source_hash": "60add757aa6161e2a67f4967470739d54969b3082d37f9b18c7838dd10e70aba",
+    "shape": "template",
+    "file": "Pages/Elections/RankedBallot.vue",
+    "line": 423,
+    "status": "source"
+  },
+  "elections_rankedballot.the_ranked_window_is_not_open": {
+    "source_hash": "436e0ce055bf64acda38ce2653e67572bbee7367c0d1a4d83874e8ab9304c040",
+    "shape": "attr:title",
+    "file": "Pages/Elections/RankedBallot.vue",
+    "line": 254,
+    "status": "source"
+  },
+  "elections_rankedballot.verify_a_receipt": {
+    "source_hash": "a5e3fbb5bd948e19665ad4b3e3f9b135daec5abc2c1513d651c9e22d97201f74",
+    "shape": "template",
+    "file": "Pages/Elections/RankedBallot.vue",
+    "line": 301,
+    "status": "source"
+  },
+  "elections_rankedballot.voting_has_closed_for_this_race_watch_the_": {
+    "source_hash": "3a1ddc96c742a4c2baa54f3e8e9331eff083c5350ebac745c8d24fce3249d874",
+    "shape": "template",
+    "file": "Pages/Elections/RankedBallot.vue",
+    "line": 261,
+    "status": "source"
+  },
+  "elections_rankedballot.window_closes_shown_in_your_timezone_store": {
+    "source_hash": "d2408688d1fd6ff49573a33103b37073c7ab12a3b83f5c38d56eeb9c5efb9852",
+    "shape": "template",
+    "file": "Pages/Elections/RankedBallot.vue",
+    "line": 227,
+    "status": "source"
+  },
+  "elections_rankedballot.write_in": {
+    "source_hash": "578cebc2cb00cc5971b2346f52a03b20cb0208d536ea882254b1787ed1498905",
+    "shape": "template",
+    "file": "Pages/Elections/RankedBallot.vue",
+    "line": 358,
+    "status": "source"
+  },
+  "elections_rankedballot.write_in_2": {
+    "source_hash": "b95d04f2f383c771b61be44542180ff918000a1305ecf42ec476a3261d1161b6",
+    "shape": "template",
+    "file": "Pages/Elections/RankedBallot.vue",
+    "line": 411,
+    "status": "source"
+  },
+  "elections_rankedballot.write_in_a_validated_candidate": {
+    "source_hash": "c2d78ed4ee5257ce13ff54c6ad6d75b4cc85dd7a8e396ff202482781bcc1d412",
+    "shape": "attr:label",
+    "file": "Pages/Elections/RankedBallot.vue",
+    "line": 366,
+    "status": "source"
+  },
+  "elections_rankedballot.your_ballot_is_in_the_count": {
+    "source_hash": "aef9c8d9bc76aa687539a7cf92dc1d557ac5eac8a45842c8de534c19afa03f7b",
+    "shape": "attr:title",
+    "file": "Pages/Elections/RankedBallot.vue",
+    "line": 289,
+    "status": "source"
+  },
+  "elections_rankedballot.your_ballot_is_in_the_count_your_receipt_h": {
+    "source_hash": "66852a6e6144d3f51553a687fefdd953a1f1c5490196fb6430a747ffc75b1132",
+    "shape": "template",
+    "file": "Pages/Elections/RankedBallot.vue",
+    "line": 295,
+    "status": "source"
+  },
+  "elections_rankedballot.your_ranking_ranked": {
+    "source_hash": "4378dc87b35624121cc08ee00067db8ce36a3d1f86dd81b254264d7ffef621ae",
+    "shape": "template",
+    "file": "Pages/Elections/RankedBallot.vue",
+    "line": 393,
+    "status": "source"
+  },
+  "elections_rankedballot.your_receipt_hash_keep_it_to_verify_your_b": {
+    "source_hash": "9cae7897386a0c64a0bb520bc6a98099d2968e71e8bd02e8b9049e8886cc76ae",
+    "shape": "template",
+    "file": "Pages/Elections/RankedBallot.vue",
+    "line": 270,
+    "status": "source"
+  },
+  "elections_rankedballot.your_right_to_stand_and_to_vote_for_anyone": {
+    "source_hash": "d52eebc82cb71c1ca547b55e6a4f19ce8fa0d0ee651731b9fa6098650e49dbca",
+    "shape": "template",
+    "file": "Pages/Elections/RankedBallot.vue",
+    "line": 364,
+    "status": "source"
+  },
+  "elections_results.a_recount_is_an_audit_re_run_of_the_stored": {
+    "source_hash": "292a6017b50f20deaf12e3ccb6684fc23463a4d1fde9e9a8230bd6c028ab2f73",
+    "shape": "template",
+    "file": "Pages/Elections/Results.vue",
+    "line": 297,
+    "status": "source"
+  },
+  "elections_results.all_factions_can_observe_and_audit_art_ii_": {
+    "source_hash": "a07730056810ca6e65f6d7b41ba29195c7e0f3ca794dbe4fad8b0af856ee9c85",
+    "shape": "template",
+    "file": "Pages/Elections/Results.vue",
+    "line": 328,
+    "status": "source"
+  },
+  "elections_results.audit_re_run_recount": {
+    "source_hash": "b146155782f8e5837564ce2c6f9f774383cadc2cae325758db838aa27ea5c579",
+    "shape": "attr:title",
+    "file": "Pages/Elections/Results.vue",
+    "line": 284,
+    "status": "source"
+  },
+  "elections_results.cause_ordered": {
+    "source_hash": "f64afd389e148716c07ab6a7ca5cbc97cd46e932ada1546092b0f69a181df6b4",
+    "shape": "template",
+    "file": "Pages/Elections/Results.vue",
+    "line": 294,
+    "status": "source"
+  },
+  "elections_results.certification_chain_of_custody": {
+    "source_hash": "242e4d4a605a0a7b513b51bc50cc5d650dad093a855353d6b1a11345fb056fd9",
+    "shape": "attr:title",
+    "file": "Pages/Elections/Results.vue",
+    "line": 322,
+    "status": "source"
+  },
+  "elections_results.certification_pending_f_elb_004_election_r": {
+    "source_hash": "4a68ef3d953f5ff728e23858acf51673a0bb5825156f112d69cae56e2b8e196c",
+    "shape": "template",
+    "file": "Pages/Elections/Results.vue",
+    "line": 217,
+    "status": "source"
+  },
+  "elections_results.certified_f_elb_004_election_results_certi": {
+    "source_hash": "427edab9f6c10ee6053fddcb07cd6d0cc1f29cb8290f7be009aadd87affb5d1b",
+    "shape": "template",
+    "file": "Pages/Elections/Results.vue",
+    "line": 213,
+    "status": "source"
+  },
+  "elections_results.certify_results_f_elb_004": {
+    "source_hash": "59b87ebfe8e8899f34f9dc3b2b630a563937632fa46f86f98356fa6d81a7ea0d",
+    "shape": "template",
+    "file": "Pages/Elections/Results.vue",
+    "line": 364,
+    "status": "source"
+  },
+  "elections_results.counting_rounds": {
+    "source_hash": "044df1350a3440ec8b61444becb5cc6761367d8eef9f25715e0b5a1328a1900b",
+    "shape": "attr:label",
+    "file": "Pages/Elections/Results.vue",
+    "line": 198,
+    "status": "source"
+  },
+  "elections_results.download_full_count_record_csv": {
+    "source_hash": "87a6f0a789f0274de896245730080b1d611773e3bd79aa10e970da09d8520262",
+    "shape": "template",
+    "file": "Pages/Elections/Results.vue",
+    "line": 276,
+    "status": "source"
+  },
+  "elections_results.droop_quota": {
+    "source_hash": "62be405b6576a114efa422b678efb528eea27fd67b6bcef9e4503ce98053cd15",
+    "shape": "template",
+    "file": "Pages/Elections/Results.vue",
+    "line": 230,
+    "status": "source"
+  },
+  "elections_results.droop_quota_2": {
+    "source_hash": "b0845a4ef12fb2a74def4facd43549a0a2df13a47767edf0de5f6e8a14189674",
+    "shape": "template",
+    "file": "Pages/Elections/Results.vue",
+    "line": 305,
+    "status": "source"
+  },
+  "elections_results.droop_quota_floor_votes_seats_1_1": {
+    "source_hash": "3b10f26983485e47375e0e39f7f70e67bb625ea532a185cccdfbaf6bebeda5e8",
+    "shape": "attr:label",
+    "file": "Pages/Elections/Results.vue",
+    "line": 194,
+    "status": "source"
+  },
+  "elections_results.entity_state_machine_election_tabulating_c": {
+    "source_hash": "7cfc02403268a0b56b99db203b627541d450e3089853a5342381c828e4474113",
+    "shape": "template",
+    "file": "Pages/Elections/Results.vue",
+    "line": 398,
+    "status": "source"
+  },
+  "elections_results.every_one_of_the_fills_in_this_single_coun": {
+    "source_hash": "91bd9a5c6209c800e48e655be6129239f47ac980165309c6b42660d4633748f7",
+    "shape": "template",
+    "file": "Pages/Elections/Results.vue",
+    "line": 145,
+    "status": "source"
+  },
+  "elections_results.full_precision_streamed_from_tabulation_ro": {
+    "source_hash": "f9dc1f552b293a941fe07441f3678d512cded5ecace4a7d37439242cdcd6c47d",
+    "shape": "template",
+    "file": "Pages/Elections/Results.vue",
+    "line": 279,
+    "status": "source"
+  },
+  "elections_results.gold_tick_the_droop_quota_reaching_it_elec": {
+    "source_hash": "acfe9fe51f17213797dc39855714b45cd417b553314316621a6a08cb59c01fc6",
+    "shape": "template",
+    "file": "Pages/Elections/Results.vue",
+    "line": 226,
+    "status": "source"
+  },
+  "elections_results.kind_audit_rerun": {
+    "source_hash": "659404bc4da07a0f620a2311858ce46052b6feaaea1f895e031f1dc5389e2af9",
+    "shape": "template",
+    "file": "Pages/Elections/Results.vue",
+    "line": 286,
+    "status": "source"
+  },
+  "elections_results.no_count_record_exists_for_this_race_yet": {
+    "source_hash": "35f8bb1746b1a136a0159309e55ad49242199658fcd5a0625d163e1c0ced8295",
+    "shape": "attr:title",
+    "file": "Pages/Elections/Results.vue",
+    "line": 183,
+    "status": "source"
+  },
+  "elections_results.observers_of_record": {
+    "source_hash": "5d154965bf230329dc110e09c5e14470a7c9f790cf394c9e7706a5ad43f8ca40",
+    "shape": "attr:caption",
+    "file": "Pages/Elections/Results.vue",
+    "line": 337,
+    "status": "source"
+  },
+  "elections_results.re_run_in_progress": {
+    "source_hash": "ee0d79e7f72488f2a5f6ce2c45691ca33822de488dd00431693b31902a3e1151",
+    "shape": "template",
+    "file": "Pages/Elections/Results.vue",
+    "line": 293,
+    "status": "source"
+  },
+  "elections_results.re_run_record_rounds": {
+    "source_hash": "f1235658c8f1931aa1e1713ead18a7a3098e5fb969d749df810c2db5762d4ca9",
+    "shape": "template",
+    "file": "Pages/Elections/Results.vue",
+    "line": 303,
+    "status": "source"
+  },
+  "elections_results.recount_audit_re_run": {
+    "source_hash": "c18a8f1dc2596f5a9917d2aa2608e6c54d417a6ab37c696ee4707856083d8013",
+    "shape": "script:label",
+    "file": "Pages/Elections/Results.vue",
+    "line": 139,
+    "status": "source"
+  },
+  "elections_results.seats_all_filled_in_one_count": {
+    "source_hash": "eded8fa03b0c002969c42cc2d45dc6e5b58400bd2a34eb80c8b86d4e75a40d87",
+    "shape": "attr:label",
+    "file": "Pages/Elections/Results.vue",
+    "line": 197,
+    "status": "source"
+  },
+  "elections_results.single_winner_ranked_choice_voting_applies": {
+    "source_hash": "ba7a054199c473b75bd7cccd4d79732730b4d51368f7d2724ad87554faf08dbc",
+    "shape": "template",
+    "file": "Pages/Elections/Results.vue",
+    "line": 389,
+    "status": "source"
+  },
+  "elections_results.single_winner_rcv_only_for_the_individual_": {
+    "source_hash": "f85dab29c6747aabb6ac50aae61ca2f2685768726e28974d9c5a02045db3e162",
+    "shape": "template",
+    "file": "Pages/Elections/Results.vue",
+    "line": 394,
+    "status": "source"
+  },
+  "elections_results.single_winner_variant_individual_executive": {
+    "source_hash": "de5ed95908eeebd651190e729a4890f39d98b77fd6e0fc6e2d8d64bbf1087775",
+    "shape": "attr:title",
+    "file": "Pages/Elections/Results.vue",
+    "line": 388,
+    "status": "source"
+  },
+  "elections_results.stv_with_droop_quota_fractional_gregory_su": {
+    "source_hash": "5aec284109a218506a2cbbb570524452c0df60c9f8b04b550cfbf620dde7deba",
+    "shape": "template",
+    "file": "Pages/Elections/Results.vue",
+    "line": 153,
+    "status": "source"
+  },
+  "elections_results.tabulating_instant_count_in_progress": {
+    "source_hash": "dae3c892827b1488bac4bd47a694a2648846fc3a05e79c27b1b23a0428f09ead",
+    "shape": "attr:title",
+    "file": "Pages/Elections/Results.vue",
+    "line": 172,
+    "status": "source"
+  },
+  "elections_results.tabulation_dispatches_automatically_when_t": {
+    "source_hash": "8fd02cc4fbd4d641ecf52c1bcd8d165ae74860a50423ca52d8ba5fdd26402520",
+    "shape": "template",
+    "file": "Pages/Elections/Results.vue",
+    "line": 179,
+    "status": "source"
+  },
+  "elections_results.the_count_ran_under_a_public_chain_of_cust": {
+    "source_hash": "d5a87d1f984a495d4d4936da3c6a783344414ffb1aa5b97704e0d0d00c3c33bb",
+    "shape": "template",
+    "file": "Pages/Elections/Results.vue",
+    "line": 323,
+    "status": "source"
+  },
+  "elections_results.the_count_round_by_round": {
+    "source_hash": "3408c6675895318114b3d27eeaf64967a9c4a97b5a704a6324679d9ef202a1fc",
+    "shape": "attr:title",
+    "file": "Pages/Elections/Results.vue",
+    "line": 225,
+    "status": "source"
+  },
+  "elections_results.the_ranked_window_has_closed_and_the_prote": {
+    "source_hash": "654827600975ab9e0dafd85ac85fa209f020688fd2747583b97198058a871893",
+    "shape": "template",
+    "file": "Pages/Elections/Results.vue",
+    "line": 168,
+    "status": "source"
+  },
+  "elections_results.valid_ballots": {
+    "source_hash": "2a8a1cd6b341ec96a0c4265338e95901e3cc43c87d57f77bef4e902718bd7dae",
+    "shape": "attr:label",
+    "file": "Pages/Elections/Results.vue",
+    "line": 191,
+    "status": "source"
+  },
+  "elections_results.write_in_entered_as_tabulated_identically_": {
+    "source_hash": "8c9945171248316accc987a334191bccd5d0e2aaf576c7385fa3d8799026b952",
+    "shape": "template",
+    "file": "Pages/Elections/Results.vue",
+    "line": 267,
+    "status": "source"
+  },
+  "elections_vacancycountback.active_branch": {
+    "source_hash": "eb7995100f31fefbc87d37563e57a8d14c55b6585ada502b653698d223368548",
+    "shape": "template",
+    "file": "Pages/Elections/VacancyCountback.vue",
+    "line": 219,
+    "status": "source"
+  },
+  "elections_vacancycountback.available_to_r_08_election_board_member_ar": {
+    "source_hash": "85cb3be9d869369a02967ff8c47b6dfd3e8b194dc3e62929d5e0a49c3bc08807",
+    "shape": "template",
+    "file": "Pages/Elections/VacancyCountback.vue",
+    "line": 233,
+    "status": "source"
+  },
+  "elections_vacancycountback.available_to_r_09_legislative_representati": {
+    "source_hash": "7505d0b218bc2467b6ad09df55d53d553ab8b2b022efb9d8a139c202870eb989",
+    "shape": "template",
+    "file": "Pages/Elections/VacancyCountback.vue",
+    "line": 140,
+    "status": "source"
+  },
+  "elections_vacancycountback.catalog_alias_f_leg_030_workflows_catalog_": {
+    "source_hash": "4e15c9da6245e90da414568b1e54205650ce9faa90c505044e2326e86323768b",
+    "shape": "template",
+    "file": "Pages/Elections/VacancyCountback.vue",
+    "line": 144,
+    "status": "source"
+  },
+  "elections_vacancycountback.certification_follows_the_countback_automa": {
+    "source_hash": "d193f2b17cb6559db5b94a72e3547e47bd7c39e57f3e437d23f0a1912ffbf729",
+    "shape": "bound:title",
+    "file": "Pages/Elections/VacancyCountback.vue",
+    "line": 257,
+    "status": "source"
+  },
+  "elections_vacancycountback.certified_seated_via_oath_f_leg_001": {
+    "source_hash": "58e6562fc80d6b27ff309764d7ed88bfa4dd52ac6b704f0ce1581aafb044a112",
+    "shape": "template",
+    "file": "Pages/Elections/VacancyCountback.vue",
+    "line": 237,
+    "status": "source"
+  },
+  "elections_vacancycountback.certify_countback_winner": {
+    "source_hash": "d4bc27a7c829f0022d67e09798b92b1a51a6fc664d56ffbf3aec6cbe6300095c",
+    "shape": "template",
+    "file": "Pages/Elections/VacancyCountback.vue",
+    "line": 247,
+    "status": "source"
+  },
+  "elections_vacancycountback.committee_proportionality_re_check_pending": {
+    "source_hash": "a2c79caea04d4489444c7c9e77c457c18ef3f449db0bd11462404757e328904a",
+    "shape": "template",
+    "file": "Pages/Elections/VacancyCountback.vue",
+    "line": 333,
+    "status": "source"
+  },
+  "elections_vacancycountback.committee_proportionality_re_checked_after": {
+    "source_hash": "0032143139d7d35dc1f1239607708fc70cb957bf916a32cf357dbebd69a9cd37",
+    "shape": "template",
+    "file": "Pages/Elections/VacancyCountback.vue",
+    "line": 260,
+    "status": "source"
+  },
+  "elections_vacancycountback.countback_failed_ballots_exhausted": {
+    "source_hash": "754deddb1cccf2810333d4bb30d0470bb5a160189c81e1da56532ba33cb87b2c",
+    "shape": "template",
+    "file": "Pages/Elections/VacancyCountback.vue",
+    "line": 161,
+    "status": "source"
+  },
+  "elections_vacancycountback.countback_running": {
+    "source_hash": "a95ca2bfe377f10971aa25d99bb6017f47a7ff7a1a47c669adf47e40442b9483",
+    "shape": "template",
+    "file": "Pages/Elections/VacancyCountback.vue",
+    "line": 164,
+    "status": "source"
+  },
+  "elections_vacancycountback.declare_a_seat_vacant_due_to_death_resigna": {
+    "source_hash": "80413ec1d7a1bbeb7390c804af256db0d293a364da77c96314602f9159693c99",
+    "shape": "template",
+    "file": "Pages/Elections/VacancyCountback.vue",
+    "line": 137,
+    "status": "source"
+  },
+  "elections_vacancycountback.declared_by_on_shown_in_your_timezone_stor": {
+    "source_hash": "c8385b55e6e0e10a794c0f0a9018ee0da3b5da005cf0c1fc052c1a5097e86f21",
+    "shape": "template",
+    "file": "Pages/Elections/VacancyCountback.vue",
+    "line": 146,
+    "status": "source"
+  },
+  "elections_vacancycountback.droop_quota": {
+    "source_hash": "f771ee9916b047e7e93d8a7cd2a6a19cd92e0c946883f8bde118ae50d8a18b52",
+    "shape": "template",
+    "file": "Pages/Elections/VacancyCountback.vue",
+    "line": 179,
+    "status": "source"
+  },
+  "elections_vacancycountback.election_results_certification": {
+    "source_hash": "b1c69f1d32315facea5ee39f0785b5cb3ff872a281841cd7d944beec92b630eb",
+    "shape": "template",
+    "file": "Pages/Elections/VacancyCountback.vue",
+    "line": 228,
+    "status": "source"
+  },
+  "elections_vacancycountback.entity_state_machine_vacancy_the_strip_abo": {
+    "source_hash": "30b90cf31e97385b2f8da38abcf72552062307bcdbb725f714ccef1a0b0d46b2",
+    "shape": "template",
+    "file": "Pages/Elections/VacancyCountback.vue",
+    "line": 351,
+    "status": "source"
+  },
+  "elections_vacancycountback.f_elb_004_committed_proportionality_re_che": {
+    "source_hash": "ae8a0bad2ebf8a8612cbb80f342582f370737e4dda9fba2cce9076da1e469345",
+    "shape": "template",
+    "file": "Pages/Elections/VacancyCountback.vue",
+    "line": 240,
+    "status": "source"
+  },
+  "elections_vacancycountback.gold_tick_the_droop_quota_a_continuing_can": {
+    "source_hash": "dd92dfbb8cb5a24dd37bc17bd627d44c682fad3913e9de76186651badfa60b1a",
+    "shape": "template",
+    "file": "Pages/Elections/VacancyCountback.vue",
+    "line": 200,
+    "status": "source"
+  },
+  "elections_vacancycountback.knock_on_effects": {
+    "source_hash": "d7ab200b914f0460f86bfb8bba68a447c95e42a39433e3ea0943884dc4fea187",
+    "shape": "attr:title",
+    "file": "Pages/Elections/VacancyCountback.vue",
+    "line": 331,
+    "status": "source"
+  },
+  "elections_vacancycountback.no_continuing_candidate_can_reach_the_quot": {
+    "source_hash": "c138aaef4b0c909d423b5a8a0296f6f1b36c6ac7bdf60ae6eb5781169e99f2fd",
+    "shape": "template",
+    "file": "Pages/Elections/VacancyCountback.vue",
+    "line": 276,
+    "status": "source"
+  },
+  "elections_vacancycountback.no_new_election_is_needed_yet_the_game_re_": {
+    "source_hash": "fa63dc370ef26e434a194e18a51500a8ddd1eb7332917e158b2491a29333e063",
+    "shape": "template",
+    "file": "Pages/Elections/VacancyCountback.vue",
+    "line": 115,
+    "status": "source"
+  },
+  "elections_vacancycountback.no_winner_in_this_countback": {
+    "source_hash": "5760a14f450e89585ebe37f73f11bf60e14fa2ce3eed5bcff965d35fd6693a5c",
+    "shape": "bound:title",
+    "file": "Pages/Elections/VacancyCountback.vue",
+    "line": 257,
+    "status": "source"
+  },
+  "elections_vacancycountback.not_taken": {
+    "source_hash": "e4b41203cecb8c8b602630ce6b92774e5129572443253a31fa9f7e8c5ba76399",
+    "shape": "template",
+    "file": "Pages/Elections/VacancyCountback.vue",
+    "line": 220,
+    "status": "source"
+  },
+  "elections_vacancycountback.opens_wf_ele_04_forms_f_elb_001_f_ind_011_": {
+    "source_hash": "10e8a637ebab69a7b4731b396be2b59412b9d2fd5b2601963a0f0aac8135463d",
+    "shape": "template",
+    "file": "Pages/Elections/VacancyCountback.vue",
+    "line": 324,
+    "status": "source"
+  },
+  "elections_vacancycountback.phase_b_vacancies_are_dev_seeded_the_f_leg": {
+    "source_hash": "f17b959f44f14ca7790287fef691f0e757d36b395b27ef439f286d046934b1b9",
+    "shape": "template",
+    "file": "Pages/Elections/VacancyCountback.vue",
+    "line": 355,
+    "status": "source"
+  },
+  "elections_vacancycountback.re_run_of_prior_ballots_with_the_vacated_m": {
+    "source_hash": "88b2ffd17d58522ee2b5ca00934308666eb052c963dc80f1189111c8ce9b02e1",
+    "shape": "template",
+    "file": "Pages/Elections/VacancyCountback.vue",
+    "line": 204,
+    "status": "source"
+  },
+  "elections_vacancycountback.re_run_source_the_prior_valid_ballots_droo": {
+    "source_hash": "d049047cd2e6d32f9034b663a8550e81743aa67cb27acc68f1c4eca095d7e6af",
+    "shape": "template",
+    "file": "Pages/Elections/VacancyCountback.vue",
+    "line": 168,
+    "status": "source"
+  },
+  "elections_vacancycountback.scheduling_opens_only_if_the_countback_exh": {
+    "source_hash": "e0bd34cff0d4dd79f5319b3c7c3e5e20ce9ba43694595155bc2ccc2bdf443362",
+    "shape": "template",
+    "file": "Pages/Elections/VacancyCountback.vue",
+    "line": 320,
+    "status": "source"
+  },
+  "elections_vacancycountback.special_election_date_ranked_window_opens": {
+    "source_hash": "28b1976acfbac5fbc968e6a3a784031fbaf647863d1f5f883ecc837599d8cd1b",
+    "shape": "attr:label",
+    "file": "Pages/Elections/VacancyCountback.vue",
+    "line": 302,
+    "status": "source"
+  },
+  "elections_vacancycountback.special_election_scheduled_ranked_window_o": {
+    "source_hash": "6bc7824d1ed2df0ecd61fbefe5c68c0490da2ddcb4b640083d777916faf39dd2",
+    "shape": "template",
+    "file": "Pages/Elections/VacancyCountback.vue",
+    "line": 287,
+    "status": "source"
+  },
+  "elections_vacancycountback.special_election_window_days_clk_04_art_ii": {
+    "source_hash": "423bc84f4cb160f8785cff4bdb7525ab3aac7882162fcb394a67c51c8f8afe5c",
+    "shape": "template",
+    "file": "Pages/Elections/VacancyCountback.vue",
+    "line": 282,
+    "status": "source"
+  },
+  "elections_vacancycountback.term_inheritance_clk_10_a_replacement_term": {
+    "source_hash": "c60d805f2fe45a94e85f23d2aab9ce30ea016b698d4ccaf5226e6b80f157f14d",
+    "shape": "template",
+    "file": "Pages/Elections/VacancyCountback.vue",
+    "line": 340,
+    "status": "source"
+  },
+  "elections_vacancycountback.the_countback_is_re_running_the_stored_bal": {
+    "source_hash": "48a85da415444e2a99a9c1b4ec5a5ee3aee84ae9ab60c1fd081a3e3cd55d1893",
+    "shape": "template",
+    "file": "Pages/Elections/VacancyCountback.vue",
+    "line": 195,
+    "status": "source"
+  },
+  "elections_vacancycountback.the_countback_yields_a_replacement_the_ele": {
+    "source_hash": "bdde44b356149cac9d9d46249b54cfce640194b50eb5690f8df1d5e4cd3acf0e",
+    "shape": "template",
+    "file": "Pages/Elections/VacancyCountback.vue",
+    "line": 223,
+    "status": "source"
+  },
+  "elections_vacancycountback.vacancies_filled_by_countback_of_prior_bal": {
+    "source_hash": "2caca59d1d176fab7f7c1a7cc3cf5acc7b11a3ac2cb1c6aeec3499bddd8f5095",
+    "shape": "template",
+    "file": "Pages/Elections/VacancyCountback.vue",
+    "line": 124,
+    "status": "source"
+  },
+  "elections_vacancycountback.vacancy_declaration": {
+    "source_hash": "997d9f9c632c53cd07c9e2d0c0d295773800270f70cc4444437a1525a7b8dda8",
+    "shape": "template",
+    "file": "Pages/Elections/VacancyCountback.vue",
+    "line": 132,
+    "status": "source"
+  },
+  "elections_vacancycountback.vacancy_state_machine": {
+    "source_hash": "14469325ac4af039c6cff77fb3e23bbcddc691b6ba96a6a1266d6df38839601a",
+    "shape": "attr:aria-label",
+    "file": "Pages/Elections/VacancyCountback.vue",
+    "line": 150,
+    "status": "source"
+  },
+  "elections_vacancycountback.winner_found": {
+    "source_hash": "fa6f729dacb9278b85b86b35219211ab6421f9e698b7446e839cac060e25f123",
+    "shape": "template",
+    "file": "Pages/Elections/VacancyCountback.vue",
+    "line": 158,
+    "status": "source"
+  }
+}

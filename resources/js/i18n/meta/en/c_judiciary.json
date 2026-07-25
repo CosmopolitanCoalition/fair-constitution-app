@@ -1,0 +1,345 @@
+{
+  "judiciary_art4section5tracker.a_severity_scaled_panel_of_the_writing": {
+    "source_hash": "dee27d34f5a6b888af86367a920bb1c5f0ea8dfd6ecdb7651e7eb714420b8cfa",
+    "shape": "template",
+    "file": "Components/Judiciary/Art4Section5Tracker.vue",
+    "line": 161,
+    "status": "source"
+  },
+  "judiciary_art4section5tracker.active_challenge": {
+    "source_hash": "28185ede69a6e24cb16f47ade303356b653c29d38325ed2afeb45f3495da4117",
+    "shape": "attr:title",
+    "file": "Components/Judiciary/Art4Section5Tracker.vue",
+    "line": 142,
+    "status": "source"
+  },
+  "judiciary_art4section5tracker.amendment_bill_in_committee": {
+    "source_hash": "f14401cb37a644e1d5206a855bea1f3c0c8ef6554e9e5786dd59c8e1dc5084b4",
+    "shape": "template",
+    "file": "Components/Judiciary/Art4Section5Tracker.vue",
+    "line": 228,
+    "status": "source"
+  },
+  "judiciary_art4section5tracker.as_edited_by_the_judiciary": {
+    "source_hash": "5f9a5e0417ca76d4ddf06fb6ea796df5ad71b8d01b3e101144271bbe0e74da78",
+    "shape": "bound:label",
+    "file": "Components/Judiciary/Art4Section5Tracker.vue",
+    "line": 310,
+    "status": "source"
+  },
+  "judiciary_art4section5tracker.closed_resolved_on_another_path": {
+    "source_hash": "f487c6adc246f38db2ae5ad3a7942ebd00d3c474142bdd9cdc88406ead762917",
+    "shape": "script:text",
+    "file": "Components/Judiciary/Art4Section5Tracker.vue",
+    "line": 93,
+    "status": "source"
+  },
+  "judiciary_art4section5tracker.constitutional_challenge_state_machine": {
+    "source_hash": "1d52dd803f2c53d06a65217a338e823cf3ed39d52325184c39c99cb081b72023",
+    "shape": "template",
+    "file": "Components/Judiciary/Art4Section5Tracker.vue",
+    "line": 175,
+    "status": "source"
+  },
+  "judiciary_art4section5tracker.due_within_days_of_the_finding_art_iv_5_op": {
+    "source_hash": "c494242d59ee588cc36d1894f7f0cb84043d1d6ea1bc21ba35b7958b0bc5c612",
+    "shape": "template",
+    "file": "Components/Judiciary/Art4Section5Tracker.vue",
+    "line": 229,
+    "status": "source"
+  },
+  "judiciary_art4section5tracker.enforcement_aligns_to_the_final_state_of_t": {
+    "source_hash": "2616a919e1e62c6e8314d1490e82ed34fc9ca49d94c4b4cea845839ca29cacb1",
+    "shape": "template",
+    "file": "Components/Judiciary/Art4Section5Tracker.vue",
+    "line": 340,
+    "status": "source"
+  },
+  "judiciary_art4section5tracker.executives_enforce_the_outcome_whichever_p": {
+    "source_hash": "657045b0335cc3af5025820fe516ccaebcb6c2586515c0364160b9d5266c83c2",
+    "shape": "attr:title",
+    "file": "Components/Judiciary/Art4Section5Tracker.vue",
+    "line": 340,
+    "status": "source"
+  },
+  "judiciary_art4section5tracker.filed_by_any_inhabitant_may_file_no_standi": {
+    "source_hash": "e52a0804839de59388671ba2d9d7ae953fabceadfa33a66142286dedf093fc1c",
+    "shape": "template",
+    "file": "Components/Judiciary/Art4Section5Tracker.vue",
+    "line": 149,
+    "status": "source"
+  },
+  "judiciary_art4section5tracker.finding_recommended_remedy": {
+    "source_hash": "38a5065a2dd12064d9f1dbed7031fdc9438e271b67aef2c0474d5636534bf009",
+    "shape": "attr:title",
+    "file": "Components/Judiciary/Art4Section5Tracker.vue",
+    "line": 182,
+    "status": "source"
+  },
+  "judiciary_art4section5tracker.finding_remedy": {
+    "source_hash": "61bec38ce4f7cb83bca914f178f107e63900c8abce03d00d10a06c81e7f92685",
+    "shape": "script:label",
+    "file": "Components/Judiciary/Art4Section5Tracker.vue",
+    "line": 79,
+    "status": "source"
+  },
+  "judiciary_art4section5tracker.heard_by": {
+    "source_hash": "2ecd388bb5d91fbdd45353379b061e203e0bb6ef3a89f9778059a8089f673a73",
+    "shape": "template",
+    "file": "Components/Judiciary/Art4Section5Tracker.vue",
+    "line": 155,
+    "status": "source"
+  },
+  "judiciary_art4section5tracker.if_the_window_closes_with_neither_amendmen": {
+    "source_hash": "dff0cc156f0f1de29d2d42d79750e204016a85604ccb68b71d8e9dff7edfebb8",
+    "shape": "template",
+    "file": "Components/Judiciary/Art4Section5Tracker.vue",
+    "line": 302,
+    "status": "source"
+  },
+  "judiciary_art4section5tracker.is_edited_to_the_text_above_a_new_law_vers": {
+    "source_hash": "f44f1e779b546186efa89eda37c1cd69e8b4199d14e1f5ff44494f5cc71f82a2",
+    "shape": "template",
+    "file": "Components/Judiciary/Art4Section5Tracker.vue",
+    "line": 323,
+    "status": "source"
+  },
+  "judiciary_art4section5tracker.judgement_overruled": {
+    "source_hash": "432efe05ac070c1dcbf976c7094f15f7f181f245dd70c2712350d8eab1fd3e89",
+    "shape": "attr:title",
+    "file": "Components/Judiciary/Art4Section5Tracker.vue",
+    "line": 286,
+    "status": "source"
+  },
+  "judiciary_art4section5tracker.law_challenged": {
+    "source_hash": "2c6eb0152a16ba513d0f82536f568f09272367023cf6b601b380e5715c012dad",
+    "shape": "template",
+    "file": "Components/Judiciary/Art4Section5Tracker.vue",
+    "line": 145,
+    "status": "source"
+  },
+  "judiciary_art4section5tracker.legislative_window": {
+    "source_hash": "7f2b3ee4ac7d5b8f8dfd8087135a7abae756f57b13dd833fcdaa4147a4e1e8ba",
+    "shape": "script:label",
+    "file": "Components/Judiciary/Art4Section5Tracker.vue",
+    "line": 80,
+    "status": "source"
+  },
+  "judiciary_art4section5tracker.no_constitutional_challenge_is_open_in_you": {
+    "source_hash": "968751c93fb1f28b47590d65c149b0aec105661a680ffc342f11c1e0a8952353",
+    "shape": "attr:title",
+    "file": "Components/Judiciary/Art4Section5Tracker.vue",
+    "line": 112,
+    "status": "source"
+  },
+  "judiciary_art4section5tracker.no_open_challenge": {
+    "source_hash": "02a22f876968611c3eed8041b7ae4c4ec0f403227480beff105073cdbb44a124",
+    "shape": "template",
+    "file": "Components/Judiciary/Art4Section5Tracker.vue",
+    "line": 114,
+    "status": "source"
+  },
+  "judiciary_art4section5tracker.opinions_remain_commentary_on_the_law_as_w": {
+    "source_hash": "63d77111a61d8182f644a73a06a52f5424bcd371097eb611668d8b70a0857874",
+    "shape": "template",
+    "file": "Components/Judiciary/Art4Section5Tracker.vue",
+    "line": 319,
+    "status": "source"
+  },
+  "judiciary_art4section5tracker.override_votes_in_favor_of_all_serving": {
+    "source_hash": "9d98cb6f78002b24a9995bfae9c40dca1eceedef5aef2c493d4b4031305ca7d0",
+    "shape": "attr:label",
+    "file": "Components/Judiciary/Art4Section5Tracker.vue",
+    "line": 266,
+    "status": "source"
+  },
+  "judiciary_art4section5tracker.path_a": {
+    "source_hash": "427a078119cad64aed731da8409cf406e3e8cfc851bf60dee799d34df22d0b7a",
+    "shape": "attr:aria-label",
+    "file": "Components/Judiciary/Art4Section5Tracker.vue",
+    "line": 217,
+    "status": "source"
+  },
+  "judiciary_art4section5tracker.path_a_legislature_modifies_or_removes": {
+    "source_hash": "b72b19e38e0c6f70aa1c758eb34cc9ab061ad458b8a3ed21e50a012ae33f9913",
+    "shape": "template",
+    "file": "Components/Judiciary/Art4Section5Tracker.vue",
+    "line": 219,
+    "status": "source"
+  },
+  "judiciary_art4section5tracker.path_b": {
+    "source_hash": "a14fa9144282346b80bb09bca62706acc14b05e88d4fb6a5b83b0bd431114e1f",
+    "shape": "attr:aria-label",
+    "file": "Components/Judiciary/Art4Section5Tracker.vue",
+    "line": 236,
+    "status": "source"
+  },
+  "judiciary_art4section5tracker.path_b_supermajority_override_in_the_veto_": {
+    "source_hash": "140e6d408944e99bfb501d311505b76e6a41924421b83336002dc0052cf62dea",
+    "shape": "template",
+    "file": "Components/Judiciary/Art4Section5Tracker.vue",
+    "line": 238,
+    "status": "source"
+  },
+  "judiciary_art4section5tracker.path_c": {
+    "source_hash": "88d317587ed935cd05ad4972d1b481929a9634c02669cdfd52805389d8aa309d",
+    "shape": "attr:aria-label",
+    "file": "Components/Judiciary/Art4Section5Tracker.vue",
+    "line": 295,
+    "status": "source"
+  },
+  "judiciary_art4section5tracker.path_c_window_closes_judiciary_edits_the_l": {
+    "source_hash": "397da4375b33c07f4d778715726475f5ef60652fe7b44956481d561dcadae337",
+    "shape": "template",
+    "file": "Components/Judiciary/Art4Section5Tracker.vue",
+    "line": 297,
+    "status": "source"
+  },
+  "judiciary_art4section5tracker.pending_window_close": {
+    "source_hash": "9a5cfeb59e22d1209840a8330d750888dcf9abde9cc2fc8f0126733fe9496080",
+    "shape": "script:text",
+    "file": "Components/Judiciary/Art4Section5Tracker.vue",
+    "line": 105,
+    "status": "source"
+  },
+  "judiciary_art4section5tracker.remedy_applied_directly": {
+    "source_hash": "ce998c4b3d0014c1212128d098e76e62948f6bd434632881c25371df7a2922cb",
+    "shape": "attr:title",
+    "file": "Components/Judiciary/Art4Section5Tracker.vue",
+    "line": 327,
+    "status": "source"
+  },
+  "judiciary_art4section5tracker.remedy_preview": {
+    "source_hash": "965f402c9561bd18510f154fcbe1f0a06bd7e0d36421eca0f1dc4bd071e99d9d",
+    "shape": "bound:label",
+    "file": "Components/Judiciary/Art4Section5Tracker.vue",
+    "line": 310,
+    "status": "source"
+  },
+  "judiciary_art4section5tracker.right_to_challenge_art_iv_5": {
+    "source_hash": "99d01ac53dd4cf5a5440b8143464e724c9c2f0a4427a14acda09e68be6c6d708",
+    "shape": "template",
+    "file": "Components/Judiciary/Art4Section5Tracker.vue",
+    "line": 165,
+    "status": "source"
+  },
+  "judiciary_art4section5tracker.supermajority_of_all_serving_members_not_j": {
+    "source_hash": "a17937fb6b5f6ec3e835a73c8a9219c5ad9d0f04a9063c0910fef70b9f1afa64",
+    "shape": "template",
+    "file": "Components/Judiciary/Art4Section5Tracker.vue",
+    "line": 278,
+    "status": "source"
+  },
+  "judiciary_art4section5tracker.the_law_stands_as_written_the_finding_the_": {
+    "source_hash": "d0afa8151845fe8f853a6df15c6b8b11f9e6ca4c606a534dd69a4433d51a3b4c",
+    "shape": "template",
+    "file": "Components/Judiciary/Art4Section5Tracker.vue",
+    "line": 282,
+    "status": "source"
+  },
+  "judiciary_art4section5tracker.the_legislature_has_days_to_modify_or_remo": {
+    "source_hash": "6046452f2f6104e44e275cdb69c5d4dc8003bf653af84c4374067818124dda1c",
+    "shape": "template",
+    "file": "Components/Judiciary/Art4Section5Tracker.vue",
+    "line": 130,
+    "status": "source"
+  },
+  "judiciary_art4section5tracker.the_legislature_modifies_or_removes_the_la": {
+    "source_hash": "2f8d198947cd0675645cb5363ffa5efef54db1801f698a91bb619087288eb695",
+    "shape": "template",
+    "file": "Components/Judiciary/Art4Section5Tracker.vue",
+    "line": 224,
+    "status": "source"
+  },
+  "judiciary_art4section5tracker.the_three_art_iv_5_resolution_paths": {
+    "source_hash": "b618d5219e9694230ee5d517a84e776180f3dd488f981588bcc0c965c9ad0ce5",
+    "shape": "attr:aria-label",
+    "file": "Components/Judiciary/Art4Section5Tracker.vue",
+    "line": 214,
+    "status": "source"
+  },
+  "judiciary_art4section5tracker.timeframe_days_veto_window_days": {
+    "source_hash": "7782139e1ade257dcc956c6b474e4b904d809ed10b19314e2e5d88e846d1952e",
+    "shape": "template",
+    "file": "Components/Judiciary/Art4Section5Tracker.vue",
+    "line": 198,
+    "status": "source"
+  },
+  "judiciary_art4section5tracker.when_a_court_issues_a_finding_under_art_iv": {
+    "source_hash": "f91f2ca93a7aaff37a9dc6f831cc4c3a797ac9da38931617c4bdb83b80cf831e",
+    "shape": "template",
+    "file": "Components/Judiciary/Art4Section5Tracker.vue",
+    "line": 116,
+    "status": "source"
+  },
+  "judiciary_caselifecycle.back_and_advance_move_through_the_sequence": {
+    "source_hash": "156475d6b5a76519a791e451363c4947b09c3db8fe12001e133348da05b85ee2",
+    "shape": "template",
+    "file": "Components/Judiciary/CaseLifecycle.vue",
+    "line": 113,
+    "status": "source"
+  },
+  "judiciary_caselifecycle.case_state_machine": {
+    "source_hash": "91d08a5e90d563b1f8a688880b109775a82a1841fb8c222adfd06dcb2e60e8f9",
+    "shape": "attr:aria-label",
+    "file": "Components/Judiciary/CaseLifecycle.vue",
+    "line": 85,
+    "status": "source"
+  },
+  "judiciary_caselifecycle.playable_walkthrough": {
+    "source_hash": "6b969570b794928a6d2c8354f894cf285cf6b68e27f158c21c8a8bea949af2b6",
+    "shape": "attr:title",
+    "file": "Components/Judiciary/CaseLifecycle.vue",
+    "line": 81,
+    "status": "source"
+  },
+  "judiciary_jurorscreening.a_panel_judge_follows_up_on_the_answers_yo": {
+    "source_hash": "51622c1bc3ff093b108d386e933fb1c9dfaa7f2e38fdd2e9bdfbda2611f0e727",
+    "shape": "template",
+    "file": "Components/Judiciary/JurorScreening.vue",
+    "line": 95,
+    "status": "source"
+  },
+  "judiciary_jurorscreening.answer_honestly_screening_removes_conflict": {
+    "source_hash": "2e8cd6c3179af50dd4b07197bcff8f53fea6e3e34e1ca0210f17f350b01baba3",
+    "shape": "template",
+    "file": "Components/Judiciary/JurorScreening.vue",
+    "line": 66,
+    "status": "source"
+  },
+  "judiciary_jurorscreening.conflict_screening_questions": {
+    "source_hash": "0010cad47ddcf6ab0ccf5903853dd7e46019a0585dc4c5ac0df829a8bf801fa7",
+    "shape": "template",
+    "file": "Components/Judiciary/JurorScreening.vue",
+    "line": 72,
+    "status": "source"
+  },
+  "judiciary_jurorscreening.flagged_for_voir_dire_review": {
+    "source_hash": "af9380c033e5bd4c92ee9842b4e6b48d765966be4ae3f3859d6c8b1adb9447bd",
+    "shape": "attr:title",
+    "file": "Components/Judiciary/JurorScreening.vue",
+    "line": 99,
+    "status": "source"
+  },
+  "judiciary_jurorscreening.no_conflicts_declared": {
+    "source_hash": "38a4ef89d53f1f7db7bdaa025b620a519a5b2b609c8d94ffc3c31a8c84475f20",
+    "shape": "attr:title",
+    "file": "Components/Judiciary/JurorScreening.vue",
+    "line": 109,
+    "status": "source"
+  },
+  "judiciary_jurorscreening.you_remain_in_the_panel_pool_empanelment_i": {
+    "source_hash": "ea279ba8163cf7b94a798bfd3e4bef46e90be7a25fc43d24e963a32b3273582d",
+    "shape": "template",
+    "file": "Components/Judiciary/JurorScreening.vue",
+    "line": 105,
+    "status": "source"
+  },
+  "judiciary_paneltable.panel_assignment_and_conflict_screening_re": {
+    "source_hash": "d67764b9601af5ea1e939215e8604692af7a884e0385399afe149bf1dfae9120",
+    "shape": "attr:caption",
+    "file": "Components/Judiciary/PanelTable.vue",
+    "line": 72,
+    "status": "source"
+  }
+}

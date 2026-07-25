@@ -1,0 +1,744 @@
+{
+  "system_amendments.applied_amendable_setting_changes_newest_f": {
+    "source_hash": "96193d05a3afe4035e97508ce57ef8d38a78bb9ab65f51843cbd53b5e3dac67c",
+    "shape": "attr:caption",
+    "file": "Pages/System/Amendments.vue",
+    "line": 113,
+    "status": "source"
+  },
+  "system_amendments.door_one_amendable_variables": {
+    "source_hash": "5a80d7f0becd03103b8c337c46f5e7b653660a9a066671c8aa1c7e9b0e58c482",
+    "shape": "attr:title",
+    "file": "Pages/System/Amendments.vue",
+    "line": 101,
+    "status": "source"
+  },
+  "system_amendments.door_two_the_hardened_layer": {
+    "source_hash": "71eb05680cc35e358cfa03fb10d47b966678804d31f4a450c9f0e29b060ca3c6",
+    "shape": "attr:title",
+    "file": "Pages/System/Amendments.vue",
+    "line": 137,
+    "status": "source"
+  },
+  "system_amendments.mechanics_no_act_admin_panel_or_office_can": {
+    "source_hash": "97c71b3fd5f80f09bb6785d46e0d7d6a797f862ea9cc53645f0fcd705b9905f3",
+    "shape": "template",
+    "file": "Pages/System/Amendments.vue",
+    "line": 138,
+    "status": "source"
+  },
+  "system_amendments.no_amendments_yet_every_change_will_appear": {
+    "source_hash": "997ccb90ec02d77c12965027ac8cc1f4de37c44e7e2646f79bc2aa3402a3ade3",
+    "shape": "template",
+    "file": "Pages/System/Amendments.vue",
+    "line": 131,
+    "status": "source"
+  },
+  "system_amendments.old_new": {
+    "source_hash": "12d9b755ad45d497d87b92c45f54bad40843ae81a33c31ed2dd2a066e8e13610",
+    "shape": "script:label",
+    "file": "Pages/System/Amendments.vue",
+    "line": 44,
+    "status": "source"
+  },
+  "system_amendments.ratification_thresholds": {
+    "source_hash": "63ef7884d4f7433cd79ba4417e461ea718bdb47677124e61575cb152618f89bd",
+    "shape": "attr:title",
+    "file": "Pages/System/Amendments.vue",
+    "line": 169,
+    "status": "source"
+  },
+  "system_amendments.ratification_thresholds_by_kind_of_change": {
+    "source_hash": "8e136a5bc2cc5d824e079e0dbd7ac700c6ea21da63564e14c90e4addca9ad7d6",
+    "shape": "attr:caption",
+    "file": "Pages/System/Amendments.vue",
+    "line": 173,
+    "status": "source"
+  },
+  "system_amendments.read_the_template_a_fair_constitution_cosm": {
+    "source_hash": "d5b4267eef4a25c8d872605bc2cc52c22289144ec1644303b05619ddb43780c7",
+    "shape": "template",
+    "file": "Pages/System/Amendments.vue",
+    "line": 93,
+    "status": "source"
+  },
+  "system_amendments.releases_are_sealed_in_the_audit_chain": {
+    "source_hash": "448901a38adf0d51bff3e35423fdcf0f573bed755cb5ebf44c90c37c00b255ad",
+    "shape": "template",
+    "file": "Pages/System/Amendments.vue",
+    "line": 147,
+    "status": "source"
+  },
+  "system_amendments.settings_the_constitution_leaves_to_each_j": {
+    "source_hash": "8cdf980bc36f503aa29061fd1d794627bbfaff7a0b6ba159d5df6ca0e35f2df0",
+    "shape": "template",
+    "file": "Pages/System/Amendments.vue",
+    "line": 102,
+    "status": "source"
+  },
+  "system_amendments.supermajority_glossed_the_share_of_every_s": {
+    "source_hash": "459e8219e96b98f0743c8f9e05e63e9fc157b89d48ba8d0886ac8f3752c60272",
+    "shape": "template",
+    "file": "Pages/System/Amendments.vue",
+    "line": 162,
+    "status": "source"
+  },
+  "system_amendments.the_constitution_changes_through_exactly_t": {
+    "source_hash": "025347225da8cfe40a62513b0f79941cf2ca4173ac8c32764f9b6f8f663fd61e",
+    "shape": "template",
+    "file": "Pages/System/Amendments.vue",
+    "line": 85,
+    "status": "source"
+  },
+  "system_amendments.the_supermajority_floor": {
+    "source_hash": "20ec7d4d012dcb2e5a4e68d924edf3cb66695465e3ee2ebb116af3a87252818c",
+    "shape": "attr:title",
+    "file": "Pages/System/Amendments.vue",
+    "line": 154,
+    "status": "source"
+  },
+  "system_amendments.the_supermajority_fraction_is_amendable_bu": {
+    "source_hash": "1e623c58f86bacec57476021a5fbf6e79a2750753ed02f0250bc3685cbe60819",
+    "shape": "template",
+    "file": "Pages/System/Amendments.vue",
+    "line": 155,
+    "status": "source"
+  },
+  "system_amendments.this_screen_shows_the_two_ways_the_constit": {
+    "source_hash": "e8e789b6dd44079a561e0fd06cef75c4db4c0f9875b8e5da0832f06447782d0b",
+    "shape": "template",
+    "file": "Pages/System/Amendments.vue",
+    "line": 178,
+    "status": "source"
+  },
+  "system_auditchain.chain_head": {
+    "source_hash": "3f205054a2f27455702ce7aebdfe6096e1ec6740c291027d6b7dce502b919cd2",
+    "shape": "attr:label",
+    "file": "Pages/System/AuditChain.vue",
+    "line": 92,
+    "status": "source"
+  },
+  "system_auditchain.chain_verification_failed": {
+    "source_hash": "86e03edd46dd47a6ae6851a6604831fd10423ebdca9822556df136537fc28ed3",
+    "shape": "attr:title",
+    "file": "Pages/System/AuditChain.vue",
+    "line": 85,
+    "status": "source"
+  },
+  "system_auditchain.everything_that_happens_here_every_vote_ru": {
+    "source_hash": "76854aac8a84513229ac3324ac5d5a73b77434fbb9ff6d812113cc0eadcd84f8",
+    "shape": "template",
+    "file": "Pages/System/AuditChain.vue",
+    "line": 69,
+    "status": "source"
+  },
+  "system_auditchain.full_chain_verification_recomputes_every_l": {
+    "source_hash": "5c56f4125aeeb76712c7d4ca6c18ce571e94b057509bb80bfdef6d0c8671078d",
+    "shape": "template",
+    "file": "Pages/System/AuditChain.vue",
+    "line": 107,
+    "status": "source"
+  },
+  "system_auditchain.genesis_prev_hash_every_link_satisfies_has": {
+    "source_hash": "98794d35d56e8e61a770a89394f618526c664597a95909ef8d6d9af45833cdd4",
+    "shape": "template",
+    "file": "Pages/System/AuditChain.vue",
+    "line": 95,
+    "status": "source"
+  },
+  "system_auditchain.how_the_chain_works": {
+    "source_hash": "e7b1269b121a96717ba407967148f2b4c71d066881311ac8a27407477bdcf7f2",
+    "shape": "attr:title",
+    "file": "Pages/System/AuditChain.vue",
+    "line": 115,
+    "status": "source"
+  },
+  "system_auditchain.invalid_transitions_rejected_pre_commit_co": {
+    "source_hash": "97ebf5658fab6a382f0727965b2a0da44f0570081259190a8aa72e55cc790c4c",
+    "shape": "template",
+    "file": "Pages/System/AuditChain.vue",
+    "line": 124,
+    "status": "source"
+  },
+  "system_auditchain.latest_entries": {
+    "source_hash": "78e353ed4c9cd0747223c333083a125e2886cc204c6f475cf03565bf423a8ec2",
+    "shape": "attr:title",
+    "file": "Pages/System/AuditChain.vue",
+    "line": 130,
+    "status": "source"
+  },
+  "system_auditchain.latest_first_stored_as_utc_shown_as_utc": {
+    "source_hash": "de290c9a95482256a935621d0a70cfbab6f79c09817b2d68a77de4262adaead8",
+    "shape": "template",
+    "file": "Pages/System/AuditChain.vue",
+    "line": 131,
+    "status": "source"
+  },
+  "system_auditchain.page_of_entr": {
+    "source_hash": "8c636ca28599f3ee40e2c37f1fc5ff3b3529fca3dd0747934ec793e3d0ced7a3",
+    "shape": "template",
+    "file": "Pages/System/AuditChain.vue",
+    "line": 174,
+    "status": "source"
+  },
+  "system_auditchain.recomputes_all_link_hashes_against_the_hea": {
+    "source_hash": "562e08d354485af50b1b5c58493c4452acfe8ba6df1f5cc6397af96555d3edf1",
+    "shape": "template",
+    "file": "Pages/System/AuditChain.vue",
+    "line": 105,
+    "status": "source"
+  },
+  "system_auditchain.rejections_are_appended_too": {
+    "source_hash": "56d590e0ecc4fcf9ef57b3f89451d6d3ec81cffeadc275ba6eb26c0f86be30a8",
+    "shape": "template",
+    "file": "Pages/System/AuditChain.vue",
+    "line": 119,
+    "status": "source"
+  },
+  "system_auditchain.the_chain_is_empty_no_filings_yet": {
+    "source_hash": "1393c60c0b19791da957a76d4d6f9b3d7faa4cac08bb7ffc368fdd3c309c2890",
+    "shape": "template",
+    "file": "Pages/System/AuditChain.vue",
+    "line": 133,
+    "status": "source"
+  },
+  "system_auditchain.wf_sys_04_the_constitutional_engine_interc": {
+    "source_hash": "4e817fd489fdac685919c7574366401103e6fd082a27c423d744efa6fac2d7f5",
+    "shape": "template",
+    "file": "Pages/System/AuditChain.vue",
+    "line": 76,
+    "status": "source"
+  },
+  "system_clocks.amendable_means_a_valid_legislative_act_ca": {
+    "source_hash": "597feb08ac02284de318680dbd56bd68f09ad5db7ec2dcd5c928c518b0f966ad",
+    "shape": "template",
+    "file": "Pages/System/Clocks.vue",
+    "line": 166,
+    "status": "source"
+  },
+  "system_clocks.amendable_via_settings": {
+    "source_hash": "6cd349ac7d2fceaea9f0510d9fbed960f6731104f3889dde62abd791db279cdd",
+    "shape": "attr:label",
+    "file": "Pages/System/Clocks.vue",
+    "line": 115,
+    "status": "source"
+  },
+  "system_clocks.clocks_in_the_registry": {
+    "source_hash": "e55c8d8b4935b27fc13c461a58561ec13195442dafa0d251ab821e4b88750bed",
+    "shape": "attr:label",
+    "file": "Pages/System/Clocks.vue",
+    "line": 114,
+    "status": "source"
+  },
+  "system_clocks.countdowns_rolling_deadlines_and_bounded_o": {
+    "source_hash": "0e2d9712e4291ff5810cee91c7b8eae1a5ec17ae53c2cd6192dd4d717f7e1e0d",
+    "shape": "script:desc",
+    "file": "Pages/System/Clocks.vue",
+    "line": 43,
+    "status": "source"
+  },
+  "system_clocks.derived_see_the_workflow_it_fires": {
+    "source_hash": "779bcefc5939e7626467118fca03cbe2484bd698fff0cc2e5ca462b009ed0a70",
+    "shape": "template",
+    "file": "Pages/System/Clocks.vue",
+    "line": 134,
+    "status": "source"
+  },
+  "system_clocks.derived_values_and_term_scoped_protections": {
+    "source_hash": "7b10602f50c10d8de0113cc7aaf29ff6c8f500a69cad764e91c35fd628713482",
+    "shape": "script:desc",
+    "file": "Pages/System/Clocks.vue",
+    "line": 45,
+    "status": "source"
+  },
+  "system_clocks.every_fire_event_is_appended_to_the_audit_": {
+    "source_hash": "fcbea47b5da855c280056cd3dfe25cd1df00911a23a703553c0a1cc4f533b4e3",
+    "shape": "template",
+    "file": "Pages/System/Clocks.vue",
+    "line": 175,
+    "status": "source"
+  },
+  "system_clocks.glossary_quorum_here_always_counts_all_ser": {
+    "source_hash": "4ac18a4b52f6de1f53bc2f940cbc4437749533c81c7fe97e0a4d1dbdf350b64d",
+    "shape": "template",
+    "file": "Pages/System/Clocks.vue",
+    "line": 180,
+    "status": "source"
+  },
+  "system_clocks.hardened_or_structural": {
+    "source_hash": "84c23974f74835dc0ac744a2b575d281923ac3fa2a65acd4f87353c6aaee32b6",
+    "shape": "attr:label",
+    "file": "Pages/System/Clocks.vue",
+    "line": 116,
+    "status": "source"
+  },
+  "system_clocks.live_is_what_the_scheduler_is_actually_hol": {
+    "source_hash": "4caddf46618dbb0f401322629530db4d5053d866732cce10349dc0b688810be7",
+    "shape": "template",
+    "file": "Pages/System/Clocks.vue",
+    "line": 171,
+    "status": "source"
+  },
+  "system_clocks.no_hardened": {
+    "source_hash": "f645871a7462e70108b0fa903beea555c096c8a7220ff24a7314e94b257f3a88",
+    "shape": "template",
+    "file": "Pages/System/Clocks.vue",
+    "line": 138,
+    "status": "source"
+  },
+  "system_clocks.quantity_watchers_population_headcount_sig": {
+    "source_hash": "8d1d3e88a016cd4a17e7b2d5744aa924638a937b8a9111e1c038bcdc536a7ceb",
+    "shape": "script:desc",
+    "file": "Pages/System/Clocks.vue",
+    "line": 44,
+    "status": "source"
+  },
+  "system_clocks.reading_the_registry": {
+    "source_hash": "b62b996fac634c61368ab965d028eda7467f63e4c1b27bbcf9024c0225beea86",
+    "shape": "attr:title",
+    "file": "Pages/System/Clocks.vue",
+    "line": 159,
+    "status": "source"
+  },
+  "system_clocks.recurring_and_derived_schedules_the_clocks": {
+    "source_hash": "0ee134002b0330d4df0cfd75ee86d75153c6bd3b0b986d3e7b90149005228dc2",
+    "shape": "script:desc",
+    "file": "Pages/System/Clocks.vue",
+    "line": 42,
+    "status": "source"
+  },
+  "system_clocks.the_scheduled_sweeps_that_drive_the_world_": {
+    "source_hash": "a27f881099685f29cfc5e8c74936ed219de167cf86fdf72799e5e93faff7af4f",
+    "shape": "template",
+    "file": "Pages/System/Clocks.vue",
+    "line": 107,
+    "status": "source"
+  },
+  "system_clocks.the_scheduler_itself_is_the_engine_behind_": {
+    "source_hash": "cfb482f6eee28c1db2352a991e03a9e9cf1b4c4d2f1dada474a1efe25018a828",
+    "shape": "template",
+    "file": "Pages/System/Clocks.vue",
+    "line": 188,
+    "status": "source"
+  },
+  "system_clocks.type_is_the_scheduler_contract_recurring_i": {
+    "source_hash": "6acda6ab75549ee271bac5e79e7fc938b7ffabfdb829265c7a02047d24b33dc0",
+    "shape": "template",
+    "file": "Pages/System/Clocks.vue",
+    "line": 161,
+    "status": "source"
+  },
+  "system_publicrecords.all_legislatures": {
+    "source_hash": "e0fb61ed7afd047d997d8c4a102a1ea26e63f4fe9b6b1ac5bdffdf1affb8fda4",
+    "shape": "template",
+    "file": "Pages/System/PublicRecords.vue",
+    "line": 169,
+    "status": "source"
+  },
+  "system_publicrecords.attach_to": {
+    "source_hash": "46f45f032f23b2ec287bd0c4d66464348eb533e5b2d5b15e4e697ddf978802ed",
+    "shape": "attr:label",
+    "file": "Pages/System/PublicRecords.vue",
+    "line": 247,
+    "status": "source"
+  },
+  "system_publicrecords.clear_filters": {
+    "source_hash": "7179ea0035fca783ec62b7185659b68c75f2a7c12b909306a57183dc9b3fa44b",
+    "shape": "template",
+    "file": "Pages/System/PublicRecords.vue",
+    "line": 182,
+    "status": "source"
+  },
+  "system_publicrecords.corrections_append_a_superseding_entry_not": {
+    "source_hash": "64a0ba150f1c9392f13d04b41da6db31bf3cf56617df75895f23d2e43f6a95a2",
+    "shape": "template",
+    "file": "Pages/System/PublicRecords.vue",
+    "line": 139,
+    "status": "source"
+  },
+  "system_publicrecords.cursor_pagination_the_record_is_append_onl": {
+    "source_hash": "e994513fedb0c3c7685ad5ee2bd3ed9c52f20623e51c5a0ee593fc7ac38e34a6",
+    "shape": "template",
+    "file": "Pages/System/PublicRecords.vue",
+    "line": 227,
+    "status": "source"
+  },
+  "system_publicrecords.entered_verbatim_into_the_immutable_public": {
+    "source_hash": "bbc543a8920392ae1d41e6d2334b064d0d606ed38b4e4c422642990ec3f320d4",
+    "shape": "template",
+    "file": "Pages/System/PublicRecords.vue",
+    "line": 278,
+    "status": "source"
+  },
+  "system_publicrecords.entries_on_the_record": {
+    "source_hash": "834bb9f2a6fe246e3ada2b5bda87c4e238dda1aa60f3934e1d7fbeb96c75117f",
+    "shape": "attr:label",
+    "file": "Pages/System/PublicRecords.vue",
+    "line": 146,
+    "status": "source"
+  },
+  "system_publicrecords.every_statement_bill_vote_and_explanation_": {
+    "source_hash": "16b76555e5dc1f814eb1ab582ff22cd15cc6d47e1bb68006b2bc4b0c913cb2e0",
+    "shape": "template",
+    "file": "Pages/System/PublicRecords.vue",
+    "line": 130,
+    "status": "source"
+  },
+  "system_publicrecords.filter_the_public_record": {
+    "source_hash": "fed33df444233dcfe3b095da91e5dcf16a9688765602849ec7bd6fb2ae1fb431",
+    "shape": "attr:label",
+    "file": "Pages/System/PublicRecords.vue",
+    "line": 153,
+    "status": "source"
+  },
+  "system_publicrecords.general_record_no_attachment": {
+    "source_hash": "e694a57a40e7ee0e46099a60850af5698bd99c7a592a3b97844d59d21e837239",
+    "shape": "template",
+    "file": "Pages/System/PublicRecords.vue",
+    "line": 253,
+    "status": "source"
+  },
+  "system_publicrecords.machine_translation_pipeline_planned_phase": {
+    "source_hash": "18d014f5e812a74cba371a71c502de9eaebcfcbebcacc6954f7bf2e0833e87e2",
+    "shape": "attr:title",
+    "file": "Pages/System/PublicRecords.vue",
+    "line": 211,
+    "status": "source"
+  },
+  "system_publicrecords.no_records_match": {
+    "source_hash": "b517ffa700b06b66438318d60123f4c7ecf2471ac4393c2a67294198b9069e71",
+    "shape": "template",
+    "file": "Pages/System/PublicRecords.vue",
+    "line": 220,
+    "status": "source"
+  },
+  "system_publicrecords.older_entries": {
+    "source_hash": "9bca55cca22cec2ad6a1588324c2baa02d16aec40d36c11df288780766599b7c",
+    "shape": "template",
+    "file": "Pages/System/PublicRecords.vue",
+    "line": 226,
+    "status": "source"
+  },
+  "system_publicrecords.once_submitted_a_statement_can_be_supersed": {
+    "source_hash": "3c380fbf597e4c5c365a16b5cd868a285f7664faa4567fd36502707f5d98e37b",
+    "shape": "attr:hint",
+    "file": "Pages/System/PublicRecords.vue",
+    "line": 262,
+    "status": "source"
+  },
+  "system_publicrecords.public_records_vs_the_audit_chain": {
+    "source_hash": "90c4c02c797314cd9c1be64201fa86d4a6ba9d4d5f9f08bcf7203ba49342af34",
+    "shape": "attr:title",
+    "file": "Pages/System/PublicRecords.vue",
+    "line": 284,
+    "status": "source"
+  },
+  "system_publicrecords.record_keeping_cannot_be_suspended_under_e": {
+    "source_hash": "9789ac6a45abff2a504e4132c8f46d3f983e5f582ec499c3e0f75141e1ab0895",
+    "shape": "template",
+    "file": "Pages/System/PublicRecords.vue",
+    "line": 294,
+    "status": "source"
+  },
+  "system_publicrecords.sealed_audit": {
+    "source_hash": "c6cc9a6f57021727f7cff31dd0f1ec25e1312a95a6e86c49fd50cff683edeaca",
+    "shape": "template",
+    "file": "Pages/System/PublicRecords.vue",
+    "line": 212,
+    "status": "source"
+  },
+  "system_publicrecords.sealed_into_the_audit_chain_at_commit": {
+    "source_hash": "2536bea1ed693cc703d1c4b36c26d97156a31ea5fe7898993b0a153c2f1c7cf8",
+    "shape": "attr:title",
+    "file": "Pages/System/PublicRecords.vue",
+    "line": 216,
+    "status": "source"
+  },
+  "system_publicrecords.search_the_record": {
+    "source_hash": "e0b6d274a54d93fe188086b48ec6ff72d7cda6eba12ce125fc68a87551a7845e",
+    "shape": "template",
+    "file": "Pages/System/PublicRecords.vue",
+    "line": 155,
+    "status": "source"
+  },
+  "system_publicrecords.search_title_or_author": {
+    "source_hash": "a65d7cffdbc53adf8631bb6c7822ec7916c0d48eaad1bc6add2a7ead643ef142",
+    "shape": "attr:placeholder",
+    "file": "Pages/System/PublicRecords.vue",
+    "line": 161,
+    "status": "source"
+  },
+  "system_publicrecords.statements_attach_to_the_bill_session_or_v": {
+    "source_hash": "c667d232e36d7291ac59474db9c93bd69912a7c528eca014a292d1ffc3625d0d",
+    "shape": "attr:hint",
+    "file": "Pages/System/PublicRecords.vue",
+    "line": 248,
+    "status": "source"
+  },
+  "system_publicrecords.stored_as_utc_shown_in_your_timezone": {
+    "source_hash": "2b5b34fdf381252d767d45be6d38504744ffff85edb9c6ff663ccef139f1079e",
+    "shape": "template",
+    "file": "Pages/System/PublicRecords.vue",
+    "line": 187,
+    "status": "source"
+  },
+  "system_publicrecords.supersedes_corrections_append_never_edit_b": {
+    "source_hash": "2137bdd3d1f8b6988a7f95b1cb95a4a56d183ba3e25bd3c2a697bdd51a220c48",
+    "shape": "template",
+    "file": "Pages/System/PublicRecords.vue",
+    "line": 192,
+    "status": "source"
+  },
+  "system_publicrecords.the_record": {
+    "source_hash": "d9fa05c931124921ea0823236b7e8d1e951186fdc5eb70cefc53d406c1635018",
+    "shape": "attr:title",
+    "file": "Pages/System/PublicRecords.vue",
+    "line": 186,
+    "status": "source"
+  },
+  "system_publicrecords.this_page_is_the_curated_register_citizens": {
+    "source_hash": "6c6a83c5b9b23ca8426bdcdfed04f999a631da5d6814806ba21586d03274a9d5",
+    "shape": "template",
+    "file": "Pages/System/PublicRecords.vue",
+    "line": 285,
+    "status": "source"
+  },
+  "system_publicrecords.this_record_is_append_only": {
+    "source_hash": "aec58d55ff5b25157b9c9c93eea596b2f09c5aac9606549f3ba6a18b98dfa664",
+    "shape": "attr:title",
+    "file": "Pages/System/PublicRecords.vue",
+    "line": 139,
+    "status": "source"
+  },
+  "system_publicrecords.votes_with_explanations": {
+    "source_hash": "f58a8e964a503edf5439cebcf9e5aa8703568c0c14bd8b3b15b016d28a9bad1b",
+    "shape": "attr:label",
+    "file": "Pages/System/PublicRecords.vue",
+    "line": 148,
+    "status": "source"
+  },
+  "system_publicrecords.your_statement_explanation_or_position_pub": {
+    "source_hash": "6b841eb37912c20ed9aec150c8be50189fe141abf42356676caf3fec4cc248e6",
+    "shape": "attr:placeholder",
+    "file": "Pages/System/PublicRecords.vue",
+    "line": 272,
+    "status": "source"
+  },
+  "system_termsync.anchored_to_its_legislature_s_clock": {
+    "source_hash": "7a144232a26a0c9d47f948766dbe75b5a997f794dbe774b5101f274d1e0e9b41",
+    "shape": "template",
+    "file": "Pages/System/TermSync.vue",
+    "line": 133,
+    "status": "source"
+  },
+  "system_termsync.appointed_officers_deliberately_decoupled": {
+    "source_hash": "911f2a06f86ecd8b1d83e981c6e8152695398ac5577081c8dbed1bd2f2ecb4cd",
+    "shape": "template",
+    "file": "Pages/System/TermSync.vue",
+    "line": 145,
+    "status": "source"
+  },
+  "system_termsync.appointment_terms_are_deliberately_decoupl": {
+    "source_hash": "be0bfccf16dcbf586f02b605ca0f1054ecf74f64ce881783bfc31b55e2de9816",
+    "shape": "template",
+    "file": "Pages/System/TermSync.vue",
+    "line": 154,
+    "status": "source"
+  },
+  "system_termsync.attempted_violations_are_rejected_pre_comm": {
+    "source_hash": "d8102819eb53fe0d54a505e18459fc6c0422a06cec08f8fb87bade558e5cef04",
+    "shape": "template",
+    "file": "Pages/System/TermSync.vue",
+    "line": 198,
+    "status": "source"
+  },
+  "system_termsync.chamber_a_setting_change_applies_from_the_": {
+    "source_hash": "7aa33889019671198e97eac41c76c9ac06f9192eeadb1bff7411cdce4fb85cba",
+    "shape": "template",
+    "file": "Pages/System/TermSync.vue",
+    "line": 109,
+    "status": "source"
+  },
+  "system_termsync.common_expiry": {
+    "source_hash": "aa6b19c7cc976e8e61d39e342fb9e052ad5c753628b342aa44d889ce4a29dba3",
+    "shape": "script:label",
+    "file": "Pages/System/TermSync.vue",
+    "line": 55,
+    "status": "source"
+  },
+  "system_termsync.days_to_the_next_general_election": {
+    "source_hash": "c209145b9fe7a763bf8ca1348791c7e77841f13996c1d457cb6e9877618d88e9",
+    "shape": "attr:label",
+    "file": "Pages/System/TermSync.vue",
+    "line": 88,
+    "status": "source"
+  },
+  "system_termsync.elected_role": {
+    "source_hash": "a23e0552b684765fa1decd4718c8330ded02cd8fec05de2f389484e7624ba0a0",
+    "shape": "script:label",
+    "file": "Pages/System/TermSync.vue",
+    "line": 53,
+    "status": "source"
+  },
+  "system_termsync.every_elected_term_legislature_executive_j": {
+    "source_hash": "e802996fcde36f5b315a8535ce6106c6bd4d9d6b8b90937fef069b4257b8e13c",
+    "shape": "template",
+    "file": "Pages/System/TermSync.vue",
+    "line": 68,
+    "status": "source"
+  },
+  "system_termsync.jurisdictions_activate_at_their_own_thresh": {
+    "source_hash": "fde39ddfe75bd44cbd51b6cfe31621b5dbcd13d6a881d6702b0249038794d479",
+    "shape": "template",
+    "file": "Pages/System/TermSync.vue",
+    "line": 162,
+    "status": "source"
+  },
+  "system_termsync.lockstep_expiry_art_iii_3_art_iv_3_replace": {
+    "source_hash": "ba9b58a1783557fa11452355791a95b68c9e2543af951ce50b90600195f9cb11",
+    "shape": "template",
+    "file": "Pages/System/TermSync.vue",
+    "line": 137,
+    "status": "source"
+  },
+  "system_termsync.lockstep_terms_by_role": {
+    "source_hash": "faad665803b93794fc675dcb7e31fb044d911dd3a3af79de52a4e24d9e54e26e",
+    "shape": "attr:caption",
+    "file": "Pages/System/TermSync.vue",
+    "line": 127,
+    "status": "source"
+  },
+  "system_termsync.months_per_term_election_interval_months": {
+    "source_hash": "c5125c131d9fd91d06cc037b75ecbab0953fcb9d15ba3c3b28cb5323fd1732e0",
+    "shape": "attr:label",
+    "file": "Pages/System/TermSync.vue",
+    "line": 95,
+    "status": "source"
+  },
+  "system_termsync.next_general_election_the_armed_clk_01_tim": {
+    "source_hash": "55ed0d371de1dbf7c46d59bcac309dd9b5ce71bd5977c1650ebcbe36fb3731a0",
+    "shape": "attr:label",
+    "file": "Pages/System/TermSync.vue",
+    "line": 93,
+    "status": "source"
+  },
+  "system_termsync.no_active_civil_appointments_yet": {
+    "source_hash": "99685fa9a963c2a5592b38cfb8302a8d757f7e95632112490683ddcb2feb3f70",
+    "shape": "template",
+    "file": "Pages/System/TermSync.vue",
+    "line": 153,
+    "status": "source"
+  },
+  "system_termsync.no_active_legislature_yet_jurisdictions_ac": {
+    "source_hash": "d6acc5a83e5c9e76ffac1ab0f79744a2b93de3cd7a1c09693a71188ff4d2c877",
+    "shape": "template",
+    "file": "Pages/System/TermSync.vue",
+    "line": 115,
+    "status": "source"
+  },
+  "system_termsync.no_active_lockstep_terms_on_record": {
+    "source_hash": "fd344bda8c74b30901b20b5105dc4aa4fa2cac90ebbfb7055ce96dab6e3b8cb3",
+    "shape": "template",
+    "file": "Pages/System/TermSync.vue",
+    "line": 136,
+    "status": "source"
+  },
+  "system_termsync.no_election_can_be_skipped_or_delayed_by_o": {
+    "source_hash": "e0fdaedd1dbda38877e123aacb901cc4909456787c13697ab41c4950aa399294",
+    "shape": "template",
+    "file": "Pages/System/TermSync.vue",
+    "line": 75,
+    "status": "source"
+  },
+  "system_termsync.no_skip_delay_reschedule_api_exists_refusa": {
+    "source_hash": "89858acfcc9a70ae32ffb30b2dcde12f1889675a572096a0523a584312303ec3",
+    "shape": "template",
+    "file": "Pages/System/TermSync.vue",
+    "line": 177,
+    "status": "source"
+  },
+  "system_termsync.no_violation_has_ever_been_attempted_on_th": {
+    "source_hash": "3ed587ed6e56c217c856dd4861ac861918c15e6aef62b0e8a0522e34b26a4cc1",
+    "shape": "template",
+    "file": "Pages/System/TermSync.vue",
+    "line": 194,
+    "status": "source"
+  },
+  "system_termsync.on_the_chain": {
+    "source_hash": "17d7f61a022fb19e9c26caedba97887ed24f9c9d4267e9ed8cd98d3647e9a8ac",
+    "shape": "template",
+    "file": "Pages/System/TermSync.vue",
+    "line": 190,
+    "status": "source"
+  },
+  "system_termsync.one_clock_every_trigger": {
+    "source_hash": "af14960d074e77a98572fd248d060d8504718c3edcb63d48ddfb15e5c13cf9d2",
+    "shape": "attr:title",
+    "file": "Pages/System/TermSync.vue",
+    "line": 114,
+    "status": "source"
+  },
+  "system_termsync.open_successor_election": {
+    "source_hash": "b06e05a48fefadc60b583be03a0b13b86e592b1a64ca0387bd2e27da0d4af9c3",
+    "shape": "template",
+    "file": "Pages/System/TermSync.vue",
+    "line": 104,
+    "status": "source"
+  },
+  "system_termsync.recorded_rejections": {
+    "source_hash": "013743e3b3505044c57ad526812426574d0cd641f4e48f41b1f6c786ce639d75",
+    "shape": "template",
+    "file": "Pages/System/TermSync.vue",
+    "line": 183,
+    "status": "source"
+  },
+  "system_termsync.serving_terms": {
+    "source_hash": "7fc9d2c332f79bca2057fa8b8d060f66b6aab26bfdeccb4cea31462bf95c2fd7",
+    "shape": "script:label",
+    "file": "Pages/System/TermSync.vue",
+    "line": 54,
+    "status": "source"
+  },
+  "system_termsync.serving_year_appointment_clocks": {
+    "source_hash": "d548e30c5cd4cbca9be166f5c0474c4e1275e3b6e1ac2b89b075b82bb5016345",
+    "shape": "template",
+    "file": "Pages/System/TermSync.vue",
+    "line": 147,
+    "status": "source"
+  },
+  "system_termsync.staggered_activation": {
+    "source_hash": "16bb2a6cdd447d8fb24eaec2641304b23f97d27c64378b92bfc2a0d3f57e94c8",
+    "shape": "template",
+    "file": "Pages/System/TermSync.vue",
+    "line": 161,
+    "status": "source"
+  },
+  "system_termsync.the_lockstep_every_term_bearing_elected_ro": {
+    "source_hash": "e9426722aa4823a9f8c61790ab147bafb65a2a25c1128e41368d868ea0b44a10",
+    "shape": "attr:title",
+    "file": "Pages/System/TermSync.vue",
+    "line": 122,
+    "status": "source"
+  },
+  "system_termsync.vacancies_fit_inside_the_lockstep_they_nev": {
+    "source_hash": "1572ff48c594cff3ef4324009409ae641edf2fb93537c0f90793b0a45c0472db",
+    "shape": "template",
+    "file": "Pages/System/TermSync.vue",
+    "line": 168,
+    "status": "source"
+  },
+  "system_termsync.what_the_engine_refuses_to_do": {
+    "source_hash": "29552176b830c78ca4aa1153df44e375c20db5ecb8e921b36335bfe82dd4e045",
+    "shape": "attr:title",
+    "file": "Pages/System/TermSync.vue",
+    "line": 175,
+    "status": "source"
+  },
+  "system_termsync.zero_actions_live_here_by_design_every_num": {
+    "source_hash": "c0324d6431597ded073531f733e6f5ca7921beee3ebe7eecf7f84afcb95336ca",
+    "shape": "template",
+    "file": "Pages/System/TermSync.vue",
+    "line": 205,
+    "status": "source"
+  }
+}

@@ -1,0 +1,1892 @@
+{
+  "operator_console.a_box_s_role_is_just_the_set_of_channels_i": {
+    "source_hash": "e3365670b3efd455002e5a6183b92ab439ccdca099f4e6921bd8a6ec6c700d88",
+    "shape": "template",
+    "file": "Pages/Operator/Console.vue",
+    "line": 303,
+    "status": "source"
+  },
+  "operator_console.active_operator_on_the_board": {
+    "source_hash": "5570596da8eb3a690a808c21e61050eb8dccd9fcb6fb4b6354c38748ad19fad8",
+    "shape": "template",
+    "file": "Pages/Operator/Console.vue",
+    "line": 386,
+    "status": "source"
+  },
+  "operator_console.acts_under_a_peer_s_own_zone_every_co_affe": {
+    "source_hash": "29ab1220709f4115b70644b3a36bcdb6530eda2d5803e33a3744686d3c32617d",
+    "shape": "attr:title",
+    "file": "Pages/Operator/Console.vue",
+    "line": 326,
+    "status": "source"
+  },
+  "operator_console.answerable_to_the_government_below_a_seate": {
+    "source_hash": "f445ddecb3b6435bd60ee75bcec4d9903310e83215d4aa7650cb41559e315f2a",
+    "shape": "template",
+    "file": "Pages/Operator/Console.vue",
+    "line": 455,
+    "status": "source"
+  },
+  "operator_console.applies_now": {
+    "source_hash": "5240d924b1d10f50ab0e3824a3f99c6603651a81763541c2121f70ff9cbcccc3",
+    "shape": "template",
+    "file": "Pages/Operator/Console.vue",
+    "line": 381,
+    "status": "source"
+  },
+  "operator_console.cli_hints": {
+    "source_hash": "cbdbf82477b71c796b932a4df79e243149eb881377d76124691b0db883ff1085",
+    "shape": "template",
+    "file": "Pages/Operator/Console.vue",
+    "line": 435,
+    "status": "source"
+  },
+  "operator_console.co_affected_peer_must_consent_unanimity": {
+    "source_hash": "877318ec40c74c1a7480b581f66a78589c2173e41772a4cc76e38288ca5d26e8",
+    "shape": "template",
+    "file": "Pages/Operator/Console.vue",
+    "line": 391,
+    "status": "source"
+  },
+  "operator_console.each_open_proposal_shows_its_meters_kind_b": {
+    "source_hash": "e15a28723b95ad2ad179dc3d22964565b980ef200c152d4233db6e133d419470",
+    "shape": "template",
+    "file": "Pages/Operator/Console.vue",
+    "line": 415,
+    "status": "source"
+  },
+  "operator_console.everything_on_this_console_is_also_a_comma": {
+    "source_hash": "5a5a457ba24606336d177110bec1bb5cd9cb03cddb14ded12659c664a5ed91fd",
+    "shape": "template",
+    "file": "Pages/Operator/Console.vue",
+    "line": 436,
+    "status": "source"
+  },
+  "operator_console.everything_raw_behind_one_toggle_closed_by": {
+    "source_hash": "adb5556596722814df9db7d6a466535267f80d36b78d262704187480da7f9a55",
+    "shape": "template",
+    "file": "Pages/Operator/Console.vue",
+    "line": 296,
+    "status": "source"
+  },
+  "operator_console.four_friendly_names_group_the_capability_c": {
+    "source_hash": "2e1c293cd1df873f30d9ce994e4f9ab89de4905d234cefc0bcf8a6108ded8327",
+    "shape": "template",
+    "file": "Pages/Operator/Console.vue",
+    "line": 237,
+    "status": "source"
+  },
+  "operator_console.governed_channels_need_approval_meter_a_ru": {
+    "source_hash": "368dc3a769fd0c12306ab29b017fa395a932879293021d1cc15d60a62d38cf9d",
+    "shape": "template",
+    "file": "Pages/Operator/Console.vue",
+    "line": 353,
+    "status": "source"
+  },
+  "operator_console.meter_c": {
+    "source_hash": "031e34f11296f44ca5d9d514a2eb1dfb39053b87600f0ff3d6f507444d7eec87",
+    "shape": "template",
+    "file": "Pages/Operator/Console.vue",
+    "line": 326,
+    "status": "source"
+  },
+  "operator_console.needs_setup": {
+    "source_hash": "b6df2441064f141677e6dabf15a7c0c5b4344771ffbad603f1d0dee659c81817",
+    "shape": "script:label",
+    "file": "Pages/Operator/Console.vue",
+    "line": 84,
+    "status": "source"
+  },
+  "operator_console.no_co_affected_peers_meter_c_auto_passes": {
+    "source_hash": "ada1dfb0758256740175ef9c1495cc7b28c20c57be3c8b8f85f5b05925298e43",
+    "shape": "template",
+    "file": "Pages/Operator/Console.vue",
+    "line": 396,
+    "status": "source"
+  },
+  "operator_console.no_root_jurisdiction_yet_the_meters_attach": {
+    "source_hash": "20a59187e8f48737470eb99ee532be094545e805372d8a186b599047759d3f83",
+    "shape": "template",
+    "file": "Pages/Operator/Console.vue",
+    "line": 363,
+    "status": "source"
+  },
+  "operator_console.node_readiness_readiness_checks": {
+    "source_hash": "b6da8ab1e81f493c49e45a6d6c9e56af3abceb5cd324e112f700011f00547b30",
+    "shape": "template",
+    "file": "Pages/Operator/Console.vue",
+    "line": 203,
+    "status": "source"
+  },
+  "operator_console.not_in_play": {
+    "source_hash": "8bd90fbb920452b194928dde5aeadc745ab66cdc1c4cd13f11d26052587d9553",
+    "shape": "template",
+    "file": "Pages/Operator/Console.vue",
+    "line": 384,
+    "status": "source"
+  },
+  "operator_console.nothing_is_waiting_on_a_meter_right_now": {
+    "source_hash": "5a462aa51df8b6769d357fc84939cd1b4f4f201d9d6cceddb94325f938c27b9f",
+    "shape": "template",
+    "file": "Pages/Operator/Console.vue",
+    "line": 412,
+    "status": "source"
+  },
+  "operator_console.off_the_constitutional_plane_running_a_nod": {
+    "source_hash": "03862ff5eeb211b9f0f37f7bd052058325e83ed4707050131b8a0b5ad8b2a494",
+    "shape": "template",
+    "file": "Pages/Operator/Console.vue",
+    "line": 170,
+    "status": "source"
+  },
+  "operator_console.one_screen_for_the_box_you_run_are_your_pe": {
+    "source_hash": "6a9a99976d9f21ab24a54b387fdf9ecc1c298c6b6709d07e14bd658864f42c99",
+    "shape": "template",
+    "file": "Pages/Operator/Console.vue",
+    "line": 161,
+    "status": "source"
+  },
+  "operator_console.open_proposals": {
+    "source_hash": "23caaccd7b6e9b84ddefdc028006655b9ce918a7210f37280b20a94710c1ab17",
+    "shape": "template",
+    "file": "Pages/Operator/Console.vue",
+    "line": 406,
+    "status": "source"
+  },
+  "operator_console.open_proposals_2": {
+    "source_hash": "33551ffd6e3aac2994d157494a8fabd1c3b6f5af6df6eab8fb32309663347de0",
+    "shape": "attr:label",
+    "file": "Pages/Operator/Console.vue",
+    "line": 408,
+    "status": "source"
+  },
+  "operator_console.operator_sign_in_required": {
+    "source_hash": "245425ae595591d6aa7bc048eabb8077d9d0831fc17f1de84bab392adb3c9a52",
+    "shape": "template",
+    "file": "Pages/Operator/Console.vue",
+    "line": 183,
+    "status": "source"
+  },
+  "operator_console.partly_active": {
+    "source_hash": "385ab5ea1c979e44aa3d0accb11d15b148aa157963d0b53fd7617733856aac4d",
+    "shape": "script:label",
+    "file": "Pages/Operator/Console.vue",
+    "line": 82,
+    "status": "source"
+  },
+  "operator_console.peers_sync_at_a_glance": {
+    "source_hash": "c73a00a5ef896c2a7110aaf5c86de9788434f8a0cac93c15c7379a2e0f09826f",
+    "shape": "template",
+    "file": "Pages/Operator/Console.vue",
+    "line": 202,
+    "status": "source"
+  },
+  "operator_console.peers_sync_transports": {
+    "source_hash": "9024ff5d1343213ae1fad13b1adacd81247daacb3afb486a4cdcaf28f741bb82",
+    "shape": "template",
+    "file": "Pages/Operator/Console.vue",
+    "line": 425,
+    "status": "source"
+  },
+  "operator_console.ready_to_turn_on": {
+    "source_hash": "d5eeb5787ca0425fa209c9063595226be52dcaa62ba598a8cb38902e7b11252f",
+    "shape": "script:label",
+    "file": "Pages/Operator/Console.vue",
+    "line": 83,
+    "status": "source"
+  },
+  "operator_console.recommended_first_node": {
+    "source_hash": "4aafbb45b98ebc094d056745f7c14ac914b4d5856ced6867c5704fc8ae312e2e",
+    "shape": "template",
+    "file": "Pages/Operator/Console.vue",
+    "line": 257,
+    "status": "source"
+  },
+  "operator_console.sign_in_as_an_operator": {
+    "source_hash": "eeb72e26b14e20d91d1ee61a771928c9cd859e90f4e519ee21e97ec34744e682",
+    "shape": "template",
+    "file": "Pages/Operator/Console.vue",
+    "line": 189,
+    "status": "source"
+  },
+  "operator_console.signed_in_as_this_console_is_read_only_the": {
+    "source_hash": "35184bea7ef4acdf338b2d09dc42463e4933c0b5077026dcd2887e6fcfcbcec5",
+    "shape": "template",
+    "file": "Pages/Operator/Console.vue",
+    "line": 195,
+    "status": "source"
+  },
+  "operator_console.supersedes_a": {
+    "source_hash": "4e80ab85b0551ecdec0c17392e0581ed66b92cc5b690f9aea711a83cd1da8fd0",
+    "shape": "template",
+    "file": "Pages/Operator/Console.vue",
+    "line": 374,
+    "status": "source"
+  },
+  "operator_console.the_capability_channels": {
+    "source_hash": "97afed1ef860adb466251a7499618a1a2ed87c1340f294a3f5ed75ebc87960a9",
+    "shape": "attr:caption",
+    "file": "Pages/Operator/Console.vue",
+    "line": 312,
+    "status": "source"
+  },
+  "operator_console.the_dot_is_the_rollup_each_chip_is_one_of_": {
+    "source_hash": "85221dd15013abe2548f33bebcaf2fd1ef161f5aad92e074efc2200b39413a19",
+    "shape": "template",
+    "file": "Pages/Operator/Console.vue",
+    "line": 219,
+    "status": "source"
+  },
+  "operator_console.the_dual_meter_consent": {
+    "source_hash": "996603dd311bb2be71bb527beeb377e2747b40fd5bda62dfb3f5f6fe1dea7206",
+    "shape": "template",
+    "file": "Pages/Operator/Console.vue",
+    "line": 352,
+    "status": "source"
+  },
+  "operator_console.the_full_tables_every_peer_the_sync_ledger": {
+    "source_hash": "49f60868be55896964ab0285162c3b83107c7a97b0fdf9460e34b61239d02621",
+    "shape": "template",
+    "file": "Pages/Operator/Console.vue",
+    "line": 426,
+    "status": "source"
+  },
+  "operator_console.the_mesh_console_is_shown_only_to_a_signed": {
+    "source_hash": "113277256fcf2859e2a1a406bca4a731baaf402bf813184df3601a49aa6f89aa",
+    "shape": "template",
+    "file": "Pages/Operator/Console.vue",
+    "line": 184,
+    "status": "source"
+  },
+  "operator_console.the_nine_capability_channels": {
+    "source_hash": "af7180deb0c618dc4c5614897d4bcc2e220ce227dfb84c6fffd769f05b153689",
+    "shape": "template",
+    "file": "Pages/Operator/Console.vue",
+    "line": 302,
+    "status": "source"
+  },
+  "operator_console.this_console_is_the_read_surface_over_the_": {
+    "source_hash": "763c08447fe82e36860c3487ff1c73e5f4ae8178bfb5d926dc3765e62f5b1f3a",
+    "shape": "template",
+    "file": "Pages/Operator/Console.vue",
+    "line": 465,
+    "status": "source"
+  },
+  "operator_console.waiting_for_approval": {
+    "source_hash": "10c5739b95bdf361bfc01dfe5c095102bef36b3e27002327192d0c6a368aeb22",
+    "shape": "script:label",
+    "file": "Pages/Operator/Console.vue",
+    "line": 85,
+    "status": "source"
+  },
+  "operator_console.what_it_does": {
+    "source_hash": "c74ea9dc9cd25b589a92e54a735d3900245dc7b30676952d536612677550ce36",
+    "shape": "script:label",
+    "file": "Pages/Operator/Console.vue",
+    "line": 114,
+    "status": "source"
+  },
+  "operator_console.your_roles": {
+    "source_hash": "0c0e9ba3d7b33a01d493023ad6e6935e53f01c48134f3122b32e1ffa2cf736f3",
+    "shape": "template",
+    "file": "Pages/Operator/Console.vue",
+    "line": 236,
+    "status": "source"
+  },
+  "operator_home.a_box_s_role_is_just_the_set_of_capability": {
+    "source_hash": "66c9988a689e87b55472beff8b7ba2d20df1587ea9cb78d4967f020db81b0468",
+    "shape": "template",
+    "file": "Pages/Operator/Home.vue",
+    "line": 268,
+    "status": "source"
+  },
+  "operator_home.between_you_and_ready": {
+    "source_hash": "c90dbfaf2fd789221d5a1d14788cba08b1c1bab708e0bf8460f2e12e081ae803",
+    "shape": "attr:title",
+    "file": "Pages/Operator/Home.vue",
+    "line": 209,
+    "status": "source"
+  },
+  "operator_home.dns_certificates": {
+    "source_hash": "077f84416fc16e59652bbdf9d5039ef5213e7db39d7119a22c748619fbb0fdd8",
+    "shape": "script:title",
+    "file": "Pages/Operator/Home.vue",
+    "line": 108,
+    "status": "source"
+  },
+  "operator_home.each_line_says_what_to_do_next_a_red_gate_": {
+    "source_hash": "97d14c0e002334a2c475b749f30e68e8f07792fc8c9e5ef8425370dbcdba7977",
+    "shape": "template",
+    "file": "Pages/Operator/Home.vue",
+    "line": 210,
+    "status": "source"
+  },
+  "operator_home.every_gate_passes_this_box_can_federate": {
+    "source_hash": "9a4cd3dfb05d804d64b90360b9b00346cf962dc5ffa13ca5bbec5040bd446231",
+    "shape": "template",
+    "file": "Pages/Operator/Home.vue",
+    "line": 206,
+    "status": "source"
+  },
+  "operator_home.full_faith_credit_one_record_many_holders_": {
+    "source_hash": "ce7eb69288f8ba27e4bb3434017225276064003343e319230f713ed99a29726b",
+    "shape": "template",
+    "file": "Pages/Operator/Home.vue",
+    "line": 241,
+    "status": "source"
+  },
+  "operator_home.home_copies_here": {
+    "source_hash": "d815bcca4402b62a68201547eca192a7d6648c2d094dd9fc60038102d8e393da",
+    "shape": "attr:label",
+    "file": "Pages/Operator/Home.vue",
+    "line": 237,
+    "status": "source"
+  },
+  "operator_home.home_copies_with_peers": {
+    "source_hash": "54402b693a9675936b0b1fc947fb66e500acdbb42dd68eafab5301ca822dfa47",
+    "shape": "attr:label",
+    "file": "Pages/Operator/Home.vue",
+    "line": 238,
+    "status": "source"
+  },
+  "operator_home.live_channels_on_this_box": {
+    "source_hash": "79a50e8689adef5b269bbba639275441e0546fbac7d29c2e2fe3492ad0048ac0",
+    "shape": "attr:title",
+    "file": "Pages/Operator/Home.vue",
+    "line": 245,
+    "status": "source"
+  },
+  "operator_home.lives_in_the_operations_console_for_now": {
+    "source_hash": "01f8380f36aaf6ca9cd42588df9bc284fe6715652d044d27b83bd470905a0a85",
+    "shape": "script:hint",
+    "file": "Pages/Operator/Home.vue",
+    "line": 110,
+    "status": "source"
+  },
+  "operator_home.mesh_federation": {
+    "source_hash": "5bfa0eb311a9b8f441be55af69d05240bd111db26f4ec85a0a5da6c13e7d1895",
+    "shape": "script:title",
+    "file": "Pages/Operator/Home.vue",
+    "line": 104,
+    "status": "source"
+  },
+  "operator_home.moderation_the_legal_floor": {
+    "source_hash": "51a920dd6298db462719ecb1d964d305d752bac615dfeb524e803ec0457bd8be",
+    "shape": "script:title",
+    "file": "Pages/Operator/Home.vue",
+    "line": 117,
+    "status": "source"
+  },
+  "operator_home.none_yet_a_fresh_box_starts_quiet_record_k": {
+    "source_hash": "e1525c698514c7c507c516d501432e07fb75c278c388d3cb534545f21df935a0",
+    "shape": "template",
+    "file": "Pages/Operator/Home.vue",
+    "line": 251,
+    "status": "source"
+  },
+  "operator_home.off_the_constitutional_plane_running_a_nod": {
+    "source_hash": "77c4c69fd60124e9eaeb16f52cd330d3eb902b188583dc7e958ce922c03d9216",
+    "shape": "template",
+    "file": "Pages/Operator/Home.vue",
+    "line": 149,
+    "status": "source"
+  },
+  "operator_home.operator_surfaces": {
+    "source_hash": "444993cbe2ad5e71dbd044ab1518bd3425f7e219140c60b7c68333851fdeb6bf",
+    "shape": "template",
+    "file": "Pages/Operator/Home.vue",
+    "line": 289,
+    "status": "source"
+  },
+  "operator_home.partly_on": {
+    "source_hash": "003c0f0ff8bb304d541444cd53f5f2fc1350bf58a4c3236a050ceb27153e3bf7",
+    "shape": "script:label",
+    "file": "Pages/Operator/Home.vue",
+    "line": 62,
+    "status": "source"
+  },
+  "operator_home.peers_sync_at_a_glance_trusted_of_peer_las": {
+    "source_hash": "f8c617ab1b914d864817944615064717e35e7719ef1ccafa748814d94217befc",
+    "shape": "template",
+    "file": "Pages/Operator/Home.vue",
+    "line": 181,
+    "status": "source"
+  },
+  "operator_home.places_in_the_record": {
+    "source_hash": "36425586ea2377aeb5afcb623cf4e620f4ef2ec183a985aab995760f5b872824",
+    "shape": "attr:label",
+    "file": "Pages/Operator/Home.vue",
+    "line": 239,
+    "status": "source"
+  },
+  "operator_home.places_on_this_node": {
+    "source_hash": "8b0bb5cf4cf62f5ae08ff6111774d0bfe6fbc578a410869f4d4ba7203af5a7ce",
+    "shape": "attr:title",
+    "file": "Pages/Operator/Home.vue",
+    "line": 228,
+    "status": "source"
+  },
+  "operator_home.planned_phase_i": {
+    "source_hash": "f32fe0262e42a15917223fb1ce4dff0e62bd9a2e65a79166c7575db821797592",
+    "shape": "template",
+    "file": "Pages/Operator/Home.vue",
+    "line": 302,
+    "status": "source"
+  },
+  "operator_home.ready_to_meet_the_mesh": {
+    "source_hash": "f5fb9dd4a42a48385dabf402e4c4367416c1cb8133c342c25b558d0ca7bbd6e1",
+    "shape": "attr:title",
+    "file": "Pages/Operator/Home.vue",
+    "line": 206,
+    "status": "source"
+  },
+  "operator_home.recommended_first": {
+    "source_hash": "7846c5b605bb001342a5a020f1c8cc33b67488b67e71a2a4234b0822c45dc8dd",
+    "shape": "template",
+    "file": "Pages/Operator/Home.vue",
+    "line": 274,
+    "status": "source"
+  },
+  "operator_home.roles_channels": {
+    "source_hash": "59d450e63d0037894e8525f28c556bc4656299f4d8bb0367c61cd00b948a7c43",
+    "shape": "script:title",
+    "file": "Pages/Operator/Home.vue",
+    "line": 100,
+    "status": "source"
+  },
+  "operator_home.run_a_node": {
+    "source_hash": "37a70eebd3a95d53d28fce57b38280566070eaa8ccf59abac306425f23c43758",
+    "shape": "attr:title",
+    "file": "Pages/Operator/Home.vue",
+    "line": 128,
+    "status": "source"
+  },
+  "operator_home.run_a_node_and_your_computer_becomes_part_": {
+    "source_hash": "9b6c485a79ad2ee0d369f91c169fe9577d74263ee896ee8f82200b8dbe20ea2a",
+    "shape": "template",
+    "file": "Pages/Operator/Home.vue",
+    "line": 129,
+    "status": "source"
+  },
+  "operator_home.set_up_your_node": {
+    "source_hash": "55efd61175927f134f457bca50b290a5146b2a026b8e444c3e614dcec88ed50a",
+    "shape": "script:title",
+    "file": "Pages/Operator/Home.vue",
+    "line": 92,
+    "status": "source"
+  },
+  "operator_home.the_capability_channels_this_box_currently": {
+    "source_hash": "02437b61f132837b077dee5f46baacfb7cf6bc01ae252b067bd1683425a69afc",
+    "shape": "template",
+    "file": "Pages/Operator/Home.vue",
+    "line": 246,
+    "status": "source"
+  },
+  "operator_home.the_older_consoles_stay_reachable_while_th": {
+    "source_hash": "8ebf1cf489ac9c6a457d4dcd5d3abac684363df2afbb5208ccd675e0ee27e438",
+    "shape": "template",
+    "file": "Pages/Operator/Home.vue",
+    "line": 313,
+    "status": "source"
+  },
+  "operator_home.the_operator_console": {
+    "source_hash": "51c9fccfae175e1c9504c4b48e8aa630c75efbce24df6d5d6030e9e8badb2d94",
+    "shape": "script:title",
+    "file": "Pages/Operator/Home.vue",
+    "line": 96,
+    "status": "source"
+  },
+  "operator_home.the_operator_plane_s_front_door_is_this_bo": {
+    "source_hash": "69773767dd88a46f96f9548fdfe9e7f62851ec4b1dfb8603895d8220ffda645b",
+    "shape": "template",
+    "file": "Pages/Operator/Home.vue",
+    "line": 135,
+    "status": "source"
+  },
+  "operator_home.the_readiness_rollup_and_the_mesh_controls": {
+    "source_hash": "9f2523c84861bcc269695a2978cf1c5b18a75109df4037c128177e638c85bfc2",
+    "shape": "template",
+    "file": "Pages/Operator/Home.vue",
+    "line": 166,
+    "status": "source"
+  },
+  "operator_home.this_node_holds_the_home_copy_of_place_aut": {
+    "source_hash": "df26af05d1dd73017d622fec384e046a3a67253677dfdefb5b4ca7217673a802",
+    "shape": "template",
+    "file": "Pages/Operator/Home.vue",
+    "line": 229,
+    "status": "source"
+  },
+  "operator_home.versions_upgrades": {
+    "source_hash": "dc420264e03000f9d2140ae1c0b04becfa2ccfcd0c5d9f13fa1745da563e6fcc",
+    "shape": "script:title",
+    "file": "Pages/Operator/Home.vue",
+    "line": 121,
+    "status": "source"
+  },
+  "operator_identity.a_device_enrols_its_ed25519_public_key_the": {
+    "source_hash": "f2fca1f83eca439562d2578379df444a6917f75139fff7165ee678b736ad8da1",
+    "shape": "template",
+    "file": "Pages/Operator/Identity.vue",
+    "line": 387,
+    "status": "source"
+  },
+  "operator_identity.a_housekeeping_job_prunes_lapsed_attestati": {
+    "source_hash": "905f2471593c4401de56c79db727ad968e011fd20c809fdcfe4b62f1df042bdd",
+    "shape": "template",
+    "file": "Pages/Operator/Identity.vue",
+    "line": 421,
+    "status": "source"
+  },
+  "operator_identity.a_person_on_a_journey_can_act_through_a_se": {
+    "source_hash": "2705907a93fb7b49a4cc36af6487808f9f7dbe5a8720aa8e8d9879f9eda9317b",
+    "shape": "template",
+    "file": "Pages/Operator/Identity.vue",
+    "line": 335,
+    "status": "source"
+  },
+  "operator_identity.a_short_lived_24h_revocable_instance_signe": {
+    "source_hash": "685a9bffce78523331369f75e0a8cbd8f0a024ea8e9229677446c78832aed2dd",
+    "shape": "template",
+    "file": "Pages/Operator/Identity.vue",
+    "line": 359,
+    "status": "source"
+  },
+  "operator_identity.account_created": {
+    "source_hash": "dbcb4fb6ae01c11ca38cf53aaffb9aa6eea88fd9a8cc742ee2933c09589e4287",
+    "shape": "template",
+    "file": "Pages/Operator/Identity.vue",
+    "line": 276,
+    "status": "source"
+  },
+  "operator_identity.an_attestation_carries_only_public_standin": {
+    "source_hash": "8dfb99ec8ca65b02ab0e92b208b72df58e6f43a54a094a255edd1bd33185da04",
+    "shape": "template",
+    "file": "Pages/Operator/Identity.vue",
+    "line": 344,
+    "status": "source"
+  },
+  "operator_identity.citizen_standing_on_the_move": {
+    "source_hash": "1a9be3de772a7ad564002cdd0244cb19b8f5883177746486977259bd3f3f594f",
+    "shape": "template",
+    "file": "Pages/Operator/Identity.vue",
+    "line": 334,
+    "status": "source"
+  },
+  "operator_identity.device_enrolment_no_escrow": {
+    "source_hash": "303fe0b8db1ebd51599881b9e4b3e278112b0849f297e67a004e4688421ce240",
+    "shape": "template",
+    "file": "Pages/Operator/Identity.vue",
+    "line": 386,
+    "status": "source"
+  },
+  "operator_identity.each_device_enrols_its_own_key_possession_": {
+    "source_hash": "e6bd8ae67c796548ebc1b0912065fc2094e91746e5e9cee4f25c76a7bcf73820",
+    "shape": "template",
+    "file": "Pages/Operator/Identity.vue",
+    "line": 285,
+    "status": "source"
+  },
+  "operator_identity.enrolment_publishes_a_device_s_public_key_": {
+    "source_hash": "a732f0bfdbdca96405d1918a8662bd46a49aae5c0815f1faeebeada938eb2d05",
+    "shape": "template",
+    "file": "Pages/Operator/Identity.vue",
+    "line": 326,
+    "status": "source"
+  },
+  "operator_identity.expiredalready_fail_closedsoft_deleted_for": {
+    "source_hash": "4e08d2bf2b3892194d6f784e687e0c54bd0ec53d5563cf24197452c6729f7f2a",
+    "shape": "template",
+    "file": "Pages/Operator/Identity.vue",
+    "line": 425,
+    "status": "source"
+  },
+  "operator_identity.home_authority_attestsdevice_signs_the_wri": {
+    "source_hash": "4b6733fbb8e00d12ab4e37769feb0b0ebd33db68bb35ac97d2f0f173310d7003",
+    "shape": "template",
+    "file": "Pages/Operator/Identity.vue",
+    "line": 365,
+    "status": "source"
+  },
+  "operator_identity.key_fingerprint": {
+    "source_hash": "26f86394c2b6ca4fa69f4a537683656f3d9f674cdf8430cc4f76eb609adfda4c",
+    "shape": "script:label",
+    "file": "Pages/Operator/Identity.vue",
+    "line": 105,
+    "status": "source"
+  },
+  "operator_identity.key_generated": {
+    "source_hash": "3f04496c22d4f20bd595e45f4d1215c856a84cf5efe497e59e23cb4d267d3208",
+    "shape": "template",
+    "file": "Pages/Operator/Identity.vue",
+    "line": 235,
+    "status": "source"
+  },
+  "operator_identity.last_login": {
+    "source_hash": "be9f9404505992ebd2b243a0d48be15b9bb8f6c82994daa4d4df37dc20e9656d",
+    "shape": "template",
+    "file": "Pages/Operator/Identity.vue",
+    "line": 272,
+    "status": "source"
+  },
+  "operator_identity.mesh_operator_id_not_linked_to_a_mesh_iden": {
+    "source_hash": "91e4dbc4b14456d01aa2571266e4e4e89ee46634c10c2729dbf826084335e02c",
+    "shape": "template",
+    "file": "Pages/Operator/Identity.vue",
+    "line": 253,
+    "status": "source"
+  },
+  "operator_identity.no_devices_enrolled_yet_this_operator_acco": {
+    "source_hash": "54ed2a4ecdada3443fdbca280d57bd27bfc0910bde3c6ca0de8fa06692ae306e",
+    "shape": "template",
+    "file": "Pages/Operator/Identity.vue",
+    "line": 312,
+    "status": "source"
+  },
+  "operator_identity.no_mesh_identity_minted_yet": {
+    "source_hash": "10edc902e841bdcad985ecf40c4a85b6984bae4e897f0fd1d6d7fedb0430f428",
+    "shape": "attr:title",
+    "file": "Pages/Operator/Identity.vue",
+    "line": 175,
+    "status": "source"
+  },
+  "operator_identity.only_the_home_authority_attests_24h_revoca": {
+    "source_hash": "bffe2622f0fc7fd6d9cb5dfbab81364fd2a2246987167269e0ba2c512b8f49a9",
+    "shape": "template",
+    "file": "Pages/Operator/Identity.vue",
+    "line": 380,
+    "status": "source"
+  },
+  "operator_identity.public_key_ed25519_the_public_half_only_no": {
+    "source_hash": "f1083c61525f40ebf62d7e317609e2030dfdd3a23b41d513e61b7909d7e9f5bb",
+    "shape": "template",
+    "file": "Pages/Operator/Identity.vue",
+    "line": 210,
+    "status": "source"
+  },
+  "operator_identity.server_id_not_minted_yet": {
+    "source_hash": "e9a19c8f652c6bf3419ea0a8f5ac948b33e9593c5fa1ed68ad97161f43dfd2f7",
+    "shape": "template",
+    "file": "Pages/Operator/Identity.vue",
+    "line": 183,
+    "status": "source"
+  },
+  "operator_identity.standing_travels_the_right_itself_stays_de": {
+    "source_hash": "6b261129ff8e797f3ab1df1605e8f049a89e6370263a505e86b2344bbf32542e",
+    "shape": "template",
+    "file": "Pages/Operator/Identity.vue",
+    "line": 445,
+    "status": "source"
+  },
+  "operator_identity.subject_the_attested_user_resolves_locally": {
+    "source_hash": "4f1dc0ccce9b646f5c200154a0f70c5785a756120b78fe7671a71297ef07e7cb",
+    "shape": "template",
+    "file": "Pages/Operator/Identity.vue",
+    "line": 413,
+    "status": "source"
+  },
+  "operator_identity.the_ed25519_public_key_is_published_the_se": {
+    "source_hash": "d34d1afd508ceffdc3041cbf15d0337cae77a25f39b134349fa6667fbc42c39e",
+    "shape": "template",
+    "file": "Pages/Operator/Identity.vue",
+    "line": 393,
+    "status": "source"
+  },
+  "operator_identity.the_enrolled_operator_device_keys_on_this_": {
+    "source_hash": "9fe1ed99dc07fa09ecfca80fa960813cddd2bb3290647363c229500e9a7a4d63",
+    "shape": "attr:caption",
+    "file": "Pages/Operator/Identity.vue",
+    "line": 295,
+    "status": "source"
+  },
+  "operator_identity.the_expiry_sweep": {
+    "source_hash": "10515e81dc0f3114cd4343d008e25bad1e67240539621293b66386c6727e6f6e",
+    "shape": "template",
+    "file": "Pages/Operator/Identity.vue",
+    "line": 420,
+    "status": "source"
+  },
+  "operator_identity.the_forwarded_write_is_the_keystone_a_pers": {
+    "source_hash": "c690050416e422a27347dcb71daa161e3deae224a402ff829ff26f3f5fec7193",
+    "shape": "template",
+    "file": "Pages/Operator/Identity.vue",
+    "line": 439,
+    "status": "source"
+  },
+  "operator_identity.the_forwarded_write_three_checks": {
+    "source_hash": "fb01268cbdeb5f68ebc92b3cb372f641f5e8a437334186d758556e6e43455e01",
+    "shape": "template",
+    "file": "Pages/Operator/Identity.vue",
+    "line": 402,
+    "status": "source"
+  },
+  "operator_identity.the_identity_layer_that_lets_a_server_know": {
+    "source_hash": "20875e3d0c60818d2f97eb378c0cb7ae59514f383515b11a56c0dfe9e94603f5",
+    "shape": "template",
+    "file": "Pages/Operator/Identity.vue",
+    "line": 134,
+    "status": "source"
+  },
+  "operator_identity.the_identity_plane_is_shown_only_to_a_sign": {
+    "source_hash": "1727fc70b6df16b94a648497a4cf7174826ff9d1ce7d4c01e32bf2bd0569086c",
+    "shape": "template",
+    "file": "Pages/Operator/Identity.vue",
+    "line": 145,
+    "status": "source"
+  },
+  "operator_identity.the_keystone": {
+    "source_hash": "46df0aa3c1464d0d25f4be4b512239d4aeb6e5e814e2ca6c862645ef02c0107c",
+    "shape": "template",
+    "file": "Pages/Operator/Identity.vue",
+    "line": 438,
+    "status": "source"
+  },
+  "operator_identity.the_plane_wall_holds_here_too_operator_ide": {
+    "source_hash": "3fbe8b31f334df71e0949b0f779a6de7ccc1cdf1e9688774c5a02020d6fa0984",
+    "shape": "template",
+    "file": "Pages/Operator/Identity.vue",
+    "line": 159,
+    "status": "source"
+  },
+  "operator_identity.the_secret_half_of_the_signing_key_never_l": {
+    "source_hash": "2b268266213e94396b1d4b87ed93f3f0b56bfd7a247e1c994e9ff63fc767fcdf",
+    "shape": "template",
+    "file": "Pages/Operator/Identity.vue",
+    "line": 240,
+    "status": "source"
+  },
+  "operator_identity.the_three_forwarded_write_checks": {
+    "source_hash": "84857b572d61ffd14723f97ad0305b8d2f5813f94524032879081f2db0c31592",
+    "shape": "attr:aria-label",
+    "file": "Pages/Operator/Identity.vue",
+    "line": 407,
+    "status": "source"
+  },
+  "operator_identity.this_box_has_not_cut_its_ed25519_signing_k": {
+    "source_hash": "26f9075aa1c627f9803869d99bb1e31f35563b8d1105fd6c380936ea4e134d6e",
+    "shape": "template",
+    "file": "Pages/Operator/Identity.vue",
+    "line": 175,
+    "status": "source"
+  },
+  "operator_identity.this_node": {
+    "source_hash": "676d050980ce11d1c8689dd4b7514f45e8024de0afb9feff043ff46845db7635",
+    "shape": "bound:title",
+    "file": "Pages/Operator/Identity.vue",
+    "line": 180,
+    "status": "source"
+  },
+  "operator_identity.two_identities_one_wall_your_operator_acco": {
+    "source_hash": "e6e45f4820ded64d8fa31842c2cf18e5ec5f3da14f632919dc7814889600097c",
+    "shape": "template",
+    "file": "Pages/Operator/Identity.vue",
+    "line": 454,
+    "status": "source"
+  },
+  "operator_identity.what_an_attestation_is": {
+    "source_hash": "2cd30aae1867352df2cfdabea634d6b7ed324af3542f5a048172b51c39772f46",
+    "shape": "template",
+    "file": "Pages/Operator/Identity.vue",
+    "line": 358,
+    "status": "source"
+  },
+  "operator_identity.when_a_forwarded_write_arrives_it_must_cle": {
+    "source_hash": "2654946156c8adaef7819207cf6ac63cabb85d1ec755c9f2aade08d005e1e0a2",
+    "shape": "template",
+    "file": "Pages/Operator/Identity.vue",
+    "line": 403,
+    "status": "source"
+  },
+  "operator_identity.who_this_box_is_on_the_mesh_and_who_you_ar": {
+    "source_hash": "94bdc5f9605b04369bf2fd425e87136311fdaa4154fb9731d3d48549682a4504",
+    "shape": "template",
+    "file": "Pages/Operator/Identity.vue",
+    "line": 170,
+    "status": "source"
+  },
+  "operator_identity.your_account": {
+    "source_hash": "dbb5f6371b6a2a677f09c24d17fdc581132a41881a818469a92b58588e8764bc",
+    "shape": "attr:eyebrow",
+    "file": "Pages/Operator/Identity.vue",
+    "line": 246,
+    "status": "source"
+  },
+  "operator_identity.your_local_password_signs_you_in_on_this_b": {
+    "source_hash": "6606b14ca0451ff1f8677a5d849f56d6a370bcf3bcfbbad4743ded2b00f9f1d8",
+    "shape": "template",
+    "file": "Pages/Operator/Identity.vue",
+    "line": 321,
+    "status": "source"
+  },
+  "operator_identity.your_operator_identity": {
+    "source_hash": "b7318ae2c89c0047d07c0ad733b7d4ee1fc037b8271610dba45b4a63b39e612d",
+    "shape": "template",
+    "file": "Pages/Operator/Identity.vue",
+    "line": 169,
+    "status": "source"
+  },
+  "operator_mesh.authority_disputed_resolved": {
+    "source_hash": "afb46056d68bffcbb210fec59660405b2c3f33c613459412656408c9ca03aebf",
+    "shape": "script:label",
+    "file": "Pages/Operator/Mesh.vue",
+    "line": 97,
+    "status": "source"
+  },
+  "operator_mesh.becoming_a_full_peer": {
+    "source_hash": "064c2af324f65280a4d9491a7c76f7ba1c4a0fbc774d43f8eef72b80a791821a",
+    "shape": "attr:title",
+    "file": "Pages/Operator/Mesh.vue",
+    "line": 256,
+    "status": "source"
+  },
+  "operator_mesh.border_settled": {
+    "source_hash": "4118eccad932dd1bf8cd799f304b2a3c2817a9155dd571804272f4e2eebb660e",
+    "shape": "script:label",
+    "file": "Pages/Operator/Mesh.vue",
+    "line": 73,
+    "status": "source"
+  },
+  "operator_mesh.every_box_this_node_has_handshaked_with_an": {
+    "source_hash": "3dd7c1c5c9102b125e5cfe8ab52f0cf0ac8a5431ff2c801c534b94862617cea3",
+    "shape": "template",
+    "file": "Pages/Operator/Mesh.vue",
+    "line": 199,
+    "status": "source"
+  },
+  "operator_mesh.federation_url_how_peers_address_this_box": {
+    "source_hash": "9556cf294be102f885637896f7da92c6d349f21afe12b7fdee17504f30ab119d",
+    "shape": "template",
+    "file": "Pages/Operator/Mesh.vue",
+    "line": 393,
+    "status": "source"
+  },
+  "operator_mesh.for_every_jurisdiction_one_box_s_record_is": {
+    "source_hash": "6c843366addfdeb84ae6f01b49b6509301eccc2d9a47d677aa62642cb4f0a274",
+    "shape": "template",
+    "file": "Pages/Operator/Mesh.vue",
+    "line": 276,
+    "status": "source"
+  },
+  "operator_mesh.full_faith_credit_the_sync_ledger": {
+    "source_hash": "e6d67a9f0b4c5cfef2ede7c9c2a387fc8ee101e32eafe59e035168b52333f444",
+    "shape": "attr:title",
+    "file": "Pages/Operator/Mesh.vue",
+    "line": 316,
+    "status": "source"
+  },
+  "operator_mesh.how_your_node_finds_its_peers_carries_thei": {
+    "source_hash": "a3a494e762c2d7cde1d71fa3244a189cd05ded484504f6a906c1a06840097871",
+    "shape": "template",
+    "file": "Pages/Operator/Mesh.vue",
+    "line": 147,
+    "status": "source"
+  },
+  "operator_mesh.moving_a_jurisdiction_s_home_copy": {
+    "source_hash": "efd1c0bba2191d0af088e4a5e887649c039fc42c2f197f1e0958ad94cd3b9564",
+    "shape": "template",
+    "file": "Pages/Operator/Mesh.vue",
+    "line": 288,
+    "status": "source"
+  },
+  "operator_mesh.no_gates_reported": {
+    "source_hash": "99468efa6557671775956b01bc4a58acc00d7e887814750aea63dc69bcc1e6ef",
+    "shape": "template",
+    "file": "Pages/Operator/Mesh.vue",
+    "line": 413,
+    "status": "source"
+  },
+  "operator_mesh.no_peers_yet_this_box_stands_alone_joining": {
+    "source_hash": "7eeb0a5493fe0743689de5bf1c5e1690370a13e62a985b2ae512c4391bef74b3",
+    "shape": "template",
+    "file": "Pages/Operator/Mesh.vue",
+    "line": 205,
+    "status": "source"
+  },
+  "operator_mesh.no_sync_entries_yet_the_ledger_starts_writ": {
+    "source_hash": "04bbced9fb4e9806d58d38325991aa1f80910be843c8a9b3e87ffcf93d6c7a18",
+    "shape": "template",
+    "file": "Pages/Operator/Mesh.vue",
+    "line": 325,
+    "status": "source"
+  },
+  "operator_mesh.no_transports_advertised_yet_peers_can_sti": {
+    "source_hash": "7716f45f539e36d4618b6df762507c2cd5e5a7dd5ecbc98dd791e8074ec78521",
+    "shape": "template",
+    "file": "Pages/Operator/Mesh.vue",
+    "line": 378,
+    "status": "source"
+  },
+  "operator_mesh.nothing_is_lost_and_nothing_pauses_reads_c": {
+    "source_hash": "18da379549abb767a140a11fa69906652dcae3b532c2a5d6ea09e2d3678132e0",
+    "shape": "template",
+    "file": "Pages/Operator/Mesh.vue",
+    "line": 307,
+    "status": "source"
+  },
+  "operator_mesh.off_the_constitutional_plane_joining_synci": {
+    "source_hash": "4bf149b1c389f9977c28db3382ce20238788441bfb59329f7febcc6e35a0c50b",
+    "shape": "template",
+    "file": "Pages/Operator/Mesh.vue",
+    "line": 157,
+    "status": "source"
+  },
+  "operator_mesh.one_process_to_peerage_authority_attaches_": {
+    "source_hash": "b6c1e82a0d1e081ece8670c3d13c2803c9f8d9bd84984a147a4c58c4d452cff2",
+    "shape": "template",
+    "file": "Pages/Operator/Mesh.vue",
+    "line": 312,
+    "status": "source"
+  },
+  "operator_mesh.only_two_things_services_a_box_s_hardware_": {
+    "source_hash": "921934fe3ab334093f9fb29849ee9dfeb2f7971ed9ffa6b73fa6a477cbcb0451",
+    "shape": "template",
+    "file": "Pages/Operator/Mesh.vue",
+    "line": 267,
+    "status": "source"
+  },
+  "operator_mesh.peerage_gates": {
+    "source_hash": "a0ba37a83a4ea6560bf3bdef92eded0321cad6776598b52337bc7881f1579a6a",
+    "shape": "attr:title",
+    "file": "Pages/Operator/Mesh.vue",
+    "line": 400,
+    "status": "source"
+  },
+  "operator_mesh.peers_and_their_trust_lifecycle": {
+    "source_hash": "b7aa0a2a52913ec27fcf141b56603181558b3c34c3c5fbfdecd48d099a3bd17b",
+    "shape": "attr:caption",
+    "file": "Pages/Operator/Mesh.vue",
+    "line": 218,
+    "status": "source"
+  },
+  "operator_mesh.peers_this_box_has_met": {
+    "source_hash": "3970acdee382b41de6c6085cfbc590b79e6dff68d6c21de3807df831dd0b18f7",
+    "shape": "attr:label",
+    "file": "Pages/Operator/Mesh.vue",
+    "line": 189,
+    "status": "source"
+  },
+  "operator_mesh.peers_transports_and_the_sync_ledger_are_s": {
+    "source_hash": "24597f7caa872339f6bc2075cfdc85aa5210df90a8aa2823c49e1941ff2ceafe",
+    "shape": "template",
+    "file": "Pages/Operator/Mesh.vue",
+    "line": 166,
+    "status": "source"
+  },
+  "operator_mesh.re_peer_every_other_node_re_points_at_the_": {
+    "source_hash": "bc7d4ad737f71cc0c5636eb2d585f0c42bc5c406ec69e43b31e15ed18180f454",
+    "shape": "template",
+    "file": "Pages/Operator/Mesh.vue",
+    "line": 302,
+    "status": "source"
+  },
+  "operator_mesh.recent_ledger_entries": {
+    "source_hash": "6730c2f6dc3f782d36dfd68308fd6f8f07144e58e849eed2098b909ef0587e4e",
+    "shape": "attr:label",
+    "file": "Pages/Operator/Mesh.vue",
+    "line": 191,
+    "status": "source"
+  },
+  "operator_mesh.rejected_not_the_home_copy": {
+    "source_hash": "f420ec17e3261a4461d42da0feeecbbd9f3b237469eed1b9970a6612efb59031",
+    "shape": "script:label",
+    "file": "Pages/Operator/Mesh.vue",
+    "line": 99,
+    "status": "source"
+  },
+  "operator_mesh.rejected_tampered": {
+    "source_hash": "150801daf8f35f4f3605e8d0b4f57c493c1b7bb87a0effb98ec0ae52c4de06b7",
+    "shape": "script:label",
+    "file": "Pages/Operator/Mesh.vue",
+    "line": 98,
+    "status": "source"
+  },
+  "operator_mesh.resolving_a_conflict": {
+    "source_hash": "ca347967fd482c928baa3a026863610f541ab5c61c693d2045e5339cca5c0a40",
+    "shape": "script:label",
+    "file": "Pages/Operator/Mesh.vue",
+    "line": 72,
+    "status": "source"
+  },
+  "operator_mesh.sealed_export_the_departing_box_seals_a_si": {
+    "source_hash": "fa9e77f1c76ae9fbf82d9ac06d075bbf2aedea67ff2d00fe38837a808fe65e4c",
+    "shape": "template",
+    "file": "Pages/Operator/Mesh.vue",
+    "line": 294,
+    "status": "source"
+  },
+  "operator_mesh.sync_seq": {
+    "source_hash": "476cb92063bb374dd7606157f64df8923769ff27a39ae472bd49ac97de6144c5",
+    "shape": "script:label",
+    "file": "Pages/Operator/Mesh.vue",
+    "line": 132,
+    "status": "source"
+  },
+  "operator_mesh.the_last_25_sync_ledger_entries": {
+    "source_hash": "9769a8a2ba337b72228766e5052487052a21e18550a28cf35ffa07a3841d82f7",
+    "shape": "attr:caption",
+    "file": "Pages/Operator/Mesh.vue",
+    "line": 335,
+    "status": "source"
+  },
+  "operator_mesh.the_same_signed_bytes_ride_any_advertised_": {
+    "source_hash": "5dd36fd673af621cfda5acc6761ecd94f901b5b57b49be17ade376f3dd69fa91",
+    "shape": "template",
+    "file": "Pages/Operator/Mesh.vue",
+    "line": 373,
+    "status": "source"
+  },
+  "operator_mesh.the_sync_ledger_is_append_only_and_public_": {
+    "source_hash": "3274465e41bb412d74d0d494b2dd6258fa7349f31d90aaf0cd022c85d5bb2a60",
+    "shape": "template",
+    "file": "Pages/Operator/Mesh.vue",
+    "line": 361,
+    "status": "source"
+  },
+  "operator_mesh.there_is_one_path_to_peerage_and_every_nod": {
+    "source_hash": "6b846e40445d1e893ca875f957852c6aac15360156184481384c6b441707fc01",
+    "shape": "template",
+    "file": "Pages/Operator/Mesh.vue",
+    "line": 257,
+    "status": "source"
+  },
+  "operator_mesh.this_console_reads_the_mesh_as_it_is_peers": {
+    "source_hash": "de0a59f9c00d2a1e0c4dbc6ea8f85e008594af293a5dd6a7fafc59eacba3710b",
+    "shape": "template",
+    "file": "Pages/Operator/Mesh.vue",
+    "line": 420,
+    "status": "source"
+  },
+  "operator_mesh.trust_established": {
+    "source_hash": "a9ddb0086ca66e20b8383895082d8eb7fdf3e48f667c1b86b7221739ad520589",
+    "shape": "attr:label",
+    "file": "Pages/Operator/Mesh.vue",
+    "line": 190,
+    "status": "source"
+  },
+  "operator_mesh.trust_established_2": {
+    "source_hash": "f2633d65fcdfc8842e4abaee9e7881ef2a58792f26fe6e94897c8ed1f976b7a4",
+    "shape": "script:label",
+    "file": "Pages/Operator/Mesh.vue",
+    "line": 70,
+    "status": "source"
+  },
+  "operator_mesh.trust_lifecycle_discovered_handshake_trust": {
+    "source_hash": "063096ba1510319d264580cdf6b33ca7a807050381086aa50c2fe149dda201e6",
+    "shape": "template",
+    "file": "Pages/Operator/Mesh.vue",
+    "line": 252,
+    "status": "source"
+  },
+  "operator_mesh.verified_flip_the_receiving_peer_verifies_": {
+    "source_hash": "909a9946ce1d39c8dbd46450ac24a7f88289e6405f7c78b72e912a0ae0cd0e73",
+    "shape": "template",
+    "file": "Pages/Operator/Mesh.vue",
+    "line": 298,
+    "status": "source"
+  },
+  "operator_mesh.what_authority_means": {
+    "source_hash": "c9ee885645f38a93acab6f3a77f9998ab1b925e84d2e2293d2b88f4a583a4e78",
+    "shape": "template",
+    "file": "Pages/Operator/Mesh.vue",
+    "line": 275,
+    "status": "source"
+  },
+  "operator_mesh.what_makes_nodes_differ": {
+    "source_hash": "5489c337c4c1bbaf43b8d68585634be95e08d54975e2d381b886cb228f67e5de",
+    "shape": "template",
+    "file": "Pages/Operator/Mesh.vue",
+    "line": 266,
+    "status": "source"
+  },
+  "operator_mesh.what_this_box_still_needs_before_or_to_rem": {
+    "source_hash": "ba5683462aa011e88f3ef03cae3c4a71d7a440dd4266cc7c42cd6d26f62569cb",
+    "shape": "template",
+    "file": "Pages/Operator/Mesh.vue",
+    "line": 401,
+    "status": "source"
+  },
+  "operator_mesh.when_a_home_box_retires_or_its_government_": {
+    "source_hash": "7958818fadce119a11ff0866c0c6be7bf4d7ff8a306d2dc1bf68b4b8b218ec70",
+    "shape": "template",
+    "file": "Pages/Operator/Mesh.vue",
+    "line": 289,
+    "status": "source"
+  },
+  "operator_mesh.when_peers_carry_one_another_s_records_the": {
+    "source_hash": "9dc7b405c40faea6ffae851097ce1b41db5e2ea3d345d5735f57ed1f36f09a03",
+    "shape": "template",
+    "file": "Pages/Operator/Mesh.vue",
+    "line": 317,
+    "status": "source"
+  },
+  "operator_mesh.your_peers_known": {
+    "source_hash": "2a71685020f8e2c3799d36c03b4f2f4ca9ae8ec120906eb89bb5f9bc3d35246f",
+    "shape": "template",
+    "file": "Pages/Operator/Mesh.vue",
+    "line": 197,
+    "status": "source"
+  },
+  "operator_operations.apply_recreate": {
+    "source_hash": "1a3b1fd726cb105d5720f3014a584a197c0c4564fd00dd55d43614ae03dff9fc",
+    "shape": "template",
+    "file": "Pages/Operator/Operations.vue",
+    "line": 260,
+    "status": "source"
+  },
+  "operator_operations.apply_restart_tier_changes_livekit_network": {
+    "source_hash": "b50ec39c3863616b5bed71d1c26f5a346d54be697dbba55b2c864cd402c2b447",
+    "shape": "template",
+    "file": "Pages/Operator/Operations.vue",
+    "line": 245,
+    "status": "source"
+  },
+  "operator_operations.apply_tiers": {
+    "source_hash": "023800a9d75606b1e70f087db2fede8a327d6583a95b3df2d0ae6869f74324b6",
+    "shape": "template",
+    "file": "Pages/Operator/Operations.vue",
+    "line": 134,
+    "status": "source"
+  },
+  "operator_operations.capability_channels": {
+    "source_hash": "3d66f4aaba4fa62491a668faa11ac8ceb2faf0b957f5515a9e42369b9e244ce6",
+    "shape": "template",
+    "file": "Pages/Operator/Operations.vue",
+    "line": 233,
+    "status": "source"
+  },
+  "operator_operations.delivered_grants_ready_to_issue": {
+    "source_hash": "59b3ee9e8d5df884ff122f5a128705035c86c8a06a902bc4d87505e4d1718dcc",
+    "shape": "template",
+    "file": "Pages/Operator/Operations.vue",
+    "line": 210,
+    "status": "source"
+  },
+  "operator_operations.dns_credentials": {
+    "source_hash": "92850c4efc05f2b6744eb01f23613dcdd65ad49950d5c04a42ca6b4b4e84345b",
+    "shape": "template",
+    "file": "Pages/Operator/Operations.vue",
+    "line": 217,
+    "status": "source"
+  },
+  "operator_operations.expires_expired_days_left": {
+    "source_hash": "b574adb4884ea5e1fc5faa2bdc12726c388ca4706ca69c4de1e12d0c1285717e",
+    "shape": "template",
+    "file": "Pages/Operator/Operations.vue",
+    "line": 203,
+    "status": "source"
+  },
+  "operator_operations.installed_certificates": {
+    "source_hash": "236040bfba02df7f8906a6bc5083f0bbd9e9b05d55b0558c1636decf686222f7",
+    "shape": "template",
+    "file": "Pages/Operator/Operations.vue",
+    "line": 200,
+    "status": "source"
+  },
+  "operator_operations.instant_tier_knobs_are_edited_in_place_app": {
+    "source_hash": "0188fbba0a2e06933cc63d6692703b13953ba48cfbc8406ff94e84eb2e0f4df2",
+    "shape": "template",
+    "file": "Pages/Operator/Operations.vue",
+    "line": 280,
+    "status": "source"
+  },
+  "operator_operations.livekit_ice_node_ip": {
+    "source_hash": "4ca7386fbd3d3e0aa04884d9927f1abe3e38bf3e77ca38529e470b284126f38f",
+    "shape": "script:label",
+    "file": "Pages/Operator/Operations.vue",
+    "line": 37,
+    "status": "source"
+  },
+  "operator_operations.livekit_public_browser_url": {
+    "source_hash": "5b48f310d75358b6ca44005b750330e5420576790aa43e987bc7e850c23081b3",
+    "shape": "script:label",
+    "file": "Pages/Operator/Operations.vue",
+    "line": 38,
+    "status": "source"
+  },
+  "operator_operations.no_dns_credential_stored_set_one_write_onl": {
+    "source_hash": "56ec6b67df62df59e99f6b95e9993e12ce79fe480a084151a1133889895d08e5",
+    "shape": "template",
+    "file": "Pages/Operator/Operations.vue",
+    "line": 218,
+    "status": "source"
+  },
+  "operator_operations.none_installed_under_the_tls_path": {
+    "source_hash": "1aede5c51317d7a90f92ce0b5e30ab26b43e0d39e92c0f0c8fa602b43d978b14",
+    "shape": "template",
+    "file": "Pages/Operator/Operations.vue",
+    "line": 201,
+    "status": "source"
+  },
+  "operator_operations.not_setconfigureddev_default_rotate": {
+    "source_hash": "c2e1f2935339a84b13e7abd62dcee1ed76130ddf2cdf2db9471bb69862af888e",
+    "shape": "template",
+    "file": "Pages/Operator/Operations.vue",
+    "line": 165,
+    "status": "source"
+  },
+  "operator_operations.operator_operations": {
+    "source_hash": "6f086efcd242e19554436ae4517db8ad234ca12d80c333be75c4534fb5b59255",
+    "shape": "attr:title",
+    "file": "Pages/Operator/Operations.vue",
+    "line": 103,
+    "status": "source"
+  },
+  "operator_operations.runbook": {
+    "source_hash": "63cb6b9cbb0bb63e73971eba3a640f5d1e2a094704d5ca67592a74ace2237ba7",
+    "shape": "template",
+    "file": "Pages/Operator/Operations.vue",
+    "line": 154,
+    "status": "source"
+  },
+  "operator_operations.sign_in_as_an_operator": {
+    "source_hash": "583e82bd6a91a1a4d4be1e3d8742733b3d9d67ae176670eb206cd8bb53406d7b",
+    "shape": "template",
+    "file": "Pages/Operator/Operations.vue",
+    "line": 125,
+    "status": "source"
+  },
+  "operator_operations.signed_in_as_secrets_show_only_whether_the": {
+    "source_hash": "b1e88f0e858c4875ca1da40837cb8dc2dac877ff1087ce3e8605f280828e536e",
+    "shape": "template",
+    "file": "Pages/Operator/Operations.vue",
+    "line": 141,
+    "status": "source"
+  },
+  "operator_operations.the_infrastructure_identity_plane_for_this": {
+    "source_hash": "cb2191d6e7e896104bbf3be4f9fd8158d75c2ac385242427cce47cc60dd6ee70",
+    "shape": "template",
+    "file": "Pages/Operator/Operations.vue",
+    "line": 108,
+    "status": "source"
+  },
+  "operator_operations.the_operations_inventory_is_shown_only_to_": {
+    "source_hash": "5708f2eac41ea4529b61287d27e81e25130e468a955c20b7f04c1bf464934206",
+    "shape": "template",
+    "file": "Pages/Operator/Operations.vue",
+    "line": 122,
+    "status": "source"
+  },
+  "operator_operations.these_knobs_are_env_baked_so_applying_rewr": {
+    "source_hash": "eabc75359707d4460182bd3d15f23bf342807aac4069345cfd6c42eb839be2ee",
+    "shape": "template",
+    "file": "Pages/Operator/Operations.vue",
+    "line": 246,
+    "status": "source"
+  },
+  "operator_operations.waiting_for_the_host_supervisor_is_scripts": {
+    "source_hash": "e55ab224c7b88d119184784c4008dfd8a96827653ac6dd86746b15edfc267577",
+    "shape": "template",
+    "file": "Pages/Operator/Operations.vue",
+    "line": 265,
+    "status": "source"
+  },
+  "operator_operations.zone_token_stored": {
+    "source_hash": "664978aadad42a2ad9534959a837be6577d64f47068c6a0418c13677c6ae6fc5",
+    "shape": "template",
+    "file": "Pages/Operator/Operations.vue",
+    "line": 222,
+    "status": "source"
+  },
+  "operator_roles.a_box_s_role_is_nothing_more_than_the_set_": {
+    "source_hash": "adc5df527db85a9d6d66094f06ca24c48a57ceb0f03513075becc974c6dcd2e0",
+    "shape": "template",
+    "file": "Pages/Operator/Roles.vue",
+    "line": 198,
+    "status": "source"
+  },
+  "operator_roles.a_governed_channel_is_approved_by_a_dual_m": {
+    "source_hash": "1a539a55883a13c5d57bd364fec75dc84f711424a0e01d4476d533b6a85c75a0",
+    "shape": "template",
+    "file": "Pages/Operator/Roles.vue",
+    "line": 542,
+    "status": "source"
+  },
+  "operator_roles.a_governed_channel_walks_four_plain_steps_": {
+    "source_hash": "49a347edcafeb1a7e9482495fd599288934d4b05add1822e33f9bfbd44556cd1",
+    "shape": "template",
+    "file": "Pages/Operator/Roles.vue",
+    "line": 426,
+    "status": "source"
+  },
+  "operator_roles.a_seated_government_approves_through_its_o": {
+    "source_hash": "7d3ce43d22956eae87b74eca72a35b7f216f20481c8dbf60c4a8e48906e01906",
+    "shape": "template",
+    "file": "Pages/Operator/Roles.vue",
+    "line": 615,
+    "status": "source"
+  },
+  "operator_roles.active_every_channel_on": {
+    "source_hash": "21cb75b0c6feb814d8429f7f9bda54a3441a9689121611de31ea6dba964285ea",
+    "shape": "script:label",
+    "file": "Pages/Operator/Roles.vue",
+    "line": 87,
+    "status": "source"
+  },
+  "operator_roles.applies": {
+    "source_hash": "c9828d9f57e610192a53b2ff84dafe42e72a3126f74c1705b5e6ea91527f0856",
+    "shape": "template",
+    "file": "Pages/Operator/Roles.vue",
+    "line": 565,
+    "status": "source"
+  },
+  "operator_roles.approval_mints_a_verified_grant_dual_meter": {
+    "source_hash": "4a8990b8585ef6793ae8841d868b5aa413d096c8371ffc6d1cf91ddfd7ff2fdd",
+    "shape": "template",
+    "file": "Pages/Operator/Roles.vue",
+    "line": 623,
+    "status": "source"
+  },
+  "operator_roles.awaiting_consent_none_you_are_founding": {
+    "source_hash": "a721d2f4539de5b45d2e1a63628ca72f8a683fd9327d1eff31ec709d818419a4",
+    "shape": "bound:label",
+    "file": "Pages/Operator/Roles.vue",
+    "line": 328,
+    "status": "source"
+  },
+  "operator_roles.channels_active_on_this_box": {
+    "source_hash": "c1a981183f7c58753b1d611e1f76a1ef68ffcf53efadbd8a86691d7554cb0a40",
+    "shape": "attr:label",
+    "file": "Pages/Operator/Roles.vue",
+    "line": 327,
+    "status": "source"
+  },
+  "operator_roles.co_affected_peers": {
+    "source_hash": "739975bedd9a2fdccd871da5acd0864453e27d0b4cf2f00f2af39f26ff6c032d",
+    "shape": "script:name",
+    "file": "Pages/Operator/Roles.vue",
+    "line": 188,
+    "status": "source"
+  },
+  "operator_roles.consent_leg": {
+    "source_hash": "9154b452fe2b9442814ebca3f135bb67b9bd6898d5184635a3a0520eeb4dcb85",
+    "shape": "script:label",
+    "file": "Pages/Operator/Roles.vue",
+    "line": 159,
+    "status": "source"
+  },
+  "operator_roles.four_friendly_names_group_the_nine_channel": {
+    "source_hash": "15439c45a67aedc0123676b10cedc65fe2087f16c3541fa27183122b068ea1b0",
+    "shape": "template",
+    "file": "Pages/Operator/Roles.vue",
+    "line": 245,
+    "status": "source"
+  },
+  "operator_roles.governed_channels_dual_meter": {
+    "source_hash": "b72f30513d3421cbd3ff238f2ceb05ab01bc839c5df648c31796852d9a6a707c",
+    "shape": "bound:label",
+    "file": "Pages/Operator/Roles.vue",
+    "line": 328,
+    "status": "source"
+  },
+  "operator_roles.governed_dual_meter_approval": {
+    "source_hash": "a0055408b9264d52c45dff511db793f9c49ab6633e4dacca047206495083ff12",
+    "shape": "attr:label",
+    "file": "Pages/Operator/Roles.vue",
+    "line": 480,
+    "status": "source"
+  },
+  "operator_roles.how_a_channel_goes_live": {
+    "source_hash": "6686e76a113f86350e0bad3a4c37e104072ab6a2791a39335bc95d52737df725",
+    "shape": "template",
+    "file": "Pages/Operator/Roles.vue",
+    "line": 425,
+    "status": "source"
+  },
+  "operator_roles.leave_blank_for_the_root_jurisdiction_a_gr": {
+    "source_hash": "db651729dd53654a9b53c269d97e2cb069158f2a64c5813cc16008703d5b25da",
+    "shape": "attr:hint",
+    "file": "Pages/Operator/Roles.vue",
+    "line": 494,
+    "status": "source"
+  },
+  "operator_roles.meter_c": {
+    "source_hash": "f4db3edd95dd7b6002522c74cbca477725bea176ecc1937ce79c17fc7f491b25",
+    "shape": "template",
+    "file": "Pages/Operator/Roles.vue",
+    "line": 351,
+    "status": "source"
+  },
+  "operator_roles.no_open_role_grant_requests_a_governed_req": {
+    "source_hash": "fc56c5de5927ea2f2f994798bee72affde332bb82bfb793cda7c2ee05f0799d3",
+    "shape": "template",
+    "file": "Pages/Operator/Roles.vue",
+    "line": 569,
+    "status": "source"
+  },
+  "operator_roles.off_the_constitutional_plane_running_a_nod": {
+    "source_hash": "42d176cf69fcc61f3b770ce5a5639fe6e7468ed9c362f093bab1d82ffe26bf4d",
+    "shape": "template",
+    "file": "Pages/Operator/Roles.vue",
+    "line": 228,
+    "status": "source"
+  },
+  "operator_roles.on_this_box": {
+    "source_hash": "0571925bfe0fa495a4412aeb2a5eb8ed2cc6e0344b2c964d46ad3839ae2824fd",
+    "shape": "template",
+    "file": "Pages/Operator/Roles.vue",
+    "line": 279,
+    "status": "source"
+  },
+  "operator_roles.on_this_node": {
+    "source_hash": "83aafedde90135693327a9dbb9d342ae60a514ebd9a414ea8090d9449cf3b078",
+    "shape": "script:label",
+    "file": "Pages/Operator/Roles.vue",
+    "line": 153,
+    "status": "source"
+  },
+  "operator_roles.open_role_grant_requests": {
+    "source_hash": "0e363cec9886e56a58ea1cd7922015fe8637aba4ab3ff9e3129a22589706bdec",
+    "shape": "attr:label",
+    "file": "Pages/Operator/Roles.vue",
+    "line": 329,
+    "status": "source"
+  },
+  "operator_roles.open_role_grant_requests_with_live_consent": {
+    "source_hash": "5e0ac6f8220290268f9e808a9f169896d713daafffe084ea19cc785da04dd79c",
+    "shape": "attr:caption",
+    "file": "Pages/Operator/Roles.vue",
+    "line": 579,
+    "status": "source"
+  },
+  "operator_roles.over_place": {
+    "source_hash": "01fcb5cfce731adf40081e3365c8fa29d30d0fd97025abab10249bbe51ded686",
+    "shape": "template",
+    "file": "Pages/Operator/Roles.vue",
+    "line": 583,
+    "status": "source"
+  },
+  "operator_roles.qualify_probes_whether_this_box_can_host_t": {
+    "source_hash": "a194b5079571adec171681544595efec915de433ccd7ac3eea53a2afad9022e0",
+    "shape": "template",
+    "file": "Pages/Operator/Roles.vue",
+    "line": 457,
+    "status": "source"
+  },
+  "operator_roles.read_write_authority_is_a_fact_about_a_pla": {
+    "source_hash": "db20ad770ab3d2a35557730d545df307363c403a725cb6c192159d27a7ca514f",
+    "shape": "template",
+    "file": "Pages/Operator/Roles.vue",
+    "line": 291,
+    "status": "source"
+  },
+  "operator_roles.recommended_first_nodeself_assertedgoverne": {
+    "source_hash": "5e79153fba7218369cb676d383fdf47a6f2b4de620056d1dea2a3a6f5aec14c3",
+    "shape": "template",
+    "file": "Pages/Operator/Roles.vue",
+    "line": 258,
+    "status": "source"
+  },
+  "operator_roles.requested_by": {
+    "source_hash": "9199a054972b1489b649ee223010fc35e7c76d9cec4ab8c1d311be37a6a29f27",
+    "shape": "script:label",
+    "file": "Pages/Operator/Roles.vue",
+    "line": 158,
+    "status": "source"
+  },
+  "operator_roles.return_to_setup": {
+    "source_hash": "f26dccc26b95446d00f599c1a6912bf849c1edd29cda80ac7fdb7d1327d695a7",
+    "shape": "template",
+    "file": "Pages/Operator/Roles.vue",
+    "line": 223,
+    "status": "source"
+  },
+  "operator_roles.run_a_step_from_here": {
+    "source_hash": "2e5837d8c34888d3ee5d37adbf1ab5654f941a351f8cb925619c600a1a17397f",
+    "shape": "attr:title",
+    "file": "Pages/Operator/Roles.vue",
+    "line": 456,
+    "status": "source"
+  },
+  "operator_roles.scope_optional_jurisdiction_id": {
+    "source_hash": "2428b8767dd451ed2e5a9dc5420915913d60c6d0c21683df93cdda662ecf081e",
+    "shape": "attr:label",
+    "file": "Pages/Operator/Roles.vue",
+    "line": 492,
+    "status": "source"
+  },
+  "operator_roles.self_a_self_asserted_channel_governed_a_go": {
+    "source_hash": "01b0d2ce607c70ce16faeebcc77ef2315ae556e89e8d14aef6a1a15d772f9240",
+    "shape": "template",
+    "file": "Pages/Operator/Roles.vue",
+    "line": 299,
+    "status": "source"
+  },
+  "operator_roles.self_asserted_mesh_member_mirror_etl_estab": {
+    "source_hash": "1696e81d20cb4a57835ce27d4078ac631ce724c7fd61cb255141a36a2409e2ed",
+    "shape": "template",
+    "file": "Pages/Operator/Roles.vue",
+    "line": 447,
+    "status": "source"
+  },
+  "operator_roles.self_asserted_one_click_no_gate": {
+    "source_hash": "d8dffcb10047a47d217a7113d554bdf5883832a78cbff16ac0f47c82baf844be",
+    "shape": "attr:label",
+    "file": "Pages/Operator/Roles.vue",
+    "line": 473,
+    "status": "source"
+  },
+  "operator_roles.self_asserted_vs_governed_a_self_asserted_": {
+    "source_hash": "5333309182fc542173c9a2de547390fdd5548e0f3050798d4ba8f623d417f550",
+    "shape": "template",
+    "file": "Pages/Operator/Roles.vue",
+    "line": 413,
+    "status": "source"
+  },
+  "operator_roles.supersedes_a": {
+    "source_hash": "b24dc557ebfb56b39aa9268c2ed316ea99858bd99782aabe45b85831e070a85d",
+    "shape": "template",
+    "file": "Pages/Operator/Roles.vue",
+    "line": 556,
+    "status": "source"
+  },
+  "operator_roles.the_four_named_roles": {
+    "source_hash": "f37355e83845ae04de701da927defe402555fd45f4f39972311760faf1df1344",
+    "shape": "template",
+    "file": "Pages/Operator/Roles.vue",
+    "line": 244,
+    "status": "source"
+  },
+  "operator_roles.the_nine_capability_channels_their_consent": {
+    "source_hash": "4c95c8e64ef0e6758640a402ca440b2c4d6c4e8883d9494526946c90740780c7",
+    "shape": "attr:caption",
+    "file": "Pages/Operator/Roles.vue",
+    "line": 336,
+    "status": "source"
+  },
+  "operator_roles.the_nine_channels": {
+    "source_hash": "fe5d4e5819ca1e944b542d747e9ad2a4f2865d9bd7ac42cc1d153b77a30fd2fa",
+    "shape": "template",
+    "file": "Pages/Operator/Roles.vue",
+    "line": 307,
+    "status": "source"
+  },
+  "operator_roles.the_operator_board": {
+    "source_hash": "6824921897dcd008c892db56cf814ff967e41fd229ae813a2db28919841e1927",
+    "shape": "script:name",
+    "file": "Pages/Operator/Roles.vue",
+    "line": 176,
+    "status": "source"
+  },
+  "operator_roles.the_roles_board_is_shown_only_to_a_signed_": {
+    "source_hash": "61f614190bcc4fe755c1fdcbfc8cb202c3d88d4a12a82a30b5b34e4a67379bd5",
+    "shape": "template",
+    "file": "Pages/Operator/Roles.vue",
+    "line": 209,
+    "status": "source"
+  },
+  "operator_roles.the_seated_government": {
+    "source_hash": "33a3655afabc80b7034eefc649718478201cf31549f8c67f1d2fdf5d88900d84",
+    "shape": "script:name",
+    "file": "Pages/Operator/Roles.vue",
+    "line": 182,
+    "status": "source"
+  },
+  "operator_roles.the_whole_closed_vocabulary_three_channels": {
+    "source_hash": "c83e61544937ffe287f5097ba7599d604b27b72d24d4883185054c8a2528228a",
+    "shape": "template",
+    "file": "Pages/Operator/Roles.vue",
+    "line": 308,
+    "status": "source"
+  },
+  "operator_roles.this_channel_acts_under_a_peer_s_zone_co_a": {
+    "source_hash": "c50f56e1808e6a2aeaad6c2113fda0c2ca94a2540a0c70aa5c35fb39d5e765e7",
+    "shape": "template",
+    "file": "Pages/Operator/Roles.vue",
+    "line": 531,
+    "status": "source"
+  },
+  "operator_roles.threshold": {
+    "source_hash": "ab91248a0b8112c0d62d6046f9cc8080ee65c02c170edd68cee17f1c9c48cb67",
+    "shape": "template",
+    "file": "Pages/Operator/Roles.vue",
+    "line": 564,
+    "status": "source"
+  },
+  "operator_roles.waiting_on_the_dual_meter_see_the_pending_": {
+    "source_hash": "02d228b78da183aba11cbfbc10e13d230f520c51615edf6a23b358e5b8a38acb",
+    "shape": "template",
+    "file": "Pages/Operator/Roles.vue",
+    "line": 377,
+    "status": "source"
+  },
+  "operator_roles.who": {
+    "source_hash": "c251ecf2ad2cfdf96b11f3d2e2b4415cbb042d5e9acb222b5c68c8111f1f915c",
+    "shape": "template",
+    "file": "Pages/Operator/Roles.vue",
+    "line": 563,
+    "status": "source"
+  },
+  "operator_roles.you_are_the_founding_operator_there_is_no_": {
+    "source_hash": "6467191d391bf828bcf0317d1d9d2f74d6dea14348153c9d23be2b3e857a03c4",
+    "shape": "template",
+    "file": "Pages/Operator/Roles.vue",
+    "line": 316,
+    "status": "source"
+  },
+  "operator_roles.your_duty": {
+    "source_hash": "f09bf0df2a72017a201988e994e8f7105756f81eb867a8511fee7e12ad6f7fd5",
+    "shape": "template",
+    "file": "Pages/Operator/Roles.vue",
+    "line": 266,
+    "status": "source"
+  },
+  "operator_versioning.a_and_b_are_two_legs_of_one_seat_the_opera": {
+    "source_hash": "6505bda921cd9eda1747566fd1d18804d345c925cee657d619206b08ed2406a2",
+    "shape": "template",
+    "file": "Pages/Operator/Versioning.vue",
+    "line": 296,
+    "status": "source"
+  },
+  "operator_versioning.a_divergent_version_stops_the_sync_rather_": {
+    "source_hash": "92dd5dee30e21729c1e3677a5d6a306c74090c4e14e3e6ab74d89791877fe909",
+    "shape": "template",
+    "file": "Pages/Operator/Versioning.vue",
+    "line": 230,
+    "status": "source"
+  },
+  "operator_versioning.a_operator_board": {
+    "source_hash": "c632a6a2c4b3c4147cb430a061e9d504fc2a1473083d62c9a883712fd39e3bb5",
+    "shape": "script:label",
+    "file": "Pages/Operator/Versioning.vue",
+    "line": 89,
+    "status": "source"
+  },
+  "operator_versioning.a_proposal_is_screened_first_agreed_second": {
+    "source_hash": "dd5fdb8a4c5d963a5c7367223c5b7f93eb6ca867b9578e36486f1651aaa35bf6",
+    "shape": "template",
+    "file": "Pages/Operator/Versioning.vue",
+    "line": 244,
+    "status": "source"
+  },
+  "operator_versioning.a_running_election_or_session_pins_its_ver": {
+    "source_hash": "241b0660f53b7041b18a43ab8bfd8c4177716dd9a6f1c2c908149979526b7e12",
+    "shape": "template",
+    "file": "Pages/Operator/Versioning.vue",
+    "line": 174,
+    "status": "source"
+  },
+  "operator_versioning.answerable_to_the_government_operators_run": {
+    "source_hash": "fca8ea25a04c314892d53524c20305d293c785f0ac171a5722a37cdf8b126654",
+    "shape": "template",
+    "file": "Pages/Operator/Versioning.vue",
+    "line": 307,
+    "status": "source"
+  },
+  "operator_versioning.app_release": {
+    "source_hash": "3efbccda760a9138be1340fe34542417b01f159920f81c839658de5701608309",
+    "shape": "attr:label",
+    "file": "Pages/Operator/Versioning.vue",
+    "line": 153,
+    "status": "source"
+  },
+  "operator_versioning.app_release_2": {
+    "source_hash": "668269e27f1e6a97a6e531563c6409dc0a873ec86272800e17106f1c52e0e1d5",
+    "shape": "script:label",
+    "file": "Pages/Operator/Versioning.vue",
+    "line": 51,
+    "status": "source"
+  },
+  "operator_versioning.b_seated_government": {
+    "source_hash": "a0c22cf9e46b946c01c1744c95883aed2c10bacdbb381cd3d4e42aedbba0c9d0",
+    "shape": "script:label",
+    "file": "Pages/Operator/Versioning.vue",
+    "line": 90,
+    "status": "source"
+  },
+  "operator_versioning.c_co_affected_peers": {
+    "source_hash": "37f671c2c431a116623f2b2e65aa50915294c6bb8638bf46e497523f0eca6a06",
+    "shape": "script:label",
+    "file": "Pages/Operator/Versioning.vue",
+    "line": 91,
+    "status": "source"
+  },
+  "operator_versioning.constitutional_version": {
+    "source_hash": "9b2bbd7492e16403c6d63ed93f326523ceb8328e558af1de631bc3ad5036f2af",
+    "shape": "attr:label",
+    "file": "Pages/Operator/Versioning.vue",
+    "line": 152,
+    "status": "source"
+  },
+  "operator_versioning.constitutional_version_2": {
+    "source_hash": "11be65f16472a8aa9941fcc7654605cdcbd35d0ade3371affa52accc0f3588fb",
+    "shape": "script:label",
+    "file": "Pages/Operator/Versioning.vue",
+    "line": 50,
+    "status": "source"
+  },
+  "operator_versioning.derived_from_the_rules_in_force": {
+    "source_hash": "bc15d77efe2b0ead35c612fecde692a762a5feccf87e44b853b85369b1525057",
+    "shape": "template",
+    "file": "Pages/Operator/Versioning.vue",
+    "line": 160,
+    "status": "source"
+  },
+  "operator_versioning.differs_sync_holds": {
+    "source_hash": "9189525fc8ef9b9b92b5222dee5f88390209349a45abfce3bac6aeac0753b8a8",
+    "shape": "template",
+    "file": "Pages/Operator/Versioning.vue",
+    "line": 220,
+    "status": "source"
+  },
+  "operator_versioning.every_peer_advertises_its_constitutional_v": {
+    "source_hash": "b537fbe6c65c815bafb32334445159749ef0fa5ed3d88fa8cd8e389928d75626",
+    "shape": "template",
+    "file": "Pages/Operator/Versioning.vue",
+    "line": 191,
+    "status": "source"
+  },
+  "operator_versioning.every_proposal_passes_the_hardened_admissi": {
+    "source_hash": "be8960c6774d6b84be8a287dadb8ad54da556caafcc34db4c846da2abfe2decd",
+    "shape": "template",
+    "file": "Pages/Operator/Versioning.vue",
+    "line": 248,
+    "status": "source"
+  },
+  "operator_versioning.fail_closed_not_best_effort": {
+    "source_hash": "5a74a4ce2aaac2c09fbe0293f7f83fcc7671a1c2033e247d89532ed8e84d123a",
+    "shape": "attr:title",
+    "file": "Pages/Operator/Versioning.vue",
+    "line": 233,
+    "status": "source"
+  },
+  "operator_versioning.how_a_version_changes_hands_across_the_mes": {
+    "source_hash": "0492424f8d7a2e95154f480467152a639016668074f0ca20d996499feb76ee80",
+    "shape": "template",
+    "file": "Pages/Operator/Versioning.vue",
+    "line": 116,
+    "status": "source"
+  },
+  "operator_versioning.no_meters_this_kind_moves_mechanically": {
+    "source_hash": "6830754292b2c7bd1b297258e7c5b624d25d04c254c86b675ce820c2f67c0895",
+    "shape": "template",
+    "file": "Pages/Operator/Versioning.vue",
+    "line": 288,
+    "status": "source"
+  },
+  "operator_versioning.no_open_proposals_the_mesh_agrees_on_the_v": {
+    "source_hash": "2285f6d30f748c8f2c38d472d78b2f46e122ef6e155c074dcec776446ab5007f",
+    "shape": "template",
+    "file": "Pages/Operator/Versioning.vue",
+    "line": 292,
+    "status": "source"
+  },
+  "operator_versioning.no_peers_yet_this_box_stands_alone_version": {
+    "source_hash": "cf675afd4598e3e60d578e06e8f25b2de4d32dfad61995093f225102c39a5e87",
+    "shape": "template",
+    "file": "Pages/Operator/Versioning.vue",
+    "line": 226,
+    "status": "source"
+  },
+  "operator_versioning.not_needed": {
+    "source_hash": "27a11f62f60f24541cd8be8dd2782c036fc41afd03ad4782205f875aeee71245",
+    "shape": "script:text",
+    "file": "Pages/Operator/Versioning.vue",
+    "line": 99,
+    "status": "source"
+  },
+  "operator_versioning.not_yet_advertised": {
+    "source_hash": "62107297f33bf408b2fcdb14946558c8ece3a5a89c26922878c173b584024bb7",
+    "shape": "template",
+    "file": "Pages/Operator/Versioning.vue",
+    "line": 211,
+    "status": "source"
+  },
+  "operator_versioning.off_the_constitutional_plane_upgrading_the": {
+    "source_hash": "e68d49f8509c249109aa58aede259b386f1d62d4db46ba687529f9d7cdacab77",
+    "shape": "template",
+    "file": "Pages/Operator/Versioning.vue",
+    "line": 140,
+    "status": "source"
+  },
+  "operator_versioning.peer_constitutional_versions_and_app_relea": {
+    "source_hash": "07759557431852f3d10d59369e251e403370259e65db3066d2e9c92bcccc5c58",
+    "shape": "attr:caption",
+    "file": "Pages/Operator/Versioning.vue",
+    "line": 201,
+    "status": "source"
+  },
+  "operator_versioning.peer_versions": {
+    "source_hash": "efbc722352b3c5f38f7672b49b7a071460baad079061f2285bf8d2aed7851922",
+    "shape": "attr:title",
+    "file": "Pages/Operator/Versioning.vue",
+    "line": 190,
+    "status": "source"
+  },
+  "operator_versioning.pinning_is_a_pure_function_of_the_contest_": {
+    "source_hash": "d96f8b79ba73d9d0fc428382b1c3b2d197547bc87f3e77c0169a303f45a299eb",
+    "shape": "template",
+    "file": "Pages/Operator/Versioning.vue",
+    "line": 183,
+    "status": "source"
+  },
+  "operator_versioning.proposed_by_node_for_the_place_consent_fal": {
+    "source_hash": "e2b34491ac9b9deaddab9aba2123291421132648858add76b72b06edd9c07e82",
+    "shape": "template",
+    "file": "Pages/Operator/Versioning.vue",
+    "line": 271,
+    "status": "source"
+  },
+  "operator_versioning.schema_version": {
+    "source_hash": "1f2daf10bdb3992c4182bc664c3630dbdffd97039c7147c9e016481323c55528",
+    "shape": "attr:label",
+    "file": "Pages/Operator/Versioning.vue",
+    "line": 154,
+    "status": "source"
+  },
+  "operator_versioning.screened_first_and_ungateable": {
+    "source_hash": "508aa713818aec47dc65482ab5181538bebaa025d25f7e1e3e31c98725f223a0",
+    "shape": "attr:title",
+    "file": "Pages/Operator/Versioning.vue",
+    "line": 248,
+    "status": "source"
+  },
+  "operator_versioning.the_constitutional_version_a_fingerprint_o": {
+    "source_hash": "5094c72a0044d0b36533c5c23cf787fdd8d2415e04dd99ee199f412e6b805f4f",
+    "shape": "template",
+    "file": "Pages/Operator/Versioning.vue",
+    "line": 161,
+    "status": "source"
+  },
+  "operator_versioning.the_game_in_progress_freeze": {
+    "source_hash": "07d4a669967a3120c45b0d812f4ac09c97c3fc9ba3f8746d62bc4fa819c86f97",
+    "shape": "attr:title",
+    "file": "Pages/Operator/Versioning.vue",
+    "line": 173,
+    "status": "source"
+  },
+  "operator_versioning.this_console_renders_the_versioning_truth_": {
+    "source_hash": "d7127159716634430c2b8af4f8015a49b47a39c146b21248b203f10acc5c3603",
+    "shape": "template",
+    "file": "Pages/Operator/Versioning.vue",
+    "line": 316,
+    "status": "source"
+  },
+  "operator_versioning.this_node_runs": {
+    "source_hash": "be7705f3f2cb28c605e88ff8bd23fe3b0ab0e854761b421b09b4193264c32629",
+    "shape": "attr:title",
+    "file": "Pages/Operator/Versioning.vue",
+    "line": 150,
+    "status": "source"
+  },
+  "operator_versioning.three_kinds_of_version_move_independently_": {
+    "source_hash": "7fb21f213d31345be8e748400f5c41507b8ea747c986413fd54e76fa6f6b37b3",
+    "shape": "template",
+    "file": "Pages/Operator/Versioning.vue",
+    "line": 165,
+    "status": "source"
+  },
+  "operator_versioning.versions_and_upgrade_proposals_are_shown_o": {
+    "source_hash": "76338ae4f2b66705a7f7dc75d2ec1a2083b04a9c9fd30b79be2adef948f592b6",
+    "shape": "template",
+    "file": "Pages/Operator/Versioning.vue",
+    "line": 127,
+    "status": "source"
+  },
+  "operator_versioning.when_play_begins_the_contest_captures_the_": {
+    "source_hash": "d82bfc04f06fd9fdf995323d0941ce28669e4c05f0e8d0e89a7567d1110b0973",
+    "shape": "template",
+    "file": "Pages/Operator/Versioning.vue",
+    "line": 178,
+    "status": "source"
+  }
+}

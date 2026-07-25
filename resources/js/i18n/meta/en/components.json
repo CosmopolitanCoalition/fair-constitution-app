@@ -1,0 +1,72 @@
+{
+  "cosmicaddresspicker.loading_cosmic_address": {
+    "source_hash": "0f9095aa1de8c75f53be2e1333b5021584bf28636462651fa8c317a79d7065f5",
+    "shape": "template",
+    "file": "Components/CosmicAddressPicker.vue",
+    "line": 145,
+    "status": "source"
+  },
+  "cosmicaddresspicker.multiverse": {
+    "source_hash": "7eeb8044643e58d6c9926eea8b4339b91c8eb18a4e12fc485da5df7da0247885",
+    "shape": "template",
+    "file": "Components/CosmicAddressPicker.vue",
+    "line": 143,
+    "status": "source"
+  },
+  "schemaupdatebanner.apply_updates": {
+    "source_hash": "6eb87cad24d64f00543104fc83e7576657124450d63ca705412e3ecae8001eb8",
+    "shape": "template",
+    "file": "Components/SchemaUpdateBanner.vue",
+    "line": 60,
+    "status": "source"
+  },
+  "schemaupdatebanner.required_apply_before_starting_an_etl_run": {
+    "source_hash": "be06eea616863c3ef5a49960fcaf7d99c022da7d9488b57e0230a7fa2fb745f4",
+    "shape": "template",
+    "file": "Components/SchemaUpdateBanner.vue",
+    "line": 56,
+    "status": "source"
+  },
+  "setupstepper.build_districts": {
+    "source_hash": "c544381d8dff010d4df4e845f971c75771d95f4e231baaff0ad52f669fb5cc3b",
+    "shape": "script:label",
+    "file": "Components/SetupStepper.vue",
+    "line": 13,
+    "status": "source"
+  },
+  "setupstepper.confirm_seat_institutions": {
+    "source_hash": "915650fa6ac04df904b5f5b49497b49071bc920cf306b67803d0bc6ada8730f4",
+    "shape": "script:label",
+    "file": "Components/SetupStepper.vue",
+    "line": 14,
+    "status": "source"
+  },
+  "setupstepper.constitutional_defaults": {
+    "source_hash": "02a5b542ec624735ef166eee1dece237e41c6f78c1b92c2c36f355f9ba80979b",
+    "shape": "script:label",
+    "file": "Components/SetupStepper.vue",
+    "line": 11,
+    "status": "source"
+  },
+  "setupstepper.cosmic_address": {
+    "source_hash": "4d0cd021c78c70e448668ff1d11926364489b24dcf6a2e03b801ffa0a1accf25",
+    "shape": "script:label",
+    "file": "Components/SetupStepper.vue",
+    "line": 10,
+    "status": "source"
+  },
+  "setupstepper.map_data": {
+    "source_hash": "f1f505e508e62c9946f334606051a41b60907ea5520983d3daa63b61f7dd5f37",
+    "shape": "script:label",
+    "file": "Components/SetupStepper.vue",
+    "line": 12,
+    "status": "source"
+  },
+  "setupstepper.setup_progress": {
+    "source_hash": "e9b4495ace7263301df379aa8775e027d543b8860baac2b82354d057de9e7656",
+    "shape": "attr:aria-label",
+    "file": "Components/SetupStepper.vue",
+    "line": 34,
+    "status": "source"
+  }
+}

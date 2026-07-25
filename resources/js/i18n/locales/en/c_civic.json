@@ -1,0 +1,10 @@
+{
+  "civic_room_chamberstage.in_the_chamber": "In the chamber {statusLabel}",
+  "civic_room_chamberstage.no_one_is_on_the_floor_yet_join_the_voice_": "No one is on the floor yet — join the voice call to take your seat.",
+  "civic_room_liveroom.no_voice_host_is_reachable_from_here_right": "No voice host is reachable from here right now — the room stays text-only. Your posts and the record plane are unaffected.",
+  "civic_room_liveroom.you_can_still_take_part_in_text_below": "{errorMessage} You can still take part in text below.",
+  "civic_room_participanttile.screen_share": "screen share",
+  "civic_signaturemeter.needed": "{threshold} needed · {pct}%",
+  "civic_signaturemeter.threshold_of_population_clk_17": "threshold {threshold} = {pct}% of population · CLK-17",
+  "civic_signaturemeter.threshold_reached": "Threshold reached"
+}

@@ -1,0 +1,184 @@
+{
+  "electoral_approveswitch.approval_phase_is_closed": {
+    "source_hash": "dcdc160e2954f95c3b8513430dbadbe6d64395f345dad86e734db6843bdde4ba",
+    "shape": "prop-default",
+    "file": "Components/Electoral/ApproveSwitch.vue",
+    "line": 22,
+    "status": "source"
+  },
+  "electoral_approveswitch.withdraw_approval_for": {
+    "source_hash": "38c56ace2bf50f63022469e77f99a5763f6f32a66f2054e05f39d5e9d8fcdf40",
+    "shape": "bound:aria-label",
+    "file": "Components/Electoral/ApproveSwitch.vue",
+    "line": 38,
+    "status": "source"
+  },
+  "electoral_ballotreceipt.receipt_copied": {
+    "source_hash": "12cd2a72602933925aaa90bfcc7fb105d6c8bb4add65f2eef19c1dbc27ecc59f",
+    "shape": "script:announce",
+    "file": "Components/Electoral/BallotReceipt.vue",
+    "line": 46,
+    "status": "source"
+  },
+  "electoral_ballotreceipt.self_audit_in_the_public_count_record": {
+    "source_hash": "9d974d438b50da13bcf434a5df5b468113e32925518c63a3a45e72161b0e9177",
+    "shape": "template",
+    "file": "Components/Electoral/BallotReceipt.vue",
+    "line": 86,
+    "status": "source"
+  },
+  "electoral_ballotreceipt.this_receipt_is_shown_once_copy_it_now_it_": {
+    "source_hash": "f3a9d44d7117174af3cf1b7f7cef51c79932153347d5f54c7e86ea818ba36596",
+    "shape": "template",
+    "file": "Components/Electoral/BallotReceipt.vue",
+    "line": 77,
+    "status": "source"
+  },
+  "electoral_candidaterow.individual_endorsements": {
+    "source_hash": "ffdbbf96246ab295c375c7620119de98dd317b7bf71cbcc8388ee55637772364",
+    "shape": "template",
+    "file": "Components/Electoral/CandidateRow.vue",
+    "line": 96,
+    "status": "source"
+  },
+  "electoral_candidaterow.no_endorsements": {
+    "source_hash": "02cfcbbd3d555ef8b8eeb57858d78e7ccbe4473c0ea661a04b827009f0f6af38",
+    "shape": "template",
+    "file": "Components/Electoral/CandidateRow.vue",
+    "line": 98,
+    "status": "source"
+  },
+  "electoral_candidaterow.since_yesterday_since_yesterday_steady_sin": {
+    "source_hash": "187accadef0e760d2116da1a6848fc9da1fcd91cb19e00f0791ed40ba5016de5",
+    "shape": "template",
+    "file": "Components/Electoral/CandidateRow.vue",
+    "line": 104,
+    "status": "source"
+  },
+  "electoral_finalistline.finalist_line": {
+    "source_hash": "9d630e2dd55d14e4b4694796a77cd370a1132733752c61f34202db271f08ea50",
+    "shape": "attr:aria-label",
+    "file": "Components/Electoral/FinalistLine.vue",
+    "line": 31,
+    "status": "source"
+  },
+  "electoral_phasebanner.clk_18_closes_at_finalist_cutoff_reopens_a": {
+    "source_hash": "495468e16a019124d8fb578200082b85de0313cedd69f993ff1597e9ebd5c9eb",
+    "shape": "attr:text",
+    "file": "Components/Electoral/PhaseBanner.vue",
+    "line": 65,
+    "status": "source"
+  },
+  "electoral_phasebanner.clk_21_finalist_cutoff": {
+    "source_hash": "7788a48911fc40d37b4046dad1c4f46aacea3b7bc4808da6e654681808ad8326",
+    "shape": "attr:text",
+    "file": "Components/Electoral/PhaseBanner.vue",
+    "line": 87,
+    "status": "source"
+  },
+  "electoral_phasebanner.clk_21_finalist_cutoff_art_ii_2": {
+    "source_hash": "f8fcdd91b7d1cda0df234a631febbdf12ac090e106878411b96bc2a96cc25bd3",
+    "shape": "attr:text",
+    "file": "Components/Electoral/PhaseBanner.vue",
+    "line": 100,
+    "status": "source"
+  },
+  "electoral_phasebanner.rank_your_ballot_now": {
+    "source_hash": "b27d576d568a971b9a513a416870c7c7f6dbd3407ca072cc8cf299d60f376344",
+    "shape": "template",
+    "file": "Components/Electoral/PhaseBanner.vue",
+    "line": 78,
+    "status": "source"
+  },
+  "electoral_phasebanner.registration_is_open_now": {
+    "source_hash": "580f876bfca04c6894b07f8631b4cf032a436fa57410a6150e0a258fbfac96e6",
+    "shape": "attr:title",
+    "file": "Components/Electoral/PhaseBanner.vue",
+    "line": 47,
+    "status": "source"
+  },
+  "electoral_phasebanner.tabulation_and_certification_are_under_way": {
+    "source_hash": "05385ee4e0477de8904f30fec3d7e20a4ee7a59e7a10499bec233346ffe17e83",
+    "shape": "template",
+    "file": "Components/Electoral/PhaseBanner.vue",
+    "line": 63,
+    "status": "source"
+  },
+  "electoral_phasebanner.the_approval_phase_has_closed_finalists_ar": {
+    "source_hash": "d712c5b4950fd204321f0be1ce3791667656f965c23a99341fe6a4b920fb68e2",
+    "shape": "attr:title",
+    "file": "Components/Electoral/PhaseBanner.vue",
+    "line": 74,
+    "status": "source"
+  },
+  "electoral_phasebanner.the_approval_phase_has_closed_this_standin": {
+    "source_hash": "7dbd13a7200a91ba3dd07c7003b6253ab06f3540dafc186943cb9d3e56f6a41f",
+    "shape": "attr:title",
+    "file": "Components/Electoral/PhaseBanner.vue",
+    "line": 96,
+    "status": "source"
+  },
+  "electoral_phasebanner.the_approval_phase_is_live_validated_candi": {
+    "source_hash": "2ae5e0bd11535aac8953ba2df1827fae9c4f667d83b2dd7895fcbe39640aabb7",
+    "shape": "template",
+    "file": "Components/Electoral/PhaseBanner.vue",
+    "line": 43,
+    "status": "source"
+  },
+  "electoral_phasebanner.the_finalist_cutoff_has_passed_for_the_cur": {
+    "source_hash": "89bdaac0d8ddbd55ad8ee96a15b7ff0a76dba54c9bb3f2550521eccbd1c3a019",
+    "shape": "attr:title",
+    "file": "Components/Electoral/PhaseBanner.vue",
+    "line": 60,
+    "status": "source"
+  },
+  "electoral_phasebanner.the_ranked_window_is_open": {
+    "source_hash": "0c2e566e86a054744e9a5a8032c25abe5200029e660e0519eabc185a9ea6bfdf",
+    "shape": "template",
+    "file": "Components/Electoral/PhaseBanner.vue",
+    "line": 62,
+    "status": "source"
+  },
+  "electoral_phasebanner.this_candidate_did_not_reach_the_finalist_": {
+    "source_hash": "e0bdafebca902ad31a47ce983ff5a6afd71b5fd650203f68ed241a99f1c3bccb",
+    "shape": "template",
+    "file": "Components/Electoral/PhaseBanner.vue",
+    "line": 99,
+    "status": "source"
+  },
+  "electoral_phasebanner.this_candidate_is_a_finalist_on_the_ranked": {
+    "source_hash": "1293d9ea0dabfa893a117e26b696a8f180c182331846349376b3623672366ec5",
+    "shape": "template",
+    "file": "Components/Electoral/PhaseBanner.vue",
+    "line": 98,
+    "status": "source"
+  },
+  "electoral_phasebanner.watch_the_count": {
+    "source_hash": "bed05e82d48c13beb617ab7917d1116c795852cf2fc054fd86aa4899fdd47f3c",
+    "shape": "template",
+    "file": "Components/Electoral/PhaseBanner.vue",
+    "line": 83,
+    "status": "source"
+  },
+  "electoral_ranklist.your_ranked_candidates": {
+    "source_hash": "a2302e90b818435dc7b61c6dff2750405967e7048069236a2d1a575d2ac3cc38",
+    "shape": "attr:aria-label",
+    "file": "Components/Electoral/RankList.vue",
+    "line": 119,
+    "status": "source"
+  },
+  "electoral_stvround.exhausted_no_further_preference": {
+    "source_hash": "19cfb19f3e1af1898d1f889bf86aebde374f8c91b3f806f46e2010c3473ce324",
+    "shape": "template",
+    "file": "Components/Electoral/StvRound.vue",
+    "line": 137,
+    "status": "source"
+  },
+  "electoral_stvround.where_s_votes_went_votes": {
+    "source_hash": "c69eda41f9f0bcb58b6d798931e4ae4a0753eec4164d1aa43faeed15e13c0e19",
+    "shape": "template",
+    "file": "Components/Electoral/StvRound.vue",
+    "line": 119,
+    "status": "source"
+  }
+}

@@ -1,0 +1,3796 @@
+{
+  "legislature_billdetail.all_bills": {
+    "source_hash": "76eb346edd0bfe1dd292a4b25bea2238f7e0a17e564e1bf8e5d940d273133d45",
+    "shape": "template",
+    "file": "Pages/Legislature/BillDetail.vue",
+    "line": 138,
+    "status": "source"
+  },
+  "legislature_billdetail.amended_v_v": {
+    "source_hash": "462c1860a96109a652b95846e0ab6fa5f28d601ab96a056b923dfd387a906c2e",
+    "shape": "template",
+    "file": "Pages/Legislature/BillDetail.vue",
+    "line": 187,
+    "status": "source"
+  },
+  "legislature_billdetail.archived_with_every_member_s_public_cast_a": {
+    "source_hash": "e3bf8efce02fe3ce93d92f3325e0ba47bfbecdb472fa7e0e1e84f60a8f9a69f7",
+    "shape": "template",
+    "file": "Pages/Legislature/BillDetail.vue",
+    "line": 343,
+    "status": "source"
+  },
+  "legislature_billdetail.bill_versions_append_only": {
+    "source_hash": "49793685eaaff1eb94f50f99e2cf9fe992a49b4da6f0fa021a14b19edab5dd39",
+    "shape": "attr:caption",
+    "file": "Pages/Legislature/BillDetail.vue",
+    "line": 181,
+    "status": "source"
+  },
+  "legislature_billdetail.committee_detail": {
+    "source_hash": "e38d190abaa634ee3cb6d5b66c5c5195d19f9ed3d0a18fea15484d82ad7d08ca",
+    "shape": "template",
+    "file": "Pages/Legislature/BillDetail.vue",
+    "line": 208,
+    "status": "source"
+  },
+  "legislature_billdetail.committee_stage": {
+    "source_hash": "92ed76cda9f6cfd065bf6dff20d09673906f714f9d9ae9a4967be7579452e0f3",
+    "shape": "template",
+    "file": "Pages/Legislature/BillDetail.vue",
+    "line": 204,
+    "status": "source"
+  },
+  "legislature_billdetail.constituent_jurisdictions_dual_supermajori": {
+    "source_hash": "046ef2e9312b3ad793358ba866a85aa330bf8579f0fc400c6e19490a5c825125",
+    "shape": "attr:title",
+    "file": "Pages/Legislature/BillDetail.vue",
+    "line": 310,
+    "status": "source"
+  },
+  "legislature_billdetail.dependent_clocks_re_derived_after_commit_t": {
+    "source_hash": "60f373685d54b993a563571d798402b5be81f38d430aebf2a1307bb5888d521e",
+    "shape": "template",
+    "file": "Pages/Legislature/BillDetail.vue",
+    "line": 335,
+    "status": "source"
+  },
+  "legislature_billdetail.direct_to_floor_the_exit_criterion_path": {
+    "source_hash": "487449efb98d6fc464b9a91579a39402fdb44168800ae1599e888025128f8e5f",
+    "shape": "template",
+    "file": "Pages/Legislature/BillDetail.vue",
+    "line": 280,
+    "status": "source"
+  },
+  "legislature_billdetail.effective_public_record": {
+    "source_hash": "56658f0cf74de906e563e6b88f4e679ef20087ea670ddefba86885ce642bd885",
+    "shape": "template",
+    "file": "Pages/Legislature/BillDetail.vue",
+    "line": 321,
+    "status": "source"
+  },
+  "legislature_billdetail.enabled_only_after_the_committee_vote_pass": {
+    "source_hash": "2bcba7a273e5408b924b7adba319dfeb81f29eaefa7bd51ee1b633e6df08613b",
+    "shape": "template",
+    "file": "Pages/Legislature/BillDetail.vue",
+    "line": 237,
+    "status": "source"
+  },
+  "legislature_billdetail.entity_state_machine_bill_in_a_bicameral_c": {
+    "source_hash": "f9477e4dc1330205a6dbb5d38a3fd41f2cf95d7ca7186b80088762a3a37b35f5",
+    "shape": "template",
+    "file": "Pages/Legislature/BillDetail.vue",
+    "line": 349,
+    "status": "source"
+  },
+  "legislature_billdetail.fixed_at_introduction_no_edit_affordance_e": {
+    "source_hash": "b6f192461717925b3990690570639a9a4931913ad957db6e9ad9644b4c43783f",
+    "shape": "template",
+    "file": "Pages/Legislature/BillDetail.vue",
+    "line": 162,
+    "status": "source"
+  },
+  "legislature_billdetail.floor_vote": {
+    "source_hash": "1ef45510aa22ecc1f5db45e9cf3bf54c31aec159d30751e06dcb4521d14f6c5a",
+    "shape": "template",
+    "file": "Pages/Legislature/BillDetail.vue",
+    "line": 247,
+    "status": "source"
+  },
+  "legislature_billdetail.introduced_stored_as_utc": {
+    "source_hash": "ba7b659b8c6746434004bdf03136653fd86be0f4fedd1eca8352820b858e2426",
+    "shape": "template",
+    "file": "Pages/Legislature/BillDetail.vue",
+    "line": 137,
+    "status": "source"
+  },
+  "legislature_billdetail.move_it_f_leg_007": {
+    "source_hash": "39d24eacf8a254a0e69e630df1c7e8f496e76726c42242838fd041f1182d6d9c",
+    "shape": "template",
+    "file": "Pages/Legislature/BillDetail.vue",
+    "line": 295,
+    "status": "source"
+  },
+  "legislature_billdetail.move_the_bill_by_motion_f_leg_007": {
+    "source_hash": "c1d170742244d2717043e458ce29881b499b187c52bdd36b07217891c2124c54",
+    "shape": "template",
+    "file": "Pages/Legislature/BillDetail.vue",
+    "line": 272,
+    "status": "source"
+  },
+  "legislature_billdetail.no_committee_vote_direct_to_floor_bills_sk": {
+    "source_hash": "8f8c689bb98bf2e8651f8447cea976f8a1d57062438442c814b345d934de44cc",
+    "shape": "template",
+    "file": "Pages/Legislature/BillDetail.vue",
+    "line": 240,
+    "status": "source"
+  },
+  "legislature_billdetail.one_bill_end_to_end_the_committee_gate_the": {
+    "source_hash": "413153a2d7f025a97b864a6cdc1c6f1f9cb0bc197f7a794e5c95f9fe8764b431",
+    "shape": "template",
+    "file": "Pages/Legislature/BillDetail.vue",
+    "line": 113,
+    "status": "source"
+  },
+  "legislature_billdetail.own_jurisdiction": {
+    "source_hash": "a6dc1a4ab7e369ec4b8858903cd72d3500a4106f09f51f33f4c8b6cb419ee09c",
+    "shape": "template",
+    "file": "Pages/Legislature/BillDetail.vue",
+    "line": 154,
+    "status": "source"
+  },
+  "legislature_billdetail.per_kind_committee_majorities_q7_binds_at_": {
+    "source_hash": "93763ae39af6a4a36ba96c8a342e020881bd3a02447bcdfa32122997eab24d5e",
+    "shape": "template",
+    "file": "Pages/Legislature/BillDetail.vue",
+    "line": 210,
+    "status": "source"
+  },
+  "legislature_billdetail.pick": {
+    "source_hash": "c51a5e38c141a8d1d6b311d905131139c76c0e969b0eff6af49897d5adc30b43",
+    "shape": "template",
+    "file": "Pages/Legislature/BillDetail.vue",
+    "line": 287,
+    "status": "source"
+  },
+  "legislature_billdetail.published_casts": {
+    "source_hash": "e4fbaf5f4654ea7e938a0fe43c89d6eec2d1af2eecf633012be53d054fd49eb6",
+    "shape": "template",
+    "file": "Pages/Legislature/BillDetail.vue",
+    "line": 230,
+    "status": "source"
+  },
+  "legislature_billdetail.refer_to_committee": {
+    "source_hash": "d3999c9fb08f1c5ace4aeebecac01a6642ef859f6e2cceb430a1859ea6b85656",
+    "shape": "template",
+    "file": "Pages/Legislature/BillDetail.vue",
+    "line": 281,
+    "status": "source"
+  },
+  "legislature_billdetail.refer_to_the_floor_f_chr_003": {
+    "source_hash": "888e1e765d827c634b0b773bbc77a272b36b354e6640b896c64727dd83e504ce",
+    "shape": "template",
+    "file": "Pages/Legislature/BillDetail.vue",
+    "line": 234,
+    "status": "source"
+  },
+  "legislature_billdetail.rejected_by_the_constitutional_engine": {
+    "source_hash": "76902893a386bfcf105d0df5a29899065002429a216177636808897722467c8e",
+    "shape": "attr:title",
+    "file": "Pages/Legislature/BillDetail.vue",
+    "line": 120,
+    "status": "source"
+  },
+  "legislature_billdetail.scale_jurisdictions_bound": {
+    "source_hash": "53df2068825020d443d2a412cdd71a995dd354df2b0f3acf88130aad9dcbde73",
+    "shape": "template",
+    "file": "Pages/Legislature/BillDetail.vue",
+    "line": 147,
+    "status": "source"
+  },
+  "legislature_billdetail.scale_scope_declared_at_introduction": {
+    "source_hash": "74ae9f9b8d72ed22b706ea75582e32c65f7c779b57d12eb7276ec0bb13ae5b93",
+    "shape": "attr:title",
+    "file": "Pages/Legislature/BillDetail.vue",
+    "line": 144,
+    "status": "source"
+  },
+  "legislature_billdetail.scope_judiciary": {
+    "source_hash": "1d04aa34196c6681a608040c4328a11d344729a7e4b1d5b71752bf21b84745e3",
+    "shape": "template",
+    "file": "Pages/Legislature/BillDetail.vue",
+    "line": 158,
+    "status": "source"
+  },
+  "legislature_billdetail.server_computed_segments_what_you_see_is_e": {
+    "source_hash": "69944e21987a0862e07a798137922b0e653655df164f990eeb0b65b3066a1c39",
+    "shape": "template",
+    "file": "Pages/Legislature/BillDetail.vue",
+    "line": 193,
+    "status": "source"
+  },
+  "legislature_billdetail.the_bill_failed": {
+    "source_hash": "9751ce565cd189b79f2cf92330c5b7a922d45cb8ef07bbbe5ef4da4e3447cc50",
+    "shape": "attr:title",
+    "file": "Pages/Legislature/BillDetail.vue",
+    "line": 343,
+    "status": "source"
+  },
+  "legislature_billdetail.the_floor_vote_opens_when_an_adopted_motio": {
+    "source_hash": "ddbdc1ba374b96ffc5c71283696415526676b9a3f9c9ba448b6a9d76f5a95a49",
+    "shape": "template",
+    "file": "Pages/Legislature/BillDetail.vue",
+    "line": 301,
+    "status": "source"
+  },
+  "legislature_billdetail.versioned_published_wf_sys_03_open_to_art_": {
+    "source_hash": "8b29722598cd0fb2f862afc52cc470ea97b79ebea6fe78053837fc3808bb32a0",
+    "shape": "template",
+    "file": "Pages/Legislature/BillDetail.vue",
+    "line": 326,
+    "status": "source"
+  },
+  "legislature_bills.act_type": {
+    "source_hash": "b3cf6ad01bdda897104a9a8abd4c804c3eb9cc87c49d82042dda9c06410ce996",
+    "shape": "template",
+    "file": "Pages/Legislature/Bills.vue",
+    "line": 192,
+    "status": "source"
+  },
+  "legislature_bills.any_seated_member_of_this_chamber_may_intr": {
+    "source_hash": "efacceb22fa545da823581f8398f63ae1bb56921fc327862d2fb448200838c12",
+    "shape": "template",
+    "file": "Pages/Legislature/Bills.vue",
+    "line": 374,
+    "status": "source"
+  },
+  "legislature_bills.bicameral_chambers_pass_only_when_committe": {
+    "source_hash": "a542f76a507d809173c668dc771d844cf2ae8ae2ed909eae59f343e45f357c15",
+    "shape": "template",
+    "file": "Pages/Legislature/Bills.vue",
+    "line": 178,
+    "status": "source"
+  },
+  "legislature_bills.bill_lifecycle_esm_07": {
+    "source_hash": "37dfb93d609c688240417ad818d7ae052a4fc1c5f57be3aa586ace723ae347e6",
+    "shape": "attr:title",
+    "file": "Pages/Legislature/Bills.vue",
+    "line": 176,
+    "status": "source"
+  },
+  "legislature_bills.bill_state_machine": {
+    "source_hash": "c595577e024a85290b421a5521f0fa71320e147b4dc7814e9bcf601c2b1fb102",
+    "shape": "attr:aria-label",
+    "file": "Pages/Legislature/Bills.vue",
+    "line": 177,
+    "status": "source"
+  },
+  "legislature_bills.bills_of_this_chamber": {
+    "source_hash": "a937ba6da168a463c82052e393ee345010a60354d35e114005c1451103581e77",
+    "shape": "attr:caption",
+    "file": "Pages/Legislature/Bills.vue",
+    "line": 205,
+    "status": "source"
+  },
+  "legislature_bills.cannot_exceed_this_legislature_s_authority": {
+    "source_hash": "d2b63d7a62f828e2dc349d7069489aad68fb1ee0f5cd9dc1ba2c9d05502626cc",
+    "shape": "attr:hint",
+    "file": "Pages/Legislature/Bills.vue",
+    "line": 295,
+    "status": "source"
+  },
+  "legislature_bills.default_judiciary_forming_phase_e": {
+    "source_hash": "d94659769ab8137e068a3f1e26dea6ccc6c1bf54d4112cca59cea22e70b69c2f",
+    "shape": "template",
+    "file": "Pages/Legislature/Bills.vue",
+    "line": 314,
+    "status": "source"
+  },
+  "legislature_bills.enacted_published": {
+    "source_hash": "6b63e4330552d5412d2c17b273de1430c7aea79e856b8cd29d04da72d465457a",
+    "shape": "script:label",
+    "file": "Pages/Legislature/Bills.vue",
+    "line": 71,
+    "status": "source"
+  },
+  "legislature_bills.every_bill_declares_its_scale_which_jurisd": {
+    "source_hash": "604b9a6054fecc5d4a59af1de9d39551f4f5ce9a3e3f7737968b680432f1c0ed",
+    "shape": "template",
+    "file": "Pages/Legislature/Bills.vue",
+    "line": 163,
+    "status": "source"
+  },
+  "legislature_bills.in_committee": {
+    "source_hash": "a8093e8bf053aa54d0efe3b8210bce07657438843f99f2ea5c1bdbc691d87381",
+    "shape": "script:label",
+    "file": "Pages/Legislature/Bills.vue",
+    "line": 65,
+    "status": "source"
+  },
+  "legislature_bills.in_range_the_bill_may_proceed_to_a_vote": {
+    "source_hash": "be09d69111f9d45ee90a1d8d27b85b300803fcfc2b17e3a484c0af4b7adb938d",
+    "shape": "attr:title",
+    "file": "Pages/Legislature/Bills.vue",
+    "line": 362,
+    "status": "source"
+  },
+  "legislature_bills.law_text": {
+    "source_hash": "52f6f3453118e89ff4846bf2513f4e9bcaf7661454105da7e276bddbe644fbbf",
+    "shape": "attr:label",
+    "file": "Pages/Legislature/Bills.vue",
+    "line": 262,
+    "status": "source"
+  },
+  "legislature_bills.no_ui_admin_panel_or_legislative_act_can_c": {
+    "source_hash": "a6ac0887e98d58fdd4756c6220c8e525db52ef8fff8712b13cd4cc703ccc2ef1",
+    "shape": "template",
+    "file": "Pages/Legislature/Bills.vue",
+    "line": 365,
+    "status": "source"
+  },
+  "legislature_bills.on_floor": {
+    "source_hash": "833378caf106437dcdf6a7fa5192af319f9b50cd3cbff7e5e7526afb5e9ba9da",
+    "shape": "script:label",
+    "file": "Pages/Legislature/Bills.vue",
+    "line": 68,
+    "status": "source"
+  },
+  "legislature_bills.phase_c_lists_the_forming_judiciary_stubs_": {
+    "source_hash": "630c2b4ab764a2f8a70ea5d9b9c61df9b31b2f1e0c73359a9bdfa50825da8112",
+    "shape": "attr:hint",
+    "file": "Pages/Legislature/Bills.vue",
+    "line": 309,
+    "status": "source"
+  },
+  "legislature_bills.pick_a_key": {
+    "source_hash": "f9a5ed20ee52a57ca4a2196a7f4602ca30fdf8ca967d08c68ba5d2b741d492fc",
+    "shape": "template",
+    "file": "Pages/Legislature/Bills.vue",
+    "line": 331,
+    "status": "source"
+  },
+  "legislature_bills.pre_targeted_from_the_settings_register_ke": {
+    "source_hash": "2c64a1bda86365801ba235a829c4bd6bef6b49f7d2bea0555b4ac8550b9a5d32",
+    "shape": "bound:hint",
+    "file": "Pages/Legislature/Bills.vue",
+    "line": 326,
+    "status": "source"
+  },
+  "legislature_bills.proceeds_to_the_bill_flow_f_leg_031_wf_leg": {
+    "source_hash": "9c818cc8feb540fe190ad35321624dba1ec28beb5b66062fdf82305a01ed8132",
+    "shape": "template",
+    "file": "Pages/Legislature/Bills.vue",
+    "line": 362,
+    "status": "source"
+  },
+  "legislature_bills.proposed_value": {
+    "source_hash": "cbba55b88a1ecc563be9b142e0bd0dbf021e215d2943a6dea770338038ab8d47",
+    "shape": "attr:label",
+    "file": "Pages/Legislature/Bills.vue",
+    "line": 346,
+    "status": "source"
+  },
+  "legislature_bills.recorded_as_a_rejected_true_chain_entry_re": {
+    "source_hash": "6e06266040481c511ef4b283baaf0765806aca933f897c06ba1b3c0f7f1efee0",
+    "shape": "template",
+    "file": "Pages/Legislature/Bills.vue",
+    "line": 170,
+    "status": "source"
+  },
+  "legislature_bills.rejected_pre_vote_outside_hardened_bounds": {
+    "source_hash": "f2b8a70b35ca39e8195947b05e088b83911e6a6b0b265ba6c895329a30b2fa03",
+    "shape": "attr:title",
+    "file": "Pages/Legislature/Bills.vue",
+    "line": 365,
+    "status": "source"
+  },
+  "legislature_bills.scope_which_judiciary_hears_disputes": {
+    "source_hash": "3dc5cf8ce64ef9b44c321d492b340572b54b121c2b0c1d4548712dd9b3dae750",
+    "shape": "attr:label",
+    "file": "Pages/Legislature/Bills.vue",
+    "line": 308,
+    "status": "source"
+  },
+  "legislature_bills.setting_key": {
+    "source_hash": "6981c911f8d9892f34300b33606d59a88422a02ff58d7399e491f4a541808bfc",
+    "shape": "attr:label",
+    "file": "Pages/Legislature/Bills.vue",
+    "line": 325,
+    "status": "source"
+  },
+  "legislature_bills.the_amendable_constitutional_setting_this_": {
+    "source_hash": "dd2baf63cfc51dcf47cadefeaa1eb299edd722391a6f02bc10e1d41da44dbf9f",
+    "shape": "bound:hint",
+    "file": "Pages/Legislature/Bills.vue",
+    "line": 326,
+    "status": "source"
+  },
+  "legislature_bills.the_binding_text_versioned_at_introduction": {
+    "source_hash": "c870b64785de10666eb6833b763caf38b24d45ff500f60e12b1e0187680fea50",
+    "shape": "attr:hint",
+    "file": "Pages/Legislature/Bills.vue",
+    "line": 263,
+    "status": "source"
+  },
+  "legislature_bills.validated_live_against_the_hardened_bounds": {
+    "source_hash": "c5255df81873bd75d2afff3b781f29fd58ce1e77b4906c0f58f32acef2ee5172",
+    "shape": "attr:hint",
+    "file": "Pages/Legislature/Bills.vue",
+    "line": 347,
+    "status": "source"
+  },
+  "legislature_chamber.a_vacant_seat_is_simply_not_serving_an_abs": {
+    "source_hash": "35a59b18e51ea614362f7a4d8f135dd063aa8b0bbea23ba77c1a9cc87fa579a1",
+    "shape": "template",
+    "file": "Pages/Legislature/Chamber.vue",
+    "line": 152,
+    "status": "source"
+  },
+  "legislature_chamber.browse_every_legislature_on_the_instance_f": {
+    "source_hash": "f2faaaec0989c218f3516cf4990b2028ca24bfd6b7cffa82a2f50fd3a0afe1e8",
+    "shape": "template",
+    "file": "Pages/Legislature/Chamber.vue",
+    "line": 112,
+    "status": "source"
+  },
+  "legislature_chamber.countback_first_the_voters_prior_ballots_d": {
+    "source_hash": "a137df4f3c4b9eccabd76bc9b6f2f689b3f483e2ce7235622074c8ca6e0af9ab",
+    "shape": "template",
+    "file": "Pages/Legislature/Chamber.vue",
+    "line": 273,
+    "status": "source"
+  },
+  "legislature_chamber.declared_via_countback_record": {
+    "source_hash": "6747347faa5b350cbbc27e5142ab5f110326bd06cf055dc8009957d912ad4340",
+    "shape": "template",
+    "file": "Pages/Legislature/Chamber.vue",
+    "line": 267,
+    "status": "source"
+  },
+  "legislature_chamber.districts_maps_bills_session_console_setti": {
+    "source_hash": "977b266c1c94d3a9789e34ea9027909d91c5daf0ef7bd2eb64f4105b68a51c96",
+    "shape": "template",
+    "file": "Pages/Legislature/Chamber.vue",
+    "line": 120,
+    "status": "source"
+  },
+  "legislature_chamber.first_sessions_constituting_the_chamber_wf": {
+    "source_hash": "22644a42dea13be563afe50a9fafc2ad3dbc9cbb731e7199b5f0721ff2b966ff",
+    "shape": "attr:title",
+    "file": "Pages/Legislature/Chamber.vue",
+    "line": 283,
+    "status": "source"
+  },
+  "legislature_chamber.flips_your_seat_elected_seated_art_ii_1": {
+    "source_hash": "132a26ae6b17c7a40130619e8e46fcad8b41cbaa9aa3675d9bdc147c17fe56b9",
+    "shape": "template",
+    "file": "Pages/Legislature/Chamber.vue",
+    "line": 231,
+    "status": "source"
+  },
+  "legislature_chamber.forming_seats_fill_at_certification_wf_ele": {
+    "source_hash": "f792b99ad9a312f4b2c46705c46ecb7083004d99904b453ce8c59e723d32ef1a",
+    "shape": "attr:title",
+    "file": "Pages/Legislature/Chamber.vue",
+    "line": 159,
+    "status": "source"
+  },
+  "legislature_chamber.next_session_due_by_clk_02_the_scheduler_c": {
+    "source_hash": "247398e12c9a6efaead857cbf3de88b2b5416941e48d3e445a173dee662e9d66",
+    "shape": "template",
+    "file": "Pages/Legislature/Chamber.vue",
+    "line": 251,
+    "status": "source"
+  },
+  "legislature_chamber.no_active_legislature": {
+    "source_hash": "88d061573077c3d91c8a642c81975c7afa965ff0265099b84f431ba74acd1663",
+    "shape": "attr:title",
+    "file": "Pages/Legislature/Chamber.vue",
+    "line": 108,
+    "status": "source"
+  },
+  "legislature_chamber.no_active_legislature_in_your_association_": {
+    "source_hash": "139b005a70ae18ac0ea4d729a84ae5fe3b918b1a34b06751e67e2ca75b11d5e9",
+    "shape": "attr:title",
+    "file": "Pages/Legislature/Chamber.vue",
+    "line": 109,
+    "status": "source"
+  },
+  "legislature_chamber.no_endorsements": {
+    "source_hash": "02cfcbbd3d555ef8b8eeb57858d78e7ccbe4473c0ea661a04b827009f0f6af38",
+    "shape": "template",
+    "file": "Pages/Legislature/Chamber.vue",
+    "line": 212,
+    "status": "source"
+  },
+  "legislature_chamber.no_open_vacancies_every_seat_is_either_ser": {
+    "source_hash": "7016222a43c5bef94d1eb20e15e1cd6e0dd11272696db3ee99559b8300f632a2",
+    "shape": "template",
+    "file": "Pages/Legislature/Chamber.vue",
+    "line": 278,
+    "status": "source"
+  },
+  "legislature_chamber.normalized_vote_share_the_certification_s_": {
+    "source_hash": "b53a8820841ba8c2ddf686b3524efaf1b5cc8f1177aaa571ef4665b011c9833f",
+    "shape": "template",
+    "file": "Pages/Legislature/Chamber.vue",
+    "line": 222,
+    "status": "source"
+  },
+  "legislature_chamber.not_yet_certified": {
+    "source_hash": "1520f685d06137f3915aab62bcc98028994e45280728f12c8823d9b8f4476b72",
+    "shape": "bound:label",
+    "file": "Pages/Legislature/Chamber.vue",
+    "line": 240,
+    "status": "source"
+  },
+  "legislature_chamber.open_the_session_console_speaker_balloting": {
+    "source_hash": "08f0e1ddd0ba4903d6db8d6fb468bd694c1d24c261e2bdf22fafa9d3c5db07b0",
+    "shape": "template",
+    "file": "Pages/Legislature/Chamber.vue",
+    "line": 307,
+    "status": "source"
+  },
+  "legislature_chamber.open_the_successor_election": {
+    "source_hash": "da997be731125464d0f10a81528eb661a4f07e0e4cb3dd2f964ebddd9ea101d5",
+    "shape": "template",
+    "file": "Pages/Legislature/Chamber.vue",
+    "line": 247,
+    "status": "source"
+  },
+  "legislature_chamber.quorum_of_all_serving_never_of_those_prese": {
+    "source_hash": "e896512cec3b22ec46f637fb90fa0db3ab75f47f128353a898f11b4a847dd7f3",
+    "shape": "attr:label",
+    "file": "Pages/Legislature/Chamber.vue",
+    "line": 134,
+    "status": "source"
+  },
+  "legislature_chamber.record": {
+    "source_hash": "0ef2288c7c539140de6ffc450ed157d4256be59dc72c1fa412b7d376cb27daab",
+    "shape": "template",
+    "file": "Pages/Legislature/Chamber.vue",
+    "line": 295,
+    "status": "source"
+  },
+  "legislature_chamber.seniority_alternating_seating_vacancies_jo": {
+    "source_hash": "732d235f3200dbc553de6944da3a660c20642065877fb75e1ca475ea4865381a",
+    "shape": "template",
+    "file": "Pages/Legislature/Chamber.vue",
+    "line": 167,
+    "status": "source"
+  },
+  "legislature_chamber.serving_members": {
+    "source_hash": "0c5204c67fc2070c1804668f7629a7f0b31d229bcb106288a435b0a18b534f82",
+    "shape": "attr:caption",
+    "file": "Pages/Legislature/Chamber.vue",
+    "line": 181,
+    "status": "source"
+  },
+  "legislature_chamber.share_norm": {
+    "source_hash": "28ccb3911fdca5efb81b42c27e0bfe53a9fd8e6622ff3d08910772ef29ad0a11",
+    "shape": "script:label",
+    "file": "Pages/Legislature/Chamber.vue",
+    "line": 58,
+    "status": "source"
+  },
+  "legislature_chamber.speaker_neutral": {
+    "source_hash": "89a12a7c93723cc4c34016d9c7c58992f77c616f2a04a4a439e1d6f626b1cdb5",
+    "shape": "template",
+    "file": "Pages/Legislature/Chamber.vue",
+    "line": 192,
+    "status": "source"
+  },
+  "legislature_chamber.take_the_oath": {
+    "source_hash": "549d1e6d2d71a817edf7e5394cecb7fc2a7ee9a2c31b6556c01ff80c260cec2a",
+    "shape": "template",
+    "file": "Pages/Legislature/Chamber.vue",
+    "line": 305,
+    "status": "source"
+  },
+  "legislature_chamber.take_the_oath_of_office": {
+    "source_hash": "6445d2455bd6cc1416672c7021bcde05f553866ce8c20dfc72cde82e3f19e848",
+    "shape": "template",
+    "file": "Pages/Legislature/Chamber.vue",
+    "line": 227,
+    "status": "source"
+  },
+  "legislature_chamber.term_lockstep_clk_01_clk_10_elections_cann": {
+    "source_hash": "66ba3dc66cbdd98ffdbfb9ec88877f49259a2cb79a201371ac80ce0e23e8856e",
+    "shape": "template",
+    "file": "Pages/Legislature/Chamber.vue",
+    "line": 243,
+    "status": "source"
+  },
+  "legislature_chamber.term_one_clock_for_every_elected_office": {
+    "source_hash": "be375af062ee9346dbfe94b697e35910e57d19ea0ca2609f28cc12782e92a82a",
+    "shape": "attr:title",
+    "file": "Pages/Legislature/Chamber.vue",
+    "line": 237,
+    "status": "source"
+  },
+  "legislature_chamber.the_chamber_circular_no_head_of_the_room": {
+    "source_hash": "85e207a17ac6651bbf7cab2f3b7df100fcd0064d7db1e02850c550adeccf811d",
+    "shape": "attr:title",
+    "file": "Pages/Legislature/Chamber.vue",
+    "line": 166,
+    "status": "source"
+  },
+  "legislature_chamber.the_chamber_is_circular_there_is_no_head_o": {
+    "source_hash": "4a17157f937618a2bb7101c7242bf7ca3592076d08013202bff9c625ca636815",
+    "shape": "template",
+    "file": "Pages/Legislature/Chamber.vue",
+    "line": 324,
+    "status": "source"
+  },
+  "legislature_chamber.the_chamber_itself_who_serves_who_presides": {
+    "source_hash": "c94cd5106a3473eeb9fe1eeb22e1d1d310ee8e10c6815b4b1f3c506d4e9d54a4",
+    "shape": "template",
+    "file": "Pages/Legislature/Chamber.vue",
+    "line": 98,
+    "status": "source"
+  },
+  "legislature_chamber.the_peg_numbers": {
+    "source_hash": "5c76d6cf0b91520a6f1d8a943c66868ce220a0e75c2905736bfa02a2e10911e8",
+    "shape": "attr:title",
+    "file": "Pages/Legislature/Chamber.vue",
+    "line": 128,
+    "status": "source"
+  },
+  "legislature_chamber.this_legislature_has_no_seated_members_yet": {
+    "source_hash": "fa53b4e978dbade9aff5186516ad41f8e78688c2c08a6ce706bb6799b897e560",
+    "shape": "template",
+    "file": "Pages/Legislature/Chamber.vue",
+    "line": 159,
+    "status": "source"
+  },
+  "legislature_chamber.type_a_across_the_districts_type_b_one_per": {
+    "source_hash": "8934589ff8f15ddb47cec87bcd74be3d9930566982e7e782d58cf610847c2bb5",
+    "shape": "template",
+    "file": "Pages/Legislature/Chamber.vue",
+    "line": 172,
+    "status": "source"
+  },
+  "legislature_chamber.type_a_serving_seats": {
+    "source_hash": "7242405d55003524fd2ed81c672951fff5011c06b337eec44dd4897e3e0dee63",
+    "shape": "attr:label",
+    "file": "Pages/Legislature/Chamber.vue",
+    "line": 144,
+    "status": "source"
+  },
+  "legislature_chamber.type_b_serving_seats": {
+    "source_hash": "427c879c2970174fa45bedba36d9112fffdbce7ede2fad3c94c9bf9648a4cb38",
+    "shape": "attr:label",
+    "file": "Pages/Legislature/Chamber.vue",
+    "line": 148,
+    "status": "source"
+  },
+  "legislature_committeedetail.about_bill_optional": {
+    "source_hash": "8c27eb04d3f7e20ab1aa0c83152361ec13c139f2814fd09351245484e3fb48ae",
+    "shape": "attr:label",
+    "file": "Pages/Legislature/CommitteeDetail.vue",
+    "line": 404,
+    "status": "source"
+  },
+  "legislature_committeedetail.agenda_items_one_per_line": {
+    "source_hash": "7e80805b25b0c0a4316424930efe58e111c866bbba4f1f16104eea69389aef07",
+    "shape": "attr:label",
+    "file": "Pages/Legislature/CommitteeDetail.vue",
+    "line": 215,
+    "status": "source"
+  },
+  "legislature_committeedetail.and_in_this_bicameral_chamber_each_seat_ki": {
+    "source_hash": "111cfb2a73cbc2a2a312ea3dc025b9827ffe0ddc5ad9634f7c7bd4e3ee8aa9e4",
+    "shape": "template",
+    "file": "Pages/Legislature/CommitteeDetail.vue",
+    "line": 137,
+    "status": "source"
+  },
+  "legislature_committeedetail.bills_before_the_committee": {
+    "source_hash": "7fdaeed8b3c75e1bf637775ff31c75576a2adb0a776bb21c22f67c61a8071805",
+    "shape": "attr:title",
+    "file": "Pages/Legislature/CommitteeDetail.vue",
+    "line": 266,
+    "status": "source"
+  },
+  "legislature_committeedetail.committee_agendas_have_no_engine_locked_he": {
+    "source_hash": "48c16e9f541de3a9b121beac8a4fcdb59617459cf9d28d1a65c882eab01c0b4e",
+    "shape": "attr:hint",
+    "file": "Pages/Legislature/CommitteeDetail.vue",
+    "line": 216,
+    "status": "source"
+  },
+  "legislature_committeedetail.committee_report": {
+    "source_hash": "689f84a03248e9c352907eb861ad379738b2957b2b4d46e76ad1ebd578feb267",
+    "shape": "template",
+    "file": "Pages/Legislature/CommitteeDetail.vue",
+    "line": 373,
+    "status": "source"
+  },
+  "legislature_committeedetail.committees": {
+    "source_hash": "2fba064b033a7249c01f4b31084edb710a1095cff4dc3cb1a532e97237495bff",
+    "shape": "template",
+    "file": "Pages/Legislature/CommitteeDetail.vue",
+    "line": 141,
+    "status": "source"
+  },
+  "legislature_committeedetail.enabled_only_after_the_committee_vote_pass": {
+    "source_hash": "f719ba073a992bcf54a109178b523a3af1b5b25355d3d6e08436989143ea2e75",
+    "shape": "bound:title",
+    "file": "Pages/Legislature/CommitteeDetail.vue",
+    "line": 307,
+    "status": "source"
+  },
+  "legislature_committeedetail.enabled_only_after_the_committee_vote_pass_2": {
+    "source_hash": "ac9bc70146bac56e82c04042f7c6e90d8d4741c1d351e7e8a4e394948b450703",
+    "shape": "template",
+    "file": "Pages/Legislature/CommitteeDetail.vue",
+    "line": 312,
+    "status": "source"
+  },
+  "legislature_committeedetail.enter_into_the_record": {
+    "source_hash": "76b146254583e7c51f9ea72361061f0ad9d593478fd016ad20b2b1a2786452fc",
+    "shape": "template",
+    "file": "Pages/Legislature/CommitteeDetail.vue",
+    "line": 361,
+    "status": "source"
+  },
+  "legislature_committeedetail.entered_verbatim_into_the_public_record_te": {
+    "source_hash": "dcc6078b97a4a0246d2df6371ef2ffeaa8951154b6ed7b7eb90699e4ea0a5e60",
+    "shape": "attr:hint",
+    "file": "Pages/Legislature/CommitteeDetail.vue",
+    "line": 347,
+    "status": "source"
+  },
+  "legislature_committeedetail.hearings_are_public_record": {
+    "source_hash": "d78ccb3f6739f939a06e56904bd06ccda7d047d07623a61b9c323f2763555043",
+    "shape": "template",
+    "file": "Pages/Legislature/CommitteeDetail.vue",
+    "line": 195,
+    "status": "source"
+  },
+  "legislature_committeedetail.hearings_take_testimony_from_any_resident_": {
+    "source_hash": "05d42e95b51879728bc65509b4fd0bc5eb0af7da51b5482f499cbc23918d5cda",
+    "shape": "template",
+    "file": "Pages/Legislature/CommitteeDetail.vue",
+    "line": 329,
+    "status": "source"
+  },
+  "legislature_committeedetail.meetings_are_called_by_the_chair_or_the_al": {
+    "source_hash": "b7797d2e21b85a26e511918179b45ce8748ae977f97c1395a04308cde3c11831",
+    "shape": "template",
+    "file": "Pages/Legislature/CommitteeDetail.vue",
+    "line": 259,
+    "status": "source"
+  },
+  "legislature_committeedetail.moves_the_bill_to_the_floor_and_opens_its_": {
+    "source_hash": "052b941db3faa2aa9e5b6374b4521928bd631ac675c547f65e4e933a4b96dbb7",
+    "shape": "bound:title",
+    "file": "Pages/Legislature/CommitteeDetail.vue",
+    "line": 307,
+    "status": "source"
+  },
+  "legislature_committeedetail.no_agenda_yet_the_chair_sets_it_f_chr_002": {
+    "source_hash": "ec2fcc9a7986d68deea81c68965f1d66ce8b2c2d7f09c05afdddb08bf6876e27",
+    "shape": "template",
+    "file": "Pages/Legislature/CommitteeDetail.vue",
+    "line": 205,
+    "status": "source"
+  },
+  "legislature_committeedetail.no_bills_referred_to_this_committee": {
+    "source_hash": "9ae71e39e7d813d48dbde4fee6a3b6e1fe9eae57b0842dccc2d15ec1376eee0b",
+    "shape": "template",
+    "file": "Pages/Legislature/CommitteeDetail.vue",
+    "line": 267,
+    "status": "source"
+  },
+  "legislature_committeedetail.no_meeting_scheduled": {
+    "source_hash": "f55f32a84056b85b4e3a46cd10942ccb735fcc3d1d759db6f6d62211ff9cc9cc",
+    "shape": "template",
+    "file": "Pages/Legislature/CommitteeDetail.vue",
+    "line": 233,
+    "status": "source"
+  },
+  "legislature_committeedetail.no_testimony_recorded_yet": {
+    "source_hash": "d363e5a382973becf9eee684824a803242ff1f45fa5cda00d3f0a755d3c566ce",
+    "shape": "template",
+    "file": "Pages/Legislature/CommitteeDetail.vue",
+    "line": 342,
+    "status": "source"
+  },
+  "legislature_committeedetail.none": {
+    "source_hash": "13915b13d9ae64ddbe741da3fea94afbf3f422848a695f74accf6c6fabee2f9f",
+    "shape": "template",
+    "file": "Pages/Legislature/CommitteeDetail.vue",
+    "line": 407,
+    "status": "source"
+  },
+  "legislature_committeedetail.not_yet_seated_placements_arrive_with_the_": {
+    "source_hash": "453274920fce0e0f2bf4912f730e83bfd71ca95360ae682bb863cb1f4a316abb",
+    "shape": "template",
+    "file": "Pages/Legislature/CommitteeDetail.vue",
+    "line": 186,
+    "status": "source"
+  },
+  "legislature_committeedetail.refer_to_floor_f_chr_003": {
+    "source_hash": "0e2e8e95b0c60ce4cd0b31ac0a3e2ff9a66066221c5ee697a040eb2bcd216170",
+    "shape": "template",
+    "file": "Pages/Legislature/CommitteeDetail.vue",
+    "line": 302,
+    "status": "source"
+  },
+  "legislature_committeedetail.report_body": {
+    "source_hash": "88d287a88b9c50ed8a9986220318514230be798c8d6589f1a849cad59e21a101",
+    "shape": "attr:label",
+    "file": "Pages/Legislature/CommitteeDetail.vue",
+    "line": 392,
+    "status": "source"
+  },
+  "legislature_committeedetail.report_filed": {
+    "source_hash": "7ed9a5727f583a344d985177a92711c947d5c1307ca12b5b87f42053f5bd131a",
+    "shape": "template",
+    "file": "Pages/Legislature/CommitteeDetail.vue",
+    "line": 316,
+    "status": "source"
+  },
+  "legislature_committeedetail.reports_are_filed_by_the_chair_or_the_alte": {
+    "source_hash": "3fd893161a827882ab0817c36a77b793de8a606fe660526f269a1027ede6d4b4",
+    "shape": "template",
+    "file": "Pages/Legislature/CommitteeDetail.vue",
+    "line": 413,
+    "status": "source"
+  },
+  "legislature_committeedetail.scheduled_for": {
+    "source_hash": "75ba69e3a8b74760cb9787448ced7072978b61bc1307a20af43045fe14dbbb19",
+    "shape": "attr:label",
+    "file": "Pages/Legislature/CommitteeDetail.vue",
+    "line": 241,
+    "status": "source"
+  },
+  "legislature_committeedetail.sealed_record": {
+    "source_hash": "b19d2ffd497008164b5a772063447b0872629215f777702a59445b9d187d48b2",
+    "shape": "template",
+    "file": "Pages/Legislature/CommitteeDetail.vue",
+    "line": 319,
+    "status": "source"
+  },
+  "legislature_committeedetail.sealed_record_2": {
+    "source_hash": "425f672366421e2ee9ea885ba8c0d595198d54ce1c908679433169dcc8f2189c",
+    "shape": "template",
+    "file": "Pages/Legislature/CommitteeDetail.vue",
+    "line": 334,
+    "status": "source"
+  },
+  "legislature_committeedetail.submit_testimony": {
+    "source_hash": "4e1966930a1931a5b9bae0f47357451bff8d1e2e3472164a37ad4891956a9545",
+    "shape": "attr:label",
+    "file": "Pages/Legislature/CommitteeDetail.vue",
+    "line": 346,
+    "status": "source"
+  },
+  "legislature_committeedetail.testimony_attaches_to_a_meeting_none_is_sc": {
+    "source_hash": "1bd4e5102174f3bccf1a101cb634929104a6178a8762abdbb601ee4205f1efee",
+    "shape": "template",
+    "file": "Pages/Legislature/CommitteeDetail.vue",
+    "line": 368,
+    "status": "source"
+  },
+  "legislature_committeedetail.the_committee_decides_by_majority_of_all_i": {
+    "source_hash": "35f1d968504e67c73f2be9e3558efbd2021ab04e1153a122da32c0f717c98763",
+    "shape": "template",
+    "file": "Pages/Legislature/CommitteeDetail.vue",
+    "line": 421,
+    "status": "source"
+  },
+  "legislature_committeedetail.the_committee_vote_opens_with_the_referral": {
+    "source_hash": "c9a0f609462212a3bedf314d374f30858b9db24a316fc3cc03ab489e1daabb04",
+    "shape": "template",
+    "file": "Pages/Legislature/CommitteeDetail.vue",
+    "line": 295,
+    "status": "source"
+  },
+  "legislature_committeedetail.type_a_type_b": {
+    "source_hash": "adcfe8825e0e43b2b028293fb06944c73a82ce2bb50d267a7f698c4efc07de8c",
+    "shape": "template",
+    "file": "Pages/Legislature/CommitteeDetail.vue",
+    "line": 153,
+    "status": "source"
+  },
+  "legislature_committeedetail.your_cast_is_recorded_casts_are_immutable": {
+    "source_hash": "79bc0b15e75d7bcea99ad97773f795b7b85d0561d2efd1afecd90ef376a26a6e",
+    "shape": "template",
+    "file": "Pages/Legislature/CommitteeDetail.vue",
+    "line": 287,
+    "status": "source"
+  },
+  "legislature_committees.alternate_r_13": {
+    "source_hash": "044413ee1cf2034e0e32bce5f6fa3691616e8218e285d71991912dd63affee90",
+    "shape": "template",
+    "file": "Pages/Legislature/Committees.vue",
+    "line": 415,
+    "status": "source"
+  },
+  "legislature_committees.assignment_run": {
+    "source_hash": "982d04f4f24bf7f9da1efd3e45ce15cbd401a2203288d6a480a2caab9e40ad1a",
+    "shape": "template",
+    "file": "Pages/Legislature/Committees.vue",
+    "line": 322,
+    "status": "source"
+  },
+  "legislature_committees.bicameral_committees_mirror_the_chamber_ki": {
+    "source_hash": "db2183879855f47287ccfbb7f82cb776a726f0a387286d9f9f0b3fb3fb551fb5",
+    "shape": "bound:hint",
+    "file": "Pages/Legislature/Committees.vue",
+    "line": 224,
+    "status": "source"
+  },
+  "legislature_committees.cast_chair_ballot_f_leg_011": {
+    "source_hash": "ab22f2dfd5c4badf01eba9a33ef09014be60e4e91ce372476d1c983ac88e3613",
+    "shape": "template",
+    "file": "Pages/Legislature/Committees.vue",
+    "line": 453,
+    "status": "source"
+  },
+  "legislature_committees.chair_ballot_open_of_cast": {
+    "source_hash": "92dd17e759a9b5d56e8bb092b14afc07ddbb1170eca970b3b495c09d2decb062",
+    "shape": "template",
+    "file": "Pages/Legislature/Committees.vue",
+    "line": 420,
+    "status": "source"
+  },
+  "legislature_committees.chair_r_12": {
+    "source_hash": "e3d80be18157e8fd302938d647dd8932590d9153841e4cfebdb916b610775615",
+    "shape": "template",
+    "file": "Pages/Legislature/Committees.vue",
+    "line": 414,
+    "status": "source"
+  },
+  "legislature_committees.committee_assignment_is_faction_independen": {
+    "source_hash": "12a2800cc636a6638e71f942a3a61801ef0adc9df3f237ac454ea62bc26f4882",
+    "shape": "template",
+    "file": "Pages/Legislature/Committees.vue",
+    "line": 481,
+    "status": "source"
+  },
+  "legislature_committees.committee_name": {
+    "source_hash": "ca199fe7b9b2e79e8787f9242e57496025ddcee39c8bfa2bdbae7bb2ceb99f06",
+    "shape": "attr:label",
+    "file": "Pages/Legislature/Committees.vue",
+    "line": 199,
+    "status": "source"
+  },
+  "legislature_committees.committee_seat_lifecycle": {
+    "source_hash": "3b5044343c62c6ea77413d18d76754f0ff485907f32abd97144545cb69dd37e1",
+    "shape": "attr:title",
+    "file": "Pages/Legislature/Committees.vue",
+    "line": 471,
+    "status": "source"
+  },
+  "legislature_committees.committee_seat_s_across_committee_s_servin": {
+    "source_hash": "e534a33c5e46c2669ea2872753a7b224d84cbcc8f761709d8e73b36a8bbd5c72",
+    "shape": "template",
+    "file": "Pages/Legislature/Committees.vue",
+    "line": 275,
+    "status": "source"
+  },
+  "legislature_committees.committee_seat_state_machine": {
+    "source_hash": "f82bc73c7f511adf3de2fbc9769bdf43b8b6bc3696f25feec1ad5cadf71ae8eb",
+    "shape": "attr:aria-label",
+    "file": "Pages/Legislature/Committees.vue",
+    "line": 472,
+    "status": "source"
+  },
+  "legislature_committees.committee_seats_are_assigned_from_each_mem": {
+    "source_hash": "3e28d0e1d45b45e10c56e0c41491ea9b848d4019b878dab2004fb948766ae233",
+    "shape": "template",
+    "file": "Pages/Legislature/Committees.vue",
+    "line": 180,
+    "status": "source"
+  },
+  "legislature_committees.contested_committee_seats_resolved_by_norm": {
+    "source_hash": "dce42e100174c6221ac6a64108d51705aa5ede2f73d6fc6059ca1f8cf26319dd",
+    "shape": "attr:caption",
+    "file": "Pages/Legislature/Committees.vue",
+    "line": 354,
+    "status": "source"
+  },
+  "legislature_committees.contested_seats_normalized_share_tie_break": {
+    "source_hash": "e8dc96cc15b2746d4a3e1dfe2b265ae43c8cb4e399fc8eb762072e5857650bc0",
+    "shape": "template",
+    "file": "Pages/Legislature/Committees.vue",
+    "line": 349,
+    "status": "source"
+  },
+  "legislature_committees.enabled_when_all_serving_members_have_subm": {
+    "source_hash": "d8ddd0d2cb0194ac05fc127fc5a4ce2fa532d136ae3682e2854af3df44c5db28",
+    "shape": "template",
+    "file": "Pages/Legislature/Committees.vue",
+    "line": 336,
+    "status": "source"
+  },
+  "legislature_committees.last_run_placement_s_sealed_audit": {
+    "source_hash": "ca168407256ccc88f2f549b8d07e07d632f827df6a3dee1e12ba63137afa6336",
+    "shape": "template",
+    "file": "Pages/Legislature/Committees.vue",
+    "line": 344,
+    "status": "source"
+  },
+  "legislature_committees.locked_an_f_spk_005_run_snapshots_all_inpu": {
+    "source_hash": "aa8eb2432801969d952ba368636264db70bae92801b3f9be5d3d14f0f8af78f2",
+    "shape": "template",
+    "file": "Pages/Legislature/Committees.vue",
+    "line": 310,
+    "status": "source"
+  },
+  "legislature_committees.next_preference_honored_for_share": {
+    "source_hash": "f0d7df46b3b0c49d50771f29b1cda151c4b88df30c44bec26b3ff7ce7706c00f",
+    "shape": "script:label",
+    "file": "Pages/Legislature/Committees.vue",
+    "line": 125,
+    "status": "source"
+  },
+  "legislature_committees.no_committees_yet_any_member_may_file_the_": {
+    "source_hash": "94e0ff1ae41175a768fdf287033e794a445e95a049615370629fce99ba2b3ee9",
+    "shape": "template",
+    "file": "Pages/Legislature/Committees.vue",
+    "line": 371,
+    "status": "source"
+  },
+  "legislature_committees.no_contested_seats_every_placement_honored": {
+    "source_hash": "c86186342d3535f36321c9da769553bd7466d533f54f0001c40307cef7bd7352",
+    "shape": "template",
+    "file": "Pages/Legislature/Committees.vue",
+    "line": 362,
+    "status": "source"
+  },
+  "legislature_committees.not_yet_seated_run_the_assignment": {
+    "source_hash": "8a69b50ae3c30ce828ffa18c3b65776ed0757ddfc2211d7a04f556703c6db4aa",
+    "shape": "template",
+    "file": "Pages/Legislature/Committees.vue",
+    "line": 404,
+    "status": "source"
+  },
+  "legislature_committees.of_serving_members_have_submitted_preferen": {
+    "source_hash": "9bf3811a4a5fd7a5c82b774c974bb23db921f1eccd6114163133889944032eaa",
+    "shape": "template",
+    "file": "Pages/Legislature/Committees.vue",
+    "line": 323,
+    "status": "source"
+  },
+  "legislature_committees.open_chair_ballot_f_leg_011": {
+    "source_hash": "bd0e76130e409e6f2659a336b251f87924a8f5224b3687f793480f61301a3d8e",
+    "shape": "template",
+    "file": "Pages/Legislature/Committees.vue",
+    "line": 426,
+    "status": "source"
+  },
+  "legislature_committees.placement_allocation": {
+    "source_hash": "0d9c9dc87e92e9c47b9b3c1549adcf63cd101596855d6bddee28556ca8851930",
+    "shape": "attr:title",
+    "file": "Pages/Legislature/Committees.vue",
+    "line": 268,
+    "status": "source"
+  },
+  "legislature_committees.placements_distribute_evenly_across_member": {
+    "source_hash": "27fc079dd0f114fd6e3e305b8e1b531b54e0f578615b828f07f43660aec7f400",
+    "shape": "template",
+    "file": "Pages/Legislature/Committees.vue",
+    "line": 270,
+    "status": "source"
+  },
+  "legislature_committees.rank_every_committee_the_assignment_algori": {
+    "source_hash": "ddf16ad74270b02304c9b3db1a2cba8e0fa6c0c116e5e8e41f28b88a31926681",
+    "shape": "template",
+    "file": "Pages/Legislature/Committees.vue",
+    "line": 291,
+    "status": "source"
+  },
+  "legislature_committees.rank_the_committee_s_seated_members_for_ch": {
+    "source_hash": "7bf1963bea041a49572063143f16d7975834164c276cd659c6fcaf4daf66f7e5",
+    "shape": "template",
+    "file": "Pages/Legislature/Committees.vue",
+    "line": 443,
+    "status": "source"
+  },
+  "legislature_committees.re_check_pending_the_chamber_countback_wf_": {
+    "source_hash": "b71a6f3b16f2e39231b05f1b26331275437811cd642b90dbc3d4dcbf476bcb02",
+    "shape": "template",
+    "file": "Pages/Legislature/Committees.vue",
+    "line": 407,
+    "status": "source"
+  },
+  "legislature_committees.run_assignment_f_spk_005": {
+    "source_hash": "c9d1e0e7888255758771994db786048de25b8481b37221af9853cb0ff34e0922",
+    "shape": "template",
+    "file": "Pages/Legislature/Committees.vue",
+    "line": 329,
+    "status": "source"
+  },
+  "legislature_committees.seat_taken_by_share": {
+    "source_hash": "f3e83b93cf9e4ce020f123f60b5706d938da40cea56bfd77c2a5aa44f959fbd1",
+    "shape": "script:label",
+    "file": "Pages/Legislature/Committees.vue",
+    "line": 124,
+    "status": "source"
+  },
+  "legislature_committees.submit_preferences_f_leg_010": {
+    "source_hash": "d460ee65f4674ab32a24dd6b4b6fd68b0369a3958eff8a4b690c5afc07f266b2",
+    "shape": "template",
+    "file": "Pages/Legislature/Committees.vue",
+    "line": 303,
+    "status": "source"
+  },
+  "legislature_committees.the_assignment_run_is_the_speaker_s_admini": {
+    "source_hash": "870933554a5da27582b7a01cff7af6d082527578ff122cfb48c865444f2db9df",
+    "shape": "template",
+    "file": "Pages/Legislature/Committees.vue",
+    "line": 341,
+    "status": "source"
+  },
+  "legislature_committees.the_committee_exists_only_when_the_superma": {
+    "source_hash": "19c812d51768a60a18beca9b2f042bdfe42e5f36d0bfe6a67a291cffb5fbb9b8",
+    "shape": "bound:hint",
+    "file": "Pages/Legislature/Committees.vue",
+    "line": 224,
+    "status": "source"
+  },
+  "legislature_committees.the_winner_is_the_largest_vote_share_after": {
+    "source_hash": "3551a529f77f6450766cf074021eea24d150721ea15a7b905537a2daa03f6451",
+    "shape": "template",
+    "file": "Pages/Legislature/Committees.vue",
+    "line": 356,
+    "status": "source"
+  },
+  "legislature_committees.tie_broken_is_the_f_spk_005_normalized_quo": {
+    "source_hash": "68c27ce08fe62fe917f97dcd491b54e1272998e694d148cfb2de422fc1b56601",
+    "shape": "template",
+    "file": "Pages/Legislature/Committees.vue",
+    "line": 473,
+    "status": "source"
+  },
+  "legislature_committees.type_a_type_b_mirrors_the_chamber_kind_rat": {
+    "source_hash": "bcd72ab4613e442eab0a6cc79bb55cdda59f662d9f55f59ed63532064e34c063",
+    "shape": "template",
+    "file": "Pages/Legislature/Committees.vue",
+    "line": 385,
+    "status": "source"
+  },
+  "legislature_committees.whole_legislature_rcv_candidates_the_commi": {
+    "source_hash": "5f9987963e5c5f23f2feed53d8f12426b9c8ae947004bbf7a94be6a23569f180",
+    "shape": "template",
+    "file": "Pages/Legislature/Committees.vue",
+    "line": 433,
+    "status": "source"
+  },
+  "legislature_committees.whole_legislature_rcv_f_leg_011": {
+    "source_hash": "6ef915ff4cc7313917a04e11e38a07d473d01b01421a901833b282ee8709f7d0",
+    "shape": "template",
+    "file": "Pages/Legislature/Committees.vue",
+    "line": 416,
+    "status": "source"
+  },
+  "legislature_committees.your_cast_is_recorded_casts_are_immutable_": {
+    "source_hash": "a372aa38f885d96c0d952c3c9d0e13a8adf8d4776c4049ae045d4113f9834c52",
+    "shape": "template",
+    "file": "Pages/Legislature/Committees.vue",
+    "line": 260,
+    "status": "source"
+  },
+  "legislature_committees.your_chair_ballot_is_recorded_rankings_are": {
+    "source_hash": "5ee45b375d8e78bebf8314d35f7281f2ecea98a876e02c1fe8bb26588fe83fbf",
+    "shape": "template",
+    "file": "Pages/Legislature/Committees.vue",
+    "line": 461,
+    "status": "source"
+  },
+  "legislature_districts.accepting_retires_the_existing_drawn_distr": {
+    "source_hash": "2d73363c99f6f452594b66fbfb6518674cae8bcd3bffcaa940083deeaefdd6c2",
+    "shape": "template",
+    "file": "Pages/Legislature/Districts.vue",
+    "line": 875,
+    "status": "source"
+  },
+  "legislature_districts.activate_as_official_apportionment": {
+    "source_hash": "640234d8a79068b18473f02ce90abbc278a6243d14ce9c6db0f21810c1e90840",
+    "shape": "attr:title",
+    "file": "Pages/Legislature/Districts.vue",
+    "line": 102,
+    "status": "source"
+  },
+  "legislature_districts.adding": {
+    "source_hash": "07cd945c2bf15fd4a6baf92220fc13509c31c9f79f2d506585981362cd5b32ff",
+    "shape": "template",
+    "file": "Pages/Legislature/Districts.vue",
+    "line": 1204,
+    "status": "source"
+  },
+  "legislature_districts.all_compositable_jurisdictions_assigned": {
+    "source_hash": "cbe105122e3fea750af63751eb00a4f4cef14e0d858c8f19096575ee76ff6d9f",
+    "shape": "template",
+    "file": "Pages/Legislature/Districts.vue",
+    "line": 1423,
+    "status": "source"
+  },
+  "legislature_districts.all_compositable_jurisdictions_assigned_ex": {
+    "source_hash": "7c0db119170f675fba975e5e876aeeec15a2e27501ec4b64ed3d48b9de383484",
+    "shape": "template",
+    "file": "Pages/Legislature/Districts.vue",
+    "line": 800,
+    "status": "source"
+  },
+  "legislature_districts.all_recursively": {
+    "source_hash": "61294c18c655e6b4c5ac9900f0bda3e614bec9beeed62041c2f1915b35f1d062",
+    "shape": "script:label",
+    "file": "Pages/Legislature/Districts.vue",
+    "line": 2284,
+    "status": "source"
+  },
+  "legislature_districts.all_this_scope": {
+    "source_hash": "1b0718b3a9f94e4966a693a53a52bf49748081a2dccb1803802c2c1aaea00570",
+    "shape": "script:label",
+    "file": "Pages/Legislature/Districts.vue",
+    "line": 2282,
+    "status": "source"
+  },
+  "legislature_districts.auto_seed": {
+    "source_hash": "414ea7b49509aed382a2d4615cede8f10cea6f14367c7b006fcd73069e70469e",
+    "shape": "template",
+    "file": "Pages/Legislature/Districts.vue",
+    "line": 723,
+    "status": "source"
+  },
+  "legislature_districts.auto_step": {
+    "source_hash": "07a93bb640d06512c6957b907829cd0d0ac898f01dc45de8e2d64231ae7460bc",
+    "shape": "template",
+    "file": "Pages/Legislature/Districts.vue",
+    "line": 731,
+    "status": "source"
+  },
+  "legislature_districts.auto_step_delay": {
+    "source_hash": "55264c40c8243b028dd791cd69eb2c0c832c75a3b61ef8098fadc600feff1042",
+    "shape": "attr:title",
+    "file": "Pages/Legislature/Districts.vue",
+    "line": 735,
+    "status": "source"
+  },
+  "legislature_districts.autoseed": {
+    "source_hash": "add0dc6596bc05745ffad4ad725b8e757cebcf25686ae4689ce93d7ec65bc26e",
+    "shape": "template",
+    "file": "Pages/Legislature/Districts.vue",
+    "line": 652,
+    "status": "source"
+  },
+  "legislature_districts.autoseed_proposal": {
+    "source_hash": "9230c6a68a2bf94fe7c3a23fd5dad9ee7fffc0a81aefc46b9b13f9968281a02f",
+    "shape": "template",
+    "file": "Pages/Legislature/Districts.vue",
+    "line": 843,
+    "status": "source"
+  },
+  "legislature_districts.avg": {
+    "source_hash": "0b50e647de331ace92bcd9abcdcc8328e7f984f2b586e21508fcc73e3ba6f654",
+    "shape": "template",
+    "file": "Pages/Legislature/Districts.vue",
+    "line": 466,
+    "status": "source"
+  },
+  "legislature_districts.bad_10_pop": {
+    "source_hash": "aa3eda6548e200beca7df164892117117bed5ee858517bc1f5d67fb03a631d16",
+    "shape": "template",
+    "file": "Pages/Legislature/Districts.vue",
+    "line": 498,
+    "status": "source"
+  },
+  "legislature_districts.chamber": {
+    "source_hash": "172cc200abb0c5274713d94d30f88103749026cfdc8e45afb2ccc61c4c264300",
+    "shape": "template",
+    "file": "Pages/Legislature/Districts.vue",
+    "line": 46,
+    "status": "source"
+  },
+  "legislature_districts.choose_scope": {
+    "source_hash": "97414077694143a85a52fd0c6daddd0a8134c1cae1a2834b4d87af396d7e95ae",
+    "shape": "template",
+    "file": "Pages/Legislature/Districts.vue",
+    "line": 761,
+    "status": "source"
+  },
+  "legislature_districts.chr": {
+    "source_hash": "e535cb7a7943d4525a06beba4c6fdafa62b172ae89e5f79fe7383d0bba78dd9b",
+    "shape": "template",
+    "file": "Pages/Legislature/Districts.vue",
+    "line": 1010,
+    "status": "source"
+  },
+  "legislature_districts.chr_2": {
+    "source_hash": "39899c0c49bcb17cb3793552f629c9b82749a3efff686eb0ebdd0280fffb2f18",
+    "shape": "template",
+    "file": "Pages/Legislature/Districts.vue",
+    "line": 1239,
+    "status": "source"
+  },
+  "legislature_districts.clear": {
+    "source_hash": "baa6bc4882194a7c64a71fa47eb77573dc0e52e98865a4f17b70b8fe86553244",
+    "shape": "template",
+    "file": "Pages/Legislature/Districts.vue",
+    "line": 663,
+    "status": "source"
+  },
+  "legislature_districts.clear_and_redo_all_districts_at_this_level": {
+    "source_hash": "289446181dc5ad318d02384aff8b379442140928323d46667c815968a579399a",
+    "shape": "script:desc",
+    "file": "Pages/Legislature/Districts.vue",
+    "line": 2282,
+    "status": "source"
+  },
+  "legislature_districts.clear_and_redo_here_and_at_every_nested_gi": {
+    "source_hash": "322fba20cc6ac5c55f93f847213696d1c74c3abb901c6a57afd991c8ac636179",
+    "shape": "script:desc",
+    "file": "Pages/Legislature/Districts.vue",
+    "line": 2284,
+    "status": "source"
+  },
+  "legislature_districts.community_cells": {
+    "source_hash": "637fc744ea1cf47a4c140873b3f3e6a791ee1eb5940381b6e60db57c97db17c8",
+    "shape": "script:label",
+    "file": "Pages/Legislature/Districts.vue",
+    "line": 2138,
+    "status": "source"
+  },
+  "legislature_districts.community_integrity": {
+    "source_hash": "9f6884becc5c611e38792fcbde90f72862756b89931d554975ac4819a0d466fc",
+    "shape": "template",
+    "file": "Pages/Legislature/Districts.vue",
+    "line": 370,
+    "status": "source"
+  },
+  "legislature_districts.compact_0_70_pop": {
+    "source_hash": "bb82dad05d9594050fc45e9e84cb72dfbf9894a8899c6a206fb3c23591084f03",
+    "shape": "template",
+    "file": "Pages/Legislature/Districts.vue",
+    "line": 566,
+    "status": "source"
+  },
+  "legislature_districts.confirm_disband": {
+    "source_hash": "0cd564edf9e7e43014b05d1e613baae49732e32c1c0393ec5c103c0a6182dcb9",
+    "shape": "template",
+    "file": "Pages/Legislature/Districts.vue",
+    "line": 1164,
+    "status": "source"
+  },
+  "legislature_districts.constitutional_contiguity": {
+    "source_hash": "10b404e4ef04b164bcceb14cc3cbf374b01f7430e74ad1b3ec61a622bfb9c341",
+    "shape": "template",
+    "file": "Pages/Legislature/Districts.vue",
+    "line": 408,
+    "status": "source"
+  },
+  "legislature_districts.constitutional_flags_issue_s": {
+    "source_hash": "97361a93e0cbc4369fc880f5057ae1a4515245b1e0bbbd69f13f003354524616",
+    "shape": "template",
+    "file": "Pages/Legislature/Districts.vue",
+    "line": 327,
+    "status": "source"
+  },
+  "legislature_districts.contiguity_is_considered_broken_only_when_": {
+    "source_hash": "fe126d8986a3a87c7f549767389e1ec33c2e8877b472bde4339aefbcf25592da",
+    "shape": "template",
+    "file": "Pages/Legislature/Districts.vue",
+    "line": 410,
+    "status": "source"
+  },
+  "legislature_districts.contiguity_not_yet_computed": {
+    "source_hash": "5e3ab80ad94342dfb62179d99e44d2b55518ebf1fe15b7c70160aaae4fab4ba5",
+    "shape": "bound:title",
+    "file": "Pages/Legislature/Districts.vue",
+    "line": 1099,
+    "status": "source"
+  },
+  "legislature_districts.contiguous_pop": {
+    "source_hash": "1178d4016db434c62c3ba63dc8574555bdffda10202115ccbbf05a3cde71b01c",
+    "shape": "template",
+    "file": "Pages/Legislature/Districts.vue",
+    "line": 415,
+    "status": "source"
+  },
+  "legislature_districts.create_a_new_district_map": {
+    "source_hash": "8dd8966daccf20012c22a52b42d3cc03e40d5c001fb091480f55200afff09cda",
+    "shape": "attr:title",
+    "file": "Pages/Legislature/Districts.vue",
+    "line": 109,
+    "status": "source"
+  },
+  "legislature_districts.ctrl_drag": {
+    "source_hash": "981a224dfd2e21d13abcb423a81212826636713e514cc09337a63d995df45341",
+    "shape": "template",
+    "file": "Pages/Legislature/Districts.vue",
+    "line": 1627,
+    "status": "source"
+  },
+  "legislature_districts.current": {
+    "source_hash": "5c76df8bdd1f9d8491f413561d5b8ceb38c300eaa5a3cb120b43270ba1ebf755",
+    "shape": "template",
+    "file": "Pages/Legislature/Districts.vue",
+    "line": 615,
+    "status": "source"
+  },
+  "legislature_districts.cut": {
+    "source_hash": "149c25f897fb991eee12462afaf8926d00fd03ce7f36695f0a878b36f3a22c09",
+    "shape": "template",
+    "file": "Pages/Legislature/Districts.vue",
+    "line": 846,
+    "status": "source"
+  },
+  "legislature_districts.delete": {
+    "source_hash": "1e0ef443d7b229293d2419a62ed17d8a12d57a4dabde70e0ce35b3031424d490",
+    "shape": "template",
+    "file": "Pages/Legislature/Districts.vue",
+    "line": 123,
+    "status": "source"
+  },
+  "legislature_districts.dev_not_part_of_the_application": {
+    "source_hash": "8b31affcf1fa374740c6caf03d7ead7bdf86ed01b0a6594e818f3cde0cb6f223",
+    "shape": "template",
+    "file": "Pages/Legislature/Districts.vue",
+    "line": 817,
+    "status": "source"
+  },
+  "legislature_districts.disband": {
+    "source_hash": "adab05755adcfadfdb5bbd6ad9f55b0db1e614f3d86abe4d26d7b2876045708f",
+    "shape": "template",
+    "file": "Pages/Legislature/Districts.vue",
+    "line": 1158,
+    "status": "source"
+  },
+  "legislature_districts.districting_edits_a_draft_plan_pick_or_cre": {
+    "source_hash": "626048419fc02614e543f010e34dfddbedb3e8a812e0be99453b33ba112608f1",
+    "shape": "template",
+    "file": "Pages/Legislature/Districts.vue",
+    "line": 834,
+    "status": "source"
+  },
+  "legislature_districts.districting_method_for_this_undivided_area": {
+    "source_hash": "8b51eaea7ec773d65ed9648cf67fa550c076e1dcdddb729f938f4aedbee871e6",
+    "shape": "attr:title",
+    "file": "Pages/Legislature/Districts.vue",
+    "line": 633,
+    "status": "source"
+  },
+  "legislature_districts.districts": {
+    "source_hash": "046f3faab83a9aebd0e2cab99d780b367c26df61f95da66a4e049e7a2f548bf9",
+    "shape": "template",
+    "file": "Pages/Legislature/Districts.vue",
+    "line": 459,
+    "status": "source"
+  },
+  "legislature_districts.districts_drawn_along_pre_existing_adminis": {
+    "source_hash": "dda0b0735374dfdec462993e8d3eaf1cf4e9c9b2e7e6c3dedc7f6650f07bc3e7",
+    "shape": "template",
+    "file": "Pages/Legislature/Districts.vue",
+    "line": 372,
+    "status": "source"
+  },
+  "legislature_districts.districts_seats_quota_pop": {
+    "source_hash": "e9965c05baf8a234abec430d0c40702210daddbadd62e4e35efdb3032ac30bcf",
+    "shape": "template",
+    "file": "Pages/Legislature/Districts.vue",
+    "line": 849,
+    "status": "source"
+  },
+  "legislature_districts.districts_total_seats_budget": {
+    "source_hash": "204ace6f73d59a0049e32523853fa448bf1406029ed4ee51fea9b8ee10ff5dc5",
+    "shape": "template",
+    "file": "Pages/Legislature/Districts.vue",
+    "line": 343,
+    "status": "source"
+  },
+  "legislature_districts.draw_a_polygon_with_the_tool_top_left_unde": {
+    "source_hash": "cccbda12299f4e9845ae9da18a5f8202ed78387ecd1a0df3d2040dddfa29742e",
+    "shape": "template",
+    "file": "Pages/Legislature/Districts.vue",
+    "line": 945,
+    "status": "source"
+  },
+  "legislature_districts.draw_controls_are_in_the_bar_at_the_bottom": {
+    "source_hash": "e1a535635d810fc99cacb3e74422cd3508004922eff155dc05ceeba9f06461a2",
+    "shape": "template",
+    "file": "Pages/Legislature/Districts.vue",
+    "line": 901,
+    "status": "source"
+  },
+  "legislature_districts.drawing_edits_a_draft_plan_pick_or_create_": {
+    "source_hash": "c222041e6ed58643575656d9130c3047b9e42cdc47c3c4eb9605d8b50ecb57a8",
+    "shape": "template",
+    "file": "Pages/Legislature/Districts.vue",
+    "line": 892,
+    "status": "source"
+  },
+  "legislature_districts.drawing_files_f_elb_008_requires_a_seated_": {
+    "source_hash": "a852e9c41809fdbba71b8b2407bf1ddbd0089788e1baee6933d3e85b0f5669ec",
+    "shape": "template",
+    "file": "Pages/Legislature/Districts.vue",
+    "line": 810,
+    "status": "source"
+  },
+  "legislature_districts.drawn_along_admin_boundaries": {
+    "source_hash": "ebc9448bfefc6337008989bb42390e34f69117175987e4d1ff22cb91be79f81b",
+    "shape": "bound:title",
+    "file": "Pages/Legislature/Districts.vue",
+    "line": 1105,
+    "status": "source"
+  },
+  "legislature_districts.drawn_district": {
+    "source_hash": "9f8ee7eb98fc415bcdae50753d4ef5e6b1db491d6c3cb559ebc6f7dcf9ba2fd5",
+    "shape": "template",
+    "file": "Pages/Legislature/Districts.vue",
+    "line": 993,
+    "status": "source"
+  },
+  "legislature_districts.drawn_district_manage_it_at_its_own_scope": {
+    "source_hash": "66cfd2c1b86dc4b48907356c4213f362fc00e141353ff1c96036323ae37b9e45",
+    "shape": "template",
+    "file": "Pages/Legislature/Districts.vue",
+    "line": 1150,
+    "status": "source"
+  },
+  "legislature_districts.drill_into_sub_districts": {
+    "source_hash": "ce429ec3a5973c7eeb2133dff2c5d8788c5e3bd31ff05216995ec5b3ed337171",
+    "shape": "attr:title",
+    "file": "Pages/Legislature/Districts.vue",
+    "line": 1191,
+    "status": "source"
+  },
+  "legislature_districts.edit": {
+    "source_hash": "c62d7bf6a0422b05d701db84d0abfed8dfdc76347b722d6b0d7562ca8369c5d0",
+    "shape": "template",
+    "file": "Pages/Legislature/Districts.vue",
+    "line": 1154,
+    "status": "source"
+  },
+  "legislature_districts.extremes_range_1": {
+    "source_hash": "8a0e5a389909a79c058c8bb8854ea71d7f5d4cf1ec540ff02c0647b0a67bb63d",
+    "shape": "template",
+    "file": "Pages/Legislature/Districts.vue",
+    "line": 515,
+    "status": "source"
+  },
+  "legislature_districts.fill_gaps_here_and_at_every_nested_giant_s": {
+    "source_hash": "6ad992ef61136aa80681b4202280cd3e180ef02ce30b046387e20b0b10ce2591",
+    "shape": "script:desc",
+    "file": "Pages/Legislature/Districts.vue",
+    "line": 2283,
+    "status": "source"
+  },
+  "legislature_districts.fill_gaps_only_keep_existing_districts": {
+    "source_hash": "019d37879269f2c12d9b9e8f78ec20bae5722c643ff52e754741fb89a7e50bc8",
+    "shape": "script:desc",
+    "file": "Pages/Legislature/Districts.vue",
+    "line": 2281,
+    "status": "source"
+  },
+  "legislature_districts.floor_exception_fractional_rounds_below_mi": {
+    "source_hash": "6e1ff3b4ca1b92bb6360a88a38723f423281de703af22591f72551bd9faf7761",
+    "shape": "template",
+    "file": "Pages/Legislature/Districts.vue",
+    "line": 359,
+    "status": "source"
+  },
+  "legislature_districts.good_5_pop": {
+    "source_hash": "bd27ddd2c751adab2d70e5eed8e0c1e1f21d23981ad16ad06b889bbb3b0665c4",
+    "shape": "template",
+    "file": "Pages/Legislature/Districts.vue",
+    "line": 474,
+    "status": "source"
+  },
+  "legislature_districts.halt_requested_finishing_current_scope_the": {
+    "source_hash": "d1b0a8181f65270842f1268270f9c001117154109c554731ee1c7f2310028b72",
+    "shape": "template",
+    "file": "Pages/Legislature/Districts.vue",
+    "line": 284,
+    "status": "source"
+  },
+  "legislature_districts.halted_by_operator_already_committed_scope": {
+    "source_hash": "7c6ef037aa9d30a0959952b76b6c1eb102a4018ea489e22c0e06f5ce0b7be9e7",
+    "shape": "template",
+    "file": "Pages/Legislature/Districts.vue",
+    "line": 288,
+    "status": "source"
+  },
+  "legislature_districts.horizontal_strips": {
+    "source_hash": "5b388bf93eac33cab025903ad46724aa1fce43d3480e8e1f1d17028428540990",
+    "shape": "script:label",
+    "file": "Pages/Legislature/Districts.vue",
+    "line": 2137,
+    "status": "source"
+  },
+  "legislature_districts.implied_seats": {
+    "source_hash": "700d3a4d38e2fa17f9d2b2eb315b609757fc8faba72da8c49c790f69f5a7e4b8",
+    "shape": "template",
+    "file": "Pages/Legislature/Districts.vue",
+    "line": 956,
+    "status": "source"
+  },
+  "legislature_districts.intact_pop": {
+    "source_hash": "b3107151a0f6334545af2c708bba32ea8d0a2b9887a63a8f5a345f2972ccf714",
+    "shape": "template",
+    "file": "Pages/Legislature/Districts.vue",
+    "line": 377,
+    "status": "source"
+  },
+  "legislature_districts.integrity_not_computed": {
+    "source_hash": "f8dbf98e2f49358a64aff3223d0c05363691660fcd94972440b44f72eef3a743",
+    "shape": "bound:title",
+    "file": "Pages/Legislature/Districts.vue",
+    "line": 1105,
+    "status": "source"
+  },
+  "legislature_districts.irregular_0_50_pop": {
+    "source_hash": "f4429bba3f8317e4f24241cb4c4a65519d7d21ca912d1d4e6e631b7d6bdf3a36",
+    "shape": "template",
+    "file": "Pages/Legislature/Districts.vue",
+    "line": 584,
+    "status": "source"
+  },
+  "legislature_districts.keeps_towns_whole": {
+    "source_hash": "6ca18a518833d63d1b844ebe8cfef9475f3301f94aeff2c6fc728fe71a36217c",
+    "shape": "script:hint",
+    "file": "Pages/Legislature/Districts.vue",
+    "line": 2138,
+    "status": "source"
+  },
+  "legislature_districts.leaf_giant_requires_manual_line_drawing": {
+    "source_hash": "0d38226cc878231df50424e1b5bcf80ace104768cf11aeedee4db1f2612171a4",
+    "shape": "bound:title",
+    "file": "Pages/Legislature/Districts.vue",
+    "line": 1105,
+    "status": "source"
+  },
+  "legislature_districts.legislature_browser": {
+    "source_hash": "ddd2ea9e32e2a57aca2c5d4dcbea566eb07cb03be3db2ad37aa5bde1b22accd6",
+    "shape": "template",
+    "file": "Pages/Legislature/Districts.vue",
+    "line": 30,
+    "status": "source"
+  },
+  "legislature_districts.loading": {
+    "source_hash": "fbc6d752fe528706966cdcf8fce5d3d46999313ffd6098308efb6306972d6b44",
+    "shape": "template",
+    "file": "Pages/Legislature/Districts.vue",
+    "line": 1323,
+    "status": "source"
+  },
+  "legislature_districts.loading_raster": {
+    "source_hash": "9b1082d43f1f4dbe15a28910f07702eb010f75c7967e54bbd8b21bc801b69ca8",
+    "shape": "template",
+    "file": "Pages/Legislature/Districts.vue",
+    "line": 1610,
+    "status": "source"
+  },
+  "legislature_districts.manual_draw": {
+    "source_hash": "8e39dc30f8626dc05f999bdee2a4d50de7b931bfd3329f99d2a3d683f84b5d94",
+    "shape": "template",
+    "file": "Pages/Legislature/Districts.vue",
+    "line": 638,
+    "status": "source"
+  },
+  "legislature_districts.manual_draw_is_selected_the_draw_tools_bel": {
+    "source_hash": "8c36399c5a228c8a3cda48daf71cfde40fd5bc731d8fddd99c48baa78d8fed58",
+    "shape": "bound:title",
+    "file": "Pages/Legislature/Districts.vue",
+    "line": 643,
+    "status": "source"
+  },
+  "legislature_districts.map": {
+    "source_hash": "a55afb8a176bb7bb93810cd79fa111e636ec4767a5599c2ea3eb5fa0ad9883a4",
+    "shape": "template",
+    "file": "Pages/Legislature/Districts.vue",
+    "line": 85,
+    "status": "source"
+  },
+  "legislature_districts.map_name": {
+    "source_hash": "9189f2b48883eccb12f2753bfb8324674702290d01d180af7f828958bc385d9d",
+    "shape": "attr:placeholder",
+    "file": "Pages/Legislature/Districts.vue",
+    "line": 204,
+    "status": "source"
+  },
+  "legislature_districts.map_quality": {
+    "source_hash": "e63b346bb43decfd6cd32cfba345bb6f7a71724ce23151de1b28f14856f4ab55",
+    "shape": "template",
+    "file": "Pages/Legislature/Districts.vue",
+    "line": 315,
+    "status": "source"
+  },
+  "legislature_districts.mass_operation_in_progress_waiting_for_fir": {
+    "source_hash": "845dd3f45ac638a99afe3782ebc3ac357c6d30a76f29a3053d98b8b17031cc8c",
+    "shape": "template",
+    "file": "Pages/Legislature/Districts.vue",
+    "line": 296,
+    "status": "source"
+  },
+  "legislature_districts.may_be_slow_for_large_legislatures": {
+    "source_hash": "1f74cd0fc4e1181336e86117455cc18d52ca548b42a810dd9ceb3dfcebfbb3f8",
+    "shape": "template",
+    "file": "Pages/Legislature/Districts.vue",
+    "line": 775,
+    "status": "source"
+  },
+  "legislature_districts.measures_how_evenly_each_district_s_popula": {
+    "source_hash": "d3d02ef99e771a907f89aa61aab7e5a0f1cc4abd68eb32038092130e6e152bb4",
+    "shape": "template",
+    "file": "Pages/Legislature/Districts.vue",
+    "line": 461,
+    "status": "source"
+  },
+  "legislature_districts.measures_whether_the_district_s_outer_boun": {
+    "source_hash": "b1622f5e416b29ec29470948ec835e68ee89e46ccf8808b84cb57d8713531788",
+    "shape": "template",
+    "file": "Pages/Legislature/Districts.vue",
+    "line": 557,
+    "status": "source"
+  },
+  "legislature_districts.measuring": {
+    "source_hash": "a1f421df5e5094b6ae873c432d8334301475a87878e21c12fbb93cbb859ef445",
+    "shape": "template",
+    "file": "Pages/Legislature/Districts.vue",
+    "line": 940,
+    "status": "source"
+  },
+  "legislature_districts.moderate_0_50_0_70_pop": {
+    "source_hash": "82581c264c5323a411ab9858ac751493f260728db14093b4ceb15f544e8721b3",
+    "shape": "template",
+    "file": "Pages/Legislature/Districts.vue",
+    "line": 575,
+    "status": "source"
+  },
+  "legislature_districts.navigate_into_this_scope_change_map_view": {
+    "source_hash": "247bb38304d8dedb81806167faa9813062ab88061c00987eac1956ff800c38c5",
+    "shape": "attr:title",
+    "file": "Pages/Legislature/Districts.vue",
+    "line": 1319,
+    "status": "source"
+  },
+  "legislature_districts.neutral_compact": {
+    "source_hash": "0bb214ddd916ec5c094f0a12df9a4cf3c1e3b24957001a2edc58d068e5831de8",
+    "shape": "script:hint",
+    "file": "Pages/Legislature/Districts.vue",
+    "line": 2135,
+    "status": "source"
+  },
+  "legislature_districts.new": {
+    "source_hash": "af6aa8e6e24597abf89d829edd1f5548b3f2e9726fa010f5f54890bfe3628721",
+    "shape": "template",
+    "file": "Pages/Legislature/Districts.vue",
+    "line": 1397,
+    "status": "source"
+  },
+  "legislature_districts.no_maps_yet": {
+    "source_hash": "c8838109b3ab223bcd5ffa3870ff13c388f8c31124dfba196ba4bca43a1e3bca",
+    "shape": "template",
+    "file": "Pages/Legislature/Districts.vue",
+    "line": 194,
+    "status": "source"
+  },
+  "legislature_districts.non_contiguous": {
+    "source_hash": "9e3e6f192b457050861a8160d7ff88acb8c465320b64681f8a803d246e90b68b",
+    "shape": "bound:title",
+    "file": "Pages/Legislature/Districts.vue",
+    "line": 1099,
+    "status": "source"
+  },
+  "legislature_districts.non_contiguous_pop": {
+    "source_hash": "142e7e022f6ffe3d1ac2f16a3c4a4232da7246c9f387cabf6445a0056974a8e2",
+    "shape": "template",
+    "file": "Pages/Legislature/Districts.vue",
+    "line": 427,
+    "status": "source"
+  },
+  "legislature_districts.not_computed_pop": {
+    "source_hash": "e416f156a97313f6300ef6e74c40498b6f3d86006e173b078f3b9dc6b80599f4",
+    "shape": "template",
+    "file": "Pages/Legislature/Districts.vue",
+    "line": 439,
+    "status": "source"
+  },
+  "legislature_districts.not_yet_computed": {
+    "source_hash": "60946c701a133a360af3c2f48a7ee86567440f866ad2e83b7dc0170b1642bce8",
+    "shape": "template",
+    "file": "Pages/Legislature/Districts.vue",
+    "line": 402,
+    "status": "source"
+  },
+  "legislature_districts.ok_5_10_pop": {
+    "source_hash": "dcca01532fa4f38d28d42dc9bfdb1850d535ecf281c25ae46db769c4d716bc82",
+    "shape": "template",
+    "file": "Pages/Legislature/Districts.vue",
+    "line": 486,
+    "status": "source"
+  },
+  "legislature_districts.optimal": {
+    "source_hash": "54e7faff1892cb4e3cc23dcd2eb48fb9492faee3f2363c9463aaa66138b84387",
+    "shape": "template",
+    "file": "Pages/Legislature/Districts.vue",
+    "line": 607,
+    "status": "source"
+  },
+  "legislature_districts.over_rep": {
+    "source_hash": "37ebdf4b1b4bc47d1b9310056f36ef69076fbc45cbcf6c0a6619ad52670d65cb",
+    "shape": "template",
+    "file": "Pages/Legislature/Districts.vue",
+    "line": 525,
+    "status": "source"
+  },
+  "legislature_districts.pan_mode": {
+    "source_hash": "376a66eeecc273c1ff18e3360f83f919de8cf3606fc625302f27f897bb849f03",
+    "shape": "template",
+    "file": "Pages/Legislature/Districts.vue",
+    "line": 1622,
+    "status": "source"
+  },
+  "legislature_districts.pick_or_create_a_draft_plan_first": {
+    "source_hash": "8398c4f03e5bbebece487a3ef20d65325a02d01f25407ccde163cedcc0a4cc9a",
+    "shape": "bound:title",
+    "file": "Pages/Legislature/Districts.vue",
+    "line": 643,
+    "status": "source"
+  },
+  "legislature_districts.polygon": {
+    "source_hash": "4a92e3b8728343a213c6faafce17f9919a5355adc322b8f13458f6c3d4a2af5b",
+    "shape": "template",
+    "file": "Pages/Legislature/Districts.vue",
+    "line": 911,
+    "status": "source"
+  },
+  "legislature_districts.population_deviation_from_ideal_quota_per_": {
+    "source_hash": "11f1f2814c6fec698988e2f5eda453d5ffac79b7fbef4b9da598e2e368b832cc",
+    "shape": "attr:title",
+    "file": "Pages/Legislature/Districts.vue",
+    "line": 1082,
+    "status": "source"
+  },
+  "legislature_districts.population_equality": {
+    "source_hash": "9b2ba3c5a3998c0caaeeb6ffcf72e8f1ef4b5e07f2375b48b8c9e96ab1970b26",
+    "shape": "template",
+    "file": "Pages/Legislature/Districts.vue",
+    "line": 458,
+    "status": "source"
+  },
+  "legislature_districts.propose_a_full_plan_with_the_selected_meth": {
+    "source_hash": "6fbba5899b3322f2fae2bd6d3efd4fa0e4c59c2cbe6ecd07cf6c59709b3fa08d",
+    "shape": "bound:title",
+    "file": "Pages/Legislature/Districts.vue",
+    "line": 643,
+    "status": "source"
+  },
+  "legislature_districts.remove_from_district": {
+    "source_hash": "b2ed8b0d9d4a9c1ab59b132df3431f495bf94bedfaaba363ec0153658d6ea970",
+    "shape": "attr:title",
+    "file": "Pages/Legislature/Districts.vue",
+    "line": 1198,
+    "status": "source"
+  },
+  "legislature_districts.root_seats": {
+    "source_hash": "d86c2da72fa49217073890a3bcbce8b818581556f9163513318391af53eb3bcd",
+    "shape": "template",
+    "file": "Pages/Legislature/Districts.vue",
+    "line": 34,
+    "status": "source"
+  },
+  "legislature_districts.scope_on_scope": {
+    "source_hash": "70ce34305a10a84950dc5c553b5e81d34e803c92421e8937f7f4308a2d1c9e19",
+    "shape": "template",
+    "file": "Pages/Legislature/Districts.vue",
+    "line": 250,
+    "status": "source"
+  },
+  "legislature_districts.seat": {
+    "source_hash": "9e14751c0f637aa821904e2b1a0c0024cdd8983940db20941d46e4834c372620",
+    "shape": "template",
+    "file": "Pages/Legislature/Districts.vue",
+    "line": 1512,
+    "status": "source"
+  },
+  "legislature_districts.seat_trimmed_to_boundary": {
+    "source_hash": "e0608ed0703903c1d39212a5e7e2f6205a3901e5fb050043334bdca3d055b1d7",
+    "shape": "template",
+    "file": "Pages/Legislature/Districts.vue",
+    "line": 1531,
+    "status": "source"
+  },
+  "legislature_districts.seats": {
+    "source_hash": "5088000be37d42aa194f10ad5fa103c4f7322d8e3268b1812fb0d9c3a2498000",
+    "shape": "template",
+    "file": "Pages/Legislature/Districts.vue",
+    "line": 335,
+    "status": "source"
+  },
+  "legislature_districts.seats_exceeds_9_floor_target": {
+    "source_hash": "657cfa6858e1db2891ce85ee33cd5622da1c02597afd58b8e3220c28f396ea89",
+    "shape": "template",
+    "file": "Pages/Legislature/Districts.vue",
+    "line": 1117,
+    "status": "source"
+  },
+  "legislature_districts.seats_target": {
+    "source_hash": "9a938c58b6a09309d0d6a8bb82dec0397e002b80fded3cc12b0132add77f2282",
+    "shape": "template",
+    "file": "Pages/Legislature/Districts.vue",
+    "line": 1370,
+    "status": "source"
+  },
+  "legislature_districts.seats_to_assign_here_quota_pop_seat": {
+    "source_hash": "07b5429e934f873370c86131d73a82ea5a81c62578358ae6582be5142c2c6f7f",
+    "shape": "template",
+    "file": "Pages/Legislature/Districts.vue",
+    "line": 38,
+    "status": "source"
+  },
+  "legislature_districts.segmented_pop": {
+    "source_hash": "a98a05f9d5e385b5daa05090ef64e5fb2e29f8a88157665ef50e073a3827b5d9",
+    "shape": "template",
+    "file": "Pages/Legislature/Districts.vue",
+    "line": 389,
+    "status": "source"
+  },
+  "legislature_districts.setup_step_3_of_5": {
+    "source_hash": "c937396cb9b250ddd51eb52efacd1437d88b28ac578409c4351b811ae5b7e64d",
+    "shape": "template",
+    "file": "Pages/Legislature/Districts.vue",
+    "line": 6,
+    "status": "source"
+  },
+  "legislature_districts.shape_compactness": {
+    "source_hash": "dae339fa97fb7c851529aeca651c6e34de310ed10dab6887bc80019a9674a430",
+    "shape": "template",
+    "file": "Pages/Legislature/Districts.vue",
+    "line": 555,
+    "status": "source"
+  },
+  "legislature_districts.shift_drag": {
+    "source_hash": "70976216801eb1a3982706ecea7c200473133c2b409f6158318a36d54d4aaef9",
+    "shape": "template",
+    "file": "Pages/Legislature/Districts.vue",
+    "line": 1626,
+    "status": "source"
+  },
+  "legislature_districts.shortest_lines": {
+    "source_hash": "ecaf3a27a172f9244ddce76872065328de0d98212fdf9ffd2285a5d12562be89",
+    "shape": "script:label",
+    "file": "Pages/Legislature/Districts.vue",
+    "line": 2135,
+    "status": "source"
+  },
+  "legislature_districts.side_seat": {
+    "source_hash": "a236ccbe9fb61351664e6f0ba4f81a9b6887bf927b0ddab24400bb8f6ebd824f",
+    "shape": "template",
+    "file": "Pages/Legislature/Districts.vue",
+    "line": 922,
+    "status": "source"
+  },
+  "legislature_districts.skip_complete": {
+    "source_hash": "e99ef0a0dc3b30ba28afd7f98242631567bedd87722e033f8663e7612b8d7579",
+    "shape": "template",
+    "file": "Pages/Legislature/Districts.vue",
+    "line": 727,
+    "status": "source"
+  },
+  "legislature_districts.split": {
+    "source_hash": "b54fb3cad4cd93d7f7b208fb78fb55c7a3bbb24a8da138b3b088ffbb8b3fe166",
+    "shape": "template",
+    "file": "Pages/Legislature/Districts.vue",
+    "line": 1496,
+    "status": "source"
+  },
+  "legislature_districts.split_line": {
+    "source_hash": "eb39a169cce9a750f7b4c679ed74f1811831d8e0b318dbde1b73b3ac4b64c0b4",
+    "shape": "template",
+    "file": "Pages/Legislature/Districts.vue",
+    "line": 908,
+    "status": "source"
+  },
+  "legislature_districts.stops_after_current_scope_commits": {
+    "source_hash": "4b3ae1c741bb79b2af74ee06f23dcdebef1e4884303a63639aa012c103fb780b",
+    "shape": "template",
+    "file": "Pages/Legislature/Districts.vue",
+    "line": 282,
+    "status": "source"
+  },
+  "legislature_districts.suboptimal": {
+    "source_hash": "f70b6bbf9301ae8fb4987c7578d4411aa6214e90d0c9914740ecaec4f5f4e412",
+    "shape": "template",
+    "file": "Pages/Legislature/Districts.vue",
+    "line": 611,
+    "status": "source"
+  },
+  "legislature_districts.tap_the_start_of_the_cut_then_tap_the_end_": {
+    "source_hash": "6e8f0ce0523aceb3c3519c9f08c4cc77d40256127f1621315513979e9a1c2968",
+    "shape": "template",
+    "file": "Pages/Legislature/Districts.vue",
+    "line": 920,
+    "status": "source"
+  },
+  "legislature_districts.to_pan": {
+    "source_hash": "a4c8977c0e4d6b0a1070796025f7c8c43d451a5a835e2e018136e9f48e85be34",
+    "shape": "template",
+    "file": "Pages/Legislature/Districts.vue",
+    "line": 1628,
+    "status": "source"
+  },
+  "legislature_districts.toggle_district_name_labels": {
+    "source_hash": "ea8402c5c14e4f4969b6f3ac94b65f96e356e78c0639d3018e66d0914ee23677",
+    "shape": "attr:title",
+    "file": "Pages/Legislature/Districts.vue",
+    "line": 1580,
+    "status": "source"
+  },
+  "legislature_districts.toggle_jurisdiction_name_labels": {
+    "source_hash": "5a918f5906b30f3707588861db32dbca336bbff26922fe92a01cfca71ad43d17",
+    "shape": "attr:title",
+    "file": "Pages/Legislature/Districts.vue",
+    "line": 1588,
+    "status": "source"
+  },
+  "legislature_districts.toggle_per_district_quality_stats_chr_cont": {
+    "source_hash": "02a130d2d231a3fe9897c2400dabea4a3ac3b6cf9fbe7e291a272c0441e62895",
+    "shape": "attr:title",
+    "file": "Pages/Legislature/Districts.vue",
+    "line": 1596,
+    "status": "source"
+  },
+  "legislature_districts.toggle_population_fractional_seats_labels": {
+    "source_hash": "662f2e259c324951c54446eeea0a02e941b58599909163898251a1fe99a82d9a",
+    "shape": "attr:title",
+    "file": "Pages/Legislature/Districts.vue",
+    "line": 1572,
+    "status": "source"
+  },
+  "legislature_districts.toggle_seat_count_labels": {
+    "source_hash": "16d84ff7152c03ae8d2487a4899662b4e4f111a6f5bb66f2c04fe8c83287218f",
+    "shape": "attr:title",
+    "file": "Pages/Legislature/Districts.vue",
+    "line": 1564,
+    "status": "source"
+  },
+  "legislature_districts.toggle_worldpop_population_heatmap_underla": {
+    "source_hash": "795774462bd3bc414c2a9386a2e8ac6f4e2dab0ffa94117aa50995cdb1613bb1",
+    "shape": "attr:title",
+    "file": "Pages/Legislature/Districts.vue",
+    "line": 1604,
+    "status": "source"
+  },
+  "legislature_districts.tracks_whether_the_current_map_produces_ev": {
+    "source_hash": "e9ca6e2d5504222bd69e4df0b6596080c23e13609ba83594085ae2f84f3a81f5",
+    "shape": "template",
+    "file": "Pages/Legislature/Districts.vue",
+    "line": 602,
+    "status": "source"
+  },
+  "legislature_districts.trimmed_to_s_boundary": {
+    "source_hash": "8cebefbadd6e9031f88a0ca4fc6d75a8a643e63678d257cc2210f007b5afa2cc",
+    "shape": "template",
+    "file": "Pages/Legislature/Districts.vue",
+    "line": 968,
+    "status": "source"
+  },
+  "legislature_districts.unassigned": {
+    "source_hash": "aa9151c39885eabd57936ddf2a999ede5cd527924331238c022d6bf26ed72ffe",
+    "shape": "template",
+    "file": "Pages/Legislature/Districts.vue",
+    "line": 1362,
+    "status": "source"
+  },
+  "legislature_districts.unassigned_jurisdiction": {
+    "source_hash": "9d25542ee5e9604c2832b66e2d3f2861e4753c102348edbf995f70a08d5fe391",
+    "shape": "template",
+    "file": "Pages/Legislature/Districts.vue",
+    "line": 351,
+    "status": "source"
+  },
+  "legislature_districts.unassigned_recursively": {
+    "source_hash": "7b2b76751e53c0218e286b9beefff80d39f779ca94f03f20a0f08e79ceb36d7a",
+    "shape": "script:label",
+    "file": "Pages/Legislature/Districts.vue",
+    "line": 2283,
+    "status": "source"
+  },
+  "legislature_districts.unassigned_this_scope": {
+    "source_hash": "5cb75d9b9c274c18394d34945f2c6e0dda8eb755e5edf74157e48141803a5a43",
+    "shape": "script:label",
+    "file": "Pages/Legislature/Districts.vue",
+    "line": 2281,
+    "status": "source"
+  },
+  "legislature_districts.under_rep": {
+    "source_hash": "6fb517098564ec7cafc12529f54baaa38f3ebade3e729518311d5ee98768e5da",
+    "shape": "template",
+    "file": "Pages/Legislature/Districts.vue",
+    "line": 536,
+    "status": "source"
+  },
+  "legislature_districts.undivided_area_no_child_units_its_seats_ar": {
+    "source_hash": "83eae2df049d746a52e3cf3725635f7ae3f67f41d54b94ac4154791998b975ca",
+    "shape": "template",
+    "file": "Pages/Legislature/Districts.vue",
+    "line": 828,
+    "status": "source"
+  },
+  "legislature_districts.uniform_political_diversity": {
+    "source_hash": "661d9c1369ef3ff3e7d91c512b27b68c456df14c52afdf7e3c081650273ab920",
+    "shape": "template",
+    "file": "Pages/Legislature/Districts.vue",
+    "line": 600,
+    "status": "source"
+  },
+  "legislature_districts.vertical_strips": {
+    "source_hash": "cf4989a47b381b169c03476ad2d249938513fcc7f447de9935635af0539b10b7",
+    "shape": "script:label",
+    "file": "Pages/Legislature/Districts.vue",
+    "line": 2136,
+    "status": "source"
+  },
+  "legislature_emergencypowers.active_power_dashboard": {
+    "source_hash": "5db50291cb581f1fe741eb8679c7ebb674495150eb88acd8f9b38d9304646fd0",
+    "shape": "attr:title",
+    "file": "Pages/Legislature/EmergencyPowers.vue",
+    "line": 240,
+    "status": "source"
+  },
+  "legislature_emergencypowers.all_validation_runs_pre_vote_the_closed_ca": {
+    "source_hash": "f1de55a7dd0a06eea2adbdd29f12e6df2ae2b8cf94dac9c326600a2be15d988f",
+    "shape": "template",
+    "file": "Pages/Legislature/EmergencyPowers.vue",
+    "line": 397,
+    "status": "source"
+  },
+  "legislature_emergencypowers.auto_expiry_at_the_declared_duration_no_ac": {
+    "source_hash": "a839024a0bfe213f3692a53a90004831aa8256e0251734cc1dd7113774bc7339",
+    "shape": "template",
+    "file": "Pages/Legislature/EmergencyPowers.vue",
+    "line": 375,
+    "status": "source"
+  },
+  "legislature_emergencypowers.auto_expiry_publishes_a_full_audit_record_": {
+    "source_hash": "318cf25a6ad6fab06c9bcb8c97d5595a22b89b2e960635d58806c8d5bffa7b69",
+    "shape": "template",
+    "file": "Pages/Legislature/EmergencyPowers.vue",
+    "line": 387,
+    "status": "source"
+  },
+  "legislature_emergencypowers.available_at_any_time_by_any_inhabitant_fi": {
+    "source_hash": "ab0c8961ee84447d72f8206692acd9bd327885c4e25caf79d96f2cc65425d584",
+    "shape": "template",
+    "file": "Pages/Legislature/EmergencyPowers.vue",
+    "line": 233,
+    "status": "source"
+  },
+  "legislature_emergencypowers.cannot_disrupt_elections_sessions_courts_o": {
+    "source_hash": "899617da20015c85a1e6f0f6c0d7b0e53629aa95e751128a65d773e4d0b6dc21",
+    "shape": "template",
+    "file": "Pages/Legislature/EmergencyPowers.vue",
+    "line": 380,
+    "status": "source"
+  },
+  "legislature_emergencypowers.cause_the_only_two_the_engine_accepts": {
+    "source_hash": "4c7dcb8b37d2c83f8d68cb1cf8a36d06e419b6dec7db8b6f8b88e0d1639942f3",
+    "shape": "attr:label",
+    "file": "Pages/Legislature/EmergencyPowers.vue",
+    "line": 287,
+    "status": "source"
+  },
+  "legislature_emergencypowers.civic_process_protection_elections_session": {
+    "source_hash": "317407348edd3e547190672c6011a238bd8b7717c6987309cd94494d38369741",
+    "shape": "template",
+    "file": "Pages/Legislature/EmergencyPowers.vue",
+    "line": 374,
+    "status": "source"
+  },
+  "legislature_emergencypowers.clk_03_countdown": {
+    "source_hash": "b266015dec5a9494ad092ca9b143742216a397f57bc4a831e9b7ed832e07997f",
+    "shape": "attr:label",
+    "file": "Pages/Legislature/EmergencyPowers.vue",
+    "line": 153,
+    "status": "source"
+  },
+  "legislature_emergencypowers.clk_03_the_90_day_ceiling_is_itself_the_am": {
+    "source_hash": "7ecf2707c3692f706e1424ef146c2cab68a911a36f46f48d180aa19878ded947",
+    "shape": "template",
+    "file": "Pages/Legislature/EmergencyPowers.vue",
+    "line": 381,
+    "status": "source"
+  },
+  "legislature_emergencypowers.day_s": {
+    "source_hash": "d17dd2f62141534285a2dbd8bd5d641c345f3cc62e7782dda75898657b6ceaaa",
+    "shape": "template",
+    "file": "Pages/Legislature/EmergencyPowers.vue",
+    "line": 187,
+    "status": "source"
+  },
+  "legislature_emergencypowers.duration_days": {
+    "source_hash": "b7dada1a4a11247f04353cf704618ad9c2fba7525e97a0cf13cfa9d2af5d9051",
+    "shape": "attr:label",
+    "file": "Pages/Legislature/EmergencyPowers.vue",
+    "line": 291,
+    "status": "source"
+  },
+  "legislature_emergencypowers.e_g_evacuation_orders_shelter_requisition_": {
+    "source_hash": "feaeb351346a6b78b419b9c6c029d4e725df54a5e1e631f45323059fd27d5dfc",
+    "shape": "attr:placeholder",
+    "file": "Pages/Legislature/EmergencyPowers.vue",
+    "line": 352,
+    "status": "source"
+  },
+  "legislature_emergencypowers.e_g_river_ausa_flooding": {
+    "source_hash": "9288d6717ec842310c2b980ac2c08896a0de84101b87736c21a6a76549ec1fac",
+    "shape": "attr:placeholder",
+    "file": "Pages/Legislature/EmergencyPowers.vue",
+    "line": 320,
+    "status": "source"
+  },
+  "legislature_emergencypowers.emergency_powers_exist_for_exactly_two_cau": {
+    "source_hash": "8f0a65cf38dc0b5e8d466a15f4f0289cd6f6f6f5597b316e16ed9089ddddf42b",
+    "shape": "template",
+    "file": "Pages/Legislature/EmergencyPowers.vue",
+    "line": 126,
+    "status": "source"
+  },
+  "legislature_emergencypowers.emergency_powers_state_machine": {
+    "source_hash": "925a205a45b4795ace9b13206983bc22d3ad240d0ae7aa8925ead664cf56139b",
+    "shape": "attr:aria-label",
+    "file": "Pages/Legislature/EmergencyPowers.vue",
+    "line": 139,
+    "status": "source"
+  },
+  "legislature_emergencypowers.engine_validation_area_this_legislature_s_": {
+    "source_hash": "6021c91abb816fdaefcd5cc579063c7a0c6b5318fbc11e9e6aaf6c94e19b9b3d",
+    "shape": "attr:hint",
+    "file": "Pages/Legislature/EmergencyPowers.vue",
+    "line": 329,
+    "status": "source"
+  },
+  "legislature_emergencypowers.engine_validation_methods_must_remain_with": {
+    "source_hash": "19a683b5f0af19ed77a0723ccd48b3d50b015cda318721428d9a830dcf424ef6",
+    "shape": "attr:hint",
+    "file": "Pages/Legislature/EmergencyPowers.vue",
+    "line": 342,
+    "status": "source"
+  },
+  "legislature_emergencypowers.expired_register": {
+    "source_hash": "7124ba91b45476cb1e42b9ea4f5eeac3d4b852773ecdc69bda181239c986b0da",
+    "shape": "attr:title",
+    "file": "Pages/Legislature/EmergencyPowers.vue",
+    "line": 386,
+    "status": "source"
+  },
+  "legislature_emergencypowers.extension_days": {
+    "source_hash": "143dd450f3b885ed23a93e5affb45488c2c4daf3c08d0f6913efa047ff91d4c7",
+    "shape": "attr:label",
+    "file": "Pages/Legislature/EmergencyPowers.vue",
+    "line": 201,
+    "status": "source"
+  },
+  "legislature_emergencypowers.first_order_of_business_an_active_power_le": {
+    "source_hash": "8fdd8bab5759bf34b32aafca02b078d3bb8501319ae7e5197bcdf7de3b1094a4",
+    "shape": "template",
+    "file": "Pages/Legislature/EmergencyPowers.vue",
+    "line": 376,
+    "status": "source"
+  },
+  "legislature_emergencypowers.hard_ceiling_90_days_clk_03_art_ii_7": {
+    "source_hash": "ddd71541825103375339b6647afc4bd45c78df368769f8e625a818e7bca1bc0c",
+    "shape": "template",
+    "file": "Pages/Legislature/EmergencyPowers.vue",
+    "line": 157,
+    "status": "source"
+  },
+  "legislature_emergencypowers.invocation_is_filed_by_a_serving_member_f_": {
+    "source_hash": "2f07bab61bc9e74fba433bd8c1f3a0bac49cffd9f37b4284df888d921e3574a0",
+    "shape": "template",
+    "file": "Pages/Legislature/EmergencyPowers.vue",
+    "line": 364,
+    "status": "source"
+  },
+  "legislature_emergencypowers.invocation_vote_record_f_leg_024": {
+    "source_hash": "67317e27f8f98bab797692577d0dbd06b5ad7f7ebb92ebfd719d0f7de3c279f8",
+    "shape": "template",
+    "file": "Pages/Legislature/EmergencyPowers.vue",
+    "line": 169,
+    "status": "source"
+  },
+  "legislature_emergencypowers.invoke_emergency_powers": {
+    "source_hash": "076baff81be57a9989ee9d3a444f27eeb5f35a24e779acd388ca5f734a46c7a8",
+    "shape": "attr:title",
+    "file": "Pages/Legislature/EmergencyPowers.vue",
+    "line": 363,
+    "status": "source"
+  },
+  "legislature_emergencypowers.judicial_review_f_jdg_007": {
+    "source_hash": "48429b4dd7f01aaf2c0ac5d1135c2d1b1adc073a8037839fd46a205101e3fa58",
+    "shape": "template",
+    "file": "Pages/Legislature/EmergencyPowers.vue",
+    "line": 228,
+    "status": "source"
+  },
+  "legislature_emergencypowers.judicially_reviewable_at_any_time_wf_jud_0": {
+    "source_hash": "0758127de065794a175afbf57be19263efe41678ea05e414d5af26a0dbd3fe17",
+    "shape": "template",
+    "file": "Pages/Legislature/EmergencyPowers.vue",
+    "line": 377,
+    "status": "source"
+  },
+  "legislature_emergencypowers.name_the_emergency": {
+    "source_hash": "12f7d69952f1fe00a2ab05c6ac90c46775a58f5d58cda893aaf596837c3c7d31",
+    "shape": "attr:label",
+    "file": "Pages/Legislature/EmergencyPowers.vue",
+    "line": 313,
+    "status": "source"
+  },
+  "legislature_emergencypowers.no_active_emergency_powers": {
+    "source_hash": "83d719fad1df4b78fe15d38f1ccf5497d2f07638b8bdccec6003e9ee1d02501f",
+    "shape": "template",
+    "file": "Pages/Legislature/EmergencyPowers.vue",
+    "line": 242,
+    "status": "source"
+  },
+  "legislature_emergencypowers.no_other_cause_exists_economic_political_o": {
+    "source_hash": "e81b25aa81c2122c2c6572d34e7ed71fa6b089b48482e325c06e5351bc7d1fc3",
+    "shape": "template",
+    "file": "Pages/Legislature/EmergencyPowers.vue",
+    "line": 310,
+    "status": "source"
+  },
+  "legislature_emergencypowers.open_invocation_renewal_votes": {
+    "source_hash": "7064141ebb3dc28d8ada321eb269aef746060067c733ed530a9597bff8887df4",
+    "shape": "attr:title",
+    "file": "Pages/Legislature/EmergencyPowers.vue",
+    "line": 252,
+    "status": "source"
+  },
+  "legislature_emergencypowers.propose_renewal_f_leg_025": {
+    "source_hash": "8a7e3654dd6f0d61ce4cf5ddca48ed069755323a0f6b1341ac08681fdfef7950",
+    "shape": "template",
+    "file": "Pages/Legislature/EmergencyPowers.vue",
+    "line": 192,
+    "status": "source"
+  },
+  "legislature_emergencypowers.put_renewal_to_a_vote": {
+    "source_hash": "d12268b5cd823715bcd600051400f023b3e85b604c284572e22b1e14de1a8028",
+    "shape": "template",
+    "file": "Pages/Legislature/EmergencyPowers.vue",
+    "line": 219,
+    "status": "source"
+  },
+  "legislature_emergencypowers.requires_supermajority_of_all_serving_of_a": {
+    "source_hash": "651ecd5b7337b4892a6643d3007b7a5a4589f470c7c49764f900a301d1167f4d",
+    "shape": "template",
+    "file": "Pages/Legislature/EmergencyPowers.vue",
+    "line": 359,
+    "status": "source"
+  },
+  "legislature_emergencypowers.sealed_audit_record": {
+    "source_hash": "c15f626ac63537a009098a36921f98fbcb1b8b845366cfc35c9c43fb6392515f",
+    "shape": "template",
+    "file": "Pages/Legislature/EmergencyPowers.vue",
+    "line": 389,
+    "status": "source"
+  },
+  "legislature_emergencypowers.the_hard_rails": {
+    "source_hash": "a518f7c224a0b3f47bb09793cd9ab668939ed99b71ff36dbf432a0ebb6a2506b",
+    "shape": "attr:title",
+    "file": "Pages/Legislature/EmergencyPowers.vue",
+    "line": 372,
+    "status": "source"
+  },
+  "legislature_emergencypowers.window_opens_day_fresh_supermajority_fresh": {
+    "source_hash": "55f12517b77034b97bffd961a2bef749a3abebe6b07b842884cb0814adf85d2f",
+    "shape": "template",
+    "file": "Pages/Legislature/EmergencyPowers.vue",
+    "line": 183,
+    "status": "source"
+  },
+  "legislature_index.approval_open": {
+    "source_hash": "04943c4518340092369b2ced1285aae58c27be7233cc38138460765e84d3609f",
+    "shape": "script:label",
+    "file": "Pages/Legislature/Index.vue",
+    "line": 45,
+    "status": "source"
+  },
+  "legislature_index.audit_rerun": {
+    "source_hash": "574d7003e6729df5a83a555cc8f2ebe4a735e07af32022196223e81463e5078e",
+    "shape": "script:label",
+    "file": "Pages/Legislature/Index.vue",
+    "line": 51,
+    "status": "source"
+  },
+  "legislature_index.critical_population": {
+    "source_hash": "9854ddddcd225991e06b2c87b01203d5324c7cf078c2d6d20c82a99c4a514993",
+    "shape": "script:label",
+    "file": "Pages/Legislature/Index.vue",
+    "line": 67,
+    "status": "source"
+  },
+  "legislature_index.every_legislature_on_this_instance_setup_f": {
+    "source_hash": "5b2c1f08662b2fb707f4b810d21f34c65f88794a9d30412db809a7ee00237059",
+    "shape": "template",
+    "file": "Pages/Legislature/Index.vue",
+    "line": 99,
+    "status": "source"
+  },
+  "legislature_index.finalist_cutoff": {
+    "source_hash": "6411fa9229c84e5aa3332ccbe387439d4a63d4d9d7e74ce3a4e1f247af7c6275",
+    "shape": "script:label",
+    "file": "Pages/Legislature/Index.vue",
+    "line": 46,
+    "status": "source"
+  },
+  "legislature_index.founded_at_setup": {
+    "source_hash": "ff2ef3715865894f00114c67816f93ce66b5c2867adcd146eed221823a2f68cd",
+    "shape": "script:label",
+    "file": "Pages/Legislature/Index.vue",
+    "line": 72,
+    "status": "source"
+  },
+  "legislature_index.legislatures_by_jurisdiction": {
+    "source_hash": "43a9efa773e2baf7d5b5ccdd42d7f8b5989adca61ba9321569591ecac3c3d655",
+    "shape": "attr:caption",
+    "file": "Pages/Legislature/Index.vue",
+    "line": 130,
+    "status": "source"
+  },
+  "legislature_index.no_legislatures_yet_complete_setup_apporti": {
+    "source_hash": "ba7b2454f0364b4a5aaf3f24041a03cbe4e8a4460ac1730b63da832816caa479",
+    "shape": "template",
+    "file": "Pages/Legislature/Index.vue",
+    "line": 115,
+    "status": "source"
+  },
+  "legislature_index.ranked_open": {
+    "source_hash": "f24c8b3dc71ba624026738be6748b5b741bfe6d7e5a614eb2803289d7ac61907",
+    "shape": "script:label",
+    "file": "Pages/Legislature/Index.vue",
+    "line": 47,
+    "status": "source"
+  },
+  "legislature_index.self_governing": {
+    "source_hash": "da9e39d3cf481193c6523e40ea80137aa21eb5e2c028c518473ad93efdaf60d1",
+    "shape": "script:label",
+    "file": "Pages/Legislature/Index.vue",
+    "line": 63,
+    "status": "source"
+  },
+  "legislature_index.showing_the_largest_chambers_of_reach_any_": {
+    "source_hash": "c781963cae10530d681aab44c33d75244726ecf6fbb93570c5b44f91ef5cbf67",
+    "shape": "template",
+    "file": "Pages/Legislature/Index.vue",
+    "line": 119,
+    "status": "source"
+  },
+  "legislature_index.voting_closed": {
+    "source_hash": "e4f4b8b9eb97b68de97ce440b4b2e7efe48fd989eaf2d94ed67f345b7987d9f9",
+    "shape": "script:label",
+    "file": "Pages/Legislature/Index.vue",
+    "line": 48,
+    "status": "source"
+  },
+  "legislature_index.wf_jur_01_jurisdictions_bootstrap_from_dor": {
+    "source_hash": "27f298e6a6f8a0e16a10655b7aed6ea993d1260db5601adeea1a6ee477a86bab",
+    "shape": "template",
+    "file": "Pages/Legislature/Index.vue",
+    "line": 106,
+    "status": "source"
+  },
+  "legislature_oversight.10_yr_civil_appointment_ends_clk_09": {
+    "source_hash": "51e2a3a85d265eefbe8fd1b90492649b184d040ce969940e7b6efc3cb69719d4",
+    "shape": "template",
+    "file": "Pages/Legislature/Oversight.vue",
+    "line": 213,
+    "status": "source"
+  },
+  "legislature_oversight.administrative_office_i_adm": {
+    "source_hash": "7d21662b5f7a7db21e19d4f999b506bd1dba18320261f24aea34f7d873a33dc8",
+    "shape": "attr:title",
+    "file": "Pages/Legislature/Oversight.vue",
+    "line": 201,
+    "status": "source"
+  },
+  "legislature_oversight.begin_investigating": {
+    "source_hash": "8cfb71c6fc55ab044c5adc22f18b673d83ebb1098d9e91851e30a17672e291c8",
+    "shape": "template",
+    "file": "Pages/Legislature/Oversight.vue",
+    "line": 346,
+    "status": "source"
+  },
+  "legislature_oversight.catalog_alias_f_leg_030_workflows_catalog_": {
+    "source_hash": "c9a0841f7431ffdd195d982b977a07ef86a8b8b4e5eee7431eaf150a3de70c91",
+    "shape": "template",
+    "file": "Pages/Legislature/Oversight.vue",
+    "line": 547,
+    "status": "source"
+  },
+  "legislature_oversight.choose": {
+    "source_hash": "54421335c940e3fe916671b727fbffcd783665e9aea1c9841cb6d2a5b6a95d21",
+    "shape": "template",
+    "file": "Pages/Legislature/Oversight.vue",
+    "line": 301,
+    "status": "source"
+  },
+  "legislature_oversight.complaint_summary": {
+    "source_hash": "440b7c99b4fd7f4d444ee486cac3e196bbab001eb5aa7e5ec8ef0db7b728db07",
+    "shape": "attr:label",
+    "file": "Pages/Legislature/Oversight.vue",
+    "line": 308,
+    "status": "source"
+  },
+  "legislature_oversight.consent_vote": {
+    "source_hash": "f3ca63349207ec83505d98d2578ee20a6491f700dd08323de82cb1a4ff08b02b",
+    "shape": "template",
+    "file": "Pages/Legislature/Oversight.vue",
+    "line": 236,
+    "status": "source"
+  },
+  "legislature_oversight.countback_record": {
+    "source_hash": "114739ffa6f76c9c595eb0bdf440cdcab8c04f411f1f66d9ce40f49204b3ad1b",
+    "shape": "template",
+    "file": "Pages/Legislature/Oversight.vue",
+    "line": 531,
+    "status": "source"
+  },
+  "legislature_oversight.creation_act_vote_majority_of_all_serving": {
+    "source_hash": "37599f939335adce983339710c4fb2b68ddfb5f5eb8f981c09f43b0b63148486",
+    "shape": "template",
+    "file": "Pages/Legislature/Oversight.vue",
+    "line": 219,
+    "status": "source"
+  },
+  "legislature_oversight.designate_a_presider": {
+    "source_hash": "7e767d6bfa226073aa003c6a4022e9ca9f134437e9a2fcc9c3e79dbf369e8e18",
+    "shape": "template",
+    "file": "Pages/Legislature/Oversight.vue",
+    "line": 462,
+    "status": "source"
+  },
+  "legislature_oversight.designate_f_spk_007": {
+    "source_hash": "28d80f196f4f9868cd8b48699fa33a775cab1fab69a4124cdbca8e7fcebf6f45",
+    "shape": "template",
+    "file": "Pages/Legislature/Oversight.vue",
+    "line": 469,
+    "status": "source"
+  },
+  "legislature_oversight.designate_presider": {
+    "source_hash": "42487b4201a98b7e0499980d16655062c9ddb12552c89a35708afd08319f47fa",
+    "shape": "attr:aria-label",
+    "file": "Pages/Legislature/Oversight.vue",
+    "line": 461,
+    "status": "source"
+  },
+  "legislature_oversight.docket_complaint": {
+    "source_hash": "dd354cbc1e59c5f11cfeb2e862eab51845b6d27c3eeda8ad132b8363482d1b8f",
+    "shape": "template",
+    "file": "Pages/Legislature/Oversight.vue",
+    "line": 320,
+    "status": "source"
+  },
+  "legislature_oversight.findings_published_to_the_public_record": {
+    "source_hash": "9fd728c1cc9b565d87610f8f05249f2ac70df39e5d06cacc5bc9ed77ac98d99f",
+    "shape": "attr:label",
+    "file": "Pages/Legislature/Oversight.vue",
+    "line": 361,
+    "status": "source"
+  },
+  "legislature_oversight.findings_sealed_public_record": {
+    "source_hash": "5a239992df6d851a66b81b27b710eea1bd8fc35fe239a253598b1ecc3dea01f1",
+    "shape": "template",
+    "file": "Pages/Legislature/Oversight.vue",
+    "line": 342,
+    "status": "source"
+  },
+  "legislature_oversight.from_any_resident_any_member_or_the_chambe": {
+    "source_hash": "d6df21591dcadf7c44344df297e601b48eadc3bdf8bf7a24806d5fd22ed506b5",
+    "shape": "template",
+    "file": "Pages/Legislature/Oversight.vue",
+    "line": 286,
+    "status": "source"
+  },
+  "legislature_oversight.independent_neutral_record_keeper_art_ii_2": {
+    "source_hash": "840ac245cd4efc69d7503d3fc676ebfe47915502e7e1d1296ba5baab102b85e0",
+    "shape": "template",
+    "file": "Pages/Legislature/Oversight.vue",
+    "line": 206,
+    "status": "source"
+  },
+  "legislature_oversight.intake_requires_a_live_administrative_offi": {
+    "source_hash": "c5e89c7722f4ca518566cb4dfa9a4526d1fb1d2f5a59c4afb2e255851521b9d1",
+    "shape": "template",
+    "file": "Pages/Legislature/Oversight.vue",
+    "line": 327,
+    "status": "source"
+  },
+  "legislature_oversight.investigations_docket": {
+    "source_hash": "a844a4d4a8c08116570c8471c70df80a30fb999107f999095a3d493768d31012",
+    "shape": "template",
+    "file": "Pages/Legislature/Oversight.vue",
+    "line": 333,
+    "status": "source"
+  },
+  "legislature_oversight.misconduct_intake": {
+    "source_hash": "bb3be6e8938a50da36238ae624f431e87995ed6d30d69029e9cb368e970e48ff",
+    "shape": "template",
+    "file": "Pages/Legislature/Oversight.vue",
+    "line": 285,
+    "status": "source"
+  },
+  "legislature_oversight.needs_the_supermajority_of_all_serving_vac": {
+    "source_hash": "ea12c1c833c667b1d6b4119293922996c62f3a708485f1f13cd7f96a96acb1b7",
+    "shape": "template",
+    "file": "Pages/Legislature/Oversight.vue",
+    "line": 498,
+    "status": "source"
+  },
+  "legislature_oversight.no_administrative_office_exists_intake_can": {
+    "source_hash": "6f34d080f60caedf2a52f628702df8da707b824a7342fed73bd918472f4470e2",
+    "shape": "template",
+    "file": "Pages/Legislature/Oversight.vue",
+    "line": 250,
+    "status": "source"
+  },
+  "legislature_oversight.no_proceedings_on_record": {
+    "source_hash": "aee7b2e042414ac3eb9093b020cf403b463a4af6ddc1e43937efc3387f704f0f",
+    "shape": "template",
+    "file": "Pages/Legislature/Oversight.vue",
+    "line": 518,
+    "status": "source"
+  },
+  "legislature_oversight.no_vacancies_on_record": {
+    "source_hash": "d406891f9cfcfd11088c361b000a71bd18cd826bc14ab843cd30fde646720410",
+    "shape": "template",
+    "file": "Pages/Legislature/Oversight.vue",
+    "line": 538,
+    "status": "source"
+  },
+  "legislature_oversight.nominees_follow_the_appointment_consent_pi": {
+    "source_hash": "622a54721f7c6504e3eb01d21fb17e125f6f11485aa19de4b2322eca2bf0d13c",
+    "shape": "attr:hint",
+    "file": "Pages/Legislature/Oversight.vue",
+    "line": 263,
+    "status": "source"
+  },
+  "legislature_oversight.open_removal_vote_f_leg_022": {
+    "source_hash": "3bae089b5b70e269508e14840d7a9ed68249b3d1f3081b26bccea3078528066d",
+    "shape": "template",
+    "file": "Pages/Legislature/Oversight.vue",
+    "line": 479,
+    "status": "source"
+  },
+  "legislature_oversight.presiding": {
+    "source_hash": "f8db49d849f49c9bc26325de8d458cde0e4808ed2e6a604158b2b7560c126b85",
+    "shape": "template",
+    "file": "Pages/Legislature/Oversight.vue",
+    "line": 455,
+    "status": "source"
+  },
+  "legislature_oversight.proceeding_kind": {
+    "source_hash": "c21c778412ece89996565de6863d25221fd690bed6e35bd2ed2d30e39d6a9be4",
+    "shape": "attr:label",
+    "file": "Pages/Legislature/Oversight.vue",
+    "line": 381,
+    "status": "source"
+  },
+  "legislature_oversight.proceeding_state_machine": {
+    "source_hash": "119d87386bef9c45c34564a705b2fc3186c374c2146825411cce992b10414636",
+    "shape": "attr:aria-label",
+    "file": "Pages/Legislature/Oversight.vue",
+    "line": 454,
+    "status": "source"
+  },
+  "legislature_oversight.publish_findings": {
+    "source_hash": "85990470148538bb3cf8528b823271bb9190af52ef68c56e2a36fac4812d8ba1",
+    "shape": "template",
+    "file": "Pages/Legislature/Oversight.vue",
+    "line": 353,
+    "status": "source"
+  },
+  "legislature_oversight.publish_findings_2": {
+    "source_hash": "7957abad871457fa423d46feff8fe173c1e64438df6688d3543089b40fb6bc05",
+    "shape": "template",
+    "file": "Pages/Legislature/Oversight.vue",
+    "line": 390,
+    "status": "source"
+  },
+  "legislature_oversight.removal_parity_legislators_executives_and_": {
+    "source_hash": "eb1fa79d7e1723c840c7a1cbd4fe001a7790f296d72ba876b2ae4fa7265ee4c4",
+    "shape": "template",
+    "file": "Pages/Legislature/Oversight.vue",
+    "line": 405,
+    "status": "source"
+  },
+  "legislature_oversight.removal_proceedings": {
+    "source_hash": "793df281364b49d2367f7cdc9e4e703bdc11a91792538df1f4057f24cf751491",
+    "shape": "attr:title",
+    "file": "Pages/Legislature/Oversight.vue",
+    "line": 404,
+    "status": "source"
+  },
+  "legislature_oversight.seat": {
+    "source_hash": "e8cd3ac886e344f235d8679a08290fd082f35159f52152e3ce232dd27ca6e1cc",
+    "shape": "template",
+    "file": "Pages/Legislature/Oversight.vue",
+    "line": 525,
+    "status": "source"
+  },
+  "legislature_oversight.seat_vacated": {
+    "source_hash": "6e7aceee8514bf76f2b7f8bace74180af8ce74cef313504c3233e0f2a8c9ba24",
+    "shape": "template",
+    "file": "Pages/Legislature/Oversight.vue",
+    "line": 511,
+    "status": "source"
+  },
+  "legislature_oversight.special_election": {
+    "source_hash": "57eba91cf36908f42de42a6a0ddd60427c18a6984742907199b94008862e4acf",
+    "shape": "template",
+    "file": "Pages/Legislature/Oversight.vue",
+    "line": 532,
+    "status": "source"
+  },
+  "legislature_oversight.staff_nominee_user_ids_one_per_line_option": {
+    "source_hash": "7d493b04259a0b25a3403d0e71fe09da5a8e38aa26188808efa50111e6cc73c2",
+    "shape": "attr:label",
+    "file": "Pages/Legislature/Oversight.vue",
+    "line": 262,
+    "status": "source"
+  },
+  "legislature_oversight.staffing_consents_appointment_pipeline_maj": {
+    "source_hash": "98328b609f25c32d34dfcc74bed2bbb829c71c27f2beafd320fdca73807870e4",
+    "shape": "template",
+    "file": "Pages/Legislature/Oversight.vue",
+    "line": 231,
+    "status": "source"
+  },
+  "legislature_oversight.subject_serving_member": {
+    "source_hash": "a922fbff4557a41d9b2b220503be6e5e4aaf46033c8db300ac834dd6d4eea99d",
+    "shape": "attr:label",
+    "file": "Pages/Legislature/Oversight.vue",
+    "line": 292,
+    "status": "source"
+  },
+  "legislature_oversight.supermajority_of_all_serving_art_vii": {
+    "source_hash": "a8b137549e3b0b7adb6950ef436336fa276d48845a1a735a1633811b7bb54b15",
+    "shape": "template",
+    "file": "Pages/Legislature/Oversight.vue",
+    "line": 486,
+    "status": "source"
+  },
+  "legislature_oversight.the_docket_is_empty": {
+    "source_hash": "a6f252708fa43622f1008e9f1dc3b82c663a66bffec6d3e87ea90ffdaab1cd68",
+    "shape": "template",
+    "file": "Pages/Legislature/Oversight.vue",
+    "line": 399,
+    "status": "source"
+  },
+  "legislature_oversight.the_independent_administrative_office_enfo": {
+    "source_hash": "72c8f7d5178f06b06086ba73d317090bca42066d5c5ba5f98f7b487b26c2e8e0",
+    "shape": "template",
+    "file": "Pages/Legislature/Oversight.vue",
+    "line": 191,
+    "status": "source"
+  },
+  "legislature_oversight.vacancy_countback_page": {
+    "source_hash": "03c1afe5fe201f46822779c0b636faba623ff7cbf0795e6837ab6185fa919a7a",
+    "shape": "template",
+    "file": "Pages/Legislature/Oversight.vue",
+    "line": 514,
+    "status": "source"
+  },
+  "legislature_oversight.vacancy_state_machine": {
+    "source_hash": "14469325ac4af039c6cff77fb3e23bbcddc691b6ba96a6a1266d6df38839601a",
+    "shape": "attr:aria-label",
+    "file": "Pages/Legislature/Oversight.vue",
+    "line": 529,
+    "status": "source"
+  },
+  "legislature_referendums.blocked_this_term_passed_by_population_sup": {
+    "source_hash": "0ad7cc35a2bc7682aa4bfc4b1692ecad635940840a826a966e98c457b3142a8f",
+    "shape": "attr:title",
+    "file": "Pages/Legislature/Referendums.vue",
+    "line": 334,
+    "status": "source"
+  },
+  "legislature_referendums.bounds_checked_pre_vote_through_the_protec": {
+    "source_hash": "226682d93bc521e389f6545f8703be7123b72513184c9b4462a395502f24bbd1",
+    "shape": "attr:hint",
+    "file": "Pages/Legislature/Referendums.vue",
+    "line": 205,
+    "status": "source"
+  },
+  "legislature_referendums.delegate_a_question": {
+    "source_hash": "3c0aae545dae79010fda37f02870bf4ffbc0f00638c3f57c290399c94cf80a70",
+    "shape": "attr:title",
+    "file": "Pages/Legislature/Referendums.vue",
+    "line": 227,
+    "status": "source"
+  },
+  "legislature_referendums.delegation_is_filed_by_a_serving_member_f_": {
+    "source_hash": "61ebacedcbf4e56bd3d7a5fec002330de7dc3f01c1dc436fa0e4b0a54600e890",
+    "shape": "template",
+    "file": "Pages/Legislature/Referendums.vue",
+    "line": 228,
+    "status": "source"
+  },
+  "legislature_referendums.derived_from_the_act_type_never_editable_m": {
+    "source_hash": "5427e0644ded45cf8ae7537d2167e6619fb6874a4864965ac324034cdbc1095c",
+    "shape": "template",
+    "file": "Pages/Legislature/Referendums.vue",
+    "line": 181,
+    "status": "source"
+  },
+  "legislature_referendums.e_g_election_interval_months": {
+    "source_hash": "f2f9f0a17ab7c6381ba05d936defe3f6a56e1873fcb7a567588f99a1472c7f28",
+    "shape": "attr:placeholder",
+    "file": "Pages/Legislature/Referendums.vue",
+    "line": 197,
+    "status": "source"
+  },
+  "legislature_referendums.failed_at_the_population_threshold": {
+    "source_hash": "19f0c8335fce9ba10801c27e07bcabecab6bed249aea9667e2ca64a4044e2d0c",
+    "shape": "template",
+    "file": "Pages/Legislature/Referendums.vue",
+    "line": 304,
+    "status": "source"
+  },
+  "legislature_referendums.file_modification_vote_f_leg_034": {
+    "source_hash": "5b5b62ea1e3ecd5645ac91673ee838758620c572bca2c4ed40fb16664fe32189",
+    "shape": "template",
+    "file": "Pages/Legislature/Referendums.vue",
+    "line": 357,
+    "status": "source"
+  },
+  "legislature_referendums.no_questions_have_resolved_yet": {
+    "source_hash": "a0b1c1d31320746e1e3937713f8d2bbefebf5b865989fcb074ec03e9795de7bb",
+    "shape": "template",
+    "file": "Pages/Legislature/Referendums.vue",
+    "line": 366,
+    "status": "source"
+  },
+  "legislature_referendums.nothing_queued_a_delegated_or_petition_val": {
+    "source_hash": "8ebaefdd78181b87c1b3bfa3ac1596877b4f33e13dc8cf283d59cce6cee8bdbf",
+    "shape": "template",
+    "file": "Pages/Legislature/Referendums.vue",
+    "line": 279,
+    "status": "source"
+  },
+  "legislature_referendums.on_the_ballot": {
+    "source_hash": "68e93a3e9d9321c02c79bd99dc8b18b93c3d21477a0762c44b0eb3515e68d4e9",
+    "shape": "template",
+    "file": "Pages/Legislature/Referendums.vue",
+    "line": 239,
+    "status": "source"
+  },
+  "legislature_referendums.open_delegation_modification_votes": {
+    "source_hash": "88945ef6530284f7f26d5fc0849066f6e82cd5839dc467595ed0200dfda25538",
+    "shape": "attr:title",
+    "file": "Pages/Legislature/Referendums.vue",
+    "line": 236,
+    "status": "source"
+  },
+  "legislature_referendums.petition": {
+    "source_hash": "f13d830f3bec368a879422601c103f8187412b8f189da672971b14dfd645597d",
+    "shape": "template",
+    "file": "Pages/Legislature/Referendums.vue",
+    "line": 271,
+    "status": "source"
+  },
+  "legislature_referendums.population_supermajority_act_shielded_this": {
+    "source_hash": "90ec6045849c5cef65346fda20368128df5e9d0e06e472f434333768a7c8831b",
+    "shape": "template",
+    "file": "Pages/Legislature/Referendums.vue",
+    "line": 298,
+    "status": "source"
+  },
+  "legislature_referendums.population_supermajority_acts_shielded_fro": {
+    "source_hash": "c0e62e916eb47e1e5be42d3ffcab85c21f8919f99404376519fdb3870b54af14",
+    "shape": "template",
+    "file": "Pages/Legislature/Referendums.vue",
+    "line": 369,
+    "status": "source"
+  },
+  "legislature_referendums.population_threshold_fixed_by_act_type": {
+    "source_hash": "d20676a6e97e77181f57089416d67c9d3663322fb970de338d9896d6dde1390f",
+    "shape": "template",
+    "file": "Pages/Legislature/Referendums.vue",
+    "line": 180,
+    "status": "source"
+  },
+  "legislature_referendums.propose_modification": {
+    "source_hash": "8921caf301e6ace850d550525eda45444c82ae6efea148064aad0dd609b46f74",
+    "shape": "template",
+    "file": "Pages/Legislature/Referendums.vue",
+    "line": 323,
+    "status": "source"
+  },
+  "legislature_referendums.question_put_to_the_population": {
+    "source_hash": "34c0a4edfc3fe158dd4891d028fdc7200893f5186aa83397bce5788c090e8f2b",
+    "shape": "attr:label",
+    "file": "Pages/Legislature/Referendums.vue",
+    "line": 139,
+    "status": "source"
+  },
+  "legislature_referendums.questions_ride_the_next_jurisdiction_wide_": {
+    "source_hash": "7283dc9be50ed25af6a5972b424296dac168d4ff61664d31d398212b59c15696",
+    "shape": "template",
+    "file": "Pages/Legislature/Referendums.vue",
+    "line": 287,
+    "status": "source"
+  },
+  "legislature_referendums.queued_for_the_next_jurisdiction_wide_ball": {
+    "source_hash": "f07ca381a255059ad7d883e56505112f01ca4db1d48add20758d2522ad9021be",
+    "shape": "attr:title",
+    "file": "Pages/Legislature/Referendums.vue",
+    "line": 261,
+    "status": "source"
+  },
+  "legislature_referendums.referendum_question_state_machine": {
+    "source_hash": "496d3a931227a32813ae5287107d6a4edf41da1c0ed18799c150d29c2d226ba1",
+    "shape": "attr:aria-label",
+    "file": "Pages/Legislature/Referendums.vue",
+    "line": 284,
+    "status": "source"
+  },
+  "legislature_referendums.replacement_law_text": {
+    "source_hash": "f28eb3373f86c9057c8df99517df95d4606b54c3bd50a9c1407b7255949927d4",
+    "shape": "attr:label",
+    "file": "Pages/Legislature/Referendums.vue",
+    "line": 345,
+    "status": "source"
+  },
+  "legislature_referendums.requires_supermajority_of_all_serving_of_a": {
+    "source_hash": "083ae3aa812ae96895924448e01ca59001e5d935d10744bbb649b816c550293d",
+    "shape": "template",
+    "file": "Pages/Legislature/Referendums.vue",
+    "line": 223,
+    "status": "source"
+  },
+  "legislature_referendums.resolved_questions_results_at_the_matching": {
+    "source_hash": "5cb66af2e2e930da191f15515b322de833cf84d7212006a479aec56ce7e85bfa",
+    "shape": "attr:title",
+    "file": "Pages/Legislature/Referendums.vue",
+    "line": 293,
+    "status": "source"
+  },
+  "legislature_referendums.shield_lapses_when_the_certifies": {
+    "source_hash": "9b46f29fc1d973a1ba75722818def1cacc3f60bf6bb8fa909ceef2b8d8284f02",
+    "shape": "template",
+    "file": "Pages/Legislature/Referendums.vue",
+    "line": 338,
+    "status": "source"
+  },
+  "legislature_referendums.the_binding_text_the_referendum_enacts_not": {
+    "source_hash": "ed33d2f6eb7dc6ad9202016d0b853fc8561d9436ab11bd6bd3b3be4cd607a063",
+    "shape": "attr:hint",
+    "file": "Pages/Legislature/Referendums.vue",
+    "line": 154,
+    "status": "source"
+  },
+  "legislature_referendums.the_clk_19_shield_is_a_validator_gate_not_": {
+    "source_hash": "ba82140be164129fd60bbc7c802a59fe8269e3e4a929358ee645ea72bc79630f",
+    "shape": "template",
+    "file": "Pages/Legislature/Referendums.vue",
+    "line": 376,
+    "status": "source"
+  },
+  "legislature_referendums.the_legislature_can_put_any_issue_to_the_p": {
+    "source_hash": "fa9242de5fd51b5b521562ed0adf660216c277fad9b93eb04c1c88e3fa75c7a4",
+    "shape": "template",
+    "file": "Pages/Legislature/Referendums.vue",
+    "line": 121,
+    "status": "source"
+  },
+  "legislature_referendums.this_jurisdiction": {
+    "source_hash": "b3cfcf85cfdfbb8fc386b1115759bbd90d2443fdffb48793648839501c4bbbdd",
+    "shape": "bound:placeholder",
+    "file": "Pages/Legislature/Referendums.vue",
+    "line": 146,
+    "status": "source"
+  },
+  "legislature_referendums.this_term_chamber_supermajority_f_leg_034_": {
+    "source_hash": "79bcd67d3f5ecd47150c259ba197584cee670c0982998c72e03c42b763325172",
+    "shape": "template",
+    "file": "Pages/Legislature/Referendums.vue",
+    "line": 340,
+    "status": "source"
+  },
+  "legislature_referendums.threshold_art_ii_6": {
+    "source_hash": "f8fd91e95154b9d09ede071cdfabe907787400449870b70f3bd40b19a317da3a",
+    "shape": "template",
+    "file": "Pages/Legislature/Referendums.vue",
+    "line": 315,
+    "status": "source"
+  },
+  "legislature_sessionconsole.adjourn_seal_the_minutes": {
+    "source_hash": "a71c2efd1d88e0a9b3e46c47d04c5e77adffd4894f0493fa74f278dcadd40c89",
+    "shape": "attr:title",
+    "file": "Pages/Legislature/SessionConsole.vue",
+    "line": 577,
+    "status": "source"
+  },
+  "legislature_sessionconsole.adjournment_is_the_speaker_s_or_admin_staf": {
+    "source_hash": "fe5d02cc05006f6e7dfd8d93bff59c41e0b65ddd3474a6b18e95f39310d0f802",
+    "shape": "template",
+    "file": "Pages/Legislature/SessionConsole.vue",
+    "line": 603,
+    "status": "source"
+  },
+  "legislature_sessionconsole.agenda_constitutional_order": {
+    "source_hash": "b9c83e3fd3bf0082487593c3fa9231db3653baa165dbc97938a2370cb8d99ddd",
+    "shape": "attr:title",
+    "file": "Pages/Legislature/SessionConsole.vue",
+    "line": 438,
+    "status": "source"
+  },
+  "legislature_sessionconsole.attendance_feeds_the_quorum_call_and_the_p": {
+    "source_hash": "da9ab1a19ebc21fdcd0e25fb74bcda67646656c5ce844b369a89c63a4daf09f9",
+    "shape": "template",
+    "file": "Pages/Legislature/SessionConsole.vue",
+    "line": 353,
+    "status": "source"
+  },
+  "legislature_sessionconsole.attendance_record": {
+    "source_hash": "27dd2c838fda7b119974509619217d60e94388ad71e4af086fd4d7239fdbf006",
+    "shape": "attr:caption",
+    "file": "Pages/Legislature/SessionConsole.vue",
+    "line": 632,
+    "status": "source"
+  },
+  "legislature_sessionconsole.attendance_the_quorum_call": {
+    "source_hash": "885078b5d74f05e72528ca23c5e3df5d03767adac2b42859a921a726eaad689e",
+    "shape": "attr:title",
+    "file": "Pages/Legislature/SessionConsole.vue",
+    "line": 343,
+    "status": "source"
+  },
+  "legislature_sessionconsole.balloting_open_of_serving_have_cast_closes": {
+    "source_hash": "28ceab290cb27aa5913544490787e5cd8066573dd48d9cfd5e83e5d6443a8bba",
+    "shape": "template",
+    "file": "Pages/Legislature/SessionConsole.vue",
+    "line": 248,
+    "status": "source"
+  },
+  "legislature_sessionconsole.bill": {
+    "source_hash": "fab3b2994c1a632fe9af3373e9530e594639186d58ba080b73dbaa5b6912a103",
+    "shape": "template",
+    "file": "Pages/Legislature/SessionConsole.vue",
+    "line": 463,
+    "status": "source"
+  },
+  "legislature_sessionconsole.break_the_tie_f_spk_004": {
+    "source_hash": "adafe219d82e9418a8b5750d73cecb896e4657312509429ef438b8a5c25aead4",
+    "shape": "template",
+    "file": "Pages/Legislature/SessionConsole.vue",
+    "line": 493,
+    "status": "source"
+  },
+  "legislature_sessionconsole.call_attendance_the_published_quorum_count": {
+    "source_hash": "67612ae35dcc54defbd723169da04331bc20b9caf081b924211442e64ed3b1d0",
+    "shape": "template",
+    "file": "Pages/Legislature/SessionConsole.vue",
+    "line": 221,
+    "status": "source"
+  },
+  "legislature_sessionconsole.call_open_a_session": {
+    "source_hash": "694278145846729f211e48dfe524f7e02ac48c80cf346397517decc210c0e5d8",
+    "shape": "template",
+    "file": "Pages/Legislature/SessionConsole.vue",
+    "line": 302,
+    "status": "source"
+  },
+  "legislature_sessionconsole.compel_attendance_then_re_publish_the_coun": {
+    "source_hash": "9c897e5cac3912b28f68b51d4e7151cfc05a73e648ba446a79110de2dfd45946",
+    "shape": "template",
+    "file": "Pages/Legislature/SessionConsole.vue",
+    "line": 423,
+    "status": "source"
+  },
+  "legislature_sessionconsole.entered_verbatim_into_the_immutable_public": {
+    "source_hash": "44159c65285666c2ca460c098c1b3f15c6079f0485a9e70e967cc4c214e905aa",
+    "shape": "attr:hint",
+    "file": "Pages/Legislature/SessionConsole.vue",
+    "line": 560,
+    "status": "source"
+  },
+  "legislature_sessionconsole.file_my_ranking_f_leg_008": {
+    "source_hash": "03a8287f734cb6d0c36913f857b0958ab6d7b17426cbe2f28c2bb4cd9896a5d0",
+    "shape": "template",
+    "file": "Pages/Legislature/SessionConsole.vue",
+    "line": 264,
+    "status": "source"
+  },
+  "legislature_sessionconsole.i_am_present_f_leg_002": {
+    "source_hash": "22996ab297d0b38fd8657544ca08660537ddea62b89657737aedb3db3e813443",
+    "shape": "template",
+    "file": "Pages/Legislature/SessionConsole.vue",
+    "line": 345,
+    "status": "source"
+  },
+  "legislature_sessionconsole.issue_compulsion_order_f_spk_008": {
+    "source_hash": "ab0aede6dc5430646fdce69b4aae4425d28c36517ae5cac0e109137648ff3da8",
+    "shape": "template",
+    "file": "Pages/Legislature/SessionConsole.vue",
+    "line": 430,
+    "status": "source"
+  },
+  "legislature_sessionconsole.last_balloting_closed_a_failed_balloting_n": {
+    "source_hash": "19ef873cec8bb662215653d8a6ac3356518e8c1072ee543b5dad34344b51e8ec",
+    "shape": "template",
+    "file": "Pages/Legislature/SessionConsole.vue",
+    "line": 277,
+    "status": "source"
+  },
+  "legislature_sessionconsole.minutes_sealed_audit_chain_entry": {
+    "source_hash": "41d475587c4a9c568c8bc4c4cbe09ea6ba2ab5d71bceac14948b099531d91789",
+    "shape": "template",
+    "file": "Pages/Legislature/SessionConsole.vue",
+    "line": 622,
+    "status": "source"
+  },
+  "legislature_sessionconsole.motion_text": {
+    "source_hash": "93e90b8a5ab75acd757c18cf36e8667600759c1df7d08d91a8ddef47d2f33a0d",
+    "shape": "attr:label",
+    "file": "Pages/Legislature/SessionConsole.vue",
+    "line": 525,
+    "status": "source"
+  },
+  "legislature_sessionconsole.no_motions_this_session": {
+    "source_hash": "b69119eb507a9c27822eac6ebc8205e694b69892618b586e9594b7eb19347c2c",
+    "shape": "template",
+    "file": "Pages/Legislature/SessionConsole.vue",
+    "line": 504,
+    "status": "source"
+  },
+  "legislature_sessionconsole.no_session_has_ever_been_held_the_first_se": {
+    "source_hash": "b5c4e39600ec5c0987682331639ef4438f8c3687bc994cb7f73b960dce22d5f2",
+    "shape": "template",
+    "file": "Pages/Legislature/SessionConsole.vue",
+    "line": 303,
+    "status": "source"
+  },
+  "legislature_sessionconsole.open_the_speaker_balloting": {
+    "source_hash": "116232bbd1cfd542dd5c9ae18162938cbb9826ba327329cc182ffa1a432d326a",
+    "shape": "template",
+    "file": "Pages/Legislature/SessionConsole.vue",
+    "line": 273,
+    "status": "source"
+  },
+  "legislature_sessionconsole.opened_adjourned_quorum_of_serving_present": {
+    "source_hash": "37d98a029542157434ca1020be980305020b771302803fe96bce090b1d23120a",
+    "shape": "template",
+    "file": "Pages/Legislature/SessionConsole.vue",
+    "line": 616,
+    "status": "source"
+  },
+  "legislature_sessionconsole.opened_serving_at_open_stored_as_utc": {
+    "source_hash": "c1a44fbebe24b7b7bd9269e725dcc91d8b5a4edcc2d4f2943202ce4aad04641c",
+    "shape": "template",
+    "file": "Pages/Legislature/SessionConsole.vue",
+    "line": 336,
+    "status": "source"
+  },
+  "legislature_sessionconsole.opens_immediately_serving_quorum_snapshot_": {
+    "source_hash": "34c095e5514e7c98d5f1751154f73fde26f28848b48457222db3f0da47318096",
+    "shape": "template",
+    "file": "Pages/Legislature/SessionConsole.vue",
+    "line": 315,
+    "status": "source"
+  },
+  "legislature_sessionconsole.peg_quorum_of_majorities_compute_against_a": {
+    "source_hash": "b5cec1e0d3ee14d75d75b4dc908332719a6254d55c0405a81bdac7562d6e4254",
+    "shape": "template",
+    "file": "Pages/Legislature/SessionConsole.vue",
+    "line": 380,
+    "status": "source"
+  },
+  "legislature_sessionconsole.peg_quorum_of_this_kind_of_serving_art_v_3": {
+    "source_hash": "2a2e0d44ba0319bf38585c0b3b3727d4480c9bf8080b032f7b505c518e6c6b5e",
+    "shape": "template",
+    "file": "Pages/Legislature/SessionConsole.vue",
+    "line": 401,
+    "status": "source"
+  },
+  "legislature_sessionconsole.public_rankings_chamber_votes_are_the_oppo": {
+    "source_hash": "ea71bb243a34a8f069ce3f9279e47a5e21f3948d97c6770e2c4f32b4da058ff9",
+    "shape": "template",
+    "file": "Pages/Legislature/SessionConsole.vue",
+    "line": 267,
+    "status": "source"
+  },
+  "legislature_sessionconsole.publish_the_quorum_count_f_spk_003": {
+    "source_hash": "f72d48aaf6ac3d2a8e686dd53ffb9fceb911a2d54321b281a60f517221d55675",
+    "shape": "template",
+    "file": "Pages/Legislature/SessionConsole.vue",
+    "line": 410,
+    "status": "source"
+  },
+  "legislature_sessionconsole.quorum_failed_wf_leg_20": {
+    "source_hash": "41d7830922cff88c304c42f76c6755fa3d4886fba531179562290ad3181661a7",
+    "shape": "attr:title",
+    "file": "Pages/Legislature/SessionConsole.vue",
+    "line": 423,
+    "status": "source"
+  },
+  "legislature_sessionconsole.quorum_met_published": {
+    "source_hash": "2113ad8218cf0487d5895d469d8d177ce670e5ffa386a94c52b24c3ad817da4e",
+    "shape": "template",
+    "file": "Pages/Legislature/SessionConsole.vue",
+    "line": 417,
+    "status": "source"
+  },
+  "legislature_sessionconsole.quorum_not_met": {
+    "source_hash": "a409f70a57945858055ca4bab01ef633af528744958926dff1c4648424fe78b8",
+    "shape": "template",
+    "file": "Pages/Legislature/SessionConsole.vue",
+    "line": 418,
+    "status": "source"
+  },
+  "legislature_sessionconsole.quorum_present_of_all_serving": {
+    "source_hash": "81226041eaf0d5ed1766e35538a489979f8e58c08da706105a3375accd1e8b8a",
+    "shape": "attr:label",
+    "file": "Pages/Legislature/SessionConsole.vue",
+    "line": 377,
+    "status": "source"
+  },
+  "legislature_sessionconsole.replace_speaker": {
+    "source_hash": "b42cc42065145907e1cdfd64d2c597a66ffd59ce433dd84050eb6b739b3b9f7e",
+    "shape": "template",
+    "file": "Pages/Legislature/SessionConsole.vue",
+    "line": 519,
+    "status": "source"
+  },
+  "legislature_sessionconsole.round": {
+    "source_hash": "c4b30bcfd4dd7f44e4eb520c537e3f0f8e2de2c0f0223ca54b6bde6acd362a64",
+    "shape": "template",
+    "file": "Pages/Legislature/SessionConsole.vue",
+    "line": 287,
+    "status": "source"
+  },
+  "legislature_sessionconsole.round_record_protected_counting_engine": {
+    "source_hash": "be483afe1b7b42c6a44035c52b71ada5043678d64e0f92b9a36e7531d7491e7e",
+    "shape": "template",
+    "file": "Pages/Legislature/SessionConsole.vue",
+    "line": 285,
+    "status": "source"
+  },
+  "legislature_sessionconsole.sealed_to_the_public_record_adjourning_a_q": {
+    "source_hash": "0917a9022ae11365ff0527e29c3ab2e7b1f008b4c860e01bd097fd67cdbc27d9",
+    "shape": "attr:hint",
+    "file": "Pages/Legislature/SessionConsole.vue",
+    "line": 588,
+    "status": "source"
+  },
+  "legislature_sessionconsole.session_due_in_day_by_discretion_can_never": {
+    "source_hash": "fd1837f89604f80411fcb6e1c1fdf0bbd1f204bb756301fd0e8d03a342627d64",
+    "shape": "template",
+    "file": "Pages/Legislature/SessionConsole.vue",
+    "line": 232,
+    "status": "source"
+  },
+  "legislature_sessionconsole.sessions_are_called_by_the_chamber_s_speak": {
+    "source_hash": "69785af640af723d409276b12fa473370c5bb17efb9105b8b6786d051028ccd7",
+    "shape": "template",
+    "file": "Pages/Legislature/SessionConsole.vue",
+    "line": 320,
+    "status": "source"
+  },
+  "legislature_sessionconsole.slots_1_2_locked_outstanding_emergency_pow": {
+    "source_hash": "f1cf97dfe16ad060e0c689e6345d7ea1a6cd99296fdc8d526c0fa9de7e292838",
+    "shape": "template",
+    "file": "Pages/Legislature/SessionConsole.vue",
+    "line": 439,
+    "status": "source"
+  },
+  "legislature_sessionconsole.speaker_election_the_first_order_of_the_fi": {
+    "source_hash": "e325ef3b146cb9f0fcebcfcc6b95fcb91b236e60705c47e440a67fd7f3e572da",
+    "shape": "attr:title",
+    "file": "Pages/Legislature/SessionConsole.vue",
+    "line": 239,
+    "status": "source"
+  },
+  "legislature_sessionconsole.statements_into_the_public_record": {
+    "source_hash": "fd95420ef21673008199ca05ae0f3f921c0263f58ede1e12e0b1c7e5d4be74df",
+    "shape": "attr:title",
+    "file": "Pages/Legislature/SessionConsole.vue",
+    "line": 549,
+    "status": "source"
+  },
+  "legislature_sessionconsole.the_deciding_vote_opens_in_the_same_filing": {
+    "source_hash": "3a7cf1b5b937f65128965747962ad1e6641bd4d21b26f5df31f21ca83ea89f0b",
+    "shape": "attr:hint",
+    "file": "Pages/Legislature/SessionConsole.vue",
+    "line": 527,
+    "status": "source"
+  },
+  "legislature_sessionconsole.the_session_machine_scheduled_open_adjourn": {
+    "source_hash": "a675631e30ac44908ef08e3f537606b8de4377ddbf230573b8e7ca57369a173e",
+    "shape": "template",
+    "file": "Pages/Legislature/SessionConsole.vue",
+    "line": 643,
+    "status": "source"
+  },
+  "legislature_sessionconsole.the_speaker_presides_and_does_not_move_or_": {
+    "source_hash": "2a92da7518010642cfe33e3b8af33a2b11e73be9b28635379d8b56cdfa35afc4",
+    "shape": "template",
+    "file": "Pages/Legislature/SessionConsole.vue",
+    "line": 541,
+    "status": "source"
+  },
+  "legislature_sessionconsole.tie_breaking_vote": {
+    "source_hash": "ce29e2094dc2d9a6f588158d0717182dddb84d93f4ccd81447df476d8a8adf06",
+    "shape": "template",
+    "file": "Pages/Legislature/SessionConsole.vue",
+    "line": 488,
+    "status": "source"
+  },
+  "legislature_sessionconsole.until_the_chamber_elects_its_speaker_there": {
+    "source_hash": "d62a4b297966215eb43f657dbf49b8c9fe9b0da636df176d05db342acb2073e8",
+    "shape": "template",
+    "file": "Pages/Legislature/SessionConsole.vue",
+    "line": 240,
+    "status": "source"
+  },
+  "legislature_sessionconsole.winner_seated_as_speaker_public_record_kin": {
+    "source_hash": "132ca3f63b25cfac3f6f9d540a7798d4e7ae6cc4b8a43d75be3a7652d88adae8",
+    "shape": "template",
+    "file": "Pages/Legislature/SessionConsole.vue",
+    "line": 294,
+    "status": "source"
+  },
+  "legislature_sessionconsole.your_attendance_is_registered": {
+    "source_hash": "9b9880379e7ae0d4cc6169567a13d13a02af6bb849f76b7884477647f556b35c",
+    "shape": "template",
+    "file": "Pages/Legislature/SessionConsole.vue",
+    "line": 352,
+    "status": "source"
+  },
+  "legislature_sessionconsole.your_ranking": {
+    "source_hash": "5c18d9bdb047b92119b576837061c467eb06080e32350573aa7df3cf0214e8b3",
+    "shape": "template",
+    "file": "Pages/Legislature/SessionConsole.vue",
+    "line": 261,
+    "status": "source"
+  },
+  "legislature_settings.a_setting_change_is_a_bill_whose_enactment": {
+    "source_hash": "36e3a3124edcbc697a607dd608ef36bd775117544b5b0a71eeedc45ca2290ebc",
+    "shape": "template",
+    "file": "Pages/Legislature/Settings.vue",
+    "line": 299,
+    "status": "source"
+  },
+  "legislature_settings.amendable_constitutional_settings": {
+    "source_hash": "792dddb3ee4a18cd5f2b6bd8ca35f261498c828e3dff5428c9f4d1da23ec371e",
+    "shape": "template",
+    "file": "Pages/Legislature/Settings.vue",
+    "line": 147,
+    "status": "source"
+  },
+  "legislature_settings.changes_history_the_enactment_receipts": {
+    "source_hash": "f8019d28c135db967deb8971cf666771f6849538993e41f4950b7af760079b7a",
+    "shape": "attr:title",
+    "file": "Pages/Legislature/Settings.vue",
+    "line": 267,
+    "status": "source"
+  },
+  "legislature_settings.continue_in_the_bill_flow": {
+    "source_hash": "b9710ae5f2c2fa96449a85ac9f48a3ba632fba3ad430c7562f7b7a7a41d240a8",
+    "shape": "template",
+    "file": "Pages/Legislature/Settings.vue",
+    "line": 247,
+    "status": "source"
+  },
+  "legislature_settings.dependent_clocks_re_derived_re_armed_timer": {
+    "source_hash": "8aa859acc13d7ef81b07077608ebf5e2008c744ea9c0bb02787066ad1b173d97",
+    "shape": "template",
+    "file": "Pages/Legislature/Settings.vue",
+    "line": 283,
+    "status": "source"
+  },
+  "legislature_settings.hardened_bounds": {
+    "source_hash": "d9db5cc970a49ecade8c49949234c6223ed9380b2b299c3ef6315f4826f2c198",
+    "shape": "template",
+    "file": "Pages/Legislature/Settings.vue",
+    "line": 152,
+    "status": "source"
+  },
+  "legislature_settings.must_stay_in_lockstep_clk_09_clk_10": {
+    "source_hash": "d2df3230cd256b419d9aae06c1e24aaaf1165122b6fdcab5be72846de97c5df1",
+    "shape": "template",
+    "file": "Pages/Legislature/Settings.vue",
+    "line": 161,
+    "status": "source"
+  },
+  "legislature_settings.no_setting_has_been_amended_in_this_jurisd": {
+    "source_hash": "93da04ec4e309474859b3e0fae1f6a68c0d6fb36a9602b06a3e116a615542c50",
+    "shape": "template",
+    "file": "Pages/Legislature/Settings.vue",
+    "line": 268,
+    "status": "source"
+  },
+  "legislature_settings.pick_propose_change_on_any_row_above_to_pr": {
+    "source_hash": "4074519f88e2b5d180f692c5813dde6814eedfdedf4047a58e4f24b4b1f3e7fc",
+    "shape": "template",
+    "file": "Pages/Legislature/Settings.vue",
+    "line": 233,
+    "status": "source"
+  },
+  "legislature_settings.propose_a_change_pre_targeted_bill": {
+    "source_hash": "e6ee2145dae54d452190c496fc604cf2735984c2b62777d8c315e5fc1c74c7be",
+    "shape": "attr:title",
+    "file": "Pages/Legislature/Settings.vue",
+    "line": 232,
+    "status": "source"
+  },
+  "legislature_settings.propose_change": {
+    "source_hash": "0a12361265ae673161f24a9305fe9e828539750afdb585d35e6bfd6f37a2cb5c",
+    "shape": "template",
+    "file": "Pages/Legislature/Settings.vue",
+    "line": 181,
+    "status": "source"
+  },
+  "legislature_settings.set_by": {
+    "source_hash": "bd6cc9a4cf4bcd646f0300f6d25c5e1e5afbd70e7cffad12d4602d758050415e",
+    "shape": "template",
+    "file": "Pages/Legislature/Settings.vue",
+    "line": 153,
+    "status": "source"
+  },
+  "legislature_settings.setting_changes_enacting_acts": {
+    "source_hash": "78b0873482c1886d914d6ddfbebd47f653aa9ee869736bb1ae9a7d9d7ed11ef8",
+    "shape": "attr:caption",
+    "file": "Pages/Legislature/Settings.vue",
+    "line": 281,
+    "status": "source"
+  },
+  "legislature_settings.supermajority_can_never_fall_below_majorit": {
+    "source_hash": "74d3f2a0c9a1e25063ab8d5c519b1de4b371c8b4d000d3ffc8276efe59755118",
+    "shape": "template",
+    "file": "Pages/Legislature/Settings.vue",
+    "line": 225,
+    "status": "source"
+  },
+  "legislature_settings.the_amendable_register": {
+    "source_hash": "6ab51f7f29e33fe5a21110852e715e4f6c64d7e9ee03779c95f328c270a39249",
+    "shape": "attr:title",
+    "file": "Pages/Legislature/Settings.vue",
+    "line": 144,
+    "status": "source"
+  },
+  "legislature_settings.the_constitutional_engine_blocks_the_bill_": {
+    "source_hash": "4f279acee1c01d4d910205fa9108b98e6093b07b8e1530f1ea532d927e277c1e",
+    "shape": "template",
+    "file": "Pages/Legislature/Settings.vue",
+    "line": 256,
+    "status": "source"
+  },
+  "legislature_settings.the_hardened_floor_what_no_act_can_change": {
+    "source_hash": "a79d413b153476e3b169f7ce07c7eecce78c2e6aa64bf77734f363a3cb1a19ca",
+    "shape": "attr:title",
+    "file": "Pages/Legislature/Settings.vue",
+    "line": 223,
+    "status": "source"
+  },
+  "legislature_settings.these_are_the_rules_this_legislature_can_c": {
+    "source_hash": "3f599eced9fc26a376cbf2f917d364bcce861e178317fd179a1600fbd58fc8d8",
+    "shape": "template",
+    "file": "Pages/Legislature/Settings.vue",
+    "line": 135,
+    "status": "source"
+  },
+  "legislature_settings.voting_method_only_a_more_proportional_met": {
+    "source_hash": "143c66db8bf4322363e282c840f761cfb1347c660c9611ae8e17bb729c1db717",
+    "shape": "template",
+    "file": "Pages/Legislature/Settings.vue",
+    "line": 226,
+    "status": "source"
+  },
+  "legislature_show.chamber_bills_committees_referendums_setti": {
+    "source_hash": "434ba92e86efccafc484ed6219f41c8946f91a0c4e7d7c43f333e8fc4b940c51",
+    "shape": "template",
+    "file": "Pages/Legislature/Show.vue",
+    "line": 156,
+    "status": "source"
+  },
+  "legislature_show.current_members_of_this_legislature": {
+    "source_hash": "c937fb01c05b29c2d7d559429ed0ee83b44b3ca9c21815ffb8459472782d6a32",
+    "shape": "attr:caption",
+    "file": "Pages/Legislature/Show.vue",
+    "line": 139,
+    "status": "source"
+  },
+  "legislature_show.district_map": {
+    "source_hash": "dd8ead127b99dd65d03e76baa00fc4da9f74fb6c94068c19ca4017c845353aac",
+    "shape": "bound:label",
+    "file": "Pages/Legislature/Show.vue",
+    "line": 91,
+    "status": "source"
+  },
+  "legislature_show.district_maps": {
+    "source_hash": "562e1360ef71aba3b3e9b02609cfb904d594b8103eae4067b98570de98be246b",
+    "shape": "bound:label",
+    "file": "Pages/Legislature/Show.vue",
+    "line": 91,
+    "status": "source"
+  },
+  "legislature_show.districts_maps": {
+    "source_hash": "996e75cdd4bdb830198879ae44d57cba1a2c94b231d19f9d33c0fc9f00f6a147",
+    "shape": "attr:title",
+    "file": "Pages/Legislature/Show.vue",
+    "line": 84,
+    "status": "source"
+  },
+  "legislature_show.inside_this_legislature": {
+    "source_hash": "4074d28ca8437af5126d50845a2ae0a81c92636eda2cfe67f2e82474d3aeb167",
+    "shape": "attr:title",
+    "file": "Pages/Legislature/Show.vue",
+    "line": 155,
+    "status": "source"
+  },
+  "legislature_show.no_active_map_yet": {
+    "source_hash": "33d84c37296d1b543f1511c19fc289cc3f4d7faa51eff1c36e3ec887e46e1553",
+    "shape": "attr:label",
+    "file": "Pages/Legislature/Show.vue",
+    "line": 98,
+    "status": "source"
+  },
+  "legislature_show.no_members_yet_seats_fill_when_a_general_e": {
+    "source_hash": "ff2213d367e0920f146c6a7c0e15f7cac6a6ceb8ef22ea34dcfb056fcbf89ecd",
+    "shape": "template",
+    "file": "Pages/Legislature/Show.vue",
+    "line": 148,
+    "status": "source"
+  },
+  "legislature_show.one_legislature_sized_by_its_people_every_": {
+    "source_hash": "163504f96ca13ab866cb65459e1a836b46bfef56cfa101d6f2239aee44dcae70",
+    "shape": "template",
+    "file": "Pages/Legislature/Show.vue",
+    "line": 77,
+    "status": "source"
+  },
+  "legislature_show.open_the_district_mapper": {
+    "source_hash": "ca6f969313a0f8b26aa58b0ff4e41d8d7b509b61d2363b20affdae9db406178d",
+    "shape": "template",
+    "file": "Pages/Legislature/Show.vue",
+    "line": 100,
+    "status": "source"
+  },
+  "legislature_show.seats_term": {
+    "source_hash": "797dbddc34017e1ae635cb43a85400a427d2db336f7ff49800227529700c0cf5",
+    "shape": "attr:title",
+    "file": "Pages/Legislature/Show.vue",
+    "line": 106,
+    "status": "source"
+  },
+  "legislature_show.serving_now": {
+    "source_hash": "2bb177beb181fb1568d19aac9c89391186e4b6ca6dfd291431a9d68d9825724f",
+    "shape": "attr:label",
+    "file": "Pages/Legislature/Show.vue",
+    "line": 128,
+    "status": "source"
+  },
+  "legislature_show.speaker": {
+    "source_hash": "74f381ab672cb60c19a7d93233fc2b0da70c57dc6e274e84b8bac9c37e0193a3",
+    "shape": "template",
+    "file": "Pages/Legislature/Show.vue",
+    "line": 116,
+    "status": "source"
+  },
+  "legislature_show.term_ends": {
+    "source_hash": "9d9dd962d2084ccf3c5b6e61c3bd0d8f5c96f05017da79bb76839fa7179830fd",
+    "shape": "script:label",
+    "file": "Pages/Legislature/Show.vue",
+    "line": 58,
+    "status": "source"
+  },
+  "legislature_show.the_district_mapper_where_this_legislature": {
+    "source_hash": "dbc21eb0fbde919a7f8775a31a879bf53671095d85acda7edbaad9c16c93e478",
+    "shape": "template",
+    "file": "Pages/Legislature/Show.vue",
+    "line": 85,
+    "status": "source"
+  },
+  "legislature_show.type_a_constituent_reps": {
+    "source_hash": "c0231a7ce8ca204aa12b0bbecc943408ce3e53f9b0b2725497cc148c6787c2fc",
+    "shape": "attr:label",
+    "file": "Pages/Legislature/Show.vue",
+    "line": 122,
+    "status": "source"
+  },
+  "legislature_show.type_b_at_large": {
+    "source_hash": "308b225a6903b3eec9dec30ac4ca337199042fc3dabd008a46f94db9a1793ade",
+    "shape": "attr:label",
+    "file": "Pages/Legislature/Show.vue",
+    "line": 126,
+    "status": "source"
+  },
+  "legislature_speakertools.choose_a_member": {
+    "source_hash": "6f78753b0f48ad829f8e604e42a6aff03cf3a9f089dbc0e180295869d808309a",
+    "shape": "template",
+    "file": "Pages/Legislature/SpeakerTools.vue",
+    "line": 239,
+    "status": "source"
+  },
+  "legislature_speakertools.f_spk_004": {
+    "source_hash": "686b52879ace99c39c8b93ecfdbcb82a89c43760035559df462d11591014eb4d",
+    "shape": "template",
+    "file": "Pages/Legislature/SpeakerTools.vue",
+    "line": 168,
+    "status": "source"
+  },
+  "legislature_speakertools.facilitated_member_priorities": {
+    "source_hash": "3c84286e2b1302ac0b263b2d77b1a431291a5729ea0486d49f830a7e22a42e30",
+    "shape": "attr:caption",
+    "file": "Pages/Legislature/SpeakerTools.vue",
+    "line": 214,
+    "status": "source"
+  },
+  "legislature_speakertools.facilitation_targets_an_upcoming_session_n": {
+    "source_hash": "ce78783683ab13617d9b92b6c788dd116e3ff9ff208ff2bb912469473cdc5db7",
+    "shape": "template",
+    "file": "Pages/Legislature/SpeakerTools.vue",
+    "line": 263,
+    "status": "source"
+  },
+  "legislature_speakertools.go_to": {
+    "source_hash": "505d98209f8fe039f56f339e2bd0e9c099996db88fc16622bee4a3534c03a2a1",
+    "shape": "template",
+    "file": "Pages/Legislature/SpeakerTools.vue",
+    "line": 139,
+    "status": "source"
+  },
+  "legislature_speakertools.member_priorities_queue_f_spk_006": {
+    "source_hash": "01cf5c7a5eb0972cc1c84a4c0cacfeaf481a563d6161dad91a80bdd09aa957d3",
+    "shape": "attr:title",
+    "file": "Pages/Legislature/SpeakerTools.vue",
+    "line": 202,
+    "status": "source"
+  },
+  "legislature_speakertools.members_hand_the_speaker_their_priorities_": {
+    "source_hash": "44d2456be8e1f863006ef699ec2619cf65ea9888077b5aad622ba82ac3bc0f2f",
+    "shape": "template",
+    "file": "Pages/Legislature/SpeakerTools.vue",
+    "line": 203,
+    "status": "source"
+  },
+  "legislature_speakertools.neutral_chair": {
+    "source_hash": "ec5f44c5ac5e9c97eebb18c0d1e1ca5b69f2a34863cb88aecfb715715d06ace0",
+    "shape": "attr:title",
+    "file": "Pages/Legislature/SpeakerTools.vue",
+    "line": 111,
+    "status": "source"
+  },
+  "legislature_speakertools.no_priorities_facilitated_yet": {
+    "source_hash": "aeaac6bdbfb19fcd7ae5d365b80883f24728992fb67bd18b4f26c57603e0550a",
+    "shape": "template",
+    "file": "Pages/Legislature/SpeakerTools.vue",
+    "line": 216,
+    "status": "source"
+  },
+  "legislature_speakertools.no_removal_proceedings_are_pending": {
+    "source_hash": "31add1a5208ae69a0978188c62de9c998a7eac34488d8234af29da8dbac8f3be",
+    "shape": "template",
+    "file": "Pages/Legislature/SpeakerTools.vue",
+    "line": 197,
+    "status": "source"
+  },
+  "legislature_speakertools.no_tie_has_needed_breaking_this_term": {
+    "source_hash": "16d5d23dd6091d77c38e754ae7ec0b7934152e84ae694edee70d57e239f31037",
+    "shape": "template",
+    "file": "Pages/Legislature/SpeakerTools.vue",
+    "line": 171,
+    "status": "source"
+  },
+  "legislature_speakertools.politically_neutral_votes_only_to_break_ti": {
+    "source_hash": "bcde900ca81e2a72bbdc002a90302e6aa77f68e8f5455c65ecbb6b844b9cd218",
+    "shape": "template",
+    "file": "Pages/Legislature/SpeakerTools.vue",
+    "line": 117,
+    "status": "source"
+  },
+  "legislature_speakertools.preside_on_the_oversight_page": {
+    "source_hash": "16fcc6cf5c81ecfb7057cdb19e64db255c13a4515369d2e69fed0963ef0e2e34",
+    "shape": "template",
+    "file": "Pages/Legislature/SpeakerTools.vue",
+    "line": 192,
+    "status": "source"
+  },
+  "legislature_speakertools.read_only_view": {
+    "source_hash": "07c1d875486a86076ff1a699ea89ed6738c578838e13ff7e762a154de8350760",
+    "shape": "attr:title",
+    "file": "Pages/Legislature/SpeakerTools.vue",
+    "line": 104,
+    "status": "source"
+  },
+  "legislature_speakertools.removal_presiding_f_spk_007": {
+    "source_hash": "f9f16883297d6c706b1679938e83b55057ac2bc682de2e4ba597a5009efc1a4a",
+    "shape": "template",
+    "file": "Pages/Legislature/SpeakerTools.vue",
+    "line": 176,
+    "status": "source"
+  },
+  "legislature_speakertools.speaker_cast": {
+    "source_hash": "92f84754b6de582045581840a49ae5464745be49f0592c3f0ce6cd750a4eeaba",
+    "shape": "script:label",
+    "file": "Pages/Legislature/SpeakerTools.vue",
+    "line": 76,
+    "status": "source"
+  },
+  "legislature_speakertools.speaker_tie_breaking_votes": {
+    "source_hash": "fb368d2523235fb52ab0e19404da7660c34ee985f35bf44799cf82a73d7fa59b",
+    "shape": "attr:caption",
+    "file": "Pages/Legislature/SpeakerTools.vue",
+    "line": 165,
+    "status": "source"
+  },
+  "legislature_speakertools.the_only_speaker_votes_on_record_each_cast": {
+    "source_hash": "28ac6e66dabcbe67702b5f83557f4e53eabf6653c6d615d8520f37a5894cb5d0",
+    "shape": "template",
+    "file": "Pages/Legislature/SpeakerTools.vue",
+    "line": 156,
+    "status": "source"
+  },
+  "legislature_speakertools.the_speaker_facilitates_and_stays_politica": {
+    "source_hash": "e8178fa0a394e54804894823610945376539dc692ca50a7598c67c229d493683",
+    "shape": "template",
+    "file": "Pages/Legislature/SpeakerTools.vue",
+    "line": 94,
+    "status": "source"
+  },
+  "legislature_speakertools.the_speaker_presides_over_every_removal_pr": {
+    "source_hash": "84cf7d9e3d361ac6ec415c97c197410715a4c891d2c940fedfe454f5d54de8e8",
+    "shape": "template",
+    "file": "Pages/Legislature/SpeakerTools.vue",
+    "line": 177,
+    "status": "source"
+  },
+  "legislature_speakertools.the_speaker_s_nine_forms": {
+    "source_hash": "7e3061d6b18a890f0d5cafa746074659b40b78deb735792deb74352d40050054",
+    "shape": "attr:title",
+    "file": "Pages/Legislature/SpeakerTools.vue",
+    "line": 127,
+    "status": "source"
+  },
+  "legislature_speakertools.the_speaker_stays_in_every_quorum_and_thre": {
+    "source_hash": "467809473bd376e7372787519326efd5d30c83ec9fac021c3f0690a42bc1acf7",
+    "shape": "template",
+    "file": "Pages/Legislature/SpeakerTools.vue",
+    "line": 119,
+    "status": "source"
+  },
+  "legislature_speakertools.this_page_never_duplicates_a_console_f_spk": {
+    "source_hash": "2cd751f55fe454a338129dbdd7278322b8ea6ca315cdc125415ce2cf5b09babd",
+    "shape": "template",
+    "file": "Pages/Legislature/SpeakerTools.vue",
+    "line": 271,
+    "status": "source"
+  },
+  "legislature_speakertools.this_term": {
+    "source_hash": "e5a4cf3f409efb9455922afdbf16f92a8d5210e952d1b548f66f433d3bcef041",
+    "shape": "template",
+    "file": "Pages/Legislature/SpeakerTools.vue",
+    "line": 154,
+    "status": "source"
+  },
+  "legislature_speakertools.tied_at": {
+    "source_hash": "4760e3dcaad1f5a69ead6411da217e0aa2ab76947ab06dc86106555f6b05ee49",
+    "shape": "script:label",
+    "file": "Pages/Legislature/SpeakerTools.vue",
+    "line": 75,
+    "status": "source"
+  },
+  "legislature_speakertools.you_are_the_subject_the_engine_blocks_you_": {
+    "source_hash": "754c9f15f7c8c91091d6a2f659fef6722c909907faec812a9e4737cdb1b346fb",
+    "shape": "template",
+    "file": "Pages/Legislature/SpeakerTools.vue",
+    "line": 188,
+    "status": "source"
+  },
+  "legislature_speakertools.you_hold_a_seat_in_this_chamber_r_09_but_a": {
+    "source_hash": "418e85cbb4e976c9a925d3f0f74f4cc2980bf70780a4fae62d803efc2a7bedd8",
+    "shape": "template",
+    "file": "Pages/Legislature/SpeakerTools.vue",
+    "line": 104,
+    "status": "source"
+  }
+}

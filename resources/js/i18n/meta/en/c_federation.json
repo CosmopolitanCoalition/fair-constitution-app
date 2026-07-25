@@ -1,0 +1,30 @@
+{
+  "federation_syncprogress.joining_the_cluster": {
+    "source_hash": "0a58df3bc100f261f1644668c3717f0c49b4ba96b09445cdeb0cde8f53c5fa77",
+    "shape": "template",
+    "file": "Components/Federation/SyncProgress.vue",
+    "line": 137,
+    "status": "source"
+  },
+  "federation_syncprogress.of_left": {
+    "source_hash": "15a9d11f7ab22c05771d8ff64927da665b3232275ec84604f84115eee55d04ab",
+    "shape": "template",
+    "file": "Components/Federation/SyncProgress.vue",
+    "line": 164,
+    "status": "source"
+  },
+  "federation_syncprogress.records_pagesimporting_the_foundation_into": {
+    "source_hash": "1c26f92ee15dc39da05b6babbd64d78d62599afa61032e63979f94b3c2f25c48",
+    "shape": "template",
+    "file": "Components/Federation/SyncProgress.vue",
+    "line": 176,
+    "status": "source"
+  },
+  "federation_syncprogress.you_can_leave_this_page_the_sync_runs_in_t": {
+    "source_hash": "81c3bcf5de4731570e35898c5dca0eaeb6395e58115a7eedf5766f0a5207465f",
+    "shape": "template",
+    "file": "Components/Federation/SyncProgress.vue",
+    "line": 189,
+    "status": "source"
+  }
+}

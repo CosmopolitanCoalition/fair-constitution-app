@@ -1,0 +1,51 @@
+{
+  "shellv2_cmdbar.navigation_and_learn": {
+    "source_hash": "5ad9c968f6a0befbdf6db7c0786b25b04b2fd3e4f78c1698543d738e5cc29125",
+    "shape": "attr:aria-label",
+    "file": "Components/ShellV2/CmdBar.vue",
+    "line": 56,
+    "status": "source"
+  },
+  "shellv2_learnflyout.full_lessons_planned_phase_7_report_an_iss": {
+    "source_hash": "6d30b0d8ca76f1da2c9139e59b58724bd0ec0e8695a1b1bf57aa3bda8072e2a5",
+    "shape": "template",
+    "file": "Components/ShellV2/LearnFlyout.vue",
+    "line": 62,
+    "status": "source"
+  },
+  "shellv2_learnflyout.the_machinery_behind_this_screen": {
+    "source_hash": "12b8c007d4de6d028426a0b04214fc79efb00ae388c5e49510c0eaef99a1b953",
+    "shape": "template",
+    "file": "Components/ShellV2/LearnFlyout.vue",
+    "line": 55,
+    "status": "source"
+  },
+  "shellv2_menunav.all_screens_the_full_map": {
+    "source_hash": "78708ea7dccc050a81d030f49cda32d61e937ddd2fa5c9927f3dfed3b2e7e4c5",
+    "shape": "template",
+    "file": "Components/ShellV2/MenuNav.vue",
+    "line": 60,
+    "status": "source"
+  },
+  "shellv2_menunav.requires_planned": {
+    "source_hash": "5505bfb5e714bb3fcf764342fbf9b9e02f2301f91b4df447a67622ad5f6c18ea",
+    "shape": "template",
+    "file": "Components/ShellV2/MenuNav.vue",
+    "line": 65,
+    "status": "source"
+  },
+  "shellv2_tourbar.guided_tour": {
+    "source_hash": "06938153048d6d0081649439e4d4f36455a7033e444858186b9131716a546b46",
+    "shape": "attr:aria-label",
+    "file": "Components/ShellV2/TourBar.vue",
+    "line": 16,
+    "status": "source"
+  },
+  "shellv2_tourbar.guided_tour_step_of": {
+    "source_hash": "71a618424f79fe7b62174bb97356f861536d2f3eceba2fdd69c714b7ff8735fe",
+    "shape": "template",
+    "file": "Components/ShellV2/TourBar.vue",
+    "line": 17,
+    "status": "source"
+  }
+}

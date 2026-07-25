@@ -1,0 +1,65 @@
+{
+  "support_report.conduct_and_legal_reports_are_routed_for_r": {
+    "source_hash": "230daa916fb53a9079ca5f0f65172f6aac2a6499817db6d9ddf708f38a073a33",
+    "shape": "template",
+    "file": "Pages/Support/Report.vue",
+    "line": 108,
+    "status": "source"
+  },
+  "support_report.file_a_report": {
+    "source_hash": "03aa9766fd4b713fd452794e38bb4d4901763e3136c3e04d0d1ae0f1bdbe4241",
+    "shape": "attr:title",
+    "file": "Pages/Support/Report.vue",
+    "line": 69,
+    "status": "source"
+  },
+  "support_report.file_report": {
+    "source_hash": "7ea44b612ae6a512da9f357a68e2f7a69251606eb6123fbb3b31c81bbf4155f8",
+    "shape": "template",
+    "file": "Pages/Support/Report.vue",
+    "line": 117,
+    "status": "source"
+  },
+  "support_report.filed_from": {
+    "source_hash": "3549620ad2bfab48841ec2bdff8dbc5029cbd698a2bf9ebe38ce2d30a4e57e12",
+    "shape": "template",
+    "file": "Pages/Support/Report.vue",
+    "line": 114,
+    "status": "source"
+  },
+  "support_report.plain_words_are_fine_include_what_you_expe": {
+    "source_hash": "bd980213b59d95dba8580a09847adeab2524b7cc517b357e3c87bfe3ed91727e",
+    "shape": "attr:hint",
+    "file": "Pages/Support/Report.vue",
+    "line": 90,
+    "status": "source"
+  },
+  "support_report.reports_land_in_the_operator_s_support_inb": {
+    "source_hash": "aa6acec31ec4bbb8d854c79b16965d367a31cba411d30f8bf9686624fae8ae55",
+    "shape": "template",
+    "file": "Pages/Support/Report.vue",
+    "line": 127,
+    "status": "source"
+  },
+  "support_report.what_happened": {
+    "source_hash": "c4dc542b511fd74f401665a02dd5a20cf41cebd16daa6a7f78ddfbcce88239fe",
+    "shape": "attr:label",
+    "file": "Pages/Support/Report.vue",
+    "line": 89,
+    "status": "source"
+  },
+  "support_report.what_kind_of_report_is_this": {
+    "source_hash": "707ef6742d6764325e672c22df145a9f9dd9a95d8d7ab1ba53e780962be683e8",
+    "shape": "attr:label",
+    "file": "Pages/Support/Report.vue",
+    "line": 71,
+    "status": "source"
+  },
+  "support_report.you_need_to_be_signed_in_to_file_a_report_": {
+    "source_hash": "13e02b9d397429118e6a72f494fd6ccff653f94f838085abd38569cfec6dd378",
+    "shape": "template",
+    "file": "Pages/Support/Report.vue",
+    "line": 64,
+    "status": "source"
+  }
+}

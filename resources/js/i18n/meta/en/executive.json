@@ -1,0 +1,1353 @@
+{
+  "executive_actions.a_rejected_order_is_appended_to_the_same_r": {
+    "source_hash": "79d5a67d6f7328502724ec2a0b00b449f37c39b1f9dd767508c44d39ba0bab90",
+    "shape": "template",
+    "file": "Pages/Executive/Actions.vue",
+    "line": 310,
+    "status": "source"
+  },
+  "executive_actions.active_emergency_powers_these_widen_the_de": {
+    "source_hash": "79621c583a86c4f6a44e95fbc26191bba59b200744eb073e4925fe6e84b0f93b",
+    "shape": "template",
+    "file": "Pages/Executive/Actions.vue",
+    "line": 217,
+    "status": "source"
+  },
+  "executive_actions.apply_for_a_grant": {
+    "source_hash": "9869b9c02fc34ea99e60c9c466c487cf9609d1ac3cf73e52814b74f05faabfe9",
+    "shape": "attr:eyebrow",
+    "file": "Pages/Executive/Actions.vue",
+    "line": 491,
+    "status": "source"
+  },
+  "executive_actions.appropriation_line": {
+    "source_hash": "7ea88b19a72cd321f6ad0d34bcc190d34d36deb3ca01e847b385aefbefbcaeca",
+    "shape": "attr:label",
+    "file": "Pages/Executive/Actions.vue",
+    "line": 493,
+    "status": "source"
+  },
+  "executive_actions.appropriation_lines": {
+    "source_hash": "7d639cf3dff900469b2c58caf35d3430e069e2a8bd978cbdd675ee7737e02574",
+    "shape": "attr:caption",
+    "file": "Pages/Executive/Actions.vue",
+    "line": 439,
+    "status": "source"
+  },
+  "executive_actions.area": {
+    "source_hash": "0f0404107afe8ad392178116bb7902dc59489429af09d3552be3542709503662",
+    "shape": "template",
+    "file": "Pages/Executive/Actions.vue",
+    "line": 223,
+    "status": "source"
+  },
+  "executive_actions.board_decision": {
+    "source_hash": "31288144e9b4f7c17c8277b8d138b28a756bc8b83c46efd84609e757d80fda4b",
+    "shape": "script:label",
+    "file": "Pages/Executive/Actions.vue",
+    "line": 117,
+    "status": "source"
+  },
+  "executive_actions.delegated_scope": {
+    "source_hash": "e7b6bb525c789f34d455af09d11fc0d20fe5b35526f95a6a3da15335e4657e89",
+    "shape": "template",
+    "file": "Pages/Executive/Actions.vue",
+    "line": 208,
+    "status": "source"
+  },
+  "executive_actions.department_operations": {
+    "source_hash": "d03efe22637ee13331e4f66134b6eee7a3953d7d6e06feb39bb6a258d8cee2e5",
+    "shape": "script:label",
+    "file": "Pages/Executive/Actions.vue",
+    "line": 81,
+    "status": "source"
+  },
+  "executive_actions.electoral_judicial_and_legislative_process": {
+    "source_hash": "03fa1cefd5d7f6e0d743947c4da8f10fbb3028a20ab351fcefd1fa81c4b92b3b",
+    "shape": "template",
+    "file": "Pages/Executive/Actions.vue",
+    "line": 301,
+    "status": "source"
+  },
+  "executive_actions.emergency_response": {
+    "source_hash": "2ca4c907311fa430915939ade06c5841a24a67fae8ce2ff554c62f10409c6ac4",
+    "shape": "script:label",
+    "file": "Pages/Executive/Actions.vue",
+    "line": 83,
+    "status": "source"
+  },
+  "executive_actions.enabling_basis": {
+    "source_hash": "a8a344fdd08a150ed531e75b691d3952e7663b2805914ffc30ebbcf61af86115",
+    "shape": "attr:label",
+    "file": "Pages/Executive/Actions.vue",
+    "line": 266,
+    "status": "source"
+  },
+  "executive_actions.enabling_delegation": {
+    "source_hash": "fe87a5cc53065509a0e17020752031acec85b9403f50ec9937469a5aaa428076",
+    "shape": "template",
+    "file": "Pages/Executive/Actions.vue",
+    "line": 212,
+    "status": "source"
+  },
+  "executive_actions.enacting_act": {
+    "source_hash": "d65d37d96bc3a82a32ed050995e88671c099d00661490ff32a3852b90968f88c",
+    "shape": "script:label",
+    "file": "Pages/Executive/Actions.vue",
+    "line": 148,
+    "status": "source"
+  },
+  "executive_actions.executive_actions": {
+    "source_hash": "85365f2a37d151bf34a27d10c629ca50c2ab136d730a44070bfacd80317a9ab2",
+    "shape": "attr:title",
+    "file": "Pages/Executive/Actions.vue",
+    "line": 176,
+    "status": "source"
+  },
+  "executive_actions.executive_orders_execute_the_delegated_sco": {
+    "source_hash": "0e93af72e90f2fad037b0d8caa02998acd0183750fe52fb02817967ae5c9d1c8",
+    "shape": "template",
+    "file": "Pages/Executive/Actions.vue",
+    "line": 532,
+    "status": "source"
+  },
+  "executive_actions.executive_wide": {
+    "source_hash": "515f1b79ffbaec2113b1bccb8502e04f5984e17e0d83388de2f38a9ceb31f0bd",
+    "shape": "template",
+    "file": "Pages/Executive/Actions.vue",
+    "line": 412,
+    "status": "source"
+  },
+  "executive_actions.expires": {
+    "source_hash": "cf0fef68fda6b7063372684fee2ce0c48d67e8415d6b409092df2806709924c6",
+    "shape": "template",
+    "file": "Pages/Executive/Actions.vue",
+    "line": 224,
+    "status": "source"
+  },
+  "executive_actions.findings_record": {
+    "source_hash": "ff252f32f5a9192955a9db31c332b5609bbb1517870256d9b22a4881ac0378f3",
+    "shape": "template",
+    "file": "Pages/Executive/Actions.vue",
+    "line": 394,
+    "status": "source"
+  },
+  "executive_actions.full_and_equal_investigative_power_over_ov": {
+    "source_hash": "e5864821370f6d86dfef699673d2ed8848143d4366f08d8145eaf57c84f39a8d",
+    "shape": "template",
+    "file": "Pages/Executive/Actions.vue",
+    "line": 376,
+    "status": "source"
+  },
+  "executive_actions.grant_applications": {
+    "source_hash": "7c8325d1c9b54dff7caacbc390dbc87e9b0d603d38e8e940135722a17dfd500e",
+    "shape": "attr:caption",
+    "file": "Pages/Executive/Actions.vue",
+    "line": 464,
+    "status": "source"
+  },
+  "executive_actions.grants_appropriations": {
+    "source_hash": "cb0f53e78ce9b3a11e2987ac2f94f74b602e8ca96c53ff8e99aa6f5d7c78fcd4",
+    "shape": "attr:title",
+    "file": "Pages/Executive/Actions.vue",
+    "line": 427,
+    "status": "source"
+  },
+  "executive_actions.jurisdiction_wide_no_department": {
+    "source_hash": "d04c9495b8aef67382bdc610d53f2a90e4a98cb8a69a3de1a7c778302d4a0bee",
+    "shape": "template",
+    "file": "Pages/Executive/Actions.vue",
+    "line": 260,
+    "status": "source"
+  },
+  "executive_actions.leave_blank_for_an_executive_wide_investig": {
+    "source_hash": "dfe620d76d7eaf8792ff737f12968e224c58edf273203495f0077d77061b6e78",
+    "shape": "attr:hint",
+    "file": "Pages/Executive/Actions.vue",
+    "line": 409,
+    "status": "source"
+  },
+  "executive_actions.no_applications_submitted_against_these_li": {
+    "source_hash": "fef64c91b0a0827954528263e0f123291de69e4073b41c9186ed9737dc85c869",
+    "shape": "template",
+    "file": "Pages/Executive/Actions.vue",
+    "line": 489,
+    "status": "source"
+  },
+  "executive_actions.no_delegated_scope_exists_yet_f_leg_014": {
+    "source_hash": "36a77057f202c9c5044365859233188e8c52732eb8fd6c9da43cc636664894ec",
+    "shape": "attr:title",
+    "file": "Pages/Executive/Actions.vue",
+    "line": 240,
+    "status": "source"
+  },
+  "executive_actions.no_delegated_scope_yet_the_delegation_act_": {
+    "source_hash": "717b6c2c0d0f4c055fbdf0cca77c78889aed72fc12a1034a8ddc006d33d1d24e",
+    "shape": "template",
+    "file": "Pages/Executive/Actions.vue",
+    "line": 210,
+    "status": "source"
+  },
+  "executive_actions.no_investigations_ordered": {
+    "source_hash": "adfbba0eadd16d9b8cb242187951ee42611bb782333f69280a8912c9bc5b5c39",
+    "shape": "template",
+    "file": "Pages/Executive/Actions.vue",
+    "line": 399,
+    "status": "source"
+  },
+  "executive_actions.no_orders_issued_the_scope_validation_rail": {
+    "source_hash": "b4ffb440edd05933ffc813ad6427858b3ad05c225bc7a757781f9d61e4146efb",
+    "shape": "template",
+    "file": "Pages/Executive/Actions.vue",
+    "line": 317,
+    "status": "source"
+  },
+  "executive_actions.no_policy_proposals_filed": {
+    "source_hash": "84aa5d26c0e780b91aa9a280a9077a81ba8c1919c9561b9784ad5b25950e4286",
+    "shape": "template",
+    "file": "Pages/Executive/Actions.vue",
+    "line": 344,
+    "status": "source"
+  },
+  "executive_actions.order_body": {
+    "source_hash": "62f975ec52f0488f2b17e01e538ee6b100a20ca92059d0ab0f3c07730a81d510",
+    "shape": "attr:label",
+    "file": "Pages/Executive/Actions.vue",
+    "line": 288,
+    "status": "source"
+  },
+  "executive_actions.order_register_issued_and_rejected_on_one_": {
+    "source_hash": "13dfeced84c4b5c9d7c94bfb5b40405d0dd9c543a6b55fcdde429b9fe6672353",
+    "shape": "attr:title",
+    "file": "Pages/Executive/Actions.vue",
+    "line": 309,
+    "status": "source"
+  },
+  "executive_actions.orders_policy_proposals_investigations_and": {
+    "source_hash": "c8203c1110450b2828a040b7943075500ce764d66ea7fddc951d3e37dc88ce28",
+    "shape": "template",
+    "file": "Pages/Executive/Actions.vue",
+    "line": 177,
+    "status": "source"
+  },
+  "executive_actions.policy_proposals": {
+    "source_hash": "8acde136d0dd275d93a7834d08a919150b809fdb2d3ed2566a9a8264c102a183",
+    "shape": "attr:title",
+    "file": "Pages/Executive/Actions.vue",
+    "line": 324,
+    "status": "source"
+  },
+  "executive_actions.proposal_text": {
+    "source_hash": "d3d7960f881821942041a82f8d11e135ccc4605636b7a2847af48cea1b8b2381",
+    "shape": "attr:label",
+    "file": "Pages/Executive/Actions.vue",
+    "line": 367,
+    "status": "source"
+  },
+  "executive_actions.public_works": {
+    "source_hash": "d41a57d379415c223cd6d8cc7b1f0eaf3c0bf3ee1d3c590f11de2d9bbf5eb39b",
+    "shape": "script:label",
+    "file": "Pages/Executive/Actions.vue",
+    "line": 82,
+    "status": "source"
+  },
+  "executive_actions.remaining": {
+    "source_hash": "5248bb990ed74000c3c6a6c55bdeca9ba193ff1c0846a273261acb5d76adc0ab",
+    "shape": "template",
+    "file": "Pages/Executive/Actions.vue",
+    "line": 497,
+    "status": "source"
+  },
+  "executive_actions.scope_validation_happens_before_issuance": {
+    "source_hash": "1f1b5752e13b61451bccafde1714b862ad9fd41c36fd53092765cbf66d31be4f",
+    "shape": "attr:title",
+    "file": "Pages/Executive/Actions.vue",
+    "line": 196,
+    "status": "source"
+  },
+  "executive_actions.scope_validation_happens_before_issuance_a": {
+    "source_hash": "c73fee09c56caea10b879f2ed3843c4939ff73555bf439eb8871d8c04a72064e",
+    "shape": "template",
+    "file": "Pages/Executive/Actions.vue",
+    "line": 197,
+    "status": "source"
+  },
+  "executive_actions.select_a_department": {
+    "source_hash": "711bd4db5e57e3bb3f573c45299815faf77cdc5898e89c4521c7d8937b27a657",
+    "shape": "template",
+    "file": "Pages/Executive/Actions.vue",
+    "line": 357,
+    "status": "source"
+  },
+  "executive_actions.select_a_domain": {
+    "source_hash": "dd27cff77fa99012964345e8346f8b04a47b1b0c27345cda2d72ee31c07c09bb",
+    "shape": "template",
+    "file": "Pages/Executive/Actions.vue",
+    "line": 282,
+    "status": "source"
+  },
+  "executive_actions.select_a_line": {
+    "source_hash": "26b2749a1aff6c2a287e5049a8352403b26d260f925fa8607822589e08ce4d0f",
+    "shape": "template",
+    "file": "Pages/Executive/Actions.vue",
+    "line": 496,
+    "status": "source"
+  },
+  "executive_actions.select_an_enabling_instrument": {
+    "source_hash": "182da2ce06dd72bfe32fed520f97907bb7a06330d423479b2b303752694fd191",
+    "shape": "template",
+    "file": "Pages/Executive/Actions.vue",
+    "line": 269,
+    "status": "source"
+  },
+  "executive_actions.select_an_organization": {
+    "source_hash": "d19314aada997c15d6aa1c31a2d2b72bda2978dbb8c171e6efff506266a98764",
+    "shape": "template",
+    "file": "Pages/Executive/Actions.vue",
+    "line": 506,
+    "status": "source"
+  },
+  "executive_actions.target_domain": {
+    "source_hash": "937ec6f077bd1e81170bd34da72751859de7b5faee25f2041abb6f9894cbfc99",
+    "shape": "attr:label",
+    "file": "Pages/Executive/Actions.vue",
+    "line": 279,
+    "status": "source"
+  },
+  "executive_actions.the_executive_proposes_the_department_boar": {
+    "source_hash": "87656ad791db9f8a8f9221bd83d5d377590ba9cb6f38509de0adca4bc588f8da",
+    "shape": "template",
+    "file": "Pages/Executive/Actions.vue",
+    "line": 325,
+    "status": "source"
+  },
+  "executive_actions.the_legislature_appropriates_by_act_the_ex": {
+    "source_hash": "89832efeb04c7ca277e1af951b31ce56a3fe7fcfc8c4d7a8b99fecda0354bd17",
+    "shape": "template",
+    "file": "Pages/Executive/Actions.vue",
+    "line": 428,
+    "status": "source"
+  },
+  "executive_actions.the_legislature_has_appropriated_no_funds_": {
+    "source_hash": "cb9ac1d786ab05323e081830cef7e002489c4bc3feed598b36751a9e760fdf54",
+    "shape": "template",
+    "file": "Pages/Executive/Actions.vue",
+    "line": 452,
+    "status": "source"
+  },
+  "executive_actions.the_live_instrument_the_order_executes_a_d": {
+    "source_hash": "03e8f0bbc2ca2d7ef5f3510e4dd35c5c107904be37a4c55c3825fdee8549586a",
+    "shape": "attr:hint",
+    "file": "Pages/Executive/Actions.vue",
+    "line": 266,
+    "status": "source"
+  },
+  "executive_actions.the_order_may_name_a_department_this_execu": {
+    "source_hash": "a0af805c9128c26f1f12080d65efe14088e1a9be37f888d464d154146608acb5",
+    "shape": "attr:hint",
+    "file": "Pages/Executive/Actions.vue",
+    "line": 257,
+    "status": "source"
+  },
+  "executive_actions.the_order_never_took_effect_the_rejected_a": {
+    "source_hash": "bcd4e939bcff70dbdb07d98d4781036607dad8ce1b2a18af0042983d8cad9622",
+    "shape": "template",
+    "file": "Pages/Executive/Actions.vue",
+    "line": 186,
+    "status": "source"
+  },
+  "executive_actions.the_order_was_not_issued": {
+    "source_hash": "6e3af0eae2659cf22c099d489c13724d60803430095bf08139eb3260a99ab13d",
+    "shape": "attr:title",
+    "file": "Pages/Executive/Actions.vue",
+    "line": 186,
+    "status": "source"
+  },
+  "executive_actions.this_executive_is_still_orders_issue_from_": {
+    "source_hash": "842ed0581f6e40ceb715b2d1f5f0052dbe4c9d1702c2a102e75899ce2c3835ce",
+    "shape": "template",
+    "file": "Pages/Executive/Actions.vue",
+    "line": 240,
+    "status": "source"
+  },
+  "executive_departmentdetail.a_chartered_department_its_board_of_govern": {
+    "source_hash": "6b9e411b3970e44f90ae652e13160414d49ae81362f5e282148037fe8eff4281",
+    "shape": "template",
+    "file": "Pages/Executive/DepartmentDetail.vue",
+    "line": 167,
+    "status": "source"
+  },
+  "executive_departmentdetail.a_good_faith_competence_ethics_finding_pub": {
+    "source_hash": "083d57d140497b9c18adb4a9f6b968d16b1262a7dd19362721c8b0a5188cc128",
+    "shape": "attr:hint",
+    "file": "Pages/Executive/DepartmentDetail.vue",
+    "line": 425,
+    "status": "source"
+  },
+  "executive_departmentdetail.all_departments": {
+    "source_hash": "c35473053cb3c3a3b028abe5019eb3b78447b30e560418b57af352941bc34db3",
+    "shape": "template",
+    "file": "Pages/Executive/DepartmentDetail.vue",
+    "line": 189,
+    "status": "source"
+  },
+  "executive_departmentdetail.board_member": {
+    "source_hash": "a2595acc40ea9239b291b92e6dc3ac7f0371f0692712a5a520804c3b724b8317",
+    "shape": "attr:label",
+    "file": "Pages/Executive/DepartmentDetail.vue",
+    "line": 402,
+    "status": "source"
+  },
+  "executive_departmentdetail.board_of_governors": {
+    "source_hash": "f1d647bab75adeb3f601f5a389f9eaa6306d758fffb38f5897d33d90d0c7aeff",
+    "shape": "attr:title",
+    "file": "Pages/Executive/DepartmentDetail.vue",
+    "line": 239,
+    "status": "source"
+  },
+  "executive_departmentdetail.cgc_intellectual_property_is_perpetually_p": {
+    "source_hash": "94aba46c2fdca787f6d46cb4a62ab2da2a4e29b0040f5fe18db46c6ca61a7961",
+    "shape": "template",
+    "file": "Pages/Executive/DepartmentDetail.vue",
+    "line": 231,
+    "status": "source"
+  },
+  "executive_departmentdetail.charter_oversight": {
+    "source_hash": "eb8f85ddf77bab7a0ffda93680d6ef1b8ecbbe6609eda814f1f5d2e9a881780e",
+    "shape": "attr:title",
+    "file": "Pages/Executive/DepartmentDetail.vue",
+    "line": 196,
+    "status": "source"
+  },
+  "executive_departmentdetail.consent_failed_the_seat_reopens_for_renomi": {
+    "source_hash": "f42a7d22df27359e6b2e7638c544ae42d7c1e7186ee2e5837977eb3b5059d6ec",
+    "shape": "template",
+    "file": "Pages/Executive/DepartmentDetail.vue",
+    "line": 292,
+    "status": "source"
+  },
+  "executive_departmentdetail.consent_vote_f_leg_020_majority_of_all_ser": {
+    "source_hash": "a58fd5957bad4ac658a7d3f4ea8cbc7eab001b3a85bbb58711de1e1557878468",
+    "shape": "template",
+    "file": "Pages/Executive/DepartmentDetail.vue",
+    "line": 278,
+    "status": "source"
+  },
+  "executive_departmentdetail.credentials_and_the_neutrality_attestation": {
+    "source_hash": "a3c4824e66bf04806978e13357bf4744a0b9e0805628bf392a84a0f1da4dcd12",
+    "shape": "attr:hint",
+    "file": "Pages/Executive/DepartmentDetail.vue",
+    "line": 331,
+    "status": "source"
+  },
+  "executive_departmentdetail.full_and_equal_investigative_power_art_iii": {
+    "source_hash": "cbcf472246f8b02f34cc310db3d5f012895926483f317ba74349214bfe494367",
+    "shape": "template",
+    "file": "Pages/Executive/DepartmentDetail.vue",
+    "line": 217,
+    "status": "source"
+  },
+  "executive_departmentdetail.governor_removal_is_an_ordinary_majority_o": {
+    "source_hash": "44ea94efa03b368a4293551177e1690f446c4277ead857ec9f99821e4237e4fc",
+    "shape": "template",
+    "file": "Pages/Executive/DepartmentDetail.vue",
+    "line": 354,
+    "status": "source"
+  },
+  "executive_departmentdetail.governors_10_year_civil_appointments_clk_0": {
+    "source_hash": "e8e04e6b2cb3445e38b5ba0469b3e787d4f51fca6deae3ec6dca41b7dd444f56",
+    "shape": "template",
+    "file": "Pages/Executive/DepartmentDetail.vue",
+    "line": 246,
+    "status": "source"
+  },
+  "executive_departmentdetail.governors_worker_elected": {
+    "source_hash": "a11e7aaa28831b3eb390ce78c17102f4b007be9ddadd4ff936eac61d33251143",
+    "shape": "template",
+    "file": "Pages/Executive/DepartmentDetail.vue",
+    "line": 182,
+    "status": "source"
+  },
+  "executive_departmentdetail.last_filed_report_on_on_the_public_record": {
+    "source_hash": "eb0cf0b8f9f7fac41e72d2ae8e052eb892814e745e53aac26a78494e34221ed1",
+    "shape": "template",
+    "file": "Pages/Executive/DepartmentDetail.vue",
+    "line": 458,
+    "status": "source"
+  },
+  "executive_departmentdetail.no_board_constituted_yet": {
+    "source_hash": "5c88d53bdd09ccfafb7d6f4c489040c398218f442ce624d7f86455302ea4817e",
+    "shape": "attr:title",
+    "file": "Pages/Executive/DepartmentDetail.vue",
+    "line": 251,
+    "status": "source"
+  },
+  "executive_departmentdetail.no_common_good_corporations_overseen_by_th": {
+    "source_hash": "740d4f6b7d1bed3a3d98c0ef8ed5744ac0e2f56e4668ce3fc25fcb0cf28c8b57",
+    "shape": "template",
+    "file": "Pages/Executive/DepartmentDetail.vue",
+    "line": 233,
+    "status": "source"
+  },
+  "executive_departmentdetail.no_nominations_on_record_a_seated_member_o": {
+    "source_hash": "39f6216585cd7a238842cd10d4956c6762a8edaf034666729dffc15674056eb3",
+    "shape": "template",
+    "file": "Pages/Executive/DepartmentDetail.vue",
+    "line": 297,
+    "status": "source"
+  },
+  "executive_departmentdetail.no_removal_requests_on_record": {
+    "source_hash": "7200f537d49cbdeb651bef6db49fd5a3c9f09e2ac0270712282a7e62ef11eea1",
+    "shape": "template",
+    "file": "Pages/Executive/DepartmentDetail.vue",
+    "line": 388,
+    "status": "source"
+  },
+  "executive_departmentdetail.no_seated_members_to_remove": {
+    "source_hash": "0d72f41e7dbf9e73543b212c11253528054d093a1eec3aa65509376cdb9e604d",
+    "shape": "attr:title",
+    "file": "Pages/Executive/DepartmentDetail.vue",
+    "line": 449,
+    "status": "source"
+  },
+  "executive_departmentdetail.nomination_pipeline": {
+    "source_hash": "c43a913b56b6a76b22a232eb291dd83adf81f6f45d4d44e6c411f398ff683d9b",
+    "shape": "attr:title",
+    "file": "Pages/Executive/DepartmentDetail.vue",
+    "line": 258,
+    "status": "source"
+  },
+  "executive_departmentdetail.opens_an_ordinary_majority_chamber_vote_no": {
+    "source_hash": "6fffa4172a350f3b48cb4e5a818154d02d25cb89eb11f5c606e8f7f88fa94502",
+    "shape": "template",
+    "file": "Pages/Executive/DepartmentDetail.vue",
+    "line": 442,
+    "status": "source"
+  },
+  "executive_departmentdetail.opens_the_f_leg_020_consent_vote_in_the_le": {
+    "source_hash": "922f0a9a2a72912cbe2fc26997b1bfd469336ea726d9b48fb6fcd305ea15314f",
+    "shape": "template",
+    "file": "Pages/Executive/DepartmentDetail.vue",
+    "line": 347,
+    "status": "source"
+  },
+  "executive_departmentdetail.overseen_by": {
+    "source_hash": "f64837098f0799f262fbf04232369e4847175f8a90d4799622f60bcdf28eabd6",
+    "shape": "template",
+    "file": "Pages/Executive/DepartmentDetail.vue",
+    "line": 214,
+    "status": "source"
+  },
+  "executive_departmentdetail.published_positions": {
+    "source_hash": "945f21389be000cce97925ee0228b8290b6a5875b1690d93eedfd60edafd6259",
+    "shape": "template",
+    "file": "Pages/Executive/DepartmentDetail.vue",
+    "line": 281,
+    "status": "source"
+  },
+  "executive_departmentdetail.removal_requests": {
+    "source_hash": "06060d20fea81e4b36fbd57a1186ddb717b752c7f7b2bcf427b1aef07212d70a",
+    "shape": "attr:title",
+    "file": "Pages/Executive/DepartmentDetail.vue",
+    "line": 353,
+    "status": "source"
+  },
+  "executive_departmentdetail.removal_runs_against_a_currently_seated_bo": {
+    "source_hash": "961e7783f6d80664b55edbb901d9ba9e4ed785aa6e8ca44e6441decb84620620",
+    "shape": "attr:hint",
+    "file": "Pages/Executive/DepartmentDetail.vue",
+    "line": 403,
+    "status": "source"
+  },
+  "executive_departmentdetail.removal_vote_majority_of_all_serving": {
+    "source_hash": "e8756abb484be562abcf3377859c30007b3e53c5758de0f1803d318f9bf61623",
+    "shape": "template",
+    "file": "Pages/Executive/DepartmentDetail.vue",
+    "line": 377,
+    "status": "source"
+  },
+  "executive_departmentdetail.rules_reports_register": {
+    "source_hash": "2540da7ce43271af789d22905aee55b70b7490346e0321ba0a970a1ec39a6f2b",
+    "shape": "template",
+    "file": "Pages/Executive/DepartmentDetail.vue",
+    "line": 472,
+    "status": "source"
+  },
+  "executive_departmentdetail.select_a_seated_member": {
+    "source_hash": "71e25e7a20c9cc4e0c0f3a47ab21e8aefabe08aa89ea8bf41bc64fa972f05b95",
+    "shape": "template",
+    "file": "Pages/Executive/DepartmentDetail.vue",
+    "line": 415,
+    "status": "source"
+  },
+  "executive_departmentdetail.the_board_and_its_governor_seats_are_creat": {
+    "source_hash": "a0ad0ce1af9cac113ecac000d56b16714fe226ab0cf131498152bc768fde40f5",
+    "shape": "template",
+    "file": "Pages/Executive/DepartmentDetail.vue",
+    "line": 251,
+    "status": "source"
+  },
+  "executive_departmentdetail.the_nominee_s_user_id_eligibility_is_activ": {
+    "source_hash": "183c9d92b5fc2cf6cf93d102ffd662f41bc9dd19a2e7cd44eb2f1db129e46ca6",
+    "shape": "attr:hint",
+    "file": "Pages/Executive/DepartmentDetail.vue",
+    "line": 313,
+    "status": "source"
+  },
+  "executive_departmentdetail.there_is_no_currently_seated_board_member_": {
+    "source_hash": "0af2060b22eda7b9ead2dfad7e75cc94602de8d03535829e7dfe01624f9d1c4c",
+    "shape": "template",
+    "file": "Pages/Executive/DepartmentDetail.vue",
+    "line": 445,
+    "status": "source"
+  },
+  "executive_departmentdetail.this_charter_sets_no_reporting_interval_re": {
+    "source_hash": "88079f87612af8f49cae6f7147fbae05d4274e312e0651762a189190225e24da",
+    "shape": "template",
+    "file": "Pages/Executive/DepartmentDetail.vue",
+    "line": 469,
+    "status": "source"
+  },
+  "executive_departmentdetail.two_clocks_clk_09_governors_clk_10_worker_": {
+    "source_hash": "0e09e383f5263ecc544203f4abea303b2bf5b21133573ab3f7875d4c41113891",
+    "shape": "template",
+    "file": "Pages/Executive/DepartmentDetail.vue",
+    "line": 483,
+    "status": "source"
+  },
+  "executive_departmentreporting.a_short_label_for_this_special_report": {
+    "source_hash": "ebd29b09f60a26dc9188f40d3b943e5cfd96dd62ed86674cf610427e7c628ca6",
+    "shape": "attr:hint",
+    "file": "Pages/Executive/DepartmentReporting.vue",
+    "line": 413,
+    "status": "source"
+  },
+  "executive_departmentreporting.both_registers_below_read_publicly_filed_b": {
+    "source_hash": "1ea17ef65e175ab6209860f824f4ac55f7933745111d2f8c608e318ede368921",
+    "shape": "template",
+    "file": "Pages/Executive/DepartmentReporting.vue",
+    "line": 196,
+    "status": "source"
+  },
+  "executive_departmentreporting.catalog_alias_f_gov_001_drafts_publish_for": {
+    "source_hash": "9370f1dd79b89444131125c0353e25d48f554d084568a22c31cd4e6582106c75",
+    "shape": "template",
+    "file": "Pages/Executive/DepartmentReporting.vue",
+    "line": 327,
+    "status": "source"
+  },
+  "executive_departmentreporting.catalog_alias_f_gov_002_recipients_fixed_e": {
+    "source_hash": "8ae338d3cedf12fad73a6437ee5569b868bcd86433f904f9f80bab97b2b9e7e0",
+    "shape": "template",
+    "file": "Pages/Executive/DepartmentReporting.vue",
+    "line": 443,
+    "status": "source"
+  },
+  "executive_departmentreporting.charter_law_an_in_force_enabling_act_or_an": {
+    "source_hash": "d248dc7e06efaa6d72944bbba1c0a2b2ae5b82bde269f3569b8bbcb94eae4d9c",
+    "shape": "attr:hint",
+    "file": "Pages/Executive/DepartmentReporting.vue",
+    "line": 303,
+    "status": "source"
+  },
+  "executive_departmentreporting.department_detail": {
+    "source_hash": "9098a6bb2a638a9ac2cb6dac044af3fcf6d8563e24ce61c7903ea0a482f87990",
+    "shape": "template",
+    "file": "Pages/Executive/DepartmentReporting.vue",
+    "line": 184,
+    "status": "source"
+  },
+  "executive_departmentreporting.department_reports": {
+    "source_hash": "130e91a8fd2dafad57ffd50b18cd71b2865e1f616c3a9d0f0f4321cd55957ce5",
+    "shape": "attr:caption",
+    "file": "Pages/Executive/DepartmentReporting.vue",
+    "line": 355,
+    "status": "source"
+  },
+  "executive_departmentreporting.department_rules": {
+    "source_hash": "3a0ae72e81441cac8dd4c306063ac61314f70d7f22eb3833d584e310a1a945a1",
+    "shape": "attr:caption",
+    "file": "Pages/Executive/DepartmentReporting.vue",
+    "line": 218,
+    "status": "source"
+  },
+  "executive_departmentreporting.expires_with_the_emergency_power_clk_03": {
+    "source_hash": "877ad98447477452627884b632fe4184c5c667d9f7ccf26ee018aae97515d811",
+    "shape": "template",
+    "file": "Pages/Executive/DepartmentReporting.vue",
+    "line": 227,
+    "status": "source"
+  },
+  "executive_departmentreporting.implementation_rules_f_bog_001": {
+    "source_hash": "58f16a9bc11d2d051bb017712f7bcafb5b37517b87c7447e5750dc42dffc37e7",
+    "shape": "attr:title",
+    "file": "Pages/Executive/DepartmentReporting.vue",
+    "line": 207,
+    "status": "source"
+  },
+  "executive_departmentreporting.no_live_enabling_instrument": {
+    "source_hash": "00a98c0de59f46ef567e1e484b691fc80493b3f6fa95d9cf42f570fda990f18d",
+    "shape": "attr:title",
+    "file": "Pages/Executive/DepartmentReporting.vue",
+    "line": 334,
+    "status": "source"
+  },
+  "executive_departmentreporting.no_report_obligations_yet": {
+    "source_hash": "f3d0a6a282f558333fe2f0ede3a5508fc7c9cfeef722e4d4eb2aab77fc29ed92",
+    "shape": "attr:title",
+    "file": "Pages/Executive/DepartmentReporting.vue",
+    "line": 380,
+    "status": "source"
+  },
+  "executive_departmentreporting.no_rules_filed_yet": {
+    "source_hash": "b6c1a62162a8fc55bf5d41efe094e570685b7fde98e6fa403ceef34201761ae9",
+    "shape": "attr:title",
+    "file": "Pages/Executive/DepartmentReporting.vue",
+    "line": 252,
+    "status": "source"
+  },
+  "executive_departmentreporting.not_yet_filed": {
+    "source_hash": "e477b59a7fcd07d110e6bfa34e8f295bb9c81ddc92da6ec838c739bf26ca6bc9",
+    "shape": "template",
+    "file": "Pages/Executive/DepartmentReporting.vue",
+    "line": 371,
+    "status": "source"
+  },
+  "executive_departmentreporting.period_label": {
+    "source_hash": "c000402000baf2ce86154bc36ac869f8ca6b531debcbff4dc9d7ead1fcea60f2",
+    "shape": "attr:label",
+    "file": "Pages/Executive/DepartmentReporting.vue",
+    "line": 412,
+    "status": "source"
+  },
+  "executive_departmentreporting.periodic_files_the_due_obligation": {
+    "source_hash": "ea8198f9e484437ba403ad67709a432f7e8143e0220ed6c7ee97637cb111f3d0",
+    "shape": "template",
+    "file": "Pages/Executive/DepartmentReporting.vue",
+    "line": 404,
+    "status": "source"
+  },
+  "executive_departmentreporting.registers_are_public_filing_is_the_board_s": {
+    "source_hash": "153c4acefed0d6b235a0b7746e3373f3ff9042b71b605dab076d5a20d8cbf45c",
+    "shape": "attr:title",
+    "file": "Pages/Executive/DepartmentReporting.vue",
+    "line": 200,
+    "status": "source"
+  },
+  "executive_departmentreporting.report_body": {
+    "source_hash": "88d287a88b9c50ed8a9986220318514230be798c8d6589f1a849cad59e21a101",
+    "shape": "attr:label",
+    "file": "Pages/Executive/DepartmentReporting.vue",
+    "line": 429,
+    "status": "source"
+  },
+  "executive_departmentreporting.report_filings_f_bog_002": {
+    "source_hash": "cb0d29bf145418dcc1fb7556ca21d5ffe6f3fdafc6ab550fc273cc9680ac36c5",
+    "shape": "attr:title",
+    "file": "Pages/Executive/DepartmentReporting.vue",
+    "line": 343,
+    "status": "source"
+  },
+  "executive_departmentreporting.report_kind": {
+    "source_hash": "b7bedc8542511063ea66f3307e13a4602cbe1e1373c7a7b5c42915d1d66b009a",
+    "shape": "attr:label",
+    "file": "Pages/Executive/DepartmentReporting.vue",
+    "line": 395,
+    "status": "source"
+  },
+  "executive_departmentreporting.reporting_interval_months_charter_data_not": {
+    "source_hash": "fc6054014d4a0077cda3f79caba70dfcc25283fd05a796f4176f54d94696d0a5",
+    "shape": "attr:label",
+    "file": "Pages/Executive/DepartmentReporting.vue",
+    "line": 178,
+    "status": "source"
+  },
+  "executive_departmentreporting.reports_file_to_the_executive_and_the_legi": {
+    "source_hash": "98e9ce2566afd0f46be90f98908e77d81f73c7d531799df0df1637f054f8a4ec",
+    "shape": "template",
+    "file": "Pages/Executive/DepartmentReporting.vue",
+    "line": 344,
+    "status": "source"
+  },
+  "executive_departmentreporting.rule_name": {
+    "source_hash": "7c9de4e8e989511f39c9c515352856dbfe290c6de0e123d12cc60972e8fa8bf3",
+    "shape": "attr:label",
+    "file": "Pages/Executive/DepartmentReporting.vue",
+    "line": 268,
+    "status": "source"
+  },
+  "executive_departmentreporting.rule_text": {
+    "source_hash": "a315e0bc9e6421e5b660fc61250ac2d5e01cf05f9c06fab2b0f20f2fc2bd90b0",
+    "shape": "attr:label",
+    "file": "Pages/Executive/DepartmentReporting.vue",
+    "line": 283,
+    "status": "source"
+  },
+  "executive_departmentreporting.rules_and_reports_are_the_board_of_governo": {
+    "source_hash": "2946ad39768c680cae514add4c5e56288362b4fa2b4f75f6a8b600ddf0ba7f26",
+    "shape": "template",
+    "file": "Pages/Executive/DepartmentReporting.vue",
+    "line": 449,
+    "status": "source"
+  },
+  "executive_departmentreporting.rules_implement_they_cannot_exceed_art_iii": {
+    "source_hash": "9cea4865bcceeff28e35128e8558df890cc710d4823d82638f47043c659e65e3",
+    "shape": "template",
+    "file": "Pages/Executive/DepartmentReporting.vue",
+    "line": 457,
+    "status": "source"
+  },
+  "executive_departmentreporting.rules_implement_they_cannot_exceed_the_cha": {
+    "source_hash": "41452c7616a03e6498df855f8d85e82eeac124ac37b8458353ad347df6144935",
+    "shape": "template",
+    "file": "Pages/Executive/DepartmentReporting.vue",
+    "line": 208,
+    "status": "source"
+  },
+  "executive_departmentreporting.rules_implement_they_cannot_exceed_the_cha_2": {
+    "source_hash": "89e11819383160247992b5167ceaa4e33aa4e618f73cf4334f272df08187f12e",
+    "shape": "attr:hint",
+    "file": "Pages/Executive/DepartmentReporting.vue",
+    "line": 284,
+    "status": "source"
+  },
+  "executive_departmentreporting.select_the_enabling_instrument": {
+    "source_hash": "3d52e56dc4cab81d94616831353d68a0320b496d57c2567ab57a27a264c1a386",
+    "shape": "template",
+    "file": "Pages/Executive/DepartmentReporting.vue",
+    "line": 315,
+    "status": "source"
+  },
+  "executive_departmentreporting.special_an_ad_hoc_filing": {
+    "source_hash": "5ae8a50a9a2840a58871b762292563e181b16d69ed3392fb204b0be51a878aa2",
+    "shape": "template",
+    "file": "Pages/Executive/DepartmentReporting.vue",
+    "line": 405,
+    "status": "source"
+  },
+  "executive_departmentreporting.the_first_periodic_obligation_seeds_when_t": {
+    "source_hash": "7e77d2d370c126f969a1ad46bc4d9ed80bbed317d3ad8e615c069c9a8f7f19bc",
+    "shape": "template",
+    "file": "Pages/Executive/DepartmentReporting.vue",
+    "line": 380,
+    "status": "source"
+  },
+  "executive_departmentreporting.there_is_no_charter_in_force_act_or_active": {
+    "source_hash": "7f8abf55303bfb5af16e90faa6580bc613207ed74131705681403705b7cf2422",
+    "shape": "template",
+    "file": "Pages/Executive/DepartmentReporting.vue",
+    "line": 330,
+    "status": "source"
+  },
+  "executive_departmentreporting.this_is_where_a_department_s_board_does_it": {
+    "source_hash": "f149807282da8d44968595e7ec30eaa3d352e442343571731b03975f4184f6c1",
+    "shape": "template",
+    "file": "Pages/Executive/DepartmentReporting.vue",
+    "line": 162,
+    "status": "source"
+  },
+  "executive_departmentreporting.ver": {
+    "source_hash": "5d778ea0aaea32e55d4e2b969dae71075d849822f9e4e0f7dc325461f06700cb",
+    "shape": "script:label",
+    "file": "Pages/Executive/DepartmentReporting.vue",
+    "line": 94,
+    "status": "source"
+  },
+  "executive_departmentreporting.when_a_governor_files_the_first_rule_it_ap": {
+    "source_hash": "d0b957e53defcb3c948dc22e27f550ae3a64f0d1c0b25db86ae93d182c447155",
+    "shape": "template",
+    "file": "Pages/Executive/DepartmentReporting.vue",
+    "line": 252,
+    "status": "source"
+  },
+  "executive_departments.a_department_is_created_by_an_ordinary_maj": {
+    "source_hash": "e2d84a695ad30499c5eb7d363e6743e66b42bf70053f5a0987091e65966d0deb",
+    "shape": "template",
+    "file": "Pages/Executive/Departments.vue",
+    "line": 97,
+    "status": "source"
+  },
+  "executive_departments.an_open_governor_removal_request_splices_a": {
+    "source_hash": "b9f3c4fff89e70e3168fd0bfac5ec3a01ddbbc6b5393a1a119b1f059706c8bb0",
+    "shape": "template",
+    "file": "Pages/Executive/Departments.vue",
+    "line": 206,
+    "status": "source"
+  },
+  "executive_departments.art_ii_9_ordinary_majority_act_wf_exe_04": {
+    "source_hash": "507f74e8c4da72e98802b5b07b8f5fa77d94cdc836cfde61b243b025b2dc86f7",
+    "shape": "template",
+    "file": "Pages/Executive/Departments.vue",
+    "line": 117,
+    "status": "source"
+  },
+  "executive_departments.board_of_governors_pipeline": {
+    "source_hash": "47a15e21cd8af9476da37831bff96334b4e3843cb765307c79ed5ea0353b96e2",
+    "shape": "attr:title",
+    "file": "Pages/Executive/Departments.vue",
+    "line": 122,
+    "status": "source"
+  },
+  "executive_departments.cast_view_in_the_chamber": {
+    "source_hash": "6e33167f98f9cb0b6c8206cf0ea66092ff318481015bd259981047294ed34816",
+    "shape": "template",
+    "file": "Pages/Executive/Departments.vue",
+    "line": 161,
+    "status": "source"
+  },
+  "executive_departments.civil_officers_r_30": {
+    "source_hash": "f16739bb17cc5d7021e37d97d78614f4ce5116aa0fd19a6f6cb303361cefcf4d",
+    "shape": "attr:title",
+    "file": "Pages/Executive/Departments.vue",
+    "line": 184,
+    "status": "source"
+  },
+  "executive_departments.co_determination_one_engine_art_iii_6": {
+    "source_hash": "f6527aa43d4a97470fba31dee9b5253f531c3c2bef3fa81d34a24353f7353d5d",
+    "shape": "template",
+    "file": "Pages/Executive/Departments.vue",
+    "line": 217,
+    "status": "source"
+  },
+  "executive_departments.consent_failed_renomination_open_wf_exe_05": {
+    "source_hash": "95e27b3799e583954a42ed9bd9a71fc3e6b7b56299b111723b555a2baf8c4e9e",
+    "shape": "template",
+    "file": "Pages/Executive/Departments.vue",
+    "line": 150,
+    "status": "source"
+  },
+  "executive_departments.consent_open": {
+    "source_hash": "43db9de32885ac164586048328ba6a0cb578298d531f767caa5186588b034583",
+    "shape": "template",
+    "file": "Pages/Executive/Departments.vue",
+    "line": 140,
+    "status": "source"
+  },
+  "executive_departments.consent_vote_majority_of_all_serving": {
+    "source_hash": "822d7e67fd6d5c182f8c72ac8ddb61d97f700e7097c61cddae12e4cff7bb3d94",
+    "shape": "template",
+    "file": "Pages/Executive/Departments.vue",
+    "line": 158,
+    "status": "source"
+  },
+  "executive_departments.consented": {
+    "source_hash": "e673e846100d0d1a6bda35d286e062b06ec623ac78daa0b365126d8eeeac1919",
+    "shape": "template",
+    "file": "Pages/Executive/Departments.vue",
+    "line": 145,
+    "status": "source"
+  },
+  "executive_departments.create_a_department": {
+    "source_hash": "59b512feda81576c218fe4bcd759fc7e4bd777855f2e09d64ec2d89863eccae3",
+    "shape": "attr:title",
+    "file": "Pages/Executive/Departments.vue",
+    "line": 105,
+    "status": "source"
+  },
+  "executive_departments.department_civil_staff_10_year_civil_appoi": {
+    "source_hash": "1ddd16557e9636d3dc7d8a91b8b0b36c95b09f2a066ecd6551b0875e43577b0f",
+    "shape": "attr:caption",
+    "file": "Pages/Executive/Departments.vue",
+    "line": 190,
+    "status": "source"
+  },
+  "executive_departments.department_creation_is_a_legislative_act_a": {
+    "source_hash": "cf68e6cf9ef63e1f98e981dda4f05fbe9205d5ddb416d933375e470e06247fd0",
+    "shape": "template",
+    "file": "Pages/Executive/Departments.vue",
+    "line": 109,
+    "status": "source"
+  },
+  "executive_departments.department_lifecycle_esm_17": {
+    "source_hash": "9068436e18a663e76e6ffd9896214be92e52a61f0472aaf8e271aa6b2caafa65",
+    "shape": "attr:title",
+    "file": "Pages/Executive/Departments.vue",
+    "line": 204,
+    "status": "source"
+  },
+  "executive_departments.department_registry": {
+    "source_hash": "2dc443e4e4ae5a449c7000c2fcbca4d4c0a044b17d74c9bb73fa88b687d3515d",
+    "shape": "attr:title",
+    "file": "Pages/Executive/Departments.vue",
+    "line": 91,
+    "status": "source"
+  },
+  "executive_departments.departments_are_created_by_legislative_act": {
+    "source_hash": "303ad3213a0ed165e8b70f68438b057503d0ae9076dd2078f7f4ebd38bc7adb9",
+    "shape": "template",
+    "file": "Pages/Executive/Departments.vue",
+    "line": 74,
+    "status": "source"
+  },
+  "executive_departments.executive_home_executive_actions": {
+    "source_hash": "9478ae906c2419fc383bd86811a3a448f94b32a2819fe636032e82350ed46afc",
+    "shape": "template",
+    "file": "Pages/Executive/Departments.vue",
+    "line": 85,
+    "status": "source"
+  },
+  "executive_departments.governor_removal_is_an_ordinary_majority_o": {
+    "source_hash": "225a50ad5ff727b08508ee35a83f0c78c4e26118ccb84fa1b7390b68b4565e76",
+    "shape": "template",
+    "file": "Pages/Executive/Departments.vue",
+    "line": 175,
+    "status": "source"
+  },
+  "executive_departments.introduce_a_creation_bill": {
+    "source_hash": "e7d2a2637af7b9c6a7f20ae7bf8e20c114598b907cf2cff74fda10347f8ebaca",
+    "shape": "template",
+    "file": "Pages/Executive/Departments.vue",
+    "line": 116,
+    "status": "source"
+  },
+  "executive_departments.no_civil_officers_seated_duties_run_throug": {
+    "source_hash": "46575a3722edd689ce4ebd89307604dc0e0e5ab860c6ce16226a29287048f032",
+    "shape": "template",
+    "file": "Pages/Executive/Departments.vue",
+    "line": 197,
+    "status": "source"
+  },
+  "executive_departments.no_departments_yet": {
+    "source_hash": "8dd0b790a71acfb39e14b22c3b33b3519d01b70e6eb403ee082c416889397717",
+    "shape": "attr:title",
+    "file": "Pages/Executive/Departments.vue",
+    "line": 97,
+    "status": "source"
+  },
+  "executive_departments.no_nominations_in_flight_open_one_from_a_d": {
+    "source_hash": "79a1651ceb5a6411c3fa59804e9cb8d0b988648c6ae0d7d12935cde099c28820",
+    "shape": "template",
+    "file": "Pages/Executive/Departments.vue",
+    "line": 168,
+    "status": "source"
+  },
+  "executive_departments.nomination_dossier_f_exe_001_consent_vote_": {
+    "source_hash": "4d99c9714b2839f642b6f9449e38a6098f9d29c63b0889d28b497ec09fce6055",
+    "shape": "template",
+    "file": "Pages/Executive/Departments.vue",
+    "line": 123,
+    "status": "source"
+  },
+  "executive_departments.owner_ruling_14_art_iii_4_file_from_the_de": {
+    "source_hash": "601f47b9cbff19df5ced3cc6f3f25316d944a0c46a83cdbac11ab352c4a3934e",
+    "shape": "template",
+    "file": "Pages/Executive/Departments.vue",
+    "line": 180,
+    "status": "source"
+  },
+  "executive_departments.removing_a_governor": {
+    "source_hash": "921b9318ee2660294a8a41a5fb6f2ea13726c4fb580aa00a6f1d2a890c2be829",
+    "shape": "attr:title",
+    "file": "Pages/Executive/Departments.vue",
+    "line": 174,
+    "status": "source"
+  },
+  "executive_departments.term_ends": {
+    "source_hash": "9d9dd962d2084ccf3c5b6e61c3bd0d8f5c96f05017da79bb76839fa7179830fd",
+    "shape": "script:label",
+    "file": "Pages/Executive/Departments.vue",
+    "line": 61,
+    "status": "source"
+  },
+  "executive_home.a_delegated_committee_carries_no_term_of_i": {
+    "source_hash": "44092f27248c0359a294daa7e7d0beae44302f14668be62594b75f9c27c09cc9",
+    "shape": "template",
+    "file": "Pages/Executive/Home.vue",
+    "line": 407,
+    "status": "source"
+  },
+  "executive_home.act_fixed_committee_size": {
+    "source_hash": "f918f77290fff944b1552b59beb1738487fc7b8eedc265ef4a6fc9f2b017275a",
+    "shape": "attr:label",
+    "file": "Pages/Executive/Home.vue",
+    "line": 165,
+    "status": "source"
+  },
+  "executive_home.all_department": {
+    "source_hash": "d0b7d7285979bbac2c4bcd8139826dc4e819b4184482c72a7feda50ef71e8465",
+    "shape": "template",
+    "file": "Pages/Executive/Home.vue",
+    "line": 432,
+    "status": "source"
+  },
+  "executive_home.an_elected_executive_runs_in_lockstep_with": {
+    "source_hash": "f786cef08db83a9730558486c4a237e06679a74a92582d4b785a4051a7840c42",
+    "shape": "template",
+    "file": "Pages/Executive/Home.vue",
+    "line": 412,
+    "status": "source"
+  },
+  "executive_home.chamber_record": {
+    "source_hash": "9cdd814161b269ba2a8a7999352f6b0f2abf56cd3c40f2dcc832a166d58c2127",
+    "shape": "template",
+    "file": "Pages/Executive/Home.vue",
+    "line": 185,
+    "status": "source"
+  },
+  "executive_home.conversion_adopted_on_the_chamber_supermaj": {
+    "source_hash": "da6c9ce3fa12e79cf623ee51a1be7d770b1fbc38ed08e367287eadf400443aef",
+    "shape": "attr:title",
+    "file": "Pages/Executive/Home.vue",
+    "line": 344,
+    "status": "source"
+  },
+  "executive_home.conversion_needs_the_chamber_s_own_superma": {
+    "source_hash": "af7458707f011f1b377ba5e48f7202f9f7d054d8ba5171ef8075db72bc7f3ddd",
+    "shape": "template",
+    "file": "Pages/Executive/Home.vue",
+    "line": 135,
+    "status": "source"
+  },
+  "executive_home.conversion_to_elected_office_dual_supermaj": {
+    "source_hash": "ed3b4d8472edfdf80fc8ec56cfe6cd0e847a4f81d3c2ba62b7e1f6b2cd948e71",
+    "shape": "attr:title",
+    "file": "Pages/Executive/Home.vue",
+    "line": 327,
+    "status": "source"
+  },
+  "executive_home.creation_act_delegation_by_the_legislature": {
+    "source_hash": "3787a725bddf7587e49b967c6218211a1817617c30160e9c8a8702f407b3e7b5",
+    "shape": "attr:title",
+    "file": "Pages/Executive/Home.vue",
+    "line": 278,
+    "status": "source"
+  },
+  "executive_home.delegated_by_default_converts_only_by_dual": {
+    "source_hash": "581108b4db49285a560a6e60f25e4c281079958925fd6d7e55b54e003f810f33",
+    "shape": "template",
+    "file": "Pages/Executive/Home.vue",
+    "line": 133,
+    "status": "source"
+  },
+  "executive_home.delegated_members": {
+    "source_hash": "546d33cd7b588e6229452d78bee55138f39fdc258d26dba510b9269ada68405a",
+    "shape": "attr:label",
+    "file": "Pages/Executive/Home.vue",
+    "line": 161,
+    "status": "source"
+  },
+  "executive_home.delegated_scope": {
+    "source_hash": "e19b23aed1e226c1c6a6f34192c8fd641760061df1b2f01e5b198f301e61498f",
+    "shape": "template",
+    "file": "Pages/Executive/Home.vue",
+    "line": 285,
+    "status": "source"
+  },
+  "executive_home.departments_orders_actions": {
+    "source_hash": "207976e08a0f0bc950a74a2833fc3a9a414eb5548a96151adc7d6a13e02749f9",
+    "shape": "template",
+    "file": "Pages/Executive/Home.vue",
+    "line": 115,
+    "status": "source"
+  },
+  "executive_home.dual_supermajority_acts_ride_the_bill_flow": {
+    "source_hash": "f61fe321d5c175e5881f4991dbe8920f74d41a90f5a48e5533344f7d7d7289ac",
+    "shape": "template",
+    "file": "Pages/Executive/Home.vue",
+    "line": 388,
+    "status": "source"
+  },
+  "executive_home.elected_committee_pr_stv_winners_with_equa": {
+    "source_hash": "c1e685af8fe25d20f899fe6344fad15abf24fe9b4d29f766abaf9afa577080e9",
+    "shape": "template",
+    "file": "Pages/Executive/Home.vue",
+    "line": 240,
+    "status": "source"
+  },
+  "executive_home.elected_principal_office": {
+    "source_hash": "bf5c5239a8da84c189e5da79bcbb7504636a867a4924f9500aab933cac65cf01",
+    "shape": "template",
+    "file": "Pages/Executive/Home.vue",
+    "line": 198,
+    "status": "source"
+  },
+  "executive_home.election_record": {
+    "source_hash": "327c0b938bebac7b874408b557d9ca2ed600f910d304d17d0a76b0398661156d",
+    "shape": "template",
+    "file": "Pages/Executive/Home.vue",
+    "line": 208,
+    "status": "source"
+  },
+  "executive_home.ex_officio_member_selection_q2": {
+    "source_hash": "f14ff6e5d83eea4bc6edd065000cfcc8c5c3bad839e529d39734daf8c99c74b1",
+    "shape": "template",
+    "file": "Pages/Executive/Home.vue",
+    "line": 187,
+    "status": "source"
+  },
+  "executive_home.executive_office_lifecycle_esm_16": {
+    "source_hash": "cc8a4093678370a9ab7198bcf73326a0850e243fcfc768e93693805d9d0ad591",
+    "shape": "template",
+    "file": "Pages/Executive/Home.vue",
+    "line": 272,
+    "status": "source"
+  },
+  "executive_home.forming_the_stub_awaits_the_delegation_act": {
+    "source_hash": "f3a58f957d8554fce8075f17a56172841206e62450c35bd671336dbf1d6bfe0c",
+    "shape": "attr:title",
+    "file": "Pages/Executive/Home.vue",
+    "line": 150,
+    "status": "source"
+  },
+  "executive_home.how_an_executive_is_constituted": {
+    "source_hash": "76d4288f31e83c4657798752db19ea7827af76e6d27fccea2a3a4167ae0ff06c",
+    "shape": "attr:title",
+    "file": "Pages/Executive/Home.vue",
+    "line": 125,
+    "status": "source"
+  },
+  "executive_home.introduce_a_conversion_bill_filed_by_a_mem": {
+    "source_hash": "54da931477d314c75d728f2c60c3fbfb718bbc574751e76d59c40da5c458badf",
+    "shape": "template",
+    "file": "Pages/Executive/Home.vue",
+    "line": 376,
+    "status": "source"
+  },
+  "executive_home.introduce_a_delegation_bill_filed_by_a_mem": {
+    "source_hash": "2323a8a94962f709a64b30d08cb8c13756a8273fb9a2d2e2d115dfd73b5fc32e",
+    "shape": "template",
+    "file": "Pages/Executive/Home.vue",
+    "line": 311,
+    "status": "source"
+  },
+  "executive_home.no_conversion_on_record_converting_a_deleg": {
+    "source_hash": "243d00b1eabb8744973d254cbbafd09df3d8e2a1efbd2ba99cac5daecfcb88a3",
+    "shape": "template",
+    "file": "Pages/Executive/Home.vue",
+    "line": 370,
+    "status": "source"
+  },
+  "executive_home.no_delegation_act_on_record_the_legislatur": {
+    "source_hash": "3e7475891d4cdeefd29de5edfc805b11b6a5b1ac069dbc9050ed0aade3b32733",
+    "shape": "template",
+    "file": "Pages/Executive/Home.vue",
+    "line": 307,
+    "status": "source"
+  },
+  "executive_home.no_departments_chartered_yet_departments_a": {
+    "source_hash": "01d140ba5123821fd6e310a2b12de88e51b851ffc402f97bfe41f55ab56e0037",
+    "shape": "template",
+    "file": "Pages/Executive/Home.vue",
+    "line": 438,
+    "status": "source"
+  },
+  "executive_home.no_direct_constituent_jurisdiction_holds_a": {
+    "source_hash": "d72dbdd57bd0f9f0624c033526ad7fd7bfe7bea81db45024c615d04bcb759691",
+    "shape": "template",
+    "file": "Pages/Executive/Home.vue",
+    "line": 344,
+    "status": "source"
+  },
+  "executive_home.no_office_term_delegated_members_run_on_th": {
+    "source_hash": "1efc9b9fd1232661ce6a3a2d2e726d82a9efec0ca0b4305401aa19870232bed7",
+    "shape": "bound:label",
+    "file": "Pages/Executive/Home.vue",
+    "line": 399,
+    "status": "source"
+  },
+  "executive_home.officer_equal_power": {
+    "source_hash": "5a098b06c8808e45d90e1ab4429fcd6b6b3be1e5e40cfa4c4748f4fea33c1702",
+    "shape": "template",
+    "file": "Pages/Executive/Home.vue",
+    "line": 247,
+    "status": "source"
+  },
+  "executive_home.one_clock_drives_both_elections_art_iii_3_": {
+    "source_hash": "e6d6c37e4db9a11b32a938877dd71dce2d466434447713545e19e5c6b6ab4a58",
+    "shape": "template",
+    "file": "Pages/Executive/Home.vue",
+    "line": 404,
+    "status": "source"
+  },
+  "executive_home.principal_equal_power": {
+    "source_hash": "09915982a50aa13ddf684bb478daaebb195cf920d927ccba52f00c323cb3e23f",
+    "shape": "template",
+    "file": "Pages/Executive/Home.vue",
+    "line": 177,
+    "status": "source"
+  },
+  "executive_home.seat": {
+    "source_hash": "d8cf930931040550255aaf79a3c879eb8f3008a74a36d6995a02d7cf8758865a",
+    "shape": "template",
+    "file": "Pages/Executive/Home.vue",
+    "line": 182,
+    "status": "source"
+  },
+  "executive_home.selected_proportionally_the_same_method_as": {
+    "source_hash": "b1e72a4e0dcabea60eb2668f562dbd6bd2b6dfc15422a86ea0acd81aa4aab7a7",
+    "shape": "template",
+    "file": "Pages/Executive/Home.vue",
+    "line": 168,
+    "status": "source"
+  },
+  "executive_home.steps_in_in_rank_order_if_the_office_vacat": {
+    "source_hash": "bea7d938fac69869e2891ecd33c3a9da681bc162d7bf55ffaa7ab0fceec033e7",
+    "shape": "template",
+    "file": "Pages/Executive/Home.vue",
+    "line": 216,
+    "status": "source"
+  },
+  "executive_home.term_one_clock_drives_both_elections": {
+    "source_hash": "a103603fb2647352774489073f8cc540ac38e62a33b0b9e6363638fc276df197",
+    "shape": "attr:title",
+    "file": "Pages/Executive/Home.vue",
+    "line": 396,
+    "status": "source"
+  },
+  "executive_home.term_sync_on_the_chamber_page": {
+    "source_hash": "bfd4386bbf68e642c9134a368a0131289988447ae2fb81faf83eb260398c0abc",
+    "shape": "template",
+    "file": "Pages/Executive/Home.vue",
+    "line": 417,
+    "status": "source"
+  },
+  "executive_home.the_chamber_supermajority": {
+    "source_hash": "0771c32183d2a4f6921b78c296d05316ca967a455541934c23c7d3b7af3970c8",
+    "shape": "template",
+    "file": "Pages/Executive/Home.vue",
+    "line": 350,
+    "status": "source"
+  },
+  "executive_home.the_executive_is_delegated_by_default_and_": {
+    "source_hash": "a0436ce7fa239152616a3d9112d1ab1f3f6385da746c9a2940bdbbe2a973692e",
+    "shape": "template",
+    "file": "Pages/Executive/Home.vue",
+    "line": 446,
+    "status": "source"
+  },
+  "executive_home.the_executive_is_the_government_s_doing_ar": {
+    "source_hash": "6c0763172ac96e95e2952ffa28055a9f30a49f49213eca16bc4f4d88dc91cfed",
+    "shape": "template",
+    "file": "Pages/Executive/Home.vue",
+    "line": 102,
+    "status": "source"
+  },
+  "executive_home.the_office_is_in_a_transitional_state_see_": {
+    "source_hash": "746397c7015cdc50a34ed5ee0b7344cd75e977918a61eba38ec7575163f29ac4",
+    "shape": "template",
+    "file": "Pages/Executive/Home.vue",
+    "line": 265,
+    "status": "source"
+  },
+  "executive_home.the_office_today": {
+    "source_hash": "28fcdb2a7e2c12115aedb80610111f55788a45f7545af63226d437c07a8e965d",
+    "shape": "attr:title",
+    "file": "Pages/Executive/Home.vue",
+    "line": 144,
+    "status": "source"
+  },
+  "executive_home.the_supermajority_that_delegated_the_offic": {
+    "source_hash": "fc7a3b2d1e03977c7f3036467c2ded84292ad8af107e4d3d03aca555631e644b",
+    "shape": "template",
+    "file": "Pages/Executive/Home.vue",
+    "line": 289,
+    "status": "source"
+  },
+  "executive_home.this_executive_was_created_as_a_stub_at_ju": {
+    "source_hash": "3c19179a39de99bc42e83c63d7010920f7147d91ed26cdb1445e307b3f245450",
+    "shape": "template",
+    "file": "Pages/Executive/Home.vue",
+    "line": 146,
+    "status": "source"
+  }
+}

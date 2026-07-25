@@ -1,0 +1,8 @@
+{
+  "shell_appheader.world_of_statecraft": "World of Statecraft",
+  "shell_devbar.dev_controls_not_part_of_the_application": "Dev controls — not part of the application",
+  "shell_devbar.impersonating": "{label} — Impersonating {name}",
+  "shell_devbar.residency_tool_civic_residency": "Residency tool → /civic/residency",
+  "shell_emergencybanner.judicial_review_pending_f_jdg_007": "Judicial review pending · F-JDG-007",
+  "shell_emergencybanner.open_the_emergency_powers_dashboard": "Open the emergency powers dashboard"
+}

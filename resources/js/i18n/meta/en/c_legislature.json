@@ -1,0 +1,184 @@
+{
+  "legislature_agendastrip.in_progress": {
+    "source_hash": "c1f88e9d6c4145cf0530ae020155384d5688d70ed82a07a35d783bbc4b32238c",
+    "shape": "script:text",
+    "file": "Components/Legislature/AgendaStrip.vue",
+    "line": 52,
+    "status": "source"
+  },
+  "legislature_agendastrip.session_agenda_constitutional_order": {
+    "source_hash": "1415c49fba6a342fc4cf9cd86669223a5e08cc120a43d251274976c6e2eff697",
+    "shape": "attr:aria-label",
+    "file": "Components/Legislature/AgendaStrip.vue",
+    "line": 100,
+    "status": "source"
+  },
+  "legislature_constituentconsentpanel.art_iii_3_art_vii": {
+    "source_hash": "60142a352cbf3f4c746f393bd2d577bed2df29d354e9dd56da94adb8b2ab44d2",
+    "shape": "prop-default",
+    "file": "Components/Legislature/ConstituentConsentPanel.vue",
+    "line": 60,
+    "status": "source"
+  },
+  "legislature_constituentconsentpanel.constituent_consents_each_constituent_legi": {
+    "source_hash": "e5670d4e39cf98ed74f642a8bba3b592207865dcb306b67bbe6b065f9ce8888e",
+    "shape": "attr:caption",
+    "file": "Components/Legislature/ConstituentConsentPanel.vue",
+    "line": 194,
+    "status": "source"
+  },
+  "legislature_constituentconsentpanel.constituent_jurisdictions_in_favor": {
+    "source_hash": "47f78c6543f21641cb67ba6f2c0629a2d81b7ac1ac47377f2c01b692cfdf0688",
+    "shape": "attr:label",
+    "file": "Components/Legislature/ConstituentConsentPanel.vue",
+    "line": 177,
+    "status": "source"
+  },
+  "legislature_constituentconsentpanel.constituent_jurisdictions_supermajority_of": {
+    "source_hash": "99f6c9ae306554e98a6e8614212496d65e463f67a888d2dc93dbd0bd9c2862b9",
+    "shape": "template",
+    "file": "Components/Legislature/ConstituentConsentPanel.vue",
+    "line": 171,
+    "status": "source"
+  },
+  "legislature_constituentconsentpanel.each_constituent_legislature_votes_as_a_bo": {
+    "source_hash": "e85db7dc40b2c11fa3105bee25613c32410cbd4f03e5d092c07b218c09bcdebb",
+    "shape": "template",
+    "file": "Components/Legislature/ConstituentConsentPanel.vue",
+    "line": 213,
+    "status": "source"
+  },
+  "legislature_constituentconsentpanel.open_both_supermajorities_must_clear_each_": {
+    "source_hash": "0edccb7023619b6ed435c34b7f0e22762f202f073fd0dbfed85295a7f0235c3a",
+    "shape": "script:title",
+    "file": "Components/Legislature/ConstituentConsentPanel.vue",
+    "line": 139,
+    "status": "source"
+  },
+  "legislature_constituentconsentpanel.own_supermajority": {
+    "source_hash": "24ae377110222c58f8616c12cc9deb026ab20486dfc57067ad83b55cd040f706",
+    "shape": "template",
+    "file": "Components/Legislature/ConstituentConsentPanel.vue",
+    "line": 153,
+    "status": "source"
+  },
+  "legislature_constituentconsentpanel.window_closes_stored_as_utc": {
+    "source_hash": "0b87a4c0d52d642e99b680cfc71b1331f609bcdf485ead1e90cbcdd538f38f7a",
+    "shape": "template",
+    "file": "Components/Legislature/ConstituentConsentPanel.vue",
+    "line": 183,
+    "status": "source"
+  },
+  "legislature_seatmap.gold_ring_speaker_dashed_vacant_blue_ring_": {
+    "source_hash": "276ba2904b53f746354af06bb699fa6e034a4bf3061d2b2ffa33474b4fc78258",
+    "shape": "template",
+    "file": "Components/Legislature/SeatMap.vue",
+    "line": 198,
+    "status": "source"
+  },
+  "legislature_votecastlist.counts_the_same_as_a_no_peg_quorum_art_ii_": {
+    "source_hash": "b19257e45998fb11e8a97d6f239bc24662d727eafa9bc291b5df56267a7992a0",
+    "shape": "script:title",
+    "file": "Components/Legislature/VoteCastList.vue",
+    "line": 39,
+    "status": "source"
+  },
+  "legislature_votetally.art_ii_2": {
+    "source_hash": "b5e51b2e071f803aca4f149d7595c416870e0364572d08ab9eaaadf295177f10",
+    "shape": "prop-default",
+    "file": "Components/Legislature/VoteTally.vue",
+    "line": 50,
+    "status": "source"
+  },
+  "legislature_votetally.each_kind_meets_its_own_peg_quorum_vacanci": {
+    "source_hash": "40b897954623fc01fea6fa6d10c3c8e4c9d58df09ea41ab3dbd1df46930f950f",
+    "shape": "template",
+    "file": "Components/Legislature/VoteTally.vue",
+    "line": 244,
+    "status": "source"
+  },
+  "legislature_votetally.explanation_optional": {
+    "source_hash": "bc03a11b10613197843abce423f1deb65fcd5baa04537dd4c8fc467cb782d8a1",
+    "shape": "template",
+    "file": "Components/Legislature/VoteTally.vue",
+    "line": 255,
+    "status": "source"
+  },
+  "legislature_votetally.peg_quorum_of_serving_art_ii_2": {
+    "source_hash": "a42ff725f7d1b69bae46eb953d8bf59e1fc38c4dcf7dcf2d2f2b21aa56e4e96d",
+    "shape": "template",
+    "file": "Components/Legislature/VoteTally.vue",
+    "line": 177,
+    "status": "source"
+  },
+  "legislature_votetally.peg_quorum_of_this_kind_of_serving": {
+    "source_hash": "392e2b781598f7ace541ae7d7b25c4666e4f764b020aefb11fc9444ba43b6cef",
+    "shape": "template",
+    "file": "Components/Legislature/VoteTally.vue",
+    "line": 219,
+    "status": "source"
+  },
+  "legislature_votetally.published_with_your_vote_art_ii_2": {
+    "source_hash": "b97bcc14b527f8e37ab9ed67e962dac02d404fffd41ec7c03c2502d2a24ebdf4",
+    "shape": "template",
+    "file": "Components/Legislature/VoteTally.vue",
+    "line": 263,
+    "status": "source"
+  },
+  "legislature_votetally.quorum_present_of_all_serving": {
+    "source_hash": "81226041eaf0d5ed1766e35538a489979f8e58c08da706105a3375accd1e8b8a",
+    "shape": "attr:label",
+    "file": "Components/Legislature/VoteTally.vue",
+    "line": 174,
+    "status": "source"
+  },
+  "legislature_votetally.supermajority_rcv_outcome": {
+    "source_hash": "41087c9655fac171f5268ded4bfd5ba084d7081fd84babfa11ce4b8cc4dd1d24",
+    "shape": "bound:label",
+    "file": "Components/Legislature/VoteTally.vue",
+    "line": 185,
+    "status": "source"
+  },
+  "legislature_votetally.this_kind_agrees": {
+    "source_hash": "92cdcc7c67fbaecb712902006e9c3d08cfb4ab008d9ad2889560c88c1d1f23bb",
+    "shape": "script:text",
+    "file": "Components/Legislature/VoteTally.vue",
+    "line": 145,
+    "status": "source"
+  },
+  "legislature_votetally.this_kind_does_not_agree": {
+    "source_hash": "3b81514efb8ab0b36a12f82cac44baba55740febaaffdbf7e4ccb6135eeaa999",
+    "shape": "script:text",
+    "file": "Components/Legislature/VoteTally.vue",
+    "line": 146,
+    "status": "source"
+  },
+  "legislature_votetally.vote_no": {
+    "source_hash": "f89fa765cad40101fb5ff7bed7bdf7e4c80190715313598ca950ebab7114557c",
+    "shape": "template",
+    "file": "Components/Legislature/VoteTally.vue",
+    "line": 267,
+    "status": "source"
+  },
+  "legislature_votetally.vote_open": {
+    "source_hash": "a90b6e84de808dad23b5855a70bd0a046ecbbbe54dd0455bd868bb617862c4dc",
+    "shape": "script:text",
+    "file": "Components/Legislature/VoteTally.vue",
+    "line": 100,
+    "status": "source"
+  },
+  "legislature_votetally.vote_yes": {
+    "source_hash": "d0f291d1c676e5ca4ae6a77091359b54eb083a51675e2484b52f170bdf738104",
+    "shape": "template",
+    "file": "Components/Legislature/VoteTally.vue",
+    "line": 266,
+    "status": "source"
+  },
+  "legislature_votetally.votes_in_favor": {
+    "source_hash": "a5ffeeca34e927e4edcc4a8450a946b7844888d8e67d766018417b3e6c048638",
+    "shape": "bound:label",
+    "file": "Components/Legislature/VoteTally.vue",
+    "line": 185,
+    "status": "source"
+  }
+}

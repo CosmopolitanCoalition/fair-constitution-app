@@ -1,0 +1,1871 @@
+{
+  "setup_bootstrap.1_database": {
+    "source_hash": "f65ef8594cf597add0a370eea38285ba228adef40cc2b46c3e17ab0ab0c5bc82",
+    "shape": "template",
+    "file": "Pages/Setup/Bootstrap.vue",
+    "line": 91,
+    "status": "source"
+  },
+  "setup_bootstrap.continue": {
+    "source_hash": "496267ccc6b016050102de3fe9847cedbdcf4e1c4319c6e00af4e9cad7759a40",
+    "shape": "template",
+    "file": "Pages/Setup/Bootstrap.vue",
+    "line": 133,
+    "status": "source"
+  },
+  "setup_bootstrap.disabled_while_an_etl_run_is_in_progress": {
+    "source_hash": "58cccb27f235a0287e67cd76572735d638e4d0c11889a459fe143beaaf3678ef",
+    "shape": "template",
+    "file": "Pages/Setup/Bootstrap.vue",
+    "line": 121,
+    "status": "source"
+  },
+  "setup_bootstrap.first_set_up_the_database_then_you_ll_choo": {
+    "source_hash": "e19029353a7669e109e877a13a9c1d736b9fd3661759e51b852aeb8f0e3e55c2",
+    "shape": "template",
+    "file": "Pages/Setup/Bootstrap.vue",
+    "line": 82,
+    "status": "source"
+  },
+  "setup_bootstrap.ready": {
+    "source_hash": "4e1fd9c75833edec4a26f00f91eb5b468cee774b4bb8e65da813530777ff01b9",
+    "shape": "template",
+    "file": "Pages/Setup/Bootstrap.vue",
+    "line": 92,
+    "status": "source"
+  },
+  "setup_bootstrap.set_up_this_node": {
+    "source_hash": "266591f3ee2271270c952d44d4e85b9a289f80622678db5c123cbd9f69f1bde4",
+    "shape": "template",
+    "file": "Pages/Setup/Bootstrap.vue",
+    "line": 81,
+    "status": "source"
+  },
+  "setup_bootstrap.setup_required": {
+    "source_hash": "1a367c79441e13b7b0a74848ed84c568f09270a241822e1f419cd9823d148dab",
+    "shape": "template",
+    "file": "Pages/Setup/Bootstrap.vue",
+    "line": 93,
+    "status": "source"
+  },
+  "setup_bootstrap.show_update_details": {
+    "source_hash": "a69f2481a6c353ea9f9300402e99c9425b691a64f66f3df9c9506932c65ddc17",
+    "shape": "template",
+    "file": "Pages/Setup/Bootstrap.vue",
+    "line": 101,
+    "status": "source"
+  },
+  "setup_joinhost.already_connected_to_a_host_this_resumes_t": {
+    "source_hash": "987c9f66df9a3414e7d6456c39e81fc244178091b5e8366fd002e1ae6107a05c",
+    "shape": "template",
+    "file": "Pages/Setup/JoinHost.vue",
+    "line": 268,
+    "status": "source"
+  },
+  "setup_joinhost.checks_the_public_front_door_and_if_you_op": {
+    "source_hash": "caa44faedda5a924ea1e9bc94812fbc62be03a1915c2e5d177575966594573c5",
+    "shape": "template",
+    "file": "Pages/Setup/JoinHost.vue",
+    "line": 165,
+    "status": "source"
+  },
+  "setup_joinhost.connect_this_node_to_a_federation_already_": {
+    "source_hash": "38aaebcaa52f1e132afdda95b4110c22f4399d07c4bc75e7b9ab97c347d14b42",
+    "shape": "template",
+    "file": "Pages/Setup/JoinHost.vue",
+    "line": 150,
+    "status": "source"
+  },
+  "setup_joinhost.connected_pulling_the_corpus_in_the_backgr": {
+    "source_hash": "cdad555a1da4598fc1502d60356f6be72b8d42c6e25d0482d835598a34b81300",
+    "shape": "template",
+    "file": "Pages/Setup/JoinHost.vue",
+    "line": 239,
+    "status": "source"
+  },
+  "setup_joinhost.find_a_federation": {
+    "source_hash": "8187133a041b1caed0390fe8d7ca7dbb16c82216bb63358eeb48ae9847aab80c",
+    "shape": "template",
+    "file": "Pages/Setup/JoinHost.vue",
+    "line": 159,
+    "status": "source"
+  },
+  "setup_joinhost.host_adoption_console_pending_adoption_req": {
+    "source_hash": "84c54936e2da9a85e22220e1e3c9b65d17165309fe4f19a68bee0be4a9f6a451",
+    "shape": "template",
+    "file": "Pages/Setup/JoinHost.vue",
+    "line": 235,
+    "status": "source"
+  },
+  "setup_joinhost.host_url": {
+    "source_hash": "dae951acf769351ac177e91d4f62b8a3d93d09f36ed4f3260b6c952bad1f47bb",
+    "shape": "template",
+    "file": "Pages/Setup/JoinHost.vue",
+    "line": 212,
+    "status": "source"
+  },
+  "setup_joinhost.its_federation_page": {
+    "source_hash": "a9281ea9ddad99c97d57fa4cbd1f9ca86902d7bb215d5a9fbca6a5f332ec751d",
+    "shape": "template",
+    "file": "Pages/Setup/JoinHost.vue",
+    "line": 234,
+    "status": "source"
+  },
+  "setup_joinhost.join_an_existing_mesh": {
+    "source_hash": "bf1daac9dfd844f540b4f891f2a8a84173f36fddff2cad146ef53b9c6764b026",
+    "shape": "template",
+    "file": "Pages/Setup/JoinHost.vue",
+    "line": 149,
+    "status": "source"
+  },
+  "setup_joinhost.join_key_optional_leave_blank_to_request_t": {
+    "source_hash": "eb80fbd9eb6601948fe334c2be88d5a5208886afabd1ebbdac57bbea63e7768f",
+    "shape": "template",
+    "file": "Pages/Setup/JoinHost.vue",
+    "line": 218,
+    "status": "source"
+  },
+  "setup_joinhost.no_federations_found_enter_a_host_url_manu": {
+    "source_hash": "da94347560bc9c445f51986f96e9e007c411c3eb4c60591be374b1507e3a9425",
+    "shape": "template",
+    "file": "Pages/Setup/JoinHost.vue",
+    "line": 201,
+    "status": "source"
+  },
+  "setup_joinhost.not_moving_resume_the_sync": {
+    "source_hash": "d71751074751954cf4a33ce6396c80db6d2ba6fcf253052e2ff36685e0c24569",
+    "shape": "template",
+    "file": "Pages/Setup/JoinHost.vue",
+    "line": 264,
+    "status": "source"
+  },
+  "setup_joinhost.not_open": {
+    "source_hash": "20b10379e71828488eb555ea01946bcc19be4a372f20bb4309023f8ff649a087",
+    "shape": "template",
+    "file": "Pages/Setup/JoinHost.vue",
+    "line": 193,
+    "status": "source"
+  },
+  "setup_joinhost.request_sent_the_host_operator_must_approv": {
+    "source_hash": "d16a6014f44f6d2947e79a18520f8d930781b273d7cec7ea27406a44421f8893",
+    "shape": "template",
+    "file": "Pages/Setup/JoinHost.vue",
+    "line": 229,
+    "status": "source"
+  },
+  "setup_joinhost.syncing": {
+    "source_hash": "8a046cc90ab0a981f95cbf2c9c609309e0cfda272d8c01fdffecdb8286877e91",
+    "shape": "template",
+    "file": "Pages/Setup/JoinHost.vue",
+    "line": 252,
+    "status": "source"
+  },
+  "setup_joinhost.this_node_s_mesh_id_give_it_to_the_host": {
+    "source_hash": "96446d1dd2458a007619f130c5ef86615d6928b4d98b0fc95c04ab82c4cee930",
+    "shape": "template",
+    "file": "Pages/Setup/JoinHost.vue",
+    "line": 207,
+    "status": "source"
+  },
+  "setup_joinhost.your_lan_range_cidr": {
+    "source_hash": "82c826570b403cdb51e3464fcd0625f071fea9f60a90cd1faaf31966b35ee8ae",
+    "shape": "template",
+    "file": "Pages/Setup/JoinHost.vue",
+    "line": 174,
+    "status": "source"
+  },
+  "setup_modefork.build_the_game_here_author_the_constitutio": {
+    "source_hash": "d838525c99205922ea9bdf7cc3158aaa79077f19bbe34cefb5c811c811d4e0b3",
+    "shape": "template",
+    "file": "Pages/Setup/ModeFork.vue",
+    "line": 64,
+    "status": "source"
+  },
+  "setup_modefork.connect_to_a_host_already_in_the_federatio": {
+    "source_hash": "7963b23c05dd885b1956a691470007386eb5f1a91b655ea86582bbeb735189d3",
+    "shape": "template",
+    "file": "Pages/Setup/ModeFork.vue",
+    "line": 76,
+    "status": "source"
+  },
+  "setup_modefork.how_should_this_node_join_the_game": {
+    "source_hash": "c52d1de7889e0ef9e3e3667293364f1b071c3cd965e38b264a636e756f8bf58f",
+    "shape": "template",
+    "file": "Pages/Setup/ModeFork.vue",
+    "line": 50,
+    "status": "source"
+  },
+  "setup_modefork.start_a_new_world": {
+    "source_hash": "3847b650525b59336a5302e33d683071de5ed30ae7ea52d34316789a641652e5",
+    "shape": "template",
+    "file": "Pages/Setup/ModeFork.vue",
+    "line": 62,
+    "status": "source"
+  },
+  "setup_modefork.this_choice_is_one_way_for_the_life_of_the": {
+    "source_hash": "9803d5b4d6760b8ca7ce966ccb3c4457dbf812b213e1f34b19cab5bd05bcd1c8",
+    "shape": "template",
+    "file": "Pages/Setup/ModeFork.vue",
+    "line": 84,
+    "status": "source"
+  },
+  "setup_modefork.your_operator_account_is_set_up_every_node": {
+    "source_hash": "6656065edea55bb2e5fbab47b8b76d49657b5eee68cda9678fe6f0e4c227f040",
+    "shape": "template",
+    "file": "Pages/Setup/ModeFork.vue",
+    "line": 51,
+    "status": "source"
+  },
+  "setup_operatorsetup.1_operator_account": {
+    "source_hash": "da1950973b3ccb8e170c1f714eb7fdb3b80435a79301880b8377b1cd37fb1aed",
+    "shape": "template",
+    "file": "Pages/Setup/OperatorSetup.vue",
+    "line": 227,
+    "status": "source"
+  },
+  "setup_operatorsetup.2_this_node_s_address": {
+    "source_hash": "99448def81c8589334fe9107dd21a012b2f04f080a4bac91c1e985f3dec9ca33",
+    "shape": "template",
+    "file": "Pages/Setup/OperatorSetup.vue",
+    "line": 258,
+    "status": "source"
+  },
+  "setup_operatorsetup.3_operator_roles": {
+    "source_hash": "8e065dc9358b397290d8427cd72afbfeb2d8bb137d4554db4449446c052f2361",
+    "shape": "template",
+    "file": "Pages/Setup/OperatorSetup.vue",
+    "line": 321,
+    "status": "source"
+  },
+  "setup_operatorsetup.confirm_password": {
+    "source_hash": "5ac265f396a2c58687aad7b507b0561b9d47eed260ef8610c4fb4a83f504e03c",
+    "shape": "attr:placeholder",
+    "file": "Pages/Setup/OperatorSetup.vue",
+    "line": 242,
+    "status": "source"
+  },
+  "setup_operatorsetup.create_the_account_that_runs_this_node_giv": {
+    "source_hash": "eb96bcfa99f536ee959b3dd4c95aaaecdec509ebd2a6e450c1f0bd2f3bb45eb7",
+    "shape": "template",
+    "file": "Pages/Setup/OperatorSetup.vue",
+    "line": 218,
+    "status": "source"
+  },
+  "setup_operatorsetup.created": {
+    "source_hash": "f05a8dcd3caa570be08298e4210f498b07e26d9b43d5a9aee32bbcda1ccd5845",
+    "shape": "template",
+    "file": "Pages/Setup/OperatorSetup.vue",
+    "line": 228,
+    "status": "source"
+  },
+  "setup_operatorsetup.e_g_home_node": {
+    "source_hash": "0a4d4527f1beb0e5480d0cb4ab55b6166a831fbe7144f2ff3500a2bfd97f374b",
+    "shape": "attr:placeholder",
+    "file": "Pages/Setup/OperatorSetup.vue",
+    "line": 264,
+    "status": "source"
+  },
+  "setup_operatorsetup.hand_a_colleague_a_one_file_start_script_s": {
+    "source_hash": "9dd405a959eca207c179c1eed113e6dac1620cf3006bc9c270a6616b6306d3c0",
+    "shape": "template",
+    "file": "Pages/Setup/OperatorSetup.vue",
+    "line": 390,
+    "status": "source"
+  },
+  "setup_operatorsetup.infrastructure_config_comes_next_you_can_t": {
+    "source_hash": "09fb1a36b7cc3216935b8f35d1af02a354ed1085d62f38a11e47f7b1706b5a92",
+    "shape": "template",
+    "file": "Pages/Setup/OperatorSetup.vue",
+    "line": 376,
+    "status": "source"
+  },
+  "setup_operatorsetup.just_me_for_now_runs_on_this_computer_no_a": {
+    "source_hash": "30064117c23a762a57b796dc00feaa09d05c0c2b5f7aef6f8c0587e2c6d6c39d",
+    "shape": "template",
+    "file": "Pages/Setup/OperatorSetup.vue",
+    "line": 273,
+    "status": "source"
+  },
+  "setup_operatorsetup.let_other_computers_people_connect": {
+    "source_hash": "46975e2185b9ba72485d232837665a045a81956d839a00f64ddb9838bf1707f2",
+    "shape": "template",
+    "file": "Pages/Setup/OperatorSetup.vue",
+    "line": 285,
+    "status": "source"
+  },
+  "setup_operatorsetup.localhost_only_works_on_this_computer_use_": {
+    "source_hash": "db3c86a99f74db17f9eb2d804b5cafd235d7b4c3a8d9feaf0d448780eb5cfece",
+    "shape": "template",
+    "file": "Pages/Setup/OperatorSetup.vue",
+    "line": 297,
+    "status": "source"
+  },
+  "setup_operatorsetup.macos_linux": {
+    "source_hash": "0e7d13c9e450ae1a06aaaf644cb769682eb2b7fe958eebe1a1d21004ad6890af",
+    "shape": "template",
+    "file": "Pages/Setup/OperatorSetup.vue",
+    "line": 399,
+    "status": "source"
+  },
+  "setup_operatorsetup.node_name_optional": {
+    "source_hash": "8b5c4b634ddb98ddedc8bca00f939ba9185711859311f0e6731fec11d911e4bc",
+    "shape": "template",
+    "file": "Pages/Setup/OperatorSetup.vue",
+    "line": 263,
+    "status": "source"
+  },
+  "setup_operatorsetup.operator_account_is_set": {
+    "source_hash": "d48ad9f1fab1fb89269e752ba5c2ca3a2cec28867c8126a010851ff42b37790f",
+    "shape": "template",
+    "file": "Pages/Setup/OperatorSetup.vue",
+    "line": 251,
+    "status": "source"
+  },
+  "setup_operatorsetup.operator_setup": {
+    "source_hash": "ee366650da814b0b7ad7e65eace48fa8b1d8d123bdd2406a65641b3fa3ff0240",
+    "shape": "template",
+    "file": "Pages/Setup/OperatorSetup.vue",
+    "line": 217,
+    "status": "source"
+  },
+  "setup_operatorsetup.password_8_characters": {
+    "source_hash": "01158cddc1ee10c4dd5888ef2456089f89de356a3e27bb6cb0172ef8edab70df",
+    "shape": "attr:placeholder",
+    "file": "Pages/Setup/OperatorSetup.vue",
+    "line": 240,
+    "status": "source"
+  },
+  "setup_operatorsetup.prefer_the_full_console_open_the_operator_": {
+    "source_hash": "4346e1d1a5944750d55409b1c14f787b0e1750a05f05faecabc50f375a4e6ddf",
+    "shape": "template",
+    "file": "Pages/Setup/OperatorSetup.vue",
+    "line": 381,
+    "status": "source"
+  },
+  "setup_operatorsetup.roles_become_available_once_the_operator_a": {
+    "source_hash": "9286d8b8bd6b06df8e2a764cbb0bb86fd9454846a77ba8984636a01400a312bd",
+    "shape": "template",
+    "file": "Pages/Setup/OperatorSetup.vue",
+    "line": 358,
+    "status": "source"
+  },
+  "setup_operatorsetup.running_a_node_carries_operator_roles_on_t": {
+    "source_hash": "8a613b60a3b384d8299c94a3137ea58c8276ca79e2aeae27ca5540b9fc7dae55",
+    "shape": "template",
+    "file": "Pages/Setup/OperatorSetup.vue",
+    "line": 324,
+    "status": "source"
+  },
+  "setup_operatorsetup.saved": {
+    "source_hash": "45edcc201b730f55b185fb07d06dd4aeadbacb41643537912152499d38a3e26f",
+    "shape": "template",
+    "file": "Pages/Setup/OperatorSetup.vue",
+    "line": 259,
+    "status": "source"
+  },
+  "setup_operatorsetup.set_a_reachable_node_address_above_first_o": {
+    "source_hash": "9b64a6601ca3fdb04d1df785ff393e9229039be74896a3d774e520b7626339b9",
+    "shape": "template",
+    "file": "Pages/Setup/OperatorSetup.vue",
+    "line": 408,
+    "status": "source"
+  },
+  "setup_operatorsetup.set_the_address_peers_dial_to_reach_this_b": {
+    "source_hash": "6fbc3fa319c69fc44032332e3cf88ed6fbd1f9dcb288959337ebb31acc1d1214",
+    "shape": "template",
+    "file": "Pages/Setup/OperatorSetup.vue",
+    "line": 286,
+    "status": "source"
+  },
+  "setup_operatorsetup.share_this_deployment": {
+    "source_hash": "871e4ba65f9c4a131d270524c57e7b98f976ad12d50ca0cac613b30a31e94b94",
+    "shape": "template",
+    "file": "Pages/Setup/OperatorSetup.vue",
+    "line": 389,
+    "status": "source"
+  },
+  "setup_operatorsetup.some_roles_still_need_setup_before_they_wo": {
+    "source_hash": "2a2c5691edbb8edb35822da25e7ef591ec0cc72d9863269c80f15551ab8061c8",
+    "shape": "template",
+    "file": "Pages/Setup/OperatorSetup.vue",
+    "line": 365,
+    "status": "source"
+  },
+  "setup_operatorsetup.the_address_changed_re_run_the_start_comma": {
+    "source_hash": "32c8c90c1d89d9efe05f5bfe2755607c2be934ded0d28b6dc7dce8a027381e1b",
+    "shape": "template",
+    "file": "Pages/Setup/OperatorSetup.vue",
+    "line": 307,
+    "status": "source"
+  },
+  "setup_operatorsetup.use_this_browser_s_address": {
+    "source_hash": "3d05e89a0074a4e7d5ca15ad49a1e427baf94c63e83f0be3630b8afc3789255b",
+    "shape": "template",
+    "file": "Pages/Setup/OperatorSetup.vue",
+    "line": 293,
+    "status": "source"
+  },
+  "setup_operatorsetup.who_should_be_able_to_reach_this_node": {
+    "source_hash": "2aa835e66f4edb3f0989c99a43b9f49e54b19968bff6ff3c1ab80b2047994d77",
+    "shape": "template",
+    "file": "Pages/Setup/OperatorSetup.vue",
+    "line": 268,
+    "status": "source"
+  },
+  "setup_operatorsetup.your_name": {
+    "source_hash": "2c6b2e253c01fb2ed7209c15766745ccee92a35ac8209f544789bdf9500e0944",
+    "shape": "attr:placeholder",
+    "file": "Pages/Setup/OperatorSetup.vue",
+    "line": 236,
+    "status": "source"
+  },
+  "setup_operatorsetup.your_physical_operator_credentials_the_acc": {
+    "source_hash": "a4fc563689773fd95e888f197ae5965810fb69b11391883ac432e5d7343428ad",
+    "shape": "template",
+    "file": "Pages/Setup/OperatorSetup.vue",
+    "line": 232,
+    "status": "source"
+  },
+  "setup_step0_cosmicaddress.1_day": {
+    "source_hash": "fa665d95d29e83bc8dc7afc598bc4d3329e56628d5304eb7ca7502fe4a4f03c0",
+    "shape": "script:label",
+    "file": "Pages/Setup/Step0_CosmicAddress.vue",
+    "line": 33,
+    "status": "source"
+  },
+  "setup_step0_cosmicaddress.1_election_cycle": {
+    "source_hash": "de38cd0c19e5e5511a8dca7189a1f47755dc4e6c5eed1476b26e12230fa3900a",
+    "shape": "template",
+    "file": "Pages/Setup/Step0_CosmicAddress.vue",
+    "line": 188,
+    "status": "source"
+  },
+  "setup_step0_cosmicaddress.1_hour": {
+    "source_hash": "f8b8883f0c9d8d823a8df096ebde57ec04abe9f9cbc4eea1cbc3454c5025c484",
+    "shape": "script:label",
+    "file": "Pages/Setup/Step0_CosmicAddress.vue",
+    "line": 32,
+    "status": "source"
+  },
+  "setup_step0_cosmicaddress.1_minute": {
+    "source_hash": "e67b6f61f579060a649fa280b8697bc9bf5173a34f20570c25e603e1ed1a5905",
+    "shape": "script:label",
+    "file": "Pages/Setup/Step0_CosmicAddress.vue",
+    "line": 31,
+    "status": "source"
+  },
+  "setup_step0_cosmicaddress.1_second": {
+    "source_hash": "db3b946b8d705e42a2f72cf42c2735ef250262e713c217d9382caca38d25bbd9",
+    "shape": "script:label",
+    "file": "Pages/Setup/Step0_CosmicAddress.vue",
+    "line": 30,
+    "status": "source"
+  },
+  "setup_step0_cosmicaddress.1_week": {
+    "source_hash": "c8cc522340b984b57109fd8b120419170b4301baead519e2a8fd65736b9ddd41",
+    "shape": "script:label",
+    "file": "Pages/Setup/Step0_CosmicAddress.vue",
+    "line": 34,
+    "status": "source"
+  },
+  "setup_step0_cosmicaddress.1_year_real_time": {
+    "source_hash": "ea84f8ce776427b97a0b2998ff662aa48cc4954baa1a84246b818c84bfda2e63",
+    "shape": "script:label",
+    "file": "Pages/Setup/Step0_CosmicAddress.vue",
+    "line": 36,
+    "status": "source"
+  },
+  "setup_step0_cosmicaddress.30_days": {
+    "source_hash": "ffd7280513ce285e6d9dc8d0b7078c4f39c8fe0e69b0d0a87d8af2965e445d7a",
+    "shape": "script:label",
+    "file": "Pages/Setup/Step0_CosmicAddress.vue",
+    "line": 35,
+    "status": "source"
+  },
+  "setup_step0_cosmicaddress.a_friendly_label_for_this_install_shown_in": {
+    "source_hash": "ecb8d70649e99217d6db038d6094327b02b907eb55547660b3675d7100df8098",
+    "shape": "template",
+    "file": "Pages/Setup/Step0_CosmicAddress.vue",
+    "line": 130,
+    "status": "source"
+  },
+  "setup_step0_cosmicaddress.compressed_simulation_pick_seconds_per_sim": {
+    "source_hash": "7ebe9c9f7738c31546541231cb1722a818507d133c4c5975f55d31efafad4132",
+    "shape": "template",
+    "file": "Pages/Setup/Step0_CosmicAddress.vue",
+    "line": 171,
+    "status": "source"
+  },
+  "setup_step0_cosmicaddress.cosmic_address": {
+    "source_hash": "4d0cd021c78c70e448668ff1d11926364489b24dcf6a2e03b801ffa0a1accf25",
+    "shape": "template",
+    "file": "Pages/Setup/Step0_CosmicAddress.vue",
+    "line": 136,
+    "status": "source"
+  },
+  "setup_step0_cosmicaddress.e_g_earth_prime_midgard_starfall": {
+    "source_hash": "57fb1868a0796cc38cfa2a726efd65897e32f3f8e49c999f8609db756b2aab01",
+    "shape": "attr:placeholder",
+    "file": "Pages/Setup/Step0_CosmicAddress.vue",
+    "line": 127,
+    "status": "source"
+  },
+  "setup_step0_cosmicaddress.elections_on_wall_clock_5_year_default_cyc": {
+    "source_hash": "5a9ed32c4e7d893b08892983b30e211df8f9b92521f33a4c99844ad164fe91eb",
+    "shape": "template",
+    "file": "Pages/Setup/Step0_CosmicAddress.vue",
+    "line": 161,
+    "status": "source"
+  },
+  "setup_step0_cosmicaddress.instance_name": {
+    "source_hash": "85d41dd35ffc946d8d382ee0c2c3b34c183e7c90eb44507d9c4b32ffb1364525",
+    "shape": "template",
+    "file": "Pages/Setup/Step0_CosmicAddress.vue",
+    "line": 120,
+    "status": "source"
+  },
+  "setup_step0_cosmicaddress.let_s_set_your_cosmic_address_the_anchor_y": {
+    "source_hash": "aece2d719a6bc5eb3046967a449401b14170875c01827e2f69bf0cbe794c8c05",
+    "shape": "template",
+    "file": "Pages/Setup/Step0_CosmicAddress.vue",
+    "line": 106,
+    "status": "source"
+  },
+  "setup_step0_cosmicaddress.or_restore_from_a_backup": {
+    "source_hash": "1763589242984710129b4af6ee948fba51a058324ccf5203859512331cb8183b",
+    "shape": "attr:title",
+    "file": "Pages/Setup/Step0_CosmicAddress.vue",
+    "line": 116,
+    "status": "source"
+  },
+  "setup_step0_cosmicaddress.real_time": {
+    "source_hash": "278b8c933942f6cfadb328a7ccc2168fb4ee0bff5503dbfba378e971d5e3e60a",
+    "shape": "template",
+    "file": "Pages/Setup/Step0_CosmicAddress.vue",
+    "line": 160,
+    "status": "source"
+  },
+  "setup_step0_cosmicaddress.seconds_per_simulated_year": {
+    "source_hash": "99768d54523f6a1b7994fa84032ac73e70ed85363460af70cf4bb8c861d2e720",
+    "shape": "template",
+    "file": "Pages/Setup/Step0_CosmicAddress.vue",
+    "line": 176,
+    "status": "source"
+  },
+  "setup_step0_cosmicaddress.this_is_the_cosmopolitan_governance_app_a_": {
+    "source_hash": "791cfc021a3698d4d4a0732a7d20ad4e1806c68c3b91529bfc760d99b05d58c8",
+    "shape": "template",
+    "file": "Pages/Setup/Step0_CosmicAddress.vue",
+    "line": 99,
+    "status": "source"
+  },
+  "setup_step0_cosmicaddress.time_mode": {
+    "source_hash": "1d9bb4ff6b672f36fe79587225c8b5023031d4704bcce5b9e23a6f0ace30e469",
+    "shape": "template",
+    "file": "Pages/Setup/Step0_CosmicAddress.vue",
+    "line": 149,
+    "status": "source"
+  },
+  "setup_step0_cosmicaddress.welcome_to_the_cosmopolitan_coalition": {
+    "source_hash": "1c1572c8af23a6b7773b088f87a53dec221d2726a8034010c5599c7dd20f663d",
+    "shape": "template",
+    "file": "Pages/Setup/Step0_CosmicAddress.vue",
+    "line": 96,
+    "status": "source"
+  },
+  "setup_step1_constants.a_world_wide_setting_choose_how_strictly_t": {
+    "source_hash": "11e59279b9d9372ea0d0131441f7ccba1bdbc01498b4b1203573cfbc6f94b433",
+    "shape": "template",
+    "file": "Pages/Setup/Step1_Constants.vue",
+    "line": 286,
+    "status": "source"
+  },
+  "setup_step1_constants.appointments_judiciary": {
+    "source_hash": "7dd4c2dd75b986c026fb710bd986006af19bcc892a4fe3158aad0c412eb3cbcd",
+    "shape": "template",
+    "file": "Pages/Setup/Step1_Constants.vue",
+    "line": 562,
+    "status": "source"
+  },
+  "setup_step1_constants.back": {
+    "source_hash": "aceb696a04c19971ef77ae02784ad6fed2897aea569d46690886fed92de3fee7",
+    "shape": "template",
+    "file": "Pages/Setup/Step1_Constants.vue",
+    "line": 851,
+    "status": "source"
+  },
+  "setup_step1_constants.citizen_initiative_petition_threshold_of_p": {
+    "source_hash": "320ddfadba0fc6eedb9e76ee1f170df3bfe154f25f5baff1394415927faea5fa",
+    "shape": "template",
+    "file": "Pages/Setup/Step1_Constants.vue",
+    "line": 542,
+    "status": "source"
+  },
+  "setup_step1_constants.civic_duty_pay_for_elected_appointed_offic": {
+    "source_hash": "4dd5d1d639bc747e1b5df9a06ee421f6f9ed1684e3b51f89c53e53cbbe2f2ad7",
+    "shape": "template",
+    "file": "Pages/Setup/Step1_Constants.vue",
+    "line": 819,
+    "status": "source"
+  },
+  "setup_step1_constants.civic_duty_pay_for_moderators_default_5": {
+    "source_hash": "57f7245192636607e323bf4166278fe94f01aad7f2b61bff00cf947f591f5698",
+    "shape": "template",
+    "file": "Pages/Setup/Step1_Constants.vue",
+    "line": 805,
+    "status": "source"
+  },
+  "setup_step1_constants.civic_duty_pay_for_the_people_running_node": {
+    "source_hash": "df30b760cdf5181b7f88b8e312b49c79ef6aa3878f97629fefef6eddeb5d94fb",
+    "shape": "template",
+    "file": "Pages/Setup/Step1_Constants.vue",
+    "line": 791,
+    "status": "source"
+  },
+  "setup_step1_constants.civic_office_holders": {
+    "source_hash": "36fbc5fcd9d2ed50c0bf834026a41e9f56914cabaf5cd7935f6093209e588b25",
+    "shape": "template",
+    "file": "Pages/Setup/Step1_Constants.vue",
+    "line": 810,
+    "status": "source"
+  },
+  "setup_step1_constants.civic_stipend_residency_floor": {
+    "source_hash": "f3e4721dc80ae914d162319b59df0c7415e7abeced1964e865c3ecf067a0b339",
+    "shape": "template",
+    "file": "Pages/Setup/Step1_Constants.vue",
+    "line": 749,
+    "status": "source"
+  },
+  "setup_step1_constants.civil_appointment_term_years": {
+    "source_hash": "01430fd14cf4fef42f566a1e84c8e76b58682592cf7e3ba92a3291dd93f91965",
+    "shape": "template",
+    "file": "Pages/Setup/Step1_Constants.vue",
+    "line": 566,
+    "status": "source"
+  },
+  "setup_step1_constants.community_cells_balanced_population_cells": {
+    "source_hash": "351203d88949a0ccb18543fd190dbad49595836d1f0e9c916e0bb02dccd38054",
+    "shape": "script:label",
+    "file": "Pages/Setup/Step1_Constants.vue",
+    "line": 145,
+    "status": "source"
+  },
+  "setup_step1_constants.constitution_economy_defaults": {
+    "source_hash": "66b685e9903ec2e4698f97fbf636421c89c6ce2c964edf7593fc49ba33ad1137",
+    "shape": "template",
+    "file": "Pages/Setup/Step1_Constants.vue",
+    "line": 258,
+    "status": "source"
+  },
+  "setup_step1_constants.cube_root_law_round_population_1_3": {
+    "source_hash": "72eb1a6ef476bbdd8813212264e69527882a6242c0ffdd0bbf700fa0e42ef2fd",
+    "shape": "script:label",
+    "file": "Pages/Setup/Step1_Constants.vue",
+    "line": 136,
+    "status": "source"
+  },
+  "setup_step1_constants.currency_code": {
+    "source_hash": "378b65e1226022bac7afa4cb6dc0e7f59e43aca862c20ce7c4abe63c3dd8ecaf",
+    "shape": "template",
+    "file": "Pages/Setup/Step1_Constants.vue",
+    "line": 735,
+    "status": "source"
+  },
+  "setup_step1_constants.currency_name": {
+    "source_hash": "721b2ce4a488556abd203d71fc062893c5414ac65bad12bef57ae02971571425",
+    "shape": "template",
+    "file": "Pages/Setup/Step1_Constants.vue",
+    "line": 713,
+    "status": "source"
+  },
+  "setup_step1_constants.currency_symbol": {
+    "source_hash": "b1fb085b991147cfd4a50c23034997b0483baf675d79c57a8fd34b03da0ec7ed",
+    "shape": "template",
+    "file": "Pages/Setup/Step1_Constants.vue",
+    "line": 724,
+    "status": "source"
+  },
+  "setup_step1_constants.default_of_defaults_10_years_art_ii_9": {
+    "source_hash": "6b7802f8347a813b38146634ca525bafc2f2698a63be52df5b9415a65cddcad7",
+    "shape": "template",
+    "file": "Pages/Setup/Step1_Constants.vue",
+    "line": 575,
+    "status": "source"
+  },
+  "setup_step1_constants.default_of_defaults_10_years_art_iv_4": {
+    "source_hash": "0da5da590fcc68f05efe1aff9bd5c1c3de8a00261d338eab613790823d9fd46a",
+    "shape": "template",
+    "file": "Pages/Setup/Step1_Constants.vue",
+    "line": 589,
+    "status": "source"
+  },
+  "setup_step1_constants.default_of_defaults_100_art_iii_6": {
+    "source_hash": "7784e8159fcd3ec25829ac2e3d9a95ecf18e6dae65f9c0b5507851839d661566",
+    "shape": "template",
+    "file": "Pages/Setup/Step1_Constants.vue",
+    "line": 656,
+    "status": "source"
+  },
+  "setup_step1_constants.default_of_defaults_180_days_art_ii_5_must": {
+    "source_hash": "0ce775c4ee019ddc2d29be9f60eb0c5699b691719981ddd877c977fb157cc6bb",
+    "shape": "template",
+    "file": "Pages/Setup/Step1_Constants.vue",
+    "line": 476,
+    "status": "source"
+  },
+  "setup_step1_constants.default_of_defaults_2_3_art_vii_must_excee": {
+    "source_hash": "36eb50fff656584c7c3f3fee1e41577e02f84b1c3b93c3ad4d7c82a0b8e7b98a",
+    "shape": "template",
+    "file": "Pages/Setup/Step1_Constants.vue",
+    "line": 515,
+    "status": "source"
+  },
+  "setup_step1_constants.default_of_defaults_2000_art_iii_6_must_be": {
+    "source_hash": "14a96b63a54e569c2ed738dda2a1ed6a809ffe0f9329bffc74f181b99d0b4bcc",
+    "shape": "template",
+    "file": "Pages/Setup/Step1_Constants.vue",
+    "line": 670,
+    "status": "source"
+  },
+  "setup_step1_constants.default_of_defaults_30_days_of_qualifying_": {
+    "source_hash": "aa2f35359aa533fe6168c5318940625cf0c36ba536d3f7a7df5f711c2b08b11e",
+    "shape": "template",
+    "file": "Pages/Setup/Step1_Constants.vue",
+    "line": 696,
+    "status": "source"
+  },
+  "setup_step1_constants.default_of_defaults_5_00_art_ii_6": {
+    "source_hash": "998bc8c5f2b26f80f577838a827428ab12d9dffa78508045375f610c22e55b0c",
+    "shape": "template",
+    "file": "Pages/Setup/Step1_Constants.vue",
+    "line": 553,
+    "status": "source"
+  },
+  "setup_step1_constants.default_of_defaults_5_art_ii_2": {
+    "source_hash": "4587c49793e627c7b296ae96555adf934339eeed4e2a00a7d1ee0f8c56350319",
+    "shape": "template",
+    "file": "Pages/Setup/Step1_Constants.vue",
+    "line": 335,
+    "status": "source"
+  },
+  "setup_step1_constants.default_of_defaults_5_art_iv_4": {
+    "source_hash": "c93ea2efbeed3147cf622152e1d9b14f9774f2fe7e94b1b7d5337720ddd4d290",
+    "shape": "template",
+    "file": "Pages/Setup/Step1_Constants.vue",
+    "line": 606,
+    "status": "source"
+  },
+  "setup_step1_constants.default_of_defaults_60_months_5_years_art_": {
+    "source_hash": "5d180750096cf8c1f145f3215256b5b9affe7a2ea1e39d0b919ef324a8f5c262",
+    "shape": "template",
+    "file": "Pages/Setup/Step1_Constants.vue",
+    "line": 427,
+    "status": "source"
+  },
+  "setup_step1_constants.default_of_defaults_9_before_mandatory_sub": {
+    "source_hash": "58999b3db70d72fe70f06c21a332833ba00566f9c43bf39dce4bbf24d1fd368a",
+    "shape": "template",
+    "file": "Pages/Setup/Step1_Constants.vue",
+    "line": 349,
+    "status": "source"
+  },
+  "setup_step1_constants.default_of_defaults_90_days_art_ii_2": {
+    "source_hash": "0dd0b3d969ceb66c4b0e400d65a454682771257adef77e68877af983353b11a8",
+    "shape": "template",
+    "file": "Pages/Setup/Step1_Constants.vue",
+    "line": 404,
+    "status": "source"
+  },
+  "setup_step1_constants.default_of_defaults_90_days_art_ii_5": {
+    "source_hash": "5e5bf571bdb280a8838a9f9df3c2bcea40510d49db597639dc703768a85434ac",
+    "shape": "template",
+    "file": "Pages/Setup/Step1_Constants.vue",
+    "line": 462,
+    "status": "source"
+  },
+  "setup_step1_constants.default_of_defaults_90_days_art_ii_7": {
+    "source_hash": "68798f5abaee7da6a1bd357f1ca301244c2f44940d3ad1caf2f4ac11c02066d8",
+    "shape": "template",
+    "file": "Pages/Setup/Step1_Constants.vue",
+    "line": 535,
+    "status": "source"
+  },
+  "setup_step1_constants.default_of_defaults_appointed_art_iv_1": {
+    "source_hash": "799a790b24432700223a39ad43454f7f7a857fcba476253a24f56bfd19bbaeca",
+    "shape": "template",
+    "file": "Pages/Setup/Step1_Constants.vue",
+    "line": 634,
+    "status": "source"
+  },
+  "setup_step1_constants.default_of_defaults_shortest_split_line_wh": {
+    "source_hash": "e7d3102e37bcb13690e3eeabcb1f600dfcedce721dbeaa5995e6fcb540cb1232",
+    "shape": "template",
+    "file": "Pages/Setup/Step1_Constants.vue",
+    "line": 386,
+    "status": "source"
+  },
+  "setup_step1_constants.default_of_defaults_stv_droop_art_ii_2_cur": {
+    "source_hash": "130d7cdf0cc665c393915ad83ec56aaed3237db0110c6b10afdd2fd698043ecc",
+    "shape": "template",
+    "file": "Pages/Setup/Step1_Constants.vue",
+    "line": 444,
+    "status": "source"
+  },
+  "setup_step1_constants.district_auto_draw_method_undivided_areas": {
+    "source_hash": "fef50f597b5f3ffa296503548e42e408d34e3db9a99c1c31b4d44026f09a4fcf",
+    "shape": "template",
+    "file": "Pages/Setup/Step1_Constants.vue",
+    "line": 375,
+    "status": "source"
+  },
+  "setup_step1_constants.economy_defaults": {
+    "source_hash": "ece1fa10c3f52d5fa4171b28424ba53aff191ed08ed5d78eb193d323b7756398",
+    "shape": "template",
+    "file": "Pages/Setup/Step1_Constants.vue",
+    "line": 705,
+    "status": "source"
+  },
+  "setup_step1_constants.election_interval_months": {
+    "source_hash": "fa948caee79f03423f9b265d3d254e99b54545878593b906ac48edc810ba56f4",
+    "shape": "template",
+    "file": "Pages/Setup/Step1_Constants.vue",
+    "line": 417,
+    "status": "source"
+  },
+  "setup_step1_constants.emergency_powers_max_duration_days": {
+    "source_hash": "5b90c9ef818059afab8c08289ca7ac239015c5204626950ed7eefcc21c2a07eb",
+    "shape": "template",
+    "file": "Pages/Setup/Step1_Constants.vue",
+    "line": 526,
+    "status": "source"
+  },
+  "setup_step1_constants.everyone_with_active_residency_receives_th": {
+    "source_hash": "9452f56ef5f8b547615868195ff5df6abbf3c5b1542d4731d10e417d65363b5f",
+    "shape": "template",
+    "file": "Pages/Setup/Step1_Constants.vue",
+    "line": 758,
+    "status": "source"
+  },
+  "setup_step1_constants.game_mode": {
+    "source_hash": "1311d7944778fb4ad68c3c98d2b1a0276e453c196b5178463caf4a46f2b9d83f",
+    "shape": "template",
+    "file": "Pages/Setup/Step1_Constants.vue",
+    "line": 285,
+    "status": "source"
+  },
+  "setup_step1_constants.governance_thresholds": {
+    "source_hash": "f02090d6e001e268c6ffb28648f1e67bbed0a6ae6dba121f99563fbb1f1e61ff",
+    "shape": "template",
+    "file": "Pages/Setup/Step1_Constants.vue",
+    "line": 492,
+    "status": "source"
+  },
+  "setup_step1_constants.horizontal_strips_east_west_cuts": {
+    "source_hash": "979f5c49c4c0acbee8f2fc52a9714ecfb06a00028a223fab4b77e91175c22cbd",
+    "shape": "script:label",
+    "file": "Pages/Setup/Step1_Constants.vue",
+    "line": 144,
+    "status": "source"
+  },
+  "setup_step1_constants.how_often_the_economic_clock_pays_out": {
+    "source_hash": "e7c03b5494955501fc596fb45551edb4bcdb0ebcc74886c36d005f6f3f65c75f",
+    "shape": "template",
+    "file": "Pages/Setup/Step1_Constants.vue",
+    "line": 838,
+    "status": "source"
+  },
+  "setup_step1_constants.judicial_appointment_term_years": {
+    "source_hash": "fda7f8e69d769c3f6eec64c8e5397d2351647dfaf68e05aa506e6bc14fed0562",
+    "shape": "template",
+    "file": "Pages/Setup/Step1_Constants.vue",
+    "line": 580,
+    "status": "source"
+  },
+  "setup_step1_constants.judiciary_selection_method": {
+    "source_hash": "2ebb4bf8aaf05ff771c2c494b53ae053bc82172888cc6ff73d3694afa9985408",
+    "shape": "template",
+    "file": "Pages/Setup/Step1_Constants.vue",
+    "line": 611,
+    "status": "source"
+  },
+  "setup_step1_constants.legislature_sizing_law": {
+    "source_hash": "4104276913e1245c33aa6c5ff2e748f0385be7de32c6cf05eb85f078e7fa1a3c",
+    "shape": "template",
+    "file": "Pages/Setup/Step1_Constants.vue",
+    "line": 356,
+    "status": "source"
+  },
+  "setup_step1_constants.max_days_between_meetings": {
+    "source_hash": "8ecc5869072284ca78d9dcb97df5543742fe77a9c7cf913530bd599a66948b5b",
+    "shape": "template",
+    "file": "Pages/Setup/Step1_Constants.vue",
+    "line": 395,
+    "status": "source"
+  },
+  "setup_step1_constants.maximum_seats_per_legislature": {
+    "source_hash": "7a9de12f776fdaaf6cefd34cee374a505361a150e1877b8d048fcd8079354ea6",
+    "shape": "template",
+    "file": "Pages/Setup/Step1_Constants.vue",
+    "line": 340,
+    "status": "source"
+  },
+  "setup_step1_constants.minimum_judges_per_race": {
+    "source_hash": "d17837212068eb5f7c307625e6844c714ece4f7f80b7b4aa987d8284641eae8a",
+    "shape": "template",
+    "file": "Pages/Setup/Step1_Constants.vue",
+    "line": 597,
+    "status": "source"
+  },
+  "setup_step1_constants.minimum_seats_per_legislature": {
+    "source_hash": "8496336cbae6fbf58f6ddf1953fd114dcb660ad797d79959cb4babed88de9bbb",
+    "shape": "template",
+    "file": "Pages/Setup/Step1_Constants.vue",
+    "line": 326,
+    "status": "source"
+  },
+  "setup_step1_constants.node_operators": {
+    "source_hash": "24f5bfc71a5415a6f9f5660b44c351f6ec30c6114aa86b348f40334f0b78da63",
+    "shape": "template",
+    "file": "Pages/Setup/Step1_Constants.vue",
+    "line": 782,
+    "status": "source"
+  },
+  "setup_step1_constants.organizations_workers": {
+    "source_hash": "d50048193e29990b69f2a3a6a7ef8671899a2ddf3d3046d25917f92f9a2e77a0",
+    "shape": "template",
+    "file": "Pages/Setup/Step1_Constants.vue",
+    "line": 644,
+    "status": "source"
+  },
+  "setup_step1_constants.per_cycle": {
+    "source_hash": "cef35cdc187c4b307386f19b59c75556f5692c0bef542213d517761336e5a47b",
+    "shape": "script:label",
+    "file": "Pages/Setup/Step1_Constants.vue",
+    "line": 81,
+    "status": "source"
+  },
+  "setup_step1_constants.per_role_pay": {
+    "source_hash": "31ad9a9c23613c31aafe11ffaa724da9c8e5bcf9c1cdd8ed88833f81bf989cd5",
+    "shape": "template",
+    "file": "Pages/Setup/Step1_Constants.vue",
+    "line": 779,
+    "status": "source"
+  },
+  "setup_step1_constants.residency_confirmation_window_days": {
+    "source_hash": "83ffcc6356f951ad63d1bf267135d7209cfbba47ebf9573ab8dd10588a5ae66c",
+    "shape": "template",
+    "file": "Pages/Setup/Step1_Constants.vue",
+    "line": 687,
+    "status": "source"
+  },
+  "setup_step1_constants.sandbox_dev": {
+    "source_hash": "325de1305583a7b984c425e307a520fd32ec64b4a33aa72a3537055cf68ed0e1",
+    "shape": "script:label",
+    "file": "Pages/Setup/Step1_Constants.vue",
+    "line": 100,
+    "status": "source"
+  },
+  "setup_step1_constants.saving": {
+    "source_hash": "23e39291d6135814ed7c936e278974544b0df5fbf0eb0427b6700979b7472a93",
+    "shape": "template",
+    "file": "Pages/Setup/Step1_Constants.vue",
+    "line": 317,
+    "status": "source"
+  },
+  "setup_step1_constants.set_once_inherited_everywhere_every_consti": {
+    "source_hash": "3508f0aa9dbc9c8ca9a5f8c74c4aac3d95ac8e5f65d2adf0536a137600fcdea1",
+    "shape": "template",
+    "file": "Pages/Setup/Step1_Constants.vue",
+    "line": 272,
+    "status": "source"
+  },
+  "setup_step1_constants.short_ticker_e_g_cvu": {
+    "source_hash": "42cd8c893b2524a2944935dabd4576531fa90b3aa1dd4d031170bd1df85e58c0",
+    "shape": "template",
+    "file": "Pages/Setup/Step1_Constants.vue",
+    "line": 743,
+    "status": "source"
+  },
+  "setup_step1_constants.shortest_split_line_shortest_balanced_cuts": {
+    "source_hash": "926dd6d94ad30b356fec6d77e3e896a128f949d010e52b1c4d57c123a86d38a6",
+    "shape": "script:label",
+    "file": "Pages/Setup/Step1_Constants.vue",
+    "line": 142,
+    "status": "source"
+  },
+  "setup_step1_constants.shown_on_wallets_and_the_exchange": {
+    "source_hash": "b11094ef9ee2e60c768a4e00a5de10e4c4cca99ab1196e26066e9b8ab6d2f17a",
+    "shape": "template",
+    "file": "Pages/Setup/Step1_Constants.vue",
+    "line": 732,
+    "status": "source"
+  },
+  "setup_step1_constants.social_moderators": {
+    "source_hash": "7d5ef064afb28e7bb6fc33ead85e0b84441b413493a85f5b9af23e94a6100b8b",
+    "shape": "template",
+    "file": "Pages/Setup/Step1_Constants.vue",
+    "line": 796,
+    "status": "source"
+  },
+  "setup_step1_constants.special_election_max_days_after_vacancy": {
+    "source_hash": "bbeff0f3cc2373323b9aab83e22c6e9030a96968e6e361382d5d1f9d7821cbf8",
+    "shape": "template",
+    "file": "Pages/Setup/Step1_Constants.vue",
+    "line": 467,
+    "status": "source"
+  },
+  "setup_step1_constants.special_election_min_days_after_vacancy": {
+    "source_hash": "6135fc0a4cabf9043dcfbf932c78cd35d1f5ff8eb263684197fd544018445582",
+    "shape": "template",
+    "file": "Pages/Setup/Step1_Constants.vue",
+    "line": 453,
+    "status": "source"
+  },
+  "setup_step1_constants.stipend_bump_cap_max_stacked": {
+    "source_hash": "d537d8bb0321e8b20f040210e5d114e799933a04c92497c959dd192271f4036d",
+    "shape": "template",
+    "file": "Pages/Setup/Step1_Constants.vue",
+    "line": 763,
+    "status": "source"
+  },
+  "setup_step1_constants.stipend_interval": {
+    "source_hash": "7986221b0064f72c065c9553ed132d8651e58b9d8e159d44be93a7d68313df36",
+    "shape": "template",
+    "file": "Pages/Setup/Step1_Constants.vue",
+    "line": 827,
+    "status": "source"
+  },
+  "setup_step1_constants.stv_with_droop_quota": {
+    "source_hash": "2ca16439dff7e94e0428e2c3c8794faed62899773f4dee8c98541028d22beae6",
+    "shape": "script:label",
+    "file": "Pages/Setup/Step1_Constants.vue",
+    "line": 149,
+    "status": "source"
+  },
+  "setup_step1_constants.the_abstract_unit_of_account": {
+    "source_hash": "85516540c59494ec3c643a2271cfe665670a2eafbf80025893305670b62abe69",
+    "shape": "template",
+    "file": "Pages/Setup/Step1_Constants.vue",
+    "line": 721,
+    "status": "source"
+  },
+  "setup_step1_constants.the_most_the_role_differentials_can_add_de": {
+    "source_hash": "272abf4d5c5db9c15930184afb98d397112fffd0e84c7df33ba96d6b989a1124",
+    "shape": "template",
+    "file": "Pages/Setup/Step1_Constants.vue",
+    "line": 772,
+    "status": "source"
+  },
+  "setup_step1_constants.the_starting_economy_for_your_world_these_": {
+    "source_hash": "1faa5d22586ccd7fd68ac0524c82d925d8113aa30d344fd7ad5c14d36764e477",
+    "shape": "template",
+    "file": "Pages/Setup/Step1_Constants.vue",
+    "line": 706,
+    "status": "source"
+  },
+  "setup_step1_constants.total_legislature_size_is_computed_from_po": {
+    "source_hash": "4b0da1b81b7d67eb88d532bc353ba1acc1d68134f0b7eb25fc98dfcbccdf9429",
+    "shape": "template",
+    "file": "Pages/Setup/Step1_Constants.vue",
+    "line": 367,
+    "status": "source"
+  },
+  "setup_step1_constants.vertical_strips_north_south_cuts": {
+    "source_hash": "2065f0e977e71a22803ddb529aa0a209e5abf0d3962fdb75b210303525758f44",
+    "shape": "script:label",
+    "file": "Pages/Setup/Step1_Constants.vue",
+    "line": 143,
+    "status": "source"
+  },
+  "setup_step1_constants.voting_method": {
+    "source_hash": "315c5e7874b1b93b659e40333c79b46489cbb64904a711d7096a66f7149fb236",
+    "shape": "template",
+    "file": "Pages/Setup/Step1_Constants.vue",
+    "line": 433,
+    "status": "source"
+  },
+  "setup_step1_constants.worker_rep_first_seat_threshold_employees": {
+    "source_hash": "94ce180849b7c91d358911c49343e22f720f4b02d352568c2abe829f3bbcb75b",
+    "shape": "template",
+    "file": "Pages/Setup/Step1_Constants.vue",
+    "line": 647,
+    "status": "source"
+  },
+  "setup_step1_constants.worker_shareholder_parity_employees": {
+    "source_hash": "03a8a919d2b345fa1093d4c1767e3992fe65390337d32d8df1f8a2d72d98069c",
+    "shape": "template",
+    "file": "Pages/Setup/Step1_Constants.vue",
+    "line": 661,
+    "status": "source"
+  },
+  "setup_step1_constants.you_are_founding_the_constitution_and_its_": {
+    "source_hash": "abcb76aa456544ce2b91f626dadec08f0cca2b72f22cfb235eabe576427369e0",
+    "shape": "template",
+    "file": "Pages/Setup/Step1_Constants.vue",
+    "line": 261,
+    "status": "source"
+  },
+  "setup_step2_mapdata.1_data_source": {
+    "source_hash": "c999bebbfce5854087d006c7a3a2a17aa5a36ddade6fea7336504a945b308222",
+    "shape": "template",
+    "file": "Pages/Setup/Step2_MapData.vue",
+    "line": 781,
+    "status": "source"
+  },
+  "setup_step2_mapdata.100m_fine_larger": {
+    "source_hash": "540536c99c9dfcc5c147e08266c511dfe3358bc8ff4b64a933973f03bc144341",
+    "shape": "template",
+    "file": "Pages/Setup/Step2_MapData.vue",
+    "line": 900,
+    "status": "source"
+  },
+  "setup_step2_mapdata.1km_coarse_smaller": {
+    "source_hash": "bbf6de9e4ca04d2aa00edfa704a5978de31f242d25483361158ecb5f7d98d06a",
+    "shape": "template",
+    "file": "Pages/Setup/Step2_MapData.vue",
+    "line": 901,
+    "status": "source"
+  },
+  "setup_step2_mapdata.2_run_options": {
+    "source_hash": "f0ffdab66f28bb72689db0c604eae7a3ff9e9ed4b48c349469ef925f2ae7ea49",
+    "shape": "template",
+    "file": "Pages/Setup/Step2_MapData.vue",
+    "line": 975,
+    "status": "source"
+  },
+  "setup_step2_mapdata.4_review_accept": {
+    "source_hash": "f5ddd3fe1bc9463233d2b87ea5dd844f1837b1b3c81e7007577888974582d70f",
+    "shape": "template",
+    "file": "Pages/Setup/Step2_MapData.vue",
+    "line": 1050,
+    "status": "source"
+  },
+  "setup_step2_mapdata.a_full_world_download": {
+    "source_hash": "1d6012c2d58cdac6be6dfa0825ed2d23564f4b1ebe064e941a8b21c0056e1904",
+    "shape": "template",
+    "file": "Pages/Setup/Step2_MapData.vue",
+    "line": 998,
+    "status": "source"
+  },
+  "setup_step2_mapdata.basemap_file_s": {
+    "source_hash": "d04d5340aa027ac7adc0f0e3d6539cb244f230f9fcac69aa28312b91b195f883",
+    "shape": "template",
+    "file": "Pages/Setup/Step2_MapData.vue",
+    "line": 700,
+    "status": "source"
+  },
+  "setup_step2_mapdata.basemap_tiles_folder_protomaps_dir_optiona": {
+    "source_hash": "e33c8af7199304538ca67c29d47ed56ba1b9f171e06b49a8d6b4a8ab810f3d19",
+    "shape": "template",
+    "file": "Pages/Setup/Step2_MapData.vue",
+    "line": 735,
+    "status": "source"
+  },
+  "setup_step2_mapdata.basemap_tiles_protomaps_maps_protomaps_com": {
+    "source_hash": "c91ad8c44016780cc615f6dced93004e08451efd178a550b5675b9efbcde7c99",
+    "shape": "template",
+    "file": "Pages/Setup/Step2_MapData.vue",
+    "line": 928,
+    "status": "source"
+  },
+  "setup_step2_mapdata.browser_upload_planned": {
+    "source_hash": "5a160af5532de475784ed4e87e125f7d97903006f0caf064ac6c08a05824bce2",
+    "shape": "template",
+    "file": "Pages/Setup/Step2_MapData.vue",
+    "line": 963,
+    "status": "source"
+  },
+  "setup_step2_mapdata.constrained_built_area_masked": {
+    "source_hash": "7de8eaab9624b60165336aedee12b70ca764aae153669a78e4c6126c62b7a27b",
+    "shape": "template",
+    "file": "Pages/Setup/Step2_MapData.vue",
+    "line": 911,
+    "status": "source"
+  },
+  "setup_step2_mapdata.countries_detected": {
+    "source_hash": "4e4a7caaf3d6a2e7b8929644dd0063330ce3247cc228bfbf86aa256cb210bd35",
+    "shape": "template",
+    "file": "Pages/Setup/Step2_MapData.vue",
+    "line": 656,
+    "status": "source"
+  },
+  "setup_step2_mapdata.custom_folder": {
+    "source_hash": "137a8f09733b3fb9d5e54aae1bc2aa28e4419b06f8e87fe902afa5dab5e47757",
+    "shape": "template",
+    "file": "Pages/Setup/Step2_MapData.vue",
+    "line": 810,
+    "status": "source"
+  },
+  "setup_step2_mapdata.d_fair_constitution_map_files": {
+    "source_hash": "2ec2652775be4f18aa54bd93ee6c9443a386b89947347d459eba4abe2a5c6a24",
+    "shape": "attr:placeholder",
+    "file": "Pages/Setup/Step2_MapData.vue",
+    "line": 729,
+    "status": "source"
+  },
+  "setup_step2_mapdata.d_fair_constitution_map_files_protomaps": {
+    "source_hash": "9a44c666347a3efd9ffcc81a7939237e6101349c5db7c1ec26bd4925b55b419e",
+    "shape": "attr:placeholder",
+    "file": "Pages/Setup/Step2_MapData.vue",
+    "line": 739,
+    "status": "source"
+  },
+  "setup_step2_mapdata.docker_compose_up_d": {
+    "source_hash": "331e4dcccd52bea8d3dbff1d16669c5acc9fddfa1d742fa3c501f6740059a999",
+    "shape": "template",
+    "file": "Pages/Setup/Step2_MapData.vue",
+    "line": 611,
+    "status": "source"
+  },
+  "setup_step2_mapdata.download_from_official_sources": {
+    "source_hash": "27990c572483a96594bc8ce1cd99aa77f561769d45476b00193b8793d94e9a4d",
+    "shape": "template",
+    "file": "Pages/Setup/Step2_MapData.vue",
+    "line": 834,
+    "status": "source"
+  },
+  "setup_step2_mapdata.fetch_the_open_datasets_straight_from_thei": {
+    "source_hash": "1c75ecc409fa22f856add6a91d60f9f6e0e0f2928bee91fb14f1274a5ac1cf0b",
+    "shape": "template",
+    "file": "Pages/Setup/Step2_MapData.vue",
+    "line": 835,
+    "status": "source"
+  },
+  "setup_step2_mapdata.fresh_purge_existing_rows_first": {
+    "source_hash": "338a8c1fd7d76ed131d116f51e4c11295e4bc759abd429d3e4bc8968e29b350d",
+    "shape": "template",
+    "file": "Pages/Setup/Step2_MapData.vue",
+    "line": 980,
+    "status": "source"
+  },
+  "setup_step2_mapdata.gbauthoritative_official_government": {
+    "source_hash": "b5b74a6a9db6e375d4cbbe6eb15a382a956bd118268fe35477f8c532922793ec",
+    "shape": "template",
+    "file": "Pages/Setup/Step2_MapData.vue",
+    "line": 862,
+    "status": "source"
+  },
+  "setup_step2_mapdata.gbhumanitarian_humanitarian_use": {
+    "source_hash": "c8c6c3a058f23fcf8e3e05a5da1d8ada71c5775345b04c35cfe417e20a7d82aa",
+    "shape": "template",
+    "file": "Pages/Setup/Step2_MapData.vue",
+    "line": 861,
+    "status": "source"
+  },
+  "setup_step2_mapdata.gbopen_open_license_recommended": {
+    "source_hash": "e1f54b37964b4eea54fc3a5e4de24dbcdca81b03348a32f6465a7079e4d4d72a",
+    "shape": "template",
+    "file": "Pages/Setup/Step2_MapData.vue",
+    "line": 860,
+    "status": "source"
+  },
+  "setup_step2_mapdata.heads_up_the_protomaps_planet_build_is_100": {
+    "source_hash": "f7eee8e640a2b59adac7999e3879a0c3c63447ccf6f83934df32b0064aee5b62",
+    "shape": "template",
+    "file": "Pages/Setup/Step2_MapData.vue",
+    "line": 935,
+    "status": "source"
+  },
+  "setup_step2_mapdata.if_your_map_files_live_somewhere_else_on_t": {
+    "source_hash": "b1f264dca8c32b2685087627f576d6fcc5c3443bb1508ec1441d15e3eaac9736",
+    "shape": "template",
+    "file": "Pages/Setup/Step2_MapData.vue",
+    "line": 715,
+    "status": "source"
+  },
+  "setup_step2_mapdata.ingest_a_specific_container_path_an_altern": {
+    "source_hash": "1843dc8aaa3197ac40662a21de3c295444298aac919803fa5bbfd0bb632f171a",
+    "shape": "template",
+    "file": "Pages/Setup/Step2_MapData.vue",
+    "line": 811,
+    "status": "source"
+  },
+  "setup_step2_mapdata.ingest_whatever_is_detected_above_at_the_c": {
+    "source_hash": "4608e380080a4ca2065d4e14de032eee1ec1b032099a785b784a6a9e5017ce74",
+    "shape": "template",
+    "file": "Pages/Setup/Step2_MapData.vue",
+    "line": 793,
+    "status": "source"
+  },
+  "setup_step2_mapdata.jurisdiction_boundaries_geoboundariesgithu": {
+    "source_hash": "2c33ee23c536764a5e8f61f95af864ab1a0577cdcea8e404b48f9d1b0a37ace0",
+    "shape": "template",
+    "file": "Pages/Setup/Step2_MapData.vue",
+    "line": 847,
+    "status": "source"
+  },
+  "setup_step2_mapdata.latest_available": {
+    "source_hash": "f54bef8aa29b682dea726c2d688f8257bfad575d673a9aa9df9667c106be994f",
+    "shape": "template",
+    "file": "Pages/Setup/Step2_MapData.vue",
+    "line": 890,
+    "status": "source"
+  },
+  "setup_step2_mapdata.load_at_least_one_nation_adm1_before_conti": {
+    "source_hash": "90f3a27736fad87dcf58d491caa592767cfa2102d25698bc3baba7d512d4fad9",
+    "shape": "bound:title",
+    "file": "Pages/Setup/Step2_MapData.vue",
+    "line": 1114,
+    "status": "source"
+  },
+  "setup_step2_mapdata.load_boundaries_population_data": {
+    "source_hash": "4e603abeba897e75155ab8f23108bf8f350beada9fc62af7a751d40cfd83cb15",
+    "shape": "template",
+    "file": "Pages/Setup/Step2_MapData.vue",
+    "line": 556,
+    "status": "source"
+  },
+  "setup_step2_mapdata.local_archive_default": {
+    "source_hash": "9a106649582aa9df57639ba777716ae37692f456b3fc4871ffb3930f54a0ef22",
+    "shape": "template",
+    "file": "Pages/Setup/Step2_MapData.vue",
+    "line": 792,
+    "status": "source"
+  },
+  "setup_step2_mapdata.map_data_folder_archive_path": {
+    "source_hash": "52c9f2f33d02e45b646ef7290a2d24dd7da72968deea8daaa666c903ff5c526b",
+    "shape": "template",
+    "file": "Pages/Setup/Step2_MapData.vue",
+    "line": 725,
+    "status": "source"
+  },
+  "setup_step2_mapdata.no_country_scope_set_this_downloads_all_co": {
+    "source_hash": "99429e4d87853e77d8d29c1a3371661d91a12adbf8a5b9e8a11582caf9128b30",
+    "shape": "template",
+    "file": "Pages/Setup/Step2_MapData.vue",
+    "line": 942,
+    "status": "source"
+  },
+  "setup_step2_mapdata.no_open_data_flags": {
+    "source_hash": "162caa394e57ed3faa1dee42aaf739bde437e381881a17c1e690098abd76ac4b",
+    "shape": "template",
+    "file": "Pages/Setup/Step2_MapData.vue",
+    "line": 1084,
+    "status": "source"
+  },
+  "setup_step2_mapdata.not_detected": {
+    "source_hash": "9f4a106271aa19e13352488abf7365de1c372bc5728fff07ba239ab19f48c490",
+    "shape": "template",
+    "file": "Pages/Setup/Step2_MapData.vue",
+    "line": 659,
+    "status": "source"
+  },
+  "setup_step2_mapdata.not_detected_optional": {
+    "source_hash": "91b87c9623324ff44a85919a0403ea8f8d49fdaa9366036d287c00736803af17",
+    "shape": "template",
+    "file": "Pages/Setup/Step2_MapData.vue",
+    "line": 703,
+    "status": "source"
+  },
+  "setup_step2_mapdata.nzl_usa": {
+    "source_hash": "fa5a31e65355a4dee85b418f630fcecd1312b984b756298b081b9d7ba6e19f61",
+    "shape": "attr:placeholder",
+    "file": "Pages/Setup/Step2_MapData.vue",
+    "line": 1003,
+    "status": "source"
+  },
+  "setup_step2_mapdata.open_data_flag_review_repair_in_the_jurisd": {
+    "source_hash": "26ba4feeea41715d96a6df3dcbbab04f691ab8ffa10c1bb8c9c3b87bbde63829",
+    "shape": "template",
+    "file": "Pages/Setup/Step2_MapData.vue",
+    "line": 1065,
+    "status": "source"
+  },
+  "setup_step2_mapdata.pause_on_first_exception_when_any_country_": {
+    "source_hash": "01188c5a58e7cedf15a3f190049356aeee5d0341d054d90eb462899b0f6dcc8d",
+    "shape": "template",
+    "file": "Pages/Setup/Step2_MapData.vue",
+    "line": 988,
+    "status": "source"
+  },
+  "setup_step2_mapdata.point_at_a_local_folder": {
+    "source_hash": "4adad9ca5f354ff4c3e47cc5a3487212355caac8bc0396372497fa3f1b3a151d",
+    "shape": "template",
+    "file": "Pages/Setup/Step2_MapData.vue",
+    "line": 714,
+    "status": "source"
+  },
+  "setup_step2_mapdata.point_at_your_map_data_then_run_the_etl_pi": {
+    "source_hash": "bce8b7b5e5064f0be22bd0246529612b327831e870451a16dd87620dc90b92cd",
+    "shape": "template",
+    "file": "Pages/Setup/Step2_MapData.vue",
+    "line": 559,
+    "status": "source"
+  },
+  "setup_step2_mapdata.population_worldpop_data_worldpop_org_cc_b": {
+    "source_hash": "ee6db0a7705c04db146cf497704549d1e2943ce276140afbf50888cc58ea3891",
+    "shape": "template",
+    "file": "Pages/Setup/Step2_MapData.vue",
+    "line": 873,
+    "status": "source"
+  },
+  "setup_step2_mapdata.reading_the_archive_mount": {
+    "source_hash": "513781a7893d03e24395cd346de1dcc86cf935dfe99ca681d293c0b8cab44b70",
+    "shape": "template",
+    "file": "Pages/Setup/Step2_MapData.vue",
+    "line": 629,
+    "status": "source"
+  },
+  "setup_step2_mapdata.release_product": {
+    "source_hash": "509ed256bcd98d49252b008c7e483b04c54aece1aa95c6bc7facf2c7ed1e261a",
+    "shape": "template",
+    "file": "Pages/Setup/Step2_MapData.vue",
+    "line": 854,
+    "status": "source"
+  },
+  "setup_step2_mapdata.review_first": {
+    "source_hash": "50d1d75bcae1e262ed18dface854304d61b469b1304d041459cbed4a19c2acc1",
+    "shape": "template",
+    "file": "Pages/Setup/Step2_MapData.vue",
+    "line": 1130,
+    "status": "source"
+  },
+  "setup_step2_mapdata.review_in_jurisdiction_viewer": {
+    "source_hash": "adcd4541bedfda6443ec95304c07ce7ed4515d041205464fe237a9629f84ffbb",
+    "shape": "template",
+    "file": "Pages/Setup/Step2_MapData.vue",
+    "line": 1097,
+    "status": "source"
+  },
+  "setup_step2_mapdata.running_cube_root_apportionment_across_the": {
+    "source_hash": "beadf1f4a96b258f48304b6485022c947a08e787de8283b073cdb5ff1613b01e",
+    "shape": "template",
+    "file": "Pages/Setup/Step2_MapData.vue",
+    "line": 1118,
+    "status": "source"
+  },
+  "setup_step2_mapdata.skip_phase_2_population": {
+    "source_hash": "c9c1f0508a6284eb06680695dcdb0cf60abcb4360420c56cf37c80f4c67cef36",
+    "shape": "template",
+    "file": "Pages/Setup/Step2_MapData.vue",
+    "line": 984,
+    "status": "source"
+  },
+  "setup_step2_mapdata.the_archive_mount_is_not_present_in_the_et": {
+    "source_hash": "e7097478d454ec66e9cfaf803241219a7d8c1c9e3bf75450610b7adb36c72562",
+    "shape": "template",
+    "file": "Pages/Setup/Step2_MapData.vue",
+    "line": 634,
+    "status": "source"
+  },
+  "setup_step2_mapdata.the_etl_reads_from_the_container_path_whic": {
+    "source_hash": "2596dad6487dcf7437fb536951473cf3e74dc7943245d56fa49da829c8f5f08e",
+    "shape": "template",
+    "file": "Pages/Setup/Step2_MapData.vue",
+    "line": 579,
+    "status": "source"
+  },
+  "setup_step2_mapdata.the_import_finished_open_the_jurisdiction_": {
+    "source_hash": "0eead38e8349526c6f36008ebfca69d1577bcf006f092e12d2d279c94fbe65cf",
+    "shape": "template",
+    "file": "Pages/Setup/Step2_MapData.vue",
+    "line": 1052,
+    "status": "source"
+  },
+  "setup_step2_mapdata.un_adjusted_not_un_matched_totals": {
+    "source_hash": "7587c1d25105e9512ffc7faef98fb9bcb027c44c1cb8f9fd170ee337f012fb12",
+    "shape": "template",
+    "file": "Pages/Setup/Step2_MapData.vue",
+    "line": 918,
+    "status": "source"
+  },
+  "setup_step2_mapdata.unconstrained_full_extent": {
+    "source_hash": "ed4525f794b6b6eb6641f8435362f2afeb7d37e2fdc015a274f29215af770ba1",
+    "shape": "template",
+    "file": "Pages/Setup/Step2_MapData.vue",
+    "line": 912,
+    "status": "source"
+  },
+  "setup_step2_mapdata.upload_a_tarball_or_folder_from_this_brows": {
+    "source_hash": "e4497217d2c86887373957eaf8c59f9084f1bf3226f19cd578965656ba6814ad",
+    "shape": "template",
+    "file": "Pages/Setup/Step2_MapData.vue",
+    "line": 964,
+    "status": "source"
+  },
+  "setup_step2_mapdata.you_pointed_the_app_at_but_the_containers_": {
+    "source_hash": "e17857269801862b34fcfd1d6f433d6b5117dd8bf9d983996c70facc0874b747",
+    "shape": "template",
+    "file": "Pages/Setup/Step2_MapData.vue",
+    "line": 603,
+    "status": "source"
+  },
+  "setup_step2_mapdata.your_folder_isn_t_loaded_yet": {
+    "source_hash": "e2304c5014d0d8339350ddaa561aa4faa34ee80987c5463fb11445755e7c1941",
+    "shape": "template",
+    "file": "Pages/Setup/Step2_MapData.vue",
+    "line": 600,
+    "status": "source"
+  },
+  "setup_step2_mapdata.your_map_data": {
+    "source_hash": "1529aabd9232b8a9a7e8d4a5c0744eba3d26314dd766862030e95950ba44fd94",
+    "shape": "template",
+    "file": "Pages/Setup/Step2_MapData.vue",
+    "line": 569,
+    "status": "source"
+  },
+  "setup_step3_districts.a_banner_at_the_top_of_the_mapper_will_rem": {
+    "source_hash": "959ce4e20be0f8e0e568506d78fecb80c950855229267c4fe8cb022610a3c734",
+    "shape": "template",
+    "file": "Pages/Setup/Step3_Districts.vue",
+    "line": 566,
+    "status": "source"
+  },
+  "setup_step3_districts.accepting_the_map_data_kicked_off_the_full": {
+    "source_hash": "d8b744f3eeb19cbfecbf50f58d8a0f3d4ba3c0c6368b4f4d6e7859aab69a40eb",
+    "shape": "template",
+    "file": "Pages/Setup/Step3_Districts.vue",
+    "line": 238,
+    "status": "source"
+  },
+  "setup_step3_districts.adm_cascade_depth": {
+    "source_hash": "1aafd03342f97401bb48f56750949e18839dfd1815698e4e0cf3890497c958d2",
+    "shape": "template",
+    "file": "Pages/Setup/Step3_Districts.vue",
+    "line": 432,
+    "status": "source"
+  },
+  "setup_step3_districts.and_more": {
+    "source_hash": "eb82c822862601c1aa2b06677d9757f640a1f7542e47cd028b442404139c0a77",
+    "shape": "template",
+    "file": "Pages/Setup/Step3_Districts.vue",
+    "line": 537,
+    "status": "source"
+  },
+  "setup_step3_districts.back_go_to_district_mapper": {
+    "source_hash": "4ba8e0c52c6775b854ba421f44a4e7df465e013e0213117ecf3cda8adb3a0ed0",
+    "shape": "template",
+    "file": "Pages/Setup/Step3_Districts.vue",
+    "line": 571,
+    "status": "source"
+  },
+  "setup_step3_districts.build_your_districts": {
+    "source_hash": "45b88f8c9e061a4fffd77bbb1077160b4752c1b5d1caebe4f72556de548643c2",
+    "shape": "template",
+    "file": "Pages/Setup/Step3_Districts.vue",
+    "line": 235,
+    "status": "source"
+  },
+  "setup_step3_districts.by_layer_bottom_up": {
+    "source_hash": "57aa1e855f53815506ff33958b2262632c8d2336c9e6249f81c8c930619bd855",
+    "shape": "template",
+    "file": "Pages/Setup/Step3_Districts.vue",
+    "line": 372,
+    "status": "source"
+  },
+  "setup_step3_districts.completed_maps_seat_a_total_that_differs_f": {
+    "source_hash": "98a855fe387edd4def32c351fad10e614f669c760e4838a02347e02ed92a468f",
+    "shape": "template",
+    "file": "Pages/Setup/Step3_Districts.vue",
+    "line": 395,
+    "status": "source"
+  },
+  "setup_step3_districts.cube_root_sizing_applied_per_taagepera_s_l": {
+    "source_hash": "1b00a09d99a4de0b0fa7d54788009b8a7ec486638352e0cb8d562634987ff255",
+    "shape": "template",
+    "file": "Pages/Setup/Step3_Districts.vue",
+    "line": 542,
+    "status": "source"
+  },
+  "setup_step3_districts.district_map_sweeps_jurisdictions_with_con": {
+    "source_hash": "e6121d3001367f2651ff2b56d938e7df4d9eaff2d0292ec4b4567cd60099a662",
+    "shape": "template",
+    "file": "Pages/Setup/Step3_Districts.vue",
+    "line": 359,
+    "status": "source"
+  },
+  "setup_step3_districts.eta_sweeps": {
+    "source_hash": "aec49b1af87494f6122bf80995c81149eafe146a38ac5047a87ca5901069ab05",
+    "shape": "template",
+    "file": "Pages/Setup/Step3_Districts.vue",
+    "line": 312,
+    "status": "source"
+  },
+  "setup_step3_districts.geometry_precompute_sibling_borders_paid_o": {
+    "source_hash": "2e9e93a7d3ed5ab1e1868b010fcc0f6b6336a34d29bcbde6865b74aacebb7cff",
+    "shape": "template",
+    "file": "Pages/Setup/Step3_Districts.vue",
+    "line": 339,
+    "status": "source"
+  },
+  "setup_step3_districts.halt_the_full_scale_run_workers_stop_at_th": {
+    "source_hash": "25e01c5a39c1f47f895743acdb27dfb59abf2c05f13ecb9b1f4969d9cc910634",
+    "shape": "script:confirm",
+    "file": "Pages/Setup/Step3_Districts.vue",
+    "line": 114,
+    "status": "source"
+  },
+  "setup_step3_districts.halting_at_the_next_boundary": {
+    "source_hash": "ee51d0e7097b777eb4639b33f08cc74b5eb42cb7c6ae90280725f2169a42e401",
+    "shape": "template",
+    "file": "Pages/Setup/Step3_Districts.vue",
+    "line": 281,
+    "status": "source"
+  },
+  "setup_step3_districts.largest_legislature": {
+    "source_hash": "e0ceb99748403797d8a4ead0747b4e724f410610111cf45c5ee7d0d543333878",
+    "shape": "template",
+    "file": "Pages/Setup/Step3_Districts.vue",
+    "line": 512,
+    "status": "source"
+  },
+  "setup_step3_districts.last_error": {
+    "source_hash": "4efb077452b46c1cd6de5fa8ccda254d3ce6ec143ce3242147f3f2c910bc51c7",
+    "shape": "template",
+    "file": "Pages/Setup/Step3_Districts.vue",
+    "line": 402,
+    "status": "source"
+  },
+  "setup_step3_districts.leaf_councils_single_at_large_districts": {
+    "source_hash": "1cdbcfb5e02c3acc160034cc2acbe3ac03653d73ac3501eb56bd05f9ea44150c",
+    "shape": "template",
+    "file": "Pages/Setup/Step3_Districts.vue",
+    "line": 350,
+    "status": "source"
+  },
+  "setup_step3_districts.leaves_sized": {
+    "source_hash": "0ec0dd95827328cefde04d4a4b503eb4b415fe532d6c84c54b08fd2f84083b13",
+    "shape": "template",
+    "file": "Pages/Setup/Step3_Districts.vue",
+    "line": 302,
+    "status": "source"
+  },
+  "setup_step3_districts.legislatures_sized": {
+    "source_hash": "c566001f22ee8eb0e2ba2c5c964d2dedf45d9af383589731cece7931370f7bb2",
+    "shape": "template",
+    "file": "Pages/Setup/Step3_Districts.vue",
+    "line": 504,
+    "status": "source"
+  },
+  "setup_step3_districts.legislatures_sized_live": {
+    "source_hash": "04bf9af80268f76d0a3af1d845e760833a7690f0c34a624be946ee102b26dd84",
+    "shape": "template",
+    "file": "Pages/Setup/Step3_Districts.vue",
+    "line": 330,
+    "status": "source"
+  },
+  "setup_step3_districts.needs_attention": {
+    "source_hash": "cd0f8a575e8ef1178ecf560b6a25471573a437648803ea9d29b099a54e8f70e7",
+    "shape": "template",
+    "file": "Pages/Setup/Step3_Districts.vue",
+    "line": 448,
+    "status": "source"
+  },
+  "setup_step3_districts.no_root_legislature_found": {
+    "source_hash": "5882ea75c954878460d9579dec08b41a510aa1d6940afbca6b42ef035932daf0",
+    "shape": "template",
+    "file": "Pages/Setup/Step3_Districts.vue",
+    "line": 553,
+    "status": "source"
+  },
+  "setup_step3_districts.parents_sized": {
+    "source_hash": "fbffaa7169e893be7bd9e971cca8eb6f2d19853e59cf1fee1913865c7a4c3a6b",
+    "shape": "template",
+    "file": "Pages/Setup/Step3_Districts.vue",
+    "line": 298,
+    "status": "source"
+  },
+  "setup_step3_districts.retry_all_review_items": {
+    "source_hash": "fbc68c440c0ff7b979a72899e52615c70a95712dfb02f32c909d48f540dec13d",
+    "shape": "template",
+    "file": "Pages/Setup/Step3_Districts.vue",
+    "line": 451,
+    "status": "source"
+  },
+  "setup_step3_districts.review": {
+    "source_hash": "efcbe51dcaa94df31cdabb3c5f79e82fc96bd390d2b92511daf3271b86b0c760",
+    "shape": "template",
+    "file": "Pages/Setup/Step3_Districts.vue",
+    "line": 375,
+    "status": "source"
+  },
+  "setup_step3_districts.review_items_above_link_straight_into_the_": {
+    "source_hash": "554fe55ffaedba1f59b915d23093cd44b703215eb7c2693355ef81ed6fe8c7be",
+    "shape": "template",
+    "file": "Pages/Setup/Step3_Districts.vue",
+    "line": 567,
+    "status": "source"
+  },
+  "setup_step3_districts.sbetween_claims": {
+    "source_hash": "a7f087ec81fcdc274cc9497f7c8205a4e292f5950e50a166ab32e78daf21df05",
+    "shape": "template",
+    "file": "Pages/Setup/Step3_Districts.vue",
+    "line": 414,
+    "status": "source"
+  },
+  "setup_step3_districts.seats": {
+    "source_hash": "7fb736644f5e148355dec953b766bb6649567cd9ea92ca2800b48374efa8ea13",
+    "shape": "template",
+    "file": "Pages/Setup/Step3_Districts.vue",
+    "line": 513,
+    "status": "source"
+  },
+  "setup_step3_districts.spot_check_any_legislature_in_the_interact": {
+    "source_hash": "af4093233537cc8fd3dc667e82c022db1c68c253e4fa703f733532551bdeafb8",
+    "shape": "template",
+    "file": "Pages/Setup/Step3_Districts.vue",
+    "line": 558,
+    "status": "source"
+  },
+  "setup_step3_districts.step_1_must_finish_loading_at_least_adm0_d": {
+    "source_hash": "76983d126d030a6c134f4c2f7b22bdd4a3e2090443201391bc99e0a74845e6ee",
+    "shape": "template",
+    "file": "Pages/Setup/Step3_Districts.vue",
+    "line": 554,
+    "status": "source"
+  },
+  "setup_step3_districts.sweep_rate_30_min": {
+    "source_hash": "3807d4d893b199adf66d41df6fe9b206c66f3536f7157120609c70de03c70754",
+    "shape": "template",
+    "file": "Pages/Setup/Step3_Districts.vue",
+    "line": 306,
+    "status": "source"
+  },
+  "setup_step3_districts.sweeping_now": {
+    "source_hash": "577e459cf6e08c20ab92e121e9f0a4a82c0903a0a3f617c12d199e997837f489",
+    "shape": "template",
+    "file": "Pages/Setup/Step3_Districts.vue",
+    "line": 430,
+    "status": "source"
+  },
+  "setup_step3_districts.total_seats_apportioned": {
+    "source_hash": "1b925c7e54906bfc3b260fc39a2367573de3d12a5676b6cd7281330b9536ee96",
+    "shape": "template",
+    "file": "Pages/Setup/Step3_Districts.vue",
+    "line": 508,
+    "status": "source"
+  },
+  "setup_step3_districts.workers": {
+    "source_hash": "63fe1aa6d87a0740791277a3dab9976179396a6ee7a3840a726c1f8a069c4191",
+    "shape": "template",
+    "file": "Pages/Setup/Step3_Districts.vue",
+    "line": 410,
+    "status": "source"
+  },
+  "setup_step3_districts.you_can_always_come_back_here_by_visiting_": {
+    "source_hash": "48c204909d92e3bcb51e2dfee5a6bba2a5d615719d1a75a24b1f70ea58967e32",
+    "shape": "template",
+    "file": "Pages/Setup/Step3_Districts.vue",
+    "line": 568,
+    "status": "source"
+  },
+  "setup_step4_confirm.confirm_seat_institutions": {
+    "source_hash": "915650fa6ac04df904b5f5b49497b49071bc920cf306b67803d0bc6ada8730f4",
+    "shape": "template",
+    "file": "Pages/Setup/Step4_Confirm.vue",
+    "line": 60,
+    "status": "source"
+  },
+  "setup_step4_confirm.districts_drawn": {
+    "source_hash": "3232feff39a1fe0c31681f5b1741a2e7a4610e146d815f3b2601b1b0a7887230",
+    "shape": "template",
+    "file": "Pages/Setup/Step4_Confirm.vue",
+    "line": 83,
+    "status": "source"
+  },
+  "setup_step4_confirm.enter_instance": {
+    "source_hash": "b14ea126d4182fab814a5e0efa17fe6cfb0e6218805286b4352cffc16e50d000",
+    "shape": "template",
+    "file": "Pages/Setup/Step4_Confirm.vue",
+    "line": 177,
+    "status": "source"
+  },
+  "setup_step4_confirm.executives_seeded": {
+    "source_hash": "5e5edb711349211c032fa18e9bb995cb6807a0797f84545da47eb9b831141bd1",
+    "shape": "template",
+    "file": "Pages/Setup/Step4_Confirm.vue",
+    "line": 140,
+    "status": "source"
+  },
+  "setup_step4_confirm.existing_institution_rows_detected_executi": {
+    "source_hash": "859d4886b7c001908db6ecbb32411a1b1dfcca17d25d869806dc9c9f5d6a6c6b",
+    "shape": "template",
+    "file": "Pages/Setup/Step4_Confirm.vue",
+    "line": 117,
+    "status": "source"
+  },
+  "setup_step4_confirm.export_this_instance_backup_sync": {
+    "source_hash": "1724ab55f5dc4f62cfab44fecc1c0147355bcef95d244fb35200493474761d7a",
+    "shape": "attr:title",
+    "file": "Pages/Setup/Step4_Confirm.vue",
+    "line": 158,
+    "status": "source"
+  },
+  "setup_step4_confirm.for_every_jurisdiction_with_a_legislature_": {
+    "source_hash": "41a8b5e3be796e39ee301c00f8ba106c273fc2431bdea5eb4bfe35d2686f9fb3",
+    "shape": "template",
+    "file": "Pages/Setup/Step4_Confirm.vue",
+    "line": 103,
+    "status": "source"
+  },
+  "setup_step4_confirm.judiciaries_seeded": {
+    "source_hash": "d223ba825d47a8f1be5f46137e20f115f966391dac1958c9224100360237cc34",
+    "shape": "template",
+    "file": "Pages/Setup/Step4_Confirm.vue",
+    "line": 142,
+    "status": "source"
+  },
+  "setup_step4_confirm.legislatures_formed": {
+    "source_hash": "f5d251f81510174ba9d38e9f2e6834a8cad89904d3930bf20c966f792607d0ae",
+    "shape": "template",
+    "file": "Pages/Setup/Step4_Confirm.vue",
+    "line": 74,
+    "status": "source"
+  },
+  "setup_step4_confirm.no_members_or_seats_are_populated_those_la": {
+    "source_hash": "25efb496b82d91ec96cc74ef48586d193b8a0698430b751a501a84758f3c2f62",
+    "shape": "template",
+    "file": "Pages/Setup/Step4_Confirm.vue",
+    "line": 108,
+    "status": "source"
+  },
+  "setup_step4_confirm.one_per_jurisdiction_with_direct_children_": {
+    "source_hash": "492aff4b45aa8d58ac3645601f1e4b52c2085f255a4acff84e0afad6990912b1",
+    "shape": "template",
+    "file": "Pages/Setup/Step4_Confirm.vue",
+    "line": 78,
+    "status": "source"
+  },
+  "setup_step4_confirm.per_the_maps_you_built_or_auto_composited_": {
+    "source_hash": "540e8e3f9f516dd707a20af433e614df4bafca8e05f2acaaf1fc80d006fa8f2d",
+    "shape": "template",
+    "file": "Pages/Setup/Step4_Confirm.vue",
+    "line": 87,
+    "status": "source"
+  },
+  "setup_step4_confirm.ready_player_one": {
+    "source_hash": "81ddcd256192adbcdd5736cea76c2445342af627f521a191797294e31f6fed4b",
+    "shape": "template",
+    "file": "Pages/Setup/Step4_Confirm.vue",
+    "line": 133,
+    "status": "source"
+  },
+  "setup_step4_confirm.review_the_shape_of_your_instance_then_sea": {
+    "source_hash": "5308c9a891f5fb56b975d907b0e11b7d40d1ed42c713df90f1b034d3ce6c2cff",
+    "shape": "template",
+    "file": "Pages/Setup/Step4_Confirm.vue",
+    "line": 63,
+    "status": "source"
+  },
+  "setup_step4_confirm.we_ll_record_setup_completed_at_on_the_ins": {
+    "source_hash": "efd6112fa94ee63ea595a559769dfe502f63e25c2eb976a599536d768d90d69f",
+    "shape": "template",
+    "file": "Pages/Setup/Step4_Confirm.vue",
+    "line": 112,
+    "status": "source"
+  },
+  "setup_step4_confirm.what_happens_when_you_click_finish": {
+    "source_hash": "ed915f7f4e6709a57b702341700713b5f2075de112d271796d9483bc3337ff8d",
+    "shape": "template",
+    "file": "Pages/Setup/Step4_Confirm.vue",
+    "line": 101,
+    "status": "source"
+  },
+  "setup_step4_confirm.your_instance_is_set_up_legislatures_are_s": {
+    "source_hash": "ad2c435d7163966dc8f8a36a8171bc8e1470f1d86ca2d2601fe84e5b37cc8c5f",
+    "shape": "template",
+    "file": "Pages/Setup/Step4_Confirm.vue",
+    "line": 134,
+    "status": "source"
+  }
+}

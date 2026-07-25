@@ -1,0 +1,16 @@
+{
+  "home.fair_constitution_app": {
+    "source_hash": "dae92059310a4cf2735ef5284023d7f9fc6b1baf94aae6162f6bc80ef938d5f9",
+    "shape": "template",
+    "file": "Pages/Home.vue",
+    "line": 28,
+    "status": "source"
+  },
+  "home.redirecting_to_setup": {
+    "source_hash": "bcfdd0cf5d322a94d67056bc9a6d76bbd80ec0df039039e2bc2564a80862ce68",
+    "shape": "template",
+    "file": "Pages/Home.vue",
+    "line": 27,
+    "status": "source"
+  }
+}

@@ -1,0 +1,1528 @@
+{
+  "organizations_boardelections.any_composition_change_a_seat_added_by_the": {
+    "source_hash": "9da5ce59a8d5f1e73dd9b26b418488b891681b6b8a02c1cbb45c8c5ebe522f57",
+    "shape": "template",
+    "file": "Pages/Organizations/BoardElections.vue",
+    "line": 248,
+    "status": "source"
+  },
+  "organizations_boardelections.any_composition_change_a_seat_added_by_the_2": {
+    "source_hash": "860b2f2a1c4fae4de6637036a0a7d1858d940a76aaa15e3937c770f6828d52b0",
+    "shape": "template",
+    "file": "Pages/Organizations/BoardElections.vue",
+    "line": 313,
+    "status": "source"
+  },
+  "organizations_boardelections.board_elections_reuse_the_public_election_": {
+    "source_hash": "d4a0613b6bfddaf4aee2485ad8fdfaa5ffbfc5ca2934f43a864a61f9fd5a02c6",
+    "shape": "template",
+    "file": "Pages/Organizations/BoardElections.vue",
+    "line": 327,
+    "status": "source"
+  },
+  "organizations_boardelections.chair_elected_jointly_by_the_entire_board_": {
+    "source_hash": "b493fbc3ca7c48a4d5a86546591509ca362aaa7dc4b51249340f51ca35c6f881",
+    "shape": "template",
+    "file": "Pages/Organizations/BoardElections.vue",
+    "line": 244,
+    "status": "source"
+  },
+  "organizations_boardelections.chair_seated_as_joint_chair_public_record_": {
+    "source_hash": "9138eb2660a27949d7a812b2abef663938a65eeed917668ae125a5bdad425eef",
+    "shape": "template",
+    "file": "Pages/Organizations/BoardElections.vue",
+    "line": 294,
+    "status": "source"
+  },
+  "organizations_boardelections.co_determination_provisions_a_board_on_the": {
+    "source_hash": "e878a2f3bb71bd1f85e4dada8a8439c1b5d2da2afae94eb88bd478f0a6f08b22",
+    "shape": "template",
+    "file": "Pages/Organizations/BoardElections.vue",
+    "line": 98,
+    "status": "source"
+  },
+  "organizations_boardelections.composition_changed_a_fresh_joint_chair_el": {
+    "source_hash": "e4b991e540c0415f594a4ee7a4cd8355cf5357493f2f7e686165e68415f2cf90",
+    "shape": "attr:title",
+    "file": "Pages/Organizations/BoardElections.vue",
+    "line": 251,
+    "status": "source"
+  },
+  "organizations_boardelections.composition_invalid_a_worker_track_electio": {
+    "source_hash": "3820ac7d41f15f970ba1fe49c81d524a9e08e8765e3256495bab2496bbcdb400",
+    "shape": "template",
+    "file": "Pages/Organizations/BoardElections.vue",
+    "line": 114,
+    "status": "source"
+  },
+  "organizations_boardelections.droop_quota": {
+    "source_hash": "2acd66cab206430caf395038099126b264e1c32e7ead066b9414f90ef4f89199",
+    "shape": "template",
+    "file": "Pages/Organizations/BoardElections.vue",
+    "line": 150,
+    "status": "source"
+  },
+  "organizations_boardelections.droop_quota_2": {
+    "source_hash": "4338f3173216caed0957a8374a76a3b34f3d98a243248ddf5ad6a41c31c10462",
+    "shape": "template",
+    "file": "Pages/Organizations/BoardElections.vue",
+    "line": 206,
+    "status": "source"
+  },
+  "organizations_boardelections.droop_quota_floor_votes_seats_1_1": {
+    "source_hash": "3b10f26983485e47375e0e39f7f70e67bb625ea532a185cccdfbaf6bebeda5e8",
+    "shape": "attr:label",
+    "file": "Pages/Organizations/BoardElections.vue",
+    "line": 132,
+    "status": "source"
+  },
+  "organizations_boardelections.election_in_flight": {
+    "source_hash": "6b6073a9376f4c76e678ba3e07669773de6116c8302ec61df6ba6df6e729aefc",
+    "shape": "template",
+    "file": "Pages/Organizations/BoardElections.vue",
+    "line": 139,
+    "status": "source"
+  },
+  "organizations_boardelections.eligible_owners_active_shareholdings_r_24": {
+    "source_hash": "5682e56dbc400e47f1cee4d0d878d6ba9787657041d3b6d527a416316208af33",
+    "shape": "attr:label",
+    "file": "Pages/Organizations/BoardElections.vue",
+    "line": 128,
+    "status": "source"
+  },
+  "organizations_boardelections.eligible_owners_see_the_race_on_their_ball": {
+    "source_hash": "fd7b029d34397860f78a8ad93f30e895558fc4ba9e660f451e5d0a697e8403b6",
+    "shape": "template",
+    "file": "Pages/Organizations/BoardElections.vue",
+    "line": 141,
+    "status": "source"
+  },
+  "organizations_boardelections.eligible_workers_active_f_ind_014_registra": {
+    "source_hash": "12d8639e753991fdb094968ef57450039b9a855c13a1c95b09fc76b0fbfa65f9",
+    "shape": "attr:label",
+    "file": "Pages/Organizations/BoardElections.vue",
+    "line": 187,
+    "status": "source"
+  },
+  "organizations_boardelections.eligible_workers_see_the_race_on_their_bal": {
+    "source_hash": "97c5ec2de416872cc245d8b2733fdfa78d4a9060f41b46e3401b476ed1fd198a",
+    "shape": "template",
+    "file": "Pages/Organizations/BoardElections.vue",
+    "line": 199,
+    "status": "source"
+  },
+  "organizations_boardelections.final_round_of_the_certified_worker_track_": {
+    "source_hash": "1b1fb057979c17182606d3584edd9f950fd31ecf5eaae2b6fbc146df9d7b76a6",
+    "shape": "template",
+    "file": "Pages/Organizations/BoardElections.vue",
+    "line": 203,
+    "status": "source"
+  },
+  "organizations_boardelections.gold_tick_the_droop_quota_reaching_it_elec": {
+    "source_hash": "1a44c4ea2e6091cd8b5313f5de6a1fa3e7b4bcbedaba4c64d2d5850675bfaf16",
+    "shape": "template",
+    "file": "Pages/Organizations/BoardElections.vue",
+    "line": 146,
+    "status": "source"
+  },
+  "organizations_boardelections.joint_chair_elected_by_the_entire_board_rc": {
+    "source_hash": "7800e386cb39dc16b22cdf819b2d35ecbee4c2a7f748151fd7cf5f953f1342f8",
+    "shape": "attr:title",
+    "file": "Pages/Organizations/BoardElections.vue",
+    "line": 242,
+    "status": "source"
+  },
+  "organizations_boardelections.joint_chair_r_28": {
+    "source_hash": "8a8ce14cd68d7c1a17527bed01dc59f456094a2a6b8c15c6dc04bd07dddeaf8d",
+    "shape": "attr:label",
+    "file": "Pages/Organizations/BoardElections.vue",
+    "line": 111,
+    "status": "source"
+  },
+  "organizations_boardelections.no_board_constituted": {
+    "source_hash": "1d2b13e76031276bc83c9ad57accc4704f7e38a250892bbd56763c3a3d8e43d0",
+    "shape": "attr:title",
+    "file": "Pages/Organizations/BoardElections.vue",
+    "line": 97,
+    "status": "source"
+  },
+  "organizations_boardelections.no_chair_election_on_record_yet": {
+    "source_hash": "43fbf371b51e95da3f1b71615cb6a67a931db8085ce08086db995a94ecd0a039",
+    "shape": "attr:title",
+    "file": "Pages/Organizations/BoardElections.vue",
+    "line": 300,
+    "status": "source"
+  },
+  "organizations_boardelections.no_owner_track_election_has_run_schedule_o": {
+    "source_hash": "70cfc8442ac9f658d69c302e961b95428c1993656b3b91ac9ba4076a981a6b0e",
+    "shape": "template",
+    "file": "Pages/Organizations/BoardElections.vue",
+    "line": 163,
+    "status": "source"
+  },
+  "organizations_boardelections.no_seats_filled_yet_winners_of_the_owner_a": {
+    "source_hash": "fa9a1db9b886cd697783c31087cb3e40145b80a46bcb2ddbefb1eb2a90fbb189",
+    "shape": "template",
+    "file": "Pages/Organizations/BoardElections.vue",
+    "line": 319,
+    "status": "source"
+  },
+  "organizations_boardelections.no_worker_track_election_has_run_yet_the_v": {
+    "source_hash": "705545b1e6a5ed16e7850fb4d7bf674650e96054cb78035e11df155f42fa42ac",
+    "shape": "template",
+    "file": "Pages/Organizations/BoardElections.vue",
+    "line": 219,
+    "status": "source"
+  },
+  "organizations_boardelections.no_worker_track_the_first_worker_seat_appe": {
+    "source_hash": "0c7643b8e577c22147e5e53f5879f2526195e3832101194ffb79a303a1737b36",
+    "shape": "template",
+    "file": "Pages/Organizations/BoardElections.vue",
+    "line": 233,
+    "status": "source"
+  },
+  "organizations_boardelections.no_worker_track_yet": {
+    "source_hash": "72ed232f7a4048d5a2253bf662124096abc7d9bf48a33eec5a9cde3d84a81053",
+    "shape": "attr:title",
+    "file": "Pages/Organizations/BoardElections.vue",
+    "line": 233,
+    "status": "source"
+  },
+  "organizations_boardelections.of_seated": {
+    "source_hash": "e021407e815aea03d6aadb1214a9a21416f5fdc032f1f396d1914d5453fe21c5",
+    "shape": "template",
+    "file": "Pages/Organizations/BoardElections.vue",
+    "line": 261,
+    "status": "source"
+  },
+  "organizations_boardelections.opens_the_same_two_phase_open_ballot_as_a_": {
+    "source_hash": "abc8500439a6e999cc8b6db5c8a3939fea8eb92f16b788b97f8272b72b698853",
+    "shape": "template",
+    "file": "Pages/Organizations/BoardElections.vue",
+    "line": 172,
+    "status": "source"
+  },
+  "organizations_boardelections.owner_side_seats_r_26": {
+    "source_hash": "249113ffce1c5b3fce9a66ed7be86fbbb0ff96647a5999152e5faa4b22590098",
+    "shape": "attr:label",
+    "file": "Pages/Organizations/BoardElections.vue",
+    "line": 109,
+    "status": "source"
+  },
+  "organizations_boardelections.owner_track_pr_stv": {
+    "source_hash": "f570b1117c7f467f05cbe5e60362bf2b84beb1b0307e3b6b506bb6fee04302da",
+    "shape": "attr:title",
+    "file": "Pages/Organizations/BoardElections.vue",
+    "line": 121,
+    "status": "source"
+  },
+  "organizations_boardelections.round": {
+    "source_hash": "c4b30bcfd4dd7f44e4eb520c537e3f0f8e2de2c0f0223ca54b6bde6acd362a64",
+    "shape": "template",
+    "file": "Pages/Organizations/BoardElections.vue",
+    "line": 285,
+    "status": "source"
+  },
+  "organizations_boardelections.round_record_protected_counting_engine": {
+    "source_hash": "be483afe1b7b42c6a44035c52b71ada5043678d64e0f92b9a36e7531d7491e7e",
+    "shape": "template",
+    "file": "Pages/Organizations/BoardElections.vue",
+    "line": 278,
+    "status": "source"
+  },
+  "organizations_boardelections.schedule_owner_track_election_f_org_003": {
+    "source_hash": "c9b3b9aebe888f141bac68d4baa3d86f52278f6fcb88ee165805fc0c7f310aa3",
+    "shape": "template",
+    "file": "Pages/Organizations/BoardElections.vue",
+    "line": 169,
+    "status": "source"
+  },
+  "organizations_boardelections.schedule_worker_track_election_f_org_004": {
+    "source_hash": "af3029f1047da6e76b12eaa776960d496d3e11e3c1e4ece0f634e3a4453af96a",
+    "shape": "template",
+    "file": "Pages/Organizations/BoardElections.vue",
+    "line": 225,
+    "status": "source"
+  },
+  "organizations_boardelections.shareholders_elect_the_owner_side_the_same": {
+    "source_hash": "a3f7defd6aa3f423a29eba4eb13ba93575bad14cf15ee1b0158b397f8573b6bd",
+    "shape": "template",
+    "file": "Pages/Organizations/BoardElections.vue",
+    "line": 122,
+    "status": "source"
+  },
+  "organizations_boardelections.the_board": {
+    "source_hash": "3e24924b101f408ec91405864e4a05dd50527bafc290d854349b97cdd805d3aa",
+    "shape": "attr:title",
+    "file": "Pages/Organizations/BoardElections.vue",
+    "line": 107,
+    "status": "source"
+  },
+  "organizations_boardelections.the_joint_chair_election_opens_once_the_bo": {
+    "source_hash": "7de8e5e70cf460a95a85e78b82a29ed42bfc95af884819f2eaec81b1165e5b53",
+    "shape": "template",
+    "file": "Pages/Organizations/BoardElections.vue",
+    "line": 300,
+    "status": "source"
+  },
+  "organizations_boardelections.the_seated_board": {
+    "source_hash": "29b7e75297079ee1b617fa61b1a4f818c8207713ba725514b812394d5299e09d",
+    "shape": "attr:title",
+    "file": "Pages/Organizations/BoardElections.vue",
+    "line": 307,
+    "status": "source"
+  },
+  "organizations_boardelections.the_winner_must_reach_a_majority_of_all_se": {
+    "source_hash": "5ef193458170ef2ccbba1de6deba1e6050d1e644501eeec0be87973a5654ce7e",
+    "shape": "template",
+    "file": "Pages/Organizations/BoardElections.vue",
+    "line": 262,
+    "status": "source"
+  },
+  "organizations_boardelections.this_organization_has_no_board_yet": {
+    "source_hash": "cd00c9263fbc13c981711002d37831417dd8916ef0e8b1791e97daf3b9dbb9db",
+    "shape": "attr:title",
+    "file": "Pages/Organizations/BoardElections.vue",
+    "line": 98,
+    "status": "source"
+  },
+  "organizations_boardelections.this_track_exists_because_the_organization": {
+    "source_hash": "da10ac3ecf53952e18ec634c4aa7167bed69eb7f99d2ea2debecac91db1f2b84",
+    "shape": "template",
+    "file": "Pages/Organizations/BoardElections.vue",
+    "line": 179,
+    "status": "source"
+  },
+  "organizations_boardelections.three_counts_seat_one_board_shareholders_e": {
+    "source_hash": "f75d5b42544394fd59758cffda751321461c65c3b07447c015c3cb82663c8463",
+    "shape": "template",
+    "file": "Pages/Organizations/BoardElections.vue",
+    "line": 86,
+    "status": "source"
+  },
+  "organizations_boardelections.vote_on_the_ranked_ballot": {
+    "source_hash": "fb49b858e86156c471145dca5edec59f9341908de563689051fc1ff27428f0b9",
+    "shape": "template",
+    "file": "Pages/Organizations/BoardElections.vue",
+    "line": 140,
+    "status": "source"
+  },
+  "organizations_boardelections.worker_elected_seats_r_27": {
+    "source_hash": "17b1d7abca7c59dba52ebf0d8d0a8ed1fa8695e16f36cff3a63cfcdec06a3379",
+    "shape": "attr:label",
+    "file": "Pages/Organizations/BoardElections.vue",
+    "line": 110,
+    "status": "source"
+  },
+  "organizations_boardelections.worker_track_pr_stv": {
+    "source_hash": "03a8690290e2ca86770746f60594f7fd67ca4c514d835f6e78051f3bab3cd93c",
+    "shape": "attr:title",
+    "file": "Pages/Organizations/BoardElections.vue",
+    "line": 177,
+    "status": "source"
+  },
+  "organizations_cgcdetail.a_cgc_is_subject_to_the_same_regulation_as": {
+    "source_hash": "825f70d726f224fe3f0578974acf1c3a1a08e473f6afd129279516826b0dee0c",
+    "shape": "template",
+    "file": "Pages/Organizations/CgcDetail.vue",
+    "line": 163,
+    "status": "source"
+  },
+  "organizations_cgcdetail.a_common_good_corporation_is_a_public_ente": {
+    "source_hash": "ecd23ca2f995aa1ed68be6e8a20cac2435ccf385c92586b273fd96f8bd47fbc0",
+    "shape": "template",
+    "file": "Pages/Organizations/CgcDetail.vue",
+    "line": 99,
+    "status": "source"
+  },
+  "organizations_cgcdetail.a_common_good_corporation_is_public_proper": {
+    "source_hash": "6e50ee59e1efa303808c7d9f032e3acf8a24630766bd871203b266efe03612c0",
+    "shape": "template",
+    "file": "Pages/Organizations/CgcDetail.vue",
+    "line": 318,
+    "status": "source"
+  },
+  "organizations_cgcdetail.art_iii_5_6_as_implemented_ledger_12": {
+    "source_hash": "ca4eb03c067c817e03aad5367865bfd89d2c50c62f3aed2026a89cd7fdb5c14e",
+    "shape": "template",
+    "file": "Pages/Organizations/CgcDetail.vue",
+    "line": 186,
+    "status": "source"
+  },
+  "organizations_cgcdetail.board_composition": {
+    "source_hash": "ca4a7c9c164835da56d73681e889f079e47cf4c5c42d6e564289dce75af4b4c4",
+    "shape": "attr:title",
+    "file": "Pages/Organizations/CgcDetail.vue",
+    "line": 192,
+    "status": "source"
+  },
+  "organizations_cgcdetail.charter_the_legislature_creates": {
+    "source_hash": "1cf21a1ac35dc45233f37d61981a0be9adffdeac26080d8e657fe31c028ceebf",
+    "shape": "attr:title",
+    "file": "Pages/Organizations/CgcDetail.vue",
+    "line": 128,
+    "status": "source"
+  },
+  "organizations_cgcdetail.chartered_by": {
+    "source_hash": "abbee67498cc4d2877d2dd6a224f5c48e65c140b1315ba5d503fae3212194b8e",
+    "shape": "template",
+    "file": "Pages/Organizations/CgcDetail.vue",
+    "line": 132,
+    "status": "source"
+  },
+  "organizations_cgcdetail.chartered_by_act": {
+    "source_hash": "fa63d0451cb994349aa7b6879b4dd54562cd90bddfa9c6920c9511a8ebb77024",
+    "shape": "template",
+    "file": "Pages/Organizations/CgcDetail.vue",
+    "line": 136,
+    "status": "source"
+  },
+  "organizations_cgcdetail.co_determination_the_board_of_governors_st": {
+    "source_hash": "64bfb81e030406371a490ed4415c0b91158835b08501b80741289f4fc36d3741",
+    "shape": "attr:title",
+    "file": "Pages/Organizations/CgcDetail.vue",
+    "line": 170,
+    "status": "source"
+  },
+  "organizations_cgcdetail.conversion_history": {
+    "source_hash": "ac1c2eb35fb33a83582d94fbc50f7dcab8b39afe783c1d965ae59915cd75febc",
+    "shape": "template",
+    "file": "Pages/Organizations/CgcDetail.vue",
+    "line": 300,
+    "status": "source"
+  },
+  "organizations_cgcdetail.effective": {
+    "source_hash": "13fa814e42a22ca5e8ed16fa813284bed16e76c98686d34844e14adc19276441",
+    "shape": "template",
+    "file": "Pages/Organizations/CgcDetail.vue",
+    "line": 139,
+    "status": "source"
+  },
+  "organizations_cgcdetail.every_work_is_public_domain_from_the_momen": {
+    "source_hash": "0d3e6f0cbd3f64697cbeb77c1ff24fa4b855b4d50d2edf1771b71084db7eae05",
+    "shape": "template",
+    "file": "Pages/Organizations/CgcDetail.vue",
+    "line": 204,
+    "status": "source"
+  },
+  "organizations_cgcdetail.every_work_this_corporation_produces_is_pu": {
+    "source_hash": "d32b51e2cf04091d84c8e669309d4dc94ca2ffe7a173ef04ce64796d33002135",
+    "shape": "template",
+    "file": "Pages/Organizations/CgcDetail.vue",
+    "line": 206,
+    "status": "source"
+  },
+  "organizations_cgcdetail.in_a_common_good_corporation_the_board_of_": {
+    "source_hash": "f2ddb3ae8fa1743f2981e93bc6aefeb09b929f40b5c8dc3b42e534d7ca16da7b",
+    "shape": "template",
+    "file": "Pages/Organizations/CgcDetail.vue",
+    "line": 182,
+    "status": "source"
+  },
+  "organizations_cgcdetail.introduce_a_reorganization_sale_bill": {
+    "source_hash": "b91e2ed8206d97163f292082ac84bba534e8bd4a4af148faff331e84b2523470",
+    "shape": "template",
+    "file": "Pages/Organizations/CgcDetail.vue",
+    "line": 295,
+    "status": "source"
+  },
+  "organizations_cgcdetail.no_board_constituted_yet": {
+    "source_hash": "5c88d53bdd09ccfafb7d6f4c489040c398218f442ce624d7f86455302ea4817e",
+    "shape": "template",
+    "file": "Pages/Organizations/CgcDetail.vue",
+    "line": 180,
+    "status": "source"
+  },
+  "organizations_cgcdetail.no_charter_purpose_recorded": {
+    "source_hash": "0a07d5602fed825b725be1f193f7c00bf83dd383a3a22c240b160c522cf99ae7",
+    "shape": "template",
+    "file": "Pages/Organizations/CgcDetail.vue",
+    "line": 130,
+    "status": "source"
+  },
+  "organizations_cgcdetail.no_overseeing_executive_assigned_yet": {
+    "source_hash": "444bceb2f12129843b44aeae5f5ea598f3c35cac3180e6ab234cc86db2b91846",
+    "shape": "template",
+    "file": "Pages/Organizations/CgcDetail.vue",
+    "line": 159,
+    "status": "source"
+  },
+  "organizations_cgcdetail.no_works_registered_yet": {
+    "source_hash": "fa0199e73cd46df2c54fc220c381161cc0d4b3e846d7a0fdc5b245ed6c5e074b",
+    "shape": "attr:title",
+    "file": "Pages/Organizations/CgcDetail.vue",
+    "line": 228,
+    "status": "source"
+  },
+  "organizations_cgcdetail.no_works_registered_yet_the_public_domain_": {
+    "source_hash": "bb475402eb1de85bd874ebc5ff6e67fc12cc8344b2fd8d97f294e0c688e8dbed",
+    "shape": "template",
+    "file": "Pages/Organizations/CgcDetail.vue",
+    "line": 228,
+    "status": "source"
+  },
+  "organizations_cgcdetail.only_the_legislature_may_reorganize_sell_o": {
+    "source_hash": "c2aa854dc87f44c1558714888e7ea8313c4a01c4326a1aacacb20476b0fd7da0",
+    "shape": "template",
+    "file": "Pages/Organizations/CgcDetail.vue",
+    "line": 290,
+    "status": "source"
+  },
+  "organizations_cgcdetail.organization_registryoverseeing_department": {
+    "source_hash": "d693264c890727d15f9b534721b3b592109d1964c4beda82f6aa7533521bd740",
+    "shape": "template",
+    "file": "Pages/Organizations/CgcDetail.vue",
+    "line": 109,
+    "status": "source"
+  },
+  "organizations_cgcdetail.oversight_the_executive_oversees": {
+    "source_hash": "52e170a3df5190211bb0617bc6a5c5e331da7d6f1eb95ca8ebca1e7c9e0805b9",
+    "shape": "attr:title",
+    "file": "Pages/Organizations/CgcDetail.vue",
+    "line": 147,
+    "status": "source"
+  },
+  "organizations_cgcdetail.public_domain_dedications_status_is_always": {
+    "source_hash": "ef8fbb4671a17a974b561ac7098766d8d3bda3c68ca74f4b3d33948ee8284af1",
+    "shape": "attr:caption",
+    "file": "Pages/Organizations/CgcDetail.vue",
+    "line": 216,
+    "status": "source"
+  },
+  "organizations_cgcdetail.public_domain_intellectual_property_regist": {
+    "source_hash": "67ba1611866b28c019a9186b7a3c38cce98a6999c9099ab2222b1955736f01cd",
+    "shape": "attr:title",
+    "file": "Pages/Organizations/CgcDetail.vue",
+    "line": 201,
+    "status": "source"
+  },
+  "organizations_cgcdetail.regulated_identically_to_private_peers_har": {
+    "source_hash": "fc8b35fb31bbb036fdbe553cd2244d319c16ed76781fa682ba99c0ecf17fe697",
+    "shape": "template",
+    "file": "Pages/Organizations/CgcDetail.vue",
+    "line": 161,
+    "status": "source"
+  },
+  "organizations_cgcdetail.reorganization_sale_and_dissolution": {
+    "source_hash": "26fc375995ee583c55028a10165e8d04d49c23121989106273c27ea6ff0ea614",
+    "shape": "attr:title",
+    "file": "Pages/Organizations/CgcDetail.vue",
+    "line": 289,
+    "status": "source"
+  },
+  "organizations_cgcdetail.reports_every_month_s": {
+    "source_hash": "dc0b375aa068bb0659b391e9a052461b6bbd2695a12532245d623090bcefe717",
+    "shape": "template",
+    "file": "Pages/Organizations/CgcDetail.vue",
+    "line": 154,
+    "status": "source"
+  },
+  "organizations_cgcdetail.select_a_kind": {
+    "source_hash": "4db448cb6cd26b8ff539e8403719b3ad6349bb0d91cedbc7444f1d895fe1ce0e",
+    "shape": "template",
+    "file": "Pages/Organizations/CgcDetail.vue",
+    "line": 264,
+    "status": "source"
+  },
+  "organizations_cgcdetail.status_esm_18": {
+    "source_hash": "b8021c6cbf47a9213eb5bd13c747b5c834985174cb5cdc881fbe8caf7d0f2e36",
+    "shape": "attr:label",
+    "file": "Pages/Organizations/CgcDetail.vue",
+    "line": 123,
+    "status": "source"
+  },
+  "organizations_cgcdetail.the_legislature_creates_the_executive_over": {
+    "source_hash": "e7829509e411fe1f26968adc203b2244401f39837d5318d7832f2cad4f0236d1",
+    "shape": "template",
+    "file": "Pages/Organizations/CgcDetail.vue",
+    "line": 141,
+    "status": "source"
+  },
+  "organizations_cgcdetail.there_is_no_status_field_public_domain_is_": {
+    "source_hash": "b7fd986f4d9c268d5c82d2b3a9134cf648d1a3e64d22cf4fb745740ea1a0e99f",
+    "shape": "attr:hint",
+    "file": "Pages/Organizations/CgcDetail.vue",
+    "line": 271,
+    "status": "source"
+  },
+  "organizations_cgcdetail.through": {
+    "source_hash": "a61b655fa8616991f6f54ad3d790b2e043eea1a87a1e2afd151c69484431b581",
+    "shape": "template",
+    "file": "Pages/Organizations/CgcDetail.vue",
+    "line": 151,
+    "status": "source"
+  },
+  "organizations_cgcdetail.workers_r_25": {
+    "source_hash": "2363b9f49af2e40d340bd471eb265fe31dadf75abb8af657a816bdac5c07cfdf",
+    "shape": "attr:label",
+    "file": "Pages/Organizations/CgcDetail.vue",
+    "line": 122,
+    "status": "source"
+  },
+  "organizations_codetermination.any_composition_change_a_seat_added_by_the": {
+    "source_hash": "5919ffd6501183976ac2b65d749bf56b7681a4f8f1e43554188a066d466e65dc",
+    "shape": "template",
+    "file": "Pages/Organizations/CoDetermination.vue",
+    "line": 127,
+    "status": "source"
+  },
+  "organizations_codetermination.available_to": {
+    "source_hash": "ca116c02dde46780ee413f1f06af12d0c7a9cbe62e8b0e9ad2dde42a79329d0c",
+    "shape": "template",
+    "file": "Pages/Organizations/CoDetermination.vue",
+    "line": 141,
+    "status": "source"
+  },
+  "organizations_codetermination.below_threshold": {
+    "source_hash": "f9a5253c88789d921cf88793124d59a8facd40fc0f4158ea6465389426e3416d",
+    "shape": "script:text",
+    "file": "Pages/Organizations/CoDetermination.vue",
+    "line": 81,
+    "status": "source"
+  },
+  "organizations_codetermination.chair_elected_jointly_by_the_entire_board_": {
+    "source_hash": "95626425c6fef56febd209045378dd5175df332e017e0a61996b185a102f059e",
+    "shape": "template",
+    "file": "Pages/Organizations/CoDetermination.vue",
+    "line": 125,
+    "status": "source"
+  },
+  "organizations_codetermination.clk_13_first_worker_seat": {
+    "source_hash": "3480e268c014a61cc29bb3496b66a0ac33cdd7241b8861797b24de4470826a3e",
+    "shape": "attr:title",
+    "file": "Pages/Organizations/CoDetermination.vue",
+    "line": 221,
+    "status": "source"
+  },
+  "organizations_codetermination.clk_14_worker_owner_parity": {
+    "source_hash": "c8ecaf85c5d8e3ccdad4107826442cf6f367c47c81179cae9c62083ba2347eb3",
+    "shape": "attr:title",
+    "file": "Pages/Organizations/CoDetermination.vue",
+    "line": 243,
+    "status": "source"
+  },
+  "organizations_codetermination.co_determination_scaling": {
+    "source_hash": "fe462e22e5f0cf96ed62103120ce2f324a111842f25bd7686855f5d3e63f5e35",
+    "shape": "attr:title",
+    "file": "Pages/Organizations/CoDetermination.vue",
+    "line": 91,
+    "status": "source"
+  },
+  "organizations_codetermination.co_determination_state_of_every_live_board": {
+    "source_hash": "cde7745417c337808b57c0e0d05e4a5cd529d28a589bcdeeba37488525bbae20",
+    "shape": "attr:caption",
+    "file": "Pages/Organizations/CoDetermination.vue",
+    "line": 165,
+    "status": "source"
+  },
+  "organizations_codetermination.composition_change_re_triggers_the_joint_c": {
+    "source_hash": "f2717ec6a09040381f1704d81762d71dc987e604bb7a5e170175c899b54a849c",
+    "shape": "attr:title",
+    "file": "Pages/Organizations/CoDetermination.vue",
+    "line": 123,
+    "status": "source"
+  },
+  "organizations_codetermination.composition_invalid": {
+    "source_hash": "4bdd1f9bcbcdd82f793f6bc8c8da12f5846a755526221c64bc427bf2d9d79dd8",
+    "shape": "template",
+    "file": "Pages/Organizations/CoDetermination.vue",
+    "line": 172,
+    "status": "source"
+  },
+  "organizations_codetermination.enacted_by_record": {
+    "source_hash": "78b3abd5e6a3ac6543ecb92c4ce56dce0c9be033c78a6a5f913e972abbb90217",
+    "shape": "template",
+    "file": "Pages/Organizations/CoDetermination.vue",
+    "line": 235,
+    "status": "source"
+  },
+  "organizations_codetermination.no_board_has_reached_the_first_seat_thresh": {
+    "source_hash": "30b88bb5040fe424f2b2d6b6d59f094b87edc6a2a3a624eaa634a19a4fdc3b58",
+    "shape": "attr:title",
+    "file": "Pages/Organizations/CoDetermination.vue",
+    "line": 210,
+    "status": "source"
+  },
+  "organizations_codetermination.no_entity_bound_drag_the_slider_to_explore": {
+    "source_hash": "43cbe98ba9d645e93816b19bf59c0c589396cd37d6f3e3400ad293e85ac8d031",
+    "shape": "template",
+    "file": "Pages/Organizations/CoDetermination.vue",
+    "line": 107,
+    "status": "source"
+  },
+  "organizations_codetermination.one_boards_table_one_co_determination_engi": {
+    "source_hash": "f4bdd4461fbfc5110ea5606e8dd612649a49cbc03ca5c47dad2424f1a25fb1ac",
+    "shape": "template",
+    "file": "Pages/Organizations/CoDetermination.vue",
+    "line": 267,
+    "status": "source"
+  },
+  "organizations_codetermination.one_row_per_live_board_across_private_ente": {
+    "source_hash": "c5ee0adde9fa445cb7a1be95581aab06689bef67122646fee2ca62812df549df",
+    "shape": "template",
+    "file": "Pages/Organizations/CoDetermination.vue",
+    "line": 155,
+    "status": "source"
+  },
+  "organizations_codetermination.open": {
+    "source_hash": "4498708b2a3904c550b21c74d4f734b130d1ccdf48c45304ca28ba14ab3a184c",
+    "shape": "template",
+    "file": "Pages/Organizations/CoDetermination.vue",
+    "line": 201,
+    "status": "source"
+  },
+  "organizations_codetermination.open_the_entity": {
+    "source_hash": "7278daed2804ce053c79a0e8693cfec10fc8cbe3993c8d6117460a9d6103ec73",
+    "shape": "template",
+    "file": "Pages/Organizations/CoDetermination.vue",
+    "line": 103,
+    "status": "source"
+  },
+  "organizations_codetermination.owner_side": {
+    "source_hash": "91aad2a2d61e77b0055707c9118a8c38214e57b76d7dc71e31f0309f9166e15b",
+    "shape": "script:label",
+    "file": "Pages/Organizations/CoDetermination.vue",
+    "line": 75,
+    "status": "source"
+  },
+  "organizations_codetermination.required_wf_org_04_wf_org_05": {
+    "source_hash": "eb072373ecce70a5f5c489a0a8163de481b5d37d3bae6a854392855ebc76951e",
+    "shape": "template",
+    "file": "Pages/Organizations/CoDetermination.vue",
+    "line": 204,
+    "status": "source"
+  },
+  "organizations_codetermination.template_default_founding_value": {
+    "source_hash": "c49e3d11dea1d53d7fea85ab552256ddc63a5f922307a385aa72043956cc4e45",
+    "shape": "template",
+    "file": "Pages/Organizations/CoDetermination.vue",
+    "line": 239,
+    "status": "source"
+  },
+  "organizations_codetermination.the_active_worker_headcount_at_which_the_f": {
+    "source_hash": "edf71e2a12fd63f4bc81bc37c02ecfbc57a53cb0c73fefeaf83690e5fd88ab29",
+    "shape": "template",
+    "file": "Pages/Organizations/CoDetermination.vue",
+    "line": 230,
+    "status": "source"
+  },
+  "organizations_codetermination.the_headcount_at_which_worker_seats_reach_": {
+    "source_hash": "a478d40dc960583897dd2cd5b9c15fb12780603d60840f9aff703bdf4a040b29",
+    "shape": "template",
+    "file": "Pages/Organizations/CoDetermination.vue",
+    "line": 252,
+    "status": "source"
+  },
+  "organizations_codetermination.the_scale_applies_equally_every_board_one_": {
+    "source_hash": "3b9fbbf2604c7ad6b62446904677ad085b79716a623db85b0a8de056e306ae6b",
+    "shape": "attr:title",
+    "file": "Pages/Organizations/CoDetermination.vue",
+    "line": 154,
+    "status": "source"
+  },
+  "organizations_codetermination.the_scale_binds_from_the_first_qualifying_": {
+    "source_hash": "63aa8e34534dcba06ebf9926979700a3b281431d71fc4f2a6d60bd1f1a5d06ad",
+    "shape": "template",
+    "file": "Pages/Organizations/CoDetermination.vue",
+    "line": 210,
+    "status": "source"
+  },
+  "organizations_codetermination.the_scale_explorer": {
+    "source_hash": "8e6d045a191cc7b7ece3797d04d78f620f36cbd43c6326a5208f6af7dd71d63f",
+    "shape": "bound:title",
+    "file": "Pages/Organizations/CoDetermination.vue",
+    "line": 102,
+    "status": "source"
+  },
+  "organizations_codetermination.the_worker_track_and_the_joint_chair_elect": {
+    "source_hash": "1c58b56a0b1565cba73a5ab8ebafe711894df35c1d0f646650e812490a86b6bd",
+    "shape": "template",
+    "file": "Pages/Organizations/CoDetermination.vue",
+    "line": 145,
+    "status": "source"
+  },
+  "organizations_codetermination.when_a_company_employs_or_more_people_its_": {
+    "source_hash": "1ebe314e1d48e9f886a35c7a8694668f4c4cbfff5eee5ed7c541608876c16813",
+    "shape": "template",
+    "file": "Pages/Organizations/CoDetermination.vue",
+    "line": 92,
+    "status": "source"
+  },
+  "organizations_codetermination.worker_seats": {
+    "source_hash": "4e1b67317ca4249624df5462e475b73920c3b8e92dbfb57a469b8c2e70b7ca13",
+    "shape": "script:label",
+    "file": "Pages/Organizations/CoDetermination.vue",
+    "line": 76,
+    "status": "source"
+  },
+  "organizations_orgdetail.a_candidate_requests_f_can_002_the_agent_g": {
+    "source_hash": "1a19f89477a8f9304002334cba5146f253c5665625be309eb6528f59f78185f4",
+    "shape": "template",
+    "file": "Pages/Organizations/OrgDetail.vue",
+    "line": 204,
+    "status": "source"
+  },
+  "organizations_orgdetail.a_contract_takes_effect_only_with_both_sig": {
+    "source_hash": "032b0b0b6c1ba8c0fa39add24025f38fa97de24338c985357098218e82505389",
+    "shape": "template",
+    "file": "Pages/Organizations/OrgDetail.vue",
+    "line": 408,
+    "status": "source"
+  },
+  "organizations_orgdetail.a_recurring_labor_contract_backs_the_regis": {
+    "source_hash": "f4ff66174dbcc7a6a670a898baf27af2baa988eac935e497bb78800c4ee6048e",
+    "shape": "attr:hint",
+    "file": "Pages/Organizations/OrgDetail.vue",
+    "line": 278,
+    "status": "source"
+  },
+  "organizations_orgdetail.a_stable_identifier_for_the_package_e_g_by": {
+    "source_hash": "28a02b98baaa52a5625c728cdd153e7cfc099cc6efa22d4d39f50977c71dd0d6",
+    "shape": "attr:hint",
+    "file": "Pages/Organizations/OrgDetail.vue",
+    "line": 360,
+    "status": "source"
+  },
+  "organizations_orgdetail.active_co_signed": {
+    "source_hash": "bef1866debb024cc50ca622b97c4f8b98fc6c2a0ec4917b5dfcd4134e7647202",
+    "shape": "script:text",
+    "file": "Pages/Organizations/OrgDetail.vue",
+    "line": 123,
+    "status": "source"
+  },
+  "organizations_orgdetail.agent_r_23": {
+    "source_hash": "f7d6550916a616acf2d112895796b1438b0c383367577b34571a2fd478cf778b",
+    "shape": "template",
+    "file": "Pages/Organizations/OrgDetail.vue",
+    "line": 167,
+    "status": "source"
+  },
+  "organizations_orgdetail.an_organization_s_public_profile_ownership": {
+    "source_hash": "fbc7db207957aa84b71a6f30f47f4bfc3596b3c094fb0cd0a65f605dc4d19888",
+    "shape": "template",
+    "file": "Pages/Organizations/OrgDetail.vue",
+    "line": 139,
+    "status": "source"
+  },
+  "organizations_orgdetail.apply_for_membership": {
+    "source_hash": "479858a44bc1dd89ba3df7846f45727e283aa1bd2b18676c6ae6bacbd0e8d571",
+    "shape": "template",
+    "file": "Pages/Organizations/OrgDetail.vue",
+    "line": 253,
+    "status": "source"
+  },
+  "organizations_orgdetail.apply_for_this_organization_s_ownership_cl": {
+    "source_hash": "8c353dc3aa89e4f33e08d5cfa3d194a594b05e93dd0d0ff41a68605d7ea60565",
+    "shape": "template",
+    "file": "Pages/Organizations/OrgDetail.vue",
+    "line": 246,
+    "status": "source"
+  },
+  "organizations_orgdetail.become_a_member": {
+    "source_hash": "39e53b5676189bfb5d6205b7f7aff2b5403889ac1e4d78148a3493df58e74986",
+    "shape": "attr:title",
+    "file": "Pages/Organizations/OrgDetail.vue",
+    "line": 239,
+    "status": "source"
+  },
+  "organizations_orgdetail.board_co_determination": {
+    "source_hash": "192c29d14ffd46597a0d6431927fdb2a0e93e86d382e759d8f7f6faf01eb087f",
+    "shape": "attr:title",
+    "file": "Pages/Organizations/OrgDetail.vue",
+    "line": 308,
+    "status": "source"
+  },
+  "organizations_orgdetail.board_elections_co_determination_explorer": {
+    "source_hash": "0aecdddc336971365508272760326f82db8ad54acf6886d2257a3ae5bf5935cc",
+    "shape": "template",
+    "file": "Pages/Organizations/OrgDetail.vue",
+    "line": 325,
+    "status": "source"
+  },
+  "organizations_orgdetail.both_signatures_on_record": {
+    "source_hash": "f2593d8fff0844d288e85f20828028c81a3bb02000a08f51f0ecfee8061769e7",
+    "shape": "script:text",
+    "file": "Pages/Organizations/OrgDetail.vue",
+    "line": 125,
+    "status": "source"
+  },
+  "organizations_orgdetail.co_determination_begins_at_workers_clk_13_": {
+    "source_hash": "1a703cafb0a5022519e157d4ee9594fc478ffa5c254bc271bf265bf070dcf0bf",
+    "shape": "template",
+    "file": "Pages/Organizations/OrgDetail.vue",
+    "line": 330,
+    "status": "source"
+  },
+  "organizations_orgdetail.co_sign": {
+    "source_hash": "3bc4fa1e864a2103d6523bfbd9de3170c18fb457ebd6bcb6cee8a3b292f25680",
+    "shape": "template",
+    "file": "Pages/Organizations/OrgDetail.vue",
+    "line": 399,
+    "status": "source"
+  },
+  "organizations_orgdetail.confirm_your_residency_to_join_art_i": {
+    "source_hash": "c2d0efae1dea0ed4a3f6865f3c4a7c02a38bfc522cfd0c5e4617b13a0732b47c",
+    "shape": "template",
+    "file": "Pages/Organizations/OrgDetail.vue",
+    "line": 261,
+    "status": "source"
+  },
+  "organizations_orgdetail.confirm_your_residency_to_register_as_a_wo": {
+    "source_hash": "2da0463a41806e4e0b28448a6a621898114cd090e540d573c7de15320d51942d",
+    "shape": "template",
+    "file": "Pages/Organizations/OrgDetail.vue",
+    "line": 292,
+    "status": "source"
+  },
+  "organizations_orgdetail.contract_reference": {
+    "source_hash": "a2cfd67806ddd9b6c46aa9869c921f8f25fe449ee3cb46091aee11ef38f9c3d3",
+    "shape": "attr:label",
+    "file": "Pages/Organizations/OrgDetail.vue",
+    "line": 278,
+    "status": "source"
+  },
+  "organizations_orgdetail.counterparty": {
+    "source_hash": "52e6aade1539a6a3721b68d594fb585d91f9c112e02db25998ee42ba23291300",
+    "shape": "template",
+    "file": "Pages/Organizations/OrgDetail.vue",
+    "line": 391,
+    "status": "source"
+  },
+  "organizations_orgdetail.counts_toward_the_worker_headcount": {
+    "source_hash": "4c647ffb5228afc4b176042b897728e7f07d8dd9c18986c1e062aa9fba597579",
+    "shape": "template",
+    "file": "Pages/Organizations/OrgDetail.vue",
+    "line": 386,
+    "status": "source"
+  },
+  "organizations_orgdetail.document_packages": {
+    "source_hash": "ab9f476155d2a628bbd65ae0fb4fa96e6c51d63315ec9d6e037aefaad238ee7c",
+    "shape": "attr:title",
+    "file": "Pages/Organizations/OrgDetail.vue",
+    "line": 337,
+    "status": "source"
+  },
+  "organizations_orgdetail.edit_profile_r_23": {
+    "source_hash": "bfb9823063d008a91d5acd58ac9640bd947ebd5a54d5a4d447f55a8f63c6b8ab",
+    "shape": "template",
+    "file": "Pages/Organizations/OrgDetail.vue",
+    "line": 177,
+    "status": "source"
+  },
+  "organizations_orgdetail.endorsement_linkage_feeds_proportionality_": {
+    "source_hash": "bb12b000253a422d6b3f39e79da7fc84ac36ac2aae5d28a32f364bb46a8473c3",
+    "shape": "attr:title",
+    "file": "Pages/Organizations/OrgDetail.vue",
+    "line": 204,
+    "status": "source"
+  },
+  "organizations_orgdetail.granted": {
+    "source_hash": "eb4d728eca70db5e3d261c16215317c1bac539a36056f4d94315a9a62a960a12",
+    "shape": "template",
+    "file": "Pages/Organizations/OrgDetail.vue",
+    "line": 228,
+    "status": "source"
+  },
+  "organizations_orgdetail.granted_endorsements": {
+    "source_hash": "41358c13f902f62ba8242bcc0a5bdfdb6a1eabb9f2d66a3bf81dc542213b9784",
+    "shape": "template",
+    "file": "Pages/Organizations/OrgDetail.vue",
+    "line": 226,
+    "status": "source"
+  },
+  "organizations_orgdetail.internal_document_packages": {
+    "source_hash": "0cda8a117114b61d6be2752843292afd49e42bab5876704123c0fc076ec5ee2c",
+    "shape": "attr:caption",
+    "file": "Pages/Organizations/OrgDetail.vue",
+    "line": 338,
+    "status": "source"
+  },
+  "organizations_orgdetail.internal_packages_never_override_the_const": {
+    "source_hash": "2480fe00493f13a90530c1d9cbafc89aa216024bb4024cfaa7611547922082ad",
+    "shape": "template",
+    "file": "Pages/Organizations/OrgDetail.vue",
+    "line": 351,
+    "status": "source"
+  },
+  "organizations_orgdetail.lifecycle_esm_18": {
+    "source_hash": "23867f20c0bb8865d0e15bbf487f6b3100e2f283bccb621455383eb28343283c",
+    "shape": "attr:title",
+    "file": "Pages/Organizations/OrgDetail.vue",
+    "line": 416,
+    "status": "source"
+  },
+  "organizations_orgdetail.no_board_constituted": {
+    "source_hash": "b49f8595f0e6950c109f5cd63d78ede17ea7c79ba86d509b15df7b1d05d0d3aa",
+    "shape": "attr:title",
+    "file": "Pages/Organizations/OrgDetail.vue",
+    "line": 330,
+    "status": "source"
+  },
+  "organizations_orgdetail.no_contracts_on_record": {
+    "source_hash": "fe48d2ca41ee5b60166500de149a610690ccbe87758679ef1ab1257d524d1f8f",
+    "shape": "template",
+    "file": "Pages/Organizations/OrgDetail.vue",
+    "line": 412,
+    "status": "source"
+  },
+  "organizations_orgdetail.no_document_packages_on_record": {
+    "source_hash": "0e201ded466821331ee4d01a94814992bc94b427d6e413cb5f5877d767d560d2",
+    "shape": "template",
+    "file": "Pages/Organizations/OrgDetail.vue",
+    "line": 349,
+    "status": "source"
+  },
+  "organizations_orgdetail.no_endorsements_granted_yet": {
+    "source_hash": "2efad9c7a700f2ccdaa58391a211b9484035aff9c4fa459404a5e6c8fbf52719",
+    "shape": "template",
+    "file": "Pages/Organizations/OrgDetail.vue",
+    "line": 234,
+    "status": "source"
+  },
+  "organizations_orgdetail.org_counterparty": {
+    "source_hash": "cdf59154adca8e874137e480a965a59f25b4ed3d10466c4c5b081aa26ed80525",
+    "shape": "template",
+    "file": "Pages/Organizations/OrgDetail.vue",
+    "line": 396,
+    "status": "source"
+  },
+  "organizations_orgdetail.pending_co_signature": {
+    "source_hash": "3436eaf47433164ccf19a5d2ec65d4c4e794b5a8984a2311f375eb40a060c927",
+    "shape": "script:text",
+    "file": "Pages/Organizations/OrgDetail.vue",
+    "line": 126,
+    "status": "source"
+  },
+  "organizations_orgdetail.pending_requests": {
+    "source_hash": "9979b415083238f7074ec3036cce9f5f362d1e125f265cf90fbe93f2240bfc6b",
+    "shape": "template",
+    "file": "Pages/Organizations/OrgDetail.vue",
+    "line": 211,
+    "status": "source"
+  },
+  "organizations_orgdetail.record_version": {
+    "source_hash": "adc671806520477fd16de84911029aa3fc0cb9da101c2fb203deb8225945de0b",
+    "shape": "template",
+    "file": "Pages/Organizations/OrgDetail.vue",
+    "line": 376,
+    "status": "source"
+  },
+  "organizations_orgdetail.register_as_a_worker": {
+    "source_hash": "fb15336a258f68e73478176ef416f9e61774e708188aa2c70776fa18c3165271",
+    "shape": "attr:title",
+    "file": "Pages/Organizations/OrgDetail.vue",
+    "line": 264,
+    "status": "source"
+  },
+  "organizations_orgdetail.register_as_worker": {
+    "source_hash": "bc0394fdad8c225923207a78981f3a8538542948366710c5f5950882572c1f03",
+    "shape": "template",
+    "file": "Pages/Organizations/OrgDetail.vue",
+    "line": 284,
+    "status": "source"
+  },
+  "organizations_orgdetail.requested": {
+    "source_hash": "86ffe94fd6e29068ea2bb5f9b9fdcfa684324ca7337cdc6ddd4a8cdc380ad1fa",
+    "shape": "template",
+    "file": "Pages/Organizations/OrgDetail.vue",
+    "line": 213,
+    "status": "source"
+  },
+  "organizations_orgdetail.save_profile": {
+    "source_hash": "0c8209e72ec87d9d0b456224c042220820ef51fc5fc31a716159491806aa443e",
+    "shape": "template",
+    "file": "Pages/Organizations/OrgDetail.vue",
+    "line": 196,
+    "status": "source"
+  },
+  "organizations_orgdetail.this_profile_is_a_public_record_the_endors": {
+    "source_hash": "59cdbd619b509cc11b4bec9c4c4d7476a3aaaa9ecbd74d576602a04ac7c9a8a8",
+    "shape": "template",
+    "file": "Pages/Organizations/OrgDetail.vue",
+    "line": 421,
+    "status": "source"
+  },
+  "organizations_orgdetail.upload_a_new_version_r_23": {
+    "source_hash": "69fc37c5a9ab7549625e990f17c9780c8d57a8fc64786d79290dd0b0e97d4abd",
+    "shape": "template",
+    "file": "Pages/Organizations/OrgDetail.vue",
+    "line": 357,
+    "status": "source"
+  },
+  "organizations_orgdetail.worker_headcount_feeds_the_co_determinatio": {
+    "source_hash": "06ab307b05de89e8e15350b23976e58007abdc233c5c08b6e95bb7257b60a811",
+    "shape": "template",
+    "file": "Pages/Organizations/OrgDetail.vue",
+    "line": 265,
+    "status": "source"
+  },
+  "organizations_orgdetail.you": {
+    "source_hash": "e70f4ba0dce302a1334c9cca087251437aae1a6cb8519669286cecb59b80f36b",
+    "shape": "template",
+    "file": "Pages/Organizations/OrgDetail.vue",
+    "line": 168,
+    "status": "source"
+  },
+  "organizations_orgdetail.you_are_a_member": {
+    "source_hash": "4221632c5afd0908cdf7b0459503b2909592178fe642e0811c0ba3c04175309f",
+    "shape": "attr:title",
+    "file": "Pages/Organizations/OrgDetail.vue",
+    "line": 241,
+    "status": "source"
+  },
+  "organizations_orgdetail.you_are_registered_as_a_worker": {
+    "source_hash": "f73bd50f6e4b3704d4b31cdc4cddc97e3c32006c34da4026f7213d871360d922",
+    "shape": "attr:title",
+    "file": "Pages/Organizations/OrgDetail.vue",
+    "line": 269,
+    "status": "source"
+  },
+  "organizations_orgdetail.your_membership_is": {
+    "source_hash": "41da1a214110005c75725583563349500374a74a46231e9c5cdd1cb3eb2e1c04",
+    "shape": "template",
+    "file": "Pages/Organizations/OrgDetail.vue",
+    "line": 241,
+    "status": "source"
+  },
+  "organizations_registry.all_jurisdictions": {
+    "source_hash": "846ff5d64978164e46ec0ff84f0d7a1d74c030f0181110670d3d74d1cc91433b",
+    "shape": "template",
+    "file": "Pages/Organizations/Registry.vue",
+    "line": 185,
+    "status": "source"
+  },
+  "organizations_registry.all_structures": {
+    "source_hash": "1c321d8fead46d145f9b01a2c98c0b032ecba464b702520f9e4f616c8f1afbb3",
+    "shape": "template",
+    "file": "Pages/Organizations/Registry.vue",
+    "line": 177,
+    "status": "source"
+  },
+  "organizations_registry.any_associated_resident_may_register_one_a": {
+    "source_hash": "442e6392cbbac208198e9ec86963c303eefcc7bccaf010842a030d1d3a9f3825",
+    "shape": "template",
+    "file": "Pages/Organizations/Registry.vue",
+    "line": 221,
+    "status": "source"
+  },
+  "organizations_registry.clear_filters": {
+    "source_hash": "7179ea0035fca783ec62b7185659b68c75f2a7c12b909306a57183dc9b3fa44b",
+    "shape": "template",
+    "file": "Pages/Organizations/Registry.vue",
+    "line": 218,
+    "status": "source"
+  },
+  "organizations_registry.co_determination": {
+    "source_hash": "6ae58a12ea6852ef673937f97bd8a5e7c0247786e7e1d6d64bd61ca95e5c6b9a",
+    "shape": "script:label",
+    "file": "Pages/Organizations/Registry.vue",
+    "line": 134,
+    "status": "source"
+  },
+  "organizations_registry.common_good_corporations": {
+    "source_hash": "24236f45027b121322ffa38f6d5acbdd7ab547ff37ef9377af22926e546bb9f2",
+    "shape": "attr:label",
+    "file": "Pages/Organizations/Registry.vue",
+    "line": 160,
+    "status": "source"
+  },
+  "organizations_registry.common_good_corporations_are_not_self_regi": {
+    "source_hash": "e8b033a099e19a8b33b9d655e9200d13d8a1c0710e2837787e88493ca84ad7cd",
+    "shape": "template",
+    "file": "Pages/Organizations/Registry.vue",
+    "line": 271,
+    "status": "source"
+  },
+  "organizations_registry.confirm_residency_to_register": {
+    "source_hash": "452f48724c57b2b6e733b1a552d95b1c7f1d6a814fefa921a250884e1de37d0f",
+    "shape": "attr:title",
+    "file": "Pages/Organizations/Registry.vue",
+    "line": 280,
+    "status": "source"
+  },
+  "organizations_registry.confirm_your_residency": {
+    "source_hash": "5d33352632d25f44bfec179e741a1afadc91bbe953a026eb22095e48c4203b38",
+    "shape": "template",
+    "file": "Pages/Organizations/Registry.vue",
+    "line": 284,
+    "status": "source"
+  },
+  "organizations_registry.currently_endorsing_a_candidate": {
+    "source_hash": "9d2b529f217e6b10049ea87ce339872b848f0cd4dcc89e4a5cdf9a9737b8f845",
+    "shape": "attr:label",
+    "file": "Pages/Organizations/Registry.vue",
+    "line": 154,
+    "status": "source"
+  },
+  "organizations_registry.endorsing_and_the_co_determination_tiers_a": {
+    "source_hash": "70febe54321ceaa18936923132f827d7c8b176a4a1865f1d31b69b6b8709ccde",
+    "shape": "template",
+    "file": "Pages/Organizations/Registry.vue",
+    "line": 292,
+    "status": "source"
+  },
+  "organizations_registry.every_registered_organization_where_you_li": {
+    "source_hash": "11140fc1ca9f15261aec4dc4812e5993f0d86eed8d210187c27ce8413b3e50a9",
+    "shape": "template",
+    "file": "Pages/Organizations/Registry.vue",
+    "line": 142,
+    "status": "source"
+  },
+  "organizations_registry.filter_organizations": {
+    "source_hash": "f35a8e54bd88a74b68684bdca7675185c898ff3c6adc48ba08f4d2e886c65ea8",
+    "shape": "attr:label",
+    "file": "Pages/Organizations/Registry.vue",
+    "line": 166,
+    "status": "source"
+  },
+  "organizations_registry.no_board": {
+    "source_hash": "7087665c6315272c6b3324d1591ba26f3a01ee795e9d29b26f6610cd371471fe",
+    "shape": "script:text",
+    "file": "Pages/Organizations/Registry.vue",
+    "line": 94,
+    "status": "source"
+  },
+  "organizations_registry.no_organizations_match_the_current_filters": {
+    "source_hash": "a77acc1156f925b01ece857dd470e4f42aff266e1174775363cb6b1f507172b5",
+    "shape": "template",
+    "file": "Pages/Organizations/Registry.vue",
+    "line": 217,
+    "status": "source"
+  },
+  "organizations_registry.no_organizations_registered_in_your_associ": {
+    "source_hash": "6a0587ded1a3ad64d0c117516906ac24bb44a7ede4bdf4c027d42df3b8c68b1c",
+    "shape": "attr:title",
+    "file": "Pages/Organizations/Registry.vue",
+    "line": 221,
+    "status": "source"
+  },
+  "organizations_registry.organization_lifecycle_esm_18": {
+    "source_hash": "6b2ed0e8eaedeb5fbbec9efaf5c9143ea5a09772e33ecf8eca516064519fc017",
+    "shape": "attr:title",
+    "file": "Pages/Organizations/Registry.vue",
+    "line": 290,
+    "status": "source"
+  },
+  "organizations_registry.organization_registry": {
+    "source_hash": "c3d89532f598964dacac2be7b78579666e3a673c0e6dc87d23cb4bc00d4e2bdd",
+    "shape": "attr:title",
+    "file": "Pages/Organizations/Registry.vue",
+    "line": 141,
+    "status": "source"
+  },
+  "organizations_registry.ownership_structure": {
+    "source_hash": "e3bf12fcd0682eccd4480805bd0b7ac411376153cd7930882fdfffc7622ab5a2",
+    "shape": "attr:label",
+    "file": "Pages/Organizations/Registry.vue",
+    "line": 249,
+    "status": "source"
+  },
+  "organizations_registry.registered_organizations": {
+    "source_hash": "b4a4d4576d5d4897b973b18e5cdc75155aeb6ad48f6a486446a632787a2ef4bf",
+    "shape": "attr:title",
+    "file": "Pages/Organizations/Registry.vue",
+    "line": 165,
+    "status": "source"
+  },
+  "organizations_registry.registering_an_organization": {
+    "source_hash": "a9defb9ec637ea5698b0751679765e41244743b72c35178c039511a1f9871046",
+    "shape": "attr:title",
+    "file": "Pages/Organizations/Registry.vue",
+    "line": 279,
+    "status": "source"
+  },
+  "organizations_registry.registration_is_an_absolute_right_of_any_a": {
+    "source_hash": "9d53b6cf81721a9d55106cc1ac0586b2aaeab9287a2f463dca413445d68d9c6a",
+    "shape": "template",
+    "file": "Pages/Organizations/Registry.vue",
+    "line": 280,
+    "status": "source"
+  },
+  "organizations_registry.search_by_name": {
+    "source_hash": "4ae2b33364bca975916fba81e47f6764060b4fd737fa0f208f1e4f51708d9cca",
+    "shape": "attr:placeholder",
+    "file": "Pages/Organizations/Registry.vue",
+    "line": 190,
+    "status": "source"
+  },
+  "organizations_registry.the_registry_at_a_glance": {
+    "source_hash": "624c46abf20d9741462c088ddc8ca373139059d8e094ec02b60195d2143c1f0b",
+    "shape": "attr:title",
+    "file": "Pages/Organizations/Registry.vue",
+    "line": 151,
+    "status": "source"
+  },
+  "organizations_registry.type_structure": {
+    "source_hash": "82391bcd84e82d59a724f53d05d7df555b84ce4085406927d5c6a6045af76d48",
+    "shape": "script:label",
+    "file": "Pages/Organizations/Registry.vue",
+    "line": 132,
+    "status": "source"
+  },
+  "organizations_transfersconversions.a_conversion_request_routes_to_the_legisla": {
+    "source_hash": "987cf8af547e175edb8554f42a59ecc1b53c106674b576f7531bf61bd5f2dd95",
+    "shape": "template",
+    "file": "Pages/Organizations/TransfersConversions.vue",
+    "line": 268,
+    "status": "source"
+  },
+  "organizations_transfersconversions.acquisition_vote_ordinary_majority_of_all_": {
+    "source_hash": "b467ea5c3f10e5c739f50e93e28a488d936b3baaabe70ee19079802bc83c496d",
+    "shape": "template",
+    "file": "Pages/Organizations/TransfersConversions.vue",
+    "line": 231,
+    "status": "source"
+  },
+  "organizations_transfersconversions.an_organization_s_ownership_can_change_fiv": {
+    "source_hash": "73ca8b1cd8fa8d67a9653db22574f638fd02d472a3466072ef050c07036c9c97",
+    "shape": "template",
+    "file": "Pages/Organizations/TransfersConversions.vue",
+    "line": 98,
+    "status": "source"
+  },
+  "organizations_transfersconversions.archived_record": {
+    "source_hash": "a0a8e6fba6b9e82c172457f1f0490ec14621e75e2d1cdf40872be6db1dce7987",
+    "shape": "template",
+    "file": "Pages/Organizations/TransfersConversions.vue",
+    "line": 384,
+    "status": "source"
+  },
+  "organizations_transfersconversions.awaiting_consent": {
+    "source_hash": "d10bb6b5d58e9527209a1560bbd229b6d625bd6f4c80a65976b91296cd729835",
+    "shape": "script:text",
+    "file": "Pages/Organizations/TransfersConversions.vue",
+    "line": 92,
+    "status": "source"
+  },
+  "organizations_transfersconversions.common_good_corporation_private_sale": {
+    "source_hash": "5d4f16fa76f5c162c555f8057fb9872745e8991f5620e5ba95a37afff4eee312",
+    "shape": "template",
+    "file": "Pages/Organizations/TransfersConversions.vue",
+    "line": 317,
+    "status": "source"
+  },
+  "organizations_transfersconversions.consent_as_transferee": {
+    "source_hash": "54e6a0d1d067c52061e7f335eb209fac9b33c3252c0c8225b0b222be26394a41",
+    "shape": "template",
+    "file": "Pages/Organizations/TransfersConversions.vue",
+    "line": 159,
+    "status": "source"
+  },
+  "organizations_transfersconversions.founding_governor_offers": {
+    "source_hash": "5633624d1432c4c11d6816b63d000967175f7969453cedbbf0d3634d625655b1",
+    "shape": "attr:caption",
+    "file": "Pages/Organizations/TransfersConversions.vue",
+    "line": 252,
+    "status": "source"
+  },
+  "organizations_transfersconversions.founding_governor_seats_offered_to_the_pri": {
+    "source_hash": "d4f3b1b4c928808963c643ff8dd23749f9e338538bcc760dcc70516f92507e2b",
+    "shape": "template",
+    "file": "Pages/Organizations/TransfersConversions.vue",
+    "line": 248,
+    "status": "source"
+  },
+  "organizations_transfersconversions.four_paths_one_principle_ownership_never_m": {
+    "source_hash": "b804ebd102df763e63e9c241784b0d88622ff51d1811eb5d07add840045efd29",
+    "shape": "template",
+    "file": "Pages/Organizations/TransfersConversions.vue",
+    "line": 411,
+    "status": "source"
+  },
+  "organizations_transfersconversions.internal_restructuring_and_dissolution": {
+    "source_hash": "26684f5136ac78365d5789cfc5840ac9e28b3603c7176a71459076f8d2e0eda4",
+    "shape": "attr:title",
+    "file": "Pages/Organizations/TransfersConversions.vue",
+    "line": 331,
+    "status": "source"
+  },
+  "organizations_transfersconversions.internal_restructuring_needs_no_legislatur": {
+    "source_hash": "a637b3a4a7a619b2d266bd09aee10800e76d35cec6fa27249d3f752abc3cb960",
+    "shape": "template",
+    "file": "Pages/Organizations/TransfersConversions.vue",
+    "line": 332,
+    "status": "source"
+  },
+  "organizations_transfersconversions.internal_restructurings": {
+    "source_hash": "00c647f1af20dc3afd8f7408814d862863f95acd4c4cdf78caed97f8fa4d6991",
+    "shape": "attr:caption",
+    "file": "Pages/Organizations/TransfersConversions.vue",
+    "line": 347,
+    "status": "source"
+  },
+  "organizations_transfersconversions.introduce_a_cgc_reorganization_sale_bill": {
+    "source_hash": "c0b06da0f0e599a7994e53620b9d83d634d12c35f6fcc0e39c122d60409a4121",
+    "shape": "template",
+    "file": "Pages/Organizations/TransfersConversions.vue",
+    "line": 274,
+    "status": "source"
+  },
+  "organizations_transfersconversions.introduce_a_monopoly_acquisition_bill": {
+    "source_hash": "b7ae15f8034f7dc730b6080076348519373f646abbe54ce957625535ecbab085",
+    "shape": "template",
+    "file": "Pages/Organizations/TransfersConversions.vue",
+    "line": 212,
+    "status": "source"
+  },
+  "organizations_transfersconversions.judicial_path_planned_phase_e": {
+    "source_hash": "85fa6c62cae8c77a6414a4548b35c2ba5bad65e4877986e7f711d153feeeb4b5",
+    "shape": "template",
+    "file": "Pages/Organizations/TransfersConversions.vue",
+    "line": 369,
+    "status": "source"
+  },
+  "organizations_transfersconversions.monopoly_acquisition_the_one_path_that_ove": {
+    "source_hash": "6a002fc7935f8454b779edd04d30bff287b06e18db94cfc01883ea1cca14167f",
+    "shape": "attr:title",
+    "file": "Pages/Organizations/TransfersConversions.vue",
+    "line": 205,
+    "status": "source"
+  },
+  "organizations_transfersconversions.mutual_transfer_both_consents_required": {
+    "source_hash": "10bf2dac158333a0a2d4189c7569249258f71c8a8ea60e557efdb607fd1d1028",
+    "shape": "attr:title",
+    "file": "Pages/Organizations/TransfersConversions.vue",
+    "line": 119,
+    "status": "source"
+  },
+  "organizations_transfersconversions.no_conversions_on_record": {
+    "source_hash": "0d51c928ac3dd37240a6a2d9854025497dcb736ce57ea4add85d07d009e6c7f8",
+    "shape": "template",
+    "file": "Pages/Organizations/TransfersConversions.vue",
+    "line": 303,
+    "status": "source"
+  },
+  "organizations_transfersconversions.no_dissolutions_on_record": {
+    "source_hash": "a8b445bed6ac2b1a32cc199bb9230d2aa66144a2d9e89d19a3cc14168af260b0",
+    "shape": "template",
+    "file": "Pages/Organizations/TransfersConversions.vue",
+    "line": 390,
+    "status": "source"
+  },
+  "organizations_transfersconversions.no_internal_restructurings_recorded_here_s": {
+    "source_hash": "a84c06bc4fbde6e250a44c27711d6c010d7e1fe7b7f7e64b2e40b89eb8a11e4a",
+    "shape": "template",
+    "file": "Pages/Organizations/TransfersConversions.vue",
+    "line": 358,
+    "status": "source"
+  },
+  "organizations_transfersconversions.no_monopoly_acquisitions_on_record": {
+    "source_hash": "692ba56e066e3424b13491960334b816b411473a5f4370782e07950adb499b53",
+    "shape": "template",
+    "file": "Pages/Organizations/TransfersConversions.vue",
+    "line": 263,
+    "status": "source"
+  },
+  "organizations_transfersconversions.no_transfers_on_record": {
+    "source_hash": "11bbda8ec900ec8eeae4150384925edf42a76632803c6cba1058735e1a6c4c39",
+    "shape": "template",
+    "file": "Pages/Organizations/TransfersConversions.vue",
+    "line": 172,
+    "status": "source"
+  },
+  "organizations_transfersconversions.open_this_page_with_to_file_a_transfer_con": {
+    "source_hash": "42c5ec90f2c4ffcbb3aa04c6fd72e6d0d7a3f1dc96ef1df2791fab7256087d9c",
+    "shape": "template",
+    "file": "Pages/Organizations/TransfersConversions.vue",
+    "line": 113,
+    "status": "source"
+  },
+  "organizations_transfersconversions.ownership_transfers": {
+    "source_hash": "48920b5ab55129a984984676a56d9de17338a8cb312204780dfe32424f8c9c3d",
+    "shape": "attr:caption",
+    "file": "Pages/Organizations/TransfersConversions.vue",
+    "line": 137,
+    "status": "source"
+  },
+  "organizations_transfersconversions.ownership_transfers_only_by_mutual_consent": {
+    "source_hash": "2dd738491327a1f76da2128612cfe21bbf902779d9d219265e90ecbd486a9369",
+    "shape": "template",
+    "file": "Pages/Organizations/TransfersConversions.vue",
+    "line": 120,
+    "status": "source"
+  },
+  "organizations_transfersconversions.private_common_good_corporation": {
+    "source_hash": "63ba4fd5913988888c0f606ad30b16021f0c70e5d746f5275205b9207bf407f4",
+    "shape": "template",
+    "file": "Pages/Organizations/TransfersConversions.vue",
+    "line": 316,
+    "status": "source"
+  },
+  "organizations_transfersconversions.public_private_conversion": {
+    "source_hash": "c78ed216eecdbfff7d414cf0410dfb165fc108de0b9e762df3c29d4b08de6a2f",
+    "shape": "attr:title",
+    "file": "Pages/Organizations/TransfersConversions.vue",
+    "line": 267,
+    "status": "source"
+  },
+  "organizations_transfersconversions.record": {
+    "source_hash": "9d29bb1e8be4d2230ab8aa5ed052eceaf183ee5b7322f9d0421a0f43cf2141b5",
+    "shape": "template",
+    "file": "Pages/Organizations/TransfersConversions.vue",
+    "line": 297,
+    "status": "source"
+  },
+  "organizations_transfersconversions.shareholders_paid_fair_market_the_engine_b": {
+    "source_hash": "922c4eb833f284e0c2611f8a4914cbb5a52a4176b40a143c274245da455fb19d",
+    "shape": "template",
+    "file": "Pages/Organizations/TransfersConversions.vue",
+    "line": 240,
+    "status": "source"
+  },
+  "organizations_transfersconversions.showing_the_transfer_conversion_register_f": {
+    "source_hash": "1b1fa5e2a10c187f686f4090c9b9425308dadc74fbcb2c0908e70796cee3c8d9",
+    "shape": "template",
+    "file": "Pages/Organizations/TransfersConversions.vue",
+    "line": 108,
+    "status": "source"
+  },
+  "organizations_transfersconversions.the_receiving_organization_or_individual": {
+    "source_hash": "6a5d95fd130e1006ce9b398572566d8a5d197e0f50fc0d8827ce912007e54f33",
+    "shape": "attr:hint",
+    "file": "Pages/Organizations/TransfersConversions.vue",
+    "line": 190,
+    "status": "source"
+  },
+  "organizations_transfersconversions.transferee_id": {
+    "source_hash": "ddccb3e66b1a7f603aa79a0fe49e10f9b00629bb6d0e63ec54f28251cc8addd6",
+    "shape": "attr:label",
+    "file": "Pages/Organizations/TransfersConversions.vue",
+    "line": 190,
+    "status": "source"
+  },
+  "organizations_transfersconversions.transferee_type": {
+    "source_hash": "3ba97ddf322d4da92c1037dc4a03ac3cf10ff8052480204a2d558eca648a06f1",
+    "shape": "attr:label",
+    "file": "Pages/Organizations/TransfersConversions.vue",
+    "line": 182,
+    "status": "source"
+  },
+  "organizations_transfersconversions.transfers_and_conversions": {
+    "source_hash": "0d45b35cfd98084c6257b966c9b9ba1279c88bcc2a18bdda13b595630406de03",
+    "shape": "attr:title",
+    "file": "Pages/Organizations/TransfersConversions.vue",
+    "line": 97,
+    "status": "source"
+  },
+  "organizations_transfersconversions.unknown_organization": {
+    "source_hash": "7b8467b2ffc9c69ea4e27d3cbec7996321ae1cd7013070b39a889d06be332952",
+    "shape": "template",
+    "file": "Pages/Organizations/TransfersConversions.vue",
+    "line": 223,
+    "status": "source"
+  },
+  "organizations_transfersconversions.when_the_legislature_finds_monopolistic_co": {
+    "source_hash": "843a75343d64d4fbd1dc78a36dc823e36420d25e1702373b86d785af9de2730a",
+    "shape": "template",
+    "file": "Pages/Organizations/TransfersConversions.vue",
+    "line": 206,
+    "status": "source"
+  },
+  "organizations_transfersconversions.whole_instance_registry": {
+    "source_hash": "5e93937468ca548943b27a8a06d696d9e25b01ba1cbc17bb312cf264e6b9d932",
+    "shape": "attr:title",
+    "file": "Pages/Organizations/TransfersConversions.vue",
+    "line": 113,
+    "status": "source"
+  }
+}

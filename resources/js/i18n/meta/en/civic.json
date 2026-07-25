@@ -1,0 +1,2186 @@
+{
+  "civic_halls.append_only_record": {
+    "source_hash": "f2542d8adb5a7e992776d18f77712fcb4635bc571ad0253a2cb9a3e81fca614d",
+    "shape": "attr:label",
+    "file": "Pages/Civic/Halls.vue",
+    "line": 74,
+    "status": "source"
+  },
+  "civic_halls.declare_residency": {
+    "source_hash": "0eb67df3c440b3537df25fde262c8660a99979e52919dd7b6a1ddf7939117668",
+    "shape": "template",
+    "file": "Pages/Civic/Halls.vue",
+    "line": 137,
+    "status": "source"
+  },
+  "civic_halls.deliberating_in_the_halls_requires_an_acti": {
+    "source_hash": "00da7e5343876fa884d919b00f60587c014272e72ce85e6ea0ec6c58768de578",
+    "shape": "template",
+    "file": "Pages/Civic/Halls.vue",
+    "line": 136,
+    "status": "source"
+  },
+  "civic_halls.file_as_testimony": {
+    "source_hash": "a57ee72fd6946f8cd846032add91d0146a98913b07760b4052413fa0ca6b5c04",
+    "shape": "template",
+    "file": "Pages/Civic/Halls.vue",
+    "line": 91,
+    "status": "source"
+  },
+  "civic_halls.filing_testimony_uses_it_seals_your_post_i": {
+    "source_hash": "4ef5ce23f30397777967411fb2ac5bd8202b33d98a4d149772ada8946bc3087d",
+    "shape": "template",
+    "file": "Pages/Civic/Halls.vue",
+    "line": 101,
+    "status": "source"
+  },
+  "civic_halls.hall_threads_in_your_chain": {
+    "source_hash": "0b2274b9d183e8b21d6a3c02ab831c5b1f0351ed908fc5027c07cb784fa36b9f",
+    "shape": "attr:label",
+    "file": "Pages/Civic/Halls.vue",
+    "line": 73,
+    "status": "source"
+  },
+  "civic_halls.no_hall_threads_yet_in_your_association_ch": {
+    "source_hash": "d3f0fa98c89d1281a44cf480f05308a9f15e7d1dcc6324bfc7f4f1b60d8ca125",
+    "shape": "template",
+    "file": "Pages/Civic/Halls.vue",
+    "line": 100,
+    "status": "source"
+  },
+  "civic_halls.opened_by": {
+    "source_hash": "3a7769893c088e9856059dfc5f229d37212b7a633b6631c735a38e82c649cc28",
+    "shape": "template",
+    "file": "Pages/Civic/Halls.vue",
+    "line": 85,
+    "status": "source"
+  },
+  "civic_halls.posting_f_soc_001": {
+    "source_hash": "5705a085821d4da9a5ce7a8e57649f004cad1a5064a827cd7d324037d2a83059",
+    "shape": "attr:title",
+    "file": "Pages/Civic/Halls.vue",
+    "line": 135,
+    "status": "source"
+  },
+  "civic_halls.sealed_as_testimony": {
+    "source_hash": "5999484a84b25ebf7839a88f3eda7143d6ed86137491f7b7fa0c893a32783d43",
+    "shape": "template",
+    "file": "Pages/Civic/Halls.vue",
+    "line": 83,
+    "status": "source"
+  },
+  "civic_halls.testimony_is_your_own_statement_entered_in": {
+    "source_hash": "8579e8f6877f6b3fce90803267e9a53b83d3891c25fe14706662417fef854d48",
+    "shape": "template",
+    "file": "Pages/Civic/Halls.vue",
+    "line": 141,
+    "status": "source"
+  },
+  "civic_halls.the_halls_are_where_residents_deliberate_o": {
+    "source_hash": "70a2774d065ea6f35c51d6599d598d824d42ffdc98c52b4216a07842086590a6",
+    "shape": "template",
+    "file": "Pages/Civic/Halls.vue",
+    "line": 62,
+    "status": "source"
+  },
+  "civic_halls.your_statement": {
+    "source_hash": "64c289ff945258005e1be3f489f8e6d377d48b82df051b2c7fda40c634c58ee5",
+    "shape": "attr:label",
+    "file": "Pages/Civic/Halls.vue",
+    "line": 128,
+    "status": "source"
+  },
+  "civic_home.art_ii_7_clk_03": {
+    "source_hash": "a2226301d3a7a03187d7b56071c9c1a700911e075ba5d74fce202491807ce2c2",
+    "shape": "template",
+    "file": "Pages/Civic/Home.vue",
+    "line": 143,
+    "status": "source"
+  },
+  "civic_home.ballots_cast": {
+    "source_hash": "3a2eac101de63f6643c83f9d28c3df734d0ee9bb1937859e15174859e47ab91f",
+    "shape": "attr:label",
+    "file": "Pages/Civic/Home.vue",
+    "line": 324,
+    "status": "source"
+  },
+  "civic_home.candidacy_unlocked": {
+    "source_hash": "615124099a826cd6ac67811d96399f31440de5cbff2d7580ca274ec3e05c9289",
+    "shape": "template",
+    "file": "Pages/Civic/Home.vue",
+    "line": 288,
+    "status": "source"
+  },
+  "civic_home.candidacy_unlocks_on_residency_verificatio": {
+    "source_hash": "a8389004430f521f5712e2a6a3524f8cf90d520d19d721a102dafa6080cbf557",
+    "shape": "template",
+    "file": "Pages/Civic/Home.vue",
+    "line": 292,
+    "status": "source"
+  },
+  "civic_home.community_calendar": {
+    "source_hash": "4ab4e219ed3831dfe93bd85645f43131bff53bbe1b8e51c4150df431cce348f8",
+    "shape": "attr:title",
+    "file": "Pages/Civic/Home.vue",
+    "line": 235,
+    "status": "source"
+  },
+  "civic_home.declared_boundary": {
+    "source_hash": "aabf350f2cd150d671cec212b728ef005fda94b2c67790b11ab99008c952ba22",
+    "shape": "template",
+    "file": "Pages/Civic/Home.vue",
+    "line": 166,
+    "status": "source"
+  },
+  "civic_home.everything_live_in_the_places_you_live_eac": {
+    "source_hash": "2cf6615bd72023faa7729e3e74a456ad2afba7efd39fbfe00a38ed0d2bff56a7",
+    "shape": "template",
+    "file": "Pages/Civic/Home.vue",
+    "line": 130,
+    "status": "source"
+  },
+  "civic_home.live_in_your_places": {
+    "source_hash": "094bb5a6eb8d3c856a2f022c2c335d7aac9c09b6a15d089b54078ac3f542fe5e",
+    "shape": "template",
+    "file": "Pages/Civic/Home.vue",
+    "line": 201,
+    "status": "source"
+  },
+  "civic_home.living_here_is_the_only_requirement_these_": {
+    "source_hash": "bbfd6d274eec2e9c3ef178e7b9d65036d214ad27aea848dec2f35b77ee0e535a",
+    "shape": "template",
+    "file": "Pages/Civic/Home.vue",
+    "line": 297,
+    "status": "source"
+  },
+  "civic_home.my_record": {
+    "source_hash": "f2298f5871da1f437335299dc272b62cc6d9ac29d86bc1ff240c9342a1104a3e",
+    "shape": "attr:title",
+    "file": "Pages/Civic/Home.vue",
+    "line": 319,
+    "status": "source"
+  },
+  "civic_home.no_public_record_entries_in_your_places_ye": {
+    "source_hash": "66b1a65b91be42bac523c73fec6a69e0480c1ef42dac9b9186fce9aee360aa36",
+    "shape": "template",
+    "file": "Pages/Civic/Home.vue",
+    "line": 264,
+    "status": "source"
+  },
+  "civic_home.nothing_is_live_in_your_places_right_now": {
+    "source_hash": "397e581bfac364b1fab8604a327a2c2fcc894ebde0765c55b931cdf31f11f94c",
+    "shape": "template",
+    "file": "Pages/Civic/Home.vue",
+    "line": 227,
+    "status": "source"
+  },
+  "civic_home.nothing_on_the_calendar_yet_scheduled_sess": {
+    "source_hash": "7ee7800c51a272a886225eb9ca0692b4f6c2b2ab73eb27d0a7ccaa6c1eab7058",
+    "shape": "template",
+    "file": "Pages/Civic/Home.vue",
+    "line": 237,
+    "status": "source"
+  },
+  "civic_home.on_the_record": {
+    "source_hash": "0a3737a1606e7de10e44b9440967a58398b4c1929ed4ae7ba95dea64277bd210",
+    "shape": "attr:title",
+    "file": "Pages/Civic/Home.vue",
+    "line": 263,
+    "status": "source"
+  },
+  "civic_home.open": {
+    "source_hash": "6608d8c239df4ff1cabdb333ecca0b207627afda5a065d794e61c34881988d25",
+    "shape": "template",
+    "file": "Pages/Civic/Home.vue",
+    "line": 243,
+    "status": "source"
+  },
+  "civic_home.open_my_record": {
+    "source_hash": "8c6d31a97b6bd1f36ace0a9328788ef8910bdfbe1088a1d85c1f03f55b134125",
+    "shape": "template",
+    "file": "Pages/Civic/Home.vue",
+    "line": 326,
+    "status": "source"
+  },
+  "civic_home.open_residency": {
+    "source_hash": "b770c4790fe98e45cd3a3ab5aaf903746149820a02988de7c7ab2749ed996d05",
+    "shape": "template",
+    "file": "Pages/Civic/Home.vue",
+    "line": 184,
+    "status": "source"
+  },
+  "civic_home.open_the_public_record": {
+    "source_hash": "3c63f21fdcb598425181a7beb98b36f75638f3fbb30111bffddbdc314220a3e4",
+    "shape": "template",
+    "file": "Pages/Civic/Home.vue",
+    "line": 275,
+    "status": "source"
+  },
+  "civic_home.qualifying_days_toward_the_residency_thres": {
+    "source_hash": "7d3059a2cbcf6baea73fc8dd64b9a500121672504f9501a86b10f4eba4edba7d",
+    "shape": "attr:label",
+    "file": "Pages/Civic/Home.vue",
+    "line": 174,
+    "status": "source"
+  },
+  "civic_home.record_entries": {
+    "source_hash": "e8c4fb3c6c024d56356a56a4792f3144d63a15ce94c3dbf534020bd8c96d9341",
+    "shape": "attr:label",
+    "file": "Pages/Civic/Home.vue",
+    "line": 322,
+    "status": "source"
+  },
+  "civic_home.residency_confirmation_days_clk_05": {
+    "source_hash": "5cee1b6b017dd0495f8bb8bcf37ed337124cfc908611bf328566830aeca7cbf9",
+    "shape": "template",
+    "file": "Pages/Civic/Home.vue",
+    "line": 177,
+    "status": "source"
+  },
+  "civic_home.residency_verified_all_associations_rights": {
+    "source_hash": "af9e207c99f2e432898902252bddf1607589880f9806e332d451e1f8b3782472",
+    "shape": "template",
+    "file": "Pages/Civic/Home.vue",
+    "line": 190,
+    "status": "source"
+  },
+  "civic_home.residency_verified_you_are_associated_at_n": {
+    "source_hash": "1713ec5c742c7fa670722323f74507c84901c8dae33d0b5f7cc1a877d8e20910",
+    "shape": "template",
+    "file": "Pages/Civic/Home.vue",
+    "line": 179,
+    "status": "source"
+  },
+  "civic_home.say_where_you_live": {
+    "source_hash": "69452e3fd8b4e41dcb60bcf80d1030b8f286d3de3f520b5f738fa86210732e48",
+    "shape": "template",
+    "file": "Pages/Civic/Home.vue",
+    "line": 159,
+    "status": "source"
+  },
+  "civic_home.the_galleries_stay_open_and_anything_that_": {
+    "source_hash": "2b3a4544f835b1ceb112d552fc4f557543ac4ab5ed40b3e68141d0e6e100c197",
+    "shape": "template",
+    "file": "Pages/Civic/Home.vue",
+    "line": 228,
+    "status": "source"
+  },
+  "civic_home.the_post_login_home_wf_civ_02_every_live_p": {
+    "source_hash": "7d357a6651780569fe4f5303783d59733c9c4b372ff874e86bdc727583860956",
+    "shape": "template",
+    "file": "Pages/Civic/Home.vue",
+    "line": 134,
+    "status": "source"
+  },
+  "civic_home.voting_and_candidacy_no_other_requirements": {
+    "source_hash": "ce32fe5c5b35c31cd4689a6322aa34bb9486a2a8bb3232a9aab3d288524c1358",
+    "shape": "template",
+    "file": "Pages/Civic/Home.vue",
+    "line": 307,
+    "status": "source"
+  },
+  "civic_home.voting_and_candidacy_unlock_automatically_": {
+    "source_hash": "2e553d2191470b2c891f0b44f78a432885bef440cb8ba71adf0f8abab3ac3130",
+    "shape": "template",
+    "file": "Pages/Civic/Home.vue",
+    "line": 301,
+    "status": "source"
+  },
+  "civic_home.voting_unlocked": {
+    "source_hash": "a91b2a8daa4a4bc3be3c9ed9cf1497809c9492a121f3ede2e7f086e7d43565c7",
+    "shape": "template",
+    "file": "Pages/Civic/Home.vue",
+    "line": 287,
+    "status": "source"
+  },
+  "civic_home.voting_unlocks_on_residency_verification": {
+    "source_hash": "ddd10e8963efb9d54fe24eca5ff646df48151f91fe8fc857c24717ed69e509a4",
+    "shape": "template",
+    "file": "Pages/Civic/Home.vue",
+    "line": 291,
+    "status": "source"
+  },
+  "civic_home.what_s_coming_up_in_the_places_you_belong_": {
+    "source_hash": "591d7f2f38b034dfa6192f048711ebb047d7d8638658da6b8b76fd79197f62f4",
+    "shape": "template",
+    "file": "Pages/Civic/Home.vue",
+    "line": 236,
+    "status": "source"
+  },
+  "civic_home.you_have_not_said_where_you_live_yet_decla": {
+    "source_hash": "804151d84f5129d68c865080d1f50d1342f451d3a86b9de774984cfdb1c057c3",
+    "shape": "template",
+    "file": "Pages/Civic/Home.vue",
+    "line": 153,
+    "status": "source"
+  },
+  "civic_home.you_watch_everything_you_act_where_you_res": {
+    "source_hash": "3b4f2a76385c0aa7a8a898860f385da5952463a8100f43cd74fff770d1f414a2",
+    "shape": "template",
+    "file": "Pages/Civic/Home.vue",
+    "line": 194,
+    "status": "source"
+  },
+  "civic_home.your_public_civic_record_it_travels_with_a": {
+    "source_hash": "3fca21094bc79837a2cade00243b634fb152cb4af4675235c4b17145f988511e",
+    "shape": "template",
+    "file": "Pages/Civic/Home.vue",
+    "line": 320,
+    "status": "source"
+  },
+  "civic_home.your_rights_here": {
+    "source_hash": "a186f8af19c48613e6a9e71e4a28163a9b7744de3abd86bc3de1bc1ab4d8df36",
+    "shape": "attr:title",
+    "file": "Pages/Civic/Home.vue",
+    "line": 284,
+    "status": "source"
+  },
+  "civic_identityverification.a_request_from_is_already_on_your_record_r": {
+    "source_hash": "c07a9318d05c994c71559bf1af4ce07c321a4a132290ee109505ec9329f32dae",
+    "shape": "template",
+    "file": "Pages/Civic/IdentityVerification.vue",
+    "line": 138,
+    "status": "source"
+  },
+  "civic_identityverification.attestation_requested_pending": {
+    "source_hash": "55de1c4a7f1af32ac3aaf75dd0f841dbf8895735122bef965b9a1325f57504ca",
+    "shape": "template",
+    "file": "Pages/Civic/IdentityVerification.vue",
+    "line": 105,
+    "status": "source"
+  },
+  "civic_identityverification.external_id_bridge": {
+    "source_hash": "f34aa43e1cdc1ce56aaef1907a84bd36e3e8e354491452aae345709bde54a980",
+    "shape": "attr:title",
+    "file": "Pages/Civic/IdentityVerification.vue",
+    "line": 145,
+    "status": "source"
+  },
+  "civic_identityverification.filing_rejected_by_the_constitutional_engi": {
+    "source_hash": "17a301768f2d0dd38867b10cac993629073377ca05b007c71f01bf54d12c6dc0",
+    "shape": "attr:title",
+    "file": "Pages/Civic/IdentityVerification.vue",
+    "line": 92,
+    "status": "source"
+  },
+  "civic_identityverification.identity_verification_strengthens_election": {
+    "source_hash": "865a31760d7f081da38786cc01120a90ef4fee52c4b4f0e3d1f8e67773bdab7f",
+    "shape": "template",
+    "file": "Pages/Civic/IdentityVerification.vue",
+    "line": 110,
+    "status": "source"
+  },
+  "civic_identityverification.not_verified_and_that_is_fine": {
+    "source_hash": "08e1e7bf159a3f36297360218e46c815303c093e2185a8f829d9bab047c83734",
+    "shape": "template",
+    "file": "Pages/Civic/IdentityVerification.vue",
+    "line": 108,
+    "status": "source"
+  },
+  "civic_identityverification.some_jurisdictions_will_support_an_externa": {
+    "source_hash": "360fd25ae0e20b797a0869c6e6d5b73560ac8b13e4b24fabef7aece280a8c65a",
+    "shape": "template",
+    "file": "Pages/Civic/IdentityVerification.vue",
+    "line": 146,
+    "status": "source"
+  },
+  "civic_identityverification.the_administrative_office_of": {
+    "source_hash": "942d547ba2bbee58a8fcede6a3cb548bc9d9d55e708b723945639b93d4aa0496",
+    "shape": "template",
+    "file": "Pages/Civic/IdentityVerification.vue",
+    "line": 126,
+    "status": "source"
+  },
+  "civic_identityverification.the_rejection_itself_is_on_the_audit_chain": {
+    "source_hash": "9ed10e5a6a5c7a5f82d2dbb5ccd604209aa2f2717b4e03ee89999b714e3449cb",
+    "shape": "template",
+    "file": "Pages/Civic/IdentityVerification.vue",
+    "line": 92,
+    "status": "source"
+  },
+  "civic_identityverification.verification_is_never_a_rights_requirement": {
+    "source_hash": "61e37fddc49e13dbd69acf8d97c7b1cadde1fe7b1f7bf14eb17460bb781d67f1",
+    "shape": "attr:title",
+    "file": "Pages/Civic/IdentityVerification.vue",
+    "line": 82,
+    "status": "source"
+  },
+  "civic_identityverification.via": {
+    "source_hash": "b84a7b30cceefb05ea6d7ebd20871e38f98972e97b8425d9b1dd313466da44d2",
+    "shape": "template",
+    "file": "Pages/Civic/IdentityVerification.vue",
+    "line": 102,
+    "status": "source"
+  },
+  "civic_identityverification.voting_and_candidacy_depend_on_jurisdictio": {
+    "source_hash": "088c4b449539dada7620f2c1a9f351c26063fb6b852273d169df51977b60181c",
+    "shape": "template",
+    "file": "Pages/Civic/IdentityVerification.vue",
+    "line": 82,
+    "status": "source"
+  },
+  "civic_identityverification.wf_civ_01_identity_step_phase_a_scope_the_": {
+    "source_hash": "e78db1c021080431217beb5e380c2479785680c80ead7faa05e8e6d0e8be881c",
+    "shape": "template",
+    "file": "Pages/Civic/IdentityVerification.vue",
+    "line": 73,
+    "status": "source"
+  },
+  "civic_identityverification.where_you_are": {
+    "source_hash": "54cd982fb2dd57a997d942e877c530e78addcbcd842358acd8ebc0cc332b6ccb",
+    "shape": "attr:title",
+    "file": "Pages/Civic/IdentityVerification.vue",
+    "line": 97,
+    "status": "source"
+  },
+  "civic_identityverification.where_your_jurisdiction_supports_it_you_ca": {
+    "source_hash": "2f237c7e7c56d8d02c9d6babb0d32ef830652253382c42a44aba06ba22fe33f5",
+    "shape": "template",
+    "file": "Pages/Civic/IdentityVerification.vue",
+    "line": 65,
+    "status": "source"
+  },
+  "civic_identityverification.your_jurisdiction_s_administrative_office_": {
+    "source_hash": "672af2349f6c58285c7d592b3b219bca5485acdf39e02c218697809aee85d4c3",
+    "shape": "template",
+    "file": "Pages/Civic/IdentityVerification.vue",
+    "line": 130,
+    "status": "source"
+  },
+  "civic_journey.a_head_start_a_friendly_nudge_never_a_lock": {
+    "source_hash": "eee24e9a3a15510f72a6e426f6e1969a8621f370557f79530598133e84e7ff75",
+    "shape": "template",
+    "file": "Pages/Civic/Journey.vue",
+    "line": 205,
+    "status": "source"
+  },
+  "civic_journey.a_journey_is_something_you_learn_by_doing_": {
+    "source_hash": "3b9884a27587ae0660028c9b03fc72d4e48af19c4323c054254c896a93627912",
+    "shape": "template",
+    "file": "Pages/Civic/Journey.vue",
+    "line": 83,
+    "status": "source"
+  },
+  "civic_journey.a_medal_never_changes_a_vote_a_seat_or_wha": {
+    "source_hash": "092fd5fc3c5c2cde300e159c69c38f490cae687896b384c8c4ced24495ef21b3",
+    "shape": "template",
+    "file": "Pages/Civic/Journey.vue",
+    "line": 210,
+    "status": "source"
+  },
+  "civic_journey.a_medal_on_your_profile_joins_your_achieve": {
+    "source_hash": "7aa88f0bd81ff713d341635f6135eb75a534af2d8f6a01f8a7bb318ad68a3359",
+    "shape": "template",
+    "file": "Pages/Civic/Journey.vue",
+    "line": 196,
+    "status": "source"
+  },
+  "civic_journey.a_one_time_stipend_bonus": {
+    "source_hash": "39f177de96efcee5ae1c083f4aebe63979370bf0aed0109439366ac7f4f13896",
+    "shape": "template",
+    "file": "Pages/Civic/Journey.vue",
+    "line": 201,
+    "status": "source"
+  },
+  "civic_journey.all_journeys_earned": {
+    "source_hash": "d62c14482a1db6bf12906248f3cbaa2eb777a99c138fda42cfeb1cdd975da90b",
+    "shape": "template",
+    "file": "Pages/Civic/Journey.vue",
+    "line": 215,
+    "status": "source"
+  },
+  "civic_journey.done_tap_to_undo": {
+    "source_hash": "e6fcd854b7ad5eb1c55fe758d51ce320c2d20276d9fe0e11ff2e21f35d674d9c",
+    "shape": "template",
+    "file": "Pages/Civic/Journey.vue",
+    "line": 162,
+    "status": "source"
+  },
+  "civic_journey.journey_complete": {
+    "source_hash": "66210754f7b5ab2d8ab667789dcf7610ecf520ae01c3970f871276d37ef5f448",
+    "shape": "template",
+    "file": "Pages/Civic/Journey.vue",
+    "line": 116,
+    "status": "source"
+  },
+  "civic_journey.live_in_this_world": {
+    "source_hash": "c6f521542fbd2fa42cead53c24e367ca3ed60803753e648a34e438ccf4c61bd6",
+    "shape": "template",
+    "file": "Pages/Civic/Journey.vue",
+    "line": 95,
+    "status": "source"
+  },
+  "civic_journey.mark_off_each_step_as_you_do_it_your_progr": {
+    "source_hash": "24cda57d2f3c67989b6233a5625ad74fd9893a25e6be78823c52f1facd8035d9",
+    "shape": "template",
+    "file": "Pages/Civic/Journey.vue",
+    "line": 139,
+    "status": "source"
+  },
+  "civic_journey.mark_this_step_done": {
+    "source_hash": "cf4bacd1c1babe4f74fd2de3f22b6ecc1eff4d47bbd8b1e238640b45a9e10d65",
+    "shape": "template",
+    "file": "Pages/Civic/Journey.vue",
+    "line": 154,
+    "status": "source"
+  },
+  "civic_journey.of_steps": {
+    "source_hash": "8113d4de270fcab3a6c85a5218db5e8437a9f5bfb9042abf0d5a925ee861123a",
+    "shape": "template",
+    "file": "Pages/Civic/Journey.vue",
+    "line": 117,
+    "status": "source"
+  },
+  "civic_journey.planned_coming_soon": {
+    "source_hash": "83829e79131336fc925544f286d0fcb9f929b1824787fc4c01f37157736bd006",
+    "shape": "template",
+    "file": "Pages/Civic/Journey.vue",
+    "line": 96,
+    "status": "source"
+  },
+  "civic_journey.planned_phase_8": {
+    "source_hash": "5cc10e6d689740abd53e572d740a2e020e9f6ffa787339a21248cbade0809d50",
+    "shape": "template",
+    "file": "Pages/Civic/Journey.vue",
+    "line": 203,
+    "status": "source"
+  },
+  "civic_journey.the_arc": {
+    "source_hash": "06c78fe9a29c9f868b7a06536280d99c268c6c2adc78b7252be72cca575aaa97",
+    "shape": "template",
+    "file": "Pages/Civic/Journey.vue",
+    "line": 110,
+    "status": "source"
+  },
+  "civic_journey.the_live_rooms_this_journey_touches_arrive": {
+    "source_hash": "8fbcd3b53a3c6a7915cb83b51edc1e1f5108ad1d86eb1c294b5c1bf84f1ba81c",
+    "shape": "template",
+    "file": "Pages/Civic/Journey.vue",
+    "line": 187,
+    "status": "source"
+  },
+  "civic_journey.this_journey_is_not_live_in_this_world_yet": {
+    "source_hash": "e1a955d7055d54f6f0ca32d1932815a9c22ba1eacc0317d118e25e6d04366898",
+    "shape": "template",
+    "file": "Pages/Civic/Journey.vue",
+    "line": 99,
+    "status": "source"
+  },
+  "civic_journey.this_journey_is_on_your_profile_see_your_a": {
+    "source_hash": "1220f4c73998627257fe23e39d086104d9b5658b464bc7a2ae221d7fbc2f1408",
+    "shape": "template",
+    "file": "Pages/Civic/Journey.vue",
+    "line": 134,
+    "status": "source"
+  },
+  "civic_journey.this_journey_passes_through_the_the_live_r": {
+    "source_hash": "7a25f4b504bd587cfed98b065cc5ee536efa589bb494150c2e1883c82a0a6032",
+    "shape": "template",
+    "file": "Pages/Civic/Journey.vue",
+    "line": 183,
+    "status": "source"
+  },
+  "civic_journey.what_completing_this_earns": {
+    "source_hash": "dc6e93f66f83c704fc051b8696cb13a13bf7c7597f630eb1b8e744fd285eba75",
+    "shape": "template",
+    "file": "Pages/Civic/Journey.vue",
+    "line": 194,
+    "status": "source"
+  },
+  "civic_journey.your_part": {
+    "source_hash": "8a83937d61860e4aa7ecec08e64b63577a3390f4db35f304c6fc5adcc7476422",
+    "shape": "template",
+    "file": "Pages/Civic/Journey.vue",
+    "line": 104,
+    "status": "source"
+  },
+  "civic_journey.your_progress": {
+    "source_hash": "433a720b7e1d3cf6c54170cf42434922c2cd7b489b4bb596f950e1ca83aca9d1",
+    "shape": "template",
+    "file": "Pages/Civic/Journey.vue",
+    "line": 115,
+    "status": "source"
+  },
+  "civic_journeys.a_journey_is_a_guided_arc_over_the_real_in": {
+    "source_hash": "55b91a17e9fe49884c507b549d8c2b1c7a187593e38de74f3e88da690b6356e7",
+    "shape": "template",
+    "file": "Pages/Civic/Journeys.vue",
+    "line": 49,
+    "status": "source"
+  },
+  "civic_journeys.learn_by_doing_each_journey_walks_you_thro": {
+    "source_hash": "d73c57978795b856b82c8d97adc64fa584ec21ee9c0262436eae0137a7a4e966",
+    "shape": "template",
+    "file": "Pages/Civic/Journeys.vue",
+    "line": 44,
+    "status": "source"
+  },
+  "civic_journeys.not_live_in_this_world_yet_it_arrives_with": {
+    "source_hash": "9fa8688f82947a5967afec3e72470840fb6fdbd49a64097ccc8dc3d6367fdcff",
+    "shape": "template",
+    "file": "Pages/Civic/Journeys.vue",
+    "line": 93,
+    "status": "source"
+  },
+  "civic_journeys.of_steps": {
+    "source_hash": "6e04b42f4dc1a3a9e77270ff020b7c8c2bcf5c4f75bf7604b69c6ecb6be2ae0c",
+    "shape": "template",
+    "file": "Pages/Civic/Journeys.vue",
+    "line": 72,
+    "status": "source"
+  },
+  "civic_journeys.on_your_profile": {
+    "source_hash": "7d9987db120ff5ff7d41fdab6b0a151ba69c56fa024be841aa76ed9b30d8d1dc",
+    "shape": "template",
+    "file": "Pages/Civic/Journeys.vue",
+    "line": 101,
+    "status": "source"
+  },
+  "civic_matrixcommons.in_the_halls_you_can_file_your_own_message": {
+    "source_hash": "56b84bfa3c67040f9c8453d74a2c60c2e77ba452a63e5a8fdbf857cb3dfdddc8",
+    "shape": "template",
+    "file": "Pages/Civic/MatrixCommons.vue",
+    "line": 120,
+    "status": "source"
+  },
+  "civic_matrixcommons.invite_a_friend": {
+    "source_hash": "1efe5a1a01e29ccb7ad4ca865dcc15844e95b05d62594d21b41e1b758376c82f",
+    "shape": "attr:label",
+    "file": "Pages/Civic/MatrixCommons.vue",
+    "line": 159,
+    "status": "source"
+  },
+  "civic_matrixcommons.invite_someone_to_join_you": {
+    "source_hash": "a99a295096e3e63a20163b8c189d6092ea4722ad6497334b0af32e2553c9651e",
+    "shape": "template",
+    "file": "Pages/Civic/MatrixCommons.vue",
+    "line": 152,
+    "status": "source"
+  },
+  "civic_matrixcommons.live_commons": {
+    "source_hash": "36841844dc799a0d56d072d9cbbc9be5b0f23670aaaec63366ad9fda64ffee1f",
+    "shape": "template",
+    "file": "Pages/Civic/MatrixCommons.vue",
+    "line": 116,
+    "status": "source"
+  },
+  "civic_matrixcommons.no_messages_yet": {
+    "source_hash": "7366bff58c48920352c1f484774161116f2ee8f00b9967f86d907ab13e6eba3f",
+    "shape": "template",
+    "file": "Pages/Civic/MatrixCommons.vue",
+    "line": 178,
+    "status": "source"
+  },
+  "civic_matrixcommons.post_to_the_live_commons": {
+    "source_hash": "8f238635f3a9e582c675aeca11850d999e53cc84d14705869676be275f6245f2",
+    "shape": "attr:title",
+    "file": "Pages/Civic/MatrixCommons.vue",
+    "line": 197,
+    "status": "source"
+  },
+  "civic_matrixcommons.share_a_link_to_this_and_its_live_call_the": {
+    "source_hash": "83aa8014426a1854a0fc2f930bb282d11fc776d8158a26f9177807774cb5245d",
+    "shape": "template",
+    "file": "Pages/Civic/MatrixCommons.vue",
+    "line": 153,
+    "status": "source"
+  },
+  "civic_matrixcommons.speak_in_the_commons": {
+    "source_hash": "09560d803942cd340edb35a1cf3aa5e200b12bb98f070e30492f6882fef20d4f",
+    "shape": "attr:placeholder",
+    "file": "Pages/Civic/MatrixCommons.vue",
+    "line": 207,
+    "status": "source"
+  },
+  "civic_matrixcommons.the_homeserver_is_unreachable_right_now_th": {
+    "source_hash": "fe343aaf8a1ff155d95c94a0b98dcefe3b348ec4d15a7dc70a28dcb55546bbd1",
+    "shape": "template",
+    "file": "Pages/Civic/MatrixCommons.vue",
+    "line": 144,
+    "status": "source"
+  },
+  "civic_matrixcommons.this_jurisdiction_has_no_live_room_yet_it_": {
+    "source_hash": "2e62493cd7a94e9e1075e6a903b321873f73eaa1c9afb9b06eaa6fdd2027b1ce",
+    "shape": "template",
+    "file": "Pages/Civic/MatrixCommons.vue",
+    "line": 140,
+    "status": "source"
+  },
+  "civic_matrixcommons.you_have_no_residency_association_yet_conf": {
+    "source_hash": "3a6f56fd22cc3fcdf15006542f9dac96a08ca7f2c48f3978085f21240431bf2b",
+    "shape": "template",
+    "file": "Pages/Civic/MatrixCommons.vue",
+    "line": 136,
+    "status": "source"
+  },
+  "civic_myrecord.a_candidacy_is_not_a_separate_identity_it_": {
+    "source_hash": "bf4c2ffa0eb3f1a361adb68096af1df963b3a798676de7c5f26ee2a962c75f34",
+    "shape": "template",
+    "file": "Pages/Civic/MyRecord.vue",
+    "line": 514,
+    "status": "source"
+  },
+  "civic_myrecord.active_jurisdictional_associations_at_ever": {
+    "source_hash": "643fd4f5321ec253c3496eda51bfafe320f641ac8f8325a2772f057d0a081992",
+    "shape": "attr:caption",
+    "file": "Pages/Civic/MyRecord.vue",
+    "line": 493,
+    "status": "source"
+  },
+  "civic_myrecord.append_only_hash_chained_shown_in_your_tim": {
+    "source_hash": "b0b8fcafb46732053df37253896d02df22558e293dabbf86b2872dd9e92dd292",
+    "shape": "template",
+    "file": "Pages/Civic/MyRecord.vue",
+    "line": 422,
+    "status": "source"
+  },
+  "civic_myrecord.association_record_entr": {
+    "source_hash": "2425d49f9e4987f52d4a89d545f7ecf2b01467ee0b99d9df2329177ecf530882",
+    "shape": "template",
+    "file": "Pages/Civic/MyRecord.vue",
+    "line": 331,
+    "status": "source"
+  },
+  "civic_myrecord.confirmed_on": {
+    "source_hash": "90e53f274c06a45b0e6abd8630b7855496ed3aef1f813ef05f3f8e25c2bd507d",
+    "shape": "script:label",
+    "file": "Pages/Civic/MyRecord.vue",
+    "line": 287,
+    "status": "source"
+  },
+  "civic_myrecord.dates_are_shown_in_your_timezone_stored_as": {
+    "source_hash": "df9e80218dd2e25c3100f331be41dcd4488333c16f05f73dc6d929379d3b701d",
+    "shape": "attr:hint",
+    "file": "Pages/Civic/MyRecord.vue",
+    "line": 711,
+    "status": "source"
+  },
+  "civic_myrecord.days_confirmed": {
+    "source_hash": "64432acc9f8ec81f1c21e6d57fc6180e1e40ac15f41758d1e9ee2a6235beb284",
+    "shape": "script:label",
+    "file": "Pages/Civic/MyRecord.vue",
+    "line": 286,
+    "status": "source"
+  },
+  "civic_myrecord.display_name": {
+    "source_hash": "2b7f6a84de917e387539dbe441ca22056e793d738e6c50db30c3f569e4448df3",
+    "shape": "attr:label",
+    "file": "Pages/Civic/MyRecord.vue",
+    "line": 677,
+    "status": "source"
+  },
+  "civic_myrecord.earned_records_of_the_journeys_you_complet": {
+    "source_hash": "05e3ece49fdadbd3b0e51d631a80cd638cd6512b100bddb2a7848bc4ee30ff57",
+    "shape": "template",
+    "file": "Pages/Civic/MyRecord.vue",
+    "line": 629,
+    "status": "source"
+  },
+  "civic_myrecord.earned_revisit_the_journey": {
+    "source_hash": "60658f312f61a4478c1d4b9d4ddc56b443044ef1d1d817e7415c131ef5b2e758",
+    "shape": "template",
+    "file": "Pages/Civic/MyRecord.vue",
+    "line": 615,
+    "status": "source"
+  },
+  "civic_myrecord.everything_about_your_civic_life_in_one_pl": {
+    "source_hash": "6400ef0cd9d187256ef79f2381e9044619bad71dc5c1cc9f122082f9e73c6dad",
+    "shape": "template",
+    "file": "Pages/Civic/MyRecord.vue",
+    "line": 301,
+    "status": "source"
+  },
+  "civic_myrecord.interface_language": {
+    "source_hash": "8027f432a7fb7c273a1a0fde87de4212b6738673e1d06213c02b5a191eaf8ab4",
+    "shape": "attr:label",
+    "file": "Pages/Civic/MyRecord.vue",
+    "line": 692,
+    "status": "source"
+  },
+  "civic_myrecord.jurisdictional_associations": {
+    "source_hash": "99620a9876e9756150561c5b5894f45c32bc01203667e3c0fbc4d8b31ca81dd9",
+    "shape": "attr:title",
+    "file": "Pages/Civic/MyRecord.vue",
+    "line": 483,
+    "status": "source"
+  },
+  "civic_myrecord.multi_winner_seats_answer_to_every_residen": {
+    "source_hash": "5a7447b6f288f9f6e8a0f9920e4e5b7e7ed9663fad67d76a5ae1edb72ba94ef1",
+    "shape": "template",
+    "file": "Pages/Civic/MyRecord.vue",
+    "line": 595,
+    "status": "source"
+  },
+  "civic_myrecord.my_profile": {
+    "source_hash": "271c62fa2debe2d239cfed40bca3d49c597278684e7fe16618e863b7fc161c89",
+    "shape": "attr:title",
+    "file": "Pages/Civic/MyRecord.vue",
+    "line": 300,
+    "status": "source"
+  },
+  "civic_myrecord.never_contains_ballot_content_or_raw_locat": {
+    "source_hash": "c5a585a4beaf0166652050023e3f51442b6786132956a269018f64ff06212072",
+    "shape": "template",
+    "file": "Pages/Civic/MyRecord.vue",
+    "line": 478,
+    "status": "source"
+  },
+  "civic_myrecord.no_entries_yet_your_first_filing_account_c": {
+    "source_hash": "ad64b668e8ea3f44574641ff7afae8e69dd7c27238e7700593b4acc5895c44f1",
+    "shape": "template",
+    "file": "Pages/Civic/MyRecord.vue",
+    "line": 427,
+    "status": "source"
+  },
+  "civic_myrecord.no_platform_statement_published_yet": {
+    "source_hash": "a5ee318a85b89191ee1d9ccd321e9bb078aef9ac818a9299b3061961faf76a28",
+    "shape": "template",
+    "file": "Pages/Civic/MyRecord.vue",
+    "line": 530,
+    "status": "source"
+  },
+  "civic_myrecord.no_representatives_seated_yet_they_appear_": {
+    "source_hash": "580b02916c44a01e723c3f3ff2d695f3bfb35b57c44e6c38260e4f0f237f5c39",
+    "shape": "template",
+    "file": "Pages/Civic/MyRecord.vue",
+    "line": 567,
+    "status": "source"
+  },
+  "civic_myrecord.none_yet_associations_at_every_nesting_lev": {
+    "source_hash": "9000f7e18ea282a1053afe6dfceb51ffefb7649ada28838314156ab00abc763e",
+    "shape": "template",
+    "file": "Pages/Civic/MyRecord.vue",
+    "line": 484,
+    "status": "source"
+  },
+  "civic_myrecord.nothing_here_yet_finish_your_first_journey": {
+    "source_hash": "a12875882642a24dbb7cde2e0d3509380651a87eeab6895a185bf9dd137f54a0",
+    "shape": "template",
+    "file": "Pages/Civic/MyRecord.vue",
+    "line": 625,
+    "status": "source"
+  },
+  "civic_myrecord.one_person_one_profile_profile_v2_contract": {
+    "source_hash": "321d48986cf926e8c5709865e325b435b81a3f7530d54ee34a3cac46ca982e9f",
+    "shape": "template",
+    "file": "Pages/Civic/MyRecord.vue",
+    "line": 307,
+    "status": "source"
+  },
+  "civic_myrecord.one_verified_residency_associations_at_eve": {
+    "source_hash": "63266fadbeeea62e4f629331ec3b07e92fceb814b2811a13e39ebf7f45b77fe8",
+    "shape": "template",
+    "file": "Pages/Civic/MyRecord.vue",
+    "line": 499,
+    "status": "source"
+  },
+  "civic_myrecord.open_the_election": {
+    "source_hash": "74a8af5d7f2b87e12ea355b714ba08801d0df856c78dddacc1abdcc636d39560",
+    "shape": "template",
+    "file": "Pages/Civic/MyRecord.vue",
+    "line": 543,
+    "status": "source"
+  },
+  "civic_myrecord.page_of_entr": {
+    "source_hash": "8c636ca28599f3ee40e2c37f1fc5ff3b3529fca3dd0747934ec793e3d0ced7a3",
+    "shape": "template",
+    "file": "Pages/Civic/MyRecord.vue",
+    "line": 471,
+    "status": "source"
+  },
+  "civic_myrecord.participation_is_public_ballot_choices_are": {
+    "source_hash": "ab043dcf882a6cb3b4f688124878d1b09322fd29aa333082454ddc19e21d4282",
+    "shape": "template",
+    "file": "Pages/Civic/MyRecord.vue",
+    "line": 390,
+    "status": "source"
+  },
+  "civic_myrecord.private_like_a_ballot_only_you_can_read_it": {
+    "source_hash": "ec2b870a2392195a4b6d9fa2a69f16648ec3556c6d4519c68b68094e6a477bcc",
+    "shape": "template",
+    "file": "Pages/Civic/MyRecord.vue",
+    "line": 650,
+    "status": "source"
+  },
+  "civic_myrecord.profile_sections": {
+    "source_hash": "b8bbb7dbca51a003ac0e53884b290f0e371ed8ad2db81289b7e5494d605f8c8b",
+    "shape": "attr:aria-label",
+    "file": "Pages/Civic/MyRecord.vue",
+    "line": 347,
+    "status": "source"
+  },
+  "civic_myrecord.qualifying_days": {
+    "source_hash": "219b7ee72423d805454b936f84532b102c65f2a41d92b3a45c33d2bb216c2a6d",
+    "shape": "attr:label",
+    "file": "Pages/Civic/MyRecord.vue",
+    "line": 387,
+    "status": "source"
+  },
+  "civic_myrecord.record_entries": {
+    "source_hash": "a73bf8ee76e193944336fca0c5c42901c073d283b9b853a952574a6df06d9bba",
+    "shape": "attr:title",
+    "file": "Pages/Civic/MyRecord.vue",
+    "line": 420,
+    "status": "source"
+  },
+  "civic_myrecord.records_are_translated_per_your_selection": {
+    "source_hash": "565f0f2c8659c9a24f50eb6006c2c7d218ccb36e8003afadc39118a202a5b0ba",
+    "shape": "attr:hint",
+    "file": "Pages/Civic/MyRecord.vue",
+    "line": 741,
+    "status": "source"
+  },
+  "civic_myrecord.right_now_ballot_cast_on_your_record_your_": {
+    "source_hash": "0ab655cd0a3172ede62ee61b533694f9d9bf6e28657804ec93cc637c67c3533b",
+    "shape": "template",
+    "file": "Pages/Civic/MyRecord.vue",
+    "line": 375,
+    "status": "source"
+  },
+  "civic_myrecord.rights_derive_from_residency_alone_art_i_a": {
+    "source_hash": "c922e1599b363c44357a9650dd826705e91a5918ea40396feb0605d06303c8c2",
+    "shape": "template",
+    "file": "Pages/Civic/MyRecord.vue",
+    "line": 408,
+    "status": "source"
+  },
+  "civic_myrecord.roles_are_derived_from_residency_facts_at_": {
+    "source_hash": "9ce6e70a6594a455169285c21d8dd9d7e7179a736b6b0d9d624e4aed400cfe42",
+    "shape": "template",
+    "file": "Pages/Civic/MyRecord.vue",
+    "line": 402,
+    "status": "source"
+  },
+  "civic_myrecord.roles_held": {
+    "source_hash": "f2d8207e3d79efac79a16f857d54e623df461bc12047e3e67dd2557a135e5a74",
+    "shape": "attr:title",
+    "file": "Pages/Civic/MyRecord.vue",
+    "line": 395,
+    "status": "source"
+  },
+  "civic_myrecord.seat": {
+    "source_hash": "62cfb7de7103569925504d7f37a029449ec33fdf494af035fa561f11926b15d5",
+    "shape": "template",
+    "file": "Pages/Civic/MyRecord.vue",
+    "line": 578,
+    "status": "source"
+  },
+  "civic_myrecord.seats_are_elected_in_multi_winner_rounds_s": {
+    "source_hash": "955188f9742b3c8eddbd025d48ce5ea09b5f6510cc6be316f4be7f6664f03774",
+    "shape": "template",
+    "file": "Pages/Civic/MyRecord.vue",
+    "line": 562,
+    "status": "source"
+  },
+  "civic_myrecord.self_managed_no_civic_weight_only_the_fiel": {
+    "source_hash": "95456c3358e32ce30ba63a22f87ff3ede5de5d7ff44c359d9de6827937b46bd8",
+    "shape": "template",
+    "file": "Pages/Civic/MyRecord.vue",
+    "line": 672,
+    "status": "source"
+  },
+  "civic_myrecord.term_ends": {
+    "source_hash": "92db839cbfed4c0557a30fcab40e8558e4694a5e3c6a26debd7c322547bcb6e5",
+    "shape": "template",
+    "file": "Pages/Civic/MyRecord.vue",
+    "line": 589,
+    "status": "source"
+  },
+  "civic_myrecord.the_record_is_the_chain_it_cannot_be_quiet": {
+    "source_hash": "883f442dd9b89835e5e0ace22fe0df7a0af1e63797a1ae42b11ae5a2e7cf115c",
+    "shape": "template",
+    "file": "Pages/Civic/MyRecord.vue",
+    "line": 421,
+    "status": "source"
+  },
+  "civic_myrecord.the_record_rides_along_it_is_the_record_ta": {
+    "source_hash": "c3ec8db996192d479e7f8a7dfdac87a7ed2da787363e7462804ba29976895736",
+    "shape": "template",
+    "file": "Pages/Civic/MyRecord.vue",
+    "line": 547,
+    "status": "source"
+  },
+  "civic_myrecord.your_representatives": {
+    "source_hash": "cd3cb39802f1b3b749599143d99adbb712c2de8a781cbd25c3ea73cd3c75e450",
+    "shape": "attr:title",
+    "file": "Pages/Civic/MyRecord.vue",
+    "line": 561,
+    "status": "source"
+  },
+  "civic_petitiondetail.a_citizen_drafted_law_at_scale_created_by_": {
+    "source_hash": "4e61929cb313187197ff09306fd793915f9c721d335d4eb450f8b7112c8a9923",
+    "shape": "template",
+    "file": "Pages/Civic/PetitionDetail.vue",
+    "line": 69,
+    "status": "source"
+  },
+  "civic_petitiondetail.adopted_across_the_scale_if_passed_act_typ": {
+    "source_hash": "7630f59d0773ffee1623b60eb68ad0eedb7c65245a3d7dec0a4a54e7684dce4a",
+    "shape": "template",
+    "file": "Pages/Civic/PetitionDetail.vue",
+    "line": 100,
+    "status": "source"
+  },
+  "civic_petitiondetail.advanced_past_the_review_hold_by_the_audit": {
+    "source_hash": "92ee5e68bde58a3649a5039b70ff154b836fbfaa81c52d473deaeb0e84ad61df",
+    "shape": "template",
+    "file": "Pages/Civic/PetitionDetail.vue",
+    "line": 190,
+    "status": "source"
+  },
+  "civic_petitiondetail.all_petitions": {
+    "source_hash": "d3629e2a9e083c1a22de71dd6cf688477753fbfa71e4ae91f844a0009ef50460",
+    "shape": "template",
+    "file": "Pages/Civic/PetitionDetail.vue",
+    "line": 218,
+    "status": "source"
+  },
+  "civic_petitiondetail.audited_count_frozen_at_the_threshold_chec": {
+    "source_hash": "4aa2b7026441df3172041e410c292c8e603d34406f6004bf06084a079b52511c",
+    "shape": "bound:title",
+    "file": "Pages/Civic/PetitionDetail.vue",
+    "line": 126,
+    "status": "source"
+  },
+  "civic_petitiondetail.completed_by_the_stored_as_utc": {
+    "source_hash": "3a3605910a3df6865ec265272536ee11ee92b005c0ac07dc26ede7c63748958a",
+    "shape": "template",
+    "file": "Pages/Civic/PetitionDetail.vue",
+    "line": 156,
+    "status": "source"
+  },
+  "civic_petitiondetail.constitutional_review_awaiting_judiciary_p": {
+    "source_hash": "d952e42654e431d204e1c899401931090634f4feccd70972afbfa2219a2a6db4",
+    "shape": "template",
+    "file": "Pages/Civic/PetitionDetail.vue",
+    "line": 185,
+    "status": "source"
+  },
+  "civic_petitiondetail.constitutionality_review": {
+    "source_hash": "eb4c7aeac2cc6bf548752d8c9865dc41491ac11c68c477281d77fe8647252f68",
+    "shape": "template",
+    "file": "Pages/Civic/PetitionDetail.vue",
+    "line": 175,
+    "status": "source"
+  },
+  "civic_petitiondetail.created_constitutional_review_validated_on": {
+    "source_hash": "cab8f5c9dccdd4fbfe9a00403768e66fbd7ce90dc64055fe0923c56ebc51ccf6",
+    "shape": "template",
+    "file": "Pages/Civic/PetitionDetail.vue",
+    "line": 81,
+    "status": "source"
+  },
+  "civic_petitiondetail.independent_audit_art_ii_6_clk_17": {
+    "source_hash": "b1816649f6a6e658b317eb3460b151e2e3a97ebd8819bb7a33eb957234e8235e",
+    "shape": "template",
+    "file": "Pages/Civic/PetitionDetail.vue",
+    "line": 169,
+    "status": "source"
+  },
+  "civic_petitiondetail.on_the_ballot": {
+    "source_hash": "e61fe5de3698693bb861fe58d979543e5475712b37c3e7009b62a0da8a91cda4",
+    "shape": "attr:title",
+    "file": "Pages/Civic/PetitionDetail.vue",
+    "line": 208,
+    "status": "source"
+  },
+  "civic_petitiondetail.petition_signature_signatures_stay_open_du": {
+    "source_hash": "0e5cd1938c17b7acd838e9ed4977a1b5e27a8c75b3975a3d5dcc08a8243e99d1",
+    "shape": "template",
+    "file": "Pages/Civic/PetitionDetail.vue",
+    "line": 133,
+    "status": "source"
+  },
+  "civic_petitiondetail.petitions_invalidated_if_unconstitutional_": {
+    "source_hash": "5a7f33ccf7afbc9f7d0bba9d440352ab43bc80c47d01d1160ab8ce06953a68e6",
+    "shape": "template",
+    "file": "Pages/Civic/PetitionDetail.vue",
+    "line": 203,
+    "status": "source"
+  },
+  "civic_petitiondetail.proposed_law_text": {
+    "source_hash": "b516644ddc50de66e790966e3d1e73192e1a5bae3a51c1b4ee8c2ead56bf8bfb",
+    "shape": "attr:title",
+    "file": "Pages/Civic/PetitionDetail.vue",
+    "line": 87,
+    "status": "source"
+  },
+  "civic_petitiondetail.review_follows_a_passed_signature_audit_if": {
+    "source_hash": "6c421d019e240ad913fa7dcb9af5948bc8c3124d08f6726235bd5aee37262884",
+    "shape": "template",
+    "file": "Pages/Civic/PetitionDetail.vue",
+    "line": 197,
+    "status": "source"
+  },
+  "civic_petitiondetail.scale_scope_travel_with_the_law_art_ii_6_a": {
+    "source_hash": "855e2be2c1f86a7eb0f511ba114b0fe10c42a61644aba1a61bb60f35e718f242",
+    "shape": "template",
+    "file": "Pages/Civic/PetitionDetail.vue",
+    "line": 105,
+    "status": "source"
+  },
+  "civic_petitiondetail.sealed_record": {
+    "source_hash": "df2c6c5b8aa7a2208ca9c6b3224d8bc29ea68d568791a56b8495572c8ae923b3",
+    "shape": "template",
+    "file": "Pages/Civic/PetitionDetail.vue",
+    "line": 160,
+    "status": "source"
+  },
+  "civic_petitiondetail.signature_audit": {
+    "source_hash": "7a89b6e31c7d346423b8cf9eb3392063720c68172727606e7e890f2191f06e22",
+    "shape": "template",
+    "file": "Pages/Civic/PetitionDetail.vue",
+    "line": 143,
+    "status": "source"
+  },
+  "civic_petitiondetail.the_election_board_s_independent_audit_run": {
+    "source_hash": "eac477ba1f8240c58469a4867513fd0d13280cb788e405b4cd579ecbf5c8ebff",
+    "shape": "template",
+    "file": "Pages/Civic/PetitionDetail.vue",
+    "line": 164,
+    "status": "source"
+  },
+  "civic_petitiondetail.the_question_rides_the_at_the_threshold_ma": {
+    "source_hash": "c57ad1749bee5216742fe2aa400248127bb1503ff78a97373f60a397ce99b9cb",
+    "shape": "template",
+    "file": "Pages/Civic/PetitionDetail.vue",
+    "line": 209,
+    "status": "source"
+  },
+  "civic_petitiondetail.this_is_the_binding_text_voters_ratify_not": {
+    "source_hash": "5156035deeb23d6b439ab85785791c3f62d22665a0e8c576861d05fc3d31acf1",
+    "shape": "template",
+    "file": "Pages/Civic/PetitionDetail.vue",
+    "line": 91,
+    "status": "source"
+  },
+  "civic_petitiondetail.threshold_of_the_civic_population_snapshot": {
+    "source_hash": "f197a3743c407c2bc0b1bb3687368d8ab72adc846ef16cd55426d350eda816f2",
+    "shape": "template",
+    "file": "Pages/Civic/PetitionDetail.vue",
+    "line": 117,
+    "status": "source"
+  },
+  "civic_petitiondetail.your_signature_is_appended_to_the_record": {
+    "source_hash": "baf715502027362983157168a4a0ab7af71225513aa5663262569fe0ad9e9301",
+    "shape": "template",
+    "file": "Pages/Civic/PetitionDetail.vue",
+    "line": 129,
+    "status": "source"
+  },
+  "civic_petitions.anyone_who_lives_here_can_draft_a_law_and_": {
+    "source_hash": "c82ff632941153abd1d79fff6fe2ce0515a186ea52726d745b04de6aa3b7b714",
+    "shape": "template",
+    "file": "Pages/Civic/Petitions.vue",
+    "line": 101,
+    "status": "source"
+  },
+  "civic_petitions.audit_by_the_election_board_f_elb_005_revi": {
+    "source_hash": "7fb1d144cd2041b8706bbbe8c646b84e3b895f047187c47e0a54f06fa6d12bd6",
+    "shape": "template",
+    "file": "Pages/Civic/Petitions.vue",
+    "line": 239,
+    "status": "source"
+  },
+  "civic_petitions.civic_pop": {
+    "source_hash": "8a7e406486026d1a3a77d7f1a6dade50f0a31ee5208abcbb2fb4b3e2be062b06",
+    "shape": "template",
+    "file": "Pages/Civic/Petitions.vue",
+    "line": 214,
+    "status": "source"
+  },
+  "civic_petitions.creating_a_petition_requires_an_active_jur": {
+    "source_hash": "dbd9bdb377dd6d6fe1bc30b8e8d03f0f14003fbd7a02d1dae3d140e045f59a5f",
+    "shape": "template",
+    "file": "Pages/Civic/Petitions.vue",
+    "line": 226,
+    "status": "source"
+  },
+  "civic_petitions.law_text": {
+    "source_hash": "52f6f3453118e89ff4846bf2513f4e9bcaf7661454105da7e276bddbe644fbbf",
+    "shape": "attr:label",
+    "file": "Pages/Civic/Petitions.vue",
+    "line": 189,
+    "status": "source"
+  },
+  "civic_petitions.no_open_petitions_in_your_association_chai": {
+    "source_hash": "feeab3bd68031c0d8ae6a83afad4b47bf7509053644fa39135177798fe574e00",
+    "shape": "template",
+    "file": "Pages/Civic/Petitions.vue",
+    "line": 155,
+    "status": "source"
+  },
+  "civic_petitions.of_jurisdiction_population": {
+    "source_hash": "7f160eb9fb942db5b477553c04b0e759e09ce6a38ab64656076ecd7f3f9a2165",
+    "shape": "template",
+    "file": "Pages/Civic/Petitions.vue",
+    "line": 115,
+    "status": "source"
+  },
+  "civic_petitions.open_petitions": {
+    "source_hash": "3501d7fd11a0bb4472f0fd40a6cf1e61b1614cdee629a102dbf427e76cfd0901",
+    "shape": "attr:title",
+    "file": "Pages/Civic/Petitions.vue",
+    "line": 121,
+    "status": "source"
+  },
+  "civic_petitions.petition_creation_f_ind_009": {
+    "source_hash": "bb49f460a4f32fd99075569aefc83efa11f6194e4d3bd8909fd9806c44ccdd36",
+    "shape": "attr:title",
+    "file": "Pages/Civic/Petitions.vue",
+    "line": 225,
+    "status": "source"
+  },
+  "civic_petitions.petition_lifecycle": {
+    "source_hash": "3d69e0b31862be03721c4709d03b1b028e13bc0f661e87962d3f00dd115247c9",
+    "shape": "attr:title",
+    "file": "Pages/Civic/Petitions.vue",
+    "line": 234,
+    "status": "source"
+  },
+  "civic_petitions.petition_state_machine": {
+    "source_hash": "e35d3adbb63d7471714ba53c783f0c1160fe76d9ffd36ff85035d9d515117bf8",
+    "shape": "attr:aria-label",
+    "file": "Pages/Civic/Petitions.vue",
+    "line": 235,
+    "status": "source"
+  },
+  "civic_petitions.petitions_in_your_association_chain": {
+    "source_hash": "2a8d0f76f6b84fd0a8d4d7aadb1fd8ff5a01497679601458a10235be0b52d5f8",
+    "shape": "attr:label",
+    "file": "Pages/Civic/Petitions.vue",
+    "line": 111,
+    "status": "source"
+  },
+  "civic_petitions.s_civic_population_of_selectedscale_popula": {
+    "source_hash": "6567d0a6688b2cd60a61d81987a00b195eaf8787f70e5ac3439a7446c4bac0c9",
+    "shape": "bound:hint",
+    "file": "Pages/Civic/Petitions.vue",
+    "line": 207,
+    "status": "source"
+  },
+  "civic_petitions.scale_and_scope_travel_with_the_law_the_sa": {
+    "source_hash": "65300f6e3264350181cda4a013ac4bad1945f066652014761acd406b8b34c60d",
+    "shape": "template",
+    "file": "Pages/Civic/Petitions.vue",
+    "line": 220,
+    "status": "source"
+  },
+  "civic_petitions.scale_scope": {
+    "source_hash": "e2515070e747a2ce8dc0de4f3fe415c3c4690f7668c8b54be457332c43fb4c2a",
+    "shape": "template",
+    "file": "Pages/Civic/Petitions.vue",
+    "line": 150,
+    "status": "source"
+  },
+  "civic_petitions.scale_which_jurisdiction_adopts_it": {
+    "source_hash": "15f54009115890feae9906250d351c28747429fc58a7e3059e50544963c39fd5",
+    "shape": "attr:label",
+    "file": "Pages/Civic/Petitions.vue",
+    "line": 206,
+    "status": "source"
+  },
+  "civic_petitions.scoped_to_your_association_chain": {
+    "source_hash": "538e94589877a7ffe0bdbcf77c2b0efbdba65c87dc3342bcc3ae8320092cc4eb",
+    "shape": "template",
+    "file": "Pages/Civic/Petitions.vue",
+    "line": 122,
+    "status": "source"
+  },
+  "civic_petitions.short_neutral_title_for_the_proposed_law": {
+    "source_hash": "969eb98d8d7292fb7dfa809895aff037c60813767244496c3f3d8bc7a2498f62",
+    "shape": "attr:placeholder",
+    "file": "Pages/Civic/Petitions.vue",
+    "line": 182,
+    "status": "source"
+  },
+  "civic_petitions.signature_threshold_clk_17": {
+    "source_hash": "a6da0ffc87c2afe781b127e99dc1616577e1776afa4e5d15eae024837522ee07",
+    "shape": "attr:label",
+    "file": "Pages/Civic/Petitions.vue",
+    "line": 112,
+    "status": "source"
+  },
+  "civic_petitions.signing_f_ind_010_is_available_to_any_r_03": {
+    "source_hash": "afde789c576643b58696db0fc3912953403d6ea9d5fc762465c3d595f61155a8",
+    "shape": "template",
+    "file": "Pages/Civic/Petitions.vue",
+    "line": 245,
+    "status": "source"
+  },
+  "civic_petitions.the_sign_toggles_use_petition_signature_re": {
+    "source_hash": "2b585a13adf10b274d7181341415147b60979009c0a0f53b90b88df5d163aede",
+    "shape": "template",
+    "file": "Pages/Civic/Petitions.vue",
+    "line": 159,
+    "status": "source"
+  },
+  "civic_petitions.two_kill_paths_a_failed_signature_audit_or": {
+    "source_hash": "c7cba4b4e16cff490d616b3b22df799ef8e07728005c20fb3121d860629b22b3",
+    "shape": "template",
+    "file": "Pages/Civic/Petitions.vue",
+    "line": 236,
+    "status": "source"
+  },
+  "civic_petitions.write_the_binding_text_itself_not_a_summar": {
+    "source_hash": "057f386521cb4363d7ae73413d41ce247e2cb31e26cd7b928859c8cb99aa97b3",
+    "shape": "attr:hint",
+    "file": "Pages/Civic/Petitions.vue",
+    "line": 190,
+    "status": "source"
+  },
+  "civic_petitions.your_live_signatures": {
+    "source_hash": "f33beffac7c23ee31e88808262311e530e7eef98674c7fc2c38c3bba8b8fe284",
+    "shape": "attr:label",
+    "file": "Pages/Civic/Petitions.vue",
+    "line": 113,
+    "status": "source"
+  },
+  "civic_privateroom.back_to_your_rooms": {
+    "source_hash": "06684bd62f3ed529104fbac0ee91ed7b33b252ed5499804e31c124da4eb5ce39",
+    "shape": "template",
+    "file": "Pages/Civic/PrivateRoom.vue",
+    "line": 94,
+    "status": "source"
+  },
+  "civic_privateroom.in_this_room": {
+    "source_hash": "bbac37c8a2345b0936714a16b2dcb849eee65fea03459f7d3b76ded3536ef780",
+    "shape": "template",
+    "file": "Pages/Civic/PrivateRoom.vue",
+    "line": 125,
+    "status": "source"
+  },
+  "civic_privateroom.owner": {
+    "source_hash": "136722cb5e5427bcf088807f12e673f437f1f582d11121a61af2da169895c873",
+    "shape": "template",
+    "file": "Pages/Civic/PrivateRoom.vue",
+    "line": 127,
+    "status": "source"
+  },
+  "civic_privateroom.private_like_a_ballot_talk_files_voice_and": {
+    "source_hash": "6455a8412015bf112b1959a779a7c1a50126a1bd76eef19ee2462ca5ecbe1b43",
+    "shape": "template",
+    "file": "Pages/Civic/PrivateRoom.vue",
+    "line": 102,
+    "status": "source"
+  },
+  "civic_privateroom.private_room": {
+    "source_hash": "9671fc6a26a6db3b38e673ad604d68a3c92bd8d8d0bd129e317391dd58f9a3c8",
+    "shape": "bound:title",
+    "file": "Pages/Civic/PrivateRoom.vue",
+    "line": 89,
+    "status": "source"
+  },
+  "civic_privateroom.say_something": {
+    "source_hash": "fd8c1cd4ac21da8c6a8f8f1934a6c44cf7be770b11b7df22ed455fb169c2ed54",
+    "shape": "attr:placeholder",
+    "file": "Pages/Civic/PrivateRoom.vue",
+    "line": 161,
+    "status": "source"
+  },
+  "civic_privateroom.the_live_channel_for_this_room_isn_t_up_ye": {
+    "source_hash": "6e45cc40bb98d8003a6c6baf8a81348994979f90caa4aa7496cc4777cde8a542",
+    "shape": "template",
+    "file": "Pages/Civic/PrivateRoom.vue",
+    "line": 148,
+    "status": "source"
+  },
+  "civic_privateroom.this_is_a_private_room": {
+    "source_hash": "163363814f43707011f97ef86bad75a0b13d802ffa31ff12eb1bab6a0d4dd0df",
+    "shape": "template",
+    "file": "Pages/Civic/PrivateRoom.vue",
+    "line": 92,
+    "status": "source"
+  },
+  "civic_privateroom.you": {
+    "source_hash": "816194042dfefe5abb4670d8cc481e6863436036236ef87656b07f05de60d854",
+    "shape": "template",
+    "file": "Pages/Civic/PrivateRoom.vue",
+    "line": 140,
+    "status": "source"
+  },
+  "civic_privateroom.you_need_an_invite_to_join_ask_whoever_sha": {
+    "source_hash": "97020de10f31e0bb86b4e214597c4c5efe8e374272074540a9a3e463dae5679a",
+    "shape": "template",
+    "file": "Pages/Civic/PrivateRoom.vue",
+    "line": 93,
+    "status": "source"
+  },
+  "civic_privaterooms.a_few_people_together_talk_files_voice_and": {
+    "source_hash": "c885ce9d1f4d54ee8a29bd9e02314dac6389e5b1367a2d5c2357b5f0818a81b6",
+    "shape": "template",
+    "file": "Pages/Civic/PrivateRooms.vue",
+    "line": 108,
+    "status": "source"
+  },
+  "civic_privaterooms.a_group_message_grants_no_governance_power": {
+    "source_hash": "027a058d78c170882fdae9c87caeac6e987d04c4fa88470da734dba96b315446",
+    "shape": "template",
+    "file": "Pages/Civic/PrivateRooms.vue",
+    "line": 145,
+    "status": "source"
+  },
+  "civic_privaterooms.bring_people_in": {
+    "source_hash": "e8702ac277a7933e9f36c9510b5c5d1357c3fdc1c7687e454154a27b00d1bea3",
+    "shape": "template",
+    "file": "Pages/Civic/PrivateRooms.vue",
+    "line": 69,
+    "status": "source"
+  },
+  "civic_privaterooms.create_the_invite_link": {
+    "source_hash": "38c2bc826e3b52c6394cafd7a1f2697e3d562bea0eed648eb67ac96471486ce6",
+    "shape": "attr:label",
+    "file": "Pages/Civic/PrivateRooms.vue",
+    "line": 74,
+    "status": "source"
+  },
+  "civic_privaterooms.direct_and_group_messages_private_like_a_b": {
+    "source_hash": "7dd5d3943b5849e8cd4880b64134b7261a7b73b4de62ee1524dc0924d94759bd",
+    "shape": "template",
+    "file": "Pages/Civic/PrivateRooms.vue",
+    "line": 57,
+    "status": "source"
+  },
+  "civic_privaterooms.e_g_saturday_crew": {
+    "source_hash": "534a02aed1ad76a8b4e3803f7c3742af6140e5e55daddc33b34ab1f3395825fc",
+    "shape": "attr:placeholder",
+    "file": "Pages/Civic/PrivateRooms.vue",
+    "line": 117,
+    "status": "source"
+  },
+  "civic_privaterooms.group_name": {
+    "source_hash": "762ebb70ef0ea2e80a41035e91a5f95ec35b0b03d2f2acc5c5b4f4c09213c8c5",
+    "shape": "attr:label",
+    "file": "Pages/Civic/PrivateRooms.vue",
+    "line": 109,
+    "status": "source"
+  },
+  "civic_privaterooms.is_ready_share_this_link_whoever_opens_it_": {
+    "source_hash": "86eaadeb44913cd937b5e04087d73d434f5cc6280fee0de32de0e3cf6a839d86",
+    "shape": "template",
+    "file": "Pages/Civic/PrivateRooms.vue",
+    "line": 70,
+    "status": "source"
+  },
+  "civic_privaterooms.no_messages_yet_start_a_direct_message_or_": {
+    "source_hash": "f7f1fb9a8081a20b4d08a2caa0dd01d13bd044fd21d64bf04fb2abd2da62923c",
+    "shape": "template",
+    "file": "Pages/Civic/PrivateRooms.vue",
+    "line": 143,
+    "status": "source"
+  },
+  "civic_privaterooms.one_person_one_conversation_you_share_the_": {
+    "source_hash": "eb61dd8b7b1fb114761d9ea64c0a89e053edced535868c1843212f6526f3716a",
+    "shape": "template",
+    "file": "Pages/Civic/PrivateRooms.vue",
+    "line": 85,
+    "status": "source"
+  },
+  "civic_privaterooms.open_the_conversation": {
+    "source_hash": "938751c5ba29e5a4157b1996ffe4a95e6dffdff4e4c7e7a31a430cd1c83b009b",
+    "shape": "template",
+    "file": "Pages/Civic/PrivateRooms.vue",
+    "line": 75,
+    "status": "source"
+  },
+  "civic_privaterooms.opened": {
+    "source_hash": "c87ad53ceabd4726c4082e96c68878e4da1ef8ea27953e7f98bd2ba944c30f2c",
+    "shape": "template",
+    "file": "Pages/Civic/PrivateRooms.vue",
+    "line": 133,
+    "status": "source"
+  },
+  "civic_privaterooms.people_together_direct_group_messages": {
+    "source_hash": "8a5e10232a905cb42c6195681e1d95ea03b385d3cb4edfcc0618f7c45fb21735",
+    "shape": "template",
+    "file": "Pages/Civic/PrivateRooms.vue",
+    "line": 55,
+    "status": "source"
+  },
+  "civic_privaterooms.start_a_direct_message": {
+    "source_hash": "70a4e3da931c499d365789e68e4b60bd2cf7884611229e14fc880a8cf3908059",
+    "shape": "template",
+    "file": "Pages/Civic/PrivateRooms.vue",
+    "line": 84,
+    "status": "source"
+  },
+  "civic_privaterooms.start_a_group": {
+    "source_hash": "2d021da99a56901e2d57804a799ba1ddaf11662442fb22bc2c3574f443a6b25a",
+    "shape": "template",
+    "file": "Pages/Civic/PrivateRooms.vue",
+    "line": 107,
+    "status": "source"
+  },
+  "civic_privaterooms.you_a_friend": {
+    "source_hash": "5017b5a11e29b8183ec18af8d2b68820eecfa568acaf40a53b3431150f601fb1",
+    "shape": "script:name",
+    "file": "Pages/Civic/PrivateRooms.vue",
+    "line": 31,
+    "status": "source"
+  },
+  "civic_privaterooms.your_conversations": {
+    "source_hash": "903532e033973e3df99ec60e07999154f1a07e57150bad8e8aaf3dd53dddd7a3",
+    "shape": "template",
+    "file": "Pages/Civic/PrivateRooms.vue",
+    "line": 131,
+    "status": "source"
+  },
+  "civic_publicsquare.no_threads_yet_any_associated_resident_can": {
+    "source_hash": "7a6461f4bdce6dc975bec2871fcb15b25697b23c86de3abee1b6812b0c68ca08",
+    "shape": "template",
+    "file": "Pages/Civic/PublicSquare.vue",
+    "line": 79,
+    "status": "source"
+  },
+  "civic_publicsquare.posting_in_the_square_requires_an_active_j": {
+    "source_hash": "601f57ff12a4c83f5f2d2ddc9611da4d6aa6fc253ada1e742f28d3b5423461a3",
+    "shape": "template",
+    "file": "Pages/Civic/PublicSquare.vue",
+    "line": 110,
+    "status": "source"
+  },
+  "civic_publicsquare.reactions_follows_and_per_user_blocks_stay": {
+    "source_hash": "b6716ffd89529bb2dad4bf2ed30bf7a25faa391afe73ff0f617cc04c8107c79c",
+    "shape": "template",
+    "file": "Pages/Civic/PublicSquare.vue",
+    "line": 118,
+    "status": "source"
+  },
+  "civic_publicsquare.recent_threads": {
+    "source_hash": "5737d3b76e02ad6d7a6292bd23bf528356334ab13859ba34ebc98412bd1009ac",
+    "shape": "attr:title",
+    "file": "Pages/Civic/PublicSquare.vue",
+    "line": 65,
+    "status": "source"
+  },
+  "civic_publicsquare.the_public_square_is_open_to_every_residen": {
+    "source_hash": "96d48e1dbac2e07ab441be8a04a7ca160081edea64b062ccb50a76f6e48aa18f",
+    "shape": "template",
+    "file": "Pages/Civic/PublicSquare.vue",
+    "line": 51,
+    "status": "source"
+  },
+  "civic_publicsquare.threads_in_your_association_chain": {
+    "source_hash": "225f65a31adf619e34b1eb5bff3dba12f5b317922ed004332397d1697e46b338",
+    "shape": "attr:label",
+    "file": "Pages/Civic/PublicSquare.vue",
+    "line": 61,
+    "status": "source"
+  },
+  "civic_publicsquare.what_is_this_about": {
+    "source_hash": "797ecfc26d42a630d5644b791834fede25ec9a3b04358a0d488f610cc2dcb8d6",
+    "shape": "attr:placeholder",
+    "file": "Pages/Civic/PublicSquare.vue",
+    "line": 99,
+    "status": "source"
+  },
+  "civic_publicsquare.your_post": {
+    "source_hash": "ee9ecff64a8ac32052e0e9cea302cb283a5bbe6cf8f77ecc0b189ff8c8a12256",
+    "shape": "attr:label",
+    "file": "Pages/Civic/PublicSquare.vue",
+    "line": 102,
+    "status": "source"
+  },
+  "civic_relocation.1youdeclare_residency_in_the_new_jurisdict": {
+    "source_hash": "0718b7112742c5d2c85b2ce2adf216058cf7e40286aff6b063a6b7433fc13af3",
+    "shape": "template",
+    "file": "Pages/Civic/Relocation.vue",
+    "line": 131,
+    "status": "source"
+  },
+  "civic_relocation.2systemaway_pattern_accumulates_to_the_thr": {
+    "source_hash": "db182c278ae5eed49934c74c2255ad7ffe63c3f57393f310b53496429ed12a80",
+    "shape": "template",
+    "file": "Pages/Civic/Relocation.vue",
+    "line": 141,
+    "status": "source"
+  },
+  "civic_relocation.3systemassociations_transfer_held_offices_": {
+    "source_hash": "b059a2789d24c4ae134e244e330bf2657ca98e772dfb40f31b0efc1b9efa75ce",
+    "shape": "template",
+    "file": "Pages/Civic/Relocation.vue",
+    "line": 148,
+    "status": "source"
+  },
+  "civic_relocation.a_move_only_completes_when_the_away_patter": {
+    "source_hash": "cc5705f2c78499118a5f999e99691976fff9cc30c56b9868748547f6b67d4ff3",
+    "shape": "template",
+    "file": "Pages/Civic/Relocation.vue",
+    "line": 85,
+    "status": "source"
+  },
+  "civic_relocation.another_jurisdiction": {
+    "source_hash": "8f26652190c8817dba660122b451e7233b06f80976b50856ec2c668c2a0f4291",
+    "shape": "bound:title",
+    "file": "Pages/Civic/Relocation.vue",
+    "line": 71,
+    "status": "source"
+  },
+  "civic_relocation.art_v_1_2_clk_05": {
+    "source_hash": "3eedb36dd2491643002708565165517e1d720e7b9e5730285dbee3abf87fd619",
+    "shape": "template",
+    "file": "Pages/Civic/Relocation.vue",
+    "line": 226,
+    "status": "source"
+  },
+  "civic_relocation.away_detection_arrives_with_mobile_pinging": {
+    "source_hash": "06acd45af0505d849831fbbe43dc9fd54e9769b5025f5f54bb257045a50b8bff",
+    "shape": "template",
+    "file": "Pages/Civic/Relocation.vue",
+    "line": 93,
+    "status": "source"
+  },
+  "civic_relocation.away_pattern_detection": {
+    "source_hash": "53682cfa29e0c46195ecd0a88d16ecef7742a8a2db44cb3fddcc87cc2c08b70e",
+    "shape": "attr:title",
+    "file": "Pages/Civic/Relocation.vue",
+    "line": 69,
+    "status": "source"
+  },
+  "civic_relocation.declared": {
+    "source_hash": "4dd55febae226da62691c6fb89885225498d94438e79ae7534cd9e554e8856bd",
+    "shape": "template",
+    "file": "Pages/Civic/Relocation.vue",
+    "line": 103,
+    "status": "source"
+  },
+  "civic_relocation.detection_uses_the_same_encrypted_ping_log": {
+    "source_hash": "428f7c81cc4e8e442f0bf7a5a94af4a1928cfc699d125412c033f0aec1a4092d",
+    "shape": "template",
+    "file": "Pages/Civic/Relocation.vue",
+    "line": 71,
+    "status": "source"
+  },
+  "civic_relocation.grace_period_the_new_claim_s_clk_05_thresh": {
+    "source_hash": "d3ab815efd4f2be8d8e856eb16458e5539450d824ba5f789abcc31d1ddb68a74",
+    "shape": "attr:label",
+    "file": "Pages/Civic/Relocation.vue",
+    "line": 203,
+    "status": "source"
+  },
+  "civic_relocation.held_offices_and_the_grace_period": {
+    "source_hash": "07375dcf42e201a27c439510b807a41a119ab275cbfa6c609ece8fa31e5cb034",
+    "shape": "attr:title",
+    "file": "Pages/Civic/Relocation.vue",
+    "line": 183,
+    "status": "source"
+  },
+  "civic_relocation.i_m_moving_start_re_association": {
+    "source_hash": "e5466a340060037e79379ba6d8e298e538b2db017848dd8b925641d6455b8b16",
+    "shape": "template",
+    "file": "Pages/Civic/Relocation.vue",
+    "line": 120,
+    "status": "source"
+  },
+  "civic_relocation.i_m_travelling_keep_my_residency": {
+    "source_hash": "d4a160f9ac1446f4a391e6e43a405bdbd8da3d1d11b83aed6ca3216139673f9a",
+    "shape": "template",
+    "file": "Pages/Civic/Relocation.vue",
+    "line": 115,
+    "status": "source"
+  },
+  "civic_relocation.if_re_association_completes_the_seat_is_de": {
+    "source_hash": "4ea72096064c1ef523d5bddb216a146114aaddf28334aab3348d800ae14d367c",
+    "shape": "template",
+    "file": "Pages/Civic/Relocation.vue",
+    "line": 210,
+    "status": "source"
+  },
+  "civic_relocation.it_looks_like_you_may_have_moved": {
+    "source_hash": "23ad9a00de6a56a323f868b926c11dcabdb3242bcdac5613d1dec7fc8bfbf80c",
+    "shape": "bound:title",
+    "file": "Pages/Civic/Relocation.vue",
+    "line": 53,
+    "status": "source"
+  },
+  "civic_relocation.move_in_progress": {
+    "source_hash": "62f463a1146ff5676f17d438e91746dfb8761b13f5b98839f4a65cb2e5598213",
+    "shape": "attr:title",
+    "file": "Pages/Civic/Relocation.vue",
+    "line": 161,
+    "status": "source"
+  },
+  "civic_relocation.new_claim_qualifying_days_clk_05": {
+    "source_hash": "df8f2bb83f0938e37dc943f7ed92c1c787c6a29b29da9ec3cdf3e1bd012890b6",
+    "shape": "attr:label",
+    "file": "Pages/Civic/Relocation.vue",
+    "line": 170,
+    "status": "source"
+  },
+  "civic_relocation.no_forms_on_this_surface_the_move_path_reu": {
+    "source_hash": "ccfa8f356eae5ad6421af51d24ae91ad42f083d1c5bb5f83d2299eba95bc841b",
+    "shape": "template",
+    "file": "Pages/Civic/Relocation.vue",
+    "line": 230,
+    "status": "source"
+  },
+  "civic_relocation.no_relocation_pattern_detected": {
+    "source_hash": "fef9456fb2e746a6151bf362fdee4c6f36a423ae72aecd936f581c8c62ed0e5e",
+    "shape": "template",
+    "file": "Pages/Civic/Relocation.vue",
+    "line": 92,
+    "status": "source"
+  },
+  "civic_relocation.old_associations_remain_fully_active_until": {
+    "source_hash": "5022534294529cb2fccbdadd2743312a899b72591927e92136791dd39bf4adc3",
+    "shape": "template",
+    "file": "Pages/Civic/Relocation.vue",
+    "line": 145,
+    "status": "source"
+  },
+  "civic_relocation.old_roles_gracefully_expire_a_held_seat_va": {
+    "source_hash": "e58eea2554bfa3ef427788e38afc28997c02378b0f487645c98e7ec30b46cc07",
+    "shape": "template",
+    "file": "Pages/Civic/Relocation.vue",
+    "line": 152,
+    "status": "source"
+  },
+  "civic_relocation.qualifying_days_away_clk_05_threshold": {
+    "source_hash": "fedebb0c3b7dabfff53661c738e5aef0e1973e1c78748b4b55f100cfbcc6a60d",
+    "shape": "attr:label",
+    "file": "Pages/Civic/Relocation.vue",
+    "line": 79,
+    "status": "source"
+  },
+  "civic_relocation.r_09_seated_representative": {
+    "source_hash": "4261c46e3cbb4fe8a3dc1601ceafd53a8c7fac96141ae70995f61e14a599297e",
+    "shape": "template",
+    "file": "Pages/Civic/Relocation.vue",
+    "line": 190,
+    "status": "source"
+  },
+  "civic_relocation.residency_claim_state_machine": {
+    "source_hash": "458f55122adf79a0f9d54380a2ba5c5d9c9fc6b4ae4a641891ca46a01d0ff3a5",
+    "shape": "attr:aria-label",
+    "file": "Pages/Civic/Relocation.vue",
+    "line": 221,
+    "status": "source"
+  },
+  "civic_relocation.residency_declaration_f_ind_003_on_the_res": {
+    "source_hash": "4272fafc88b8d0bbd39b26bb003252344e8d9c7c09936abf54331fc36cb9a51c",
+    "shape": "template",
+    "file": "Pages/Civic/Relocation.vue",
+    "line": 135,
+    "status": "source"
+  },
+  "civic_relocation.seat_vacates_art_ii_5": {
+    "source_hash": "5954947dc2f777b40d0067413397eca3bda03b7f329ce885e6a7d335e0d7a5ca",
+    "shape": "template",
+    "file": "Pages/Civic/Relocation.vue",
+    "line": 207,
+    "status": "source"
+  },
+  "civic_relocation.stays_active_superseded_pending_until_this": {
+    "source_hash": "8615c6664f53d5079f42df4fcf7f16dfa3bff61666518b92782a5363775e550b",
+    "shape": "template",
+    "file": "Pages/Civic/Relocation.vue",
+    "line": 176,
+    "status": "source"
+  },
+  "civic_relocation.the_constitutional_grace_is_this_threshold": {
+    "source_hash": "9507bcc3779045b192736bdab0fbb7854bb23265d701403c68330c1b5482df94",
+    "shape": "template",
+    "file": "Pages/Civic/Relocation.vue",
+    "line": 174,
+    "status": "source"
+  },
+  "civic_relocation.there_is_never_a_gap_in_your_rights": {
+    "source_hash": "e4828f301049c5ab52e4018e994834e9859af4731085c603cd2b723427beab7c",
+    "shape": "template",
+    "file": "Pages/Civic/Relocation.vue",
+    "line": 224,
+    "status": "source"
+  },
+  "civic_relocation.this_page_activates_when_sustained_pings_a": {
+    "source_hash": "640d5bb884e9b85da2a2e757f88c00a9510f90de8406ebe8c3c28040eb109888",
+    "shape": "template",
+    "file": "Pages/Civic/Relocation.vue",
+    "line": 95,
+    "status": "source"
+  },
+  "civic_relocation.threshold_clk_05": {
+    "source_hash": "92e358e82280876fbffffc634b277fa8f7c5e3b72da8bda05396eefd74f896b4",
+    "shape": "template",
+    "file": "Pages/Civic/Relocation.vue",
+    "line": 83,
+    "status": "source"
+  },
+  "civic_relocation.travel_or_a_move": {
+    "source_hash": "b8ab9c74cf7b6f225aac9e8a313ea45223ae27c321a5948cb9f861cfd01c57a5",
+    "shape": "attr:title",
+    "file": "Pages/Civic/Relocation.vue",
+    "line": 109,
+    "status": "source"
+  },
+  "civic_relocation.travel_or_move": {
+    "source_hash": "eb1bdbe6fc0bac176f5a2f9c012446553ba97e66b58259e4dc808e6c870716b1",
+    "shape": "attr:aria-label",
+    "file": "Pages/Civic/Relocation.vue",
+    "line": 114,
+    "status": "source"
+  },
+  "civic_relocation.travelling_detection_resets_nothing_change": {
+    "source_hash": "7fc1879c57c2ee275475accda9f5fb0d5953ba944ad207dad6f8448c4df9dd1e",
+    "shape": "template",
+    "file": "Pages/Civic/Relocation.vue",
+    "line": 122,
+    "status": "source"
+  },
+  "civic_relocation.vacancy_countback_special_election_fallbac": {
+    "source_hash": "db87c6763851456886888567cf86a4a011fceec20cb9c70c679c54912eeff80b",
+    "shape": "template",
+    "file": "Pages/Civic/Relocation.vue",
+    "line": 215,
+    "status": "source"
+  },
+  "civic_relocation.voting_candidacy_and_every_association_hol": {
+    "source_hash": "38ac7bc328fd77c6d239f67d1329f6975fa727ef28d9d4b967a9bd1aa9757f50",
+    "shape": "template",
+    "file": "Pages/Civic/Relocation.vue",
+    "line": 63,
+    "status": "source"
+  },
+  "civic_relocation.where_you_are_in_the_residency_lifecycle": {
+    "source_hash": "003db87ea05023c8bcb67d0cc776d6955e73ef525d1872004e53acdd135e789d",
+    "shape": "attr:title",
+    "file": "Pages/Civic/Relocation.vue",
+    "line": 220,
+    "status": "source"
+  },
+  "civic_relocation.you_hold_an_office_tied_to_a_jurisdiction_": {
+    "source_hash": "4b39b637327a3d86230411816c3ad65cd4e0ab58458cfac5c162e84d1ba121af",
+    "shape": "template",
+    "file": "Pages/Civic/Relocation.vue",
+    "line": 184,
+    "status": "source"
+  },
+  "civic_relocation.your_home_jurisdiction": {
+    "source_hash": "4570a06a18cc51807558eb211dcd36b0a61ff4fcb86718ab7cf1013d40f253a4",
+    "shape": "bound:title",
+    "file": "Pages/Civic/Relocation.vue",
+    "line": 71,
+    "status": "source"
+  },
+  "civic_relocation.your_old_claim_stays_active_until_the_new_": {
+    "source_hash": "6513d46a5591649a564bbcb8c3fe260d7b0dc1faa63577af53dd0f04c7a53a1d",
+    "shape": "attr:title",
+    "file": "Pages/Civic/Relocation.vue",
+    "line": 63,
+    "status": "source"
+  },
+  "civic_relocation.your_residency_follows_where_you_actually_": {
+    "source_hash": "2eba96269e2afbb7ca51f5b9dfc7ba9427dba1cf7c74b0509a4dd7fe3ae4f2a4",
+    "shape": "template",
+    "file": "Pages/Civic/Relocation.vue",
+    "line": 54,
+    "status": "source"
+  },
+  "civic_residency.correct_the_boundary": {
+    "source_hash": "4a320101eb8ebbff0ee4269aefcb8e2e14155bb977322afae3519f8038614e05",
+    "shape": "template",
+    "file": "Pages/Civic/Residency.vue",
+    "line": 807,
+    "status": "source"
+  },
+  "civic_residency.days_toward_unlocking_the_confirmation": {
+    "source_hash": "f322515f6e051e36a734328663b2a0f1b654393bd2db28e887e662079a782360",
+    "shape": "attr:label",
+    "file": "Pages/Civic/Residency.vue",
+    "line": 781,
+    "status": "source"
+  },
+  "civic_residency.declare_residency_first_pings_need_a_decla": {
+    "source_hash": "d81d9a88fe0eb0d35d76e77aac2452299cb30a6c32cca327cf786bb10659b308",
+    "shape": "template",
+    "file": "Pages/Civic/Residency.vue",
+    "line": 706,
+    "status": "source"
+  },
+  "civic_residency.declare_residency_to_begin": {
+    "source_hash": "32cddb8ae445d1ca6bf13e1e04e4e718fa52f22bee90780c2cf5153169e5b249",
+    "shape": "template",
+    "file": "Pages/Civic/Residency.vue",
+    "line": 787,
+    "status": "source"
+  },
+  "civic_residency.declare_where_you_live_and_living_there_do": {
+    "source_hash": "d029ca99693c79d10ff72589328a0175332540483bbdb8f591f329efb588cafe",
+    "shape": "template",
+    "file": "Pages/Civic/Residency.vue",
+    "line": 492,
+    "status": "source"
+  },
+  "civic_residency.declared_boundary": {
+    "source_hash": "6c4733345594ea89fe374e544dd365d51e89483d3c3edef38cee3b21ceff5857",
+    "shape": "attr:title",
+    "file": "Pages/Civic/Residency.vue",
+    "line": 747,
+    "status": "source"
+  },
+  "civic_residency.declared_boundary_declared": {
+    "source_hash": "11bbb85041a03bdddc086f26e2bf98b9450741301308f367de042768f2ece651",
+    "shape": "template",
+    "file": "Pages/Civic/Residency.vue",
+    "line": 516,
+    "status": "source"
+  },
+  "civic_residency.distinct_days_pinged_inside_the_declared_b": {
+    "source_hash": "2e553c0627804a20cba1193e8ce0d8761f2e7ff40598af94f83351d985459153",
+    "shape": "template",
+    "file": "Pages/Civic/Residency.vue",
+    "line": 682,
+    "status": "source"
+  },
+  "civic_residency.enter_coordinates_manually": {
+    "source_hash": "c798430fac30f99ffdc043613073e313e898955f909ecf3692015acb06a59eed",
+    "shape": "template",
+    "file": "Pages/Civic/Residency.vue",
+    "line": 702,
+    "status": "source"
+  },
+  "civic_residency.gps_residency_ping": {
+    "source_hash": "ab8cf6bf025ecc134cce45151f42e24bcfab9da0882f0d09bdbd9095241d15ef",
+    "shape": "template",
+    "file": "Pages/Civic/Residency.vue",
+    "line": 666,
+    "status": "source"
+  },
+  "civic_residency.jurisdiction_of_residence": {
+    "source_hash": "2d9ef42c63c61b49797f36600707abad50f6f033360b610c5c04ff5320194c5e",
+    "shape": "attr:label",
+    "file": "Pages/Civic/Residency.vue",
+    "line": 590,
+    "status": "source"
+  },
+  "civic_residency.keep_pinging_inside_your_declared_boundary": {
+    "source_hash": "b7df33cfacdaeee7b9be96dea2e2cc967b773d672b6d64aaddf3e19cc0006223",
+    "shape": "template",
+    "file": "Pages/Civic/Residency.vue",
+    "line": 788,
+    "status": "source"
+  },
+  "civic_residency.local_only_files_30_real_f_ind_005_entries": {
+    "source_hash": "40a0c78f4d46a0b0c4d19d597e2c277f0d2ef67834c58c717ba59e1004eacf1e",
+    "shape": "template",
+    "file": "Pages/Civic/Residency.vue",
+    "line": 732,
+    "status": "source"
+  },
+  "civic_residency.local_only_real_f_ind_003_005_006_filings_": {
+    "source_hash": "67e9fd1cec4ad7fe127453a8d1c5f1ffcbdc0affcb14f11d41df5a4e5d8837b6",
+    "shape": "template",
+    "file": "Pages/Civic/Residency.vue",
+    "line": 654,
+    "status": "source"
+  },
+  "civic_residency.map_click_to_drop_a_pin_on_where_you_live": {
+    "source_hash": "92ba47745c78290d263abe54818e2165d2da568171b2f437edc761ea884f6b5d",
+    "shape": "attr:aria-label",
+    "file": "Pages/Civic/Residency.vue",
+    "line": 563,
+    "status": "source"
+  },
+  "civic_residency.matching_jurisdictions": {
+    "source_hash": "e2cd67743a78a68ae47af9e3be9cd6239ab4e3f66a04519f42bef6da0200d5e2",
+    "shape": "attr:aria-label",
+    "file": "Pages/Civic/Residency.vue",
+    "line": 609,
+    "status": "source"
+  },
+  "civic_residency.no_claim_yet_declare_below_to_start_ping_m": {
+    "source_hash": "4631293d9af7305772d4248268088da37c33c8d98b2cc5026208df40c58459a8",
+    "shape": "template",
+    "file": "Pages/Civic/Residency.vue",
+    "line": 524,
+    "status": "source"
+  },
+  "civic_residency.only_the_derived_day_count_is_ever_visible": {
+    "source_hash": "bd71c18aa5ab7f53864f0b4a9155a9f4b70b6a8fe408571ba5585c011eb0244c",
+    "shape": "template",
+    "file": "Pages/Civic/Residency.vue",
+    "line": 739,
+    "status": "source"
+  },
+  "civic_residency.or_click_your_home_on_the_map_below": {
+    "source_hash": "5f6a512396e69dbbd697dcb698f7a3175197918d28541ddc102bbd19ef63cb04",
+    "shape": "template",
+    "file": "Pages/Civic/Residency.vue",
+    "line": 557,
+    "status": "source"
+  },
+  "civic_residency.or_search_by_place_name": {
+    "source_hash": "7cf10aa3f8c6265f0a0d4eaa56dd56deb8217e261c57075cbac38f922f664853",
+    "shape": "template",
+    "file": "Pages/Civic/Residency.vue",
+    "line": 588,
+    "status": "source"
+  },
+  "civic_residency.periodic_location_check_in_for_residency_p": {
+    "source_hash": "293f13d8e8aa912e5886437ec9b0d76c063767f579cd9f0fabf2dbb0ce46d10b",
+    "shape": "template",
+    "file": "Pages/Civic/Residency.vue",
+    "line": 668,
+    "status": "source"
+  },
+  "civic_residency.pings_are_encrypted_at_rest": {
+    "source_hash": "8f59a1203c5b7f99f233000a484e28419fcdc732055d8baa688579171c242f9c",
+    "shape": "attr:title",
+    "file": "Pages/Civic/Residency.vue",
+    "line": 739,
+    "status": "source"
+  },
+  "civic_residency.qualifying_ping_day_recorded_inside_this_b": {
+    "source_hash": "49934f2654031f56dbc67bceb2d9ffafd4ce80602ab72b0c79607e54cde4dba6",
+    "shape": "template",
+    "file": "Pages/Civic/Residency.vue",
+    "line": 756,
+    "status": "source"
+  },
+  "civic_residency.record_ping": {
+    "source_hash": "b43d12f6bdc2973478a27b50ee1b65317303a034b6cabe5e6a870bec69d62a66",
+    "shape": "template",
+    "file": "Pages/Civic/Residency.vue",
+    "line": 723,
+    "status": "source"
+  },
+  "civic_residency.redeclaring_supersedes_your_open_claim_and": {
+    "source_hash": "cf05667e015d6079e42f51f8620030c8c89769853c4cc86df20838c07d8361e9",
+    "shape": "template",
+    "file": "Pages/Civic/Residency.vue",
+    "line": 540,
+    "status": "source"
+  },
+  "civic_residency.residency_verification_confirmation": {
+    "source_hash": "ef5bb8e76874f3926eece3e0f46b2ddddc4f8599b3d2caef87f92a1498b9c3fe",
+    "shape": "template",
+    "file": "Pages/Civic/Residency.vue",
+    "line": 766,
+    "status": "source"
+  },
+  "civic_residency.residency_verified_all_associations_rights": {
+    "source_hash": "0c41ad6eccf50dc86c9ea587a110fe3a73fc173ca2595b77a938d1c0a43223cc",
+    "shape": "template",
+    "file": "Pages/Civic/Residency.vue",
+    "line": 830,
+    "status": "source"
+  },
+  "civic_residency.residency_verified_you_are_associated_with": {
+    "source_hash": "e0d2f0d2c4a136662360867204902b902673c4e96677b79e584bc71cf687a2b6",
+    "shape": "template",
+    "file": "Pages/Civic/Residency.vue",
+    "line": 818,
+    "status": "source"
+  },
+  "civic_residency.resolving_the_smallest_containing_boundary": {
+    "source_hash": "f1fb0fb10b10fa80b7b5eb477529506cb148a33df8ec82447a3348759b47a824",
+    "shape": "template",
+    "file": "Pages/Civic/Residency.vue",
+    "line": 567,
+    "status": "source"
+  },
+  "civic_residency.search_by_name_e_g_new_york_serravalle": {
+    "source_hash": "d80dfbc5302d7e80e81c0d8c8d0e4475ac9a75e625291ad8c7463e0385430378",
+    "shape": "attr:placeholder",
+    "file": "Pages/Civic/Residency.vue",
+    "line": 600,
+    "status": "source"
+  },
+  "civic_residency.searches_jurisdiction_names_e_g_serravalle": {
+    "source_hash": "9d3cb42b3595221ac94523b62fc0ca6d0b7801a192a07ce788e914c8e662b69f",
+    "shape": "attr:hint",
+    "file": "Pages/Civic/Residency.vue",
+    "line": 591,
+    "status": "source"
+  },
+  "civic_residency.searching": {
+    "source_hash": "c31723ab330289fe2cc4c7b69b7a862361da79a01f84893dc7b89a6de0ab4b42",
+    "shape": "template",
+    "file": "Pages/Civic/Residency.vue",
+    "line": 608,
+    "status": "source"
+  },
+  "civic_residency.selected_in": {
+    "source_hash": "eca104c424fcf93f19c76eb2cc625e13eb53fd413abb0024117f2dce8f830984",
+    "shape": "template",
+    "file": "Pages/Civic/Residency.vue",
+    "line": 621,
+    "status": "source"
+  },
+  "civic_residency.start_collecting_periodic_location_pings_t": {
+    "source_hash": "f38c6fc3722419b30f067454b54f579e41d3f6b04e7e608d9b1e377cad240d42",
+    "shape": "template",
+    "file": "Pages/Civic/Residency.vue",
+    "line": 631,
+    "status": "source"
+  },
+  "civic_residency.targets_dev_only_relocation_deactivates_th": {
+    "source_hash": "240dc6e1ba9d56ab0cf5fe861f76822e50cada35821bb28302c6e1878298df1c",
+    "shape": "template",
+    "file": "Pages/Civic/Residency.vue",
+    "line": 848,
+    "status": "source"
+  },
+  "civic_residency.the_declared_boundary_renders_here_once_yo": {
+    "source_hash": "6227f6745f3340a8f5d208ae4efa0c3a9e9f829d408bd92312a14f49d7111638",
+    "shape": "template",
+    "file": "Pages/Civic/Residency.vue",
+    "line": 755,
+    "status": "source"
+  },
+  "civic_residency.the_picked_point": {
+    "source_hash": "673865c244b30dd3298dba8c70d31c79cd0313caf4e8f5d2707c167030f72c27",
+    "shape": "script:name",
+    "file": "Pages/Civic/Residency.vue",
+    "line": 283,
+    "status": "source"
+  },
+  "civic_residency.threshold_days_is_an_amendable_setting_pin": {
+    "source_hash": "6a190fd84b8f6d7fa5011bc896958277cd933829e2d7b77454a03930c4761db1",
+    "shape": "template",
+    "file": "Pages/Civic/Residency.vue",
+    "line": 528,
+    "status": "source"
+  },
+  "civic_residency.threshold_met_awaiting_your_confirmation": {
+    "source_hash": "126555aec9a450bfa7a7097e03ea65d04edab3916341f5a204949b7491bfd880",
+    "shape": "template",
+    "file": "Pages/Civic/Residency.vue",
+    "line": 797,
+    "status": "source"
+  },
+  "civic_residency.unlocks_automatically_at_the_threshold_clk": {
+    "source_hash": "b2081981976d45a7aecc64e1c17717ee27de24d5a2616daadcdacd126c475421",
+    "shape": "template",
+    "file": "Pages/Civic/Residency.vue",
+    "line": 784,
+    "status": "source"
+  },
+  "civic_residency.wf_civ_02_residency_establishment_declarat": {
+    "source_hash": "987613bdd7232bae75e19fb87a8a9a83ee6e04c69fc2ec8b6f27a4ef9827f1d1",
+    "shape": "template",
+    "file": "Pages/Civic/Residency.vue",
+    "line": 499,
+    "status": "source"
+  },
+  "civic_residency.you_appear_to_live_in_the_smallest_boundar": {
+    "source_hash": "6546aae2bbf6a570d4b290b24875d85df617d328099d340f9cbf8aebb30459a1",
+    "shape": "template",
+    "file": "Pages/Civic/Residency.vue",
+    "line": 573,
+    "status": "source"
+  },
+  "civic_residency.your_presence_pattern_reached_qualifying_d": {
+    "source_hash": "bad86981527fb2373d10e68d47fe123c4422046f62805e77f70a77de55206855",
+    "shape": "template",
+    "file": "Pages/Civic/Residency.vue",
+    "line": 798,
+    "status": "source"
+  },
+  "civic_residency.your_residency_claim": {
+    "source_hash": "c46a19985730606f85c0a6ea3668703a2c4b70e6cf04a37b9fefe3f8713499f8",
+    "shape": "attr:title",
+    "file": "Pages/Civic/Residency.vue",
+    "line": 513,
+    "status": "source"
+  }
+}

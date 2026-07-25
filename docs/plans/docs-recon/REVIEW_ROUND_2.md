@@ -440,6 +440,36 @@ to its abstention-leak second half · a **live defect**: the sidebar renders an 
 link to a route that does not exist (404) · two constitutional sections absent from the
 curriculum chart entirely · PI-5 does not exist anywhere.
 
+### Independent recomputation of the curriculum's heavy figures (deferred check, returned after the review)
+
+The review deliberately did not rest on the curriculum's recomputed numbers; they were sent for
+independent recomputation from the source artifacts. Result: **the structural claims hold, most
+of them exactly** — the drawio parse (1,676 cells, the 9 band headers, 205 content cells → 204
+distinct with one genuine duplicate), the 8 Unit labels verbatim, the Topic_Knowledge totals to
+the character (131,903 words), the 9:27:35 runtime, and — impressively — **Article I's 24 chart
+lessons are word-for-word identical and in order to the Template's 24 clause titles**, with all
+six claimed coverage gaps structurally confirmed.
+
+Real defects found, for lane 15 to fold in:
+- **`config/cga/surfaces.php` has 70 records, not 69** (the `system` module is 6, not 5) — and
+  **4 records are missing the `workflows`/`clocks` keys entirely**, so "each with 8 keys" is
+  false. The 71 WF-codes are right but tied to the wrong denominator.
+- Two "zero matches" claims are false on literal search (the substantive conclusion survives —
+  every hit is a homonym: "Full Faith and **Credit**", "All **Points** Matter", "E**xp**ansive").
+- The "62 percentage labels" and "61,036-word constitutional subset" figures **could not be
+  reproduced** by any measure tried; likewise the doc's own "549 labels" is unsourceable
+  (nearest candidates 543/547/555). Drop or re-derive.
+- Bookkeeping: **4 of the 108 canonical forms are never referenced in any surface record** —
+  `F-LEG-029`, `F-LEG-030`, `F-SOC-003`, `F-SOC-004`.
+
+**⚠ Severity correction to a finding this desk relayed:** the "sidebar renders an *enabled* link
+to a 404" defect is real and mechanically exact, but it is **not live on the app's primary
+surfaces**. The legacy `AppShell`+`nav.js` sidebar is the fallback layout for only ~5 of 88
+pages; 66 pages opt into `AppShellV2`, whose nav hardcodes `href: null` for learn, and the Setup
+pages force minimal chrome. In practice it is reachable at the public `/operator/operations`
+route and on four `local`-only dev-kit pages. Still worth fixing — but it is not the
+front-of-house defect the earlier report implied.
+
 ### ⚑ CONFIRMED LIVE: the §5 lint defect has propagated into lane 12's publish gate
 
 Predicted in finding 1 above; now real. Lane 12 imported `K2_FACTION_CORRECTION.md` §5 verbatim

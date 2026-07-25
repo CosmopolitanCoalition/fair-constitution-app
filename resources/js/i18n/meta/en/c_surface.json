@@ -1,0 +1,37 @@
+{
+  "surface_aboutsurface.about_this_surface": {
+    "source_hash": "5dc97440f8e526096d95267b32ee23bc97deb7e6d7d7cb76008ac46f4c23faca",
+    "shape": "prop-default",
+    "file": "Components/Surface/AboutSurface.vue",
+    "line": 12,
+    "status": "source"
+  },
+  "surface_formcard.available_to": {
+    "source_hash": "929f9dec425ffff1986d1728baa115eb67cb15661579985b2dcd72adc15c22d4",
+    "shape": "template",
+    "file": "Components/Surface/FormCard.vue",
+    "line": 69,
+    "status": "source"
+  },
+  "surface_formcard.submitting": {
+    "source_hash": "49195f559e4a9f5b08de63a11b91827883385c819ddd46b0d6f0ec9df8b5e4b0",
+    "shape": "prop-default",
+    "file": "Components/Surface/FormCard.vue",
+    "line": 32,
+    "status": "source"
+  },
+  "surface_pagescaffold.canonical_forms": {
+    "source_hash": "6cd41c1f37f807d9570a4ca4cc412b63c218c6ae336a571cc8a1fad04e1e81e9",
+    "shape": "template",
+    "file": "Components/Surface/PageScaffold.vue",
+    "line": 67,
+    "status": "source"
+  },
+  "surface_pagescaffold.workflows": {
+    "source_hash": "c6d3f64f2f8674803c1a43984fea47bc81f12234780558248274c37f0f4a321c",
+    "shape": "template",
+    "file": "Components/Surface/PageScaffold.vue",
+    "line": 61,
+    "status": "source"
+  }
+}

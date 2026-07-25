@@ -1,0 +1,16 @@
+{
+  "invite_invitebutton.invite_a_friend": {
+    "source_hash": "1efe5a1a01e29ccb7ad4ca865dcc15844e95b05d62594d21b41e1b758376c82f",
+    "shape": "prop-default",
+    "file": "Components/Invite/InviteButton.vue",
+    "line": 14,
+    "status": "source"
+  },
+  "invite_invitebutton.join_me": {
+    "source_hash": "17d5cbf080cfef8e1ed10b40f8c4cd75f3c0376cc739e487a7dd606f464a125b",
+    "shape": "script:title",
+    "file": "Components/Invite/InviteButton.vue",
+    "line": 51,
+    "status": "source"
+  }
+}

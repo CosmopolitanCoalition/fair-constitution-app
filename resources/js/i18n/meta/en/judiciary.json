@@ -1,0 +1,1381 @@
+{
+  "judiciary_advocateconsole.a_short_label_for_this_filing": {
+    "source_hash": "e9c870a31f8532611d5ebedb3c496e4ed8eaaa02cbcccfa1a0e4b4984a287ca7",
+    "shape": "attr:placeholder",
+    "file": "Pages/Judiciary/AdvocateConsole.vue",
+    "line": 295,
+    "status": "source"
+  },
+  "judiciary_advocateconsole.accepted_docketed": {
+    "source_hash": "f17385d9650b51a79cb83d791311b6538714a2a02bfd77bdaa0a6480f4996d03",
+    "shape": "template",
+    "file": "Pages/Judiciary/AdvocateConsole.vue",
+    "line": 333,
+    "status": "source"
+  },
+  "judiciary_advocateconsole.advocate_registration_is_open_to_any_assoc": {
+    "source_hash": "e1b85efd1d071c47aa30fc149c58bf64512185178a2f67136115b77f56826754",
+    "shape": "template",
+    "file": "Pages/Judiciary/AdvocateConsole.vue",
+    "line": 200,
+    "status": "source"
+  },
+  "judiciary_advocateconsole.cases_you_file_on_behalf_of_clients_appear": {
+    "source_hash": "91d5437000eace6ce93b1ef6d7e430b511c74efb28855ae01531855f89e93730",
+    "shape": "template",
+    "file": "Pages/Judiciary/AdvocateConsole.vue",
+    "line": 230,
+    "status": "source"
+  },
+  "judiciary_advocateconsole.cases_you_filed_on_behalf_of_clients_via_f": {
+    "source_hash": "b58601fc33747727f409855fd4812a11949ed1565a9b1feb0edbff1a444b857e",
+    "shape": "template",
+    "file": "Pages/Judiciary/AdvocateConsole.vue",
+    "line": 209,
+    "status": "source"
+  },
+  "judiciary_advocateconsole.entity_state_machine_case_filings_attach_a": {
+    "source_hash": "509b0ac0edfa401202f0c3620e84425882e5671bd3b6c4de76d28cc700a86ad6",
+    "shape": "template",
+    "file": "Pages/Judiciary/AdvocateConsole.vue",
+    "line": 365,
+    "status": "source"
+  },
+  "judiciary_advocateconsole.filing_type": {
+    "source_hash": "6c0159ad5283da20c0d5b2b24c44fe3878a2543cfd5881e480a93141fe13d31f",
+    "shape": "attr:label",
+    "file": "Pages/Judiciary/AdvocateConsole.vue",
+    "line": 239,
+    "status": "source"
+  },
+  "judiciary_advocateconsole.granted": {
+    "source_hash": "3a0283332e471d23fbbfa3c1a50816b7aa36d678f3e19389c9b98f1eb3682655",
+    "shape": "template",
+    "file": "Pages/Judiciary/AdvocateConsole.vue",
+    "line": 156,
+    "status": "source"
+  },
+  "judiciary_advocateconsole.new_filing": {
+    "source_hash": "ff8ad47d55ce4df87349a1a2e2011a86701a14e0a7358712481fd96d62982d5a",
+    "shape": "attr:title",
+    "file": "Pages/Judiciary/AdvocateConsole.vue",
+    "line": 236,
+    "status": "source"
+  },
+  "judiciary_advocateconsole.no_judiciary_in_your_association_chain_yet": {
+    "source_hash": "aee06fc2320c63e138d09876071d7f42e7f92fcbe21d5ab85a869cb8044b506f",
+    "shape": "attr:title",
+    "file": "Pages/Judiciary/AdvocateConsole.vue",
+    "line": 200,
+    "status": "source"
+  },
+  "judiciary_advocateconsole.open_case": {
+    "source_hash": "621c5c65bef7f6ad443479cffeb1bbc2a4f6114ac6b23ee386d203b42a55d491",
+    "shape": "template",
+    "file": "Pages/Judiciary/AdvocateConsole.vue",
+    "line": 225,
+    "status": "source"
+  },
+  "judiciary_advocateconsole.panel": {
+    "source_hash": "7f2ff8f79f98e07cd47250476f78eeea949d96d3b7e156a1683a43626a83764c",
+    "shape": "template",
+    "file": "Pages/Judiciary/AdvocateConsole.vue",
+    "line": 214,
+    "status": "source"
+  },
+  "judiciary_advocateconsole.qualifications_note_optional": {
+    "source_hash": "4c00df4f61285b135f68c13be0109725065b2e06379ce3281350ef5e3ef00e71",
+    "shape": "attr:label",
+    "file": "Pages/Judiciary/AdvocateConsole.vue",
+    "line": 183,
+    "status": "source"
+  },
+  "judiciary_advocateconsole.recent_filings": {
+    "source_hash": "de02f75c1928c7a67dd692fb63dff9f0e707dc9b1da611d8a0408e0e8f802856",
+    "shape": "attr:title",
+    "file": "Pages/Judiciary/AdvocateConsole.vue",
+    "line": 324,
+    "status": "source"
+  },
+  "judiciary_advocateconsole.recorded_with_your_registration_the_bar_s_": {
+    "source_hash": "20937bdeaeb6630c37fb52f3ba7e346c7b2cb984f55f94c76c4777b560a26b96",
+    "shape": "attr:hint",
+    "file": "Pages/Judiciary/AdvocateConsole.vue",
+    "line": 184,
+    "status": "source"
+  },
+  "judiciary_advocateconsole.register_as_an_advocate_f_ind_015_to_file_": {
+    "source_hash": "6be6d2c0c0fd3c08b38ab89336d8814fa46860f21a92dcdc70ab917572c0bd06",
+    "shape": "template",
+    "file": "Pages/Judiciary/AdvocateConsole.vue",
+    "line": 316,
+    "status": "source"
+  },
+  "judiciary_advocateconsole.registered_advocate": {
+    "source_hash": "87d6b62599ad579170f46b4526f127201c69aa79510cdeb3b8a997e9e0ae4cf3",
+    "shape": "template",
+    "file": "Pages/Judiciary/AdvocateConsole.vue",
+    "line": 155,
+    "status": "source"
+  },
+  "judiciary_advocateconsole.registered_for_practice_rights_cover": {
+    "source_hash": "242a5a53052937a438edf515fb3cc7e9b901d6fbcff906880463021d52b53b16",
+    "shape": "template",
+    "file": "Pages/Judiciary/AdvocateConsole.vue",
+    "line": 160,
+    "status": "source"
+  },
+  "judiciary_advocateconsole.registration_status": {
+    "source_hash": "3aa4594c91bae9d07cc854f42aa3a351c581c878e46d4781cb7700e92f65438a",
+    "shape": "attr:title",
+    "file": "Pages/Judiciary/AdvocateConsole.vue",
+    "line": 153,
+    "status": "source"
+  },
+  "judiciary_advocateconsole.representation_is_a_constitutional_right_o": {
+    "source_hash": "f58a24a46968dffe6a60d062da4adc0bc0e2222155f31f1376e29c71b9c3b119",
+    "shape": "template",
+    "file": "Pages/Judiciary/AdvocateConsole.vue",
+    "line": 177,
+    "status": "source"
+  },
+  "judiciary_advocateconsole.submit_to_the_docket": {
+    "source_hash": "acecb682bc7ea52f240be8ddedb234d3b1562556ef0986f8bffac1e233aad55b",
+    "shape": "template",
+    "file": "Pages/Judiciary/AdvocateConsole.vue",
+    "line": 313,
+    "status": "source"
+  },
+  "judiciary_advocateconsole.what_this_filing_asks_the_court_to_do": {
+    "source_hash": "f0027d8a565e2cf37baa42ed4d5d4b2667eb0d9ce8261f9ff90226f01178b372",
+    "shape": "attr:placeholder",
+    "file": "Pages/Judiciary/AdvocateConsole.vue",
+    "line": 307,
+    "status": "source"
+  },
+  "judiciary_advocateconsole.who_you_are_filing_for": {
+    "source_hash": "9cd4820598b8c89bdd6401011cd5333f5c2e051c972d72b0693b1bfff5c30390",
+    "shape": "attr:placeholder",
+    "file": "Pages/Judiciary/AdvocateConsole.vue",
+    "line": 282,
+    "status": "source"
+  },
+  "judiciary_advocateconsole.workflows_registration_is_wf_civ_07_every_": {
+    "source_hash": "ed56bc74cfca1ce9628770f899e2af8ae3cbe453178b4d38eae72e26f08d2c02",
+    "shape": "template",
+    "file": "Pages/Judiciary/AdvocateConsole.vue",
+    "line": 361,
+    "status": "source"
+  },
+  "judiciary_advocateconsole.your_active_cases": {
+    "source_hash": "2610662974911d1f600af75ad15a1250de769b793371077627e158e0f3934428",
+    "shape": "attr:title",
+    "file": "Pages/Judiciary/AdvocateConsole.vue",
+    "line": 208,
+    "status": "source"
+  },
+  "judiciary_advocateconsole.your_client_retains_you_the_retainer_is_re": {
+    "source_hash": "c74a6e25cff099d9224cd6764aaa202b9483ea37f7b619f6c498a2afb5aa08d4",
+    "shape": "attr:hint",
+    "file": "Pages/Judiciary/AdvocateConsole.vue",
+    "line": 273,
+    "status": "source"
+  },
+  "judiciary_advocateconsole.your_docketed_filings_appear_here_the_dock": {
+    "source_hash": "29c552fe6990ccfb14d95f2c36df1faffb4a2a6131954702da7d4e5964ed6704",
+    "shape": "template",
+    "file": "Pages/Judiciary/AdvocateConsole.vue",
+    "line": 336,
+    "status": "source"
+  },
+  "judiciary_advocateconsole.your_filings_motions_evidence_and_briefs_e": {
+    "source_hash": "2f0a479fb17ea32abc1d2d28daf2d465d7255e62c03c656e32b0bc0a5c2ef80e",
+    "shape": "template",
+    "file": "Pages/Judiciary/AdvocateConsole.vue",
+    "line": 143,
+    "status": "source"
+  },
+  "judiciary_advocateconsole.your_four_instruments": {
+    "source_hash": "195e4eb08de50b4a98ebf542f1c6aeec2ebc2deec0559ca34ba9b0f90d209263",
+    "shape": "attr:title",
+    "file": "Pages/Judiciary/AdvocateConsole.vue",
+    "line": 343,
+    "status": "source"
+  },
+  "judiciary_advocateconsole.your_judiciary": {
+    "source_hash": "80992edeac95bb0bbef0ed82d63a7e1412a0f99832b379f4b0f273402b55b751",
+    "shape": "template",
+    "file": "Pages/Judiciary/AdvocateConsole.vue",
+    "line": 164,
+    "status": "source"
+  },
+  "judiciary_casedetail.access_controlled_room_for_the_panel_judge": {
+    "source_hash": "37df17d2aaa04d7fe0f21bbe22c2718ef782916b348ad55b1c716980be4bd27c",
+    "shape": "template",
+    "file": "Pages/Judiciary/CaseDetail.vue",
+    "line": 286,
+    "status": "source"
+  },
+  "judiciary_casedetail.an_arrest_warrant_must_state_the_maximum_d": {
+    "source_hash": "bdbadc1129457f1de7b445e11a510c2c13cd3cac49bca24c60bfb1a46f9a7e0e",
+    "shape": "attr:hint",
+    "file": "Pages/Judiciary/CaseDetail.vue",
+    "line": 428,
+    "status": "source"
+  },
+  "judiciary_casedetail.commentary_on_the_law_as_written_or_edited": {
+    "source_hash": "ec73e6e2700778dd1bb8f2042e0d40b0271becf490372d60abd74ce14699e4fb",
+    "shape": "template",
+    "file": "Pages/Judiciary/CaseDetail.vue",
+    "line": 472,
+    "status": "source"
+  },
+  "judiciary_casedetail.court_actions": {
+    "source_hash": "84d92390cd580ba77e4beca7ff4aa2fa86bde0b9a7f34b51c79cdf7b96004c7c",
+    "shape": "attr:title",
+    "file": "Pages/Judiciary/CaseDetail.vue",
+    "line": 338,
+    "status": "source"
+  },
+  "judiciary_casedetail.court_severity_classification": {
+    "source_hash": "b6fb8511522994e5fa4afa227ce4ef6c80ff654bea3b69ccf2912d29178580ac",
+    "shape": "attr:label",
+    "file": "Pages/Judiciary/CaseDetail.vue",
+    "line": 353,
+    "status": "source"
+  },
+  "judiciary_casedetail.criminal_outcome_carries_the_double_jeopar": {
+    "source_hash": "4b9597513b12ddcdb7fd39834f2fc37971ec3ea453059710c570a48c94014ebb",
+    "shape": "template",
+    "file": "Pages/Judiciary/CaseDetail.vue",
+    "line": 190,
+    "status": "source"
+  },
+  "judiciary_casedetail.criminal_outcome_double_jeopardy_flag_atta": {
+    "source_hash": "03e8e3ec861baa759688e66bbb5cb3d7106d060bfd7c6668ff84efc381bc63e4",
+    "shape": "attr:title",
+    "file": "Pages/Judiciary/CaseDetail.vue",
+    "line": 305,
+    "status": "source"
+  },
+  "judiciary_casedetail.every_warrant_must_establish_its_reason_ar": {
+    "source_hash": "2cd051e1a05e3c17896e8abd49ceb60c6ed16e520d8be5817c52a7675be3ef5e",
+    "shape": "attr:hint",
+    "file": "Pages/Judiciary/CaseDetail.vue",
+    "line": 436,
+    "status": "source"
+  },
+  "judiciary_casedetail.exhibits_with_admissibility_rulings": {
+    "source_hash": "0d3e90988c6a584fe25f718b55f01dc7be67bec73165a33e8b1da5b444e48e0e",
+    "shape": "attr:caption",
+    "file": "Pages/Judiciary/CaseDetail.vue",
+    "line": 244,
+    "status": "source"
+  },
+  "judiciary_casedetail.filed_by": {
+    "source_hash": "cb9efc5b2e9ec0f09eeba9c4189e85d2b76b068e93fcd6843b142a54f2b5175d",
+    "shape": "script:label",
+    "file": "Pages/Judiciary/CaseDetail.vue",
+    "line": 107,
+    "status": "source"
+  },
+  "judiciary_casedetail.full_court": {
+    "source_hash": "ecf5a6c9a9ca385d96db58049c3e7ba58800e5f015271531e1d172e7de32cd3a",
+    "shape": "template",
+    "file": "Pages/Judiciary/CaseDetail.vue",
+    "line": 183,
+    "status": "source"
+  },
+  "judiciary_casedetail.issues_only_on_a_guilty_criminal_verdict_a": {
+    "source_hash": "b0d6e1733f9811142bd04e05bdc51a610efdabf9c54c26f2baa80fccccb0e85a",
+    "shape": "template",
+    "file": "Pages/Judiciary/CaseDetail.vue",
+    "line": 404,
+    "status": "source"
+  },
+  "judiciary_casedetail.judges_chambers": {
+    "source_hash": "80c20883ad475c46efd148149ed1478a4d08816d9d79b11b40c1190c2bbf1555",
+    "shape": "attr:title",
+    "file": "Pages/Judiciary/CaseDetail.vue",
+    "line": 284,
+    "status": "source"
+  },
+  "judiciary_casedetail.jurors_alternates_drawn_at_random_from_the": {
+    "source_hash": "3c4b5777f5a02f8084b04923861e2169935859fb2d95c1dad6b9bf4e561ce7a2",
+    "shape": "template",
+    "file": "Pages/Judiciary/CaseDetail.vue",
+    "line": 259,
+    "status": "source"
+  },
+  "judiciary_casedetail.jury_pending": {
+    "source_hash": "5d82134bf76ccea8f67adf85728df8625f48839ed3a892344479320da3ed9677",
+    "shape": "attr:title",
+    "file": "Pages/Judiciary/CaseDetail.vue",
+    "line": 270,
+    "status": "source"
+  },
+  "judiciary_casedetail.jury_room": {
+    "source_hash": "253317e70910272cf8ad0b7b0c036a16d7b8ff5646c97f50807790af0f16ab42",
+    "shape": "attr:title",
+    "file": "Pages/Judiciary/CaseDetail.vue",
+    "line": 290,
+    "status": "source"
+  },
+  "judiciary_casedetail.locked_opens_at_deliberation": {
+    "source_hash": "4fbd2b479135a7e704ff4115f5aa1b0f1083bdea6212f597f5531f180156514a",
+    "shape": "template",
+    "file": "Pages/Judiciary/CaseDetail.vue",
+    "line": 291,
+    "status": "source"
+  },
+  "judiciary_casedetail.locked_panel_judges_only": {
+    "source_hash": "6746f27bb69da8e2196c8c3ff070cd11c1cc7d0ef34261ab4adc336c6fb75a7e",
+    "shape": "template",
+    "file": "Pages/Judiciary/CaseDetail.vue",
+    "line": 285,
+    "status": "source"
+  },
+  "judiciary_casedetail.major_constitutional_question": {
+    "source_hash": "ed300864843dca0f4946bc3dd5dc9b8247620ea64616678a2d9893fcd8bd268d",
+    "shape": "template",
+    "file": "Pages/Judiciary/CaseDetail.vue",
+    "line": 362,
+    "status": "source"
+  },
+  "judiciary_casedetail.max_hold_hours": {
+    "source_hash": "8cb1bf3545f01f99c38215bafb518681735ed451a08b53b48a50d4deb1b6391b",
+    "shape": "attr:label",
+    "file": "Pages/Judiciary/CaseDetail.vue",
+    "line": 427,
+    "status": "source"
+  },
+  "judiciary_casedetail.no_exhibits_on_the_evidence_docket": {
+    "source_hash": "7ebda4e70937d8714cca9c9b45a68596810d6bc3f678986f637b906d073b6355",
+    "shape": "template",
+    "file": "Pages/Judiciary/CaseDetail.vue",
+    "line": 254,
+    "status": "source"
+  },
+  "judiciary_casedetail.no_jury_a_jury_attaches_only_to_a_jury_ent": {
+    "source_hash": "a28b3b64cc3291abacdb89867eb2b8857c62c41619ca5e149756c18c14df471b",
+    "shape": "template",
+    "file": "Pages/Judiciary/CaseDetail.vue",
+    "line": 274,
+    "status": "source"
+  },
+  "judiciary_casedetail.no_pre_trial_motions_on_the_docket": {
+    "source_hash": "aedbeb64b5d25dbd44c6a36abef4202e5f51ddf944f6f4b983c5e7ad836fe0d7",
+    "shape": "template",
+    "file": "Pages/Judiciary/CaseDetail.vue",
+    "line": 235,
+    "status": "source"
+  },
+  "judiciary_casedetail.on_a_guilty_verdict_the_panel_issues_a_sen": {
+    "source_hash": "eb2a7a4d0af0100d74d1a550f3ed0196e75dd995e3f7c5a0f275701aa9e638ff",
+    "shape": "template",
+    "file": "Pages/Judiciary/CaseDetail.vue",
+    "line": 310,
+    "status": "source"
+  },
+  "judiciary_casedetail.opinion_body": {
+    "source_hash": "d0dbb96e0eb2863a63a3a5b52e1e3349d5b44d5223645c6326c68bc9e1b469ba",
+    "shape": "attr:label",
+    "file": "Pages/Judiciary/CaseDetail.vue",
+    "line": 467,
+    "status": "source"
+  },
+  "judiciary_casedetail.opinion_kind": {
+    "source_hash": "2432b8163a95e70b0c895296c5936efa3fcc24030a74457b68ef7f1afda400ca",
+    "shape": "attr:label",
+    "file": "Pages/Judiciary/CaseDetail.vue",
+    "line": 452,
+    "status": "source"
+  },
+  "judiciary_casedetail.opinion_linked_as_commentary_art_iv_4_5": {
+    "source_hash": "5d04618a0f09e8ce9705ac2b60a3b08992af8e9dddcc8f3531e2c0e7a4226d40",
+    "shape": "template",
+    "file": "Pages/Judiciary/CaseDetail.vue",
+    "line": 325,
+    "status": "source"
+  },
+  "judiciary_casedetail.panel_jury": {
+    "source_hash": "24756ef0a320d05f177bce76c3374e3bcde4f9f12605ed999f332a7991fa9660",
+    "shape": "template",
+    "file": "Pages/Judiciary/CaseDetail.vue",
+    "line": 184,
+    "status": "source"
+  },
+  "judiciary_casedetail.panel_pending": {
+    "source_hash": "5843f5d6ddeeb9e124765cd0611c43ebcb4c74d732b6543758dc2b06abceee7c",
+    "shape": "attr:title",
+    "file": "Pages/Judiciary/CaseDetail.vue",
+    "line": 213,
+    "status": "source"
+  },
+  "judiciary_casedetail.pre_trial_motions_and_rulings": {
+    "source_hash": "d707ed48274e00022b0bc63c4df97388b846fe182bc74ed0096c482bd3e06e46",
+    "shape": "attr:caption",
+    "file": "Pages/Judiciary/CaseDetail.vue",
+    "line": 225,
+    "status": "source"
+  },
+  "judiciary_casedetail.random_draw_complete_voir_dire_under_way": {
+    "source_hash": "3ed981914636cdcdd56069fcb078132594ff87c615f51c16a656b0d58d0c3619",
+    "shape": "attr:title",
+    "file": "Pages/Judiciary/CaseDetail.vue",
+    "line": 263,
+    "status": "source"
+  },
+  "judiciary_casedetail.see_how_a_finding_changes_the_law_the_art_": {
+    "source_hash": "69cf5de924c8f3c3fc18c978eb149b886a146b36e4bb8fac883688ba0753b9d4",
+    "shape": "template",
+    "file": "Pages/Judiciary/CaseDetail.vue",
+    "line": 328,
+    "status": "source"
+  },
+  "judiciary_casedetail.see_this_stage_as_a_summoned_juror": {
+    "source_hash": "6332e4833608b8f61c481bd81c128878d4e3d4c6d7ae823c449ad15513782a1b",
+    "shape": "template",
+    "file": "Pages/Judiciary/CaseDetail.vue",
+    "line": 276,
+    "status": "source"
+  },
+  "judiciary_casedetail.sentence_terms": {
+    "source_hash": "086ba61b8280fc2744a4a402aaddef99393c018e8cfd33e1142da59a9a0e5ddd",
+    "shape": "attr:label",
+    "file": "Pages/Judiciary/CaseDetail.vue",
+    "line": 399,
+    "status": "source"
+  },
+  "judiciary_casedetail.separate_deliberation_preserves_the_indepe": {
+    "source_hash": "71825abad1a287d905c88cc65eb4fd1821ac194be8327281ae0224c09219852a",
+    "shape": "template",
+    "file": "Pages/Judiciary/CaseDetail.vue",
+    "line": 298,
+    "status": "source"
+  },
+  "judiciary_casedetail.stated_reason": {
+    "source_hash": "2c3770ad43dec6d358deb1cd668177f5a62229458fdddeb91e242d119130faa2",
+    "shape": "attr:label",
+    "file": "Pages/Judiciary/CaseDetail.vue",
+    "line": 436,
+    "status": "source"
+  },
+  "judiciary_casedetail.submitted_by": {
+    "source_hash": "1c84cbb4698b4c1128e8849e1f6c1b28e9a311373020898defd413388f118d91",
+    "shape": "script:label",
+    "file": "Pages/Judiciary/CaseDetail.vue",
+    "line": 112,
+    "status": "source"
+  },
+  "judiciary_casedetail.the_bench_is_seated_when_the_court_accepts": {
+    "source_hash": "509fd36adce522a18c6a60c65fc2d363bd5f089a31da5e1bc75b45e0106c75c6",
+    "shape": "template",
+    "file": "Pages/Judiciary/CaseDetail.vue",
+    "line": 213,
+    "status": "source"
+  },
+  "judiciary_casedetail.the_case_lifecycle_is_wf_jud_03_jury_panel": {
+    "source_hash": "601f68a39564fea011bf551b4fe9a5600178d2bc7b56712fb0e5370c9cb2bba1",
+    "shape": "template",
+    "file": "Pages/Judiciary/CaseDetail.vue",
+    "line": 478,
+    "status": "source"
+  },
+  "judiciary_casedetail.the_court_action_was_rejected": {
+    "source_hash": "94ec99c7552181001cc7ce372ab263ada5d8c0861492433bae68fa4ffc8b9f0f",
+    "shape": "attr:title",
+    "file": "Pages/Judiciary/CaseDetail.vue",
+    "line": 172,
+    "status": "source"
+  },
+  "judiciary_casedetail.the_court_advances_the_append_only_record_": {
+    "source_hash": "e4b19ced8500e262f7106333e7885bfb7006fa136261a8699f299285eca8a09f",
+    "shape": "template",
+    "file": "Pages/Judiciary/CaseDetail.vue",
+    "line": 339,
+    "status": "source"
+  },
+  "judiciary_casedetail.the_court_s_classification_drives_the_pane": {
+    "source_hash": "4eed10842a55ff505e09271112305e9e301f68fa3472680246e5f767dd79a717",
+    "shape": "attr:hint",
+    "file": "Pages/Judiciary/CaseDetail.vue",
+    "line": 354,
+    "status": "source"
+  },
+  "judiciary_casedetail.the_jury_deliberates_separately_no_judges_": {
+    "source_hash": "d7bffa06ac2fe3417289ee66ec2f39e45b71479f47d3ea797755b1c36cc5db92",
+    "shape": "template",
+    "file": "Pages/Judiciary/CaseDetail.vue",
+    "line": 292,
+    "status": "source"
+  },
+  "judiciary_casedetail.the_panel_publishes_its_opinion_to_the_pub": {
+    "source_hash": "12f956ff814b8e433ffebbaec7e5cb9525ed62212ec7446df615a139cd77c28c",
+    "shape": "template",
+    "file": "Pages/Judiciary/CaseDetail.vue",
+    "line": 319,
+    "status": "source"
+  },
+  "judiciary_casedetail.the_public_record_of_one_case_before_the_c": {
+    "source_hash": "8fa3b1005a985871816b5fc6b6f310adb8eedcd4f14052f1938d4ecc6aa37969",
+    "shape": "template",
+    "file": "Pages/Judiciary/CaseDetail.vue",
+    "line": 166,
+    "status": "source"
+  },
+  "judiciary_casedetail.the_selection_seed_publishes_to_the_audit_": {
+    "source_hash": "8028ae2990d7ff225f1b1dd6eda9ff686d7bb170fc657cc799e8764c3dc7bad8",
+    "shape": "template",
+    "file": "Pages/Judiciary/CaseDetail.vue",
+    "line": 388,
+    "status": "source"
+  },
+  "judiciary_casedetail.this_criminal_case_is_jury_entitled_the_ju": {
+    "source_hash": "e2f77552d46bff3fb8524c218a0d1c5128fbb5a625de926dd95ea6702cbf1406",
+    "shape": "template",
+    "file": "Pages/Judiciary/CaseDetail.vue",
+    "line": 270,
+    "status": "source"
+  },
+  "judiciary_casedetail.warrant_kind": {
+    "source_hash": "2b2032bdbdfe1f9d7269fb1bea4760466fe2cbc4362a227a25d929b915edab93",
+    "shape": "attr:label",
+    "file": "Pages/Judiciary/CaseDetail.vue",
+    "line": 416,
+    "status": "source"
+  },
+  "judiciary_casedetail.whichever_way_the_verdict_falls_the_outcom": {
+    "source_hash": "219065dfc135a76a038118a0e21f2cc039d649d23252f6842421ea9f8757eff8",
+    "shape": "template",
+    "file": "Pages/Judiciary/CaseDetail.vue",
+    "line": 305,
+    "status": "source"
+  },
+  "judiciary_casedocket.available_to": {
+    "source_hash": "c2032f714710c9ade79b17815a83a509d6d48cdcee33a990217d5f37ebc91265",
+    "shape": "template",
+    "file": "Pages/Judiciary/CaseDocket.vue",
+    "line": 352,
+    "status": "source"
+  },
+  "judiciary_casedocket.available_to_2": {
+    "source_hash": "05b82380851db623f29fcc8cf28b80a2c5272574c8293a08fa5d1dba64764ffc",
+    "shape": "template",
+    "file": "Pages/Judiciary/CaseDocket.vue",
+    "line": 364,
+    "status": "source"
+  },
+  "judiciary_casedocket.case_kind": {
+    "source_hash": "bea1e0d9213038d75b78a3b5b910612803af191cd23ebab928de6720f01a9a08",
+    "shape": "attr:label",
+    "file": "Pages/Judiciary/CaseDocket.vue",
+    "line": 257,
+    "status": "source"
+  },
+  "judiciary_casedocket.case_title": {
+    "source_hash": "43f8dd75419b0456aa81e2d1fe312d3d0e13fdb5c3b023b97abe532be1a991f3",
+    "shape": "attr:label",
+    "file": "Pages/Judiciary/CaseDocket.vue",
+    "line": 289,
+    "status": "source"
+  },
+  "judiciary_casedocket.cases_on_this_docket": {
+    "source_hash": "e83d8f202dd433cbb91f831e54a32903c601046f4a8b22eaf9c94867a28a690c",
+    "shape": "attr:title",
+    "file": "Pages/Judiciary/CaseDocket.vue",
+    "line": 182,
+    "status": "source"
+  },
+  "judiciary_casedocket.civil_criminal_case_filing_f_ind_017_f_jdg": {
+    "source_hash": "0d6b783f93aec895c3c6eda2f4043db7cfa57aa7b203eebf252330c5537f0753",
+    "shape": "template",
+    "file": "Pages/Judiciary/CaseDocket.vue",
+    "line": 316,
+    "status": "source"
+  },
+  "judiciary_casedocket.claimed_scale": {
+    "source_hash": "b292c37f190ee0b9c0644df9bc21b2eb4744fb42093b29211931b61e21a6f66e",
+    "shape": "attr:label",
+    "file": "Pages/Judiciary/CaseDocket.vue",
+    "line": 266,
+    "status": "source"
+  },
+  "judiciary_casedocket.claimed_severity": {
+    "source_hash": "7817b88c669e921c29a308aba867d69bc0730c9c7aa06f298e8bff78ee4df1a7",
+    "shape": "attr:label",
+    "file": "Pages/Judiciary/CaseDocket.vue",
+    "line": 278,
+    "status": "source"
+  },
+  "judiciary_casedocket.clear_filters": {
+    "source_hash": "7179ea0035fca783ec62b7185659b68c75f2a7c12b909306a57183dc9b3fa44b",
+    "shape": "template",
+    "file": "Pages/Judiciary/CaseDocket.vue",
+    "line": 201,
+    "status": "source"
+  },
+  "judiciary_casedocket.confirm_residency_to_file": {
+    "source_hash": "c9c687070ab2537cfe2f111cc4db0f3ea458946464bcb8325f7172731db27c29",
+    "shape": "attr:title",
+    "file": "Pages/Judiciary/CaseDocket.vue",
+    "line": 326,
+    "status": "source"
+  },
+  "judiciary_casedocket.conflict_screening_before_a_panel_is_fixed": {
+    "source_hash": "e50c3067a1e85d657806f06bb7beb752f33cc32e6a76589236d6ef3f1090fa42",
+    "shape": "template",
+    "file": "Pages/Judiciary/CaseDocket.vue",
+    "line": 369,
+    "status": "source"
+  },
+  "judiciary_casedocket.e_g_okafor_v_crown_ridge_llc": {
+    "source_hash": "b0c499165c3151ad4708857682bde00eb3c40121c61bc0693dd3322515df459e",
+    "shape": "attr:placeholder",
+    "file": "Pages/Judiciary/CaseDocket.vue",
+    "line": 295,
+    "status": "source"
+  },
+  "judiciary_casedocket.every_case_filed_in_this_court_from_local_": {
+    "source_hash": "cc2f318c66c40df691bc9890ad64338a80624427cab9d90ebbb9f1425439b53e",
+    "shape": "template",
+    "file": "Pages/Judiciary/CaseDocket.vue",
+    "line": 148,
+    "status": "source"
+  },
+  "judiciary_casedocket.file_a_case": {
+    "source_hash": "f0b4e6594e8ae068006f73684d529139c9cddeb10a4ebb319098f344084c2548",
+    "shape": "attr:title",
+    "file": "Pages/Judiciary/CaseDocket.vue",
+    "line": 325,
+    "status": "source"
+  },
+  "judiciary_casedocket.filing_states_a_claimed_scale_which_jurisd": {
+    "source_hash": "24941620d3e6b6b14e93afb3bfdc605660eb45f6f19f60446bdb9da70f2375f8",
+    "shape": "template",
+    "file": "Pages/Judiciary/CaseDocket.vue",
+    "line": 249,
+    "status": "source"
+  },
+  "judiciary_casedocket.filter_cases": {
+    "source_hash": "9fec841b1fe797b3e1ba2cf4ad85abd16e11cdf2a3706362bf80034cee2eb256",
+    "shape": "attr:label",
+    "file": "Pages/Judiciary/CaseDocket.vue",
+    "line": 183,
+    "status": "source"
+  },
+  "judiciary_casedocket.judiciary_home_constitutional_challenges": {
+    "source_hash": "85dcf2d6764928d07da4bb9b28a5a64a09cfec679b7407c3dcbfa2c769e7b9d3",
+    "shape": "template",
+    "file": "Pages/Judiciary/CaseDocket.vue",
+    "line": 161,
+    "status": "source"
+  },
+  "judiciary_casedocket.no_cases_match_the_current_filters": {
+    "source_hash": "8844d0d4c3d055bcb603aafda7999371df2ad12620c4aa49d35cd46ff416e336",
+    "shape": "template",
+    "file": "Pages/Judiciary/CaseDocket.vue",
+    "line": 233,
+    "status": "source"
+  },
+  "judiciary_casedocket.no_cases_on_this_docket_anyone_jurisdictio": {
+    "source_hash": "a63a06e298fa06ac0a5cc83a1e722d167d4b1ce74946d0d3d5b49b45abbd0030",
+    "shape": "template",
+    "file": "Pages/Judiciary/CaseDocket.vue",
+    "line": 234,
+    "status": "source"
+  },
+  "judiciary_casedocket.of_cases_shown": {
+    "source_hash": "1331a8eb87d694e9739dafa1f294f6bd130032877a396695e7004da9bf45f832",
+    "shape": "template",
+    "file": "Pages/Judiciary/CaseDocket.vue",
+    "line": 204,
+    "status": "source"
+  },
+  "judiciary_casedocket.open_cases": {
+    "source_hash": "575f540cf90675574bb4e1f2dfcba67d41c25c0f0d34245cc6eff3e9c57c7afe",
+    "shape": "attr:title",
+    "file": "Pages/Judiciary/CaseDocket.vue",
+    "line": 167,
+    "status": "source"
+  },
+  "judiciary_casedocket.open_cases_with_kind_court_panel_severity_": {
+    "source_hash": "ec4a3794835930ce436e1ed0604618225ed344d58a00070a402dc57fd98c4a86",
+    "shape": "attr:caption",
+    "file": "Pages/Judiciary/CaseDocket.vue",
+    "line": 213,
+    "status": "source"
+  },
+  "judiciary_casedocket.other_ways_cases_arrive": {
+    "source_hash": "14a4c5dcec49d96265fbb05e5451a0e44b6816be0387ada8e9a0bfc9b7b3c093",
+    "shape": "attr:title",
+    "file": "Pages/Judiciary/CaseDocket.vue",
+    "line": 337,
+    "status": "source"
+  },
+  "judiciary_casedocket.panel_assignment_with_conflict_screening_f": {
+    "source_hash": "6a1a90aa1c94a520dcea23f87bc113e1ab771cd581359bfe5eb190df536a8655",
+    "shape": "template",
+    "file": "Pages/Judiciary/CaseDocket.vue",
+    "line": 376,
+    "status": "source"
+  },
+  "judiciary_casedocket.panels_of_at_least_3_odd_scaled_to_severit": {
+    "source_hash": "92dc68aa7728a29f39f9e09a93cb132a4d8700cfcd837df148ac08abcffdee6b",
+    "shape": "template",
+    "file": "Pages/Judiciary/CaseDocket.vue",
+    "line": 175,
+    "status": "source"
+  },
+  "judiciary_casedocket.reference_cards_the_filing_instruments_tha": {
+    "source_hash": "71436ffe5d2ae81ac6d77f31522f0f4a6f509abd1edca2a3b08a6236e102ecb7",
+    "shape": "template",
+    "file": "Pages/Judiciary/CaseDocket.vue",
+    "line": 338,
+    "status": "source"
+  },
+  "judiciary_casedocket.search_cases": {
+    "source_hash": "22c2a4061665d165ca1ac59267361ba389d728a028dfb07cd577d78c21253ab4",
+    "shape": "template",
+    "file": "Pages/Judiciary/CaseDocket.vue",
+    "line": 192,
+    "status": "source"
+  },
+  "judiciary_casedocket.statement_of_claim": {
+    "source_hash": "612e7c6a3176df9c2a5bd54268cd82f0f2b3871cddc7732715edec05d71c5b02",
+    "shape": "attr:label",
+    "file": "Pages/Judiciary/CaseDocket.vue",
+    "line": 303,
+    "status": "source"
+  },
+  "judiciary_casedocket.the_case_lifecycle_wf_jud_03_carries_every": {
+    "source_hash": "b4f9d6cc56cb43b503059d956377bb810a76a5a8fae7d215d42d209dc29e27be",
+    "shape": "template",
+    "file": "Pages/Judiciary/CaseDocket.vue",
+    "line": 387,
+    "status": "source"
+  },
+  "judiciary_casedocket.the_court_reclassifies_severity_at_accepta": {
+    "source_hash": "a5149c266635a81f4704a88a9b29d055278af63498fcc68eee8ec9dc6c2ab388",
+    "shape": "attr:hint",
+    "file": "Pages/Judiciary/CaseDocket.vue",
+    "line": 279,
+    "status": "source"
+  },
+  "judiciary_casedocket.the_docket_is_public_to_read_filing_a_case": {
+    "source_hash": "adc1494ddb061c535640a16099be27feba8293ad8eb10a8ed1e2d4b3783b25e6",
+    "shape": "template",
+    "file": "Pages/Judiciary/CaseDocket.vue",
+    "line": 326,
+    "status": "source"
+  },
+  "judiciary_casedocket.the_filing_was_not_accepted": {
+    "source_hash": "4fe8eeef097964791ca06bd186cb4ac7d9b075ee88aa3ff2b3641cc6fcd62ad7",
+    "shape": "attr:title",
+    "file": "Pages/Judiciary/CaseDocket.vue",
+    "line": 155,
+    "status": "source"
+  },
+  "judiciary_casedocket.the_jurisdiction_whose_law_the_case_arises": {
+    "source_hash": "8c0044d37e133235deff0b26af51d3fda0f2cd94ad639f2bb1212646d7324d13",
+    "shape": "attr:hint",
+    "file": "Pages/Judiciary/CaseDocket.vue",
+    "line": 267,
+    "status": "source"
+  },
+  "judiciary_casedocket.walk_a_case_through_the_full_lifecycle": {
+    "source_hash": "7d9c35f3f17de7fe4d4786694e30638f287fd279b22a923b01a3fd4b406b58b0",
+    "shape": "template",
+    "file": "Pages/Judiciary/CaseDocket.vue",
+    "line": 378,
+    "status": "source"
+  },
+  "judiciary_casedocket.what_happened_and_what_remedy_you_seek": {
+    "source_hash": "57ee2f54b27e51b1b4092c869f2127488e4e5175ffff652387df234c89f72cf2",
+    "shape": "attr:placeholder",
+    "file": "Pages/Judiciary/CaseDocket.vue",
+    "line": 310,
+    "status": "source"
+  },
+  "judiciary_casedocket.what_the_court_does_next": {
+    "source_hash": "366d2037c202390f3c3314fda0afe63b7961ab515fbca5c8f9fd28c324b7e056",
+    "shape": "attr:title",
+    "file": "Pages/Judiciary/CaseDocket.vue",
+    "line": 357,
+    "status": "source"
+  },
+  "judiciary_constitutionalchallenge.any_inhabitant_can_challenge_a_law_that_un": {
+    "source_hash": "e4ba1d46f9cf8001188f84765fbeab090c9afe3fdc7e985373298819fe5fe0fe",
+    "shape": "template",
+    "file": "Pages/Judiciary/ConstitutionalChallenge.vue",
+    "line": 74,
+    "status": "source"
+  },
+  "judiciary_constitutionalchallenge.any_inhabitant_may_file_no_standing_gateke": {
+    "source_hash": "d938faa1fa8cb6e82a6a8230445a1400af7657be6bf67735158edfec02378d87",
+    "shape": "template",
+    "file": "Pages/Judiciary/ConstitutionalChallenge.vue",
+    "line": 108,
+    "status": "source"
+  },
+  "judiciary_constitutionalchallenge.asserted_contradiction": {
+    "source_hash": "5da8cb941ab2c55dc9ce423aabf0e361481ed18fb251564fd88596e50dc4ecec",
+    "shape": "attr:label",
+    "file": "Pages/Judiciary/ConstitutionalChallenge.vue",
+    "line": 145,
+    "status": "source"
+  },
+  "judiciary_constitutionalchallenge.confirm_a_residency_to_file_a_challenge": {
+    "source_hash": "a249a6ed3d8c9818fca34ced667d65fd738474ef8befa7b757cfc3dc56b91d85",
+    "shape": "attr:title",
+    "file": "Pages/Judiciary/ConstitutionalChallenge.vue",
+    "line": 206,
+    "status": "source"
+  },
+  "judiciary_constitutionalchallenge.constitutional_challenge_tracker": {
+    "source_hash": "c10921f531200a6569974f7a3c115c831d85e588be7abbc14d6b43fc9bac046b",
+    "shape": "attr:title",
+    "file": "Pages/Judiciary/ConstitutionalChallenge.vue",
+    "line": 73,
+    "status": "source"
+  },
+  "judiciary_constitutionalchallenge.constitutional_citation_optional": {
+    "source_hash": "0960384bdf051d6f146c53fd7dab14c9a864179f095497da22067dd6c1a69433",
+    "shape": "attr:label",
+    "file": "Pages/Judiciary/ConstitutionalChallenge.vue",
+    "line": 180,
+    "status": "source"
+  },
+  "judiciary_constitutionalchallenge.how_the_law_impedes_your_rights": {
+    "source_hash": "ce8605b8afaf52b434793843f4eb1728cd38b7b4331b6f7dff4fcac5abbb210f",
+    "shape": "attr:label",
+    "file": "Pages/Judiciary/ConstitutionalChallenge.vue",
+    "line": 163,
+    "status": "source"
+  },
+  "judiciary_constitutionalchallenge.jurisdiction_you_file_in": {
+    "source_hash": "3c92774564f911a3ea6c0b25cda2abf29b00f704a6ab3f48a558ec943ca404bf",
+    "shape": "attr:label",
+    "file": "Pages/Judiciary/ConstitutionalChallenge.vue",
+    "line": 131,
+    "status": "source"
+  },
+  "judiciary_constitutionalchallenge.law_challenged": {
+    "source_hash": "e479fb3229c172ef2dbb597ec1389114e423d09da12f65929fa9dfe382e8af65",
+    "shape": "attr:label",
+    "file": "Pages/Judiciary/ConstitutionalChallenge.vue",
+    "line": 113,
+    "status": "source"
+  },
+  "judiciary_constitutionalchallenge.no_fee_no_eligibility_ground_no_standing_g": {
+    "source_hash": "232ace1c556d41cacdae1a51f684aa52a05aa5ca4a05a48942abbb821ccf0abc",
+    "shape": "template",
+    "file": "Pages/Judiciary/ConstitutionalChallenge.vue",
+    "line": 194,
+    "status": "source"
+  },
+  "judiciary_constitutionalchallenge.reading_is_open_to_everyone_findings_remed": {
+    "source_hash": "842a115ea103899418c0b8360ed871f6b8aa0206d2105969c901ae15c84bc19f",
+    "shape": "template",
+    "file": "Pages/Judiciary/ConstitutionalChallenge.vue",
+    "line": 202,
+    "status": "source"
+  },
+  "judiciary_constitutionalchallenge.select_a_basis": {
+    "source_hash": "9f9432c3c254d88c3dcba570911c2ac8aea7114e8ea618e9bafee0b228f74541",
+    "shape": "template",
+    "file": "Pages/Judiciary/ConstitutionalChallenge.vue",
+    "line": 154,
+    "status": "source"
+  },
+  "judiciary_constitutionalchallenge.select_an_in_force_or_amended_law": {
+    "source_hash": "7138c65698c32805598106a50e068a2e49c531faf7dc87cd01d234b44ea67b94",
+    "shape": "template",
+    "file": "Pages/Judiciary/ConstitutionalChallenge.vue",
+    "line": 122,
+    "status": "source"
+  },
+  "judiciary_constitutionalchallenge.the_article_section_the_law_contradicts_if": {
+    "source_hash": "a246c7567addcd7c62bc18e69311581bea657117fe6a3eee5f48083a384245cc",
+    "shape": "attr:hint",
+    "file": "Pages/Judiciary/ConstitutionalChallenge.vue",
+    "line": 181,
+    "status": "source"
+  },
+  "judiciary_constitutionalchallenge.the_challenge_is_its_own_durable_entity_di": {
+    "source_hash": "1143102e2d4443013ad65fd0edd19e95932ac8835b8177cc938880cc76ad8570",
+    "shape": "template",
+    "file": "Pages/Judiciary/ConstitutionalChallenge.vue",
+    "line": 220,
+    "status": "source"
+  },
+  "judiciary_constitutionalchallenge.the_challenge_was_not_filed": {
+    "source_hash": "14271e4b71aac591dac0633409c3d5a3c2118ddd29d60de06eb3f798a0629a94",
+    "shape": "attr:title",
+    "file": "Pages/Judiciary/ConstitutionalChallenge.vue",
+    "line": 83,
+    "status": "source"
+  },
+  "judiciary_constitutionalchallenge.the_court_reads_this_there_is_no_merits_te": {
+    "source_hash": "f24e535ea0e250459f90cba17be2c111f3f31ab9b2ef65d7025c9a4cff50dcfb",
+    "shape": "attr:hint",
+    "file": "Pages/Judiciary/ConstitutionalChallenge.vue",
+    "line": 164,
+    "status": "source"
+  },
+  "judiciary_constitutionalchallenge.the_law_s_binding_jurisdiction_default": {
+    "source_hash": "ade98c1e25140b21020063c19df819fd6590f70e7d3d173b042294d6834664c9",
+    "shape": "template",
+    "file": "Pages/Judiciary/ConstitutionalChallenge.vue",
+    "line": 137,
+    "status": "source"
+  },
+  "judiciary_constitutionalchallenge.the_law_s_binding_jurisdiction_or_a_descen": {
+    "source_hash": "afcaec069de2d779358d34a504ff405991b336832128ff41e885d01465ccc9a8",
+    "shape": "attr:hint",
+    "file": "Pages/Judiciary/ConstitutionalChallenge.vue",
+    "line": 132,
+    "status": "source"
+  },
+  "judiciary_constitutionalchallenge.workflows_constitutional_challenge_law_rem": {
+    "source_hash": "6c187d210bcc1b885be33ee022f5715c39a925be43fab66b7413be4baec046db",
+    "shape": "template",
+    "file": "Pages/Judiciary/ConstitutionalChallenge.vue",
+    "line": 215,
+    "status": "source"
+  },
+  "judiciary_home.an_independent_court_serving_this_jurisdic": {
+    "source_hash": "c9d7c961bc0fdad2689d67e50d75c3abbfa8586f2076e15a4c66ccf1a33b7542",
+    "shape": "template",
+    "file": "Pages/Judiciary/Home.vue",
+    "line": 119,
+    "status": "source"
+  },
+  "judiciary_home.appointed_judges_hold_a_year_term_converte": {
+    "source_hash": "2c00c7e4708888c18859d72136404827ee0c1d43190579e07c269ac71bafadee",
+    "shape": "template",
+    "file": "Pages/Judiciary/Home.vue",
+    "line": 371,
+    "status": "source"
+  },
+  "judiciary_home.case_docket_constitutional_challenges": {
+    "source_hash": "7f068242602c057fa1379a90e9ccae0750de78819f39bfe928d6e33d28fc073e",
+    "shape": "template",
+    "file": "Pages/Judiciary/Home.vue",
+    "line": 131,
+    "status": "source"
+  },
+  "judiciary_home.case_severity": {
+    "source_hash": "811d76f20d5f3f40c3118c55447a4d77b946b7db28cf63ae697375247b63299a",
+    "shape": "script:label",
+    "file": "Pages/Judiciary/Home.vue",
+    "line": 111,
+    "status": "source"
+  },
+  "judiciary_home.civil_judicial_appointment_lengths_move_in": {
+    "source_hash": "fa1c80f98467474e477fc12f78be338f7384b95709d27d899733f31e3a632dfb",
+    "shape": "template",
+    "file": "Pages/Judiciary/Home.vue",
+    "line": 366,
+    "status": "source"
+  },
+  "judiciary_home.confirmation_needs_the_same_threshold_the_": {
+    "source_hash": "029a40a00593fe0d145d4fae8008f9beafafedbf13f65895245b18dde01fe7bd",
+    "shape": "template",
+    "file": "Pages/Judiciary/Home.vue",
+    "line": 268,
+    "status": "source"
+  },
+  "judiciary_home.confirmation_record_consent_votes_for_the_": {
+    "source_hash": "d8005a0e5a97c1d0fe4badb3b8e5ffd31b96e58b4b61709d79e24f5aa4ca5ffa",
+    "shape": "attr:title",
+    "file": "Pages/Judiciary/Home.vue",
+    "line": 241,
+    "status": "source"
+  },
+  "judiciary_home.consent_vote": {
+    "source_hash": "74025690f6e8e7b3194430165fa016609ed9e74b1caa87a534e4ff206082b3fc",
+    "shape": "script:label",
+    "file": "Pages/Judiciary/Home.vue",
+    "line": 105,
+    "status": "source"
+  },
+  "judiciary_home.constituent_jurisdictions_nominate_equal_n": {
+    "source_hash": "9f91fe0151c658f3497b7f5f70a057c7850aaac462ba7784f5db2345d9bbd6bd",
+    "shape": "template",
+    "file": "Pages/Judiciary/Home.vue",
+    "line": 220,
+    "status": "source"
+  },
+  "judiciary_home.conversion_adopted_on_the_chamber_supermaj": {
+    "source_hash": "da6c9ce3fa12e79cf623ee51a1be7d770b1fbc38ed08e367287eadf400443aef",
+    "shape": "attr:title",
+    "file": "Pages/Judiciary/Home.vue",
+    "line": 309,
+    "status": "source"
+  },
+  "judiciary_home.conversion_to_an_elected_judiciary": {
+    "source_hash": "baad9fe6d1f426e8ff7a50b6af7cf379218e13ac14c6bb2ac07055eb247f8e28",
+    "shape": "attr:title",
+    "file": "Pages/Judiciary/Home.vue",
+    "line": 283,
+    "status": "source"
+  },
+  "judiciary_home.converting_this_appointed_court_to_a_direc": {
+    "source_hash": "51f930858ee361bdccf0155dcfde6961a45541c9a0782bbb9b3071901b3bcdf8",
+    "shape": "template",
+    "file": "Pages/Judiciary/Home.vue",
+    "line": 284,
+    "status": "source"
+  },
+  "judiciary_home.effective_enacted": {
+    "source_hash": "f0e3ba8e6eb383ed49824a0bf1b57852e8ff986740d4ffac24bb9750e77c14bc",
+    "shape": "template",
+    "file": "Pages/Judiciary/Home.vue",
+    "line": 182,
+    "status": "source"
+  },
+  "judiciary_home.how_this_court_sits": {
+    "source_hash": "2254ae6dd4640ebd9bc3fced95bb1c8a0e32659e1b8ae1d7b67bc86914388417",
+    "shape": "attr:title",
+    "file": "Pages/Judiciary/Home.vue",
+    "line": 154,
+    "status": "source"
+  },
+  "judiciary_home.how_this_court_was_created": {
+    "source_hash": "84b3f018e3bf63d40fc4fec8780db8ba44ad8fa459342c6f8a2874bf309306a5",
+    "shape": "attr:title",
+    "file": "Pages/Judiciary/Home.vue",
+    "line": 180,
+    "status": "source"
+  },
+  "judiciary_home.introduce_a_conversion_bill_filed_by_a_mem": {
+    "source_hash": "54da931477d314c75d728f2c60c3fbfb718bbc574751e76d59c40da5c458badf",
+    "shape": "template",
+    "file": "Pages/Judiciary/Home.vue",
+    "line": 342,
+    "status": "source"
+  },
+  "judiciary_home.introduce_a_creation_bill_filed_by_a_membe": {
+    "source_hash": "56052af28e1e86f4c2c701fe739d134375ba510363ce3b6f18333185757a9924",
+    "shape": "template",
+    "file": "Pages/Judiciary/Home.vue",
+    "line": 230,
+    "status": "source"
+  },
+  "judiciary_home.judge_on_the_bench": {
+    "source_hash": "5f5c91b6937717172a62bc86898ad9f05edafbb78d5eb894035c2f99dbfdf5c8",
+    "shape": "template",
+    "file": "Pages/Judiciary/Home.vue",
+    "line": 157,
+    "status": "source"
+  },
+  "judiciary_home.judicial_nomination_consent_vote_one_per_n": {
+    "source_hash": "090bdaa3434c0ff34c48a70368517764239d462d6baae995f644f6e1337064c0",
+    "shape": "template",
+    "file": "Pages/Judiciary/Home.vue",
+    "line": 279,
+    "status": "source"
+  },
+  "judiciary_home.judicial_nomination_consent_votes_one_per_": {
+    "source_hash": "73597a1c0dbf3393722d719d927010904cd3640f0590dcb08f9b086502957b05",
+    "shape": "attr:caption",
+    "file": "Pages/Judiciary/Home.vue",
+    "line": 250,
+    "status": "source"
+  },
+  "judiciary_home.judiciary_lifecycle": {
+    "source_hash": "16257f5661a90fa386b6e33a84d389d437bc05edfde1cd0d38beab1230c94b9d",
+    "shape": "attr:title",
+    "file": "Pages/Judiciary/Home.vue",
+    "line": 382,
+    "status": "source"
+  },
+  "judiciary_home.judiciary_lifecycle_esm_18": {
+    "source_hash": "6715a4d445fdee1b7b1df54cf010a11cfbbc7e76caae92159213201087c571ba",
+    "shape": "template",
+    "file": "Pages/Judiciary/Home.vue",
+    "line": 383,
+    "status": "source"
+  },
+  "judiciary_home.no_conversion_on_record_if_conversion_pass": {
+    "source_hash": "2768ec44739f91f0a093ac129bd6be86d3b506c0226caf9378b3e08b67d2e660",
+    "shape": "template",
+    "file": "Pages/Judiciary/Home.vue",
+    "line": 337,
+    "status": "source"
+  },
+  "judiciary_home.no_creation_act_on_record_this_judiciary_i": {
+    "source_hash": "ec961488ed29adb763cb410b1d448c388f50bc3122c5fcfe4e85a0521ed25f56",
+    "shape": "template",
+    "file": "Pages/Judiciary/Home.vue",
+    "line": 225,
+    "status": "source"
+  },
+  "judiciary_home.no_direct_constituent_jurisdiction_holds_a": {
+    "source_hash": "720af9eec85346bc6038a1137d8f63587def9aef975cdd9c7b70690f848872ec",
+    "shape": "template",
+    "file": "Pages/Judiciary/Home.vue",
+    "line": 306,
+    "status": "source"
+  },
+  "judiciary_home.no_nominations_on_record_yet_once_the_crea": {
+    "source_hash": "f838fc76bf375172813ce19a942c94c7fbfdfd03e218a25a9f00d64dabdb3ebc",
+    "shape": "template",
+    "file": "Pages/Judiciary/Home.vue",
+    "line": 274,
+    "status": "source"
+  },
+  "judiciary_home.nominated_by": {
+    "source_hash": "a969e9e5255f020cf9dc0df32f0350c05a9d2e4bda82adc6db6abfc78fb60677",
+    "shape": "script:label",
+    "file": "Pages/Judiciary/Home.vue",
+    "line": 104,
+    "status": "source"
+  },
+  "judiciary_home.one_judiciary_row_per_jurisdiction_with_a_": {
+    "source_hash": "b2c39b43e4573023f6768153c61ebc00a0baadc7b3ec1516ddc93a1ad239d7b1",
+    "shape": "template",
+    "file": "Pages/Judiciary/Home.vue",
+    "line": 385,
+    "status": "source"
+  },
+  "judiciary_home.panel_size_by_case_severity": {
+    "source_hash": "1003f806b4b93564d3275d76d335904fdda0d8dc92c2a9da77da424c8c71ce60",
+    "shape": "attr:caption",
+    "file": "Pages/Judiciary/Home.vue",
+    "line": 165,
+    "status": "source"
+  },
+  "judiciary_home.panel_sizing_is_a_hard_constraint_clk_16_a": {
+    "source_hash": "a37ea9ba580a45bb5a163f1e5724a09295408175df6e47f873175d2430ee86c5",
+    "shape": "template",
+    "file": "Pages/Judiciary/Home.vue",
+    "line": 156,
+    "status": "source"
+  },
+  "judiciary_home.panels_of_at_least_3_odd_scaled_to_severit": {
+    "source_hash": "107829c2569b3636f521790591f3b8022be6d2f95d64ea1b9127ab3a659671b1",
+    "shape": "template",
+    "file": "Pages/Judiciary/Home.vue",
+    "line": 172,
+    "status": "source"
+  },
+  "judiciary_home.severity_scaling_the_heavier_the_possible_": {
+    "source_hash": "7652ee07a6c984295d22e4283776f352feb6c58b43331b1f9442ca2d9e263d74",
+    "shape": "template",
+    "file": "Pages/Judiciary/Home.vue",
+    "line": 168,
+    "status": "source"
+  },
+  "judiciary_home.supermajority_of_legislature_supermajority": {
+    "source_hash": "45cb00be46408418a0d4d482ca43304d1f2f1f3b69f30445a8ebc56cc2ef828a",
+    "shape": "template",
+    "file": "Pages/Judiciary/Home.vue",
+    "line": 350,
+    "status": "source"
+  },
+  "judiciary_home.supermajority_two_thirds_of_all_serving_me": {
+    "source_hash": "6cf078f1c932628486a7f5eb10c859d939274edda65a418c29f54339500e1578",
+    "shape": "template",
+    "file": "Pages/Judiciary/Home.vue",
+    "line": 205,
+    "status": "source"
+  },
+  "judiciary_home.term_length_judicial_appointments": {
+    "source_hash": "a98c275680845a1ffcdad5e00d33b38eee27bd97f3d538fa6833747dcbc3620a",
+    "shape": "attr:title",
+    "file": "Pages/Judiciary/Home.vue",
+    "line": 358,
+    "status": "source"
+  },
+  "judiciary_home.term_sync_on_the_chamber_page": {
+    "source_hash": "bfd4386bbf68e642c9134a368a0131289988447ae2fb81faf83eb260398c0abc",
+    "shape": "template",
+    "file": "Pages/Judiciary/Home.vue",
+    "line": 376,
+    "status": "source"
+  },
+  "judiciary_home.the_chamber_supermajority": {
+    "source_hash": "0771c32183d2a4f6921b78c296d05316ca967a455541934c23c7d3b7af3970c8",
+    "shape": "template",
+    "file": "Pages/Judiciary/Home.vue",
+    "line": 317,
+    "status": "source"
+  },
+  "judiciary_home.the_judiciary_is_created_by_supermajority_": {
+    "source_hash": "75fe676747baa06520f3ac29a3aee84e35da9c4a701270f9962eb45284fc45ae",
+    "shape": "template",
+    "file": "Pages/Judiciary/Home.vue",
+    "line": 393,
+    "status": "source"
+  },
+  "judiciary_home.the_supermajority_that_chartered_the_court": {
+    "source_hash": "bbb5c721c60f6d807204983aaea8dc942114439c6be7a808cd3e8e62741e0f65",
+    "shape": "template",
+    "file": "Pages/Judiciary/Home.vue",
+    "line": 190,
+    "status": "source"
+  },
+  "judiciary_home.this_court_s_seat_were_nominated_by_equal_": {
+    "source_hash": "484cb5ad2d91e8e8311965e3e65187a3ff1baba4081ca6b3d3005d238fb69a18",
+    "shape": "template",
+    "file": "Pages/Judiciary/Home.vue",
+    "line": 214,
+    "status": "source"
+  },
+  "judiciary_jurorview.art_ii_8_is_the_constitution_s_list_of_act": {
+    "source_hash": "8cbef160ded56f3964ca337f14015643d7324caaed78742e0bd74d2e8aa7eb94",
+    "shape": "template",
+    "file": "Pages/Judiciary/JurorView.vue",
+    "line": 240,
+    "status": "source"
+  },
+  "judiciary_jurorview.conflict_screening": {
+    "source_hash": "9fe3ed973ccc3c7053e306c144017921df886691ed81580f94a7a3cebd416542",
+    "shape": "script:label",
+    "file": "Pages/Judiciary/JurorView.vue",
+    "line": 79,
+    "status": "source"
+  },
+  "judiciary_jurorview.conflict_screening_questionnaire": {
+    "source_hash": "8b2d2274dd83c798a050176f4e35cc75993942eba294157af7ac3526e950851a",
+    "shape": "attr:title",
+    "file": "Pages/Judiciary/JurorView.vue",
+    "line": 205,
+    "status": "source"
+  },
+  "judiciary_jurorview.draw_integrity_the_random_selection_seed_i": {
+    "source_hash": "cf7e658c1ec8ac31dfcf3f2748b473b50161ee74844f619d334ca05d25f98bc1",
+    "shape": "template",
+    "file": "Pages/Judiciary/JurorView.vue",
+    "line": 150,
+    "status": "source"
+  },
+  "judiciary_jurorview.drawn": {
+    "source_hash": "8b3eea60a6c8deb16a14dbf1da5ce1910a1759166382bba0261600164c700d70",
+    "shape": "template",
+    "file": "Pages/Judiciary/JurorView.vue",
+    "line": 142,
+    "status": "source"
+  },
+  "judiciary_jurorview.enter_deliberation_room": {
+    "source_hash": "4875171f2b13e6c2ee0258414fb27128c2953c0e793df1ffd77e96e601cf7331",
+    "shape": "template",
+    "file": "Pages/Judiciary/JurorView.vue",
+    "line": 265,
+    "status": "source"
+  },
+  "judiciary_jurorview.enter_the_jury_deliberation_room": {
+    "source_hash": "7cd168d0828e5e1dbadab87f3640525f06a39bcf493b932165dabe5b2f3ef31e",
+    "shape": "bound:title",
+    "file": "Pages/Judiciary/JurorView.vue",
+    "line": 268,
+    "status": "source"
+  },
+  "judiciary_jurorview.juror_summons": {
+    "source_hash": "f9a7ea81adc73c83d3501dbdc0e3979998ab063341a8d0fe5bf9635f05c31e0f",
+    "shape": "template",
+    "file": "Pages/Judiciary/JurorView.vue",
+    "line": 120,
+    "status": "source"
+  },
+  "judiciary_jurorview.jury_deliberation_room": {
+    "source_hash": "37e920e081d47ec2df8ba3e8cf8f2b18d99c04c3e6ba87f8b498e4e9763359de",
+    "shape": "attr:title",
+    "file": "Pages/Judiciary/JurorView.vue",
+    "line": 247,
+    "status": "source"
+  },
+  "judiciary_jurorview.no_fees_ever_no_payment_fee_or_fine_can_be": {
+    "source_hash": "40a10b8f6af9e66accb4ef16ba1cc376f6fb2e65351648e737480c38c0c539e4",
+    "shape": "template",
+    "file": "Pages/Judiciary/JurorView.vue",
+    "line": 231,
+    "status": "source"
+  },
+  "judiciary_jurorview.no_interference_your_employer_cannot_penal": {
+    "source_hash": "b576784a9e61c21930ef40f292ddfd8e305b0b31a98b2d5c80cee0d75e8b381f",
+    "shape": "template",
+    "file": "Pages/Judiciary/JurorView.vue",
+    "line": 223,
+    "status": "source"
+  },
+  "judiciary_jurorview.pool": {
+    "source_hash": "644e9aa06419c261b79b57714a5f25887bab1c8a73a130d01a162094e473268d",
+    "shape": "template",
+    "file": "Pages/Judiciary/JurorView.vue",
+    "line": 146,
+    "status": "source"
+  },
+  "judiciary_jurorview.report": {
+    "source_hash": "0a90864de9a6575f8fff5ff6ac98f5e17ae0e8956661cb7ea76bb90a60a94829",
+    "shape": "template",
+    "file": "Pages/Judiciary/JurorView.vue",
+    "line": 155,
+    "status": "source"
+  },
+  "judiciary_jurorview.see_the_case_this_summons_belongs_to": {
+    "source_hash": "c5978c24fb2692b1cf24270a07372d30ff2eff04d03d6d7db5944187d4dc1a42",
+    "shape": "template",
+    "file": "Pages/Judiciary/JurorView.vue",
+    "line": 196,
+    "status": "source"
+  },
+  "judiciary_jurorview.source_of_this_summons": {
+    "source_hash": "9d32e18694503e245f6fe6d29ed658b28476da090d784dfd1feecb5f993e371d",
+    "shape": "attr:eyebrow",
+    "file": "Pages/Judiciary/JurorView.vue",
+    "line": 169,
+    "status": "source"
+  },
+  "judiciary_jurorview.the_deliberation_room_is_access_controlled": {
+    "source_hash": "8375a16dd0a937817191410377255e4b29fe5b249a1e1725321b4aa7211e9430",
+    "shape": "template",
+    "file": "Pages/Judiciary/JurorView.vue",
+    "line": 260,
+    "status": "source"
+  },
+  "judiciary_jurorview.the_room_unlocks_at_the_deliberation_stage": {
+    "source_hash": "805396b75d9598cfe46eef21cdc355c8bf24f72e3fff8a4d6814f85d09a5f693",
+    "shape": "bound:title",
+    "file": "Pages/Judiciary/JurorView.vue",
+    "line": 268,
+    "status": "source"
+  },
+  "judiciary_jurorview.the_summons": {
+    "source_hash": "622dd920bc4f0a8a4238f6a6b9af0321dda21b19cff5237ba41288de56978db5",
+    "shape": "attr:title",
+    "file": "Pages/Judiciary/JurorView.vue",
+    "line": 139,
+    "status": "source"
+  },
+  "judiciary_jurorview.where": {
+    "source_hash": "d467fc7d37d0ac093e3bdb34f478307e0efa8e623f57f761529c1c879fe30db2",
+    "shape": "template",
+    "file": "Pages/Judiciary/JurorView.vue",
+    "line": 159,
+    "status": "source"
+  },
+  "judiciary_jurorview.you_were_drawn_at_random_from_the_eligible": {
+    "source_hash": "5e9f673fda910ba33a41f3c61b4aace55a3ad0e5bf0937daad8eb2c58c607827",
+    "shape": "template",
+    "file": "Pages/Judiciary/JurorView.vue",
+    "line": 121,
+    "status": "source"
+  },
+  "judiciary_jurorview.your_service_is_protected": {
+    "source_hash": "a7e83d0d6d6c028711a5169e28d503b24fc642d3838748f9b3af7112d150af97",
+    "shape": "attr:title",
+    "file": "Pages/Judiciary/JurorView.vue",
+    "line": 218,
+    "status": "source"
+  },
+  "judiciary_jurorview.your_service_status": {
+    "source_hash": "6d8413c62d61f52fbf3f4a15d48bd17ed3178f0439b9d3aa297daf6a36c36caa",
+    "shape": "attr:title",
+    "file": "Pages/Judiciary/JurorView.vue",
+    "line": 134,
+    "status": "source"
+  }
+}

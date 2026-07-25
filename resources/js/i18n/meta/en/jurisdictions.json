@@ -1,0 +1,919 @@
+{
+  "jurisdictions_federation.a_box_s_role_is_the_set_of_channels_it_has": {
+    "source_hash": "eb282e9358174ba127d6b7bb14786d6e537e87fc6d4582f031fc55a6cb604819",
+    "shape": "template",
+    "file": "Pages/Jurisdictions/Federation.vue",
+    "line": 198,
+    "status": "source"
+  },
+  "jurisdictions_federation.address_url": {
+    "source_hash": "a474ee7f2453b57fc006c6473261ac80f4f53c6b1a5294e8644311ba32a4a84e",
+    "shape": "attr:placeholder",
+    "file": "Pages/Jurisdictions/Federation.vue",
+    "line": 421,
+    "status": "source"
+  },
+  "jurisdictions_federation.admission": {
+    "source_hash": "b8f0c5c49f888d44e8c0dcd628f9a0e5ac131e459b850bfb951e082a34e33cd3",
+    "shape": "template",
+    "file": "Pages/Jurisdictions/Federation.vue",
+    "line": 596,
+    "status": "source"
+  },
+  "jurisdictions_federation.adopt_this_instance_into_an_existing_clust": {
+    "source_hash": "32c4fe3c5a4a81cce515a5495c3b0a4be062f4e6dfaded46430b0a479fb84367",
+    "shape": "template",
+    "file": "Pages/Jurisdictions/Federation.vue",
+    "line": 508,
+    "status": "source"
+  },
+  "jurisdictions_federation.advertised_none_run_transport_register": {
+    "source_hash": "34e03447e5ec5ffe4c550bd45dd66125f5ff5460829c6296c6ad3c1a61253f4b",
+    "shape": "template",
+    "file": "Pages/Jurisdictions/Federation.vue",
+    "line": 340,
+    "status": "source"
+  },
+  "jurisdictions_federation.approve_ratify": {
+    "source_hash": "5f6bbcc6c081cca9b72de15909600f934035d1c9b56137590bc2763b16dcd9d3",
+    "shape": "template",
+    "file": "Pages/Jurisdictions/Federation.vue",
+    "line": 263,
+    "status": "source"
+  },
+  "jurisdictions_federation.approving_an_adoption_admits_a_read_only_m": {
+    "source_hash": "57b8601de5d28b0cb679a3f7f716ed8002fc6dbd06079635a9f99aa706971b20",
+    "shape": "template",
+    "file": "Pages/Jurisdictions/Federation.vue",
+    "line": 723,
+    "status": "source"
+  },
+  "jurisdictions_federation.audit_seq": {
+    "source_hash": "cf09b2fbe034127594dd812a5b778b6ca78c89d52d9e03974aa94e745ebf3862",
+    "shape": "template",
+    "file": "Pages/Jurisdictions/Federation.vue",
+    "line": 791,
+    "status": "source"
+  },
+  "jurisdictions_federation.authority_claims": {
+    "source_hash": "a4de8cc7a364ae83fc7f05a94cb940a9bf15a12812c006f94166ccdebeda94e8",
+    "shape": "template",
+    "file": "Pages/Jurisdictions/Federation.vue",
+    "line": 776,
+    "status": "source"
+  },
+  "jurisdictions_federation.awaiting_consent_see_pending_requests": {
+    "source_hash": "62cdc97e7babcdfc8add6acc58788ee1296cc159bc9969d70659f9cd85165d7f",
+    "shape": "template",
+    "file": "Pages/Jurisdictions/Federation.vue",
+    "line": 236,
+    "status": "source"
+  },
+  "jurisdictions_federation.broker_credentials": {
+    "source_hash": "27086d6edfae6aa603667026262feec696d5deb8323509d696ff31c4546e2a7f",
+    "shape": "template",
+    "file": "Pages/Jurisdictions/Federation.vue",
+    "line": 272,
+    "status": "source"
+  },
+  "jurisdictions_federation.cc_by_4_0_rasters_delivered_in_phase_h": {
+    "source_hash": "64f56a624d0a73762ac8b31a34f87fa78e3b33f83f11bd27fda66d841a6289ab",
+    "shape": "template",
+    "file": "Pages/Jurisdictions/Federation.vue",
+    "line": 555,
+    "status": "source"
+  },
+  "jurisdictions_federation.cloudflare_dns_edit_token_stored_encrypted": {
+    "source_hash": "ce24510426b47446a3b7accc15159fe15c1f5c8a359229c0ff0949c11b3cb98c",
+    "shape": "attr:placeholder",
+    "file": "Pages/Jurisdictions/Federation.vue",
+    "line": 298,
+    "status": "source"
+  },
+  "jurisdictions_federation.cloudflare_zone_id": {
+    "source_hash": "220bbcc7c8cd3ba119293d7e836b7a29031ecb155655dc547937451996d048b8",
+    "shape": "attr:placeholder",
+    "file": "Pages/Jurisdictions/Federation.vue",
+    "line": 295,
+    "status": "source"
+  },
+  "jurisdictions_federation.cluster_membership": {
+    "source_hash": "960aad1decbfcd77e169ee2adf41b960e5f02e6dabfc484352bd7cfb4c8aaa64",
+    "shape": "template",
+    "file": "Pages/Jurisdictions/Federation.vue",
+    "line": 437,
+    "status": "source"
+  },
+  "jurisdictions_federation.co_affected_peers_consent": {
+    "source_hash": "847e1c51e37488bf65ec9c0f843815bb25579fc22837181bea1093e49f991d82",
+    "shape": "template",
+    "file": "Pages/Jurisdictions/Federation.vue",
+    "line": 212,
+    "status": "source"
+  },
+  "jurisdictions_federation.copy_this_invite_key_now_it_is_shown_only_": {
+    "source_hash": "001e44e8748e8477dff86b9e61f3f568cdcbf4e0800e74700a1c3a20908f2e64",
+    "shape": "template",
+    "file": "Pages/Jurisdictions/Federation.vue",
+    "line": 629,
+    "status": "source"
+  },
+  "jurisdictions_federation.discover_a_peer_url": {
+    "source_hash": "53e521027fa4bbf2e1f832462b39c607e23372ceee68c1086daacca2c1d2f530",
+    "shape": "template",
+    "file": "Pages/Jurisdictions/Federation.vue",
+    "line": 350,
+    "status": "source"
+  },
+  "jurisdictions_federation.domain_e_g_worldofstatecraft_org": {
+    "source_hash": "400fad34b028dea609f07ab52e238d34b05d1bddeb145a25162004ea8b83ec7b",
+    "shape": "attr:placeholder",
+    "file": "Pages/Jurisdictions/Federation.vue",
+    "line": 293,
+    "status": "source"
+  },
+  "jurisdictions_federation.drop_the_required_token_key_to_qualify": {
+    "source_hash": "89f38981271f3cfdeaa33e0fb3fcaa08a7fbff7f3d187d0929809627d6c81171",
+    "shape": "template",
+    "file": "Pages/Jurisdictions/Federation.vue",
+    "line": 233,
+    "status": "source"
+  },
+  "jurisdictions_federation.each_request_s_live_consent_state_approve_": {
+    "source_hash": "ebfcc97763d5dd7a9314736762dd4cda6e8ecf513f19b82e3d666c39700ce5e0",
+    "shape": "template",
+    "file": "Pages/Jurisdictions/Federation.vue",
+    "line": 248,
+    "status": "source"
+  },
+  "jurisdictions_federation.expires_in_days": {
+    "source_hash": "d2a5970c76cec15f41c9ae1f805e2c0c9ea4e0be55280871a16e852931414b3b",
+    "shape": "template",
+    "file": "Pages/Jurisdictions/Federation.vue",
+    "line": 641,
+    "status": "source"
+  },
+  "jurisdictions_federation.geodata": {
+    "source_hash": "118ab71925f0acc79338b141d5548e64c5aec748b77b7fae4497becfa09588df",
+    "shape": "template",
+    "file": "Pages/Jurisdictions/Federation.vue",
+    "line": 595,
+    "status": "source"
+  },
+  "jurisdictions_federation.handshake_server_id_or_url": {
+    "source_hash": "edc8465d5e0ed3df2d46266efcab9b42089b820de9679b3fcb3b29545144308f",
+    "shape": "template",
+    "file": "Pages/Jurisdictions/Federation.vue",
+    "line": 361,
+    "status": "source"
+  },
+  "jurisdictions_federation.head_checkpoints": {
+    "source_hash": "a582a18a08a27c5113bf014fbe4831745ae784d5aaaec5619ff822f32c9258ca",
+    "shape": "template",
+    "file": "Pages/Jurisdictions/Federation.vue",
+    "line": 788,
+    "status": "source"
+  },
+  "jurisdictions_federation.host_adoption_console": {
+    "source_hash": "06b1a22c536cfb46744e90d3720b5f8693de7b0c3d9b97d7cfeca8b9ec5a8b74",
+    "shape": "template",
+    "file": "Pages/Jurisdictions/Federation.vue",
+    "line": 618,
+    "status": "source"
+  },
+  "jurisdictions_federation.host_url": {
+    "source_hash": "dae951acf769351ac177e91d4f62b8a3d93d09f36ed4f3260b6c952bad1f47bb",
+    "shape": "template",
+    "file": "Pages/Jurisdictions/Federation.vue",
+    "line": 514,
+    "status": "source"
+  },
+  "jurisdictions_federation.intends_read_writemirrorscope_approving_ad": {
+    "source_hash": "eea8dabb79170780414feb761921fda1e97bf5483a73cb6808074166a0f22225",
+    "shape": "template",
+    "file": "Pages/Jurisdictions/Federation.vue",
+    "line": 682,
+    "status": "source"
+  },
+  "jurisdictions_federation.invite_keys": {
+    "source_hash": "610febf0a79e334a3f2f11768d0e99b414b87f09f187a14a6d870bf62ae49886",
+    "shape": "template",
+    "file": "Pages/Jurisdictions/Federation.vue",
+    "line": 653,
+    "status": "source"
+  },
+  "jurisdictions_federation.join_key_optional_leave_blank_to_request_a": {
+    "source_hash": "3300c04645f61e257f6b11b065c00e3c6f3c63e507580efe8e1bdfa17c2f5d97",
+    "shape": "template",
+    "file": "Pages/Jurisdictions/Federation.vue",
+    "line": 520,
+    "status": "source"
+  },
+  "jurisdictions_federation.jurisdiction_subtree": {
+    "source_hash": "397e4ce4b39964f0e76456589b23c8a84a32d0a3dfa47a6108613cec53309c6a",
+    "shape": "template",
+    "file": "Pages/Jurisdictions/Federation.vue",
+    "line": 474,
+    "status": "source"
+  },
+  "jurisdictions_federation.jurisdiction_uuid": {
+    "source_hash": "4e172155467386e04ac2f731114d7307c3ef2f8ae6b8c46a9e4c632c889e8672",
+    "shape": "attr:placeholder",
+    "file": "Pages/Jurisdictions/Federation.vue",
+    "line": 544,
+    "status": "source"
+  },
+  "jurisdictions_federation.key_fingerprint": {
+    "source_hash": "26f86394c2b6ca4fa69f4a537683656f3d9f674cdf8430cc4f76eb609adfda4c",
+    "shape": "template",
+    "file": "Pages/Jurisdictions/Federation.vue",
+    "line": 180,
+    "status": "source"
+  },
+  "jurisdictions_federation.last_heartbeat": {
+    "source_hash": "40f7951c09dbc025eec26f753c21f5bd6a5dc65a2192d6a788594479b1437207",
+    "shape": "template",
+    "file": "Pages/Jurisdictions/Federation.vue",
+    "line": 739,
+    "status": "source"
+  },
+  "jurisdictions_federation.leave_the_cluster": {
+    "source_hash": "0bd376d7950f4235a4bed17a1571d49a85d24c231d6eec4a0f19ded2804238c0",
+    "shape": "template",
+    "file": "Pages/Jurisdictions/Federation.vue",
+    "line": 457,
+    "status": "source"
+  },
+  "jurisdictions_federation.leave_the_cluster_this_instance_will_stop_": {
+    "source_hash": "4e59eeca048f3069cb907a4e472bceb4d0d3cdd1c46e582c3a35f91f3efa6a9e",
+    "shape": "script:confirm",
+    "file": "Pages/Jurisdictions/Federation.vue",
+    "line": 58,
+    "status": "source"
+  },
+  "jurisdictions_federation.max_uses": {
+    "source_hash": "4d761fbe857222ca837776b01776d1cfedfaa84fc4db8c948334e189ec4ed3e5",
+    "shape": "template",
+    "file": "Pages/Jurisdictions/Federation.vue",
+    "line": 636,
+    "status": "source"
+  },
+  "jurisdictions_federation.meter_a": {
+    "source_hash": "5869e5a468996cd59068b259bd130c272d32eb9c189fa0b510e800c36927cf24",
+    "shape": "template",
+    "file": "Pages/Jurisdictions/Federation.vue",
+    "line": 260,
+    "status": "source"
+  },
+  "jurisdictions_federation.meter_b": {
+    "source_hash": "587a0132323521e912df6ef2338867e960309fda8f5402d6ea98291c01218a3a",
+    "shape": "template",
+    "file": "Pages/Jurisdictions/Federation.vue",
+    "line": 261,
+    "status": "source"
+  },
+  "jurisdictions_federation.meter_c": {
+    "source_hash": "cde1880466887e8916cecd8db4c728cd3dee7e2bd1bae084a128543e58df1b7f",
+    "shape": "template",
+    "file": "Pages/Jurisdictions/Federation.vue",
+    "line": 262,
+    "status": "source"
+  },
+  "jurisdictions_federation.minting_and_approving_invite_keys_is_an_op": {
+    "source_hash": "8b6a9171c21e771f7d70683a39c43431b463737c61e79d00c0c39d9698cedfc9",
+    "shape": "template",
+    "file": "Pages/Jurisdictions/Federation.vue",
+    "line": 621,
+    "status": "source"
+  },
+  "jurisdictions_federation.no_checkpoints_published": {
+    "source_hash": "031fcbfb63c177fb98915371c1a98cd5361cc0933805d5095b544a63acb22233",
+    "shape": "template",
+    "file": "Pages/Jurisdictions/Federation.vue",
+    "line": 789,
+    "status": "source"
+  },
+  "jurisdictions_federation.no_flipped_partitions": {
+    "source_hash": "8e3678a695998e36bff1e03d1714f536b0c6de0ac658585708c7fa25b0f32e46",
+    "shape": "template",
+    "file": "Pages/Jurisdictions/Federation.vue",
+    "line": 777,
+    "status": "source"
+  },
+  "jurisdictions_federation.no_keys_minted_yet": {
+    "source_hash": "493c2d1ff46f7868e0a16535f9859056d63d2a5eb173ce4c847972610b48accb",
+    "shape": "template",
+    "file": "Pages/Jurisdictions/Federation.vue",
+    "line": 654,
+    "status": "source"
+  },
+  "jurisdictions_federation.no_peers_yet_discover_one_with_federation_": {
+    "source_hash": "6e6a83c43cfc94eca09bbb1250beb0bfdbea2cf1925021b7dd329d32847a255a",
+    "shape": "template",
+    "file": "Pages/Jurisdictions/Federation.vue",
+    "line": 734,
+    "status": "source"
+  },
+  "jurisdictions_federation.no_pending_requests": {
+    "source_hash": "4c963f0813a94a1c394e74bf75bd2c886ea342e70cd19bf80d4900ebeee5a75c",
+    "shape": "template",
+    "file": "Pages/Jurisdictions/Federation.vue",
+    "line": 680,
+    "status": "source"
+  },
+  "jurisdictions_federation.no_read_write_petitions": {
+    "source_hash": "e9a708c7a9803c5df13b03e87a28ab87690447bc4e1476712d006cae3721a143",
+    "shape": "template",
+    "file": "Pages/Jurisdictions/Federation.vue",
+    "line": 708,
+    "status": "source"
+  },
+  "jurisdictions_federation.no_sync_exchanges_recorded_yet": {
+    "source_hash": "8aa0e2595614b10461112e764460346da3a27e6aa755ee8b138ff5192412a906",
+    "shape": "template",
+    "file": "Pages/Jurisdictions/Federation.vue",
+    "line": 756,
+    "status": "source"
+  },
+  "jurisdictions_federation.note_optional": {
+    "source_hash": "f9b73e1abc37cf5b13937f56c9e8bfd59f9fcd548145f1755bf28dc62db92362",
+    "shape": "template",
+    "file": "Pages/Jurisdictions/Federation.vue",
+    "line": 481,
+    "status": "source"
+  },
+  "jurisdictions_federation.note_to_the_host_operator_optional": {
+    "source_hash": "32f6789e85307545300c6ef6be7827d8d004df68515903b74d865fc720ab372f",
+    "shape": "template",
+    "file": "Pages/Jurisdictions/Federation.vue",
+    "line": 585,
+    "status": "source"
+  },
+  "jurisdictions_federation.peers": {
+    "source_hash": "ba0fb5dddfb6d17bde501a3d7ace2dcd2f7d7ab8d42a3f8ac0fc62260e1d84ee",
+    "shape": "template",
+    "file": "Pages/Jurisdictions/Federation.vue",
+    "line": 733,
+    "status": "source"
+  },
+  "jurisdictions_federation.pending_adoption_requests": {
+    "source_hash": "e3e3d3bf401bc505c4baea322ea29c2028a89b1d260eaa8504e60ed7cf0de0d8",
+    "shape": "template",
+    "file": "Pages/Jurisdictions/Federation.vue",
+    "line": 679,
+    "status": "source"
+  },
+  "jurisdictions_federation.pending_role_requests": {
+    "source_hash": "7f0f397474cb54371201dde5e422d8642983cc175e5dabf4da0a5fe76f11c174",
+    "shape": "template",
+    "file": "Pages/Jurisdictions/Federation.vue",
+    "line": 247,
+    "status": "source"
+  },
+  "jurisdictions_federation.phase_f_wf_jur_06_art_v_2": {
+    "source_hash": "25c24ce226f7919a294297f26eb9a3c7eaee1c697e465ecbbae38c3aece8e66a",
+    "shape": "template",
+    "file": "Pages/Jurisdictions/Federation.vue",
+    "line": 158,
+    "status": "source"
+  },
+  "jurisdictions_federation.probe_a_peer_over_every_transport_mesh_doc": {
+    "source_hash": "83dca5ce8d89408ccedd014e30c71ca4b9be7b802679c367ce2eedadcd19b099",
+    "shape": "template",
+    "file": "Pages/Jurisdictions/Federation.vue",
+    "line": 374,
+    "status": "source"
+  },
+  "jurisdictions_federation.re_check": {
+    "source_hash": "24fcca00ea509a05658bb87780b99fd90fbca8dd0285fc621a0d0262b11e145c",
+    "shape": "template",
+    "file": "Pages/Jurisdictions/Federation.vue",
+    "line": 316,
+    "status": "source"
+  },
+  "jurisdictions_federation.read_write_is_not_granted_by_joining_after": {
+    "source_hash": "e10ebf403e4e19d35df76f753e8c72334bc7dbfad9ed68eae2494c5de8c7fa80",
+    "shape": "template",
+    "file": "Pages/Jurisdictions/Federation.vue",
+    "line": 576,
+    "status": "source"
+  },
+  "jurisdictions_federation.read_write_is_not_granted_by_joining_this_": {
+    "source_hash": "ad61c5d5b759c9eed95d6bb0b314e9764bb1fdb0b6a0fb6f3c6d111b2ef11228",
+    "shape": "template",
+    "file": "Pages/Jurisdictions/Federation.vue",
+    "line": 466,
+    "status": "source"
+  },
+  "jurisdictions_federation.read_write_petitions": {
+    "source_hash": "6479cb5305844dedd86e452d85d3c0a56684e9d13a575e6df112937d2ffa88f4",
+    "shape": "template",
+    "file": "Pages/Jurisdictions/Federation.vue",
+    "line": 707,
+    "status": "source"
+  },
+  "jurisdictions_federation.request_read_write_authority": {
+    "source_hash": "3c03c2bedc28189645e0dc33361808c37bb59bb1c24acab1e7a2c6be5bb5054a",
+    "shape": "template",
+    "file": "Pages/Jurisdictions/Federation.vue",
+    "line": 465,
+    "status": "source"
+  },
+  "jurisdictions_federation.role_board_capability_channels": {
+    "source_hash": "5b81e0794793aa1102c387d80b3b34bce5ca2cb7ca0e090ee2f45ca3852dde2e",
+    "shape": "template",
+    "file": "Pages/Jurisdictions/Federation.vue",
+    "line": 197,
+    "status": "source"
+  },
+  "jurisdictions_federation.scope_by_leg": {
+    "source_hash": "ebdc05692b7a1859dd9dfb7fdc80b7e830bd1704bd00406f8e327ec4b489c2da",
+    "shape": "template",
+    "file": "Pages/Jurisdictions/Federation.vue",
+    "line": 255,
+    "status": "source"
+  },
+  "jurisdictions_federation.server_id": {
+    "source_hash": "ff21e85e81d49eac2b266860506913498761a0798678544aa6f431fd8ca115d6",
+    "shape": "template",
+    "file": "Pages/Jurisdictions/Federation.vue",
+    "line": 176,
+    "status": "source"
+  },
+  "jurisdictions_federation.server_id_or_url": {
+    "source_hash": "46342b39b05a092f377cc61256de7048b8141760f57b3760889b442fefead937",
+    "shape": "attr:placeholder",
+    "file": "Pages/Jurisdictions/Federation.vue",
+    "line": 363,
+    "status": "source"
+  },
+  "jurisdictions_federation.sign_in_as_operator_to_discover_handshake_": {
+    "source_hash": "5c055b272b6857d007483baa27d111133d3eaddf659e3fe115046df7bcb83d47",
+    "shape": "template",
+    "file": "Pages/Jurisdictions/Federation.vue",
+    "line": 428,
+    "status": "source"
+  },
+  "jurisdictions_federation.store_credential": {
+    "source_hash": "d750bb69c4476bfdf6a5db0def8495ba923be30d0c0774f9dcae1b784c644df3",
+    "shape": "template",
+    "file": "Pages/Jurisdictions/Federation.vue",
+    "line": 301,
+    "status": "source"
+  },
+  "jurisdictions_federation.sync_ledger_append_only": {
+    "source_hash": "4fc43466762720dcf7ab79e0925188c3e0e8c3f5cadab13f33487561f94b9212",
+    "shape": "template",
+    "file": "Pages/Jurisdictions/Federation.vue",
+    "line": 755,
+    "status": "source"
+  },
+  "jurisdictions_federation.the_host_s_public_records_always_pulled_th": {
+    "source_hash": "7da0fe8e85d17914de4691f10c4ea8d14760f2ea3ca6973a09e0673b4fd5ad7f",
+    "shape": "template",
+    "file": "Pages/Jurisdictions/Federation.vue",
+    "line": 531,
+    "status": "source"
+  },
+  "jurisdictions_federation.the_operator_s_readiness_checklist_green_i": {
+    "source_hash": "423bbc7b9695b47b1dfe2fd244906b47ebe20088d06276af4e58a4ff55a2ab00",
+    "shape": "template",
+    "file": "Pages/Jurisdictions/Federation.vue",
+    "line": 321,
+    "status": "source"
+  },
+  "jurisdictions_federation.the_peer_mesh_and_the_full_faith_credit_re": {
+    "source_hash": "9a403b57131fe7b279df4cd3c66195460d4637acaa3b80d7ca9da522f2d8d2e8",
+    "shape": "template",
+    "file": "Pages/Jurisdictions/Federation.vue",
+    "line": 160,
+    "status": "source"
+  },
+  "jurisdictions_federation.this_instance": {
+    "source_hash": "d354f304600f57f67cd44d5fc48045151f41d7fb3951d24054a2be921a8c1119",
+    "shape": "template",
+    "file": "Pages/Jurisdictions/Federation.vue",
+    "line": 169,
+    "status": "source"
+  },
+  "jurisdictions_federation.this_instance_is_a_read_only_mirror_of_hos": {
+    "source_hash": "9385965a2c03b5b173a182e6858b0c8c04d242b584a47ba2bac0343de3bbf5de",
+    "shape": "template",
+    "file": "Pages/Jurisdictions/Federation.vue",
+    "line": 448,
+    "status": "source"
+  },
+  "jurisdictions_federation.to_run_the_dns_tls_broker_role_drop_a_clou": {
+    "source_hash": "962a93765e8d28276e7e47021743591989e72081dca8a64102da35f6c47aeab4",
+    "shape": "template",
+    "file": "Pages/Jurisdictions/Federation.vue",
+    "line": 273,
+    "status": "source"
+  },
+  "jurisdictions_federation.transports_switch_method": {
+    "source_hash": "5bbc43b9e5351462dbed72dba759ad829674a4af5d431db01db0a46d60e1c451",
+    "shape": "template",
+    "file": "Pages/Jurisdictions/Federation.vue",
+    "line": 405,
+    "status": "source"
+  },
+  "jurisdictions_federation.two_way_mesh_setup_gates": {
+    "source_hash": "f8c1269df1ada64dfac955a5606881b97f3160672b224720f0d72f6c68ce9c77",
+    "shape": "template",
+    "file": "Pages/Jurisdictions/Federation.vue",
+    "line": 315,
+    "status": "source"
+  },
+  "jurisdictions_federation.wants_read_write_over": {
+    "source_hash": "78c41dc8b9817c9aa92f2a738d3162a9a4d559acced78cbf1af9561216f3e964",
+    "shape": "template",
+    "file": "Pages/Jurisdictions/Federation.vue",
+    "line": 711,
+    "status": "source"
+  },
+  "jurisdictions_federation.why_we_run_a_vetted_node_here": {
+    "source_hash": "27d752aaf4fb49aea7459dd46257a1d907ec9a339b6dddff60ef83712dc6f49d",
+    "shape": "attr:placeholder",
+    "file": "Pages/Jurisdictions/Federation.vue",
+    "line": 482,
+    "status": "source"
+  },
+  "jurisdictions_federation.why_we_want_to_mirror": {
+    "source_hash": "d5e343b4909c74a88a2a035897338748551ebabe8621fcfd1d30c9242ef7ec84",
+    "shape": "attr:placeholder",
+    "file": "Pages/Jurisdictions/Federation.vue",
+    "line": 586,
+    "status": "source"
+  },
+  "jurisdictions_federation.you_pursue_read_write_afterward": {
+    "source_hash": "e3ba6863687334dba02832e2836a5e482485b76ff78c4b9fcbc01a194ba5441e",
+    "shape": "template",
+    "file": "Pages/Jurisdictions/Federation.vue",
+    "line": 597,
+    "status": "source"
+  },
+  "jurisdictions_federation.you_will_become_a_read_only_mirror_of_pull": {
+    "source_hash": "26726f9295cba7e0ed5073c4eefdcbf1f5c37f82c0d8b59279c3530f24961f7a",
+    "shape": "template",
+    "file": "Pages/Jurisdictions/Federation.vue",
+    "line": 593,
+    "status": "source"
+  },
+  "jurisdictions_federation.zone_configured": {
+    "source_hash": "3ff302a803edffa7c76482f29c7c502a35d70aa331fa9bd0125ef1abd783dbb1",
+    "shape": "template",
+    "file": "Pages/Jurisdictions/Federation.vue",
+    "line": 284,
+    "status": "source"
+  },
+  "jurisdictions_index.adm_0_world": {
+    "source_hash": "7b64ad496d0604b6fd80fa4ee7dd2a6ad09f4a334cac03bd550a6d5f78788612",
+    "shape": "template",
+    "file": "Pages/Jurisdictions/Index.vue",
+    "line": 24,
+    "status": "source"
+  },
+  "jurisdictions_index.adm_1_country": {
+    "source_hash": "7784311fd844d0d18f25b101c3d83edcfdb6ccb936558ca26a1360df24638ac1",
+    "shape": "template",
+    "file": "Pages/Jurisdictions/Index.vue",
+    "line": 25,
+    "status": "source"
+  },
+  "jurisdictions_index.adm_2_state_province": {
+    "source_hash": "f785eebb9cc4b8f13cc09d1d594b79e200ef57deef3d4a08de1f29bf18e0c2b9",
+    "shape": "template",
+    "file": "Pages/Jurisdictions/Index.vue",
+    "line": 26,
+    "status": "source"
+  },
+  "jurisdictions_index.adm_3_county_district": {
+    "source_hash": "a719f6ab39ce0e06282602864f696944a6fbbf7d8c61ce5431983f9ab155484a",
+    "shape": "template",
+    "file": "Pages/Jurisdictions/Index.vue",
+    "line": 27,
+    "status": "source"
+  },
+  "jurisdictions_index.adm_4": {
+    "source_hash": "d0362c9a555fdb89e769cf7c51a8c7da2d47b87181208cb9ac2f25976bde9aec",
+    "shape": "template",
+    "file": "Pages/Jurisdictions/Index.vue",
+    "line": 28,
+    "status": "source"
+  },
+  "jurisdictions_index.adm_5": {
+    "source_hash": "a8f69705884eb4fff8d7ef9642b77583c0366299e8e2fce188ebdbed6f7394cd",
+    "shape": "template",
+    "file": "Pages/Jurisdictions/Index.vue",
+    "line": 29,
+    "status": "source"
+  },
+  "jurisdictions_index.adm_6": {
+    "source_hash": "75d46456996f1a73d49f17c84ebdbafaee92add9096a35023899240454f09c87",
+    "shape": "template",
+    "file": "Pages/Jurisdictions/Index.vue",
+    "line": 30,
+    "status": "source"
+  },
+  "jurisdictions_index.all_levels": {
+    "source_hash": "d9c85efd760244d1941f706afe927f36dd48a4e41315be94452064512f704bee",
+    "shape": "template",
+    "file": "Pages/Jurisdictions/Index.vue",
+    "line": 23,
+    "status": "source"
+  },
+  "jurisdictions_index.search_by_name": {
+    "source_hash": "8cf423956b2a829fc4eae54ad100161f485b9be83024194f29b46bf6e3cd3d88",
+    "shape": "attr:placeholder",
+    "file": "Pages/Jurisdictions/Index.vue",
+    "line": 13,
+    "status": "source"
+  },
+  "jurisdictions_index.showing_of": {
+    "source_hash": "e7f80c5e8235180cfabe32e3e97d48f8ace6c7b6f78f5b16df840c8708c0e31a",
+    "shape": "template",
+    "file": "Pages/Jurisdictions/Index.vue",
+    "line": 74,
+    "status": "source"
+  },
+  "jurisdictions_show.accept_anyway_i_acknowledge_open_flag": {
+    "source_hash": "7709692d7bd53a95e6b9579f201c5c0d1506b5d49c6946e93ad83c5f2f7d9495",
+    "shape": "template",
+    "file": "Pages/Jurisdictions/Show.vue",
+    "line": 470,
+    "status": "source"
+  },
+  "jurisdictions_show.apportionment_completed": {
+    "source_hash": "a03aa6a3dd3f9573c41343c54df06b7ffe287f4b35b09f0d4c1940f7e56272c7",
+    "shape": "template",
+    "file": "Pages/Jurisdictions/Show.vue",
+    "line": 293,
+    "status": "source"
+  },
+  "jurisdictions_show.chamber": {
+    "source_hash": "172cc200abb0c5274713d94d30f88103749026cfdc8e45afb2ccc61c4c264300",
+    "shape": "template",
+    "file": "Pages/Jurisdictions/Show.vue",
+    "line": 218,
+    "status": "source"
+  },
+  "jurisdictions_show.continent": {
+    "source_hash": "cdd287c91e58954f83f3564e70cd001a5e3cb740a9bc5f7fd3355415e3756c02",
+    "shape": "template",
+    "file": "Pages/Jurisdictions/Show.vue",
+    "line": 147,
+    "status": "source"
+  },
+  "jurisdictions_show.create_first_district_map": {
+    "source_hash": "1d8b94c8f4089d2363bcccf35167a2636df4c8ba428dfa228c2ba56b49c9945b",
+    "shape": "template",
+    "file": "Pages/Jurisdictions/Show.vue",
+    "line": 236,
+    "status": "source"
+  },
+  "jurisdictions_show.critical_population": {
+    "source_hash": "9854ddddcd225991e06b2c87b01203d5324c7cf078c2d6d20c82a99c4a514993",
+    "shape": "script:label",
+    "file": "Pages/Jurisdictions/Show.vue",
+    "line": 667,
+    "status": "source"
+  },
+  "jurisdictions_show.critical_warning_info": {
+    "source_hash": "99ed7a5b48772e74a60d80e52a2ed88cd3cc577050176521b136ff052c700160",
+    "shape": "template",
+    "file": "Pages/Jurisdictions/Show.vue",
+    "line": 454,
+    "status": "source"
+  },
+  "jurisdictions_show.data_flags": {
+    "source_hash": "b43d33f2c376306e92e702a2fd061d68551efb24f487a4106ce1d6b63fe04b8e",
+    "shape": "template",
+    "file": "Pages/Jurisdictions/Show.vue",
+    "line": 125,
+    "status": "source"
+  },
+  "jurisdictions_show.direct_child_with_zero_population": {
+    "source_hash": "09e5667639bca840769d70af5702305106c757579211e55fbd4fc35a046a7233",
+    "shape": "template",
+    "file": "Pages/Jurisdictions/Show.vue",
+    "line": 113,
+    "status": "source"
+  },
+  "jurisdictions_show.election": {
+    "source_hash": "237a4f8d833ac8b1ad71187ae5f496a11e5d5277ac825c75ef47febf88c44e26",
+    "shape": "template",
+    "file": "Pages/Jurisdictions/Show.vue",
+    "line": 244,
+    "status": "source"
+  },
+  "jurisdictions_show.every_place_on_earth_planet_to_neighborhoo": {
+    "source_hash": "2db77a676a35b896731bf841775bf755fd8701b91e461773808cf5dd75445164",
+    "shape": "template",
+    "file": "Pages/Jurisdictions/Show.vue",
+    "line": 3,
+    "status": "source"
+  },
+  "jurisdictions_show.executive": {
+    "source_hash": "b4b17c7a88aaa645cb247e66547d93be68b9df264f0c1e182254711154945e3d",
+    "shape": "template",
+    "file": "Pages/Jurisdictions/Show.vue",
+    "line": 255,
+    "status": "source"
+  },
+  "jurisdictions_show.income_group": {
+    "source_hash": "3bdba9f462457ed208b7b1c6db0ed120ea80caa03e64e2b5745a9db24f634a93",
+    "shape": "template",
+    "file": "Pages/Jurisdictions/Show.vue",
+    "line": 159,
+    "status": "source"
+  },
+  "jurisdictions_show.judiciary": {
+    "source_hash": "a430905c22d5ef99100897bdf7896687705ede35b6be632a3c1fab38874b5b4d",
+    "shape": "template",
+    "file": "Pages/Jurisdictions/Show.vue",
+    "line": 264,
+    "status": "source"
+  },
+  "jurisdictions_show.languages": {
+    "source_hash": "71ba17bd95bfe026a6b40ff14a577a51d338449ea94736e078d7909f825412e8",
+    "shape": "template",
+    "file": "Pages/Jurisdictions/Show.vue",
+    "line": 165,
+    "status": "source"
+  },
+  "jurisdictions_show.loading_map": {
+    "source_hash": "7c8befec7864d8ef0e491373cd6722feaf8fe86afe788776965a1c90e537eb05",
+    "shape": "template",
+    "file": "Pages/Jurisdictions/Show.vue",
+    "line": 373,
+    "status": "source"
+  },
+  "jurisdictions_show.loading_population_raster": {
+    "source_hash": "0fb2733e0e8d9fb4e27d477176fc94026834ef164a3e75b4581cd5b150886dac",
+    "shape": "template",
+    "file": "Pages/Jurisdictions/Show.vue",
+    "line": 381,
+    "status": "source"
+  },
+  "jurisdictions_show.maps_accepted": {
+    "source_hash": "5a0b5b8ea9761065dfbee0a9456c21c4700f17b0dc77e231c1c643eb77c10430",
+    "shape": "template",
+    "file": "Pages/Jurisdictions/Show.vue",
+    "line": 291,
+    "status": "source"
+  },
+  "jurisdictions_show.no_further_sub_divisions": {
+    "source_hash": "86fdc11fd64ec1665376830da8c45f5f4063012876bf72d8b4358f5aa1f0eadd",
+    "shape": "template",
+    "file": "Pages/Jurisdictions/Show.vue",
+    "line": 348,
+    "status": "source"
+  },
+  "jurisdictions_show.open_data_flag_review_at_planet_scope": {
+    "source_hash": "637da148cddbed17a515385bcd4624f458ad99a59790e8983a3075c2a804bc8d",
+    "shape": "template",
+    "file": "Pages/Jurisdictions/Show.vue",
+    "line": 126,
+    "status": "source"
+  },
+  "jurisdictions_show.open_data_flags_remain": {
+    "source_hash": "13e8332b4258fa162085ec8e30fbe160a9f4b831f2ee576c36bb8e76148eb4fe",
+    "shape": "template",
+    "file": "Pages/Jurisdictions/Show.vue",
+    "line": 446,
+    "status": "source"
+  },
+  "jurisdictions_show.orphan_no_population_pop_discrepancy_terri": {
+    "source_hash": "91b4215e5b6fd3f49dd67dce8ad684fe424941402b4327e4274873e6afb78767",
+    "shape": "template",
+    "file": "Pages/Jurisdictions/Show.vue",
+    "line": 85,
+    "status": "source"
+  },
+  "jurisdictions_show.parent_assigned_via": {
+    "source_hash": "0cbb1863e1e2743eba4208105883f73ea23e6c05fc9da4b75c6c5520cfdb4dea",
+    "shape": "template",
+    "file": "Pages/Jurisdictions/Show.vue",
+    "line": 109,
+    "status": "source"
+  },
+  "jurisdictions_show.population": {
+    "source_hash": "59dd6076d9d2fc3a3d91183fb86306fe9327f9804903d45ca8c084b035fe3cce",
+    "shape": "template",
+    "file": "Pages/Jurisdictions/Show.vue",
+    "line": 65,
+    "status": "source"
+  },
+  "jurisdictions_show.population_2": {
+    "source_hash": "0038d746fe1d0fa70224e8da35360e82eec792139f525e531f6359cecae4c426",
+    "shape": "template",
+    "file": "Pages/Jurisdictions/Show.vue",
+    "line": 342,
+    "status": "source"
+  },
+  "jurisdictions_show.population_3": {
+    "source_hash": "98a5a417900e332034a1c0dc5e76fd51fcc9c4ed0bf05c11847ff8ef4c2a2f2d",
+    "shape": "template",
+    "file": "Pages/Jurisdictions/Show.vue",
+    "line": 355,
+    "status": "source"
+  },
+  "jurisdictions_show.region_dataset": {
+    "source_hash": "83d47384c1748e232329d7f2f6fe7905d266a6bfd61a5e84495eb08ab5120977",
+    "shape": "template",
+    "file": "Pages/Jurisdictions/Show.vue",
+    "line": 142,
+    "status": "source"
+  },
+  "jurisdictions_show.review_issues": {
+    "source_hash": "802a25134e2e6f8cb87dbf84c66cff25921072e591c219229c95c1de14c85a70",
+    "shape": "template",
+    "file": "Pages/Jurisdictions/Show.vue",
+    "line": 84,
+    "status": "source"
+  },
+  "jurisdictions_show.self_governing": {
+    "source_hash": "da9e39d3cf481193c6523e40ea80137aa21eb5e2c028c518473ad93efdaf60d1",
+    "shape": "script:label",
+    "file": "Pages/Jurisdictions/Show.vue",
+    "line": 653,
+    "status": "source"
+  },
+  "jurisdictions_show.sizing_every_legislature": {
+    "source_hash": "6f9ccbf7df31e6068901ed62b9f26b67d7dbddd87703d1ac1cefe01eb0677492",
+    "shape": "template",
+    "file": "Pages/Jurisdictions/Show.vue",
+    "line": 296,
+    "status": "source"
+  },
+  "jurisdictions_show.source_geoboundaries_year": {
+    "source_hash": "5ec4d6dc000b4d36238c7169479e8422f118b2cbb580a52894be929d119b5674",
+    "shape": "template",
+    "file": "Pages/Jurisdictions/Show.vue",
+    "line": 175,
+    "status": "source"
+  },
+  "jurisdictions_show.subregion": {
+    "source_hash": "a423f8525961c5c8e64eba33e7eb8d7b9ac635bfc73919314bd969b69c5dd2af",
+    "shape": "template",
+    "file": "Pages/Jurisdictions/Show.vue",
+    "line": 155,
+    "status": "source"
+  },
+  "jurisdictions_show.the_data_review_scan_still_has_unresolved_": {
+    "source_hash": "88d1697c209497a620707d52455d8efb7e7030375346f45a6042ab343e978fd6",
+    "shape": "template",
+    "file": "Pages/Jurisdictions/Show.vue",
+    "line": 449,
+    "status": "source"
+  },
+  "jurisdictions_show.this_is_the_most_local_jurisdiction_level_": {
+    "source_hash": "972895895e8c84af7bf864a93ea7950ac8e7f7f264b5760e78e13411e11af5c4",
+    "shape": "template",
+    "file": "Pages/Jurisdictions/Show.vue",
+    "line": 365,
+    "status": "source"
+  },
+  "jurisdictions_show.toggle_direct_child_count_members_under_ea": {
+    "source_hash": "7e63eab38dbdd70d033ec65c59a0a17a6454ca09224faea05479385ffc813464",
+    "shape": "bound:title",
+    "file": "Pages/Jurisdictions/Show.vue",
+    "line": 418,
+    "status": "source"
+  },
+  "jurisdictions_show.toggle_jurisdiction_name_labels": {
+    "source_hash": "5a918f5906b30f3707588861db32dbca336bbff26922fe92a01cfca71ad43d17",
+    "shape": "bound:title",
+    "file": "Pages/Jurisdictions/Show.vue",
+    "line": 399,
+    "status": "source"
+  },
+  "jurisdictions_show.toggle_population_number_under_each_name": {
+    "source_hash": "c7a77cff0de21f20fc16fdc02e3d07199e9740acc787bdb99e1685d2e18f2b35",
+    "shape": "bound:title",
+    "file": "Pages/Jurisdictions/Show.vue",
+    "line": 408,
+    "status": "source"
+  },
+  "jurisdictions_show.toggle_worldpop_population_density_raster_": {
+    "source_hash": "3faf9a0d21d66c0499de99002d61c2bc46a6453ce59dbb86e3276fe9dcfacd34",
+    "shape": "bound:title",
+    "file": "Pages/Jurisdictions/Show.vue",
+    "line": 428,
+    "status": "source"
+  },
+  "jurisdictions_show.unsdg_region": {
+    "source_hash": "f422e8d0e0d4063917fae9feedeacc35e11951cca37f2ea1de0b1c4dd6838428",
+    "shape": "template",
+    "file": "Pages/Jurisdictions/Show.vue",
+    "line": 151,
+    "status": "source"
+  },
+  "jurisdictions_show.watch_the_full_scale_build": {
+    "source_hash": "5ea5f68f098440074bc4f7853526bf4deb78f81d5952aeb9a25c069360e2b317",
+    "shape": "template",
+    "file": "Pages/Jurisdictions/Show.vue",
+    "line": 299,
+    "status": "source"
+  }
+}

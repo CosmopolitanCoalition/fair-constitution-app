@@ -1,0 +1,702 @@
+{
+  "setup_currentjurisdictioncard.area_km": {
+    "source_hash": "17f189dbe185e00b0c17ac2c54d1749ff385442f54ad9bfcafa3d62336bae4dd",
+    "shape": "template",
+    "file": "Components/Setup/CurrentJurisdictionCard.vue",
+    "line": 307,
+    "status": "source"
+  },
+  "setup_currentjurisdictioncard.currently_processing": {
+    "source_hash": "02de071a27664063250d037d4633a79a120a726d2ca34bd4d1247330b7aa4624",
+    "shape": "template",
+    "file": "Components/Setup/CurrentJurisdictionCard.vue",
+    "line": 238,
+    "status": "source"
+  },
+  "setup_currentjurisdictioncard.no_job_running": {
+    "source_hash": "eec9923f8cac5e293e2da27ea5aee8ae0189ba5e8c01282856582edc9738b4b4",
+    "shape": "template",
+    "file": "Components/Setup/CurrentJurisdictionCard.vue",
+    "line": 230,
+    "status": "source"
+  },
+  "setup_currentjurisdictioncard.remaining": {
+    "source_hash": "ffd100fd23014f96cae4790c152b75bef44c754c4c7ba95d9d9ef91f761f7b45",
+    "shape": "template",
+    "file": "Components/Setup/CurrentJurisdictionCard.vue",
+    "line": 295,
+    "status": "source"
+  },
+  "setup_currentjurisdictioncard.waiting_for_first_heartbeat": {
+    "source_hash": "7303254ec3968694dcbff8d8c7c2cf4bdce400d6ae36abcc479db226593b73d8",
+    "shape": "template",
+    "file": "Components/Setup/CurrentJurisdictionCard.vue",
+    "line": 225,
+    "status": "source"
+  },
+  "setup_eventtoasts.events_ewi": {
+    "source_hash": "f3142568f16f2cdf13a9cb6fba21a97f0696e5a658a9332a30e6cb69f47e951c",
+    "shape": "template",
+    "file": "Components/Setup/EventToasts.vue",
+    "line": 160,
+    "status": "source"
+  },
+  "setup_eventtoasts.no_events_yet": {
+    "source_hash": "80c652c4eeecf7a1ad0ba8f6fdabb39a23c31906e1882cc8580002e6e0c74c14",
+    "shape": "template",
+    "file": "Components/Setup/EventToasts.vue",
+    "line": 184,
+    "status": "source"
+  },
+  "setup_exportbackuppanel.build_a_portable_tar_gz_snapshot_of_this_i": {
+    "source_hash": "aada18a5a5aaeebcac558b4b713cb0b769400dd31774590ecdbcb5b6dc808206",
+    "shape": "template",
+    "file": "Components/Setup/ExportBackupPanel.vue",
+    "line": 167,
+    "status": "source"
+  },
+  "setup_exportbackuppanel.download": {
+    "source_hash": "b2e95f762258201b219db0c4baac7962f22baf600b27fe54d5e746b5a8f3ba70",
+    "shape": "template",
+    "file": "Components/Setup/ExportBackupPanel.vue",
+    "line": 230,
+    "status": "source"
+  },
+  "setup_exportbackuppanel.eta_compressing_archive": {
+    "source_hash": "3cd49ddcbd2c4347ddca89e8f73669aa8e6dec10ed024c726eebc0c220718f22",
+    "shape": "template",
+    "file": "Components/Setup/ExportBackupPanel.vue",
+    "line": 256,
+    "status": "source"
+  },
+  "setup_exportbackuppanel.export_current_data": {
+    "source_hash": "4424ecaa43496c7533b2f609e62bdcfba9bb4ac3bae2dea5b992403615b99def",
+    "shape": "prop-default",
+    "file": "Components/Setup/ExportBackupPanel.vue",
+    "line": 20,
+    "status": "source"
+  },
+  "setup_exportbackuppanel.finished": {
+    "source_hash": "f415bc8ce995ebb8e925e1ee579a31dee621671276f11574890dcf9c2f9a02b6",
+    "shape": "template",
+    "file": "Components/Setup/ExportBackupPanel.vue",
+    "line": 200,
+    "status": "source"
+  },
+  "setup_exportbackuppanel.halt": {
+    "source_hash": "26c6ad73b180a1561fbde165e329c73f5b1ffcb3d1f74a608cb2bed03900d23f",
+    "shape": "template",
+    "file": "Components/Setup/ExportBackupPanel.vue",
+    "line": 235,
+    "status": "source"
+  },
+  "setup_exportbackuppanel.recent_exports": {
+    "source_hash": "53e38c726fe1428a0067bf57d6e02774f05dadae0886cfb7690907d79ecc77fe",
+    "shape": "template",
+    "file": "Components/Setup/ExportBackupPanel.vue",
+    "line": 189,
+    "status": "source"
+  },
+  "setup_importbackuppanel.already_have_a_tar_gz_exported_from_anothe": {
+    "source_hash": "f404e90a5fbe8e3191cb6677fe4a76d7128cfe2103723319b36af980abd77147",
+    "shape": "template",
+    "file": "Components/Setup/ImportBackupPanel.vue",
+    "line": 144,
+    "status": "source"
+  },
+  "setup_importbackuppanel.only_tables_actually_present_in_the_upload": {
+    "source_hash": "0469b3bd40993296cf14c97d164b51253b7f8d66cba5808c147e1c8874537bcf",
+    "shape": "template",
+    "file": "Components/Setup/ImportBackupPanel.vue",
+    "line": 175,
+    "status": "source"
+  },
+  "setup_importbackuppanel.restore_complete_continuing": {
+    "source_hash": "ce80681bdf7a9ed64999c9b2096c7e9bb1b8dd8632ab7c740bb8c5ecdd86752c",
+    "shape": "template",
+    "file": "Components/Setup/ImportBackupPanel.vue",
+    "line": 232,
+    "status": "source"
+  },
+  "setup_importbackuppanel.restore_from_a_backup": {
+    "source_hash": "3e44e67b6a4eb8b230a8127b610f26f0752552ec3b72ec3191df6acbf00ed422",
+    "shape": "prop-default",
+    "file": "Components/Setup/ImportBackupPanel.vue",
+    "line": 27,
+    "status": "source"
+  },
+  "setup_importbackuppanel.upload_complete_restoring_database_pg_rest": {
+    "source_hash": "da874be5cd00100b831829d3c64c1afa14ed477245f0dee6449cf5dde4b461c4",
+    "shape": "template",
+    "file": "Components/Setup/ImportBackupPanel.vue",
+    "line": 225,
+    "status": "source"
+  },
+  "setup_importbackuppanel.uploading": {
+    "source_hash": "cc93a7bb66eb54b3ed3d6a84c7061fd2920f224ad2fd21683861c5f2d090243b",
+    "shape": "template",
+    "file": "Components/Setup/ImportBackupPanel.vue",
+    "line": 222,
+    "status": "source"
+  },
+  "setup_jurisdictioncountsgrid.grand_total_of_populations_across_all_leve": {
+    "source_hash": "44c9229943f8f2274ab750f72884f1ffc8f67973577eda8466d89be9b3e98497",
+    "shape": "bound:title",
+    "file": "Components/Setup/JurisdictionCountsGrid.vue",
+    "line": 118,
+    "status": "source"
+  },
+  "setup_jurisdictioncountsgrid.populations_compute_after_raster_load_comp": {
+    "source_hash": "23987b29a817d5c3ad3db05a0418597178f26f4be9f673ff8f85ae72bf9169f5",
+    "shape": "template",
+    "file": "Components/Setup/JurisdictionCountsGrid.vue",
+    "line": 51,
+    "status": "source"
+  },
+  "setup_jurisdictioncountsgrid.sum_of_populations_at_this_level": {
+    "source_hash": "afcd06a18a052a164e4e889b1183ba688ed377d8ea5fa97fe816a579bf02e538",
+    "shape": "bound:title",
+    "file": "Components/Setup/JurisdictionCountsGrid.vue",
+    "line": 90,
+    "status": "source"
+  },
+  "setup_jurisdictioncountsgrid.total_rows": {
+    "source_hash": "24839d0c047763e0b778dc025e2e1543394d6171e5fc96fa35b8be7799a950f0",
+    "shape": "template",
+    "file": "Components/Setup/JurisdictionCountsGrid.vue",
+    "line": 103,
+    "status": "source"
+  },
+  "setup_jurisdictioncountsgrid.w_pop": {
+    "source_hash": "e1de659564f28cfd26077ce439691eea4fc37a335ddd337257e955f62878a8da",
+    "shape": "template",
+    "file": "Components/Setup/JurisdictionCountsGrid.vue",
+    "line": 77,
+    "status": "source"
+  },
+  "setup_liveprogress.3_live_progress": {
+    "source_hash": "babd55d83ffab5d8d2c7dcac7bf7cdb1ac2724da0eaa65cf8314db4137c73443",
+    "shape": "template",
+    "file": "Components/Setup/LiveProgress.vue",
+    "line": 96,
+    "status": "source"
+  },
+  "setup_liveprogress.abort_the_entire_run_equivalent_to_clickin": {
+    "source_hash": "9e609f1a602a11157adedeb76b25c5fb08e858bbe3e18a99e83ec7d83e557adc",
+    "shape": "attr:title",
+    "file": "Components/Setup/LiveProgress.vue",
+    "line": 188,
+    "status": "source"
+  },
+  "setup_liveprogress.full_traceback": {
+    "source_hash": "75a96bd0e9d55fd23345e56cc2bb37a3bc7da256c3d269c7c248a49bff2e6803",
+    "shape": "template",
+    "file": "Components/Setup/LiveProgress.vue",
+    "line": 161,
+    "status": "source"
+  },
+  "setup_liveprogress.level": {
+    "source_hash": "dc143d95fc025332c22fd39af417ea53ff0a42d343531221f6c9887085ecf77d",
+    "shape": "template",
+    "file": "Components/Setup/LiveProgress.vue",
+    "line": 145,
+    "status": "source"
+  },
+  "setup_liveprogress.mark_this_country_as_skipped_and_continue_": {
+    "source_hash": "4ff7c6216c5f96ced87d481f5456e63d437a20c26b8f00c738c74588ad248f7a",
+    "shape": "attr:title",
+    "file": "Components/Setup/LiveProgress.vue",
+    "line": 170,
+    "status": "source"
+  },
+  "setup_liveprogress.pause_the_etl_subprocess_sigstop_db_connec": {
+    "source_hash": "fc779d7de025da6f643824e461956874b92e7cd62e06e4c12c02606da8fc3f7a",
+    "shape": "attr:title",
+    "file": "Components/Setup/LiveProgress.vue",
+    "line": 105,
+    "status": "source"
+  },
+  "setup_liveprogress.paused_on_error": {
+    "source_hash": "e3e5705271b5b8d0114cd7ec6e6cbf9f61a3fb5d89fc5ad7ccd7512acfa4170e",
+    "shape": "template",
+    "file": "Components/Setup/LiveProgress.vue",
+    "line": 142,
+    "status": "source"
+  },
+  "setup_liveprogress.re_run_this_country_useful_if_you_fixed_th": {
+    "source_hash": "48f0ecaa9252c82471288140070569af2146c21f4586d70fd9a08e577a99b49e",
+    "shape": "attr:title",
+    "file": "Components/Setup/LiveProgress.vue",
+    "line": 179,
+    "status": "source"
+  },
+  "setup_liveprogress.resume_the_paused_etl_subprocess_sigcont": {
+    "source_hash": "cc2461513ae286747048b2f2c64348a26552743ad9728050471b5aede92740e6",
+    "shape": "attr:title",
+    "file": "Components/Setup/LiveProgress.vue",
+    "line": 115,
+    "status": "source"
+  },
+  "setup_liveprogress.run_completed_finished": {
+    "source_hash": "7619db0c0294c8fee38850c5b46bbcdf5b03479291bc0308ea1357e5c63d408d",
+    "shape": "template",
+    "file": "Components/Setup/LiveProgress.vue",
+    "line": 236,
+    "status": "source"
+  },
+  "setup_liveprogress.run_failed_exit": {
+    "source_hash": "d931905694a0b269d08560604244b50753d491bcd61bc87ee53eb40290ce0f00",
+    "shape": "template",
+    "file": "Components/Setup/LiveProgress.vue",
+    "line": 229,
+    "status": "source"
+  },
+  "setup_liveprogress.run_halted_on_first_exception_exit": {
+    "source_hash": "748a1bd943c16377f958a4fc85fd32530d2e10741fd43d4cbb19229162b5a910",
+    "shape": "template",
+    "file": "Components/Setup/LiveProgress.vue",
+    "line": 226,
+    "status": "source"
+  },
+  "setup_liveprogress.stop_the_run_sigterm": {
+    "source_hash": "446c5f92628cee1c06a302993e24e5399ce62c79a7883d41e6569cba13bf5d9c",
+    "shape": "attr:title",
+    "file": "Components/Setup/LiveProgress.vue",
+    "line": 124,
+    "status": "source"
+  },
+  "setup_logtailpanel.log_tail": {
+    "source_hash": "bec5481797b1896c04a79d3dc0b8ce047f0249e97dfd548ce777dfe73257b52c",
+    "shape": "template",
+    "file": "Components/Setup/LogTailPanel.vue",
+    "line": 21,
+    "status": "source"
+  },
+  "setup_logtailpanel.no_log_output_yet": {
+    "source_hash": "f164850854d0d8389ba9f58a0efc0bb83449bfcd42a9b31dc0b41917a2282378",
+    "shape": "template",
+    "file": "Components/Setup/LogTailPanel.vue",
+    "line": 32,
+    "status": "source"
+  },
+  "setup_minimap.loading_map": {
+    "source_hash": "7c8befec7864d8ef0e491373cd6722feaf8fe86afe788776965a1c90e537eb05",
+    "shape": "template",
+    "file": "Components/Setup/MiniMap.vue",
+    "line": 236,
+    "status": "source"
+  },
+  "setup_minimap.no_geometry_available": {
+    "source_hash": "8f968d4d826ac7edf1609e0d48522c77d467d31e4672a6c105341d78efce3725",
+    "shape": "template",
+    "file": "Components/Setup/MiniMap.vue",
+    "line": 242,
+    "status": "source"
+  },
+  "setup_minimap.preparing_next_jurisdiction": {
+    "source_hash": "88edf98a73d8d350008c3706ca659b99e79a6f2b64c15ae964d710bdd6f753d9",
+    "shape": "template",
+    "file": "Components/Setup/MiniMap.vue",
+    "line": 230,
+    "status": "source"
+  },
+  "setup_minimap.raster_not_loaded": {
+    "source_hash": "98fa956bebfc9fa227d5a127d256c37ecbb0cfb7384c5aea4e1c4d2ff2fea2ac",
+    "shape": "template",
+    "file": "Components/Setup/MiniMap.vue",
+    "line": 248,
+    "status": "source"
+  },
+  "setup_phasesummary.countries_done": {
+    "source_hash": "b4f4b4e1365a34e82ab9aa28d71b9e2cb4e64900861256c939631eab3adbcca0",
+    "shape": "template",
+    "file": "Components/Setup/PhaseSummary.vue",
+    "line": 11,
+    "status": "source"
+  },
+  "setup_phasesummary.countries_done_2": {
+    "source_hash": "d63c5b0069906f44e32f6f7373faa8953ca2e748f0ec2686840ba706d2df949b",
+    "shape": "template",
+    "file": "Components/Setup/PhaseSummary.vue",
+    "line": 23,
+    "status": "source"
+  },
+  "setup_phasesummary.phase_1_boundaries": {
+    "source_hash": "0e8c01cdd254944585df86b523fb72dbb223dbabfc80db9256e6fd69f36068e8",
+    "shape": "template",
+    "file": "Components/Setup/PhaseSummary.vue",
+    "line": 10,
+    "status": "source"
+  },
+  "setup_phasesummary.phase_2_population": {
+    "source_hash": "7449b00c0d7d08d84cf206ce87accb8e84dd1a4e55fdb06aa883ca373c445d09",
+    "shape": "template",
+    "file": "Components/Setup/PhaseSummary.vue",
+    "line": 22,
+    "status": "source"
+  },
+  "setup_reviewissuessection.acknowledged": {
+    "source_hash": "7ee5410ee63a90f847a49477d80eff19da34f040bd07d0568f281bffd2b6677b",
+    "shape": "template",
+    "file": "Components/Setup/ReviewIssuesSection.vue",
+    "line": 312,
+    "status": "source"
+  },
+  "setup_reviewissuessection.aggregation_discrepancies": {
+    "source_hash": "1b46a07db5dc851a8a6a070c5f9c4dec6ea72c315e3dbd3bc01e85829e8a3185",
+    "shape": "script:title",
+    "file": "Components/Setup/ReviewIssuesSection.vue",
+    "line": 46,
+    "status": "source"
+  },
+  "setup_reviewissuessection.all": {
+    "source_hash": "a5def7d2d35644de88e2efa4e36df1af49fb11f8baf19ad7a9f66b4dffdc5212",
+    "shape": "template",
+    "file": "Components/Setup/ReviewIssuesSection.vue",
+    "line": 374,
+    "status": "source"
+  },
+  "setup_reviewissuessection.area_km": {
+    "source_hash": "4308bf47788a74db0d675f6bb597e8262893b48787dd65f7a8a7f585d8faa6e8",
+    "shape": "template",
+    "file": "Components/Setup/ReviewIssuesSection.vue",
+    "line": 453,
+    "status": "source"
+  },
+  "setup_reviewissuessection.auto_resolved_parents_phase_j_audit": {
+    "source_hash": "1f67e2e2f960045d9b074434a0568cdc2e4d7f281648f3e9c4965dbc23281e7d",
+    "shape": "script:title",
+    "file": "Components/Setup/ReviewIssuesSection.vue",
+    "line": 77,
+    "status": "source"
+  },
+  "setup_reviewissuessection.click_a_source_to_drill_into_rows_whose_po": {
+    "source_hash": "760f09540890a5e5a88ed84628b5eac526b3d0563980ffdd2f73a21eb6faee25",
+    "shape": "template",
+    "file": "Components/Setup/ReviewIssuesSection.vue",
+    "line": 419,
+    "status": "source"
+  },
+  "setup_reviewissuessection.click_a_strategy_to_drill_into_rows_resolv": {
+    "source_hash": "295f29598d706d82c1f18552e469a3251aef14a8242a1ae2892e71c55fb4891c",
+    "shape": "template",
+    "file": "Components/Setup/ReviewIssuesSection.vue",
+    "line": 399,
+    "status": "source"
+  },
+  "setup_reviewissuessection.collapse_this_card_and_mark_it_as_reviewed": {
+    "source_hash": "263aa8390a3a1f8b5b17ee624fff18d932e813014553d4cfc6de4abc99c6b72a",
+    "shape": "attr:title",
+    "file": "Components/Setup/ReviewIssuesSection.vue",
+    "line": 538,
+    "status": "source"
+  },
+  "setup_reviewissuessection.data_quality_review": {
+    "source_hash": "2ce7c5d97312371cea7719e8eebb4f44777660edecf953dcd7f10cea442bfec6",
+    "shape": "template",
+    "file": "Components/Setup/ReviewIssuesSection.vue",
+    "line": 255,
+    "status": "source"
+  },
+  "setup_reviewissuessection.load_50_more": {
+    "source_hash": "baef69729eba0e0375bb792c80bf1cae3a34a3e0f146492f2d95c157cba36baf",
+    "shape": "template",
+    "file": "Components/Setup/ReviewIssuesSection.vue",
+    "line": 525,
+    "status": "source"
+  },
+  "setup_reviewissuessection.loading_rows": {
+    "source_hash": "b30085d0ffa480d88aea9f231542a6cb4df19b9d7c490d971e969be63205196f",
+    "shape": "template",
+    "file": "Components/Setup/ReviewIssuesSection.vue",
+    "line": 435,
+    "status": "source"
+  },
+  "setup_reviewissuessection.mark_reviewed": {
+    "source_hash": "f73cf2143127e953bea3c7ef037ffeb96ae4fbf9ba82ec298e31da845a4c9900",
+    "shape": "template",
+    "file": "Components/Setup/ReviewIssuesSection.vue",
+    "line": 534,
+    "status": "source"
+  },
+  "setup_reviewissuessection.no_data_quality_issues_detected_ready_to_f": {
+    "source_hash": "0d610a494cad485d4db1de1e295c3bf268c5a1e9e8fd7a60e493fb283137bc22",
+    "shape": "template",
+    "file": "Components/Setup/ReviewIssuesSection.vue",
+    "line": 287,
+    "status": "source"
+  },
+  "setup_reviewissuessection.of_jurisdictions_have_population": {
+    "source_hash": "c098c71a77f099f0dc0b853ce789c814182a0b2018115b2a7b9ff624c15aa30d",
+    "shape": "template",
+    "file": "Components/Setup/ReviewIssuesSection.vue",
+    "line": 278,
+    "status": "source"
+  },
+  "setup_reviewissuessection.orphan_jurisdictions": {
+    "source_hash": "65885607b98101396b59c15f5448302088a9b40ecc50a50eac127d12b0d341be",
+    "shape": "script:title",
+    "file": "Components/Setup/ReviewIssuesSection.vue",
+    "line": 55,
+    "status": "source"
+  },
+  "setup_reviewissuessection.population_gaps": {
+    "source_hash": "807758f461d10d3f9dffe81d1ebe89c01aa623bafe3e3d2ee4e3b0dd6c68d36e",
+    "shape": "script:title",
+    "file": "Components/Setup/ReviewIssuesSection.vue",
+    "line": 34,
+    "status": "source"
+  },
+  "setup_reviewissuessection.population_resolution_phase_k_audit": {
+    "source_hash": "8b2166b7cee754bd2241742ea7bcce8b5b1dc147b9b45d87e33cf97f86c9d2a9",
+    "shape": "script:title",
+    "file": "Components/Setup/ReviewIssuesSection.vue",
+    "line": 87,
+    "status": "source"
+  },
+  "setup_reviewissuessection.showing_of": {
+    "source_hash": "fd6eb312b6e9fd2c9eaa633147fcfda215eeb3aabab5ab6179880164760cd3b0",
+    "shape": "template",
+    "file": "Components/Setup/ReviewIssuesSection.vue",
+    "line": 520,
+    "status": "source"
+  },
+  "setup_reviewissuessection.sovereign_territory_candidates": {
+    "source_hash": "e1f1c35348853b8203578db3657c6097939e8b7b5e96324d1224491d5d004411",
+    "shape": "script:title",
+    "file": "Components/Setup/ReviewIssuesSection.vue",
+    "line": 66,
+    "status": "source"
+  },
+  "setup_reviewissuessection.the_etl_surfaced_no_potential_issue_across": {
+    "source_hash": "c67948bcf511b7d9263a89dd0372585e500d854918b3093ecae4b54d64b3ff13",
+    "shape": "template",
+    "file": "Components/Setup/ReviewIssuesSection.vue",
+    "line": 256,
+    "status": "source"
+  },
+  "setup_reviewissuessection.top_countries": {
+    "source_hash": "3fe1a453f6a2ebf728818decb24675a2d379afb0821f85e215a41595ce3920c8",
+    "shape": "template",
+    "file": "Components/Setup/ReviewIssuesSection.vue",
+    "line": 358,
+    "status": "source"
+  },
+  "setup_rowdetailpanel.archive_not_visible_from_php_check_manuall": {
+    "source_hash": "ef3b2002d43cf3e75204676950a126ffaf602932c9790d7e372df391c161c9ff",
+    "shape": "template",
+    "file": "Components/Setup/RowDetailPanel.vue",
+    "line": 316,
+    "status": "source"
+  },
+  "setup_rowdetailpanel.children_at_this_row": {
+    "source_hash": "52956938b8c3939b634b8573f9e638305dcd4bde020ca24f1d726034e5fabe1b",
+    "shape": "template",
+    "file": "Components/Setup/RowDetailPanel.vue",
+    "line": 297,
+    "status": "source"
+  },
+  "setup_rowdetailpanel.children_largest_first": {
+    "source_hash": "827d6b2eeaf689d63d40427fb35070b7cff250811b6afa39dffb6466bae11891",
+    "shape": "template",
+    "file": "Components/Setup/RowDetailPanel.vue",
+    "line": 209,
+    "status": "source"
+  },
+  "setup_rowdetailpanel.children_sum": {
+    "source_hash": "8f8be5141f4ea6a8165065b336673a474fb512011741b7068050c6623079e1f2",
+    "shape": "template",
+    "file": "Components/Setup/RowDetailPanel.vue",
+    "line": 196,
+    "status": "source"
+  },
+  "setup_rowdetailpanel.found_at": {
+    "source_hash": "ca43850ae2285bfe68d62266091a00d17eb1df194b83523a83906ceaaf6a7899",
+    "shape": "template",
+    "file": "Components/Setup/RowDetailPanel.vue",
+    "line": 310,
+    "status": "source"
+  },
+  "setup_rowdetailpanel.incl_also_at_0_pop": {
+    "source_hash": "bba5a03b42acd51e957230acc9492e8457aa3f1223fcfc509e3d6b6665b3fb6c",
+    "shape": "template",
+    "file": "Components/Setup/RowDetailPanel.vue",
+    "line": 298,
+    "status": "source"
+  },
+  "setup_rowdetailpanel.inferred_territory_iso": {
+    "source_hash": "90213b1559dba7ee0eb6f23ad1eebbdb4eba0a432294d62ac55499946eea6669",
+    "shape": "template",
+    "file": "Components/Setup/RowDetailPanel.vue",
+    "line": 295,
+    "status": "source"
+  },
+  "setup_rowdetailpanel.iso_level": {
+    "source_hash": "cf0368436f6bb3817ca18079298e1e1ca2b2d95f08e11c301652d94abe8b1b98",
+    "shape": "template",
+    "file": "Components/Setup/RowDetailPanel.vue",
+    "line": 155,
+    "status": "source"
+  },
+  "setup_rowdetailpanel.km_overlap": {
+    "source_hash": "523db825f5515928c597cdd666d2ff55a4265426bd56bd4e605251a4348f23b3",
+    "shape": "template",
+    "file": "Components/Setup/RowDetailPanel.vue",
+    "line": 258,
+    "status": "source"
+  },
+  "setup_rowdetailpanel.loading_detail": {
+    "source_hash": "7c6f479ded8fc7cb0c115f1bb0c6a21d4412bd4e5b68ac993e01de6ab7775850",
+    "shape": "template",
+    "file": "Components/Setup/RowDetailPanel.vue",
+    "line": 146,
+    "status": "source"
+  },
+  "setup_rowdetailpanel.national_population": {
+    "source_hash": "c9bb29b588653b4593a1cef94dccf4a0b04cf26a5383030139d9ca6b6b923d93",
+    "shape": "template",
+    "file": "Components/Setup/RowDetailPanel.vue",
+    "line": 194,
+    "status": "source"
+  },
+  "setup_rowdetailpanel.nearest_centroid_candidates": {
+    "source_hash": "0b1321021de92f45db2a84dfe63ea903a16ff7f8585c5e8bdef5ac399b774914",
+    "shape": "template",
+    "file": "Components/Setup/RowDetailPanel.vue",
+    "line": 269,
+    "status": "source"
+  },
+  "setup_rowdetailpanel.no_autofix_saving_records_your_decision_fo": {
+    "source_hash": "6e6b9e8daf13ead52f658425fa5f5a1530fae5a2d2cdd067ddb56073cb682da1",
+    "shape": "template",
+    "file": "Components/Setup/RowDetailPanel.vue",
+    "line": 378,
+    "status": "source"
+  },
+  "setup_rowdetailpanel.no_spatial_overlap_candidates_found_at_low": {
+    "source_hash": "bd252bc6fccfd7d779ca89704002de4192d09d06c94c0cca2b80de2d413d2e15",
+    "shape": "template",
+    "file": "Components/Setup/RowDetailPanel.vue",
+    "line": 264,
+    "status": "source"
+  },
+  "setup_rowdetailpanel.not_found_at": {
+    "source_hash": "41b9b26c131cba19cfd786dede9e1483d7e8d5f533665df2d43688ce058545ce",
+    "shape": "template",
+    "file": "Components/Setup/RowDetailPanel.vue",
+    "line": 313,
+    "status": "source"
+  },
+  "setup_rowdetailpanel.of_have_population": {
+    "source_hash": "71f751d80ab8b93d9c8c34491bf39bf1f54809d1565120f4e418ae33ce6ab320",
+    "shape": "template",
+    "file": "Components/Setup/RowDetailPanel.vue",
+    "line": 205,
+    "status": "source"
+  },
+  "setup_rowdetailpanel.optional_note_what_did_you_decide_and_why": {
+    "source_hash": "bdf8305b560c13be8fffb45a40745c65b01723a4e6f5832037a061c4ebb05a3d",
+    "shape": "attr:placeholder",
+    "file": "Components/Setup/RowDetailPanel.vue",
+    "line": 373,
+    "status": "source"
+  },
+  "setup_rowdetailpanel.siblings_at_this_level": {
+    "source_hash": "6497e918d7be0e8556530f9c36c255f1a95fe40ca14e184aac3b38e0e4f2760a",
+    "shape": "template",
+    "file": "Components/Setup/RowDetailPanel.vue",
+    "line": 169,
+    "status": "source"
+  },
+  "setup_rowdetailpanel.siblings_under_with_similar_population": {
+    "source_hash": "9a28b768997404152295978b2509c298a61189f8c5ddc2840980e5e931742761",
+    "shape": "template",
+    "file": "Components/Setup/RowDetailPanel.vue",
+    "line": 322,
+    "status": "source"
+  },
+  "setup_rowdetailpanel.spatial_overlap_candidates_largest_overlap": {
+    "source_hash": "8ce8dda3df861de82a5357bd0f973c5d863244315391bc0ed2ca478a8dd0421a",
+    "shape": "template",
+    "file": "Components/Setup/RowDetailPanel.vue",
+    "line": 247,
+    "status": "source"
+  },
+  "setup_rowdetailpanel.tagged_under_sovereign": {
+    "source_hash": "beb1bfd057ad79b822c4eca6d9b51b9e53a43b689f95c28d42a630f2569f01d4",
+    "shape": "template",
+    "file": "Components/Setup/RowDetailPanel.vue",
+    "line": 293,
+    "status": "source"
+  },
+  "setup_rowdetailpanel.territory_name": {
+    "source_hash": "f4082b26c12901f3856856f902b37cde2c26444bd73bc9642fc74857d68ef5d9",
+    "shape": "template",
+    "file": "Components/Setup/RowDetailPanel.vue",
+    "line": 291,
+    "status": "source"
+  },
+  "setup_rowdetailpanel.worldpop_raster_availability": {
+    "source_hash": "11ef03f3b1d09b066aa77b629e75bc47723ea2b256633c450881a352c8de789a",
+    "shape": "template",
+    "file": "Components/Setup/RowDetailPanel.vue",
+    "line": 309,
+    "status": "source"
+  },
+  "setup_rowdetailpanel.your_decision_last_saved": {
+    "source_hash": "ff6ace4135f6ca9bd059cff03acd4bcc8caeca762cdc2c2088c1b7501094ff20",
+    "shape": "template",
+    "file": "Components/Setup/RowDetailPanel.vue",
+    "line": 344,
+    "status": "source"
+  },
+  "setup_stackedprogressbars.countries_currently": {
+    "source_hash": "4c87884b7555fbe01a723170bd7d38b31363b25bf41c929b42ddb205b56a717e",
+    "shape": "template",
+    "file": "Components/Setup/StackedProgressBars.vue",
+    "line": 478,
+    "status": "source"
+  },
+  "setup_stackedprogressbars.currently": {
+    "source_hash": "22ec340c01bf46534e64ec5f9c05b07078a240b1e757ea4443a71bb48859b34a",
+    "shape": "template",
+    "file": "Components/Setup/StackedProgressBars.vue",
+    "line": 583,
+    "status": "source"
+  },
+  "setup_stackedprogressbars.elapsed_eta_done": {
+    "source_hash": "827e76c79e8d8ff937c7532bb2d1c3b0586c3ff809488c15dc2d376a1d1cb813",
+    "shape": "template",
+    "file": "Components/Setup/StackedProgressBars.vue",
+    "line": 521,
+    "status": "source"
+  },
+  "setup_stackedprogressbars.of": {
+    "source_hash": "8dc67f9912db0fcf8bf11d756b66fca236f2b6e88704e9c028e82ea4a6530394",
+    "shape": "template",
+    "file": "Components/Setup/StackedProgressBars.vue",
+    "line": 434,
+    "status": "source"
+  },
+  "setup_stackedprogressbars.queuedelapsed_eta_donewaiting": {
+    "source_hash": "90ec851e1db4a86b79a9de0fed5059931e51faf1d124f5a1097fb1d80283af14",
+    "shape": "template",
+    "file": "Components/Setup/StackedProgressBars.vue",
+    "line": 445,
+    "status": "source"
+  },
+  "setup_stackedprogressbars.total_in_progress": {
+    "source_hash": "566540be3cc18e025a39a28d037541879c00bfb03b3dbce87da133bcb3f182e5",
+    "shape": "template",
+    "file": "Components/Setup/StackedProgressBars.vue",
+    "line": 384,
+    "status": "source"
+  },
+  "setup_stackedprogressbars.waiting_for_the_etl_to_start": {
+    "source_hash": "d336541eed7ed85716c9ebf936f626bf2e2bd9a813326d9727a1685da8b1f31d",
+    "shape": "template",
+    "file": "Components/Setup/StackedProgressBars.vue",
+    "line": 606,
+    "status": "source"
+  }
+}

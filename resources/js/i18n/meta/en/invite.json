@@ -1,0 +1,142 @@
+{
+  "invite_landing.an_invite_carries_no_power_nobody_gains_a_": {
+    "source_hash": "a4684076a1043404832b08e1d8d14ed80480000351431ae5d3e1f455c32031d1",
+    "shape": "template",
+    "file": "Pages/Invite/Landing.vue",
+    "line": 132,
+    "status": "source"
+  },
+  "invite_landing.browse_everything_every_place_on_earth_eve": {
+    "source_hash": "257846f23c3cf2c67c9d787392b6a4bc0ac6ab608e6016cf01a324936173a2e8",
+    "shape": "template",
+    "file": "Pages/Invite/Landing.vue",
+    "line": 122,
+    "status": "source"
+  },
+  "invite_landing.create_an_account": {
+    "source_hash": "86033f75a4c0876adfabca55e558f0ae8f9fa098506123fae47b7601411cc3e2",
+    "shape": "template",
+    "file": "Pages/Invite/Landing.vue",
+    "line": 107,
+    "status": "source"
+  },
+  "invite_landing.either_way_you_ll_land_right_where_this_li": {
+    "source_hash": "b9cf4f75eda0a87f0a33aa1f2a0a90c41b0aeed51e424e2a6ee5e242134b0fc8",
+    "shape": "template",
+    "file": "Pages/Invite/Landing.vue",
+    "line": 88,
+    "status": "source"
+  },
+  "invite_landing.explore_first": {
+    "source_hash": "b75cbfcffb80efd03f88923b45a78ef6e4be3dd718f0f024a5fef0f295afdcc3",
+    "shape": "template",
+    "file": "Pages/Invite/Landing.vue",
+    "line": 108,
+    "status": "source"
+  },
+  "invite_landing.is_a_private_room_they_saved_you_a_seat_cr": {
+    "source_hash": "2a0d14eaea7db964aad8c5cb773844182aa703d9dde7a7ffdd905f01d6f6974c",
+    "shape": "template",
+    "file": "Pages/Invite/Landing.vue",
+    "line": 58,
+    "status": "source"
+  },
+  "invite_landing.join_anyway": {
+    "source_hash": "c0cd801ac2035af7d1f59573d64382344c81156ed2dc57024798a4b89dd10304",
+    "shape": "template",
+    "file": "Pages/Invite/Landing.vue",
+    "line": 105,
+    "status": "source"
+  },
+  "invite_landing.log_in": {
+    "source_hash": "c189840cf7e2d6f6fdeefde1ac59dfdf50bb75642eb569b4e38a5614d6f12ac2",
+    "shape": "template",
+    "file": "Pages/Invite/Landing.vue",
+    "line": 85,
+    "status": "source"
+  },
+  "invite_landing.look_around_first": {
+    "source_hash": "a8f0ccffc718b2966c439944e57b1c5b7f69f7d509fd7d0d61aecffe96f99863",
+    "shape": "template",
+    "file": "Pages/Invite/Landing.vue",
+    "line": 86,
+    "status": "source"
+  },
+  "invite_landing.sign_up_join": {
+    "source_hash": "50bf7938ba7803232f975f0e52b950125da997c480ade1823dfec8d894cc152d",
+    "shape": "template",
+    "file": "Pages/Invite/Landing.vue",
+    "line": 84,
+    "status": "source"
+  },
+  "invite_landing.step_in": {
+    "source_hash": "e07e9e21895fe60aec0f15b9f09d5c748881045921bc6a73765476018908faa1",
+    "shape": "template",
+    "file": "Pages/Invite/Landing.vue",
+    "line": 82,
+    "status": "source"
+  },
+  "invite_landing.step_in_and_see_what_this_is_is_already_op": {
+    "source_hash": "e10b9badd79482256b0438bf2351468c1e99eb1fdbca013006e51c0cc6c58ac4",
+    "shape": "template",
+    "file": "Pages/Invite/Landing.vue",
+    "line": 62,
+    "status": "source"
+  },
+  "invite_landing.that_link_is_no_longer_valid_but_the_door_": {
+    "source_hash": "3821fed30bedf46082ea25c38d719563bdf92dc0ce6507a447682cceb0579181",
+    "shape": "template",
+    "file": "Pages/Invite/Landing.vue",
+    "line": 99,
+    "status": "source"
+  },
+  "invite_landing.this_invite_link_has_expired": {
+    "source_hash": "63a7c3197d367a1eea640c48e34c28c8c80ea430ea88cb451cb077e8b8b020e4",
+    "shape": "template",
+    "file": "Pages/Invite/Landing.vue",
+    "line": 98,
+    "status": "source"
+  },
+  "invite_landing.watch_any_public_room_every_hearing_meetin": {
+    "source_hash": "85c81577bf5968e6574df52af3160dcd59a04fb902dc87d2ad3164dcaa2830cd",
+    "shape": "template",
+    "file": "Pages/Invite/Landing.vue",
+    "line": 118,
+    "status": "source"
+  },
+  "invite_landing.what_you_can_do_right_now": {
+    "source_hash": "b5dbce512b606709bebf303bd01708b62f08d821b7527de2c48ff28d0eb08199",
+    "shape": "template",
+    "file": "Pages/Invite/Landing.vue",
+    "line": 115,
+    "status": "source"
+  },
+  "invite_landing.when_you_want_a_voice_to_speak_on_the_reco": {
+    "source_hash": "5661fcc36e478607871df2a624be27662873efb0b0df10feb99df09366a9e6cf",
+    "shape": "template",
+    "file": "Pages/Invite/Landing.vue",
+    "line": 126,
+    "status": "source"
+  },
+  "invite_landing.where_this_leads": {
+    "source_hash": "1cb8a932c727fc5501112de4280c23ca86ebfe9b3190ed704cede1aa15f47eae",
+    "shape": "attr:eyebrow",
+    "file": "Pages/Invite/Landing.vue",
+    "line": 69,
+    "status": "source"
+  },
+  "invite_landing.world_of_statecraft": {
+    "source_hash": "a5e74278726a82548ae232606eaefce5259ce0598727bb6784b0d9d74dd4d066",
+    "shape": "template",
+    "file": "Pages/Invite/Landing.vue",
+    "line": 55,
+    "status": "source"
+  },
+  "invite_landing.you_re_invited": {
+    "source_hash": "3b3fc7fd3c9b44ffd7f100b17b66626daa95f707308b941b69e3407414f5ec31",
+    "shape": "attr:title",
+    "file": "Pages/Invite/Landing.vue",
+    "line": 49,
+    "status": "source"
+  }
+}

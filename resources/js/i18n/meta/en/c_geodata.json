@@ -1,0 +1,275 @@
+{
+  "geodata_geodataflagqueue.accept_flag": {
+    "source_hash": "fe05199e3f4a6d9b9b36b1bfd9739587df8b3e60b0936b17d347bbf3be0cb7b4",
+    "shape": "template",
+    "file": "Components/Geodata/GeodataFlagQueue.vue",
+    "line": 177,
+    "status": "source"
+  },
+  "geodata_geodataflagqueue.applied": {
+    "source_hash": "50374f6cab0a1d218016b7107ee50920e6bb0da23e01c2d8df4084de0d2db931",
+    "shape": "template",
+    "file": "Components/Geodata/GeodataFlagQueue.vue",
+    "line": 225,
+    "status": "source"
+  },
+  "geodata_geodataflagqueue.critical_warning_info": {
+    "source_hash": "99ed7a5b48772e74a60d80e52a2ed88cd3cc577050176521b136ff052c700160",
+    "shape": "template",
+    "file": "Components/Geodata/GeodataFlagQueue.vue",
+    "line": 70,
+    "status": "source"
+  },
+  "geodata_geodataflagqueue.data_review_repair": {
+    "source_hash": "7fb37664783f08e5a9a5aaa64e50c5ce2a5571a6dd3defbaf5fdce16d288a5b1",
+    "shape": "template",
+    "file": "Components/Geodata/GeodataFlagQueue.vue",
+    "line": 5,
+    "status": "source"
+  },
+  "geodata_geodataflagqueue.last_scan": {
+    "source_hash": "b192f1d44f8e5f7837e34e234d88b5ce9d0397d031ecd718c8074933732ddacd",
+    "shape": "template",
+    "file": "Components/Geodata/GeodataFlagQueue.vue",
+    "line": 31,
+    "status": "source"
+  },
+  "geodata_geodataflagqueue.loading_flags": {
+    "source_hash": "1cb31758599d0dfbd3b3dff056058cb48a2152502f6d4dbce679bbd749a2920b",
+    "shape": "template",
+    "file": "Components/Geodata/GeodataFlagQueue.vue",
+    "line": 87,
+    "status": "source"
+  },
+  "geodata_geodataflagqueue.loading_repairs": {
+    "source_hash": "918dd2443c9d7182dfbdb2bbd958253c6d60a745af49204bd193531f54e6d702",
+    "shape": "template",
+    "file": "Components/Geodata/GeodataFlagQueue.vue",
+    "line": 204,
+    "status": "source"
+  },
+  "geodata_geodataflagqueue.map_data_accepted_repairs_are_locked": {
+    "source_hash": "7dfd55d3ebc15cb85e383aa8de68ac3f49d173622bfac22f3845cab58948b896",
+    "shape": "template",
+    "file": "Components/Geodata/GeodataFlagQueue.vue",
+    "line": 22,
+    "status": "source"
+  },
+  "geodata_geodataflagqueue.no_flags": {
+    "source_hash": "0eefde41fbad8164a992d307758a16f9a0835b51b773b579151ba8c64a5ea21f",
+    "shape": "template",
+    "file": "Components/Geodata/GeodataFlagQueue.vue",
+    "line": 94,
+    "status": "source"
+  },
+  "geodata_geodataflagqueue.no_open_flags_run_a_scan_to_re_check_the_i": {
+    "source_hash": "b592846f04a54cf4ca7dc8d5cfa4972b1f91b5998c92add26fe8225250e43c28",
+    "shape": "template",
+    "file": "Components/Geodata/GeodataFlagQueue.vue",
+    "line": 91,
+    "status": "source"
+  },
+  "geodata_geodataflagqueue.no_repairs_applied_yet": {
+    "source_hash": "37f02a3017935bc56cc362c898ea9bb59011916287045afc0fb75c3a75fbf33d",
+    "shape": "template",
+    "file": "Components/Geodata/GeodataFlagQueue.vue",
+    "line": 207,
+    "status": "source"
+  },
+  "geodata_geodataflagqueue.prune": {
+    "source_hash": "b9b158d861e2db97ef57cba733910ee1d7defd3a9fc49079d16f37e49d8ba722",
+    "shape": "template",
+    "file": "Components/Geodata/GeodataFlagQueue.vue",
+    "line": 187,
+    "status": "source"
+  },
+  "geodata_geodataflagqueue.repairs_log": {
+    "source_hash": "221ceeeb3390982041023162c3931492b314b72542074eb43dfb93e6308781f2",
+    "shape": "template",
+    "file": "Components/Geodata/GeodataFlagQueue.vue",
+    "line": 45,
+    "status": "source"
+  },
+  "geodata_geodataflagqueue.scan_running": {
+    "source_hash": "a674c78f0c11c9bbbc4a070c23ec084c1eec422038e3c323c9167f240b753bff",
+    "shape": "template",
+    "file": "Components/Geodata/GeodataFlagQueue.vue",
+    "line": 27,
+    "status": "source"
+  },
+  "geodata_geodataflagqueue.showing_the_most_severe_of_flags_filter_by": {
+    "source_hash": "4583be5269ef705ae3a27bd634a43f092fbd7d221934483d92b62823d21312ea",
+    "shape": "template",
+    "file": "Components/Geodata/GeodataFlagQueue.vue",
+    "line": 100,
+    "status": "source"
+  },
+  "geodata_geodatarepairmodal.accept_this_flag_as_is_the_condition_stays": {
+    "source_hash": "efc49c584af681dbdff42a0d15fe9f9abb2ec2d90d474ce492ae044a0b9ede49",
+    "shape": "template",
+    "file": "Components/Geodata/GeodataRepairModal.vue",
+    "line": 22,
+    "status": "source"
+  },
+  "geodata_geodatarepairmodal.cascade_also_delete_the_whole_subtree_bene": {
+    "source_hash": "7c138789a3249444a408c16bcf61a0a8cf872a3d152bbd29af1ece19fe89772c",
+    "shape": "template",
+    "file": "Components/Geodata/GeodataRepairModal.vue",
+    "line": 163,
+    "status": "source"
+  },
+  "geodata_geodatarepairmodal.chain_topmost_first_one_slug_per_line": {
+    "source_hash": "e7da111794c34180f344c73bccccf22b7268a046251d9e690ebe0a4f59f29e5c",
+    "shape": "template",
+    "file": "Components/Geodata/GeodataRepairModal.vue",
+    "line": 99,
+    "status": "source"
+  },
+  "geodata_geodatarepairmodal.child_ren": {
+    "source_hash": "de48167198dc9b100646c6fb2f4d86be88484d2d56b4e86c147add1dd338dc74",
+    "shape": "template",
+    "file": "Components/Geodata/GeodataRepairModal.vue",
+    "line": 86,
+    "status": "source"
+  },
+  "geodata_geodatarepairmodal.children_to_gather_one_slug_per_line": {
+    "source_hash": "08003200456c009efddfef2785817f7f5915d684cfdf261d4cc646b6a4619aa2",
+    "shape": "template",
+    "file": "Components/Geodata/GeodataRepairModal.vue",
+    "line": 82,
+    "status": "source"
+  },
+  "geodata_geodatarepairmodal.collapse_a_single_child_chain_of_same_spac": {
+    "source_hash": "cfa506b1caa6ab3c9e3ccfec6c36ce55f911492b8a0d7544341a7924c77cf54b",
+    "shape": "template",
+    "file": "Components/Geodata/GeodataRepairModal.vue",
+    "line": 92,
+    "status": "source"
+  },
+  "geodata_geodatarepairmodal.create_a_new_intermediate_jurisdiction_und": {
+    "source_hash": "3bb340d678edc7ef558ff2af3999eb74e1ba0bc3196a3b075060b61ffe53873a",
+    "shape": "template",
+    "file": "Components/Geodata/GeodataRepairModal.vue",
+    "line": 64,
+    "status": "source"
+  },
+  "geodata_geodatarepairmodal.jurisdiction_slug": {
+    "source_hash": "4e759d2d0679fc029b8d05a5778aba7589a73515b59daeb437b3c55e3d5b1bad",
+    "shape": "template",
+    "file": "Components/Geodata/GeodataRepairModal.vue",
+    "line": 125,
+    "status": "source"
+  },
+  "geodata_geodatarepairmodal.jurisdiction_to_move_slug": {
+    "source_hash": "59e707bb59ca58f5341d1b0754dc622d954d3b1cc1072870a098ae3bbf152f7c",
+    "shape": "template",
+    "file": "Components/Geodata/GeodataRepairModal.vue",
+    "line": 35,
+    "status": "source"
+  },
+  "geodata_geodatarepairmodal.jurisdiction_to_prune_slug": {
+    "source_hash": "9d9dcd5878733727925e3753e0626c6c7c80dddac7e5013656a0bf09edf4401d",
+    "shape": "template",
+    "file": "Components/Geodata/GeodataRepairModal.vue",
+    "line": 156,
+    "status": "source"
+  },
+  "geodata_geodatarepairmodal.move_a_jurisdiction_under_a_different_pare": {
+    "source_hash": "66f48669dd01d34e73412217327d3524b65a1f9dbea51f2240c0c066b3322e49",
+    "shape": "template",
+    "file": "Components/Geodata/GeodataRepairModal.vue",
+    "line": 30,
+    "status": "source"
+  },
+  "geodata_geodatarepairmodal.name_of_the_new_jurisdiction": {
+    "source_hash": "9b202e39b6c0cb5deb4a32dfad887b422c380beb5b70fab55fdac1bcea0eb1c2",
+    "shape": "template",
+    "file": "Components/Geodata/GeodataRepairModal.vue",
+    "line": 76,
+    "status": "source"
+  },
+  "geodata_geodatarepairmodal.new_parent_slug": {
+    "source_hash": "f200ed9cb2c1d04a1dc3d047e4a0b19373c4e3495898c22eb87dee096804c148",
+    "shape": "template",
+    "file": "Components/Geodata/GeodataRepairModal.vue",
+    "line": 55,
+    "status": "source"
+  },
+  "geodata_geodatarepairmodal.northern_cluster": {
+    "source_hash": "378c267e0860e6409a2d1c4042fee261f3305ed99baec060d0075e446e23f05e",
+    "shape": "attr:placeholder",
+    "file": "Components/Geodata/GeodataRepairModal.vue",
+    "line": 77,
+    "status": "source"
+  },
+  "geodata_geodatarepairmodal.note_optional": {
+    "source_hash": "f9b73e1abc37cf5b13937f56c9e8bfd59f9fcd548145f1755bf28dc62db92362",
+    "shape": "template",
+    "file": "Components/Geodata/GeodataRepairModal.vue",
+    "line": 184,
+    "status": "source"
+  },
+  "geodata_geodatarepairmodal.parent_slug": {
+    "source_hash": "d193c8e7e5aad104ae74169feee610d5107f0343ab0f984d567bd8afed0ce19d",
+    "shape": "template",
+    "file": "Components/Geodata/GeodataRepairModal.vue",
+    "line": 70,
+    "status": "source"
+  },
+  "geodata_geodatarepairmodal.replace_the_stored_population_the_prior_va": {
+    "source_hash": "aa32c94740b6043fb0d1228b05c4e66f17d40ff83ae0d1bb3d72e0f97002b105",
+    "shape": "template",
+    "file": "Components/Geodata/GeodataRepairModal.vue",
+    "line": 120,
+    "status": "source"
+  },
+  "geodata_geodatarepairmodal.soft_delete_this_jurisdiction_every_remove": {
+    "source_hash": "b2a7dff3c6167da44fbdf97475c0c6211f5d9a0141a5e390b0f2976c1b0f93f3",
+    "shape": "template",
+    "file": "Components/Geodata/GeodataRepairModal.vue",
+    "line": 151,
+    "status": "source"
+  },
+  "geodata_geodatarepairmodal.suggested_parents": {
+    "source_hash": "4a04a2b6aeb25425e501d2a6ad835b42905b31fdce6a9df5536cf6499bd6074a",
+    "shape": "template",
+    "file": "Components/Geodata/GeodataRepairModal.vue",
+    "line": 41,
+    "status": "source"
+  },
+  "geodata_geodatarepairmodal.sum_of_live_children_adds_up_the_direct_ch": {
+    "source_hash": "098c336c37c158f33595beb35377a848eb878ca37e28ec1b46068ecbdadf9b97",
+    "shape": "template",
+    "file": "Components/Geodata/GeodataRepairModal.vue",
+    "line": 134,
+    "status": "source"
+  },
+  "geodata_geodatarepairmodal.survivor_merged_away": {
+    "source_hash": "55bce0d828b05aa2310f6e397bfca51276c8f8a3b047a004045214ebfdfcb72d",
+    "shape": "template",
+    "file": "Components/Geodata/GeodataRepairModal.vue",
+    "line": 105,
+    "status": "source"
+  },
+  "geodata_geodatarepairmodal.type_the_slug_to_confirm": {
+    "source_hash": "f857df2af10e7fa21586c2624920b5c343b8f4a0f6dea58046ffacbcf8da371b",
+    "shape": "template",
+    "file": "Components/Geodata/GeodataRepairModal.vue",
+    "line": 172,
+    "status": "source"
+  },
+  "geodata_geodatarepairmodal.why_this_repair": {
+    "source_hash": "92e7f6388a369624ab04c7a436948faf61ffcaaa12063d4f71dcb99109aaaa77",
+    "shape": "attr:placeholder",
+    "file": "Components/Geodata/GeodataRepairModal.vue",
+    "line": 185,
+    "status": "source"
+  },
+  "geodata_geodatarepairmodal.worldpop_raster_total_sums_the_country_s_p": {
+    "source_hash": "6b592b09efc6d28d1a53363ced0199228a4767d4b11e95a1f971fe144ec24b84",
+    "shape": "template",
+    "file": "Components/Geodata/GeodataRepairModal.vue",
+    "line": 141,
+    "status": "source"
+  }
+}

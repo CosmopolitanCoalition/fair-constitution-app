@@ -1,0 +1,58 @@
+{
+  "civic_room_chamberstage.in_the_chamber": {
+    "source_hash": "bb9db5b9ebe28cc6f6bb1c48a35d47b26bc23417cf844daff690af4b4770df5f",
+    "shape": "template",
+    "file": "Components/Civic/Room/ChamberStage.vue",
+    "line": 34,
+    "status": "source"
+  },
+  "civic_room_chamberstage.no_one_is_on_the_floor_yet_join_the_voice_": {
+    "source_hash": "893df04e9cfd06110221237eb444a0fcd2805c9b06c5b842bfdc301da2fcd7f4",
+    "shape": "template",
+    "file": "Components/Civic/Room/ChamberStage.vue",
+    "line": 69,
+    "status": "source"
+  },
+  "civic_room_liveroom.no_voice_host_is_reachable_from_here_right": {
+    "source_hash": "7251238d4c83655c64fc42b394f34f1fe6b2b55b04e6113ba972390b7549f4c3",
+    "shape": "template",
+    "file": "Components/Civic/Room/LiveRoom.vue",
+    "line": 67,
+    "status": "source"
+  },
+  "civic_room_liveroom.you_can_still_take_part_in_text_below": {
+    "source_hash": "1a474ec9fbb7b2528ae899b8dbd99f7ae741f5c6a7eaf04d87776e0dc5104548",
+    "shape": "template",
+    "file": "Components/Civic/Room/LiveRoom.vue",
+    "line": 71,
+    "status": "source"
+  },
+  "civic_room_participanttile.screen_share": {
+    "source_hash": "4e1bb6e9348e95da23210dc925df49c0f7584143df80d400a554933c6b2c6f9e",
+    "shape": "attr:aria-label",
+    "file": "Components/Civic/Room/ParticipantTile.vue",
+    "line": 87,
+    "status": "source"
+  },
+  "civic_signaturemeter.needed": {
+    "source_hash": "89e09b2f8e96676f59b028b10bd2909837a2ec72d160a86451bd9e079a8b726a",
+    "shape": "template",
+    "file": "Components/Civic/SignatureMeter.vue",
+    "line": 41,
+    "status": "source"
+  },
+  "civic_signaturemeter.threshold_of_population_clk_17": {
+    "source_hash": "f9589c3532f47b4e969dbc7af2e14edb1019d295960409869213d885100e3763",
+    "shape": "template",
+    "file": "Components/Civic/SignatureMeter.vue",
+    "line": 42,
+    "status": "source"
+  },
+  "civic_signaturemeter.threshold_reached": {
+    "source_hash": "558e7f2ae290393633d5b9c837a5fd81fbb3a0e088599c23d416f6d0baa6bc1b",
+    "shape": "template",
+    "file": "Components/Civic/SignatureMeter.vue",
+    "line": 46,
+    "status": "source"
+  }
+}

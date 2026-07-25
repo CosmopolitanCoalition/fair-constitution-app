@@ -1,0 +1,44 @@
+{
+  "appshell.log_in": {
+    "source_hash": "c189840cf7e2d6f6fdeefde1ac59dfdf50bb75642eb569b4e38a5614d6f12ac2",
+    "shape": "template",
+    "file": "Layouts/AppShell.vue",
+    "line": 333,
+    "status": "source"
+  },
+  "appshell.log_out": {
+    "source_hash": "49616145514e9abf1fc47d631fccccff2ed974cc260d38848181a07e0fa9972f",
+    "shape": "template",
+    "file": "Layouts/AppShell.vue",
+    "line": 319,
+    "status": "source"
+  },
+  "appshell.pseudo_en_xa": {
+    "source_hash": "dd99c82c7afd7ac931a563007360290554473940ffa727cf1006b9e5518ea6ab",
+    "shape": "template",
+    "file": "Layouts/AppShell.vue",
+    "line": 300,
+    "status": "source"
+  },
+  "appshell.roles_derived": {
+    "source_hash": "d59d74d49db9867efb360ba64dcca1ed9da26f494f5b813ad74199adbd90ac8d",
+    "shape": "template",
+    "file": "Layouts/AppShell.vue",
+    "line": 378,
+    "status": "source"
+  },
+  "appshell.these_proceedings_are_public_record_art_ii": {
+    "source_hash": "dbcd6c6e9a13709db54dac02df1d809236a0f703ec15fdfea1d13c2a32729388",
+    "shape": "template",
+    "file": "Layouts/AppShell.vue",
+    "line": 357,
+    "status": "source"
+  },
+  "appshell.you_re_viewing_as_a_guest": {
+    "source_hash": "cb4c38ba1aa8cfef1e37e29de459364e8c8ec0b5a00969d9230395c2d81814ad",
+    "shape": "attr:title",
+    "file": "Layouts/AppShell.vue",
+    "line": 357,
+    "status": "source"
+  }
+}

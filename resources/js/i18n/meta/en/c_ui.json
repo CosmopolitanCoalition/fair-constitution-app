@@ -1,0 +1,30 @@
+{
+  "ui_citationline.as_implemented": {
+    "source_hash": "52d98955851a33a8f43ba0c1502817e3a75950ef78a49f34b41b4e8916bc1b16",
+    "shape": "template",
+    "file": "Components/Ui/CitationLine.vue",
+    "line": 18,
+    "status": "source"
+  },
+  "ui_formchip.catalog": {
+    "source_hash": "25413185f680c3ddf4439f7c67e38136b3cbaa32fbb769b69874e8c1735ed348",
+    "shape": "template",
+    "file": "Components/Ui/FormChip.vue",
+    "line": 21,
+    "status": "source"
+  },
+  "ui_lawdiff.law_text_changes": {
+    "source_hash": "8af9625a811fe2da3db8d353563b546fb9b8fa7dbd860b92a0d7240b35f5b887",
+    "shape": "prop-default",
+    "file": "Components/Ui/LawDiff.vue",
+    "line": 20,
+    "status": "source"
+  },
+  "ui_plannedbanner.planned_a_preview": {
+    "source_hash": "6d49e5e4cd288036c34165380d63aee7f5bb2f41daabdd3bae1e9aecafa6b51d",
+    "shape": "template",
+    "file": "Components/Ui/PlannedBanner.vue",
+    "line": 15,
+    "status": "source"
+  }
+}

@@ -1,0 +1,30 @@
+{
+  "executive_departmentcard.below_threshold": {
+    "source_hash": "f9a5253c88789d921cf88793124d59a8facd40fc0f4158ea6465389426e3416d",
+    "shape": "script:text",
+    "file": "Components/Executive/DepartmentCard.vue",
+    "line": 62,
+    "status": "source"
+  },
+  "executive_orderscopecard.emergency_methods_widen_the_delegated_scop": {
+    "source_hash": "441442e1f1627c63dba94f3393acd732f5d41afdd70b90a5210a7de66082e260",
+    "shape": "template",
+    "file": "Components/Executive/OrderScopeCard.vue",
+    "line": 67,
+    "status": "source"
+  },
+  "executive_orderscopecard.judicially_reviewable_art_iv_5": {
+    "source_hash": "19a9d1250834cd9d47a150dac46cb131366d6d1bbcc8af3a27f68896ef9f9bdf",
+    "shape": "template",
+    "file": "Components/Executive/OrderScopeCard.vue",
+    "line": 101,
+    "status": "source"
+  },
+  "executive_orderscopecard.rejected_pre_issuance_the_order_never_took": {
+    "source_hash": "e6d4361c2d18252071a11a15fad6d465fd0a4ebe4600fbaa95cf592fbe839085",
+    "shape": "template",
+    "file": "Components/Executive/OrderScopeCard.vue",
+    "line": 78,
+    "status": "source"
+  }
+}

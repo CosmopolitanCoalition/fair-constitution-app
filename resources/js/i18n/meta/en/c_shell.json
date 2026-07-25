@@ -1,0 +1,44 @@
+{
+  "shell_appheader.world_of_statecraft": {
+    "source_hash": "a5e74278726a82548ae232606eaefce5259ce0598727bb6784b0d9d74dd4d066",
+    "shape": "prop-default",
+    "file": "Components/Shell/AppHeader.vue",
+    "line": 16,
+    "status": "source"
+  },
+  "shell_devbar.dev_controls_not_part_of_the_application": {
+    "source_hash": "9a762f519f51afc464ebaedca7193c587b4d8d2a71a211751464c74ac01421df",
+    "shape": "prop-default",
+    "file": "Components/Shell/DevBar.vue",
+    "line": 12,
+    "status": "source"
+  },
+  "shell_devbar.impersonating": {
+    "source_hash": "e7cef11a4000c34a22d7d48802443a09edaa055994f6848841a8691e4963a4f9",
+    "shape": "template",
+    "file": "Components/Shell/DevBar.vue",
+    "line": 24,
+    "status": "source"
+  },
+  "shell_devbar.residency_tool_civic_residency": {
+    "source_hash": "2841ba473cb9f23185fe3fa0d465c9660ab1d91e2db9beaf32092bb9dbb38f08",
+    "shape": "template",
+    "file": "Components/Shell/DevBar.vue",
+    "line": 37,
+    "status": "source"
+  },
+  "shell_emergencybanner.judicial_review_pending_f_jdg_007": {
+    "source_hash": "194ead1b6208566bcd8e1eada9476bab39ce6f71225f1e2330b8a99ddd8cd9d0",
+    "shape": "template",
+    "file": "Components/Shell/EmergencyBanner.vue",
+    "line": 46,
+    "status": "source"
+  },
+  "shell_emergencybanner.open_the_emergency_powers_dashboard": {
+    "source_hash": "b28a7261be5b734d06e7d8fa1bf34d42f436bf1a2522b77e0c0a9e04d8b2af13",
+    "shape": "template",
+    "file": "Components/Shell/EmergencyBanner.vue",
+    "line": 49,
+    "status": "source"
+  }
+}

@@ -1,0 +1,370 @@
+{
+  "generated_at": "2026-07-25T19:12:11.289Z",
+  "source_keys": 3366,
+  "namespaces": 32,
+  "locales": [
+    {
+      "locale": "ar",
+      "total": 3366,
+      "present": 103,
+      "missing": 3263,
+      "orphan": 0,
+      "identical": 1,
+      "pct": 3.1
+    },
+    {
+      "locale": "es",
+      "total": 3366,
+      "present": 103,
+      "missing": 3263,
+      "orphan": 0,
+      "identical": 2,
+      "pct": 3.1
+    },
+    {
+      "locale": "hi",
+      "total": 3366,
+      "present": 103,
+      "missing": 3263,
+      "orphan": 0,
+      "identical": 1,
+      "pct": 3.1
+    },
+    {
+      "locale": "zh-Hans",
+      "total": 3366,
+      "present": 103,
+      "missing": 3263,
+      "orphan": 0,
+      "identical": 1,
+      "pct": 3.1
+    }
+  ],
+  "by_namespace": [
+    {
+      "namespace": "auth",
+      "total": 39,
+      "locales": {
+        "ar": 0,
+        "es": 0,
+        "hi": 0,
+        "zh-Hans": 0
+      }
+    },
+    {
+      "namespace": "c_civic",
+      "total": 8,
+      "locales": {
+        "ar": 0,
+        "es": 0,
+        "hi": 0,
+        "zh-Hans": 0
+      }
+    },
+    {
+      "namespace": "c_electoral",
+      "total": 26,
+      "locales": {
+        "ar": 0,
+        "es": 0,
+        "hi": 0,
+        "zh-Hans": 0
+      }
+    },
+    {
+      "namespace": "c_executive",
+      "total": 4,
+      "locales": {
+        "ar": 0,
+        "es": 0,
+        "hi": 0,
+        "zh-Hans": 0
+      }
+    },
+    {
+      "namespace": "c_federation",
+      "total": 4,
+      "locales": {
+        "ar": 0,
+        "es": 0,
+        "hi": 0,
+        "zh-Hans": 0
+      }
+    },
+    {
+      "namespace": "c_geodata",
+      "total": 39,
+      "locales": {
+        "ar": 0,
+        "es": 0,
+        "hi": 0,
+        "zh-Hans": 0
+      }
+    },
+    {
+      "namespace": "c_invite",
+      "total": 2,
+      "locales": {
+        "ar": 0,
+        "es": 0,
+        "hi": 0,
+        "zh-Hans": 0
+      }
+    },
+    {
+      "namespace": "c_judiciary",
+      "total": 49,
+      "locales": {
+        "ar": 0,
+        "es": 0,
+        "hi": 0,
+        "zh-Hans": 0
+      }
+    },
+    {
+      "namespace": "c_legislature",
+      "total": 26,
+      "locales": {
+        "ar": 0,
+        "es": 0,
+        "hi": 0,
+        "zh-Hans": 0
+      }
+    },
+    {
+      "namespace": "c_organizations",
+      "total": 27,
+      "locales": {
+        "ar": 0,
+        "es": 0,
+        "hi": 0,
+        "zh-Hans": 0
+      }
+    },
+    {
+      "namespace": "c_setup",
+      "total": 100,
+      "locales": {
+        "ar": 0,
+        "es": 0,
+        "hi": 0,
+        "zh-Hans": 0
+      }
+    },
+    {
+      "namespace": "c_shell",
+      "total": 6,
+      "locales": {
+        "ar": 0,
+        "es": 0,
+        "hi": 0,
+        "zh-Hans": 0
+      }
+    },
+    {
+      "namespace": "c_shellv2",
+      "total": 7,
+      "locales": {
+        "ar": 0,
+        "es": 0,
+        "hi": 0,
+        "zh-Hans": 0
+      }
+    },
+    {
+      "namespace": "c_surface",
+      "total": 5,
+      "locales": {
+        "ar": 0,
+        "es": 0,
+        "hi": 0,
+        "zh-Hans": 0
+      }
+    },
+    {
+      "namespace": "c_ui",
+      "total": 4,
+      "locales": {
+        "ar": 0,
+        "es": 0,
+        "hi": 0,
+        "zh-Hans": 0
+      }
+    },
+    {
+      "namespace": "chrome",
+      "total": 117,
+      "locales": {
+        "ar": 103,
+        "es": 103,
+        "hi": 103,
+        "zh-Hans": 103
+      }
+    },
+    {
+      "namespace": "civic",
+      "total": 312,
+      "locales": {
+        "ar": 0,
+        "es": 0,
+        "hi": 0,
+        "zh-Hans": 0
+      }
+    },
+    {
+      "namespace": "components",
+      "total": 10,
+      "locales": {
+        "ar": 0,
+        "es": 0,
+        "hi": 0,
+        "zh-Hans": 0
+      }
+    },
+    {
+      "namespace": "dev",
+      "total": 202,
+      "locales": {
+        "ar": 0,
+        "es": 0,
+        "hi": 0,
+        "zh-Hans": 0
+      }
+    },
+    {
+      "namespace": "elections",
+      "total": 332,
+      "locales": {
+        "ar": 0,
+        "es": 0,
+        "hi": 0,
+        "zh-Hans": 0
+      }
+    },
+    {
+      "namespace": "executive",
+      "total": 193,
+      "locales": {
+        "ar": 0,
+        "es": 0,
+        "hi": 0,
+        "zh-Hans": 0
+      }
+    },
+    {
+      "namespace": "invite",
+      "total": 20,
+      "locales": {
+        "ar": 0,
+        "es": 0,
+        "hi": 0,
+        "zh-Hans": 0
+      }
+    },
+    {
+      "namespace": "judiciary",
+      "total": 197,
+      "locales": {
+        "ar": 0,
+        "es": 0,
+        "hi": 0,
+        "zh-Hans": 0
+      }
+    },
+    {
+      "namespace": "jurisdictions",
+      "total": 131,
+      "locales": {
+        "ar": 0,
+        "es": 0,
+        "hi": 0,
+        "zh-Hans": 0
+      }
+    },
+    {
+      "namespace": "legislature",
+      "total": 542,
+      "locales": {
+        "ar": 0,
+        "es": 0,
+        "hi": 0,
+        "zh-Hans": 0
+      }
+    },
+    {
+      "namespace": "operator",
+      "total": 270,
+      "locales": {
+        "ar": 0,
+        "es": 0,
+        "hi": 0,
+        "zh-Hans": 0
+      }
+    },
+    {
+      "namespace": "organizations",
+      "total": 218,
+      "locales": {
+        "ar": 0,
+        "es": 0,
+        "hi": 0,
+        "zh-Hans": 0
+      }
+    },
+    {
+      "namespace": "pages",
+      "total": 2,
+      "locales": {
+        "ar": 0,
+        "es": 0,
+        "hi": 0,
+        "zh-Hans": 0
+      }
+    },
+    {
+      "namespace": "registry",
+      "total": 92,
+      "locales": {
+        "ar": 0,
+        "es": 0,
+        "hi": 0,
+        "zh-Hans": 0
+      }
+    },
+    {
+      "namespace": "setup",
+      "total": 267,
+      "locales": {
+        "ar": 0,
+        "es": 0,
+        "hi": 0,
+        "zh-Hans": 0
+      }
+    },
+    {
+      "namespace": "support",
+      "total": 9,
+      "locales": {
+        "ar": 0,
+        "es": 0,
+        "hi": 0,
+        "zh-Hans": 0
+      }
+    },
+    {
+      "namespace": "system",
+      "total": 106,
+      "locales": {
+        "ar": 0,
+        "es": 0,
+        "hi": 0,
+        "zh-Hans": 0
+      }
+    }
+  ],
+  "failures": 13052,
+  "warnings": 4,
+  "failure_codes": {
+    "C1-missing": 13052
+  }
+}
