@@ -288,6 +288,24 @@ setup wizard; invites → growth flow). None are orphans. Details in the evidenc
     per-kind (schedule the lawful Type A races, defer only the illegal Type B half) — it touches
     the elections engine, so it needs the operator's word. Launch relevance: any such jurisdiction
     that activates on the Standard instance cannot hold an election.
+17. **⚑⚑ THE DOCUMENTED INSTALL PATH SHIPS A FORGEABLE NODE — launch-blocking.** `get-started.sh`
+    never calls `deploy.sh`: it does `cp .env.example .env` (`:175`), so a node stood up by
+    following the repo's own quick-start boots on the **committed shared dev APP_KEY**
+    (`.env.example:8`, whose own comment warns that without regeneration "sessions and signed URLs
+    are forgeable by anyone with a copy of the repo"), with `APP_DEBUG=true`, `APP_ENV=local`, **no
+    `key:generate`, no `federation:init`, and no ClockRegistrySeeder** (its only `migrate` is inside
+    an update branch a fresh box never reaches; the fresh-box migrate is
+    `SetupController::runMigrations`, which does not seed clocks). This matters more than a normal
+    defect because the operator's standing ruling is that **he provisions by going to GitHub and
+    following the instructions** — the documented path is the path. Fix belongs in lane 2's
+    `get-started.*`/`deploy.*` (hand off to `deploy.sh --public-url`), and the clock-seeder fix must
+    target `SetupController::runMigrations`, NOT the update branch.
+18. **Cloud sizing must count the production Horizon profile.** `config/horizon.php`
+    `environments.production` = supervisor-1 maxProcesses 10 @128MB + long-running 1@512 + autoscale
+    `clamp(cores−2,2,12)`@512 + prewarm 1@512 ⇒ ≈3.3 GB of worker ceiling on 4 vCPU, not ~1 GB; plus
+    nginx, scheduler, LiveKit, and a Redis capped at 768 MB. Recomputed serving floor ≈14 GB, which
+    puts an 8 GiB box out and a 16 GiB box at modest headroom. (`HostCapacity::autoscaleWorkers()`
+    is the autoscale limiter — not Horizon's process count; don't reuse it for sizing.)
 
 ---
 
