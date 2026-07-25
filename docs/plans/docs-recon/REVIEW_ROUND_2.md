@@ -630,6 +630,27 @@ lives in `4ac2d7e`.**
 **Never `git add X && git commit`.** Then verify with `git show --stat <sha>`; if the file count is
 not what you expect, post it to the board at once. Recommend adding both to board README rule 7.
 
+## 4f. ⚑ MIGRATION NUMBERING COLLIDED — the slot rule doesn't cover filenames
+
+Three lanes now write migrations (3, 4, 13); five landed today. **Two independently took the same
+sequence number:** `2026_07_25_000001_instance_class` (lane 4) and
+`2026_07_25_000001_add_monetary_settings` (lane 13).
+
+**Harmless this time, by luck** — verified they touch different tables (`instance_settings` vs
+`constitutional_settings`), so neither depends on the other's objects. But Laravel orders by
+filename, so on a **virgin install** (i.e. the Azure node) `add_monetary_settings` runs *before*
+`instance_class` purely on alphabetical tiebreak. A future collision between two migrations that
+*do* share objects would break fresh installs while every existing box stays green — precisely the
+failure mode CLAUDE.md already warns about ("never date a migration before an object it references…
+a real-dated file landing mid-sequence broke virgin installs").
+
+**Gap:** the one-lane-at-a-time **slot** rule serializes `migrate` *runs*; it does not stop two
+lanes from *naming* files independently, because names are chosen while another lane holds the slot.
+
+**Recommended (cheap):** when claiming the migration slot on the board, **claim the sequence number
+in the same entry** (`claiming 2026_07_25_000004`). One line, prevents the dependent case. Fresh
+installs should also be smoke-tested from the migration files, not only from the flattened baseline.
+
 ## 5. Fleet-wide items (belong to no single lane)
 
 1. **⚑ `racePlan()` blocks a whole election plan when only the Type B half is illegal.**
