@@ -721,6 +721,35 @@ posting, never an edit.
 be read as *same hash discipline*, not *same trigger object* — worth a one-line annotation if the
 charter is ever revised.
 
+## 4h. LANE 7 RULING — the publish rail vs the XTTS approval (2026-07-25, reversible by the operator)
+
+**The collision, found by lane 11.** Lane 10's manifest contract quarantines every
+`audio_provenance` value except `operator_performance` and refuses it `publishable` — correct while
+the rule was "never synthesize his voice." The operator then **approved cloned/synthetic voice for
+translated tracks** (XTTS). A translated track is synthetic by definition, so as written **every
+translation was unpublishable and the approval was inoperative.**
+
+**Ruled by lane 7** rather than parked, because it implements a decision the operator had already
+made. Sent to lane 10 (contract owner) and lane 11:
+
+1. Add a publishable synthetic category, but a synthetic track is publishable **ONLY as a DERIVED
+   track** that names the `operator_performance` / `operator_archive` master it came from. No orphan
+   synthetics.
+2. **The ORIGINAL-LANGUAGE MASTER MAY NEVER BE SYNTHETIC.** This is the rail's actual purpose and it
+   does not move.
+3. `test_synthetic`, `third_party`, `unknown` keep quarantining. Nothing else loosens.
+4. The manifest carries the engine and whether the voice was cloned, so provenance stays legible.
+
+**Rationale:** the guard exists to stop his voice being faked *in his own words*. Translating his
+words into another language in his voice is what his HeyGen library already does across 4,697
+shipped tracks, and he approved continuing it. What is worth protecting is that the ORIGINAL is
+genuinely him.
+
+**Open for the operator (not a blocker):** XTTS vs Piper is a genuine trade, not a formality —
+XTTS clones and is ~6× more intelligible (1.50% vs 8.98% WER); Piper fits far better (2 overrun
+units vs 6+1 truncated; **364 ms hard-trimmed vs 8,695 ms**). The cause is structural: XTTS has no
+speaking-rate control. Blind listening set is ready with HeyGen among four candidates, key withheld.
+
 ## 5. Fleet-wide items (belong to no single lane)
 
 1. **⚑ `racePlan()` blocks a whole election plan when only the Type B half is illegal.**
