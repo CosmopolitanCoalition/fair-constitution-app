@@ -63,6 +63,21 @@ class SubdivisionAutoseedService
     /** Blade over-extension in degrees — giants/castelli are << 1°, so this always fully crosses. */
     private const EXTENSION_DEG = 2.0;
 
+    /**
+     * Backtracking bounds (2026-07-25). Per node: how many ranked bisections
+     * a failing node may try before giving its parent the refusal. Per plan:
+     * a global blade-call budget so a pathological giant degrades to the
+     * honest hand-draw refusal instead of grinding. Neither bound touches a
+     * scope that draws on its first bisection — the historical plan for every
+     * currently-working map is byte-identical.
+     */
+    private const MAX_BISECTIONS_PER_NODE = 3;
+
+    private const BLADE_BUDGET_PER_PLAN = 240;
+
+    /** Remaining findBlade calls for the plan in flight. */
+    private int $bladeBudget = self::BLADE_BUDGET_PER_PLAN;
+
     /** Candidate blade angle counts over 180°: the coarse pass, then the fine retry. */
     private const ANGLE_PASSES = [24, 48];
 
@@ -98,6 +113,8 @@ class SubdivisionAutoseedService
         if ($template === self::TEMPLATE_COMPONENTS) {
             return $this->componentsPlan($scopeId, $ctx, $year);
         }
+        // Fresh backtracking budget per plan (the service is container-shared).
+        $this->bladeBudget = self::BLADE_BUDGET_PER_PLAN;
 
         // Cycle-2 (2026-07-19): zero-raster-coverage scopes (a geometry
         // outside its iso's tiles) fall back to the area-proportional grid —
@@ -643,6 +660,53 @@ class SubdivisionAutoseedService
      * @param  int[]  $sizes  at least two entries
      * @return array{int[], int[]} [A, B]
      */
+    /**
+     * The bisections of a sizes multiset, BEST FIRST under the same
+     * comparator bisectSizes() uses — element 0 is byte-identical to
+     * bisectSizes()'s answer, so every scope that draws today keeps its
+     * exact historical plan. The tail feeds the backtracking search
+     * (2026-07-25): when a child subtree cannot be drawn, the parent
+     * re-splits rather than aborting the whole giant.
+     *
+     * @param  int[] $sizes at least two entries
+     * @return array<array{int[], int[]}> ranked [A, B] pairs
+     */
+    public static function bisectionAlternatives(array $sizes): array
+    {
+        $sizes = array_values($sizes);
+        rsort($sizes);
+        $n = count($sizes);
+        $total = array_sum($sizes);
+
+        $cands = [];
+        $seen = [];
+        for ($mask = 1; $mask < (1 << $n) - 1; $mask++) {
+            $a = [];
+            $b = [];
+            $sumA = 0;
+            for ($i = 0; $i < $n; $i++) {
+                if ($mask & (1 << $i)) {
+                    $a[] = $sizes[$i];
+                    $sumA += $sizes[$i];
+                } else {
+                    $b[] = $sizes[$i];
+                }
+            }
+            // A and B are interchangeable — keep one orientation per split.
+            $key = implode(',', $a).'|'.implode(',', $b);
+            $mirror = implode(',', $b).'|'.implode(',', $a);
+            if (isset($seen[$key]) || isset($seen[$mirror])) {
+                continue;
+            }
+            $seen[$key] = true;
+            $cands[] = ['diff' => abs($total - 2 * $sumA), 'count' => count($a), 'a' => $a, 'b' => $b, 'mask' => $mask];
+        }
+
+        usort($cands, fn (array $x, array $y) => self::bisectionBeats($x, $y) ? -1 : (self::bisectionBeats($y, $x) ? 1 : 0));
+
+        return array_map(fn (array $c) => [$c['a'], $c['b']], $cands);
+    }
+
     public static function bisectSizes(array $sizes): array
     {
         $sizes = array_values($sizes);
@@ -957,9 +1021,70 @@ class SubdivisionAutoseedService
             return;
         }
 
-        [$aSizes, $bSizes] = self::bisectSizes($sizes);
+        // ── BACKTRACKING SEARCH (2026-07-25, the "cut it by hand" class) ────
+        // The recursion used to commit to ONE bisection and let any deep
+        // failure abort the entire giant: an 18-seat node has exactly one
+        // lawful sizing (9:9), so when no blade split it, a 152-seat scope
+        // (Abu Dhabi) produced ZERO districts even though re-splitting an
+        // ancestor avoids the doomed node entirely. Now each node walks its
+        // ranked bisections; element 0 is the historical balanced choice, so
+        // every scope that draws today keeps its byte-identical plan, and a
+        // child's NoContiguousCut rolls the shared state back and tries the
+        // next split. Bounded per node and per plan — a genuinely
+        // undrawable region still reaches the honest hand-draw refusal.
+        $bisections = count($sizes) === 2
+            ? [self::bisectSizes($sizes)]
+            : array_slice(self::bisectionAlternatives($sizes), 0, self::MAX_BISECTIONS_PER_NODE);
+        $lastFailure = null;
+
+        foreach ($bisections as $bIdx => [$aSizes, $bSizes]) {
+            $cutsMark      = count($cuts);
+            $districtsMark = count($districts);
+            $orderMark     = $order;
+            try {
+                $this->subdivideOnce(
+                    $scopeId, $path, $gj, $pixels, $islands, $aSizes, $bSizes, $quota,
+                    $cuts, $districts, $order, $template, $floor, $ceiling, $cutPath, $mainPartIdx
+                );
+
+                return;
+            } catch (NoContiguousCut $e) {
+                // Roll the shared plan state back to this node's entry state
+                // and try the next split (the last failure is re-thrown when
+                // every alternative is exhausted).
+                array_splice($cuts, $cutsMark);
+                array_splice($districts, $districtsMark);
+                $order = $orderMark;
+                $lastFailure = $e;
+                if ($this->bladeBudget <= 0) {
+                    break;
+                }
+            }
+        }
+
+        throw $lastFailure ?? new NoContiguousCut("No lawful split found for {$path} — cut it by hand.");
+    }
+
+    /**
+     * One bisection attempt: cut this node into the given seat groups and
+     * recurse. Extracted from subdivide() so the backtracking loop above can
+     * retry a different grouping when a DEEP child refuses (the whole
+     * subtree's state is rolled back by the caller).
+     *
+     * @param int[] $aSizes
+     * @param int[] $bSizes
+     */
+    private function subdivideOnce(
+        string $scopeId, string $path, string $gj, array $pixels, array $islands,
+        array $aSizes, array $bSizes, float $quota, array &$cuts, array &$districts,
+        int &$order, string $template, int $floor, int $ceiling, ?array $cutPath,
+        ?int $mainPartIdx
+    ): void {
         $seatsA = (int) array_sum($aSizes);
         $seatsB = (int) array_sum($bSizes);
+        $sizes  = array_merge($aSizes, $bSizes);
+
+        $this->bladeBudget--;
 
         try {
             $cut = $this->findBlade($gj, $pixels, $islands, $seatsA, $seatsB, $quota, $template);

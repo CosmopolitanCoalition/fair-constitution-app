@@ -21,6 +21,37 @@ use Tests\TestCase;
  */
 class TwoSplitFallbackTest extends TestCase
 {
+    public function test_bisection_alternatives_lead_with_the_historical_choice(): void
+    {
+        // THE DETERMINISM GUARANTEE for backtracking (2026-07-25): the search
+        // walks bisectionAlternatives() in order, so element 0 MUST be
+        // bisectSizes()'s answer — otherwise every currently-drawable scope
+        // would silently re-plan. Checked across shapes that exercise the
+        // comparator's tie-breaks (equal halves, odd sums, repeated sizes).
+        foreach ([[9, 9, 9, 9], [9, 9, 8], [9, 8, 7, 6, 5], [5, 5], [9, 9, 9, 9, 9, 8]] as $sizes) {
+            $alts = S::bisectionAlternatives($sizes);
+            $this->assertNotSame([], $alts);
+            $this->assertSame(S::bisectSizes($sizes), $alts[0],
+                'element 0 must be the historical balanced bisection: '.implode(',', $sizes));
+
+            // Every alternative is a true partition of the multiset — no seat
+            // invented, none dropped (the seating law's budget is exact).
+            $expected = $sizes;
+            sort($expected);
+            foreach ($alts as [$a, $b]) {
+                $merged = array_merge($a, $b);
+                sort($merged);
+                $this->assertSame($expected, $merged, 'a bisection must partition the sizes exactly');
+                $this->assertNotSame([], $a);
+                $this->assertNotSame([], $b);
+            }
+
+            // Mirror pairs are collapsed — A|B and B|A are one split.
+            $keys = array_map(fn (array $p) => implode(',', $p[0]).'|'.implode(',', $p[1]), $alts);
+            $this->assertSame(count($keys), count(array_unique($keys)));
+        }
+    }
+
     public function test_fallback_excludes_the_balanced_split_and_orders_by_balance(): void
     {
         // S=12, balanced 6:6 already tried → alts are the other lawful low
