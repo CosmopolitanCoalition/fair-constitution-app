@@ -284,6 +284,41 @@ and `fromRankings(E)` produce the same `$canon` — hence the same rounds, the s
 `elected`, and the same `CountResult::recordHash()`** (sha256 over canonical JSON of
 exactly `{engine_version, seats, quota, total_valid, rounds}`).
 
+Adversarial verification returned **HOLDS_NARROWED**, and narrowed it *upward* —
+the property is true for a stronger reason than first stated, and it is **already
+pinned** by `StvDroopGregoryTest.php:715-727`. Independently re-confirmed end-to-end
+at 50k ballots / 1,878 distinct rankings plus hand-built worst cases (zero-truncating
+surplus, multi-stage fractional weights, forced lot ties).
+
+> ### ⚑ The one line this entire design rests on
+> `VoteCountingService.php:426-430`:
+> ```php
+> $w2  = Micro::mulDiv($gW[$gi], $S, $T);   // truncate the PER-BALLOT weight
+> $amt = $gMult[$gi] * $w2;                 // …THEN multiply by multiplicity
+> ```
+> Gregory truncation is applied to the **per-ballot weight** and only then multiplied
+> by the group's multiplicity. So `N × floor(w·S/T)` is *identically* the sum of N
+> separate `floor(w·S/T)` applications — per-ballot rounding cannot accumulate
+> differently, because it is literally the same single floor, replicated.
+>
+> **Had that line been `Micro::mulDiv($gMult[$gi] * $gW[$gi], $S, $T)` —
+> aggregate-then-floor — the claim would break and this whole plan with it.** The
+> asymmetry is load-bearing and is *undocumented at the call site*. Elimination
+> transfers (`:548`) are `$gMult * $gW` with no division at all, exact by
+> construction; residue (`:446`) is `$S - $moved`, a difference of two
+> collapse-invariant integers.
+>
+> **Anyone refactoring that line must know it is a constitutional boundary.** The
+> §12 identity pin is what makes that discoverable.
+
+**Operating constraint that rides with it — the tie seed.** Production derives
+`tieSeedBase` from a root hash over every physical `ballot_hash` row
+(`TabulationRecorder.php:109-116`), which a grouped cohort does not have. So the demo
+**must** mint its own, deterministically, and **must** bypass `countInput()` rather
+than extend it. This is not cosmetic: **ties genuinely reach the sha256 lot path in
+realistic synthetic data, so the seed choice changes who wins a seat.** It is
+therefore a published, reproducible input, and it gets its own pin.
+
 Two consequences worth stating plainly:
 
 - **`total_valid` is the true planet-scale number.** The published Droop quota and
@@ -398,15 +433,48 @@ lower bound on the ceiling, not the ceiling itself.** Nothing in the repo
 demonstrates more, so it is the number to plan against.
 
 At that rate, one append per race across ~1.69M electable races is **~16.4 hours of
-unparallelizable lock time**, before certification even starts. Per-person engine
-filing is worse by orders of magnitude: 8.35B filings ÷ 28.6/s ≈ **9.3 years**, and
+unparallelizable lock time**, before certification even starts (see the seam analysis
+below — certification and seating are *not* covered by the batching precedent, so
+this is a floor, not a worst case). Per-person engine filing is worse by orders of
+magnitude: 8.35B filings ÷ 28.6/s ≈ **9.3 years**, and
 `ResidencyService::simulatePings` files one F-IND-005 per day per resident and then
 *deletes them all* at verification — ~240 billion serialized appends to produce
 nothing.
 
-**The settled precedent is autoscale's**: bulk set-based writes plus **one summary
-audit entry per batch**, already constitutionally pinned in `AutoscalePinTest`
-("`autoscale.singles_generated` once per batch, `autoscale.completed` once").
+### The precedent is narrower than it looks — read this before assuming batching
+
+An earlier draft of this plan claimed the autoscale precedent settles batching and
+that the global lock therefore does not bound the populate engine. **Adversarial
+verification returned HOLDS_NARROWED and refuted that third part outright.** The
+corrected position:
+
+**What is actually pinned.** `AutoscalePinTest:338-339` pins exactly one
+`autoscale.singles_generated` entry per claimed batch — but `:334-337` pins exactly 22
+`district_map.generated` entries, i.e. **one per completed sweep (per legislature),
+not per batch**. Only the singles lane is genuinely batch-grained
+(`SinglesBatchProcessor.php:196-212`, "ONE summary audit append per batch — never 700k
+chain entries"), and what it mints is the *identity* map: jurisdiction = its own single
+at-large district, seats = `type_a`, member = self. Content fully determined by
+already-audited sizing. No actor. No judgment.
+
+**Where the precedent stops — inside autoscale itself.** The leaf-giant path files
+**one F-ELB-008 through `ConstitutionalEngine` per drawn district**
+(`LeafGiantResolver.php:291-331`), each taking the global lock;
+`LegislatureController.php:2872-2878` documents *managing* that lock ("lock held ~ms
+per filing"), not eliminating it. Every zero-pop absorption — an act that removes a
+seated district — appends its own entry (`DistrictingService.php:1546→1612-1626`),
+pinned at `AutoscalePinTest:475-477`.
+
+**So the pinned engine already draws a seam this plan must not erase:**
+
+| act | audit grain |
+|---|---|
+| mechanically derived — content fully determined by already-recorded state, no actor, no role gate | bulk write + **one summary per batch** |
+| discretionary, actor-gated, or **representation-altering** | **its own chain entry** |
+
+**Certifying an election, seating a member, and opening a term all fall on the
+per-act side.** They are governance-constitutive. **Extending batching to them is a
+NEW operator ruling, not settled doctrine**, and this plan does not get to assume it.
 
 **A hazard that must be encoded.** The lock is `pg_advisory_xact_lock` —
 *transaction-scoped* — and `append()` runs inside the caller's transaction when one
@@ -419,19 +487,53 @@ writes, not just this one — flagged to @lane-01, @lane-03, @lane-13 on the boa
 Related: `verifyChain()` walks and recomputes the entire chain, so it is unrunnable
 at demo scale. Batching is what keeps `audit:verify` meaningful.
 
+### The consequence: the serial floor is real and it dominates
+
+Even with **maximal lawful batching of the substrate** (districts,
+`residency_confirmations`, candidacies, ballot envelopes — all mechanically derived),
+the mandatory seating chain still costs, per the seam above:
+
+- **~925k F-ELB-004 certification filings** (one per seatable chamber), plus
+- **~15.29M CLK-10 term-arm appends** — `ClockService::arm()` fires once per term,
+  and a term is opened per seat.
+
+Each is strictly serialized on the global lock. And because the lock is
+**transaction-scoped** (§ above), **each certification holds the global chain lock for
+its entire transaction** — so a 1,999-seat chamber blocks every other append
+*instance-wide* while it seats.
+
+| assumption | source | serial floor |
+|---|---|---|
+| 1–3 ms lock hold per append | `LegislatureController.php:2872-2878`'s own comment | **~5–13 hours** |
+| 28.6 appends/s end-to-end | observed peak, this box, under live load | **~6 days** |
+
+The truth sits between: the millisecond figure is lock-hold alone, the 28.6/s figure
+is end-to-end under competing work. **Either way this is the dominant cost of the
+entire populate run, it is irreducible without an operator ruling, and no amount of
+pull-worker parallelism touches it.** Every other stage is minutes to hours.
+
 > ### ⚑ DECISION 3 — audit posture for synthetic governance acts, `@operator`
-> Batching is settled precedent for **infrastructure** writes (autoscale draws maps).
-> Seating a legislature is arguably a different category. The recommendation is to
-> batch, with the summary entry carrying a **Merkle root over the batch's
-> `record_hash` values** so the batch remains individually verifiable:
+> **This is a genuinely new ruling, not a confirmation of precedent.** The plan
+> explicitly does *not* assume it. Three sub-questions:
 >
-> ```
-> event:   'populate.races_tabulated'
-> payload: { run_id, batch_token, races, seats, engine_version,
->            record_hash_root, total_valid_sum, generator: 'CohortBallotExpander v1' }
-> ```
+> 1. **May the populate engine batch certification and seating entries** on a
+>    `scale_demo` instance — acts the pinned engine keeps per-act everywhere else?
+> 2. If yes, **does the batch summary carry a Merkle root** over the batch's
+>    `record_hash` values, so the batch stays individually verifiable?
+>    ```
+>    event:   'populate.races_tabulated'
+>    payload: { run_id, batch_token, races, seats, engine_version,
+>               record_hash_root, total_valid_sum, generator: 'CohortBallotExpander v1' }
+>    ```
+>    A rooted summary is *more* verifiable than a per-race entry carrying no root.
+> 3. **May CLK-10 term arms be batched or deferred?** At 15.29M they dominate the
+>    append count by 16×, and they are bookkeeping rather than a governance act.
 >
-> That is strictly more verifiable than a per-race entry that carries no root.
+> **If the ruling is "no batching for governance acts", that is a legitimate answer
+> and the plan survives it** — the demo then either accepts a multi-day seating run
+> (it is a one-time build, and `sim:revert` keeps it re-runnable), or it seats a
+> bounded showcase set rather than the whole planet. Both are honest. What the plan
+> must not do is quietly batch a constitutive act because it was convenient.
 
 ### 4.4 The one additive persistence method
 
@@ -828,6 +930,10 @@ precedent for a loud, deploy-time persistence assertion).
 
 Mirroring `AutoscalePinTest`'s mechanics coverage, live-pg, synthetic fixtures:
 
+0. **The Gregory truncation-order pin.** Assert that surplus transfer truncates the
+   per-ballot weight *before* multiplying by multiplicity (§4.1's boxed line). This is
+   the single refactor that would silently invalidate every count in the demo, and
+   nothing currently guards its *order*. Cheap, and it protects the real engine too.
 1. **`WeightedBallotIdentityTest` — the keystone.**
    `countStv(CountInput(ids, seats, BallotSet::fromGrouped(G), [], seed))->recordHash()`
    is **byte-identical** to
@@ -912,7 +1018,7 @@ Each step lands green before the next.
 |---|---|---|---|
 | 1 | The CI-2 self-brick contradiction (§1) | @operator | the boot assertion |
 | 2 | **Make `racePlan()` per-kind** (§3) — without it the Attained is leaf-only and 23.8% of seats are unelectable | @operator | everything above leaf level |
-| 3 | Audit posture for synthetic governance acts (§4.3) | @operator | the counting + seating stages |
+| 3 | **Audit posture for synthetic governance acts (§4.3) — a NEW ruling, not settled precedent.** The pinned engine batches only mechanically-derived rows and keeps discretionary / representation-altering acts per-act. Certification, seating and CLK-10 arms fall on the per-act side; without a ruling the serial floor is ~5 hours to ~6 days and dominates the whole run | @operator | the counting + seating stages |
 | 4 | Consume `time_mode` for demo time compression (§10) | @operator | nothing; it is an enhancement |
 | 5 | Research cutover level — ADM2 recommended (§6.2) | @operator | the research lane's budget |
 | 6 | Eloquent global scope vs Postgres RLS for the overlay (§10) | build round | the sandbox |
