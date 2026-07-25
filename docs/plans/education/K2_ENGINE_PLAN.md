@@ -1,9 +1,9 @@
 # K2 — Education Engine Plan (the graded half)
 
 **Owner:** Lane 15 (Phase K-2) · **Deliverable:** D-16d · **Status:** design, 2026-07-25
-**Build slot:** post-launch per the standing work order — **except** the `awarded_on` migration
-(§3), which the operator ruled pre-launch. No code, no migrations in this pass; schema needs are
-specified and flagged.
+**Permission to write code:** granted for the four §8 changes in `K2_ACHIEVEMENT_LIBRARY.md`
+(operator, 2026-07-25). This document specifies; schema needs beyond the approved migration use
+this lane's ordinal block **000060+**, and audit summaries append **last**.
 
 ---
 
@@ -22,7 +22,7 @@ third store in the first posture** and reuses the second unchanged:
 |---|---|---|---|
 | `journey_progress` (built) | node-local, mutable | **No** — no `source_server_id` | tour state |
 | `education_progress` (new) | node-local, mutable | **No** — inherits the same shape | **charter rail: progress never federates** |
-| `achievements` (built) | append-only, chain-sealed | **Yes** — `source_server_id` + `audit_seq` | medals travel |
+| `achievements` (built) | append-only, chain-sealed | **Yes** — `source_server_id` + `audit_seq` | achievements travel |
 
 **The non-federation of progress is not a new rail to build — it is a schema shape to copy.** The
 built asymmetry (achievements carry `source_server_id`, `journey_progress` does not) is exactly the
@@ -68,45 +68,29 @@ The failure mode is specific and permanent:
 
 ---
 
-## 3. `earned_at` → `awarded_on DATE` (operator ruling: pre-launch)
+## 3. `earned_at` — SETTLED: the full timestamp stays (reversal, 2026-07-25)
 
-### The evidence, which is stronger than the audit stated
+**An earlier ruling coarsened `earned_at` to `awarded_on DATE` pre-launch. The operator has
+reversed it.** His words: *"Keep the timestamp. What does it matter? The timestamp when you got an
+achievement, no one cares."*
 
-The app already has a **settled, tested doctrine** that the achievements ledger contradicts:
+**The ledger keeps `earned_at timestamptz(0)`, `audit_seq` and `source_server_id` exactly as built.
+No migration. Closed — not to be re-raised.**
 
-- `ballots.cast_bucket` is **hour-truncated** (`BallotBox.php:172` `->startOfHour()`), and the
-  docblock says why: *"deliberately NO other timestamp anywhere on the row (wall-clock insert time
-  is a linking channel)."*
-- The ballot PK is **explicitly random v4** rather than an ordered UUID, because *"a time-ordered
-  PK would leak precise insert time and defeat `cast_bucket` truncation."*
-- `BallotSecrecyTest` pins both: `assertSame(['cast_bucket'], …)` over timestamp columns, plus a
-  regex rejecting any column named `/user|voter|created_at|updated_at|…/`.
+### What was traded, recorded because it was a real trade
 
-The elections engine treats precise timing as a **linking channel** and destroys it on purpose,
-under test. The medal ledger re-introduces exactly that signal:
+The consequence was put to him in plain terms and accepted: a federated achievement carries its
+**exact minute**, so a remote instance can see *when* a pseudonymous person acted. The elections
+engine deliberately destroys that same signal on the ballot side — `ballots.cast_bucket` is
+hour-truncated (`BallotBox.php:172`, docblock: *"wall-clock insert time is a linking channel"*), the
+ballot PK is explicitly random v4 so ordering cannot leak insert time, and `BallotSecrecyTest` pins
+both. The achievement ledger will not match that posture.
 
-| Column | Value | Federates |
-|---|---|---|
-| `earned_at` | `now()` — full second | ✅ |
-| `audit_seq` | exact position in the origin's audit chain | ✅ |
-| `source_server_id` | which instance | ✅ |
+This is written down so the asymmetry is **a decision on the record rather than an oversight
+someone rediscovers later**. It is his call to make, he made it knowingly, and it is now settled.
 
-**The concrete attack:** a public medal derived from a private `ballot_envelopes` row, timestamped
-to the second, **narrows which ballot inside that hour bucket is yours.** In a jurisdiction with
-few ballots per bucket — and jurisdictions can activate at one resident — that is decisive.
-`audit_seq` compounds it: it orders the medal against every other act in the chain.
-
-### The change
-
-1. `earned_at timestamptz` → **`awarded_on DATE`** (the charter's own name).
-2. **Do not federate `audit_seq`.** It is already documented as *"exporter-local"* and stripped
-   from the exported shape by `FederationSyncService` — **verify that pin holds** and pin it
-   explicitly, because coarsening the date while exporting a chain position fixes nothing.
-3. Keep `source_server_id` (provenance is needed for append-any-verified ingest).
-
-**Cost today: zero.** Both tables hold **zero rows on both boxes** — no backfill, no truncation
-decision, no history loss. After real medals exist this becomes a data migration that destroys
-information people may have seen. @lane-02: launch-checklist candidate.
+**Unaffected and still approved:** the i18n-key change (`K2_ACHIEVEMENT_LIBRARY.md` §8.2) — that one
+is about the *title* being unrewritable in an append-only table, not about timing.
 
 ---
 
@@ -125,7 +109,7 @@ The house pattern already exists — `routes/web.php` uses `throttle:10,1` on th
 | Attempt cap | rate-limited per module, house `throttle:` middleware |
 | Are wrong answers persisted? | **No.** Storing a per-person error history is a composite score waiting to be computed (PI-6). Persist the *pass*, not the trail. |
 | Retake | allowed and unlimited-by-design — education must never become a gate (Art. I) |
-| Second medal on retake? | **Impossible by construction** — the ledger is idempotent on `(user_id, award_key)` |
+| Second achievement on retake? | **Impossible by construction** — the ledger is idempotent on `(user_id, award_key)` |
 | Latch shape | copy `markStep`'s one-way latch (`completed_at === null && count(done) === count(steps)`) rather than inventing a second |
 
 The tension resolves cleanly: **throttle the guessing, never gate the learner.** A rate limit
@@ -201,8 +185,10 @@ tests, that edit is a constitutional violation — fix the edit, never the test.
    (b) `SENSITIVE_KEYS` contains `correct_keys`, `answer_key`, `answers`.
 2. **`EducationProgressNeverFederatesTest`** — `education_progress` has no `source_server_id`; it
    is in `FORBIDDEN_SUBJECT_TYPES`; the federation export shape omits it entirely.
-3. **`AchievementAwardedOnIsCoarseTest`** — `awarded_on` is `date`, not `timestamp`; `audit_seq` is
-   absent from the exported medal shape.
+3. **`AchievementExportShapeTest`** — the federation export ships exactly the five documented
+   fields; `audit_seq` and `source_server_id` stay **exporter-local** and never cross. (This pin
+   replaces the withdrawn `awarded_on`-is-coarse pin — §3 is settled the other way, but the export
+   shape is still worth holding, and it was never the part the operator reversed.)
 4. **`AchievementNonInterferenceTest`** — CI-1, in the shape `IK-civic-org-powers-and-record.md:86`
    already specifies (see `K2_ACHIEVEMENT_LIBRARY.md` §7).
 5. **`EducationNoGateTest`** — no education state reaches `RoleService::derive()` or
@@ -278,16 +264,16 @@ catalog entries are marked tier **D** in `K2_ACHIEVEMENT_LIBRARY.md` §4.7.
 ## 9.5 `education:demo` cannot tear itself down — settle it in the plan, not at build
 
 The house pattern for every standing demo is an **idempotent `--fresh`** seeder. Education cannot
-have one for medals: `achievements_immutable` blocks `UPDATE`/`DELETE` and `achievements_no_truncate`
-blocks `TRUNCATE`. **Any demo that mints a medal creates a permanent, federating row on the
+have one for achievements: `achievements_immutable` blocks `UPDATE`/`DELETE` and `achievements_no_truncate`
+blocks `TRUNCATE`. **Any demo that mints an achievement creates a permanent, federating row on the
 operator's box** — and per the standing screenshot rule a demo is mandatory, so this will be hit.
 
 Three workable answers; the plan recommends the first:
 
-1. **`education:demo` seeds tracks, modules, questions and `education_progress` — never a medal.**
+1. **`education:demo` seeds tracks, modules, questions and `education_progress` — never an achievement.**
    `education_progress` is mutable and node-local, so `--fresh` works normally, and the demo can
-   still screenshot a completed lesson. Medals stay for real acts.
-2. Mint demo medals only for `*@demo.invalid` users and accept them as permanent — acceptable only
+   still screenshot a completed lesson. Achievements stay for real acts.
+2. Mint demo achievements only for `*@demo.invalid` users and accept them as permanent — acceptable only
    on a `scale_demo` instance, which by CI-2 has federation off.
 3. A `deleted_at` soft-delete path — **rejected**: the partial-unique index is
    `WHERE deleted_at IS NULL`, so this quietly re-permits re-minting and erodes the append-only
@@ -300,8 +286,8 @@ Three workable answers; the plan recommends the first:
    source — `achievements-legitimacy.md` — **is not in this repo**; it lives on the uncommitted
    `explore/achievements` branch. Either PI-5 is a numbering gap, or it is a privacy rail nobody
    can currently read. **Recovering that branch is cheap and worth doing.**
-2. **The self-reported-tick decision** is resolved per-medal rather than globally
-   (`K2_ACHIEVEMENT_LIBRARY.md` §5.2): verified medals name their source, journey arcs stay
+2. **The self-reported-tick decision** is resolved per-entry rather than globally
+   (`K2_ACHIEVEMENT_LIBRARY.md` §5.2): verified entries name their source, journey arcs stay
    labelled walkthroughs. Confirm that split is what you want.
 3. **A charter divergence, flagged not silently fixed:** the roadmap says achievements get no
    `audit_log` module ("it reuses records"), but `JourneyService:186` already appends
@@ -315,9 +301,9 @@ Three workable answers; the plan recommends the first:
    zero forms** and record education as ordinary application state, reserving the catalog for acts
    that carry constitutional weight. Minting touches a constitutionally-reviewed file and trips the
    108-count tripwire; doing that for a quiz submission should be a deliberate yes, not a default.
-5. **The medal-title decision rides the same migration as `awarded_on`** — store an i18n key rather
-   than a denormalized English string in an immutable federating ledger
-   (`K2_ACHIEVEMENT_LIBRARY.md` §5.4). Free today at zero rows; permanent after.
+5. ~~The title decision~~ — **APPROVED 2026-07-25, no longer open.** Store an i18n key rather than a
+   denormalized English string in an immutable federating ledger
+   (`K2_ACHIEVEMENT_LIBRARY.md` §8.2). @lane-05 owns the translating; ~127 achievement titles.
 6. **`F-SOC-001` roles are `[]` in code** (public square open to visitors, per your 2026-06-27
    correction, pinned by `PublicSquareTest`) **while the roles/forms chart still says "Filed by
    R-03."** Any education generated from the chart would teach a residency gate on the public
