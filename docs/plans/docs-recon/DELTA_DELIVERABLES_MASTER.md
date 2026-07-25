@@ -5,20 +5,26 @@ constitution/template text — it finds, records, assigns, and feeds; template
 updates belong to the operator, executed with the website chats). Sources:
 [DELTA_INVENTORY.md](DELTA_INVENTORY.md) · [PHASE_LEDGER_A_TO_O.md](PHASE_LEDGER_A_TO_O.md).
 
+> **⚠ AUDIT CORRECTION LAYER (2026-07-25).** The definitive code audit
+> ([BUILT_INVENTORY.md](BUILT_INVENTORY.md) + [evidence](BUILT_INVENTORY_EVIDENCE.md)) overturned
+> two phase statuses (I and K-2 = PARTIAL) and six "absent" claims. Matrix rows below carry the
+> corrected statuses; per-lane audit addenda are at the top of §3. Registry truth: **108**
+> canonical forms + 6 aliases (the earlier 104→109 correction was itself wrong).
+
 ## 1. Phase ↔ lane matrix
 
 | Phase | Status | Lane coverage |
 |---|---|---|
 | A–G (foundation → adoption/G-ID) | ✅ built | No build lane needed. Surfaces: **lane 6** (UI parity). Deployment: **lane 2**. G's two rig gates: verification subtasks → **lane 2** 07-24 (the cloud HTTPS instance provides the secure context for browser-GPS testing, and a real cross-machine peer join against the cloud node = the G-V2-shaped proof); native Capacitor still waits for the device rig |
 | **H** districting/planetary map | ✅ converged, residue | **Lane 1** ✓ (495-item review residue + analysis round + geodata pull engine) |
-| **I** activation tiers + reach | ◻ unbuilt | **Lane 3** — ASSIGNED 2026-07-24 (was unowned): Phase-I design absorbed into the institutions scaling plan; tiers ARE the provisioning dial |
-| **J** Coalition as organization | ◻ unbuilt | **Lane 14** — ADDED 07-24. RE-TIMED by the standing order's own terms: J ships when the live game opens, and the live game now opens 2026-09-01 → the small additive build lands inside the 40-day window. Public side stays 8a/8b |
+| **I** activation tiers + reach | ◐ **PARTIAL** (audit 07-25) | **Lane 3** — ASSIGNED 2026-07-24: Phase-I design absorbed into the institutions scaling plan; tiers ARE the provisioning dial. **Audit: the activation boot-gate half is already LIVE** (jurisdiction_activations + CLK-06 + cascade + WF-JUR-01 + `jurisdiction:activate`); lane 3 designs only the tier CURVE + the reach/legitimacy layer — [BUILT_INVENTORY §3](BUILT_INVENTORY.md) |
+| **J** Coalition as organization | ◻ substrate-only (audit 07-25: deltas confirmed absent, scope exact) | **Lane 14** — ADDED 07-24. RE-TIMED by the standing order's own terms: J ships when the live game opens, and the live game now opens 2026-09-01 → the small additive build lands inside the 40-day window. Public side stays 8a/8b. **Audit landmines**: CgcIpRegisterService hard-rejects non-CGC dedication AND is source-scanned by CgcIpPublicDomainTest (extend the contract, don't just add columns); OrgRegistryService::register() can't set parent_organization_id (seeder sets it programmatically); F-LEG-028 cultural-institution path already built — [BUILT_INVENTORY §3](BUILT_INVENTORY.md) |
 | K-1 civic square · K-3 Matrix mesh | ✅ built | No build lane. Surfaces: lane 6. Room-layer scaling: lane 3 |
-| **K-2** education + achievements | ◻ unbuilt | **Lane 15** — ADDED 07-24. Curriculum half starts now (The_Chart 549-label map + Topic_Knowledge); achievements/engine half waits on lane 3's Phase-I draft; code lands post-launch per work order |
-| **L** public finance | ◻ unbuilt | **Lane 13** — ADDED 07-24 (L+M one unit per operator ruling). Design-first now — it is next in the standing work order after H; code lands on the long arc |
-| **M** market economy | ◻ unbuilt | **Lane 13** (with L — never handled apart) |
-| **N** full i18n + a11y + media | ◻ unbuilt | **Lane 5** = strings front-runner (extraction, catalogs, MT router, pilot langs). **Lanes 10/11** build the general media/dub machinery N later ports in-app. A11y slice → **folded into lane 6** 07-24 (audit rides the parity tour; full WCAG certification stays Phase N) |
-| **O** full-scale demo | ◻ unbuilt | **Lane 4** = design front-runner (the Attained instance). Formal gates H (done) / I (lane 3) / N (long arc) — design proceeds now |
+| **K-2** education + achievements | ◐ **PARTIAL** (audit 07-25) | **Lane 15** — ADDED 07-24. Curriculum half starts now (The_Chart 549-label map + Topic_Knowledge). **Audit: the achievements half is ALREADY BUILT** (journeys engine + append-only achievements + code-registry catalog + badges + medal federation, shipped as v3-wiring Phase 3c) — the engine design starts FROM `JourneyService`, not greenfield; only the reach gauge/leaderboards wait on lane 3's Phase-I draft. Remaining build: graded questions/correct_keys + F-EDU forms + Learn-module packaging of the factions correction (correction copy already live in built surfaces) — [BUILT_INVENTORY §3](BUILT_INVENTORY.md) |
+| **L** public finance | ◻ substrate-only (audit 07-25) | **Lane 13** — ADDED 07-24 (L+M one unit per operator ruling). Design-first now — it is next in the standing work order after H; code lands on the long arc. **Audit: start from the real substrate** — live stipend/currency PARAMS in Setup Step 1 (`civic_stipend_floor` etc. on the PROTECTED settings model + `LM-fiscal-civic-stipend.md` design), the Phase-D grants/appropriations stub (award/disburse = dead code, zero tests), the fee/`payment_required` proto-rail in the PROTECTED validator, live dual-door machinery, and **14 finished economy mockups in both v2 and v3** — [BUILT_INVENTORY §3](BUILT_INVENTORY.md) |
+| **M** market economy | ◻ substrate-only (audit 07-25) | **Lane 13** (with L — never handled apart). **Audit: the M exit criterion's hardest link is BUILT** — labor hire → co-determination auto-trigger chain (F-IND-014 → labor_recurring contract → countersign → CLK-13/14 recompute), constitutionally pinned; `org_contracts` kind `commercial` already in schema |
+| **N** full i18n + a11y + media | ◻ substrate-only (audit 07-25) | **Lane 5** = strings front-runner (extraction, catalogs, MT router, pilot langs). **Lanes 10/11** build the general media/dub machinery N later ports in-app. A11y slice → **folded into lane 6** 07-24. **Audit numbers**: 5 chrome locales live (en 111 keys vs 103 translated — 8-key drift, no CI anywhere: no .github at all); K-3 shipped the MT router's pin-tested plug seam (TranslationProvider/TranslationGate); `public_records.translations` read path + UI badge wired, write/backfill missing; 412 aria attrs across 91/177 Vue files; glossary 36 terms vs charter's 38 — [BUILT_INVENTORY §3](BUILT_INVENTORY.md) |
+| **O** full-scale demo | ◻ substrate-only (audit 07-25) | **Lane 4** = design front-runner (the Attained instance). Formal gates H (done) / I (lane 3) / N (long arc) — design proceeds now. **Audit: scope narrower than chartered** — CI-2 (scale_demo → empty federation whitelist) already coded + constitutionally pinned in K-3; `*@demo.invalid` namespace in live seeder use; SANDBOX game mode end-to-end (a DIFFERENT axis from instance_class); the Standard half = Phase H's output. Novel scope = instance_class persistence + CoW overlay + populate engine — [BUILT_INVENTORY §3](BUILT_INVENTORY.md) |
 | Cross-phase | — | **Lane 2** scoped cloud launch (earth.* Standard ≠ Phase O) · **Lane 7** this desk · lanes 8–12 content/ops |
 
 **Remaining unowned: none.** The 2026-07-24 additions closed the set — L+M → lane
@@ -43,7 +49,7 @@ optional enrichment = reopen archives and export into docs/plans/explorations/.
 | D-08 | App_Flows unbuilt-concept dispositions (family tree, grants, fundraising/fund-distribution, asset registration, endorse-policies) | **OPERATOR** | parked | Plausible L/M fold-ins; decide when L/M spawn |
 | D-09 | `age_of_majority` amendable setting (Art. V §5 gap) | future L/M lane | logged | No 40-day impact; template exempts voting/standing from age |
 | D-10 | The_Chart.drawio full label-level reconciliation (incl. faction-language sweep) | future K-2 pass | deferred | Census done; curriculum map confirmed |
-| D-11 | Form-count + engine facts corrections in repo docs | Lane 7 | ✅ DONE `d663489` | CLAUDE.md 104→109 |
+| D-11 | Form-count + engine facts corrections in repo docs | Lane 7 | ✅ DONE, re-corrected 07-25 | `d663489` set 109 — the audit proved **108** canonical (103 Template + ELB-008 + SOC-001..004) + 6 aliases; CLAUDE.md fixed in the audit commit. F-LEG-020/021 deliberately handler-unregistered (consent votes ride chamber machinery) |
 | D-12 | Phase ledger + status chart | Lane 7 | ✅ DONE `76a036f` | Feeds D-01/D-04 |
 | D-13 | Update-prompt pack maintenance (§3 below mirrors into PROMPTS.md) | Lane 7 | continuous | Operator pastes into staged lanes |
 | D-14 | `docs/plans/economy/ECONOMY_ENGINE_PLAN.md` — Phases L+M design (one unit) | **Lane 13** | assigned 07-24 | Design only until operator settles; build slot post-launch per work order |
@@ -51,8 +57,100 @@ optional enrichment = reopen archives and export into docs/plans/explorations/.
 | D-16 | `docs/plans/education/K2_CURRICULUM.md` (The_Chart extraction, factions→polymorphic teaching correction) + `K2_ENGINE_PLAN.md` (achievements) | **Lane 15** | assigned 07-24 | Curriculum now; engine half gated on D-07 (lane 3's Phase-I draft) |
 | D-17 | A11y audit dimension inside the parity punchlist (WCAG 2.2 AA basics per screen) | **Lane 6** | assigned 07-24 | Quick fixes ride parity waves; structural items flagged for Phase N; source: App Docs\accessibility_internationalization.md |
 | D-18 | Rig-gate verification via the cloud instance (browser-GPS secure-context test + real cross-machine peer join) | **Lane 2** | assigned 07-24 | In the launch plan's soak phase; native Capacitor stays device-gated |
+| D-19 | **Definitive built-vs-unbuilt audit** — `BUILT_INVENTORY.md` + `BUILT_INVENTORY_EVIDENCE.md` (14 agents, 34 absence claims re-hunted, 6 overturned; ledger + matrix corrected) | Lane 7 | ✅ DONE 07-25 | Operator cuts lanes 13+ prompts against it; §3 audit addenda below feed the staged lanes |
+| D-20 | Defect follow-ups from the audit's risk register (GrantService dead code · BallotCrypto receipt review pre-launch · locale-key drift · earned_at coarse-DATE decision · M-5 entry point · "records are translated" copy promise) | owners per item (2, 6, 13, 15) | logged 07-25 | Register = [BUILT_INVENTORY §7](BUILT_INVENTORY.md); none blocks the 40-day path alone; BallotCrypto item belongs in lane 2's launch checklist |
 
 ## 3. Update-prompt pack (paste into the staged lane chats)
+
+### 3.0 AUDIT ADDENDA (2026-07-25) — paste the matching block to each lane
+
+> **→ Lane 3 (institutions scaling / Phase I):** Audit correction (lane 7, 07-25): Phase I is
+> HALF-BUILT. The activation boot-gate is live end-to-end (`jurisdiction_activations` state
+> machine → CLK-06 every-minute sweep → `constitutional_settings` cascade with dev default 1 →
+> WF-JUR-01 bootstrap → `jurisdiction:activate` → WI-9 status line on Jurisdictions/Show.vue);
+> CLK-06 is already tagged `per_jurisdiction_tier` and the `Reach` nav surface is pre-registered
+> (surfaces.js:102, href:null) against `mockups/v3/social/legitimacy.html`. Your design scope is
+> ONLY: the tier CURVE (settings params + `ActivationTierService::tierThreshold =
+> clamp(ceil(k·pop^⅓), floor, cap)` feeding the existing resolver seam) + the reach/legitimacy
+> layer (`legitimacy_snapshots`, `LegitimacyService`, nightly job on the existing
+> onOneServer+LeaderProbe pattern, k-anon suppression). Caution: `cubeRootSeats` is legislature
+> SIZING, not the tier threshold — and its leaf ceiling-9 clamp was retired 07-19. Also note the
+> live activation pipeline has ZERO automated tests — pin it as part of your work. Full detail:
+> docs/plans/docs-recon/BUILT_INVENTORY.md §3.
+
+> **→ Lane 13 (economy L+M):** Audit correction (lane 7, 07-25): read
+> docs/plans/docs-recon/BUILT_INVENTORY.md §3 before outlining. Your design starts from real
+> substrate, not zero: (1) the UBI/stipend PARAMETER layer is live (civic_stipend_floor,
+> stipend_bump_cap, pay_* toggles, stipend_interval, currency_name/code/symbol — Setup Step 1 +
+> PROTECTED ConstitutionalSettings + `docs/plans/phase-g-continuation/LM-fiscal-civic-stipend.md`);
+> (2) the Phase-D grants/appropriations stub exists but `GrantService::award/decline/disburse/
+> createAppropriation` are DEAD CODE (zero callers, zero tests — appropriations unpopulatable
+> today; wiring them is your cheapest early win); (3) the labor→co-determination chain (M's exit
+> criterion) is BUILT and pinned; (4) `org_contracts` kind `commercial` exists; (5) the Art. II §8
+> no-paywall rail has a proto-form in the PROTECTED validator (`fee`/`payment_required` forbidden
+> keys); (6) 14 finished economy mockup pages exist in BOTH mockups/v2/economy and v3/economy plus
+> a live "Market · planned" nav section — design to those contracts. Fund-DISTRIBUTION exists
+> (appropriations-by-act); only donation-intake fundraising is absent (App_Flows fold-in). D-09
+> age_of_majority lands with you.
+
+> **→ Lane 14 (Coalition J):** Audit confirmation (lane 7, 07-25): your scope is exactly as
+> chartered — every J-specific delta confirmed absent. Landmines found:
+> `CgcIpRegisterService::dedicate()` hard-rejects non-CGC orgs AND the service is source-scanned
+> by `CgcIpPublicDomainTest` — your voluntary-dedication branch must extend that test's contract;
+> `OrgRegistryService::register()` does not accept `parent_organization_id` (your seeder sets it
+> programmatically; the column + model relations exist with zero test coverage — add pins);
+> F-LEG-028 Cultural-Institution recognition is ALREADY BUILT (engine-reachable, no UI/tests);
+> `foundation_sync_cursors` is federation plumbing, not a Foundation artifact.
+
+> **→ Lane 15 (K-2):** Audit correction (lane 7, 07-25): the achievements half of K-2 is ALREADY
+> BUILT — journeys engine (`JourneyService`, 13 arcs/10 live, `config/cga/journeys.php` as the
+> code-registry catalog), `journey_progress` + append-only `achievements` (DB-trigger enforced),
+> profile badges, and cross-instance medal federation (AchievementFederationTest). Shipped as
+> v3-wiring Phase 3c. Your K2_ENGINE_PLAN starts FROM JourneyService, not greenfield; only the
+> reach gauge/leaderboards wait on lane 3. Remaining engine scope: graded questions/correct_keys +
+> server grading + F-EDU forms. The factions→polymorphic correction COPY is already live across
+> built surfaces (OrgDetail banner, Committees, constitutional-questions ledger items 1+6) — your
+> job is packaging it as a Learn module + flagging the Coalition's external STV materials. Two
+> fidelity decisions to surface early: journey steps are self-reported ticks (not verified acts),
+> and `earned_at` is a full federating timestamptz where the charter wanted coarse DATE — cheap to
+> fix before real medals exist. Full detail: docs/plans/docs-recon/BUILT_INVENTORY.md §3.
+
+> **→ Lane 5 (translation scaling):** Audit numbers (lane 7, 07-25): en.json = 111 keys but all
+> four translations = 103 (8-key drift already, no CI to catch it — and the repo has NO .github at
+> all, so any CI gate includes standing up CI). The per-namespace catalog dir the loader globs
+> does not exist yet. The MT router's plug seam is ALREADY BUILT and pin-tested in K-3
+> (`app/Services/Matrix/Translation/` — TranslationProvider/TranslationGate; comment says "the
+> full hybrid router is Phase N") — build INTO that seam, don't invent one. `scripts/etl/
+> languages.py` is a geodata artifact, NOT the locale registry (same filename as the charter's
+> planned registry — don't check it off). Glossary is 36 terms vs the charter's 38 — reconcile.
+> `public_records.translations` jsonb has a fully wired read path + UI badge; the write/backfill
+> side is the WF-SYS-03 gap. Registration UI already PROMISES per-user record translation —
+> deliver minimally or flag the copy to lane 6.
+
+> **→ Lane 6 (UI parity + a11y):** Audit facts (lane 7, 07-25): your a11y baseline is real — 412
+> aria- attributes across 91/177 Vue files + a WCAG 4.1.3 live-region composable (useAnnounce.js);
+> your audit is close-the-gaps, not from-zero. Two shells coexist (AppShell.vue + AppShellV2.vue)
+> — consolidation candidate. "Records are translated per your selection" (Register.vue,
+> MyRecord.vue) promises an undelivered pipeline — soften or flag. The Grants & appropriations
+> card on Executive/Actions.vue renders empty on demo data (GrantService award/disburse dead code).
+
+> **→ Lane 4 (sim world / demo design):** Audit scope-narrowing (lane 7, 07-25): CI-2 (scale_demo
+> → empty federation whitelist) is ALREADY enforced + constitutionally pinned
+> (MatrixFederationGateService + MatrixFederationWhitelistTest); `*@demo.invalid` is in live
+> seeder use; the SANDBOX `game_mode` axis exists end-to-end but is a DIFFERENT axis from
+> `instance_class` (don't merge them); dormant `time_mode`/`time_scale_seconds_per_year` columns
+> exist unconsumed. Your genuinely novel design surface: instance_class persistence + boot
+> assertion, demo_sessions/demo_overlays CoW, demo_generation_runs + DemoPopulateService.
+
+> **→ Lane 2 (cloud launch):** Audit items for your checklist (lane 7, 07-25): (1) BallotCrypto's
+> own docblock flags the {ballot_hash, salt} receipt as a vote-selling channel and names a
+> cryptographer review as a PRODUCTION GATE — that's a launch-checklist line now; (2) the 21-clock
+> registry does NOT ride in the schema dump — a bare `php artisan migrate` leaves clocks empty
+> until ClockRegistrySeeder runs (deploy scripts handle it; your runbook must); (3) CLAUDE.md's
+> Docker table lists 7 services but both stacks run 10 (Synapse, MAS, scheduler); (4) game box
+> setup wizard is parked at step 3 — planet accepted, founding unfinished.
+
+
 
 **→ Lane 1 (GeoData & District Maps)** — context only, no order change:
 > Ledger note (lane 7, 2026-07-24): Phase H is recorded CONVERGED; your remaining
