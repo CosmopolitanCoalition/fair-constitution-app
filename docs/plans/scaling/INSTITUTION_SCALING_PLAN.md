@@ -2,7 +2,8 @@
 
 **Lane 3 · 2026-07-25 · absorbs the Phase I design (activation tiers + reach/legitimacy)**
 
-Status: **PLAN ONLY.** No code ships until the operator settles eager-vs-lazy (§5.6).
+Status: **BUILDING.** Operator ruling 2026-07-25: **eager — "we do it all"**. §5.6's
+recommendation is settled in favour of eager provisioning; build log in §11.
 Owner: lane 3 (`docs/plans/scaling/`). Consumed by lane 2 (cloud sizing), lane 4 (simulated
 world), lane 13 (per-jurisdiction economic objects), lane 15 (reach gauge).
 
@@ -998,3 +999,63 @@ the audit chain intact.
 - **Lane 9/10 (content).** §2.2 carries the measured planet figures; §4.1 carries the seat rule.
   Note Earth is bicameral — 1,999 district-elected seats across 282 districts, **3,140 members in
   total** across two chambers.
+
+---
+
+## 11. Build log
+
+**Operator ruling 2026-07-25: eager — "we do it all."** §5.6's three-band recommendation is
+settled in favour of eager provisioning. The one refinement carried into the build, stated once
+and not re-litigated: the **civic record** is fully eager (every jurisdiction gets its executive,
+court, election board and both civic spaces as real rows), while the **Matrix room** that fronts
+a space is materialised on first contact, because a single Synapse cannot hold 2.87M rooms
+(§5.5). Every place is fully built; only the chat transport is lazy.
+
+### Shipped
+
+| Item | Artefact |
+|---|---|
+| Live-row uniqueness (§5.4) | `database/migrations/2026_07_25_000002_institution_live_uniqueness.php` — four partial unique indexes |
+| Re-entrant stubs | `InstitutionStubService` now `insertOrIgnore`, returning rows the DB actually accepted |
+| CLK-06 unblocked (§3) | `EvaluateCriticalPopulationJob` — liveness JOIN rail, membership anti-join, keyset chunking |
+| The tier curve (§6.1) | `app/Services/ActivationTierService.php` — pure statics, DB-free |
+| The threshold seam (§6.2) | `ActivationService::thresholdFor()`; both call sites rewired |
+| Curve parameters | `2026_07_25_000003_activation_tier_curve.php` + `config/cga.php` `activation_tier` |
+| Planet-scale provisioning | `app/Services/InstitutionProvisionService.php` + `institutions:provision` |
+| Curve pins | `tests/Constitutional/ActivationTierTest.php` — 8 tests |
+
+### Measured throughput
+
+| Fixture | Wall clock | Rate |
+|---|---:|---:|
+| 2,000 jurisdictions | 9.3 s | — |
+| 48,000 jurisdictions (288,000 rows) | **36.7 s** | **1,308 jurisdictions/sec** |
+
+Extrapolating to 955,130 jurisdictions: **≈12 minutes** on the dev box, comfortably inside the
+~2 h whole-planet baseline. Expect 2–4× slower on the game box, whose `jurisdictions` table
+carries 6.2 GB of PostGIS geometry — call it **25–50 minutes**, still well inside baseline.
+
+> **A performance bug worth recording, because the first cut looked fine and was not.** The
+> initial implementation pulled each keyset page into PHP and rebound it as an
+> `IN (?,?,?…)` list — 25,000 placeholders per chunk. That turned a 13 ms query into ~75 ms per
+> jurisdiction and projected to **twenty hours** for the planet, ten times the baseline. Keeping
+> the batch inside the statement as a CTE fixed it: **149.4 s → 9.3 s on the same fixture, 16×**.
+> The lesson generalises — a set-based engine stops being set-based the moment ids round-trip
+> through the application.
+
+### Deliberately not built
+
+- **`jurisdiction_activations` rows.** §5.2.1 — writing them would forge the Art. II §1 consent
+  crossing and re-break CLK-06. CLK-06 and `jurisdiction:activate` remain the only writers.
+- **Committees, departments, boards of governors.** Art. II §9 reserves them to legislatures.
+  They arrive by vote (F-LEG-009 / F-LEG-016 / F-EXE-001) once a chamber is seated, which is
+  the correct behaviour and not a gap — a provisioning engine that minted them would be
+  manufacturing acts of self-government.
+- **Members, seats, appointments.** These come from the elections engine on certification.
+
+### Still open
+
+The reach/legitimacy layer (§6.3), the Reach page (§6.4), and the amendability ruling (§9 item 4)
+are not built. The curve parameters ship as a working mechanism with their bounds enforced in
+`ActivationTierService::clampParams`, but they are not yet registered as legislature-amendable
+settings — that decision is still yours.

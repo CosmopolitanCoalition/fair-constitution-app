@@ -82,6 +82,76 @@ class ActivationService
     }
 
     // =========================================================================
+    // The activation threshold seam (Phase I)
+    // =========================================================================
+
+    /**
+     * THE single place that resolves an effective activation threshold.
+     *
+     * Before this existed the resolution was copy-pasted into two places —
+     * EvaluateCriticalPopulationJob and JurisdictionActivateCommand — so a
+     * curve added to one would silently diverge from the other. Both now call
+     * here. onCriticalPopulation() already takes the threshold as a parameter
+     * and records it in notes + the audit payload, so nothing downstream
+     * changes shape.
+     *
+     * Resolution order, widest override first:
+     *   1. constitutional_settings.critical_population_threshold — an explicit
+     *      per-jurisdiction override, resolved through the ancestor cascade.
+     *      Wins outright when set; this is the lawful escape hatch.
+     *   2. The tier curve over the jurisdiction's real population, with the
+     *      curve parameters resolved through the same cascade (in practice one
+     *      amendable row at the planet root — never 951k thresholds).
+     *
+     * NOTE the two populations in play, which are NOT interchangeable:
+     * the curve's INPUT is REAL population (jurisdictions.population, WorldPop
+     * provenance); the COUNT compared against the result is PLAYER population
+     * (active residency confirmations — CivicPopulation::of). That is owner
+     * ruling #15, "player population pegged against real population".
+     *
+     * @param  int|null  $population  real population; null = unmeasured (floor)
+     */
+    public function thresholdFor(
+        string $jurisdictionId,
+        ?int $population,
+        SettingsResolver $settings,
+    ): int {
+        $explicit = $settings->resolveInt($jurisdictionId, 'critical_population_threshold', 0);
+
+        if ($explicit > 0) {
+            return $explicit;
+        }
+
+        return ActivationTierService::tierThreshold($population, [
+            'enabled'  => (bool) $settings->resolveInt(
+                $jurisdictionId,
+                'activation_tier_enabled',
+                (int) config('cga.activation_tier.enabled', false),
+            ),
+            'k' => $settings->resolveInt(
+                $jurisdictionId,
+                'activation_tier_k',
+                (int) config('cga.activation_tier.k', ActivationTierService::DEFAULTS['k']),
+            ),
+            'exponent' => $settings->resolveInt(
+                $jurisdictionId,
+                'activation_tier_exponent',
+                (int) config('cga.activation_tier.exponent', ActivationTierService::DEFAULTS['exponent']),
+            ),
+            'floor' => $settings->resolveInt(
+                $jurisdictionId,
+                'activation_tier_floor',
+                (int) config('cga.activation_tier.floor', ActivationTierService::DEFAULTS['floor']),
+            ),
+            'cap' => $settings->resolveInt(
+                $jurisdictionId,
+                'activation_tier_cap',
+                (int) config('cga.activation_tier.cap', ActivationTierService::DEFAULTS['cap']),
+            ),
+        ]);
+    }
+
+    // =========================================================================
     // Pure sizing math (DB-free — pinned by ActivationMathTest)
     // =========================================================================
 
@@ -89,6 +159,10 @@ class ActivationService
      * Cube-root law (Taagepera): max(floor, round(population^(1/3))).
      * Mirrors ConstitutionalDefaults::sizeFromPopulation's default branch
      * without the per-jurisdiction settings lookup.
+     *
+     * NOT the activation tier threshold — see ActivationTierService. Same
+     * cube root, different question: this sizes a chamber, that thresholds a
+     * boot. Earth is the proof they differ: 1,999 seats, 9 residents.
      */
     public static function cubeRootSeats(int|float $population, int $floor = self::SEAT_FLOOR): int
     {

@@ -78,6 +78,31 @@ return [
     'critical_population_default' => env('CGA_CRITICAL_POPULATION', 1),
 
     /*
+    | Phase I activation tier curve (owner ruling #15 — the "later phase"
+    | named above). Fallbacks for the constitutional_settings columns of the
+    | same names; resolution order is
+    |   critical_population_threshold (explicit per-jurisdiction override)
+    |     → activation_tier_* (cascade, in practice one planet-root row)
+    |       → these values.
+    |
+    | threshold(P) = clamp(ceil(k · P^(1/exponent)), floor, cap), where P is
+    | REAL population and the count compared against it is PLAYER population.
+    |
+    | enabled = false preserves today's dev posture exactly: one verified
+    | resident activates. Turn it on for a populated instance.
+    |
+    | These are cousins of the legislature sizing law, NOT the same dial —
+    | floor/cap here are RESIDENTS, not seats. See ActivationTierService.
+    */
+    'activation_tier' => [
+        'enabled'  => env('CGA_ACTIVATION_TIER', false),
+        'k'        => env('CGA_ACTIVATION_TIER_K', 1),
+        'exponent' => env('CGA_ACTIVATION_TIER_EXPONENT', 3),
+        'floor'    => env('CGA_ACTIVATION_TIER_FLOOR', 5),
+        'cap'      => env('CGA_ACTIVATION_TIER_CAP', 9),
+    ],
+
+    /*
     | Election demo compression (WI-B7). False (default) = constitutional
     | phase windows (approval_min_days / ranked_window_days resolved per
     | jurisdiction). A positive integer N compresses every phase boundary

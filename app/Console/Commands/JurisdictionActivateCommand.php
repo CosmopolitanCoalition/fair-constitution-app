@@ -89,10 +89,14 @@ class JurisdictionActivateCommand extends Command
             ->where('is_active', true)
             ->count();
 
-        $threshold = $settings->resolveInt(
+        // ONE seam, shared with EvaluateCriticalPopulationJob. These two used
+        // to be copy-paste twins, so a curve added to one diverged silently
+        // from the other; ActivationService::thresholdFor is now the only
+        // place an effective threshold is decided.
+        $threshold = $activation->thresholdFor(
             $jurisdiction->id,
-            'critical_population_threshold',
-            (int) config('cga.critical_population_default', 1)
+            $jurisdiction->population !== null ? (int) $jurisdiction->population : null,
+            $settings,
         );
 
         if (! $force) {

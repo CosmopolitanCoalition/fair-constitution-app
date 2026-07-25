@@ -92,19 +92,33 @@ class InstitutionStubService
             }
         }
 
-        // chunked inserts so we don't blow past pg's parameter limit on a
-        // whole-world run (~3500 rows × 7 cols = 24 500 binds — fine, but
-        // chunking keeps memory bounded if the count grows).
+        // Chunked so a whole-world run stays bounded in memory and well under
+        // pg's bind limit.
+        //
+        // insertOrIgnore (ON CONFLICT DO NOTHING), not insert: the existence
+        // checks above are a read-then-write, so under concurrent provisioning
+        // workers two of them can both see "no judiciary here" and both insert.
+        // The partial unique indexes added in
+        // 2026_07_25_000002_institution_live_uniqueness make the loser a silent
+        // no-op instead of a duplicate institution. The audit chain's advisory
+        // lock does NOT help here — it serializes chain appends, not the reads
+        // that precede them.
+        //
+        // Counts are the rows the database actually accepted, so a caller can
+        // tell "I provisioned this" from "someone beat me to it".
+        $execCreated = 0;
+        $judCreated  = 0;
+
         foreach (array_chunk($execRows, 500) as $chunk) {
-            DB::table('executives')->insert($chunk);
+            $execCreated += DB::table('executives')->insertOrIgnore($chunk);
         }
         foreach (array_chunk($judRows, 500) as $chunk) {
-            DB::table('judiciaries')->insert($chunk);
+            $judCreated += DB::table('judiciaries')->insertOrIgnore($chunk);
         }
 
         return [
-            'executives_created'  => count($execRows),
-            'judiciaries_created' => count($judRows),
+            'executives_created'  => $execCreated,
+            'judiciaries_created' => $judCreated,
         ];
     }
 }
