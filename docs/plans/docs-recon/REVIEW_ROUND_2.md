@@ -461,8 +461,71 @@ narrowed finding rather than quietly amending, which is the standard this fleet 
 **Its security finding is the most serious item of the entire round — verified by this desk and
 promoted to risk-register #19 (LAUNCH-BLOCKING).** See §5 item 8.
 
-*(The independent review of lane 13's documents was still running when this section was written
-and will be appended.)*
+### `ECONOMY_AUDIT_PLAN.md` — **APPROVE WITH NOTES**
+
+Genuinely a walkthrough script, not a design doc in disguise: every station is
+observation-first with a method code, all eight named systems carry the four required
+elements, the vocabulary concordance is explicit, and both commits touched only the lane's own
+file. Act 2 is runnable end-to-end. **The self-correction is exactly right** — one writer for
+`acquired_via='founding'`, zero for `'issue'`, published as a correction rather than quietly
+amended.
+
+1. **⚑ The security finding's framing was wrong in a way that changes the fix — and the correct
+   diagnosis is stronger.** The plan said the endpoint's "three immediate neighbours are all
+   auth-gated"; they are not — `state`, `cosmic-address`, the bootstrap trio and the step
+   endpoints are *all* unauthenticated, because the pre-founding setup API is deliberately open
+   (nobody is logged in before `createFounder`). **The defect is the missing
+   `isSetupComplete()` refusal**, which every sibling with post-founding consequence carries.
+   Rest the finding on that leg. **Corollary (widens the finding to a class):**
+   `POST /api/setup/wizard/step2/start` is itself a **live ETL trigger on a founded world** —
+   an endpoint risk, not the navigation risk the plan called it. → risk register #19, updated.
+2. `equal_partnership` is called "a validated label with no distinguishing behaviour" — false,
+   and it contradicts the plan's own declared base: `BoardElectionAdministration.php:72-75`
+   seats one owner per active partner. The decision question survives; the premise doesn't.
+3. §1b's rename evidence is wrong (`neverFederated` is a string property that still exists;
+   `privacyNote` appears nowhere) — and the truth **strengthens** the blocking question: the
+   operator's ruling was never propagated into the fixtures.
+4. Act 2 step 5's `adm_levels` cannot be entered — the wizard never sends that field. Harmless
+   to the outcome, but the instruction is unfollowable.
+5. §2.3 and §2.5 contradict each other on whether Act 2 needs the fleet's one-lane `migrate`
+   slot. §2.5 is right (migrations already applied; it's a no-op) — don't burn a coordination slot.
+6. **Station 0's own numbers open a hole S4 never sees**: 956,336 jurisdictions vs 951,622
+   settings rows = **4,714 jurisdictions with no settings row**, for which S4's universal ("the
+   resolver always matches the child's own row first") is false — the ancestor walk does reach.
+   The proof query only groups rows that exist, so it structurally cannot see them.
+7. **The ledger substrate — L's central deliverable — has no station**, and the ordered rail
+   (reuse the existing `audit_log_block_mutation()` chain with `LedgerService` as sole writer,
+   never fork it) appears nowhere in the doc. Add a short station so the walk ends with the
+   operator having *seen* the chain he's being asked to reuse.
+8. Two ordered rails absent: **currency reserved to root** (and the doc holds the disconfirming
+   evidence unused — all 951,622 rows carry `currency_name/code/symbol`, i.e. every jurisdiction
+   on the planet has private currency columns, which is sharper than "the cascade is dead") and
+   **UBI eligibility = active residency ONLY** (appears once, as quoted help text).
+9. **D-08 dispositions are routed to the design lane, but the ledger says the OPERATOR owns
+   them** — so as written the walkthrough will never put them in front of him. Move into §6.
+10. Q5 records the age settings as absent but never asks the operator for the **values** — the
+    decision D-09 actually poses.
+11. §6's engineering list oversteps: two entries are D-14 design decisions, not dials, and one
+    sits in **lane 6's** path (which the plan itself flags two sections earlier).
+12. Accuracy sweep: "exactly three callers" of `openStake` is four; the 56-command menu is 55;
+    the `org_conversions` fair-market CHECK is null-permissive on both sides (weaker than
+    implied); "no code path cites Art. II §8" is marginally too strong (narrow to
+    *enforcement* paths); several path/range citation drifts.
+
+**Good catches (verified):** the §1a security finding down to every element, including the
+**CLK-13/14 desync** second-order consequence (armed timers drift from `worker_rep_*` because
+the rederive job never fires on that path) · `writeConstitutionalSettings` is a raw
+`DB::table()->update()` bypassing model and validator, and the setup-lock middleware cannot
+backstop it · **S2's three-edit cost analysis** — bounds rejection runs *before* the door check,
+so adding a key to `DUAL_DOOR_KEYS` alone is genuinely inert (bounds + door + register + pin is
+the real cost) · **S9 corrected the lane's own brief**: `FORBIDDEN_ELIGIBILITY_KEYS` early-returns
+outside the six rights-automatic forms and inspects only payload *keys*, so `NO_FEE_FORMS` really
+would be the **first** no-fee rail — master §3.0 and the lane-13 opening prompt both need that
+correction · a validator docblock names a pin file that does not exist · the `curl` false-pass
+trap in the setup lock (and console runs bypass it entirely) · the `-p fc` hazard matching
+*neither* stack · §4.0's ordering discipline (stations ordered around the three observations that
+advancing the world destroys) · the honest yield statement before asking for two hours of the
+operator's time · the co-determination chain verified hop-for-hop.
 
 ---
 

@@ -306,16 +306,24 @@ setup wizard; invites → growth flow). None are orphans. Details in the evidenc
     nginx, scheduler, LiveKit, and a Redis capped at 768 MB. Recomputed serving floor ≈14 GB, which
     puts an 8 GiB box out and a 16 GiB box at modest headroom. (`HostCapacity::autoscaleWorkers()`
     is the autoscale limiter — not Horizon's process count; don't reuse it for sizing.)
-19. **⚑⚑⚑ LAUNCH-BLOCKING — the constitution is writable by an unauthenticated request.**
-    Found by lane 13, **independently verified by lane 7 at both layers**:
-    `POST /api/setup/constants` → `SetupController::saveConstants` carries **no route
-    middleware** (`routes/web.php:98` — bare, no `->middleware('auth')`), **no `is_operator`
-    check, and no `isSetupComplete()` refusal**. The comparison is the proof that this is a
-    defect and not a design choice: `POST /api/setup/game-mode`, the *very next route*
-    (`:103-104`) and the next handler in the same controller, is auth-gated **with a comment
-    explaining that it must never be a guest trigger**, requires `is_operator`
-    (`abort_unless(... 403)`), and 409s once setup completes. The guard pattern exists in that
-    file and was simply not applied to the endpoint that writes the constitution.
+19. **⚑⚑⚑ LAUNCH-BLOCKING — setup endpoints with post-founding consequence never refuse after
+    founding. The constitution is rewritable on a live world.**
+    Found by lane 13, verified by lane 7 at both layers, then **sharpened by lane 13's own
+    review pass — the precise diagnosis matters because it changes the fix.**
+    `POST /api/setup/constants` → `SetupController::saveConstants` carries no route middleware
+    (`routes/web.php:98`), no `is_operator` check, and **no `isSetupComplete()` refusal**.
+    **The defect is the missing refusal, NOT the missing `auth`**: the pre-founding setup API is
+    *deliberately* unauthenticated as a class (nobody is logged in before `createFounder`), so
+    `state`, `cosmic-address`, the bootstrap trio and the step endpoints are all open by design.
+    What separates a defect from that design is post-founding consequence — and
+    `POST /api/setup/game-mode`, the very next route (`:103-104`), proves the pattern exists:
+    auth-gated *with a comment on why a guest trigger is unacceptable*, `is_operator`-checked,
+    and 409 once setup completes. **This is a CLASS, not one endpoint** — lane 13's corollary:
+    `POST /api/setup/wizard/step2/start` (`:118`, unauth, no refusal) is a **live ETL trigger on
+    a founded world**. Audit the whole setup surface for the same shape.
+    Fix direction: add the `isSetupComplete()` refusal (+ `is_operator`) to every setup endpoint
+    with post-founding consequence. A blanket `auth` sweep is the wrong instrument and risks
+    breaking bootstrap ordering.
     **Blast radius (lane 13's measurement): all 29 constitutional keys** — not just the 9
     economy ones — including `judiciary_is_elected` (the sole dual-door key) and the
     `worker_rep_*` pair, whose armed CLK-13/14 timers then **desync** from the settings row
