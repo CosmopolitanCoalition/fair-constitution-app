@@ -376,9 +376,19 @@ user/org PRIVATE) · `market_transactions` (PRIVATE, like ballots) · `work_post
 Participation. (F-ORG-008 is free — Phase J deferred its claim on that code.)
 
 **Hard rails.** **UBI eligibility = active residency association ONLY** (same absolute-rights gate as
-voting — no added condition); individual balances/transactions/receipts are **private-local, never
+voting — no added condition); ~~individual balances/transactions/receipts are **private-local, never
 federated** (`FORBIDDEN_SUBJECT_TYPES` += `market_transaction`, `ubi_receipt`, individual
-`economic_account`); no real payment rails/custody (unit of account is abstract). Sybil defense on UBI
+`economic_account`)~~ — **⚑ SUPERSEDED by operator ruling R1, 2026-07-25** (recorded via lane 13;
+`WIRING_PLAN.md:158-160` confirmed as the live ruling over this text): **economic records DO sync
+between nodes; privacy is READER privacy, on the ballot pattern.** Pseudonymous account IDs ride on
+every ledger/transaction/receipt row and sync in plaintext so any node can verify sums and validate
+spends; the **account↔person binding is the single restricted object**. Reading the world's ledger
+from any node shows what moved and between which accounts, and nothing about who. Stated with
+BallotCrypto's honesty about limits: the authoritative instance *can* bind account to person because
+it must, so the guarantee is *"no OTHER node learns it"*, never *"nobody can."* (Encryption alone
+could never have satisfied R1 — a peer holds its own app key.) The `FORBIDDEN_SUBJECT_TYPES`
+additions prescribed above are therefore NOT to be made;
+no real payment rails/custody (unit of account is abstract). Sybil defense on UBI
 leans entirely on the identity module's GPS/residency verification — UBI **raises the
 identity-assurance stakes** (ties to Phase G's G-ID).
 
