@@ -196,6 +196,44 @@ for (const code of allLocales) {
     });
 }
 
+/* ─── C8: glossary adherence ─────────────────────────────────────────────── */
+/* A settled constitutional term must render the same way everywhere. If the
+   English source uses a glossary term and the locale has a settled rendering
+   for it, the translation has to contain that rendering — otherwise "quorum"
+   means one thing on the legislature page and another in a court filing, which
+   is precisely the failure a term base exists to prevent. */
+function glossary() {
+    const p = join(I18N, 'glossary', 'term-base.json');
+    if (!existsSync(p)) return null;
+    const raw = readJson(p);
+    const terms = {};
+    for (const [term, v] of Object.entries(raw)) {
+        if (term.startsWith('_') || typeof v !== 'object') continue;
+        terms[term] = v.translations ?? {};
+    }
+    return terms;
+}
+const GLOSSARY = glossary() ?? {};
+
+for (const code of allLocales) {
+    if (code === 'en' || code === 'en-XA') continue;
+    const bag = catalogs.get(code);
+    for (const [term, renderings] of Object.entries(GLOSSARY)) {
+        const settled = renderings[code];
+        if (!settled) continue;                        // nothing settled yet: not a failure
+        const needle = new RegExp(`\\b${term.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}\\b`, 'i');
+        for (const [k, v] of Object.entries(en)) {
+            if (!needle.test(String(v))) continue;
+            const tgt = bag[k];
+            if (tgt === undefined) continue;           // C1 already reports absence
+            if (!String(tgt).includes(settled)) {
+                warn('C8-glossary', code, k.split(':')[0], k,
+                     `source uses "${term}"; expected the settled "${settled}"`);
+            }
+        }
+    }
+}
+
 /* ─── C7: the locale lists must agree (PHP vs JS) ────────────────────────── */
 function jsRegistryCodes() {
     const src = readFileSync(join(I18N, 'index.js'), 'utf8');
