@@ -121,7 +121,9 @@ class SubdivisionAutoseedService
         if ($template === self::TEMPLATE_COMPONENTS) {
             return $this->componentsPlan($scopeId, $ctx, $year);
         }
-        // Fresh backtracking budget per plan (the service is container-shared).
+        // Fresh backtracking budget per plan CALL — spans every composition
+        // rung below (the service is container-shared, so it must be reset
+        // here and nowhere else).
         $this->bladeBudget = self::BLADE_BUDGET_PER_PLAN;
 
         // Cycle-2 (2026-07-19): zero-raster-coverage scopes (a geometry
@@ -311,7 +313,13 @@ class SubdivisionAutoseedService
             $cuts = [];
             $districts = [];
             $order = 0;
-            $this->bladeBudget = self::BLADE_BUDGET_PER_PLAN;
+            // The blade budget spans the WHOLE plan, ladder included — a
+            // per-rung reset let one hopeless scope burn rungs × templates ×
+            // 240 blade calls (hours on a big state). A scope that exhausts
+            // the budget reaches its honest refusal instead.
+            if ($this->bladeBudget <= 0) {
+                break;
+            }
             try {
                 $this->subdivide($scopeId, 'root', $mainlandGj, $pixels, $islands, $candidateSizes, $quota, $cuts, $districts, $order, $template, $floorC, $ceilingC, $initialCutPath, $mainPartIdx);
                 $sizes = $candidateSizes;
@@ -1154,6 +1162,13 @@ class SubdivisionAutoseedService
         $seatsB = (int) array_sum($bSizes);
         $sizes  = array_merge($aSizes, $bSizes);
 
+        // Budget exhausted → refuse THIS node honestly rather than keep
+        // grinding; the refusal unwinds to the plan's hand-draw verdict.
+        if ($this->bladeBudget <= 0) {
+            throw new NoContiguousCut(
+                "The blade search budget was exhausted for this scope at {$path} — cut it by hand."
+            );
+        }
         $this->bladeBudget--;
 
         try {
