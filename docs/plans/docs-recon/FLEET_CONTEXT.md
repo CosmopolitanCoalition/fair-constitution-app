@@ -137,6 +137,27 @@ presents as presence is far harder to see than a blank screen.**
 — then check that something in `resources/js` actually references the endpoint. Grep the route
 name. A controller with no caller is a feature nobody can reach.
 
+### ⚑ A CHECK THAT CANNOT FAIL IS NOT A CHECK
+Lane 3's principle, earned by volunteering something against their own interest, and lane 9's
+audit is the evidence. **Ask of any green result: what would have made this show up?**
+
+Three shapes, all found on 2026-07-26, all in gates that looked healthy:
+
+| The gate | Why its result carried no information |
+|---|---|
+| lane 3's playtest-block absence check | passed — but the block was **absent from the page entirely**, so it would have passed whether or not the gate worked |
+| lane 9's health probe | fetched from `about:blank` (null origin), so Vite's CORS rejected it **every time since it was written**. Invisible, because it only *warned*. The moment it was given authority to stop a run, **it stopped every run** |
+| two of lane 9's factory gates | green since the day they were written and **never once seen failing on real work** |
+| a 20 s timeout on `:8080/legislatures` | that route is **29.5 s cold** — the check can never pass cold, so it reports the box down every time |
+
+**Both directions are the same defect.** A gate that can only pass and a gate that can only fail
+are equally uninformative; the second merely announces itself sooner.
+
+**The response that works — lane 9's, and it is not the obvious one:** audit every gate by asking
+*"has this ever actually been seen failing on real work?"* For any that has not, write a
+**negative control** — feed it something bad and prove it fails, then prove it still passes on the
+true input. Seven of theirs had a failure history; two did not; both were fixed to 4/4.
+
 ### ⚑ "I found zero" is not "I found nothing to count"
 Lane 9's distinction, and it is what caught the clock page. They reported that the string `due`
 appeared nowhere in 4,882 characters of body text — and **refused to collapse those two claims**.
