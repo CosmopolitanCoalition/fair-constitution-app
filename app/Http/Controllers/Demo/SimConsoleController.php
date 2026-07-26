@@ -227,7 +227,41 @@ class SimConsoleController extends Controller
      */
     private function world(): array
     {
+        // BUILT IS NOT GOVERNED. A page that counts places, people and
+        // population but never says how many chambers actually hold anybody
+        // lets a visitor read 11 jurisdictions and 183 residents as 11
+        // governments. Activation DECLARES seats; only an election FILLS them,
+        // and seating without one would manufacture members nobody voted for.
+        // So an empty chamber is the CORRECT state on a fresh world — and the
+        // screen has to say so out loud rather than let the absence pass for
+        // completeness. (Lane 3 hit the same defect on /building; this is the
+        // same rule on this surface, deliberately worded the same way.)
+        $chambers = (int) DB::table('legislatures')->whereNull('deleted_at')->count();
+
+        $governed = (int) DB::table('legislatures as l')
+            ->whereNull('l.deleted_at')
+            ->whereExists(function ($q) {
+                $q->select(DB::raw(1))
+                    ->from('legislature_members as m')
+                    ->whereColumn('m.legislature_id', 'l.id')
+                    ->whereIn('m.status', ['elected', 'seated'])
+                    ->whereNull('m.deleted_at');
+            })
+            ->count();
+
+        // A DRAFT map is a proposal, not a boundary — `racePlan()` reads
+        // `active()` only. Counting maps without their status is how nine
+        // drawn-but-unadopted chambers come to look ready to elect.
+        $activeMaps = (int) DB::table('legislature_district_maps')
+            ->where('status', 'active')
+            ->whereNull('deleted_at')
+            ->count();
+
         return [
+            'chambers' => $chambers,
+            'chambers_governed' => $governed,
+            'chambers_awaiting_election' => max(0, $chambers - $governed),
+            'active_district_maps' => $activeMaps,
             'jurisdictions' => (int) DB::table('jurisdictions')->whereNull('deleted_at')->count(),
             'cohorts' => (int) DB::table('jurisdiction_cohorts')->count(),
             // 'sim-%' not just '@demo.invalid': the reserved namespace is shared

@@ -211,7 +211,37 @@ const statusTone = computed(() => {
                 <!-- WHAT THE RUN HAS PRODUCED — the point of the machine. -->
                 <section class="rounded-lg border border-gray-700/60 bg-gray-900/40 p-4">
                     <h2 class="text-xs font-semibold uppercase tracking-wide text-gray-400">The world so far</h2>
-                    <dl class="mt-3 grid grid-cols-2 gap-x-6 gap-y-3 sm:grid-cols-3">
+
+                    <!-- BUILT IS NOT GOVERNED. Said first, and plainly, because
+                         a visitor reading places and people would otherwise
+                         assume governments. An empty chamber is the CORRECT
+                         state until an election fills it. -->
+                    <dl class="mt-3 grid grid-cols-3 gap-x-6 gap-y-3 rounded border border-gray-700/50 bg-gray-950/40 p-3">
+                        <div>
+                            <dt class="text-xs text-gray-500">places with a chamber</dt>
+                            <dd class="font-mono text-lg text-gray-100">{{ fmt(world.chambers) }}</dd>
+                        </div>
+                        <div>
+                            <dt class="text-xs text-gray-500">chambers with members</dt>
+                            <dd class="font-mono text-lg text-emerald-300">{{ fmt(world.chambers_governed) }}</dd>
+                        </div>
+                        <div>
+                            <dt class="text-xs text-gray-500">awaiting a first election</dt>
+                            <dd class="font-mono text-lg text-amber-300">{{ fmt(world.chambers_awaiting_election) }}</dd>
+                        </div>
+                    </dl>
+                    <p class="mt-2 text-xs text-gray-500">
+                        A chamber exists as soon as a place is activated, but only an election puts people in it —
+                        seating anyone without one would manufacture members nobody voted for. An empty chamber is
+                        the correct state, not a failure.
+                        <span v-if="world.active_district_maps !== undefined">
+                            Active district maps: <span class="font-mono text-gray-400">{{ fmt(world.active_district_maps) }}</span>
+                            — a drawn map is a <em>draft</em> until adopted, and a chamber above nine seats cannot
+                            elect without an adopted one.
+                        </span>
+                    </p>
+
+                    <dl class="mt-4 grid grid-cols-2 gap-x-6 gap-y-3 sm:grid-cols-3">
                         <div>
                             <dt class="text-xs text-gray-500">jurisdictions</dt>
                             <dd class="font-mono text-lg text-gray-100">{{ fmt(world.jurisdictions) }}</dd>
