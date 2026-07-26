@@ -408,10 +408,22 @@ setup wizard; invites → growth flow). None are orphans. Details in the evidenc
     **This is correct constitutional behaviour meeting an incomplete seating path — not a bug in
     either.** The bicameral dual-agreement rule is hardened and must NOT be weakened to make a demo
     command pass; if a fix touches it, that is the operator's call.
-    **Blast radius:** no Phase-D executive, org module or co-determination demo on any fresh world ·
-    lane 4's populate engine will hit the same wall at scale · lane 6 has no executive/org pages to
-    tour on a fresh world · the demo path stops short of the executive branch.
+    **⚑ BLAST RADIUS ENLARGED 2026-07-25 (lane 13, verified on the founded world): this is ONE
+    blocker sitting under TWO acts of the tour, not one fussy command.** `institutions:demo-e` fails
+    the same way `demo-d` does, one step later — **Phase D AND Phase E both open with a bicameral
+    supermajority vote**, and with no second chamber neither can pass. Both rows verified in
+    `chamber_votes`: `judiciary_create · supermajority · bicameral=t · outcome=failed ·
+    serving_snapshot=31` and `exec_delegate · supermajority · bicameral=t · outcome=failed ·
+    serving_snapshot=31`. So a fresh world gets **no executive, no org module, no co-determination
+    AND no judiciary**. Lane 4's populate engine hits the same wall at scale; lane 6 has no
+    executive/org/judiciary pages to tour; the demo path stops short of two whole branches.
+    **Also blocks the last step of lawmaking** — a bill cannot become law and a referendum cannot be
+    adopted without a chamber vote passing (though most of that act's 16 stops do NOT need one).
     Routed to lane 3 (owns activation + seating) with lane 1 implicated (owns Type B districting).
+    **Cheaper to fix now than it was:** lane 13 activated all 9 castelli while diagnosing, so the
+    constituent jurisdictions Type B representation draws from actually exist on the box.
+    *(Bug fixed in passing: `institutions:demo-e` assumed "San Marino's ONE constituent" — a real ETL
+    gives 9. Fixed by activating them, not by patching the assumption.)*
 22. **✅ CLOSED 2026-07-25 — the 8 "pre-existing" suite failures were environmental, exactly as
     hypothesised.** Against the founded fcd world `WorkerRepresentationTest` went from **8 failed to
     8 passed / 232,044 assertions with nothing in the file changed**. Cause was
