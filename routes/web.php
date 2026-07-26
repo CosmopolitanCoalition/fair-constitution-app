@@ -491,6 +491,16 @@ Route::middleware('auth')->group(function () {
     // history, head checkpoints, authority claims. Public-read (Art. II §2).
     Route::get('/federation', [\App\Http\Controllers\Federation\FederationConsoleController::class, 'show'])
         ->name('federation.show');
+    // ── Phase O — the simulated-world populate console. The surface an
+    // operator leaves OPEN while a generation run happens, the way Step-3 is
+    // left open while the district mapper works. Public-read like /federation
+    // (Art. II §2 — a citizen may watch the machinery); it exposes counts and
+    // place names only, never a synthetic person's row.
+    Route::get('/simworld', [\App\Http\Controllers\Demo\SimConsoleController::class, 'show'])
+        ->name('simworld.console');
+    Route::get('/api/simworld/progress', [\App\Http\Controllers\Demo\SimConsoleController::class, 'progress'])
+        ->name('api.simworld.progress');
+
     // Operator Operations console (Phase 1, read-only): the infra & identity inventory.
     // Public shell; the inventory is operator-gated inside the controller (like the
     // host block on /federation) — a citizen sees only a sign-in prompt.
@@ -887,6 +897,12 @@ Route::middleware('auth')->prefix('system')->name('system.')->group(function () 
     // the coverage artifact scripts/i18n/check.mjs writes, never a second
     // computation that could disagree with the gate.
     Route::get('/translations', [\App\Http\Controllers\System\TranslationCoverageController::class, 'show'])->name('translations');
+    // Live run deck — polled every 2s while a translation run is in flight,
+    // the same contract Step-3's district mapper uses. Halt/resume are
+    // operator-only (enforced in the controller): they stop real work.
+    Route::get('/translations/progress', [\App\Http\Controllers\System\TranslationCoverageController::class, 'progress'])->name('translations.progress');
+    Route::post('/translations/halt', [\App\Http\Controllers\System\TranslationCoverageController::class, 'halt'])->name('translations.halt');
+    Route::post('/translations/resume', [\App\Http\Controllers\System\TranslationCoverageController::class, 'resume'])->name('translations.resume');
 });
 
 // mockups-v3-wiring Phase 1 — /support/report intake. Anyone may SEE the form

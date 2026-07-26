@@ -59,6 +59,30 @@ LOCALES_DIR = I18N / "locales"
 META_DIR = I18N / "meta"
 REGISTRY_JS = I18N / "locales.generated.js"
 
+# Live run state. Same shape as the ETL supervisor's control directory: plain
+# JSON written atomically, one file per worker, so the UI can watch a run
+# WITHOUT the workers needing a database, a queue, or a lock server. The halt
+# flag is a file the operator's page drops; workers check it at every chunk
+# boundary — the pull-engine posture in the cheapest form that is still honest.
+RUN_DIR = ROOT / "storage" / "app" / "i18n-run"
+WORKER_DIR = RUN_DIR / "workers"
+HALT_FILE = RUN_DIR / "halt.request"
+
+
+def _write_atomic(path: Path, payload: dict) -> None:
+    """Write-then-replace: a reader never sees a half-written file."""
+    try:
+        path.parent.mkdir(parents=True, exist_ok=True)
+        tmp = path.with_suffix(path.suffix + ".tmp")
+        tmp.write_text(json.dumps(payload, ensure_ascii=False), encoding="utf-8")
+        tmp.replace(path)
+    except Exception:  # noqa: BLE001
+        pass  # progress is a cosmetic mirror; it must never fail the work
+
+
+def halted() -> bool:
+    return HALT_FILE.exists()
+
 # ─── Rails ────────────────────────────────────────────────────────────────────
 # Reserved by vue-i18n. A translated message must not invent or lose these.
 PLACEHOLDER = re.compile(r"(?<!\{')\{([A-Za-z_$][\w$]*)\}")
@@ -534,6 +558,50 @@ def glossary_terms(locale: str) -> dict[str, str]:
     return out
 
 
+class Heartbeat:
+    """
+    One worker's live state, rewritten at every chunk boundary.
+
+    Deliberately mirrors the autoscale worker-lease row the district mapper's
+    strip already renders — id, what it is working on, how long it has been on
+    it — so the translation page shows the same shape of thing the operator
+    already knows how to read.
+    """
+
+    def __init__(self, locale: str, script: str, provider: str, total: int):
+        self.id = f"{locale}-{os.getpid()}"
+        self.path = WORKER_DIR / f"{self.id}.json"
+        self.state = {
+            "id": self.id,
+            "pid": os.getpid(),
+            "locale": locale,
+            "script": script,
+            "provider": provider,
+            "device": "?",
+            "state": "starting",
+            "namespace": None,
+            "done": 0,
+            "review": 0,
+            "total": total,
+            "current": [],
+            "chunk_secs": None,
+            "rate": None,
+            "started_at": time.time(),
+            "last_seen": time.time(),
+        }
+        self.beat()
+
+    def beat(self, **fields) -> None:
+        self.state.update(fields)
+        self.state["last_seen"] = time.time()
+        elapsed = max(self.state["last_seen"] - self.state["started_at"], 0.001)
+        self.state["rate"] = round(self.state["done"] / elapsed, 2)
+        _write_atomic(self.path, self.state)
+
+    def retire(self, state: str = "done") -> None:
+        self.beat(state=state, current=[])
+
+
 def self_test() -> int:
     """
     Pins the rails. Every case here is a defect that was observed for real
@@ -681,6 +749,23 @@ def main() -> int:
     glossary = glossary_terms(args.locale)
     provider = None if args.dry_run else make_provider(args.provider, glossary)
 
+    # total outstanding across every namespace, so the bar has a real denominator
+    outstanding = 0
+    for _ns in namespaces:
+        _src = load(src_dir / f"{_ns}.json")
+        _tgt = load(LOCALES_DIR / args.locale / f"{_ns}.json")
+        _meta = load(META_DIR / args.locale / f"{_ns}.json")
+        for _k in _src:
+            if _meta.get(_k, {}).get("status") in PROTECTED_STATUS:
+                continue
+            if _k in _tgt and not args.force:
+                continue
+            outstanding += 1
+    beat = None if args.dry_run else Heartbeat(args.locale, script, args.provider, outstanding)
+    if beat is not None:
+        beat.beat(state="loading",
+                  device=getattr(provider, "device", "n/a"))
+
     print(f"\ntranslate-catalog  en -> {args.locale} ({reg[args.locale]['endonym']})")
     print(f"provider: {args.provider}{'  [DRY RUN]' if args.dry_run else ''}"
           f"   glossary terms: {len(glossary)}")
@@ -722,9 +807,23 @@ def main() -> int:
             continue
 
         # THE ETL RULE: bounded, committed chunks with visible progress.
+        if beat is not None:
+            beat.beat(state="translating", namespace=ns)
+
         for i in range(0, len(pending), args.chunk):
+            # The halt flag is checked HERE, at a committed boundary — never
+            # mid-chunk. Halting can therefore never cost more than one chunk,
+            # and never leaves a half-written catalog.
+            if halted():
+                print("    halt requested — parking at a committed boundary")
+                if beat is not None:
+                    beat.retire("halted")
+                return 0
+
             batch = pending[i:i + args.chunk]
             texts = [t for _, t in batch]
+            if beat is not None:
+                beat.beat(current=[t[:90] for t in texts[:6]])
             t0 = time.time()
             try:
                 outs = provider.translate_batch(texts, args.locale)
@@ -750,6 +849,10 @@ def main() -> int:
             dump(tgt_path, target)
             dump(meta_path, meta)
             done = min(i + args.chunk, len(pending))
+            if beat is not None:
+                beat.beat(done=total_new, review=total_skip, namespace=ns,
+                          chunk_secs=round(time.time() - t0, 2),
+                          device=getattr(provider, "device", "n/a"))
             print(f"    [{done:>5}/{len(pending)}] +{wrote} "
                   f"({time.time() - t0:.1f}s)", flush=True)
 

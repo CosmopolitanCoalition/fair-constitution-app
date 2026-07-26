@@ -16,7 +16,8 @@
  * endpoint. This half stays: it is what "where are we" looks like when no
  * run is in flight.
  */
-import { computed } from 'vue';
+import { computed, ref, onMounted, onUnmounted } from 'vue';
+import { router } from '@inertiajs/vue3';
 import AppShellV2 from '@/Layouts/AppShellV2.vue';
 import PageScaffold from '@/Components/Surface/PageScaffold.vue';
 import Card from '@/Components/Ui/Card.vue';
@@ -31,7 +32,58 @@ const props = defineProps({
     surface: { type: Object, required: true },
     /** scripts/i18n/check.mjs output, or null when it has never been run here. */
     coverage: { type: Object, default: null },
+    /** Live run deck, read off the workers' own heartbeat files. */
+    live: { type: Object, default: null },
 });
+
+/* ── The live half ───────────────────────────────────────────────────────────
+   Polls every 2s while a run is in flight, the same contract Step-3's district
+   mapper uses. Polling NEVER stops on its own except when a run has terminated:
+   a run started from a shell after this page was opened must appear without a
+   reload, which is the whole point of leaving it open. */
+const deck = ref(props.live);
+const deckError = ref('');
+let pollTimer = null;
+let pollTick = 0;
+
+const workers = computed(() => deck.value?.workers ?? []);
+const activeWorkers = computed(() => deck.value?.workers_active ?? 0);
+const runStatus = computed(() => deck.value?.run?.status ?? null);
+const runLive = computed(() => runStatus.value === 'running' || activeWorkers.value > 0);
+const halted = computed(() => deck.value?.halt_requested === true);
+
+const etaText = computed(() => {
+    const s = deck.value?.eta_seconds;
+    if (s === null || s === undefined) return '—';
+    if (s < 90) return `${s}s`;
+    if (s < 5400) return `${Math.round(s / 60)} min`;
+    return `${(s / 3600).toFixed(1)} h`;
+});
+
+function workerPct(w) {
+    if (!w.total) return 0;
+    return Math.round((w.done / w.total) * 1000) / 10;
+}
+
+async function pollDeck() {
+    try {
+        const res = await fetch('/system/translations/progress', {
+            credentials: 'same-origin',
+            headers: { Accept: 'application/json' },
+        });
+        if (!res.ok) { deckError.value = `progress unavailable (HTTP ${res.status})`; return; }
+        deckError.value = '';
+        deck.value = await res.json();
+        /* Coverage is recomputed by the gate, not by this page, so it only
+           changes between runs — refresh it far less often than the deck. */
+        if (runLive.value && ++pollTick % 30 === 0) router.reload({ only: ['coverage'] });
+    } catch (e) {
+        deckError.value = String(e);
+    }
+}
+
+onMounted(() => { pollDeck(); pollTimer = setInterval(pollDeck, 2000); });
+onUnmounted(() => { if (pollTimer) clearInterval(pollTimer); });
 
 const measured = computed(() => props.coverage !== null);
 
@@ -118,6 +170,76 @@ function pctOf(part, whole) {
                 when a language falls behind. Nothing on this page is measured a second way.
             </p>
         </template>
+
+        <!-- ── LIVE RUN DECK ───────────────────────────────────────────────
+             Shown whenever workers exist. The coverage half below answers
+             "where are we"; this half answers "what is happening right now",
+             which is a different question and needs its own surface. -->
+        <Card v-if="workers.length" :title="runLive ? 'Translating now' : 'Last run'"
+              eyebrow="live">
+            <div class="stat-row">
+                <Stat :value="activeWorkers" label="workers active" :accent="activeWorkers > 0" />
+                <Stat :value="`${deck?.rate ?? 0}/s`" label="strings per second" />
+                <Stat :value="(deck?.strings_done ?? 0).toLocaleString()" label="translated this run" />
+                <Stat :value="etaText" label="estimated remaining" />
+            </div>
+
+            <p v-if="halted" class="muted">
+                <StatusBadge tone="warning">Halt requested</StatusBadge>
+                Workers stop at their next committed chunk — at most one chunk is redone.
+            </p>
+            <p v-if="deckError" class="muted">{{ deckError }}</p>
+
+            <!-- one line per worker: what it is, what it is doing, how fast -->
+            <DataTable
+                :columns="[
+                    { key: 'locale', label: 'Language', mono: true },
+                    { key: 'state', label: 'State' },
+                    { key: 'namespace', label: 'Area', mono: true },
+                    { key: 'bar', label: 'Progress' },
+                    { key: 'done', label: 'Done', align: 'right' },
+                    { key: 'rate', label: '/sec', align: 'right' },
+                    { key: 'device', label: 'On', mono: true },
+                ]"
+                :rows="workers"
+                row-key="id"
+                caption="Translation workers currently running"
+            >
+                <template #cell-state="{ row }">
+                    <StatusBadge
+                        :tone="row.stale ? 'danger' : row.state === 'translating' ? 'success'
+                               : row.state === 'done' ? 'neutral' : 'info'"
+                    >{{ row.stale ? 'silent' : row.state }}</StatusBadge>
+                </template>
+                <template #cell-namespace="{ row }">{{ row.namespace || '—' }}</template>
+                <template #cell-bar="{ row }">
+                    <div class="cov-bar" :title="`${workerPct(row)}%`">
+                        <div class="cov-bar-fill" :style="{ width: `${Math.max(workerPct(row), 0.6)}%` }" />
+                    </div>
+                </template>
+                <template #cell-done="{ row }">
+                    <span data-no-i18n>{{ row.done }}/{{ row.total }}</span>
+                </template>
+                <template #cell-rate="{ row }"><span data-no-i18n>{{ row.rate ?? 0 }}</span></template>
+            </DataTable>
+
+            <!-- the actual strings in flight: the thing that makes a run legible -->
+            <div v-for="w in workers.filter((x) => x.current?.length)" :key="`cur-${w.id}`"
+                 class="inflight">
+                <p class="muted inflight-head">
+                    <span data-no-i18n>{{ w.locale }}</span> — in flight right now:
+                </p>
+                <ul class="inflight-list">
+                    <li v-for="(t, i) in w.current" :key="i" class="inflight-item">{{ t }}</li>
+                </ul>
+            </div>
+
+            <p class="muted">
+                Each worker holds its own copy of the translation model, so the GPU — not the CPU —
+                sets how many can run at once. Work commits in small batches: halting, or a crash,
+                costs at most one batch and never leaves a half-written language.
+            </p>
+        </Card>
 
         <!-- Never measured on this box: say so plainly rather than render zeros. -->
         <Card v-if="!measured" title="Not measured yet">
@@ -257,5 +379,14 @@ function pctOf(part, whole) {
 
 .muted {
     color: var(--text-muted, rgba(255, 255, 255, 0.62));
+}
+
+.inflight { margin-block: var(--space-3, 0.75rem); }
+.inflight-head { margin-bottom: 0.25rem; }
+.inflight-list { margin: 0; padding-inline-start: 1.1rem; }
+.inflight-item {
+    font-size: 0.86rem;
+    color: var(--text-muted, rgba(255, 255, 255, 0.62));
+    overflow-wrap: anywhere;
 }
 </style>
