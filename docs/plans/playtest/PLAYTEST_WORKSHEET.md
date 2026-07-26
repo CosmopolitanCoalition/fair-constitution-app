@@ -39,19 +39,26 @@ the wrong thing. That difference is what makes this sheet useful next week.
 
 ## Three controls you'll need constantly
 
-**To become someone else** — the dev bar. `/dev/users` lists everyone; impersonate from there
-(`/dev/login-as` and `/dev/impersonate/{user}` are the same control). `/dev/impersonate/stop`
-returns you to yourself. There are also four role kits — `/dev/electoral-kit`,
-`/dev/legislature-kit`, `/dev/judiciary-kit`, `/dev/executive-kit` — which set up the state a role
-needs. Dev mode is on for this box (sandbox game mode).
+**⚑ First, which of these are pages and which are buttons.** Only five dev addresses are pages you
+can type into the browser:
+
+> `/dev/users` · `/dev/electoral-kit` · `/dev/legislature-kit` · `/dev/judiciary-kit` ·
+> `/dev/executive-kit`
+
+**Everything else below is a button on a page, not an address.** Typing one into the browser gives
+you *"405 Method Not Allowed"* — which looks like a broken app and isn't. See warning 9.
+
+**To become someone else** — open **`/dev/users`**, which lists everyone, and switch from there.
+The four kits are also real pages, and each sets up the state a role needs. Dev mode is on for this
+box (sandbox game mode).
 
 **To move time** — lane 3 is building the time control right now
 (`docs/plans/playtest/DEV_TIME_AND_ROLE_CONTROLS.md`), including a preview of what an advance
 *would* fire before it fires. Steps that need it are marked **⏱**. Until it lands, those steps are
 *blocked*, not failed.
 
-**To make a whole chamber vote at once** — `POST /dev/chamber/cast` with a vote id and the yes / no
-/ abstain counts. It turns a 58-member floor vote into one action instead of 58 logins.
+**To make a whole chamber vote at once** — the bloc-cast control (an action, not a page): it
+takes a vote id and the yes / no / abstain counts. It turns a 58-member floor vote into one action instead of 58 logins.
 
 Two things about it matter for testing, and they're the reason it can be trusted on this sheet:
 - **It supplies ballots, never outcomes.** Every ballot is filed as a real seated member through
@@ -65,9 +72,9 @@ Every use is marked in the record as a dev action, so a played timeline never re
 
 ---
 
-## Eight things that will look broken and aren't
+## Nine things that will look broken and aren't
 
-**1. No achievements will appear.** The app has a catalogue of 139 achievements, but the piece that
+**1. No achievements will appear.** The app has a catalogue of 141 achievements, but the piece that
 watches for them and awards them isn't built yet. **Nothing on this sheet asks you to check for an
 achievement** for exactly that reason — if you see a card that does, it's a mistake, tell me.
 
@@ -118,6 +125,10 @@ page broken together is the machine. Three shapes, all seen today:
 **Write down the time and move on — don't fill in a column of failures.** One line in your notes
 ("everything 502 at 15:47") is worth more than twenty cards marked fail, and it tells us exactly
 where to look.
+
+**9. "405 Method Not Allowed" on a `/dev/…` address means it's a button, not a page.** Most dev
+controls are actions fired from a screen — there is nothing to visit. Go to the page that owns the
+control instead; the list of the five that *are* pages is above.
 
 ---
 
@@ -187,8 +198,12 @@ event in the application** — it is the exact point at which your constitutiona
 
 | # | Do this | On this screen | You should see |
 |---|---|---|---|
-| 1 | Either wait for the sweep, or grant it directly in dev | `/civic/residency` · `/dev/residency/grant` | Status moves to confirmed |
+| 1 | Either wait for the sweep, or use the **grant button on the same page** | `/civic/residency` | Status moves to confirmed |
 | 2 | Open your record | `/civic/record` | Your jurisdiction listed, marked confirmed |
+
+*The grant button is a dev shortcut and still does the real thing — it declares, simulates the
+location pings, and verifies, all through the same engine the slow path uses. It skips the waiting,
+not the work.*
 
 **PASSES IF** — your record shows the jurisdiction as an **active, confirmed** residency.
 *Underlying proof: `residency_confirmations.is_active = true` for you. The catalog calls this
