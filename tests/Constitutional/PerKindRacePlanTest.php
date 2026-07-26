@@ -14,19 +14,25 @@ use Tests\TestCase;
 /**
  * CONSTITUTIONAL PIN — PER-KIND RACE BLOCKING (operator ruling, 2026-07-25).
  *
- * A chamber whose type_b half has no lawful race must NOT lose its perfectly
- * lawful type_a district races with it. The operator's framing: *"maps that
+ * A chamber with one unlawful seat-kind must NOT lose its perfectly lawful
+ * other kind with it. The operator's framing: *"maps that
  * don't have problems, we proceed. Maps that do have problems, we will not
  * proceed, and we keep them flagged."*
  *
  * WHAT THIS COST BEFORE. `racePlan()` carried a single run-level `$blocked`
  * flag, and `scheduleGeneral()` returned before `createRaces()` whenever it was
- * set. Because `VoteCountingService` hard-throws outside 1–9 seats and a
- * bicameral chamber's type_b half elects at-large as ONE race, every chamber
- * with `type_b_seats > 9` condemned its own lower house too. Measured on the
- * planet: **218,320 districts / 1,568,448 type_a seats** lost that way, on top
- * of the 2,069,820 type_b seats that genuinely have no lawful race — 23.8% of
- * all seats, with Earth's own 1,999-seat lower house among the casualties.
+ * set, so ONE unlawful kind condemned every lawful sibling. Measured on the
+ * planet at the time: 218,320 districts / 1,568,448 type_a seats lost that way.
+ *
+ * ⚠ HISTORICAL NOTE — the ORIGINAL trigger has since been removed. Back then
+ * the blocked kind was type_b, because a bicameral chamber's at-large half was
+ * held to the 5–9 district band. The 2026-07-26 ruling settled that the band is
+ * a DISTRICT rule and does not bind an at-large Type B race, which is one STV
+ * race at whatever size — so a large type_b is now lawful and no longer blocks
+ * anything. These fixtures were therefore mirrored: the blockable kind is now
+ * an over-ceiling type_a with no district map. The PRINCIPLE under test is
+ * unchanged, and that is the point of pinning the principle rather than the
+ * example.
  *
  * THE INVARIANTS:
  *   · a lawful kind generates its races even when a sibling kind is blocked
@@ -47,23 +53,24 @@ class PerKindRacePlanTest extends TestCase
      * THE HEADLINE: a lawful lower house survives an unlawful upper house.
      * This is the case that covers 218,320 real districts.
      */
-    public function test_a_blocked_type_b_no_longer_condemns_a_lawful_type_a(): void
+    public function test_a_blocked_kind_no_longer_condemns_a_lawful_one(): void
     {
         $this->onLivePg(function () {
-            // type_b = 1,141 — Earth's actual value, far above the per-race max.
-            $legislature = $this->legislature(typeA: 14, typeB: 1141);
-            $this->districtMap($legislature, [7, 7]);
+            // The blockable kind is now type_a: over the per-race maximum with
+            // NO district map, so subdivision is mandatory before it can elect.
+            // The type_b half is lawful at any size since the 2026-07-26 ruling.
+            $legislature = $this->legislature(typeA: 152, typeB: 45);
 
             $plan = app(ElectionLifecycleService::class)->racePlan($legislature);
 
-            $this->assertTrue($plan['blocked'], 'the type_b half is genuinely unlawful and must be flagged');
-            $this->assertFalse($plan['fully_blocked'], 'but the type_a half is lawful, so the plan is not dead');
+            $this->assertTrue($plan['blocked'], 'the type_a half genuinely cannot elect and must be flagged');
+            $this->assertFalse($plan['fully_blocked'], 'but the type_b half is lawful, so the plan is not dead');
 
-            $this->assertSame('districts', $plan['kinds']['type_a']['mode'], 'the lower house proceeds');
-            $this->assertSame('blocked', $plan['kinds']['type_b']['mode'], 'the upper house does not');
+            $this->assertSame('blocked', $plan['kinds']['type_a']['mode'], 'the lower house cannot proceed');
+            $this->assertSame('at_large', $plan['kinds']['type_b']['mode'], 'the upper house can');
 
             $this->assertSame(
-                ['type_a'],
+                ['type_b'],
                 $plan['generable_kinds'],
                 'exactly the lawful kinds are generable'
             );
@@ -74,24 +81,20 @@ class PerKindRacePlanTest extends TestCase
     public function test_a_blocked_kind_still_generates_no_races(): void
     {
         $this->onLivePg(function () {
-            $legislature = $this->legislature(typeA: 14, typeB: 1141);
-            $this->districtMap($legislature, [7, 7]);
+            $legislature = $this->legislature(typeA: 152, typeB: 45);
 
             $service = app(ElectionLifecycleService::class);
             $election = $service->scheduleGeneral($legislature);
 
             $races = DB::table('election_races')->where('election_id', $election->id)->get();
 
-            $this->assertCount(2, $races, 'the two lawful districts each get a race');
+            $this->assertCount(1, $races, 'only the lawful at-large race is generated');
             $this->assertSame(
-                ['type_a', 'type_a'],
+                ['type_b'],
                 $races->pluck('seat_kind')->all(),
-                'and NOT ONE type_b race is generated for the unlawful half'
+                'and NOT ONE type_a race is generated for the half that cannot elect'
             );
-            $this->assertSame(
-                [7, 7],
-                $races->pluck('seats')->map(fn ($s) => (int) $s)->all()
-            );
+            $this->assertSame([45], $races->pluck('seats')->map(fn ($s) => (int) $s)->all());
         });
     }
 
@@ -99,8 +102,7 @@ class PerKindRacePlanTest extends TestCase
     public function test_the_blocked_posture_is_still_recorded(): void
     {
         $this->onLivePg(function () {
-            $legislature = $this->legislature(typeA: 14, typeB: 1141);
-            $this->districtMap($legislature, [7, 7]);
+            $legislature = $this->legislature(typeA: 152, typeB: 45);
 
             $before = DB::table('audit_log')
                 ->where('event', 'election.blocked_pending_subdivision')->count();
@@ -119,8 +121,10 @@ class PerKindRacePlanTest extends TestCase
     public function test_a_fully_blocked_plan_still_generates_nothing(): void
     {
         $this->onLivePg(function () {
-            // Over-ceiling type_a with NO district map, and an unlawful type_b.
-            $legislature = $this->legislature(typeA: 152, typeB: 400);
+            // Over-ceiling type_a with NO district map, and NO type_b half —
+            // a large type_b is lawful since the 2026-07-26 ruling, so it can
+            // no longer be used to construct a dead plan.
+            $legislature = $this->legislature(typeA: 152, typeB: 0);
 
             $plan = app(ElectionLifecycleService::class)->racePlan($legislature);
 

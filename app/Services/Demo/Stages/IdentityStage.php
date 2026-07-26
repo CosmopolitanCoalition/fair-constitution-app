@@ -40,8 +40,19 @@ final class IdentityStage
     /** Residents materialized purely so the civic plane has faces. */
     public const VISIBLE_SAMPLE = 12;
 
-    /** Never mint more than this for one jurisdiction, whatever it claims to need. */
-    public const MAX_PER_JURISDICTION = 500;
+    /**
+     * A SANITY ceiling, not a budget. The largest lawful roster on the real
+     * planet is Earth's — 1,999 type_a seats across 282 districts plus a
+     * 1,141-seat type_b chamber = Σ(seats+1) ≈ 3,423 — so nothing legitimate
+     * comes near this.
+     *
+     * Exceeding it THROWS rather than truncating. Silently minting fewer people
+     * than a chamber's races require is precisely the failure that produced an
+     * empty world once already: the run reports done, the roster is short, and
+     * the election simply cannot be contested. A visible review row is the only
+     * acceptable outcome.
+     */
+    public const MAX_PER_JURISDICTION = 5000;
 
     private function __construct() {}
 
@@ -166,7 +177,7 @@ final class IdentityStage
      */
     public static function rosterSize(string $jurisdictionId): int
     {
-        $legislature = DB::table('legislatures')
+        $legislature = \App\Models\Legislature::query()
             ->where('jurisdiction_id', $jurisdictionId)
             ->whereNull('deleted_at')
             ->first();
@@ -175,38 +186,43 @@ final class IdentityStage
             return self::VISIBLE_SAMPLE;
         }
 
-        $districtSeats = (int) DB::table('legislature_districts as d')
-            ->join('legislature_district_maps as m', 'm.id', '=', 'd.map_id')
-            ->where('d.legislature_id', $legislature->id)
-            ->where('m.status', 'active')
-            ->whereNull('m.deleted_at')
-            ->whereNull('d.deleted_at')
-            ->sum('d.seats');
+        // ASK THE ENGINE, never re-derive. An earlier version reimplemented the
+        // race rules here — "type_b counts only when 1..9" — and that duplicate
+        // was wrong within a day: the 2026-07-26 ruling settled that the 5–9
+        // band is a DISTRICT rule and does not bind an at-large Type B race,
+        // which is one STV race at whatever size. A roster sized from a private
+        // copy of the rules silently under-mints the moment the rules move.
+        //
+        // Driving racePlan() means this follows every future change to what is
+        // lawful — including per-kind blocking — with no second edit here.
+        $plan = app(\App\Services\ElectionLifecycleService::class)->racePlan($legislature);
 
-        $districtCount = (int) DB::table('legislature_districts as d')
-            ->join('legislature_district_maps as m', 'm.id', '=', 'd.map_id')
-            ->where('d.legislature_id', $legislature->id)
-            ->where('m.status', 'active')
-            ->whereNull('m.deleted_at')
-            ->whereNull('d.deleted_at')
-            ->count();
+        $pool = 0;
 
-        $typeB = (int) $legislature->type_b_seats;
-
-        // Σ(seats + 1) across district races, plus the at-large type_b race when
-        // it is lawful (1..9). An unlawful type_b half elects nobody, so it
-        // needs no candidates — per-kind blocking, the 07-25 ruling.
-        $pool = $districtSeats + $districtCount;
-
-        if ($typeB >= 1 && $typeB <= 9) {
-            $pool += $typeB + 1;
+        foreach ($plan['kinds'] as $spec) {
+            if ($spec['mode'] === 'districts') {
+                // Σ(seats + 1) per district race.
+                foreach ($spec['districts'] as $district) {
+                    $pool += (int) $district->seats + 1;
+                }
+            } elseif ($spec['mode'] === 'at_large') {
+                $pool += (int) $spec['seats'] + 1;
+            }
+            // 'blocked' elects nobody, so it needs nobody.
         }
 
-        if ($districtCount === 0) {
-            $typeA = (int) $legislature->type_a_seats;
-            $pool += $typeA >= 1 && $typeA <= 9 ? $typeA + 1 : 0;
+        $roster = max(self::VISIBLE_SAMPLE, $pool);
+
+        if ($roster > self::MAX_PER_JURISDICTION) {
+            throw new \RuntimeException(sprintf(
+                'Roster of %d exceeds the sanity ceiling of %d for one jurisdiction. Refusing rather '
+                .'than minting a short roster: an under-filled roster leaves the election uncontestable '
+                .'while the run reports success.',
+                $roster,
+                self::MAX_PER_JURISDICTION
+            ));
         }
 
-        return min(self::MAX_PER_JURISDICTION, max(self::VISIBLE_SAMPLE, $pool));
+        return $roster;
     }
 }

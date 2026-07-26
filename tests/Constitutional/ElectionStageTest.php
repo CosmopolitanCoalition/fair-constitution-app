@@ -140,12 +140,16 @@ class ElectionStageTest extends TestCase
     /**
      * A chamber with no lawful race elects NOBODY — and that is a DONE outcome,
      * not a failure. The world may contain places whose government is forming.
+     *
+     * The fixture is an over-ceiling type_a with NO district map and NO type_b
+     * half. Note what is NOT blocking here: a large type_b is lawful since the
+     * 2026-07-26 ruling (one at-large STV race at any size), so it can no longer
+     * be used to construct a dead plan.
      */
     public function test_a_fully_blocked_chamber_elects_nobody_and_does_not_fail(): void
     {
         $this->onLivePg(function () {
-            // Over-ceiling type_a with NO district map, and an unlawful type_b.
-            $jid = $this->world(typeA: 152, typeB: 400, districtSeats: []);
+            $jid = $this->world(typeA: 152, typeB: 0, districtSeats: []);
 
             $result = ElectionStage::run($jid, null, 1);
 
@@ -156,8 +160,21 @@ class ElectionStageTest extends TestCase
         });
     }
 
-    /** Per-kind blocking carries through: the lawful half still elects. */
-    public function test_an_unlawful_type_b_does_not_stop_the_district_races(): void
+    /**
+     * THE 2026-07-26 TYPE B RULING, pinned from the engine's side.
+     *
+     * The 5–9 band is a DISTRICT rule. It does NOT bind an at-large Type B
+     * race, which is ONE STV race at whatever size — the schema has always said
+     * so (`election_races_seats_check` bounds type_a to 1..9 and type_b only to
+     * >= 1). So a 1,141-seat upper chamber is lawful and elects alongside the
+     * district races rather than blocking anything.
+     *
+     * ⚠ This pins RACE GENERATION only. `VoteCountingService::run()` still
+     * throws for any race above 9 seats regardless of seat_kind, so such a race
+     * schedules and then cannot be tabulated. That gap is flagged to @operator
+     * (PROTECTED file); when it closes, nothing here needs to change.
+     */
+    public function test_a_large_type_b_is_one_lawful_at_large_race(): void
     {
         $this->onLivePg(function () {
             $jid = $this->world(typeA: 14, typeB: 1141, districtSeats: [7, 7]);
@@ -165,9 +182,25 @@ class ElectionStageTest extends TestCase
             $result = ElectionStage::run($jid, null, 1);
 
             $this->assertNotNull($result['election_id']);
-            $this->assertSame(2, $result['races'], 'the two lawful district races proceed');
-            $this->assertSame(16, $result['candidacies'], '(7+1) + (7+1)');
-            $this->assertContains('type_b', $result['blocked_kinds'], 'and the blocked half is still flagged');
+            $this->assertSame(
+                3,
+                $result['races'],
+                'two district races PLUS one at-large type_b race — not blocked'
+            );
+            $this->assertSame(
+                [],
+                $result['blocked_kinds'],
+                'a large type_b is lawful; nothing here should be blocked'
+            );
+
+            $atLarge = DB::table('election_races')
+                ->where('election_id', $result['election_id'])
+                ->where('seat_kind', 'type_b')
+                ->first();
+
+            $this->assertNotNull($atLarge, 'the upper chamber gets its race');
+            $this->assertSame(1141, (int) $atLarge->seats, 'at its full size, undivided');
+            $this->assertNull($atLarge->district_id, 'at-large: the jurisdiction IS the district');
         });
     }
 

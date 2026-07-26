@@ -63,20 +63,46 @@ class IdentityStageTest extends TestCase
         });
     }
 
-    /** An unlawful type_b half elects nobody, so it needs no candidates. */
-    public function test_an_unlawful_type_b_half_adds_no_candidates(): void
+    /**
+     * The roster FOLLOWS the engine's race plan — it must never carry a private
+     * copy of what is lawful.
+     *
+     * This test deliberately asserts agreement with `racePlan()` rather than a
+     * hardcoded number. An earlier version asserted "type_b above 9 adds no
+     * candidates", which was true on the day it was written and wrong within a
+     * day of the 2026-07-26 Type B ruling. Pinning the RELATIONSHIP survives
+     * rule changes; pinning the number does not.
+     */
+    public function test_the_roster_follows_the_engines_race_plan(): void
     {
         $this->onLivePg(function () {
             $jid = $this->jurisdiction(population: 3_000_000);
-            // type_b 1,141 — Earth's real value, far above the per-race maximum.
+            // type_b 1,141 — Earth's real value, far above the DISTRICT band.
             $this->legislature($jid, typeA: 14, typeB: 1141, districtSeats: [7, 7]);
             CohortStage::run($jid, null, 1, 62);
 
+            $legislature = \App\Models\Legislature::where('jurisdiction_id', $jid)->firstOrFail();
+            $plan = app(\App\Services\ElectionLifecycleService::class)->racePlan($legislature);
+
+            $expected = 0;
+            foreach ($plan['kinds'] as $spec) {
+                if ($spec['mode'] === 'districts') {
+                    foreach ($spec['districts'] as $d) {
+                        $expected += (int) $d->seats + 1;
+                    }
+                } elseif ($spec['mode'] === 'at_large') {
+                    $expected += (int) $spec['seats'] + 1;
+                }
+            }
+
             $this->assertSame(
-                16,
+                max(IdentityStage::VISIBLE_SAMPLE, $expected),
                 IdentityStage::rosterSize($jid),
-                'only the lawful district races need candidates; the blocked half needs none'
+                'the roster must size to exactly the races the engine says are lawful'
             );
+
+            // And the two district races are lawful regardless of the type_b half.
+            $this->assertSame('districts', $plan['kinds']['type_a']['mode']);
         });
     }
 
