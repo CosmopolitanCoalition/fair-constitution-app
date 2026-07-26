@@ -375,13 +375,27 @@
     "spoken": "Read as two words."
   },
   "Public record": {
-    "translations": {},
+    "translations": {
+      "es": "Registro público",
+      "ar": "السجل العام",
+      "hi": "सार्वजनिक रिकॉर्ड",
+      "zh-Hans": "公共记录",
+      "fr": "Dossiers publics",
+      "pt": "Registo público"
+    },
     "pos": "noun phrase",
     "context": "The permanent, public, immutable record of an act. WF-SYS-03 is the only constitutional translation mandate in the system, and its own subject was untranslated until now.",
     "spoken": "Read as two words."
   },
   "Testimony": {
-    "translations": {},
+    "translations": {
+      "es": "Testimonio",
+      "ar": "الشهادة",
+      "hi": "साक्ष्य",
+      "zh-Hans": "见证",
+      "fr": "Témoignage",
+      "pt": "Testemunho"
+    },
     "pos": "noun",
     "context": "A constituent’s account entered into the civic record. A first-class civic artifact with its own route and federation path."
   }
