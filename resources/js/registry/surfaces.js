@@ -28,7 +28,7 @@ export const PLAYER_NAV = [
     { id: 'rooms', label: 'Messages', icon: 'message-square', href: '/civic/rooms', contract: 'groups/groups-home.html', phase: 3 },
     { id: 'commons-square', label: 'Live rooms', icon: 'landmark', href: '/civic/commons/square', contract: 'shared/live-room.html?variant=group', phase: 6 },
     { id: 'jurisdiction-browser', label: 'Places', icon: 'map', href: '/jurisdictions', contract: 'jurisdictions/jurisdiction-browser.html', phase: 5 },
-    { id: 'market', label: 'Market', icon: 'bar-chart', href: null, contract: 'economy/economy-home.html', phase: 8 },
+    { id: 'market', label: 'Market', icon: 'bar-chart', href: '/economy', contract: 'economy/economy-home.html' },
     { id: 'my-record', label: 'My profile', icon: 'user', href: '/civic/record', contract: 'civic/my-civic-life.html' },
     { id: 'journeys', label: 'Journeys', icon: 'list-checks', href: '/journeys', contract: 'index.html#journeys-h' },
     { id: 'learn', label: 'Learn & help', icon: 'graduation-cap', href: null, contract: 'learn/learn-home.html', phase: 7 },
@@ -106,11 +106,28 @@ export const SITEMAP = [
         { id: 'restoration', label: 'Rebuild a lost government', icon: 'refresh-cw', href: null, contract: 'jurisdictions/restoration.html', phase: 4 },
         { id: 'federation', label: 'Between governments', icon: 'globe', href: '/federation', contract: 'jurisdictions/federation.html', phase: 4 },
     ] },
-    { key: 'market', title: 'Market · planned', items: [
-        { id: 'marketplace', label: 'The open market', icon: 'building', href: null, contract: 'economy/marketplace.html', phase: 8 },
-        { id: 'wallet', label: 'My wallet', icon: 'lock', href: null, contract: 'economy/wallet.html', phase: 8 },
+    /* Order follows the mockup sidebar (shell-v2.js "Market · planned"), which
+       declares NINE surfaces; the registry carried four. The five that were
+       missing had no row at all, so MenuNav — which iterates only PLAYER_NAV
+       and SITEMAP — could not render them even as "Planned": they were
+       invisible rather than greyed.
+
+       `href: null` IS the planned flag (there is no `planned:` key), so a row
+       with no route behind it is an honest placeholder, not a dead link.
+       Lane 13's v1 deliberately ships neither `exchange` (it trades org shares,
+       and no ordinary org's cap table can be populated yet) nor `agreements` /
+       `joint-ledgers` (tables exist, no read surface). `stipend` has no route
+       of its own — it reads on the economy home page. */
+    { key: 'market', title: 'Market', items: [
+        { id: 'exchange', label: 'The exchange', icon: 'bar-chart', href: null, contract: 'economy/exchange.html', phase: 8 },
+        { id: 'marketplace', label: 'The open market', icon: 'building', href: '/economy/market', contract: 'economy/marketplace.html' },
+        { id: 'agreements', label: 'Agreements', icon: 'file-text', href: null, contract: 'economy/agreements.html', phase: 8 },
+        { id: 'wallet', label: 'My wallet', icon: 'lock', href: '/economy/wallet', contract: 'economy/wallet.html' },
+        { id: 'joint-ledgers', label: 'Joint ledgers', icon: 'users', href: null, contract: 'economy/joint-ledgers.html', phase: 8 },
+        { id: 'units', label: 'Units & money', icon: 'sliders', href: '/economy/units', contract: 'economy/units.html' },
         { id: 'stipend', label: 'The civic stipend', icon: 'refresh-cw', href: null, contract: 'economy/stipend.html', phase: 8 },
-        { id: 'treasury', label: 'Public finance', icon: 'bar-chart', href: null, contract: 'economy/treasury.html', phase: 8 },
+        { id: 'treasury', label: 'Public finance', icon: 'bar-chart', href: '/economy/treasury', contract: 'economy/treasury.html' },
+        { id: 'org-settings', label: 'Org economics', icon: 'building', href: null, contract: 'economy/org-settings.html', phase: 8 },
     ] },
     { key: 'help', title: 'Learn & help', items: [
         { id: 'learn', label: 'Learn & lessons', icon: 'graduation-cap', href: null, contract: 'learn/learn-home.html', phase: 7 },

@@ -1,19 +1,202 @@
 <script setup>
-/** TEMPORARY placeholder — see EconomyStub.vue. @lane-06 replaces this. */
-import EconomyStub from './EconomyStub.vue'
+/**
+ * Economy/Market — the open market (design contract:
+ * mockups/v3/economy/marketplace.html, which absorbed requests.html as its
+ * second tab).
+ *
+ * BOTH SIDES OF THE BOARD, deliberately: a market with only sellers is a
+ * catalogue. Offers, work being sought, and neighbours asking for help all
+ * live here.
+ *
+ * PRIVACY: the assistance list is filtered server-side — requests marked
+ * private never cross the boundary, so this page cannot leak one by accident.
+ *
+ * READ-ONLY in v1: ordering and listing arrive with F-IND-022/023/024.
+ */
+import { ref, computed } from 'vue';
+import { Link } from '@inertiajs/vue3';
+import AppShellV2 from '@/Layouts/AppShellV2.vue';
+import PageScaffold from '@/Components/Surface/PageScaffold.vue';
+import Card from '@/Components/Ui/Card.vue';
+import Banner from '@/Components/Ui/Banner.vue';
+import StatusBadge from '@/Components/Ui/StatusBadge.vue';
+import { formatMoney, formatCount } from '@/lib/money.js';
+
+defineOptions({ layout: AppShellV2 });
 
 const props = defineProps({
-  currency: { default: null },
-  offers: { default: null },
-  work: { default: null },
-  assistance: { default: null },
-})
+    currency: { type: Object, default: null },
+    offers: { type: Array, default: () => [] },
+    work: { type: Array, default: () => [] },
+    assistance: { type: Array, default: () => [] },
+});
+
+/* Deep-linkable, matching the mockup's ?tab= contract. */
+const TABS = [
+    { key: 'offers', label: 'For sale' },
+    { key: 'work', label: 'Work' },
+    { key: 'assistance', label: 'Requests for help' },
+];
+
+const initialTab = () => {
+    const t = new URLSearchParams(window.location.search).get('tab');
+    return TABS.some((x) => x.key === t) ? t : 'offers';
+};
+const tab = ref(initialTab());
+
+const counts = computed(() => ({
+    offers: props.offers?.length ?? 0,
+    work: props.work?.length ?? 0,
+    assistance: props.assistance?.length ?? 0,
+}));
 </script>
 
 <template>
-  <EconomyStub
-    title="The open market"
-    blurb="Offers and requests: things and services for sale, work being sought, and neighbours asking for help."
-    :data="props"
-  />
+    <PageScaffold title="The open market">
+        <template #intro>
+            Things and services for sale, work on offer, and neighbours asking for help — one board,
+            open to everyone who lives here.
+        </template>
+
+        <Banner v-if="!currency" tone="info" title="No currency yet">
+            Nothing can be priced until this world's root legislature defines a currency.
+        </Banner>
+
+        <div class="mkt-tabs" role="tablist" aria-label="Market sections">
+            <button
+                v-for="t in TABS"
+                :key="t.key"
+                type="button"
+                role="tab"
+                class="mkt-tab"
+                :class="{ 'mkt-tab--on': tab === t.key }"
+                :aria-selected="tab === t.key"
+                @click="tab = t.key"
+            >
+                {{ t.label }}
+                <span class="mkt-count">{{ formatCount(counts[t.key]) }}</span>
+            </button>
+        </div>
+
+        <!-- ------------------------------------------------------ for sale -->
+        <section v-show="tab === 'offers'" aria-label="Things and services for sale">
+            <p v-if="!offers.length" class="econ-empty">
+                Nothing is for sale right now.
+            </p>
+            <Card v-for="o in offers" :key="o.id" as="article" inset class="mkt-row">
+                <div class="mkt-head">
+                    <h3 class="mkt-title">
+                        <Link :href="`/economy/market/${o.id}`">{{ o.title }}</Link>
+                    </h3>
+                    <span class="mkt-price">{{ formatMoney(o.price, currency) }}</span>
+                </div>
+                <p v-if="o.description" class="mkt-desc">{{ o.description }}</p>
+                <p class="mkt-meta">
+                    <StatusBadge>{{ o.kind === 'service' ? 'A service' : 'A thing' }}</StatusBadge>
+                    <span>Quantity {{ o.quantity }}</span>
+                    <span v-if="o.asset">{{ o.asset.kind === 'virtual' ? 'Digital item' : 'Physical item' }}</span>
+                    <span>{{ o.status }}</span>
+                </p>
+            </Card>
+        </section>
+
+        <!-- ---------------------------------------------------------- work -->
+        <section v-show="tab === 'work'" aria-label="Work on offer">
+            <p v-if="!work.length" class="econ-empty">No work is being offered right now.</p>
+            <Card v-for="w in work" :key="w.id" as="article" inset class="mkt-row">
+                <div class="mkt-head">
+                    <h3 class="mkt-title">{{ w.title }}</h3>
+                    <span v-if="w.rate" class="mkt-price">{{ formatMoney(w.rate, currency) }}</span>
+                </div>
+                <p class="mkt-desc">{{ w.terms }}</p>
+                <p class="mkt-meta">
+                    <span>{{ formatCount(w.applications) }} applied</span>
+                    <span>{{ w.status }}</span>
+                </p>
+            </Card>
+            <p class="econ-note">
+                Taking a job is what eventually gives workers a seat on the board of the
+                organisation they work for — at a hundred workers a seat appears on its own.
+            </p>
+        </section>
+
+        <!-- ---------------------------------------------------- assistance -->
+        <section v-show="tab === 'assistance'" aria-label="Requests for help">
+            <p v-if="!assistance.length" class="econ-empty">Nobody is asking for help right now.</p>
+            <Card v-for="a in assistance" :key="a.id" as="article" inset class="mkt-row">
+                <h3 class="mkt-title">{{ a.title }}</h3>
+                <p class="mkt-desc">{{ a.need }}</p>
+                <p class="mkt-meta"><span>{{ a.status }}</span></p>
+            </Card>
+            <p class="econ-note">
+                Requests marked private are never shown here, to anyone — they don't leave the
+                server.
+            </p>
+        </section>
+    </PageScaffold>
 </template>
+
+<style scoped>
+.mkt-tabs {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-2);
+    margin-block-end: var(--space-4);
+}
+.mkt-tab {
+    /* 44px min target — WCAG 2.2 AA pointer target size at 375px. */
+    min-height: 44px;
+    padding: 0 var(--space-3);
+    border: 1px solid var(--gov-border);
+    border-radius: var(--radius-2, 0.5rem);
+    background: transparent;
+    color: inherit;
+    font: inherit;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: var(--space-2);
+}
+.mkt-tab--on {
+    background: var(--gov-surface-subtle, rgba(127, 127, 127, 0.12));
+    font-weight: 600;
+}
+.mkt-count {
+    font-size: 0.75rem;
+    color: var(--gov-text-muted);
+}
+.mkt-row {
+    margin-block-end: var(--space-3);
+}
+.mkt-head {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    gap: var(--space-3);
+    flex-wrap: wrap;
+}
+.mkt-title {
+    margin: 0;
+    font-size: 1rem;
+}
+.mkt-price {
+    font-weight: 700;
+    white-space: nowrap;
+}
+.mkt-desc {
+    margin: var(--space-2) 0 0;
+}
+.mkt-meta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-3);
+    margin: var(--space-2) 0 0;
+    font-size: 0.8125rem;
+    color: var(--gov-text-muted);
+}
+.econ-empty,
+.econ-note {
+    font-size: 0.875rem;
+    color: var(--gov-text-muted);
+}
+</style>
