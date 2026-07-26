@@ -149,8 +149,28 @@ inflation_target_bps: number|null
   table cannot be populated today (`acquired_via='founding'` has one writer, the CGC charter). Shipping
   a trading floor with nothing to trade would be a worse lie than an honest "planned".
 - **`joint-ledgers`, `agreements`** — tables exist, no read surface yet.
-- **Any write endpoint.** v1 is read-only. Listing, ordering and transferring arrive with the forms
-  (F-IND-022/023/024), so the pages should not build submit paths against v1.
+- ~~**Any write endpoint.** v1 is read-only.~~ **SUPERSEDED 2026-07-26 — the write path SHIPPED.**
+  `F-IND-022` (marketplace list/order/settle), `F-IND-023` (funds transfer) and `F-IND-024` (asset
+  register/transfer) are registered handlers and file through `ConstitutionalEngine::file()` like every
+  other form. Pages submit to the **engine**, not to a REST endpoint — there is no economy write API and
+  there should not be one, because a second write path is a second set of rails to keep honest.
+
+  What a page needs to know to build a submit:
+
+  | Form | `payload` keys | Returns (`EngineResult::recorded`) |
+  |---|---|---|
+  | `F-IND-022` | `action` = `list` \| `order` \| `settle`; **list**: `kind`, `title`, `price`, `asset_id?`, `description?`, `quantity?`; **order**: `listing_id`, `quantity?`; **settle**: `order_id` | `listing_id` / `order_id` / `entry_group` + `contract_id` + `asset_id` |
+  | `F-IND-023` | `to_account_id`, `amount`, `memo?`, `currency_id?` | `entry_group`, `from_account_id`, `to_account_id`, `amount` |
+  | `F-IND-024` | **register**: `name`, `kind`, `description?`, `attributes?`, `quantity?`; **transfer**: `asset_id`, `to_account_id`, `quantity?` | `asset_id`, `kind`, `name`, `account_id` |
+
+  Three rules the UI must respect, because the handlers enforce them and a page that pretends otherwise
+  will show a form that always fails:
+  - **Counterparties are ACCOUNT ids, never people.** There is no user picker. The only identity lookup
+    is the filer resolving their own wallet, which the handler does — the page never sends it.
+  - **A refusal is an answer, not an error state.** Insufficient balance, a closed listing, a buyer
+    trying to settle their own order — each returns a `ConstitutionalViolation` carrying a citation.
+    Render the message; do not treat it as a failed request.
+  - **Only the seller settles.** Do not put a settle control on the buyer's view of an order.
 
 ## Route registration
 

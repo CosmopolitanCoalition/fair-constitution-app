@@ -68,6 +68,14 @@ class FormRegistry
         'F-IND-015' => ['name' => 'Advocate Registration',                      'roles' => ['R-03']],
         'F-IND-016' => ['name' => 'Constitutional Challenge Filing',            'roles' => ['R-03']],
         'F-IND-017' => ['name' => 'Civil/Criminal Case Filing',                 'roles' => ['R-03', 'R-21']],
+        // Phase M — the economy's write path. Until these existed the
+        // economy could be READ and not acted in: every service was built,
+        // tested and driven end to end by institutions:demo-treasury, with
+        // no constitutional door. Art. I (economic freedom, freedom to
+        // contract) + Art. III §5 (the Open Market).
+        'F-IND-022' => ['name' => 'Marketplace Listing / Order',                'roles' => ['R-01']],
+        'F-IND-023' => ['name' => 'Funds Transfer',                             'roles' => ['R-01']],
+        'F-IND-024' => ['name' => 'Asset Registration / Transfer',              'roles' => ['R-01']],
 
         // ── F-CAN — Candidate Forms (3) ─────────────────────────────────────
         'F-CAN-001' => ['name' => 'Campaign Profile Setup',                     'roles' => ['R-06']],
@@ -359,6 +367,9 @@ class FormRegistry
         // VERDICT is NOT a form — it is a CaseService transition.)
         'F-IND-015' => Handlers\AdvocateRegistration::class,
         'F-IND-017' => Handlers\CaseFiling::class,
+        'F-IND-022' => Handlers\MarketplaceListingOrder::class,
+        'F-IND-023' => Handlers\FundsTransfer::class,
+        'F-IND-024' => Handlers\AssetRegistration::class,
         'F-ADV-001' => Handlers\AdvocateCaseFiling::class,
         'F-ADV-002' => Handlers\MotionFiling::class,
         'F-ADV-003' => Handlers\EvidenceSubmission::class,
@@ -397,9 +408,16 @@ class FormRegistry
         'F-LEG-030' => Handlers\DisintermediationVote::class,
 
         // ── Phase K-1 — the civic record plane (public square + halls). F-SOC-001
-        // opens a thread/post (residency-only, uncensorable). F-SOC-002 (testimony
-        // → PublicRecordService::publish) registers in K1-C; F-SOC-003 (the carve-out
-        // removal, judicial-office-gated) in K1-E.
+        // opens a thread/post — NO ROLE GATE, the commons is open (Art. I; operator
+        // correction 2026-06-27), matching the catalog block above and
+        // SocialThreadPost::requiredRoles() === []. F-SOC-002 (testimony →
+        // PublicRecordService::publish) registers in K1-C and IS residency-gated;
+        // F-SOC-003 (the carve-out removal, judicial-office-gated) in K1-E.
+        // (This comment previously read "residency-only" and was never updated after
+        // the correction — the third artefact teaching a gate the code does not
+        // enforce, and the most damaging of them, because it sits inside the file
+        // that DEFINES the rule: anyone re-deriving it here got either answer
+        // depending on which comment they reached first.)
         'F-SOC-001' => Handlers\SocialThreadPost::class,
         'F-SOC-002' => Handlers\SocialTestimonyFiling::class,
         'F-SOC-003' => Handlers\SocialRemoval::class,
