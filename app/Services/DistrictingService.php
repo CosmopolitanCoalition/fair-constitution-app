@@ -354,6 +354,41 @@ class DistrictingService
             $giantSeats[$g->id] = $seats;
         }
 
+        // ── ONE-FRAME GIANT LOCK (operator ruling 2026-07-26: drift is always
+        // wrong). Two independent giant computations existed and could
+        // DISAGREE: the local one above (fractional from this call's own
+        // quota, no geometry test) and giantChildrenForScope() — which every
+        // downstream reader uses, requires geometry, and derives its quota
+        // from computeSeatBudget. When they differed, this scope reserved a
+        // different number of seats than the cascade had allotted its giants,
+        // so the composite pool was sized wrong and the scope seated a wrong
+        // total. Rheinland-Pfalz was the specimen: the cascade allotted its
+        // giants 11 of 22, this code locked 9, the pool seated 13, and
+        // Germany's chamber came out 442 against a constitutional 439.
+        // The cascade's answer is the authoritative one — everything
+        // downstream reads it — so adopt it whenever it is available and
+        // agrees about the budget being divided.
+        $cascadeGiants = $this->giantChildrenForScope($scopeId, $legislature_id);
+        if ($cascadeGiants !== []
+            && $this->computeSeatBudget($scopeId, $legislature_id) === $seatBudget) {
+            $giantSeats   = [];
+            $regrouped    = [];
+            $regroupedNon = [];
+            foreach ($allChildrenRows as $c) {
+                if (isset($cascadeGiants[$c->id])) {
+                    $giantSeats[$c->id] = (int) $cascadeGiants[$c->id];
+                    $regrouped[] = $c;
+                } else {
+                    $regroupedNon[] = $c;
+                }
+            }
+            // A geometry-less child the local test called giant is NOT a
+            // cascade giant (it cannot hold a district); it stays out of the
+            // giant lock and the completeness assessor flags it honestly.
+            $giantRows    = $regrouped;
+            $nonGiantRows = $regroupedNon;
+        }
+
         // ── Step 5: Non-giant seat budget ─────────────────────────────────────
         $nonGiantBudget = $seatBudget - array_sum($giantSeats);
 
