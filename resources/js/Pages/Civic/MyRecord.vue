@@ -30,6 +30,8 @@ import Field from '@/Components/Ui/Field.vue';
 import FormChip from '@/Components/Ui/FormChip.vue';
 import HardenedChip from '@/Components/Ui/HardenedChip.vue';
 import Icon from '@/Components/Ui/Icon.vue';
+import { achievementTitle } from '@/lib/achievementTitle.js';
+import { useI18n } from 'vue-i18n';
 import LogRow from '@/Components/Ui/LogRow.vue';
 import PlannedBanner from '@/Components/Ui/PlannedBanner.vue';
 import Stat from '@/Components/Ui/Stat.vue';
@@ -57,6 +59,7 @@ const props = defineProps({
     tab: { type: String, default: 'overview' },
 });
 
+const { t } = useI18n({ useScope: 'global' });
 const page = usePage();
 const flash = computed(() => page.props.flash?.status ?? null);
 const errors = computed(() => page.props.errors ?? {});
@@ -614,7 +617,7 @@ const associationRows = computed(() =>
                 <div v-if="achievements.length" class="role-grid" style="margin-block-start: var(--space-3)">
                     <div v-for="medal in achievements" :key="medal.id" class="role-card">
                         <Icon name="award" />
-                        <span class="role-name">{{ medal.title }}</span>
+                        <span class="role-name">{{ achievementTitle(medal.title, t) }}</span>
                         <span class="cc-small">Earned {{ formatDate(medal.earned_at) }}</span>
                         <!-- Only the 13 guided arcs have a journey page. K-2 catalogue
                              awards (ACH-*) are earned from real acts and have nowhere

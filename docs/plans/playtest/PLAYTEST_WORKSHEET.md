@@ -80,9 +80,12 @@ Every use is marked in the record as a dev action, so a played timeline never re
 
 ## Nine things that will look broken and aren't
 
-**1. No achievements will appear.** The app has a catalogue of 141 achievements, but the piece that
-watches for them and awards them isn't built yet. **Nothing on this sheet asks you to check for an
-achievement** for exactly that reason — if you see a card that does, it's a mistake, tell me.
+**1. An achievement may have a plain-looking name.** Achievements now fire, but their wording is
+stored as a label that gets translated later, and the translations aren't authored yet. So one may
+read **"Court case"** where it will eventually read *"A court case, end to end."* Terse, not broken
+— and it will never show you raw code. **No card on this sheet asks you to check for an
+achievement anyway** (a self-reported tick isn't proof), so this is only about what you might
+notice in passing.
 
 **2. You cannot look up how you voted, and you never will be able to.** Your vote and your identity
 are kept in two deliberately unconnected places — one holds the vote with no voter attached, the
