@@ -282,7 +282,22 @@ enacting a bill. That is correct behaviour, not a bug: fix the seating, never th
 
 ---
 
-## Protected Files (Constitutional Review Required Before Modification)
+## Protected Files
+
+**WHAT "PROTECTED" MEANS — operator ruling 2026-07-26. Read this before escalating anything.**
+
+- These files are guarded **for a LIVE deployment**. We are in **DEVELOPMENT**. Fix them.
+- **Protecting a file that is broken protects nothing.** If the file is wrong, that IS the reason
+  to change it.
+- **Do NOT stop and ask permission to fix a defect in these files.** Announce on the board, make
+  the fix, pin it, move on. The goal is a demoable, playable state.
+- **What still needs the operator's word:** changing a constitutional RULE (what the law says),
+  not repairing code that fails to implement the rule correctly. Weakening a pin needs his word;
+  extending or correcting one does not.
+- Rule of thumb: *"am I changing what the constitution requires, or making the code match what it
+  already requires?"* The second is ordinary work.
+
+Files (announce, fix, pin — do not wait):
 
 ```
 app/Services/VoteCountingService.php
