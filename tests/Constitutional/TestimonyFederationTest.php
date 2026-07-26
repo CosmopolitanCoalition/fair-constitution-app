@@ -81,7 +81,19 @@ class TestimonyFederationTest extends TestCase
             $peer = $this->makeTrustedPeer();
 
             // Delegate a jurisdiction to the peer so its record mirrors under authoritative-wins.
-            $peerOwns = (string) DB::table('jurisdictions')->whereNull('deleted_at')->value('id');
+            $peerOwns = (string) DB::table('jurisdictions')
+            ->whereNull('deleted_at')
+            // Scope to a jurisdiction this test can OWN. Taking the first row
+            // takes an arbitrary REAL one, and once it holds live Matrix rooms
+            // a fixture that creates its own collides on
+            // matrix_rooms_entity_unique. Which files that hits is decided by
+            // table ordering, i.e. chance — see c70af6e, where Niue acquiring
+            // rooms at 16:53 on 2026-07-26 took 11 tests down at once.
+            ->whereNotExists(fn ($q) => $q->selectRaw('1')
+                ->from('matrix_rooms')
+                ->whereColumn('matrix_rooms.entity_id', 'jurisdictions.id')
+                ->whereNull('matrix_rooms.deleted_at'))
+            ->value('id');
             if ($peerOwns === '') {
                 $this->markTestSkipped('Live DB needs a jurisdiction.');
             }
