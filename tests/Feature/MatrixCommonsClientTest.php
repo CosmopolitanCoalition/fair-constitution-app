@@ -80,7 +80,17 @@ class MatrixCommonsClientTest extends TestCase
     /** @return array{0: User, 1: string} */
     private function residentWithSquareRoom(string $legalName): array
     {
-        $jur = DB::table('jurisdictions')->whereNull('deleted_at')->value('id');
+        $jur = DB::table('jurisdictions')
+            ->whereNull('deleted_at')
+            // Scope to a jurisdiction this test can OWN. Picking the first row
+            // grabs a real one, and once it has real Matrix rooms the fixture's
+            // own create() collides on matrix_rooms_entity_unique. Niue acquired
+            // rooms at 16:53 on 2026-07-26 and took 11 tests down with it.
+            ->whereNotExists(fn ($q) => $q->selectRaw('1')
+                ->from('matrix_rooms')
+                ->whereColumn('matrix_rooms.entity_id', 'jurisdictions.id')
+                ->whereNull('matrix_rooms.deleted_at'))
+            ->value('id');
         if ($jur === null) {
             $this->markTestSkipped('Live DB has no jurisdiction.');
         }
