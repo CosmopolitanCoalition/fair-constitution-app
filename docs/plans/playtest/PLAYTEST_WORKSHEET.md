@@ -948,15 +948,26 @@ need a confirmed residency to speak.
 ---
 
 ### F-6 · A private message stays private
-**Role:** any two people · **Needs first:** A-1
+**Role:** any two people, then a third · **Needs first:** A-1
+
+**A precondition worth knowing.** Messages are carried by a separate messaging server, not by the
+civic record — deliberately, because private conversation shouldn't live on the public plane. So
+if nothing sends at all, check that server is up before recording a failure: **"my message didn't
+arrive" and "the messaging server is down" look identical from here**, and only one is a defect.
 
 | # | Do this | On this screen | You should see |
 |---|---|---|---|
-| 1 | Open messages | `/civic/rooms` | Your conversations |
-| 2 | Message someone | same | It arrives |
-| 3 | As a **third** person, go looking for it | `/dev/users` | **You cannot find it** |
+| 1 | Open messages | `/civic/rooms` | Your conversations, and a way to start one |
+| 2 | Start a direct conversation with someone | same | A new room, just the two of you |
+| 3 | Send them something | the room | It appears in the thread |
+| 4 | Become the person you messaged | the dev bar | They can read it |
+| 5 | Now become a **third** person and go hunting | the dev bar | **They cannot find it at all** |
 
-**PASSES IF** — a third party cannot read it. *Private means private, like a ballot.*
+**PASSES IF** — the two of you can read it and **a third person cannot** — not the text, not the
+room, not the fact it happened.
+
+*Step 5 is the actual test. Steps 1–4 only prove messaging works; a private message is only
+private if someone outside it comes away with nothing.*
 
 **Result** ☐ pass ☐ fail ☐ blocked  **Notes** ________________________________________
 
