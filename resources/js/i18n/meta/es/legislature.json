@@ -1,0 +1,2177 @@
+{
+  "legislature_billdetail.all_bills": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "legislature_billdetail.amended_v_v": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "legislature_billdetail.archived_with_every_member_s_public_cast_a": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "legislature_billdetail.bill_versions_append_only": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "legislature_billdetail.committee_detail": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "legislature_billdetail.committee_stage": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "legislature_billdetail.constituent_jurisdictions_dual_supermajori": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "legislature_billdetail.dependent_clocks_re_derived_after_commit_t": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "legislature_billdetail.direct_to_floor_the_exit_criterion_path": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "legislature_billdetail.effective_public_record": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "legislature_billdetail.enabled_only_after_the_committee_vote_pass": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "legislature_billdetail.entity_state_machine_bill_in_a_bicameral_c": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "legislature_billdetail.fixed_at_introduction_no_edit_affordance_e": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "legislature_billdetail.floor_vote": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "legislature_billdetail.introduced_stored_as_utc": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "legislature_billdetail.move_it_f_leg_007": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "legislature_billdetail.move_the_bill_by_motion_f_leg_007": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "legislature_billdetail.no_committee_vote_direct_to_floor_bills_sk": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "legislature_billdetail.one_bill_end_to_end_the_committee_gate_the": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "legislature_billdetail.own_jurisdiction": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "legislature_billdetail.per_kind_committee_majorities_q7_binds_at_": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "legislature_billdetail.pick": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "legislature_billdetail.published_casts": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "legislature_billdetail.refer_to_committee": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "legislature_billdetail.refer_to_the_floor_f_chr_003": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "legislature_billdetail.rejected_by_the_constitutional_engine": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "legislature_billdetail.scale_jurisdictions_bound": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "legislature_billdetail.scale_scope_declared_at_introduction": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "legislature_billdetail.scope_judiciary": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "legislature_billdetail.server_computed_segments_what_you_see_is_e": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "legislature_billdetail.the_bill_failed": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "legislature_billdetail.the_floor_vote_opens_when_an_adopted_motio": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "legislature_billdetail.versioned_published_wf_sys_03_open_to_art_": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "legislature_bills.act_type": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "legislature_bills.any_seated_member_of_this_chamber_may_intr": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "legislature_bills.bicameral_chambers_pass_only_when_committe": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "legislature_bills.bill_lifecycle_esm_07": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "legislature_bills.bill_state_machine": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "legislature_bills.bills_of_this_chamber": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "legislature_bills.cannot_exceed_this_legislature_s_authority": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "legislature_bills.default_judiciary_forming_phase_e": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "legislature_bills.enacted_published": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "legislature_bills.every_bill_declares_its_scale_which_jurisd": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "legislature_bills.in_committee": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "legislature_bills.in_range_the_bill_may_proceed_to_a_vote": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "legislature_bills.law_text": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "legislature_bills.no_ui_admin_panel_or_legislative_act_can_c": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "legislature_bills.on_floor": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "legislature_bills.phase_c_lists_the_forming_judiciary_stubs_": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "legislature_bills.pick_a_key": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "legislature_bills.pre_targeted_from_the_settings_register_ke": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "legislature_bills.proceeds_to_the_bill_flow_f_leg_031_wf_leg": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "legislature_bills.proposed_value": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "legislature_bills.recorded_as_a_rejected_true_chain_entry_re": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "legislature_bills.rejected_pre_vote_outside_hardened_bounds": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "legislature_bills.scope_which_judiciary_hears_disputes": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "legislature_bills.setting_key": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "legislature_bills.the_amendable_constitutional_setting_this_": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "legislature_bills.the_binding_text_versioned_at_introduction": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "legislature_bills.validated_live_against_the_hardened_bounds": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "legislature_chamber.a_vacant_seat_is_simply_not_serving_an_abs": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "legislature_chamber.browse_every_legislature_on_the_instance_f": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "legislature_chamber.countback_first_the_voters_prior_ballots_d": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "legislature_chamber.declared_via_countback_record": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "legislature_chamber.districts_maps_bills_session_console_setti": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "legislature_chamber.first_sessions_constituting_the_chamber_wf": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "legislature_chamber.flips_your_seat_elected_seated_art_ii_1": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "legislature_chamber.forming_seats_fill_at_certification_wf_ele": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "legislature_chamber.next_session_due_by_clk_02_the_scheduler_c": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "legislature_chamber.no_active_legislature": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "legislature_chamber.no_active_legislature_in_your_association_": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "legislature_chamber.no_endorsements": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "legislature_chamber.no_open_vacancies_every_seat_is_either_ser": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "legislature_chamber.normalized_vote_share_the_certification_s_": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "legislature_chamber.not_yet_certified": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "legislature_chamber.open_the_session_console_speaker_balloting": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "legislature_chamber.open_the_successor_election": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "legislature_chamber.quorum_of_all_serving_never_of_those_prese": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "legislature_chamber.record": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "legislature_chamber.seniority_alternating_seating_vacancies_jo": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "legislature_chamber.serving_members": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "legislature_chamber.share_norm": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "legislature_chamber.speaker_neutral": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "legislature_chamber.take_the_oath": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "legislature_chamber.take_the_oath_of_office": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "legislature_chamber.term_lockstep_clk_01_clk_10_elections_cann": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "legislature_chamber.term_one_clock_for_every_elected_office": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "legislature_chamber.the_chamber_circular_no_head_of_the_room": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "legislature_chamber.the_chamber_is_circular_there_is_no_head_o": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "legislature_chamber.the_chamber_itself_who_serves_who_presides": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "legislature_chamber.the_peg_numbers": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "legislature_chamber.this_legislature_has_no_seated_members_yet": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "legislature_chamber.type_a_across_the_districts_type_b_one_per": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "legislature_chamber.type_a_serving_seats": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "legislature_chamber.type_b_serving_seats": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "legislature_committeedetail.about_bill_optional": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "legislature_committeedetail.agenda_items_one_per_line": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "legislature_committeedetail.and_in_this_bicameral_chamber_each_seat_ki": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "legislature_committeedetail.bills_before_the_committee": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "legislature_committeedetail.committee_agendas_have_no_engine_locked_he": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "legislature_committeedetail.committee_report": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "legislature_committeedetail.committees": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "legislature_committeedetail.enabled_only_after_the_committee_vote_pass": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "legislature_committeedetail.enabled_only_after_the_committee_vote_pass_2": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "legislature_committeedetail.enter_into_the_record": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "legislature_committeedetail.entered_verbatim_into_the_public_record_te": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "legislature_committeedetail.hearings_are_public_record": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "legislature_committeedetail.hearings_take_testimony_from_any_resident_": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "legislature_committeedetail.meetings_are_called_by_the_chair_or_the_al": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "legislature_committeedetail.moves_the_bill_to_the_floor_and_opens_its_": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "legislature_committeedetail.no_agenda_yet_the_chair_sets_it_f_chr_002": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "legislature_committeedetail.no_bills_referred_to_this_committee": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "legislature_committeedetail.no_meeting_scheduled": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "legislature_committeedetail.no_testimony_recorded_yet": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "legislature_committeedetail.none": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "legislature_committeedetail.not_yet_seated_placements_arrive_with_the_": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "legislature_committeedetail.refer_to_floor_f_chr_003": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "legislature_committeedetail.report_body": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "legislature_committeedetail.report_filed": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "legislature_committeedetail.reports_are_filed_by_the_chair_or_the_alte": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "legislature_committeedetail.scheduled_for": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "legislature_committeedetail.sealed_record": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "legislature_committeedetail.sealed_record_2": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "legislature_committeedetail.submit_testimony": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "legislature_committeedetail.testimony_attaches_to_a_meeting_none_is_sc": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "legislature_committeedetail.the_committee_decides_by_majority_of_all_i": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "legislature_committeedetail.the_committee_vote_opens_with_the_referral": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "legislature_committeedetail.type_a_type_b": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "legislature_committeedetail.your_cast_is_recorded_casts_are_immutable": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "legislature_committees.alternate_r_13": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "legislature_committees.assignment_run": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "legislature_committees.bicameral_committees_mirror_the_chamber_ki": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "legislature_committees.cast_chair_ballot_f_leg_011": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "legislature_committees.chair_ballot_open_of_cast": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "legislature_committees.chair_r_12": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "legislature_committees.committee_assignment_is_faction_independen": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "legislature_committees.committee_name": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "legislature_committees.committee_seat_lifecycle": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "legislature_committees.committee_seat_s_across_committee_s_servin": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "legislature_committees.committee_seat_state_machine": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "legislature_committees.committee_seats_are_assigned_from_each_mem": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "legislature_committees.contested_committee_seats_resolved_by_norm": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "legislature_committees.contested_seats_normalized_share_tie_break": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "legislature_committees.enabled_when_all_serving_members_have_subm": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "legislature_committees.last_run_placement_s_sealed_audit": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "legislature_committees.locked_an_f_spk_005_run_snapshots_all_inpu": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "legislature_committees.next_preference_honored_for_share": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "legislature_committees.no_committees_yet_any_member_may_file_the_": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "legislature_committees.no_contested_seats_every_placement_honored": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "legislature_committees.not_yet_seated_run_the_assignment": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "legislature_committees.of_serving_members_have_submitted_preferen": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "legislature_committees.open_chair_ballot_f_leg_011": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "legislature_committees.placement_allocation": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "legislature_committees.placements_distribute_evenly_across_member": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "legislature_committees.rank_every_committee_the_assignment_algori": {
+    "status": "review",
+    "reason": "sentence count fell 3 -> 2",
+    "provider": "nllb"
+  },
+  "legislature_committees.rank_the_committee_s_seated_members_for_ch": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "legislature_committees.re_check_pending_the_chamber_countback_wf_": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "legislature_committees.run_assignment_f_spk_005": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "legislature_committees.seat_taken_by_share": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "legislature_committees.submit_preferences_f_leg_010": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "legislature_committees.the_assignment_run_is_the_speaker_s_admini": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "legislature_committees.the_committee_exists_only_when_the_superma": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "legislature_committees.the_winner_is_the_largest_vote_share_after": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "legislature_committees.tie_broken_is_the_f_spk_005_normalized_quo": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "legislature_committees.type_a_type_b_mirrors_the_chamber_kind_rat": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "legislature_committees.whole_legislature_rcv_candidates_the_commi": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "legislature_committees.whole_legislature_rcv_f_leg_011": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "legislature_committees.your_cast_is_recorded_casts_are_immutable_": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "legislature_committees.your_chair_ballot_is_recorded_rankings_are": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "legislature_districts.accepting_retires_the_existing_drawn_distr": {
+    "status": "review",
+    "reason": "placeholder mismatch",
+    "provider": "nllb"
+  },
+  "legislature_districts.activate_as_official_apportionment": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "legislature_districts.adding": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "legislature_districts.all_compositable_jurisdictions_assigned": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "legislature_districts.all_compositable_jurisdictions_assigned_ex": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "legislature_districts.all_recursively": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "legislature_districts.all_this_scope": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "legislature_districts.auto_seed": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "legislature_districts.auto_step": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "legislature_districts.auto_step_delay": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "legislature_districts.autoseed": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "legislature_districts.autoseed_proposal": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "legislature_districts.avg": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "legislature_districts.bad_10_pop": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "legislature_districts.chamber": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "legislature_districts.choose_scope": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "legislature_districts.chr": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "legislature_districts.chr_2": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "legislature_districts.clear": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "legislature_districts.clear_and_redo_all_districts_at_this_level": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "legislature_districts.clear_and_redo_here_and_at_every_nested_gi": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "legislature_districts.community_cells": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "legislature_districts.community_integrity": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "legislature_districts.compact_0_70_pop": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "legislature_districts.confirm_disband": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "legislature_districts.constitutional_contiguity": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "legislature_districts.constitutional_flags_issue_s": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "legislature_districts.contiguity_is_considered_broken_only_when_": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "legislature_districts.contiguity_not_yet_computed": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "legislature_districts.contiguous_pop": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "legislature_districts.create_a_new_district_map": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "legislature_districts.ctrl_drag": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "legislature_districts.current": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "legislature_districts.cut": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "legislature_districts.delete": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "legislature_districts.dev_not_part_of_the_application": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "legislature_districts.disband": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "legislature_districts.districting_edits_a_draft_plan_pick_or_cre": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "legislature_districts.districting_method_for_this_undivided_area": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "legislature_districts.districts": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "legislature_districts.districts_drawn_along_pre_existing_adminis": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "legislature_districts.districts_seats_quota_pop": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "legislature_districts.districts_total_seats_budget": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "legislature_districts.draw_a_polygon_with_the_tool_top_left_unde": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "legislature_districts.draw_controls_are_in_the_bar_at_the_bottom": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "legislature_districts.drawing_edits_a_draft_plan_pick_or_create_": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "legislature_districts.drawing_files_f_elb_008_requires_a_seated_": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "legislature_districts.drawn_along_admin_boundaries": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "legislature_districts.drawn_district": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "legislature_districts.drawn_district_manage_it_at_its_own_scope": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "legislature_districts.drill_into_sub_districts": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "legislature_districts.edit": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "legislature_districts.extremes_range_1": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "legislature_districts.fill_gaps_here_and_at_every_nested_giant_s": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "legislature_districts.fill_gaps_only_keep_existing_districts": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "legislature_districts.floor_exception_fractional_rounds_below_mi": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "legislature_districts.good_5_pop": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "legislature_districts.halt_requested_finishing_current_scope_the": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "legislature_districts.halted_by_operator_already_committed_scope": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "legislature_districts.horizontal_strips": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "legislature_districts.implied_seats": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "legislature_districts.intact_pop": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "legislature_districts.integrity_not_computed": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "legislature_districts.irregular_0_50_pop": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "legislature_districts.keeps_towns_whole": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "legislature_districts.leaf_giant_requires_manual_line_drawing": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "legislature_districts.legislature_browser": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "legislature_districts.loading": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "legislature_districts.loading_raster": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "legislature_districts.manual_draw": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "legislature_districts.manual_draw_is_selected_the_draw_tools_bel": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "legislature_districts.map": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "legislature_districts.map_name": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "legislature_districts.map_quality": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "legislature_districts.mass_operation_in_progress_waiting_for_fir": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "legislature_districts.may_be_slow_for_large_legislatures": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "legislature_districts.measures_how_evenly_each_district_s_popula": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "legislature_districts.measures_whether_the_district_s_outer_boun": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "legislature_districts.measuring": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "legislature_districts.moderate_0_50_0_70_pop": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "legislature_districts.navigate_into_this_scope_change_map_view": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "legislature_districts.neutral_compact": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "legislature_districts.new": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "legislature_districts.no_maps_yet": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "legislature_districts.non_contiguous": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "legislature_districts.non_contiguous_pop": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "legislature_districts.not_computed_pop": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "legislature_districts.not_yet_computed": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "legislature_districts.ok_5_10_pop": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "legislature_districts.optimal": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "legislature_districts.over_rep": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "legislature_districts.pan_mode": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "legislature_districts.pick_or_create_a_draft_plan_first": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "legislature_districts.polygon": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "legislature_districts.population_deviation_from_ideal_quota_per_": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "legislature_districts.population_equality": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "legislature_districts.propose_a_full_plan_with_the_selected_meth": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "legislature_districts.remove_from_district": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "legislature_districts.root_seats": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "legislature_districts.scope_on_scope": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "legislature_districts.seat": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "legislature_districts.seat_trimmed_to_boundary": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "legislature_districts.seats": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "legislature_districts.seats_exceeds_9_floor_target": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "legislature_districts.seats_target": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "legislature_districts.seats_to_assign_here_quota_pop_seat": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "legislature_districts.segmented_pop": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "legislature_districts.setup_step_3_of_5": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "legislature_districts.shape_compactness": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "legislature_districts.shift_drag": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "legislature_districts.shortest_lines": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "legislature_districts.side_seat": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "legislature_districts.skip_complete": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "legislature_districts.split": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "legislature_districts.split_line": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "legislature_districts.stops_after_current_scope_commits": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "legislature_districts.suboptimal": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "legislature_districts.tap_the_start_of_the_cut_then_tap_the_end_": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "legislature_districts.to_pan": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "legislature_districts.toggle_district_name_labels": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "legislature_districts.toggle_jurisdiction_name_labels": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "legislature_districts.toggle_per_district_quality_stats_chr_cont": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "legislature_districts.toggle_population_fractional_seats_labels": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "legislature_districts.toggle_seat_count_labels": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "legislature_districts.toggle_worldpop_population_heatmap_underla": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "legislature_districts.tracks_whether_the_current_map_produces_ev": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "legislature_districts.trimmed_to_s_boundary": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "legislature_districts.unassigned": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "legislature_districts.unassigned_jurisdiction": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "legislature_districts.unassigned_recursively": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "legislature_districts.unassigned_this_scope": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "legislature_districts.under_rep": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "legislature_districts.undivided_area_no_child_units_its_seats_ar": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "legislature_districts.uniform_political_diversity": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "legislature_districts.vertical_strips": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "legislature_emergencypowers.active_power_dashboard": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "legislature_emergencypowers.all_validation_runs_pre_vote_the_closed_ca": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "legislature_emergencypowers.auto_expiry_at_the_declared_duration_no_ac": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "legislature_emergencypowers.auto_expiry_publishes_a_full_audit_record_": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "legislature_emergencypowers.available_at_any_time_by_any_inhabitant_fi": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "legislature_emergencypowers.cannot_disrupt_elections_sessions_courts_o": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "legislature_emergencypowers.cause_the_only_two_the_engine_accepts": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "legislature_emergencypowers.civic_process_protection_elections_session": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "legislature_emergencypowers.clk_03_countdown": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "legislature_emergencypowers.clk_03_the_90_day_ceiling_is_itself_the_am": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "legislature_emergencypowers.day_s": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "legislature_emergencypowers.duration_days": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "legislature_emergencypowers.e_g_evacuation_orders_shelter_requisition_": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "legislature_emergencypowers.e_g_river_ausa_flooding": {
+    "status": "machine",
+    "reason": "sentence count fell 2 -> 1",
+    "provider": "nllb"
+  },
+  "legislature_emergencypowers.emergency_powers_exist_for_exactly_two_cau": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "legislature_emergencypowers.emergency_powers_state_machine": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "legislature_emergencypowers.engine_validation_area_this_legislature_s_": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "legislature_emergencypowers.engine_validation_methods_must_remain_with": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "legislature_emergencypowers.expired_register": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "legislature_emergencypowers.extension_days": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "legislature_emergencypowers.first_order_of_business_an_active_power_le": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "legislature_emergencypowers.hard_ceiling_90_days_clk_03_art_ii_7": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "legislature_emergencypowers.invocation_is_filed_by_a_serving_member_f_": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "legislature_emergencypowers.invocation_vote_record_f_leg_024": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "legislature_emergencypowers.invoke_emergency_powers": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "legislature_emergencypowers.judicial_review_f_jdg_007": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "legislature_emergencypowers.judicially_reviewable_at_any_time_wf_jud_0": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "legislature_emergencypowers.name_the_emergency": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "legislature_emergencypowers.no_active_emergency_powers": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "legislature_emergencypowers.no_other_cause_exists_economic_political_o": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "legislature_emergencypowers.open_invocation_renewal_votes": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "legislature_emergencypowers.propose_renewal_f_leg_025": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "legislature_emergencypowers.put_renewal_to_a_vote": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "legislature_emergencypowers.requires_supermajority_of_all_serving_of_a": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "legislature_emergencypowers.sealed_audit_record": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "legislature_emergencypowers.the_hard_rails": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "legislature_emergencypowers.window_opens_day_fresh_supermajority_fresh": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "legislature_index.approval_open": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "legislature_index.audit_rerun": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "legislature_index.critical_population": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "legislature_index.every_legislature_on_this_instance_setup_f": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "legislature_index.finalist_cutoff": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "legislature_index.founded_at_setup": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "legislature_index.legislatures_by_jurisdiction": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "legislature_index.no_legislatures_yet_complete_setup_apporti": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "legislature_index.ranked_open": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "legislature_index.self_governing": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "legislature_index.showing_the_largest_chambers_of_reach_any_": {
+    "status": "review",
+    "reason": "placeholder mismatch",
+    "provider": "nllb"
+  },
+  "legislature_index.voting_closed": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "legislature_index.wf_jur_01_jurisdictions_bootstrap_from_dor": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "legislature_oversight.10_yr_civil_appointment_ends_clk_09": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "legislature_oversight.administrative_office_i_adm": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "legislature_oversight.begin_investigating": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "legislature_oversight.catalog_alias_f_leg_030_workflows_catalog_": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "legislature_oversight.choose": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "legislature_oversight.complaint_summary": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "legislature_oversight.consent_vote": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "legislature_oversight.countback_record": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "legislature_oversight.creation_act_vote_majority_of_all_serving": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "legislature_oversight.designate_a_presider": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "legislature_oversight.designate_f_spk_007": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "legislature_oversight.designate_presider": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "legislature_oversight.docket_complaint": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "legislature_oversight.findings_published_to_the_public_record": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "legislature_oversight.findings_sealed_public_record": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "legislature_oversight.from_any_resident_any_member_or_the_chambe": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "legislature_oversight.independent_neutral_record_keeper_art_ii_2": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "legislature_oversight.intake_requires_a_live_administrative_offi": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "legislature_oversight.investigations_docket": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "legislature_oversight.misconduct_intake": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "legislature_oversight.needs_the_supermajority_of_all_serving_vac": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "legislature_oversight.no_administrative_office_exists_intake_can": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "legislature_oversight.no_proceedings_on_record": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "legislature_oversight.no_vacancies_on_record": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "legislature_oversight.nominees_follow_the_appointment_consent_pi": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "legislature_oversight.open_removal_vote_f_leg_022": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "legislature_oversight.presiding": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "legislature_oversight.proceeding_kind": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "legislature_oversight.proceeding_state_machine": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "legislature_oversight.publish_findings": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "legislature_oversight.publish_findings_2": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "legislature_oversight.removal_parity_legislators_executives_and_": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "legislature_oversight.removal_proceedings": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "legislature_oversight.seat": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "legislature_oversight.seat_vacated": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "legislature_oversight.special_election": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "legislature_oversight.staff_nominee_user_ids_one_per_line_option": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "legislature_oversight.staffing_consents_appointment_pipeline_maj": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "legislature_oversight.subject_serving_member": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "legislature_oversight.supermajority_of_all_serving_art_vii": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "legislature_oversight.the_docket_is_empty": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "legislature_oversight.the_independent_administrative_office_enfo": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "legislature_oversight.vacancy_countback_page": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "legislature_oversight.vacancy_state_machine": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "legislature_referendums.blocked_this_term_passed_by_population_sup": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "legislature_referendums.bounds_checked_pre_vote_through_the_protec": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "legislature_referendums.delegate_a_question": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "legislature_referendums.delegation_is_filed_by_a_serving_member_f_": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "legislature_referendums.derived_from_the_act_type_never_editable_m": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "legislature_referendums.e_g_election_interval_months": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "legislature_referendums.failed_at_the_population_threshold": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "legislature_referendums.file_modification_vote_f_leg_034": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "legislature_referendums.no_questions_have_resolved_yet": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "legislature_referendums.nothing_queued_a_delegated_or_petition_val": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "legislature_referendums.on_the_ballot": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "legislature_referendums.open_delegation_modification_votes": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "legislature_referendums.petition": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "legislature_referendums.population_supermajority_act_shielded_this": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "legislature_referendums.population_supermajority_acts_shielded_fro": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "legislature_referendums.population_threshold_fixed_by_act_type": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "legislature_referendums.propose_modification": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "legislature_referendums.question_put_to_the_population": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "legislature_referendums.questions_ride_the_next_jurisdiction_wide_": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "legislature_referendums.queued_for_the_next_jurisdiction_wide_ball": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "legislature_referendums.referendum_question_state_machine": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "legislature_referendums.replacement_law_text": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "legislature_referendums.requires_supermajority_of_all_serving_of_a": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "legislature_referendums.resolved_questions_results_at_the_matching": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "legislature_referendums.shield_lapses_when_the_certifies": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "legislature_referendums.the_binding_text_the_referendum_enacts_not": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "legislature_referendums.the_clk_19_shield_is_a_validator_gate_not_": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "legislature_referendums.the_legislature_can_put_any_issue_to_the_p": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "legislature_referendums.this_jurisdiction": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "legislature_referendums.this_term_chamber_supermajority_f_leg_034_": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "legislature_referendums.threshold_art_ii_6": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "legislature_sessionconsole.adjourn_seal_the_minutes": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "legislature_sessionconsole.adjournment_is_the_speaker_s_or_admin_staf": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "legislature_sessionconsole.agenda_constitutional_order": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "legislature_sessionconsole.attendance_feeds_the_quorum_call_and_the_p": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "legislature_sessionconsole.attendance_record": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "legislature_sessionconsole.attendance_the_quorum_call": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "legislature_sessionconsole.balloting_open_of_serving_have_cast_closes": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "legislature_sessionconsole.bill": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "legislature_sessionconsole.break_the_tie_f_spk_004": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "legislature_sessionconsole.call_attendance_the_published_quorum_count": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "legislature_sessionconsole.call_open_a_session": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "legislature_sessionconsole.compel_attendance_then_re_publish_the_coun": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "legislature_sessionconsole.entered_verbatim_into_the_immutable_public": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "legislature_sessionconsole.file_my_ranking_f_leg_008": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "legislature_sessionconsole.i_am_present_f_leg_002": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "legislature_sessionconsole.issue_compulsion_order_f_spk_008": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "legislature_sessionconsole.last_balloting_closed_a_failed_balloting_n": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "legislature_sessionconsole.minutes_sealed_audit_chain_entry": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "legislature_sessionconsole.motion_text": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "legislature_sessionconsole.no_motions_this_session": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "legislature_sessionconsole.no_session_has_ever_been_held_the_first_se": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "legislature_sessionconsole.open_the_speaker_balloting": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "legislature_sessionconsole.opened_adjourned_quorum_of_serving_present": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "legislature_sessionconsole.opened_serving_at_open_stored_as_utc": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "legislature_sessionconsole.opens_immediately_serving_quorum_snapshot_": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "legislature_sessionconsole.peg_quorum_of_majorities_compute_against_a": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "legislature_sessionconsole.peg_quorum_of_this_kind_of_serving_art_v_3": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "legislature_sessionconsole.public_rankings_chamber_votes_are_the_oppo": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "legislature_sessionconsole.publish_the_quorum_count_f_spk_003": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "legislature_sessionconsole.quorum_failed_wf_leg_20": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "legislature_sessionconsole.quorum_met_published": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "legislature_sessionconsole.quorum_not_met": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "legislature_sessionconsole.quorum_present_of_all_serving": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "legislature_sessionconsole.replace_speaker": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "legislature_sessionconsole.round": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "legislature_sessionconsole.round_record_protected_counting_engine": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "legislature_sessionconsole.sealed_to_the_public_record_adjourning_a_q": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "legislature_sessionconsole.session_due_in_day_by_discretion_can_never": {
+    "status": "review",
+    "reason": "ID token altered",
+    "provider": "nllb"
+  },
+  "legislature_sessionconsole.sessions_are_called_by_the_chamber_s_speak": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "legislature_sessionconsole.slots_1_2_locked_outstanding_emergency_pow": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "legislature_sessionconsole.speaker_election_the_first_order_of_the_fi": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "legislature_sessionconsole.statements_into_the_public_record": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "legislature_sessionconsole.the_deciding_vote_opens_in_the_same_filing": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "legislature_sessionconsole.the_session_machine_scheduled_open_adjourn": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "legislature_sessionconsole.the_speaker_presides_and_does_not_move_or_": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "legislature_sessionconsole.tie_breaking_vote": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "legislature_sessionconsole.until_the_chamber_elects_its_speaker_there": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "legislature_sessionconsole.winner_seated_as_speaker_public_record_kin": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "legislature_sessionconsole.your_attendance_is_registered": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "legislature_sessionconsole.your_ranking": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "legislature_settings.a_setting_change_is_a_bill_whose_enactment": {
+    "status": "review",
+    "reason": "ID token altered",
+    "provider": "nllb"
+  },
+  "legislature_settings.amendable_constitutional_settings": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "legislature_settings.changes_history_the_enactment_receipts": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "legislature_settings.continue_in_the_bill_flow": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "legislature_settings.dependent_clocks_re_derived_re_armed_timer": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "legislature_settings.hardened_bounds": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "legislature_settings.must_stay_in_lockstep_clk_09_clk_10": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "legislature_settings.no_setting_has_been_amended_in_this_jurisd": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "legislature_settings.pick_propose_change_on_any_row_above_to_pr": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "legislature_settings.propose_a_change_pre_targeted_bill": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "legislature_settings.propose_change": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "legislature_settings.set_by": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "legislature_settings.setting_changes_enacting_acts": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "legislature_settings.supermajority_can_never_fall_below_majorit": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "legislature_settings.the_amendable_register": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "legislature_settings.the_constitutional_engine_blocks_the_bill_": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "legislature_settings.the_hardened_floor_what_no_act_can_change": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "legislature_settings.these_are_the_rules_this_legislature_can_c": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "legislature_settings.voting_method_only_a_more_proportional_met": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "legislature_show.chamber_bills_committees_referendums_setti": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "legislature_show.current_members_of_this_legislature": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "legislature_show.district_map": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "legislature_show.district_maps": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "legislature_show.districts_maps": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "legislature_show.inside_this_legislature": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "legislature_show.no_active_map_yet": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "legislature_show.no_members_yet_seats_fill_when_a_general_e": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "legislature_show.one_legislature_sized_by_its_people_every_": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "legislature_show.open_the_district_mapper": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "legislature_show.seats_term": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "legislature_show.serving_now": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "legislature_show.speaker": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "legislature_show.term_ends": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "legislature_show.the_district_mapper_where_this_legislature": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "legislature_show.type_a_constituent_reps": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "legislature_show.type_b_at_large": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "legislature_speakertools.choose_a_member": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "legislature_speakertools.f_spk_004": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "legislature_speakertools.facilitated_member_priorities": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "legislature_speakertools.facilitation_targets_an_upcoming_session_n": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "legislature_speakertools.go_to": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "legislature_speakertools.member_priorities_queue_f_spk_006": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "legislature_speakertools.members_hand_the_speaker_their_priorities_": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "legislature_speakertools.neutral_chair": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "legislature_speakertools.no_priorities_facilitated_yet": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "legislature_speakertools.no_removal_proceedings_are_pending": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "legislature_speakertools.no_tie_has_needed_breaking_this_term": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "legislature_speakertools.politically_neutral_votes_only_to_break_ti": {
+    "status": "review",
+    "reason": "citation altered",
+    "provider": "nllb"
+  },
+  "legislature_speakertools.preside_on_the_oversight_page": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "legislature_speakertools.read_only_view": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "legislature_speakertools.removal_presiding_f_spk_007": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "legislature_speakertools.speaker_cast": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "legislature_speakertools.speaker_tie_breaking_votes": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "legislature_speakertools.the_only_speaker_votes_on_record_each_cast": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "legislature_speakertools.the_speaker_facilitates_and_stays_politica": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "legislature_speakertools.the_speaker_presides_over_every_removal_pr": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "legislature_speakertools.the_speaker_s_nine_forms": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "legislature_speakertools.the_speaker_stays_in_every_quorum_and_thre": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "legislature_speakertools.this_page_never_duplicates_a_console_f_spk": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "legislature_speakertools.this_term": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "legislature_speakertools.tied_at": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "legislature_speakertools.you_are_the_subject_the_engine_blocks_you_": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "legislature_speakertools.you_hold_a_seat_in_this_chamber_r_09_but_a": {
+    "status": "machine",
+    "provider": "nllb"
+  }
+}

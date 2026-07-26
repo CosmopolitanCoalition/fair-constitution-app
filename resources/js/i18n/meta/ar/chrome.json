@@ -1,0 +1,27 @@
+{
+  "appshell.log_in": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "appshell.log_out": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "appshell.pseudo_en_xa": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "appshell.roles_derived": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "appshell.these_proceedings_are_public_record_art_ii": {
+    "status": "machine",
+    "reason": "sentence count fell 2 -> 1",
+    "provider": "nllb"
+  },
+  "appshell.you_re_viewing_as_a_guest": {
+    "status": "machine",
+    "provider": "nllb"
+  }
+}

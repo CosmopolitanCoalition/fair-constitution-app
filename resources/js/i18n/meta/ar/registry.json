@@ -1,0 +1,371 @@
+{
+  "journeys.a_bill_becomes_law": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "journeys.a_committee_session_live": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "journeys.a_court_case_end_to_end": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "journeys.a_government_creates_a_public_service": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "journeys.a_government_with_itself": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "journeys.an_election_end_to_end": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "journeys.an_informal_group_forms_and_meets": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "journeys.asking_for_and_giving_help": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "journeys.enacting_a_budget": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "journeys.from_a_petition_to_a_referendum": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "journeys.government_with_organizations_people": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "journeys.governments_with_each_other": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "journeys.holding_a_board_meeting": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "journeys.organizations_people": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "journeys.people_together": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "journeys.starting_an_organization": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "journeys.the_money_between_a_person_and_their_gover": {
+    "status": "review",
+    "reason": "suspiciously short — source content likely dropped",
+    "provider": "nllb"
+  },
+  "journeys.two_governments_meet_trade_and_merge": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "surfaces.a_juror_s_view": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "surfaces.a_place_s_chamber": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "surfaces.a_place_s_courts": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "surfaces.a_place_s_elections": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "surfaces.a_place_s_executive": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "surfaces.an_election": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "surfaces.between_governments": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "surfaces.board_elections": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "surfaces.challenge_a_law": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "surfaces.create_your_account": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "surfaces.department_reporting": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "surfaces.emergency_powers": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "surfaces.ethics_removals": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "surfaces.executive_actions": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "surfaces.federation_legacy": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "surfaces.filling_an_empty_seat": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "surfaces.found_the_instance": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "surfaces.guided_tour": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "surfaces.learn_help": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "surfaces.learn_lessons": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "surfaces.legislatures_districts": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "surfaces.live_halls": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "surfaces.live_rooms": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "surfaces.market_planned": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "surfaces.me_my_account": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "surfaces.merge_places_into_a_union": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "surfaces.mesh_peers": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "surfaces.move_somewhere_new": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "surfaces.my_profile": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "surfaces.my_record": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "surfaces.my_wallet": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "surfaces.open_ballot": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "surfaces.operations_legacy_console": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "surfaces.ownership_changes": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "surfaces.places_their_processes": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "surfaces.private_rooms_messages": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "surfaces.public_finance": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "surfaces.public_records": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "surfaces.ranked_ballot": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "surfaces.rebuild_a_lost_government": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "surfaces.records_the_clock": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "surfaces.remove_a_middle_layer": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "surfaces.report_an_issue": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "surfaces.roles_channels": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "surfaces.rooms_the_square": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "surfaces.run_a_node": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "surfaces.run_a_session_speaker": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "surfaces.say_where_you_live": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "surfaces.stand_for_office": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "surfaces.terms_end_together": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "surfaces.the_advocate_console": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "surfaces.the_atlas": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "surfaces.the_audit_chain": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "surfaces.the_chamber": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "surfaces.the_chamber_s_rules": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "surfaces.the_civic_stipend": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "surfaces.the_clocks": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "surfaces.the_console": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "surfaces.the_courts": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "surfaces.the_docket": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "surfaces.the_election_board": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "surfaces.the_executive": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "surfaces.the_halls_testimony": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "surfaces.the_live_square": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "surfaces.the_open_market": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "surfaces.the_operator_plane": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "surfaces.the_public_square": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "surfaces.the_registry": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "surfaces.the_speaker": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "surfaces.the_square": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "surfaces.versions_upgrades": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "surfaces.wake_a_place_up": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "surfaces.worker_seats_on_the_board": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "surfaces.you_re_invited_arrival": {
+    "status": "machine",
+    "provider": "nllb"
+  }
+}

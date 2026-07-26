@@ -1,0 +1,791 @@
+{
+  "judiciary_advocateconsole.a_short_label_for_this_filing": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "judiciary_advocateconsole.accepted_docketed": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "judiciary_advocateconsole.advocate_registration_is_open_to_any_assoc": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "judiciary_advocateconsole.cases_you_file_on_behalf_of_clients_appear": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "judiciary_advocateconsole.cases_you_filed_on_behalf_of_clients_via_f": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "judiciary_advocateconsole.entity_state_machine_case_filings_attach_a": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "judiciary_advocateconsole.filing_type": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "judiciary_advocateconsole.granted": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "judiciary_advocateconsole.new_filing": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "judiciary_advocateconsole.no_judiciary_in_your_association_chain_yet": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "judiciary_advocateconsole.open_case": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "judiciary_advocateconsole.panel": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "judiciary_advocateconsole.qualifications_note_optional": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "judiciary_advocateconsole.recent_filings": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "judiciary_advocateconsole.recorded_with_your_registration_the_bar_s_": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "judiciary_advocateconsole.register_as_an_advocate_f_ind_015_to_file_": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "judiciary_advocateconsole.registered_advocate": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "judiciary_advocateconsole.registered_for_practice_rights_cover": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "judiciary_advocateconsole.registration_status": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "judiciary_advocateconsole.representation_is_a_constitutional_right_o": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "judiciary_advocateconsole.submit_to_the_docket": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "judiciary_advocateconsole.what_this_filing_asks_the_court_to_do": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "judiciary_advocateconsole.who_you_are_filing_for": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "judiciary_advocateconsole.workflows_registration_is_wf_civ_07_every_": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "judiciary_advocateconsole.your_active_cases": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "judiciary_advocateconsole.your_client_retains_you_the_retainer_is_re": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "judiciary_advocateconsole.your_docketed_filings_appear_here_the_dock": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "judiciary_advocateconsole.your_filings_motions_evidence_and_briefs_e": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "judiciary_advocateconsole.your_four_instruments": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "judiciary_advocateconsole.your_judiciary": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "judiciary_casedetail.access_controlled_room_for_the_panel_judge": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "judiciary_casedetail.an_arrest_warrant_must_state_the_maximum_d": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "judiciary_casedetail.commentary_on_the_law_as_written_or_edited": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "judiciary_casedetail.court_actions": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "judiciary_casedetail.court_severity_classification": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "judiciary_casedetail.criminal_outcome_carries_the_double_jeopar": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "judiciary_casedetail.criminal_outcome_double_jeopardy_flag_atta": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "judiciary_casedetail.every_warrant_must_establish_its_reason_ar": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "judiciary_casedetail.exhibits_with_admissibility_rulings": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "judiciary_casedetail.filed_by": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "judiciary_casedetail.full_court": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "judiciary_casedetail.issues_only_on_a_guilty_criminal_verdict_a": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "judiciary_casedetail.judges_chambers": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "judiciary_casedetail.jurors_alternates_drawn_at_random_from_the": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "judiciary_casedetail.jury_pending": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "judiciary_casedetail.jury_room": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "judiciary_casedetail.locked_opens_at_deliberation": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "judiciary_casedetail.locked_panel_judges_only": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "judiciary_casedetail.major_constitutional_question": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "judiciary_casedetail.max_hold_hours": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "judiciary_casedetail.no_exhibits_on_the_evidence_docket": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "judiciary_casedetail.no_jury_a_jury_attaches_only_to_a_jury_ent": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "judiciary_casedetail.no_pre_trial_motions_on_the_docket": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "judiciary_casedetail.on_a_guilty_verdict_the_panel_issues_a_sen": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "judiciary_casedetail.opinion_body": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "judiciary_casedetail.opinion_kind": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "judiciary_casedetail.opinion_linked_as_commentary_art_iv_4_5": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "judiciary_casedetail.panel_jury": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "judiciary_casedetail.panel_pending": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "judiciary_casedetail.pre_trial_motions_and_rulings": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "judiciary_casedetail.random_draw_complete_voir_dire_under_way": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "judiciary_casedetail.see_how_a_finding_changes_the_law_the_art_": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "judiciary_casedetail.see_this_stage_as_a_summoned_juror": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "judiciary_casedetail.sentence_terms": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "judiciary_casedetail.separate_deliberation_preserves_the_indepe": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "judiciary_casedetail.stated_reason": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "judiciary_casedetail.submitted_by": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "judiciary_casedetail.the_bench_is_seated_when_the_court_accepts": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "judiciary_casedetail.the_case_lifecycle_is_wf_jud_03_jury_panel": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "judiciary_casedetail.the_court_action_was_rejected": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "judiciary_casedetail.the_court_advances_the_append_only_record_": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "judiciary_casedetail.the_court_s_classification_drives_the_pane": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "judiciary_casedetail.the_jury_deliberates_separately_no_judges_": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "judiciary_casedetail.the_panel_publishes_its_opinion_to_the_pub": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "judiciary_casedetail.the_public_record_of_one_case_before_the_c": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "judiciary_casedetail.the_selection_seed_publishes_to_the_audit_": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "judiciary_casedetail.this_criminal_case_is_jury_entitled_the_ju": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "judiciary_casedetail.warrant_kind": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "judiciary_casedetail.whichever_way_the_verdict_falls_the_outcom": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "judiciary_casedocket.available_to": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "judiciary_casedocket.available_to_2": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "judiciary_casedocket.case_kind": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "judiciary_casedocket.case_title": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "judiciary_casedocket.cases_on_this_docket": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "judiciary_casedocket.civil_criminal_case_filing_f_ind_017_f_jdg": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "judiciary_casedocket.claimed_scale": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "judiciary_casedocket.claimed_severity": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "judiciary_casedocket.clear_filters": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "judiciary_casedocket.confirm_residency_to_file": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "judiciary_casedocket.conflict_screening_before_a_panel_is_fixed": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "judiciary_casedocket.e_g_okafor_v_crown_ridge_llc": {
+    "status": "machine",
+    "reason": "sentence count fell 3 -> 2",
+    "provider": "nllb"
+  },
+  "judiciary_casedocket.every_case_filed_in_this_court_from_local_": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "judiciary_casedocket.file_a_case": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "judiciary_casedocket.filing_states_a_claimed_scale_which_jurisd": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "judiciary_casedocket.filter_cases": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "judiciary_casedocket.judiciary_home_constitutional_challenges": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "judiciary_casedocket.no_cases_match_the_current_filters": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "judiciary_casedocket.no_cases_on_this_docket_anyone_jurisdictio": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "judiciary_casedocket.of_cases_shown": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "judiciary_casedocket.open_cases": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "judiciary_casedocket.open_cases_with_kind_court_panel_severity_": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "judiciary_casedocket.other_ways_cases_arrive": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "judiciary_casedocket.panel_assignment_with_conflict_screening_f": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "judiciary_casedocket.panels_of_at_least_3_odd_scaled_to_severit": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "judiciary_casedocket.reference_cards_the_filing_instruments_tha": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "judiciary_casedocket.search_cases": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "judiciary_casedocket.statement_of_claim": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "judiciary_casedocket.the_case_lifecycle_wf_jud_03_carries_every": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "judiciary_casedocket.the_court_reclassifies_severity_at_accepta": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "judiciary_casedocket.the_docket_is_public_to_read_filing_a_case": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "judiciary_casedocket.the_filing_was_not_accepted": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "judiciary_casedocket.the_jurisdiction_whose_law_the_case_arises": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "judiciary_casedocket.walk_a_case_through_the_full_lifecycle": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "judiciary_casedocket.what_happened_and_what_remedy_you_seek": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "judiciary_casedocket.what_the_court_does_next": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "judiciary_constitutionalchallenge.any_inhabitant_can_challenge_a_law_that_un": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "judiciary_constitutionalchallenge.any_inhabitant_may_file_no_standing_gateke": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "judiciary_constitutionalchallenge.asserted_contradiction": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "judiciary_constitutionalchallenge.confirm_a_residency_to_file_a_challenge": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "judiciary_constitutionalchallenge.constitutional_challenge_tracker": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "judiciary_constitutionalchallenge.constitutional_citation_optional": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "judiciary_constitutionalchallenge.how_the_law_impedes_your_rights": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "judiciary_constitutionalchallenge.jurisdiction_you_file_in": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "judiciary_constitutionalchallenge.law_challenged": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "judiciary_constitutionalchallenge.no_fee_no_eligibility_ground_no_standing_g": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "judiciary_constitutionalchallenge.reading_is_open_to_everyone_findings_remed": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "judiciary_constitutionalchallenge.select_a_basis": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "judiciary_constitutionalchallenge.select_an_in_force_or_amended_law": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "judiciary_constitutionalchallenge.the_article_section_the_law_contradicts_if": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "judiciary_constitutionalchallenge.the_challenge_is_its_own_durable_entity_di": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "judiciary_constitutionalchallenge.the_challenge_was_not_filed": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "judiciary_constitutionalchallenge.the_court_reads_this_there_is_no_merits_te": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "judiciary_constitutionalchallenge.the_law_s_binding_jurisdiction_default": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "judiciary_constitutionalchallenge.the_law_s_binding_jurisdiction_or_a_descen": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "judiciary_constitutionalchallenge.workflows_constitutional_challenge_law_rem": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "judiciary_home.an_independent_court_serving_this_jurisdic": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "judiciary_home.appointed_judges_hold_a_year_term_converte": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "judiciary_home.case_docket_constitutional_challenges": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "judiciary_home.case_severity": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "judiciary_home.civil_judicial_appointment_lengths_move_in": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "judiciary_home.confirmation_needs_the_same_threshold_the_": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "judiciary_home.confirmation_record_consent_votes_for_the_": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "judiciary_home.consent_vote": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "judiciary_home.constituent_jurisdictions_nominate_equal_n": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "judiciary_home.conversion_adopted_on_the_chamber_supermaj": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "judiciary_home.conversion_to_an_elected_judiciary": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "judiciary_home.converting_this_appointed_court_to_a_direc": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "judiciary_home.effective_enacted": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "judiciary_home.how_this_court_sits": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "judiciary_home.how_this_court_was_created": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "judiciary_home.introduce_a_conversion_bill_filed_by_a_mem": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "judiciary_home.introduce_a_creation_bill_filed_by_a_membe": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "judiciary_home.judge_on_the_bench": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "judiciary_home.judicial_nomination_consent_vote_one_per_n": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "judiciary_home.judicial_nomination_consent_votes_one_per_": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "judiciary_home.judiciary_lifecycle": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "judiciary_home.judiciary_lifecycle_esm_18": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "judiciary_home.no_conversion_on_record_if_conversion_pass": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "judiciary_home.no_creation_act_on_record_this_judiciary_i": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "judiciary_home.no_direct_constituent_jurisdiction_holds_a": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "judiciary_home.no_nominations_on_record_yet_once_the_crea": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "judiciary_home.nominated_by": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "judiciary_home.one_judiciary_row_per_jurisdiction_with_a_": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "judiciary_home.panel_size_by_case_severity": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "judiciary_home.panel_sizing_is_a_hard_constraint_clk_16_a": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "judiciary_home.panels_of_at_least_3_odd_scaled_to_severit": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "judiciary_home.severity_scaling_the_heavier_the_possible_": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "judiciary_home.supermajority_of_legislature_supermajority": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "judiciary_home.supermajority_two_thirds_of_all_serving_me": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "judiciary_home.term_length_judicial_appointments": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "judiciary_home.term_sync_on_the_chamber_page": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "judiciary_home.the_chamber_supermajority": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "judiciary_home.the_judiciary_is_created_by_supermajority_": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "judiciary_home.the_supermajority_that_chartered_the_court": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "judiciary_home.this_court_s_seat_were_nominated_by_equal_": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "judiciary_jurorview.art_ii_8_is_the_constitution_s_list_of_act": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "judiciary_jurorview.conflict_screening": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "judiciary_jurorview.conflict_screening_questionnaire": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "judiciary_jurorview.draw_integrity_the_random_selection_seed_i": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "judiciary_jurorview.drawn": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "judiciary_jurorview.enter_deliberation_room": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "judiciary_jurorview.enter_the_jury_deliberation_room": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "judiciary_jurorview.juror_summons": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "judiciary_jurorview.jury_deliberation_room": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "judiciary_jurorview.no_fees_ever_no_payment_fee_or_fine_can_be": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "judiciary_jurorview.no_interference_your_employer_cannot_penal": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "judiciary_jurorview.pool": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "judiciary_jurorview.report": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "judiciary_jurorview.see_the_case_this_summons_belongs_to": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "judiciary_jurorview.source_of_this_summons": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "judiciary_jurorview.the_deliberation_room_is_access_controlled": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "judiciary_jurorview.the_room_unlocks_at_the_deliberation_stage": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "judiciary_jurorview.the_summons": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "judiciary_jurorview.where": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "judiciary_jurorview.you_were_drawn_at_random_from_the_eligible": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "judiciary_jurorview.your_service_is_protected": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "judiciary_jurorview.your_service_status": {
+    "status": "machine",
+    "provider": "nllb"
+  }
+}

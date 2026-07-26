@@ -1,0 +1,10 @@
+{
+  "civic_room_chamberstage.in_the_chamber": "في الغرفة {statusLabel}",
+  "civic_room_chamberstage.no_one_is_on_the_floor_yet_join_the_voice_": "لا أحد على الأرض بعد  الانضمام إلى المكالمة الصوتية للحصول على مقعدك.",
+  "civic_room_liveroom.no_voice_host_is_reachable_from_here_right": "لا يمكن الوصول إلى أي مضيف صوتي من هنا الآن الغرفة تبقى نصية فقط. خطوطك وطائرة السجلات غير متأثرة.",
+  "civic_room_liveroom.you_can_still_take_part_in_text_below": "{errorMessage} لا يزال بإمكانك المشاركة في النص أدناه.",
+  "civic_room_participanttile.screen_share": "مشاركة الشاشة",
+  "civic_signaturemeter.needed": "{threshold} مطلوب · {pct}%",
+  "civic_signaturemeter.threshold_of_population_clk_17": "الحد الأدنى {threshold} = {pct}% من السكان · CLK-17",
+  "civic_signaturemeter.threshold_reached": "الحد الأدنى"
+}

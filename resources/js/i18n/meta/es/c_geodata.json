@@ -4,12 +4,12 @@
     "provider": "nllb"
   },
   "geodata_geodataflagqueue.applied": {
-    "status": "review",
+    "status": "machine",
     "reason": "placeholder mismatch",
     "provider": "nllb"
   },
   "geodata_geodataflagqueue.critical_warning_info": {
-    "status": "review",
+    "status": "machine",
     "reason": "placeholder mismatch",
     "provider": "nllb"
   },
@@ -34,7 +34,7 @@
     "provider": "nllb"
   },
   "geodata_geodataflagqueue.no_flags": {
-    "status": "review",
+    "status": "machine",
     "reason": "placeholder mismatch",
     "provider": "nllb"
   },
@@ -55,7 +55,7 @@
     "provider": "nllb"
   },
   "geodata_geodataflagqueue.scan_running": {
-    "status": "review",
+    "status": "machine",
     "reason": "placeholder mismatch",
     "provider": "nllb"
   },
@@ -64,6 +64,98 @@
     "provider": "nllb"
   },
   "geodata_geodatarepairmodal.accept_this_flag_as_is_the_condition_stays": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "geodata_geodatarepairmodal.cascade_also_delete_the_whole_subtree_bene": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "geodata_geodatarepairmodal.chain_topmost_first_one_slug_per_line": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "geodata_geodatarepairmodal.child_ren": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "geodata_geodatarepairmodal.children_to_gather_one_slug_per_line": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "geodata_geodatarepairmodal.collapse_a_single_child_chain_of_same_spac": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "geodata_geodatarepairmodal.create_a_new_intermediate_jurisdiction_und": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "geodata_geodatarepairmodal.jurisdiction_slug": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "geodata_geodatarepairmodal.jurisdiction_to_move_slug": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "geodata_geodatarepairmodal.jurisdiction_to_prune_slug": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "geodata_geodatarepairmodal.move_a_jurisdiction_under_a_different_pare": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "geodata_geodatarepairmodal.name_of_the_new_jurisdiction": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "geodata_geodatarepairmodal.new_parent_slug": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "geodata_geodatarepairmodal.northern_cluster": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "geodata_geodatarepairmodal.note_optional": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "geodata_geodatarepairmodal.parent_slug": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "geodata_geodatarepairmodal.replace_the_stored_population_the_prior_va": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "geodata_geodatarepairmodal.soft_delete_this_jurisdiction_every_remove": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "geodata_geodatarepairmodal.suggested_parents": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "geodata_geodatarepairmodal.sum_of_live_children_adds_up_the_direct_ch": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "geodata_geodatarepairmodal.survivor_merged_away": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "geodata_geodatarepairmodal.type_the_slug_to_confirm": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "geodata_geodatarepairmodal.why_this_repair": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "geodata_geodatarepairmodal.worldpop_raster_total_sums_the_country_s_p": {
     "status": "machine",
     "provider": "nllb"
   }

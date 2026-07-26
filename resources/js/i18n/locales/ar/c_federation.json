@@ -1,0 +1,6 @@
+{
+  "federation_syncprogress.joining_the_cluster": "الانضمام إلى المجموعة",
+  "federation_syncprogress.of_left": "{fmtValue} من {fmtValue2}~{fmtDuration} اليسار",
+  "federation_syncprogress.records_pagesimporting_the_foundation_into": "{fmtNum} سجلات · {fmtNum2} الصفحاتاستيراد الأساس في قاعدة البيانات...استيراد البيانات...{fmtNum3}/s",
+  "federation_syncprogress.you_can_leave_this_page_the_sync_runs_in_t": "يمكنك ترك هذه الصفحة  يتم تشغيل التزامن في الخلفية ويتم استئنافها إذا تم التقاطع."
+}

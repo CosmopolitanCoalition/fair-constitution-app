@@ -1,0 +1,22 @@
+{
+  "surface_aboutsurface.about_this_surface": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "surface_formcard.available_to": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "surface_formcard.submitting": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "surface_pagescaffold.canonical_forms": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "surface_pagescaffold.workflows": {
+    "status": "machine",
+    "provider": "nllb"
+  }
+}

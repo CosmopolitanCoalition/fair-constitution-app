@@ -1,0 +1,41 @@
+{
+  "support_report.conduct_and_legal_reports_are_routed_for_r": {
+    "status": "machine",
+    "reason": "sentence count fell 2 -> 1",
+    "provider": "nllb"
+  },
+  "support_report.file_a_report": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "support_report.file_report": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "support_report.filed_from": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "support_report.plain_words_are_fine_include_what_you_expe": {
+    "status": "machine",
+    "reason": "sentence count fell 2 -> 1",
+    "provider": "nllb"
+  },
+  "support_report.reports_land_in_the_operator_s_support_inb": {
+    "status": "machine",
+    "reason": "sentence count fell 2 -> 1",
+    "provider": "nllb"
+  },
+  "support_report.what_happened": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "support_report.what_kind_of_report_is_this": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "support_report.you_need_to_be_signed_in_to_file_a_report_": {
+    "status": "machine",
+    "provider": "nllb"
+  }
+}

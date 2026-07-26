@@ -1,0 +1,442 @@
+{
+  "system_amendments.applied_amendable_setting_changes_newest_f": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "system_amendments.door_one_amendable_variables": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "system_amendments.door_two_the_hardened_layer": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "system_amendments.mechanics_no_act_admin_panel_or_office_can": {
+    "status": "review",
+    "reason": "sentence count fell 2 -> 1",
+    "provider": "nllb"
+  },
+  "system_amendments.no_amendments_yet_every_change_will_appear": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "system_amendments.old_new": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "system_amendments.ratification_thresholds": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "system_amendments.ratification_thresholds_by_kind_of_change": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "system_amendments.read_the_template_a_fair_constitution_cosm": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "system_amendments.releases_are_sealed_in_the_audit_chain": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "system_amendments.settings_the_constitution_leaves_to_each_j": {
+    "status": "machine",
+    "reason": "sentence count fell 3 -> 1",
+    "provider": "nllb"
+  },
+  "system_amendments.supermajority_glossed_the_share_of_every_s": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "system_amendments.the_constitution_changes_through_exactly_t": {
+    "status": "machine",
+    "reason": "sentence count fell 4 -> 1",
+    "provider": "nllb"
+  },
+  "system_amendments.the_supermajority_floor": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "system_amendments.the_supermajority_fraction_is_amendable_bu": {
+    "status": "machine",
+    "reason": "sentence count fell 2 -> 1",
+    "provider": "nllb"
+  },
+  "system_amendments.this_screen_shows_the_two_ways_the_constit": {
+    "status": "machine",
+    "reason": "sentence count fell 3 -> 1",
+    "provider": "nllb"
+  },
+  "system_auditchain.chain_head": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "system_auditchain.chain_verification_failed": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "system_auditchain.everything_that_happens_here_every_vote_ru": {
+    "status": "review",
+    "reason": "sentence count fell 3 -> 2",
+    "provider": "nllb"
+  },
+  "system_auditchain.full_chain_verification_recomputes_every_l": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "system_auditchain.genesis_prev_hash_every_link_satisfies_has": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "system_auditchain.how_the_chain_works": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "system_auditchain.invalid_transitions_rejected_pre_commit_co": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "system_auditchain.latest_entries": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "system_auditchain.latest_first_stored_as_utc_shown_as_utc": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "system_auditchain.page_of_entr": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "system_auditchain.recomputes_all_link_hashes_against_the_hea": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "system_auditchain.rejections_are_appended_too": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "system_auditchain.the_chain_is_empty_no_filings_yet": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "system_auditchain.wf_sys_04_the_constitutional_engine_interc": {
+    "status": "machine",
+    "reason": "sentence count fell 2 -> 1",
+    "provider": "nllb"
+  },
+  "system_clocks.amendable_means_a_valid_legislative_act_ca": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "system_clocks.amendable_via_settings": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "system_clocks.clocks_in_the_registry": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "system_clocks.countdowns_rolling_deadlines_and_bounded_o": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "system_clocks.derived_see_the_workflow_it_fires": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "system_clocks.derived_values_and_term_scoped_protections": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "system_clocks.every_fire_event_is_appended_to_the_audit_": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "system_clocks.glossary_quorum_here_always_counts_all_ser": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "system_clocks.hardened_or_structural": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "system_clocks.live_is_what_the_scheduler_is_actually_hol": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "system_clocks.no_hardened": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "system_clocks.quantity_watchers_population_headcount_sig": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "system_clocks.reading_the_registry": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "system_clocks.recurring_and_derived_schedules_the_clocks": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "system_clocks.the_scheduled_sweeps_that_drive_the_world_": {
+    "status": "machine",
+    "reason": "sentence count fell 2 -> 1",
+    "provider": "nllb"
+  },
+  "system_clocks.the_scheduler_itself_is_the_engine_behind_": {
+    "status": "machine",
+    "reason": "sentence count fell 4 -> 1",
+    "provider": "nllb"
+  },
+  "system_clocks.type_is_the_scheduler_contract_recurring_i": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "system_publicrecords.all_legislatures": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "system_publicrecords.attach_to": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "system_publicrecords.clear_filters": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "system_publicrecords.corrections_append_a_superseding_entry_not": {
+    "status": "machine",
+    "reason": "sentence count fell 3 -> 2",
+    "provider": "nllb"
+  },
+  "system_publicrecords.cursor_pagination_the_record_is_append_onl": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "system_publicrecords.entered_verbatim_into_the_immutable_public": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "system_publicrecords.entries_on_the_record": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "system_publicrecords.every_statement_bill_vote_and_explanation_": {
+    "status": "machine",
+    "reason": "sentence count fell 2 -> 1",
+    "provider": "nllb"
+  },
+  "system_publicrecords.filter_the_public_record": {
+    "status": "review",
+    "reason": "implausible length",
+    "provider": "nllb"
+  },
+  "system_publicrecords.general_record_no_attachment": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "system_publicrecords.machine_translation_pipeline_planned_phase": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "system_publicrecords.no_records_match": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "system_publicrecords.older_entries": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "system_publicrecords.once_submitted_a_statement_can_be_supersed": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "system_publicrecords.public_records_vs_the_audit_chain": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "system_publicrecords.record_keeping_cannot_be_suspended_under_e": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "system_publicrecords.sealed_audit": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "system_publicrecords.sealed_into_the_audit_chain_at_commit": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "system_publicrecords.search_the_record": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "system_publicrecords.search_title_or_author": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "system_publicrecords.statements_attach_to_the_bill_session_or_v": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "system_publicrecords.stored_as_utc_shown_in_your_timezone": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "system_publicrecords.supersedes_corrections_append_never_edit_b": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "system_publicrecords.the_record": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "system_publicrecords.this_page_is_the_curated_register_citizens": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "system_publicrecords.this_record_is_append_only": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "system_publicrecords.votes_with_explanations": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "system_publicrecords.your_statement_explanation_or_position_pub": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "system_termsync.anchored_to_its_legislature_s_clock": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "system_termsync.appointed_officers_deliberately_decoupled": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "system_termsync.appointment_terms_are_deliberately_decoupl": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "system_termsync.attempted_violations_are_rejected_pre_comm": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "system_termsync.chamber_a_setting_change_applies_from_the_": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "system_termsync.common_expiry": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "system_termsync.days_to_the_next_general_election": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "system_termsync.elected_role": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "system_termsync.every_elected_term_legislature_executive_j": {
+    "status": "machine",
+    "reason": "sentence count fell 2 -> 1",
+    "provider": "nllb"
+  },
+  "system_termsync.jurisdictions_activate_at_their_own_thresh": {
+    "status": "machine",
+    "reason": "sentence count fell 2 -> 1",
+    "provider": "nllb"
+  },
+  "system_termsync.lockstep_expiry_art_iii_3_art_iv_3_replace": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "system_termsync.lockstep_terms_by_role": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "system_termsync.months_per_term_election_interval_months": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "system_termsync.next_general_election_the_armed_clk_01_tim": {
+    "status": "review",
+    "reason": "ID token altered",
+    "provider": "nllb"
+  },
+  "system_termsync.no_active_civil_appointments_yet": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "system_termsync.no_active_legislature_yet_jurisdictions_ac": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "system_termsync.no_active_lockstep_terms_on_record": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "system_termsync.no_election_can_be_skipped_or_delayed_by_o": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "system_termsync.no_skip_delay_reschedule_api_exists_refusa": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "system_termsync.no_violation_has_ever_been_attempted_on_th": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "system_termsync.on_the_chain": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "system_termsync.one_clock_every_trigger": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "system_termsync.open_successor_election": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "system_termsync.recorded_rejections": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "system_termsync.serving_terms": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "system_termsync.serving_year_appointment_clocks": {
+    "status": "review",
+    "reason": "placeholder mismatch",
+    "provider": "nllb"
+  },
+  "system_termsync.staggered_activation": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "system_termsync.the_lockstep_every_term_bearing_elected_ro": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "system_termsync.vacancies_fit_inside_the_lockstep_they_nev": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "system_termsync.what_the_engine_refuses_to_do": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "system_termsync.zero_actions_live_here_by_design_every_num": {
+    "status": "machine",
+    "provider": "nllb"
+  }
+}

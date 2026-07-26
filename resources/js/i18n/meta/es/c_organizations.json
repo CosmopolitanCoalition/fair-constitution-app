@@ -1,0 +1,111 @@
+{
+  "organizations_boardstrip.board_composition_does_not_match_the_scale": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "organizations_boardstrip.board_roster_governors_on_10_yr_clk_09_civ": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "organizations_boardstrip.legend_solid_pip_owner_side_seat_blue_pip_": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "organizations_boardstrip.nominated_consent_pending": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "organizations_boardstrip.owner_side_worker_elected_chair": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "organizations_boardstrip.removal_requested": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "organizations_boardstrip.serving_worker_class": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "organizations_boardstrip.term_ended": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "organizations_boardstrip.term_expiring_renomination_open": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "organizations_boardstrip.vacant": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "organizations_codetscale.0_first_worker_seat_clk_13_parity_clk_14": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "organizations_codetscale.next_seat_at_workers_projection": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "organizations_codetscale.owner_elected_seats_r_26": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "organizations_codetscale.parity_worker_seats_equal_owner_seats_clk_": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "organizations_codetscale.projection_the_engine_recomputes_on_real_h": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "organizations_codetscale.reset_to_live_workers_seats": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "organizations_codetscale.scales_uniformly_between_the_first_seat_an": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "organizations_codetscale.scaling_between_clk_13_and_clk_14": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "organizations_codetscale.worker_elected_seats_r_27": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "organizations_codetscale.worker_headcount_explorer": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "organizations_codetscale.workers_against_owner_side_seats": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "organizations_codetscale.workers_r_25": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "organizations_ownershippanel.art_iii_5_6_as_implemented_ledger_12": {
+    "status": "machine",
+    "reason": "citation altered",
+    "provider": "nllb"
+  },
+  "organizations_ownershippanel.in_a_common_good_corporation_the_board_of_": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "organizations_ownershippanel.no_ownership_stakes_on_record_for_this_str": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "organizations_ownershippanel.ownership_stakes": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "organizations_ownershippanel.structure_history_preserved_append_only_re": {
+    "status": "machine",
+    "provider": "nllb"
+  }
+}

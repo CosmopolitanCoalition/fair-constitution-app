@@ -1,0 +1,198 @@
+{
+  "judiciary_art4section5tracker.a_severity_scaled_panel_of_the_writing": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "judiciary_art4section5tracker.active_challenge": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "judiciary_art4section5tracker.amendment_bill_in_committee": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "judiciary_art4section5tracker.as_edited_by_the_judiciary": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "judiciary_art4section5tracker.closed_resolved_on_another_path": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "judiciary_art4section5tracker.constitutional_challenge_state_machine": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "judiciary_art4section5tracker.due_within_days_of_the_finding_art_iv_5_op": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "judiciary_art4section5tracker.enforcement_aligns_to_the_final_state_of_t": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "judiciary_art4section5tracker.executives_enforce_the_outcome_whichever_p": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "judiciary_art4section5tracker.filed_by_any_inhabitant_may_file_no_standi": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "judiciary_art4section5tracker.finding_recommended_remedy": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "judiciary_art4section5tracker.finding_remedy": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "judiciary_art4section5tracker.heard_by": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "judiciary_art4section5tracker.if_the_window_closes_with_neither_amendmen": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "judiciary_art4section5tracker.is_edited_to_the_text_above_a_new_law_vers": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "judiciary_art4section5tracker.judgement_overruled": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "judiciary_art4section5tracker.law_challenged": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "judiciary_art4section5tracker.legislative_window": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "judiciary_art4section5tracker.no_constitutional_challenge_is_open_in_you": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "judiciary_art4section5tracker.no_open_challenge": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "judiciary_art4section5tracker.opinions_remain_commentary_on_the_law_as_w": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "judiciary_art4section5tracker.override_votes_in_favor_of_all_serving": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "judiciary_art4section5tracker.path_a": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "judiciary_art4section5tracker.path_a_legislature_modifies_or_removes": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "judiciary_art4section5tracker.path_b": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "judiciary_art4section5tracker.path_b_supermajority_override_in_the_veto_": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "judiciary_art4section5tracker.path_c": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "judiciary_art4section5tracker.path_c_window_closes_judiciary_edits_the_l": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "judiciary_art4section5tracker.pending_window_close": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "judiciary_art4section5tracker.remedy_applied_directly": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "judiciary_art4section5tracker.remedy_preview": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "judiciary_art4section5tracker.right_to_challenge_art_iv_5": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "judiciary_art4section5tracker.supermajority_of_all_serving_members_not_j": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "judiciary_art4section5tracker.the_law_stands_as_written_the_finding_the_": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "judiciary_art4section5tracker.the_legislature_has_days_to_modify_or_remo": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "judiciary_art4section5tracker.the_legislature_modifies_or_removes_the_la": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "judiciary_art4section5tracker.the_three_art_iv_5_resolution_paths": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "judiciary_art4section5tracker.timeframe_days_veto_window_days": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "judiciary_art4section5tracker.when_a_court_issues_a_finding_under_art_iv": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "judiciary_caselifecycle.back_and_advance_move_through_the_sequence": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "judiciary_caselifecycle.case_state_machine": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "judiciary_caselifecycle.playable_walkthrough": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "judiciary_jurorscreening.a_panel_judge_follows_up_on_the_answers_yo": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "judiciary_jurorscreening.answer_honestly_screening_removes_conflict": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "judiciary_jurorscreening.conflict_screening_questions": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "judiciary_jurorscreening.flagged_for_voir_dire_review": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "judiciary_jurorscreening.no_conflicts_declared": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "judiciary_jurorscreening.you_remain_in_the_panel_pool_empanelment_i": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "judiciary_paneltable.panel_assignment_and_conflict_screening_re": {
+    "status": "machine",
+    "provider": "nllb"
+  }
+}

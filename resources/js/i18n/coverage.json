@@ -1,25 +1,25 @@
 {
-  "generated_at": "2026-07-25T23:23:48.089Z",
+  "generated_at": "2026-07-26T00:28:30.645Z",
   "source_keys": 3366,
   "namespaces": 32,
   "locales": [
     {
       "locale": "ar",
       "total": 3366,
-      "present": 103,
-      "missing": 3263,
+      "present": 3304,
+      "missing": 62,
       "orphan": 0,
-      "identical": 1,
-      "pct": 3.1
+      "identical": 15,
+      "pct": 98.2
     },
     {
       "locale": "es",
       "total": 3366,
-      "present": 103,
-      "missing": 3263,
+      "present": 3345,
+      "missing": 21,
       "orphan": 0,
-      "identical": 2,
-      "pct": 3.1
+      "identical": 26,
+      "pct": 99.4
     },
     {
       "locale": "hi",
@@ -45,8 +45,8 @@
       "namespace": "auth",
       "total": 39,
       "locales": {
-        "ar": 0,
-        "es": 0,
+        "ar": 39,
+        "es": 39,
         "hi": 0,
         "zh-Hans": 0
       }
@@ -55,8 +55,8 @@
       "namespace": "c_civic",
       "total": 8,
       "locales": {
-        "ar": 0,
-        "es": 0,
+        "ar": 8,
+        "es": 8,
         "hi": 0,
         "zh-Hans": 0
       }
@@ -65,8 +65,8 @@
       "namespace": "c_electoral",
       "total": 26,
       "locales": {
-        "ar": 0,
-        "es": 0,
+        "ar": 24,
+        "es": 26,
         "hi": 0,
         "zh-Hans": 0
       }
@@ -75,8 +75,8 @@
       "namespace": "c_executive",
       "total": 4,
       "locales": {
-        "ar": 0,
-        "es": 0,
+        "ar": 4,
+        "es": 4,
         "hi": 0,
         "zh-Hans": 0
       }
@@ -85,8 +85,8 @@
       "namespace": "c_federation",
       "total": 4,
       "locales": {
-        "ar": 0,
-        "es": 0,
+        "ar": 4,
+        "es": 4,
         "hi": 0,
         "zh-Hans": 0
       }
@@ -95,8 +95,8 @@
       "namespace": "c_geodata",
       "total": 39,
       "locales": {
-        "ar": 0,
-        "es": 0,
+        "ar": 39,
+        "es": 39,
         "hi": 0,
         "zh-Hans": 0
       }
@@ -105,8 +105,8 @@
       "namespace": "c_invite",
       "total": 2,
       "locales": {
-        "ar": 0,
-        "es": 0,
+        "ar": 2,
+        "es": 2,
         "hi": 0,
         "zh-Hans": 0
       }
@@ -115,8 +115,8 @@
       "namespace": "c_judiciary",
       "total": 49,
       "locales": {
-        "ar": 0,
-        "es": 0,
+        "ar": 47,
+        "es": 49,
         "hi": 0,
         "zh-Hans": 0
       }
@@ -125,8 +125,8 @@
       "namespace": "c_legislature",
       "total": 26,
       "locales": {
-        "ar": 0,
-        "es": 0,
+        "ar": 26,
+        "es": 26,
         "hi": 0,
         "zh-Hans": 0
       }
@@ -135,8 +135,8 @@
       "namespace": "c_organizations",
       "total": 27,
       "locales": {
-        "ar": 0,
-        "es": 0,
+        "ar": 27,
+        "es": 27,
         "hi": 0,
         "zh-Hans": 0
       }
@@ -145,8 +145,8 @@
       "namespace": "c_setup",
       "total": 100,
       "locales": {
-        "ar": 0,
-        "es": 0,
+        "ar": 100,
+        "es": 100,
         "hi": 0,
         "zh-Hans": 0
       }
@@ -155,8 +155,8 @@
       "namespace": "c_shell",
       "total": 6,
       "locales": {
-        "ar": 0,
-        "es": 0,
+        "ar": 6,
+        "es": 6,
         "hi": 0,
         "zh-Hans": 0
       }
@@ -165,8 +165,8 @@
       "namespace": "c_shellv2",
       "total": 7,
       "locales": {
-        "ar": 0,
-        "es": 0,
+        "ar": 7,
+        "es": 7,
         "hi": 0,
         "zh-Hans": 0
       }
@@ -175,8 +175,8 @@
       "namespace": "c_surface",
       "total": 5,
       "locales": {
-        "ar": 0,
-        "es": 0,
+        "ar": 5,
+        "es": 5,
         "hi": 0,
         "zh-Hans": 0
       }
@@ -185,8 +185,8 @@
       "namespace": "c_ui",
       "total": 4,
       "locales": {
-        "ar": 0,
-        "es": 0,
+        "ar": 4,
+        "es": 4,
         "hi": 0,
         "zh-Hans": 0
       }
@@ -195,8 +195,8 @@
       "namespace": "chrome",
       "total": 117,
       "locales": {
-        "ar": 103,
-        "es": 103,
+        "ar": 109,
+        "es": 109,
         "hi": 103,
         "zh-Hans": 103
       }
@@ -205,8 +205,8 @@
       "namespace": "civic",
       "total": 312,
       "locales": {
-        "ar": 0,
-        "es": 0,
+        "ar": 307,
+        "es": 311,
         "hi": 0,
         "zh-Hans": 0
       }
@@ -215,8 +215,8 @@
       "namespace": "components",
       "total": 10,
       "locales": {
-        "ar": 0,
-        "es": 0,
+        "ar": 10,
+        "es": 10,
         "hi": 0,
         "zh-Hans": 0
       }
@@ -225,8 +225,8 @@
       "namespace": "dev",
       "total": 202,
       "locales": {
-        "ar": 0,
-        "es": 0,
+        "ar": 201,
+        "es": 201,
         "hi": 0,
         "zh-Hans": 0
       }
@@ -235,8 +235,8 @@
       "namespace": "elections",
       "total": 332,
       "locales": {
-        "ar": 0,
-        "es": 0,
+        "ar": 322,
+        "es": 330,
         "hi": 0,
         "zh-Hans": 0
       }
@@ -245,8 +245,8 @@
       "namespace": "executive",
       "total": 193,
       "locales": {
-        "ar": 0,
-        "es": 0,
+        "ar": 189,
+        "es": 193,
         "hi": 0,
         "zh-Hans": 0
       }
@@ -255,8 +255,8 @@
       "namespace": "invite",
       "total": 20,
       "locales": {
-        "ar": 0,
-        "es": 0,
+        "ar": 20,
+        "es": 20,
         "hi": 0,
         "zh-Hans": 0
       }
@@ -265,8 +265,8 @@
       "namespace": "judiciary",
       "total": 197,
       "locales": {
-        "ar": 0,
-        "es": 0,
+        "ar": 193,
+        "es": 197,
         "hi": 0,
         "zh-Hans": 0
       }
@@ -275,8 +275,8 @@
       "namespace": "jurisdictions",
       "total": 131,
       "locales": {
-        "ar": 0,
-        "es": 0,
+        "ar": 131,
+        "es": 131,
         "hi": 0,
         "zh-Hans": 0
       }
@@ -285,8 +285,8 @@
       "namespace": "legislature",
       "total": 542,
       "locales": {
-        "ar": 0,
-        "es": 0,
+        "ar": 536,
+        "es": 536,
         "hi": 0,
         "zh-Hans": 0
       }
@@ -295,8 +295,8 @@
       "namespace": "operator",
       "total": 270,
       "locales": {
-        "ar": 0,
-        "es": 0,
+        "ar": 264,
+        "es": 269,
         "hi": 0,
         "zh-Hans": 0
       }
@@ -305,8 +305,8 @@
       "namespace": "organizations",
       "total": 218,
       "locales": {
-        "ar": 0,
-        "es": 0,
+        "ar": 215,
+        "es": 218,
         "hi": 0,
         "zh-Hans": 0
       }
@@ -315,8 +315,8 @@
       "namespace": "pages",
       "total": 2,
       "locales": {
-        "ar": 0,
-        "es": 0,
+        "ar": 2,
+        "es": 2,
         "hi": 0,
         "zh-Hans": 0
       }
@@ -325,8 +325,8 @@
       "namespace": "registry",
       "total": 92,
       "locales": {
-        "ar": 0,
-        "es": 0,
+        "ar": 91,
+        "es": 92,
         "hi": 0,
         "zh-Hans": 0
       }
@@ -335,8 +335,8 @@
       "namespace": "setup",
       "total": 267,
       "locales": {
-        "ar": 0,
-        "es": 0,
+        "ar": 262,
+        "es": 266,
         "hi": 0,
         "zh-Hans": 0
       }
@@ -345,8 +345,8 @@
       "namespace": "support",
       "total": 9,
       "locales": {
-        "ar": 0,
-        "es": 0,
+        "ar": 9,
+        "es": 9,
         "hi": 0,
         "zh-Hans": 0
       }
@@ -355,16 +355,16 @@
       "namespace": "system",
       "total": 106,
       "locales": {
-        "ar": 0,
-        "es": 0,
+        "ar": 101,
+        "es": 105,
         "hi": 0,
         "zh-Hans": 0
       }
     }
   ],
-  "failures": 13052,
-  "warnings": 27,
+  "failures": 6609,
+  "warnings": 1803,
   "failure_codes": {
-    "C1-missing": 13052
+    "C1-missing": 6609
   }
 }

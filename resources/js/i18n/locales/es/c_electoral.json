@@ -4,7 +4,9 @@
   "electoral_ballotreceipt.receipt_copied": "Recibo copiado",
   "electoral_ballotreceipt.self_audit_in_the_public_count_record": "Autoauditoría en los registros de contabilidad pública",
   "electoral_ballotreceipt.this_receipt_is_shown_once_copy_it_now_it_": "Este recibo se muestra una vez. Copie ahora  nunca se puede recuperar más tarde, por usted o por nadie.",
+  "electoral_candidaterow.individual_endorsements": "{individualCount} aprobaciones individuales",
   "electoral_candidaterow.no_endorsements": "No hay aprobaciones",
+  "electoral_candidaterow.since_yesterday_since_yesterday_steady_sin": "{approvals}▲ {delta} desde ayer▼ {Math} desde ayer constante desde ayer",
   "electoral_finalistline.finalist_line": "Línea finalista",
   "electoral_phasebanner.clk_18_closes_at_finalist_cutoff_reopens_a": "CLK-18 · cierra en el finalista · reabre en la certificación",
   "electoral_phasebanner.clk_21_finalist_cutoff": "CLK-21 · Cutoff finalista",
@@ -21,5 +23,6 @@
   "electoral_phasebanner.this_candidate_is_a_finalist_on_the_ranked": "Este candidato es un finalista en la votación clasificada.",
   "electoral_phasebanner.watch_the_count": "Mira el conteo .",
   "electoral_ranklist.your_ranked_candidates": "Sus candidatos clasificados",
-  "electoral_stvround.exhausted_no_further_preference": "→ agotado (sin más preferencias){transfer}"
+  "electoral_stvround.exhausted_no_further_preference": "→ agotado (sin más preferencias){transfer}",
+  "electoral_stvround.where_s_votes_went_votes": "Donde los votos de {name} fueron · {transfer} votos {transfer2}"
 }

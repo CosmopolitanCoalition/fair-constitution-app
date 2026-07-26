@@ -12,7 +12,7 @@
     "provider": "nllb"
   },
   "civic_room_liveroom.you_can_still_take_part_in_text_below": {
-    "status": "review",
+    "status": "machine",
     "reason": "placeholder mismatch",
     "provider": "nllb"
   },
@@ -21,12 +21,12 @@
     "provider": "nllb"
   },
   "civic_signaturemeter.needed": {
-    "status": "review",
+    "status": "machine",
     "reason": "placeholder mismatch",
     "provider": "nllb"
   },
   "civic_signaturemeter.threshold_of_population_clk_17": {
-    "status": "review",
+    "status": "machine",
     "reason": "placeholder mismatch",
     "provider": "nllb"
   },

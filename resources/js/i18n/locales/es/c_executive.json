@@ -1,4 +1,6 @@
 {
   "executive_departmentcard.below_threshold": "por debajo del umbral",
-  "executive_orderscopecard.judicially_reviewable_art_iv_5": "Revisable judicialmente · Art. IV §5"
+  "executive_orderscopecard.emergency_methods_widen_the_delegated_scop": "{label} Los métodos de emergencia amplían el alcance delegado sólo dentro del área y la duración declaradas · Art. II §7 · CLK-03",
+  "executive_orderscopecard.judicially_reviewable_art_iv_5": "Revisable judicialmente · Art. IV §5",
+  "executive_orderscopecard.rejected_pre_issuance_the_order_never_took": "Preemisión rechazada: {rejection_citation} La orden nunca entró en vigor; el intento rechazado está en el registro público."
 }

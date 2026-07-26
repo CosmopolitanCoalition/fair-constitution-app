@@ -20,7 +20,7 @@
     "provider": "nllb"
   },
   "electoral_candidaterow.individual_endorsements": {
-    "status": "review",
+    "status": "machine",
     "reason": "placeholder mismatch",
     "provider": "nllb"
   },
@@ -29,7 +29,7 @@
     "provider": "nllb"
   },
   "electoral_candidaterow.since_yesterday_since_yesterday_steady_sin": {
-    "status": "review",
+    "status": "machine",
     "reason": "placeholder mismatch",
     "provider": "nllb"
   },
@@ -102,7 +102,7 @@
     "provider": "nllb"
   },
   "electoral_stvround.where_s_votes_went_votes": {
-    "status": "review",
+    "status": "machine",
     "reason": "placeholder mismatch",
     "provider": "nllb"
   }

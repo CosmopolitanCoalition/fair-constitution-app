@@ -4,7 +4,7 @@
     "provider": "nllb"
   },
   "executive_orderscopecard.emergency_methods_widen_the_delegated_scop": {
-    "status": "review",
+    "status": "machine",
     "reason": "placeholder mismatch",
     "provider": "nllb"
   },
@@ -13,7 +13,7 @@
     "provider": "nllb"
   },
   "executive_orderscopecard.rejected_pre_issuance_the_order_never_took": {
-    "status": "review",
+    "status": "machine",
     "reason": "placeholder mismatch",
     "provider": "nllb"
   }

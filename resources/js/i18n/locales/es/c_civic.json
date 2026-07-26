@@ -2,6 +2,9 @@
   "civic_room_chamberstage.in_the_chamber": "En la cámara {statusLabel}",
   "civic_room_chamberstage.no_one_is_on_the_floor_yet_join_the_voice_": "Nadie está en el piso todavía  Únete a la llamada de voz para tomar tu asiento.",
   "civic_room_liveroom.no_voice_host_is_reachable_from_here_right": "Ningún anfitrión de voz es accesible desde aquí en este momento... la habitación se mantiene solo de texto. Sus mensajes y el plano de grabación no se ven afectados.",
+  "civic_room_liveroom.you_can_still_take_part_in_text_below": "{errorMessage} Todavía puede participar en el texto de abajo.",
   "civic_room_participanttile.screen_share": "compartimiento de pantalla",
+  "civic_signaturemeter.needed": "{threshold} necesario · {pct}%",
+  "civic_signaturemeter.threshold_of_population_clk_17": "el umbral {threshold} = {pct}% de la población · CLK-17",
   "civic_signaturemeter.threshold_reached": "El umbral alcanzado"
 }

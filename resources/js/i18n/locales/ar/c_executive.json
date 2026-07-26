@@ -1,0 +1,6 @@
+{
+  "executive_departmentcard.below_threshold": "أقل من الحد الأدنى",
+  "executive_orderscopecard.emergency_methods_widen_the_delegated_scop": "{label} أساليب الطوارئ توسع النطاق المفوض فقط داخل المساحة والمدة المعلنة · Art. II §7 · CLK-03",
+  "executive_orderscopecard.judicially_reviewable_art_iv_5": "قابلة للمراجعة القضائية · Art. IV §5",
+  "executive_orderscopecard.rejected_pre_issuance_the_order_never_took": "تم رفض إصدارها مسبقًا: {rejection_citation} لم تنفذ الأوامر أبدًا؛ والمحاولة المرفوضة في السجلات العامة."
+}

@@ -1,0 +1,9 @@
+{
+  "shellv2_cmdbar.navigation_and_learn": "الملاحة والتعلم",
+  "shellv2_learnflyout.full_lessons_planned_phase_7_report_an_iss": "الدروس الكاملة مخطط · المرحلة 7 تقرير قضية",
+  "shellv2_learnflyout.the_machinery_behind_this_screen": "الآلات وراء هذا الشاشة",
+  "shellv2_menunav.all_screens_the_full_map": "جميع الشاشات  الخريطة الكاملة",
+  "shellv2_menunav.requires_planned": "{label} {label2} متطلبات {prereq} {label3} مخطط",
+  "shellv2_tourbar.guided_tour": "جولة مرشحة",
+  "shellv2_tourbar.guided_tour_step_of": "جولة مرشحة · خطوة {stepNumber} من {total} {title} {blurb}"
+}
