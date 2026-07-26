@@ -12,6 +12,18 @@
  */
 import { ref, computed, onMounted, onBeforeUnmount } from 'vue'
 import AppShellV2 from '@/Layouts/AppShellV2.vue'
+/**
+ * The bars are lane 3's shared component, not ours (authorised 2026-07-26).
+ * Both lanes converged on the same contract independently — they built theirs
+ * from this controller's `stages()` payload — so the swap needed no change on
+ * the server side at all. Two near-identical progress surfaces would have been
+ * the duplicated-rule defect in UI form, and the operator's end state is a
+ * fresh box building a world with a bar on every stage: one idiom, growing.
+ *
+ * If this page ever needs a field the component lacks, EXTEND THE COMPONENT and
+ * tell lane 3 — do not fork it back apart.
+ */
+import StageBars from '@/Components/Progress/StageBars.vue'
 
 const props = defineProps({
     instanceClass: { type: String, default: 'production' },
@@ -38,8 +50,6 @@ const totalReview = computed(() => stages.value.reduce((a, s) => a + s.review, 0
 /** Terminal runs stop the timer; halted does NOT — a halt is resumable and the
  *  page must keep showing the moment it resumes. */
 const isTerminal = computed(() => ['done', 'failed'].includes(run.value?.status))
-
-const pct = (done, total) => (total > 0 ? Math.min(100, Math.round((done / total) * 100)) : 0)
 
 const fmt = (n) => (n === null || n === undefined ? '—' : Number(n).toLocaleString())
 
@@ -165,34 +175,11 @@ const statusTone = computed(() => {
                     </div>
                 </section>
 
-                <!-- PER-STAGE BARS — one per item kind, not a spinner. -->
+                <!-- PER-STAGE BARS — the shared component (lane 3's), not a
+                     second set of our own. One idiom for every build stage. -->
                 <section v-if="stages.length" class="space-y-3">
                     <h2 class="text-sm font-semibold uppercase tracking-wide text-gray-400">Stages</h2>
-                    <div
-                        v-for="s in stages"
-                        :key="s.kind"
-                        class="rounded-lg border p-3"
-                        :class="s.is_current ? 'border-emerald-800/60 bg-emerald-950/20' : 'border-gray-700/50 bg-gray-900/30'"
-                    >
-                        <div class="flex items-baseline justify-between gap-3">
-                            <div class="flex items-baseline gap-2">
-                                <span class="text-sm text-gray-200">{{ s.label }}</span>
-                                <span class="font-mono text-xs text-gray-500">{{ s.kind }}</span>
-                                <span v-if="s.running" class="inline-flex h-1.5 w-1.5 animate-pulse rounded-full bg-emerald-400" />
-                            </div>
-                            <div class="font-mono text-xs text-gray-400">
-                                {{ fmt(s.done) }}/{{ fmt(s.total) }}
-                                <span v-if="s.review" class="ml-2 text-amber-400">{{ s.review }} review</span>
-                            </div>
-                        </div>
-                        <div class="mt-2 h-1.5 overflow-hidden rounded bg-gray-800">
-                            <div
-                                class="h-full rounded transition-[width] duration-700 ease-out"
-                                :class="s.review && s.done + s.review >= s.total ? 'bg-amber-500' : 'bg-emerald-500'"
-                                :style="{ width: pct(s.done, s.total) + '%' }"
-                            />
-                        </div>
-                    </div>
+                    <StageBars :stages="stages" :poll-ms="2000" />
                 </section>
 
                 <!-- WORKER STRIP — one honest line per live worker. -->
