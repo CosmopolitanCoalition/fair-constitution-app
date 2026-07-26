@@ -3,8 +3,10 @@
 namespace App\Http\Controllers\System;
 
 use App\Http\Controllers\Controller;
+use App\Http\Middleware\DevTimeControlsEnabled;
 use App\Models\Clock;
 use App\Models\ClockTimer;
+use App\Services\Dev\DevClockService;
 use App\Support\SurfaceMeta;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
@@ -47,7 +49,61 @@ class ClocksController extends Controller
                 'amendable' => $clocks->where('amendable', true)->count(),
                 'hardened'  => $clocks->where('amendable', false)->count(),
             ],
-        ]);
+            'dueNow'  => $this->dueNow(),
+        ] + $this->playtestPreview());
+    }
+
+    /**
+     * How many armed timers are ALREADY past their deadline, per clock.
+     *
+     * Normally zero: the minute sweep fires them. A number that sits here and
+     * does not clear means the sweep is not running or a handler keeps
+     * refusing, which is worth seeing on the page rather than discovering
+     * later.
+     *
+     * @return array<string, int>
+     */
+    private function dueNow(): array
+    {
+        return DB::table('clock_timers')
+            ->where('state', ClockTimer::STATE_ARMED)
+            ->whereNull('deleted_at')
+            ->whereNotNull('fires_at')
+            ->where('fires_at', '<=', now())
+            ->selectRaw('clock_id, count(*) as due')
+            ->groupBy('clock_id')
+            ->pluck('due', 'clock_id')
+            ->map(static fn ($n): int => (int) $n)
+            ->all();
+    }
+
+    /**
+     * P3 — "what would fire if I advanced N days", on screen.
+     *
+     * The same dry run the console command prints, so the operator can look
+     * before he touches anything. Present ONLY when the playtest controls are
+     * actually enabled; on any normal instance this page stays exactly the
+     * read-only view it already was, with no hint that time travel exists.
+     *
+     * @return array<string,mixed>
+     */
+    private function playtestPreview(): array
+    {
+        if (DevTimeControlsEnabled::refusalReason() !== null) {
+            return ['playtest' => null];
+        }
+
+        $days = (int) request()->integer('advance', 0);
+
+        return [
+            'playtest' => [
+                'enabled' => true,
+                'days'    => $days,
+                'preview' => $days > 0
+                    ? app(DevClockService::class)->dryRun($days)
+                    : null,
+            ],
+        ];
     }
 
     /**

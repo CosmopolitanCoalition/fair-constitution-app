@@ -33,18 +33,45 @@ class DevTimeControlsEnabled
 {
     public function handle(Request $request, Closure $next): Response
     {
-        // Cheap flags first; the DB reads only if those pass.
-        abort_unless(
-            app()->environment('local')
-                && config('cga.impersonation', true)
-                && config('cga.dev_time', false)
-                && GameMode::isSandbox(),
-            404
-        );
-
-        abort_if($this->isConnectedToAnyPeer(), 404);
+        abort_unless(self::refusalReason() === null, 404);
 
         return $next($request);
+    }
+
+    /**
+     * The same gate, as a callable check — because the console commands
+     * (`dev:clock-fire`, `dev:clock-advance`) do the identical damage and never
+     * pass through middleware. One implementation, so the CLI and the HTTP
+     * routes can never drift apart on what is allowed.
+     *
+     * Returns NULL when the controls may run, or one plain sentence saying why
+     * not. A command can print that; the middleware just 404s.
+     */
+    public static function refusalReason(): ?string
+    {
+        if (! app()->environment('local')) {
+            return 'Playtest controls run only in the local environment.';
+        }
+
+        if (! config('cga.impersonation', true)) {
+            return 'The dev toolbox is switched off (cga.impersonation).';
+        }
+
+        if (! config('cga.dev_time', false)) {
+            return 'Playtest time controls are off. Set CGA_DEV_TIME=true to enable them (local sandbox only).';
+        }
+
+        if (! GameMode::isSandbox()) {
+            return 'This world is not in sandbox mode. Time controls are refused on a real world.';
+        }
+
+        if (self::connectedToAnyPeer()) {
+            return 'This instance is federated, mirrors another, or holds a peer. Time controls are '
+                .'refused: a node that other nodes trust must never be able to time-travel, because '
+                .'a peer takes its records on trust and cannot tell a played timeline from a lived one.';
+        }
+
+        return null;
     }
 
     /**
@@ -54,7 +81,7 @@ class DevTimeControlsEnabled
      * permissive direction is a fabricated record inside somebody else's
      * chain of trust.
      */
-    private function isConnectedToAnyPeer(): bool
+    private static function connectedToAnyPeer(): bool
     {
         try {
             // `mirror_of_server_id` is the instance-level authority flag: set
@@ -71,6 +98,24 @@ class DevTimeControlsEnabled
 
             if (Schema::hasTable('federation_peers') && DB::table('federation_peers')->exists()) {
                 return true;
+            }
+
+            // ADDED for the time controls specifically. The instance-level flags
+            // above answer "is this node a mirror?"; this answers "does this node
+            // hold any record somebody else is authoritative for?" — which is the
+            // one that matters when the action is MOVING PER-JURISDICTION
+            // DEADLINES. Advancing a jurisdiction whose authority lives elsewhere
+            // would rewrite another node's schedule, and Full Faith & Credit means
+            // they would take it on trust.
+            if (Schema::hasTable('jurisdictions')) {
+                $foreign = DB::table('jurisdictions')
+                    ->whereNotNull('authoritative_server_id')
+                    ->whereNull('deleted_at')
+                    ->exists();
+
+                if ($foreign) {
+                    return true;
+                }
             }
 
             return false;

@@ -930,6 +930,11 @@ Route::middleware('auth')->prefix('system')->name('system.')->group(function () 
     Route::get('/translations/progress', [\App\Http\Controllers\System\TranslationCoverageController::class, 'progress'])->name('translations.progress');
     Route::post('/translations/halt', [\App\Http\Controllers\System\TranslationCoverageController::class, 'halt'])->name('translations.halt');
     Route::post('/translations/resume', [\App\Http\Controllers\System\TranslationCoverageController::class, 'resume'])->name('translations.resume');
+    // The human half — where a person reads a machine draft and rules on it.
+    // Verification is gated to READERS of the language (enforced in the
+    // controller), because someone who cannot read it cannot confirm it.
+    Route::get('/translations/review/{locale}', [\App\Http\Controllers\System\TranslationReviewController::class, 'show'])->name('translations.review');
+    Route::post('/translations/review/{locale}', [\App\Http\Controllers\System\TranslationReviewController::class, 'store'])->name('translations.review.store');
 });
 
 // mockups-v3-wiring Phase 1 — /support/report intake. Anyone may SEE the form
@@ -954,6 +959,18 @@ if (app()->environment('local') && config('cga.impersonation', true)) {
         Route::post('/impersonate/stop', [ImpersonationController::class, 'stop'])->name('impersonate.stop');
         Route::post('/impersonate/{user}', [ImpersonationController::class, 'start'])->name('impersonate');
         Route::post('/pings/simulate', [PingController::class, 'simulate'])->name('pings.simulate');
+
+        // ── Playtest time controls (P1, P2) ──────────────────────────────
+        // A SECOND gate on top of DevToolsEnabled: impersonation READS the
+        // world from someone else's seat, these WRITE constitutional deadlines
+        // and fire real acts. DevTimeControlsEnabled adds the cga.dev_time key,
+        // sandbox mode, and an outright refusal on any federated or peered node
+        // — a node other nodes trust must never be able to time-travel.
+        Route::middleware([DevTimeControlsEnabled::class])->prefix('clock')->name('clock.')->group(function () {
+            // Dry run by default; ?apply=1 is the deliberate second step.
+            Route::post('/advance', [\App\Http\Controllers\Dev\DevClockController::class, 'advance'])->name('advance');
+            Route::post('/fire/{timer}', [\App\Http\Controllers\Dev\DevClockController::class, 'fire'])->name('fire');
+        });
         // Dev residency bypass: declare → simulated pings → verify, all
         // through the real engine, in one request (dev-only relocation).
         Route::post('/residency/grant', [ResidencyGrantController::class, 'grant'])->name('residency.grant');
