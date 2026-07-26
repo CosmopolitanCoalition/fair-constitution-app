@@ -17,7 +17,7 @@
  * run is in flight.
  */
 import { computed, ref, onMounted, onUnmounted } from 'vue';
-import { router } from '@inertiajs/vue3';
+import { router, Link } from '@inertiajs/vue3';
 import AppShellV2 from '@/Layouts/AppShellV2.vue';
 import PageScaffold from '@/Components/Surface/PageScaffold.vue';
 import Card from '@/Components/Ui/Card.vue';
@@ -25,6 +25,7 @@ import DataTable from '@/Components/Ui/DataTable.vue';
 import Stat from '@/Components/Ui/Stat.vue';
 import StatusBadge from '@/Components/Ui/StatusBadge.vue';
 import CitationLine from '@/Components/Ui/CitationLine.vue';
+import Icon from '@/Components/Ui/Icon.vue';
 
 defineOptions({ layout: AppShellV2 });
 
@@ -34,7 +35,22 @@ const props = defineProps({
     coverage: { type: Object, default: null },
     /** Live run deck, read off the workers' own heartbeat files. */
     live: { type: Object, default: null },
+    /** Languages × the six kinds of content, one state per cell. */
+    matrix: { type: Array, default: () => [] },
+    modalities: { type: Array, default: () => [] },
+    states: { type: Array, default: () => [] },
+    /** Registry entries for the languages shown (name, endonym, dir). */
+    registry: { type: Object, default: () => ({}) },
+    totals: { type: Object, default: () => ({}) },
 });
+
+/* ── The matrix ──────────────────────────────────────────────────────────────
+   Six kinds of content per language, each with its own state. One percentage
+   per language would let "Spanish is 99%" stand in for "the videos are dubbed
+   in Spanish"; six cells cannot make that claim. */
+const byState = computed(() => Object.fromEntries(props.states.map((s) => [s.id, s])));
+const langOf = (code) => props.registry[code] ?? { name: code, endonym: code, dir: 'ltr' };
+const cellLabel = (c) => (c.state === 'none' ? '—' : `${c.pct}%`);
 
 /* ── The live half ───────────────────────────────────────────────────────────
    Polls every 2s while a run is in flight, the same contract Step-3's district
@@ -238,6 +254,122 @@ function pctOf(part, whole) {
                 Each worker holds its own copy of the translation model, so the GPU — not the CPU —
                 sets how many can run at once. Work commits in small batches: halting, or a crash,
                 costs at most one batch and never leaves a half-written language.
+            </p>
+        </Card>
+
+        <!-- ── THE MATRIX ──────────────────────────────────────────────────
+             Languages × the six kinds of content. This is the honest shape of
+             the question "is this app translated?" — one number never was. -->
+        <Card v-if="matrix.length" title="Coverage" eyebrow="languages × kinds of content">
+            <p class="gloss">
+                Six kinds of content per language. A cell shows how complete it is and where it sits
+                in the lifecycle. <strong>{{ totals.mapped }}</strong> languages are registered and
+                <strong>{{ totals.translated }}</strong> are marked for translation; the
+                {{ totals.shown }} with catalogs on this instance are shown — a row of dashes for the
+                rest would bury these.
+            </p>
+
+            <div class="tlegend">
+                <span v-for="s in states" :key="s.id" class="leg" :title="s.desc">
+                    <span class="swatch" :class="`swatch--${s.id}`" />{{ s.label }}
+                </span>
+            </div>
+
+            <div class="table-wrap">
+                <table class="tmatrix">
+                    <caption class="visually-hidden">
+                        Translation coverage by language and kind of content
+                    </caption>
+                    <thead>
+                        <tr>
+                            <th scope="col">Language</th>
+                            <th v-for="m in modalities" :key="m.id" scope="col" :title="m.basis">
+                                {{ m.label }}
+                            </th>
+                            <th scope="col">Overall</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr v-for="r in matrix" :key="r.code">
+                            <th scope="row" class="lang-cell">
+                                <Link :href="`/system/translations/review/${r.code}`">
+                                    <span class="lang-native" :dir="langOf(r.code).dir" :lang="r.code">
+                                        {{ langOf(r.code).endonym }}
+                                    </span>
+                                    <span class="lang-code" data-no-i18n>{{ r.code }}</span>
+                                </Link>
+                                <span v-if="r.code === 'en'" class="pill pill--pass">Source</span>
+                            </th>
+                            <td
+                                v-for="m in modalities" :key="m.id"
+                                class="tcell" :class="`tcell--${r.cells[m.id].state}`"
+                                :aria-label="`${m.label}: ${byState[r.cells[m.id].state]?.label}${
+                                    r.cells[m.id].state === 'none' ? '' : `, ${r.cells[m.id].pct} percent`}`"
+                            >
+                                <span class="tdot" :title="byState[r.cells[m.id].state]?.label">
+                                    {{ cellLabel(r.cells[m.id]) }}
+                                </span>
+                            </td>
+                            <td class="tcell">
+                                <div class="tprog" :title="`${r.overall}% overall`">
+                                    <i :style="{ inlineSize: `${r.overall}%` }" />
+                                </div>
+                                <span class="lang-code" data-no-i18n>{{ r.overall }}%</span>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <p class="citation">
+                Overall is the mean of all six kinds, so the four we do not yet produce pull it
+                down. That is deliberate: a language is not translated because its buttons are.
+            </p>
+        </Card>
+
+        <Card v-if="modalities.length" title="The six kinds of content">
+            <div class="role-grid">
+                <div v-for="m in modalities" :key="m.id" class="role-card">
+                    <span class="role-name"><Icon :name="m.icon" size="sm" /> {{ m.label }}</span>
+                    <span>{{ m.basis }}</span>
+                    <span class="citation" data-no-i18n>{{ m.source }}</span>
+                    <span v-if="!m.measurable" class="gloss">{{ m.why }}</span>
+                </div>
+            </div>
+            <p class="gloss">
+                Interface and page copy are measured here. The other four are produced outside this
+                app and are reported as not-started rather than left blank — a blank cell reads as
+                "fine", which would be a lie.
+            </p>
+        </Card>
+
+        <Card title="How a language gets translated" inset>
+            <ol class="sop-steps">
+                <li>
+                    <span class="sop-do">Pick the language</span>
+                    <span class="sop-detail">Any of the {{ totals.mapped }} registered languages, or request a new one.</span>
+                </li>
+                <li>
+                    <span class="sop-do">Generate the first round</span>
+                    <span class="sop-detail">The machine drafts everything at once — people never start from a blank box.</span>
+                </li>
+                <li>
+                    <span class="sop-do">Open it for review</span>
+                    <span class="sop-detail">Readers of that language see the drafts and begin verifying.</span>
+                </li>
+                <li>
+                    <span class="sop-do">Publish on quorum</span>
+                    <span class="sop-detail">A string settles once enough readers agree and the gate is clean.</span>
+                </li>
+            </ol>
+            <p class="citation">
+                <Icon name="lock" size="sm" />
+                Private records never enter the pipeline — a database check forbids it.
+            </p>
+            <p class="citation">
+                <Icon name="users" size="sm" />
+                Verified by the people who read the interface in that language, never by the machine
+                grading itself.
             </p>
         </Card>
 

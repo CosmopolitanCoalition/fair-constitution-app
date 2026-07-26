@@ -925,6 +925,17 @@ return [
     | Both READ-ONLY BY DESIGN — zero forms, zero actions.
     */
 
+    'system/translation-review' => [
+        'title'     => 'Verify translations',
+        'module'    => 'system',
+        'nav'       => 'translations',
+        'roles'     => [],
+        'workflows' => ['WF-SYS-03'],
+        'forms'     => [],
+        'clocks'    => [],
+        'citation'  => 'A machine first draft, then verified by the people who read it',
+    ],
+
     'system/translations' => [
         'title'     => 'Translation status',
         'module'    => 'system',

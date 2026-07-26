@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\System;
 
 use App\Http\Controllers\Controller;
+use App\Services\TranslationReviewService;
 use App\Support\SurfaceMeta;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -40,13 +41,82 @@ class TranslationCoverageController extends Controller
     /** A worker silent this long is presumed gone, not working. */
     private const WORKER_STALE_SECONDS = 120;
 
+    public function __construct(private readonly TranslationReviewService $review)
+    {
+    }
+
     public function show(): Response
     {
+        $registry = config('locales.locales', []);
+        $counts   = config('locales.counts', []);
+        $codes    = $this->localesWithCatalogs($registry);
+
         return Inertia::render('System/Translations', [
             'surface'  => SurfaceMeta::for('system/translations'),
             'coverage' => $this->coverage(),
             'live'     => $this->live(),
+
+            /*
+             * The matrix — languages × the six kinds of content
+             * (mockups/v3/translation/translation-home.html).
+             *
+             * One percentage per language would let "Spanish is 99%" stand in
+             * for "the videos are dubbed in Spanish". Six cells cannot.
+             */
+            'matrix'     => $this->rankedMatrix($codes),
+            'modalities' => TranslationReviewService::MODALITIES,
+            'states'     => TranslationReviewService::STATES,
+            'registry'   => array_intersect_key($registry, array_flip($codes)),
+            'totals'     => [
+                'mapped'     => $counts['registered'] ?? count($registry),
+                'translated' => $counts['translated'] ?? 0,
+                'enabled'    => $counts['enabled'] ?? 0,
+                'shown'      => count($codes),
+            ],
         ]);
+    }
+
+    /**
+     * The matrix, source language first and the rest most-complete first.
+     *
+     * @param  list<string>  $codes
+     */
+    private function rankedMatrix(array $codes): array
+    {
+        $rows = $this->review->matrix($codes);
+
+        usort($rows, function (array $a, array $b): int {
+            if (($a['code'] === 'en') !== ($b['code'] === 'en')) {
+                return $a['code'] === 'en' ? -1 : 1;
+            }
+
+            return $b['overall'] <=> $a['overall'] ?: strcmp($a['code'], $b['code']);
+        });
+
+        return $rows;
+    }
+
+    /**
+     * Which languages the matrix shows: every registered locale that has a
+     * catalog directory on disk.
+     *
+     * Not all 112 — a row for a language nobody has started is a row of
+     * dashes, and 105 of them would bury the seven that carry real work. The
+     * totals line says how many exist so the omission is stated, not hidden.
+     *
+     * @param  array<string, array<string, mixed>>  $registry
+     * @return list<string>
+     */
+    private function localesWithCatalogs(array $registry): array
+    {
+        $dirs = glob(base_path('resources/js/i18n/locales') . '/*', GLOB_ONLYDIR) ?: [];
+        $codes = array_values(array_filter(
+            array_map('basename', $dirs),
+            fn (string $c): bool => isset($registry[$c]),
+        ));
+
+        // Registry order, so English (the source) leads and the rest are stable.
+        return array_values(array_intersect(array_keys($registry), $codes));
     }
 
     /**
