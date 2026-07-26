@@ -211,6 +211,43 @@ setup wizard; invites → growth flow). None are orphans. Details in the evidenc
 
 ---
 
+## 5b. The duplicated-rule defect — four instances, four different lanes
+
+*Added 2026-07-26. This is the most expensive recurring defect in the codebase and it has never
+been named in one place.*
+
+**The shape:** a rule has an authoritative computation somewhere. A second place restates it
+instead of asking it. The copy is correct on the day it is written and wrong the day the rule
+changes — and because both look authoritative, the disagreement surfaces somewhere far away,
+wearing a costume.
+
+| # | Where | The copy | What it cost |
+|---|---|---|---|
+| 1 | `VoteCountingService::run()` | The 5–9 seat band enforced inside the pure core, which carries no `seat_kind` and cannot tell a district race from an at-large one | Every `type_b`, `exec_committee` and `judicial_group` race above 9 seats was schema-legal and **untabulatable**. Blocked every fresh world's second chamber — and therefore every bicameral act. Fixed `5fbdb9d` |
+| 2 | `rosterSize()` (sim world) | Reimplemented which races are lawful — "type_b counts only when 1–9" | Wrong **within a day of being written**. Now drives `racePlan()` instead. Fixed `b6ff64c` |
+| 3 | `DistrictingService` giant test | Two independent giant computations — a local fractional test with no geometry check, versus `giantChildrenForScope()`, which every downstream reader actually uses | Rheinland-Pfalz locked 9 giant seats where the cascade allotted 11, so the non-giant pool was sized wrong. **Germany's chamber came out 442 against a constitutional 439.** Fixed `416f3ae` |
+| 4 | `ManualDistrictDraw` filing | Re-derived seats from a fresh measurement, discarding a plan whose vector summed to the budget *by construction* | Measurement noise at the rounding edge (a piece measuring 8.49 where the plan says 9) displaced one seat, and one displaced seat drifted the whole chamber. Fixed `727a593`, pinned `261a826` |
+
+### The rule
+
+**When a value already has an authoritative computation, ask it. Never restate it.** If asking is
+impossible — as in #1, where the counting core is pure by design and genuinely cannot know the
+seat kind — then the rule does not belong there at all. Move it to where the fact is known.
+
+### The test discipline that follows
+
+**Pin the relationship, not the number.** Lane 4's phrasing, earned the hard way: *"pinning the
+relationship survives a rule change and pinning the number doesn't."* Five of its pins broke on
+the Type B ruling because they asserted hardcoded seat counts; reframed to assert agreement with
+`racePlan()`, they now follow the rule wherever it goes.
+
+Corollary, from `261a826`: when safety rests on *"no caller does X today"*, that is a convention,
+not a rail. Pin the convention — and pin the **mechanism**, not the name. A future edit does not
+add `planned_seats`; it adds `$request->validated()` and opens the channel without ever typing
+the word.
+
+---
+
 ## 6. Runtime truth (both stacks, 2026-07-25)
 
 - **21 containers, zero unhealthy.** Each stack runs **10 services** (CLAUDE.md's table lists 7 —
