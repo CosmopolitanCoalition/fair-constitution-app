@@ -373,7 +373,11 @@ layer, and the hash-chained audit log span every phase.
 - Database: `snake_case` tables and columns
 - PostGIS geometry: always named `geom`, SRID 4326
 - UUIDs: all PKs and cross-table references
-- Soft deletes: all tables use `deleted_at`
+- Soft deletes: **MOST tables carry `deleted_at` — this is a convention, NOT a guarantee.**
+  Verified exceptions found the hard way: `emergency_power_renewals` (no `deleted_at`, no
+  `status`), `remedy_recommendations` (no `status`), `residency_confirmations`,
+  `constitutional_settings`. **Check `information_schema` before writing a query that assumes
+  either column.** This line previously read "all tables" and broke three separate lanes' work.
 - Timestamps: UTC, PostgreSQL `timestamptz`
 - Enums: strings with app-layer validation (not PostgreSQL ENUM type)
 
