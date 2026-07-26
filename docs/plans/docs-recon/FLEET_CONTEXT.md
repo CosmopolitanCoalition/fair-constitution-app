@@ -113,6 +113,20 @@ Six instances in a single day, 2026-07-26, in six different costumes:
 | a report of two identical lines | "there is a duplicate import" | a summary, not the file |
 | 8 screenshots passing every pixel check | "8 pages render" | "8 images look like real pages" — they were 8 photographs of the **login screen** |
 
+### ⚑ THE FULL-SUITE NUMBER AND THE ISOLATED NUMBER DISAGREE — do not read the delta as breakage
+**Confirmed 2026-07-26.** `MatrixCarveoutEmitterTest`, `ModerationFlipTest` and
+`TopologyReconcilerTest` appear in the **full-suite** failing list and **pass in isolation.** That
+is genuine order-dependence, cause not investigated, nobody claiming one.
+
+**So a run of `--filter=X` and a run of the whole suite will report different things about the
+same code, and neither is lying.** Before treating a difference as a regression, establish which
+kind of run produced each number.
+
+**This exact shape produced the day's worst round-trip:** a green isolated run was used to retract
+a correct finding, four lanes spent an hour on it, and the real cause was a third thing again — the
+file had been rewritten between the report and the run. **Two honest measurements disagreeing for
+a structural reason nobody had named.**
+
 ### ⚑ A FIXTURE ESTABLISHES WHAT ITS SUBJECT REQUIRES — it does not assume the world provides it
 Lane 3's general form, and it covers every "the suite broke and nobody changed the code" incident
 on 2026-07-26. **The box now holds real data. Any fixture that reaches for whatever happens to be
