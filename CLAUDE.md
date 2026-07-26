@@ -195,6 +195,22 @@ or implement one. The procedure (per legislature):
    sum to the pool budget are **excluded** — another configuration must be
    considered. Only when NO exact drawing exists (indivisible-atom scopes)
    does the closest one ship, under the undercount flag.
+7. **DRIFT IS ALWAYS WRONG** (ruling 2026-07-26, `0e9eda0`). The chamber size
+   is FIXED by the cube-root law, so a total that misses the pool budget
+   leaves seats unfillable or unallotted. Drift is never lawful, acceptable,
+   "noise", or "not the theoretical ideal" — do not describe it as any of
+   those. Two consequences, both now in `DistrictingService`:
+   - **Exactness outranks the comparator.** An exact landing is adopted
+     unconditionally. Spread and compactness are qualities; exactness is the
+     law. `landSeatVector` attempts whenever the total misses — never gated
+     on the spread being worse than canonical.
+   - **No child-count ceiling on the repair.** Closing a seat gap needs a
+     MOVE, not an enumeration of every partition, so the old ≤10-children
+     limit is gone. `repairSeatSumByMoves` walks single-child moves between
+     bins (adjacency preferred, band respected, bins never emptied), taking
+     the move that most reduces `|total − budget|`, repeating until exact.
+     Deterministic ties: lowest bin index, then lowest child id.
+   This is still a REDRAWING, not a redistribution loop — step 5 stands.
 
 Implementation: `DistrictingService::computeSeatBudget` (cascade, steps 1-4),
 Step 11 of `runAutoCompositeForScope` (step 5), `seat_drift` as `scoreRank()`'s
