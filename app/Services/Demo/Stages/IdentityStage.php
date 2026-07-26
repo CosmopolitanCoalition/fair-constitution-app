@@ -68,11 +68,24 @@ final class IdentityStage
         $needed = self::rosterSize($jurisdictionId);
 
         // Idempotent by construction: a re-handed unit tops the roster up to
-        // size rather than minting a second one. The email is a pure function of
-        // (seed, index), so "already minted" is a lookup, not a guess.
-        $existing = DB::table('residency_confirmations')
-            ->where('jurisdiction_id', $jurisdictionId)
-            ->where('is_active', true)
+        // size rather than minting a second one.
+        //
+        // ⚠ COUNT ONLY THIS ENGINE'S OWN PEOPLE. Counting every active resident
+        // looks equivalent and is not: a demo instance is the real standard
+        // "broadly materialized", so it can legitimately already contain REAL
+        // residents — a founded fixture, an imported world, a partially-played
+        // instance. Counting those made the stage conclude the roster was
+        // already full and mint NOBODY, silently, reporting done. That is
+        // exactly what happened on the San Marino fixture: 11 items done,
+        // 0 people, because someone else's residents filled the quota.
+        //
+        // The sim namespace is the discriminator, and it is reliable because
+        // PersonaFactory::email is a pure function of (seed, index).
+        $existing = DB::table('residency_confirmations as rc')
+            ->join('users as u', 'u.id', '=', 'rc.user_id')
+            ->where('rc.jurisdiction_id', $jurisdictionId)
+            ->where('rc.is_active', true)
+            ->where('u.email', 'like', 'sim-%@demo.invalid')
             ->count();
 
         if ($existing >= $needed) {

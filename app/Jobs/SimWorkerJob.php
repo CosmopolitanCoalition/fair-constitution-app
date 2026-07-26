@@ -5,6 +5,7 @@ namespace App\Jobs;
 use App\Models\SimItem;
 use App\Models\SimRun;
 use App\Services\Demo\Stages\CohortStage;
+use App\Services\Demo\Stages\ElectionStage;
 use App\Services\Demo\Stages\IdentityStage;
 use App\Support\SimClaims;
 use Illuminate\Bus\Queueable;
@@ -178,6 +179,11 @@ class SimWorkerJob implements ShouldQueue
                 (int) ($options['turnout_pct'] ?? CohortStage::DEFAULT_TURNOUT_PCT),
             ),
             'identity_batch' => IdentityStage::run(
+                (string) $item->jurisdiction_id,
+                (string) $run->id,
+                $version,
+            ),
+            'election_scope' => ElectionStage::run(
                 (string) $item->jurisdiction_id,
                 (string) $run->id,
                 $version,

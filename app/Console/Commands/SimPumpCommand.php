@@ -180,6 +180,24 @@ class SimPumpCommand extends Command
                            AND x.unit_key = c.jurisdiction_id::text
                     )
                   LIMIT ".self::MINT_CHUNK,
+            // One election per jurisdiction that has a chamber AND a roster.
+            'elections' => "INSERT INTO sim_items
+                    (id, run_id, kind, status, jurisdiction_id, adm_level, unit_key,
+                     position, est_cost, metrics, created_at, updated_at)
+                 SELECT gen_random_uuid(), ?, 'election_scope', 'pending',
+                        l.jurisdiction_id, s.adm_level, l.jurisdiction_id::text,
+                        s.position, COALESCE(l.type_a_seats, 0), '{}', now(), now()
+                   FROM legislatures l
+                   JOIN sim_items s
+                     ON s.run_id = ? AND s.kind = 'identity_batch'
+                    AND s.unit_key = l.jurisdiction_id::text AND s.status = 'done'
+                  WHERE l.deleted_at IS NULL
+                    AND NOT EXISTS (
+                        SELECT 1 FROM sim_items x
+                         WHERE x.run_id = ? AND x.kind = 'election_scope'
+                           AND x.unit_key = l.jurisdiction_id::text
+                    )
+                  LIMIT ".self::MINT_CHUNK,
             default => null,
         };
 
@@ -187,10 +205,15 @@ class SimPumpCommand extends Command
             return 0;
         }
 
+        // Bindings must match the placeholder count of the chosen statement —
+        // they differ per phase, and a fixed count silently breaks the phase
+        // whose SQL has fewer.
+        $bindings = array_fill(0, substr_count($sql, '?'), $run->id);
+
         $total = 0;
 
         do {
-            $n = DB::affectingStatement($sql, [$run->id, $run->id, $run->id, $run->id]);
+            $n = DB::affectingStatement($sql, $bindings);
             $total += $n;
         } while ($n > 0);
 

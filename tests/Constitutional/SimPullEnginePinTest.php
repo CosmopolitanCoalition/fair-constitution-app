@@ -35,6 +35,19 @@ class SimPullEnginePinTest extends TestCase
 
     private const LIVE_CONNECTION = 'pgsql_simpin';
 
+    /**
+     * The pump SEEDS WORKERS as one of its duties, and the test queue runs
+     * synchronously — so without this a dispatched worker would immediately
+     * claim back the very item whose reclaim we are asserting, and the pin
+     * would fail for a reason that has nothing to do with reclaiming. These
+     * tests measure the pump's bookkeeping; worker execution has its own pins.
+     */
+    protected function setUp(): void
+    {
+        parent::setUp();
+        \Illuminate\Support\Facades\Queue::fake();
+    }
+
     public function test_halted_and_paused_runs_hand_out_no_work(): void
     {
         $this->onLivePg(function () {
@@ -286,6 +299,15 @@ class SimPullEnginePinTest extends TestCase
 
     private function makeRun(array $attrs = []): SimRun
     {
+        // The pump's contract is ONE live run at a time — it supersedes every
+        // run but the oldest. So a test of the pump must establish that state,
+        // or a real run sitting on the box (a populate in progress, a finished
+        // demo) silently becomes the run under test and these assertions
+        // measure the wrong thing. Safe: the whole test rolls back.
+        DB::table('sim_items')->delete();
+        DB::table('sim_worker_leases')->delete();
+        DB::table('sim_runs')->delete();
+
         return SimRun::create(array_merge([
             'status' => 'running',
             'phase' => 'cohorts',

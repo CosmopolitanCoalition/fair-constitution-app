@@ -237,6 +237,81 @@ class IdentityStageTest extends TestCase
         $this->assertNotSame('', trim($persona['name']));
     }
 
+    /**
+     * REGRESSION — the bug that produced a silently empty world.
+     *
+     * A demo instance is the real standard "broadly materialized", so it can
+     * legitimately already contain REAL residents: a founded fixture, an
+     * imported world, a partially-played instance. The stage originally counted
+     * EVERY active resident to decide whether its roster was complete, so
+     * someone else's residents filled the quota and it minted NOBODY — while
+     * reporting `done`. On the San Marino fixture that was 11 items done and 0
+     * people, and the failure was invisible because every item succeeded.
+     *
+     * The engine must count only ITS OWN people.
+     */
+    public function test_pre_existing_real_residents_do_not_suppress_minting(): void
+    {
+        $this->onLivePg(function () {
+            $jid = $this->jurisdiction(population: 100_000);
+            CohortStage::run($jid, null, 1, 62);
+
+            // Real residents of this place, of the kind a founded world has —
+            // each their own person, because residency is unique per user.
+            $rows = [];
+            for ($i = 0; $i < IdentityStage::VISIBLE_SAMPLE * 3; $i++) {
+                $realUser = (string) Str::uuid();
+
+                DB::table('users')->insert([
+                    'id' => $realUser,
+                    'name' => 'A Real Person '.$i,
+                    'email' => 'real-person-'.$i.'-'.Str::lower(Str::random(6)).'@example.test',
+                    'password' => bcrypt(Str::random(20)),
+                    'status' => 'registered',
+                    'terms_accepted_at' => now(),
+                    'languages' => '["en"]',
+                    'timezone' => 'UTC',
+                    'locale' => 'en',
+                    'comm_prefs' => '{}',
+                    'created_at' => now(),
+                    'updated_at' => now(),
+                ]);
+
+                $rows[] = [
+                    'id' => (string) Str::uuid(),
+                    'user_id' => $realUser,
+                    'jurisdiction_id' => $jid,
+                    'days_confirmed' => 30,
+                    'confirmed_at' => now(),
+                    'voting_right_active' => true,
+                    'candidacy_right_active' => true,
+                    'is_active' => true,
+                    'depth' => 0,
+                    'created_at' => now(),
+                    'updated_at' => now(),
+                ];
+            }
+            DB::table('residency_confirmations')->insert($rows);
+
+            $result = IdentityStage::run($jid, null, 1);
+
+            $this->assertSame(
+                IdentityStage::VISIBLE_SAMPLE,
+                $result['users'],
+                'residents belonging to someone else must NOT satisfy this engine roster'
+            );
+            $this->assertSame(0, $result['reused'], 'nothing of ours existed yet');
+
+            $mine = DB::table('residency_confirmations as rc')
+                ->join('users as u', 'u.id', '=', 'rc.user_id')
+                ->where('rc.jurisdiction_id', $jid)
+                ->where('u.email', 'like', 'sim-%@demo.invalid')
+                ->count();
+
+            $this->assertSame(IdentityStage::VISIBLE_SAMPLE, $mine);
+        });
+    }
+
     // ── fixtures ──────────────────────────────────────────────────────────
 
     private function jurisdiction(int $population, array $languages = ['en']): string
