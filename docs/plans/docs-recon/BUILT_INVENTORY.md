@@ -396,6 +396,33 @@ setup wizard; invites → growth flow). None are orphans. Details in the evidenc
     so every monetary lever is dual-door). **Pin verified EXTENDED, not relaxed:** zero test lines
     removed, 145 added, and `DUAL_DOOR_KEYS` grew from one key to include the monetary levers.
 
+21. **⚑ NO FRESH WORLD CAN SEAT A BICAMERAL SECOND CHAMBER — so no fresh world gets a Phase-D
+    executive.** Found by lane 13 on the first founded fcd world (2026-07-25). Activation seats
+    **type_a only** — Type B districting is deferred by design (`ActivationService::seatPlan` →
+    `TypeBSeatLadder`, `type_b_needs_districting`) — so a newly activated bicameral jurisdiction sits
+    at *n* type_a / **0 type_b**. `institutions:demo-d`'s first step is an F-LEG-014 delegation vote,
+    which is `bicameral: true` and requires both chambers to agree independently; with zero Type B
+    seated it closes `failed` and the command stops at step 1. Verified in the DB
+    (`chamber_votes: exec_delegate · supermajority · bicameral=t · outcome=failed ·
+    serving_snapshot=31`).
+    **This is correct constitutional behaviour meeting an incomplete seating path — not a bug in
+    either.** The bicameral dual-agreement rule is hardened and must NOT be weakened to make a demo
+    command pass; if a fix touches it, that is the operator's call.
+    **Blast radius:** no Phase-D executive, org module or co-determination demo on any fresh world ·
+    lane 4's populate engine will hit the same wall at scale · lane 6 has no executive/org pages to
+    tour on a fresh world · the demo path stops short of the executive branch.
+    Routed to lane 3 (owns activation + seating) with lane 1 implicated (owns Type B districting).
+22. **✅ CLOSED 2026-07-25 — the 8 "pre-existing" suite failures were environmental, exactly as
+    hypothesised.** Against the founded fcd world `WorkerRepresentationTest` went from **8 failed to
+    8 passed / 232,044 assertions with nothing in the file changed**. Cause was
+    *"Live DB has no jurisdictions — seed it first"*, never code. Full constitutional suite should
+    read 608/608 on fcd. **Standing lesson: a green suite must be demonstrated on a SEEDED
+    instance** — a virgin box cannot produce one, and that failure mode is indistinguishable from
+    broken code at a glance.
+    *(Calibration note for future estimates: the one-country ETL took **2 minutes**, not the 10–30
+    estimated; the whole window was 45 minutes, not 1–2 hours. Lane 13 corrected its own estimate on
+    the record.)*
+
 ## 8. Standing rule for future audits
 
 Before classifying anything unbuilt: (1) sweep for **alternate names** (education→journeys,
