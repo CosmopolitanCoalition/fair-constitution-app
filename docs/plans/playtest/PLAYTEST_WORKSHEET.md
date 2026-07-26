@@ -65,7 +65,7 @@ Every use is marked in the record as a dev action, so a played timeline never re
 
 ---
 
-## Six things that will look broken and aren't
+## Seven things that will look broken and aren't
 
 **1. No achievements will appear.** The app has a catalogue of 139 achievements, but the piece that
 watches for them and awards them isn't built yet. **Nothing on this sheet asks you to check for an
@@ -97,8 +97,19 @@ finding nothing is the single easiest way to conclude the app is broken when it 
 **6. A blank page is not proof of a blank page — look twice.** These screens are drawn by the
 browser after the page arrives, so for a moment they are legitimately empty. On a loaded box that
 moment stretches. **Reload once before writing anything down.** Two of us have already nearly filed
-a working page as dead this way. And if *every* page is blank rather than one, that is the asset
-server being down — one problem, not a hundred.
+a working page as dead this way.
+
+**7. If EVERYTHING fails at once, it's the box, not the app.** One broken page is a finding; every
+page broken together is the machine. Three shapes, all seen today, none of them a defect in what
+you're testing:
+- **Every page blank** → the asset server isn't running.
+- **Every page "502"** → the app server is restarting. Wait a minute and retry.
+- **Every page "500" mentioning a log file** → a file-permission problem on the box, fixed by
+  restarting the app container.
+
+**Write down the time and move on — don't fill in a column of failures.** One line in your notes
+("everything 502 at 15:47") is worth more than twenty cards marked fail, and it tells us exactly
+where to look.
 
 ---
 
