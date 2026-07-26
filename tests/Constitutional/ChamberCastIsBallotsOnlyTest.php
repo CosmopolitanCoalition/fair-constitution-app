@@ -113,6 +113,59 @@ class ChamberCastIsBallotsOnlyTest extends TestCase
             'The connectivity check must FAIL CLOSED — an uncertain read must count as connected.');
     }
 
+    /**
+     * A ballot supply that can INVENT VOTERS is as useless as one that can
+     * invent results — same family as the outcome pin. Eligibility is drawn
+     * from seated members of the vote's own legislature, and CURRENT ones:
+     * an election cycle `term_ends` the previous cohort and leaves those rows
+     * in place, so filtering on `vacated_at` alone would let the control cast
+     * as ex-legislators. (That exact bug bit institutions:demo-lawmaking.)
+     */
+    public function test_it_cannot_cast_for_anyone_who_is_not_currently_seated(): void
+    {
+        $source = $this->controllerSource();
+
+        $this->assertStringContainsString(
+            'CURRENT_STATUSES',
+            $source,
+            'Eligibility must be current seats, not merely un-vacated rows — a term-ended member is not a voter.'
+        );
+
+        $this->assertStringContainsString(
+            "where('legislature_id', \$vote->legislature_id)",
+            $source,
+            'Ballots may only come from the legislature the vote belongs to.'
+        );
+
+        $this->assertStringContainsString(
+            "whereNotNull('user_id')",
+            $source,
+            'A seat with no person behind it cannot cast.'
+        );
+    }
+
+    /**
+     * One member, one ballot. The control must exclude anyone who has already
+     * cast on this vote — otherwise a bloc could be stacked by re-running it,
+     * which is outcome-forcing wearing a different hat.
+     */
+    public function test_it_cannot_cast_twice_for_the_same_member(): void
+    {
+        $source = $this->controllerSource();
+
+        $this->assertStringContainsString(
+            "DB::table('vote_casts')->where('vote_id', \$vote->id)->pluck('member_id')",
+            $source,
+            'It must read who has already cast on this vote.'
+        );
+
+        $this->assertStringContainsString(
+            "whereNotIn('id', \$already)",
+            $source,
+            'Members who have already cast must be excluded — one member, one ballot, even across repeated calls.'
+        );
+    }
+
     /** Every invocation must be distinguishable in the audit chain forever. */
     public function test_every_cast_is_audit_marked_as_a_dev_action(): void
     {
