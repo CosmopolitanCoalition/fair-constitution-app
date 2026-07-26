@@ -103,9 +103,7 @@ final class PersonaFactory
         $family = self::FAMILY[$lang] ?? self::FAMILY['en'];
         $jobs = self::OCCUPATIONS[$urbanicity] ?? self::OCCUPATIONS['town'];
 
-        $name = $given[$rng->between(0, count($given) - 1)]
-            .' '
-            .$family[$rng->between(0, count($family) - 1)];
+        $name = self::assembleName($given, $family, $seed, $index);
 
         return [
             'name' => $name,
@@ -117,6 +115,81 @@ final class PersonaFactory
             // a researched population and a defaulted one are never confused.
             'persona_source' => self::SOURCE_DEFAULT,
         ];
+    }
+
+    /**
+     * A person's name, assigned so that NO TWO PEOPLE IN A JURISDICTION SHARE ONE
+     * until the corpus is genuinely exhausted.
+     *
+     * WHY THIS IS NOT A RANDOM DRAW. It used to be: two `$rng->between()` calls
+     * into a 16-given × 12-family corpus. That is 192 possible names, and the
+     * birthday bound says a few dozen people will already start colliding. On the
+     * first real world — Niue, 379 people — it produced FIVE separate residents
+     * named "Giulia Agostini", four "Clara Calder", and 379 people wearing only
+     * 235 distinct names. It also cost me an hour chasing a phantom: a scan
+     * grouped by name reported one person holding two seats in both chambers of
+     * Niue's legislature, which would have been a serious constitutional defect.
+     * It was two different people with the same generated name. A demo whose
+     * roster repeats itself is not merely untidy — it manufactures false defects
+     * and makes real ones harder to see.
+     *
+     * So the name is a BIJECTION of the person's index, not a sample:
+     *
+     *   slot = (index · stride + offset) mod (|given| · |family|)
+     *
+     * With `stride` coprime to the space, that is a full-cycle permutation — every
+     * slot is visited exactly once before any repeats, so the first 192 residents
+     * of a place are guaranteed distinct while still not reading as alphabetical.
+     * `offset` is derived from the jurisdiction seed so two places do not both
+     * open with the same name. Past one full cycle a second family name is
+     * appended, multiplying the space by |family| (192 → 2,304) rather than
+     * repeating — enough that collisions reappear only in genuinely large
+     * populations, where namesakes are realistic anyway.
+     *
+     * Deterministic and pure: same seed and index, same name, forever.
+     *
+     * @param  list<string>  $given
+     * @param  list<string>  $family
+     */
+    private static function assembleName(array $given, array $family, string $seed, int $index): string
+    {
+        $g = count($given);
+        $f = count($family);
+        $space = $g * $f;
+
+        // The first stride coprime to the space — required for the full cycle.
+        // Corpus sizes are small products of 2s and 3s, so 7 almost always wins;
+        // the loop keeps the guarantee true if a corpus is ever resized.
+        $stride = 1;
+        foreach ([7, 11, 13, 17, 19, 23, 29, 31] as $candidate) {
+            if (self::gcd($candidate, $space) === 1) {
+                $stride = $candidate;
+                break;
+            }
+        }
+
+        $offset = crc32($seed) % $space;
+        $slot = ($index * $stride + $offset) % $space;
+
+        $name = $given[$slot % $g].' '.$family[intdiv($slot, $g) % $f];
+
+        // Past a full cycle, double-barrel rather than repeat.
+        $cycle = intdiv($index, $space);
+
+        if ($cycle > 0) {
+            $name .= '-'.$family[($cycle - 1) % $f];
+        }
+
+        return $name;
+    }
+
+    private static function gcd(int $a, int $b): int
+    {
+        while ($b !== 0) {
+            [$a, $b] = [$b, $a % $b];
+        }
+
+        return $a;
     }
 
     /**
