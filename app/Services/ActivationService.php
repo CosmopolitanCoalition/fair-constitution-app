@@ -30,11 +30,11 @@ use RuntimeException;
  *        type_b_seats = count(direct children) — one seat per constituent,
  *        Art. V §3; both kinds required whenever constituents exist.
  *      - LEAF jurisdictions → type_a = max(5, round(∛own population)),
- *        unicameral (type_b = 0), CLAMPED to the resolved ceiling (9):
- *        a childless jurisdiction has nothing to subdivide over, and a
- *        > 9-seat voter pool is unconstitutional (Art. II §2/§8). The
- *        clamp is audited; the shortest-split-line drawing tool
- *        (backlog #1) restores cube-root sizing with districts later.
+ *        unicameral (type_b = 0). NO CEILING CLAMP — retired 2026-07-19.
+ *        A childless chamber above the ceiling keeps its lawful size and
+ *        gets LINE-SPLIT districts; truncating it would have thrown away
+ *        seats the cube-root law grants. See :439 and :618 for the live
+ *        behaviour.
  *      status 'forming', term_number 1.
  *   3. executive + judiciary stubs (InstitutionStubService — shared with
  *      Setup Step 4).
@@ -45,7 +45,9 @@ use RuntimeException;
  *         generate + activate the INITIAL DISTRICT MAP
  *         (InitialDistrictMapService → DistrictingService auto-composite
  *         → system-filed F-ELB-003);
- *      c. leaf chambers above the ceiling → THE CLAMP (re-plan to 9);
+ *      c. leaf chambers above the ceiling → a posture note ONLY. The clamp
+ *         was retired 2026-07-19; the chamber keeps its size and awaits
+ *         line-split districting;
  *      d. system-file F-ELB-001 scheduling the first general election
  *         (engine seam → ElectionLifecycleService; dates compressed only
  *         via config('cga.election_demo_compression') — config, never
@@ -629,10 +631,13 @@ class ActivationService
      *    district map (San Marino: 32 type_a over 9 castelli → 5–9-seat
      *    districts). Generation failure records the blocked posture and
      *    leaves the §B.4 engine rejection to the F-ELB-001 filing.
-     *  - leaf + type_a > ceiling → THE CLAMP to the ceiling
-     *    (Montegiardino: 10 → 9), audited with citation.
+     *  - leaf + type_a > ceiling → NO CLAMP (retired 2026-07-19). The
+     *    chamber keeps its lawful size and an audit note records that it
+     *    awaits line-split districting. Montegiardino stays at 10, it is
+     *    not cut back to 9: truncating would discard a seat the cube-root
+     *    law grants, and the ceiling is a DISTRICT rule, not a chamber one.
      *
-     * @return object the (possibly re-planned) legislatures row
+     * @return object the legislatures row (unchanged — nothing is resized here)
      */
     private function applySeatPosture(Jurisdiction $jurisdiction, JurisdictionActivation $activation, object $legislature): object
     {
