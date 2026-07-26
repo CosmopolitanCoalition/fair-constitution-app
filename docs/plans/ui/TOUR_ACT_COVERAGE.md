@@ -1,7 +1,8 @@
 # What you'll actually see if you walk the tour today
 
-**For the operator, before he walks it. Lane 6, 2026-07-25 23:0x. Box: dev (`fcd`, :8082) — the
-San Marino world lane 13 founded at 21:35.**
+**For the operator, before he walks it. Lane 6, 2026-07-25. Main box: dev (`fcd`, :8082) — the
+San Marino world lane 13 founded at 21:35. But see "The other box" below — the game box shows you
+something San Marino cannot, and I had that wrong at first.**
 
 **Why this exists.** If you walk the app cold, some screens will be empty. Empty screens look
 identical whether the feature was never built, was built but has no data here, or is built and
@@ -153,6 +154,53 @@ Acts in the design contract with **no live tour coverage at all**:
 
 ---
 
+## The other box — and I had this wrong
+
+**I said the game box (`fc`, :8080) was setup-locked and not worth walking. That was wrong, and
+the correction is in your favour.**
+
+The setup lock is a **prefix allow-list**, not a wall
+(`app/Http/Middleware/RedirectIfSetupIncomplete.php:34` — `setup, operator, legislatures,
+jurisdictions, federation, login, logout, register`). Everything else redirects to the wizard, but
+those prefixes render **right now, over the real 956,000-jurisdiction Earth**. Measured, not
+inferred:
+
+| Route | Game box today |
+|---|---|
+| `/jurisdictions` | **200** |
+| `/legislatures` | **200** |
+| `/legislatures/earth-0-earth/districts` — the district mapper, whole planet | **200** |
+| `/legislatures/{id}/chamber` | **200, and public** — no login, `withoutMiddleware('auth')`, marked "public read — Art. II §2" |
+| `/civic`, `/elections`, `/executive`, `/judiciary`, `/system/*` | 302 → `/setup` |
+
+**Why this matters more than the fixture for those particular screens:** San Marino has 11
+jurisdictions. The game box has 956,336, with Earth's real 1,999-seat legislature and its drawn
+district map. **If you want to see the map and districting work at full scale, that's the box** —
+no fixture can show it.
+
+### ⚠ But the first page you open will feel broken
+
+These pages are slow cold and fine warm. Measured on the mapper just now:
+
+| | First hit after idle | Immediately again |
+|---|---|---|
+| `/legislatures/earth-0-earth/districts` | **41.8 s** | **4.1 s** |
+| `/legislatures` | 29.5 s | ~4 s |
+| `/jurisdictions` | 18.6 s | ~2 s |
+
+So: **click it, wait, and don't judge it on the first load.** A second agent measured a **500 at
+101 s** on a genuinely cold cache — I could not reproduce it (I got 200 at 41.8 s), so I'm
+recording it as *seen once, unconfirmed* rather than a standing fault. If you do hit a blank error
+page there, reload rather than concluding the mapper is broken. It's a cache-cold performance
+cliff against 956k rows, not a gate and not a bug in the page.
+
+**A methodology trap for anyone diagnosing this box:** the lock only fires for HTML navigation
+(`:54-58`). A plain `curl` without an `Accept: text/html` header **skips the setup lock** and
+redirects to `/login` instead — so a naive probe reports the wrong gate entirely. Anything I
+measured above used the header.
+
+---
+
 ## One copy defect, and this box makes it worse
 
 `resources/js/Pages/System/Amendments.vue:34` lists this as hardened constitutional law:
@@ -187,12 +235,27 @@ one string and it's queued for my release. The rest of the app already says it c
 
 ## What I'd do first, if the goal is a good walk
 
-1. **Run the three seeders that already exist** — `social:demo`, `matrix:demo`,
-   `institutions:demo-e`. Lights up 3 empty stops for a few minutes' work.
-2. **Rule on Type B seating.** It's worth 14 contract stops, and it's the only item here that
-   needs you.
-3. **Let me land the six economy pages** (or have lane 13 stub them) so `/economy` stops being a
+1. **Walk the two boxes for different things.** Dev (:8082) for the civic, election, record and
+   economy surfaces. Game box (:8080) for **jurisdictions, legislatures, the chamber and the
+   district mapper at full planetary scale** — give the first page 40 seconds before judging it.
+2. **Run the three seeders that already exist** — `social:demo`, `matrix:demo`,
+   `institutions:demo-e`. Lights up 3 empty stops for a few minutes' work. Cheapest win here.
+3. **Rule on Type B seating.** Worth 14 contract stops, and the only item on this page that
+   actually needs you.
+4. **Let me land the six economy pages** (or have lane 13 stub them) so `/economy` stops being a
    trap.
-4. **Decide whether Lawmaking gets a seeder.** Biggest act, no command, not my lane.
+5. **Decide whether Lawmaking gets a seeder.** Biggest act in the contract, no command exists,
+   not my lane.
 
-Nothing above needs my release except item 3. This map is free.
+Nothing above needs my release except item 4. This map is free.
+
+---
+
+## Changelog
+
+- **v2** — Corrected the game box from "setup-locked, not worth walking" to a **prefix
+  allow-list**: jurisdictions, legislatures, chamber and the district mapper render today over
+  the real 956k-jurisdiction Earth. Added measured cold/warm timings and the `Accept`-header
+  diagnostic trap. This reversed my own advice, and it's the more useful half of the document.
+- **v1** — First map: 21 stops, 12 live / 2 partial / 7 empty; contract corrected to 117 stops
+  in 15 acts; economy routes-without-pages trap; Lawmaking seeder gap.
