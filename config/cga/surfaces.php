@@ -1014,6 +1014,19 @@ return [
         'citation'  => 'Every legislature sized by the cube-root law; 5–9 seats per district · Art. II §2',
     ],
 
+    'build/progress' => [
+        'title'     => 'Building the world',
+        'module'    => 'jurisdictions',
+        'nav'       => 'build',
+        // Descriptive page metadata only — SurfaceMeta never gates a route.
+        'roles'     => ['R-01', 'R-02', 'R-03', 'R-04'],
+        'workflows' => ['WF-JUR-01'],
+        'forms'     => [],
+        'clocks'    => [],
+        'citation'  => 'Every place is given the same institutions before anyone arrives — a chamber, '
+            .'an executive, a court, an election board, and somewhere to talk · Art. II §2; Art. III; Art. IV §1',
+    ],
+
     'social/legitimacy' => [
         'title'     => 'Reach',
         'module'    => 'social',
