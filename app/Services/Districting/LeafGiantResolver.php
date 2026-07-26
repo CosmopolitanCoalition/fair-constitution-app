@@ -323,6 +323,20 @@ class LeafGiantResolver
                 // Null (hand-drawn, components, cells, absorb) keeps the
                 // geometric path.
                 'cut_path'        => $d['cut_path'] ?? null,
+                // PLANNED SEATS (operator ruling 2026-07-26, drift is always
+                // wrong): the plan's seat vector sums to the giant's budget
+                // BY CONSTRUCTION (seatGroups → sizes → a blade balanced to
+                // those sizes). Re-deriving each piece's seats from a fresh
+                // measurement at filing re-introduces rounding-edge noise, and
+                // a single piece landing one seat off drifts the whole
+                // chamber — Germany filed Berlin 20 + Hamburg 10 against
+                // budgets summing to 27. This is the AUTOSEED path: the plan
+                // was computed server-side in this same process from this
+                // same raster, so there is no client to distrust. The handler
+                // still measures, still gates the band, and still refuses a
+                // real mismatch — it only stops overruling the plan on a
+                // one-seat rounding disagreement.
+                'planned_seats'   => $d['seats'] ?? null,
             ]);
             $ids[] = $res->recorded['district_id'];
         }

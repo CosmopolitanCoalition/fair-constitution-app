@@ -250,6 +250,25 @@ class ManualDistrictDraw implements FormHandler
         $fractional = $this->raster->impliedSeats($pop, $quota);
         $seats = (int) round($fractional);
 
+        // PLAN PARITY (operator ruling 2026-07-26: drift is ALWAYS wrong).
+        // The autoseed plan's seat vector sums to the giant's budget by
+        // construction; this re-measurement exists to VERIFY the piece, not to
+        // re-allocate it. When the two disagree by exactly one seat — the
+        // rounding edge, where a piece measures 8.49 here and planned 9 there
+        // — the plan wins, because its total is the constitutional one and a
+        // single displaced seat drifts the whole chamber. A disagreement
+        // larger than one seat is a REAL mismatch: the plan does not override
+        // it, and the band gate below refuses as it always has.
+        $plannedSeats = $payload['planned_seats'] ?? null;
+        if (is_int($plannedSeats)
+            && $plannedSeats >= 1
+            && $plannedSeats <= $ceiling
+            && ($plannedSeats >= $floor || $floorPosture)
+            && abs($plannedSeats - $seats) <= 1
+        ) {
+            $seats = $plannedSeats;
+        }
+
         // Band gate: a ceiling violation or an empty/zero-seat piece always
         // refuses. A sub-floor piece refuses on the HUMAN path (redraw it),
         // but files as the recorded floor_override posture on the autoseed
