@@ -73,14 +73,30 @@ const fmt = (n) => Number(n ?? 0).toLocaleString();
             </p>
         </template>
 
-        <Banner v-if="world?.complete" tone="success" class="mb-4">
-            Every stage is full — this world is built and ready for people.
+        <!-- BUILT is not GOVERNED. A world can be fully built and have nobody
+             in it, and that is the correct state until communities hold their
+             elections — so the banner never says "ready" without saying how
+             many chambers are actually seated. -->
+        <Banner v-if="world?.complete && world?.awaiting_election" tone="info" class="mb-4">
+            Every stage is built. {{ fmt(world.seated) }} of
+            {{ fmt(world.legislatures) }} chambers have members —
+            the rest are waiting for their first election, which is how a new
+            world should look until people arrive.
+        </Banner>
+
+        <Banner v-else-if="world?.complete" tone="success" class="mb-4">
+            Every stage is built and every chamber has members.
         </Banner>
 
         <Card v-if="world" class="mb-4">
             <div class="flex flex-wrap gap-6">
                 <Stat label="Places with a chamber" :value="fmt(world.legislatures)" />
-                <Stat label="Getting institutions" :value="fmt(world.target)" />
+                <Stat label="Chambers with members" :value="fmt(world.seated)" />
+                <Stat
+                    v-if="world.awaiting_election"
+                    label="Awaiting a first election"
+                    :value="fmt(world.awaiting_election)"
+                />
                 <Stat
                     v-if="world.skipped"
                     label="Nobody lives there"

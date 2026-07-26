@@ -135,9 +135,25 @@ class BuildProgressController extends Controller
             $stages[$i]['is_current'] = $s['total'] > 0 && $s['done'] < $s['total'];
         }
 
+        // BUILT IS NOT GOVERNED, and the page must not let those read the same.
+        // Every bar full means the institutions EXIST; it does not mean anyone
+        // holds a seat. A fresh world's chambers are empty until a community
+        // holds an election, and that is the correct state — activation
+        // declares seats, only an election fills them, and seating without one
+        // would manufacture members nobody voted for. Showing "built and ready"
+        // without this number is how an empty world reads as a governed one.
+        $seated = $count('
+            SELECT count(*) FROM legislatures l
+             WHERE l.deleted_at IS NULL
+               AND EXISTS (SELECT 1 FROM legislature_members m
+                            WHERE m.legislature_id = l.id AND m.deleted_at IS NULL)
+        ');
+
         return [
             'stages' => $stages,
             'world'  => [
+                'seated'            => $seated,
+                'awaiting_election' => max(0, $legislatures - $seated),
                 'binding'           => $binding,
                 'binding_label'     => $binding === InstitutionScaleService::BINDING_REAL
                     ? 'Institutions follow real population'
