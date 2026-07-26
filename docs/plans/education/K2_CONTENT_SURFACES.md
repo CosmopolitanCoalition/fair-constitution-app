@@ -6,7 +6,7 @@ sure we're already there."* Plus: **in-app education is PER SCREEN — "it's all
 So it's the shape for everything."**
 
 **Volume:** 70 surfaces × 2 halves = **140 items**. Delivered in waves by module.
-**Waves 1-2 complete: `civic` (28) + `legislature` (24) = 52 of 140.**
+**Waves 1-4 complete: `civic` (28) + `legislature` (24) + `electoral` (18) + `judiciary` (14) = 84 of 140.**
 
 ---
 
@@ -400,6 +400,206 @@ is not part of anyone's civic life and carries no education content.
 
 ---
 
+## Wave 3 — `electoral` (9 surfaces)
+
+### 27. `elections/detail` — Election detail
+**learn:** One election end to end: when it was called, who is standing, how it will be counted,
+and when each stage closes.
+
+| # | do | detail | cite |
+|---|---|---|---|
+| 1 | Read the schedule | Every deadline is published with the order that called the election, not decided as it goes. | F-ELB-001 |
+| 2 | Note the finalist number | **How many candidates advance is fixed and published up front**, derived from the number of seats. Nobody adjusts it once they can see who is winning. | CLK-21 · Art. II §2 |
+| 3 | Follow to certification | The board certifies the result; a recount or audit can be ordered on the record. | F-ELB-004 · F-ELB-006 |
+
+---
+
+### 28. `elections/candidacy-registration` — Candidacy registration
+**learn:** How you put your name forward. There is nothing to qualify for.
+
+| # | do | detail | cite |
+|---|---|---|---|
+| 1 | Register your candidacy | If you are associated with the jurisdiction, you may stand. **No fee, no signatures, no endorsement, no approval.** | F-IND-011 · Art. I |
+| 2 | Wait for validation | The board checks one thing: that you are actually associated here. It is a check, not a judgement. | F-ELB-002 |
+
+> **The why:** Art. I gives the right to stand for office *"regardless of any characteristic except
+> jurisdictional association."* The validator refuses any filing that tries to attach a fee or an
+> eligibility condition to this form — the app will not let a legislature invent one.
+
+---
+
+### 29. `elections/candidate-profile` — Candidate profile
+**learn:** What a candidate says for themselves, and who has backed them.
+
+| # | do | detail | cite |
+|---|---|---|---|
+| 1 | Publish your platform | Candidate platforms are **mandatory-public** — standing for power means saying what you would do with it. | F-CAN-001 · Art. I |
+| 2 | Ask an organisation to endorse you | You request; the organisation decides. Its grant is always public. | F-CAN-002 |
+| 3 | Withdraw if you change your mind | Standing down is your own act. | F-CAN-003 |
+
+> **The why:** **endorsements inform, they never gate.** A candidate with no endorsements appears on
+> the ballot exactly like any other — running unendorsed is first-class. Any organisation *or*
+> individual can be an endorser on the record; there is no party layer and no slate.
+
+---
+
+### 30. `elections/open-ballot` — Open ballot
+**learn:** The first round. Everyone standing appears; you mark everyone you would be content with.
+
+| # | do | detail | cite |
+|---|---|---|---|
+| 1 | Approve as many as you like | This is not a choice of one. Approve everybody you could live with. | Art. II §2 |
+| 2 | Filter by who has endorsed them, if it helps | The filter offers organisations, "individual endorsers", or "no endorsements". **There is no party column, because there are no parties in the model.** | — |
+| 3 | Understand what this round decides | Approval picks the finalists. It does not pick the winners. | CLK-21 |
+
+---
+
+### 31. `elections/ranked-ballot` — Ranked ballot
+**learn:** The round that fills the seats. You rank the finalists; the count does the rest.
+
+| # | do | detail | cite |
+|---|---|---|---|
+| 1 | Rank the finalists in your true order | **Ranking your real favourite first can never hurt them.** There is no tactical reason to rank dishonestly. | Art. II §2 |
+| 2 | Submit | Your ballot is separated from your identity at the moment it is cast. | F-IND-007 |
+| 3 | Keep your receipt | You can check your ballot was included, without revealing what it said. | F-IND-007 |
+
+> **The why:** seats are filled by single transferable vote with a Droop quota. A vote for someone
+> who has already won, or who cannot win, **transfers** instead of being thrown away — which is why
+> almost no vote is wasted and why the chamber ends up proportional without anyone sorting people
+> into blocs.
+
+---
+
+### 32. `elections/results` — Results
+**learn:** The count, round by round, and how to check it yourself.
+
+| # | do | detail | cite |
+|---|---|---|---|
+| 1 | Read the rounds | Every transfer and elimination is shown. The count is not a black box that emits a winner. | Art. II §2 |
+| 2 | Verify your own ballot | Check your receipt against the published set. | — |
+| 3 | See who may observe | Observation and audit standing belongs to the **endorsing organisations and the candidates themselves**. | F-ELB-004 · F-ELB-006 |
+
+---
+
+### 33. `elections/board-console` — Election board console
+**learn:** The working surface for the people who run an election — and the limits on what they can
+touch.
+
+| # | do | detail | cite |
+|---|---|---|---|
+| 1 | Call the election and validate candidacies | Scheduling and validation are the board's core acts. | F-ELB-001 · F-ELB-002 |
+| 2 | Draw or review districts | Boundaries are versioned; old plans are archived, never overwritten. | F-ELB-003 |
+| 3 | Certify, audit, recount | Certification seats the winners automatically. Audits and recounts are filed acts on the public record. | F-ELB-004 · F-ELB-005 · F-ELB-006 |
+
+> **The why:** a board runs the process and **cannot touch the count**. The finalist number is
+> pre-published, the counting method is hardened in code, and certification is the trigger for
+> seating rather than a decision about who won.
+
+---
+
+### 34. `elections/vacancy-countback` — Vacancy countback
+**learn:** What happens when a seat empties mid-term — and why there is usually no by-election.
+
+| # | do | detail | cite |
+|---|---|---|---|
+| 1 | See the declared vacancy | A vacancy is declared on the record before anything else happens. | F-LEG-036 |
+| 2 | Watch the countback | **The original ballots are re-run with the departed member removed as a candidate.** Every prior ballot counts, with no filtering anywhere in the procedure. | Art. II §5 |
+| 3 | Know the fallback | If the countback cannot fill the seat, a special election runs within 90–180 days. | F-ELB-001 |
+
+> **The why:** the people who elected that chamber already expressed a full ranking. Asking them
+> again would let a different, smaller electorate decide — so the app asks their original ballots
+> instead. That is what "universal" countback means.
+
+---
+
+### 35. `dev/electoral-kit` — Electoral component kit
+**learn:** Development harness. **Not product UI** — excluded from the education pass.
+
+---
+
+## Wave 4 — `judiciary` (7 surfaces)
+
+### 36. `judiciary/judiciary-home` — Judiciary home
+**learn:** The courts for this jurisdiction: how they were created, who sits on them, and how they
+are chosen.
+
+| # | do | detail | cite |
+|---|---|---|---|
+| 1 | See how this judiciary exists | A legislature creates it by supermajority act. | F-LEG-017 · Art. IV §2 |
+| 2 | See how judges got there | Appointed by default, for **ten-year terms**. Nominations are consented to by the chamber. | F-LEG-021 |
+| 3 | Note it can be converted | A judiciary can be made elected instead — but that takes a supermajority *and* the constituents' agreement. | F-LEG-018 |
+
+> **The why:** appointment is the default because a judge who must campaign has an incentive to
+> please. Ten-year terms and a hard floor of five judges per court are there for the same reason.
+
+---
+
+### 37. `judiciary/case-docket` — Case docket
+**learn:** Every case before this court, and how a case gets in.
+
+| # | do | detail | cite |
+|---|---|---|---|
+| 1 | Browse the docket | Cases are public record. | Art. IV §4 |
+| 2 | File a case | You can file yourself, or an advocate can file for you. | F-IND-017 · F-ADV-001 |
+| 3 | Watch acceptance | The court classifies justiciability and severity **at acceptance** and assigns a panel. | F-JDG-001 |
+
+---
+
+### 38. `judiciary/case-detail` — Case detail
+**learn:** One case from filing to judgment — panel, evidence, jury, ruling.
+
+| # | do | detail | cite |
+|---|---|---|---|
+| 1 | Follow the panel and the jury | Judges are assigned to a panel; jurors are summoned by order. | F-JDG-001 · F-JDG-002 |
+| 2 | Read the filings | Motions, evidence and arguments are on the record as they are submitted. | F-ADV-002 · F-ADV-003 |
+| 3 | Read the ruling | Opinions, sentences and warrants are all published acts. | F-JDG-003 · F-JDG-009 · F-JDG-010 |
+
+> **The why:** you cannot be tried twice for the same thing. Double jeopardy is enforced by the
+> engine, not by a judge remembering.
+
+---
+
+### 39. `judiciary/constitutional-challenge` — Constitutional challenge tracker
+**learn:** How anyone can challenge a law — and the one place in the app where a court can change
+the law directly.
+
+| # | do | detail | cite |
+|---|---|---|---|
+| 1 | File a challenge | **Any inhabitant may file. There is no standing gatekeeper**, no fee, and no eligibility test beyond living here. | F-IND-016 · Art. IV §5 |
+| 2 | Follow the finding | The court makes a constitutional finding and may recommend a remedy. | F-JDG-004 · F-JDG-005 |
+| 3 | See the remedy applied | Where the path allows it, the court **edits the law itself** — and the full version history is preserved. | F-JDG-006 |
+| 4 | See the legislature's answer | A chamber can override a judicial outcome by the constitutional route, not by ignoring it. | F-LEG-035 |
+
+> **The why:** this is the deepest act in the app. It is deliberately open to *anyone* who lives
+> there, because a constitution that only lawyers can invoke belongs to lawyers.
+
+---
+
+### 40. `judiciary/advocate-console` — Advocate console
+**learn:** The working surface for advocates — the people who argue cases for others.
+
+| # | do | detail | cite |
+|---|---|---|---|
+| 1 | Register as an advocate | Registration confers R-21. The bar is open to residents. | F-IND-015 · Art. IV §4 |
+| 2 | File and argue | Case filings, motions, evidence and briefs on behalf of a client. | F-ADV-001 · F-ADV-002 · F-ADV-003 · F-ADV-004 |
+
+---
+
+### 41. `judiciary/juror-view` — Juror view
+**learn:** What you see if you are summoned, and what is expected of you.
+
+| # | do | detail | cite |
+|---|---|---|---|
+| 1 | Read your summons | It names the order that created it. | F-JDG-002 · Art. IV §4 |
+| 2 | Understand your position | **Jurors file nothing.** Your role is to hear and decide, not to submit forms. | — |
+
+---
+
+### 42. `dev/judiciary-kit` — Judiciary component kit
+**learn:** Development harness. **Not product UI** — excluded from the education pass.
+
+---
+
 ## Things these waves surfaced
 
 1. **A real distinction worth teaching deliberately, not glossing.** `civic/public-square` is
@@ -421,8 +621,8 @@ is not part of anyone's civic life and carries no education content.
 |---|---|---|---|
 | ✅ 1 | `civic` | 14 | 28 |
 | ✅ 2 | `legislature` | 12 | 24 |
-| 3 | `electoral` | 9 | 18 |
-| 4 | `judiciary` | 7 | 14 |
+| ✅ 3 | `electoral` | 9 | 18 |
+| ✅ 4 | `judiciary` | 7 | 14 |
 | 5 | `executive` · `organizations` | 12 | 24 |
 | 6 | `operator` · `system` | 12 | 24 |
 | 7 | `jurisdictions` | 4 | 8 |
