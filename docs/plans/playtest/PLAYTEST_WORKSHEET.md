@@ -57,13 +57,13 @@ needs. Dev mode is on for this box (sandbox game mode).
 |---|---|---|---|
 | **A** | Getting in — becoming a person with rights | 5 | ✅ Yes |
 | **B** | An election, end to end | 7 | ⏱ Mostly — two steps need the time control |
-| **C** | The legislature at work | 8 | ⚠ Blocked — see the note on section C |
-| D | The courts | — | drafting next |
-| E | Organizations & work | — | drafting next |
-| F | Voice — square, petitions, messages | — | drafting next |
-| G | The record & the clock | — | drafting next |
-| H | Places & maps (use the **game box** for this one) | — | drafting next |
-| I | The economy | — | ⛔ no screens yet — lane 6 building |
+| **C** | The legislature at work | 8 | ⚠ **Run C-1 first — it decides the rest** |
+| **D** | The courts | 8 | ⚠ Depends on C-1 |
+| **E** | Organizations & work | 6 | ⚠ Partly depends on C-1 |
+| **F** | Voice — square, petitions, messages | 6 | ✅ Yes |
+| **G** | The record & the clock | 4 | ✅ Yes |
+| **H** | Places & maps — **use the game box, :8080** | 5 | ✅ Yes |
+| I | The economy | — | ⛔ No screens yet — lane 6 building them |
 
 **Start with A. It takes about twenty minutes and everything else depends on it.**
 
@@ -308,30 +308,657 @@ whole point of the screen.*
 
 # SECTION C — The legislature at work
 
-## ⚠ Read this before starting Section C
+## ⚠ Read this first — one thing decides this whole section
 
-**Most of this section cannot pass yet, and it is one problem, not eight.**
+San Marino's legislature has **two chambers**: 32 seats by population, and 27 representing the nine
+castelli equally. **The constitution requires both to agree before anything passes** — a bill, a
+court, an executive, a committee.
 
-San Marino's legislature has two chambers. The first (32 seats, by population) is seated — 31 of
-them. **The second chamber, which represents the nine castelli equally, has 27 seats and none of
-them are filled.**
+Earlier today the second chamber had zero members, so every one of those failed automatically. I'm
+told that has since changed and a committee vote carried 58–0. **I could not confirm it** — the
+container engine was down when I wrote this — so rather than guess, **C-1 checks it for you.**
 
-The constitution requires **both** chambers to agree before an act passes. With an empty second
-chamber every such act fails automatically — and that list is: **passing a bill, creating a court,
-creating an executive, and creating a committee.** This is the app behaving correctly; the seating
-is what's missing, not the rule.
-
-**What this means for your walk:** tests C-1 through C-5 will fail at the vote every time, for the
-same reason, no matter what you do. Mark them **blocked**, not failed. They become testable the
-moment the second chamber is seated.
-
-*(This is the same wall that stopped the automated executive/organisation setup at its first step.)*
+**If C-1 passes, run the rest of C, D and E normally. If C-1 fails, mark C-2 onward blocked and
+skip to Section F** — they will all fail at the vote for that one reason, and filling in twenty
+identical "blocked" boxes teaches you nothing.
 
 ---
 
-*Section C cards, plus Sections D–H, are drafted in the next pass. C is written but held back from
-this print run because you would only be filling in "blocked" twenty times — I'd rather give you A
-and B, which you can actually run tonight, and hand you C when it can pass.*
+### C-1 · Are both chambers actually seated?
+**What it is.** The gate for everything below. Two chambers, both needing members.
+**Role:** anyone · **Clock:** none · **Needs first:** nothing
+
+| # | Do this | On this screen | You should see |
+|---|---|---|---|
+| 1 | Open the legislature | `/legislatures/smr-1-san-marino` | Its seats and members |
+| 2 | Count members of **each** chamber | same | Both counts above zero |
+
+**PASSES IF** — both chambers have members. **59 seated is full** (32 + 27).
+*If the second chamber reads 0, that is your answer: stop here, mark C-2 onward blocked, go to F.*
+
+**Result** ☐ pass ☐ fail ☐ blocked  **Notes** _seated: ___ of 32 · ___ of 27_ ______________
+
+---
+
+### C-2 · Open a session and reach quorum
+**What it is.** A legislature can only act when enough of its members show up. Quorum is a majority
+of **all serving members** — not a majority of whoever turned up.
+**Role:** a seated member · **Clock:** none · **Needs first:** C-1
+
+| # | Do this | On this screen | You should see |
+|---|---|---|---|
+| 1 | Become a seated member | `/dev/users` or `/dev/legislature-kit` | You are in the chamber |
+| 2 | Open a session | the legislature's chamber | A session, with a quorum count |
+| 3 | Check what quorum it demands | same | A number over half of all serving |
+
+**PASSES IF** — the quorum number is computed against **all serving members**, not attendance.
+*Worth checking by hand: with 59 serving, quorum should be 30.*
+
+**Result** ☐ pass ☐ fail ☐ blocked  **Notes** ________________________________________
+
+---
+
+### C-3 · Introduce a bill
+**What it is.** Putting a proposed law in front of the chamber.
+**Role:** a seated member · **Clock:** none · **Needs first:** C-2
+
+| # | Do this | On this screen | You should see |
+|---|---|---|---|
+| 1 | Start a bill | the legislature page | A drafting form |
+| 2 | Submit it | same | The bill listed, with a stage |
+| 3 | Open it | `/bills/{id}` | Its text and where it is in the process |
+
+**PASSES IF** — the bill exists and shows its current stage.
+*Underlying proof: a `bills` row; audit entry for `F-LEG-003`.*
+
+**Result** ☐ pass ☐ fail ☐ blocked  **Notes** ________________________________________
+
+---
+
+### C-4 · Send it to committee, and let the committee work
+**What it is.** Bills get shaped by a smaller group first. Committee seats are assigned by members
+ranking their preferences — there are no parties here to hand them out.
+**Role:** seated member, then committee member · **Clock:** none · **Needs first:** C-3
+
+| # | Do this | On this screen | You should see |
+|---|---|---|---|
+| 1 | Refer the bill to a committee | the bill page | It moves to committee |
+| 2 | Rank your committee preferences | the legislature page | Your ranking saved |
+| 3 | Hold a committee meeting and vote | the committee page | A recorded committee vote |
+| 4 | File the committee's report | same | A report attached to the bill |
+
+**PASSES IF** — the bill carries a committee report and a recorded committee vote.
+*Underlying proof: `committee_seats`, a committee vote, a `committee_reports` row.*
+
+**Result** ☐ pass ☐ fail ☐ blocked  **Notes** ________________________________________
+
+---
+
+### C-5 · The floor vote — **both** chambers must agree
+**What it is.** The real test of the two-chamber design. One chamber agreeing is not enough.
+**Role:** seated members in both chambers · **Clock:** none · **Needs first:** C-4
+
+| # | Do this | On this screen | You should see |
+|---|---|---|---|
+| 1 | Bring the bill to the floor | the bill page | It's up for a vote |
+| 2 | Vote it through the **first** chamber only | the chamber | Recorded, but not passed |
+| 3 | Now vote it in the **second** chamber | the chamber | Now it passes |
+
+**PASSES IF** — the bill does **not** pass on one chamber alone, and does once both agree.
+*This is the single most important check in Section C. If one chamber can pass a law by itself,
+that is a constitutional failure, not a bug.*
+
+**Result** ☐ pass ☐ fail ☐ blocked  **Notes** ________________________________________
+
+---
+
+### C-6 · It becomes law, and anyone can read it
+**What it is.** The payoff — a bill turning into a law on the public record.
+**Role:** anyone · **Clock:** none · **Needs first:** C-5
+
+| # | Do this | On this screen | You should see |
+|---|---|---|---|
+| 1 | Open the enacted bill | `/bills/{id}` | Marked enacted, linked to a law |
+| 2 | Read the law itself | the law page | Its text, and a version history |
+| 3 | Sign out and read it again | same, logged out | Still readable |
+
+**PASSES IF** — the law is readable **without logging in**, and its version history is intact.
+*Underlying proof: a `law_versions` row traced to the bill.*
+
+**Result** ☐ pass ☐ fail ☐ blocked  **Notes** ________________________________________
+
+---
+
+### C-7 · Elect a Speaker
+**What it is.** The chamber choosing who runs it — by ranked vote, needing a two-thirds majority.
+**Role:** seated members · **Clock:** none · **Needs first:** C-1
+
+| # | Do this | On this screen | You should see |
+|---|---|---|---|
+| 1 | Open a speaker ballot | the legislature page | A ranked ballot of members |
+| 2 | Vote it through | same | A Speaker named |
+
+**PASSES IF** — a Speaker is recorded, and the bar was **two-thirds of all serving members**, not
+two-thirds of those voting.
+
+**Result** ☐ pass ☐ fail ☐ blocked  **Notes** ________________________________________
+
+---
+
+### C-8 · Emergency powers expire on their own
+**What it is.** Emergency powers exist, and the constitution caps them at 90 days. The cap should
+be enforced by the app, not by anyone remembering.
+**Role:** seated member · **Clock:** ⏱ needs time control · **Needs first:** C-2
+
+| # | Do this | On this screen | You should see |
+|---|---|---|---|
+| 1 | Declare emergency powers | the legislature page | An end date, at most 90 days out |
+| 2 | Try to set a longer period | same | **Refused** |
+| 3 | Move time past the end date | time control | They lapse on their own |
+
+**PASSES IF** — you cannot exceed 90 days, and they end without anyone acting.
+
+**Result** ☐ pass ☐ fail ☐ blocked  **Notes** ________________________________________
+
+---
+
+# SECTION D — The courts
+
+*You asked "can I run a court case?" — this is that. **Needs C-1 to have passed**, because creating
+a court is itself an act both chambers must agree to.*
+
+---
+
+### D-1 · A court exists, with judges
+**Role:** anyone · **Needs first:** C-1
+
+| # | Do this | On this screen | You should see |
+|---|---|---|---|
+| 1 | Find the court | `/judiciary` | A court for the jurisdiction |
+| 2 | Look at its judges | `/judiciaries/{id}` | **At least five** judges seated |
+
+**PASSES IF** — a court exists with **five or more** judges. *Five is the constitutional minimum;
+fewer is a failure, not a small court.*
+
+**Result** ☐ pass ☐ fail ☐ blocked  **Notes** ________________________________________
+
+---
+
+### D-2 · Register as an advocate
+**What it is.** Anyone can advocate — there is no bar exam or licence in this constitution.
+**Role:** any confirmed resident · **Needs first:** A-3
+
+| # | Do this | On this screen | You should see |
+|---|---|---|---|
+| 1 | Open the advocate page | `/judiciary/advocate` | A registration form |
+| 2 | Register | same | You listed as an advocate |
+
+**PASSES IF** — you are registered **without** needing a qualification.
+*Underlying proof: audit entry for `F-IND-015`.*
+
+**Result** ☐ pass ☐ fail ☐ blocked  **Notes** ________________________________________
+
+---
+
+### D-3 · File a case
+**Role:** any resident, or an advocate · **Needs first:** D-1
+
+| # | Do this | On this screen | You should see |
+|---|---|---|---|
+| 1 | Open the docket | `/judiciaries/{id}/docket` | The list of cases |
+| 2 | File a new case | same | Your case listed, with parties |
+
+**PASSES IF** — the case appears on the public docket.
+*Underlying proof: a `cases` row; `F-IND-017` or `F-ADV-001`.*
+
+**Result** ☐ pass ☐ fail ☐ blocked  **Notes** ________________________________________
+
+---
+
+### D-4 · A panel of judges is assigned
+**Role:** a judge · **Needs first:** D-3
+
+| # | Do this | On this screen | You should see |
+|---|---|---|---|
+| 1 | Become a judge | `/dev/judiciary-kit` | Judge tools |
+| 2 | Assign a panel to the case | the case page | Named judges on the case |
+
+**PASSES IF** — a panel is recorded against the case.
+
+**Result** ☐ pass ☐ fail ☐ blocked  **Notes** ________________________________________
+
+---
+
+### D-5 · A jury of residents
+**What it is.** Juries are drawn from residents — the same absolute qualification as everything else.
+**Role:** judge, then juror · **Needs first:** D-4
+
+| # | Do this | On this screen | You should see |
+|---|---|---|---|
+| 1 | Summon a jury | the case page | Summonses issued |
+| 2 | Become a summoned juror | `/dev/users` | Your summons |
+| 3 | Go through screening | `/judiciary/jury/{id}` | Empanelled, or excused |
+
+**PASSES IF** — a jury is empanelled from residents.
+*Underlying proof: `jury_members` rows moving from summoned to empanelled.*
+
+**Result** ☐ pass ☐ fail ☐ blocked  **Notes** ________________________________________
+
+---
+
+### D-6 · Judgment, and an opinion on the record
+**Role:** a judge · **Needs first:** D-5
+
+| # | Do this | On this screen | You should see |
+|---|---|---|---|
+| 1 | Enter a judgment | the case page | The case resolved |
+| 2 | File an opinion | same | The reasoning, publicly readable |
+| 3 | Read it signed out | same | Still readable |
+
+**PASSES IF** — the judgment **and its reasoning** are public.
+
+**Result** ☐ pass ☐ fail ☐ blocked  **Notes** ________________________________________
+
+---
+
+### D-7 · Challenge a law — and watch a court change it
+**What it is.** The sharpest thing in the whole application. A court can rule a law
+unconstitutional and **edit it directly**, with the old version preserved. Worth seeing.
+**Role:** resident → judge · **Needs first:** C-6 (a law to challenge)
+
+| # | Do this | On this screen | You should see |
+|---|---|---|---|
+| 1 | File a constitutional challenge against the law from C-6 | the law page | The challenge filed |
+| 2 | As a judge, make a constitutional finding | the case page | The finding recorded |
+| 3 | Apply the remedy | same | **The law's text actually changes** |
+| 4 | Look at the law's history | the law page | The old version still there |
+
+**PASSES IF** — the law text changes **and** the previous version remains readable.
+*Underlying proof: a new `law_versions` row of kind `judicial_remedy`; audit `F-JDG-006`.*
+
+**Result** ☐ pass ☐ fail ☐ blocked  **Notes** ________________________________________
+
+---
+
+### D-8 · You cannot be tried twice
+**Role:** advocate · **Needs first:** D-6
+
+| # | Do this | On this screen | You should see |
+|---|---|---|---|
+| 1 | File the same case again, same parties, same matter | the docket | **Refused** |
+
+**PASSES IF** — it is refused. *A protection, not a bug — if it goes through, that's serious.*
+
+**Result** ☐ pass ☐ fail ☐ blocked  **Notes** ________________________________________
+
+---
+
+# SECTION E — Organizations & work
+
+---
+
+### E-1 · Register an organization
+**Role:** any confirmed resident · **Needs first:** A-3
+
+| # | Do this | On this screen | You should see |
+|---|---|---|---|
+| 1 | Open organizations | `/organizations` | A registry (may be empty) |
+| 2 | Register one — try a business | same | It listed, with you as its agent |
+
+**PASSES IF** — the organization appears in the open registry.
+*Underlying proof: an `organizations` row; audit `F-IND-012`.*
+
+**Result** ☐ pass ☐ fail ☐ blocked  **Notes** ________________________________________
+
+---
+
+### E-2 · Join it, and be counted as a worker
+**Role:** another resident · **Needs first:** E-1
+
+| # | Do this | On this screen | You should see |
+|---|---|---|---|
+| 1 | Become someone else | `/dev/users` | A second person |
+| 2 | Join the organization | its page | Membership recorded |
+| 3 | Register as a worker — **both sides must agree** | same | Countersigned, then active |
+
+**PASSES IF** — worker status requires **both** the person and the organization to agree.
+
+**Result** ☐ pass ☐ fail ☐ blocked  **Notes** ________________________________________
+
+---
+
+### E-3 · Run a board election
+**Role:** organization agent · **Needs first:** E-2
+
+| # | Do this | On this screen | You should see |
+|---|---|---|---|
+| 1 | Open a board election | the organization page | Nominations open |
+| 2 | Run it through to a result | same | Board seats filled |
+
+**PASSES IF** — board seats are filled by a recorded vote, not appointment.
+
+**Result** ☐ pass ☐ fail ☐ blocked  **Notes** ________________________________________
+
+---
+
+### E-4 · Workers get a board seat at 100 employees
+**What it is.** Article III's co-determination rule. At 100 workers a seat appears for them
+automatically — nobody has to ask.
+**Role:** organization agent · **Needs first:** E-2
+
+| # | Do this | On this screen | You should see |
+|---|---|---|---|
+| 1 | Grow the organization past 100 workers | `/dev/users` + the org page | Worker count crosses 100 |
+| 2 | Look at the board | same | **A worker seat has appeared by itself** |
+
+**PASSES IF** — the worker seat appears **without anyone requesting it**.
+*This is one of the hardest-won pieces of the build. If it doesn't fire, that's a headline failure.*
+
+**Result** ☐ pass ☐ fail ☐ blocked  **Notes** ________________________________________
+
+---
+
+### E-5 · Equal footing at 2,000 employees
+**Role:** organization agent · **Needs first:** E-4
+
+| # | Do this | On this screen | You should see |
+|---|---|---|---|
+| 1 | Grow past 2,000 workers | the org page | Count crosses 2,000 |
+| 2 | Look at the board's make-up | same | Worker and owner seats **equal** |
+
+**PASSES IF** — the split reaches parity on its own.
+
+**Result** ☐ pass ☐ fail ☐ blocked  **Notes** ________________________________________
+
+---
+
+### E-6 · A public-good company's work stays public forever
+**What it is.** Common-good corporations put their work in the public domain permanently. Nobody —
+not even them — can take it back.
+**Role:** organization agent · **Needs first:** E-1
+
+| # | Do this | On this screen | You should see |
+|---|---|---|---|
+| 1 | Register a common-good corporation | `/organizations` | It listed |
+| 2 | Add something to its work register | the org page | Listed as public domain |
+| 3 | **Try to make it private** | same | **Refused** |
+
+**PASSES IF** — step 3 is refused. *An absolute rule; there should be no way round it.*
+
+**Result** ☐ pass ☐ fail ☐ blocked  **Notes** ________________________________________
+
+---
+
+# SECTION F — Voice
+
+*Runnable today. Nothing here depends on the chamber.*
+
+---
+
+### F-1 · Speak in the public square
+**What it is.** Open speech on the public record. **The square is open to everyone** — you do not
+need a confirmed residency to speak.
+**Role:** anyone signed in · **Needs first:** A-1
+
+| # | Do this | On this screen | You should see |
+|---|---|---|---|
+| 1 | Open the square | `/civic/square` | The square (may be empty) |
+| 2 | Post something | same | Your post on the record |
+| 3 | Try to delete it | same | **You should not be able to quietly remove it** |
+
+**PASSES IF** — the post persists and cannot be silently erased.
+
+**Result** ☐ pass ☐ fail ☐ blocked  **Notes** ________________________________________
+
+---
+
+### F-2 · Seal testimony in a hall
+**What it is.** Stronger than a square post — testimony, tied to your confirmed residency.
+**Role:** confirmed resident · **Needs first:** A-3
+
+| # | Do this | On this screen | You should see |
+|---|---|---|---|
+| 1 | Find a hall | `/civic/square` | Halls alongside the square |
+| 2 | Seal testimony | same | Recorded, attributed |
+| 3 | Try the same as someone unconfirmed | `/dev/users` | **Refused** |
+
+**PASSES IF** — sealing needs confirmed residency; **speaking in the square does not.**
+*That difference is deliberate. If both are gated, the square is wrong.*
+
+**Result** ☐ pass ☐ fail ☐ blocked  **Notes** ________________________________________
+
+---
+
+### F-3 · Create a petition
+**Role:** confirmed resident · **Needs first:** A-3
+
+| # | Do this | On this screen | You should see |
+|---|---|---|---|
+| 1 | Open petitions | `/civic/petitions` | The list |
+| 2 | Create one | same | Yours listed, with a signature target |
+
+**PASSES IF** — the petition exists and shows how many signatures it needs.
+
+**Result** ☐ pass ☐ fail ☐ blocked  **Notes** ________________________________________
+
+---
+
+### F-4 · Sign one — and change your mind
+**Role:** other residents · **Needs first:** F-3
+
+| # | Do this | On this screen | You should see |
+|---|---|---|---|
+| 1 | As someone else, sign it | `/civic/petitions/{id}` | Count goes up |
+| 2 | Withdraw the signature | same | Count goes down |
+| 3 | Try to sign twice | same | **Refused** |
+
+**PASSES IF** — signatures can be withdrawn, and cannot be doubled.
+
+**Result** ☐ pass ☐ fail ☐ blocked  **Notes** ________________________________________
+
+---
+
+### F-5 · A petition becomes a referendum
+**What it is.** The whole point of petitions — enough signatures and the question goes to everyone.
+**Role:** residents, then the legislature · **Clock:** ⏱ may need time control · **Needs first:** F-4
+
+| # | Do this | On this screen | You should see |
+|---|---|---|---|
+| 1 | Sign it past its threshold | `/civic/petitions/{id}` | Threshold reached |
+| 2 | Follow it to the legislature | the legislature page | It has arrived there |
+| 3 | See a referendum created | same | A question everyone can vote on |
+
+**PASSES IF** — reaching the threshold moves it forward **without anyone deciding to allow it**.
+
+**Result** ☐ pass ☐ fail ☐ blocked  **Notes** ________________________________________
+
+---
+
+### F-6 · A private message stays private
+**Role:** any two people · **Needs first:** A-1
+
+| # | Do this | On this screen | You should see |
+|---|---|---|---|
+| 1 | Open messages | `/civic/rooms` | Your conversations |
+| 2 | Message someone | same | It arrives |
+| 3 | As a **third** person, go looking for it | `/dev/users` | **You cannot find it** |
+
+**PASSES IF** — a third party cannot read it. *Private means private, like a ballot.*
+
+**Result** ☐ pass ☐ fail ☐ blocked  **Notes** ________________________________________
+
+---
+
+# SECTION G — The record & the clock
+
+*Short section, all runnable, and the most reassuring one to do after a long walk.*
+
+---
+
+### G-1 · The audit chain verifies
+**What it is.** Every constitutional act, chained in order, so nothing can be changed after the
+fact without it showing. Currently over 7,000 entries on this box.
+**Role:** anyone · **Needs first:** nothing
+
+| # | Do this | On this screen | You should see |
+|---|---|---|---|
+| 1 | Open the chain | `/system/audit-chain` | Entries in order |
+| 2 | Verify it | same | It confirms unbroken |
+| 3 | Find one of **your** acts from today | same | Your act, in order |
+
+**PASSES IF** — the chain verifies **and** you can find something you personally did.
+
+**Result** ☐ pass ☐ fail ☐ blocked  **Notes** ________________________________________
+
+---
+
+### G-2 · The public record can't be quietly edited
+**Role:** anyone · **Needs first:** F-1
+
+| # | Do this | On this screen | You should see |
+|---|---|---|---|
+| 1 | Open the record | `/system/public-records` | Records, readable |
+| 2 | Read it signed out | same | Still readable |
+| 3 | Try to change or remove one | same | **No way to do it quietly** |
+
+**PASSES IF** — records are public and cannot be silently altered.
+
+**Result** ☐ pass ☐ fail ☐ blocked  **Notes** ________________________________________
+
+---
+
+### G-3 · The clocks are armed
+**What it is.** The processes that start on their own — deadlines, sweeps, thresholds — with no
+one pressing anything.
+**Role:** anyone · **Needs first:** nothing
+
+| # | Do this | On this screen | You should see |
+|---|---|---|---|
+| 1 | Open the clocks | `/system/clocks` | The full list, with timers |
+| 2 | Find the one that confirmed your residency in A-3 | same | It, and when it last ran |
+
+**PASSES IF** — you can point at the clock that acted on you in A-3.
+*That connection — a rule firing on its own, on you — is the thing worth checking.*
+
+**Result** ☐ pass ☐ fail ☐ blocked  **Notes** ________________________________________
+
+---
+
+### G-4 · The constitution changes through exactly two doors
+**Role:** anyone · **Needs first:** nothing
+
+| # | Do this | On this screen | You should see |
+|---|---|---|---|
+| 1 | Open amendments | `/system/amendments` | The rules that cannot change, and the ledger of changes |
+| 2 | Read the hardened list | same | Plain statements of the fixed rules |
+
+**PASSES IF** — you can tell which rules are fixed and which can be changed by a vote.
+*⚠ Known defect: one line reads "5–9 seats with mandatory subdivision above 9" with no subject.
+It should say that **districts** elect 5–9 representatives — the legislature total has no cap.
+A fix is queued. **Note it, don't file it.** The change ledger will also be empty on this box.*
+
+**Result** ☐ pass ☐ fail ☐ blocked  **Notes** ________________________________________
+
+---
+
+# SECTION H — Places & maps
+
+## ⚑ Do this section on the OTHER box — the game box at http://localhost:8080
+
+San Marino has 11 places. **The game box has 956,336** — the whole planet, with Earth's real
+1,999-seat legislature and its drawn district map. It is the only place the map work exists at
+scale, and no fixture can show it.
+
+**Two things to know before you click:**
+1. **The first page takes up to 40 seconds.** Measured: the mapper takes ~42s cold and ~4s after.
+   `/legislatures` ~30s cold. **Wait. Do not judge it on the first load.** If you get an error page,
+   reload once before writing anything down.
+2. **Most of that box is behind its setup wizard** — only places, legislatures, the chamber and the
+   mapper are open. Everything else redirects you to setup. That's expected.
+
+---
+
+### H-1 · Browse the planet
+| # | Do this | On this screen | You should see |
+|---|---|---|---|
+| 1 | Open places (**wait**) | `:8080/jurisdictions` | Jurisdictions, planet down |
+| 2 | Open Earth | `:8080/jurisdictions/earth-0-earth` | Earth as a place that governs itself |
+
+**PASSES IF** — you can move from the planet down toward a neighbourhood.
+
+**Result** ☐ pass ☐ fail ☐ blocked  **Notes** ________________________________________
+
+---
+
+### H-2 · A legislature sized by its population
+| # | Do this | On this screen | You should see |
+|---|---|---|---|
+| 1 | Open Earth's legislature | `:8080/legislatures/earth-0-earth` | **1,999 seats** |
+| 2 | Look at how it's divided | same | Hundreds of districts, each 5–9 seats |
+
+**PASSES IF** — the total is 1,999 across **282** districts, and the screen makes clear the 5–9
+band is about **districts**, not the legislature.
+
+**Result** ☐ pass ☐ fail ☐ blocked  **Notes** ________________________________________
+
+---
+
+### H-3 · The district mapper, at planetary scale
+| # | Do this | On this screen | You should see |
+|---|---|---|---|
+| 1 | Open the mapper (**wait ~40s**) | `:8080/legislatures/earth-0-earth/districts` | A real map with drawn districts |
+| 2 | Move around and zoom | same | It stays usable |
+| 3 | Open a district | same | Its seats and the places in it |
+
+**PASSES IF** — the map draws and you can explore it. *Slow is a note, not a fail — write the
+seconds down.*
+
+**Result** ☐ pass ☐ fail ☐ blocked  **Notes** _cold: ___s · warm: ___s_ ________________
+
+---
+
+### H-4 · Draw a district by hand
+**Role:** operator · **Needs first:** H-3
+
+| # | Do this | On this screen | You should see |
+|---|---|---|---|
+| 1 | Start a manual draw | the mapper | Drawing tools |
+| 2 | Draw one and accept it | same | It saved, with its seats |
+
+**PASSES IF** — your district is saved and counted.
+*Underlying proof: audit entry for `F-ELB-008`.*
+
+**Result** ☐ pass ☐ fail ☐ blocked  **Notes** ________________________________________
+
+---
+
+### H-5 · A chamber anyone can watch without an account
+**What it is.** Legislative proceedings are public by constitutional requirement — no login.
+**Role:** **nobody — sign out entirely** · **Needs first:** nothing
+
+| # | Do this | On this screen | You should see |
+|---|---|---|---|
+| 1 | Sign out, or use a private window | `:8080` | Signed out |
+| 2 | Open a legislature's chamber | `:8080/legislatures/{id}/chamber` | The chamber, readable |
+
+**PASSES IF** — you can watch **without an account**. *If it asks you to log in, that is a
+constitutional failure, not a convenience issue.*
+
+**Result** ☐ pass ☐ fail ☐ blocked  **Notes** ________________________________________
+
+---
+
+# SECTION I — The economy
+
+**⛔ Not walkable yet, and it's mine to fix.** The economy engine is built and running underneath —
+a currency, a treasury with 250,000 issued, 60 wallets, a completed payment run to 60 people, a
+marketplace with a completed sale. **The screens don't exist yet**, so the six economy addresses
+currently show a blank page rather than an empty one.
+
+**Please don't walk to `/economy` until I've said it's ready** — you'd get a white screen and
+reasonably conclude the economy is broken, when it's one of the more finished things in the build.
+
+I'll add Section I when the screens land.
 
 ---
 
@@ -348,5 +975,8 @@ ________________________________________________________________________________
 ---
 
 ## Changelog
-- **v1** (2026-07-26) — Frame, the one rule, the two controls, Sections A and B in full;
-  Section C blocked with its single cause explained. D–I outlined.
+- **v2** (2026-07-26) — Sections **C–H in full** (37 more tests). Section C's blocker is now its
+  own first card (C-1) rather than a warning, so the sheet *tests* the precondition instead of
+  assuming it — and C-1's result tells you whether to run C/D/E or skip to F. Fixed the contents
+  table, which promised 8 section-C tests that didn't exist yet. Section H points at the game box.
+- **v1** (2026-07-26) — Frame, the one rule, the two controls, Sections A and B in full.
