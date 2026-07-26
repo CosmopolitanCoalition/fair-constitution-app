@@ -338,11 +338,15 @@ def qa(source: str, out: str | None) -> str | None:
     # better than a confidently truncated one.
     if len(source) >= 40 and len(out) < len(source) * 0.45:
         return "suspiciously short — source content likely dropped"
-    # every sentence in must be a sentence out
-    if _sentence_count(source) > _sentence_count(out) + 0:
-        if _sentence_count(source) >= 2 and _sentence_count(out) < _sentence_count(source):
-            return (f"sentence count fell {_sentence_count(source)} -> "
-                    f"{_sentence_count(out)}")
+    # Every sentence in should be a sentence out, counted by TERMINATOR so the
+    # test works in any script. Fewer terminators ALONE is not proof: a model
+    # legitimately drops a trailing period, which looks identical to losing the
+    # last sentence. Real content loss shows both signals — fewer terminators
+    # AND a much shorter result — so both are required before a string is
+    # quarantined. Either alone produced a false positive we actually saw.
+    src_n, out_n = _terminator_count(source), _terminator_count(out)
+    if src_n >= 2 and out_n < src_n and len(out) < len(source) * 0.75:
+        return f"sentence count fell {src_n} -> {out_n}"
     return None
 
 
@@ -374,7 +378,27 @@ def sentences(s: str) -> list[str]:
 
 
 def _sentence_count(s: str) -> int:
+    """English-side sentence count. Only ever applied to source text."""
     return len(sentences(s))
+
+
+# Sentence terminators across the scripts this app targets. The rail below
+# compares SOURCE against TRANSLATION, so it cannot use the English splitter:
+# that one keys on "period, then a CAPITAL letter", and Arabic, Hebrew, Devanagari,
+# Thai, Chinese and Japanese have no capital letters at all. Applied to them it
+# reports every correct multi-sentence translation as content loss — which is
+# exactly what it did: 440 of Arabic's 472 quarantined strings were fine.
+_TERMINATORS = re.compile(
+    r"[.!?]"          # Latin / Cyrillic / Greek
+    r"|[۔؟؛]"   # Arabic full stop, question mark, semicolon
+    r"|[।॥]"          # Devanagari danda, double danda
+    r"|[。！？]"    # CJK full stop, fullwidth ! and ?
+    r"|[׃]"                # Hebrew sof pasuq
+)
+
+
+def _terminator_count(s: str) -> int:
+    return len(_TERMINATORS.findall(s))
 
 
 def load(path: Path) -> dict:
@@ -459,6 +483,18 @@ def self_test() -> int:
     check("abbreviation is not a sentence end",
           _sentence_count("e.g. Saturday crew") == 1,
           str(sentences("e.g. Saturday crew")))
+    # the rail must not be Latin-centric: Arabic has no capital letters, and a
+    # correct two-sentence Arabic translation must not read as content loss
+    ar_src = "Sign in to your record. Your rights ride with your residency."
+    ar_ok = "سجل الدخول إلى سجلك. حقوقك ترتبط بإقامتك."
+    check("two-sentence Arabic is not flagged as loss", qa(ar_src, ar_ok) is None,
+          str(qa(ar_src, ar_ok)))
+    hi_ok = "अपने रिकॉर्ड में साइन इन करें। आपके अधिकार आपके निवास से जुड़े हैं।"
+    check("Devanagari danda counts as a sentence end", qa(ar_src, hi_ok) is None,
+          str(qa(ar_src, hi_ok)))
+    check("real loss is still caught",
+          qa(ar_src, "حقوقك ترتبط بإقامتك.") is not None)
+
     cite = "Art. V §1–2 · CLK-05"
     m2, k2 = mask(cite)
     check("en-dash citation range masks whole",
