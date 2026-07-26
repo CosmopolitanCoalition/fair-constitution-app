@@ -272,6 +272,67 @@ class SimConsoleController extends Controller
             'population_modelled' => (int) DB::table('jurisdiction_cohorts')->sum('population'),
             'electorate_modelled' => (int) DB::table('jurisdiction_cohorts')->sum('electorate'),
             'over_bound' => $this->overBoundChambers(),
+            'seat_gap' => $this->unfillableSeats(),
+        ];
+    }
+
+    /**
+     * Chambers whose drawn districts do not sum to their Type A total.
+     *
+     * DRIFT IS ALWAYS WRONG (operator ruling 2026-07-26). The chamber size is
+     * FIXED by the cube-root law, so a district plan that misses it leaves seats
+     * either unfillable or unallotted — there is no race for them and no lawful
+     * way to seat them. It is never "noise" and never "close enough".
+     *
+     * San Marino's national chamber is the live instance: population 33,312 →
+     * Type A 32 by the law, but its active map draws 8 + 7 + 7 + 9 = 31. The
+     * election filled every seat it had a race for and still landed 58/59, and
+     * it will land 58/59 at every future election, because the missing seat has
+     * no district. Nothing downstream can repair that — only redrawing the map
+     * can, which is why this reports the gap rather than trying to absorb it.
+     *
+     * Type B is excluded on purpose: an at-large chamber IS its own district, so
+     * it cannot drift. This measures the drawn plan only.
+     *
+     * @return array<string,mixed>
+     */
+    private function unfillableSeats(): array
+    {
+        $rows = DB::table('legislatures as l')
+            ->join('jurisdictions as j', 'j.id', '=', 'l.jurisdiction_id')
+            ->whereNull('l.deleted_at')
+            ->whereNull('j.deleted_at')
+            ->where('l.type_a_seats', '>', 9) // below the ceiling a chamber is at-large — no plan to miss
+            ->whereExists(function ($q) {
+                $q->select(DB::raw(1))
+                    ->from('legislature_district_maps as m')
+                    ->whereColumn('m.legislature_id', 'l.id')
+                    ->where('m.status', 'active')
+                    ->whereNull('m.deleted_at');
+            })
+            ->selectRaw("
+                j.name,
+                l.type_a_seats,
+                COALESCE((
+                    SELECT SUM(d.seats) FROM legislature_districts d
+                      JOIN legislature_district_maps m ON m.id = d.map_id
+                     WHERE d.legislature_id = l.id AND m.status = 'active'
+                       AND d.deleted_at IS NULL AND m.deleted_at IS NULL
+                ), 0) AS drawn
+            ")
+            ->get()
+            ->filter(fn ($r) => (int) $r->drawn !== (int) $r->type_a_seats)
+            ->sortByDesc(fn ($r) => abs((int) $r->type_a_seats - (int) $r->drawn))
+            ->take(25);
+
+        return [
+            'count' => $rows->count(),
+            'places' => $rows->map(fn ($r) => [
+                'name' => $r->name,
+                'type_a' => (int) $r->type_a_seats,
+                'drawn' => (int) $r->drawn,
+                'gap' => (int) $r->type_a_seats - (int) $r->drawn,
+            ])->values()->all(),
         ];
     }
 

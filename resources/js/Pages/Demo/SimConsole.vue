@@ -302,6 +302,45 @@ const statusTone = computed(() => {
                         </ul>
                     </section>
 
+                    <!--
+                        DRIFT IS ALWAYS WRONG. The chamber size is fixed by the
+                        cube-root law, so a district plan that does not sum to it
+                        leaves seats with no race that can ever fill them. San Marino
+                        draws 8+7+7+9 = 31 against a Type A of 32, so its elections
+                        land 58/59 and always will. Only a redraw fixes it — which is
+                        why this names the gap instead of quietly absorbing it.
+                    -->
+                    <section
+                        v-if="world.seat_gap && world.seat_gap.count > 0"
+                        class="mt-4 rounded border border-rose-500/40 bg-rose-500/5 p-3"
+                    >
+                        <h3 class="text-xs font-semibold uppercase tracking-wide text-rose-300">
+                            Seats that cannot be filled — {{ fmt(world.seat_gap.count) }}
+                            {{ world.seat_gap.count === 1 ? 'chamber' : 'chambers' }}
+                        </h3>
+                        <p class="mt-1 text-xs text-gray-400">
+                            The cube-root law fixes how many seats a chamber has; its districts must sum to
+                            exactly that. Where they do not, the difference is seats the constitution declares
+                            and no election can fill — every count lands short, permanently. This is a defect in
+                            the district plan, and only redrawing it repairs it.
+                        </p>
+                        <ul class="mt-2 space-y-1">
+                            <li
+                                v-for="p in world.seat_gap.places"
+                                :key="p.name"
+                                class="flex flex-wrap items-baseline gap-x-2 text-xs"
+                            >
+                                <span class="text-gray-200">{{ p.name }}</span>
+                                <span class="font-mono text-gray-500">
+                                    type A {{ p.type_a }} · districts draw {{ p.drawn }}
+                                </span>
+                                <span class="font-mono text-rose-300">
+                                    {{ p.gap > 0 ? `${p.gap} unfillable` : `${-p.gap} unallotted` }}
+                                </span>
+                            </li>
+                        </ul>
+                    </section>
+
                     <dl class="mt-4 grid grid-cols-2 gap-x-6 gap-y-3 sm:grid-cols-3">
                         <div>
                             <dt class="text-xs text-gray-500">jurisdictions</dt>
