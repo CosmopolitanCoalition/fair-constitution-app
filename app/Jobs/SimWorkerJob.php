@@ -5,7 +5,9 @@ namespace App\Jobs;
 use App\Models\SimItem;
 use App\Models\SimRun;
 use App\Services\Demo\Stages\CohortStage;
+use App\Services\Demo\Stages\CountingStage;
 use App\Services\Demo\Stages\ElectionStage;
+use App\Services\Demo\Stages\SeatingStage;
 use App\Services\Demo\Stages\IdentityStage;
 use App\Support\SimClaims;
 use Illuminate\Bus\Queueable;
@@ -185,6 +187,20 @@ class SimWorkerJob implements ShouldQueue
             ),
             'election_scope' => ElectionStage::run(
                 (string) $item->jurisdiction_id,
+                (string) $run->id,
+                $version,
+            ),
+            // Counting and seating carry an ELECTION, not a jurisdiction — the
+            // election is the unit both the count batches over and
+            // certification acts on. The id rides in `race_id`, which is the
+            // item's spare reference column.
+            'count_election' => CountingStage::run(
+                (string) $item->race_id,
+                (string) $run->id,
+                $version,
+            ),
+            'seat_scope' => SeatingStage::run(
+                (string) $item->race_id,
                 (string) $run->id,
                 $version,
             ),

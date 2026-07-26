@@ -151,7 +151,7 @@ class SimConsoleController extends Controller
         'cohort_scope' => 'Deciding who lives where',
         'identity_batch' => 'Minting people',
         'election_scope' => 'Calling elections',
-        'count_race' => 'Counting ballots',
+        'count_election' => 'Counting ballots',
         'seat_scope' => 'Seating representatives',
         'acceptance_scan' => 'Checking the world',
     ];

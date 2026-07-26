@@ -169,10 +169,12 @@ class ElectionStageTest extends TestCase
      * >= 1). So a 1,141-seat upper chamber is lawful and elects alongside the
      * district races rather than blocking anything.
      *
-     * ⚠ This pins RACE GENERATION only. `VoteCountingService::run()` still
-     * throws for any race above 9 seats regardless of seat_kind, so such a race
-     * schedules and then cannot be tabulated. That gap is flagged to @operator
-     * (PROTECTED file); when it closes, nothing here needs to change.
+     * CLOSED 2026-07-26 (`5fbdb9d`): the counting core no longer carries the
+     * 5–9 band at all. It is pure and cannot tell a district race from an
+     * at-large one, so the band is enforced where districts ARE known —
+     * `racePlan()`, `election_races_seats_check`, and `DistrictingService`. A
+     * `type_a` race above nine remains impossible. San Marino's 27-seat
+     * at-large chamber is counted, certified and seated.
      */
     public function test_a_large_type_b_is_one_lawful_at_large_race(): void
     {

@@ -12,6 +12,7 @@ use App\Models\Ballot;
 use App\Models\Candidacy;
 use App\Models\ElectionRace;
 use App\Models\Tabulation;
+use App\Services\VoteCountingService;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 
@@ -152,43 +153,14 @@ class TabulationRecorder
 
             // Round record — full tallies every round (storage semantics;
             // display collapse is the Vue layer's business).
-            $rows = [];
-            foreach ($result->rounds as $round) {
-                $rows[] = [
-                    'id'            => (string) Str::uuid(),
-                    'tabulation_id' => $tabulation->id,
-                    'round_no'      => $round->roundNo,
-                    'action'        => $round->action,
-                    'candidacy_id'  => $round->candidacyId,
-                    'transfer'      => $round->transfer !== null
-                        ? json_encode($round->transfer, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE)
-                        : null,
-                    'tallies'       => json_encode($round->tallies, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE),
-                    'created_at'    => $now,
-                ];
-            }
+            $rows = self::roundRows($tabulation, $result, $now);
 
             foreach (array_chunk($rows, 500) as $chunk) {
                 DB::table('tabulation_rounds')->insert($chunk);
             }
 
             // Winners → race_results (vote_share_norm computed once here).
-            $norms = self::voteShareNorms($result);
-
-            $resultRows = [];
-            foreach ($result->elected as $e) {
-                $resultRows[] = [
-                    'id'              => (string) Str::uuid(),
-                    'tabulation_id'   => $tabulation->id,
-                    'candidacy_id'    => $e['candidacy_id'],
-                    'round_elected'   => $e['round'],
-                    'seat_no'         => $e['seat_no'],
-                    'vote_share_norm' => $norms[$e['candidacy_id']] ?? null,
-                    'is_runner_up'    => false,
-                    'runner_up_rank'  => null,
-                    'created_at'      => $now,
-                ];
-            }
+            $resultRows = self::resultRows($tabulation, $result, $now);
 
             if ($resultRows !== []) {
                 DB::table('race_results')->insert($resultRows);
@@ -237,6 +209,154 @@ class TabulationRecorder
             );
 
             return $tabulation->refresh();
+        });
+    }
+
+    /**
+     * Round rows for one finished count. Extracted from complete() so the batch
+     * path below writes BYTE-IDENTICAL rows — a second row-builder would drift
+     * from this one silently.
+     *
+     * @return list<array<string,mixed>>
+     */
+    private static function roundRows(Tabulation $tabulation, CountResult $result, $now): array
+    {
+        $rows = [];
+
+        foreach ($result->rounds as $round) {
+            $rows[] = [
+                'id'            => (string) Str::uuid(),
+                'tabulation_id' => $tabulation->id,
+                'round_no'      => $round->roundNo,
+                'action'        => $round->action,
+                'candidacy_id'  => $round->candidacyId,
+                'transfer'      => $round->transfer !== null
+                    ? json_encode($round->transfer, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE)
+                    : null,
+                'tallies'       => json_encode($round->tallies, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE),
+                'created_at'    => $now,
+            ];
+        }
+
+        return $rows;
+    }
+
+    /**
+     * Winner rows for one finished count. Extracted from complete() — see
+     * roundRows().
+     *
+     * @return list<array<string,mixed>>
+     */
+    private static function resultRows(Tabulation $tabulation, CountResult $result, $now): array
+    {
+        $norms = self::voteShareNorms($result);
+        $rows = [];
+
+        foreach ($result->elected as $e) {
+            $rows[] = [
+                'id'              => (string) Str::uuid(),
+                'tabulation_id'   => $tabulation->id,
+                'candidacy_id'    => $e['candidacy_id'],
+                'round_elected'   => $e['round'],
+                'seat_no'         => $e['seat_no'],
+                'vote_share_norm' => $norms[$e['candidacy_id']] ?? null,
+                'is_runner_up'    => false,
+                'runner_up_rank'  => null,
+                'created_at'      => $now,
+            ];
+        }
+
+        return $rows;
+    }
+
+    /**
+     * Persist MANY finished counts with ONE audit entry (operator ruling D3).
+     *
+     * WHY THIS EXISTS. `complete()` appends one chain entry per race. The chain
+     * is a strictly serial writer — every append takes a global advisory lock —
+     * and the highest sustained rate this system has been observed to hold is
+     * ~28.6 appends/second. At planet scale that is roughly 1.7 million races,
+     * about 16 hours of pure lock time before certification even begins.
+     * Batching is what lets a planetary populate finish at all.
+     *
+     * WHY IT IS STILL HONEST. The summary entry carries a MERKLE ROOT over the
+     * batch's `record_hash` values, using the same `rootHash()` the ballot-hash
+     * publication uses. That is strictly MORE verifiable than a per-race entry
+     * carrying no root: anyone holding the batch can recompute the root and
+     * prove membership, and every individual `record_hash` still sits on its own
+     * `tabulations` row. One entry attests to many counts rather than many
+     * attesting to one each — nothing is hidden.
+     *
+     * SCOPE. TABULATION only — a mechanically derived act. It deliberately does
+     * NOT extend to certifying an election or seating a member, which are
+     * governance-constitutive and stay per-act.
+     *
+     * @param  list<array{0: Tabulation, 1: ElectionRace, 2: CountResult}>  $batch
+     * @return int  races persisted
+     */
+    public function completeBatch(array $batch, array $auditExtra = []): int
+    {
+        if ($batch === []) {
+            return 0;
+        }
+
+        return DB::transaction(function () use ($batch, $auditExtra): int {
+            $now = now();
+            $roundRows = [];
+            $resultRows = [];
+            $recordHashes = [];
+            $seats = 0;
+            $totalValid = 0;
+
+            foreach ($batch as [$tabulation, $race, $result]) {
+                $roundRows = array_merge($roundRows, self::roundRows($tabulation, $result, $now));
+                $resultRows = array_merge($resultRows, self::resultRows($tabulation, $result, $now));
+
+                $hash = $result->recordHash();
+                $recordHashes[] = $hash;
+                $seats += count($result->elected);
+                $totalValid += $result->totalValid;
+
+                $tabulation->forceFill([
+                    'status'       => Tabulation::STATUS_COMPLETE,
+                    'quota'        => $result->quota,
+                    'total_valid'  => $result->totalValid,
+                    'record_hash'  => $hash,
+                    'completed_at' => $now,
+                ])->save();
+
+                $race->forceFill([
+                    'quota'               => $result->quota,
+                    'total_valid_ballots' => $result->totalValid,
+                ])->save();
+            }
+
+            foreach (array_chunk($roundRows, 500) as $chunk) {
+                DB::table('tabulation_rounds')->insert($chunk);
+            }
+
+            foreach (array_chunk($resultRows, 500) as $chunk) {
+                DB::table('race_results')->insert($chunk);
+            }
+
+            // ONE entry, appended AFTER the bulk writes. The chain lock is
+            // transaction-scoped, so appending early would hold it for the whole
+            // batch and stall every other writer on the instance.
+            $this->audit->append(
+                module: 'elections',
+                event: 'races.tabulated_batch',
+                payload: array_merge([
+                    'races'            => count($batch),
+                    'seats'            => $seats,
+                    'total_valid'      => $totalValid,
+                    'engine_version'   => VoteCountingService::ENGINE_VERSION,
+                    'record_hash_root' => PublishBallotHashesJob::rootHash($recordHashes),
+                    'record_hashes'    => $recordHashes,
+                ], $auditExtra),
+                ref: 'ESM-03',
+            );
+
+            return count($batch);
         });
     }
 

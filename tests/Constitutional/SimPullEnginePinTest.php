@@ -203,7 +203,7 @@ class SimPullEnginePinTest extends TestCase
     {
         $this->onLivePg(function () {
             $run = $this->makeRun(['phase' => 'cohorts']);
-            $this->items($run, 'count_race', 3); // a LATER phase's kind
+            $this->items($run, 'count_election', 3); // a LATER phase's kind
 
             $this->assertNull(
                 SimClaims::next($run, (string) Str::uuid()),

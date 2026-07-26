@@ -198,6 +198,47 @@ class SimPumpCommand extends Command
                            AND x.unit_key = l.jurisdiction_id::text
                     )
                   LIMIT ".self::MINT_CHUNK,
+            // One counting item per ELECTION this run scheduled. The election id
+            // rides in race_id — the item's spare reference column — because
+            // counting and seating act on an election, not a jurisdiction.
+            'counting' => "INSERT INTO sim_items
+                    (id, run_id, kind, status, jurisdiction_id, race_id, adm_level, unit_key,
+                     position, est_cost, metrics, created_at, updated_at)
+                 SELECT gen_random_uuid(), ?, 'count_election', 'pending',
+                        e.jurisdiction_id, e.id, s.adm_level, e.id::text,
+                        s.position, 0, '{}', now(), now()
+                   FROM elections e
+                   JOIN sim_items s
+                     ON s.run_id = ? AND s.kind = 'election_scope'
+                    AND s.unit_key = e.jurisdiction_id::text AND s.status = 'done'
+                  WHERE e.status NOT IN ('certified', 'cancelled')
+                    AND EXISTS (SELECT 1 FROM election_races r WHERE r.election_id = e.id)
+                    AND NOT EXISTS (
+                        SELECT 1 FROM sim_items x
+                         WHERE x.run_id = ? AND x.kind = 'count_election'
+                           AND x.unit_key = e.id::text
+                    )
+                  LIMIT ".self::MINT_CHUNK,
+
+            // One seating item per election whose races have all been counted.
+            'seating' => "INSERT INTO sim_items
+                    (id, run_id, kind, status, jurisdiction_id, race_id, adm_level, unit_key,
+                     position, est_cost, metrics, created_at, updated_at)
+                 SELECT gen_random_uuid(), ?, 'seat_scope', 'pending',
+                        e.jurisdiction_id, e.id, s.adm_level, e.id::text,
+                        s.position, 0, '{}', now(), now()
+                   FROM elections e
+                   JOIN sim_items s
+                     ON s.run_id = ? AND s.kind = 'count_election'
+                    AND s.unit_key = e.id::text AND s.status = 'done'
+                  WHERE e.status NOT IN ('certified', 'cancelled')
+                    AND NOT EXISTS (
+                        SELECT 1 FROM sim_items x
+                         WHERE x.run_id = ? AND x.kind = 'seat_scope'
+                           AND x.unit_key = e.id::text
+                    )
+                  LIMIT ".self::MINT_CHUNK,
+
             default => null,
         };
 

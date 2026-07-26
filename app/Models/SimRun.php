@@ -56,7 +56,12 @@ class SimRun extends Model
         'cohorts' => ['cohort_scope'],
         'identities' => ['identity_batch'],
         'elections' => ['election_scope'],
-        'counting' => ['count_race'],
+        // One item per ELECTION, not per race. Counting batches its races so a
+        // single Merkle-rooted audit entry attests to many counts (D3): the
+        // chain is a serial writer, and one entry per race would put ~16 hours
+        // of pure lock time in front of a planetary run. An election is also
+        // the unit certification acts on, so the two stages line up.
+        'counting' => ['count_election'],
         'seating' => ['seat_scope'],
         'verifying' => ['acceptance_scan'],
         'done' => [],
