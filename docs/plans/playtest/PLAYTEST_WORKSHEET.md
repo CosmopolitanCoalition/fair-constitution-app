@@ -90,21 +90,31 @@ state. **Judge every card on what you can see** — the person is in the chamber
 counted — not on the word used. *(Verified in the database and in the code, which treats the two as
 one throughout.)*
 
-**4. ⚑ Only ONE chamber in this world has anybody in it — San Marino's.** There are eleven
-legislatures on the dev box and **ten of them are empty**. Every card in Section C names
-`smr-1-san-marino` for that reason.
+**4. ⚑ San Marino's is the chamber with people in it. The nine villages may or may not be seated
+yet — and BOTH answers are correct.** Every card in Section C names `smr-1-san-marino` for that
+reason.
 
-The nine castelli are empty for a **specific and correct** reason worth knowing. A castello is a
-leaf — it has nothing beneath it to represent — so it has only the population-based chamber, and
-that chamber is **divided into districts of five to nine seats**. Each castello is entitled to
-10–22 seats and **none has a district map drawn yet**, so a single at-large race would be unlawful
-and the app **refuses to run one**. That refusal is the constitution being enforced, not a gap.
+Here's what's true either way. **All nine village maps are drawn, and every one of them divides
+its seats exactly** — no village is short or over by even one:
 
-*(The five-to-nine rule governs **districts**, not chambers. The second chamber — the one
-representing constituent places — is at-large by design and can hold far more than nine, as San
-Marino's 27 does. It binds the castelli because they are leaves.)*
+> Serravalle 22 · Borgo Maggiore 19 · Città di San Marino 16 · Domagnano 15 · Fiorentino 14 ·
+> Acquaviva 13 · Chiesanuova 10 · Faetano 10 · Montegiardino 10
 
-If maps are drawn before you walk, those chambers come alive; if not, an empty castello is right.
+One activation step stands between those maps and seated representatives, and it may or may not
+have run by the time you sit down. **So open a village and read what you get:**
+
+| What you see | What it means |
+|---|---|
+| Named representatives | The step ran. Walk it like any chamber. |
+| An empty chamber | The maps are drawn and **awaiting activation**. Correct, not missing. |
+| An error, or a seat count not matching the list above | **That** is a finding. Write it down. |
+
+*Why villages need maps at all: a village is a leaf — nothing beneath it to represent — so it has
+only the population-based chamber, and that chamber is divided into districts of five to nine
+seats. Above nine seats, running one at-large race would be unlawful, and the app refuses. The
+five-to-nine rule governs **districts**, not chambers: the second chamber, representing constituent
+places, is at-large by design and can hold far more than nine — San Marino's holds 27. It binds the
+villages because they are leaves.*
 
 **5. ⚑ Earth is EMPTY on this box — the real Earth is on the other one.** `earth-0-earth` at
 :8082 has no members and no district map. The Earth with **1,999 seats across 282 districts** is on
@@ -116,11 +126,15 @@ browser after the page arrives, so for a moment they are legitimately empty. On 
 moment stretches. **Reload once before writing anything down.** Two of us have already nearly filed
 a working page as dead this way.
 
-**7. A crash mentioning `laravel.log` or "Permission denied" is the box, not the app.** If a page
-shows *Internal Server Error* and the text mentions a log file or a permission, that is the machine
-failing to write its own diary — nothing to do with the screen you're on. **Reload. If it clears,
-note the time and carry on.** It happened today on a page that had been working an hour earlier and
-was working again an hour later.
+**7. A crash mentioning `laravel.log`, "Permission denied", or an *undefined* method is the box,
+not the app.** Two shapes, same answer:
+- **A log file or a permission** in the error text — the machine failing to write its own diary.
+- **"Undefined method" or a name that sounds like it should exist** — the running copy of the app
+  can be *older than the code*. That happened today: a method existed in the project and not in the
+  container serving it. Nothing on disk was wrong; only running it revealed the gap.
+
+**Reload. If it clears, note the time and carry on.** One page did exactly this today — fine an
+hour earlier, fine an hour later.
 
 **8. If EVERYTHING fails at once, it's the box, not the app.** One broken page is a finding; every
 page broken together is the machine. Three shapes, all seen today:
