@@ -1,0 +1,6 @@
+{
+  "executive_departmentcard.below_threshold": "abaixo do limiar",
+  "executive_orderscopecard.emergency_methods_widen_the_delegated_scop": "{label} Os métodos de emergência ampliam o âmbito delegado apenas dentro da área e da duração declaradas · Art. II §7 · CLK-03",
+  "executive_orderscopecard.judicially_reviewable_art_iv_5": "Revisível judicialmente · Art. IV §5",
+  "executive_orderscopecard.rejected_pre_issuance_the_order_never_took": "Pre-emissão rejeitada: {rejection_citation} A ordem nunca entrou em vigor; a tentativa rejeitada está no registro público."
+}

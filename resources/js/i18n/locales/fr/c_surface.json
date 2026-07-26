@@ -1,0 +1,7 @@
+{
+  "surface_aboutsurface.about_this_surface": "À propos de cette surface",
+  "surface_formcard.available_to": "disponible pour {form}",
+  "surface_formcard.submitting": "Je soumets...",
+  "surface_pagescaffold.canonical_forms": "Formes canoniques:",
+  "surface_pagescaffold.workflows": "Flux de travail: {wf}"
+}

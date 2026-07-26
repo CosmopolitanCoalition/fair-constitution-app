@@ -1,0 +1,526 @@
+{
+  "jurisdictions_federation.a_box_s_role_is_the_set_of_channels_it_has": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "jurisdictions_federation.address_url": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "jurisdictions_federation.admission": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "jurisdictions_federation.adopt_this_instance_into_an_existing_clust": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "jurisdictions_federation.advertised_none_run_transport_register": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "jurisdictions_federation.approve_ratify": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "jurisdictions_federation.approving_an_adoption_admits_a_read_only_m": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "jurisdictions_federation.audit_seq": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "jurisdictions_federation.authority_claims": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "jurisdictions_federation.awaiting_consent_see_pending_requests": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "jurisdictions_federation.broker_credentials": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "jurisdictions_federation.cc_by_4_0_rasters_delivered_in_phase_h": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "jurisdictions_federation.cloudflare_dns_edit_token_stored_encrypted": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "jurisdictions_federation.cloudflare_zone_id": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "jurisdictions_federation.cluster_membership": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "jurisdictions_federation.co_affected_peers_consent": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "jurisdictions_federation.copy_this_invite_key_now_it_is_shown_only_": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "jurisdictions_federation.discover_a_peer_url": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "jurisdictions_federation.domain_e_g_worldofstatecraft_org": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "jurisdictions_federation.drop_the_required_token_key_to_qualify": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "jurisdictions_federation.each_request_s_live_consent_state_approve_": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "jurisdictions_federation.expires_in_days": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "jurisdictions_federation.geodata": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "jurisdictions_federation.handshake_server_id_or_url": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "jurisdictions_federation.head_checkpoints": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "jurisdictions_federation.host_adoption_console": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "jurisdictions_federation.host_url": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "jurisdictions_federation.intends_read_writemirrorscope_approving_ad": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "jurisdictions_federation.invite_keys": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "jurisdictions_federation.join_key_optional_leave_blank_to_request_a": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "jurisdictions_federation.jurisdiction_subtree": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "jurisdictions_federation.jurisdiction_uuid": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "jurisdictions_federation.key_fingerprint": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "jurisdictions_federation.last_heartbeat": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "jurisdictions_federation.leave_the_cluster": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "jurisdictions_federation.leave_the_cluster_this_instance_will_stop_": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "jurisdictions_federation.max_uses": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "jurisdictions_federation.meter_a": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "jurisdictions_federation.meter_b": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "jurisdictions_federation.meter_c": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "jurisdictions_federation.minting_and_approving_invite_keys_is_an_op": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "jurisdictions_federation.no_checkpoints_published": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "jurisdictions_federation.no_flipped_partitions": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "jurisdictions_federation.no_keys_minted_yet": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "jurisdictions_federation.no_peers_yet_discover_one_with_federation_": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "jurisdictions_federation.no_pending_requests": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "jurisdictions_federation.no_read_write_petitions": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "jurisdictions_federation.no_sync_exchanges_recorded_yet": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "jurisdictions_federation.note_optional": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "jurisdictions_federation.note_to_the_host_operator_optional": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "jurisdictions_federation.peers": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "jurisdictions_federation.pending_adoption_requests": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "jurisdictions_federation.pending_role_requests": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "jurisdictions_federation.phase_f_wf_jur_06_art_v_2": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "jurisdictions_federation.probe_a_peer_over_every_transport_mesh_doc": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "jurisdictions_federation.re_check": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "jurisdictions_federation.read_write_is_not_granted_by_joining_after": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "jurisdictions_federation.read_write_is_not_granted_by_joining_this_": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "jurisdictions_federation.read_write_petitions": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "jurisdictions_federation.request_read_write_authority": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "jurisdictions_federation.role_board_capability_channels": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "jurisdictions_federation.scope_by_leg": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "jurisdictions_federation.server_id": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "jurisdictions_federation.server_id_or_url": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "jurisdictions_federation.sign_in_as_operator_to_discover_handshake_": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "jurisdictions_federation.store_credential": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "jurisdictions_federation.sync_ledger_append_only": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "jurisdictions_federation.the_host_s_public_records_always_pulled_th": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "jurisdictions_federation.the_operator_s_readiness_checklist_green_i": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "jurisdictions_federation.the_peer_mesh_and_the_full_faith_credit_re": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "jurisdictions_federation.this_instance": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "jurisdictions_federation.this_instance_is_a_read_only_mirror_of_hos": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "jurisdictions_federation.to_run_the_dns_tls_broker_role_drop_a_clou": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "jurisdictions_federation.transports_switch_method": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "jurisdictions_federation.two_way_mesh_setup_gates": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "jurisdictions_federation.wants_read_write_over": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "jurisdictions_federation.why_we_run_a_vetted_node_here": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "jurisdictions_federation.why_we_want_to_mirror": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "jurisdictions_federation.you_pursue_read_write_afterward": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "jurisdictions_federation.you_will_become_a_read_only_mirror_of_pull": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "jurisdictions_federation.zone_configured": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "jurisdictions_index.adm_0_world": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "jurisdictions_index.adm_1_country": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "jurisdictions_index.adm_2_state_province": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "jurisdictions_index.adm_3_county_district": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "jurisdictions_index.adm_4": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "jurisdictions_index.adm_5": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "jurisdictions_index.adm_6": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "jurisdictions_index.all_levels": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "jurisdictions_index.search_by_name": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "jurisdictions_index.showing_of": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "jurisdictions_show.accept_anyway_i_acknowledge_open_flag": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "jurisdictions_show.apportionment_completed": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "jurisdictions_show.chamber": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "jurisdictions_show.continent": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "jurisdictions_show.create_first_district_map": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "jurisdictions_show.critical_population": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "jurisdictions_show.critical_warning_info": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "jurisdictions_show.data_flags": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "jurisdictions_show.direct_child_with_zero_population": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "jurisdictions_show.election": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "jurisdictions_show.every_place_on_earth_planet_to_neighborhoo": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "jurisdictions_show.executive": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "jurisdictions_show.income_group": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "jurisdictions_show.judiciary": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "jurisdictions_show.languages": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "jurisdictions_show.loading_map": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "jurisdictions_show.loading_population_raster": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "jurisdictions_show.maps_accepted": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "jurisdictions_show.no_further_sub_divisions": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "jurisdictions_show.open_data_flag_review_at_planet_scope": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "jurisdictions_show.open_data_flags_remain": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "jurisdictions_show.orphan_no_population_pop_discrepancy_terri": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "jurisdictions_show.parent_assigned_via": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "jurisdictions_show.population": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "jurisdictions_show.population_2": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "jurisdictions_show.population_3": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "jurisdictions_show.region_dataset": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "jurisdictions_show.review_issues": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "jurisdictions_show.self_governing": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "jurisdictions_show.sizing_every_legislature": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "jurisdictions_show.source_geoboundaries_year": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "jurisdictions_show.subregion": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "jurisdictions_show.the_data_review_scan_still_has_unresolved_": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "jurisdictions_show.this_is_the_most_local_jurisdiction_level_": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "jurisdictions_show.toggle_direct_child_count_members_under_ea": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "jurisdictions_show.toggle_jurisdiction_name_labels": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "jurisdictions_show.toggle_population_number_under_each_name": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "jurisdictions_show.toggle_worldpop_population_density_raster_": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "jurisdictions_show.unsdg_region": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "jurisdictions_show.watch_the_full_scale_build": {
+    "status": "machine",
+    "provider": "nllb"
+  }
+}

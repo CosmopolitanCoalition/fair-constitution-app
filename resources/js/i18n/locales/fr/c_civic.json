@@ -1,0 +1,10 @@
+{
+  "civic_room_chamberstage.in_the_chamber": "Dans la chambre {statusLabel}",
+  "civic_room_chamberstage.no_one_is_on_the_floor_yet_join_the_voice_": "Personne n'est encore sur le sol  rejoindre l'appel vocal pour prendre votre place.",
+  "civic_room_liveroom.no_voice_host_is_reachable_from_here_right": "Aucun hôte vocal n'est accessible d'ici en ce moment  la pièce reste texte seulement. Vos postes et l'avion record ne sont pas affectés.",
+  "civic_room_liveroom.you_can_still_take_part_in_text_below": "{errorMessage} Vous pouvez toujours participer au texte ci-dessous.",
+  "civic_room_participanttile.screen_share": "partage d'écran",
+  "civic_signaturemeter.needed": "{threshold} nécessaire · {pct}%",
+  "civic_signaturemeter.threshold_of_population_clk_17": "seuil {threshold} = {pct}% de la population · CLK-17",
+  "civic_signaturemeter.threshold_reached": "Un seuil atteint"
+}

@@ -1,0 +1,10 @@
+{
+  "civic_room_chamberstage.in_the_chamber": "Na câmara {statusLabel}",
+  "civic_room_chamberstage.no_one_is_on_the_floor_yet_join_the_voice_": "Ainda não há ninguém no chão. Junta-te à chamada de voz para sentar-te.",
+  "civic_room_liveroom.no_voice_host_is_reachable_from_here_right": "Nenhum anfitrião de voz é acessível a partir daqui agora. Os seus postos e o avião de registo não são afetados.",
+  "civic_room_liveroom.you_can_still_take_part_in_text_below": "{errorMessage} Você ainda pode participar no texto abaixo.",
+  "civic_room_participanttile.screen_share": "compartilhamento de tela",
+  "civic_signaturemeter.needed": "{threshold} necessário · {pct}%",
+  "civic_signaturemeter.threshold_of_population_clk_17": "Prazo {threshold} = {pct}% da população · CLK-17",
+  "civic_signaturemeter.threshold_reached": "Prazo atingido"
+}

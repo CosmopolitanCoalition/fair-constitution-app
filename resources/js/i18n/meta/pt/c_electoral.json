@@ -1,0 +1,106 @@
+{
+  "electoral_approveswitch.approval_phase_is_closed": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "electoral_approveswitch.withdraw_approval_for": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "electoral_ballotreceipt.receipt_copied": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "electoral_ballotreceipt.self_audit_in_the_public_count_record": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "electoral_ballotreceipt.this_receipt_is_shown_once_copy_it_now_it_": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "electoral_candidaterow.individual_endorsements": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "electoral_candidaterow.no_endorsements": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "electoral_candidaterow.since_yesterday_since_yesterday_steady_sin": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "electoral_finalistline.finalist_line": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "electoral_phasebanner.clk_18_closes_at_finalist_cutoff_reopens_a": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "electoral_phasebanner.clk_21_finalist_cutoff": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "electoral_phasebanner.clk_21_finalist_cutoff_art_ii_2": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "electoral_phasebanner.rank_your_ballot_now": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "electoral_phasebanner.registration_is_open_now": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "electoral_phasebanner.tabulation_and_certification_are_under_way": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "electoral_phasebanner.the_approval_phase_has_closed_finalists_ar": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "electoral_phasebanner.the_approval_phase_has_closed_this_standin": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "electoral_phasebanner.the_approval_phase_is_live_validated_candi": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "electoral_phasebanner.the_finalist_cutoff_has_passed_for_the_cur": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "electoral_phasebanner.the_ranked_window_is_open": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "electoral_phasebanner.this_candidate_did_not_reach_the_finalist_": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "electoral_phasebanner.this_candidate_is_a_finalist_on_the_ranked": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "electoral_phasebanner.watch_the_count": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "electoral_ranklist.your_ranked_candidates": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "electoral_stvround.exhausted_no_further_preference": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "electoral_stvround.where_s_votes_went_votes": {
+    "status": "machine",
+    "provider": "nllb"
+  }
+}

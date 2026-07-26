@@ -1,0 +1,106 @@
+{
+  "legislature_agendastrip.in_progress": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "legislature_agendastrip.session_agenda_constitutional_order": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "legislature_constituentconsentpanel.art_iii_3_art_vii": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "legislature_constituentconsentpanel.constituent_consents_each_constituent_legi": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "legislature_constituentconsentpanel.constituent_jurisdictions_in_favor": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "legislature_constituentconsentpanel.constituent_jurisdictions_supermajority_of": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "legislature_constituentconsentpanel.each_constituent_legislature_votes_as_a_bo": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "legislature_constituentconsentpanel.open_both_supermajorities_must_clear_each_": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "legislature_constituentconsentpanel.own_supermajority": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "legislature_constituentconsentpanel.window_closes_stored_as_utc": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "legislature_seatmap.gold_ring_speaker_dashed_vacant_blue_ring_": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "legislature_votecastlist.counts_the_same_as_a_no_peg_quorum_art_ii_": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "legislature_votetally.art_ii_2": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "legislature_votetally.each_kind_meets_its_own_peg_quorum_vacanci": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "legislature_votetally.explanation_optional": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "legislature_votetally.peg_quorum_of_serving_art_ii_2": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "legislature_votetally.peg_quorum_of_this_kind_of_serving": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "legislature_votetally.published_with_your_vote_art_ii_2": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "legislature_votetally.quorum_present_of_all_serving": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "legislature_votetally.supermajority_rcv_outcome": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "legislature_votetally.this_kind_agrees": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "legislature_votetally.this_kind_does_not_agree": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "legislature_votetally.vote_no": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "legislature_votetally.vote_open": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "legislature_votetally.vote_yes": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "legislature_votetally.votes_in_favor": {
+    "status": "machine",
+    "provider": "nllb"
+  }
+}

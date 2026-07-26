@@ -1,0 +1,18 @@
+{
+  "ui_citationline.as_implemented": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "ui_formchip.catalog": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "ui_lawdiff.law_text_changes": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "ui_plannedbanner.planned_a_preview": {
+    "status": "machine",
+    "provider": "nllb"
+  }
+}

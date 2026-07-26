@@ -1,0 +1,10 @@
+{
+  "invite_invitebutton.invite_a_friend": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "invite_invitebutton.join_me": {
+    "status": "machine",
+    "provider": "nllb"
+  }
+}

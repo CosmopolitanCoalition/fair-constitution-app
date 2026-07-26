@@ -1,0 +1,12 @@
+{
+  "cosmicaddresspicker.loading_cosmic_address": "Carregando endereço cósmico...",
+  "cosmicaddresspicker.multiverse": "Multiverso ▸",
+  "schemaupdatebanner.apply_updates": "Aplicar atualizações",
+  "schemaupdatebanner.required_apply_before_starting_an_etl_run": "Requerido: {pendingLabel}  aplicar antes de iniciar uma corrida ETL.",
+  "setupstepper.build_districts": "Construir Distritos",
+  "setupstepper.confirm_seat_institutions": "Instituições de confirmação e assento",
+  "setupstepper.constitutional_defaults": "Falhas constitucionais",
+  "setupstepper.cosmic_address": "Endereço Cósmico",
+  "setupstepper.map_data": "Dados de mapa",
+  "setupstepper.setup_progress": "Progresso na instalação"
+}
