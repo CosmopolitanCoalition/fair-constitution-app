@@ -1,7 +1,7 @@
 # The Playtest Worksheet
 
 **Print this. Keep it beside you. Write in the notes column.**
-Lane 6 · living document — v1, 2026-07-26 · box: dev (`fcd`) at http://localhost:8082
+Lane 6 · living document — v4, 2026-07-26 · box: dev (`fcd`) at http://localhost:8082
 
 ---
 
@@ -37,7 +37,7 @@ the wrong thing. That difference is what makes this sheet useful next week.
 
 ---
 
-## Two controls you'll need constantly
+## Three controls you'll need constantly
 
 **To become someone else** — the dev bar. `/dev/users` lists everyone; impersonate from there
 (`/dev/login-as` and `/dev/impersonate/{user}` are the same control). `/dev/impersonate/stop`
@@ -48,12 +48,24 @@ needs. Dev mode is on for this box (sandbox game mode).
 **To move time** — lane 3 is building the time control right now
 (`docs/plans/playtest/DEV_TIME_AND_ROLE_CONTROLS.md`), including a preview of what an advance
 *would* fire before it fires. Steps that need it are marked **⏱**. Until it lands, those steps are
-*blocked*, not failed. Steps needing a whole chamber to vote at once are also marked ⏱ — lane 13's
-bloc-cast control is what turns those from 58 separate logins into one action.
+*blocked*, not failed.
+
+**To make a whole chamber vote at once** — `POST /dev/chamber/cast` with a vote id and the yes / no
+/ abstain counts. It turns a 58-member floor vote into one action instead of 58 logins.
+
+Two things about it matter for testing, and they're the reason it can be trusted on this sheet:
+- **It supplies ballots, never outcomes.** Every ballot is filed as a real seated member through
+  the real engine. Quorum, supermajority and dual agreement are all still computed the usual way,
+  and there is no path in it that can make something pass. **So if a vote fails, it genuinely
+  failed** — which is the only kind of refusal worth writing down.
+- **It takes a `lane`** — `type_a` or `type_b` — so you can have **one chamber agree while the
+  other doesn't**, on purpose. That's how C-5 stages a real bicameral refusal.
+
+Every use is marked in the record as a dev action, so a played timeline never reads as a lived one.
 
 ---
 
-## Two things that will look broken and aren't
+## Six things that will look broken and aren't
 
 **1. No achievements will appear.** The app has a catalogue of 139 achievements, but the piece that
 watches for them and awards them isn't built yet. **Nothing on this sheet asks you to check for an
@@ -71,6 +83,23 @@ state. **Judge every card on what you can see** — the person is in the chamber
 counted — not on the word used. *(Verified in the database and in the code, which treats the two as
 one throughout.)*
 
+**4. ⚑ Only ONE chamber in this world has anybody in it — San Marino's.** There are eleven
+legislatures on the dev box and **ten of them are empty**, including all nine castelli. That is
+**correct**: those legislatures exist and have simply never held an election. Every card in
+Section C names `smr-1-san-marino` for that reason. If you wander into a castello's chamber and
+find nobody there, you have found the expected state, not a bug.
+
+**5. ⚑ Earth is EMPTY on this box — the real Earth is on the other one.** `earth-0-earth` at
+:8082 has no members and no district map. The Earth with **1,999 seats across 282 districts** is on
+the **game box at :8080**, which is where Section H sends you. Opening Earth on the dev box and
+finding nothing is the single easiest way to conclude the app is broken when it isn't.
+
+**6. A blank page is not proof of a blank page — look twice.** These screens are drawn by the
+browser after the page arrives, so for a moment they are legitimately empty. On a loaded box that
+moment stretches. **Reload once before writing anything down.** Two of us have already nearly filed
+a working page as dead this way. And if *every* page is blank rather than one, that is the asset
+server being down — one problem, not a hundred.
+
 ---
 
 ## Sections — take them in batches
@@ -85,7 +114,7 @@ one throughout.)*
 | **F** | Voice — square, petitions, messages | 6 | ✅ Yes |
 | **G** | The record & the clock | 4 | ✅ Yes |
 | **H** | Places & maps — **use the game box, :8080** | 5 | ✅ Yes |
-| I | The economy | — | ⛔ No screens yet — lane 6 building them |
+| **I** | The economy | 4 | ✅ Yes — screens shipped |
 
 **Start with A. It takes about twenty minutes and everything else depends on it.**
 
@@ -372,7 +401,7 @@ of **all serving members** — not a majority of whoever turned up.
 | # | Do this | On this screen | You should see |
 |---|---|---|---|
 | 1 | Become a seated member | `/dev/users` or `/dev/legislature-kit` | You are in the chamber |
-| 2 | Open a session | the legislature's chamber | A session, with a quorum count |
+| 2 | Open a session |  `/legislatures/smr-1-san-marino` | A session, with a quorum count |
 | 3 | Check what quorum it demands | same | A number over half of all serving |
 
 **PASSES IF** — the quorum number is computed against **all serving members**, not attendance.
@@ -388,7 +417,7 @@ of **all serving members** — not a majority of whoever turned up.
 
 | # | Do this | On this screen | You should see |
 |---|---|---|---|
-| 1 | Start a bill | the legislature page | A drafting form |
+| 1 | Start a bill  | `/legislatures/smr-1-san-marino` | A drafting form |
 | 2 | Submit it | same | The bill listed, with a stage |
 | 3 | Open it | `/bills/{id}` | Its text and where it is in the process |
 
@@ -407,7 +436,7 @@ ranking their preferences — there are no parties here to hand them out.
 | # | Do this | On this screen | You should see |
 |---|---|---|---|
 | 1 | Refer the bill to a committee | the bill page | It moves to committee |
-| 2 | Rank your committee preferences | the legislature page | Your ranking saved |
+| 2 | Rank your committee preferences  | `/legislatures/smr-1-san-marino` | Your ranking saved |
 | 3 | Hold a committee meeting and vote | the committee page | A recorded committee vote |
 | 4 | File the committee's report | same | A report attached to the bill |
 
@@ -418,21 +447,29 @@ ranking their preferences — there are no parties here to hand them out.
 
 ---
 
-### C-5 · The floor vote — **both** chambers must agree ⏱ easier with the bloc-vote control
-**What it is.** The real test of the two-chamber design. One chamber agreeing is not enough.
-**Role:** seated members in both chambers · **Clock:** none · **Needs first:** C-4
-*58 members must vote. Lane 13's bloc-cast control lands shortly and turns this from 58 logins into
-one action — worth waiting for rather than doing by hand.*
+### C-5 · The floor vote — **both** chambers must agree
+**What it is.** The real test of the two-chamber design, and **the most important card in this
+section.** One chamber agreeing is not enough, and here you make that refusal happen on purpose.
+**Role:** the whole chamber, via the bloc-cast control · **Clock:** none · **Needs first:** C-4
 
 | # | Do this | On this screen | You should see |
 |---|---|---|---|
 | 1 | Bring the bill to the floor | the bill page | It's up for a vote |
-| 2 | Vote it through the **first** chamber only | the chamber | Recorded, but not passed |
-| 3 | Now vote it in the **second** chamber | the chamber | Now it passes |
+| 2 | Cast the **district** chamber in favour — `lane: type_a` | bloc-cast control | 31 votes recorded |
+| 3 | Look at the bill | the bill page | **Recorded, and NOT passed** |
+| 4 | Now cast the **constituent** chamber too — `lane: type_b` | bloc-cast control | 27 more votes |
+| 5 | Look again | the bill page | **Now it passes** |
 
-**PASSES IF** — the bill does **not** pass on one chamber alone, and does once both agree.
-*This is the single most important check in Section C. If one chamber can pass a law by itself,
-that is a constitutional failure, not a bug.*
+**PASSES IF** — a majority in one chamber alone does **not** pass the bill, and it passes only once
+both chambers have agreed independently.
+
+*Why this is worth doing carefully: step 3 is a **refusal**, and a refusal is where the
+constitution actually lives. A screen that renders perfectly while quietly letting one chamber
+legislate alone looks identical to a correct one. **If the bill passes at step 3, that is a
+constitutional failure, not a bug** — stop and write down exactly what you saw.*
+
+*The control supplies ballots, never outcomes — every vote is filed as a real member through the
+real engine, and nothing in it can force a pass. So the refusal you see at step 3 is genuine.*
 
 **Result** ☐ pass ☐ fail ☐ blocked  **Notes** ________________________________________
 
@@ -461,7 +498,7 @@ that is a constitutional failure, not a bug.*
 
 | # | Do this | On this screen | You should see |
 |---|---|---|---|
-| 1 | Open a speaker ballot | the legislature page | A ranked ballot of members |
+| 1 | Open a speaker ballot  | `/legislatures/smr-1-san-marino` | A ranked ballot of members |
 | 2 | Vote it through | same | A Speaker named |
 
 **PASSES IF** — a Speaker is recorded, and the bar was **two-thirds of all serving members**, not
@@ -478,7 +515,7 @@ be enforced by the app, not by anyone remembering.
 
 | # | Do this | On this screen | You should see |
 |---|---|---|---|
-| 1 | Declare emergency powers | the legislature page | An end date, at most 90 days out |
+| 1 | Declare emergency powers  | `/legislatures/smr-1-san-marino` | An end date, at most 90 days out |
 | 2 | Try to set a longer period | same | **Refused** |
 | 3 | Move time past the end date | time control | They lapse on their own |
 
@@ -791,7 +828,7 @@ need a confirmed residency to speak.
 | # | Do this | On this screen | You should see |
 |---|---|---|---|
 | 1 | Sign it past its threshold | `/civic/petitions/{id}` | Threshold reached |
-| 2 | Follow it to the legislature | the legislature page | It has arrived there |
+| 2 | Follow it to the legislature  | `/legislatures/smr-1-san-marino` | It has arrived there |
 | 3 | See a referendum created | same | A question everyone can vote on |
 
 **PASSES IF** — reaching the threshold moves it forward **without anyone deciding to allow it**.
@@ -976,15 +1013,80 @@ constitutional failure, not a convenience issue.*
 
 # SECTION I — The economy
 
-**⛔ Not walkable yet, and it's mine to fix.** The economy engine is built and running underneath —
-a currency, a treasury with 250,000 issued, 60 wallets, a completed payment run to 60 people, a
-marketplace with a completed sale. **The screens don't exist yet**, so the six economy addresses
-currently show a blank page rather than an empty one.
+*The screens are built now — walk it. Read-only by design: money can be looked at, not yet moved.
+Sending, listing and ordering arrive with their forms, and the pages say so rather than showing a
+button that can't submit.*
 
-**Please don't walk to `/economy` until I've said it's ready** — you'd get a white screen and
-reasonably conclude the economy is broken, when it's one of the more finished things in the build.
+---
 
-I'll add Section I when the screens land.
+### I-1 · The money, and whether the books balance
+**Role:** anyone signed in · **Needs first:** A-1
+
+| # | Do this | On this screen | You should see |
+|---|---|---|---|
+| 1 | Open the economy | `/economy` | The currency, and what's in circulation |
+| 2 | Look at the ledger panel | same | Entries, a chain state, and a residual |
+
+**PASSES IF** — the chain reads **verified** and the residual reads **zero**.
+*That zero is the real check. Issuing money is the only way value enters; everything after that
+just moves it about. So a healthy ledger balances to nothing left over — a non-zero residual means
+value appeared from somewhere, which is the one thing that must never happen.*
+
+**Result** ☐ pass ☐ fail ☐ blocked  **Notes** ________________________________________
+
+---
+
+### I-2 · Your wallet is yours alone
+**Role:** a resident with a wallet, then someone else · **Needs first:** A-3
+
+| # | Do this | On this screen | You should see |
+|---|---|---|---|
+| 1 | Open your wallet | `/economy/wallet` | Your balance and your own movements |
+| 2 | Note whether any **other person** is named | same | Only accounts, never people |
+| 3 | Become someone else and open theirs | `/dev/users` → `/economy/wallet` | **Their own** wallet, not yours |
+
+**PASSES IF** — you can see your own balance and **cannot** see anyone else's, and no counterparty
+is identified as a person anywhere on the page.
+*The public accounts in I-4 are the deliberate opposite. Public money is examined; private money
+isn't.*
+
+**Result** ☐ pass ☐ fail ☐ blocked  **Notes** ________________________________________
+
+---
+
+### I-3 · The market has both sides
+**Role:** anyone signed in · **Needs first:** A-1
+
+| # | Do this | On this screen | You should see |
+|---|---|---|---|
+| 1 | Open the market | `/economy/market` | Things for sale |
+| 2 | Switch to work, then to requests for help | same | Three sections, each with a count |
+| 3 | Open a listing | `/economy/market/{id}` | Price, quantity, and how many have ordered |
+
+**PASSES IF** — all three sections render, and the listing shows the seller as an **account**, never
+as a named person.
+*A market with only sellers is a catalogue — the work and mutual-aid sides are the point.*
+
+**Result** ☐ pass ☐ fail ☐ blocked  **Notes** ________________________________________
+
+---
+
+### I-4 · Public money is public
+**Role:** anyone · **Needs first:** nothing
+
+| # | Do this | On this screen | You should see |
+|---|---|---|---|
+| 1 | Open public finance | `/economy/treasury` | Ledger rows with their hashes |
+| 2 | Look at the accounts | same | Balances, marked public or private |
+| 3 | Open the levers | `/economy/units` | The currency, and what can be changed |
+| 4 | Try to change one | same | **There is nothing to change it with** |
+
+**PASSES IF** — the public ledger is readable, **and** the levers page offers no control at all.
+*Step 4 is the point: every monetary lever moves only by an act of a legislature, within bounds it
+cannot exceed. There is deliberately no admin knob — not for an operator, not for you. If you find
+one, that's a serious finding.*
+
+**Result** ☐ pass ☐ fail ☐ blocked  **Notes** ________________________________________
 
 ---
 
@@ -1001,6 +1103,14 @@ ________________________________________________________________________________
 ---
 
 ## Changelog
+- **v4** (2026-07-26) — Front matter gains the three warnings most likely to produce a false
+  failure: **only San Marino's chamber has anybody in it** (ten of eleven legislatures are empty,
+  correctly), **Earth is empty on the dev box** (the real 1,999-seat Earth is on the game box), and
+  **a blank page is not proof of a blank page** — these screens draw after arrival, so reload once
+  before writing. Every generic "the legislature page" now names `smr-1-san-marino`. C-5 rewritten
+  around lane 13's bloc-cast control: with its `lane` parameter you can make **one chamber agree
+  while the other doesn't** and watch a genuine bicameral refusal, which is the whole point of the
+  card. Six economy screens shipped (`82861e9`), so Section I is no longer a "don't walk here".
 - **v3** (2026-07-26) — **Section C unblocked and fully runnable.** The second chamber is seated
   (31 + 27 = 58 serving) and three bicameral acts have carried, so C, D and E all run normally;
   C-1 is now a thirty-second confirmation rather than a gate. Added the two "looks broken and
