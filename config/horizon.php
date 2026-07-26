@@ -261,6 +261,24 @@ return [
         // an operator's autoseed behind them. Isolated here, an update or
         // restart never blocks interactive heavy work (autoseed, mass-reseed,
         // geodata scan).
+        // Simulated-world populate workers (Phase O). Same posture as the
+        // autoscale pool: redis-long so a multi-hour claim is never
+        // ghost-redelivered, tries=1 because a failed item becomes a REVIEW row
+        // rather than a silent retry, and maxProcesses IS the concurrency dial.
+        // niced below autoscale — a demo populate must never starve real work.
+        'supervisor-sim' => [
+            'connection' => 'redis-long',
+            'queue' => ['sim'],
+            'balance' => 'simple',
+            'maxProcesses' => \App\Support\HostCapacity::autoscaleWorkers(),
+            'maxTime' => 0,
+            'maxJobs' => 0,
+            'memory' => 512,
+            'tries' => 1,
+            'timeout' => 0,
+            'nice' => 8,
+        ],
+
         'supervisor-prewarm' => [
             'connection' => 'redis-long',
             'queue' => ['prewarm'],

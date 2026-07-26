@@ -4,7 +4,9 @@ namespace App\Console\Commands;
 
 use App\Models\SimItem;
 use App\Models\SimRun;
+use App\Jobs\SimWorkerJob;
 use App\Services\AuditService;
+use App\Support\HostCapacity;
 use App\Support\SimClaims;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\DB;
@@ -110,10 +112,37 @@ class SimPumpCommand extends Command
         // 6. Phase advance.
         $this->advancePhase($run);
 
-        // 7. Counters + completion.
+        // 7. Worker top-up — the pool is the ONE concurrency dial.
+        $this->seedWorkers($run->fresh());
+
+        // 8. Counters + completion.
         $this->refreshCounters($run);
 
         return self::SUCCESS;
+    }
+
+    /**
+     * Top the fixed worker pool back up. Process count IS concurrency — there
+     * is no second width dial (HostCapacity's contract). Only workers seen in
+     * the last two minutes count as alive, so a crashed worker is replaced on
+     * the next tick without anyone tracking PIDs.
+     */
+    private function seedWorkers(SimRun $run): void
+    {
+        if (! $run->isClaimable() || ! SimClaims::workAvailable($run)) {
+            return;
+        }
+
+        $target = HostCapacity::autoscaleWorkers();
+
+        $live = (int) DB::table('sim_worker_leases')
+            ->where('run_id', $run->id)
+            ->where('last_seen_at', '>', now()->subMinutes(2))
+            ->count();
+
+        for ($i = $live; $i < $target; $i++) {
+            SimWorkerJob::dispatch((string) $run->id);
+        }
     }
 
     /**
