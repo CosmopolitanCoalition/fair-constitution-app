@@ -197,6 +197,16 @@ git diff --cached                               # read what you are about to com
 git show --stat <hash>                          # ALWAYS, before quoting a hash
 ```
 
+### ⚑ THREE HOT FILES — `git diff` before you touch them
+```
+CLAUDE.md · routes/web.php · app/Domain/Forms/FormRegistry.php
+```
+**Every cross-lane collision anyone has seen has been in one of these three.** They are the files
+many lanes need and nobody owns, so they are dirty more often than not.
+
+**Before touching one: `git diff` it. If it is already dirty, wait or coordinate — do not stage
+it.** That is a three-file rule rather than a discipline, which is why it has a chance of working.
+
 **⚠ A PATHSPEC IS NOT ENOUGH, and lane 6's incident proves it.** They *did* pass a pathspec. It
 swept 149 lines of lane 13's work anyway, because **`git add <file>` had already staged another
 lane's changes sitting inside that same file.**
