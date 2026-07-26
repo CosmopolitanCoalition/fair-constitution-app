@@ -3,101 +3,128 @@
 namespace Tests\Constitutional;
 
 use App\Http\Middleware\DevTimeControlsEnabled;
+use Tests\Concerns\LivePgConnection;
 use Tests\TestCase;
 
 /**
- * THE PLAYTEST-CONTROL GATE, TESTED IN BOTH DIRECTIONS.
+ * THE PLAYTEST-CONTROL GATE, TESTED SO EACH REASON DISCRIMINATES.
  *
  * Lane 9 captured /system/clocks and confirmed the "advance the world" block
- * was absent. I reported the gate as holding. It is holding — but the block
- * would have been invisible either way at that moment, because nothing in the
- * view rendered it yet. **The absence passed for a weaker reason than I
- * claimed.**
+ * was absent; I called the gate holding. It was — but the block would have
+ * been invisible either way at that moment, because nothing rendered it. The
+ * absence passed for a weaker reason than I claimed.
  *
- * That is the trap this file exists to close, and it is the rule the fleet
- * arrived at today: *a check that cannot fail is not a check.* An absence
- * proves nothing until you have shown the same instrument reporting a
- * presence. So every case below is paired — the gate must REFUSE for each
- * reason on its own, and must ALLOW when every reason is removed.
+ * The first version of this file then made the SAME mistake one layer down.
+ * `phpunit.xml` sets `APP_ENV=testing`, so `environment('local')` is false in
+ * every test and `refusalReason()` returned the environment message every
+ * time. All three "refuses because X" cases were really testing the
+ * environment gate, and passed for a reason unrelated to their own names.
+ * A check that passes for the wrong reason is worse than one that cannot
+ * fail, because it looks like coverage.
  *
- * Why this is a test and not a screenshot: a screenshot can only ever report
- * what is there. It structurally cannot distinguish "correctly hidden" from
- * "never built", which is exactly the confusion that produced this file.
+ * So every case below forces the environment to `local` and removes exactly
+ * ONE condition, then asserts the message names THAT condition. If a gate
+ * stops holding, the failure says which one.
  */
 class DevTimeGateTest extends TestCase
 {
+    use LivePgConnection;
+
     protected function setUp(): void
     {
         parent::setUp();
 
-        // The permissive baseline. Each test then removes exactly one reason
-        // to allow, so a failure names which gate stopped holding.
+        // Without this, every case below is really the environment check.
+        $this->app['env'] = 'local';
+
         config([
             'cga.impersonation' => true,
             'cga.dev_time'      => true,
         ]);
     }
 
-    /** The controls are OFF by default. Nobody has to remember to disable them. */
+    /** The environment gate itself — the one the others were accidentally testing. */
+    public function test_the_gate_refuses_outside_the_local_environment(): void
+    {
+        $this->app['env'] = 'production';
+
+        $reason = DevTimeControlsEnabled::refusalReason();
+
+        $this->assertNotNull($reason);
+        $this->assertStringContainsString('local environment', $reason);
+    }
+
+    /** The controls are OFF by default — nobody has to remember to disable them. */
     public function test_the_gate_refuses_when_dev_time_is_not_switched_on(): void
     {
         config(['cga.dev_time' => false]);
 
         $reason = DevTimeControlsEnabled::refusalReason();
 
-        $this->assertNotNull($reason, 'dev_time=false must refuse');
-        $this->assertStringContainsString('off', $reason);
+        $this->assertNotNull($reason);
+        $this->assertStringContainsString('Playtest time controls are off', $reason);
     }
 
-    /** The wider dev toolbox switch turns these off with everything else. */
+    /** The controls must not outlive the wider dev toolbox that gates them. */
     public function test_the_gate_refuses_when_the_dev_toolbox_is_off(): void
     {
         config(['cga.impersonation' => false]);
 
+        $reason = DevTimeControlsEnabled::refusalReason();
+
+        $this->assertNotNull($reason);
+        $this->assertStringContainsString('dev toolbox', $reason);
+    }
+
+    /**
+     * FAIL-CLOSED. The sandbox and peer probes both read the database; the
+     * default test connection has no schema, so they throw and the middleware
+     * treats the instance as connected.
+     *
+     * "I could not tell" must mean no: the cost of being wrong in the
+     * permissive direction is a fabricated record inside somebody else's chain
+     * of trust.
+     */
+    public function test_the_gate_refuses_when_it_cannot_inspect_the_instance(): void
+    {
         $this->assertNotNull(
             DevTimeControlsEnabled::refusalReason(),
-            'the controls must not outlive the toolbox that gates them',
+            'an instance we cannot inspect must be refused, not allowed',
         );
     }
 
     /**
-     * FAIL-CLOSED. The peer check reads the database; when it cannot, the
-     * instance is treated as connected and the controls are refused.
-     *
-     * The cost of being wrong in the permissive direction is a fabricated
-     * record inside somebody else's chain of trust, so "I could not tell"
-     * must mean no.
-     */
-    public function test_the_gate_refuses_when_it_cannot_determine_the_peer_state(): void
-    {
-        // The default test connection is sqlite:memory with no schema, so the
-        // peer probe throws and the middleware's catch treats that as connected.
-        $reason = DevTimeControlsEnabled::refusalReason();
-
-        $this->assertNotNull($reason, 'an instance we cannot inspect must be refused, not allowed');
-    }
-
-    /**
-     * ⚑ THE POSITIVE CONTROL — the one that makes every refusal above mean
+     * ⚑ THE POSITIVE CONTROL — the case that makes every refusal above mean
      * something.
      *
-     * Without this, all the assertions in this file are satisfied by a gate
-     * that refuses unconditionally, which is indistinguishable from a feature
-     * that was never wired. This case must be seen PASSING, or the absence
-     * results are not yet evidence.
-     *
-     * It needs a live database (the sandbox and peer probes both read one), so
-     * it skips rather than lies when the box is unavailable — and a skip is
-     * reported as a skip, never counted as a pass.
+     * Without it, all four assertions are equally satisfied by a gate that
+     * refuses unconditionally, which is indistinguishable from a control that
+     * was never wired. Run against the live sandbox database so the game-mode
+     * and peer probes can actually answer.
      */
     public function test_the_gate_allows_when_every_condition_is_met(): void
     {
-        $this->markTestSkipped(
-            'POSITIVE CONTROL NOT YET RUN. Needs a live sandbox database with no peers: '
-            .'GameMode::isSandbox() and the peer probe both read one, and the default test '
-            .'connection has no schema. Until this case is seen PASSING, the refusals above '
-            .'do not prove the gate discriminates — they are equally satisfied by a control '
-            .'that was never built. Run it against fcd with CGA_DEV_TIME=true.'
+        $pg = $this->livePg('pgsql_dev_time_gate');
+
+        // Point the default connection at the real sandbox world so
+        // GameMode::isSandbox() and the peer probe resolve against real rows.
+        config(['database.default' => 'pgsql_dev_time_gate']);
+        $pg->getPdo();
+
+        // GameMode caches its answer in a static for the life of a REQUEST,
+        // which is right in production and wrong across tests: the refusal
+        // cases above resolve it to null against the schema-less default
+        // connection, and without this flush the positive control would read
+        // that stale null and "fail" for a reason that has nothing to do with
+        // the gate.
+        \App\Support\GameMode::flush();
+
+        $reason = DevTimeControlsEnabled::refusalReason();
+
+        $this->assertNull(
+            $reason,
+            'with local env, toolbox on, dev_time on, sandbox mode and no peers, the gate MUST allow — '
+            .'otherwise the refusals above prove nothing. Refusal given: '.((string) $reason),
         );
     }
 }

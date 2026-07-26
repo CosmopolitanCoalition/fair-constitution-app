@@ -111,10 +111,24 @@ class TypeBBoundTest extends TestCase
      */
     public function test_an_empty_constituent_seats_nobody(): void
     {
-        $this->assertSame(0, TypeBSeatLadder::apportion(9, [0, 0, 0], 5)['seats']);
+        // Three empty constituents seat nobody, and nothing overflows, so the
+        // ladder never descends: it keeps the full starting rep floor.
+        $all_empty = TypeBSeatLadder::apportion(9, [0, 0, 0], 5);
+        $this->assertSame(0, $all_empty['seats']);
+        $this->assertSame(5, $all_empty['rep_floor']);
 
-        // Mixed: two empty, two inhabited, floor of two → four seats.
-        $this->assertSame(4, TypeBSeatLadder::apportion(9, [0, 0, 100, 200], 5)['seats']);
+        // Mixed: two empty, two inhabited, against a type_a of 9.
+        //   f=5 → 0 + 0 + 5 + 5 = 10, over the bound, descend
+        //   f=4 → 0 + 0 + 4 + 4 =  8, fits → stop
+        // So the answer is EIGHT at a rep floor of four, not four at a floor
+        // of two. My first version of this pin asserted 4, having assumed the
+        // floor without working the descent — the ladder stops at the most
+        // GENEROUS floor that fits, and only the empty constituents are
+        // reduced to nothing.
+        $mixed = TypeBSeatLadder::apportion(9, [0, 0, 100, 200], 5);
+        $this->assertSame(8, $mixed['seats']);
+        $this->assertSame(4, $mixed['rep_floor']);
+        $this->assertFalse($mixed['needs_districting']);
     }
 
     /** A leaf has no constituents to represent, so it has no Type B at all. */
