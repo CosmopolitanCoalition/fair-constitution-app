@@ -81,10 +81,30 @@ Consequences for everyone:
 
 ---
 
-## 4b. Diagnosing on a shared box — three traps that have each fooled the fleet
+## 4b. Diagnosing on a shared box
 
-Twelve lanes share one working tree, one database and one machine. Every one of these produced a
+Twelve lanes share one working tree, one database and one machine. Every trap below produced a
 confident, wrong, fleet-wide belief before it was named.
+
+### ⚑ THE CLASS THEY ALL BELONG TO — name it and you will spot the next one
+**A probe answered a different question than the one you asked, and you read its answer as
+though it had answered yours.**
+
+Six instances in a single day, 2026-07-26, in six different costumes:
+
+| The probe said | You read it as | It actually answered |
+|---|---|---|
+| `curl` → 302 to `/login` | "this route is auth-gated" | "what happens without an `Accept` header" |
+| `docker ps` → timeout | "the daemon has crashed" | "the box is busier than my timeout" |
+| background run → `exit 0`, no output | "the suite ran and passed" | "the wrapper exited" |
+| page text → empty | "the page is dead" | "what the DOM held before hydration" |
+| rendered DOM → full of data | "this page looks fine" | "the markup exists" — not that it is legible |
+| a report of two identical lines | "there is a duplicate import" | a summary, not the file |
+
+**The habit that defeats all six: verify the probe, not just the result.** Before believing an
+answer, ask what question the tool actually answered. Lane 15's framing, which is the shortest
+version: *"'completed, exit 0' answered 'did the wrapper exit?' and I read it as 'did the suite
+run?'"*
 
 ### An uncommitted fatal is everyone's outage
 Laravel scans the whole `app/Console/Commands/` directory to build its command list. **One class
@@ -138,6 +158,19 @@ identified it as the machine rather than either lane's work.
 
 **Restarting the container clears the symptom and leaves the cause armed.** The only durable fix
 is the habit above.
+
+**⚠ DO NOT ABANDON THE FIX IF IT ERRORS.** When the exec layer is broken, `-u www-data` reports:
+
+```
+unable to find user www-data: no matching entries in passwd file
+```
+
+**That user plainly exists** — it has been read off the running container as `uid=33(www-data)`.
+The missing-passwd message is **the broken exec wearing a different mask**, not your command
+being wrong. Wait for exec to recover and use the flag again. Concluding "the recommended fix is
+broken" and reverting to root is how this landmine gets re-armed, and it is itself an instance of
+the class above: the error answered *"can I attach a process at all"*, not *"does this user
+exist"*.
 
 ### A single text read is not proof of blankness
 A page read before hydration returns empty. Lane 13 nearly filed `/economy` as a blank page;
