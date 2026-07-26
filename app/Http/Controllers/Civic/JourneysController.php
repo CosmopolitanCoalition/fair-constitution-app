@@ -73,7 +73,7 @@ class JourneysController extends Controller
 
         $achievement = Achievement::query()
             ->where('user_id', (string) $user->id)
-            ->where('journey_id', $id)
+            ->where('award_key', $id)
             ->first();
 
         return Inertia::render('Civic/Journey', [

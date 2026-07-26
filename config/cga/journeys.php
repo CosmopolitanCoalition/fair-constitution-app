@@ -24,6 +24,24 @@
 
 return [
 
+    /*
+     * The first arc anyone walks, added 2026-07-26 after lane 6 found the gap
+     * while building the playtest worksheet: every other arc ASSUMES you are
+     * already a resident, but residency is the prerequisite for every right in
+     * the constitution — voting, standing for office, sealing testimony, jury
+     * service. It is the first thing a new player hits and there was no arc for
+     * it, so the worksheet's opening section had to be written from scratch.
+     *
+     * The verified counterparts are ACH-CIV-001..005 in AchievementCatalog:
+     * this arc EXPLAINS the path, those record that you actually walked it.
+     */
+    'become-a-resident' => [
+        'title'  => 'Becoming a resident',
+        'steps'  => ['Register', 'Declare where you live', 'Presence confirms', 'Residency confirmed', 'Rights switch on'],
+        'status' => 'live',
+        'cls'    => 'people',
+    ],
+
     'election' => [
         'title'  => 'An election, end to end',
         'steps'  => ['Approval', 'Candidate forum', 'Finalist cutoff', 'Ranked vote', 'Count', 'Seated', 'First session'],

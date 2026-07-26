@@ -30,7 +30,7 @@ class Achievement extends Model
     protected $fillable = [
         'id',
         'user_id',
-        'journey_id',
+        'award_key',
         'title',
         'source_server_id',
         'audit_seq',

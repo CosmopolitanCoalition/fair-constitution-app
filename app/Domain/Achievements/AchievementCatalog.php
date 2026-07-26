@@ -76,6 +76,7 @@ final class AchievementCatalog
      * awardable while planned — JourneyService::liveJourneyOrFail is the gate.
      */
     public const TOUR_ARCS = [
+        'become-a-resident',
         'election', 'committee-session', 'bill', 'court-case', 'start-org',
         'board-meeting', 'form-a-group', 'petition-to-referendum',
         'public-service', 'two-governments',
@@ -190,6 +191,14 @@ final class AchievementCatalog
         'ACH-ORG-010' => ['title_key' => 'achievement.ach_org_010', 'scope' => self::SCOPE_PERSONAL, 'earner' => self::EARNER_STATE, 'tier' => self::TIER_VERIFIED, 'trigger' => 'board_seats.is_chair'],
         'ACH-ORG-011' => ['title_key' => 'achievement.ach_org_011', 'scope' => self::SCOPE_PERSONAL, 'earner' => self::EARNER_SELF,  'tier' => self::TIER_VERIFIED, 'trigger' => 'audit_log ref=F-ORG-005'],
         'ACH-ORG-012' => ['title_key' => 'achievement.ach_org_012', 'scope' => self::SCOPE_PERSONAL, 'earner' => self::EARNER_SELF,  'tier' => self::TIER_VERIFIED, 'trigger' => 'audit_log ref=F-ORG-006'],
+        // Added 2026-07-26. Lane 6's playtest worksheet walked the public-service
+        // arc against this catalogue and exposed the gap: 12 organisation
+        // achievements and NONE for the thing that makes a Common Good
+        // Corporation a CGC — dedicating its work to the public domain under
+        // Art. III §5, which is arguably the sharpest clause in the constitution.
+        // Everything a CGC creates is universally and eternally public domain,
+        // with no mechanism anywhere to privatise it. That deserved an entry.
+        'ACH-ORG-013' => ['title_key' => 'achievement.ach_org_013', 'scope' => self::SCOPE_PERSONAL, 'earner' => self::EARNER_SELF,  'tier' => self::TIER_VERIFIED, 'trigger' => 'cgc_ip_register entry via CgcIpRegisterService::dedicate()'],
 
         // ── Arc 10 — Running elections (R-08) ───────────────────────────────
         'ACH-ELB-001' => ['title_key' => 'achievement.ach_elb_001', 'scope' => self::SCOPE_PERSONAL, 'earner' => self::EARNER_STATE, 'tier' => self::TIER_VERIFIED, 'trigger' => 'election_board_members seated'],

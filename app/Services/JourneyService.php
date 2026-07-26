@@ -115,7 +115,7 @@ class JourneyService
             ->get()
             ->map(fn (Achievement $achievement) => [
                 'id'         => (string) $achievement->id,
-                'journey_id' => $achievement->journey_id,
+                'award_key'  => $achievement->award_key,
                 'title'      => $achievement->title,
                 'earned_at'  => $achievement->earned_at?->toIso8601String(),
             ])
@@ -162,10 +162,10 @@ class JourneyService
     }
 
     /**
-     * Append the medal to the earned ledger, idempotently, sealed to the
-     * audit chain. `insertOrIgnore` (ON CONFLICT DO NOTHING) is the
-     * unique-violation catch: the partial-unique (user_id, journey_id)
-     * index guarantees at most one row per person per journey, and a
+     * Append the achievement to the earned ledger, idempotently, sealed to
+     * the audit chain. `insertOrIgnore` (ON CONFLICT DO NOTHING) is the
+     * unique-violation catch: the partial-unique (user_id, award_key)
+     * index guarantees at most one row per person per award, and a
      * concurrent duplicate simply inserts nothing — the transaction is
      * never aborted mid-flight.
      */
@@ -173,7 +173,7 @@ class JourneyService
     {
         $exists = Achievement::query()
             ->where('user_id', (string) $user->id)
-            ->where('journey_id', $journeyId)
+            ->where('award_key', $journeyId)
             ->exists();
 
         if ($exists) {
@@ -185,14 +185,14 @@ class JourneyService
         $entry = $this->audit->append(
             module: 'journeys',
             event: 'achievement/earned',
-            payload: ['journey_id' => $journeyId, 'title' => $title],
+            payload: ['award_key' => $journeyId, 'title' => $title],
             ref: null,
             actorId: (string) $user->id,
         );
 
         DB::table('achievements')->insertOrIgnore([
             'user_id'    => (string) $user->id,
-            'journey_id' => $journeyId,
+            'award_key'  => $journeyId,
             'title'      => $title,
             'audit_seq'  => $entry->seq,
             'earned_at'  => now(),

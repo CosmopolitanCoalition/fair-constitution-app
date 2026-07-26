@@ -135,7 +135,7 @@ class FederationSyncService
             ->map(fn ($a) => [
                 'id' => $a->id,
                 'user_id' => $a->user_id,
-                'journey_id' => $a->journey_id,
+                'award_key' => $a->award_key,
                 'title' => $a->title,
                 'earned_at' => (string) $a->earned_at,
             ])->all();
@@ -350,7 +350,7 @@ class FederationSyncService
             // applies. The earning user may not exist locally (soft-ref, no FK) — the
             // row still lands and becomes visible if/when that identity does.
             // insertOrIgnore (targetless ON CONFLICT DO NOTHING) rides BOTH unique
-            // layers: origin-id pk replay AND the partial-unique (user_id, journey_id)
+            // layers: origin-id pk replay AND the partial-unique (user_id, award_key)
             // pair, so replays and cross-node double-earns collapse to first-arrival-
             // wins without aborting the transaction. Foreign posture matches
             // mirrorRecord: audit_seq NULL (not in OUR chain), source_server_id = the
@@ -358,13 +358,13 @@ class FederationSyncService
             // "upgrade" this to an upsert.
             $achievementsApplied = [];
             foreach ($achievements as $a) {
-                if (($a['id'] ?? null) === null || ($a['user_id'] ?? null) === null || ($a['journey_id'] ?? null) === null) {
+                if (($a['id'] ?? null) === null || ($a['user_id'] ?? null) === null || ($a['award_key'] ?? null) === null) {
                     continue;
                 }
                 $inserted = DB::table('achievements')->insertOrIgnore([
                     'id' => (string) $a['id'],
                     'user_id' => (string) $a['user_id'],
-                    'journey_id' => (string) $a['journey_id'],
+                    'award_key' => (string) $a['award_key'],
                     'title' => (string) ($a['title'] ?? ''),
                     'audit_seq' => null,
                     'source_server_id' => $peer->server_id,

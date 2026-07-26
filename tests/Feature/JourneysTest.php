@@ -33,7 +33,7 @@ class JourneysTest extends TestCase
     /** A planned journey — step marking must reject. */
     private const PLANNED_JOURNEY = 'budget';
 
-    public function test_the_index_renders_all_thirteen_journeys(): void
+    public function test_the_index_renders_every_catalogued_journey(): void
     {
         $this->onLivePg(function () {
             $user = $this->aUser('Journey Browser');
@@ -41,9 +41,14 @@ class JourneysTest extends TestCase
             $this->actingAs($user)
                 ->get('/journeys')
                 ->assertOk()
+                // Derived from the registry, not hardcoded: the catalogue is
+                // content and grows (arc 14 `become-a-resident` landed 07-26).
+                // Pinning a literal count made a CONTENT edit break an ENGINE
+                // test, which is the wrong coupling — what matters is that the
+                // index renders every catalogued arc, whatever the number.
                 ->assertInertia(fn (Assert $page) => $page
                     ->component('Civic/Journeys')
-                    ->has('journeys', 13)
+                    ->has('journeys', count(config('cga.journeys')))
                     ->where('journeys.0.steps_done', 0)
                     ->where('journeys.0.completed', false));
         });
@@ -72,7 +77,7 @@ class JourneysTest extends TestCase
 
             $medals = fn () => DB::table('achievements')
                 ->where('user_id', (string) $user->id)
-                ->where('journey_id', self::LIVE_JOURNEY)
+                ->where('award_key', self::LIVE_JOURNEY)
                 ->count();
 
             $this->assertSame(1, $medals(), 'exactly ONE achievement row');
@@ -87,7 +92,7 @@ class JourneysTest extends TestCase
             // The earn is sealed to the audit chain + denormalizes the title.
             $medal = DB::table('achievements')
                 ->where('user_id', (string) $user->id)
-                ->where('journey_id', self::LIVE_JOURNEY)
+                ->where('award_key', self::LIVE_JOURNEY)
                 ->first();
             $this->assertSame(config('cga.journeys.' . self::LIVE_JOURNEY . '.title'), $medal->title);
             $this->assertNotNull($medal->audit_seq, 'sealed to the audit chain');
@@ -182,7 +187,7 @@ class JourneysTest extends TestCase
                     ->component('Civic/MyRecord')
                     ->where('tab', 'achievements')
                     ->has('achievements', 1)
-                    ->where('achievements.0.journey_id', self::LIVE_JOURNEY)
+                    ->where('achievements.0.award_key', self::LIVE_JOURNEY)
                     ->where(
                         'achievements.0.title',
                         config('cga.journeys.' . self::LIVE_JOURNEY . '.title'),
@@ -197,7 +202,7 @@ class JourneysTest extends TestCase
 
             DB::table('achievements')->insert([
                 'user_id'    => (string) $user->id,
-                'journey_id' => 'election',
+                'award_key'  => 'election',
                 'title'      => 'An election, end to end',
                 'earned_at'  => now(),
                 'created_at' => now(),

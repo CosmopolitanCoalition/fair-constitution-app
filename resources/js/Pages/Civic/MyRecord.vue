@@ -51,7 +51,7 @@ const props = defineProps({
     representatives: { type: Array, default: () => [] },
     /** The user's candidacies; the Candidacy tab renders only when > 0. */
     candidacies: { type: Array, default: () => [] },
-    /** Earned journey medals (Phase 3c) — {id, journey_id, title, earned_at}. */
+    /** Earned achievements (Phase 3c / K-2) — {id, award_key, title, earned_at}. */
     achievements: { type: Array, default: () => [] },
     /** Server-validated ?tab= (invalid values already fell back). */
     tab: { type: String, default: 'overview' },
@@ -616,7 +616,14 @@ const associationRows = computed(() =>
                         <Icon name="award" />
                         <span class="role-name">{{ medal.title }}</span>
                         <span class="cc-small">Earned {{ formatDate(medal.earned_at) }}</span>
-                        <Link :href="`/journeys/${medal.journey_id}`" class="cc-small">
+                        <!-- Only the 13 guided arcs have a journey page. K-2 catalogue
+                             awards (ACH-*) are earned from real acts and have nowhere
+                             to "revisit", so the link is suppressed rather than 404ing. -->
+                        <Link
+                            v-if="medal.award_key && !medal.award_key.startsWith('ACH-')"
+                            :href="`/journeys/${medal.award_key}`"
+                            class="cc-small"
+                        >
                             Revisit the journey
                         </Link>
                     </div>

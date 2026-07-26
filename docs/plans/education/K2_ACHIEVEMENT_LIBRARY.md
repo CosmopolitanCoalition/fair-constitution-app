@@ -88,14 +88,14 @@ footprint is a separate immutable table + public milestone rows."*
 
 | | Count |
 |---|---|
-| Earnable in code **today** (journey arcs; 10 live, 3 planned) | **13** |
+| Earnable in code **today** (journey arcs; 11 live, 3 planned) | **14** |
 | Ever earned, both boxes | **0** |
-| **Catalog — personal** (91 `ACH-*` + the 13 arcs) | **104** |
+| **Catalog — personal** (92 `ACH-*` + the 14 arcs) | **106** |
 | **Catalog — jurisdiction** | **26** |
 | **Catalog — system / planet** | **9** |
-| **TOTAL CATALOG** | **139** |
-| — **server-verified** against a named source | **126** |
-| — **tour ticks** (the journey arcs, labelled as such) | **13** |
+| **TOTAL CATALOG** | **141** |
+| — **server-verified** against a named source | **127** |
+| — **tour ticks** (the journey arcs, labelled as such) | **14** |
 | — **deferred** | **0** — Phase I completed 2026-07-25; every entry now has a live trigger |
 | — of the verified, **⏳ awaiting an economy UI** | **12** |
 
@@ -261,6 +261,14 @@ and still serving is a real civic outcome and deserves its own entry.*
 | `ACH-ORG-010` | Board chair (R-28) | `board_seats.is_chair` | state | V |
 | `ACH-ORG-011` | Transferred ownership | `ref=F-ORG-005` | self | V |
 | `ACH-ORG-012` | Converted public↔private | `ref=F-ORG-006` | self | V |
+| `ACH-ORG-013` | **Dedicated work to the public domain** | `cgc_ip_register` via `CgcIpRegisterService::dedicate()` | self | V |
+
+*`ACH-ORG-013` added 2026-07-26. **Found by @lane-06**, who walked the `public-service` arc of
+their playtest worksheet against this catalogue and noticed there were twelve organisation
+achievements and none for the thing that makes a Common Good Corporation a CGC. Art. III §5 —
+everything a CGC creates is universally and eternally in the public domain, with no mechanism
+anywhere to privatise it — is arguably the sharpest clause in the constitution, and it had no
+entry. Cross-checking two lanes' artefacts against each other is what surfaced it.*
 
 *`ACH-ORG-005` confirmed on review and **renamed**. It is correctly `self` — the agent genuinely
 performed the act — but the old title *"Your org endorsed a candidate"* read as though the
@@ -333,10 +341,19 @@ private condition and the schema's own `privacy` column says so.*
 
 *`ACH-ECO-001` records **that** you filed, never **what** you filed. Amounts never enter a trigger.*
 
-### Arc 12 — The guided tour (the 13 journey arcs) · 13 · tier T
-`election` · `committee-session` · `bill` · `court-case` · `start-org` · `board-meeting` ·
-`form-a-group` · `petition-to-referendum` · `public-service` · `two-governments` **(10 live)** ·
-`budget` · `mutual-aid` · `stipend-and-tax` **(3 planned — gated on @lane-13's L+M)**.
+### Arc 12 — The guided tour (the 14 journey arcs) · 14 · tier T
+**`become-a-resident`** · `election` · `committee-session` · `bill` · `court-case` · `start-org` ·
+`board-meeting` · `form-a-group` · `petition-to-referendum` · `public-service` ·
+`two-governments` **(11 live)** · `budget` · `mutual-aid` · `stipend-and-tax`
+**(3 planned — the economy engine is built but its screens are placeholders; see §10)**.
+
+> **`become-a-resident` added 2026-07-26 — a gap @lane-06 found, and a real one.** Every other arc
+> **assumes you are already a resident**, but residency is the prerequisite for *every* right in
+> the constitution — voting, standing for office, sealing testimony, jury service — and it is the
+> first thing a new player hits. There was no arc for it, so lane 6 had to write their playtest
+> worksheet's opening section from scratch. Steps: Register → Declare where you live → Presence
+> confirms → **Residency confirmed** → Rights switch on. Its verified counterparts are
+> `ACH-CIV-001..005`: **the arc explains the path, the achievements record that it was walked.**
 
 Self-reported and **labelled as walkthroughs in the UI**. They keep their existing keys and their
 value — they explain how the world works — and stop borrowing the verified tier's credibility.

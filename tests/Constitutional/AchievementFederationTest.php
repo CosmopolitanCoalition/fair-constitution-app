@@ -15,12 +15,19 @@ use Tests\TestCase;
 /**
  * CONSTITUTIONAL PIN — Phase 4 close-out: achievements ride Full Faith & Credit under
  * APPEND-ANY-VERIFIED (operator-settled 2026-07-02, PHASE_4_DESIGN_peerage §5.2).
- * A medal is a per-USER fact about play wherever it happened: export ships only
- * locally-originated sealed rows (source_server_id NULL + audit_seq set); ingest
+ * An achievement is a per-USER fact about play wherever it happened: export ships
+ * only locally-originated sealed rows (source_server_id NULL + audit_seq set); ingest
  * applies any such row from a signature/chain-verified tail with NO jurisdiction
  * authority check and NO users.home_server_id gate, idempotent on both the origin id
- * and the (user_id, journey_id) pair. Medals grant no power — nothing here feeds any
- * capability, vote, or seat.
+ * and the (user_id, award_key) pair. Achievements grant no power — nothing here feeds
+ * any capability, vote, or seat.
+ *
+ * K-2 2026-07-26: the identity column generalised from `journey_id` to `award_key`
+ * so the ledger can hold the full 139-entry AchievementCatalog, not only the 13
+ * journey arcs. The guarantees below are UNCHANGED — same idempotency pair, same
+ * export selection, same no-authority-gate ingest — only the column name moved.
+ * `title` deliberately did NOT move: it is a wire field crossing instances, and
+ * renaming it would change the federation format for a cosmetic gain.
  *
  * If an edit breaks these, the edit is the violation — fix the edit, not the test.
  */
@@ -41,13 +48,13 @@ class AchievementFederationTest extends TestCase
             $entry = app(AuditService::class)->append(
                 module: 'journeys',
                 event: 'achievement/earned',
-                payload: ['journey_id' => 'fed-pin-journey', 'title' => 'Federation pin'],
+                payload: ['award_key' => 'fed-pin-journey', 'title' => 'Federation pin'],
                 ref: null,
                 actorId: (string) $user->id,
             );
             DB::table('achievements')->insertOrIgnore([
                 'user_id' => (string) $user->id,
-                'journey_id' => 'fed-pin-journey',
+                'award_key' => 'fed-pin-journey',
                 'title' => 'Federation pin',
                 'audit_seq' => $entry->seq,
                 'earned_at' => now(),
@@ -60,7 +67,7 @@ class AchievementFederationTest extends TestCase
             DB::table('achievements')->insertOrIgnore([
                 'id' => $foreignId,
                 'user_id' => (string) Str::uuid(),
-                'journey_id' => 'fed-pin-foreign',
+                'award_key' => 'fed-pin-foreign',
                 'title' => 'Foreign medal',
                 'audit_seq' => null,
                 'source_server_id' => (string) Str::uuid(),
@@ -73,7 +80,7 @@ class AchievementFederationTest extends TestCase
 
             $shipped = collect($tail['achievements'])->firstWhere('user_id', (string) $user->id);
             $this->assertNotNull($shipped, 'a sealed medal is selected by the FF&C tail');
-            $this->assertSame('fed-pin-journey', $shipped['journey_id']);
+            $this->assertSame('fed-pin-journey', $shipped['award_key']);
             $this->assertSame('Federation pin', $shipped['title']);
             $this->assertArrayNotHasKey('audit_seq', $shipped, 'seal seq is exporter-local');
             $this->assertArrayNotHasKey('source_server_id', $shipped, 'origin marking is exporter-local');
@@ -99,7 +106,7 @@ class AchievementFederationTest extends TestCase
             $medal = [
                 'id' => (string) Str::uuid(),
                 'user_id' => (string) Str::uuid(),
-                'journey_id' => 'peer-journey',
+                'award_key' => 'peer-journey',
                 'title' => 'Earned on Peer A',
                 'earned_at' => (string) now(),
             ];
@@ -134,9 +141,9 @@ class AchievementFederationTest extends TestCase
             $this->assertSame(
                 1,
                 DB::table('achievements')
-                    ->where('user_id', $medal['user_id'])->where('journey_id', 'peer-journey')
+                    ->where('user_id', $medal['user_id'])->where('award_key', 'peer-journey')
                     ->whereNull('deleted_at')->count(),
-                'one medal per person per journey, mesh-wide'
+                'one achievement per person per award key, mesh-wide'
             );
         });
     }
@@ -153,7 +160,7 @@ class AchievementFederationTest extends TestCase
             $medal = [
                 'id' => (string) Str::uuid(),
                 'user_id' => (string) Str::uuid(),
-                'journey_id' => 'tamper-journey',
+                'award_key' => 'tamper-journey',
                 'title' => 'Legit title',
                 'earned_at' => (string) now(),
             ];

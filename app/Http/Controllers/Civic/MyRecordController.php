@@ -156,7 +156,7 @@ class MyRecordController extends Controller
             'tab'             => $tab,
             'representatives' => $this->representatives->forUser($user),
             'candidacies'     => $candidacies,
-            // Phase 3c — earned journey medals (id, journey_id, title, earned_at).
+            // Phase 3c / K-2 — earned achievements (id, award_key, title, earned_at).
             'achievements'    => $this->journeys->achievementsFor($user),
             'entries'      => $entries,
             'associations' => $associations,
