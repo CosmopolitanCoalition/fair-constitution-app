@@ -529,6 +529,15 @@ class ChamberVoteService
 
             $failingLanes = array_keys(array_filter($laneResults, fn (array $r) => ! $r['passed']));
 
+            // WHY each failing lane failed, not just that it did. An empty
+            // chamber is not a rejection, and the record should never let the
+            // two read the same — see laneFailureReason().
+            $failureReasons = [];
+
+            foreach ($failingLanes as $lane) {
+                $failureReasons[$lane] = self::laneFailureReason($laneResults[$lane], $lane);
+            }
+
             $this->audit->append(
                 module: 'legislature',
                 event: 'vote.closed',
@@ -542,6 +551,7 @@ class ChamberVoteService
                         array_keys($laneResults)
                     ),
                     'failing_lanes' => $outcome === ChamberVote::OUTCOME_ADOPTED ? [] : $failingLanes,
+                    'why'           => $outcome === ChamberVote::OUTCOME_ADOPTED ? [] : $failureReasons,
                 ],
                 ref: 'WF-LEG-06',
                 jurisdictionId: (string) $fresh->jurisdiction_id,
@@ -772,6 +782,72 @@ class ChamberVoteService
         $tieState = $quorate && ! $passed && $yes === $no && $yes === $requiredYes - 1;
 
         return ['quorate' => $quorate, 'passed' => $passed, 'tie_state' => $tieState];
+    }
+
+    /**
+     * WHY a lane did not pass, in words a person can act on.
+     *
+     * "The vote did not carry" is true of every failure and useful for none of
+     * them. The three causes need different responses, and one of them is not
+     * a rejection at all:
+     *
+     *   NO MEMBERS  — the chamber is empty. Nobody refused anything; there is
+     *                 nobody there. The answer is an election, not another vote.
+     *   NO QUORUM   — enough members exist, too few took part.
+     *   VOTED DOWN  — the chamber met, considered it, and said no. The only
+     *                 one of the three that is actually a decision.
+     *
+     * This matters most at exactly the moment it is least obvious. On a freshly
+     * launched node, activation DECLARES a second chamber's seats but only an
+     * election FILLS them, so every bicameral act correctly refuses until a
+     * community holds one. Without this distinction that reads as a broken
+     * launch, and it has already cost real diagnosis time once: an act-numbering
+     * collision surfaced as "the bicameral vote is refusing to pass" and was
+     * investigated as a constitutional failure.
+     *
+     * Pure and DB-free so it can be pinned, and so the same words appear
+     * wherever a failure is reported.
+     *
+     * @param  array{serving:int, quorate:bool, passed:bool, present?:int, yes?:int, required_yes?:int}  $lane
+     * @return array{code:string, message:string}
+     */
+    public static function laneFailureReason(array $lane, string $laneName = 'all'): array
+    {
+        $chamber = match ($laneName) {
+            ChamberVoteTally::LANE_TYPE_A => 'The first chamber',
+            ChamberVoteTally::LANE_TYPE_B => 'The second chamber',
+            default                       => 'The chamber',
+        };
+
+        if ((int) ($lane['serving'] ?? 0) < 1) {
+            return [
+                'code'    => 'no_members',
+                'message' => "{$chamber} has no members yet — hold an election. Nothing was refused; "
+                    .'there is nobody seated to consider it.',
+            ];
+        }
+
+        if (! ($lane['quorate'] ?? false)) {
+            return [
+                'code'    => 'no_quorum',
+                'message' => sprintf(
+                    '%s did not reach quorum — %d of %d serving members took part.',
+                    $chamber,
+                    (int) ($lane['present'] ?? 0),
+                    (int) $lane['serving'],
+                ),
+            ];
+        }
+
+        return [
+            'code'    => 'voted_down',
+            'message' => sprintf(
+                '%s considered it and did not agree — %d yes of %d needed.',
+                $chamber,
+                (int) ($lane['yes'] ?? 0),
+                (int) ($lane['required_yes'] ?? 0),
+            ),
+        ];
     }
 
     /**
