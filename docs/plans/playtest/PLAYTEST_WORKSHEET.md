@@ -65,7 +65,7 @@ Every use is marked in the record as a dev action, so a played timeline never re
 
 ---
 
-## Seven things that will look broken and aren't
+## Eight things that will look broken and aren't
 
 **1. No achievements will appear.** The app has a catalogue of 139 achievements, but the piece that
 watches for them and awards them isn't built yet. **Nothing on this sheet asks you to check for an
@@ -84,10 +84,14 @@ counted — not on the word used. *(Verified in the database and in the code, wh
 one throughout.)*
 
 **4. ⚑ Only ONE chamber in this world has anybody in it — San Marino's.** There are eleven
-legislatures on the dev box and **ten of them are empty**, including all nine castelli. That is
-**correct**: those legislatures exist and have simply never held an election. Every card in
-Section C names `smr-1-san-marino` for that reason. If you wander into a castello's chamber and
-find nobody there, you have found the expected state, not a bug.
+legislatures on the dev box and **ten of them are empty**. Every card in Section C names
+`smr-1-san-marino` for that reason.
+
+The nine castelli are empty for a **specific and correct** reason worth knowing: each is entitled
+to 10–22 seats, and **none of them has a district map drawn yet.** Above nine seats a body must be
+divided into districts, so a single at-large race would be unlawful — and the app **refuses to run
+one**. That refusal is the constitution being enforced, not a gap. If maps are drawn before you
+walk, those chambers come alive; if not, an empty castello is the right answer.
 
 **5. ⚑ Earth is EMPTY on this box — the real Earth is on the other one.** `earth-0-earth` at
 :8082 has no members and no district map. The Earth with **1,999 seats across 282 districts** is on
@@ -99,13 +103,17 @@ browser after the page arrives, so for a moment they are legitimately empty. On 
 moment stretches. **Reload once before writing anything down.** Two of us have already nearly filed
 a working page as dead this way.
 
-**7. If EVERYTHING fails at once, it's the box, not the app.** One broken page is a finding; every
-page broken together is the machine. Three shapes, all seen today, none of them a defect in what
-you're testing:
+**7. A crash mentioning `laravel.log` or "Permission denied" is the box, not the app.** If a page
+shows *Internal Server Error* and the text mentions a log file or a permission, that is the machine
+failing to write its own diary — nothing to do with the screen you're on. **Reload. If it clears,
+note the time and carry on.** It happened today on a page that had been working an hour earlier and
+was working again an hour later.
+
+**8. If EVERYTHING fails at once, it's the box, not the app.** One broken page is a finding; every
+page broken together is the machine. Three shapes, all seen today:
 - **Every page blank** → the asset server isn't running.
 - **Every page "502"** → the app server is restarting. Wait a minute and retry.
-- **Every page "500" mentioning a log file** → a file-permission problem on the box, fixed by
-  restarting the app container.
+- **Every page "500"** → see 7.
 
 **Write down the time and move on — don't fill in a column of failures.** One line in your notes
 ("everything 502 at 15:47") is worth more than twenty cards marked fail, and it tells us exactly
@@ -233,8 +241,16 @@ Worth doing early because if *this* is broken, something basic is wrong.
 this box already — 200 voters, 120 candidates, 4 races certified. **What has never been tested is a
 person doing it through the screens.***
 
-**Before you start:** two steps need the time control, because the ballots open on real dates. One
-race is already certified (good for B-6/B-7), the other opens later. Marked below.
+**Before you start, two things about this world's elections:**
+
+**San Marino has already run two complete election cycles.** 57 of its 58 seats are the founding
+cohort; one was re-seated later. So you are walking into a chamber with history, not a fresh one.
+
+**There are two elections currently open, and they are supposed to be.** When a count is certified,
+the app automatically opens the *next* cycle's election — that's the term clock doing its job. So
+an open election here is evidence the machinery works, **not** leftover debris from a demo.
+Certified races are good for B-6 and B-7; the open ones need the time control to reach their
+ballot windows.
 
 ---
 
