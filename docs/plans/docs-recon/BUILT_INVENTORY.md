@@ -248,6 +248,52 @@ the word.
 
 ---
 
+## 5c. Stale prose that code was built against — and the cheapest way to hunt it
+
+*Added 2026-07-26 after lane 3's sweep found four in one pass, `0071966`.*
+
+**The shape:** a ruling lands, the code is updated, **the description is not.** Nobody broke
+anything — the prose simply stopped matching. The next person to build against that file inherits
+the error silently, and it surfaces far away as something else's bug.
+
+| Where | What it claimed | What it cost |
+|---|---|---|
+| `CLAUDE.md`, Bicameral Support | `type_a` and `type_b` **inverted** | `racePlan()` was written against it. ~30k chambers unable to hold elections; a day of fleet time |
+| **`app/Models/Legislature.php:15`** | **The same inversion — a SECOND copy** | Survived the charter fix. Had only CLAUDE.md been corrected, **the next reader would have rebuilt the identical bug from the model** |
+| `ActivationService` ×3 | Type B *"CLAMPED to the resolved ceiling (9)"* | The clamp had been retired; the comment still described it live |
+| `CLAUDE.md`, Naming Conventions | *"Soft deletes: all tables use `deleted_at`"* | Not true. Bit lane 3 three separate times before anyone corrected the source |
+| `pgsql-schema.sql:3090` | `total_seats` *"Between 5 and 9"* | False since the ruling — Earth's chamber holds 3,140 |
+| `ElectionLifecycleService` header | type_b above ceiling *"blocked with citation"* | The block was gone |
+
+### The lesson the second copy teaches
+**Fixing the charter does not fix the belief.** One bad idea propagates to every file that
+restates it, and correcting the most visible copy leaves the others armed. When a ruling
+overturns something, **grep for the claim, not the file.**
+
+### The method — cheap enough to run deliberately
+**Read a docblock against the function beneath it.** No box, no fixture, no test run — it survived
+a hung Docker engine on the day it was invented.
+
+It works because of an asymmetry that held in all four cases: **the code was right and the comment
+was wrong.** You are never hunting a bug; you are diffing prose against behaviour, and behaviour
+is the authority.
+
+**Triage, in lane 3's words:** a stale comment is only dangerous where someone will *build*
+against it. **Docblocks on hardened files are where the day gets lost**; a schema comment mostly
+is not. Fix all of them, but hunt those first.
+
+**Swept clean and recorded so nobody re-greps them:** `VoteCountingService`, `DistrictingService`,
+`ElectionTriggerService`, `ConstitutionalValidator`, `ConstitutionalSettings`, `Jurisdiction`. Two
+apparent hits were correct in context — `DistrictingService`'s `5/9` genuinely *is* the district
+band, and `ConstitutionalValidator`'s "clamped" is supermajority math, a different sense.
+
+### The framing that stops this particular error recurring
+Conflating two axes is what made the inversion so easy to make in the first place:
+**`type_b` is at-large as a METHOD and constituent-equal as an ALLOCATION.** Different questions,
+both answers true. The old docblock captured one axis and implied the other.
+
+---
+
 ## 6. Runtime truth (both stacks, 2026-07-25)
 
 - **21 containers, zero unhealthy.** Each stack runs **10 services** (CLAUDE.md's table lists 7 —
