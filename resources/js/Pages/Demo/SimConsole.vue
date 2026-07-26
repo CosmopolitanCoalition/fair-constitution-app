@@ -256,6 +256,52 @@ const statusTone = computed(() => {
                         </span>
                     </p>
 
+                    <!--
+                        THE HONESTY RAIL. Art. V §3: Type B may not exceed the Type A
+                        total. The seat ladder floors at 2-per-constituent, so a chamber
+                        still over the bound there is flagged and stops — stage two,
+                        grouping constituents into shared panels, is unbuilt.
+
+                        Niue's national chamber reads 11 / 14 and this engine seated all
+                        25 seats before the flag reached it. "25 / 25 filled" looks like a
+                        complete government; it is a lower house of 11 and an upper house
+                        of 14 that no settled rule authorises. Whether such a chamber may
+                        lawfully elect is the operator's question — but it does not get to
+                        look ordinary while he decides.
+                    -->
+                    <section
+                        v-if="world.over_bound && world.over_bound.count > 0"
+                        class="mt-4 rounded border border-amber-500/40 bg-amber-500/5 p-3"
+                    >
+                        <h3 class="text-xs font-semibold uppercase tracking-wide text-amber-300">
+                            Over the Type B bound — {{ fmt(world.over_bound.count) }}
+                            {{ world.over_bound.count === 1 ? 'chamber' : 'chambers' }}
+                        </h3>
+                        <p class="mt-1 text-xs text-gray-400">
+                            Art. V §3 binds the Type B chamber to the Type A total. These exceed it: the seat
+                            ladder floors at two seats per constituent and cannot go lower, and the next step —
+                            grouping constituent jurisdictions into shared panels — is not built. A chamber marked
+                            <span class="text-amber-200">seated</span> has already returned members under a seat
+                            count no settled rule authorises.
+                        </p>
+                        <ul class="mt-2 space-y-1">
+                            <li
+                                v-for="p in world.over_bound.places"
+                                :key="p.name"
+                                class="flex flex-wrap items-baseline gap-x-2 text-xs"
+                            >
+                                <span class="text-gray-200">{{ p.name }}</span>
+                                <span class="font-mono text-gray-500">
+                                    type A {{ p.type_a }} · type B {{ p.type_b }}
+                                </span>
+                                <span
+                                    :class="p.seated ? 'text-amber-300' : 'text-gray-500'"
+                                    class="font-mono"
+                                >{{ p.seated ? 'seated' : 'not seated' }}</span>
+                            </li>
+                        </ul>
+                    </section>
+
                     <dl class="mt-4 grid grid-cols-2 gap-x-6 gap-y-3 sm:grid-cols-3">
                         <div>
                             <dt class="text-xs text-gray-500">jurisdictions</dt>

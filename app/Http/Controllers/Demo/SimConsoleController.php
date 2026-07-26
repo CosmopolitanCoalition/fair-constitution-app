@@ -271,6 +271,63 @@ class SimConsoleController extends Controller
             'residencies' => (int) DB::table('residency_confirmations')->where('is_active', true)->count(),
             'population_modelled' => (int) DB::table('jurisdiction_cohorts')->sum('population'),
             'electorate_modelled' => (int) DB::table('jurisdiction_cohorts')->sum('electorate'),
+            'over_bound' => $this->overBoundChambers(),
+        ];
+    }
+
+    /**
+     * THE HONESTY RAIL — chambers whose Type B half exceeds the Type A total.
+     *
+     * Art. V §3 as settled 2026-07-26: Type B may not exceed the Type A total.
+     * `TypeBSeatLadder` steps 5 → 4 → 3 → 2 and FLOORS there; a chamber still
+     * over the bound at 2-per-constituent is flagged and stops, because stage
+     * two — grouping constituent jurisdictions into shared panels — is not
+     * built yet. Planet-wide that is 9,708 chambers, flagged 1:1.
+     *
+     * WHY THIS IS ON SCREEN RATHER THAN IN A LOG. Niue's national chamber reads
+     * `type_a 11 / type_b 14` and this engine seated all 25 of its seats before
+     * the flag reached me. A visitor looking at "25 / 25 filled" sees a complete
+     * government; what is actually there is a lower house of 11 and an upper
+     * house of 14 that no settled rule authorises. Whether a flagged chamber may
+     * lawfully hold an election is the operator's question, not mine — but
+     * letting it render as ordinary while he decides would be dressing a known
+     * defect up as attained consent, which is the one thing this page exists to
+     * refuse. So it renders, by name, seated or not.
+     *
+     * @return array<string,mixed>
+     */
+    private function overBoundChambers(): array
+    {
+        $rows = DB::table('legislatures as l')
+            ->join('jurisdictions as j', 'j.id', '=', 'l.jurisdiction_id')
+            ->whereNull('l.deleted_at')
+            ->whereNull('j.deleted_at')
+            ->where('l.type_b_seats', '>', 0)
+            ->whereColumn('l.type_b_seats', '>', 'l.type_a_seats')
+            ->orderByDesc('l.type_b_seats')
+            ->limit(25)
+            ->get(['j.name', 'l.id', 'l.type_a_seats', 'l.type_b_seats']);
+
+        $seatedIds = $rows->isEmpty() ? [] : DB::table('legislature_members')
+            ->whereIn('legislature_id', $rows->pluck('id'))
+            ->whereIn('status', ['elected', 'seated'])
+            ->whereNull('deleted_at')
+            ->distinct()
+            ->pluck('legislature_id')
+            ->all();
+
+        return [
+            'count' => $rows->count(),
+            'places' => $rows->map(fn ($r) => [
+                'name' => $r->name,
+                'type_a' => (int) $r->type_a_seats,
+                'type_b' => (int) $r->type_b_seats,
+                // A flagged chamber that is EMPTY is merely waiting. A flagged
+                // chamber that is SEATED has already produced members under a
+                // seat count no rule authorises — a materially worse state, and
+                // the page must not level the two.
+                'seated' => in_array($r->id, $seatedIds, true),
+            ])->values()->all(),
         ];
     }
 }
