@@ -5,6 +5,7 @@ namespace App\Jobs;
 use App\Models\SimItem;
 use App\Models\SimRun;
 use App\Services\Demo\Stages\CohortStage;
+use App\Services\Demo\Stages\IdentityStage;
 use App\Support\SimClaims;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
@@ -175,6 +176,11 @@ class SimWorkerJob implements ShouldQueue
                 (string) $run->id,
                 $version,
                 (int) ($options['turnout_pct'] ?? CohortStage::DEFAULT_TURNOUT_PCT),
+            ),
+            'identity_batch' => IdentityStage::run(
+                (string) $item->jurisdiction_id,
+                (string) $run->id,
+                $version,
             ),
             // Stages land here as they are built; an unknown kind is a REVIEW
             // row naming itself rather than a crash.

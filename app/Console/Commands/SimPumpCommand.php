@@ -53,6 +53,9 @@ class SimPumpCommand extends Command
 
     private const LEASE_STALE_MINUTES = 10;
 
+    /** THE ETL RULE chunk size for phase-transition minting. */
+    private const MINT_CHUNK = 25000;
+
     public function __construct(private readonly AuditService $audit)
     {
         parent::__construct();
@@ -143,6 +146,55 @@ class SimPumpCommand extends Command
         for ($i = $live; $i < $target; $i++) {
             SimWorkerJob::dispatch((string) $run->id);
         }
+    }
+
+    /**
+     * Mint the worklist for a phase we are entering. Bounded, individually
+     * committed chunks with a NOT-EXISTS guard, so a pump that dies mid-mint
+     * resumes cleanly on the next tick and a double pump is a no-op (THE ETL
+     * RULE).
+     *
+     * Ordering is LARGEST-FIRST via `position`, carried over from the item the
+     * work derives from.
+     */
+    private function mintWorklist(SimRun $run, string $phase): int
+    {
+        // Only stages whose worklist is derived post-hoc are minted here;
+        // `cohort_scope` is enumerated by sim:start from the jurisdiction table.
+        $sql = match ($phase) {
+            // One identity roster per jurisdiction that actually got a cohort.
+            'identities' => "INSERT INTO sim_items
+                    (id, run_id, kind, status, jurisdiction_id, adm_level, unit_key,
+                     position, est_cost, metrics, created_at, updated_at)
+                 SELECT gen_random_uuid(), ?, 'identity_batch', 'pending',
+                        c.jurisdiction_id, s.adm_level, c.jurisdiction_id::text,
+                        s.position, c.electorate, '{}', now(), now()
+                   FROM jurisdiction_cohorts c
+                   JOIN sim_items s
+                     ON s.run_id = ? AND s.kind = 'cohort_scope'
+                    AND s.unit_key = c.jurisdiction_id::text AND s.status = 'done'
+                  WHERE c.run_id = ?
+                    AND NOT EXISTS (
+                        SELECT 1 FROM sim_items x
+                         WHERE x.run_id = ? AND x.kind = 'identity_batch'
+                           AND x.unit_key = c.jurisdiction_id::text
+                    )
+                  LIMIT ".self::MINT_CHUNK,
+            default => null,
+        };
+
+        if ($sql === null) {
+            return 0;
+        }
+
+        $total = 0;
+
+        do {
+            $n = DB::affectingStatement($sql, [$run->id, $run->id, $run->id, $run->id]);
+            $total += $n;
+        } while ($n > 0);
+
+        return $total;
     }
 
     /**
@@ -246,7 +298,14 @@ class SimPumpCommand extends Command
 
         $run->forceFill(['phase' => $next, 'phase_timings' => $timings])->save();
 
-        $this->info("phase → {$next}");
+        // Mint the incoming phase's worklist HERE, at the transition, because
+        // most stages can only be sized once the previous one has landed: an
+        // identity roster depends on the cohort that decides how many people a
+        // place needs. Enumerating everything up front would either guess or
+        // block.
+        $minted = $this->mintWorklist($run, $next);
+
+        $this->info("phase → {$next}".($minted > 0 ? " ({$minted} items minted)" : ''));
     }
 
     /** One aggregate pass; also closes the run when nothing is left open. */
