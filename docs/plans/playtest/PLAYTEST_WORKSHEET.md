@@ -35,6 +35,12 @@ single **pass condition**. Then a box and a blank line for you.
 Mark **blocked** — not fail — when you can't even attempt it. Fail means you tried and the app did
 the wrong thing. That difference is what makes this sheet useful next week.
 
+**A note for whoever extends this sheet.** Five cards have already been wrong in the same way:
+the number came from reading the constitutional rule instead of the code that implements it. The
+rule says *"a majority of all serving members"* — the implementation answers *"of which body?"*,
+and only the code knows. **So when a card quotes a number, check where it came from**, and say so.
+Every one of those five would have failed a tester on the app behaving correctly.
+
 ---
 
 ## Three controls you'll need constantly
@@ -456,18 +462,25 @@ everything from C-2 on will fail at the vote for that one reason.*
 ---
 
 ### C-2 · Open a session and reach quorum
-**What it is.** A legislature can only act when enough of its members show up. Quorum is a majority
-of **all serving members** — not a majority of whoever turned up.
+**What it is.** A chamber can only act when enough of its members show up — and the bar is a
+majority of everyone **serving**, not a majority of whoever turned up. Absence never lowers it.
 **Role:** a seated member · **Clock:** none · **Needs first:** C-1
+
+**⚠ Each chamber has its OWN quorum, counted against its own members.** The two are never pooled.
+Expect **16** for the district chamber (31 serving) and **14** for the constituent chamber (27).
 
 | # | Do this | On this screen | You should see |
 |---|---|---|---|
 | 1 | Become a seated member | `/dev/users` or `/dev/legislature-kit` | You are in the chamber |
-| 2 | Open a session |  `/legislatures/smr-1-san-marino` | A session, with a quorum count |
-| 3 | Check what quorum it demands | same | A number over half of all serving |
+| 2 | Open a session | `/legislatures/smr-1-san-marino` | A session, with quorum shown |
+| 3 | Check the number for **each** chamber | same | **16** and **14** |
 
-**PASSES IF** — the quorum number is computed against **all serving members**, not attendance.
-*Worth checking by hand: with 58 serving, quorum should be 30.*
+**PASSES IF** — each chamber shows its own bar, roughly **16** and **14**.
+**A single pooled number near 30 is the FAILURE**, not the pass — it would mean the two chambers
+are being counted as one body, which is exactly what a two-chamber legislature must never do.
+
+*If a seat is vacant it simply isn't counted — the bar is measured against members serving, not
+against seats existing. That's why it's 16 and not 17.*
 
 **Result** ☐ pass ☐ fail ☐ blocked  **Notes** ________________________________________
 
