@@ -27,11 +27,29 @@
  * server-gated on sandbox game mode.
  */
 import { ref, watch, computed } from 'vue';
+import { usePage } from '@inertiajs/vue3';
 
 const props = defineProps({
     /** { name } of the impersonated user, or null when you are yourself. */
     impersonating: { type: Object, default: null },
 });
+
+/* WHO SEES THIS CONTROL — a clarity gate, not a security one.
+   Impersonation is operator-only server-side, so offering the control to
+   everyone meant most people got a 403 that then silently succeeded down the
+   login-as fallback: a confusing posture, and confusing security is how a real
+   gap gets introduced later by someone misreading it. So: operators see it.
+   Anyone ALREADY impersonating also sees it, because while impersonating you
+   are wearing a non-operator face and would otherwise be stranded with no way
+   back.
+
+   The real boundary is elsewhere and is stronger than this: the entire /dev
+   route family only registers when app()->environment('local'), so a deployed
+   instance does not have these endpoints at all. */
+const page = usePage();
+const canSwitch = computed(
+    () => page.props?.auth?.user?.is_operator === true || props.impersonating != null,
+);
 
 const query = ref('');
 const results = ref([]);
@@ -131,7 +149,7 @@ const resultLabel = computed(() => {
 </script>
 
 <template>
-    <div class="persona">
+    <div v-if="canSwitch" class="persona">
         <div class="persona-head">
             <label class="persona-label" for="dev-persona-q">Become someone else</label>
             <button

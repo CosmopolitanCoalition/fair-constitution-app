@@ -58,6 +58,15 @@ class HandleInertiaRequests extends Middleware
                     'display_name' => $user->display_name,
                     'email' => $user->email,
                     'locale' => $user->locale,
+                    /* Shared so the dev bar can show its persona switcher to
+                       operators only. This is a CLARITY gate, never the
+                       security one: impersonation is enforced server-side
+                       (ImpersonationController abort_unless is_operator), and
+                       the whole /dev route family only registers when
+                       app()->environment('local') — a deployed instance does
+                       not have these routes at all. Do not weaken the
+                       environment check on the strength of this flag. */
+                    'is_operator' => (bool) $user->is_operator,
                 ] : null,
                 'roles' => fn () => $user
                     ? app(ResolvesRoles::class)->rolesFor($user)
