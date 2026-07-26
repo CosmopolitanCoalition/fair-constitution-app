@@ -83,5 +83,18 @@ Schedule::job(new \App\Jobs\Identity\ExpireStandingAttestationsJob)->hourly()->w
 // never fails the sweep — the job is best-effort per jurisdiction.
 Schedule::job(new \App\Jobs\EvaluateSocialStructureJob)->dailyAt('00:30')->withoutOverlapping()->onOneServer();
 
+// ── Phase I: the nightly REACH snapshot ─────────────────────────────────
+// reach = verified residents ÷ population estimate, per place per day. An
+// ordinary scheduled job, deliberately OUTSIDE the CLK registry — a gauge, not
+// a constitutional clock; a missed night just leaves it a day stale.
+//
+// onOneServer() elects one tick-leader per cluster and the job's own
+// LeaderProbe refuses to write from a demoted replica. Those are the HA axis.
+// CI-6 ("only the authoritative instance writes a snapshot") is a SEPARATE,
+// per-jurisdiction filter inside the service — a mirror runs its own scheduler
+// and wins its own probe, so the scheduler gate alone would let it write for
+// places it does not own. Authority is not leadership.
+Schedule::job(new \App\Jobs\SnapshotLegitimacyJob)->dailyAt('00:40')->withoutOverlapping()->onOneServer();
+
 // Keep Horizon's dashboard metrics fresh.
 Schedule::command('horizon:snapshot')->everyFiveMinutes()->onOneServer();
