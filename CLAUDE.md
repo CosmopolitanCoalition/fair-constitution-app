@@ -109,8 +109,8 @@ These can be changed by valid legislative acts within constitutional bounds:
 |---|---|---|
 | election_interval_months | 60 | 5-year default |
 | voting_method | stv_droop | Can only be replaced with MORE proportional method |
-| legislature_min_seats | 5 | Cannot go below 5 |
-| legislature_max_seats | 9 | Cannot go above 9 |
+| legislature_min_seats | 5 | Floor on a DISTRICT's seats. Cannot go below 5 · CLK-08 |
+| legislature_max_seats | 9 | **Legacy name — this is the DISTRICT ceiling, not a legislature's size.** The code states it correctly: *"ceiling 9 — mandatory subdivision above"* (`SettingsController:80`). A legislature TOTAL has no ceiling: Earth's chamber holds 1,999, San Marino's 59. Read the Bicameral Support section before touching anything that uses this. |
 | special_election_min_days | 90 | |
 | special_election_max_days | 180 | |
 | supermajority_numerator/denominator | 2/3 | Cannot produce result < majority+1 |
@@ -334,11 +334,13 @@ database/schema/pgsql-schema.sql   (baseline DDL for jurisdictions / constitutio
 **Phases 0–5 COMPLETE** (Foundation → Judiciary & Law). All live, constitutionally
 tested (suite green, zero skips), each with standing browsable demo data
 (`elections:demo`, `institutions:demo-d`, `institutions:demo-e`). Detailed phase
-plans + designs in `docs/plans/institutions/PHASE_{A..E}_*.md`. The 108-form
+plans + designs in `docs/plans/institutions/PHASE_{A..E}_*.md`. The 111-form
 ConstitutionalEngine (103 through Phase 5 + F-ELB-008 Manual District Draw from
-Phase H + F-SOC-001..004 from the G/K social-mesh work; FormRegistry also resolves
-6 legacy alias IDs — F-COM-*→F-CHR-*, F-GOV-*→F-BOG-*), the PROTECTED hardened
-layer, and the hash-chained audit log span every phase.
+Phase H + F-SOC-001..004 from the G/K social-mesh work + F-IND-022/023/024, the
+Phase M economy write path; FormRegistry also resolves 6 legacy alias IDs —
+F-COM-*→F-CHR-*, F-GOV-*→F-BOG-*), the PROTECTED hardened layer, and the
+hash-chained audit log span every phase. The count is pinned exactly in
+`AuditChainSmokeTest` — adding a form means raising it there deliberately.
 
 - [x] **Phase 0 — Foundation**: Docker stack · Laravel 12 + Vue 3 + Inertia ·
   constitutional migrations · ConstitutionalEngine + hash-chained `audit_log` ·
