@@ -36,15 +36,19 @@ class EconomyPropContractTest extends TestCase
     /** The published shape, key-for-key. Update the doc and this together. */
     private const CONTRACT = [
         '/economy'                => ['currency', 'supply', 'ledger', 'counts', 'stipend'],
-        '/economy/wallet'         => ['currency', 'account', 'transactions', 'receipts'],
-        '/economy/market'         => ['currency', 'offers', 'work', 'assistance'],
+        // `assets` / `my_assets` arrived with the write path (F-IND-022/024):
+        // a page cannot offer a thing without knowing what you hold.
+        '/economy/wallet'         => ['currency', 'account', 'transactions', 'receipts', 'assets'],
+        '/economy/market'         => ['currency', 'offers', 'work', 'assistance', 'my_assets'],
         '/economy/treasury'       => ['currency', 'accounts', 'ledger', 'issuance', 'budgets', 'revenue', 'totals'],
         '/economy/units'          => ['currency', 'levers', 'supply', 'issuance_rate_bps', 'inflation_target_bps'],
     ];
 
     private const ALWAYS_ARRAY = [
-        '/economy/wallet'   => ['transactions', 'receipts'],
-        '/economy/market'   => ['offers', 'work', 'assistance'],
+        // A guest, or a resident with no wallet, holds nothing — and "nothing"
+        // is [], never null. A missing key is what kills a render.
+        '/economy/wallet'   => ['transactions', 'receipts', 'assets'],
+        '/economy/market'   => ['offers', 'work', 'assistance', 'my_assets'],
         '/economy/treasury' => ['accounts', 'ledger', 'issuance', 'budgets', 'revenue'],
         '/economy/units'    => ['levers'],
     ];

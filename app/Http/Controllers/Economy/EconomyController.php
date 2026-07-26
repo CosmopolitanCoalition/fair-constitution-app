@@ -107,6 +107,7 @@ class EconomyController extends Controller
 
         $transactions = [];
         $receipts = [];
+        $assets = [];
 
         if ($accountId !== null) {
             $rows = DB::table('market_transactions')
@@ -141,6 +142,24 @@ class EconomyController extends Controller
                     'amount' => (string) $r->amount,
                     'at'     => $this->iso($r->created_at),
                 ])->all();
+
+            // What you hold. An asset is physical or virtual by ONE FLAG —
+            // a hand-woven blanket and a map-maker's compass are the same
+            // kind of record, which is what lets one market carry both.
+            $assets = DB::table('assets')
+                ->where('owner_account_id', $accountId)
+                ->whereNull('deleted_at')
+                ->orderByDesc('created_at')
+                ->limit(50)
+                ->get()
+                ->map(fn ($a) => [
+                    'id'       => (string) $a->id,
+                    'name'     => (string) $a->name,
+                    'kind'     => (string) $a->kind,
+                    'quantity' => (string) $a->quantity,
+                    'origin'   => (string) $a->origin,
+                    'at'       => $this->iso($a->created_at),
+                ])->all();
         }
 
         return Inertia::render('Economy/Wallet', [
@@ -152,14 +171,18 @@ class EconomyController extends Controller
             ],
             'transactions' => $transactions,
             'receipts'     => $receipts,
+            'assets'       => $assets,
         ]);
     }
 
-    public function market(): Response
+    public function market(Request $request): Response
     {
         return Inertia::render('Economy/Market', [
             'currency'   => $this->currencyProp($this->currency()),
             'offers'     => $this->offers(),
+            // Things you hold that are not already on the market, so the
+            // "offer something" form can only point at what you actually have.
+            'my_assets'  => $this->unlistedAssets($request),
             'work'       => DB::table('work_postings')
                 ->where('status', 'open')->whereNull('deleted_at')
                 ->orderByDesc('created_at')->limit(50)->get()
@@ -200,6 +223,23 @@ class EconomyController extends Controller
             $myAccountId = $this->accounts->accountIdFor('users', (string) $request->user()->id, $currency->id);
         }
 
+        $isSeller = $myAccountId !== null && $myAccountId === $row['seller_account_id'];
+
+        // Orders awaiting acceptance. SELLER ONLY, and even then the buyer
+        // appears as an ACCOUNT — the seller needs to know which order to
+        // settle, which is not the same as being told who bought it.
+        $pending = ! $isSeller ? [] : DB::table('marketplace_orders')
+            ->where('listing_id', $listing)
+            ->where('status', 'placed')
+            ->orderBy('created_at')
+            ->get()
+            ->map(fn ($o) => [
+                'id'               => (string) $o->id,
+                'buyer_account_id' => (string) $o->buyer_account_id,
+                'quantity'         => (string) $o->quantity,
+                'at'               => $this->iso($o->created_at),
+            ])->all();
+
         return Inertia::render('Economy/Listing', [
             'currency'  => $this->currencyProp($currency),
             'listing'   => $row,
@@ -207,7 +247,45 @@ class EconomyController extends Controller
             'can_order' => $row['status'] === 'open'
                 && $myAccountId !== null
                 && $myAccountId !== $row['seller_account_id'],
+            'is_seller'       => $isSeller,
+            'pending_orders'  => $pending,
         ]);
+    }
+
+    /**
+     * Things the viewer holds that are not already listed — the only things
+     * they can lawfully offer. Empty for a guest or a person with no wallet,
+     * which is a normal state and not an error.
+     */
+    private function unlistedAssets(Request $request): array
+    {
+        $currency = $this->currency();
+
+        if ($currency === null || $request->user() === null) {
+            return [];
+        }
+
+        $accountId = $this->accounts->accountIdFor('users', (string) $request->user()->id, $currency->id);
+
+        if ($accountId === null) {
+            return [];
+        }
+
+        return DB::table('assets')
+            ->where('owner_account_id', $accountId)
+            ->whereNull('deleted_at')
+            ->whereNotIn('id', DB::table('marketplace_listings')
+                ->where('status', 'open')
+                ->whereNotNull('asset_id')
+                ->select('asset_id'))
+            ->orderByDesc('created_at')
+            ->limit(50)
+            ->get()
+            ->map(fn ($a) => [
+                'id'   => (string) $a->id,
+                'name' => (string) $a->name,
+                'kind' => (string) $a->kind,
+            ])->all();
     }
 
     public function treasury(): Response

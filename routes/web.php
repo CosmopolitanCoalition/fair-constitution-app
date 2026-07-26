@@ -583,12 +583,11 @@ Route::middleware('auth')->group(function () {
     Route::post('/bills/{bill}/refer', [BillController::class, 'refer'])
         ->whereUuid('bill')->name('bills.refer');                             // F-LEG-007 / F-CHR-003
 
-    // ── Phase L+M — the economy, read-only (v1) ─────────────────────────────
+    // ── Phase L+M — the economy ─────────────────────────────────────────────
     // Prop shapes are published BEFORE these controllers in
     // docs/plans/economy/ECONOMY_PROP_CONTRACT.md and pinned by
     // EconomyPropContractTest, so @lane-06's pages can be built against a
-    // contract that cannot silently drift. Writes arrive with the forms
-    // (F-IND-022/023/024); nothing here mutates.
+    // contract that cannot silently drift.
     Route::get('/economy', [\App\Http\Controllers\Economy\EconomyController::class, 'home'])->name('economy.home');
     Route::get('/economy/wallet', [\App\Http\Controllers\Economy\EconomyController::class, 'wallet'])->name('economy.wallet');
     Route::get('/economy/market', [\App\Http\Controllers\Economy\EconomyController::class, 'market'])->name('economy.market');
@@ -596,6 +595,23 @@ Route::middleware('auth')->group(function () {
         ->whereUuid('listing')->name('economy.listing');
     Route::get('/economy/treasury', [\App\Http\Controllers\Economy\EconomyController::class, 'treasury'])->name('economy.treasury');
     Route::get('/economy/units', [\App\Http\Controllers\Economy\EconomyController::class, 'units'])->name('economy.units');
+
+    // The write path (F-IND-022/023/024). These POST to the ENGINE, not to a
+    // REST resource — EconomyActionController validates shape and files, and
+    // holds no economic logic at all. There is deliberately no economy write
+    // API: a second write path is a second set of rails to keep honest, and
+    // the day the two disagree, the page and the ledger tell different
+    // stories about the same money.
+    Route::post('/economy/transfer', [\App\Http\Controllers\Economy\EconomyActionController::class, 'transfer'])
+        ->name('economy.transfer');
+    Route::post('/economy/assets', [\App\Http\Controllers\Economy\EconomyActionController::class, 'registerAsset'])
+        ->name('economy.assets.register');
+    Route::post('/economy/market', [\App\Http\Controllers\Economy\EconomyActionController::class, 'listOffer'])
+        ->name('economy.market.list');
+    Route::post('/economy/market/{listing}/order', [\App\Http\Controllers\Economy\EconomyActionController::class, 'order'])
+        ->whereUuid('listing')->name('economy.market.order');
+    Route::post('/economy/orders/{order}/settle', [\App\Http\Controllers\Economy\EconomyActionController::class, 'settle'])
+        ->whereUuid('order')->name('economy.market.settle');
 
     // ── FE-C5 — Settings register (legislature/settings) ────────────────────
     Route::get('/legislatures/{legislature}/settings', [SettingsController::class, 'show'])

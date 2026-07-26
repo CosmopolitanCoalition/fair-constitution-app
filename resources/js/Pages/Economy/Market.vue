@@ -11,14 +11,20 @@
  * PRIVACY: the assistance list is filtered server-side — requests marked
  * private never cross the boundary, so this page cannot leak one by accident.
  *
- * READ-ONLY in v1: ordering and listing arrive with F-IND-022/023/024.
+ * OFFERING IS LIVE (F-IND-022). Listing files through the
+ * ConstitutionalEngine — there is no market API — and a CGC trades here on
+ * identical terms to private enterprise (Art. III §5). The badge is
+ * informational; it is never a different rule.
  */
 import { ref, computed } from 'vue';
-import { Link } from '@inertiajs/vue3';
+import { Link, useForm, usePage } from '@inertiajs/vue3';
 import AppShellV2 from '@/Layouts/AppShellV2.vue';
 import PageScaffold from '@/Components/Surface/PageScaffold.vue';
 import Card from '@/Components/Ui/Card.vue';
 import Banner from '@/Components/Ui/Banner.vue';
+import Btn from '@/Components/Ui/Btn.vue';
+import Field from '@/Components/Ui/Field.vue';
+import FormChip from '@/Components/Ui/FormChip.vue';
 import StatusBadge from '@/Components/Ui/StatusBadge.vue';
 import { formatMoney, formatCount, formatQuantity } from '@/lib/money.js';
 
@@ -29,7 +35,25 @@ const props = defineProps({
     offers: { type: Array, default: () => [] },
     work: { type: Array, default: () => [] },
     assistance: { type: Array, default: () => [] },
+    /** Things you hold that aren't already listed. [] for a guest. */
+    my_assets: { type: Array, default: () => [] },
 });
+
+const page = usePage();
+const flashStatus = computed(() => page.props.flash?.status ?? null);
+const constitutionError = computed(() => page.props.errors?.constitution ?? null);
+
+// F-IND-022 (list). A service needs no asset; a good may point at something
+// you registered. Either way the engine decides whether it is lawful.
+const offer = useForm({ title: '', kind: 'service', price: '', asset_id: '', description: '' });
+
+function submitOffer() {
+    offer.transform((d) => ({ ...d, asset_id: d.kind === 'good' && d.asset_id ? d.asset_id : null }))
+        .post('/economy/market', {
+            preserveScroll: true,
+            onSuccess: () => offer.reset(),
+        });
+}
 
 /* Deep-linkable, matching the mockup's ?tab= contract. */
 const TABS = [
@@ -61,6 +85,74 @@ const counts = computed(() => ({
         <Banner v-if="!currency" tone="info" title="No currency yet">
             Nothing can be priced until this world's root legislature defines a currency.
         </Banner>
+
+        <Banner v-if="flashStatus" tone="info" role="status">{{ flashStatus }}</Banner>
+        <Banner v-if="constitutionError" tone="emergency">{{ constitutionError }}</Banner>
+
+        <Card v-if="currency" as="section">
+            <template #title>
+                <h2>Offer something <FormChip form-id="F-IND-022" name="Marketplace Listing" /></h2>
+            </template>
+
+            <form @submit.prevent="submitOffer">
+                <Field label="What are you offering" :error="offer.errors.title" required>
+                    <template #control="{ id, invalid, describedBy }">
+                        <input :id="id" v-model="offer.title" class="field-input" type="text"
+                            placeholder="Two hours of carpentry"
+                            :aria-invalid="invalid ? 'true' : undefined" :aria-describedby="describedBy" />
+                    </template>
+                </Field>
+
+                <Field label="A thing or a service" :error="offer.errors.kind" required>
+                    <template #control="{ id }">
+                        <select :id="id" v-model="offer.kind" class="select">
+                            <option value="service">A service — my time or work</option>
+                            <option value="good">A thing I hold</option>
+                        </select>
+                    </template>
+                </Field>
+
+                <Field v-if="offer.kind === 'good'" label="Which thing" :error="offer.errors.asset_id">
+                    <template #control="{ id }">
+                        <select :id="id" v-model="offer.asset_id" class="select">
+                            <option value="">— none, just describe it —</option>
+                            <option v-for="a in my_assets" :key="a.id" :value="a.id">
+                                {{ a.name }} ({{ a.kind === 'virtual' ? 'digital' : 'physical' }})
+                            </option>
+                        </select>
+                    </template>
+                </Field>
+
+                <p v-if="offer.kind === 'good' && !my_assets.length" class="econ-note">
+                    You haven't registered anything yet. Register it on
+                    <Link href="/economy/wallet">your wallet</Link> first and it can travel with the sale.
+                </p>
+
+                <Field label="Price" :error="offer.errors.price" required>
+                    <template #control="{ id, invalid, describedBy }">
+                        <input :id="id" v-model="offer.price" class="field-input" type="text"
+                            inputmode="decimal" placeholder="0.00"
+                            :aria-invalid="invalid ? 'true' : undefined" :aria-describedby="describedBy" />
+                    </template>
+                </Field>
+
+                <Field label="Describe it (optional)" :error="offer.errors.description">
+                    <template #control="{ id, invalid, describedBy }">
+                        <textarea :id="id" v-model="offer.description" class="field-input" rows="2"
+                            :aria-invalid="invalid ? 'true' : undefined" :aria-describedby="describedBy"></textarea>
+                    </template>
+                </Field>
+
+                <Btn type="submit" variant="primary" :disabled="offer.processing">
+                    {{ offer.processing ? 'Listing…' : 'Put it on the market' }}
+                </Btn>
+            </form>
+
+            <p class="econ-note">
+                Anyone who lives here can offer anything — there is no seller's licence and no fee for
+                listing. A common-good corporation trades on identical terms to anyone else.
+            </p>
+        </Card>
 
         <div class="mkt-tabs" role="tablist" aria-label="Market sections">
             <button

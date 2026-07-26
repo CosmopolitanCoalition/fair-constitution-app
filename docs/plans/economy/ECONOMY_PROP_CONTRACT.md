@@ -71,6 +71,10 @@ transactions: [                       // newest first, max 50
 receipts: [                           // stipend receipts, newest first, max 12
   { id: string, base: string, bump: string, amount: string, at: string }
 ]
+assets: [                             // things you hold, newest first, max 50
+  { id: string, name: string, kind: "physical"|"virtual",
+    quantity: string, origin: string, at: string }
+]
 ```
 
 ## `GET /economy/market` → `Economy/Market`
@@ -93,6 +97,9 @@ work: [
 assistance: [                         // PRIVACY-FILTERED: 'private' rows never appear here
   { id: string, title: string, need: string, privacy: string, status: string }
 ]
+my_assets: [                          // yours, NOT already listed — what F-IND-022 may point at
+  { id: string, name: string, kind: "physical"|"virtual" }
+]                                     // [] for a guest or anyone without a wallet
 ```
 
 ## `GET /economy/market/{listing}` → `Economy/Listing`
@@ -102,7 +109,16 @@ currency: null | {…}
 listing: { …one offers[] element… }
 orders: number                        // count only; buyer identities are not published
 can_order: boolean                    // false when it is your own listing, or not open
+is_seller: boolean                    // drives the settle control
+pending_orders: [                     // SELLER ONLY — [] for everyone else, always an array
+  { id: string, buyer_account_id: string, quantity: string, at: string }
+]
 ```
+
+**Why `pending_orders` is not a privacy hole.** The seller must choose which order to accept, so
+they have to be told the orders exist. What they are NOT told is who placed one: a buyer appears as
+an ACCOUNT, exactly as everywhere else. Knowing which order to settle is a different fact from
+knowing who bought your blanket, and only the first is necessary.
 
 ## `GET /economy/treasury` → `Economy/Treasury`
 
