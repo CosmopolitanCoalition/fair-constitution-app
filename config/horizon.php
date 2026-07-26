@@ -306,6 +306,14 @@ return [
             'supervisor-autoscale' => [
                 'maxProcesses' => \App\Support\HostCapacity::autoscaleWorkers(),
             ],
+            // A supervisor defined ONLY in `defaults` never runs. Horizon starts
+            // exactly the supervisors named under the ACTIVE environment, using
+            // `defaults` to fill in their unspecified keys — so `supervisor-sim`
+            // sat in defaults for a day while 238 jobs piled up on an unwatched
+            // queue and the run sat at 0/26 with no error anywhere.
+            'supervisor-sim' => [
+                'maxProcesses' => \App\Support\HostCapacity::autoscaleWorkers(),
+            ],
             'supervisor-prewarm' => [
                 'maxProcesses' => 1,
             ],
@@ -319,6 +327,9 @@ return [
                 'maxProcesses' => 1,
             ],
             'supervisor-autoscale' => [
+                'maxProcesses' => \App\Support\HostCapacity::autoscaleWorkers(),
+            ],
+            'supervisor-sim' => [
                 'maxProcesses' => \App\Support\HostCapacity::autoscaleWorkers(),
             ],
             'supervisor-prewarm' => [
