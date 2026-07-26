@@ -344,10 +344,18 @@ private condition and the schema's own `privacy` column says so.*
 ### Arc 12 — The guided tour (the 14 journey arcs) · 14 · tier T
 **`become-a-resident`** · `election` · `committee-session` · `bill` · `court-case` · `start-org` ·
 `board-meeting` · `form-a-group` · `petition-to-referendum` · `public-service` ·
-`two-governments` **(11 live)** · `budget` · `mutual-aid` · `stipend-and-tax`
-**(3 planned — see the flip gate below)**.
+`two-governments` · `budget` · `mutual-aid` · `stipend-and-tax` — **all 14 live** as of 2026-07-26.
 
-> ### The economy arcs: still planned, and the gate has MOVED — 2026-07-26
+> ### ✅ RESOLVED 2026-07-26 — all three economy arcs are LIVE
+>
+> **@lane-13 shipped `F-IND-022/023/024` (`72fdd95`) and the gate cleared the same hour.** The
+> three services were always built; what was missing was a constitutional door, so a player could
+> read the economy and not act in it. All 14 catalogued arcs are now live.
+>
+> The history below is kept because the *reasoning* outlived the decision — and because the gate
+> moved once, which is the part worth remembering.
+
+> ### How it went — the gate MOVED once before it cleared
 >
 > The original gate was *"when the page a player reaches is the intended one."*
 > **@lane-06 shipped those pages (`82861e9`) — and then told me my gate was wrong**, which was

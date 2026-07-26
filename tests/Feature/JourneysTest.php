@@ -31,7 +31,9 @@ class JourneysTest extends TestCase
     private const LIVE_JOURNEY = 'form-a-group';
 
     /** A planned journey — step marking must reject. */
-    private const PLANNED_JOURNEY = 'budget';
+    /* No PLANNED_JOURNEY constant: the non-live fixture is injected inside the
+       test that needs it (see below), so no engine pin depends on a real arc
+       staying planned. All 14 catalogued arcs are live as of 2026-07-26. */
 
     public function test_the_index_renders_every_catalogued_journey(): void
     {
@@ -152,8 +154,22 @@ class JourneysTest extends TestCase
         $this->onLivePg(function () {
             $user = $this->aUser('Too Early');
 
+            // The fixture is INJECTED, not borrowed from the catalogue. This
+            // pin is about the ENGINE — liveJourneyOrFail refusing a non-live
+            // arc — and it used to point at whichever real arc happened to be
+            // planned. That coupled an engine guarantee to editorial content:
+            // when the economy arcs went live on 2026-07-26 there were no
+            // planned arcs left, and the pin would have had nothing to stand
+            // on. Injecting one keeps the guarantee testable forever.
+            config(['cga.journeys.pin-not-live' => [
+                'title'  => 'A planned journey (test fixture)',
+                'steps'  => ['One', 'Two'],
+                'status' => 'planned',
+                'cls'    => 'people',
+            ]]);
+
             $this->actingAs($user)
-                ->postJson('/journeys/' . self::PLANNED_JOURNEY . '/steps', ['step' => 0])
+                ->postJson('/journeys/pin-not-live/steps', ['step' => 0])
                 ->assertStatus(422);
 
             // An unknown journey 404s on show and 422s on marking.

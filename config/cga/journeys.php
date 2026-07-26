@@ -79,7 +79,11 @@ return [
     'budget' => [
         'title'  => 'Enacting a budget',
         'steps'  => ['Revenue', 'Budget bill', 'Appropriations', 'Disbursement', 'Ledger'],
-        'status' => 'planned',
+        // LIVE 2026-07-26. Held while the economy was read-only — the pages
+        // rendered but a player could not act, so every step was a dead end.
+        // F-IND-022/023/024 (lane 13, 72fdd95) put a constitutional door on the
+        // built services, so the steps are walkable and the arc is honest.
+        'status' => 'live',
         'cls'    => 'gov-itself',
     ],
 
@@ -107,7 +111,10 @@ return [
     'mutual-aid' => [
         'title'  => 'Asking for and giving help',
         'steps'  => ['Post request', 'A neighbor responds', 'Coordinate', 'Resolved'],
-        'status' => 'planned',
+        // LIVE 2026-07-26. This was the 0-of-4 arc — a player could SEE
+        // assistance requests on the market page and post, answer or resolve
+        // none of them. F-IND-022/023/024 closed it.
+        'status' => 'live',
         'cls'    => 'people',
     ],
 
@@ -128,7 +135,13 @@ return [
     'stipend-and-tax' => [
         'title'  => 'The money between a person and their government',
         'steps'  => ['Stipend run', 'Your receipt', 'Tax filing', 'Public ledger'],
-        'status' => 'planned',
+        // LIVE 2026-07-26. Held even at 3-of-4 walkable, because the ONE
+        // unreachable step was the only step that was an ACTION — the other
+        // three are things you look at. The alternative was deleting the tax
+        // step to make it flippable, which would have taught "government pays
+        // you": half the lesson, and the wrong half. The arc stayed right and
+        // waited for the app. F-IND-022/023/024 made it whole.
+        'status' => 'live',
         'cls'    => 'gov-orgs-people',
     ],
 
