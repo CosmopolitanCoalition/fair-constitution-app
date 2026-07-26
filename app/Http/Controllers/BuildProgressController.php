@@ -80,20 +80,44 @@ class BuildProgressController extends Controller
             ],
             [
                 'kind'  => 'district_maps',
-                'label' => 'District maps drawn',
+                'label' => 'District maps adopted',
                 'phase' => 'seating',
                 // ONLY chambers that actually need one. A chamber inside the
                 // 5–9 band elects at large and needs no map, so counting every
                 // legislature here would give a bar that can never reach 100%
                 // and would report a finished world as unfinished forever.
                 'total' => $needsMap,
-                'done'  => $count('
+                // ⚑ ACTIVE ONLY. A DRAFT IS A PROPOSAL, NOT A BOUNDARY.
+                // `racePlan()` selects with ->active(), so a chamber whose only
+                // map is a draft has nothing to elect from and its election
+                // will refuse. Counting drafts here reported nine chambers as
+                // ready when every one of them would have been turned away —
+                // the same "declared, not real" defect as counting seats a
+                // chamber has not filled, one layer down. Caught by lane 4.
+                'done'   => $count("
                     SELECT count(DISTINCT m.legislature_id)
                       FROM legislature_district_maps m
                       JOIN legislatures l ON l.id = m.legislature_id
-                     WHERE l.deleted_at IS NULL AND l.type_a_seats > 9
-                '),
-                'note'  => 'Only for chambers too big to elect in one race — smaller places need no map.',
+                     WHERE l.deleted_at IS NULL AND m.deleted_at IS NULL
+                       AND l.type_a_seats > 9 AND m.status = 'active'
+                "),
+                // Drafts are not progress — they need adopting, so they belong
+                // in the column that says "needs attention" rather than the one
+                // that says "done".
+                'review' => $count("
+                    SELECT count(DISTINCT m.legislature_id)
+                      FROM legislature_district_maps m
+                      JOIN legislatures l ON l.id = m.legislature_id
+                     WHERE l.deleted_at IS NULL AND m.deleted_at IS NULL
+                       AND l.type_a_seats > 9 AND m.status = 'draft'
+                       AND NOT EXISTS (
+                           SELECT 1 FROM legislature_district_maps a
+                            WHERE a.legislature_id = m.legislature_id
+                              AND a.status = 'active' AND a.deleted_at IS NULL
+                       )
+                "),
+                'note'  => 'Only for chambers too big to elect in one race. A DRAFT is not enough — '
+                    .'until a map is adopted the chamber has no districts and its election is refused.',
             ],
             [
                 'kind'  => 'executives',
@@ -130,8 +154,10 @@ class BuildProgressController extends Controller
         ];
 
         foreach ($stages as $i => $s) {
-            $stages[$i]['running']    = 0;
-            $stages[$i]['review']     = 0;
+            $stages[$i]['running'] = 0;
+            // Do NOT clobber a review count a stage set for itself — that is
+            // how drafts-awaiting-adoption would have been silently zeroed.
+            $stages[$i]['review'] ??= 0;
             $stages[$i]['is_current'] = $s['total'] > 0 && $s['done'] < $s['total'];
         }
 
