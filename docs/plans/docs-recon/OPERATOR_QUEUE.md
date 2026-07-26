@@ -14,6 +14,33 @@ that lagged the work.*
 
 ---
 
+## 🔴 NEW, TOP OF THE LIST — the box needs your hand (2026-07-26 evening)
+
+**`docker exec` is broken at the container-runtime layer.** Not saturation, not the earlier
+artisan fatal — a distinct failure:
+
+```
+OCI runtime exec failed: error starting setns process:
+fork/exec /proc/self/fd/6: no such file or directory
+```
+
+**The containers are healthy and the app serves HTTP 200s throughout.** What is dead is the
+ability to attach a process to a container — so **no lane can run tests, migrations, tinker or any
+artisan command**, while every page keeps loading normally. That combination has been
+misdiagnosed twice today as somebody's code.
+
+**It needs your machine** — a Docker Desktop restart from the tray. Nobody can fix it from
+inside, and I would not restart the engine blind while lane 1's healing work is in flight.
+
+**What it is holding:** lane 15's `AchievementService` — the last of the four education changes,
+and the one that makes achievements actually fire. Until it ships, **every step of the walk works
+and no medal appears**, which is the exact false-failure the worksheet exists to prevent.
+
+Everything else continues — the fleet is committing docs, UI and design work, none of which needs
+exec.
+
+---
+
 ## What is actually open — six items, nothing else
 
 Every lane filed a four-way classification directly. **Three lanes withdrew their own claim on

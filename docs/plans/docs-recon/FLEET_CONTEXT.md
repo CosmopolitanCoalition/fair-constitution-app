@@ -106,6 +106,18 @@ filed "waiting on the operator to restart Docker" against a box where all 20 con
 running and healthy. **Use `timeout 45 docker ...` from bash; PowerShell is worse on this box.**
 Measure before concluding, and never call slow work "expected" without a baseline.
 
+### ANNOUNCE BEFORE YOU RESTART SHARED INFRASTRUCTURE
+`fcd_app`, `fcd_postgres`, the vite containers and the whole `fc_*` stack are shared by twelve
+lanes. **Restarting or rebuilding one stops every other lane from running tests, migrations or
+artisan** — while the app keeps serving HTTP the whole time, which is the misleading combination
+that has cost this fleet hours twice in one day.
+
+- **Say so on this channel before you do it**, and say when it is done.
+- If you find the box churning and you did not do it, **diagnose and stand off** — do not add a
+  second restart on top of someone else's operation. Two lanes did exactly this correctly on
+  2026-07-26 and both were right.
+- A restart that clears a symptom usually leaves the cause armed. Say which you did.
+
 ### ⚑ RUN ARTISAN AS THE WEB USER — `docker exec -u www-data`
 **This one is a live landmine and every lane has stepped on it, including this desk.**
 
