@@ -93,12 +93,23 @@ heading visually, exclude it from the accessible name.
 
 ---
 
-## 7. "as implemented" in player-facing copy
+## 7. Citations now speak in two registers — WATCH FOR THIS ON THE WALK
 
-The overdraft refusal reads *"Insufficient balance — the individual economy has no overdraft.
-(Art. I · as implemented)"*. Everything before the bracket is plain language for a player; **"as
-implemented" is a note to us.** Worth checking whether that suffix is appended generally, in which
-case it is one fix everywhere rather than one string.
+The suffix that marks *"the engine's reading of the article, not the article's literal text"* has
+been softened where a player meets it, but not everywhere:
+
+| Where | Reads |
+|---|---|
+| Refusals (the live render path) | *"Art. II §2, **as this app applies it**"* |
+| 18 hardcoded captions | *"Art. I · **as implemented**"* |
+
+Both are honest; they are not the same voice, and a reader hitting both in one session may notice
+the seam. Lane 7 ruled this **punchlist rather than a cross-lane change on a hunch**, and the
+reasoning is worth preserving: **a real reader hitting both is better evidence than three lanes
+guessing.** If it jars during the walk, that's a finding worth having. If it doesn't, a change
+nobody needed was avoided.
+
+**Action: nothing before the walk.** Watch, then decide.
 
 ---
 
