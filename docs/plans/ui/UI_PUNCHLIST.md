@@ -76,14 +76,20 @@ ledger being long is defensible; it is a ledger.
 
 ---
 
-## 6. Form chips read oddly as an accessible name
+## 6. Form chips read oddly as an accessible name — and it's systemic, not local
 
-`<Card>` titles carrying a `FormChip` announce as one run-on string — *"Send money Funds
-Transfer"* — because the chip sits inside the heading. Visually fine; the accessible name is the
-problem.
+`Surface/FormCard.vue:62-64` renders the `FormChip` **inside the `<h2>`**, so the heading's
+accessible name concatenates the form's title and its code: *"Send money Funds Transfer
+F-IND-023"*. Visually the chip separates cleanly; it is the announced name that runs together.
 
-**Why not now:** wants a consistent pattern across every `FormCard`/`Card` heading, not a local
-patch.
+**Scope: the shared pattern, not one page.** `FormCard` is used by **32 pages**, and there are
+**82** `FormChip` uses across `Pages/`. Lane 13 raised it against their own economy headings and
+offered to take it — **it isn't theirs.** They copied `FormCard`'s pattern, correctly.
+
+**Why not now:** verbose, not wrong — a screen reader announces the form's name *and* its id, which
+is over-full rather than incorrect. Fixing it means changing a heading pattern on 32 pages and
+re-verifying them, which is not a day-before-the-walk change. **Proposed:** keep the chip in the
+heading visually, exclude it from the accessible name.
 
 ---
 
