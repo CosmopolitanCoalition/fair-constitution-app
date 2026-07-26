@@ -134,7 +134,7 @@ class MarketplaceService
     /**
      * Settle an order: money, thing and agreement, atomically.
      *
-     * @return array{entry_group:string, contract_id:string, asset_id:?string}
+     * @return array{entry_group:string, contract_id:?string, asset_id:?string}
      */
     public function settle(string $orderId): array
     {
@@ -162,29 +162,50 @@ class MarketplaceService
                 'marketplace order ' . $orderId,
             );
 
-            // 2. The agreement. A sale IS a contract; both sides are signed at
-            //    settlement, which is what the cosign constraint requires.
-            $contractId = (string) Str::uuid();
-            DB::table('org_contracts')->insert([
-                'id'                        => $contractId,
-                'organization_id'           => $listing->seller_account_id,
-                'counterparty_type'         => 'users',
-                'counterparty_id'           => $order->buyer_account_id,
-                'kind'                      => OrgContract::KIND_COMMERCIAL,
-                'terms'                     => sprintf(
-                    "Sale of \"%s\" — quantity %s at %s per unit.\n\nArt. I floor: no term of this agreement waives a constitutional right.",
-                    $listing->title,
-                    $order->quantity,
-                    $listing->price
-                ),
-                'signed_by_org_user_id'     => null,
-                'signed_by_org_at'          => now(),
-                'signed_by_counterparty_at' => now(),
-                'status'                    => 'active',
-                'effective_at'              => now(),
-                'created_at'                => now(),
-                'updated_at'                => now(),
-            ]);
+            // 2. The agreement — but ONLY when an organisation is a party.
+            //
+            //    `org_contracts.organization_id` carries an FK to
+            //    `organizations`, so the table models a contract in which an
+            //    ORG is one side. That is the right shape and I should not
+            //    widen it: a peer-to-peer sale between two residents is not an
+            //    organisational contract, and forcing one would mean either a
+            //    fake org row or a broken FK.
+            //
+            //    So a sale by an org gets a `commercial` org_contract (the
+            //    writer that constraint has waited for since Phase D); a sale
+            //    between two people is recorded by its market_transaction and
+            //    its asset_transfer, which together are the complete record of
+            //    who agreed to what and what moved. A dedicated peer agreement
+            //    object belongs with the redline/negotiation work, not here.
+            $contractId = null;
+            $sellerOrgId = DB::table('economic_account_bindings')
+                ->where('account_id', $listing->seller_account_id)
+                ->where('owner_type', 'organizations')
+                ->value('owner_id');
+
+            if ($sellerOrgId !== null) {
+                $contractId = (string) Str::uuid();
+                DB::table('org_contracts')->insert([
+                    'id'                        => $contractId,
+                    'organization_id'           => $sellerOrgId,
+                    'counterparty_type'         => 'users',
+                    'counterparty_id'           => $order->buyer_account_id,
+                    'kind'                      => OrgContract::KIND_COMMERCIAL,
+                    'terms'                     => sprintf(
+                        "Sale of \"%s\" — quantity %s at %s per unit.\n\nArt. I floor: no term of this agreement waives a constitutional right.",
+                        $listing->title,
+                        $order->quantity,
+                        $listing->price
+                    ),
+                    'signed_by_org_user_id'     => null,
+                    'signed_by_org_at'          => now(),
+                    'signed_by_counterparty_at' => now(),
+                    'status'                    => 'active',
+                    'effective_at'              => now(),
+                    'created_at'                => now(),
+                    'updated_at'                => now(),
+                ]);
+            }
 
             // 3. The thing.
             $movedAssetId = null;
