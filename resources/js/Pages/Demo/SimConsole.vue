@@ -25,6 +25,22 @@ import AppShellV2 from '@/Layouts/AppShellV2.vue'
  */
 import StageBars from '@/Components/Progress/StageBars.vue'
 
+/**
+ * The shell is declared as this page's LAYOUT, not wrapped around its template.
+ *
+ * `app.js` applies `AppShell` as the default persistent layout to any page that
+ * does not declare one. Wrapping the template in `<AppShellV2>` therefore
+ * rendered BOTH — the default shell outside and this one inside — which put a
+ * second header, a second language picker and a second user chip inside the
+ * content area. Declaring the layout replaces the default instead of nesting
+ * beneath it, which is the idiom every other page here uses.
+ *
+ * Found by lane 9's capture harness: the first time anyone looked at this page.
+ * It served 200, compiled clean and had zero console errors the whole time it
+ * was doing this — which is the argument for eyes over status codes.
+ */
+defineOptions({ layout: AppShellV2 })
+
 const props = defineProps({
     instanceClass: { type: String, default: 'production' },
     isScaleDemo: { type: Boolean, default: false },
@@ -94,8 +110,7 @@ const statusTone = computed(() => {
 </script>
 
 <template>
-    <AppShellV2 title="Simulated world">
-        <div class="mx-auto max-w-5xl px-4 py-6 space-y-6">
+    <div class="mx-auto max-w-5xl px-4 py-6 space-y-6">
             <header class="flex flex-wrap items-baseline justify-between gap-3">
                 <div>
                     <h1 class="text-2xl font-semibold text-gray-100">Simulated world — populate engine</h1>
@@ -287,7 +302,6 @@ const statusTone = computed(() => {
                         </li>
                     </ul>
                 </section>
-            </template>
-        </div>
-    </AppShellV2>
+        </template>
+    </div>
 </template>
