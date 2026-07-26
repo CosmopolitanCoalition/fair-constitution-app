@@ -20,7 +20,7 @@ import PageScaffold from '@/Components/Surface/PageScaffold.vue';
 import Card from '@/Components/Ui/Card.vue';
 import Banner from '@/Components/Ui/Banner.vue';
 import StatusBadge from '@/Components/Ui/StatusBadge.vue';
-import { formatMoney, formatCount } from '@/lib/money.js';
+import { formatMoney, formatCount, formatQuantity } from '@/lib/money.js';
 
 defineOptions({ layout: AppShellV2 });
 
@@ -93,7 +93,7 @@ const counts = computed(() => ({
                 <p v-if="o.description" class="mkt-desc">{{ o.description }}</p>
                 <p class="mkt-meta">
                     <StatusBadge>{{ o.kind === 'service' ? 'A service' : 'A thing' }}</StatusBadge>
-                    <span>Quantity {{ o.quantity }}</span>
+                    <span>Quantity {{ formatQuantity(o.quantity) }}</span>
                     <span v-if="o.asset">{{ o.asset.kind === 'virtual' ? 'Digital item' : 'Physical item' }}</span>
                     <span>{{ o.status }}</span>
                 </p>

@@ -66,6 +66,23 @@ export function isZeroMoney(amount) {
     return /^-?0(\.0+)?$/.test(String(amount).trim());
 }
 
+/**
+ * A quantity, not a price. The ledger stores these at the same numeric(24,6)
+ * as money, so "one compass" arrives as "1.000000" — which is true and reads
+ * as a machine talking. Trailing zeros go entirely here (unlike money, where
+ * they trim only to the currency's precision): a quantity of one is "1".
+ */
+export function formatQuantity(q) {
+    if (q === null || q === undefined || q === '') return '—';
+    const raw = String(q).trim();
+    if (!/^-?\d+(\.\d+)?$/.test(raw)) return raw;
+    if (!raw.includes('.')) return groupThousands(raw);
+    const [intPart, fracRaw] = raw.split('.');
+    const frac = fracRaw.replace(/0+$/, '');
+    const whole = groupThousands(intPart);
+    return frac.length ? `${whole}.${frac}` : whole;
+}
+
 /** Plain integer counts: 1234 → "1,234". Null-safe. */
 export function formatCount(n) {
     if (n === null || n === undefined || n === '') return '—';

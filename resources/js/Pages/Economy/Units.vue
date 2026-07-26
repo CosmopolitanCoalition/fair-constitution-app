@@ -42,6 +42,13 @@ const showValue = (v) => {
     return String(v);
 };
 
+/* Citations arrive as "Art. II §9 · [POLICY]". The bracketed token is an
+   internal classification, not something a reader can use — and the v3 pass
+   moved codes out of player chrome into the Learn layer on purpose. Keep the
+   article reference, drop the token. Flagged to lane 13 in case it is meant
+   to mean something on screen, in which case it needs words, not brackets. */
+const citation = (c) => (c ? String(c).replace(/\s*·?\s*\[[^\]]*\]\s*$/, '').trim() : '');
+
 const bounds = (b) => {
     if (!b) return null;
     if (Array.isArray(b.allowed) && b.allowed.length) return `one of: ${b.allowed.join(', ')}`;
@@ -103,7 +110,7 @@ const bounds = (b) => {
                     <p class="lever-meta">
                         <StatusBadge v-if="l.dual_door">Needs an act</StatusBadge>
                         <span v-if="bounds(l.bounds)">{{ bounds(l.bounds) }}</span>
-                        <span v-if="l.citation" class="lever-cite">{{ l.citation }}</span>
+                        <span v-if="citation(l.citation)" class="lever-cite">{{ citation(l.citation) }}</span>
                     </p>
                 </li>
             </ul>

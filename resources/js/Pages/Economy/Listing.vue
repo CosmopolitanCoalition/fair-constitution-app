@@ -16,7 +16,7 @@ import PageScaffold from '@/Components/Surface/PageScaffold.vue';
 import Card from '@/Components/Ui/Card.vue';
 import Stat from '@/Components/Ui/Stat.vue';
 import StatusBadge from '@/Components/Ui/StatusBadge.vue';
-import { formatMoney, formatCount, shortId } from '@/lib/money.js';
+import { formatMoney, formatCount, formatQuantity, shortId } from '@/lib/money.js';
 
 defineOptions({ layout: AppShellV2 });
 
@@ -36,7 +36,7 @@ const props = defineProps({
             <Card as="section" title="What's on offer">
                 <div class="econ-stats">
                     <Stat :value="formatMoney(listing.price, currency)" label="Price" accent />
-                    <Stat :value="listing.quantity" label="Quantity" />
+                    <Stat :value="formatQuantity(listing.quantity)" label="Quantity" />
                     <Stat :value="formatCount(orders)" label="Orders placed" />
                 </div>
 
