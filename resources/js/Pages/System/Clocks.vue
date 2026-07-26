@@ -25,6 +25,14 @@ const props = defineProps({
     clocks: { type: Array, default: () => [] },
     /** Per clock id: { count, next_fires_at } for ARMED timers. */
     armed: { type: Object, default: () => ({}) },
+    /**
+     * Per clock id: how many ARMED timers are already past their deadline.
+     * Normally absent or zero — the minute sweep fires them. A number that
+     * persists here means the sweep is not running or a handler keeps
+     * refusing, which is worth seeing on the page rather than discovering
+     * later.
+     */
+    dueNow: { type: Object, default: () => ({}) },
     stats: { type: Object, default: () => ({ total: 0, amendable: 0, hardened: 0 }) },
 });
 
@@ -88,6 +96,19 @@ function liveOf(clock) {
     return props.armed?.[clock.id] ?? null;
 }
 
+/**
+ * Overdue armed timers for a clock, or 0.
+ *
+ * Rendered ONLY when non-zero, deliberately: a column of zeros is noise, and
+ * the one number that matters is the one that should not be there. It is
+ * called "overdue" rather than "due" on screen because "3 due" reads as
+ * scheduled work, while "3 overdue" reads as something that should already
+ * have happened — which is exactly what it is.
+ */
+function overdueOf(clock) {
+    return Number(props.dueNow?.[clock.id] ?? 0);
+}
+
 function dateOf(iso) {
     return iso ? new Date(iso).toLocaleDateString() : null;
 }
@@ -146,6 +167,12 @@ const columns = [
                             style="display: block"
                             data-no-i18n
                         >next {{ dateOf(liveOf(row).next_fires_at) }}</span>
+                        <!-- Only ever shown when non-zero. A timer past its
+                             deadline that is still armed means the sweep did
+                             not fire it — a fault, not a status. -->
+                        <StatusBadge v-if="overdueOf(row)" tone="warning" icon="alert-triangle">
+                            {{ overdueOf(row) }} overdue
+                        </StatusBadge>
                     </template>
                     <template v-else>—</template>
                 </template>

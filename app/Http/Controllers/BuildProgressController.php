@@ -116,8 +116,14 @@ class BuildProgressController extends Controller
                               AND a.status = 'active' AND a.deleted_at IS NULL
                        )
                 "),
+                // "refused" pointed BACKWARDS at something that had already
+                // failed; a walker who does not know the engine reads it as an
+                // error the system threw. The state is forward-looking — a map
+                // is drawn and waiting to be adopted — so the words point at
+                // the pending action instead. (Lane 9, from reading the page
+                // as a person rather than as its author.)
                 'note'  => 'Only for chambers too big to elect in one race. A DRAFT is not enough — '
-                    .'until a map is adopted the chamber has no districts and its election is refused.',
+                    .'a map has to be adopted before the chamber has districts and can hold its election.',
             ],
             [
                 'kind'  => 'executives',
