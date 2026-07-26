@@ -191,9 +191,22 @@ Twelve lanes share one worktree. **`git add` / `git commit` without a pathspec s
 dirty in the tree into your commit**, under your message.
 
 ```bash
-git commit -F msg.txt -- path/one path/two     # correct
-git show --stat <hash>                          # verify before quoting it
+git commit -F msg.txt -- path/one path/two     # necessary, NOT sufficient
+git add -p <file>                               # when a peer may be inside that file
+git diff --cached                               # read what you are about to commit
+git show --stat <hash>                          # ALWAYS, before quoting a hash
 ```
+
+**⚠ A PATHSPEC IS NOT ENOUGH, and lane 6's incident proves it.** They *did* pass a pathspec. It
+swept 149 lines of lane 13's work anyway, because **`git add <file>` had already staged another
+lane's changes sitting inside that same file.**
+
+> **A pathspec guards against other FILES. It does nothing about another lane's changes inside
+> the SAME file.**
+
+So the habit that actually works is the third line: **read `git diff --cached` before you commit
+a file a peer might be inside**, and `git show --stat` after. **`git show --stat` caught both
+incidents** and is doing more real work than the pathspec rule ever did.
 
 **The three occurrences, so nobody treats this as theoretical:**
 | When | What was swept | What it nearly cost |
