@@ -423,5 +423,93 @@
   "system_termsync.zero_actions_live_here_by_design_every_num": {
     "status": "machine",
     "provider": "nllb"
+  },
+  "system_translations.best_covered_language": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "system_translations.by_language": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "system_translations.by_namespace": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "system_translations.every_registered_language_carries_every_me": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "system_translations.how_much_of_this_application_a_person_can_": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "system_translations.it_writes_and_exits_non_zero_while_any_lan": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "system_translations.languages_present": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "system_translations.measured": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "system_translations.message_translations_are_still_owed_across": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "system_translations.messages_per_area_of_the_app_and_how_many_": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "system_translations.messages_per_namespace_per_language": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "system_translations.no_coverage_artifact_on_this_instance_run_": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "system_translations.not_measured_yet": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "system_translations.records_publish_with_translations_wf_sys_0": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "system_translations.run_for_the_per_key_detail_behind_each_cod": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "system_translations.same_as_english": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "system_translations.same_as_english_counts_values_byte_identic": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "system_translations.the_gate_passes_no_language_is_behind_and_": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "system_translations.translatable_messages_in_the_app": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "system_translations.translation_coverage_per_language": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "system_translations.translation_gate_findings_by_code": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "system_translations.where_we_are": {
+    "status": "machine",
+    "provider": "nllb"
   }
 }

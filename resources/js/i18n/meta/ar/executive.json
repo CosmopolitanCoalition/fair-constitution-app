@@ -197,7 +197,7 @@
     "provider": "nllb"
   },
   "executive_actions.the_live_instrument_the_order_executes_a_d": {
-    "status": "review",
+    "status": "machine",
     "reason": "sentence count fell 2 -> 1",
     "provider": "nllb"
   },

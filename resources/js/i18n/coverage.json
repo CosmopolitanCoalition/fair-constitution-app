@@ -1,25 +1,25 @@
 {
-  "generated_at": "2026-07-26T01:43:48.687Z",
+  "generated_at": "2026-07-26T01:53:14.395Z",
   "source_keys": 3388,
   "namespaces": 32,
   "locales": [
     {
       "locale": "ar",
       "total": 3388,
-      "present": 3304,
-      "missing": 84,
+      "present": 3345,
+      "missing": 43,
       "orphan": 0,
       "identical": 15,
-      "pct": 97.5
+      "pct": 98.7
     },
     {
       "locale": "es",
       "total": 3388,
-      "present": 3345,
-      "missing": 43,
+      "present": 3370,
+      "missing": 18,
       "orphan": 0,
       "identical": 26,
-      "pct": 98.7
+      "pct": 99.5
     },
     {
       "locale": "hi",
@@ -115,7 +115,7 @@
       "namespace": "c_judiciary",
       "total": 49,
       "locales": {
-        "ar": 47,
+        "ar": 49,
         "es": 49,
         "hi": 49,
         "zh-Hans": 48
@@ -205,7 +205,7 @@
       "namespace": "civic",
       "total": 312,
       "locales": {
-        "ar": 307,
+        "ar": 309,
         "es": 311,
         "hi": 309,
         "zh-Hans": 287
@@ -235,7 +235,7 @@
       "namespace": "elections",
       "total": 332,
       "locales": {
-        "ar": 322,
+        "ar": 325,
         "es": 330,
         "hi": 330,
         "zh-Hans": 312
@@ -245,7 +245,7 @@
       "namespace": "executive",
       "total": 193,
       "locales": {
-        "ar": 189,
+        "ar": 190,
         "es": 193,
         "hi": 193,
         "zh-Hans": 183
@@ -265,7 +265,7 @@
       "namespace": "judiciary",
       "total": 197,
       "locales": {
-        "ar": 193,
+        "ar": 194,
         "es": 197,
         "hi": 197,
         "zh-Hans": 184
@@ -286,7 +286,7 @@
       "total": 542,
       "locales": {
         "ar": 536,
-        "es": 536,
+        "es": 537,
         "hi": 542,
         "zh-Hans": 516
       }
@@ -295,8 +295,8 @@
       "namespace": "operator",
       "total": 270,
       "locales": {
-        "ar": 264,
-        "es": 269,
+        "ar": 267,
+        "es": 270,
         "hi": 270,
         "zh-Hans": 255
       }
@@ -305,7 +305,7 @@
       "namespace": "organizations",
       "total": 218,
       "locales": {
-        "ar": 215,
+        "ar": 217,
         "es": 218,
         "hi": 217,
         "zh-Hans": 209
@@ -325,7 +325,7 @@
       "namespace": "registry",
       "total": 92,
       "locales": {
-        "ar": 91,
+        "ar": 92,
         "es": 92,
         "hi": 92,
         "zh-Hans": 92
@@ -335,8 +335,8 @@
       "namespace": "setup",
       "total": 267,
       "locales": {
-        "ar": 262,
-        "es": 266,
+        "ar": 265,
+        "es": 267,
         "hi": 267,
         "zh-Hans": 262
       }
@@ -355,16 +355,16 @@
       "namespace": "system",
       "total": 128,
       "locales": {
-        "ar": 101,
-        "es": 105,
+        "ar": 124,
+        "es": 127,
         "hi": 128,
         "zh-Hans": 120
       }
     }
   ],
-  "failures": 299,
-  "warnings": 2867,
+  "failures": 233,
+  "warnings": 2879,
   "failure_codes": {
-    "C1-missing": 299
+    "C1-missing": 233
   }
 }

@@ -62,12 +62,12 @@
   },
   "electoral_phasebanner.the_approval_phase_has_closed_finalists_ar": {
     "status": "review",
-    "reason": "suspiciously short — source content likely dropped",
+    "reason": "suspiciously short for Arab — source content likely dropped (20/53 chars, floor 0.4)",
     "provider": "nllb"
   },
   "electoral_phasebanner.the_approval_phase_has_closed_this_standin": {
     "status": "review",
-    "reason": "suspiciously short — source content likely dropped",
+    "reason": "suspiciously short for Arab — source content likely dropped (20/79 chars, floor 0.4)",
     "provider": "nllb"
   },
   "electoral_phasebanner.the_approval_phase_is_live_validated_candi": {

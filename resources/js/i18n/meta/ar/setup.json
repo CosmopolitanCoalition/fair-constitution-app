@@ -42,7 +42,7 @@
     "provider": "nllb"
   },
   "setup_joinhost.connect_this_node_to_a_federation_already_": {
-    "status": "review",
+    "status": "machine",
     "reason": "sentence count fell 3 -> 2",
     "provider": "nllb"
   },
@@ -106,7 +106,7 @@
     "provider": "nllb"
   },
   "setup_modefork.build_the_game_here_author_the_constitutio": {
-    "status": "review",
+    "status": "machine",
     "reason": "sentence count fell 3 -> 2",
     "provider": "nllb"
   },
@@ -1114,7 +1114,7 @@
     "provider": "nllb"
   },
   "setup_step4_confirm.your_instance_is_set_up_legislatures_are_s": {
-    "status": "review",
+    "status": "machine",
     "reason": "sentence count fell 3 -> 1",
     "provider": "nllb"
   }

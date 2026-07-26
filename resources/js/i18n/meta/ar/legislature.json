@@ -160,7 +160,7 @@
   },
   "legislature_bills.cannot_exceed_this_legislature_s_authority": {
     "status": "review",
-    "reason": "suspiciously short — source content likely dropped",
+    "reason": "sentence count fell 3 -> 2",
     "provider": "nllb"
   },
   "legislature_bills.default_judiciary_forming_phase_e": {
@@ -581,12 +581,12 @@
   },
   "legislature_committees.contested_seats_normalized_share_tie_break": {
     "status": "review",
-    "reason": "suspiciously short — source content likely dropped",
+    "reason": "suspiciously short for Arab — source content likely dropped (17/45 chars, floor 0.4)",
     "provider": "nllb"
   },
   "legislature_committees.enabled_when_all_serving_members_have_subm": {
     "status": "review",
-    "reason": "suspiciously short — source content likely dropped",
+    "reason": "suspiciously short for Arab — source content likely dropped (44/115 chars, floor 0.4)",
     "provider": "nllb"
   },
   "legislature_committees.last_run_placement_s_sealed_audit": {
@@ -994,7 +994,7 @@
   },
   "legislature_districts.mass_operation_in_progress_waiting_for_fir": {
     "status": "review",
-    "reason": "suspiciously short — source content likely dropped",
+    "reason": "suspiciously short for Arab — source content likely dropped (22/63 chars, floor 0.4)",
     "provider": "nllb"
   },
   "legislature_districts.may_be_slow_for_large_legislatures": {

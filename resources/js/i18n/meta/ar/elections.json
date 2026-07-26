@@ -524,7 +524,7 @@
     "provider": "nllb"
   },
   "elections_candidateprofile.this_cannot_be_undone_withdrawal_is_a_perm": {
-    "status": "review",
+    "status": "machine",
     "reason": "sentence count fell 2 -> 0",
     "provider": "nllb"
   },
@@ -744,7 +744,7 @@
     "provider": "nllb"
   },
   "elections_openballot.any_associated_resident_may_register_resid": {
-    "status": "review",
+    "status": "machine",
     "reason": "sentence count fell 3 -> 2",
     "provider": "nllb"
   },
@@ -1010,7 +1010,7 @@
   },
   "elections_rankedballot.the_approval_phase_is_still_under_way_fina": {
     "status": "review",
-    "reason": "suspiciously short — source content likely dropped",
+    "reason": "sentence count fell 2 -> 0",
     "provider": "nllb"
   },
   "elections_rankedballot.the_ranked_window_has_closed_the_engine_wi": {
@@ -1202,7 +1202,7 @@
     "provider": "nllb"
   },
   "elections_results.the_ranked_window_has_closed_and_the_prote": {
-    "status": "review",
+    "status": "machine",
     "reason": "sentence count fell 2 -> 1",
     "provider": "nllb"
   },

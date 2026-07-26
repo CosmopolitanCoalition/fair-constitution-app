@@ -153,6 +153,7 @@
   "legislature_committees.open_chair_ballot_f_leg_011": "Votación de la silla abierta (F-LEG-011)",
   "legislature_committees.placement_allocation": "Asignación de plazas",
   "legislature_committees.placements_distribute_evenly_across_member": "Las colocaciones se distribuyen uniformemente entre los miembros  los recuentos difieren en un máximo. Los miembros con múltiples órganos y sin respaldo son de primera clase: no hay capas de facciones en ninguna parte del procedimiento · libro mayor #q1.",
+  "legislature_committees.rank_every_committee_the_assignment_algori": "Clasifique cada comité  el algoritmo de asignación honra su orden; los lazos se rompen por proporción de votos normalizada (registro #q2). La orden por defecto es la orden de creación de un comité. teclado: botones ↑/↓ o teclas Alt+Arrow  sin necesidad de arrastre.",
   "legislature_committees.rank_the_committee_s_seated_members_for_ch": "Clasificar a los miembros sentados del comité para el presidente  todos los miembros que sirven elegidos, incluido el presidente (elección constitucional · Art. II §3 · según lo implementado).",
   "legislature_committees.re_check_pending_the_chamber_countback_wf_": "{note} volver a comprobar en espera del recuento de la cámara · WF-LEG-13",
   "legislature_committees.run_assignment_f_spk_005": "La asignación de ejecución (F-SPK-005)",

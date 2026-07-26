@@ -163,7 +163,7 @@
     "provider": "nllb"
   },
   "civic_home.voting_and_candidacy_unlock_automatically_": {
-    "status": "review",
+    "status": "machine",
     "reason": "sentence count fell 2 -> 1",
     "provider": "nllb"
   },
@@ -458,7 +458,7 @@
     "provider": "nllb"
   },
   "civic_myrecord.earned_records_of_the_journeys_you_complet": {
-    "status": "review",
+    "status": "machine",
     "reason": "sentence count fell 2 -> 1",
     "provider": "nllb"
   },
@@ -1124,7 +1124,7 @@
   },
   "civic_residency.declare_residency_first_pings_need_a_decla": {
     "status": "review",
-    "reason": "suspiciously short — source content likely dropped",
+    "reason": "suspiciously short for Arab — source content likely dropped (17/73 chars, floor 0.4)",
     "provider": "nllb"
   },
   "civic_residency.declare_residency_to_begin": {

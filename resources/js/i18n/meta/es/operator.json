@@ -728,7 +728,7 @@
     "provider": "nllb"
   },
   "operator_operations.waiting_for_the_host_supervisor_is_scripts": {
-    "status": "review",
+    "status": "machine",
     "reason": "sentence count fell 2 -> 1",
     "provider": "nllb"
   },

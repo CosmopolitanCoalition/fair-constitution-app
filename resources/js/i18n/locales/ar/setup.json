@@ -9,6 +9,7 @@
   "setup_bootstrap.show_update_details": "عرض تفاصيل التحديث ({pending_count})",
   "setup_joinhost.already_connected_to_a_host_this_resumes_t": "وصل بالفعل إلى مضيف  هذا يستأنف التزامن حيث توقفت (لا حاجة إلى عنوان URL للمضيف).",
   "setup_joinhost.checks_the_public_front_door_and_if_you_op": "يتحقق من الباب الأمامي العام، و  إذا اخترت في  مسح الشبكة المحلية الخاصة بك. لا يوجد عنوان مطلوب",
+  "setup_joinhost.connect_this_node_to_a_federation_already_": "قم بتوصيل هذه العقدة إلى اتحاد موجود بالفعل يزامن اللعبة بأكملها  أساس الخريطة، الدستور، والمؤسسات  ويصبح مرآة القراءة فقط. لا يوجد بناء للمؤسسات: أنت تلعب نفس اللعبة مع بقية الشبكة.",
   "setup_joinhost.connected_pulling_the_corpus_in_the_backgr": "التواصل  سحب الجسم في الخلفية. يتم عرض التقدم المباشر أدناه؛ وهذا ينتهي بمفرده (ويتم استئنافها في حالة انقطاعها). يمكنك ترك هذه الصفحة",
   "setup_joinhost.find_a_federation": "ابحث عن اتحاد",
   "setup_joinhost.host_adoption_console_pending_adoption_req": "أداة تبني المضيف → طلبات تبني في انتظار",
@@ -23,6 +24,7 @@
   "setup_joinhost.syncing": "التزامن...",
   "setup_joinhost.this_node_s_mesh_id_give_it_to_the_host": "هوية الشبكة لهذه العقدة (أعطيها للمضيف)",
   "setup_joinhost.your_lan_range_cidr": "نطاق LAN الخاص بك (CIDR)",
+  "setup_modefork.build_the_game_here_author_the_constitutio": "بناء اللعبة هنا  كتابة الدستور، تحميل الخريطة، رسم المناطق، مقعد المؤسسات. أنت تصبح اللعبة القانونية، والعقود الأخرى تتحد إليك. يوصى بها لأول عقدة في الاتحاد",
   "setup_modefork.connect_to_a_host_already_in_the_federatio": "التواصل مع مضيف بالفعل في الاتحاد. كل شيء يتزامن في قاعدة الخريطة، الدستور، وكل مؤسسة و هذه العقدة تصبح مرآة القراءة فقط. لا بناء مؤسسة، أنت تلعب نفس اللعبة مع بقية الشبكة.",
   "setup_modefork.how_should_this_node_join_the_game": "كيف يجب أن ينضم هذا العقد إلى اللعبة؟",
   "setup_modefork.start_a_new_world": "أبدأ عالمًا جديدًا",
@@ -260,5 +262,6 @@
   "setup_step4_confirm.ready_player_one": "لاعب جاهز واحد",
   "setup_step4_confirm.review_the_shape_of_your_instance_then_sea": "مراجعة شكل محاكمتك، ثم تقديم المؤسسات التنفيذية والقضائية لكل ولاية قضائية بمجلس تشريعي. يبدأون في تشكيل أعضاء فعليين يتم انتخابهم بمجرد أن يتم تشغيل محركات الانتخابات في المرحلة الثانية من خريطة الطريق الرئيسية.",
   "setup_step4_confirm.we_ll_record_setup_completed_at_on_the_ins": "سنقوم بتسجيل setup_completed_at على إعدادات الحالة. من هذه النقطة / إعادة توجيه إلى المنزل.",
-  "setup_step4_confirm.what_happens_when_you_click_finish": "ما الذي يحدث عند النقر على الانتهاء"
+  "setup_step4_confirm.what_happens_when_you_click_finish": "ما الذي يحدث عند النقر على الانتهاء",
+  "setup_step4_confirm.your_instance_is_set_up_legislatures_are_s": "قضيتك جاهزة التشريعات ضخمة، ويتم رسم المناطق، ويتم وضع المؤسسات التنفيذية + القضائية على منصات تنتظر أول انتخابات لها. مرحباً بكم في الدستور العادل"
 }

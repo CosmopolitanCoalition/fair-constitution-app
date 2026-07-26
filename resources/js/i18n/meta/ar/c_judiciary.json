@@ -53,7 +53,7 @@
     "provider": "nllb"
   },
   "judiciary_art4section5tracker.if_the_window_closes_with_neither_amendmen": {
-    "status": "review",
+    "status": "machine",
     "reason": "sentence count fell 2 -> 1",
     "provider": "nllb"
   },
@@ -171,7 +171,7 @@
     "provider": "nllb"
   },
   "judiciary_jurorscreening.a_panel_judge_follows_up_on_the_answers_yo": {
-    "status": "review",
+    "status": "machine",
     "reason": "sentence count fell 2 -> 1",
     "provider": "nllb"
   },

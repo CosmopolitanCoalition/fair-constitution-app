@@ -66,7 +66,7 @@
     "provider": "nllb"
   },
   "operator_console.no_root_jurisdiction_yet_the_meters_attach": {
-    "status": "review",
+    "status": "machine",
     "reason": "suspiciously short — source content likely dropped",
     "provider": "nllb"
   },
@@ -440,7 +440,7 @@
     "provider": "nllb"
   },
   "operator_identity.the_identity_layer_that_lets_a_server_know": {
-    "status": "review",
+    "status": "machine",
     "reason": "sentence count fell 3 -> 2",
     "provider": "nllb"
   },
@@ -1059,7 +1059,7 @@
     "provider": "nllb"
   },
   "operator_versioning.every_peer_advertises_its_constitutional_v": {
-    "status": "review",
+    "status": "machine",
     "reason": "sentence count fell 2 -> 1",
     "provider": "nllb"
   },
@@ -1083,7 +1083,7 @@
   },
   "operator_versioning.no_open_proposals_the_mesh_agrees_on_the_v": {
     "status": "review",
-    "reason": "suspiciously short — source content likely dropped",
+    "reason": "suspiciously short for Arab — source content likely dropped (22/60 chars, floor 0.4)",
     "provider": "nllb"
   },
   "operator_versioning.no_peers_yet_this_box_stands_alone_version": {

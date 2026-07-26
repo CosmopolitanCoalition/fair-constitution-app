@@ -64,7 +64,7 @@
     "provider": "nllb"
   },
   "journeys.the_money_between_a_person_and_their_gover": {
-    "status": "review",
+    "status": "machine",
     "reason": "suspiciously short — source content likely dropped",
     "provider": "nllb"
   },

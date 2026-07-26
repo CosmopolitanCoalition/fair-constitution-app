@@ -99,7 +99,7 @@
     "provider": "nllb"
   },
   "organizations_boardelections.no_worker_track_election_has_run_yet_the_v": {
-    "status": "review",
+    "status": "machine",
     "reason": "sentence count fell 2 -> 1",
     "provider": "nllb"
   },
@@ -827,7 +827,7 @@
   },
   "organizations_transfersconversions.no_internal_restructurings_recorded_here_s": {
     "status": "review",
-    "reason": "suspiciously short — source content likely dropped",
+    "reason": "suspiciously short for Arab — source content likely dropped (36/108 chars, floor 0.4)",
     "provider": "nllb"
   },
   "organizations_transfersconversions.no_monopoly_acquisitions_on_record": {
@@ -868,7 +868,7 @@
     "provider": "nllb"
   },
   "organizations_transfersconversions.showing_the_transfer_conversion_register_f": {
-    "status": "review",
+    "status": "machine",
     "reason": "sentence count fell 2 -> 1",
     "provider": "nllb"
   },

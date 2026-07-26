@@ -616,7 +616,7 @@
     "provider": "nllb"
   },
   "legislature_committees.rank_every_committee_the_assignment_algori": {
-    "status": "review",
+    "status": "machine",
     "reason": "sentence count fell 3 -> 2",
     "provider": "nllb"
   },
