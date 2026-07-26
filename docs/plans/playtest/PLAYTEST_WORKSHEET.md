@@ -46,8 +46,23 @@ returns you to yourself. There are also four role kits — `/dev/electoral-kit`,
 needs. Dev mode is on for this box (sandbox game mode).
 
 **To move time** — lane 3 is building the time control right now
-(`docs/plans/playtest/DEV_TIME_AND_ROLE_CONTROLS.md`). Steps that need it are marked
-**⏱ needs time control**. Until it lands, those steps are *blocked*, not failed.
+(`docs/plans/playtest/DEV_TIME_AND_ROLE_CONTROLS.md`), including a preview of what an advance
+*would* fire before it fires. Steps that need it are marked **⏱**. Until it lands, those steps are
+*blocked*, not failed. Steps needing a whole chamber to vote at once are also marked ⏱ — lane 13's
+bloc-cast control is what turns those from 58 separate logins into one action.
+
+---
+
+## Two things that will look broken and aren't
+
+**1. No achievements will appear.** The app has a catalogue of 139 achievements, but the piece that
+watches for them and awards them isn't built yet. **Nothing on this sheet asks you to check for an
+achievement** for exactly that reason — if you see a card that does, it's a mistake, tell me.
+
+**2. You cannot look up how you voted, and you never will be able to.** Your vote and your identity
+are kept in two deliberately unconnected places — one holds the vote with no voter attached, the
+other records that you voted without holding the vote. So "I can't find my own ballot" is the
+system working. Where this sheet proves a vote happened, it proves *participation*, never content.
 
 ---
 
@@ -57,9 +72,9 @@ needs. Dev mode is on for this box (sandbox game mode).
 |---|---|---|---|
 | **A** | Getting in — becoming a person with rights | 5 | ✅ Yes |
 | **B** | An election, end to end | 7 | ⏱ Mostly — two steps need the time control |
-| **C** | The legislature at work | 8 | ⚠ **Run C-1 first — it decides the rest** |
-| **D** | The courts | 8 | ⚠ Depends on C-1 |
-| **E** | Organizations & work | 6 | ⚠ Partly depends on C-1 |
+| **C** | The legislature at work | 8 | ✅ Yes — both chambers are seated |
+| **D** | The courts | 8 | ✅ Yes |
+| **E** | Organizations & work | 6 | ✅ Yes |
 | **F** | Voice — square, petitions, messages | 6 | ✅ Yes |
 | **G** | The record & the clock | 4 | ✅ Yes |
 | **H** | Places & maps — **use the game box, :8080** | 5 | ✅ Yes |
@@ -308,33 +323,35 @@ whole point of the screen.*
 
 # SECTION C — The legislature at work
 
-## ⚠ Read this first — one thing decides this whole section
+## Read this first — how the two chambers work
 
-San Marino's legislature has **two chambers**: 32 seats by population, and 27 representing the nine
+San Marino's legislature has **two chambers**: one sized by population, one representing the nine
 castelli equally. **The constitution requires both to agree before anything passes** — a bill, a
-court, an executive, a committee.
+court, an executive, a committee. One chamber alone can never pass a law, and testing that is the
+point of C-5.
 
-Earlier today the second chamber had zero members, so every one of those failed automatically. I'm
-told that has since changed and a committee vote carried 58–0. **I could not confirm it** — the
-container engine was down when I wrote this — so rather than guess, **C-1 checks it for you.**
+Both chambers are seated: **31 in the first, 27 in the second, 58 serving.** Three acts have
+already carried on that basis — an executive delegation, the creation of the judiciary, and a
+committee (Public Works, 5 seats). So this section is fully runnable.
 
-**If C-1 passes, run the rest of C, D and E normally. If C-1 fails, mark C-2 onward blocked and
-skip to Section F** — they will all fail at the vote for that one reason, and filling in twenty
-identical "blocked" boxes teaches you nothing.
+*Earlier today the second chamber was empty and everything here failed at the vote. That's fixed.
+C-1 below just confirms it in thirty seconds before you invest in the rest — if the numbers come
+back different from the ones above, stop and say so, because something has regressed.*
 
 ---
 
-### C-1 · Are both chambers actually seated?
-**What it is.** The gate for everything below. Two chambers, both needing members.
+### C-1 · Confirm both chambers are seated
+**What it is.** A thirty-second check before you invest an hour in this section.
 **Role:** anyone · **Clock:** none · **Needs first:** nothing
 
 | # | Do this | On this screen | You should see |
 |---|---|---|---|
 | 1 | Open the legislature | `/legislatures/smr-1-san-marino` | Its seats and members |
-| 2 | Count members of **each** chamber | same | Both counts above zero |
+| 2 | Count members of **each** chamber | same | Roughly 31 and 27 |
 
-**PASSES IF** — both chambers have members. **59 seated is full** (32 + 27).
-*If the second chamber reads 0, that is your answer: stop here, mark C-2 onward blocked, go to F.*
+**PASSES IF** — both chambers have members, totalling around **58 serving**.
+*Write the two numbers down. If the second chamber reads 0, stop — that's a regression, and
+everything from C-2 on will fail at the vote for that one reason.*
 
 **Result** ☐ pass ☐ fail ☐ blocked  **Notes** _seated: ___ of 32 · ___ of 27_ ______________
 
@@ -394,9 +411,11 @@ ranking their preferences — there are no parties here to hand them out.
 
 ---
 
-### C-5 · The floor vote — **both** chambers must agree
+### C-5 · The floor vote — **both** chambers must agree ⏱ easier with the bloc-vote control
 **What it is.** The real test of the two-chamber design. One chamber agreeing is not enough.
 **Role:** seated members in both chambers · **Clock:** none · **Needs first:** C-4
+*58 members must vote. Lane 13's bloc-cast control lands shortly and turns this from 58 logins into
+one action — worth waiting for rather than doing by hand.*
 
 | # | Do this | On this screen | You should see |
 |---|---|---|---|
@@ -464,8 +483,8 @@ be enforced by the app, not by anyone remembering.
 
 # SECTION D — The courts
 
-*You asked "can I run a court case?" — this is that. **Needs C-1 to have passed**, because creating
-a court is itself an act both chambers must agree to.*
+*You asked "can I run a court case?" — this is that. The court already exists: creating it was
+itself an act both chambers had to agree to, and that carried.*
 
 ---
 
@@ -975,8 +994,13 @@ ________________________________________________________________________________
 ---
 
 ## Changelog
-- **v2** (2026-07-26) — Sections **C–H in full** (37 more tests). Section C's blocker is now its
-  own first card (C-1) rather than a warning, so the sheet *tests* the precondition instead of
-  assuming it — and C-1's result tells you whether to run C/D/E or skip to F. Fixed the contents
-  table, which promised 8 section-C tests that didn't exist yet. Section H points at the game box.
+- **v3** (2026-07-26) — **Section C unblocked and fully runnable.** The second chamber is seated
+  (31 + 27 = 58 serving) and three bicameral acts have carried, so C, D and E all run normally;
+  C-1 is now a thirty-second confirmation rather than a gate. Added the two "looks broken and
+  isn't" notes up front: achievements will not appear (the awarding code isn't built), and a vote
+  cannot be traced back to its voter by design. Bloc-vote steps marked ⏱ for lane 13's control.
+  *Seating taken on three independent live-database reads by lanes 3, 4 and 13; the container
+  engine was down when this was written, so I could not read it myself — verify on C-1.*
+- **v2** (2026-07-26) — Sections **C–H in full** (37 more tests). Fixed the contents table, which
+  promised 8 section-C tests that didn't exist yet. Section H points at the game box.
 - **v1** (2026-07-26) — Frame, the one rule, the two controls, Sections A and B in full.
