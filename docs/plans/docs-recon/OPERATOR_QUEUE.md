@@ -1,4 +1,19 @@
-# Operator Queue — open decisions (rebuilt 2026-07-25 22:10 from every lane's TRANSCRIPT)
+# Operator Queue — open decisions
+
+> **⚑ STANDING CORRECTION (operator, 2026-07-26): "BUILT" IS NOT "TESTED".**
+> A phase row reading BUILT means code exists and pins pass. It does **not** mean a human walked a
+> real path and it behaved. The fleet has produced a great deal of the first and almost none of the
+> second. Every status report must say which one it means.
+>
+> **And the tour cannot be validated until we define what we expect users to DO.** His words: *"in
+> order for the tour to even be validated, we have to actually ask ourselves, what are the things we
+> expect our users to do."* A parity tour checks pages against mockups; it does not check that a
+> person can accomplish anything. **User journeys must be defined first** — court case end to end,
+> the demo journeys — and the tour validated against those. He wants that conversation with this
+> desk, and it is the next substantive piece of work here. Raw material: lane 15's 13 journey arcs
+> and its 127-achievement catalog derived from real acts.
+
+*(rebuilt 2026-07-25 22:10 from every lane's TRANSCRIPT; header added 2026-07-26)*
 
 Rebuilt after reading all eleven idle lanes' actual chat transcripts, not just their board posts.
 That changed the picture materially: **most of the fleet is idle for want of a NUDGE, not a
