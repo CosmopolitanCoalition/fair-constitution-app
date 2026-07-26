@@ -69,6 +69,18 @@ Near the top it prints **`server_id : ...`**. Copy that whole `server_id`.
 
 ## Part 2 — Join the mesh (after your operator gives you the other box's details)
 
+> **Decide which box people will actually use — before you join, not after.**
+>
+> Joining is not symmetrical. The box that **joins** becomes a **read-only mirror** of the world
+> it joined. It holds a copy of the shared record and can serve it, but it is not the authority
+> for anything, and **user accounts do not copy across** — so nobody can sign in or take part on
+> the box that joined. People sign in on the box that **started** the world.
+>
+> So: whichever box you want the public to use, set that one up **fresh**, and join the others
+> **to it**. If you are putting a node on the internet, that is usually the public one — the
+> cloud box starts the world, and your box at home joins it. That is the opposite of what most
+> people assume, and it cannot be swapped afterwards without starting the joining box over.
+
 Your operator will tell you the other box's **address** (a URL like `http://<their-LAN-IP>:8081`) and its
 **server_id**. Use the address as `<OTHER-URL>` below.
 
