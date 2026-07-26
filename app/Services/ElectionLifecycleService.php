@@ -43,9 +43,13 @@ use Illuminate\Support\Facades\DB;
  *                                 records the posture (citation Art. II §8).
  *                                 WI-B7's initial-map generation / re-plan
  *                                 unblocks it (Montegiardino / San Marino).
- *  - type_b seats               → at-large by construction (Art. V §3);
- *                                 type_b > max is the deferred Earth-scale
- *                                 operator ruling — blocked with citation.
+ *  - type_b seats               → ONE at-large STV race, however many seats
+ *                                 (Art. V §3). The jurisdiction IS the
+ *                                 district, so the 5–9 band — a DISTRICT
+ *                                 rule — does not bind it. Settled
+ *                                 2026-07-26; previously blocked above the
+ *                                 ceiling, which stalled every bicameral
+ *                                 act on a fresh world.
  *
  * CLK-21 is a derived formula, not a timer: finalist_count =
  * finalist_multiplier × seats, resolved per jurisdiction at race creation

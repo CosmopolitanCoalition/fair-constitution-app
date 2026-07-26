@@ -3090,7 +3090,7 @@ CREATE TABLE public.legislatures (
 -- Name: COLUMN legislatures.total_seats; Type: COMMENT; Schema: public; Owner: -
 --
 
-COMMENT ON COLUMN public.legislatures.total_seats IS 'Between 5 and 9 per constitutional settings';
+COMMENT ON COLUMN public.legislatures.total_seats IS 'type_a + type_b. NO upper bound: 5-9 is a DISTRICT rule, not a chamber one. Type A = max(5, round(pop^(1/3))), districted into 5-9 seat races above 9; Type B = equal representation of constituents, one at-large STV race however many seats. Earth holds 3,140 (1,999 + 1,141). Settled 2026-07-26, Art. II s2 / Art. V s3.';
 
 
 --

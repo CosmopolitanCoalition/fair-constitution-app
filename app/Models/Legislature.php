@@ -12,7 +12,24 @@ use Illuminate\Database\Eloquent\SoftDeletes;
  * Legislature instance (substrate model added with WI-B0 — the table dates
  * from 2026_01; controllers previously used query-builder access).
  * `status` flips forming → active at first certification (F-ELB-004).
- * Bicameral per Art. V §3: type_a = constituent reps, type_b = at-large.
+ * Bicameral per Art. V §3, and the two chambers answer DIFFERENT questions
+ * (settled 2026-07-26 — CLAUDE.md "Bicameral Support"):
+ *
+ *   type_a — PROPORTIONAL. Sized from population, max(5, round(pop^(1/3))),
+ *            with NO ceiling on the total; above 9 it is districted into
+ *            races of 5–9 seats. Earth: 1,999 across 282 districts.
+ *   type_b — EQUAL REPRESENTATION OF THE CONSTITUENT JURISDICTIONS. Every
+ *            direct constituent gets the same number of seats regardless of
+ *            its population, and it is elected AT LARGE — the jurisdiction
+ *            IS the district, so it is one STV race however many seats.
+ *            A leaf has no type_b; its representation appears in its
+ *            PARENT's type_b chamber.
+ *
+ * This docblock previously read "type_a = constituent reps, type_b =
+ * at-large", which has them the wrong way round on the allocation axis. The
+ * same inversion in CLAUDE.md is what `racePlan()` was written against, and it
+ * blocked every bicameral act on a fresh world until 2026-07-26. Two axes, not
+ * one: type_b is at-large as a METHOD and constituent-equal as an ALLOCATION.
  */
 class Legislature extends Model
 {
