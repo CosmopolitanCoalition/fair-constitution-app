@@ -6,7 +6,7 @@ sure we're already there."* Plus: **in-app education is PER SCREEN — "it's all
 So it's the shape for everything."**
 
 **Volume:** 70 surfaces × 2 halves = **140 items**. Delivered in waves by module.
-**Wave 1 — `civic` (14 surfaces / 28 items) — COMPLETE below.**
+**Waves 1-2 complete: `civic` (28) + `legislature` (24) = 52 of 140.**
 
 ---
 
@@ -240,7 +240,167 @@ becoming law, a court case from filing to opinion.
 
 ---
 
-## Two things this wave surfaced
+## Wave 2 — `legislature` (12 surfaces)
+
+### 15. `legislature/legislature-home` — Chamber
+**learn:** The legislature for one place: who holds its seats, what it has adopted, and what it is
+working on.
+
+| # | do | detail | cite |
+|---|---|---|---|
+| 1 | See who is seated | Seats come from the election, filled proportionally. Members appear with the organisations that endorsed them, if any — **running unendorsed is first-class**. | Art. II §1 |
+| 2 | Take the oath if you were just elected | Seating is your own act; nobody swears you in. | F-LEG-001 |
+| 3 | Read the house's own rules | A chamber adopts its rules of order and ethics code itself. | F-LEG-032 · F-LEG-033 |
+| 4 | Watch what it creates | Legislatures create committees, election boards and administrative offices — the institutions everything else runs on. | F-LEG-009 · F-LEG-012 · F-LEG-013 |
+
+> **The why:** a legislature is small on purpose. **Districts elect five to nine representatives
+> each**; a legislature is *composed of* districts and scales by the cube root of population. Bigger
+> places get more districts, not bigger rooms.
+
+---
+
+### 16. `legislature/session-console` — Session console
+**learn:** A meeting while it is happening — attendance, quorum, the agenda, and every vote as it
+is cast.
+
+| # | do | detail | cite |
+|---|---|---|---|
+| 1 | Register your attendance | Presence is recorded per member, per session. | F-LEG-002 |
+| 2 | Watch quorum | Quorum is a majority of **all serving members** — not of whoever turned up. Empty chairs count against it. | F-SPK-003 · Art. II §2 |
+| 3 | Move, speak, and vote | Motions, statements for the record, and floor votes all happen here and all land on the permanent record. | F-LEG-007 · F-LEG-006 · F-LEG-004 |
+
+> **The why:** counting against *all serving members* is the whole trick. It means absence can never
+> shrink the bar — you cannot pass something by emptying the room.
+
+---
+
+### 17. `legislature/bills` — Bills
+**learn:** Every proposed law in this jurisdiction, and where each one has got to.
+
+| # | do | detail | cite |
+|---|---|---|---|
+| 1 | Browse what is proposed | Bills are public from introduction, not from passage. | Art. II §2 |
+| 2 | Introduce one if you hold a seat | You write it; the chamber decides. | F-LEG-003 |
+| 3 | Note what is fixed at introduction | A bill's **scale and scope are locked when it is introduced** — it cannot quietly grow into something else on the way through. | Art. V §4 |
+
+---
+
+### 18. `legislature/bill-detail` — Bill detail
+**learn:** One bill: its text, its committee, its votes, and the exact threshold it must clear.
+
+| # | do | detail | cite |
+|---|---|---|---|
+| 1 | Read the text and its history | Every version is kept. Nothing is overwritten. | Art. II §2 |
+| 2 | Follow it through committee and floor | Committee vote first, then the floor. | F-LEG-005 · F-LEG-004 |
+| 3 | Check the threshold it faces | Ordinary acts need a majority; some need two-thirds of all serving members. **The threshold comes from what the act does — it is never chosen by whoever is counting.** | Art. VII |
+
+---
+
+### 19. `legislature/committees` — Committees
+**learn:** How the chamber splits its work up, and how members end up on the committees they are on.
+
+| # | do | detail | cite |
+|---|---|---|---|
+| 1 | See the committees and who sits on them | Created by a supermajority act of the chamber. | F-LEG-009 · Art. II §4 |
+| 2 | Rank every committee in your order of preference | You rank them all. You are not assigned by anyone. | F-LEG-010 |
+| 3 | Understand how placements fall out | **Assignment is faction-independent.** Placements honour rank order and spread evenly across members — counts differ by at most one. Ties break to the member with the largest vote share after normalising quotas. | F-SPK-005 · Art. II §4 |
+
+> **The why:** this is the mechanism that keeps committees proportional **without a party layer**.
+> Members endorsed by several organisations and members endorsed by none are treated identically —
+> there is no faction to be sorted into.
+
+---
+
+### 20. `legislature/committee-detail` — Committee detail
+**learn:** One committee at work — meetings, agenda, votes, and the report it sends back.
+
+| # | do | detail | cite |
+|---|---|---|---|
+| 1 | See when it meets and what is on the agenda | The chair calls the meeting and sets the agenda. | F-CHR-001 · F-CHR-002 |
+| 2 | Follow the committee's votes | Committee members vote here before anything reaches the floor. | F-LEG-005 |
+| 3 | Read the report | A committee refers a bill to the floor and files a report that becomes public record. | F-CHR-003 · F-CHR-004 |
+
+---
+
+### 21. `legislature/speaker-tools` — Speaker tools
+**learn:** What the Speaker can actually do — which is less than most people assume.
+
+| # | do | detail | cite |
+|---|---|---|---|
+| 1 | Call sessions and set the agenda | The Speaker runs the meeting. | F-SPK-001 · F-SPK-002 |
+| 2 | Publish quorum and minutes | Both are public acts, not internal bookkeeping. | F-SPK-003 · F-SPK-009 |
+| 3 | Break a tie — and only a tie | **The Speaker does not hold an ordinary vote.** The casting vote exists solely to resolve a deadlock. | F-SPK-004 |
+| 4 | Preside over a removal, never decide it | The Speaker chairs impeachment and censure proceedings; the chamber votes. | F-SPK-007 |
+
+> **The why:** the chair runs the room, it does not rule it. Every power here is procedural.
+
+---
+
+### 22. `legislature/oversight` — Oversight & ethics
+**learn:** How a legislature holds officeholders — including its own members — to account.
+
+| # | do | detail | cite |
+|---|---|---|---|
+| 1 | See open proceedings | Removal, impeachment, censure and expulsion all run through the chamber. | F-LEG-022 |
+| 2 | Understand the bar | Removal takes a **supermajority of all serving members** — the same bar for everyone, in any office. **Removal parity** means no office is easier to remove from than another. | Art. II §3 · Art. VII |
+| 3 | Watch vacancies | When a seat empties it is declared, and the count is re-run from the original ballots rather than a new election being called. | F-LEG-036 |
+
+> **The why:** the countback is **universal** — every prior ballot counts, with no filtering
+> anywhere in the procedure. The voters who elected the chamber decide the replacement.
+
+---
+
+### 23. `legislature/referendums` — Referendums
+**learn:** When the legislature hands a decision back to the people, and what happens to the result.
+
+| # | do | detail | cite |
+|---|---|---|---|
+| 1 | See what has been delegated to a vote | The chamber can put a question to the jurisdiction. | F-LEG-023 · Art. II §6 |
+| 2 | Check the threshold | **Derived from the act type, never editable.** Whoever writes the referendum cannot also choose how hard it is to pass. | Art. II §6 |
+| 3 | See how a result can be changed | A referendum act can be modified or repealed — but only by a route the constitution fixes, not by ordinary rewriting. | F-LEG-034 |
+
+---
+
+### 24. `legislature/emergency-powers` — Emergency powers
+**learn:** The most dangerous power in the constitution, and the three things that box it in.
+
+| # | do | detail | cite |
+|---|---|---|---|
+| 1 | See any active declaration | Active emergency powers are shown on **every page** of the app, not hidden here. | Art. II §7 |
+| 2 | Know the grounds | **Disaster or invasion only.** The grounds are validated *before* the vote is taken, not argued about afterwards. | F-LEG-024 |
+| 3 | Know the clock | **Ninety days, maximum.** Renewal is a fresh vote, never automatic, and the ceiling cannot be raised by any act. | F-LEG-025 · CLK-03 |
+| 4 | Know who can stop it | A court can review an active declaration. | F-JDG-007 |
+
+> **The why:** every historical failure of emergency powers is a failure of the exit, not the entry.
+> So the exit is automatic: the clock runs whether or not anyone remembers to stop it.
+
+---
+
+### 25. `legislature/settings` — Constitutional settings register
+**learn:** The dials a legislature is allowed to turn, the bounds they must stay inside, and the
+ones nobody can turn at all.
+
+| # | do | detail | cite |
+|---|---|---|---|
+| 1 | Read the current values | Election intervals, thresholds, term lengths — the amendable layer. | Art. VII |
+| 2 | Change one by passing a bill | Settings move by ordinary act, inside locked bounds. | F-LEG-031 |
+| 3 | Watch what gets refused | **An out-of-range value is rejected before the vote is even taken** — you cannot pass an unconstitutional setting and argue later. | Art. VII |
+
+> **The why:** there are exactly two doors. Settings move by ordinary acts within fixed bounds; the
+> hardened core changes only by a software release that passes the public constitutional checks.
+> There is no third door, and no majority anywhere can open one.
+
+---
+
+### 26. `dev/legislature-kit` — Legislature component kit
+**learn:** A development harness for checking components against fixtures. **Not product UI** — it
+is not part of anyone's civic life and carries no education content.
+
+*(No `howto`: dev surfaces are excluded from the education pass by design.)*
+
+---
+
+## Things these waves surfaced
 
 1. **A real distinction worth teaching deliberately, not glossing.** `civic/public-square` is
    **open to anyone signed in** (`F-SOC-001` carries `roles => []`, per the 2026-06-27 operator
@@ -260,7 +420,7 @@ becoming law, a court case from filing to opinion.
 | Wave | Module | Surfaces | Items |
 |---|---|---|---|
 | ✅ 1 | `civic` | 14 | 28 |
-| 2 | `legislature` | 12 | 24 |
+| ✅ 2 | `legislature` | 12 | 24 |
 | 3 | `electoral` | 9 | 18 |
 | 4 | `judiciary` | 7 | 14 |
 | 5 | `executive` · `organizations` | 12 | 24 |

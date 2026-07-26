@@ -90,15 +90,16 @@ footprint is a separate immutable table + public milestone rows."*
 |---|---|
 | Earnable in code **today** (journey arcs; 10 live, 3 planned) | **13** |
 | Ever earned, both boxes | **0** |
-| **Catalog — personal** (83 `ACH-*` + the 13 arcs) | **96** |
-| **Catalog — jurisdiction** | **22** |
+| **Catalog — personal** (91 `ACH-*` + the 13 arcs) | **104** |
+| **Catalog — jurisdiction** | **26** |
 | **Catalog — system / planet** | **9** |
-| **TOTAL CATALOG** | **127** |
-| — **server-verified** against a named source | **112** |
+| **TOTAL CATALOG** | **139** |
+| — **server-verified** against a named source | **124** |
 | — **tour ticks** (the journey arcs, labelled as such) | **13** |
 | — **deferred** to Phase I (@lane-03 reach) | **2** |
+| — of the verified, **⏳ awaiting an economy UI** | **12** |
 
-**Earner split across the 83 personal `ACH-*` entries: `self` 47 · `state` 31 · `subject` 5.**
+**Earner split across the 91 personal `ACH-*` entries: `self` 48 · `state` 37 · `subject` 6.**
 The 31 jurisdiction/system entries are earned by the **jurisdiction itself** — no personal award is
 minted from any of them. The 13 tour arcs are `self`.
 
@@ -287,6 +288,51 @@ parity chain (CLK-13/14) is built and pinned.*
 
 *Copy must carry the live house line verbatim: **"Keeping it online buys no vote and no seat."***
 
+### Arc 13 — Economy & work (Phases L+M) · 8 · ⏳ awaiting UI
+
+**Added 2026-07-25 after lane 13 shipped L+M.** The engine and schema are built — 22 economy tables
++ 3 ledger tables, `app/Services/Economy/*` — so these are *derivable today*. They are marked
+**⏳ awaiting UI** because there are **no economy routes, no `Pages/Economy`, and no registered
+economy surfaces**: a player cannot yet perform these acts in the app.
+
+> ### ⚠ THE AGENCY/CONDITION RULE — new, and it governs this whole arc
+>
+> Every economy table is **local-only** (no `source_server_id`): `ubi_receipts`, `tax_filings`,
+> `market_transactions`, `economic_accounts`, `ubi_disbursements`. **But `achievements` federates.**
+> So an achievement derived from a private financial record would **export that record's existence
+> across instances** — the `ballot_envelopes` lesson, applied to money.
+>
+> *"Received your first stipend"* federating tells a remote instance that this person receives
+> public assistance where they live. That is a materially sensitive disclosure.
+>
+> **The rule: the personal plane records what you DID as a civic actor, never what you RECEIVED or
+> what your economic condition is.** Giving help is an act; needing help is a condition.
+>
+> **The schema already agrees.** `assistance_requests` carries a **`privacy`** column on the
+> *request* and none on the *response* — the build already treats needing help as sensitive and
+> offering it as ordinary. This rule follows the code rather than overriding it.
+>
+> Consequence: no personal achievement exists for receiving a stipend, holding a balance, filing
+> for assistance, or any account milestone. Those become **jurisdiction** milestones (§5) where
+> they carry no person.
+
+| Code | Achievement | Trigger | Earner | Tier |
+|---|---|---|---|---|
+| `ACH-ECO-001` | Filed a tax return | `tax_filings` (existence only, never amount) | state | ⏳V |
+| `ACH-ECO-002` | Voted on a budget | floor vote on a budget act | self | ⏳V |
+| `ACH-ECO-003` | Introduced a budget | budget authored by you | **subject** → budget author | ⏳V |
+| `ACH-ECO-004` | **Answered a neighbour's request for help** | `assistance_requests.responder_account_id` | state | ⏳V |
+| `ACH-ECO-005` | Listed something in the marketplace | `marketplace_listings` | state | ⏳V |
+| `ACH-ECO-006` | Completed a trade | `marketplace_orders` settled | state | ⏳V |
+| `ACH-ECO-007` | Posted work | `work_postings` | state | ⏳V |
+| `ACH-ECO-008` | Registered a joint ledger with someone | `joint_ledger_parties` | state | ⏳V |
+
+*`ACH-ECO-004` is the arc's centrepiece and the rule in miniature: **the responder earns, the
+requester does not.** Mutual aid is celebrated from the giving side only — the receiving side is a
+private condition and the schema's own `privacy` column says so.*
+
+*`ACH-ECO-001` records **that** you filed, never **what** you filed. Amounts never enter a trigger.*
+
 ### Arc 12 — The guided tour (the 13 journey arcs) · 13 · tier T
 `election` · `committee-session` · `bill` · `court-case` · `start-org` · `board-meeting` ·
 `form-a-group` · `petition-to-referendum` · `public-service` · `two-governments` **(10 live)** ·
@@ -326,6 +372,14 @@ Earner is always the **jurisdiction**; no personal award is minted from any of t
 | `ACH-JUR-020` | **Full institutions — legislature + executive + judiciary all live** | composite |
 | `ACH-JUR-021` | Union formed or border settled | `F-LEG-029` / `F-LEG-030` |
 | `ACH-JUR-022` | Emergency powers declared, then lapsed within 90 days | `F-LEG-024` + CLK-03 |
+| `ACH-JUR-023` | First budget enacted | `budgets` enacted ⏳ |
+| `ACH-JUR-024` | First stipend run completed | `ubi_disbursements` ⏳ |
+| `ACH-JUR-025` | First revenue stream established | `revenue_streams` ⏳ |
+| `ACH-JUR-026` | **First mutual-aid request answered** | `assistance_requests` resolved ⏳ |
+
+*The four economy milestones (⏳) carry the **jurisdiction**, never a person — which is exactly
+where the receiving side of the agency/condition rule (Arc 13) safely lives. "This place ran its
+first stipend" is a civic fact; "this person received one" is not ours to publish.*
 
 *`ACH-JUR-022` deliberately celebrates the **lapse**, not the declaration — the constitutional
 achievement is the 90-day ceiling holding.*
