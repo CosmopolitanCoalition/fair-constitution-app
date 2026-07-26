@@ -99,7 +99,7 @@ export const SITEMAP = [
     { key: 'places', title: 'Places & their processes', items: [
         { id: 'jurisdiction-browser', label: 'Places', icon: 'globe', href: '/jurisdictions', contract: 'jurisdictions/jurisdiction-browser.html' },
         { id: 'legislatures', label: 'Legislatures & districts', icon: 'map', href: '/legislatures', contract: 'jurisdictions/district-mapper.html', phase: 5 },
-        { id: 'reach', label: 'Reach', icon: 'bar-chart', href: null, contract: 'social/legitimacy.html', phase: 7 },
+        { id: 'reach', label: 'Reach', icon: 'bar-chart', href: '/reach', contract: 'social/legitimacy.html', phase: 7 },
         { id: 'bootstrap', label: 'Wake a place up', icon: 'globe', href: null, contract: 'jurisdictions/bootstrap.html', phase: 4 },
         { id: 'union-formation', label: 'Merge places into a union', icon: 'users', href: null, contract: 'jurisdictions/union-formation.html', phase: 4 },
         { id: 'disintermediation', label: 'Remove a middle layer', icon: 'globe', href: null, contract: 'jurisdictions/disintermediation.html', phase: 4 },

@@ -182,6 +182,14 @@ Route::get('/api/cosmic-addresses/{id}/children', [CosmicAddressController::clas
 Route::get('/jurisdictions', [JurisdictionController::class, 'index'])->name('jurisdictions.index');
 Route::get('/jurisdictions/{jurisdiction:slug}', [JurisdictionController::class, 'show'])->name('jurisdictions.show');
 
+// ── Phase I: Reach — the enrolment gauge ────────────────────────────────────────────────
+// READ-ONLY by design. Reach is a gauge and never a lever (CI-1), so this surface offers no
+// action at all — no form, no POST, nothing that could turn a measurement into a power. It
+// renders the nightly snapshot's published state and never counts residents live, because a
+// live count would hand an observer sub-minute resolution on a number k-anonymity publishes
+// once a day.
+Route::get('/reach', [\App\Http\Controllers\ReachController::class, 'index'])->name('reach.index');
+
 // ── Invites — the share-to-signup growth loop ───────────────────────────────────────────
 // PUBLIC landing: a friend opens the link with no account. If signed in they redeem +
 // continue; if a guest they preview it and sign up (the destination is carried across signup).

@@ -1014,6 +1014,23 @@ return [
         'citation'  => 'Every legislature sized by the cube-root law; 5–9 seats per district · Art. II §2',
     ],
 
+    'social/legitimacy' => [
+        'title'     => 'Reach',
+        'module'    => 'social',
+        'nav'       => 'reach',
+        // DESCRIPTIVE page metadata only — SurfaceMeta roles never gate a
+        // route, and nothing here may ever become middleware. R-02 is included
+        // deliberately: someone mid-residency-monitoring can read the gauge
+        // like anyone else.
+        'roles'     => ['R-01', 'R-02', 'R-03', 'R-04'],
+        'workflows' => [],
+        'forms'     => [],
+        'clocks'    => ['CLK-06'],
+        'citation'  => 'Reach = verified residents ÷ population estimate. A gauge, never a lever — '
+            .'it changes no vote, no seat, no right. NOT the Art. VI §3 legitimacy verdict '
+            .'(that is the allegiance/restoration test — see RestorationService) · Preamble; Art. I; Art. II §1',
+    ],
+
     'legislature/districts' => [
         'title'     => 'The district mapper',
         'module'    => 'jurisdictions',
