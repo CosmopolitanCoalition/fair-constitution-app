@@ -329,7 +329,16 @@ the word.
 15. **86,066 soft-deleted districts sit inside active maps** (~4.5% overcount) — any district
     count that omits `whereNull('deleted_at')` overstates. Found by lane 4, posted to lane 1;
     all district figures are timestamped because the healing loop moves them hourly.
-16. **⚑ `racePlan()` blocks a WHOLE election plan when only the Type B half is illegal** — found
+16. **✅ CLOSED 2026-07-26 — and it never needed the operator's word in the end.** Two things
+    resolved it. The seat ruling removed the premise: **Type B above nine is not illegal**, it is
+    at-large by construction (`racePlan()` :636 → `['mode' => 'at_large', 'seats' => $typeB]`), so
+    the 30,262 legislatures with `type_b_seats > 9` were never carrying an unlawful half. And the
+    per-kind fix this item asked for **is implemented**: `blocked` and `fully_blocked` are now
+    separate (`:652-656`), so a partially-blocked chamber seats what it lawfully can and only a
+    chamber with no generable kind at all produces nothing. The comment at `:640-651` states the
+    rule this item argued for almost verbatim. **The 23.8%-of-planet-seats collateral loss is
+    gone.** Original finding, kept because the reasoning is still the model for this class of bug:
+    ~~**⚑ `racePlan()` blocks a WHOLE election plan when only the Type B half is illegal**~~ — found
     independently by lanes 3 and 4, and the most consequential engine finding of the review round.
     `ElectionLifecycleService`'s `$blocked` is a **run-level** flag: `scheduleGeneral()` returns
     early (`:166-170`) *before* `createRaces()` (`:173`), and `generateRaces()` throws a
@@ -433,8 +442,34 @@ the word.
     so every monetary lever is dual-door). **Pin verified EXTENDED, not relaxed:** zero test lines
     removed, 145 added, and `DUAL_DOOR_KEYS` grew from one key to include the monetary levers.
 
-21. **⚑ NO FRESH WORLD CAN SEAT A BICAMERAL SECOND CHAMBER — so no fresh world gets a Phase-D
-    executive.** Found by lane 13 on the first founded fcd world (2026-07-25). Activation seats
+21. **◐ PARTLY CLOSED 2026-07-26 — the engine is fixed; the fresh-world gap is not, and it sits
+    directly on the cloud-launch path.**
+
+    **What is fixed:** the counting engine no longer refuses an at-large race above nine seats
+    (`5fbdb9d`), so a second chamber *can* now be elected. Proven end to end on fcd — San Marino's
+    27-seat at-large Type B race scheduled, tabulated, **certified and seated**, and three
+    bicameral acts have since carried at 58 (31 district + 27 constituent): the executive
+    delegation, the judiciary creation, and a committee creation.
+
+    **What is NOT fixed, and nobody has owned it:** activation **declares** Type B seats; only an
+    **election** fills them. San Marino sat at 27 declared / **0 holding** until lane 13 ran a real
+    election. So the original symptom survives for any world where nobody has run one — and
+    **lane 2's launch is a fresh box with a fresh geodata insert**, which is exactly that world.
+    A freshly launched public node will activate jurisdictions whose second chambers are declared
+    and empty, and every bicameral act on it — executive, judiciary, committee, enacting a bill —
+    will correctly refuse until an election is held. **That is the constitution working, and it
+    will read as a broken launch.** Whoever owns the founding sequence must decide what runs the
+    first Type B election on a new world, or document it as an operator step.
+
+    ⚑ Related, unverified, worth one lane's eye: `ActivationService`'s own docblock (`:33`) still
+    says Type B is *"CLAMPED to the resolved ceiling (9)"*. The settled law says Type B is
+    unbounded and shaped by `TypeBSeatLadder`. If the code matches the ruling, that comment is a
+    stale rail of exactly the kind that primes a wrong session later — the same defect lane 4
+    caught in `ElectionStageTest`.
+
+    Original finding, for the record:
+    ~~**NO FRESH WORLD CAN SEAT A BICAMERAL SECOND CHAMBER**~~ — found by lane 13 on the first
+    founded fcd world (2026-07-25). Activation seats
     **type_a only** — Type B districting is deferred by design (`ActivationService::seatPlan` →
     `TypeBSeatLadder`, `type_b_needs_districting`) — so a newly activated bicameral jurisdiction sits
     at *n* type_a / **0 type_b**. `institutions:demo-d`'s first step is an F-LEG-014 delegation vote,
