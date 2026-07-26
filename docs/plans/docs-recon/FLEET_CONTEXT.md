@@ -113,6 +113,26 @@ Six instances in a single day, 2026-07-26, in six different costumes:
 | a report of two identical lines | "there is a duplicate import" | a summary, not the file |
 | 8 screenshots passing every pixel check | "8 pages render" | "8 images look like real pages" — they were 8 photographs of the **login screen** |
 
+### ⚑ A FIXTURE ESTABLISHES WHAT ITS SUBJECT REQUIRES — it does not assume the world provides it
+Lane 3's general form, and it covers every "the suite broke and nobody changed the code" incident
+on 2026-07-26. **The box now holds real data. Any fixture that reaches for whatever happens to be
+there is borrowing something another lane can take away.**
+
+| The fixture | Assumed | Broke when |
+|---|---|---|
+| `OperationalBundleSealedTest` | one election exists globally | a lane ran elections on the shared world — found 3 |
+| `AutoscalePinTest` | 24 items exist globally | a world was founded — found 35, delta of exactly 11 jurisdictions |
+| 11 Matrix commons tests | `jurisdictions` first row owns no rooms | Niue was seated at 16:53 and acquired real rooms |
+| `GeodataRepairPlaneTest` ×5 | the repair window is open | the world was founded — the guard was **right** to refuse |
+
+**Two different remedies, one diagnosis.** The Matrix tests needed different **data** — scope to a
+jurisdiction the test can own. The geodata tests needed a different **precondition** — open the
+window inside a transaction that always rolls back, **without weakening the guard**, then verify
+afterwards that `map_accepted_at` is unchanged on the live row rather than trusting the `finally`.
+
+**The rule is better than "scope your fixtures" because it says why**, and it is the one to apply
+as the box keeps filling — which it will, every time a lane seats a world.
+
 ### ⚑ THE RULE HAS TWO HALVES — lane 3's, and it is the sharpest version
 > **Run it, and check that what you ran is what you meant.**
 
