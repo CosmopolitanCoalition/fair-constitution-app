@@ -1,0 +1,774 @@
+{
+  "executive_actions.a_rejected_order_is_appended_to_the_same_r": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "executive_actions.active_emergency_powers_these_widen_the_de": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "executive_actions.apply_for_a_grant": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "executive_actions.appropriation_line": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "executive_actions.appropriation_lines": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "executive_actions.area": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "executive_actions.board_decision": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "executive_actions.delegated_scope": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "executive_actions.department_operations": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "executive_actions.electoral_judicial_and_legislative_process": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "executive_actions.emergency_response": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "executive_actions.enabling_basis": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "executive_actions.enabling_delegation": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "executive_actions.enacting_act": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "executive_actions.executive_actions": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "executive_actions.executive_orders_execute_the_delegated_sco": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "executive_actions.executive_wide": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "executive_actions.expires": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "executive_actions.findings_record": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "executive_actions.full_and_equal_investigative_power_over_ov": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "executive_actions.grant_applications": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "executive_actions.grants_appropriations": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "executive_actions.jurisdiction_wide_no_department": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "executive_actions.leave_blank_for_an_executive_wide_investig": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "executive_actions.no_applications_submitted_against_these_li": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "executive_actions.no_delegated_scope_exists_yet_f_leg_014": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "executive_actions.no_delegated_scope_yet_the_delegation_act_": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "executive_actions.no_investigations_ordered": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "executive_actions.no_orders_issued_the_scope_validation_rail": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "executive_actions.no_policy_proposals_filed": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "executive_actions.order_body": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "executive_actions.order_register_issued_and_rejected_on_one_": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "executive_actions.orders_policy_proposals_investigations_and": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "executive_actions.policy_proposals": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "executive_actions.proposal_text": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "executive_actions.public_works": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "executive_actions.remaining": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "executive_actions.scope_validation_happens_before_issuance": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "executive_actions.scope_validation_happens_before_issuance_a": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "executive_actions.select_a_department": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "executive_actions.select_a_domain": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "executive_actions.select_a_line": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "executive_actions.select_an_enabling_instrument": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "executive_actions.select_an_organization": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "executive_actions.target_domain": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "executive_actions.the_executive_proposes_the_department_boar": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "executive_actions.the_legislature_appropriates_by_act_the_ex": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "executive_actions.the_legislature_has_appropriated_no_funds_": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "executive_actions.the_live_instrument_the_order_executes_a_d": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "executive_actions.the_order_may_name_a_department_this_execu": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "executive_actions.the_order_never_took_effect_the_rejected_a": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "executive_actions.the_order_was_not_issued": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "executive_actions.this_executive_is_still_orders_issue_from_": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "executive_departmentdetail.a_chartered_department_its_board_of_govern": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "executive_departmentdetail.a_good_faith_competence_ethics_finding_pub": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "executive_departmentdetail.all_departments": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "executive_departmentdetail.board_member": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "executive_departmentdetail.board_of_governors": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "executive_departmentdetail.cgc_intellectual_property_is_perpetually_p": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "executive_departmentdetail.charter_oversight": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "executive_departmentdetail.consent_failed_the_seat_reopens_for_renomi": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "executive_departmentdetail.consent_vote_f_leg_020_majority_of_all_ser": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "executive_departmentdetail.credentials_and_the_neutrality_attestation": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "executive_departmentdetail.full_and_equal_investigative_power_art_iii": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "executive_departmentdetail.governor_removal_is_an_ordinary_majority_o": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "executive_departmentdetail.governors_10_year_civil_appointments_clk_0": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "executive_departmentdetail.governors_worker_elected": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "executive_departmentdetail.last_filed_report_on_on_the_public_record": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "executive_departmentdetail.no_board_constituted_yet": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "executive_departmentdetail.no_common_good_corporations_overseen_by_th": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "executive_departmentdetail.no_nominations_on_record_a_seated_member_o": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "executive_departmentdetail.no_removal_requests_on_record": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "executive_departmentdetail.no_seated_members_to_remove": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "executive_departmentdetail.nomination_pipeline": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "executive_departmentdetail.opens_an_ordinary_majority_chamber_vote_no": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "executive_departmentdetail.opens_the_f_leg_020_consent_vote_in_the_le": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "executive_departmentdetail.overseen_by": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "executive_departmentdetail.published_positions": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "executive_departmentdetail.removal_requests": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "executive_departmentdetail.removal_runs_against_a_currently_seated_bo": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "executive_departmentdetail.removal_vote_majority_of_all_serving": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "executive_departmentdetail.rules_reports_register": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "executive_departmentdetail.select_a_seated_member": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "executive_departmentdetail.the_board_and_its_governor_seats_are_creat": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "executive_departmentdetail.the_nominee_s_user_id_eligibility_is_activ": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "executive_departmentdetail.there_is_no_currently_seated_board_member_": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "executive_departmentdetail.this_charter_sets_no_reporting_interval_re": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "executive_departmentdetail.two_clocks_clk_09_governors_clk_10_worker_": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "executive_departmentreporting.a_short_label_for_this_special_report": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "executive_departmentreporting.both_registers_below_read_publicly_filed_b": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "executive_departmentreporting.catalog_alias_f_gov_001_drafts_publish_for": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "executive_departmentreporting.catalog_alias_f_gov_002_recipients_fixed_e": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "executive_departmentreporting.charter_law_an_in_force_enabling_act_or_an": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "executive_departmentreporting.department_detail": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "executive_departmentreporting.department_reports": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "executive_departmentreporting.department_rules": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "executive_departmentreporting.expires_with_the_emergency_power_clk_03": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "executive_departmentreporting.implementation_rules_f_bog_001": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "executive_departmentreporting.no_live_enabling_instrument": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "executive_departmentreporting.no_report_obligations_yet": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "executive_departmentreporting.no_rules_filed_yet": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "executive_departmentreporting.not_yet_filed": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "executive_departmentreporting.period_label": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "executive_departmentreporting.periodic_files_the_due_obligation": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "executive_departmentreporting.registers_are_public_filing_is_the_board_s": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "executive_departmentreporting.report_body": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "executive_departmentreporting.report_filings_f_bog_002": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "executive_departmentreporting.report_kind": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "executive_departmentreporting.reporting_interval_months_charter_data_not": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "executive_departmentreporting.reports_file_to_the_executive_and_the_legi": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "executive_departmentreporting.rule_name": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "executive_departmentreporting.rule_text": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "executive_departmentreporting.rules_and_reports_are_the_board_of_governo": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "executive_departmentreporting.rules_implement_they_cannot_exceed_art_iii": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "executive_departmentreporting.rules_implement_they_cannot_exceed_the_cha": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "executive_departmentreporting.rules_implement_they_cannot_exceed_the_cha_2": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "executive_departmentreporting.select_the_enabling_instrument": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "executive_departmentreporting.special_an_ad_hoc_filing": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "executive_departmentreporting.the_first_periodic_obligation_seeds_when_t": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "executive_departmentreporting.there_is_no_charter_in_force_act_or_active": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "executive_departmentreporting.this_is_where_a_department_s_board_does_it": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "executive_departmentreporting.ver": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "executive_departmentreporting.when_a_governor_files_the_first_rule_it_ap": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "executive_departments.a_department_is_created_by_an_ordinary_maj": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "executive_departments.an_open_governor_removal_request_splices_a": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "executive_departments.art_ii_9_ordinary_majority_act_wf_exe_04": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "executive_departments.board_of_governors_pipeline": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "executive_departments.cast_view_in_the_chamber": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "executive_departments.civil_officers_r_30": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "executive_departments.co_determination_one_engine_art_iii_6": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "executive_departments.consent_failed_renomination_open_wf_exe_05": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "executive_departments.consent_open": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "executive_departments.consent_vote_majority_of_all_serving": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "executive_departments.consented": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "executive_departments.create_a_department": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "executive_departments.department_civil_staff_10_year_civil_appoi": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "executive_departments.department_creation_is_a_legislative_act_a": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "executive_departments.department_lifecycle_esm_17": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "executive_departments.department_registry": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "executive_departments.departments_are_created_by_legislative_act": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "executive_departments.executive_home_executive_actions": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "executive_departments.governor_removal_is_an_ordinary_majority_o": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "executive_departments.introduce_a_creation_bill": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "executive_departments.no_civil_officers_seated_duties_run_throug": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "executive_departments.no_departments_yet": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "executive_departments.no_nominations_in_flight_open_one_from_a_d": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "executive_departments.nomination_dossier_f_exe_001_consent_vote_": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "executive_departments.owner_ruling_14_art_iii_4_file_from_the_de": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "executive_departments.removing_a_governor": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "executive_departments.term_ends": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "executive_home.a_delegated_committee_carries_no_term_of_i": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "executive_home.act_fixed_committee_size": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "executive_home.all_department": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "executive_home.an_elected_executive_runs_in_lockstep_with": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "executive_home.chamber_record": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "executive_home.conversion_adopted_on_the_chamber_supermaj": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "executive_home.conversion_needs_the_chamber_s_own_superma": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "executive_home.conversion_to_elected_office_dual_supermaj": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "executive_home.creation_act_delegation_by_the_legislature": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "executive_home.delegated_by_default_converts_only_by_dual": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "executive_home.delegated_members": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "executive_home.delegated_scope": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "executive_home.departments_orders_actions": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "executive_home.dual_supermajority_acts_ride_the_bill_flow": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "executive_home.elected_committee_pr_stv_winners_with_equa": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "executive_home.elected_principal_office": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "executive_home.election_record": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "executive_home.ex_officio_member_selection_q2": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "executive_home.executive_office_lifecycle_esm_16": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "executive_home.forming_the_stub_awaits_the_delegation_act": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "executive_home.how_an_executive_is_constituted": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "executive_home.introduce_a_conversion_bill_filed_by_a_mem": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "executive_home.introduce_a_delegation_bill_filed_by_a_mem": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "executive_home.no_conversion_on_record_converting_a_deleg": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "executive_home.no_delegation_act_on_record_the_legislatur": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "executive_home.no_departments_chartered_yet_departments_a": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "executive_home.no_direct_constituent_jurisdiction_holds_a": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "executive_home.no_office_term_delegated_members_run_on_th": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "executive_home.officer_equal_power": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "executive_home.one_clock_drives_both_elections_art_iii_3_": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "executive_home.principal_equal_power": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "executive_home.seat": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "executive_home.selected_proportionally_the_same_method_as": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "executive_home.steps_in_in_rank_order_if_the_office_vacat": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "executive_home.term_one_clock_drives_both_elections": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "executive_home.term_sync_on_the_chamber_page": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "executive_home.the_chamber_supermajority": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "executive_home.the_executive_is_delegated_by_default_and_": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "executive_home.the_executive_is_the_government_s_doing_ar": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "executive_home.the_office_is_in_a_transitional_state_see_": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "executive_home.the_office_today": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "executive_home.the_supermajority_that_delegated_the_offic": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "executive_home.this_executive_was_created_as_a_stub_at_ju": {
+    "status": "machine",
+    "provider": "nllb"
+  }
+}

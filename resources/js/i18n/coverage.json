@@ -1,43 +1,43 @@
 {
-  "generated_at": "2026-07-26T00:28:30.645Z",
-  "source_keys": 3366,
+  "generated_at": "2026-07-26T00:59:29.752Z",
+  "source_keys": 3388,
   "namespaces": 32,
   "locales": [
     {
       "locale": "ar",
-      "total": 3366,
+      "total": 3388,
       "present": 3304,
-      "missing": 62,
+      "missing": 84,
       "orphan": 0,
       "identical": 15,
-      "pct": 98.2
+      "pct": 97.5
     },
     {
       "locale": "es",
-      "total": 3366,
+      "total": 3388,
       "present": 3345,
-      "missing": 21,
+      "missing": 43,
       "orphan": 0,
       "identical": 26,
-      "pct": 99.4
+      "pct": 98.7
     },
     {
       "locale": "hi",
-      "total": 3366,
-      "present": 103,
-      "missing": 3263,
+      "total": 3388,
+      "present": 3374,
+      "missing": 14,
       "orphan": 0,
-      "identical": 1,
-      "pct": 3.1
+      "identical": 19,
+      "pct": 99.6
     },
     {
       "locale": "zh-Hans",
-      "total": 3366,
+      "total": 3388,
       "present": 103,
-      "missing": 3263,
+      "missing": 3285,
       "orphan": 0,
       "identical": 1,
-      "pct": 3.1
+      "pct": 3
     }
   ],
   "by_namespace": [
@@ -47,7 +47,7 @@
       "locales": {
         "ar": 39,
         "es": 39,
-        "hi": 0,
+        "hi": 39,
         "zh-Hans": 0
       }
     },
@@ -57,7 +57,7 @@
       "locales": {
         "ar": 8,
         "es": 8,
-        "hi": 0,
+        "hi": 8,
         "zh-Hans": 0
       }
     },
@@ -67,7 +67,7 @@
       "locales": {
         "ar": 24,
         "es": 26,
-        "hi": 0,
+        "hi": 26,
         "zh-Hans": 0
       }
     },
@@ -77,7 +77,7 @@
       "locales": {
         "ar": 4,
         "es": 4,
-        "hi": 0,
+        "hi": 4,
         "zh-Hans": 0
       }
     },
@@ -87,7 +87,7 @@
       "locales": {
         "ar": 4,
         "es": 4,
-        "hi": 0,
+        "hi": 4,
         "zh-Hans": 0
       }
     },
@@ -97,7 +97,7 @@
       "locales": {
         "ar": 39,
         "es": 39,
-        "hi": 0,
+        "hi": 39,
         "zh-Hans": 0
       }
     },
@@ -107,7 +107,7 @@
       "locales": {
         "ar": 2,
         "es": 2,
-        "hi": 0,
+        "hi": 2,
         "zh-Hans": 0
       }
     },
@@ -117,7 +117,7 @@
       "locales": {
         "ar": 47,
         "es": 49,
-        "hi": 0,
+        "hi": 49,
         "zh-Hans": 0
       }
     },
@@ -127,7 +127,7 @@
       "locales": {
         "ar": 26,
         "es": 26,
-        "hi": 0,
+        "hi": 26,
         "zh-Hans": 0
       }
     },
@@ -137,7 +137,7 @@
       "locales": {
         "ar": 27,
         "es": 27,
-        "hi": 0,
+        "hi": 27,
         "zh-Hans": 0
       }
     },
@@ -147,7 +147,7 @@
       "locales": {
         "ar": 100,
         "es": 100,
-        "hi": 0,
+        "hi": 100,
         "zh-Hans": 0
       }
     },
@@ -157,7 +157,7 @@
       "locales": {
         "ar": 6,
         "es": 6,
-        "hi": 0,
+        "hi": 6,
         "zh-Hans": 0
       }
     },
@@ -167,7 +167,7 @@
       "locales": {
         "ar": 7,
         "es": 7,
-        "hi": 0,
+        "hi": 7,
         "zh-Hans": 0
       }
     },
@@ -177,7 +177,7 @@
       "locales": {
         "ar": 5,
         "es": 5,
-        "hi": 0,
+        "hi": 5,
         "zh-Hans": 0
       }
     },
@@ -187,7 +187,7 @@
       "locales": {
         "ar": 4,
         "es": 4,
-        "hi": 0,
+        "hi": 4,
         "zh-Hans": 0
       }
     },
@@ -197,7 +197,7 @@
       "locales": {
         "ar": 109,
         "es": 109,
-        "hi": 103,
+        "hi": 109,
         "zh-Hans": 103
       }
     },
@@ -207,7 +207,7 @@
       "locales": {
         "ar": 307,
         "es": 311,
-        "hi": 0,
+        "hi": 309,
         "zh-Hans": 0
       }
     },
@@ -217,7 +217,7 @@
       "locales": {
         "ar": 10,
         "es": 10,
-        "hi": 0,
+        "hi": 10,
         "zh-Hans": 0
       }
     },
@@ -227,7 +227,7 @@
       "locales": {
         "ar": 201,
         "es": 201,
-        "hi": 0,
+        "hi": 202,
         "zh-Hans": 0
       }
     },
@@ -237,7 +237,7 @@
       "locales": {
         "ar": 322,
         "es": 330,
-        "hi": 0,
+        "hi": 330,
         "zh-Hans": 0
       }
     },
@@ -247,7 +247,7 @@
       "locales": {
         "ar": 189,
         "es": 193,
-        "hi": 0,
+        "hi": 193,
         "zh-Hans": 0
       }
     },
@@ -257,7 +257,7 @@
       "locales": {
         "ar": 20,
         "es": 20,
-        "hi": 0,
+        "hi": 20,
         "zh-Hans": 0
       }
     },
@@ -267,7 +267,7 @@
       "locales": {
         "ar": 193,
         "es": 197,
-        "hi": 0,
+        "hi": 197,
         "zh-Hans": 0
       }
     },
@@ -277,7 +277,7 @@
       "locales": {
         "ar": 131,
         "es": 131,
-        "hi": 0,
+        "hi": 131,
         "zh-Hans": 0
       }
     },
@@ -287,7 +287,7 @@
       "locales": {
         "ar": 536,
         "es": 536,
-        "hi": 0,
+        "hi": 542,
         "zh-Hans": 0
       }
     },
@@ -297,7 +297,7 @@
       "locales": {
         "ar": 264,
         "es": 269,
-        "hi": 0,
+        "hi": 270,
         "zh-Hans": 0
       }
     },
@@ -307,7 +307,7 @@
       "locales": {
         "ar": 215,
         "es": 218,
-        "hi": 0,
+        "hi": 217,
         "zh-Hans": 0
       }
     },
@@ -317,7 +317,7 @@
       "locales": {
         "ar": 2,
         "es": 2,
-        "hi": 0,
+        "hi": 2,
         "zh-Hans": 0
       }
     },
@@ -327,7 +327,7 @@
       "locales": {
         "ar": 91,
         "es": 92,
-        "hi": 0,
+        "hi": 92,
         "zh-Hans": 0
       }
     },
@@ -337,7 +337,7 @@
       "locales": {
         "ar": 262,
         "es": 266,
-        "hi": 0,
+        "hi": 267,
         "zh-Hans": 0
       }
     },
@@ -347,24 +347,24 @@
       "locales": {
         "ar": 9,
         "es": 9,
-        "hi": 0,
+        "hi": 9,
         "zh-Hans": 0
       }
     },
     {
       "namespace": "system",
-      "total": 106,
+      "total": 128,
       "locales": {
         "ar": 101,
         "es": 105,
-        "hi": 0,
+        "hi": 128,
         "zh-Hans": 0
       }
     }
   ],
-  "failures": 6609,
-  "warnings": 1803,
+  "failures": 3426,
+  "warnings": 2324,
   "failure_codes": {
-    "C1-missing": 6609
+    "C1-missing": 3426
   }
 }

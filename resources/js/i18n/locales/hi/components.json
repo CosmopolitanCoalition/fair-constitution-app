@@ -1,0 +1,12 @@
+{
+  "cosmicaddresspicker.loading_cosmic_address": "कॉस्मिक पता लोड...",
+  "cosmicaddresspicker.multiverse": "बहुविश्व ▸",
+  "schemaupdatebanner.apply_updates": "अद्यतन लागू करें",
+  "schemaupdatebanner.required_apply_before_starting_an_etl_run": "आवश्यकः {pendingLabel}  ईटीएल रन शुरू करने से पहले लागू करें।",
+  "setupstepper.build_districts": "जिलों का निर्माण",
+  "setupstepper.confirm_seat_institutions": "पुष्टिकरण और सीट संस्थान",
+  "setupstepper.constitutional_defaults": "संवैधानिक चूक",
+  "setupstepper.cosmic_address": "कॉस्मिक पता",
+  "setupstepper.map_data": "मानचित्र डेटा",
+  "setupstepper.setup_progress": "स्थापना की प्रगति"
+}

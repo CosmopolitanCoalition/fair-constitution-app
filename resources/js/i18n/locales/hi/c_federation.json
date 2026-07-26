@@ -1,0 +1,6 @@
+{
+  "federation_syncprogress.joining_the_cluster": "समूह में शामिल होना",
+  "federation_syncprogress.of_left": "{fmtValue} की {fmtValue2}~{fmtDuration} बाईं ओर",
+  "federation_syncprogress.records_pagesimporting_the_foundation_into": "{fmtNum} रिकॉर्ड · {fmtNum2} पृष्ठआधार को डेटाबेस में आयात करना...आयात करना...{fmtNum3}/s",
+  "federation_syncprogress.you_can_leave_this_page_the_sync_runs_in_t": "आप इस पृष्ठ को छोड़ सकते हैं  सिंक्रनाइज़ेशन पृष्ठभूमि में चलता है और यदि रुका हुआ है तो फिर से शुरू होता है."
+}

@@ -1,0 +1,10 @@
+{
+  "civic_room_chamberstage.in_the_chamber": "कक्ष में {statusLabel}",
+  "civic_room_chamberstage.no_one_is_on_the_floor_yet_join_the_voice_": "कोई भी अभी तक मंजिल पर नहीं है  अपनी सीट लेने के लिए आवाज कॉल में शामिल हों।",
+  "civic_room_liveroom.no_voice_host_is_reachable_from_here_right": "कोई आवाज मेजबान यहाँ से अभी तक पहुँचने योग्य नहीं है  कमरे केवल पाठ के लिए रहता है. आपके पदों और रिकॉर्ड विमान प्रभावित नहीं हैं।",
+  "civic_room_liveroom.you_can_still_take_part_in_text_below": "{errorMessage} आप अभी भी नीचे दिए गए पाठ में भाग ले सकते हैं।",
+  "civic_room_participanttile.screen_share": "स्क्रीन शेयर",
+  "civic_signaturemeter.needed": "{threshold} आवश्यक · {pct}%",
+  "civic_signaturemeter.threshold_of_population_clk_17": "सीमा {threshold} = {pct} जनसंख्या का % · CLK-17",
+  "civic_signaturemeter.threshold_reached": "प्राप्त सीमा"
+}

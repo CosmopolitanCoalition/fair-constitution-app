@@ -1,0 +1,1332 @@
+{
+  "elections_boardconsole.available_to_r_08_prereq_f_ind_011_submitt": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "elections_boardconsole.available_to_r_08_prereq_legislature_seat_": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "elections_boardconsole.available_to_r_08_prereq_petition_at_thres": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "elections_boardconsole.available_to_r_08_prereq_voting_closed_tab": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "elections_boardconsole.bootstrap_election_board_temporary_replace": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "elections_boardconsole.bootstrap_variant_a_bootstrap_board_admini": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "elections_boardconsole.cause_for_the_audit_re_run_required": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "elections_boardconsole.certification_election_results_certificati": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "elections_boardconsole.certified_winners_granted_roles": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "elections_boardconsole.certify_results": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "elections_boardconsole.confirm_recount_order": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "elections_boardconsole.contiguous_equal_subdivisions_art_ii_8": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "elections_boardconsole.countbacks_running": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "elections_boardconsole.court_appeal_planned_phase_e": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "elections_boardconsole.district_map_oversight_subdivision_boundar": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "elections_boardconsole.district_map_plans_under_oversight": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "elections_boardconsole.draft_published_for_observation": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "elections_boardconsole.elections_under_administration": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "elections_boardconsole.entered_and_stored_as_utc_the_engine_valid": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "elections_boardconsole.establish_independent_election_boards_art_": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "elections_boardconsole.finalist_cutoff": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "elections_boardconsole.join_clk_21": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "elections_boardconsole.live_signatures_threshold": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "elections_boardconsole.no_district_maps_under_oversight_chambers_": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "elections_boardconsole.no_petitions_at_threshold": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "elections_boardconsole.no_registrations_awaiting_validation": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "elections_boardconsole.no_vacancies_every_seat_in_the_jurisdictio": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "elections_boardconsole.not_found_in_jurisdiction": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "elections_boardconsole.nothing_awaiting_certification_counts_appe": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "elections_boardconsole.of_valid": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "elections_boardconsole.open_the_countback_view": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "elections_boardconsole.open_the_legislature_browser": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "elections_boardconsole.opens_wf_ele_05": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "elections_boardconsole.order_recount": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "elections_boardconsole.pending_candidacy_registrations": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "elections_boardconsole.petition_audits_due": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "elections_boardconsole.ranked_window_closes": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "elections_boardconsole.ranked_window_opens": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "elections_boardconsole.recount_proceedings_open_wf_ele_05": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "elections_boardconsole.recount_recount_audit_order_f_elb_006": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "elections_boardconsole.rejected_appeal_path_open": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "elections_boardconsole.requires_certification_first": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "elections_boardconsole.residency_association_is_the_only_permissi": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "elections_boardconsole.review_the_count_record": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "elections_boardconsole.rounds_seats": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "elections_boardconsole.run_signature_audit_f_elb_005": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "elections_boardconsole.seats": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "elections_boardconsole.signature_audit_petition_signature_audit_f": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "elections_boardconsole.the_board_is_an_independent_politically_ne": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "elections_boardconsole.the_engine_rejects_an_order_without_a_stat": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "elections_boardconsole.this_board_exists_only_to_run_the_first_el": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "elections_boardconsole.vacancy_declaration_received_f_leg_036_cou": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "elections_boardconsole.validated_in_approval_pool": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "elections_boardconsole.validation_queue_candidate_validation_f_el": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "elections_boardconsole.validations_pending": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "elections_boardconsole.x_per_race_is_pre_published_with_this_orde": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "elections_candidacyregistration.candidacy_withdrawn": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "elections_candidacyregistration.closes_at_the_finalist_cutoff_reopens_at_c": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "elections_candidacyregistration.declare_residency": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "elections_candidacyregistration.establish_residency_to_stand_for_office": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "elections_candidacyregistration.filing_rejected_by_the_constitutional_engi": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "elections_candidacyregistration.finalists_x_finalist_multiplier_seats_pre_": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "elections_candidacyregistration.i_attest_that_i_reside_in_the_selected_jur": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "elections_candidacyregistration.if_you_live_somewhere_you_can_run_for_offi": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "elections_candidacyregistration.no_race_footprint_of_this_election_contain": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "elections_candidacyregistration.office_election_race": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "elections_candidacyregistration.only_jurisdictions_you_are_associated_with": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "elections_candidacyregistration.open_your_public_profile": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "elections_candidacyregistration.platform_statement_optional": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "elections_candidacyregistration.position_tags_optional": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "elections_candidacyregistration.public_self_managed_editable_any_time_via_": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "elections_candidacyregistration.registration_rejected_no_residency_associa": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "elections_candidacyregistration.registration_window_approval_phase_clk_18": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "elections_candidacyregistration.residency_verified_all_associations_rights": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "elections_candidacyregistration.right_to_stand_art_i_no_fees_no_signatures": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "elections_candidacyregistration.seats": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "elections_candidacyregistration.select_a_race": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "elections_candidacyregistration.submitted_awaiting_board_validation": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "elections_candidacyregistration.the_board_s_validation_f_elb_002_checks_re": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "elections_candidacyregistration.the_election_board_validates_your_residenc": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "elections_candidacyregistration.the_only_permissible_ground_for_rejection_": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "elections_candidacyregistration.the_rejection_itself_is_on_the_audit_chain": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "elections_candidacyregistration.the_top_x_by_approvals_advance_to_the_rank": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "elections_candidacyregistration.validated_you_are_in_the_approval_pool": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "elections_candidacyregistration.voting_and_candidacy_unlock_together_the_m": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "elections_candidacyregistration.wf_civ_05_candidacy_lifecycle_entity_machi": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "elections_candidacyregistration.what_happens_next": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "elections_candidacyregistration.withdrawal_is_a_permanent_public_record": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "elections_candidacyregistration.you_enter_the_approval_pool_every_associat": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "elections_candidacyregistration.your_candidacy_in_this_election": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "elections_candidateprofile.also_a_candidate": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "elections_candidateprofile.approval_standing": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "elections_candidateprofile.approvals_aggregate_updated_daily": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "elections_candidateprofile.approvals_relative_to_the_finalist_line": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "elections_candidateprofile.ask_an_organization_for_its_endorsement_f_": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "elections_candidateprofile.awaiting_board_validation_the_race_binding": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "elections_candidateprofile.ballot_locked_at_the_finalist_cutoff_withd": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "elections_candidateprofile.below_the_finalist_line_write_in_eligible": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "elections_candidateprofile.civic_actions": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "elections_candidateprofile.endorsement_requests": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "elections_candidateprofile.endorsement_requests_filed_by_this_candida": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "elections_candidateprofile.endorsements_inform_they_never_gate_art_i_": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "elections_candidateprofile.finalist_places_x": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "elections_candidateprofile.full_race_rank": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "elections_candidateprofile.gold_tick_finalist_line_top_of_clk_21": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "elections_candidateprofile.individual_approvals_are_secret_art_ii_2": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "elections_candidateprofile.individual_endorsements_public_private": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "elections_candidateprofile.individual_endorsers_disclose_by_choice_or": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "elections_candidateprofile.keep_standing": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "elections_candidateprofile.no_active_organizations_registered_on_this": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "elections_candidateprofile.no_organizational_endorsements_running_une": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "elections_candidateprofile.no_platform_statement_yet": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "elections_candidateprofile.no_public_record_entries_yet_participation": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "elections_candidateprofile.no_requests_yet": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "elections_candidateprofile.no_standings_aggregate_exists_for_this_rac": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "elections_candidateprofile.none_not_an_incumbent_a_first_time_candida": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "elections_candidateprofile.participation_is_public_ballot_choices_are": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "elections_candidateprofile.platform_statement": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "elections_candidateprofile.public_and_self_managed_every_save_appends": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "elections_candidateprofile.public_campaign_profile_the_statement_and_": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "elections_candidateprofile.public_endorsement_web_public_individual_e": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "elections_candidateprofile.public_record": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "elections_candidateprofile.rank_inside_the_top_finalist_track": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "elections_candidateprofile.requests_are_managed_by_the_candidate_gran": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "elections_candidateprofile.seats_top_advance_clk_21": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "elections_candidateprofile.see_the_race_standings": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "elections_candidateprofile.select_an_organization": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "elections_candidateprofile.the_org_s_agent_decides_via_f_org_002_a_gr": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "elections_candidateprofile.this_cannot_be_undone_withdrawal_is_a_perm": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "elections_candidateprofile.votes_in_office": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "elections_candidateprofile.voting_records_arrive_with_the_legislature": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "elections_candidateprofile.wf_civ_05_wf_civ_08_entity_machine_esm_06_": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "elections_candidateprofile.withdraw_candidacy": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "elections_candidateprofile.withdraw_candidacy_f_can_003": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "elections_candidateprofile.withdrawal_is_a_permanent_public_record_te": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "elections_candidateprofile.withdrawn_recorded_on_the_public_record": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "elections_candidateprofile.withdrawn_recorded_on_the_public_record_2": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "elections_electiondetail.a_district_map_5_9_seats_each_must_be_acti": {
+    "status": "review",
+    "reason": "placeholder mismatch",
+    "provider": "nllb"
+  },
+  "elections_electiondetail.all_times_stored_as_utc_shown_in_your_time": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "elections_electiondetail.cause_for_the_recount_order": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "elections_electiondetail.certified_by_f_elb_004_winners_granted_rol": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "elections_electiondetail.clock_form": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "elections_electiondetail.current_stage": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "elections_electiondetail.election_schedule_stages_with_their_clocks": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "elections_electiondetail.elections_elsewhere": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "elections_electiondetail.elections_fire_from_clocks_never_from_offi": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "elections_electiondetail.finalist_places_x_pre_published": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "elections_electiondetail.issued_by": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "elections_electiondetail.next_general_election_clock_fires_clk_01_a": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "elections_electiondetail.no_election_is_scheduled_for_your_jurisdic": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "elections_electiondetail.no_election_scheduled": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "elections_electiondetail.no_other_elections_on_this_instance_right_": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "elections_electiondetail.no_races_exist_yet_race_generation_is_pend": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "elections_electiondetail.not_yet_issued_the_schedule_below_carries_": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "elections_electiondetail.open_ballot": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "elections_electiondetail.open_ballot_approve_candidates": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "elections_electiondetail.order_recount_f_elb_006": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "elections_electiondetail.other_elections": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "elections_electiondetail.race_boundary": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "elections_electiondetail.races_in_this_election": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "elections_electiondetail.races_pre_published_x": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "elections_electiondetail.rank_your_ballot_f_ind_007": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "elections_electiondetail.seats_in_this_election": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "elections_electiondetail.seats_x": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "elections_electiondetail.single_at_large_footprint_the_constitution": {
+    "status": "review",
+    "reason": "sentence count fell 2 -> 1",
+    "provider": "nllb"
+  },
+  "elections_electiondetail.stand_for_office_f_ind_011": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "elections_electiondetail.the_approval_phase_has_not_opened_yet_part": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "elections_electiondetail.the_engine_rejects_an_empty_cause_recounts": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "elections_electiondetail.this_chamber_is_above_the_9_seat_ceiling_s": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "elections_electiondetail.this_chamber_is_subdivided_view_the_distri": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "elections_electiondetail.validated_candidates": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "elections_electiondetail.watch_the_count": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "elections_electiondetail.wf_ele_01_general_election_cycle_entity_ma": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "elections_electiondetail.when_your_timezone": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "elections_electiondetail.x_per_race_is_pre_published_with_this_orde": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "elections_electiondetail.x_pre_published_finalists": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "elections_electiondetail.x_the_number_of_finalists_who_advance_to_t": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "elections_openballot.action_rejected_by_the_constitutional_engi": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "elections_openballot.alignment_questionnaire": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "elections_openballot.answer_policy_questions_and_see_which_cand": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "elections_openballot.any": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "elections_openballot.any_associated_resident_may_register_resid": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "elections_openballot.choose_a_race_to_view": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "elections_openballot.clear_filters": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "elections_openballot.endorsed_by": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "elections_openballot.every_candidate_is_hidden_by_the_current_f": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "elections_openballot.filter_the_standings_display_only_ranks_re": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "elections_openballot.first_time_voting_here_the_election_journe": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "elections_openballot.future_scope": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "elections_openballot.future_scope_not_yet_built": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "elections_openballot.individual_endorsers": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "elections_openballot.name_or_statement": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "elections_openballot.no_endorsements": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "elections_openballot.no_races_yet": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "elections_openballot.no_validated_candidates_yet_any_associated": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "elections_openballot.register_candidacy_f_ind_011": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "elections_openballot.search_candidates": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "elections_openballot.seats_in_this_race": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "elections_openballot.show_all": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "elections_openballot.stand_for_office": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "elections_openballot.standings_are_aggregate_counts_updated_on_": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "elections_openballot.start_the_questionnaire": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "elections_openballot.the_continuous_approval_phase_anyone_who_l": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "elections_openballot.this_election_has_no_races_race_generation": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "elections_openballot.wf_civ_08_approval_phase_standings_are_the": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "elections_openballot.you_can_browse_this_race_approving_require": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "elections_openballot.your_active_approvals_revocable": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "elections_openballot.your_approval_is_recorded_the_moment_you_t": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "elections_openballot.your_approvals_are_secret": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "elections_openballot.your_own_race_is_pre_selected_from_your_as": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "elections_rankedballot.add_write_in": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "elections_rankedballot.anonymized_lookup_anyone_may_check_any_has": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "elections_rankedballot.any_validated_candidate_may_be_written_in_": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "elections_rankedballot.ballot_committed": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "elections_rankedballot.ballot_committed_2": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "elections_rankedballot.ballot_committed_copy_your_receipt_now_it_": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "elections_rankedballot.ballot_machine_the_receipt_hash_is_your_ha": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "elections_rankedballot.ballot_submission_ranked_choice_f_ind_007_": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "elections_rankedballot.ballots_so_far_droop_quota_if_closed_now": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "elections_rankedballot.clk_18_clk_21_art_ii_2": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "elections_rankedballot.committing_encrypts_your_ballot_and_separa": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "elections_rankedballot.could_not_reach_the_receipt_check_try_agai": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "elections_rankedballot.cryptographic_separation_of_voter_identity": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "elections_rankedballot.delegated_by_supermajority_act_f_leg_023_p": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "elections_rankedballot.droop_quota_the_smallest_vote_total_that_o": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "elections_rankedballot.finalists_one_count_rank_as_many_candidate": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "elections_rankedballot.finalists_top_from_the_approval_phase_clk_": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "elections_rankedballot.how_the_count_works": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "elections_rankedballot.interaction_note_ranking_is_click_to_rank_": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "elections_rankedballot.keep_editing": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "elections_rankedballot.live_aggregate_if_the_window_closed_now": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "elections_rankedballot.no_validated_candidates_match": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "elections_rankedballot.paste_a_receipt_hash": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "elections_rankedballot.projection_only_surpluses_and_eliminations": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "elections_rankedballot.public_chain_of_custody_endorsing_organiza": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "elections_rankedballot.ranked": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "elections_rankedballot.referendum_content_arrives_with_phase_c": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "elections_rankedballot.referendum_question_on_this_ballot": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "elections_rankedballot.referendum_vote_f_ind_008_available_to_r_0": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "elections_rankedballot.review_ballot": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "elections_rankedballot.review_commit": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "elections_rankedballot.search_by_name_write_ins_are_search_driven": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "elections_rankedballot.searching": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "elections_rankedballot.standings_stay_visible_through_the_ranked_": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "elections_rankedballot.stv_with_droop_quota_hardened_art_ii_2": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "elections_rankedballot.the_approval_phase_is_still_under_way_fina": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "elections_rankedballot.the_ranked_window_has_closed_the_engine_wi": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "elections_rankedballot.the_ranked_window_is_not_open": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "elections_rankedballot.verify_a_receipt": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "elections_rankedballot.voting_has_closed_for_this_race_watch_the_": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "elections_rankedballot.window_closes_shown_in_your_timezone_store": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "elections_rankedballot.write_in": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "elections_rankedballot.write_in_2": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "elections_rankedballot.write_in_a_validated_candidate": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "elections_rankedballot.your_ballot_is_in_the_count": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "elections_rankedballot.your_ballot_is_in_the_count_your_receipt_h": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "elections_rankedballot.your_ranking_ranked": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "elections_rankedballot.your_receipt_hash_keep_it_to_verify_your_b": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "elections_rankedballot.your_right_to_stand_and_to_vote_for_anyone": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "elections_results.a_recount_is_an_audit_re_run_of_the_stored": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "elections_results.all_factions_can_observe_and_audit_art_ii_": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "elections_results.audit_re_run_recount": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "elections_results.cause_ordered": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "elections_results.certification_chain_of_custody": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "elections_results.certification_pending_f_elb_004_election_r": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "elections_results.certified_f_elb_004_election_results_certi": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "elections_results.certify_results_f_elb_004": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "elections_results.counting_rounds": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "elections_results.download_full_count_record_csv": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "elections_results.droop_quota": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "elections_results.droop_quota_2": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "elections_results.droop_quota_floor_votes_seats_1_1": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "elections_results.entity_state_machine_election_tabulating_c": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "elections_results.every_one_of_the_fills_in_this_single_coun": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "elections_results.full_precision_streamed_from_tabulation_ro": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "elections_results.gold_tick_the_droop_quota_reaching_it_elec": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "elections_results.kind_audit_rerun": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "elections_results.no_count_record_exists_for_this_race_yet": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "elections_results.observers_of_record": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "elections_results.re_run_in_progress": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "elections_results.re_run_record_rounds": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "elections_results.recount_audit_re_run": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "elections_results.seats_all_filled_in_one_count": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "elections_results.single_winner_ranked_choice_voting_applies": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "elections_results.single_winner_rcv_only_for_the_individual_": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "elections_results.single_winner_variant_individual_executive": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "elections_results.stv_with_droop_quota_fractional_gregory_su": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "elections_results.tabulating_instant_count_in_progress": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "elections_results.tabulation_dispatches_automatically_when_t": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "elections_results.the_count_ran_under_a_public_chain_of_cust": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "elections_results.the_count_round_by_round": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "elections_results.the_ranked_window_has_closed_and_the_prote": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "elections_results.valid_ballots": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "elections_results.write_in_entered_as_tabulated_identically_": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "elections_vacancycountback.active_branch": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "elections_vacancycountback.available_to_r_08_election_board_member_ar": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "elections_vacancycountback.available_to_r_09_legislative_representati": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "elections_vacancycountback.catalog_alias_f_leg_030_workflows_catalog_": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "elections_vacancycountback.certification_follows_the_countback_automa": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "elections_vacancycountback.certified_seated_via_oath_f_leg_001": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "elections_vacancycountback.certify_countback_winner": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "elections_vacancycountback.committee_proportionality_re_check_pending": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "elections_vacancycountback.committee_proportionality_re_checked_after": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "elections_vacancycountback.countback_failed_ballots_exhausted": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "elections_vacancycountback.countback_running": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "elections_vacancycountback.declare_a_seat_vacant_due_to_death_resigna": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "elections_vacancycountback.declared_by_on_shown_in_your_timezone_stor": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "elections_vacancycountback.droop_quota": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "elections_vacancycountback.election_results_certification": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "elections_vacancycountback.entity_state_machine_vacancy_the_strip_abo": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "elections_vacancycountback.f_elb_004_committed_proportionality_re_che": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "elections_vacancycountback.gold_tick_the_droop_quota_a_continuing_can": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "elections_vacancycountback.knock_on_effects": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "elections_vacancycountback.no_continuing_candidate_can_reach_the_quot": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "elections_vacancycountback.no_new_election_is_needed_yet_the_game_re_": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "elections_vacancycountback.no_winner_in_this_countback": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "elections_vacancycountback.not_taken": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "elections_vacancycountback.opens_wf_ele_04_forms_f_elb_001_f_ind_011_": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "elections_vacancycountback.phase_b_vacancies_are_dev_seeded_the_f_leg": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "elections_vacancycountback.re_run_of_prior_ballots_with_the_vacated_m": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "elections_vacancycountback.re_run_source_the_prior_valid_ballots_droo": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "elections_vacancycountback.scheduling_opens_only_if_the_countback_exh": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "elections_vacancycountback.special_election_date_ranked_window_opens": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "elections_vacancycountback.special_election_scheduled_ranked_window_o": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "elections_vacancycountback.special_election_window_days_clk_04_art_ii": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "elections_vacancycountback.term_inheritance_clk_10_a_replacement_term": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "elections_vacancycountback.the_countback_is_re_running_the_stored_bal": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "elections_vacancycountback.the_countback_yields_a_replacement_the_ele": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "elections_vacancycountback.vacancies_filled_by_countback_of_prior_bal": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "elections_vacancycountback.vacancy_declaration": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "elections_vacancycountback.vacancy_state_machine": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "elections_vacancycountback.winner_found": {
+    "status": "machine",
+    "provider": "nllb"
+  }
+}

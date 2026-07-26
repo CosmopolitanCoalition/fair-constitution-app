@@ -1,0 +1,9 @@
+{
+  "shellv2_cmdbar.navigation_and_learn": "नेविगेशन और सीखना",
+  "shellv2_learnflyout.full_lessons_planned_phase_7_report_an_iss": "पूर्ण पाठ नियोजित · चरण 7 एक मुद्दे की रिपोर्ट करें",
+  "shellv2_learnflyout.the_machinery_behind_this_screen": "इस स्क्रीन के पीछे की मशीन",
+  "shellv2_menunav.all_screens_the_full_map": "सभी स्क्रीन  पूरा नक्शा",
+  "shellv2_menunav.requires_planned": "{label} {label2} आवश्यकताएँ {prereq} {label3} नियोजित",
+  "shellv2_tourbar.guided_tour": "मार्गदर्शित दौरा",
+  "shellv2_tourbar.guided_tour_step_of": "मार्गदर्शित दौरा · चरण {stepNumber} {total}{title}{blurb}"
+}
