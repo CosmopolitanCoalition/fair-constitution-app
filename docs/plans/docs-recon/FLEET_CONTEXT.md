@@ -81,6 +81,39 @@ Consequences for everyone:
 
 ---
 
+## 4b. Diagnosing on a shared box — three traps that have each fooled the fleet
+
+Twelve lanes share one working tree, one database and one machine. Every one of these produced a
+confident, wrong, fleet-wide belief before it was named.
+
+### An uncommitted fatal is everyone's outage
+Laravel scans the whole `app/Console/Commands/` directory to build its command list. **One class
+that cannot load kills every `php artisan` call for every lane** — tests, migrations, seeders,
+demo commands, tinker. On 2026-07-26 a half-written command took the fleet's console down; three
+lanes diagnosed it independently and two of them had already lost time to it.
+
+- **If artisan dies and you did not touch the file: `git pull` first, then re-test.** It may
+  already be fixed. That is the cheap first move and it was the right one that day.
+- **Do not edit a peer's untracked file to fix it.** Diagnose it, route it to the owner, let them
+  fix it. Both lanes that found it refused to touch it, correctly.
+- **If you are writing a command in the shared tree, get it loadable fast.** A half-written class
+  in that directory is not a private draft — it is a fleet outage.
+
+### Slow is not down
+The box runs two full stacks. When it saturates, `docker` calls queue for **minutes** — a 30-second
+timeout reads as a crashed daemon while a 45-second one succeeds on the same machine. Three lanes
+filed "waiting on the operator to restart Docker" against a box where all 20 containers were
+running and healthy. **Use `timeout 45 docker ...` from bash; PowerShell is worse on this box.**
+Measure before concluding, and never call slow work "expected" without a baseline.
+
+### A single text read is not proof of blankness
+A page read before hydration returns empty. Lane 13 nearly filed `/economy` as a blank page;
+`#app` was 28,377 characters a moment later. **Check `#app` innerHTML length before concluding a
+page is dead.** Same family as the `curl`-without-`Accept` trap — the probe answered a different
+question than the one asked.
+
+---
+
 ## 5. Dev mode — what exists today
 
 Registered only when `app()->environment('local')` **and** `config('cga.impersonation')` is on.
