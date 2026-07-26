@@ -326,7 +326,21 @@ def make_provider(name: str, glossary=None) -> Provider:
 
 
 # ─── QA: a string that fails any of these is skipped, never shipped ───────────
-def qa(source: str, out: str | None) -> str | None:
+# How much shorter than its English source a CORRECT translation runs, by target
+# script. Character count is not comparable across writing systems: one Han
+# character carries a whole morpheme, so faithful Chinese is routinely a quarter
+# the length of its source. A single Latin-calibrated floor quarantined 1,110 of
+# Chinese's 1,200 — the third time a rail tuned on English misfired on exactly
+# the languages this pipeline exists to serve.
+_SHORT_FLOOR = {
+    "Hans": 0.12, "Hant": 0.12, "Jpan": 0.15, "Kore": 0.25,   # logographic / syllabic
+    "Thai": 0.30, "Laoo": 0.30, "Khmr": 0.30, "Mymr": 0.30,   # abugida, unspaced
+    "Arab": 0.40, "Hebr": 0.40, "Thaa": 0.40,                 # abjad, vowels dropped
+}
+_SHORT_FLOOR_DEFAULT = 0.45
+
+
+def qa(source: str, out: str | None, script: str = "Latn") -> str | None:
     """Return a failure reason, or None when the translation is admissible."""
     if out is None:
         return "provider returned nothing"
@@ -350,8 +364,10 @@ def qa(source: str, out: str | None) -> str | None:
     # Placeholder and citation rails cannot see that — a fluent, well-formed,
     # half-missing sentence passes every one of them. No translation is far
     # better than a confidently truncated one.
-    if len(source) >= 40 and len(out) < len(source) * 0.45:
-        return "suspiciously short — source content likely dropped"
+    floor = _SHORT_FLOOR.get(script, _SHORT_FLOOR_DEFAULT)
+    if len(source) >= 40 and len(out) < len(source) * floor:
+        return (f"suspiciously short for {script} — source content likely dropped "
+                f"({len(out)}/{len(source)} chars, floor {floor:g})")
     # Every sentence in should be a sentence out, counted by TERMINATOR so the
     # test works in any script. Fewer terminators ALONE is not proof: a model
     # legitimately drops a trailing period, which looks identical to losing the
@@ -359,7 +375,8 @@ def qa(source: str, out: str | None) -> str | None:
     # AND a much shorter result — so both are required before a string is
     # quarantined. Either alone produced a false positive we actually saw.
     src_n, out_n = _terminator_count(source), _terminator_count(out)
-    if src_n >= 2 and out_n < src_n and len(out) < len(source) * 0.75:
+    loss_ratio = max(_SHORT_FLOOR.get(script, _SHORT_FLOOR_DEFAULT) * 1.6, 0.35)
+    if src_n >= 2 and out_n < src_n and len(out) < len(source) * loss_ratio:
         return f"sentence count fell {src_n} -> {out_n}"
     return None
 
@@ -506,6 +523,16 @@ def self_test() -> int:
     hi_ok = "अपने रिकॉर्ड में साइन इन करें। आपके अधिकार आपके निवास से जुड़े हैं।"
     check("Devanagari danda counts as a sentence end", qa(ar_src, hi_ok) is None,
           str(qa(ar_src, hi_ok)))
+    # Chinese: a faithful translation is a fraction of its source LENGTH.
+    zh_src = "Sign in to your Individual record to continue to the ballot page."
+    zh_ok = "登录您的个人记录以继续前往投票页面。"
+    check("faithful Chinese is not 'suspiciously short'",
+          qa(zh_src, zh_ok, "Hans") is None, str(qa(zh_src, zh_ok, "Hans")))
+    check("the same output WOULD be flagged for a Latin target",
+          qa(zh_src, zh_ok, "Latn") is not None)
+    check("genuinely truncated Chinese is still caught",
+          qa(zh_src, "登录", "Hans") is not None)
+
     check("real loss is still caught",
           qa(ar_src, "حقوقك ترتبط بإقامتك.") is not None)
 
@@ -554,6 +581,7 @@ def main() -> int:
     namespaces = ([args.namespace] if args.namespace
                   else sorted(p.stem for p in src_dir.glob("*.json")))
 
+    script = reg[args.locale].get("script") or "Latn"
     glossary = glossary_terms(args.locale)
     provider = None if args.dry_run else make_provider(args.provider, glossary)
 
@@ -610,7 +638,7 @@ def main() -> int:
 
             wrote = 0
             for (key, src_text), out in zip(batch, outs):
-                reason = qa(src_text, out)
+                reason = qa(src_text, out, script)
                 if reason:
                     total_skip += 1
                     meta.setdefault(key, {}).update(
