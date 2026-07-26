@@ -62,6 +62,17 @@ One named jurisdiction per flow. Then he plays them repeatedly as regression tes
 Consequences for everyone:
 - **BUILT is not TESTED.** A phase row reading BUILT means code exists and pins pass. It does not
   mean a human walked it. Always say which one you mean.
+
+  **The evidence, 2026-07-26, and it is against a lane's own work by their own choice.** Lane 6
+  had *server-side proof* for six economy pages: exact contract props, 200 responses, a green
+  pinned `EconomyPropContractTest`. All true. The moment their browser pane worked and they could
+  actually look, they found two real defects **in minutes**, both invisible to every one of those
+  checks — `Quantity 1.000000` (quantities stored at the same `numeric(24,6)` precision as money,
+  so a compass reads as a machine talking) and `Art. II §9 · [POLICY]`, a raw internal token
+  sitting in player-facing copy in a build that had run a whole pass to remove exactly that.
+
+  Their own conclusion, which is the sentence to remember:
+  > **"Verified without looking means the data is right, not that the screen is."**
 - Your next orders will be about making your area **walkable**, not about building more.
 - "It renders" is not a deliverable. "A person can complete X" is.
 
