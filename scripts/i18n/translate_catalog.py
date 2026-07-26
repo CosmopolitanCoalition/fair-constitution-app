@@ -71,13 +71,20 @@ HALT_FILE = RUN_DIR / "halt.request"
 
 def _write_atomic(path: Path, payload: dict) -> None:
     """Write-then-replace: a reader never sees a half-written file."""
-    try:
-        path.parent.mkdir(parents=True, exist_ok=True)
-        tmp = path.with_suffix(path.suffix + ".tmp")
-        tmp.write_text(json.dumps(payload, ensure_ascii=False), encoding="utf-8")
-        tmp.replace(path)
-    except Exception:  # noqa: BLE001
-        pass  # progress is a cosmetic mirror; it must never fail the work
+    # Per-process tmp name: two workers writing at once must not fight over one
+    # scratch file. Retried, then abandoned — on Windows os.replace fails while
+    # any reader holds the target, and the progress endpoint polls every 2s, so
+    # a collision is routine. A dropped frame costs nothing; a raised exception
+    # would cost the run.
+    for attempt in range(4):
+        try:
+            path.parent.mkdir(parents=True, exist_ok=True)
+            tmp = path.with_suffix(f".{os.getpid()}.tmp")
+            tmp.write_text(json.dumps(payload, ensure_ascii=False), encoding="utf-8")
+            tmp.replace(path)
+            return
+        except Exception:  # noqa: BLE001
+            time.sleep(0.05 * (attempt + 1))
 
 
 def halted() -> bool:

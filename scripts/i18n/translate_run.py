@@ -65,10 +65,30 @@ GPU_WORKER_CEILING = 3
 
 
 def write_atomic(path: Path, payload: dict) -> None:
-    path.parent.mkdir(parents=True, exist_ok=True)
-    tmp = path.with_suffix(path.suffix + ".tmp")
-    tmp.write_text(json.dumps(payload, ensure_ascii=False, indent=2), encoding="utf-8")
-    tmp.replace(path)
+    """
+    Write-then-replace, and NEVER raise.
+
+    On Windows os.replace fails with a PermissionError whenever another handle
+    is open on the target — and this file is polled every 2 seconds by the
+    progress endpoint, so that collision is routine, not exotic. The first
+    version of this function let that exception escape and killed the
+    SUPERVISOR mid-run, orphaning its workers: they kept translating with
+    nothing watching them and nothing able to stop them.
+
+    Progress reporting is a cosmetic mirror of the work. It must never be able
+    to end the work, and a missed frame is not worth a single retry beyond
+    these.
+    """
+    for attempt in range(4):
+        try:
+            path.parent.mkdir(parents=True, exist_ok=True)
+            tmp = path.with_suffix(f".{os.getpid()}.tmp")
+            tmp.write_text(json.dumps(payload, ensure_ascii=False, indent=2), encoding="utf-8")
+            tmp.replace(path)
+            return
+        except Exception:  # noqa: BLE001
+            time.sleep(0.05 * (attempt + 1))
+    return
 
 
 def enabled_locales() -> list[str]:
