@@ -67,6 +67,15 @@ return [
     'impersonation' => env('CGA_IMPERSONATION', true),
 
     /*
+    | Playtest controls (DEV_TIME_AND_ROLE_CONTROLS.md §4). A SEPARATE key
+    | from impersonation and OFF by default, because these are strictly more
+    | dangerous: impersonation reads the world from another seat, these write
+    | constitutional acts and move deadlines. Also refused outright on any
+    | federated or peered node — see DevTimeControlsEnabled.
+    */
+    'dev_time' => env('CGA_DEV_TIME', false),
+
+    /*
     | CLK-06 critical-population fallback (WI-6). The activation threshold
     | resolves per jurisdiction at evaluation time:
     | constitutional_settings.critical_population_threshold (own row →

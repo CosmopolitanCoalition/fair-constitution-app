@@ -32,6 +32,7 @@ use App\Http\Controllers\MapsController;
 use App\Http\Controllers\RasterTileController;
 use App\Http\Controllers\SetupController;
 use App\Http\Controllers\System\AuditChainController;
+use App\Http\Middleware\DevTimeControlsEnabled;
 use App\Http\Middleware\DevToolsEnabled;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
@@ -181,6 +182,18 @@ Route::get('/api/cosmic-addresses/{id}/children', [CosmicAddressController::clas
 // would only add lookup cost.
 Route::get('/jurisdictions', [JurisdictionController::class, 'index'])->name('jurisdictions.index');
 Route::get('/jurisdictions/{jurisdiction:slug}', [JurisdictionController::class, 'show'])->name('jurisdictions.show');
+
+// ── The build screen — how much of this world exists yet ────────────────────────────────
+// Watched while a fresh box builds itself, the way Step-3 is watched while the district
+// mapper works. Public-read like /federation and /simworld (Art. II §2 — a citizen may watch
+// the machinery); it exposes counts only, never a person's row. Derived from what exists
+// rather than from a job's worklist, so it answers "is this world finished?" at rest and a
+// crashed run cannot misreport it.
+// NOTE the path: `/build` cannot be used — `public/build/` is Vite's output
+// directory, so nginx serves it as a static path and 301s before Laravel ever
+// sees the request.
+Route::get('/building', [\App\Http\Controllers\BuildProgressController::class, 'show'])->name('build.progress');
+Route::get('/api/build/progress', [\App\Http\Controllers\BuildProgressController::class, 'progress'])->name('api.build.progress');
 
 // ── Phase I: Reach — the enrolment gauge ────────────────────────────────────────────────
 // READ-ONLY by design. Reach is a gauge and never a lever (CI-1), so this surface offers no
@@ -966,6 +979,18 @@ if (app()->environment('local') && config('cga.impersonation', true)) {
     // DevToolsEnabled-gated like the rest of the dev tooling.
     Route::middleware(DevToolsEnabled::class)->prefix('dev')->name('dev.')->group(function () {
         Route::post('/login-as', \App\Http\Controllers\Dev\LoginAsController::class)->name('login-as');
+    });
+
+    // P4 — playtest chamber cast (DEV_TIME_AND_ROLE_CONTROLS.md §P4).
+    // Walking "a bill becomes law" by hand is 58 persona switches; this gives
+    // that journey a door. It files ballots as real seated members through the
+    // real engine and NEVER touches a tally or an outcome — if a vote fails,
+    // it fails. Its own gate (DevTimeControlsEnabled) adds `cga.dev_time` on
+    // top of the dev toolbox gate and refuses outright on any federated or
+    // peered node, because Full Faith & Credit means a peer takes this node's
+    // records on trust rather than re-deriving them.
+    Route::middleware([DevTimeControlsEnabled::class, 'auth'])->prefix('dev')->name('dev.')->group(function () {
+        Route::post('/chamber/cast', \App\Http\Controllers\Dev\ChamberCastController::class)->name('chamber.cast');
     });
 }
 
