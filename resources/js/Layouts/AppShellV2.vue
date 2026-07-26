@@ -22,6 +22,7 @@ import { router, usePage } from '@inertiajs/vue3';
 import { useI18n } from 'vue-i18n';
 import AppFooter from '@/Components/Shell/AppFooter.vue';
 import DevBar from '@/Components/Shell/DevBar.vue';
+import DevPersonaSwitcher from '@/Components/Shell/DevPersonaSwitcher.vue';
 import EmergencyBanner from '@/Components/Shell/EmergencyBanner.vue';
 import JurisdictionSwitcher from '@/Components/Shell/JurisdictionSwitcher.vue';
 import SchemaUpdateBanner from '@/Components/SchemaUpdateBanner.vue';
@@ -283,6 +284,8 @@ onBeforeUnmount(() => {
             v-if="devBarOn"
             :impersonating="impersonatingUser"
             :real-user="realUser"
-        />
+        >
+            <DevPersonaSwitcher :impersonating="impersonatingUser" />
+        </DevBar>
     </div>
 </template>

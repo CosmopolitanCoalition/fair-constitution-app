@@ -35,6 +35,7 @@ import AppHeader from '@/Components/Shell/AppHeader.vue';
 import AppSidebar from '@/Components/Shell/AppSidebar.vue';
 import AppFooter from '@/Components/Shell/AppFooter.vue';
 import DevBar from '@/Components/Shell/DevBar.vue';
+import DevPersonaSwitcher from '@/Components/Shell/DevPersonaSwitcher.vue';
 import EmergencyBanner from '@/Components/Shell/EmergencyBanner.vue';
 import JurisdictionSwitcher from '@/Components/Shell/JurisdictionSwitcher.vue';
 import SchemaUpdateBanner from '@/Components/SchemaUpdateBanner.vue';
@@ -375,6 +376,7 @@ onBeforeUnmount(() => {
             :impersonating="impersonatingUser"
             :real-user="realUser"
         >
+            <DevPersonaSwitcher :impersonating="impersonatingUser" />
             <span class="dev-control">
                 Roles (derived): <span class="citation">{{ roles.join(' · ') }}</span>
             </span>
