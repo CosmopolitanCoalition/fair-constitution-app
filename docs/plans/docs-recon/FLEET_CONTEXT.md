@@ -186,6 +186,30 @@ Build both of these into anything that verifies pages:
 to any per-item check and appear only when you compare results against each other.** If a rig
 examines each result in isolation, it cannot see that they are all the same result.
 
+### ⚑ COMMIT WITH A PATHSPEC — this has now fired THREE times
+Twelve lanes share one worktree. **`git add` / `git commit` without a pathspec sweeps everything
+dirty in the tree into your commit**, under your message.
+
+```bash
+git commit -F msg.txt -- path/one path/two     # correct
+git show --stat <hash>                          # verify before quoting it
+```
+
+**The three occurrences, so nobody treats this as theoretical:**
+| When | What was swept | What it nearly cost |
+|---|---|---|
+| lane 7, `4ac2d7e` | 69 files of lane 5's entire i18n build, under a one-file docs message | history that 12 lanes share, so it could not be rewritten |
+| lane 7 → lane 3 | a plan file | — |
+| lane 6, `dd3d5b1` | **176 lines of lane 13's uncommitted money-transfer form**, under a UI commit message | twenty minutes earlier it would have shipped a **half-written write path for money** |
+
+**It is a footgun, not carelessness** — every lane that has hit it is careful, and two of the three
+were this desk. Raise it with the lane directly and without blame, as lane 13 did.
+
+**And the corollary that keeps biting separately:** before you edit a file, `git status` it. If it
+is modified, another lane has it open — **route your change to them instead of editing their
+buffer.** Lanes 6 and 13 both refused to touch a peer's in-flight file today and were right both
+times; this desk nearly edited `FormRegistry.php` while lane 13 had it open.
+
 ### An uncommitted fatal is everyone's outage
 Laravel scans the whole `app/Console/Commands/` directory to build its command list. **One class
 that cannot load kills every `php artisan` call for every lane** — tests, migrations, seeders,
