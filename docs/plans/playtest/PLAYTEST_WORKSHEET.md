@@ -94,11 +94,17 @@ one throughout.)*
 legislatures on the dev box and **ten of them are empty**. Every card in Section C names
 `smr-1-san-marino` for that reason.
 
-The nine castelli are empty for a **specific and correct** reason worth knowing: each is entitled
-to 10–22 seats, and **none of them has a district map drawn yet.** Above nine seats a body must be
-divided into districts, so a single at-large race would be unlawful — and the app **refuses to run
-one**. That refusal is the constitution being enforced, not a gap. If maps are drawn before you
-walk, those chambers come alive; if not, an empty castello is the right answer.
+The nine castelli are empty for a **specific and correct** reason worth knowing. A castello is a
+leaf — it has nothing beneath it to represent — so it has only the population-based chamber, and
+that chamber is **divided into districts of five to nine seats**. Each castello is entitled to
+10–22 seats and **none has a district map drawn yet**, so a single at-large race would be unlawful
+and the app **refuses to run one**. That refusal is the constitution being enforced, not a gap.
+
+*(The five-to-nine rule governs **districts**, not chambers. The second chamber — the one
+representing constituent places — is at-large by design and can hold far more than nine, as San
+Marino's 27 does. It binds the castelli because they are leaves.)*
+
+If maps are drawn before you walk, those chambers come alive; if not, an empty castello is right.
 
 **5. ⚑ Earth is EMPTY on this box — the real Earth is on the other one.** `earth-0-earth` at
 :8082 has no members and no district map. The Earth with **1,999 seats across 282 districts** is on
@@ -669,17 +675,27 @@ fewer is a failure, not a small court.*
 ### D-7 · Challenge a law — and watch a court change it
 **What it is.** The sharpest thing in the whole application. A court can rule a law
 unconstitutional and **edit it directly**, with the old version preserved. Worth seeing.
-**Role:** resident → judge · **Needs first:** C-6 (a law to challenge)
+**Role:** anyone, to read it · **Needs first:** the judiciary demo has been seeded
+
+**You do not have to drive this one.** The seeded world already contains a law that a court has
+struck and rewritten — pushed the whole way through, with the setup refusing to finish if the
+result came out wrong. So you can go and *read the outcome* instead of steering a challenge through
+its waiting periods, which would take the rest of the afternoon.
 
 | # | Do this | On this screen | You should see |
 |---|---|---|---|
-| 1 | File a constitutional challenge against the law from C-6 | the law page | The challenge filed |
-| 2 | As a judge, make a constitutional finding | the case page | The finding recorded |
-| 3 | Apply the remedy | same | **The law's text actually changes** |
-| 4 | Look at the law's history | the law page | The old version still there |
+| 1 | Find the law a court has amended | the laws list | A law with **two versions** |
+| 2 | Read the newer version | the law page | Its text differs, and it's marked as coming from a court |
+| 3 | Read the **original** version | the same page's history | **Still there, still readable** |
 
-**PASSES IF** — the law text changes **and** the previous version remains readable.
-*Underlying proof: a new `law_versions` row of kind `judicial_remedy`; audit `F-JDG-006`.*
+**PASSES IF** — the law's text was changed by a court **and** the version it replaced is still
+readable. *Nothing was overwritten; a new version was laid on top.*
+
+*If you want to drive one yourself: file a challenge, make a finding as a judge, apply the remedy.
+It's the same path — just with real waiting periods in the middle.*
+
+*Underlying proof: a second `law_versions` row with `source='judicial_remedy'`, the first still
+present; audit `F-JDG-006`.*
 
 **Result** ☐ pass ☐ fail ☐ blocked  **Notes** ________________________________________
 
@@ -751,13 +767,20 @@ unconstitutional and **edit it directly**, with the old version preserved. Worth
 automatically — nobody has to ask.
 **Role:** organization agent · **Needs first:** E-2
 
+**⏳ Before you start — the seat does not appear the instant you hire.** The recount runs in the
+background, so it lands a moment later, not on the page you're redirected to. **Wait a few seconds
+and reload before judging this card.** If it never appears, check the background worker is running
+before recording a failure — "the seat never came" and "the queue is dead" look identical from the
+screen, and only one of them is about co-determination.
+
 | # | Do this | On this screen | You should see |
 |---|---|---|---|
 | 1 | Grow the organization past 100 workers | `/dev/users` + the org page | Worker count crosses 100 |
-| 2 | Look at the board | same | **A worker seat has appeared by itself** |
+| 2 | **Wait a few seconds, then reload** | same | **A worker seat has appeared by itself** |
 
 **PASSES IF** — the worker seat appears **without anyone requesting it**.
-*This is one of the hardest-won pieces of the build. If it doesn't fire, that's a headline failure.*
+*This is one of the hardest-won pieces of the build. If it genuinely doesn't fire — and the queue
+is alive — that's a headline failure.*
 
 **Result** ☐ pass ☐ fail ☐ blocked  **Notes** ________________________________________
 
@@ -766,12 +789,19 @@ automatically — nobody has to ask.
 ### E-5 · Equal footing at 2,000 employees
 **Role:** organization agent · **Needs first:** E-4
 
+**⚠ It is a slope, not a step.** The share doesn't sit at one seat until 2,000 and then jump to
+parity — it **climbs steadily** the whole way: one seat at 100, rising with every worker, reaching
+equal footing at 2,000. So an organization with 1,000 workers gets **neither one seat nor parity**,
+but something in between — **and that is correct.** Only test the two ends; a middle number is the
+rule working, not a fault.
+
 | # | Do this | On this screen | You should see |
 |---|---|---|---|
 | 1 | Grow past 2,000 workers | the org page | Count crosses 2,000 |
-| 2 | Look at the board's make-up | same | Worker and owner seats **equal** |
+| 2 | Wait a few seconds, then reload | same | Worker and owner seats **equal** |
+| 3 | *(optional)* Look at an org in the middle | same | A number between the two — **not a fault** |
 
-**PASSES IF** — the split reaches parity on its own.
+**PASSES IF** — the split reaches parity on its own at the top of the range.
 
 **Result** ☐ pass ☐ fail ☐ blocked  **Notes** ________________________________________
 
@@ -782,13 +812,24 @@ automatically — nobody has to ask.
 not even them — can take it back.
 **Role:** organization agent · **Needs first:** E-1
 
+**⚑ You will find nothing to click, and that IS the pass.** Don't mark this blocked because you
+couldn't attempt step 3 — there is deliberately no control to attempt it *with*. The guarantee is
+built in three layers: **no way to ask** (the service has one method, "dedicate", and no opposite),
+**no way to store it** (the record permits exactly one value — public domain, with no second state
+to move to), and **an outright refusal** if someone forges the request anyway.
+
 | # | Do this | On this screen | You should see |
 |---|---|---|---|
 | 1 | Register a common-good corporation | `/organizations` | It listed |
 | 2 | Add something to its work register | the org page | Listed as public domain |
-| 3 | **Try to make it private** | same | **Refused** |
+| 3 | **Hunt for any way to make it private** | anywhere | **Nothing. No button, no menu, no field** |
 
-**PASSES IF** — step 3 is refused. *An absolute rule; there should be no way round it.*
+**PASSES IF** — you searched and **there is no control anywhere** to take it back.
+*If you find one, that is among the most serious findings possible in this app — Article III §5 is
+perpetual and irrevocable by design.*
+
+*Underlying proof, for anyone who wants it: the register's status column accepts only
+`public_domain`, so privatising isn't merely forbidden — it's unrepresentable.*
 
 **Result** ☐ pass ☐ fail ☐ blocked  **Notes** ________________________________________
 
