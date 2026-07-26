@@ -5,8 +5,58 @@
 sure we're already there."* Plus: **in-app education is PER SCREEN — "it's all about every screen.
 So it's the shape for everything."**
 
-**Volume:** 70 surfaces × 2 halves = **140 items**. Delivered in waves by module.
-**Waves 1-4 complete: `civic` (28) + `legislature` (24) + `electoral` (18) + `judiciary` (14) = 84 of 140.**
+**✅ COMPLETE — all 70 surfaces authored (140 of 140 halves; 482 translatable strings).**
+Waves 1-7: civic 14 · legislature 12 · electoral 9 · judiciary 7 · executive 6 · organizations 6 ·
+system 6 · operator 6 · jurisdictions 4. Four dev harnesses excluded by design.
+
+---
+
+## ⚑ i18n key contract (for @lane-05) — settled 2026-07-25, before the catalog grew
+
+Written to lane 5's existing convention rather than inventing one. Their shape, verified in
+`resources/js/i18n/locales/<locale>/<ns>.json`, is a **flat map of `group.snake_key` → string**,
+with a parallel `meta/<locale>/<ns>.json` carrying `{status, provider}` per key.
+
+**Two new namespaces, no changes to any existing one:**
+
+| Namespace file | Key shape | Example |
+|---|---|---|
+| `c_achievements.json` | `achievement.{code_snake}` | `achievement.ach_civ_005` |
+| `c_education.json` | `education_{surface_snake}.{part}` | `education_civic_residency.s1_do` |
+
+`{surface_snake}` = the surface id with `/` and `-` collapsed to `_` (`civic/residency` →
+`civic_residency`). `{part}` is one of: `learn` · `s{n}_do` · `s{n}_detail` · `why`.
+
+### ⚠ The volume is bigger than the "140 items" figure I gave you — corrected here
+
+"140 items" counted **surface-halves**, not strings. Each half contains several strings. Measured
+from the 42 surfaces authored so far:
+
+**FINAL COUNTS — all 70 surfaces authored, so these are measured, not projected:**
+
+| | Count |
+|---|---|
+| `learn` sentences | **70** |
+| `howto` steps × (do + detail) | 187 × 2 = **374** |
+| `why` callouts | **38** |
+| **Education strings** | **482** |
+| **Achievement titles** | **139** |
+| **TOTAL lane-15 payload** | **621 strings** |
+
+That is **~4.4× the "140 items" figure I first gave you** — that number counted surface-halves,
+and each half holds several strings. Corrected the same night rather than after you had planned
+French and Portuguese capacity around it.
+
+**What is NOT in the payload — do not translate these:**
+- The **`cite` column**. It is Article references and form/role/clock ID tokens
+  (`F-IND-003`, `Art. II §6`, `CLK-05`). Per your own rule those tokens are **never localised**,
+  and the parenthetical glosses (`(Right to Reside)`) already live in `config/cga/surfaces.php`
+  citations, which is existing scope. **I emit zero new `cite` strings.**
+- Dev harness surfaces (`dev/*-kit`) — excluded from the education pass entirely.
+
+**Stability guarantee:** keys are derived mechanically from the surface id and step ordinal, so
+they are stable across re-authoring. If a step is inserted mid-list I will append rather than
+renumber, so a translated `s2_do` never silently becomes a different sentence.
 
 ---
 
@@ -600,6 +650,344 @@ the law directly.
 
 ---
 
+## Wave 5 — `executive` + `organizations` (12 surfaces)
+
+### 43. `executive/executive-home` — Executive home
+**learn:** The doing arm of a government: who carries out the laws, and who they answer to.
+
+| # | do | detail | cite |
+|---|---|---|---|
+| 1 | See how this executive exists | An executive starts as something the legislature **delegates**, not as a separate throne. | F-LEG-014 · Art. III §1 |
+| 2 | See its shape | Either a **committee** of five or more with equal voting power, or a **single officeholder** with the top four runners-up seated automatically as advisors. | Art. III §2–3 |
+| 3 | Remember who it answers to | It executes the laws; the legislature that created it can convert, constrain or remove it. | Art. III §1 |
+
+> **The why:** the executive is the only branch that begins as a *loan* of someone else's power.
+> Becoming directly elected takes a supermajority **and** the constituents' agreement.
+
+---
+
+### 44. `executive/departments` — Department registry
+**learn:** The standing offices that actually do the work — and how each one came to exist.
+
+| # | do | detail | cite |
+|---|---|---|---|
+| 1 | Browse the departments | Each was created by an act of the legislature, not by executive fiat. | F-LEG-016 |
+| 2 | See who governs each | Departments are run by a Board of Governors, seated on ten-year terms. | Art. II §9 · CLK-09 |
+
+---
+
+### 45. `executive/department-detail` — Department detail
+**learn:** One department: its mandate, its governors, its rules and its reports.
+
+| # | do | detail | cite |
+|---|---|---|---|
+| 1 | Read the mandate | A department can only act inside the scope its creating act gave it. | F-LEG-016 |
+| 2 | See the governors and their terms | Ten years, in lockstep with judicial appointments — long enough to outlast the politics. | CLK-09 |
+| 3 | Read the rules it has implemented | Rules are filed acts, on the record. | F-BOG-001 |
+
+---
+
+### 46. `executive/department-reporting` — Department reporting
+**learn:** What departments must publish about themselves, and when.
+
+| # | do | detail | cite |
+|---|---|---|---|
+| 1 | Read the filed reports | Reporting is a constitutional obligation, not a courtesy. | F-BOG-002 · Art. III §4 |
+| 2 | Note what reporting is for | Transparency is the mechanism that makes a ten-year term safe. | Art. III §4 |
+
+---
+
+### 47. `executive/executive-actions` — Executive actions
+**learn:** Orders and decisions the executive has issued — and the check that runs before any of
+them can be.
+
+| # | do | detail | cite |
+|---|---|---|---|
+| 1 | Read the issued orders | Every executive order is a public act from the moment it is issued. | F-EXE-005 |
+| 2 | Note the pre-issuance check | **Scope is validated before an order can issue.** An order outside the executive's delegated authority is refused by the engine, not litigated afterwards. | Art. III §1 |
+| 3 | See investigations and nominations | Departmental investigations and Board of Governors nominations are filed acts too. | F-EXE-004 · F-EXE-001 |
+
+> **The why:** the dangerous executive act is the one nobody sees until it has already happened.
+> Validating scope *before* issuance is what stops the order existing in the first place.
+
+---
+
+### 48. `organizations/org-registry` — Organization registry
+**learn:** Every registered organization where you live — parties, businesses, nonprofits and
+public companies, in **one open list**.
+
+| # | do | detail | cite |
+|---|---|---|---|
+| 1 | Browse the registry | One registry, one model, discriminated only by type. **There is no faction layer.** | Art. I · Art. III §5–6 |
+| 2 | Start one | Anyone who lives here can. | F-IND-012 |
+| 3 | See which are endorsing candidates | Endorsement, not membership, is the political-linkage metric. | F-ORG-002 |
+
+---
+
+### 49. `organizations/org-detail` — Organization profile
+**learn:** One organization's public face — ownership, board, endorsements, and how to join.
+
+| # | do | detail | cite |
+|---|---|---|---|
+| 1 | Read the profile | This is a public record. | Art. II §2 |
+| 2 | Follow the endorsement handshake | A candidate requests (F-CAN-002); the agent grants (F-ORG-002), which is forced public and confers R-07 on the candidate. | Art. I; Art. II §2 |
+| 3 | Join, or register as a worker | Membership and work are separate paths with separate consequences. | F-IND-013 · F-IND-014 |
+
+> **The why:** **endorsement linkage feeds proportionality, never a faction layer.** The worker
+> headcount feeds the co-determination scale. One organization model carries both.
+
+---
+
+### 50. `organizations/cgc-detail` — Common Good Corporation
+**learn:** A company chartered to serve the public — and the one rule that makes it different from
+every other company.
+
+| # | do | detail | cite |
+|---|---|---|---|
+| 1 | See its charter | Created by an act of a legislature, to serve a public purpose. | F-LEG-019 |
+| 2 | **Read its intellectual property register** | Everything a CGC creates — patents, trade secrets, copyrighted works — is **universally and eternally in the public domain**. | Art. III §5 |
+| 3 | Note what cannot happen | That status is permanent. It cannot be sold, licensed away, or reversed by any later act. | Art. III §5 |
+
+> **The why:** this is the sharpest single clause in the constitution. A public-purpose company's
+> work belongs to everyone, forever, with no mechanism anywhere to privatise it.
+
+---
+
+### 51. `organizations/board-elections` — Board elections
+**learn:** How an organization's board is chosen — and why some seats are elected by workers.
+
+| # | do | detail | cite |
+|---|---|---|---|
+| 1 | See the seats and their classes | Owner-elected and worker-elected seats sit on the same board. | Art. III §6 |
+| 2 | Run an election | Owner and worker elections are administered separately by the agent. | F-ORG-003 · F-ORG-004 |
+| 3 | Note the chair | The chair is **classless** — the joint chair belongs to neither side. | Art. III §6 |
+
+---
+
+### 52. `organizations/co-determination` — Co-determination scaling
+**learn:** The rule that gives the people who do the work a share of the decisions — and how it
+scales with headcount.
+
+| # | do | detail | cite |
+|---|---|---|---|
+| 1 | See the current headcount and what it earns | Worker representation begins at **100 employees**. | Art. III §6 |
+| 2 | See the parity threshold | At **2,000 employees**, worker and shareholder representation reach **parity**. | Art. III §6 |
+| 3 | Note that it recomputes itself | The scale is recalculated on a clock as headcount changes. Nobody has to remember to apply it. | CLK-13 · CLK-14 |
+
+> **The why:** this is automatic, and that is the point. Co-determination that depends on an owner
+> choosing to grant it is not co-determination.
+
+---
+
+### 53. `organizations/transfers-conversions` — Transfers and conversions
+**learn:** Changing who owns an organization, or changing what kind of thing it is.
+
+| # | do | detail | cite |
+|---|---|---|---|
+| 1 | Initiate a transfer of ownership | A filed act, on the record. | F-ORG-005 |
+| 2 | Request a public↔private conversion | Conversion changes the rules that apply — including, for a CGC, the permanent public-domain status of what it has already created. | F-ORG-006 · Art. III §5 |
+| 3 | Dissolve, if that is the end | Dissolution is also a public act. | F-ORG-007 |
+
+---
+
+### 54. `dev/executive-kit` — Executive & organizations component kit
+**learn:** Development harness. **Not product UI** — excluded from the education pass.
+
+---
+
+## Wave 6 — `system` + `operator` (12 surfaces)
+
+### 55. `system/audit-chain` — Audit chain
+**learn:** *(existing live copy, reused verbatim)* The audit chain — every constitutional act,
+hash-chained in order. Anyone can verify that nothing was quietly changed.
+
+| # | do | detail | cite |
+|---|---|---|---|
+| 1 | Read the chain | Every filing — accepted **and rejected** — is an entry, in order. | Art. II §2 |
+| 2 | Verify it yourself | Each entry carries the hash of the one before it. Changing any past entry breaks every entry after it. | — |
+| 3 | Note what is *not* in it | Ballot contents are never chained. Participation is recorded; how you voted is not. | Art. II §2 |
+
+> **The why:** tamper-**evidence**, not tamper-proofing. Nobody claims the past cannot be altered —
+> the claim is that altering it cannot be hidden.
+
+---
+
+### 56. `system/public-records` — Public records
+**learn:** *(existing live copy, reused verbatim)* The permanent public record — testimony, votes,
+acts, and rulings, readable by anyone, editable by no one.
+
+| # | do | detail | cite |
+|---|---|---|---|
+| 1 | Search the record | Testimony, votes, acts and rulings. | Art. II §2 |
+| 2 | Note what may never enter it | Ballots, envelopes, location pings and the private social graph are **structurally barred** from publication — refused at the single point where anything gets published. | Art. I; Art. II §2 |
+
+---
+
+### 57. `system/term-sync` — Term lockstep
+**learn:** Why civil and judicial appointment terms move together, and why that matters.
+
+| # | do | detail | cite |
+|---|---|---|---|
+| 1 | See the two term lengths | Both ten years, and they must stay in lockstep. | Art. II §9 · Art. IV §1 |
+| 2 | Understand the lock | Changing one without the other is refused. | Art. VII |
+
+> **The why:** if one branch's terms could be shortened alone, whoever controlled that lever could
+> time appointments to their advantage. Locking them together removes the lever.
+
+---
+
+### 58. `system/translations` — Translation status
+**learn:** Which languages the app speaks, and how completely.
+
+| # | do | detail | cite |
+|---|---|---|---|
+| 1 | See coverage per language | Machine and human translation are marked differently, so you know what you are reading. | — |
+| 2 | Note what is never translated | Form, role and clock identifiers stay identical in every language, so a citation means the same thing everywhere. | — |
+
+---
+
+### 59. `system/clocks` — The clocks
+**learn:** *(existing live copy, reused verbatim)* The scheduled sweeps that drive the world — every
+interval, deadline, window, and threshold that starts a process without anyone asking. Clocks hold
+no state; they move other things.
+
+| # | do | detail | cite |
+|---|---|---|---|
+| 1 | Read what each clock does | Twenty-one clocks, each with a stated cadence and a stated effect. | — |
+| 2 | Note the ones with constitutional ceilings | The emergency-powers clock cannot be extended past ninety days by any act. | CLK-03 · Art. II §7 |
+| 3 | Understand why clocks exist | **A deadline that depends on someone remembering is not a deadline.** | — |
+
+---
+
+### 60. `system/amendments` — Amendments
+**learn:** *(existing live copy, reused verbatim)* The constitution changes through exactly two
+doors: settings move by ordinary acts within locked bounds, and the hardened core changes only by a
+software release that passes the public constitutional checks.
+
+| # | do | detail | cite |
+|---|---|---|---|
+| 1 | See what is amendable | The settings register, inside fixed bounds. | F-LEG-031 · Art. VII |
+| 2 | See what is hardened | The counting method, the supermajority formula, the rights gates. **No majority anywhere can move these by act.** | Art. VII |
+| 3 | Note there is no third door | Anything that is not one of these two is not a route. | Art. VII |
+
+---
+
+### 61. `operator/home` — Operator home
+**learn:** Running a node — the volunteer servers the world runs on. **Keeping it online buys no
+vote and no seat.**
+
+| # | do | detail | cite |
+|---|---|---|---|
+| 1 | See your node's state | Health, storage, and what it is serving. | — |
+| 2 | Understand the boundary | Operating the infrastructure confers **no governance power whatsoever**. | Art. I |
+
+> **The why:** whoever holds the keys always *could* be powerful. So the app puts nothing behind
+> that door — no role, no vote, no seat — and says so out loud on the operator's own home screen.
+
+---
+
+### 62. `operator/console` — Mesh console
+**learn:** The controls for the node you run, and the acts that are logged when you use them.
+
+| # | do | detail | cite |
+|---|---|---|---|
+| 1 | Operate the node | Service state, jobs and infrastructure. | — |
+| 2 | Note what is on the operator plane, not the constitutional one | Operator acts are logged as operator acts. They are never constitutional filings and never enter the governance chain. | Art. I |
+
+---
+
+### 63. `operator/roles` — Mesh roles
+**learn:** Trust between nodes, expressed as specific capabilities rather than blanket authority.
+
+| # | do | detail | cite |
+|---|---|---|---|
+| 1 | See what each peer is trusted for | Trust is composable — a peer trusted for one channel is not trusted for all. | — |
+| 2 | Grant or revoke a channel | Each is a separate, reversible decision. | — |
+
+---
+
+### 64. `operator/mesh` — Peers & transports
+**learn:** Which other instances this node talks to, and how.
+
+| # | do | detail | cite |
+|---|---|---|---|
+| 1 | See connected peers | Federation is between whole governments, not between users. | — |
+| 2 | Note what crosses and what does not | Public records and earned achievements travel. Ballots, envelopes, education progress and the private social graph **never** do. | Art. I; Art. II §2 |
+
+---
+
+### 65. `operator/identity` — Node identity
+**learn:** How this instance proves it is itself to the rest of the mesh.
+
+| # | do | detail | cite |
+|---|---|---|---|
+| 1 | See the node's identity and keys | Identity is how Full Faith and Credit works — a peer must know whose record it is trusting. | — |
+| 2 | Note the separation | Node identity is not any person's identity. | Art. I |
+
+---
+
+### 66. `operator/versioning` — Versioning
+**learn:** Which version of the constitutional code this instance is running, and why that is a
+public fact.
+
+| # | do | detail | cite |
+|---|---|---|---|
+| 1 | See the running version | The hardened core lives in code, so *which code* is a constitutional fact. | Art. VII |
+| 2 | Understand the second door | This is the only route by which hardened rules change — a release that passes the public constitutional checks. | Art. VII |
+
+---
+
+## Wave 7 — `jurisdictions` (4 surfaces)
+
+### 67. `legislature/index` — Legislatures
+**learn:** Every legislature you can see from here, at every level of nesting.
+
+| # | do | detail | cite |
+|---|---|---|---|
+| 1 | Browse the legislatures | A place can have one at every scale — neighbourhood to planet. | Art. V §1 |
+| 2 | Note the sizing | **Districts elect five to nine representatives each.** A legislature is *composed of* districts and scales by the cube root of population — bigger places get more districts, not bigger rooms. | Art. II §2 |
+
+---
+
+### 68. `legislature/overview` — A legislature
+**learn:** One legislature in context: its jurisdiction, its districts, its seats and its term.
+
+| # | do | detail | cite |
+|---|---|---|---|
+| 1 | See its jurisdiction and districts | Seats are apportioned across the districts that make it up. | Art. V §1 |
+| 2 | See its term and next election | Terms and intervals come from the settings register, inside constitutional bounds. | Art. VII |
+
+---
+
+### 69. `legislature/districts` — The district mapper
+**learn:** The map itself — how the seats of a legislature are distributed across real places.
+
+| # | do | detail | cite |
+|---|---|---|---|
+| 1 | Read the active map | District plans are **versioned**: adopting a new one archives the old, never overwrites it. | Art. II §2 |
+| 2 | See seats per district | Each district elects between five and nine. | Art. II §2 |
+| 3 | Note how boundaries change | Drawing is a filed act by the election board, on the public record. | F-ELB-003 · F-ELB-008 |
+
+> **The why:** versioned maps mean a boundary change can always be compared against what it
+> replaced. A redistricting you cannot see the before-and-after of is not reviewable.
+
+---
+
+### 70. `jurisdictions/viewer` — A jurisdiction
+**learn:** One place: its boundaries, its population, its institutions, and whether its government
+has woken up yet.
+
+| # | do | detail | cite |
+|---|---|---|---|
+| 1 | See the place and its nesting | Every jurisdiction sits inside others and may contain others. | Art. V §1 |
+| 2 | See its institutions | Legislature, executive, judiciary — each present or not. | Art. V §1 |
+| 3 | Check whether it has activated | A government boots when enough real residents have confirmed there. **Until then the scaffolding exists but nothing governs.** | Art. V §1 |
+
+> **The why:** every place on Earth exists in the app from the start, but none of them govern until
+> actual people live there and say so. Institutions follow residents, never the other way round.
+
+---
+
 ## Things these waves surfaced
 
 1. **A real distinction worth teaching deliberately, not glossing.** `civic/public-square` is
@@ -623,7 +1011,12 @@ the law directly.
 | ✅ 2 | `legislature` | 12 | 24 |
 | ✅ 3 | `electoral` | 9 | 18 |
 | ✅ 4 | `judiciary` | 7 | 14 |
-| 5 | `executive` · `organizations` | 12 | 24 |
-| 6 | `operator` · `system` | 12 | 24 |
-| 7 | `jurisdictions` | 4 | 8 |
-| | **Total** | **70** | **140** |
+| ✅ 5 | `executive` · `organizations` | 12 | 24 |
+| ✅ 6 | `system` · `operator` | 12 | 24 |
+| ✅ 7 | `jurisdictions` | 4 | 8 |
+| | **Total — COMPLETE** | **70** | **140** |
+
+**Next for this content, in order:** (1) @operator reads a sample and rules on voice before it is
+moved anywhere; (2) the `learn` + `howto` keys move **server-side onto the `surfaces.php` record**
+(`K2_CURRICULUM.md` §9) so the client registry stops being a hand-maintained second copy;
+(3) @lane-05 extracts the 621 keys into `c_education.json` + `c_achievements.json`.

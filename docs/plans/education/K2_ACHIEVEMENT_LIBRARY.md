@@ -94,9 +94,9 @@ footprint is a separate immutable table + public milestone rows."*
 | **Catalog — jurisdiction** | **26** |
 | **Catalog — system / planet** | **9** |
 | **TOTAL CATALOG** | **139** |
-| — **server-verified** against a named source | **124** |
+| — **server-verified** against a named source | **126** |
 | — **tour ticks** (the journey arcs, labelled as such) | **13** |
-| — **deferred** to Phase I (@lane-03 reach) | **2** |
+| — **deferred** | **0** — Phase I completed 2026-07-25; every entry now has a live trigger |
 | — of the verified, **⏳ awaiting an economy UI** | **12** |
 
 **Earner split across the 91 personal `ACH-*` entries: `self` 48 · `state` 37 · `subject` 6.**
@@ -396,11 +396,25 @@ achievement is the 90-day ceiling holding.*
 | `ACH-SYS-004` | 1,000,000 confirmed residents | count | V |
 | `ACH-SYS-005` | First peer federation | peer handshake | V |
 | `ACH-SYS-006` | First union of governments | `F-LEG-029` | V |
-| `ACH-SYS-007` | Jurisdiction coverage % | coverage ratio | **D** |
-| `ACH-SYS-008` | Earth reach milestones (25/50/75/100) | `LegitimacyService::reachRatio()` | **D** |
+| `ACH-SYS-007` | Jurisdiction coverage % | `legitimacy_snapshots` | V |
+| `ACH-SYS-008` | Earth reach milestones (25/50/75/100) | `LegitimacyService::reachRatio()` | V |
 | `ACH-SYS-009` | Every continent represented | association geography | V |
 
-**Tier D** — 2 codes — consumes @lane-03's reach denominator. **The other 125 are independent.**
+**Tier D is now empty — @lane-03 completed Phase I on 2026-07-25.** `LegitimacyService::reachRatio(?int $verified, ?int $population, bool $suppressed)` is live and static, `legitimacy_snapshots`
+carries `ratio_micro / state / suppressed`, and the nightly job runs with a real `K_ANON_FLOOR`.
+**All 139 entries now have a live trigger source.**
+
+> ⚠ **The suppression rule, attached because publishing would otherwise defeat it.** Lane 3's
+> design does **complementary** suppression — hiding one cell is provably insufficient when
+> siblings let you derive it, so a parent is suppressed when its children's disclosure would
+> reconstruct it. A reach milestone published from a suppressed or sub-floor snapshot would
+> **re-disclose exactly what the suppression exists to hide**.
+>
+> Therefore `ACH-SYS-007/008` publish **only** where `suppressed = false` **and** `state` is
+> measurable. A jurisdiction that never reaches a publishable reach simply never earns the
+> milestone — and, per PI-2's no-abstention-leak half, **the absence must render identically to
+> "not yet reached", never as "suppressed"**. Saying *why* a milestone is missing would leak the
+> very population fact the floor protects.
 
 ---
 
