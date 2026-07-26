@@ -20,8 +20,8 @@ chain. Something the app did, not something someone claimed.
 Your own standard for this walk was: **"Does this exist? Can this do a thing?"** That is what each
 card checks. The tick is the thing that *looks* like an answer and isn't.
 
-*(This matches how the achievement catalog already separates its entries: 112 are "verified" and
-name a proving source; the 13 journey arcs are explicitly labelled tour ticks. Every pass condition
+*(This matches how the achievement catalog already separates its entries: 127 are “verified” and
+name a proving source; the 14 journey arcs are explicitly labelled tour ticks. Every pass condition
 here is drawn from the verified set.)*
 
 ---
@@ -971,47 +971,66 @@ need a confirmed residency to speak.
 ### G-1 · The audit chain verifies
 **What it is.** Every constitutional act, chained in order, so nothing can be changed after the
 fact without it showing. Currently over 7,000 entries on this box.
-**Role:** anyone · **Needs first:** nothing
+**Role:** ⚑ **YOURSELF, as the operator** · **Needs first:** nothing
+
+**⚑ Stop impersonating before this card.** Every section before this one had you being somebody
+else. **Verifying the chain is operator-only** — it's an expensive walk of every entry — so if you
+arrive still wearing someone else's face, the verify control simply isn't there and this card fails
+for a reason that has nothing to do with the chain. Return to yourself first.
 
 | # | Do this | On this screen | You should see |
 |---|---|---|---|
-| 1 | Open the chain | `/system/audit-chain` | Entries in order |
+| 0 | **Return to yourself** | the dev bar | You are you again |
+| 1 | Open the chain | `/system/audit-chain` | Entries in order, newest first |
 | 2 | Verify it | same | It confirms unbroken |
-| 3 | Find one of **your** acts from today | same | Your act, in order |
+| 3 | Find something **you** filed — match the form id in the `ref` column against the time you did it (your residency declaration is `F-IND-003`) | same | Your entry, in sequence |
 
-**PASSES IF** — the chain verifies **and** you can find something you personally did.
+**PASSES IF** — the chain verifies **and** you can pick out an act you performed.
+
+*Look at what step 3 made you do: the chain records **what happened and never who**. There is no
+name on any entry. You can find your own act because you know what you did and when — and nobody
+else can. That's the privacy rail, and it's easier to see by hunting for your own entry than by
+being told about it.*
 
 **Result** ☐ pass ☐ fail ☐ blocked  **Notes** ________________________________________
 
 ---
 
-### G-2 · The public record can't be quietly edited
+### G-2 · The public record cannot be edited at all
 **Role:** anyone · **Needs first:** F-1
+
+**Same shape as E-6 — you'll find nothing to click, and that's the pass.** Don't mark this blocked.
+"Can't be edited *quietly*" would understate it: edits don't happen and get logged, they are
+**refused by the database itself**, which will not accept a change or a deletion of these rows.
 
 | # | Do this | On this screen | You should see |
 |---|---|---|---|
 | 1 | Open the record | `/system/public-records` | Records, readable |
 | 2 | Read it signed out | same | Still readable |
-| 3 | Try to change or remove one | same | **No way to do it quietly** |
+| 3 | **Hunt for any way to change or remove one** | anywhere | **Nothing** |
 
-**PASSES IF** — records are public and cannot be silently altered.
+**PASSES IF** — records are public, readable without an account, and **there is no way to alter
+one**. If you find an edit or delete control, that is a serious finding.
 
 **Result** ☐ pass ☐ fail ☐ blocked  **Notes** ________________________________________
 
 ---
 
 ### G-3 · The clocks are armed
-**What it is.** The processes that start on their own — deadlines, sweeps, thresholds — with no
-one pressing anything.
+**What it is.** The rules that act without anyone pressing anything. **Most of them are not
+timers** — of the 21, only two run on a schedule. The rest are thresholds, windows and conditions
+that fire when something becomes true.
 **Role:** anyone · **Needs first:** nothing
 
 | # | Do this | On this screen | You should see |
 |---|---|---|---|
-| 1 | Open the clocks | `/system/clocks` | The full list, with timers |
-| 2 | Find the one that confirmed your residency in A-3 | same | It, and when it last ran |
+| 1 | Open the clocks | `/system/clocks` | All 21, each with what fires it |
+| 2 | Find the one that confirmed your residency in A-3 | same | A **threshold**, not a schedule |
+| 3 | Read what trips it | same | A number of qualifying days, and what it starts |
 
-**PASSES IF** — you can point at the clock that acted on you in A-3.
-*That connection — a rule firing on its own, on you — is the thing worth checking.*
+**PASSES IF** — you can point at the rule that acted on you in A-3 and read the condition that
+tripped it. *Don't look for "when it last ran" — most of these never "run". Yours fired because
+**you** crossed a line, which is the more interesting thing anyway.*
 
 **Result** ☐ pass ☐ fail ☐ blocked  **Notes** ________________________________________
 
@@ -1091,10 +1110,15 @@ seconds down.*
 ---
 
 ### H-4 · Draw a district by hand
-**Role:** operator · **Needs first:** H-3
+**Role:** ⚑ **yourself, as the operator** · **Needs first:** H-3
+
+**Same warning as G-1: be yourself for this one.** If you're still wearing somebody else's face
+from an earlier section, the drawing tools won't be there and the card fails on permissions rather
+than on drawing.
 
 | # | Do this | On this screen | You should see |
 |---|---|---|---|
+| 0 | Return to yourself if you're impersonating | the dev bar | You are you again |
 | 1 | Start a manual draw | the mapper | Drawing tools |
 | 2 | Draw one and accept it | same | It saved, with its seats |
 
