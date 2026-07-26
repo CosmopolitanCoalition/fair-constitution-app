@@ -100,11 +100,28 @@ Six instances in a single day, 2026-07-26, in six different costumes:
 | page text → empty | "the page is dead" | "what the DOM held before hydration" |
 | rendered DOM → full of data | "this page looks fine" | "the markup exists" — not that it is legible |
 | a report of two identical lines | "there is a duplicate import" | a summary, not the file |
+| 8 screenshots passing every pixel check | "8 pages render" | "8 images look like real pages" — they were 8 photographs of the **login screen** |
 
-**The habit that defeats all six: verify the probe, not just the result.** Before believing an
+**The habit that defeats all seven: verify the probe, not just the result.** Before believing an
 answer, ask what question the tool actually answered. Lane 15's framing, which is the shortest
 version: *"'completed, exit 0' answered 'did the wrapper exit?' and I read it as 'did the suite
 run?'"*
+
+### Two gates that catch what no single check can — lane 9, from the login-screen near-miss
+A verification rig reported **8 of 11 pages passing**. All 8 were the login screen: the dev login
+had briefly 502'd, every authenticated route redirected, and **a login page passes every pixel
+test** — real colours, real text, real edges. It would have certified six economy pages that were
+never captured.
+
+Build both of these into anything that verifies pages:
+- **Redirect check** — if the final URL's path differs from the requested path, **FAIL**. An
+  expired or broken session otherwise turns silently into a healthy-looking report.
+- **Duplicate check** — distinct URLs must produce distinct output. Eight identical hashes is not
+  eight passes.
+
+**The second is the deeper lesson and generalises past screenshots: some failures are invisible
+to any per-item check and appear only when you compare results against each other.** If a rig
+examines each result in isolation, it cannot see that they are all the same result.
 
 ### An uncommitted fatal is everyone's outage
 Laravel scans the whole `app/Console/Commands/` directory to build its command list. **One class
