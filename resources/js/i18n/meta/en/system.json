@@ -740,5 +740,159 @@
     "file": "Pages/System/TermSync.vue",
     "line": 205,
     "status": "source"
+  },
+  "system_translations.best_covered_language": {
+    "source_hash": "133e5e4c3282aa78d60d541ddff4fb1d4e449b26a2cb573f661ec22ed67d2268",
+    "shape": "attr:label",
+    "file": "Pages/System/Translations.vue",
+    "line": 142,
+    "status": "source"
+  },
+  "system_translations.by_language": {
+    "source_hash": "9afa906e185f8d278d8bb36f8e477bffbe8e9de4f90c806c67203a5757ef682f",
+    "shape": "attr:title",
+    "file": "Pages/System/Translations.vue",
+    "line": 158,
+    "status": "source"
+  },
+  "system_translations.by_namespace": {
+    "source_hash": "1ea426f5d27aef6483a107cf2d35384470553819868b31507ae5a9f1ec5bb26e",
+    "shape": "attr:title",
+    "file": "Pages/System/Translations.vue",
+    "line": 213,
+    "status": "source"
+  },
+  "system_translations.every_registered_language_carries_every_me": {
+    "source_hash": "48395774c7fdbc5ea4dbf8df980849b3f9817bef729c33682f5a5d7071c884f8",
+    "shape": "template",
+    "file": "Pages/System/Translations.vue",
+    "line": 151,
+    "status": "source"
+  },
+  "system_translations.how_much_of_this_application_a_person_can_": {
+    "source_hash": "737c9a5a8ca9222cc8e806347122ec5c11d334ef776979e45f53ae10e9ee83cc",
+    "shape": "template",
+    "file": "Pages/System/Translations.vue",
+    "line": 114,
+    "status": "source"
+  },
+  "system_translations.it_writes_and_exits_non_zero_while_any_lan": {
+    "source_hash": "ebca981d8670257cc53e92bee8e330da1c0edd2afbb717270fb44c52a9a95fce",
+    "shape": "template",
+    "file": "Pages/System/Translations.vue",
+    "line": 128,
+    "status": "source"
+  },
+  "system_translations.languages_present": {
+    "source_hash": "03910d2947054126fcf20eb69564747be5a7cf340ad2700103652fa2a3e03b3f",
+    "shape": "attr:label",
+    "file": "Pages/System/Translations.vue",
+    "line": 139,
+    "status": "source"
+  },
+  "system_translations.measured": {
+    "source_hash": "da8fad2dfbbc118aa940f6fe2807ba8b418b09eab14c1b15e74b0edb3f174447",
+    "shape": "template",
+    "file": "Pages/System/Translations.vue",
+    "line": 153,
+    "status": "source"
+  },
+  "system_translations.message_translations_are_still_owed_across": {
+    "source_hash": "c9f709ccd4b17dd7730c071bd59366d23b74aa57dbed20b29002b51bcc20dfb4",
+    "shape": "template",
+    "file": "Pages/System/Translations.vue",
+    "line": 147,
+    "status": "source"
+  },
+  "system_translations.messages_per_area_of_the_app_and_how_many_": {
+    "source_hash": "f846c9fd461fdf36e6f559274816235a41bc6b96ce6dd5e089eba993b9e7f32b",
+    "shape": "template",
+    "file": "Pages/System/Translations.vue",
+    "line": 214,
+    "status": "source"
+  },
+  "system_translations.messages_per_namespace_per_language": {
+    "source_hash": "fee955ba2b5d653dd0e4beea393bbcdd0f835ff27706cf4002f61e142fd49d10",
+    "shape": "attr:caption",
+    "file": "Pages/System/Translations.vue",
+    "line": 222,
+    "status": "source"
+  },
+  "system_translations.no_coverage_artifact_on_this_instance_run_": {
+    "source_hash": "c98f655c2e1f61e76d797f8e031de606dc573e41db6c61362484e296364613b3",
+    "shape": "template",
+    "file": "Pages/System/Translations.vue",
+    "line": 124,
+    "status": "source"
+  },
+  "system_translations.not_measured_yet": {
+    "source_hash": "baf7f6c7bd2d7f5286854406fcb020de5250c3c7a9f5d9114f15ea0637677cc0",
+    "shape": "attr:title",
+    "file": "Pages/System/Translations.vue",
+    "line": 123,
+    "status": "source"
+  },
+  "system_translations.records_publish_with_translations_wf_sys_0": {
+    "source_hash": "a7f21eb93ed062b76ac44cc6ced1cff5852ea11ed4872ed711ae1d69c9400cf2",
+    "shape": "attr:text",
+    "file": "Pages/System/Translations.vue",
+    "line": 226,
+    "status": "source"
+  },
+  "system_translations.run_for_the_per_key_detail_behind_each_cod": {
+    "source_hash": "1bc15a5b919f33c2e46d44c86428990f5e557ff7e42824326b5635628bd7351b",
+    "shape": "template",
+    "file": "Pages/System/Translations.vue",
+    "line": 206,
+    "status": "source"
+  },
+  "system_translations.same_as_english": {
+    "source_hash": "1fce50641566c532ebf0946863552d98657e57b8a37378e28bafd53f12a7eb39",
+    "shape": "script:label",
+    "file": "Pages/System/Translations.vue",
+    "line": 82,
+    "status": "source"
+  },
+  "system_translations.same_as_english_counts_values_byte_identic": {
+    "source_hash": "1bd26ce0bc00578eb85ef7f2367b4fc40235b616debdbfc8358811fe616a8f72",
+    "shape": "template",
+    "file": "Pages/System/Translations.vue",
+    "line": 182,
+    "status": "source"
+  },
+  "system_translations.the_gate_passes_no_language_is_behind_and_": {
+    "source_hash": "1dfd73daf14a44a2cdee96d68cd9fee0cfedffc70450c820f3d49737e749fb52",
+    "shape": "template",
+    "file": "Pages/System/Translations.vue",
+    "line": 190,
+    "status": "source"
+  },
+  "system_translations.translatable_messages_in_the_app": {
+    "source_hash": "d230dcac3297337c6dc8a7e025ff367a601bab36bdd1fbd83000c36af3bef2fc",
+    "shape": "attr:label",
+    "file": "Pages/System/Translations.vue",
+    "line": 137,
+    "status": "source"
+  },
+  "system_translations.translation_coverage_per_language": {
+    "source_hash": "fdb7f8dd02965be175054b23dc7ebee952196dc1c98784113ff3f8c9b6c94ef4",
+    "shape": "attr:caption",
+    "file": "Pages/System/Translations.vue",
+    "line": 163,
+    "status": "source"
+  },
+  "system_translations.translation_gate_findings_by_code": {
+    "source_hash": "8b06459db9b869c7724a79686d0968ccd3e72b87f1e2170adbc4e4e553d9a079",
+    "shape": "attr:caption",
+    "file": "Pages/System/Translations.vue",
+    "line": 200,
+    "status": "source"
+  },
+  "system_translations.where_we_are": {
+    "source_hash": "1ba88b77ba0f6e0d3e9772dff48fccba56bcd212144c8fd6a1347ddc3bdf65b0",
+    "shape": "attr:title",
+    "file": "Pages/System/Translations.vue",
+    "line": 135,
+    "status": "source"
   }
 }

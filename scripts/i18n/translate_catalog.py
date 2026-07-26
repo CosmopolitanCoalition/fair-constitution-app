@@ -187,6 +187,10 @@ class NllbProvider(Provider):
 
     name = "nllb"
 
+    # Sentences per forward pass. Bounds memory independently of --chunk, which
+    # counts strings; long-form content turns one string into dozens of pieces.
+    MAX_PIECES = 48
+
     def __init__(self, model_id="facebook/nllb-200-distilled-600M", device=None):
         import torch
         from transformers import AutoModelForSeq2SeqLM, AutoTokenizer
@@ -247,13 +251,23 @@ class NllbProvider(Provider):
             spans.append((len(pieces), len(pieces) + len(parts)))
             pieces.extend(parts)
 
-        try:
-            done = self._generate(pieces, tag)
-        except Exception as exc:  # noqa: BLE001
-            if "out of memory" not in str(exc).lower() or self.device == "cpu":
-                raise
-            self._to_cpu()
-            done = self._generate(pieces, tag)
+        # Sentence-splitting means the PIECE count, not the string count, decides
+        # how much goes through the model at once. That is fine for UI copy
+        # (1–3 sentences each) and lethal for long-form content: lane 15's
+        # curriculum is ~131,903 words, so a single education item can be ~50
+        # sentences and a 16-string chunk becomes ~800 — a guaranteed OOM. Cap
+        # the pieces per forward pass so the caller's --chunk stays a unit of
+        # WORK rather than an accidental memory bet.
+        done: list[str] = []
+        for i in range(0, len(pieces), self.MAX_PIECES):
+            window = pieces[i:i + self.MAX_PIECES]
+            try:
+                done.extend(self._generate(window, tag))
+            except Exception as exc:  # noqa: BLE001
+                if "out of memory" not in str(exc).lower() or self.device == "cpu":
+                    raise
+                self._to_cpu()
+                done.extend(self._generate(window, tag))
 
         return [" ".join(done[a:b]).strip() for a, b in spans]
 
