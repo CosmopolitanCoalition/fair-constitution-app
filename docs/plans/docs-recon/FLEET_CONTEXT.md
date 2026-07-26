@@ -106,6 +106,27 @@ filed "waiting on the operator to restart Docker" against a box where all 20 con
 running and healthy. **Use `timeout 45 docker ...` from bash; PowerShell is worse on this box.**
 Measure before concluding, and never call slow work "expected" without a baseline.
 
+### ⚑ RUN ARTISAN AS THE WEB USER — `docker exec -u www-data`
+**This one is a live landmine and every lane has stepped on it, including this desk.**
+
+```bash
+docker exec -u www-data fcd_app php artisan <command>     # correct
+docker exec fcd_app php artisan <command>                 # arms the landmine
+```
+
+Running artisan as **root** makes Laravel create or rotate `storage/logs/laravel.log` **owned by
+root, mode 644**. php-fpm runs as `uid=33(www-data)` and can then never append to it. The logging
+failure itself throws, so **every subsequent web request dies with a 500 instead of degrading** —
+and the error names monolog, not your command, so it looks like an app defect on whatever page
+someone opens next.
+
+Evidence from 2026-07-26 (`-rw-r--r-- 2 root root … laravel.log` against `uid=33(www-data)`):
+`/economy` and `/civic` both 500'd together. Two unrelated pages failing at once is what
+identified it as the machine rather than either lane's work.
+
+**Restarting the container clears the symptom and leaves the cause armed.** The only durable fix
+is the habit above.
+
 ### A single text read is not proof of blankness
 A page read before hydration returns empty. Lane 13 nearly filed `/economy` as a blank page;
 `#app` was 28,377 characters a moment later. **Check `#app` innerHTML length before concluding a
