@@ -1,0 +1,36 @@
+{
+  "civic_room_chamberstage.in_the_chamber": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "civic_room_chamberstage.no_one_is_on_the_floor_yet_join_the_voice_": {
+    "status": "machine",
+    "reason": "suspiciously short — source content likely dropped",
+    "provider": "nllb"
+  },
+  "civic_room_liveroom.no_voice_host_is_reachable_from_here_right": {
+    "status": "machine",
+    "reason": "suspiciously short — source content likely dropped",
+    "provider": "nllb"
+  },
+  "civic_room_liveroom.you_can_still_take_part_in_text_below": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "civic_room_participanttile.screen_share": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "civic_signaturemeter.needed": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "civic_signaturemeter.threshold_of_population_clk_17": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "civic_signaturemeter.threshold_reached": {
+    "status": "machine",
+    "provider": "nllb"
+  }
+}

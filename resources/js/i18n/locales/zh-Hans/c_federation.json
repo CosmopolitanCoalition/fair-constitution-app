@@ -1,0 +1,6 @@
+{
+  "federation_syncprogress.joining_the_cluster": "加入集团",
+  "federation_syncprogress.of_left": "{fmtValue} 的 {fmtValue2}~{fmtDuration} 左",
+  "federation_syncprogress.records_pagesimporting_the_foundation_into": "{fmtNum}记录 · {fmtNum2}页 进口基础到数据库中...进口观察...{fmtNum3}/s",
+  "federation_syncprogress.you_can_leave_this_page_the_sync_runs_in_t": "您可以离开此页面, 同步在背景中运行,并在中断时恢复."
+}

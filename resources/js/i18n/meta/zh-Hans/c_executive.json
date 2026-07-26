@@ -1,0 +1,20 @@
+{
+  "executive_departmentcard.below_threshold": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "executive_orderscopecard.emergency_methods_widen_the_delegated_scop": {
+    "status": "machine",
+    "reason": "suspiciously short — source content likely dropped",
+    "provider": "nllb"
+  },
+  "executive_orderscopecard.judicially_reviewable_art_iv_5": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "executive_orderscopecard.rejected_pre_issuance_the_order_never_took": {
+    "status": "machine",
+    "reason": "suspiciously short — source content likely dropped",
+    "provider": "nllb"
+  }
+}

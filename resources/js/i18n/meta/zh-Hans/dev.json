@@ -1,0 +1,902 @@
+{
+  "dev_electoralkit.1_2_interactive_v_model_3_4_disabled_with_": {
+    "status": "machine",
+    "reason": "suspiciously short — source content likely dropped",
+    "provider": "nllb"
+  },
+  "dev_electoralkit.add_write_in": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "dev_electoralkit.approval_phase_open": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "dev_electoralkit.approval_renders_nothing_except_the_regist": {
+    "status": "machine",
+    "reason": "suspiciously short — source content likely dropped",
+    "provider": "nllb"
+  },
+  "dev_electoralkit.approveswitch_states": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "dev_electoralkit.ballotreceipt_full_compact_non_copyable": {
+    "status": "machine",
+    "reason": "suspiciously short — source content likely dropped",
+    "provider": "nllb"
+  },
+  "dev_electoralkit.ballots_exhausted": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "dev_electoralkit.ballots_so_far_droop_quota_if_closed_now": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "dev_electoralkit.candidaterow_finalistline_full_manhattan_s": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "dev_electoralkit.countback_failed_ballots_exhausted": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "dev_electoralkit.countback_re_run_stvbar_reuse": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "dev_electoralkit.counting_rounds": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "dev_electoralkit.droop_quota": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "dev_electoralkit.droop_quota_2": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "dev_electoralkit.droop_quota_floor_votes_seats_1_1": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "dev_electoralkit.electoral_approveswitch_switch_revocable_n": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "dev_electoralkit.electoral_phasebanner_contexts_open_ballot": {
+    "status": "machine",
+    "reason": "suspiciously short — source content likely dropped",
+    "provider": "nllb"
+  },
+  "dev_electoralkit.electoral_stvbar_stv_cand_family_gold_tick": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "dev_electoralkit.f_ind_007_receipt_shown_once_cryptographic": {
+    "status": "review",
+    "reason": "ID token altered",
+    "provider": "nllb"
+  },
+  "dev_electoralkit.fe_b1_harness_the_8_electoral_components_r": {
+    "status": "machine",
+    "reason": "suspiciously short — source content likely dropped",
+    "provider": "nllb"
+  },
+  "dev_electoralkit.finalist_roster_roster_row": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "dev_electoralkit.fixture_data_only": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "dev_electoralkit.gold_tick_the_droop_quota_reaching_it_elec": {
+    "status": "machine",
+    "reason": "suspiciously short — source content likely dropped",
+    "provider": "nllb"
+  },
+  "dev_electoralkit.keyboard_pass_buttons_keep_focus_on_the_mo": {
+    "status": "machine",
+    "reason": "suspiciously short — source content likely dropped",
+    "provider": "nllb"
+  },
+  "dev_electoralkit.live_aggregate_ranked_window": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "dev_electoralkit.nothing_on_this_page_touches_the_database_": {
+    "status": "machine",
+    "reason": "suspiciously short — source content likely dropped",
+    "provider": "nllb"
+  },
+  "dev_electoralkit.phase": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "dev_electoralkit.phasebanner_all_phases_contexts": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "dev_electoralkit.post_commit_lock_disabled": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "dev_electoralkit.ranked": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "dev_electoralkit.ranklist_your_ranking_ranked": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "dev_electoralkit.re_run_of_prior_ballots_with_the_vacated_m": {
+    "status": "machine",
+    "reason": "suspiciously short — source content likely dropped",
+    "provider": "nllb"
+  },
+  "dev_electoralkit.referendum_vote_committed_receipt": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "dev_electoralkit.row_1_switch_omitted_viewer_not_associated": {
+    "status": "machine",
+    "reason": "suspiciously short — source content likely dropped",
+    "provider": "nllb"
+  },
+  "dev_electoralkit.seats_all_filled_in_one_count": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "dev_electoralkit.struck_member_eliminated_styling_removed_f": {
+    "status": "machine",
+    "reason": "suspiciously short — source content likely dropped",
+    "provider": "nllb"
+  },
+  "dev_electoralkit.stv_with_droop_quota_fractional_gregory_su": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "dev_electoralkit.stvbar_standalone_states": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "dev_electoralkit.stvround_the_queens_count_round_by_round_2": {
+    "status": "machine",
+    "reason": "suspiciously short — source content likely dropped",
+    "provider": "nllb"
+  },
+  "dev_electoralkit.toggling_approve_flips_the_switch_and_the_": {
+    "status": "machine",
+    "reason": "suspiciously short — source content likely dropped",
+    "provider": "nllb"
+  },
+  "dev_electoralkit.top_from_the_approval_phase_clk_21": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "dev_electoralkit.valid_ballots": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "dev_electoralkit.validated_non_finalists": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "dev_electoralkit.winner_found": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "dev_electoralkit.winner_found_camille_verhoeven": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "dev_electoralkit.write_in": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "dev_electoralkit.write_in_a_validated_candidate": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "dev_electoralkit.your_active_approvals_revocable": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "dev_executiveorgkit.5_of_9_meets_a_majority_but_not_ceil_9_2_3": {
+    "status": "machine",
+    "reason": "suspiciously short — source content likely dropped",
+    "provider": "nllb"
+  },
+  "dev_executiveorgkit.boardstrip_compact_pip_strip_only": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "dev_executiveorgkit.boardstrip_composition_invalid_vacant_work": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "dev_executiveorgkit.boardstrip_public_works_utilities_7_govern": {
+    "status": "machine",
+    "reason": "suspiciously short — source content likely dropped",
+    "provider": "nllb"
+  },
+  "dev_executiveorgkit.codetscale_below_threshold_parity": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "dev_executiveorgkit.codetscale_formula_pins_the_a_2_unit_contr": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "dev_executiveorgkit.codetscale_interactive_explorer_keyboard_o": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "dev_executiveorgkit.codetscale_static_bluefin_logistics_740_wo": {
+    "status": "machine",
+    "reason": "suspiciously short — source content likely dropped",
+    "provider": "nllb"
+  },
+  "dev_executiveorgkit.codetscale_thresholds_defaults_50_1_000_by": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "dev_executiveorgkit.compact_invalid_still_surfaces_the_banner": {
+    "status": "machine",
+    "reason": "suspiciously short — source content likely dropped",
+    "provider": "nllb"
+  },
+  "dev_executiveorgkit.config_cga_state_machines_php_php_owned_pr": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "dev_executiveorgkit.constituentconsentpanel_billdetail_call_si": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "dev_executiveorgkit.constituentconsentpanel_constituent_leg_fa": {
+    "status": "machine",
+    "reason": "suspiciously short — source content likely dropped",
+    "provider": "nllb"
+  },
+  "dev_executiveorgkit.constituentconsentpanel_dual_supermajority": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "dev_executiveorgkit.constituentconsentpanel_one_leg_failed_own": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "dev_executiveorgkit.constituentconsentpanel_open_both_meters_p": {
+    "status": "machine",
+    "reason": "suspiciously short — source content likely dropped",
+    "provider": "nllb"
+  },
+  "dev_executiveorgkit.constituentconsentpanel_server_required_re": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "dev_executiveorgkit.department_board_esm_17_current_operating": {
+    "status": "machine",
+    "reason": "suspiciously short — source content likely dropped",
+    "provider": "nllb"
+  },
+  "dev_executiveorgkit.departmentcard_the_5_department_registry_g": {
+    "status": "machine",
+    "reason": "suspiciously short — source content likely dropped",
+    "provider": "nllb"
+  },
+  "dev_executiveorgkit.detailed_true_on_the_rejected_fixture": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "dev_executiveorgkit.detailed_variant_order_body_the_order_life": {
+    "status": "machine",
+    "reason": "suspiciously short — source content likely dropped",
+    "provider": "nllb"
+  },
+  "dev_executiveorgkit.executive_departmentcard_co_determination_": {
+    "status": "machine",
+    "reason": "suspiciously short — source content likely dropped",
+    "provider": "nllb"
+  },
+  "dev_executiveorgkit.executive_office_esm_16_current_forming_th": {
+    "status": "machine",
+    "reason": "suspiciously short — source content likely dropped",
+    "provider": "nllb"
+  },
+  "dev_executiveorgkit.executive_orderscopecard_rejected_rows_car": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "dev_executiveorgkit.fe_d1_harness_the_phase_d_executive_organi": {
+    "status": "machine",
+    "reason": "suspiciously short — source content likely dropped",
+    "provider": "nllb"
+  },
+  "dev_executiveorgkit.formula_pin_broken_the_explorer_no_longer_": {
+    "status": "machine",
+    "reason": "suspiciously short — source content likely dropped",
+    "provider": "nllb"
+  },
+  "dev_executiveorgkit.legislature_constituentconsentpanel_the_mu": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "dev_executiveorgkit.modified_is_an_event_not_an_executive_rest": {
+    "status": "machine",
+    "reason": "suspiciously short — source content likely dropped",
+    "provider": "nllb"
+  },
+  "dev_executiveorgkit.no_stakes_table_the_board_of_governors_sta": {
+    "status": "machine",
+    "reason": "suspiciously short — source content likely dropped",
+    "provider": "nllb"
+  },
+  "dev_executiveorgkit.nothing_on_this_page_touches_the_database_": {
+    "status": "machine",
+    "reason": "suspiciously short — source content likely dropped",
+    "provider": "nllb"
+  },
+  "dev_executiveorgkit.orderscopecard_the_order_register_issued_e": {
+    "status": "machine",
+    "reason": "suspiciously short — source content likely dropped",
+    "provider": "nllb"
+  },
+  "dev_executiveorgkit.org_boardstrip_the_two_clock_regimes_side_": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "dev_executiveorgkit.org_codetscale_workerseats_is_the_engine_s": {
+    "status": "review",
+    "reason": "ID token altered",
+    "provider": "nllb"
+  },
+  "dev_executiveorgkit.organization_esm_18_current_active": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "dev_executiveorgkit.ownershippanel_cgc_variant_the_ledger_12_o": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "dev_executiveorgkit.ownershippanel_equal_partnership_unanimity": {
+    "status": "machine",
+    "reason": "suspiciously short — source content likely dropped",
+    "provider": "nllb"
+  },
+  "dev_executiveorgkit.ownershippanel_stock_bluefin_1_204_shareho": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "dev_executiveorgkit.phase_c_billcontroller_feed_consents_carry": {
+    "status": "machine",
+    "reason": "suspiciously short — source content likely dropped",
+    "provider": "nllb"
+  },
+  "dev_executiveorgkit.same_740_workers_now_yield_7_seats_the_mar": {
+    "status": "machine",
+    "reason": "suspiciously short — source content likely dropped",
+    "provider": "nllb"
+  },
+  "dev_executiveorgkit.state_machines_fe_d0_config_entries_displa": {
+    "status": "machine",
+    "reason": "suspiciously short — source content likely dropped",
+    "provider": "nllb"
+  },
+  "dev_executiveorgkit.stepper_bog_pipeline_seated_departments_ht": {
+    "status": "machine",
+    "reason": "suspiciously short — source content likely dropped",
+    "provider": "nllb"
+  },
+  "dev_executiveorgkit.stepper_consent_vote_pending": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "dev_executiveorgkit.table_rows_departmentcard_variant_pips_kee": {
+    "status": "machine",
+    "reason": "suspiciously short — source content likely dropped",
+    "provider": "nllb"
+  },
+  "dev_executiveorgkit.the_exit_criterion_2_moment_the_scale_dema": {
+    "status": "machine",
+    "reason": "suspiciously short — source content likely dropped",
+    "provider": "nllb"
+  },
+  "dev_executiveorgkit.the_one_phase_d_component_with_client_arit": {
+    "status": "machine",
+    "reason": "suspiciously short — source content likely dropped",
+    "provider": "nllb"
+  },
+  "dev_executiveorgkit.ui_stepper_nomination_dossier_f_exe_001_co": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "dev_judiciarykit.12_jurors_2_alternates_drawn_at_random_fro": {
+    "status": "machine",
+    "reason": "suspiciously short — source content likely dropped",
+    "provider": "nllb"
+  },
+  "dev_judiciarykit.answers_prop_no_submitscreening_the_questi": {
+    "status": "machine",
+    "reason": "suspiciously short — source content likely dropped",
+    "provider": "nllb"
+  },
+  "dev_judiciarykit.art4_5tracker_applied_path_c_judiciary_edi": {
+    "status": "machine",
+    "reason": "suspiciously short — source content likely dropped",
+    "provider": "nllb"
+  },
+  "dev_judiciarykit.art4_5tracker_empty_state_no_open_challeng": {
+    "status": "review",
+    "reason": "ID token altered",
+    "provider": "nllb"
+  },
+  "dev_judiciarykit.art4_5tracker_nov_k_curfew_3_window_open_o": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "dev_judiciarykit.art4_5tracker_overridden_path_b_supermajor": {
+    "status": "machine",
+    "reason": "suspiciously short — source content likely dropped",
+    "provider": "nllb"
+  },
+  "dev_judiciarykit.art4_5tracker_override_required_rendered_v": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "dev_judiciarykit.case_esm_case_current_jury_empaneled_the_w": {
+    "status": "review",
+    "reason": "ID token altered",
+    "provider": "nllb"
+  },
+  "dev_judiciarykit.caselifecycle_major_constitutional_variant": {
+    "status": "machine",
+    "reason": "suspiciously short — source content likely dropped",
+    "provider": "nllb"
+  },
+  "dev_judiciarykit.caselifecycle_state_v_whitfield_stage_6_ju": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "dev_judiciarykit.constituentconsentpanel_judiciary_conversi": {
+    "status": "machine",
+    "reason": "suspiciously short — source content likely dropped",
+    "provider": "nllb"
+  },
+  "dev_judiciarykit.constituentconsentpanel_judiciary_conversi_2": {
+    "status": "machine",
+    "reason": "suspiciously short — source content likely dropped",
+    "provider": "nllb"
+  },
+  "dev_judiciarykit.constitutional_challenge_esm_cc_current_le": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "dev_judiciarykit.constitutional_major_5_full_court_snapshot": {
+    "status": "machine",
+    "reason": "suspiciously short — source content likely dropped",
+    "provider": "nllb"
+  },
+  "dev_judiciarykit.dockets_opinions_challenges_findings_and_p": {
+    "status": "machine",
+    "reason": "suspiciously short — source content likely dropped",
+    "provider": "nllb"
+  },
+  "dev_judiciarykit.draw_integrity_the_seed_is_published_to_th": {
+    "status": "machine",
+    "reason": "suspiciously short — source content likely dropped",
+    "provider": "nllb"
+  },
+  "dev_judiciarykit.drawn": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "dev_judiciarykit.f_ind_016_filing_fields_render_here_on_the": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "dev_judiciarykit.fe_e1_harness_the_phase_e_judiciary_compon": {
+    "status": "review",
+    "reason": "ID token altered",
+    "provider": "nllb"
+  },
+  "dev_judiciarykit.full_faith_credit_public_acts_records_and_": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "dev_judiciarykit.judiciary_art4section5tracker_the_exit_cri": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "dev_judiciarykit.judiciary_caselifecycle_the_case_esm_state": {
+    "status": "machine",
+    "reason": "suspiciously short — source content likely dropped",
+    "provider": "nllb"
+  },
+  "dev_judiciarykit.judiciary_jurorscreening_ui_radiogroup_per": {
+    "status": "review",
+    "reason": "ID token altered",
+    "provider": "nllb"
+  },
+  "dev_judiciarykit.judiciary_paneltable_panelsize_isfullcourt": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "dev_judiciarykit.jurorscreening_clean_result_branch": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "dev_judiciarykit.jurorscreening_flagged_result_branch": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "dev_judiciarykit.jurorscreening_read_only_answered_discharg": {
+    "status": "machine",
+    "reason": "suspiciously short — source content likely dropped",
+    "provider": "nllb"
+  },
+  "dev_judiciarykit.jurorscreening_the_voir_dire_questionnaire": {
+    "status": "machine",
+    "reason": "suspiciously short — source content likely dropped",
+    "provider": "nllb"
+  },
+  "dev_judiciarykit.legislature_constituentconsentpanel_reused": {
+    "status": "review",
+    "reason": "citation altered",
+    "provider": "nllb"
+  },
+  "dev_judiciarykit.live_record_render_no_back_advance_the_str": {
+    "status": "machine",
+    "reason": "suspiciously short — source content likely dropped",
+    "provider": "nllb"
+  },
+  "dev_judiciarykit.major_severity_but_panelsize_3_snapshot_re": {
+    "status": "machine",
+    "reason": "suspiciously short — source content likely dropped",
+    "provider": "nllb"
+  },
+  "dev_judiciarykit.nothing_on_this_page_touches_the_database_": {
+    "status": "machine",
+    "reason": "suspiciously short — source content likely dropped",
+    "provider": "nllb"
+  },
+  "dev_judiciarykit.on_both_passed_i_jud_i_jde_judges_thereaft": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "dev_judiciarykit.panel_pin_broken_the_component_recomputed_": {
+    "status": "machine",
+    "reason": "suspiciously short — source content likely dropped",
+    "provider": "nllb"
+  },
+  "dev_judiciarykit.paneltable_engine_snapshot_pins_the_a_1_un": {
+    "status": "machine",
+    "reason": "suspiciously short — source content likely dropped",
+    "provider": "nllb"
+  },
+  "dev_judiciarykit.paneltable_full_court_major_constitutional": {
+    "status": "machine",
+    "reason": "suspiciously short — source content likely dropped",
+    "provider": "nllb"
+  },
+  "dev_judiciarykit.paneltable_pending_excluded_judge_draw_re_": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "dev_judiciarykit.paneltable_serious_case_3_seated_1_recused": {
+    "status": "machine",
+    "reason": "suspiciously short — source content likely dropped",
+    "provider": "nllb"
+  },
+  "dev_judiciarykit.pool": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "dev_judiciarykit.public_read_posture_the_defining_phase_e_r": {
+    "status": "machine",
+    "reason": "suspiciously short — source content likely dropped",
+    "provider": "nllb"
+  },
+  "dev_judiciarykit.random_draw_complete_voir_dire_under_way": {
+    "status": "machine",
+    "reason": "suspiciously short — source content likely dropped",
+    "provider": "nllb"
+  },
+  "dev_judiciarykit.report": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "dev_judiciarykit.serious_3_snapshot": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "dev_judiciarykit.state_machines_fe_e0_config_entries_displa": {
+    "status": "machine",
+    "reason": "suspiciously short — source content likely dropped",
+    "provider": "nllb"
+  },
+  "dev_judiciarykit.the_exit_criterion_render_lawdiff_shows_th": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "dev_judiciarykit.the_three_challenge_resolution_terminals_a": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "dev_judiciarykit.where": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "dev_legislaturekit.3_rings_12_20_9_dynamic_viewbox_32_type_a_": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "dev_legislaturekit.agendastrip_constitutional_order_locked_sl": {
+    "status": "machine",
+    "reason": "suspiciously short — source content likely dropped",
+    "provider": "nllb"
+  },
+  "dev_legislaturekit.aisha_diop": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "dev_legislaturekit.all_clear_variant_the_locked_slots_render_": {
+    "status": "machine",
+    "reason": "suspiciously short — source content likely dropped",
+    "provider": "nllb"
+  },
+  "dev_legislaturekit.bicameral_committee_stage_per_kind_committ": {
+    "status": "machine",
+    "reason": "suspiciously short — source content likely dropped",
+    "provider": "nllb"
+  },
+  "dev_legislaturekit.bicameral_majority_adopted_both_kinds_agre": {
+    "status": "machine",
+    "reason": "suspiciously short — source content likely dropped",
+    "provider": "nllb"
+  },
+  "dev_legislaturekit.bicameral_majority_failed_type_b_does_not_": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "dev_legislaturekit.bicameral_majority_pending_floor": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "dev_legislaturekit.bicameral_supermajority_adopted_22_of_32_6": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "dev_legislaturekit.bicameral_supermajority_failed_type_a_shor": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "dev_legislaturekit.bill_esm_07_current_in_committee": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "dev_legislaturekit.committee_seat_referendum_question_emergen": {
+    "status": "machine",
+    "reason": "suspiciously short — source content likely dropped",
+    "provider": "nllb"
+  },
+  "dev_legislaturekit.compact_list_row_variant": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "dev_legislaturekit.del_ins_carry_visually_hidden_removed_adde": {
+    "status": "machine",
+    "reason": "suspiciously short — source content likely dropped",
+    "provider": "nllb"
+  },
+  "dev_legislaturekit.denominator_is_the_snapshot_petitions_thre": {
+    "status": "machine",
+    "reason": "suspiciously short — source content likely dropped",
+    "provider": "nllb"
+  },
+  "dev_legislaturekit.editable_r_10_session_open": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "dev_legislaturekit.emergencybanner_cross_surface_alert_shell_": {
+    "status": "machine",
+    "reason": "suspiciously short — source content likely dropped",
+    "provider": "nllb"
+  },
+  "dev_legislaturekit.empty_renders_nothing_between_the_rules": {
+    "status": "machine",
+    "reason": "suspiciously short — source content likely dropped",
+    "provider": "nllb"
+  },
+  "dev_legislaturekit.every_member_ranks_the_full_committee_list": {
+    "status": "machine",
+    "reason": "suspiciously short — source content likely dropped",
+    "provider": "nllb"
+  },
+  "dev_legislaturekit.f_spk_002_1_outstanding_emergency_powers_2": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "dev_legislaturekit.fe_c1_harness_the_phase_c_legislature_comp": {
+    "status": "machine",
+    "reason": "suspiciously short — source content likely dropped",
+    "provider": "nllb"
+  },
+  "dev_legislaturekit.gathering_below_threshold": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "dev_legislaturekit.gold_ring_speaker_politically_neutral_vote": {
+    "status": "machine",
+    "reason": "suspiciously short — source content likely dropped",
+    "provider": "nllb"
+  },
+  "dev_legislaturekit.groupbykind_bicameral_surfaces": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "dev_legislaturekit.highlight_roster_hover_sync": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "dev_legislaturekit.items_are_id_name_chips_rankedballot_maps_": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "dev_legislaturekit.keep_focus_on_the_moved_item_s_control_and": {
+    "status": "machine",
+    "reason": "suspiciously short — source content likely dropped",
+    "provider": "nllb"
+  },
+  "dev_legislaturekit.lawdiff_server_computed_segments_law_diff_": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "dev_legislaturekit.legislature_seatmap_port_of_chambersvg_sen": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "dev_legislaturekit.legislature_votetally_pure_renderer_of_cha": {
+    "status": "machine",
+    "reason": "suspiciously short — source content likely dropped",
+    "provider": "nllb"
+  },
+  "dev_legislaturekit.member_votes_are_public_the_opposite_of_ba": {
+    "status": "machine",
+    "reason": "suspiciously short — source content likely dropped",
+    "provider": "nllb"
+  },
+  "dev_legislaturekit.mockup_record_4_4_speaker_broke_the_tie_f_": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "dev_legislaturekit.motion_esm_08_current_voted": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "dev_legislaturekit.none": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "dev_legislaturekit.nothing_on_this_page_touches_the_database_": {
+    "status": "machine",
+    "reason": "suspiciously short — source content likely dropped",
+    "provider": "nllb"
+  },
+  "dev_legislaturekit.petition_esm_10_current_signature_audit": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "dev_legislaturekit.quinn_avery": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "dev_legislaturekit.rank_every_committee_the_assignment_algori": {
+    "status": "machine",
+    "reason": "suspiciously short — source content likely dropped",
+    "provider": "nllb"
+  },
+  "dev_legislaturekit.ranklist_removable_false_committee_prefere": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "dev_legislaturekit.ranklist_removable_true_chips_electoral_ca": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "dev_legislaturekit.renders_nothing_when_empty_shared_prop_app": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "dev_legislaturekit.rita_alvarez": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "dev_legislaturekit.seatmap_41_seat_bicameral_san_marino_shape": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "dev_legislaturekit.seatmap_9_seat_unicameral_mockup_chamber": {
+    "status": "machine",
+    "reason": "suspiciously short — source content likely dropped",
+    "provider": "nllb"
+  },
+  "dev_legislaturekit.segments_rendered_verbatim_what_citizens_s": {
+    "status": "machine",
+    "reason": "suspiciously short — source content likely dropped",
+    "provider": "nllb"
+  },
+  "dev_legislaturekit.signaturemeter_petition_thresholds_clk_17": {
+    "status": "machine",
+    "reason": "suspiciously short — source content likely dropped",
+    "provider": "nllb"
+  },
+  "dev_legislaturekit.state_machines_fe_c0_config_entries_displa": {
+    "status": "machine",
+    "reason": "suspiciously short — source content likely dropped",
+    "provider": "nllb"
+  },
+  "dev_legislaturekit.submitted_locked_read_only": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "dev_legislaturekit.threshold_reached": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "dev_legislaturekit.tied_awaiting_the_speaker": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "dev_legislaturekit.tied_broken_adopted_5_4": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "dev_legislaturekit.two_active_powers_one_under_judicial_revie": {
+    "status": "machine",
+    "reason": "suspiciously short — source content likely dropped",
+    "provider": "nllb"
+  },
+  "dev_legislaturekit.two_per_kind_blocks_peg_quorum_meter_thres": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "dev_legislaturekit.votecastlist_published_positions": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "dev_legislaturekit.votecastlist_tie_break_record_grouped_kind": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "dev_legislaturekit.votetally_bicameral_dual_agreement_san_mar": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "dev_legislaturekit.votetally_casting_cluster_emit_only": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "dev_legislaturekit.votetally_committee_majority_2_of_3_all_me": {
+    "status": "machine",
+    "reason": "suspiciously short — source content likely dropped",
+    "provider": "nllb"
+  },
+  "dev_legislaturekit.votetally_tie_speaker_tie_break_9_serving_": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "dev_legislaturekit.votetally_unicameral_threshold_classes_mon": {
+    "status": "machine",
+    "reason": "suspiciously short — source content likely dropped",
+    "provider": "nllb"
+  },
+  "dev_legislaturekit.yes_no_abstain_optional_explanation_publis": {
+    "status": "machine",
+    "provider": "nllb"
+  }
+}

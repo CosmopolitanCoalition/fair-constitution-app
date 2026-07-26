@@ -1,0 +1,8 @@
+{
+  "shell_appheader.world_of_statecraft": "政权的世界",
+  "shell_devbar.dev_controls_not_part_of_the_application": "Dev 控制 不属于应用程序",
+  "shell_devbar.impersonating": "{label} 假装 {name}",
+  "shell_devbar.residency_tool_civic_residency": "居住工具 → /公民/居住",
+  "shell_emergencybanner.judicial_review_pending_f_jdg_007": "目前正在进行司法审查 · F-JDG-007",
+  "shell_emergencybanner.open_the_emergency_powers_dashboard": "打开紧急电源仪表板"
+}

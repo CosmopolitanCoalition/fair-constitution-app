@@ -1,0 +1,6 @@
+{
+  "executive_departmentcard.below_threshold": "低于门值",
+  "executive_orderscopecard.emergency_methods_widen_the_delegated_scop": "{label}紧急方法只扩大授权范围在申报区域和持续时间内 · Art. II §7 · CLK-03",
+  "executive_orderscopecard.judicially_reviewable_art_iv_5": "在司法上可审查 · Art. IV §5",
+  "executive_orderscopecard.rejected_pre_issuance_the_order_never_took": "拒绝前发行: {rejection_citation} 命令从来没有生效;拒绝的尝试已公开记录."
+}

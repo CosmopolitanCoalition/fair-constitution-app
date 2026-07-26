@@ -1,0 +1,88 @@
+{
+  "invite_landing.an_invite_carries_no_power_nobody_gains_a_": {
+    "status": "machine",
+    "reason": "suspiciously short — source content likely dropped",
+    "provider": "nllb"
+  },
+  "invite_landing.browse_everything_every_place_on_earth_eve": {
+    "status": "machine",
+    "reason": "suspiciously short — source content likely dropped",
+    "provider": "nllb"
+  },
+  "invite_landing.create_an_account": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "invite_landing.either_way_you_ll_land_right_where_this_li": {
+    "status": "machine",
+    "reason": "suspiciously short — source content likely dropped",
+    "provider": "nllb"
+  },
+  "invite_landing.explore_first": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "invite_landing.is_a_private_room_they_saved_you_a_seat_cr": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "invite_landing.join_anyway": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "invite_landing.log_in": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "invite_landing.look_around_first": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "invite_landing.sign_up_join": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "invite_landing.step_in": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "invite_landing.step_in_and_see_what_this_is_is_already_op": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "invite_landing.that_link_is_no_longer_valid_but_the_door_": {
+    "status": "machine",
+    "reason": "suspiciously short — source content likely dropped",
+    "provider": "nllb"
+  },
+  "invite_landing.this_invite_link_has_expired": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "invite_landing.watch_any_public_room_every_hearing_meetin": {
+    "status": "machine",
+    "reason": "suspiciously short — source content likely dropped",
+    "provider": "nllb"
+  },
+  "invite_landing.what_you_can_do_right_now": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "invite_landing.when_you_want_a_voice_to_speak_on_the_reco": {
+    "status": "machine",
+    "reason": "suspiciously short — source content likely dropped",
+    "provider": "nllb"
+  },
+  "invite_landing.where_this_leads": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "invite_landing.world_of_statecraft": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "invite_landing.you_re_invited": {
+    "status": "machine",
+    "provider": "nllb"
+  }
+}

@@ -1,0 +1,10 @@
+{
+  "support_report.file_a_report": "提交报告",
+  "support_report.file_report": "文件报告",
+  "support_report.filed_from": "来自: {ref}",
+  "support_report.plain_words_are_fine_include_what_you_expe": "简单的话是可以的. 首先,请把你预期的内容和你看到的内容列在其中.",
+  "support_report.reports_land_in_the_operator_s_support_inb": "报告登陆运营商的支持收件箱,并按类别进行路由. 这种摄入从来没有编辑或删除内容本身.",
+  "support_report.what_happened": "发生了什么事?",
+  "support_report.what_kind_of_report_is_this": "这是什么样的报告?",
+  "support_report.you_need_to_be_signed_in_to_file_a_report_": "您需要登录才能提交报告 登录并返回这个页面."
+}

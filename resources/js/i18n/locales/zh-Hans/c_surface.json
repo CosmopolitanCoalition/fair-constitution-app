@@ -1,0 +1,7 @@
+{
+  "surface_aboutsurface.about_this_surface": "关于这个表面",
+  "surface_formcard.available_to": "可供 {form}",
+  "surface_formcard.submitting": "提交...",
+  "surface_pagescaffold.canonical_forms": "常规形式:",
+  "surface_pagescaffold.workflows": "工作流程: {wf}"
+}

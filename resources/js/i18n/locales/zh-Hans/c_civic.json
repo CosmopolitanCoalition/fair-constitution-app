@@ -1,0 +1,10 @@
+{
+  "civic_room_chamberstage.in_the_chamber": "在室内 {statusLabel}",
+  "civic_room_chamberstage.no_one_is_on_the_floor_yet_join_the_voice_": "没有人在地板上. 加入语音电话,坐下来.",
+  "civic_room_liveroom.no_voice_host_is_reachable_from_here_right": "现在没有音频主机可以从这里到达. 房间只提供短信. 你的位置和记录飞机不受影响.",
+  "civic_room_liveroom.you_can_still_take_part_in_text_below": "{errorMessage}您仍然可以参加下面的文字.",
+  "civic_room_participanttile.screen_share": "屏幕共享",
+  "civic_signaturemeter.needed": "{threshold}需要 · {pct}%",
+  "civic_signaturemeter.threshold_of_population_clk_17": "门 {threshold} = {pct}%的人口 · CLK-17",
+  "civic_signaturemeter.threshold_reached": "达到的门"
+}

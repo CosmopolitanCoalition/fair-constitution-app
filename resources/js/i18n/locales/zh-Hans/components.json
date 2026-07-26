@@ -1,0 +1,12 @@
+{
+  "cosmicaddresspicker.loading_cosmic_address": "装载宇宙地址...",
+  "cosmicaddresspicker.multiverse": "多元宇宙",
+  "schemaupdatebanner.apply_updates": "应用更新",
+  "schemaupdatebanner.required_apply_before_starting_an_etl_run": "要求: {pendingLabel} 在启动ETL运行之前应用.",
+  "setupstepper.build_districts": "建设地区",
+  "setupstepper.confirm_seat_institutions": "确认和定位机构",
+  "setupstepper.constitutional_defaults": "宪法违法行为",
+  "setupstepper.cosmic_address": "太空地址",
+  "setupstepper.map_data": "地图数据",
+  "setupstepper.setup_progress": "设置进展"
+}

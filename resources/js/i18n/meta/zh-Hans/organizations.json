@@ -1,0 +1,961 @@
+{
+  "organizations_boardelections.any_composition_change_a_seat_added_by_the": {
+    "status": "machine",
+    "reason": "suspiciously short — source content likely dropped",
+    "provider": "nllb"
+  },
+  "organizations_boardelections.any_composition_change_a_seat_added_by_the_2": {
+    "status": "machine",
+    "reason": "suspiciously short — source content likely dropped",
+    "provider": "nllb"
+  },
+  "organizations_boardelections.board_elections_reuse_the_public_election_": {
+    "status": "machine",
+    "reason": "suspiciously short — source content likely dropped",
+    "provider": "nllb"
+  },
+  "organizations_boardelections.chair_elected_jointly_by_the_entire_board_": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "organizations_boardelections.chair_seated_as_joint_chair_public_record_": {
+    "status": "machine",
+    "reason": "suspiciously short — source content likely dropped",
+    "provider": "nllb"
+  },
+  "organizations_boardelections.co_determination_provisions_a_board_on_the": {
+    "status": "machine",
+    "reason": "suspiciously short — source content likely dropped",
+    "provider": "nllb"
+  },
+  "organizations_boardelections.composition_changed_a_fresh_joint_chair_el": {
+    "status": "machine",
+    "reason": "suspiciously short — source content likely dropped",
+    "provider": "nllb"
+  },
+  "organizations_boardelections.composition_invalid_a_worker_track_electio": {
+    "status": "machine",
+    "reason": "suspiciously short — source content likely dropped",
+    "provider": "nllb"
+  },
+  "organizations_boardelections.droop_quota": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "organizations_boardelections.droop_quota_2": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "organizations_boardelections.droop_quota_floor_votes_seats_1_1": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "organizations_boardelections.election_in_flight": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "organizations_boardelections.eligible_owners_active_shareholdings_r_24": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "organizations_boardelections.eligible_owners_see_the_race_on_their_ball": {
+    "status": "machine",
+    "reason": "suspiciously short — source content likely dropped",
+    "provider": "nllb"
+  },
+  "organizations_boardelections.eligible_workers_active_f_ind_014_registra": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "organizations_boardelections.eligible_workers_see_the_race_on_their_bal": {
+    "status": "machine",
+    "reason": "suspiciously short — source content likely dropped",
+    "provider": "nllb"
+  },
+  "organizations_boardelections.final_round_of_the_certified_worker_track_": {
+    "status": "machine",
+    "reason": "suspiciously short — source content likely dropped",
+    "provider": "nllb"
+  },
+  "organizations_boardelections.gold_tick_the_droop_quota_reaching_it_elec": {
+    "status": "machine",
+    "reason": "suspiciously short — source content likely dropped",
+    "provider": "nllb"
+  },
+  "organizations_boardelections.joint_chair_elected_by_the_entire_board_rc": {
+    "status": "machine",
+    "reason": "suspiciously short — source content likely dropped",
+    "provider": "nllb"
+  },
+  "organizations_boardelections.joint_chair_r_28": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "organizations_boardelections.no_board_constituted": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "organizations_boardelections.no_chair_election_on_record_yet": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "organizations_boardelections.no_owner_track_election_has_run_schedule_o": {
+    "status": "machine",
+    "reason": "suspiciously short — source content likely dropped",
+    "provider": "nllb"
+  },
+  "organizations_boardelections.no_seats_filled_yet_winners_of_the_owner_a": {
+    "status": "machine",
+    "reason": "suspiciously short — source content likely dropped",
+    "provider": "nllb"
+  },
+  "organizations_boardelections.no_worker_track_election_has_run_yet_the_v": {
+    "status": "machine",
+    "reason": "suspiciously short — source content likely dropped",
+    "provider": "nllb"
+  },
+  "organizations_boardelections.no_worker_track_the_first_worker_seat_appe": {
+    "status": "review",
+    "reason": "ID token altered",
+    "provider": "nllb"
+  },
+  "organizations_boardelections.no_worker_track_yet": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "organizations_boardelections.of_seated": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "organizations_boardelections.opens_the_same_two_phase_open_ballot_as_a_": {
+    "status": "machine",
+    "reason": "suspiciously short — source content likely dropped",
+    "provider": "nllb"
+  },
+  "organizations_boardelections.owner_side_seats_r_26": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "organizations_boardelections.owner_track_pr_stv": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "organizations_boardelections.round": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "organizations_boardelections.round_record_protected_counting_engine": {
+    "status": "machine",
+    "reason": "suspiciously short — source content likely dropped",
+    "provider": "nllb"
+  },
+  "organizations_boardelections.schedule_owner_track_election_f_org_003": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "organizations_boardelections.schedule_worker_track_election_f_org_004": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "organizations_boardelections.shareholders_elect_the_owner_side_the_same": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "organizations_boardelections.the_board": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "organizations_boardelections.the_joint_chair_election_opens_once_the_bo": {
+    "status": "machine",
+    "reason": "suspiciously short — source content likely dropped",
+    "provider": "nllb"
+  },
+  "organizations_boardelections.the_seated_board": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "organizations_boardelections.the_winner_must_reach_a_majority_of_all_se": {
+    "status": "machine",
+    "reason": "suspiciously short — source content likely dropped",
+    "provider": "nllb"
+  },
+  "organizations_boardelections.this_organization_has_no_board_yet": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "organizations_boardelections.this_track_exists_because_the_organization": {
+    "status": "machine",
+    "reason": "suspiciously short — source content likely dropped",
+    "provider": "nllb"
+  },
+  "organizations_boardelections.three_counts_seat_one_board_shareholders_e": {
+    "status": "machine",
+    "reason": "suspiciously short — source content likely dropped",
+    "provider": "nllb"
+  },
+  "organizations_boardelections.vote_on_the_ranked_ballot": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "organizations_boardelections.worker_elected_seats_r_27": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "organizations_boardelections.worker_track_pr_stv": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "organizations_cgcdetail.a_cgc_is_subject_to_the_same_regulation_as": {
+    "status": "machine",
+    "reason": "suspiciously short — source content likely dropped",
+    "provider": "nllb"
+  },
+  "organizations_cgcdetail.a_common_good_corporation_is_a_public_ente": {
+    "status": "machine",
+    "reason": "suspiciously short — source content likely dropped",
+    "provider": "nllb"
+  },
+  "organizations_cgcdetail.a_common_good_corporation_is_public_proper": {
+    "status": "machine",
+    "reason": "suspiciously short — source content likely dropped",
+    "provider": "nllb"
+  },
+  "organizations_cgcdetail.art_iii_5_6_as_implemented_ledger_12": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "organizations_cgcdetail.board_composition": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "organizations_cgcdetail.charter_the_legislature_creates": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "organizations_cgcdetail.chartered_by": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "organizations_cgcdetail.chartered_by_act": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "organizations_cgcdetail.co_determination_the_board_of_governors_st": {
+    "status": "machine",
+    "reason": "suspiciously short — source content likely dropped",
+    "provider": "nllb"
+  },
+  "organizations_cgcdetail.conversion_history": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "organizations_cgcdetail.effective": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "organizations_cgcdetail.every_work_is_public_domain_from_the_momen": {
+    "status": "machine",
+    "reason": "suspiciously short — source content likely dropped",
+    "provider": "nllb"
+  },
+  "organizations_cgcdetail.every_work_this_corporation_produces_is_pu": {
+    "status": "review",
+    "reason": "citation altered",
+    "provider": "nllb"
+  },
+  "organizations_cgcdetail.in_a_common_good_corporation_the_board_of_": {
+    "status": "machine",
+    "reason": "suspiciously short — source content likely dropped",
+    "provider": "nllb"
+  },
+  "organizations_cgcdetail.introduce_a_reorganization_sale_bill": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "organizations_cgcdetail.no_board_constituted_yet": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "organizations_cgcdetail.no_charter_purpose_recorded": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "organizations_cgcdetail.no_overseeing_executive_assigned_yet": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "organizations_cgcdetail.no_works_registered_yet": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "organizations_cgcdetail.no_works_registered_yet_the_public_domain_": {
+    "status": "machine",
+    "reason": "suspiciously short — source content likely dropped",
+    "provider": "nllb"
+  },
+  "organizations_cgcdetail.only_the_legislature_may_reorganize_sell_o": {
+    "status": "machine",
+    "reason": "suspiciously short — source content likely dropped",
+    "provider": "nllb"
+  },
+  "organizations_cgcdetail.organization_registryoverseeing_department": {
+    "status": "machine",
+    "reason": "suspiciously short — source content likely dropped",
+    "provider": "nllb"
+  },
+  "organizations_cgcdetail.oversight_the_executive_oversees": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "organizations_cgcdetail.public_domain_dedications_status_is_always": {
+    "status": "machine",
+    "reason": "suspiciously short — source content likely dropped",
+    "provider": "nllb"
+  },
+  "organizations_cgcdetail.public_domain_intellectual_property_regist": {
+    "status": "machine",
+    "reason": "suspiciously short — source content likely dropped",
+    "provider": "nllb"
+  },
+  "organizations_cgcdetail.regulated_identically_to_private_peers_har": {
+    "status": "machine",
+    "reason": "suspiciously short — source content likely dropped",
+    "provider": "nllb"
+  },
+  "organizations_cgcdetail.reorganization_sale_and_dissolution": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "organizations_cgcdetail.reports_every_month_s": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "organizations_cgcdetail.select_a_kind": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "organizations_cgcdetail.status_esm_18": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "organizations_cgcdetail.the_legislature_creates_the_executive_over": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "organizations_cgcdetail.there_is_no_status_field_public_domain_is_": {
+    "status": "machine",
+    "reason": "suspiciously short — source content likely dropped",
+    "provider": "nllb"
+  },
+  "organizations_cgcdetail.through": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "organizations_cgcdetail.workers_r_25": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "organizations_codetermination.any_composition_change_a_seat_added_by_the": {
+    "status": "machine",
+    "reason": "suspiciously short — source content likely dropped",
+    "provider": "nllb"
+  },
+  "organizations_codetermination.available_to": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "organizations_codetermination.below_threshold": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "organizations_codetermination.chair_elected_jointly_by_the_entire_board_": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "organizations_codetermination.clk_13_first_worker_seat": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "organizations_codetermination.clk_14_worker_owner_parity": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "organizations_codetermination.co_determination_scaling": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "organizations_codetermination.co_determination_state_of_every_live_board": {
+    "status": "machine",
+    "reason": "suspiciously short — source content likely dropped",
+    "provider": "nllb"
+  },
+  "organizations_codetermination.composition_change_re_triggers_the_joint_c": {
+    "status": "machine",
+    "reason": "suspiciously short — source content likely dropped",
+    "provider": "nllb"
+  },
+  "organizations_codetermination.composition_invalid": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "organizations_codetermination.enacted_by_record": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "organizations_codetermination.no_board_has_reached_the_first_seat_thresh": {
+    "status": "machine",
+    "reason": "suspiciously short — source content likely dropped",
+    "provider": "nllb"
+  },
+  "organizations_codetermination.no_entity_bound_drag_the_slider_to_explore": {
+    "status": "machine",
+    "reason": "suspiciously short — source content likely dropped",
+    "provider": "nllb"
+  },
+  "organizations_codetermination.one_boards_table_one_co_determination_engi": {
+    "status": "machine",
+    "reason": "suspiciously short — source content likely dropped",
+    "provider": "nllb"
+  },
+  "organizations_codetermination.one_row_per_live_board_across_private_ente": {
+    "status": "machine",
+    "reason": "suspiciously short — source content likely dropped",
+    "provider": "nllb"
+  },
+  "organizations_codetermination.open": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "organizations_codetermination.open_the_entity": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "organizations_codetermination.owner_side": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "organizations_codetermination.required_wf_org_04_wf_org_05": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "organizations_codetermination.template_default_founding_value": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "organizations_codetermination.the_active_worker_headcount_at_which_the_f": {
+    "status": "machine",
+    "reason": "suspiciously short — source content likely dropped",
+    "provider": "nllb"
+  },
+  "organizations_codetermination.the_headcount_at_which_worker_seats_reach_": {
+    "status": "machine",
+    "reason": "suspiciously short — source content likely dropped",
+    "provider": "nllb"
+  },
+  "organizations_codetermination.the_scale_applies_equally_every_board_one_": {
+    "status": "machine",
+    "reason": "suspiciously short — source content likely dropped",
+    "provider": "nllb"
+  },
+  "organizations_codetermination.the_scale_binds_from_the_first_qualifying_": {
+    "status": "review",
+    "reason": "ID token altered",
+    "provider": "nllb"
+  },
+  "organizations_codetermination.the_scale_explorer": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "organizations_codetermination.the_worker_track_and_the_joint_chair_elect": {
+    "status": "machine",
+    "reason": "suspiciously short — source content likely dropped",
+    "provider": "nllb"
+  },
+  "organizations_codetermination.when_a_company_employs_or_more_people_its_": {
+    "status": "machine",
+    "reason": "suspiciously short — source content likely dropped",
+    "provider": "nllb"
+  },
+  "organizations_codetermination.worker_seats": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "organizations_orgdetail.a_candidate_requests_f_can_002_the_agent_g": {
+    "status": "review",
+    "reason": "ID token altered",
+    "provider": "nllb"
+  },
+  "organizations_orgdetail.a_contract_takes_effect_only_with_both_sig": {
+    "status": "machine",
+    "reason": "suspiciously short — source content likely dropped",
+    "provider": "nllb"
+  },
+  "organizations_orgdetail.a_recurring_labor_contract_backs_the_regis": {
+    "status": "machine",
+    "reason": "suspiciously short — source content likely dropped",
+    "provider": "nllb"
+  },
+  "organizations_orgdetail.a_stable_identifier_for_the_package_e_g_by": {
+    "status": "machine",
+    "reason": "suspiciously short — source content likely dropped",
+    "provider": "nllb"
+  },
+  "organizations_orgdetail.active_co_signed": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "organizations_orgdetail.agent_r_23": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "organizations_orgdetail.an_organization_s_public_profile_ownership": {
+    "status": "machine",
+    "reason": "suspiciously short — source content likely dropped",
+    "provider": "nllb"
+  },
+  "organizations_orgdetail.apply_for_membership": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "organizations_orgdetail.apply_for_this_organization_s_ownership_cl": {
+    "status": "review",
+    "reason": "ID token altered",
+    "provider": "nllb"
+  },
+  "organizations_orgdetail.become_a_member": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "organizations_orgdetail.board_co_determination": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "organizations_orgdetail.board_elections_co_determination_explorer": {
+    "status": "machine",
+    "reason": "suspiciously short — source content likely dropped",
+    "provider": "nllb"
+  },
+  "organizations_orgdetail.both_signatures_on_record": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "organizations_orgdetail.co_determination_begins_at_workers_clk_13_": {
+    "status": "machine",
+    "reason": "suspiciously short — source content likely dropped",
+    "provider": "nllb"
+  },
+  "organizations_orgdetail.co_sign": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "organizations_orgdetail.confirm_your_residency_to_join_art_i": {
+    "status": "machine",
+    "reason": "suspiciously short — source content likely dropped",
+    "provider": "nllb"
+  },
+  "organizations_orgdetail.confirm_your_residency_to_register_as_a_wo": {
+    "status": "machine",
+    "reason": "suspiciously short — source content likely dropped",
+    "provider": "nllb"
+  },
+  "organizations_orgdetail.contract_reference": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "organizations_orgdetail.counterparty": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "organizations_orgdetail.counts_toward_the_worker_headcount": {
+    "status": "machine",
+    "reason": "suspiciously short — source content likely dropped",
+    "provider": "nllb"
+  },
+  "organizations_orgdetail.document_packages": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "organizations_orgdetail.edit_profile_r_23": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "organizations_orgdetail.endorsement_linkage_feeds_proportionality_": {
+    "status": "machine",
+    "reason": "suspiciously short — source content likely dropped",
+    "provider": "nllb"
+  },
+  "organizations_orgdetail.granted": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "organizations_orgdetail.granted_endorsements": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "organizations_orgdetail.internal_document_packages": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "organizations_orgdetail.internal_packages_never_override_the_const": {
+    "status": "machine",
+    "reason": "suspiciously short — source content likely dropped",
+    "provider": "nllb"
+  },
+  "organizations_orgdetail.lifecycle_esm_18": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "organizations_orgdetail.no_board_constituted": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "organizations_orgdetail.no_contracts_on_record": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "organizations_orgdetail.no_document_packages_on_record": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "organizations_orgdetail.no_endorsements_granted_yet": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "organizations_orgdetail.org_counterparty": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "organizations_orgdetail.pending_co_signature": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "organizations_orgdetail.pending_requests": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "organizations_orgdetail.record_version": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "organizations_orgdetail.register_as_a_worker": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "organizations_orgdetail.register_as_worker": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "organizations_orgdetail.requested": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "organizations_orgdetail.save_profile": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "organizations_orgdetail.this_profile_is_a_public_record_the_endors": {
+    "status": "review",
+    "reason": "sentence count fell 2 -> 1",
+    "provider": "nllb"
+  },
+  "organizations_orgdetail.upload_a_new_version_r_23": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "organizations_orgdetail.worker_headcount_feeds_the_co_determinatio": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "organizations_orgdetail.you": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "organizations_orgdetail.you_are_a_member": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "organizations_orgdetail.you_are_registered_as_a_worker": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "organizations_orgdetail.your_membership_is": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "organizations_registry.all_jurisdictions": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "organizations_registry.all_structures": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "organizations_registry.any_associated_resident_may_register_one_a": {
+    "status": "machine",
+    "reason": "suspiciously short — source content likely dropped",
+    "provider": "nllb"
+  },
+  "organizations_registry.clear_filters": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "organizations_registry.co_determination": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "organizations_registry.common_good_corporations": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "organizations_registry.common_good_corporations_are_not_self_regi": {
+    "status": "machine",
+    "reason": "suspiciously short — source content likely dropped",
+    "provider": "nllb"
+  },
+  "organizations_registry.confirm_residency_to_register": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "organizations_registry.confirm_your_residency": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "organizations_registry.currently_endorsing_a_candidate": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "organizations_registry.endorsing_and_the_co_determination_tiers_a": {
+    "status": "machine",
+    "reason": "suspiciously short — source content likely dropped",
+    "provider": "nllb"
+  },
+  "organizations_registry.every_registered_organization_where_you_li": {
+    "status": "machine",
+    "reason": "suspiciously short — source content likely dropped",
+    "provider": "nllb"
+  },
+  "organizations_registry.filter_organizations": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "organizations_registry.no_board": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "organizations_registry.no_organizations_match_the_current_filters": {
+    "status": "machine",
+    "reason": "suspiciously short — source content likely dropped",
+    "provider": "nllb"
+  },
+  "organizations_registry.no_organizations_registered_in_your_associ": {
+    "status": "machine",
+    "reason": "suspiciously short — source content likely dropped",
+    "provider": "nllb"
+  },
+  "organizations_registry.organization_lifecycle_esm_18": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "organizations_registry.organization_registry": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "organizations_registry.ownership_structure": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "organizations_registry.registered_organizations": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "organizations_registry.registering_an_organization": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "organizations_registry.registration_is_an_absolute_right_of_any_a": {
+    "status": "machine",
+    "reason": "suspiciously short — source content likely dropped",
+    "provider": "nllb"
+  },
+  "organizations_registry.search_by_name": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "organizations_registry.the_registry_at_a_glance": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "organizations_registry.type_structure": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "organizations_transfersconversions.a_conversion_request_routes_to_the_legisla": {
+    "status": "machine",
+    "reason": "suspiciously short — source content likely dropped",
+    "provider": "nllb"
+  },
+  "organizations_transfersconversions.acquisition_vote_ordinary_majority_of_all_": {
+    "status": "machine",
+    "reason": "suspiciously short — source content likely dropped",
+    "provider": "nllb"
+  },
+  "organizations_transfersconversions.an_organization_s_ownership_can_change_fiv": {
+    "status": "review",
+    "reason": "sentence count fell 2 -> 1",
+    "provider": "nllb"
+  },
+  "organizations_transfersconversions.archived_record": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "organizations_transfersconversions.awaiting_consent": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "organizations_transfersconversions.common_good_corporation_private_sale": {
+    "status": "machine",
+    "reason": "suspiciously short — source content likely dropped",
+    "provider": "nllb"
+  },
+  "organizations_transfersconversions.consent_as_transferee": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "organizations_transfersconversions.founding_governor_offers": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "organizations_transfersconversions.founding_governor_seats_offered_to_the_pri": {
+    "status": "machine",
+    "reason": "suspiciously short — source content likely dropped",
+    "provider": "nllb"
+  },
+  "organizations_transfersconversions.four_paths_one_principle_ownership_never_m": {
+    "status": "review",
+    "reason": "sentence count fell 3 -> 2",
+    "provider": "nllb"
+  },
+  "organizations_transfersconversions.internal_restructuring_and_dissolution": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "organizations_transfersconversions.internal_restructuring_needs_no_legislatur": {
+    "status": "machine",
+    "reason": "suspiciously short — source content likely dropped",
+    "provider": "nllb"
+  },
+  "organizations_transfersconversions.internal_restructurings": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "organizations_transfersconversions.introduce_a_cgc_reorganization_sale_bill": {
+    "status": "machine",
+    "reason": "suspiciously short — source content likely dropped",
+    "provider": "nllb"
+  },
+  "organizations_transfersconversions.introduce_a_monopoly_acquisition_bill": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "organizations_transfersconversions.judicial_path_planned_phase_e": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "organizations_transfersconversions.monopoly_acquisition_the_one_path_that_ove": {
+    "status": "machine",
+    "reason": "suspiciously short — source content likely dropped",
+    "provider": "nllb"
+  },
+  "organizations_transfersconversions.mutual_transfer_both_consents_required": {
+    "status": "machine",
+    "reason": "suspiciously short — source content likely dropped",
+    "provider": "nllb"
+  },
+  "organizations_transfersconversions.no_conversions_on_record": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "organizations_transfersconversions.no_dissolutions_on_record": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "organizations_transfersconversions.no_internal_restructurings_recorded_here_s": {
+    "status": "review",
+    "reason": "suspiciously short for Hans — source content likely dropped (12/108 chars, floor 0.12)",
+    "provider": "nllb"
+  },
+  "organizations_transfersconversions.no_monopoly_acquisitions_on_record": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "organizations_transfersconversions.no_transfers_on_record": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "organizations_transfersconversions.open_this_page_with_to_file_a_transfer_con": {
+    "status": "machine",
+    "reason": "suspiciously short — source content likely dropped",
+    "provider": "nllb"
+  },
+  "organizations_transfersconversions.ownership_transfers": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "organizations_transfersconversions.ownership_transfers_only_by_mutual_consent": {
+    "status": "machine",
+    "reason": "suspiciously short — source content likely dropped",
+    "provider": "nllb"
+  },
+  "organizations_transfersconversions.private_common_good_corporation": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "organizations_transfersconversions.public_private_conversion": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "organizations_transfersconversions.record": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "organizations_transfersconversions.shareholders_paid_fair_market_the_engine_b": {
+    "status": "machine",
+    "reason": "suspiciously short — source content likely dropped",
+    "provider": "nllb"
+  },
+  "organizations_transfersconversions.showing_the_transfer_conversion_register_f": {
+    "status": "machine",
+    "reason": "suspiciously short — source content likely dropped",
+    "provider": "nllb"
+  },
+  "organizations_transfersconversions.the_receiving_organization_or_individual": {
+    "status": "machine",
+    "reason": "suspiciously short — source content likely dropped",
+    "provider": "nllb"
+  },
+  "organizations_transfersconversions.transferee_id": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "organizations_transfersconversions.transferee_type": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "organizations_transfersconversions.transfers_and_conversions": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "organizations_transfersconversions.unknown_organization": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "organizations_transfersconversions.when_the_legislature_finds_monopolistic_co": {
+    "status": "machine",
+    "reason": "suspiciously short — source content likely dropped",
+    "provider": "nllb"
+  },
+  "organizations_transfersconversions.whole_instance_registry": {
+    "status": "machine",
+    "provider": "nllb"
+  }
+}

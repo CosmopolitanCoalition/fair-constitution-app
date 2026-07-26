@@ -1,0 +1,10 @@
+{
+  "home.fair_constitution_app": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "home.redirecting_to_setup": {
+    "status": "machine",
+    "provider": "nllb"
+  }
+}

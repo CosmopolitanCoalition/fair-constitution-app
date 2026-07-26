@@ -1,0 +1,420 @@
+{
+  "setup_currentjurisdictioncard.area_km": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "setup_currentjurisdictioncard.currently_processing": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "setup_currentjurisdictioncard.no_job_running": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "setup_currentjurisdictioncard.remaining": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "setup_currentjurisdictioncard.waiting_for_first_heartbeat": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "setup_eventtoasts.events_ewi": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "setup_eventtoasts.no_events_yet": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "setup_exportbackuppanel.build_a_portable_tar_gz_snapshot_of_this_i": {
+    "status": "machine",
+    "reason": "suspiciously short — source content likely dropped",
+    "provider": "nllb"
+  },
+  "setup_exportbackuppanel.download": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "setup_exportbackuppanel.eta_compressing_archive": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "setup_exportbackuppanel.export_current_data": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "setup_exportbackuppanel.finished": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "setup_exportbackuppanel.halt": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "setup_exportbackuppanel.recent_exports": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "setup_importbackuppanel.already_have_a_tar_gz_exported_from_anothe": {
+    "status": "machine",
+    "reason": "suspiciously short — source content likely dropped",
+    "provider": "nllb"
+  },
+  "setup_importbackuppanel.only_tables_actually_present_in_the_upload": {
+    "status": "machine",
+    "reason": "suspiciously short — source content likely dropped",
+    "provider": "nllb"
+  },
+  "setup_importbackuppanel.restore_complete_continuing": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "setup_importbackuppanel.restore_from_a_backup": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "setup_importbackuppanel.upload_complete_restoring_database_pg_rest": {
+    "status": "machine",
+    "reason": "suspiciously short — source content likely dropped",
+    "provider": "nllb"
+  },
+  "setup_importbackuppanel.uploading": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "setup_jurisdictioncountsgrid.grand_total_of_populations_across_all_leve": {
+    "status": "machine",
+    "reason": "suspiciously short — source content likely dropped",
+    "provider": "nllb"
+  },
+  "setup_jurisdictioncountsgrid.populations_compute_after_raster_load_comp": {
+    "status": "machine",
+    "reason": "suspiciously short — source content likely dropped",
+    "provider": "nllb"
+  },
+  "setup_jurisdictioncountsgrid.sum_of_populations_at_this_level": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "setup_jurisdictioncountsgrid.total_rows": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "setup_jurisdictioncountsgrid.w_pop": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "setup_liveprogress.3_live_progress": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "setup_liveprogress.abort_the_entire_run_equivalent_to_clickin": {
+    "status": "machine",
+    "reason": "suspiciously short — source content likely dropped",
+    "provider": "nllb"
+  },
+  "setup_liveprogress.full_traceback": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "setup_liveprogress.level": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "setup_liveprogress.mark_this_country_as_skipped_and_continue_": {
+    "status": "machine",
+    "reason": "suspiciously short — source content likely dropped",
+    "provider": "nllb"
+  },
+  "setup_liveprogress.pause_the_etl_subprocess_sigstop_db_connec": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "setup_liveprogress.paused_on_error": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "setup_liveprogress.re_run_this_country_useful_if_you_fixed_th": {
+    "status": "machine",
+    "reason": "suspiciously short — source content likely dropped",
+    "provider": "nllb"
+  },
+  "setup_liveprogress.resume_the_paused_etl_subprocess_sigcont": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "setup_liveprogress.run_completed_finished": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "setup_liveprogress.run_failed_exit": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "setup_liveprogress.run_halted_on_first_exception_exit": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "setup_liveprogress.stop_the_run_sigterm": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "setup_logtailpanel.log_tail": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "setup_logtailpanel.no_log_output_yet": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "setup_minimap.loading_map": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "setup_minimap.no_geometry_available": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "setup_minimap.preparing_next_jurisdiction": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "setup_minimap.raster_not_loaded": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "setup_phasesummary.countries_done": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "setup_phasesummary.countries_done_2": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "setup_phasesummary.phase_1_boundaries": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "setup_phasesummary.phase_2_population": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "setup_reviewissuessection.acknowledged": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "setup_reviewissuessection.aggregation_discrepancies": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "setup_reviewissuessection.all": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "setup_reviewissuessection.area_km": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "setup_reviewissuessection.auto_resolved_parents_phase_j_audit": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "setup_reviewissuessection.click_a_source_to_drill_into_rows_whose_po": {
+    "status": "machine",
+    "reason": "suspiciously short — source content likely dropped",
+    "provider": "nllb"
+  },
+  "setup_reviewissuessection.click_a_strategy_to_drill_into_rows_resolv": {
+    "status": "machine",
+    "reason": "suspiciously short — source content likely dropped",
+    "provider": "nllb"
+  },
+  "setup_reviewissuessection.collapse_this_card_and_mark_it_as_reviewed": {
+    "status": "machine",
+    "reason": "suspiciously short — source content likely dropped",
+    "provider": "nllb"
+  },
+  "setup_reviewissuessection.data_quality_review": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "setup_reviewissuessection.load_50_more": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "setup_reviewissuessection.loading_rows": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "setup_reviewissuessection.mark_reviewed": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "setup_reviewissuessection.no_data_quality_issues_detected_ready_to_f": {
+    "status": "machine",
+    "reason": "suspiciously short — source content likely dropped",
+    "provider": "nllb"
+  },
+  "setup_reviewissuessection.of_jurisdictions_have_population": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "setup_reviewissuessection.orphan_jurisdictions": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "setup_reviewissuessection.population_gaps": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "setup_reviewissuessection.population_resolution_phase_k_audit": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "setup_reviewissuessection.showing_of": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "setup_reviewissuessection.sovereign_territory_candidates": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "setup_reviewissuessection.the_etl_surfaced_no_potential_issue_across": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "setup_reviewissuessection.top_countries": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "setup_rowdetailpanel.archive_not_visible_from_php_check_manuall": {
+    "status": "machine",
+    "reason": "suspiciously short — source content likely dropped",
+    "provider": "nllb"
+  },
+  "setup_rowdetailpanel.children_at_this_row": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "setup_rowdetailpanel.children_largest_first": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "setup_rowdetailpanel.children_sum": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "setup_rowdetailpanel.found_at": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "setup_rowdetailpanel.incl_also_at_0_pop": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "setup_rowdetailpanel.inferred_territory_iso": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "setup_rowdetailpanel.iso_level": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "setup_rowdetailpanel.km_overlap": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "setup_rowdetailpanel.loading_detail": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "setup_rowdetailpanel.national_population": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "setup_rowdetailpanel.nearest_centroid_candidates": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "setup_rowdetailpanel.no_autofix_saving_records_your_decision_fo": {
+    "status": "machine",
+    "reason": "suspiciously short — source content likely dropped",
+    "provider": "nllb"
+  },
+  "setup_rowdetailpanel.no_spatial_overlap_candidates_found_at_low": {
+    "status": "machine",
+    "reason": "suspiciously short — source content likely dropped",
+    "provider": "nllb"
+  },
+  "setup_rowdetailpanel.not_found_at": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "setup_rowdetailpanel.of_have_population": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "setup_rowdetailpanel.optional_note_what_did_you_decide_and_why": {
+    "status": "machine",
+    "reason": "suspiciously short — source content likely dropped",
+    "provider": "nllb"
+  },
+  "setup_rowdetailpanel.siblings_at_this_level": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "setup_rowdetailpanel.siblings_under_with_similar_population": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "setup_rowdetailpanel.spatial_overlap_candidates_largest_overlap": {
+    "status": "machine",
+    "reason": "suspiciously short — source content likely dropped",
+    "provider": "nllb"
+  },
+  "setup_rowdetailpanel.tagged_under_sovereign": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "setup_rowdetailpanel.territory_name": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "setup_rowdetailpanel.worldpop_raster_availability": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "setup_rowdetailpanel.your_decision_last_saved": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "setup_stackedprogressbars.countries_currently": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "setup_stackedprogressbars.currently": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "setup_stackedprogressbars.elapsed_eta_done": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "setup_stackedprogressbars.of": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "setup_stackedprogressbars.queuedelapsed_eta_donewaiting": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "setup_stackedprogressbars.total_in_progress": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "setup_stackedprogressbars.waiting_for_the_etl_to_start": {
+    "status": "machine",
+    "provider": "nllb"
+  }
+}

@@ -1,0 +1,1209 @@
+{
+  "operator_console.a_box_s_role_is_just_the_set_of_channels_i": {
+    "status": "machine",
+    "reason": "suspiciously short — source content likely dropped",
+    "provider": "nllb"
+  },
+  "operator_console.active_operator_on_the_board": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "operator_console.acts_under_a_peer_s_own_zone_every_co_affe": {
+    "status": "machine",
+    "reason": "suspiciously short — source content likely dropped",
+    "provider": "nllb"
+  },
+  "operator_console.answerable_to_the_government_below_a_seate": {
+    "status": "machine",
+    "reason": "suspiciously short — source content likely dropped",
+    "provider": "nllb"
+  },
+  "operator_console.applies_now": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "operator_console.cli_hints": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "operator_console.co_affected_peer_must_consent_unanimity": {
+    "status": "machine",
+    "reason": "suspiciously short — source content likely dropped",
+    "provider": "nllb"
+  },
+  "operator_console.each_open_proposal_shows_its_meters_kind_b": {
+    "status": "machine",
+    "reason": "suspiciously short — source content likely dropped",
+    "provider": "nllb"
+  },
+  "operator_console.everything_on_this_console_is_also_a_comma": {
+    "status": "machine",
+    "reason": "suspiciously short — source content likely dropped",
+    "provider": "nllb"
+  },
+  "operator_console.everything_raw_behind_one_toggle_closed_by": {
+    "status": "machine",
+    "reason": "suspiciously short — source content likely dropped",
+    "provider": "nllb"
+  },
+  "operator_console.four_friendly_names_group_the_capability_c": {
+    "status": "machine",
+    "reason": "suspiciously short — source content likely dropped",
+    "provider": "nllb"
+  },
+  "operator_console.governed_channels_need_approval_meter_a_ru": {
+    "status": "machine",
+    "reason": "suspiciously short — source content likely dropped",
+    "provider": "nllb"
+  },
+  "operator_console.meter_c": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "operator_console.needs_setup": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "operator_console.no_co_affected_peers_meter_c_auto_passes": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "operator_console.no_root_jurisdiction_yet_the_meters_attach": {
+    "status": "machine",
+    "reason": "suspiciously short — source content likely dropped",
+    "provider": "nllb"
+  },
+  "operator_console.node_readiness_readiness_checks": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "operator_console.not_in_play": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "operator_console.nothing_is_waiting_on_a_meter_right_now": {
+    "status": "machine",
+    "reason": "suspiciously short — source content likely dropped",
+    "provider": "nllb"
+  },
+  "operator_console.off_the_constitutional_plane_running_a_nod": {
+    "status": "machine",
+    "reason": "suspiciously short — source content likely dropped",
+    "provider": "nllb"
+  },
+  "operator_console.one_screen_for_the_box_you_run_are_your_pe": {
+    "status": "machine",
+    "reason": "suspiciously short — source content likely dropped",
+    "provider": "nllb"
+  },
+  "operator_console.open_proposals": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "operator_console.open_proposals_2": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "operator_console.operator_sign_in_required": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "operator_console.partly_active": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "operator_console.peers_sync_at_a_glance": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "operator_console.peers_sync_transports": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "operator_console.ready_to_turn_on": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "operator_console.recommended_first_node": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "operator_console.sign_in_as_an_operator": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "operator_console.signed_in_as_this_console_is_read_only_the": {
+    "status": "machine",
+    "reason": "suspiciously short — source content likely dropped",
+    "provider": "nllb"
+  },
+  "operator_console.supersedes_a": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "operator_console.the_capability_channels": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "operator_console.the_dot_is_the_rollup_each_chip_is_one_of_": {
+    "status": "machine",
+    "reason": "suspiciously short — source content likely dropped",
+    "provider": "nllb"
+  },
+  "operator_console.the_dual_meter_consent": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "operator_console.the_full_tables_every_peer_the_sync_ledger": {
+    "status": "machine",
+    "reason": "suspiciously short — source content likely dropped",
+    "provider": "nllb"
+  },
+  "operator_console.the_mesh_console_is_shown_only_to_a_signed": {
+    "status": "review",
+    "reason": "sentence count fell 2 -> 1",
+    "provider": "nllb"
+  },
+  "operator_console.the_nine_capability_channels": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "operator_console.this_console_is_the_read_surface_over_the_": {
+    "status": "machine",
+    "reason": "suspiciously short — source content likely dropped",
+    "provider": "nllb"
+  },
+  "operator_console.waiting_for_approval": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "operator_console.what_it_does": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "operator_console.your_roles": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "operator_home.a_box_s_role_is_just_the_set_of_capability": {
+    "status": "machine",
+    "reason": "suspiciously short — source content likely dropped",
+    "provider": "nllb"
+  },
+  "operator_home.between_you_and_ready": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "operator_home.dns_certificates": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "operator_home.each_line_says_what_to_do_next_a_red_gate_": {
+    "status": "machine",
+    "reason": "suspiciously short — source content likely dropped",
+    "provider": "nllb"
+  },
+  "operator_home.every_gate_passes_this_box_can_federate": {
+    "status": "machine",
+    "reason": "suspiciously short — source content likely dropped",
+    "provider": "nllb"
+  },
+  "operator_home.full_faith_credit_one_record_many_holders_": {
+    "status": "machine",
+    "reason": "suspiciously short — source content likely dropped",
+    "provider": "nllb"
+  },
+  "operator_home.home_copies_here": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "operator_home.home_copies_with_peers": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "operator_home.live_channels_on_this_box": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "operator_home.lives_in_the_operations_console_for_now": {
+    "status": "machine",
+    "reason": "suspiciously short — source content likely dropped",
+    "provider": "nllb"
+  },
+  "operator_home.mesh_federation": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "operator_home.moderation_the_legal_floor": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "operator_home.none_yet_a_fresh_box_starts_quiet_record_k": {
+    "status": "machine",
+    "reason": "suspiciously short — source content likely dropped",
+    "provider": "nllb"
+  },
+  "operator_home.off_the_constitutional_plane_running_a_nod": {
+    "status": "machine",
+    "reason": "suspiciously short — source content likely dropped",
+    "provider": "nllb"
+  },
+  "operator_home.operator_surfaces": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "operator_home.partly_on": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "operator_home.peers_sync_at_a_glance_trusted_of_peer_las": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "operator_home.places_in_the_record": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "operator_home.places_on_this_node": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "operator_home.planned_phase_i": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "operator_home.ready_to_meet_the_mesh": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "operator_home.recommended_first": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "operator_home.roles_channels": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "operator_home.run_a_node": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "operator_home.run_a_node_and_your_computer_becomes_part_": {
+    "status": "review",
+    "reason": "sentence count fell 2 -> 1",
+    "provider": "nllb"
+  },
+  "operator_home.set_up_your_node": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "operator_home.the_capability_channels_this_box_currently": {
+    "status": "machine",
+    "reason": "suspiciously short — source content likely dropped",
+    "provider": "nllb"
+  },
+  "operator_home.the_older_consoles_stay_reachable_while_th": {
+    "status": "machine",
+    "reason": "suspiciously short — source content likely dropped",
+    "provider": "nllb"
+  },
+  "operator_home.the_operator_console": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "operator_home.the_operator_plane_s_front_door_is_this_bo": {
+    "status": "machine",
+    "reason": "suspiciously short — source content likely dropped",
+    "provider": "nllb"
+  },
+  "operator_home.the_readiness_rollup_and_the_mesh_controls": {
+    "status": "machine",
+    "reason": "suspiciously short — source content likely dropped",
+    "provider": "nllb"
+  },
+  "operator_home.this_node_holds_the_home_copy_of_place_aut": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "operator_home.versions_upgrades": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "operator_identity.a_device_enrols_its_ed25519_public_key_the": {
+    "status": "machine",
+    "reason": "suspiciously short — source content likely dropped",
+    "provider": "nllb"
+  },
+  "operator_identity.a_housekeeping_job_prunes_lapsed_attestati": {
+    "status": "machine",
+    "reason": "suspiciously short — source content likely dropped",
+    "provider": "nllb"
+  },
+  "operator_identity.a_person_on_a_journey_can_act_through_a_se": {
+    "status": "machine",
+    "reason": "suspiciously short — source content likely dropped",
+    "provider": "nllb"
+  },
+  "operator_identity.a_short_lived_24h_revocable_instance_signe": {
+    "status": "machine",
+    "reason": "suspiciously short — source content likely dropped",
+    "provider": "nllb"
+  },
+  "operator_identity.account_created": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "operator_identity.an_attestation_carries_only_public_standin": {
+    "status": "review",
+    "reason": "sentence count fell 4 -> 3",
+    "provider": "nllb"
+  },
+  "operator_identity.citizen_standing_on_the_move": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "operator_identity.device_enrolment_no_escrow": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "operator_identity.each_device_enrols_its_own_key_possession_": {
+    "status": "machine",
+    "reason": "suspiciously short — source content likely dropped",
+    "provider": "nllb"
+  },
+  "operator_identity.enrolment_publishes_a_device_s_public_key_": {
+    "status": "machine",
+    "reason": "suspiciously short — source content likely dropped",
+    "provider": "nllb"
+  },
+  "operator_identity.expiredalready_fail_closedsoft_deleted_for": {
+    "status": "machine",
+    "reason": "suspiciously short — source content likely dropped",
+    "provider": "nllb"
+  },
+  "operator_identity.home_authority_attestsdevice_signs_the_wri": {
+    "status": "machine",
+    "reason": "suspiciously short — source content likely dropped",
+    "provider": "nllb"
+  },
+  "operator_identity.key_fingerprint": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "operator_identity.key_generated": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "operator_identity.last_login": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "operator_identity.mesh_operator_id_not_linked_to_a_mesh_iden": {
+    "status": "machine",
+    "reason": "suspiciously short — source content likely dropped",
+    "provider": "nllb"
+  },
+  "operator_identity.no_devices_enrolled_yet_this_operator_acco": {
+    "status": "machine",
+    "reason": "suspiciously short — source content likely dropped",
+    "provider": "nllb"
+  },
+  "operator_identity.no_mesh_identity_minted_yet": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "operator_identity.only_the_home_authority_attests_24h_revoca": {
+    "status": "machine",
+    "reason": "suspiciously short — source content likely dropped",
+    "provider": "nllb"
+  },
+  "operator_identity.public_key_ed25519_the_public_half_only_no": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "operator_identity.server_id_not_minted_yet": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "operator_identity.standing_travels_the_right_itself_stays_de": {
+    "status": "machine",
+    "reason": "suspiciously short — source content likely dropped",
+    "provider": "nllb"
+  },
+  "operator_identity.subject_the_attested_user_resolves_locally": {
+    "status": "machine",
+    "reason": "suspiciously short — source content likely dropped",
+    "provider": "nllb"
+  },
+  "operator_identity.the_ed25519_public_key_is_published_the_se": {
+    "status": "machine",
+    "reason": "suspiciously short — source content likely dropped",
+    "provider": "nllb"
+  },
+  "operator_identity.the_enrolled_operator_device_keys_on_this_": {
+    "status": "machine",
+    "reason": "suspiciously short — source content likely dropped",
+    "provider": "nllb"
+  },
+  "operator_identity.the_expiry_sweep": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "operator_identity.the_forwarded_write_is_the_keystone_a_pers": {
+    "status": "machine",
+    "reason": "suspiciously short — source content likely dropped",
+    "provider": "nllb"
+  },
+  "operator_identity.the_forwarded_write_three_checks": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "operator_identity.the_identity_layer_that_lets_a_server_know": {
+    "status": "review",
+    "reason": "sentence count fell 3 -> 2",
+    "provider": "nllb"
+  },
+  "operator_identity.the_identity_plane_is_shown_only_to_a_sign": {
+    "status": "machine",
+    "reason": "suspiciously short — source content likely dropped",
+    "provider": "nllb"
+  },
+  "operator_identity.the_keystone": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "operator_identity.the_plane_wall_holds_here_too_operator_ide": {
+    "status": "machine",
+    "reason": "suspiciously short — source content likely dropped",
+    "provider": "nllb"
+  },
+  "operator_identity.the_secret_half_of_the_signing_key_never_l": {
+    "status": "machine",
+    "reason": "suspiciously short — source content likely dropped",
+    "provider": "nllb"
+  },
+  "operator_identity.the_three_forwarded_write_checks": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "operator_identity.this_box_has_not_cut_its_ed25519_signing_k": {
+    "status": "machine",
+    "reason": "suspiciously short — source content likely dropped",
+    "provider": "nllb"
+  },
+  "operator_identity.this_node": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "operator_identity.two_identities_one_wall_your_operator_acco": {
+    "status": "machine",
+    "reason": "suspiciously short — source content likely dropped",
+    "provider": "nllb"
+  },
+  "operator_identity.what_an_attestation_is": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "operator_identity.when_a_forwarded_write_arrives_it_must_cle": {
+    "status": "machine",
+    "reason": "suspiciously short — source content likely dropped",
+    "provider": "nllb"
+  },
+  "operator_identity.who_this_box_is_on_the_mesh_and_who_you_ar": {
+    "status": "machine",
+    "reason": "suspiciously short — source content likely dropped",
+    "provider": "nllb"
+  },
+  "operator_identity.your_account": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "operator_identity.your_local_password_signs_you_in_on_this_b": {
+    "status": "machine",
+    "reason": "suspiciously short — source content likely dropped",
+    "provider": "nllb"
+  },
+  "operator_identity.your_operator_identity": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "operator_mesh.authority_disputed_resolved": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "operator_mesh.becoming_a_full_peer": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "operator_mesh.border_settled": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "operator_mesh.every_box_this_node_has_handshaked_with_an": {
+    "status": "machine",
+    "reason": "suspiciously short — source content likely dropped",
+    "provider": "nllb"
+  },
+  "operator_mesh.federation_url_how_peers_address_this_box": {
+    "status": "machine",
+    "reason": "suspiciously short — source content likely dropped",
+    "provider": "nllb"
+  },
+  "operator_mesh.for_every_jurisdiction_one_box_s_record_is": {
+    "status": "review",
+    "reason": "sentence count fell 2 -> 1",
+    "provider": "nllb"
+  },
+  "operator_mesh.full_faith_credit_the_sync_ledger": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "operator_mesh.how_your_node_finds_its_peers_carries_thei": {
+    "status": "machine",
+    "reason": "suspiciously short — source content likely dropped",
+    "provider": "nllb"
+  },
+  "operator_mesh.moving_a_jurisdiction_s_home_copy": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "operator_mesh.no_gates_reported": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "operator_mesh.no_peers_yet_this_box_stands_alone_joining": {
+    "status": "review",
+    "reason": "sentence count fell 3 -> 2",
+    "provider": "nllb"
+  },
+  "operator_mesh.no_sync_entries_yet_the_ledger_starts_writ": {
+    "status": "machine",
+    "reason": "suspiciously short — source content likely dropped",
+    "provider": "nllb"
+  },
+  "operator_mesh.no_transports_advertised_yet_peers_can_sti": {
+    "status": "machine",
+    "reason": "suspiciously short — source content likely dropped",
+    "provider": "nllb"
+  },
+  "operator_mesh.nothing_is_lost_and_nothing_pauses_reads_c": {
+    "status": "machine",
+    "reason": "suspiciously short — source content likely dropped",
+    "provider": "nllb"
+  },
+  "operator_mesh.off_the_constitutional_plane_joining_synci": {
+    "status": "review",
+    "reason": "sentence count fell 2 -> 1",
+    "provider": "nllb"
+  },
+  "operator_mesh.one_process_to_peerage_authority_attaches_": {
+    "status": "machine",
+    "reason": "suspiciously short — source content likely dropped",
+    "provider": "nllb"
+  },
+  "operator_mesh.only_two_things_services_a_box_s_hardware_": {
+    "status": "machine",
+    "reason": "suspiciously short — source content likely dropped",
+    "provider": "nllb"
+  },
+  "operator_mesh.peerage_gates": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "operator_mesh.peers_and_their_trust_lifecycle": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "operator_mesh.peers_this_box_has_met": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "operator_mesh.peers_transports_and_the_sync_ledger_are_s": {
+    "status": "machine",
+    "reason": "suspiciously short — source content likely dropped",
+    "provider": "nllb"
+  },
+  "operator_mesh.re_peer_every_other_node_re_points_at_the_": {
+    "status": "machine",
+    "reason": "suspiciously short — source content likely dropped",
+    "provider": "nllb"
+  },
+  "operator_mesh.recent_ledger_entries": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "operator_mesh.rejected_not_the_home_copy": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "operator_mesh.rejected_tampered": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "operator_mesh.resolving_a_conflict": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "operator_mesh.sealed_export_the_departing_box_seals_a_si": {
+    "status": "machine",
+    "reason": "suspiciously short — source content likely dropped",
+    "provider": "nllb"
+  },
+  "operator_mesh.sync_seq": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "operator_mesh.the_last_25_sync_ledger_entries": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "operator_mesh.the_same_signed_bytes_ride_any_advertised_": {
+    "status": "machine",
+    "reason": "suspiciously short — source content likely dropped",
+    "provider": "nllb"
+  },
+  "operator_mesh.the_sync_ledger_is_append_only_and_public_": {
+    "status": "machine",
+    "reason": "suspiciously short — source content likely dropped",
+    "provider": "nllb"
+  },
+  "operator_mesh.there_is_one_path_to_peerage_and_every_nod": {
+    "status": "machine",
+    "reason": "suspiciously short — source content likely dropped",
+    "provider": "nllb"
+  },
+  "operator_mesh.this_console_reads_the_mesh_as_it_is_peers": {
+    "status": "review",
+    "reason": "sentence count fell 3 -> 2",
+    "provider": "nllb"
+  },
+  "operator_mesh.trust_established": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "operator_mesh.trust_established_2": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "operator_mesh.trust_lifecycle_discovered_handshake_trust": {
+    "status": "machine",
+    "reason": "suspiciously short — source content likely dropped",
+    "provider": "nllb"
+  },
+  "operator_mesh.verified_flip_the_receiving_peer_verifies_": {
+    "status": "machine",
+    "reason": "suspiciously short — source content likely dropped",
+    "provider": "nllb"
+  },
+  "operator_mesh.what_authority_means": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "operator_mesh.what_makes_nodes_differ": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "operator_mesh.what_this_box_still_needs_before_or_to_rem": {
+    "status": "machine",
+    "reason": "suspiciously short — source content likely dropped",
+    "provider": "nllb"
+  },
+  "operator_mesh.when_a_home_box_retires_or_its_government_": {
+    "status": "machine",
+    "reason": "suspiciously short — source content likely dropped",
+    "provider": "nllb"
+  },
+  "operator_mesh.when_peers_carry_one_another_s_records_the": {
+    "status": "review",
+    "reason": "sentence count fell 3 -> 2",
+    "provider": "nllb"
+  },
+  "operator_mesh.your_peers_known": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "operator_operations.apply_recreate": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "operator_operations.apply_restart_tier_changes_livekit_network": {
+    "status": "machine",
+    "reason": "suspiciously short — source content likely dropped",
+    "provider": "nllb"
+  },
+  "operator_operations.apply_tiers": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "operator_operations.capability_channels": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "operator_operations.delivered_grants_ready_to_issue": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "operator_operations.dns_credentials": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "operator_operations.expires_expired_days_left": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "operator_operations.installed_certificates": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "operator_operations.instant_tier_knobs_are_edited_in_place_app": {
+    "status": "machine",
+    "reason": "suspiciously short — source content likely dropped",
+    "provider": "nllb"
+  },
+  "operator_operations.livekit_ice_node_ip": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "operator_operations.livekit_public_browser_url": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "operator_operations.no_dns_credential_stored_set_one_write_onl": {
+    "status": "machine",
+    "reason": "suspiciously short — source content likely dropped",
+    "provider": "nllb"
+  },
+  "operator_operations.none_installed_under_the_tls_path": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "operator_operations.not_setconfigureddev_default_rotate": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "operator_operations.operator_operations": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "operator_operations.runbook": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "operator_operations.sign_in_as_an_operator": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "operator_operations.signed_in_as_secrets_show_only_whether_the": {
+    "status": "machine",
+    "reason": "suspiciously short — source content likely dropped",
+    "provider": "nllb"
+  },
+  "operator_operations.the_infrastructure_identity_plane_for_this": {
+    "status": "machine",
+    "reason": "suspiciously short — source content likely dropped",
+    "provider": "nllb"
+  },
+  "operator_operations.the_operations_inventory_is_shown_only_to_": {
+    "status": "machine",
+    "reason": "suspiciously short — source content likely dropped",
+    "provider": "nllb"
+  },
+  "operator_operations.these_knobs_are_env_baked_so_applying_rewr": {
+    "status": "machine",
+    "reason": "suspiciously short — source content likely dropped",
+    "provider": "nllb"
+  },
+  "operator_operations.waiting_for_the_host_supervisor_is_scripts": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "operator_operations.zone_token_stored": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "operator_roles.a_box_s_role_is_nothing_more_than_the_set_": {
+    "status": "machine",
+    "reason": "suspiciously short — source content likely dropped",
+    "provider": "nllb"
+  },
+  "operator_roles.a_governed_channel_is_approved_by_a_dual_m": {
+    "status": "machine",
+    "reason": "suspiciously short — source content likely dropped",
+    "provider": "nllb"
+  },
+  "operator_roles.a_governed_channel_walks_four_plain_steps_": {
+    "status": "machine",
+    "reason": "suspiciously short — source content likely dropped",
+    "provider": "nllb"
+  },
+  "operator_roles.a_seated_government_approves_through_its_o": {
+    "status": "machine",
+    "reason": "suspiciously short — source content likely dropped",
+    "provider": "nllb"
+  },
+  "operator_roles.active_every_channel_on": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "operator_roles.applies": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "operator_roles.approval_mints_a_verified_grant_dual_meter": {
+    "status": "machine",
+    "reason": "suspiciously short — source content likely dropped",
+    "provider": "nllb"
+  },
+  "operator_roles.awaiting_consent_none_you_are_founding": {
+    "status": "machine",
+    "reason": "suspiciously short — source content likely dropped",
+    "provider": "nllb"
+  },
+  "operator_roles.channels_active_on_this_box": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "operator_roles.co_affected_peers": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "operator_roles.consent_leg": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "operator_roles.four_friendly_names_group_the_nine_channel": {
+    "status": "machine",
+    "reason": "suspiciously short — source content likely dropped",
+    "provider": "nllb"
+  },
+  "operator_roles.governed_channels_dual_meter": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "operator_roles.governed_dual_meter_approval": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "operator_roles.how_a_channel_goes_live": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "operator_roles.leave_blank_for_the_root_jurisdiction_a_gr": {
+    "status": "machine",
+    "reason": "suspiciously short — source content likely dropped",
+    "provider": "nllb"
+  },
+  "operator_roles.meter_c": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "operator_roles.no_open_role_grant_requests_a_governed_req": {
+    "status": "machine",
+    "reason": "suspiciously short — source content likely dropped",
+    "provider": "nllb"
+  },
+  "operator_roles.off_the_constitutional_plane_running_a_nod": {
+    "status": "machine",
+    "reason": "suspiciously short — source content likely dropped",
+    "provider": "nllb"
+  },
+  "operator_roles.on_this_box": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "operator_roles.on_this_node": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "operator_roles.open_role_grant_requests": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "operator_roles.open_role_grant_requests_with_live_consent": {
+    "status": "machine",
+    "reason": "suspiciously short — source content likely dropped",
+    "provider": "nllb"
+  },
+  "operator_roles.over_place": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "operator_roles.qualify_probes_whether_this_box_can_host_t": {
+    "status": "machine",
+    "reason": "suspiciously short — source content likely dropped",
+    "provider": "nllb"
+  },
+  "operator_roles.read_write_authority_is_a_fact_about_a_pla": {
+    "status": "review",
+    "reason": "sentence count fell 2 -> 1",
+    "provider": "nllb"
+  },
+  "operator_roles.recommended_first_nodeself_assertedgoverne": {
+    "status": "machine",
+    "reason": "suspiciously short — source content likely dropped",
+    "provider": "nllb"
+  },
+  "operator_roles.requested_by": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "operator_roles.return_to_setup": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "operator_roles.run_a_step_from_here": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "operator_roles.scope_optional_jurisdiction_id": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "operator_roles.self_a_self_asserted_channel_governed_a_go": {
+    "status": "machine",
+    "reason": "suspiciously short — source content likely dropped",
+    "provider": "nllb"
+  },
+  "operator_roles.self_asserted_mesh_member_mirror_etl_estab": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "operator_roles.self_asserted_one_click_no_gate": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "operator_roles.self_asserted_vs_governed_a_self_asserted_": {
+    "status": "machine",
+    "reason": "suspiciously short — source content likely dropped",
+    "provider": "nllb"
+  },
+  "operator_roles.supersedes_a": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "operator_roles.the_four_named_roles": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "operator_roles.the_nine_capability_channels_their_consent": {
+    "status": "machine",
+    "reason": "suspiciously short — source content likely dropped",
+    "provider": "nllb"
+  },
+  "operator_roles.the_nine_channels": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "operator_roles.the_operator_board": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "operator_roles.the_roles_board_is_shown_only_to_a_signed_": {
+    "status": "machine",
+    "reason": "suspiciously short — source content likely dropped",
+    "provider": "nllb"
+  },
+  "operator_roles.the_seated_government": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "operator_roles.the_whole_closed_vocabulary_three_channels": {
+    "status": "machine",
+    "reason": "suspiciously short — source content likely dropped",
+    "provider": "nllb"
+  },
+  "operator_roles.this_channel_acts_under_a_peer_s_zone_co_a": {
+    "status": "machine",
+    "reason": "suspiciously short — source content likely dropped",
+    "provider": "nllb"
+  },
+  "operator_roles.threshold": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "operator_roles.waiting_on_the_dual_meter_see_the_pending_": {
+    "status": "machine",
+    "reason": "suspiciously short — source content likely dropped",
+    "provider": "nllb"
+  },
+  "operator_roles.who": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "operator_roles.you_are_the_founding_operator_there_is_no_": {
+    "status": "review",
+    "reason": "sentence count fell 3 -> 1",
+    "provider": "nllb"
+  },
+  "operator_roles.your_duty": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "operator_versioning.a_and_b_are_two_legs_of_one_seat_the_opera": {
+    "status": "machine",
+    "reason": "suspiciously short — source content likely dropped",
+    "provider": "nllb"
+  },
+  "operator_versioning.a_divergent_version_stops_the_sync_rather_": {
+    "status": "machine",
+    "reason": "suspiciously short — source content likely dropped",
+    "provider": "nllb"
+  },
+  "operator_versioning.a_operator_board": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "operator_versioning.a_proposal_is_screened_first_agreed_second": {
+    "status": "machine",
+    "reason": "suspiciously short — source content likely dropped",
+    "provider": "nllb"
+  },
+  "operator_versioning.a_running_election_or_session_pins_its_ver": {
+    "status": "machine",
+    "reason": "suspiciously short — source content likely dropped",
+    "provider": "nllb"
+  },
+  "operator_versioning.answerable_to_the_government_operators_run": {
+    "status": "review",
+    "reason": "sentence count fell 3 -> 2",
+    "provider": "nllb"
+  },
+  "operator_versioning.app_release": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "operator_versioning.app_release_2": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "operator_versioning.b_seated_government": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "operator_versioning.c_co_affected_peers": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "operator_versioning.constitutional_version": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "operator_versioning.constitutional_version_2": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "operator_versioning.derived_from_the_rules_in_force": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "operator_versioning.differs_sync_holds": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "operator_versioning.every_peer_advertises_its_constitutional_v": {
+    "status": "machine",
+    "reason": "suspiciously short — source content likely dropped",
+    "provider": "nllb"
+  },
+  "operator_versioning.every_proposal_passes_the_hardened_admissi": {
+    "status": "review",
+    "reason": "sentence count fell 2 -> 0",
+    "provider": "nllb"
+  },
+  "operator_versioning.fail_closed_not_best_effort": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "operator_versioning.how_a_version_changes_hands_across_the_mes": {
+    "status": "machine",
+    "reason": "suspiciously short — source content likely dropped",
+    "provider": "nllb"
+  },
+  "operator_versioning.no_meters_this_kind_moves_mechanically": {
+    "status": "machine",
+    "reason": "suspiciously short — source content likely dropped",
+    "provider": "nllb"
+  },
+  "operator_versioning.no_open_proposals_the_mesh_agrees_on_the_v": {
+    "status": "machine",
+    "reason": "suspiciously short — source content likely dropped",
+    "provider": "nllb"
+  },
+  "operator_versioning.no_peers_yet_this_box_stands_alone_version": {
+    "status": "machine",
+    "reason": "suspiciously short — source content likely dropped",
+    "provider": "nllb"
+  },
+  "operator_versioning.not_needed": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "operator_versioning.not_yet_advertised": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "operator_versioning.off_the_constitutional_plane_upgrading_the": {
+    "status": "review",
+    "reason": "sentence count fell 3 -> 2",
+    "provider": "nllb"
+  },
+  "operator_versioning.peer_constitutional_versions_and_app_relea": {
+    "status": "machine",
+    "reason": "suspiciously short — source content likely dropped",
+    "provider": "nllb"
+  },
+  "operator_versioning.peer_versions": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "operator_versioning.pinning_is_a_pure_function_of_the_contest_": {
+    "status": "machine",
+    "reason": "suspiciously short — source content likely dropped",
+    "provider": "nllb"
+  },
+  "operator_versioning.proposed_by_node_for_the_place_consent_fal": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "operator_versioning.schema_version": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "operator_versioning.screened_first_and_ungateable": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "operator_versioning.the_constitutional_version_a_fingerprint_o": {
+    "status": "machine",
+    "reason": "suspiciously short — source content likely dropped",
+    "provider": "nllb"
+  },
+  "operator_versioning.the_game_in_progress_freeze": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "operator_versioning.this_console_renders_the_versioning_truth_": {
+    "status": "review",
+    "reason": "sentence count fell 2 -> 1",
+    "provider": "nllb"
+  },
+  "operator_versioning.this_node_runs": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "operator_versioning.three_kinds_of_version_move_independently_": {
+    "status": "machine",
+    "reason": "suspiciously short — source content likely dropped",
+    "provider": "nllb"
+  },
+  "operator_versioning.versions_and_upgrade_proposals_are_shown_o": {
+    "status": "machine",
+    "reason": "suspiciously short — source content likely dropped",
+    "provider": "nllb"
+  },
+  "operator_versioning.when_play_begins_the_contest_captures_the_": {
+    "status": "machine",
+    "reason": "suspiciously short — source content likely dropped",
+    "provider": "nllb"
+  }
+}

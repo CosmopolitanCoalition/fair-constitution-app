@@ -1,0 +1,9 @@
+{
+  "shellv2_cmdbar.navigation_and_learn": "导航和学习",
+  "shellv2_learnflyout.full_lessons_planned_phase_7_report_an_iss": "完整课程 计划 · 7 阶段 报告问题",
+  "shellv2_learnflyout.the_machinery_behind_this_screen": "在这个屏幕背后的机器",
+  "shellv2_menunav.all_screens_the_full_map": "所有屏幕 完整地图",
+  "shellv2_menunav.requires_planned": "{label} {label2} 要求 {prereq} {label3} 计划",
+  "shellv2_tourbar.guided_tour": "导游",
+  "shellv2_tourbar.guided_tour_step_of": "导游 · 步骤 {stepNumber} 的 {total} {title} {blurb}"
+}
