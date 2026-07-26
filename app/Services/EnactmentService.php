@@ -362,13 +362,32 @@ class EnactmentService
 
         $year = now()->year;
 
-        $taken = Law::query()
+        // HIGHEST + 1, never COUNT + 1.
+        //
+        // COUNT is only correct while the sequence has no holes, and holes are
+        // ordinary: a demo teardown hard-deletes its rows, an act is purged,
+        // an act number outside this pattern is issued alongside. The moment
+        // one exists, COUNT re-issues a number that is already taken and the
+        // unique index rejects the enactment — which surfaces as a *vote*
+        // failing to carry, because the law is written in the same
+        // transaction as the tally. That is a long way from the real cause.
+        //
+        // Observed: a legislature holding Act 2026-02 and Act 2026-03 with 01
+        // deleted counted 2 and minted "Act 2026-03" — a duplicate. It blocked
+        // institutions:demo-d at the CGC charter and institutions:demo-e at
+        // judiciary creation, and read as a bicameral vote refusing to pass.
+        //
+        // MAX is gap-safe and monotonic: numbers are never reused, so an act
+        // number stays a permanent citation even after a neighbour is removed.
+        // withTrashed() keeps soft-deleted acts reserved for the same reason.
+        $highest = Law::query()
             ->where('legislature_id', $legislatureId)
             ->where('act_number', 'like', "Act {$year}-%")
             ->withTrashed()
-            ->count();
+            ->selectRaw("MAX(CAST(SUBSTRING(act_number FROM 'Act [0-9]{4}-([0-9]+)$') AS INTEGER)) AS n")
+            ->value('n');
 
-        return sprintf('Act %d-%02d', $year, $taken + 1);
+        return sprintf('Act %d-%02d', $year, ((int) $highest) + 1);
     }
 
     /**

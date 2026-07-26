@@ -72,8 +72,15 @@ class LawmakingDemoCommand extends Command
             return self::FAILURE;
         }
 
+        // CURRENT_STATUSES, not merely un-vacated. An election cycle
+        // `term_ended`s the previous cohort and leaves those rows in place, so
+        // filtering on vacated_at alone picks up EX-legislators who no longer
+        // hold R-09 — the engine then refuses every filing with
+        // "requires role R-09; actor holds [R-01…]". Seats are current or they
+        // are history; there is no third state worth sponsoring a bill.
         $members = LegislatureMember::query()
             ->where('legislature_id', $legislature->id)
+            ->whereIn('status', LegislatureMember::CURRENT_STATUSES)
             ->whereNull('deleted_at')
             ->whereNull('vacated_at')
             ->get();
@@ -220,15 +227,10 @@ class LawmakingDemoCommand extends Command
                 $this->line("     engine: {$why}");
             }
             $this->newLine();
-            $this->line('  Committee creation is the TYPE B blocker, named by the engine itself —');
-            $this->line('  "serving members of both kinds". This world seats Type A only, so the');
-            $this->line('  kind split cannot be made. Same wall that stops institutions:demo-d and');
-            $this->line('  demo-e; the seating ruling is with the operator, and when Type B seats');
-            $this->line('  this lights up with no change here.');
-            $this->newLine();
-            $this->line('  The speaker refusal is NOT Type B — it wants a balloting opened first');
-            $this->line('  (F-SPK-*), a prerequisite this fixture does not file. Recorded as its');
-            $this->line('  own gap rather than folded into the Type B story.');
+            $this->line('  Each reason above is the ENGINE in its own words, not a summary. Type B');
+            $this->line('  seating is no longer among them: the at-large race certified and both');
+            $this->line('  chambers now serve, so a bicameral act can carry (proven — the F-LEG-014');
+            $this->line('  delegation vote passed 31 type_a / 27 type_b).');
             $this->newLine();
             $this->line('  Nothing here is faked and nothing is worked around.');
         }
