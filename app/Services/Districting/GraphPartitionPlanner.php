@@ -374,20 +374,66 @@ class GraphPartitionPlanner
      */
     private function emitGeometry(string $scopeId, array $members, array $nodes, float $step): ?array
     {
+        // RUN-LENGTH ENCODE THE CELLS FIRST (2026-07-26 — this cost a postgres
+        // crash loop). Emitting one box per pixel and unioning them is
+        // unbounded work: Sharjah alone is 23,501 pixels, and the union took
+        // the server down with exit code 2. Adjacent cells in a row collapse
+        // into ONE rectangle, so a district of thousands of cells becomes a
+        // few hundred boxes — same geometry, bounded cost (THE ETL RULE).
+        $byRow = [];
+        foreach ($members as $u) {
+            $byRow[$nodes[$u][1]][] = $nodes[$u][0];
+        }
+        ksort($byRow);
+        $half = $step / 2.0;
+        $x0 = [];
+        $y0 = [];
+        $x1 = [];
+        $y1 = [];
+        foreach ($byRow as $r => $cols) {
+            sort($cols);
+            $runStart = $cols[0];
+            $prev = $cols[0];
+            $emit = function (int $a, int $b) use (&$x0, &$y0, &$x1, &$y1, $r, $nodes, $members, $half, $step): void {
+                // Cell (col,row) centres map back through the stored lon/lat of
+                // any member in that cell; reconstruct from the grid origin.
+                $x0[] = $a; $x1[] = $b; $y0[] = $r; $y1[] = $r;
+            };
+            foreach (array_slice($cols, 1) as $c) {
+                if ($c === $prev + 1) { $prev = $c; continue; }
+                $emit($runStart, $prev);
+                $runStart = $c;
+                $prev = $c;
+            }
+            $emit($runStart, $prev);
+        }
+
+        // Grid origin: recover the lon/lat of cell (0,0) from any node.
+        $anchor = $nodes[$members[0]];
+        $originX = $anchor[3] - $anchor[0] * $step;
+        $originY = $anchor[4] - $anchor[1] * $step;
+
         $xs = [];
         $ys = [];
-        foreach ($members as $u) {
-            $xs[] = $nodes[$u][3];
-            $ys[] = $nodes[$u][4];
+        $xe = [];
+        $ye = [];
+        foreach ($x0 as $i => $c0) {
+            $xs[] = $originX + $c0 * $step - $half;
+            $xe[] = $originX + $x1[$i] * $step + $half;
+            $ys[] = $originY + $y0[$i] * $step - $half;
+            $ye[] = $originY + $y1[$i] * $step + $half;
         }
-        $half = $step / 2.0;
+
+        // A runaway union must fail THIS district, never the server.
+        DB::statement("SET LOCAL statement_timeout = '120s'");
 
         $row = DB::selectOne(
             'WITH pts AS (
-                 SELECT unnest(:xs::float8[]) AS x, unnest(:ys::float8[]) AS y
+                 SELECT unnest(:xs::float8[]) AS xa, unnest(:xe::float8[]) AS xb,
+                        unnest(:ys::float8[]) AS ya, unnest(:ye::float8[]) AS yb
              ),
              boxes AS (
-                 SELECT ST_MakeEnvelope(x - :half, y - :half, x + :half, y + :half, 4326) AS b FROM pts
+                 SELECT ST_MakeEnvelope(xa, ya, xb, yb, 4326) AS b FROM pts
              ),
              u AS (SELECT ST_UnaryUnion(ST_Collect(b)) AS g FROM boxes),
              gi AS (SELECT ST_MakeValid(geom) AS g FROM jurisdictions WHERE id = :scope),
@@ -403,8 +449,9 @@ class GraphPartitionPlanner
                         / NULLIF(ST_Area(ST_ConvexHull((SELECT g FROM leaf))), 0) AS chr',
             [
                 'xs'    => '{'.implode(',', $xs).'}',
+                'xe'    => '{'.implode(',', $xe).'}',
                 'ys'    => '{'.implode(',', $ys).'}',
-                'half'  => $half,
+                'ye'    => '{'.implode(',', $ye).'}',
                 'scope' => $scopeId,
             ]
         );
