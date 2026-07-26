@@ -135,7 +135,40 @@ exec.
 
 ---
 
-## What is actually open — six items, nothing else
+## ⚑ THE BUILD IS CLOSED. THE WALK IS THE NEXT EVENT.
+
+*Updated 2026-07-26 late. His gate was "nothing left to be built or made" — it is met.*
+
+```
+chambers    19 of 19 governed        live seats  257
+worlds      San Marino (founded) · Niue (generated from nothing)
+worksheet   54 cards, sections A–I, printable, 9 warnings ahead of card one
+boxes       both serving
+```
+
+**Every lane reports nothing outstanding.** Nine castelli seated exactly on lane 1's maps —
+22/22, 19/19, 16/16, 15/15, 14/14, 13/13 and three tens, zero drift. Niue's seven villages 40/40.
+Achievements fire. The economy has doors and refusals that explain themselves.
+
+### The one known defect, labelled in three places
+**San Marino's national chamber draws 31 seats where the law says 32**, so one seat has no
+district, no race, and can never be filled — at this election or any future one. Lane 1 has the
+redraw (7 → 8 on one district lands exactly 32, in band). Worksheet cards **B-7 and C-1** and
+`/simworld` all name it, so he meets it labelled rather than as a surprise. **It is a real defect,
+not a vacancy** — an earlier card called it normal and that was corrected.
+
+### TWO NEW RULINGS, both created today, both genuinely his
+
+| # | The question | What is known |
+|---|---|---|
+| **R1** | **Turn the activation threshold on?** | It is a **switch, not a build** — lane 3 built the dial and it is off, so the effective threshold is **1**: the first person to confirm residency anywhere switches a government on and stands alone in it. Curve `clamp(ceil(k·pop^⅓), floor, cap)`, floor **5** — the constitutional minimum chamber size, not an arbitrary number. Raising it **shrinks the window where a fresh node shows an empty second chamber; it does not close it.** Lane 2 needs this by 08-05 and it is now load-bearing for the launch too. |
+| **R2** | **May a chamber that exceeds the Type B bound hold an election?** | **9,708 chambers are over the bound, 9,708 are flagged, perfect 1:1, zero silently wrong.** The bound is exceeded only because stage-two grouping is unbuilt, as documented. **Refuse** = those 9,708 cannot elect until grouping exists. **Allow** = a stated bound is exceeded in live elections, though every constituent remains equally represented, which is Type B's actual purpose. Lane 3 leans allow-with-flag. **Niue's flagged chamber is seated and labelled on `/simworld`, deliberately, so the ruling is made against a real thing rather than a description.** |
+
+**Recommendation: walk first, rule second.** Both read differently once he has seen the app.
+
+---
+
+## The older items — still open, unchanged
 
 Every lane filed a four-way classification directly. **Three lanes withdrew their own claim on
 the operator** once asked to state it plainly (3, 13, 15), and **one lane's open question had
