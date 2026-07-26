@@ -27,7 +27,6 @@
  * server-gated on sandbox game mode.
  */
 import { ref, watch, computed } from 'vue';
-import { router } from '@inertiajs/vue3';
 
 const props = defineProps({
     /** { name } of the impersonated user, or null when you are yourself. */
@@ -97,7 +96,13 @@ async function become(user) {
            session switch so a non-operator can still drive a walkthrough. */
         if (r.status === 403) r = await post('/dev/login-as', { user_id: user.id });
         if (!r.ok) throw new Error(`Could not switch (${r.status})`);
-        router.reload();
+        /* FULL page load, not router.reload(). Logging in rotates the session
+           id, and an Inertia partial visit can be answered against the old
+           session — the switch appears to succeed and the page comes back as
+           whoever you already were. A full load re-sends with the new cookie
+           and rebuilds every shared prop, which is what an identity change
+           needs. */
+        window.location.reload();
     } catch (e) {
         error.value = e?.message || 'Could not switch persona.';
         busy.value = false;
@@ -110,7 +115,7 @@ async function returnToSelf() {
     try {
         const r = await post('/dev/impersonate/stop');
         if (!r.ok) throw new Error(`Could not return (${r.status})`);
-        router.reload();
+        window.location.reload();
     } catch (e) {
         error.value = e?.message || 'Could not return to your own account.';
         busy.value = false;
