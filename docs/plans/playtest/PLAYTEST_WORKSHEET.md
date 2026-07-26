@@ -48,15 +48,15 @@ Every one of those five would have failed a tester on the app behaving correctly
 **⚑ First, which of these are pages and which are buttons.** Only five dev addresses are pages you
 can type into the browser:
 
-> `/dev/users` · `/dev/electoral-kit` · `/dev/legislature-kit` · `/dev/judiciary-kit` ·
-> `/dev/executive-kit`
+> `/dev/electoral-kit` · `/dev/legislature-kit` · `/dev/judiciary-kit` · `/dev/executive-kit`
 
 **Everything else below is a button on a page, not an address.** Typing one into the browser gives
 you *"405 Method Not Allowed"* — which looks like a broken app and isn't. See warning 9.
 
-**To become someone else** — open **`/dev/users`**, which lists everyone, and switch from there.
-The four kits are also real pages, and each sets up the state a role needs. Dev mode is on for this
-box (sandbox game mode).
+**To become someone else** — the **dev bar at the bottom of every page**. Open it, type a name or
+an email, pick the person, and you are them. A **"Return to yourself"** button appears while you
+are someone else. The four kits above are real pages, and each sets up the state a role needs. Dev
+mode is on for this box (sandbox game mode).
 
 **To move time** — lane 3 is building the time control right now
 (`docs/plans/playtest/DEV_TIME_AND_ROLE_CONTROLS.md`), including a preview of what an advance
@@ -109,14 +109,14 @@ its seats exactly** — no village is short or over by even one:
 > Serravalle 22 · Borgo Maggiore 19 · Città di San Marino 16 · Domagnano 15 · Fiorentino 14 ·
 > Acquaviva 13 · Chiesanuova 10 · Faetano 10 · Montegiardino 10
 
-One activation step stands between those maps and seated representatives, and it may or may not
-have run by the time you sit down. **So open a village and read what you get:**
+**They are now seated** — 19 chambers governed across this world, 257 seats filled, no seat held
+twice. So open any village and expect to find named representatives in it, in the numbers above.
 
 | What you see | What it means |
 |---|---|
-| Named representatives | The step ran. Walk it like any chamber. |
-| An empty chamber | The maps are drawn and **awaiting activation**. Correct, not missing. |
-| An error, or a seat count not matching the list above | **That** is a finding. Write it down. |
+| Named representatives, matching the count above | Correct — walk it like any chamber |
+| An empty chamber | A regression. Write it down: they were seated on 2026-07-26 |
+| A seat count not matching the list | **A finding.** Every village lands its number exactly |
 
 *Why villages need maps at all: a village is a leaf — nothing beneath it to represent — so it has
 only the population-based chamber, and that chamber is divided into districts of five to nine
@@ -417,8 +417,15 @@ whole point of the screen.*
 | 3 | Count the seats against the seats contested | same | They match |
 
 **PASSES IF** — every seat contested is filled by the person the count produced.
-*Underlying proof: `legislature_members` rows tracing to that election. **Expect 58 members across
-both chambers** (31 + 27) against 59 seats — one vacancy, which is normal, not a failure.*
+*Underlying proof: `legislature_members` rows tracing to that election.*
+
+**⚠ Expect 58 of 59, and that missing seat is a REAL DEFECT — not a normal vacancy.** The law sizes
+this chamber at 32 population seats; the map that was drawn only adds up to 31. **A seat with no
+district has no race, so nobody can ever be elected to it** — not at this election and not at any
+future one. It is already known and a redraw has been asked for. **Note it and move on; don't spend
+your walk on it.** Recorded here because the rule is that a chamber must be exactly the size the
+law says — a seat that cannot be filled is never acceptable, and an earlier draft of this card
+wrongly called it normal.
 
 **Result** ☐ pass ☐ fail ☐ blocked  **Notes** ________________________________________
 
@@ -456,9 +463,10 @@ back different from the ones above, stop and say so, because something has regre
 | 1 | Open the legislature | `/legislatures/smr-1-san-marino` | Its seats and members |
 | 2 | Count members of **each** chamber | same | Roughly 31 and 27 |
 
-**PASSES IF** — both chambers have members, totalling around **58 serving**.
-*Write the two numbers down. If the second chamber reads 0, stop — that's a regression, and
-everything from C-2 on will fail at the vote for that one reason.*
+**PASSES IF** — both chambers have members, totalling **58 serving**.
+*Write the two numbers down. Expect **31 of 32** and **27 of 27**. The one short seat in the first
+chamber is a known defect (see B-7), not something to investigate here. If the second chamber reads
+0, stop — that's a regression, and everything from C-2 on will fail at the vote for that reason.*
 
 **Result** ☐ pass ☐ fail ☐ blocked  **Notes** _seated: ___ of 32 · ___ of 27_ ______________
 
