@@ -118,6 +118,37 @@ answer, ask what question the tool actually answered. Lane 15's framing, which i
 version: *"'completed, exit 0' answered 'did the wrapper exit?' and I read it as 'did the suite
 run?'"*
 
+### ⚑ THE SERVER SENDS IT, THE SCREEN DOES NOT SHOW IT — three instances in one afternoon
+The specific failure that BUILT-is-not-TESTED produces. **The capability is real and its
+reachability is zero.** Every server-side check passes — correct props, 200s, green pins — and a
+human sees nothing, or sees the wrong thing.
+
+| Where | The server did | The screen did |
+|---|---|---|
+| `DevBar.vue` | nothing wrong — the slot was there from the start | rendered the slot **empty and self-closing**, so the persona switcher never existed |
+| `/system/clocks` | `ClocksController` sent `dueNow` and the playtest preview | `Clocks.vue` **declared neither prop** and rendered neither — "what is due now" was invisible |
+| the six economy pages | exact contract props, green `EconomyPropContractTest` | `Quantity 1.000000` and a raw `[POLICY]` token in player-facing copy |
+
+**Why it hides so well: a half-wired component looks finished.** `DevBar` had chrome, a label, a
+collapsible panel and a real status line. Nothing about it said unfinished. **Absence that
+presents as presence is far harder to see than a blank screen.**
+
+**The audit that finds it:** for any capability you believe exists, ask *what does a person click*
+— then check that something in `resources/js` actually references the endpoint. Grep the route
+name. A controller with no caller is a feature nobody can reach.
+
+### ⚑ "I found zero" is not "I found nothing to count"
+Lane 9's distinction, and it is what caught the clock page. They reported that the string `due`
+appeared nowhere in 4,882 characters of body text — and **refused to collapse those two claims**.
+"Zero results" can mean the thing is genuinely zero, or that nothing was ever rendered to count.
+They read very differently and a report that merges them hides the second.
+
+**The sharper corollary, from the same fix:** lane 3 had reported the playtest safety gate as
+holding, and it *was* holding — but lane 9 found the block **absent from the page entirely**. So
+the absence check would have passed **whether or not the gate worked**. In their own words: *"the
+absence check passed for a weaker reason than I claimed."* **A safety property confirmed by the
+absence of something is only as good as your proof that the something would have appeared.**
+
 ### Two gates that catch what no single check can — lane 9, from the login-screen near-miss
 A verification rig reported **8 of 11 pages passing**. All 8 were the login screen: the dev login
 had briefly 502'd, every authenticated route redirected, and **a login page passes every pixel
