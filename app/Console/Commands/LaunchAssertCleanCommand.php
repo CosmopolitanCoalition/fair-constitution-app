@@ -2,6 +2,7 @@
 
 namespace App\Console\Commands;
 
+use App\Http\Middleware\DevTimeControlsEnabled;
 use App\Support\GameMode;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\DB;
@@ -101,11 +102,32 @@ class LaunchAssertCleanCommand extends Command
      */
     private function assertNoDevControls(): void
     {
+        // Checked two ways on purpose, and both are hard failures.
+        //
+        // (a) The KEY itself. DEV_TIME_AND_ROLE_CONTROLS.md §4 asks for exactly this. The
+        //     composite gate below may currently refuse for some OTHER reason — the app is
+        //     not in local mode, say — which would mask a key left switched on. Flip that
+        //     one other condition later and the controls open with nobody having touched
+        //     the key. So the key being on is a failure even when something else blocks it.
         if (config('cga.dev_time')) {
             $this->addFailure(
                 'DEV TIME CONTROLS ARE ON (cga.dev_time / CGA_DEV_TIME).',
                 'They can advance constitutional deadlines and file ballots as a seated member. '.
                 'Set CGA_DEV_TIME=false in .env and restart the app + workers.'
+            );
+        }
+
+        // (b) The LIVE gate, borrowed rather than re-derived. DevTimeControlsEnabled is the
+        //     one implementation the middleware and the dev console commands both use; it
+        //     returns null when the controls may actually run. Calling it here means this
+        //     assertion can never drift from what the routes really permit — a second copy
+        //     of the condition would eventually disagree with the first.
+        if (class_exists(DevTimeControlsEnabled::class)
+            && DevTimeControlsEnabled::refusalReason() === null) {
+            $this->addFailure(
+                'The playtest time/role controls are LIVE on this instance right now.',
+                'Nothing is currently refusing them, so a ballot can be filed as a seated member. '.
+                'They must be refused before this instance takes real users.'
             );
         }
 
