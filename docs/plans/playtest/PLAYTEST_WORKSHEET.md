@@ -64,6 +64,13 @@ are kept in two deliberately unconnected places — one holds the vote with no v
 other records that you voted without holding the vote. So "I can't find my own ballot" is the
 system working. Where this sheet proves a vote happened, it proves *participation*, never content.
 
+**3. "Elected" and "seated" mean the same thing here.** The record marks every current member of
+San Marino's chambers as **elected**, and nothing is marked "seated" — both count as serving, and
+all 58 voted in the committee act that carried. So a member being "elected" is not a half-finished
+state. **Judge every card on what you can see** — the person is in the chamber and their vote is
+counted — not on the word used. *(Verified in the database and in the code, which treats the two as
+one throughout.)*
+
 ---
 
 ## Sections — take them in batches
@@ -310,8 +317,8 @@ whole point of the screen.*
 | 3 | Count the seats against the seats contested | same | They match |
 
 **PASSES IF** — every seat contested is filled by the person the count produced.
-*Underlying proof: `legislature_members` rows tracing to that election. **Expect 31 seated, not
-59** — see the Section C note; that gap is a known issue, not a fault of this test.*
+*Underlying proof: `legislature_members` rows tracing to that election. **Expect 58 members across
+both chambers** (31 + 27) against 59 seats — one vacancy, which is normal, not a failure.*
 
 **Result** ☐ pass ☐ fail ☐ blocked  **Notes** ________________________________________
 
@@ -369,7 +376,7 @@ of **all serving members** — not a majority of whoever turned up.
 | 3 | Check what quorum it demands | same | A number over half of all serving |
 
 **PASSES IF** — the quorum number is computed against **all serving members**, not attendance.
-*Worth checking by hand: with 59 serving, quorum should be 30.*
+*Worth checking by hand: with 58 serving, quorum should be 30.*
 
 **Result** ☐ pass ☐ fail ☐ blocked  **Notes** ________________________________________
 
