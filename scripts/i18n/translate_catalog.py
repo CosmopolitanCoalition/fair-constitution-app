@@ -326,6 +326,68 @@ def make_provider(name: str, glossary=None) -> Provider:
 
 
 # ─── QA: a string that fails any of these is skipped, never shipped ───────────
+# ─── SCRIPT AUDIT OF THE GATE SET ─────────────────────────────────────────────
+# Every rail below was written against English and then applied to the target.
+# That is a bug generator, not a bug: it produces confident false rejections
+# precisely for the languages furthest from English — the ones this pipeline
+# exists to serve and the ones nobody is proofreading. Two instances were found
+# the expensive way, one language at a time (Arabic 440, Chinese 1,110). This is
+# the audit of all nine gates, done in one pass instead of a third time.
+#
+#   gate                       assumption                       verdict
+#   1 provider returned None   none                             safe
+#   2 empty                    whitespace is visible            FIXED: zero-width
+#                                                               and bidi controls
+#                                                               now stripped first
+#   3 placeholder parity       tokens are ASCII                 safe (we mint them)
+#   4 ID token parity          tokens are ASCII                 safe
+#   5 citation parity          tokens are ASCII                 safe
+#   6 escaped-char parity      tokens are ASCII                 safe
+#   7 upper length bound       code points ~ perceived chars    FIXED: combining
+#                                                               marks inflate the
+#                                                               count, so measure
+#                                                               NFC + mark-free
+#   8 lower length floor       alphabetic density               FIXED: per script
+#   9 sentence count           every script punctuates          FIXED: Thai and
+#                                                               Lao mark no
+#                                                               sentence end at
+#                                                               all; rail skipped
+#                                                               rather than
+#                                                               guessed
+#
+# Cross-cutting, and the reason gates 2/7/8 needed work: text arrives in mixed
+# normalisation forms. NFD Devanagari or Hangul counts far more code points than
+# the identical NFC string, and RTL output carries invisible bidi marks. Both
+# inflate every length measurement and break every equality test. Measurement is
+# therefore always done on a normalised copy; the STORED translation keeps the
+# provider's own bytes.
+#
+# Deliberately NOT used anywhere in this file: word counts. Chinese and Japanese
+# have no spaces and Thai has no word breaks, so splitting on whitespace is
+# meaningless for most of the target set.
+
+# Zero-width and directional controls: invisible, and content to len().
+_INVISIBLE = re.compile(r"[​-‏‪-‮⁦-⁩﻿­]")
+
+
+def _measure(s: str) -> str:
+    """The form lengths and comparisons are computed on. Never stored."""
+    import unicodedata
+
+    # NFC first (compose combining marks), then drop marks that remain, then
+    # drop invisibles. A Devanagari or Hangul string in NFD otherwise measures
+    # far longer than the identical NFC string.
+    composed = unicodedata.normalize("NFC", s)
+    stripped = "".join(c for c in composed if not unicodedata.combining(c))
+    return _INVISIBLE.sub("", stripped)
+
+
+# Scripts that mark no sentence boundary at all. Thai and Lao run sentences
+# together and separate them with a space, so "how many sentences came back" is
+# not a question their orthography can answer — the rail is skipped rather than
+# guessed at.
+_NO_SENTENCE_PUNCTUATION = {"Thai", "Laoo"}
+
 # How much shorter than its English source a CORRECT translation runs, by target
 # script. Character count is not comparable across writing systems: one Han
 # character carries a whole morpheme, so faithful Chinese is routinely a quarter
@@ -345,8 +407,9 @@ def qa(source: str, out: str | None, script: str = "Latn") -> str | None:
     if out is None:
         return "provider returned nothing"
     out = out.strip()
-    if not out:
-        return "empty"
+    m_out, m_src = _measure(out), _measure(source)
+    if not m_out:
+        return "empty"   # includes output that is only zero-width/bidi controls
     if sorted(PLACEHOLDER.findall(source)) != sorted(PLACEHOLDER.findall(out)):
         return "placeholder mismatch"
     if sorted(ID_TOKEN.findall(source)) != sorted(ID_TOKEN.findall(out)):
@@ -356,7 +419,7 @@ def qa(source: str, out: str | None, script: str = "Latn") -> str | None:
     if len(ESCAPED.findall(source)) != len(ESCAPED.findall(out)):
         return "escaped reserved character altered"
     # a translation many times the source length is almost always a runaway decode
-    if len(out) > max(60, len(source) * 4):
+    if len(m_out) > max(60, len(m_src) * 4):
         return "implausible length"
     # ...and one far SHORTER than its source means content was dropped. Observed
     # for real: NLLB-600M silently returned only the second sentence of
@@ -365,18 +428,20 @@ def qa(source: str, out: str | None, script: str = "Latn") -> str | None:
     # half-missing sentence passes every one of them. No translation is far
     # better than a confidently truncated one.
     floor = _SHORT_FLOOR.get(script, _SHORT_FLOOR_DEFAULT)
-    if len(source) >= 40 and len(out) < len(source) * floor:
+    if len(m_src) >= 40 and len(m_out) < len(m_src) * floor:
         return (f"suspiciously short for {script} — source content likely dropped "
-                f"({len(out)}/{len(source)} chars, floor {floor:g})")
+                f"({len(m_out)}/{len(m_src)} chars, floor {floor:g})")
     # Every sentence in should be a sentence out, counted by TERMINATOR so the
     # test works in any script. Fewer terminators ALONE is not proof: a model
     # legitimately drops a trailing period, which looks identical to losing the
     # last sentence. Real content loss shows both signals — fewer terminators
     # AND a much shorter result — so both are required before a string is
     # quarantined. Either alone produced a false positive we actually saw.
+    if script in _NO_SENTENCE_PUNCTUATION:
+        return None
     src_n, out_n = _terminator_count(source), _terminator_count(out)
     loss_ratio = max(_SHORT_FLOOR.get(script, _SHORT_FLOOR_DEFAULT) * 1.6, 0.35)
-    if src_n >= 2 and out_n < src_n and len(out) < len(source) * loss_ratio:
+    if src_n >= 2 and out_n < src_n and len(m_out) < len(m_src) * loss_ratio:
         return f"sentence count fell {src_n} -> {out_n}"
     return None
 
@@ -425,6 +490,12 @@ _TERMINATORS = re.compile(
     r"|[।॥]"          # Devanagari danda, double danda
     r"|[。！？]"    # CJK full stop, fullwidth ! and ?
     r"|[׃]"                # Hebrew sof pasuq
+    r"|[።፧፨]"       # Ethiopic full stop / question / paragraph (am, ti)
+    r"|[։]"                # Armenian full stop
+    r"|[។៕]"          # Khmer khan / bariyoosan
+    r"|[။၊]"          # Myanmar section / little section
+    r"|[།༎]"          # Tibetan shad / nyis shad (dz)
+    r"|[۔]"                # Urdu full stop
 )
 
 
@@ -532,6 +603,31 @@ def self_test() -> int:
           qa(zh_src, zh_ok, "Latn") is not None)
     check("genuinely truncated Chinese is still caught",
           qa(zh_src, "登录", "Hans") is not None)
+
+    # --- the one-pass script audit, pinned so a third instance cannot appear ---
+    # Thai marks no sentence end at all; the rail must abstain, not guess.
+    th_src = "Log in to your record. Your rights follow your residency."
+    th_ok = "เข้าสู่ระบบ สิทธิของคุณเป็นไปตามถิ่นที่อยู่"
+    check("Thai abstains from the sentence rail", qa(th_src, th_ok, "Thai") is None,
+          str(qa(th_src, th_ok, "Thai")))
+
+    # NFD input must not measure longer than the identical NFC string.
+    import unicodedata as _u
+    nfc = "서울에서 기록을 확인하십시오."
+    check("normalisation does not inflate length",
+          len(_measure(_u.normalize("NFD", nfc))) == len(_measure(nfc)))
+
+    # bidi and zero-width controls are invisible; they are not content
+    check("invisible controls are not content",
+          _measure("‏مرحبا‎") == "مرحبا")
+    check("an all-invisible output is empty",
+          qa("Some real source text here", "‏​‎") is not None)
+
+    # terminators the first pass missed entirely
+    for label, ch in (("Ethiopic", "።"), ("Armenian", "։"),
+                      ("Khmer", "។"), ("Myanmar", "။"), ("Tibetan", "།")):
+        check(f"{label} full stop counts as a sentence end",
+              _terminator_count(f"a{ch} b{ch}") == 2)
 
     check("real loss is still caught",
           qa(ar_src, "حقوقك ترتبط بإقامتك.") is not None)

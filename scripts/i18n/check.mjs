@@ -47,6 +47,13 @@ const ID_TOKEN   = /\b(?:R|WF|F|I|CLK)-[\dA-Z][\dA-Z-]*\b/g;
 const CITATION   = /Art\.\s*[IVXLC]+(?:\s*§\s*\d+)?/g;
 const PLACEHOLDER = /(?<!\{')\{([A-Za-z_$][\w$]*)\}/g;
 
+/* Same script audit as translate_catalog.py: every comparison below runs on a
+   NORMALISED copy. Providers return mixed normalisation forms, and an NFD
+   Devanagari or Hangul string is not === to the identical NFC one — so an
+   untouched equality test silently reports drift that does not exist, and a
+   glossary `includes` silently reports a term as missing when it is present. */
+const norm = (s) => String(s).normalize('NFC').replace(/[​-‏‪-‮⁦-⁩﻿­]/g, '');
+
 const failures = [];
 const warnings = [];
 const fail = (code, locale, ns, key, detail) =>
@@ -162,7 +169,7 @@ for (const code of allLocales) {
         const tgt = String(v);
 
         if (tgt.trim() === '') { fail('C6-empty', code, k.split(':')[0], k, 'empty translation'); continue; }
-        if (tgt === src && src.length > 3) identical += 1;
+        if (norm(tgt) === norm(src) && src.length > 3) identical += 1;
 
         const c = compiles(tgt);
         if (c !== true) fail('C5-compile', code, k.split(':')[0], k, c);
@@ -226,7 +233,7 @@ for (const code of allLocales) {
             if (!needle.test(String(v))) continue;
             const tgt = bag[k];
             if (tgt === undefined) continue;           // C1 already reports absence
-            if (!String(tgt).includes(settled)) {
+            if (!norm(tgt).includes(norm(settled))) {
                 warn('C8-glossary', code, k.split(':')[0], k,
                      `source uses "${term}"; expected the settled "${settled}"`);
             }
