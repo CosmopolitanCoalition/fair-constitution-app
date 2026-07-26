@@ -113,6 +113,31 @@ Six instances in a single day, 2026-07-26, in six different costumes:
 | a report of two identical lines | "there is a duplicate import" | a summary, not the file |
 | 8 screenshots passing every pixel check | "8 pages render" | "8 images look like real pages" — they were 8 photographs of the **login screen** |
 
+### ⚑ THE RULE HAS TWO HALVES — lane 3's, and it is the sharpest version
+> **Run it, and check that what you ran is what you meant.**
+
+*"Run it rather than reason about it"* is only the first half, and this desk proved the gap by
+following the first half and still getting a wrong answer: a **green** run of
+`DevImpersonationTest` was used to retract a correct finding — **because the file had been
+rewritten between the report and the run.** Six tests with new names, where the original had three
+with different ones. The instrument was fine. It answered a question about a different file.
+
+**Every failure catalogued here has that shape:**
+
+| The instrument | Worked perfectly | And omitted |
+|---|---|---|
+| `route:list` | listed every route | the middleware |
+| lane 9's screenshot metrics | measured a real page | **which URL** — 8 healthy captures of the login screen |
+| full-page capture | captured the page | the scroll position |
+| lane 3's gate cases | ran and passed | that the *environment* gate fired first, so all three proved nothing |
+| a green test run | ran the tests | **which version of the file** |
+
+**In every case the instrument worked perfectly and answered a question nobody asked.**
+
+**Why the second half is the harder one:** the target of a measurement *feels like context* rather
+than measurement, so it gets assumed while the method gets checked. Ask what the tool was pointed
+at, not only whether it ran.
+
 **The habit that defeats all seven: verify the probe, not just the result.** Before believing an
 answer, ask what question the tool actually answered. Lane 15's framing, which is the shortest
 version: *"'completed, exit 0' answered 'did the wrapper exit?' and I read it as 'did the suite
