@@ -1534,6 +1534,42 @@ class DistrictingDoctrineTest extends TestCase
      * Root → scope → chain of children (adjacent unit squares along the x axis).
      * Returns [$legRow, $scopeId].
      */
+    // ─── (27) Drift is always wrong — big scopes land exactly too ───────────
+
+    public function test_a_large_child_scope_lands_its_budget_exactly(): void
+    {
+        $this->onLivePg(function () {
+            // OPERATOR RULING 2026-07-26: seat drift is ALWAYS wrong — the
+            // chamber size is fixed by the cube-root law, so a total that
+            // misses leaves seats unfillable or unallotted. My exactness
+            // search only ran at <= 10 children, which is why drift survived
+            // in exactly the big scopes (31% of country population, 36% of
+            // state population). 24 children — well past the old ceiling —
+            // with lumpy populations that do NOT trivially round to budget.
+            $pops = [31, 29, 27, 26, 24, 23, 22, 21, 19, 18, 17, 16,
+                     15, 14, 13, 12, 11, 10, 9, 8, 7, 6, 5, 4];
+            [$leg, $scopeId] = $this->makeScopeFixture('zzbig', $pops, 10_000, 60);
+
+            $result = app(DistrictingService::class)->runAutoCompositeForScope(
+                $leg->id, $leg, $scopeId, false, 60, null
+            );
+            $this->assertNull($result['error']);
+
+            $districts = DB::table('legislature_districts')
+                ->where('legislature_id', $leg->id)
+                ->whereNull('deleted_at')
+                ->get(['seats', 'actual_population']);
+
+            $this->assertSame(60, (int) $districts->sum('seats'),
+                'a 24-child scope MUST seat its budget exactly — drift is never acceptable');
+            foreach ($districts as $d) {
+                $this->assertGreaterThanOrEqual(5, (int) $d->seats, 'constitutional floor');
+                $this->assertLessThanOrEqual(9, (int) $d->seats, 'constitutional ceiling');
+                $this->assertGreaterThan(0, (int) $d->actual_population, 'no empty district');
+            }
+        });
+    }
+
     // ─── (26) Crumb absorption: entitlement-zero bins never seat ────────────
 
     public function test_crumb_child_rides_a_neighbor_and_never_seats_its_own_district(): void

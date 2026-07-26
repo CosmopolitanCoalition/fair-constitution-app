@@ -1027,13 +1027,40 @@ class DistrictingService
                     );
                     $spreadNow   = max($roundsNow) - min($roundsNow);
                     $spreadCanon = max($finalParts) - min($finalParts);
-                    if ($spreadNow > $spreadCanon) {
+
+                    // DRIFT IS ALWAYS WRONG (operator ruling 2026-07-26). The
+                    // chamber size is FIXED by the cube-root law, so a total
+                    // that misses the budget leaves seats unfillable or
+                    // unallotted — never "close enough". Two gates here used to
+                    // suppress the repair and were BOTH wrong:
+                    //   (a) the landing only ran when SPREAD was worse than
+                    //       canonical — a scope with a fine spread but a wrong
+                    //       TOTAL never attempted it at all;
+                    //   (b) even when it ran and landed exactly, the doctrine
+                    //       comparator could discard it.
+                    // Now: attempt whenever the total misses, and an EXACT
+                    // landing is adopted unconditionally — exactness outranks
+                    // spread, compactness and every other preference, because
+                    // those are qualities and this is the law.
+                    $sumNow     = array_sum($roundsNow);
+                    $driftHere  = $sumNow !== $nonGiantBudget;
+                    if ($spreadNow > $spreadCanon || $driftHere) {
                         $landed = $this->landSeatVector($allBins, $finalParts, $childById, $centroids, $adj, $quotaPopAll, $floor, $ceiling, $giantThreshold, $floorBoundary);
                         if ($landed !== $allBins) {
-                            $before = $this->scoreConfiguration($allBins, $childById, $adj, (float) $popAll, $nonGiantBudget, $floor, $ceiling, $floorBoundary);
-                            $after  = $this->scoreConfiguration($landed, $childById, $adj, (float) $popAll, $nonGiantBudget, $floor, $ceiling, $floorBoundary);
-                            if ($this->scoreBeats($after, $before)) {
-                                $allBins = $landed;
+                            $landedSum = array_sum(array_map(
+                                fn ($b) => max($floor, min($ceiling, (int) round(
+                                    array_sum(array_map(fn ($jid) => (float) $childById[$jid]->population, $b)) / $quotaPopAll
+                                ))),
+                                $landed
+                            ));
+                            if ($driftHere && $landedSum === $nonGiantBudget) {
+                                $allBins = $landed;   // exact beats everything
+                            } else {
+                                $before = $this->scoreConfiguration($allBins, $childById, $adj, (float) $popAll, $nonGiantBudget, $floor, $ceiling, $floorBoundary);
+                                $after  = $this->scoreConfiguration($landed, $childById, $adj, (float) $popAll, $nonGiantBudget, $floor, $ceiling, $floorBoundary);
+                                if ($this->scoreBeats($after, $before)) {
+                                    $allBins = $landed;
+                                }
                             }
                         }
                     }
@@ -1234,6 +1261,20 @@ class DistrictingService
         // PROVEN indivisible atom (Pinland pin 4 stays +1 by exhaustion).
         $seatSum = array_sum(array_column($binData, 'seats'));
         $allJids = array_merge(...array_map(fn ($b) => $b['jids'], $binData ?: [['jids' => []]]));
+        // LARGE SCOPES GET A MOVE-BASED REPAIR (2026-07-26). The exhaustive
+        // partition search below only runs at <= 10 children because set
+        // partitions explode (Bell numbers) — and countries/states carry
+        // 20-90 children, which is EXACTLY where drift concentrated (31% of
+        // country population, 36% of state population). That limit was my
+        // defect, not a property of the problem: closing a seat gap does not
+        // need every partition, only a move that changes the rounded total by
+        // one. Walk single-child moves between bins, take the one that
+        // reduces |gap| while both bins stay inside the band, and repeat.
+        if ($seatSum !== $effectiveBudget && count($allJids) > 10 && $totalBinPop > 0) {
+            $binData = $this->repairSeatSumByMoves($binData, $childById, $adj, $binQuota, $effectiveBudget, $floor, $ceiling, $minSeat);
+            $seatSum = array_sum(array_column($binData, 'seats'));
+        }
+
         if ($seatSum !== $effectiveBudget && count($allJids) >= 2 && count($allJids) <= 10 && $totalBinPop > 0) {
             $exact = [];
             $groups = [];
@@ -1429,6 +1470,107 @@ class DistrictingService
             return $fullQuota;
         }
         return $ngPop / $ngBudget;
+    }
+
+    /**
+     * SEAT-SUM REPAIR BY MOVES (operator ruling 2026-07-26: drift is always
+     * wrong). Closes the gap between the bins' nearest-rounded seat total and
+     * the pool budget WITHOUT enumerating partitions, so it scales to the
+     * 20-90-child scopes where drift actually lives.
+     *
+     * Each step considers moving ONE child from a donor bin to a receiver bin
+     * that touches it (adjacency preferred — a move across the map would buy
+     * exactness with a scattered district), recomputes both bins' rounded
+     * seats, and keeps the move that reduces |total - budget| the most while
+     * leaving every bin non-empty and inside [minSeat, ceiling]. Deterministic
+     * throughout: ties break on the lowest bin index, then the lowest child id.
+     *
+     * @param  array  $binData  [['jids'=>[], 'pop'=>int, 'seats'=>int, ...], ...]
+     * @return array  the repaired bins (unchanged when no move helps)
+     */
+    private function repairSeatSumByMoves(
+        array $binData,
+        array $childById,
+        array $adj,
+        float $binQuota,
+        int $effectiveBudget,
+        int $floor,
+        int $ceiling,
+        int $minSeat
+    ): array {
+        $seatsOf = function (int $pop) use ($binQuota, $minSeat, $ceiling): int {
+            return max($minSeat, min($ceiling, (int) round($pop / max($binQuota, 1))));
+        };
+        $touches = function (array $binJids, string $jid) use ($adj): bool {
+            foreach ($adj[$jid] ?? [] as $nb) {
+                if (in_array($nb, $binJids, true)) {
+                    return true;
+                }
+            }
+            return false;
+        };
+
+        $n = count($binData);
+        for ($pass = 0; $pass < 200; $pass++) {
+            $sum = 0;
+            foreach ($binData as $b) {
+                $sum += $seatsOf((int) $b['pop']);
+            }
+            $gap = $sum - $effectiveBudget;
+            if ($gap === 0) {
+                break;
+            }
+
+            $best = null;   // ['from'=>i,'to'=>j,'jid'=>x,'gain'=>int,'adjacent'=>bool]
+            for ($i = 0; $i < $n; $i++) {
+                if (count($binData[$i]['jids']) < 2) {
+                    continue;   // never empty a bin — the district must survive
+                }
+                foreach ($binData[$i]['jids'] as $jid) {
+                    $cp = (int) $childById[$jid]->population;
+                    for ($j = 0; $j < $n; $j++) {
+                        if ($i === $j) {
+                            continue;
+                        }
+                        $newI = $seatsOf((int) $binData[$i]['pop'] - $cp);
+                        $newJ = $seatsOf((int) $binData[$j]['pop'] + $cp);
+                        $delta = ($newI + $newJ) - ($seatsOf((int) $binData[$i]['pop']) + $seatsOf((int) $binData[$j]['pop']));
+                        $gain = abs($gap) - abs($gap + $delta);
+                        if ($gain <= 0) {
+                            continue;
+                        }
+                        $adjacent = $touches($binData[$j]['jids'], $jid);
+                        $cand = ['from' => $i, 'to' => $j, 'jid' => $jid, 'gain' => $gain, 'adjacent' => $adjacent];
+                        if ($best === null
+                            || $cand['gain'] > $best['gain']
+                            || ($cand['gain'] === $best['gain'] && $cand['adjacent'] && ! $best['adjacent'])) {
+                            $best = $cand;
+                        }
+                    }
+                }
+            }
+            if ($best === null) {
+                break;   // no single move helps — the caller records it honestly
+            }
+
+            $cp = (int) $childById[$best['jid']]->population;
+            $binData[$best['from']]['jids'] = array_values(array_filter(
+                $binData[$best['from']]['jids'],
+                fn ($x) => $x !== $best['jid']
+            ));
+            $binData[$best['from']]['pop'] -= $cp;
+            $binData[$best['to']]['jids'][] = $best['jid'];
+            $binData[$best['to']]['pop'] += $cp;
+        }
+
+        // Re-seat every bin under the same Step 11 arithmetic.
+        foreach ($binData as &$b) {
+            $b['fractional'] = $b['pop'] / max($binQuota, 1);
+            $b['seats'] = $seatsOf((int) $b['pop']);
+        }
+        unset($b);
+
+        return $binData;
     }
 
     /**
