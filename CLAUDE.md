@@ -83,8 +83,8 @@ These are immutable rules enforced at the application layer. No UI, admin panel,
 | Rule | Value | Source |
 |---|---|---|
 | Voting method | STV with Droop quota — never FPTP or plurality | Art. II §2 |
-| Legislature min seats | 5 | Art. II §2 |
-| Legislature max seats | 9 (mandatory subdivision above this) | Art. II §2 |
+| District min seats | 5 | Art. II §2 |
+| District max seats | 9 — a legislature above 9 MUST subdivide into districts. This is a DISTRICT rule; a legislature TOTAL has no ceiling (Earth = 1,999 across 282 districts). Does not bind an at-large Type B race — see Bicameral Support | Art. II §2 |
 | Supermajority | 2/3 of ALL serving members (not just present) | Art. VII |
 | Quorum | Majority of ALL serving members | Art. II §2 |
 | Max days between meetings | 90 | Art. II §2 |
@@ -240,10 +240,45 @@ seats across all committees = the number of placements to fill.
 - **Individual**: Single winner via RCV, top 4 runners-up as automatic advisors (US model)
 Both start as legislature-delegated. Converts to directly elected by supermajority.
 
-### Bicameral Support (Article V §3)
-- `type_a_seats`: constituent jurisdiction reps
-- `type_b_seats`: at-large reps
-- Both types must independently agree for acts to pass
+### Bicameral Support (Article V §3) — SETTLED 2026-07-26, do not re-derive
+
+The two chambers answer **different questions** and are sized by **different rules**. The old
+one-line summary here had them backwards and that error propagated into `racePlan()`, which
+blocked ~30k chambers. Read this section before touching seats, races or districting.
+
+**Type A — proportional. Population is everything.**
+- Total = `max(5, round(population^(1/3)))` — the cube-root law. **No ceiling on the total.**
+- That total is **districted into races of 5–9 seats**, drawn so population shares are as exact
+  as the engine can make them (splitline · cells · composite · graph partition).
+- **The 5–9 band is a DISTRICT rule, not a chamber rule.** A legislature total above 9 is normal
+  and is resolved by subdividing — Earth is 1,999 seats across 282 districts.
+
+**Type B — equal representation of the constituent jurisdictions. Population is IRRELEVANT.**
+- Every direct constituent gets the **same** number of seats regardless of its population.
+- Total = `seats_per_constituent × number_of_constituents` (setting `type_b_seats_per_child`,
+  default 5).
+- **At-large: the jurisdiction IS the district, so Type B is ONE STV race**, however many seats.
+  The 5–9 district band does NOT bind it — same as `exec_committee` and `judicial_group`, which
+  the schema already allows above 9 with no upper bound.
+- **A leaf has no Type B** — no constituents to represent. Its own representation appears in its
+  PARENT's Type B chamber.
+
+**The only bound on Type B: it may not exceed the Type A total.** When it does, reduce in two
+stages, in this order:
+1. **The ladder** — step `seats_per_constituent` down 5 → 4 → 3 → 2 until the total fits.
+   (San Marino: 9 castelli × 5 = 45 > 32, step to 3 → 27, fits. Done, no grouping.)
+2. **Type B districting — ONLY if 2-per-constituent still overflows.** Clump whole constituent
+   jurisdictions into shared panels: pairs, then triples, and so on until the total fits.
+   **Evenly** (every group holds the same count, so representation stays equal) and **compactly**
+   (nearest neighbours clump; adjacency matters). **No geometry is ever cut** — this is a
+   balanced grouping over an adjacency graph, not a drawing operation. Populations are not
+   consulted at any step.
+   (50 states, 1,000 people → Type A 10; at 2 apiece = 100; pairs = 50; **5 groups of 10 states
+   × 2 = 10**, fits. Ten states share one panel.)
+
+**Both chambers must independently agree for an act to pass.** An empty Type B chamber therefore
+blocks every bicameral act — creating an executive, creating a judiciary, committee creation,
+enacting a bill. That is correct behaviour, not a bug: fix the seating, never the rule.
 
 ---
 
