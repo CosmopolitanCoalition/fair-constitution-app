@@ -88,6 +88,23 @@ if [[ -n "$PUBLIC_URL" ]]; then
     echo "       which fabricates residents on a public instance. Refusing." >&2
     exit 1
   fi
+  # The dev time + role controls can advance constitutional deadlines and file ballots AS a
+  # seated member. They are already refused on a federated or peered node, but a PUBLIC box
+  # deployed with the key still on is the one path by which a fabricated vote could enter a
+  # hash-chained record that other nodes take on trust. Refuse at the door, like --seed.
+  # (docs/plans/playtest/DEV_TIME_AND_ROLE_CONTROLS.md §4.)
+  if [[ -f .env ]] && grep -qiE '^CGA_DEV_TIME=[[:space:]]*(1|true|on|yes)[[:space:]]*$' .env; then
+    echo "ERROR: CGA_DEV_TIME is enabled in .env and cannot be combined with --public-url." >&2
+    echo "       The dev clock/role controls can file ballots as a seated member; on a public" >&2
+    echo "       node that would put a fabricated vote into a record other nodes trust." >&2
+    echo "       Set CGA_DEV_TIME=false and re-run." >&2
+    exit 1
+  fi
+  if [[ -f .env ]] && grep -qiE '^CGA_IMPERSONATION=[[:space:]]*(1|true|on|yes)[[:space:]]*$' .env; then
+    echo "ERROR: CGA_IMPERSONATION is enabled in .env and cannot be combined with --public-url." >&2
+    echo "       Set CGA_IMPERSONATION=false and re-run." >&2
+    exit 1
+  fi
   # --self-url still wins if given explicitly (overlay transports pass it).
   [[ -z "$SELF_URL" ]] && SELF_URL="$PUBLIC_URL"
 fi
