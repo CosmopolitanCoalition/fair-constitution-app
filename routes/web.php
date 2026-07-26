@@ -570,6 +570,20 @@ Route::middleware('auth')->group(function () {
     Route::post('/bills/{bill}/refer', [BillController::class, 'refer'])
         ->whereUuid('bill')->name('bills.refer');                             // F-LEG-007 / F-CHR-003
 
+    // ── Phase L+M — the economy, read-only (v1) ─────────────────────────────
+    // Prop shapes are published BEFORE these controllers in
+    // docs/plans/economy/ECONOMY_PROP_CONTRACT.md and pinned by
+    // EconomyPropContractTest, so @lane-06's pages can be built against a
+    // contract that cannot silently drift. Writes arrive with the forms
+    // (F-IND-022/023/024); nothing here mutates.
+    Route::get('/economy', [\App\Http\Controllers\Economy\EconomyController::class, 'home'])->name('economy.home');
+    Route::get('/economy/wallet', [\App\Http\Controllers\Economy\EconomyController::class, 'wallet'])->name('economy.wallet');
+    Route::get('/economy/market', [\App\Http\Controllers\Economy\EconomyController::class, 'market'])->name('economy.market');
+    Route::get('/economy/market/{listing}', [\App\Http\Controllers\Economy\EconomyController::class, 'listing'])
+        ->whereUuid('listing')->name('economy.listing');
+    Route::get('/economy/treasury', [\App\Http\Controllers\Economy\EconomyController::class, 'treasury'])->name('economy.treasury');
+    Route::get('/economy/units', [\App\Http\Controllers\Economy\EconomyController::class, 'units'])->name('economy.units');
+
     // ── FE-C5 — Settings register (legislature/settings) ────────────────────
     Route::get('/legislatures/{legislature}/settings', [SettingsController::class, 'show'])
         ->whereUuid('legislature')->name('settings.show');
