@@ -647,18 +647,47 @@ class StvDroopGregoryTest extends TestCase
         $this->assertCountInvariants($r, 2);
     }
 
+    /**
+     * CORRECTED 2026-07-26 — this pin used to assert that seats=10 was a
+     * violation citing 'Art. II §2/§8'. The operator's ruling (CLAUDE.md
+     * "Bicameral Support (Article V §3)") settled that **the 5–9 band is a
+     * DISTRICT rule**, so it does not belong in the counting core at all.
+     *
+     * The test immediately below this one is the structural proof: CountInput
+     * carries exactly five fields and NO candidacy metadata — no seat_kind.
+     * The core therefore cannot tell a district race from an at-large one, and
+     * the old bound was enforcing a districting rule blind. It made a 27-seat
+     * at-large Type B race, a 10-judge elected court and an 11-member executive
+     * committee uncountable — all three lawful under the schema, and the
+     * judicial one lawful under Art. IV §1's "no ceiling" in terms.
+     *
+     * What remains hardened here is the one bound universal to COUNTING:
+     * a race elects at least one seat. The band is still enforced where
+     * districts are actually known — ElectionLifecycleService::racePlan() and
+     * the election_races_seats_check constraint (type_a BETWEEN 1 AND 9).
+     */
     public function test_seats_bounds_are_hardened(): void
     {
         $ballots = BallotSet::fromGrouped([[['A'], 1]]);
 
-        foreach ([0, 10, -1] as $seats) {
+        // Not a race: nothing elects zero or fewer seats.
+        foreach ([0, -1] as $seats) {
             try {
                 $this->svc->countStv(new CountInput(['A'], $seats, $ballots));
                 $this->fail("seats={$seats} accepted");
             } catch (ConstitutionalViolation $e) {
-                $this->assertSame('Art. II §2/§8', $e->citation);
+                $this->assertSame('Art. II §2', $e->citation);
+                // §8 is the SUBDIVISION clause; this guard no longer enforces
+                // it, so citing it would be a constitutional claim the
+                // constitution does not make here.
+                $this->assertStringNotContainsString('§8', $e->citation);
             }
         }
+
+        // Above the district band is LAWFUL in the core — at-large Type B,
+        // exec_committee and judicial_group all live here.
+        $r = $this->svc->countStv(new CountInput(['A'], 10, $ballots));
+        $this->assertNotNull($r);
     }
 
     /**
