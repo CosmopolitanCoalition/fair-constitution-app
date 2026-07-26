@@ -32,9 +32,39 @@ misdiagnosed twice today as somebody's code.
 **It needs your machine** — a Docker Desktop restart from the tray. Nobody can fix it from
 inside, and I would not restart the engine blind while lane 1's healing work is in flight.
 
-**What it is holding:** lane 15's `AchievementService` — the last of the four education changes,
-and the one that makes achievements actually fire. Until it ships, **every step of the walk works
-and no medal appears**, which is the exact false-failure the worksheet exists to prevent.
+**Scope check, 2026-07-26 late:** it began as one container and **has since spread to all of
+them** — `docker exec fcd_postgres` worked earlier and now hangs identically. So it is the
+engine's exec layer, not any container's state. **A `docker restart` will not clear it and may
+make things worse** (a container nobody can get inside is not guaranteed to come back cleanly).
+Lane 4 was stood down from attempting exactly that.
+
+**Deliberately not attempted from here.** The app still **serves HTTP normally** — every page
+loads. An engine restart that failed would cost that too, and you are away. Preserving a
+browsable app was judged worth more than unblocking lanes that can wait.
+
+**The queue behind it, in the order it should run when the box is back:**
+1. **Lane 1 — activate the nine castelli district maps.** They are DRAWN and EXACT (below); one
+   `finalize` step away from active.
+2. **Lane 4 — the Niue run**, and San Marino's castelli then seat themselves, because lane 4's
+   pipeline already sizes rosters from `racePlan()` and needs no change.
+3. **Lane 15 — `AchievementService`**, the last of the four education changes and the one that
+   makes achievements fire at all. Until it ships, **every step of the walk works and no medal
+   appears** — the exact false-failure the worksheet exists to prevent.
+4. Everyone else — tests, migrations, suites.
+
+### ✅ Good news that changes what the walk looks like — the nine castelli have maps
+Lane 1 took the ask and drew all nine, **every one seating its budget exactly, zero drift**:
+
+```
+Serravalle 22/22 · Borgo Maggiore 19/19 · Città di San Marino 16/16
+Domagnano 15/15 · Fiorentino 14/14 · Acquaviva 13/13
+Chiesanuova 10/10 · Faetano 10/10 · Montegiardino 10/10
+```
+
+They are still `draft` — finalize hit **stale compiled code inside the container**
+(`childLayerIsInert()` existed in git and not in the running app), and the restart to clear that
+is when exec died. So the honest line is **"nine maps exist and are exact, pending one activation
+step"**, not "nine empty chambers". Lane 6 has written the walk cards to be correct either way.
 
 Everything else continues — the fleet is committing docs, UI and design work, none of which needs
 exec.
