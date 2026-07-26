@@ -329,8 +329,17 @@ return [
             'supervisor-autoscale' => [
                 'maxProcesses' => \App\Support\HostCapacity::autoscaleWorkers(),
             ],
+            // FOUR LOCALLY, NOT cores-2. `balance: simple` keeps every process
+            // RESIDENT, so the planet-scale figure meant ~1 GB of idle PHP the
+            // moment this supervisor started working — on a dev box that shares
+            // one 7.6 GiB WSL VM with a SECOND full stack. Measured at 6.32 GiB
+            // in use, and Vite had already died of ENOMEM scanning a controller
+            // directory. The class comment says this pool must never starve real
+            // work; memory is that same rule, and enabling the supervisor is what
+            // made it bite. Production keeps the full pool — it does not host a
+            // second stack.
             'supervisor-sim' => [
-                'maxProcesses' => \App\Support\HostCapacity::autoscaleWorkers(),
+                'maxProcesses' => 4,
             ],
             'supervisor-prewarm' => [
                 'maxProcesses' => 1,
