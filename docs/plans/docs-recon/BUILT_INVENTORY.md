@@ -35,8 +35,8 @@ alongside as [BUILT_INVENTORY_EVIDENCE.md](BUILT_INVENTORY_EVIDENCE.md).
 | **K-2 Education & Achievements** | UNBUILT | **PARTIAL — achievements half is BUILT** | Journeys engine + append-only achievements ledger + code-registry catalog + profile badges + medal federation all live; education/grading half absent |
 | K-1 Civic Record Plane | BUILT | **BUILT — verified** | Correction: forms are F-SOC-001..003 (F-CHR-* are committee-chair forms) |
 | K-3 Matrix mesh | BUILT | **BUILT — verified, 2 soft edges** | Running infrastructure on BOTH stacks; M-5/F-SOC-004 has no HTTP/console entry point; M-S media gate bound but unconsumed |
-| L Public Finance | UNBUILT | **SUBSTRATE_ONLY** | Charter tables/forms all absent — but stipend/currency PARAMS live in setup wizard, grants/appropriations stub shipped (half-wired), no-paywall proto-rail in PROTECTED validator, 14-page economy mockups ×2 generations |
-| M Market Economy | UNBUILT | **SUBSTRATE_ONLY** | Marketplace/UBI-run/mutual-aid absent — but the M exit criterion's co-determination auto-trigger chain is BUILT and pinned; commercial contract kind in schema |
+| L Public Finance | UNBUILT | ✅ **BUILT 2026-07-25** (was SUBSTRATE_ONLY) | Charter tables/forms all absent — but stipend/currency PARAMS live in setup wizard, grants/appropriations stub shipped (half-wired), no-paywall proto-rail in PROTECTED validator, 14-page economy mockups ×2 generations |
+| M Market Economy | UNBUILT | ✅ **BUILT 2026-07-25** (was SUBSTRATE_ONLY) | Marketplace/UBI-run/mutual-aid absent — but the M exit criterion's co-determination auto-trigger chain is BUILT and pinned; commercial contract kind in schema |
 | N i18n/A11y/Media | UNBUILT | **SUBSTRATE_ONLY** | 5-locale chrome + pseudo-locale + glossary real; K-3 shipped the MT router's exact plug-in seam (pin-tested); 412 aria attributes across 91/177 Vue files; extraction/CI/115-locale registry absent |
 | O Full-Scale Demo | UNBUILT | **SUBSTRATE_ONLY** | CI-2 scale_demo→no-federation rail ALREADY coded + pinned (in K-3); `*@demo.invalid` namespace in live use; SANDBOX game mode end-to-end; the CoW overlay + populate engine remain the genuinely novel scope |
 
