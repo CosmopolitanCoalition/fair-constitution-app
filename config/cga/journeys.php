@@ -37,7 +37,13 @@ return [
      */
     'become-a-resident' => [
         'title'  => 'Becoming a resident',
-        'steps'  => ['Register', 'Declare where you live', 'Presence confirms', 'Residency confirmed', 'Rights switch on'],
+        // Step 5 added at @lane-06's suggestion (their worksheet section A-4), and
+        // they were right that it was the one worth not losing: you declare ONE
+        // place and discover you are represented in four, from your castello to
+        // the planet, without doing anything else. That is the moment nested
+        // jurisdiction stops being an abstraction. Its verified counterpart is
+        // ACH-CIV-006, which was already in the catalogue but not in the arc.
+        'steps'  => ['Register', 'Declare where you live', 'Presence confirms', 'Residency confirmed', 'You appear at every level', 'Rights switch on'],
         'status' => 'live',
         'cls'    => 'people',
     ],

@@ -345,7 +345,37 @@ private condition and the schema's own `privacy` column says so.*
 **`become-a-resident`** · `election` · `committee-session` · `bill` · `court-case` · `start-org` ·
 `board-meeting` · `form-a-group` · `petition-to-referendum` · `public-service` ·
 `two-governments` **(11 live)** · `budget` · `mutual-aid` · `stipend-and-tax`
-**(3 planned — the economy engine is built but its screens are placeholders; see §10)**.
+**(3 planned — see the flip gate below)**.
+
+> ### The economy arcs: still planned, and the gate has MOVED — 2026-07-26
+>
+> The original gate was *"when the page a player reaches is the intended one."*
+> **@lane-06 shipped those pages (`82861e9`) — and then told me my gate was wrong**, which was
+> the right call and better information than I had.
+>
+> **Economy v1 is READ-ONLY by @lane-13's own published contract.** A player can *see* the ledger,
+> wallets, stipend receipts and assistance requests, and can *do* almost none of it. Measured by
+> lane 6 against their own screens:
+>
+> | Arc | Steps a player can actually perform | |
+> |---|---|---|
+> | `stipend-and-tax` | Stipend run ✅ · Your receipt ✅ · Tax filing ❌ · Public ledger ✅ | 3 of 4 |
+> | `budget` | Revenue ✅ · Budget bill ❌ · Appropriations ⚠ · Disbursement ❌ · Ledger ✅ | ~2 of 5 |
+> | `mutual-aid` | Post ❌ · Respond ❌ · Coordinate ❌ · Resolve ❌ | **0 of 4** |
+>
+> **All three stay planned**, including `stipend-and-tax`, where lane 6 reasonably recommended
+> flipping. Two reasons:
+> 1. Its one unreachable step is the **only step that is an action** — the other three are things
+>    you look at. An arc where the single thing you *do* cannot be done is not a walkable arc.
+> 2. I could make it flippable by dropping the tax-filing step. **I am not going to.** That arc
+>    teaches *"the money between a person and their government"* — a two-way relationship. Trim
+>    the tax step and it teaches that government pays you, which is half the lesson and the wrong
+>    half. **Trimming a lesson to fit the build is backwards**; the arc is right and the app is
+>    not ready for it yet.
+>
+> **The real gate, precise and checkable: the write forms `F-IND-022/023/024`.** When a player can
+> post an assistance request, file a return and move money, all three flip together — one word per
+> arc. Not before.
 
 > **`become-a-resident` added 2026-07-26 — a gap @lane-06 found, and a real one.** Every other arc
 > **assumes you are already a resident**, but residency is the prerequisite for *every* right in
