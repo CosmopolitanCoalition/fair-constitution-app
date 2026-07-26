@@ -173,7 +173,7 @@ control instead; the list of the five that *are* pages is above.
 | **F** | Voice — square, petitions, messages | 6 | ✅ Yes |
 | **G** | The record & the clock | 4 | ✅ Yes |
 | **H** | Places & maps — **use the game box, :8080** | 5 | ✅ Yes |
-| **I** | The economy | 4 | ✅ Yes — screens shipped |
+| **I** | The economy | 5 | ✅ Yes — live, and you can spend |
 
 **Start with A. It takes about twenty minutes and everything else depends on it.**
 
@@ -1161,9 +1161,9 @@ constitutional failure, not a convenience issue.*
 
 # SECTION I — The economy
 
-*The screens are built now — walk it. Read-only by design: money can be looked at, not yet moved.
-Sending, listing and ordering arrive with their forms, and the pages say so rather than showing a
-button that can't submit.*
+*The screens are built and the economy is now **live** — you can register a thing, offer it, order
+it, and send money. Every control files through the constitutional engine rather than an economy
+API, so what these pages can do is exactly what the constitution permits, and no more.*
 
 ---
 
@@ -1179,6 +1179,27 @@ button that can't submit.*
 *That zero is the real check. Issuing money is the only way value enters; everything after that
 just moves it about. So a healthy ledger balances to nothing left over — a non-zero residual means
 value appeared from somewhere, which is the one thing that must never happen.*
+
+**Result** ☐ pass ☐ fail ☐ blocked  **Notes** ________________________________________
+
+---
+
+### I-1b · Try to spend money you don't have
+**What it is.** The sharpest card in this section, and it takes a minute. There is **no overdraft**
+in the individual economy — so the app should refuse, and refuse *by explaining itself*.
+**Role:** a resident with a wallet · **Needs first:** A-3
+
+| # | Do this | On this screen | You should see |
+|---|---|---|---|
+| 1 | Note your balance | `/economy/wallet` | Some amount |
+| 2 | Send far MORE than that to any account | same | **Refused** |
+| 3 | Read the refusal | same | A plain reason, and which article it comes from |
+| 4 | Check your balance again | same | **Unchanged** |
+
+**PASSES IF** — you are refused, told **why** in words, and nothing moved.
+*A refusal here is the constitution answering you, not the app failing. If it reads like an error —
+a red crash, a stack trace, a silent nothing — that's the finding, even though the money correctly
+stayed put. The rule working and the rule **explaining itself** are two different tests.*
 
 **Result** ☐ pass ☐ fail ☐ blocked  **Notes** ________________________________________
 
