@@ -106,6 +106,8 @@ return Application::configure(basePath: dirname(__DIR__))
         // chain before rethrowing (WF-SYS-04).
         $exceptions->render(function (ConstitutionalViolation $e, Request $request) {
             if ($request->expectsJson()) {
+                // The MACHINE value stays exact — audit chain, logs, API
+                // consumers and the pins that assert on it all read this.
                 return response()->json([
                     'message' => $e->getMessage(),
                     'citation' => $e->citation,
@@ -113,7 +115,7 @@ return Application::configure(basePath: dirname(__DIR__))
             }
 
             return back()->withErrors([
-                'constitution' => $e->getMessage().' ('.$e->citation.')',
+                'constitution' => $e->getMessage().' ('.$e->citationForAPerson().')',
             ]);
         });
     })->create();
