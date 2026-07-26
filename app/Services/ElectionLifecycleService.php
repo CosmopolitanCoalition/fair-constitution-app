@@ -609,20 +609,31 @@ class ElectionLifecycleService implements ElectionSchedulingDelegate
         $typeB = (int) $legislature->type_b_seats;
 
         if ($typeB > 0) {
-            if ($typeB <= $ceiling) {
-                // At-large by construction — elected by the whole
-                // population (Art. V §3).
-                $kinds['type_b'] = ['mode' => 'at_large', 'seats' => $typeB];
-            } else {
-                // Earth-scale type_b has no constitutional grouping
-                // mechanism — deferred pending an operator ruling (§B.4).
-                $kinds['type_b'] = [
-                    'mode'     => 'blocked',
-                    'reason'   => "type_b_seats {$typeB} exceeds the per-race maximum {$ceiling}; at-large grouping is constitutionally undefined (operator ruling required)",
-                    'citation' => 'Art. V §3; Art. II §8',
-                ];
-                $blocked = true;
-            }
+            // THE 5–9 BAND IS A DISTRICT RULE. IT DOES NOT BIND TYPE B.
+            // (Operator ruling, SETTLED 2026-07-26 — CLAUDE.md "Bicameral
+            // Support (Article V §3)". Do not re-derive it.)
+            //
+            // Type B is at-large: the JURISDICTION IS THE DISTRICT, so it is
+            // ONE STV race electing all Type B seats together, however many.
+            // San Marino's 27 run as a single 27-seat race.
+            //
+            // This branch used to compare $typeB against the ceiling and block
+            // above it, which was the defect: it applied a district rule to a
+            // body that has no districts. The schema already proves nine was
+            // never a property of STV races here — `exec_committee` and
+            // `judicial_group` are both `>= 5` with NO upper bound.
+            //
+            // Splitting the chamber into smaller races is NOT the alternative
+            // and is explicitly ruled out: STV elects N seats in one race, and
+            // cutting magnitude is exactly what destroys proportionality.
+            //
+            // The only bound on Type B is the TYPE A TOTAL, and it is enforced
+            // upstream by TypeBSeatLadder (5 → 4 → 3 → 2 per constituent).
+            // Only when 2-per-constituent still overflows does the chamber get
+            // flagged `type_b_needs_districting` for grouping whole
+            // constituents into shared panels — a balanced grouping over an
+            // adjacency graph, and never a cut through this race.
+            $kinds['type_b'] = ['mode' => 'at_large', 'seats' => $typeB];
         }
 
         // PER-KIND BLOCKING (operator ruling 2026-07-25). A chamber whose

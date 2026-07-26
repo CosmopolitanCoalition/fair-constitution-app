@@ -200,10 +200,40 @@ final class VoteCountingService
 
     private function run(CountInput $in, string $mode): CountResult
     {
-        if ($in->seats < 1 || $in->seats > 9) {
+        // A race elects at least one seat. That is universal to counting and
+        // stays hardened here.
+        //
+        // THE 5–9 BAND IS NOT CHECKED HERE, DELIBERATELY (SETTLED 2026-07-26 —
+        // CLAUDE.md "Bicameral Support (Article V §3)"). It is a DISTRICT rule,
+        // and this engine cannot tell a district race from an at-large one:
+        // CountInput carries candidacyIds, seats, ballots, excluded and
+        // tieSeedBase — never a seat_kind. The core is pure by design, so
+        // enforcing a districting rule from inside it meant enforcing it
+        // blind.
+        //
+        // The band is enforced where districts ARE known, and none of it moved:
+        //   · ElectionLifecycleService::racePlan() — type_a above the ceiling
+        //     with no map is refused, "subdivision is mandatory";
+        //   · election_races_seats_check — type_a still BETWEEN 1 AND 9;
+        //   · DistrictingService — draws districts inside the band.
+        // A type_a race above nine is still impossible. Nothing was widened
+        // for districted seats.
+        //
+        // What this unblocks is the bodies the band was never about:
+        //   · type_b — at-large, the jurisdiction IS the district, ONE STV race
+        //     however many seats (San Marino elects 27 together). Splitting it
+        //     into smaller races is explicitly ruled out: STV elects N seats in
+        //     one race, and cutting magnitude is what destroys proportionality.
+        //   · exec_committee / judicial_group — the schema has ALWAYS allowed
+        //     these at >= 5 with no upper bound, and Art. IV §1 says a judicial
+        //     race has "no ceiling" in terms. Under the old guard a 10-judge
+        //     court or an 11-member executive committee was lawful to schedule
+        //     and impossible to COUNT. That was a live defect, not a
+        //     consequence of the Type B ruling.
+        if ($in->seats < 1) {
             throw new ConstitutionalViolation(
-                "Race seat count {$in->seats} outside the constitutional 1–9 range.",
-                'Art. II §2/§8',
+                "Race seat count {$in->seats} is not a lawful race — a race elects at least one seat.",
+                'Art. II §2',
             );
         }
 
