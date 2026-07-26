@@ -35,11 +35,19 @@ single **pass condition**. Then a box and a blank line for you.
 Mark **blocked** — not fail — when you can't even attempt it. Fail means you tried and the app did
 the wrong thing. That difference is what makes this sheet useful next week.
 
-**A note for whoever extends this sheet.** Five cards have already been wrong in the same way:
-the number came from reading the constitutional rule instead of the code that implements it. The
-rule says *"a majority of all serving members"* — the implementation answers *"of which body?"*,
-and only the code knows. **So when a card quotes a number, check where it came from**, and say so.
-Every one of those five would have failed a tester on the app behaving correctly.
+**A note for whoever extends this sheet — two audits, not one.**
+
+**First: where did the number come from?** Five cards were wrong the same way — the figure came
+from reading the constitutional rule instead of the code implementing it. The rule says *"a
+majority of all serving members"*; the implementation answers *"of which body?"*, and only the code
+knows. When a card quotes a number, check its source and say so.
+
+**Second, and this one is harder: what does the card teach you to ACCEPT?** One card told a tester
+that an unfillable seat was "normal" — it wasn't, it was the single genuinely broken thing on that
+screen. That is the opposite and worse failure. **A wrong card that fails on working software costs
+an hour and starts a conversation. A wrong card that passes on a defect costs nothing and produces
+silence.** Read every card twice: once for what it asks you to check, once for what it quietly
+tells you not to worry about.
 
 ---
 
