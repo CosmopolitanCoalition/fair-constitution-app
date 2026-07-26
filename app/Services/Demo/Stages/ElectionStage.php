@@ -73,6 +73,41 @@ final class ElectionStage
             ];
         }
 
+        // AN UNACTIVATED JURISDICTION DOES NOT GET AN ELECTION.
+        //
+        // F-ELB-004 requires an active election board to certify, and the board
+        // is minted by ACTIVATION (WF-JUR-01), not by sizing a chamber. Without
+        // this guard the stage happily scheduled a general election for a place
+        // that had never been activated: races were drawn, candidates fielded,
+        // ballots counted — and seating then refused, because there was no board
+        // to certify through. That is not a harmless no-op. The orphan election
+        // stays OPEN, so when the place is later activated it acquires a SECOND
+        // general election alongside the first, and a subsequent run certifies
+        // both. Niue ended the day with two certified elections per jurisdiction
+        // and two overlapping terms, which took a timestamp trace to untangle and
+        // briefly looked like a duplicate-firing bug in the term clock. It was
+        // not: the clock opened exactly one successor per certification. This
+        // stage had simply manufactured a second election to certify.
+        //
+        // So the refusal moves UPSTREAM, to the cheapest point that can see the
+        // problem. Same posture as `fully_blocked` above — done, not failed, with
+        // a reason a human can read, because a world containing places that are
+        // sized but not yet activated is ordinary.
+        $hasBoard = DB::table('election_boards')
+            ->where('jurisdiction_id', $jurisdictionId)
+            ->where('status', 'active')
+            ->whereNull('deleted_at')
+            ->exists();
+
+        if (! $hasBoard) {
+            return [
+                'election_id' => null,
+                'races' => 0,
+                'candidacies' => 0,
+                'blocked_kinds' => ['no_election_board'],
+            ];
+        }
+
         // THE REAL ENGINE. Creates the election, arms its clocks, and generates
         // exactly the races the constitution allows.
         $election = $lifecycle->scheduleGeneral($legislature);

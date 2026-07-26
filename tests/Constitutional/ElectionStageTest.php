@@ -224,14 +224,60 @@ class ElectionStageTest extends TestCase
     // ── fixtures ──────────────────────────────────────────────────────────
 
     /** A jurisdiction with a cohort, a roster and a chamber — the stage's precondition. */
+    /**
+     * A chamber with no active election board cannot be seated, so the stage
+     * must not call an election for it — see the guard in ElectionStage. A place
+     * that is sized but not yet ACTIVATED is exactly that case.
+     */
+    public function test_an_unactivated_jurisdiction_gets_no_election(): void
+    {
+        $this->onLivePg(function () {
+            $jid = $this->jurisdiction(2_000_000);
+            $this->legislature($jid, 9, 0, [9]);
+            CohortStage::run($jid, null, 1, 62);
+            IdentityStage::run($jid, null, 1);
+
+            // Deliberately NO election board — the activation pipeline mints it.
+            $result = ElectionStage::run($jid, null, 1);
+
+            $this->assertNull($result['election_id'], 'no board means no lawful election to call');
+            $this->assertSame(0, $result['races']);
+            $this->assertSame(0, $result['candidacies']);
+            $this->assertContains('no_election_board', $result['blocked_kinds']);
+
+            $this->assertSame(
+                0,
+                DB::table('elections')->where('jurisdiction_id', $jid)->count(),
+                'an orphan election left open here acquires a SECOND one at activation, and both later certify'
+            );
+        });
+    }
+
     private function world(int $typeA, int $typeB, array $districtSeats): string
     {
         $jid = $this->jurisdiction(2_000_000);
         $this->legislature($jid, $typeA, $typeB, $districtSeats);
+        $this->electionBoard($jid);
         CohortStage::run($jid, null, 1, 62);
         IdentityStage::run($jid, null, 1);
 
         return $jid;
+    }
+
+    /**
+     * The bootstrap board. ActivationService constitutes one when a jurisdiction
+     * activates for real; every other fixture here presumes an activated place.
+     */
+    private function electionBoard(string $jid): void
+    {
+        DB::table('election_boards')->insert([
+            'id' => (string) Str::uuid(),
+            'jurisdiction_id' => $jid,
+            'is_bootstrap' => true,
+            'status' => 'active',
+            'created_at' => now(),
+            'updated_at' => now(),
+        ]);
     }
 
     private function jurisdiction(int $population): string

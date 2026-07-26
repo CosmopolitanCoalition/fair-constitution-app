@@ -288,6 +288,19 @@ class CountingStageTest extends TestCase
             }
         }
 
+        // The bootstrap election board. ActivationService constitutes one when a
+        // jurisdiction activates; ElectionStage refuses to call an election
+        // without it, because F-ELB-004 has no board to certify through and the
+        // resulting orphan election would sit open and later double-certify.
+        DB::table('election_boards')->insert([
+            'id' => (string) Str::uuid(),
+            'jurisdiction_id' => $jid,
+            'is_bootstrap' => true,
+            'status' => 'active',
+            'created_at' => now(),
+            'updated_at' => now(),
+        ]);
+
         CohortStage::run($jid, null, 1, 62);
         IdentityStage::run($jid, null, 1);
         $election = ElectionStage::run($jid, null, 1);
