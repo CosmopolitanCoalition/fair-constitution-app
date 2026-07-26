@@ -3,6 +3,9 @@
 namespace Tests\Feature;
 
 use App\Domain\Achievements\AchievementCatalog as Catalog;
+use App\Models\User;
+use App\Services\AchievementService;
+use Illuminate\Support\Str;
 use InvalidArgumentException;
 use Tests\TestCase;
 
@@ -78,6 +81,41 @@ class AchievementCatalogTest extends TestCase
                 "{$key} is earner=subject but its trigger never names who earns"
             );
         }
+    }
+
+    /**
+     * THE DEFECT CLASS, MADE UNREPRESENTABLE.
+     *
+     * ACH-CAN-005 keys to F-ELB-002 — the form a BOARD MEMBER files to validate
+     * a candidacy — so awarding it to "the user who did it" decorates the
+     * validator instead of the candidate. The fix was not to remember; it was
+     * to make the earner mode part of the call and refuse a mismatch.
+     *
+     * This proves the refusal fires BEFORE any write. If it ever stops
+     * throwing, the guard is gone and the defect is reachable again.
+     */
+    public function test_awarding_with_the_wrong_earner_mode_is_refused(): void
+    {
+        $service = app(AchievementService::class);
+        $user    = new User(['id' => (string) Str::uuid()]);
+
+        // ACH-CAN-005 is earner=subject: the candidate earns, not the board
+        // member who filed the validation. Awarding it as `self` must refuse.
+        try {
+            $service->awardSelf($user, 'ACH-CAN-005');
+            $this->fail('awarding a subject-earner achievement as self must be refused');
+        } catch (InvalidArgumentException $e) {
+            $this->assertStringContainsString('subject', $e->getMessage());
+            $this->assertStringContainsString(
+                'actor on a form is not always the earner',
+                $e->getMessage(),
+                'the refusal should explain the rule, not just fail'
+            );
+        }
+
+        // And the mirror: a self-earned entry awarded as subject.
+        $this->expectException(InvalidArgumentException::class);
+        $service->awardSubject($user, 'ACH-CIV-001');
     }
 
     public function test_title_keys_are_unique(): void

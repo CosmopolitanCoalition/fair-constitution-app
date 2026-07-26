@@ -19,13 +19,15 @@ use Illuminate\Validation\ValidationException;
  *    steps freeze and the medal is permanent.
  *
  * Soft-gate rule: journeys nudge, they NEVER block — nothing here grants
- * or denies any capability. A medal never changes a vote, a seat, or what
- * you are allowed to do.
+ * or denies any capability. An achievement never changes a vote, a seat, or
+ * what you are allowed to do.
  */
 class JourneyService
 {
-    public function __construct(private readonly AuditService $audit)
-    {
+    public function __construct(
+        private readonly AuditService $audit,
+        private readonly AchievementService $achievements,
+    ) {
     }
 
     /** The journey_progress row for a user+journey, or null. */
@@ -171,33 +173,20 @@ class JourneyService
      */
     private function recordAchievement(User $user, string $journeyId, string $title): void
     {
-        $exists = Achievement::query()
-            ->where('user_id', (string) $user->id)
-            ->where('award_key', $journeyId)
-            ->exists();
-
-        if ($exists) {
-            return; // already on the ledger — completion re-runs are no-ops
-        }
-
-        // Seal the earn into the hash chain in the same transaction (the
-        // public_records posture: no row without its chain entry).
-        $entry = $this->audit->append(
-            module: 'journeys',
-            event: 'achievement/earned',
-            payload: ['award_key' => $journeyId, 'title' => $title],
-            ref: null,
-            actorId: (string) $user->id,
-        );
-
-        DB::table('achievements')->insertOrIgnore([
-            'user_id'    => (string) $user->id,
-            'award_key'  => $journeyId,
-            'title'      => $title,
-            'audit_seq'  => $entry->seq,
-            'earned_at'  => now(),
-            'created_at' => now(),
-            'updated_at' => now(),
-        ]);
+        // DELEGATED (K-2, 2026-07-26). The insert used to live here; it now
+        // lives in AchievementService, which is the single writer of the
+        // ledger. An append-only table with two writers is two places to get
+        // idempotency and chain-sealing right, and only one of them would have
+        // been kept in step as the catalogue grew past the 13 arcs.
+        //
+        // A completed arc is EARNER_SELF by definition — the person who ticked
+        // the steps is the person who earns it — so this is the self path, and
+        // AchievementService refuses the call if the catalogue ever disagrees.
+        //
+        // $title is intentionally unused: the ledger stores the catalogue's
+        // i18n KEY, not the English arc title, because the row is write-once
+        // and federates. Kept in the signature so the call site still reads as
+        // "record this arc's achievement".
+        $this->achievements->awardSelf($user, $journeyId);
     }
 }

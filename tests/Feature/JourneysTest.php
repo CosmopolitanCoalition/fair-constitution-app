@@ -96,7 +96,16 @@ class JourneysTest extends TestCase
                 ->where('user_id', (string) $user->id)
                 ->where('award_key', self::LIVE_JOURNEY)
                 ->first();
-            $this->assertSame(config('cga.journeys.' . self::LIVE_JOURNEY . '.title'), $medal->title);
+            // The ledger stores the i18n KEY, not English words (K-2 change 3,
+            // operator-approved). This table is write-once and it federates, so
+            // a title written today can never be rewritten — an English string
+            // here would be English forever, in every language. The display
+            // name is resolved at render from the same key.
+            $this->assertSame(
+                'achievement.tour.' . str_replace('-', '_', self::LIVE_JOURNEY),
+                $medal->title,
+                'the ledger stores a translatable key, never a denormalized English title'
+            );
             $this->assertNotNull($medal->audit_seq, 'sealed to the audit chain');
         });
     }
@@ -204,9 +213,11 @@ class JourneysTest extends TestCase
                     ->where('tab', 'achievements')
                     ->has('achievements', 1)
                     ->where('achievements.0.award_key', self::LIVE_JOURNEY)
+                    // The i18n key travels to the client; the English name is
+                    // resolved at render, not stored. See the note above.
                     ->where(
                         'achievements.0.title',
-                        config('cga.journeys.' . self::LIVE_JOURNEY . '.title'),
+                        'achievement.tour.' . str_replace('-', '_', self::LIVE_JOURNEY),
                     ));
         });
     }
