@@ -461,6 +461,37 @@ the word.
     will read as a broken launch.** Whoever owns the founding sequence must decide what runs the
     first Type B election on a new world, or document it as an operator step.
 
+    **✅ ANALYSIS SETTLED 2026-07-26 — two lanes reached opposite-looking answers and they
+    reconcile cleanly. Recorded so nobody acts on half of it.**
+
+    - **Lane 3:** do **not** auto-seat Type B — that manufactures members nobody elected, and
+      *"seating without an election is the one thing that would actually break the constitution
+      rather than look like it."* Make the founding sequence run the first election instead.
+    - **Lane 2:** the founding sequence **cannot run** one. An election needs people to stand as
+      candidates and people to vote; a real-consent world at launch has neither. Running one
+      anyway means fabricating candidates and ballots — the exact thing the instance exists not to
+      do, and what `launch:assert-clean` and the public deploy path both refuse.
+
+    **Both are right, and the resolution is that this is not an engine problem at all:**
+    1. **Activation already does its part** — it creates a bootstrap election board with a seated
+       member and system-files F-ELB-001 for the first general election. Nothing is missing.
+    2. It cannot *complete* one, and must never fabricate one. So a real world **correctly** sits
+       with a scheduled-but-unrun election and an empty second chamber until a community exists.
+       **That state is the constitution working, not a bug.**
+    3. **Auto-seating is the only option that would genuinely break it.** Rule it out permanently.
+
+    **What actually closes the gap — three cheap things, none of them in the elections engine:**
+    - **The activation threshold** (operator decision, owed to lane 2 by 08-05). It defaults to
+      **1**, so the first person to confirm residency anywhere switches their jurisdiction on and
+      stands alone in it. Lane 2: *"one resident is the worst possible moment to switch a
+      government on."* Set it where a first election is holdable and the bad window mostly closes
+      by itself.
+    - **The refusal message** — a bicameral act failing on an empty chamber must say *"this
+      chamber has no members yet — hold an election"*, not a bare vote-did-not-carry. That exact
+      ambiguity already cost real diagnosis time once (the act-numbering bug read as a bicameral
+      refusal). Assigned to lane 3.
+    - **The launch documentation** — ~2 hours, lane 2's own files, no decision needed.
+
     ⚑ Related, unverified, worth one lane's eye: `ActivationService`'s own docblock (`:33`) still
     says Type B is *"CLAMPED to the resolved ceiling (9)"*. The settled law says Type B is
     unbounded and shaped by `TypeBSeatLadder`. If the code matches the ruling, that comment is a
