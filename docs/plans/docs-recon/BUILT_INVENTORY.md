@@ -435,6 +435,24 @@ setup wizard; invites → growth flow). None are orphans. Details in the evidenc
     estimated; the whole window was 45 minutes, not 1–2 hours. Lane 13 corrected its own estimate on
     the record.)*
 
+23. **⚑ TESTS THAT COUNT GLOBALLY NOW BREAK — the founded world exposed a test-isolation class.**
+    Found by lane 3 while triaging a full suite (728 passed / 15 failed / 296,484 assertions).
+    Several pins assert counts **across the whole database** instead of scoping to their own
+    fixture, so ANY lane that seeds anything on fcd breaks them:
+    - `OperationalBundleSealedTest` ×2 — asserts `election_count = 1`, gets 3. Counts elections
+      globally. **Will now break for anyone who runs `elections:demo`.**
+    - `AutoscalePinTest` ×2 — asserts 24, gets 35. The delta is **exactly 11 — the number of
+      jurisdictions in the founded world.** Counts items across the entire database.
+    **The isolation gap is the real defect; the seeding merely revealed it.** This matters more
+    now than it used to: fcd holds a founded world and is the fleet's shared substrate, so
+    "global count" assertions are permanently unsafe. Expect lanes to chase phantom regressions
+    unless they check whether a failing pin is fixture-scoped.
+    **Triage rule when a suite goes red on fcd:** (1) is the pin scoped to its own fixture? (2) is
+    the delta explained by world state (jurisdictions, elections, users)? (3) only then look at code.
+    *(Same round: `StvDroopGregoryTest::test_seats_bounds_are_hardened` encoded the overturned 1–9
+    rule and was corrected to the settled law — 0 and −1 still violate, citing Art. II §2 and NOT
+    §8, since §8 is the subdivision clause the guard no longer enforces. Corrected, not weakened.)*
+
 ## 8. Standing rule for future audits
 
 Before classifying anything unbuilt: (1) sweep for **alternate names** (education→journeys,
