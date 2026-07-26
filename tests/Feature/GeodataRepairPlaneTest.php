@@ -374,6 +374,25 @@ class GeodataRepairPlaneTest extends TestCase
         $conn->beginTransaction();
         $this->withoutMiddleware(ValidateCsrfToken::class);
 
+        // OPEN THE REPAIR WINDOW for the life of this transaction.
+        //
+        // GeodataRemediationService::assertRepairWindowOpen() refuses once
+        // `setup_completed_at` or `map_accepted_at` is set — repairs are only
+        // lawful before a world's maps are accepted. That is correct, and it
+        // is why these five tests started failing: fcd is now a FOUNDED world
+        // (maps accepted 2026-07-26 01:14, setup completed 01:25), so the
+        // subject correctly refuses every call.
+        //
+        // The fixture's job is to establish the precondition its subject
+        // requires. This is inside the transaction that the `finally` above
+        // always rolls back, so the live gate is never actually reopened —
+        // nothing outside this test can observe it, and a founded world stays
+        // founded.
+        DB::table('instance_settings')->whereNull('deleted_at')->update([
+            'setup_completed_at' => null,
+            'map_accepted_at'    => null,
+        ]);
+
         try {
             $body();
         } finally {
