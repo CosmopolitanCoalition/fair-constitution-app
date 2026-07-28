@@ -292,6 +292,20 @@ is modified, another lane has it open — **route your change to them instead of
 buffer.** Lanes 6 and 13 both refused to touch a peer's in-flight file today and were right both
 times; this desk nearly edited `FormRegistry.php` while lane 13 had it open.
 
+### `fatal: bad object refs/desktop.ini` — the infestation recurs; your commits are NOT lost
+Windows Explorer (or a sync/backup tool touching E:\) drops `desktop.ini` files into `.git/**`.
+When one lands under `.git/refs/`, **`git log --all`, `git fetch` and friends die with
+`fatal: bad object refs/desktop.ini`** — an ERROR, not an empty result. On 2026-07-28 a lane
+read that error as "my commits vanished from history" and carried the false alarm into its
+compaction summary; the desk verified every commit intact. It had recurred at full scale: 285
+copies across `.git/objects/*`, `refs/*`, `logs/*`, all deleted 2026-07-28 by the desk.
+
+- **The fix:** `find .git -name "desktop.ini" -delete` (Git Bash), then re-run your command.
+- **Never conclude work is lost from a command that ERRORED.** Verify the object directly:
+  `git cat-file -t <hash>` and `git log --follow -- <file>`.
+- If it recurs, report it — the regeneration source (Explorer view customization / sync tool)
+  is an operator-machine matter.
+
 ### An uncommitted fatal is everyone's outage
 Laravel scans the whole `app/Console/Commands/` directory to build its command list. **One class
 that cannot load kills every `php artisan` call for every lane** — tests, migrations, seeders,
