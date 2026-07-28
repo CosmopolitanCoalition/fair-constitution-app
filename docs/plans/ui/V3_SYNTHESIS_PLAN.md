@@ -207,20 +207,31 @@ menu with Requires-R-xx hints; audited real impersonation; emergency/schema bann
 fail-soft landing + carried destination; election-window compression dial; real journeys +
 achievements engines (mockups only faked persistence).
 
-## 10. ⚖ Reconciliation ledger — the operator's decisions (nothing here is decided by this plan)
+## 10. ⚖ Reconciliation ledger — status after the operator's answers (2026-07-28)
 
-| # | Question | Options | Recommendation |
-|---|---|---|---|
-| 1 | **Session gallery**: mockup + Art. I say anyone may WATCH a floor session; `SessionController` 302s non-members | conform app (gallery read path) / keep members-only | Conform app — it is also step 4 of the room build |
-| 2 | **Disintermediation acts destination**: mockup folds a dissolved intermediary's acts into the CONSTITUENTS; `DisintermediationService` incorporates into the ENCOMPASSING jurisdiction (Art. V §8). One is wrong | fix service / fix mockup | Check the Template text and rule; constitutional, not stylistic |
-| 3 | **Advocate registration**: instant filing (app) vs prerequisite checklist + per-jurisdiction qualification review lifecycle (mockup) | keep instant / build review lifecycle | Operator's call — it is a rights-adjacent gate |
-| 4 | **Demo mode == Dev mode at setup**: `game_mode=sandbox` IS persisted at setup, but clock/chamber controls additionally demand env `CGA_DEV_TIME` + `APP_ENV=local` — a founder choosing Demo still gets 404 clocks until someone edits `.env` | derive dev_time from sandbox (fed/peered refusal + `launch:assert-clean` still hold the line) / second setup flag / keep env | Derive from sandbox; the dangerous rails stay |
-| 5 | **ExecutiveHome model explorer + Departments creation composer**: app's data-driven/bill-flow posture diverges deliberately from the mockup | ratify app / conform to mockup | Ratify app |
-| 6 | **F-EDU forms**: should education progress ever be a constitutional form? | zero forms (K2 plan) / add forms | Zero forms |
-| 7 | **Support taxonomy + routing**: app categories differ from the spec's six-with-routing | adopt spec taxonomy / keep | Adopt spec (routing is the point) |
-| 8 | **/system/clocks** public (spec) vs auth-gated (app) | — | Public read |
-| 9 | **Join-a-cluster wizard placement**: legacy `/federation` vs `operator/mesh` | — | Move to operator plane with the citizen/operator `/federation` split |
-| 10 | **Scenario presets** (D5): web-surface buttons over demo seeders | build / CLI-only | Build, design note first |
+### SETTLED — the operator's words, now law for this plan
+
+| # | Ruling |
+|---|---|
+| 1 | **Session gallery — context decides.** Civic/government actions are PUBLIC to watch, even for non-residents (sessions, committees, courts, referendums get the gallery read path). Private organizations decide their own visibility (board/org/group rooms follow the org's choice). |
+| 2 | **Disintermediation — the CONSTITUENTS inherit.** "Constituents inheriting the rules of their former encompassing is the correct direction — this way they can edit themselves independently with respect to their new encompassing jurisdiction if it exists, or just themselves." **The mockup is right; `DisintermediationService` is WRONG and gets fixed** (lane 2, Wave 2, announce-fix-pin — constitutional-adjacent). |
+| 3 | **Advocate registration — instant for now.** AND a standing forward directive: **ALL civic roles get a training gate before applying/registering — elected, appointed or otherwise** (K-2 scope, lane 15). ⚠ Constitutional flag the desk must surface before that gate is built: Art. I makes candidacy an absolute right with NO requirement beyond residency — a training gate on ELECTED positions as a ballot-access requirement would collide with the hard constraint. Gates on appointed/registered roles are clean; the elected case needs the operator's word on where the gate sits (pre-ballot vs pre-seating vs advisory). |
+
+Side-ruling recorded from the same answers: **all storage stays UTC; display is always the
+user's local via client/browser** — already the app's posture (`timestamptz` UTC, client
+formatting); reaffirmed, not a change.
+
+### OPEN — explanations delivered 2026-07-28, awaiting the operator's word
+
+| # | Question (plain form) | Recommendation |
+|---|---|---|
+| 4 | NOT time zones — the pretend-time-travel TESTING controls (advance all deadlines N days, fire one deadline now) are locked behind a server config-file flag (`CGA_DEV_TIME` env + local-mode server) that choosing Demo mode at setup does NOT flip; the founder's clock buttons 404 until someone edits `.env` | Choosing Demo at setup unlocks them automatically; the hard rails stay (any peered/federated box refuses outright; `launch:assert-clean` still fails if on) |
+| 5 | Two deliberate app divergences: (a) ExecutiveHome shows only the REAL live model, not the mockup's explore-all-three teaching toggle; (b) Departments deep-links department creation into the real bill flow (F-LEG-016) instead of the mockup's in-page composer (no side-door write) | Ratify both; the three-model explorer becomes a Learn-flyout/tour teaching device; verify the bill flow pre-fills from the deep link |
+| 6 | Constitutional form (F-*) = filed through the engine, validated, hash-chained, public record, legal effect. Plain form = ordinary app data, private, no legal weight. Question: is completing a lesson a legal act or game progress? | Plain data, zero F-EDU forms — UNLESS the item-3 training-gate directive makes completion role-gating, in which case a server-verifiable (not necessarily constitutional) completion record is needed. Resurface with the training-gate design |
+| 7 | Support categories: app ships `bug/question/conduct/legal/appeal/other` as a flat select with no routing; spec ships `bug/translation/accessibility/content/abuse/idea` as a card grid where each category ROUTES (bug/accessibility/content→operators, translation→translation review, abuse/illegal→the moderation & legal plane never the support queue, idea→backlog) and tells the filer where the report goes | Adopt the spec's routed six; map conduct→abuse, legal→the legal plane; `appeal` is a judicial concept that belongs in the court system, not support intake. Additive migration for routing/subject columns |
+| 8 | `/system/clocks` = the page listing the constitutional timers (next election trigger, meeting-deadline clock, emergency expiry). Spec treats it like the audit chain — public without an account; the app requires login | Public read-only |
+| 9 | Not WHEN join is decided (solo-vs-join at fresh start stands) — WHERE the door lives. The legacy `/federation` page carries both the operator's mesh tooling (incl. the join-a-cluster wizard) and the citizen-facing "which governments federate" view; v3 moved all operator tooling to `/operator/*`. Peering can also happen post-founding (a solo box may later join a mesh), so the wizard needs a home | Wizard + mesh tooling to `/operator/mesh`; `/federation` becomes the read-only citizen view. Placement only, no behavior change |
+| 10 | The mockup demo bar fakes named situations client-side ("an election is certifying", "a UBI run is underway"). The app cannot fake — state is real records; the real equivalent already exists as terminal-only demo seeders (`elections:demo`, `institutions:demo-*`). D5 = buttons in the Demo flyout that run those seeders ("set up a certifying election here") so a walker never needs a terminal; `GuardsSyntheticData` keeps them off real worlds | Build it, short design note first |
 
 ## 11. Fleet assignment + build order
 
@@ -233,7 +244,8 @@ WAVE 1 — walk unblock (parallel):
 
 WAVE 2 — pages + conformance (parallel, after or overlapping wave 1):
   lane 13:  economy quick wins (request-detail, stipend) → joint-ledgers, agreements
-  lane 2:   jurisdiction lifecycle ×5 → operator dns/moderation/setup
+  lane 2:   DisintermediationService fix (RULED #2: constituents inherit) →
+            jurisdiction lifecycle ×5 → operator dns/moderation/setup
   lane 15:  person profile + achievements + L3 authoring
   lane 3:   per-area punch (electoral/legislature/judiciary M items)
   lane 6:   support lifecycle + static pages + launchpad + /tour index
