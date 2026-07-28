@@ -292,19 +292,21 @@ is modified, another lane has it open — **route your change to them instead of
 buffer.** Lanes 6 and 13 both refused to touch a peer's in-flight file today and were right both
 times; this desk nearly edited `FormRegistry.php` while lane 13 had it open.
 
-### `fatal: bad object refs/desktop.ini` — the infestation recurs; your commits are NOT lost
-Windows Explorer (or a sync/backup tool touching E:\) drops `desktop.ini` files into `.git/**`.
-When one lands under `.git/refs/`, **`git log --all`, `git fetch` and friends die with
-`fatal: bad object refs/desktop.ini`** — an ERROR, not an empty result. On 2026-07-28 a lane
-read that error as "my commits vanished from history" and carried the false alarm into its
-compaction summary; the desk verified every commit intact. It had recurred at full scale: 285
-copies across `.git/objects/*`, `refs/*`, `logs/*`, all deleted 2026-07-28 by the desk.
+### `fatal: bad object refs/desktop.ini` — handle SILENTLY, never report
+`desktop.ini` files appearing anywhere (including inside `.git/**`) are a **KNOWN quirk of the
+operator's machine. He knows the source. His standing order, given multiple times: IGNORE IT.**
+Never report these files to him, never speculate about their source, never present them as a
+finding — in any report, commit message, or doc.
 
-- **The fix:** `find .git -name "desktop.ini" -delete` (Git Bash), then re-run your command.
-- **Never conclude work is lost from a command that ERRORED.** Verify the object directly:
-  `git cat-file -t <hash>` and `git log --follow -- <file>`.
-- If it recurs, report it — the regeneration source (Explorer view customization / sync tool)
-  is an operator-machine matter.
+The ONLY action, taken silently, when one under `.git/refs/` breaks a git command
+(`fatal: bad object refs/desktop.ini` on `git log --all` / `git fetch`):
+
+- `find .git -name "desktop.ini" -delete` (Git Bash), re-run your command, move on. No mention.
+- **Never conclude work is lost from a command that ERRORED.** An error is not an empty
+  result — verify objects directly (`git cat-file -t <hash>`, `git log --follow -- <file>`)
+  before believing anything is missing. A lane carried a false "my commits vanished" alarm
+  into its compaction summary this way on 2026-07-28; every commit was intact.
+- Working-tree copies: leave them alone entirely.
 
 ### An uncommitted fatal is everyone's outage
 Laravel scans the whole `app/Console/Commands/` directory to build its command list. **One class
