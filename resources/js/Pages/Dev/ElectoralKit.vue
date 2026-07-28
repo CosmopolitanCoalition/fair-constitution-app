@@ -10,6 +10,7 @@
  * vacancy-countback,candidacy-registration,candidate-profile}.html.
  */
 import { computed, reactive, ref } from 'vue';
+import AppShell from '@/Layouts/AppShell.vue';
 import PageScaffold from '@/Components/Surface/PageScaffold.vue';
 import Banner from '@/Components/Ui/Banner.vue';
 import Btn from '@/Components/Ui/Btn.vue';
@@ -26,6 +27,10 @@ import RankList from '@/Components/Electoral/RankList.vue';
 import StvBar from '@/Components/Electoral/StvBar.vue';
 import StvRound from '@/Components/Electoral/StvRound.vue';
 import fixtures from '@/fixtures/electoral.json';
+
+/* KEEP-class (V3 synthesis S1): pinned to the v1 shell when AppShellV2 became
+   the app-wide default — dev harness, not product UI; zero change intended. */
+defineOptions({ layout: AppShell });
 
 defineProps({ surface: { type: Object, default: null } });
 

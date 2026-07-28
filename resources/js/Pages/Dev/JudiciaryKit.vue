@@ -13,6 +13,7 @@
  * composition over the Phase A–D kit. Everything below draws from already
  * ported classes.
  */
+import AppShell from '@/Layouts/AppShell.vue';
 import PageScaffold from '@/Components/Surface/PageScaffold.vue';
 import Banner from '@/Components/Ui/Banner.vue';
 import Card from '@/Components/Ui/Card.vue';
@@ -26,6 +27,10 @@ import CaseLifecycle from '@/Components/Judiciary/CaseLifecycle.vue';
 import Art4Section5Tracker from '@/Components/Judiciary/Art4Section5Tracker.vue';
 import JurorScreening from '@/Components/Judiciary/JurorScreening.vue';
 import fixtures from '@/fixtures/judiciary.json';
+
+/* KEEP-class (V3 synthesis S1): pinned to the v1 shell when AppShellV2 became
+   the app-wide default — dev harness, not product UI; zero change intended. */
+defineOptions({ layout: AppShell });
 
 defineProps({ surface: { type: Object, default: null } });
 

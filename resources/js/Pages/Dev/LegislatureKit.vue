@@ -11,6 +11,7 @@
  * (law-diff), mockups/civic/petition-detail.html (signature meter).
  */
 import { computed, ref } from 'vue';
+import AppShell from '@/Layouts/AppShell.vue';
 import PageScaffold from '@/Components/Surface/PageScaffold.vue';
 import Banner from '@/Components/Ui/Banner.vue';
 import Btn from '@/Components/Ui/Btn.vue';
@@ -27,6 +28,10 @@ import VoteTally from '@/Components/Legislature/VoteTally.vue';
 import EmergencyBanner from '@/Components/Shell/EmergencyBanner.vue';
 import RankList from '@/Components/Electoral/RankList.vue';
 import fixtures from '@/fixtures/legislature.json';
+
+/* KEEP-class (V3 synthesis S1): pinned to the v1 shell when AppShellV2 became
+   the app-wide default — dev harness, not product UI; zero change intended. */
+defineOptions({ layout: AppShell });
 
 defineProps({ surface: { type: Object, default: null } });
 

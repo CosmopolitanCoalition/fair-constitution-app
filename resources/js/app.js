@@ -2,18 +2,22 @@ import './bootstrap';
 import { createApp, h } from 'vue';
 import { createInertiaApp } from '@inertiajs/vue3';
 import { resolvePageComponent } from 'laravel-vite-plugin/inertia-helpers';
-import AppShell from '@/Layouts/AppShell.vue';
+import AppShellV2 from '@/Layouts/AppShellV2.vue';
 import { i18n } from '@/i18n/index.js';
 
 createInertiaApp({
     resolve: async (name) => {
         const page = await resolvePageComponent(`./Pages/${name}.vue`, import.meta.glob('./Pages/**/*.vue'));
-        /* AppShell is the DEFAULT persistent layout (DESIGN_frontend_port.md
-           §C1). Pages may override (layout wrapper function) or opt out with
-           `defineOptions({ layout: null })` — auth pages do. A presence check
-           (not `??=`) so an explicit `layout: null` keeps the page bare. */
+        /* AppShellV2 — the v3 shell — is the DEFAULT persistent layout
+           (V3_SYNTHESIS_PLAN §2 S1; the mockups are the spec, operator ruling
+           2026-07-28). Pages may override (layout wrapper function or an
+           explicit v1 AppShell pin — the KEEP-class dev kits and the legacy
+           operations console do) or opt out entirely with
+           `defineOptions({ layout: null })` — auth and setup pages do. A
+           presence check (not `??=`) so an explicit `layout: null` keeps the
+           page bare. */
         if (!('layout' in page.default)) {
-            page.default.layout = AppShell;
+            page.default.layout = AppShellV2;
         }
         return page;
     },

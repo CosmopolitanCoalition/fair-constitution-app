@@ -12,6 +12,7 @@
  * transfers-conversions}.html.
  */
 import { ref } from 'vue';
+import AppShell from '@/Layouts/AppShell.vue';
 import PageScaffold from '@/Components/Surface/PageScaffold.vue';
 import Banner from '@/Components/Ui/Banner.vue';
 import Card from '@/Components/Ui/Card.vue';
@@ -25,6 +26,10 @@ import BoardStrip from '@/Components/Organizations/BoardStrip.vue';
 import CoDetScale, { workerSeatsFromThresholds } from '@/Components/Organizations/CoDetScale.vue';
 import OwnershipPanel from '@/Components/Organizations/OwnershipPanel.vue';
 import fixtures from '@/fixtures/executive.json';
+
+/* KEEP-class (V3 synthesis S1): pinned to the v1 shell when AppShellV2 became
+   the app-wide default — dev harness, not product UI; zero change intended. */
+defineOptions({ layout: AppShell });
 
 defineProps({ surface: { type: Object, default: null } });
 

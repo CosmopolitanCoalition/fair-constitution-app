@@ -6,6 +6,11 @@
 // (Tier-A instant edits, then the Tier-B host-apply supervisor + credential pass).
 import { computed, reactive, ref, onMounted, onBeforeUnmount } from 'vue';
 import { Head, router, usePage } from '@inertiajs/vue3';
+import AppShell from '@/Layouts/AppShell.vue';
+
+/* KEEP-class (V3 synthesis S1): pinned to the v1 shell when AppShellV2 became
+   the app-wide default — legacy operations console; zero change intended. */
+defineOptions({ layout: AppShell });
 
 const props = defineProps({
     authed: { type: Boolean, default: false },
