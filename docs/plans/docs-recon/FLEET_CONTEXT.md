@@ -15,9 +15,26 @@ lane 2 had shipped "plan only, no code changes" when its one-command cloud insta
 on GitHub. A status channel that lags the work is worse than none — it produces confident,
 wrong briefings.
 
-**Report directly to lane 7** via `mcp__ccd_session_mgmt__send_message`, session
-`local_b316400b-55b4-4897-9aa2-28e06a794707`. Lane 7 reads every lane's transcript directly with
-`mcp__ccd_session_mgmt__list_events`, so the truth is the chat, not a file.
+**Report directly to lane 7** via `mcp__ccd_session_mgmt__send_message`. Lane 7 reads every
+lane's transcript directly with `mcp__ccd_session_mgmt__list_events`, so the truth is the chat,
+not a file.
+
+**NO SESSION ID IS EVER WRITTEN IN A DOC — including this one.** (An earlier revision of this
+very paragraph hardcoded an ID that was already dead; a broadcast repeated the mistake and
+twelve lanes hit "Session not found".) The ID procedure, all three halves mandatory:
+
+1. **Same-turn source.** Any call that carries a session ID (`send_message`, `list_events`)
+   takes it from a `mcp__ccd_session_mgmt__list_sessions` RESULT in the CURRENT turn — never
+   from memory, a prior turn, a compaction summary, or any document. Find lane 7 by TITLE
+   (it starts with `7`).
+2. **Copy verbatim, not from recall.** A fresh listing is not enough by itself — on
+   2026-07-28 the desk itself mistyped an ID twice FROM a fresh listing by reconstructing
+   the UUID from memory (`9ce8` became `9ec2`). Locate the entry's line, transcribe the
+   `sessionId` character-for-character while looking at it, and confirm the composed ID is
+   an exact substring of that result before sending.
+3. **"Session not found" = suspect your own transcription FIRST.** Re-run `list_sessions`
+   and diff your ID against the listing before concluding anything about the target session.
+   Never brute-force ID variants.
 
 ---
 
