@@ -81,7 +81,7 @@ missing is the one panel and two compositions.
 | D4 | **"Assume a resident/role of a place"** — one composed endpoint: pick place + role → find (or dev-relocate) an appropriate user → login-as. Today it is three manual steps; the mockup's role/jurisdiction selects promise one | M |
 | D5 | **Scenario presets** — the mockup's named situations (`liveSession`, `ubiRun`, …) map to the real demo seeders (`elections:demo`, `institutions:demo-*`), CLI-only today. Web surface = seeder-backed preset buttons, `GuardsSyntheticData` intact. Design note first | L |
 | D6 | Case-detail's built-but-disabled Back/Advance walkthrough, the challenge tracker's simulate buttons, judiciary-home's consent meters — switch on under Demo mode | S |
-| D7 | ⚖ Gating decision needed — §10 item 4 (`CGA_DEV_TIME` env + `APP_ENV=local` vs the setup-chosen mode) | — |
+| D7 | ~~Gating decision~~ **RULED (§10 item 4)**: derive the time controls from the sandbox setup choice; refusal rail keys on any NON-demo peer, not on peering itself | S |
 
 ## 4. Slice 3 — LEARN PAYLOAD (lane 15)
 
@@ -221,17 +221,18 @@ Side-ruling recorded from the same answers: **all storage stays UTC; display is 
 user's local via client/browser** — already the app's posture (`timestamptz` UTC, client
 formatting); reaffirmed, not a change.
 
-### OPEN — explanations delivered 2026-07-28, awaiting the operator's word
+### SETTLED 2026-07-28 (second round) — all ten items now ruled
 
-| # | Question (plain form) | Recommendation |
-|---|---|---|
-| 4 | NOT time zones — the pretend-time-travel TESTING controls (advance all deadlines N days, fire one deadline now) are locked behind a server config-file flag (`CGA_DEV_TIME` env + local-mode server) that choosing Demo mode at setup does NOT flip; the founder's clock buttons 404 until someone edits `.env` | Choosing Demo at setup unlocks them automatically; the hard rails stay (any peered/federated box refuses outright; `launch:assert-clean` still fails if on) |
-| 5 | Two deliberate app divergences: (a) ExecutiveHome shows only the REAL live model, not the mockup's explore-all-three teaching toggle; (b) Departments deep-links department creation into the real bill flow (F-LEG-016) instead of the mockup's in-page composer (no side-door write) | Ratify both; the three-model explorer becomes a Learn-flyout/tour teaching device; verify the bill flow pre-fills from the deep link |
-| 6 | Constitutional form (F-*) = filed through the engine, validated, hash-chained, public record, legal effect. Plain form = ordinary app data, private, no legal weight. Question: is completing a lesson a legal act or game progress? | Plain data, zero F-EDU forms — UNLESS the item-3 training-gate directive makes completion role-gating, in which case a server-verifiable (not necessarily constitutional) completion record is needed. Resurface with the training-gate design |
-| 7 | Support categories: app ships `bug/question/conduct/legal/appeal/other` as a flat select with no routing; spec ships `bug/translation/accessibility/content/abuse/idea` as a card grid where each category ROUTES (bug/accessibility/content→operators, translation→translation review, abuse/illegal→the moderation & legal plane never the support queue, idea→backlog) and tells the filer where the report goes | Adopt the spec's routed six; map conduct→abuse, legal→the legal plane; `appeal` is a judicial concept that belongs in the court system, not support intake. Additive migration for routing/subject columns |
-| 8 | `/system/clocks` = the page listing the constitutional timers (next election trigger, meeting-deadline clock, emergency expiry). Spec treats it like the audit chain — public without an account; the app requires login | Public read-only |
-| 9 | Not WHEN join is decided (solo-vs-join at fresh start stands) — WHERE the door lives. The legacy `/federation` page carries both the operator's mesh tooling (incl. the join-a-cluster wizard) and the citizen-facing "which governments federate" view; v3 moved all operator tooling to `/operator/*`. Peering can also happen post-founding (a solo box may later join a mesh), so the wizard needs a home | Wizard + mesh tooling to `/operator/mesh`; `/federation` becomes the read-only citizen view. Placement only, no behavior change |
-| 10 | The mockup demo bar fakes named situations client-side ("an election is certifying", "a UBI run is underway"). The app cannot fake — state is real records; the real equivalent already exists as terminal-only demo seeders (`elections:demo`, `institutions:demo-*`). D5 = buttons in the Demo flyout that run those seeders ("set up a certifying election here") so a walker never needs a terminal; `GuardsSyntheticData` keeps them off real worlds | Build it, short design note first |
+| # | Ruling |
+|---|---|
+| 4 | **Demo mode unlocks the clocks — derive from the sandbox setup choice, no `.env` edit.** AND the peer-refusal rail is REFINED, not removed: **demo instances are EXPECTED to peer for full-scale multibox testing**, so the refusal keys on *peered with any NON-demo node*, never on *peered at all*. A demo mesh may time-travel; a mesh containing any real node never does. `launch:assert-clean` unchanged. (Design note for lane 2's multibox work: per-node advances skew shared deadlines — a demo mesh should advance via one coordinating node or explicitly assert skew tolerance.) |
+| 5a | **Executive model explorer → Learn, "multiple ways."** AND the live page keeps a real in-game door because the model is AMENDABLE — delegated ↔ elected conversion is a constitutional act; the existing `proposeConversionBill`/`proposeDelegationBill` deep links are that door and stay on the live page. |
+| 5b | **Doctrine recorded**: the legislature creates and oversees executive departments, including the **chief executive department, which acts as the orchestrator; an elected executive is those departments in elected form.** The bill-flow deep-link posture (no side-door composer) is RATIFIED; verify the deep link pre-fills the act fields. |
+| 6 | **REVERSED from the recommendation: training completion IS a constitutional form.** Completions tie to achievements and the one-time civic stipend for finishing a training, so they file through the engine — an F-EDU form family gets registered (raising the pinned form count deliberately, per the `AuditChainSmokeTest` rule). Quiz ANSWERS stay private — the filing records completion, never answers; the K2 answer-secrecy rail stands. **Any user may take ALL trainings, whether or not they apply to a role they hold or seek.** Supersedes `K2_ENGINE_PLAN`'s zero-forms recommendation — lane 15 updates that plan before building. The Art. I flag from ruling 3 (no training gate as a ballot-access requirement on elected positions) still stands and must be resolved in the training-gate design. |
+| 7 | **Adopt the spec's routed six** (`bug/translation/accessibility/content/abuse/idea` with live routing); map `conduct`→abuse, `legal`→the legal plane; `appeal` leaves support intake for the court system. Additive migration for subject + routing columns. |
+| 8 | **`/system/clocks` is public, read-only.** |
+| 9 | **Join-a-cluster wizard + mesh tooling → `/operator/mesh`; `/federation` becomes the read-only citizen view.** Placement only. |
+| 10 | **Build the scenario presets** (Demo-flyout buttons over the real demo seeders; `GuardsSyntheticData` keeps them off real worlds; short design note first). AND a fleet-wide STANDING ORDER: **anything terminal-only gets a UI version; anything UI-only gets a CLI equivalent.** First step: an inventory pass (the artisan command registry vs the UI surface registry) to size the parity debt — desk scopes it, lanes execute per surface ownership. |
 
 ## 11. Fleet assignment + build order
 
@@ -259,6 +260,11 @@ WAVE 3 — the keystone:
 
 CONTINUOUS: every PR adds its tour stops + Learn copy + i18n keys; suite green at
 checkpoints; hot-file discipline (CLAUDE.md, routes/web.php, FormRegistry) per fleet memory.
+
+STANDING ORDER (operator, 2026-07-28, ruling 10): UI <-> CLI PARITY — anything
+terminal-only gets a UI version; anything UI-only gets a CLI equivalent. Desk scopes
+the inventory (artisan registry vs surface registry); lanes close parity per surface
+ownership as they touch each area.
 ```
 
 **The walk resumes when Wave 1 lands** — that is the charter's exit: the same 54 cards, on
