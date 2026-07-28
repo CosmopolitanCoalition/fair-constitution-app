@@ -1,9 +1,13 @@
 # K2 — Education Engine Plan (the graded half)
 
-**Owner:** Lane 15 (Phase K-2) · **Deliverable:** D-16d · **Status:** design, 2026-07-25
+**Owner:** Lane 15 (Phase K-2) · **Deliverable:** D-16d · **Status:** design, 2026-07-25;
+**revised 2026-07-28 for operator ruling 6** (`V3_SYNTHESIS_PLAN.md` §10 — training completion
+IS a constitutional form; supersedes this plan's own zero-forms recommendation, §5/§10.4 below).
 **Permission to write code:** granted for the four §8 changes in `K2_ACHIEVEMENT_LIBRARY.md`
-(operator, 2026-07-25). This document specifies; schema needs beyond the approved migration use
-this lane's ordinal block **000060+**, and audit summaries append **last**.
+(operator, 2026-07-25; all four SHIPPED 2026-07-26 — catalog `7b9ec17`, award_key migration
+`e86c6ac`, arcs live `64d79a9`, `AchievementService` `3f42e87`). This document specifies; schema
+needs beyond the approved migration use this lane's ordinal block **000060+**, and audit
+summaries append **last**.
 
 ---
 
@@ -108,7 +112,7 @@ The house pattern already exists — `routes/web.php` uses `throttle:10,1` on th
 |---|---|
 | Attempt cap | rate-limited per module, house `throttle:` middleware |
 | Are wrong answers persisted? | **No.** Storing a per-person error history is a composite score waiting to be computed (PI-6). Persist the *pass*, not the trail. |
-| Retake | allowed and unlimited-by-design — education must never become a gate (Art. I) |
+| Retake | allowed and unlimited-by-design — unlimited retakes are what keep any lawful training gate (ruling 3, §6.5) passable by effort alone; a capped exam would turn a gate into a filter, and Art. I rights (§6.5) are never gated at all |
 | Second achievement on retake? | **Impossible by construction** — the ledger is idempotent on `(user_id, award_key)` |
 | Latch shape | copy `markStep`'s one-way latch (`completed_at === null && count(done) === count(steps)`) rather than inventing a second |
 
@@ -138,22 +142,89 @@ generalisation specified in `K2_ACHIEVEMENT_LIBRARY.md` §5.1.
 
 ---
 
-## 5. Minting F-EDU-001 / F-EDU-002
+## 5. Minting the F-EDU family — **REQUIRED (operator ruling 6, 2026-07-28)**
 
-**No `F-EDU-*` form exists anywhere in executable code** — zero matches across `app/`, `config/`,
-`tests/`, `database/`. The only hits are prose in `docs/plans`. The registry is a **code artifact by
-explicit constitutional design**, so minting is mechanical:
+**RULED, not recommended.** The operator's words (via the reconciliation ledger,
+`V3_SYNTHESIS_PLAN.md` §10 item 6): **training completion IS a constitutional form.** Completions
+tie to achievements and to the one-time civic stipend for finishing a training, so they file
+through the engine. This REVERSES the zero-forms recommendation this plan previously carried in
+§10 item 4 — that item is closed (see §10).
+
+**Timing:** the family is **proposed here and registered with the engine build**, not before.
+No `FormRegistry` change happens in the wave that revises this plan (Wave 1 is the Learn payload;
+the engine build is a later wave). `F-EDU-*` still has zero matches in executable code — that
+remains true until the build, and this section is the design it builds from.
+
+### 5.0 The proposed family (proposal — IDs settle at registration, desk review)
+
+| ID | Name | Filed by | What it records | What it never records |
+|---|---|---|---|---|
+| **F-EDU-001** | Training Completion | the learner (R-01 — every user; see §5.0.2) | module/track key, pass, completion time | **answers — the learner's or the correct ones.** The §2 rail stands unchanged. |
+| **F-EDU-002** | Training Material Publication | the authoring body's agent (Δ4 bridge, §7) | publication/revision of a training module, its public-domain dedication ref | question banks' `correct_keys` (server-side catalog only) |
+
+Two forms, not one, because the two constitutional acts are different: one is a person's act
+(completing), one is the content plane's act (publishing under Art. III §5 public domain). The
+roadmap already named `F-EDU-001/002` as Phase-K key forms; these assignments give the pair
+substance. If the desk or operator wants publication left as ordinary application state, F-EDU-002
+drops and 001 ships alone — that is a registration-day decision, flagged not assumed.
+
+#### 5.0.1 The stipend hook (design only — build coordinates with lane 13's economy write path)
+
+The ruling ties completion to **the one-time civic stipend for finishing a training**. Design:
+
+- **The payout fires inside the F-EDU-001 handler, through the engine — never a side API.**
+  Lane 13's settled posture (doors, never shortcuts: economy writes file through the engine only)
+  applies to this money the same as all other money.
+- **"One-time" is enforced by the achievement ledger, which is already once-only by
+  construction.** The handler awards through `AchievementService` (idempotent on
+  `(user_id, award_key)` against an append-only, trigger-guarded table); **the stipend pays if
+  and only if the achievement row was NEWLY minted.** No second idempotency mechanism, no
+  parallel bookkeeping — the ledger IS the once-only proof. A retake never pays twice for the
+  same reason it never decorates twice.
+- **Amount and funding follow the `StipendService` posture** (PROTECTED, F-TRE-004): amount from
+  an amendable constitutional setting (proposed `training_stipend_amount`, jurisdiction-scoped
+  like `civic_stipend_floor`), funding source resolving the same way (`minted` default), the
+  transaction citing its F-EDU-001 chain entry.
+- **CI-1 is not violated and the plan says why rather than leaving it to be asked:** CI-1 bars
+  *governance* advantage — a role, a vote, a seat, a capability. The stipend is money. The
+  operator ruled the tie deliberately; the non-interference pin (§6.4) keeps asserting that no
+  education state reaches `RoleService::derive()` or vote counting, stipend included.
+- **PI-6 is not violated:** paying on a completion is a per-event act on the LIST of earnings,
+  not a composite score. Nothing sums.
+
+#### 5.0.2 All trainings are open to every user — a rule of the family, not a UI choice
+
+The ruling's second half: **any user may take ALL trainings, whether or not they apply to a role
+the user holds or seeks.** Consequences carried into the schema and forms:
+
+- `education_modules` carries **no role gate** — there is no `required_role`, no eligibility
+  column, and F-EDU-001's role list is the universal `R-01`.
+- The UI may *recommend* trainings by relevance to a role; it may never *hide or refuse* one.
+- `ConstitutionalValidator` never sees a "may this person take this training" question, because
+  the question is unaskable by construction.
+
+### 5.1 Registration mechanics (unchanged, counts corrected 2026-07-28)
+
+The registry is a **code artifact by explicit constitutional design**, so minting is mechanical:
 
 1. **Declare** in `FormRegistry::FORMS` (name + role codes).
 2. **Implement** a handler class against the 5-method `FormHandler` contract.
 3. **Register** in `FormRegistry::HANDLERS`.
-4. **Bump the tripwire:** `tests/Feature/AuditChainSmokeTest.php` asserts exactly 108 canonical
-   forms. Change the assertion **and the method name** `test_registry_holds_exactly_108_canonical_forms`
-   — that file already carries a stale docblock at line 26 claiming "104" while asserting 108, and
-   leaving the name stale would repeat the same failure.
+4. **Bump the tripwire deliberately:** `tests/Feature/AuditChainSmokeTest.php` now asserts
+   **111** canonical forms (`assertCount(111, ...)`, line ~131 — F-IND-022/023/024 landed
+   2026-07-26 after this plan's first draft said 108). Raising the pinned count on registration
+   day is the documented, deliberate act CLAUDE.md describes — change the assertion **and any
+   count-bearing method name/docblock** in the same edit; that file has drifted before.
 5. **Fix** the `FormRegistry` docblock arithmetic.
+6. **FIRST, before any of 1–5: land the §2 belt-and-suspenders** — add `correct_keys`,
+   `answer_key`, `answers` to `ConstitutionalEngine::SENSITIVE_KEYS` (verified still absent,
+   2026-07-28). Ruling 6 makes F-EDU registration certain, which makes this two-line change
+   mandatory rather than precautionary. It is the first commit of the engine build.
 
-No migration, no seeder, no enum, no i18n file.
+The completion filing needs no new chain machinery — but F-EDU-001 acceptance now touches three
+stores in one transaction (education_progress latch, achievement append, stipend transaction),
+which is exactly the `markStep` → `AchievementService` shape already shipped, plus lane 13's
+transaction posture for the money leg.
 
 **Facts that constrain the library and the education content** (corrections to assumptions in
 circulation):
@@ -191,9 +262,24 @@ tests, that edit is a constitutional violation — fix the edit, never the test.
    shape is still worth holding, and it was never the part the operator reversed.)
 4. **`AchievementNonInterferenceTest`** — CI-1, in the shape `IK-civic-org-powers-and-record.md:86`
    already specifies (see `K2_ACHIEVEMENT_LIBRARY.md` §7).
-5. **`EducationNoGateTest`** — no education state reaches `RoleService::derive()` or
-   `ConstitutionalValidator`; **completing a lesson never becomes a precondition for filing
-   anything.** Art. I rights are absolute and unconditioned.
+5. **`EducationNoGateTest`** — **NARROWED 2026-07-28, and the narrowing is the honest part.**
+   As first designed this pin said *"completing a lesson never becomes a precondition for filing
+   anything"* — and operator ruling 3's standing directive now contradicts that flatly: **all
+   civic roles get a training gate before applying/registering.** A pin that the next ruling
+   forces someone to delete teaches people to delete pins. So the pin holds what is actually
+   constitutional, and only that:
+   - **No education state ever conditions an Art. I absolute right**: voting (F-IND-007/008),
+     candidacy for elected office (F-IND-011), residency (F-IND-003/006), speech
+     (F-SOC-001/002). These assertions are unconditional and permanent.
+   - **No education state reaches `RoleService::derive()`** — roles derive from residency and
+     acts, never from lessons. (A training GATE sits on the *filing* of an application form,
+     which is different from a role deriving from education — the distinction the pin now
+     encodes.)
+   - Training gates on **appointed/registered** roles (advocate registration F-IND-015 and
+     kin) are LAWFUL under ruling 3 once built; the pin must not block them.
+   - The **elected** case is UNRESOLVED (§10 item 7) — until the operator rules, the pin treats
+     the ballot-access path as ungateable, which is the safe direction: relaxing a pin later is
+     an announce-and-edit; un-shipping a gate that ran in an election is not.
 
 Register all five in `FuturePhasePlaceholdersTest` — the documented mechanism for pre-registering
 an unbuilt phase's pins (*"The constitutional suite IS the roadmap"*).
@@ -293,14 +379,35 @@ Three workable answers; the plan recommends the first:
    `audit_log` module ("it reuses records"), but `JourneyService:186` already appends
    `module: 'journeys'`. Recommend keeping `'journeys'` and correcting the charter — @lane-07 owns
    that text.
-4. **Do F-EDU forms need to exist at all? The charter contradicts itself.** The roadmap names
-   `F-EDU-001/002` as Phase-K key forms **and** states *"AchievementService (zero new F-forms —
-   visibility is a personal setting)."* Completing a lesson is not obviously a *constitutional act*
-   — it confers nothing, changes no one's standing, and by Art. I can never gate anything. The
-   §5 minting recipe is written so it is ready either way, but **my recommendation is to mint
-   zero forms** and record education as ordinary application state, reserving the catalog for acts
-   that carry constitutional weight. Minting touches a constitutionally-reviewed file and trips the
-   108-count tripwire; doing that for a quiz submission should be a deliberate yes, not a default.
+4. ~~Do F-EDU forms need to exist at all?~~ — **RULED 2026-07-28, REVERSED from this plan's
+   recommendation, closed.** The operator: training completion IS a constitutional form —
+   completions tie to achievements and the one-time civic stipend, so they file through the
+   engine; the F-EDU family gets registered (raising the pinned form count deliberately), quiz
+   ANSWERS stay private, and every training is open to every user. §5 now carries the design.
+   The zero-forms recommendation was put, considered, and overruled — recorded here so nobody
+   re-argues it.
+
+7. **⚠ THE ART. I QUESTION — surfaced for the operator, deliberately NOT resolved here.**
+   Ruling 3's standing directive says **all civic roles get a training gate before
+   applying/registering — elected, appointed or otherwise.** For appointed and registered roles
+   that is clean. For **ELECTED** positions it collides with a constitutional hard constraint:
+   Art. I makes candidacy an **absolute right with no requirement beyond jurisdictional
+   residency**, and the validator already refuses any filing that attaches an eligibility
+   condition to candidacy — the app itself would fight this gate. **Where does the training gate
+   sit for elected positions?** The options, plainly:
+
+   | Where the gate sits | What it means | The cost |
+   |---|---|---|
+   | **(a) Pre-ballot** — must finish training to register candidacy | a true gate | **collides with Art. I as written** — needs the operator to change what the constitution requires, not just the code; weakens the "no eligibility test beyond residency" teaching everywhere |
+   | **(b) Pre-seating** — anyone runs; a winner completes training before taking the oath | ballot access stays absolute; the gate touches office-holding, not candidacy | a winner who refuses training creates a vacancy path that needs a rule; voters may elect someone who then stalls |
+   | **(c) Advisory** — training is offered and strongly surfaced at candidacy, never required | no collision; matches the current validator | it is not a gate, and the directive said gate |
+
+   **Recommendation (recommendation only — the ruling is the operator's): (b) pre-seating**,
+   because it keeps the ballot untouched (Art. I intact, validator unchanged, every "no
+   eligibility test" lesson in the shipped education corpus stays true) while still making the
+   training real for anyone who actually wields power — and the vacancy path for a
+   refusing winner already exists (universal countback, F-LEG-036). Until his word comes,
+   nothing gates any elected path, and §6.5's pin holds that line.
 5. ~~The title decision~~ — **APPROVED 2026-07-25, no longer open.** Store an i18n key rather than a
    denormalized English string in an immutable federating ledger
    (`K2_ACHIEVEMENT_LIBRARY.md` §8.2). @lane-05 owns the translating; ~127 achievement titles.
