@@ -103,6 +103,7 @@ since. **It is assembly, not invention** — every act already works.
 | P10 | **8 UI punchlist items** | lane 6 | deferred with reasons, incl. `tone="emergency"` colliding across 44 sites |
 | P11 | **Atomic write in lane 10's summary emitter** | lane 10 | 6 lines, ~10 min, written up not applied |
 | P12 | **7 untriaged suite failures** | unowned | left red and named deliberately |
+| **P13** | **⚑ V3 SHELL + SYSTEM SYNTHESIS — the app must BE the v3 mockups** | charter: `docs/plans/ui/V3_SYNTHESIS_CHARTER.md` | Found at walk card A-1 (findings W-1/W-2): no dock exists in `resources/js`, Learn is a sidebar link instead of the per-screen teaching flyout, Demo mode's controls are scattered across a dev bar and POST endpoints instead of the Demo flyout, Tour exists as pages/worksheet instead of a MODE. Operator's standing order 2026-07-28: *"anything and everything currently built across the fleet should use the v3 mockups and this system."* **Supersedes the walk until synthesized** — walking 54 cards against the wrong shell certifies the wrong thing. |
 
 ---
 
