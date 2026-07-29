@@ -98,16 +98,24 @@ class MyProfileTabsTest extends TestCase
         $this->onLivePg(function () {
             $user = $this->aUser('Represented Resident');
 
-            // Jurisdictions with NO existing legislature (the live DB carries
-            // demo chambers) — one local (deeper adm_level) and one enclosing.
-            $used  = Legislature::query()->pluck('jurisdiction_id')->all();
-            $local = Jurisdiction::query()->whereNotIn('id', $used)->where('adm_level', 2)->orderBy('id')->first();
-            $upper = Jurisdiction::query()->whereNotIn('id', $used)->where('adm_level', 1)->orderBy('id')->first();
-            $other = Jurisdiction::query()->whereNotIn('id', $used)->where('adm_level', 1)->orderBy('id')->skip(1)->first();
+            // The live DB now seats a legislature on essentially every
+            // jurisdiction (autoscale), so there are no longer "unused" ones to
+            // borrow — the old whereNotIn($used) filter returned nothing and
+            // $upper came back null. Instead OWN three: pick any adm2 + two adm1,
+            // then drop whatever legislature is already seated on them so the
+            // resolver sees ONLY the chambers this test creates. All inside the
+            // always-rolled-back tx (Wave-2 own-the-world scoping — no rail weakened).
+            $local = Jurisdiction::query()->where('adm_level', 2)->orderBy('id')->first();
+            $upper = Jurisdiction::query()->where('adm_level', 1)->orderBy('id')->first();
+            $other = Jurisdiction::query()->where('adm_level', 1)->orderBy('id')->skip(1)->first();
 
-            $this->assertNotNull($local, 'live DB has an adm2 jurisdiction without a legislature');
-            $this->assertNotNull($upper, 'live DB has an adm1 jurisdiction without a legislature');
-            $this->assertNotNull($other, 'live DB has a second adm1 jurisdiction without a legislature');
+            $this->assertNotNull($local, 'live DB has an adm2 jurisdiction');
+            $this->assertNotNull($upper, 'live DB has an adm1 jurisdiction');
+            $this->assertNotNull($other, 'live DB has a second adm1 jurisdiction');
+
+            Legislature::query()
+                ->whereIn('jurisdiction_id', [(string) $local->id, (string) $upper->id, (string) $other->id])
+                ->delete();
 
             foreach ([$local, $upper, $other] as $depth => $jurisdiction) {
                 ResidencyConfirmation::create([

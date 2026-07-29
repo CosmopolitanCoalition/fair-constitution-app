@@ -275,7 +275,7 @@ class LegalComplianceTest extends TestCase
     public function test_a_bootstrap_removal_has_no_referral(): void
     {
         $this->onLivePg(function () {
-            $jur = $this->aJurisdiction();                 // unseated
+            $jur = $this->aJurisdiction(unseated: true);   // unseated (no active legislature)
             $op = $this->operator();
             $this->mock(MatrixClientService::class, fn ($m) => $m->shouldReceive('redact')->andReturn([]));
             app(RoleService::class)->flush();
@@ -377,9 +377,9 @@ class LegalComplianceTest extends TestCase
         ]);
     }
 
-    private function aJurisdiction(): string
+    private function aJurisdiction(bool $unseated = false): string
     {
-        $id = DB::table('jurisdictions')
+        $q = DB::table('jurisdictions')
             ->whereNull('deleted_at')
             // Scope to a jurisdiction this test can OWN. Taking the first row
             // takes an arbitrary REAL one, and once it holds live Matrix rooms
@@ -390,8 +390,21 @@ class LegalComplianceTest extends TestCase
             ->whereNotExists(fn ($q) => $q->selectRaw('1')
                 ->from('matrix_rooms')
                 ->whereColumn('matrix_rooms.entity_id', 'jurisdictions.id')
-                ->whereNull('matrix_rooms.deleted_at'))
-            ->value('id');
+                ->whereNull('matrix_rooms.deleted_at'));
+
+        // The bootstrap path needs an UNSEATED jurisdiction. is_seated_at_time is
+        // computed from an ACTIVE legislature on the jurisdiction, and the live DB
+        // now seats most jurisdictions (autoscale) — so the arbitrary first row is
+        // seated and the "bootstrap ⇒ no referral" assertion fails. Scope those out.
+        if ($unseated) {
+            $q->whereNotExists(fn ($sub) => $sub->selectRaw('1')
+                ->from('legislatures')
+                ->whereColumn('legislatures.jurisdiction_id', 'jurisdictions.id')
+                ->where('legislatures.status', Legislature::STATUS_ACTIVE)
+                ->whereNull('legislatures.deleted_at'));
+        }
+
+        $id = $q->value('id');
         if ($id === null) {
             $this->markTestSkipped('Live DB has no jurisdiction.');
         }
