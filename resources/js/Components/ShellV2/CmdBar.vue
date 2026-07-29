@@ -2,9 +2,11 @@
 /**
  * ShellV2/CmdBar — the harmonized floating command bar (ported from
  * mockups/v3 shell-v2.js renderCommandBar). Fixed to the bottom; carries the
- * two flyouts — Menu (the two-tier player nav) and Learn (the drawer). The
- * guided-tour controls ride the floating HEADER (TourBar), not here, so they
- * are never squished alongside the flyouts.
+ * three flyouts — Menu (the two-tier player nav), Learn (the drawer), and
+ * Demo (demo mode's one home; renders only when the world runs in
+ * sandbox/demo mode — V3 synthesis S3). The guided-tour controls ride the
+ * floating HEADER (TourBar), not here, so they are never squished alongside
+ * the flyouts.
  *
  * Behavior contract (wireEvents port): one flyout open at a time; Escape
  * closes and refocuses the summary; clicking outside closes.
@@ -13,10 +15,18 @@ import { onBeforeUnmount, onMounted, ref } from 'vue';
 import Icon from '@/Components/Ui/Icon.vue';
 import MenuNav from '@/Components/ShellV2/MenuNav.vue';
 import LearnFlyout from '@/Components/ShellV2/LearnFlyout.vue';
+import DemoFlyout from '@/Components/ShellV2/DemoFlyout.vue';
 
 defineProps({
     roles: { type: Array, default: () => ['R-00'] },
     currentNavId: { type: String, default: null },
+    /** Demo/Dev mode is ON for this world (instance.sandbox — or an
+     *  impersonation is already active, so the way back stays reachable). */
+    demo: { type: Boolean, default: false },
+    /** { name } of the impersonated user, or null. */
+    impersonating: { type: Object, default: null },
+    /** { name } of the real (impersonating) user. */
+    realUser: { type: Object, default: null },
 });
 
 const rootEl = ref(null);
@@ -72,6 +82,16 @@ onBeforeUnmount(() => {
                 </summary>
                 <div class="cmdbar-panel cmdbar-panel--learn">
                     <LearnFlyout />
+                </div>
+            </details>
+
+            <details v-if="demo" class="cmdbar-fly" id="cmd-demo">
+                <summary class="cmdbar-btn" :title="impersonating ? `Impersonating ${impersonating.name}` : undefined">
+                    <Icon name="sliders" size="sm" /><span class="cmdbar-lbl">Demo<template v-if="impersonating"> · as {{ impersonating.name }}</template></span>
+                    <Icon name="chevron-down" size="sm" class="cmdbar-caret" />
+                </summary>
+                <div class="cmdbar-panel cmdbar-panel--demo">
+                    <DemoFlyout :impersonating="impersonating" :real-user="realUser" :roles="roles" />
                 </div>
             </details>
         </div>

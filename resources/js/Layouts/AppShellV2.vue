@@ -21,8 +21,6 @@ import { computed, onBeforeUnmount, onMounted, provide, watch } from 'vue';
 import { router, usePage } from '@inertiajs/vue3';
 import { useI18n } from 'vue-i18n';
 import AppFooter from '@/Components/Shell/AppFooter.vue';
-import DevBar from '@/Components/Shell/DevBar.vue';
-import DevPersonaSwitcher from '@/Components/Shell/DevPersonaSwitcher.vue';
 import EmergencyBanner from '@/Components/Shell/EmergencyBanner.vue';
 import JurisdictionSwitcher from '@/Components/Shell/JurisdictionSwitcher.vue';
 import SchemaUpdateBanner from '@/Components/SchemaUpdateBanner.vue';
@@ -149,10 +147,12 @@ function onScroll() {
     lastY = y;
 }
 
-/* ---------------------------------------------------------------- dev bar */
-// DevBar shows only when the WORLD is in sandbox game mode (or impersonation is
-// already active / an explicit devBar prop) — not keyed on import.meta.env.DEV.
-const devBarOn = computed(
+/* -------------------------------------------------------------- demo mode */
+// The Demo flyout (dock, third slot) renders only when the WORLD is in
+// sandbox game mode (or impersonation is already active / an explicit devBar
+// prop) — not keyed on import.meta.env.DEV. Successor of the DevBar strip,
+// retired from this shell by V3 synthesis S3: the dock is Demo's one home.
+const demoOn = computed(
     () => page.props.devBar === true || impersonation.value?.active === true || instance.value.sandbox === true,
 );
 const impersonatingUser = computed(() =>
@@ -228,6 +228,9 @@ onBeforeUnmount(() => {
                         @change="onLocaleChange"
                     >
                         <option v-for="l in LOCALES" :key="l.code" :value="l.code">{{ l.name }}</option>
+                        <!-- present only while the QA pseudo-locale is active (Demo
+                             flyout toggle), so the select never shows a blank value -->
+                        <option v-if="locale === 'en-XA'" value="en-XA">Pseudo (en-XA)</option>
                     </select>
                 </label>
 
@@ -285,14 +288,12 @@ onBeforeUnmount(() => {
             :audit-seq="auditSeq"
         />
 
-        <CmdBar :roles="roles" :current-nav-id="currentNavId" />
-
-        <DevBar
-            v-if="devBarOn"
+        <CmdBar
+            :roles="roles"
+            :current-nav-id="currentNavId"
+            :demo="demoOn"
             :impersonating="impersonatingUser"
             :real-user="realUser"
-        >
-            <DevPersonaSwitcher :impersonating="impersonatingUser" />
-        </DevBar>
+        />
     </div>
 </template>
