@@ -16,7 +16,9 @@
  * PUBLIC READ (Art. II §2 — proceedings are public record). Per-stage court
  * actions gate by derived role (R-19/R-20) via `can.orderCourt` + the engine
  * 422 — never a page 403. The court ADVANCES the append-only record through
- * the engine; CaseLifecycle never POSTs (interactive is OFF in product).
+ * the engine; CaseLifecycle never POSTs (`interactive` — the playable
+ * walkthrough cursor — is world-keyed on Demo mode via useDemoMode, and
+ * stays OFF on real worlds).
  *
  * `panel.panelSize` / `panel.isFullCourt` are ENGINE SNAPSHOTS (the CLK-16
  * hard constraint), passed straight to PanelTable — never recomputed here.
@@ -34,6 +36,7 @@ import HardenedChip from '@/Components/Ui/HardenedChip.vue';
 import StatusBadge from '@/Components/Ui/StatusBadge.vue';
 import CaseLifecycle from '@/Components/Judiciary/CaseLifecycle.vue';
 import PanelTable from '@/Components/Judiciary/PanelTable.vue';
+import { useDemoMode } from '@/composables/useDemoMode';
 
 /* Phase-2 restyle wave: the v3 player chrome (MASTER_PLAN). */
 defineOptions({ layout: AppShellV2 });
@@ -60,6 +63,10 @@ const props = defineProps({
 });
 
 const page = usePage();
+/* Demo-mode worlds get the playable Back/Advance cursor (D6, §10 item 4 —
+   world-keyed via instance.sandbox, never build-keyed). Display-only either
+   way: the cursor previews stages; the record still never POSTs from here. */
+const { isDemoMode } = useDemoMode();
 const flashStatus = computed(() => page.props.flash?.status ?? null);
 const constitutionError = computed(() => page.props.errors?.constitution ?? null);
 
@@ -196,6 +203,7 @@ function submitWarrant() {
         <Card as="section" :title="`Lifecycle — stage ${kase.current_stage} of ${stages.length}`">
             <CaseLifecycle
                 :case="kase"
+                :interactive="isDemoMode"
                 :machine="machine"
                 :stages="stages"
                 :stage-state-map="stageStateMap"

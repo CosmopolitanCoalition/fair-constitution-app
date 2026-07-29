@@ -2042,11 +2042,13 @@ const seatCountableDistricts = computed(() =>
         ? districtsRef.value
         : districtsRef.value.filter(d => d.method !== 'drawn')
 )
-// DEV-only helper strip: seats the signed-in user on the election board so
-// can_draw flips without running an election. Never part of the application.
+// Demo-mode helper strip: seats the signed-in user on the election board so
+// can_draw flips without running an election. WORLD-keyed (the server-shared
+// devBar flag), never build-keyed — import.meta.env.DEV leaked the affordance
+// into dev builds of production worlds (the nav.js registry warning).
 const page = usePage()
 const devSeatVisible = computed(() =>
-    (import.meta.env.DEV || page.props.devBar === true)
+    page.props.devBar === true
     && props.can_draw === false
     && !!page.props.auth?.user
 )
