@@ -90,6 +90,15 @@ Stage-two grouping over the adjacency graph (even clumps, compact, no geometry c
 ~9,708 flagged chambers. Named plan item per the operator; the campaign's resume point;
 Type B election playtesting stays blocked fleet-wide until it ships.
 
+## Divergence ledger (spec ↔ app, logged never silent)
+
+- **Ruling 9 placement (`d69aff0`)**: substance delivered (/federation = citizen view;
+  console on the operator plane) but the console landed at **/operator/federation** as its
+  own surface rather than inside /operator/mesh per the ruling's letter. Plausible reason:
+  mesh.html's contract covers PEERING, not cluster hosting. Lane 2 to state the reasoning in
+  its report; reconciliation question for the mockup side: does operator/mesh.html absorb
+  the cluster console, or does the spec gain a screen? Neither blocks.
+
 ## Attribution corrections (permanent record — history is never rewritten)
 
 - **`7721372`** (lane 2, "the four jurisdiction lifecycle pages") also carries, swept by the
