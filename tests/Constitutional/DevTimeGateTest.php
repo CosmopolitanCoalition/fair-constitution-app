@@ -41,6 +41,20 @@ class DevTimeGateTest extends TestCase
             'cga.impersonation' => true,
             'cga.dev_time'      => true,
         ]);
+
+        // Clear any GameMode static leaked by a PRIOR test class: GameMode
+        // caches its answer for the life of a request, and another class that
+        // founded a demo world on a connection it left as the default would
+        // otherwise make this class read sandbox ambiently. The cases that
+        // need a specific mode set it explicitly via override(); the rest get
+        // a clean slate here.
+        \App\Support\GameMode::flush();
+    }
+
+    protected function tearDown(): void
+    {
+        \App\Support\GameMode::flush();
+        parent::tearDown();
     }
 
     /** The environment gate itself — the one the others were accidentally testing. */
@@ -57,12 +71,19 @@ class DevTimeGateTest extends TestCase
     /**
      * The controls are OFF by default on any world NOT founded in Demo mode —
      * nobody has to remember to disable them. (RULED 2026-07-28, §10 item 4:
-     * the sandbox setup choice is the switch. Here the game mode resolves to
-     * null — not sandbox — and no key is set, so the gate refuses with the
-     * sentence that explains where the switch actually lives.)
+     * the sandbox setup choice is the switch. Game mode is NOT sandbox and no
+     * key is set, so the gate refuses with the sentence that explains where the
+     * switch actually lives.)
+     *
+     * The mode is FORCED to production via override() rather than left to
+     * resolve against the ambient connection — a prior test class that founded
+     * a demo world and left its connection as the default would otherwise make
+     * this read sandbox and the gate ALLOW. The fixture establishes the "not
+     * sandbox" precondition its subject requires; it does not borrow it.
      */
     public function test_the_gate_refuses_when_dev_time_is_not_switched_on(): void
     {
+        \App\Support\GameMode::override(\App\Support\GameMode::PRODUCTION);
         config(['cga.dev_time' => false]);
 
         $reason = DevTimeControlsEnabled::refusalReason();

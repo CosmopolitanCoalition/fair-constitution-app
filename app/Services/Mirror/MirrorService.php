@@ -148,13 +148,16 @@ class MirrorService
 
         return DB::transaction(function () use ($applicantServerId, $applicantPublicKey, $nonce, $plaintextKey, $applicantUrl, $negotiation, $declared): ClusterMembership {
             // Anti-replay: a duplicate (applicant, nonce) raises the unique index.
+            // The declaration is recorded here too (the keyed path pins the peer
+            // directly below, but the request row stays a faithful record of what
+            // was declared, on either path).
             $request = ClusterAdoptionRequest::create(array_merge([
                 'applicant_server_id' => $applicantServerId,
                 'applicant_public_key' => $applicantPublicKey,
                 'nonce' => $nonce,
                 'admission_method' => ClusterMembership::ADMISSION_JOIN_KEY,
                 'status' => ClusterAdoptionRequest::STATUS_PENDING,
-            ], $this->negotiationColumns($negotiation, $applicantUrl)));
+            ], $this->negotiationColumns($negotiation, $applicantUrl), $this->declarationColumns($declared)));
 
             $key = $this->keys->verify($plaintextKey);
             if ($key === null || ! $this->keys->consume($key)) {
@@ -605,7 +608,7 @@ class MirrorService
      * applicant (idempotent — repeated polls return the same row). The operator
      * later approves or rejects it from the review queue.
      */
-    public function requestAdoption(string $applicantServerId, string $applicantPublicKey, ?string $applicantUrl = null, array $negotiation = []): ClusterAdoptionRequest
+    public function requestAdoption(string $applicantServerId, string $applicantPublicKey, ?string $applicantUrl = null, array $negotiation = [], array $declared = []): ClusterAdoptionRequest
     {
         if ($applicantServerId === '' || $applicantPublicKey === '') {
             throw new AdoptionRejected('incomplete_adoption_request', 422);
@@ -629,7 +632,7 @@ class MirrorService
             'nonce' => bin2hex(random_bytes(16)),
             'admission_method' => ClusterMembership::ADMISSION_REQUEST,
             'status' => ClusterAdoptionRequest::STATUS_PENDING,
-        ], $this->negotiationColumns($negotiation, $applicantUrl)));
+        ], $this->negotiationColumns($negotiation, $applicantUrl), $this->declarationColumns($declared)));
 
         $this->audit->append('mirror', 'mirror.adoption_requested',
             ['mirror_server_id' => $applicantServerId, 'request_id' => $request->id], 'WF-JUR-06');
@@ -654,8 +657,19 @@ class MirrorService
         }
 
         return DB::transaction(function () use ($request): ClusterMembership {
+            // Replay the applicant's declaration off the request row onto the
+            // mirror's peer row (ruling §10 item 4) — the keyless half of
+            // 7b09915. Same present-only semantics as admitMirror: a declared
+            // class is pinned, an undeclared one (NULL) is left for a later
+            // signed handshake to fill, never clobbered to production here.
+            $peerAttrs = [
+                'game_mode' => GameMode::normalize($request->declared_game_mode),
+            ];
+            if ($request->declared_instance_class !== null) {
+                $peerAttrs['instance_class'] = InstanceClass::normalize($request->declared_instance_class);
+            }
             $peer = $this->peers->upsertTrustedPeer(
-                $request->applicant_server_id, $request->applicant_public_key, [],
+                $request->applicant_server_id, $request->applicant_public_key, $peerAttrs,
                 FederationPeer::RELATION_MIRROR, 'mirror_vouched'
             );
             $membership = $this->openHostMembership($peer, ClusterMembership::ADMISSION_REQUEST, null);
@@ -759,6 +773,28 @@ class MirrorService
             'applicant_name' => ($negotiation['applicant_name'] ?? null) ?: null,
             'applicant_url' => $applicantUrl ?: null,
             'note' => ($negotiation['note'] ?? null) ?: null,
+        ];
+    }
+
+    /**
+     * Ruling §10 item 4 — the applicant's signed demo-mesh declaration, persisted
+     * on the adoption-request row so it survives the pending queue. Normalized on
+     * the way in (garbage → null/production, never trusted verbatim), matching the
+     * peer-metadata store. The class stays NULL when the applicant declared none
+     * (a pre-ruling box), so approveRequest can preserve-not-clobber exactly as
+     * admitMirror does on the keyed path; game_mode is null unless affirmatively
+     * declared. Both null = undeclared = REAL to the dev-time rail: fail closed.
+     *
+     * @param  array<string,mixed>  $declared
+     * @return array{declared_instance_class: ?string, declared_game_mode: ?string}
+     */
+    private function declarationColumns(array $declared): array
+    {
+        $class = $declared['instance_class'] ?? null;
+
+        return [
+            'declared_instance_class' => $class !== null ? InstanceClass::normalize($class) : null,
+            'declared_game_mode' => GameMode::normalize($declared['game_mode'] ?? null),
         ];
     }
 }

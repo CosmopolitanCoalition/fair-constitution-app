@@ -2,8 +2,10 @@
 
 namespace Tests\Constitutional;
 
+use App\Models\ClusterAdoptionRequest;
 use App\Services\Federation\InstanceIdentityService;
 use App\Services\Federation\PeerService;
+use App\Services\Mirror\MirrorService;
 use App\Support\GameMode;
 use App\Support\InstanceClass;
 use Illuminate\Support\Facades\DB;
@@ -25,7 +27,11 @@ use Tests\TestCase;
  *      declaration);
  *   4. an unknown declared value is stored as NULL — undeclared — never as
  *      sandbox: absence and garbage both read as REAL downstream, the
- *      fail-closed direction.
+ *      fail-closed direction;
+ *   5. the KEYLESS adoption queue carries the declaration across the pending
+ *      wait (declared_* columns on cluster_adoption_requests) so approveRequest
+ *      pins the mirror peer exactly as the keyed path does — the gap 7b09915
+ *      flagged, now closed by 2026_07_29_140000.
  *
  * If an edit breaks these, the edit is the violation — fix the edit, not the test.
  */
@@ -126,6 +132,74 @@ class DemoMeshDeclarationTest extends TestCase
 
         $this->assertSame(GameMode::SANDBOX, GameMode::normalize('sandbox'));
         $this->assertSame(GameMode::PRODUCTION, GameMode::normalize('production'));
+    }
+
+    /**
+     * THE KEYLESS-QUEUE GAP, CLOSED. A would-be mirror that requests adoption
+     * without a join key sits PENDING until the host operator vouches it. Its
+     * signed declaration must survive that wait on the request row and be pinned
+     * on the peer at approval — otherwise a queue-admitted demo mirror records no
+     * demo-ness and the dev-time rail reads the whole mesh as real.
+     */
+    public function test_a_keyless_queued_adoption_carries_the_declaration_to_the_peer(): void
+    {
+        $this->onLivePg(function () {
+            $mirror = app(MirrorService::class);
+            $applicantId = (string) Str::uuid();
+
+            // The applicant declares a demo mesh (scale_demo + sandbox) in its
+            // signed adopt body; the host queues the request.
+            $request = $mirror->requestAdoption(
+                $applicantId,
+                'applicant-key',
+                'https://applicant.test',
+                [],
+                ['instance_class' => InstanceClass::SCALE_DEMO, 'game_mode' => GameMode::SANDBOX],
+            );
+
+            // The declaration is recorded on the pending request row (normalized).
+            $this->assertSame(ClusterAdoptionRequest::STATUS_PENDING, $request->status);
+            $this->assertSame(InstanceClass::SCALE_DEMO, $request->declared_instance_class);
+            $this->assertSame(GameMode::SANDBOX, $request->declared_game_mode);
+
+            // The operator vouches it — the peer row inherits the declaration,
+            // so a mirror of this host counts as demo-mesh membership.
+            $mirror->approveRequest($request->id);
+
+            $meta = DB::table('federation_peers')->where('server_id', $applicantId)->value('metadata');
+            $meta = is_string($meta) ? json_decode($meta, true) : (array) $meta;
+            $this->assertSame(InstanceClass::SCALE_DEMO, $meta['instance_class'] ?? null,
+                'the vouched mirror peer carries the class declared at request time');
+            $this->assertSame(GameMode::SANDBOX, $meta['game_mode'] ?? null,
+                'the vouched mirror peer carries the mode declared at request time');
+        });
+    }
+
+    /**
+     * The fail-closed direction on the same path: an applicant that declared
+     * NOTHING leaves the request columns NULL and the peer undeclared — a
+     * queue-admitted mirror with no signed demo-ness reads as REAL, never
+     * silently promoted to a demo by the carriage.
+     */
+    public function test_a_keyless_undeclared_applicant_stays_undeclared_through_the_queue(): void
+    {
+        $this->onLivePg(function () {
+            $mirror = app(MirrorService::class);
+            $applicantId = (string) Str::uuid();
+
+            $request = $mirror->requestAdoption($applicantId, 'applicant-key', 'https://plain.test');
+
+            $this->assertNull($request->declared_instance_class, 'no class declared → NULL, not production');
+            $this->assertNull($request->declared_game_mode);
+
+            $mirror->approveRequest($request->id);
+
+            $meta = DB::table('federation_peers')->where('server_id', $applicantId)->value('metadata');
+            $meta = is_string($meta) ? json_decode($meta, true) : (array) $meta;
+            $this->assertNull($meta['instance_class'] ?? null,
+                'an undeclared applicant is NOT promoted to a class by the carriage');
+            $this->assertNull($meta['game_mode'] ?? null);
+        });
     }
 
     private function onLivePg(callable $body): void

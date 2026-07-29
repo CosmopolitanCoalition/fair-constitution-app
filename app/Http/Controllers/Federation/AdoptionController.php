@@ -53,10 +53,9 @@ class AdoptionController extends Controller
 
         // RULED §10 item 4 — the applicant's declared class + mode ride the same
         // signature-verified body. The keyed path pins them on the mirror's peer
-        // row at admission. The KEYLESS path cannot yet carry them through the
-        // pending queue (cluster_adoption_requests has no column for it — a
-        // migration is flagged with the desk); until then a queue-admitted
-        // mirror declares itself at its first real handshake instead.
+        // row at admission; the KEYLESS path now carries them through the pending
+        // queue on cluster_adoption_requests (2026_07_29_140000), so a
+        // queue-admitted mirror is pinned at approval exactly as the keyed one.
         $declared = [
             'instance_class' => isset($body['instance_class']) ? (string) $body['instance_class'] : null,
             'game_mode' => isset($body['game_mode']) ? (string) $body['game_mode'] : null,
@@ -70,6 +69,7 @@ class AdoptionController extends Controller
                     (string) ($body['public_key'] ?? ''),
                     isset($body['url']) ? (string) $body['url'] : null,
                     $negotiation,
+                    $declared,
                 );
             } catch (AdoptionRejected $e) {
                 return response()->json(['error' => $e->reason], $e->status);

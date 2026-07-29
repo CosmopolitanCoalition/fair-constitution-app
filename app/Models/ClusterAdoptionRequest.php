@@ -37,5 +37,10 @@ class ClusterAdoptionRequest extends Model
         'applicant_name',
         'applicant_url',
         'note',
+        // Ruling §10 item 4 — the applicant's signed demo-mesh declaration,
+        // carried through the pending queue so approveRequest can pin it on the
+        // mirror's peer row (the keyless half of 7b09915). NULL = undeclared.
+        'declared_instance_class',
+        'declared_game_mode',
     ];
 }
