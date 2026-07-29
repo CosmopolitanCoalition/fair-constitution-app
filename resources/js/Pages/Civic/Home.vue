@@ -70,6 +70,7 @@ const pageTitle = computed(() =>
 const KIND_ICONS = {
     election: 'vote',
     session: 'landmark',
+    hearing: 'users',
     petition: 'file-text',
     referendum: 'refresh-cw',
 };

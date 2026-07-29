@@ -151,6 +151,50 @@ class TodayFeedTest extends TestCase
         });
     }
 
+    public function test_an_open_committee_hearing_appears_as_a_live_row_with_the_room_link(): void
+    {
+        $this->onLivePg(function () {
+            $user = $this->aUser('Gallery Watcher');
+            $jurisdiction = $this->aFreshJurisdiction();
+            $this->associate($user, $jurisdiction);
+
+            $legislature = Legislature::create([
+                'jurisdiction_id' => (string) $jurisdiction->id,
+                'status'          => Legislature::STATUS_ACTIVE,
+            ]);
+            $member = \App\Models\LegislatureMember::create([
+                'legislature_id' => (string) $legislature->id,
+                'user_id'        => (string) $user->id,
+                'status'         => \App\Models\LegislatureMember::STATUS_SEATED,
+            ]);
+            $committee = \App\Models\Committee::create([
+                'legislature_id' => (string) $legislature->id,
+                'name'           => 'Committee on Public Works',
+                'seats'          => 5,
+            ]);
+            $meeting = \App\Models\CommitteeMeeting::create([
+                'id'                  => (string) Str::uuid(),
+                'committee_id'        => (string) $committee->id,
+                'called_by_member_id' => (string) $member->id,
+                'scheduled_for'       => now()->subMinutes(10),
+                'status'              => \App\Models\CommitteeMeeting::STATUS_OPEN,
+                'opened_at'           => now()->subMinutes(5),
+            ]);
+
+            $feed = app(TodayFeedService::class)->forUser($user, [(string) $jurisdiction->id]);
+
+            $hearing = collect($feed['rows'])->firstWhere('kind', 'hearing');
+            $this->assertNotNull($hearing, 'an open committee hearing must appear in the feed');
+            $this->assertSame('live', $hearing['status']);
+            $this->assertSame('live', $hearing['pill']['tone']);
+            $this->assertSame('Meeting now', $hearing['pill']['label']);
+            // An OPEN hearing deep-links to its live public gallery room; a
+            // scheduled one would point at the committee page instead.
+            $this->assertSame("/rooms/committee/{$meeting->id}", $hearing['href']);
+            $this->assertNull($hearing['target'], 'a live row carries no countdown');
+        });
+    }
+
     public function test_the_calendar_buckets_a_future_session(): void
     {
         $this->onLivePg(function () {

@@ -3,6 +3,7 @@
 namespace App\Services;
 
 use App\Models\ClockTimer;
+use App\Models\CommitteeMeeting;
 use App\Models\Election;
 use App\Models\LegislatureSession;
 use App\Models\Petition;
@@ -56,6 +57,7 @@ class TodayFeedService
         $rows = [
             ...$this->electionRows($jurisdictionIds),
             ...$this->sessionRows($jurisdictionIds, $now),
+            ...$this->hearingRows($jurisdictionIds, $now),
             ...$this->petitionRows($jurisdictionIds),
             ...$this->referendumRows($jurisdictionIds),
         ];
@@ -183,6 +185,58 @@ class TodayFeedService
                     : ['tone' => 'wait', 'label' => 'Scheduled'],
                 'target'       => $live ? null : $this->target('opensAt', $session->scheduled_for),
                 'href'         => "/legislatures/{$session->legislature_id}/chamber",
+            ];
+        })->all();
+    }
+
+    /**
+     * Committee hearings — open now or convening soon — for the committees of the
+     * legislatures in the viewer's chain. Same shape and open/soon logic as
+     * sessionRows; the difference is a hearing has a live public gallery room
+     * (/rooms/committee/{meeting}, lane 3's keystone), so an open one deep-links
+     * there while a scheduled one points at the committee page.
+     *
+     * @return list<array<string, mixed>>
+     */
+    private function hearingRows(array $jurisdictionIds, CarbonInterface $now): array
+    {
+        $meetings = CommitteeMeeting::query()
+            ->join('committees as c', 'c.id', '=', 'committee_meetings.committee_id')
+            ->join('legislatures as l', 'l.id', '=', 'c.legislature_id')
+            ->join('jurisdictions as j', 'j.id', '=', 'l.jurisdiction_id')
+            ->whereIn('l.jurisdiction_id', $jurisdictionIds)
+            ->where(function ($query) use ($now) {
+                $query->where('committee_meetings.status', CommitteeMeeting::STATUS_OPEN)
+                    ->orWhere(fn ($q) => $q
+                        ->where('committee_meetings.status', CommitteeMeeting::STATUS_SCHEDULED)
+                        ->where('committee_meetings.scheduled_for', '>', $now));
+            })
+            ->orderByRaw("CASE WHEN committee_meetings.status = 'open' THEN 0 ELSE 1 END")
+            ->orderBy('committee_meetings.scheduled_for')
+            ->limit(self::ROW_CAP)
+            ->get(['committee_meetings.*', 'c.name as feed_committee_name', 'j.name as feed_jurisdiction_name']);
+
+        return $meetings->map(function (CommitteeMeeting $meeting): array {
+            $committee = $meeting->feed_committee_name ?? 'A committee';
+            $name = $meeting->feed_jurisdiction_name ?? 'your jurisdiction';
+            $live = $meeting->status === CommitteeMeeting::STATUS_OPEN;
+
+            return [
+                'id'           => 'hearing-'.$meeting->id,
+                'kind'         => 'hearing',
+                'status'       => $live ? 'live' : 'soon',
+                'title'        => sprintf('%s — %s hearing', $name, $committee),
+                'what'         => $live
+                    ? 'The committee is meeting in the open; testimony is being heard in order.'
+                    : 'A committee hearing convenes soon — its agenda posts with the call.',
+                'part'         => 'Anyone may watch; residents may testify and go on the record.',
+                'jurisdiction' => $name,
+                'pill'         => $live
+                    ? ['tone' => 'live', 'label' => 'Meeting now']
+                    : ['tone' => 'wait', 'label' => 'Scheduled'],
+                'target'       => $live ? null : $this->target('opensAt', $meeting->scheduled_for),
+                // An open hearing has a live gallery room; a scheduled one does not yet.
+                'href'         => $live ? "/rooms/committee/{$meeting->id}" : "/committees/{$meeting->committee_id}",
             ];
         })->all();
     }
