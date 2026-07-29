@@ -20,7 +20,6 @@ import { useI18n } from 'vue-i18n';
 import AppShellV2 from '@/Layouts/AppShellV2.vue';
 import Icon from '@/Components/Ui/Icon.vue';
 import { CLASSES } from '@/registry/journeys.js';
-import { tourStartHref } from '@/registry/surfaces.js';
 
 defineOptions({ layout: AppShellV2 });
 
@@ -173,11 +172,11 @@ const helpLinks = [
                 </span>
             </div>
             <div class="tour-bar-nav">
-                <a class="btn btn--primary btn--sm" :href="tourStartHref()">
+                <!-- Lands on the /tour INDEX, not straight into stop 1 (same as
+                     Home.vue's cover). The old second "All steps" ghost pointed at
+                     the very same place, so it retires with the repoint. -->
+                <a class="btn btn--primary btn--sm" href="/tour">
                     Start the tour <Icon name="arrow-right" size="sm" />
-                </a>
-                <a class="btn btn--ghost btn--sm" href="/tour">
-                    <Icon name="list-checks" size="sm" /> All steps
                 </a>
             </div>
         </div>

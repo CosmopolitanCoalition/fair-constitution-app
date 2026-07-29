@@ -22,7 +22,6 @@ import { computed, onMounted } from 'vue'
 import { Head, router, usePage } from '@inertiajs/vue3'
 import { useI18n } from 'vue-i18n'
 import Icon from '@/Components/Ui/Icon.vue'
-import { tourStartHref } from '@/registry/surfaces.js'
 
 const page = usePage()
 const { t } = useI18n({ useScope: 'global' })
@@ -115,7 +114,10 @@ const doors = [
                 </span>
             </div>
             <div class="tour-bar-nav">
-                <a class="btn btn--primary btn--sm" :href="tourStartHref()">
+                <!-- Lands on the /tour INDEX, not straight into stop 1: a stranger
+                     should see the shape of the walk (stops, acts, the first-visit
+                     track) and choose, and the index's own Start arms the mode. -->
+                <a class="btn btn--primary btn--sm" href="/tour">
                     Start the tour <Icon name="arrow-right" size="sm" />
                 </a>
             </div>
