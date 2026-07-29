@@ -47,6 +47,24 @@ Wave 2 marching order. Nothing here is an order yet.*
 3. Flow-step action strings in `registry/flows.js` are spec-side English, unextracted — lane
    5's call whether to sweep them.
 
+## Lane 5's Wave 2 slate (its own READY-TO-RUN items, held at the desk pending the operator's review)
+
+1. **Machine-translate `c_education` (851) + `c_achievements` (141) across the 6 registered
+   locales** — local NLLB, ZERO SPEND (the settled ruling; cloud stays off unless local
+   capacity runs out, which would be a spend question for the operator). Direct scripted pass
+   via the built `translate_catalog.py` (the resumable pull-engine is not built; fine at 992
+   strings). Output lands as `ai_draft` → the human-verification queue gates publication.
+2. `registry/flows.js` flow-step strings: extraction sweep (en keys + a wave doc for lane 6).
+3. Its parity debt from `2eb7137`: CLI `i18n:review` verdict command carrying the
+   reader-of-language gate.
+
+Context recorded 2026-07-29: loose ends from `2f5953a` all closed (`45d9a44` — 8 regressed
+pins hardened via the §4b fixture trap ×2; 18 green/221 assertions); honest coverage across
+the 6 translated locales is now **73.7–77%**, the dip being exactly the 992 new untranslated
+strings (~5,950 of 6,425 missing keys) — the gate flagging precisely the gap item 1 closes.
+Prod-build rebuild is moot while Vite dev serves (`public/hot` present); the heap-capped
+rebuild recipe is on file and needs an announced `fcd_vite` restart if ever switching.
+
 ## For lanes 3/6 — walk-list observation (lane 15, 2026-07-29)
 
 - `/judiciary/docket` 302s to `/civic` for a fresh dev-login user (SITEMAP lists the docket
