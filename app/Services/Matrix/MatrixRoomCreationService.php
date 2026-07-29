@@ -122,6 +122,49 @@ class MatrixRoomCreationService
     }
 
     /**
+     * A PRIVATE room bound to an ARBITRARY CGA entity (not a SocialSpace) — e.g. a private
+     * organization's board meeting, whose visibility follows the ORG's choice (§10-1: "private
+     * organizations decide their own visibility"). Absent an org-level visibility setting, a private
+     * org's proceeding defaults to private, gated OFF-Matrix by the game layer (board membership),
+     * exactly like createPrivateRoom — only the binding entity differs. Idempotent on (entity, no
+     * space_type). The public opt-in path awaits an organization-visibility setting (flagged, not
+     * invented here): when it exists, the caller routes to createPublicCommonsRoom instead.
+     */
+    public function createEntityPrivateRoom(string $entityType, string $entityId, string $title): MatrixRoom
+    {
+        $existing = MatrixRoom::query()
+            ->where('entity_type', $entityType)
+            ->where('entity_id', $entityId)
+            ->whereNull('space_type')
+            ->whereNull('tombstoned_at')
+            ->whereNotNull('matrix_room_id')
+            ->first();
+
+        if ($existing !== null) {
+            return $existing;
+        }
+
+        // v12 is hygiene for a private room (off the civic plane), not a constitutional requirement.
+        $versions = $this->client->roomVersions();
+        $version = in_array(self::REQUIRED_VERSION, $versions['available'] ?? [], true)
+            ? self::REQUIRED_VERSION
+            : (string) ($versions['default'] ?? self::REQUIRED_VERSION);
+
+        $created = $this->client->createRoom($this->buildPrivateRoomBody($title, $version));
+
+        return MatrixRoom::query()->create([
+            'matrix_room_id' => $created['room_id'],
+            'matrix_alias'   => null,
+            'room_type'      => MatrixRoom::ROOM_ORG_PRIVATE,
+            'room_version'   => $version,
+            'entity_type'    => $entityType,
+            'entity_id'      => $entityId,
+            'space_type'     => null,
+            'is_public'      => false,
+        ]);
+    }
+
+    /**
      * The private-room createRoom body. Same no-human power clamp as the commons (the appservice is the
      * sole actor; access is gated off-Matrix), but PRIVATE: visibility private, NOT world_readable
      * (history 'shared' — the appservice creator still reads it to serve the in-app timeline), no alias.

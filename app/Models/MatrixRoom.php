@@ -28,6 +28,7 @@ class MatrixRoom extends Model
     public const ENTITY_LEGISLATURE         = 'legislature';
     public const ENTITY_EXECUTIVE           = 'executive';
     public const ENTITY_JUDICIARY           = 'judiciary';
+    public const ENTITY_CASE                = 'case'; // a court case's live-room binds to its CourtCase id (public trial, Art. IV)
     public const ENTITY_BOARD               = 'board';
     public const ENTITY_BILL                = 'bill';
     public const ENTITY_REFERENDUM_QUESTION = 'referendum_question';
