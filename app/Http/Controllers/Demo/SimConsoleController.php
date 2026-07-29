@@ -99,6 +99,12 @@ class SimConsoleController extends Controller
     /** @return array<string,mixed> */
     private function snapshot(): array
     {
+        // The progress poll is public-to-authenticated (Art. II §2 — a citizen may
+        // WATCH), but the control marker carries the operator's username and the
+        // raw sim:start output. That is neither a count nor a place name, so it is
+        // operator-only: a non-operator sees the same live bars with control null.
+        $control = Auth::guard('operator')->check() ? $this->control->control() : null;
+
         $run = SimRun::query()
             ->whereIn('status', ['queued', 'running', 'halted'])
             ->orderBy('created_at')
@@ -113,12 +119,12 @@ class SimConsoleController extends Controller
                 'live_items' => [],
                 'review_items' => [],
                 'world' => $this->world(),
-                'control' => $this->control->control(),
+                'control' => $control,
             ];
         }
 
         return [
-            'control' => $this->control->control(),
+            'control' => $control,
             'run' => [
                 'id' => (string) $run->id,
                 'status' => $run->status,

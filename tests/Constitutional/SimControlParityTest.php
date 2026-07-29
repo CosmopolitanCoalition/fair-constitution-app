@@ -160,6 +160,33 @@ class SimControlParityTest extends TestCase
         });
     }
 
+    /**
+     * Watching is public; the control MARKER is not. It carries the operator's
+     * username and the raw sim:start output, so the snapshot (served by the
+     * auth-only progress poll) must gate `control` on the operator guard — a
+     * non-operator gets control=null. (Adversarial review 2026-07-29,
+     * guard-bypass lens; verified low-sev disclosure, fixed same session.)
+     *
+     * Pinned at the source because the behavioural test would run the full
+     * planet-scale `world()` aggregate (~75 s) on every suite pass. The
+     * regression this guards is precise: a return to the ungated inline call.
+     */
+    public function test_the_control_marker_is_operator_gated_in_the_snapshot(): void
+    {
+        $src = file_get_contents(app_path('Http/Controllers/Demo/SimConsoleController.php'));
+
+        $this->assertStringContainsString(
+            "Auth::guard('operator')->check() ? \$this->control->control() : null",
+            $src,
+            'the control marker must be computed once, operator-gated'
+        );
+        $this->assertStringNotContainsString(
+            "'control' => \$this->control->control()",
+            $src,
+            'no snapshot branch may return the control marker ungated — that leaks the operator name + command output'
+        );
+    }
+
     /** Watching is public (Art. II §2); DRIVING is operator-only. */
     public function test_the_drive_routes_are_operator_gated(): void
     {
