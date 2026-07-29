@@ -1,7 +1,7 @@
 {
  "asOf": "2026-07-29",
- "commit": "6bd8502",
- "wave": "WAVE 2 RUNNING \u2014 group 1 (lanes 2/13/15/5/4) mid-slate; disintermediation RULED direction shipped; stipend + request-detail pages LIVE; suite 22\u2192~12",
+ "commit": "99ade68",
+ "wave": "WAVE 2 RUNNING \u2014 lane 4 slate landed; lane 13 built (migration batch in flight); lane 2 on operator pages; lane 15 report pending; lane 5 NLLB running",
  "rows": [
   {
    "file": "civic/join.html",
@@ -622,10 +622,10 @@
    "area": "economy",
    "areaLabel": "Economy",
    "owner": "lane 13",
-   "bucket": "absent",
-   "effort": "L",
+   "bucket": "partial",
+   "effort": "S",
    "page": "",
-   "route": "",
+   "route": "GET /economy/agreements",
    "props": "none",
    "backend": "partial",
    "propsMissing": [],
@@ -641,7 +641,10 @@
     "parties-only privacy note"
    ],
    "appAhead": [],
-   "notes": "An aggregation page over existing records (org_contracts + marketplace_orders + org_conversions) gets most of the mockup; true free-form person-to-person contracts are the one new backend piece. The both-parties-sign floor already exists as a schema constraint, not just copy."
+   "notes": "An aggregation page over existing records (org_contracts + marketplace_orders + org_conversions) gets most of the mockup; true free-form person-to-person contracts are the one new backend piece. The both-parties-sign floor already exists as a schema constraint, not just copy. 2026-07-29 (8944554): register live, party-scoped (non-party 404 pinned both ways), both-sign floor rendered + DB-enforced; clause redlines stay Wave 3.",
+   "page_exists": true,
+   "page_path": "resources/js/Pages/Economy/Agreements.vue",
+   "routed": true
   },
   {
    "file": "economy/agreement-detail.html",
@@ -649,10 +652,10 @@
    "area": "economy",
    "areaLabel": "Economy",
    "owner": "lane 13",
-   "bucket": "absent",
-   "effort": "XL",
+   "bucket": "partial",
+   "effort": "S",
    "page": "",
-   "route": "",
+   "route": "GET /economy/agreements/{contract}",
    "props": "none",
    "backend": "partial",
    "propsMissing": [],
@@ -670,7 +673,10 @@
     "breadcrumb"
    ],
    "appAhead": [],
-   "notes": "The clause-negotiation interface is a new subsystem (and the mockup expects it shared with bill drafting, doubling its scope). Per-kind signing machinery exists to anchor it, but nothing generic."
+   "notes": "The clause-negotiation interface is a new subsystem (and the mockup expects it shared with bill drafting, doubling its scope). Per-kind signing machinery exists to anchor it, but nothing generic. 2026-07-29 (8944554): detail live read-only v1, walked as the worker party; negotiation panel = Wave 3.",
+   "page_exists": true,
+   "page_path": "resources/js/Pages/Economy/AgreementDetail.vue",
+   "routed": true
   },
   {
    "file": "economy/org-settings.html",
