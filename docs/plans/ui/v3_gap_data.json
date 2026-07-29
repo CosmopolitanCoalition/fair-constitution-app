@@ -1,7 +1,7 @@
 {
  "asOf": "2026-07-29",
  "commit": "914a28a",
- "wave": "WAVE 2 CLOSED 2026-07-29 \u2014 all 8 lanes DONE; parity UIs landed (914a28a); ONE item deliberately carried for fresh treatment: RankedBallot liveAggregate (ballot-secrecy build). Awaiting operator review of the rubric + Wave 3 gate answers.",
+ "wave": "WAVE 3 IN FLIGHT 2026-07-29 \u2014 all 7 lanes on path. Landed: schema trio (Type B grouping, education engine), oversight PUBLIC, store contract RULED, coordinator shipped, formula+Atlas RULED all-(a), economy round RULED (build GO). Slot queue closing at lane 2. Held: RankedBallot (operator trigger). Board unchanged until rows close: 63 built / 34 partial / 10 absent.",
  "rows": [
   {
    "file": "civic/join.html",
