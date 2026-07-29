@@ -1341,6 +1341,31 @@ return [
         'citation'  => 'Public money in public view — every movement on the record · Art. V §4',
     ],
 
+    'economy/agreements' => [
+        'title'     => 'Agreements',
+        'module'    => 'economy',
+        'nav'       => 'agreements',
+        'roles'     => ['R-01'],
+        'workflows' => [],
+        'forms'     => [
+            ['id' => 'F-IND-014', 'availableTo' => ['R-01'], 'citation' => 'Art. III §6 (a hire records a labor agreement)'],
+            ['id' => 'F-IND-022', 'availableTo' => ['R-01'], 'citation' => 'Art. III §5 (a settlement records a commercial one)'],
+        ],
+        'clocks'    => [],
+        'citation'  => 'Freedom to contract, on a floor no clause can lower — both parties sign · Art. I',
+    ],
+
+    'economy/agreement-detail' => [
+        'title'     => 'Agreement',
+        'module'    => 'economy',
+        'nav'       => 'agreements',
+        'roles'     => ['R-01'],
+        'workflows' => [],
+        'forms'     => [],
+        'clocks'    => [],
+        'citation'  => 'Parties only; both signatures on the record; the floor stands · Art. I',
+    ],
+
     'economy/units' => [
         'title'     => 'Units & money',
         'module'    => 'economy',

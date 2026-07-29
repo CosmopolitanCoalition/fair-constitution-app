@@ -641,6 +641,9 @@ Route::middleware('auth')->group(function () {
     Route::get('/economy/stipend', [\App\Http\Controllers\Economy\EconomyController::class, 'stipend'])->name('economy.stipend');
     Route::get('/economy/requests/{posting}', [\App\Http\Controllers\Economy\EconomyController::class, 'workPosting'])
         ->whereUuid('posting')->name('economy.request');
+    Route::get('/economy/agreements', [\App\Http\Controllers\Economy\EconomyController::class, 'agreements'])->name('economy.agreements');
+    Route::get('/economy/agreements/{contract}', [\App\Http\Controllers\Economy\EconomyController::class, 'agreement'])
+        ->whereUuid('contract')->name('economy.agreement');
 
     // The write path (F-IND-022/023/024). These POST to the ENGINE, not to a
     // REST resource — EconomyActionController validates shape and files, and

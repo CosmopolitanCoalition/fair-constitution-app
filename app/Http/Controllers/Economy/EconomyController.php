@@ -522,6 +522,114 @@ class EconomyController extends Controller
         ]);
     }
 
+    /**
+     * The agreements register — the viewer's OWN instruments (org_contracts).
+     *
+     * PRIVACY MODEL (different plane than money): a contract is CONSENT
+     * between parties, so parties may see each other by name — that is the
+     * point of a signature. What stays private is the instrument itself:
+     * the register lists only agreements the viewer is party to (their own
+     * counterparty side, a contract they signed for an organization, or an
+     * organization they hold ACTIVE membership in). Terms never ship to a
+     * non-party. No raw user ids cross the boundary — names only.
+     *
+     * The both-sign floor is DB-enforced (org_contracts_cosign_check:
+     * status='active' requires both signatures) — the page RENDERS the
+     * floor; the database is what holds it.
+     */
+    public function agreements(Request $request): Response
+    {
+        return Inertia::render('Economy/Agreements', [
+            'surface'    => SurfaceMeta::for('economy/agreements'),
+            'agreements' => $this->visibleContracts($request)->map(fn ($c) => $this->contractCard($c, $request))->all(),
+        ]);
+    }
+
+    /** One instrument, in full — parties only (404 to anyone else). */
+    public function agreement(Request $request, string $contract): Response
+    {
+        $row = $this->visibleContracts($request, $contract)->first();
+
+        abort_if($row === null, 404);
+
+        $signerName = $row->signed_by_org_user_id === null
+            ? null
+            : DB::table('users')->where('id', $row->signed_by_org_user_id)->value('name');
+
+        return Inertia::render('Economy/AgreementDetail', [
+            'surface'   => SurfaceMeta::for('economy/agreement-detail'),
+            'agreement' => $this->contractCard($row, $request) + [
+                'terms_full'   => (string) $row->terms,
+                'org_signer'   => $signerName,
+                'effective_at' => $this->iso($row->effective_at),
+                'ended_at'     => $this->iso($row->ended_at),
+                'created_at'   => $this->iso($row->created_at),
+            ],
+        ]);
+    }
+
+    /**
+     * The visibility rule, in one place: counterparty-me, or signed-for-the-
+     * org-me, or active membership in the organization.
+     *
+     * @return \Illuminate\Support\Collection<int, object>
+     */
+    private function visibleContracts(Request $request, ?string $onlyId = null)
+    {
+        $user = $request->user();
+
+        if ($user === null) {
+            return collect();
+        }
+
+        $uid = (string) $user->id;
+
+        $query = DB::table('org_contracts as c')
+            ->join('organizations as o', 'o.id', '=', 'c.organization_id')
+            ->whereNull('c.deleted_at')
+            ->where(function ($q) use ($uid) {
+                $q->where(fn ($w) => $w->where('c.counterparty_type', 'users')->where('c.counterparty_id', $uid))
+                    ->orWhere('c.signed_by_org_user_id', $uid)
+                    ->orWhereExists(fn ($m) => $m->from('org_memberships')
+                        ->whereColumn('org_memberships.organization_id', 'c.organization_id')
+                        ->where('org_memberships.user_id', $uid)
+                        ->where('org_memberships.status', 'active')
+                        ->whereNull('org_memberships.deleted_at'));
+            })
+            ->select(['c.*', 'o.name as org_name']);
+
+        if ($onlyId !== null) {
+            $query->where('c.id', $onlyId);
+        }
+
+        return $query->orderByDesc('c.created_at')->limit(100)->get();
+    }
+
+    /** @return array<string, mixed> */
+    private function contractCard(object $c, Request $request): array
+    {
+        $uid = (string) $request->user()?->id;
+
+        $counterparty = match (true) {
+            $c->counterparty_type === 'users' && (string) $c->counterparty_id === $uid => 'You',
+            $c->counterparty_type === 'users' => (string) (DB::table('users')->where('id', $c->counterparty_id)->value('name') ?? 'A resident'),
+            default => (string) (DB::table('organizations')->where('id', $c->counterparty_id)->value('name') ?? 'An organization'),
+        };
+
+        return [
+            'id'           => (string) $c->id,
+            'kind'         => (string) $c->kind,
+            'org_name'     => (string) $c->org_name,
+            'counterparty' => $counterparty,
+            'terms'        => \Illuminate\Support\Str::limit((string) $c->terms, 200),
+            'status'       => (string) $c->status,
+            'signed_by_org'          => $c->signed_by_org_at !== null,
+            'signed_by_counterparty' => $c->signed_by_counterparty_at !== null,
+            'signed_by_org_at'          => $this->iso($c->signed_by_org_at),
+            'signed_by_counterparty_at' => $this->iso($c->signed_by_counterparty_at),
+        ];
+    }
+
     // ── helpers ──────────────────────────────────────────────────────────
 
     /** @return array<int, array<string, mixed>> */

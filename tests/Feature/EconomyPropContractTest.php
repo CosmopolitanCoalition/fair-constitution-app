@@ -47,6 +47,7 @@ class EconomyPropContractTest extends TestCase
         '/economy/treasury'       => ['surface', 'currency', 'accounts', 'ledger', 'issuance', 'budgets', 'revenue', 'totals'],
         '/economy/units'          => ['surface', 'currency', 'levers', 'supply', 'issuance_rate_bps', 'inflation_target_bps'],
         '/economy/stipend'        => ['surface', 'currency', 'stipend', 'clock', 'k_anon_floor', 'examples'],
+        '/economy/agreements'     => ['surface', 'agreements'],
     ];
 
     private const ALWAYS_ARRAY = [
@@ -57,6 +58,7 @@ class EconomyPropContractTest extends TestCase
         '/economy/treasury' => ['accounts', 'ledger', 'issuance', 'budgets', 'revenue'],
         '/economy/units'    => ['levers'],
         '/economy/stipend'  => ['examples'],
+        '/economy/agreements' => ['agreements'],
     ];
 
     private function actor(): ?User
@@ -216,6 +218,76 @@ class EconomyPropContractTest extends TestCase
         if ($props['posting']['rate'] !== null) {
             $this->assertIsString($props['posting']['rate'], 'a rate is money, and money is a string');
         }
+    }
+
+    /**
+     * AN INSTRUMENT IS PARTY-SCOPED. The terms of an agreement never reach a
+     * non-party — the register lists only the viewer's own, and the detail
+     * 404s (not 403: a non-party is not even told the instrument exists).
+     */
+    public function test_an_agreement_is_invisible_to_a_non_party(): void
+    {
+        $this->actor();
+
+        $contract = DB::table('org_contracts')->whereNull('deleted_at')->first();
+
+        if ($contract === null) {
+            $this->markTestSkipped('No contracts on this box — the demo chain seeds one.');
+        }
+
+        // A user who is not the counterparty, not the org signer, and holds
+        // no active membership in the organization.
+        $outsider = User::query()
+            ->when($contract->counterparty_type === 'users', fn ($q) => $q->where('id', '!=', $contract->counterparty_id))
+            ->when($contract->signed_by_org_user_id !== null, fn ($q) => $q->where('id', '!=', $contract->signed_by_org_user_id))
+            ->whereNotIn('id', DB::table('org_memberships')
+                ->where('organization_id', $contract->organization_id)
+                ->where('status', 'active')
+                ->whereNull('deleted_at')
+                ->select('user_id'))
+            ->first();
+
+        if ($outsider === null) {
+            $this->markTestSkipped('Everyone on this box is a party to the only contract.');
+        }
+
+        $this->actingAs($outsider)->get("/economy/agreements/{$contract->id}")->assertNotFound();
+
+        $register = $this->actingAs($outsider)->get('/economy/agreements')->assertOk()->viewData('page')['props'];
+
+        $this->assertNotContains(
+            (string) $contract->id,
+            array_column($register['agreements'], 'id'),
+            'the register must not list an instrument the viewer is no party to'
+        );
+    }
+
+    /** And a PARTY sees it — the scoping refuses outsiders, not everyone. */
+    public function test_a_party_sees_their_own_agreement(): void
+    {
+        $this->actor();
+
+        $contract = DB::table('org_contracts')
+            ->whereNull('deleted_at')
+            ->where('counterparty_type', 'users')
+            ->first();
+
+        if ($contract === null) {
+            $this->markTestSkipped('No user-side contracts on this box.');
+        }
+
+        $party = User::query()->find($contract->counterparty_id);
+
+        if ($party === null) {
+            $this->markTestSkipped('The counterparty user is not on this box.');
+        }
+
+        $props = $this->actingAs($party)->get("/economy/agreements/{$contract->id}")
+            ->assertOk()
+            ->viewData('page')['props'];
+
+        $this->assertSame('You', $props['agreement']['counterparty'], 'a party sees themselves as You');
+        $this->assertArrayHasKey('terms_full', $props['agreement'], 'a party reads the full terms');
     }
 
     /** Stipend-page money is strings, and the examples ride the real formula. */

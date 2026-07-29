@@ -244,3 +244,24 @@ nobody: the handler is PINNED unable to reach the hire chain (`EconomyWriteForms
 `LaborBoardService::apply` refuses duplicates. Acceptance (the org's act, which files F-IND-014 as
 the applicant per the built chain) has **no web door yet** — it stays service-level; the org-side
 console is item-6/Wave-3 territory and the gap is recorded, not hidden.
+
+### `GET /economy/agreements` → `Economy/Agreements` (route `economy.agreements`) — item 4
+
+| Key | Shape | Notes |
+|---|---|---|
+| `surface` | SurfaceMeta record | |
+| `agreements` | `[{id, kind, org_name, counterparty, terms (≤200), status, signed_by_org, signed_by_counterparty, signed_by_org_at?, signed_by_counterparty_at?}]` | **PARTY-SCOPED**: only instruments the viewer is party to (their counterparty side · they signed for the org · active org membership). `counterparty` is `'You'` or a NAME — never a user id. |
+
+### `GET /economy/agreements/{contract}` → `Economy/AgreementDetail` (route `economy.agreement`)
+
+Same card shape + `terms_full`, `org_signer?` (name), `effective_at?`, `ended_at?`, `created_at?`.
+**404 to a non-party** — an outsider is not told the instrument exists (pinned:
+`test_an_agreement_is_invisible_to_a_non_party` / `test_a_party_sees_their_own_agreement`).
+
+Privacy note for this plane: contracts are the CONSENT plane, not the money plane — parties see
+each other by NAME (that is what a signature is); the accounts-never-people rule governs money
+rows, not signatures. What stays private is the instrument: terms never reach a non-party.
+
+READ-ONLY v1: drafting/negotiation (clauses, redlines) is the Wave 3 design-gated build; the
+draft CTA is deliberately absent until then. The both-sign floor is DB-enforced
+(`org_contracts_cosign_check`) and renders on every card. Nav row `agreements` flipped live.
