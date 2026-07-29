@@ -1,7 +1,8 @@
 # ATLAS_DESIGN — the public world-metrics surface
 
 **Lane 4 (Simulated World Engine) · Wave 3 · 2026-07-29 · design deliverable**
-**Status: DESIGN ONLY this wave. Build rides `SERVICE_SCALE_FORMULA.md` + operator review.**
+**Status: DESIGN APPROVED (operator, 2026-07-29, via the desk). All §8 calls RULED — option (a) throughout.
+The Atlas BUILD is queued as a Wave 4 order.**
 Target mockup: `mockups/v3/atlas.html`. Data spine: lane 3's reach/legitimacy snapshots.
 
 ---
@@ -132,22 +133,19 @@ a one-off console diagnostic; it must never sit behind a public page.
 
 ---
 
-## 8. Open questions for the operator
+## 8. Judgment calls — RULED 2026-07-29 (operator, all option (a))
 
-- **Q1 — rollup cadence.** (a) **nightly, shared with the legitimacy pass** — cheapest, one pass;
-  (b) nightly standalone; (c) hourly for a livelier heartbeat. **Rec: (a)** — reuse the pass reach
-  already runs; the world does not change enough in an hour to justify the cost.
-- **Q2 — where does the world rollup live for a federated mesh?** Each instance rolls up what it is
-  authoritative for (CI-6); the Atlas sums local + peer-published `world_stats`. *Options:* (a)
-  **each instance publishes its own `world_stats`, the Atlas sums them** (true to CI-6, matches how
-  legitimacy federates); (b) a designated instance computes the global roll. **Rec: (a).**
-- **Q3 — home-place reach on the Atlas.** The mockup hard-codes a home place. *Options:* (a) **the
-  viewer's own residency-confirmed place**, falling back to Earth; (b) a picker. **Rec: (a)** with a
-  small picker, so the dial means something personal without being a per-person score (it is still a
-  *place* gauge).
-- **Q4 — economy & people cards before lane 13/achievements land.** *Options:* (a) render them
-  `planned` (as the mockup does) until the sources exist; (b) hide them. **Rec: (a)** — the mockup's
-  `planned` pill is honest and keeps the layout stable.
+**Operator ruled all four via the desk; the Atlas BUILD is queued as a Wave 4 order. These are the
+contract the build implements.**
+
+- **Q1 — rollup cadence.** ✅ **RULED (a): nightly, shared with the legitimacy pass** — one pass,
+  cheapest; the world does not change enough in an hour to justify more.
+- **Q2 — federated rollup.** ✅ **RULED (a): each instance publishes its own `world_stats`, the Atlas
+  sums them** — true to CI-6, matches how legitimacy already federates.
+- **Q3 — home-place reach.** ✅ **RULED (a): the viewer's residency-confirmed place** (falling back to
+  Earth), with a small picker — still a *place* gauge, never a per-person score.
+- **Q4 — economy & people cards.** ✅ **RULED (a): render them `planned`** until lane 13 / achievements
+  land — honest, and keeps the layout stable.
 
 ---
 

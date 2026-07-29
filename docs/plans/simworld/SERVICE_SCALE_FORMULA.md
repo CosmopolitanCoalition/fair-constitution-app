@@ -1,9 +1,9 @@
 # SERVICE_SCALE_FORMULA — how much institution a place gets, and how it grows into it
 
 **Lane 4 (Simulated World Engine) · Wave 3 · 2026-07-29 · C3 deliverable**
-**Status: DESIGN + RESEARCH. Operator reviews this BEFORE any of it wires into `InstitutionScaleService`.**
-Nothing here is built. This document is the empirical grounding and the proposed formula; lane 3's
-R-B build consumes it next wave, once the operator has ruled on the open questions in §9.
+**Status: SIGNED OFF (operator, 2026-07-29, via the desk). All §9 calls RULED — option (a) throughout.**
+This document is the empirical grounding and the approved formula; lane 3's R-B build wires it into
+`InstitutionScaleService` next wave. The §9 rulings are now the contract.
 
 ---
 
@@ -244,28 +244,21 @@ Every "defer" figure is produced by existing law; every bold figure is this form
 
 ---
 
-## 9. Open questions for the operator (judgment calls)
+## 9. Judgment calls — RULED 2026-07-29 (operator, all option (a))
 
-Each is a real choice the formula can't make itself. **Recommendation in bold.**
+**Operator signed off the formula 2026-07-29 (via the desk). Every call below resolved to option (a);
+these rulings are the contract lane 3's R-B build implements.**
 
-- **Q1 — the department demo cap (30).** The observed core-cabinet band tops out ~30–38.
-  *Options:* (a) cap 30, tight to the core band; (b) cap 38, the full observed max; (c) no cap, let
-  `ln P` run (Earth → ~30 anyway). **Rec: (a) 30** — a demo default should read as "a full government,"
-  not a record-setter; a governed Earth can vote more.
-- **Q2 — bench growth.** *Options:* (a) **keep 5/5/7/9** (zero delta, already pinned); (b) replace
-  with a log curve `clamp(round(5 + 1.5·log10(P/1000)), 5, 15)` (Earth → ~15, closer to a real apex
-  bench) — **touches a pinned value, needs your word.** **Rec: (a)** — the tier bumps are inside the
-  empirical envelope and the tree distribution already reaches the per-capita target.
-- **Q3 — dial granularity.** Advance stages on (a) **simulated reach/enrolment fractions** or (b) sim
-  ticks? **Rec: (a)** — ties growth to the same enrolment signal the real activation lifecycle uses,
-  so the sim rehearses the real path rather than a clock.
-- **Q4 — may the provisioning engine materialise extra courts & rooms directly?** They are not acts
-  of self-government (unlike committees/departments). *Options:* (a) **yes** — provision court tiers
-  and local rooms in the shell, like the existing square+halls; (b) no — leave everything past the
-  single court to the sim. **Rec: (a)** for courts and rooms, **(b) — never** for committees /
-  departments / BoG.
-- **Q5 — the civic-room denominator (1 per 50k).** The real range is 25k–100k. **Rec: 50k** (mid),
-  operator may prefer 25k (denser, more rooms) for a livelier demo.
+- **Q1 — department demo cap.** ✅ **RULED (a): cap 30**, tight to the core-cabinet band. A governed
+  chamber may vote itself more; the demo default reads as "a full government," not a record-setter.
+- **Q2 — bench growth.** ✅ **RULED (a): keep 5/5/7/9** — no pinned-value change. The tier bumps sit
+  inside the empirical envelope and tree distribution already reaches the per-capita target.
+- **Q3 — dial granularity.** ✅ **RULED (a): advance stages on simulated reach/enrolment fractions** —
+  the sim rehearses the real activation lifecycle rather than a clock.
+- **Q4 — may provisioning materialise extra courts & rooms directly?** ✅ **RULED (a): YES for court
+  tiers and local civic rooms** (not acts of self-government) — and **NEVER for committees /
+  departments / BoG**, which stay reserved to a seated chamber (F-LEG-009 / F-EXE-001 / F-LEG-016).
+- **Q5 — civic-room denominator.** ✅ **RULED (a): 1 per 50,000** (mid of the 25k–100k range).
 
 ---
 
