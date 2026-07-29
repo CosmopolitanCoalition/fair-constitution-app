@@ -373,12 +373,20 @@ agreement form = a mint → 116→117 pinned in the build.**
   assertions + source-scan belt; JS-runner question CLOSED fleet-wide — this extract-to-pin
   pattern is the template for any future JS behavioral pin). 7-commit run accepted. **CAPTURE
   COMPLETE + VERIFIED — safe to compact at will, zero state loss;** holding for the operator's
-  compaction before the exit walk (STEP 0 → seat committee A → 4b → the EXIT WALK). **lane 15** — Learn pages 5/5 landed 6c4ee09 (answer key
-  server-only); stages ①–⑤ all appear complete, four-way DONE expected. **lane 13** — economy
-  build STARTED 18fd02d (1/6, dues as membership subscription per the ruling); 5 pieces to go.
+  compaction before the exit walk (STEP 0 → seat committee A → 4b → the EXIT WALK). **lane 15** — ACTIVE, NOT done (desk-corrected 2026-07-29: I wrongly inferred "done" from
+  git commits + a memory file, never a live sweep — the stale-status-from-inference failure).
+  LIVE STATE: its steps landed (a2061f9 gate, 6c4ee09 Learn pages, b885dab e2e proof) but it has
+  NOT committed since b885dab and has NOT sent a four-way DONE. It ran the FULL-SUITE GATE and
+  found **12 FAILURES**; verified all 45 of its own education/gate tests green (so the 12 are NOT
+  its); flagged lane 13's FormRegistry docblock drift (115 vs the 116 pin — routed to lane 13);
+  is naming the 12 for its report. **lane 13** — economy 4/6 shipped, 5-6 building on the granted
+  slot (schema 4d58d53).
+- **⚑ FULL-SUITE GATE: 12 FAILURES ON THE BOX** (surfaced by lane 15's gate run; NONE lane
+  15's). Desk running its own full-suite pass to get the authoritative list + owners (background,
+  slow). Likely in-flight build states (lane 13 economy 5-6, lane 3 keystone) vs real
+  regressions — TRIAGE PENDING, do not call the wave green until the 12 are named and cleared.
 - **REMAINING BEFORE WAVE 3 CLOSES:** lane 3's exit walk (post-compaction), lane 13's economy
-  build (2/6–6/6), lane 15's DONE confirmation (git-observed complete: 6 steps + e2e proof
-  b885dab; act-gate a2061f9; awaiting full-suite gate at wave close).
+  5-6, lane 15's ACTUAL DONE (after the 12-failure gate clears), the 12-failure triage.
 
 **⚑ OPERATOR DECISION QUEUE (all Wave 4 scope — NONE block Wave 3 close):**
 1. **Grouped-Type-B RACE SHAPE (lane 1, code-verified).** A grouped Type B chamber currently
