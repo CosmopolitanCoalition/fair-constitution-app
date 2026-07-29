@@ -727,6 +727,13 @@ Route::middleware('auth')->group(function () {
     // gallery read — a committee hearing is a public proceeding (Art. II §2).
     Route::get('/rooms/committee/{meeting}', [\App\Http\Controllers\Rooms\LiveRoomController::class, 'committee'])
         ->whereUuid('meeting')->name('rooms.committee')->withoutMiddleware('auth');
+    // The live floor — recognition write-path (auth-gated; a resident raises, the chair recognizes).
+    Route::post('/rooms/committee/{meeting}/raise-hand', [\App\Http\Controllers\Rooms\LiveRoomController::class, 'raiseHand'])
+        ->whereUuid('meeting')->name('rooms.committee.raise-hand');
+    Route::post('/rooms/committee/{meeting}/recognize', [\App\Http\Controllers\Rooms\LiveRoomController::class, 'recognize'])
+        ->whereUuid('meeting')->name('rooms.committee.recognize');
+    Route::post('/rooms/committee/{meeting}/advance', [\App\Http\Controllers\Rooms\LiveRoomController::class, 'advance'])
+        ->whereUuid('meeting')->name('rooms.committee.advance');
     Route::post('/committees/{committee}/meetings', [\App\Http\Controllers\Legislature\CommitteeController::class, 'storeMeeting'])
         ->whereUuid('committee')->name('committees.meetings');                // F-CHR-001
     Route::post('/meetings/{meeting}/agenda', [\App\Http\Controllers\Legislature\CommitteeController::class, 'meetingAgenda'])

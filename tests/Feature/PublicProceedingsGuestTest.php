@@ -43,6 +43,7 @@ class PublicProceedingsGuestTest extends TestCase
             '/executives/'.Str::uuid().'/orders',
             '/legislatures/'.Str::uuid().'/sessions',              // §10-1: watching is public, but running a session stays members-only
             '/legislatures/'.Str::uuid().'/removal-proceedings',   // §10 A1: watching oversight is public, but running it stays members-only
+            '/rooms/committee/'.Str::uuid().'/recognize',          // Slice 6: watching a hearing is public, but running the floor stays gated
             '/legislatures/'.Str::uuid().'/settings/amend',        // R-C: F-LEG-031 amendment door — a write, members only
             '/legislatures/'.Str::uuid().'/cultural-institutions', // F-LEG-028: recognition vote — a write, members only
         ] as $url) {

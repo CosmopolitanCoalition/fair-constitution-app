@@ -15,8 +15,8 @@
  * + the announcer. The live VOICE call mount, the recognition write-path, and
  * the Matrix timeline read land in step 4; the room already live-refreshes.
  */
-import { computed, watch } from 'vue';
-import { usePage } from '@inertiajs/vue3';
+import { computed, ref, watch } from 'vue';
+import { router, usePage } from '@inertiajs/vue3';
 import AppShellV2 from '@/Layouts/AppShellV2.vue';
 import PageScaffold from '@/Components/Surface/PageScaffold.vue';
 import Card from '@/Components/Ui/Card.vue';
@@ -64,9 +64,11 @@ const page = usePage();
 const flashStatus = computed(() => page.props.flash?.status ?? null);
 
 /* ---- the freshness store (poll-first; stops on adjourned) ---- */
+const busy = ref(false); // a floor write is in flight — the poll skips a tick
 const { isStale } = useLiveRoom({
     keys: ['status', 'agenda', 'vote', 'presence', 'queue', 'floorHolder', 'chat', 'record', 'clocks'],
     isLive: () => props.status?.state ?? 'open',
+    busy: () => busy.value,
     cadenceMs: 5000,
 });
 
@@ -92,6 +94,17 @@ const isGallery = computed(() => props.can?.isGallery ?? false);
 const isLive = computed(() => props.status?.state === 'open');
 const mmss = (s) => `${Math.floor((s ?? 0) / 60)}:${String((s ?? 0) % 60).padStart(2, '0')}`;
 const floorHolderRow = computed(() => props.presence.find((p) => p.handle === props.floorHolder) ?? null);
+
+/* ---- the floor write-path (ephemeral recognition; the poll refreshes it) ---- */
+function raiseHand() {
+    router.post(props.urls.raiseHand, {}, { preserveScroll: true, onStart: () => (busy.value = true), onFinish: () => (busy.value = false) });
+}
+function recognize() {
+    router.post(props.urls.recognize, {}, { preserveScroll: true, onStart: () => (busy.value = true), onFinish: () => (busy.value = false) });
+}
+function advance() {
+    router.post(props.urls.advance, {}, { preserveScroll: true, onStart: () => (busy.value = true), onFinish: () => (busy.value = false) });
+}
 </script>
 
 <template>
@@ -177,9 +190,10 @@ const floorHolderRow = computed(() => props.presence.find((p) => p.handle === pr
                         </StatusBadge>
                     </div>
                     <div class="cluster" style="gap: var(--space-1); margin-block-start: var(--space-2)">
-                        <Btn v-for="(c, i) in chairControls" :key="i" variant="secondary" size="sm" :disabled="!can.recognize">
-                            {{ c }}
-                        </Btn>
+                        <Btn variant="secondary" size="sm" :disabled="!can.recognize || busy" @click="recognize">Recognize the next speaker</Btn>
+                        <Btn variant="secondary" size="sm" :disabled="!can.advance || busy" @click="advance">Open the floor / advance</Btn>
+                        <Btn variant="secondary" size="sm" disabled title="a client-side speaking timer wires next">Start the speaking clock</Btn>
+                        <Btn variant="secondary" size="sm" disabled title="the referral vote wires with the exit test">Call the committee vote</Btn>
                     </div>
                     <p class="citation" style="margin-block-start: var(--space-2)">
                         The chair runs the room (recognize, timers, call the question); quorum checks, tabulation,
@@ -209,6 +223,10 @@ const floorHolderRow = computed(() => props.presence.find((p) => p.handle === pr
                         <span v-if="q.reason" class="gloss">{{ q.reason }}</span>
                     </div>
                     <p v-if="!queue.length" class="gloss">No hands raised right now.</p>
+                    <Btn v-if="can.raiseHand" variant="primary" size="sm" :disabled="busy" style="margin-block-start: var(--space-2)" @click="raiseHand">
+                        Raise my hand
+                    </Btn>
+                    <p v-else class="citation" style="margin-block-start: var(--space-2)">Sign in as a resident to raise your hand.</p>
                 </Card>
 
                 <Card as="section" :title="`Conversation (${chat.length})`">

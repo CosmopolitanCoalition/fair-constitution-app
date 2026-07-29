@@ -11,6 +11,7 @@ use App\Models\MatrixIdentity;
 use App\Models\PublicRecord;
 use App\Services\Matrix\SocialTopologyReconcilerService;
 use App\Services\Rooms\LiveFloorService;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Inertia\Response;
@@ -128,6 +129,69 @@ class LiveRoomController extends Controller
                 'chamber'   => "/committees/{$committee->id}",
             ],
         ]);
+    }
+
+    // =========================================================================
+    // The live floor — recognition write-path (ephemeral; LiveFloorService)
+    // =========================================================================
+
+    /** A resident raises a hand to speak (any authenticated player — Art. I). */
+    public function raiseHand(Request $request, CommitteeMeeting $meeting): RedirectResponse
+    {
+        abort_if($request->user() === null, 403);
+
+        $key = $this->floor->key('committee_meeting', (string) $meeting->id);
+        $this->floor->raiseHand($key, $this->pseudonym((string) $request->user()->id), 'To speak');
+
+        return back()->with('status', 'Your hand is raised — the chair recognizes speakers in turn.');
+    }
+
+    /** The chair recognizes the next hand (or a named handle) → the floor. */
+    public function recognize(Request $request, CommitteeMeeting $meeting): RedirectResponse
+    {
+        $this->authorizeChair($request, $meeting);
+
+        $key = $this->floor->key('committee_meeting', (string) $meeting->id);
+        $handle = $request->input('handle'); // null → the next hand in the queue (FIFO)
+        $state = $this->floor->recognize($key, is_string($handle) ? $handle : null);
+
+        return back()->with('status', $state['floorHolder'] !== null
+            ? "{$state['floorHolder']} now holds the floor."
+            : 'No hands are raised to recognize.');
+    }
+
+    /** The chair yields the floor / moves on — the ephemeral floor resets. */
+    public function advance(Request $request, CommitteeMeeting $meeting): RedirectResponse
+    {
+        $this->authorizeChair($request, $meeting);
+
+        // The agenda is a plain string list with no per-item status column, so
+        // "current" is positional. Real per-item progression needs a structured
+        // agenda (a schema question — FLAGGED, not written). For now advancing
+        // yields the floor so the next speaker can be recognized.
+        $this->floor->yieldFloor($this->floor->key('committee_meeting', (string) $meeting->id));
+
+        return back()->with('status', 'The floor is open — recognize the next speaker.');
+    }
+
+    /** Only the committee chair (or its alternate) runs the floor. */
+    private function authorizeChair(Request $request, CommitteeMeeting $meeting): void
+    {
+        $user = $request->user();
+        abort_if($user === null, 403);
+
+        $committee = $meeting->committee()->firstOrFail();
+        $seats = CommitteeSeat::query()
+            ->where('committee_id', $committee->id)
+            ->live()
+            ->with('member:id,user_id')
+            ->get();
+
+        $memberId = $this->viewerCommitteeMemberId($committee, $seats, $user);
+        $isChair = $memberId !== null && (string) $committee->chair_member_id === $memberId;
+        $isAlternate = $memberId !== null && (string) $committee->alternate_member_id === $memberId;
+
+        abort_unless($isChair || $isAlternate, 403, 'Only the committee chair (or alternate) runs the floor.');
     }
 
     // =========================================================================
