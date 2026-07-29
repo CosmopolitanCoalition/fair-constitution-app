@@ -53,27 +53,96 @@ class GovernanceStageGrowthTest extends TestCase
             $target = InstitutionScaleService::committeeTarget(10);
             $this->assertSame(2, $target, 'K(10) must be 2 — if the curve moved, this fixture needs revisiting');
 
-            $result = GovernanceStage::run($jurId, null, 1);
+            $committees = GovernanceStage::run($jurId, null, 1)['committees'];
 
-            $this->assertNull($result['skipped'], 'a seated unicameral chamber can pass a committee act');
-            $this->assertSame($target, $result['created'], 'the dial grows to exactly the formula target');
+            $this->assertNull($committees['skipped'], 'a seated unicameral chamber can pass a committee act');
+            $this->assertSame($target, $committees['created'], 'the dial grows to exactly the formula target');
 
-            $committees = DB::table('committees')
+            $rows = DB::table('committees')
                 ->where('legislature_id', $legId)
                 ->whereNull('deleted_at')
                 ->get();
 
-            $this->assertCount($target, $committees);
+            $this->assertCount($target, $rows);
 
             // (1) THE INVARIANT THAT MATTERS: each row was created by an ADOPTED
             // VOTE. The sim never wrote a committee; the vote engine did.
-            foreach ($committees as $c) {
+            foreach ($rows as $c) {
                 $this->assertNotNull(
                     $c->created_by_vote_id,
                     'a committee the sim produced MUST carry the vote that adopted it — '
                     .'a row without one would mean the sim minted an act of self-government'
                 );
             }
+        });
+    }
+
+    public function test_the_dial_delegates_the_executive_and_charters_departments_through_real_votes(): void
+    {
+        $this->onLivePg(function () {
+            // 12 members clears the 5+ committee-executive floor; a forming
+            // executive is provisioned so the dial must DELEGATE it first.
+            [$jurId, $legId] = $this->seatedChamber(totalSeats: 12, members: 12, typeBSeats: 0, population: 1_500, forming_exec: true);
+
+            $target = InstitutionScaleService::departmentTarget(1_500);
+            $this->assertGreaterThanOrEqual(3, $target, 'D floors at 3');
+
+            $dept = GovernanceStage::run($jurId, null, 1)['departments'];
+
+            $this->assertTrue($dept['delegated'], 'the dial delegated the forming executive before chartering departments');
+            $this->assertNull($dept['skipped'], 'a delegated executive can charter departments');
+            $this->assertSame($target, $dept['created'], 'the dial grows departments to exactly D(P)');
+
+            // The executive is now delegated — the department half proved it end to end.
+            $this->assertContains(
+                DB::table('executives')->where('jurisdiction_id', $jurId)->value('status'),
+                ['delegated', 'elected'],
+                'the executive must be delegated for a department to exist'
+            );
+
+            $rows = DB::table('departments')->where('jurisdiction_id', $jurId)->whereNull('deleted_at')->get();
+            $this->assertCount($target, $rows);
+
+            // THE INVARIANT: each department carries the charter LAW its adopting
+            // vote enacted — proof the sim minted no act. A row without one would
+            // mean a provisioning-style direct write.
+            foreach ($rows as $d) {
+                $this->assertNotNull(
+                    $d->charter_law_id,
+                    'a department the sim produced MUST carry the charter law its vote enacted'
+                );
+            }
+
+            // Mandatory kinds (Art. II §9) are filled first.
+            $kinds = $rows->pluck('kind')->all();
+            $this->assertContains('treasury', $kinds, 'the mandatory kinds are chartered first');
+        });
+    }
+
+    public function test_a_chamber_too_small_to_seat_an_executive_committee_defers_departments(): void
+    {
+        $this->onLivePg(function () {
+            // Five members: at/under the 5+ committee floor, so no delegation is
+            // possible — the department half must defer, not force it.
+            [$jurId] = $this->seatedChamber(totalSeats: 5, members: 5, typeBSeats: 0, population: 800, forming_exec: true);
+
+            $dept = GovernanceStage::run($jurId, null, 1)['departments'];
+
+            $this->assertFalse($dept['delegated']);
+            $this->assertStringContainsString('too few seated members', (string) $dept['skipped']);
+            $this->assertSame(0, $dept['created']);
+        });
+    }
+
+    public function test_the_department_half_defers_when_there_is_no_executive(): void
+    {
+        $this->onLivePg(function () {
+            [$jurId] = $this->seatedChamber(totalSeats: 12, members: 12, typeBSeats: 0, population: 1_500, forming_exec: false);
+
+            $dept = GovernanceStage::run($jurId, null, 1)['departments'];
+
+            $this->assertStringContainsString('no executive', (string) $dept['skipped']);
+            $this->assertSame(0, $dept['created']);
         });
     }
 
@@ -86,7 +155,7 @@ class GovernanceStageGrowthTest extends TestCase
             $after = DB::table('committees')->where('legislature_id', $legId)->whereNull('deleted_at')->count();
 
             // Re-running must add nothing.
-            $again = GovernanceStage::run($jurId, null, 1);
+            $again = GovernanceStage::run($jurId, null, 1)['committees'];
 
             $this->assertSame(0, $again['created'], 're-running the dial must create nothing');
             $this->assertSame('at target', $again['skipped']);
@@ -109,14 +178,14 @@ class GovernanceStageGrowthTest extends TestCase
         $this->onLivePg(function () {
             [$jurId, $legId] = $this->seatedChamber(totalSeats: 21, members: 5, typeBSeats: 16);
 
-            $result = GovernanceStage::run($jurId, null, 1);
+            $committees = GovernanceStage::run($jurId, null, 1)['committees'];
 
             $this->assertStringContainsString(
                 'unseated Type B half',
-                (string) $result['skipped'],
+                (string) $committees['skipped'],
                 'a bicameral chamber that cannot satisfy the Art. V §3 kind split must be deferred, not forced'
             );
-            $this->assertSame(0, $result['created']);
+            $this->assertSame(0, $committees['created']);
             $this->assertSame(
                 0,
                 DB::table('committees')->where('legislature_id', $legId)->whereNull('deleted_at')->count(),
@@ -133,7 +202,8 @@ class GovernanceStageGrowthTest extends TestCase
             $result = GovernanceStage::run($jurId, null, 1);
 
             $this->assertSame('chamber not seated', $result['skipped']);
-            $this->assertSame(0, $result['created']);
+            $this->assertSame(0, $result['committees']['created']);
+            $this->assertSame(0, $result['departments']['created']);
         });
     }
 
@@ -144,16 +214,34 @@ class GovernanceStageGrowthTest extends TestCase
      *
      * @return array{0:string,1:string} [jurisdictionId, legislatureId]
      */
-    private function seatedChamber(int $totalSeats, int $members, int $typeBSeats): array
-    {
+    private function seatedChamber(
+        int $totalSeats,
+        int $members,
+        int $typeBSeats,
+        int $population = 50_000,
+        bool $forming_exec = false,
+    ): array {
         $tag = 'gov-'.Str::lower(Str::random(6));
 
         $jurId = (string) Str::uuid();
         DB::table('jurisdictions')->insert([
             'id' => $jurId, 'name' => $tag, 'slug' => $tag,
-            'adm_level' => 2, 'population' => 50_000,
+            'adm_level' => 2, 'population' => $population,
             'created_at' => now(), 'updated_at' => now(),
         ]);
+
+        // A forming executive — the shell InstitutionProvisionService mints — so
+        // the department half must DELEGATE it before it can hold a department.
+        if ($forming_exec) {
+            DB::table('executives')->insert([
+                'id' => (string) Str::uuid(),
+                'jurisdiction_id' => $jurId,
+                'type' => 'committee',
+                'term_number' => 1,
+                'status' => 'forming',
+                'created_at' => now(), 'updated_at' => now(),
+            ]);
+        }
 
         $legId = (string) Str::uuid();
         DB::table('legislatures')->insert([
