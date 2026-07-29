@@ -73,7 +73,7 @@ rebuild recipe is on file and needs an announced `fcd_vite` restart if ever swit
 
 ## Lane 3 additions from the R-A/R-B/R-C rulings (2026-07-28, plan §10)
 
-1. **The Type B election guard (R-A)**: refuse Type B race scheduling on any
+1. ~~The Type B election guard (R-A)~~ **SHIPPED (30e8fec): keyed on the STORED flag (un-blocks the instant the mapper clears it); per-kind (lower house elects beside it); unconditional on world class; Niue stays seated+labeled; the 1141-seat UNFLAGGED at-large pin stays green — R-A blocks exactly the flagged 9,708. Latent model-cast gap closed in passing.** Was: refuse Type B race scheduling on any
    `type_b_needs_districting` chamber, every world class, until the Type B district mapper
    ships — guard + constitutional pin. (Niue's existing seat stays, labeled; re-seat rides
    the mapper.)
