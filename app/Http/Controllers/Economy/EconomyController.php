@@ -419,6 +419,65 @@ class EconomyController extends Controller
     }
 
     /**
+     * The exchange — the fungible + non-fungible INSTRUMENTS venue (Design
+     * Round 2 ①; operator ruling 2026-07-29). It is NOT the mockup's
+     * continuous order book: that matching engine is deliberately not built.
+     * Instruments trade at a fixed price through the SAME rail as the open
+     * market (F-IND-022, one order at a time) — the venue is a lens on
+     * asset-backed offers, not a second settlement path.
+     *
+     * Fungible = a divisible stack (more than one of the same registered
+     * thing); unique = a one-of-a-kind holding. SHARES (equity) join this
+     * floor with F-ORG-008 issuance (piece 4); until an org can issue there is
+     * nothing to show, so the shares floor is honestly empty, not faked.
+     *
+     * Reader privacy: a seller that is an ORGANISATION resolves to its public
+     * name (its offer is its public act); a human seller stays an account.
+     */
+    public function exchange(): Response
+    {
+        $currency = $this->currency();
+
+        $rows = $currency === null ? collect() : DB::table('marketplace_listings as l')
+            ->join('assets as a', 'a.id', '=', 'l.asset_id')
+            ->where('l.currency_id', $currency->id)
+            ->where('l.status', 'open')
+            ->whereNull('l.deleted_at')
+            ->whereNull('a.deleted_at')
+            ->orderByDesc('l.created_at')
+            ->limit(100)
+            ->get([
+                'l.id', 'l.seller_account_id', 'l.title', 'l.description', 'l.price', 'l.quantity',
+                'a.kind as asset_kind', 'a.name as asset_name', 'a.quantity as asset_quantity',
+            ]);
+
+        $sellers = $this->orgSellers($rows->pluck('seller_account_id')->map(fn ($id) => (string) $id)->all());
+
+        $instruments = $rows->map(fn ($r) => [
+            'id'          => (string) $r->id,
+            'title'       => (string) $r->title,
+            'description' => $r->description === null ? null : (string) $r->description,
+            'price'       => (string) $r->price,
+            'quantity'    => (string) $r->quantity,
+            'asset_kind'  => (string) $r->asset_kind,
+            'asset_name'  => (string) $r->asset_name,
+            'fungibility' => bccomp((string) $r->asset_quantity, '1', 6) > 0 ? 'fungible' : 'unique',
+            'seller_org'  => $sellers[(string) $r->seller_account_id] ?? null,
+        ])->all();
+
+        return Inertia::render('Economy/Exchange', [
+            'surface'     => SurfaceMeta::for('economy/exchange'),
+            'currency'    => $this->currencyProp($currency),
+            'instruments' => $instruments,
+            // Equity floor — populated by F-ORG-008 issuance (piece 4).
+            'shares'      => [],
+            // The continuous order book is deliberately not built; trades
+            // settle at a fixed price through F-IND-022. Stated, not simulated.
+            'order_book'  => false,
+        ]);
+    }
+
+    /**
      * One work posting, end to end — the rate, the organisation, the
      * lifecycle it triggers when accepted, and the co-determination
      * thresholds it counts toward. Thresholds are RESOLVED from the

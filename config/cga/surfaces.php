@@ -1544,4 +1544,17 @@ return [
         'citation'  => 'Dues are voluntary; a lapse ends membership, never a right · Art. I · Art. II §8',
     ],
 
+    'economy/exchange' => [
+        'title'     => 'The exchange',
+        'module'    => 'economy',
+        'nav'       => 'exchange',
+        'roles'     => ['R-01'],
+        'workflows' => [],
+        'forms'     => [
+            ['id' => 'F-IND-022', 'availableTo' => ['R-01'], 'citation' => 'A trade settles at a fixed price on the shipped rail · Art. III §5'],
+        ],
+        'clocks'    => [],
+        'citation'  => 'Instruments and holdings, on the open market\'s terms — no privileged floor · Art. III §5',
+    ],
+
 ];
