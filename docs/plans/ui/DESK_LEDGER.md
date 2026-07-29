@@ -1011,3 +1011,33 @@ wave → count clean.
 **⚑ F-IND-012 SHARED-FORM HEADS-UP (recorded):** OrgRegistryService::register() now opens a founding stake
 for STOCK orgs only (additive; org/registration/institution suites green, 66). Any lane registering a stock
 org via F-IND-012 now gets a founder stake — surfaced so no fixture is surprised.
+
+### W4 tick 11 — ⚑ Type B race-fix SEATING HALF done + L3 5 landings + ⚑ SECRECY-CRITICAL wave-gate red
+
+**LANE 1 — ① per-clump SEATING half DONE (0f02655, CAS commit, file-list guard: exactly 7 files, 171+/48-,
+zero foreign sweep):** racePlan 'panels' mode (one at-large race per panel; flagged+no-grouping still blocks;
+unflagged interim pooled — per-child is the follow-up) · createRaces one race per panel (type_b_panel_id,
+Σ=grouping.seats_total) · RaceFootprint panel LEFT JOIN (COALESCE ldj/ltbpj/er.jurisdiction_id) ·
+ElectionRace.type_b_panel_id fillable · B1 docblock corrected to per-panel · pins TypeBDistrictMapperApplyTest
+(blocked→panels + 2 per-clump races) + ElectionStageTest. FULL suite 933 pass / 3 skip / 1 FAIL (302,310
+asserts); lane 1's surface 100% green. Shape FULLY HANDED to lane 3 (columns + electorate join + seat mapping
++ Niue 5×2 fixture recipe). Niue clear HELD per the desk gate. NEXT: per-child ungrouped follow-up + an
+adversarial verification pass on the seating shape before lane 3 finishes its protected build.
+
+**⚑⚑ SECRECY-CRITICAL WAVE-GATE RED (routed to L6, desk-VERIFIED against the code):** the 1 suite failure is
+BallotSecrecyTest "ballot box is the only writer" — HomeController.php:127 + MyRecordController.php:171 do
+`DB::table('ballot_envelopes')` directly (lane 6's tick-7 ballots_cast fix). Only app/Domain/Ballots/BallotBox.php
+may touch the secrecy tables; a raw controller read breaks the Art. II cryptographic-separation rail. FIX (NOT
+a revert — the 420-voters-see-zero bug was real): route the count through a BallotBox method
+(BallotBox::envelopeCountFor($userId)); the count proves THAT you voted, never HOW, so it's secrecy-safe iff
+BallotBox is the only toucher. Lane 6 given it as priority #1. THIS is the single red blocking a green suite.
+LESSON reinforced: a real bug fix that reads a hardened table directly still trips the rail — run the FULL
+suite (the constitutional guards are why).
+
+**LANE 3 — 5 landings (③⑤⑥⑧⑨ all green, CAS-clean):** ⑥ RankedBallot liveAggregate (4a118e74 + 4a552614;
+cache-based, MIGRATION-FREE, no-decrypt source-scan pinned, daily 00:15) · ⑤ complete (dept-reporting +
+ranked backend) · ⑨ complete (production 4057b3c + test-hardening eba53854: PublicProceedingsGuestTest 32 +
+OversightGalleryDisclosureTest 22 — guest sees in-progress removal + named members). ① UNBLOCKED (lane 1's
+0f02655 shape answers all 3 hold-questions; fixtures: L1 owns seating pins, L3 owns CountingStage/SeatingStage).
+⚑ NIUE GATE TRIGGER: when L3's per-clump counting lands + pins, L3 tells the desk → desk authorizes the Niue
+clear (L1 holds until then). NEXT: ② exit walk → ⑦ 4 pollers → ① counting.
