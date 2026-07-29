@@ -23,6 +23,7 @@ class PublicProceedingsGuestTest extends TestCase
             '/executives/'.Str::uuid(),
             '/legislatures/'.Str::uuid().'/chamber',
             '/legislatures/'.Str::uuid().'/session',   // §10-1 session gallery — a session is a civic proceeding
+            '/legislatures/'.Str::uuid().'/oversight', // §10 A1 oversight gallery — "it's public if it's government"
             '/system/public-records',
         ] as $url) {
             $location = (string) $this->get($url)->headers->get('Location', '');
@@ -41,6 +42,7 @@ class PublicProceedingsGuestTest extends TestCase
             '/judiciaries/'.Str::uuid().'/cases',
             '/executives/'.Str::uuid().'/orders',
             '/legislatures/'.Str::uuid().'/sessions',              // §10-1: watching is public, but running a session stays members-only
+            '/legislatures/'.Str::uuid().'/removal-proceedings',   // §10 A1: watching oversight is public, but running it stays members-only
             '/legislatures/'.Str::uuid().'/settings/amend',        // R-C: F-LEG-031 amendment door — a write, members only
             '/legislatures/'.Str::uuid().'/cultural-institutions', // F-LEG-028: recognition vote — a write, members only
         ] as $url) {

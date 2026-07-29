@@ -737,7 +737,7 @@ Route::middleware('auth')->group(function () {
 
     // ── FE-C8 — Oversight (parallel batch) ──────────────────────────────────
     Route::get('/legislatures/{legislature}/oversight', [\App\Http\Controllers\Legislature\OversightController::class, 'show'])
-        ->whereUuid('legislature')->name('oversight.show');
+        ->whereUuid('legislature')->name('oversight.show')->withoutMiddleware('auth'); // §10 A1 public read — oversight is a government proceeding (gallery)
     Route::post('/legislatures/{legislature}/investigations', [\App\Http\Controllers\Legislature\OversightController::class, 'intake'])
         ->whereUuid('legislature')->name('oversight.intake');                 // I-ADM intake (audited non-form action)
     Route::post('/investigations/{investigation}/refer', [\App\Http\Controllers\Legislature\OversightController::class, 'referInvestigation'])

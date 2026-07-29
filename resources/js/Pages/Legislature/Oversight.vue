@@ -47,6 +47,11 @@ const page = usePage();
 const flashStatus = computed(() => page.props.flash?.status ?? null);
 const constitutionError = computed(() => page.props.errors?.constitution ?? null);
 
+/* A1 gallery (§10 A1): oversight is a government proceeding, public to
+ * watch. A spectator sees the same read-only page — every action control is
+ * can.*-gated and resolves false for them — with a "you are watching" note. */
+const isGallery = computed(() => props.can?.isGallery ?? false);
+
 const formMeta = (id) => props.surface.forms.find((f) => f.id === id);
 
 const bicameral = computed(() => props.legislature.mode === 'bicameral');
@@ -194,6 +199,11 @@ const PROCEEDING_MACHINE = ['opened', 'presiding_designated', 'voted', 'closed']
             removal proceedings — and it declares vacancies when seats fall empty.
         </template>
 
+        <Banner v-if="isGallery" tone="neutral" role="status">
+            You are watching. Oversight is public — it's government (Art. II §2). Complaints,
+            investigations, and removal votes are run by the chamber and its administrative
+            office; findings publish to the public record.
+        </Banner>
         <Banner v-if="flashStatus" tone="info" role="status">{{ flashStatus }}</Banner>
         <Banner v-if="constitutionError" tone="emergency">{{ constitutionError }}</Banner>
 

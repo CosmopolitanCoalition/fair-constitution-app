@@ -29,6 +29,7 @@ use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Inertia\Inertia;
+use Inertia\Response;
 
 /**
  * FE-C8 — Oversight (PHASE_C_DESIGN_frontend.md §B.8): misconduct intake
@@ -68,19 +69,29 @@ class OversightController extends Controller
     // B.8 — the page
     // =========================================================================
 
-    public function show(Request $request, Legislature $legislature)
+    public function show(Request $request, Legislature $legislature): Response
     {
         $legislature->loadMissing('jurisdiction:id,name');
 
         $viewer  = $this->viewerMember($legislature, $request->user());
         $isAdmin = $this->isAdminStaff($request->user());
 
-        // Read gate (§B.8): chamber members + R-29. Findings publish to
-        // the public record — the register is where citizens read them.
-        if ($viewer === null && ! $isAdmin) {
-            return redirect("/legislatures/{$legislature->id}/chamber")
-                ->with('status', 'Oversight is run by the chamber and its administrative office — findings publish to the public record.');
-        }
+        // A1 OVERSIGHT GALLERY (operator ruling 2026-07-29, §10 item A1):
+        // "it's public if it's government." The Template carries no
+        // closed-session provision, so the live oversight console — a
+        // government proceeding — opens to public read, the same gallery
+        // pattern as sessions (§10-1). This used to redirect any non-member
+        // (and non-R-29) to the Chamber; that gate is gone, and the route now
+        // drops the `auth` middleware to match session.show/chamber.show. A
+        // pure spectator falls through to the identical page, which is already
+        // read-only by construction: every `can.*` write below resolves false
+        // for a null $viewer / null user (intake needs a user, refer needs
+        // R-29, the proceeding/vacancy acts need a seated member or the
+        // Speaker), so no action control renders. `isGallery` merely labels
+        // that state with a banner; findings already publish to the public
+        // record. Private org/board/group oversight makes its OWN visibility
+        // call and lives in separate controllers — untouched.
+        $isGallery = $viewer === null && ! $isAdmin;
 
         $isSpeaker = $this->viewerIsSpeaker($legislature, $viewer);
         $office    = $this->liveOffice($legislature);
@@ -120,6 +131,7 @@ class OversightController extends Controller
                 'declareVacancy' => $viewer !== null,
                 'vote'           => $viewer !== null,
                 'createOffice'   => $viewer !== null && $office === null,
+                'isGallery'      => $isGallery,
             ],
             'urls' => [
                 'intake'       => "/legislatures/{$legislature->id}/investigations",
