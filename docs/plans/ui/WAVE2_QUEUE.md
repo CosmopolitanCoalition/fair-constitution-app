@@ -97,7 +97,7 @@ Type B election playtesting stays blocked fleet-wide until it ships.
 | Class-refusal | PeerTransportLearning ×3, CapabilityRegistry ×1 (+feeds autonomy stack) | the box is `instance_class=scale_demo`; fixtures fake peers advertising NO class, the SYMMETRIC rule refuses — pin firing on borrowed fixtures | lane 2: fixture-scoped `InstanceClass::override`; no rail weakened |
 | Fixture-borrows-the-world | AutonomyFlipRewraps ×5 + LocalAutonomyGoverned, AutoscalePin ×3, RemainderSynthesis ×3, ManualDistrictDraw ×1, LegalCompliance ×1 | the filled, now TIME-TRAVELED shared world | lanes 1/2/3 per surface (the documented class) |
 | Order-dependence | MatrixCarveoutEmitter, ModerationFlip | pass isolated; documented | unowned, known |
-| Real findings | LedgerIntegrity: `TreasuryDemoCommand` + `EconomyController` write `ledger_entries` outside `LedgerService` (predates Wave 1) | writer-or-heuristic call | lane 13 |
+| ~~Real findings~~ | ~~LedgerIntegrity writers~~ | **CLOSED by lane 13 (`5c2742e`, Wave 2 item 1): SCAN HEURISTIC confirmed — every hit was a READ; zero writes. Pin rewritten to match writes not mentions, scope widened to database/+routes/, negative controls both directions; 13/13 green. Doctrine kept: reads are lawful — the ledger is PUBLIC; reader-privacy = accounts-never-people, never a hidden ledger.** | — |
 | ~~CgcIpPublicDomain~~ | ~~grant drift + catalog reference~~ | **CLOSED at the desk (`9ac567f`)** — born-failing grant revocation written as a real migration; doc-string false positive renamed; 6/6 green | — |
 
 ## ⚖ Operator items accumulated during Wave 1
