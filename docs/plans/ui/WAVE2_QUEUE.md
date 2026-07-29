@@ -32,6 +32,37 @@ Wave 2 marching order. Nothing here is an order yet.*
 | Judiciary-home consent sliders | built-but-disabled | never built; docblocks say "DO NOT ship" | **DROPPED** — a slider faking consent contradicts the engine-snapshot rail (lane 4's recommendation, adopted) |
 | Challenge-tracker simulate | built-but-disabled | never built | client-side fake DROPPED; possible D5 real-filing preset |
 
+## For lane 5 (N) — translation, from lane 15's Wave 1 (2026-07-29)
+
+1. **⚑ THE flatJson FIND (`cb73c5c`)**: vue-i18n's default resolver walks nested objects only —
+   every flat dotted-key namespace catalog under `locales/<code>/<ns>.json` was UNRESOLVABLE
+   (`t()` returned the raw key) for every namespace, every locale, since the day they were
+   written. Invisible because no component had ever consumed one; lane 15's flyout was the
+   first. Fixed with `flatJson: true` on `createI18n` (+8 lines in `resources/js/i18n/index.js`
+   — lane 5's file, announce-fix). **Implication for lane 5: re-verify anything that assumed
+   the catalogs rendered; coverage numbers measured the files, not the screen.**
+2. Two NEW English-only namespaces to translate: `en/c_education.json` (851 strings) +
+   `en/c_achievements.json` (141) — meta files included in lane 5's shape; cite tokens
+   deliberately NOT in the payload (never translated). Total lane-15 payload: 992 strings.
+3. Flow-step action strings in `registry/flows.js` are spec-side English, unextracted — lane
+   5's call whether to sweep them.
+
+## For lanes 3/6 — walk-list observation (lane 15, 2026-07-29)
+
+- `/judiciary/docket` 302s to `/civic` for a fresh dev-login user (SITEMAP lists the docket
+  as public). Likely data-dependent (no judiciary in the viewer's chain) — belongs on the
+  walk list either way.
+
+## ⚖ Operator items accumulated during Wave 1
+
+- **Art. I elected-training-gate placement** (K2_ENGINE_PLAN §10.7, lane 15): pre-ballot
+  (collides with the hard constraint) / **pre-seating (lane 15's recommendation — ballot
+  untouched; countback already handles a refusing winner)** / advisory. Until his word,
+  nothing gates any elected path (pinned by the narrowed EducationNoGateTest).
+- Screenshot debts for the Wave 1 review: lane 4 (flyout clock advance) + lane 15 (flyout on
+  2–3 surfaces) — both DOM/server-verified, pixel shots blocked while no browser pane
+  composites; capture at review time when the operator is present.
+
 ## Small fixes applied at the desk during Wave 1
 
 - `Districts.vue` dev-seat gate: `import.meta.env.DEV ||` leak removed — world-keyed only
