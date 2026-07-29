@@ -181,13 +181,36 @@ telemetry: null | {…}            // Design Round 2 ④, account-clean; null pr
 label, and the shared `clock`. `currency.unit_kind`/`worth_basis`/`subdivisions`
 were already shipped in the Design-Round build and now render on units + wallet.
 
+## `GET /economy/exchange` → `Economy/Exchange`  *(Design Round 2 ① + Wave 4)*
+
+The instruments venue — asset-backed holdings and issued equity. **No matching
+engine** (`order_book: false`, stated not simulated); a trade settles at a fixed
+price through the open-market rail (F-IND-022).
+
+```
+currency: null | {…}
+instruments: [ { id, title, description?, price: string, quantity: string,
+                 asset_kind, asset_name, fungibility: "fungible"|"unique",
+                 seller_org: null | {name, type, is_cgc} } ]
+shares: [ { org_id, org_name, is_cgc: boolean, total_units: string,      // Wave 4: the issued-equity
+            holder_count: number, fair_market_floor: string|null } ]     //   REGISTER (named plane);
+kpis: null | {…telemetry snapshot…}     // Wave 4: market-health, account-clean; null pre-currency
+tape: [ { id, title, asset_kind?, asset_name?, price: string,           // Wave 4: SETTLED instrument
+          quantity: string, at: string } ]                              //   trades, newest first
+order_book: false                        // the continuous book is deliberately not built
+```
+
+**Wave 4 (partial → built):** `kpis` (account-clean market health), the `tape`
+(real settled instrument trades — `marketplace_orders.status='settled'` on
+asset-backed listings), and the `shares` equity **register** (issued stakes per
+STOCK org, on the named ownership plane, Ruling B). Holder-to-holder **resale**
+is Wave 4 ② (secondary trading) — until then `shares` is what *exists*, not
+active sell-offers.
+
 ---
 
 ## Things I am deliberately NOT shipping in v1
 
-- **`exchange`** (share trading) — the exchange trades organisation shares, and an ordinary org's cap
-  table cannot be populated today (`acquired_via='founding'` has one writer, the CGC charter). Shipping
-  a trading floor with nothing to trade would be a worse lie than an honest "planned".
 - **`joint-ledgers`, `agreements`** — tables exist, no read surface yet.
 - ~~**Any write endpoint.** v1 is read-only.~~ **SUPERSEDED 2026-07-26 — the write path SHIPPED.**
   `F-IND-022` (marketplace list/order/settle), `F-IND-023` (funds transfer) and `F-IND-024` (asset

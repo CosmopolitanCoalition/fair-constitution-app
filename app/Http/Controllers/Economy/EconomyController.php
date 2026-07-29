@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Economy;
 
 use App\Http\Controllers\Controller;
 use App\Models\Economy\Currency;
+use App\Models\Organization;
 use App\Services\ConstitutionalValidator;
 use App\Services\Economy\AccountService;
 use App\Services\Economy\CurrencyTelemetryService;
@@ -513,12 +514,99 @@ class EconomyController extends Controller
             'surface'     => SurfaceMeta::for('economy/exchange'),
             'currency'    => $this->currencyProp($currency),
             'instruments' => $instruments,
-            // Equity floor — populated by F-ORG-008 issuance (piece 4).
-            'shares'      => [],
+            // The equity floor — the issued-share REGISTER (what exists to own),
+            // on the named ownership plane (Ruling B). Holder-to-holder RESALE
+            // opens with secondary trading (Wave 4 ②); until then this shows
+            // what has been issued, not active sell-offers.
+            'shares'      => $this->equityFloor(),
+            // Market-health KPIs, account-clean (Design Round 2 ④): counted over
+            // accounts, never people. Null before a currency exists.
+            'kpis'        => $currency === null ? null : $this->telemetry->snapshot($currency->id),
+            // The trade tape — instruments that have actually SETTLED, newest
+            // first. Real history, not a simulated ticker; account-scoped (a
+            // trade is a price and a quantity, not a pair of names).
+            'tape'        => $currency === null ? [] : $this->tradeTape(),
             // The continuous order book is deliberately not built; trades
             // settle at a fixed price through F-IND-022. Stated, not simulated.
             'order_book'  => false,
         ]);
+    }
+
+    /**
+     * The equity floor — issued shares aggregated per STOCK organisation
+     * (member-owned/nonprofit/partnership have no shares). Names are public
+     * (Ruling B: who owns a company is a public fact); the money that moves on
+     * a trade is not, and never appears here. A fair-market floor is shown when
+     * a conversion has fixed one.
+     *
+     * @return list<array<string, mixed>>
+     */
+    private function equityFloor(): array
+    {
+        $rows = DB::table('org_ownership_stakes as s')
+            ->join('organizations as o', 'o.id', '=', 's.organization_id')
+            ->whereNull('s.ended_at')
+            ->whereNull('o.deleted_at')
+            ->where('o.structure', Organization::STRUCTURE_STOCK)
+            ->groupBy('o.id', 'o.name', 'o.type')
+            ->orderByRaw('sum(s.units) desc')
+            ->limit(50)
+            ->get(['o.id', 'o.name', 'o.type',
+                DB::raw('sum(s.units) as total_units'),
+                DB::raw('count(*) as holder_count')]);
+
+        if ($rows->isEmpty()) {
+            return [];
+        }
+
+        // One query for every floor, newest per org — no N+1.
+        $floors = DB::table('org_conversions')
+            ->whereIn('organization_id', $rows->pluck('id'))
+            ->whereNotNull('fair_market_floor')
+            ->whereNull('deleted_at')
+            ->orderByDesc('created_at')
+            ->get(['organization_id', 'fair_market_floor'])
+            ->groupBy('organization_id')
+            ->map(fn ($g) => (string) $g->first()->fair_market_floor);
+
+        return $rows->map(fn ($r) => [
+            'org_id'            => (string) $r->id,
+            'org_name'          => (string) $r->name,
+            'is_cgc'            => $r->type === 'common_good_corp',
+            'total_units'       => (string) $r->total_units,
+            'holder_count'      => (int) $r->holder_count,
+            'fair_market_floor' => $floors[$r->id] ?? null,
+        ])->all();
+    }
+
+    /**
+     * The trade tape — instrument orders that have SETTLED, newest first. Only
+     * asset-backed listings count (this venue is for holdings with their own
+     * identity; goods/services are the open market). A tape row is a price and
+     * a quantity on an instrument — no party is named (the money plane).
+     *
+     * @return list<array<string, mixed>>
+     */
+    private function tradeTape(): array
+    {
+        return DB::table('marketplace_orders as ord')
+            ->join('marketplace_listings as l', 'l.id', '=', 'ord.listing_id')
+            ->leftJoin('assets as a', 'a.id', '=', 'l.asset_id')
+            ->where('ord.status', 'settled')
+            ->whereNotNull('l.asset_id')
+            ->orderByDesc('ord.updated_at')
+            ->limit(30)
+            ->get(['ord.id', 'ord.quantity', 'ord.price', 'ord.updated_at',
+                'l.title', 'a.kind as asset_kind', 'a.name as asset_name'])
+            ->map(fn ($t) => [
+                'id'         => (string) $t->id,
+                'title'      => (string) $t->title,
+                'asset_kind' => $t->asset_kind === null ? null : (string) $t->asset_kind,
+                'asset_name' => $t->asset_name === null ? null : (string) $t->asset_name,
+                'price'      => (string) $t->price,
+                'quantity'   => (string) $t->quantity,
+                'at'         => $this->iso($t->updated_at),
+            ])->all();
     }
 
     /**
