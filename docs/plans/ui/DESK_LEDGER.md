@@ -787,3 +787,37 @@ message) noted here; the work is lane 3's.
    IGNORES foreign staged files (race-immune). The "pathspec-commit trap" only bites PARTIAL
    staging (working-tree ≠ your carefully-staged index); for a whole-file append there is no
    divergence, so pathspec is both correct and race-safe. This very correction is committed that way.
+
+### W4 tick 4 — lane 1 DONE (slot released) + the 3-commit mislabel record (NO REWRITE) + lock-free commit primitive
+
+**LANE 1 DONE + accepted (live sweep):**
+• `126d753` — election_races.type_b_panel_id (nullable uuid, FK legislature_type_b_panels) +
+  RELAXED election_races_one_at_large_per_kind to exclude type_b + election_races_type_b_unit_unique
+  on COALESCE(type_b_panel_id, jurisdiction_id) + ⑤ CHECK constitutional_settings.type_b_seats_per_child
+  ∈ {NULL, 2..5} (PROVEN in a rolled-back tx: 7 rejected SQLSTATE 23514, 4 accepted). Applied on dev.
+• ④ fixture reds `a32bbc8` — MyProfileTabsTest + LegalComplianceTest green (20 passed / 142 assertions).
+• IN PROGRESS (pure code, no slot): racePlan/createRaces → per-child/per-clump Type B races;
+  RaceFootprint → panel-jurisdiction LEFT JOIN. Then hands lane 3 the exact race shape + column names.
+  ⚑ NIUE GATE honored — lane 1 HOLDS the flag-clear for the desk until lane 3 confirms per-clump counting.
+
+**⚑ MIGRATION-SLOT QUEUE (advanced):** L1 DONE → **L3 (agenda — OFFERED; may defer to its counting-half
+work) → L13 (secondary-trading).** If L3 defers, L13 gets it next and the desk circles back to L3.
+
+**⚑ THE 3-COMMIT MISLABEL INCIDENT — AUTHORITATIVE ATTRIBUTION RECORD (ruling: NO REWRITE).** During
+the white-hot W4 shared index, three commits carry the WRONG message; ALL code is present, correct, and
+green. We do NOT rewrite history (11 live committers have pulled). This entry IS the correction:
+  1. **258d611** (lane 3's ③ message) ALSO contains **LANE 13's 4 economy files** — swept by lane 3's
+     two-call stage/commit split. Lane 13's code is SAFE; true author = lane 13.
+  2. **37b7a64** (desk "W4 tick 3 … seam contract") ALSO contains **LANE 3's ③** —
+     InstitutionScaleService.php (107) + InstitutionScaleTest.php (91). Swept by the desk's broad add.
+     True author = lane 3. Verified green (13/101).
+  3. **59510f4** — lane 3's recovery empty no-op, harmlessly buried under lane 1's 126d753. Inert.
+
+**⚑ LOCK-FREE COMMIT PRIMITIVE — adopted fleet-wide** (lane 3's derivation; full recipe in memory
+`feedback_git_commit_pathspec_multilane`). Build the commit in a PRIVATE GIT_INDEX_FILE seeded from HEAD
+(`git read-tree`) → `git add` into it → `write-tree` → `commit-tree -p HEAD` → CAS
+`git update-ref HEAD <new> <parent>` (moves only if HEAD unchanged; retry on a concurrent move). Never
+touches the shared .git/index, can't sweep foreign files, immune to the diff→commit micro-race. Caveat:
+commit-tree runs NO hooks (this repo has none). Discipline: commit IMMEDIATELY after each edit — never
+leave work uncommitted in the hot tree. Desk's simpler variant for my-only files (this ledger): pathspec
+commit `git commit <path>` (race-immune, proven tick 3b — and this very entry).
