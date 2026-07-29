@@ -134,10 +134,23 @@ ledger: [ { seq: number, at: string, direction: "debit"|"credit",
 issuance: [ { id: string, direction: "mint"|"burn", amount: string,
               reason: string, at: string } ]         // newest first, max 20
 budgets: [ { id: string, fiscal_label: string, total: string, status: string,
-             enacted_at: string|null, lines: number } ]
-revenue: [ { id: string, name: string, kind: string, status: string } ]
+             is_current: boolean, enacted_at: string|null, lines: number,
+             enacting_act: null | {act_number: string|null, title: string},
+             line_items: [ {line, amount} ] } ]        // is_current = status 'enacted'
+revenue: [ { id: string, name: string, kind: string, status: string,
+             levies: [ {base: string, rate: string, civic_exempt: boolean} ],
+             enacting_act: null | {act_number: string|null, title: string} } ]
+clock: { interval: string, period_days: number|null,
+         last_run: string|null, next_run: string|null }  // Wave 4: the economic clock, derived
 totals: { supply: string, treasury_balance: string }
 ```
+
+**Wave 4 (partial → built):** `revenue[].levies` (Art. V §4 — how money is
+raised is public: base, rate, civic-exempt), `revenue[].enacting_act` +
+`budgets[].enacting_act`/`is_current`, and the shared `clock` (the stipend
+disbursement cycle, derived from `ubi_disbursements` + `stipend_period_days`;
+both `last_run`/`next_run` null before a world's first run). A levy **rate is a
+ratio, not money**, but crosses as a string for the same anti-float reason.
 
 ## `GET /economy/units` → `Economy/Units`
 

@@ -345,7 +345,11 @@ class EconomyController extends Controller
                     'fiscal_label' => (string) $b->fiscal_label,
                     'total'        => (string) $b->total,
                     'status'       => (string) $b->status,
+                    // The cycle state, in the open: a budget is enacted or it
+                    // is not, and only an enacted one is directing money now.
+                    'is_current'   => $b->status === 'enacted',
                     'enacted_at'   => $this->iso($b->enacted_at),
+                    'enacting_act' => $this->actLabel($b->enacting_act_id === null ? null : (string) $b->enacting_act_id),
                     'lines'        => DB::table('budget_lines')->where('budget_id', $b->id)->count(),
                     // The lines themselves — where public money is DIRECTED,
                     // which is the half a count cannot show.
@@ -373,7 +377,21 @@ class EconomyController extends Controller
                     'name'   => (string) $r->name,
                     'kind'   => (string) $r->kind,
                     'status' => (string) $r->status,
+                    // Art. V §4 — how public money is RAISED is public: each
+                    // levy's base and rate, and whether civic use is exempt.
+                    // A rate is a ratio, not money, but it crosses as a string
+                    // for the same reason money does — never a lossy float.
+                    'levies' => DB::table('levies')->where('revenue_stream_id', $r->id)->orderBy('created_at')->get()
+                        ->map(fn ($l) => [
+                            'base'         => (string) $l->base,
+                            'rate'         => (string) $l->rate,
+                            'civic_exempt' => (bool) $l->civic_exempt,
+                        ])->all(),
+                    'enacting_act' => $this->actLabel($r->enacting_act_id === null ? null : (string) $r->enacting_act_id),
                 ])->all(),
+            // The economic clock — when the next stipend disbursement is due.
+            // Derived, shared with the overview and the units page.
+            'clock'  => $this->economicClock(),
             'totals' => [
                 'supply'           => $currency === null ? '0.000000' : $this->issuance->supply($currency->id),
                 'treasury_balance' => (string) (DB::table('treasury_accounts')->whereNull('deleted_at')->sum('balance') ?: '0.000000'),
@@ -1029,6 +1047,84 @@ class EconomyController extends Controller
     private function nullableInt(mixed $value): ?int
     {
         return $value === null ? null : (int) $value;
+    }
+
+    /**
+     * The enacting act behind a value, as a public label. Every fiscal and
+     * monetary lever in this economy moves only by an act ON THE RECORD
+     * (Art. V §4 · §5), so the surfaces name the act, not just the number.
+     * Soft reference to `laws` (there is no separate acts table): null when
+     * no act is recorded, which is honest for a value still at its default.
+     *
+     * @return array{act_number: string|null, title: string}|null
+     */
+    private function actLabel(?string $actId): ?array
+    {
+        if ($actId === null) {
+            return null;
+        }
+
+        $law = DB::table('laws')->where('id', $actId)->first(['act_number', 'title']);
+
+        return $law === null ? null : [
+            'act_number' => $law->act_number === null ? null : (string) $law->act_number,
+            'title'      => (string) $law->title,
+        ];
+    }
+
+    /**
+     * Which act last moved a given constitutional setting — the per-lever
+     * provenance the units page needs. `setting_changes` records every lawful
+     * move (key, old→new, the law that carried it); the latest row for a key
+     * is the act currently in force. Honestly null until a lever is first
+     * moved, at which point it lights up on its own.
+     *
+     * @return array{act_number: string|null, title: string}|null
+     */
+    private function latestSettingAct(?string $rootId, string $key): ?array
+    {
+        if ($rootId === null) {
+            return null;
+        }
+
+        $lawId = DB::table('setting_changes')
+            ->where('jurisdiction_id', $rootId)
+            ->where('setting_key', $key)
+            ->orderByDesc('applied_at')
+            ->value('law_id');
+
+        return $this->actLabel($lawId === null ? null : (string) $lawId);
+    }
+
+    /**
+     * The economic clock — the stipend disbursement cycle, derived (never
+     * stored): the last run from ubi_disbursements, the interval from the
+     * amendable setting, the next run projected from the two. Honestly null
+     * where a world has not run its first disbursement or set no period.
+     *
+     * @return array{interval: string, period_days: int|null, last_run: string|null, next_run: string|null}
+     */
+    private function economicClock(): array
+    {
+        $currency = $this->currency();
+        $rootId   = $this->rootId();
+
+        $last = $currency === null ? null : DB::table('ubi_disbursements')
+            ->where('currency_id', $currency->id)
+            ->orderByDesc('ran_at')
+            ->first();
+
+        $periodDays = $rootId === null ? null : $this->nullableInt($this->settings->resolve($rootId, 'stipend_period_days'));
+        $interval   = (string) ($rootId === null ? 'monthly' : ($this->settings->resolve($rootId, 'stipend_interval') ?? 'monthly'));
+
+        return [
+            'interval'    => $interval,
+            'period_days' => $periodDays,
+            'last_run'    => $last === null ? null : $this->iso($last->ran_at),
+            'next_run'    => ($last === null || $periodDays === null)
+                ? null
+                : \Illuminate\Support\Carbon::parse((string) $last->ran_at)->addDays($periodDays)->toIso8601String(),
+        ];
     }
 
     private function iso(mixed $value): ?string

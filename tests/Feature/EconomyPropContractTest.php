@@ -44,7 +44,7 @@ class EconomyPropContractTest extends TestCase
         // a page cannot offer a thing without knowing what you hold.
         '/economy/wallet'         => ['surface', 'currency', 'account', 'transactions', 'receipts', 'assets'],
         '/economy/market'         => ['surface', 'currency', 'offers', 'work', 'assistance', 'my_assets'],
-        '/economy/treasury'       => ['surface', 'currency', 'accounts', 'ledger', 'issuance', 'budgets', 'revenue', 'borrowings', 'totals'],
+        '/economy/treasury'       => ['surface', 'currency', 'accounts', 'ledger', 'issuance', 'budgets', 'revenue', 'borrowings', 'clock', 'totals'],
         '/economy/units'          => ['surface', 'currency', 'levers', 'supply', 'issuance_rate_bps', 'inflation_target_bps'],
         '/economy/stipend'        => ['surface', 'currency', 'stipend', 'clock', 'k_anon_floor', 'examples'],
         '/economy/agreements'     => ['surface', 'agreements'],
@@ -147,6 +147,16 @@ class EconomyPropContractTest extends TestCase
 
         foreach ($treasury['borrowings'] as $borrowing) {
             $this->assertIsString($borrowing['principal'], 'a borrowing principal is money, and money is a string');
+        }
+
+        // A levy rate is a ratio, not money — but it crosses as a string for
+        // the same reason: numeric(…) through a float is a lossy conversion.
+        foreach ($treasury['revenue'] as $stream) {
+            $this->assertIsArray($stream['levies'], 'a revenue stream ships its levies as an array');
+            foreach ($stream['levies'] as $levy) {
+                $this->assertIsString($levy['rate'], 'a levy rate crosses the boundary as a string');
+                $this->assertIsString($levy['base'], 'a levy base is a label string');
+            }
         }
     }
 

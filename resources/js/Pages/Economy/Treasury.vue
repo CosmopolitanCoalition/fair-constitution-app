@@ -31,6 +31,8 @@ const props = defineProps({
     revenue: { type: Array, default: () => [] },
     /** Art. V §4 — jurisdiction instruments; lenders appear as accounts. */
     borrowings: { type: Array, default: () => [] },
+    /** The stipend disbursement cycle, derived; next_run is null pre-first-run. */
+    clock: { type: Object, default: () => ({}) },
     totals: { type: Object, default: () => ({}) },
 });
 
@@ -106,6 +108,14 @@ const issuanceRows = () =>
                 <Stat :value="formatMoney(totals.treasury_balance, currency)" label="Held by the treasury" accent />
                 <Stat :value="formatCount(ledger.length)" label="Ledger rows shown" />
             </div>
+            <p v-if="clock.next_run" class="econ-note">
+                The economic clock runs on a {{ clock.interval }} cycle. The next civic-stipend
+                disbursement is due {{ formatWhen(clock.next_run) }}.
+            </p>
+            <p v-else class="econ-note">
+                The economic clock has not run a disbursement yet — the next-run time appears once
+                the first cycle completes.
+            </p>
         </Card>
 
         <Card as="section" title="The public ledger">
@@ -153,9 +163,13 @@ const issuanceRows = () =>
             <ul v-if="budgets.length" class="econ-list">
                 <li v-for="b in budgets" :key="b.id">
                     <strong>{{ b.fiscal_label }}</strong> — {{ formatMoney(b.total, currency) }}
+                    <span v-if="b.is_current" class="econ-badge">Current cycle</span>
                     <span class="econ-note">
                         · {{ b.status }} · {{ formatCount(b.lines) }} lines
                         <template v-if="b.enacted_at"> · enacted {{ formatWhen(b.enacted_at) }}</template>
+                        <template v-if="b.enacting_act">
+                            · by {{ b.enacting_act.act_number ? `Act ${b.enacting_act.act_number}` : b.enacting_act.title }}
+                        </template>
                     </span>
                     <ul v-if="b.line_items?.length" class="econ-budget-lines">
                         <li v-for="l in b.line_items" :key="l.line">
@@ -189,10 +203,24 @@ const issuanceRows = () =>
             <ul v-if="revenue.length" class="econ-list">
                 <li v-for="r in revenue" :key="r.id">
                     <strong>{{ r.name }}</strong>
-                    <span class="econ-note"> · {{ r.kind }} · {{ r.status }}</span>
+                    <span class="econ-note">
+                        · {{ r.kind }} · {{ r.status }}
+                        <template v-if="r.enacting_act">
+                            · by {{ r.enacting_act.act_number ? `Act ${r.enacting_act.act_number}` : r.enacting_act.title }}
+                        </template>
+                    </span>
+                    <ul v-if="r.levies?.length" class="econ-budget-lines">
+                        <li v-for="(l, i) in r.levies" :key="i">
+                            {{ l.rate }} on {{ l.base }}<template v-if="l.civic_exempt"> · civic use exempt</template>
+                        </li>
+                    </ul>
                 </li>
             </ul>
             <p v-else class="econ-note">No revenue sources have been set up yet.</p>
+            <p class="econ-note">
+                How public money is raised is public: each source names its base, its rate, and
+                whether civic use is exempt — and the act that set it.
+            </p>
         </Card>
     </PageScaffold>
 </template>
@@ -219,5 +247,18 @@ const issuanceRows = () =>
 }
 .econ-list li {
     margin-block-end: var(--space-2);
+}
+.econ-badge {
+    display: inline-block;
+    margin-inline-start: var(--space-2, 0.5rem);
+    padding: 0.05rem 0.4rem;
+    border-radius: var(--radius-sm, 0.25rem);
+    background: var(--gov-accent-soft, #e6f0ff);
+    color: var(--gov-accent, #2456b3);
+    font-size: 0.7rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+    vertical-align: middle;
 }
 </style>
