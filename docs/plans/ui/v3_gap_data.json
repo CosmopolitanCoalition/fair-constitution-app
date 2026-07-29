@@ -1,7 +1,7 @@
 {
  "asOf": "2026-07-29",
- "commit": "73f0083",
- "wave": "Wave 1 engaged (lanes 6, 4, 15)",
+ "commit": "20e01ab",
+ "wave": "Wave 1 in flight \u2014 lane 6 shell DONE (9 commits) \u00b7 lane 4 D1\u2013D3+D6 landed \u00b7 lane 15 Learn flyout live",
  "rows": [
   {
    "file": "civic/join.html",
@@ -81,22 +81,22 @@
     "Groups & orgs tab (social_spaces + organization memberships)",
     "Overview open-votes list (mockup shows open ballots; app overview is stats + roles only)",
     "endorsements given on the Record tab",
-    "wallet balances (Economy ledger is LIVE since 2026-07-26 but the tab still ships a Planned banner)"
+    "wallet tab: stale Planned banner replaced with a door to /economy/wallet (73c5773); full in-tab balances still to wire"
    ],
    "backendMissing": [],
    "specHas": [
     "Office tab",
     "Groups & orgs tab",
     "open-votes list on Overview",
-    "wallet tab wired to the real Economy/Wallet data",
-    "endorsements-given cards"
+    "endorsements-given cards",
+    "wallet tab: in-tab balances (door landed 73c5773)"
    ],
    "appAhead": [
     "Settings tab (F-IND-002 panel through the engine)",
     "paginated hash-chained audit slice with rejected/blocked reasons",
     "server-side tab validation"
    ],
-   "notes": "The tab skeleton matches profile-v2.js; gaps are three missing tabs/panels whose backing data already exists. The Planned wallet banner is STALE per the economy L+M ship \u2014 wiring it is props work, not a subsystem."
+   "notes": "The tab skeleton matches profile-v2.js; gaps are three missing tabs/panels whose backing data already exists. The Planned wallet banner is STALE per the economy L+M ship \u2014 wiring it is props work, not a subsystem. 2026-07-29: wallet stale banner fixed (73c5773)."
   },
   {
    "file": "civic/advocate-registration.html",
@@ -707,23 +707,21 @@
    "areaLabel": "Electoral + executive",
    "owner": "lane 3",
    "bucket": "built",
-   "effort": "S",
+   "effort": "none",
    "page": "resources/js/Pages/Elections/CandidacyRegistration.vue",
    "route": "GET /elections/{election}/candidacy",
    "props": "full",
    "backend": "full",
    "propsMissing": [],
    "backendMissing": [],
-   "specHas": [
-    "Rejection path's court-appeal deep link (mockup links judiciary/case-docket + Pham precedent; app says 'challenge in court \u2014 Planned \u00b7 Phase E', a stale flag now that Phase 5 judiciary is built)"
-   ],
+   "specHas": [],
    "appAhead": [
     "No-residency empty state with declare-residency CTA",
     "Engine 422 banner surfacing the constitutional citation",
     "Org-board election bounce (Art. III \u00a76 class-gated races redirected)",
     "Withdrawn/defeated terminal-branch state strips"
    ],
-   "notes": "Near-conformant; F-IND-011 files through the engine with footprint-scoped office select, tags, attestation, CLK-18 window. Only gap is wiring the rejection banner to the live court docket and removing the stale Planned flag."
+   "notes": "Near-conformant; F-IND-011 files through the engine with footprint-scoped office select, tags, attestation, CLK-18 window. Only gap is wiring the rejection banner to the live court docket and removing the stale Planned flag. CLOSED 2026-07-29 (73c5773): rejection path now links the live court docket; stale Planned flag removed."
   },
   {
    "file": "electoral/election-board-console.html",
@@ -1455,7 +1453,7 @@
    "appAhead": [
     "Live F-LEG-031 amendment ledger \u2014 50 newest applied setting changes with jurisdiction, old\u2192new value, enacting act + bill link (the mockup has no ledger at all)"
    ],
-   "notes": "Page is built on the v3 contract (two doors, floor, ratification table, hardened chips). Remaining gaps are props additions (SettingsResolver current values) and the deferred checker."
+   "notes": "Page is built on the v3 contract (two doors, floor, ratification table, hardened chips). Remaining gaps are props additions (SettingsResolver current values) and the deferred checker. 2026-07-29 (73c5773): seat-rule copy corrected to the DISTRICT rule \u2014 no chamber-ceiling reading."
   },
   {
    "file": "system/audit-chain.html",
