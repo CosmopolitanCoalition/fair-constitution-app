@@ -665,3 +665,27 @@ ledger + the rubric (badge items as work lands, redeploy same URL), sequence the
 deliverables for the operator, run the FULL suite at the wave gate. GOAL: as GREEN as possible
 across UI Screens AND Capabilities → a tested, playable game. The operator will NOT walk anything
 until all-Green.
+
+### W4 tick 1 — first ACKs + migration-slot ruling (2026-07-29)
+
+**6/8 lanes running** (1/2/3/5/13/15); **lanes 4 & 6 transient 529 Overloaded** — orders
+delivery-confirmed + queued, NO re-send (double-delivery is the hazard); they self-resume on a
+plain "continue" nudge when the API settles. Lane 3's async alignment msg to lane 4 is queued,
+not lost.
+
+**LANE 3 four-way ACK (L3W4):** STEP 0 clean (HEAD 8f70cb2 ≥ 9fb0a60). Grounded ① — the
+counting engine run() is already per-race/agnostic; the POOLED defect is enforced by (a) schema
+constraint `election_races_one_at_large_per_kind`, (b) racePlan's type_b branch, (c) createRaces,
+(d) a stale VoteCountingService comment L223-226 ("…ONE STV race"). Fired shape-lock → lane 1,
+formula-alignment → lane 4 (async), building all unblocked items (⑨⑧⑦⑤⑥②). Surfaced (not
+decided) that lane 1's TypeBDistrictMapper still encodes the old "ONE race" B1 — aligning WITH
+lane 1, no ruling reversed.
+
+**⚑ MIGRATION-SLOT RULING (desk):** the slot is RESERVED for **lane 1's race-fix election_races
+migration** (clump/grouping key **+ relax/replace `election_races_one_at_large_per_kind`** to
+allow multiple at-large races per kind — ONE migration, lane 1 is the ONLY lane touching
+election_races). Rationale: it's the headline unblock and lane 3's counting side is blocked on it.
+**HOLDING behind it:** lane 3's ④ agenda per-item table, lane 13's secondary-trading table. Both
+told to build non-schema parts meanwhile. Release order: agenda (L3) right after L1's race-fix
+migration lands, then secondary-trading (L13). Lane 3 told: wire ③ against the COMMITTED formula
+(84838b7), don't wait on lane 4's live confirm.
