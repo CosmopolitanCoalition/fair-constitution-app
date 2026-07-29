@@ -4,7 +4,10 @@
 **revised 2026-07-28 for operator ruling 6** (`V3_SYNTHESIS_PLAN.md` §10 — training completion
 IS a constitutional form; supersedes this plan's own zero-forms recommendation, §5/§10.4 below);
 **revised 2026-07-29 for the PRE-SEATING ruling** (operator, 2026-07-28 — the training gate for
-elected seats sits at pre-seating; §10.7 closed, gate design in §5.2, pin final in §6.5).
+elected seats sits at pre-seating; §10.7 closed, gate design in §5.2, pin final in §6.5);
+**revised again 2026-07-29 for ruling A5** (Wave 2 review — NO training window; the gate is
+ACT-GATED at the first action in the role; `seat_training_window_days` is dead; §5.2 rewritten,
+§6.5/§10.7 updated; Wave 3 IS the build).
 **Permission to write code:** granted for the four §8 changes in `K2_ACHIEVEMENT_LIBRARY.md`
 (operator, 2026-07-25; all four SHIPPED 2026-07-26 — catalog `7b9ec17`, award_key migration
 `e86c6ac`, arcs live `64d79a9`, `AchievementService` `3f42e87`). This document specifies; schema
@@ -228,77 +231,99 @@ stores in one transaction (education_progress latch, achievement append, stipend
 which is exactly the `markStep` → `AchievementService` shape already shipped, plus lane 13's
 transaction posture for the money leg.
 
-### 5.2 The training gate — RULED: PRE-SEATING (operator, 2026-07-28). The design it builds from.
+### 5.2 The training gate — RULED: ACT-GATED (operator ruling A5, 2026-07-29). The design the build builds from.
 
-*"Pre-seating is best. You need to do the training to do the job."* Design only — the build
-rides the F-EDU engine build, after the Wave 2 pages. Three gate points, one reading rule.
+**The ruling trail, so nobody re-derives it:** ruling 3's standing directive (all civic
+roles get a training gate) → PRE-SEATING (2026-07-28: *"you need to do the training to do
+the job"* — ballot access untouched) → **A5 (2026-07-29, Wave 2 review): THERE IS NO
+TRAINING WINDOW.** On acquiring a role you get the notice; if training isn't done by
+seating day, then **at your FIRST ACTION in the role the gate redirects you to that
+screen's Learn content + a basic comprehension quiz — pass, then act.** *"They can't do
+their job until they know what it is they are doing."* The education IS the app's own
+per-screen Learn layer — multimodal, multilingual, maximally accessible, free, in-app —
+a **non-barrier under GOVERNING EFFECTIVELY**. Anyone trains anytime; the one-time stipend
+and achievements stand. **`seat_training_window_days` is DEAD** — never registered, and no
+training-specific vacancy path exists (the pre-seating latch/window/countback-handoff
+design this section carried on 2026-07-28 is superseded; git history `81fb0bc` preserves
+it).
 
-**THE READING RULE, before the gate points, because everything hangs on it: the gate reads
+**THE READING RULE — unchanged, recorded as doctrine (desk ACK 2026-07-29): the gate reads
 ONLY the F-EDU-001 completion record — never the achievement ledger, never
 `education_progress`.** Three separate rails force this single choice:
 
-1. **CI-1 stays absolute.** Achievements are decorative-never-power with no exception — if the
-   gate read the achievement ledger, an achievement would confer a seat, and
+1. **CI-1 stays absolute.** Achievements are decorative-never-power with no exception — if
+   the gate read the achievement ledger, an achievement would confer power, and
    `AchievementNonInterferenceTest` would have to carve its first hole. It never does: the
    LEGAL fact is the filed constitutional act; the achievement remains a decoration minted
    alongside it.
 2. **Federation.** `education_progress` is node-local and never federates (§6.2 pin) — a
-   winner whose completion lives on another node would be un-seatable if the gate read the
-   latch. A filed F-EDU-001 is a public constitutional act that travels under Full Faith &
-   Credit; the gate works mesh-wide by construction.
+   role-holder whose completion lives on another node would be un-actionable if the gate
+   read the latch. A filed F-EDU-001 is a public constitutional act that travels under Full
+   Faith & Credit; the gate works mesh-wide by construction.
 3. **Answer-key secrecy is untouched** — the completion record carries module key + pass +
    time (§5.0), so a gate reading it can never leak what §2 protects.
 
-**Gate point 1 — elected seats (pre-seating latch in the certification pipeline).**
-`CertificationService` (WI-B5) today seats winners at F-ELB-004 certification. With the gate:
+**ONE gate point, every role.** A5 unifies what were three: acquiring a role is NEVER
+blocked — candidacy registration, certification, seating, appointment, and advocate/board
+registration all proceed for the untrained (this supersedes the original
+application-time gate on appointed/registered roles: the gate now binds the same way
+everywhere — at the ACT, not the acquisition). Mechanics:
 
-- Certification still certifies the race in one act, but each winner lands as
-  `pending_training` rather than serving **unless a qualifying F-EDU-001 completion for the
-  role's track already exists** — the common case for re-elected members, who seat instantly.
-- A `pending_training` member is **not serving**: quorum and supermajority denominators
-  (majority / two-thirds **of ALL SERVING members**, Art. II §2 / Art. VII) exclude the seat
-  until the latch flips. The chamber operates meanwhile — same arithmetic as any vacancy.
-- **The latch flips on F-EDU-001 acceptance** for the matching track: handler side-effect,
-  same transaction shape as §5.1's three-store commit. Seating timestamps and inherited-term
-  arithmetic (CLK-10) are unchanged — the term was fixed at certification; training delay
-  never extends a term.
-- **The window:** the winner has `seat_training_window_days` (proposed amendable setting,
-  default 30, jurisdiction-scoped — a PROPOSAL for registration-day review, not settled law)
-  from certification. Expiry or an explicit decline **declares the seat vacant through the
-  existing `VacancyService::declare()`** (distinct reason code, e.g.
-  `training_not_completed`), which queues the **universal countback** — the replacement
-  winner passes through the same latch. No new counting machinery, no new vacancy machinery;
-  the CLK-04 backstop and special-election window inherit unchanged.
+- **The notice at acquisition:** seating/appointment/registration issues a plain notice —
+  the role's track, the lesson door, the fact that the first act will ask. Informational
+  only; it gates nothing.
+- **The gate binds at the first GATED ACT:** filing any form that exercises the ROLE's
+  authority (chamber votes and motions, sponsorships, committee acts, board decisions,
+  judicial acts, advocate filings, executive orders — the exact form list settles at
+  registration day in `config/cga/education.php`'s role→track map, §8.1). A single
+  `TrainingGateService` answers one question — *does a qualifying F-EDU-001 completion
+  exist for this user and this role's track?* — consulted in the affected handlers'
+  validate step. One rule, one home; no handler grows its own copy.
+- **The refusal is a redirect, not a wall:** the engine rejects with a STRUCTURED
+  `training_required` payload (track, surface id, lesson href) → the client lands on that
+  screen's Learn content + the comprehension quiz → passing files **F-EDU-001 through the
+  engine** (grading server-side, §2/§3.5 rails; the filing records completion, never
+  answers) → the gate is open permanently (the completion record is durable) → the user
+  retries the act and it proceeds. Server-side is the boundary; any client-side
+  disabled-with-citation mirror is UX, never the enforcement (house rule).
+- **What "action in the role" means, precisely:** exercising the role's authority through
+  the engine. NOT: presence or attendance (quorum can form with untrained members
+  present), reading anything, speech (F-SOC-*), or any rights-act — voting
+  (F-IND-007/008), candidacy (F-IND-011), residency (F-IND-003/006), petitions. Rights
+  are never role-acts. **F-EDU-001 itself is never gated** (§5.0.2 — the door the redirect
+  points to cannot itself be locked).
 
-**Gate point 2 — the countback handoff.** Nothing new to design, and that is the point:
-"exactly like any declined seat" is literal. Countback replacements are re-run winners
-(eligibility re-checked at certification, §A.4.5) and enter the same `pending_training` latch.
-A chain of decliners resolves exactly as a chain of vacancies always has — ending, if
-everyone declines, at the auto-scheduled special election discretion can never suppress.
+**The seated-but-untrained quorum nuance — surfaced here with the recommendation, per A5's
+own instruction:**
 
-**Gate point 3 — appointed/registered roles (application-time gate).** As originally ruled:
-the gate sits on FILING the application/registration form (advocate registration F-IND-015
-and kin; the registration-day build enumerates the exact form list in
-`config/cga/education.php`). Mechanics:
+- **Recommendation: seated = serving, unconditionally; no denominator special-casing of
+  any kind.** Quorum (majority of ALL serving, Art. II §2) and supermajority (2/3 of ALL
+  serving, Art. VII) are hard-constraint arithmetic — inserting a training term into
+  either would change what the constitution requires, which is the operator's pen, not a
+  design choice. The rejected alternative (excluding untrained members from denominators)
+  is also a manipulation vector: members could withhold training to shrink a denominator
+  and cheapen a supermajority.
+- **The consequence, recorded rather than hidden:** an untrained member counts in every
+  denominator and may sit in the chamber (presence is ungated) but cannot cast the vote
+  until trained. A wholly-untrained chamber sits quorate and passes nothing until its
+  members train — which is the ruling working as written, and the training is free,
+  in-app, and minutes long: a non-barrier by construction, not by promise.
+- **The pathological never-trains seat-holder:** no training-specific vacancy path exists.
+  The existing machinery covers it — voluntary vacancy (F-LEG-036), the chamber's own
+  absence/removal processes, and the next election. Accepted design consequence, recorded.
+- **Countback replacements** seat normally and meet the same act-gate. The countback
+  remains pure vacancy machinery with no training trigger of any kind.
 
-- A single `TrainingGateService` (name proposed) answers one question — *does a qualifying
-  F-EDU-001 completion exist for this user and this role's track?* — and the affected form
-  handlers consult it in their validate step. One rule, one home; no handler grows its own
-  copy.
-- The role→track map lives in `config/cga/education.php` (§8.1) beside the module catalog.
-- The refusal is a teaching surface, not a wall: it names the missing training and links the
-  learn flow (§5.0.2 — every training is open to every user, so the door it points to is
-  never itself gated).
+**What the gate NEVER touches, stated as law:** candidacy registration, ballot access,
+voting, residency, speech, presence/attendance, and F-EDU-001 itself.
+`ConstitutionalValidator` keeps refusing eligibility conditions on candidacy — the gate
+lives entirely in role-form handlers post-acquisition, so the validator and the gate never
+meet.
 
-**What the gate NEVER touches, stated as law:** candidacy registration (F-IND-011), voting
-(F-IND-007/008), residency (F-IND-003/006), speech (F-SOC-001/002). `ConstitutionalValidator`
-keeps refusing eligibility conditions on candidacy — the pre-seating latch lives entirely
-post-certification, so the validator and the gate never meet.
-
-**Deliberately deferred, flagged not designed:** module-version currency (does an F-EDU-002
-revision of a training re-open the gate for sitting completions?). Default posture for the
-build: any completion of the track qualifies; version-currency is a future refinement that
-would need its own ruling if wanted.
+**Deliberately deferred, flagged not designed:** module-version currency (does an
+F-EDU-002 revision of a training re-open the gate for sitting completions?). Default
+posture for the build: any completion of the track qualifies; version-currency is a future
+refinement that would need its own ruling if wanted.
 
 **Facts that constrain the library and the education content** (corrections to assumptions in
 circulation):
@@ -349,10 +374,11 @@ tests, that edit is a constitutional violation — fix the edit, never the test.
    - **The gate reads only F-EDU-001 completion records** — never the achievement ledger
      (CI-1 stays absolute: no achievement ever confers a seat), never `education_progress`
      (node-local; §5.2's reading rule). Assert both directions.
-   - Training gates on **appointed/registered** roles (advocate registration F-IND-015 and
-     kin) are LAWFUL and gate at application filing; the **elected** gate is LAWFUL and sits
-     **post-certification only** (`pending_training` latch, §5.2). The pin asserts no gate
-     code touches candidacy registration or any pre-certification election step.
+   - The gate is LAWFUL and binds ONLY the filing of ROLE-authority forms by a role-holder
+     (the act-gated model, §5.2 as refined by A5) — never candidacy registration, never any
+     pre-certification election step, never seat-taking, never presence. The pin asserts no
+     gate code touches acquisition of any role, elected or appointed: acquiring is free,
+     acting asks.
 
 Register all five in `FuturePhasePlaceholdersTest` — the documented mechanism for pre-registering
 an unbuilt phase's pins (*"The constitutional suite IS the roadmap"*).
@@ -477,6 +503,12 @@ Three workable answers; the plan recommends the first:
      gate design. The three options and the recommendation that preceded this ruling are
      preserved in git history (`e0fba8a`); the table is gone from the living doc because the
      question is closed.
+   - **REFINED by A5 (operator, 2026-07-29, Wave 2 review): the window is DEAD; the gate is
+     ACT-GATED.** No `seat_training_window_days`, no training-specific vacancy, no
+     application-time gate on appointed roles either — acquiring any role is free; the FIRST
+     ACTION in the role redirects untrained holders to that screen's Learn content + quiz,
+     pass-then-act. §5.2 is rewritten to this model (the 2026-07-28 latch/window design is
+     preserved at `81fb0bc`); §6.5's pin follows.
 5. ~~The title decision~~ — **APPROVED 2026-07-25, no longer open.** Store an i18n key rather than a
    denormalized English string in an immutable federating ledger
    (`K2_ACHIEVEMENT_LIBRARY.md` §8.2). @lane-05 owns the translating; ~127 achievement titles.
