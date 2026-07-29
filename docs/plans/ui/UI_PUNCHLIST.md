@@ -162,3 +162,31 @@ component mirrors it. The **frontend build is green** and the logic is pinned se
 coordinator, Apply greyed), the "Make this node the coordinator" button, and the "Tolerate skew"
 toggle. On a **production** node this whole block is absent by design (the base gate refuses) — that
 is correct, not a missing screen.
+
+---
+
+## Lane 2 · Wave 4 pixel debts (2026-07-29)
+
+*Capture debts on surfaces built this wave. Server-side render + props are test-verified and the
+vite build is green; the in-app preview pane still does not composite (the standing fleet pixel
+blocker), so the pixels ride the operator's walk.*
+
+### `system/amendments` — current-value cards + the "Try a proposed value" checker
+
+`resources/js/Pages/System/Amendments.vue` (`e702a43`) now opens door one with a grid of **current
+amendable-value cards** (value · hardened range · basis · last enacting act + date) above the
+existing ledger, plus a **client-side "Try a proposed value" bounds checker** (a pre-vote hint —
+the authoritative check still runs server-side at F-LEG-031 file). Props are pinned in
+`SystemClocksAmendmentsTest` (register order + `election_interval_months` bounds 1–60). **Walk it:**
+confirm the cards render the ~27 register keys with ranges, and that the checker flips ✓/✗ as a
+value crosses a bound (e.g. `election_interval_months` at 60 → ✓, 61 → ✗ with the range named).
+
+### `system/term-sync` — the inline-SVG lockstep timeline
+
+`resources/js/Pages/System/TermSync.vue` (`e702a43`) now leads with an **inline-SVG lockstep
+timeline** rendered from the live term registry: three elected branch bars (Legislative / Executive
+/ Judicial) sharing one window and ending on a **common-expiry marker**, a **dashed 10-year
+appointed contrast bar**, and a **today marker**, plus the "lockstep is unaffected under emergency
+powers" banner. On this box all 19 active legislatures carry a 2026→2031 window, so it renders live
+(not the empty-state). **Walk it:** confirm the three bars end together, the dashed appointed bar
+runs to 2036, and the today line sits near the start.
