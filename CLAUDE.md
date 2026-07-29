@@ -334,11 +334,12 @@ database/schema/pgsql-schema.sql   (baseline DDL for jurisdictions / constitutio
 **Phases 0–5 COMPLETE** (Foundation → Judiciary & Law). All live, constitutionally
 tested (suite green, zero skips), each with standing browsable demo data
 (`elections:demo`, `institutions:demo-d`, `institutions:demo-e`). Detailed phase
-plans + designs in `docs/plans/institutions/PHASE_{A..E}_*.md`. The 112-form
+plans + designs in `docs/plans/institutions/PHASE_{A..E}_*.md`. The 113-form
 ConstitutionalEngine (103 through Phase 5 + F-ELB-008 Manual District Draw from
 Phase H + F-SOC-001..004 from the G/K social-mesh work + F-IND-022/023/024, the
-Phase M economy write path + F-IND-019 Work Application, minted in the v3
-Wave 2 labor-board build; FormRegistry also resolves 6 legacy alias IDs —
+Phase M economy write path + F-IND-019 Work Application and F-ORG-009 Internal
+Restructuring, both minted in the v3 Wave 2 economy build; FormRegistry also
+resolves 6 legacy alias IDs —
 F-COM-*→F-CHR-*, F-GOV-*→F-BOG-*), the PROTECTED hardened layer, and the
 hash-chained audit log span every phase. The count is pinned exactly in
 `AuditChainSmokeTest` — adding a form means raising it there deliberately.

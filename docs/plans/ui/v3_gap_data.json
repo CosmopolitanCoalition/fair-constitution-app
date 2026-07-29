@@ -1,7 +1,7 @@
 {
  "asOf": "2026-07-29",
- "commit": "cf8a090",
- "wave": "WAVE 2 \u2014 heavies 2/15/4 COMPLETE; 13 on 6a/6b (migration landed, slot passed to 6); 6 + 3 running; 1 next; 5 NLLB",
+ "commit": "b990110",
+ "wave": "WAVE 2 \u2014 lanes 2/15/4/13 COMPLETE (13: all 8 sub-items, forms at 113); 6/3/1 running; 5 finishing NLLB",
  "rows": [
   {
    "file": "civic/join.html",
@@ -687,8 +687,8 @@
    "area": "economy",
    "areaLabel": "Economy",
    "owner": "lane 13",
-   "bucket": "absent",
-   "effort": "XL",
+   "bucket": "partial",
+   "effort": "L",
    "page": "",
    "route": "",
    "props": "none",
@@ -713,7 +713,9 @@
    "appAhead": [
     "Organizations/TransfersConversions and CoDetermination pages carry the conversion rule and board math with live data the mockup only summarizes"
    ],
-   "notes": "Governance sections already live under Organizations/*; the economics half (shares, dues, org ledger view, tax surface) needs new backend models plus a new page. The shares register is the genuinely new subsystem."
+   "notes": "Governance sections already live under Organizations/*; the economics half (shares, dues, org ledger view, tax surface) needs new backend models plus a new page. The shares register is the genuinely new subsystem. 2026-07-29 (b990110): the elections/appointments dial ships in OrgDetail manage (closed key registry, F-ORG-001 update_settings door). The org-settings SCREEN + its economy half (share register, dues) stay Wave 3 design-gated.",
+   "page_exists": true,
+   "page_path": "OrgDetail manage panel (dial); own surface + economy half = Wave 3"
   },
   {
    "file": "electoral/candidacy-registration.html",
@@ -2792,7 +2794,7 @@
    "areaLabel": "Organizations",
    "owner": "lanes 13 \u00b7 14",
    "bucket": "partial",
-   "effort": "M",
+   "effort": "S",
    "page": "resources/js/Pages/Organizations/BoardElections.vue",
    "route": "GET /organizations/{organization}/board-elections",
    "props": "partial",
@@ -2812,7 +2814,7 @@
     "Live-election links to the real Phase B ballot surfaces + electorate counts",
     "Composition-invalid warning, chair pending_reason=composition_changed banner, and no-board empty state"
    ],
-   "notes": "Both STV tracks, the joint chair RCV round record, and the seated BoardStrip are real engine reads (F-ORG-003/004 registered, handlers wired); the chair two-round stepper is demo theater the app correctly replaces with the certified record. The only substantive gap is the nomination-window concept, which needs an org-settings dial that has no backend."
+   "notes": "Both STV tracks, the joint chair RCV round record, and the seated BoardStrip are real engine reads (F-ORG-003/004 registered, handlers wired); the chair two-round stepper is demo theater the app correctly replaces with the certified record. The only substantive gap is the nomination-window concept, which needs an org-settings dial that has no backend. 2026-07-29 (b990110): the 0d nomination-window dial LIVE (org settings, 1-90 day bounds, audit-chained; window stretches nominations + shifts ranked dates). Remaining S: the end-to-end date proof rides the next board-election fixture/walk."
   },
   {
    "file": "organizations/cgc-detail.html",
@@ -2899,8 +2901,8 @@
    "area": "organizations",
    "areaLabel": "Organizations",
    "owner": "lanes 13 \u00b7 14",
-   "bucket": "partial",
-   "effort": "L",
+   "bucket": "built",
+   "effort": "none",
    "page": "resources/js/Pages/Organizations/TransfersConversions.vue",
    "route": "GET /organizations/transfers-conversions",
    "props": "partial",
@@ -2920,7 +2922,7 @@
     "Real acquisition register: VoteTally off chamber_votes, compensation-vs-floor readout, founding-governor-offer table",
     "F-LEG-026/027 deep links into the actual bill flow rather than static form cards"
    ],
-   "notes": "Four of the five ownership paths are fully wired end-to-end through the engine; the fifth (internal restructuring) is display-scaffolded but has no write path \u2014 closing it means a new engine form/action, per-structure consent logic, structure-history storage, and a deliberate bump of the pinned form count in AuditChainSmokeTest. The mockup's single-form dual-consent checkboxes should NOT be copied; the app's two-party consent model is the correct implementation of 'mutual consent is mandatory'."
+   "notes": "Four of the five ownership paths are fully wired end-to-end through the engine; the fifth (internal restructuring) is display-scaffolded but has no write path \u2014 closing it means a new engine form/action, per-structure consent logic, structure-history storage, and a deliberate bump of the pinned form count in AuditChainSmokeTest. The mockup's single-form dual-consent checkboxes should NOT be copied; the app's two-party consent model is the correct implementation of 'mutual consent is mandatory'. CLOSED 2026-07-29 (b990110): F-ORG-009 minted (113) \u2014 restructuring as the OWNERS act; threshold from the structure being LEFT (partnership unanimity, stock by units, member-owned holder majority); consent meters + history live."
   }
  ]
 }
