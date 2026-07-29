@@ -253,6 +253,13 @@ rewrote the mockup entry — the only Webster left in the spec is the prohibitio
   hunk — staged into the shared index between lane 2's verify and commit (sweep #6, the
   index-race mechanism; law corollary recorded in FLEET_CONTEXT). Complete and self-contained;
   attribution noise only.
+- **`cd6f56e`** (desk, the first-sweep ledger commit) also carries lane 15's staged stage-①
+  unit: `ConstitutionalEngine.php` +10 (SENSITIVE_KEYS), `EducationAnswerKeySecrecyTest.php`
+  +146 (new), `FuturePhasePlaceholdersTest.php` +6 — sweep #7, same index-race mechanism, at
+  the desk's own hand: the chained `add && diff && commit` showed 4 files staged and barreled
+  past its own verify step. Lane 15 notified (verify content, run pins, follow-up commit for
+  any half-staged remainder). Desk procedure hardened: stage → count staged files → commit
+  ONLY on exact-match, in one gated shell call.
 
 ## ⚖ Operator items accumulated during Wave 1
 
