@@ -15,11 +15,13 @@
  * appears here within one tick, and the old conditional arming was exactly the
  * bug that made the district mapper look frozen until someone refreshed.
  */
-import { onBeforeUnmount, onMounted, ref } from 'vue';
+import { computed, onBeforeUnmount, onMounted, ref } from 'vue';
+import { useForm, usePage } from '@inertiajs/vue3';
 import AppShellV2 from '@/Layouts/AppShellV2.vue';
 import PageScaffold from '@/Components/Surface/PageScaffold.vue';
 import StageBars from '@/Components/Progress/StageBars.vue';
 import Banner from '@/Components/Ui/Banner.vue';
+import Btn from '@/Components/Ui/Btn.vue';
 import Card from '@/Components/Ui/Card.vue';
 import Stat from '@/Components/Ui/Stat.vue';
 
@@ -30,7 +32,25 @@ const props = defineProps({
     stages: { type: Array, default: () => [] },
     world: { type: Object, default: null },
     pollMs: { type: Number, default: 2000 },
+    /** Operator-only: /building is public, so the provision action is gated here. */
+    canProvision: { type: Boolean, default: false },
 });
+
+const page = usePage();
+const flash = computed(() => page.props.flash?.status ?? null);
+
+/* Operator door: the UI twin of institutions:provision. Preview counts what is
+   missing (a cheap dry run); a real run queues the set-based job and the poll
+   above animates the bars. */
+const provisionForm = useForm({ dry_run: true });
+function preview() {
+    provisionForm.dry_run = true;
+    provisionForm.post('/building/provision', { preserveScroll: true });
+}
+function provision() {
+    provisionForm.dry_run = false;
+    provisionForm.post('/building/provision', { preserveScroll: true });
+}
 
 const stages = ref(props.stages);
 const world = ref(props.world);
@@ -72,6 +92,27 @@ const fmt = (n) => Number(n ?? 0).toLocaleString();
                 along that is.
             </p>
         </template>
+
+        <Banner v-if="flash" tone="info" class="mb-4">{{ flash }}</Banner>
+
+        <!-- Operator door — the UI twin of institutions:provision. -->
+        <Card v-if="canProvision" class="mb-4">
+            <h2 class="text-sm font-semibold mb-1">Provision missing institutions</h2>
+            <p class="text-sm text-gray-400 mb-3">
+                Fill every jurisdiction's executive, court, election board and civic spaces
+                (the <code>institutions:provision</code> twin). It is set-based and chunked, so a
+                real run is queued and the bars above fill as it goes — preview first to see
+                what is missing.
+            </p>
+            <div class="flex gap-2">
+                <Btn variant="secondary" size="sm" :disabled="provisionForm.processing" @click="preview">
+                    Preview missing
+                </Btn>
+                <Btn variant="primary" size="sm" :disabled="provisionForm.processing" @click="provision">
+                    {{ provisionForm.processing ? 'Working…' : 'Provision (queue)' }}
+                </Btn>
+            </div>
+        </Card>
 
         <!-- BUILT is not GOVERNED. A world can be fully built and have nobody
              in it, and that is the correct state until communities hold their

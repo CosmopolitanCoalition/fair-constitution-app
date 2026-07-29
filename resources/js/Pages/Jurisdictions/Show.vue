@@ -193,6 +193,19 @@
                                 {{ activationDisplay.detail }}
                             </span>
                         </div>
+                        <!-- Dev-only: activate this jurisdiction (jurisdiction:activate twin). -->
+                        <button
+                            v-if="canActivate"
+                            type="button"
+                            :disabled="activateForm.processing"
+                            class="mt-2 px-2 py-0.5 rounded text-xs bg-blue-600 hover:bg-blue-500 disabled:opacity-50 transition-colors"
+                            @click="activateNow"
+                        >
+                            {{ activateForm.processing ? 'Activating…' : 'Activate now (dev)' }}
+                        </button>
+                        <p v-if="page.props.errors?.activate" class="text-[11px] text-red-400 mt-1">
+                            {{ page.props.errors.activate }}
+                        </p>
                     </div>
 
                     <!-- S-grade (V3 gap matrix, jurisdiction-browser row):
@@ -573,7 +586,8 @@
 
 <script setup>
 import { computed, onMounted, ref, watch } from 'vue'
-import { router, usePage } from '@inertiajs/vue3'
+import { router, useForm, usePage } from '@inertiajs/vue3'
+import { useDemoMode } from '@/composables/useDemoMode'
 import AppShellV2 from '@/Layouts/AppShellV2.vue'
 import PageScaffold from '@/Components/Surface/PageScaffold.vue'
 import GeodataFlagQueue from '@/Components/Geodata/GeodataFlagQueue.vue'
@@ -660,6 +674,22 @@ const reopenError   = ref('')
 // window (and the reopen affordance) only exists while setup is incomplete.
 const page = usePage()
 const setupComplete = computed(() => page.props.instance?.setupComplete ?? false)
+
+/* Dev-only: the UI twin of jurisdiction:activate. Visibility is a CLARITY gate
+   (isDemoMode); the server DevToolsEnabled 404 is the real boundary. Shown only
+   for a place that has not booted yet — dormant (no activation row) or
+   critical_population — never for one already self-governing. Force is the
+   default here because this is the dev bootstrap door (--force rides the gate). */
+const { isDemoMode } = useDemoMode()
+const activateForm = useForm({ force: true })
+const canActivate = computed(() => {
+    if (!isDemoMode.value) return false
+    const state = props.activation?.state ?? 'dormant'
+    return state === 'dormant' || state === 'critical_population'
+})
+function activateNow() {
+    activateForm.post(`/dev/jurisdictions/${props.jurisdiction.slug}/activate`, { preserveScroll: true })
+}
 
 const ackOpenTotal = computed(() => {
     const f = ackOpenFlags.value

@@ -228,6 +228,7 @@ Route::get('/jurisdictions/{jurisdiction:slug}', [JurisdictionController::class,
 // sees the request.
 Route::get('/building', [\App\Http\Controllers\BuildProgressController::class, 'show'])->name('build.progress');
 Route::get('/api/build/progress', [\App\Http\Controllers\BuildProgressController::class, 'progress'])->name('api.build.progress');
+Route::post('/building/provision', [\App\Http\Controllers\BuildProgressController::class, 'provision'])->name('build.provision'); // UI twin of institutions:provision (own operator gate)
 
 // ── Phase I: Reach — the enrolment gauge ────────────────────────────────────────────────
 // READ-ONLY by design. Reach is a gauge and never a lever (CI-1), so this surface offers no
@@ -1028,6 +1029,7 @@ Route::middleware('auth')->group(function () {
 Route::middleware('auth')->prefix('system')->name('system.')->group(function () {
     Route::get('/audit-chain', [AuditChainController::class, 'show'])->name('audit-chain');
     Route::post('/audit-chain/verify', [AuditChainController::class, 'verify'])->name('audit-chain.verify');
+    Route::post('/audit-chain/reconcile', [AuditChainController::class, 'reconcile'])->name('audit-chain.reconcile'); // UI twin of audit:reconcile
     // mockups-v3-wiring Phase 2 — read-only registry/ledger pages over
     // EXISTING services (design contracts: mockups/v3/shared/clocks.html,
     // mockups/v3/system/amendments.html). Zero actions by design.
@@ -1092,6 +1094,9 @@ if (app()->environment('local') && config('cga.impersonation', true)) {
         Route::post('/impersonate/stop', [ImpersonationController::class, 'stop'])->name('impersonate.stop');
         Route::post('/impersonate/{user}', [ImpersonationController::class, 'start'])->name('impersonate');
         Route::post('/pings/simulate', [PingController::class, 'simulate'])->name('pings.simulate');
+        // UI twin of jurisdiction:activate — dev-gated exactly like the command's --force bootstrap.
+        Route::post('/jurisdictions/{jurisdiction}/activate', [\App\Http\Controllers\Dev\JurisdictionActivateController::class, 'activate'])
+            ->name('jurisdictions.activate');
 
         // ── Playtest time controls (P1, P2) ──────────────────────────────
         // A SECOND gate on top of DevToolsEnabled: impersonation READS the

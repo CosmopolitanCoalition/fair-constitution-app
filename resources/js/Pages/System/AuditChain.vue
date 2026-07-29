@@ -62,6 +62,19 @@ const verifyForm = useForm({});
 function verify() {
     verifyForm.post('/system/audit-chain/verify', { preserveScroll: true });
 }
+
+/* Operator-only: re-ground a detected chain break by a signed, recorded reason
+   (the UI twin of `audit:reconcile`). The chain is tamper-EVIDENT, never
+   rewritten — the acknowledgement is what verifyChain then treats as grounded. */
+const reconcileForm = useForm({ reason: '' });
+const reconcileOpen = computed(() => Boolean(reconcileForm.reason) || reconcileForm.processing);
+
+function reconcile() {
+    reconcileForm.post('/system/audit-chain/reconcile', {
+        preserveScroll: true,
+        onSuccess: () => reconcileForm.reset('reason'),
+    });
+}
 </script>
 
 <template>
@@ -107,6 +120,35 @@ function verify() {
                 <p v-else class="gloss" style="margin: 0">
                     Full-chain verification recomputes every link and is operator-triggered; the
                     result is recorded when it runs.
+                </p>
+            </div>
+
+            <!-- Operator-only: re-ground a detected break by a recorded reason. -->
+            <div v-if="canVerify" style="margin-block-start: var(--space-4)">
+                <label class="field-label" for="reconcile-reason" style="margin-block-end: var(--space-1)">
+                    Reconcile a chain break
+                </label>
+                <div class="cluster" style="align-items: baseline">
+                    <input
+                        id="reconcile-reason"
+                        v-model="reconcileForm.reason"
+                        class="field-input"
+                        style="inline-size: min(32rem, 100%)"
+                        placeholder="Why is this break grounded? (recorded on the chain)"
+                    />
+                    <Btn
+                        variant="secondary"
+                        icon="shield"
+                        :disabled="reconcileForm.processing || !reconcileForm.reason.trim()"
+                        @click="reconcile"
+                    >
+                        {{ reconcileForm.processing ? 'Signing…' : 'Reconcile break' }}
+                    </Btn>
+                </div>
+                <p v-if="errors.reason" class="cc-small" style="color: var(--color-danger)">{{ errors.reason }}</p>
+                <p class="cc-small" style="margin-block-start: var(--space-1)">
+                    Tamper-EVIDENT, never rewritten: a de-facto operator signs an acknowledgement with a
+                    reason, recorded on the chain, and verification then treats the break as grounded.
                 </p>
             </div>
         </Card>

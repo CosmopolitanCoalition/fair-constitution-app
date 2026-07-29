@@ -2,10 +2,13 @@
 
 namespace App\Http\Controllers;
 
+use App\Jobs\ProvisionInstitutionsJob;
 use App\Services\InstitutionProvisionService;
 use App\Services\InstitutionScaleService;
 use App\Support\SurfaceMeta;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Http\RedirectResponse;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 use Inertia\Inertia;
@@ -39,12 +42,55 @@ class BuildProgressController extends Controller
     /** Poll cadence the page uses, and the tween budget the bars get. */
     private const POLL_MS = 2000;
 
-    public function show()
+    public function show(Request $request)
     {
         return Inertia::render('Build/Progress', [
             'surface' => SurfaceMeta::for('build/progress'),
             'pollMs'  => self::POLL_MS,
+            // /building is public read; the provision action carries its own
+            // operator gate, and this flag decides whether the card renders.
+            'canProvision' => (bool) $request->user()?->is_operator,
         ] + $this->snapshot());
+    }
+
+    /**
+     * POST /building/provision — the UI twin of institutions:provision
+     * (ruling 10). /building is a PUBLIC read, so this write carries its OWN
+     * operator gate. `dry_run` returns the missing-per-step preview inline
+     * (a cheap count); a real run is DISPATCHED to the queue, never run on the
+     * request — provisioning is planet-scale and set-based/chunked, and the
+     * existing 2s poll animates the bars as it fills.
+     */
+    public function provision(Request $request, InstitutionProvisionService $service): RedirectResponse
+    {
+        abort_unless($request->user()?->is_operator === true, 403, 'Provisioning is operator-triggered.');
+
+        $step = $request->input('step');
+        if ($step !== null && ! in_array($step, InstitutionProvisionService::STEPS, true)) {
+            return back()->withErrors([
+                'step' => 'Unknown step. Known: '.implode(', ', InstitutionProvisionService::STEPS),
+            ]);
+        }
+
+        if ($request->boolean('dry_run')) {
+            $steps = $step !== null ? [$step] : InstitutionProvisionService::STEPS;
+            $missing = [];
+            foreach ($steps as $s) {
+                $missing[] = $s.': '.number_format($service->pendingTotal($s));
+            }
+
+            return back()->with(
+                'status',
+                'Dry run — missing institutions by step: '.implode(', ', $missing).'. Nothing written.',
+            );
+        }
+
+        ProvisionInstitutionsJob::dispatch($step);
+
+        return back()->with(
+            'status',
+            'Provisioning queued — set-based and chunked; the build bars fill as it runs.',
+        );
     }
 
     public function progress(): JsonResponse
