@@ -248,6 +248,14 @@ export const TOUR = [
     { act: 'Run a node', href: '/operator', title: 'The operator plane', blurb: 'The volunteer servers the world runs on — keeping one online buys no vote and no seat.' },
     { act: 'Run a node', href: '/operator/dns', title: 'DNS & certificates', blurb: 'How a node is reached on the network, and how it proves it’s really itself.' },
     { act: 'Run a node', href: '/operator/moderation', title: 'Moderation & the legal floor', blurb: 'The only removals allowed — four narrow carve-outs, never a viewpoint.' },
+    /* The LIVE CIVIC ROOM keystone (lane 3, Slice 6 — landed 0f6ea40, desk-
+       unblocked). The meeting UUID is a lane-3 demo artifact (San Marino's
+       Committee on Public Works hearing): a public gallery read, walkable
+       logged-out, so it is a stable param stop rather than parent-reached. The
+       coverage instrument confirms it resolves via /rooms/committee/{meeting}.
+       More variants (a live legislative session) land as lane 3's step 5
+       completes — appended under this act as they announce. */
+    { act: 'Live rooms', href: '/rooms/committee/019fae79-aceb-73a8-a87a-8e25969f1e62', title: 'A live committee hearing', blurb: 'A committee meets in the open — anyone may watch, residents may testify, and every word goes on the permanent record. The chair runs the room; the system runs the bureaucracy.' },
 ];
 
 /* The first-visit track — a stranger's short arc through the tour, a subset of

@@ -150,6 +150,19 @@ const c = computed(() => drift.value.counts);
                 </li>
             </ul>
             <p v-else class="citation"><Icon name="check" size="sm" /> Every surface nav resolves to a menu id.</p>
+
+            <!-- known drift, deferred to the owning lane — recorded, not counted -->
+            <div v-if="drift.navAllowlisted.length" style="margin-block-start: var(--space-3)">
+                <p class="cc-small">
+                    <strong>Known drift — deferred ({{ drift.navAllowlisted.length }}).</strong>
+                    Recorded, not counted against the verdict; the owning lane resolves it.
+                </p>
+                <ul class="stack" style="gap: var(--space-1)">
+                    <li v-for="d in drift.navAllowlisted" :key="d.id" class="mono citation">
+                        {{ d.id }} nav=<strong>{{ d.nav }}</strong> — {{ d.note }}
+                    </li>
+                </ul>
+            </div>
         </Card>
 
         <!-- ─────────────────────────── tour runway (informational) ── -->

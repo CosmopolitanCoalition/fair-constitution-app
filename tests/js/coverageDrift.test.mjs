@@ -70,5 +70,26 @@ const seedNavDrift = computeCoverageDrift({
 ok(seedNavDrift.ok === false, 'seeded unresolved surface nav → ok:false');
 ok(seedNavDrift.navUnresolved.some((d) => d.nav === 'no-such-menu-id'), 'seeded unresolved surface nav → reported');
 
+console.log('\ncomputeCoverageDrift — the allowlist is green-with-record, not a blind pass:');
+
+/* An allowlisted nav is RECORDED but does NOT fail the verdict. */
+const allow = computeCoverageDrift({
+    surfaces: [...SURFACES, { id: 'l5/board', nav: 'translations', title: 'Board' }],
+    routes: ROUTES, nav: NAV, tour: TOUR,
+    navAllowlist: { translations: 'lane 5 — deferred' },
+});
+ok(allow.ok === true, 'allowlisted nav → ok STAYS true (green-with-record)');
+ok(allow.navAllowlisted.some((d) => d.nav === 'translations'), 'allowlisted nav → recorded in navAllowlisted');
+ok(!allow.navUnresolved.some((d) => d.nav === 'translations'), 'allowlisted nav → NOT counted in navUnresolved');
+
+/* The allowlist is NOT a blanket amnesty — an un-listed drift alongside it still fails. */
+const mixed = computeCoverageDrift({
+    surfaces: [...SURFACES, { id: 'l5/board', nav: 'translations', title: 'B' }, { id: 'z/z', nav: 'nope', title: 'Z' }],
+    routes: ROUTES, nav: NAV, tour: TOUR,
+    navAllowlist: { translations: 'lane 5' },
+});
+ok(mixed.ok === false, 'a non-allowlisted unresolved nav still fails despite an allowlist');
+ok(mixed.navUnresolved.some((d) => d.nav === 'nope'), 'the non-allowlisted drift is still reported');
+
 console.log(failed ? `\n${failed} FAILED` : '\nall passed');
 process.exit(failed ? 1 : 0);

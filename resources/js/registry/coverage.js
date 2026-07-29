@@ -50,6 +50,14 @@ export function pathServed(path, matchers) {
     return isConcrete(path) && matchers.some((re) => re.test(path));
 }
 
+/* Known nav drifts deferred to their owning lane (desk ruling 2026-07-29):
+   reported WITH a record but NOT counted against the headline, so the
+   instrument stays green-with-record rather than red-on-a-known. Keyed by the
+   config surface `nav` value; the note names who resolves it. */
+export const NAV_ALLOWLIST = {
+    translations: 'Lane 5 (Translation Scaling) — the translation board; its registry nav row lands at lane 5’s next pass.',
+};
+
 /**
  * @param {object} input
  * @param {Array<{id:string,nav:?string,module?:string,title?:string}>} input.surfaces  config/cga/surfaces.php via SurfaceMeta
@@ -57,7 +65,7 @@ export function pathServed(path, matchers) {
  * @param {Array<{id:string,href:?string,roles?:?string[],sandbox?:boolean,section:string}>} input.nav  flattened registry nav
  * @param {Array<{href:string,title:string,act?:string}>} input.tour  the TOUR
  */
-export function computeCoverageDrift({ surfaces = [], routes = [], nav = [], tour = [] }) {
+export function computeCoverageDrift({ surfaces = [], routes = [], nav = [], tour = [], navAllowlist = NAV_ALLOWLIST }) {
     const matchers = routes.map(patternToRegex);
     const registryIds = new Set(nav.map((n) => n.id));
     const tourPaths = new Set(tour.map((t) => staticPath(t.href)).filter(Boolean));
@@ -73,10 +81,16 @@ export function computeCoverageDrift({ surfaces = [], routes = [], nav = [], tou
         .filter((t) => isConcrete(t.path) && !pathServed(t.path, matchers));
 
     /* 3 — NAV CROSS-CHECK: every config surface `nav` must name a registry menu
-       id, else the active-nav highlight silently misses (SurfaceMeta::ids flag). */
+       id, else the active-nav highlight silently misses (SurfaceMeta::ids flag).
+       Allowlisted navs are known drift deferred to their owning lane — recorded
+       separately, not counted against the headline. */
     const withNav = surfaces.filter((s) => s.nav != null && s.nav !== '');
-    const navUnresolved = withNav
-        .filter((s) => !registryIds.has(s.nav))
+    const unresolvedAll = withNav.filter((s) => !registryIds.has(s.nav));
+    const navAllowlisted = unresolvedAll
+        .filter((s) => navAllowlist[s.nav])
+        .map((s) => ({ id: s.id, nav: s.nav, title: s.title, note: navAllowlist[s.nav] }));
+    const navUnresolved = unresolvedAll
+        .filter((s) => !navAllowlist[s.nav])
         .map((s) => ({ id: s.id, nav: s.nav, title: s.title }));
 
     /* 4 — TOUR GAP (informational): wired, player-reachable surfaces (no role
@@ -98,11 +112,13 @@ export function computeCoverageDrift({ surfaces = [], routes = [], nav = [], tou
         deadNavLinks,
         deadTourStops,
         navUnresolved,
+        navAllowlisted,
         tourGap,
         counts: {
             surfaces: surfaces.length,
             surfacesWithNav: withNav.length,
-            navResolved: withNav.length - navUnresolved.length,
+            navResolved: withNav.length - unresolvedAll.length,
+            navAllowlisted: navAllowlisted.length,
             navWired: wired.length,
             navPlanned: planned.length,
             tourStops: tour.length,

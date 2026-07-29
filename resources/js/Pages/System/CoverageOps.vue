@@ -18,7 +18,7 @@ import Card from '@/Components/Ui/Card.vue';
 import StatusBadge from '@/Components/Ui/StatusBadge.vue';
 import Banner from '@/Components/Ui/Banner.vue';
 import { PLAYER_NAV, SITEMAP, TOUR } from '@/registry/surfaces.js';
-import { flattenRegistryNav, computeCoverageDrift } from '@/registry/coverage.js';
+import { flattenRegistryNav, computeCoverageDrift, NAV_ALLOWLIST } from '@/registry/coverage.js';
 
 defineOptions({ layout: AppShellV2 });
 
@@ -54,7 +54,11 @@ const navMatrix = computed(() =>
 const surfaceMatrix = computed(() =>
     props.surfaces.map((s) => ({
         ...s,
-        navStatus: s.nav == null || s.nav === '' ? 'none' : registryIds.value.has(s.nav) ? 'resolves' : 'unresolved',
+        navStatus:
+            s.nav == null || s.nav === '' ? 'none'
+            : registryIds.value.has(s.nav) ? 'resolves'
+            : NAV_ALLOWLIST[s.nav] ? 'allowlisted'
+            : 'unresolved',
     })),
 );
 
@@ -67,7 +71,7 @@ const tourMatrix = computed(() =>
 );
 
 const tone = (s) =>
-    ({ served: 'success', resolves: 'success', dead: 'danger', unresolved: 'danger', planned: 'neutral', special: 'info', none: 'neutral' })[s] || 'neutral';
+    ({ served: 'success', resolves: 'success', dead: 'danger', unresolved: 'danger', allowlisted: 'info', planned: 'neutral', special: 'info', none: 'neutral' })[s] || 'neutral';
 </script>
 
 <template>

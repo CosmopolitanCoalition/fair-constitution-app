@@ -34,7 +34,7 @@ return [
     'civic/home' => [
         'title'     => 'Civic home',
         'module'    => 'civic',
-        'nav'       => 'civic-home',
+        'nav'       => 'home',
         // R-01 included: a fresh registrant lands here pre-residency (WI-8).
         'roles'     => ['R-01', 'R-03', 'R-04'],
         'workflows' => ['WF-CIV-02', 'WF-CIV-04', 'WF-CIV-06', 'WF-CIV-08'],
@@ -46,7 +46,7 @@ return [
     'civic/residency' => [
         'title'     => 'Residency',
         'module'    => 'civic',
-        'nav'       => 'civic-home',
+        'nav'       => 'home',
         'roles'     => ['R-01', 'R-02', 'R-03'],
         'workflows' => ['WF-CIV-02'],
         'forms'     => [
@@ -74,7 +74,7 @@ return [
     'civic/identity-verification' => [
         'title'     => 'Identity verification',
         'module'    => 'civic',
-        'nav'       => 'civic-home',
+        'nav'       => 'home',
         'roles'     => ['R-01'],
         'workflows' => ['WF-CIV-01'],
         'forms'     => [
@@ -87,7 +87,7 @@ return [
     'auth/register' => [
         'title'     => 'Create your account',
         'module'    => 'civic',
-        'nav'       => 'civic-home',
+        'nav'       => 'home',
         'roles'     => ['R-01'],
         'workflows' => ['WF-CIV-01'],
         'forms'     => [
@@ -811,7 +811,7 @@ return [
     'judiciary/case-docket' => [
         'title'     => 'Case docket',
         'module'    => 'judiciary',
-        'nav'       => 'case-docket',
+        'nav'       => 'public-docket',
         'roles'     => ['R-19', 'R-20', 'R-21', 'R-03'],
         'workflows' => ['WF-JUD-03'],
         'forms'     => [
@@ -827,7 +827,7 @@ return [
     'judiciary/case-detail' => [
         'title'     => 'Case detail',
         'module'    => 'judiciary',
-        'nav'       => 'case-docket',
+        'nav'       => 'public-docket',
         'roles'     => ['R-19', 'R-20', 'R-21', 'R-22'],
         'workflows' => ['WF-JUD-03', 'WF-JUD-04'],
         'forms'     => [
@@ -1095,7 +1095,7 @@ return [
     'build/progress' => [
         'title'     => 'Building the world',
         'module'    => 'jurisdictions',
-        'nav'       => 'build',
+        'nav'       => 'building',
         // Descriptive page metadata only — SurfaceMeta never gates a route.
         'roles'     => ['R-01', 'R-02', 'R-03', 'R-04'],
         'workflows' => ['WF-JUR-01'],
