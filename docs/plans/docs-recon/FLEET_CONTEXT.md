@@ -294,6 +294,13 @@ The insertion-count compare is the alarm that caught sweep #4 in minutes (staged
 committed +1332). If counts differ: soft-reset, rebuild the index, recommit — never push the
 swept commit, never rewrite a pushed one.
 
+Corollary from sweep #6 (4 lines, attribution noise only — but the mechanism generalizes):
+**the INDEX is shared too.** A peer can stage entries between your `git diff --cached` verify
+and your plain commit, and the plain commit takes them. Shrink the race window: do the
+filtered-patch, the foreign-entry reset (`git reset -- <their paths>` for anything staged
+that is not yours), the `git diff --cached` read, and the commit **in the SAME shell call**.
+The verify and the commit must not be separate turns.
+
 Two corollaries from sweep #5 (same night, same mechanism, lane 2):
 - **Remediation resets target the EXACT hash, never HEAD~N** — `git reset --soft HEAD~1`
   undid the DESK's newer commit because one had landed on top between lane 2's commit and

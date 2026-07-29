@@ -1,7 +1,7 @@
 {
  "asOf": "2026-07-29",
- "commit": "45d15a5",
- "wave": "WAVE 2 \u2014 lanes 15 + 4 slates COMPLETE; 13 built (migration batch closing); 2 on operator pages; lane 6 LAUNCHING (group 2 opens)",
+ "commit": "9782f59",
+ "wave": "WAVE 2 \u2014 heavies 2 + 15 COMPLETE, 4 complete-pending-report, 13 on the final migration batch; lane 6 launched; 3/1 next",
  "rows": [
   {
    "file": "civic/join.html",
@@ -1550,10 +1550,10 @@
    "area": "jurisdictions-sys",
    "areaLabel": "Jurisdictions + system",
    "owner": "lanes 1 \u00b7 2",
-   "bucket": "absent",
-   "effort": "L",
+   "bucket": "built",
+   "effort": "none",
    "page": "",
-   "route": "",
+   "route": "GET /jurisdictions/{slug}/bootstrap",
    "props": "none",
    "backend": "partial",
    "propsMissing": [],
@@ -1569,7 +1569,10 @@
    "appAhead": [
     "Jurisdictions/Show.vue already renders the activation state as a badge + timestamp (dormant/critical-population/bootstrapping/self-governing) \u2014 the mockup expects a whole page, the app has one line"
    ],
-   "notes": "ActivationService fully implements the machinery (threshold detection, bootstrap board constitution, institution seating, WF-JUR-01 audit trail) \u2014 the page, route, and a step-registry read model are what's missing."
+   "notes": "ActivationService fully implements the machinery (threshold detection, bootstrap board constitution, institution seating, WF-JUR-01 audit trail) \u2014 the page, route, and a step-registry read model are what's missing. CLOSED 2026-07-29 (7721372/d69aff0): 7-stage tracker DERIVED from real institutional facts (the mockup 30-step registry had no data source \u2014 its own gap); walked, Hikutavake 7/7.",
+   "page_path": "resources/js/Pages/Jurisdictions/Bootstrap.vue",
+   "page_exists": true,
+   "routed": true
   },
   {
    "file": "jurisdictions/disintermediation.html",
@@ -1577,10 +1580,10 @@
    "area": "jurisdictions-sys",
    "areaLabel": "Jurisdictions + system",
    "owner": "lanes 1 \u00b7 2",
-   "bucket": "absent",
-   "effort": "L",
+   "bucket": "built",
+   "effort": "none",
    "page": "",
-   "route": "",
+   "route": "GET /jurisdictions/{slug}/disintermediation",
    "props": "none",
    "backend": "full",
    "propsMissing": [],
@@ -1589,7 +1592,10 @@
     "Entire surface: unanimity + encompassing-consent meters, per-constituent consent table, law-merge conflict table with per-row incorporate/defer/lapse selects, topology-after strip, F-LEG-030 form card + vote submit"
    ],
    "appAhead": [],
-   "notes": "DisintermediationService is complete (MJV at BASIS_UNANIMITY + encompassing consent, LawMergeResolution, EnactmentService::amendLaw incorporation, F-LEG-030 handler, ChamberActService::proposeDisintermediation) but nothing in resources/js references it. RECONCILIATION FLAG: the mockup folds the dissolved layer's acts into the CONSTITUENTS; the service doc says acts are incorporated into the ENCOMPASSING jurisdiction \u2014 one of the two is wrong against Art. V \u00a78 and needs an operator ruling before the page is built."
+   "notes": "DisintermediationService is complete (MJV at BASIS_UNANIMITY + encompassing consent, LawMergeResolution, EnactmentService::amendLaw incorporation, F-LEG-030 handler, ChamberActService::proposeDisintermediation) but nothing in resources/js references it. RECONCILIATION FLAG: the mockup folds the dissolved layer's acts into the CONSTITUENTS; the service doc says acts are incorporated into the ENCOMPASSING jurisdiction \u2014 one of the two is wrong against Art. V \u00a78 and needs an operator ruling before the page is built. CLOSED 2026-07-29: F-LEG-030 door live; acts fold to CONSTITUENTS per ruling 2 (5f6615e).",
+   "page_path": "resources/js/Pages/Jurisdictions/Disintermediation.vue",
+   "page_exists": true,
+   "routed": true
   },
   {
    "file": "jurisdictions/district-mapper.html",
@@ -1617,10 +1623,10 @@
    "area": "jurisdictions-sys",
    "areaLabel": "Jurisdictions + system",
    "owner": "lanes 1 \u00b7 2",
-   "bucket": "partial",
-   "effort": "L",
+   "bucket": "built",
+   "effort": "none",
    "page": "resources/js/Pages/Jurisdictions/Federation.vue",
-   "route": "/federation",
+   "route": "GET /federation",
    "props": "none",
    "backend": "full",
    "propsMissing": [],
@@ -1631,7 +1637,10 @@
    "appAhead": [
     "The existing Federation.vue is the full operator/mesh console (peers, FF&C sync log, checkpoints, authority claims, cluster join, role channels) \u2014 content the v3 mockups relocated to operator/mesh.html"
    ],
-   "notes": "Name collision, not conformance: the v3 screen at this path is a NEW citizen page about border settlement, which is unbuilt in UI despite BorderSettlementService being complete (CivicPopulation::forArea denominator, supermajority via ConstitutionalValidator, jurisdiction_maps versioning, resident re-association). The mesh-console content on today's Federation.vue belongs to the operator module's reconciliation, not this row."
+   "notes": "Name collision, not conformance: the v3 screen at this path is a NEW citizen page about border settlement, which is unbuilt in UI despite BorderSettlementService being complete (CivicPopulation::forArea denominator, supermajority via ConstitutionalValidator, jurisdiction_maps versioning, resident re-association). The mesh-console content on today's Federation.vue belongs to the operator module's reconciliation, not this row. CLOSED 2026-07-29 (d69aff0): /federation = the citizen Between governments page over real border_settlements; operator console moved to /operator/federation (divergence note in queue re: mesh.html letter).",
+   "page_path": "resources/js/Pages/Jurisdictions/BetweenGovernments.vue",
+   "page_exists": true,
+   "routed": true
   },
   {
    "file": "jurisdictions/jurisdiction-browser.html",
@@ -1667,10 +1676,10 @@
    "area": "jurisdictions-sys",
    "areaLabel": "Jurisdictions + system",
    "owner": "lanes 1 \u00b7 2",
-   "bucket": "absent",
-   "effort": "L",
+   "bucket": "built",
+   "effort": "none",
    "page": "",
-   "route": "",
+   "route": "GET /jurisdictions/{slug}/restoration",
    "props": "none",
    "backend": "full",
    "propsMissing": [],
@@ -1679,7 +1688,10 @@
     "Entire surface: three activation-condition cards with met/not-detected badges, tier-cascade stepper (constituents \u2192 encompassing \u2192 individuals), legitimacy-scoring + defensive-forces cards, lifecycle state strip, drill banner reactive to an armed restoration event"
    ],
    "appAhead": [],
-   "notes": "RestorationService is complete (declare on countermanded/captured/destroyed, judicial confirmation required before activation, strict tier ordering, RestorationEvent model, WF-JUR-07 audit) with zero routes or UI. The page is mostly teaching content plus a read of restoration_events \u2014 the lightest of the four missing jurisdictions pages, but still page + controller."
+   "notes": "RestorationService is complete (declare on countermanded/captured/destroyed, judicial confirmation required before activation, strict tier ordering, RestorationEvent model, WF-JUR-07 audit) with zero routes or UI. The page is mostly teaching content plus a read of restoration_events \u2014 the lightest of the four missing jurisdictions pages, but still page + controller. CLOSED 2026-07-29: page live over RestorationService; walked.",
+   "page_path": "resources/js/Pages/Jurisdictions/Restoration.vue",
+   "page_exists": true,
+   "routed": true
   },
   {
    "file": "jurisdictions/union-formation.html",
@@ -1687,10 +1699,10 @@
    "area": "jurisdictions-sys",
    "areaLabel": "Jurisdictions + system",
    "owner": "lanes 1 \u00b7 2",
-   "bucket": "absent",
-   "effort": "L",
+   "bucket": "built",
+   "effort": "none",
    "page": "",
-   "route": "",
+   "route": "GET /jurisdictions/{slug}/union",
    "props": "none",
    "backend": "full",
    "propsMissing": [],
@@ -1701,7 +1713,10 @@
     "Entire surface: parties table, settings/institution compatibility diff with hardened-identical rows, radio codification workspace, dual ratification meters with whole-population denominators, join/exit mirror card, bicameral type_a/type_b preview, F-LEG-029 founding-act form + submit"
    ],
    "appAhead": [],
-   "notes": "UnionService is complete (dual ratification: applicant-population supermajority + constituent-jurisdiction supermajority via the PROTECTED MultiJurisdictionVote math; union_processes; F-LEG-029 handler; ChamberActService::proposeUnion) with no UI. Ratification meters and bicameral preview render straight off existing data; only the cross-instance compat diff needs new backend."
+   "notes": "UnionService is complete (dual ratification: applicant-population supermajority + constituent-jurisdiction supermajority via the PROTECTED MultiJurisdictionVote math; union_processes; F-LEG-029 handler; ChamberActService::proposeUnion) with no UI. Ratification meters and bicameral preview render straight off existing data; only the cross-instance compat diff needs new backend. CLOSED 2026-07-29: first real HTTP door for F-LEG-029 chamber proposals, seat-resolved + engine-guarded; walked (Niue offers as partner).",
+   "page_path": "resources/js/Pages/Jurisdictions/UnionFormation.vue",
+   "page_exists": true,
+   "routed": true
   },
   {
    "file": "operator/operator-home.html",
@@ -1757,7 +1772,10 @@
     "reach choice (solo vs open) with detected-origin self-URL suggestion",
     "per-channel needs-setup flags surfaced after establish"
    ],
-   "notes": "The backend for every wizard step is live (account create, .env profile write, founding-role establish, device-possession link); the surface shape diverges from the mockup's 5-step wizard. Page uses old setup chrome, not the v3 shell \u2014 expected for pre-shell bootstrap context."
+   "notes": "The backend for every wizard step is live (account create, .env profile write, founding-role establish, device-possession link); the surface shape diverges from the mockup's 5-step wizard. Page uses old setup chrome, not the v3 shell \u2014 expected for pre-shell bootstrap context. 2026-07-29 (bd0504b): five-step shape + four named-role cards + Path-B device-key card. Remaining M: pre-account Path-B (design question queued) + E2E walk rides the cloud bring-up rehearsal.",
+   "page_path": "resources/js/Pages/Setup/OperatorSetup.vue",
+   "page_exists": true,
+   "routed": true
   },
   {
    "file": "operator/console.html",
@@ -1836,10 +1854,10 @@
    "area": "operator",
    "areaLabel": "Operator plane",
    "owner": "lane 2",
-   "bucket": "absent",
-   "effort": "L",
+   "bucket": "partial",
+   "effort": "M",
    "page": "",
-   "route": "",
+   "route": "GET /operator/dns",
    "props": "none",
    "backend": "partial",
    "propsMissing": [],
@@ -1856,7 +1874,10 @@
     "write-only Cloudflare credential drop + forget (lives on Federation.vue broker-credentials section)",
     "cert expiry inventory (lives on /operator/operations)"
    ],
-   "notes": "No page and no route; the Home door detours to /operator/operations. The heavy backend is real \u2014 services/mesh-cert-broker (DNS-01 via Cloudflare+lego, CSR inspection, grant verification, DNS-first ordering) plus CertClient/CertGrant/BrokerAuthorization/BrokerFailover services \u2014 so this is a new read page + controller over existing services, with budget-rail/DDNS service work on top."
+   "notes": "No page and no route; the Home door detours to /operator/operations. The heavy backend is real \u2014 services/mesh-cert-broker (DNS-01 via Cloudflare+lego, CSR inspection, grant verification, DNS-first ordering) plus CertClient/CertGrant/BrokerAuthorization/BrokerFailover services \u2014 so this is a new read page + controller over existing services, with budget-rail/DDNS service work on top. 2026-07-29 (cde4b1c): page live; broker data paths proven; budget-rails/DDNS/wildcard render as LABELED FUTURES (designs in DNS_BROKER_FUTURES.md, nothing silent).",
+   "page_path": "resources/js/Pages/Operator/DnsConsole.vue",
+   "page_exists": true,
+   "routed": true
   },
   {
    "file": "operator/identity.html",
@@ -1887,10 +1908,10 @@
    "area": "operator",
    "areaLabel": "Operator plane",
    "owner": "lane 2",
-   "bucket": "absent",
-   "effort": "L",
+   "bucket": "built",
+   "effort": "none",
    "page": "",
-   "route": "",
+   "route": "GET /operator/moderation",
    "props": "none",
    "backend": "partial",
    "propsMissing": [],
@@ -1902,7 +1923,10 @@
     "the entire surface: legitimacy-flip FSM + below/above cards, four-carve-outs table with logged/never-logged column, per-user-block note, M-5 legal-floor card with the closed legal_basis chips and never-does rails"
    ],
    "appAhead": [],
-   "notes": "No page, no route; the Home door is a dead 'Planned - Phase I' placeholder. The constitutional backends are live and correctly shaped (F-SOC-003 seals a public_records violation before soft-delete, judicial-gated; F-SOC-004 key-possession legal floor with closed enum; viewpoint removal correctly has no code path) \u2014 mostly a read/explainer page plus the operator-relay leg."
+   "notes": "No page, no route; the Home door is a dead 'Planned - Phase I' placeholder. The constitutional backends are live and correctly shaped (F-SOC-003 seals a public_records violation before soft-delete, judicial-gated; F-SOC-004 key-possession legal floor with closed enum; viewpoint removal correctly has no code path) \u2014 mostly a read/explainer page plus the operator-relay leg. CLOSED 2026-07-29 (cde4b1c): F-SOC-003/004 operator surface live; 2 real carve-out rows render.",
+   "page_path": "resources/js/Pages/Operator/Moderation.vue",
+   "page_exists": true,
+   "routed": true
   },
   {
    "file": "operator/versioning.html",

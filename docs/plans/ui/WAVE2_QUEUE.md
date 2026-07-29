@@ -138,6 +138,32 @@ Type B election playtesting stays blocked fleet-wide until it ships.
 | ~~Real findings~~ | ~~LedgerIntegrity writers~~ | **CLOSED by lane 13 (`5c2742e`, Wave 2 item 1): SCAN HEURISTIC confirmed — every hit was a READ; zero writes. Pin rewritten to match writes not mentions, scope widened to database/+routes/, negative controls both directions; 13/13 green. Doctrine kept: reads are lawful — the ledger is PUBLIC; reader-privacy = accounts-never-people, never a hidden ledger.** | — |
 | ~~CgcIpPublicDomain~~ | ~~grant drift + catalog reference~~ | **CLOSED at the desk (`9ac567f`)** — born-failing grant revocation written as a real migration; doc-string false positive renamed; 6/6 green | — |
 
+## ⚖ NEW operator items from Wave 2 execution
+
+1. **Setup ORDER conflict — spec vs settled ruling (lane 2)**: the v3 mockup's setup flow puts
+   ACCOUNT before the founding FORK; the settled 2026-07-05 ruling (pinned in SetupController)
+   says FORK-FIRST. Lane 2 matched the mockup's shape only where the ruling allows; reordering
+   needs the operator's word. Options at review: re-rule to the mockup's order / fix the
+   mockup to fork-first.
+2. **Pre-account Path-B** (device-key linking with no local password) needs a pre-auth
+   endpoint — a trust-surface design question; the setup card states it honestly instead of
+   building silently.
+3. `seat_training_window_days` (default 30) — registration-day review (lane 15, §5.2).
+
+## Migration slot queue (one at a time)
+
+1. lane 13 — the joint-ledger/org-settings/restructures batch (IN FLIGHT, slot held)
+2. lane 6 — support lifecycle (subject + routing columns)
+3. lane 2 — `cluster_adoption_requests` class/mode declaration column (until then a
+   queue-admitted mirror declares at its first real handshake — recorded, safe)
+
+## Attribution corrections (permanent record — history is never rewritten)
+
+- **`cde4b1c`** (lane 2, the operator pages) also carries lane 15's 4-line `/people` throttle
+  hunk — staged into the shared index between lane 2's verify and commit (sweep #6, the
+  index-race mechanism; law corollary recorded in FLEET_CONTEXT). Complete and self-contained;
+  attribution noise only.
+
 ## ⚖ Operator items accumulated during Wave 1
 
 - ~~Art. I elected-training-gate placement~~ — **RULED 2026-07-28: PRE-SEATING** ("you need
