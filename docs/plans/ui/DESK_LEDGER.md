@@ -346,6 +346,19 @@ invited check ("check me on it") found: the engine already seats islands via the
 sound iff both clips hold; antimeridian guarding is real and already precedented; and
 hull-CONTACT adjacency for GROUPING reduces to a buffered proximity graph (hulls of separated
 islands never touch — the buffer distance d becomes a free parameter controlling everything).
+**LANE 13 ECONOMY BUILD 4/6 shipped (migration-free half, commit-law clean): dues 18fd02d
+(set()-merges-onto-persisted footgun fixed) · telemetry 5940c99 (account-clean, source-scan
+pinned) · exchange 3f6da2a (fungible/non-fungible over F-IND-022, order book honest "not built")
+· F-ORG-008 share issuance 07ae162 (equity on the NAMED plane, stock-only, agent-gated; count
+115→116 PINNED). MIGRATION SLOT GRANTED for pieces 5-6 (the anticipated agreements/redlines
+exception) — 4 additive tables (clauses/redlines/resident_agreements/resident_agreement_signers)
+as ONE migration ≥210000, migrations-folder discipline enforced, no foreign pending. TWO FLAGS
+DISPOSED: (1) founding-stake-on-registration DEFERRED to Wave 4 (structure-aware — 100% stake
+wrong for member-owned/nonprofit; touches F-IND-012) — desk-confirmed; (2) secondary share
+TRADING DEFERRED to Wave 4 (operator ruled ISSUANCE, delivered; secondary needs own schema +
+his ruling; shares floor stays honest-empty) — surfaced to operator, doesn't block 5-6. P2P
+agreement form = a mint → 116→117 pinned in the build.**
+
 **⚑ WAVE 3 CLOSE TALLY (2026-07-29 ~12:15, HEAD=origin, all pushed):**
 - **CLOSED (four-way confirmed): lanes 1, 2, 4, 6.** Lane 2 SLOT CLEAR — coordinator migration
   landed 82f4683 (re-dated 200000, LAST in slot; down() proven batch-scoped so lane 15's batch
