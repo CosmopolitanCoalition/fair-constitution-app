@@ -917,3 +917,38 @@ the file). 11/13 gap-specs in; batch plan pending.
 **TINKER on the dev box (fleet tip):** `docker exec -u www-data -e HOME=/tmp fcd_app php artisan tinker
 --execute='…'` — psysh can't write /var/www/.config/psysh as www-data. Renders controllers/props fast,
 no browser.
+
+### W4 tick 8 — ⚑ THE ATLAS IS LIVE & GREEN (split reversed) + phantom-tables fleet warning
+
+**LANE 4 — ATLAS DONE, WALKED, GREEN.** `8d03a19` (System/Atlas.vue 896-line mockup port +
+AtlasController + surface + registry href + /atlas route + 8 pins; 7 files, 1741 ins) + `69401f5`
+(ATLAS_DESIGN.md corrections, docs). WALKED: /atlas → 200; 9 domain cards; living map 25 places from
+real PostGIS centroids (Niue, San Marino); Earth reach 2.06% off real legitimacy_snapshots; economy/people
+Planned per Q4; every unmeasured figure an em-dash (never 0); zero console errors. Green:
+AtlasGaugeNeverLeverTest 4/4 · AtlasPageTest 4/4 (303 asserts) · coverageDrift green.
+**HEADLINE: the Atlas is TRUTHFUL with NO rollup table** — suppression rail (null→'—', never 0) renders
+an unmeasured world as gaps, not zeros. So world_stats no longer blocks the SCREEN or CAPABILITY (it only
+turns gaps into numbers).
+
+**⚑ ATLAS SPLIT REVERSED (desk).** Tick-5 ruled a page(L6)/backend(L4) split; lane 4 built the FULL page
+GREEN + WALKED before it propagated, and lane 6 correctly hadn't started (waiting for props). Rebuild for
+org-chart tidiness = waste. **Lane 4 owns the Atlas end-to-end.** Lane 6 stood down on the page; offered an
+OPTIONAL a11y review pass (findings-to-L4, no rebuild). No work lost. RUBRIC delta: atlas screen ABSENT→built,
+Atlas capability → working (badge L4W4).
+
+**⚑ PHANTOM-TABLES FLEET WARNING (broadcast to L6/L13/L2).** Lane 4 found THREE phantom tables in its own
+APPROVED design by reading information_schema, not the doc — v3 mockups carry FIXTURE table names ≠ real
+schema: candidates → **candidacies** (endorsements.candidate_id points there) · boards_of_governors →
+**boards** (seats in board_seats) · **personas DOES NOT EXIST** (dev-tool concept, no table). Shape traps:
+jurisdictions stores a PostGIS **centroid** POINT (not lat/lng); federation_peers has **no geometry** and no
+label/base_url/role/is_self (real peer lifecycle = discovered…departed, mockup vocab was fiction);
+legislature_members holds elected AND term_ended → naive count over-reports current seats **~2.5×**. RULE:
+verify every table+column against information_schema before wiring a mockup port.
+
+**⚑ routes/web.php has ≥2 LIVE EDITORS** (lane 4 caught + preserved lane 15's 2 unstaged route lines via
+partial-stage). Reminded the mockup-porting lanes: edit routes LAST, stage ONLY your hunk or use the CAS commit.
+
+**ACCEPTED:** GuardsSyntheticData must NOT gate the world:stats rollup refresh (it stops synthetic MINTING;
+a rollup recomputes a real public aggregate, mints nothing — gating denies ops the live gauge; rail
+untouched). PUNCH ITEM: SnapshotLegitimacyJob has no CLI twin (parity gap; Reach owner). SLOT: world_stats
+OPEN for L4 (take when the computation's ready); L3 agenda + L13 secondary-trading behind.
