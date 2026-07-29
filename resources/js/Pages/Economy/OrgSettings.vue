@@ -112,12 +112,25 @@ const savePeriod = () => periodForm.post(settingsPath, { preserveScroll: true })
         <!-- ------------------------------------------------------ shares -->
         <Card as="section" title="Shares">
             <p v-if="!shares.issued" class="econ-absent">
-                {{ shares.note }}
+                {{ shares.issuable ? 'No shares issued yet.' : shares.note }}
             </p>
             <template v-else>
                 <dl class="econ-facts">
-                    <div><dt>Total issued</dt><dd>{{ formatMoney(shares.total_units, null) }}</dd></div>
+                    <div><dt>Total issued</dt><dd>{{ formatMoney(shares.total_units, null) }} units</dd></div>
+                    <div><dt>Holders</dt><dd>{{ shares.holders.length }}</dd></div>
                 </dl>
+                <table class="cap-table">
+                    <thead>
+                        <tr><th scope="col">Holder</th><th scope="col">Units</th><th scope="col">Share</th></tr>
+                    </thead>
+                    <tbody>
+                        <tr v-for="(h, i) in shares.holders" :key="i">
+                            <td>{{ h.holder }}</td>
+                            <td>{{ formatMoney(h.units, null) }}</td>
+                            <td>{{ h.pct !== null ? h.pct + '%' : '—' }}</td>
+                        </tr>
+                    </tbody>
+                </table>
             </template>
             <p class="econ-note">
                 An organization may issue equity <strong>shares</strong> — never a currency (that is
@@ -154,4 +167,6 @@ const savePeriod = () => periodForm.post(settingsPath, { preserveScroll: true })
 .dues-dial-row input { flex: 1 1 auto; }
 .dues-err { color: var(--gov-danger, #b00); font-size: var(--text-sm, 0.875rem); }
 .econ-note { font-size: var(--text-sm, 0.875rem); color: var(--gov-fg-muted, #778); }
+.cap-table { inline-size: 100%; border-collapse: collapse; margin-block: var(--space-3, 1rem); }
+.cap-table th, .cap-table td { text-align: start; padding: var(--space-2, 0.5rem); border-block-end: 1px solid var(--gov-border, #dde); }
 </style>

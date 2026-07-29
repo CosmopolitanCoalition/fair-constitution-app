@@ -100,6 +100,11 @@ class FormRegistry
         'F-ORG-005' => ['name' => 'Ownership Transfer Initiation',              'roles' => ['R-23']],
         'F-ORG-006' => ['name' => 'Public-Private Conversion Request',          'roles' => ['R-23', 'R-09']],
         'F-ORG-007' => ['name' => 'Organization Dissolution',                   'roles' => ['R-23']],
+        // F-ORG-008 — the org economy's ACTS door (Design Round 2; operator
+        // ruling 2026-07-29). POLICY dials ride F-ORG-001; world-changing acts
+        // ride here. First action: issue_shares (equity, Art. III §5 — never a
+        // currency, never money). Action-dispatched, like F-ORG-001.
+        'F-ORG-008' => ['name' => 'Organization Market Participation',          'roles' => ['R-23']],
         // F-ORG-009 — internal restructuring (Wave 2 item 6b). The OWNERS'
         // act, deliberately not an agent form: consent is per stake holder,
         // thresholds per the CURRENT structure's own rules. R-01 proves
@@ -357,6 +362,7 @@ class FormRegistry
         'F-ORG-005' => Handlers\OwnershipTransferInitiation::class,
         'F-ORG-006' => Handlers\PublicPrivateConversionRequest::class,
         'F-ORG-007' => Handlers\OrganizationDissolution::class,
+        'F-ORG-008' => Handlers\OrganizationMarketParticipation::class,
         'F-ORG-009' => Handlers\InternalRestructuring::class,
         'F-LEG-019' => Handlers\CgcCreationAct::class,
         'F-LEG-026' => Handlers\MonopolyAcquisitionVote::class,

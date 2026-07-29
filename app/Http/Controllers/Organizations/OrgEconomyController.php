@@ -58,14 +58,7 @@ class OrgEconomyController extends Controller
                 'is_cgc'    => (bool) $organization->is_cgc,
             ],
             'dues'   => $this->duesProp($organization),
-            // Piece 4 (F-ORG-008 share issuance) fills this; honest-absence
-            // until then — a zero-row table would imply shares exist.
-            'shares' => [
-                'issued'      => false,
-                'holders'     => [],
-                'total_units' => '0.000000',
-                'note'        => 'Share issuance (F-ORG-008) is not yet enabled for this organization.',
-            ],
+            'shares' => $this->sharesProp($organization),
         ]);
     }
 
@@ -86,6 +79,58 @@ class OrgEconomyController extends Controller
             'amount'      => $amount === null ? null : (string) $amount,
             'period_days' => $period === null ? null : (int) $period,
         ];
+    }
+
+    /**
+     * The cap table, on the NAMED ownership plane (Ruling B). Who owns a
+     * company is a public fact — equity holders appear by name here, which is
+     * NOT the pseudonymous money plane. Only a STOCK organization issues
+     * shares (F-ORG-008); elsewhere ownership is by membership, and this
+     * renders honest-absence.
+     *
+     * @return array{issued: bool, issuable: bool, holders: list<array<string, mixed>>, total_units: string, note: string}
+     */
+    private function sharesProp(Organization $organization): array
+    {
+        $issuable = (string) $organization->structure === Organization::STRUCTURE_STOCK;
+
+        $stakes = DB::table('org_ownership_stakes')
+            ->where('organization_id', $organization->id)
+            ->whereNull('ended_at')
+            ->orderByDesc('units')
+            ->get(['holder_type', 'holder_id', 'units', 'pct', 'acquired_via']);
+
+        $holders = $stakes->map(fn ($s) => [
+            'holder' => $this->holderName((string) $s->holder_type, (string) $s->holder_id),
+            'units'  => (string) $s->units,
+            'pct'    => $s->pct === null ? null : (string) $s->pct,
+            'via'    => (string) $s->acquired_via,
+        ])->all();
+
+        $total = $stakes->reduce(fn ($c, $s) => bcadd((string) $c, (string) $s->units, 6), '0');
+
+        return [
+            'issued'      => count($holders) > 0,
+            'issuable'    => $issuable,
+            'holders'     => $holders,
+            'total_units' => $total,
+            'note'        => $issuable
+                ? 'Equity shares are a public ownership fact, recorded by name. The money that changes hands when a share trades stays on the private wallet ledger.'
+                : 'Ownership here is by membership, not shares — only a stock organization issues equity (Art. III §5).',
+        ];
+    }
+
+    private function holderName(string $type, string $id): string
+    {
+        if ($type === 'organizations') {
+            return (string) (DB::table('organizations')->where('id', $id)->value('name') ?? 'An organization');
+        }
+        if ($type === 'jurisdictions') {
+            return (string) (DB::table('jurisdictions')->where('id', $id)->value('name') ?? 'A jurisdiction');
+        }
+
+        // users — the named ownership plane (Ruling B), never the money plane.
+        return (string) (DB::table('users')->where('id', $id)->value('name') ?? 'A holder');
     }
 
     private function maySteer(Organization $org, Request $request): bool
