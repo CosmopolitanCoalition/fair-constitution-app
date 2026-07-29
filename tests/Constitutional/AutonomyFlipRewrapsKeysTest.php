@@ -19,6 +19,7 @@ use App\Services\Jurisdictions\LocalAutonomyService;
 use App\Services\MultiJurisdictionVoteService;
 use App\Services\TabulationRecorder;
 use App\Services\VoteCountingService;
+use App\Support\CivicPopulation;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
@@ -279,7 +280,11 @@ class AutonomyFlipRewrapsKeysTest extends TestCase
 
         $svc = app(LocalAutonomyService::class);
         $process = $svc->open($legislature, $gaining);
-        $svc->markPromotingSupermajority($process, 3); // population 3 → supermajority 2 → met
+        // Every active resident votes yes — met by construction. The leaf is
+        // picked from the SHARED world, which may already hold residents, so a
+        // hardcoded yes-count borrows an emptiness nobody guarantees; the
+        // fixture establishes what its subject requires instead.
+        $svc->markPromotingSupermajority($process, CivicPopulation::of($jurisdictionId));
         $this->consentParent($process);                 // parent MJV passes (unanimity of 1)
 
         return [

@@ -9,6 +9,7 @@ use App\Models\MultiJurisdictionVote;
 use App\Models\User;
 use App\Services\Jurisdictions\LocalAutonomyService;
 use App\Services\MultiJurisdictionVoteService;
+use App\Support\CivicPopulation;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 use Tests\Concerns\LivePgConnection;
@@ -68,9 +69,16 @@ class LocalAutonomyGovernedTest extends TestCase
                 'no flip with neither meter');
 
             // PROMOTING supermajority alone (parent has NOT consented) → refused.
+            // Yes votes = the leaf's ACTUAL civic population (the shared world
+            // may already hold residents here), and the meter is asserted MET so
+            // the block below provably comes from the missing parent consent.
             $this->seedResidents($jurisdictionId, 3);
             $promotingOnly = $svc->open($legislature, $gaining);
-            $svc->markPromotingSupermajority($promotingOnly, 3);
+            $svc->markPromotingSupermajority($promotingOnly, CivicPopulation::of($jurisdictionId));
+            $this->assertTrue(
+                (bool) $promotingOnly->refresh()->promoting_supermajority_met,
+                'the promoting meter must be MET for this leg to test the parent gate'
+            );
             $this->assertFinalizeBlocked($svc, $promotingOnly);
 
             // PARENT consent alone (promoting NOT at supermajority) → refused.
@@ -92,7 +100,9 @@ class LocalAutonomyGovernedTest extends TestCase
             $this->seedResidents($jurisdictionId, 3);
 
             $process = $svc->open($this->legislatureFor($jurisdictionId, Legislature::STATUS_ACTIVE), $gaining);
-            $svc->markPromotingSupermajority($process, 3); // population 3 → supermajority 2 → met
+            // Every active resident votes yes — met by construction on a shared
+            // world whose leaves may already hold residents.
+            $svc->markPromotingSupermajority($process, CivicPopulation::of($jurisdictionId));
             $this->consentParent($process);                 // parent MJV passes (supermajority of 1 = 1)
 
             $passed = $svc->finalize($process)->process;

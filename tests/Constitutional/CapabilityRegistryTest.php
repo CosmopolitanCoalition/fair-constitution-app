@@ -7,6 +7,7 @@ use App\Models\InstanceCapability;
 use App\Services\Federation\CapabilityService;
 use App\Services\Federation\InstanceIdentityService;
 use App\Services\RoleService;
+use App\Support\InstanceClass;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 use Tests\Concerns\LivePgConnection;
@@ -159,9 +160,17 @@ class CapabilityRegistryTest extends TestCase
         app(RoleService::class)->flush();
         $conn->beginTransaction();
 
+        // The handshake fixture fakes a peer advertising NO instance_class,
+        // which normalizes to `production` — the subject here is the capability
+        // registry, so the fixture establishes a production-classed local side
+        // rather than borrowing the shared box's scale_demo class and tripping
+        // the SYMMETRIC class rule (pinned in ClassScopedFederationTest).
+        InstanceClass::override(InstanceClass::PRODUCTION);
+
         try {
             $body();
         } finally {
+            InstanceClass::flush();
             while ($conn->transactionLevel() > 0) {
                 $conn->rollBack();
             }

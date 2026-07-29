@@ -7,6 +7,7 @@ use App\Models\FederationTransport;
 use App\Services\Federation\InstanceIdentityService;
 use App\Services\Federation\PeerService;
 use App\Services\Federation\TransportService;
+use App\Support\InstanceClass;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Str;
@@ -126,10 +127,20 @@ class PeerTransportLearningTest extends TestCase
         DB::setDefaultConnection(self::LIVE_CONNECTION);
         $conn->beginTransaction();
 
+        // These fixtures fake pre-Phase-O peers that advertise NO class, which
+        // normalizes to `production` — so the subject under test (transport
+        // learning) requires a production-classed local side, or the SYMMETRIC
+        // class rule (ClassScopedFederationTest's pin, untouched here) refuses
+        // the peering before any transport is learned. The fixture establishes
+        // what its subject requires rather than borrowing the shared box's
+        // class, which is scale_demo.
+        InstanceClass::override(InstanceClass::PRODUCTION);
+
         try {
             app(InstanceIdentityService::class)->ensureIdentity();
             $body();
         } finally {
+            InstanceClass::flush();
             while ($conn->transactionLevel() > 0) {
                 $conn->rollBack();
             }
