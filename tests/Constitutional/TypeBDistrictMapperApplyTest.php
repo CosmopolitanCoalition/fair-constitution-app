@@ -12,11 +12,12 @@ use Tests\TestCase;
 
 /**
  * THE TYPE B MAPPER, END TO END — a flagged chamber is grouped, un-flagged, and
- * its Type B race becomes schedulable. This is the whole point of stage two: the
- * R-A guard (ElectionLifecycleService) blocks the at-large Type B race while
- * type_b_needs_districting is set; applying a grouping clears the flag and the
- * guard stops firing — line 676 emits the single at-large race with no other
- * downstream change.
+ * its Type B race becomes schedulable IN THE CORRECT SHAPE. This is the whole
+ * point of stage two: the R-A guard (ElectionLifecycleService) blocks the Type B
+ * half while type_b_needs_districting is set; applying an ACTIVE grouping clears
+ * the flag and racePlan emits one at-large race PER CLUMP — a panel each, keyed
+ * by type_b_panel_id (operator ruling 2026-07-29, one at-large race per clump,
+ * NEVER one pooled race).
  *
  * Runs against the live founded box inside a rolled-back transaction (the audit
  * genesis head stays intact). No rail weakened.
@@ -100,11 +101,26 @@ class TypeBDistrictMapperApplyTest extends TestCase
             $this->assertLessThanOrEqual((int) $leg->type_a_seats, (int) $leg->type_b_seats,
                 'grouped Type B no longer exceeds Type A');
 
-            // AFTER: the R-A guard un-blocks — ONE at-large Type B race schedules.
+            // AFTER: the R-A guard un-blocks — the Type B half is PER-CLUMP.
             $after = app(ElectionLifecycleService::class)->racePlan(Legislature::find($legId));
-            $this->assertSame('at_large', $after['kinds']['type_b']['mode'] ?? null,
-                'the instant the flag clears, the Type B race is at-large and schedulable');
-            $this->assertSame(4, $after['kinds']['type_b']['seats'] ?? null, 'it elects the grouped seat count');
+            $this->assertSame('panels', $after['kinds']['type_b']['mode'] ?? null,
+                'the instant the flag clears, the Type B half elects one race per clump');
+            $panels = collect($after['kinds']['type_b']['panels']);
+            $this->assertCount(2, $panels, 'one race per panel — 2 panels');
+            $this->assertSame([2, 2], $panels->map(fn ($p) => (int) $p->seats)->all(),
+                'each panel elects its rep_floor (2) seats');
+
+            // createRaces materialises exactly ONE at-large race per panel, each
+            // carrying its type_b_panel_id (the clump key) — never one pooled race.
+            $election = app(ElectionLifecycleService::class)->scheduleGeneral(Legislature::find($legId));
+            $typeBRaces = DB::table('election_races')
+                ->where('election_id', $election->id)->where('seat_kind', 'type_b')->get();
+            $this->assertCount(2, $typeBRaces, 'two per-clump at-large races, not one pooled race');
+            $this->assertSame(0, $typeBRaces->whereNull('type_b_panel_id')->count(),
+                'every per-clump race carries its panel key');
+            $this->assertSame(4, (int) $typeBRaces->sum('seats'), 'sum of per-clump seats = the grouped total');
+            $this->assertSame(0, $typeBRaces->where('district_id', '!=', null)->count(),
+                'per-clump races are at-large (no district_id)');
         });
     }
 

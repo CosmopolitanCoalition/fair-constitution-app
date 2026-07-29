@@ -334,17 +334,22 @@ class ElectionStageTest extends TestCase
             $this->assertNotContains('type_b', $result['blocked_kinds'] ?? [],
                 'the Type B half is no longer blocked once the flag clears');
 
-            $typeBRace = DB::table('election_races')
+            $typeBRaces = DB::table('election_races')
                 ->where('election_id', $result['election_id'])
                 ->where('seat_kind', 'type_b')
-                ->first();
+                ->get();
 
-            $this->assertNotNull($typeBRace,
-                'the sim scheduled the type_b race the mapper unlocked — the stage deferred, no edit here');
-            $this->assertSame($groupedSeats, (int) $typeBRace->seats,
-                'at its grouped seat count (panel_count × rep_floor)');
-            $this->assertNull($typeBRace->district_id,
-                'at-large: the jurisdiction IS the district (B1 — panels allocate inside the one race)');
+            // The mapper unlocked the Type B half in the CORRECT shape: one
+            // at-large race PER CLUMP (operator ruling 2026-07-29), NOT one pooled
+            // race. The sim stage still just defers to racePlan — no edit here.
+            $this->assertSame($applied['panel_count'], $typeBRaces->count(),
+                'the sim scheduled one at-large race per clump the mapper unlocked — the stage deferred, no edit here');
+            $this->assertSame($groupedSeats, (int) $typeBRaces->sum('seats'),
+                'Σ per-clump seats = the grouped total (panel_count × rep_floor)');
+            $this->assertSame(0, $typeBRaces->whereNull('type_b_panel_id')->count(),
+                'each per-clump race carries its panel key');
+            $this->assertSame(0, $typeBRaces->where('district_id', '!=', null)->count(),
+                'at-large: each clump votes at-large for its own seats');
         });
     }
 
