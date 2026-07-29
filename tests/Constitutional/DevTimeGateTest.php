@@ -136,6 +136,23 @@ class DevTimeGateTest extends TestCase
                 'a mesh made only of declared demo instances may time-travel (ruling 2026-07-28)',
             );
 
+            // A peer that declared game_mode = sandbox (and NO instance class)
+            // is equally a demo declaration — the rail honours either field,
+            // and the handshake now carries both (lane 2, Wave 2).
+            \Illuminate\Support\Facades\DB::table('federation_peers')->insert([
+                'server_id' => (string) \Illuminate\Support\Str::uuid(),
+                'url' => 'http://sandbox-peer.test',
+                'status' => 'trust_established',
+                'metadata' => json_encode(['game_mode' => 'sandbox']),
+                'created_at' => now(),
+                'updated_at' => now(),
+            ]);
+
+            $this->assertNull(
+                DevTimeControlsEnabled::refusalReason(),
+                'a declared game_mode=sandbox peer counts as a demo — the rail honours either declaration',
+            );
+
             // A mirror of that declared demo host is part of the same demo mesh.
             \Illuminate\Support\Facades\DB::table('instance_settings')
                 ->update(['mirror_of_server_id' => $demoServerId]);

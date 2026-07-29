@@ -5,6 +5,7 @@ namespace App\Services\Federation;
 use App\Models\InstanceSettings;
 use Illuminate\Support\Facades\Crypt;
 use RuntimeException;
+use App\Support\GameMode;
 use App\Support\InstanceClass;
 
 /**
@@ -196,6 +197,13 @@ class InstanceIdentityService
             // Advertised (and therefore signed) rather than inferred, because a
             // remote instance cannot see our local column.
             'instance_class' => InstanceClass::current(),
+            // RULED 2026-07-28 (V3_SYNTHESIS_PLAN §10 item 4) — our GAME MODE.
+            // The dev-time rail counts a peer as demo ONLY when its SIGNED
+            // handshake declared it (instance_class = scale_demo OR game_mode =
+            // sandbox); this field is what lights up sandbox multibox playtests.
+            // Null when the world has not been founded yet — undeclared reads
+            // as real on the receiving side, the fail-closed direction.
+            'game_mode' => GameMode::current(),
         ];
     }
 

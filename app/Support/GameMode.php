@@ -56,6 +56,21 @@ class GameMode
         return self::$cached;
     }
 
+    /**
+     * Coerce an EXTERNAL, untrusted declared mode (a peer's signed handshake
+     * or adoption field) to a known mode, or null when undeclared.
+     *
+     * Unlike InstanceClass::normalize, absence does NOT coerce to production —
+     * it stays null, because the dev-time rail (ruling 2026-07-28, §10 item 4)
+     * opens only on an AFFIRMATIVE 'sandbox' declaration, and "said nothing"
+     * must remain distinguishable from "declared production". Both read as
+     * real downstream; only the exact declared value is worth storing.
+     */
+    public static function normalize(mixed $value): ?string
+    {
+        return in_array($value, [self::PRODUCTION, self::SANDBOX], true) ? $value : null;
+    }
+
     public static function isSandbox(): bool
     {
         return self::current() === self::SANDBOX;

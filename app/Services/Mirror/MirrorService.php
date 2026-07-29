@@ -15,6 +15,8 @@ use App\Services\Federation\InstanceIdentityService;
 use App\Services\Federation\PeerService;
 use App\Services\Federation\SyncProgressService;
 use App\Services\MapDataImportService;
+use App\Support\GameMode;
+use App\Support\InstanceClass;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
@@ -135,6 +137,7 @@ class MirrorService
         string $plaintextKey,
         ?string $applicantUrl = null,
         array $negotiation = [],
+        array $declared = [],
     ): ClusterMembership {
         if ($applicantServerId === '' || $applicantPublicKey === '' || $nonce === '' || $plaintextKey === '') {
             throw new AdoptionRejected('incomplete_adoption_request', 422);
@@ -143,7 +146,7 @@ class MirrorService
             throw new AdoptionRejected('refuse_self', 422);
         }
 
-        return DB::transaction(function () use ($applicantServerId, $applicantPublicKey, $nonce, $plaintextKey, $applicantUrl, $negotiation): ClusterMembership {
+        return DB::transaction(function () use ($applicantServerId, $applicantPublicKey, $nonce, $plaintextKey, $applicantUrl, $negotiation, $declared): ClusterMembership {
             // Anti-replay: a duplicate (applicant, nonce) raises the unique index.
             $request = ClusterAdoptionRequest::create(array_merge([
                 'applicant_server_id' => $applicantServerId,
@@ -159,8 +162,20 @@ class MirrorService
                 throw new AdoptionRejected('invalid_or_exhausted_key', 403);
             }
 
+            // The applicant's declared class + mode ride the signature-verified
+            // adopt body (ruling §10 item 4) — pinned here so an adoption-minted
+            // mirror row can count as demo-mesh membership. Only a PRESENT
+            // declaration is pinned (a silent exchange never clobbers an earlier
+            // signed one); absent stays undeclared = real to the dev-time rail.
+            $peerAttrs = [
+                'url' => $applicantUrl,
+                'game_mode' => GameMode::normalize($declared['game_mode'] ?? null),
+            ];
+            if (($declared['instance_class'] ?? null) !== null) {
+                $peerAttrs['instance_class'] = InstanceClass::normalize($declared['instance_class']);
+            }
             $peer = $this->peers->upsertTrustedPeer(
-                $applicantServerId, $applicantPublicKey, ['url' => $applicantUrl],
+                $applicantServerId, $applicantPublicKey, $peerAttrs,
                 FederationPeer::RELATION_MIRROR, 'mirror_admitted'
             );
 
@@ -214,6 +229,13 @@ class MirrorService
             'key' => $plaintextKey,
             'nonce' => $nonce,
             'url' => config('cga.federation_self_url'),
+            // RULED §10 item 4 — the adoption exchange carries our declared
+            // class and mode (the body is signature-verified, so this is a
+            // signed declaration, same trust grade as the handshake). Without
+            // it every adoption-minted peer row reads as REAL and a demo mesh
+            // stays time-frozen.
+            'instance_class' => InstanceClass::current(),
+            'game_mode' => GameMode::current(),
         ], $this->negotiationBody($negotiation)));
 
         if (! $response->successful()) {
@@ -236,6 +258,9 @@ class MirrorService
             'public_key' => $this->identity->publicKey(),
             'nonce' => bin2hex(random_bytes(16)),
             'url' => config('cga.federation_self_url'),
+            // Same signed declaration as the keyed path (ruling §10 item 4).
+            'instance_class' => InstanceClass::current(),
+            'game_mode' => GameMode::current(),
         ], $this->negotiationBody($negotiation)));
 
         if ($response->status() === 202) {
@@ -270,6 +295,18 @@ class MirrorService
         if (is_string($body['host_name'] ?? null) && $body['host_name'] !== '') {
             $attrs['name'] = (string) $body['host_name'];
         }
+
+        // Pin the host's declared class + mode (ruling §10 item 4) so a mirror
+        // of a declared demo host counts as demo-mesh membership to the
+        // dev-time rail. Only a PRESENT declaration is pinned — an older host
+        // omits both, and the upsert then preserves anything an earlier signed
+        // handshake declared (never clobbered by a silent exchange). Absent
+        // stays undeclared = real to the rail: fail closed.
+        if (isset($body['host_instance_class'])) {
+            $attrs['instance_class'] = InstanceClass::normalize($body['host_instance_class']);
+        }
+        $attrs['game_mode'] = GameMode::normalize($body['host_game_mode'] ?? null);
+
         $host = $this->pinHost($hostServerId, $hostPublicKey, $attrs);
 
         $membership = $this->openMirrorMembership($host, $admissionMethod, is_string($scope) ? $scope : null);

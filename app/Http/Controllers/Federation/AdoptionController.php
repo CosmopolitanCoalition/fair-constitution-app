@@ -9,6 +9,8 @@ use App\Models\InstanceSettings;
 use App\Services\Federation\InstanceIdentityService;
 use App\Services\Mirror\AdoptionRejected;
 use App\Services\Mirror\MirrorService;
+use App\Support\GameMode;
+use App\Support\InstanceClass;
 use Illuminate\Database\QueryException;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -49,6 +51,17 @@ class AdoptionController extends Controller
             'note' => isset($body['note']) ? (string) $body['note'] : null,
         ];
 
+        // RULED §10 item 4 — the applicant's declared class + mode ride the same
+        // signature-verified body. The keyed path pins them on the mirror's peer
+        // row at admission. The KEYLESS path cannot yet carry them through the
+        // pending queue (cluster_adoption_requests has no column for it — a
+        // migration is flagged with the desk); until then a queue-admitted
+        // mirror declares itself at its first real handshake instead.
+        $declared = [
+            'instance_class' => isset($body['instance_class']) ? (string) $body['instance_class'] : null,
+            'game_mode' => isset($body['game_mode']) ? (string) $body['game_mode'] : null,
+        ];
+
         // ── Keyless path (G3) — an operator-vouched request queue ─────────────
         if ($key === '') {
             try {
@@ -80,6 +93,7 @@ class AdoptionController extends Controller
                 $key,
                 isset($body['url']) ? (string) $body['url'] : null,
                 $negotiation,
+                $declared,
             );
         } catch (AdoptionRejected $e) {
             return response()->json(['error' => $e->reason], $e->status);
@@ -101,6 +115,11 @@ class AdoptionController extends Controller
             // on the host peer and, if it was never deliberately named itself, adopts it on going live
             // (one mesh = one game; a citizen should see the game's name, not "Unnamed Instance").
             'host_name' => (string) InstanceSettings::current()->instance_name,
+            // RULED §10 item 4 — the host's declared class + mode, so the mirror
+            // can pin them on the host peer row: mirroring a DECLARED demo host
+            // is demo-mesh membership to the dev-time rail.
+            'host_instance_class' => InstanceClass::current(),
+            'host_game_mode' => GameMode::current(),
             'scope_jurisdiction_id' => $scope,
             'membership_id' => $membershipId,
         ]);

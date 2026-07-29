@@ -5,6 +5,7 @@ namespace App\Services\Federation;
 use App\Models\FederationPeer;
 use App\Services\AuditService;
 use RuntimeException;
+use App\Support\GameMode;
 use App\Support\InstanceClass;
 
 /**
@@ -89,6 +90,10 @@ class PeerService
                 'schema_version' => $remote['schema_version'] ?? null,
                 'matrix_server_name' => $remote['matrix_server_name'] ?? ($peer->metadata['matrix_server_name'] ?? null),
                 'instance_class' => InstanceClass::normalize($remote['instance_class'] ?? null),
+                // The peer's DECLARED game mode (ruling §10 item 4) — only an
+                // affirmative sandbox/production declaration is stored; absence
+                // stays null (undeclared = real to the dev-time rail).
+                'game_mode' => GameMode::normalize($remote['game_mode'] ?? null),
             ],
             'constitutional_version' => $remote['constitutional_version'] ?? null,
             'app_release' => $remote['app_release'] ?? null,
@@ -223,6 +228,7 @@ class PeerService
             'app_release' => $payload['app_release'] ?? null,
             'matrix_server_name' => $payload['matrix_server_name'] ?? null,
             'instance_class' => InstanceClass::normalize($payload['instance_class'] ?? null),
+            'game_mode' => GameMode::normalize($payload['game_mode'] ?? null),
         ], FederationPeer::RELATION_SOVEREIGN, 'received');
 
         // Learn the introducing peer's transports (G8b), and advertise ours back so
@@ -281,6 +287,11 @@ class PeerService
                 // adoption exchange sends no class — and absent still reads
                 // as production downstream: fail closed.
                 'instance_class' => $attrs['instance_class'] ?? ($peer->metadata['instance_class'] ?? null),
+                // The peer's DECLARED game mode (ruling §10 item 4) — same
+                // preserve-across-classless-upserts semantics as the class:
+                // a later exchange that carries none must not erase an earlier
+                // signed declaration. Absent still reads as real downstream.
+                'game_mode' => $attrs['game_mode'] ?? ($peer->metadata['game_mode'] ?? null),
             ],
             // G-VER — pin the peer's tracked versions (gate counted sync, provenance).
             'constitutional_version' => $attrs['constitutional_version'] ?? $peer->constitutional_version,
