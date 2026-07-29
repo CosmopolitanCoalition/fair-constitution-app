@@ -1,7 +1,7 @@
 {
  "asOf": "2026-07-29",
- "commit": "99ade68",
- "wave": "WAVE 2 RUNNING \u2014 lane 4 slate landed; lane 13 built (migration batch in flight); lane 2 on operator pages; lane 15 report pending; lane 5 NLLB running",
+ "commit": "45d15a5",
+ "wave": "WAVE 2 \u2014 lanes 15 + 4 slates COMPLETE; 13 built (migration batch closing); 2 on operator pages; lane 6 LAUNCHING (group 2 opens)",
  "rows": [
   {
    "file": "civic/join.html",
@@ -1971,10 +1971,10 @@
    "area": "social-groups",
    "areaLabel": "Social + groups",
    "owner": "lanes 15 \u00b7 3",
-   "bucket": "absent",
-   "effort": "L",
+   "bucket": "built",
+   "effort": "none",
    "page": "",
-   "route": "",
+   "route": "GET /people?who=",
    "props": "none",
    "backend": "partial",
    "propsMissing": [],
@@ -1994,7 +1994,10 @@
     "candidacy has its own routed page /candidates/{candidacy} (Elections/CandidateProfile.vue) with race binding, F-CAN-001/002/003 writes and withdrawal",
     "self-profile tabs live at /civic/record (Civic/MyRecord.vue) including a Settings tab the mockup lacks"
    ],
-   "notes": "The pieces exist scattered \u2014 MyRecord covers self (overview/record/candidacy/representatives/achievements/wallet), CandidateProfile covers a candidacy, and F-CAN forms are registered with handlers \u2014 but no unifying public person profile exists, so the candidate-profile redirect stub's target is unbuilt. New page + controller over existing tables; follow/message writes are small additions."
+   "notes": "The pieces exist scattered \u2014 MyRecord covers self (overview/record/candidacy/representatives/achievements/wallet), CandidateProfile covers a candidacy, and F-CAN forms are registered with handlers \u2014 but no unifying public person profile exists, so the candidate-profile redirect stub's target is unbuilt. New page + controller over existing tables; follow/message writes are small additions. CLOSED 2026-07-29 (3f81290+e1db877): one person one profile; Candidacy tab absorbs the old candidate-profile contract (v3.2 0a); social_follows wired; Art. I disclosure gates verified adversarially (20 agents) and pinned; pseudonymity structural.",
+   "page_exists": true,
+   "page_path": "resources/js/Pages/Social/PersonProfile.vue",
+   "routed": true
   },
   {
    "file": "social/org-profile.html",
@@ -2165,10 +2168,10 @@
    "area": "social-groups",
    "areaLabel": "Social + groups",
    "owner": "lanes 15 \u00b7 3",
-   "bucket": "absent",
-   "effort": "L",
+   "bucket": "built",
+   "effort": "none",
    "page": "",
-   "route": "",
+   "route": "GET /achievements",
    "props": "none",
    "backend": "partial",
    "propsMissing": [],
@@ -2184,7 +2187,10 @@
     "TIER_VERIFIED vs TIER_TOUR labeling requirement (journey ticks are self-reported walkthroughs)",
     "append-only DB-immutable ledger sealed to the audit chain"
    ],
-   "notes": "The manifest note 'no AchievementCatalog in code' is STALE: K-2 built AchievementCatalog (139 entries, app/Domain/Achievements/AchievementCatalog.php) + AchievementService + the append-only achievements ledger, and earned medals already render at /civic/record?tab=achievements. What's missing is the browse/catalog PAGE and the derived in-progress queries \u2014 page + controller over an existing registry."
+   "notes": "The manifest note 'no AchievementCatalog in code' is STALE: K-2 built AchievementCatalog (139 entries, app/Domain/Achievements/AchievementCatalog.php) + AchievementService + the append-only achievements ledger, and earned medals already render at /civic/record?tab=achievements. What's missing is the browse/catalog PAGE and the derived in-progress queries \u2014 page + controller over an existing registry. CLOSED 2026-07-29 (3f81290): 141-entry catalog over the sealed ledger; PI-6 pinned structurally (no N-of-M ships).",
+   "page_exists": true,
+   "page_path": "resources/js/Pages/Social/Achievements.vue",
+   "routed": true
   },
   {
    "file": "social/legitimacy.html",

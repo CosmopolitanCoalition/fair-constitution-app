@@ -90,6 +90,25 @@ Stage-two grouping over the adjacency graph (even clumps, compact, no geometry c
 ~9,708 flagged chambers. Named plan item per the operator; the campaign's resume point;
 Type B election playtesting stays blocked fleet-wide until it ships.
 
+## Lane 15 close-out records (2026-07-29)
+
+- **Art. I disclosure gates (e1db877, announce-fix-pin)**: guests could read any user's
+  neighborhood-level home + named residency chain + timestamped travel events — a
+  stalking-grade combo, found by lane 15's own 20-agent adversarial verify, fixed and pinned
+  (self-or-public gating; location-adjacent events excluded; hidden handles 404; probe
+  throttled). No rule changed — code matched to Art. I.
+- **THE READING RULE (K2_ENGINE_PLAN §5.2)**: the pre-seating gate reads ONLY F-EDU-001
+  completion records — never the achievement ledger (CI-1 stays absolute), never
+  education_progress (mesh-wide correctness). `seat_training_window_days` (default 30)
+  proposed as an amendable setting, flagged for registration-day review.
+- **Orphans for the operator review**: Elections/CandidateProfile.vue (unreferenced) + the
+  'elections/candidate-profile' surfaces record (inert) — deletion on his word.
+- **Deliberately NOT built (design decisions needed, Wave 3 material)**: per-user DM flow
+  (Message button links /civic/rooms; no per-user primitive exists); social-profile
+  self-EDIT write path (handle/bio/visibility have no HTTP door — an F-IND-002 extension
+  decision); 'jurisdiction' visibility = not-public in v1; record-tab "open the full
+  record" link.
+
 ## Divergence ledger (spec ↔ app, logged never silent)
 
 - **Ruling 9 placement (`d69aff0`)**: substance delivered (/federation = citizen view;
@@ -113,7 +132,7 @@ Type B election playtesting stays blocked fleet-wide until it ships.
 | Family | Tests | Cause | Owner / remedy |
 |---|---|---|---|
 | ~~Class-refusal~~ | ~~PeerTransportLearning ×3, CapabilityRegistry ×1~~ | **CLOSED by lane 2 (`e3df1ba`): fixture-scoped `InstanceClass::override`, rail re-run green untouched** | — |
-| Fixture-borrows-the-world | ~~AutonomyFlipRewraps ×5 + LocalAutonomyGoverned~~ **CLOSED (`e3df1ba` — yes-votes = actual civic population, dual-gate meter positively asserted)**; REMAINING: AutoscalePin ×3, RemainderSynthesis ×3, ManualDistrictDraw ×1 (lane 1), LegalCompliance ×1 | the filled, time-traveled shared world | lane 1 (+1 unowned) |
+| Fixture-borrows-the-world | ~~AutonomyFlipRewraps ×5 + LocalAutonomyGoverned~~ **CLOSED (`e3df1ba` — yes-votes = actual civic population, dual-gate meter positively asserted)**; REMAINING: AutoscalePin ×3, RemainderSynthesis ×3, ManualDistrictDraw ×1 (lane 1), LegalCompliance ×1, MyProfileTabsTest representatives-chain ×1 (wants an adm1 without a legislature; flagged by lane 15, pre-existing) | the filled, time-traveled shared world | lane 1 (+2 unowned) |
 | ~~Disintermediation direction~~ | — | **CLOSED by lane 2 (`5f6615e`, ruling 2 + Art. V §8's own text): per-constituent copies w/ full history + incorporation marker, original archival-superseded, encompassing gets NOTHING; pin asserts the ruled direction** | — |
 | Order-dependence | MatrixCarveoutEmitter, ModerationFlip | pass isolated; documented | unowned, known |
 | ~~Real findings~~ | ~~LedgerIntegrity writers~~ | **CLOSED by lane 13 (`5c2742e`, Wave 2 item 1): SCAN HEURISTIC confirmed — every hit was a READ; zero writes. Pin rewritten to match writes not mentions, scope widened to database/+routes/, negative controls both directions; 13/13 green. Doctrine kept: reads are lawful — the ledger is PUBLIC; reader-privacy = accounts-never-people, never a hidden ledger.** | — |
