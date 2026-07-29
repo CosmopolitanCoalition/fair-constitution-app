@@ -1034,6 +1034,11 @@ if (app()->environment('local') && config('cga.impersonation', true)) {
     // node's records on trust rather than re-deriving them.
     Route::middleware([DevTimeControlsEnabled::class, 'auth'])->prefix('dev')->name('dev.')->group(function () {
         Route::post('/chamber/cast', \App\Http\Controllers\Dev\ChamberCastController::class)->name('chamber.cast');
+        // D4 — assume a resident/role of a place: find → (maybe dev-relocate)
+        // → become, one composed act. The strong gate because the relocation
+        // half writes residency records on demand; the service never creates
+        // users and never seats anyone — a refusal is an answer.
+        Route::post('/assume', \App\Http\Controllers\Dev\AssumeController::class)->name('assume');
     });
 }
 

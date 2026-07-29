@@ -20,6 +20,7 @@
  * this stack behind their design notes; they are not built here yet.
  */
 import { onMounted, ref } from 'vue';
+import DevAssume from './DevAssume.vue';
 import DevClockControls from './DevClockControls.vue';
 import DevChamberCast from './DevChamberCast.vue';
 
@@ -53,6 +54,13 @@ const DOORS = [
 </script>
 
 <template>
+    <details v-if="state" class="dev-control playtest-block">
+        <summary>Assume — a resident or role of a place</summary>
+        <div class="playtest-body">
+            <DevAssume :state="state" />
+        </div>
+    </details>
+
     <details v-if="state" class="dev-control playtest-block">
         <summary>Time — advance the world, fire a timer</summary>
         <div class="playtest-body">
