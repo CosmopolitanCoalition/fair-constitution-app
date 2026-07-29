@@ -76,28 +76,74 @@ service. Recommended shape: a new `App\Services\Legislature\TypeBDistrictMapper`
 both paths call — mirroring how both already share `TypeBSeatLadder`. **A new
 persistence schema for group↔constituent membership is required.**
 
-## 6. Open questions for the operator (resolve before building)
+## 6. BINDING ANSWERS — operator, Wave 2 review (origin `6be3121`/`698419c`; via lane 7 Wave 3 order)
 
-1. **One race or many?** Confirm the output stays ONE at-large STV race with
-   `seats = num_groups × rep_floor` (panels are the constituent-unit), not one
-   race per panel.
-2. **Uneven counts / indivisible remainders** (Niue: 7 villages, pairs → 3+1).
-   The rule when the constituent count doesn't divide the group size: one odd
-   group, force last group ±1, or step to the next group size until an even
-   partition exists? Must be deterministic.
-3. **Do zero-population constituents participate?** Today `sumAt` gives a pop≤5
-   constituent `min(pop, rep_floor)` seats, so empty villages seat 0. Do they
-   join panels and count toward the even grouping, or stay unseated?
-4. **Islands / disconnected adjacency** (the likely crux for most of the 9,708).
-   Adjacency only has an edge on a shared border, so archipelagos are
-   disconnected. Fall back to centroid distance, or group components
-   deterministically-but-arbitrarily?
-5. **Determinism / dual-path identity.** Both mass paths + the SQL mirror must
-   mint identical groupings — confirm the tie-break (lowest jurisdiction id) and
-   whether the SQL-mirror path reproduces grouping in SQL or defers to PHP.
-6. **Cross-parent grouping** — confirm forbidden (grouping stays within one
-   parent's children; `jurisdiction_adjacency.parent_id` scopes it naturally).
-7. **Re-grouping stability.** Niue's already-seated over-bound chamber "stays
-   seated and labeled; its re-seat rides the mapper" (R-A). Define the recompute
-   trigger (constituent add/remove, pop-boundary shift) and the seat-continuity
-   rule for sitting panel members.
+All seven gate questions are ruled. These are law for the build; do not re-derive.
+
+- **B1 — ONE at-large race.** Panels are the seat-allocation UNIT inside the
+  single race (confirmed; `seats = num_panels × rep_floor`).
+- **B2 — remainders: STEP THE GROUP SIZE UP** to maintain equality (pairs →
+  triples → …). If NO even partition exists at any size, the least remainder is
+  borne by the **LOWEST-POPULATION jurisdiction(s)** — the one place population
+  is consulted, and only for the residual, never for compactness.
+- **B3 — zero-pop constituents are INERT** (zero seats, no government; not
+  grouped). **NEW COMBINED CAP:** a jurisdiction's `type_a + type_b` TOTAL
+  **floors down to its population** — never more representatives than people.
+  ⚑ This binds `TypeBSeatLadder` itself — implement the combined cap there and
+  **pin it** (a build item, not just the mapper).
+- **B4 — ISLANDS (the operator's own method, "check me on it"):** take the
+  disconnected jurisdiction's **WorldPop mask** → draw a smoothed imaginary
+  border (**hull**) around all boundary pieces → run the simple line-drawing
+  over that pseudo-contiguous shape (ocean/foreign pixels carry no population —
+  they're not in the mask) → **CUT AWAY components outside the real boundary
+  mask.** Also derive grouping adjacency from **hull-contact**. **VALIDATE
+  technically before building** (headline risk): the enclave case (populated
+  foreign territory inside the hull — should be excluded by the mask, confirm),
+  degenerate hulls on far-flung archipelagos, and hull-contact adjacency.
+- **B5 — tie-break must be MEANINGFUL, key TBD.** FIRST design step = the
+  tie-break probe (§7) → an OPEN QUESTION to the desk/operator; the tie-break is
+  late-binding, build the rest while it's in front of him.
+- **B6 — NEVER cross-parent at ANY adm level.** Each peer branch is independent
+  with respect to its own children (general doctrine — **pin it**).
+- **B7 — new geographies take effect NEXT TERM.** Geodata changes REQUIRE
+  redrawn maps (districts AND groupings); sitting members serve out. The
+  recompute trigger fires on a geodata change but seats only at the next term.
+
+## 7. First design step — the B5 tie-break probe (OPEN QUESTION, in flight to the operator)
+
+When several EVEN groupings tie on the primary compactness metric, the
+tie-break must be meaningful — not lowest-id. Population is OFF-LIMITS for the
+grouping (CLAUDE.md: "populations are not consulted at any step"; B2 consults it
+only for the residual). Candidate meaningful keys, each with a final
+lowest-sorted-member-id fallback for determinism:
+- **(a) max total internal shared-border length** — reuses `border_len` already
+  in `jurisdiction_adjacency`; a direct extension of compactness; cheapest.
+- **(b) minimax intra-panel diameter** — the most-stretched panel is as tight as
+  possible; needs centroid/diameter compute.
+- **(c) min cross-panel edges cut** — cleaner partition; needs edge-cut counting.
+
+**Recommendation: (a).** Cheapest, reuses materialized data, deterministic,
+"meaningful" (tightest-clumped panels). **SQL-mirror question:** grouping is a
+graph algorithm, not SQL-expressible without reimplementing partitioning — the
+`AutoscaleResizeRepairCommand` mirror should **defer to the PHP mapper service**
+(the ladder stays SQL; the grouping calls out). Sent to the desk as the B5
+OPEN QUESTION; the tie-break binds late.
+
+## 8. Build order (post-compaction)
+
+1. **Schema** — one additive REAL-dated migration for group↔constituent
+   membership (the slot is EMPTY; signal the hash on landing).
+2. **Combined cap (B3)** in `TypeBSeatLadder` + pin.
+3. **Grouping engine** — hook at `TypeBSeatLadder:59`; `jurisdiction_adjacency`
+   for contiguous sets, hull-derived adjacency (B4) for islands; B2 remainder
+   rule; B6 within-parent only.
+4. **Hull island method (B4)** — validate first (§6 B4 risks), then build.
+5. **Un-flag** chambers as groupings land (lane 3's R-A guard un-blocks
+   elections the instant `type_b_needs_districting` clears — the designed
+   lifecycle).
+6. **Niue** is the proving chamber (7 villages, seated over-bound; re-seat rides
+   B7's next-term rule).
+7. **Mass dry-run** over a sample of the ~9,708 — ETL rule (bounded committed
+   chunks, per-chunk progress); DRIFT law throughout.
+8. **Pins** for every ruling B1–B7.
+9. Mapper UI rides the existing Step-3 / mapper surfaces.
