@@ -38,10 +38,25 @@ const destinationName = computed(() => props.invite?.label || kindNoun.value);
 const heading = computed(() =>
     props.invite?.inviter ? `${props.invite.inviter} invited you` : 'You’re invited'
 );
+/**
+ * ROSTER SIZE, SAID AS ROSTER SIZE. This used to read "N people in this room",
+ * which a guest reads as presence — how many are in there NOW. It never was:
+ * preview.memberCount is SocialSpace::memberships()->count(), a membership list
+ * length. The app has no presence source at all (checked: social_memberships
+ * carries no last_seen/online, LiveFloorService holds only floorHolder/queue/
+ * speaking, LiveRoomController hard-codes online=false, LiveKitTokenService
+ * mints tokens and keeps no roster, and useLiveRoom is a poll/freshness layer
+ * that re-fetches props and computes nothing). So the honest move is to name
+ * what the number IS and say plainly that presence isn't shown — never to dress
+ * a roster count as a live headcount.
+ *
+ * null for call / commons / proceeding invites, which have no roster: render
+ * nothing rather than "0 people".
+ */
 const memberLine = computed(() => {
     const n = props.preview?.memberCount;
     if (n === null || n === undefined) return null;
-    return n === 1 ? '1 person in this room' : `${n} people in this room`;
+    return n === 1 ? '1 member' : `${n} members`;
 });
 </script>
 
@@ -72,10 +87,19 @@ const memberLine = computed(() => {
                     </template>
                     <div class="cluster preview-facts">
                         <span v-if="memberLine" class="cc-small">{{ memberLine }}</span>
-                        <span class="pill" :class="preview.isPrivate ? 'pill--info' : 'pill--live'">
+                        <!-- pill--info for BOTH, deliberately. This pill states a
+                             PRIVACY fact, and pill--live is the green liveness
+                             treatment — dressed that way, a permanently-open
+                             commons read as "live right now". pill--live and its
+                             dotlive stay reserved for a status that genuinely is. -->
+                        <span class="pill pill--info">
                             {{ preview.isPrivate ? 'A private room — invite only' : 'Anyone may watch' }}
                         </span>
                     </div>
+                    <p v-if="memberLine" class="citation">
+                        That’s the membership list. Who’s in the room right now isn’t shown
+                        until you’re inside.
+                    </p>
                 </Card>
 
                 <Card as="section" aria-labelledby="cta-h">
