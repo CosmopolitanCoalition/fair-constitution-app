@@ -1,0 +1,848 @@
+{
+  "achievement.ach_bog_001": {
+    "source_hash": "552f243f721f580915892083cce8042b67fb6761cd047324e94e23e42078c59d",
+    "shape": "static",
+    "file": "docs/plans/education/K2_ACHIEVEMENT_LIBRARY.md",
+    "status": "source"
+  },
+  "achievement.ach_bog_002": {
+    "source_hash": "89df114177768edffd1ca762ee593f6348398ec6575b1fcb47d14122d5ec14a6",
+    "shape": "static",
+    "file": "docs/plans/education/K2_ACHIEVEMENT_LIBRARY.md",
+    "status": "source"
+  },
+  "achievement.ach_bog_003": {
+    "source_hash": "f7c5b0989592a7db41312336abf52bb1e30211719a26b0c5e3cb452678525184",
+    "shape": "static",
+    "file": "docs/plans/education/K2_ACHIEVEMENT_LIBRARY.md",
+    "status": "source"
+  },
+  "achievement.ach_bog_004": {
+    "source_hash": "922f5e81935853a4f68ce53510051488615c3bab0d57c4bdebece37a21c91e74",
+    "shape": "static",
+    "file": "docs/plans/education/K2_ACHIEVEMENT_LIBRARY.md",
+    "status": "source"
+  },
+  "achievement.ach_bog_005": {
+    "source_hash": "0dd446663d2b0937a7d78b17b919a9dfbfa505ad144f52a1d5c961ef2a6f6561",
+    "shape": "static",
+    "file": "docs/plans/education/K2_ACHIEVEMENT_LIBRARY.md",
+    "status": "source"
+  },
+  "achievement.ach_bog_006": {
+    "source_hash": "40386b6fc338fbb12f72d650c9737043d26d8861ae476084c88b3fbf493245e6",
+    "shape": "static",
+    "file": "docs/plans/education/K2_ACHIEVEMENT_LIBRARY.md",
+    "status": "source"
+  },
+  "achievement.ach_can_001": {
+    "source_hash": "61e92ac7d306d28935f51536ba4c5edf293cb69d434be8b2d56ab6493d1d4aa5",
+    "shape": "static",
+    "file": "docs/plans/education/K2_ACHIEVEMENT_LIBRARY.md",
+    "status": "source"
+  },
+  "achievement.ach_can_002": {
+    "source_hash": "b72e1a07a74ec4d1d3d642c8c32dda0295b7db47117893b713488ded9175f5c8",
+    "shape": "static",
+    "file": "docs/plans/education/K2_ACHIEVEMENT_LIBRARY.md",
+    "status": "source"
+  },
+  "achievement.ach_can_003": {
+    "source_hash": "d2bb4d828c2206710b8ddbbb05610deb49728667b40286924cf17cf09b68539b",
+    "shape": "static",
+    "file": "docs/plans/education/K2_ACHIEVEMENT_LIBRARY.md",
+    "status": "source"
+  },
+  "achievement.ach_can_004": {
+    "source_hash": "417cb8c651c7c2433729031716c28599fe0ce670f458a8c2aae1530436356c6c",
+    "shape": "static",
+    "file": "docs/plans/education/K2_ACHIEVEMENT_LIBRARY.md",
+    "status": "source"
+  },
+  "achievement.ach_can_005": {
+    "source_hash": "9b66c3831e55af3b244e66d506f9402a3fb89f64db2c7ab4617007ff5b7ddf67",
+    "shape": "static",
+    "file": "docs/plans/education/K2_ACHIEVEMENT_LIBRARY.md",
+    "status": "source"
+  },
+  "achievement.ach_can_006": {
+    "source_hash": "60a03ee36a48709900fccb66da4c9e709b7005d39d01be66e3f28ae0d4364a70",
+    "shape": "static",
+    "file": "docs/plans/education/K2_ACHIEVEMENT_LIBRARY.md",
+    "status": "source"
+  },
+  "achievement.ach_civ_001": {
+    "source_hash": "2351ee992626bafb88f7985721ec0f56c7d2e242f753e542dee015f178fffea6",
+    "shape": "static",
+    "file": "docs/plans/education/K2_ACHIEVEMENT_LIBRARY.md",
+    "status": "source"
+  },
+  "achievement.ach_civ_002": {
+    "source_hash": "c197fb651bdb4fe5ed9ecb5ea3b4cce345eba0e7738121865bcb1066f2e0a4a0",
+    "shape": "static",
+    "file": "docs/plans/education/K2_ACHIEVEMENT_LIBRARY.md",
+    "status": "source"
+  },
+  "achievement.ach_civ_003": {
+    "source_hash": "bc2c522771a9b903665c8ad474472aafa02d6166fb6532f6babecf94b8718520",
+    "shape": "static",
+    "file": "docs/plans/education/K2_ACHIEVEMENT_LIBRARY.md",
+    "status": "source"
+  },
+  "achievement.ach_civ_004": {
+    "source_hash": "c2cb0506486c36d21f3931dfd35ea337d0e2b334589a7b25cb4b98f6ccf0d7a6",
+    "shape": "static",
+    "file": "docs/plans/education/K2_ACHIEVEMENT_LIBRARY.md",
+    "status": "source"
+  },
+  "achievement.ach_civ_005": {
+    "source_hash": "abeecf43a287119fdb05bf16a4b479f36b6276e329c6e5e206ea404cae17a330",
+    "shape": "static",
+    "file": "docs/plans/education/K2_ACHIEVEMENT_LIBRARY.md",
+    "status": "source"
+  },
+  "achievement.ach_civ_006": {
+    "source_hash": "6e9f0c5a284d4c024cde41af918b31c28ae6322bc64ffc90b1f467e705719317",
+    "shape": "static",
+    "file": "docs/plans/education/K2_ACHIEVEMENT_LIBRARY.md",
+    "status": "source"
+  },
+  "achievement.ach_civ_007": {
+    "source_hash": "b17089befb5865040a2b67152439bb46d9195e091542953821499f4984760563",
+    "shape": "static",
+    "file": "docs/plans/education/K2_ACHIEVEMENT_LIBRARY.md",
+    "status": "source"
+  },
+  "achievement.ach_eco_001": {
+    "source_hash": "4b2981103b9b3582ba7169095ea638eb1f50abe8a7988625a6fabfb0e325481c",
+    "shape": "static",
+    "file": "docs/plans/education/K2_ACHIEVEMENT_LIBRARY.md",
+    "status": "source"
+  },
+  "achievement.ach_eco_002": {
+    "source_hash": "e55f0026ec12bf27e4baf2628a26270f5660e656a5cae81a2d95e21fc4b5061d",
+    "shape": "static",
+    "file": "docs/plans/education/K2_ACHIEVEMENT_LIBRARY.md",
+    "status": "source"
+  },
+  "achievement.ach_eco_003": {
+    "source_hash": "08aebacc02179204d58c169e08333e127179875626f292b378139aa4d82f18be",
+    "shape": "static",
+    "file": "docs/plans/education/K2_ACHIEVEMENT_LIBRARY.md",
+    "status": "source"
+  },
+  "achievement.ach_eco_004": {
+    "source_hash": "b42b511f301753a3f466d7f9baeaf3ddc7fc2f09032998eda372a04a923905ad",
+    "shape": "static",
+    "file": "docs/plans/education/K2_ACHIEVEMENT_LIBRARY.md",
+    "status": "source"
+  },
+  "achievement.ach_eco_005": {
+    "source_hash": "718110c0e9c879d644e62e80ff2de30718804f450c574fba8b69f3f4a9eae570",
+    "shape": "static",
+    "file": "docs/plans/education/K2_ACHIEVEMENT_LIBRARY.md",
+    "status": "source"
+  },
+  "achievement.ach_eco_006": {
+    "source_hash": "08a3d315280e136f635eabcc78b27f1f1e4632cae0c84430bb7109bd5bdd7c28",
+    "shape": "static",
+    "file": "docs/plans/education/K2_ACHIEVEMENT_LIBRARY.md",
+    "status": "source"
+  },
+  "achievement.ach_eco_007": {
+    "source_hash": "65cda192e192f7cfeb9b63be2a077ecce738bf1520b52102182281655104b58f",
+    "shape": "static",
+    "file": "docs/plans/education/K2_ACHIEVEMENT_LIBRARY.md",
+    "status": "source"
+  },
+  "achievement.ach_eco_008": {
+    "source_hash": "8f8a8f81ff59cc831bfb015dba5c7f94f5cf154c374a016c8e19d3c85b0e7418",
+    "shape": "static",
+    "file": "docs/plans/education/K2_ACHIEVEMENT_LIBRARY.md",
+    "status": "source"
+  },
+  "achievement.ach_elb_001": {
+    "source_hash": "83e1597872b95fd8843eeeead17b7869d98fdb974a8b2ade7bded319bc146c9e",
+    "shape": "static",
+    "file": "docs/plans/education/K2_ACHIEVEMENT_LIBRARY.md",
+    "status": "source"
+  },
+  "achievement.ach_elb_002": {
+    "source_hash": "0f4348ebc5bdf334977146925c39492b3515c2f5602020c0cd759591b52d374d",
+    "shape": "static",
+    "file": "docs/plans/education/K2_ACHIEVEMENT_LIBRARY.md",
+    "status": "source"
+  },
+  "achievement.ach_elb_003": {
+    "source_hash": "6a4e4f3d29ba44c59ea5ae3718fc9342f910d81821196ee8ea57b9570160ca18",
+    "shape": "static",
+    "file": "docs/plans/education/K2_ACHIEVEMENT_LIBRARY.md",
+    "status": "source"
+  },
+  "achievement.ach_elb_004": {
+    "source_hash": "6cbd5f45212e8f17fbc0f0a177ca70e0f252da6ab169f30126b376c16a1b73a9",
+    "shape": "static",
+    "file": "docs/plans/education/K2_ACHIEVEMENT_LIBRARY.md",
+    "status": "source"
+  },
+  "achievement.ach_elb_005": {
+    "source_hash": "822766d398d92c31abcebfef7f73b6b67345486dfb4c36798787480e28d91e4b",
+    "shape": "static",
+    "file": "docs/plans/education/K2_ACHIEVEMENT_LIBRARY.md",
+    "status": "source"
+  },
+  "achievement.ach_exe_001": {
+    "source_hash": "849004a5b7c0932640e86b2492076799e8724df87619d930519ee08f2334d753",
+    "shape": "static",
+    "file": "docs/plans/education/K2_ACHIEVEMENT_LIBRARY.md",
+    "status": "source"
+  },
+  "achievement.ach_exe_002": {
+    "source_hash": "48ee4db13d354827adfe08f167c13a58c5906a357e16d02aa8cd01599e709985",
+    "shape": "static",
+    "file": "docs/plans/education/K2_ACHIEVEMENT_LIBRARY.md",
+    "status": "source"
+  },
+  "achievement.ach_exe_003": {
+    "source_hash": "4a4155ee1e7b08a4c662efa7056367259c3265e802934cc2815ff549659f8c7c",
+    "shape": "static",
+    "file": "docs/plans/education/K2_ACHIEVEMENT_LIBRARY.md",
+    "status": "source"
+  },
+  "achievement.ach_exe_004": {
+    "source_hash": "91a16ce5cd49b1e305d793fe94e1590d38ee0e39b9eb450ec579f76bdb239ae2",
+    "shape": "static",
+    "file": "docs/plans/education/K2_ACHIEVEMENT_LIBRARY.md",
+    "status": "source"
+  },
+  "achievement.ach_exe_005": {
+    "source_hash": "fe8ccce502b032dbccb15f653a3f85b21fac3a615f051aa7c577f4cc99b400a5",
+    "shape": "static",
+    "file": "docs/plans/education/K2_ACHIEVEMENT_LIBRARY.md",
+    "status": "source"
+  },
+  "achievement.ach_exe_006": {
+    "source_hash": "ee20f3b6750629d8125715ff5535009f8a9c0dff4bf32c7ee450019be3ec30fd",
+    "shape": "static",
+    "file": "docs/plans/education/K2_ACHIEVEMENT_LIBRARY.md",
+    "status": "source"
+  },
+  "achievement.ach_fed_001": {
+    "source_hash": "ee8e32dca2cc9ee1a00fba7fda728bcdccd46ffb07ccc258399e802fa90f3f89",
+    "shape": "static",
+    "file": "docs/plans/education/K2_ACHIEVEMENT_LIBRARY.md",
+    "status": "source"
+  },
+  "achievement.ach_fed_002": {
+    "source_hash": "0b83be90e16d1f0960b513266549ba19c7ea9d37067ffe650d2a5e738da83ad6",
+    "shape": "static",
+    "file": "docs/plans/education/K2_ACHIEVEMENT_LIBRARY.md",
+    "status": "source"
+  },
+  "achievement.ach_jud_001": {
+    "source_hash": "06e1ca0e694f61bf49fef1c5f70ece5d71e5b99fb4aa88db333b91fe4bf0ec88",
+    "shape": "static",
+    "file": "docs/plans/education/K2_ACHIEVEMENT_LIBRARY.md",
+    "status": "source"
+  },
+  "achievement.ach_jud_002": {
+    "source_hash": "8618dd87d84f4532dd3cc5713759ada1044952b6e28a1287a4c841c441b9da06",
+    "shape": "static",
+    "file": "docs/plans/education/K2_ACHIEVEMENT_LIBRARY.md",
+    "status": "source"
+  },
+  "achievement.ach_jud_003": {
+    "source_hash": "a69af5110a661d2a29cb424ed81deb20765b85f2909fd2b924b51f4a0b9c091b",
+    "shape": "static",
+    "file": "docs/plans/education/K2_ACHIEVEMENT_LIBRARY.md",
+    "status": "source"
+  },
+  "achievement.ach_jud_004": {
+    "source_hash": "eaa141d9cab04fe6f26eb3b0c355d748239879e7388c51fbc1c60e25d0234c94",
+    "shape": "static",
+    "file": "docs/plans/education/K2_ACHIEVEMENT_LIBRARY.md",
+    "status": "source"
+  },
+  "achievement.ach_jud_005": {
+    "source_hash": "7909a0546dcfb51b34313da8a80561f8a5c3c38bfe8115ec9f6cc600b3dff47e",
+    "shape": "static",
+    "file": "docs/plans/education/K2_ACHIEVEMENT_LIBRARY.md",
+    "status": "source"
+  },
+  "achievement.ach_jud_006": {
+    "source_hash": "cd53902b22740dfa0f7c19cd6e865686dd1ba419ed96f9d1bb7dac8fc1ec9395",
+    "shape": "static",
+    "file": "docs/plans/education/K2_ACHIEVEMENT_LIBRARY.md",
+    "status": "source"
+  },
+  "achievement.ach_jud_007": {
+    "source_hash": "49d60516d60f06c1d276cd96fb37ba606cee1b8dd516e229eb65ae7ebf76489b",
+    "shape": "static",
+    "file": "docs/plans/education/K2_ACHIEVEMENT_LIBRARY.md",
+    "status": "source"
+  },
+  "achievement.ach_jud_008": {
+    "source_hash": "2401d9b36c4f5f4978d54d6b8c68dad57246429e86ef9cf8d915babbe1c8135a",
+    "shape": "static",
+    "file": "docs/plans/education/K2_ACHIEVEMENT_LIBRARY.md",
+    "status": "source"
+  },
+  "achievement.ach_jud_009": {
+    "source_hash": "cb2da48d783ea6e9015af9de1fa6d9044ab21df2055a4f7733d886251c926297",
+    "shape": "static",
+    "file": "docs/plans/education/K2_ACHIEVEMENT_LIBRARY.md",
+    "status": "source"
+  },
+  "achievement.ach_jud_010": {
+    "source_hash": "9b8035d4d2fdfc67f0bbbf4bd2e6668e032e86d1d64c733d8edc2af4b6d649c7",
+    "shape": "static",
+    "file": "docs/plans/education/K2_ACHIEVEMENT_LIBRARY.md",
+    "status": "source"
+  },
+  "achievement.ach_jud_011": {
+    "source_hash": "e03751aa42f3d24dd5de0694fc0cc610ea2af216b684979b9efaa03917dbf7b5",
+    "shape": "static",
+    "file": "docs/plans/education/K2_ACHIEVEMENT_LIBRARY.md",
+    "status": "source"
+  },
+  "achievement.ach_jud_012": {
+    "source_hash": "5dd2942f44ebb2553fbf6370e8d886eca013eca05a8ac9a518eef5455e068eb1",
+    "shape": "static",
+    "file": "docs/plans/education/K2_ACHIEVEMENT_LIBRARY.md",
+    "status": "source"
+  },
+  "achievement.ach_jur_001": {
+    "source_hash": "a7e4bcbdc1b07e54d5a166e622e385313ee311075b8be3fe3de657d124827dbc",
+    "shape": "static",
+    "file": "docs/plans/education/K2_ACHIEVEMENT_LIBRARY.md",
+    "status": "source"
+  },
+  "achievement.ach_jur_002": {
+    "source_hash": "5d08610c2edacce12615ad2aa71e78986c23be5d0d5f7848b48826d6762c3266",
+    "shape": "static",
+    "file": "docs/plans/education/K2_ACHIEVEMENT_LIBRARY.md",
+    "status": "source"
+  },
+  "achievement.ach_jur_003": {
+    "source_hash": "ef806a194c5eb41d7591f1f5324780ca2a4108f315be85765343869ea83d5703",
+    "shape": "static",
+    "file": "docs/plans/education/K2_ACHIEVEMENT_LIBRARY.md",
+    "status": "source"
+  },
+  "achievement.ach_jur_004": {
+    "source_hash": "4bb19db7072af110691c7d95ecb78ec4985d71c97d8324486b0e4dc80b332b30",
+    "shape": "static",
+    "file": "docs/plans/education/K2_ACHIEVEMENT_LIBRARY.md",
+    "status": "source"
+  },
+  "achievement.ach_jur_005": {
+    "source_hash": "5cfb1879125365c7be1260fc1a5d37ccd1e15292de2e24e4a4d3ff4caddcb94b",
+    "shape": "static",
+    "file": "docs/plans/education/K2_ACHIEVEMENT_LIBRARY.md",
+    "status": "source"
+  },
+  "achievement.ach_jur_006": {
+    "source_hash": "d2248bf1ffda148ffcfa3f609c9c41928d68c03305159f9a27649bfc1b7e931b",
+    "shape": "static",
+    "file": "docs/plans/education/K2_ACHIEVEMENT_LIBRARY.md",
+    "status": "source"
+  },
+  "achievement.ach_jur_007": {
+    "source_hash": "02d53cc1eed56b70215ccb92fa670d4ed8b765f4b9f2632b5a1183eedc372550",
+    "shape": "static",
+    "file": "docs/plans/education/K2_ACHIEVEMENT_LIBRARY.md",
+    "status": "source"
+  },
+  "achievement.ach_jur_008": {
+    "source_hash": "0d464509e161a1121ce09bdbda5f069b97995ae8123cd2e265092a9602170afb",
+    "shape": "static",
+    "file": "docs/plans/education/K2_ACHIEVEMENT_LIBRARY.md",
+    "status": "source"
+  },
+  "achievement.ach_jur_009": {
+    "source_hash": "bd6bd3aea743de857e6cb089018fb510fcf96ca39d7bad54886e78bb092bc870",
+    "shape": "static",
+    "file": "docs/plans/education/K2_ACHIEVEMENT_LIBRARY.md",
+    "status": "source"
+  },
+  "achievement.ach_jur_010": {
+    "source_hash": "9362a7232b47ee17c3386a8259e7f82659b36737888d317739517422fce438d0",
+    "shape": "static",
+    "file": "docs/plans/education/K2_ACHIEVEMENT_LIBRARY.md",
+    "status": "source"
+  },
+  "achievement.ach_jur_011": {
+    "source_hash": "7b92e64f4f6dc7cbb962f2fc68dfa5c58d68c46dc52dc19196793030953116c4",
+    "shape": "static",
+    "file": "docs/plans/education/K2_ACHIEVEMENT_LIBRARY.md",
+    "status": "source"
+  },
+  "achievement.ach_jur_012": {
+    "source_hash": "74c2fad1327e6ce94526a309c642fc07918e8a46f0fda709a6d15b46a4985f8e",
+    "shape": "static",
+    "file": "docs/plans/education/K2_ACHIEVEMENT_LIBRARY.md",
+    "status": "source"
+  },
+  "achievement.ach_jur_013": {
+    "source_hash": "c16a03e40825991b4d351593a1013169b747c101a21b7db95d036e30c3c92687",
+    "shape": "static",
+    "file": "docs/plans/education/K2_ACHIEVEMENT_LIBRARY.md",
+    "status": "source"
+  },
+  "achievement.ach_jur_014": {
+    "source_hash": "866b226c7052def5b6da3d69b7b188d9258dc0d7bf837e1badb8c90da53dda2a",
+    "shape": "static",
+    "file": "docs/plans/education/K2_ACHIEVEMENT_LIBRARY.md",
+    "status": "source"
+  },
+  "achievement.ach_jur_015": {
+    "source_hash": "da12507008b36ecc68d86025586feaeee22d58de272611ceb1e00c52acc99b7d",
+    "shape": "static",
+    "file": "docs/plans/education/K2_ACHIEVEMENT_LIBRARY.md",
+    "status": "source"
+  },
+  "achievement.ach_jur_016": {
+    "source_hash": "134f3a2fbfde3727bb854dcb744f89f5e5a05af614a3ed321a6c69e2409b30de",
+    "shape": "static",
+    "file": "docs/plans/education/K2_ACHIEVEMENT_LIBRARY.md",
+    "status": "source"
+  },
+  "achievement.ach_jur_017": {
+    "source_hash": "051c59f09d522948480db220a68e28d73201be2c6ce0c448eaff6c24bf87722c",
+    "shape": "static",
+    "file": "docs/plans/education/K2_ACHIEVEMENT_LIBRARY.md",
+    "status": "source"
+  },
+  "achievement.ach_jur_018": {
+    "source_hash": "87597aed149bf96c4a36b15b23449a5eda2a8b7acf127dac63806e369a45e788",
+    "shape": "static",
+    "file": "docs/plans/education/K2_ACHIEVEMENT_LIBRARY.md",
+    "status": "source"
+  },
+  "achievement.ach_jur_019": {
+    "source_hash": "2a206ff26681db92ee591e0500ae79c76255a97a9df24f34a9caa970e332cbec",
+    "shape": "static",
+    "file": "docs/plans/education/K2_ACHIEVEMENT_LIBRARY.md",
+    "status": "source"
+  },
+  "achievement.ach_jur_020": {
+    "source_hash": "7e3fdaf06755f378ffb219a418deefb7957fd7e3e8fbd491ef0218b6a8c8c8a6",
+    "shape": "static",
+    "file": "docs/plans/education/K2_ACHIEVEMENT_LIBRARY.md",
+    "status": "source"
+  },
+  "achievement.ach_jur_021": {
+    "source_hash": "738692460c6175daa0c7aeafbfa122f01b47afc5780dc935a8e52a78cfeb70d5",
+    "shape": "static",
+    "file": "docs/plans/education/K2_ACHIEVEMENT_LIBRARY.md",
+    "status": "source"
+  },
+  "achievement.ach_jur_022": {
+    "source_hash": "38acd9a4dca97968eb62ea4213cf32c8b48a6101343cd06ac458d23edfb6a7b9",
+    "shape": "static",
+    "file": "docs/plans/education/K2_ACHIEVEMENT_LIBRARY.md",
+    "status": "source"
+  },
+  "achievement.ach_jur_023": {
+    "source_hash": "21d962fbc0fe710fd06a61895a718bea868eb71a9695630ebd2cdf47fec73550",
+    "shape": "static",
+    "file": "docs/plans/education/K2_ACHIEVEMENT_LIBRARY.md",
+    "status": "source"
+  },
+  "achievement.ach_jur_024": {
+    "source_hash": "58c693c917dc1072df5594e538c85f02d9416389582894b5737c97318d5afc4d",
+    "shape": "static",
+    "file": "docs/plans/education/K2_ACHIEVEMENT_LIBRARY.md",
+    "status": "source"
+  },
+  "achievement.ach_jur_025": {
+    "source_hash": "80f8bf157eda27b970b9c0dfbceb6dc9182c9db31864e3ff5295df648982ad1c",
+    "shape": "static",
+    "file": "docs/plans/education/K2_ACHIEVEMENT_LIBRARY.md",
+    "status": "source"
+  },
+  "achievement.ach_jur_026": {
+    "source_hash": "caea03fdb4a94b4ece934e18db12126fdb83f106ee4709a139fec8977ae0c2de",
+    "shape": "static",
+    "file": "docs/plans/education/K2_ACHIEVEMENT_LIBRARY.md",
+    "status": "source"
+  },
+  "achievement.ach_leg_001": {
+    "source_hash": "538736f9dabb1b5e3982cdbc1f32ba595537618dd528c70027ed8357e6c25731",
+    "shape": "static",
+    "file": "docs/plans/education/K2_ACHIEVEMENT_LIBRARY.md",
+    "status": "source"
+  },
+  "achievement.ach_leg_002": {
+    "source_hash": "e47906feefb2fac0a25e712f581f4fd20463dd9383d2b2b9ec6909caec3da7ef",
+    "shape": "static",
+    "file": "docs/plans/education/K2_ACHIEVEMENT_LIBRARY.md",
+    "status": "source"
+  },
+  "achievement.ach_leg_003": {
+    "source_hash": "939e3c5df6e29ee477c598ac58c6432808565df82a73b647f3b8cc2f79e96ba0",
+    "shape": "static",
+    "file": "docs/plans/education/K2_ACHIEVEMENT_LIBRARY.md",
+    "status": "source"
+  },
+  "achievement.ach_leg_004": {
+    "source_hash": "362427da222d516be7eef807402c0b1196ebe4b6dd0c85220c60e18e1ec750b1",
+    "shape": "static",
+    "file": "docs/plans/education/K2_ACHIEVEMENT_LIBRARY.md",
+    "status": "source"
+  },
+  "achievement.ach_leg_005": {
+    "source_hash": "da784ef4cf9e00d92829cbe67e1c90938de857e7ac09e2550729e868bcd42abc",
+    "shape": "static",
+    "file": "docs/plans/education/K2_ACHIEVEMENT_LIBRARY.md",
+    "status": "source"
+  },
+  "achievement.ach_leg_006": {
+    "source_hash": "8a0e11f62346b144d4c4fb752766f7cfd40b1c2a7c9f54b75156a5088963c4c1",
+    "shape": "static",
+    "file": "docs/plans/education/K2_ACHIEVEMENT_LIBRARY.md",
+    "status": "source"
+  },
+  "achievement.ach_leg_007": {
+    "source_hash": "1ef5bd2e074f58d6efd9b9b6e463820c326d28ad131a82417530f567fa89d9b7",
+    "shape": "static",
+    "file": "docs/plans/education/K2_ACHIEVEMENT_LIBRARY.md",
+    "status": "source"
+  },
+  "achievement.ach_leg_008": {
+    "source_hash": "c75d413a4bd5f877e5a31b137de7f653d5fa01b89b98be12f4012e9633bd5b5e",
+    "shape": "static",
+    "file": "docs/plans/education/K2_ACHIEVEMENT_LIBRARY.md",
+    "status": "source"
+  },
+  "achievement.ach_leg_009": {
+    "source_hash": "d9f1c60dc0daf1733aff4a562b6730d09fa366e6e7a4e3e58131ba3877cd44a0",
+    "shape": "static",
+    "file": "docs/plans/education/K2_ACHIEVEMENT_LIBRARY.md",
+    "status": "source"
+  },
+  "achievement.ach_leg_010": {
+    "source_hash": "bdd3aa96e6dc10e2ec5fa5a0e96ed1b6043bbae702b3b592c07b81e63fe48806",
+    "shape": "static",
+    "file": "docs/plans/education/K2_ACHIEVEMENT_LIBRARY.md",
+    "status": "source"
+  },
+  "achievement.ach_leg_011": {
+    "source_hash": "cf241024ee70f76bc00fd013d316bcac3d55ef262f861c71f49adbdd4a83f7d5",
+    "shape": "static",
+    "file": "docs/plans/education/K2_ACHIEVEMENT_LIBRARY.md",
+    "status": "source"
+  },
+  "achievement.ach_leg_012": {
+    "source_hash": "2ee47cfa9f9d01b38333a62757c0bf5ab3694e16e19d46648abdb932ef5206f3",
+    "shape": "static",
+    "file": "docs/plans/education/K2_ACHIEVEMENT_LIBRARY.md",
+    "status": "source"
+  },
+  "achievement.ach_leg_013": {
+    "source_hash": "6d6ad297cbb29207a505c81fd03ab09985df99ccb728c01a41507984341cf2d9",
+    "shape": "static",
+    "file": "docs/plans/education/K2_ACHIEVEMENT_LIBRARY.md",
+    "status": "source"
+  },
+  "achievement.ach_leg_014": {
+    "source_hash": "8a45951aba75e5b0d5cc22b008cdf99d4dc270557c4acf974f7f39eeb06c81e2",
+    "shape": "static",
+    "file": "docs/plans/education/K2_ACHIEVEMENT_LIBRARY.md",
+    "status": "source"
+  },
+  "achievement.ach_leg_015": {
+    "source_hash": "fc04dd387d2a16008e07b7e6611eb8dc92c297d761704135a5060c6ec2d13d83",
+    "shape": "static",
+    "file": "docs/plans/education/K2_ACHIEVEMENT_LIBRARY.md",
+    "status": "source"
+  },
+  "achievement.ach_org_001": {
+    "source_hash": "102510426660bfa9bbc9a490f20551c8c8de77689fb540c0d5e67f25d96f9d7f",
+    "shape": "static",
+    "file": "docs/plans/education/K2_ACHIEVEMENT_LIBRARY.md",
+    "status": "source"
+  },
+  "achievement.ach_org_002": {
+    "source_hash": "3df32c4564f1d4648415dbd4f1d033f9756719620dc5a2bdc3ddc0f723babe47",
+    "shape": "static",
+    "file": "docs/plans/education/K2_ACHIEVEMENT_LIBRARY.md",
+    "status": "source"
+  },
+  "achievement.ach_org_003": {
+    "source_hash": "3a6293d900e2e54cc06124778db1fa16323d750f1e5bb1a1b6039cebf1024567",
+    "shape": "static",
+    "file": "docs/plans/education/K2_ACHIEVEMENT_LIBRARY.md",
+    "status": "source"
+  },
+  "achievement.ach_org_004": {
+    "source_hash": "763612697c9e7ef592a7b592fc2c917f1ebef7d30e1571e94068eccb2988bb46",
+    "shape": "static",
+    "file": "docs/plans/education/K2_ACHIEVEMENT_LIBRARY.md",
+    "status": "source"
+  },
+  "achievement.ach_org_005": {
+    "source_hash": "a1645eb3e5bec519dccae68a497079d51ea43bed497c1ced4c259b92bcf7c157",
+    "shape": "static",
+    "file": "docs/plans/education/K2_ACHIEVEMENT_LIBRARY.md",
+    "status": "source"
+  },
+  "achievement.ach_org_006": {
+    "source_hash": "7feb6e6ca41fe916ba8284719caa1d6732c8e3c152d052e1e9d5f3c17b61ba31",
+    "shape": "static",
+    "file": "docs/plans/education/K2_ACHIEVEMENT_LIBRARY.md",
+    "status": "source"
+  },
+  "achievement.ach_org_007": {
+    "source_hash": "fd8c3bfd95a8411ad2dfd09f44939b47f213e1c28b983a8b80b66cdb7f125507",
+    "shape": "static",
+    "file": "docs/plans/education/K2_ACHIEVEMENT_LIBRARY.md",
+    "status": "source"
+  },
+  "achievement.ach_org_008": {
+    "source_hash": "05e665cedba1cdf024ad1142b9f18822a7d6cc0e10248e2e7387823015233fb0",
+    "shape": "static",
+    "file": "docs/plans/education/K2_ACHIEVEMENT_LIBRARY.md",
+    "status": "source"
+  },
+  "achievement.ach_org_009": {
+    "source_hash": "5b6589f9ecd2558a7dffc4e786781fb3b62a17a164af8155a4d0565dc01d9dac",
+    "shape": "static",
+    "file": "docs/plans/education/K2_ACHIEVEMENT_LIBRARY.md",
+    "status": "source"
+  },
+  "achievement.ach_org_010": {
+    "source_hash": "7c331058b2f8f4af26724c4d5f28da53438cf010f5d4926b3680cc706f67619b",
+    "shape": "static",
+    "file": "docs/plans/education/K2_ACHIEVEMENT_LIBRARY.md",
+    "status": "source"
+  },
+  "achievement.ach_org_011": {
+    "source_hash": "5ec6dc0384a5875f613719687e97f761d087c734818cb2354ce9820cc4f0b3d4",
+    "shape": "static",
+    "file": "docs/plans/education/K2_ACHIEVEMENT_LIBRARY.md",
+    "status": "source"
+  },
+  "achievement.ach_org_012": {
+    "source_hash": "310044ae0783a4687fad26212430487b86a50f5c907138bc9987a582e880c291",
+    "shape": "static",
+    "file": "docs/plans/education/K2_ACHIEVEMENT_LIBRARY.md",
+    "status": "source"
+  },
+  "achievement.ach_org_013": {
+    "source_hash": "2f67924066be1cbecbb084c46c94dc2da8b3a9d65d03727320345e4a2bc54e40",
+    "shape": "static",
+    "file": "docs/plans/education/K2_ACHIEVEMENT_LIBRARY.md",
+    "status": "source"
+  },
+  "achievement.ach_sys_001": {
+    "source_hash": "cdc3fed769b1c8c4bca58e1a2d700f32119a9ef897d1bb72e179eee8a73e36ff",
+    "shape": "static",
+    "file": "docs/plans/education/K2_ACHIEVEMENT_LIBRARY.md",
+    "status": "source"
+  },
+  "achievement.ach_sys_002": {
+    "source_hash": "13ce3a8801133a14d2ae5c52338eae76364c3f024140cd47d8d55a284a0ee8ab",
+    "shape": "static",
+    "file": "docs/plans/education/K2_ACHIEVEMENT_LIBRARY.md",
+    "status": "source"
+  },
+  "achievement.ach_sys_003": {
+    "source_hash": "50b6384fde25829073fdac61b23a0a064ad45285ad073b8a7d22a7f89e2f449b",
+    "shape": "static",
+    "file": "docs/plans/education/K2_ACHIEVEMENT_LIBRARY.md",
+    "status": "source"
+  },
+  "achievement.ach_sys_004": {
+    "source_hash": "bb69cfc233754069024a84c06183fa5cc999de1d2cb09b89e35a6708bc77722b",
+    "shape": "static",
+    "file": "docs/plans/education/K2_ACHIEVEMENT_LIBRARY.md",
+    "status": "source"
+  },
+  "achievement.ach_sys_005": {
+    "source_hash": "672746790344a3f4b36290d91dc1930f1b55be806026397143d29693d9ef9842",
+    "shape": "static",
+    "file": "docs/plans/education/K2_ACHIEVEMENT_LIBRARY.md",
+    "status": "source"
+  },
+  "achievement.ach_sys_006": {
+    "source_hash": "910004a5a113598b781887d9c3cd95f1d2fe9529e182826ced63304420f6b9c2",
+    "shape": "static",
+    "file": "docs/plans/education/K2_ACHIEVEMENT_LIBRARY.md",
+    "status": "source"
+  },
+  "achievement.ach_sys_007": {
+    "source_hash": "878949dc448ddc7f701aab00e4bd3e546c847383b800aadbd64582e01231d095",
+    "shape": "static",
+    "file": "docs/plans/education/K2_ACHIEVEMENT_LIBRARY.md",
+    "status": "source"
+  },
+  "achievement.ach_sys_008": {
+    "source_hash": "a00210c50cb6e1d744ed15b87d3725020e00b0c5ac427049ee8b5ea8e8dafc45",
+    "shape": "static",
+    "file": "docs/plans/education/K2_ACHIEVEMENT_LIBRARY.md",
+    "status": "source"
+  },
+  "achievement.ach_sys_009": {
+    "source_hash": "6c3df72fcc9ca176c0f1a7b1fd7349ce6e7c75e667c44eb7d0f3c62d2ee48228",
+    "shape": "static",
+    "file": "docs/plans/education/K2_ACHIEVEMENT_LIBRARY.md",
+    "status": "source"
+  },
+  "achievement.ach_vot_001": {
+    "source_hash": "888541a0b2e256335b47ba5a8732c3d9500f469a784deae9d6e121d98ef7d238",
+    "shape": "static",
+    "file": "docs/plans/education/K2_ACHIEVEMENT_LIBRARY.md",
+    "status": "source"
+  },
+  "achievement.ach_vot_002": {
+    "source_hash": "dec8149bb0066ec2cc1e05f654d4314f231d7757827d4eec13efac48685bdea2",
+    "shape": "static",
+    "file": "docs/plans/education/K2_ACHIEVEMENT_LIBRARY.md",
+    "status": "source"
+  },
+  "achievement.ach_vot_003": {
+    "source_hash": "d58a53b5714ba162e0b11b4c84756a3ac85f1b60a43b7dcef71ca8a295919177",
+    "shape": "static",
+    "file": "docs/plans/education/K2_ACHIEVEMENT_LIBRARY.md",
+    "status": "source"
+  },
+  "achievement.ach_vot_004": {
+    "source_hash": "1df1c6de0e46336efe633f528896811c2e73963d89908603b07d469b8c5559da",
+    "shape": "static",
+    "file": "docs/plans/education/K2_ACHIEVEMENT_LIBRARY.md",
+    "status": "source"
+  },
+  "achievement.ach_vot_005": {
+    "source_hash": "91184778b2f7d845b2dd5381dd0eab8ed139ece4fe06eb360849ad19b664d089",
+    "shape": "static",
+    "file": "docs/plans/education/K2_ACHIEVEMENT_LIBRARY.md",
+    "status": "source"
+  },
+  "achievement.ach_vox_001": {
+    "source_hash": "a82bd685291e7cd63dbdf1fe20ec55a6169905e2bddfd7e57f5d6eedf26329f6",
+    "shape": "static",
+    "file": "docs/plans/education/K2_ACHIEVEMENT_LIBRARY.md",
+    "status": "source"
+  },
+  "achievement.ach_vox_002": {
+    "source_hash": "61b8c98d5b536ba860b4e1998bd6b5f8298fda5b17e1d820847c1e1ac82d8d48",
+    "shape": "static",
+    "file": "docs/plans/education/K2_ACHIEVEMENT_LIBRARY.md",
+    "status": "source"
+  },
+  "achievement.ach_vox_003": {
+    "source_hash": "fa20497d538895a6713367aa83b5e9459943d184fc3a19ef782eedea16655f9e",
+    "shape": "static",
+    "file": "docs/plans/education/K2_ACHIEVEMENT_LIBRARY.md",
+    "status": "source"
+  },
+  "achievement.ach_vox_004": {
+    "source_hash": "c606b27601551fc8873826559997ad6b6f685aa852ed6f222ee8eaa9aa098dd6",
+    "shape": "static",
+    "file": "docs/plans/education/K2_ACHIEVEMENT_LIBRARY.md",
+    "status": "source"
+  },
+  "achievement.ach_vox_005": {
+    "source_hash": "76a4ef8efd646ccd1ef43b8e390ec7e4500c7adeaab68fe22df7d700153cac0e",
+    "shape": "static",
+    "file": "docs/plans/education/K2_ACHIEVEMENT_LIBRARY.md",
+    "status": "source"
+  },
+  "achievement.ach_vox_006": {
+    "source_hash": "172f321f941952aa02f0088bbbf855c02dcd7371ef5d482775498dc9e6bebfd9",
+    "shape": "static",
+    "file": "docs/plans/education/K2_ACHIEVEMENT_LIBRARY.md",
+    "status": "source"
+  },
+  "achievement.ach_vox_007": {
+    "source_hash": "4176433889c0ce90a7c4800ab798260a582f062dd43039dc12f5c26fe5dcc659",
+    "shape": "static",
+    "file": "docs/plans/education/K2_ACHIEVEMENT_LIBRARY.md",
+    "status": "source"
+  },
+  "achievement.tour.become_a_resident": {
+    "source_hash": "58300a85cf0d4eb1f240b2b25612b6b27693e3dd5e43a192e2c9e53cefac1cf9",
+    "shape": "static",
+    "file": "config/cga/journeys.php",
+    "status": "source"
+  },
+  "achievement.tour.bill": {
+    "source_hash": "00a9000d5014ad8e7378da36a39dd1ac138479e63ebbc10051d7b937b39664c1",
+    "shape": "static",
+    "file": "config/cga/journeys.php",
+    "status": "source"
+  },
+  "achievement.tour.board_meeting": {
+    "source_hash": "d5d9ea85172cb8956e89885edd6bebb9dd85b61df3f360391490419776666336",
+    "shape": "static",
+    "file": "config/cga/journeys.php",
+    "status": "source"
+  },
+  "achievement.tour.budget": {
+    "source_hash": "e9a3988d38e93876c351b7c017191bade012eec00c31386bd34b4452b1f0d333",
+    "shape": "static",
+    "file": "config/cga/journeys.php",
+    "status": "source"
+  },
+  "achievement.tour.committee_session": {
+    "source_hash": "e59ce1d06810fb677df5f4e94b15b464822e7b4cf223c642abede168a77a061a",
+    "shape": "static",
+    "file": "config/cga/journeys.php",
+    "status": "source"
+  },
+  "achievement.tour.court_case": {
+    "source_hash": "afb262e2a3833b40d7dc222e54f78939b5b7eddc000f79690804b5ca43fd1888",
+    "shape": "static",
+    "file": "config/cga/journeys.php",
+    "status": "source"
+  },
+  "achievement.tour.election": {
+    "source_hash": "82823f1aee37d68e9102e866c010701c54b5ef49cca25b2097fb4316eabe3dc1",
+    "shape": "static",
+    "file": "config/cga/journeys.php",
+    "status": "source"
+  },
+  "achievement.tour.form_a_group": {
+    "source_hash": "36150575e9e3f22c1a373d86213f20a2d0bbc3ca5f4191319b717fff75dfbc78",
+    "shape": "static",
+    "file": "config/cga/journeys.php",
+    "status": "source"
+  },
+  "achievement.tour.mutual_aid": {
+    "source_hash": "1d94eb38cd2ebf012b59dae71bcebaa42f581f885060c3e6eb7e71b8f22b277b",
+    "shape": "static",
+    "file": "config/cga/journeys.php",
+    "status": "source"
+  },
+  "achievement.tour.petition_to_referendum": {
+    "source_hash": "51a00c2f958fd8702e4891cf1f9173e74b80a553c170c0c45ce603556e26d636",
+    "shape": "static",
+    "file": "config/cga/journeys.php",
+    "status": "source"
+  },
+  "achievement.tour.public_service": {
+    "source_hash": "60bf4d9d8c0861117b638363ab7a6ca0666443b6deea741f37bea0ca0affa65e",
+    "shape": "static",
+    "file": "config/cga/journeys.php",
+    "status": "source"
+  },
+  "achievement.tour.start_org": {
+    "source_hash": "2efc83bed89e4d26cad55ed1e6b5291bd8bece9320e05578bc95e535ff51e53d",
+    "shape": "static",
+    "file": "config/cga/journeys.php",
+    "status": "source"
+  },
+  "achievement.tour.stipend_and_tax": {
+    "source_hash": "7cf0e1c3aba59c439f243018b02575ca304c9ca72044e041eb0f0fa75a343457",
+    "shape": "static",
+    "file": "config/cga/journeys.php",
+    "status": "source"
+  },
+  "achievement.tour.two_governments": {
+    "source_hash": "32c437527b8b2544b808879aca0c41bb2824118d21d76d9ea86dd40597e807df",
+    "shape": "static",
+    "file": "config/cga/journeys.php",
+    "status": "source"
+  }
+}

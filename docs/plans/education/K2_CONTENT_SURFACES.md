@@ -5,9 +5,19 @@
 sure we're already there."* Plus: **in-app education is PER SCREEN — "it's all about every screen.
 So it's the shape for everything."**
 
-**✅ COMPLETE — all 70 surfaces authored (140 of 140 halves; 482 translatable strings).**
+**✅ COMPLETE — all 70 surfaces authored (140 of 140 halves; 476 translatable strings).**
 Waves 1-7: civic 14 · legislature 12 · electoral 9 · judiciary 7 · executive 6 · organizations 6 ·
 system 6 · operator 6 · jurisdictions 4. Four dev harnesses excluded by design.
+
+**⚑ EXTRACTED TO CODE 2026-07-28 (V3 synthesis Wave 1, L1).** This file is now the SOURCE for a
+generated payload: `scripts/education/build_education_payload.mjs` parses every
+`K2_CONTENT_*.md` in this folder and emits `resources/js/i18n/locales/en/c_education.json`,
+`resources/js/i18n/meta/en/c_education.json`, and `resources/js/registry/education.js` (plus the
+achievements catalog and flow context). **Edit here, re-run the script, commit both.** The counts
+below were corrected against the generator's measured output — the earlier header said 482
+strings / 187 steps, but the file as committed holds **184 steps → 476 strings**; the 482 was a
+counting error in the header, not lost content (every surface's every row is emitted, and the
+generator exits nonzero if a surface fails to parse).
 
 ---
 
@@ -37,15 +47,16 @@ from the 42 surfaces authored so far:
 | | Count |
 |---|---|
 | `learn` sentences | **70** |
-| `howto` steps × (do + detail) | 187 × 2 = **374** |
+| `howto` steps × (do + detail) | 184 × 2 = **368** |
 | `why` callouts | **38** |
-| **Education strings** | **482** |
-| **Achievement titles** | **139** |
-| **TOTAL lane-15 payload** | **621 strings** |
+| **Education strings** | **476** |
+| **Achievement titles** | **141** (127 ACH-* + 14 tour arcs) |
+| **TOTAL lane-15 payload** | **617 strings** |
 
 That is **~4.4× the "140 items" figure I first gave you** — that number counted surface-halves,
 and each half holds several strings. Corrected the same night rather than after you had planned
-French and Portuguese capacity around it.
+French and Portuguese capacity around it. *(2026-07-28: step count corrected 187→184 and
+achievements 139→141 against the generator's measured output — the payload is 476 + 141 = 617.)*
 
 **What is NOT in the payload — do not translate these:**
 - The **`cite` column**. It is Article references and form/role/clock ID tokens
