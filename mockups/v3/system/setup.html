@@ -25,13 +25,13 @@
   (function () {
     'use strict';
     var S = window.CGA.shellV2, esc = S.esc;
-    /* The founding flow, reordered (v3): your operator account first, then a
-       one-way, three-way fork — JOIN an existing world (nothing to found),
+    /* The founding flow (RULED 2026-07-05, reaffirmed 2026-07-29: FORK-FIRST —
+       "join or start, then account"): the one-way, three-way fork — JOIN an existing world (nothing to found),
        START FRESH (found a brand-new world), or RESTORE FROM RECORDS (found a
        world from what survives — also a founding path). The founding paths end
        by creating your first federation account — your player username,
        player one. */
-    var STEPS = ['Operator account', 'The founding fork', 'Cosmic address', 'Constitution & economy', 'Map data', 'Build districts', 'Seat & your account'];
+    var STEPS = ['The founding fork', 'Operator account', 'Cosmic address', 'Constitution & economy', 'Map data', 'Build districts', 'Seat & your account'];
 
     var fseq = 0;
     function field(label, value, hint, opts) {
@@ -53,10 +53,10 @@
         '<h2 id="s' + i + '" style="margin:0">' + esc(STEPS[i]) + '</h2>' + (extra || '') + '</div>';
     }
 
-    /* 0 — your operator account (you are a physical node) */
+    /* 1 — your operator account (you are a physical node); AFTER the fork per the ruling */
     function stepOperator() {
-      return '<section class="card setup-step" aria-labelledby="s0">' + stepHead(0) +
-        '<p>Before anything else, claim <strong>your</strong> account. You are a person running a physical node — a box on the mesh. This account is who you are as the operator of this instance.</p>' +
+      return '<section class="card setup-step" aria-labelledby="s1">' + stepHead(1) +
+        '<p>With the fork chosen, claim <strong>your</strong> account. On the JOIN path you authenticate against your account in the detected mesh; on FRESH or RESTORE this local account founds the world and becomes its first federation account. You are a person running a physical node — a box on the mesh. This account is who you are as the operator of this instance.</p>' +
         '<div class="card card--inset"><h3>' + S.icon('user', { size: 'sm' }) + ' Claim your operator account</h3>' +
         '<p>Your name, a contact email, this node’s name, and where it lives — claimed once, on ' +
         '<a href="' + S.hrefV2('operator/setup.html') + '">Set up your node</a>. This wizard embeds that exact step, so there is only ever one account-claim form.</p>' +
@@ -67,10 +67,10 @@
         '</section>';
     }
 
-    /* 1 — the one-way, three-way fork: join, start fresh, or restore */
+    /* 0 — the one-way, three-way fork: join, start fresh, or restore (FIRST, ruled) */
     function stepBranch() {
-      return '<section class="card setup-step" aria-labelledby="s1">' + stepHead(1) +
-        '<p>Now a single, one-way question: <strong>why does this world exist?</strong> Three answers. <strong>Joining</strong> connects you to a world that already exists. <strong>Starting fresh</strong> founds a brand-new one. <strong>Restoring from records</strong> also founds one — from what survives — because you chose not to join an existing federation, or because the nodes that carried a government have fallen. The moment you found (fresh or restored) you are a new, separate world — you can’t then join (you could later fork or disconnect, but that’s another story).</p>' +
+      return '<section class="card setup-step" aria-labelledby="s0">' + stepHead(0) +
+        '<p>The first choice, a single one-way question: <strong>why does this world exist?</strong> Three answers. <strong>Joining</strong> connects you to a world that already exists. <strong>Starting fresh</strong> founds a brand-new one. <strong>Restoring from records</strong> also founds one — from what survives — because you chose not to join an existing federation, or because the nodes that carried a government have fallen. The moment you found (fresh or restored) you are a new, separate world — you can’t then join (you could later fork or disconnect, but that’s another story).</p>' +
         '<div class="grid-2" style="margin-block-start:var(--space-3)">' +
         '<div class="card card--inset"><div class="cluster" style="justify-content:space-between;align-items:baseline">' +
         '<h3>' + S.icon('globe', { size: 'sm' }) + ' Join an existing world</h3>' + S.badge('info', 'Short path') + '</div>' +
@@ -217,7 +217,7 @@
         '<p class="page-intro">Before anyone plays, someone founds the world. It starts with <strong>your operator account</strong>, then a one-way fork — <strong>start fresh</strong>, <strong>restore from records</strong>, or <strong>join</strong> a world that already exists — and the founding paths end by creating your first account: <strong>player one</strong>. Shown here as a completed end-state.</p></header>' +
 
         stepper +
-        stepOperator() + stepBranch() + stepCosmic() + stepDefaults() + stepMap() + stepDistricts() + stepSeat() +
+        stepBranch() + stepOperator() + stepCosmic() + stepDefaults() + stepMap() + stepDistricts() + stepSeat() +
 
         '<div class="cluster"><span class="btn btn--primary" aria-disabled="true">Finish &amp; enter as player one ' + S.icon('check', { size: 'sm' }) + '</span>' +
         '<span class="citation">Static end-state — a mockup of the founding loop, not a live run.</span></div>' +

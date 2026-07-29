@@ -148,20 +148,9 @@ return [
         'citation'  => 'Right to stand — residency is the only requirement · Art. I · CLK-18',
     ],
 
-    'elections/candidate-profile' => [
-        'title'     => 'Candidate profile',
-        'module'    => 'electoral',
-        'nav'       => 'open-ballot',
-        'roles'     => ['R-03', 'R-04', 'R-06', 'R-07'],
-        'workflows' => ['WF-CIV-05', 'WF-CIV-08'],
-        'forms'     => [
-            ['id' => 'F-CAN-001', 'availableTo' => ['R-06'], 'citation' => 'Art. I (Freedom of Expression)'],
-            ['id' => 'F-CAN-002', 'availableTo' => ['R-06'], 'citation' => 'Art. I (Freedom of Assembly)'],
-            ['id' => 'F-CAN-003', 'availableTo' => ['R-06'], 'citation' => 'Art. I (Autonomy) · blocked after the finalist cutoff · CLK-21'],
-        ],
-        'clocks'    => ['CLK-21'],
-        'citation'  => 'Candidacy lifecycle · F-CAN-001/002/003 · Art. I; Art. II §2',
-    ],
+    /* 'elections/candidate-profile' removed 2026-07-29 (operator ruling A4):
+       absorbed into social/profile's Candidacy tab (v3.2 0a) — the F-CAN-001/
+       002/003 surface metadata lives on the profile's surface record. */
 
     'elections/open-ballot' => [
         'title'     => 'Open ballot',

@@ -465,7 +465,7 @@ Route::middleware('auth')->group(function () {
     Route::get('/elections/{election}', [ElectionController::class, 'show'])
         ->whereUuid('election')->name('elections.show');
 
-    // FE-B3 — CandidacyRegistration (F-IND-011) + CandidateProfile
+    // FE-B3 — CandidacyRegistration (F-IND-011); the candidate profile is absorbed into social/profile (A4)
     Route::get('/elections/{election}/candidacy', [CandidacyController::class, 'create'])
         ->whereUuid('election')->name('elections.candidacy.create');
     Route::post('/elections/{election}/candidacy', [CandidacyController::class, 'store'])
