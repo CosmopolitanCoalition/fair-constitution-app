@@ -433,7 +433,91 @@ class TranslationReviewService
         ));
     }
 
+    /**
+     * Resolve a single string — or a `_glossary` term — to the facts a verdict
+     * binds to: the English source, the machine draft, and the `source_hash`
+     * the verdict must carry.
+     *
+     * The CLI verdict path (`i18n:review`) uses this so it computes the hash
+     * EXACTLY as {@see queue()} and {@see terms()} do. A verdict filed against a
+     * hash the queue would not produce is a verdict that silently never counts —
+     * the one defect a second, hand-rolled hash implementation would inevitably
+     * grow. One resolver, one hash, both surfaces.
+     *
+     * @return array{english:?string, machine:?string, source_hash:string,
+     *               state:string, agreeing:int, quarantine_reason:?string}|null
+     *         null when the key (or term) has no English source at all.
+     */
+    public function locate(string $locale, string $namespace, string $key): ?array
+    {
+        $verdicts = $this->verdictsFor($locale);
+
+        if ($namespace === self::GLOSSARY_NAMESPACE) {
+            $glossary = $this->json(base_path(self::GLOSSARY)) ?? [];
+            $entry    = $glossary[$key] ?? null;
+            if (! is_array($entry)) {
+                return null;
+            }
+            $rendering = $entry['translations'][$locale] ?? null;
+            $rendering = $rendering === '' ? null : $rendering;
+            // A term's whole content IS its rendering — same binding as terms().
+            $hash     = hash('sha256', $key . "\0" . (string) $rendering);
+            $agreeing = $this->agreeingFor($verdicts, self::GLOSSARY_NAMESPACE, $key, $hash);
+
+            return [
+                'english'           => $key,   // a term's source is the term itself
+                'machine'           => $rendering,
+                'source_hash'       => $hash,
+                'state'             => $this->state($rendering, $agreeing),
+                'agreeing'          => $agreeing,
+                'quarantine_reason' => null,
+            ];
+        }
+
+        $english = $this->catalog('en')[$namespace][$key] ?? null;
+        if (! is_string($english)) {
+            return null;
+        }
+
+        $machine  = $this->catalog($locale)[$namespace][$key] ?? null;
+        $meta     = $this->meta($locale);
+        $status   = $meta[$namespace][$key]['status'] ?? null;
+        $hash     = $this->meta('en')[$namespace][$key]['source_hash'] ?? hash('sha256', $english);
+        $agreeing = $this->agreeingFor($verdicts, $namespace, $key, $hash);
+
+        return [
+            'english'           => $english,
+            'machine'           => $machine,
+            'source_hash'       => $hash,
+            'state'             => $this->state($machine, $agreeing),
+            'agreeing'          => $agreeing,
+            'quarantine_reason' => $status === 'review'
+                ? ($meta[$namespace][$key]['reason'] ?? 'flagged')
+                : null,
+        ];
+    }
+
     /* ── internals ─────────────────────────────────────────────────────────── */
+
+    /**
+     * Agreeing (non-rejected) verdicts bound to THIS source hash — the count
+     * that decides the lifecycle state. Kept beside {@see locate()}; the queue
+     * and term paths inline the same two filters against their own row shapes.
+     *
+     * @param  array<string, list<array{verdict:string, source_hash:string, verified_by:string}>>  $verdicts
+     */
+    private function agreeingFor(array $verdicts, string $namespace, string $key, string $hash): int
+    {
+        $live = array_filter(
+            $verdicts["{$namespace}:{$key}"] ?? [],
+            fn (array $v): bool => $v['source_hash'] === $hash,
+        );
+
+        return count(array_filter(
+            $live,
+            fn (array $v): bool => $v['verdict'] !== TranslationVerification::VERDICT_REJECTED,
+        ));
+    }
 
     /**
      * Where a string sits in the work order. Lower comes first.
