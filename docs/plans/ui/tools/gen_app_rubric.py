@@ -45,6 +45,15 @@ QUESTIONS = [
   "detail":"e.g. Elections/CandidateProfile.vue (unreferenced) + a couple of orphan surface records.",
   "options":[{"k":"A","t":"Delete the orphan surfaces."},
              {"k":"B","t":"Keep them for now."}]},
+ {"id":"q4a-rooms","q":"Q4a — provisioning can't materialise court tiers / extra civic rooms (the schema forbids it). How should the scaling model resolve this?","status":"open","lane":"4",
+  "detail":"One live court per jurisdiction (hierarchy is expressed ACROSS THE TREE via parent_judiciary_id); one public space per type. courtTiers/extraRooms have no lawful shape as extra rows at one place. The min_judges-from-tier fix already wires the meaningful bench scaling. Your framing: the court JURISDICTION stays singular; the scalable thing is rooms/chambers within the infrastructure.",
+  "options":[{"k":"A","t":"Reframe courtTiers as a jurisdiction's tree-DEPTH; extra rooms = group-type or a future room model. Doc amendment, no schema, nothing built moves. [desk rec]"},
+             {"k":"B","t":"Weaken the two uniqueness constraints (allow duplicate courts/squares). Needs a migration; trades two real safety rails."},
+             {"k":"C","t":"Defer past this wave — the min_judges-from-tier fix already advances the scaling capability; build the room model later."}]},
+ {"id":"advocate-gate","q":"Should advocates have a qualification catalog + an approval lifecycle, or stay an instant competence register?","status":"open","lane":"6",
+  "detail":"The advocate-registration mockup wanted 'I attest to X law' checkboxes + a 'pending judiciary review' banner. F-IND-015 registers instantly (rejecting only on association + duplicate) — the bar is a competence REGISTER, not a merits gate on a client's Art. I right. A catalog + pending→approved lifecycle would be a RULE change + an advocates.status CHECK migration. Held honest-empty, flagged not smuggled.",
+  "options":[{"k":"A","t":"Keep it a competence register — instant, no merits gate. [held honest-empty; desk rec]"},
+             {"k":"B","t":"Add a qualification catalog + an approval lifecycle (rule change + schema)."}]},
  # --- resolved (read-only, recorded) ---
  {"id":"typeb-shape","q":"Type B race shape — pooled vs per-child/per-clump?","status":"resolved","lane":"1",
   "detail":"RULED per-child/per-clump (each child, or clump, is its own at-large race). CLAUDE.md corrected @55b8846. Build = Wave 4 (lanes 1+3)."},
@@ -80,7 +89,7 @@ for _q in QUESTIONS:
 # Screens / caps / debt all come from the enriched, badged corpus in this dir (repo-stable).
 _enr = json.load(open(os.path.join(_HERE, 'badged.json'), encoding='utf-8'))
 screens = _enr['screens']; caps = _enr['caps']; debt = _enr['debt']
-DATA = {'asOf': '2026-07-29', 'head': '41d5239', 'forms': 117,
+DATA = {'asOf': '2026-07-29', 'head': '2ad8b1b', 'forms': 118,
         'screens': screens, 'caps': caps, 'debt': debt, 'fleet': FLEET, 'questions': QUESTIONS}
 
 TEMPLATE = r"""<title>App Progress Rubric — CGA</title>
@@ -103,7 +112,7 @@ h1{font-size:1.55rem;font-weight:600;margin:0 0 .3rem}
 .tile .meter{display:flex;block-size:.5rem;border-radius:4px;overflow:hidden;margin-top:.45rem;background:var(--line)}
 .tile .meter span{block-size:100%}
 .dot{inline-size:.55rem;block-size:.55rem;border-radius:50%;display:inline-block;flex:none;vertical-align:middle}
-.d-good{background:var(--good)}.d-warn{background:var(--warn)}.d-bad{background:var(--bad)}.d-block{background:var(--block)}
+.d-good{background:var(--good)}.d-warn{background:var(--warn)}.d-bad{background:var(--bad)}.d-block{background:var(--block)}.d-low{background:var(--faint)}
 .s-good{background:var(--good)}.s-warn{background:var(--warn)}.s-bad{background:var(--bad)}.s-block{background:var(--block)}
 .note{background:var(--surface);border:1px solid var(--line);border-inline-start:4px solid var(--bad);border-radius:9px;padding:.75rem .9rem;font-size:.85rem;margin:.2rem 0 1.4rem}.note b{color:var(--ink)}
 .views{display:flex;gap:.35rem;border-bottom:2px solid var(--line);margin:0 0 1rem;flex-wrap:wrap}
@@ -131,10 +140,10 @@ h1{font-size:1.55rem;font-weight:600;margin:0 0 .3rem}
 .scr-title{font-size:.88rem}.scr-file{font-family:var(--mono);font-size:.75rem;color:var(--faint);display:block;margin-top:.1rem}
 .pill{font-size:.68rem;font-weight:600;letter-spacing:.03em;border-radius:999px;padding:.14em .6em;white-space:nowrap}
 .p-built,.p-working,.p-done,.p-resolved{background:var(--good-s);color:var(--good)}
-.p-partial,.p-next,.p-medium{background:var(--warn-s);color:var(--warn)}
+.p-partial,.p-next,.p-medium,.p-active{background:var(--warn-s);color:var(--warn)}
 .p-absent,.p-high,.p-open{background:var(--bad-s);color:var(--bad)}
 .p-blocked,.p-held{background:var(--block-s);color:var(--block)}
-.p-low{background:var(--accent-soft);color:var(--muted)}
+.p-low,.p-deferred{background:var(--accent-soft);color:var(--muted)}
 .eff{font-family:var(--mono);font-size:.72rem;color:var(--faint);white-space:nowrap}
 .lwbadge{font-family:var(--mono);font-size:.66rem;font-weight:700;background:var(--accent-soft);color:var(--accent);padding:.14em .45em;border-radius:4px;white-space:nowrap;letter-spacing:.02em}
 .qbar{display:flex;gap:.8rem;align-items:center;margin:0 0 1rem;flex-wrap:wrap}
@@ -195,12 +204,12 @@ h1{font-size:1.55rem;font-weight:600;margin:0 0 .3rem}
 <script>
 const D=%%DATA%%;
 const esc=s=>String(s==null?'':s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
-const CO={built:'good',working:'good',partial:'warn',absent:'bad',blocked:'block',high:'bad',medium:'warn',low:'low',done:'good',next:'warn',held:'block',resolved:'good',open:'bad'};
-const LB={built:'built',working:'working',partial:'partial',absent:'absent',blocked:'blocked',high:'high',medium:'medium',low:'low',done:'done',next:'next',held:'held',resolved:'resolved',open:'open'};
+const CO={built:'good',working:'good',partial:'warn',absent:'bad',blocked:'block',high:'bad',medium:'warn',low:'low',done:'good',next:'warn',held:'block',resolved:'good',open:'bad',active:'warn',deferred:'low'};
+const LB={built:'built',working:'working',partial:'partial',absent:'absent',blocked:'blocked',high:'high',medium:'medium',low:'low',done:'done',next:'next',held:'held',resolved:'resolved',open:'open',active:'active',deferred:'deferred'};
 let view='screens',q='',filter='all';
 let ANS={};try{for(let i=0;i<localStorage.length;i++){const k=localStorage.key(i);if(k&&k.indexOf('cga4qs_')===0){const id=k.slice(7);ANS[id]=ANS[id]||{};ANS[id].sel=localStorage.getItem(k);}if(k&&k.indexOf('cga4qn_')===0){const id=k.slice(7);ANS[id]=ANS[id]||{};ANS[id].notes=localStorage.getItem(k);}}}catch(e){}
 function saveAns(id,f,v){ANS[id]=ANS[id]||{};ANS[id][f]=v;try{localStorage.setItem('cga4q'+(f==='sel'?'s':'n')+'_'+id,v);}catch(e){}}
-const FILTERS={screens:['all','built','partial','absent'],caps:['all','working','partial','blocked','absent'],debt:['all','high','medium','low'],fleet:['all','done','next','held'],questions:['all','open','resolved']};
+const FILTERS={screens:['all','built','partial','absent'],caps:['all','working','partial','blocked','absent'],debt:['all','high','medium','low'],fleet:['all','done','active','held','deferred'],questions:['all','open','resolved']};
 const sc=t=>D.screens.filter(r=>r.bucket===t).length,cc=t=>D.caps.filter(r=>r.maturity===t).length,dc=t=>D.debt.filter(r=>r.severity===t).length;
 const qOpen=D.questions.filter(x=>x.status==='open').length,qRes=D.questions.filter(x=>x.status==='resolved').length;
 function meter(parts){return parts.map(p=>p[0]?`<span class="s-${p[1]}" style="flex:${p[0]}"></span>`:'').join('');}
@@ -208,7 +217,7 @@ document.getElementById('tiles').innerHTML=`
  <div class="tile"><p class="lbl">UI Screens</p><div class="num">${sc('built')} / ${D.screens.length}</div><div class="sub">${sc('partial')} partial · ${sc('absent')} absent</div><div class="meter">${meter([[sc('built'),'good'],[sc('partial'),'warn'],[sc('absent'),'bad']])}</div></div>
  <div class="tile"><p class="lbl">Capabilities</p><div class="num">${cc('working')} / ${D.caps.length}</div><div class="sub">${cc('partial')} part · ${cc('blocked')} blocked · ${cc('absent')} absent</div><div class="meter">${meter([[cc('working'),'good'],[cc('partial'),'warn'],[cc('blocked'),'block'],[cc('absent'),'bad']])}</div></div>
  <div class="tile"><p class="lbl">Technical Debt</p><div class="num">${D.debt.length} items</div><div class="sub">${dc('high')} high · ${dc('medium')} med · ${dc('low')} low</div><div class="meter">${meter([[dc('high'),'bad'],[dc('medium'),'warn'],[dc('low'),'good']])}</div></div>
- <div class="tile"><p class="lbl">Open Questions</p><div class="num">${qOpen} open</div><div class="sub">${qRes} resolved · Wave 4 next</div><div class="meter">${meter([[qRes,'good'],[qOpen,'bad']])}</div></div>`;
+ <div class="tile"><p class="lbl">Open Questions</p><div class="num">${qOpen} open</div><div class="sub">${qRes} resolved · Wave 4 green</div><div class="meter">${meter([[qRes,'good'],[qOpen,'bad']])}</div></div>`;
 function hi(t){if(!q)return esc(t);const i=String(t).toLowerCase().indexOf(q);if(i<0)return esc(t);const s=String(t);return esc(s.slice(0,i))+'<mark>'+esc(s.slice(i,i+q.length))+'</mark>'+esc(s.slice(i+q.length));}
 function screenDetail(r){const li=x=>x.map(i=>`<li>${hi(i)}</li>`).join('');let h='<dl>';
   h+=`<dt>Where</dt><dd class="meta">${r.page?esc(r.page):'<em>no page</em>'}${r.route?' · '+esc(r.route):''} · props: ${esc(r.props)} · backend: ${esc(r.backend)}${r.owner?' · owner '+esc(r.owner):''}</dd>`;
@@ -233,17 +242,19 @@ function render(){const b=document.getElementById('body');
     b.innerHTML=`<section class="area"><div class="rows">${vis.map(r=>`<div class="scr"><button class="scr-head" aria-expanded="false"><span class="dot d-${CO[r.severity]}"></span><span class="scr-title">${hi(r.title)}</span><span class="lwbadge">${esc(r.badge)}</span><span class="pill p-${r.severity}">${LB[r.severity]}</span><span class="eff">${esc(r.category)}</span></button><div class="detail hidden"><dl><dt>Owner</dt><dd>${hi(r.owner)}</dd><dt>Where</dt><dd class="meta">${hi(r.location)}</dd><dt>Status</dt><dd>${hi(r.status)}</dd>${r.note?`<dt>Note</dt><dd>${hi(r.note)}</dd>`:''}</dl></div></div>`).join('')||'<div class="detail">No matches.</div>'}</div></section>`;}
   else if(view==='fleet'){
     const waves=D.fleet.waves.map(w=>`<span class="wv">${w.id}</span> ${esc(w.name)} <span class="pill p-${w.status}">${LB[w.status]}</span>`).join(' &nbsp;·&nbsp; ');
-    let html=`<div class="note" style="border-inline-start-color:var(--warn)">⏳ <b>Wave 4 orders PREPARED — awaiting the operator's go / no-go.</b> Nothing dispatches to any lane until the launch order. Your 9 answers are folded into each lane's Wave 4 order below (look for "RULED = …"). Each lane's W4 instruction is shown in full; the "already done" history collapses under it.</div><div class="wavesline"><b>Waves:</b> ${waves}</div>`;
-    D.fleet.lanes.forEach(l=>{
-      if(filter!=='all' && !l.orders.some(o=>o.status===filter))return;
-      if(q && !(l.name+' '+l.orders.map(o=>o.text).join(' ')).toLowerCase().includes(q))return;
-      const w4=l.orders.find(o=>o.wave==='W4');const done=l.orders.filter(o=>o.status==='done');
-      html+=`<div class="lanecard"><div class="lanehd"><span class="lwbadge">L${esc(l.id)}${w4&&w4.status!=='held'?'W4':''}</span><span class="lanenm">Lane ${esc(l.id)} · ${esc(l.name)}</span>${w4?`<span class="pill p-${w4.status}">${w4.status==='held'?'held':'Wave 4'}</span>`:''}</div>`;
-      if(w4)html+=`<div class="laneorder">${hi(w4.text)}</div>`;
-      if(done.length)html+=`<details class="lanehist"><summary>${done.length} already done · W${done.map(o=>o.wave.slice(1)).join(' · W')}</summary>${done.map(o=>`<div class="donerow"><span class="wv">${o.wave}</span> ${esc(o.text)}</div>`).join('')}</details>`;
-      html+=`</div>`;
+    let html=`<div class="note" style="border-inline-start-color:var(--good)">✅ <b>Wave 4 is GREEN.</b> The authoritative full suite passed <b>1343 passed · 0 failed · 3 skipped</b> in a quiet window. Each lane's Wave-4 responsibilities are broken out below with per-item status — expand a lane, then an item, like the Screens and Capabilities tabs.</div><div class="wavesline"><b>Waves:</b> ${waves}</div>`;
+    const bk=['done','active','held','deferred'];
+    D.fleet.lanes.forEach(l=>{const items=l.items||[];
+      const vis=items.filter(it=>(filter==='all'||it.status===filter)&&(!q||('l'+l.id+' '+l.name+' '+it.label+' '+(it.note||'')).toLowerCase().includes(q)));
+      if(!vis.length)return;
+      const c={done:0,active:0,held:0,deferred:0};items.forEach(it=>{if(it.status in c)c[it.status]++;});
+      const bar=bk.map(k=>c[k]?`<span class="s-${CO[k]}" style="flex:${c[k]}"></span>`:'').join('');
+      const cnt=bk.filter(k=>c[k]).map(k=>c[k]+' '+k).join(' · ')||'—';
+      html+=`<section class="area"><button class="area-head" aria-expanded="false"><span class="area-name"><span class="lwbadge">L${esc(l.id)}·W4</span> Lane ${esc(l.id)} · ${esc(l.name)} <span class="pill p-${l.status}">${LB[l.status]||esc(l.status)}</span></span><span class="bar">${bar}</span><span class="counts">${esc(cnt)}</span><span class="chev">›</span></button><div class="rows hidden">`;
+      vis.forEach(it=>{html+=`<div class="scr"><button class="scr-head" aria-expanded="false"><span class="dot d-${CO[it.status]}"></span><span class="scr-title">${hi(it.label)}</span><span class="pill p-${it.status}">${LB[it.status]||esc(it.status)}</span></button><div class="detail hidden"><dl>${it.note?`<dt>Detail</dt><dd>${hi(it.note)}</dd>`:'<dd class="ok">—</dd>'}</dl></div></div>`;});
+      html+=`</div></section>`;
     });
-    b.innerHTML=html;return;
+    b.innerHTML=html;
   }
   else if(view==='questions'){
     const vis=D.questions.filter(r=>(filter==='all'||r.status===filter)&&(!q||(r.q+' '+r.detail).toLowerCase().includes(q)));
@@ -273,7 +284,7 @@ buildFilters();render();
 </script>
 """
 
-stamp = "As of %s · main @ <code>%s</code> · Wave 4 LAUNCHED — the road to green, in progress" % (DATA['asOf'], DATA['head'])
+stamp = "As of %s · main @ <code>%s</code> · Wave 4 GREEN — authoritative gate 1343 passed / 0 failed" % (DATA['asOf'], DATA['head'])
 html = TEMPLATE.replace('%%DATA%%', json.dumps(DATA, separators=(',', ':'))).replace('%%STAMP%%', stamp)
 out = r'E:\fair-constitution-app\docs\plans\ui\tools\app_progress_rubric.html'
 with io.open(out, 'w', encoding='utf-8') as f:

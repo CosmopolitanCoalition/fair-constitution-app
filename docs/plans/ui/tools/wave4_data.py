@@ -1,88 +1,93 @@
 # -*- coding: utf-8 -*-
-# Wave 4 standing orders (per lane) + fleet waves + open-questions decision queue.
-# Goal: as close to GREEN as possible across UI Screens AND Capabilities -> tested playable game.
+# Fleet & Waves — per-lane Wave 4 responsibilities broken into items with status,
+# rendered like UI Screens / Capabilities (drillable, status-badged).
+# status per item: done | active (in progress) | held (awaiting operator/desk) | deferred (post-alpha / later slot)
 
 FLEET = {
   "waves": [
     {"id": "W1", "name": "Shell · demo · learn", "status": "done"},
     {"id": "W2", "name": "~22 screens · parity UIs · forms→113", "status": "done"},
     {"id": "W3", "name": "Type B mapper · keystone · K-2 · economy · coordinator · tour · forms→117", "status": "done"},
-    {"id": "W4", "name": "To GREEN: Type B race fix, screen+capability closes, debt paydown, the walk", "status": "next"},
+    {"id": "W4", "name": "To GREEN: Type B race fix · screen+capability closes · debt paydown · the walk", "status": "done"},
   ],
+  # Wave-4 gate: authoritative full suite 1343 passed · 0 failed · 3 skipped (quiet window). GREEN.
   "lanes": [
-    {"id": "1", "name": "GeoData & District Maps", "orders": [
-      {"wave": "W2", "status": "done", "text": "Fixture family green on a founded box · jurisdiction-browser S-adds · autoscale/maps UI↔CLI parity."},
-      {"wave": "W3", "status": "done", "text": "Type B DISTRICT MAPPER: grouping engine + B3 combined cap + B6/B7 pins + Step-3 mapper UI · Niue = first cleared chamber · 30 pins · adversarial pass fixed 3 latent defects."},
-      {"wave": "W4", "status": "next", "text": "① THE TYPE B RACE FIX — SEATING HALF (joint w/ lane 3 counting): racePlan/createRaces emit one at-large race PER CHILD, or PER CLUMP when clumped; add a clump/grouping key to election_races. Then re-activate Niue's draft grouping + clear the flag in the CORRECT shape. ② GAME-BOX MASS PASS — RULED GO (operator A): after the race fix, coordinate with the operator to pull lane 1's commits to the game box and run the ~9,708 flagged chambers (ETL-chunked). ③ B2 = COMPACT-FIRST confirmed (operator A, Type B clumping). ④ Own LegalComplianceTest + MyProfileTabsTest (fixture reds). ⑤ AutoscaleResizeRepair SQL-clamp CHECK constraint. UNBLOCKS: Type B elections + all bicameral acts at scale."},
+    {"id": "1", "name": "GeoData & District Maps", "status": "active", "items": [
+      {"label": "Type B race fix — SEATING half (one at-large race per clump)", "status": "done", "note": "c500a1f; racePlan panels-mode + createRaces + RaceFootprint join"},
+      {"label": "Niue cleared LIVE in the per-clump shape", "status": "done", "note": "apply('active') → 5 panels/10 seats, both chambers elect, no drift (verified through racePlan)"},
+      {"label": "Adversarial pass — 2 latent defects the 933-pin suite missed", "status": "done", "note": "5f2293b: stale-grouping drift + R-A bypass; by-election panel-id leak"},
+      {"label": "Fixture reds (LegalCompliance + MyProfileTabs)", "status": "done", "note": "a32bbc8; own-the-world scoping"},
+      {"label": "AutoscaleResizeRepair SQL-clamp CHECK constraint", "status": "done", "note": "migration 220100; 7 rejected / 4 accepted"},
+      {"label": "GeodataRepairPlaneTest red (manifest write path)", "status": "done", "note": "06d9545; self-owned subdir"},
+      {"label": "Per-child (ungrouped) races — joint L1/3/4 step", "status": "active", "note": "post-gate; L1 leads racePlan; San Marino demo correctness"},
+      {"label": "Confirm Niue reshape after L3 voids 2 stale elections", "status": "active", "note": "post-gate coordination with L3"},
+      {"label": "Game-box mass pass over ~9,708 flagged chambers", "status": "held", "note": "operator-coordinated deployment; protected by the stale-grouping guard"},
     ]},
-    {"id": "2", "name": "Cloud Launch – Multibox", "orders": [
-      {"wave": "W2", "status": "done", "text": "One-command internet node · disintermediation→constituents · declared_class/game_mode keyless queue · operator pages."},
-      {"wave": "W3", "status": "done", "text": "Demo-mesh time coordinator (service/CLI/UI, idempotent replay, refusal matrix) · schema queue closed · cloud-rehearsal runbook · fixed the 7 pre-existing federation reds (a Wave-2 route move)."},
-      {"wave": "W4", "status": "next", "text": "① Operator/system screen partials → built: operator/setup, operator/dns (Identity Broker), system/setup, system/amendments, system/term-sync. ② Cross-class handshake 500 → graceful 409/422 — RULED FIX (operator A; PeerController catch). ③ Demo-mesh handshake game_mode field + coordinating node + adoption instance_class. ④ Federation-console route divergence (/operator/federation vs mesh spec) — reconcile or log. ⑤ Own MatrixCarveoutEmitter red (Matrix federation plane)."},
+    {"id": "2", "name": "Cloud Launch – Multibox", "status": "done", "items": [
+      {"label": "Operator/system partials → built (setup · dns · system-setup · amendments · term-sync)", "status": "done", "note": "e702a43 + reconciles; 3 were stale gap-data (already built)"},
+      {"label": "Cross-class handshake 500 → 409/422 + a real class-isolation leak", "status": "done", "note": "1c6b6d9; instance_class/game_mode were stripped pre-check (demo peer could enter a production mesh)"},
+      {"label": "Demo-mesh game_mode field + coordinating node + adoption class", "status": "done", "note": "handshake + /adopt (demo-gated, migrated-gated)"},
+      {"label": "Federation-console route reconcile → /operator/federation", "status": "done", "note": "32360c0; 4 operator docs"},
+      {"label": "MatrixCarveoutEmitter red", "status": "done", "note": "56f137a; legislatures-active exclusion (fixture drift)"},
+      {"label": "SUITE STEWARD — authoritative green gate in a quiet window", "status": "done", "note": "1343 passed / 0 failed / 3 skipped; validated the SUITE-TOKEN procedure"},
     ]},
-    {"id": "3", "name": "Institution Scaling", "orders": [
-      {"wave": "W2", "status": "done", "text": "All 5 §10 rulings · parity CLIs+UIs · docket · R-A guard · RankedBallot cold-start spec."},
-      {"wave": "W3", "status": "done", "text": "THE LIVE CIVIC ROOM keystone: poll-first store (Q1/Q2 ruled) · composed committee-hearing room · operable floor (raise-hand→recognize) · oversight-public fold · per-institution provisioning · behavioral pin."},
-      {"wave": "W4", "status": "next", "text": "① THE TYPE B RACE FIX — COUNTING HALF (joint w/ lane 1 seating): VoteCountingService counts per-child/per-clump. ② FINISH THE KEYSTONE EXIT WALK (post-compaction): the AUTOMATED committee-hearing end-to-end test (the operator's MANUAL walk waits until all-green). ③ Wire lane 4's service-scale formula into InstitutionScaleService (R-B). ④ Agenda per-item schema (keystone). ⑤ Electoral partials → built: ranked-ballot, department-reporting. ⑥ RankedBallot liveAggregate — RULED BUILD, DAILY-BATCHED (operator A; secrecy-safe, no in-request decrypt — standings are invisible-until-count today). ⑦ Consolidate the 9 hand-rolled pollers onto useLiveRoom. ⑧ Own ModerationFlipTest red. ⑨ OVERSIGHT LIVE console → PUBLIC for government proceedings (operator B; government public by default incl. in-progress vs named members; orgs decide their own — SETTLED)."},
+    {"id": "3", "name": "Institution Scaling", "status": "active", "items": [
+      {"label": "Type B race fix — COUNTING half (per-clump electorate + seat_no)", "status": "done", "note": "6f85d322 count (pair→200/single→100) + 8ec50402 chamber-wide seat_no"},
+      {"label": "Keystone Live Civic Room — exit-walk acceptance gate", "status": "done", "note": "8bcb3ee; committee hearing e2e in one room, 80 asserts"},
+      {"label": "Service-scale formula → InstitutionScaleService (4 statics)", "status": "done", "note": "37b7a64; parity-pinned against L4's provisioning mirror"},
+      {"label": "Electoral partials → built (ranked-ballot + department-reporting)", "status": "done", "note": "f333eba + liveAggregate"},
+      {"label": "RankedBallot liveAggregate (cache-based, daily-batched)", "status": "done", "note": "4a118e74 + 4a552614; no in-request decrypt"},
+      {"label": "Oversight-public console + test-hardening", "status": "done", "note": "4057b3c (ruling B) + eba53854 (guest sees in-progress removal)"},
+      {"label": "ModerationFlipTest red", "status": "done", "note": "6fe2c77; own-the-bootstrap-jurisdiction fix"},
+      {"label": "Poller consolidation onto useLiveRoom", "status": "active", "note": "really 4 not 9 — 2/4 byte-parity done (MatrixCommons/PrivateRoom); Results/VacancyCountback deferred"},
+      {"label": "Niue stale-election void (2 real UUIDs)", "status": "active", "note": "post-gate; ElectionLifecycleService::cancel → CLK-01 re-mints per-clump"},
+      {"label": "Agenda per-item schema", "status": "deferred", "note": "④ migration slot behind L13; not blocking"},
     ]},
-    {"id": "4", "name": "Simulated World Engine", "orders": [
-      {"wave": "W1", "status": "done", "text": "Demo mode D1–D7 · /simworld drive controls · all parity rows."},
-      {"wave": "W3", "status": "done", "text": "C3 services-per-population study → SERVICE_SCALE_FORMULA.md (cited) · ATLAS_DESIGN.md · R-A un-flag pin (pins the sim to schedule the Type B race the instant a flag clears)."},
-      {"wave": "W4", "status": "next", "text": "① ATLAS BACKEND + design (RULED split w/ lane 6, who owns the PAGE): AtlasController, SnapshotWorldStatsJob, nightly world_stats rollup, world:stats CLI, CI-1 gauge-never-lever, and the PROP CONTRACT the page renders — hand lane 6 the props (they build Pages/System/Atlas.vue against them). ② Wire the service-scale formula into provisioning (operator signed off; SQL mirror of lane 3's tierFor() + parity pin — lane 3 pings on any curve move). ③ R-A un-flag as Type B chambers clear (coordinate with lane 1's race fix). ④ Demo-world sizing partial → built. UNBLOCKS: the Atlas front-door (backend half)."},
+    {"id": "4", "name": "Simulated World Engine", "status": "active", "items": [
+      {"label": "BUILD the Atlas — front-door screen + capability", "status": "done", "note": "8d03a19 page + 3b9ff99 world_stats rollup; 25 real PostGIS places, gauge-never-lever, unmeasured=em-dash"},
+      {"label": "Wire service-scale formula into provisioning + parity pin", "status": "done", "note": "331271b; fixed a real defect (min_judges hardcoded 5 for every court); SQL-mirror parity 366 asserts"},
+      {"label": "R-A un-flag — Niue is L1's first real cleared chamber", "status": "done", "note": "W4③ pin keys on the persisted flag; ElectionStage re-run"},
+      {"label": "Growth dial — committee half (F-LEG-009 → K)", "status": "done", "note": "f9161f5; created_by_vote_id proves the sim minted no act"},
+      {"label": "Growth dial — department half (F-LEG-014/016 → D)", "status": "done", "note": "74603d4; charter_law_id proof; defers-with-reason on every gate"},
+      {"label": "Pump wiring — make the growth dial autonomous", "status": "active", "note": "post-gate; register GovernanceStage in SimPumpCommand + sim-behavior verify"},
+      {"label": "Q4a — court tiers / civic rooms materialisation", "status": "held", "note": "operator ruling (schema forbids as written; rec courtTiers=tree-depth, rooms=future model)"},
     ]},
-    {"id": "5", "name": "Translation Scaling", "orders": [
-      {"wave": "W2", "status": "done", "text": "NLLB pass · flows sweep · i18n:review CLI · zh-Hans rail held."},
-      {"wave": "W4", "status": "next", "text": "① INTEGRATE THE OPERATOR'S EXISTING MULTI-TRACK VIDEO PLAYER into shared/video-player.html (absent → built): the player already EXISTS (operator-built; the v3 mockups are based on it; the Cosmopolitan Coalition site uses it). REFERENCE: fleet-11 video-translate pipeline + the coalition site — NOT a from-scratch build. Lane 15's lessons consume it. ② flows.js action-string i18n extraction. ③ zh-Hans QA (95 flagged skips → Chinese reader). ④ translation-home partial → built (verifier-section props + add-a-language CTA). ⑤ Full i18n capability (6 non-English locales) partial → working. Continuous: translate what lane 15 authors."},
+    {"id": "5", "name": "Translation Scaling", "status": "done", "items": [
+      {"label": "Multi-track VIDEO PLAYER live at /videos", "status": "done", "note": "2fea981; app-ported from the operator's Coalition player (NOT from scratch); 77-lang track-swap browser-proven"},
+      {"label": "flows.js action-string i18n extraction", "status": "done", "note": "645 keys / 272 action; translation deferred (long-form ~11h)"},
+      {"label": "zh-Hans QA (worst-first for a Chinese reader)", "status": "done", "note": "245 flags incl. the 95; rail intact"},
+      {"label": "translation-home → built", "status": "done", "note": "c25a5e9; verifier-section + add-a-language CTA"},
+      {"label": "Adversarial review (ultracode) — 4 defects fixed", "status": "done", "note": "fe5ad51; reactive-src audio fix + poster mis-tag"},
+      {"label": "Full i18n (6 non-English locales)", "status": "active", "note": "page bodies render for all 6; fr/pt monolithic CHROME withheld (NLLB confidently-wrong nav) → review queue"},
     ]},
-    {"id": "6", "name": "UI Design + A11y Audit", "orders": [
-      {"wave": "W1", "status": "done", "text": "Shell S1–S9 · AppShellV2 dock/tour/menu."},
-      {"wave": "W3", "status": "done", "text": "A2 tour toggle (mode armed in place) · stops → 47/117 · /coverage + /coverage-ops instruments (proven failable) · nav-drift ruling (7 aligned, translations allowlisted) · launchpad + tour + department-detail built."},
-      {"wave": "W4", "status": "next", "text": "① CIVIC partials → built: join (live presence), today (feed breadth), my-profile (office tab), advocate-registration, identity-verification, relocation. ② SOCIAL/GROUPS partials → built: org-profile, social-home, groups-home, group-create, group-detail. ③ BUILD bill.html (absent → built — a bill as a conversation). ④ ✓ DONE (0fb053f) Tour-nav placement fix (both covers land on /tour index; 8-assert pin, proven failable). ⑤ ✓ DONE — /judiciary/docket already fixed (8745a71): honest empty state, not a bug; 'public' was a nav-slug misread (real public read = /judiciaries/{judiciary}/docket). ⑥ ✓ DONE — orphans already removed (ruling A4); nothing to delete (verified before acting). ⑦ ATLAS PAGE (RULED split w/ lane 4 backend): build Pages/System/Atlas.vue (porting mockups/v3/atlas.html) against lane 4's props; hold CI-1 (reads the world, never drives it). ⑧ THE WALK: 54 journey cards + the 117-stop tour + the consolidated pixel-capture pass (operator-present). Biggest screen-count lever to green."},
+    {"id": "6", "name": "UI Design + A11y Audit", "status": "active", "items": [
+      {"label": "Tour-nav placement fix + tour 47→60 stops", "status": "done", "note": "0fb053f; 13 nav destinations restored, all probed live"},
+      {"label": "ballots_cast=0 bug + the BallotSecrecy fix (via BallotBox)", "status": "done", "note": "aaa0a59 → 3d1abbb; 420 voters saw a false zero; count routed through BallotBox::participationCountFor"},
+      {"label": "SECURITY — menu gated tighter than the constitution", "status": "done", "note": "adea521; residents couldn't file an Art. IV §5 challenge / join the bar (the menu WAS the gate)"},
+      {"label": "SECURITY — private-room re-invite hole", "status": "done", "note": "32a288a; a removed member could re-invite themselves"},
+      {"label": "Civic partials → built (join · today · office-tab · advocate-reg · identity-verify · relocation)", "status": "done", "note": "6/6; every 'missing panel' was live data discarded by a collapsing query — no schema"},
+      {"label": "SupportLifecycleTest red", "status": "done", "note": "own-the-world → measures the CLAIM (baseline→+2→both appear)"},
+      {"label": "14-agent gap analysis + batch plan", "status": "done", "note": "L6W4_SCREEN_GAP_PLAN.md; every screen YES-with-honest-empty"},
+      {"label": "Social/groups partials (org-profile · groups-home · group-create · group-detail)", "status": "active", "note": "in progress after civic"},
+      {"label": "bill.html — on the constitutional path (motion+chamber-vote, not per-party accept)", "status": "active", "note": "the mockup's per-party accept is an Art. V §3 violation the code already rejects"},
+      {"label": "Atlas a11y review pass (findings → lane 4)", "status": "deferred", "note": "optional; after the civic/social partials"},
+      {"label": "THE WALK — 54 journeys + 117-stop tour + pixel capture", "status": "held", "note": "operator-present, runs when all-green"},
     ]},
-    {"id": "13", "name": "Economy Engine", "orders": [
-      {"wave": "W2", "status": "done", "text": "Engine-only writes · reader-privacy accounts-never-people · F-IND-019 + F-ORG-009 minted."},
-      {"wave": "W3", "status": "done", "text": "Design Round 2 (11 decisions ruled) then the build: dues, telemetry, exchange (over assets), F-ORG-008 share issuance, redlines (both adapters), person-to-person agreements · forms → 117."},
-      {"wave": "W4", "status": "next", "text": "① ECONOMY partials → built: exchange trading-floor (order book / trade tape / KPIs — or ruled honest-empty), org-settings economy (org-ledger card, taxes/levies table, fair-market/conversion), agreements + agreement-detail, marketplace, listing-detail, wallet, units, treasury. ② SECONDARY SHARE TRADING — RULED IN (operator A): build share resale on the exchange; new schema, flag the desk for the slot. ③ FOUNDING-STAKE structure-aware (100% stake only for stock orgs; touches F-IND-012). 12 economy partials — the second-biggest screen lever to green."},
+    {"id": "13", "name": "Economy Engine", "status": "done", "items": [
+      {"label": "12 economy partials → built", "status": "done", "note": "treasury · units/wallet/home · org-settings · exchange · agreements pair; read-only prop-fill over existing tables"},
+      {"label": "Founding-stake (structure-aware)", "status": "done", "note": "07a8315; 100% only for stock orgs (VIA_FOUNDING); touched shared F-IND-012"},
+      {"label": "Secondary share trading — share_offers + F-IND-021 mint", "status": "done", "note": "1cdf535 table + a3c63c2 mint (117→118); populated exchange floor"},
+      {"label": "Adversarial review (ultracode) — 8 real defects fixed", "status": "done", "note": "e8c2884; wallet-negative, phantom equity, dangling membership, no-stock-recheck, race, name-leak"},
+      {"label": "CHECK(balance>=0) on economic_accounts — defense-in-depth", "status": "deferred", "note": "optional later slot; app-layer row lock already closes the overdraft hole"},
     ]},
-    {"id": "15", "name": "Education + Achievements", "orders": [
-      {"wave": "W1", "status": "done", "text": "Learn + K-2 revision · flatJson catalogs."},
-      {"wave": "W3", "status": "done", "text": "K-2 engine: SENSITIVE_KEYS, F-EDU-001/002 (→115), education schema, act-gate LIVE (acquiring free / acting asks), 3 Learn pages (server-side keys), e2e proof."},
-      {"wave": "W4", "status": "next", "text": "① EDUCATION ARMING = PRE-TRAIN (operator A): the demo/fixture seeders that seat members also file F-EDU-001 (a 'seated members are trained' pass), THEN education:seed arms the game box. Gates the operator's walk (when all-green). ② Profile-edit door (F-IND-002 extension) + person-to-person DM (two absent Identity capabilities) — on a design decision. ③ Journey + social-home partials (co-owned). ④ seat_training_window_days amendable setting (registration-day review)."},
+    {"id": "15", "name": "Education + Achievements", "status": "done", "items": [
+      {"label": "Education arming = PRE-TRAIN (seeders file F-EDU-001, then education:seed)", "status": "done", "note": "c47b50f; dev box left unseeded on purpose; gates the operator's walk"},
+      {"label": "Profile-edit door (F-IND-002) + person-to-person DM", "status": "done", "note": "ac72ad9; values off the public chain; DM from a found profile (no directory)"},
+      {"label": "Journey + social-home educational slices (co-owned w/ L6)", "status": "done", "note": "663bf08 + 47d8d57; community-standards card grounded in real F-SOC-003/M-4/M-5"},
+      {"label": "seat_training_window_days registration-day review", "status": "done", "note": "fa1e428; confirmed RETIRED — A5 stands, no window resurrected"},
     ]},
-    {"id": "14", "name": "Coalition Organization (Phase J)", "orders": [
-      {"wave": "W4", "status": "held", "text": "HELD by the operator. Foundation = 501(c)(3) parent; Coalition = a PROJECT (child); Action Fund = DO NOT BUILD. Resumes on the operator's word."},
+    {"id": "14", "name": "Coalition Organization (Phase J)", "status": "held", "items": [
+      {"label": "HELD by the operator", "status": "held", "note": "Foundation = 501(c)(3) parent; Coalition = a PROJECT (child); Action Fund = DO NOT BUILD. Resumes on his word."},
     ]},
   ],
 }
-
-QUESTIONS = [
-  {"q": "Type B race shape — pooled at-large vs per-child/per-clump?", "status": "resolved",
-   "detail": "RULED per-child/per-clump (each child, or each clump when clumped, is its own at-large race). CLAUDE.md + design brief + FLEET_CONTEXT corrected @55b8846. The BUILD is Wave 4 (lane 1 seating + lane 3 counting); grouped chambers stay blocked until it lands.", "owner": "operator (ruled) → lanes 1+3 (build)"},
-  {"q": "Education arming sequencing — how do untrained demo members behave when the gate arms?", "status": "open",
-   "detail": "education:seed arms the act-gate for 6 civic tracks; every untrained role-holder then redirects on their next role-act. Options: (A) seeders pre-train demo members [lane 15 rec] · (B) seed and let the walk demo the redirect loop live · (C) don't seed this wave. Gates the operator's browser walk of the training gate.", "owner": "operator → lane 15"},
-  {"q": "Game-box mass pass — run the Type B mapper over the real ~9,708 flagged chambers?", "status": "open",
-   "detail": "The mapper is proven on Niue + adversarially hardened, but the ~9,708 flagged chambers live on the GAME box, not dev. Needs the operator to pull lane 1's commits there and give the go (ETL-chunked), OR defer to the Wave-4 rehearsal. Waits on the Type B race fix so cleared chambers get the correct race.", "owner": "operator (his box)"},
-  {"q": "Lane 3 compaction — to run the keystone exit walk with fresh context?", "status": "open",
-   "detail": "Lane 3 is fully captured and holding; the keystone Live Civic Room is built but not yet WALKED end-to-end (the acceptance gate). The exit walk is the last Wave-3 item and needs the operator to compact lane 3.", "owner": "operator (physical act)"},
-  {"q": "RankedBallot liveAggregate — spin the secrecy-critical live-standings build?", "status": "open",
-   "detail": "The one deliberately-carried Wave-2 item: live provisional standings during an OPEN ranked ballot, without an in-request decrypt (secrecy-critical). Cold-start spec ready; cadence ruled daily-batch. Awaits the operator's fresh-session trigger.", "owner": "operator (fresh-session trigger)"},
-  {"q": "Secondary share trading — pull into Wave 4 or leave deferred?", "status": "open",
-   "detail": "The operator ruled share ISSUANCE (delivered: issue → cap table). A holder RESELLING issued shares needs its own schema. Desk deferred it; the exchange shares floor stays honest-empty until ruled. Operator may pull it into Wave 4.", "owner": "operator → lane 13"},
-  {"q": "Cross-class federation handshake — return a graceful 4xx instead of 500?", "status": "open",
-   "detail": "A genuine cross-class handshake surfaces the class-rule refusal as an uncaught 500 rather than a 409/422. Pre-existing; not a Wave-3 regression. Wave-4 hardening — operator's call whether to do it now.", "owner": "operator → lane 2"},
-  {"q": "B2 remainder rule — compact-first vs strictly-lowest-population pairing?", "status": "open",
-   "detail": "On real land-border adjacency, compactness drives which children pair (population only orients the walk head). Lane 1 shipped compact-first (matches intent). A soft confirm; the shipped default stands unless the operator flips it.", "owner": "operator → lane 1"},
-  {"q": "Oversight live-console disclosure — does 'public to watch' extend to the LIVE console of in-progress proceedings against NAMED members?", "status": "open",
-   "detail": "§10-1 makes government proceedings public. Open question: does that extend to a live console of an in-progress removal/discipline against a named member, or only the sealed public record after? Desk recommends keeping the live console gated; the public RECORD stays public.", "owner": "operator → lane 3"},
-  {"q": "Orphan-surface deletions — remove unreferenced surfaces?", "status": "open",
-   "detail": "e.g. Elections/CandidateProfile.vue (unreferenced) + a couple of orphan surface records. Deletion awaits the operator's word.", "owner": "operator → lane 15/6"},
-  {"q": "Video library / multi-track player — build from scratch?", "status": "resolved",
-   "detail": "NO from-scratch build. The operator ALREADY BUILT the multi-track player; the v3 mockups are based on it and the Cosmopolitan Coalition website uses the same player. Wave 4 = INTEGRATE it into shared/video-player.html. Reference: fleet-11 (video-translate pipeline) + the coalition site. Lane 5 wires it; lane 15's lessons consume it.", "owner": "operator (player exists) → lane 5 + fleet-11 ref"},
-  # resolved-but-worth-recording
-  {"q": "Founding-stake-on-registration — auto-equity when an org is founded?", "status": "resolved",
-   "detail": "DEFERRED to Wave 4, structure-aware (a 100% founding stake is wrong for member-owned/nonprofit/partnership; only stock has shares). Desk-confirmed; lane 13 owns the Wave-4 build.", "owner": "operator (ruled defer) → lane 13"},
-  {"q": "Setup order — account-first (mockup) or fork-first (ruling)?", "status": "resolved",
-   "detail": "RULED FORK-FIRST (A3, 2026-07-05): join-or-start, THEN account. Mockup swapped; SetupController already fork-first. A stale mockup-vs-code note remains but the decision is settled.", "owner": "operator (ruled)"},
-  {"q": "Oversight console — public or gated?", "status": "resolved",
-   "detail": "RULED PUBLIC (A1): 'public if it's government'; the Template has no closed-session provision. The console read is public; write controls stay authenticated. Landed @4057b3c.", "owner": "operator (ruled)"},
-]
