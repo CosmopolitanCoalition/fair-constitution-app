@@ -2,8 +2,9 @@
 """Rubric v3 — five views: UI Screens, Capabilities, Tech Debt, Fleet & Waves, Open Questions.
 Native-feeling drill (search / filter / expand-all) with per-item punch detail, per the operator's
 beloved v3_gap_dashboard, extended to carry the whole plan to a tested playable game."""
-import json, io, sys
-sys.path.insert(0, r'C:\Users\JOSEPH~1\AppData\Local\Temp\claude\E--fair-constitution-app\355910cb-829c-4f85-8b3a-3a74acb84871\scratchpad')
+import json, io, sys, os
+_HERE = os.path.dirname(os.path.abspath(__file__))
+sys.path.insert(0, _HERE)
 from wave4_data import FLEET
 # Structured, fillable open-questions (options + owning lane). Resolved ones are read-only.
 QUESTIONS = [
@@ -76,32 +77,10 @@ for _q in QUESTIONS:
         _q['detail'] = 'RULED = %s. %s%s · %s' % (k, txt, (' [operator: '+note+']') if note else '', _q['detail'])
         _q.pop('options', None)
 
-base = json.load(open(r'E:\fair-constitution-app\docs\plans\ui\v3_gap_data.json', encoding='utf-8'))
-res = json.load(open(r'C:\Users\JOSEPH~1\AppData\Local\Temp\claude\E--fair-constitution-app\355910cb-829c-4f85-8b3a-3a74acb84871\scratchpad\rubric_data.json', encoding='utf-8'))
-
-trans = {}
-for sc in res['screens']:
-    for ch in sc.get('changes', []):
-        trans[ch['file']] = ch['nowBucket']
-
-screens = []
-for r in base['rows']:
-    screens.append({'file': r['file'], 'title': r['title'], 'area': r['areaLabel'],
-        'bucket': trans.get(r['file'], r['bucket']), 'effort': r.get('effort', 'none'),
-        'page': r.get('page', ''), 'route': r.get('route', ''), 'props': r.get('props', ''),
-        'backend': r.get('backend', ''), 'owner': r.get('owner', ''),
-        'propsMissing': r.get('propsMissing', []), 'backendMissing': r.get('backendMissing', []),
-        'specHas': r.get('specHas', []), 'appAhead': r.get('appAhead', []), 'notes': r.get('notes', '')})
-
-caps = [{'area': c['area'], 'capability': c['capability'], 'maturity': c['maturity'],
-         'scaleNote': c.get('scaleNote', ''), 'blocker': c.get('blocker', '')} for c in res['capabilities']['capabilities']]
-debt = [{'title': d['title'], 'severity': d['severity'], 'category': d.get('category', ''),
-         'owner': d.get('owner', ''), 'location': d.get('location', ''),
-         'status': d.get('status', ''), 'note': d.get('note', '')} for d in res['techDebt']['debt']]
-
-_enr = json.load(open(r'C:\Users\JOSEPH~1\AppData\Local\Temp\claude\E--fair-constitution-app\355910cb-829c-4f85-8b3a-3a74acb84871\scratchpad\badged.json', encoding='utf-8'))
+# Screens / caps / debt all come from the enriched, badged corpus in this dir (repo-stable).
+_enr = json.load(open(os.path.join(_HERE, 'badged.json'), encoding='utf-8'))
 screens = _enr['screens']; caps = _enr['caps']; debt = _enr['debt']
-DATA = {'asOf': '2026-07-29', 'head': 'f834fec', 'forms': 117,
+DATA = {'asOf': '2026-07-29', 'head': '41d5239', 'forms': 117,
         'screens': screens, 'caps': caps, 'debt': debt, 'fleet': FLEET, 'questions': QUESTIONS}
 
 TEMPLATE = r"""<title>App Progress Rubric — CGA</title>
@@ -294,7 +273,7 @@ buildFilters();render();
 </script>
 """
 
-stamp = "As of %s · main @ <code>%s</code> · Wave 3 build closed · Wave 4 = the road to green" % (DATA['asOf'], DATA['head'])
+stamp = "As of %s · main @ <code>%s</code> · Wave 4 LAUNCHED — the road to green, in progress" % (DATA['asOf'], DATA['head'])
 html = TEMPLATE.replace('%%DATA%%', json.dumps(DATA, separators=(',', ':'))).replace('%%STAMP%%', stamp)
 out = r'E:\fair-constitution-app\docs\plans\ui\tools\app_progress_rubric.html'
 with io.open(out, 'w', encoding='utf-8') as f:

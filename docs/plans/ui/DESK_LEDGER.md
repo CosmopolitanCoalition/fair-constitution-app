@@ -821,3 +821,34 @@ touches the shared .git/index, can't sweep foreign files, immune to the diff→c
 commit-tree runs NO hooks (this repo has none). Discipline: commit IMMEDIATELY after each edit — never
 leave work uncommitted in the hot tree. Desk's simpler variant for my-only files (this ledger): pathspec
 commit `git commit <path>` (race-immune, proven tick 3b — and this very entry).
+
+### W4 tick 5 — Atlas ownership split RULED + rubric corrected (lane 6 stale finds) + generator repo-stabilized
+
+**LANE 6 four-way #1:** STEP 0 clean. ④ tour-nav DONE (`0fb053f`, 8-assert pin proven failable,
+verified in Vite-served modules). Flagged 2 stale rubric rows + the Atlas ownership collision +
+running a 13-agent READ-ONLY gap analysis over its 12 partials + bill.html (honest-empty, never
+fake data). Co-ownership handled direct (journey/social-home w/ L15; org-profile economy reads w/
+L13, holding accounts-never-people).
+
+**⚑ ATLAS OWNERSHIP — RULED SPLIT.** badged.json badged the PAGE L6; WAVE4_STANDING_ORDERS gave
+"build the Atlas" to L4; lane 4 had started Atlas.vue — collision, XL screen. Ruling (the proven
+fleet seam):
+ • LANE 4 = Atlas BACKEND: AtlasController, SnapshotWorldStatsJob, nightly world_stats rollup,
+   world:stats CLI, CI-1 gauge-never-lever, the PROP CONTRACT. Told to STOP building Atlas.vue +
+   hand L6 the props/scaffold.
+ • LANE 6 = Atlas PAGE: Pages/System/Atlas.vue (porting mockups/v3/atlas.html) against L4's props.
+ Both messaged. wave4_data.py updated (L4 ①=backend, L6 ⑦=page).
+
+**⚑ RUBRIC CORRECTED (lane 6's verified stale finds — verify-before-delete, exactly right):**
+ • Debt "orphan surfaces" → RESOLVED: already executed (ruling A4); CandidateProfile.vue gone,
+   surfaces record removed; /candidates/{candidacy}→people.show?tab=candidacy survives (not orphan).
+ • Debt "/judiciary/docket 302" → RESOLVED: fixed `8745a71` (Inertia + honest empty state); "public"
+   was a nav-slug misread; the real public read is /judiciaries/{judiciary}/docket.
+ • L6 order ⑤⑥ annotated DONE. (V3_GAP_MATRIX.md:611's candidate-profile description is still stale
+   — doc-only, deferred to a later doc sweep; the live rubric artifact is now correct.)
+
+**⚑ GENERATOR REPO-STABILIZED:** gen_app_rubric.py no longer depends on the vanished scratchpad
+(355910cb) — sys.path + badged.json resolve via `__file__` (repo tools dir); dead base/res/trans
+block removed. Regenerated (207,592 bytes; 107 screens / 56 caps / 23 debt / 9 lanes / 14 questions)
++ REDEPLOYED to the same artifact URL (101c137d…). Stamp → "Wave 4 LAUNCHED — road to green, in
+progress", head 41d5239.
