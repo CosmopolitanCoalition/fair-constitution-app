@@ -19,6 +19,13 @@ wrong briefings.
 lane's transcript directly with `mcp__ccd_session_mgmt__list_events`, so the truth is the chat,
 not a file.
 
+**A MESSAGE TO A SESSION IS AN ACTUATOR, NOT A MEMO.** The receiving session acts on your
+message at delivery — "on your next wake" is meaningless, because your message IS the wake
+(proven twice: lane 13's "flip the arcs" actuated lane 15; the desk's flatJson relay actuated
+lane 5). Every cross-session message therefore carries an explicit disposition line — either
+`ACTION:` (this starts work now) or `HOLD — no action until woken:` (record and stand by).
+No third state; if you can't decide which, you are not ready to send.
+
 **NO SESSION ID IS EVER WRITTEN IN A DOC — including this one.** (An earlier revision of this
 very paragraph hardcoded an ID that was already dead; a broadcast repeated the mistake and
 twelve lanes hit "Session not found".) The ID procedure, all three halves mandatory:
