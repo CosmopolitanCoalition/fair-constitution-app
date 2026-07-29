@@ -71,7 +71,7 @@ onBeforeUnmount(() => {
                     <Icon name="chevron-down" size="sm" class="cmdbar-caret" />
                 </summary>
                 <div class="cmdbar-panel cmdbar-panel--menu">
-                    <MenuNav :roles="roles" :current-nav-id="currentNavId" />
+                    <MenuNav :roles="roles" :current-nav-id="currentNavId" :sandbox="demo" />
                 </div>
             </details>
 

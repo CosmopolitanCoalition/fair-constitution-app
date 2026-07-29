@@ -152,6 +152,21 @@ export const SITEMAP = [
         { id: 'operator-operations', label: 'Operations (legacy console)', icon: 'sliders', href: '/operator/operations', contract: 'operator/console.html' },
         { id: 'federation-console', label: 'Federation (legacy)', icon: 'globe', href: '/federation', contract: 'operator/mesh.html' },
     ] },
+    /* The mockup sidebar ends with this section (shell-v2.js "For the build
+       team") — V3 synthesis S6. The four dev kits are app-ahead surfaces with
+       no mockup rel (contract: null); they only register server-side in
+       sandbox/local, so they carry `sandbox: true` and MenuNav hides them on
+       a non-demo world instead of rendering a dead link. Coverage and the
+       style guide have no app page yet — Planned, per the registry idiom. */
+    { key: 'build-team', title: 'For the build team', items: [
+        { id: 'coverage', label: 'Coverage', icon: 'check', href: null, contract: 'shared/coverage.html' },
+        { id: 'styleguide', label: 'Style guide', icon: 'sliders', href: null, contract: 'shared/styleguide.html' },
+        { id: 'electoral-kit', label: 'Electoral kit', icon: 'vote', href: '/dev/electoral-kit', contract: null, sandbox: true },
+        { id: 'legislature-kit', label: 'Legislature kit', icon: 'landmark', href: '/dev/legislature-kit', contract: null, sandbox: true },
+        { id: 'executive-kit', label: 'Executive & orgs kit', icon: 'briefcase', href: '/dev/executive-kit', contract: null, sandbox: true },
+        { id: 'judiciary-kit', label: 'Judiciary kit', icon: 'scale', href: '/dev/judiciary-kit', contract: null, sandbox: true },
+        { id: 'building', label: 'Build progress', icon: 'check', href: '/building', contract: null },
+    ] },
 ];
 
 /* ------------------------------------------------------------------ tour

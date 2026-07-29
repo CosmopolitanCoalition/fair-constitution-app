@@ -18,9 +18,19 @@ import { PLAYER_NAV, SITEMAP, tourStartHref } from '@/registry/surfaces.js';
 const props = defineProps({
     roles: { type: Array, default: () => ['R-00'] },
     currentNavId: { type: String, default: null },
+    /** Demo/sandbox world — items flagged `sandbox: true` (the dev kits, whose
+     *  routes only register there) are hidden elsewhere, never dead links. */
+    sandbox: { type: Boolean, default: false },
 });
 
 const roleSet = computed(() => new Set(props.roles));
+
+const sitemap = computed(() =>
+    SITEMAP.map((section) => ({
+        ...section,
+        items: section.items.filter((item) => !item.sandbox || props.sandbox),
+    })).filter((section) => section.items.length),
+);
 
 function hrefFor(item) {
     return item.href === 'tour:start' ? tourStartHref() : item.href;
@@ -60,7 +70,7 @@ function prereq(item) {
             <summary class="sidebar-title eyebrow">
                 All screens — the full map <Icon name="chevron-down" size="sm" />
             </summary>
-            <div v-for="section in SITEMAP" :key="section.key" class="sidebar-section">
+            <div v-for="section in sitemap" :key="section.key" class="sidebar-section">
                 <span class="sidebar-title eyebrow">{{ section.title }}</span>
                 <template v-for="item in section.items" :key="section.key + ':' + item.id">
                     <Link
