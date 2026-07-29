@@ -30,15 +30,23 @@ class DevToolsEnabled
 {
     public function handle(Request $request, Closure $next): Response
     {
-        // Cheap flags first (env + config), the DB-backed game-mode read last, so
-        // a disabled toggle short-circuits without touching the database.
-        abort_unless(
-            app()->environment('local')
-                && config('cga.impersonation', true)
-                && GameMode::isSandbox(),
-            404
-        );
+        abort_unless(self::allowed(), 404);
 
         return $next($request);
+    }
+
+    /**
+     * The triple lock as ONE boolean, so a CLI twin of a /dev tool (e.g.
+     * `dev:board-seat`, the parity partner of POST /dev/board/seat) carries the
+     * identical gate rather than a hand-copied one — guards travel with the pair.
+     *
+     * Cheap flags first (env + config), the DB-backed game-mode read last, so a
+     * disabled toggle short-circuits without touching the database.
+     */
+    public static function allowed(): bool
+    {
+        return app()->environment('local')
+            && config('cga.impersonation', true)
+            && GameMode::isSandbox();
     }
 }

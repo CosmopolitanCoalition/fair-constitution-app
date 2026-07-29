@@ -24,6 +24,7 @@ import AppShellV2 from '@/Layouts/AppShellV2.vue'
  * tell lane 3 — do not fork it back apart.
  */
 import StageBars from '@/Components/Progress/StageBars.vue'
+import { csrfFetch } from '@/lib/csrf'
 
 /**
  * The shell is declared as this page's LAYOUT, not wrapped around its template.
@@ -44,6 +45,11 @@ defineOptions({ layout: AppShellV2 })
 const props = defineProps({
     instanceClass: { type: String, default: 'production' },
     isScaleDemo: { type: Boolean, default: false },
+    // DRIVE controls: only a signed-in operator sees them; controlRefusal carries
+    // the server's synthetic-data refusal SENTENCE verbatim (null when the world
+    // may run), rendered where the buttons would be — the D2 refusal contract.
+    canControl: { type: Boolean, default: false },
+    controlRefusal: { type: String, default: null },
     initial: { type: Object, default: () => ({}) },
 })
 
@@ -58,6 +64,49 @@ const workers = computed(() => data.value.workers || [])
 const liveItems = computed(() => data.value.live_items || [])
 const reviewItems = computed(() => data.value.review_items || [])
 const world = computed(() => data.value.world || {})
+
+// The last DRIVE action's echo (start "enumerating…", a halt request), so the
+// operator sees an effect the instant the queued command has yet to mint a run.
+const controlMarker = computed(() => data.value.control || null)
+
+// ── DRIVE controls — one POST per verb; the server holds the guard, the
+// single-run law and the audit mark (SimRunControl), so the button is thin. ──
+const busy = ref('')
+const actionError = ref('')
+const smokeLimit = ref('')
+
+async function drive(verb, body = {}) {
+    busy.value = verb
+    actionError.value = ''
+    try {
+        const res = await csrfFetch(`/api/simworld/${verb}`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(body),
+        })
+        const payload = await res.json().catch(() => ({}))
+        if (!res.ok || payload.ok === false) {
+            // The server's refusal SENTENCE, verbatim — never second-guessed.
+            actionError.value = payload.reason || `Could not ${verb} the run (${res.status}).`
+        } else {
+            await poll() // reflect the new state without waiting for the 2 s tick
+        }
+    } catch (e) {
+        actionError.value = e?.message || `Could not ${verb} the run.`
+    } finally {
+        busy.value = ''
+    }
+}
+
+const startRun = () => drive('start', { limit: smokeLimit.value === '' ? null : Number(smokeLimit.value) })
+const haltRun = () => drive('halt')
+const resumeRun = () => drive('resume')
+
+// Which verb the run's live status allows — the console never offers an act the
+// server would refuse for state reasons (it still refuses for guard reasons).
+const canStart = computed(() => !run.value || ['done', 'failed'].includes(run.value.status))
+const canHalt = computed(() => !!run.value && ['queued', 'running'].includes(run.value.status) && !run.value.halt_requested)
+const canResume = computed(() => !!run.value && (run.value.status === 'halted' || run.value.halt_requested))
 
 const totalDone = computed(() => stages.value.reduce((a, s) => a + s.done, 0))
 const totalItems = computed(() => stages.value.reduce((a, s) => a + s.total, 0))
@@ -136,6 +185,80 @@ const statusTone = computed(() => {
                 the populate engine will refuse to run here. The engine runs only on an instance classed
                 <span class="font-mono">scale_demo</span>.
             </div>
+
+            <!-- DRIVE CONTROLS — operator only. The console is public-read (Art. II
+                 §2); driving a run is not. On a real world the server's refusal
+                 SENTENCE renders verbatim where the buttons would be, so the rail
+                 is legible rather than a disabled mystery (the D2 contract). -->
+            <section v-if="canControl" class="rounded-lg border border-gray-700/60 bg-gray-900/40 p-4">
+                <h2 class="text-xs font-semibold uppercase tracking-wide text-gray-400">Drive the run</h2>
+
+                <p v-if="controlRefusal" class="mt-2 text-sm text-amber-200">{{ controlRefusal }}</p>
+
+                <template v-else>
+                    <div class="mt-3 flex flex-wrap items-center gap-3">
+                        <template v-if="canStart">
+                            <label class="flex items-center gap-2 text-xs text-gray-400">
+                                smoke limit
+                                <input
+                                    v-model="smokeLimit"
+                                    type="number"
+                                    min="1"
+                                    placeholder="all"
+                                    class="w-24 rounded border border-gray-700 bg-gray-950/60 px-2 py-1 font-mono text-sm text-gray-200"
+                                />
+                            </label>
+                            <button
+                                type="button"
+                                :disabled="busy !== ''"
+                                class="min-h-[44px] rounded bg-emerald-800/70 px-4 py-2 text-sm font-semibold text-emerald-100 ring-1 ring-emerald-700 hover:bg-emerald-700/70 disabled:opacity-50"
+                                @click="startRun"
+                            >
+                                {{ busy === 'start' ? 'Starting…' : 'Start populate run' }}
+                            </button>
+                        </template>
+
+                        <button
+                            v-if="canHalt"
+                            type="button"
+                            :disabled="busy !== ''"
+                            class="min-h-[44px] rounded bg-amber-800/70 px-4 py-2 text-sm font-semibold text-amber-100 ring-1 ring-amber-700 hover:bg-amber-700/70 disabled:opacity-50"
+                            @click="haltRun"
+                        >
+                            {{ busy === 'halt' ? 'Halting…' : 'Halt run' }}
+                        </button>
+
+                        <button
+                            v-if="canResume"
+                            type="button"
+                            :disabled="busy !== ''"
+                            class="min-h-[44px] rounded bg-emerald-800/70 px-4 py-2 text-sm font-semibold text-emerald-100 ring-1 ring-emerald-700 hover:bg-emerald-700/70 disabled:opacity-50"
+                            @click="resumeRun"
+                        >
+                            {{ busy === 'resume' ? 'Resuming…' : 'Resume run' }}
+                        </button>
+                    </div>
+
+                    <p v-if="canStart" class="mt-2 text-xs text-gray-500">
+                        A smoke limit enumerates only the N largest jurisdictions — leave it blank to populate the
+                        whole set. Enumeration runs on the queue; the bars come alive within the minute.
+                    </p>
+
+                    <!-- The server's refusal or error, verbatim. -->
+                    <p v-if="actionError" class="mt-2 text-sm text-rose-300">{{ actionError }}</p>
+
+                    <!-- The last action's echo, so a start is visible before the run row exists. -->
+                    <p v-if="controlMarker && controlMarker.note" class="mt-2 text-xs text-gray-500">
+                        <span class="font-mono text-gray-400">{{ controlMarker.action }}</span>
+                        <span v-if="controlMarker.status"> · {{ controlMarker.status }}</span>
+                        — {{ controlMarker.note }}
+                    </p>
+                    <pre
+                        v-else-if="controlMarker && controlMarker.tail"
+                        class="mt-2 max-h-40 overflow-auto whitespace-pre-wrap font-mono text-[11px] text-gray-500"
+                    >{{ controlMarker.tail }}</pre>
+                </template>
+            </section>
 
             <div v-if="!run" class="rounded-lg border border-gray-700/60 bg-gray-900/40 p-6 text-sm text-gray-400">
                 No populate run yet. Start one with

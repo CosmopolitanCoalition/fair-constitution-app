@@ -19,11 +19,30 @@ exempt rows carry their reason and are the desk's judgment calls, revisable.*
 | Debt owner | items |
 |---|---:|
 | lane 2 | 16 |
-| lane 4 | 8 |
+| lane 4 | 0 ✓ (all 8 closed — Wave 2, see below) |
 | lane 1 | 7 |
 | lane 3 | 6 |
 | lane 6 | 2 |
 | lane 5 | 1 |
+
+## Wave 2 closures — lane 4 (2026-07-29)
+
+All eight lane-4 debt rows are now closed; the census predated Wave 1's D5 scenario
+panel for four of them.
+
+| Row | Was | Now paired by | Pin |
+|---|---|---|---|
+| `sim:start` | needs-ui | Start/Resume/Halt on the /simworld console → `SimRunControl` (operator-gated); halt/resume are NEW on BOTH surfaces (`sim:halt`/`sim:resume`), parity by construction | `SimControlParityTest` |
+| `federation:demo` | needs-ui | `'federation'` preset in `ScenarioPresetService` (guard travels by construction) | `SyntheticDataGuardTest` |
+| `matrix:demo` | needs-ui | `'matrix-commons'` preset (queues `matrix:demo --offline` — Plane-A artifacts, never blocks on a homeserver) | `SyntheticDataGuardTest` |
+| `institutions:demo-d` | needs-ui | already closed by D5's `'executive-orgs'` preset (census predated it) | — |
+| `institutions:demo-e` | needs-ui | already closed by D5's `'judiciary'` preset | — |
+| `social:demo` | needs-ui | already closed by D5's `'social'` preset | — |
+| `institutions:demo-treasury` | needs-ui | already closed by D5's `'economy'` preset | — |
+| Dev board seat/unseat | needs-cli | **`dev:board-seat` — a STANDALONE command, NOT an option on `dev:assume`.** The census proposal conflicts with the pinned AssumeService-never-seats invariant; both doors share `DevBoardSeatService` + the `DevToolsEnabled::allowed()` gate | `DevBoardSeatParityTest` |
+
+New has-pair capabilities minted this wave: `sim:halt` ↔ console Halt, `sim:resume` ↔ console
+Resume (both doors built together, guards in the one shared `SimRunControl`).
 
 ## NEEDS A UI — terminal-only capabilities
 

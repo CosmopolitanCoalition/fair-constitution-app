@@ -4,9 +4,12 @@ namespace App\Http\Controllers\Demo;
 
 use App\Http\Controllers\Controller;
 use App\Models\SimRun;
+use App\Services\Demo\SimRunControl;
 use App\Support\HostCapacity;
 use App\Support\InstanceClass;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Inertia\Inertia;
 use Inertia\Response;
@@ -31,12 +34,21 @@ use Inertia\Response;
  */
 class SimConsoleController extends Controller
 {
+    public function __construct(private readonly SimRunControl $control) {}
+
     /** The page shell. Data arrives from the poll below. */
     public function show(): Response
     {
+        // The console is public-read (Art. II §2 — a citizen may watch the
+        // machinery). The DRIVE controls are not: only a signed-in operator sees
+        // them, and only a synthetic-safe world may run them. A non-operator sees
+        // the same live bars with no buttons; an operator on a real world sees the
+        // refusal SENTENCE verbatim (the D2 contract) where the buttons would be.
         return Inertia::render('Demo/SimConsole', [
             'instanceClass' => InstanceClass::current(),
             'isScaleDemo' => InstanceClass::isScaleDemo(),
+            'canControl' => Auth::guard('operator')->check(),
+            'controlRefusal' => $this->control->refusalReason(),
             'initial' => $this->snapshot(),
         ]);
     }
@@ -45,6 +57,43 @@ class SimConsoleController extends Controller
     public function progress(): JsonResponse
     {
         return response()->json($this->snapshot());
+    }
+
+    /**
+     * START a populate run (operator, synthetic-safe worlds only — enforced in
+     * the service). Async: the service queues the real `sim:start` command, so
+     * the ~907k-row enumeration never runs inside this request. The refusal
+     * sentence, when there is one, is returned verbatim for the console to show.
+     */
+    public function start(Request $request): JsonResponse
+    {
+        $options = [
+            'world-version' => $request->integer('world_version', 1),
+            'turnout' => $request->integer('turnout', 62),
+            'adm-max' => $request->integer('adm_max', 6),
+            'limit' => $request->input('limit'),
+            'resume' => $request->boolean('resume'),
+        ];
+
+        return response()->json($this->control->start($options, $this->actor()));
+    }
+
+    /** HALT the active run — instant flag write; the pump parks workers. */
+    public function halt(): JsonResponse
+    {
+        return response()->json($this->control->halt($this->actor()));
+    }
+
+    /** RESUME a halted run — clear the flag; the pump flips it back to running. */
+    public function resume(): JsonResponse
+    {
+        return response()->json($this->control->resume($this->actor()));
+    }
+
+    /** The operator username on the audit mark, or a stable label if none resolves. */
+    private function actor(): string
+    {
+        return Auth::guard('operator')->user()?->username ?? 'operator';
     }
 
     /** @return array<string,mixed> */
@@ -64,10 +113,12 @@ class SimConsoleController extends Controller
                 'live_items' => [],
                 'review_items' => [],
                 'world' => $this->world(),
+                'control' => $this->control->control(),
             ];
         }
 
         return [
+            'control' => $this->control->control(),
             'run' => [
                 'id' => (string) $run->id,
                 'status' => $run->status,

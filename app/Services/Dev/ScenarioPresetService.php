@@ -99,6 +99,22 @@ class ScenarioPresetService
                 'lights' => [],
                 'detail' => 'The public square, halls, posts and one sealed testimony on San Marino.',
             ],
+            'federation' => [
+                'label' => 'Stand up a demo federation peer (sync history + a flipped partition)',
+                'command' => 'federation:demo',
+                'args' => [],
+                'lights' => [],
+                'detail' => 'A browsable demo peer with Full-Faith-&-Credit sync history and one authority-flipped '
+                    .'partition — the /federation console comes alive. Class-scoped: a demo peers only with demos.',
+            ],
+            'matrix-commons' => [
+                'label' => 'Seed the Matrix commons (topology + testimony + the legitimacy flip)',
+                'command' => 'matrix:demo',
+                'args' => ['--offline' => true],
+                'lights' => [],
+                'detail' => 'San Marino\'s civic commons on Matrix — #square + #halls topology, a sealed testimony, '
+                    .'and the legitimacy flip. Runs --offline (Plane-A artifacts only) so it never blocks on a homeserver.',
+            ],
         ];
     }
 
@@ -156,6 +172,16 @@ class ScenarioPresetService
                 : [false, 'Needs at least 2 confirmed residents — run the election preset first.'],
 
             'social' => ($sm)() !== null
+                ? [true, null]
+                : [false, 'San Marino is not on this world — found a world with real geodata first.'],
+
+            // federation:demo mints its own demo peer + flip; it needs nothing seeded
+            // first. The command self-checks and its --fresh retires prior demo peers.
+            'federation' => [true, null],
+
+            // matrix:demo seeds San Marino's commons; without the place there is
+            // nothing to seed it onto.
+            'matrix-commons' => ($sm)() !== null
                 ? [true, null]
                 : [false, 'San Marino is not on this world — found a world with real geodata first.'],
 

@@ -206,6 +206,49 @@ class ElectionStageTest extends TestCase
         });
     }
 
+    /**
+     * R-A DEFERRAL, pinned from the sim engine's side (ruling 2026-07-28, plan §10).
+     *
+     * R-A: NO Type B election playtesting on chambers flagged
+     * `type_b_needs_districting` until lane 1's Type B district mapper ships;
+     * lane 3 builds the scheduling guard IN `racePlan()`. This stage is not the
+     * guard and must never become one — it must DEFER to whatever racePlan
+     * authorises, PER KIND, so that when lane 3 makes racePlan refuse the Type B
+     * half of a flagged chamber, this stage schedules the lawful half and records
+     * the refused half, with no edit here at all.
+     *
+     * The mechanism is pinned with the block that CAN be triggered today: an
+     * over-ceiling `type_a` (152) with NO active map is a blocked district half,
+     * while a lawful at-large `type_b` (5) elects. The stage must schedule ONLY
+     * the type_b race and record the district half in `blocked_kinds` — exactly
+     * the shape R-A needs, with the blocked side merely swapped. If a future edit
+     * hand-rolled races here instead of reading racePlan, this partial deferral
+     * would break and the guard would be silently bypassed.
+     */
+    public function test_a_partially_blocked_chamber_elects_only_its_lawful_half(): void
+    {
+        $this->onLivePg(function () {
+            $jid = $this->world(typeA: 152, typeB: 5, districtSeats: []); // no district map
+
+            $result = ElectionStage::run($jid, null, 1);
+
+            // The lawful half elected; the whole chamber was NOT dropped.
+            $this->assertNotNull($result['election_id'], 'the lawful type_b half must still elect');
+            $this->assertNotEmpty(
+                $result['blocked_kinds'],
+                'the blocked district half must be RECORDED, never silently dropped'
+            );
+
+            // Nothing was scheduled for the blocked half — every race is the type_b one.
+            $rows = DB::table('election_races')->where('election_id', $result['election_id'])->get();
+            $this->assertSame(1, $rows->count(), 'exactly the one lawful race the engine authorised');
+            $this->assertTrue(
+                $rows->every(fn ($r) => $r->seat_kind === 'type_b'),
+                'the stage schedules only what racePlan authorised — never a race for the blocked kind'
+            );
+        });
+    }
+
     /** Most jurisdictions have no chamber. That is ordinary, not an error. */
     public function test_a_jurisdiction_without_a_legislature_is_a_no_op(): void
     {
