@@ -339,8 +339,9 @@ invited check ("check me on it") found: the engine already seats islands via the
 sound iff both clips hold; antimeridian guarding is real and already precedented; and
 hull-CONTACT adjacency for GROUPING reduces to a buffered proximity graph (hulls of separated
 islands never touch — the buffer distance d becomes a free parameter controlling everything).
-QUESTION QUEUED: for Type B grouping adjacency only, centroid nearest-approach (A, lane +
-desk recommend) vs literal buffered hull-contact (B). The hull KEEPS its true home either
-way: Type A line-splitting of over-ceiling archipelago constituents (both clips +
-antimeridian guard). DESK STEER: contiguous path proceeds at full speed and may un-flag;
-ISLAND-path chambers held at the adjacency seam until the operator rules.
+~~QUESTION QUEUED~~ **RULED (operator, 2026-07-29): OPTION A** — Type B grouping adjacency =
+centroid nearest-approach (closestApproachSq reuse), one unified graph (border_len edges where
+land borders exist, nearest-approach where they don't), B5 tie chain unchanged. The hull keeps
+its Type A home: line-splitting over-ceiling archipelago constituents (both clips +
+antimeridian guard) — empirical exercise is a game-box item, does not gate the wave. Island
+path UNBLOCKED; island chambers un-flag through the same engine path as contiguous.
