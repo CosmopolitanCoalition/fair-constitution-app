@@ -346,6 +346,24 @@ invited check ("check me on it") found: the engine already seats islands via the
 sound iff both clips hold; antimeridian guarding is real and already precedented; and
 hull-CONTACT adjacency for GROUPING reduces to a buffered proximity graph (hulls of separated
 islands never touch — the buffer distance d becomes a free parameter controlling everything).
+**⚑ WAVE 3 CLOSE TALLY (2026-07-29 ~12:15, HEAD=origin, all pushed):**
+- **CLOSED (four-way confirmed): lanes 1, 2, 4, 6.** Lane 2 SLOT CLEAR — coordinator migration
+  landed 82f4683 (re-dated 200000, LAST in slot; down() proven batch-scoped so lane 15's batch
+  untouched; reversibility pinned; contained a 13-file self-sweep BEFORE origin, insertion-count
+  caught it). **THE SCHEMA QUEUE IS CLOSED FOR THE WAVE.** Lane 6 done — live-room stop (tour
+  47 stops/12 acts) + nav-drift ruling adopted (7 aligned, translations allowlisted, coverage
+  reads All-clear 0/0/0); holding only for lane 3's step-5 to append more live-room stops (a
+  dependency-hold, its own slate is complete). Lane 4 live-verified racePlan on REAL Niue
+  (at_large 10, blocked=false) read-only.
+- **BUILDING (git-observed): lane 3** — behavioral useLiveRoom node pin landed 86fcdb7 (per the
+  desk JS-runner ruling: node tests/js idiom, no vitest); holding for the operator's compaction
+  before the exit walk (steps 4b→5). **lane 15** — Learn pages 5/5 landed 6c4ee09 (answer key
+  server-only); stages ①–⑤ all appear complete, four-way DONE expected. **lane 13** — economy
+  build STARTED 18fd02d (1/6, dues as membership subscription per the ruling); 5 pieces to go.
+- **REMAINING BEFORE WAVE 3 CLOSES:** lane 3's exit walk (post-compaction), lane 13's economy
+  build (2/6–6/6), lane 15's DONE confirmation. Operator items open: B2 residual, game-box mass
+  pass, lane 3's compaction.
+
 **LANE 4 WAVE 3 CLOSED (four-way confirmed): R-A UN-FLAG PIN 7d14649 (ElectionStageTest 10/10;
 non-vacuous — a before-state assertion proves the race appears BECAUSE the flag cleared, via
 the REAL TypeBDistrictMapper::apply(), no stage edit). BONUS RESOLVED: lane 4's Wave-2
