@@ -33,6 +33,7 @@ import CmdBar from '@/Components/ShellV2/CmdBar.vue';
 import TourBar from '@/Components/ShellV2/TourBar.vue';
 import { PLAYER_NAV, SITEMAP } from '@/registry/surfaces.js';
 import { LOCALES } from '@/i18n/index.js';
+import { highestRole } from '@/lib/roles.js';
 
 const props = defineProps({
     /** Main width contract: 'default' (56rem) | 'wide' (96rem) | 'flush'. */
@@ -78,6 +79,11 @@ const initials = computed(() => {
         .map((w) => w[0].toUpperCase())
         .join('');
 });
+
+/* The role label on the user chip — v1 had it, V2 dropped it (a regression
+   against the spec: the mockup chip reads "Amara Okafor · voter"). Plain
+   label in the chrome; the R-xx code stays in the tooltip (V3 synthesis S4). */
+const role = computed(() => highestRole(roles.value));
 
 /* ------------------------------------------------------------- navigation */
 const currentNavId = computed(() => {
@@ -226,10 +232,11 @@ onBeforeUnmount(() => {
                 </label>
 
                 <details v-if="user" class="popover">
-                    <summary :title="t('header.persona')">
+                    <summary :title="`${t('header.persona')} — ${role.id}`">
                         <span class="role-badge">
                             <span class="avatar" aria-hidden="true">{{ initials }}</span>
                             <span>{{ user.display_name || user.name }}</span>
+                            <span class="citation">{{ role.label }}</span>
                         </span>
                     </summary>
                     <div class="popover-panel">
