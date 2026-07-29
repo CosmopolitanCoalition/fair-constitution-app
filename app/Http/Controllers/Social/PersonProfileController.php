@@ -15,6 +15,7 @@ use App\Models\SocialProfile;
 use App\Models\SocialSpace;
 use App\Models\User;
 use App\Services\JourneyService;
+use App\Services\OfficesHeldResolver;
 use App\Services\Social\PrivateRoomService;
 use App\Support\SurfaceMeta;
 use Illuminate\Http\RedirectResponse;
@@ -467,69 +468,11 @@ class PersonProfileController extends Controller
      */
     private function officesFor(User $subject): array
     {
-        $userId = (string) $subject->getKey();
-
-        $legislative = DB::table('legislature_members as lm')
-            ->join('legislatures as l', 'l.id', '=', 'lm.legislature_id')
-            ->join('jurisdictions as j', 'j.id', '=', 'l.jurisdiction_id')
-            ->where('lm.user_id', $userId)
-            ->whereIn('lm.status', ['elected', 'seated'])
-            ->whereNull('lm.deleted_at')
-            ->whereNull('l.deleted_at')
-            ->orderBy('j.adm_level')
-            ->get(['l.id as legislature_id', 'j.name as jurisdiction', 'lm.status', 'lm.seat_type', 'lm.seated_on', 'lm.term_ends_on', 'lm.is_speaker'])
-            ->map(fn ($row) => [
-                'kind' => 'legislature',
-                'title' => ($row->is_speaker ? 'Speaker · ' : 'Representative · ').$row->jurisdiction.' legislature',
-                'jurisdiction' => $row->jurisdiction,
-                'status' => $row->status,
-                'since' => $row->seated_on,
-                'until' => $row->term_ends_on,
-                'is_speaker' => (bool) $row->is_speaker,
-                'href' => '/legislatures/'.$row->legislature_id,
-            ]);
-
-        $executive = DB::table('executive_members as em')
-            ->join('executives as e', 'e.id', '=', 'em.executive_id')
-            ->join('jurisdictions as j', 'j.id', '=', 'e.jurisdiction_id')
-            ->where('em.user_id', $userId)
-            ->where('em.status', 'seated')
-            ->whereNull('em.deleted_at')
-            ->whereNull('e.deleted_at')
-            ->orderBy('j.adm_level')
-            ->get(['j.name as jurisdiction', 'em.role', 'em.joined_at', 'e.type'])
-            ->map(fn ($row) => [
-                'kind' => 'executive',
-                'title' => ($row->role === 'advisor' ? 'Executive advisor · ' : 'Executive · ').$row->jurisdiction,
-                'jurisdiction' => $row->jurisdiction,
-                'status' => 'seated',
-                'since' => $row->joined_at,
-                'until' => null,
-                'is_speaker' => false,
-                'href' => null,
-            ]);
-
-        $judicial = DB::table('judicial_seats as js')
-            ->join('judiciaries as jd', 'jd.id', '=', 'js.judiciary_id')
-            ->join('jurisdictions as j', 'j.id', '=', 'jd.jurisdiction_id')
-            ->where('js.user_id', $userId)
-            ->where('js.status', 'seated')
-            ->whereNull('js.deleted_at')
-            ->whereNull('jd.deleted_at')
-            ->orderBy('j.adm_level')
-            ->get(['j.name as jurisdiction', 'jd.court_name', 'js.term_starts_on', 'js.term_ends_on'])
-            ->map(fn ($row) => [
-                'kind' => 'judicial',
-                'title' => 'Judge · '.$row->court_name.' · '.$row->jurisdiction,
-                'jurisdiction' => $row->jurisdiction,
-                'status' => 'seated',
-                'since' => $row->term_starts_on,
-                'until' => $row->term_ends_on,
-                'is_speaker' => false,
-                'href' => null,
-            ]);
-
-        return [...$legislative->all(), ...$executive->all(), ...$judicial->all()];
+        // Lifted verbatim into the shared OfficesHeldResolver so the public
+        // profile here and the self record at /civic/record read office from
+        // ONE place and cannot drift. Kept as a thin wrapper so this call site
+        // is untouched.
+        return app(OfficesHeldResolver::class)->forUser($subject);
     }
 
     /**

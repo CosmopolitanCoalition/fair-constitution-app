@@ -10,6 +10,7 @@ use App\Http\Middleware\SetLocale;
 use App\Models\AuditEntry;
 use App\Models\Candidacy;
 use App\Services\JourneyService;
+use App\Services\OfficesHeldResolver;
 use App\Services\RepresentativesResolver;
 use App\Services\ResidencyService;
 use App\Support\SurfaceMeta;
@@ -59,6 +60,7 @@ class MyRecordController extends Controller
         'overview',
         'record',
         'candidacy',
+        'office',
         'representatives',
         'achievements',
         'wallet',
@@ -71,6 +73,7 @@ class MyRecordController extends Controller
         private readonly RepresentativesResolver $representatives,
         private readonly JourneyService $journeys,
         private readonly BallotBox $ballots,
+        private readonly OfficesHeldResolver $offices,
     ) {
     }
 
@@ -157,6 +160,10 @@ class MyRecordController extends Controller
             'surface'         => SurfaceMeta::for('civic/my-record'),
             'tab'             => $tab,
             'representatives' => $this->representatives->forUser($user),
+            // Same resolver the public /people profile uses, so a seat-holder's
+            // own Office tab and their public office panel cannot disagree. The
+            // Vue renders the tab only when this is non-empty.
+            'offices'         => $this->offices->forUser($user),
             'candidacies'     => $candidacies,
             // Phase 3c / K-2 — earned achievements (id, award_key, title, earned_at).
             'achievements'    => $this->journeys->achievementsFor($user),

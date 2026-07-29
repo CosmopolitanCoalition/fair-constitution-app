@@ -50,6 +50,10 @@ const props = defineProps({
     languageOptions: { type: Array, default: () => [] },
     /** RepresentativesResolver rows — most-local jurisdiction first. */
     representatives: { type: Array, default: () => [] },
+    /** OfficesHeldResolver rows — seats this user holds. The Office tab renders
+        only when > 0; the same rows drive the office panel on the public /people
+        profile, so the two views cannot disagree. */
+    offices: { type: Array, default: () => [] },
     /** The user's candidacies; the Candidacy tab renders only when > 0. */
     candidacies: { type: Array, default: () => [] },
     /** Earned achievements (Phase 3c / K-2) — {id, award_key, title, earned_at}. */
@@ -84,6 +88,11 @@ const tabs = computed(() => {
     /* A candidacy is a TAB of this same profile — only while one exists. */
     if (props.candidacies.length) {
         list.push({ key: 'candidacy', label: 'Candidacy', icon: 'vote' });
+    }
+    /* Office appears only when you hold one — same rule as candidacy, and the
+       same order the public profile uses (after candidacy, before reps). */
+    if (props.offices.length) {
+        list.push({ key: 'office', label: 'Office', icon: 'landmark' });
     }
     list.push(
         { key: 'representatives', label: 'Representatives', icon: 'landmark' },
@@ -550,6 +559,46 @@ const associationRows = computed(() =>
                     The record rides along — it is the Record tab of this same profile · Art. II
                 </p>
             </Card>
+        </div>
+
+        <!-- ══════════════════════════════════════════════ TAB: office -->
+        <div
+            v-if="offices.length"
+            v-show="activeTab === 'office'"
+            id="ppanel-office"
+            role="tabpanel"
+            aria-labelledby="ptab-office"
+            class="stack"
+        >
+            <Card
+                v-for="(office, i) in offices"
+                :key="i"
+                as="section"
+            >
+                <template #title>
+                    <h2>
+                        {{ office.title }}
+                        <StatusBadge v-if="office.is_speaker" tone="success" icon="landmark">Speaker</StatusBadge>
+                        <StatusBadge tone="neutral">{{ office.status }}</StatusBadge>
+                    </h2>
+                </template>
+                <p class="gloss">
+                    Elected by every resident of {{ office.jurisdiction }} — this seat answers to
+                    all of them equally, never to a party or a donor.
+                </p>
+                <p class="citation">
+                    <template v-if="office.since">seated {{ formatDate(office.since) }}</template>
+                    <template v-if="office.until"> · term ends {{ formatDate(office.until) }}</template>
+                </p>
+                <Btn v-if="office.href" :as="Link" :href="office.href" variant="secondary" size="sm">
+                    Open the {{ office.kind === 'legislature' ? 'chamber' : office.kind }} page
+                </Btn>
+            </Card>
+            <p class="citation">
+                Every act you take in office is public and uneditable — it lives on your
+                <a href="#" @click.prevent="selectTab('record')">Record tab</a> and in the
+                institution’s own records · Art. II
+            </p>
         </div>
 
         <!-- ══════════════════════════════════════ TAB: representatives -->
