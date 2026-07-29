@@ -1,7 +1,7 @@
 {
  "asOf": "2026-07-29",
- "commit": "9ac567f",
- "wave": "WAVE 1 COMPLETE \u2014 shell (lane 6, 9 commits) \u00b7 demo mode D1\u2013D7 (lane 4, 7 commits) \u00b7 learn payload (lane 15, 5 commits) \u00b7 awaiting the operator Wave 2 review",
+ "commit": "6bd8502",
+ "wave": "WAVE 2 RUNNING \u2014 group 1 (lanes 2/13/15/5/4) mid-slate; disintermediation RULED direction shipped; stipend + request-detail pages LIVE; suite 22\u2192~12",
  "rows": [
   {
    "file": "civic/join.html",
@@ -425,10 +425,10 @@
    "area": "economy",
    "areaLabel": "Economy",
    "owner": "lane 13",
-   "bucket": "absent",
-   "effort": "L",
+   "bucket": "built",
+   "effort": "none",
    "page": "",
-   "route": "",
+   "route": "GET /economy/requests/{posting}",
    "props": "none",
    "backend": "full",
    "propsMissing": [],
@@ -442,7 +442,10 @@
     "privacy note"
    ],
    "appAhead": [],
-   "notes": "Cheapest large win in the module: LaborBoardService (post/apply/accept/decline) and the F-IND-014 \u2192 co-determination chain are built and pinned (WorkerRepresentationTest, LaborBoardTest) \u2014 only the page, route, and controller are missing. Market.vue's work tab shows postings but offers no detail or apply."
+   "notes": "Cheapest large win in the module: LaborBoardService (post/apply/accept/decline) and the F-IND-014 \u2192 co-determination chain are built and pinned (WorkerRepresentationTest, LaborBoardTest) \u2014 only the page, route, and controller are missing. Market.vue's work tab shows postings but offers no detail or apply. CLOSED 2026-07-29 (3cd4dbe): F-IND-019 minted (112 forms); applied end-to-end + duplicate refused at the form with citation; co-det thresholds resolved from amendable settings.",
+   "page_exists": true,
+   "page_path": "resources/js/Pages/Economy/RequestDetail.vue",
+   "routed": true
   },
   {
    "file": "economy/wallet.html",
@@ -550,10 +553,10 @@
    "area": "economy",
    "areaLabel": "Economy",
    "owner": "lane 13",
-   "bucket": "absent",
-   "effort": "L",
+   "bucket": "built",
+   "effort": "none",
    "page": "",
-   "route": "",
+   "route": "GET /economy/stipend",
    "props": "none",
    "backend": "full",
    "propsMissing": [],
@@ -569,7 +572,10 @@
     "rails list"
    ],
    "appAhead": [],
-   "notes": "StipendService is complete (formula, the exact three classes as pay_* settings, cap, k-anon suppression, short-pay pro-rating) and fragments already render on Home and Wallet \u2014 only the dedicated page + controller method are missing. Manifest's F-TRE-004 is unregistered; the real change path is F-LEG-031 dual-door, which exists."
+   "notes": "StipendService is complete (formula, the exact three classes as pay_* settings, cap, k-anon suppression, short-pay pro-rating) and fragments already render on Home and Wallet \u2014 only the dedicated page + controller method are missing. Manifest's F-TRE-004 is unregistered; the real change path is F-LEG-031 dual-door, which exists. CLOSED 2026-07-29 (3cd4dbe): live StipendService formula, class cards, k-anon, F-LEG-031 propose door; walked as a person.",
+   "page_exists": true,
+   "page_path": "resources/js/Pages/Economy/Stipend.vue",
+   "routed": true
   },
   {
    "file": "economy/treasury.html",
