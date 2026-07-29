@@ -36,16 +36,20 @@ const flashStatus = computed(() => page.props.flash?.status ?? null);
 
 const form = useForm({
     category: props.categories[0]?.id ?? 'bug',
+    subject: '',
     body: '',
     ref: page.props.ref ?? '',
 });
 
-const needsReviewNote = computed(() => ['conduct', 'legal'].includes(form.category));
+const selected = computed(() => props.categories.find((c) => c.id === form.category) ?? null);
+const routesTo = computed(() => selected.value?.routesTo ?? null);
+/* Abuse rides the moderation & legal floor — off the tech-support queue. */
+const isAbuse = computed(() => selected.value?.target === 'moderation');
 
 function submit() {
     form.post('/support/report', {
         preserveScroll: true,
-        onSuccess: () => form.reset('body'),
+        onSuccess: () => form.reset('subject', 'body'),
     });
 }
 </script>
@@ -85,6 +89,27 @@ function submit() {
                     </template>
                 </Field>
 
+                <p v-if="routesTo" class="citation">Goes to: {{ routesTo }}</p>
+
+                <Field
+                    label="A one-line summary (optional)"
+                    hint="A short subject helps triage — the details go below."
+                    :error="form.errors.subject"
+                >
+                    <template #control="{ id, invalid, describedBy }">
+                        <input
+                            :id="id"
+                            v-model="form.subject"
+                            type="text"
+                            class="field-input"
+                            maxlength="160"
+                            :disabled="isGuest"
+                            :aria-invalid="invalid ? 'true' : undefined"
+                            :aria-describedby="describedBy"
+                        />
+                    </template>
+                </Field>
+
                 <Field
                     label="What happened?"
                     hint="Plain words are fine. Include what you expected and what you saw instead."
@@ -105,10 +130,10 @@ function submit() {
                     </template>
                 </Field>
 
-                <p v-if="needsReviewNote" class="gloss">
-                    Conduct and legal reports are routed for review. Filing here does not remove
-                    anything — content removal follows the constitutional carve-outs (the F-SOC-003
-                    machinery), never this form.
+                <p v-if="isAbuse" class="gloss">
+                    Abuse and illegal-content reports go to the moderation &amp; legal team, not the
+                    support queue. Filing here removes nothing — content removal follows the
+                    constitutional carve-outs (the F-SOC-003 machinery), never this form.
                 </p>
 
                 <p v-if="form.ref" class="citation">Filed from: {{ form.ref }}</p>
@@ -123,10 +148,15 @@ function submit() {
             </form>
         </Card>
 
+        <p v-if="!isGuest">
+            <Link href="/support/tickets">See the reports you’ve filed →</Link>
+        </p>
+
         <template #about>
             <p>
-                Reports land in the operator's support inbox and are routed by category. This
-                intake never edits or removes content itself.
+                Every report is one of six subjects, and each routes to one place — the operators,
+                translation support, moderation &amp; the legal floor, or the product backlog. The
+                intake routes a request; it never edits or removes content itself.
             </p>
         </template>
     </PageScaffold>

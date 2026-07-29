@@ -59,6 +59,7 @@ class SupportReportTest extends TestCase
                 ->post('/support/report', [
                     '_token' => $token,
                     'category' => SupportReport::CATEGORY_BUG,
+                    'subject' => 'Blank vote tally',
                     'body' => 'The chamber page shows a blank vote tally.',
                     'ref' => '/legislatures/x/chamber',
                 ])
@@ -70,8 +71,34 @@ class SupportReportTest extends TestCase
             $this->assertSame(10, strlen($report->public_id), 'public_id is a 10-char base62 id');
             $this->assertSame(SupportReport::STATUS_OPEN, $report->status);
             $this->assertSame(SupportReport::CATEGORY_BUG, $report->category);
+            $this->assertSame('Blank vote tally', $report->subject, 'the short subject is stored');
             $this->assertSame('/legislatures/x/chamber', $report->ref);
+            // The routed six: a bug routes to the operators (the guard-of-routing).
+            $this->assertSame(SupportReport::ROUTE_OPERATORS, $report->route_target);
             $this->assertSame(session('support_report_public_id'), $report->public_id);
+        });
+    }
+
+    public function test_abuse_routes_off_the_support_queue_to_moderation(): void
+    {
+        $this->onLivePg(function () {
+            $user = $this->aUser('Reporter');
+
+            $token = 'pin-csrf-token';
+            $this->actingAs($user)
+                ->withSession(['_token' => $token])
+                ->post('/support/report', [
+                    '_token' => $token,
+                    'category' => SupportReport::CATEGORY_ABUSE,
+                    'body' => 'Illegal content in a room.',
+                ])
+                ->assertRedirect('/support/report');
+
+            $report = SupportReport::query()->where('reporter_id', $user->id)->first();
+
+            $this->assertSame(SupportReport::CATEGORY_ABUSE, $report->category);
+            $this->assertSame(SupportReport::ROUTE_MODERATION, $report->route_target);
+            $this->assertTrue($report->isOffQueue(), 'abuse rides the moderation & legal floor, off the support queue');
         });
     }
 
