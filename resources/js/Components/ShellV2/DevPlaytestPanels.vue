@@ -16,13 +16,15 @@
  * is indistinguishable from an unbuilt one. The doors render regardless —
  * they lead to pages that carry their own gates.
  *
- * D4 (assume a resident/role of a place) and D5 (scenario presets) join
- * this stack behind their design notes; they are not built here yet.
+ * All of Slice 2 lives here now: D4 (assume a resident/role of a place),
+ * D2 (clock controls), D3 (chamber cast), D5 (scenario presets — its own
+ * poll, so it mounts prop-less), plus the D1 doors.
  */
 import { onMounted, ref } from 'vue';
 import DevAssume from './DevAssume.vue';
 import DevClockControls from './DevClockControls.vue';
 import DevChamberCast from './DevChamberCast.vue';
+import DevScenarioPresets from './DevScenarioPresets.vue';
 
 const state = ref(null);
 
@@ -72,6 +74,13 @@ const DOORS = [
         <summary>Chamber — bloc-cast an open vote (ballots only)</summary>
         <div class="playtest-body">
             <DevChamberCast :state="state" @refresh="fetchState" />
+        </div>
+    </details>
+
+    <details v-if="state" class="dev-control playtest-block">
+        <summary>Scenarios — seed a named situation (the real seeders)</summary>
+        <div class="playtest-body">
+            <DevScenarioPresets />
         </div>
     </details>
 

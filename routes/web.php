@@ -997,6 +997,11 @@ if (app()->environment('local') && config('cga.impersonation', true)) {
         // answer precisely when the controls refuse or the UI could never
         // show why. The lists are withheld until the gate opens.
         Route::get('/playtest/state', \App\Http\Controllers\Dev\PlaytestStateController::class)->name('playtest.state');
+        // D5 — the scenario panel's poll: what presets CAN run, what IS
+        // running, each run's live tail. Same read-only posture as
+        // playtest/state (answers when the gate refuses, carrying the
+        // refusal sentence; lists withheld until it opens).
+        Route::get('/scenario/state', [\App\Http\Controllers\Dev\ScenarioController::class, 'state'])->name('scenario.state');
         // Dev residency bypass: declare → simulated pings → verify, all
         // through the real engine, in one request (dev-only relocation).
         Route::post('/residency/grant', [ResidencyGrantController::class, 'grant'])->name('residency.grant');
@@ -1039,6 +1044,10 @@ if (app()->environment('local') && config('cga.impersonation', true)) {
         // half writes residency records on demand; the service never creates
         // users and never seats anyone — a refusal is an answer.
         Route::post('/assume', \App\Http\Controllers\Dev\AssumeController::class)->name('assume');
+        // D5 — queue one scenario preset (ruling 10). The button IS the
+        // terminal command: the job shells the real seeder, which carries
+        // GuardsSyntheticData like every demo command. One run at a time.
+        Route::post('/scenario/{preset}', [\App\Http\Controllers\Dev\ScenarioController::class, 'queue'])->name('scenario.queue');
     });
 }
 
