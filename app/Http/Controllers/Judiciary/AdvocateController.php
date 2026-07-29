@@ -98,15 +98,22 @@ class AdvocateController extends Controller
 
         $advocate = $user !== null ? $this->viewerAdvocate($user) : null;
 
+        $context = $advocate === null && $user !== null
+            ? $this->registrationContext($user)
+            : ['targetId' => null, 'prerequisites' => null, 'practiceOptions' => []];
+
         return Inertia::render('Judiciary/AdvocateConsole', [
             'surface' => SurfaceMeta::for('judiciary/advocate-console'),
             'advocate' => $this->advocateProps($advocate),
             'myCases' => $advocate !== null ? $this->myCaseRows($advocate) : [],
             'filings' => $advocate !== null ? $this->filingRows($advocate) : [],
             'composer' => $this->composerProps($advocate),
-            'registerTargetId' => $advocate === null && $user !== null
-                ? $this->publicRegistrationJudiciaryId($user)
-                : null,
+            'registerTargetId' => $context['targetId'],
+            // The mockup's prerequisites checklist + jurisdiction-of-practice
+            // selector, both built from the SAME join that used to be collapsed
+            // to a single ->value('j.id'). null for an already-registered viewer.
+            'prerequisites' => $context['prerequisites'],
+            'practiceOptions' => $context['practiceOptions'],
             'can' => [
                 'register' => $user !== null && $advocate === null,
                 'file' => $advocate !== null,
@@ -277,20 +284,93 @@ class AdvocateController extends Controller
      * orderByDesc(adm_level) pattern the resolver uses). The F-IND-015 form
      * needs a judiciary_id; the engine re-checks association (Art. I).
      */
-    private function publicRegistrationJudiciaryId(User $user): ?string
+    /**
+     * The mockup's registration screen — prerequisites checklist, a
+     * jurisdiction-of-practice selector, and the default target — all from ONE
+     * join over the courts in the viewer's association chain. This used to be
+     * collapsed to a single `->value('j.id')`, discarding every fact the
+     * checklist and the selector need.
+     *
+     * A court "operates" only in an OPERATING_STATUS (appointed | elected); a
+     * forming/creating/converting court exists but cannot yet take a
+     * registration, and the checklist says so rather than silently offering it.
+     * Courts the viewer is already registered with are dropped from the options
+     * (AdvocateService::register refuses a duplicate). The default target is the
+     * most-senior operating court, falling back to the most-senior court that
+     * exists so the checklist can still explain a not-yet-operating one.
+     *
+     * @return array{targetId: ?string, prerequisites: ?array, practiceOptions: list<array>}
+     */
+    private function registrationContext(User $user): array
     {
-        $id = DB::table('residency_confirmations as rc')
+        $userId = (string) $user->getKey();
+
+        $registeredWith = Advocate::query()
+            ->where('user_id', $userId)
+            ->whereNull('deleted_at')
+            ->pluck('judiciary_id')
+            ->map('strval')
+            ->all();
+
+        // Every court in the chain, most-senior jurisdiction first.
+        $courts = DB::table('residency_confirmations as rc')
             ->join('judiciaries as j', 'j.jurisdiction_id', '=', 'rc.jurisdiction_id')
             ->join('jurisdictions as ju', 'ju.id', '=', 'rc.jurisdiction_id')
-            ->where('rc.user_id', (string) $user->getKey())
+            ->where('rc.user_id', $userId)
             ->where('rc.is_active', true)
             ->whereNull('j.deleted_at')
             ->whereNot('j.status', Judiciary::STATUS_DISSOLVED)
             ->whereNull('ju.deleted_at')
             ->orderByDesc('ju.adm_level')
-            ->value('j.id');
+            ->get(['j.id', 'j.court_name', 'j.type', 'j.status', 'ju.name as jurisdiction', 'ju.adm_level'])
+            ->map(fn ($r) => [
+                'id' => (string) $r->id,
+                'court_name' => $r->court_name,
+                'jurisdiction' => $r->jurisdiction,
+                'adm_level' => $r->adm_level,
+                'type' => $r->type,
+                'status' => $r->status,
+                'operating' => in_array($r->status, Judiciary::OPERATING_STATUSES, true),
+            ]);
 
-        return $id !== null ? (string) $id : null;
+        // The residency prerequisite: the most-senior jurisdiction the viewer is
+        // confirmed in (met whenever they have any active confirmation at all).
+        $home = DB::table('residency_confirmations as rc')
+            ->join('jurisdictions as ju', 'ju.id', '=', 'rc.jurisdiction_id')
+            ->where('rc.user_id', $userId)
+            ->where('rc.is_active', true)
+            ->whereNull('ju.deleted_at')
+            ->orderByDesc('ju.adm_level')
+            ->first(['ju.name', 'ju.adm_level']);
+
+        // Options exclude courts already registered with (a duplicate is refused).
+        $options = $courts->reject(fn ($c) => in_array($c['id'], $registeredWith, true))->values();
+
+        $default = $options->firstWhere('operating', true) ?? $options->first();
+        $checklistCourt = $default ?? $courts->firstWhere('operating', true) ?? $courts->first();
+
+        return [
+            'targetId' => $default['id'] ?? null,
+            'prerequisites' => [
+                'judiciary' => $checklistCourt === null
+                    ? ['met' => false, 'court_name' => null, 'jurisdiction' => null, 'adm_level' => null, 'type' => null, 'status' => null, 'operating' => false]
+                    : [
+                        'met' => (bool) $checklistCourt['operating'],
+                        'court_name' => $checklistCourt['court_name'],
+                        'jurisdiction' => $checklistCourt['jurisdiction'],
+                        'adm_level' => $checklistCourt['adm_level'],
+                        'type' => $checklistCourt['type'],
+                        'status' => $checklistCourt['status'],
+                        'operating' => (bool) $checklistCourt['operating'],
+                    ],
+                'residency' => [
+                    'met' => $home !== null,
+                    'name' => $home->name ?? null,
+                    'adm_level' => $home->adm_level ?? null,
+                ],
+            ],
+            'practiceOptions' => $options->all(),
+        ];
     }
 
     private function displayName(?User $user): string

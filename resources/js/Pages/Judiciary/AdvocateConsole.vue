@@ -49,6 +49,12 @@ const props = defineProps({
     composer: { type: Object, default: () => ({ types: [], casesForClient: [] }) },
     /** Unregistered viewer: the judiciary the F-IND-015 form registers with. */
     registerTargetId: { type: String, default: null },
+    /** { judiciary:{met,court_name,jurisdiction,type,status,operating}, residency:{met,name} }
+        or null for an already-registered viewer — the prerequisites checklist. */
+    prerequisites: { type: Object, default: null },
+    /** Courts the viewer may register with (excludes ones already joined). When
+        more than one, the form shows a jurisdiction-of-practice selector. */
+    practiceOptions: { type: Array, default: () => [] },
     can: { type: Object, default: () => ({ register: false, file: false, isRegistered: false }) },
 });
 
@@ -167,6 +173,56 @@ function submitFiling() {
         </Card>
 
         <template v-else>
+            <!-- Prerequisites checklist — what registration needs, and whether
+                 you meet it. Two rows, each with an honest met / not-yet badge. -->
+            <Card v-if="prerequisites" as="section" title="Before you register">
+                <ul class="stack" style="gap: var(--space-2); list-style: none; padding: 0">
+                    <li class="cluster" style="gap: var(--space-2)">
+                        <StatusBadge
+                            :tone="prerequisites.residency.met ? 'success' : 'warning'"
+                            :icon="prerequisites.residency.met ? 'check' : 'clock'"
+                        >
+                            {{ prerequisites.residency.met ? 'Met' : 'Not yet' }}
+                        </StatusBadge>
+                        <span>
+                            <template v-if="prerequisites.residency.met">
+                                You live in <strong>{{ prerequisites.residency.name }}</strong> —
+                                association is the only eligibility the bar checks.
+                            </template>
+                            <template v-else>
+                                You need a confirmed residency first — say where you live, and the
+                                courts of that place open to you.
+                            </template>
+                        </span>
+                    </li>
+                    <li class="cluster" style="gap: var(--space-2)">
+                        <StatusBadge
+                            :tone="prerequisites.judiciary.met ? 'success' : 'warning'"
+                            :icon="prerequisites.judiciary.met ? 'check' : 'clock'"
+                        >
+                            {{ prerequisites.judiciary.met ? 'Met' : 'Not yet' }}
+                        </StatusBadge>
+                        <span>
+                            <template v-if="prerequisites.judiciary.met">
+                                <strong>{{ prerequisites.judiciary.court_name }}</strong> is operating
+                                in {{ prerequisites.judiciary.jurisdiction }}
+                                ({{ prerequisites.judiciary.type }}).
+                            </template>
+                            <template v-else-if="prerequisites.judiciary.court_name">
+                                <strong>{{ prerequisites.judiciary.court_name }}</strong> exists in
+                                {{ prerequisites.judiciary.jurisdiction }} but is still
+                                {{ prerequisites.judiciary.status }} — it can take registrations once
+                                it is seated.
+                            </template>
+                            <template v-else>
+                                No court has formed in your jurisdiction yet — one appears when a
+                                legislature creates it (F-LEG-017).
+                            </template>
+                        </span>
+                    </li>
+                </ul>
+            </Card>
+
             <FormCard
                 v-if="registrationForm && registerTargetId"
                 :form="registrationForm"
@@ -179,6 +235,32 @@ function submitFiling() {
                     bar of advocates zealous and competent. Registration is open to any associated
                     resident — association with the court's jurisdiction is the only eligibility check.
                 </p>
+
+                <!-- Jurisdiction of practice — only when more than one court is
+                     open to you. One court needs no choice; the target is set. -->
+                <Field
+                    v-if="practiceOptions.length > 1"
+                    label="Court of practice"
+                    hint="You live in more than one jurisdiction — choose whose court to join. You can register with the others later."
+                >
+                    <template #control="{ id, describedBy }">
+                        <select
+                            :id="id"
+                            v-model="regForm.judiciary_id"
+                            class="field-input"
+                            :aria-describedby="describedBy"
+                        >
+                            <option
+                                v-for="opt in practiceOptions"
+                                :key="opt.id"
+                                :value="opt.id"
+                                :disabled="!opt.operating"
+                            >
+                                {{ opt.court_name }} · {{ opt.jurisdiction }}{{ opt.operating ? '' : ' (not yet seated)' }}
+                            </option>
+                        </select>
+                    </template>
+                </Field>
                 <Field
                     label="Qualifications note (optional)"
                     hint="Recorded with your registration; the bar's competence is a property of the bar, never a gate on your client's right."
@@ -194,6 +276,10 @@ function submitFiling() {
                         />
                     </template>
                 </Field>
+                <p class="cc-small" style="margin-block-start: var(--space-2)">
+                    Representing yourself never requires registration — this role exists so others
+                    can be competently represented, never as a gate on your own right to be heard.
+                </p>
             </FormCard>
 
             <Card v-else as="section" title="Registration status">
