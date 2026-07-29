@@ -646,6 +646,8 @@ Route::middleware('auth')->group(function () {
         ->whereUuid('legislature')->name('bills.store');                      // F-LEG-003
     Route::post('/legislatures/{legislature}/bills/validate', [BillController::class, 'validateSetting'])
         ->whereUuid('legislature')->name('bills.validate');                   // pure pre-flight
+    Route::post('/legislatures/{legislature}/cultural-institutions', [BillController::class, 'proposeCulturalInstitution'])
+        ->whereUuid('legislature')->name('cultural-institutions.propose');    // F-LEG-028
     Route::get('/bills/{bill}', [BillController::class, 'show'])
         ->whereUuid('bill')->name('bills.show')->withoutMiddleware('auth'); // public read — Art. II §2
     Route::post('/bills/{bill}/refer', [BillController::class, 'refer'])

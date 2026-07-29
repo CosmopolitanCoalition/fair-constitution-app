@@ -199,6 +199,41 @@ class BillController extends Controller
     }
 
     /**
+     * F-LEG-028 — Cultural Institution Recognition Vote (R-09; Art. V §2). The
+     * filing door for the already-registered form: it OPENS a supermajority
+     * chamber vote to recognise a (powerless) cultural institution; the
+     * cultural_institutions row is created only on adoption. The R-09 seat is
+     * enforced by the engine/handler (ChamberActor), not route middleware, so a
+     * non-member's filing refuses with citation rather than 404-ing at the door.
+     * Adds no form — the count stays put.
+     */
+    public function proposeCulturalInstitution(Request $request, Legislature $legislature): RedirectResponse
+    {
+        $data = $request->validate([
+            'name'        => ['required', 'string', 'max:200'],
+            'description' => ['nullable', 'string'],
+        ]);
+
+        try {
+            $this->engine->file('F-LEG-028', $request->user(), [
+                'legislature_id'  => (string) $legislature->id,
+                'jurisdiction_id' => (string) $legislature->jurisdiction_id,
+                'name'            => $data['name'],
+                'description'     => $data['description'] ?? null,
+            ]);
+        } catch (ConstitutionalViolation $violation) {
+            return back()->withErrors([
+                'constitution' => $violation->getMessage().' ('.$violation->citation.')',
+            ]);
+        }
+
+        return back()->with(
+            'status',
+            "Cultural-institution recognition proposed ({$data['name']}) — it opens a supermajority chamber vote; the institution is recognised only if the chamber adopts it.",
+        );
+    }
+
+    /**
      * PURE bounds pre-flight (§B.3/§B.11): validate() without filing.
      * In-range → ok; out-of-range → the PROTECTED validator's rejection
      * verbatim. Nothing is recorded — the rejected=true chain row belongs

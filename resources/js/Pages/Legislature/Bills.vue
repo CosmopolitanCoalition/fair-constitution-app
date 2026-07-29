@@ -98,6 +98,17 @@ const form = useForm({
 const isSettingBill = computed(() => form.act_type === 'setting_change');
 const settingLocked = presetSetting !== null;
 
+/* F-LEG-028 — cultural-institution recognition (a supermajority chamber act;
+   the powerless institution row is created only on adoption). */
+const culturalOpen = ref(false);
+const culturalForm = useForm({ name: '', description: '' });
+function submitCultural() {
+    culturalForm.post(`/legislatures/${props.legislature.id}/cultural-institutions`, {
+        preserveScroll: true,
+        onSuccess: () => { culturalForm.reset(); culturalOpen.value = false; },
+    });
+}
+
 const selectedSetting = computed(() =>
     props.introForm.settingKeys.find((s) => s.key === form.targets_setting_key) ?? null,
 );
@@ -379,6 +390,57 @@ function boundsLabel(bounds) {
                 </template>
             </FormCard>
         </Card>
+
+        <!-- F-LEG-028 — recognise a cultural institution (supermajority chamber act) -->
+        <Card v-if="can.introduce" as="section">
+            <template #title>
+                <h2>
+                    Recognise a cultural institution
+                    <Btn variant="secondary" size="sm" style="margin-inline-start: var(--space-2)" @click="culturalOpen = !culturalOpen">
+                        {{ culturalOpen ? 'Hide' : 'Open the form' }}
+                    </Btn>
+                </h2>
+            </template>
+            <p class="gloss">
+                A recognition vote (F-LEG-028) opens a supermajority chamber decision. The
+                institution it names holds no power — recognition is honorary — and the record
+                is created only if the chamber adopts it. <span class="citation">Art. V §2</span>
+            </p>
+            <FormCard
+                v-if="culturalOpen && formMeta('F-LEG-028')"
+                :form="formMeta('F-LEG-028')"
+                :inertia-form="culturalForm"
+                submit-label="Propose recognition"
+                processing-label="Proposing…"
+                @submit="submitCultural"
+            >
+                <Field label="Name" :error="culturalForm.errors.name" required>
+                    <template #control="{ id, invalid, describedBy }">
+                        <input
+                            :id="id"
+                            v-model="culturalForm.name"
+                            class="field-input"
+                            :aria-invalid="invalid"
+                            :aria-describedby="describedBy"
+                            maxlength="200"
+                        />
+                    </template>
+                </Field>
+                <Field label="Description (optional)" :error="culturalForm.errors.description">
+                    <template #control="{ id, invalid, describedBy }">
+                        <textarea
+                            :id="id"
+                            v-model="culturalForm.description"
+                            class="field-input"
+                            rows="3"
+                            :aria-invalid="invalid"
+                            :aria-describedby="describedBy"
+                        />
+                    </template>
+                </Field>
+            </FormCard>
+        </Card>
+
         <Card v-else as="section" title="Introduction">
             <p class="gloss">
                 Any seated member of this chamber may introduce a bill (F-LEG-003) —
