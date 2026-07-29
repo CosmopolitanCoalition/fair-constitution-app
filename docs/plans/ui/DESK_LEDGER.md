@@ -983,3 +983,31 @@ local-main commits (last push 0/0) — lane 2's 5 commits are already on origin 
 **RUBRIC deltas to fold at next regen (accumulating):** atlas absent→built (L4) · L2's 5 screens →built ·
 L1 ①④⑤ done · L3 ③⑧⑤ done + ⑨ already-landed + ⑦ 9→4 · L15 ① done · L6 ④⑤⑥ done + ballots_cast fix ·
 2 debt rows already RESOLVED (done last regen) · new open-Q: Path-B pre-auth linking (deferred).
+
+### W4 tick 10 — L13 ①③ done (12 economy partials) + slot granted for ② + F-IND-021 mint blessed
+
+**LANE 13 four-way — ① (12 economy partials) + ③ (founding-stake) DONE.** 85 tests / 232,678 assertions
+green, 0 reds; all read-only prop-fill over EXISTING tables (verified vs information_schema). Commits:
+treasury 258d611(*) · units/wallet/home d087450 · org-settings economy af2b7e0 · exchange 4c6d45d
+(market KPIs + real trade tape + issued-equity register; order_book stays honest-false) · agreements
+pair 068580c (unified org-contract+resident-agreement register + F-IND-020 redline overlay; accept-amendment
+voids both sigs → re-sign) · ③ founding-stake 07a8315 (STOCK org founder owns 100% VIA_FOUNDING; non-stock
+none). (*) treasury's 4 files = the tick-4 258d611 mislabel (swept under lane 3's msg; correct+green; no
+rewrite). L13 has since collapsed stage+commit into one call.
+
+**⚑ SLOT GRANTED → L13 (ready-first) for ② share_offers.** One additive table (organization_id,
+seller_holder_type/id, units, price_per_unit, currency_id, status[open|filled|cancelled], filled-only
+buyer + money_transfer_id + settled_at, timestamps + softDeletes; money leg account-scoped in
+market_transactions, ownership leg named per Ruling B). Fills the exchange shares floor. L13 was READY
+(draft done) while L4 still builds its world_stats computation → ready-first. QUEUE: **L13 (now) → L4
+(world_stats) → L3 (agenda, held).** L4 told.
+
+**⚑ F-IND-021 "Share Trade" MINT — BLESSED (117→118).** A holder trading their OWN shares is an R-01
+INDIVIDUAL act, not an org-agent act (folding into F-ORG-008 = wrong actor). Operator approved the
+secondary-trading capability; minting the form to implement it is in-scope engineering. Pin discipline
+(same commit): FormRegistry + AuditChainSmokeTest count + CLAUDE.md count line. L13 is the ONLY mint this
+wave → count clean.
+
+**⚑ F-IND-012 SHARED-FORM HEADS-UP (recorded):** OrgRegistryService::register() now opens a founding stake
+for STOCK orgs only (additive; org/registration/institution suites green, 66). Any lane registering a stock
+org via F-IND-012 now gets a founder stake — surfaced so no fixture is surprised.
