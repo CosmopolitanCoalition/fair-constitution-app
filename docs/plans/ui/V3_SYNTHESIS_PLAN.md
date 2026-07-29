@@ -221,6 +221,14 @@ Side-ruling recorded from the same answers: **all storage stays UTC; display is 
 user's local via client/browser** — already the app's posture (`timestamptz` UTC, client
 formatting); reaffirmed, not a change.
 
+**LANE 3's THREE RESERVED QUESTIONS — ALL RULED (operator, 2026-07-28 ~10 PM):**
+
+| # | Ruling |
+|---|---|
+| R-A | **Type B elections are BLOCKED on flagged chambers until Type B district mapping exists.** "We will not playtest Type B elections until this is fixed." The stage-two grouping (clumping constituents into shared panels, evenly + compactly over adjacency, no geometry cut) becomes a NAMED plan item: **the Type B district mapper, lane 1**, first item when the paused districting campaign resumes (Wave 3 §11). Until it ships: a guard refuses Type B race scheduling on any `type_b_needs_districting` chamber, every world class — lane 3 builds the guard + pin in Wave 2. Niue's already-seated over-bound chamber stays seated and labeled; its re-seat rides the mapper. |
+| R-B | **Activation scales with REAL PLAYERBASE, 1 → ∞.** For ongoing human play, which institutions exist and how many rooms follow the ACTUAL player base in the jurisdiction as it grows — no fixed activation cap. **The 5–9 band is ONLY the representative default for reps-per-district floor/ceiling in setup** — never an activation threshold. **Demo/Dev worlds premake institutions from WorldPop population** so people see potential scale approximating reality. Lane 3 redesigns the activation/scale model to this (real = playerbase-driven continuous; demo = WorldPop-premade); the tier-cap question dissolves. |
+| R-C | **Constitutional defaults are amendable, and the amendment MECHANISM + WORKFLOWS must exist end-to-end** — a legislature amends a constitutional setting through the real act pipeline, surfaced as a walkable workflow. Tier/scale params, once settings, are amendable like the rest of the table. Lane 3 verifies/completes the loop (F-LEG-031 path → setting change → visible on /system/amendments) and it becomes a walk journey. |
+
 **Ruling 3 COMPLETED (operator, 2026-07-28 ~9:50 PM): the training gate sits at
 PRE-SEATING** — *"pre-seating is best. You need to do the training to do the job."*
 Mechanics: Art. I untouched — anyone registers candidacy and appears on the ballot; a
@@ -267,6 +275,9 @@ WAVE 3 — the keystone:
   lane 6:        tour stops to 117 as surfaces conform
   lane 3/4:      Atlas (XL — after I-phase metrics exist)
   lane 13:       economy design round → exchange/org-settings/redlines (XL, design-gated)
+  lane 1:        THE TYPE B DISTRICT MAPPER (RULED R-A) — stage-two grouping for the
+                 ~9,708 flagged chambers; unblocks Type B election playtesting; the
+                 paused districting campaign's resume point
 
 CONTINUOUS: every PR adds its tour stops + Learn copy + i18n keys; suite green at
 checkpoints; hot-file discipline (CLAUDE.md, routes/web.php, FormRegistry) per fleet memory.

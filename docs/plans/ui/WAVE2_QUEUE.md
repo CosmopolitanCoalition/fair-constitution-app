@@ -71,6 +71,25 @@ rebuild recipe is on file and needs an announced `fcd_vite` restart if ever swit
   as public). Likely data-dependent (no judiciary in the viewer's chain) — belongs on the
   walk list either way.
 
+## Lane 3 additions from the R-A/R-B/R-C rulings (2026-07-28, plan §10)
+
+1. **The Type B election guard (R-A)**: refuse Type B race scheduling on any
+   `type_b_needs_districting` chamber, every world class, until the Type B district mapper
+   ships — guard + constitutional pin. (Niue's existing seat stays, labeled; re-seat rides
+   the mapper.)
+2. **Activation/scale redesign (R-B)**: real worlds = institutions + room counts scale
+   continuously with ACTUAL playerbase 1→∞; demo worlds = WorldPop-premade; 5–9 is only the
+   reps-per-district setup default. Design doc first (touches ActivationTierService /
+   InstitutionScaleService), then build.
+3. **The amendment workflow loop (R-C)**: verify/complete legislature-amends-a-setting
+   end-to-end through the real act pipeline; surface as a walkable workflow + walk journey.
+
+## For lane 1 — Wave 3 headline (R-A): the Type B district mapper
+
+Stage-two grouping over the adjacency graph (even clumps, compact, no geometry cut) for the
+~9,708 flagged chambers. Named plan item per the operator; the campaign's resume point;
+Type B election playtesting stays blocked fleet-wide until it ships.
+
 ## Suite triage at Wave 1 close (lane 4's checkpoint, 2026-07-29 — 22 failures, four families)
 
 | Family | Tests | Cause | Owner / remedy |
