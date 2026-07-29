@@ -1,0 +1,2883 @@
+{
+ "asOf": "2026-07-29",
+ "commit": "73f0083",
+ "wave": "Wave 1 engaged (lanes 6, 4, 15)",
+ "rows": [
+  {
+   "file": "civic/join.html",
+   "title": "You're invited",
+   "area": "civic",
+   "areaLabel": "Civic",
+   "owner": "lanes 6 \u00b7 3",
+   "bucket": "partial",
+   "effort": "S",
+   "page": "resources/js/Pages/Invite/Landing.vue",
+   "route": "GET /i/{token}",
+   "props": "partial",
+   "backend": "full",
+   "propsMissing": [
+    "online-presence count for the room preview (app ships memberCount, not who is inside now)",
+    "live status pill (Meeting now / open) \u2014 app shows privacy only"
+   ],
+   "backendMissing": [],
+   "specHas": [
+    "pick-a-name guest entry \u2014 DELIBERATELY dropped (documented decision in Landing.vue: name is asked once, on Register, which adapts when an invite is in flight)",
+    "live 'people inside now' + meeting-status on the preview card"
+   ],
+   "appAhead": [
+    "invalid/expired-link fail-soft landing (never dead-ends)",
+    "signed-in auto-redeem + redirect",
+    "private-room access grant on space invites",
+    "destination carried across signup/login (url.intended + pending_invite)"
+   ],
+   "notes": "Well conformed with one documented intentional delta (the name input). Only gap worth closing is live presence/status on the preview card \u2014 do not 're-fix' the name-drop decision."
+  },
+  {
+   "file": "civic/today.html",
+   "title": "Home \u2014 today",
+   "area": "civic",
+   "areaLabel": "Civic",
+   "owner": "lanes 6 \u00b7 3",
+   "bucket": "partial",
+   "effort": "M",
+   "page": "resources/js/Pages/Civic/Home.vue",
+   "route": "GET /civic",
+   "props": "partial",
+   "backend": "partial",
+   "propsMissing": [
+    "feed rows for hearings, forum/commons calls, group meetings, stipend (UBI) and trade \u2014 TodayFeedService only emits election/session/petition/referendum kinds",
+    "org- and resident-hosted calendar events (calendar() emits kind 'jurisdiction' only)"
+   ],
+   "backendMissing": [
+    "feed sources over judiciary hearings, private-room/group meetings, live commons calls, and economy stipend runs \u2014 the underlying tables/services all exist (court cases, social_spaces, Matrix commons, Economy ledger), only the feed aggregation misses them"
+   ],
+   "specHas": [
+    "scenario row kinds listed above",
+    "org/resident calendar chips",
+    "'money items are previews' footnote"
+   ],
+   "appAhead": [
+    "'On the record' section (latest public-record heads)",
+    "leading residency-claim card with live qualifying-days meter",
+    "my-record stat row",
+    "shell-wide emergency-banner slot"
+   ],
+   "notes": "Page structure, countdowns, rights section and calendar grouping all match; the gap is feed breadth. Extending TodayFeedService with hearing/group/commons/stipend sources is one service rework, no new schema."
+  },
+  {
+   "file": "civic/my-civic-life.html",
+   "title": "My profile",
+   "area": "civic",
+   "areaLabel": "Civic",
+   "owner": "lanes 6 \u00b7 3",
+   "bucket": "partial",
+   "effort": "M",
+   "page": "resources/js/Pages/Civic/MyRecord.vue",
+   "route": "GET /civic/record",
+   "props": "partial",
+   "backend": "full",
+   "propsMissing": [
+    "Office tab data (held seat, office hours/open meetings \u2014 LegislatureMember data exists, not shipped)",
+    "Groups & orgs tab (social_spaces + organization memberships)",
+    "Overview open-votes list (mockup shows open ballots; app overview is stats + roles only)",
+    "endorsements given on the Record tab",
+    "wallet balances (Economy ledger is LIVE since 2026-07-26 but the tab still ships a Planned banner)"
+   ],
+   "backendMissing": [],
+   "specHas": [
+    "Office tab",
+    "Groups & orgs tab",
+    "open-votes list on Overview",
+    "wallet tab wired to the real Economy/Wallet data",
+    "endorsements-given cards"
+   ],
+   "appAhead": [
+    "Settings tab (F-IND-002 panel through the engine)",
+    "paginated hash-chained audit slice with rejected/blocked reasons",
+    "server-side tab validation"
+   ],
+   "notes": "The tab skeleton matches profile-v2.js; gaps are three missing tabs/panels whose backing data already exists. The Planned wallet banner is STALE per the economy L+M ship \u2014 wiring it is props work, not a subsystem."
+  },
+  {
+   "file": "civic/advocate-registration.html",
+   "title": "Advocate registration",
+   "area": "civic",
+   "areaLabel": "Civic",
+   "owner": "lanes 6 \u00b7 3",
+   "bucket": "partial",
+   "effort": "M",
+   "page": "resources/js/Pages/Judiciary/AdvocateConsole.vue (registration card; suggested Civic/AdvocateRegistration.vue does not exist)",
+   "route": "GET /judiciary/advocate",
+   "props": "partial",
+   "backend": "partial",
+   "propsMissing": [
+    "prerequisites checklist facts (judiciary-exists / residency-met badges)",
+    "jurisdiction-of-practice selector (app auto-resolves ONE judiciary via registerTargetId)",
+    "jurisdiction-law qualification items (three attestation checkboxes)",
+    "pending-judiciary-review status"
+   ],
+   "backendMissing": [
+    "qualification-review lifecycle \u2014 F-IND-015 registers INSTANTLY with a free-text qualifications_note; no pending\u2192approved state, no per-jurisdiction qualification catalog"
+   ],
+   "specHas": [
+    "prerequisite checklist section",
+    "court-of-chain select",
+    "three-checkbox qualification gate blocking submit",
+    "pending-review confirmation state"
+   ],
+   "appAhead": [
+    "the full advocate console rides on the same page (F-ADV-001..004 composer, my-cases list, filings log) \u2014 mockup only links onward to it"
+   ],
+   "notes": "Form and handler exist; the delta is the registration UX (checklist, court choice, review-pending state). Whether jurisdiction-law review is required is a policy question the mockup asserts and the app does not implement \u2014 flag for synthesis, don't silently decide. Manifest itself notes R-21/R-22 catalog drift."
+  },
+  {
+   "file": "civic/identity-verification.html",
+   "title": "Link an ID (optional)",
+   "area": "civic",
+   "areaLabel": "Civic",
+   "owner": "lanes 6 \u00b7 3",
+   "bucket": "partial",
+   "effort": "M",
+   "page": "resources/js/Pages/Civic/IdentityVerification.vue",
+   "route": "GET /civic/identity",
+   "props": "partial",
+   "backend": "partial",
+   "propsMissing": [
+    "supported-bridge branch data (ID types per jurisdiction, doc-number submit, encrypted yes/no result)",
+    "4-state Individual journey strip (app machine ships only registered\u2192identity_verified)",
+    "onboarding stepper context (step 2 of 3)"
+   ],
+   "backendMissing": [
+    "external ID bridge subsystem \u2014 per-jurisdiction automatic check; explicitly deferred to Phase F federation; only the manual attestation-request stub files today"
+   ],
+   "specHas": [
+    "branch-preview toggle (automatic vs in-person)",
+    "bridge form",
+    "stepper nav",
+    "full journey strip"
+   ],
+   "appAhead": [
+    "persistent 'requested, pending' state read back from the audit chain across visits",
+    "declared-jurisdiction context on the request"
+   ],
+   "notes": "Screen-level conformance (stepper, journey strip, branch UI with the bridge branch honestly gated) is M; the bridge BACKEND itself is a Phase F subsystem (XL) already planned there. The never-a-rights-requirement banner \u2014 the page's most important element \u2014 is present."
+  },
+  {
+   "file": "civic/onboarding.html",
+   "title": "Create your account",
+   "area": "civic",
+   "areaLabel": "Civic",
+   "owner": "lanes 6 \u00b7 3",
+   "bucket": "built",
+   "effort": "S",
+   "page": "resources/js/Pages/Auth/Register.vue",
+   "route": "GET /register",
+   "props": "full",
+   "backend": "full",
+   "propsMissing": [],
+   "backendMissing": [],
+   "specHas": [
+    "3-step stepper nav with links/skip (app has the 'step 1 of 3' eyebrow but no stepper ol linking to identity/residency)"
+   ],
+   "appAhead": [
+    "email + password credentials (mockup asks name only \u2014 app correctly requires auth credentials)",
+    "invite-continuation banner + carried destination",
+    "browser-guessed timezone via Intl"
+   ],
+   "notes": "Conformant: languages multiselect, timezone, terms with inline error, Individual state strip, engine-sealed registration. Only the stepper navigation is missing."
+  },
+  {
+   "file": "civic/petition-detail.html",
+   "title": "Petition detail",
+   "area": "civic",
+   "areaLabel": "Civic",
+   "owner": "lanes 6 \u00b7 3",
+   "bucket": "built",
+   "effort": "S",
+   "page": "resources/js/Pages/Civic/PetitionDetail.vue",
+   "route": "GET /civic/petitions/{petition}; POST/DELETE /petitions/{petition}/signatures",
+   "props": "full",
+   "backend": "full",
+   "propsMissing": [],
+   "backendMissing": [],
+   "specHas": [],
+   "appAhead": [
+    "audit-record deep link into /system/audit-chain",
+    "on-ballot card linking the spawned referendum election",
+    "revocable signature (mockup detail page only signs)",
+    "creator attribution"
+   ],
+   "notes": "Fully wired: 9-state lifecycle, law-text blockquote, scale/scope grid, frozen-count rule, F-ELB-005 audit card, F-JDG-008 review card. S is for STALE copy only \u2014 scopeLabel/reviewProps still say 'judiciary (forming \u00b7 Phase E)' though Phase 5 courts and the F-JDG-008 handler are live."
+  },
+  {
+   "file": "civic/petitions.html",
+   "title": "Petitions",
+   "area": "civic",
+   "areaLabel": "Civic",
+   "owner": "lanes 6 \u00b7 3",
+   "bucket": "built",
+   "effort": "S",
+   "page": "resources/js/Pages/Civic/Petitions.vue",
+   "route": "GET/POST /civic/petitions",
+   "props": "full",
+   "backend": "full",
+   "propsMissing": [],
+   "backendMissing": [],
+   "specHas": [
+    "free-text Scope field on the create form (app derives scope_label instead \u2014 likely deliberate: scope rides the law, not prose)",
+    "act-type choice surfaced (actTypes prop ships but the form transform hardcodes 'ordinary')"
+   ],
+   "appAhead": [
+    "signature revocation on the list toggle (real F-IND-010 revoke)",
+    "per-scale live threshold preview from CIVIC population + per-jurisdiction resolved pct (mockup hardcodes 5%)",
+    "un-associated viewer read-only posture with residency CTA (never 403s)"
+   ],
+   "notes": "Conformant and richer than the mockup (snapshot thresholds \u00b7 CLK-17, amendable chip with setting key). Close the act-type exposure and decide the scope-field question at synthesis."
+  },
+  {
+   "file": "civic/relocation.html",
+   "title": "Move somewhere new",
+   "area": "civic",
+   "areaLabel": "Civic",
+   "owner": "lanes 6 \u00b7 3",
+   "bucket": "partial",
+   "effort": "L",
+   "page": "resources/js/Pages/Civic/Relocation.vue",
+   "route": "GET /civic/relocation; POST /civic/relocation/travelling",
+   "props": "partial",
+   "backend": "partial",
+   "propsMissing": [
+    "detection \u2014 ships honestly null (away-pattern banner, 9-of-30 away meter, home-vs-detected map all render empty state)"
+   ],
+   "backendMissing": [
+    "away-pattern detection over sustained pings outside the home boundary \u2014 deferred to Phase F/6 mobile geofencing; location_pings infra exists, the detection sweep does not"
+   ],
+   "specHas": [
+    "sustained-pings-detected banner + qualifying-days-away meter + illustrative two-boundary map (all gated on detection data)"
+   ],
+   "appAhead": [
+    "real audited 'I'm travelling' declaration on the chain",
+    "held-office grace computed from the REAL new claim's CLK-05 progress (mockup hardcodes day 9 of 30)",
+    "move path reusing live F-IND-003 redeclare"
+   ],
+   "notes": "The surface, travel/move fork, grace card and countback citation are all wired; the missing half is the detection service that makes the screen fire on its own. Meter grammar is already in place for the day detection arrives."
+  },
+  {
+   "file": "civic/residency.html",
+   "title": "Say where you live",
+   "area": "civic",
+   "areaLabel": "Civic",
+   "owner": "lanes 6 \u00b7 3",
+   "bucket": "built",
+   "effort": "none",
+   "page": "resources/js/Pages/Civic/Residency.vue",
+   "route": "GET /civic/residency; POST locate/declare/confirm/redeclare + /civic/pings",
+   "props": "full",
+   "backend": "full",
+   "propsMissing": [],
+   "backendMissing": [],
+   "specHas": [],
+   "appAhead": [
+    "point-first declare (browser geolocation or picker-map click \u2192 PostGIS smallest-containing resolution)",
+    "REAL Leaflet boundary + picker maps with PMTiles basemap (mockup admits its SVG is a stand-in)",
+    "manual ping via browser geolocation + dev ping simulator",
+    "jurisdiction text search",
+    "per-jurisdiction resolved threshold with code fallback"
+   ],
+   "notes": "Fully conformant and exceeds the spec \u2014 the mockup's own about-panel says production uses Leaflet + PostGIS, which is exactly what shipped. All three F-IND forms file through the engine; three-state confirm panel and rights-unlock moment match."
+  },
+  {
+   "file": "economy/economy-home.html",
+   "title": "The exchange \u2014 the economy home",
+   "area": "economy",
+   "areaLabel": "Economy",
+   "owner": "lane 13",
+   "bucket": "partial",
+   "effort": "M",
+   "page": "resources/js/Pages/Economy/Home.vue",
+   "route": "/economy",
+   "props": "partial",
+   "backend": "partial",
+   "propsMissing": [
+    "economic clock (next-run timestamp \u2014 interval/last_run shipped, next run not computed)",
+    "exchange ticker instruments (no backend)",
+    "surface-hub card data (app hardlinks only market + treasury)"
+   ],
+   "backendMissing": [
+    "exchange/instruments subsystem (F-IND-018..021 unregistered)",
+    "next-run clock derivation (trivial from stipend_interval + last_run)"
+   ],
+   "specHas": [
+    "exchange hero with live ticker + 'Enter the trading floor' CTA",
+    "economic clock card with next-run",
+    "nine-surface 'Where to go' role-card grid",
+    "'rails that hold everywhere' list card"
+   ],
+   "appAhead": [
+    "ledger chain-verification residual health stat (verified/residual-zero check)",
+    "stipend short_paid shortfall explanation",
+    "no-currency-yet empty state"
+   ],
+   "notes": "The page is a solid conformant core; the hub grid and clock are one-surface rework. The exchange hero should degrade gracefully until/unless the XL exchange ships."
+  },
+  {
+   "file": "economy/exchange.html",
+   "title": "The exchange \u2014 the trading floor",
+   "area": "economy",
+   "areaLabel": "Economy",
+   "owner": "lane 13",
+   "bucket": "absent",
+   "effort": "XL",
+   "page": "",
+   "route": "",
+   "props": "none",
+   "backend": "none",
+   "propsMissing": [],
+   "backendMissing": [
+    "instruments/share register",
+    "order book + matching",
+    "trade tape/history",
+    "org share issuance and fair-market pricing",
+    "F-IND-018..021 (unregistered; manifest itself marks them 'reserved')"
+   ],
+   "specHas": [
+    "everything: scrolling ticker marquee",
+    "order-book ladder with depth bars",
+    "streaming trade tape (reduced-motion-safe)",
+    "price sparklines + KPIs",
+    "trader presence strip",
+    "order ticket",
+    "goods cross-links to marketplace"
+   ],
+   "appAhead": [],
+   "notes": "Manifest stage 'M' and the mockup's own note say liveness is simulated and forms reserved \u2014 this is a designed-ahead subsystem. Nothing in FormRegistry, services, or tables supports share trading today."
+  },
+  {
+   "file": "economy/marketplace.html",
+   "title": "The open market",
+   "area": "economy",
+   "areaLabel": "Economy",
+   "owner": "lane 13",
+   "bucket": "partial",
+   "effort": "M",
+   "page": "resources/js/Pages/Economy/Market.vue",
+   "route": "/economy/market",
+   "props": "partial",
+   "backend": "partial",
+   "propsMissing": [
+    "seller display identity/kind (only seller_account_id ships)",
+    "CGC flag per listing (derivable via economic_account_bindings\u2192organizations.organization_type)",
+    "tag chips (no column)"
+   ],
+   "backendMissing": [
+    "work-application web route (LaborBoardService::apply/accept/decline exist but are unrouted)",
+    "listing tags column",
+    "F-IND-021 cited by manifest is unregistered (F-IND-022 covers list+order)"
+   ],
+   "specHas": [
+    "CGC 'identical terms' badge on offers",
+    "seller name + kind chips",
+    "tag chips",
+    "Apply control and 'On acceptance' trigger note on work cards",
+    "two-tab offers/requests contract (?tab=requests merges work + mutual aid; app uses three tabs and honors only its own keys)"
+   ],
+   "appAhead": [
+    "inline live F-IND-022 composer with unlisted-asset picker (mockup routes creation to listing-detail?create=1)",
+    "per-posting application counts",
+    "constitutional-refusal and flash banners",
+    "tab counts"
+   ],
+   "notes": "Core market is live end-to-end; the M is the Apply write surface (route + wiring to the already-pinned F-IND-014 chain) plus CGC/seller props. Tab semantics differ but both honor ?tab deep-links."
+  },
+  {
+   "file": "economy/listing-detail.html",
+   "title": "Listing detail",
+   "area": "economy",
+   "areaLabel": "Economy",
+   "owner": "lane 13",
+   "bucket": "partial",
+   "effort": "S",
+   "page": "resources/js/Pages/Economy/Listing.vue",
+   "route": "/economy/market/{listing}",
+   "props": "partial",
+   "backend": "full",
+   "propsMissing": [
+    "seller name/kind + CGC flag (account id only)",
+    "tags"
+   ],
+   "backendMissing": [],
+   "specHas": [
+    "CGC badge + identical-terms note",
+    "3-step order-flow stepper (order \u2192 agreement \u2192 private settlement; static teaching content)",
+    "'rails on every order' card",
+    "?create=1 create mode (app puts the composer on Market instead \u2014 acceptable divergence)"
+   ],
+   "appAhead": [
+    "seller-only pending-orders queue with live settle (F-IND-022 settle \u2014 the mockup has no settlement flow at all)",
+    "can_order gating and orders count",
+    "refusal banners carrying citations"
+   ],
+   "notes": "The full order\u2192agreement\u2192settle chain is live; remaining gaps are prop additions (CGC/seller resolution in the controller) and static stepper copy. The app is functionally AHEAD of the mockup here."
+  },
+  {
+   "file": "economy/request-detail.html",
+   "title": "Work posting detail",
+   "area": "economy",
+   "areaLabel": "Economy",
+   "owner": "lane 13",
+   "bucket": "absent",
+   "effort": "L",
+   "page": "",
+   "route": "",
+   "props": "none",
+   "backend": "full",
+   "propsMissing": [],
+   "backendMissing": [],
+   "specHas": [
+    "dedicated posting page: hero (rate/org/recurring)",
+    "two-parties card with both-must-sign floor",
+    "4-step lifecycle stepper (apply \u2192 org accepts \u2192 F-IND-014 recorded \u2192 headcount/co-determination)",
+    "co-determination threshold panel (100/2000)",
+    "apply CTA",
+    "privacy note"
+   ],
+   "appAhead": [],
+   "notes": "Cheapest large win in the module: LaborBoardService (post/apply/accept/decline) and the F-IND-014 \u2192 co-determination chain are built and pinned (WorkerRepresentationTest, LaborBoardTest) \u2014 only the page, route, and controller are missing. Market.vue's work tab shows postings but offers no detail or apply."
+  },
+  {
+   "file": "economy/wallet.html",
+   "title": "My wallet \u2014 private",
+   "area": "economy",
+   "areaLabel": "Economy",
+   "owner": "lane 13",
+   "bucket": "partial",
+   "effort": "S",
+   "page": "resources/js/Pages/Economy/Wallet.vue",
+   "route": "/economy/wallet",
+   "props": "partial",
+   "backend": "partial",
+   "propsMissing": [
+    "currency subdivisions ('the unit you hold' chips \u2014 no backend model)",
+    "worth-basis text"
+   ],
+   "backendMissing": [
+    "currency subdivisions/worth-basis columns (currencies table carries precision only)"
+   ],
+   "specHas": [
+    "'unit you hold' subdivisions section",
+    "recipient picker by @handle/org name \u2014 CONFLICTS with the settled reader-privacy ruling (accounts never people); the mockup should change, not the app",
+    "joint-ledgers and public-ledger cross-links",
+    "'why your wallet stays yours' rails card"
+   ],
+   "appAhead": [
+    "F-IND-024 asset-registration composer + 'things you hold' provenance table",
+    "stipend receipts table (base/bump/paid)",
+    "own-account-id display for receiving",
+    "no-wallet/no-currency empty states",
+    "constitutional-refusal banner (no-overdraft as a cited answer)"
+   ],
+   "notes": "Both write forms are live through the engine and the page is richer than the mockup. Flag for the synthesis pass: the mockup's name-based transfer picker contradicts the account-only privacy boundary enforced in EconomyActionController \u2014 a mockup-side correction."
+  },
+  {
+   "file": "economy/joint-ledgers.html",
+   "title": "Joint ledgers \u2014 agreement-gated",
+   "area": "economy",
+   "areaLabel": "Economy",
+   "owner": "lane 13",
+   "bucket": "absent",
+   "effort": "L",
+   "page": "",
+   "route": "",
+   "props": "none",
+   "backend": "partial",
+   "propsMissing": [],
+   "backendMissing": [
+    "any service/handler/form over joint_ledgers/joint_ledger_parties/joint_ledger_movements (tables shipped in 2026_07_25_000030_create_economy_plane.php but nothing in app/ reads or writes them)",
+    "propose/approve/settle movement workflow",
+    "new-ledger creation flow"
+   ],
+   "specHas": [
+    "everything: ledger cards with balance + approval rule",
+    "co-owner signer chips (person/org/jurisdiction)",
+    "pending movements with n-of-m approval progress",
+    "approve action",
+    "new-joint-ledger flow",
+    "public-vs-private ledger split"
+   ],
+   "appAhead": [],
+   "notes": "The schema is fully laid (including the Art. V \u00a72 comment in the migration) but the movement-approval engine, a form, and the whole read/write surface are unbuilt. L rather than XL because the tables and the engine-filing pattern already exist to copy."
+  },
+  {
+   "file": "economy/units.html",
+   "title": "Units & monetary policy",
+   "area": "economy",
+   "areaLabel": "Economy",
+   "owner": "lane 13",
+   "bucket": "partial",
+   "effort": "M",
+   "page": "resources/js/Pages/Economy/Units.vue",
+   "route": "/economy/units",
+   "props": "partial",
+   "backend": "partial",
+   "propsMissing": [
+    "subdivisions",
+    "worth basis + standards basis",
+    "issuer label",
+    "per-lever enacting act (app ships the constitutional citation instead)",
+    "economic clock next-run"
+   ],
+   "backendMissing": [
+    "currency subdivision/worth-basis/standards-basis model",
+    "per-lever enacting-act provenance (which F-LEG-031 act set the current value \u2014 laws exist, the join isn't shipped)"
+   ],
+   "specHas": [
+    "subdivisions section (the measurement-standards power)",
+    "worth/standards basis cards",
+    "monetary-policy-act warning banner",
+    "economic clock card ('the interval is itself a lever')",
+    "currency-agnostic note"
+   ],
+   "appAhead": [
+    "constitutional bounds per lever (min/max/allowed from SETTING_BOUNDS)",
+    "supply-in-circulation stat",
+    "honest boolean/null value rendering"
+   ],
+   "notes": "The dual-door lever posture is correctly implemented read-only against MONETARY_KEYS/DUAL_DOOR_KEYS; the M is a small currency-model migration (subdivisions, worth basis) plus the enacting-act join."
+  },
+  {
+   "file": "economy/stipend.html",
+   "title": "Civic stipend \u2014 UBI + role differential",
+   "area": "economy",
+   "areaLabel": "Economy",
+   "owner": "lane 13",
+   "bucket": "absent",
+   "effort": "L",
+   "page": "",
+   "route": "",
+   "props": "none",
+   "backend": "full",
+   "propsMissing": [],
+   "backendMissing": [],
+   "specHas": [
+    "dedicated page: formula block (base + min(\u03a3 bumps, cap))",
+    "residency-only eligibility floor note",
+    "economic clock (last/next run)",
+    "three differential class cards (node operator / moderator / office-holder)",
+    "current values + 'propose a change' CTA (drafts F-LEG-031, never saves)",
+    "worked persona examples",
+    "public-aggregate vs private-receipt split panel",
+    "rails list"
+   ],
+   "appAhead": [],
+   "notes": "StipendService is complete (formula, the exact three classes as pay_* settings, cap, k-anon suppression, short-pay pro-rating) and fragments already render on Home and Wallet \u2014 only the dedicated page + controller method are missing. Manifest's F-TRE-004 is unregistered; the real change path is F-LEG-031 dual-door, which exists."
+  },
+  {
+   "file": "economy/treasury.html",
+   "title": "Public finance \u2014 the public ledger",
+   "area": "economy",
+   "areaLabel": "Economy",
+   "owner": "lane 13",
+   "bucket": "partial",
+   "effort": "M",
+   "page": "resources/js/Pages/Economy/Treasury.vue",
+   "route": "/economy/treasury",
+   "props": "partial",
+   "backend": "partial",
+   "propsMissing": [
+    "budget lines with per-line amounts (only a line COUNT ships)",
+    "revenue rate/base/civic-exempt detail (name/kind/status only)",
+    "borrowings (table exists, never queried)",
+    "budget-cycle state",
+    "economic clock"
+   ],
+   "backendMissing": [
+    "budget-enactment/appropriation forms \u2014 manifest's F-LEG-037/038 and F-TRE-001..003 are all unregistered (BudgetService + budgets/budget_lines/revenue_streams/levies/borrowings tables exist, seeded by treasury demo)",
+    "paired double-entry presentation (ledger_entries are single-direction rows; the mockup shows debit+credit per row)"
+   ],
+   "specHas": [
+    "budget-cycle stepper naming each act",
+    "debit+credit paired columns in the ledger table",
+    "budget lines table with amounts + total",
+    "revenue cards with rate/base/never-on-a-civic-right badge",
+    "borrowing cards (gated, drawdown status)",
+    "disbursement-cadence clock",
+    "rails card"
+   ],
+   "appAhead": [
+    "issuance history table (issued/withdrawn with reason)",
+    "supply + treasury-balance totals",
+    "chain-verification cross-link to the economy overview"
+   ],
+   "notes": "Read surface is live and honest; closing it is mostly controller props (lines, revenue detail, borrowings) plus presentation. The budget-cycle WRITE path (enactment forms) is a separate unbuilt lane the mockup only references by chip."
+  },
+  {
+   "file": "economy/agreements.html",
+   "title": "Instruments of agreement",
+   "area": "economy",
+   "areaLabel": "Economy",
+   "owner": "lane 13",
+   "bucket": "absent",
+   "effort": "L",
+   "page": "",
+   "route": "",
+   "props": "none",
+   "backend": "partial",
+   "propsMissing": [],
+   "backendMissing": [
+    "unified agreements register across kinds (labor exists as org_contracts with a DB-enforced both-sign CHECK; sale as marketplace_orders; ownership via F-ORG-005/org_conversions)",
+    "person-to-person 'custom' agreements (org_contracts requires an organization side)",
+    "joint-ledger compact kind (see joint-ledgers row)"
+   ],
+   "specHas": [
+    "agreements list page: kind-grouped cards with status pills, party chips, terms, signed-by-all badge, floor strip",
+    "draft-a-new-agreement kind picker (labor/ownership/joint-ledger/sale/custom)",
+    "kinds reference table",
+    "parties-only privacy note"
+   ],
+   "appAhead": [],
+   "notes": "An aggregation page over existing records (org_contracts + marketplace_orders + org_conversions) gets most of the mockup; true free-form person-to-person contracts are the one new backend piece. The both-parties-sign floor already exists as a schema constraint, not just copy."
+  },
+  {
+   "file": "economy/agreement-detail.html",
+   "title": "Agreement detail",
+   "area": "economy",
+   "areaLabel": "Economy",
+   "owner": "lane 13",
+   "bucket": "absent",
+   "effort": "XL",
+   "page": "",
+   "route": "",
+   "props": "none",
+   "backend": "partial",
+   "propsMissing": [],
+   "backendMissing": [
+    "negotiation/redline subsystem (clauses, per-clause edits, accept/reject, comments \u2014 mockup mounts negotiate-v2.js, shared with bills; nothing equivalent exists server-side)",
+    "generic agreement object with sign/decline endpoints (signing exists only inside each kind's own flow)"
+   ],
+   "specHas": [
+    "everything: agreement card with form chip",
+    "clause-level negotiation panel with redlines",
+    "party chips + signer ledger (signed/awaiting)",
+    "the floor card (void-in-part rule)",
+    "labor co-determination consequence panel",
+    "sign/decline decision block",
+    "breadcrumb"
+   ],
+   "appAhead": [],
+   "notes": "The clause-negotiation interface is a new subsystem (and the mockup expects it shared with bill drafting, doubling its scope). Per-kind signing machinery exists to anchor it, but nothing generic."
+  },
+  {
+   "file": "economy/org-settings.html",
+   "title": "Organization economics",
+   "area": "economy",
+   "areaLabel": "Economy",
+   "owner": "lane 13",
+   "bucket": "absent",
+   "effort": "XL",
+   "page": "",
+   "route": "",
+   "props": "none",
+   "backend": "partial",
+   "propsMissing": [],
+   "backendMissing": [
+    "share register (classes/counts/holders/fair-market price \u2014 nothing exists; only org_memberships kind='shareholder' and org_conversions.fair_market_floor/basis)",
+    "dues model (dues exist only as a market_transactions kind)",
+    "F-ORG-008 'Organization economic settings' (unregistered; registry ends at F-ORG-007)",
+    "nomination-window dial settings",
+    "org-scoped ledger read surface",
+    "levies/tax_filings read surface (tables exist, no controller queries them)"
+   ],
+   "specHas": [
+    "the whole steward page: board/worker-seats summary (covered elsewhere by Organizations/CoDetermination + BoardElections)",
+    "elections nomination-window dials",
+    "shares table + fair-market + monopoly-target flag + conversion rule",
+    "dues rows + never-a-civic-gate rails",
+    "private org ledger card + inter-org units note",
+    "taxes/levies table with civic-exempt badges"
+   ],
+   "appAhead": [
+    "Organizations/TransfersConversions and CoDetermination pages carry the conversion rule and board math with live data the mockup only summarizes"
+   ],
+   "notes": "Governance sections already live under Organizations/*; the economics half (shares, dues, org ledger view, tax surface) needs new backend models plus a new page. The shares register is the genuinely new subsystem."
+  },
+  {
+   "file": "electoral/candidacy-registration.html",
+   "title": "Candidacy registration",
+   "area": "electoral-exec",
+   "areaLabel": "Electoral + executive",
+   "owner": "lane 3",
+   "bucket": "built",
+   "effort": "S",
+   "page": "resources/js/Pages/Elections/CandidacyRegistration.vue",
+   "route": "GET /elections/{election}/candidacy",
+   "props": "full",
+   "backend": "full",
+   "propsMissing": [],
+   "backendMissing": [],
+   "specHas": [
+    "Rejection path's court-appeal deep link (mockup links judiciary/case-docket + Pham precedent; app says 'challenge in court \u2014 Planned \u00b7 Phase E', a stale flag now that Phase 5 judiciary is built)"
+   ],
+   "appAhead": [
+    "No-residency empty state with declare-residency CTA",
+    "Engine 422 banner surfacing the constitutional citation",
+    "Org-board election bounce (Art. III \u00a76 class-gated races redirected)",
+    "Withdrawn/defeated terminal-branch state strips"
+   ],
+   "notes": "Near-conformant; F-IND-011 files through the engine with footprint-scoped office select, tags, attestation, CLK-18 window. Only gap is wiring the rejection banner to the live court docket and removing the stale Planned flag."
+  },
+  {
+   "file": "electoral/election-board-console.html",
+   "title": "Election board console",
+   "area": "electoral-exec",
+   "areaLabel": "Electoral + executive",
+   "owner": "lane 3",
+   "bucket": "built",
+   "effort": "S",
+   "page": "resources/js/Pages/Elections/BoardConsole.vue",
+   "route": "GET /board",
+   "props": "full",
+   "backend": "full",
+   "propsMissing": [],
+   "backendMissing": [],
+   "specHas": [
+    "Emergency scenario banner asserting elections cannot be disrupted (no emergency-power prop on this page)",
+    "District-oversight card deep link to the district mapper (app links the legislature browser instead; F-ELB-008 mapper exists)"
+   ],
+   "appAhead": [
+    "Multi-board picker (?board=) for members of several boards",
+    "Petition audit result figures (checked/valid/pct/still-above) and kill-path status",
+    "Real duplicate-registration detection across open elections",
+    "Bootstrap board derived from data rather than a demo toggle"
+   ],
+   "notes": "All six F-ELB forms are live engine surfaces; the four-stat strip, validation queue, certify-then-recount gating and F-ELB-005 audit all match. Two small chrome gaps: the emergency banner and the mapper deep link."
+  },
+  {
+   "file": "electoral/election-detail.html",
+   "title": "Election detail",
+   "area": "electoral-exec",
+   "areaLabel": "Electoral + executive",
+   "owner": "lane 3",
+   "bucket": "built",
+   "effort": "S",
+   "page": "resources/js/Pages/Elections/ElectionDetail.vue",
+   "route": "GET /elections/{election}",
+   "props": "full",
+   "backend": "full",
+   "propsMissing": [],
+   "backendMissing": [],
+   "specHas": [
+    "Emergency scenario banner ('this election proceeds untouched')"
+   ],
+   "appAhead": [
+    "CLK-01 empty state with the armed cycle timer",
+    "Art. II \u00a78 subdivision-blocked banner from racePlan()",
+    "Real boundary map render (mockup ships a stylized SVG stand-in)",
+    "Certification record card with certifier provenance"
+   ],
+   "notes": "Full state machine, schedule rows with done/current/upcoming, interval + finalist-multiplier amendable patterns, scheduling-order provenance off the audit chain. App exceeds the mockup in several places; only the emergency banner is absent."
+  },
+  {
+   "file": "electoral/open-ballot.html",
+   "title": "Open ballot \u2014 approval phase",
+   "area": "electoral-exec",
+   "areaLabel": "Electoral + executive",
+   "owner": "lane 3",
+   "bucket": "built",
+   "effort": "none",
+   "page": "resources/js/Pages/Elections/OpenBallot.vue",
+   "route": "GET /elections/{election}/open-ballot",
+   "props": "full",
+   "backend": "full",
+   "propsMissing": [],
+   "backendMissing": [],
+   "specHas": [],
+   "appAhead": [
+    "Standings payload cap with ?full=1 lift at Earth scale",
+    "Race picker for multi-race elections",
+    "Footprint gate (browse-not-approve outside the race) with secrecy-preserving rejection",
+    "Daily-rollup asOf discipline (viewer's own action never moves the public number)"
+   ],
+   "notes": "The flagship screen is conformant: filter bar (endorser/tags/incumbents/search/clear), FinalistLine at full-race rank X, revocable approval switch, deltas, secrecy banner. Alignment questionnaire is future-flagged in both."
+  },
+  {
+   "file": "electoral/ranked-ballot.html",
+   "title": "Ranked ballot \u2014 F-IND-007/008",
+   "area": "electoral-exec",
+   "areaLabel": "Electoral + executive",
+   "owner": "lane 3",
+   "bucket": "partial",
+   "effort": "M",
+   "page": "resources/js/Pages/Elections/RankedBallot.vue",
+   "route": "GET /elections/{election}/ranked-ballot",
+   "props": "partial",
+   "backend": "partial",
+   "propsMissing": [
+    "liveAggregate \u2014 controller ships null 'until its backend WI lands'; the mockup's 'Live aggregate \u2014 if the window closed now' section (first preferences + quota-if-closed-now) renders nothing"
+   ],
+   "backendMissing": [
+    "Live first-preference aggregate service (secrecy-safe rollup) feeding the liveAggregate prop"
+   ],
+   "specHas": [
+    "Live aggregate section with quota-if-closed-now projection",
+    "First-ballot achievement toast (mockup-flagged 'Proposed \u2014 gamification layer'; K-2 achievements engine exists but is not wired here)"
+   ],
+   "appAhead": [
+    "Search-driven write-in lookup via Inertia partial reload (mockup enumerates a small select)",
+    "Real receipt flow: single-pull flash of {hash, salt} + public anonymized /receipt-check verifier",
+    "already-voted state with committed_at",
+    "Referendum question sourced from the real F-LEG-023/petition pipeline"
+   ],
+   "notes": "Click-to-rank, write-in, review\u2192commit\u2192receipt and the referendum variant are all live and engine-backed. The one real gap is the live aggregate backend; the achievement toast is a Proposed-layer decision."
+  },
+  {
+   "file": "electoral/results.html",
+   "title": "Results \u2014 round-by-round STV",
+   "area": "electoral-exec",
+   "areaLabel": "Electoral + executive",
+   "owner": "lane 3",
+   "bucket": "built",
+   "effort": "none",
+   "page": "resources/js/Pages/Elections/Results.vue",
+   "route": "GET /elections/{election}/results",
+   "props": "full",
+   "backend": "full",
+   "propsMissing": [],
+   "backendMissing": [],
+   "specHas": [],
+   "appAhead": [
+    "Real full-precision CSV count record (mockup's CSV button is a stub)",
+    "Audit re-run (recount) record rendered alongside the certified count",
+    "Certification count_record_hash + audits list with cause/outcome",
+    "Tabulating/none in-flight states with poll posture"
+   ],
+   "notes": "Round-by-round StvRoundPresenter contract (key rounds inline, mid rounds collapsed), write-in footnote, observers chain-of-custody table, single-winner RCV variant card \u2014 all present. App strictly exceeds the mockup."
+  },
+  {
+   "file": "electoral/vacancy-countback.html",
+   "title": "Vacancy countback",
+   "area": "electoral-exec",
+   "areaLabel": "Electoral + executive",
+   "owner": "lane 3",
+   "bucket": "built",
+   "effort": "none",
+   "page": "resources/js/Pages/Elections/VacancyCountback.vue",
+   "route": "GET /vacancies/{vacancy}",
+   "props": "full",
+   "backend": "full",
+   "propsMissing": [],
+   "backendMissing": [],
+   "specHas": [],
+   "appAhead": [
+    "Day-aligned CLK-04 window math (opens_on/latest_start honest date Field min/max)",
+    "Engine-backed manual countback driver for crashed-queue vacancies",
+    "Special election creation linking through F-ELB-001 with full schedule payload"
+   ],
+   "notes": "Conformant: F-LEG-036 trigger card with the F-LEG-030 catalog-alias citation, ESM-13 strip, countback bars with exhausted track, both branches, WF-LEG-13 knock-on card. One stale copy line claims the F-LEG-036 form 'arrives with Phase C Speaker tooling' \u2014 it is registered with a live handler."
+  },
+  {
+   "file": "executive/department-detail.html",
+   "title": "Public Works & Utilities \u2014 department detail",
+   "area": "electoral-exec",
+   "areaLabel": "Electoral + executive",
+   "owner": "lane 3",
+   "bucket": "partial",
+   "effort": "M",
+   "page": "resources/js/Pages/Executive/DepartmentDetail.vue",
+   "route": "GET /departments/{department}",
+   "props": "partial",
+   "backend": "partial",
+   "propsMissing": [
+    "oversees_cgcs \u2014 hardcoded [] because the backend has no department\u2194CGC link (oversight is modeled at executive level via organizations.overseen_by_executive_id); mockup shows 'Oversees: Water & Power CGC' with detail link"
+   ],
+   "backendMissing": [
+    "Department-level CGC oversight association (column or join table) so the oversight card can list overseen CGCs"
+   ],
+   "specHas": [
+    "CGC oversight listing on the charter card (renders honest empty state)"
+   ],
+   "appAhead": [
+    "Real F-EXE-001 nomination pipeline with F-LEG-020 consent VoteTally + casts",
+    "Real F-EXE-003 removal cards with the MAJORITY vote record (owner ruling #14)",
+    "Synthetic removal_requested state spliced into ESM-17 from live seat status",
+    "Two-clock roster (CLK-09 governors vs CLK-10 worker seats) with expiring badges"
+   ],
+   "notes": "The board roster, nomination and removal machinery all exceed the mockup. The single gap is the department\u2194CGC oversight link, which needs a small backend association before the card can be filled."
+  },
+  {
+   "file": "executive/department-reporting.html",
+   "title": "Department reporting \u2014 R-18 governor surface",
+   "area": "electoral-exec",
+   "areaLabel": "Electoral + executive",
+   "owner": "lane 3",
+   "bucket": "partial",
+   "effort": "S",
+   "page": "resources/js/Pages/Executive/DepartmentReporting.vue",
+   "route": "GET /departments/{department}/reporting",
+   "props": "partial",
+   "backend": "full",
+   "propsMissing": [
+    "Viewer appointment card data \u2014 mockup opens with 'Your appointment' (seat, chair status, term dates, 10-yr CLK-09 amendable pattern); controller resolves viewerSeat internally but ships only the viewerIsGovernor boolean"
+   ],
+   "backendMissing": [],
+   "specHas": [
+    "'Your appointment' card with term dates and the CLK-09 amendable pattern"
+   ],
+   "appAhead": [
+    "Server-filtered enabling-instrument options (charter/laws/active emergency powers the engine would accept)",
+    "due_soon read-time refinement and public-record seq links on filed reports",
+    "Emergency-enabled rules flagged expires-with-power off real EmergencyPower rows"
+   ],
+   "notes": "Rules register and report filings are live F-BOG-001/002 engine surfaces with enabling-act chips. Ship the viewer's seat/term props and render the appointment card to close the gap."
+  },
+  {
+   "file": "executive/departments.html",
+   "title": "Department registry \u2014 Charlotte",
+   "area": "electoral-exec",
+   "areaLabel": "Electoral + executive",
+   "owner": "lane 3",
+   "bucket": "built",
+   "effort": "S",
+   "page": "resources/js/Pages/Executive/Departments.vue",
+   "route": "GET /executives/{executive}/departments",
+   "props": "full",
+   "backend": "full",
+   "propsMissing": [],
+   "backendMissing": [],
+   "specHas": [
+    "In-page 'draft creation act' composer (name/type/oversight/charter fields) \u2014 the app deliberately deep-links to the bill flow (/legislature/bills?intro=1&act=department_creation) since F-LEG-016 is a legislative act; verify the deep link prefills those fields"
+   ],
+   "appAhead": [
+    "Live BoG pipeline rows with real consent-vote snapshots per appointment",
+    "Civil officers sourced from Terms (R-30, CLK-09) rather than a hardcoded card",
+    "Department lifecycle (ESM-17) machine card"
+   ],
+   "notes": "Registry with co-determination seat counts (CLK-13/14), pipeline stepper, and civil officers all present and data-backed. The only divergence is composer-in-page vs deep-link-to-bill-flow \u2014 the app posture is engine-correct ('no side-door POST'); worth confirming the bill flow prefills."
+  },
+  {
+   "file": "executive/executive-actions.html",
+   "title": "Executive actions \u2014 orders, proposals, investigations",
+   "area": "electoral-exec",
+   "areaLabel": "Electoral + executive",
+   "owner": "lane 3",
+   "bucket": "built",
+   "effort": "none",
+   "page": "resources/js/Pages/Executive/Actions.vue",
+   "route": "GET /executives/{executive}/actions",
+   "props": "full",
+   "backend": "full",
+   "propsMissing": [],
+   "backendMissing": [],
+   "specHas": [],
+   "appAhead": [
+    "Real enabling-instrument select (delegation act/charters/live emergency powers) replacing the mockup's 'Demo: claimed scope' toggle",
+    "rejected_pre_issuance rows persisted with citation + public-record seq BEFORE the 422 (exit criterion 1)",
+    "Grant applications register with disbursements and audit_seq chips",
+    "Scope banner listing live emergency powers covering the jurisdiction"
+   ],
+   "notes": "Conformant and beyond: the order-rejection exit surface is real (preflight persists the rejected row + record, the citation surfaces verbatim, the row lands at the top of the register). Mockup demo controls are superseded by real instruments."
+  },
+  {
+   "file": "executive/executive-home.html",
+   "title": "Executive home \u2014 three model variants",
+   "area": "electoral-exec",
+   "areaLabel": "Electoral + executive",
+   "owner": "lane 3",
+   "bucket": "built",
+   "effort": "S",
+   "page": "resources/js/Pages/Executive/Home.vue",
+   "route": "GET /executives/{executive}",
+   "props": "full",
+   "backend": "full",
+   "propsMissing": [],
+   "backendMissing": [],
+   "specHas": [
+    "Three-model aria-pressed toggle exploring non-live variants (app renders only the routed office's real model \u2014 delegated/elected-individual/elected-committee panels all exist but only the live one shows; the illustrative explorer is a teaching device, likely a Learn/tour-mode concern)",
+    "Emergency scenario banner",
+    "term-sync page link on the lockstep card"
+   ],
+   "appAhead": [
+    "Forming empty state (constitutional placeholder awaiting F-LEG-014)",
+    "ConstituentConsentPanel over the live multi_jurisdiction_votes process with per-jurisdiction consent rows and chamber-vote links",
+    "Departments summary card (top 5 + count)",
+    "can.proposeDelegationBill/proposeConversionBill R-09 deep-links"
+   ],
+   "notes": "All three model panels, dual supermajority meters (engine snapshots, never recomputed), ESM-16 strip and term lockstep are live. Decide whether the illustrative model toggle belongs here or in Learn/tour mode before adding it."
+  },
+  {
+   "file": "legislature/legislature-home.html",
+   "title": "Chamber \u2014 Charlotte legislature",
+   "area": "legislature",
+   "areaLabel": "Legislature",
+   "owner": "lane 3",
+   "bucket": "built",
+   "effort": "none",
+   "page": "resources/js/Pages/Legislature/Chamber.vue",
+   "route": "GET /legislatures/{legislature}/chamber",
+   "props": "full",
+   "backend": "full",
+   "propsMissing": [],
+   "backendMissing": [],
+   "specHas": [],
+   "appAhead": [
+    "bicameral by_kind stat lanes + forming/resolver empty states",
+    "live F-LEG-001 oath action wired into roster and checklist",
+    "district labels per member; successor-election link (CLK-01)"
+   ],
+   "notes": "Manifest suggested Legislature/Home.vue; production page is Chamber.vue \u2014 same surface, fully conformant. Seat map, roster with endorsements/vote_share_norm, term lockstep, vacancy cards, and the WF-LEG-01 checklist are all driven by real rows."
+  },
+  {
+   "file": "legislature/bills.html",
+   "title": "Bills \u2014 registry & introduction",
+   "area": "legislature",
+   "areaLabel": "Legislature",
+   "owner": "lane 3",
+   "bucket": "partial",
+   "effort": "M",
+   "page": "resources/js/Pages/Legislature/Bills.vue",
+   "route": "GET /legislatures/{legislature}/bills",
+   "props": "partial",
+   "backend": "full",
+   "propsMissing": [
+    "challenge \u2014 hard-coded null per registry row ('Phase E feed' comment), so the [Challenged] chip linking the Art. IV \u00a75 tracker cannot render despite the Phase-E backend existing"
+   ],
+   "backendMissing": [],
+   "specHas": [
+    "Challenged-state chip/link on registry rows (Curfew Ordinance fixture)",
+    "dedicated act-types & thresholds table section with the F-LEG-028 cultural-recognition card \u2014 F-LEG-028 has a registered handler + CulturalInstitutionService but NO UI door files it anywhere",
+    "post-enactment lifecycle stages in the legend: machine ends at enacted+tabled/failed/withdrawn; mockup's 12-stage legend continues published \u2192 [Challenged] \u2192 [Edited by a court] \u2192 Repealed/Superseded"
+   ],
+   "appAhead": [
+    "settingKeys picker with live hardened bounds + /bills/validate pre-flight",
+    "status/act_type filters",
+    "committee assignment and enacted-law links per row"
+   ],
+   "notes": "Only partial verdict in the module: wire the challenge feed to the Phase-E challenge rows, add an F-LEG-028 filing door, and extend the lifecycle legend past enactment. F-LEG-003 introduction with real scale/scope selects is fully live."
+  },
+  {
+   "file": "legislature/bill-detail.html",
+   "title": "Bill detail \u2014 Charlotte Clean Air Act",
+   "area": "legislature",
+   "areaLabel": "Legislature",
+   "owner": "lane 3",
+   "bucket": "built",
+   "effort": "S",
+   "page": "resources/js/Pages/Legislature/BillDetail.vue",
+   "route": "GET /bills/{bill}",
+   "props": "full",
+   "backend": "full",
+   "propsMissing": [],
+   "backendMissing": [],
+   "specHas": [
+    "'Join the conversation on this bill' link (shared/bill.html conversation surface) and 'Watch the floor session' live-room link",
+    "bicameral dual-tally PREVIEW toggle for unicameral chambers (app renders per-kind lanes only when the chamber is actually bicameral \u2014 mockup lets any viewer preview the four-meter view)"
+   ],
+   "appAhead": [
+    "version history + server-computed amendment diff + full law text",
+    "enactment card with setting-change old/new and audit-chain record link",
+    "constituent dual-supermajority process panel",
+    "three-door refer action (F-LEG-007 committee/floor, F-CHR-003 chair)"
+   ],
+   "notes": "Four independent meters (both seat kinds at committee AND floor) are real via ChamberVotePresenter per-kind lanes. The two social links are the only mockup features absent."
+  },
+  {
+   "file": "legislature/committee-detail.html",
+   "title": "Committee detail \u2014 Environment & Infrastructure",
+   "area": "legislature",
+   "areaLabel": "Legislature",
+   "owner": "lane 3",
+   "bucket": "built",
+   "effort": "none",
+   "page": "resources/js/Pages/Legislature/CommitteeDetail.vue",
+   "route": "GET /committees/{committee}",
+   "props": "full",
+   "backend": "full",
+   "propsMissing": [],
+   "backendMissing": [],
+   "specHas": [],
+   "appAhead": [
+    "chair/alternate/member/speaker capability gating per action",
+    "by_kind committee seat split for bicameral chambers",
+    "report \u2192 public-record audit_seq links"
+   ],
+   "notes": "The full hearing surface from the mockup is live: F-CHR-001 call \u2192 F-CHR-002 agenda \u2192 testimony-to-public-record (WF-LEG-08) \u2192 F-LEG-005 vote with referral gated on passage \u2192 F-CHR-003 refer \u2192 F-CHR-004 report. F-COM catalog aliases resolve through FormRegistry."
+  },
+  {
+   "file": "legislature/committees.html",
+   "title": "Committees \u2014 assignment & chairs",
+   "area": "legislature",
+   "areaLabel": "Legislature",
+   "owner": "lane 3",
+   "bucket": "built",
+   "effort": "S",
+   "page": "resources/js/Pages/Legislature/Committees.vue",
+   "route": "GET /legislatures/{legislature}/committees",
+   "props": "full",
+   "backend": "full",
+   "propsMissing": [],
+   "backendMissing": [],
+   "specHas": [
+    "endorsing-org chips per member in the assignment-result table (mockup renders org chips or 'no endorsements' per row; app shows names/seat_kind/status only)"
+   ],
+   "appAhead": [
+    "pending F-LEG-009 creation proposals with live supermajority tallies + cast buttons",
+    "whole-chamber chair RCV balloting UI (F-LEG-011 open/cast) with auto-open after assignment",
+    "proportionality recheck notes per committee",
+    "preferencesState pending-member list"
+   ],
+   "notes": "Allocation formula card, keyboard-rankable F-LEG-010 ballot, F-SPK-005 run with the normalized-share tie-break table from the audit-chain snapshot, and the seat StateStrip all match the mockup."
+  },
+  {
+   "file": "legislature/emergency-powers.html",
+   "title": "Emergency powers",
+   "area": "legislature",
+   "areaLabel": "Legislature",
+   "owner": "lane 3",
+   "bucket": "built",
+   "effort": "none",
+   "page": "resources/js/Pages/Legislature/EmergencyPowers.vue",
+   "route": "GET /legislatures/{legislature}/emergency-powers",
+   "props": "full",
+   "backend": "full",
+   "propsMissing": [],
+   "backendMissing": [],
+   "specHas": [],
+   "appAhead": [
+    "renewal-window gating (opens_day, fresh ceiling) on active powers",
+    "pending invocation/renewal proposals with live supermajority tallies",
+    "expired/struck history rows"
+   ],
+   "notes": "Two-option closed cause enum, pre-vote >90-day rejection with CLK-03 citation, day-X-of-Y countdown meter with auto-expiry date, hard-rails card, and honest empty state all match. F-JDG-007 renders as a review-status panel; the filing door correctly lives in the judiciary module."
+  },
+  {
+   "file": "legislature/oversight.html",
+   "title": "Ethics & removals",
+   "area": "legislature",
+   "areaLabel": "Legislature",
+   "owner": "lane 3",
+   "bucket": "built",
+   "effort": "none",
+   "page": "resources/js/Pages/Legislature/Oversight.vue",
+   "route": "GET /legislatures/{legislature}/oversight",
+   "props": "full",
+   "backend": "full",
+   "propsMissing": [],
+   "backendMissing": [],
+   "specHas": [],
+   "appAhead": [
+    "designate-presider flow for the Speaker's-own-case exception",
+    "closed removal\u2192vacancy loop link on each proceeding",
+    "F-LEG-013 admin-office creation door when no office exists"
+   ],
+   "notes": "Intake docket, supermajority-of-ALL-serving proceeding meter, vacancy StateStrip with the special-election branch, and the countback-page handoff all real. Stale controller comment claims the admin-office route is 'NOT YET REGISTERED' \u2014 it is registered at routes/web.php:661."
+  },
+  {
+   "file": "legislature/referendums.html",
+   "title": "Referendums \u2014 delegation & protection",
+   "area": "legislature",
+   "areaLabel": "Legislature",
+   "owner": "lane 3",
+   "bucket": "built",
+   "effort": "none",
+   "page": "resources/js/Pages/Legislature/Referendums.vue",
+   "route": "GET /legislatures/{legislature}/referendums",
+   "props": "full",
+   "backend": "full",
+   "propsMissing": [],
+   "backendMissing": [],
+   "specHas": [],
+   "appAhead": [
+    "pending delegation/modification proposals with live supermajority votes",
+    "shield_expires_with (which election's certification releases the CLK-19 shield)",
+    "law_text field on the delegation form (mockup collects only the question)"
+   ],
+   "notes": "Read-only derived threshold (never editable), queue to next jurisdiction-wide ballot, results at matching thresholds, and the disabled modify button with the CLK-19 hardened chip all match; the CLK-19 shield is a server-side validator gate, not just UI."
+  },
+  {
+   "file": "legislature/session-console.html",
+   "title": "Session console",
+   "area": "legislature",
+   "areaLabel": "Legislature",
+   "owner": "lane 3",
+   "bucket": "built",
+   "effort": "S",
+   "page": "resources/js/Pages/Legislature/SessionConsole.vue",
+   "route": "GET /legislatures/{legislature}/session",
+   "props": "full",
+   "backend": "full",
+   "propsMissing": [],
+   "backendMissing": [],
+   "specHas": [
+    "'Join the live session' banner linking the live chamber room (the mockup frames the room as THE meeting; no K-3/live-room link exists on the page)",
+    "page-top emergency-power-active banner (the app carries the active power only inside the locked agenda head)"
+   ],
+   "appAhead": [
+    "speaker balloting launch + RCV cast for a speakerless chamber (F-LEG-008)",
+    "per-kind attendance/quorum lanes for bicameral chambers",
+    "attendance self-registration state (F-LEG-002) distinct from the Speaker's count"
+   ],
+   "notes": "Locked constitutional agenda order (engine-composed head + hardened chip), F-SPK-003 published quorum against all serving, F-SPK-008 compulsion on failed quorum, motions with per-cast publication, F-LEG-006 statements, and F-SPK-009 adjourn/minutes are all wired."
+  },
+  {
+   "file": "legislature/settings.html",
+   "title": "Constitutional settings register",
+   "area": "legislature",
+   "areaLabel": "Legislature",
+   "owner": "lane 3",
+   "bucket": "built",
+   "effort": "S",
+   "page": "resources/js/Pages/Legislature/Settings.vue",
+   "route": "GET /legislatures/{legislature}/settings",
+   "props": "full",
+   "backend": "full",
+   "propsMissing": [],
+   "backendMissing": [],
+   "specHas": [
+    "Rules of order + Ethics code adoption cards (F-LEG-032/033 current-edition + enacting-act cards; in the app these appear only as Chamber checklist steps)"
+   ],
+   "appAhead": [
+    "11 Phase-L monetary/stipend dials in the register (mockup shows only the 17 classic keys)",
+    "inherited_from chain provenance per row",
+    "setting-changes history feed"
+   ],
+   "notes": "All 17 amendable keys plus the economy dials render with current value, hardened bounds, and enacting-act provenance; the civil/judicial lockstep pair is a joined row; 'Propose change' pre-targets an inline panel with the live /bills/validate bounds pre-flight demonstrating the blocked-pre-vote banner."
+  },
+  {
+   "file": "legislature/speaker-tools.html",
+   "title": "Speaker tools",
+   "area": "legislature",
+   "areaLabel": "Legislature",
+   "owner": "lane 3",
+   "bucket": "built",
+   "effort": "none",
+   "page": "resources/js/Pages/Legislature/SpeakerTools.vue",
+   "route": "GET /legislatures/{legislature}/speaker",
+   "props": "full",
+   "backend": "full",
+   "propsMissing": [],
+   "backendMissing": [],
+   "specHas": [],
+   "appAhead": [
+    "readOnly mode for non-Speaker members viewing the office",
+    "pre-break tally restoration on the tie-break record ('4\u20134 \u2192 Speaker broke the tie' reconstructed from the F-SPK-004 cast)",
+    "pendingProceedings surfacing on the presiding panel"
+   ],
+   "notes": "All nine F-SPK form-cards render from SurfaceMeta/FormRegistry with launchpad links to the surface that actually holds each control; the F-SPK-006 priority queue files through the engine into the session's unlocked agenda tail."
+  },
+  {
+   "file": "judiciary/advocate-console.html",
+   "title": "Advocate console",
+   "area": "judiciary",
+   "areaLabel": "Judiciary",
+   "owner": "lane 3",
+   "bucket": "built",
+   "effort": "none",
+   "page": "resources/js/Pages/Judiciary/AdvocateConsole.vue",
+   "route": "GET /judiciary/advocate",
+   "props": "full",
+   "backend": "full",
+   "propsMissing": [],
+   "backendMissing": [],
+   "specHas": [],
+   "appAhead": [
+    "Unregistered-viewer flow: live F-IND-015 FormCard with qualifications note plus a no-judiciary-in-chain empty state (mockup renders only the already-registered state)",
+    "F-ADV-001 posts to the docket store endpoint with real client name/email resolution; F-ADV-002/003/004 post per-case under the server-side attach-window"
+   ],
+   "notes": "Conformant. All five forms (F-IND-015, F-ADV-001..004) registered with engine handlers; every mockup section (registration card, active cases with next-action lines, type-adaptive composer, filings log, four instrument cards) is present and server-hydrated."
+  },
+  {
+   "file": "judiciary/case-detail.html",
+   "title": "Case detail \u2014 State v. Whitfield (playable lifecycle)",
+   "area": "judiciary",
+   "areaLabel": "Judiciary",
+   "owner": "lane 3",
+   "bucket": "built",
+   "effort": "S",
+   "page": "resources/js/Pages/Judiciary/CaseDetail.vue",
+   "route": "GET /cases/{case}",
+   "props": "full",
+   "backend": "full",
+   "propsMissing": [],
+   "backendMissing": [],
+   "specHas": [
+    "Stage content panels for stages 1 (filing facts), 2 (justiciability/severity classification), and 7 (arguments order + public-record note) \u2014 CaseDetail.vue supplies slots only for stages 3,4,5,6,8,9,10, so a case resting at 1/2/7 shows a bare stage heading (the facts are already in caseProps)",
+    "The playable Back/Advance walkthrough: CaseLifecycle.vue has an `interactive` prop with the full Back/Advance + demo banner, but product renders it OFF \u2014 the mockup's centerpiece replay is unwired Demo/Dev-mode behavior"
+   ],
+   "appAhead": [
+    "Operative R-19/R-20 court-action forms gated by live status: F-JDG-001 acceptance+severity select, F-JDG-002 jury draw (seats/alternates), F-JDG-003 opinion composer, F-JDG-009 sentencing, F-JDG-010 warrant with kind + max-hold (mockup shows reference cards only)",
+    "errors.constitution rejection banner + flash status posture"
+   ],
+   "notes": "All 8 mockup forms registered; panel/jury/double-jeopardy are engine snapshots as specced. Gap is slot content for three stages plus deciding where the interactive replay lives (Demo mode)."
+  },
+  {
+   "file": "judiciary/case-docket.html",
+   "title": "Case docket \u2014 Mecklenburg County & Charlotte courts",
+   "area": "judiciary",
+   "areaLabel": "Judiciary",
+   "owner": "lane 3",
+   "bucket": "partial",
+   "effort": "M",
+   "page": "resources/js/Pages/Judiciary/CaseDocket.vue",
+   "route": "GET /judiciaries/{judiciary}/docket",
+   "props": "full",
+   "backend": "full",
+   "propsMissing": [],
+   "backendMissing": [],
+   "specHas": [
+    "Chain-wide docket: the mockup lists cases from BOTH the county and state courts in one table ('Every case filed in your jurisdictions'); the app docket is single-judiciary and the resolver picks only the deepest court in the chain"
+   ],
+   "appAhead": [
+    "Residency CTA card for unassociated viewers (confirm residency to file)",
+    "F-ADV-001 lane on the same store endpoint with real client resolution and a constitutional error on miss",
+    "Constitutional cases route to the challenge tracker while others route to case-detail (mockup hardcodes two fixture links)"
+   ],
+   "notes": "Filters/search/stats/filing composer/entry cards/state-strip all present; all 4 forms registered. The one real rework is widening the docket query+header to the viewer's whole jurisdiction chain. Manifest title (Mecklenburg/Charlotte) is stale \u2014 the fixture is New York."
+  },
+  {
+   "file": "judiciary/constitutional-challenge.html",
+   "title": "Constitutional challenge tracker \u2014 Art. IV \u00a75",
+   "area": "judiciary",
+   "areaLabel": "Judiciary",
+   "owner": "lane 3",
+   "bucket": "built",
+   "effort": "S",
+   "page": "resources/js/Pages/Judiciary/ConstitutionalChallenge.vue",
+   "route": "GET /constitutional-challenges",
+   "props": "full",
+   "backend": "full",
+   "propsMissing": [],
+   "backendMissing": [],
+   "specHas": [
+    "'Today is day N of both clocks' live day counter in the window banner (app shows only the due/close dates)",
+    "Demo drill affordances \u2014 Load the Nov\u00e1k drill, simulate-vote, simulate-window-close, reset \u2014 deliberately not shipped per the tracker's own doc block; they belong to Demo/Dev mode"
+   ],
+   "appAhead": [
+    "Per-challenge permalink route /constitutional-challenges/{challenge}",
+    "Real F-IND-016 composer with challengeable-law list, scale options from the viewer's chain, and basis select",
+    "Applied Path C renders the REAL prior-version \u2192 judicial_remedy LawDiff with the audit-chain history link (mockup hardcodes one diff)"
+   ],
+   "notes": "The Phase E exit-criterion surface is fully wired: F-IND-016/F-JDG-004/005/006/F-LEG-035 all registered, three-path cards with engine-snapshot ThresholdMeter (chamber_vote_tallies required_yes/serving), CLK-11/12 dates, enforcement link, empty state. Only the day-counter copy and demo-drill wiring separate it from the mockup."
+  },
+  {
+   "file": "judiciary/judiciary-home.html",
+   "title": "Judiciary home \u2014 creation, confirmation & conversion",
+   "area": "judiciary",
+   "areaLabel": "Judiciary",
+   "owner": "lane 3",
+   "bucket": "built",
+   "effort": "S",
+   "page": "resources/js/Pages/Judiciary/Home.vue",
+   "route": "GET /judiciaries/{judiciary}",
+   "props": "full",
+   "backend": "full",
+   "propsMissing": [],
+   "backendMissing": [],
+   "specHas": [
+    "Emergency-power banner ('Courts cannot be disrupted by emergency powers' + judicial-review status of the active power) \u2014 the controller ships no emergency props and Home.vue has no banner slot for it (CLK-03 context the mockup renders under scenario.emergency)"
+   ],
+   "appAhead": [
+    "ESM-18 'Judiciary lifecycle' StateStrip card (forming \u2192 creating \u2192 appointed \u2192 conversion_voted \u2192 elected | reverted | dissolved)",
+    "R-09 deep-links: 'Introduce a creation/conversion bill' gated by can.proposeCreationBill/proposeConversionBill, plus forming-stub and no-nominations empty states"
+   ],
+   "notes": "Creation act + real VoteTally, equal-numbers nomination narrative with committee fallback, per-nominee consent DataTable with CLK-09 terms, and the dual-supermajority ConstituentConsentPanel are all live. F-LEG-021 is catalog-registered but deliberately handler-unregistered \u2014 consent votes cast via F-LEG-004, which the mockup's reference-card usage matches. Simulate-consent buttons are Demo-mode affordances."
+  },
+  {
+   "file": "judiciary/juror-view.html",
+   "title": "Juror view \u2014 summons & service protections",
+   "area": "judiciary",
+   "areaLabel": "Judiciary",
+   "owner": "lane 3",
+   "bucket": "built",
+   "effort": "none",
+   "page": "resources/js/Pages/Judiciary/JurorView.vue",
+   "route": "GET /judiciary/jury/{summons}",
+   "props": "full",
+   "backend": "full",
+   "propsMissing": [],
+   "backendMissing": [],
+   "specHas": [],
+   "appAhead": [
+    "Summons-holder gating (only the R-22 holder may answer, 403 otherwise) and screening-window closure once voir dire moves on",
+    "Recorded answers read back from the audit chain so a screened summons renders read-only with the flagged/clean outcome",
+    "Deliberation room genuinely unlocks off the case's deliberation status (engine snapshot), timezone-aware drawn/report citations"
+   ],
+   "notes": "Conformant and ahead of the mockup: 6-step stepper, the five server-authored questions verbatim, both Art. II \u00a78 protections, F-JDG-002 source card, locked room. Screening posts to a thin audit-chain endpoint by design (juror answers are a record, not a constitutional instrument)."
+  },
+  {
+   "file": "system/setup.html",
+   "title": "Found the instance \u2014 the founding loop",
+   "area": "jurisdictions-sys",
+   "areaLabel": "Jurisdictions + system",
+   "owner": "lanes 1 \u00b7 2",
+   "bucket": "partial",
+   "effort": "M",
+   "page": "resources/js/Pages/Setup/Step0_CosmicAddress.vue (+ Step1_Constants, Step2_MapData, Step3_Districts, Step4_Confirm, ModeFork, OperatorSetup, JoinHost, Bootstrap)",
+   "route": "/setup, /setup/step/{n}, /setup/mode, /setup/operator, /setup/join, /setup/bootstrap",
+   "props": "full",
+   "backend": "full",
+   "propsMissing": [],
+   "backendMissing": [],
+   "specHas": [
+    "Three-way founding fork (Join / Start fresh / Restore-from-records as first-class equal choices) \u2014 app's ModeFork is two-way Solo/Join, with restore folded into Step2's 'upload an export' source",
+    "End-of-flow 'player one' federation-account creation framing \u2014 app creates the founder/operator account early (/setup/operator), before the founding steps; Step4 has a 'Ready Player One' panel but no account-creation-at-the-end moment",
+    "Restore-path version-check messaging (older snapshot refused with clear message; mid-founding backup resumes at the step it left off)"
+   ],
+   "appAhead": [
+    "Zero-foreknowledge join auto-discovery (/api/setup/discover) + JoinHost resume",
+    "Step-2 data-quality review drills (population gaps, aggregation discrepancies, orphans, sovereign territories, assignment audits)",
+    "Step-3 autoscale progress/halt/resume controls",
+    "Deploy-package download (per OS \u00d7 solo/join)",
+    "Selective-table export with async job + halt"
+   ],
+   "notes": "The wizard is built and richer than the mockup (economy defaults already in Step1_Constants; export-seed panel in Step4). The gap is flow shape: restructure the fork to three-way and move the player-account moment to the end."
+  },
+  {
+   "file": "system/amendments.html",
+   "title": "Amendments",
+   "area": "jurisdictions-sys",
+   "areaLabel": "Jurisdictions + system",
+   "owner": "lanes 1 \u00b7 2",
+   "bucket": "partial",
+   "effort": "S",
+   "page": "resources/js/Pages/System/Amendments.vue",
+   "route": "/system/amendments",
+   "props": "partial",
+   "backend": "full",
+   "propsMissing": [
+    "Current amendable-value cards (door one shows live values w/ range + enacting act + effective date \u2014 controller ships only the setting_changes ledger, not current resolved values)",
+    "Bounds data for the 'Try a proposed value' checker"
+   ],
+   "backendMissing": [],
+   "specHas": [
+    "'Try a proposed value' interactive pre-vote bounds checker (controller comment: deliberately deferred to Phase 7 \u2014 the same bounds check already runs server-side in the bill flow)",
+    "Supermajority-floor meter visual with threshold marker (app has the card as text)",
+    "Link out to the full amendable-settings register (legislature/settings)"
+   ],
+   "appAhead": [
+    "Live F-LEG-031 amendment ledger \u2014 50 newest applied setting changes with jurisdiction, old\u2192new value, enacting act + bill link (the mockup has no ledger at all)"
+   ],
+   "notes": "Page is built on the v3 contract (two doors, floor, ratification table, hardened chips). Remaining gaps are props additions (SettingsResolver current values) and the deferred checker."
+  },
+  {
+   "file": "system/audit-chain.html",
+   "title": "Audit chain",
+   "area": "jurisdictions-sys",
+   "areaLabel": "Jurisdictions + system",
+   "owner": "lanes 1 \u00b7 2",
+   "bucket": "built",
+   "effort": "none",
+   "page": "resources/js/Pages/System/AuditChain.vue",
+   "route": "/system/audit-chain",
+   "props": "full",
+   "backend": "full",
+   "propsMissing": [],
+   "backendMissing": [],
+   "specHas": [
+    "Any-viewer verify button \u2014 app gates full-chain verification to operators (deliberate: expensive walk)",
+    "'Head hash published to peers on the federation heartbeat' chip (checkpoints live on the federation console instead)"
+   ],
+   "appAhead": [
+    "Pagination through the whole chain (mockup shows a fixed 10-entry sample)",
+    "Genesis hash + chain count + real verify timing in ms, and a real CHAIN BROKEN failure path"
+   ],
+   "notes": "Conformant. Entries carry prev_hash/hash, rejected rows with blocked_reason render in-sequence exactly as the mockup specifies."
+  },
+  {
+   "file": "system/public-records.html",
+   "title": "Public records",
+   "area": "jurisdictions-sys",
+   "areaLabel": "Jurisdictions + system",
+   "owner": "lanes 1 \u00b7 2",
+   "bucket": "built",
+   "effort": "S",
+   "page": "resources/js/Pages/System/PublicRecords.vue",
+   "route": "/system/public-records",
+   "props": "full",
+   "backend": "full",
+   "propsMissing": [],
+   "backendMissing": [],
+   "specHas": [
+    "Emergency-scenario banner ('record-keeping cannot be suspended' while an emergency power is active)",
+    "Translated/pending stat tiles (app ships total/acts/votes/statements counts instead)"
+   ],
+   "appAhead": [
+    "Per-legislature filter (citizen's view into any chamber)",
+    "Cursor pagination",
+    "Supersedes-chain links between records",
+    "Subject deep links (bill/petition/election/emergency/referendum)",
+    "Body excerpts",
+    "Per-locale translation quality (machine vs human-reviewed)"
+   ],
+   "notes": "F-LEG-006 composer is live through the engine (R-09-gated, appends record + audit seq). Gaps are two small presentational blocks."
+  },
+  {
+   "file": "system/term-sync.html",
+   "title": "Term lockstep",
+   "area": "jurisdictions-sys",
+   "areaLabel": "Jurisdictions + system",
+   "owner": "lanes 1 \u00b7 2",
+   "bucket": "partial",
+   "effort": "M",
+   "page": "resources/js/Pages/System/TermSync.vue",
+   "route": "/system/term-sync",
+   "props": "full",
+   "backend": "full",
+   "propsMissing": [],
+   "backendMissing": [],
+   "specHas": [
+    "The inline SVG lockstep timeline (three elected-branch bars ending together + dashed 10-year appointed contrast bar + today marker) \u2014 app renders the same data as a table; mockup says 'production renders this timeline from the live term registry'",
+    "Emergency-scenario banner ('the lockstep is unaffected')"
+   ],
+   "appAhead": [
+    "Per-legislature next-election rows off REAL armed CLK-01 clock_timers (never a recomputed date) with election status + chamber links",
+    "Real recorded engine refusals (rejected audit rows for CLK-01/09/10) rendered verbatim",
+    "Live civil-appointment counts per office kind"
+   ],
+   "notes": "All data the timeline needs (term starts/ends, interval, clock due_at, civil terms) is already shipped as props \u2014 the gap is building the timeline component itself."
+  },
+  {
+   "file": "jurisdictions/bootstrap.html",
+   "title": "How a place wakes up",
+   "area": "jurisdictions-sys",
+   "areaLabel": "Jurisdictions + system",
+   "owner": "lanes 1 \u00b7 2",
+   "bucket": "absent",
+   "effort": "L",
+   "page": "",
+   "route": "",
+   "props": "none",
+   "backend": "partial",
+   "propsMissing": [],
+   "backendMissing": [
+    "Per-step progress registry \u2014 the 30-step/7-stage tracker with per-step form chips has no materialized data source; jurisdiction_activations carries only coarse states (boundary_loaded \u2192 critical_population \u2192 bootstrapping \u2192 self_governing) plus audit events"
+   ],
+   "specHas": [
+    "Dedicated bootstrap-tracker page: 7-stage grouped 30-step sequence with Complete/In progress/Pending badges and per-step form chips",
+    "CLK-06 critical-population meter with amendable value/range/act line",
+    "Jurisdiction lifecycle state strip",
+    "Temporary bootstrap-board warning banner"
+   ],
+   "appAhead": [
+    "Jurisdictions/Show.vue already renders the activation state as a badge + timestamp (dormant/critical-population/bootstrapping/self-governing) \u2014 the mockup expects a whole page, the app has one line"
+   ],
+   "notes": "ActivationService fully implements the machinery (threshold detection, bootstrap board constitution, institution seating, WF-JUR-01 audit trail) \u2014 the page, route, and a step-registry read model are what's missing."
+  },
+  {
+   "file": "jurisdictions/disintermediation.html",
+   "title": "Removing a middle layer",
+   "area": "jurisdictions-sys",
+   "areaLabel": "Jurisdictions + system",
+   "owner": "lanes 1 \u00b7 2",
+   "bucket": "absent",
+   "effort": "L",
+   "page": "",
+   "route": "",
+   "props": "none",
+   "backend": "full",
+   "propsMissing": [],
+   "backendMissing": [],
+   "specHas": [
+    "Entire surface: unanimity + encompassing-consent meters, per-constituent consent table, law-merge conflict table with per-row incorporate/defer/lapse selects, topology-after strip, F-LEG-030 form card + vote submit"
+   ],
+   "appAhead": [],
+   "notes": "DisintermediationService is complete (MJV at BASIS_UNANIMITY + encompassing consent, LawMergeResolution, EnactmentService::amendLaw incorporation, F-LEG-030 handler, ChamberActService::proposeDisintermediation) but nothing in resources/js references it. RECONCILIATION FLAG: the mockup folds the dissolved layer's acts into the CONSTITUENTS; the service doc says acts are incorporated into the ENCOMPASSING jurisdiction \u2014 one of the two is wrong against Art. V \u00a78 and needs an operator ruling before the page is built."
+  },
+  {
+   "file": "jurisdictions/district-mapper.html",
+   "title": "District mapper",
+   "area": "jurisdictions-sys",
+   "areaLabel": "Jurisdictions + system",
+   "owner": "lanes 1 \u00b7 2",
+   "bucket": "built",
+   "effort": "none",
+   "page": "resources/js/Pages/Legislature/Districts.vue",
+   "route": "/legislatures/{legislature_id}/districts",
+   "props": "full",
+   "backend": "full",
+   "propsMissing": [],
+   "backendMissing": [],
+   "specHas": [],
+   "appAhead": [
+    "Mass-autoseed progress/halt console, manual line-drawing (F-ELB-008) for leaf giants, split-line bisection, constitutional-flags queue \u2014 the built mapper far exceeds the mockup's static stand-in"
+   ],
+   "notes": "This mockup was authored FROM the shipped Legislature Browser ('the shipped Legislature Browser mounts exactly here') \u2014 versioned draft/Activate plans, Map Quality ledger, per-district Dev/CHR/Contig/Intact strips, wizard prev/up/next rows, and the full-bleed map-split containment (v3.2 item 0c) all exist in Districts.vue. Only the v3 token restyle remains, which is the shell agent's scope."
+  },
+  {
+   "file": "jurisdictions/federation.html",
+   "title": "Between governments",
+   "area": "jurisdictions-sys",
+   "areaLabel": "Jurisdictions + system",
+   "owner": "lanes 1 \u00b7 2",
+   "bucket": "partial",
+   "effort": "L",
+   "page": "resources/js/Pages/Jurisdictions/Federation.vue",
+   "route": "/federation",
+   "props": "none",
+   "backend": "full",
+   "propsMissing": [],
+   "backendMissing": [],
+   "specHas": [
+    "The citizen 'Between governments' surface: border-settlement proposals table (affected population, 2/3-of-affected supermajority, deliberation\u2192referendum\u2192done stepper, status badges), rights-re-attach gloss, link out to the operator mesh page"
+   ],
+   "appAhead": [
+    "The existing Federation.vue is the full operator/mesh console (peers, FF&C sync log, checkpoints, authority claims, cluster join, role channels) \u2014 content the v3 mockups relocated to operator/mesh.html"
+   ],
+   "notes": "Name collision, not conformance: the v3 screen at this path is a NEW citizen page about border settlement, which is unbuilt in UI despite BorderSettlementService being complete (CivicPopulation::forArea denominator, supermajority via ConstitutionalValidator, jurisdiction_maps versioning, resident re-association). The mesh-console content on today's Federation.vue belongs to the operator module's reconciliation, not this row."
+  },
+  {
+   "file": "jurisdictions/jurisdiction-browser.html",
+   "title": "Jurisdiction browser",
+   "area": "jurisdictions-sys",
+   "areaLabel": "Jurisdictions + system",
+   "owner": "lanes 1 \u00b7 2",
+   "bucket": "partial",
+   "effort": "S",
+   "page": "resources/js/Pages/Jurisdictions/Show.vue (+ Index.vue)",
+   "route": "/jurisdictions/{jurisdiction:slug}",
+   "props": "partial",
+   "backend": "full",
+   "propsMissing": [
+    "Reach & participation gauge (verified residents / population %, tier pill, capped display \u2014 LegitimacyService data ships only to /reach, not to this page)",
+    "Live verified-resident 'members' count alongside WorldPop population"
+   ],
+   "backendMissing": [],
+   "specHas": [
+    "'Powers at this level' joint-vs-reserved table (static content, Art. V \u00a74\u20135)",
+    "Reach & participation block with link out to the reach panel",
+    "San Marino-style honest-gap warning banner driven by a dataGap field"
+   ],
+   "appAhead": [
+    "Executive + judiciary cross-link CTAs, current-election CTA, chamber-seated gate splitting the legislature CTA",
+    "Review-issue badges + orphan counters, geoboundary metadata panel, planet-scope Accept Map Data gate + repair plane"
+   ],
+   "notes": "The viewer already has the two-pane map-split, breadcrumb drill-down, Names/Members/Raster layer toggles, maps-accepted/apportionment record, and activation state. Gaps are one static table and one props-fed reach block (LegitimacyService already computes it for /reach)."
+  },
+  {
+   "file": "jurisdictions/restoration.html",
+   "title": "Rebuilding a lost government",
+   "area": "jurisdictions-sys",
+   "areaLabel": "Jurisdictions + system",
+   "owner": "lanes 1 \u00b7 2",
+   "bucket": "absent",
+   "effort": "L",
+   "page": "",
+   "route": "",
+   "props": "none",
+   "backend": "full",
+   "propsMissing": [],
+   "backendMissing": [],
+   "specHas": [
+    "Entire surface: three activation-condition cards with met/not-detected badges, tier-cascade stepper (constituents \u2192 encompassing \u2192 individuals), legitimacy-scoring + defensive-forces cards, lifecycle state strip, drill banner reactive to an armed restoration event"
+   ],
+   "appAhead": [],
+   "notes": "RestorationService is complete (declare on countermanded/captured/destroyed, judicial confirmation required before activation, strict tier ordering, RestorationEvent model, WF-JUR-07 audit) with zero routes or UI. The page is mostly teaching content plus a read of restoration_events \u2014 the lightest of the four missing jurisdictions pages, but still page + controller."
+  },
+  {
+   "file": "jurisdictions/union-formation.html",
+   "title": "Union formation",
+   "area": "jurisdictions-sys",
+   "areaLabel": "Jurisdictions + system",
+   "owner": "lanes 1 \u00b7 2",
+   "bucket": "absent",
+   "effort": "L",
+   "page": "",
+   "route": "",
+   "props": "none",
+   "backend": "full",
+   "propsMissing": [],
+   "backendMissing": [
+    "Cross-INSTANCE settings compatibility diff (comparing two federated instances' amendable settings side-by-side) \u2014 same-instance jurisdiction settings reads exist via SettingsResolver, but no service assembles the diff across peers"
+   ],
+   "specHas": [
+    "Entire surface: parties table, settings/institution compatibility diff with hardened-identical rows, radio codification workspace, dual ratification meters with whole-population denominators, join/exit mirror card, bicameral type_a/type_b preview, F-LEG-029 founding-act form + submit"
+   ],
+   "appAhead": [],
+   "notes": "UnionService is complete (dual ratification: applicant-population supermajority + constituent-jurisdiction supermajority via the PROTECTED MultiJurisdictionVote math; union_processes; F-LEG-029 handler; ChamberActService::proposeUnion) with no UI. Ratification meters and bicameral preview render straight off existing data; only the cross-instance compat diff needs new backend."
+  },
+  {
+   "file": "operator/operator-home.html",
+   "title": "Run a node \u2014 the operator plane",
+   "area": "operator",
+   "areaLabel": "Operator plane",
+   "owner": "lane 2",
+   "bucket": "built",
+   "effort": "none",
+   "page": "resources/js/Pages/Operator/Home.vue",
+   "route": "GET /operator",
+   "props": "full",
+   "backend": "full",
+   "propsMissing": [],
+   "backendMissing": [],
+   "specHas": [
+    "DNS & certificates door lands on /operator/operations ('Lives in the Operations console for now'), not a dedicated DNS surface",
+    "Moderation & the legal floor door is a dead 'Planned - Phase I' placeholder card with no destination"
+   ],
+   "appAhead": [
+    "'Places on this node' authority stat card (home copies here / with peers / total)",
+    "live enabled-channel manifest section",
+    "'Between you and ready' gate checklist with per-gate remediation lines",
+    "operator sign-in gate + legacy console links (Operations, Federation)"
+   ],
+   "notes": "Manifest's productionPages (Jurisdictions/Federation.vue) is stale \u2014 the dedicated Phase-4 suite page exists and conforms. Its two broken doors are the dns/moderation rows' gaps, not this page's."
+  },
+  {
+   "file": "operator/setup.html",
+   "title": "Set up your node \u2014 first-run wizard",
+   "area": "operator",
+   "areaLabel": "Operator plane",
+   "owner": "lane 2",
+   "bucket": "partial",
+   "effort": "M",
+   "page": "resources/js/Pages/Setup/OperatorSetup.vue",
+   "route": "GET /setup/operator",
+   "props": "partial",
+   "backend": "full",
+   "propsMissing": [
+    "four named-role groupings (page ships raw channel list only)",
+    "device-key registry for the Path-B link flow"
+   ],
+   "backendMissing": [],
+   "specHas": [
+    "Path B \u2014 'link an existing mesh identity by device key' at setup time (POST /operator/link exists but no setup UI targets it)",
+    "step 2's four named-role picker cards with duty/consent copy (app offers per-channel toggles + 'turn on all')",
+    "step 3's inline Identity Broker token entry (app defers broker.dns/broker.tls config to the console)",
+    "the explicit 5-step stepper and 'You're set' completion step"
+   ],
+   "appAhead": [
+    "SOLO/JOIN mode-fork gating before this step",
+    "reach choice (solo vs open) with detected-origin self-URL suggestion",
+    "per-channel needs-setup flags surfaced after establish"
+   ],
+   "notes": "The backend for every wizard step is live (account create, .env profile write, founding-role establish, device-possession link); the surface shape diverges from the mockup's 5-step wizard. Page uses old setup chrome, not the v3 shell \u2014 expected for pre-shell bootstrap context."
+  },
+  {
+   "file": "operator/console.html",
+   "title": "The operator console (two-tier)",
+   "area": "operator",
+   "areaLabel": "Operator plane",
+   "owner": "lane 2",
+   "bucket": "built",
+   "effort": "none",
+   "page": "resources/js/Pages/Operator/Console.vue",
+   "route": "GET /operator/console",
+   "props": "full",
+   "backend": "full",
+   "propsMissing": [],
+   "backendMissing": [],
+   "specHas": [
+    "tier-1 role-card CTAs act by navigating to /operator/roles rather than inline Establish/Request (documented design disposition \u2014 console is read-only by design)"
+   ],
+   "appAhead": [
+    "open-proposals live counts by kind",
+    "consent-leg note (which meter holds consent for the scope) + per-channel 'why not yet' gate hints",
+    "operator sign-in gate"
+   ],
+   "notes": "Both tiers present: health line + gate chips, four role cards, Advanced toggle with the channel grid, three meter cards with live counts, mesh summary pointer, CLI chips. Pure wrapper over MeshGateService/PeerUpgradeAgreementService as the design contract requires."
+  },
+  {
+   "file": "operator/roles.html",
+   "title": "Roles & channels",
+   "area": "operator",
+   "areaLabel": "Operator plane",
+   "owner": "lane 2",
+   "bucket": "built",
+   "effort": "none",
+   "page": "resources/js/Pages/Operator/Roles.vue",
+   "route": "GET /operator/roles",
+   "props": "full",
+   "backend": "full",
+   "propsMissing": [],
+   "backendMissing": [],
+   "specHas": [],
+   "appAhead": [
+    "live lifecycle actions (qualify/request/approve/revoke POSTs, verb-for-verb with the mesh:role CLI)",
+    "pending-request table with live Meter A/B/C reads",
+    "founding-node one-click mode (every role self-asserts, no dual-meter)",
+    "qualify-probe flash panel"
+   ],
+   "notes": "All four mockup sections present (role cards, nine-channel table, lifecycle FSM strip mirrored word-for-word, three meter cards) and the app exceeds the mockup with real actions. Conformant."
+  },
+  {
+   "file": "operator/mesh.html",
+   "title": "Mesh & federation",
+   "area": "operator",
+   "areaLabel": "Operator plane",
+   "owner": "lane 2",
+   "bucket": "built",
+   "effort": "S",
+   "page": "resources/js/Pages/Operator/Mesh.vue",
+   "route": "GET /operator/mesh",
+   "props": "full",
+   "backend": "full",
+   "propsMissing": [],
+   "backendMissing": [],
+   "specHas": [
+    "Section 1 'Join a cluster' 4-step wizard \u2014 deliberately absent; it lives on legacy /federation (FederationConsoleController join wizard + SyncProgress), per design flag 1"
+   ],
+   "appAhead": [
+    "peerage-gates checklist section",
+    "seq-lag computation and richer sync-result taxonomy (rejected_tamper / rejected_non_authoritative)",
+    "self-URL display and relation glosses per peer"
+   ],
+   "notes": "Peers, FF&C ledger, becoming-a-full-peer (incl. the 3-step authority-move explainer), and transports all conform; backend fully live (MirrorService, ClusterJoinJob, TransportService). The only spec gap is where the join wizard lives \u2014 the design-flag-1 split between /operator/mesh and legacy /federation needs settling."
+  },
+  {
+   "file": "operator/dns.html",
+   "title": "DNS & certificates (Identity Broker)",
+   "area": "operator",
+   "areaLabel": "Operator plane",
+   "owner": "lane 2",
+   "bucket": "absent",
+   "effort": "L",
+   "page": "",
+   "route": "",
+   "props": "none",
+   "backend": "partial",
+   "propsMissing": [],
+   "backendMissing": [
+    "Let's Encrypt budget rails (50/domain and 5/name per 7 days) with pre-flight refusal ledger",
+    "wildcard-backup grant kind + per-domain approval flag (mockup marks stub/future)",
+    "DDNS signed re-point flow",
+    "Route53 / DigitalOcean / Manual DNS providers (only Cloudflare via lego is live)"
+   ],
+   "specHas": [
+    "the entire dedicated surface: model FSM (DNS-before-cert), domains table (zone/token/certs/wildcard/budget), per-name vs wildcard cards, DDNS section, providers table, budget-rails cards"
+   ],
+   "appAhead": [
+    "write-only Cloudflare credential drop + forget (lives on Federation.vue broker-credentials section)",
+    "cert expiry inventory (lives on /operator/operations)"
+   ],
+   "notes": "No page and no route; the Home door detours to /operator/operations. The heavy backend is real \u2014 services/mesh-cert-broker (DNS-01 via Cloudflare+lego, CSR inspection, grant verification, DNS-first ordering) plus CertClient/CertGrant/BrokerAuthorization/BrokerFailover services \u2014 so this is a new read page + controller over existing services, with budget-rail/DDNS service work on top."
+  },
+  {
+   "file": "operator/identity.html",
+   "title": "Identity (G-ID)",
+   "area": "operator",
+   "areaLabel": "Operator plane",
+   "owner": "lane 2",
+   "bucket": "built",
+   "effort": "S",
+   "page": "resources/js/Pages/Operator/Identity.vue",
+   "route": "GET /operator/identity",
+   "props": "full",
+   "backend": "full",
+   "propsMissing": [],
+   "backendMissing": [],
+   "specHas": [
+    "'Enrol a device' and 'Link by possession' action buttons \u2014 enrolment is CLI-driven and POST /operator/link has no UI form on this page (app shows honest empty-state copy instead)"
+   ],
+   "appAhead": [
+    "node signing-key block (server id, Ed25519 public key, fingerprint, copy buttons, no-mint-on-read guarantee)",
+    "unminted-identity and no-devices-enrolled honest empty states"
+   ],
+   "notes": "Both mockup halves present: operator identity + device-key registry, and the citizen-standing sections (attestation FSM, three forwarded-write checks, expiry sweep, keystone) backed by real AttestationService/AttestationGate/OperatorDevice. Gap is the two in-page enrol/link actions."
+  },
+  {
+   "file": "operator/moderation.html",
+   "title": "Moderation & the legal floor",
+   "area": "operator",
+   "areaLabel": "Operator plane",
+   "owner": "lane 2",
+   "bucket": "absent",
+   "effort": "L",
+   "page": "",
+   "route": "",
+   "props": "none",
+   "backend": "partial",
+   "propsMissing": [],
+   "backendMissing": [
+    "below-the-flip operator-board relay path for rights-protection removal (no code path found; F-SOC-003 is judicial R-19/R-20 only)",
+    "an operator-plane read surface over the carve-out removal log and the F-SOC-004 sealed evidence trail"
+   ],
+   "specHas": [
+    "the entire surface: legitimacy-flip FSM + below/above cards, four-carve-outs table with logged/never-logged column, per-user-block note, M-5 legal-floor card with the closed legal_basis chips and never-does rails"
+   ],
+   "appAhead": [],
+   "notes": "No page, no route; the Home door is a dead 'Planned - Phase I' placeholder. The constitutional backends are live and correctly shaped (F-SOC-003 seals a public_records violation before soft-delete, judicial-gated; F-SOC-004 key-possession legal floor with closed enum; viewpoint removal correctly has no code path) \u2014 mostly a read/explainer page plus the operator-relay leg."
+  },
+  {
+   "file": "operator/versioning.html",
+   "title": "Versions & upgrades",
+   "area": "operator",
+   "areaLabel": "Operator plane",
+   "owner": "lane 2",
+   "bucket": "built",
+   "effort": "S",
+   "page": "resources/js/Pages/Operator/Versioning.vue",
+   "route": "GET /operator/versioning",
+   "props": "full",
+   "backend": "full",
+   "propsMissing": [],
+   "backendMissing": [],
+   "specHas": [
+    "the 'what can change' three-kind cards and the admissibility-filter FSM strip as their own sections (app carries both as copy lines inside other cards)"
+   ],
+   "appAhead": [
+    "per-proposal Meter A/B/C applies/passed detail cards",
+    "pinned-version badge with pin timestamp",
+    "operator sign-in gate"
+   ],
+   "notes": "Backend is fully real: PeerUpgradeAgreementService::assertAdmissible reuses the PROTECTED ConstitutionalValidator (hardened, ungateable), FederationSyncService pauses FF&C fail-closed on constitutional_version mismatch, and the freeze/pinning fields ship. Gap is presentational restructure only."
+  },
+  {
+   "file": "journeys/journey.html",
+   "title": "Journey \u2014 guided arc (13 journeys via ?id=)",
+   "area": "social-groups",
+   "areaLabel": "Social + groups",
+   "owner": "lanes 15 \u00b7 3",
+   "bucket": "partial",
+   "effort": "M",
+   "page": "resources/js/Pages/Civic/Journey.vue",
+   "route": "/journeys/{id}",
+   "props": "partial",
+   "backend": "partial",
+   "propsMissing": [
+    "world live state (journeyLive currentStep + snapshot/statusPill/countdown/roomVariant)",
+    "SOP 'Understand it first' content (video + standard-procedure panel)",
+    "formal-moment v1 deep-link chips (reusesV1 + tour titles)",
+    "bill deep-link section for the bill journey"
+   ],
+   "backendMissing": [
+    "world-step derivation (nothing computes where the WORLD is in an arc)",
+    "SOP/video content store",
+    "Live Civic Room (Phase 6)"
+   ],
+   "specHas": [
+    "world progress rail + live snapshot strip with countdown and step-into-the-room CTA",
+    "'Understand it first' SOP video + procedure section",
+    "live-room role cards (Where you act)",
+    "'The formal moment' deep-link chips",
+    "Now/Next world sentence (app ships only Your part)"
+   ],
+   "appAhead": [
+    "server-durable per-user progress with freeze-after-completion (mockup is localStorage, no freeze)",
+    "medal as append-only ledger event with earned date shown",
+    "planned-journey read-only guard (steps unmarkable until live)"
+   ],
+   "notes": "The personal arc (steps, durable progress, medal, earns card) conforms; the whole world-side layer (live strip, rooms) and the SOP layer are deliberately skipped in the page comment until Phase 6. Closing the SOP + deep-link gaps is one-surface work; the live-room parts wait on the Phase 6 subsystem."
+  },
+  {
+   "file": "social/profile.html",
+   "title": "Personal profile",
+   "area": "social-groups",
+   "areaLabel": "Social + groups",
+   "owner": "lanes 15 \u00b7 3",
+   "bucket": "absent",
+   "effort": "L",
+   "page": "",
+   "route": "",
+   "props": "none",
+   "backend": "partial",
+   "propsMissing": [],
+   "backendMissing": [
+    "profile read controller/service (social_profiles + social_follows tables and SocialProfile/SocialFollow models exist but no surface uses them)",
+    "follow/unfollow write endpoints",
+    "message-this-person entry point (rooms exist but are invite-link only)",
+    "Office-tab data (surgeries, constituent-request queue)"
+   ],
+   "specHas": [
+    "the entire public look-someone-up page (?who=): head with follow/message + pseudonymity choice pill + follower/group/org stats",
+    "tabs Overview/Record/Candidacy/Office assembled per subject",
+    "endorsement web + endorsement-request status table",
+    "public achievements chips on another person's profile"
+   ],
+   "appAhead": [
+    "candidacy has its own routed page /candidates/{candidacy} (Elections/CandidateProfile.vue) with race binding, F-CAN-001/002/003 writes and withdrawal",
+    "self-profile tabs live at /civic/record (Civic/MyRecord.vue) including a Settings tab the mockup lacks"
+   ],
+   "notes": "The pieces exist scattered \u2014 MyRecord covers self (overview/record/candidacy/representatives/achievements/wallet), CandidateProfile covers a candidacy, and F-CAN forms are registered with handlers \u2014 but no unifying public person profile exists, so the candidate-profile redirect stub's target is unbuilt. New page + controller over existing tables; follow/message writes are small additions."
+  },
+  {
+   "file": "social/org-profile.html",
+   "title": "Organization profile",
+   "area": "social-groups",
+   "areaLabel": "Social + groups",
+   "owner": "lanes 15 \u00b7 3",
+   "bucket": "partial",
+   "effort": "M",
+   "page": "resources/js/Pages/Organizations/OrgDetail.vue",
+   "route": "/organizations/{organization}",
+   "props": "partial",
+   "backend": "full",
+   "propsMissing": [
+    "marketplace listings (marketplace_listings scoped to the org)",
+    "job board (work_postings + apply)",
+    "org ledger balance + recent movements (economic_accounts/ledger_entries)",
+    "profile-head stat strip (listings/jobs/board-seat counts)",
+    "manage-actions cluster (post a job, manage listings, economics & shares)"
+   ],
+   "backendMissing": [],
+   "specHas": [
+    "Marketplace listings section",
+    "Job board with apply",
+    "private org-ledger card + manage economics/shares/dues link",
+    "manage-this-organization action row",
+    "avatar/stat profile head"
+   ],
+   "appAhead": [
+    "Contracts section with cosign",
+    "ownership transfer / conversion / dissolution writes (F-ORG-005/006/007)",
+    "viewer's own membership + worker status (myMembership/myWorker)",
+    "is_cgc redirect to the CGC detail page"
+   ],
+   "notes": "Governance/charter/board/endorsements/documents are the real thing and conformant; the org's ECONOMY face is absent from the page even though every table it needs (marketplace_listings, work_postings, economic_accounts, ledger_entries) shipped with the Phase L+M economy plane. Controller-side queries + new sections on one surface."
+  },
+  {
+   "file": "social/social-home.html",
+   "title": "The public square",
+   "area": "social-groups",
+   "areaLabel": "Social + groups",
+   "owner": "lanes 15 \u00b7 3",
+   "bucket": "partial",
+   "effort": "M",
+   "page": "resources/js/Pages/Civic/PublicSquare.vue",
+   "route": "/civic/square",
+   "props": "partial",
+   "backend": "partial",
+   "propsMissing": [
+    "halls presence rosters (who is here now, speaking flags, counts)",
+    "pseudonymous @u-handles + seat badges on post rows",
+    "topic tag chips",
+    "per-post room deep-links"
+   ],
+   "backendMissing": [
+    "presence read (MatrixCommonsController has no presence/membership fetch)",
+    "follow-informed feed (social_follows table exists, unwired)",
+    "seat-badge derivation for posting authors"
+   ],
+   "specHas": [
+    "'Who is in the halls right now' presence strip with live pills and step-into-the-room CTAs",
+    "@u-handle + seat-badge post rendering",
+    "tag chips",
+    "community-standards card listing the four carve-outs with the why-drawer"
+   ],
+   "appAhead": [
+    "real compose filing F-SOC-001 with jurisdiction select and a residency CTA fallback (never a 403)",
+    "thread/reply structure",
+    "flash + constitution-error banners"
+   ],
+   "notes": "The feed and the uncensorable posture are live (F-SOC-001/002 registered, carve-outs judicial-only); what is missing is the mockup's place-ness \u2014 presence, handles, seat badges, tags. Presence needs a Matrix membership read; the rest is one-surface work."
+  },
+  {
+   "file": "groups/groups-home.html",
+   "title": "Informal groups \u2014 browse & create",
+   "area": "social-groups",
+   "areaLabel": "Social + groups",
+   "owner": "lanes 15 \u00b7 3",
+   "bucket": "partial",
+   "effort": "M",
+   "page": "resources/js/Pages/Civic/PrivateRooms.vue",
+   "route": "/civic/rooms",
+   "props": "partial",
+   "backend": "partial",
+   "propsMissing": [
+    "last-message previews",
+    "unread counts",
+    "live-now pill",
+    "DM vs group kind labels on rows"
+   ],
+   "backendMissing": [
+    "unread/read-position tracking",
+    "live-presence signal for rooms"
+   ],
+   "specHas": [
+    "rich inbox rows: avatar initials, last-message preview (incl. attachment label), unread badge, live pill, kind sub-line"
+   ],
+   "appAhead": [
+    "the 'Bring people in' invite-link step (kind=space) \u2014 THE settled arrival mechanism (no user directory, by design)",
+    "owner/member role chips",
+    "opened dates"
+   ],
+   "notes": "The manifest note ('browse/join affinity groups') is stale \u2014 the mockup itself is now the MESSAGES inbox (messages-v2.js), and PrivateRooms.vue was explicitly built to that contract over SocialSpace/SocialMembership. Gap is inbox richness: previews and unread need timeline reads/counters."
+  },
+  {
+   "file": "groups/group-create.html",
+   "title": "Create a group",
+   "area": "social-groups",
+   "areaLabel": "Social + groups",
+   "owner": "lanes 15 \u00b7 3",
+   "bucket": "partial",
+   "effort": "S",
+   "page": "resources/js/Pages/Civic/PrivateRooms.vue",
+   "route": "/civic/rooms",
+   "props": "partial",
+   "backend": "full",
+   "propsMissing": [
+    "add-participants-by-@handle chip picker (deliberately replaced by invite links \u2014 no user directory, pseudonymous by design)"
+   ],
+   "backendMissing": [],
+   "specHas": [
+    "people-picker chips with DM/group auto-detection by participant count"
+   ],
+   "appAhead": [
+    "separate DM vs group create forms",
+    "immediate post-create invite-link share step landing back on the inbox"
+   ],
+   "notes": "The mockup is now 'New message' (start a DM or group). The app folds creation into the Messages inbox and swaps the handle-picker for invite links \u2014 a settled, documented divergence, not a defect. Only cosmetic alignment remains (or a dedicated /civic/rooms/new surface if strict parity is wanted)."
+  },
+  {
+   "file": "groups/group-detail.html",
+   "title": "Group home",
+   "area": "social-groups",
+   "areaLabel": "Social + groups",
+   "owner": "lanes 15 \u00b7 3",
+   "bucket": "partial",
+   "effort": "M",
+   "page": "resources/js/Pages/Civic/PrivateRoom.vue",
+   "route": "/civic/rooms/{space}",
+   "props": "partial",
+   "backend": "partial",
+   "propsMissing": [
+    "attachment chips on messages + composer toolkit (files)",
+    "live-now pill",
+    "DM-vs-group kind + 'temporary' labeling",
+    "make-this-a-standing-organization CTA target"
+   ],
+   "backendMissing": [
+    "file/media attachments through the Matrix bridge (text-only posting today)"
+   ],
+   "specHas": [
+    "composer toolkit + attachment chips in bubbles",
+    "live-now indicator",
+    "'Make this a standing organization' link into org registration"
+   ],
+   "appAhead": [
+    "member-gate locked stub for non-members",
+    "read-degrade to an empty timeline when the homeserver is down",
+    "REAL voice/video via LiveRoom + member-gated private call token",
+    "leave action",
+    "5s visibility-aware timeline polling"
+   ],
+   "notes": "The mockup is now 'Conversation' (a message thread). The app room is functionally ahead on the hard parts (real Matrix timeline, real AV, gating); the missing piece with backend weight is attachments. The standing-org CTA is a one-line link \u2014 org registration already exists."
+  },
+  {
+   "file": "social/achievements.html",
+   "title": "Achievements",
+   "area": "social-groups",
+   "areaLabel": "Social + groups",
+   "owner": "lanes 15 \u00b7 3",
+   "bucket": "absent",
+   "effort": "L",
+   "page": "",
+   "route": "",
+   "props": "none",
+   "backend": "partial",
+   "propsMissing": [],
+   "backendMissing": [
+    "view-time in-progress derivation (meters computed from own activity, never stored)",
+    "catalog + milestone-wall read surface (jurisdiction/system milestones publish via PublicRecordService but nothing renders them)"
+   ],
+   "specHas": [
+    "the entire catalog page: 4 subject tiers with ACH-* codes, earned vs locked medals, in-progress meters, global milestone wall, fence-rails card, planned banner"
+   ],
+   "appAhead": [
+    "earner-mode discipline (awardSelf/awardSubject/awardState \u2014 mismatch throws)",
+    "TIER_VERIFIED vs TIER_TOUR labeling requirement (journey ticks are self-reported walkthroughs)",
+    "append-only DB-immutable ledger sealed to the audit chain"
+   ],
+   "notes": "The manifest note 'no AchievementCatalog in code' is STALE: K-2 built AchievementCatalog (139 entries, app/Domain/Achievements/AchievementCatalog.php) + AchievementService + the append-only achievements ledger, and earned medals already render at /civic/record?tab=achievements. What's missing is the browse/catalog PAGE and the derived in-progress queries \u2014 page + controller over an existing registry."
+  },
+  {
+   "file": "social/legitimacy.html",
+   "title": "Reach",
+   "area": "social-groups",
+   "areaLabel": "Social + groups",
+   "owner": "lanes 15 \u00b7 3",
+   "bucket": "built",
+   "effort": "S",
+   "page": "resources/js/Pages/Social/Reach.vue",
+   "route": "/reach",
+   "props": "full",
+   "backend": "full",
+   "propsMissing": [],
+   "backendMissing": [],
+   "specHas": [
+    "'The fences around this number' rails card",
+    "'What it is used for' card",
+    "threshold-machinery drawer (k/exponent/floor/cap param cards + sample-population table \u2014 app ships a prose summary)",
+    "delta-over-N-days pill on the series"
+   ],
+   "appAhead": [
+    "a distinct 'capped' state that discloses the raw over-100 figure",
+    "suppression-by-subtraction protection",
+    "planet option in the picker",
+    "honest gaps (curve stops rather than showing zero)"
+   ],
+   "notes": "Essentially conformant and in places more honest than the mockup (four explicit gauge states, read-only by charter). The gaps are static copy/detail sections \u2014 no controller or backend work; legitimacy_snapshots + the activation tier curve are live."
+  },
+  {
+   "file": "shared/video-player.html",
+   "title": "Video library \u2014 the multi-track player",
+   "area": "learn-tr-support",
+   "areaLabel": "Learn \u00b7 translation \u00b7 support",
+   "owner": "lanes 5 \u00b7 15 \u00b7 6",
+   "bucket": "absent",
+   "effort": "XL",
+   "page": "",
+   "route": "",
+   "props": "none",
+   "backend": "none",
+   "propsMissing": [],
+   "backendMissing": [
+    "media storage/serving for silent-master MP4 + per-language .m4a audio + .vtt caption tracks",
+    "video catalog (titles, durations, track lists)",
+    "remembered per-user language preference for playback",
+    "player component (link audio/captions toggle, 0.3s drift correction)"
+   ],
+   "specHas": [
+    "entire surface: multi-track player with linked audio/caption selection",
+    "video library list with per-video language counts",
+    "how-the-player-works explainer",
+    "crosslink to translation status"
+   ],
+   "appAhead": [],
+   "notes": "No player component or media subsystem exists anywhere in resources/js (the only 'video' hits are LiveKit voice rooms); the sole app touchpoint is TranslationReviewService declaring audio/captions modalities as unmeasurable placeholders. Design is proven on the Coalition WP player (functions/video_player.php) but in-app this is a new subsystem."
+  },
+  {
+   "file": "learn/learn-home.html",
+   "title": "Learn \u2014 education tracks",
+   "area": "learn-tr-support",
+   "areaLabel": "Learn \u00b7 translation \u00b7 support",
+   "owner": "lanes 5 \u00b7 15 \u00b7 6",
+   "bucket": "absent",
+   "effort": "L",
+   "page": "",
+   "route": "",
+   "props": "none",
+   "backend": "none",
+   "propsMissing": [],
+   "backendMissing": [
+    "lesson/track catalog (no registry anywhere; could ship static like config/cga/journeys.php)",
+    "per-user lesson progress store",
+    "video tracks (see video-player row)"
+   ],
+   "specHas": [
+    "six-track lesson index with done-state rows and Planned pills",
+    "progress bar (n of N lessons)",
+    "featured lesson with embedded video",
+    "Tracks/Videos browse toggle",
+    "More-ways-in cards (guides, video library, translation status, external Coalition courses)"
+   ],
+   "appAhead": [],
+   "notes": "Nav already carries the slot as a phase-7 placeholder (resources/js/registry/surfaces.js:34, href:null, contract 'learn/learn-home.html'), and LearnFlyout.vue shows 'Full lessons \u2014 Planned \u00b7 Phase 7'. The journeys engine (/journeys, live) is the built half every lesson deep-links into."
+  },
+  {
+   "file": "learn/lesson.html",
+   "title": "Lesson \u2014 video + SOP + check",
+   "area": "learn-tr-support",
+   "areaLabel": "Learn \u00b7 translation \u00b7 support",
+   "owner": "lanes 5 \u00b7 15 \u00b7 6",
+   "bucket": "absent",
+   "effort": "L",
+   "page": "",
+   "route": "",
+   "props": "none",
+   "backend": "partial",
+   "propsMissing": [],
+   "backendMissing": [
+    "lesson + SOP registry (resolves ?id= / ?sop=)",
+    "knowledge-check content and grading",
+    "video tracks"
+   ],
+   "specHas": [
+    "lesson page: video, SOP panel, A/B/C quick check with explain-on-answer",
+    "'Now do it live' deep-link into the journey",
+    "up-next progression within a track"
+   ],
+   "appAhead": [],
+   "notes": "The 'Now do it live' target already exists and works \u2014 /journeys/{id} (Civic/Journey.vue, JourneysController, durable per-user completion). Everything upstream of it (lesson content, check, SOP text) has no app counterpart."
+  },
+  {
+   "file": "learn/guides.html",
+   "title": "Guides & procedures \u2014 the SOP index",
+   "area": "learn-tr-support",
+   "areaLabel": "Learn \u00b7 translation \u00b7 support",
+   "owner": "lanes 5 \u00b7 15 \u00b7 6",
+   "bucket": "absent",
+   "effort": "L",
+   "page": "",
+   "route": "",
+   "props": "none",
+   "backend": "none",
+   "propsMissing": [],
+   "backendMissing": [
+    "SOP registry (steps + rule-behind-each-step + linked video + journey id); nothing SOP-shaped exists in config/ or resources/js/registry"
+   ],
+   "specHas": [
+    "searchable SOP index grouped by module with expandable procedure panels",
+    "operator-scope pills",
+    "empty-search 'tell us what's missing' link into /support/report"
+   ],
+   "appAhead": [],
+   "notes": "Static data + one page; config/cga/journeys.php and surfaces.php are natural seeds for the registry. The 'report an issue' escape hatch it links to is already live."
+  },
+  {
+   "file": "translation/translation-home.html",
+   "title": "Translation status \u2014 languages x modalities",
+   "area": "learn-tr-support",
+   "areaLabel": "Learn \u00b7 translation \u00b7 support",
+   "owner": "lanes 5 \u00b7 15 \u00b7 6",
+   "bucket": "partial",
+   "effort": "M",
+   "page": "resources/js/Pages/System/Translations.vue",
+   "route": "GET /system/translations",
+   "props": "partial",
+   "backend": "partial",
+   "propsMissing": [
+    "verifier section props (my languages + fluency, pending contributions awaiting verification in my languages)",
+    "add-a-language CTA wiring (mockup links /support/report?ref=Add+a+language and a how-verification-works lesson)"
+   ],
+   "backendMissing": [
+    "audio/captions/education/help modalities are declared but unmeasured placeholders (produced outside the app, measurable:false)",
+    "no explicit verifier sign-up (rights derive silently from users.locale/languages)",
+    "no dedicated language-request path beyond the generic support intake"
+   ],
+   "specHas": [
+    "'Become a verifier' card: language chips from account, sign-up button, awaiting-verification list with verify/report actions",
+    "'Add a language' section with request button",
+    "how-verification-works video link (blocked on Learn)"
+   ],
+   "appAhead": [
+    "live translation run deck: per-worker table, strings/sec, ETA, in-flight strings, operator halt/resume",
+    "gate coverage artifact half: failure codes C0\u2013C7, per-locale coverage table, namespace grid, 'not measured yet' state"
+   ],
+   "notes": "The matrix, legend, six-kinds cards, lifecycle states, and engine SOP all match the mockup and are fed by real data (TranslationReviewService::MODALITIES/STATES). The one missing named group is the verifier section \u2014 one surface plus one controller prop."
+  },
+  {
+   "file": "translation/language.html",
+   "title": "Language detail \u2014 review & verify",
+   "area": "learn-tr-support",
+   "areaLabel": "Learn \u00b7 translation \u00b7 support",
+   "owner": "lanes 5 \u00b7 15 \u00b7 6",
+   "bucket": "built",
+   "effort": "S",
+   "page": "resources/js/Pages/System/TranslationReview.vue",
+   "route": "GET+POST /system/translations/review/{locale}",
+   "props": "full",
+   "backend": "full",
+   "propsMissing": [],
+   "backendMissing": [],
+   "specHas": [
+    "'Watch how verification works' lesson link and page-level report-an-issue link (More section) \u2014 blocked on Learn; the report link could point at /support/report today"
+   ],
+   "appAhead": [
+    "constitutional terms table (settle-first workflow, n of N settled, same quorum endpoint)",
+    "machine-refused quarantine badges with reasons",
+    "edit-with-your-wording flow (approve/reject/edited verdicts, edit-equals-approve collapse)",
+    "cannot-verify explainer state with how-to-join instructions"
+   ],
+   "notes": "Reader-gating, quorum (3), RTL, per-modality rows with pct+verifiers, source-beside-draft queue, and contributors all exist and are wired; the app exceeds the mockup. Only the two Learn crosslinks are absent."
+  },
+  {
+   "file": "support/report.html",
+   "title": "Report an issue",
+   "area": "learn-tr-support",
+   "areaLabel": "Learn \u00b7 translation \u00b7 support",
+   "owner": "lanes 5 \u00b7 15 \u00b7 6",
+   "bucket": "partial",
+   "effort": "M",
+   "page": "resources/js/Pages/Support/Report.vue",
+   "route": "GET /support/report",
+   "props": "partial",
+   "backend": "partial",
+   "propsMissing": [
+    "category routing metadata (routesTo, per-category notes/icons, deep links) \u2014 app ships flat id+label pairs into a select, not the mockup's radio card grid",
+    "short-summary/subject field (app has body only)",
+    "post-submit confirmation view with ticket number and follow-in-queue link (app flashes a public_id reference string)"
+   ],
+   "backendMissing": [
+    "routing/assignee on SupportReport (category is stored, routing is prose)",
+    "subject column",
+    "category taxonomies differ: mockup bug/translation/accessibility/content/abuse/idea vs app bug/question/conduct/legal/appeal/other \u2014 needs reconciliation to the spec",
+    "instance & version auto-attach (only ref is attached)"
+   ],
+   "specHas": [
+    "category card grid with live route-note per selection",
+    "abuse card styled/routed distinctly to the moderation plane with deep link",
+    "'Where a report goes' routing table",
+    "link to the ticket queue"
+   ],
+   "appAhead": [
+    "guest-view mode (see form, prompted to log in)",
+    "F-SOC-003 carve-out plain-words note on conduct/legal categories",
+    "flash reference number for follow-up"
+   ],
+   "notes": "The intake works end-to-end (validated store, public_id, ref sanitization) and self-describes as 'deliberately simple \u2014 restyled in a later phase'. Closing it is one-surface rework plus reconciling the category taxonomy to the spec; the queue link lands with the tickets row."
+  },
+  {
+   "file": "support/tickets.html",
+   "title": "Tickets \u2014 the queue",
+   "area": "learn-tr-support",
+   "areaLabel": "Learn \u00b7 translation \u00b7 support",
+   "owner": "lanes 5 \u00b7 15 \u00b7 6",
+   "bucket": "absent",
+   "effort": "L",
+   "page": "",
+   "route": "",
+   "props": "none",
+   "backend": "partial",
+   "propsMissing": [],
+   "backendMissing": [
+    "severity",
+    "votes ('affects me too')",
+    "assignee/routed-to",
+    "open-count aggregates and a visibility policy (who may browse the queue)"
+   ],
+   "specHas": [
+    "entire queue surface: status filter (open collapses new/triaged/in_progress) + category filter",
+    "severity dots",
+    "vote counts",
+    "status pills and updated-relative times",
+    "report CTA"
+   ],
+   "appAhead": [],
+   "notes": "supports_reports rows exist with category, status (open/triaged/closed), reporter, ref, timestamps \u2014 a browsable queue is a new page + controller + small schema additions on top. No ticket-shaped UI exists anywhere (Operator pages have zero support mentions)."
+  },
+  {
+   "file": "support/ticket.html",
+   "title": "Ticket detail",
+   "area": "learn-tr-support",
+   "areaLabel": "Learn \u00b7 translation \u00b7 support",
+   "owner": "lanes 5 \u00b7 15 \u00b7 6",
+   "bucket": "absent",
+   "effort": "L",
+   "page": "",
+   "route": "",
+   "props": "none",
+   "backend": "partial",
+   "propsMissing": [],
+   "backendMissing": [
+    "ticket thread/status-history events",
+    "replies",
+    "+1 votes",
+    "routing/assignee display",
+    "linked translation-review reference (code+modality) and moderation-plane carve-out note fields"
+   ],
+   "specHas": [
+    "detail surface: report body, meta strip (reporter/routed-to/opened/updated/page)",
+    "status thread timeline",
+    "reply box and 'this affects me too'",
+    "route-note blocks linking the translation review queue or the moderation & legal plane"
+   ],
+   "appAhead": [],
+   "notes": "Only the intake row exists; the lifecycle after filing (thread, replies, votes, crosslinks) has no tables, controller, or page. The translation crosslink target (/system/translations/review/{code}?m=) already exists, so linkage is a foreign key + render once the page is built."
+  },
+  {
+   "file": "index.html",
+   "title": "Launchpad \u2014 the five interaction classes + journey directory",
+   "area": "shared",
+   "areaLabel": "Shared front doors",
+   "owner": "lane 6",
+   "bucket": "partial",
+   "effort": "M",
+   "page": "resources/js/Pages/Home.vue",
+   "route": "/",
+   "props": "none",
+   "backend": "partial",
+   "propsMissing": [
+    "doors grid",
+    "live-room variant directory",
+    "journey directory with progress rails",
+    "interaction classes",
+    "learn/help links",
+    "operator door",
+    "tour CTA"
+   ],
+   "backendMissing": [
+    "live-room fused variants (contract agent)",
+    "atlas target for the Atlas door",
+    "learn module (phase 7)"
+   ],
+   "specHas": [
+    "hero + four arrival doors",
+    "eight live-room variant cards",
+    "journey directory with progress rails and passes-through room chips",
+    "five interaction-class explainer grid",
+    "learn/translate/support link grid",
+    "operator-plane door",
+    "Start-the-tour bar"
+   ],
+   "appAhead": [
+    "setup gating \u2014 / redirects to /setup on an unfounded instance",
+    "authenticated redirect to /civic"
+   ],
+   "notes": "Home.vue is a bare placeholder (one h1 + setup gate); all the launchpad's data sources already exist app-side (journeys engine at /journeys, TOUR + room registry in resources/js/registry/surfaces.js), so this is one landing surface built over existing registries."
+  },
+  {
+   "file": "atlas.html",
+   "title": "The Atlas \u2014 public, game-wide heartbeat dashboard",
+   "area": "shared",
+   "areaLabel": "Shared front doors",
+   "owner": "lane 6",
+   "bucket": "absent",
+   "effort": "XL",
+   "page": "",
+   "route": "",
+   "props": "none",
+   "backend": "partial",
+   "propsMissing": [],
+   "backendMissing": [
+    "atlas aggregation endpoint/service (no Atlas code anywhere in app/)",
+    "opt-in approximate-position store for the people layer (location_pings are private, unusable as-is)",
+    "node lat/long + public nodes directory",
+    "reach/legitimacy metrics (display-only, phase 7)"
+   ],
+   "specHas": [
+    "living dotted world map with four toggleable layers (nodes/people/orgs/places)",
+    "put-yourself-on-the-map opt-in + privacy banner",
+    "nine-domain vital-signs grid (world, reach, representation, executive, judiciary, organizations, economy, people, mesh)",
+    "growth sparklines",
+    "nodes-and-operators directory",
+    "calls to action"
+   ],
+   "appAhead": [],
+   "notes": "PLAYER_NAV pins it as href:null phase 7. Most vital signs are now computable from live tables (economy included since L+M shipped), but the public aggregation surface, the opt-in people layer, and node geodata are new subsystems. Screen-specific chrome: main--wide full-bleed map card."
+  },
+  {
+   "file": "tour.html",
+   "title": "Guided tour \u2014 the linear walkthrough",
+   "area": "shared",
+   "areaLabel": "Shared front doors",
+   "owner": "lane 6",
+   "bucket": "absent",
+   "effort": "M",
+   "page": "",
+   "route": "",
+   "props": "none",
+   "backend": "full",
+   "propsMissing": [],
+   "backendMissing": [],
+   "specHas": [
+    "the tour directory PAGE (act-grouped list of every stop + start CTA)",
+    "the ten-stop first-visit track",
+    "stop coverage: mockup walks 35 stops, app TOUR registry wires 21 across the same 8 acts (grows as phases land)"
+   ],
+   "appAhead": [],
+   "notes": "Tour-as-a-MODE is already fully live app-side (composables/useTour.js, Components/ShellV2/TourBar.vue, TOUR in registry/surfaces.js, menu special-case tour:start, shareable ?step=N) \u2014 only the directory page that lists and launches it is missing. Pure client page over the existing registry; no controller logic needed."
+  },
+  {
+   "file": "shared/live-room.html",
+   "title": "Live Civic Room \u2014 the keystone (8 variants via ?variant=)",
+   "area": "shared",
+   "areaLabel": "Shared front doors",
+   "owner": "lane 6",
+   "bucket": "partial",
+   "effort": "XL",
+   "page": "resources/js/Pages/Legislature/SessionConsole.vue (+ Civic/MatrixCommons.vue, Judiciary/CaseDetail.vue, Organizations/BoardElections.vue)",
+   "route": "/legislatures/{legislature}/session \u00b7 /civic/commons/square|halls \u00b7 /cases/{case} \u00b7 /organizations/{organization}/board-elections",
+   "props": "n/a",
+   "backend": "n/a",
+   "propsMissing": [],
+   "backendMissing": [],
+   "specHas": [
+    "the fused 8-variant room itself \u2014 constituent surfaces exist separately"
+   ],
+   "appAhead": [],
+   "notes": "Owned by the dedicated live-room contract agent \u2014 facts only here. All listed form families (F-SPK-001..009, F-CHR-001..004, F-LEG, F-JDG, F-ORG, F-SOC) verified present in FormRegistry.php."
+  },
+  {
+   "file": "shared/bill.html",
+   "title": "A bill \u2014 the conversation",
+   "area": "shared",
+   "areaLabel": "Shared front doors",
+   "owner": "lane 6",
+   "bucket": "absent",
+   "effort": "L",
+   "page": "",
+   "route": "",
+   "props": "none",
+   "backend": "partial",
+   "propsMissing": [],
+   "backendMissing": [
+    "clause-level redline negotiation model (negotiate-v2's propose/counter flow has no server analog \u2014 only whole-version amendments + server TextDiff)"
+   ],
+   "specHas": [
+    "a unified conversation page: plain-words summary + stage rail",
+    "inline public comment composer on the bill",
+    "clause redline negotiation UI",
+    "watch-the-floor live-room link"
+   ],
+   "appAhead": [
+    "bill talk exists but lives in the auto-bound hall subforum (SubforumReconciler binds every live bill; F-SOC-001 posts) rather than on a bill page",
+    "the formal record (Legislature/BillDetail.vue at /bills/{bill}) carries versions, server-computed diffs, and dual-agreement meters"
+   ],
+   "notes": "The mockup itself splits conversation from the formal record; the app built only the formal half. A conversation page could compose existing pieces (bill lifecycle, hall subforum thread, TextDiff) \u2014 the clause negotiation backend is the genuinely new part."
+  },
+  {
+   "file": "shared/coverage.html",
+   "title": "v2 coverage \u2014 meeting types \u00d7 journeys \u00d7 interaction classes \u00d7 mechanics",
+   "area": "shared",
+   "areaLabel": "Shared front doors",
+   "owner": "lane 6",
+   "bucket": "absent",
+   "effort": "S",
+   "page": "",
+   "route": "",
+   "props": "n/a",
+   "backend": "partial",
+   "propsMissing": [],
+   "backendMissing": [
+    "no rendered coverage instrument and no automated registry\u2194contract drift test (SurfaceMeta::ids() exists 'for the registry cross-check test' but none found)"
+   ],
+   "specHas": [
+    "live coverage report over rooms/classes/journeys/mechanics"
+   ],
+   "appAhead": [
+    "registry/surfaces.js carries a contract: key per entry precisely so it can be diffed against the 107-screen manifest"
+   ],
+   "notes": "QA instrument \u2014 judged as equivalence, not parity. The surface registry exists (resources/js/registry/surfaces.js + config/cga/surfaces.php); what's missing is the instrument that proves coverage, cheapest as a test asserting every manifest screen has a registry entry."
+  },
+  {
+   "file": "shared/coverage-ops.html",
+   "title": "Coverage matrix \u2014 roles \u00d7 workflows \u00d7 forms",
+   "area": "shared",
+   "areaLabel": "Shared front doors",
+   "owner": "lane 6",
+   "bucket": "absent",
+   "effort": "S",
+   "page": "",
+   "route": "",
+   "props": "n/a",
+   "backend": "partial",
+   "propsMissing": [],
+   "backendMissing": [
+    "no roles\u00d7workflows\u00d7forms matrix view or report",
+    "no dead-link/manifest-drift scan analog"
+   ],
+   "specHas": [
+    "the regenerated-on-load matrix instrument"
+   ],
+   "appAhead": [
+    "config/cga/surfaces.php entries carry roles/workflows/forms per surface; FormRegistry is canonical with the 111-form count pinned in AuditChainSmokeTest; SurfaceMeta throws on unknown surface ids (enforced, not logged)"
+   ],
+   "notes": "QA instrument. The axes and the fill both exist as machine data app-side; only the matrix renderer/test over them is absent."
+  },
+  {
+   "file": "shared/styleguide.html",
+   "title": "Style guide \u2014 live component sheet",
+   "area": "shared",
+   "areaLabel": "Shared front doors",
+   "owner": "lane 6",
+   "bucket": "built",
+   "effort": "S",
+   "page": "resources/js/Pages/Dev/LegislatureKit.vue (+ ElectoralKit, ExecutiveOrgKit, JudiciaryKit)",
+   "route": "/dev/legislature-kit, /dev/electoral-kit, /dev/executive-kit, /dev/judiciary-kit",
+   "props": "full",
+   "backend": "n/a",
+   "propsMissing": [],
+   "backendMissing": [],
+   "specHas": [
+    "one consolidated all-component sheet",
+    "RTL/pseudo-locale canary block",
+    "flow-stepper contract stress test against the three sample workflows"
+   ],
+   "appAhead": [
+    "kits render every component STATE from extracted fixtures with provenance, per phase"
+   ],
+   "notes": "QA instrument \u2014 the four dev-gated component kits are the app's live component sheet, split by phase instead of one page. Dev-gating is appropriate for a build-team instrument."
+  },
+  {
+   "file": "shared/clocks.html",
+   "title": "Clocks & triggers",
+   "area": "shared",
+   "areaLabel": "Shared front doors",
+   "owner": "lane 6",
+   "bucket": "built",
+   "effort": "S",
+   "page": "resources/js/Pages/System/Clocks.vue",
+   "route": "/system/clocks",
+   "props": "full",
+   "backend": "full",
+   "propsMissing": [],
+   "backendMissing": [],
+   "specHas": [
+    "public read \u2014 the app route sits in the auth-gated /system group while the mockup is a public governance-register reference page"
+   ],
+   "appAhead": [
+    "LIVE armed-timers column (count + soonest real fires_at per clock)",
+    "due-now overdue-timer fault indicator",
+    "playtest advance-N-days dry-run preview (only when dev time controls enabled)"
+   ],
+   "notes": "The one fully conformant shared surface: all mockup columns (name/type/default/amendable/fires/basis), the three stats, family grouping, and the Reading-the-registry + About sections are shipped, and the app exceeds the spec with live scheduler state. Only open point is dropping the auth gate for public read."
+  },
+  {
+   "file": "shared/constitutional-questions.html",
+   "title": "Constitutional questions \u2014 the implementation ledger",
+   "area": "shared",
+   "areaLabel": "Shared front doors",
+   "owner": "lane 6",
+   "bucket": "absent",
+   "effort": "M",
+   "page": "",
+   "route": "",
+   "props": "none",
+   "backend": "n/a",
+   "propsMissing": [],
+   "backendMissing": [],
+   "specHas": [
+    "the ledger page: seven entries (q1\u2013q7) with preserved anchors, maintained-ledger banner, status legend, how-an-entry-lands section",
+    "the site-wide 'as implemented' citation markers resolving to its anchors"
+   ],
+   "appAhead": [],
+   "notes": "The app already anticipates it: Components/Ui/CitationLine.vue takes an anchor prop documented as '/system/constitutional-questions#q2', but no such route or page exists \u2014 any anchor passed today would 404. Static content page; copy is fully authored in the mockup."
+  },
+  {
+   "file": "shared/accessibility.html",
+   "title": "Accessibility statement",
+   "area": "shared",
+   "areaLabel": "Shared front doors",
+   "owner": "lane 6",
+   "bucket": "absent",
+   "effort": "M",
+   "page": "",
+   "route": "",
+   "props": "none",
+   "backend": "n/a",
+   "propsMissing": [],
+   "backendMissing": [],
+   "specHas": [
+    "the statement page (what-is-built-in with WCAG citations, known limitations, feedback path)",
+    "footer link from every page",
+    "per-locale republication of the statement"
+   ],
+   "appAhead": [],
+   "notes": "registry/surfaces.js lists it href:null phase 7 (contract shared/accessibility.html). Static content page \u2014 no controller logic beyond a SurfaceMeta entry; the per-locale republication rides the existing i18n catalog machinery."
+  },
+  {
+   "file": "organizations/board-elections.html",
+   "title": "Board elections",
+   "area": "organizations",
+   "areaLabel": "Organizations",
+   "owner": "lanes 13 \u00b7 14",
+   "bucket": "partial",
+   "effort": "M",
+   "page": "resources/js/Pages/Organizations/BoardElections.vue",
+   "route": "GET /organizations/{organization}/board-elections",
+   "props": "partial",
+   "backend": "partial",
+   "propsMissing": [
+    "nomination-window phase (window dates/length, nominee accept-decline state) \u2014 no prop group exists for it"
+   ],
+   "backendMissing": [
+    "Org-configurable nomination-window setting (mockup: a role-gated org-settings dial, 10 days; no org_settings storage exists)",
+    "Third-party nomination with open accept/decline (app candidacy is self-declared via the generic election flow)"
+   ],
+   "specHas": [
+    "'Before the count \u2014 open nomination window' section: phase state strip (nominations \u2192 ranking \u2192 count) plus the note that the window length is an org-level setting linked to org settings"
+   ],
+   "appAhead": [
+    "R-23 administration actions (provision board, schedule owner/worker elections, certify) via F-ORG-003/004",
+    "Live-election links to the real Phase B ballot surfaces + electorate counts",
+    "Composition-invalid warning, chair pending_reason=composition_changed banner, and no-board empty state"
+   ],
+   "notes": "Both STV tracks, the joint chair RCV round record, and the seated BoardStrip are real engine reads (F-ORG-003/004 registered, handlers wired); the chair two-round stepper is demo theater the app correctly replaces with the certified record. The only substantive gap is the nomination-window concept, which needs an org-settings dial that has no backend."
+  },
+  {
+   "file": "organizations/cgc-detail.html",
+   "title": "Common Good Corporation \u2014 Mecklenburg Water & Power",
+   "area": "organizations",
+   "areaLabel": "Organizations",
+   "owner": "lanes 13 \u00b7 14",
+   "bucket": "built",
+   "effort": "S",
+   "page": "resources/js/Pages/Organizations/CgcDetail.vue",
+   "route": "GET /organizations/{organization}/cgc",
+   "props": "full",
+   "backend": "full",
+   "propsMissing": [],
+   "backendMissing": [],
+   "specHas": [
+    "Header stat cluster tiles for appointed-governor count and chartered year (both values exist in shipped props \u2014 codet.ownerSeats, charter.effective_at \u2014 just not surfaced as stats)"
+   ],
+   "appAhead": [
+    "Append-only IP dedication FormCard (R-18/R-23, deliberately no status field) posting to /ip-register",
+    "Conversion-history LifecycleTracker from org_conversions",
+    "BoardStrip seat-level composition with CLK-09/CLK-10 term clocks",
+    "Reorg/sale bill deep link into the real bill flow"
+   ],
+   "notes": "Best-conforming screen in the module: charter/oversight/co-det/IP-register all real (F-LEG-019 + CgcIpRegisterService, pinned append-only). One fidelity nit: CgcController::codetProps hardcodes thresholds 100/2000 instead of resolving CLK-13/14 (acknowledged in a code comment) \u2014 stale if ever amended."
+  },
+  {
+   "file": "organizations/co-determination.html",
+   "title": "Worker seats on the board",
+   "area": "organizations",
+   "areaLabel": "Organizations",
+   "owner": "lanes 13 \u00b7 14",
+   "bucket": "built",
+   "effort": "S",
+   "page": "resources/js/Pages/Organizations/CoDetermination.vue",
+   "route": "GET /organizations/co-determination",
+   "props": "full",
+   "backend": "full",
+   "propsMissing": [],
+   "backendMissing": [],
+   "specHas": [
+    "Below-threshold entities with no board (mockup's Northstar row, 'below 100 workers') never appear \u2014 the applies-equally table reads only live boards rows"
+   ],
+   "appAhead": [
+    "CLK-13/14 enacting-act provenance (setting_changes ledger link vs the mockup's static 'Template default' line)",
+    "composition_valid warnings with worker-track election links on applies rows",
+    "?org= live binding of the meter to real orgs AND departments"
+   ],
+   "notes": "Full conformance on the essentials: interactive CoDetScale slider with the live substituted formula receipt (verified in the component), applies-equally table across all three board kinds, CLK-13/14 amendable cards resolved through SettingsResolver. Only divergence is deliberate live-data posture (no fixture rows for orgs without boards)."
+  },
+  {
+   "file": "organizations/org-registry.html",
+   "title": "Organization registry",
+   "area": "organizations",
+   "areaLabel": "Organizations",
+   "owner": "lanes 13 \u00b7 14",
+   "bucket": "partial",
+   "effort": "S",
+   "page": "resources/js/Pages/Organizations/Registry.vue",
+   "route": "GET /organizations",
+   "props": "partial",
+   "backend": "full",
+   "propsMissing": [
+    "Per-row monopoly-acquisition-pending flag (mockup's 'monopoly finding pending' badge on Cobalt Grid; org_conversions has the data but registryRow never joins it)"
+   ],
+   "backendMissing": [],
+   "specHas": [
+    "'Endorsing only' chip toggle (endorsement_count is already shipped \u2014 client-side filter)",
+    "'Start a club' lightweight two-field quick form (F-IND-012 with type=informal covers the write; the shortcut surface is absent)",
+    "Monopoly-finding-pending row badge",
+    "'No special party privileges' info banner citing ledger #1"
+   ],
+   "appAhead": [
+    "Structure and jurisdiction filters",
+    "Status column with tones + CGC tag routing to the canonical CGC page",
+    "Residency CTA replacing the form when the viewer lacks R-03",
+    "Empty-registry banner and CLK-13-resolved (not hardcoded) threshold in the stat label"
+   ],
+   "notes": "Registry, stats, filters, F-IND-012 FormCard, and the ESM-18 StateStrip are all live; gaps are copy/props-level (a toggle, a banner, a quick-form variant, one flag join). Registered-in shows as an AdmChip under the name rather than the mockup's dedicated column \u2014 equivalent information."
+  },
+  {
+   "file": "organizations/transfers-conversions.html",
+   "title": "Ownership changes",
+   "area": "organizations",
+   "areaLabel": "Organizations",
+   "owner": "lanes 13 \u00b7 14",
+   "bucket": "partial",
+   "effort": "L",
+   "page": "resources/js/Pages/Organizations/TransfersConversions.vue",
+   "route": "GET /organizations/transfers-conversions",
+   "props": "partial",
+   "backend": "partial",
+   "propsMissing": [
+    "restructurings \u2014 hardcoded [] in the controller (no data source); structureHistory on OrgDetail's OwnershipPanel is likewise hardcoded []"
+   ],
+   "backendMissing": [
+    "Internal-restructuring write path: no form/handler for private-side structure conversion (sole prop \u2194 partnership \u2194 equal partnership \u2194 member-owned \u2194 stock) with consent per the current structure's own rules, and no structure-history storage. F-ORG-005/006/007 + F-LEG-026/027 are all registered with handlers."
+   ],
+   "specHas": [
+    "The entire internal-restructuring form (org + target structure + consent meter enforcing the structure's own rule, e.g. partnership unanimity) \u2014 the app renders only an empty table with a gloss",
+    "Dissolution 'obligations settled' confirmation checkbox"
+   ],
+   "appAhead": [
+    "Live transfer register with the two-step consent model (initiate = from-side consent, transferee consents via its own POST \u2014 stronger than the mockup's two checkboxes on one form) + FF&C sync column",
+    "Real acquisition register: VoteTally off chamber_votes, compensation-vs-floor readout, founding-governor-offer table",
+    "F-LEG-026/027 deep links into the actual bill flow rather than static form cards"
+   ],
+   "notes": "Four of the five ownership paths are fully wired end-to-end through the engine; the fifth (internal restructuring) is display-scaffolded but has no write path \u2014 closing it means a new engine form/action, per-structure consent logic, structure-history storage, and a deliberate bump of the pinned form count in AuditChainSmokeTest. The mockup's single-form dual-consent checkboxes should NOT be copied; the app's two-party consent model is the correct implementation of 'mutual consent is mandatory'."
+  }
+ ]
+}
