@@ -723,6 +723,10 @@ Route::middleware('auth')->group(function () {
         ->whereUuid('legislature')->name('committees.assign');                // F-SPK-005
     Route::get('/committees/{committee}', [\App\Http\Controllers\Legislature\CommitteeController::class, 'show'])
         ->whereUuid('committee')->name('committees.show');
+    // Slice 6 — THE LIVE CIVIC ROOM (committee variant; the exit-test path). Public
+    // gallery read — a committee hearing is a public proceeding (Art. II §2).
+    Route::get('/rooms/committee/{meeting}', [\App\Http\Controllers\Rooms\LiveRoomController::class, 'committee'])
+        ->whereUuid('meeting')->name('rooms.committee')->withoutMiddleware('auth');
     Route::post('/committees/{committee}/meetings', [\App\Http\Controllers\Legislature\CommitteeController::class, 'storeMeeting'])
         ->whereUuid('committee')->name('committees.meetings');                // F-CHR-001
     Route::post('/meetings/{meeting}/agenda', [\App\Http\Controllers\Legislature\CommitteeController::class, 'meetingAgenda'])
