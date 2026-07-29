@@ -294,6 +294,17 @@ The insertion-count compare is the alarm that caught sweep #4 in minutes (staged
 committed +1332). If counts differ: soft-reset, rebuild the index, recommit — never push the
 swept commit, never rewrite a pushed one.
 
+Two corollaries from sweep #5 (same night, same mechanism, lane 2):
+- **Remediation resets target the EXACT hash, never HEAD~N** — `git reset --soft HEAD~1`
+  undid the DESK's newer commit because one had landed on top between lane 2's commit and
+  its remediation. `git log` first; `git reset --soft <the-hash-you-mean>`.
+- **A sweep that references a peer's UNTRACKED files is a time bomb on origin**: any push
+  (by anyone — pushes publish the whole branch) ships routes pointing at classes that do
+  not exist, breaking every fresh checkout until the peer commits. If your sweep carried
+  references to untracked files, say so IMMEDIATELY — the fix is the peer committing a
+  loadable state fast, not holding pushes (someone else's push will carry your commit out
+  anyway, which is exactly what happened).
+
 ### ⚑ THREE HOT FILES — `git diff` before you touch them
 ```
 CLAUDE.md · routes/web.php · app/Domain/Forms/FormRegistry.php

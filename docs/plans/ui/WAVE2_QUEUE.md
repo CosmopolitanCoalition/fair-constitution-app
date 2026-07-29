@@ -90,6 +90,15 @@ Stage-two grouping over the adjacency graph (even clumps, compact, no geometry c
 ~9,708 flagged chambers. Named plan item per the operator; the campaign's resume point;
 Type B election playtesting stays blocked fleet-wide until it ships.
 
+## Attribution corrections (permanent record — history is never rewritten)
+
+- **`7721372`** (lane 2, "the four jurisdiction lifecycle pages") also carries, swept by the
+  pathspec-commit trap: lane 15's `/people` + `/achievements` routes, the `social/profile`
+  surface record, the achievements nav flip, the `/candidates` 302 forwarder; and lane 4's
+  simworld route block. Treat those hunks as lanes 15/4's work. (Sweep #5; law v2 + corollaries
+  in FLEET_CONTEXT. The referenced controllers landed in `3f81290`, closing the broken-origin
+  window; the desk's push carried both.)
+
 ## Suite triage at Wave 1 close (lane 4's checkpoint, 2026-07-29 — 22 failures, four families)
 
 | Family | Tests | Cause | Owner / remedy |
