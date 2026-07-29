@@ -1,7 +1,7 @@
 {
  "asOf": "2026-07-29",
- "commit": "20e01ab",
- "wave": "Wave 1 in flight \u2014 lane 6 shell DONE (9 commits) \u00b7 lane 4 D1\u2013D3+D6 landed \u00b7 lane 15 Learn flyout live",
+ "commit": "9ac567f",
+ "wave": "WAVE 1 COMPLETE \u2014 shell (lane 6, 9 commits) \u00b7 demo mode D1\u2013D7 (lane 4, 7 commits) \u00b7 learn payload (lane 15, 5 commits) \u00b7 awaiting the operator Wave 2 review",
  "rows": [
   {
    "file": "civic/join.html",

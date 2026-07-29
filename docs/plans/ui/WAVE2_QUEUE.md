@@ -53,6 +53,16 @@ Wave 2 marching order. Nothing here is an order yet.*
   as public). Likely data-dependent (no judiciary in the viewer's chain) — belongs on the
   walk list either way.
 
+## Suite triage at Wave 1 close (lane 4's checkpoint, 2026-07-29 — 22 failures, four families)
+
+| Family | Tests | Cause | Owner / remedy |
+|---|---|---|---|
+| Class-refusal | PeerTransportLearning ×3, CapabilityRegistry ×1 (+feeds autonomy stack) | the box is `instance_class=scale_demo`; fixtures fake peers advertising NO class, the SYMMETRIC rule refuses — pin firing on borrowed fixtures | lane 2: fixture-scoped `InstanceClass::override`; no rail weakened |
+| Fixture-borrows-the-world | AutonomyFlipRewraps ×5 + LocalAutonomyGoverned, AutoscalePin ×3, RemainderSynthesis ×3, ManualDistrictDraw ×1, LegalCompliance ×1 | the filled, now TIME-TRAVELED shared world | lanes 1/2/3 per surface (the documented class) |
+| Order-dependence | MatrixCarveoutEmitter, ModerationFlip | pass isolated; documented | unowned, known |
+| Real findings | LedgerIntegrity: `TreasuryDemoCommand` + `EconomyController` write `ledger_entries` outside `LedgerService` (predates Wave 1) | writer-or-heuristic call | lane 13 |
+| ~~CgcIpPublicDomain~~ | ~~grant drift + catalog reference~~ | **CLOSED at the desk (`9ac567f`)** — born-failing grant revocation written as a real migration; doc-string false positive renamed; 6/6 green | — |
+
 ## ⚖ Operator items accumulated during Wave 1
 
 - **Art. I elected-training-gate placement** (K2_ENGINE_PLAN §10.7, lane 15): pre-ballot
