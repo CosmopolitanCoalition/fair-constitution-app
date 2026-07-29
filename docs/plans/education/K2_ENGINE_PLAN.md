@@ -314,6 +314,30 @@ own instruction:**
 - **Countback replacements** seat normally and meet the same act-gate. The countback
   remains pure vacancy machinery with no training trigger of any kind.
 
+**§5.2 REGISTRATION-DAY REVIEW — `seat_training_window_days` (Wave 4 §④, 2026-07-29).** The
+Wave 2 close scheduled a formal review of this amendable setting for registration day (when
+the `config/cga/education.php` role→track map settles). Conducted now; the finding is
+**CONFIRMED RETIRED and this review closes it — do not re-open without an operator ruling
+that reverses A5:**
+
+- **It was never born.** A repo-wide search finds `seat_training_window_days` in DESIGN
+  PROSE only (this plan, `DESK_LEDGER`, `V3_SYNTHESIS_PLAN` A5) and NOWHERE in code — not
+  `config/cga`, not the `constitutional_settings` amendable table, not a migration, not a
+  test. There is nothing to remove; there is only a name to keep un-minted.
+- **A5 removed the need.** A window is a countdown to a penalty — lose the seat if untrained
+  by day N. The act-gate has no penalty and no clock: acquiring a role is free and
+  permanent, and the FIRST gated act (day 1 or day 400) redirects to Learn and proceeds on
+  passing. "Train within N days or else" is precisely the pre-seating deadline A5 deleted; a
+  window would re-introduce it.
+- **Its two real concerns already have homes** (recorded above, not re-derived): the
+  never-trains seat-holder → ordinary vacancy machinery (F-LEG-036, absence/removal, the
+  next election); the seated-but-untrained quorum question → "seated = serving,
+  unconditionally." Neither needs a window.
+- **Outcome:** `seat_training_window_days` stays unregistered. Re-introducing any
+  training-deadline setting changes what the constitution requires — it would let a role be
+  lost for a reason Art. I does not name — so it is the operator's pen, never a design
+  choice. §④ closed.
+
 **A REDIRECT NEEDS A DESTINATION (build ruling, 2026-07-29 — the availability
 precondition):** the gate is lawful because the training is *"free, in-app, and minutes
 long — a non-barrier by construction."* Until a LIVE track with a live module is actually
