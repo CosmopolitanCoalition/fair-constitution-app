@@ -121,7 +121,11 @@ class HomeController extends Controller
             'stats'        => [
                 'record_entries' => DB::table('audit_log')->where('actor_user_id', (string) $user->id)->count(),
                 'associations'   => count($associations),
-                'ballots_cast'   => 0, // Phase B
+                // Art. II ballot secrecy · PI-2: counted from ballot_envelopes
+                // (carries user_id), NEVER from ballots (carries none). Kept in
+                // lockstep with MyRecordController so the two surfaces agree.
+                'ballots_cast'   => DB::table('ballot_envelopes')
+                    ->where('user_id', (string) $user->id)->count(),
                 'petitions'      => count($petitions),
             ],
             'elections' => $elections,

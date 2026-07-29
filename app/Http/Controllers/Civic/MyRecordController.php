@@ -164,7 +164,11 @@ class MyRecordController extends Controller
                 'record_entries' => DB::table('audit_log')->where('actor_user_id', $userId)->count(),
                 'associations'   => count($associations),
                 'qualifying_days'=> $qualifyingDays,
-                'ballots_cast'   => 0, // Phase B
+                // Art. II ballot secrecy · PI-2: participation is counted from
+                // ballot_envelopes, which carries user_id, and NEVER from
+                // ballots, which deliberately carries none. This proves THAT
+                // you voted; nothing here can reveal how.
+                'ballots_cast'   => DB::table('ballot_envelopes')->where('user_id', $userId)->count(),
             ],
             'profile' => [
                 'display_name' => $user->display_name,
