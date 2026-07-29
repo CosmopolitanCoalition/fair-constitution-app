@@ -342,6 +342,20 @@ invited check ("check me on it") found: the engine already seats islands via the
 sound iff both clips hold; antimeridian guarding is real and already precedented; and
 hull-CONTACT adjacency for GROUPING reduces to a buffered proximity graph (hulls of separated
 islands never touch — the buffer distance d becomes a free parameter controlling everything).
+**Lane 13 DELIVERED (eaabedb, DESIGN_ROUND_2.md, 529 lines, docs only, sweep-clean despite ~14
+dirty peer files): four surfaces designed OPTIONS+COSTS+REC; 11-decision matrix + 2
+cross-cutting rulings (A: separate the controller / fold the telemetry; B: equity on the NAMED
+ownership plane, money legs account-scoped — a genuine privacy ruling, flagged not settled)
+QUEUED TO THE OPERATOR — formatted in the desk chat. ID reconciliation done in-doc (registry
+is 115 live; F-IND-019 is Work Application, NOT free; free = F-IND-018/020/021, F-ORG-008,
+F-TRE-001..004, F-LEG-037..040 — re-verify at build time). Headline design calls: NO matching
+engine (ride the shipped list→order→settle rail; order book = honest chrome); NO dues
+scheduler (dues = recurring org_contract + honest absence); one shared clause/redline model
+with TWO authority adapters (bilateral consent for agreements; motion+chamber-vote for bills;
+BillVersion stays whole-text); Art. I floor = structured rights-tags refuse pre-commit +
+void-in-part backstop with the honest limit STATED (prose cannot be proven rights-safe).
+NOTHING BUILDS until the operator rules; build order on ruling = substrated pieces first.**
+
 **Lane 4 DELIVERED (6b33e19, docs only, sweep-clean): SERVICE_SCALE_FORMULA.md (cited —
 Taagepera cube-root, CEPEJ ~22 judges/100k, House/Senate committee ratios, civic-center
 1/25–100k; extends the EXISTING InstitutionScaleService, defers to the two cube-roots;
