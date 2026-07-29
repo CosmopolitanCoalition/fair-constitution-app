@@ -759,3 +759,31 @@ lane 4's parity pin depends on lane 3's statics being COMMITTED first (uncommitt
 counting pin, run the FULL suite — verify the cross-lane "zero counting change" + "SQL mirror ==
 PHP" claims by EXECUTION, not by trusting the ping-pong. (Standing: verify the diagnosis, don't
 infer it.)
+
+### W4 tick 3b — CORRECTION: 37b7a64 swept in lane 3's WIP (shared-index race, desk error)
+
+**WHAT HAPPENED:** the tick-3 ledger commit `37b7a64` accidentally captured lane 3's uncommitted
+work — `app/Services/InstitutionScaleService.php` (107) + `tests/Constitutional/InstitutionScaleTest.php`
+(91), the four §8 formula statics. A plain no-pathspec commit swept the WHOLE shared index while
+lane 3's files were staged in it. Desk error.
+
+**VERIFIED, nothing broken:** ran the test against the committed code → PASS, 13 tests / 101
+assertions, GREEN. Lane 3's working tree is clean for both files (full content committed, no
+fragment, nothing dangling). Index now empty.
+
+**DISPOSITION:** NOT rewriting history (other lanes have pulled 37b7a64) — the commit stands.
+Lane 3 + lane 4 both informed. Silver lining: lane 4's parity-pin dependency (needs lane 3's
+statics committed) is now satisfied EARLY. Mis-attribution (lane 3's code under a desk ledger
+message) noted here; the work is lane 3's.
+
+**ROOT CAUSE + HARDENING (commit law refinement):**
+1. I chained `reset → add → git diff --cached → commit` in ONE shell call. The diff PRINTED the 3
+   foreign files, but chaining meant the commit fired regardless — the "read the diff BEFORE
+   committing" gate only works if the read is a SEPARATE step I actually inspect and act on. NEVER
+   chain the diff-check into the commit call.
+2. A plain no-pathspec commit takes the index → vulnerable to the shared-index race (a peer lane
+   stages files in the window). For a WHOLE-FILE doc commit (the ledger, append-only), use a
+   PATHSPEC commit `git commit <path>` — it commits only that path from the working tree and
+   IGNORES foreign staged files (race-immune). The "pathspec-commit trap" only bites PARTIAL
+   staging (working-tree ≠ your carefully-staged index); for a whole-file append there is no
+   divergence, so pathspec is both correct and race-safe. This very correction is committed that way.
