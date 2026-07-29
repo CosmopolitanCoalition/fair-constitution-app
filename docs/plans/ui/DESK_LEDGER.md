@@ -625,3 +625,43 @@ land borders exist, nearest-approach where they don't), B5 tie chain unchanged. 
 its Type A home: line-splitting over-ceiling archipelago constituents (both clips +
 antimeridian guard) — empirical exercise is a game-box item, does not gate the wave. Island
 path UNBLOCKED; island chambers un-flag through the same engine path as contiguous.
+
+---
+
+## WAVE 4 LAUNCH (2026-07-29 — operator's word given post-compaction)
+
+The full 5-step hand-off completed: pre-compact HOLD orders sent → operator compacted the lanes
+→ operator compacted the desk → desk returned → **operator: "Launch Wave 4."**
+
+**8 ACTION orders DELIVERED** off a FRESH session listing (located by title, ids copied verbatim
+into the send calls; per session-id law NO id is persisted here — locate fresh by title):
+
+| Lane | Session title (locate fresh) | Headline W4 item |
+|---|---|---|
+| 1 | 1 (H) - GeoData and District Maps | Type B race fix — SEATING half (+ mass pass, 2 fixture reds, SQL-clamp CHECK) |
+| 2 | 2 (G) - Cloud Launch - Multibox | Operator/system partials + cross-class handshake 409/422 + Matrix red |
+| 3 | 3 (I) - Institution Scaling | Type B race fix — COUNTING half + keystone exit walk + RankedBallot daily-batch + oversight-public |
+| 4 | 4 (O) - Simulated World Engine | BUILD the Atlas + wire service-scale formula + R-A un-flag |
+| 5 | 5 (N) - Translation Scaling | Integrate operator's EXISTING video player + i18n + zh-Hans QA + translation-home |
+| 6 | 6 (N) - UI Design + A11y Audit | Civic + social/groups partials + bill.html + orphan delete + THE WALK (biggest screen lever) |
+| 13 | 13 (L+M) - Economy Engine | 12 economy partials + secondary share trading + structure-aware founding-stake |
+| 15 | 15 (K-2) - Education + Achievements | Education arming=PRE-TRAIN + profile-edit/DM + journey partials + window-days review |
+
+Lane 14 HELD (unmessaged). Every order: STEP 0 = `git pull` to HEAD ≥ 9fb0a60; verbatim L#W4
+items from WAVE4_STANDING_ORDERS.md; full standing law (commit v2, migration-slot-one-at-a-time,
+four-way reports, session-id law, settled rulings).
+
+**COORDINATION PAIRS (desk watches):** Type B race = L1 seating + L3 counting (shape must agree,
+PROTECTED VoteCountingService); service-scale formula = L4 provisioning + L3 scaling (one formula,
+two call sites); R-A un-flag = L4 pins on L1's first real cleared chamber (desk pings L4 there);
+journey/social-home = L6 + L15 co-owned.
+
+**MIGRATION SLOT QUEUE (grant ONE, flag the rest):** L1 election_races clump/grouping key ·
+L3 agenda per-item schema · L13 secondary-trading table. Sequence on first-flag order; the race
+fix (L1) is the headline unblock so it has priority if contested.
+
+**DESK NOW IN THE WAVE 4 MANAGEMENT LOOP** — sweep, verify hashes, process findings into this
+ledger + the rubric (badge items as work lands, redeploy same URL), sequence the slot, format
+deliverables for the operator, run the FULL suite at the wave gate. GOAL: as GREEN as possible
+across UI Screens AND Capabilities → a tested, playable game. The operator will NOT walk anything
+until all-Green.
