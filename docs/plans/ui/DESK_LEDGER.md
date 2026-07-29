@@ -392,17 +392,25 @@ agreement form = a mint → 116→117 pinned in the build.**
   to 3 options (A: seeders file F-EDU-001 for seated demo members = "trained" pass [rec] · B:
   seed but leave untrained so the walk demos the redirect loop live · C: don't seed, e2e-only) —
   gates the operator's browser walk of the gate; already in the Wave 4 decision queue.
-- **⚑ FULL-SUITE GATE: 12 FAILURES — TRIAGE IN PROGRESS (not yet resolved).** Named so far
-  (lane 15's clean run): LegalComplianceTest, MatrixCarveoutEmitter, ModerationFlipTest — the
-  **K-3 moderation/federation cluster, which NO Wave 3 lane touched**. LegalComplianceTest was a
-  KNOWN pre-existing failure at Wave 2 close (order-dependence ×2 + LegalCompliance + MyProfileTabs
-  were the carryovers). Every Wave 3 lane is GREEN in its own domain (13: 123 tests; 15: 45/45;
-  1: 30 pins; 3: keystone pins). **PRELIMINARY (to VERIFY, not assert): the 12 are pre-existing
-  debt + possibly concurrent-run isolation flakes, NOT Wave 3 regressions.** VERIFICATION: desk
-  full-suite run in flight (btfw47g7l) for the authoritative 12; then git-touch each failing
-  test's subject against 50b8456..HEAD — no Wave 3 touch = pre-existing. Do NOT declare Wave 3
-  green until this completes. Caveat: concurrent suite runs on the shared DB can manufacture
-  spurious isolation failures — need a clean read.
+- **⚑ FULL-SUITE GATE: 12 FAILURES — VERIFIED TRIAGE (desk: isolated re-run + git-touch).**
+  All 12 reproduce in CLEAN ISOLATION (12 failed / 31 passed on the 9 files alone) — REAL, not
+  concurrency flakes, not order-dependence. **My earlier "preliminary: pre-existing, not
+  regressions" was WRONG on the federation cluster — corrected here.** Split:
+  - **7 = WAVE 3 REGRESSION (routed to lane 2):** federation/operator console cluster —
+    FederationConsolePropsTest ×4 + FederationPageSmokeTest + FederationMeshConsoleTest
+    (prop-snapshot "two strings identical"/"false is true") + FederationHandshakeTest
+    (POST /api/federation/handshake → 500). Subject FederationConsoleController UNTOUCHED since
+    2026-06-30 but reads InstanceSettings::current(); lane 2's fa4e628 migration (200000) ADDED
+    time_coordinator_server_id + demo_time_skew_tolerated to instance_settings. Not in the Wave 2
+    known-failures list (green at W2 close) → new columns leak into the console's InstanceSettings
+    serialization. FIX (lane 2): whitelist the console's settings props + trace the handshake 500.
+    **Wave 3 is NOT clean until these 7 land green.**
+  - **5 = PRE-EXISTING debt (not Wave 3):** LegalComplianceTest + MyProfileTabsTest (Wave 2
+    triage) · ModerationFlipTest + MatrixCarveoutEmitterTest (K-3 moderation plane, untouched) ·
+    SupportLifecycleTest (operator-support plane, untouched). Track as prior debt.
+  Lesson: "every Wave 3 lane green in its own domain" ≠ "the full suite is green" — a shared
+  SCHEMA change (instance_settings) broke an untouched subsystem no lane was testing. The gate
+  earned its cost.
 - **REMAINING BEFORE WAVE 3 CLOSES:** lane 3's exit walk (post-compaction), lane 13's economy
   5-6, lane 15's ACTUAL DONE (after the 12-failure gate clears), the 12-failure triage.
 
