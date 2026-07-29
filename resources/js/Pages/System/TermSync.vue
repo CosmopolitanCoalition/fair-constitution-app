@@ -49,6 +49,62 @@ function daysUntil(iso) {
     return Math.max(0, Math.ceil((new Date(iso) - Date.now()) / 86400000));
 }
 
+// ── The inline-SVG lockstep timeline. Rendered from the live term registry:
+// the elected branches share ONE window and end together (CLK-10 structural),
+// drawn as three bars with a common-expiry marker; the appointed offices run a
+// separate, longer 10-year clock, drawn as a dashed contrast bar. A "today"
+// marker sits at the current date. Null (→ honest empty-state) until a real
+// term window is seated — no synthetic dates.
+const SVG = { W: 800, padL: 96, padR: 24, topPad: 30, laneH: 24, laneGap: 14, bottomPad: 28 };
+
+const lockstepTimeline = computed(() => {
+    const ref = props.legislatures.find((l) => l.term?.starts_on && l.term?.ends_on);
+    if (!ref) return null;
+
+    const start = new Date(ref.term.starts_on).getTime();
+    const end = new Date(ref.term.ends_on).getTime();
+    if (!(end > start)) return null;
+
+    const years = props.civilTerms[0]?.years ?? 10;
+    const appointedEnd = start + years * 365.25 * 86400000;
+    const now = Date.now();
+    const winStart = start;
+    const winEnd = Math.max(end, appointedEnd, now);
+    const span = winEnd - winStart || 1;
+
+    const innerW = SVG.W - SVG.padL - SVG.padR;
+    const x = (t) => SVG.padL + ((t - winStart) / span) * innerW;
+    const laneY = (i) => SVG.topPad + i * (SVG.laneH + SVG.laneGap);
+
+    const elected = ['Legislative', 'Executive', 'Judicial'].map((label, i) => ({
+        label,
+        y: laneY(i),
+        x: x(start),
+        w: Math.max(2, x(end) - x(start)),
+    }));
+
+    return {
+        width: SVG.W,
+        height: laneY(4) + SVG.bottomPad - SVG.laneGap,
+        laneH: SVG.laneH,
+        elected,
+        appointed: {
+            label: `Appointed · ${years}-yr`,
+            y: laneY(3),
+            x: x(start),
+            w: Math.max(2, x(appointedEnd) - x(start)),
+        },
+        electedEndX: x(end),
+        appointedEndX: x(appointedEnd),
+        todayX: now >= winStart && now <= winEnd ? x(now) : null,
+        labels: {
+            start: new Date(start).getFullYear(),
+            electedEnd: new Date(end).getFullYear(),
+            appointedEnd: new Date(appointedEnd).getFullYear(),
+        },
+    };
+});
+
 const lockstepColumns = [
     { key: 'kind', label: 'Elected role' },
     { key: 'count', label: 'Serving terms' },
@@ -115,6 +171,67 @@ const REFUSAL_RULES = [
             <p class="cc-small gloss">
                 No active legislature yet — jurisdictions activate at critical population (CLK-06);
                 each starts its own clock at first certification.
+            </p>
+        </Card>
+
+        <!-- ==================================== lockstep timeline ======== -->
+        <Card as="section" title="The lockstep — at a glance">
+            <p class="cc-small">
+                Every elected branch shares one term window and ends on the same day; appointed
+                offices run a separate, longer 10-year clock. Rendered from the live term registry.
+            </p>
+            <figure
+                v-if="lockstepTimeline"
+                class="timeline"
+                role="img"
+                aria-label="Lockstep timeline: the legislative, executive, and judicial terms share one window and end on a common expiry date; the appointed 10-year clock runs longer and decoupled; a marker shows today."
+            >
+                <svg
+                    :viewBox="`0 0 ${lockstepTimeline.width} ${lockstepTimeline.height}`"
+                    width="100%"
+                    preserveAspectRatio="xMidYMid meet"
+                >
+                    <!-- three elected branch bars, ending together -->
+                    <g v-for="bar in lockstepTimeline.elected" :key="bar.label">
+                        <text :x="8" :y="bar.y + 16" class="tl-label" data-no-i18n>{{ bar.label }}</text>
+                        <rect :x="bar.x" :y="bar.y" :width="bar.w" :height="lockstepTimeline.laneH" rx="4" class="tl-elected" />
+                    </g>
+                    <!-- dashed 10-year appointed contrast bar -->
+                    <text :x="8" :y="lockstepTimeline.appointed.y + 16" class="tl-label" data-no-i18n>{{ lockstepTimeline.appointed.label }}</text>
+                    <rect
+                        :x="lockstepTimeline.appointed.x"
+                        :y="lockstepTimeline.appointed.y"
+                        :width="lockstepTimeline.appointed.w"
+                        :height="lockstepTimeline.laneH"
+                        rx="4"
+                        class="tl-appointed"
+                    />
+                    <!-- common-expiry marker (the elected bars all stop here) -->
+                    <line
+                        :x1="lockstepTimeline.electedEndX"
+                        :y1="lockstepTimeline.elected[0].y - 6"
+                        :x2="lockstepTimeline.electedEndX"
+                        :y2="lockstepTimeline.appointed.y - 6"
+                        class="tl-expiry"
+                    />
+                    <!-- today marker -->
+                    <template v-if="lockstepTimeline.todayX !== null">
+                        <line :x1="lockstepTimeline.todayX" y1="18" :x2="lockstepTimeline.todayX" :y2="lockstepTimeline.height - 20" class="tl-today" />
+                        <text :x="lockstepTimeline.todayX" y="12" class="tl-today-label" text-anchor="middle">today</text>
+                    </template>
+                    <!-- year axis -->
+                    <text :x="lockstepTimeline.elected[0].x" :y="lockstepTimeline.height - 6" class="tl-axis" data-no-i18n>{{ lockstepTimeline.labels.start }}</text>
+                    <text :x="lockstepTimeline.electedEndX" :y="lockstepTimeline.height - 6" class="tl-axis" text-anchor="middle" data-no-i18n>{{ lockstepTimeline.labels.electedEnd }} · common expiry</text>
+                    <text :x="lockstepTimeline.appointedEndX" :y="lockstepTimeline.height - 6" class="tl-axis" text-anchor="end" data-no-i18n>{{ lockstepTimeline.labels.appointedEnd }}</text>
+                </svg>
+            </figure>
+            <p v-else class="cc-small gloss">
+                The timeline renders once a legislature's term window is seated — no active elected
+                term is on record yet.
+            </p>
+            <p class="tl-emergency">
+                <StatusBadge tone="info" icon="clock">Under emergency powers the lockstep is unaffected</StatusBadge>
+                <span class="cc-small"> — no elected term can be extended, even in an emergency (Art. II §7).</span>
             </p>
         </Card>
 
@@ -210,3 +327,61 @@ const REFUSAL_RULES = [
         </template>
     </PageScaffold>
 </template>
+
+<style scoped>
+.timeline {
+    margin: var(--space-3) 0;
+    overflow-x: auto;
+}
+
+.timeline svg {
+    display: block;
+    max-width: 46rem;
+}
+
+.tl-elected {
+    fill: var(--gov-primary);
+    opacity: 0.85;
+}
+
+.tl-appointed {
+    fill: none;
+    stroke: var(--gov-fg-subtle);
+    stroke-width: 1.5;
+    stroke-dasharray: 5 4;
+}
+
+.tl-label {
+    fill: var(--gov-fg-muted);
+    font-size: 12px;
+}
+
+.tl-axis {
+    fill: var(--gov-fg-subtle);
+    font-size: 11px;
+}
+
+.tl-expiry {
+    stroke: var(--gov-border-strong);
+    stroke-width: 1;
+}
+
+.tl-today {
+    stroke: var(--danger);
+    stroke-width: 1.5;
+    stroke-dasharray: 3 3;
+}
+
+.tl-today-label {
+    fill: var(--danger);
+    font-size: 11px;
+}
+
+.tl-emergency {
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
+    flex-wrap: wrap;
+    margin-block-start: var(--space-3);
+}
+</style>

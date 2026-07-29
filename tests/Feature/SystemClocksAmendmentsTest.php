@@ -68,19 +68,29 @@ class SystemClocksAmendmentsTest extends TestCase
         });
     }
 
-    public function test_an_authenticated_user_reads_the_amendment_ledger(): void
+    public function test_an_authenticated_user_reads_the_amendment_ledger_and_current_values(): void
     {
         $this->onLivePg(function () {
             $user = $this->aUser('Ledger reader');
 
-            // The ledger may legitimately be empty — the contract is that
-            // the page renders and the prop key exists (append-only feed).
+            // The ledger may legitimately be empty — the contract is that the
+            // page renders and the prop key exists (append-only feed). Door one
+            // ALSO ships the current amendable values with their hardened range
+            // (Wave 4 ①): the register keys in order, each with value + bounds.
             $this->actingAs($user)
                 ->get('/system/amendments')
                 ->assertOk()
                 ->assertInertia(fn (Assert $page) => $page
                     ->component('System/Amendments')
                     ->has('changes')
+                    ->has('settings')
+                    // The first register key with its hardened range — proves the
+                    // bounds the client-side checker reads are actually shipped.
+                    ->where('settings.0.key', 'election_interval_months')
+                    ->where('settings.0.bounds.min', 1)
+                    ->where('settings.0.bounds.max', 60)
+                    ->has('settings.0.value')
+                    ->has('settings.0.basis')
                     ->where('surface.id', 'system/amendments'));
         });
     }

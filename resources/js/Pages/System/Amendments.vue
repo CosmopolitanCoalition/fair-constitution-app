@@ -12,6 +12,7 @@
  * NOT built this phase — Phase-7 follow-up (it belongs with the bill-flow
  * validation surfaces, which already run the same bounds check server-side).
  */
+import { computed, ref } from 'vue';
 import { Link } from '@inertiajs/vue3';
 import AppShellV2 from '@/Layouts/AppShellV2.vue';
 import PageScaffold from '@/Components/Surface/PageScaffold.vue';
@@ -22,8 +23,10 @@ import HardenedChip from '@/Components/Ui/HardenedChip.vue';
 /* Phase-2 restyle wave: the v3 player chrome (MASTER_PLAN). */
 defineOptions({ layout: AppShellV2 });
 
-defineProps({
+const props = defineProps({
     surface: { type: Object, required: true },
+    /** Current resolved amendable values at the instance root: {key, value, bounds, basis, enacted_by}. */
+    settings: { type: Array, default: () => [] },
     /** The latest 50 setting_changes rows, newest first. */
     changes: { type: Array, default: () => [] },
 });
@@ -76,8 +79,61 @@ function dateOf(iso) {
 
 function valueOf(value) {
     if (value === null || value === undefined) return '—';
+    if (typeof value === 'boolean') return value ? 'true' : 'false';
     return typeof value === 'object' ? JSON.stringify(value) : String(value);
 }
+
+/** A human range label for a bounds object: an allowed set, or a min–max span. */
+function rangeLabel(bounds) {
+    if (!bounds) return 'no bounded range';
+    if (Array.isArray(bounds.allowed)) {
+        return 'one of ' + bounds.allowed.map((v) => valueOf(v)).join(', ');
+    }
+    if (bounds.min !== undefined && bounds.max !== undefined) {
+        return `${bounds.min} – ${bounds.max}`;
+    }
+    return '—';
+}
+
+// ── "Try a proposed value" — a CLIENT-SIDE pre-vote hint against the shipped
+// bounds. The authoritative check runs server-side in the PROTECTED validator
+// when the F-LEG-031 bill is filed; this never enacts anything.
+const checkable = computed(() => props.settings.filter((s) => s.bounds));
+const selectedKey = ref(checkable.value[0]?.key ?? '');
+const proposed = ref('');
+
+const selectedSetting = computed(
+    () => props.settings.find((s) => s.key === selectedKey.value) ?? null,
+);
+
+const checkResult = computed(() => {
+    const s = selectedSetting.value;
+    const raw = proposed.value.trim();
+    if (!s || !s.bounds || raw === '') return null;
+
+    const b = s.bounds;
+    if (Array.isArray(b.allowed)) {
+        const ok = b.allowed.some((v) => String(v) === raw);
+        return {
+            ok,
+            message: ok
+                ? `“${raw}” is an allowed value.`
+                : `“${raw}” is not in the allowed set (${b.allowed.map((v) => valueOf(v)).join(', ')}).`,
+        };
+    }
+
+    const n = Number(raw);
+    if (Number.isNaN(n)) {
+        return { ok: false, message: `“${raw}” is not a number — this setting takes ${rangeLabel(b)}.` };
+    }
+    const ok = n >= b.min && n <= b.max;
+    return {
+        ok,
+        message: ok
+            ? `${n} is within the hardened range (${b.min} – ${b.max}).`
+            : `${n} is out of range — the engine would refuse it pre-vote (allowed ${b.min} – ${b.max}).`,
+    };
+});
 </script>
 
 <template>
@@ -95,6 +151,60 @@ function valueOf(value) {
                 Read the Template — <em>A Fair Constitution</em> (Cosmopolitan Template) →
             </a>
         </p>
+
+        <!-- ============================ current values =================== -->
+        <Card as="section" title="Current amendable values">
+            <p class="cc-small">
+                What every amendable setting is set to right now at the instance root, with the
+                hardened range it must stay inside, and the act that last changed it. Values are
+                scoped per jurisdiction — this is the instance-wide snapshot; the full
+                inheritance-aware register is on the
+                <Link href="/legislature/settings">settings register</Link>.
+            </p>
+
+            <div v-if="settings.length" class="value-grid">
+                <div v-for="s in settings" :key="s.key" class="value-tile">
+                    <div class="value-tile__key" data-no-i18n>{{ s.key }}</div>
+                    <div class="value-tile__value" data-no-i18n>{{ valueOf(s.value) }}</div>
+                    <div class="value-tile__range" data-no-i18n>range: {{ rangeLabel(s.bounds) }}</div>
+                    <div class="value-tile__basis citation" data-no-i18n>{{ s.basis }}</div>
+                    <div v-if="s.enacted_by" class="value-tile__act cc-small">
+                        <Link v-if="s.enacted_by.href" :href="s.enacted_by.href" data-no-i18n>
+                            {{ s.enacted_by.act_number ?? 'act' }}
+                        </Link>
+                        <span data-no-i18n> · {{ dateOf(s.enacted_by.effective_at) }}</span>
+                    </div>
+                    <div v-else class="value-tile__act cc-small gloss">founding value — unamended</div>
+                </div>
+            </div>
+            <p v-else class="cc-small gloss">No amendable settings resolved yet.</p>
+
+            <!-- ==================== try a proposed value ================= -->
+            <div v-if="checkable.length" class="checker">
+                <h4 class="checker__title">Try a proposed value</h4>
+                <p class="cc-small gloss">
+                    A pre-vote hint only. The engine runs the same bounds check server-side when the
+                    amendment bill is filed — this screen enacts nothing.
+                </p>
+                <div class="checker__controls">
+                    <label class="checker__field">
+                        <span class="cc-small">Setting</span>
+                        <select v-model="selectedKey" data-no-i18n>
+                            <option v-for="s in checkable" :key="s.key" :value="s.key">{{ s.key }}</option>
+                        </select>
+                    </label>
+                    <label class="checker__field">
+                        <span class="cc-small">Proposed value</span>
+                        <input v-model="proposed" type="text" data-no-i18n
+                            :placeholder="rangeLabel(selectedSetting?.bounds)" />
+                    </label>
+                </div>
+                <p v-if="checkResult" class="checker__result" :class="checkResult.ok ? 'is-ok' : 'is-bad'"
+                    data-no-i18n>
+                    {{ checkResult.ok ? '✓ ' : '✗ ' }}{{ checkResult.message }}
+                </p>
+            </div>
+        </Card>
 
         <div class="grid-2">
             <!-- ================================ door one ================== -->
@@ -186,3 +296,93 @@ function valueOf(value) {
         </template>
     </PageScaffold>
 </template>
+
+<style scoped>
+.value-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(15rem, 1fr));
+    gap: var(--space-2);
+    margin-block: var(--space-3);
+}
+
+.value-tile {
+    border: 1px solid var(--gov-border);
+    border-radius: var(--radius-md);
+    background: var(--gov-surface-subtle);
+    padding: var(--space-2) var(--space-3);
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
+.value-tile__key {
+    font-size: 0.8rem;
+    color: var(--gov-fg-muted);
+    word-break: break-word;
+}
+
+.value-tile__value {
+    font-size: 1.35rem;
+    font-weight: 600;
+    color: var(--gov-fg-strong);
+}
+
+.value-tile__range {
+    font-size: 0.8rem;
+    color: var(--gov-fg-muted);
+}
+
+.value-tile__act {
+    margin-block-start: 2px;
+}
+
+.checker {
+    margin-block-start: var(--space-4);
+    padding-block-start: var(--space-3);
+    border-top: 1px solid var(--gov-border);
+}
+
+.checker__title {
+    margin: 0 0 var(--space-1);
+}
+
+.checker__controls {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-3);
+    margin-block: var(--space-2);
+}
+
+.checker__field {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    min-width: 12rem;
+    flex: 1 1 12rem;
+}
+
+.checker__field select,
+.checker__field input {
+    padding: var(--space-1) var(--space-2);
+    border: 1px solid var(--gov-border);
+    border-radius: var(--radius-sm);
+    background: var(--gov-surface);
+    color: var(--gov-fg);
+}
+
+.checker__result {
+    margin-block-start: var(--space-1);
+    padding: var(--space-2) var(--space-3);
+    border-radius: var(--radius-sm);
+    border-left: 3px solid var(--gov-border);
+    background: var(--gov-surface-subtle);
+}
+
+.checker__result.is-ok {
+    border-left-color: var(--gov-primary);
+}
+
+.checker__result.is-bad {
+    border-left-color: var(--danger);
+}
+</style>
