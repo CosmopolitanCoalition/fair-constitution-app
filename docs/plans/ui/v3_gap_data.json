@@ -1,7 +1,7 @@
 {
  "asOf": "2026-07-29",
- "commit": "a2fbeea",
- "wave": "WAVE 2 \u2014 7 of 8 lanes DONE (only lane 3 punch tail + lane 2 one column remain); lane 6 support lifecycle complete",
+ "commit": "3c68031",
+ "wave": "WAVE 2 \u2014 lane 2 fully DONE; only lane 3 punch tail remains (docket, banners, liveAggregate, R-B doc); wave close imminent",
  "rows": [
   {
    "file": "civic/join.html",
