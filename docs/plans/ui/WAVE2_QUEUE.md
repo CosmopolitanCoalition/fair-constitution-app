@@ -208,8 +208,8 @@ rewrote the mockup entry — the only Webster left in the spec is the prohibitio
 ## Migration slot queue (one at a time)
 
 1. ~~lane 13~~ — LANDED (cf8a090, down() proven live)
-2. lane 6 — support lifecycle (subject + routing columns)
-3. lane 2 — `cluster_adoption_requests` class/mode declaration column (until then a
+2. ~~lane 6~~ — LANDED (096a1e9, routed-six live, down() proven at 0 rows)
+3. lane 2 — `cluster_adoption_requests` column: SLOT CLEAR, date after 2026_07_29_130000 (until then a
    queue-admitted mirror declares at its first real handshake — recorded, safe)
 
 ## Attribution corrections (permanent record — history is never rewritten)
