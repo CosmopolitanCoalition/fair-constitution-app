@@ -269,16 +269,30 @@ Build both of these into anything that verifies pages:
 to any per-item check and appear only when you compare results against each other.** If a rig
 examines each result in isolation, it cannot see that they are all the same result.
 
-### ⚑ COMMIT WITH A PATHSPEC — this has now fired THREE times
-Twelve lanes share one worktree. **`git add` / `git commit` without a pathspec sweeps everything
-dirty in the tree into your commit**, under your message.
+### ⚑ THE COMMIT LAW, v2 — the pathspec COMMIT is itself the trap (4th sweep, 2026-07-29)
+Twelve lanes share one worktree. Two opposite traps, one law:
+- A **bare `git commit`** commits the shared INDEX — it sweeps whatever any lane has staged.
+- **`git commit -- <pathspec>` commits the WORKING TREE of those paths and BYPASSES the
+  index entirely** — lane 13 partial-staged shared files perfectly (`git apply --cached`,
+  `git diff --cached` verified foreign-free) and the pathspec commit swept two peers'
+  working-tree edits anyway, including references to still-uncommitted controllers:
+  broken-by-construction for any clean checkout. The old rule ("always commit with a
+  pathspec") DESTROYS the partial-staging it was supposed to protect.
+
+**THE LAW: build the index to be exactly yours, then commit the INDEX — plain, no pathspec.**
 
 ```bash
-git commit -F msg.txt -- path/one path/two     # necessary, NOT sufficient
-git add -p <file>                               # when a peer may be inside that file
-git diff --cached                               # read what you are about to commit
-git show --stat <hash>                          # ALWAYS, before quoting a hash
+git add path/you/own/whole.php                  # whole files that are entirely yours
+git apply --cached my-changes.patch             # shared files: filtered patch into the index
+git diff --cached                                # READ what you are about to commit — final gate
+git commit -F msg.txt                            # PLAIN commit, NO pathspec — commits the index
+git show --stat <hash>                           # ALWAYS, after — and COMPARE COUNTS:
+                                                 # staged insertions ≠ committed insertions = SWEPT
 ```
+
+The insertion-count compare is the alarm that caught sweep #4 in minutes (staged +1183,
+committed +1332). If counts differ: soft-reset, rebuild the index, recommit — never push the
+swept commit, never rewrite a pushed one.
 
 ### ⚑ THREE HOT FILES — `git diff` before you touch them
 ```
