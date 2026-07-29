@@ -392,25 +392,29 @@ agreement form = a mint → 116→117 pinned in the build.**
   to 3 options (A: seeders file F-EDU-001 for seated demo members = "trained" pass [rec] · B:
   seed but leave untrained so the walk demos the redirect loop live · C: don't seed, e2e-only) —
   gates the operator's browser walk of the gate; already in the Wave 4 decision queue.
-- **⚑ FULL-SUITE GATE: 12 FAILURES — VERIFIED TRIAGE (desk: isolated re-run + git-touch).**
-  All 12 reproduce in CLEAN ISOLATION (12 failed / 31 passed on the 9 files alone) — REAL, not
-  concurrency flakes, not order-dependence. **My earlier "preliminary: pre-existing, not
-  regressions" was WRONG on the federation cluster — corrected here.** Split:
-  - **7 = WAVE 3 REGRESSION (routed to lane 2):** federation/operator console cluster —
-    FederationConsolePropsTest ×4 + FederationPageSmokeTest + FederationMeshConsoleTest
-    (prop-snapshot "two strings identical"/"false is true") + FederationHandshakeTest
-    (POST /api/federation/handshake → 500). Subject FederationConsoleController UNTOUCHED since
-    2026-06-30 but reads InstanceSettings::current(); lane 2's fa4e628 migration (200000) ADDED
-    time_coordinator_server_id + demo_time_skew_tolerated to instance_settings. Not in the Wave 2
-    known-failures list (green at W2 close) → new columns leak into the console's InstanceSettings
-    serialization. FIX (lane 2): whitelist the console's settings props + trace the handshake 500.
-    **Wave 3 is NOT clean until these 7 land green.**
-  - **5 = PRE-EXISTING debt (not Wave 3):** LegalComplianceTest + MyProfileTabsTest (Wave 2
-    triage) · ModerationFlipTest + MatrixCarveoutEmitterTest (K-3 moderation plane, untouched) ·
-    SupportLifecycleTest (operator-support plane, untouched). Track as prior debt.
-  Lesson: "every Wave 3 lane green in its own domain" ≠ "the full suite is green" — a shared
-  SCHEMA change (instance_settings) broke an untouched subsystem no lane was testing. The gate
-  earned its cost.
+- **⚑ FULL-SUITE GATE: 12 FAILURES — RESOLVED TRIAGE (3rd + final; two desk mis-diagnoses
+    corrected).** ALL 12 ARE PRE-EXISTING; **Wave 3 introduced ZERO regressions.** History of my
+    errors, kept as the record: (1) I called lane 15 "done" from git+memory (operator caught it);
+    (2) I then "verified" the 7 federation reds as a Wave-3 regression via an instance_settings
+    serialization leak — WRONG. Lane 2 read the code and corrected me; I re-verified the correction:
+  - **7 federation console/handshake — PRE-EXISTING, now FIXED + GREEN (lane 2, 3a6c542, 9 tests
+    128 assertions):** 6 broke at lane 2's **Wave 2** route move `d69aff0` (verified ancestor of
+    50b8456: /federation → /operator/federation; the tests kept hitting /federation, getting the
+    citizen view). Uncaught only because **the full suite was never run at the Wave 2 gate.** The
+    handshake 500 was the scale_demo class-fixture pattern (fixed with InstanceClass::override).
+    My "leak" was fiction — the console's `instance` prop was ALREADY a field whitelist. My error:
+    checked the CONTROLLER (untouched) but not the ROUTE; treated an INCOMPLETE known-failures list
+    as "green at W2." Root cause = a route move, not the migration.
+  - **5 remain (pre-existing, none touched by Wave 3 — git-verified):** LegalComplianceTest +
+    MyProfileTabsTest (documented Wave 2 triage, fixture-borrows-the-world) · MatrixCarveoutEmitter
+    + ModerationFlipTest + SupportLifecycleTest (⚠ each FAILS ALONE now — the Wave 2 triage said
+    the first two "pass isolated," so either stale or shifted; NOT certified pre-existing with the
+    federation-level confidence — a shared-change interaction can't be 100% ruled out without a
+    baseline run, which is unsafe on the shared DB). Route to owners for Wave 4 debt-paydown.
+  **THE REAL PROCESS FINDING:** the full suite was NOT run at the Wave 2 gate, so pre-existing red
+  hid until now. "Every lane green in its own domain" ≠ "the suite is green." Run the full suite
+  at EVERY wave gate. Wave 3 BUILD = clean; the suite is now at ~5 pre-existing reds (12 − lane 2's
+  7); a clean full-suite confirmation is the real close gate.
 - **REMAINING BEFORE WAVE 3 CLOSES:** lane 3's exit walk (post-compaction), lane 13's economy
   5-6, lane 15's ACTUAL DONE (after the 12-failure gate clears), the 12-failure triage.
 
