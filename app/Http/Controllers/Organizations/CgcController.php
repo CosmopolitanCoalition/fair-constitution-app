@@ -45,6 +45,7 @@ class CgcController extends Controller
     public function __construct(
         private readonly CgcIpRegisterService $ipRegister,
         private readonly RoleService $roles,
+        private readonly \App\Services\SettingsResolver $settings,
     ) {}
 
     public function show(Request $request, Organization $organization): Response
@@ -186,17 +187,21 @@ class CgcController extends Controller
         $ownerSeats = (int) $board->owner_seats;
         $workerSeats = (int) $board->worker_seats; // engine snapshot — never recomputed
 
+        // CLK-13/14 are AMENDABLE — resolve them the way the engine itself
+        // does at evaluation time (CoDeterminationService::recompute), for
+        // the org's own jurisdiction. The literals 100/2000 are only the
+        // Template DEFAULTS the resolver falls back to; rendering them as
+        // constants would show a world its constitution instead of its law.
+        $jurisdictionId = $organization->jurisdiction_id === null ? null : (string) $organization->jurisdiction_id;
+        $min = $jurisdictionId === null ? 100 : $this->settings->resolveInt($jurisdictionId, 'worker_rep_min_employees', 100);
+        $par = $jurisdictionId === null ? 2000 : $this->settings->resolveInt($jurisdictionId, 'worker_rep_parity_employees', 2000);
+
         return [
             'workers' => $workers,
             'ownerSeats' => $ownerSeats,
-            'workerSeats' => $workerSeats,
-            // CLK-13/14 are AMENDABLE — the live resolved board thresholds
-            // are not available on the row, so the page renders the
-            // Template defaults the scale was last evaluated against. The
-            // co-determination surface holds the authoritative amendable
-            // values; this static readout mirrors the engine's own seats.
-            'thresholds' => ['min' => 100, 'parity' => 2000],
-            'nextStepAt' => \App\Services\Organizations\CoDeterminationService::nextStep($workerSeats, $ownerSeats),
+            'workerSeats' => $workerSeats, // engine snapshot — never recomputed
+            'thresholds' => ['min' => $min, 'parity' => $par],
+            'nextStepAt' => \App\Services\Organizations\CoDeterminationService::nextStep($workerSeats, $ownerSeats, $min, $par),
             'entityLabel' => $organization->name,
         ];
     }
