@@ -310,8 +310,11 @@ Migration slot queue (Wave 3): **1 → 15 → 2**. RankedBallot liveAggregate st
 operator's fresh-session trigger (spec 3505f51; cadence RULED daily-batch).
 
 **Slot progression:** lane 1 LANDED (23452a7, `2026_07_29_150000_type_b_district_grouping.php`,
-144=144, down() proven) and reported clear ~25 min after dispatch → slot GRANTED to lane 15
-(land at stage ③ without further wait, announce hash, report clear for lane 2).
+144=144, down() proven) → lane 15 LANDED (fee13a1, `2026_07_29_190000_education_engine_tables.php`,
+down() proven; ② at 96634ee minted F-EDU-001/002 — **the engine holds 115 forms**, pin +
+CLAUDE.md same commit; ① verified byte-intact in cd6f56e) → slot GRANTED to lane 2 (LAST in
+queue; date after 190000; queue closes on its clear). Lane 15 proceeding ④ TrainingGateService
++ ⑤ Learn pages.
 
 **First sweep (7-agent audit, ~25 min post-dispatch): ALL SEVEN LANES ON PATH, zero
 deviations.** Lane 3 landed the A1 oversight-public fold (4057b3c) and correctly excluded a
