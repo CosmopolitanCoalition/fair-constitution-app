@@ -12,8 +12,10 @@ use InvalidArgumentException;
  *
  * Every value movement in the app is a balanced posting through post().
  * Nothing else debits or credits anything: no controller, no job, no other
- * service, no seeder. LedgerIntegrityTest source-scans app/ to enforce that,
- * the way CgcIpPublicDomainTest guards the public-domain register.
+ * service, no seeder. LedgerIntegrityTest scans app/, database/ and routes/
+ * for WRITE constructs to enforce that, the way CgcIpPublicDomainTest guards
+ * the public-domain register. Reading the table is lawful anywhere — the
+ * ledger is public; the door is one-way on the write side only.
  *
  * WHY that matters: with one writer, "Σdebits = Σcredits per currency" is a
  * property of the system rather than a report someone runs. The public ledger

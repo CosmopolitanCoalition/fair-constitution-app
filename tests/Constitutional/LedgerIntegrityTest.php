@@ -19,7 +19,9 @@ use Tests\TestCase;
  * Three properties this suite exists to make non-negotiable:
  *   1. Value is conserved  — Σdebits = Σcredits per currency, per posting.
  *   2. The past is fixed   — ledger_entries is append-only at the DB level.
- *   3. There is one door   — LedgerService is the ONLY writer, source-scanned.
+ *   3. There is one door   — LedgerService is the ONLY writer, source-scanned
+ *                            for WRITE constructs (reads are lawful: the
+ *                            ledger is public).
  *
  * Plus Art. V §5: currency is reserved to the most encompassing jurisdiction.
  */
@@ -44,44 +46,188 @@ class LedgerIntegrityTest extends TestCase
      * door. Mirrors CgcIpPublicDomainTest's source scan of the public-domain
      * register: if a second writer ever appears, this fails loudly rather
      * than the ledger quietly ceasing to balance.
+     *
+     * The pin is on WRITES. Reads are not merely tolerated — the ledger is
+     * PUBLIC by design (reader privacy is accounts-never-people, not a hidden
+     * ledger), so the public ledger page and the demo command's integrity
+     * report lawfully read this table. An earlier version of this scan
+     * flagged any file merely MENTIONING `ledger_entries`, which flagged
+     * both of those readers and would have forbidden the public ledger
+     * surface from existing. The one-door law it was written to enforce
+     * says "no second WRITER" — so the scan now matches write constructs.
+     *
+     * Three layers hold the door, and this scan is only the first:
+     *   1. this CI scan   — write-shaped source flagged before it ships;
+     *   2. the DB trigger — UPDATE/DELETE/TRUNCATE physically impossible;
+     *   3. the hash chain — a side-door INSERT breaks verifyChain(), so it
+     *      cannot stay hidden even if the scan misses it.
+     * Named blind spot: table-name indirection (`DB::table($var)`) is
+     * invisible to any source scan — layer 3 is the answer there.
      */
     public function test_ledger_service_is_the_only_writer(): void
     {
         $allowed = [
-            'Services/Economy/LedgerService.php',
-            'Models/Economy/LedgerEntry.php',
+            'app/Services/Economy/LedgerService.php',
         ];
 
         $offenders = [];
 
-        $files = new \RecursiveIteratorIterator(
-            new \RecursiveDirectoryIterator(app_path(), \FilesystemIterator::SKIP_DOTS)
-        );
+        foreach ([app_path(), database_path(), base_path('routes')] as $root) {
+            $files = new \RecursiveIteratorIterator(
+                new \RecursiveDirectoryIterator($root, \FilesystemIterator::SKIP_DOTS)
+            );
 
-        foreach ($files as $file) {
-            if ($file->getExtension() !== 'php') {
-                continue;
-            }
+            foreach ($files as $file) {
+                if ($file->getExtension() !== 'php') {
+                    continue;
+                }
 
-            $relative = str_replace('\\', '/', substr($file->getPathname(), strlen(app_path()) + 1));
+                $relative = str_replace('\\', '/', substr($file->getPathname(), strlen(base_path()) + 1));
 
-            if (in_array($relative, $allowed, true)) {
-                continue;
-            }
+                if (in_array($relative, $allowed, true)) {
+                    continue;
+                }
 
-            $source = file_get_contents($file->getPathname());
+                $hits = self::ledgerWriteConstructs(file_get_contents($file->getPathname()));
 
-            if (str_contains($source, 'ledger_entries') || str_contains($source, 'LedgerEntry::')) {
-                $offenders[] = $relative;
+                if ($hits !== []) {
+                    $offenders[] = $relative . ' [' . implode('; ', $hits) . ']';
+                }
             }
         }
 
         $this->assertSame(
             [],
             $offenders,
-            "ledger_entries must be written ONLY through LedgerService. Offending files: "
+            'ledger_entries must be written ONLY through LedgerService. Offending files: '
                 . implode(', ', $offenders)
         );
+    }
+
+    /**
+     * The matcher itself must be shown to bite — a green scan that has never
+     * been seen failing carries no information. Every write shape the scan
+     * exists to catch is fed to it here and must be flagged.
+     */
+    public function test_the_write_scan_flags_every_write_shape(): void
+    {
+        $writes = [
+            'chained insert'        => "DB::table('ledger_entries')->insert(['a' => 1]);",
+            'chained multiline'     => "DB::table('ledger_entries')\n    ->where('seq', 1)\n    ->update(['amount' => 0]);",
+            'chained delete'        => "DB::table(\"ledger_entries\")->where('seq', 1)->delete();",
+            'chained upsert'        => "DB::table('ledger_entries')->upsert([], []);",
+            'chained increment'     => "DB::table('ledger_entries')->increment('amount');",
+            'captured builder'      => "\$q = DB::table('ledger_entries');\n\$q->where('seq', 1);\n\$q->insert(['a' => 1]);",
+            'raw INSERT'            => "DB::statement('INSERT INTO ledger_entries (id) VALUES (?)', [\$id]);",
+            'raw UPDATE'            => "DB::statement('UPDATE ledger_entries SET amount = 0');",
+            'raw DELETE'            => "DB::statement('DELETE FROM ledger_entries WHERE seq = 1');",
+            'raw TRUNCATE'          => "DB::statement('TRUNCATE TABLE ledger_entries');",
+            'eloquent create'       => 'LedgerEntry::create([]);',
+            'eloquent firstOrCreate' => 'LedgerEntry::firstOrCreate([]);',
+            'model instantiation'   => 'return (new LedgerEntry())->fill([]);',
+        ];
+
+        foreach ($writes as $label => $source) {
+            $this->assertNotSame(
+                [],
+                self::ledgerWriteConstructs($source),
+                "the scan must flag: {$label}"
+            );
+        }
+    }
+
+    /**
+     * And it must NOT bite the lawful shapes — the exact reads the public
+     * ledger surface and the demo integrity report perform, the DDL the
+     * ledger-plane migration performs, and mentions in comments. These are
+     * the false positives the string-presence version of this scan produced.
+     */
+    public function test_the_write_scan_passes_every_lawful_shape(): void
+    {
+        $reads = [
+            'count read'          => "DB::table('ledger_entries')->count();",
+            'tail read'           => "DB::table('ledger_entries')->orderByDesc('seq')->limit(50)->get();",
+            'captured reader'     => "\$q = DB::table('ledger_entries')->orderBy('seq');\nreturn \$q->cursor();",
+            'raw SELECT'          => "DB::selectOne('SELECT hash FROM ledger_entries ORDER BY seq DESC LIMIT 1');",
+            'aggregate SELECT'    => "DB::select('SELECT currency_id, SUM(amount) FROM ledger_entries GROUP BY currency_id');",
+            'comment mention'     => "// ledger_entries and issuance_events are append-only by trigger\n\$this->teardown();",
+            'eloquent read'       => "LedgerEntry::where('seq', 1)->get();",
+            'model table prop'    => "protected \$table = 'ledger_entries';",
+            'DDL create'          => "Schema::create('ledger_entries', function (Blueprint \$table) {});",
+            'DDL alter'           => "DB::statement('ALTER TABLE ledger_entries ADD CONSTRAINT c CHECK (amount > 0)');",
+            'DDL trigger'         => "DB::statement('CREATE TRIGGER ledger_entries_immutable BEFORE DELETE OR UPDATE ON ledger_entries FOR EACH ROW EXECUTE FUNCTION f()');",
+            'DDL truncate guard'  => "DB::statement('CREATE TRIGGER ledger_entries_no_truncate BEFORE TRUNCATE ON ledger_entries FOR EACH STATEMENT EXECUTE FUNCTION f()');",
+            'DDL drop (rollback)' => "Schema::dropIfExists('ledger_entries');",
+        ];
+
+        foreach ($reads as $label => $source) {
+            $this->assertSame(
+                [],
+                self::ledgerWriteConstructs($source),
+                "the scan must NOT flag: {$label}"
+            );
+        }
+    }
+
+    /**
+     * Write-construct matcher for the one-door scan. Returns a label per
+     * matched construct so an offender report says WHAT it saw, not just
+     * where.
+     */
+    private static function ledgerWriteConstructs(string $source): array
+    {
+        $found = [];
+        $writeVerbs = 'insert|insertGetId|insertOrIgnore|upsert|update|updateOrInsert|increment|decrement|delete|truncate';
+
+        // 1. A write chained onto the builder within one statement.
+        if (preg_match(
+            "/DB::table\\(\\s*['\"]ledger_entries['\"]\\s*\\)[^;]*?->\\s*({$writeVerbs})\\s*\\(/s",
+            $source,
+            $m
+        )) {
+            $found[] = "builder->{$m[1]}()";
+        }
+
+        // 2. The builder captured into a variable and written through later —
+        //    the shape a single-expression regex cannot see.
+        if (preg_match_all("/\\\$(\\w+)\\s*=\\s*DB::table\\(\\s*['\"]ledger_entries['\"]\\s*\\)/", $source, $vars)) {
+            foreach (array_unique($vars[1]) as $var) {
+                if (preg_match(
+                    '/\$' . preg_quote($var, '/') . "\\s*->\\s*({$writeVerbs})\\s*\\(/",
+                    $source,
+                    $m
+                )) {
+                    $found[] = "captured builder \${$var}->{$m[1]}()";
+                }
+            }
+        }
+
+        // 3. Raw SQL DML. Deliberately NOT bare table-name presence: the
+        //    ledger-plane migration lawfully says `ALTER TABLE ledger_entries`
+        //    and `BEFORE DELETE OR UPDATE ON ledger_entries` (DDL), and
+        //    LedgerService lawfully SELECTs. Only DML verbs directly against
+        //    the table are writes.
+        if (preg_match(
+            '/\b(INSERT\s+INTO|UPDATE|DELETE\s+FROM|TRUNCATE(?:\s+TABLE)?)\s+(?:ONLY\s+)?"?ledger_entries"?/i',
+            $source,
+            $m
+        )) {
+            $found[] = 'raw SQL ' . strtoupper(preg_replace('/\s+/', ' ', $m[1]));
+        }
+
+        // 4. Eloquent-side writes on the read-only model.
+        if (preg_match(
+            '/LedgerEntry::(create|forceCreate|insert|insertGetId|insertOrIgnore|upsert|updateOrCreate|updateOrInsert|firstOrCreate|firstOrNew|destroy|truncate)\b/',
+            $source,
+            $m
+        )) {
+            $found[] = "LedgerEntry::{$m[1]}()";
+        }
+        if (preg_match('/new\s+LedgerEntry\b/', $source)) {
+            $found[] = 'new LedgerEntry (instantiation implies a save path)';
+        }
+
+        return $found;
     }
 
     public function test_direction_constants_are_pinned(): void
