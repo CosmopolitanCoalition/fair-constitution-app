@@ -133,15 +133,34 @@ class EducationNoGateTest extends TestCase
     }
 
     /**
-     * Acquisition is never gated: the ONLY code consulting the gate is the
-     * engine's single filing path. No seating, certification, appointment,
-     * or registration service may grow its own consultation.
+     * Acquisition is never gated, and ENFORCEMENT has exactly one home.
+     *
+     * Two rails, of different strengths:
+     *   - Referencing TrainingGateService at all is confined to the gate's
+     *     own file, the engine, and the read-only pre-train backfill (which
+     *     reads hasLiveTraining/hasCompleted to decide WHOM to train — it
+     *     never gates).
+     *   - The enforcement call itself, assertMayAct, has exactly ONE home
+     *     outside the gate's definition: the engine's single filing path. No
+     *     seating, certification, appointment, registration, or arming
+     *     service may grow its own consultation — the backfill is pinned
+     *     enforcement-free right here.
      */
     public function test_only_the_engine_consults_the_gate(): void
     {
         $root = str_replace('\\', '/', \dirname(__DIR__, 2).'/app');
 
-        $allowed = [
+        // May NAME the gate: its own file, the engine (enforcer), and the
+        // read-only pre-train backfill (arming reader — ruling Option A §①).
+        $mayReference = [
+            $root.'/Services/Education/TrainingGateService.php',
+            $root.'/Domain/Engine/ConstitutionalEngine.php',
+            $root.'/Services/Education/SeatedMemberTrainingService.php',
+        ];
+
+        // May ENFORCE (name assertMayAct): the gate defines it, the engine
+        // calls it. Nothing else — not even the read-only backfill.
+        $mayEnforce = [
             $root.'/Services/Education/TrainingGateService.php',
             $root.'/Domain/Engine/ConstitutionalEngine.php',
         ];
@@ -157,18 +176,24 @@ class EducationNoGateTest extends TestCase
 
             $path = str_replace('\\', '/', $file->getPathname());
 
-            if (in_array($path, $allowed, true)) {
-                continue;
-            }
-
             $code = preg_replace('!/\*.*?\*/!s', '', file_get_contents($path));
             $code = preg_replace('!//.*$!m', '', $code);
 
-            $this->assertStringNotContainsString(
-                'TrainingGateService',
-                $code,
-                "{$path} consults the training gate — only the engine's filing path may (acquiring is free, acting asks)."
-            );
+            if (! in_array($path, $mayReference, true)) {
+                $this->assertStringNotContainsString(
+                    'TrainingGateService',
+                    $code,
+                    "{$path} consults the training gate — only the engine's filing path and the read-only backfill may (acquiring is free, acting asks)."
+                );
+            }
+
+            if (! in_array($path, $mayEnforce, true)) {
+                $this->assertStringNotContainsString(
+                    'assertMayAct',
+                    $code,
+                    "{$path} enforces the training gate — assertMayAct has one home, the engine's filing path (acquiring is free, acting asks)."
+                );
+            }
         }
     }
 

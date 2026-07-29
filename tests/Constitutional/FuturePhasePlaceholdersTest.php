@@ -144,6 +144,7 @@ class FuturePhasePlaceholdersTest extends TestCase
             'EducationNoGateTest.php', // Art. I / ruling A5 §6.5 — acquiring is free, acting asks
             'EducationProgressNeverFederatesTest.php', // K2 §6.2 — resume state never crosses a node
             'TrainingGateEndToEndTest.php', // ruling A5 walked: redirect → train → stipend once → act proceeds
+            'SeatedMemberTrainingTest.php', // ruling Option A (W4 §①) — publish arms, then pre-train the seated
         ] as $file) {
             $this->assertFileExists(
                 $base.$file,
