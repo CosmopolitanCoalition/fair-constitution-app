@@ -55,7 +55,7 @@ export const SITEMAP = [
         { id: 'residency', label: 'Say where you live', icon: 'map-pin', href: '/civic/residency', contract: 'civic/residency.html' },
         { id: 'relocation', label: 'Move somewhere new', icon: 'map', href: '/civic/relocation', contract: 'civic/relocation.html' },
         { id: 'my-record', label: 'My record', icon: 'file-text', href: '/civic/record', contract: 'civic/my-civic-life.html' },
-        { id: 'achievements', label: 'Achievements', icon: 'award', href: '/civic/record?tab=achievements', contract: 'social/achievements.html' },
+        { id: 'achievements', label: 'Achievements', icon: 'award', href: '/achievements', contract: 'social/achievements.html' },
     ] },
     { key: 'elections', title: 'A place’s elections', items: [
         { id: 'candidacy', label: 'Stand for office', icon: 'user', href: '/elections/candidacy', contract: 'electoral/candidacy-registration.html' },
@@ -100,10 +100,10 @@ export const SITEMAP = [
         { id: 'jurisdiction-browser', label: 'Places', icon: 'globe', href: '/jurisdictions', contract: 'jurisdictions/jurisdiction-browser.html' },
         { id: 'legislatures', label: 'Legislatures & districts', icon: 'map', href: '/legislatures', contract: 'jurisdictions/district-mapper.html', phase: 5 },
         { id: 'reach', label: 'Reach', icon: 'bar-chart', href: '/reach', contract: 'social/legitimacy.html', phase: 7 },
-        { id: 'bootstrap', label: 'Wake a place up', icon: 'globe', href: null, contract: 'jurisdictions/bootstrap.html', phase: 4 },
-        { id: 'union-formation', label: 'Merge places into a union', icon: 'users', href: null, contract: 'jurisdictions/union-formation.html', phase: 4 },
-        { id: 'disintermediation', label: 'Remove a middle layer', icon: 'globe', href: null, contract: 'jurisdictions/disintermediation.html', phase: 4 },
-        { id: 'restoration', label: 'Rebuild a lost government', icon: 'refresh-cw', href: null, contract: 'jurisdictions/restoration.html', phase: 4 },
+        { id: 'bootstrap', label: 'Wake a place up', icon: 'globe', href: '/jurisdictions/bootstrap', contract: 'jurisdictions/bootstrap.html' },
+        { id: 'union-formation', label: 'Merge places into a union', icon: 'users', href: '/jurisdictions/union-formation', contract: 'jurisdictions/union-formation.html' },
+        { id: 'disintermediation', label: 'Remove a middle layer', icon: 'globe', href: '/jurisdictions/disintermediation', contract: 'jurisdictions/disintermediation.html' },
+        { id: 'restoration', label: 'Rebuild a lost government', icon: 'refresh-cw', href: '/jurisdictions/restoration', contract: 'jurisdictions/restoration.html' },
         { id: 'federation', label: 'Between governments', icon: 'globe', href: '/federation', contract: 'jurisdictions/federation.html', phase: 4 },
     ] },
     /* Order follows the mockup sidebar (shell-v2.js "Market · planned"), which

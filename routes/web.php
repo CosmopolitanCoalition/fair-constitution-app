@@ -181,6 +181,27 @@ Route::get('/api/cosmic-addresses/{id}/children', [CosmicAddressController::clas
 // stay unchanged because they're internal JS-driven calls where slugs
 // would only add lookup cost.
 Route::get('/jurisdictions', [JurisdictionController::class, 'index'])->name('jurisdictions.index');
+
+// ── The jurisdiction LIFECYCLE pages (Wave 2, V3 §6) — STATIC paths, so they must be
+// registered BEFORE the {jurisdiction:slug} catch-all or a slug lookup swallows them.
+// Reads are public (Art. II §2 — anyone may watch the machinery). The two write doors
+// are chamber PROPOSALS (F-LEG-029 / F-LEG-030): auth here, the seat requirement and
+// every constitutional guard in the service/engine — never route middleware alone.
+Route::get('/jurisdictions/bootstrap', [\App\Http\Controllers\Jurisdictions\LifecycleController::class, 'bootstrap'])
+    ->name('jurisdictions.bootstrap');
+Route::get('/jurisdictions/union-formation', [\App\Http\Controllers\Jurisdictions\LifecycleController::class, 'union'])
+    ->name('jurisdictions.union');
+Route::get('/jurisdictions/disintermediation', [\App\Http\Controllers\Jurisdictions\LifecycleController::class, 'disintermediation'])
+    ->name('jurisdictions.disintermediation');
+Route::get('/jurisdictions/restoration', [\App\Http\Controllers\Jurisdictions\LifecycleController::class, 'restoration'])
+    ->name('jurisdictions.restoration');
+Route::middleware('auth')->group(function () {
+    Route::post('/jurisdictions/union-formation/propose', [\App\Http\Controllers\Jurisdictions\LifecycleController::class, 'proposeUnion'])
+        ->name('jurisdictions.union.propose');
+    Route::post('/jurisdictions/disintermediation/propose', [\App\Http\Controllers\Jurisdictions\LifecycleController::class, 'proposeDisintermediation'])
+        ->name('jurisdictions.disintermediation.propose');
+});
+
 Route::get('/jurisdictions/{jurisdiction:slug}', [JurisdictionController::class, 'show'])->name('jurisdictions.show');
 
 // ── The build screen — how much of this world exists yet ────────────────────────────────
@@ -202,6 +223,24 @@ Route::get('/api/build/progress', [\App\Http\Controllers\BuildProgressController
 // live count would hand an observer sub-minute resolution on a number k-anonymity publishes
 // once a day.
 Route::get('/reach', [\App\Http\Controllers\ReachController::class, 'index'])->name('reach.index');
+
+// ── The public person profile — the ?who= page (v3.2 0a: one person = one profile) ──────
+// PUBLIC read: a profile is the person shown the same way everyone is — candidacy and
+// office are tabs, never separate identities. Pseudonymity end-to-end (Art. I); the old
+// /candidates/{candidacy} route 302s onto the Candidacy tab here. Follows are LOCAL-ONLY
+// rows (never audited, never federated, never published — SocialFollow docblock).
+Route::get('/people', [\App\Http\Controllers\Social\PersonProfileController::class, 'show'])->name('people.show');
+Route::middleware('auth')->group(function () {
+    Route::post('/people/{user}/follow', [\App\Http\Controllers\Social\PersonProfileController::class, 'follow'])
+        ->whereUuid('user')->name('people.follow');
+    Route::delete('/people/{user}/follow', [\App\Http\Controllers\Social\PersonProfileController::class, 'unfollow'])
+        ->whereUuid('user')->name('people.unfollow');
+});
+
+// ── The achievements page — the full catalog over the sealed ledger (K-2) ───────────────
+// READ-ONLY like /reach: decorative never power (CI-1), a list never a score (PI-6).
+// Public read; the earned overlay is the signed-in viewer's own ledger rows.
+Route::get('/achievements', [\App\Http\Controllers\Social\AchievementsController::class, 'index'])->name('achievements.index');
 
 // ── Invites — the share-to-signup growth loop ───────────────────────────────────────────
 // PUBLIC landing: a friend opens the link with no account. If signed in they redeem +
@@ -414,8 +453,12 @@ Route::middleware('auth')->group(function () {
         ->whereUuid('election')->name('elections.candidacy.create');
     Route::post('/elections/{election}/candidacy', [CandidacyController::class, 'store'])
         ->whereUuid('election')->name('elections.candidacy.store');
+    // 302 → the person profile's Candidacy tab (v3.2 0a — one person, one
+    // profile). Guest-reachable like its target: the forward names only
+    // public record (which person a public candidacy belongs to), and the
+    // /people page it lands on is public (the /support/report GET pattern).
     Route::get('/candidates/{candidacy}', [CandidacyController::class, 'show'])
-        ->whereUuid('candidacy')->name('candidates.show');
+        ->whereUuid('candidacy')->withoutMiddleware('auth')->name('candidates.show');
     Route::patch('/candidates/{candidacy}', [CandidacyController::class, 'update'])
         ->whereUuid('candidacy')->name('candidates.update');                     // F-CAN-001
     Route::post('/candidates/{candidacy}/withdraw', [CandidacyController::class, 'withdraw'])
@@ -1170,6 +1213,23 @@ Route::middleware('auth:operator')->group(function () {
         ->name('operator.roles.approve');
     Route::post('/operator/roles/revoke', [\App\Http\Controllers\Operator\MeshRolesController::class, 'revoke'])
         ->name('operator.roles.revoke');
+});
+
+// ── Phase O — the simulated-world DRIVE controls (operator plane). The
+// /simworld console is public-read (Art. II §2 — a citizen may watch the
+// machinery); DRIVING a run is not. Start / halt / resume ride auth:operator and
+// each calls SimRunControl, where the synthetic-data guard, the single-run law
+// and the audit mark live ONCE — so this door and the sim:halt / sim:resume CLI
+// verbs carry the identical guards (parity of capability, guards travel with the
+// pair). Halt/resume are instant flag writes the pump already honours; start
+// queues the real sim:start command so enumeration never blocks the request.
+Route::middleware('auth:operator')->group(function () {
+    Route::post('/api/simworld/start', [\App\Http\Controllers\Demo\SimConsoleController::class, 'start'])
+        ->name('api.simworld.start');
+    Route::post('/api/simworld/halt', [\App\Http\Controllers\Demo\SimConsoleController::class, 'halt'])
+        ->name('api.simworld.halt');
+    Route::post('/api/simworld/resume', [\App\Http\Controllers\Demo\SimConsoleController::class, 'resume'])
+        ->name('api.simworld.resume');
 });
 
 // ── Geodata repair plane (setup-time acceptance gate) ───────────────────────────────────

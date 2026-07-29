@@ -1055,6 +1055,37 @@ return [
             .'(that is the allegiance/restoration test — see RestorationService) · Preamble; Art. I; Art. II §1',
     ],
 
+    'social/profile' => [
+        'title'     => 'Profile',
+        'module'    => 'social',
+        // No nav id: a person profile is reached from links (count pages,
+        // the square, endorsement webs), never from the sidebar — no
+        // sidebar item should light up for someone else's page.
+        'nav'       => null,
+        'roles'     => ['R-01', 'R-03', 'R-06', 'R-07'],
+        'workflows' => ['WF-CIV-05', 'WF-CIV-08'],
+        'forms'     => [
+            ['id' => 'F-CAN-001', 'availableTo' => ['R-06'], 'citation' => 'Art. II §2 (campaign statement — self-managed, every edit on the record)'],
+            ['id' => 'F-CAN-002', 'availableTo' => ['R-06'], 'citation' => 'Art. II §2 (endorsement request — the org\'s agent decides via F-ORG-002)'],
+            ['id' => 'F-CAN-003', 'availableTo' => ['R-06'], 'citation' => 'Art. II §2 · CLK-21 (withdrawal until the ballot lock)'],
+        ],
+        'clocks'    => ['CLK-21'],
+        'citation'  => 'One person, one profile — candidacy and office are tabs, never separate identities; '
+            .'a pseudonym is a first-class civic life · Art. I; Art. II §2',
+    ],
+
+    'social/achievements' => [
+        'title'     => 'Achievements',
+        'module'    => 'social',
+        'nav'       => 'achievements',
+        'roles'     => ['R-01'],
+        'workflows' => [],
+        'forms'     => [],
+        'clocks'    => [],
+        'citation'  => 'A list, never a score — achievements decorate, they never empower. '
+            .'No vote, seat, role or eligibility ever consults this page · Art. I; CI-1; PI-6',
+    ],
+
     'legislature/districts' => [
         'title'     => 'The district mapper',
         'module'    => 'jurisdictions',
@@ -1077,6 +1108,62 @@ return [
         'forms'     => [],
         'clocks'    => ['CLK-06'],
         'citation'  => 'Every place governs itself — sitting inside a bigger one changes scope, never rank · Art. V §1',
+    ],
+
+    /*
+    |----------------------------------------------------------------------
+    | Wave 2 (V3 §6) — the jurisdiction LIFECYCLE pages
+    |----------------------------------------------------------------------
+    | Ids mirror the mockup rels (mockups/v3/jurisdictions/*.html) so lane
+    | 15's Learn corpus, keyed by the same ids, joins without a rename.
+    */
+
+    'jurisdictions/bootstrap' => [
+        'title'     => 'How a place wakes up',
+        'module'    => 'jurisdictions',
+        'nav'       => 'bootstrap',
+        'roles'     => ['R-01', 'R-03', 'R-08'],
+        'workflows' => ['WF-JUR-01', 'WF-ELE-02'],
+        'forms'     => [],
+        'clocks'    => ['CLK-06'],
+        'citation'  => 'Enough people → first election → full governance · critical population per jurisdiction tier',
+    ],
+
+    'jurisdictions/union-formation' => [
+        'title'     => 'Union formation',
+        'module'    => 'jurisdictions',
+        'nav'       => 'union-formation',
+        'roles'     => ['R-09', 'R-04'],
+        'workflows' => ['WF-JUR-02', 'WF-JUR-03'],
+        'forms'     => [
+            ['id' => 'F-LEG-029', 'availableTo' => ['R-09'], 'citation' => 'Art. V §7'],
+        ],
+        'clocks'    => [],
+        'citation'  => 'Needs a supermajority of applicant individuals plus a supermajority of union constituents · Art. V §7',
+    ],
+
+    'jurisdictions/disintermediation' => [
+        'title'     => 'Removing a middle layer',
+        'module'    => 'jurisdictions',
+        'nav'       => 'disintermediation',
+        'roles'     => ['R-09'],
+        'workflows' => ['WF-JUR-04'],
+        'forms'     => [
+            ['id' => 'F-LEG-030', 'availableTo' => ['R-09'], 'citation' => 'Art. V §8'],
+        ],
+        'clocks'    => [],
+        'citation'  => 'All constituents and the encompassing jurisdiction agree, then the acts are incorporated into the constituents · Art. V §8',
+    ],
+
+    'jurisdictions/restoration' => [
+        'title'     => 'Rebuilding a lost government',
+        'module'    => 'jurisdictions',
+        'nav'       => 'restoration',
+        'roles'     => ['R-03', 'R-09'],
+        'workflows' => ['WF-JUR-07'],
+        'forms'     => [],
+        'clocks'    => [],
+        'citation'  => 'Restoration cascade: constituents, then the encompassing jurisdiction, then individuals · Art. VI §2–3',
     ],
 
     /*
