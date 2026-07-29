@@ -52,6 +52,11 @@ const props = defineProps({
     filingForm: { type: Object, default: () => ({ kinds: [], scales: [], severities: [] }) },
     isAssociated: { type: Boolean, default: false },
     can: { type: Object, default: () => ({ fileCase: false }) },
+    /** Whole-chain aggregate view (/judiciary/docket): cases across every court
+        in the viewer's chain. Read-only — filing happens on a single court. */
+    aggregate: { type: Boolean, default: false },
+    /** The courts in the chain, for drill-in in aggregate mode: [{ id, name, href }]. */
+    courts: { type: Array, default: () => [] },
 });
 
 const page = usePage();
@@ -146,9 +151,16 @@ function submitFiling() {
 <template>
     <PageScaffold :surface="surface" :title="`Case docket — ${judiciary.name}`">
         <template #intro>
-            Every case filed in this court, from local civil disputes to full-court constitutional
-            questions. Anyone who lives here (a verified resident) can file; panels are assigned by
-            the court with conflict screening.
+            <template v-if="aggregate">
+                Every case before every court in your jurisdictions — from your neighbourhood up to
+                the world court — in one docket. This is a read-only view; to file, open the court
+                you want below.
+            </template>
+            <template v-else>
+                Every case filed in this court, from local civil disputes to full-court constitutional
+                questions. Anyone who lives here (a verified resident) can file; panels are assigned by
+                the court with conflict screening.
+            </template>
         </template>
 
         <!-- engine 422: the rejection citation, verbatim -->
@@ -159,9 +171,25 @@ function submitFiling() {
 
         <!-- ============================================ header links ===== -->
         <div class="cluster">
-            <Link :href="judiciary.home_href">Judiciary home →</Link>
+            <Link v-if="!aggregate" :href="judiciary.home_href">Judiciary home →</Link>
             <Link :href="judiciary.challenges_href">Constitutional challenges →</Link>
         </div>
+
+        <!-- ==================================== the chain's courts (aggregate) -->
+        <Card v-if="aggregate" as="section" title="Your courts">
+            <p v-if="courts.length" class="gloss">
+                Cases below span these courts. Open one to file, or to see its full docket.
+            </p>
+            <p v-else class="gloss">
+                No court has formed in your jurisdictions yet — a court forms when a legislature
+                creates one (F-LEG-017). This docket will fill as courts appear.
+            </p>
+            <ul v-if="courts.length" class="cluster" style="list-style: none; padding: 0; gap: var(--space-3)">
+                <li v-for="court in courts" :key="court.id">
+                    <Link :href="court.href">{{ court.name }} →</Link>
+                </li>
+            </ul>
+        </Card>
 
         <!-- =============================================== stat tiles ===== -->
         <Card as="section" title="Open cases">
@@ -238,7 +266,7 @@ function submitFiling() {
         </Card>
 
         <!-- ================================================= file a case == -->
-        <template v-if="surfaceForm('F-IND-017') && isAssociated">
+        <template v-if="!aggregate && surfaceForm('F-IND-017') && isAssociated">
             <FormCard
                 :form="surfaceForm('F-IND-017')"
                 :inertia-form="filing"

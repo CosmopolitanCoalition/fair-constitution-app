@@ -10,6 +10,7 @@ use App\Services\RoleService;
 use App\Support\SurfaceMeta;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Inertia\Inertia;
 use Inertia\Response;
 
@@ -115,6 +116,95 @@ class DocketController extends Controller
                 // or whether the residency CTA shows instead.
                 'fileCase' => $request->user() !== null && $isAssociated,
             ],
+        ]);
+    }
+
+    // =========================================================================
+    // GET /judiciary/docket — the viewer's WHOLE-CHAIN aggregate docket
+    // =========================================================================
+
+    /**
+     * The per-viewer docket that spans EVERY court in the viewer's jurisdiction
+     * chain (plus any court they are seated on). This replaces the old resolver
+     * behaviour, which collapsed to a single court and 302'd to /civic when the
+     * chain held no court — a fresh resident with no seated court would be
+     * bounced away from their own docket. Now the page always renders: cases
+     * from every court in the chain, each row stamped with which court it sits
+     * on, and an honest empty state when no court has formed yet.
+     *
+     * The ancestor sweep is already materialised in residency_confirmations
+     * (RoleService::associationsFor), so the chain is a flat set — no runtime CTE.
+     * This is a READ aggregate: filing needs a single court, so the composer is
+     * hidden here and each listed court links to its own docket to file.
+     */
+    public function mine(Request $request): Response
+    {
+        $user = $request->user();
+        $associations = $user !== null ? $this->roles->associationsFor($user) : [];
+        $chainJurisdictionIds = array_map(static fn ($a) => (string) $a['id'], $associations);
+
+        $seatedIds = $user === null ? [] : DB::table('judicial_seats')
+            ->where('user_id', (string) $user->getKey())
+            ->where('status', 'seated')
+            ->whereNull('deleted_at')
+            ->distinct()
+            ->pluck('judiciary_id')
+            ->map('strval')
+            ->all();
+
+        $courts = collect();
+
+        // Guard the empty case: an unfiltered where() closure would match EVERY
+        // court, so only query when the viewer actually has a chain or a seat.
+        if ($chainJurisdictionIds !== [] || $seatedIds !== []) {
+            $courts = Judiciary::query()
+                ->where(function ($q) use ($chainJurisdictionIds, $seatedIds) {
+                    if ($chainJurisdictionIds !== []) {
+                        $q->whereIn('jurisdiction_id', $chainJurisdictionIds);
+                    }
+                    if ($seatedIds !== []) {
+                        $q->orWhereIn('id', $seatedIds);
+                    }
+                })
+                ->where('status', '!=', Judiciary::STATUS_FORMING)
+                ->whereNull('deleted_at')
+                ->with('jurisdiction:id,name,slug,adm_level')
+                ->get();
+        }
+
+        $judiciaryIds = $courts->pluck('id')->map('strval')->all();
+
+        $cases = $judiciaryIds === [] ? collect() : CourtCase::query()
+            ->whereIn('judiciary_id', $judiciaryIds)
+            ->with(['panel', 'jurisdiction:id,name'])
+            ->orderByDesc('created_at')
+            ->get();
+
+        return Inertia::render('Judiciary/CaseDocket', [
+            'surface' => SurfaceMeta::for('judiciary/case-docket'),
+            // A synthetic chain header — no single court owns this aggregate.
+            'judiciary' => [
+                'id' => null,
+                'name' => 'your courts',
+                'jurisdiction' => null,
+                'home_href' => '/judiciary/docket',
+                'challenges_href' => '/constitutional-challenges',
+            ],
+            'aggregate' => true,
+            'courts' => $courts
+                ->sortBy(fn (Judiciary $j) => $j->jurisdiction?->adm_level ?? 99)
+                ->map(fn (Judiciary $j) => [
+                    'id' => (string) $j->id,
+                    'name' => $j->court_name ?? (($j->jurisdiction?->name ?? 'Court').' judiciary'),
+                    'href' => "/judiciaries/{$j->id}/docket",
+                ])->values()->all(),
+            'stats' => $this->stats($cases),
+            'cases' => $this->caseRows($cases),
+            'machine' => config('cga.state_machines.case', []),
+            'filters' => ['kinds' => array_values(self::KIND_DISPLAY)],
+            'filingForm' => ['kinds' => [], 'scales' => [], 'severities' => []],
+            'isAssociated' => $associations !== [],
+            'can' => ['fileCase' => false],
         ]);
     }
 

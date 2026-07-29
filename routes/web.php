@@ -896,6 +896,10 @@ Route::middleware('auth')->group(function () {
         ->whereUuid('summons')->name('judiciary.juror.show');
     Route::post('/judiciary/jury/{summons}/screening', [\App\Http\Controllers\Judiciary\JurorController::class, 'screening'])
         ->whereUuid('summons')->name('judiciary.juror.screening');                // voir-dire (no F-* form)
+    // The per-viewer WHOLE-CHAIN docket — registered before the {sub?} resolver
+    // so it wins for /judiciary/docket (the resolver still handles ''/challenges/jury).
+    Route::get('/judiciary/docket', [\App\Http\Controllers\Judiciary\DocketController::class, 'mine'])
+        ->name('judiciary.docket.mine');
     Route::get('/judiciary/{sub?}', \App\Http\Controllers\Judiciary\JudiciaryResolverController::class)
         ->where('sub', 'docket|challenges|jury')->name('judiciary.resolve');
 
