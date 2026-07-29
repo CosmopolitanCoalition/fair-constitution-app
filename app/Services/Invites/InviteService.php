@@ -44,7 +44,7 @@ class InviteService
     public function mint(User $inviter, array $spec): array
     {
         $kind = (string) ($spec['kind'] ?? '');
-        [$path, $label] = $this->resolveDestination($kind, $spec);
+        [$path, $label] = $this->resolveDestination($inviter, $kind, $spec);
 
         $handle = Str::lower(Str::random(12));
         $secret = bin2hex(random_bytes(32));
@@ -179,29 +179,43 @@ class InviteService
      *
      * @return array{0:string,1:?string}
      */
-    private function resolveDestination(string $kind, array $spec): array
+    private function resolveDestination(User $inviter, string $kind, array $spec): array
     {
         return match ($kind) {
             Invite::KIND_CALL, Invite::KIND_COMMONS => $this->commonsDestination($spec),
             Invite::KIND_PROCEEDING => $this->proceedingDestination($spec),
-            Invite::KIND_SPACE => $this->spaceDestination($spec),
+            Invite::KIND_SPACE => $this->spaceDestination($inviter, $spec),
             default => throw new InvalidArgumentException("Unsupported invite kind [{$kind}]."),
         };
     }
 
     /**
-     * A private-room invite — points at the inviter's own private room. The redeemer is admitted as a
-     * member on redeem (grantAccess). Same-origin path, validated against a real private space.
+     * A private-room invite — points at the inviter's OWN private room. The redeemer is admitted as
+     * a member on redeem (grantAccess). Same-origin path, validated against a real private space.
+     *
+     * The membership check is load-bearing, not belt-and-braces. Existence + is_private alone let
+     * ANYONE holding a room's uuid mint a working invite to it, and grantAccess() then admits the
+     * redeemer — so a stranger could walk into a private conversation, and someone who had LEFT a
+     * room could re-admit themselves or others (leave() deletes only the membership row, so the id
+     * they already know keeps working). Nothing else in the stack caught it: InviteController@store
+     * validates that space_id is a uuid and nothing more. This is the class's own stated contract —
+     * "a destination the inviter can already reach" — finally enforced for the one kind that had
+     * no reachability test at all.
      *
      * @return array{0:string,1:?string}
      */
-    private function spaceDestination(array $spec): array
+    private function spaceDestination(User $inviter, array $spec): array
     {
         $spaceId = (string) ($spec['space_id'] ?? '');
 
         $space = SocialSpace::query()->whereKey($spaceId)->where('is_private', true)->first();
         if ($space === null) {
             throw new InvalidArgumentException('Unknown private room for a room invite.');
+        }
+
+        // Same resolution idiom as grantAccess() below.
+        if (! app(PrivateRoomService::class)->isMember($space, $inviter)) {
+            throw new InvalidArgumentException('Only a member of a private room can invite to it.');
         }
 
         return ['/civic/rooms/'.rawurlencode($spaceId), $space->title];

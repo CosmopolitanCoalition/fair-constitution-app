@@ -102,6 +102,71 @@ class PrivateRoomTest extends TestCase
         });
     }
 
+    /**
+     * A room is reachable ONLY by its members — so only a member may hand out the key.
+     * spaceDestination() used to check existence + is_private and nothing else, which meant
+     * anyone holding a room's uuid could mint a working invite, and grantAccess() would then
+     * admit the redeemer. Nothing above it caught that: InviteController@store validates only
+     * that space_id is a uuid.
+     */
+    public function test_only_a_member_can_mint_an_invite_to_a_private_room(): void
+    {
+        $this->onLivePg(function () {
+            $owner = $this->aUser('Owner');
+            $space = $this->aPrivateSpace($owner);
+            $invites = app(InviteService::class);
+
+            // A total stranger who somehow knows the uuid gets nothing.
+            $stranger = $this->aUser('Stranger');
+            $this->assertFalse(app(PrivateRoomService::class)->isMember($space, $stranger));
+
+            try {
+                $invites->mint($stranger, ['kind' => Invite::KIND_SPACE, 'space_id' => (string) $space->id]);
+                $this->fail('a non-member minted an invite into a private room');
+            } catch (\InvalidArgumentException $e) {
+                $this->assertStringContainsString('member of a private room', $e->getMessage());
+            }
+
+            // And the owner still can — the guard blocks strangers, not the room's own people.
+            [, $invite] = $invites->mint($owner, ['kind' => Invite::KIND_SPACE, 'space_id' => (string) $space->id]);
+            $this->assertSame('/civic/rooms/'.$space->id, $invite->path());
+        });
+    }
+
+    /**
+     * The concrete exploit the guard closes: leave() deletes only the membership row, so a
+     * departed member still knows the uuid. Without the check they could re-admit themselves
+     * — or admit anyone else — to a conversation they had been removed from.
+     */
+    public function test_a_member_who_left_can_no_longer_invite_into_the_room(): void
+    {
+        $this->onLivePg(function () {
+            $owner = $this->aUser('Owner');
+            $space = $this->aPrivateSpace($owner);
+            $rooms = app(PrivateRoomService::class);
+            $invites = app(InviteService::class);
+
+            $member = $this->aUser('Member');
+            $rooms->admit($space, $member);
+            $this->assertTrue($rooms->isMember($space, $member));
+
+            // While in, they may invite.
+            [, $invite] = $invites->mint($member, ['kind' => Invite::KIND_SPACE, 'space_id' => (string) $space->id]);
+            $this->assertSame('/civic/rooms/'.$space->id, $invite->path());
+
+            $rooms->leave($space, $member);
+            $this->assertFalse($rooms->isMember($space, $member));
+
+            // Out, they may not — the uuid they still know buys nothing.
+            try {
+                $invites->mint($member, ['kind' => Invite::KIND_SPACE, 'space_id' => (string) $space->id]);
+                $this->fail('a departed member minted a fresh invite back into the room');
+            } catch (\InvalidArgumentException $e) {
+                $this->assertStringContainsString('member of a private room', $e->getMessage());
+            }
+        });
+    }
+
     public function test_the_private_call_token_endpoint_is_member_gated(): void
     {
         $this->onLivePg(function () {

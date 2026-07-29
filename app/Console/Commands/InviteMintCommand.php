@@ -16,11 +16,13 @@ use InvalidArgumentException;
  *   php artisan invite:mint <user-uuid> space --room=<space-uuid>
  *
  * Mints a shareable `handle.secret` invite through the SAME InviteService::mint the
- * web POST uses — so the reachability guard (resolveDestination's same-origin /
- * whitelisted-proceeding check, the open-redirect / SSRF guard) travels with the
- * pair by construction: a bad destination throws and the command prints the refusal,
- * exactly as the controller returns 422. An invite grants NO power — it is a pointer
- * + attribution to a place already open under Art. I / Art. II §2.
+ * web POST uses — so the reachability guard travels with the pair by construction:
+ * a destination the inviter cannot reach throws and the command prints the refusal,
+ * exactly as the controller returns 422. That guard is resolveDestination's
+ * same-origin / whitelisted-proceeding check (the open-redirect / SSRF guard) AND,
+ * for the `space` kind, that {user} is actually a member of --room. An invite grants
+ * NO power — it is a pointer + attribution to a place already open under Art. I /
+ * Art. II §2, and for a private room that place is open to members only.
  *
  * A CLI has no current user, so {user} names the inviter (the dev:board-seat idiom).
  * The plaintext secret is shown ONCE and never persisted — the web's once-only
