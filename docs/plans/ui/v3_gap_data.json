@@ -1,7 +1,7 @@
 {
  "asOf": "2026-07-29",
- "commit": "8745a71",
- "wave": "WAVE 2 essentially closed \u2014 lane 3 landed 11 (all rulings + parity CLIs + 6 punch incl. whole-chain docket); 3 parity UIs next, RankedBallot liveAggregate held for fresh secrecy-first treatment; other 7 lanes DONE",
+ "commit": "914a28a",
+ "wave": "WAVE 2 CLOSED 2026-07-29 \u2014 all 8 lanes DONE; parity UIs landed (914a28a); ONE item deliberately carried for fresh treatment: RankedBallot liveAggregate (ballot-secrecy build). Awaiting operator review of the rubric + Wave 3 gate answers.",
  "rows": [
   {
    "file": "civic/join.html",
