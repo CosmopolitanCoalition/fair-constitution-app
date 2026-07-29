@@ -113,7 +113,7 @@ mislead. So, over the ballots cast so far for the race:
 deliberately daily-frozen (§B.4); §B.5 says ranked-window standings "stay
 visible through the window by contract." Live per-window first-preference
 standings can **influence later voters** — a secret-ballot policy call.
-Queued for the operator (WAVE2_QUEUE, with lane 3's framing). **The
+Queued for the operator (DESK_LEDGER, with lane 3's framing). **The
 no-in-request-decrypt MECHANISM is fixed regardless of his answer** — only the
 worker's *schedule* (every-few-minutes vs once-daily) waits on it. So the worker
 can be built now; wire its cadence to a setting the operator's answer sets.

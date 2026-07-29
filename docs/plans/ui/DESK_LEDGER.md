@@ -1,7 +1,11 @@
-# Wave 2 queue — inputs accumulated during Wave 1
+# The desk ledger — rolling fleet record (formerly `WAVE2_QUEUE.md`)
 
-*Desk file. Items land here as Wave 1 surfaces them; each gets folded into the owning lane's
-Wave 2 marching order. Nothing here is an order yet.*
+*The Delta Orchestration Desk's running ledger across ALL waves. Renamed 2026-07-29 (operator
+flag: a Wave-3 activity was writing to a Wave-2-named file). Sections accrete by wave — Wave 1
+inputs first, then the Wave 2 close-out and every Wave 3 delivery/ruling/slot record below.
+The desk verifies each landing here (hash + insertion-count) before it is believed. Newest
+records are appended at the sections marked with the current wave; nothing here is a lane order
+— orders go to lanes by message.*
 
 ## For lane 2 (G) — federation, from lane 4's D7 build (2026-07-29)
 
