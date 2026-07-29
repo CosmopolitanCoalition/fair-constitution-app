@@ -155,6 +155,24 @@ first-preference standings during an OPEN ballot can influence later voters. Des
 sanctions visible standings; the CADENCE (per-request vs daily-frozen like approval standings)
 is a secret-ballot policy call. The no-in-request-decrypt MECHANISM stands either way.
 
+## Wave 3 desk records (2026-07-29)
+
+- **⚖ B5 PROBE (lane 1, in front of the operator)**: the meaningful tie-break — (a) max
+  total internal shared-border length (reuses `border_len`; cheapest; desk + lane 1
+  recommend) / (b) minimax intra-panel diameter / (c) min cross-panel edges cut — each with
+  a lowest-member-id final fallback; plus SQL-mirror DEFERS to the PHP mapper service
+  (grouping is a graph algorithm; one source of truth = the determinism guarantee).
+- **A5 SUPERSESSION recorded (lane 15's correct reading)**: acquiring-free extends to
+  appointed/registered roles too — the first-ACT gate is the ONLY gate point, superseding
+  the original pre-seating ruling's application-time gate, per A5's own words ("when they
+  go to take their first action in that role").
+- **The quorum design ACCEPTED**: seated = serving unconditionally; no training term ever
+  enters the Art. II §2 / Art. VII denominators (hard-constraint arithmetic untouched; the
+  withhold-training manipulation vector closed). Untrained counts and may be present, cannot
+  cast until trained; never-trains falls to existing vacancy machinery.
+- **All seven Wave 3 lanes compaction-pending** (the escape hatch used fleet-wide before the
+  heavy builds); lanes 1/15 landed their first items pre-hold (3d1a1dc, 7bd2ea7).
+
 ## Divergence ledger (spec ↔ app, logged never silent)
 
 - **Ruling 9 placement (`d69aff0`)**: substance delivered (/federation = citizen view;
