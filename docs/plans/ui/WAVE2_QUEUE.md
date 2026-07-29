@@ -274,3 +274,30 @@ rewrote the mockup entry — the only Webster left in the spec is the prohibitio
 **Full async once** — queued-run + poll pair for the scenario presets (lane 4's
 recommendation, adopted): `elections:demo`-class seeders run minutes; the async plumbing also
 serves D4's relocation path. V1-sync-only rejected.
+
+## WAVE 3 RESUME DISPATCH (desk, 2026-07-29 — operator's final GO, post-compaction)
+
+All seven compacted lanes (1, 2, 3, 4, 6, 13, 15) received `ACTION:` resume orders off
+HEAD `50b8456`. Lane 5 deliberately NOT messaged (uncompacted; continuous order armed —
+a message is an actuator). Lane 14 stays HELD. Deltas dispatched:
+
+- **Lane 1**: mapper build per 3d1a1dc; **B5 RULED = option (a)** max total internal
+  shared-border length (border_len), lowest-member-id fallback; SQL mirror DEFERS to the
+  PHP grouping service; B4 hull validation FIRST with early report; **migration slot FIRST**.
+- **Lane 15**: staged ①→⑤ per 7bd2ea7; **slot SECOND** — flag at step ③, wait for grant;
+  113→115 mint announced deliberately; answer keys server-side; no-ballot-gate pin absolute.
+- **Lane 3**: keystone; A1 oversight-public warm-up; poll-first substrate stands;
+  **store contract to the desk BEFORE composition**; exit test = committee hearing in one room.
+- **Lane 13**: design round DOCUMENTS ONLY → docs/plans/economy/DESIGN_ROUND_2.md,
+  delivered as OPEN QUESTION; F-IND-019 reconciled in-doc.
+- **Lane 4**: C3 study → SERVICE_SCALE_FORMULA.md (cited, Niue/San Marino/Earth examples,
+  manual-after-governance) + ATLAS_DESIGN.md; formula to operator before wiring;
+  R-A un-flag keys strictly on `type_b_needs_districting` clearing.
+- **Lane 2**: coordinator service/CLI/UI first against the columns; migration written but
+  **slot THIRD**, lands on desk signal; refusal matrix pinned; rehearsal runbook second.
+- **Lane 6**: A2 toggle arm-in-place (/tour = index, every page a stop); stops toward 117 on
+  existing surfaces only (keystone stops wait on lane 3); coverage instruments must provably
+  FAIL on seeded drift; opportunistic S8.
+
+Migration slot queue (Wave 3): **1 → 15 → 2**. RankedBallot liveAggregate still awaits the
+operator's fresh-session trigger (spec 3505f51; cadence RULED daily-batch).
