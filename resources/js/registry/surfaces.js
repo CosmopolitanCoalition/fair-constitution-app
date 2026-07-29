@@ -218,6 +218,35 @@ export const TOUR = [
     { act: 'The economy', href: '/economy/stipend', title: 'The civic stipend', blurb: 'A modest, unconditional share for taking part — paid to people, never to accounts.' },
     { act: 'The economy', href: '/economy/agreements', title: 'Agreements', blurb: 'Every contract has a floor of terms — open one to see its signatures and the deal.' },
     { act: 'The record', href: '/achievements', title: 'Achievements', blurb: 'Civic firsts, guided journeys, and a place’s milestones, sealed to an append-only record.' },
+    /* Wave 3 (A2 "stops toward 117") — appended, never inserted, so existing
+       ?step=N links keep their positions. EXISTING, non-dead surfaces only:
+       each renders for a signed-in player (auth-gated is fine — the tour is
+       walked signed-in, exactly like /civic; the operator/* shells render for
+       ANY authenticated user and show a sign-in-as-operator prompt inside, so
+       they are demonstrable, not 403). Deliberately NOT here yet: the live-room
+       / halls keystone (/civic/commons/*, /civic/halls) waits for lane 3; the
+       two param targets (person profile /people?who=, work request
+       /economy/requests/{posting}) stay parent-reached — no fixture guarantee
+       of a stable handle/UUID, and a dead stop is worse than none; /setup
+       refuses once a world is founded, so operator-setup is a dead stop and is
+       omitted. The index groups by act; step numbers are global append-order. */
+    { act: 'The economy', href: '/economy', title: 'The market', blurb: 'Your money, the open market, and public finance — the whole economy in one place.' },
+    { act: 'The economy', href: '/economy/wallet', title: 'My wallet', blurb: 'What you hold and what has moved — private to you, like a ballot.' },
+    { act: 'The economy', href: '/economy/market', title: 'The open market', blurb: 'Offers and requests between people — a two-sided market, settled in the open.' },
+    { act: 'The economy', href: '/economy/units', title: 'Units & money', blurb: 'What a unit is and how money is issued — abstract, with no payment rails.' },
+    { act: 'The economy', href: '/economy/treasury', title: 'Public finance', blurb: 'A place’s treasury, in the open — what came in, what went out, and why.' },
+    { act: 'The economy', href: '/economy/joint-ledgers', title: 'Joint ledgers', blurb: 'Shared accounts that move only when the people who share them agree.' },
+    { act: 'Organizations', href: '/organizations/co-determination', title: 'Worker seats on the board', blurb: 'Past a threshold of employees, workers elect seats on the board — by the same fair count.' },
+    { act: 'Organizations', href: '/organizations/transfers-conversions', title: 'Ownership changes', blurb: 'How an organization changes hands or converts type — every step on the record.' },
+    { act: 'Your place', href: '/civic/relocation', title: 'Move somewhere new', blurb: 'Change where you live and your rights follow you — residency is the only key.' },
+    { act: 'The record', href: '/system/term-sync', title: 'Terms end together', blurb: 'Why civil and judicial terms move in lockstep — ten years, synchronized.' },
+    { act: 'The record', href: '/reach', title: 'Reach', blurb: 'How many have taken part — a gauge that measures, never a lever that rules.' },
+    { act: 'Help', href: '/support/tickets', title: 'Your reports', blurb: 'Everything you’ve filed and where it went — a bug, a question, or a call for review.' },
+    { act: 'Help', href: '/system/accessibility', title: 'Accessibility', blurb: 'What’s built in, what’s still coming, and how to tell us where it falls short.' },
+    { act: 'Help', href: '/system/constitutional-questions', title: 'The hard questions', blurb: 'The design decisions people ask about most, answered against the Template.' },
+    { act: 'Run a node', href: '/operator', title: 'The operator plane', blurb: 'The volunteer servers the world runs on — keeping one online buys no vote and no seat.' },
+    { act: 'Run a node', href: '/operator/dns', title: 'DNS & certificates', blurb: 'How a node is reached on the network, and how it proves it’s really itself.' },
+    { act: 'Run a node', href: '/operator/moderation', title: 'Moderation & the legal floor', blurb: 'The only removals allowed — four narrow carve-outs, never a viewpoint.' },
 ];
 
 /* The first-visit track — a stranger's short arc through the tour, a subset of
