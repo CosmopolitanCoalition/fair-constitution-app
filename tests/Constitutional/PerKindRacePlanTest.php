@@ -159,9 +159,108 @@ class PerKindRacePlanTest extends TestCase
         });
     }
 
+    /**
+     * R-A GUARD (operator ruling 2026-07-28, V3_SYNTHESIS_PLAN §10) — a chamber
+     * flagged `type_b_needs_districting` refuses to schedule its Type B race
+     * until lane 1's Type B district mapper clears the flag: *"We will not
+     * playtest Type B elections until this is fixed."*
+     *
+     * The block is PER-KIND — the lower house still elects — and UNCONDITIONAL
+     * ON WORLD CLASS: racePlan reads no instance_class and keys only on the
+     * persisted flag, so demo, sandbox, scale_demo and standard instances refuse
+     * alike. It guards SCHEDULING, never sitting members.
+     *
+     * THE HEADLINE: a flagged upper house is blocked; the districted lower house
+     * elects normally beside it. This is the state of 9,708 real chambers.
+     */
+    public function test_R_A_a_flagged_type_b_half_is_blocked_while_the_lower_house_elects(): void
+    {
+        $this->onLivePg(function () {
+            // Real flagged shape: type_b (20) exceeds type_a (14), and the lower
+            // house carries a lawful active district map.
+            $legislature = $this->legislature(typeA: 14, typeB: 20, needsDistricting: true);
+            $this->districtMap($legislature, [7, 7]);
+
+            $plan = app(ElectionLifecycleService::class)->racePlan($legislature);
+
+            $this->assertTrue($plan['blocked'], 'the flagged Type B half genuinely cannot elect');
+            $this->assertFalse($plan['fully_blocked'], 'but the districted lower house is lawful, so the plan is not dead');
+
+            $this->assertSame('blocked', $plan['kinds']['type_b']['mode'], 'the upper house is blocked pending Type B districting');
+            $this->assertSame('Art. V §3', $plan['kinds']['type_b']['citation']);
+            $this->assertStringContainsString(
+                'type_b_needs_districting',
+                $plan['kinds']['type_b']['reason'],
+                'the reason must name the flag, so the block is legible on the blocked-posture record'
+            );
+
+            $this->assertSame('districts', $plan['kinds']['type_a']['mode'], 'the lower house is untouched');
+            $this->assertSame(['type_a'], $plan['generable_kinds'], 'exactly the lawful kinds are generable');
+        });
+    }
+
+    /** No race is materialised for the blocked Type B half — a block is not a licence to cheat. */
+    public function test_R_A_no_type_b_race_is_generated_for_a_flagged_chamber(): void
+    {
+        $this->onLivePg(function () {
+            $legislature = $this->legislature(typeA: 14, typeB: 20, needsDistricting: true);
+            $this->districtMap($legislature, [7, 7]);
+
+            $election = app(ElectionLifecycleService::class)->scheduleGeneral($legislature);
+            $races = DB::table('election_races')->where('election_id', $election->id)->get();
+
+            $this->assertSame(
+                ['type_a', 'type_a'],
+                $races->pluck('seat_kind')->all(),
+                'only the two district races are generated — NOT ONE type_b race for the flagged half'
+            );
+        });
+    }
+
+    /**
+     * THE BOUNDARY (lane 4's coordination pin, now from the guard's own side):
+     * an UNFLAGGED large Type B is still ONE lawful at-large race at any size
+     * (the 2026-07-26 ruling). The guard keys on the FLAG, never on the raw
+     * comparison type_b > type_a, so it cannot over-block a chamber the ladder
+     * has not condemned. This is exactly why `ElectionStageTest`'s 14/1141
+     * fixture stays green: it is over-bound but unflagged.
+     */
+    public function test_R_A_an_unflagged_large_type_b_is_still_lawful_at_large(): void
+    {
+        $this->onLivePg(function () {
+            $legislature = $this->legislature(typeA: 14, typeB: 1141, needsDistricting: false);
+            $this->districtMap($legislature, [7, 7]);
+
+            $plan = app(ElectionLifecycleService::class)->racePlan($legislature);
+
+            $this->assertSame('at_large', $plan['kinds']['type_b']['mode'], 'unflagged: at-large at any size stands');
+            $this->assertSame(1141, $plan['kinds']['type_b']['seats'], 'at its full size, undivided');
+            $this->assertContains('type_b', $plan['generable_kinds']);
+        });
+    }
+
+    /**
+     * A flagged Type B half AND an unlawful lower house (over-ceiling, no map)
+     * is FULLY blocked — the chamber elects nobody and settles honestly, the
+     * same honest-absence posture the fully-blocked pin above proves.
+     */
+    public function test_R_A_a_flagged_chamber_with_no_lawful_lower_house_is_fully_blocked(): void
+    {
+        $this->onLivePg(function () {
+            $legislature = $this->legislature(typeA: 152, typeB: 200, needsDistricting: true);
+
+            $plan = app(ElectionLifecycleService::class)->racePlan($legislature);
+
+            $this->assertTrue($plan['fully_blocked'], 'both halves are blocked, so nothing is lawful');
+            $this->assertSame([], $plan['generable_kinds']);
+            $this->assertSame('blocked', $plan['kinds']['type_a']['mode']);
+            $this->assertSame('blocked', $plan['kinds']['type_b']['mode']);
+        });
+    }
+
     // ── fixtures ──────────────────────────────────────────────────────────
 
-    private function legislature(int $typeA, int $typeB): Legislature
+    private function legislature(int $typeA, int $typeB, bool $needsDistricting = false): Legislature
     {
         $jid = (string) Str::uuid();
 
@@ -187,6 +286,7 @@ class PerKindRacePlanTest extends TestCase
             'total_seats' => $typeA + $typeB,
             'type_a_seats' => $typeA,
             'type_b_seats' => $typeB,
+            'type_b_needs_districting' => $needsDistricting,
             'quorum_required' => max(3, (int) ceil(($typeA + $typeB) / 2)),
             'created_at' => now(),
             'updated_at' => now(),

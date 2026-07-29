@@ -613,31 +613,68 @@ class ElectionLifecycleService implements ElectionSchedulingDelegate
         $typeB = (int) $legislature->type_b_seats;
 
         if ($typeB > 0) {
-            // THE 5–9 BAND IS A DISTRICT RULE. IT DOES NOT BIND TYPE B.
-            // (Operator ruling, SETTLED 2026-07-26 — CLAUDE.md "Bicameral
-            // Support (Article V §3)". Do not re-derive it.)
-            //
-            // Type B is at-large: the JURISDICTION IS THE DISTRICT, so it is
-            // ONE STV race electing all Type B seats together, however many.
-            // San Marino's 27 run as a single 27-seat race.
-            //
-            // This branch used to compare $typeB against the ceiling and block
-            // above it, which was the defect: it applied a district rule to a
-            // body that has no districts. The schema already proves nine was
-            // never a property of STV races here — `exec_committee` and
-            // `judicial_group` are both `>= 5` with NO upper bound.
-            //
-            // Splitting the chamber into smaller races is NOT the alternative
-            // and is explicitly ruled out: STV elects N seats in one race, and
-            // cutting magnitude is exactly what destroys proportionality.
-            //
-            // The only bound on Type B is the TYPE A TOTAL, and it is enforced
-            // upstream by TypeBSeatLadder (5 → 4 → 3 → 2 per constituent).
-            // Only when 2-per-constituent still overflows does the chamber get
-            // flagged `type_b_needs_districting` for grouping whole
-            // constituents into shared panels — a balanced grouping over an
-            // adjacency graph, and never a cut through this race.
-            $kinds['type_b'] = ['mode' => 'at_large', 'seats' => $typeB];
+            if ((bool) $legislature->type_b_needs_districting) {
+                // R-A GUARD (operator ruling 2026-07-28, V3_SYNTHESIS_PLAN §10;
+                // "We will not playtest Type B elections until this is fixed.").
+                //
+                // A chamber flagged `type_b_needs_districting` has run out of
+                // ladder rungs: its Type B seats exceed the Type A total even at
+                // two-per-constituent, the floor the ladder never goes below
+                // (TypeBBoundTest pins the invariant type_b > type_a IFF the
+                // flag). The lawful remedy is stage-two Type B districting —
+                // grouping whole constituent jurisdictions into equal, compact
+                // shared panels over an adjacency graph, never a cut through
+                // this race. That mapper is lane 1's and does not exist yet, so
+                // scheduling a single giant at-large race now is exactly the
+                // playtest the operator forbade.
+                //
+                // So the Type B half is BLOCKED until the flag clears — which is
+                // precisely what the mapper does when it lands, at which point
+                // this branch stops firing and the at-large race below resumes.
+                //
+                // Two properties this must keep. It is a PER-KIND block: the
+                // type_a half above is untouched and elects normally — a flagged
+                // bicameral chamber's lower house is not condemned with its
+                // upper. And it is UNCONDITIONAL ON WORLD CLASS: racePlan takes
+                // no instance_class and this keys only on the persisted flag, so
+                // demo, sandbox, scale_demo and standard instances refuse alike.
+                //
+                // Niue's already-seated over-bound chamber stays seated and
+                // labeled — this guards SCHEDULING, not sitting members; its
+                // re-seat rides the same mapper.
+                $kinds['type_b'] = [
+                    'mode'     => 'blocked',
+                    'reason'   => "type_b half is flagged type_b_needs_districting ({$typeB} seats exceed the Type A total) — stage-two Type B districting must group its constituents into shared panels before it can elect",
+                    'citation' => 'Art. V §3',
+                ];
+                $blocked = true;
+            } else {
+                // THE 5–9 BAND IS A DISTRICT RULE. IT DOES NOT BIND TYPE B.
+                // (Operator ruling, SETTLED 2026-07-26 — CLAUDE.md "Bicameral
+                // Support (Article V §3)". Do not re-derive it.)
+                //
+                // Type B is at-large: the JURISDICTION IS THE DISTRICT, so it is
+                // ONE STV race electing all Type B seats together, however many.
+                // San Marino's 27 run as a single 27-seat race.
+                //
+                // This branch used to compare $typeB against the ceiling and block
+                // above it, which was the defect: it applied a district rule to a
+                // body that has no districts. The schema already proves nine was
+                // never a property of STV races here — `exec_committee` and
+                // `judicial_group` are both `>= 5` with NO upper bound.
+                //
+                // Splitting the chamber into smaller races is NOT the alternative
+                // and is explicitly ruled out: STV elects N seats in one race, and
+                // cutting magnitude is exactly what destroys proportionality.
+                //
+                // The only bound on Type B is the TYPE A TOTAL, and it is enforced
+                // upstream by TypeBSeatLadder (5 → 4 → 3 → 2 per constituent).
+                // Only when 2-per-constituent still overflows does the chamber get
+                // flagged `type_b_needs_districting` for grouping whole
+                // constituents into shared panels — a balanced grouping over an
+                // adjacency graph, and never a cut through this race.
+                $kinds['type_b'] = ['mode' => 'at_large', 'seats' => $typeB];
+            }
         }
 
         // PER-KIND BLOCKING (operator ruling 2026-07-25). A chamber whose

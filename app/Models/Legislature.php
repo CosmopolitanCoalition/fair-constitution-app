@@ -63,6 +63,8 @@ class Legislature extends Model
         'total_seats'         => 'integer',
         'type_a_seats'        => 'integer',
         'type_b_seats'        => 'integer',
+        'type_b_rep_floor'    => 'integer',
+        'type_b_needs_districting' => 'boolean',
         'quorum_required'     => 'integer',
         'last_met_on'         => 'date',
         'next_meeting_due_by' => 'date',
