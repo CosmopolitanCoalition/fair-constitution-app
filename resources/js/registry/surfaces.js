@@ -202,8 +202,18 @@ export const TOUR = [
 
 /* -------------------------------------------------- the Learn drawer text
    Plain-language "what this screen is about", keyed by the surface module
-   (config/cga/surfaces.php modules), with per-surface overrides. Ported from
-   mockups/v3 shell-v2.js LEARN_BY_MODULE / LEARN_BY_ID. */
+   (config/cga/surfaces.php modules). Ported from mockups/v3 shell-v2.js
+   LEARN_BY_MODULE.
+
+   K-2 (2026-07-28): per-surface Learn copy now lives in the GENERATED
+   registry/education.js (EDUCATION_BY_SURFACE — authored in
+   docs/plans/education/K2_CONTENT_*.md, emitted by
+   scripts/education/build_education_payload.mjs). The old LEARN_BY_SURFACE
+   hand-synced copy is gone: all five of its entries moved into the authored
+   corpus verbatim, so this module map is now purely the FALLBACK for pages
+   with no authored entry. Three keys here — `federation`, `support`,
+   `social` — match no surfaces.php module; they serve LearnFlyout's
+   URL-segment fallback (e.g. /support/report) and are deliberate, not drift. */
 export const LEARN_BY_MODULE = {
     civic: 'Your civic home — what’s happening now, and what’s yours to act on.',
     electoral: 'How elections work here — anyone who lives in a place can vote and stand for office. Approvals pick the ballot; ranking fills the seats in fair shares, so no vote is wasted.',
@@ -217,14 +227,6 @@ export const LEARN_BY_MODULE = {
     federation: 'Between governments — how instances discover each other, peer, and stay one world.',
     support: 'Getting help and reporting anything that’s wrong.',
     social: 'How the social layer works — the square, groups, and reaching people.',
-};
-
-export const LEARN_BY_SURFACE = {
-    'system/audit-chain': 'The audit chain — every constitutional act, hash-chained in order. Anyone can verify that nothing was quietly changed.',
-    'system/public-records': 'The permanent public record — testimony, votes, acts, and rulings, readable by anyone, editable by no one.',
-    'elections/detail': 'One election, end to end — the schedule, the candidates, the count, and the certification, all on the record.',
-    'system/clocks': 'The scheduled sweeps that drive the world — every interval, deadline, window, and threshold that starts a process without anyone asking. Clocks hold no state; they move other things.',
-    'system/amendments': 'The constitution changes through exactly two doors: settings move by ordinary acts within locked bounds, and the hardened core changes only by a software release that passes the public constitutional checks.',
 };
 
 /* Convenience: the tour entry href (stop 1 with the mode armed). */

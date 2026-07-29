@@ -66,10 +66,17 @@ export function achievementTitle(raw, t = null) {
 
     if (typeof t === 'function') {
         try {
-            const translated = t(value);
-            // vue-i18n returns the key itself when nothing is registered.
-            if (typeof translated === 'string' && translated && translated !== value) {
-                return translated;
+            /* The authored catalogue (K-2, 2026-07-28) lives in the
+               `c_achievements` NAMESPACE file (locales/<locale>/c_achievements.json),
+               so the runtime key is the stored ledger key with that prefix.
+               Try the namespaced key first, then the bare key (in case a
+               future catalogue registers keys at the root), then humanise. */
+            for (const key of ['c_achievements.' + value, value]) {
+                const translated = t(key);
+                // vue-i18n returns the key itself when nothing is registered.
+                if (typeof translated === 'string' && translated && translated !== key) {
+                    return translated;
+                }
             }
         } catch {
             /* fall through to humanising — a missing catalogue must never
