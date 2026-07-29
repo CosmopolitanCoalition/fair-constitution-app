@@ -342,6 +342,14 @@ invited check ("check me on it") found: the engine already seats islands via the
 sound iff both clips hold; antimeridian guarding is real and already precedented; and
 hull-CONTACT adjacency for GROUPING reduces to a buffered proximity graph (hulls of separated
 islands never touch — the buffer distance d becomes a free parameter controlling everything).
+**LANE 3 CHECKPOINT (6 commits, all verified; floor OPERABLE via 3c107cf — raise-hand →
+FIFO/named recognition → clocks reset → yield, chair-gated, ephemeral, guest-bounced 7 green):
+exit-test data RULED option A at the desk (lane seats a minimal committee as verification
+setup + standing demo artifact); AGENDA-SCHEMA FLAG recorded (per-item progression needs
+structured agenda; committee_meetings.agenda is a plain string list — Wave 4 candidate);
+ESCAPE HATCH INVOKED before steps 4b+5 — lane HOLDING with captured state, compaction
+REQUESTED OF THE OPERATOR (his act alone); resume order = seat (A) → 4b → the exit WALK.**
+
 **LANE 2 WAVE 3 SLATE CLOSED (2nd lane done): migration LANDED fba9669 (98 ins, applied,
 suite green vs real schema) — THE SCHEMA QUEUE IS CLOSED for the wave (any further need =
 desk flag; lane 13's agreements table is the known future one). Runbook 2f34222
