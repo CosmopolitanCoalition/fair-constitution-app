@@ -53,6 +53,8 @@ stipend: {
   funding_source: string, // "minted" | "treasury_draw"
   last_run: null | { ran_at: string, recipients: number, total: string, short_paid: boolean }
 }
+clock: { interval: string, period_days: number|null,     // Wave 4: the economic clock, derived
+         last_run: string|null, next_run: string|null }
 ```
 
 ## `GET /economy/wallet` → `Economy/Wallet`
@@ -158,17 +160,26 @@ The currency and its levers. **Read-only by design** — every lever moves only 
 dual-door. `enacting_act_id` is what the page should link when present.
 
 ```
-currency: null | {…}
+currency: null | {… unit_kind, worth_basis, subdivisions all shipped …}
 levers: [
   { key: string, label: string, value: string|number|boolean|null,
     dual_door: boolean,          // true for every monetary key
     citation: string,            // e.g. "Art. II §9 · [POLICY]"
-    bounds: null | { min?: number, max?: number, allowed?: array } }
+    bounds: null | { min?: number, max?: number, allowed?: array },
+    enacting_act: null | {act_number: string|null, title: string} }  // Wave 4: which act last moved it
 ]
 supply: string
 issuance_rate_bps: number|null
 inflation_target_bps: number|null
+issuer: string|null              // Wave 4: the issuing authority (root jurisdiction, by name)
+clock: {…as home…}               // Wave 4: the shared economic clock
+telemetry: null | {…}            // Design Round 2 ④, account-clean; null pre-currency
 ```
+
+**Wave 4 (partial → built):** per-lever `enacting_act` (from `setting_changes`
+→ `laws`; null while a lever sits at its constitutional default), the `issuer`
+label, and the shared `clock`. `currency.unit_kind`/`worth_basis`/`subdivisions`
+were already shipped in the Design-Round build and now render on units + wallet.
 
 ---
 

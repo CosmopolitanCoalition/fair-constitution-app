@@ -169,6 +169,9 @@ const assetRows = () =>
                         legislature's measurement-standards power.
                     </template>
                 </p>
+                <p v-if="currency.worth_basis" class="econ-note">
+                    What a {{ currency.name }} is worth, as enacted: {{ currency.worth_basis }}.
+                </p>
             </Card>
 
             <Card as="section">

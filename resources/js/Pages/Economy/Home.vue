@@ -28,7 +28,21 @@ const props = defineProps({
     ledger: { type: Object, default: () => ({ entries: 0, verified: false, residual: '0.000000' }) },
     counts: { type: Object, default: () => ({}) },
     stipend: { type: Object, default: () => ({}) },
+    /** The economic clock — stipend cycle, derived; next_run null pre-first-run. */
+    clock: { type: Object, default: () => ({}) },
 });
+
+/* The economy's rooms, one hub grid instead of scattered hardlinks. */
+const rooms = [
+    { href: '/economy/market', label: 'The market', hint: 'Buy, sell, offer work' },
+    { href: '/economy/exchange', label: 'The exchange', hint: 'Instruments & shares' },
+    { href: '/economy/wallet', label: 'My wallet', hint: 'What you hold — private' },
+    { href: '/economy/treasury', label: 'Public finance', hint: 'The open ledger' },
+    { href: '/economy/units', label: 'Units & money', hint: 'The currency and its levers' },
+    { href: '/economy/stipend', label: 'The civic stipend', hint: 'UBI + role differential' },
+    { href: '/economy/agreements', label: 'Agreements', hint: 'Instruments you are party to' },
+    { href: '/economy/joint-ledgers', label: 'Joint ledgers', hint: 'Co-owned, agreement-gated' },
+];
 
 /* A healthy ledger sits at exactly zero: issuance is the only lawful way for
    value to enter, and every movement after that conserves. */
@@ -85,7 +99,19 @@ const ledgerHealthy = () => props.ledger?.verified === true && isZeroMoney(props
                 <Stat :value="formatCount(counts.assistance)" label="Requests for help" />
                 <Stat :value="formatCount(counts.assets)" label="Registered items" />
             </div>
-            <p><Link href="/economy/market">Go to the market →</Link></p>
+            <p v-if="clock.next_run" class="econ-note">
+                The economic clock runs {{ clock.interval }}; the next civic-stipend disbursement is
+                due {{ formatWhen(clock.next_run) }}.
+            </p>
+        </Card>
+
+        <Card as="section" title="The economy's rooms">
+            <div class="econ-hub">
+                <Link v-for="r in rooms" :key="r.href" :href="r.href" class="econ-hub-card">
+                    <span class="econ-hub-label">{{ r.label }}</span>
+                    <span class="econ-hub-hint">{{ r.hint }}</span>
+                </Link>
+            </div>
         </Card>
 
         <Card as="section" title="The civic stipend">
@@ -150,5 +176,32 @@ const ledgerHealthy = () => props.ledger?.verified === true && isZeroMoney(props
 }
 .econ-run {
     margin-block-start: var(--space-3);
+}
+.econ-hub {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(11rem, 1fr));
+    gap: var(--space-3);
+}
+.econ-hub-card {
+    display: flex;
+    flex-direction: column;
+    gap: 0.15rem;
+    padding: var(--space-3);
+    border: 1px solid var(--gov-border);
+    border-radius: var(--radius-md, 0.5rem);
+    text-decoration: none;
+    color: inherit;
+    transition: border-color 0.15s ease, background 0.15s ease;
+}
+.econ-hub-card:hover {
+    border-color: var(--gov-accent, #2456b3);
+    background: var(--gov-accent-soft, #e6f0ff);
+}
+.econ-hub-label {
+    font-weight: 600;
+}
+.econ-hub-hint {
+    font-size: 0.8125rem;
+    color: var(--gov-text-muted);
 }
 </style>

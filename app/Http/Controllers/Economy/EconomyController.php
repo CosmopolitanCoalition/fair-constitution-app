@@ -96,6 +96,9 @@ class EconomyController extends Controller
                     'short_paid' => (bool) $lastRun->short_paid,
                 ],
             ],
+            // The economic clock, shared with treasury + units — the front door
+            // should say when the next disbursement is due.
+            'clock' => $this->economicClock(),
         ]);
     }
 
@@ -419,6 +422,10 @@ class EconomyController extends Controller
                 'bounds'    => isset($bounds[$key])
                     ? array_intersect_key($bounds[$key], array_flip(['min', 'max', 'allowed']))
                     : null,
+                // Which act last moved this lever — the per-lever provenance
+                // the mockup asks for. Honestly null while a lever sits at its
+                // constitutional default (no setting_changes row yet).
+                'enacting_act' => $this->latestSettingAct($rootId, $key),
             ];
         }
 
@@ -429,11 +436,30 @@ class EconomyController extends Controller
             'supply'               => $currency === null ? '0.000000' : $this->issuance->supply($currency->id),
             'issuance_rate_bps'    => $rootId === null ? null : $this->nullableInt($this->settings->resolve($rootId, 'issuance_rate_bps')),
             'inflation_target_bps' => $rootId === null ? null : $this->nullableInt($this->settings->resolve($rootId, 'inflation_target_bps')),
+            // Who issues the unit — the standards authority behind it (Art. V §5:
+            // currency is root-reserved). The root jurisdiction, by name.
+            'issuer'               => $this->currencyIssuer($currency),
+            // The economic clock — when the next disbursement is due. Same
+            // derivation the overview and treasury share.
+            'clock'                => $this->economicClock(),
             // Account-clean distribution telemetry (Design Round 2 ④): read
             // only, aggregated over accounts and never people. The levers above
             // still move only by dual-door act — nothing here adjusts a rate.
             'telemetry'            => $currency === null ? null : $this->telemetry->snapshot($currency->id),
         ]);
+    }
+
+    /**
+     * The unit's issuing authority — the root jurisdiction, by name. Currency
+     * is root-reserved (Art. V §5); the issuer is a public fact, not private.
+     */
+    private function currencyIssuer(?Currency $currency): ?string
+    {
+        if ($currency === null) {
+            return null;
+        }
+
+        return (string) (DB::table('jurisdictions')->where('id', $currency->jurisdiction_id)->value('name') ?? 'The root legislature');
     }
 
     /**

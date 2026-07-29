@@ -18,7 +18,7 @@ import Card from '@/Components/Ui/Card.vue';
 import Stat from '@/Components/Ui/Stat.vue';
 import Banner from '@/Components/Ui/Banner.vue';
 import StatusBadge from '@/Components/Ui/StatusBadge.vue';
-import { formatMoney } from '@/lib/money.js';
+import { formatMoney, formatWhen } from '@/lib/money.js';
 
 defineOptions({ layout: AppShellV2 });
 
@@ -28,9 +28,16 @@ const props = defineProps({
     supply: { type: String, default: '0.000000' },
     issuance_rate_bps: { type: Number, default: null },
     inflation_target_bps: { type: Number, default: null },
+    /** The issuing authority (root jurisdiction, by name); null pre-currency. */
+    issuer: { type: String, default: null },
+    /** The economic clock — the stipend cycle, derived; next_run null pre-first-run. */
+    clock: { type: Object, default: () => ({}) },
     /** Account-clean distribution telemetry (Design Round 2 ④); null pre-currency. */
     telemetry: { type: Object, default: null },
 });
+
+/* An enacting act, as a short label: "Act 12" when numbered, else the title. */
+const actLabel = (a) => (!a ? null : a.act_number ? `Act ${a.act_number}` : a.title);
 
 /* Basis points are a specialist unit; nobody outside finance reads "120 bps".
    The mockup's v3 copy pass made the same call — show a percentage. */
@@ -82,6 +89,14 @@ const bounds = (b) => {
             <p class="econ-note">
                 Shown to {{ currency.precision }} decimal places. The ledger keeps more than that
                 internally, so nothing is lost to rounding — only hidden from the display.
+            </p>
+            <p class="econ-note">
+                <template v-if="currency.unit_kind">What the unit is: {{ currency.unit_kind }}. </template>
+                <template v-if="issuer">Issued by {{ issuer }} — currency is root-reserved (Art. V §5).</template>
+            </p>
+            <p v-if="clock.next_run" class="econ-note">
+                The economic clock runs on a {{ clock.interval }} cycle; the next disbursement is due
+                {{ formatWhen(clock.next_run) }}.
             </p>
         </Card>
 
@@ -160,6 +175,8 @@ const bounds = (b) => {
                         <StatusBadge v-if="l.dual_door">Needs an act</StatusBadge>
                         <span v-if="bounds(l.bounds)">{{ bounds(l.bounds) }}</span>
                         <span v-if="citation(l.citation)" class="lever-cite">{{ citation(l.citation) }}</span>
+                        <span v-if="actLabel(l.enacting_act)" class="lever-act">set by {{ actLabel(l.enacting_act) }}</span>
+                        <span v-else class="lever-act lever-act--default">at its constitutional default</span>
                     </p>
                 </li>
             </ul>
@@ -211,5 +228,11 @@ const bounds = (b) => {
 }
 .lever-cite {
     font-family: var(--font-mono, ui-monospace, monospace);
+}
+.lever-act {
+    font-style: italic;
+}
+.lever-act--default {
+    opacity: 0.7;
 }
 </style>
