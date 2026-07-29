@@ -699,6 +699,8 @@ Route::middleware('auth')->group(function () {
     // ── FE-C5 — Settings register (legislature/settings) ────────────────────
     Route::get('/legislatures/{legislature}/settings', [SettingsController::class, 'show'])
         ->whereUuid('legislature')->name('settings.show');
+    Route::post('/legislatures/{legislature}/settings/amend', [SettingsController::class, 'amend'])
+        ->whereUuid('legislature')->name('settings.amend');                   // F-LEG-031 (R-C)
 
     // ── FE-C6 — Committees + CommitteeDetail (parallel batch) ───────────────
     Route::get('/legislatures/{legislature}/committees', [\App\Http\Controllers\Legislature\CommitteeController::class, 'index'])

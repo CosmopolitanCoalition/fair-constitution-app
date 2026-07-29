@@ -2,6 +2,8 @@
 
 namespace App\Http\Controllers\Legislature;
 
+use App\Domain\Engine\ConstitutionalEngine;
+use App\Domain\Engine\ConstitutionalViolation;
 use App\Http\Controllers\Controller;
 use App\Http\Controllers\Legislature\Concerns\ResolvesChamber;
 use App\Models\ConstitutionalSettings;
@@ -9,6 +11,7 @@ use App\Models\Legislature;
 use App\Models\SettingChange;
 use App\Services\ConstitutionalValidator;
 use App\Support\SurfaceMeta;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Inertia\Inertia;
@@ -29,6 +32,10 @@ use Inertia\Response;
 class SettingsController extends Controller
 {
     use ResolvesChamber;
+
+    public function __construct(private readonly ConstitutionalEngine $engine)
+    {
+    }
 
     /**
      * The 17 amendable keys, in the register's display order (mockup
@@ -130,6 +137,51 @@ class SettingsController extends Controller
             'changes'       => $this->changesHistory($jid),
             'can'           => ['propose' => $viewer !== null],
         ]);
+    }
+
+    /**
+     * F-LEG-031 — propose a constitutional-setting amendment directly from the
+     * register (R-C, the walkable amendment door): the register is where you SEE
+     * a setting, so it is where you propose changing it. This files the dedicated
+     * Amendable Setting Change form through the engine, which INTRODUCES a
+     * pre-targeted setting bill (act_type setting_change). The value takes effect
+     * only at ENACTMENT — a peg-quorum floor vote, after which EnactmentService
+     * writes the setting_changes ledger row, mutates constitutional_settings, and
+     * re-derives dependent clocks; the change then appears on /system/amendments.
+     * Bounds are enforced pre-vote by the PROTECTED validator, so an out-of-range
+     * value refuses here with citation and a rejected=true chain entry — never a
+     * silent write. (The per-row "draft the full bill" deep-link into the Bills
+     * intro, F-LEG-003 with custom law text, stays as the long-form path.)
+     */
+    public function amend(Request $request, Legislature $legislature): RedirectResponse
+    {
+        $validated = $request->validate([
+            'setting_key' => ['required', 'string'],
+            'value'       => ['required'],
+            'title'       => ['nullable', 'string'],
+        ]);
+
+        $value = $validated['value'];
+
+        try {
+            $this->engine->file('F-LEG-031', $request->user(), [
+                'jurisdiction_id' => (string) $legislature->jurisdiction_id,
+                'setting_key'     => $validated['setting_key'],
+                // Same coercion the Bills path uses: a numeric string becomes a
+                // number so the bounds check compares like with like.
+                'value'           => is_numeric($value) ? $value + 0 : $value,
+                'title'           => $validated['title'] ?? "Amend {$validated['setting_key']}",
+            ]);
+        } catch (ConstitutionalViolation $violation) {
+            return back()->withErrors([
+                'constitution' => $violation->getMessage().' ('.$violation->citation.')',
+            ]);
+        }
+
+        return back()->with(
+            'status',
+            "Amendment bill introduced (F-LEG-031) for {$validated['setting_key']} — it takes effect only when the chamber enacts it at a peg-quorum floor vote. Track it on the amendments ledger.",
+        );
     }
 
     // -------------------------------------------------------------------------

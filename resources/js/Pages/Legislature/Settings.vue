@@ -14,7 +14,7 @@
  * at enactment.
  */
 import { computed, ref, watch } from 'vue';
-import { Link, usePage } from '@inertiajs/vue3';
+import { Link, useForm, usePage } from '@inertiajs/vue3';
 import AppShellV2 from '@/Layouts/AppShellV2.vue';
 import PageScaffold from '@/Components/Surface/PageScaffold.vue';
 import AmendableSetting from '@/Components/Ui/AmendableSetting.vue';
@@ -124,6 +124,21 @@ const deepLink = computed(() =>
         ? `/legislatures/${props.legislature.id}/bills?intro=1&setting=${target.value}`
         : null,
 );
+
+/* R-C — the direct F-LEG-031 amendment door: file the setting-change bill from
+   the register itself, without a detour through the full Bills intro. */
+const amendForm = useForm({ setting_key: '', value: '' });
+const constitutionError = computed(() => page.props.errors?.constitution ?? null);
+
+function submitAmendment() {
+    if (!target.value || proposedValue.value === '') return;
+    amendForm.setting_key = target.value;
+    amendForm.value = proposedValue.value;
+    amendForm.post(`/legislatures/${props.legislature.id}/settings/amend`, {
+        preserveScroll: true,
+        onSuccess: () => { preflight.value = null; },
+    });
+}
 
 function fmt(iso) {
     return iso ? new Date(iso).toLocaleString() : '—';
@@ -243,15 +258,27 @@ function fmt(iso) {
                     <div class="cluster">
                         <label class="field-label" for="prop-value" style="margin-block-end: 0">Proposed value</label>
                         <input id="prop-value" v-model="proposedValue" class="field-input" style="inline-size: 10rem" />
+                        <Btn
+                            variant="primary"
+                            size="sm"
+                            :disabled="(preflight !== null && preflight.ok === false) || amendForm.processing || proposedValue === ''"
+                            @click="submitAmendment"
+                        >
+                            Propose amendment (F-LEG-031)
+                        </Btn>
                         <Link :href="`${deepLink}`">
-                            <Btn variant="primary" size="sm" :disabled="preflight !== null && preflight.ok === false">
-                                Continue in the bill flow →
+                            <Btn variant="secondary" size="sm" :disabled="preflight !== null && preflight.ok === false">
+                                or draft the full bill →
                             </Btn>
                         </Link>
                     </div>
                 </Card>
-                <Banner v-if="preflight && preflight.ok" tone="info" role="status" title="In range — the bill may proceed to a vote.">
-                    Proceeds to the bill flow · F-LEG-031 · WF-LEG-14 · Art. VII.
+                <Banner v-if="constitutionError" tone="emergency" role="alert" title="Rejected — the engine blocked this amendment before any vote.">
+                    {{ constitutionError }}
+                </Banner>
+                <Banner v-if="preflight && preflight.ok" tone="info" role="status" title="In range — the amendment may proceed to a vote.">
+                    A direct filing lands an F-LEG-031 amendment bill; the value applies only when
+                    the chamber enacts it at a peg-quorum floor vote. · WF-LEG-14 · Art. VII.
                 </Banner>
                 <Banner v-else-if="preflight && !preflight.ok" tone="emergency" title="Rejected pre-vote — outside hardened bounds.">
                     {{ preflight.message }}

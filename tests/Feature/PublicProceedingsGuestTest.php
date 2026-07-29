@@ -40,7 +40,8 @@ class PublicProceedingsGuestTest extends TestCase
             '/bills/'.Str::uuid().'/refer',
             '/judiciaries/'.Str::uuid().'/cases',
             '/executives/'.Str::uuid().'/orders',
-            '/legislatures/'.Str::uuid().'/sessions',   // §10-1: watching is public, but running a session stays members-only
+            '/legislatures/'.Str::uuid().'/sessions',       // §10-1: watching is public, but running a session stays members-only
+            '/legislatures/'.Str::uuid().'/settings/amend', // R-C: F-LEG-031 amendment door — a write, members only
         ] as $url) {
             $this->withSession(['_token' => $token])
                 ->post($url, ['_token' => $token])
