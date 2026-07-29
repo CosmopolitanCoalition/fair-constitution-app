@@ -101,6 +101,14 @@ export function pseudo(str) {
 export const i18n = createI18n({
     legacy: false,
     locale: 'en',
+    /* The per-namespace catalogs (locales/<code>/<ns>.json) are FLAT maps of
+       `group.snake_key` -> string. vue-i18n's default resolver walks nested
+       objects only, so WITHOUT this flag every dotted key inside a namespace
+       resolves to nothing and t() returns the raw key — proven empirically
+       against vue-i18n 11 (K-2 wiring, 2026-07-28: all three test lookups
+       came back unresolved until flatJson). Nobody had noticed because no
+       component consumed a namespace catalog until the Learn flyout did. */
+    flatJson: true,
     /* en-XA carries no dict of its own — everything falls back to en, then
        the postTranslation hook pseudo-localizes the resolved string. */
     fallbackLocale: { 'en-XA': ['en'], default: ['en'] },
