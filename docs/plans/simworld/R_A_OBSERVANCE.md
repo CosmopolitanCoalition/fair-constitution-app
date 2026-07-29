@@ -49,18 +49,36 @@ one `type_b` race while recording the district half. When lane 3's guard swaps
 which half is blocked, the identical deferral carries. This sits alongside the
 existing `fully_blocked` and honest-absence pins — it is their sibling.
 
-## ⚑ One coordination point for lane 3 (flag, do not pre-empt)
+**THE UN-FLAG DIRECTION IS NOW PINNED (2026-07-29).** Lane 1's Type B mapper
+cleared its first real chamber (Niue) via `TypeBDistrictMapper::apply()`, so the
+symmetric pin is no longer synthetic:
+`ElectionStageTest::test_the_sim_schedules_the_type_b_race_the_instant_the_mapper_unflags_it`
+seeds a flagged Niue-shaped chamber, runs the **real** `apply()` (groups 8
+children → 2 panels × 2 = 4 seats, recomputes `type_b_seats`, clears the flag),
+then runs `ElectionStage::run()` and asserts the sim schedules the at-large
+`type_b` race at its grouped seat count — with no edit to the stage. The
+`before`-state assertion (`racePlan` returns `blocked` while flagged) makes it
+non-vacuous: the race appears *because* the flag cleared. Companion to lane 1's
+`TypeBDistrictMapperApplyTest`, which pins the mapper→`racePlan` flip at the plan
+level; this pins the demo populate pipeline's side. The two deferral directions —
+blocked and un-flagged — are now both nailed.
+
+## ✓ One coordination point — RESOLVED 2026-07-29
 
 `ElectionStageTest::test_a_large_type_b_is_one_lawful_at_large_race` asserts that
 a `type_a 14 / type_b 1141` chamber elects its Type B half as one at-large race
 **today** — correct under the 2026-07-26 ruling (an at-large Type B is one STV
-race at any size). But that fixture is over-bound (`type_b > type_a`), so if
-lane 3's R-A guard classifies it `type_b_needs_districting` and blocks it, that
-assertion inverts. **This is lane 3's call on `racePlan()` semantics**, not a
-sim-engine change: whether an over-bound-but-undivided Type B is "lawful at any
-size" (2026-07-26) or "blocked pending districting" (R-A) is exactly the line the
-guard draws. When lane 3 lands the guard, that one pin moves with it. Flagged so
-it is a coordinated update, never a surprise red in the suite.
+race at any size). The Wave-2 flag was that if lane 3's R-A guard reclassified it
+`type_b_needs_districting`, that assertion would invert.
+
+**It did not, and the pin stays green.** The guard keys STRICTLY on the persisted
+`type_b_needs_districting` column (racePlan L616 — `if ((bool) $legislature->type_b_needs_districting)`),
+which the **ladder/mapper** sets, not `racePlan` itself. That fixture never sets
+the flag, so the guard never fires on it and it remains a lawful at-large race.
+Confirmed green in the same run that landed the un-flag pin (both live: lane 1's
+mapper + guard shipped). No coordinated edit was needed — the column-keyed design
+kept the two rulings (2026-07-26 "lawful at any size" vs R-A "blocked pending
+districting") cleanly separated by whether the ladder flagged the chamber.
 
 Related: the console already renders these chambers honestly — see
 `SimConsoleController::overBoundChambers()` (Niue 11/14, seated before the flag

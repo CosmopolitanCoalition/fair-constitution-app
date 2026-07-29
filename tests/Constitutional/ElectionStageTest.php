@@ -3,9 +3,12 @@
 namespace Tests\Constitutional;
 
 use App\Models\Candidacy;
+use App\Models\Legislature;
 use App\Services\Demo\Stages\CohortStage;
 use App\Services\Demo\Stages\ElectionStage;
 use App\Services\Demo\Stages\IdentityStage;
+use App\Services\ElectionLifecycleService;
+use App\Services\Legislature\TypeBDistrictMapper;
 use App\Services\TabulationRecorder;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
@@ -246,6 +249,102 @@ class ElectionStageTest extends TestCase
                 $rows->every(fn ($r) => $r->seat_kind === 'type_b'),
                 'the stage schedules only what racePlan authorised — never a race for the blocked kind'
             );
+        });
+    }
+
+    /**
+     * THE UN-FLAG PICKUP — the other direction of the R-A deferral (lane 4,
+     * Wave 3, 2026-07-29; the companion to the blocked-direction pin above).
+     *
+     * `test_a_partially_blocked_chamber…` proves the sim stage DEFERS when
+     * racePlan blocks the Type B half. This proves it defers the OTHER way: the
+     * instant lane 1's Type B mapper clears `type_b_needs_districting`, the guard
+     * un-blocks and ElectionStage SCHEDULES the newly-lawful at-large Type B race
+     * — with NO edit here. The stage reads racePlan and inherits the un-flag for
+     * free, exactly as it inherits the block. `TypeBDistrictMapperApplyTest` pins
+     * the mapper→racePlan flip at the plan level; THIS pins the demo populate
+     * pipeline's side of it.
+     *
+     * Pinned against the TRUE un-flag path — the real `TypeBDistrictMapper::apply()`,
+     * never a synthetic flag flip. A synthetic flip would only clear the column;
+     * the real apply also groups the constituents into panels and recomputes
+     * `type_b_seats` to `panel_count × rep_floor`, which is the seat count the
+     * scheduled race must carry. Same Niue shape lane 1 cleared first: type_a 5
+     * (≤ ceiling → at-large, no map needed), 8 inhabited children grouped to
+     * 2 panels × 2 = 4 Type B seats ≤ the Type A total.
+     */
+    public function test_the_sim_schedules_the_type_b_race_the_instant_the_mapper_unflags_it(): void
+    {
+        $this->onLivePg(function () {
+            $tag = 'unflag-'.Str::lower(Str::random(6));
+
+            // The parent carries the sim preconditions (a 2M cohort roster + a
+            // bootstrap board); its 8 inhabited children + line adjacency are what
+            // the mapper groups. Type A 5 is at-large (no map). Type B is flagged:
+            // 8 × 2-per-constituent = 16 > 5, so the ladder set needs_districting.
+            $parentId = $this->jurisdiction(2_000_000);
+
+            $childIds = [];
+            for ($i = 0; $i < 8; $i++) {
+                $cid = (string) Str::uuid();
+                $childIds[$i] = $cid;
+                DB::table('jurisdictions')->insert([
+                    'id' => $cid, 'name' => "{$tag}-c{$i}", 'slug' => "{$tag}-c{$i}",
+                    'parent_id' => $parentId, 'adm_level' => 4, 'population' => 10,
+                    'created_at' => now(), 'updated_at' => now(),
+                ]);
+            }
+            // Line adjacency c0-c1-…-c7 so the grouping is compact + deterministic.
+            for ($i = 0; $i < 7; $i++) {
+                DB::table('jurisdiction_adjacency')->insert([
+                    'parent_id' => $parentId, 'j1' => $childIds[$i], 'j2' => $childIds[$i + 1],
+                    'dim' => 1, 'border_len' => 1.0, 'computed_at' => now(),
+                ]);
+            }
+
+            $legId = (string) Str::uuid();
+            DB::table('legislatures')->insert([
+                'id' => $legId, 'jurisdiction_id' => $parentId, 'term_number' => 1,
+                'status' => 'forming', 'total_seats' => 21, 'type_a_seats' => 5,
+                'type_b_seats' => 16, 'type_b_rep_floor' => 2, 'type_b_needs_districting' => true,
+                'quorum_required' => 11, 'created_at' => now(), 'updated_at' => now(),
+            ]);
+
+            $this->electionBoard($parentId);
+            CohortStage::run($parentId, null, 1, 62);
+            IdentityStage::run($parentId, null, 1);
+
+            // PRECONDITION: while flagged, the R-A guard blocks the Type B half.
+            $before = app(ElectionLifecycleService::class)->racePlan(Legislature::find($legId));
+            $this->assertSame('blocked', $before['kinds']['type_b']['mode'] ?? null,
+                'precondition: the flagged Type B half is blocked by the R-A guard');
+
+            // THE TRUE UN-FLAG PATH: lane 1's real mapper groups + clears the flag.
+            $applied = (new TypeBDistrictMapper())->apply($legId);
+            $this->assertNotNull($applied, 'the mapper groups this chamber');
+            $groupedSeats = (int) DB::table('legislatures')->where('id', $legId)->value('type_b_seats');
+            $this->assertSame($applied['seats'], $groupedSeats, 'type_b recomputed to panel_count × rep_floor');
+            $this->assertFalse((bool) DB::table('legislatures')->where('id', $legId)->value('type_b_needs_districting'),
+                'the flag is cleared — the guard must now un-block');
+
+            // AFTER: the SIM STAGE schedules the newly-unflagged Type B race, no edit.
+            $result = ElectionStage::run($parentId, null, 1);
+
+            $this->assertNotNull($result['election_id'], 'the un-flagged chamber now elects');
+            $this->assertNotContains('type_b', $result['blocked_kinds'] ?? [],
+                'the Type B half is no longer blocked once the flag clears');
+
+            $typeBRace = DB::table('election_races')
+                ->where('election_id', $result['election_id'])
+                ->where('seat_kind', 'type_b')
+                ->first();
+
+            $this->assertNotNull($typeBRace,
+                'the sim scheduled the type_b race the mapper unlocked — the stage deferred, no edit here');
+            $this->assertSame($groupedSeats, (int) $typeBRace->seats,
+                'at its grouped seat count (panel_count × rep_floor)');
+            $this->assertNull($typeBRace->district_id,
+                'at-large: the jurisdiction IS the district (B1 — panels allocate inside the one race)');
         });
     }
 
