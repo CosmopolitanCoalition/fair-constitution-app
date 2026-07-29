@@ -8,6 +8,7 @@ use App\Models\FederationPeer;
 use App\Models\InstanceSettings;
 use App\Models\FoundationSyncCursor;
 use App\Services\AuditService;
+use App\Services\Dev\DemoMeshTimeCoordinator;
 use App\Services\Federation\FederationClient;
 use App\Services\Federation\FoundationDrainService;
 use App\Services\Federation\GeodataSeedTransportService;
@@ -20,6 +21,7 @@ use App\Support\InstanceClass;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Schema;
 use RuntimeException;
 
 /**
@@ -325,6 +327,24 @@ class MirrorService
         if ($settings->mirror_of_server_id !== $hostServerId) {
             $settings->mirror_of_server_id = $hostServerId;
             $settings->save();
+        }
+
+        // One mesh = one game = one CLOCK. A mirror of a DECLARED demo host adopts that host's
+        // demo-mesh time coordinator, so the shared world advances from exactly one node instead
+        // of the operator naming a coordinator on every follower by hand (the Wave 3 coordinator
+        // left follower-learning as a manual setCoordinator step — this closes it on join, the
+        // same way markMirrorLive adopts the host's display name). Gated three ways: the host must
+        // have declared demo (a production mirror never time-travels, so the clock is moot and the
+        // gate refuses anyway), the coordinator column must exist here (else setCoordinator throws
+        // on an un-migrated box), and we never name ourselves as our own coordinator.
+        $hostCoordinator = (string) ($body['host_time_coordinator_server_id'] ?? '');
+        $hostIsDemo = ($attrs['instance_class'] ?? null) === InstanceClass::SCALE_DEMO
+            || ($attrs['game_mode'] ?? null) === GameMode::SANDBOX;
+        if ($hostIsDemo
+            && $hostCoordinator !== ''
+            && $hostCoordinator !== (string) $settings->server_id
+            && Schema::hasColumn('instance_settings', 'time_coordinator_server_id')) {
+            app(DemoMeshTimeCoordinator::class)->setCoordinator($hostCoordinator);
         }
 
         // The browser path admits synchronously (so a bad/exhausted join key fails fast, in-band)

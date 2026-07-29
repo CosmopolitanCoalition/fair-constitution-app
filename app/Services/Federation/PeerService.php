@@ -2,6 +2,7 @@
 
 namespace App\Services\Federation;
 
+use App\Exceptions\Federation\CrossClassPeeringException;
 use App\Models\FederationPeer;
 use App\Services\AuditService;
 use RuntimeException;
@@ -188,7 +189,10 @@ class PeerService
             return;
         }
 
-        throw new RuntimeException(
+        throw new CrossClassPeeringException(
+            $ourClass,
+            $peerClass,
+            $where,
             "Refusing to peer across instance classes: this instance is '{$ourClass}' but "
             ."{$where} advertises '{$peerClass}'. A demo federates only with demos, and a "
             .'real instance only with real instances.'

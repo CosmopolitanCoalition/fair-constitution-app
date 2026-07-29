@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\ClusterAdoptionRequest;
 use App\Models\ClusterMembership;
 use App\Models\InstanceSettings;
+use App\Services\Dev\DemoMeshTimeCoordinator;
 use App\Services\Federation\InstanceIdentityService;
 use App\Services\Mirror\AdoptionRejected;
 use App\Services\Mirror\MirrorService;
@@ -120,6 +121,14 @@ class AdoptionController extends Controller
             // is demo-mesh membership to the dev-time rail.
             'host_instance_class' => InstanceClass::current(),
             'host_game_mode' => GameMode::current(),
+            // Demo-mesh time coordination (Wave 3 coordinator, ruling §10 item 4). Advertise the
+            // mesh's coordinating node so a mirror of a demo host adopts ONE shared clock on join
+            // (one mesh = one game = one coordinator) instead of every follower being set by hand.
+            // coordinatorServerId() is NULL when THIS host coordinates, so name the host itself —
+            // the mirror needs a concrete id to follow. Harmless for a production host: the mirror
+            // adopts it only when the host declared demo (MirrorService::finalizeAdmission).
+            'host_time_coordinator_server_id' =>
+                app(DemoMeshTimeCoordinator::class)->coordinatorServerId() ?? $this->identity->serverId(),
             'scope_jurisdiction_id' => $scope,
             'membership_id' => $membershipId,
         ]);

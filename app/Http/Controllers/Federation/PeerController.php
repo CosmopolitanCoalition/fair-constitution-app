@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Federation;
 
+use App\Exceptions\Federation\CrossClassPeeringException;
 use App\Http\Controllers\Controller;
 use App\Models\FederationPeer;
 use App\Services\Federation\BrokerAuthorizationService;
@@ -57,6 +58,13 @@ class PeerController extends Controller
             'app_release' => ['nullable', 'string'],
             // K3-C / Phase 5 — the peer's Matrix homeserver server_name (for the federation whitelist).
             'matrix_server_name' => ['nullable', 'string'],
+            // Class-scoped federation (ruling 2026-07-25) + demo-mesh (game_mode). These ride the
+            // SIGNED body; without whitelisting them here validate() STRIPS them and
+            // receiveHandshake() never sees the peer's declared class/mode — it would read null →
+            // production, letting a demo peer leak into a production mesh and making a demo receiver
+            // falsely refuse a real demo peer. handshakePayload() already sends both.
+            'instance_class' => ['nullable', 'string'],
+            'game_mode' => ['nullable', 'string'],
             // G8b — the peer's reachable channels (learned into the ladder).
             'transports' => ['nullable', 'array'],
             'transports.*.transport' => ['nullable', 'string'],
@@ -79,7 +87,21 @@ class PeerController extends Controller
             'broker_authorizations.*.issued_at' => ['nullable', 'integer'],
         ]);
 
-        return response()->json($this->peers->receiveHandshake($payload));
+        try {
+            return response()->json($this->peers->receiveHandshake($payload));
+        } catch (CrossClassPeeringException $e) {
+            // A cross-class refusal is a lawful POLICY conflict between two well-formed
+            // instances (a demo introduced itself to a real node, or vice versa) — not our
+            // fault and not malformed input. Answer 409 Conflict, never a 500, so the initiator
+            // learns "declined, wrong class" cleanly instead of reading us as broken. The class
+            // names are already public (each rides GET /identity), so naming both leaks nothing.
+            return response()->json([
+                'error' => 'cross_class_peering_refused',
+                'message' => $e->getMessage(),
+                'our_class' => $e->ourClass,
+                'peer_class' => $e->peerClass,
+            ], 409);
+        }
     }
 
     /** POST /api/federation/heartbeat (pinned) — liveness ping. */

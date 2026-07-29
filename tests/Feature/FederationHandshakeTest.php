@@ -5,6 +5,7 @@ namespace Tests\Feature;
 use App\Models\FederationPeer;
 use App\Services\Federation\FederationClient;
 use App\Services\Federation\InstanceIdentityService;
+use App\Support\GameMode;
 use App\Support\InstanceClass;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
@@ -128,6 +129,109 @@ class FederationHandshakeTest extends TestCase
             // ── Federation OFF ⇒ the endpoints 404 (off ≡ absent) ────────────
             $identity->setEnabled(false);
             $this->getJson('/api/federation/identity')->assertStatus(404);
+        } finally {
+            InstanceClass::flush();
+            while ($conn->transactionLevel() > 0) {
+                $conn->rollBack();
+            }
+            DB::setDefaultConnection($originalDefault);
+        }
+    }
+
+    /**
+     * WAVE 4 ② — a cross-class handshake is a lawful POLICY refusal (a demo introduced itself to a
+     * real node), not our fault. It must answer 409 Conflict, never the RuntimeException→500 it did
+     * before, so the initiator learns "declined, wrong class" instead of reading us as broken.
+     */
+    public function test_a_cross_class_handshake_is_refused_with_409_not_500(): void
+    {
+        $this->onLivePgHandshake(
+            InstanceClass::SCALE_DEMO,
+            ['instance_class' => InstanceClass::PRODUCTION],
+            function ($resp, string $peerId) {
+                $resp->assertStatus(409);
+                $this->assertSame('cross_class_peering_refused', $resp->json('error'));
+                $this->assertSame(InstanceClass::SCALE_DEMO, $resp->json('our_class'));
+                $this->assertSame(InstanceClass::PRODUCTION, $resp->json('peer_class'));
+                $this->assertNull(
+                    FederationPeer::query()->where('server_id', $peerId)->first(),
+                    'a refused cross-class peer is never pinned'
+                );
+            }
+        );
+    }
+
+    /**
+     * WAVE 4 ③ (game_mode field) — the peer's declared class + mode ride the SIGNED body, and the
+     * handshake validator must WHITELIST them or validate() strips them before receiveHandshake()
+     * ever sees them. The discriminating proof: a demo box accepts a peer that DECLARES scale_demo.
+     * If instance_class were stripped it would read null→production and this same box would 409 it.
+     */
+    public function test_a_matching_demo_peer_succeeds_proving_class_and_mode_survive_validation(): void
+    {
+        $this->onLivePgHandshake(
+            InstanceClass::SCALE_DEMO,
+            ['instance_class' => InstanceClass::SCALE_DEMO, 'game_mode' => GameMode::SANDBOX],
+            function ($resp, string $peerId) {
+                $resp->assertStatus(200);
+                $peer = FederationPeer::query()->where('server_id', $peerId)->first();
+                $this->assertNotNull($peer, 'a matching-class peer is pinned');
+                $this->assertSame(
+                    InstanceClass::SCALE_DEMO,
+                    $peer->metadata['instance_class'] ?? null,
+                    'instance_class survived validate() into receiveHandshake — else a demo box would have refused'
+                );
+                $this->assertSame(
+                    GameMode::SANDBOX,
+                    $peer->metadata['game_mode'] ?? null,
+                    'game_mode survived validate() too — it feeds the demo-mesh time rail (demoPeerCount)'
+                );
+            }
+        );
+    }
+
+    /**
+     * Run a signed handshake with THIS box presenting $ourClass and the peer body carrying
+     * $extraBody, inside a rolled-back live-pg transaction. The assertions run inside the txn (the
+     * peer row lives only there). Mirrors the primary test's live-pg posture + signed-header path.
+     *
+     * @param  array<string,mixed>  $extraBody
+     * @param  callable(\Illuminate\Testing\TestResponse, string): void  $assert
+     */
+    private function onLivePgHandshake(string $ourClass, array $extraBody, callable $assert): void
+    {
+        $conn = $this->livePg();
+        $originalDefault = DB::getDefaultConnection();
+        DB::setDefaultConnection(self::LIVE_CONNECTION);
+        $conn->beginTransaction();
+
+        try {
+            $identity = app(InstanceIdentityService::class);
+            $identity->ensureIdentity();
+            $identity->setEnabled(true);
+            InstanceClass::override($ourClass);
+
+            $peerKeypair = sodium_crypto_sign_keypair();
+            $peerSecret = sodium_crypto_sign_secretkey($peerKeypair);
+            $peerPublicB64 = sodium_bin2base64(sodium_crypto_sign_publickey($peerKeypair), SODIUM_BASE64_VARIANT_ORIGINAL);
+            $peerServerId = (string) Str::uuid();
+
+            $body = json_encode(array_merge([
+                'server_id' => $peerServerId,
+                'public_key' => $peerPublicB64,
+                'name' => 'Peer (class test)',
+                'url' => 'http://host.docker.internal:9998',
+                'schema_version' => '1',
+            ], $extraBody), JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE);
+
+            $resp = $this->call(
+                'POST',
+                '/api/federation/handshake',
+                server: $this->signedHeaders('POST', '/api/federation/handshake', $body, $peerServerId, $peerSecret),
+                content: $body,
+            );
+
+            $assert($resp, $peerServerId);
         } finally {
             InstanceClass::flush();
             while ($conn->transactionLevel() > 0) {
