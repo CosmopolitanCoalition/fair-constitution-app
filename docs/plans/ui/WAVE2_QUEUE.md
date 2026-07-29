@@ -342,6 +342,21 @@ invited check ("check me on it") found: the engine already seats islands via the
 sound iff both clips hold; antimeridian guarding is real and already precedented; and
 hull-CONTACT adjacency for GROUPING reduces to a buffered proximity graph (hulls of separated
 islands never touch — the buffer distance d becomes a free parameter controlling everything).
+**TRIPLE LANDING (desk-verified all seven hashes): LANE 1 — B3 cap 4214721 (SQL mirror
+byte-identical, zero drift) + THE GROUPING ENGINE 00e959e (TypeBDistrictMapper + type-b:district
+CLI, ETL-rule chunked; 25 pins; both CLAUDE.md worked examples reproduced) + **NIUE = THE FIRST
+CLEARED CHAMBER** (14 villages → 5 panels, 7 inert, 10 seats, flag FALSE, racePlan at_large) —
+announced to lane 4 for the true-path pin. B4 Option-A ruling RE-RELAYED (another busy-lane
+miss). B2 residual interpretation → OPERATOR (compact-first shipped, rec (a)); game-box mass-run
+logistics → OPERATOR. LANE 3 — useLiveRoom 82834c2 (Q1/Q2 honored incl. final-snapshot-before-
+stop) + LiveCivicRoom 0f6ea40 (THE MOLECULE: committee hearing composed on real data,
+DOM-verified guest gallery; floor = ephemeral cache, no schema). JS-runner ruled at the desk:
+lane 6's node tests/js idiom, NO vitest. LANE 6 — A2 toggle 6c7569d (mode armed in place) +
+stops 29→46 d96dcfa + coverage instruments 4788822 (PROVEN FAILABLE live + 20 pins; caught 16
+false-deads and 9 REAL nav drifts — 7 ruled align-to-registry at the desk, translations pair
+allowlisted for lane 5). Keystone stop relayed to lane 6 (/rooms/committee demo artifact).
+Pixel debts all carry.**
+
 **Lane 2 coordinator SHIPPED (fa4e628, 1213 ins, desk-verified): DemoMeshTimeCoordinator
 (originate/replay claim-then-advance idempotent, §3 refusal names the coordinator, §4 skew
 hatch), ingestTail side-effect replay post-txn, dev:mesh-time CLI + /dev/clock/coordinator +
