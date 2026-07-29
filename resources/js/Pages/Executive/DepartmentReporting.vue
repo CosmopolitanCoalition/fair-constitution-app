@@ -41,6 +41,8 @@ const props = defineProps({
     /** ESM-17 (department_board) — PHP-owned. */
     machine: { type: Array, default: () => [] },
     viewerIsGovernor: { type: Boolean, default: false },
+    /** { seat_class, seat_no, is_chair, term_start, term_end, term_years } — the viewer's OWN board seat; null for non-governors. */
+    appointment: { type: Object, default: null },
     /** [{ id, rule_code, name, status, version_no, enabling:{type,label,href,expires_with_power}, note }] */
     rules: { type: Array, default: () => [] },
     /** [{ id, kind, label, recipients, due_on, filed_at, status, record_href }] */
@@ -84,6 +86,15 @@ function fmtDate(value) {
     } catch {
         return value;
     }
+}
+
+const SEAT_CLASS_LABELS = {
+    governor: 'Governor',
+    worker_elected: 'Worker-elected',
+    owner_elected: 'Owner-elected',
+};
+function seatClassLabel(cls) {
+    return SEAT_CLASS_LABELS[cls] ?? cls;
 }
 
 /* --------------------------------------------------------- columns ------ */
@@ -167,6 +178,23 @@ const ruleBasis = computed({
 
         <Banner v-if="flashStatus" tone="info" role="status">{{ flashStatus }}</Banner>
         <Banner v-if="constitutionError" tone="emergency">{{ constitutionError }}</Banner>
+
+        <!-- ===================== your appointment (seated governor) ===== -->
+        <Card v-if="appointment" as="section" title="Your appointment">
+            <div class="cluster" style="gap: var(--space-5); align-items: flex-start">
+                <Stat :value="seatClassLabel(appointment.seat_class)" label="seat" />
+                <Stat :value="`#${appointment.seat_no}`" label="seat no." />
+                <Stat :value="appointment.is_chair ? 'Chair' : 'Member'" label="role" />
+                <Stat :value="fmtDate(appointment.term_start)" label="term start" />
+                <Stat :value="fmtDate(appointment.term_end)" label="term end" />
+            </div>
+            <p class="gloss" style="margin-block-start: var(--space-3)">
+                Your board seat is a {{ appointment.term_years }}-year civil appointment
+                (CLK-09, Art. II §9) — amendable within constitutional bounds and held in
+                lockstep with the judicial term (CLK-10). You file this department's rules and
+                reports below.
+            </p>
+        </Card>
 
         <!-- ============================================ header ========== -->
         <Card as="section" :title="department.name">

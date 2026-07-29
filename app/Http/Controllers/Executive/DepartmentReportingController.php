@@ -12,6 +12,7 @@ use App\Models\EmergencyPower;
 use App\Models\ExecutiveOrder;
 use App\Models\Law;
 use App\Models\PublicRecord;
+use App\Services\SettingsResolver;
 use App\Support\SurfaceMeta;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -39,7 +40,10 @@ use Inertia\Response;
  */
 class DepartmentReportingController extends Controller
 {
-    public function __construct(private readonly ConstitutionalEngine $engine) {}
+    public function __construct(
+        private readonly ConstitutionalEngine $engine,
+        private readonly SettingsResolver $settings,
+    ) {}
 
     public function show(Request $request, Department $department): Response
     {
@@ -53,6 +57,7 @@ class DepartmentReportingController extends Controller
             'department' => $this->departmentHeader($department),
             'machine' => config('cga.state_machines.department_board', []),
             'viewerIsGovernor' => $isGovernor,
+            'appointment' => $this->appointment($department, $viewerSeat),
             'rules' => $this->ruleRows($department),
             'reports' => $this->reportRows($department),
             'ruleForm' => [
@@ -373,6 +378,39 @@ class DepartmentReportingController extends Controller
         return $law->enacting_bill_id !== null
             ? '/bills/'.$law->enacting_bill_id
             : '/system/public-records';
+    }
+
+    /**
+     * The viewer's OWN appointment on this board — seat class/no, chair flag,
+     * and the CLK-09 civil-appointment term window. Null for a non-governor; a
+     * viewer never sees another member's seat (viewerSeat scopes to
+     * holder_user_id + STATUS_SEATED). Presentation only — the engine remains
+     * the filing boundary.
+     *
+     * @return array<string, mixed>|null
+     */
+    private function appointment(Department $department, ?BoardSeat $seat): ?array
+    {
+        if ($seat === null) {
+            return null;
+        }
+
+        $term = $seat->loadMissing('term')->term;
+
+        return [
+            'seat_class' => $seat->seat_class,
+            'seat_no'    => (int) $seat->seat_no,
+            'is_chair'   => (bool) $seat->is_chair,
+            'term_start' => $term?->starts_on?->toDateString(),
+            'term_end'   => $term?->ends_on?->toDateString(),
+            // CLK-09 amendable civil-appointment term (Art. II §9, lockstep with
+            // judicial · CLK-10); resolved off the jurisdiction's settings.
+            'term_years' => $this->settings->resolveInt(
+                (string) $department->jurisdiction_id,
+                'civil_appointment_years',
+                10,
+            ),
+        ];
     }
 
     /** The viewer's SEATED seat on this department's board (R-18), or null. */
