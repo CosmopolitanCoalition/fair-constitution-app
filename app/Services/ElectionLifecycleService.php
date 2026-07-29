@@ -14,6 +14,7 @@ use App\Models\LegislatureDistrict;
 use App\Models\LegislatureDistrictMap;
 use App\Models\LegislatureMember;
 use App\Models\Vacancy;
+use App\Services\Legislature\TypeBSeatLadder;
 use Carbon\CarbonInterface;
 use DateTimeInterface;
 use Illuminate\Support\Carbon;
@@ -705,26 +706,58 @@ class ElectionLifecycleService implements ElectionSchedulingDelegate
                 ];
                 $blocked = true;
             } else {
-                // UNGROUPED TYPE B — the INTERIM pooled path.
+                // PER-CHILD (ungrouped) — operator ruling 2026-07-29. An ungrouped
+                // Type B chamber elects one at-large race PER DIRECT CHILD, each
+                // seating that child's OWN contribution from its OWN residents,
+                // NEVER one pooled race (a pooled race lets population dominate the
+                // equal representation Type B exists to deliver).
                 //
-                // ⚠ TEMPORARY (Wave 4, lane 1). The operator's 2026-07-29 ruling
-                // is that an ungrouped Type B chamber elects one at-large race PER
-                // DIRECT CHILD (each child seats its own contribution — rep_floor,
-                // or min(pop, rep_floor) for a ≤5-pop child — from its own
-                // residents), NEVER one pooled race. The per-clump half of that
-                // ruling is live in the branch above; the per-CHILD half for
-                // ungrouped chambers is the sequenced follow-up (it changes every
-                // bicameral chamber's shape and rewrites the racePlan pins, so it
-                // ships as its own step). Until it lands, an unflagged Type B half
-                // keeps its previous single at-large race so the chamber still
-                // elects — the WRONG shape, held knowingly and briefly.
-                //
-                // The 5–9 band is a DISTRICT rule and does not bind this race; the
-                // only bound is the Type A total, enforced upstream by
-                // TypeBSeatLadder (5 → 4 → 3 → 2). Over 2-per-constituent the
-                // chamber is flagged type_b_needs_districting and takes the
-                // grouping path above once a grouping is activated.
-                $kinds['type_b'] = ['mode' => 'at_large', 'seats' => $typeB];
+                // Seats per child mirror TypeBSeatLadder::sumAt EXACTLY: a >5-pop
+                // child seats rep_floor; a ≤5-pop child seats min(pop, rep_floor);
+                // a 0-pop space is inert (no race). type_b_seats was set from that
+                // same formula over the same child set (parent_id + deleted_at
+                // NULL, populations from jurisdictions.population — ApportionmentSeed
+                // / ActivationService), so Σ child seats == type_b_seats by
+                // construction. The child IS the district: jurisdiction_id scopes
+                // the electorate via RaceFootprint (per-child needs no panel key).
+                // The 5–9 band does not bind these at-large races.
+                $repFloor = max(TypeBSeatLadder::MIN_REP, (int) $legislature->type_b_rep_floor);
+                $children = DB::table('jurisdictions')
+                    ->where('parent_id', $legislature->jurisdiction_id)
+                    ->whereNull('deleted_at')
+                    ->orderBy('id')
+                    ->get(['id', 'population']);
+
+                $childRaces = [];
+                $childSum   = 0;
+                foreach ($children as $child) {
+                    $pop   = max(0, (int) $child->population);
+                    $seats = $pop <= TypeBSeatLadder::TINY_POP ? min($pop, $repFloor) : $repFloor;
+                    if ($seats > 0) {
+                        $childRaces[] = (object) ['jurisdiction_id' => (string) $child->id, 'seats' => $seats];
+                        $childSum += $seats;
+                    }
+                }
+
+                if ($childRaces !== [] && $childSum === $typeB) {
+                    // Exact by construction — one at-large race per inhabited child.
+                    $kinds['type_b'] = ['mode' => 'children', 'children' => $childRaces];
+                } else {
+                    // DRIFT GUARD (DRIFT IS ALWAYS WRONG). The live per-child seat
+                    // sum diverged from the persisted type_b_seats — a re-seed
+                    // changed the constituent set without re-sizing the column, or
+                    // no inhabited direct children remain. Emitting these races
+                    // would seat ≠ the chamber's fixed size, so BLOCK until re-seeded
+                    // (mirrors the stale-grouping guard for the grouped path).
+                    $kinds['type_b'] = [
+                        'mode'     => 'blocked',
+                        'reason'   => "type_b per-child seats {$childSum} diverge from type_b_seats {$typeB}"
+                            . ($childRaces === [] ? ' (no inhabited direct children)' : ' (constituent set changed without a re-seed)')
+                            . ' — re-seed required before it can elect',
+                        'citation' => 'Art. V §3',
+                    ];
+                    $blocked = true;
+                }
             }
         }
 
@@ -864,6 +897,25 @@ class ElectionLifecycleService implements ElectionSchedulingDelegate
                         'seat_kind'       => $kind,
                         'seats'           => (int) $panel->seats,
                         'finalist_count'  => $multiplier * (int) $panel->seats,
+                        'electorate_type' => ElectionRace::ELECTORATE_RESIDENTS,
+                        'status'          => $election->status,
+                    ]);
+                }
+            } elseif ($spec['mode'] === 'children') {
+                // PER-CHILD TYPE B (operator ruling 2026-07-29): one at-large race
+                // per DIRECT CHILD, jurisdiction_id = the child so RaceFootprint
+                // enfranchises that child's residents alone — no panel key (the
+                // child IS the unit). seats = the child's ladder contribution;
+                // Σ = type_b_seats (enforced in racePlan's drift guard).
+                foreach ($spec['children'] as $childRace) {
+                    $races[] = ElectionRace::create([
+                        'election_id'     => $election->id,
+                        'district_id'     => null,
+                        'type_b_panel_id' => null,
+                        'jurisdiction_id' => $childRace->jurisdiction_id,
+                        'seat_kind'       => $kind,
+                        'seats'           => (int) $childRace->seats,
+                        'finalist_count'  => $multiplier * (int) $childRace->seats,
                         'electorate_type' => ElectionRace::ELECTORATE_RESIDENTS,
                         'status'          => $election->status,
                     ]);

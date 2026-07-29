@@ -58,8 +58,9 @@ class PerKindRacePlanTest extends TestCase
         $this->onLivePg(function () {
             // The blockable kind is now type_a: over the per-race maximum with
             // NO district map, so subdivision is mandatory before it can elect.
-            // The type_b half is lawful at any size since the 2026-07-26 ruling.
-            $legislature = $this->legislature(typeA: 152, typeB: 45);
+            // The type_b half is lawful — it elects PER CHILD (9 children × rep 5
+            // = 45) since the 2026-07-29 ruling.
+            $legislature = $this->legislature(typeA: 152, typeB: 45, childCount: 9, repFloor: 5);
 
             $plan = app(ElectionLifecycleService::class)->racePlan($legislature);
 
@@ -67,7 +68,10 @@ class PerKindRacePlanTest extends TestCase
             $this->assertFalse($plan['fully_blocked'], 'but the type_b half is lawful, so the plan is not dead');
 
             $this->assertSame('blocked', $plan['kinds']['type_a']['mode'], 'the lower house cannot proceed');
-            $this->assertSame('at_large', $plan['kinds']['type_b']['mode'], 'the upper house can');
+            $this->assertSame('children', $plan['kinds']['type_b']['mode'], 'the upper house can — one race per child');
+            $childRaces = $plan['kinds']['type_b']['children'];
+            $this->assertCount(9, $childRaces, 'one race per direct child');
+            $this->assertSame(45, array_sum(array_map(fn ($c) => (int) $c->seats, $childRaces)), 'Σ = type_b_seats, no drift');
 
             $this->assertSame(
                 ['type_b'],
@@ -81,20 +85,22 @@ class PerKindRacePlanTest extends TestCase
     public function test_a_blocked_kind_still_generates_no_races(): void
     {
         $this->onLivePg(function () {
-            $legislature = $this->legislature(typeA: 152, typeB: 45);
+            $legislature = $this->legislature(typeA: 152, typeB: 45, childCount: 9, repFloor: 5);
 
             $service = app(ElectionLifecycleService::class);
             $election = $service->scheduleGeneral($legislature);
 
             $races = DB::table('election_races')->where('election_id', $election->id)->get();
 
-            $this->assertCount(1, $races, 'only the lawful at-large race is generated');
+            $this->assertCount(9, $races, 'only the lawful per-child races are generated (9 children)');
             $this->assertSame(
                 ['type_b'],
-                $races->pluck('seat_kind')->all(),
+                $races->pluck('seat_kind')->unique()->values()->all(),
                 'and NOT ONE type_a race is generated for the half that cannot elect'
             );
-            $this->assertSame([45], $races->pluck('seats')->map(fn ($s) => (int) $s)->all());
+            $this->assertSame(45, (int) $races->sum('seats'), 'Σ = type_b_seats');
+            $this->assertSame([5], $races->pluck('seats')->map(fn ($s) => (int) $s)->unique()->values()->all(), 'each child seats rep_floor');
+            $this->assertSame(9, $races->whereNull('type_b_panel_id')->count(), 'per-child races carry no panel key');
         });
     }
 
@@ -102,7 +108,7 @@ class PerKindRacePlanTest extends TestCase
     public function test_the_blocked_posture_is_still_recorded(): void
     {
         $this->onLivePg(function () {
-            $legislature = $this->legislature(typeA: 152, typeB: 45);
+            $legislature = $this->legislature(typeA: 152, typeB: 45, childCount: 9, repFloor: 5);
 
             $before = DB::table('audit_log')
                 ->where('event', 'election.blocked_pending_subdivision')->count();
@@ -146,7 +152,7 @@ class PerKindRacePlanTest extends TestCase
     public function test_a_healthy_chamber_is_unchanged(): void
     {
         $this->onLivePg(function () {
-            $legislature = $this->legislature(typeA: 14, typeB: 5);
+            $legislature = $this->legislature(typeA: 14, typeB: 5, childCount: 1, repFloor: 5);
             $this->districtMap($legislature, [7, 7]);
 
             $plan = app(ElectionLifecycleService::class)->racePlan($legislature);
@@ -154,8 +160,9 @@ class PerKindRacePlanTest extends TestCase
             $this->assertFalse($plan['blocked'], 'nothing is wrong here');
             $this->assertFalse($plan['fully_blocked']);
             $this->assertSame('districts', $plan['kinds']['type_a']['mode']);
-            $this->assertSame('at_large', $plan['kinds']['type_b']['mode']);
-            $this->assertSame(5, $plan['kinds']['type_b']['seats']);
+            $this->assertSame('children', $plan['kinds']['type_b']['mode']);
+            $this->assertCount(1, $plan['kinds']['type_b']['children'], 'one race for the one direct child');
+            $this->assertSame(5, (int) $plan['kinds']['type_b']['children'][0]->seats, 'the child seats rep_floor');
         });
     }
 
@@ -218,23 +225,28 @@ class PerKindRacePlanTest extends TestCase
     }
 
     /**
-     * THE BOUNDARY (lane 4's coordination pin, now from the guard's own side):
-     * an UNFLAGGED large Type B is still ONE lawful at-large race at any size
-     * (the 2026-07-26 ruling). The guard keys on the FLAG, never on the raw
-     * comparison type_b > type_a, so it cannot over-block a chamber the ladder
-     * has not condemned. This is exactly why `ElectionStageTest`'s 14/1141
-     * fixture stays green: it is over-bound but unflagged.
+     * THE BOUNDARY (per the 2026-07-29 ruling): an UNFLAGGED Type B chamber
+     * elects PER CHILD — one at-large race per direct constituent, each seating
+     * its own rep_floor — NOT one pooled at-large race (which let population
+     * dominate the equal representation Type B exists to deliver). The guard keys
+     * on the FLAG, never on the raw comparison type_b > type_a, so an unflagged
+     * chamber the ladder has not condemned elects normally, per child.
+     * (SUPERSEDES the pre-2026-07-29 "one lawful at-large race at any size";
+     * lane 4's ElectionStageTest twin is co-updated the same way.)
      */
-    public function test_R_A_an_unflagged_large_type_b_is_still_lawful_at_large(): void
+    public function test_R_A_an_unflagged_type_b_elects_per_child(): void
     {
         $this->onLivePg(function () {
-            $legislature = $this->legislature(typeA: 14, typeB: 1141, needsDistricting: false);
+            // 20 direct children × rep 5 = 100 Type B seats, unflagged.
+            $legislature = $this->legislature(typeA: 14, typeB: 100, needsDistricting: false, childCount: 20, repFloor: 5);
             $this->districtMap($legislature, [7, 7]);
 
             $plan = app(ElectionLifecycleService::class)->racePlan($legislature);
 
-            $this->assertSame('at_large', $plan['kinds']['type_b']['mode'], 'unflagged: at-large at any size stands');
-            $this->assertSame(1141, $plan['kinds']['type_b']['seats'], 'at its full size, undivided');
+            $this->assertSame('children', $plan['kinds']['type_b']['mode'], 'unflagged: one at-large race PER CHILD');
+            $childRaces = $plan['kinds']['type_b']['children'];
+            $this->assertCount(20, $childRaces, 'one race per direct child, however many');
+            $this->assertSame(100, array_sum(array_map(fn ($c) => (int) $c->seats, $childRaces)), 'Σ = type_b_seats, no drift');
             $this->assertContains('type_b', $plan['generable_kinds']);
         });
     }
@@ -260,7 +272,7 @@ class PerKindRacePlanTest extends TestCase
 
     // ── fixtures ──────────────────────────────────────────────────────────
 
-    private function legislature(int $typeA, int $typeB, bool $needsDistricting = false): Legislature
+    private function legislature(int $typeA, int $typeB, bool $needsDistricting = false, int $childCount = 0, int $repFloor = 5): Legislature
     {
         $jid = (string) Str::uuid();
 
@@ -277,6 +289,28 @@ class PerKindRacePlanTest extends TestCase
             'updated_at' => now(),
         ]);
 
+        // Direct children for the PER-CHILD Type B path (operator ruling
+        // 2026-07-29). Each has population > TypeBSeatLadder::TINY_POP so it
+        // contributes a full rep_floor; the caller sets $typeB = childCount ×
+        // repFloor so racePlan's drift guard (Σ child seats == type_b_seats) is
+        // satisfied. Flagged / type_b=0 cases pass childCount=0 (they block or
+        // have no Type B half, so the per-child branch is never reached).
+        for ($i = 0; $i < $childCount; $i++) {
+            DB::table('jurisdictions')->insert([
+                'id' => (string) Str::uuid(),
+                'parent_id' => $jid,
+                'name' => 'Per-Kind Child '.$i,
+                'slug' => 'per-kind-child-'.Str::lower(Str::random(10)),
+                'adm_level' => 3,
+                'population' => 100_000,
+                'source' => 'user_defined',
+                'official_languages' => '["en"]',
+                'timezone' => 'UTC',
+                'created_at' => now(),
+                'updated_at' => now(),
+            ]);
+        }
+
         $id = (string) Str::uuid();
         DB::table('legislatures')->insert([
             'id' => $id,
@@ -286,6 +320,7 @@ class PerKindRacePlanTest extends TestCase
             'total_seats' => $typeA + $typeB,
             'type_a_seats' => $typeA,
             'type_b_seats' => $typeB,
+            'type_b_rep_floor' => $repFloor,
             'type_b_needs_districting' => $needsDistricting,
             'quorum_required' => max(3, (int) ceil(($typeA + $typeB) / 2)),
             'created_at' => now(),
