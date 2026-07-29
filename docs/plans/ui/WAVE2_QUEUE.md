@@ -325,6 +325,14 @@ agents before authoring (docs-only respected); lane 4 gathering cited anchors (U
 player + possibly Atlas were parked by name outside the 100. Both operator triggers must fire
 mid-wave for the target to hold.
 
+**Store contract RULED (desk, c6399aa reviewed): Q1 = A uniform 5s + per-group cadenceMs
+affordance (lane 2's future load valve, no rewrite); Q2 = B status-gated (full cadence
+open/recess, ~30s heartbeat scheduled, STOP on adjourned) + desk pin: the adjournment-announcing
+snapshot merges BEFORE the stop.** Composition unblocked; §4 guarantees + both knobs pinned in
+LiveRoomStoreContractTest. NAMED DEBT recorded: 9 hand-rolled pollers (PrivateRoom,
+RankedBallot, Results, VacancyCountback, Build/Progress, Operations, Districts, SimConsole,
+Step2_MapData) await a later peer-file consolidation pass onto useLiveRoom.
+
 **B4 hull validation delivered (db93712, B4_HULL_ISLAND_VALIDATION.md) → OPERATOR ITEM:** the
 invited check ("check me on it") found: the engine already seats islands via the shipped
 `closestApproachSq` nearest-host attachment (islands-ride-whole, Art. II §8); enclave logic is
