@@ -1125,3 +1125,40 @@ green signal.** After BallotSecrecy's clear + per-clump re-land, those 2 are the
 slot released — only L3 agenda (held) remains. L2W4 DONE + holding. L2 verified its federation surfaces on
 the REAL federation_peers shape (heeded the phantom-table warning). L6 batch plan banked (L6W4_SCREEN_GAP_PLAN.md,
 9d427a9; needs-schema later: constituent_requests + room read-position — neither blocks batches 1-6).
+
+### W4 tick 14 — L4 W4② (real defect fixed) + ⚑ Q4a OPERATOR RULING NEEDED + L3 ① unblocked
+
+**LANE 4 W4② (331271b) — CORRECTED SHAPE.** The order said "courtTiers + extraRooms only"; the SCHEMA
+FORBIDS both — judiciaries_jurisdiction_live_uq = exactly ONE live court per jurisdiction (hierarchy is
+across the tree via parent_judiciary_id); social_spaces_jur_type_unique = one public space per type (3 legal
+types). So those two are computed-but-unmaterialised. Lane 4 did NOT work around it. **Instead it fixed the
+REAL defect:** provisioning hardcoded min_judges 5 for EVERY court (19 live judiciaries, nations included),
+and InstitutionScaleService::judgeCount() had ZERO callers — the 5/7/9 bumps were pinned + ruled-keep (§9-Q2)
+but DEAD CODE. Now tierSql()+judgeCountSql() size the bench from tier; Art. IV §1 floor 5 UNBREAKABLE by
+construction (GREATEST(5,…)). LEDGER: **W4② = min_judges-from-tier + parity pin**, not courtTiers/extraRooms.
+
+**⚑ PARITY PIN — InstitutionProvisionMirrorParityTest** (3 tests / 366 asserts): SQL==PHP across all 60
+(population,children) pairs + every band boundary + free short-circuit + non-vacuity (≥4 tiers, benches
+5/7/9 reachable). This is the L3↔L4 formula CONTRACT enforcer in CI — L3 moves a curve/clamp without pinging
+L4 → red. The desk-pinned contract is now machine-enforced.
+
+**⚑⚑ Q4a — OPERATOR RULING NEEDED (surfaced; recommendation = (a)).** Q4a ruled provisioning MAY materialise
+court tiers + local civic rooms — UNIMPLEMENTABLE as written (schema forbids, above). Options:
+ (a) **RECOMMENDED** — reframe courtTiers as a jurisdiction's tree-DEPTH (which parent_judiciary_id + reality
+     already model), extra civic rooms as group-type spaces or a future room model. Cost: doc amendment, NO
+     schema, NO slot, nothing built moves.
+ (b) Weaken the two uniqueness constraints. Cost: a slot + trades two real safety rails (no duplicate courts /
+     squares) for a materialisation convenience. NOT recommended.
+NOT blocking the wave (the min_judges fix is the meaningful formula-wiring; it's done + green). Held for his word.
+
+**LANE 3 checkpoint:** 6 items + ⑦ half (②③⑤⑥⑧⑨ + ⑦ 2/4 byte-parity 1775f4bb). ① UNBLOCKED — c500a1f
+stable in HEAD; L3 proceeds with counting (CountingStage/SeatingStage are L3's to flip to per-CLUMP; the
+per-CHILD case is the later joint step). ⑦ Results+VacancyCountback DEFERRED honestly (useLiveRoom stops on
+'adjourned', won't auto-restart on a recount status flip — tracked room-wiring). Niue clear gated on L3's
+count pin. **test_a_large_type_b_is_one_lawful_at_large_race goes RED when per-CHILD lands (asserts the pooled
+shape) → L1+L4 co-update in ONE commit at the joint step.**
+
+**DEBT ROW (5 pre-existing suite reds) claimed by L4 — 4 already FIXED this wave** (LegalCompliance +
+MyProfileTabs = L1 a32bbc8; MatrixCarveout = L2 56f137a; ModerationFlip = L3 6fe2c77); only SupportLifecycleTest
+remains (→ L6). **Lane 2 = the SINGLE authoritative suite steward** — runs the wave-gate suite once, after the
+2 reds + L3's ① counting land. No competing full-suite runs.
