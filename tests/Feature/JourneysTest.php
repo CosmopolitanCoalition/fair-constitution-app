@@ -56,6 +56,28 @@ class JourneysTest extends TestCase
         });
     }
 
+    public function test_a_journey_carries_its_understand_it_first_learn_link(): void
+    {
+        $this->onLivePg(function () {
+            $user = $this->aUser('Journey Learner');
+
+            // A role's-work journey points at that role's Learn track (§③).
+            $this->actingAs($user)->get('/journeys/committee-session')
+                ->assertOk()
+                ->assertInertia(fn (Assert $page) => $page
+                    ->component('Civic/Journey')
+                    ->where('learn.track', 'legislature')
+                    ->where('learn.href', '/learn/legislature'));
+
+            // A rights/process journey has no role track — the general library.
+            $this->actingAs($user)->get('/journeys/'.self::LIVE_JOURNEY)
+                ->assertOk()
+                ->assertInertia(fn (Assert $page) => $page
+                    ->where('learn.track', null)
+                    ->where('learn.href', '/learn'));
+        });
+    }
+
     public function test_completing_every_step_earns_exactly_one_achievement_idempotently(): void
     {
         $this->onLivePg(function () {

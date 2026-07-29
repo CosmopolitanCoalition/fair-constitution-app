@@ -35,9 +35,19 @@ const props = defineProps({
     progress: { type: Object, default: () => ({ stepsDone: [], completedAt: null }) },
     /** The earned medal, when the arc is complete: {id, title, earned_at}. */
     achievement: { type: Object, default: null },
+    /** "Understand it first" (§③): {track: string|null, href: string}. */
+    learn: { type: Object, default: () => ({ track: null, href: '/learn' }) },
 });
 
 const { announce } = useAnnounce();
+
+/* The Learn deep-link label — humanise the role track, or the general library. */
+const learnLabel = computed(() => {
+    const track = props.learn?.track;
+    if (!track) return 'the Learn library';
+    const words = track.replace(/_/g, ' ');
+    return words.charAt(0).toUpperCase() + words.slice(1);
+});
 
 /* Client display data (clsLabel, flagship, rooms, your-part) by id. */
 const display = computed(() => JOURNEYS_BY_ID[props.journey.id] ?? null);
@@ -104,6 +114,29 @@ function toggleStep(index) {
         <p class="gloss" style="margin: 0">
             <strong style="color: var(--gov-fg)">Your part:</strong> {{ yourPart }}.
         </p>
+
+        <!-- ─────────────────────────────────── understand it first (§③ SOP) -->
+        <Card as="section" class="card--inset">
+            <div class="cluster" style="justify-content: space-between; align-items: baseline">
+                <span class="eyebrow"><Icon name="book-open" size="sm" /> Understand it first</span>
+                <Btn :as="Link" :href="learn.href" variant="secondary" size="sm" icon="arrow-right">
+                    <template v-if="learn.track">Learn: {{ learnLabel }}</template>
+                    <template v-else>Open the Learn library</template>
+                </Btn>
+            </div>
+            <p class="gloss" style="margin-block: var(--space-2) 0">
+                Before you walk the steps, the Learn library explains how this works — free,
+                in-app, a few minutes.
+                <template v-if="learn.track">
+                    This journey is the <strong>{{ learnLabel }}</strong> role's work; its lesson
+                    is the same one you would meet the first time you act in that role.
+                </template>
+            </p>
+            <p class="citation" style="margin-block-start: var(--space-1)">
+                Reading never gates anything (Art. I). The training that opens a role’s actions is
+                this same Learn content — asked once, only when you first exercise the role.
+            </p>
+        </Card>
 
         <!-- ─────────────────────────────────────────────────────── the arc -->
         <Card as="section">

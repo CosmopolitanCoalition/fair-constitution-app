@@ -121,6 +121,21 @@ return [
         'advocate'           => '/learn/advocate',
     ],
 
+    // ── Journey → role track (Wave 4 §③ — the "Understand it first" door) ─
+    // A guided journey whose subject IS a role's work links to that role's
+    // Learn track, so a player can understand the system before walking the
+    // steps. Rights/process/org journeys (become-a-resident, form-a-group,
+    // petition-to-referendum, …) map to nothing — there is no role to train
+    // for, and the panel falls back to the general Learn library.
+    'journey_to_track' => [
+        'election'          => 'election_board',
+        'committee-session' => 'legislature',
+        'bill'              => 'legislature',
+        'budget'            => 'legislature',
+        'court-case'        => 'judiciary',
+        'board-meeting'     => 'board_of_governors',
+    ],
+
     // ── The one-time training stipend (§5.0.1) ──────────────────────────
     // Call-site default for the amendable `training_stipend_amount`
     // setting (nullable column; SettingsResolver inherits up the chain).

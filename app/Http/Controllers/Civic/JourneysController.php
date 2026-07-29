@@ -76,6 +76,19 @@ class JourneysController extends Controller
             ->where('award_key', $id)
             ->first();
 
+        // "Understand it first" (Wave 4 §③): if this journey's subject is a
+        // role's work, point at that role's Learn track; otherwise the general
+        // library. A nudge to the concepts — never a gate (journeys never
+        // block; the ACT-gate is the only training gate, and it lives in the
+        // engine, not here).
+        $track = config("cga.education.journey_to_track.{$id}");
+        $learn = [
+            'track' => $track,
+            'href'  => $track !== null
+                ? config("cga.education.lesson_href_by_track.{$track}", '/learn')
+                : '/learn',
+        ];
+
         return Inertia::render('Civic/Journey', [
             'surface' => SurfaceMeta::for('civic/journey'),
             'journey' => [
@@ -85,6 +98,7 @@ class JourneysController extends Controller
                 'status' => $journey['status'],
                 'cls'    => $journey['cls'],
             ],
+            'learn' => $learn,
             'progress' => [
                 'stepsDone'   => array_values(array_map('intval', $progress->steps_done ?? [])),
                 'completedAt' => $progress?->completed_at?->toIso8601String(),
