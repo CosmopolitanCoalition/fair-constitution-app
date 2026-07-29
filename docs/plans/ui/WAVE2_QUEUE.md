@@ -342,6 +342,16 @@ invited check ("check me on it") found: the engine already seats islands via the
 sound iff both clips hold; antimeridian guarding is real and already precedented; and
 hull-CONTACT adjacency for GROUPING reduces to a buffered proximity graph (hulls of separated
 islands never touch — the buffer distance d becomes a free parameter controlling everything).
+**Lane 2 coordinator SHIPPED (fa4e628, 1213 ins, desk-verified): DemoMeshTimeCoordinator
+(originate/replay claim-then-advance idempotent, §3 refusal names the coordinator, §4 skew
+hatch), ingestTail side-effect replay post-txn, dev:mesh-time CLI + /dev/clock/coordinator +
+flyout mesh state (parity three-legged). 8 tests/46 assertions; refusal matrix pinned both
+ways; degrades SOLO clean unmigrated. DESK-ACCEPTED CALL: hasColumn/hasTable null-safe guards
+let code+routes commit NOW while only the migration holds (DevTimeControlsEnabled idiom;
+routes-committed-immediately honored). Slot signal MISSED it (same busy-lane pattern as lane
+3) — re-issued short-form; its written 180000 file re-dates after 190000 before landing.
+Pixel debt (flyout mesh state needs columns+demo peers): review list.**
+
 **Lane 3 provisioning DONE (30d72fe, 3 pins green): session/committee/case = PUBLIC commons
 rooms under the jurisdiction Space; board = PRIVATE entity room never Space-bound (§10-1);
 ENTITY_CASE as a PHP constant, no migration; idempotent lazy provisioning. FLAG RECORDED
