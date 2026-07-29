@@ -173,6 +173,13 @@ class CertificationService implements CertificationPipeline
         $winners = [];
         $terms   = [];
 
+        // Chamber-wide sequence for type_b seats: N per-clump / per-child type_b
+        // races each restart RaceResult.seat_no at 1, and a type_b member carries
+        // no district_id to disambiguate, so seat_no is re-sequenced across the
+        // WHOLE type_b half or a vacancy/countback seat lookup is ambiguous. A
+        // single interim-pooled type_b race still yields 1..N exactly as before.
+        $typeBSeatNo = 0;
+
         foreach ($election->races()->get() as $race) {
             $tabulation = $this->certifiedTabulation($race);
 
@@ -187,12 +194,18 @@ class CertificationService implements CertificationPipeline
             foreach ($results as $result) {
                 $candidacy = Candidacy::query()->findOrFail($result->candidacy_id);
 
+                // type_b seats are numbered chamber-wide (see $typeBSeatNo above);
+                // a special election preserves the vacated seat's own number.
+                $seatNo = $isSpecial
+                    ? ($vacatedSeat?->seat_no ?? $result->seat_no)
+                    : ($race->seat_kind === ElectionRace::SEAT_KIND_TYPE_B ? ++$typeBSeatNo : $result->seat_no);
+
                 $member = $this->seatWinner(
                     legislature: $legislature,
                     race: $race,
                     election: $election,
                     candidacy: $candidacy,
-                    seatNo: $isSpecial ? ($vacatedSeat?->seat_no ?? $result->seat_no) : $result->seat_no,
+                    seatNo: $seatNo,
                     voteShareNorm: $result->vote_share_norm,
                     window: $window,
                 );

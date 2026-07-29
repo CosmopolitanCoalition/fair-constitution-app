@@ -4,25 +4,30 @@ namespace Tests\Feature;
 
 use App\Models\Candidacy;
 use App\Services\Demo\Stages\CountingStage;
+use App\Services\Demo\Stages\SeatingStage;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 use Tests\Concerns\LivePgConnection;
 use Tests\TestCase;
 
 /**
- * CONSTITUTIONAL PIN — per-CLUMP Type B COUNTING (W4 ①, operator ruling
- * 2026-07-29). A grouped Type B chamber elects one at-large race PER CLUMP, each
- * from its OWN panel's residents — never one pooled race over the whole parent.
+ * CONSTITUTIONAL PIN — per-CLUMP Type B COUNTING + SEATING (W4 ①, operator
+ * ruling 2026-07-29). A grouped Type B chamber elects one at-large race PER
+ * CLUMP, each from its OWN panel's residents — never one pooled race over the
+ * whole parent.
  *
- * This pins the COUNTING side lane 3 owns: CountingStage::electorateFor scopes a
- * per-clump race (election_races.type_b_panel_id, set by createRaces c500a1f) to
- * the UNION of the panel's member jurisdictions. A PAIR panel counts its two
- * children's residents; a SINGLE counts one — NEVER the parent's whole roll,
- * which (since a panel race's jurisdiction_id IS the parent) the old at-large
- * branch would return, N-folding the count. Race SHAPE + RaceFootprint are
- * lane 1's; this is the demo count consuming them.
+ * COUNTING (CountingStage::electorateFor): a per-clump race (election_races.
+ * type_b_panel_id, set by createRaces c500a1f, jurisdiction_id = the PARENT) is
+ * scoped to the UNION of the panel's member jurisdictions — a PAIR counts its
+ * two children, a SINGLE counts one, NEVER the parent's whole roll (which the
+ * old at-large branch would return, N-folding the count).
  *
- * Live-pg + rolled-back tx (elections/races/panels need the pg schema).
+ * SEATING (CertificationService): N per-clump races each restart RaceResult.
+ * seat_no at 1, and a type_b member carries no district_id — so type_b seats are
+ * re-sequenced CHAMBER-WIDE, or a vacancy/countback seat lookup is ambiguous.
+ *
+ * Race SHAPE + RaceFootprint are lane 1's; this is the demo count/seat consuming
+ * them. Live-pg + rolled-back tx.
  */
 class TypeBPerClumpCountingTest extends TestCase
 {
@@ -33,46 +38,7 @@ class TypeBPerClumpCountingTest extends TestCase
     public function test_a_per_clump_race_counts_its_panel_not_the_whole_parent(): void
     {
         $this->onLivePg(function () {
-            $parent = $this->jurisdiction('Clump Parent', 10_000);
-            $c1 = $this->jurisdiction('Child One', 1_000);
-            $c2 = $this->jurisdiction('Child Two', 1_000);
-            $c3 = $this->jurisdiction('Child Three', 1_000);
-
-            // Electorate is what a per-clump count sums; the parent's is the
-            // WRONG answer the pin guards against.
-            $this->cohort($parent, 10_000);
-            $this->cohort($c1, 100);
-            $this->cohort($c2, 100);
-            $this->cohort($c3, 100);
-
-            $legId = (string) Str::uuid();
-            DB::table('legislatures')->insert([
-                'id' => $legId, 'jurisdiction_id' => $parent, 'term_number' => 1,
-                'status' => 'forming', 'total_seats' => 15, 'type_a_seats' => 11,
-                'type_b_seats' => 4, 'quorum_required' => 8,
-                'created_at' => now(), 'updated_at' => now(),
-            ]);
-
-            $groupingId = (string) Str::uuid();
-            DB::table('legislature_type_b_groupings')->insert([
-                'id' => $groupingId, 'legislature_id' => $legId, 'status' => 'active',
-                'rep_floor' => 2, 'group_size' => 2, 'panel_count' => 2, 'seats_total' => 4,
-                'type_a_bound' => 11, 'tie_break_key' => 'max_internal_border_len',
-                'signature' => 'pin', 'created_at' => now(), 'updated_at' => now(),
-            ]);
-
-            // A PAIR panel [c1, c2] and a SINGLE panel [c3], 2 seats each.
-            $p1 = $this->panel($groupingId, $legId, 1, [$c1, $c2]);
-            $p2 = $this->panel($groupingId, $legId, 2, [$c3]);
-
-            $electionId = (string) Str::uuid();
-            DB::table('elections')->insert([
-                'id' => $electionId, 'jurisdiction_id' => $parent, 'status' => 'tabulating',
-                'created_at' => now(), 'updated_at' => now(),
-            ]);
-
-            $r1 = $this->perClumpRace($electionId, $parent, $p1);
-            $r2 = $this->perClumpRace($electionId, $parent, $p2);
+            ['electionId' => $electionId, 'r1' => $r1, 'r2' => $r2] = $this->seedGroupedElection();
 
             $result = CountingStage::run($electionId, null, 1);
 
@@ -88,7 +54,104 @@ class TypeBPerClumpCountingTest extends TestCase
         });
     }
 
-    // ── fixtures ──────────────────────────────────────────────────────────
+    public function test_per_clump_type_b_seats_are_numbered_chamber_wide(): void
+    {
+        $this->onLivePg(function () {
+            ['electionId' => $electionId] = $this->seedGroupedElection();
+
+            CountingStage::run($electionId, null, 1);
+            $seating = SeatingStage::run($electionId, null, 1);
+
+            $this->assertTrue($seating['certified'], "certified: {$seating['skipped']}");
+            $this->assertSame(4, $seating['seated'], '2 panels × 2 seats seated');
+
+            // The four type_b seats are numbered 1..4 across the two races — NOT
+            // two colliding pairs of (1,2). elected_in_race_id resolves which
+            // panel each seat represents; no new column needed.
+            $seatNos = DB::table('legislature_members')
+                ->where('election_id', $electionId)
+                ->where('seat_type', 'b')
+                ->orderBy('seat_no')
+                ->pluck('seat_no')
+                ->map(fn ($n) => (int) $n)
+                ->all();
+
+            $this->assertSame([1, 2, 3, 4], $seatNos, 'type_b seats are chamber-unique, not per-race collisions');
+
+            // The four seats attribute to their TWO panel races (per-race, not
+            // pooled) — elected_in_race_id → race → panel is the read-time link.
+            $this->assertSame(2, (int) DB::table('legislature_members')
+                ->where('election_id', $electionId)->where('seat_type', 'b')
+                ->distinct()->count('elected_in_race_id'),
+                'the four seats attribute to their two panel races');
+        });
+    }
+
+    // ── fixture ─────────────────────────────────────────────────────────────
+
+    /**
+     * A grouped Type B chamber: a PAIR panel [c1, c2] and a SINGLE panel [c3],
+     * two per-clump races of 2 seats each, plus the bootstrap board the F-ELB-004
+     * seating certifies through.
+     *
+     * @return array{parent: string, electionId: string, r1: string, r2: string}
+     */
+    private function seedGroupedElection(): array
+    {
+        $parent = $this->jurisdiction('Clump Parent', 10_000);
+        $c1 = $this->jurisdiction('Child One', 1_000);
+        $c2 = $this->jurisdiction('Child Two', 1_000);
+        $c3 = $this->jurisdiction('Child Three', 1_000);
+
+        $this->cohort($parent, 10_000);
+        $this->cohort($c1, 100);
+        $this->cohort($c2, 100);
+        $this->cohort($c3, 100);
+
+        $legId = (string) Str::uuid();
+        DB::table('legislatures')->insert([
+            'id' => $legId, 'jurisdiction_id' => $parent, 'term_number' => 1,
+            'status' => 'forming', 'total_seats' => 15, 'type_a_seats' => 11,
+            'type_b_seats' => 4, 'quorum_required' => 8,
+            'created_at' => now(), 'updated_at' => now(),
+        ]);
+
+        $groupingId = (string) Str::uuid();
+        DB::table('legislature_type_b_groupings')->insert([
+            'id' => $groupingId, 'legislature_id' => $legId, 'status' => 'active',
+            'rep_floor' => 2, 'group_size' => 2, 'panel_count' => 2, 'seats_total' => 4,
+            'type_a_bound' => 11, 'tie_break_key' => 'max_internal_border_len',
+            'signature' => 'pin', 'created_at' => now(), 'updated_at' => now(),
+        ]);
+
+        $p1 = $this->panel($groupingId, $legId, 1, [$c1, $c2]);
+        $p2 = $this->panel($groupingId, $legId, 2, [$c3]);
+
+        $boardId = (string) Str::uuid();
+        DB::table('election_boards')->insert([
+            'id' => $boardId, 'jurisdiction_id' => $parent,
+            'is_bootstrap' => true, 'status' => 'active',
+            'created_at' => now(), 'updated_at' => now(),
+        ]);
+        // The bootstrap board's synthetic system member (user_id NULL) — F-ELB-004
+        // certification files through it (BoardProvenance::resolveMemberOnBoard).
+        DB::table('election_board_members')->insert([
+            'id' => (string) Str::uuid(), 'election_board_id' => $boardId,
+            'user_id' => null, 'status' => 'seated',
+            'created_at' => now(), 'updated_at' => now(),
+        ]);
+
+        $electionId = (string) Str::uuid();
+        DB::table('elections')->insert([
+            'id' => $electionId, 'jurisdiction_id' => $parent, 'legislature_id' => $legId,
+            'status' => 'tabulating', 'created_at' => now(), 'updated_at' => now(),
+        ]);
+
+        $r1 = $this->perClumpRace($electionId, $parent, $p1);
+        $r2 = $this->perClumpRace($electionId, $parent, $p2);
+
+        return ['parent' => $parent, 'electionId' => $electionId, 'r1' => $r1, 'r2' => $r2];
+    }
 
     private function jurisdiction(string $name, int $pop): string
     {
@@ -144,7 +207,6 @@ class TypeBPerClumpCountingTest extends TestCase
             'status' => 'ranked_open', 'created_at' => now(), 'updated_at' => now(),
         ]);
 
-        // seats + 1 finalist candidacies so the race is contested + countable.
         for ($i = 0; $i < 3; $i++) {
             DB::table('candidacies')->insert([
                 'id' => (string) Str::uuid(), 'election_id' => $electionId, 'race_id' => $rid,
