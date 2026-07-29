@@ -45,6 +45,9 @@ const props = defineProps({
 
 const page = usePage();
 const flashStatus = computed(() => page.props.flash?.status ?? null);
+/* Art. II §7 — an emergency cannot disrupt an election; the shell shows which
+   powers are live, this console adds the board-specific reassurance. */
+const emergenciesActive = computed(() => (page.props.app?.activeEmergencies?.length ?? 0) > 0);
 const constitutionError = computed(() => page.props.errors?.constitution ?? null);
 
 const formMeta = (id) => props.surface.forms.find((f) => f.id === id);
@@ -208,6 +211,11 @@ function runPetitionAudit(row) {
 
         <Banner v-if="flashStatus" tone="info" role="status">{{ flashStatus }}</Banner>
         <Banner v-if="constitutionError" tone="emergency">{{ constitutionError }}</Banner>
+        <!-- Art. II §7 — the board's work cannot be disrupted by an emergency. -->
+        <Banner v-if="emergenciesActive" tone="info" role="status" title="Elections cannot be disrupted — the board proceeds.">
+            An emergency cannot suspend an election or the board's work. Certification, seating
+            and the countback run on their clocks regardless. <span class="citation">Art. II §7</span>
+        </Banner>
 
         <div class="cluster" style="gap: var(--space-6)">
             <Stat :value="stats.electionsAdministered" label="elections under administration" />

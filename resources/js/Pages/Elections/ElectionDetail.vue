@@ -52,6 +52,10 @@ const props = defineProps({
 const page = usePage();
 const flash = computed(() => page.props.flash?.status ?? null);
 const errors = computed(() => page.props.errors ?? {});
+/* An emergency is in effect somewhere in the viewer's footprint. The shell
+   already surfaces WHICH powers; this page adds the election-specific
+   reassurance that an emergency cannot suspend the vote (Art. II §7). */
+const emergenciesActive = computed(() => (page.props.app?.activeEmergencies?.length ?? 0) > 0);
 
 const blocked = computed(() => props.blockers.length > 0);
 const phase = computed(() => props.election?.phase ?? null);
@@ -188,6 +192,12 @@ const hasDistricts = computed(() => props.races.some((race) => !race.at_large));
         <Banner v-if="flash" tone="info">{{ flash }}</Banner>
         <Banner v-if="errors.constitution" tone="warning" title="Filing rejected by the constitutional engine">
             {{ errors.constitution }} — the rejection itself is on the audit chain (append-only).
+        </Banner>
+        <!-- Art. II §7 — an emergency cannot suspend an election. -->
+        <Banner v-if="emergenciesActive" tone="info" role="status" title="This election proceeds — an emergency cannot suspend it.">
+            Emergency powers are limited and can never suspend an election, a vote, or a
+            candidacy. Whatever emergency is in effect, this election runs on its clock,
+            untouched. <span class="citation">Art. II §7</span>
         </Banner>
 
         <!-- ───────────────────────────────────── empty mode (resolver) -->
