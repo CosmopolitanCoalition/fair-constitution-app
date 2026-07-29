@@ -5,7 +5,7 @@ namespace App\Domain\Forms;
 use InvalidArgumentException;
 
 /**
- * Canonical registry of the constitutional forms — 117 total: the 103 Template forms +
+ * Canonical registry of the constitutional forms — 118 total: the 103 Template forms +
  * F-ELB-008 (Manual District Draw, Phase H) + the Phase K-1 civic-commons trio
  * F-SOC-001/002/003 (public square / halls testimony / carve-out removal) + the Phase K-3
  * F-SOC-004 (M-5 physical-law legal-compliance removal, operator-plane) + the Phase M
@@ -14,7 +14,8 @@ use InvalidArgumentException;
  * completion / material publication, operator ruling 6) + the Economy Design
  * Round 2 build: F-ORG-008 (Organization Market Participation — share issuance)
  * + F-IND-020 (Resident Agreement — person-to-person / N-party agreements +
- * clause redlines).
+ * clause redlines) + the Wave 4 economy build F-IND-021 (Share Trade —
+ * holder-to-holder secondary share resale on the exchange).
  *
  * Source of truth: CGA_Constitutional_Roles_Forms_Chart.xlsx sheet
  * "3. Forms Catalog" (transcribed in docs/plans/institutions/
@@ -50,13 +51,13 @@ use InvalidArgumentException;
 class FormRegistry
 {
     /**
-     * All 117 canonical forms: id => [name, roles allowed to file].
+     * All 118 canonical forms: id => [name, roles allowed to file].
      * Roles per the catalog's "Filed by" column; 'roles' lists the role
      * codes whose holders may file (any one suffices). F-IND-006 is
      * additionally system-filed (see its handler's systemOnly()).
      */
     public const FORMS = [
-        // ── F-IND — Individual Forms (17) ───────────────────────────────────
+        // ── F-IND — Individual Forms (18) ───────────────────────────────────
         'F-IND-001' => ['name' => 'Individual Registration',                    'roles' => ['R-01']],
         'F-IND-002' => ['name' => 'Profile Management',                         'roles' => ['R-01']],
         'F-IND-003' => ['name' => 'Residency Declaration',                      'roles' => ['R-01']],
@@ -88,6 +89,15 @@ class FormRegistry
         // lower). Takes the reserved-but-free F-IND-020 slot; the stale
         // "Assistance Request" reservation moves to a later free id when built.
         'F-IND-020' => ['name' => 'Resident Agreement',                         'roles' => ['R-01']],
+        // F-IND-021 — Share Trade (Wave 4 ②; operator ruled the mint 2026-07-29).
+        // Holder-to-holder equity RESALE on the exchange: offer / buy / cancel.
+        // A person trading their OWN shares is an INDIVIDUAL act (R-01), not an
+        // org-agent act — so it is F-IND, not an F-ORG-008 action. Units move on
+        // the named ownership plane (Ruling B); money on the pseudonymous
+        // account plane; the two never join. Takes the reserved-but-free
+        // F-IND-021 slot (the stale "Assistance Request" reservation was already
+        // displaced by F-IND-020 and moves to a later free id when built).
+        'F-IND-021' => ['name' => 'Share Trade',                                 'roles' => ['R-01']],
         // Phase M — the economy's write path. Until these existed the
         // economy could be READ and not acted in: every service was built,
         // tested and driven end to end by institutions:demo-treasury, with
@@ -418,6 +428,7 @@ class FormRegistry
         'F-IND-017' => Handlers\CaseFiling::class,
         'F-IND-019' => Handlers\WorkApplication::class,
         'F-IND-020' => Handlers\ResidentAgreement::class,
+        'F-IND-021' => Handlers\ShareTrade::class,
         'F-IND-022' => Handlers\MarketplaceListingOrder::class,
         'F-IND-023' => Handlers\FundsTransfer::class,
         'F-IND-024' => Handlers\AssetRegistration::class,
@@ -547,7 +558,7 @@ class FormRegistry
         return self::HANDLERS[$canonicalId] ?? null;
     }
 
-    /** @return list<string> all 117 canonical form IDs. */
+    /** @return list<string> all 118 canonical form IDs. */
     public static function ids(): array
     {
         return array_keys(self::FORMS);
