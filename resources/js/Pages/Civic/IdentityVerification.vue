@@ -20,6 +20,7 @@ import Banner from '@/Components/Ui/Banner.vue';
 import Card from '@/Components/Ui/Card.vue';
 import HardenedChip from '@/Components/Ui/HardenedChip.vue';
 import StateStrip from '@/Components/Ui/StateStrip.vue';
+import Stepper from '@/Components/Ui/Stepper.vue';
 import StatusBadge from '@/Components/Ui/StatusBadge.vue';
 
 /* Phase-2 restyle wave: the v3 player chrome (MASTER_PLAN). */
@@ -27,11 +28,33 @@ defineOptions({ layout: AppShellV2 });
 
 const props = defineProps({
     surface: { type: Object, required: true },
-    /** PHP-owned account-side slice of ESM-01 Individual. */
+    /** PHP-owned ESM-01 Individual onboarding arc (4 states). */
     machine: { type: Array, default: () => [] },
+    /** The viewer's current node on that arc, derived server-side. */
+    journeyStatus: { type: String, default: 'registered' },
     identity: { type: Object, required: true },
     declaredJurisdiction: { type: Object, default: null },
 });
+
+/* Plain labels for the onboarding strip — the raw tokens are machine grammar
+   ("jurisdictionally_associated"); the player chrome speaks plainly (S8). */
+const ONBOARDING_LABELS = {
+    registered: 'Registered',
+    identity_verified: 'ID linked',
+    residency_declared: 'Residency declared',
+    jurisdictionally_associated: 'Represented',
+};
+
+/* The onboarding stepper context — this is step 2 of the 3-step arrival arc,
+   and it is the OPTIONAL one. Steps 1 and 3 are always reachable regardless. */
+const onboardingSteps = computed(() => [
+    { label: '1 · Account', icon: 'check', state: 'done' },
+    { label: '2 · Link an ID (optional)', state: 'active' },
+    {
+        label: '3 · Say where you live',
+        state: props.journeyStatus === 'jurisdictionally_associated' ? 'done' : 'pending',
+    },
+]);
 
 const page = usePage();
 const flash = computed(() => page.props.flash?.status ?? null);
@@ -61,7 +84,9 @@ const formMeta = (id) => props.surface.forms.find((f) => f.id === id);
 </script>
 
 <template>
-    <PageScaffold :surface="surface">
+    <PageScaffold :surface="surface" title="Link a government ID (optional)">
+        <Stepper :steps="onboardingSteps" />
+
         <template #intro>
             Where your jurisdiction supports it, you can link a government ID (formally: identity
             verification) to your account. It helps keep elections honest — it is
@@ -95,7 +120,7 @@ const formMeta = (id) => props.surface.forms.find((f) => f.id === id);
 
         <!-- ──────────────────────────────────────────── Current status -->
         <Card as="section" title="Where you are">
-            <StateStrip :states="machine" :current="identity.status" />
+            <StateStrip :states="machine" :current="journeyStatus" :labels="ONBOARDING_LABELS" />
             <div class="cluster" style="margin-block-start: var(--space-3); gap: var(--space-3)">
                 <StatusBadge v-if="isVerified" tone="success" icon="check">
                     Identity verified
@@ -142,12 +167,14 @@ const formMeta = (id) => props.surface.forms.find((f) => f.id === id);
         </FormCard>
 
         <!-- ───────────────────────────────── External bridge — honest -->
-        <Card as="section" title="External ID bridge">
+        <Card as="section" title="Automatic ID check">
             <p class="gloss">
-                Some jurisdictions will support an external identity bridge — an encrypted yes/no
-                match against an existing ID system, with the document number never stored. That
-                machinery ships with federation in <strong>Phase F</strong>; today the manual
-                attestation path above is the only one.
+                One day, where a jurisdiction supports it, you'll be able to link an existing
+                government ID by an encrypted yes/no match — the document number never stored, never
+                transmitted by us. <strong>No jurisdiction on this world can do that yet</strong>:
+                the bridge is built with federation in <strong>Phase F</strong>. Until then the
+                in-person attestation request above is the only path, and it too is entirely
+                optional.
             </p>
         </Card>
     </PageScaffold>

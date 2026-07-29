@@ -26,6 +26,7 @@ class IdentityVerificationController extends Controller
     public function __construct(
         private readonly ConstitutionalEngine $engine,
         private readonly ResidencyService $residency,
+        private readonly \App\Services\RoleService $roles,
     ) {
     }
 
@@ -44,11 +45,28 @@ class IdentityVerificationController extends Controller
 
         $claim = $this->residency->openClaimFor($user);
 
+        // Where the viewer stands on the ESM-01 Individual onboarding arc. The
+        // account side (identity) is optional and never a rights gate; the civic
+        // side is what actually switches rights on, so it outranks it when both
+        // are present — a resident who never linked an ID still reads as
+        // associated, not stuck at "registered".
+        $associated = $this->roles->associationsFor($user) !== [];
+        $verified = $user->status === 'identity_verified' || $user->identity_verified_at !== null;
+        $journeyStatus = match (true) {
+            $associated       => 'jurisdictionally_associated',
+            $claim !== null   => 'residency_declared',
+            $verified         => 'identity_verified',
+            default           => 'registered',
+        };
+
         return Inertia::render('Civic/IdentityVerification', [
             'surface'  => SurfaceMeta::for('civic/identity-verification'),
-            // PHP-owned machine (DESIGN_frontend_port.md §D4) — the account-
-            // side slice of ESM-01 Individual this surface can advance.
-            'machine'  => ['registered', 'identity_verified'],
+            // PHP-owned machine (DESIGN_frontend_port.md §D4) — the full ESM-01
+            // Individual onboarding arc, shared with the relocation surface via
+            // config. The strip shows the whole journey; journeyStatus marks
+            // where the viewer is on it.
+            'machine'       => config('cga.state_machines.individual_onboarding'),
+            'journeyStatus' => $journeyStatus,
             'identity' => [
                 'status'               => $user->status,
                 'verified_at'          => $user->identity_verified_at?->toIso8601String(),

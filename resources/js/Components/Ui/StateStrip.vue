@@ -9,12 +9,19 @@
  * plainState humanizes at this single point, so every state machine in the
  * app reads plainly at one stroke. MATCHING stays on the raw token; the
  * transform is display-only.
+ *
+ * `labels` is an OPTIONAL per-state override map ({ raw_token: 'Plain label' }),
+ * for machines whose generic humanisation isn't specific enough — e.g. the
+ * individual-onboarding strip wants "Residency declared" not "residency
+ * declared". Default null falls straight through to plainState's generic
+ * transform, so every existing consumer renders byte-identically.
  */
 import { plainState } from '@/lib/plain.js';
 
 defineProps({
     states: { type: Array, required: true },
     current: { type: String, default: null },
+    labels: { type: Object, default: null },
 });
 </script>
 
@@ -26,7 +33,7 @@ defineProps({
                 class="state-node"
                 :class="{ 'state-node--current': state === current }"
                 :aria-current="state === current ? 'step' : undefined"
-            >{{ plainState(state) }}</span>
+            >{{ plainState(state, labels) }}</span>
         </template>
     </div>
 </template>

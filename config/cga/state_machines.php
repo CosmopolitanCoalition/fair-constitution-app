@@ -30,6 +30,15 @@
 
 return [
 
+    // ESM-01 (Individual) — the onboarding arc a person walks, shared by the
+    // identity-verification and relocation surfaces. The account side
+    // (registered → identity_verified) is optional; the civic side
+    // (residency_declared → jurisdictionally_associated) is what actually
+    // switches rights on. Identity verification is NEVER a rights gate (Art. I).
+    'individual_onboarding' => [
+        'registered', 'identity_verified', 'residency_declared', 'jurisdictionally_associated',
+    ],
+
     // ESM-07 — bills (PHASE_C_DESIGN_votes_laws.md C-6).
     'bill' => [
         'introduced', 'referred', 'in_committee', 'reported', 'on_floor',
