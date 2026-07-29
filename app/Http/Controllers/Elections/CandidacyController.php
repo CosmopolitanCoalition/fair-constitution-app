@@ -4,15 +4,9 @@ namespace App\Http\Controllers\Elections;
 
 use App\Domain\Engine\ConstitutionalEngine;
 use App\Http\Controllers\Controller;
-use App\Models\AuditEntry;
 use App\Models\Candidacy;
 use App\Models\Election;
 use App\Models\ElectionRace;
-use App\Models\Endorsement;
-use App\Models\EndorsementRequest;
-use App\Models\Organization;
-use App\Models\User;
-use App\Services\ApprovalService;
 use App\Services\RoleService;
 use App\Support\SurfaceMeta;
 use Illuminate\Http\RedirectResponse;
@@ -28,7 +22,7 @@ use Inertia\Response;
  *
  *   GET   /elections/{election}/candidacy            — F-IND-011 form
  *   POST  /elections/{election}/candidacy            — file F-IND-011 (R-03)
- *   GET   /candidates/{candidacy}                    — public profile
+ *   GET   /candidates/{candidacy}                    — 302 → the person profile's Candidacy tab (v3.2 0a)
  *   PATCH /candidates/{candidacy}                    — file F-CAN-001 (owner)
  *   POST  /candidates/{candidacy}/withdraw           — file F-CAN-003 (owner; ballot lock)
  *   POST  /candidates/{candidacy}/endorsement-requests — file F-CAN-002 (owner)
@@ -40,7 +34,6 @@ class CandidacyController extends Controller
 {
     public function __construct(
         private readonly ConstitutionalEngine $engine,
-        private readonly ApprovalService $approvals,
         private readonly RoleService $roles,
     ) {}
 
@@ -167,72 +160,24 @@ class CandidacyController extends Controller
     }
 
     // =========================================================================
-    // GET /candidates/{candidacy} — public profile (§B.3)
+    // GET /candidates/{candidacy} — forwards to the ONE person profile
     // =========================================================================
 
-    public function show(Request $request, string $candidacy): Response
+    /**
+     * v3.2 ruling 0a: a candidate page is the Candidacy tab of the one
+     * person profile now (mockups/v3/electoral/candidate-profile.html is
+     * the same redirect on the spec side). Every profile_href emitted by
+     * the count/ballot pages lands here and forwards; the panel assembly
+     * this method used to carry lives in CandidacyPanel (Http/Presenters).
+     */
+    public function show(Request $request, string $candidacy): RedirectResponse
     {
-        $model = Candidacy::query()
-            ->with(['user', 'election.jurisdiction', 'race.jurisdiction', 'race.district'])
-            ->findOrFail($candidacy);
+        $model = Candidacy::query()->findOrFail($candidacy);
 
-        $user = $request->user();
-        $election = $model->election;
-        $race = $model->race;
-        $phase = ElectionController::phase($election->status);
-        $isOwner = $user !== null && (string) $user->getKey() === (string) $model->user_id;
-
-        ['machine' => $machine, 'current' => $current] = self::machineFor($model->status);
-
-        return Inertia::render('Elections/CandidateProfile', [
-            'surface' => SurfaceMeta::for('elections/candidate-profile'),
-            'candidacy' => [
-                'id' => (string) $model->id,
-                'name' => $model->user?->display_name ?? $model->user?->name ?? 'Candidate',
-                'statement' => $model->platform_statement,
-                'position_tags' => $model->position_tags ?? [],
-                'status' => $model->status,
-                'withdrawn' => $model->status === Candidacy::STATUS_WITHDRAWN,
-                'incumbent' => $this->isIncumbent($model),
-                'race' => $race === null ? null : [
-                    'id' => (string) $race->id,
-                    'election_id' => (string) $election->id,
-                    'label' => ElectionController::raceLabel($race),
-                    'seats' => (int) $race->seats,
-                    'finalist_count' => (int) $race->finalist_count,
-                    'phase' => $phase,
-                ],
-            ],
-            'standing' => $race === null ? null : $this->standingFor($model, $race, $phase),
-            'machine' => $machine,
-            'currentState' => $current,
-            'endorsements' => $this->endorsementsFor($model),
-            'requests' => $isOwner ? $this->requestsFor($model) : [],
-            'publicRecord' => $this->publicRecordFor($model),
-            'isOwner' => $isOwner,
-            'can' => [
-                // Ballot lock (CLK-21): withdrawal closes at the finalist
-                // cutoff — mirrored client-side as disabled-with-citation,
-                // enforced server-side by the F-CAN-003 handler.
-                'withdraw' => $isOwner
-                    && $election->status === Election::STATUS_APPROVAL_OPEN
-                    && in_array($model->status, [
-                        Candidacy::STATUS_REGISTERED,
-                        Candidacy::STATUS_VALIDATED,
-                        Candidacy::STATUS_IN_POOL,
-                        Candidacy::STATUS_FINALIST,
-                    ], true)
-                    && ($election->finalist_cutoff_at === null || $election->finalist_cutoff_at->isFuture()),
-            ],
-            'organizations' => $isOwner
-                ? Organization::query()
-                    ->where('is_active', true)
-                    ->orderBy('name')
-                    ->limit(100)
-                    ->get(['id', 'name'])
-                    ->map(fn (Organization $o) => ['id' => (string) $o->id, 'name' => $o->name])
-                    ->all()
-                : [],
+        return redirect()->route('people.show', [
+            'who' => (string) $model->user_id,
+            'tab' => 'candidacy',
+            'candidacy' => (string) $model->id,
         ]);
     }
 
@@ -336,184 +281,4 @@ class CandidacyController extends Controller
             ->all();
     }
 
-    /**
-     * §B.3 standing card data from the daily aggregate (never a live
-     * count): rank/of/approvals + the finalist-line and top values for the
-     * ThresholdMeter. Null when the race has no standings rows for this
-     * candidacy yet — the page renders the "see the count" card.
-     */
-    private function standingFor(Candidacy $candidacy, ElectionRace $race, string $phase): ?array
-    {
-        $standings = $this->approvals->standings($race);
-
-        if ($standings->isEmpty()) {
-            return null;
-        }
-
-        $mine = $standings->firstWhere('candidacy_id', $candidacy->id);
-
-        if ($mine === null) {
-            return null;
-        }
-
-        $line = (int) min($race->finalist_count, $standings->count());
-        $lineRow = $standings->firstWhere('rank', $line);
-
-        $isFinalist = $phase === 'approval'
-            ? (int) $mine->rank <= (int) $race->finalist_count
-            : in_array($candidacy->status, [Candidacy::STATUS_FINALIST, Candidacy::STATUS_ELECTED, Candidacy::STATUS_DEFEATED], true);
-
-        return [
-            'rank' => (int) $mine->rank,
-            'of' => $standings->count(),
-            'approvals' => (int) $mine->approvals_count,
-            'isFinalist' => $isFinalist,
-            'lineApprovals' => (int) ($lineRow?->approvals_count ?? 0),
-            'topApprovals' => (int) ($standings->firstWhere('rank', 1)?->approvals_count ?? $mine->approvals_count),
-            'frozen' => (bool) $mine->is_frozen,
-            'asOf' => $mine->as_of_date?->toDateString(),
-        ];
-    }
-
-    /** §B.3 endorsements: org chips + individual split + the public web. */
-    private function endorsementsFor(Candidacy $candidacy): array
-    {
-        $orgRows = Endorsement::query()
-            // Qualified by hand (the active() scope's columns would be
-            // ambiguous across the organizations join).
-            ->where('endorsements.is_active', true)
-            ->whereNull('endorsements.withdrawn_at')
-            ->where('endorsements.candidate_id', $candidacy->id)
-            ->where('endorsements.endorser_type', Endorsement::ENDORSER_ORGANIZATION)
-            ->join('organizations as o', 'o.id', '=', 'endorsements.endorser_id')
-            ->orderBy('endorsements.endorsed_at')
-            ->get(['o.id', 'o.name', 'o.type', 'endorsements.endorsed_at']);
-
-        $individuals = Endorsement::query()
-            ->active()
-            ->where('candidate_id', $candidacy->id)
-            ->where('endorser_type', Endorsement::ENDORSER_USER)
-            ->get(['endorser_id', 'is_public']);
-
-        $publicIds = $individuals->where('is_public', true)->pluck('endorser_id')->map(fn ($id) => (string) $id);
-
-        // The expandable public web: each public endorser + their OTHER
-        // public endorsements in this election (profile links).
-        $publicWeb = [];
-
-        if ($publicIds->isNotEmpty()) {
-            $users = User::query()->whereIn('id', $publicIds)->get(['id', 'name', 'display_name']);
-
-            $webRows = Endorsement::query()
-                ->where('endorsements.is_active', true)
-                ->whereNull('endorsements.withdrawn_at')
-                ->where('endorsements.is_public', true)
-                ->where('endorsements.election_id', $candidacy->election_id)
-                ->where('endorsements.endorser_type', Endorsement::ENDORSER_USER)
-                ->whereIn('endorsements.endorser_id', $publicIds)
-                ->join('candidacies as c', 'c.id', '=', 'endorsements.candidate_id')
-                ->join('users as cu', 'cu.id', '=', 'c.user_id')
-                ->get(['endorsements.endorser_id', 'c.id as candidacy_id', 'cu.name as candidate_name', 'cu.display_name as candidate_display_name']);
-
-            $candidateUserIds = Candidacy::query()
-                ->where('election_id', $candidacy->election_id)
-                ->pluck('user_id')
-                ->map(fn ($id) => (string) $id);
-
-            $publicWeb = $users->map(fn (User $u) => [
-                'name' => $u->display_name ?? $u->name,
-                'user_id' => (string) $u->id,
-                'alsoCandidate' => $candidateUserIds->contains((string) $u->id),
-                'endorses' => $webRows
-                    ->where('endorser_id', $u->id)
-                    ->map(fn ($row) => [
-                        'candidacy_id' => (string) $row->candidacy_id,
-                        'name' => $row->candidate_display_name ?? $row->candidate_name,
-                    ])
-                    ->values()
-                    ->all(),
-            ])->all();
-        }
-
-        return [
-            'orgs' => $orgRows->map(fn ($row) => [
-                'id' => (string) $row->id,
-                'name' => $row->name,
-                'type' => $row->type,
-                'granted_at' => $row->endorsed_at,
-            ])->all(),
-            'individual' => [
-                'total' => $individuals->count(),
-                'public' => $publicIds->count(),
-                'private' => $individuals->count() - $publicIds->count(),
-            ],
-            'publicWeb' => $publicWeb,
-        ];
-    }
-
-    /** @return list<array{org_name: string, requested_at: string|null, status: string}> */
-    private function requestsFor(Candidacy $candidacy): array
-    {
-        return EndorsementRequest::query()
-            ->with('organization')
-            ->where('candidacy_id', $candidacy->id)
-            ->orderByDesc('requested_at')
-            ->get()
-            ->map(fn (EndorsementRequest $r) => [
-                'org_name' => $r->organization?->name,
-                'requested_at' => $r->requested_at?->toIso8601String(),
-                'status' => $r->status,
-            ])
-            ->all();
-    }
-
-    /**
-     * §B.3 public record, Phase B slice: ACTIONS only — the candidate's
-     * accepted elections/residency entries off the audit chain (the same
-     * ledger My Record reads; ballot content is structurally never there).
-     * Votes/statements arrive with the Phase C pipeline.
-     */
-    private function publicRecordFor(Candidacy $candidacy): array
-    {
-        $actions = AuditEntry::query()
-            ->where('actor_user_id', (string) $candidacy->user_id)
-            ->where('rejected', false)
-            ->whereIn('module', ['elections', 'residency'])
-            // Per-ping entries stay off the PUBLIC profile: ping cadence is
-            // location-adjacent metadata (Art. I privacy posture). The
-            // owner sees them on My Record; the public record carries the
-            // milestone events only.
-            ->where('event', 'not like', '%ping%')
-            ->orderByDesc('seq')
-            ->limit(20)
-            ->get()
-            ->map(fn (AuditEntry $entry) => [
-                'seq' => $entry->seq,
-                'date' => $entry->occurred_at?->toIso8601String(),
-                'label' => $entry->event.($entry->ref !== null ? " · {$entry->ref}" : ''),
-            ])
-            ->all();
-
-        return [
-            'votes' => [],
-            'actions' => $actions,
-            'statements' => [],
-        ];
-    }
-
-    private function isIncumbent(Candidacy $candidacy): bool
-    {
-        $legislatureId = $candidacy->election?->legislature_id;
-
-        if ($legislatureId === null) {
-            return false;
-        }
-
-        return DB::table('legislature_members')
-            ->where('legislature_id', (string) $legislatureId)
-            ->where('user_id', (string) $candidacy->user_id)
-            ->whereIn('status', ['elected', 'seated'])
-            ->whereNull('deleted_at')
-            ->exists();
-    }
 }
