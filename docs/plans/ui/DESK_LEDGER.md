@@ -887,3 +887,33 @@ secondary-trading. DROPPED from the queue: L3 ⑥ (cache) + L15 ② (columns exi
 
 **RUBRIC deltas to fold at next regen (not yet regenerated — batching):** L15 ① done; L3 ③⑧⑤ done;
 ⑦ count 9→4; ⑨ production half done (residual test-only); Atlas split already in.
+
+### W4 tick 7 — ⚑ FLEET-WIDE COMMIT-LAW DEFECT (deletion-blind guard) + L6 ballots_cast bug
+
+**LANE 6 escalated a safety-critical hole:** the INSERTION-COUNT sweep-guard every lane runs is BLIND
+to deletion-heavy foreign sweeps. A peer staging a mostly-deletions change into the shared index
+between `git reset` and `git commit` passes the insertion compare silently — and deletion/replacement
+is the NORMAL shape of this wave. Lane 6's f28d626 carried lane 3's DepartmentReportingController.php
+(−40) + DepartmentReporting.vue (−28) — a MID-FLIGHT half-written state (differs from lane 3's later
+f333eba), incident #4's failure mode. REPAIRED: `git reset --soft HEAD~1` → mixed reset → re-add only
+its 2 files → plain commit → aaa0a59 (+10 −2, file-list verified). --soft/mixed never touch the working
+tree, so lane 3's work survived → they committed f333eba themselves. Nothing lost / misattributed.
+
+**⚑ CORRECTED GUARD (fleet standard — BROADCAST to all 8 active lanes):** guard on the FILE LIST, not
+counts. `EXPECT=sorted($MINE); STAGED=sorted(git diff --cached --name-only); [ "$STAGED"="$EXPECT" ] ||
+ABORT`; after commit compare `git show --name-only` to the same list + BOTH insertion AND deletion sums.
+BEST option = lane 3's LOCK-FREE CAS commit (private GIT_INDEX_FILE → commit-tree → update-ref CAS;
+immune, never touches the shared index). The foreign-name grep is NOT reliable (no keyword list is
+complete). Commit IMMEDIATELY after each edit. Canonical home: memory feedback_git_commit_pathspec_multilane
+(lane 6 recorded incident #6). Desk's my-only-file commits are already immune (pathspec ignores the index).
+
+**L6 PROGRESS: ballots_cast BUG fixed (real user-visible harm).** /civic + /civic/record hardcoded
+`ballots_cast => 0` (stale "// Phase B") → 420 distinct voters (640 committed envelopes) shown zero
+ballots on their record. Now counted from ballot_envelopes by user_id; ballots carries NO user_id
+(verified) so it proves THAT you voted, never HOW — the PI-2 rail. ballots_cast:2 rendered for a real
+2-envelope voter; MyProfileTabsTest 5/90 green; pin deferred to L1's fixture fix (not fighting them for
+the file). 11/13 gap-specs in; batch plan pending.
+
+**TINKER on the dev box (fleet tip):** `docker exec -u www-data -e HOME=/tmp fcd_app php artisan tinker
+--execute='…'` — psysh can't write /var/www/.config/psysh as www-data. Renders controllers/props fast,
+no browser.
