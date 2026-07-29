@@ -35,7 +35,7 @@ class FederationMeshConsoleTest extends TestCase
             app(InstanceIdentityService::class)->ensureIdentity();
             $citizen = User::query()->whereNull('deleted_at')->firstOrFail();
 
-            $this->be($citizen, 'web')->get('/federation')
+            $this->be($citizen, 'web')->get('/operator/federation')
                 ->assertOk()
                 ->assertInertia(
                     fn (AssertableInertia $page) => $page

@@ -5,6 +5,7 @@ namespace Tests\Feature;
 use App\Models\FederationPeer;
 use App\Services\Federation\FederationClient;
 use App\Services\Federation\InstanceIdentityService;
+use App\Support\InstanceClass;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 use Tests\TestCase;
@@ -36,6 +37,14 @@ class FederationHandshakeTest extends TestCase
             $identity = app(InstanceIdentityService::class);
             $identity->ensureIdentity();
             $identity->setEnabled(true);
+
+            // This box is founded scale_demo; the faked peer declares no class
+            // (reads as production), so class-scoped federation would refuse the
+            // handshake. Present the box as production to match — the same seam
+            // e3df1ba used for the sibling fixtures. This test pins the handshake
+            // + signature mechanism, not class-scoping (ClassScopedFederationTest
+            // owns that).
+            InstanceClass::override(InstanceClass::PRODUCTION);
 
             $ourServerId = $identity->serverId();
 
@@ -120,6 +129,7 @@ class FederationHandshakeTest extends TestCase
             $identity->setEnabled(false);
             $this->getJson('/api/federation/identity')->assertStatus(404);
         } finally {
+            InstanceClass::flush();
             while ($conn->transactionLevel() > 0) {
                 $conn->rollBack();
             }

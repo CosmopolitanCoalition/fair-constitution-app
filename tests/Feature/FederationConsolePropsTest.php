@@ -43,7 +43,7 @@ class FederationConsolePropsTest extends TestCase
 
             // Authenticate BOTH planes; web stays the DEFAULT guard (as in the real
             // browser) so the global Inertia share resolves the citizen, not the operator.
-            $resp = $this->be($op, 'operator')->be($citizen, 'web')->get('/federation');
+            $resp = $this->be($op, 'operator')->be($citizen, 'web')->get('/operator/federation');
 
             $resp->assertOk()
                 ->assertInertia(fn (Assert $page) => $page
@@ -65,7 +65,7 @@ class FederationConsolePropsTest extends TestCase
             app(InstanceIdentityService::class)->ensureIdentity();
             $citizen = User::query()->whereNull('deleted_at')->firstOrFail();
 
-            $this->be($citizen, 'web')->get('/federation')
+            $this->be($citizen, 'web')->get('/operator/federation')
                 ->assertOk()
                 ->assertInertia(fn (Assert $page) => $page
                     ->component('Jurisdictions/Federation')
@@ -83,7 +83,7 @@ class FederationConsolePropsTest extends TestCase
 
             // Mesh Roles ★14 — the Role Board is citizen-public (Art. II §2); it renders without error
             // with one entry per capability channel, each carrying its derived state + gate cluster.
-            $this->be($citizen, 'web')->get('/federation')
+            $this->be($citizen, 'web')->get('/operator/federation')
                 ->assertOk()
                 ->assertInertia(fn (Assert $page) => $page
                     ->component('Jurisdictions/Federation')
@@ -105,7 +105,7 @@ class FederationConsolePropsTest extends TestCase
             $scope = (string) Jurisdiction::query()->whereNull('parent_id')->whereNull('deleted_at')->value('id');
             app(MeshRoleGrantService::class)->request('matrix.homeserver', $scope);
 
-            $this->be($op, 'operator')->be($citizen, 'web')->get('/federation')
+            $this->be($op, 'operator')->be($citizen, 'web')->get('/operator/federation')
                 ->assertOk()
                 ->assertInertia(fn (Assert $page) => $page
                     ->component('Jurisdictions/Federation')

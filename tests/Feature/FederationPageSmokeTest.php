@@ -39,7 +39,7 @@ class FederationPageSmokeTest extends TestCase
 
             $this->actingAs($user);
 
-            $this->get('/federation')
+            $this->get('/operator/federation')
                 ->assertStatus(200)
                 ->assertInertia(fn (Assert $page) => $page
                     ->component('Jurisdictions/Federation')
