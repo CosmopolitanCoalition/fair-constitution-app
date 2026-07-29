@@ -286,6 +286,74 @@ class InstitutionProvisionService
     }
 
     /**
+     * ⚑ THE SQL MIRROR OF `InstitutionScaleService::tierFor()`.
+     *
+     * The PHP static is the REFERENCE IMPLEMENTATION; this is a mirror of it,
+     * and `InstitutionProvisionMirrorParityTest` pins the two together across
+     * every band and boundary. That is the same contract `sourceSql()` already
+     * states for the zero rule ("Mirrors InstitutionScaleService::tierFor(),
+     * which is the reference implementation and is pinned against this SQL"),
+     * and it is why this is a MIRROR and not a fork: provisioning is set-based
+     * `INSERT … SELECT` over chunks of 25,000, so it cannot call a PHP static
+     * per row. One formula, two call sites, a pin holding them together.
+     *
+     * Requires `j` (a jurisdictions row) and `k.kids` (its live child count) in
+     * scope. Expects the binding to be resolved once per run, not per row — a
+     * founding property, never a per-jurisdiction dial.
+     */
+    private function tierSql(): string
+    {
+        // `free` binding: population imposes nothing, everyone gets the standard
+        // set. Resolved in PHP because it is one value for the whole run.
+        if ($this->binding() === InstitutionScaleService::BINDING_FREE) {
+            return "'".InstitutionScaleService::TIER_STANDARD."'";
+        }
+
+        $pop = 'COALESCE(j.population, 0)';
+
+        // THE ZERO RULE, then the bands, then the depth promotion. A place whose
+        // population reads 0 while it holds real constituents is a geodata
+        // artefact, not an empty place — it still needs somewhere to meet.
+        //
+        // The `kids >= 25` branch IS the promotion (parts count as complexity in
+        // their own right), written out rather than computed so the whole
+        // decision stays one readable expression: minimal→standard,
+        // standard→extended, extended→full, full→full.
+        return "CASE
+            WHEN {$pop} < 1 THEN (CASE WHEN k.kids > 0 THEN 'minimal' ELSE 'none' END)
+            WHEN k.kids >= 25 THEN (CASE
+                WHEN {$pop} >= 250000 THEN 'full'
+                WHEN {$pop} >= 1000   THEN 'extended'
+                ELSE 'standard'
+            END)
+            ELSE (CASE
+                WHEN {$pop} >= 10000000 THEN 'full'
+                WHEN {$pop} >= 250000   THEN 'extended'
+                WHEN {$pop} >= 1000     THEN 'standard'
+                ELSE 'minimal'
+            END)
+        END";
+    }
+
+    /**
+     * The bench a place's court STARTS from — `judgeCount()`'s 5/5/7/9 in SQL.
+     *
+     * GREATEST(5, …) is belt-and-suspenders for the Art. IV §1 floor, which the
+     * `judiciaries_min_judges_check` constraint also enforces: a `none`-tier
+     * place would score 0, and although the zero rule already excludes it from
+     * the candidate set, a bench below 5 must be impossible by construction and
+     * not merely unreachable.
+     */
+    private function judgeCountSql(): string
+    {
+        return 'GREATEST(5, CASE '.$this->tierSql()."
+            WHEN 'extended' THEN 7
+            WHEN 'full'     THEN 9
+            ELSE 5
+        END)";
+    }
+
+    /**
      * The INSERT half, reading from the `batch` CTE. No bound id lists.
      */
     private function insertSql(string $step): string
@@ -298,12 +366,27 @@ class InstitutionProvisionService
                    FROM batch b
                  ON CONFLICT DO NOTHING",
 
-            // Art. IV §1 — appointed by default, 5+ judges, 10-year terms.
-            'judiciaries' => "INSERT INTO judiciaries
+            // Art. IV §1 — appointed by default, 10-year terms, and a bench
+            // SIZED TO THE PLACE: the service-scale formula's 5/5/7/9 tier bumps
+            // (SERVICE_SCALE_FORMULA.md §4.3, operator-signed-off 2026-07-29,
+            // §9-Q2 ruled KEEP those values). Before this, every court on the
+            // planet was minted with a 5-judge bench — a nation and a hamlet got
+            // the same court, and InstitutionScaleService::judgeCount() had no
+            // caller anywhere in the app. The floor is still 5 and the ceiling
+            // is still none (Art. IV §1); the tiers only decide where a bench
+            // STARTS, and the constituent-per-judge rule in
+            // JudiciaryFormationService remains the law where it applies.
+            'judiciaries' => 'INSERT INTO judiciaries
                     (id, jurisdiction_id, court_name, type, min_judges, term_years, status, created_at, updated_at)
-                 SELECT gen_random_uuid(), b.jid, 'Superior Court', 'appointed', 5, 10, 'forming', now(), now()
+                 SELECT gen_random_uuid(), b.jid, \'Superior Court\', \'appointed\',
+                        '.$this->judgeCountSql().', 10, \'forming\', now(), now()
                    FROM batch b
-                 ON CONFLICT DO NOTHING",
+                   JOIN jurisdictions j ON j.id = b.jid AND j.deleted_at IS NULL
+                   LEFT JOIN LATERAL (
+                       SELECT count(*) AS kids FROM jurisdictions c
+                        WHERE c.parent_id = j.id AND c.deleted_at IS NULL
+                   ) k ON true
+                 ON CONFLICT DO NOTHING',
 
             // The bootstrap board (R-08 substrate) — retired by WF-ELE-10.
             'election_boards' => "INSERT INTO election_boards
