@@ -409,11 +409,26 @@ agreement form = a mint → 116→117 pinned in the build.**
    **demo-members-are-trained seeding pass**. Playtest-prep item.
 3. Carried: B2 residual (compact-first shipped), game-box mass pass, lane 3's compaction.
 
-*Lane 1 (holding for the game-box go + B2/race-shape rulings) is running a self-directed
-ADVERSARIAL VERIFICATION PASS over the shipped Type B engine (ladder · combined cap · grouping ·
-SQL-mirror parity · island path · determinism/DRIFT) BEFORE it meets ~9,708 real chambers —
-desk-blessed; "27 pins ≠ verified-at-scale." Feeds mass-pass confidence for the review package.
-No game box, no peer files.*
+**⚑ LANE 1 ADVERSARIAL VERIFICATION VERDICT (2dc5cd0, desk-verified, 30 pins green): the pass
+FOUND 3 REAL DEFECTS the 27 pins missed — all in the tight-bound/island regimes the ample pins
+never exercised (= exactly the game box's atolls/hamlets/archipelagos). ALL FIXED + PINNED,
+0 refuted.**
+- **#1 HIGH — a DRIFT / seating-law violation** (the headline): the pMax<1 branch forced one
+  full rep_floor panel the combined cap couldn't afford → type_a+type_b > population (7 reps for
+  6 people) AND cleared the flag resolved-forever. A micro-territory would have been permanently
+  mis-seated the instant the mass pass touched it. FIX: seat ZERO panels when bound < rep_floor.
+  **Caught BEFORE it ran against 9,708 real chambers — "DRIFT IS ALWAYS WRONG" working as
+  intended.**
+- **#2 HIGH — B7 violation:** apply()'s legislatures UPDATE ran for status='draft' too, so a
+  next-term DRAFT resized + un-flagged the SITTING chamber. FIX: gate on 'active'.
+- **#3 MED — B2:** island/no-signal walk ordered its tail by id → remainder could land on the
+  HIGHEST-pop constituent. FIX: rank (distance, population, id). Plus a vacuous signature test
+  replaced with a real order-independence pin.
+- **LATENT (desk-ruled DEFER to Wave 4):** AutoscaleResizeRepair SQL mirror clamps
+  type_b_seats_per_child to 5 while PHP doesn't — unreachable today (setting validated out >5,
+  DDL default 5, all 26 rows =5; PHP is authoritative, mirror defers). Additive CHECK-constraint
+  is a Wave 4 hardening candidate; cannot fire against the mass pass. HIGH CONFIDENCE recorded
+  for the game-box mass pass. This vindicates "27 pins ≠ verified-at-scale."
 
 **LANE 4 WAVE 3 CLOSED (four-way confirmed): R-A UN-FLAG PIN 7d14649 (ElectionStageTest 10/10;
 non-vacuous — a before-state assertion proves the race appears BECAUSE the flag cleared, via
