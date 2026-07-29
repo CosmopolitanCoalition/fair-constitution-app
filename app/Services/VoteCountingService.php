@@ -231,8 +231,8 @@ final class VoteCountingService
         //     or clump IS the district, so the 5–9 band does not bind it. The race
         //     SHAPE (one row per child/panel, keyed by election_races.type_b_panel_id
         //     for a clump, else jurisdiction_id for a child) is built in
-        //     racePlan/createRaces; the per-race electorate is scoped by
-        //     RaceFootprint (production) / CountingStage::electorateFor (demo).
+        //     racePlan/createRaces; the per-race voter set is scoped upstream by
+        //     RaceFootprint (production) / the demo counting stage.
         //     (Superseded pre-2026-07-29 doctrine — "ONE STV race, splitting ruled
         //     out, San Marino's 27 together" — is REVERSED; do not restore it.)
         //   · exec_committee / judicial_group — the schema has ALWAYS allowed
