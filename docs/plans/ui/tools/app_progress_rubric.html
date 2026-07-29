@@ -69,6 +69,14 @@ h1{font-size:1.55rem;font-weight:600;margin:0 0 .3rem}
 .qk{font-family:var(--mono);font-weight:700;color:var(--accent);flex:none}
 .qnotes{width:100%;min-height:2.4rem;background:var(--bg);border:1px solid var(--line-strong);border-radius:8px;color:var(--ink);font:inherit;font-size:.85rem;padding:.45rem .6rem;resize:vertical}
 .qnotes:focus{outline:2px solid var(--accent);outline-offset:1px}
+.wavesline{font-size:.82rem;color:var(--muted);margin:0 0 1rem;background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:.6rem .9rem}
+.lanecard{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:.9rem 1rem;margin:0 0 .7rem}
+.lanehd{display:flex;align-items:center;gap:.6rem;margin:0 0 .5rem;flex-wrap:wrap}
+.lanenm{font-weight:650;font-size:.98rem}
+.laneorder{font-size:.87rem;line-height:1.55}
+.lanehist{margin-top:.6rem;font-size:.8rem}
+.lanehist summary{color:var(--faint);cursor:pointer;user-select:none}
+.donerow{color:var(--muted);font-size:.8rem;margin:.4rem 0;padding-inline-start:.6rem;border-inline-start:2px solid var(--line)}
 .wv{font-family:var(--mono);font-size:.72rem;font-weight:700;color:var(--accent);white-space:nowrap}
 .detail{padding:.35rem 1.2rem 1rem 2.15rem;font-size:.85rem;border-top:1px dashed var(--line)}
 .detail dl{margin:0}.detail dt{font-size:.7rem;letter-spacing:.09em;text-transform:uppercase;color:var(--faint);margin:.7rem 0 .2rem}
@@ -140,12 +148,18 @@ function render(){const b=document.getElementById('body');
     b.innerHTML=`<section class="area"><div class="rows">${vis.map(r=>`<div class="scr"><button class="scr-head" aria-expanded="false"><span class="dot d-${CO[r.severity]}"></span><span class="scr-title">${hi(r.title)}</span><span class="lwbadge">${esc(r.badge)}</span><span class="pill p-${r.severity}">${LB[r.severity]}</span><span class="eff">${esc(r.category)}</span></button><div class="detail hidden"><dl><dt>Owner</dt><dd>${hi(r.owner)}</dd><dt>Where</dt><dd class="meta">${hi(r.location)}</dd><dt>Status</dt><dd>${hi(r.status)}</dd>${r.note?`<dt>Note</dt><dd>${hi(r.note)}</dd>`:''}</dl></div></div>`).join('')||'<div class="detail">No matches.</div>'}</div></section>`;}
   else if(view==='fleet'){
     const waves=D.fleet.waves.map(w=>`<span class="wv">${w.id}</span> ${esc(w.name)} <span class="pill p-${w.status}">${LB[w.status]}</span>`).join(' &nbsp;·&nbsp; ');
-    let html=`<div class="note" style="border-inline-start-color:var(--warn)">⏳ <b>Wave 4 orders PREPARED — awaiting the operator's go / no-go.</b> Nothing dispatches to any lane until the launch order. Your answers are folded into each lane's W4 order below (RULED = …). Search a lane badge (e.g. L6W4) in the other tabs to see everything that lane owns.</div><section class="area"><div class="detail" style="border:0;padding:.7rem 1rem"><b>Waves:</b> ${waves}</div></section>`;
-    D.fleet.lanes.forEach(l=>{const vis=l.orders.filter(o=>(filter==='all'||o.status===filter)&&(!q||(l.name+' '+o.text+' '+o.wave).toLowerCase().includes(q)));if(!vis.length)return;
-      const sc={};['done','next','held'].forEach(k=>sc[k]=l.orders.filter(o=>o.status===k).length);
-      const bar=['done','next','held'].map(k=>sc[k]?`<span class="s-${CO[k]}" style="flex:${sc[k]}"></span>`:'').join('');
-      html+=`<section class="area"><button class="area-head" aria-expanded="false"><span class="area-name">Lane ${esc(l.id)} · ${esc(l.name)}</span><span class="bar">${bar}</span><span class="counts">${sc.next} next</span><span class="chev">›</span></button><div class="rows hidden">${vis.map(o=>`<div class="scr"><button class="scr-head" aria-expanded="false"><span class="wv">${o.wave}</span><span class="scr-title">${hi(o.text.slice(0,90))}${o.text.length>90?'…':''}</span><span class="pill p-${o.status}">${LB[o.status]}</span><span class="eff"></span></button><div class="detail hidden"><p>${hi(o.text)}</p></div></div>`).join('')}</div></section>`;});
-    b.innerHTML=html;}
+    let html=`<div class="note" style="border-inline-start-color:var(--warn)">⏳ <b>Wave 4 orders PREPARED — awaiting the operator's go / no-go.</b> Nothing dispatches to any lane until the launch order. Your 9 answers are folded into each lane's Wave 4 order below (look for "RULED = …"). Each lane's W4 instruction is shown in full; the "already done" history collapses under it.</div><div class="wavesline"><b>Waves:</b> ${waves}</div>`;
+    D.fleet.lanes.forEach(l=>{
+      if(filter!=='all' && !l.orders.some(o=>o.status===filter))return;
+      if(q && !(l.name+' '+l.orders.map(o=>o.text).join(' ')).toLowerCase().includes(q))return;
+      const w4=l.orders.find(o=>o.wave==='W4');const done=l.orders.filter(o=>o.status==='done');
+      html+=`<div class="lanecard"><div class="lanehd"><span class="lwbadge">L${esc(l.id)}${w4&&w4.status!=='held'?'W4':''}</span><span class="lanenm">Lane ${esc(l.id)} · ${esc(l.name)}</span>${w4?`<span class="pill p-${w4.status}">${w4.status==='held'?'held':'Wave 4'}</span>`:''}</div>`;
+      if(w4)html+=`<div class="laneorder">${hi(w4.text)}</div>`;
+      if(done.length)html+=`<details class="lanehist"><summary>${done.length} already done · W${done.map(o=>o.wave.slice(1)).join(' · W')}</summary>${done.map(o=>`<div class="donerow"><span class="wv">${o.wave}</span> ${esc(o.text)}</div>`).join('')}</details>`;
+      html+=`</div>`;
+    });
+    b.innerHTML=html;return;
+  }
   else if(view==='questions'){
     const vis=D.questions.filter(r=>(filter==='all'||r.status===filter)&&(!q||(r.q+' '+r.detail).toLowerCase().includes(q)));
     let html='<div class="qbar"><button class="chip" id="qexport">⭳ Export answers</button><span class="qhint">Pick an option and add notes on each open question — your answers save in the page. When done, click Export (copies to clipboard) or screenshot; either lets the desk read them and update the fleet orders.</span></div><pre id="qexport-out" class="qexport hidden"></pre>';
