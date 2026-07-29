@@ -324,3 +324,15 @@ agents before authoring (docs-only respected); lane 4 gathering cited anchors (U
 13's design round mid-wave, and (b) the RankedBallot fresh-session build (1 row). Video
 player + possibly Atlas were parked by name outside the 100. Both operator triggers must fire
 mid-wave for the target to hold.
+
+**B4 hull validation delivered (db93712, B4_HULL_ISLAND_VALIDATION.md) → OPERATOR ITEM:** the
+invited check ("check me on it") found: the engine already seats islands via the shipped
+`closestApproachSq` nearest-host attachment (islands-ride-whole, Art. II §8); enclave logic is
+sound iff both clips hold; antimeridian guarding is real and already precedented; and
+hull-CONTACT adjacency for GROUPING reduces to a buffered proximity graph (hulls of separated
+islands never touch — the buffer distance d becomes a free parameter controlling everything).
+QUESTION QUEUED: for Type B grouping adjacency only, centroid nearest-approach (A, lane +
+desk recommend) vs literal buffered hull-contact (B). The hull KEEPS its true home either
+way: Type A line-splitting of over-ceiling archipelago constituents (both clips +
+antimeridian guard). DESK STEER: contiguous path proceeds at full speed and may un-flag;
+ISLAND-path chambers held at the adjacency seam until the operator rules.
