@@ -1,0 +1,3501 @@
+{
+  "education_auth_register.learn": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "education_auth_register.s1_detail": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "education_auth_register.s1_do": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "education_auth_register.s2_detail": {
+    "status": "review",
+    "reason": "ID token altered",
+    "provider": "nllb"
+  },
+  "education_auth_register.s2_do": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "education_auth_register.s3_detail": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "education_auth_register.s3_do": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "education_auth_register.why": {
+    "status": "review",
+    "reason": "sentence count fell 2 -> 1",
+    "provider": "nllb"
+  },
+  "education_civic_commons_halls.learn": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "education_civic_commons_halls.s1_detail": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "education_civic_commons_halls.s1_do": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "education_civic_commons_halls.s2_detail": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "education_civic_commons_halls.s2_do": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "education_civic_commons_halls.why": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "education_civic_commons_square.learn": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "education_civic_commons_square.s1_detail": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "education_civic_commons_square.s1_do": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "education_civic_commons_square.s2_detail": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "education_civic_commons_square.s2_do": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "education_civic_commons_square.why": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "education_civic_halls.learn": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "education_civic_halls.s1_detail": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "education_civic_halls.s1_do": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "education_civic_halls.s2_detail": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "education_civic_halls.s2_do": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "education_civic_halls.s3_detail": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "education_civic_halls.s3_do": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "education_civic_halls.why": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "education_civic_home.learn": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "education_civic_home.s1_detail": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "education_civic_home.s1_do": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "education_civic_home.s2_detail": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "education_civic_home.s2_do": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "education_civic_home.s3_detail": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "education_civic_home.s3_do": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "education_civic_home.why": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "education_civic_identity_verification.learn": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "education_civic_identity_verification.s1_detail": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "education_civic_identity_verification.s1_do": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "education_civic_identity_verification.s2_detail": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "education_civic_identity_verification.s2_do": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "education_civic_identity_verification.why": {
+    "status": "review",
+    "reason": "sentence count fell 2 -> 1",
+    "provider": "nllb"
+  },
+  "education_civic_journey.learn": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "education_civic_journey.s1_detail": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "education_civic_journey.s1_do": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "education_civic_journey.s2_detail": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "education_civic_journey.s2_do": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "education_civic_journey.s3_detail": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "education_civic_journey.s3_do": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "education_civic_journeys.learn": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "education_civic_journeys.s1_detail": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "education_civic_journeys.s1_do": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "education_civic_journeys.s2_detail": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "education_civic_journeys.s2_do": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "education_civic_journeys.s3_detail": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "education_civic_journeys.s3_do": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "education_civic_journeys.why": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "education_civic_live_room.learn": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "education_civic_live_room.s1_detail": {
+    "status": "review",
+    "reason": "sentence count fell 2 -> 0",
+    "provider": "nllb"
+  },
+  "education_civic_live_room.s1_do": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "education_civic_live_room.s2_detail": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "education_civic_live_room.s2_do": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "education_civic_live_room.s3_detail": {
+    "status": "review",
+    "reason": "sentence count fell 2 -> 1",
+    "provider": "nllb"
+  },
+  "education_civic_live_room.s3_do": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "education_civic_live_room.s4_detail": {
+    "status": "review",
+    "reason": "sentence count fell 2 -> 1",
+    "provider": "nllb"
+  },
+  "education_civic_live_room.s4_do": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "education_civic_live_room.why": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "education_civic_my_record.learn": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "education_civic_my_record.s1_detail": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "education_civic_my_record.s1_do": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "education_civic_my_record.s2_detail": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "education_civic_my_record.s2_do": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "education_civic_my_record.s3_detail": {
+    "status": "review",
+    "reason": "sentence count fell 2 -> 1",
+    "provider": "nllb"
+  },
+  "education_civic_my_record.s3_do": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "education_civic_my_record.why": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "education_civic_petition_detail.learn": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "education_civic_petition_detail.s1_detail": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "education_civic_petition_detail.s1_do": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "education_civic_petition_detail.s2_detail": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "education_civic_petition_detail.s2_do": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "education_civic_petition_detail.s3_detail": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "education_civic_petition_detail.s3_do": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "education_civic_petition_detail.why": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "education_civic_petitions.learn": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "education_civic_petitions.s1_detail": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "education_civic_petitions.s1_do": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "education_civic_petitions.s2_detail": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "education_civic_petitions.s2_do": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "education_civic_petitions.s3_detail": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "education_civic_petitions.s3_do": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "education_civic_petitions.why": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "education_civic_public_square.learn": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "education_civic_public_square.s1_detail": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "education_civic_public_square.s1_do": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "education_civic_public_square.s2_detail": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "education_civic_public_square.s2_do": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "education_civic_public_square.s3_detail": {
+    "status": "review",
+    "reason": "sentence count fell 2 -> 1",
+    "provider": "nllb"
+  },
+  "education_civic_public_square.s3_do": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "education_civic_public_square.why": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "education_civic_relocation.learn": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "education_civic_relocation.s1_detail": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "education_civic_relocation.s1_do": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "education_civic_relocation.s2_detail": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "education_civic_relocation.s2_do": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "education_civic_relocation.s3_detail": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "education_civic_relocation.s3_do": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "education_civic_relocation.why": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "education_civic_residency.learn": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "education_civic_residency.s1_detail": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "education_civic_residency.s1_do": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "education_civic_residency.s2_detail": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "education_civic_residency.s2_do": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "education_civic_residency.s3_detail": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "education_civic_residency.s3_do": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "education_civic_residency.s4_detail": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "education_civic_residency.s4_do": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "education_civic_residency.why": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "education_civic_rooms.learn": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "education_civic_rooms.s1_detail": {
+    "status": "review",
+    "reason": "sentence count fell 2 -> 1",
+    "provider": "nllb"
+  },
+  "education_civic_rooms.s1_do": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "education_civic_rooms.s2_detail": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "education_civic_rooms.s2_do": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "education_civic_rooms.s3_detail": {
+    "status": "review",
+    "reason": "sentence count fell 2 -> 1",
+    "provider": "nllb"
+  },
+  "education_civic_rooms.s3_do": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "education_civic_rooms.s4_detail": {
+    "status": "review",
+    "reason": "sentence count fell 3 -> 2",
+    "provider": "nllb"
+  },
+  "education_civic_rooms.s4_do": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "education_dev_electoral_kit.learn": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "education_dev_executive_kit.learn": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "education_dev_judiciary_kit.learn": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "education_dev_legislature_kit.learn": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "education_economy_agreement_detail.learn": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "education_economy_agreement_detail.s1_detail": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "education_economy_agreement_detail.s1_do": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "education_economy_agreement_detail.s2_detail": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "education_economy_agreement_detail.s2_do": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "education_economy_agreement_detail.s3_detail": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "education_economy_agreement_detail.s3_do": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "education_economy_agreement_detail.s4_detail": {
+    "status": "review",
+    "reason": "sentence count fell 2 -> 1",
+    "provider": "nllb"
+  },
+  "education_economy_agreement_detail.s4_do": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "education_economy_agreements.learn": {
+    "status": "review",
+    "reason": "sentence count fell 2 -> 1",
+    "provider": "nllb"
+  },
+  "education_economy_agreements.s1_detail": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "education_economy_agreements.s1_do": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "education_economy_agreements.s2_detail": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "education_economy_agreements.s2_do": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "education_economy_agreements.s3_detail": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "education_economy_agreements.s3_do": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "education_economy_agreements.s4_detail": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "education_economy_agreements.s4_do": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "education_economy_agreements.why": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "education_economy_exchange.learn": {
+    "status": "review",
+    "reason": "sentence count fell 2 -> 1",
+    "provider": "nllb"
+  },
+  "education_economy_exchange.s1_detail": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "education_economy_exchange.s1_do": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "education_economy_exchange.s2_detail": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "education_economy_exchange.s2_do": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "education_economy_exchange.s3_detail": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "education_economy_exchange.s3_do": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "education_economy_exchange.s4_detail": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "education_economy_exchange.s4_do": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "education_economy_home.learn": {
+    "status": "review",
+    "reason": "sentence count fell 2 -> 1",
+    "provider": "nllb"
+  },
+  "education_economy_home.s1_detail": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "education_economy_home.s1_do": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "education_economy_home.s2_detail": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "education_economy_home.s2_do": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "education_economy_home.s3_detail": {
+    "status": "review",
+    "reason": "sentence count fell 3 -> 2",
+    "provider": "nllb"
+  },
+  "education_economy_home.s3_do": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "education_economy_home.why": {
+    "status": "review",
+    "reason": "citation altered",
+    "provider": "nllb"
+  },
+  "education_economy_joint_ledgers.learn": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "education_economy_joint_ledgers.s1_detail": {
+    "status": "review",
+    "reason": "sentence count fell 2 -> 0",
+    "provider": "nllb"
+  },
+  "education_economy_joint_ledgers.s1_do": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "education_economy_joint_ledgers.s2_detail": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "education_economy_joint_ledgers.s2_do": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "education_economy_joint_ledgers.s3_detail": {
+    "status": "review",
+    "reason": "sentence count fell 2 -> 1",
+    "provider": "nllb"
+  },
+  "education_economy_joint_ledgers.s3_do": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "education_economy_joint_ledgers.s4_detail": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "education_economy_joint_ledgers.s4_do": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "education_economy_listing_detail.learn": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "education_economy_listing_detail.s1_detail": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "education_economy_listing_detail.s1_do": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "education_economy_listing_detail.s2_detail": {
+    "status": "review",
+    "reason": "sentence count fell 2 -> 1",
+    "provider": "nllb"
+  },
+  "education_economy_listing_detail.s2_do": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "education_economy_listing_detail.s3_detail": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "education_economy_listing_detail.s3_do": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "education_economy_listing_detail.s4_detail": {
+    "status": "review",
+    "reason": "sentence count fell 2 -> 1",
+    "provider": "nllb"
+  },
+  "education_economy_listing_detail.s4_do": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "education_economy_marketplace.learn": {
+    "status": "review",
+    "reason": "sentence count fell 2 -> 1",
+    "provider": "nllb"
+  },
+  "education_economy_marketplace.s1_detail": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "education_economy_marketplace.s1_do": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "education_economy_marketplace.s2_detail": {
+    "status": "review",
+    "reason": "sentence count fell 2 -> 1",
+    "provider": "nllb"
+  },
+  "education_economy_marketplace.s2_do": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "education_economy_marketplace.s3_detail": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "education_economy_marketplace.s3_do": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "education_economy_marketplace.s4_detail": {
+    "status": "review",
+    "reason": "sentence count fell 2 -> 1",
+    "provider": "nllb"
+  },
+  "education_economy_marketplace.s4_do": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "education_economy_org_settings.learn": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "education_economy_org_settings.s1_detail": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "education_economy_org_settings.s1_do": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "education_economy_org_settings.s2_detail": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "education_economy_org_settings.s2_do": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "education_economy_org_settings.s3_detail": {
+    "status": "review",
+    "reason": "sentence count fell 3 -> 2",
+    "provider": "nllb"
+  },
+  "education_economy_org_settings.s3_do": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "education_economy_org_settings.s4_detail": {
+    "status": "review",
+    "reason": "sentence count fell 2 -> 1",
+    "provider": "nllb"
+  },
+  "education_economy_org_settings.s4_do": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "education_economy_request_detail.learn": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "education_economy_request_detail.s1_detail": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "education_economy_request_detail.s1_do": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "education_economy_request_detail.s2_detail": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "education_economy_request_detail.s2_do": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "education_economy_request_detail.s3_detail": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "education_economy_request_detail.s3_do": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "education_economy_request_detail.s4_detail": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "education_economy_request_detail.s4_do": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "education_economy_request_detail.why": {
+    "status": "review",
+    "reason": "citation altered",
+    "provider": "nllb"
+  },
+  "education_economy_stipend.learn": {
+    "status": "review",
+    "reason": "sentence count fell 2 -> 1",
+    "provider": "nllb"
+  },
+  "education_economy_stipend.s1_detail": {
+    "status": "review",
+    "reason": "sentence count fell 2 -> 1",
+    "provider": "nllb"
+  },
+  "education_economy_stipend.s1_do": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "education_economy_stipend.s2_detail": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "education_economy_stipend.s2_do": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "education_economy_stipend.s3_detail": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "education_economy_stipend.s3_do": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "education_economy_stipend.s4_detail": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "education_economy_stipend.s4_do": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "education_economy_stipend.why": {
+    "status": "review",
+    "reason": "sentence count fell 2 -> 0",
+    "provider": "nllb"
+  },
+  "education_economy_treasury.learn": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "education_economy_treasury.s1_detail": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "education_economy_treasury.s1_do": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "education_economy_treasury.s2_detail": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "education_economy_treasury.s2_do": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "education_economy_treasury.s3_detail": {
+    "status": "review",
+    "reason": "sentence count fell 3 -> 2",
+    "provider": "nllb"
+  },
+  "education_economy_treasury.s3_do": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "education_economy_treasury.s4_detail": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "education_economy_treasury.s4_do": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "education_economy_treasury.why": {
+    "status": "review",
+    "reason": "sentence count fell 2 -> 1",
+    "provider": "nllb"
+  },
+  "education_economy_units.learn": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "education_economy_units.s1_detail": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "education_economy_units.s1_do": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "education_economy_units.s2_detail": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "education_economy_units.s2_do": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "education_economy_units.s3_detail": {
+    "status": "review",
+    "reason": "sentence count fell 2 -> 1",
+    "provider": "nllb"
+  },
+  "education_economy_units.s3_do": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "education_economy_units.s4_detail": {
+    "status": "review",
+    "reason": "sentence count fell 2 -> 1",
+    "provider": "nllb"
+  },
+  "education_economy_units.s4_do": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "education_economy_units.why": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "education_economy_wallet.learn": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "education_economy_wallet.s1_detail": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "education_economy_wallet.s1_do": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "education_economy_wallet.s2_detail": {
+    "status": "review",
+    "reason": "sentence count fell 2 -> 1",
+    "provider": "nllb"
+  },
+  "education_economy_wallet.s2_do": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "education_economy_wallet.s3_detail": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "education_economy_wallet.s3_do": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "education_economy_wallet.why": {
+    "status": "review",
+    "reason": "sentence count fell 2 -> 1",
+    "provider": "nllb"
+  },
+  "education_elections_board_console.learn": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "education_elections_board_console.s1_detail": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "education_elections_board_console.s1_do": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "education_elections_board_console.s2_detail": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "education_elections_board_console.s2_do": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "education_elections_board_console.s3_detail": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "education_elections_board_console.s3_do": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "education_elections_board_console.why": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "education_elections_candidacy_registration.learn": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "education_elections_candidacy_registration.s1_detail": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "education_elections_candidacy_registration.s1_do": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "education_elections_candidacy_registration.s2_detail": {
+    "status": "review",
+    "reason": "sentence count fell 2 -> 1",
+    "provider": "nllb"
+  },
+  "education_elections_candidacy_registration.s2_do": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "education_elections_candidacy_registration.why": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "education_elections_candidate_profile.learn": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "education_elections_candidate_profile.s1_detail": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "education_elections_candidate_profile.s1_do": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "education_elections_candidate_profile.s2_detail": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "education_elections_candidate_profile.s2_do": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "education_elections_candidate_profile.s3_detail": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "education_elections_candidate_profile.s3_do": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "education_elections_candidate_profile.why": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "education_elections_detail.learn": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "education_elections_detail.s1_detail": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "education_elections_detail.s1_do": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "education_elections_detail.s2_detail": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "education_elections_detail.s2_do": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "education_elections_detail.s3_detail": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "education_elections_detail.s3_do": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "education_elections_open_ballot.learn": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "education_elections_open_ballot.s1_detail": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "education_elections_open_ballot.s1_do": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "education_elections_open_ballot.s2_detail": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "education_elections_open_ballot.s2_do": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "education_elections_open_ballot.s3_detail": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "education_elections_open_ballot.s3_do": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "education_elections_ranked_ballot.learn": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "education_elections_ranked_ballot.s1_detail": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "education_elections_ranked_ballot.s1_do": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "education_elections_ranked_ballot.s2_detail": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "education_elections_ranked_ballot.s2_do": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "education_elections_ranked_ballot.s3_detail": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "education_elections_ranked_ballot.s3_do": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "education_elections_ranked_ballot.why": {
+    "status": "review",
+    "reason": "sentence count fell 2 -> 1",
+    "provider": "nllb"
+  },
+  "education_elections_results.learn": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "education_elections_results.s1_detail": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "education_elections_results.s1_do": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "education_elections_results.s2_detail": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "education_elections_results.s2_do": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "education_elections_results.s3_detail": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "education_elections_results.s3_do": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "education_elections_vacancy_countback.learn": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "education_elections_vacancy_countback.s1_detail": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "education_elections_vacancy_countback.s1_do": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "education_elections_vacancy_countback.s2_detail": {
+    "status": "review",
+    "reason": "sentence count fell 2 -> 1",
+    "provider": "nllb"
+  },
+  "education_elections_vacancy_countback.s2_do": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "education_elections_vacancy_countback.s3_detail": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "education_elections_vacancy_countback.s3_do": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "education_elections_vacancy_countback.why": {
+    "status": "review",
+    "reason": "sentence count fell 3 -> 2",
+    "provider": "nllb"
+  },
+  "education_executive_department_detail.learn": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "education_executive_department_detail.s1_detail": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "education_executive_department_detail.s1_do": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "education_executive_department_detail.s2_detail": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "education_executive_department_detail.s2_do": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "education_executive_department_detail.s3_detail": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "education_executive_department_detail.s3_do": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "education_executive_department_reporting.learn": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "education_executive_department_reporting.s1_detail": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "education_executive_department_reporting.s1_do": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "education_executive_department_reporting.s2_detail": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "education_executive_department_reporting.s2_do": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "education_executive_departments.learn": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "education_executive_departments.s1_detail": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "education_executive_departments.s1_do": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "education_executive_departments.s2_detail": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "education_executive_departments.s2_do": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "education_executive_executive_actions.learn": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "education_executive_executive_actions.s1_detail": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "education_executive_executive_actions.s1_do": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "education_executive_executive_actions.s2_detail": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "education_executive_executive_actions.s2_do": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "education_executive_executive_actions.s3_detail": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "education_executive_executive_actions.s3_do": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "education_executive_executive_actions.why": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "education_executive_executive_home.learn": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "education_executive_executive_home.s1_detail": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "education_executive_executive_home.s1_do": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "education_executive_executive_home.s2_detail": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "education_executive_executive_home.s2_do": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "education_executive_executive_home.s3_detail": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "education_executive_executive_home.s3_do": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "education_executive_executive_home.why": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "education_groups_create.learn": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "education_groups_create.s1_detail": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "education_groups_create.s1_do": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "education_groups_create.s2_detail": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "education_groups_create.s2_do": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "education_groups_create.s3_detail": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "education_groups_create.s3_do": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "education_groups_create.s4_detail": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "education_groups_create.s4_do": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "education_groups_detail.learn": {
+    "status": "review",
+    "reason": "sentence count fell 2 -> 1",
+    "provider": "nllb"
+  },
+  "education_groups_detail.s1_detail": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "education_groups_detail.s1_do": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "education_groups_detail.s2_detail": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "education_groups_detail.s2_do": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "education_groups_detail.s3_detail": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "education_groups_detail.s3_do": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "education_groups_detail.s4_detail": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "education_groups_detail.s4_do": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "education_invite_landing.learn": {
+    "status": "review",
+    "reason": "sentence count fell 2 -> 1",
+    "provider": "nllb"
+  },
+  "education_invite_landing.s1_detail": {
+    "status": "review",
+    "reason": "sentence count fell 2 -> 1",
+    "provider": "nllb"
+  },
+  "education_invite_landing.s1_do": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "education_invite_landing.s2_detail": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "education_invite_landing.s2_do": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "education_invite_landing.s3_detail": {
+    "status": "review",
+    "reason": "sentence count fell 2 -> 1",
+    "provider": "nllb"
+  },
+  "education_invite_landing.s3_do": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "education_invite_landing.why": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "education_judiciary_advocate_console.learn": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "education_judiciary_advocate_console.s1_detail": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "education_judiciary_advocate_console.s1_do": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "education_judiciary_advocate_console.s2_detail": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "education_judiciary_advocate_console.s2_do": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "education_judiciary_case_detail.learn": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "education_judiciary_case_detail.s1_detail": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "education_judiciary_case_detail.s1_do": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "education_judiciary_case_detail.s2_detail": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "education_judiciary_case_detail.s2_do": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "education_judiciary_case_detail.s3_detail": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "education_judiciary_case_detail.s3_do": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "education_judiciary_case_detail.why": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "education_judiciary_case_docket.learn": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "education_judiciary_case_docket.s1_detail": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "education_judiciary_case_docket.s1_do": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "education_judiciary_case_docket.s2_detail": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "education_judiciary_case_docket.s2_do": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "education_judiciary_case_docket.s3_detail": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "education_judiciary_case_docket.s3_do": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "education_judiciary_constitutional_challenge.learn": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "education_judiciary_constitutional_challenge.s1_detail": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "education_judiciary_constitutional_challenge.s1_do": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "education_judiciary_constitutional_challenge.s2_detail": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "education_judiciary_constitutional_challenge.s2_do": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "education_judiciary_constitutional_challenge.s3_detail": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "education_judiciary_constitutional_challenge.s3_do": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "education_judiciary_constitutional_challenge.s4_detail": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "education_judiciary_constitutional_challenge.s4_do": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "education_judiciary_constitutional_challenge.why": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "education_judiciary_judiciary_home.learn": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "education_judiciary_judiciary_home.s1_detail": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "education_judiciary_judiciary_home.s1_do": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "education_judiciary_judiciary_home.s2_detail": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "education_judiciary_judiciary_home.s2_do": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "education_judiciary_judiciary_home.s3_detail": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "education_judiciary_judiciary_home.s3_do": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "education_judiciary_judiciary_home.why": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "education_judiciary_juror_view.learn": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "education_judiciary_juror_view.s1_detail": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "education_judiciary_juror_view.s1_do": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "education_judiciary_juror_view.s2_detail": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "education_judiciary_juror_view.s2_do": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "education_jurisdictions_bootstrap.learn": {
+    "status": "review",
+    "reason": "sentence count fell 2 -> 1",
+    "provider": "nllb"
+  },
+  "education_jurisdictions_bootstrap.s1_detail": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "education_jurisdictions_bootstrap.s1_do": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "education_jurisdictions_bootstrap.s2_detail": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "education_jurisdictions_bootstrap.s2_do": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "education_jurisdictions_bootstrap.s3_detail": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "education_jurisdictions_bootstrap.s3_do": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "education_jurisdictions_bootstrap.s4_detail": {
+    "status": "review",
+    "reason": "sentence count fell 2 -> 1",
+    "provider": "nllb"
+  },
+  "education_jurisdictions_bootstrap.s4_do": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "education_jurisdictions_disintermediation.learn": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "education_jurisdictions_disintermediation.s1_detail": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "education_jurisdictions_disintermediation.s1_do": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "education_jurisdictions_disintermediation.s2_detail": {
+    "status": "review",
+    "reason": "sentence count fell 2 -> 1",
+    "provider": "nllb"
+  },
+  "education_jurisdictions_disintermediation.s2_do": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "education_jurisdictions_disintermediation.s3_detail": {
+    "status": "review",
+    "reason": "sentence count fell 2 -> 1",
+    "provider": "nllb"
+  },
+  "education_jurisdictions_disintermediation.s3_do": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "education_jurisdictions_disintermediation.s4_detail": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "education_jurisdictions_disintermediation.s4_do": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "education_jurisdictions_disintermediation.why": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "education_jurisdictions_federation.learn": {
+    "status": "review",
+    "reason": "sentence count fell 2 -> 0",
+    "provider": "nllb"
+  },
+  "education_jurisdictions_federation.s1_detail": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "education_jurisdictions_federation.s1_do": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "education_jurisdictions_federation.s2_detail": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "education_jurisdictions_federation.s2_do": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "education_jurisdictions_federation.s3_detail": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "education_jurisdictions_federation.s3_do": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "education_jurisdictions_federation.s4_detail": {
+    "status": "review",
+    "reason": "sentence count fell 3 -> 1",
+    "provider": "nllb"
+  },
+  "education_jurisdictions_federation.s4_do": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "education_jurisdictions_restoration.learn": {
+    "status": "review",
+    "reason": "sentence count fell 2 -> 1",
+    "provider": "nllb"
+  },
+  "education_jurisdictions_restoration.s1_detail": {
+    "status": "review",
+    "reason": "sentence count fell 2 -> 1",
+    "provider": "nllb"
+  },
+  "education_jurisdictions_restoration.s1_do": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "education_jurisdictions_restoration.s2_detail": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "education_jurisdictions_restoration.s2_do": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "education_jurisdictions_restoration.s3_detail": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "education_jurisdictions_restoration.s3_do": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "education_jurisdictions_restoration.s4_detail": {
+    "status": "review",
+    "reason": "sentence count fell 2 -> 1",
+    "provider": "nllb"
+  },
+  "education_jurisdictions_restoration.s4_do": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "education_jurisdictions_restoration.why": {
+    "status": "review",
+    "reason": "sentence count fell 2 -> 1",
+    "provider": "nllb"
+  },
+  "education_jurisdictions_union_formation.learn": {
+    "status": "review",
+    "reason": "sentence count fell 2 -> 1",
+    "provider": "nllb"
+  },
+  "education_jurisdictions_union_formation.s1_detail": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "education_jurisdictions_union_formation.s1_do": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "education_jurisdictions_union_formation.s2_detail": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "education_jurisdictions_union_formation.s2_do": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "education_jurisdictions_union_formation.s3_detail": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "education_jurisdictions_union_formation.s3_do": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "education_jurisdictions_union_formation.s4_detail": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "education_jurisdictions_union_formation.s4_do": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "education_jurisdictions_union_formation.why": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "education_jurisdictions_viewer.learn": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "education_jurisdictions_viewer.s1_detail": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "education_jurisdictions_viewer.s1_do": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "education_jurisdictions_viewer.s2_detail": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "education_jurisdictions_viewer.s2_do": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "education_jurisdictions_viewer.s3_detail": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "education_jurisdictions_viewer.s3_do": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "education_jurisdictions_viewer.why": {
+    "status": "review",
+    "reason": "sentence count fell 2 -> 1",
+    "provider": "nllb"
+  },
+  "education_learn_guides.learn": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "education_learn_guides.s1_detail": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "education_learn_guides.s1_do": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "education_learn_guides.s2_detail": {
+    "status": "review",
+    "reason": "sentence count fell 2 -> 1",
+    "provider": "nllb"
+  },
+  "education_learn_guides.s2_do": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "education_learn_guides.s3_detail": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "education_learn_guides.s3_do": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "education_learn_home.learn": {
+    "status": "review",
+    "reason": "sentence count fell 2 -> 1",
+    "provider": "nllb"
+  },
+  "education_learn_home.s1_detail": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "education_learn_home.s1_do": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "education_learn_home.s2_detail": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "education_learn_home.s2_do": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "education_learn_home.s3_detail": {
+    "status": "review",
+    "reason": "sentence count fell 2 -> 1",
+    "provider": "nllb"
+  },
+  "education_learn_home.s3_do": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "education_learn_home.s4_detail": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "education_learn_home.s4_do": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "education_learn_home.why": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "education_learn_lesson.learn": {
+    "status": "review",
+    "reason": "sentence count fell 2 -> 1",
+    "provider": "nllb"
+  },
+  "education_learn_lesson.s1_detail": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "education_learn_lesson.s1_do": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "education_learn_lesson.s2_detail": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "education_learn_lesson.s2_do": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "education_learn_lesson.s3_detail": {
+    "status": "review",
+    "reason": "sentence count fell 2 -> 1",
+    "provider": "nllb"
+  },
+  "education_learn_lesson.s3_do": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "education_learn_lesson.s4_detail": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "education_learn_lesson.s4_do": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "education_learn_lesson.why": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "education_legislature_bill_conversation.learn": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "education_legislature_bill_conversation.s1_detail": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "education_legislature_bill_conversation.s1_do": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "education_legislature_bill_conversation.s2_detail": {
+    "status": "review",
+    "reason": "sentence count fell 2 -> 0",
+    "provider": "nllb"
+  },
+  "education_legislature_bill_conversation.s2_do": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "education_legislature_bill_conversation.s3_detail": {
+    "status": "review",
+    "reason": "sentence count fell 2 -> 1",
+    "provider": "nllb"
+  },
+  "education_legislature_bill_conversation.s3_do": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "education_legislature_bill_conversation.s4_detail": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "education_legislature_bill_conversation.s4_do": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "education_legislature_bill_detail.learn": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "education_legislature_bill_detail.s1_detail": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "education_legislature_bill_detail.s1_do": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "education_legislature_bill_detail.s2_detail": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "education_legislature_bill_detail.s2_do": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "education_legislature_bill_detail.s3_detail": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "education_legislature_bill_detail.s3_do": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "education_legislature_bills.learn": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "education_legislature_bills.s1_detail": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "education_legislature_bills.s1_do": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "education_legislature_bills.s2_detail": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "education_legislature_bills.s2_do": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "education_legislature_bills.s3_detail": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "education_legislature_bills.s3_do": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "education_legislature_committee_detail.learn": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "education_legislature_committee_detail.s1_detail": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "education_legislature_committee_detail.s1_do": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "education_legislature_committee_detail.s2_detail": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "education_legislature_committee_detail.s2_do": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "education_legislature_committee_detail.s3_detail": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "education_legislature_committee_detail.s3_do": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "education_legislature_committees.learn": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "education_legislature_committees.s1_detail": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "education_legislature_committees.s1_do": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "education_legislature_committees.s2_detail": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "education_legislature_committees.s2_do": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "education_legislature_committees.s3_detail": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "education_legislature_committees.s3_do": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "education_legislature_committees.why": {
+    "status": "review",
+    "reason": "sentence count fell 2 -> 1",
+    "provider": "nllb"
+  },
+  "education_legislature_districts.learn": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "education_legislature_districts.s1_detail": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "education_legislature_districts.s1_do": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "education_legislature_districts.s2_detail": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "education_legislature_districts.s2_do": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "education_legislature_districts.s3_detail": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "education_legislature_districts.s3_do": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "education_legislature_districts.why": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "education_legislature_emergency_powers.learn": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "education_legislature_emergency_powers.s1_detail": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "education_legislature_emergency_powers.s1_do": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "education_legislature_emergency_powers.s2_detail": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "education_legislature_emergency_powers.s2_do": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "education_legislature_emergency_powers.s3_detail": {
+    "status": "review",
+    "reason": "sentence count fell 2 -> 1",
+    "provider": "nllb"
+  },
+  "education_legislature_emergency_powers.s3_do": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "education_legislature_emergency_powers.s4_detail": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "education_legislature_emergency_powers.s4_do": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "education_legislature_emergency_powers.why": {
+    "status": "review",
+    "reason": "sentence count fell 2 -> 1",
+    "provider": "nllb"
+  },
+  "education_legislature_index.learn": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "education_legislature_index.s1_detail": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "education_legislature_index.s1_do": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "education_legislature_index.s2_detail": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "education_legislature_index.s2_do": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "education_legislature_legislature_home.learn": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "education_legislature_legislature_home.s1_detail": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "education_legislature_legislature_home.s1_do": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "education_legislature_legislature_home.s2_detail": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "education_legislature_legislature_home.s2_do": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "education_legislature_legislature_home.s3_detail": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "education_legislature_legislature_home.s3_do": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "education_legislature_legislature_home.s4_detail": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "education_legislature_legislature_home.s4_do": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "education_legislature_legislature_home.why": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "education_legislature_oversight.learn": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "education_legislature_oversight.s1_detail": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "education_legislature_oversight.s1_do": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "education_legislature_oversight.s2_detail": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "education_legislature_oversight.s2_do": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "education_legislature_oversight.s3_detail": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "education_legislature_oversight.s3_do": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "education_legislature_oversight.why": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "education_legislature_overview.learn": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "education_legislature_overview.s1_detail": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "education_legislature_overview.s1_do": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "education_legislature_overview.s2_detail": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "education_legislature_overview.s2_do": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "education_legislature_referendums.learn": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "education_legislature_referendums.s1_detail": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "education_legislature_referendums.s1_do": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "education_legislature_referendums.s2_detail": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "education_legislature_referendums.s2_do": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "education_legislature_referendums.s3_detail": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "education_legislature_referendums.s3_do": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "education_legislature_session_console.learn": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "education_legislature_session_console.s1_detail": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "education_legislature_session_console.s1_do": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "education_legislature_session_console.s2_detail": {
+    "status": "review",
+    "reason": "sentence count fell 2 -> 1",
+    "provider": "nllb"
+  },
+  "education_legislature_session_console.s2_do": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "education_legislature_session_console.s3_detail": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "education_legislature_session_console.s3_do": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "education_legislature_session_console.why": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "education_legislature_settings.learn": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "education_legislature_settings.s1_detail": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "education_legislature_settings.s1_do": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "education_legislature_settings.s2_detail": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "education_legislature_settings.s2_do": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "education_legislature_settings.s3_detail": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "education_legislature_settings.s3_do": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "education_legislature_settings.why": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "education_legislature_speaker_tools.learn": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "education_legislature_speaker_tools.s1_detail": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "education_legislature_speaker_tools.s1_do": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "education_legislature_speaker_tools.s2_detail": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "education_legislature_speaker_tools.s2_do": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "education_legislature_speaker_tools.s3_detail": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "education_legislature_speaker_tools.s3_do": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "education_legislature_speaker_tools.s4_detail": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "education_legislature_speaker_tools.s4_do": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "education_legislature_speaker_tools.why": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "education_operator_console.learn": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "education_operator_console.s1_detail": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "education_operator_console.s1_do": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "education_operator_console.s2_detail": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "education_operator_console.s2_do": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "education_operator_dns.learn": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "education_operator_dns.s1_detail": {
+    "status": "review",
+    "reason": "sentence count fell 2 -> 0",
+    "provider": "nllb"
+  },
+  "education_operator_dns.s1_do": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "education_operator_dns.s2_detail": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "education_operator_dns.s2_do": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "education_operator_dns.s3_detail": {
+    "status": "review",
+    "reason": "sentence count fell 2 -> 1",
+    "provider": "nllb"
+  },
+  "education_operator_dns.s3_do": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "education_operator_dns.s4_detail": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "education_operator_dns.s4_do": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "education_operator_home.learn": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "education_operator_home.s1_detail": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "education_operator_home.s1_do": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "education_operator_home.s2_detail": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "education_operator_home.s2_do": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "education_operator_home.why": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "education_operator_identity.learn": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "education_operator_identity.s1_detail": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "education_operator_identity.s1_do": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "education_operator_identity.s2_detail": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "education_operator_identity.s2_do": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "education_operator_mesh.learn": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "education_operator_mesh.s1_detail": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "education_operator_mesh.s1_do": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "education_operator_mesh.s2_detail": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "education_operator_mesh.s2_do": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "education_operator_moderation.learn": {
+    "status": "review",
+    "reason": "sentence count fell 2 -> 1",
+    "provider": "nllb"
+  },
+  "education_operator_moderation.s1_detail": {
+    "status": "review",
+    "reason": "sentence count fell 3 -> 2",
+    "provider": "nllb"
+  },
+  "education_operator_moderation.s1_do": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "education_operator_moderation.s2_detail": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "education_operator_moderation.s2_do": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "education_operator_moderation.s3_detail": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "education_operator_moderation.s3_do": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "education_operator_moderation.s4_detail": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "education_operator_moderation.s4_do": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "education_operator_moderation.why": {
+    "status": "review",
+    "reason": "sentence count fell 3 -> 2",
+    "provider": "nllb"
+  },
+  "education_operator_roles.learn": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "education_operator_roles.s1_detail": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "education_operator_roles.s1_do": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "education_operator_roles.s2_detail": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "education_operator_roles.s2_do": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "education_operator_setup.learn": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "education_operator_setup.s1_detail": {
+    "status": "review",
+    "reason": "sentence count fell 2 -> 1",
+    "provider": "nllb"
+  },
+  "education_operator_setup.s1_do": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "education_operator_setup.s2_detail": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "education_operator_setup.s2_do": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "education_operator_setup.s3_detail": {
+    "status": "review",
+    "reason": "sentence count fell 2 -> 1",
+    "provider": "nllb"
+  },
+  "education_operator_setup.s3_do": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "education_operator_setup.s4_detail": {
+    "status": "review",
+    "reason": "sentence count fell 2 -> 1",
+    "provider": "nllb"
+  },
+  "education_operator_setup.s4_do": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "education_operator_setup.why": {
+    "status": "review",
+    "reason": "sentence count fell 3 -> 2",
+    "provider": "nllb"
+  },
+  "education_operator_versioning.learn": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "education_operator_versioning.s1_detail": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "education_operator_versioning.s1_do": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "education_operator_versioning.s2_detail": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "education_operator_versioning.s2_do": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "education_organizations_board_elections.learn": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "education_organizations_board_elections.s1_detail": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "education_organizations_board_elections.s1_do": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "education_organizations_board_elections.s2_detail": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "education_organizations_board_elections.s2_do": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "education_organizations_board_elections.s3_detail": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "education_organizations_board_elections.s3_do": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "education_organizations_cgc_detail.learn": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "education_organizations_cgc_detail.s1_detail": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "education_organizations_cgc_detail.s1_do": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "education_organizations_cgc_detail.s2_detail": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "education_organizations_cgc_detail.s2_do": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "education_organizations_cgc_detail.s3_detail": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "education_organizations_cgc_detail.s3_do": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "education_organizations_cgc_detail.why": {
+    "status": "review",
+    "reason": "sentence count fell 2 -> 1",
+    "provider": "nllb"
+  },
+  "education_organizations_co_determination.learn": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "education_organizations_co_determination.s1_detail": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "education_organizations_co_determination.s1_do": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "education_organizations_co_determination.s2_detail": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "education_organizations_co_determination.s2_do": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "education_organizations_co_determination.s3_detail": {
+    "status": "review",
+    "reason": "sentence count fell 2 -> 1",
+    "provider": "nllb"
+  },
+  "education_organizations_co_determination.s3_do": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "education_organizations_co_determination.why": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "education_organizations_org_detail.learn": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "education_organizations_org_detail.s1_detail": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "education_organizations_org_detail.s1_do": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "education_organizations_org_detail.s2_detail": {
+    "status": "review",
+    "reason": "ID token altered",
+    "provider": "nllb"
+  },
+  "education_organizations_org_detail.s2_do": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "education_organizations_org_detail.s3_detail": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "education_organizations_org_detail.s3_do": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "education_organizations_org_detail.why": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "education_organizations_org_registry.learn": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "education_organizations_org_registry.s1_detail": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "education_organizations_org_registry.s1_do": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "education_organizations_org_registry.s2_detail": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "education_organizations_org_registry.s2_do": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "education_organizations_org_registry.s3_detail": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "education_organizations_org_registry.s3_do": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "education_organizations_transfers_conversions.learn": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "education_organizations_transfers_conversions.s1_detail": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "education_organizations_transfers_conversions.s1_do": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "education_organizations_transfers_conversions.s2_detail": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "education_organizations_transfers_conversions.s2_do": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "education_organizations_transfers_conversions.s3_detail": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "education_organizations_transfers_conversions.s3_do": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "education_shared_accessibility.learn": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "education_shared_accessibility.s1_detail": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "education_shared_accessibility.s1_do": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "education_shared_accessibility.s2_detail": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "education_shared_accessibility.s2_do": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "education_shared_accessibility.s3_detail": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "education_shared_accessibility.s3_do": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "education_shared_accessibility.why": {
+    "status": "review",
+    "reason": "citation altered",
+    "provider": "nllb"
+  },
+  "education_shared_atlas.learn": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "education_shared_atlas.s1_detail": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "education_shared_atlas.s1_do": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "education_shared_atlas.s2_detail": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "education_shared_atlas.s2_do": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "education_shared_atlas.s3_detail": {
+    "status": "review",
+    "reason": "sentence count fell 2 -> 1",
+    "provider": "nllb"
+  },
+  "education_shared_atlas.s3_do": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "education_shared_atlas.s4_detail": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "education_shared_atlas.s4_do": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "education_shared_atlas.why": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "education_shared_constitutional_questions.learn": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "education_shared_constitutional_questions.s1_detail": {
+    "status": "review",
+    "reason": "suspiciously short for Hans — source content likely dropped (16/217 chars, floor 0.12)",
+    "provider": "nllb"
+  },
+  "education_shared_constitutional_questions.s1_do": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "education_shared_constitutional_questions.s2_detail": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "education_shared_constitutional_questions.s2_do": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "education_shared_constitutional_questions.s3_detail": {
+    "status": "review",
+    "reason": "sentence count fell 2 -> 1",
+    "provider": "nllb"
+  },
+  "education_shared_constitutional_questions.s3_do": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "education_shared_constitutional_questions.why": {
+    "status": "review",
+    "reason": "sentence count fell 2 -> 1",
+    "provider": "nllb"
+  },
+  "education_shared_launchpad.learn": {
+    "status": "review",
+    "reason": "sentence count fell 2 -> 0",
+    "provider": "nllb"
+  },
+  "education_shared_launchpad.s1_detail": {
+    "status": "review",
+    "reason": "sentence count fell 2 -> 1",
+    "provider": "nllb"
+  },
+  "education_shared_launchpad.s1_do": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "education_shared_launchpad.s2_detail": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "education_shared_launchpad.s2_do": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "education_shared_launchpad.s3_detail": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "education_shared_launchpad.s3_do": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "education_shared_launchpad.s4_detail": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "education_shared_launchpad.s4_do": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "education_shared_tour.learn": {
+    "status": "review",
+    "reason": "sentence count fell 2 -> 1",
+    "provider": "nllb"
+  },
+  "education_shared_tour.s1_detail": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "education_shared_tour.s1_do": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "education_shared_tour.s2_detail": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "education_shared_tour.s2_do": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "education_shared_tour.s3_detail": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "education_shared_tour.s3_do": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "education_social_achievements.learn": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "education_social_achievements.s1_detail": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "education_social_achievements.s1_do": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "education_social_achievements.s2_detail": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "education_social_achievements.s2_do": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "education_social_achievements.s3_detail": {
+    "status": "review",
+    "reason": "sentence count fell 2 -> 1",
+    "provider": "nllb"
+  },
+  "education_social_achievements.s3_do": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "education_social_achievements.s4_detail": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "education_social_achievements.s4_do": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "education_social_achievements.why": {
+    "status": "review",
+    "reason": "sentence count fell 4 -> 3",
+    "provider": "nllb"
+  },
+  "education_social_profile.learn": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "education_social_profile.s1_detail": {
+    "status": "review",
+    "reason": "sentence count fell 2 -> 1",
+    "provider": "nllb"
+  },
+  "education_social_profile.s1_do": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "education_social_profile.s2_detail": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "education_social_profile.s2_do": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "education_social_profile.s3_detail": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "education_social_profile.s3_do": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "education_social_profile.s4_detail": {
+    "status": "review",
+    "reason": "sentence count fell 2 -> 1",
+    "provider": "nllb"
+  },
+  "education_social_profile.s4_do": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "education_social_profile.why": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "education_support_report.learn": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "education_support_report.s1_detail": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "education_support_report.s1_do": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "education_support_report.s2_detail": {
+    "status": "review",
+    "reason": "sentence count fell 3 -> 2",
+    "provider": "nllb"
+  },
+  "education_support_report.s2_do": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "education_support_report.s3_detail": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "education_support_report.s3_do": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "education_support_report.s4_detail": {
+    "status": "review",
+    "reason": "sentence count fell 3 -> 1",
+    "provider": "nllb"
+  },
+  "education_support_report.s4_do": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "education_support_report.why": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "education_support_ticket.learn": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "education_support_ticket.s1_detail": {
+    "status": "review",
+    "reason": "sentence count fell 2 -> 1",
+    "provider": "nllb"
+  },
+  "education_support_ticket.s1_do": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "education_support_ticket.s2_detail": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "education_support_ticket.s2_do": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "education_support_ticket.s3_detail": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "education_support_ticket.s3_do": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "education_support_ticket.s4_detail": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "education_support_ticket.s4_do": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "education_support_tickets.learn": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "education_support_tickets.s1_detail": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "education_support_tickets.s1_do": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "education_support_tickets.s2_detail": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "education_support_tickets.s2_do": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "education_support_tickets.s3_detail": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "education_support_tickets.s3_do": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "education_system_amendments.learn": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "education_system_amendments.s1_detail": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "education_system_amendments.s1_do": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "education_system_amendments.s2_detail": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "education_system_amendments.s2_do": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "education_system_amendments.s3_detail": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "education_system_amendments.s3_do": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "education_system_audit_chain.learn": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "education_system_audit_chain.s1_detail": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "education_system_audit_chain.s1_do": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "education_system_audit_chain.s2_detail": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "education_system_audit_chain.s2_do": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "education_system_audit_chain.s3_detail": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "education_system_audit_chain.s3_do": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "education_system_audit_chain.why": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "education_system_clocks.learn": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "education_system_clocks.s1_detail": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "education_system_clocks.s1_do": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "education_system_clocks.s2_detail": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "education_system_clocks.s2_do": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "education_system_clocks.s3_detail": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "education_system_clocks.s3_do": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "education_system_public_records.learn": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "education_system_public_records.s1_detail": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "education_system_public_records.s1_do": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "education_system_public_records.s2_detail": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "education_system_public_records.s2_do": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "education_system_term_sync.learn": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "education_system_term_sync.s1_detail": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "education_system_term_sync.s1_do": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "education_system_term_sync.s2_detail": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "education_system_term_sync.s2_do": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "education_system_term_sync.why": {
+    "status": "review",
+    "reason": "sentence count fell 2 -> 1",
+    "provider": "nllb"
+  },
+  "education_system_translation_review.learn": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "education_system_translation_review.s1_detail": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "education_system_translation_review.s1_do": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "education_system_translation_review.s2_detail": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "education_system_translation_review.s2_do": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "education_system_translation_review.s3_detail": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "education_system_translation_review.s3_do": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "education_system_translation_review.s4_detail": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "education_system_translation_review.s4_do": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "education_system_translations.learn": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "education_system_translations.s1_detail": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "education_system_translations.s1_do": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "education_system_translations.s2_detail": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "education_system_translations.s2_do": {
+    "status": "machine",
+    "provider": "nllb"
+  }
+}

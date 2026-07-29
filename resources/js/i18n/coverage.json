@@ -1,61 +1,61 @@
 {
-  "generated_at": "2026-07-26T13:53:40.685Z",
-  "source_keys": 3388,
-  "namespaces": 32,
+  "generated_at": "2026-07-29T11:02:32.100Z",
+  "source_keys": 5025,
+  "namespaces": 35,
   "locales": [
     {
       "locale": "ar",
-      "total": 3388,
-      "present": 3345,
-      "missing": 43,
+      "total": 5025,
+      "present": 4320,
+      "missing": 705,
       "orphan": 0,
       "identical": 15,
-      "pct": 98.7
+      "pct": 86
     },
     {
       "locale": "es",
-      "total": 3388,
-      "present": 3370,
-      "missing": 18,
+      "total": 5025,
+      "present": 4358,
+      "missing": 667,
       "orphan": 0,
       "identical": 26,
-      "pct": 99.5
+      "pct": 86.7
     },
     {
       "locale": "fr",
-      "total": 3388,
-      "present": 3266,
-      "missing": 122,
+      "total": 5025,
+      "present": 4255,
+      "missing": 770,
       "orphan": 0,
       "identical": 33,
-      "pct": 96.4
+      "pct": 84.7
     },
     {
       "locale": "hi",
-      "total": 3388,
-      "present": 3374,
-      "missing": 14,
+      "total": 5025,
+      "present": 4365,
+      "missing": 660,
       "orphan": 0,
       "identical": 19,
-      "pct": 99.6
+      "pct": 86.9
     },
     {
       "locale": "pt",
-      "total": 3388,
-      "present": 3270,
-      "missing": 118,
+      "total": 5025,
+      "present": 4258,
+      "missing": 767,
       "orphan": 0,
       "identical": 32,
-      "pct": 96.5
+      "pct": 84.7
     },
     {
       "locale": "zh-Hans",
-      "total": 3388,
-      "present": 3230,
-      "missing": 158,
+      "total": 5025,
+      "present": 4127,
+      "missing": 898,
       "orphan": 0,
       "identical": 12,
-      "pct": 95.3
+      "pct": 82.1
     }
   ],
   "by_namespace": [
@@ -72,6 +72,18 @@
       }
     },
     {
+      "namespace": "c_achievements",
+      "total": 141,
+      "locales": {
+        "ar": 139,
+        "es": 141,
+        "fr": 141,
+        "hi": 141,
+        "pt": 141,
+        "zh-Hans": 141
+      }
+    },
+    {
       "namespace": "c_civic",
       "total": 8,
       "locales": {
@@ -81,6 +93,18 @@
         "hi": 8,
         "pt": 8,
         "zh-Hans": 8
+      }
+    },
+    {
+      "namespace": "c_education",
+      "total": 851,
+      "locales": {
+        "ar": 836,
+        "es": 847,
+        "fr": 848,
+        "hi": 850,
+        "pt": 847,
+        "zh-Hans": 756
       }
     },
     {
@@ -312,6 +336,18 @@
       }
     },
     {
+      "namespace": "flows",
+      "total": 645,
+      "locales": {
+        "ar": 0,
+        "es": 0,
+        "fr": 0,
+        "hi": 0,
+        "pt": 0,
+        "zh-Hans": 0
+      }
+    },
+    {
       "namespace": "invite",
       "total": 20,
       "locales": {
@@ -444,9 +480,9 @@
       }
     }
   ],
-  "failures": 473,
-  "warnings": 2881,
+  "failures": 4467,
+  "warnings": 4259,
   "failure_codes": {
-    "C1-missing": 473
+    "C1-missing": 4467
   }
 }

@@ -1,0 +1,568 @@
+{
+  "achievement.ach_bog_001": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "achievement.ach_bog_002": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "achievement.ach_bog_003": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "achievement.ach_bog_004": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "achievement.ach_bog_005": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "achievement.ach_bog_006": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "achievement.ach_can_001": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "achievement.ach_can_002": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "achievement.ach_can_003": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "achievement.ach_can_004": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "achievement.ach_can_005": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "achievement.ach_can_006": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "achievement.ach_civ_001": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "achievement.ach_civ_002": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "achievement.ach_civ_003": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "achievement.ach_civ_004": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "achievement.ach_civ_005": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "achievement.ach_civ_006": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "achievement.ach_civ_007": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "achievement.ach_eco_001": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "achievement.ach_eco_002": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "achievement.ach_eco_003": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "achievement.ach_eco_004": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "achievement.ach_eco_005": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "achievement.ach_eco_006": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "achievement.ach_eco_007": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "achievement.ach_eco_008": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "achievement.ach_elb_001": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "achievement.ach_elb_002": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "achievement.ach_elb_003": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "achievement.ach_elb_004": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "achievement.ach_elb_005": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "achievement.ach_exe_001": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "achievement.ach_exe_002": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "achievement.ach_exe_003": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "achievement.ach_exe_004": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "achievement.ach_exe_005": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "achievement.ach_exe_006": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "achievement.ach_fed_001": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "achievement.ach_fed_002": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "achievement.ach_jud_001": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "achievement.ach_jud_002": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "achievement.ach_jud_003": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "achievement.ach_jud_004": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "achievement.ach_jud_005": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "achievement.ach_jud_006": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "achievement.ach_jud_007": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "achievement.ach_jud_008": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "achievement.ach_jud_009": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "achievement.ach_jud_010": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "achievement.ach_jud_011": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "achievement.ach_jud_012": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "achievement.ach_jur_001": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "achievement.ach_jur_002": {
+    "status": "review",
+    "reason": "suspiciously short for Arab — source content likely dropped (16/54 chars, floor 0.4)",
+    "provider": "nllb"
+  },
+  "achievement.ach_jur_003": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "achievement.ach_jur_004": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "achievement.ach_jur_005": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "achievement.ach_jur_006": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "achievement.ach_jur_007": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "achievement.ach_jur_008": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "achievement.ach_jur_009": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "achievement.ach_jur_010": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "achievement.ach_jur_011": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "achievement.ach_jur_012": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "achievement.ach_jur_013": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "achievement.ach_jur_014": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "achievement.ach_jur_015": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "achievement.ach_jur_016": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "achievement.ach_jur_017": {
+    "status": "review",
+    "reason": "implausible length",
+    "provider": "nllb"
+  },
+  "achievement.ach_jur_018": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "achievement.ach_jur_019": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "achievement.ach_jur_020": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "achievement.ach_jur_021": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "achievement.ach_jur_022": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "achievement.ach_jur_023": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "achievement.ach_jur_024": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "achievement.ach_jur_025": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "achievement.ach_jur_026": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "achievement.ach_leg_001": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "achievement.ach_leg_002": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "achievement.ach_leg_003": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "achievement.ach_leg_004": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "achievement.ach_leg_005": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "achievement.ach_leg_006": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "achievement.ach_leg_007": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "achievement.ach_leg_008": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "achievement.ach_leg_009": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "achievement.ach_leg_010": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "achievement.ach_leg_011": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "achievement.ach_leg_012": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "achievement.ach_leg_013": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "achievement.ach_leg_014": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "achievement.ach_leg_015": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "achievement.ach_org_001": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "achievement.ach_org_002": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "achievement.ach_org_003": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "achievement.ach_org_004": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "achievement.ach_org_005": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "achievement.ach_org_006": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "achievement.ach_org_007": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "achievement.ach_org_008": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "achievement.ach_org_009": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "achievement.ach_org_010": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "achievement.ach_org_011": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "achievement.ach_org_012": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "achievement.ach_org_013": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "achievement.ach_sys_001": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "achievement.ach_sys_002": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "achievement.ach_sys_003": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "achievement.ach_sys_004": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "achievement.ach_sys_005": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "achievement.ach_sys_006": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "achievement.ach_sys_007": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "achievement.ach_sys_008": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "achievement.ach_sys_009": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "achievement.ach_vot_001": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "achievement.ach_vot_002": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "achievement.ach_vot_003": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "achievement.ach_vot_004": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "achievement.ach_vot_005": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "achievement.ach_vox_001": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "achievement.ach_vox_002": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "achievement.ach_vox_003": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "achievement.ach_vox_004": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "achievement.ach_vox_005": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "achievement.ach_vox_006": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "achievement.ach_vox_007": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "achievement.tour.become_a_resident": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "achievement.tour.bill": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "achievement.tour.board_meeting": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "achievement.tour.budget": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "achievement.tour.committee_session": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "achievement.tour.court_case": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "achievement.tour.election": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "achievement.tour.form_a_group": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "achievement.tour.mutual_aid": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "achievement.tour.petition_to_referendum": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "achievement.tour.public_service": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "achievement.tour.start_org": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "achievement.tour.stipend_and_tax": {
+    "status": "machine",
+    "provider": "nllb"
+  },
+  "achievement.tour.two_governments": {
+    "status": "machine",
+    "provider": "nllb"
+  }
+}
