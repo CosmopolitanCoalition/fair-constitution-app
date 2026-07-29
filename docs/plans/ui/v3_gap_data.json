@@ -1,7 +1,7 @@
 {
  "asOf": "2026-07-29",
- "commit": "b990110",
- "wave": "WAVE 2 \u2014 lanes 2/15/4/13 COMPLETE (13: all 8 sub-items, forms at 113); 6/3/1 running; 5 finishing NLLB",
+ "commit": "9f22aa9",
+ "wave": "WAVE 2 closing \u2014 lanes 2/15/4/13 DONE; 6 on support lifecycle (items 1-3 done, tour at 29 stops); 3 on the punch; 1 on parity+fixtures; 5 NLLB (ar/es/fr down)",
  "rows": [
   {
    "file": "civic/join.html",
@@ -2750,10 +2750,10 @@
    "area": "shared",
    "areaLabel": "Shared front doors",
    "owner": "lane 6",
-   "bucket": "absent",
-   "effort": "M",
+   "bucket": "built",
+   "effort": "none",
    "page": "",
-   "route": "",
+   "route": "GET /system/constitutional-questions (public)",
    "props": "none",
    "backend": "n/a",
    "propsMissing": [],
@@ -2763,7 +2763,10 @@
     "the site-wide 'as implemented' citation markers resolving to its anchors"
    ],
    "appAhead": [],
-   "notes": "The app already anticipates it: Components/Ui/CitationLine.vue takes an anchor prop documented as '/system/constitutional-questions#q2', but no such route or page exists \u2014 any anchor passed today would 404. Static content page; copy is fully authored in the mockup."
+   "notes": "The app already anticipates it: Components/Ui/CitationLine.vue takes an anchor prop documented as '/system/constitutional-questions#q2', but no such route or page exists \u2014 any anchor passed today would 404. Static content page; copy is fully authored in the mockup. CLOSED 2026-07-29 (821d86c): anchors #q1-#q7 verbatim; the APP renders the SETTLED seating doctrine \u2014 and the desk fixed the MOCKUP, whose entry #4 taught Webster against settled law (lane 6 catch).",
+   "page_exists": true,
+   "page_path": "resources/js/Pages/System/ConstitutionalQuestions.vue",
+   "routed": true
   },
   {
    "file": "shared/accessibility.html",
@@ -2771,10 +2774,10 @@
    "area": "shared",
    "areaLabel": "Shared front doors",
    "owner": "lane 6",
-   "bucket": "absent",
-   "effort": "M",
+   "bucket": "built",
+   "effort": "none",
    "page": "",
-   "route": "",
+   "route": "GET /system/accessibility (public)",
    "props": "none",
    "backend": "n/a",
    "propsMissing": [],
@@ -2785,7 +2788,10 @@
     "per-locale republication of the statement"
    ],
    "appAhead": [],
-   "notes": "registry/surfaces.js lists it href:null phase 7 (contract shared/accessibility.html). Static content page \u2014 no controller logic beyond a SurfaceMeta entry; the per-locale republication rides the existing i18n catalog machinery."
+   "notes": "registry/surfaces.js lists it href:null phase 7 (contract shared/accessibility.html). Static content page \u2014 no controller logic beyond a SurfaceMeta entry; the per-locale republication rides the existing i18n catalog machinery. CLOSED 2026-07-29 (821d86c): public per the records precedent; footer link resolves.",
+   "page_exists": true,
+   "page_path": "resources/js/Pages/System/Accessibility.vue",
+   "routed": true
   },
   {
    "file": "organizations/board-elections.html",

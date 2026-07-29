@@ -140,6 +140,20 @@ Type B election playtesting stays blocked fleet-wide until it ships.
 
 ## ⚖ NEW operator items from Wave 2 execution
 
+0. **Tour-nav placement (lane 6, flag 2)**: the mockup's nav "tour" opens the /tour INDEX
+   first (Start arms the mode); the app's PLAYER_NAV still jumps straight into stop 1. The
+   index exists and is reachable via TourBar "All steps" + the launchpad. Repointing touches
+   MenuNav's special case — placement decision at review. Also recorded: two param-dependent
+   tour targets deferred until a demo world guarantees a stable posting/handle (flag 3);
+   static pages made PUBLIC per the records precedent (flag 4, endorsed).
+
+### ✎ Spec fixed by the desk (2026-07-29): the mockup taught Webster
+
+`shared/constitutional-questions.html` entry #4 said "Webster-apportioned / Webster-rounded"
+— against the SETTLED seating law (never a textbook method). Lane 6 caught it while building
+the app page (which renders the correct giant-cascade / round-NEAREST doctrine); the desk
+rewrote the mockup entry — the only Webster left in the spec is the prohibition itself.
+
 1. **Setup ORDER conflict — spec vs settled ruling (lane 2)**: the v3 mockup's setup flow puts
    ACCOUNT before the founding FORK; the settled 2026-07-05 ruling (pinned in SetupController)
    says FORK-FIRST. Lane 2 matched the mockup's shape only where the ruling allows; reordering
