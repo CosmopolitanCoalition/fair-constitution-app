@@ -346,12 +346,22 @@ invited check ("check me on it") found: the engine already seats islands via the
 sound iff both clips hold; antimeridian guarding is real and already precedented; and
 hull-CONTACT adjacency for GROUPING reduces to a buffered proximity graph (hulls of separated
 islands never touch — the buffer distance d becomes a free parameter controlling everything).
-**GIT-OBSERVED landings (during the ledger rename, four-way reports may still be inbound):
-LANE 4 R-A UN-FLAG PIN 7d14649 (ElectionStageTest 99 ins — the sim schedules the Type B race
-the instant lane 1's mapper clears the flag; pinned against Niue's TRUE path, not a synthetic
-flip — lane 4's held item is DONE). LANE 1 MAPPER UI DOOR 67e1aaa (Step-3 "Group Type B
-chambers" — the CLI's parity twin; UI↔CLI parity row closed). LANE 2 migration reversibility
-proof 2ad6262 (down/up transactional, 84 ins). All three hash-verified.**
+**LANE 4 WAVE 3 CLOSED (four-way confirmed): R-A UN-FLAG PIN 7d14649 (ElectionStageTest 10/10;
+non-vacuous — a before-state assertion proves the race appears BECAUSE the flag cleared, via
+the REAL TypeBDistrictMapper::apply(), no stage edit). BONUS RESOLVED: lane 4's Wave-2
+coordination flag (would a large at-large Type B be misreclassified?) came out green with NO
+coordinated edit — the guard keys strictly on the persisted `type_b_needs_districting` column,
+which the "lawful at any size" fixture never sets, so the 2026-07-26 "lawful at any size" and
+the R-A "blocked pending districting" rulings stay cleanly separated by design. R_A_OBSERVANCE
+records both. Lane 4 HOLDS for the Wave 4 Atlas build order.
+
+LANE 1 DEV-COMPLETE (all buildable-on-dev work landed; 27 Type B pins green): engine 00e959e +
+B3 cap 4214721 + Niue proven + B6/B7 pins 56a70dc (never-cross-parent + versioning, 117 ins) +
+MAPPER UI DOOR 67e1aaa (Step-3 "Group Type B chambers" — the CLI's parity twin; UI↔CLI parity
+row closed). ONLY REMAINING lane-1 item = the mass pass over the real ~9,708 flagged chambers,
+which live on the GAME box (dev had only Niue, now cleared) — an operator-box logistics call,
+queued to him. LANE 2 migration reversibility proof 2ad6262 + re-date to 200000 b14be80
+(down() re-proven). All hash-verified.**
 
 **LANE 3 CHECKPOINT (6 commits, all verified; floor OPERABLE via 3c107cf — raise-hand →
 FIFO/named recognition → clocks reset → yield, chair-gated, ephemeral, guest-bounced 7 green):
