@@ -213,6 +213,15 @@ final class AchievementCatalog
         'ACH-FED-001' => ['title_key' => 'achievement.ach_fed_001', 'scope' => self::SCOPE_PERSONAL, 'earner' => self::EARNER_STATE, 'tier' => self::TIER_VERIFIED, 'trigger' => 'peer record'],
         'ACH-FED-002' => ['title_key' => 'achievement.ach_fed_002', 'scope' => self::SCOPE_PERSONAL, 'earner' => self::EARNER_STATE, 'tier' => self::TIER_VERIFIED, 'trigger' => 'operator record'],
 
+        // ── Arc 12 — Learning the constitution (K-2, the graded half) ───────
+        // ONE lifetime entry, and the one-time training stipend keys off its
+        // FRESH mint (K2_ENGINE_PLAN §5.0.1 — the ledger's idempotency IS the
+        // once-only proof; the F-EDU-001 handler is the only awarder). CI-1
+        // note: the training GATE never reads this ledger — it reads the
+        // filed F-EDU-001 (§5.2 READING RULE) — so this entry decorates the
+        // first completion and confers nothing, like every other row here.
+        'ACH-EDU-001' => ['title_key' => 'achievement.ach_edu_001', 'scope' => self::SCOPE_PERSONAL, 'earner' => self::EARNER_SELF, 'tier' => self::TIER_VERIFIED, 'trigger' => 'audit_log ref=F-EDU-001'],
+
         // ── Arc 13 — Economy & work (L+M). AWAITING UI: engine and schema are
         // built, but there are no economy routes, no Pages/Economy and no
         // registered economy surfaces, so a player cannot yet perform these.

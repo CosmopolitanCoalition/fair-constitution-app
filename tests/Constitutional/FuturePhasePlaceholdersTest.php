@@ -141,6 +141,7 @@ class FuturePhasePlaceholdersTest extends TestCase
             // no-gate) join this list with the build steps that make them
             // assertable — same PR as the engine code each one pins.
             'EducationAnswerKeySecrecyTest.php', // K2_ENGINE_PLAN §2 — the answer-key rail
+            'EducationNoGateTest.php', // Art. I / ruling A5 §6.5 — acquiring is free, acting asks
         ] as $file) {
             $this->assertFileExists(
                 $base.$file,

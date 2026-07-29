@@ -5,6 +5,9 @@ namespace App\Domain\Forms\Handlers;
 use App\Domain\Engine\ConstitutionalViolation;
 use App\Domain\Forms\Contracts\FormHandler;
 use App\Models\User;
+use App\Services\AchievementService;
+use App\Services\Education\TrainingStipendService;
+use Illuminate\Support\Facades\DB;
 
 /**
  * F-EDU-001 — Training Completion (R-01). GOVERNING EFFECTIVELY; operator
@@ -23,9 +26,9 @@ use App\Models\User;
  * (track + module + pass + time) is the ONLY thing TrainingGateService
  * reads (§5.2 READING RULE) — never the achievement ledger (CI-1), never
  * education_progress (node-local; this filing federates under FF&C). The
- * decoration legs — achievement mint, the once-only stipend keyed to it,
- * the education_progress latch — join in this wave's later build steps and
- * only ENRICH acceptance.
+ * decoration legs — the education_progress latch, the ACH-EDU-001 mint,
+ * the once-only stipend keyed to the mint's freshness — only ENRICH
+ * acceptance; all three ride the engine's one transaction (§5.1).
  *
  * THE §2 RAIL, enforced here as well as at the engine: the payload records
  * completion, never answers — not the learner's, not the correct ones.
@@ -37,6 +40,15 @@ class TrainingCompletion implements FormHandler
 {
     /** Payload keys that must never approach the chain (K2_ENGINE_PLAN §2/§5.0). */
     private const FORBIDDEN_KEYS = ['correct_keys', 'answer_key', 'answers'];
+
+    /** The once-per-person decoration whose FRESH mint is the stipend's proof. */
+    private const AWARD_KEY = 'ACH-EDU-001';
+
+    public function __construct(
+        private readonly AchievementService $achievements,
+        private readonly TrainingStipendService $stipend,
+    ) {
+    }
 
     public function module(): string
     {
@@ -93,6 +105,48 @@ class TrainingCompletion implements FormHandler
                 'A completion carries its integer score (0–100).',
                 'CGA Forms Catalog (F-EDU-001)'
             );
+        }
+
+        // The named training must exist and be live — a completion of a
+        // module nobody published is not a completion. (Every DB touch sits
+        // BELOW every shape refusal, so the refusal paths stay storage-free.)
+        $module = DB::table('education_modules as m')
+            ->join('education_tracks as t', 't.id', '=', 'm.track_id')
+            ->where('m.key', $moduleKey)->whereNull('m.deleted_at')->where('m.status', 'live')
+            ->where('t.key', $trackKey)->whereNull('t.deleted_at')->where('t.status', 'live')
+            ->first(['m.id']);
+
+        if ($module === null) {
+            throw new ConstitutionalViolation(
+                'This training does not exist — completions name a published module of a live track.',
+                'CGA Forms Catalog (F-EDU-001)'
+            );
+        }
+
+        // The node-local resume latch (one-way, the markStep shape): a
+        // completion never un-completes; a retake refreshes the score only.
+        DB::table('education_progress')->upsert(
+            [[
+                'user_id'      => (string) $actor->getKey(),
+                'module_id'    => (string) $module->id,
+                'state'        => 'completed',
+                'score_pct'    => $score,
+                'completed_at' => now(),
+                'created_at'   => now(),
+                'updated_at'   => now(),
+            ]],
+            ['user_id', 'module_id'],
+            ['state', 'score_pct', 'updated_at'],
+        );
+
+        // Decorations, in the ruled order: the achievement mints through the
+        // ONE ledger writer (idempotent on user + award key), and the
+        // one-time stipend pays IFF the row was NEWLY minted — the ledger IS
+        // the once-only proof (§5.0.1), no second bookkeeping. Neither leg
+        // touches the audit payload: the public chain records the
+        // completion, never the money (reader privacy).
+        if ($this->achievements->awardSelf($actor, self::AWARD_KEY)) {
+            $this->stipend->payOnce($actor);
         }
 
         $record = [

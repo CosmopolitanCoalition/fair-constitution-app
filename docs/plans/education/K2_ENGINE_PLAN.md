@@ -314,6 +314,19 @@ own instruction:**
 - **Countback replacements** seat normally and meet the same act-gate. The countback
   remains pure vacancy machinery with no training trigger of any kind.
 
+**A REDIRECT NEEDS A DESTINATION (build ruling, 2026-07-29 — the availability
+precondition):** the gate is lawful because the training is *"free, in-app, and minutes
+long — a non-barrier by construction."* Until a LIVE track with a live module is actually
+published for a track key, that premise fails and the gate stays open — a gate with no
+door is a wall, and A5 ruled a redirect, not a wall. A virgin world's first legislature is
+never blocked by a curriculum nobody has published; **publishing the content ARMS the
+gate** — no switch, no flag, no dev exception. (`TrainingGateService::hasLiveTraining`,
+pinned in `TrainingGateTest`.) Consequence for fixtures and demo data: seeding live
+education content for the civic track keys arms the gate for every untrained role-holder
+on that box — fixture worlds that file role-acts through the engine must train their
+members (or carry no published curriculum inside their transaction), sequenced with
+`education:demo`.
+
 **What the gate NEVER touches, stated as law:** candidacy registration, ballot access,
 voting, residency, speech, presence/attendance, and F-EDU-001 itself.
 `ConstitutionalValidator` keeps refusing eligibility conditions on candidacy — the gate

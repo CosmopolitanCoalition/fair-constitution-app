@@ -1,6 +1,7 @@
 <?php
 
 use App\Domain\Engine\ConstitutionalViolation;
+use App\Domain\Engine\TrainingRequired;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
@@ -101,6 +102,26 @@ return Application::configure(basePath: dirname(__DIR__))
         $middleware->redirectUsersTo('/civic');
     })
     ->withExceptions(function (Exceptions $exceptions): void {
+        // The act-gate's refusal is a REDIRECT, not a wall (ruling A5,
+        // K2_ENGINE_PLAN §5.2) — registered BEFORE the generic renderer so
+        // the subclass match wins. The rejected chain entry is already
+        // recorded; JSON callers get the structured payload, browsers land
+        // on the track's Learn content directly.
+        $exceptions->render(function (TrainingRequired $e, Request $request) {
+            if ($request->expectsJson()) {
+                return response()->json([
+                    'message' => $e->getMessage(),
+                    'citation' => $e->citation,
+                    'training_required' => $e->trainingRequired(),
+                ], 422);
+            }
+
+            return redirect($e->lessonHref)->with(
+                'status',
+                $e->getMessage().' ('.$e->citationForAPerson().')'
+            );
+        });
+
         // Constitutional denials surface as 422s carrying their citation —
         // the engine has already recorded the rejected filing on the audit
         // chain before rethrowing (WF-SYS-04).

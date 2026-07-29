@@ -9,6 +9,7 @@ use App\Models\InstanceSettings;
 use App\Models\User;
 use App\Services\AuditService;
 use App\Services\ConstitutionalValidator;
+use App\Services\Education\TrainingGateService;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 use RuntimeException;
@@ -88,6 +89,7 @@ class ConstitutionalEngine
         private readonly AuditService $audit,
         private readonly ConstitutionalValidator $validator,
         private readonly ResolvesRoles $roles,
+        private readonly TrainingGateService $trainingGate,
     ) {}
 
     /**
@@ -130,6 +132,14 @@ class ConstitutionalEngine
             }
 
             $this->authorize($handler, $canonical, $actor);
+
+            // The act-gate (ruling A5 — K2_ENGINE_PLAN §5.2): a role-holder's
+            // first ROLE-AUTHORITY act asks for the role's training. One rule,
+            // one home — the gate service holds the whole answer (which forms
+            // gate, which never can, what a completion is). Null actors
+            // (system filings) and ungated forms pass straight through, so
+            // this line is inert for everything the gate never touches.
+            $this->trainingGate->assertMayAct($actor, $canonical);
 
             $this->validator->check($canonical, $payload);
 
