@@ -5,7 +5,7 @@ discovers an existing node (**Box A**) on the LAN, joins, and replicates the who
 driven almost entirely from the **setup wizard UI** — the only terminal steps are a couple of
 one-time `.env` values and (on a fresh donor) arming federation.
 
-> This is the **mirror** path, distinct from the sovereign **`/federation` Discover→Handshake**
+> This is the **mirror** path, distinct from the sovereign **`/operator/federation` Discover→Handshake**
 > console and the `deploy.sh --join` CLI in [FRESH-NODE-START.md](../FRESH-NODE-START.md). Use the
 > steps below for a mirror that replicates a host's game.
 
@@ -70,7 +70,7 @@ seed+drain runs on) and the scheduler start automatically — **no** manual work
 ## 3. Box A — accept the adoption (UI)
 
 6. Sign into the **operator plane**: `http://<BoxA>/operator/login`.
-7. Open **`/federation`** → the **Host adoption console** → **Pending adoption requests** → **Approve**.
+7. Open **`/operator/federation`** → the **Host adoption console** → **Pending adoption requests** → **Approve**.
    *(Approving admits a read-only mirror — authoritative for nothing.)*
 
 ## 4. Box B — watch the seed + drain finish (UI, unattended)
@@ -109,7 +109,7 @@ grand-master plan:
 - **Gate 5 (Plane B live commons):** cross-node **text** is not implemented — the commons timeline
   reads the local Synapse keyed on a local `matrix_rooms` row that does not replicate, so a fresh Box B
   has no room to read. Cross-node **voice**: the `voice.sfu` capability **grant** is fully UI-wired
-  (`/federation` Role Board → Establish/Request/Approve), but the LiveKit container is behind the
+  (`/operator/federation` Role Board → Establish/Request/Approve), but the LiveKit container is behind the
   opt-in `voice` profile (`docker compose --profile voice up -d livekit` + `node_ip`/`PUBLIC_URL` per
   [livekit.md](livekit.md)) and cross-node room resolution is unbuilt.
 

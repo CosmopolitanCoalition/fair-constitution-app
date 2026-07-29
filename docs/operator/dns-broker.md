@@ -11,7 +11,7 @@ The DNS-edit token lives **only on this box**, in a gitignored, app-key-encrypte
 the console shows only the domain, the zone, and the provenance (`local` vs `failover`), never
 the token.
 
-Store it (write-only) from the **Federation console** (`/federation`, operator-gated) → "Broker
+Store it (write-only) from the **Federation console** (`/operator/federation`, operator-gated) → "Broker
 credentials": enter the domain, the Cloudflare **zone ID**, and the API token. Or via the service
 in tinker. To remove it, use "forget" on the same panel.
 

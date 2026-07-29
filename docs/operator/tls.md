@@ -40,7 +40,7 @@ The key never leaves the box; the cert installs under the TLS path. Renewal is t
 ## Prerequisites
 
 - The **`broker.tls`** capability channel must be established (Operations console → DNS & Broker →
-  channels, or `/federation` role board). Establish it via `mesh:role qualify/request/approve broker.tls`.
+  channels, or `/operator/federation` role board). Establish it via `mesh:role qualify/request/approve broker.tls`.
 - A **Cloudflare DNS credential** for the domain must be stored (write-only) — see `dns-broker.md`.
 
 ## Known gotchas

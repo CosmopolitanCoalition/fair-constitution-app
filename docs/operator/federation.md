@@ -4,6 +4,13 @@ This box's place in the mesh: its stable identity, the URL peers reach it at, an
 tune Full-Faith-&-Credit sync. The identity values are **locked** (peers pinned them); the tuning
 values are **instant** (no trust impact — safe to make in-console editable later).
 
+> **Console route (v3 §10 ruling 9, 2026-07-29).** The operator **Federation console** lives at
+> **`/operator/federation`** (operator-gated). The bare **`/federation`** is now the *citizen*
+> "Between governments" view (border settlement, union/disintermediation) — it is **not** the
+> console. The console's action endpoints kept their `/federation/…` prefix (`/federation/mesh/*`,
+> `/federation/cluster/*`, `/federation/host/*`, `/federation/roles/*`) — only the *page* moved.
+> Older docs that said "open `/federation`" for the console meant `/operator/federation`.
+
 ## Locked — identity (do not change casually)
 
 | Knob | Where | Notes |
@@ -24,7 +31,7 @@ values are **instant** (no trust impact — safe to make in-console editable lat
 
 ## Joining a cluster (becoming a mirror)
 
-Use the **Federation console** (`/federation`) → "Join a cluster", or the CLI mirror path. The join
+Use the **Federation console** (`/operator/federation`) → "Join a cluster", or the CLI mirror path. The join
 admits, then pulls the host's geodata **seed** (foundation) and **drains** its audit corpus; the live
 seed/drain progress is shown on the federation console (bars + ETAs). A mirror is **authoritative for
 nothing** — it read-replicates the host and accepts no constitutional filings. Read-write authority
