@@ -7,8 +7,9 @@
  * never a legal name. A down homeserver degrades to an empty timeline (a notice, never a broken page).
  * Everything here is the SELF-HOSTED in-app client — there is no external Matrix client in this system.
  */
-import { computed, onBeforeUnmount, onMounted } from 'vue';
+import { computed } from 'vue';
 import { router, useForm, usePage } from '@inertiajs/vue3';
+import { useLiveRoom } from '@/composables/useLiveRoom';
 import AppShellV2 from '@/Layouts/AppShellV2.vue';
 import PageScaffold from '@/Components/Surface/PageScaffold.vue';
 import FormCard from '@/Components/Surface/FormCard.vue';
@@ -70,43 +71,18 @@ function mine(message) {
     return props.myMxid !== null && message.sender === props.myMxid;
 }
 
-// Live timeline. The page renders a server snapshot of the room; to make it a LIVE commons we poll
-// for new messages via an Inertia partial reload — it re-runs ONLY the `messages`/`reachable` props
-// server-side (reusing the appservice read + mapping) and patches them in without touching the
-// compose form or the AV call. Dependency-free and works through mesh-reach; pauses on a hidden tab.
-const POLL_MS = 5000;
-let pollTimer = null;
-function pollTimeline() {
-    if (typeof document !== 'undefined' && document.hidden) return;
-    if (!props.roomId) return;
-    if (compose.processing) return; // don't let a poll cancel the player's in-flight post
-    router.reload({ only: ['messages', 'reachable'], preserveScroll: true, preserveState: true });
-}
-function startPolling() {
-    stopPolling();
-    if (props.roomId) pollTimer = window.setInterval(pollTimeline, POLL_MS);
-}
-function stopPolling() {
-    if (pollTimer !== null) {
-        window.clearInterval(pollTimer);
-        pollTimer = null;
-    }
-}
-function onVisibility() {
-    if (document.hidden) {
-        stopPolling();
-    } else {
-        pollTimeline();
-        startPolling();
-    }
-}
-onMounted(() => {
-    startPolling();
-    document.addEventListener('visibilitychange', onVisibility);
-});
-onBeforeUnmount(() => {
-    stopPolling();
-    document.removeEventListener('visibilitychange', onVisibility);
+// Live timeline. The page renders a server snapshot of the room; to make it a
+// LIVE commons we keep the `messages`/`reachable` props fresh via useLiveRoom —
+// a 5s Inertia partial reload that patches them in without touching the compose
+// form or the AV call, pauses on a hidden tab, and skips a tick while a post is
+// in flight. Consolidated onto the shared store (W4 ⑦) — this IS the pattern
+// useLiveRoom was extracted from, so behaviour is unchanged.
+useLiveRoom({
+    keys: ['messages', 'reachable'],
+    // The mount guard: no room ⇒ nothing to poll ('adjourned' never arms).
+    isLive: () => (props.roomId ? 'open' : 'adjourned'),
+    busy: () => compose.processing,
+    cadenceMs: 5000,
 });
 </script>
 

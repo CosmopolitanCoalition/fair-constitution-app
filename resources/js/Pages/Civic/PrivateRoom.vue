@@ -5,8 +5,9 @@
  * OFF the civic plane — no testimony, no public record. Reuses LiveRoom (the AV client) pointed at the
  * member-gated private token path, and InviteButton (kind=space) to invite a friend into the room.
  */
-import { computed, onBeforeUnmount, onMounted } from 'vue';
+import { computed } from 'vue';
 import { Head, Link, router, useForm, usePage } from '@inertiajs/vue3';
+import { useLiveRoom } from '@/composables/useLiveRoom';
 import AppShellV2 from '@/Layouts/AppShellV2.vue';
 import LiveRoom from '@/Components/Civic/Room/LiveRoom.vue';
 import InviteButton from '@/Components/Invite/InviteButton.vue';
@@ -52,36 +53,14 @@ function leave() {
     router.post(`/civic/rooms/${props.room.id}/leave`);
 }
 
-// Live text — poll the timeline (the commons pattern); pause on a hidden tab + during an in-flight post.
-const POLL_MS = 5000;
-let pollTimer = null;
-function poll() {
-    if (props.locked || !props.roomId) return;
-    if (typeof document !== 'undefined' && document.hidden) return;
-    if (compose.processing) return;
-    router.reload({ only: ['messages', 'reachable'], preserveScroll: true, preserveState: true });
-}
-function startPolling() {
-    stopPolling();
-    if (!props.locked && props.roomId) pollTimer = window.setInterval(poll, POLL_MS);
-}
-function stopPolling() {
-    if (pollTimer !== null) {
-        window.clearInterval(pollTimer);
-        pollTimer = null;
-    }
-}
-function onVisibility() {
-    if (document.hidden) stopPolling();
-    else { poll(); startPolling(); }
-}
-onMounted(() => {
-    startPolling();
-    document.addEventListener('visibilitychange', onVisibility);
-});
-onBeforeUnmount(() => {
-    stopPolling();
-    document.removeEventListener('visibilitychange', onVisibility);
+// Live text — keep `messages`/`reachable` fresh via useLiveRoom (the shared
+// store; W4 ⑦, was a hand-rolled setInterval). A locked or room-less page never
+// polls; a hidden tab pauses; an in-flight post skips the tick.
+useLiveRoom({
+    keys: ['messages', 'reachable'],
+    isLive: () => (props.locked || !props.roomId ? 'adjourned' : 'open'),
+    busy: () => compose.processing,
+    cadenceMs: 5000,
 });
 </script>
 
