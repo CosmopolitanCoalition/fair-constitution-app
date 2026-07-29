@@ -35,6 +35,15 @@ class TranslationReviewTest extends TestCase
 
     private const LIVE_CONNECTION = 'pgsql_translation_review';
 
+    /**
+     * A limit large enough to return the whole UI modality, not a front window.
+     * The queue is worst-first and windowed; a targeted string (a carried draft,
+     * a row a reader just ruled on) can sit past any small window once the corpus
+     * carries many untranslated strings. Tests that need a SPECIFIC string's true
+     * state must read the whole modality — display windowing is not their subject.
+     */
+    private const WHOLE_QUEUE = 100000;
+
     /* ── the numbers ──────────────────────────────────────────────────────── */
 
     public function test_a_language_is_six_numbers_not_one(): void
@@ -77,13 +86,24 @@ class TranslationReviewTest extends TestCase
     public function test_carried_is_never_reported_as_verified(): void
     {
         $this->onLivePg(function (): void {
-            $row = app(TranslationReviewService::class)->row('es');
+            // A string the machine carried but no reader has touched reads as a
+            // draft, never as verified — carried is not verified. Scoped to a
+            // PRISTINE string so a verdict already sitting in the shared es world
+            // (a walk, a peer lane) cannot flip the modality rollup and make this
+            // fail for a reason that has nothing to do with the invariant.
+            $item = $this->firstQueueItem('es');
+            $this->assertSame('ai_draft', $this->stateOf('es', $item));
 
-            // Nobody has verified anything in this transaction, so a locale
-            // whose catalog is complete still reads as a machine draft.
-            $this->assertSame('ai_draft', $row['cells']['ui']['state']);
-            $this->assertSame(0, $row['cells']['ui']['verified']);
-            $this->assertGreaterThan(0, $row['cells']['ui']['carried']);
+            // And the honest global invariant that holds no matter who has
+            // verified what: the machine carries strings, and the count a human
+            // has settled can never exceed the count the machine carried.
+            $cell = app(TranslationReviewService::class)->row('es')['cells']['ui'];
+            $this->assertGreaterThan(0, $cell['carried'], 'The es UI catalog carries machine strings.');
+            $this->assertLessThanOrEqual(
+                $cell['carried'],
+                $cell['verified'],
+                'A string nobody read is not verified: verified can never exceed carried.',
+            );
         });
     }
 
@@ -188,14 +208,17 @@ class TranslationReviewTest extends TestCase
 
             $this->recordVerdict($item, $user);
 
-            $items = (new TranslationReviewService())->queue('es', 'ui', 50)['items'];
+            $items = (new TranslationReviewService())->queue('es', 'ui', self::WHOLE_QUEUE)['items'];
             $mine = array_values(array_filter(
                 $items,
                 fn (array $i): bool => $i['key'] === $item['key'] && $i['namespace'] === $item['namespace'],
             ));
 
             // A row that vanishes the instant you click it reads as an error,
-            // not as work done. It stays, carrying your verdict.
+            // not as work done. rank() is blind to my_verdict, so ruling on a
+            // string neither removes it nor reorders it — it stays put, carrying
+            // your verdict. (Read against the whole modality: the point is that
+            // the row is not REMOVED, independent of display windowing.)
             $this->assertCount(1, $mine, 'Your own verdict must not remove the row from view.');
             $this->assertSame('approved', $mine[0]['my_verdict']);
             $this->assertSame('in_review', $mine[0]['state']);
@@ -317,7 +340,11 @@ class TranslationReviewTest extends TestCase
                 ->post('/system/translations/review/es', $this->payload($item))
                 ->assertSessionHasErrors('verdict');
 
-            $this->assertSame(0, TranslationVerification::where('locale', 'es')->count());
+            // Scoped to THIS outsider: the shared es world may already carry
+            // verdicts from a walk or a peer lane; what this pin proves is that
+            // the person who cannot read the language wrote nothing.
+            $this->assertSame(0, TranslationVerification::where('locale', 'es')
+                ->where('verified_by', $outsider->id)->count());
         });
     }
 
@@ -334,7 +361,10 @@ class TranslationReviewTest extends TestCase
                 ->post('/system/translations/review/es', $this->payload($item))
                 ->assertSessionHasNoErrors();
 
-            $this->assertSame(1, TranslationVerification::where('locale', 'es')->count());
+            // Scoped to THIS reader: exactly one verdict, theirs — independent of
+            // whatever else the shared es world already holds.
+            $this->assertSame(1, TranslationVerification::where('locale', 'es')
+                ->where('verified_by', $reader->id)->count());
         });
     }
 
@@ -351,7 +381,8 @@ class TranslationReviewTest extends TestCase
 
             $this->assertSame(
                 TranslationVerification::VERDICT_APPROVED,
-                TranslationVerification::where('locale', 'es')->value('verdict'),
+                TranslationVerification::where('locale', 'es')
+                    ->where('verified_by', $reader->id)->value('verdict'),
                 'Recording an edit that changed nothing would claim a correction that never happened.',
             );
         });
@@ -370,10 +401,30 @@ class TranslationReviewTest extends TestCase
 
     private function firstQueueItem(string $locale): array
     {
-        $items = app(TranslationReviewService::class)->queue($locale, 'ui', 1)['items'];
-        $this->assertNotEmpty($items, "No reviewable strings in [{$locale}] — the catalogs are missing.");
+        // Own a CLEAN, CARRIED string: state 'ai_draft' means the machine wrote a
+        // rendering and nobody has touched it, so the caller's quorum math is
+        // exact. Two shared-world traps this navigates (both FLEET_CONTEXT §4b):
+        //   - a verdict already sitting on a string (a walk, a peer lane) — the
+        //     untouched check below excludes it;
+        //   - the queue is worst-first, so hundreds of UNTRANSLATED ('none')
+        //     strings (e.g. the English-only c_education/c_achievements
+        //     namespaces lane 15 just added) sit AHEAD of every carried draft.
+        //     A small window would return only those, none of them reviewable —
+        //     so we scan the whole modality, not the front of it.
+        foreach (app(TranslationReviewService::class)->queue($locale, 'ui', self::WHOLE_QUEUE)['items'] as $item) {
+            if ($item['state'] !== 'ai_draft') {
+                continue;
+            }
+            $touched = TranslationVerification::where('locale', $locale)
+                ->where('namespace', $item['namespace'])
+                ->where('message_key', $item['key'])
+                ->exists();
+            if (! $touched) {
+                return $item;
+            }
+        }
 
-        return $items[0];
+        $this->fail("No pristine carried (ai_draft, unverified) string in [{$locale}] — the catalogs are missing.");
     }
 
     private function firstWordedTerm(string $locale): array
@@ -414,8 +465,10 @@ class TranslationReviewTest extends TestCase
     private function stateOf(string $locale, array $item): string
     {
         // A fresh service instance: the per-request catalog memo must not be
-        // able to carry a stale verdict count across an assertion.
-        $q = (new TranslationReviewService())->queue($locale, 'ui', 500);
+        // able to carry a stale verdict count across an assertion. The whole
+        // modality, not a front window — the string under test may sit past
+        // hundreds of untranslated rows (see WHOLE_QUEUE).
+        $q = (new TranslationReviewService())->queue($locale, 'ui', self::WHOLE_QUEUE);
 
         foreach ($q['items'] as $it) {
             if ($it['key'] === $item['key'] && $it['namespace'] === $item['namespace']) {
