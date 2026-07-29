@@ -202,6 +202,20 @@ export const TOUR = [
     { act: 'The record', href: '/system/amendments', title: 'Amendments', blurb: 'The constitution changes through exactly two doors — both in the open.' },
     { act: 'The record', href: '/system/clocks', title: 'The clocks', blurb: 'Every interval, deadline, and threshold that starts a process without anyone asking.' },
     { act: 'Help', href: '/support/report', title: 'Report an issue', blurb: 'A bug, a question, or something that needs review — file it here.' },
+    /* Wave 2 pages (lanes 2/13/15) — appended, never inserted, so existing
+       ?step=N links keep their positions. Only param-free landings that resolve
+       on any world: record-detail pages (/economy/requests/{posting},
+       /economy/agreements/{contract}, /people?who=) need a live record or eat
+       ?step on redirect, so they are reached from their parents in-app, not
+       here. Acts reuse earlier groups where they fit; the index consolidates. */
+    { act: 'Your place', href: '/jurisdictions/bootstrap', title: 'How a place wakes up', blurb: 'The critical-population threshold and the seven-step activation that brings a place to life.' },
+    { act: 'Your place', href: '/jurisdictions/union-formation', title: 'Union formation', blurb: 'How places join into one — by dual supermajority, with join and exit mirrored.' },
+    { act: 'Your place', href: '/jurisdictions/disintermediation', title: 'Removing a middle layer', blurb: 'Constituents fold up one level and keep governing themselves.' },
+    { act: 'Your place', href: '/jurisdictions/restoration', title: 'Rebuilding a lost government', blurb: 'The restoration cascade, legitimacy scoring, and the defense of a place brought back.' },
+    { act: 'Between governments', href: '/federation', title: 'Between governments', blurb: 'Federation, borders settled by supermajority, and how instances stay one world.' },
+    { act: 'The economy', href: '/economy/stipend', title: 'The civic stipend', blurb: 'A modest, unconditional share for taking part — paid to people, never to accounts.' },
+    { act: 'The economy', href: '/economy/agreements', title: 'Agreements', blurb: 'Every contract has a floor of terms — open one to see its signatures and the deal.' },
+    { act: 'The record', href: '/achievements', title: 'Achievements', blurb: 'Civic firsts, guided journeys, and a place’s milestones, sealed to an append-only record.' },
 ];
 
 /* The first-visit track — a stranger's short arc through the tour, a subset of
