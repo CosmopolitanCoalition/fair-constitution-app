@@ -952,3 +952,34 @@ partial-stage). Reminded the mockup-porting lanes: edit routes LAST, stage ONLY 
 a rollup recomputes a real public aggregate, mints nothing — gating denies ops the live gauge; rail
 untouched). PUNCH ITEM: SnapshotLegitimacyJob has no CLI twin (parity gap; Reach owner). SLOT: world_stats
 OPEN for L4 (take when the computation's ready); L3 agenda + L13 secondary-trading behind.
+
+### W4 tick 9 — L2 all 5 done (+ a real class-isolation bug) + 2 questions ruled
+
+**LANE 2 four-way — all 5 L2W4 items done, file-list re-audited (adopted the deletion-blind fix same-turn):**
+ • ⑤ 56f137a MatrixCarveoutEmitter — fixture drift (aJurisdiction picked a SEATED jurisdiction on the
+   seeded box → isSeated drove the wrong branch); legislatures-active exclusion added, 6/6 green.
+ • ②③ 1c6b6d9 — handshake 500→409 (typed CrossClassPeeringException + PeerController catch). ⚑ REAL
+   SECURITY BUG caught: handshake validate() never whitelisted instance_class/game_mode → signed on the
+   wire but STRIPPED before the class check → null→production (a DEMO peer leaks into a PRODUCTION mesh; a
+   demo receiver falsely refuses a real demo peer). Class-isolation breach; both whitelisted; +coordinating-
+   node adoption on /adopt (demo-gated, migrated-gated, never self). 26 federation green.
+ • ④ 32360c0 — 4 operator docs reconciled to /operator/federation (bare /federation = citizen since d69aff0).
+ • ① e702a43 (+pixel 41d5239) — system/amendments (bounds checker client-side, authoritative check SERVER-
+   side) + system/term-sync (inline-SVG lockstep timeline). SystemClocksAmendmentsTest pinned.
+
+**Q1 RULED — RUBRIC RE-BADGE (5 screens partial→built):** operator/setup · operator/dns · system/setup
+were ALREADY built pre-wave (stale gap-data, same class as lane 6's stale finds); system/amendments +
+system/term-sync built this wave. All 5 → built, badge L2W4. To fold in the next batch regen.
+
+**Q2 RULED — PATH-B PRE-AUTH LINKING = DEFER.** operator/setup's only true remainder is a pre-auth
+/operator/link endpoint the backend deliberately lacks — a TRUST SURFACE. Ruling: leave the honest
+"operator-session-required" card (green, working); a new pre-auth endpoint gets deliberate security review,
+not a speculative build. Queued as a DEFERRED operator-design open-question (post-alpha). Not blocking green.
+
+**SUITE GATE IN FLIGHT:** lane 2 (fleet suite steward) is running the FULL suite as its gate; result pending
+— a key wave signal, awaiting. ORIGIN note: fleet shares ONE clone, so desk pushes carry every lane's
+local-main commits (last push 0/0) — lane 2's 5 commits are already on origin though L2 never pushed.
+
+**RUBRIC deltas to fold at next regen (accumulating):** atlas absent→built (L4) · L2's 5 screens →built ·
+L1 ①④⑤ done · L3 ③⑧⑤ done + ⑨ already-landed + ⑦ 9→4 · L15 ① done · L6 ④⑤⑥ done + ballots_cast fix ·
+2 debt rows already RESOLVED (done last regen) · new open-Q: Path-B pre-auth linking (deferred).
