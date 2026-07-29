@@ -164,6 +164,31 @@ async function rewindRun() {
     }
 }
 
+// "Group Type B chambers" — the UI door to `type-b:district` (UI↔CLI parity).
+// Groups flagged chambers' constituents into shared panels and clears
+// type_b_needs_districting so their at-large Type B races can schedule. Same
+// TypeBDistrictMapper service and operator gate as the CLI; a bounded batch so
+// one click never sweeps the planet unattended — press again for the rest.
+const typeBBusy = ref(false)
+const typeBResult = ref(null)
+async function groupTypeB() {
+    if (!confirm('Group the flagged Type B chambers into shared panels?\n\nThis clears type_b_needs_districting so their at-large Type B races can schedule. Runs a bounded batch — press again for the rest.')) return
+    typeBBusy.value = true
+    typeBResult.value = null
+    try {
+        const res = await csrfFetch('/api/setup/wizard/step3/type-b-district', { method: 'POST' })
+        const data = await res.json().catch(() => ({}))
+        if (!res.ok) {
+            autoscaleError.value = data.error || `Type B grouping failed (HTTP ${res.status})`
+            return
+        }
+        typeBResult.value = data
+        await fetchAutoscale()
+    } finally {
+        typeBBusy.value = false
+    }
+}
+
 // ── Number tweening (the Step-2 feel) ────────────────────────────────────
 // The backend counts are fresh every 2 s poll; tween the displayed numbers
 // between polls so counters roll instead of jumping (simplified from
@@ -523,6 +548,38 @@ onBeforeUnmount(stopPolling)
             <div v-else-if="autoscaleError" class="bg-red-900/30 border border-red-800 rounded p-4 text-sm text-red-200 mb-6">
                 {{ autoscaleError }}
             </div>
+
+            <!-- Type B districting — the UI door to `type-b:district` (parity).
+                 Shows whenever chambers are flagged type_b_needs_districting;
+                 the operator groups their constituents into shared panels so the
+                 at-large Type B races can schedule. -->
+            <section
+                v-if="(autoscale?.type_b_flagged ?? 0) > 0 || typeBResult"
+                class="rounded-lg p-5 mb-6 border bg-indigo-900/20 border-indigo-800/50"
+            >
+                <div class="flex items-center justify-between gap-3 mb-2">
+                    <h2 class="font-semibold text-indigo-200">Type B districting</h2>
+                    <button
+                        v-if="(autoscale?.type_b_flagged ?? 0) > 0"
+                        @click="groupTypeB"
+                        :disabled="typeBBusy"
+                        class="text-xs px-3 py-1.5 rounded border border-indigo-600 text-indigo-200 hover:bg-indigo-900/50 transition-colors disabled:opacity-50"
+                        title="Group flagged chambers' constituents into shared panels and clear the districting flag"
+                    >
+                        {{ typeBBusy ? 'Grouping…' : 'Group Type B chambers' }}
+                    </button>
+                </div>
+                <p class="text-sm text-indigo-100/80">
+                    <span class="tabular-nums font-semibold">{{ (autoscale?.type_b_flagged ?? 0).toLocaleString() }}</span>
+                    chamber(s) still flagged — Type B seats exceed the Type A total, so their constituents
+                    must group into shared panels before the at-large race can elect. Equal, compact panels;
+                    no geometry is cut.
+                </p>
+                <p v-if="typeBResult" class="text-xs text-indigo-200/70 mt-2 tabular-nums">
+                    Last run: grouped {{ typeBResult.grouped.toLocaleString() }} ({{ typeBResult.seats.toLocaleString() }} seats),
+                    {{ typeBResult.remaining.toLocaleString() }} remaining<span v-if="typeBResult.undercount"> · {{ typeBResult.undercount }} undercount</span><span v-if="typeBResult.failures"> · {{ typeBResult.failures }} failed</span>.
+                </p>
+            </section>
 
             <!-- Apportionment summary -->
             <section

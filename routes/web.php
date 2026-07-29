@@ -158,6 +158,10 @@ Route::post('/api/setup/wizard/step3/autoscale-resume', [SetupController::class,
 // -intent gate the CLI's --force represents).
 Route::post('/api/setup/wizard/step3/autoscale-revert', [SetupController::class, 'autoscaleRevert'])
     ->middleware('auth')->name('api.setup.step3.autoscale-revert');
+// The Step-3 "Group Type B chambers" control — UI door to the type-b:district
+// CLI (operator-gated in the controller; same TypeBDistrictMapper service).
+Route::post('/api/setup/wizard/step3/type-b-district', [SetupController::class, 'typeBDistrict'])
+    ->middleware('auth')->name('api.setup.step3.type-b-district');
 Route::post('/api/setup/wizard/step4/complete', [SetupController::class, 'completeStep4'])->name('api.setup.step4.complete');
 
 // Step 2 manual data review — surfaces post-ETL discrepancies BEFORE the user

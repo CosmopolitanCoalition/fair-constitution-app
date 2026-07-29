@@ -2052,7 +2052,11 @@ class SetupController extends Controller
     {
         $run = \App\Models\AutoscaleRun::query()->orderByDesc('created_at')->first();
         if ($run === null) {
-            return response()->json(['run' => null]);
+            return response()->json([
+                'run' => null,
+                'type_b_flagged' => (int) DB::table('legislatures')
+                    ->where('type_b_needs_districting', true)->whereNull('deleted_at')->count(),
+            ]);
         }
 
         // Live + review slices (names joined for the dashboard's tables).
@@ -2245,6 +2249,10 @@ class SetupController extends Controller
             'workers_detail' => $workersDetail,
             'live_items'     => $liveItems,
             'review_items'   => $reviewItems,
+            // Type B districting worklist — the flagged-chamber count the
+            // dashboard's "Group Type B chambers" control acts on.
+            'type_b_flagged' => (int) DB::table('legislatures')
+                ->where('type_b_needs_districting', true)->whereNull('deleted_at')->count(),
         ]);
     }
 
@@ -2315,6 +2323,59 @@ class SetupController extends Controller
         }
 
         return response()->json(['ok' => true, 'reverted' => true]);
+    }
+
+    /**
+     * POST /api/setup/wizard/step3/type-b-district — the Step-3 dashboard's
+     * "Group Type B chambers" control (UI↔CLI parity with the `type-b:district`
+     * CLI). Groups flagged chambers' constituents into shared panels and clears
+     * type_b_needs_districting so their at-large Type B races can schedule. Same
+     * service (TypeBDistrictMapper), same guards as the CLI; operator-gated. A
+     * bounded batch so one click never sweeps the whole planet unattended — the
+     * response reports what remains for the next click.
+     */
+    public function typeBDistrict(Request $request, \App\Services\Legislature\TypeBDistrictMapper $mapper): JsonResponse
+    {
+        abort_unless((bool) $request->user()?->is_operator, 403);
+
+        $limit = min(500, max(1, (int) $request->integer('limit', 200)));
+        $ids = DB::table('legislatures')
+            ->where('type_b_needs_districting', true)
+            ->whereNull('deleted_at')
+            ->orderBy('id')
+            ->limit($limit)
+            ->pluck('id');
+
+        $grouped = 0;
+        $seats = 0;
+        $undercount = 0;
+        $failures = 0;
+        foreach ($ids as $id) {
+            try {
+                $r = $mapper->apply((string) $id);
+                if ($r) {
+                    $grouped++;
+                    $seats += $r['seats'];
+                    $undercount += $r['undercount'] ? 1 : 0;
+                }
+            } catch (\Throwable $e) {
+                $failures++;
+            }
+        }
+
+        $remaining = (int) DB::table('legislatures')
+            ->where('type_b_needs_districting', true)
+            ->whereNull('deleted_at')
+            ->count();
+
+        return response()->json([
+            'ok'         => $failures === 0,
+            'grouped'    => $grouped,
+            'seats'      => $seats,
+            'undercount' => $undercount,
+            'failures'   => $failures,
+            'remaining'  => $remaining,
+        ]);
     }
 
     /**

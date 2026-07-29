@@ -44,6 +44,12 @@ panel for four of them.
 New has-pair capabilities minted this wave: `sim:halt` ↔ console Halt, `sim:resume` ↔ console
 Resume (both doors built together, guards in the one shared `SimRunControl`).
 
+## Wave 3 closures — lane 1 (2026-07-29)
+
+| Row | Was | Now paired by | Pin |
+|---|---|---|---|
+| `Type B districting` (NEW capability) | minted paired | `type-b:district` CLI ↔ the Step-3 dashboard's "Group Type B chambers" control. Both doors call the ONE `TypeBDistrictMapper` service (single source); the operator gate (`abort_unless is_operator`) travels with the UI door, mirroring the eight other Step-3 operator actions. The CLI's `--dry-run`/`--limit` and the UI's bounded batch are the same guard against an unattended planet-wide sweep. | `TypeBDistrictMapperApplyTest` (service + un-flag + race-schedulable), `TypeBDistrictMapperTest` (grouping law B1–B7) |
+
 ## NEEDS A UI — terminal-only capabilities
 
 | Capability | Purpose | Guards (travel with the pair) | Proposal | Owner |
