@@ -29,7 +29,9 @@ debt = [{'title': d['title'], 'severity': d['severity'], 'category': d.get('cate
          'owner': d.get('owner', ''), 'location': d.get('location', ''),
          'status': d.get('status', ''), 'note': d.get('note', '')} for d in res['techDebt']['debt']]
 
-DATA = {'asOf': '2026-07-29', 'head': '6696299', 'forms': 117,
+_enr = json.load(open(r'C:\Users\JOSEPH~1\AppData\Local\Temp\claude\E--fair-constitution-app\355910cb-829c-4f85-8b3a-3a74acb84871\scratchpad\badged.json', encoding='utf-8'))
+screens = _enr['screens']; caps = _enr['caps']; debt = _enr['debt']
+DATA = {'asOf': '2026-07-29', 'head': 'f834fec', 'forms': 117,
         'screens': screens, 'caps': caps, 'debt': debt, 'fleet': FLEET, 'questions': QUESTIONS}
 
 TEMPLATE = r"""<title>App Progress Rubric — CGA</title>
@@ -75,7 +77,7 @@ h1{font-size:1.55rem;font-weight:600;margin:0 0 .3rem}
 .chev{color:var(--faint);transition:transform .15s}.area-head[aria-expanded=true] .chev{transform:rotate(90deg)}
 .rows{border-top:1px solid var(--line)}
 .scr{border-top:1px solid var(--line)}.scr:first-child{border-top:0}
-.scr-head{display:grid;grid-template-columns:auto 1fr auto auto;gap:.7rem;align-items:baseline;inline-size:100%;background:none;border:0;color:inherit;font:inherit;text-align:start;padding:.55rem .95rem .55rem 1.2rem;cursor:pointer}
+.scr-head{display:grid;grid-template-columns:auto 1fr auto auto auto;gap:.6rem;align-items:baseline;inline-size:100%;background:none;border:0;color:inherit;font:inherit;text-align:start;padding:.55rem .95rem .55rem 1.2rem;cursor:pointer}
 .scr-head:hover{background:var(--accent-soft)}.scr-head:focus-visible{outline:2px solid var(--accent);outline-offset:-2px}
 .scr-title{font-size:.88rem}.scr-file{font-family:var(--mono);font-size:.75rem;color:var(--faint);display:block;margin-top:.1rem}
 .pill{font-size:.68rem;font-weight:600;letter-spacing:.03em;border-radius:999px;padding:.14em .6em;white-space:nowrap}
@@ -85,6 +87,7 @@ h1{font-size:1.55rem;font-weight:600;margin:0 0 .3rem}
 .p-blocked,.p-held{background:var(--block-s);color:var(--block)}
 .p-low{background:var(--accent-soft);color:var(--muted)}
 .eff{font-family:var(--mono);font-size:.72rem;color:var(--faint);white-space:nowrap}
+.lwbadge{font-family:var(--mono);font-size:.66rem;font-weight:700;background:var(--accent-soft);color:var(--accent);padding:.14em .45em;border-radius:4px;white-space:nowrap;letter-spacing:.02em}
 .wv{font-family:var(--mono);font-size:.72rem;font-weight:700;color:var(--accent);white-space:nowrap}
 .detail{padding:.35rem 1.2rem 1rem 2.15rem;font-size:.85rem;border-top:1px dashed var(--line)}
 .detail dl{margin:0}.detail dt{font-size:.7rem;letter-spacing:.09em;text-transform:uppercase;color:var(--faint);margin:.7rem 0 .2rem}
@@ -148,10 +151,10 @@ function groupView(items,areaKey,barKeys,matchFn,rowHTML,valKey){
     html+=`<section class="area"><button class="area-head" aria-expanded="false"><span class="area-name">${esc(a)}</span><span class="bar">${bar}</span><span class="counts">${cnt}</span><span class="chev">›</span></button><div class="rows hidden">${vis.map(rowHTML).join('')}</div></section>`;});
   return html;}
 function render(){const b=document.getElementById('body');
-  if(view==='screens'){b.innerHTML=groupView(D.screens,'area',['built','partial','absent'],r=>(filter==='all'||r.bucket===filter)&&(!q||(r.file+' '+r.title+' '+r.notes+' '+r.specHas.join(' ')+' '+r.appAhead.join(' ')+' '+r.propsMissing.join(' ')+' '+r.backendMissing.join(' ')).toLowerCase().includes(q)),r=>`<div class="scr"><button class="scr-head" aria-expanded="false"><span class="dot d-${CO[r.bucket]}"></span><span><span class="scr-title">${hi(r.title)}</span><span class="scr-file">${esc(r.file)}</span></span><span class="pill p-${r.bucket}">${LB[r.bucket]}</span><span class="eff">${r.effort==='none'?'—':r.effort}</span></button><div class="detail hidden">${screenDetail(r)}</div></div>`,'bucket');}
-  else if(view==='caps'){b.innerHTML=groupView(D.caps,'area',['working','partial','blocked','absent'],r=>(filter==='all'||r.maturity===filter)&&(!q||(r.capability+' '+r.scaleNote+' '+r.blocker).toLowerCase().includes(q)),r=>{let d='<dl>';if(r.blocker)d+=`<dt class="blk">⛔ Blocker</dt><dd>${hi(r.blocker)}</dd>`;if(r.scaleNote)d+=`<dt>At scale</dt><dd>${hi(r.scaleNote)}</dd>`;if(!r.blocker&&!r.scaleNote)d+='<dd class="ok">Working.</dd>';d+='</dl>';return `<div class="scr"><button class="scr-head" aria-expanded="false"><span class="dot d-${CO[r.maturity]}"></span><span class="scr-title">${hi(r.capability)}</span><span class="pill p-${r.maturity}">${LB[r.maturity]}</span><span class="eff"></span></button><div class="detail hidden">${d}</div></div>`;},'maturity');}
-  else if(view==='debt'){const vis=D.debt.filter(r=>(filter==='all'||r.severity===filter)&&(!q||(r.title+' '+r.owner+' '+r.location+' '+r.status+' '+r.note).toLowerCase().includes(q)));
-    b.innerHTML=`<section class="area"><div class="rows">${vis.map(r=>`<div class="scr"><button class="scr-head" aria-expanded="false"><span class="dot d-${CO[r.severity]}"></span><span class="scr-title">${hi(r.title)}</span><span class="pill p-${r.severity}">${LB[r.severity]}</span><span class="eff">${esc(r.category)}</span></button><div class="detail hidden"><dl><dt>Owner</dt><dd>${hi(r.owner)}</dd><dt>Where</dt><dd class="meta">${hi(r.location)}</dd><dt>Status</dt><dd>${hi(r.status)}</dd>${r.note?`<dt>Note</dt><dd>${hi(r.note)}</dd>`:''}</dl></div></div>`).join('')||'<div class="detail">No matches.</div>'}</div></section>`;}
+  if(view==='screens'){b.innerHTML=groupView(D.screens,'area',['built','partial','absent'],r=>(filter==='all'||r.bucket===filter)&&(!q||(r.badge+' '+r.file+' '+r.title+' '+r.notes+' '+r.specHas.join(' ')+' '+r.appAhead.join(' ')+' '+r.propsMissing.join(' ')+' '+r.backendMissing.join(' ')).toLowerCase().includes(q)),r=>`<div class="scr"><button class="scr-head" aria-expanded="false"><span class="dot d-${CO[r.bucket]}"></span><span><span class="scr-title">${hi(r.title)}</span><span class="scr-file">${esc(r.file)}</span></span><span class="lwbadge">${esc(r.badge)}</span><span class="pill p-${r.bucket}">${LB[r.bucket]}</span><span class="eff">${r.effort==='none'?'—':r.effort}</span></button><div class="detail hidden">${screenDetail(r)}</div></div>`,'bucket');}
+  else if(view==='caps'){b.innerHTML=groupView(D.caps,'area',['working','partial','blocked','absent'],r=>(filter==='all'||r.maturity===filter)&&(!q||(r.badge+' '+r.capability+' '+r.scaleNote+' '+r.blocker).toLowerCase().includes(q)),r=>{let d='<dl>';if(r.blocker)d+=`<dt class="blk">⛔ Blocker</dt><dd>${hi(r.blocker)}</dd>`;if(r.scaleNote)d+=`<dt>At scale</dt><dd>${hi(r.scaleNote)}</dd>`;if(!r.blocker&&!r.scaleNote)d+='<dd class="ok">Working.</dd>';d+='</dl>';return `<div class="scr"><button class="scr-head" aria-expanded="false"><span class="dot d-${CO[r.maturity]}"></span><span class="scr-title">${hi(r.capability)}</span><span class="lwbadge">${esc(r.badge)}</span><span class="pill p-${r.maturity}">${LB[r.maturity]}</span><span class="eff"></span></button><div class="detail hidden">${d}</div></div>`;},'maturity');}
+  else if(view==='debt'){const vis=D.debt.filter(r=>(filter==='all'||r.severity===filter)&&(!q||(r.badge+' '+r.title+' '+r.owner+' '+r.location+' '+r.status+' '+r.note).toLowerCase().includes(q)));
+    b.innerHTML=`<section class="area"><div class="rows">${vis.map(r=>`<div class="scr"><button class="scr-head" aria-expanded="false"><span class="dot d-${CO[r.severity]}"></span><span class="scr-title">${hi(r.title)}</span><span class="lwbadge">${esc(r.badge)}</span><span class="pill p-${r.severity}">${LB[r.severity]}</span><span class="eff">${esc(r.category)}</span></button><div class="detail hidden"><dl><dt>Owner</dt><dd>${hi(r.owner)}</dd><dt>Where</dt><dd class="meta">${hi(r.location)}</dd><dt>Status</dt><dd>${hi(r.status)}</dd>${r.note?`<dt>Note</dt><dd>${hi(r.note)}</dd>`:''}</dl></div></div>`).join('')||'<div class="detail">No matches.</div>'}</div></section>`;}
   else if(view==='fleet'){
     const waves=D.fleet.waves.map(w=>`<span class="wv">${w.id}</span> ${esc(w.name)} <span class="pill p-${w.status}">${LB[w.status]}</span>`).join(' &nbsp;·&nbsp; ');
     let html=`<section class="area"><div class="detail" style="border:0;padding:.7rem 1rem"><b>Waves:</b> ${waves}</div></section>`;
