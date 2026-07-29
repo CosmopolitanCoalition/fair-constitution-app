@@ -225,6 +225,13 @@ function adjourn() {
             re-arms the 90-day meeting clock (CLK-02).
         </template>
 
+        <!-- §10-1 gallery: a session is a civic proceeding, public to watch. -->
+        <Banner v-if="can.isGallery" tone="info" role="status">
+            You are watching this session in the public gallery — a legislature session
+            is a civic proceeding, open to everyone. This is a read-only view; taking part
+            is reserved to the chamber's members. <span class="citation">Art. II §2</span>
+        </Banner>
+
         <Banner v-if="flashStatus" tone="info" role="status">{{ flashStatus }}</Banner>
         <Banner v-if="constitutionError" tone="emergency">{{ constitutionError }}</Banner>
 

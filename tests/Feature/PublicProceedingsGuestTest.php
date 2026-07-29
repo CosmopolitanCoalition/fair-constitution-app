@@ -22,6 +22,7 @@ class PublicProceedingsGuestTest extends TestCase
             '/judiciaries/'.Str::uuid(),
             '/executives/'.Str::uuid(),
             '/legislatures/'.Str::uuid().'/chamber',
+            '/legislatures/'.Str::uuid().'/session',   // §10-1 session gallery — a session is a civic proceeding
             '/system/public-records',
         ] as $url) {
             $location = (string) $this->get($url)->headers->get('Location', '');
@@ -39,6 +40,7 @@ class PublicProceedingsGuestTest extends TestCase
             '/bills/'.Str::uuid().'/refer',
             '/judiciaries/'.Str::uuid().'/cases',
             '/executives/'.Str::uuid().'/orders',
+            '/legislatures/'.Str::uuid().'/sessions',   // §10-1: watching is public, but running a session stays members-only
         ] as $url) {
             $this->withSession(['_token' => $token])
                 ->post($url, ['_token' => $token])

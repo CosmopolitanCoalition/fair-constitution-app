@@ -48,19 +48,26 @@ class SessionController extends Controller
     // GET /legislatures/{legislature}/session
     // =========================================================================
 
-    public function show(Request $request, Legislature $legislature): Response|RedirectResponse
+    public function show(Request $request, Legislature $legislature): Response
     {
         $legislature->loadMissing('jurisdiction');
 
         $viewer = $this->viewerMember($legislature, $request->user());
         $isAdminStaff = in_array('R-29', $this->roles->rolesFor($request->user()), true);
 
-        if ($viewer === null && ! $isAdminStaff) {
-            return redirect("/legislatures/{$legislature->id}/chamber")->with(
-                'status',
-                'Sessions are run by members; minutes publish to the public record.'
-            );
-        }
+        // §10-1 SESSION GALLERY (operator ruling 2026-07-28): a legislature
+        // session is a civic/government proceeding, so it is PUBLIC to watch —
+        // even for a guest or a non-resident. This used to redirect any
+        // non-member (and non-R-29) to the Chamber; that gate is gone, and the
+        // route now drops the `auth` middleware to match chamber.show. A pure
+        // spectator falls through to the identical SessionConsole page, which is
+        // already read-only by construction: every `can.*` below resolves false
+        // for a null $viewer, so no action control renders and the vote tally is
+        // non-castable. `isGallery` merely labels that state with a banner. The
+        // private org/board/group rooms make their OWN visibility call and live
+        // in entirely separate controllers — this ruling touches only the
+        // government proceeding here.
+        $isGallery = $viewer === null && ! $isAdminStaff;
 
         $session = LegislatureSession::query()
             ->where('legislature_id', $legislature->id)
@@ -102,6 +109,7 @@ class SessionController extends Controller
                 'statement'     => $viewer !== null,
                 'attendance'    => $viewer !== null && $session?->status === LegislatureSession::STATUS_OPEN,
                 'isSpeaker'     => $isSpeaker,
+                'isGallery'     => $isGallery,
             ],
         ]);
     }
