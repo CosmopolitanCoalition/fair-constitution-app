@@ -149,6 +149,8 @@ export const SITEMAP = [
         { id: 'operator-mesh', label: 'Mesh & peers', icon: 'globe', href: '/operator/mesh', contract: 'operator/mesh.html' },
         { id: 'operator-identity', label: 'Identity', icon: 'lock', href: '/operator/identity', contract: 'operator/identity.html' },
         { id: 'operator-versioning', label: 'Versions & upgrades', icon: 'refresh-cw', href: '/operator/versioning', contract: 'operator/versioning.html' },
+        { id: 'operator-dns', label: 'DNS & certificates', icon: 'lock', href: '/operator/dns', contract: 'operator/dns.html' },
+        { id: 'operator-moderation', label: 'Moderation & the legal floor', icon: 'shield', href: '/operator/moderation', contract: 'operator/moderation.html' },
         { id: 'operator-operations', label: 'Operations (legacy console)', icon: 'sliders', href: '/operator/operations', contract: 'operator/console.html' },
         { id: 'federation-console', label: 'Federation console', icon: 'globe', href: '/operator/federation', contract: 'operator/mesh.html' },
     ] },

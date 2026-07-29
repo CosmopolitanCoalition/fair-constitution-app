@@ -229,7 +229,10 @@ Route::get('/reach', [\App\Http\Controllers\ReachController::class, 'index'])->n
 // office are tabs, never separate identities. Pseudonymity end-to-end (Art. I); the old
 // /candidates/{candidacy} route 302s onto the Candidacy tab here. Follows are LOCAL-ONLY
 // rows (never audited, never federated, never published — SocialFollow docblock).
-Route::get('/people', [\App\Http\Controllers\Social\PersonProfileController::class, 'show'])->name('people.show');
+// Throttled like the other public probe surfaces (invite.land): handle/uuid
+// probing gets a rate wall, ordinary browsing never notices.
+Route::get('/people', [\App\Http\Controllers\Social\PersonProfileController::class, 'show'])
+    ->middleware('throttle:60,1')->name('people.show');
 Route::middleware('auth')->group(function () {
     Route::post('/people/{user}/follow', [\App\Http\Controllers\Social\PersonProfileController::class, 'follow'])
         ->whereUuid('user')->name('people.follow');
@@ -1206,6 +1209,12 @@ Route::middleware('auth')->group(function () {
         ->name('operator.identity');
     Route::get('/operator/versioning', [\App\Http\Controllers\Operator\MeshConsoleController::class, 'versioning'])
         ->name('operator.versioning');
+    // Wave 2 (lane 2) — the two missing operator pages, same citizen-shell +
+    // operator-data-block pattern as the rest of the suite.
+    Route::get('/operator/dns', [\App\Http\Controllers\Operator\DnsConsoleController::class, 'dns'])
+        ->name('operator.dns');
+    Route::get('/operator/moderation', [\App\Http\Controllers\Operator\ModerationConsoleController::class, 'moderation'])
+        ->name('operator.moderation');
 
     // The traveling-write receipt: poll the ForwardedWrite outcome for a write YOU
     // filed (own-writes only, determined through the sealed audit row; else 404).

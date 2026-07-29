@@ -221,9 +221,11 @@ class OperatorInfraService
      * Installed certs under the TLS path, with parsed subject + expiry. Defensive:
      * an unreadable/garbage cert is skipped, never fatal to the dashboard.
      *
+     * Public: also the /operator/dns page's installed-cert read model.
+     *
      * @return list<array<string,mixed>>
      */
-    private function installedCerts(): array
+    public function installedCerts(): array
     {
         return $this->safe(function (): array {
             $dir = (string) config('cga.broker.tls_path', storage_path('app/mesh-tls'));

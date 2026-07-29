@@ -1255,6 +1255,30 @@ return [
         'citation'  => 'A constitutional bump clears every applicable meter; a regressive bump can never pass · Art. VII',
     ],
 
+    'operator/dns' => [
+        'title'     => 'DNS & certificates',
+        'module'    => 'operator',
+        'nav'       => 'operator-dns',
+        'roles'     => [],
+        'workflows' => ['WF-JUR-06'],
+        'forms'     => [],
+        'clocks'    => [],
+        'citation'  => 'A separate box, a sealed token — the write token never leaves the broker · authority ≠ leadership',
+    ],
+
+    'operator/moderation' => [
+        'title'     => 'Moderation & the legal floor',
+        'module'    => 'operator',
+        'nav'       => 'operator-moderation',
+        'roles'     => [],
+        'workflows' => [],
+        'forms'     => [
+            ['id' => 'F-SOC-004', 'availableTo' => [], 'citation' => 'Key-possession · closed list · append-only sealed trail'],
+        ],
+        'clocks'    => [],
+        'citation'  => 'The operator plane — capability, not role · off the constitutional plane',
+    ],
+
     /*
     |----------------------------------------------------------------------
     | Economy (Phases L+M — lane 13). Ids per K2_CONTENT_WAVE2.md's
