@@ -1162,3 +1162,56 @@ shape) → L1+L4 co-update in ONE commit at the joint step.**
 MyProfileTabs = L1 a32bbc8; MatrixCarveout = L2 56f137a; ModerationFlip = L3 6fe2c77); only SupportLifecycleTest
 remains (→ L6). **Lane 2 = the SINGLE authoritative suite steward** — runs the wave-gate suite once, after the
 2 reds + L3's ① counting land. No competing full-suite runs.
+
+### W4 tick 15 — ⚑⚑ CONVERGENCE: Niue AUTHORIZED · ① fully done · 2 gate reds cleared · L5+L13 DONE · quiet-window gate
+
+**⚑⚑ NIUE CLEAR AUTHORIZED (the wave's headline unblock).** Gate condition MET: lane 3 pinned per-clump
+COUNTING 6f85d322 (electorateFor scopes to panel members — pair→200, single→100, never parent 10k) + SEATING
+8ec50402 (chamber-wide type_b seat_no) against lane 1's c500a1f shape; purity-pin comment red fixed 826859af.
+Lane 1 given explicit GO → apply('active'): 5 panels (2 pairs+3 singles), type_b_seats 14→10, flag cleared,
+racePlan emits 5 per-clump races × 2 = 10. FIRST Type B chamber cleared in the CORRECT per-clump shape.
+
+**LANE 1 — adversarial pass (5f2293b) found 2 defects the 933-pin suite MISSED:** (1) MED drift + R-A bypass
+(racePlan read grouping before the flag; stale grouping emitted drift races + bypassed R-A) → per-clump fires
+ONLY when grouping is CURRENT (not re-flagged AND seats_total==type_b_seats); protects the mass pass. (2) HIGH
+by-election electorate leak (scheduleSpecial dropped type_b_panel_id → whole parent voted) → copy the panel id.
+Both pinned. + GeodataRepairPlaneTest FIXED 06d9545 (manifest → self-owned subdir; was root-owned dir).
+
+**⚑ BOTH WAVE-GATE REDS CLEARED:** BallotSecrecy (L6 3d1abbb, BallotBox::participationCountFor) + Geodata
+(L1 06d9545). Suite effectively green; L13 already got a clean **1336 passed / 0 failed / 3 skipped** re-run.
+
+**LANE 3 ① FULLY DONE** (count+seat+reword). ⚑ Dedicated per-clump pin file APPROVED (don't convert
+CountingStageTest — its unflagged fixture pins the interim POOLED behavior, real until per-child; converts to
+per-CHILD at the joint step). LESSON: editing a PROTECTED core trips source-SCAN pins in OTHER files — grep the
+forbidden-term set after. SEVEN of nine (①②③⑤⑥⑧⑨); ⑦ deferred, ④→L13.
+
+**LANE 6** — SupportLifecycleTest CLEARED (own-the-world → measures the CLAIM). civic/join honest (roster≠presence:
+"N members"+citation, dropped pill--live). Tour 47→60 (13 restored). ⚑ PIN-TIGHTEN RULING RE-RECORDED: my
+"any access" was WRONG — the rail is single-WRITER + no-RAW-access, NOT single-reader (reads distributed by
+design, 8+ legit sites). L6's narrower fix (a2751ae — catch DB::query()->from('x') too) is CORRECT. Tour
+build-team surfaces (/coverage etc.) stay OUT of the player walk (separate act if the operator wants).
+
+**LANE 5 DONE** — ① MULTI-TRACK VIDEO PLAYER live at /videos (2fea981, app-ported from the operator's Coalition
+player, NOT from scratch; browser-proven, 77-lang track-swap). ④ board · ⑤ fr+pt · ② flows extraction · ③ zh-Hans.
+Adversarial review fe5ad51 (reactive-src audio fix + poster \bunit + comment). ⚑ fr/pt monolithic chrome WITHHELD
+(NLLB confidently-wrong nav; rail = refusal-is-the-answer; mechanism shipped, raw output not). Handoffs → L6
+(/videos nav + Learn-flyout video seam) + L11.
+
+**LANE 13 CLOSED** — ①②③ + ⚑ ADVERSARIAL REVIEW (ultracode, 5 reviewers, e8c2884) fixed 8 REAL defects: HIGH
+(same-buyer wallet-negative, same-seller phantom equity, full-sale dangling membership, no stock re-check) + MED
+(cancel race, legal-name leak). Clean re-run 1336/0. F-IND-021 mint 118. CHECK(balance>=0) flagged for a later slot.
+
+**⚑ AUDIT-LOCK CONTENTION (L4 diagnosed):** AuditService::APPEND_LOCK_KEY (0x4155444954) = ONE global advisory
+lock on every audited filing → concurrent test runs serialise → timeouts → SPURIOUS reds (+ instance_settings
+singleton cross-talk). ADOPTED: **lane 2 holds a "SUITE TOKEN"** — the single authoritative gate run in a QUIET
+window, other lanes' test runs FROZEN. Triage order = own-the-world → audit-lock → real defect. Per-lane
+LIVE_PG_DATABASE = the real fix, post-alpha. ⚑ FLEET RULE: never assert an ABSOLUTE count over a shared-world
+table — assert the DELTA or scope to fixture rows (3 confirmations: SupportLifecycle, MyProfileTabs, L1 W2).
+
+**LANE 4 growth dial (f9161f5) — committee half:** GovernanceStage files real F-LEG-009 → supermajority vote →
+adoption writes the committee row (created_by_vote_id PROVES no sim-minted act); formula = pre-governance CEILING
+not mandate. Bicameral chambers decline-with-reason until Type B seats (Niue = first). W4④ PARTIAL: department
+half + pump wiring remain. Debt row CLOSED 5/5.
+
+**PENDING:** Q4a — with the operator (framing: courtTiers=tree-depth, extra-rooms=future room model; singular
+entities stay singular). Quiet-window gate to trigger once Niue lands + freeze confirmed (+ desk runs the chown).
