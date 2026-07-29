@@ -59,6 +59,12 @@ Route::get('/', function (Request $request) {
 Route::get('/launchpad', fn () => Inertia::render('Launchpad'))->name('launchpad');
 Route::get('/tour', fn () => Inertia::render('Tour/Index'))->name('tour');
 
+// Video library (design contract: mockups/v3/shared/video-player.html). Public,
+// no auth — the app port of the operator's Coalition multi-track player: one
+// silent master + a per-language audio + captions. Distinct /videos path so it
+// never collides with the /learn/{track} catch-all below.
+Route::get('/videos', [\App\Http\Controllers\Media\VideoLibraryController::class, 'index'])->name('videos');
+
 // Coverage instruments (design contracts: mockups/v3/shared/coverage.html,
 // coverage-ops.html). "For the build team" QA — public read (surface names +
 // route paths only, no user data). They cross-check the JS nav registry against
