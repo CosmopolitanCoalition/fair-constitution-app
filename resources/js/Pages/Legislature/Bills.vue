@@ -222,6 +222,15 @@ function boundsLabel(bounds) {
                         :href="row.enacted_law.href"
                         style="margin-inline-start: var(--space-2)"
                     >{{ row.enacted_law.act_number }}</Link>
+                    <!-- Art. IV §5 challenge feed — a bill's enacted law under challenge. -->
+                    <Link
+                        v-if="row.challenge"
+                        :href="row.challenge.href"
+                        style="margin-inline-start: var(--space-2)"
+                        :title="`Constitutional challenge · Art. IV §5${row.challenge.count > 1 ? ` (${row.challenge.count})` : ''}`"
+                    >
+                        <StatusBadge :tone="row.challenge.active ? 'danger' : 'neutral'">Challenged</StatusBadge>
+                    </Link>
                 </template>
             </DataTable>
         </Card>

@@ -11,6 +11,7 @@ use App\Models\Bill;
 use App\Models\BillVersion;
 use App\Models\ChamberVote;
 use App\Models\Committee;
+use App\Models\ConstitutionalChallenge;
 use App\Models\Legislature;
 use App\Models\LegislatureSession;
 use App\Models\PublicRecord;
@@ -77,6 +78,8 @@ class BillController extends Controller
             ->get(['id', 'name', 'status'])
             ->keyBy('id');
 
+        $challengesByLaw = $this->challengesByLaw($bills);
+
         return Inertia::render('Legislature/Bills', [
             'surface'     => SurfaceMeta::for('legislature/bills'),
             'legislature' => $this->legislatureProps($legislature),
@@ -96,7 +99,7 @@ class BillController extends Controller
                 'enacted_law'   => $bill->enactedLaw !== null
                     ? ['act_number' => $bill->enactedLaw->act_number, 'href' => "/bills/{$bill->id}"]
                     : null,
-                'challenge'     => null, // Phase E feed
+                'challenge'     => $this->challengeChip($bill, $challengesByLaw),
             ])->values()->all(),
             'filters'     => [
                 'status'   => $bills->pluck('status')->unique()->values()->all(),
@@ -106,6 +109,74 @@ class BillController extends Controller
             'can'         => ['introduce' => $viewer !== null],
         ]);
     }
+
+    /**
+     * Art. IV §5 challenge feed for the registry: one grouped lookup keyed on
+     * the bills' enacted-law ids, so a bill whose enacted law is under a
+     * constitutional challenge can carry a [Challenged] chip. Batched into a
+     * single query (over the covering (challenged_law_id, status) index) rather
+     * than one per row. Live challenges sort first, so the chip deep-links the
+     * most relevant one when a law carries several.
+     *
+     * @param  \Illuminate\Support\Collection<int, Bill>  $bills
+     * @return \Illuminate\Support\Collection<string, \Illuminate\Support\Collection<int, ConstitutionalChallenge>>
+     */
+    private function challengesByLaw(\Illuminate\Support\Collection $bills): \Illuminate\Support\Collection
+    {
+        $lawIds = $bills->pluck('enacted_law_id')->filter()->map(fn ($v) => (string) $v)->unique()->values()->all();
+
+        if ($lawIds === []) {
+            return collect();
+        }
+
+        return ConstitutionalChallenge::query()
+            ->whereIn('challenged_law_id', $lawIds)
+            ->orderByRaw(
+                'CASE WHEN status IN (?, ?, ?, ?, ?) THEN 0 ELSE 1 END',
+                self::ACTIVE_CHALLENGE_STATUSES
+            )
+            ->orderByDesc('filed_at')
+            ->get(['id', 'challenged_law_id', 'status'])
+            ->groupBy(fn (ConstitutionalChallenge $c) => (string) $c->challenged_law_id);
+    }
+
+    /**
+     * The chip for one bill: null unless the bill enacted a law that is under
+     * challenge. `active` = the lead (live-preferred) challenge is still open.
+     *
+     * @param  \Illuminate\Support\Collection<string, \Illuminate\Support\Collection<int, ConstitutionalChallenge>>  $challengesByLaw
+     */
+    private function challengeChip(Bill $bill, \Illuminate\Support\Collection $challengesByLaw): ?array
+    {
+        if ($bill->enacted_law_id === null) {
+            return null;
+        }
+
+        $group = $challengesByLaw->get((string) $bill->enacted_law_id);
+
+        if ($group === null || $group->isEmpty()) {
+            return null;
+        }
+
+        $lead = $group->first();
+
+        return [
+            'id'     => (string) $lead->id,
+            'status' => $lead->status,
+            'count'  => $group->count(),
+            'active' => in_array($lead->status, self::ACTIVE_CHALLENGE_STATUSES, true),
+            'href'   => "/constitutional-challenges/{$lead->id}",
+        ];
+    }
+
+    /** Art. IV §5 challenge states that are still live (not terminally resolved). */
+    private const ACTIVE_CHALLENGE_STATUSES = [
+        ConstitutionalChallenge::STATUS_FILED,
+        ConstitutionalChallenge::STATUS_UNDER_REVIEW,
+        ConstitutionalChallenge::STATUS_FINDING_ISSUED,
+        ConstitutionalChallenge::STATUS_REMEDY_RECOMMENDED,
+        ConstitutionalChallenge::STATUS_LEGISLATIVE_WINDOW_OPEN,
+    ];
 
     /** F-LEG-003 — introduction. */
     public function store(Request $request, Legislature $legislature): RedirectResponse
