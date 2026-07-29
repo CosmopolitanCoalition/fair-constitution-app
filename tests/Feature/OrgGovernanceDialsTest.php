@@ -87,6 +87,57 @@ class OrgGovernanceDialsTest extends TestCase
         });
     }
 
+    /**
+     * Design Round 2 ② — the dues POLICY. Dues are a bounded decimal stored
+     * as a canonical money string, honest-absence before it is set, and on
+     * the audit chain when it changes. Dues are a membership obligation, not
+     * a constitutional value.
+     */
+    public function test_dues_policy_is_a_bounded_money_string_and_honest_when_absent(): void
+    {
+        $this->onLivePg(function () {
+            [$org, $agent] = $this->orgFixture('member_owned');
+            $service = app(OrgSettingsService::class);
+
+            // Honest-absence: an org that has set no dues charges none.
+            $this->assertNull($service->get($org, 'dues_amount'));
+            $this->assertNull($service->get($org, 'dues_period_days'));
+
+            // A negative due is refused by the bound.
+            try {
+                $service->set($org, 'dues_amount', -5, $agent);
+                $this->fail('a negative dues amount must be refused');
+            } catch (InvalidArgumentException $e) {
+                $this->assertStringContainsString('between 0 and', $e->getMessage());
+            }
+
+            // A decimal is stored as a canonical money string (numeric(24,6)).
+            $service->set($org, 'dues_amount', '5.5', $agent);
+            $service->set($org, 'dues_period_days', 30, $agent);
+
+            $org->refresh();
+            $this->assertSame('5.500000', $service->get($org, 'dues_amount'));
+            $this->assertSame(30, $service->get($org, 'dues_period_days'));
+
+            // A zero-day cadence is refused.
+            try {
+                $service->set($org, 'dues_period_days', 0, $agent);
+                $this->fail('a zero-day cadence must be refused');
+            } catch (InvalidArgumentException $e) {
+                $this->assertStringContainsString('between 1 and 3650', $e->getMessage());
+            }
+
+            $this->assertTrue(
+                DB::table('audit_log')
+                    ->where('event', 'org.setting_changed')
+                    ->where('payload->organization_id', (string) $org->id)
+                    ->where('payload->key', 'dues_amount')
+                    ->exists(),
+                'a dues policy change must append to the audit chain'
+            );
+        });
+    }
+
     // ── 6b: restructuring ────────────────────────────────────────────────
 
     public function test_equal_partnership_requires_unanimity_and_adopts_in_the_meeting_act(): void

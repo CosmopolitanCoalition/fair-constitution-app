@@ -1492,4 +1492,18 @@ return [
         'citation'  => 'Every monetary lever moves by act, dual-door · Art. II §9 · [POLICY]',
     ],
 
+    'economy/org-settings' => [
+        'title'     => 'Organization economics',
+        'module'    => 'economy',
+        'nav'       => null,
+        'roles'     => ['R-23'],
+        'workflows' => [],
+        'forms'     => [
+            ['id' => 'F-ORG-001', 'availableTo' => ['R-23'], 'citation' => 'The org sets its own dues policy — not a constitutional value'],
+            ['id' => 'F-IND-023', 'availableTo' => ['R-01'], 'citation' => 'A due is paid as an ordinary transfer, kind=dues'],
+        ],
+        'clocks'    => [],
+        'citation'  => 'Dues are voluntary; a lapse ends membership, never a right · Art. I · Art. II §8',
+    ],
+
 ];
