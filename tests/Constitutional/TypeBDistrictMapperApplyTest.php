@@ -2,7 +2,11 @@
 
 namespace Tests\Constitutional;
 
+use App\Models\ElectionRace;
 use App\Models\Legislature;
+use App\Models\LegislatureMember;
+use App\Models\User;
+use App\Models\Vacancy;
 use App\Services\ElectionLifecycleService;
 use App\Services\Legislature\TypeBDistrictMapper;
 use Illuminate\Support\Facades\DB;
@@ -224,6 +228,108 @@ class TypeBDistrictMapperApplyTest extends TestCase
             $leg = DB::table('legislatures')->where('id', $legId)->first();
             $this->assertTrue((bool) $leg->type_b_needs_districting, 'a draft does NOT clear the flag');
             $this->assertSame(16, (int) $leg->type_b_seats, 'a draft does NOT resize the sitting chamber');
+        });
+    }
+
+    /**
+     * DRIFT + R-A HARDENING (2026-07-29 adversarial pass, MED). racePlan reads the
+     * active grouping, but a re-seed (ApportionmentSeedCommand's $existing branch)
+     * resizes / re-flags type_b_seats WITHOUT touching the grouping trio, so the
+     * two diverge. A STALE grouping — re-flagged OR seats_total ≠ type_b_seats —
+     * must BLOCK: emitting its races would seat Σ seats ≠ type_b_seats (DRIFT, always
+     * wrong) and silently bypass the R-A guard. Only a CURRENT grouping elects.
+     */
+    public function test_a_stale_grouping_blocks_instead_of_drifting(): void
+    {
+        $this->onLivePg(function (): void {
+            $tag = 'tbtest-' . Str::lower(Str::random(6));
+            $legId = $this->seedFlagged($tag, 8, 5, $childIds);
+            (new TypeBDistrictMapper())->apply($legId, 'active'); // flag cleared, type_b_seats=4, grouping seats_total=4
+
+            $svc = app(ElectionLifecycleService::class);
+
+            // Baseline: a CURRENT grouping elects per clump.
+            $this->assertSame('panels', $svc->racePlan(Legislature::find($legId))['kinds']['type_b']['mode'] ?? null,
+                'a current grouping elects per clump');
+
+            // A re-seed re-flags + re-sizes the Legislature column, leaving the
+            // grouping (seats_total 4) stale against type_b_seats 16.
+            DB::table('legislatures')->where('id', $legId)
+                ->update(['type_b_seats' => 16, 'type_b_needs_districting' => true]);
+            $reflagged = $svc->racePlan(Legislature::find($legId));
+            $this->assertSame('blocked', $reflagged['kinds']['type_b']['mode'] ?? null,
+                're-flagged: the stale grouping must NOT elect (would drift + bypass R-A)');
+            $this->assertStringContainsString('stale', $reflagged['kinds']['type_b']['reason']);
+
+            // Even with the flag CLEARED, a seats_total ≠ type_b_seats divergence
+            // is drift and must block.
+            DB::table('legislatures')->where('id', $legId)
+                ->update(['type_b_seats' => 7, 'type_b_needs_districting' => false]);
+            $diverged = $svc->racePlan(Legislature::find($legId));
+            $this->assertSame('blocked', $diverged['kinds']['type_b']['mode'] ?? null,
+                'seats_total (4) != type_b_seats (7) is drift — block until re-grouped');
+        });
+    }
+
+    /**
+     * BY-ELECTION SCOPING (2026-07-29 adversarial pass, HIGH). A Type B PANEL seat's
+     * special election must stay within THAT panel. scheduleSpecial must copy
+     * type_b_panel_id from the vacated seat's race — drop it and RaceFootprint's
+     * COALESCE falls through to the parent jurisdiction, so the WHOLE parent votes
+     * (the pooled electorate the per-clump fix removed) and per-panel attribution
+     * is lost.
+     */
+    public function test_a_type_b_panel_by_election_stays_within_its_panel(): void
+    {
+        $this->onLivePg(function (): void {
+            $tag = 'tbtest-' . Str::lower(Str::random(6));
+            $legId = $this->seedFlagged($tag, 8, 5, $childIds);
+            (new TypeBDistrictMapper())->apply($legId, 'active');
+
+            $svc = app(ElectionLifecycleService::class);
+            $election = $svc->scheduleGeneral(Legislature::find($legId));
+
+            $panelRace = ElectionRace::query()
+                ->where('election_id', $election->id)
+                ->where('seat_kind', 'type_b')
+                ->whereNotNull('type_b_panel_id')
+                ->first();
+            $this->assertNotNull($panelRace, 'a per-clump panel race exists to vacate');
+
+            $user = User::create([
+                'name' => 'Panel Rep ' . Str::uuid(),
+                'email' => 'panel-rep-' . Str::uuid() . '@test.invalid',
+                'password' => Str::random(32),
+                'terms_accepted_at' => now(),
+            ]);
+            $member = LegislatureMember::create([
+                'legislature_id'     => $legId,
+                'user_id'            => (string) $user->id,
+                'seat_type'          => 'b',
+                'seat_no'            => 1,
+                'status'             => LegislatureMember::STATUS_SEATED,
+                'elected_in_race_id' => $panelRace->id,
+                'term_ends_on'       => now()->addYears(5)->toDateString(),
+            ]);
+
+            $vacancy = Vacancy::create([
+                'seat_type'       => 'legislature_members',
+                'seat_id'         => (string) $member->id,
+                'legislature_id'  => $legId,
+                'jurisdiction_id' => DB::table('legislatures')->where('id', $legId)->value('jurisdiction_id'),
+                'status'          => Vacancy::STATUS_COUNTBACK_FAILED,
+                'detected_at'     => now(),
+                'declared_at'     => now(),
+            ]);
+
+            $special = $svc->scheduleSpecial($vacancy, null, true); // forced: skip the window check
+            $specialRace = ElectionRace::query()->where('election_id', $special->id)->first();
+
+            $this->assertNotNull($specialRace, 'the by-election has a race');
+            $this->assertNotNull($specialRace->type_b_panel_id, 'never a bare parent-wide at-large by-election');
+            $this->assertSame((string) $panelRace->type_b_panel_id, (string) $specialRace->type_b_panel_id,
+                'the by-election carries the vacated seat panel key — it stays within the panel');
+            $this->assertNull($specialRace->district_id, 'a Type B by-election is at-large within its clump');
         });
     }
 

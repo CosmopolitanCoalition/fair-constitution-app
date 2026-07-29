@@ -330,11 +330,18 @@ class ElectionLifecycleService implements ElectionSchedulingDelegate
                 'ranked_closes_at'      => $rClose,
             ]);
 
-            // ONE race, scoped to the vacated seat's district (or at-large
-            // footprint), for exactly the vacant seat.
+            // ONE race, scoped to the vacated seat's footprint (its district,
+            // its Type B CLUMP, or the at-large jurisdiction), for exactly the
+            // vacant seat. The clump key MUST ride along: a Type B panel seat's
+            // by-election belongs to that panel's constituents alone — dropping
+            // type_b_panel_id falls RaceFootprint's COALESCE through to the
+            // parent jurisdiction, re-enfranchising the whole parent (the pooled
+            // electorate the per-clump fix removed) and losing per-panel seat
+            // attribution. Copy it from the vacated seat's original race.
             $race = ElectionRace::create([
                 'election_id'     => $election->id,
                 'district_id'     => $originalRace?->district_id,
+                'type_b_panel_id' => $originalRace?->type_b_panel_id,
                 'jurisdiction_id' => $raceJurisdiction,
                 'seat_kind'       => $originalRace?->seat_kind ?? ($member?->seat_type === 'b' ? ElectionRace::SEAT_KIND_TYPE_B : ElectionRace::SEAT_KIND_TYPE_A),
                 'seats'           => 1,
@@ -626,12 +633,15 @@ class ElectionLifecycleService implements ElectionSchedulingDelegate
                 ->whereNull('deleted_at')
                 ->first();
 
-            if ($activeGrouping !== null) {
+            if ($activeGrouping !== null
+                && ! (bool) $legislature->type_b_needs_districting
+                && (int) $activeGrouping->seats_total === $typeB) {
                 // PER-CLUMP. Each panel elects its OWN rep_floor seats at-large
                 // from the UNION of the panel's constituents' residents
                 // (RaceFootprint LEFT JOINs the panel members). The 5–9 band does
                 // not bind these races; a panel seats rep_floor. Seats are exact
                 // by construction: Σ panel.seats = grouping.seats_total = type_b.
+                // Guarded above: this fires ONLY when the grouping is CURRENT.
                 $panels = DB::table('legislature_type_b_panels')
                     ->where('grouping_id', $activeGrouping->id)
                     ->whereNull('deleted_at')
@@ -639,6 +649,26 @@ class ElectionLifecycleService implements ElectionSchedulingDelegate
                     ->get();
 
                 $kinds['type_b'] = ['mode' => 'panels', 'panels' => $panels];
+            } elseif ($activeGrouping !== null) {
+                // STALE GROUPING GUARD (DRIFT + R-A, hardened by the 2026-07-29
+                // adversarial pass). An active grouping is lawful to elect ONLY
+                // when it is CURRENT — the chamber is not re-flagged AND
+                // grouping.seats_total == type_b_seats. A re-seed
+                // (ApportionmentSeedCommand's $existing branch) resizes/re-flags
+                // the Legislature column WITHOUT touching the grouping trio, so the
+                // two diverge; and racePlan reads the grouping. Emitting a stale
+                // grouping's races would seat Σ seats ≠ type_b_seats (DRIFT — always
+                // wrong, CLAUDE.md) and silently bypass the R-A block. So a stale
+                // grouping BLOCKS until re-grouped (re-running the mapper archives
+                // the old plan and mints a current one that clears the flag).
+                $kinds['type_b'] = [
+                    'mode'     => 'blocked',
+                    'reason'   => "type_b grouping is stale — grouping seats_total {$activeGrouping->seats_total} vs type_b_seats {$typeB}"
+                        . ((bool) $legislature->type_b_needs_districting ? ' and the chamber is re-flagged for districting' : '')
+                        . '; re-grouping required before it can elect',
+                    'citation' => 'Art. V §3',
+                ];
+                $blocked = true;
             } elseif ((bool) $legislature->type_b_needs_districting) {
                 // R-A GUARD (operator ruling 2026-07-28, V3_SYNTHESIS_PLAN §10;
                 // "We will not playtest Type B elections until this is fixed.").
