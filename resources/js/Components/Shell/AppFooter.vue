@@ -7,8 +7,8 @@
  *
  * The surface is INJECTED (both shells `provide('cga:surface', …)`) rather
  * than threaded as a prop, so the links ride every page of both shells with
- * no shell edits. Accessibility renders as Planned until its page lands
- * (Wave 2) — the registry idiom: never a dead link.
+ * no shell edits. Accessibility now links to /system/accessibility (the page
+ * landed in Wave 2); Report-an-issue carries ?ref=<surface>.
  */
 import { computed, inject } from 'vue';
 import { useI18n } from 'vue-i18n';
@@ -45,10 +45,8 @@ const reportHref = computed(() => {
         <span v-if="citation" class="footer-citation">{{ citation }}</span>
         <span class="header-spacer"></span>
         <slot />
-        <!-- Accessibility statement page is Wave 2; flips to a link when it lands. -->
-        <span class="citation" title="The accessibility statement page is on its way">
-            Accessibility <span class="planned-flag">Planned</span>
-        </span>
+        <!-- Accessibility statement — the page landed in Wave 2 (/system/accessibility). -->
+        <a href="/system/accessibility">Accessibility</a>
         <a :href="reportHref"><Icon name="flag" size="sm" /> Report an issue</a>
         <span class="footer-instance">{{ instanceLine }}</span>
         <span v-if="auditSeq !== null" class="audit-chip">

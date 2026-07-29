@@ -132,14 +132,15 @@ export const SITEMAP = [
     { key: 'help', title: 'Learn & help', items: [
         { id: 'learn', label: 'Learn & lessons', icon: 'graduation-cap', href: null, contract: 'learn/learn-home.html', phase: 7 },
         { id: 'support-report', label: 'Report an issue', icon: 'flag', href: '/support/report', contract: 'support/report.html' },
-        { id: 'accessibility', label: 'Accessibility', icon: 'shield', href: null, contract: 'shared/accessibility.html', phase: 7 },
+        { id: 'accessibility', label: 'Accessibility', icon: 'shield', href: '/system/accessibility', contract: 'shared/accessibility.html' },
+        { id: 'constitutional-questions', label: 'Constitutional questions', icon: 'file-text', href: '/system/constitutional-questions', contract: 'shared/constitutional-questions.html' },
     ] },
     { key: 'records', title: 'Records & the clock', items: [
         { id: 'public-records', label: 'Public records', icon: 'file-text', href: '/system/public-records', contract: 'system/public-records.html' },
         { id: 'audit-chain', label: 'The audit chain', icon: 'lock', href: '/system/audit-chain', contract: 'system/audit-chain.html' },
         { id: 'amendments', label: 'Amendments', icon: 'file-text', href: '/system/amendments', contract: 'system/amendments.html' },
         { id: 'term-sync', label: 'Terms end together', icon: 'refresh-cw', href: '/system/term-sync', contract: 'system/term-sync.html' },
-        { id: 'clocks', label: 'The clocks', icon: 'clock', href: '/system/clocks', contract: 'shared/clocks.html' },
+        { id: 'clocks', label: 'The clocks', icon: 'clock', href: '/system/clocks', contract: 'shared/clocks.html', public: true }, // public read (RULED §10-8)
     ] },
     { key: 'node', title: 'Run a node', items: [
         { id: 'setup-wizard', label: 'Found the instance', icon: 'sliders', href: '/setup', contract: 'system/setup.html' },

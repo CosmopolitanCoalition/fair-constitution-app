@@ -974,6 +974,32 @@ return [
         'citation'  => 'Two doors: amendable settings by valid act within hardened bounds; the hardened layer only by a release passing every constitutional check · Art. VII',
     ],
 
+    // Static contract pages (mockups/v3/shared/accessibility.html +
+    // shared/constitutional-questions.html). Surface ids kept as `shared/…`
+    // to match the mockup CGA_PAGE ids and the authored Learn copy in
+    // registry/education.js; routed under /system (read-only, public read).
+    'shared/accessibility' => [
+        'title'     => 'Accessibility statement',
+        'module'    => 'shared',
+        'nav'       => 'accessibility',
+        'roles'     => [],
+        'workflows' => [],
+        'forms'     => [],
+        'clocks'    => [],
+        'citation'  => 'WCAG 2.2 AA · EN 301 549 · the interface must add no barrier the constitution forbids · Art. I',
+    ],
+
+    'shared/constitutional-questions' => [
+        'title'     => 'Constitutional questions',
+        'module'    => 'shared',
+        'nav'       => 'ledger',
+        'roles'     => [],
+        'workflows' => ['WF-SYS-05'],
+        'forms'     => [],
+        'clocks'    => [],
+        'citation'  => 'The seed list for the post-game redraft — every "as implemented" marker resolves here',
+    ],
+
     /*
     |----------------------------------------------------------------------
     | mockups-v3-wiring Phase 3c — the journeys engine

@@ -1010,8 +1010,19 @@ Route::middleware('auth')->prefix('system')->name('system.')->group(function () 
     // mockups-v3-wiring Phase 2 — read-only registry/ledger pages over
     // EXISTING services (design contracts: mockups/v3/shared/clocks.html,
     // mockups/v3/system/amendments.html). Zero actions by design.
-    Route::get('/clocks', [\App\Http\Controllers\System\ClocksController::class, 'show'])->name('clocks');
+    Route::get('/clocks', [\App\Http\Controllers\System\ClocksController::class, 'show'])
+        ->name('clocks')->withoutMiddleware('auth'); // public read (RULED §10-8) — the clock is a public record
     Route::get('/amendments', [\App\Http\Controllers\System\AmendmentsController::class, 'show'])->name('amendments');
+    // Static contract pages (design contracts: mockups/v3/shared/accessibility.html,
+    // shared/constitutional-questions.html). Public read (withoutMiddleware) — the footer
+    // Accessibility link and every `· as implemented` citation can render before a session
+    // exists, so these honest public documents must be reachable without one. Surface ids are
+    // `shared/…` (matching the authored Learn copy + the mockup CGA_PAGE ids); the routes live
+    // under /system with the other read-only ledger pages.
+    Route::get('/accessibility', [\App\Http\Controllers\System\AccessibilityController::class, 'show'])
+        ->name('accessibility')->withoutMiddleware('auth');
+    Route::get('/constitutional-questions', [\App\Http\Controllers\System\ConstitutionalQuestionsController::class, 'show'])
+        ->name('constitutional-questions')->withoutMiddleware('auth');
     // Phase N (lane 5) — translation status board. Read-only; the numbers are
     // the coverage artifact scripts/i18n/check.mjs writes, never a second
     // computation that could disagree with the gate.
