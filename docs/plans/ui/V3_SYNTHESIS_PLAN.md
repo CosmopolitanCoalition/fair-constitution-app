@@ -221,6 +221,16 @@ Side-ruling recorded from the same answers: **all storage stays UTC; display is 
 user's local via client/browser** — already the app's posture (`timestamptz` UTC, client
 formatting); reaffirmed, not a change.
 
+**Ruling 3 COMPLETED (operator, 2026-07-28 ~9:50 PM): the training gate sits at
+PRE-SEATING** — *"pre-seating is best. You need to do the training to do the job."*
+Mechanics: Art. I untouched — anyone registers candidacy and appears on the ballot; a
+WINNER must complete the role's training BEFORE taking the seat; a winner who declines or
+fails to complete falls to the existing universal countback, exactly like any declined
+seat. Appointed/registered roles gate at application/registration as originally ruled.
+`EducationNoGateTest` narrows from "no gate anywhere" to "no gate on BALLOT ACCESS, ever" —
+the pre-seating gate is lawful; lane 15 records this in `K2_ENGINE_PLAN §10.7` and designs
+the gate half accordingly (build rides the F-EDU engine build, not Wave 2 pages).
+
 ### SETTLED 2026-07-28 (second round) — all ten items now ruled
 
 | # | Ruling |

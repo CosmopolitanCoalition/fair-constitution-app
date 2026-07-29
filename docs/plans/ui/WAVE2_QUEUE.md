@@ -83,10 +83,10 @@ rebuild recipe is on file and needs an announced `fcd_vite` restart if ever swit
 
 ## ⚖ Operator items accumulated during Wave 1
 
-- **Art. I elected-training-gate placement** (K2_ENGINE_PLAN §10.7, lane 15): pre-ballot
-  (collides with the hard constraint) / **pre-seating (lane 15's recommendation — ballot
-  untouched; countback already handles a refusing winner)** / advisory. Until his word,
-  nothing gates any elected path (pinned by the narrowed EducationNoGateTest).
+- ~~Art. I elected-training-gate placement~~ — **RULED 2026-07-28: PRE-SEATING** ("you need
+  to do the training to do the job"). Ballot access untouched; winners train before taking
+  the seat; decliners fall to countback. Lane 15 records in K2_ENGINE_PLAN §10.7; the pin
+  narrows to no-gate-on-ballot-access-ever.
 - Screenshot debts for the Wave 1 review: lane 4 (flyout clock advance) + lane 15 (flyout on
   2–3 surfaces) — both DOM/server-verified, pixel shots blocked while no browser pane
   composites; capture at review time when the operator is present.
