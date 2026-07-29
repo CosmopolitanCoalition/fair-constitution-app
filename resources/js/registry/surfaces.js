@@ -150,7 +150,7 @@ export const SITEMAP = [
         { id: 'operator-identity', label: 'Identity', icon: 'lock', href: '/operator/identity', contract: 'operator/identity.html' },
         { id: 'operator-versioning', label: 'Versions & upgrades', icon: 'refresh-cw', href: '/operator/versioning', contract: 'operator/versioning.html' },
         { id: 'operator-operations', label: 'Operations (legacy console)', icon: 'sliders', href: '/operator/operations', contract: 'operator/console.html' },
-        { id: 'federation-console', label: 'Federation (legacy)', icon: 'globe', href: '/federation', contract: 'operator/mesh.html' },
+        { id: 'federation-console', label: 'Federation console', icon: 'globe', href: '/operator/federation', contract: 'operator/mesh.html' },
     ] },
     /* The mockup sidebar ends with this section (shell-v2.js "For the build
        team") — V3 synthesis S6. The four dev kits are app-ahead surfaces with

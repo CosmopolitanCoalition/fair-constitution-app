@@ -313,7 +313,7 @@ const doors = [
             <p class="gloss">
                 The older consoles stay reachable while the campaign proves parity:
                 <Link href="/operator/operations">Operations (legacy console)</Link> ·
-                <Link href="/federation">Federation (legacy)</Link>.
+                <Link href="/operator/federation">Federation console</Link>.
                 Signed in as <strong>{{ operator }}</strong>.
             </p>
         </template>

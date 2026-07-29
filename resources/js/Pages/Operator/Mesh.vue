@@ -205,7 +205,7 @@ const syncColumns = [
                 <p v-if="peers.length === 0" class="gloss">
                     No peers yet — this box stands alone. Joining a cluster starts with a
                     one-shot join-key minted by a host operator; the join wizard runs on the
-                    <Link href="/federation">operations (legacy) console</Link> this campaign.
+                    <Link href="/operator/federation">federation console</Link> this campaign.
                     Joining never moves authority: which box holds a place's home copy stays
                     exactly where it was.
                 </p>

@@ -83,7 +83,7 @@ function submit() {
                             {{ form.processing ? 'Signing in…' : 'Sign in as operator' }}
                         </Btn>
                         <span class="cc-small">
-                            <Link href="/federation">Back to the federation console</Link>
+                            <Link href="/operator/federation">Back to the federation console</Link>
                         </span>
                     </div>
                 </form>

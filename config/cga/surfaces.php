@@ -1166,6 +1166,17 @@ return [
         'citation'  => 'Restoration cascade: constituents, then the encompassing jurisdiction, then individuals · Art. VI §2–3',
     ],
 
+    'jurisdictions/federation' => [
+        'title'     => 'Between governments',
+        'module'    => 'jurisdictions',
+        'nav'       => 'federation',
+        'roles'     => ['R-09', 'R-04'],
+        'workflows' => ['WF-JUR-05'],
+        'forms'     => [],
+        'clocks'    => [],
+        'citation'  => 'Boundary changes pass by a two-thirds supermajority of the affected population · Art. V §2',
+    ],
+
     /*
     |----------------------------------------------------------------------
     | mockups-v3-wiring Phase 4 — the operator/* console suite

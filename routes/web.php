@@ -542,10 +542,19 @@ Route::post('/receipt-check', [BallotController::class, 'receiptCheck'])->name('
 | middleware alone. ConstitutionalViolation → 422 with the citation
 | verbatim (errors.constitution).
 */
+// ── RULED §10 item 9 — /federation is the read-only CITIZEN view ("Between
+// governments": border settlement, Art. V §2/§7). The operator console that
+// lived here moved to /operator/federation below — placement only, no
+// behavior change; every /federation/* action route keeps its address.
+Route::get('/federation', [\App\Http\Controllers\Jurisdictions\LifecycleController::class, 'federation'])
+    ->name('federation.between');
+
 Route::middleware('auth')->group(function () {
     // ── FE-F — Federation console (Phase F, WF-JUR-06): peers, FF&C sync
     // history, head checkpoints, authority claims. Public-read (Art. II §2).
-    Route::get('/federation', [\App\Http\Controllers\Federation\FederationConsoleController::class, 'show'])
+    // Moved from /federation (ruling §10 item 9) — the join-a-cluster wizard
+    // and mesh tooling live under the operator plane now.
+    Route::get('/operator/federation', [\App\Http\Controllers\Federation\FederationConsoleController::class, 'show'])
         ->name('federation.show');
     // ── Phase O — the simulated-world populate console. The surface an
     // operator leaves OPEN while a generation run happens, the way Step-3 is

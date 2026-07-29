@@ -200,6 +200,39 @@ class LifecycleController extends Controller
         return back()->with('status', 'disintermediation-proposal-opened');
     }
 
+    /**
+     * GET /federation — "Between governments", the read-only CITIZEN view
+     * (ruling §10 item 9: the operator console moved to /operator/federation).
+     * Border settlement is the everyday case: the people inside the moving
+     * boundary deliberate, vote by 2/3 of ALL affected, and the map updates.
+     */
+    public function federation(): Response
+    {
+        $settlements = BorderSettlement::query()
+            ->orderByDesc('created_at')
+            ->limit(25)
+            ->get();
+
+        $names = $this->jurisdictionNames($settlements->flatMap(fn (BorderSettlement $s) => [
+            (string) $s->jurisdiction_a_id,
+            (string) $s->jurisdiction_b_id,
+        ])->unique()->values()->all());
+
+        return Inertia::render('Jurisdictions/BetweenGovernments', [
+            'surface' => SurfaceMeta::for('jurisdictions/federation'),
+            'settlements' => $settlements->map(fn (BorderSettlement $s) => [
+                'id' => (string) $s->id,
+                'a' => $names[(string) $s->jurisdiction_a_id] ?? (string) $s->jurisdiction_a_id,
+                'b' => $names[(string) $s->jurisdiction_b_id] ?? (string) $s->jurisdiction_b_id,
+                'affected_population' => (int) ($s->affected_population ?? 0),
+                'required' => \App\Services\ConstitutionalValidator::supermajority((int) ($s->affected_population ?? 0)),
+                'supermajority_met' => (bool) $s->affected_supermajority_met,
+                'status' => (string) $s->status,
+                'opened_at' => $s->created_at?->toIso8601String(),
+            ])->values()->all(),
+        ]);
+    }
+
     /** GET /jurisdictions/restoration — when government is lost. */
     public function restoration(): Response
     {
