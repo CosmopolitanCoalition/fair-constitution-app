@@ -4,6 +4,7 @@ namespace App\Services\Economy;
 
 use App\Models\Economy\Currency;
 use App\Models\Organization;
+use App\Models\OrgMembership;
 use App\Models\OrgOwnershipStake;
 use App\Models\User;
 use App\Services\Organizations\OrgOwnershipService;
@@ -66,9 +67,23 @@ class ShareTradeService
         }
 
         $held = $this->heldUnits($organizationId, (string) $seller->id);
-        if ($held + 1e-9 < $units) {
+
+        // Count the seller's OTHER open offers for this org: a holding backs a
+        // sum of offers, not each one independently — otherwise a 100-unit
+        // holder could list two 100-unit offers and, filled concurrently, mint
+        // phantom equity. The buy path also locks + re-guards; this refuses the
+        // over-listing at the source.
+        $alreadyOffered = (float) DB::table('share_offers')
+            ->where('organization_id', $organizationId)
+            ->where('seller_holder_type', OrgOwnershipStake::HOLDER_USERS)
+            ->where('seller_holder_id', (string) $seller->id)
+            ->where('status', 'open')
+            ->whereNull('deleted_at')
+            ->sum('units');
+
+        if ($alreadyOffered + $units > $held + 1e-9) {
             throw new \App\Domain\Engine\ConstitutionalViolation(
-                'You cannot offer more shares than you hold.',
+                'You cannot offer more shares than you hold — your open offers already cover them.',
                 'Art. III §5'
             );
         }
@@ -123,28 +138,59 @@ class ShareTradeService
                 throw new RuntimeException('You cannot buy your own share offer.');
             }
 
-            $sellerId = (string) $offer->seller_holder_id;
-            $units    = (float) $offer->units;
-            $total    = bcmul((string) $offer->units, (string) $offer->price_per_unit, 6);
+            $sellerId   = (string) $offer->seller_holder_id;
+            $orgId      = (string) $offer->organization_id;
+            $units      = (float) $offer->units;
+            $currencyId = (string) $offer->currency_id;
+            $total      = bcmul((string) $offer->units, (string) $offer->price_per_unit, 6);
 
-            // The offer can go stale — re-check the seller still holds enough.
-            if ($this->heldUnits((string) $offer->organization_id, $sellerId) + 1e-9 < $units) {
+            // Ensure both wallets, then LOCK the contended rows BEFORE any guard,
+            // in a consistent order (accounts before stakes) so concurrent buys
+            // serialize without deadlock. Two races the offer-row lock does NOT
+            // cover: the same buyer draining one wallet across two offers
+            // (overdraft), and the same seller's units filling two offers at once
+            // (phantom equity). Locking here makes both the sufficiency and the
+            // holdings checks act on a state no concurrent buy can change under us.
+            $buyerAccount  = (string) $this->accounts->open('users', (string) $buyer->id, $currencyId)->id;
+            $sellerAccount = (string) $this->accounts->open('users', $sellerId, $currencyId)->id;
+            DB::table('economic_accounts')->where('id', $buyerAccount)->lockForUpdate()->first();
+            DB::table('org_ownership_stakes')
+                ->where('organization_id', $orgId)
+                ->where('holder_type', OrgOwnershipStake::HOLDER_USERS)
+                ->where('holder_id', $sellerId)
+                ->whereNull('ended_at')
+                ->lockForUpdate()->get();
+
+            // Re-check the org is STILL a stock enterprise — a restructure between
+            // offer and buy must not let equity settle on an org that no longer
+            // has shares.
+            $org = Organization::query()->findOrFail($orgId);
+            if ((string) $org->structure !== Organization::STRUCTURE_STOCK) {
+                throw new \App\Domain\Engine\ConstitutionalViolation(
+                    'Only a stock organization has shares to trade — this organization no longer does.',
+                    'Art. III §5'
+                );
+            }
+
+            // With the seller's stakes now LOCKED, this read is authoritative: a
+            // losing concurrent buy sees the reduced holding HERE and the whole
+            // transaction (money leg included) rolls back. A HARD guard — never a
+            // silent fall-through into an unconditional buyer stake.
+            $held = $this->heldUnits($orgId, $sellerId);
+            if ($held + 1e-9 < $units) {
                 throw new \App\Domain\Engine\ConstitutionalViolation(
                     'The seller no longer holds enough shares to honor this offer.',
                     'Art. III §5'
                 );
             }
 
-            // MONEY leg (account plane). ensure both wallets, then transfer.
-            // assertSufficient inside transfer() refuses an overdraft.
-            $currencyId    = (string) $offer->currency_id;
-            $buyerAccount  = $this->accounts->open('users', (string) $buyer->id, $currencyId)->id;
-            $sellerAccount = $this->accounts->open('users', $sellerId, $currencyId)->id;
-
+            // MONEY leg (account plane). assertSufficient inside transfer()
+            // refuses an overdraft; the buyer-account lock above makes that check
+            // race-safe against the buyer's other concurrent buys.
             $entryGroup = bccomp($total, '0', 6) > 0
                 ? $this->accounts->transfer(
-                    (string) $buyerAccount,
-                    (string) $sellerAccount,
+                    $buyerAccount,
+                    $sellerAccount,
                     $currencyId,
                     $total,
                     'share_trade',
@@ -152,28 +198,27 @@ class ShareTradeService
                 )
                 : null; // a zero-price gift still moves ownership, no money leg
 
-            // OWNERSHIP leg (named plane, Ruling B). Consolidate the seller's
-            // open stakes, reopen the remainder, open the buyer's — all
-            // VIA_TRANSFER, tagged with the money leg they rode.
-            $org = Organization::query()->findOrFail((string) $offer->organization_id);
-            $held = $this->heldUnits((string) $offer->organization_id, $sellerId);
-
+            // OWNERSHIP leg (named plane, Ruling B). Consolidate the seller's open
+            // stakes, reopen the remainder, open the buyer's — all VIA_TRANSFER.
+            // NB: source_transfer_id on a stake FK-references org_transfers (the
+            // restructuring instrument), NOT a money entry, so the stake carries
+            // null; the money↔ownership link lives on share_offers.money_transfer_id.
             OrgOwnershipStake::query()
-                ->where('organization_id', $offer->organization_id)
+                ->where('organization_id', $orgId)
                 ->where('holder_type', OrgOwnershipStake::HOLDER_USERS)
                 ->where('holder_id', $sellerId)
                 ->open()
                 ->update(['ended_at' => now(), 'updated_at' => now()]);
 
-            // NB: source_transfer_id on a stake FK-references org_transfers (the
-            // internal-restructuring instrument), NOT a money entry. A share
-            // trade is not an org_transfer, so the stake carries null there; the
-            // money↔ownership link lives on share_offers.money_transfer_id below.
             $remainder = round($held - $units, 6);
             if ($remainder > 1e-9) {
                 $this->ownership->openStake($org, OrgOwnershipStake::HOLDER_USERS, $sellerId, $remainder, OrgOwnershipStake::VIA_TRANSFER, null);
             } else {
-                // Seller kept nothing — recompute so the cap table drops them.
+                // Seller fully divested — recompute so the cap table drops them,
+                // AND end their owner-class membership: a stake and its ownership
+                // membership open together (OrgOwnershipService::openStake), so
+                // they must close together, or a zero-share "owner" keeps a vote.
+                $this->endOwnerMembership($org, $sellerId);
                 $this->ownership->recomputePct((string) $org->id);
             }
 
@@ -200,26 +245,57 @@ class ShareTradeService
     /** Withdraw an open offer. Only its seller, only while open. */
     public function cancel(User $seller, string $offerId): array
     {
-        $offer = DB::table('share_offers')->where('id', $offerId)->first();
-        if ($offer === null) {
-            throw new RuntimeException('Unknown share offer.');
-        }
-        if ((string) $offer->seller_holder_id !== (string) $seller->id) {
-            throw new \App\Domain\Engine\ConstitutionalViolation(
-                'Only the seller may withdraw their own share offer.',
-                'CGA Forms Catalog (F-IND-021)'
-            );
-        }
-        if ($offer->status !== 'open') {
-            throw new RuntimeException('Only an open offer can be withdrawn.');
+        return DB::transaction(function () use ($seller, $offerId) {
+            // Lock the row: a cancel racing a concurrent buy must not stamp
+            // 'cancelled' over an offer that just filled. The status-guarded
+            // UPDATE is the backstop — it touches nothing unless still open.
+            $offer = DB::table('share_offers')->where('id', $offerId)->lockForUpdate()->first();
+            if ($offer === null) {
+                throw new RuntimeException('Unknown share offer.');
+            }
+            if ((string) $offer->seller_holder_id !== (string) $seller->id) {
+                throw new \App\Domain\Engine\ConstitutionalViolation(
+                    'Only the seller may withdraw their own share offer.',
+                    'CGA Forms Catalog (F-IND-021)'
+                );
+            }
+            if ($offer->status !== 'open') {
+                throw new RuntimeException('Only an open offer can be withdrawn.');
+            }
+
+            DB::table('share_offers')->where('id', $offerId)->where('status', 'open')->update([
+                'status'     => 'cancelled',
+                'updated_at' => now(),
+            ]);
+
+            return ['offer_id' => $offerId, 'status' => 'cancelled'];
+        });
+    }
+
+    /**
+     * End a fully-divested holder's owner-class membership. openStake opens the
+     * membership together with the stake; selling every unit must close it too,
+     * or a zero-share "owner" keeps a vote in the ownership class.
+     */
+    private function endOwnerMembership(Organization $org, string $holderId): void
+    {
+        $class = $org->membershipKind();
+        if ($class === null) {
+            return;
         }
 
-        DB::table('share_offers')->where('id', $offerId)->update([
-            'status'     => 'cancelled',
-            'updated_at' => now(),
-        ]);
-
-        return ['offer_id' => $offerId, 'status' => 'cancelled'];
+        OrgMembership::query()
+            ->where('organization_id', $org->id)
+            ->where('user_id', $holderId)
+            ->where('kind', $class)
+            ->whereIn('status', [OrgMembership::STATUS_APPLIED, OrgMembership::STATUS_ACTIVE])
+            ->whereNull('deleted_at')
+            ->update([
+                'status'     => OrgMembership::STATUS_ENDED,
+                'ended_at'   => now(),
+                'end_reason' => 'transferred', // ownership passed to the buyer
+                'updated_at' => now(),
+            ]);
     }
 
     /** The seller's total OPEN units in an org (stakes are fungible, summed). */

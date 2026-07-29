@@ -142,6 +142,84 @@ class ShareTradeTest extends TestCase
         });
     }
 
+    /** A holding backs a SUM of offers — over-listing across offers is refused. */
+    public function test_offering_more_across_two_offers_than_held_is_refused(): void
+    {
+        $this->onLivePg(function () {
+            [$org, $seller] = $this->stockOrgWithHolder(100.0);
+            $trades = app(ShareTradeService::class);
+
+            $trades->offer($seller, (string) $org->id, 60.0, '1.000000'); // ok
+            $this->expectException(ConstitutionalViolation::class);
+            $trades->offer($seller, (string) $org->id, 60.0, '1.000000'); // 60+60 > 100 → refused
+        });
+    }
+
+    /** Selling 100% ends the seller's owner-class membership (no phantom voter). */
+    public function test_selling_all_ends_the_seller_owner_membership(): void
+    {
+        $this->onLivePg(function () {
+            [$org, $seller, $currency] = $this->stockOrgWithHolder(100.0);
+            $buyer = $this->user();
+            $this->fund($buyer, $currency, '5000');
+
+            $trades = app(ShareTradeService::class);
+            $offer = $trades->offer($seller, (string) $org->id, 100.0, '2.000000');
+            $trades->buy($buyer, $offer['offer_id']);
+
+            $class = $org->membershipKind();
+            $sellerActive = DB::table('org_memberships')
+                ->where('organization_id', $org->id)->where('user_id', $seller->id)
+                ->where('kind', $class)->where('status', 'active')->exists();
+            $this->assertFalse($sellerActive, 'a fully-divested seller keeps no owner membership');
+
+            $this->assertEqualsWithDelta(0.0, $this->held($org->id, $seller->id), 0.0001);
+            $this->assertEqualsWithDelta(100.0, $this->held($org->id, $buyer->id), 0.0001);
+        });
+    }
+
+    /** A restructure to non-stock between offer and buy refuses the settlement. */
+    public function test_buy_refuses_if_org_restructured_to_non_stock(): void
+    {
+        $this->onLivePg(function () {
+            [$org, $seller, $currency] = $this->stockOrgWithHolder(100.0);
+            $buyer = $this->user();
+            $this->fund($buyer, $currency, '5000');
+
+            $trades = app(ShareTradeService::class);
+            $offer = $trades->offer($seller, (string) $org->id, 50.0, '1.000000');
+
+            // The org restructures away from stock before the buy settles.
+            DB::table('organizations')->where('id', $org->id)->update(['structure' => 'member_owned']);
+
+            $this->expectException(ConstitutionalViolation::class);
+            $trades->buy($buyer, $offer['offer_id']);
+        });
+    }
+
+    /** A filled offer cannot be cancelled (status-guarded, race-safe). */
+    public function test_a_filled_offer_cannot_be_cancelled(): void
+    {
+        $this->onLivePg(function () {
+            [$org, $seller, $currency] = $this->stockOrgWithHolder(100.0);
+            $buyer = $this->user();
+            $this->fund($buyer, $currency, '5000');
+
+            $trades = app(ShareTradeService::class);
+            $offer = $trades->offer($seller, (string) $org->id, 40.0, '1.000000');
+            $trades->buy($buyer, $offer['offer_id']);
+
+            try {
+                $trades->cancel($seller, $offer['offer_id']);
+                $this->fail('a filled offer must not be cancellable');
+            } catch (\RuntimeException) {
+                // expected — only an open offer can be withdrawn
+            }
+
+            $this->assertSame('filled', (string) DB::table('share_offers')->where('id', $offer['offer_id'])->value('status'));
+        });
+    }
+
     // ── helpers ──────────────────────────────────────────────────────────
 
     /** @return array{0: Organization, 1: User, 2: Currency} */

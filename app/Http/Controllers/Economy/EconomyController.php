@@ -606,11 +606,18 @@ class EconomyController extends Controller
      */
     private function holderName(string $type, string $id): string
     {
-        return match ($type) {
-            'organizations' => (string) (DB::table('organizations')->where('id', $id)->value('name') ?? 'An organization'),
-            'jurisdictions' => (string) (DB::table('jurisdictions')->where('id', $id)->value('name') ?? 'A jurisdiction'),
-            default         => (string) (DB::table('users')->where('id', $id)->value('name') ?? 'A holder'),
-        };
+        if ($type === 'organizations') {
+            return (string) (DB::table('organizations')->where('id', $id)->value('name') ?? 'An organization');
+        }
+        if ($type === 'jurisdictions') {
+            return (string) (DB::table('jurisdictions')->where('id', $id)->value('name') ?? 'A jurisdiction');
+        }
+
+        // users — the chosen PUBLIC name (display_name), never the legal name,
+        // and only because this is the named ownership plane (Ruling B).
+        $u = DB::table('users')->where('id', $id)->first(['display_name', 'name']);
+
+        return (string) ($u->display_name ?? $u->name ?? 'A holder');
     }
 
     /**

@@ -264,7 +264,10 @@ class OrgEconomyController extends Controller
         }
 
         // users — the named ownership plane (Ruling B), never the money plane.
-        return (string) (DB::table('users')->where('id', $id)->value('name') ?? 'A holder');
+        // The chosen PUBLIC name (display_name), never the legal name.
+        $u = DB::table('users')->where('id', $id)->first(['display_name', 'name']);
+
+        return (string) ($u->display_name ?? $u->name ?? 'A holder');
     }
 
     private function maySteer(Organization $org, Request $request): bool
