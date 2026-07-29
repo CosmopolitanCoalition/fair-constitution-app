@@ -77,16 +77,17 @@ class PersonProfileTest extends TestCase
     {
         $this->onLivePg(function () {
             $subject = $this->aUser('Visible Person');
+            $handle = 'visible-'.substr((string) $subject->id, 0, 8);
             SocialProfile::create([
                 'user_id' => (string) $subject->id,
-                'handle' => 'visible-'.substr((string) $subject->id, 0, 8),
+                'handle' => $handle,
                 'display_name' => 'The Visible One',
                 'bio' => 'A public bio.',
                 'visibility' => SocialProfile::VISIBILITY_PUBLIC,
             ]);
 
             // ?who= accepts the handle (case-insensitive, with or without @).
-            $this->get('/people?who=@VISIBLE-'.substr((string) $subject->id, 0, 8))
+            $this->get('/people?who=@'.strtoupper($handle))
                 ->assertOk()
                 ->assertInertia(fn (Assert $page) => $page
                     ->where('person.id', (string) $subject->id)
@@ -94,8 +95,9 @@ class PersonProfileTest extends TestCase
                     ->where('person.bio', 'A public bio.')
                     ->where('achievements', []));
 
-            // Flip the choice to private: bio and achievements leave the
-            // public view; the page itself stays reachable (never a gate).
+            // Flip the choice to private: bio, achievements, AND the named
+            // home chain leave the public view; the page itself stays
+            // reachable by uuid (never a gate) —
             SocialProfile::query()->where('user_id', (string) $subject->id)
                 ->update(['visibility' => SocialProfile::VISIBILITY_PRIVATE]);
 
@@ -105,7 +107,46 @@ class PersonProfileTest extends TestCase
                     ->where('person.bio', null)
                     ->where('person.handle', null)
                     ->where('person.followCounts', null)
+                    ->where('person.home', null)
+                    ->where('record.associations', [])
                     ->where('achievements', null));
+
+            // — but the HIDDEN handle no longer resolves: confirming the
+            // handle→person mapping is itself the leak the choice hides.
+            $this->get('/people?who=@'.$handle)->assertNotFound();
+        });
+    }
+
+    public function test_array_query_params_never_crash_the_public_route(): void
+    {
+        $this->onLivePg(function () {
+            // Bracketed params arrive as arrays; each cast site must treat
+            // them as absent, not 500 (guest-triggerable on a public route).
+            $this->get('/people?who[]=x')->assertRedirect(route('login'));
+            $this->get('/people?candidate[]=x')->assertRedirect(route('login'));
+
+            [$subject, $candidacy] = $this->aCandidacy();
+            $this->get('/people?who='.$subject->id.'&tab=candidacy&candidacy[]=x')
+                ->assertOk()
+                ->assertInertia(fn (Assert $page) => $page
+                    ->where('candidacyPanel.candidacy.id', (string) $candidacy->id));
+        });
+    }
+
+    public function test_the_candidacy_registration_page_still_loads(): void
+    {
+        $this->onLivePg(function () {
+            // Regression pin for the import sweep: CandidacyController kept
+            // officesFor(User ...) after the show() port, and the User
+            // import must survive any future cleanup — this GET had zero
+            // coverage when the 3f81290 cleanup broke it.
+            [$subject, $candidacy] = $this->aCandidacy();
+
+            $this->actingAs($subject)
+                ->get('/elections/'.$candidacy->election_id.'/candidacy')
+                ->assertOk()
+                ->assertInertia(fn (Assert $page) => $page
+                    ->component('Elections/CandidacyRegistration'));
         });
     }
 

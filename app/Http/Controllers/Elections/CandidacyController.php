@@ -7,6 +7,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Candidacy;
 use App\Models\Election;
 use App\Models\ElectionRace;
+use App\Models\User;
 use App\Services\RoleService;
 use App\Support\SurfaceMeta;
 use Illuminate\Http\RedirectResponse;

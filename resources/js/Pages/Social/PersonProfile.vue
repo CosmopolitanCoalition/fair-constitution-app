@@ -291,7 +291,12 @@ function submitRequest() {
                 <p v-if="record.associations.length" class="cluster" style="gap: var(--space-1)">
                     <TagChip v-for="a in record.associations" :key="a.id">{{ a.name }}</TagChip>
                 </p>
-                <p v-else class="gloss">No confirmed residency on this instance.</p>
+                <p v-else-if="isSelf" class="gloss">No confirmed residency yet.</p>
+                <p v-else class="gloss">
+                    Not shown — a person's named home chain appears when they choose a public
+                    profile. Where they act publicly (a candidacy, an office), that place is on
+                    those tabs.
+                </p>
 
                 <h3 style="margin-block-start: var(--space-3)">Civic actions</h3>
                 <template v-if="record.actions.length">

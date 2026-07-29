@@ -62,11 +62,11 @@ class PersonProfileController extends Controller
 
     public function show(Request $request): Response|RedirectResponse
     {
-        $who = trim((string) $request->query('who', ''));
+        $who = trim(self::queryString($request, 'who'));
 
         // Legacy candidate-profile contract: ?candidate=<candidacy uuid>
         // forwards to the person's Candidacy tab (v3.2 item 0a).
-        if ($who === '' && Str::isUuid((string) $request->query('candidate'))) {
+        if ($who === '' && Str::isUuid(self::queryString($request, 'candidate'))) {
             $candidacy = Candidacy::query()->find((string) $request->query('candidate'));
 
             if ($candidacy !== null) {
@@ -133,7 +133,7 @@ class PersonProfileController extends Controller
             'candidacies' => $candidacies,
             'candidacyPanel' => $this->focusedPanel($request, $subject, $candidacies, $viewer),
             'offices' => $offices,
-            'record' => $this->recordFor($subject),
+            'record' => $this->recordFor($subject, $isSelf, $isPublicProfile),
             // null = the subject has not chosen to show them (distinct from []).
             'achievements' => ($isSelf || $isPublicProfile) ? $this->journeys->achievementsFor($subject) : null,
         ]);
@@ -179,7 +179,28 @@ class PersonProfileController extends Controller
     // Internals
     // =========================================================================
 
-    /** ?who= accepts a user uuid or a social handle (with or without '@'). */
+    /**
+     * A query value that is only ever a string: bracketed params
+     * (?who[]=x) arrive as arrays, and a (string) cast on an array is a
+     * promoted ErrorException — a guest-triggerable 500 on a public route.
+     */
+    private static function queryString(Request $request, string $key): string
+    {
+        $value = $request->query($key);
+
+        return is_string($value) ? $value : '';
+    }
+
+    /**
+     * ?who= accepts a user uuid or a social handle (with or without '@').
+     *
+     * The handle branch resolves PUBLIC profiles only: a hidden handle is
+     * not a public address. Resolving a private/jurisdiction-visibility
+     * handle would confirm the handle→person mapping the subject chose to
+     * hide, even with the handle nulled in the response — the lookup
+     * itself is the leak. (Uuid lookups still work: a uuid names the
+     * person, not their pseudonym.)
+     */
     private function resolveSubject(string $who): ?User
     {
         if (Str::isUuid($who)) {
@@ -192,7 +213,10 @@ class PersonProfileController extends Controller
             return null;
         }
 
-        $profile = SocialProfile::query()->whereRaw('lower(handle) = ?', [$handle])->first();
+        $profile = SocialProfile::query()
+            ->whereRaw('lower(handle) = ?', [$handle])
+            ->where('visibility', SocialProfile::VISIBILITY_PUBLIC)
+            ->first();
 
         return $profile === null ? null : User::query()->find((string) $profile->user_id);
     }
@@ -201,15 +225,20 @@ class PersonProfileController extends Controller
     {
         $display = CandidacyPanel::displayName($subject);
 
-        $home = DB::table('residency_confirmations as rc')
+        $showSocial = $isSelf || $isPublicProfile;
+
+        // The named person→neighborhood mapping is Art. I location-adjacent
+        // data — stricter than /reach, which k-anonymizes mere COUNTS. It
+        // ships only when the subject chose a public face (or to themself).
+        // Candidacy and office jurisdictions stay public on their own tabs:
+        // those are the jurisdictions of the PUBLIC ACT, not the home chain.
+        $home = $showSocial ? DB::table('residency_confirmations as rc')
             ->join('jurisdictions as j', 'j.id', '=', 'rc.jurisdiction_id')
             ->where('rc.user_id', (string) $subject->getKey())
             ->where('rc.is_active', true)
             ->whereNull('j.deleted_at')
             ->orderByDesc('j.adm_level')
-            ->first(['j.id', 'j.name']);
-
-        $showSocial = $isSelf || $isPublicProfile;
+            ->first(['j.id', 'j.name']) : null;
 
         return [
             'id' => (string) $subject->getKey(),
@@ -269,7 +298,7 @@ class PersonProfileController extends Controller
             return null;
         }
 
-        $requested = (string) $request->query('candidacy', '');
+        $requested = self::queryString($request, 'candidacy');
         $ids = array_column($candidacies, 'id');
         $focus = in_array($requested, $ids, true) ? $requested : $ids[0];
 
@@ -353,20 +382,31 @@ class PersonProfileController extends Controller
     }
 
     /**
-     * The public Record tab: milestone civic actions off the audit chain
-     * (same slice the old candidate page carried — per-ping entries stay
-     * off, Art. I), the confirmed associations, and endorsements GIVEN
-     * that the endorser chose to make public.
+     * The public Record tab: milestone civic actions off the audit chain,
+     * the confirmed associations (subject's-choice gated), and
+     * endorsements GIVEN that the endorser chose to make public.
+     *
+     * The actions slice teaches "residency, participation, offices,
+     * filings" (the shipped Learn copy), so it spans the public-act
+     * modules — elections, residency, and acts of public office
+     * (legislature / judiciary / executive). 'organizations' stays OUT:
+     * org membership is private association (Art. I), only endorsements
+     * chosen public appear. Location-adjacent events stay off entirely —
+     * pings, relocation, TRAVELLING declarations: "this person is away
+     * from home, timestamped" is exactly what Art. I refuses to publish
+     * about a private person.
      */
-    private function recordFor(User $subject): array
+    private function recordFor(User $subject, bool $isSelf, bool $isPublicProfile): array
     {
         $userId = (string) $subject->getKey();
 
         $actions = AuditEntry::query()
             ->where('actor_user_id', $userId)
             ->where('rejected', false)
-            ->whereIn('module', ['elections', 'residency'])
+            ->whereIn('module', ['elections', 'residency', 'legislature', 'judiciary', 'executive'])
             ->where('event', 'not like', '%ping%')
+            ->where('event', 'not like', '%travel%')
+            ->where('event', 'not like', '%relocat%')
             ->orderByDesc('seq')
             ->limit(20)
             ->get()
@@ -377,7 +417,9 @@ class PersonProfileController extends Controller
             ])
             ->all();
 
-        $associations = DB::table('residency_confirmations as rc')
+        // The full named residency chain is the "your choice to show"
+        // class, same gate as the head-card home (Art. I).
+        $associations = ($isSelf || $isPublicProfile) ? DB::table('residency_confirmations as rc')
             ->join('jurisdictions as j', 'j.id', '=', 'rc.jurisdiction_id')
             ->where('rc.user_id', $userId)
             ->where('rc.is_active', true)
@@ -385,7 +427,7 @@ class PersonProfileController extends Controller
             ->orderBy('j.adm_level')
             ->get(['j.id', 'j.name', 'j.adm_level'])
             ->map(fn ($row) => ['id' => (string) $row->id, 'name' => $row->name, 'adm_level' => (int) $row->adm_level])
-            ->all();
+            ->all() : [];
 
         $given = Endorsement::query()
             // Qualified by hand — candidacies also carries withdrawn_at, so
