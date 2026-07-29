@@ -278,7 +278,15 @@ class GeodataRepairPlaneTest extends TestCase
             app(GeodataRemediationService::class)
                 ->reparent(null, 'zzt-2-wanderer', 'zzt-1-betaland', 'manifest test', null);
 
-            $path = storage_path('app/geodata/test-manifest-' . Str::random(8) . '.json');
+            // Write to a FRESH unique subdir the test owns. storage/app is
+            // world-writable, so the export command (running as www-data) creates
+            // this dir as itself and can write into it. The shared
+            // storage/app/geodata is NOT used here: a geodata command accidentally
+            // run as root leaves it root-owned 0755, and www-data can then never
+            // write a manifest there — the real cause of this test's permission
+            // failure. Keying off a self-owned dir makes the test portable.
+            $exportDir = storage_path('app/geodata-export-test-' . Str::random(8));
+            $path = $exportDir . '/manifest.json';
             try {
                 $this->assertSame(0, Artisan::call('geodata:repairs-export', ['--file' => $path]));
                 $manifest = json_decode((string) file_get_contents($path), true);
@@ -294,6 +302,7 @@ class GeodataRepairPlaneTest extends TestCase
                 $this->assertStringContainsString('0 applied, 1 skipped, 0 failed', $output);
             } finally {
                 @unlink($path);
+                @rmdir($exportDir);
             }
         });
     }
