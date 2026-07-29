@@ -1153,6 +1153,44 @@ return [
             .'No vote, seat, role or eligibility ever consults this page · Art. I; CI-1; PI-6',
     ],
 
+    // ── Learn (Phase K-2 — the graded half; ruling A5) ─────────────────────
+    'learn/home' => [
+        'title'     => 'Learn',
+        'module'    => 'education',
+        'nav'       => 'learn',
+        'roles'     => [],
+        'workflows' => [],
+        'forms'     => [],
+        'clocks'    => [],
+        'citation'  => 'Every training is open to every user — recommended by role, hidden from '
+            .'no one. Acquiring is free, acting asks · GOVERNING EFFECTIVELY (ruling A5); K2 §5.0.2',
+    ],
+    'learn/lesson' => [
+        'title'     => 'Lesson',
+        'module'    => 'education',
+        'nav'       => null,
+        'roles'     => [],
+        'workflows' => [],
+        'forms'     => [
+            ['id' => 'F-EDU-001', 'citation' => 'Filed FOR you when you pass the check — grading is server-side and the filing records the pass, never answers'],
+        ],
+        'clocks'    => [],
+        'citation'  => 'Grading is server-side; a pass files the completion on the record and the '
+            .'answer key never reaches a browser. Retakes unlimited — the check teaches, it never '
+            .'filters · K2_ENGINE_PLAN §2/§3.5',
+    ],
+    'learn/guides' => [
+        'title'     => 'Guides',
+        'module'    => 'education',
+        'nav'       => null,
+        'roles'     => [],
+        'workflows' => [],
+        'forms'     => [],
+        'clocks'    => [],
+        'citation'  => 'Walkthroughs of the things people actually do — the live half is the '
+            .'journeys engine · K2',
+    ],
+
     'legislature/districts' => [
         'title'     => 'The district mapper',
         'module'    => 'jurisdictions',

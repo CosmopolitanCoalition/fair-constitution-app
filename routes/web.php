@@ -270,6 +270,21 @@ Route::middleware('auth')->group(function () {
 // Public read; the earned overlay is the signed-in viewer's own ledger rows.
 Route::get('/achievements', [\App\Http\Controllers\Social\AchievementsController::class, 'index'])->name('achievements.index');
 
+// ── Learn — the graded education plane (K-2, ruling A5) ─────────────────────────────────
+// READING IS OPEN TO EVERYONE, guests included (§5.0.2: no role gate exists or can be
+// asked for). The CHECK is authed (a pass files F-EDU-001 on the record) and throttled
+// on the house sensitive-path rate (§3.5: throttle the guessing, never gate the learner
+// — retakes stay unlimited; the limit protects the item bank from brute force).
+Route::get('/learn', [\App\Http\Controllers\Education\LearnController::class, 'home'])->name('learn.home');
+Route::get('/learn/guides', [\App\Http\Controllers\Education\LearnController::class, 'guides'])->name('learn.guides');
+Route::get('/learn/{track}/{module?}', [\App\Http\Controllers\Education\LearnController::class, 'lesson'])
+    ->where(['track' => '[a-z0-9_-]+', 'module' => '[a-z0-9_-]+'])
+    ->name('learn.lesson');
+Route::post('/learn/{track}/{module}/check', [\App\Http\Controllers\Education\LearnController::class, 'check'])
+    ->where(['track' => '[a-z0-9_-]+', 'module' => '[a-z0-9_-]+'])
+    ->middleware(['auth', 'throttle:10,1'])
+    ->name('learn.check');
+
 // ── Invites — the share-to-signup growth loop ───────────────────────────────────────────
 // PUBLIC landing: a friend opens the link with no account. If signed in they redeem +
 // continue; if a guest they preview it and sign up (the destination is carried across signup).

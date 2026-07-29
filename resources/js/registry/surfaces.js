@@ -31,7 +31,7 @@ export const PLAYER_NAV = [
     { id: 'market', label: 'Market', icon: 'bar-chart', href: '/economy', contract: 'economy/economy-home.html' },
     { id: 'my-record', label: 'My profile', icon: 'user', href: '/civic/record', contract: 'civic/my-civic-life.html' },
     { id: 'journeys', label: 'Journeys', icon: 'list-checks', href: '/journeys', contract: 'index.html#journeys-h' },
-    { id: 'learn', label: 'Learn & help', icon: 'graduation-cap', href: null, contract: 'learn/learn-home.html', phase: 7 },
+    { id: 'learn', label: 'Learn & help', icon: 'graduation-cap', href: '/learn', contract: 'learn/learn-home.html' },
     /* 'tour' is special-cased by the menu: the sentinel 'tour:start' renders a
        TOGGLE that arms the tour MODE in place (A2) — it does not navigate. */
     { id: 'tour', label: 'Guided tour', icon: 'map', href: 'tour:start', contract: 'tour.html', phase: 1 },
@@ -132,7 +132,7 @@ export const SITEMAP = [
         { id: 'org-settings', label: 'Org economics', icon: 'building', href: null, contract: 'economy/org-settings.html', phase: 8 },
     ] },
     { key: 'help', title: 'Learn & help', items: [
-        { id: 'learn', label: 'Learn & lessons', icon: 'graduation-cap', href: null, contract: 'learn/learn-home.html', phase: 7 },
+        { id: 'learn', label: 'Learn & lessons', icon: 'graduation-cap', href: '/learn', contract: 'learn/learn-home.html' },
         { id: 'support-report', label: 'Report an issue', icon: 'flag', href: '/support/report', contract: 'support/report.html' },
         { id: 'support-tickets', label: 'Your reports', icon: 'list-checks', href: '/support/tickets', contract: 'support/tickets.html' },
         { id: 'accessibility', label: 'Accessibility', icon: 'shield', href: '/system/accessibility', contract: 'shared/accessibility.html' },

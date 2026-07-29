@@ -87,6 +87,13 @@ class EducationAnswerKeySecrecyTest extends TestCase
             // key-free by construction.
             $root.'/Domain/Forms/Handlers/TrainingCompletion.php',
             $root.'/Domain/Forms/Handlers/TrainingMaterialPublication.php',
+            // Grading READS the catalog server-side and returns a boolean, a
+            // score, and explain keys — never the key (the §2 architectural
+            // layer lives exactly here).
+            $root.'/Services/Education/GradingService.php',
+            // The seeder WRITES the server catalog into the server table —
+            // config to DB, nothing client-ward.
+            $root.'/Console/Commands/EducationSeedCommand.php',
         ];
 
         $iterator = new \RecursiveIteratorIterator(

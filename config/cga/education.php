@@ -127,4 +127,153 @@ return [
     // The once-only proof is the achievement ledger: the stipend pays iff
     // ACH-EDU-001 was NEWLY minted — no second idempotency mechanism.
     'training_stipend_default' => 10,
+
+    // ── Grading (§3.5) ──────────────────────────────────────────────────
+    // A basic comprehension check: pass at or above the threshold; retakes
+    // unlimited by design (throttle the guessing, never gate the learner —
+    // the route carries the house throttle). Wrong answers are never
+    // persisted.
+    'pass_threshold_pct' => 80,
+
+    // ── THE CONTENT CATALOG (server-side canonical, §8.1) ───────────────
+    // `education:seed` writes this into education_tracks/modules/questions.
+    // Prompt/choice/explain values are i18n KEYS into c_education.json —
+    // the K-2 i18n contract (lane 5 translates what is authored here).
+    // `correct` names the correct choice keys and is written ONLY to
+    // education_questions.correct_keys (SERVER ONLY — the §2 rail). The
+    // explain key is the teaching text served AFTER grading; it never
+    // names the correct choice outright.
+    //
+    // ⚠ ARMING: seeding a live module for a track ARMS the act-gate for
+    // that track's forms on this box (a redirect now has a destination) —
+    // every untrained role-holder's next role-act will redirect. Sequence
+    // with fixture training (plan §5.2, the availability precondition).
+    'content' => [
+        'legislature' => [
+            'title' => 'c_education.learn.tracks.legislature.title',
+            'unit_ref' => 'K2_CURRICULUM U-LEG',
+            'modules' => [[
+                'key' => 'chamber-basics',
+                'title' => 'c_education.learn.modules.chamber_basics.title',
+                'summary' => 'c_education.learn.modules.chamber_basics.summary',
+                'surface_id' => 'legislature/floor',
+                'minutes' => 6,
+                'questions' => [
+                    ['key' => 'q1', 'prompt' => 'c_education.learn.q.chamber_basics.q1.prompt',
+                     'choices' => ['a' => 'c_education.learn.q.chamber_basics.q1.a', 'b' => 'c_education.learn.q.chamber_basics.q1.b', 'c' => 'c_education.learn.q.chamber_basics.q1.c'],
+                     'correct' => ['b'], 'explain' => 'c_education.learn.q.chamber_basics.q1.explain'],
+                    ['key' => 'q2', 'prompt' => 'c_education.learn.q.chamber_basics.q2.prompt',
+                     'choices' => ['a' => 'c_education.learn.q.chamber_basics.q2.a', 'b' => 'c_education.learn.q.chamber_basics.q2.b', 'c' => 'c_education.learn.q.chamber_basics.q2.c'],
+                     'correct' => ['c'], 'explain' => 'c_education.learn.q.chamber_basics.q2.explain'],
+                    ['key' => 'q3', 'prompt' => 'c_education.learn.q.chamber_basics.q3.prompt',
+                     'choices' => ['a' => 'c_education.learn.q.chamber_basics.q3.a', 'b' => 'c_education.learn.q.chamber_basics.q3.b', 'c' => 'c_education.learn.q.chamber_basics.q3.c'],
+                     'correct' => ['a'], 'explain' => 'c_education.learn.q.chamber_basics.q3.explain'],
+                ],
+            ]],
+        ],
+        'election_board' => [
+            'title' => 'c_education.learn.tracks.election_board.title',
+            'unit_ref' => 'K2_CURRICULUM U-ELB',
+            'modules' => [[
+                'key' => 'running-elections',
+                'title' => 'c_education.learn.modules.running_elections.title',
+                'summary' => 'c_education.learn.modules.running_elections.summary',
+                'surface_id' => 'elections/board',
+                'minutes' => 6,
+                'questions' => [
+                    ['key' => 'q1', 'prompt' => 'c_education.learn.q.running_elections.q1.prompt',
+                     'choices' => ['a' => 'c_education.learn.q.running_elections.q1.a', 'b' => 'c_education.learn.q.running_elections.q1.b', 'c' => 'c_education.learn.q.running_elections.q1.c'],
+                     'correct' => ['a'], 'explain' => 'c_education.learn.q.running_elections.q1.explain'],
+                    ['key' => 'q2', 'prompt' => 'c_education.learn.q.running_elections.q2.prompt',
+                     'choices' => ['a' => 'c_education.learn.q.running_elections.q2.a', 'b' => 'c_education.learn.q.running_elections.q2.b', 'c' => 'c_education.learn.q.running_elections.q2.c'],
+                     'correct' => ['b'], 'explain' => 'c_education.learn.q.running_elections.q2.explain'],
+                    ['key' => 'q3', 'prompt' => 'c_education.learn.q.running_elections.q3.prompt',
+                     'choices' => ['a' => 'c_education.learn.q.running_elections.q3.a', 'b' => 'c_education.learn.q.running_elections.q3.b', 'c' => 'c_education.learn.q.running_elections.q3.c'],
+                     'correct' => ['b'], 'explain' => 'c_education.learn.q.running_elections.q3.explain'],
+                ],
+            ]],
+        ],
+        'executive' => [
+            'title' => 'c_education.learn.tracks.executive.title',
+            'unit_ref' => 'K2_CURRICULUM U-EXE',
+            'modules' => [[
+                'key' => 'executive-basics',
+                'title' => 'c_education.learn.modules.executive_basics.title',
+                'summary' => 'c_education.learn.modules.executive_basics.summary',
+                'surface_id' => 'executive/office',
+                'minutes' => 5,
+                'questions' => [
+                    ['key' => 'q1', 'prompt' => 'c_education.learn.q.executive_basics.q1.prompt',
+                     'choices' => ['a' => 'c_education.learn.q.executive_basics.q1.a', 'b' => 'c_education.learn.q.executive_basics.q1.b', 'c' => 'c_education.learn.q.executive_basics.q1.c'],
+                     'correct' => ['c'], 'explain' => 'c_education.learn.q.executive_basics.q1.explain'],
+                    ['key' => 'q2', 'prompt' => 'c_education.learn.q.executive_basics.q2.prompt',
+                     'choices' => ['a' => 'c_education.learn.q.executive_basics.q2.a', 'b' => 'c_education.learn.q.executive_basics.q2.b', 'c' => 'c_education.learn.q.executive_basics.q2.c'],
+                     'correct' => ['a'], 'explain' => 'c_education.learn.q.executive_basics.q2.explain'],
+                    ['key' => 'q3', 'prompt' => 'c_education.learn.q.executive_basics.q3.prompt',
+                     'choices' => ['a' => 'c_education.learn.q.executive_basics.q3.a', 'b' => 'c_education.learn.q.executive_basics.q3.b', 'c' => 'c_education.learn.q.executive_basics.q3.c'],
+                     'correct' => ['b'], 'explain' => 'c_education.learn.q.executive_basics.q3.explain'],
+                ],
+            ]],
+        ],
+        'board_of_governors' => [
+            'title' => 'c_education.learn.tracks.board_of_governors.title',
+            'unit_ref' => 'K2_CURRICULUM U-BOG',
+            'modules' => [[
+                'key' => 'department-basics',
+                'title' => 'c_education.learn.modules.department_basics.title',
+                'summary' => 'c_education.learn.modules.department_basics.summary',
+                'surface_id' => 'executive/departments',
+                'minutes' => 4,
+                'questions' => [
+                    ['key' => 'q1', 'prompt' => 'c_education.learn.q.department_basics.q1.prompt',
+                     'choices' => ['a' => 'c_education.learn.q.department_basics.q1.a', 'b' => 'c_education.learn.q.department_basics.q1.b', 'c' => 'c_education.learn.q.department_basics.q1.c'],
+                     'correct' => ['b'], 'explain' => 'c_education.learn.q.department_basics.q1.explain'],
+                    ['key' => 'q2', 'prompt' => 'c_education.learn.q.department_basics.q2.prompt',
+                     'choices' => ['a' => 'c_education.learn.q.department_basics.q2.a', 'b' => 'c_education.learn.q.department_basics.q2.b', 'c' => 'c_education.learn.q.department_basics.q2.c'],
+                     'correct' => ['a'], 'explain' => 'c_education.learn.q.department_basics.q2.explain'],
+                ],
+            ]],
+        ],
+        'judiciary' => [
+            'title' => 'c_education.learn.tracks.judiciary.title',
+            'unit_ref' => 'K2_CURRICULUM U-JDG',
+            'modules' => [[
+                'key' => 'bench-basics',
+                'title' => 'c_education.learn.modules.bench_basics.title',
+                'summary' => 'c_education.learn.modules.bench_basics.summary',
+                'surface_id' => 'judiciary/court',
+                'minutes' => 6,
+                'questions' => [
+                    ['key' => 'q1', 'prompt' => 'c_education.learn.q.bench_basics.q1.prompt',
+                     'choices' => ['a' => 'c_education.learn.q.bench_basics.q1.a', 'b' => 'c_education.learn.q.bench_basics.q1.b', 'c' => 'c_education.learn.q.bench_basics.q1.c'],
+                     'correct' => ['c'], 'explain' => 'c_education.learn.q.bench_basics.q1.explain'],
+                    ['key' => 'q2', 'prompt' => 'c_education.learn.q.bench_basics.q2.prompt',
+                     'choices' => ['a' => 'c_education.learn.q.bench_basics.q2.a', 'b' => 'c_education.learn.q.bench_basics.q2.b', 'c' => 'c_education.learn.q.bench_basics.q2.c'],
+                     'correct' => ['a'], 'explain' => 'c_education.learn.q.bench_basics.q2.explain'],
+                    ['key' => 'q3', 'prompt' => 'c_education.learn.q.bench_basics.q3.prompt',
+                     'choices' => ['a' => 'c_education.learn.q.bench_basics.q3.a', 'b' => 'c_education.learn.q.bench_basics.q3.b', 'c' => 'c_education.learn.q.bench_basics.q3.c'],
+                     'correct' => ['b'], 'explain' => 'c_education.learn.q.bench_basics.q3.explain'],
+                ],
+            ]],
+        ],
+        'advocate' => [
+            'title' => 'c_education.learn.tracks.advocate.title',
+            'unit_ref' => 'K2_CURRICULUM U-ADV',
+            'modules' => [[
+                'key' => 'advocacy-basics',
+                'title' => 'c_education.learn.modules.advocacy_basics.title',
+                'summary' => 'c_education.learn.modules.advocacy_basics.summary',
+                'surface_id' => 'judiciary/cases',
+                'minutes' => 5,
+                'questions' => [
+                    ['key' => 'q1', 'prompt' => 'c_education.learn.q.advocacy_basics.q1.prompt',
+                     'choices' => ['a' => 'c_education.learn.q.advocacy_basics.q1.a', 'b' => 'c_education.learn.q.advocacy_basics.q1.b', 'c' => 'c_education.learn.q.advocacy_basics.q1.c'],
+                     'correct' => ['a'], 'explain' => 'c_education.learn.q.advocacy_basics.q1.explain'],
+                    ['key' => 'q2', 'prompt' => 'c_education.learn.q.advocacy_basics.q2.prompt',
+                     'choices' => ['a' => 'c_education.learn.q.advocacy_basics.q2.a', 'b' => 'c_education.learn.q.advocacy_basics.q2.b', 'c' => 'c_education.learn.q.advocacy_basics.q2.c'],
+                     'correct' => ['c'], 'explain' => 'c_education.learn.q.advocacy_basics.q2.explain'],
+                ],
+            ]],
+        ],
+    ],
 ];
