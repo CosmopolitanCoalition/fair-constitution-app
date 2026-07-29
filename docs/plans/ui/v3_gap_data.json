@@ -1,7 +1,7 @@
 {
  "asOf": "2026-07-29",
- "commit": "9f22aa9",
- "wave": "WAVE 2 closing \u2014 lanes 2/15/4/13 DONE; 6 on support lifecycle (items 1-3 done, tour at 29 stops); 3 on the punch; 1 on parity+fixtures; 5 NLLB (ar/es/fr down)",
+ "commit": "3be5cfd",
+ "wave": "WAVE 2 closing \u2014 2/15/4/13 DONE; 3 punch landing (bills chips, CGC link, engine:file LIVE); 6 on support; 1 on fixtures+parity; 5 NLLB",
  "rows": [
   {
    "file": "civic/join.html",
@@ -916,7 +916,7 @@
     "Synthetic removal_requested state spliced into ESM-17 from live seat status",
     "Two-clock roster (CLK-09 governors vs CLK-10 worker seats) with expiring badges"
    ],
-   "notes": "The board roster, nomination and removal machinery all exceed the mockup. The single gap is the department\u2194CGC oversight link, which needs a small backend association before the card can be filled."
+   "notes": "The board roster, nomination and removal machinery all exceed the mockup. The single gap is the department\u2194CGC oversight link, which needs a small backend association before the card can be filled. 2026-07-29 (34aef4d): the dept-to-CGC oversight card lights up \u2014 overseesCgcs was a [] stub, now the reverse join."
   },
   {
    "file": "executive/department-reporting.html",
@@ -1046,8 +1046,8 @@
    "area": "legislature",
    "areaLabel": "Legislature",
    "owner": "lane 3",
-   "bucket": "partial",
-   "effort": "M",
+   "bucket": "built",
+   "effort": "none",
    "page": "resources/js/Pages/Legislature/Bills.vue",
    "route": "GET /legislatures/{legislature}/bills",
    "props": "partial",
@@ -1066,7 +1066,7 @@
     "status/act_type filters",
     "committee assignment and enacted-law links per row"
    ],
-   "notes": "Only partial verdict in the module: wire the challenge feed to the Phase-E challenge rows, add an F-LEG-028 filing door, and extend the lifecycle legend past enactment. F-LEG-003 introduction with real scale/scope selects is fully live."
+   "notes": "Only partial verdict in the module: wire the challenge feed to the Phase-E challenge rows, add an F-LEG-028 filing door, and extend the lifecycle legend past enactment. F-LEG-003 introduction with real scale/scope selects is fully live. CLOSED 2026-07-29 (27cde6c): the challenge feed is real \u2014 [Challenged] chips + Art. IV \u00a75 tracker deep links, N+1-safe, live-preferred."
   },
   {
    "file": "legislature/bill-detail.html",

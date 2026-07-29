@@ -312,6 +312,11 @@ Two corollaries from sweep #5 (same night, same mechanism, lane 2):
   loadable state fast, not holding pushes (someone else's push will carry your commit out
   anyway, which is exactly what happened).
 
+**routes/web.php is the SWEEP MAGNET** — every sweep and near-miss tonight touched it (three
+lanes hold uncommitted route edits at any given moment mid-wave). Lane 3's tactical rule,
+adopted fleet-wide: **edit routes LAST in any multi-file item, and commit immediately** —
+minimize the minutes your uncommitted route hunk sits in the shared tree.
+
 ### ⚑ THREE HOT FILES — `git diff` before you touch them
 ```
 CLAUDE.md · routes/web.php · app/Domain/Forms/FormRegistry.php
