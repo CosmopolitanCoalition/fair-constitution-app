@@ -142,6 +142,8 @@ class FuturePhasePlaceholdersTest extends TestCase
             // assertable — same PR as the engine code each one pins.
             'EducationAnswerKeySecrecyTest.php', // K2_ENGINE_PLAN §2 — the answer-key rail
             'EducationNoGateTest.php', // Art. I / ruling A5 §6.5 — acquiring is free, acting asks
+            'EducationProgressNeverFederatesTest.php', // K2 §6.2 — resume state never crosses a node
+            'TrainingGateEndToEndTest.php', // ruling A5 walked: redirect → train → stipend once → act proceeds
         ] as $file) {
             $this->assertFileExists(
                 $base.$file,

@@ -41,7 +41,9 @@ class PublicRecordService
         'social_reaction',
         'social_follow',
         'social_membership',
-        // (Phase K-2 adds 'education_progress'.)
+        // Phase K-2 — the learner's node-local resume state never publishes or
+        // federates; the filed F-EDU-001 is what travels (§5.2 READING RULE).
+        'education_progress',
     ];
 
     public function __construct(
