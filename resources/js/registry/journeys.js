@@ -26,6 +26,22 @@ export const CLASSES = [
 export const CLASS_LABELS = Object.fromEntries(CLASSES.map((c) => [c.id, c.label]));
 
 export const JOURNEYS = [
+    /* FIRST, deliberately — this is the first arc a new player ever walks, and
+       AchievementCatalog::TOUR_ARCS lists it first for the same reason. It was
+       missing from this registry entirely while being live server-side
+       (config/cga/journeys.php), so JOURNEYS_BY_ID['become-a-resident'] returned
+       null and Journey.vue fell through every display value: the eyebrow rendered
+       the raw interaction-class id "people" as if it were a label, and the
+       your-part and earn lines dropped to their generics. */
+    {
+        id: 'become-a-resident', cls: 'people', clsLabel: CLASS_LABELS.people,
+        flagship: false, status: 'live',
+        title: 'Becoming a resident',
+        yourPart: 'you do this one — register, declare where you live, and let your presence confirm it',
+        rail: ['Register', 'Declare where you live', 'Presence confirms', 'Residency confirmed', 'You appear at every level', 'Rights switch on'],
+        rooms: [],
+        earn: 'every place you turn out to belong to will greet you as someone who knows the ropes',
+    },
     {
         id: 'election', cls: 'gov-itself', clsLabel: CLASS_LABELS['gov-itself'],
         flagship: true, status: 'live',
@@ -64,9 +80,9 @@ export const JOURNEYS = [
     },
     {
         id: 'budget', cls: 'gov-itself', clsLabel: CLASS_LABELS['gov-itself'],
-        flagship: false, status: 'planned', phase: 'Phase L',
+        flagship: false, status: 'live',
         title: 'Enacting a budget',
-        yourPart: null,
+        yourPart: 'you watch this one — the chamber writes it, and every disbursement lands on a ledger you can read',
         rail: ['Revenue', 'Budget bill', 'Appropriations', 'Disbursement', 'Ledger'],
         rooms: ['Legislative session'],
         earn: 'the legislative session will greet you as someone who knows the ropes',
@@ -100,7 +116,7 @@ export const JOURNEYS = [
     },
     {
         id: 'mutual-aid', cls: 'people', clsLabel: CLASS_LABELS.people,
-        flagship: false, status: 'planned', phase: 'Phase M',
+        flagship: false, status: 'live',
         title: 'Asking for and giving help',
         yourPart: 'you do this one — post a request for help, or answer a neighbour’s',
         rail: ['Post request', 'A neighbor responds', 'Coordinate', 'Resolved'],
@@ -127,7 +143,7 @@ export const JOURNEYS = [
     },
     {
         id: 'stipend-and-tax', cls: 'gov-orgs-people', clsLabel: CLASS_LABELS['gov-orgs-people'],
-        flagship: false, status: 'planned', phase: 'Phase L/M',
+        flagship: false, status: 'live',
         title: 'The money between a person and their government',
         yourPart: 'this one comes to you — the stipend lands in your wallet, and you file the tax side yourself',
         rail: ['Stipend run', 'Your receipt', 'Tax filing', 'Public ledger'],
