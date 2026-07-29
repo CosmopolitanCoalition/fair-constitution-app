@@ -151,6 +151,49 @@ class ClassScopedFederationTest extends TestCase
         );
     }
 
+    /**
+     * The declared class must SURVIVE the upsert. Found 2026-07-28: discover()
+     * persisted `metadata->instance_class` but upsertTrustedPeer()'s metadata
+     * fill silently dropped it, so every INBOUND handshake row recorded no
+     * class — and the dev-time rail (ruling §10 item 4: a mesh of declared
+     * demo instances may time-travel) could never open on that side. The rail
+     * fails closed on absence, so a dropped declaration quietly re-widens
+     * "peered with any non-demo node" back into "peered at all".
+     */
+    public function test_the_upsert_persists_and_preserves_the_declared_class(): void
+    {
+        $this->onLivePg(function () {
+            $service = app(\App\Services\Federation\PeerService::class);
+            $serverId = (string) \Illuminate\Support\Str::uuid();
+
+            // An inbound handshake that declared scale_demo: recorded.
+            $peer = $service->upsertTrustedPeer($serverId, 'test-key', [
+                'name' => 'Class Pin Peer',
+                'url' => 'http://class-pin.test',
+                'instance_class' => InstanceClass::SCALE_DEMO,
+            ]);
+
+            $this->assertSame(
+                InstanceClass::SCALE_DEMO,
+                $peer->metadata['instance_class'] ?? null,
+                'the declared class must be persisted, not validated-then-dropped'
+            );
+
+            // A later upsert carrying no class (the adoption exchange sends
+            // none): the earlier declaration is preserved, not clobbered.
+            $peer = $service->upsertTrustedPeer($serverId, 'test-key', [
+                'name' => 'Class Pin Peer (re-upsert)',
+            ]);
+
+            $this->assertSame(
+                InstanceClass::SCALE_DEMO,
+                $peer->metadata['instance_class'] ?? null,
+                'a class-less upsert must preserve the previously-declared class, '
+                .'exactly as matrix_server_name is preserved'
+            );
+        });
+    }
+
     private function onLivePg(callable $body): void
     {
         $conn = $this->livePg(self::LIVE_CONNECTION);

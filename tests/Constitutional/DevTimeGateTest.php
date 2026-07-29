@@ -54,7 +54,13 @@ class DevTimeGateTest extends TestCase
         $this->assertStringContainsString('local environment', $reason);
     }
 
-    /** The controls are OFF by default — nobody has to remember to disable them. */
+    /**
+     * The controls are OFF by default on any world NOT founded in Demo mode —
+     * nobody has to remember to disable them. (RULED 2026-07-28, §10 item 4:
+     * the sandbox setup choice is the switch. Here the game mode resolves to
+     * null — not sandbox — and no key is set, so the gate refuses with the
+     * sentence that explains where the switch actually lives.)
+     */
     public function test_the_gate_refuses_when_dev_time_is_not_switched_on(): void
     {
         config(['cga.dev_time' => false]);
@@ -63,6 +69,107 @@ class DevTimeGateTest extends TestCase
 
         $this->assertNotNull($reason);
         $this->assertStringContainsString('Playtest time controls are off', $reason);
+    }
+
+    /**
+     * ⚖ RULED 2026-07-28 (V3_SYNTHESIS_PLAN.md §10 item 4) — THE DERIVATION.
+     *
+     * A founder who chose Demo (sandbox) mode at setup gets working time
+     * controls with NO .env edit: `cga.dev_time` resolves true when
+     * game_mode = sandbox. This is the positive pin of that ruling — key OFF,
+     * world sandbox, gate open. Runs against the live sandbox database so the
+     * peer probes answer against real rows.
+     */
+    public function test_a_demo_founded_world_needs_no_env_key(): void
+    {
+        $pg = $this->livePg('pgsql_dev_time_gate');
+
+        config(['database.default' => 'pgsql_dev_time_gate', 'cga.dev_time' => false]);
+        $pg->getPdo();
+
+        \App\Support\GameMode::flush();
+
+        $this->assertNull(
+            DevTimeControlsEnabled::refusalReason(),
+            'RULED 2026-07-28: founding in Demo (sandbox) mode IS the switch — no env key needed.',
+        );
+    }
+
+    /**
+     * ⚖ RULED 2026-07-28 (§10 item 4) — THE REFINED RAIL.
+     *
+     * Demo instances are EXPECTED to peer for full-scale multibox testing, so
+     * the refusal keys on "connected to any NON-demo node", never on "peered
+     * at all". A peer that AFFIRMATIVELY declared itself a demo in its signed
+     * handshake (instance_class = scale_demo, persisted to the peer row's
+     * metadata) does not refuse the controls; one undeclared node makes the
+     * whole mesh real and refuses. Exercised inside a rolled-back transaction
+     * — this test creates the peers it measures rather than borrowing
+     * whatever the shared box happens to hold.
+     */
+    public function test_a_declared_demo_mesh_may_time_travel_and_one_real_node_stops_it(): void
+    {
+        $pg = $this->livePg('pgsql_dev_time_gate');
+
+        config(['database.default' => 'pgsql_dev_time_gate', 'cga.dev_time' => false]);
+        $pg->getPdo();
+        $pg->beginTransaction();
+
+        try {
+            \App\Support\GameMode::override(\App\Support\GameMode::SANDBOX);
+
+            // This test's world holds exactly the peers it says it does.
+            \Illuminate\Support\Facades\DB::table('federation_peers')->delete();
+
+            $demoServerId = (string) \Illuminate\Support\Str::uuid();
+            \Illuminate\Support\Facades\DB::table('federation_peers')->insert([
+                'server_id' => $demoServerId,
+                'url' => 'http://demo-peer.test',
+                'status' => 'trust_established',
+                'metadata' => json_encode(['instance_class' => 'scale_demo']),
+                'created_at' => now(),
+                'updated_at' => now(),
+            ]);
+
+            $this->assertNull(
+                DevTimeControlsEnabled::refusalReason(),
+                'a mesh made only of declared demo instances may time-travel (ruling 2026-07-28)',
+            );
+
+            // A mirror of that declared demo host is part of the same demo mesh.
+            \Illuminate\Support\Facades\DB::table('instance_settings')
+                ->update(['mirror_of_server_id' => $demoServerId]);
+
+            $this->assertNull(
+                DevTimeControlsEnabled::refusalReason(),
+                'mirroring a DECLARED DEMO host is demo-mesh membership, not a real chain of trust',
+            );
+
+            \Illuminate\Support\Facades\DB::table('instance_settings')
+                ->update(['mirror_of_server_id' => null]);
+
+            // One node that declared nothing: the whole mesh is real — refused.
+            // Absence of the declaration is the fail-closed direction; every
+            // pre-ruling peer row and every adoption-minted row reads this way.
+            \Illuminate\Support\Facades\DB::table('federation_peers')->insert([
+                'server_id' => (string) \Illuminate\Support\Str::uuid(),
+                'url' => 'http://undeclared-peer.test',
+                'status' => 'trust_established',
+                'metadata' => json_encode([]),
+                'created_at' => now(),
+                'updated_at' => now(),
+            ]);
+
+            $reason = DevTimeControlsEnabled::refusalReason();
+
+            $this->assertNotNull($reason, 'one undeclared node makes the mesh real');
+            $this->assertStringContainsString('has not declared itself a demo', $reason);
+        } finally {
+            while ($pg->transactionLevel() > 0) {
+                $pg->rollBack();
+            }
+            \App\Support\GameMode::flush();
+        }
     }
 
     /** The controls must not outlive the wider dev toolbox that gates them. */

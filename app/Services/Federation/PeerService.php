@@ -272,6 +272,15 @@ class PeerService
                 'schema_version' => $attrs['schema_version'] ?? null,
                 // Preserve a previously-learned Matrix domain when this upsert doesn't carry one.
                 'matrix_server_name' => $attrs['matrix_server_name'] ?? ($peer->metadata['matrix_server_name'] ?? null),
+                // The peer's DECLARED class (class-scoped federation, ruling
+                // 2026-07-25). receiveHandshake() validates and passes it;
+                // before 2026-07-28 this fill silently DROPPED it, so inbound
+                // rows never recorded demo-ness and the dev-time rail
+                // (ruling §10 item 4: a demo mesh may time-travel) could
+                // never open. Preserved across upserts that carry none — the
+                // adoption exchange sends no class — and absent still reads
+                // as production downstream: fail closed.
+                'instance_class' => $attrs['instance_class'] ?? ($peer->metadata['instance_class'] ?? null),
             ],
             // G-VER — pin the peer's tracked versions (gate counted sync, provenance).
             'constitutional_version' => $attrs['constitutional_version'] ?? $peer->constitutional_version,
