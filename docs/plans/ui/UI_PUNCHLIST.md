@@ -133,3 +133,32 @@ Doing that the day before a walk is how a working screen acquires a new failure 
   the fallback rather than trusting it.
 - **No way to change persona with a mouse** — `5b5815a` / `a5d82d8` / `dd3d5b1`, proven by a full
   round trip: became another person, came back.
+
+---
+
+## Lane 2 · Wave 3 pixel debts (2026-07-29)
+
+*Not lane-6 findings — a capture debt on a surface that shipped this wave. Recorded here so it
+rides the operator's walk with the rest.*
+
+### The Demo-flyout **mesh time-coordination state** is DOM-correct but un-pixel-walked
+
+`resources/js/Components/ShellV2/DevClockControls.vue` grew a mesh-advance state (`fa4e628`): the
+Demo flyout's clock console now shows whether this node **coordinates** the demo mesh, **follows**
+another node, or is **solo**, and a follower's "Apply" is disabled with the coordinator named. The
+server enforces all of it (`PlaytestStateController` mesh block + a 422 on a follower's apply); the
+component mirrors it. The **frontend build is green** and the logic is pinned server-side
+(`DemoMeshTimeCoordinatorTest`), but **no human has seen the pixels**, for two reasons:
+
+1. It renders only when the coordination columns exist — and that migration
+   (`2026_07_29_200000_demo_mesh_time_coordination`) is **held for its slot**, not yet applied.
+2. It needs a **second declared-demo peer** for the coordinator/follower states to differ; solo is
+   all a single box shows.
+3. The in-app preview pane still does not composite — the **standing fleet pixel blocker**, not a
+   defect in this surface.
+
+**Walk it once the migration lands + a two-box sandbox demo is up:** confirm the coordinator banner
+("this node coordinates … replays on N peer(s)"), the follower banner (refusal sentence names the
+coordinator, Apply greyed), the "Make this node the coordinator" button, and the "Tolerate skew"
+toggle. On a **production** node this whole block is absent by design (the base gate refuses) — that
+is correct, not a missing screen.
