@@ -359,6 +359,21 @@ TRADING DEFERRED to Wave 4 (operator ruled ISSUANCE, delivered; secondary needs 
 his ruling; shares floor stays honest-empty) — surfaced to operator, doesn't block 5-6. P2P
 agreement form = a mint → 116→117 pinned in the build.**
 
+**⚑ WAVE 4 STANDING ORDERS PREPARED (2026-07-29, operator asked, PREPARED not dispatched —
+awaiting his GO):** goal = as GREEN as possible across UI Screens + Capabilities → tested
+playable game. Per-lane orders in docs/plans/ui/WAVE4_STANDING_ORDERS.md + the rubric's new
+**Fleet & Waves** and **Open Questions** tabs. Headlines: lanes 1+3 = THE TYPE B RACE FIX
+(seating+counting, per-child/per-clump — unblocks Type B elections + all bicameral acts); lane 6
+= civic/social partials + bill.html + THE WALK; lane 13 = 12 economy partials; lane 4 = build
+the Atlas; lane 2 = operator/system screens + handshake hardening; lane 5 = INTEGRATE the
+operator's EXISTING multi-track video player (he built it; mockups based on it; ref fleet-11
+video-translate + coalition site — NOT a from-scratch build) + i18n; lane 15 = education arming
++ profile-edit/DM; lane 14 HELD. OPEN QUESTIONS: 9 open (education arming · game-box mass-pass go
+· lane 3 compaction · RankedBallot trigger · secondary trading · handshake 500→4xx · B2 · live
+oversight scope · orphan deletions), 5 resolved (Type B shape · founding-stake defer · setup
+fork-first · oversight public · video player exists-integrate). Rubric artifact (5 tabs, same
+URL): https://claude.ai/code/artifact/101c137d-df9b-4785-b8ff-8072532e2619.
+
 **⚑ VERIFIED APP-STATE RUBRIC (2026-07-29, 8-agent verification workflow vs LIVE code — not
 asserted): SCREENS 72 built · 32 partial · 3 absent of 107** (up from 63/34/10 at Wave 2 close;
 3 absent = video-player, atlas, bill). **CAPABILITIES 38 working · 10 partial · 3 blocked · 5
