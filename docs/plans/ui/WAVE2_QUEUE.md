@@ -348,7 +348,11 @@ ENTITY_CASE as a PHP constant, no migration; idempotent lazy provisioning. FLAG 
 (deferred, post-wave): an organization-visibility setting (public opt-in for boards) would
 need a schema slot — correctly not written, the private default is constitutional as-is.
 QUEUED-MESSAGE MISS confirmed live (rule 4): lane 3 reported idle on Q1/Q2 after the ruling
-was sent — ruling RE-ISSUED idempotently.**
+was sent — ruling RE-ISSUED idempotently. THE RE-ISSUE MISSED TOO (two consecutive body
+losses to the same busy session; other lanes' deliveries fine) — third issue sent SHORT-FORM
+(the two answers + the pin only). Fleet lesson recorded: rulings to a busy lane go short-form
+first, detail second; a lane that suspects a miss may page the desk transcript (lane 3 did —
+correct behavior, and it refused to build on a guessed ruling).**
 
 **Lane 13 DELIVERED (eaabedb, DESIGN_ROUND_2.md, 529 lines, docs only, sweep-clean despite ~14
 dirty peer files): four surfaces designed OPTIONS+COSTS+REC; 11-decision matrix + 2
