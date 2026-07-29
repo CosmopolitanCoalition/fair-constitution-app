@@ -241,6 +241,20 @@ class ModerationFlipTest extends TestCase
                 ->from('matrix_rooms')
                 ->whereColumn('matrix_rooms.entity_id', 'jurisdictions.id')
                 ->whereNull('matrix_rooms.deleted_at'))
+            // …and it must be a BOOTSTRAP jurisdiction: test 1 asserts
+            // isSeated()==false, which keys on ANY active, non-deleted
+            // Legislature (ModerationFlipService::isSeated). Borrowing "the
+            // first room-free row" was safe until the shared box began accruing
+            // seated governments (W4 lane 1's ~9,708 activations + seeded
+            // members) — that row can now be governed, and the assertion breaks
+            // by chance. Exclude any active legislature so the borrowed
+            // jurisdiction is guaranteed unseated. The seated tests (2–4) mint
+            // their OWN legislature via seatLegislature() and are unaffected.
+            ->whereNotExists(fn ($q) => $q->selectRaw('1')
+                ->from('legislatures')
+                ->whereColumn('legislatures.jurisdiction_id', 'jurisdictions.id')
+                ->where('legislatures.status', Legislature::STATUS_ACTIVE)
+                ->whereNull('legislatures.deleted_at'))
             ->value('id');
         if ($id === null) {
             $this->markTestSkipped('Live DB has no jurisdiction.');
