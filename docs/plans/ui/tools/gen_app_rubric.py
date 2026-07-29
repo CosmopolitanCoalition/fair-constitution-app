@@ -4,7 +4,58 @@ Native-feeling drill (search / filter / expand-all) with per-item punch detail, 
 beloved v3_gap_dashboard, extended to carry the whole plan to a tested playable game."""
 import json, io, sys
 sys.path.insert(0, r'C:\Users\JOSEPH~1\AppData\Local\Temp\claude\E--fair-constitution-app\355910cb-829c-4f85-8b3a-3a74acb84871\scratchpad')
-from wave4_data import FLEET, QUESTIONS
+from wave4_data import FLEET
+# Structured, fillable open-questions (options + owning lane). Resolved ones are read-only.
+QUESTIONS = [
+ {"id":"edu-arming","q":"Education arming sequencing — how do untrained demo members behave when the gate arms?","status":"open","lane":"15",
+  "detail":"education:seed arms the act-gate for 6 civic tracks; every untrained role-holder then redirects on their next role-act. Gates your browser walk of the training gate.",
+  "options":[{"k":"A","t":"Pre-train demo members (seeders file F-EDU-001) — the walk shows a trained fleet. [lane 15 rec]"},
+             {"k":"B","t":"Seed and leave demo members untrained — the walk DEMOS the redirect→train→act loop live."},
+             {"k":"C","t":"Don't seed this wave — the gate is proven by the e2e only, no live walk."}]},
+ {"id":"mass-pass","q":"Game-box mass pass — run the Type B mapper over the real ~9,708 flagged chambers?","status":"open","lane":"1",
+  "detail":"The ~9,708 flagged chambers live on the GAME box, not dev. Waits on the Type B race fix so cleared chambers get the correct race.",
+  "options":[{"k":"A","t":"After the race fix, pull lane 1's commits to the game box and run the mass pass now (ETL-chunked)."},
+             {"k":"B","t":"Defer to the Wave-4 cloud rehearsal."}]},
+ {"id":"lane3-compact","q":"Lane 3 compaction — run the keystone exit walk with fresh context?","status":"open","lane":"3",
+  "detail":"The Live Civic Room is built but not yet WALKED end-to-end (the acceptance gate). The exit walk needs lane 3 compacted.",
+  "options":[{"k":"A","t":"Compact lane 3 now — it resumes straight into seating a committee + the exit walk."},
+             {"k":"B","t":"Hold lane 3 for now."}]},
+ {"id":"ranked-live","q":"RankedBallot live standings — spin the secrecy-critical build?","status":"open","lane":"3",
+  "detail":"Live provisional standings during an OPEN ranked ballot, without an in-request decrypt. Cold-start spec ready; cadence ruled daily-batch.",
+  "options":[{"k":"A","t":"Trigger the fresh-session build now."},
+             {"k":"B","t":"Defer — the electoral partial stays as-is."}]},
+ {"id":"secondary-trade","q":"Secondary share trading — pull into Wave 4 or leave deferred?","status":"open","lane":"13",
+  "detail":"You ruled share ISSUANCE (delivered). A holder RESELLING issued shares needs its own schema.",
+  "options":[{"k":"A","t":"Pull into Wave 4 — lane 13 builds share resale on the exchange."},
+             {"k":"B","t":"Leave deferred — the exchange shares floor stays honest-empty."}]},
+ {"id":"handshake-4xx","q":"Cross-class federation handshake — return a graceful 4xx instead of 500?","status":"open","lane":"2",
+  "detail":"A genuine cross-class handshake surfaces the class-rule refusal as an uncaught 500 rather than a 409/422. Pre-existing.",
+  "options":[{"k":"A","t":"Fix in Wave 4 — catch it, return 409/422 gracefully."},
+             {"k":"B","t":"Leave as-is (pre-existing, low priority)."}]},
+ {"id":"b2-pairing","q":"B2 remainder rule — compact-first vs strictly-lowest-population pairing?","status":"open","lane":"1",
+  "detail":"On real adjacency, compactness drives which children pair (population only orients the walk head). Lane 1 shipped compact-first.",
+  "options":[{"k":"A","t":"Keep compact-first (shipped, matches intent)."},
+             {"k":"B","t":"Force strictly-lowest-population pairing even when less compact."}]},
+ {"id":"oversight-live","q":"Oversight — does 'public to watch' extend to the LIVE console of in-progress proceedings against NAMED members?","status":"open","lane":"3",
+  "detail":"§10-1 makes government proceedings public. Open: the LIVE console of an in-progress removal/discipline against a named member, or only the sealed public record after?",
+  "options":[{"k":"A","t":"Keep the live console gated; the public RECORD stays public. [desk rec]"},
+             {"k":"B","t":"Make the live console public too (fully open in-progress)."}]},
+ {"id":"orphans","q":"Orphan-surface deletions — remove unreferenced surfaces?","status":"open","lane":"6",
+  "detail":"e.g. Elections/CandidateProfile.vue (unreferenced) + a couple of orphan surface records.",
+  "options":[{"k":"A","t":"Delete the orphan surfaces."},
+             {"k":"B","t":"Keep them for now."}]},
+ # --- resolved (read-only, recorded) ---
+ {"id":"typeb-shape","q":"Type B race shape — pooled vs per-child/per-clump?","status":"resolved","lane":"1",
+  "detail":"RULED per-child/per-clump (each child, or clump, is its own at-large race). CLAUDE.md corrected @55b8846. Build = Wave 4 (lanes 1+3)."},
+ {"id":"video","q":"Video library / multi-track player — build from scratch?","status":"resolved","lane":"5",
+  "detail":"NO from-scratch build — the operator's player already exists; the mockups are based on it. Wave 4 = integrate it (ref fleet-11 + coalition site)."},
+ {"id":"founding-stake","q":"Founding-stake-on-registration — auto-equity when an org is founded?","status":"resolved","lane":"13",
+  "detail":"DEFERRED to Wave 4, structure-aware (100% stake wrong for member-owned/nonprofit; only stock has shares)."},
+ {"id":"setup-order","q":"Setup order — account-first (mockup) or fork-first (ruling)?","status":"resolved","lane":"2",
+  "detail":"RULED FORK-FIRST: join-or-start, THEN account. Mockup swapped; SetupController already fork-first."},
+ {"id":"oversight-public","q":"Oversight console — public or gated?","status":"resolved","lane":"3",
+  "detail":"RULED PUBLIC ('public if it's government'; no closed-session provision). Console read public; write controls authenticated. @4057b3c."},
+]
 
 base = json.load(open(r'E:\fair-constitution-app\docs\plans\ui\v3_gap_data.json', encoding='utf-8'))
 res = json.load(open(r'C:\Users\JOSEPH~1\AppData\Local\Temp\claude\E--fair-constitution-app\355910cb-829c-4f85-8b3a-3a74acb84871\scratchpad\rubric_data.json', encoding='utf-8'))
@@ -88,6 +139,23 @@ h1{font-size:1.55rem;font-weight:600;margin:0 0 .3rem}
 .p-low{background:var(--accent-soft);color:var(--muted)}
 .eff{font-family:var(--mono);font-size:.72rem;color:var(--faint);white-space:nowrap}
 .lwbadge{font-family:var(--mono);font-size:.66rem;font-weight:700;background:var(--accent-soft);color:var(--accent);padding:.14em .45em;border-radius:4px;white-space:nowrap;letter-spacing:.02em}
+.qbar{display:flex;gap:.8rem;align-items:center;margin:0 0 1rem;flex-wrap:wrap}
+.qhint{font-size:.78rem;color:var(--faint);flex:1;min-width:14rem}
+#qexport{font-weight:700;color:var(--accent);border-color:var(--accent)}
+.qexport{background:var(--surface);border:1px solid var(--accent);border-radius:8px;padding:.7rem .9rem;font-family:var(--mono);font-size:.76rem;white-space:pre-wrap;color:var(--ink);margin:0 0 1rem;user-select:all}
+.qcard{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:.9rem 1rem;margin:0 0 .7rem}
+.qcard.resolved{opacity:.65}
+.qhead{display:flex;align-items:baseline;gap:.6rem;flex-wrap:wrap}
+.qtext{font-weight:600;font-size:.95rem;flex:1;min-width:12rem}
+.qdetail{font-size:.82rem;color:var(--muted);margin:.4rem 0 .7rem}
+.qopts{display:flex;flex-direction:column;gap:.4rem;margin:0 0 .7rem}
+.qopt{display:flex;gap:.55rem;align-items:flex-start;padding:.5rem .7rem;border:1px solid var(--line);border-radius:8px;cursor:pointer;font-size:.86rem}
+.qopt:hover{background:var(--accent-soft)}
+.qopt.on{border-color:var(--accent);background:var(--accent-soft);box-shadow:inset 0 0 0 1px var(--accent)}
+.qopt input{margin-top:.15rem;accent-color:var(--accent)}
+.qk{font-family:var(--mono);font-weight:700;color:var(--accent);flex:none}
+.qnotes{width:100%;min-height:2.4rem;background:var(--bg);border:1px solid var(--line-strong);border-radius:8px;color:var(--ink);font:inherit;font-size:.85rem;padding:.45rem .6rem;resize:vertical}
+.qnotes:focus{outline:2px solid var(--accent);outline-offset:1px}
 .wv{font-family:var(--mono);font-size:.72rem;font-weight:700;color:var(--accent);white-space:nowrap}
 .detail{padding:.35rem 1.2rem 1rem 2.15rem;font-size:.85rem;border-top:1px dashed var(--line)}
 .detail dl{margin:0}.detail dt{font-size:.7rem;letter-spacing:.09em;text-transform:uppercase;color:var(--faint);margin:.7rem 0 .2rem}
@@ -124,6 +192,8 @@ const esc=s=>String(s==null?'':s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;',
 const CO={built:'good',working:'good',partial:'warn',absent:'bad',blocked:'block',high:'bad',medium:'warn',low:'low',done:'good',next:'warn',held:'block',resolved:'good',open:'bad'};
 const LB={built:'built',working:'working',partial:'partial',absent:'absent',blocked:'blocked',high:'high',medium:'medium',low:'low',done:'done',next:'next',held:'held',resolved:'resolved',open:'open'};
 let view='screens',q='',filter='all';
+let ANS={};try{for(let i=0;i<localStorage.length;i++){const k=localStorage.key(i);if(k&&k.indexOf('cga4qs_')===0){const id=k.slice(7);ANS[id]=ANS[id]||{};ANS[id].sel=localStorage.getItem(k);}if(k&&k.indexOf('cga4qn_')===0){const id=k.slice(7);ANS[id]=ANS[id]||{};ANS[id].notes=localStorage.getItem(k);}}}catch(e){}
+function saveAns(id,f,v){ANS[id]=ANS[id]||{};ANS[id][f]=v;try{localStorage.setItem('cga4q'+(f==='sel'?'s':'n')+'_'+id,v);}catch(e){}}
 const FILTERS={screens:['all','built','partial','absent'],caps:['all','working','partial','blocked','absent'],debt:['all','high','medium','low'],fleet:['all','done','next','held'],questions:['all','open','resolved']};
 const sc=t=>D.screens.filter(r=>r.bucket===t).length,cc=t=>D.caps.filter(r=>r.maturity===t).length,dc=t=>D.debt.filter(r=>r.severity===t).length;
 const qOpen=D.questions.filter(x=>x.status==='open').length,qRes=D.questions.filter(x=>x.status==='resolved').length;
@@ -163,8 +233,20 @@ function render(){const b=document.getElementById('body');
       const bar=['done','next','held'].map(k=>sc[k]?`<span class="s-${CO[k]}" style="flex:${sc[k]}"></span>`:'').join('');
       html+=`<section class="area"><button class="area-head" aria-expanded="false"><span class="area-name">Lane ${esc(l.id)} · ${esc(l.name)}</span><span class="bar">${bar}</span><span class="counts">${sc.next} next</span><span class="chev">›</span></button><div class="rows hidden">${vis.map(o=>`<div class="scr"><button class="scr-head" aria-expanded="false"><span class="wv">${o.wave}</span><span class="scr-title">${hi(o.text.slice(0,90))}${o.text.length>90?'…':''}</span><span class="pill p-${o.status}">${LB[o.status]}</span><span class="eff"></span></button><div class="detail hidden"><p>${hi(o.text)}</p></div></div>`).join('')}</div></section>`;});
     b.innerHTML=html;}
-  else if(view==='questions'){const vis=D.questions.filter(r=>(filter==='all'||r.status===filter)&&(!q||(r.q+' '+r.detail+' '+(r.owner||'')).toLowerCase().includes(q)));
-    b.innerHTML=`<section class="area"><div class="rows">${vis.map(r=>`<div class="scr"><button class="scr-head" aria-expanded="false"><span class="dot d-${CO[r.status]}"></span><span class="scr-title">${hi(r.q)}</span><span class="pill p-${r.status}">${LB[r.status]}</span><span class="eff"></span></button><div class="detail hidden"><dl><dt>Detail</dt><dd>${hi(r.detail)}</dd><dt>Owner / next</dt><dd>${hi(r.owner||'')}</dd></dl></div></div>`).join('')||'<div class="detail">No matches.</div>'}</div></section>`;}
+  else if(view==='questions'){
+    const vis=D.questions.filter(r=>(filter==='all'||r.status===filter)&&(!q||(r.q+' '+r.detail).toLowerCase().includes(q)));
+    let html='<div class="qbar"><button class="chip" id="qexport">⭳ Export answers</button><span class="qhint">Pick an option and add notes on each open question — your answers save in the page. When done, click Export (copies to clipboard) or screenshot; either lets the desk read them and update the fleet orders.</span></div><pre id="qexport-out" class="qexport hidden"></pre>';
+    vis.forEach(r=>{
+      if(r.status==='resolved'){html+=`<div class="qcard resolved"><div class="qhead"><span class="lwbadge">L${esc(r.lane)}</span><span class="qtext">${hi(r.q)}</span><span class="pill p-resolved">resolved</span></div><div class="qdetail">${hi(r.detail)}</div></div>`;}
+      else{const a=ANS[r.id]||{};const sel=a.sel||'';const nt=a.notes||'';
+        html+=`<div class="qcard open"><div class="qhead"><span class="lwbadge">L${esc(r.lane)}</span><span class="qtext">${hi(r.q)}</span><span class="pill p-open">open</span></div><div class="qdetail">${hi(r.detail)}</div><div class="qopts">`+r.options.map(o=>`<label class="qopt${sel===o.k?' on':''}"><input type="radio" name="q_${r.id}" value="${o.k}"${sel===o.k?' checked':''}><span class="qk">${o.k}</span><span>${esc(o.t)}</span></label>`).join('')+`</div><textarea class="qnotes" data-id="${r.id}" placeholder="Notes / your own answer…">${esc(nt)}</textarea></div>`;}
+    });
+    b.innerHTML=html;
+    b.querySelectorAll('input[type=radio]').forEach(inp=>inp.addEventListener('change',e=>{const id=e.target.name.slice(2);saveAns(id,'sel',e.target.value);e.target.closest('.qopts').querySelectorAll('.qopt').forEach(l=>l.classList.toggle('on',l.querySelector('input').checked));}));
+    b.querySelectorAll('.qnotes').forEach(ta=>ta.addEventListener('input',e=>saveAns(e.target.dataset.id,'notes',e.target.value)));
+    const ex=document.getElementById('qexport');if(ex)ex.addEventListener('click',()=>{const L=['CGA OPEN-QUESTIONS — operator answers'];D.questions.filter(x=>x.status==='open').forEach(x=>{const a=ANS[x.id]||{};const s=a.sel||'(none)';const ot=(x.options.find(o=>o.k===s)||{}).t||'';L.push('\n[L'+x.lane+'] '+x.q+'\n  = '+s+(ot?' — '+ot:'')+(a.notes?'\n  notes: '+a.notes:''));});const txt=L.join('\n');const o=document.getElementById('qexport-out');o.textContent=txt;o.classList.remove('hidden');try{navigator.clipboard.writeText(txt);}catch(e){}});
+    return;
+  }
   b.querySelectorAll('.area-head').forEach(h=>{const list=h.nextElementSibling;if(!list)return;h.addEventListener('click',()=>{const hid=list.classList.toggle('hidden');h.setAttribute('aria-expanded',String(!hid));});});
   b.querySelectorAll('.scr-head').forEach(h=>{const dt=h.nextElementSibling;h.addEventListener('click',()=>{const hid=dt.classList.toggle('hidden');h.setAttribute('aria-expanded',String(!hid));});});
   if(q||filter!=='all')b.querySelectorAll('.rows').forEach(x=>x.classList.remove('hidden'));
