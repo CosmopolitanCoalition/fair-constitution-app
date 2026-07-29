@@ -339,6 +339,19 @@ invited check ("check me on it") found: the engine already seats islands via the
 sound iff both clips hold; antimeridian guarding is real and already precedented; and
 hull-CONTACT adjacency for GROUPING reduces to a buffered proximity graph (hulls of separated
 islands never touch — the buffer distance d becomes a free parameter controlling everything).
+**Lane 4 DELIVERED (6b33e19, docs only, sweep-clean): SERVICE_SCALE_FORMULA.md (cited —
+Taagepera cube-root, CEPEJ ~22 judges/100k, House/Senate committee ratios, civic-center
+1/25–100k; extends the EXISTING InstitutionScaleService, defers to the two cube-roots;
+manual-after-governance grounded in InstitutionProvisionService's refusal boundary; Niue/San
+Marino 59/Earth 1,999 worked) + ATLAS_DESIGN.md (nightly world_stats rollup read like reach —
+NEVER a live count; CI-1 gauge-never-lever end to end). NINE operator judgment calls queued
+(formula §9 ×5, Atlas §8 ×4) — formatted to the operator in the desk chat; formula wires into
+InstitutionScaleService only after his sign-off (lane 3 R-B, next wave). COORDINATION FINDING
+relayed to lane 1: racePlan()'s un-flagged else-branch emits bare at-large and does not read
+groupings — the read-side must land before/with the first un-flag; racePlan is a hot file
+(lane 3's guard landed there this wave). DESK OBLIGATION: ping lane 4 at lane 1's first real
+cleared chamber (it pins the un-flag path against true behavior, not a synthetic flip).**
+
 ~~QUESTION QUEUED~~ **RULED (operator, 2026-07-29): OPTION A** — Type B grouping adjacency =
 centroid nearest-approach (closestApproachSq reuse), one unified graph (border_len edges where
 land borders exist, nearest-approach where they don't), B5 tie chain unchanged. The hull keeps
