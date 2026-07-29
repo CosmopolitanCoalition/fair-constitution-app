@@ -51,8 +51,26 @@ class TranslationCoverageController extends Controller
         $counts   = config('locales.counts', []);
         $codes    = $this->localesWithCatalogs($registry);
 
+        /*
+         * The viewer's verifier standing. Anyone who READS a language may verify
+         * its translations — the gate is TranslationReviewController::canVerify:
+         * is_operator, or the language is your app locale, or it is one of the
+         * languages on your account. en is the source, never reviewed. This is
+         * the "Become a verifier" section's data (mockup translation-home.html).
+         */
+        $user = request()->user();
+        $canVerify = $user?->is_operator
+            ? array_values(array_filter($codes, static fn (string $c): bool => $c !== 'en'))
+            : array_values(array_filter($codes, static fn (string $c): bool => $c !== 'en'
+                && ((string) $user?->locale === $c || in_array($c, $user?->languages ?? [], true))));
+
         return Inertia::render('System/Translations', [
             'surface'  => SurfaceMeta::for('system/translations'),
+            'viewer'   => [
+                'authed'     => $user !== null,
+                'isOperator' => (bool) $user?->is_operator,
+                'canVerify'  => $canVerify,
+            ],
             'coverage' => $this->coverage(),
             'live'     => $this->live(),
 

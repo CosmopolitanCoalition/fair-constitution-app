@@ -42,6 +42,8 @@ const props = defineProps({
     /** Registry entries for the languages shown (name, endonym, dir). */
     registry: { type: Object, default: () => ({}) },
     totals: { type: Object, default: () => ({}) },
+    /** The viewer's verifier standing: {authed, isOperator, canVerify: [codes]}. */
+    viewer: { type: Object, default: () => ({ authed: false, isOperator: false, canVerify: [] }) },
 });
 
 /* ── The matrix ──────────────────────────────────────────────────────────────
@@ -51,6 +53,12 @@ const props = defineProps({
 const byState = computed(() => Object.fromEntries(props.states.map((s) => [s.id, s])));
 const langOf = (code) => props.registry[code] ?? { name: code, endonym: code, dir: 'ltr' };
 const cellLabel = (c) => (c.state === 'none' ? '—' : `${c.pct}%`);
+
+/* ── Verifier standing ─────────────────────────────────────────────────────
+   The languages this viewer may verify (the reader-of-language gate), each with
+   its display name and a link to its worst-first review queue. */
+const myVerifyLangs = computed(() =>
+    (props.viewer?.canVerify ?? []).map((code) => ({ code, ...langOf(code) })));
 
 /* ── The live half ───────────────────────────────────────────────────────────
    Polls every 2s while a run is in flight, the same contract Step-3's district
@@ -479,6 +487,72 @@ function pctOf(part, whole) {
 
             <CitationLine text="Records publish with translations · WF-SYS-03" />
         </template>
+
+        <!-- ── BECOME A VERIFIER ───────────────────────────────────────────
+             Anyone who reads a language may confirm or flag its drafts; a
+             string is settled by a quorum of readers, never by the machine.
+             The languages you read come from your account and gate what you
+             can verify here (mockups/v3/translation/translation-home.html). -->
+        <Card>
+            <div class="cluster" style="justify-content: space-between; align-items: center">
+                <h2><Icon name="users" size="sm" /> Become a verifier</h2>
+                <StatusBadge tone="info">Verifier role · readers of a language</StatusBadge>
+            </div>
+            <p class="gloss">
+                Anyone who reads a language can verify its translations. A draft is settled by a
+                quorum of readers who agree — the machine never publishes itself. The languages you
+                read come from your account and give weight to your verifications.
+            </p>
+
+            <template v-if="myVerifyLangs.length">
+                <p class="gloss">You can verify — pick a language to work its queue, worst-first:</p>
+                <div class="cluster" style="gap: var(--space-1)">
+                    <Link
+                        v-for="l in myVerifyLangs"
+                        :key="l.code"
+                        class="form-chip"
+                        :href="`/system/translations/review/${l.code}`"
+                    >
+                        <Icon name="check" size="sm" /> {{ l.endonym }}
+                        <span class="gloss" data-no-i18n>· {{ l.code }}</span>
+                    </Link>
+                </div>
+                <p v-if="viewer.isOperator" class="muted">
+                    As operator you can verify every language — use this to unstick a queue no reader
+                    has reached yet, never to overrule the readers of a language.
+                </p>
+            </template>
+
+            <template v-else>
+                <p class="muted" v-if="!viewer.authed">
+                    <Link href="/register">Sign up</Link> and set the languages you read on your
+                    profile to start verifying.
+                </p>
+                <p class="muted" v-else>
+                    Add the languages you read on your profile to start verifying — the queue is
+                    gated to readers so a translation is only ever settled by people who can judge it.
+                </p>
+            </template>
+        </Card>
+
+        <!-- ── ADD A LANGUAGE ─────────────────────────────────────────────── -->
+        <Card>
+            <h2>Add a language</h2>
+            <p>
+                Don’t see yours? Any of the {{ totals.mapped ?? 0 }} mapped languages can be opened
+                for translation, and a new one can be requested. The machine drafts every kind of
+                content at once, then it opens for your review — never shipped as final until readers
+                confirm it.
+            </p>
+            <div class="cluster" style="gap: var(--space-1)">
+                <Link class="btn btn--primary" :href="`/support/report?ref=${encodeURIComponent('Add a language')}`">
+                    Request a language <Icon name="arrow-right" size="sm" />
+                </Link>
+                <Link class="btn" href="/videos">
+                    See the video library <Icon name="arrow-right" size="sm" />
+                </Link>
+            </div>
+        </Card>
     </PageScaffold>
 </template>
 
