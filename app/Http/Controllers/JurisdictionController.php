@@ -168,6 +168,35 @@ class JurisdictionController extends Controller
             ->whereNull('deleted_at')
             ->first(['state', 'critical_population_at', 'activated_at']);
 
+        // S-grade addition (V3 gap matrix — jurisdiction-browser row): the
+        // Reach & participation block. Reads the nightly SUPPRESSED snapshot
+        // exactly as ReachController::gauge() does — the LegitimacyService
+        // k-anonymity rail (CI-1: a gauge, never a lever). NEVER a live
+        // headcount: a live COUNT here would hand an observer sub-minute
+        // resolution on a number the snapshot publishes once a day and let
+        // them defeat suppression by differencing. `state` is the contract —
+        // the frontend switches on it and never infers from the raw numbers;
+        // no snapshot is "not measured yet", never "zero reach".
+        $reachRow = DB::table('legitimacy_snapshots')
+            ->where('jurisdiction_id', $jurisdiction->id)
+            ->orderByDesc('as_of_date')
+            ->first(['state', 'as_of_date', 'verified_residents', 'population_estimate', 'ratio_micro']);
+        $reach = $reachRow !== null
+            ? [
+                'state'               => $reachRow->state,
+                'as_of_date'          => $reachRow->as_of_date,
+                'verified_residents'  => $reachRow->verified_residents !== null ? (int) $reachRow->verified_residents : null,
+                'population_estimate' => $reachRow->population_estimate !== null ? (int) $reachRow->population_estimate : null,
+                'ratio_micro'         => $reachRow->ratio_micro !== null ? (int) $reachRow->ratio_micro : null,
+            ]
+            : [
+                'state'               => \App\Services\LegitimacyService::STATE_UNMEASURABLE,
+                'as_of_date'          => null,
+                'verified_residents'  => null,
+                'population_estimate' => null,
+                'ratio_micro'         => null,
+            ];
+
         return Inertia::render('Jurisdictions/Show', [
             // Phase 3e reshape: the viewer joins the v2 shell + PageScaffold,
             // which reads the surface record for eyebrow/citation.
@@ -222,6 +251,10 @@ class JurisdictionController extends Controller
                 'apportionment_completed_at' => $instanceSettings?->apportionment_completed_at?->toIso8601String(),
                 'setup_step_completed' => $instanceSettings?->setup_step_completed,
             ],
+            // S-grade addition — the Reach & participation gauge (see the
+            // snapshot read above). Feeds the sidebar block that links out to
+            // the full /reach panel.
+            'reach' => $reach,
         ]);
     }
 

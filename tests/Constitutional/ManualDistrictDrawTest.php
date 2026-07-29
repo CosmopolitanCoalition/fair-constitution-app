@@ -273,6 +273,22 @@ class ManualDistrictDrawTest extends TestCase
                 ->value('id');
             $this->assertNotSame('', $activeMapId, 'the legislature carries an active (founding) map');
 
+            // Founded-world precondition. On a box where any lane has founded
+            // this legislature, the active founding map already line-split the
+            // giant (the founding autoscale run districted Serravalle), so a
+            // fresh draw overlaps it and Art. II §8's voter-pool gate fires —
+            // the rail working correctly. This test models the FOUNDER drawing
+            // the giant's FIRST split into the founding map, whose precondition
+            // is "the giant is not yet drawn." Establish it in-tx (rolled
+            // back): retire the giant's existing subdivisions on the active map
+            // (the ONLY thing the overlap gate reads — see ManualDistrictDraw
+            // line 291-305). The overlap RAIL itself is untouched.
+            DB::table('district_subdivisions')
+                ->where('map_id', $activeMapId)
+                ->where('parent_jurisdiction_id', $ctx['giant_id'])
+                ->whereNull('deleted_at')
+                ->update(['deleted_at' => now()]);
+
             // The operator's rule, verbatim intent: "If I'm on a map I'm on a
             // map." During Initial Setup the displayed map IS the founding
             // (v1, active) map and the founder draws into it directly — no

@@ -91,6 +91,22 @@ class AutoscalePinTest extends TestCase
                 'template'          => null,
             ]);
 
+            // Pre-run baseline of the GLOBAL audit events these pins count.
+            // The shared box may carry a founded world's committed rows
+            // (bootstrap boards, a completed run); the chain's genesis head
+            // must stay (append needs it), so we assert the exact per-run
+            // DELTA rather than an absolute — the same "exactly one per X"
+            // guarantee, made robust to a non-empty log.
+            $auditBase = [
+                'district_map.generated'         => (int) DB::table('audit_log')->where('event', 'district_map.generated')
+                    ->where('payload->generator', 'like', '%SweepScopeProcessor%')->count(),
+                'autoscale.singles_generated'    => (int) DB::table('audit_log')->where('event', 'autoscale.singles_generated')->count(),
+                'autoscale.completed'            => (int) DB::table('audit_log')->where('event', 'autoscale.completed')->count(),
+                'autoscale.sizing_completed'     => (int) DB::table('audit_log')->where('event', 'autoscale.sizing_completed')->count(),
+                'bootstrap_board_constituted'    => (int) DB::table('audit_log')->where('event', 'bootstrap_board_constituted')->count(),
+                'district_map.zero_pop_absorbed' => (int) DB::table('audit_log')->where('event', 'district_map.zero_pop_absorbed')->count(),
+            ];
+
             $this->driveRun($run);
 
             $run->refresh();
@@ -331,15 +347,15 @@ class AutoscalePinTest extends TestCase
             $this->assertStringNotContainsString('unassigned', (string) $domlandItem->reason,
                 'no constituent is stranded between frames');
 
-            $this->assertSame(22, (int) DB::table('audit_log')
+            $this->assertSame($auditBase['district_map.generated'] + 22, (int) DB::table('audit_log')
                 ->where('event', 'district_map.generated')
                 ->where('payload->generator', 'like', '%SweepScopeProcessor%')
                 ->count(), 'EXACTLY one summary audit entry per completed sweep — never a flood, never silent');
-            $this->assertSame(1, (int) DB::table('audit_log')->where('event', 'autoscale.singles_generated')->count(),
+            $this->assertSame($auditBase['autoscale.singles_generated'] + 1, (int) DB::table('audit_log')->where('event', 'autoscale.singles_generated')->count(),
                 'EXACTLY one singles append per claimed batch (all fixture leaves fit one batch) — never per-row');
-            $this->assertSame(1, (int) DB::table('audit_log')->where('event', 'autoscale.completed')->count());
-            $this->assertSame(1, (int) DB::table('audit_log')->where('event', 'autoscale.sizing_completed')->count());
-            $this->assertSame(1, (int) DB::table('audit_log')->where('event', 'bootstrap_board_constituted')->count(),
+            $this->assertSame($auditBase['autoscale.completed'] + 1, (int) DB::table('audit_log')->where('event', 'autoscale.completed')->count());
+            $this->assertSame($auditBase['autoscale.sizing_completed'] + 1, (int) DB::table('audit_log')->where('event', 'autoscale.sizing_completed')->count());
+            $this->assertSame($auditBase['bootstrap_board_constituted'] + 1, (int) DB::table('audit_log')->where('event', 'bootstrap_board_constituted')->count(),
                 'the founding bootstrap board (R-08 substrate) is constituted exactly once');
 
             // ── Pin 7: ADOPT, never bulldoze — a requeued sweep item whose
@@ -472,7 +488,7 @@ class AutoscalePinTest extends TestCase
                 'no zero-pop seated district survives on the finalized map');
             $this->assertSame('active', DB::table('legislature_district_maps')->where('id', $pinlandMap->id)->value('status'),
                 'the healed map activates');
-            $this->assertSame(1, (int) DB::table('audit_log')
+            $this->assertSame($auditBase['district_map.zero_pop_absorbed'] + 1, (int) DB::table('audit_log')
                 ->where('event', 'district_map.zero_pop_absorbed')->count(),
                 'each absorption appends to the audit chain');
 
@@ -738,6 +754,7 @@ class AutoscalePinTest extends TestCase
         $conn->beginTransaction();
 
         try {
+            $this->isolateFoundedWorld();
             $body($this->buildThreeLevelPinland());
         } finally {
             while ($conn->transactionLevel() > 0) {
@@ -746,6 +763,46 @@ class AutoscalePinTest extends TestCase
             DB::setDefaultConnection($original);
             ConstitutionalDefaults::flush();
         }
+    }
+
+    /**
+     * Own the world. The sizing phase sweeps the WHOLE jurisdictions table
+     * and the revert deletes autoscale maps by their provenance description,
+     * so a world any lane founded on this shared box (committed jurisdictions
+     * + auto-generated maps + the elections riding them) pollutes every
+     * absolute-count pin: singles/sweeps totals inflate (the founded leaves
+     * enumerate too), founded maps get ADOPTED at enumeration (so "no sweep
+     * ran during the halt" sees them done), and the revert's district DELETE
+     * hits the election_races FK on the founded races. This fixture's subject
+     * IS the jurisdictions table, so it must present a clean one — "a fixture
+     * establishes what its subject requires; it does not assume the world
+     * provides it."
+     *
+     * Two SURGICAL updates inside the always-rolled-back transaction — never a
+     * cross-table DELETE storm (the founded election world is 70+ elections /
+     * 650+ members across ~40 FK-linked tables; clearing it would hold locks
+     * fleet-wide):
+     *  1. soft-delete every pre-existing jurisdiction, so the sizing sweep
+     *     (WHERE deleted_at IS NULL) enumerates ONLY this fixture — and the
+     *     founded legislatures' active maps are never adopted (no item
+     *     references them);
+     *  2. rename the founded auto-maps out of the 'Auto-generated by
+     *     full-scale autoscale%' pattern, so the revert ignores them entirely
+     *     and only ever touches THIS fixture's maps (which carry no elections
+     *     → no FK). The live rows are restored on rollback.
+     *
+     * No production rail is touched — this is fixture scoping. The audit chain
+     * is left intact (append needs the genesis head), so the global
+     * audit-count pins capture a pre-run BASELINE and assert the exact
+     * per-run delta — the same "exactly one per X" guarantee, made robust to a
+     * non-empty log.
+     */
+    private function isolateFoundedWorld(): void
+    {
+        DB::table('jurisdictions')->whereNull('deleted_at')->update(['deleted_at' => now()]);
+        DB::table('legislature_district_maps')
+            ->where('description', 'like', 'Auto-generated by full-scale autoscale%')
+            ->update(['description' => 'founded map (neutralized for the autoscale pin)']);
     }
 
     /**

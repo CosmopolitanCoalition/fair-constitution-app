@@ -2255,16 +2255,17 @@ class SetupController extends Controller
      * next claim boundary (per-scope commits survive — the run resumes from
      * autoscale_items/autoscale_scopes).
      */
-    public function autoscaleHalt(Request $request): JsonResponse
+    public function autoscaleHalt(Request $request, \App\Services\Autoscale\AutoscaleRunControl $control): JsonResponse
     {
         abort_unless((bool) $request->user()?->is_operator, 403);
 
-        $run = \App\Models\AutoscaleRun::unfinished();
-        if ($run === null) {
-            return response()->json(['ok' => false, 'error' => 'No active autoscale run.'], 404);
+        // Single source with the `autoscale:halt` CLI (UI↔CLI parity): the
+        // flag + pump-park logic lives in AutoscaleRunControl so the two doors
+        // cannot drift. This method keeps only the operator gate + HTTP shape.
+        $result = $control->halt();
+        if (! ($result['ok'] ?? false)) {
+            return response()->json(['ok' => false, 'error' => $result['error']], 404);
         }
-        $run->forceFill(['halt_requested_at' => now()])->save();
-        \Illuminate\Support\Facades\Artisan::call('autoscale:pump'); // park it now, not in a minute
 
         return response()->json(['ok' => true, 'halting' => true]);
     }
@@ -2275,46 +2276,45 @@ class SetupController extends Controller
      * workers. With requeue_review a DONE run is revived to retry its
      * review/failed items. Hand-fixed legislatures are safe: a requeued
      * sweep item whose legislature now has an ACTIVE map with districts is
-     * ADOPTED, never re-swept.
+     * ADOPTED, never re-swept. Shares AutoscaleRunControl with `autoscale:resume`.
      */
-    public function autoscaleResume(Request $request): JsonResponse
+    public function autoscaleResume(Request $request, \App\Services\Autoscale\AutoscaleRunControl $control): JsonResponse
     {
         abort_unless((bool) $request->user()?->is_operator, 403);
 
-        $run = \App\Models\AutoscaleRun::unfinished()
-            ?? ($request->boolean('requeue_review')
-                ? \App\Models\AutoscaleRun::query()->where('status', 'done')->orderByDesc('created_at')->first()
-                : null);
-        if ($run === null) {
-            return response()->json(['ok' => false, 'error' => 'No autoscale run to resume.'], 404);
+        $result = $control->resume($request->boolean('requeue_review'));
+        if (! ($result['ok'] ?? false)) {
+            return response()->json(['ok' => false, 'error' => $result['error']], 404);
         }
 
-        if ($request->boolean('requeue_review')) {
-            $requeued = DB::table('autoscale_items')
-                ->where('run_id', $run->id)
-                ->whereIn('status', ['review', 'failed', 'halted'])
-                ->pluck('id');
-            if ($requeued->isNotEmpty()) {
-                // Their scope trees are stale attempts — drop them; the pump's
-                // repair re-mints fresh root scopes within a minute.
-                DB::table('autoscale_scopes')->whereIn('item_id', $requeued)->delete();
-                DB::table('autoscale_items')
-                    ->whereIn('id', $requeued)
-                    ->update([
-                        'status' => 'pending', 'reason' => null,
-                        'claim_token' => null, 'updated_at' => now(),
-                    ]);
-            }
+        return response()->json(['ok' => true, 'run_id' => $result['run_id']]);
+    }
+
+    /**
+     * POST /api/setup/wizard/step3/autoscale-revert — the Step-3 dashboard's
+     * "Rewind mapping" control (UI↔CLI parity with the `autoscale:revert` CLI).
+     * Rewinds the run to the mapping start: deletes autoscale-generated maps,
+     * resets items, keeps sizing + precompute + the audit chain, and re-mints
+     * fresh founding maps/scopes. The operator's confirm step is the
+     * deliberate-intent gate the CLI's --force represents; the command's own
+     * safety guards (run must be halted/done, no live worker leases) still
+     * apply, so no --force is passed — a refusal (e.g. workers still parking)
+     * surfaces as a 409 the dashboard shows. The run parks HALTED after the
+     * rewind; the existing Resume button carries it forward.
+     */
+    public function autoscaleRevert(Request $request): JsonResponse
+    {
+        abort_unless((bool) $request->user()?->is_operator, 403);
+
+        $exit = \Illuminate\Support\Facades\Artisan::call('autoscale:revert');
+        if ($exit !== 0) {
+            return response()->json([
+                'ok'    => false,
+                'error' => trim(\Illuminate\Support\Facades\Artisan::output()) ?: 'Rewind refused — halt the run first and wait for workers to park.',
+            ], 409);
         }
 
-        if ($run->status === 'done') {
-            $run->forceFill(['status' => 'mapping', 'finished_at' => null])->save();
-        }
-
-        $run->forceFill(['halt_requested_at' => null])->save();
-        \Illuminate\Support\Facades\Artisan::call('autoscale:pump');
-
-        return response()->json(['ok' => true, 'run_id' => (string) $run->id]);
+        return response()->json(['ok' => true, 'reverted' => true]);
     }
 
     /**

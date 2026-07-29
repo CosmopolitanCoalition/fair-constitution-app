@@ -146,6 +146,11 @@ Route::post('/api/setup/wizard/step3/autoscale-halt', [SetupController::class, '
     ->middleware('auth')->name('api.setup.step3.autoscale-halt');
 Route::post('/api/setup/wizard/step3/autoscale-resume', [SetupController::class, 'autoscaleResume'])
     ->middleware('auth')->name('api.setup.step3.autoscale-resume');
+// The Step-3 "Rewind mapping" control — UI door to the autoscale:revert CLI
+// (operator-gated in the controller; the confirm dialog is the deliberate
+// -intent gate the CLI's --force represents).
+Route::post('/api/setup/wizard/step3/autoscale-revert', [SetupController::class, 'autoscaleRevert'])
+    ->middleware('auth')->name('api.setup.step3.autoscale-revert');
 Route::post('/api/setup/wizard/step4/complete', [SetupController::class, 'completeStep4'])->name('api.setup.step4.complete');
 
 // Step 2 manual data review — surfaces post-ETL discrepancies BEFORE the user

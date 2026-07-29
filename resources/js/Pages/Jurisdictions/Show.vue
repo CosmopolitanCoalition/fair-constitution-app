@@ -195,6 +195,84 @@
                         </div>
                     </div>
 
+                    <!-- S-grade (V3 gap matrix, jurisdiction-browser row):
+                         Reach & participation — the enrolment gauge (verified
+                         residents ÷ population). Reads the nightly SUPPRESSED
+                         snapshot (k-anonymity); `reach.state` is the contract —
+                         we switch on it and never infer from the raw numbers.
+                         A gauge, never a lever (CI-1). Links out to the full
+                         /reach panel. -->
+                    <div class="bg-gray-800 rounded-lg p-3">
+                        <div class="flex items-center justify-between mb-1.5">
+                            <span class="text-xs text-gray-400">Reach &amp; participation</span>
+                            <a :href="`/reach?jurisdiction=${jurisdiction.id}`"
+                               class="text-[11px] text-sky-400 hover:text-sky-300 transition-colors">Detail →</a>
+                        </div>
+
+                        <template v-if="(reach.state === 'measured' || reach.state === 'capped') && reach.ratio_micro !== null">
+                            <div class="flex items-baseline gap-2">
+                                <span class="text-lg font-semibold tabular-nums text-emerald-300">
+                                    {{ Math.round(reach.ratio_micro / 10000) }}%
+                                </span>
+                                <span class="text-[11px] text-gray-500">
+                                    {{ (reach.verified_residents ?? 0).toLocaleString() }} verified
+                                    of {{ (reach.population_estimate ?? 0).toLocaleString() }}
+                                </span>
+                            </div>
+                            <div class="mt-1.5 h-1.5 rounded-full bg-gray-700 overflow-hidden">
+                                <div class="h-full rounded-full bg-emerald-500"
+                                     :style="{ width: Math.min(100, reach.ratio_micro / 10000) + '%' }"></div>
+                            </div>
+                            <p v-if="reach.state === 'capped'" class="text-[10px] text-amber-400 mt-1">
+                                More verified than the estimate admits — the population figure lags this place.
+                            </p>
+                        </template>
+
+                        <template v-else-if="reach.state === 'activating'">
+                            <span class="inline-block px-2 py-0.5 rounded text-xs bg-indigo-900 text-indigo-300">Enrolling</span>
+                            <p class="text-[11px] text-gray-500 mt-1">
+                                Verified count hidden below the privacy floor — published once enough residents enroll.
+                            </p>
+                        </template>
+
+                        <template v-else>
+                            <span class="inline-block px-2 py-0.5 rounded text-xs bg-gray-700 text-gray-400">Not measured yet</span>
+                            <p class="text-[11px] text-gray-500 mt-1">No enrolment snapshot for this place yet.</p>
+                        </template>
+                    </div>
+
+                    <!-- S-grade (V3 gap matrix, jurisdiction-browser row):
+                         Powers at this level — the Art. V §4–5 joint-vs-reserved
+                         reference table. Static constitutional content: joint
+                         powers are held by all jurisdictions co-equally; reserved
+                         powers by the most-encompassing jurisdiction only. -->
+                    <div class="bg-gray-800 rounded-lg p-3">
+                        <div class="text-xs text-gray-400 mb-2">Powers at this level</div>
+                        <table class="w-full text-[11px]">
+                            <thead>
+                                <tr class="text-gray-500 text-left">
+                                    <th class="font-medium pb-1">Power</th>
+                                    <th class="font-medium pb-1 pl-2">Kind</th>
+                                </tr>
+                            </thead>
+                            <tbody class="text-gray-300">
+                                <tr v-for="p in powersAtLevel" :key="p.power" class="border-t border-gray-700/60 align-top">
+                                    <td class="py-1 pr-2">
+                                        {{ p.power }}
+                                        <span class="block text-[10px] text-gray-500">{{ p.heldBy }}</span>
+                                    </td>
+                                    <td class="py-1 pl-2">
+                                        <span class="px-1.5 py-0.5 rounded text-[10px] whitespace-nowrap"
+                                              :class="p.kind === 'joint' ? 'bg-sky-900 text-sky-300' : 'bg-amber-900 text-amber-300'">
+                                            {{ p.kind }}
+                                        </span>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                        <p class="text-[10px] text-gray-600 mt-1.5">Joint: all jurisdictions · Reserved: most encompassing only · Art. V §4–5</p>
+                    </div>
+
                     <!-- Legislature & Districts link — kept (separate concern from
                          the new viewer's stats panel; legislature browser still
                          owns type_a/b display). -->
@@ -537,7 +615,24 @@ const props = defineProps({
     // WI-9 — WF-JUR-01 bootstrap-tracker row { state, critical_population_at,
     // activated_at } or null (= dormant boundary).
     activation:          { type: Object, default: null },
+    // S-grade (V3 gap matrix) — Reach & participation gauge from the nightly
+    // suppressed snapshot: { state, as_of_date, verified_residents,
+    // population_estimate, ratio_micro }. state ∈ unmeasurable | activating |
+    // measured | capped; we switch on state and never infer from the numbers.
+    reach:               { type: Object, default: () => ({ state: 'unmeasurable', ratio_micro: null }) },
 })
+
+// S-grade (V3 gap matrix) — the Art. V §4–5 joint/reserved powers reference,
+// static constitutional content mirroring the jurisdiction-browser mockup.
+// Joint powers are held by all jurisdictions co-equally; reserved powers by
+// the most-encompassing jurisdiction only.
+const powersAtLevel = [
+    { power: 'Uniform structures & procedures for departments and CGCs', kind: 'joint', heldBy: 'All jurisdictions, co-equally' },
+    { power: 'Taxes, fees, and charges', kind: 'joint', heldBy: 'All jurisdictions' },
+    { power: 'Enactment of laws', kind: 'joint', heldBy: 'All jurisdictions' },
+    { power: 'Currency production & regulation; standards of measure', kind: 'reserved', heldBy: 'Most encompassing jurisdiction only' },
+    { power: 'Declaration of war (supermajority of legislature)', kind: 'reserved', heldBy: 'Most encompassing jurisdiction only' },
+]
 
 props.jurisdiction.ancestors = props.ancestors
 

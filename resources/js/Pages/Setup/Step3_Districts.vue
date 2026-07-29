@@ -142,6 +142,28 @@ async function resumeRun(requeueReview = false) {
     }
 }
 
+// "Rewind mapping" — the UI door to `autoscale:revert` (UI↔CLI parity). Only
+// offered on a HALTED run (the command's own guard), and the confirm dialog is
+// the deliberate-intent gate the CLI's --force represents. Deletes generated
+// maps, keeps sizing + precompute + boards + the audit chain, re-mints fresh
+// founding drafts. The run stays halted; Resume carries it forward.
+async function rewindRun() {
+    if (!confirm('Rewind mapping to the start?\n\nThis DELETES every autoscale-generated district map and re-mints fresh founding drafts. Sizing, the founding boards, and the precomputed adjacency are kept; adopted/operator maps are never touched. The run stays halted — press Resume when ready.')) return
+    actionBusy.value = true
+    try {
+        const res = await csrfFetch('/api/setup/wizard/step3/autoscale-revert', { method: 'POST' })
+        const data = await res.json().catch(() => ({}))
+        if (!res.ok || !data.ok) {
+            autoscaleError.value = data.error || `rewind failed (HTTP ${res.status})`
+            return
+        }
+        await fetchAutoscale()
+        startPolling()
+    } finally {
+        actionBusy.value = false
+    }
+}
+
 // ── Number tweening (the Step-2 feel) ────────────────────────────────────
 // The backend counts are fresh every 2 s poll; tween the displayed numbers
 // between polls so counters roll instead of jumping (simplified from
@@ -288,6 +310,18 @@ onBeforeUnmount(stopPolling)
                             class="text-xs px-3 py-1.5 rounded border border-emerald-700 text-emerald-300 hover:bg-emerald-900/40 transition-colors"
                         >
                             Resume
+                        </button>
+                        <!-- Rewind mapping — the UI door to `autoscale:revert`
+                             (parity). Halted-state only, like Resume; the
+                             confirm dialog is the deliberate-intent gate. -->
+                        <button
+                            v-if="run.status === 'halted'"
+                            @click="rewindRun"
+                            :disabled="actionBusy"
+                            class="text-xs px-3 py-1.5 rounded border border-rose-700 text-rose-300 hover:bg-rose-900/40 transition-colors"
+                            title="Delete generated maps and re-mint fresh founding drafts (sizing + precompute kept)"
+                        >
+                            Rewind mapping
                         </button>
                     </div>
                 </div>

@@ -194,8 +194,18 @@ class RemainderSynthesisTest extends TestCase
         $conn->beginTransaction();
 
         try {
-            // The command gates on the acceptance window — open it in-tx.
-            DB::table('instance_settings')->whereNull('deleted_at')->update(['map_accepted_at' => null]);
+            // The command gates on the FULL repair window — setup incomplete
+            // AND maps unaccepted (GeodataRemediationService::assertWindow
+            // refuses when EITHER setup_completed_at or map_accepted_at is
+            // set). A box on which any lane has founded a world carries BOTH
+            // stamped, so nulling only map_accepted_at left the window closed
+            // and the command correctly refused (exit 1) — the guard was
+            // right, the fixture opened half a window. Open both halves in-tx
+            // (rolled back); the live row is restored on rollback.
+            DB::table('instance_settings')->whereNull('deleted_at')->update([
+                'map_accepted_at'    => null,
+                'setup_completed_at' => null,
+            ]);
             $body($this->buildFixture());
         } finally {
             while ($conn->transactionLevel() > 0) {
