@@ -55,6 +55,8 @@ Schedule::command('sim:pump')
 // rule — never per request, never per approval; identities never leave
 // the approvals table). One chain entry per race per rollup.
 Schedule::job(new ApprovalStandingsRollupJob)->dailyAt('00:10')->withoutOverlapping()->onOneServer();
+// W4 ⑥ — daily ranked-standings rollup (out-of-band decrypt; the ballot page reads its cache).
+Schedule::job(new \App\Jobs\Elections\RankedStandingsRollupJob)->dailyAt('00:15')->withoutOverlapping()->onOneServer();
 
 // ── Phase D (D-5): nightly department-report cadence sweep ──────────────
 // Reporting cadence is CHARTER data, not a constitutional clock — plain

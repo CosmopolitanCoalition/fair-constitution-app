@@ -7,6 +7,8 @@ use App\Domain\Engine\ConstitutionalEngine;
 use App\Domain\Forms\Handlers\BallotSubmission;
 use App\Domain\Forms\Support\RaceFootprint;
 use App\Http\Controllers\Controller;
+use App\Http\Presenters\StvRoundPresenter;
+use App\Jobs\Elections\RankedStandingsRollupJob;
 use App\Models\Ballot;
 use App\Models\BallotEnvelope;
 use App\Models\Candidacy;
@@ -18,6 +20,7 @@ use App\Support\SurfaceMeta;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 use Inertia\Inertia;
 use Inertia\Response;
@@ -102,15 +105,58 @@ class BallotController extends Controller
             // viewer's association covers.
             'referendum'        => $this->referendumProp($election, $userId),
             'referendumVoted'   => $this->referendumVoted($election, $userId),
-            // Live first-preference aggregate: null until its backend WI
-            // lands — the page renders nothing (§B.5).
-            'liveAggregate'     => null,
+            // Live first-preference projection — a PURE cache read of the daily
+            // out-of-band rollup (RankedStandingsRollupJob); never a decrypt
+            // (Art. II). Null until the first rollup finds ballots — the Vue
+            // renders nothing.
+            'liveAggregate'     => $this->liveAggregate($race),
             'machine'           => self::BALLOT_MACHINE,
             // Search-driven write-in lookup (partial reload only).
             'writeInMatches'    => Inertia::optional(
                 fn () => $this->searchWriteIns($race, (string) $request->query('wq', ''))
             ),
         ]);
+    }
+
+    /**
+     * The daily-frozen first-preference projection for the viewer's race — a
+     * PURE CACHE READ of the out-of-band RankedStandingsRollupJob's aggregate.
+     * It NEVER decrypts (the daily rollup is the only out-of-band decrypt
+     * caller; Art. II, RankedLiveAggregateTest). Names are resolved at read
+     * time; the cache holds
+     * only candidacy ids + counts. Returns null when no aggregate exists yet.
+     *
+     * @return array{ballotsSoFar: int, quotaIfClosedNow: int, top: list<array{0: string, 1: int}>, remainderNote: ?string}|null
+     */
+    private function liveAggregate(ElectionRace $race): ?array
+    {
+        $agg = Cache::get(RankedStandingsRollupJob::CACHE_PREFIX.$race->id);
+
+        if (! is_array($agg) || (int) ($agg['valid'] ?? 0) < 1) {
+            return null;
+        }
+
+        $names = app(StvRoundPresenter::class)->candidateRefs((string) $race->id);
+
+        $top = [];
+        $tail = 0;
+
+        foreach (($agg['first_prefs'] ?? []) as $candidacyId => $votes) {
+            if (count($top) < 12) {
+                $top[] = [$names[$candidacyId]['name'] ?? 'Unknown candidate', (int) $votes];
+            } else {
+                $tail++;
+            }
+        }
+
+        return [
+            'ballotsSoFar'     => (int) $agg['valid'],
+            'quotaIfClosedNow' => (int) $agg['quota'],
+            'top'              => $top,
+            'remainderNote'    => $tail > 0
+                ? '+'.$tail.' more candidate'.($tail === 1 ? '' : 's').' with first-preference support'
+                : null,
+        ];
     }
 
     /** F-IND-007 — commit the ranked ballot through the engine (§D.3). */

@@ -84,7 +84,9 @@ class RankedLiveAggregateTest extends TestCase
 
             $src = (string) file_get_contents($file->getPathname());
 
-            if (str_contains($src, 'decryptForCount') || str_contains($src, 'decryptReferendumForCount')) {
+            // Match a CALL (open paren), not the word in prose — a docblock may
+            // legitimately name the boundary it stays clear of.
+            if (str_contains($src, 'decryptForCount(') || str_contains($src, 'decryptReferendumForCount(')) {
                 $offenders[] = $file->getPathname();
             }
         }
