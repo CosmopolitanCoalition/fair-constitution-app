@@ -29,6 +29,9 @@ const { active, stop, stepNumber, total, progressPct, backHref, nextHref, exit }
             <button v-else type="button" class="btn btn--primary btn--sm" @click="exit">
                 Finish <Icon name="check" size="sm" />
             </button>
+            <Link class="btn btn--ghost btn--sm" href="/tour">
+                <Icon name="list-checks" size="sm" /> All steps
+            </Link>
             <a class="tour-exit" href="#" @click.prevent="exit">Exit</a>
         </div>
         <div class="tour-prog" aria-hidden="true"><i :style="{ inlineSize: progressPct + '%' }"></i></div>

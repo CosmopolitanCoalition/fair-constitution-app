@@ -51,6 +51,14 @@ Route::get('/', function (Request $request) {
         : Inertia::render('Home');
 });
 
+// Launchpad + guided-tour index (design contracts: mockups/v3/index.html,
+// mockups/v3/tour.html). Public, no auth — the launchpad is the arrival hub and
+// the tour index is a first-visit preview; both must be reachable before a
+// session. Home stays the compact guest cover at "/"; /launchpad is the full
+// hub reachable signed-in too. No surface prop — cover pages, like Home.
+Route::get('/launchpad', fn () => Inertia::render('Launchpad'))->name('launchpad');
+Route::get('/tour', fn () => Inertia::render('Tour/Index'))->name('tour');
+
 // Phase K-3 — Matrix .well-known delegation (public, no auth). Served dynamically so
 // MATRIX_DOMAIN/APP_URL resolve per instance (nginx cannot env-substitute a JSON body).
 Route::get('/.well-known/matrix/server', [\App\Http\Controllers\Matrix\WellKnownController::class, 'server']);

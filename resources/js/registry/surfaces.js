@@ -50,6 +50,7 @@ export const SITEMAP = [
         { id: 'petitions', label: 'Petitions', icon: 'file-text', href: '/civic/petitions', contract: 'civic/petitions.html' },
     ] },
     { key: 'me', title: 'Me & my account', items: [
+        { id: 'launchpad', label: 'Launchpad (the cover)', icon: 'globe', href: '/launchpad', contract: 'index.html' },
         { id: 'join', label: 'You’re invited (arrival)', icon: 'user', href: null, contract: 'civic/join.html', phase: 3 },
         { id: 'onboarding', label: 'Create your account', icon: 'user', href: '/register', contract: 'civic/onboarding.html' },
         { id: 'residency', label: 'Say where you live', icon: 'map-pin', href: '/civic/residency', contract: 'civic/residency.html' },
@@ -201,6 +202,24 @@ export const TOUR = [
     { act: 'The record', href: '/system/amendments', title: 'Amendments', blurb: 'The constitution changes through exactly two doors — both in the open.' },
     { act: 'The record', href: '/system/clocks', title: 'The clocks', blurb: 'Every interval, deadline, and threshold that starts a process without anyone asking.' },
     { act: 'Help', href: '/support/report', title: 'Report an issue', blurb: 'A bug, a question, or something that needs review — file it here.' },
+];
+
+/* The first-visit track — a stranger's short arc through the tour, a subset of
+   TOUR named by href (the app stops carry no `rel`, so we key on href). The
+   /tour index leads with these before the full grouped walkthrough. Only hrefs
+   already present as TOUR stops resolve; the rest are skipped, so this list can
+   name aspirational stops without breaking as surfaces wire (Slice 4). */
+export const FIRST_VISIT = [
+    '/civic',
+    '/civic/residency',
+    '/jurisdictions',
+    '/civic/square',
+    '/civic/petitions',
+    '/elections',
+    '/elections/ranked-ballot',
+    '/journeys',
+    '/system/audit-chain',
+    '/support/report',
 ];
 
 /* -------------------------------------------------- the Learn drawer text
