@@ -1241,3 +1241,17 @@ the building lanes (4/6/15); holding lanes (1/3/5/13) aren't testing. Both wave-
 lane-1/3/4 per-child fixture rewrite (San Marino's ungrouped correctness) so a late fixture change can't muddy
 the green signal. Lane 1 leads racePlan/createRaces per-child + co-updates test_a_large_type_b_is_one_lawful_
 at_large_race with lane 4. ② game-box mass pass = operator coordination, after per-child.
+
+### W4 tick 16b — L4 growth-dial DEPARTMENT half built + pump wiring greenlit (post-gate)
+
+**L4 W4④ DEPARTMENT HALF (74603d4, 7/7).** Growth dial now runs the full §5 chain through real forms:
+F-LEG-014 (supermajority) delegates a forming executive → F-LEG-016 (majority) charters departments toward
+D(P), mandatory kinds first. Proof-by-column: department.charter_law_id + committee.created_by_vote_id are
+adoption-path-only → their presence proves the vote engine (not the sim) wrote the row. Defers-with-reason on
+every gate; bicameral Type B deferral kept. Growth-dial engine complete end-to-end.
+
+**⚑ PUMP WIRING — GREENLIT, SEQUENCED AFTER THE GATE.** GovernanceStage runs on demand; registering it into
+SimPumpCommand makes maturation autonomous ("living world scales with playerbase"). Held out of the gate window
+(adds audited filings + a live-behavior change). Post-gate: L4 registers it, then VERIFIES sim behavior (demo
+populate run matures chambers correctly, no runaway, no audit-lock contention in the pump path) → W4④ built +
+autonomous. W4④ ledger: committee half f9161f5 + dept half 74603d4 BUILT; pump wiring = post-gate; Q4a = operator.
