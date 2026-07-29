@@ -243,9 +243,24 @@ class MatrixCarveoutEmitterTest extends TestCase
                 ->from('matrix_rooms')
                 ->whereColumn('matrix_rooms.entity_id', 'jurisdictions.id')
                 ->whereNull('matrix_rooms.deleted_at'))
+            // AND scope to a BOOTSTRAP jurisdiction — one with no seated
+            // government. test_bootstrap_operator_relays_m2 documents "// unseated"
+            // and needs isSeated()=false to reach the operator-relay branch; the
+            // callers that need a seated jurisdiction seat their OWN legislature
+            // (seatLegislature). Without this filter an arbitrary real row is
+            // picked, and on a seeded box (autoscale seats active legislatures
+            // across most jurisdictions) that row is already seated → the
+            // bootstrap premise is silently violated and the flip refuses under
+            // the post-flip judicial-only rule. This is fixture hygiene, not a
+            // rule change — the service behaviour is unchanged.
+            ->whereNotExists(fn ($q) => $q->selectRaw('1')
+                ->from('legislatures')
+                ->whereColumn('legislatures.jurisdiction_id', 'jurisdictions.id')
+                ->where('legislatures.status', Legislature::STATUS_ACTIVE)
+                ->whereNull('legislatures.deleted_at'))
             ->value('id');
         if ($id === null) {
-            $this->markTestSkipped('Live DB has no jurisdiction.');
+            $this->markTestSkipped('Live DB has no unseated jurisdiction.');
         }
 
         return (string) $id;
