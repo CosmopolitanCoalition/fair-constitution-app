@@ -174,10 +174,17 @@ function fmt(s) {
     return `${m}:${r < 10 ? '0' : ''}${r}`;
 }
 
-/* ── Linking + persistence ───────────────────────────────────────────────── */
+/* ── Linking + persistence ───────────────────────────────────────────────────
+   Audio swapping is driven ENTIRELY by the reactive <audio :src>: changing
+   selAudio (directly, or via the link from a caption change) re-points the
+   element, the browser's media-load algorithm resets it to 0/paused, and
+   onAudioLoaded re-syncs it to the master and resumes. Doing it imperatively
+   here would fight that reactive re-load (Vue re-patches :src on the same flush,
+   aborting an imperative play()), and a linked caption change would never
+   resume the dub at all — both were real defects. One path now: reactive src +
+   the load handler. */
 function onAudioChange() {
     if (linked.value && has(capTracks.value, selAudio.value)) selCap.value = selAudio.value;
-    swapAudio();
 }
 function onCapChange() {
     if (linked.value && has(audioTracks.value, selCap.value)) selAudio.value = selCap.value;
@@ -186,12 +193,14 @@ function onLinkChange() {
     if (linked.value && has(capTracks.value, selAudio.value)) selCap.value = selAudio.value;
 }
 
-function swapAudio() {
+/* The chosen dub finished (re)loading: put it back on the master's clock and
+   resume if the film is playing, so an audio- or linked-caption switch never
+   drops to silence or a wrong position. */
+function onAudioLoaded() {
     const a = audioEl.value;
-    if (!a || !hasMedia.value) return;
-    const at = videoEl.value?.currentTime ?? 0;
-    a.src = audioUrl(selAudio.value) ?? '';
-    a.currentTime = at;
+    const v = videoEl.value;
+    if (!a || !v) return;
+    a.currentTime = v.currentTime;
     if (playing.value) a.play().catch(() => {});
 }
 
@@ -240,7 +249,7 @@ onBeforeUnmount(() => { videoEl.value?.pause(); audioEl.value?.pause(); });
                 @error="mediaError = true"
                 style="inline-size: 100%; block-size: 100%; object-fit: contain; background: #000"
             ></video>
-            <audio ref="audioEl" :src="audioUrl(selAudio)" preload="metadata"></audio>
+            <audio ref="audioEl" :src="audioUrl(selAudio)" preload="metadata" @loadeddata="onAudioLoaded"></audio>
             <div v-if="captionsOn && activeCue" class="vplayer-cc" :dir="capDir">{{ activeCue }}</div>
         </div>
 

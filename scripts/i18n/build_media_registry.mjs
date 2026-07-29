@@ -68,7 +68,8 @@ const POSTER_RULES = [
     [/judiciar|court|case|challenge/i, 'court'],
     [/government|operator|jurisdiction|legitimacy/i, 'operator'],
     [/organization|co-?determination|regulatory|parity|business|corp/i, 'org'],
-    [/affiliate|donor|shop|resource|econom|market|unit|stipend|ledger/i, 'econ'],
+    // \bunit (leading word boundary) so "Units" tags econ but "commUNITy" does not.
+    [/affiliate|donor|shop|resource|econom|market|\bunit|stipend|ledger/i, 'econ'],
     [/communit|global|engage|discord|event|focus|directory|supporter|volunteer|creator|leader|square|social/i, 'social'],
     [/coalition|introduction|cosmopolitan|welcome|thank/i, 'brand'],
 ];

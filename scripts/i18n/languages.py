@@ -227,13 +227,18 @@ NO_MT_PAIR = [
 
 TIER_1 = ["en", "es", "ar", "zh-Hans", "hi"]   # what the app ships today
 
-# ENABLED = offered in the switcher AND negotiated by SetLocale (a SHIPPED catalog
-# exists, so switching to it renders the app rather than silently falling to English).
-# This is a switchability question, distinct from `tier` (catalog maturity): fr and
-# pt stay tier 2 (MT-drafted, behind the reader-verification queue) but now carry a
-# full set of page namespaces + c_education/c_achievements from the v3 Wave-2 NLLB
-# pass, so they are switchable. Kept as one explicit, reviewable list rather than a
-# disk scan so a half-built tier-2 catalog can never silently flip a locale live.
+# ENABLED = offered in the switcher AND negotiated by SetLocale. A switchability
+# question, distinct from `tier` (catalog maturity). TIER_1 render fully. fr and pt
+# are tier 2 (MT-drafted, behind the reader queue): they carry a full set of PAGE
+# namespaces + c_education/c_achievements from the v3 Wave-2 NLLB pass, so switching
+# renders page BODIES in-language — but their monolithic V1-shell chrome dict
+# (app/header/nav/footer/demo/common, read by index.js's static base import) does
+# NOT exist yet, so that shell frame falls back to English until a reader-verified
+# chrome lands (raw NLLB-600M nav is confidently wrong — "Home" -> "À la maison" —
+# and was withheld per the rail; see translate_monolith.py + the video-player-port
+# wave doc). Enabling them is still the right call: an in-language body with an
+# English frame beats not offering the language at all. Explicit list, not a disk
+# scan, so a half-built tier-2 catalog can never silently flip a locale live.
 ENABLED = TIER_1 + ["fr", "pt"]
 
 

@@ -1327,7 +1327,7 @@ export const MEDIA_VIDEOS = [
         "slug": "community",
         "master": "Community-Silent.mp4",
         "title": "Community",
-        "poster": "econ",
+        "poster": "social",
         "seconds": null,
         "audio": [
             "af",
@@ -1495,7 +1495,7 @@ export const MEDIA_VIDEOS = [
         "slug": "community-leader-directory",
         "master": "Community Leader Directory-Silent.mp4",
         "title": "Community Leader Directory",
-        "poster": "econ",
+        "poster": "social",
         "seconds": null,
         "audio": [
             "af",
@@ -4183,7 +4183,7 @@ export const MEDIA_VIDEOS = [
         "slug": "global-community1",
         "master": "Global Community1-Silent.mp4",
         "title": "Global Community (Part 1)",
-        "poster": "econ",
+        "poster": "social",
         "seconds": null,
         "audio": [
             "af",
@@ -4351,7 +4351,7 @@ export const MEDIA_VIDEOS = [
         "slug": "global-community2",
         "master": "Global Community2-Silent.mp4",
         "title": "Global Community (Part 2)",
-        "poster": "econ",
+        "poster": "social",
         "seconds": null,
         "audio": [
             "af",
