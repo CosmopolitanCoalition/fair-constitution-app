@@ -114,7 +114,7 @@ class AuditChainSmokeTest extends TestCase
     // FormRegistry
     // -------------------------------------------------------------------------
 
-    public function test_registry_holds_exactly_113_canonical_forms(): void
+    public function test_registry_holds_exactly_115_canonical_forms(): void
     {
         // 103 Template forms + F-ELB-008 (Manual District Draw, Phase H) + the
         // Phase K-1 civic-commons trio F-SOC-001/002/003 (public square / halls
@@ -127,14 +127,20 @@ class AuditChainSmokeTest extends TestCase
         // ECONOMY_ENGINE_PLAN §5.2 reserved, minted with the request-detail
         // page because a bare POST→service would have been a second write path
         // — + F-ORG-009 (Internal Restructuring, Wave 2 item 6b): the OWNERS'
-        // per-holder consent act, deliberately not an F-ORG-001 agent action.
+        // per-holder consent act, deliberately not an F-ORG-001 agent action —
+        // + the Phase K-2 education pair F-EDU-001/002 (Wave 3 engine build,
+        // operator ruling 6: training completion IS a constitutional form —
+        // it ties to achievements and the one-time stipend, so it files
+        // through the engine; F-EDU-002 is the Δ4 publication act under the
+        // Art. III §5 dedication). The §2 answer-key rail landed FIRST
+        // (SENSITIVE_KEYS + EducationAnswerKeySecrecyTest), per plan.
         //
         // WHY THIS PIN EARNS ITS KEEP: it is an EXACT count, so adding a form
         // without meaning to fails here loudly. Raising the number is the
         // deliberate half of adding one — if you are editing this line, check
         // that you meant to add a form, not that the test is in your way.
-        $this->assertCount(113, FormRegistry::FORMS);
-        $this->assertCount(113, FormRegistry::ids());
+        $this->assertCount(115, FormRegistry::FORMS);
+        $this->assertCount(115, FormRegistry::ids());
     }
 
     public function test_pure_aliases_resolve_to_canonical_ids(): void

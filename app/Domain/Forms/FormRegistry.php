@@ -5,10 +5,13 @@ namespace App\Domain\Forms;
 use InvalidArgumentException;
 
 /**
- * Canonical registry of the constitutional forms — 108 total: the 103 Template forms +
+ * Canonical registry of the constitutional forms — 115 total: the 103 Template forms +
  * F-ELB-008 (Manual District Draw, Phase H) + the Phase K-1 civic-commons trio
  * F-SOC-001/002/003 (public square / halls testimony / carve-out removal) + the Phase K-3
- * F-SOC-004 (M-5 physical-law legal-compliance removal, operator-plane).
+ * F-SOC-004 (M-5 physical-law legal-compliance removal, operator-plane) + the Phase M
+ * economy write path F-IND-022/023/024 + F-IND-019 (Work Application) + F-ORG-009
+ * (Internal Restructuring) + the Phase K-2 education pair F-EDU-001/002 (training
+ * completion / material publication, operator ruling 6).
  *
  * Source of truth: CGA_Constitutional_Roles_Forms_Chart.xlsx sheet
  * "3. Forms Catalog" (transcribed in docs/plans/institutions/
@@ -44,7 +47,7 @@ use InvalidArgumentException;
 class FormRegistry
 {
     /**
-     * All 103 canonical forms: id => [name, roles allowed to file].
+     * All 115 canonical forms: id => [name, roles allowed to file].
      * Roles per the catalog's "Filed by" column; 'roles' lists the role
      * codes whose holders may file (any one suffices). F-IND-006 is
      * additionally system-filed (see its handler's systemOnly()).
@@ -206,6 +209,23 @@ class FormRegistry
         // F-SOC-004 — the M-5 PHYSICAL-LAW legal-compliance removal. ZERO role codes: it is exercised on
         // the OPERATOR plane (key-possession), not a constitutional office (the handler is systemOnly).
         'F-SOC-004' => ['name' => 'Legal-Compliance Removal (physical law)',    'roles' => []],
+
+        // ── F-EDU — Education Forms (Phase K-2) ─────────────────────────────
+        // F-EDU-001 — the learner's act (operator ruling 6, 2026-07-28:
+        // completion IS a constitutional form — it ties to achievements and
+        // the one-time civic stipend, so it files through the engine). R-01
+        // because EVERY training is open to EVERY user (K2_ENGINE_PLAN
+        // §5.0.2). The act-gate (ruling A5: acquiring is free, acting asks)
+        // reads THESE records and nothing else — never the achievement
+        // ledger, never education_progress. The payload records track +
+        // module + pass + time, NEVER answers (the §2 rail).
+        'F-EDU-001' => ['name' => 'Training Completion',                        'roles' => ['R-01']],
+        // F-EDU-002 — the content plane's act (Δ4 bridge): publication or
+        // revision of a training module under the Art. III §5 public-domain
+        // dedication, filed by the authoring body's agent. The question
+        // bank's correct_keys never ride it — the answer catalog is
+        // server-side only.
+        'F-EDU-002' => ['name' => 'Training Material Publication',              'roles' => ['R-23']],
     ];
 
     /**
@@ -437,6 +457,15 @@ class FormRegistry
         'F-SOC-003' => Handlers\SocialRemoval::class,
         // ── Phase K-3 (K3-I.4) — the M-5 physical-law legal-compliance floor (operator-plane, systemOnly).
         'F-SOC-004' => Handlers\LegalComplianceRemoval::class,
+
+        // ── Phase K-2 — the education engine (Wave 3, ruling A5). F-EDU-001
+        // records the pass the training gate reads (§5.2 READING RULE) and is
+        // itself NEVER act-gated — it is the door the gate's redirect points
+        // to. F-EDU-002 records the publication act; its IP dedication goes
+        // through CgcIpRegisterService::dedicate() only. Both handlers refuse
+        // answer content outright (K2_ENGINE_PLAN §2). ──────────────────────
+        'F-EDU-001' => Handlers\TrainingCompletion::class,
+        'F-EDU-002' => Handlers\TrainingMaterialPublication::class,
     ];
 
     /**
@@ -501,7 +530,7 @@ class FormRegistry
         return self::HANDLERS[$canonicalId] ?? null;
     }
 
-    /** @return list<string> all 108 canonical form IDs. */
+    /** @return list<string> all 115 canonical form IDs. */
     public static function ids(): array
     {
         return array_keys(self::FORMS);

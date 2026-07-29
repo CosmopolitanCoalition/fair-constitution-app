@@ -81,6 +81,12 @@ class EducationAnswerKeySecrecyTest extends TestCase
         $allowed = [
             // The stripping constant necessarily names the key.
             $root.'/Domain/Engine/ConstitutionalEngine.php',
+            // The F-EDU handlers name the key only to REFUSE payloads
+            // carrying it (their FORBIDDEN_KEYS refusal) — the opposite of
+            // shipping it. Their returned audit payloads are fixed-shape and
+            // key-free by construction.
+            $root.'/Domain/Forms/Handlers/TrainingCompletion.php',
+            $root.'/Domain/Forms/Handlers/TrainingMaterialPublication.php',
         ];
 
         $iterator = new \RecursiveIteratorIterator(
