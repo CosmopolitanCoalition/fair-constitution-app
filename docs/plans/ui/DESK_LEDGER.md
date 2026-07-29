@@ -359,6 +359,16 @@ TRADING DEFERRED to Wave 4 (operator ruled ISSUANCE, delivered; secondary needs 
 his ruling; shares floor stays honest-empty) — surfaced to operator, doesn't block 5-6. P2P
 agreement form = a mint → 116→117 pinned in the build.**
 
+**⚑ WAVE 4 PRE-COMPACT DISPATCH (2026-07-29, operator's explicit instruction — NOT the launch).**
+Seven pre-compact HOLD messages sent to lanes 1, 2, 4, 5, 6, 13, 15 (lane 3 EXCLUDED — already
+compacting; lane 14 HELD). Each carries: its L#W4 order verbatim, the rubric link + badge, the
+corrected Type B model, the two settled rulings, commit law v2, four-way reporting, STEP 0 =
+pull ≥ 9fb0a60. Disposition = HOLD (do NOT start; the LAUNCH is a later ACTION order). SEQUENCE
+per the operator: (1) pre-compact sent [DONE] → (2) operator compacts the lanes → (3) operator
+compacts the DESK → (4) desk returns → (5) operator's word = LAUNCH Wave 4 = send each lane its
+W4 order with an ACTION disposition (same text, from WAVE4_STANDING_ORDERS.md / the rubric Fleet
+tab). Do NOT launch before that explicit word.
+
 **⚑ OPEN QUESTIONS ALL ANSWERED (2026-07-29) + WAVE 4 ORDERS FOLDED, AWAITING GO/NO-GO.** The
 operator answered all 9 open questions via the rubric form (0 open / 14 resolved now). Answers:
 education arming = A (pre-train demo members); mass pass = A (GO after the race fix, game box);
