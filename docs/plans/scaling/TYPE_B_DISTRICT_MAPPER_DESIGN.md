@@ -91,18 +91,20 @@ All seven gate questions are ruled. These are law for the build; do not re-deriv
   **floors down to its population** — never more representatives than people.
   ⚑ This binds `TypeBSeatLadder` itself — implement the combined cap there and
   **pin it** (a build item, not just the mapper).
-- **B4 — ISLANDS (the operator's own method, "check me on it"):** take the
-  disconnected jurisdiction's **WorldPop mask** → draw a smoothed imaginary
-  border (**hull**) around all boundary pieces → run the simple line-drawing
-  over that pseudo-contiguous shape (ocean/foreign pixels carry no population —
-  they're not in the mask) → **CUT AWAY components outside the real boundary
-  mask.** Also derive grouping adjacency from **hull-contact**. **VALIDATE
-  technically before building** (headline risk): the enclave case (populated
-  foreign territory inside the hull — should be excluded by the mask, confirm),
-  degenerate hulls on far-flung archipelagos, and hull-contact adjacency.
-- **B5 — tie-break must be MEANINGFUL, key TBD.** FIRST design step = the
-  tie-break probe (§7) → an OPEN QUESTION to the desk/operator; the tie-break is
-  late-binding, build the rest while it's in front of him.
+- **B4 — RULED 2026-07-29 (OPTION A), post-validation (`db93712`).** Type B
+  grouping adjacency for islands = **centroid nearest-approach** (reuse the
+  shipped `DistrictingService::closestApproachSq` primitive). ONE unified grouping
+  graph: `jurisdiction_adjacency.border_len` edges where land borders exist,
+  centroid nearest-approach where they don't; ties resolve per B5. The SQL mirror
+  defers to PHP. **The hull KEEPS ONLY its Type A home:** line-splitting an
+  over-ceiling archipelago constituent, with BOTH clips (population ∩ real
+  boundary; drawn pieces cut to real boundary) + the antimeridian guard. That
+  empirical hull exercise is a game-box item and does not gate this wave.
+  (Original validation + the three risks: `B4_HULL_ISLAND_VALIDATION.md`.)
+- **B5 — RULED 2026-07-29 (OPTION a).** The compactness tie-break is **MAX TOTAL
+  INTERNAL SHARED-BORDER LENGTH** (`jurisdiction_adjacency.border_len`), final
+  fallback lowest member id. Recorded as `tie_break_key = max_internal_border_len`
+  provenance on every grouping.
 - **B6 — NEVER cross-parent at ANY adm level.** Each peer branch is independent
   with respect to its own children (general doctrine — **pin it**).
 - **B7 — new geographies take effect NEXT TERM.** Geodata changes REQUIRE
@@ -147,3 +149,36 @@ OPEN QUESTION; the tie-break binds late.
    chunks, per-chunk progress); DRIFT law throughout.
 8. **Pins** for every ruling B1–B7.
 9. Mapper UI rides the existing Step-3 / mapper surfaces.
+
+## 9. BUILT (2026-07-29) + the race read-side finding
+
+Items 1–3, 5, 6, 8, 9 SHIPPED (`23452a7` schema · `db93712` B4 validation ·
+`4214721` B3 cap · `00e959e` engine + CLI · `56a70dc` B6/B7 pins · `67e1aaa`
+Step-3 UI door). B4 (item 4) ruled Option A — hull kept for Type A drawing only,
+a game-box item. Niue proven live. Mass dry-run (item 7) is a game-box operation.
+
+**THE RACE READ-SIDE (lane 4 finding, 2026-07-29) — a GATE on un-flagging.**
+`ElectionLifecycleService::racePlan()` un-flagged else-branch (~L676) emits a BARE
+`['mode'=>'at_large','seats'=>type_b_seats]`, and `createRaces()` at_large
+(~L802) makes ONE plain STV race over ALL residents; `election_races` has no
+grouping/panel column. So clearing `type_b_needs_districting` today yields a race
+that does NOT read the grouping. Un-flagging is only lawful once racePlan reads
+the active grouping and emits the panel-based race.
+
+**THE DESIGN QUESTION (operator's call — determines scope, flagged to the desk):**
+does a grouped Type B chamber elect its N seats via —
+- **(i) one plain at-large N-seat STV race**, panels = seat-count accounting only
+  (racePlan reads the grouping, createRaces ties the race to `grouping_id` via an
+  additive column, counting UNCHANGED). Lane-1-ownable; but a plain at-large STV
+  race does not *guarantee* each panel's constituents a seat — the grouping only
+  sets N. OR
+- **(ii) panel-partitioned counting**, each panel's constituents electing its
+  `rep_floor` seats (true equal representation — the grouping's purpose). Touches
+  `VoteCountingService` (PROTECTED, lane 3's core) + createRaces + schema → a
+  JOINT lane-1/lane-3 build, not a lane-1 read-side change.
+
+Recommendation: (ii) achieves what the grouping is *for*, but it is cross-lane
+and must be coordinated (two lanes editing VoteCountingService blind is exactly
+what the desk warned against). **Niue's un-flag is premature under either** until
+the race read-side lands — its blocked state should be restored, or the desk
+coordinates with lane 4 (which is pinning the un-flag path against it).
