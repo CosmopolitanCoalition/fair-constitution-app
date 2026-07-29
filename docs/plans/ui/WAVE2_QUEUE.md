@@ -84,6 +84,16 @@ rebuild recipe is on file and needs an announced `fcd_vite` restart if ever swit
 3. **The amendment workflow loop (R-C)**: verify/complete legislature-amends-a-setting
    end-to-end through the real act pipeline; surface as a walkable workflow + walk journey.
 
+## ⚖ THE TYPE B MAPPER'S SEVEN GATE QUESTIONS (lane 1, `c03b72f` — the operator answers
+## before the mapper builds; full statements with costs in
+## docs/plans/scaling/TYPE_B_DISTRICT_MAPPER_DESIGN.md)
+
+1. One race or many per grouped panel · 2. the uneven-remainder rule (Niue's 7 villages →
+3 pairs + 1?) · 3. do zero-population constituents join panels · 4. the ISLAND /
+disconnected-adjacency fallback — **the crux for most of the 9,708** · 5. determinism across
+the dual compute paths + SQL mirror · 6. cross-parent grouping (confirm forbidden) · 7.
+re-seat stability for Niue's already-seated over-bound chamber.
+
 ## For lane 1 — Wave 3 headline (R-A): the Type B district mapper
 
 Stage-two grouping over the adjacency graph (even clumps, compact, no geometry cut) for the

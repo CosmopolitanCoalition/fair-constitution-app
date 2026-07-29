@@ -1,7 +1,7 @@
 {
  "asOf": "2026-07-29",
- "commit": "3be5cfd",
- "wave": "WAVE 2 closing \u2014 2/15/4/13 DONE; 3 punch landing (bills chips, CGC link, engine:file LIVE); 6 on support; 1 on fixtures+parity; 5 NLLB",
+ "commit": "c03b72f",
+ "wave": "WAVE 2 closing \u2014 2/15/4/13/1 DONE; 3 mid-punch; 6 on support; 5 NLLB report pending",
  "rows": [
   {
    "file": "civic/join.html",
@@ -1653,8 +1653,8 @@
    "area": "jurisdictions-sys",
    "areaLabel": "Jurisdictions + system",
    "owner": "lanes 1 \u00b7 2",
-   "bucket": "partial",
-   "effort": "S",
+   "bucket": "built",
+   "effort": "none",
    "page": "resources/js/Pages/Jurisdictions/Show.vue (+ Index.vue)",
    "route": "/jurisdictions/{jurisdiction:slug}",
    "props": "partial",
@@ -1673,7 +1673,7 @@
     "Executive + judiciary cross-link CTAs, current-election CTA, chamber-seated gate splitting the legislature CTA",
     "Review-issue badges + orphan counters, geoboundary metadata panel, planet-scope Accept Map Data gate + repair plane"
    ],
-   "notes": "The viewer already has the two-pane map-split, breadcrumb drill-down, Names/Members/Raster layer toggles, maps-accepted/apportionment record, and activation state. Gaps are one static table and one props-fed reach block (LegitimacyService already computes it for /reach)."
+   "notes": "The viewer already has the two-pane map-split, breadcrumb drill-down, Names/Members/Raster layer toggles, maps-accepted/apportionment record, and activation state. Gaps are one static table and one props-fed reach block (LegitimacyService already computes it for /reach). CLOSED 2026-07-29 (4f25acf): powers table (Art. V \u00a74-5 verbatim) + the reach block reading the SUPPRESSED legitimacy snapshot (CI-1 gauge-never-lever); DOM-verified on San Marino."
   },
   {
    "file": "jurisdictions/restoration.html",
