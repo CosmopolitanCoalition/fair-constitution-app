@@ -239,6 +239,41 @@ class SimPumpCommand extends Command
                     )
                   LIMIT ".self::MINT_CHUNK,
 
+            // One governance item per JURISDICTION whose seating landed — keyed
+            // on the seat_scope done item, and per-jurisdiction (not per
+            // election) because the growth dial matures a chamber, which is a
+            // property of the place. GovernanceStage then files the real
+            // F-LEG-009/014/016 acts; the defers-with-reason gates inside it
+            // (bicameral Type B unseated, no delegatable executive, at target)
+            // mean a place that cannot yet grow is a cheap no-op, not a retry
+            // storm — the item still completes.
+            'governance' => "INSERT INTO sim_items
+                    (id, run_id, kind, status, jurisdiction_id, adm_level, unit_key,
+                     position, est_cost, metrics, created_at, updated_at)
+                 SELECT gen_random_uuid(), ?, 'governance_scope', 'pending',
+                        j.jurisdiction_id, j.adm_level, j.jurisdiction_id::text,
+                        j.position, 0, '{}', now(), now()
+                   FROM (
+                       -- DISTINCT ON: a jurisdiction may have more than one
+                       -- election with a seated chamber (e.g. both chambers),
+                       -- but the growth dial matures the PLACE once — collapse
+                       -- to a single item per jurisdiction so one pass cannot
+                       -- mint duplicates before the NOT EXISTS guard sees them.
+                       SELECT DISTINCT ON (e.jurisdiction_id)
+                              e.jurisdiction_id, s.adm_level, s.position
+                         FROM elections e
+                         JOIN sim_items s
+                           ON s.run_id = ? AND s.kind = 'seat_scope'
+                          AND s.unit_key = e.id::text AND s.status = 'done'
+                        ORDER BY e.jurisdiction_id
+                   ) j
+                  WHERE NOT EXISTS (
+                        SELECT 1 FROM sim_items x
+                         WHERE x.run_id = ? AND x.kind = 'governance_scope'
+                           AND x.unit_key = j.jurisdiction_id::text
+                    )
+                  LIMIT ".self::MINT_CHUNK,
+
             default => null,
         };
 

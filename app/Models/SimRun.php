@@ -45,6 +45,7 @@ class SimRun extends Model
         'elections',
         'counting',
         'seating',
+        'governance',
         'verifying',
         'done',
     ];
@@ -63,6 +64,11 @@ class SimRun extends Model
         // the unit certification acts on, so the two stages line up.
         'counting' => ['count_election'],
         'seating' => ['seat_scope'],
+        // The growth dial (§5 stages 4-5): a seated chamber grows its committees
+        // toward K(S) and its departments toward D(P) THROUGH THE REAL FORMS —
+        // GovernanceStage files F-LEG-009/014/016, never a direct row. One item
+        // per jurisdiction whose seating landed.
+        'governance' => ['governance_scope'],
         'verifying' => ['acceptance_scan'],
         'done' => [],
     ];

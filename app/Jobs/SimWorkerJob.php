@@ -7,6 +7,7 @@ use App\Models\SimRun;
 use App\Services\Demo\Stages\CohortStage;
 use App\Services\Demo\Stages\CountingStage;
 use App\Services\Demo\Stages\ElectionStage;
+use App\Services\Demo\Stages\GovernanceStage;
 use App\Services\Demo\Stages\SeatingStage;
 use App\Services\Demo\Stages\IdentityStage;
 use App\Support\SimClaims;
@@ -201,6 +202,15 @@ class SimWorkerJob implements ShouldQueue
             ),
             'seat_scope' => SeatingStage::run(
                 (string) $item->race_id,
+                (string) $run->id,
+                $version,
+            ),
+            // The growth dial matures the PLACE (committees → K, departments →
+            // D), so it is jurisdiction-scoped like cohort/seating, not
+            // election-scoped like counting. It files the real F-LEG-009/014/016
+            // acts and defers-with-reason where a chamber cannot yet grow.
+            'governance_scope' => GovernanceStage::run(
+                (string) $item->jurisdiction_id,
                 (string) $run->id,
                 $version,
             ),
