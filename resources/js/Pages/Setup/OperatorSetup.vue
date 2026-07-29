@@ -2,16 +2,21 @@
 /**
  * Operator-setup step — the START-path "operator console at bootstrap"
  * (operator ruling 2026-07-05). Comes AFTER the JOIN-or-START fork, BEFORE the
- * cosmic address. Three parts:
- *   1. Create the operator/founder account (the physical credentials that run the box).
- *   2. Node address — novice-friendly: "just me for now" needs no peer address;
- *      opening the node to others uses the address the browser is already on.
- *   3. Operator roles — as the founding operator you self-assert them all,
- *      INLINE (no console jump): a "turn on all" button plus per-channel toggles
- *      POST /api/setup/operator/roles/establish and update the list in place.
- *      Channels that still need infra config surface a short "needs setup" note
- *      pointing at where to configure it, and a link to the full console remains.
- * Plus the shareable deploy packages, and Continue (→ cosmic for solo, → join).
+ * cosmic address. Wave 2 rework to the FIVE-STEP wizard of the design
+ * contract (mockups/v3/operator/setup.html):
+ *   0 Claim your account — Path A (fresh local credentials) beside the Path-B
+ *     device-key card. TRUE pre-account linking needs a pre-auth endpoint the
+ *     backend deliberately does not have (POST /operator/link requires an
+ *     operator session) — the card says so honestly and points at
+ *     /operator/identity, never simulating the flow.
+ *   1 Name the instance — node name + reach/address (unchanged behavior).
+ *   2 Pick a role — the FOUR NAMED-ROLE CARDS (fixtures-operator.js copy):
+ *     a friendly grouping over the 9-channel capability substrate, no new
+ *     power. Choosing a role establishes its channels via the SAME
+ *     /api/setup/operator/roles/establish endpoint (founding self-assert).
+ *   3 Role-specific setup — the per-channel substrate view, needs-setup
+ *     notes + config links + turn-on-all (the pre-rework section 3).
+ *   4 You're set — deploy packages + Continue (→ cosmic for solo, → join).
  */
 import { computed, ref, watch } from 'vue'
 import { router, usePage } from '@inertiajs/vue3'
@@ -205,6 +210,47 @@ async function establishRoles(capabilities /* array | null (= all) */) {
 const turnOnAll     = () => establishRoles(null)
 const turnOnChannel = (cap) => establishRoles([cap])
 
+// ── 2b. The four named-role cards (design contract fixtures-operator.js) ────
+// A friendly grouping over the channel substrate — labels and duties from the
+// mockup, verbatim in spirit; the substrate stays the source of truth and the
+// cards grant nothing the channels don't.
+const NAMED_ROLES = [
+    {
+        key: 'record_keeper', label: 'Record Keeper', recommended: true,
+        what: 'Mirror the public record and keep the world\'s geodata flowing.',
+        duty: 'Keep your box on and synced; serve the shared record to peers.',
+        channels: ['mirror', 'etl'],
+        consent: 'Self-asserted — one click. Your own infrastructure choice.',
+    },
+    {
+        key: 'archivist', label: 'Archivist', recommended: false,
+        what: 'A full peer serving browser players the whole application.',
+        duty: 'Serve the app itself — uptime and bandwidth for real people.',
+        channels: ['client.serve'],
+        consent: 'Governed — at founding you self-assert; later changes go through shared consent.',
+    },
+    {
+        key: 'social_moderator', label: 'Social Moderator', recommended: false,
+        what: 'Host the live rooms — chat, voice, and the surfaces they run on.',
+        duty: 'Run the homeserver and media plumbing the commons ride on.',
+        channels: ['matrix.homeserver', 'voice.sfu', 'client.serve'],
+        consent: 'Governed — at founding you self-assert; later changes go through shared consent.',
+    },
+    {
+        key: 'identity_broker', label: 'Identity Broker', recommended: false,
+        what: 'Real names and certificates for mesh nodes — the heaviest duty.',
+        duty: 'Hold a sealed DNS token; grant names and certs to peers.',
+        channels: ['broker.dns', 'broker.tls', 'authority.grant', 'client.serve'],
+        consent: 'Governed — the heaviest bar: co-affected peers consent to later changes.',
+    },
+]
+
+const roleEstablished = (role) => {
+    const on = new Set(channels.value.filter((c) => c.established).map((c) => c.capability))
+    return role.channels.every((cap) => on.has(cap))
+}
+const chooseRole = (role) => establishRoles(role.channels)
+
 // ── Continue ────────────────────────────────────────────────────────────────
 function continueNext() {
     router.visit(isJoin.value ? '/setup/join' : '/setup/step/0')
@@ -214,23 +260,25 @@ function continueNext() {
 <template>
     <div class="max-w-3xl mx-auto w-full px-6 py-12 space-y-8">
         <header>
-            <h1 class="text-3xl font-bold text-white">Operator setup</h1>
+            <h1 class="text-3xl font-bold text-white">Set up your node</h1>
             <p class="text-gray-400 mt-2">
-                Create the account that runs this node, give the box an address, and turn on your operator
-                roles. You're the founding operator, so every role is yours to switch on directly.
+                Five steps: claim your account, name the instance, pick a role, finish its
+                setup, and you're set. You're the founding operator, so every role is yours
+                to switch on directly.
             </p>
         </header>
 
-        <!-- ── 1 · Operator account ── -->
+        <!-- ── 0 · Claim your account ── -->
         <section class="bg-gray-900 border border-gray-800 rounded-lg p-6">
             <div class="flex items-center justify-between mb-3">
-                <h2 class="text-xl font-semibold text-white">1 · Operator account</h2>
-                <span v-if="hasFounder" class="text-emerald-400 text-sm">✓ Created</span>
+                <h2 class="text-xl font-semibold text-white">0 · Claim your account</h2>
+                <span v-if="hasFounder" class="text-emerald-400 text-sm">✓ Claimed</span>
             </div>
 
             <template v-if="!hasFounder">
                 <p class="text-gray-400 text-sm mb-4">
-                    Your physical-operator credentials — the account that runs and governs this node.
+                    <strong class="text-gray-200">Path A — a fresh local account.</strong>
+                    Your physical-operator credentials; the password works on this box only.
                 </p>
                 <div class="space-y-3">
                     <input v-model="founderName" type="text" placeholder="Your name"
@@ -247,15 +295,37 @@ function continueNext() {
                     class="mt-4 px-4 py-2 bg-emerald-600 hover:bg-emerald-500 disabled:bg-gray-700 disabled:text-gray-500 text-white rounded-md transition">
                     {{ creatingFounder ? 'Creating…' : 'Create operator account' }}
                 </button>
+
+                <!-- Path B — device-key linking. The built Flow B (POST /operator/link)
+                     deliberately requires an operator session, so TRUE pre-account
+                     linking has no backend; this card states the boundary honestly
+                     rather than simulating the flow. -->
+                <div class="mt-4 bg-gray-950 border border-gray-800 rounded p-4">
+                    <p class="text-gray-300 text-sm font-medium mb-1">
+                        Path B — link an existing mesh identity
+                    </p>
+                    <p class="text-gray-500 text-xs">
+                        Already an operator elsewhere on the mesh? You can recognise yourself
+                        across boxes by <strong>device-key possession</strong> — a key your
+                        identity already trusts signs a one-time proof; no password is ever
+                        replayed between boxes. On this box: claim the account above first,
+                        then link the mesh identity from
+                        <a href="/operator/identity" class="text-blue-400 hover:text-blue-300 underline">Identity → devices</a>
+                        — only the Ed25519 public key enrols; the secret never leaves your device.
+                    </p>
+                </div>
             </template>
-            <p v-else class="text-gray-400 text-sm">Operator account is set.</p>
+            <p v-else class="text-gray-400 text-sm">
+                Account claimed. Linking a mesh identity by device key lives on
+                <a href="/operator/identity" class="text-blue-400 hover:text-blue-300 underline">the Identity page</a>.
+            </p>
         </section>
 
         <template v-if="hasFounder">
-            <!-- ── 2 · Node address ── -->
+            <!-- ── 1 · Name the instance ── -->
             <section class="bg-gray-900 border border-gray-800 rounded-lg p-6">
                 <div class="flex items-center justify-between mb-3">
-                    <h2 class="text-xl font-semibold text-white">2 · This node's address</h2>
+                    <h2 class="text-xl font-semibold text-white">1 · Name the instance</h2>
                     <span v-if="profileSaved" class="text-emerald-400 text-sm">✓ Saved</span>
                 </div>
 
@@ -315,17 +385,49 @@ function continueNext() {
                 </button>
             </section>
 
-            <!-- ── 3 · Operator roles ── -->
+            <!-- ── 2 · Pick a role ── -->
+            <section class="bg-gray-900 border border-gray-800 rounded-lg p-6">
+                <h2 class="text-xl font-semibold text-white mb-3">2 · Pick a role</h2>
+                <p class="text-gray-400 text-sm mb-4">
+                    A role is a friendly grouping over the capability channels — no new power.
+                    Roles are infrastructure duties, not citizen privilege (they buy no vote or
+                    seat). As the founding operator you self-assert directly; once a government
+                    seats, governed roles return to shared consent for later changes.
+                </p>
+                <div class="grid sm:grid-cols-2 gap-4 mb-2">
+                    <div v-for="role in NAMED_ROLES" :key="role.key"
+                        class="bg-gray-950 border rounded p-4 flex flex-col gap-2"
+                        :class="roleEstablished(role) ? 'border-emerald-600' : 'border-gray-800'">
+                        <div class="flex items-center justify-between">
+                            <span class="text-gray-100 text-sm font-semibold">{{ role.label }}</span>
+                            <span v-if="roleEstablished(role)" class="text-emerald-400 text-xs">✓ Established</span>
+                            <span v-else-if="role.recommended" class="text-amber-300 text-xs">Recommended</span>
+                        </div>
+                        <p class="text-gray-400 text-xs">{{ role.what }}</p>
+                        <p class="text-gray-500 text-xs"><strong class="text-gray-400">Your duty:</strong> {{ role.duty }}</p>
+                        <p class="text-gray-500 text-xs">
+                            <code v-for="cap in role.channels" :key="cap" class="text-gray-300 mr-1">{{ cap }}</code>
+                        </p>
+                        <p class="text-gray-500 text-xs italic">{{ role.consent }}</p>
+                        <button v-if="!roleEstablished(role)"
+                            :disabled="establishingAll || !!establishingCap || !channels.length"
+                            @click="chooseRole(role)"
+                            class="mt-auto px-3 py-1.5 bg-gray-800 hover:bg-gray-700 disabled:bg-gray-800/50 disabled:text-gray-600 text-gray-100 text-xs rounded transition">
+                            Choose {{ role.label }}
+                        </button>
+                    </div>
+                </div>
+            </section>
+
+            <!-- ── 3 · Role-specific setup (the channel substrate) ── -->
             <section class="bg-gray-900 border border-gray-800 rounded-lg p-6">
                 <div class="flex items-center justify-between mb-3">
-                    <h2 class="text-xl font-semibold text-white">3 · Operator roles</h2>
-                    <span class="text-gray-500 text-xs">{{ activeChannels }} / {{ channels.length }} on</span>
+                    <h2 class="text-xl font-semibold text-white">3 · Role-specific setup</h2>
+                    <span class="text-gray-500 text-xs">{{ activeChannels }} / {{ channels.length }} channels on</span>
                 </div>
                 <p class="text-gray-400 text-sm mb-4">
-                    Running a node carries operator <strong>roles</strong> on the mesh — infrastructure duties,
-                    not citizen privilege (they buy no vote or seat). As the founding operator you self-assert
-                    them directly, right here; once a government seats, governed roles return to shared consent
-                    for later changes.
+                    The channels beneath the role cards — turn any on individually, and finish
+                    the infrastructure config where a channel needs it.
                 </p>
 
                 <div v-if="rolesError" class="mb-3 text-sm text-red-400 bg-red-900/20 border border-red-800/50 rounded p-2">
@@ -384,9 +486,9 @@ function continueNext() {
                 </a>
             </section>
 
-            <!-- ── Share this deployment ── -->
+            <!-- ── 4 · You're set — share + continue ── -->
             <section class="bg-gray-900 border border-gray-800 rounded-lg p-6">
-                <h2 class="text-lg font-semibold text-white mb-3">Share this deployment</h2>
+                <h2 class="text-lg font-semibold text-white mb-3">4 · You're set — share this deployment</h2>
                 <p class="text-gray-400 text-sm mb-4">
                     Hand a colleague a one-file start script. Solo = they found their own world; Join = they
                     mirror this one (needs your node address set above).
