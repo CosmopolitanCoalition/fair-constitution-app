@@ -1282,3 +1282,14 @@ identity-verification/relocation → social/groups → bill.html on the constitu
 
 **FLEET DONE:** L2 · L5 · L13 · L15 (4 fully closed). **Held-at-last-item:** L1 (Niue done, per-child+void
 queued), L3 (① done, void+④ queued), L4 (growth dial done, pump queued). **Building:** L6. Awaiting the gate tally.
+
+### W4 — ⚑ LESSON: never relay/act on a TRUNCATED id (UUIDv7 prefix matches many rows)
+
+Desk relayed lane 1's ellipsis'd election ids "019f9f58… / 019f9f76…" to lane 3 for the Niue void. Those
+8-char prefixes are UUIDv7 TIMESTAMP prefixes → they match **37 elections across many jurisdictions**, not 2.
+Lane 3 REFUSED to void by prefix and pinned the real full UUIDs by Niue's jurisdiction (8d49d093-…) + the
+pooled-14/panel_id-NULL shape (019f9f58-557e-71fb-80be-8d34fd059777, 019f9f76-5019-725a-a3e4-db7be3b2035c) —
+a verify-the-diagnosis save that averted 37 wrong voids. RULE (extends the session-id copy-verbatim law to ALL
+ids): never relay or act on a truncated/prefix id — a UUIDv7 prefix is ambiguous; pin the FULL id + a
+disambiguating predicate (jurisdiction + shape) before any destructive lifecycle act. The Niue void stays
+queued post-gate (2 real targets, ElectionLifecycleService::cancel).
