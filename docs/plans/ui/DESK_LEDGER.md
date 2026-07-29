@@ -359,6 +359,19 @@ TRADING DEFERRED to Wave 4 (operator ruled ISSUANCE, delivered; secondary needs 
 his ruling; shares floor stays honest-empty) — surfaced to operator, doesn't block 5-6. P2P
 agreement form = a mint → 116→117 pinned in the build.**
 
+**⚑ OPEN QUESTIONS ALL ANSWERED (2026-07-29) + WAVE 4 ORDERS FOLDED, AWAITING GO/NO-GO.** The
+operator answered all 9 open questions via the rubric form (0 open / 14 resolved now). Answers:
+education arming = A (pre-train demo members); mass pass = A (GO after the race fix, game box);
+lane 3 compact = A (he will NOT manually walk until all-green); RankedBallot = A (build,
+DAILY-BATCHED — standings are invisible-until-count today, controller passes liveAggregate=null);
+secondary trading = A (IN, lane 13); handshake 500→4xx = A (FIX, lane 2); B2 = A (compact-first);
+oversight LIVE console = **B (government is PUBLIC by default incl. in-progress vs named members;
+orgs decide their own — ⚑ SETTLED LAW in FLEET_CONTEXT, never re-ask)**; orphans = A (DELETE —
+⚑ SETTLED, never re-ask). All folded into the Fleet-tab W4 orders (RULED = …). **Orders are
+PREPARED and shown in the rubric Fleet tab with a "awaiting go/no-go" banner — NOTHING dispatched
+to any lane. On the operator's GO the desk sends per-lane ACTION orders.** (Desk drifted toward
+dispatch mid-turn; operator corrected — draft ≠ launch.)
+
 **⚑ WAVE 4 STANDING ORDERS PREPARED (2026-07-29, operator asked, PREPARED not dispatched —
 awaiting his GO):** goal = as GREEN as possible across UI Screens + Capabilities → tested
 playable game. Per-lane orders in docs/plans/ui/WAVE4_STANDING_ORDERS.md + the rubric's new

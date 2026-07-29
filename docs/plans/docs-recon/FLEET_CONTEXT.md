@@ -113,6 +113,8 @@ Consequences for everyone:
 | **git pathspec** | `git add X && git commit` sweeps the whole shared index across 12 lanes. Always `git commit -- <path>`, then verify with `git show --stat`. |
 | **Verify the probe** | `curl` without `Accept: text/html` skips the setup lock and reports the wrong gate. A tool answering a different question than you asked produces confident fleet-wide error. |
 | **The ETL rule** | Bulk writes run as bounded committed chunks with per-chunk progress. Never one planet-wide statement. |
+| **⚑ Government is PUBLIC by default** | ALL government proceedings are public — the public record AND the LIVE console of in-progress proceedings against named members. ORGANIZATIONS decide their own visibility. Settled repeatedly (A1 + the 2026-07-29 oversight-live ruling). **Do NOT re-ask any variant of this.** |
+| **⚑ Orphans get removed** | Unreferenced surfaces (e.g. `Elections/CandidateProfile.vue`) are DELETED, not kept. Operator answered this repeatedly. **Do NOT re-ask.** |
 
 ---
 

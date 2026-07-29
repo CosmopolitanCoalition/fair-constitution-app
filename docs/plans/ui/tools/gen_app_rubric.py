@@ -56,6 +56,25 @@ QUESTIONS = [
  {"id":"oversight-public","q":"Oversight console — public or gated?","status":"resolved","lane":"3",
   "detail":"RULED PUBLIC ('public if it's government'; no closed-session provision). Console read public; write controls authenticated. @4057b3c."},
 ]
+# Operator answers (2026-07-29) — flip the 9 open to RESOLVED with the ruling folded in.
+_ANS = {
+ 'edu-arming':('A','Pre-train demo members (seeders file F-EDU-001) — the walk shows a trained fleet.',''),
+ 'mass-pass':('A','After the race fix, pull lane 1\'s commits to the game box and run the ~9,708 mass pass now (ETL-chunked).',''),
+ 'lane3-compact':('A','Compact lane 3 now — it resumes into seating a committee + the exit walk.','Operator will NOT manually walk anything until we are all GREEN and ready.'),
+ 'ranked-live':('A','Build the secrecy-safe live aggregate, DAILY-BATCHED (results are invisible-until-count today, so daily provisional standings — no in-request decrypt).',''),
+ 'secondary-trade':('A','Pull into Wave 4 — lane 13 builds share resale on the exchange (needs schema).',''),
+ 'handshake-4xx':('A','Fix in Wave 4 — catch the cross-class refusal, return 409/422 gracefully.',''),
+ 'b2-pairing':('A','Keep compact-first (Type B clumping; matches intent).',''),
+ 'oversight-live':('B','GOVERNMENT IS PUBLIC BY DEFAULT — the live console of in-progress proceedings too. Organizations decide their own visibility. ⚑ SETTLED LAW, never re-ask.','"I dont know how many times I need to reanswer this question."'),
+ 'orphans':('A','Delete the orphan surfaces (CandidateProfile.vue etc.). ⚑ SETTLED, never re-ask.','"I already answered this many times as well."'),
+}
+for _q in QUESTIONS:
+    a = _ANS.get(_q['id'])
+    if a:
+        k, txt, note = a
+        _q['status'] = 'resolved'
+        _q['detail'] = 'RULED = %s. %s%s · %s' % (k, txt, (' [operator: '+note+']') if note else '', _q['detail'])
+        _q.pop('options', None)
 
 base = json.load(open(r'E:\fair-constitution-app\docs\plans\ui\v3_gap_data.json', encoding='utf-8'))
 res = json.load(open(r'C:\Users\JOSEPH~1\AppData\Local\Temp\claude\E--fair-constitution-app\355910cb-829c-4f85-8b3a-3a74acb84871\scratchpad\rubric_data.json', encoding='utf-8'))
@@ -227,7 +246,7 @@ function render(){const b=document.getElementById('body');
     b.innerHTML=`<section class="area"><div class="rows">${vis.map(r=>`<div class="scr"><button class="scr-head" aria-expanded="false"><span class="dot d-${CO[r.severity]}"></span><span class="scr-title">${hi(r.title)}</span><span class="lwbadge">${esc(r.badge)}</span><span class="pill p-${r.severity}">${LB[r.severity]}</span><span class="eff">${esc(r.category)}</span></button><div class="detail hidden"><dl><dt>Owner</dt><dd>${hi(r.owner)}</dd><dt>Where</dt><dd class="meta">${hi(r.location)}</dd><dt>Status</dt><dd>${hi(r.status)}</dd>${r.note?`<dt>Note</dt><dd>${hi(r.note)}</dd>`:''}</dl></div></div>`).join('')||'<div class="detail">No matches.</div>'}</div></section>`;}
   else if(view==='fleet'){
     const waves=D.fleet.waves.map(w=>`<span class="wv">${w.id}</span> ${esc(w.name)} <span class="pill p-${w.status}">${LB[w.status]}</span>`).join(' &nbsp;·&nbsp; ');
-    let html=`<section class="area"><div class="detail" style="border:0;padding:.7rem 1rem"><b>Waves:</b> ${waves}</div></section>`;
+    let html=`<div class="note" style="border-inline-start-color:var(--warn)">⏳ <b>Wave 4 orders PREPARED — awaiting the operator's go / no-go.</b> Nothing dispatches to any lane until the launch order. Your answers are folded into each lane's W4 order below (RULED = …). Search a lane badge (e.g. L6W4) in the other tabs to see everything that lane owns.</div><section class="area"><div class="detail" style="border:0;padding:.7rem 1rem"><b>Waves:</b> ${waves}</div></section>`;
     D.fleet.lanes.forEach(l=>{const vis=l.orders.filter(o=>(filter==='all'||o.status===filter)&&(!q||(l.name+' '+o.text+' '+o.wave).toLowerCase().includes(q)));if(!vis.length)return;
       const sc={};['done','next','held'].forEach(k=>sc[k]=l.orders.filter(o=>o.status===k).length);
       const bar=['done','next','held'].map(k=>sc[k]?`<span class="s-${CO[k]}" style="flex:${sc[k]}"></span>`:'').join('');
