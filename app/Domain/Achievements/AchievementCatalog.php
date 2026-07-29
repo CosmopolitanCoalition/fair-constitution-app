@@ -198,7 +198,7 @@ final class AchievementCatalog
         // Art. III §5, which is arguably the sharpest clause in the constitution.
         // Everything a CGC creates is universally and eternally public domain,
         // with no mechanism anywhere to privatise it. That deserved an entry.
-        'ACH-ORG-013' => ['title_key' => 'achievement.ach_org_013', 'scope' => self::SCOPE_PERSONAL, 'earner' => self::EARNER_SELF,  'tier' => self::TIER_VERIFIED, 'trigger' => 'cgc_ip_register entry via CgcIpRegisterService::dedicate()'],
+        'ACH-ORG-013' => ['title_key' => 'achievement.ach_org_013', 'scope' => self::SCOPE_PERSONAL, 'earner' => self::EARNER_SELF,  'tier' => self::TIER_VERIFIED, 'trigger' => 'IP dedication recorded via CgcIpRegisterService::dedicate()'],
 
         // ── Arc 10 — Running elections (R-08) ───────────────────────────────
         'ACH-ELB-001' => ['title_key' => 'achievement.ach_elb_001', 'scope' => self::SCOPE_PERSONAL, 'earner' => self::EARNER_STATE, 'tier' => self::TIER_VERIFIED, 'trigger' => 'election_board_members seated'],
