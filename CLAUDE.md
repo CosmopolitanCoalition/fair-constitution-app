@@ -256,11 +256,14 @@ seats across all committees = the number of placements to fill.
 - **Individual**: Single winner via RCV, top 4 runners-up as automatic advisors (US model)
 Both start as legislature-delegated. Converts to directly elected by supermajority.
 
-### Bicameral Support (Article V §3) — SETTLED 2026-07-26, do not re-derive
+### Bicameral Support (Article V §3) — SETTLED 2026-07-26, RACE STRUCTURE corrected 2026-07-29
 
 The two chambers answer **different questions** and are sized by **different rules**. The old
 one-line summary here had them backwards and that error propagated into `racePlan()`, which
-blocked ~30k chambers. Read this section before touching seats, races or districting.
+blocked ~30k chambers. **A SECOND error lived here until 2026-07-29: it said Type B was "ONE STV
+race" — WRONG.** Type B is one at-large race PER CHILD (or per clump). The built code still does
+the wrong (pooled) thing; see the ⚠ flag below. Read this section before touching seats, races or
+districting.
 
 **Type A — proportional. Population is everything.**
 - Total = `max(5, round(population^(1/3)))` — the cube-root law. **No ceiling on the total.**
@@ -273,11 +276,33 @@ blocked ~30k chambers. Read this section before touching seats, races or distric
 - Every direct constituent gets the **same** number of seats regardless of its population.
 - Total = `seats_per_constituent × number_of_constituents` (setting `type_b_seats_per_child`,
   default 5).
-- **At-large: the jurisdiction IS the district, so Type B is ONE STV race**, however many seats.
-  The 5–9 district band does NOT bind it — same as `exec_committee` and `judicial_group`, which
-  the schema already allows above 9 with no upper bound.
+- **⚑ THE RACE STRUCTURE (operator ruling 2026-07-29, DEFINITIVE — one at-large race PER CHILD,
+  or PER CLUMP; NOT one pooled race).** Type B is **one at-large STV race per direct child
+  jurisdiction**, each electing that child's own equal seats from that child's own residents.
+  When a size ceiling forces clumping (below), it becomes **one at-large race per clump**, voted
+  at-large within the clump for the clump's seats. This holds at every size — **ungrouped =
+  per-child, grouped = per-clump, same rule** (no big single election over everybody, ever). The
+  5–9 district band does NOT bind a Type B race (like `exec_committee` / `judicial_group`).
+- **⚠ THE BUILT CODE IS WRONG — DO NOT BUILD ON IT (fix in Wave 4).** `racePlan` / `createRaces`
+  currently emit ONE pooled at-large race over ALL the parent's residents. That is the WRONG
+  shape: it lets population dominate and defeats equal representation. The correct build is
+  per-child / per-clump races — touches PROTECTED `VoteCountingService` + needs a clump/grouping
+  key on `election_races`. The seat **math is already correct** (Niue → 5 clumps × 2 = 10); only
+  the race **grouping** must change. Until then, a grouped Type B chamber is held blocked (Niue).
 - **A leaf has no Type B** — no constituents to represent. Its own representation appears in its
   PARENT's Type B chamber.
+
+**The two perspectives (operator's spec, 2026-07-29 — the definitive statement of the model):**
+- **As PARENT:** *Type A* = your active map; districts drawn from your children's
+  population/config (cube-root total). *Type B* = equal seats per child, **one at-large race per
+  child**; if `children × reps` overflows the Type A size, step reps-per-child 5→4→3→2, then clump
+  nearest neighbours (pair/tri/quad…) until it fits — **each clump one at-large race across the
+  clump**. No children → Type B disabled.
+- **As CHILD:** *Type A* = population-based — you as a whole at-large district (composable/single)
+  or split internally (giant-split via your descendants, or splitline if you have none). *Type B*
+  = equal with your peers under the same parent; hit a size ceiling and you **clump with your
+  immediate neighbour**; **the clump votes at-large for the clump, whatever its size** (pair/tri/
+  quad — clump size does not change this).
 
 **The only bound on Type B: it may not exceed the Type A total.** When it does, reduce in two
 stages, in this order:

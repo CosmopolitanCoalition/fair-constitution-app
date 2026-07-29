@@ -423,15 +423,19 @@ agreement form = a mint → 116→117 pinned in the build.**
    produces a BARE at-large STV race — racePlan emits `at_large` with N seats, createRaces makes
    one plain STV race over all residents, and `election_races` has NO panel/grouping column, so
    "seats follow the panels" is inexpressible without a schema + counting decision. FORK:
-   **(i)** ONE at-large N-seat STV race, panels = seat-count accounting only — additive
-   grouping_id column, counting UNCHANGED, LANE-1-OWNABLE, cheap; weakness: a small constituent
-   can be shut out (population re-enters via at-large STV). **(ii)** PANEL-PARTITIONED counting —
-   each panel elects its rep_floor seats; true equal representation; touches PROTECTED
-   VoteCountingService, JOINT lane-1/lane-3, real cost. DESK REC: **(i)** for consistency
-   (ungrouped Type B is ALREADY one at-large STV race with equal-rep in the seat BUDGET not the
-   counting; "Type B is ONE STV race, however many seats"; grouping only reduces N to fit the
-   cap) + cost + not touching hardened code. Lane 1 (builder) leans (ii) as "what grouping is
-   FOR." Genuinely the operator's call — it's what Type B REQUIRES. **NIUE RE-FLAGGED + DESK-VERIFIED (branch YES — trigger was ARMED):**
+   **⚑ OPERATOR CLARIFIED THE MODEL (2026-07-29, two-context spec) — the fork is RESOLVED to the
+   per-unit family:** Type B = ONE AT-LARGE RACE PER CHILD JURISDICTION; when a size ceiling forces
+   clumping (reps-per-child ladder 5→2, then nearest-neighbor clump pair/tri/quad), ONE AT-LARGE
+   RACE PER CLUMP — voted at-large WITHIN that child/clump for its own equal seats. NOT one pooled
+   race over all residents. CONSISTENT: ungrouped = per-child, grouped = per-clump, same rule, no
+   wrinkle. **THE BUILT CODE IS WRONG:** racePlan/createRaces emit ONE pooled at-large race over
+   ALL residents (the old "(i)"); the CLAUDE.md line "Type B is ONE STV race, however many seats"
+   is ALSO wrong and must be corrected. Seat MATH already matches (Niue 5 clumps × 2 = 10); only
+   the RACE STRUCTURE changes — one at-large race per child/clump, in racePlan/createRaces +
+   PROTECTED VoteCountingService (needs a grouping/clump key on election_races). WAVE 4 BUILD
+   (joint lane-1 seating + lane-3 counting). ONE CONFIRM PENDING: is it per-child even when
+   nothing overflows (no clumping)? Desk reads YES from "one per child jurisdiction" — awaiting
+   the operator's word before marching orders. **NIUE RE-FLAGGED + DESK-VERIFIED (branch YES — trigger was ARMED):**
    EvaluateClocksJob->CLK-01->ScheduleGeneralElection is live and Niue has armed CLK-01 timers
    (2026-08-18/09-01) on an advanceable dev clock, so a fired timer would have minted the bare
    wrong-shape race. Lane 1 re-flagged in one tx; desk confirmed on-box: flagged_chambers=1,

@@ -1,5 +1,16 @@
 # Type B District Mapper — Wave 3 design brief (lane 1)
 
+> **⚑⚑ CORRECTION SUPERSEDING THIS DOC'S RACE MODEL (operator ruling 2026-07-29).**
+> This doc was written assuming Type B elects as **ONE pooled at-large race** (the "B1 — one
+> at-large race" line below, and the "(i)" recommendation). **THAT IS WRONG.** The operator's
+> definitive model: Type B is **one at-large race PER CHILD jurisdiction**, and when clumping is
+> forced, **one at-large race PER CLUMP** (voted at-large within the child/clump). Ungrouped =
+> per-child, grouped = per-clump, same rule — never one pooled race over all residents. The
+> GROUPING/seat math in this doc is correct and shipped; only the RACE STRUCTURE was wrong. See
+> CLAUDE.md §Bicameral Support (corrected 2026-07-29) — the authoritative source. Fixing the
+> race structure (per-child/per-clump races in `racePlan`/`createRaces` + PROTECTED
+> `VoteCountingService`) is a WAVE 4 build item; grouped chambers stay blocked until it lands.
+
 *Design reading for the paused districting campaign's resume point. Ruled R-A
 (`docs/plans/ui/V3_SYNTHESIS_PLAN.md:228`): the Type B district mapper is lane
 1's Wave 3 headline. Stage-two grouping for the ~9,708 flagged chambers;

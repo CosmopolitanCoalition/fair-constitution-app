@@ -106,7 +106,7 @@ Consequences for everyone:
 
 | Ruling | Substance |
 |---|---|
-| **The bicameral seat law** | Type A = `max(5, round(pop^⅓))`, districted into 5–9 seat races, no ceiling on the total. Type B = equal per constituent, population irrelevant, **one at-large STV race at any size**, bounded only by the Type A total. Ladder 5→4→3→2, then compact grouping. Full text in `CLAUDE.md` § Bicameral Support. |
+| **The bicameral seat law** | Type A = `max(5, round(pop^⅓))`, districted into 5–9 seat races, no ceiling on the total. Type B = equal per constituent, population irrelevant, **one at-large race PER CHILD — or per clump when clumping is forced; NEVER one pooled race (operator-corrected 2026-07-29)**, bounded only by the Type A total. Ladder 5→4→3→2, then compact grouping. **⚠ The built code still emits the WRONG pooled race — Wave 4 fix; grouped chambers stay blocked.** Full text in `CLAUDE.md` § Bicameral Support (corrected). |
 | **The seating law** | Giant-cascade apportionment. **Never** Webster, Sainte-Laguë or largest-remainder. `CLAUDE.md` § Apportionment Law. |
 | **PROTECTED means live-deployment** | We are in development. A protected file that is broken protects nothing. **Announce → fix → pin → move on.** His word is needed to change what the constitution REQUIRES, not to make code match what it already requires. |
 | **The goal is the sanction** | The campaign goal is standing permission. Detect → fix → verify → ship engineering dials without asking. Never park a known blocker. |
