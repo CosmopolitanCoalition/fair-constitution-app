@@ -196,3 +196,51 @@ starts. The rows to flip from `href: null` when the pages exist: `market`, `mark
 `stipend`, `treasury`; and the contract's other four (`exchange`, `agreements`, `joint-ledgers`,
 `units`, `org-settings`) have no registry row at all — @lane-06 confirmed 9 declared against the
 mockups' set, not the 5 I first counted.
+
+---
+
+## Wave 2 additions (2026-07-29 — item 2 of the marching order)
+
+### `surface` joined EVERY economy page
+
+All economy renders now pass `'surface' => SurfaceMeta::for('<id>')` per lane 15's surface-id
+contract (`K2_CONTENT_WAVE2.md`): `economy/home` · `economy/wallet` · `economy/marketplace` ·
+`economy/listing-detail` · `economy/treasury` · `economy/units` · `economy/request-detail` ·
+`economy/stipend`. The records live in `config/cga/surfaces.php` (first `economy` module entries);
+lane 15's already-authored Learn corpus joins on these ids with no further wiring. The `stipend`
+row in `registry/surfaces.js` flipped from `href: null` to `/economy/stipend`.
+
+### `GET /economy/stipend` → `Economy/Stipend` (route `economy.stipend`)
+
+| Key | Shape | Notes |
+|---|---|---|
+| `surface` | SurfaceMeta record | |
+| `currency` | as everywhere | nullable |
+| `stipend` | `{enabled, floor, cap, bumps{node_operator,social_moderator,office_holder}, interval, period_days?, funding_source}` | all money STRINGS; `period_days` nullable int |
+| `clock` | `{last_run?, next_run_estimate?}` — `last_run = {ran_at, recipients, total, short_paid}` | both nullable (a world that has not run yet) |
+| `k_anon_floor` | int | `StipendService::K_ANON_FLOOR` |
+| `examples` | `[{label, roles[], base, bump, amount, capped}]` | computed by `StipendService::bumpFor` on SYNTHETIC role sets — never a real receipt; `amount = base + bump` exactly (pinned) |
+
+### `GET /economy/requests/{posting}` → `Economy/RequestDetail` (route `economy.request`)
+
+| Key | Shape | Notes |
+|---|---|---|
+| `surface` | SurfaceMeta record | |
+| `currency` | as everywhere | nullable |
+| `posting` | `{id, title, terms, rate?, status, org_name, applications, at}` | `rate` nullable string |
+| `codetermination` | `{first_seat_at, parity_at, headcount}` all ints | **RESOLVED from settings** (`worker_rep_min_employees` / `worker_rep_parity_employees`, org's jurisdiction, root fallback) — never the 100/2000 literals |
+| `can_apply` | bool | open ∧ has wallet ∧ not already applied |
+| `has_applied` | bool | |
+
+### `POST /economy/requests/{posting}/apply` → F-IND-019 (route `economy.request.apply`)
+
+| Form | `payload` keys | Returns (`EngineResult::recorded`) |
+|---|---|---|
+| `F-IND-019` | `posting_id`, `note?` (≤500) | `application_id`, `posting_id`, `applicant_account_id` |
+
+F-IND-019 (Work Application, R-01) was minted with this page — the id `ECONOMY_ENGINE_PLAN` §5.2
+reserved. Form count 111 → **112**, raised deliberately in `AuditChainSmokeTest`. Applying commits
+nobody: the handler is PINNED unable to reach the hire chain (`EconomyWriteFormsTest`), and
+`LaborBoardService::apply` refuses duplicates. Acceptance (the org's act, which files F-IND-014 as
+the applicant per the built chain) has **no web door yet** — it stays service-level; the org-side
+console is item-6/Wave-3 territory and the gap is recorded, not hidden.

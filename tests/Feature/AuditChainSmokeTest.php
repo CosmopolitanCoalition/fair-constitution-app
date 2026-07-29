@@ -114,7 +114,7 @@ class AuditChainSmokeTest extends TestCase
     // FormRegistry
     // -------------------------------------------------------------------------
 
-    public function test_registry_holds_exactly_111_canonical_forms(): void
+    public function test_registry_holds_exactly_112_canonical_forms(): void
     {
         // 103 Template forms + F-ELB-008 (Manual District Draw, Phase H) + the
         // Phase K-1 civic-commons trio F-SOC-001/002/003 (public square / halls
@@ -122,14 +122,17 @@ class AuditChainSmokeTest extends TestCase
         // legal-compliance removal, operator-plane) + the Phase M economy write
         // path F-IND-022/023/024 (marketplace list-order-settle, funds transfer,
         // asset register-transfer) — the doors that made the built economy
-        // reachable, added 2026-07-26 (72fdd95).
+        // reachable, added 2026-07-26 (72fdd95) — + F-IND-019 (Work
+        // Application, Wave 2 item 2): the labor board's citizen door, the id
+        // ECONOMY_ENGINE_PLAN §5.2 reserved, minted with the request-detail
+        // page because a bare POST→service would have been a second write path.
         //
         // WHY THIS PIN EARNS ITS KEEP: it is an EXACT count, so adding a form
         // without meaning to fails here loudly. Raising the number is the
         // deliberate half of adding one — if you are editing this line, check
         // that you meant to add a form, not that the test is in your way.
-        $this->assertCount(111, FormRegistry::FORMS);
-        $this->assertCount(111, FormRegistry::ids());
+        $this->assertCount(112, FormRegistry::FORMS);
+        $this->assertCount(112, FormRegistry::ids());
     }
 
     public function test_pure_aliases_resolve_to_canonical_ids(): void

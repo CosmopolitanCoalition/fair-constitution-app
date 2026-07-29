@@ -130,4 +130,24 @@ class EconomyActionController extends Controller
 
         return back()->with('status', 'Settled (F-IND-022). Money and thing moved in ONE transaction — both, or neither.');
     }
+
+    /**
+     * F-IND-019 — apply to a work posting.
+     *
+     * Applying commits nobody: the HIRE is the separate F-IND-014 chain that
+     * acceptance files, and this controller cannot reach it.
+     */
+    public function applyForWork(Request $request, string $posting): RedirectResponse
+    {
+        $validated = $request->validate([
+            'note' => ['nullable', 'string', 'max:500'],
+        ]);
+
+        $this->engine->file('F-IND-019', $request->user(), [
+            'posting_id' => $posting,
+            'note'       => $validated['note'] ?? null,
+        ]);
+
+        return back()->with('status', 'Applied (F-IND-019). The organization decides — if it accepts, the work agreement is recorded with both signatures, never one.');
+    }
 }

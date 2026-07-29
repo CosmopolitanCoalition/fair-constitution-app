@@ -74,6 +74,16 @@ class LaborBoardService
             throw new RuntimeException('That posting is not open.');
         }
 
+        $alreadyApplied = DB::table('work_applications')
+            ->where('posting_id', $postingId)
+            ->where('applicant_account_id', $applicantAccountId)
+            ->where('status', 'applied')
+            ->exists();
+
+        if ($alreadyApplied) {
+            throw new RuntimeException('You have already applied to this posting — one application is on the record.');
+        }
+
         $id = (string) Str::uuid();
 
         DB::table('work_applications')->insert([

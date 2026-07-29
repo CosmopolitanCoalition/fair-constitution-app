@@ -8,7 +8,9 @@ use App\Services\ConstitutionalValidator;
 use App\Services\Economy\AccountService;
 use App\Services\Economy\IssuanceService;
 use App\Services\Economy\LedgerService;
+use App\Services\Economy\StipendService;
 use App\Services\SettingsResolver;
+use App\Support\SurfaceMeta;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Inertia\Inertia;
@@ -61,6 +63,7 @@ class EconomyController extends Controller
             : ($this->ledger->imbalanceByCurrency()[$currency->id] ?? '0.000000');
 
         return Inertia::render('Economy/Home', [
+            'surface'  => SurfaceMeta::for('economy/home'),
             'currency' => $this->currencyProp($currency),
             'supply'   => $supply,
             'ledger'   => [
@@ -163,6 +166,7 @@ class EconomyController extends Controller
         }
 
         return Inertia::render('Economy/Wallet', [
+            'surface'      => SurfaceMeta::for('economy/wallet'),
             'currency'     => $this->currencyProp($currency),
             'account'      => $account === null ? null : [
                 'id'      => (string) $account->id,
@@ -178,6 +182,7 @@ class EconomyController extends Controller
     public function market(Request $request): Response
     {
         return Inertia::render('Economy/Market', [
+            'surface'    => SurfaceMeta::for('economy/marketplace'),
             'currency'   => $this->currencyProp($this->currency()),
             'offers'     => $this->offers(),
             // Things you hold that are not already on the market, so the
@@ -241,6 +246,7 @@ class EconomyController extends Controller
             ])->all();
 
         return Inertia::render('Economy/Listing', [
+            'surface'   => SurfaceMeta::for('economy/listing-detail'),
             'currency'  => $this->currencyProp($currency),
             'listing'   => $row,
             'orders'    => DB::table('marketplace_orders')->where('listing_id', $listing)->count(),
@@ -293,6 +299,7 @@ class EconomyController extends Controller
         $currency = $this->currency();
 
         return Inertia::render('Economy/Treasury', [
+            'surface'  => SurfaceMeta::for('economy/treasury'),
             'currency' => $this->currencyProp($currency),
             'accounts' => DB::table('treasury_accounts')->whereNull('deleted_at')->orderBy('label')->get()
                 ->map(fn ($a) => [
@@ -369,11 +376,149 @@ class EconomyController extends Controller
         }
 
         return Inertia::render('Economy/Units', [
+            'surface'              => SurfaceMeta::for('economy/units'),
             'currency'             => $this->currencyProp($currency),
             'levers'               => $levers,
             'supply'               => $currency === null ? '0.000000' : $this->issuance->supply($currency->id),
             'issuance_rate_bps'    => $rootId === null ? null : $this->nullableInt($this->settings->resolve($rootId, 'issuance_rate_bps')),
             'inflation_target_bps' => $rootId === null ? null : $this->nullableInt($this->settings->resolve($rootId, 'inflation_target_bps')),
+        ]);
+    }
+
+    /**
+     * One work posting, end to end — the rate, the organisation, the
+     * lifecycle it triggers when accepted, and the co-determination
+     * thresholds it counts toward. Thresholds are RESOLVED from the
+     * amendable settings, never the 100/2000 literals (Art. III §6 — the
+     * values legislate; the math is hardened elsewhere).
+     */
+    public function workPosting(Request $request, string $posting): Response
+    {
+        $row = DB::table('work_postings')->where('id', $posting)->whereNull('deleted_at')->first();
+
+        abort_if($row === null, 404);
+
+        $org = DB::table('organizations')->where('id', $row->organization_id)->first();
+
+        // The org's jurisdiction scopes the thresholds; root is the fallback
+        // for an org with no jurisdiction on record.
+        $scopeId = ($org->jurisdiction_id ?? null) !== null ? (string) $org->jurisdiction_id : $this->rootId();
+
+        $myAccountId = null;
+        $currency = $this->currency();
+        if ($currency !== null && $request->user() !== null) {
+            $myAccountId = $this->accounts->accountIdFor('users', (string) $request->user()->id, $currency->id);
+        }
+
+        $hasApplied = $myAccountId !== null && DB::table('work_applications')
+            ->where('posting_id', $posting)
+            ->where('applicant_account_id', $myAccountId)
+            ->where('status', 'applied')
+            ->exists();
+
+        return Inertia::render('Economy/RequestDetail', [
+            'surface'  => SurfaceMeta::for('economy/request-detail'),
+            'currency' => $this->currencyProp($currency),
+            'posting'  => [
+                'id'           => (string) $row->id,
+                'title'        => (string) $row->title,
+                'terms'        => (string) $row->terms,
+                'rate'         => $row->rate === null ? null : (string) $row->rate,
+                'status'       => (string) $row->status,
+                'org_name'     => $org === null ? 'An organization' : (string) $org->name,
+                'applications' => DB::table('work_applications')->where('posting_id', $row->id)->count(),
+                'at'           => $this->iso($row->created_at),
+            ],
+            'codetermination' => [
+                // Amendable per jurisdiction (CLK-13/14 defaults) — resolved,
+                // never hardcoded.
+                'first_seat_at' => $scopeId === null ? 100 : (int) ($this->settings->resolve($scopeId, 'worker_rep_min_employees') ?? 100),
+                'parity_at'     => $scopeId === null ? 2000 : (int) ($this->settings->resolve($scopeId, 'worker_rep_parity_employees') ?? 2000),
+                // Only the COUNT crosses this boundary — never worker rows.
+                'headcount'     => DB::table('org_workers')
+                    ->where('employer_type', 'organizations')
+                    ->where('employer_id', $row->organization_id)
+                    ->where('status', 'active')
+                    ->whereNull('deleted_at')
+                    ->count(),
+            ],
+            'can_apply'   => $row->status === 'open' && $myAccountId !== null && ! $hasApplied,
+            'has_applied' => $hasApplied,
+        ]);
+    }
+
+    /**
+     * The civic stipend, as a page: the live formula values, when it runs,
+     * the public aggregate of the last run, and the k-anonymity rule that
+     * keeps a small class from identifying its one member. Worked examples
+     * are computed by the REAL formula (StipendService::bumpFor) on
+     * synthetic role sets — no real person's receipt is ever derivable from
+     * this page.
+     */
+    public function stipend(StipendService $stipends): Response
+    {
+        $currency = $this->currency();
+        $rootId   = $this->rootId();
+
+        $floor = $this->settingString($rootId, 'civic_stipend_floor', '50');
+        $cap   = $this->settingString($rootId, 'stipend_bump_cap', '20');
+        $bumps = [
+            'node_operator'    => $this->settingString($rootId, 'pay_node_operator', '8'),
+            'social_moderator' => $this->settingString($rootId, 'pay_social_moderator', '5'),
+            'office_holder'    => $this->settingString($rootId, 'pay_office_holder', '12'),
+        ];
+
+        $lastRun = $currency === null ? null : DB::table('ubi_disbursements')
+            ->where('currency_id', $currency->id)
+            ->orderByDesc('ran_at')
+            ->first();
+
+        $periodDays = $rootId === null ? null : $this->nullableInt($this->settings->resolve($rootId, 'stipend_period_days'));
+
+        $examples = [];
+        foreach ([
+            ['label' => 'A resident with no serving roles', 'roles' => []],
+            ['label' => 'A node operator',                  'roles' => ['node_operator']],
+            ['label' => 'A moderator who also holds office', 'roles' => ['social_moderator', 'office_holder']],
+            ['label' => 'All three duties at once',          'roles' => ['node_operator', 'social_moderator', 'office_holder']],
+        ] as $case) {
+            $bump = $stipends->bumpFor($case['roles'], $bumps, $cap);
+
+            $examples[] = [
+                'label'  => $case['label'],
+                'roles'  => $case['roles'],
+                'base'   => $floor,
+                'bump'   => $bump,
+                'amount' => bcadd($floor, $bump, 6),
+                'capped' => bccomp($bump, $cap, 6) === 0 && $case['roles'] !== [],
+            ];
+        }
+
+        return Inertia::render('Economy/Stipend', [
+            'surface'  => SurfaceMeta::for('economy/stipend'),
+            'currency' => $this->currencyProp($currency),
+            'stipend'  => [
+                'enabled'        => $rootId === null ? true : ($this->settings->resolve($rootId, 'stipend_enabled') ?? true) == true,
+                'floor'          => $floor,
+                'cap'            => $cap,
+                'bumps'          => $bumps,
+                'interval'       => (string) ($rootId === null ? 'monthly' : ($this->settings->resolve($rootId, 'stipend_interval') ?? 'monthly')),
+                'period_days'    => $periodDays,
+                'funding_source' => (string) ($rootId === null ? 'minted' : ($this->settings->resolve($rootId, 'stipend_funding_source') ?? 'minted')),
+            ],
+            'clock' => [
+                'last_run' => $lastRun === null ? null : [
+                    'ran_at'     => $this->iso($lastRun->ran_at),
+                    'recipients' => (int) $lastRun->recipients,
+                    'total'      => (string) $lastRun->total,
+                    'short_paid' => (bool) $lastRun->short_paid,
+                ],
+                'next_run_estimate' => ($lastRun === null || $periodDays === null)
+                    ? null
+                    : \Illuminate\Support\Carbon::parse((string) $lastRun->ran_at)->addDays($periodDays)->toIso8601String(),
+            ],
+            'k_anon_floor' => StipendService::K_ANON_FLOOR,
+            'examples'     => $examples,
         ]);
     }
 

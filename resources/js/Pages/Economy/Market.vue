@@ -197,13 +197,16 @@ const counts = computed(() => ({
             <p v-if="!work.length" class="econ-empty">No work is being offered right now.</p>
             <Card v-for="w in work" :key="w.id" as="article" inset class="mkt-row">
                 <div class="mkt-head">
-                    <h3 class="mkt-title">{{ w.title }}</h3>
+                    <h3 class="mkt-title">
+                        <Link :href="`/economy/requests/${w.id}`">{{ w.title }}</Link>
+                    </h3>
                     <span v-if="w.rate" class="mkt-price">{{ formatMoney(w.rate, currency) }}</span>
                 </div>
                 <p class="mkt-desc">{{ w.terms }}</p>
                 <p class="mkt-meta">
                     <span>{{ formatCount(w.applications) }} applied</span>
                     <span>{{ w.status }}</span>
+                    <Link :href="`/economy/requests/${w.id}`">View &amp; apply</Link>
                 </p>
             </Card>
             <p class="econ-note">

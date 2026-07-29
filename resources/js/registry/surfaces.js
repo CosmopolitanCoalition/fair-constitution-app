@@ -125,7 +125,7 @@ export const SITEMAP = [
         { id: 'wallet', label: 'My wallet', icon: 'lock', href: '/economy/wallet', contract: 'economy/wallet.html' },
         { id: 'joint-ledgers', label: 'Joint ledgers', icon: 'users', href: null, contract: 'economy/joint-ledgers.html', phase: 8 },
         { id: 'units', label: 'Units & money', icon: 'sliders', href: '/economy/units', contract: 'economy/units.html' },
-        { id: 'stipend', label: 'The civic stipend', icon: 'refresh-cw', href: null, contract: 'economy/stipend.html', phase: 8 },
+        { id: 'stipend', label: 'The civic stipend', icon: 'refresh-cw', href: '/economy/stipend', contract: 'economy/stipend.html' },
         { id: 'treasury', label: 'Public finance', icon: 'bar-chart', href: '/economy/treasury', contract: 'economy/treasury.html' },
         { id: 'org-settings', label: 'Org economics', icon: 'building', href: null, contract: 'economy/org-settings.html', phase: 8 },
     ] },

@@ -595,6 +595,9 @@ Route::middleware('auth')->group(function () {
         ->whereUuid('listing')->name('economy.listing');
     Route::get('/economy/treasury', [\App\Http\Controllers\Economy\EconomyController::class, 'treasury'])->name('economy.treasury');
     Route::get('/economy/units', [\App\Http\Controllers\Economy\EconomyController::class, 'units'])->name('economy.units');
+    Route::get('/economy/stipend', [\App\Http\Controllers\Economy\EconomyController::class, 'stipend'])->name('economy.stipend');
+    Route::get('/economy/requests/{posting}', [\App\Http\Controllers\Economy\EconomyController::class, 'workPosting'])
+        ->whereUuid('posting')->name('economy.request');
 
     // The write path (F-IND-022/023/024). These POST to the ENGINE, not to a
     // REST resource — EconomyActionController validates shape and files, and
@@ -612,6 +615,8 @@ Route::middleware('auth')->group(function () {
         ->whereUuid('listing')->name('economy.market.order');
     Route::post('/economy/orders/{order}/settle', [\App\Http\Controllers\Economy\EconomyActionController::class, 'settle'])
         ->whereUuid('order')->name('economy.market.settle');
+    Route::post('/economy/requests/{posting}/apply', [\App\Http\Controllers\Economy\EconomyActionController::class, 'applyForWork'])
+        ->whereUuid('posting')->name('economy.request.apply');
 
     // ── FE-C5 — Settings register (legislature/settings) ────────────────────
     Route::get('/legislatures/{legislature}/settings', [SettingsController::class, 'show'])

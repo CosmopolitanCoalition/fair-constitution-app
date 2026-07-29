@@ -6,17 +6,20 @@ use App\Domain\Forms\FormRegistry;
 use App\Domain\Forms\Handlers\AssetRegistration;
 use App\Domain\Forms\Handlers\FundsTransfer;
 use App\Domain\Forms\Handlers\MarketplaceListingOrder;
+use App\Domain\Forms\Handlers\WorkApplication;
 use ReflectionClass;
 use Tests\TestCase;
 
 /**
- * F-IND-022/023/024 — the economy's write path.
+ * F-IND-019/022/023/024 — the economy's write path.
  *
  * These forms exist because the economy was fully built and entirely
  * unusable: every service written, tested, and driven end to end by
  * `institutions:demo-treasury`, with no constitutional door. A playtester
  * could read the economy and could not act in it. `mutual-aid` sat at 0 of 4
- * walkable steps for exactly this reason.
+ * walkable steps for exactly this reason. F-IND-019 (Work Application)
+ * joined in Wave 2 with the request-detail page — the id ECONOMY_ENGINE_PLAN
+ * §5.2 reserved for exactly this door.
  *
  * THE PROPERTY THESE PINS PROTECT: the forms are DOORS, never SHORTCUTS.
  * Every action routes through the real service, so the rails the services
@@ -27,6 +30,7 @@ use Tests\TestCase;
 class EconomyWriteFormsTest extends TestCase
 {
     private const HANDLERS = [
+        'F-IND-019' => WorkApplication::class,
         'F-IND-022' => MarketplaceListingOrder::class,
         'F-IND-023' => FundsTransfer::class,
         'F-IND-024' => AssetRegistration::class,
@@ -37,7 +41,7 @@ class EconomyWriteFormsTest extends TestCase
         return file_get_contents((new ReflectionClass($class))->getFileName());
     }
 
-    public function test_all_three_forms_are_registered_and_dispatchable(): void
+    public function test_every_write_form_is_registered_and_dispatchable(): void
     {
         foreach (self::HANDLERS as $formId => $expected) {
             $this->assertSame(
@@ -104,6 +108,7 @@ class EconomyWriteFormsTest extends TestCase
             MarketplaceListingOrder::class => ['$this->market->list', '$this->market->order', '$this->market->settle'],
             FundsTransfer::class           => ['$this->accounts->transfer'],
             AssetRegistration::class       => ['$this->assets->register', '$this->assets->transfer'],
+            WorkApplication::class         => ['$this->board->apply'],
         ];
 
         foreach ($expected as $class => $calls) {
@@ -180,6 +185,47 @@ class EconomyWriteFormsTest extends TestCase
             'Only the seller accepts an order',
             $source,
             'Settlement must be the seller\'s act.'
+        );
+    }
+
+    /**
+     * APPLYING COMMITS NOBODY. The hire is the F-IND-014 chain, which only
+     * ACCEPTANCE files (LaborBoardService::accept, the applicant's own act
+     * through the pinned chain). The application form must be unable to
+     * reach any of that machinery — a form that could both apply and hire
+     * would let one signature stand for two consents.
+     */
+    public function test_the_application_form_cannot_reach_the_hire_chain(): void
+    {
+        $source = $this->sourceOf(WorkApplication::class);
+
+        // Needles are CODE constructs — the quoted form id as file() would
+        // take it, never the bare string, which the docblock lawfully uses
+        // to EXPLAIN the chain (the same string-vs-construct lesson as
+        // LedgerIntegrityTest's write scan).
+        foreach ([
+            "'F-IND-014'"             => 'the hire form is acceptance\'s act, never the application\'s',
+            'engine->file'            => 'the application handler must not file further forms',
+            "table('org_workers')"    => 'headcount moves only through the pinned chain',
+            "table('org_contracts')"  => 'a contract is two consents, not an application side-effect',
+        ] as $needle => $why) {
+            $this->assertStringNotContainsString(
+                $needle,
+                $source,
+                "F-IND-019 must not contain [{$needle}] — {$why}."
+            );
+        }
+    }
+
+    /** One application per account per posting — the duplicate is refused, on the record. */
+    public function test_a_duplicate_application_is_refused_by_the_service(): void
+    {
+        $source = file_get_contents(app_path('Services/Economy/LaborBoardService.php'));
+
+        $this->assertStringContainsString(
+            'already applied',
+            $source,
+            'LaborBoardService::apply must refuse a duplicate application rather than stack rows.'
         );
     }
 }

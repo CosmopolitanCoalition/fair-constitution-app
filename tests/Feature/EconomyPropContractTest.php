@@ -33,15 +33,20 @@ class EconomyPropContractTest extends TestCase
 
     private const LIVE_CONNECTION = 'economy_props_pg';
 
-    /** The published shape, key-for-key. Update the doc and this together. */
+    /**
+     * The published shape, key-for-key. Update the doc and this together.
+     * `surface` joined every page in Wave 2 — the SurfaceMeta record the
+     * shell, the Learn flyout and the footer citation all read.
+     */
     private const CONTRACT = [
-        '/economy'                => ['currency', 'supply', 'ledger', 'counts', 'stipend'],
+        '/economy'                => ['surface', 'currency', 'supply', 'ledger', 'counts', 'stipend'],
         // `assets` / `my_assets` arrived with the write path (F-IND-022/024):
         // a page cannot offer a thing without knowing what you hold.
-        '/economy/wallet'         => ['currency', 'account', 'transactions', 'receipts', 'assets'],
-        '/economy/market'         => ['currency', 'offers', 'work', 'assistance', 'my_assets'],
-        '/economy/treasury'       => ['currency', 'accounts', 'ledger', 'issuance', 'budgets', 'revenue', 'totals'],
-        '/economy/units'          => ['currency', 'levers', 'supply', 'issuance_rate_bps', 'inflation_target_bps'],
+        '/economy/wallet'         => ['surface', 'currency', 'account', 'transactions', 'receipts', 'assets'],
+        '/economy/market'         => ['surface', 'currency', 'offers', 'work', 'assistance', 'my_assets'],
+        '/economy/treasury'       => ['surface', 'currency', 'accounts', 'ledger', 'issuance', 'budgets', 'revenue', 'totals'],
+        '/economy/units'          => ['surface', 'currency', 'levers', 'supply', 'issuance_rate_bps', 'inflation_target_bps'],
+        '/economy/stipend'        => ['surface', 'currency', 'stipend', 'clock', 'k_anon_floor', 'examples'],
     ];
 
     private const ALWAYS_ARRAY = [
@@ -51,6 +56,7 @@ class EconomyPropContractTest extends TestCase
         '/economy/market'   => ['offers', 'work', 'assistance', 'my_assets'],
         '/economy/treasury' => ['accounts', 'ledger', 'issuance', 'budgets', 'revenue'],
         '/economy/units'    => ['levers'],
+        '/economy/stipend'  => ['examples'],
     ];
 
     private function actor(): ?User
@@ -171,6 +177,73 @@ class EconomyPropContractTest extends TestCase
                 '"user_id"',
                 (string) $json,
                 "{$url} must not ship a user_id — economy rows are account-scoped."
+            );
+        }
+    }
+
+    /**
+     * The work-posting page (per-posting URL, so it cannot sit in CONTRACT).
+     * Its thresholds must arrive RESOLVED — the page never computes or
+     * hardcodes 100/2000; those values legislate (Art. III §6 settings).
+     */
+    public function test_the_work_posting_surface_ships_its_published_props(): void
+    {
+        $user = $this->actor();
+
+        $postingId = DB::table('work_postings')->whereNull('deleted_at')->value('id');
+
+        if ($postingId === null) {
+            $this->markTestSkipped('No work postings on this box — institutions:demo-treasury seeds one.');
+        }
+
+        $props = $this->actingAs($user)->get("/economy/requests/{$postingId}")
+            ->assertOk()
+            ->viewData('page')['props'];
+
+        foreach (['surface', 'currency', 'posting', 'codetermination', 'can_apply', 'has_applied'] as $key) {
+            $this->assertArrayHasKey($key, $props, "request-detail must ship [{$key}].");
+        }
+
+        foreach (['id', 'title', 'terms', 'rate', 'status', 'org_name', 'applications', 'at'] as $key) {
+            $this->assertArrayHasKey($key, $props['posting'], "posting must carry [{$key}].");
+        }
+
+        foreach (['first_seat_at', 'parity_at', 'headcount'] as $key) {
+            $this->assertArrayHasKey($key, $props['codetermination'], "codetermination must carry [{$key}].");
+            $this->assertIsInt($props['codetermination'][$key], "codetermination.{$key} is a resolved integer.");
+        }
+
+        if ($props['posting']['rate'] !== null) {
+            $this->assertIsString($props['posting']['rate'], 'a rate is money, and money is a string');
+        }
+    }
+
+    /** Stipend-page money is strings, and the examples ride the real formula. */
+    public function test_the_stipend_surface_keeps_money_as_strings(): void
+    {
+        $user = $this->actor();
+
+        $props = $this->actingAs($user)->get('/economy/stipend')->assertOk()->viewData('page')['props'];
+
+        $this->assertIsString($props['stipend']['floor']);
+        $this->assertIsString($props['stipend']['cap']);
+
+        foreach ($props['stipend']['bumps'] as $class => $bump) {
+            $this->assertIsString($bump, "stipend.bumps.{$class} must be a string");
+        }
+
+        $this->assertIsInt($props['k_anon_floor']);
+
+        foreach ($props['examples'] as $example) {
+            foreach (['base', 'bump', 'amount'] as $key) {
+                $this->assertIsString($example[$key], "examples[].{$key} must be a string");
+            }
+
+            // The example is the formula, verbatim: amount = base + bump.
+            $this->assertSame(
+                0,
+                bccomp($example['amount'], bcadd($example['base'], $example['bump'], 6), 6),
+                'a worked example must be the live formula, not hand-arithmetic'
             );
         }
     }

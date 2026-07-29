@@ -1157,4 +1157,112 @@ return [
         'citation'  => 'A constitutional bump clears every applicable meter; a regressive bump can never pass · Art. VII',
     ],
 
+    /*
+    |----------------------------------------------------------------------
+    | Economy (Phases L+M — lane 13). Ids per K2_CONTENT_WAVE2.md's
+    | surface-id contract; lane 15's education corpus joins on these keys.
+    |----------------------------------------------------------------------
+    */
+
+    'economy/home' => [
+        'title'     => 'The economy',
+        'module'    => 'economy',
+        'nav'       => 'market',
+        'roles'     => ['R-01'],
+        'workflows' => [],
+        'forms'     => [],
+        'clocks'    => [],
+        'citation'  => 'Value is conserved on an append-only public ledger · Art. V §5',
+    ],
+
+    'economy/wallet' => [
+        'title'     => 'My wallet',
+        'module'    => 'economy',
+        'nav'       => 'wallet',
+        'roles'     => ['R-01'],
+        'workflows' => [],
+        'forms'     => [
+            ['id' => 'F-IND-023', 'availableTo' => ['R-01'], 'citation' => 'Art. I (economic freedom)'],
+            ['id' => 'F-IND-024', 'availableTo' => ['R-01'], 'citation' => 'Art. I (economic freedom)'],
+        ],
+        'clocks'    => [],
+        'citation'  => 'Your account, your acts — counterparties are accounts, never people · Art. I',
+    ],
+
+    'economy/marketplace' => [
+        'title'     => 'The open market',
+        'module'    => 'economy',
+        'nav'       => 'marketplace',
+        'roles'     => ['R-01'],
+        'workflows' => [],
+        'forms'     => [
+            ['id' => 'F-IND-022', 'availableTo' => ['R-01'], 'citation' => 'Art. III §5 (the Open Market)'],
+            ['id' => 'F-IND-019', 'availableTo' => ['R-01'], 'citation' => 'Art. I (freedom to contract)'],
+        ],
+        'clocks'    => [],
+        'citation'  => 'The Open Market — CGCs trade on identical terms to private enterprise · Art. III §5',
+    ],
+
+    'economy/listing-detail' => [
+        'title'     => 'Listing',
+        'module'    => 'economy',
+        'nav'       => 'marketplace',
+        'roles'     => ['R-01'],
+        'workflows' => [],
+        'forms'     => [
+            ['id' => 'F-IND-022', 'availableTo' => ['R-01'], 'citation' => 'Art. III §5 (the Open Market)'],
+        ],
+        'clocks'    => [],
+        'citation'  => 'Money and thing move together, or not at all · Art. III §5',
+    ],
+
+    'economy/request-detail' => [
+        'title'     => 'Work posting',
+        'module'    => 'economy',
+        'nav'       => 'marketplace',
+        'roles'     => ['R-01'],
+        'workflows' => [],
+        'forms'     => [
+            ['id' => 'F-IND-019', 'availableTo' => ['R-01'], 'citation' => 'Art. I (freedom to contract)'],
+            ['id' => 'F-IND-014', 'availableTo' => ['R-01'], 'citation' => 'Art. III §6 (filed on acceptance — the hire chain)'],
+        ],
+        'clocks'    => ['CLK-13', 'CLK-14'],
+        'citation'  => 'A hire is two consents; headcount earns the board seat · Art. III §6 · CLK-13/CLK-14',
+    ],
+
+    'economy/stipend' => [
+        'title'     => 'Civic stipend',
+        'module'    => 'economy',
+        'nav'       => 'stipend',
+        'roles'     => ['R-01'],
+        'workflows' => [],
+        // F-TRE-004 (the run itself) is system-filed by the sweep and not in
+        // the citizen catalog; the change path is the F-LEG-031 dual door.
+        'forms'     => [],
+        'clocks'    => [],
+        'citation'  => 'Same floor for everyone, by residency alone; the differential is capped · Art. I; Art. II §9 · [POLICY]',
+    ],
+
+    'economy/treasury' => [
+        'title'     => 'Public finance',
+        'module'    => 'economy',
+        'nav'       => 'treasury',
+        'roles'     => ['R-01'],
+        'workflows' => [],
+        'forms'     => [],
+        'clocks'    => [],
+        'citation'  => 'Public money in public view — every movement on the record · Art. V §4',
+    ],
+
+    'economy/units' => [
+        'title'     => 'Units & money',
+        'module'    => 'economy',
+        'nav'       => 'units',
+        'roles'     => ['R-01'],
+        'workflows' => [],
+        'forms'     => [],
+        'clocks'    => [],
+        'citation'  => 'Every monetary lever moves by act, dual-door · Art. II §9 · [POLICY]',
+    ],
+
 ];

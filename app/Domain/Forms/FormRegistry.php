@@ -68,6 +68,13 @@ class FormRegistry
         'F-IND-015' => ['name' => 'Advocate Registration',                      'roles' => ['R-03']],
         'F-IND-016' => ['name' => 'Constitutional Challenge Filing',            'roles' => ['R-03']],
         'F-IND-017' => ['name' => 'Civil/Criminal Case Filing',                 'roles' => ['R-03', 'R-21']],
+        // F-IND-019 — the labor board's citizen door (ECONOMY_ENGINE_PLAN
+        // §5.2, reserved there since M-2 shipped). Applying is the worker's
+        // own act on the market surface; the HIRE it can lead to is the
+        // separate F-IND-014 chain, which acceptance files. Minted 2026-07-29
+        // with the request-detail page (Wave 2 item 2) — the page needed a
+        // door and a bare POST→service would be a second write path.
+        'F-IND-019' => ['name' => 'Work Application',                           'roles' => ['R-01']],
         // Phase M — the economy's write path. Until these existed the
         // economy could be READ and not acted in: every service was built,
         // tested and driven end to end by institutions:demo-treasury, with
@@ -367,6 +374,7 @@ class FormRegistry
         // VERDICT is NOT a form — it is a CaseService transition.)
         'F-IND-015' => Handlers\AdvocateRegistration::class,
         'F-IND-017' => Handlers\CaseFiling::class,
+        'F-IND-019' => Handlers\WorkApplication::class,
         'F-IND-022' => Handlers\MarketplaceListingOrder::class,
         'F-IND-023' => Handlers\FundsTransfer::class,
         'F-IND-024' => Handlers\AssetRegistration::class,
