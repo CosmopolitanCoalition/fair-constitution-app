@@ -32,7 +32,8 @@ export const PLAYER_NAV = [
     { id: 'my-record', label: 'My profile', icon: 'user', href: '/civic/record', contract: 'civic/my-civic-life.html' },
     { id: 'journeys', label: 'Journeys', icon: 'list-checks', href: '/journeys', contract: 'index.html#journeys-h' },
     { id: 'learn', label: 'Learn & help', icon: 'graduation-cap', href: null, contract: 'learn/learn-home.html', phase: 7 },
-    /* 'tour' is special-cased by the menu: it enters tour mode at stop 1. */
+    /* 'tour' is special-cased by the menu: the sentinel 'tour:start' renders a
+       TOGGLE that arms the tour MODE in place (A2) — it does not navigate. */
     { id: 'tour', label: 'Guided tour', icon: 'map', href: 'tour:start', contract: 'tour.html', phase: 1 },
 ];
 

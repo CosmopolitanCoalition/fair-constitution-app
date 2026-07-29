@@ -1,93 +1,120 @@
 /* ============================================================================
    CGA — composables/useTour.js  (Phase 1, MASTER_PLAN)
 
-   Tour-as-a-MODE (operator-settled 2026-07-02, ported from mockups/v3
-   shell-v2.js): the guided tour is a session state, not a set of pages.
+   Tour-as-a-MODE (operator-settled 2026-07-02; A2 ruling 2026-07-29): the
+   guided tour is a session state, not a set of pages, and EVERY page is a
+   valid stop. Two independent facts drive the chrome:
 
-     • Entering any URL with ?step=N arms the mode for the session
-       (sessionStorage 'cga:tour-step') and pins the position to stop N.
-     • Navigating anywhere WITHOUT ?step keeps the mode on: if the new page
-       IS a registered stop, the tour follows you there (your position moves);
-       if it isn't a stop, you keep your place and the bar stays.
+     • armed  — is the tour MODE on? (session flag 'cga:tour-on')
+     • index  — is the CURRENT url a registered stop, and which one? (-1 = no)
+
+   Arming is DECOUPLED from position, which is what makes "the current page is
+   always a valid stop" true:
+
+     • The nav "Guided tour" control TOGGLES the mode ARMED IN PLACE — it does
+       not navigate. arm() flips the flag on the page you are already on; if
+       that page is a registered stop the bar names it, if it isn't the bar
+       still rides (you are exploring off the marked trail, Back/Next return
+       you to it). Toggle again to exit.
+     • Entering any URL with ?step=N arms the mode AND pins the position to
+       stop N (shareable/bookmarkable deep-link; Back/Next carry ?step=N).
+     • Navigating while armed WITHOUT ?step keeps the mode on: a registered
+       stop moves your position there; a non-stop keeps your last position as
+       the Back/Next anchor and shows the page's own title.
      • Exit clears the mode and strips ?step from the URL.
 
-   Stops come from registry/surfaces.js TOUR — the single machine source the
-   menu and coverage also read. Back/Next are plain links carrying ?step=N so
-   a tour position is always shareable/bookmarkable.
+   All decisions live in the pure reducer composables/tourMode.js (pinned by
+   tests/js/tourMode.test.mjs). This file is only the reactive + sessionStorage
+   shell. Stops come from registry/surfaces.js TOUR — the single machine source
+   the menu and coverage also read.
    ============================================================================ */
 import { computed, ref } from 'vue';
 import { router, usePage } from '@inertiajs/vue3';
 import { TOUR } from '@/registry/surfaces.js';
+import { resolveTour, tourHrefFor } from '@/composables/tourMode.js';
 
-const KEY = 'cga:tour-step';
+const KEY = 'cga:tour-step'; /* 1-based anchor — the last registered stop */
+const FLAG = 'cga:tour-on'; /* '1' while the mode is armed (position-independent) */
 
 /* Module-level so every consumer (bar, menu, pages) shares one mode state. */
-const index = ref(-1);
+const armed = ref(false);
+const index = ref(-1); /* the current url's registered-stop index, or -1 */
+const anchor = ref(0); /* last registered stop reached — the Back/Next base off-trail */
 
-function ssGet() {
-    try { return parseInt(sessionStorage.getItem(KEY) || '', 10); } catch { return NaN; }
+function ssSet(k, v) {
+    try { sessionStorage.setItem(k, String(v)); } catch { /* private mode */ }
 }
-function ssSet(oneBased) {
-    try { sessionStorage.setItem(KEY, String(oneBased)); } catch { /* private mode */ }
-}
-function ssClear() {
-    try { sessionStorage.removeItem(KEY); } catch { /* private mode */ }
-}
-
-function stopMatchesUrl(stop, url) {
-    const [path, query = ''] = String(url).split('?');
-    const [stopPath, stopQuery = ''] = stop.href.split('?');
-    if (path !== stopPath) return false;
-    const want = new URLSearchParams(stopQuery);
-    const have = new URLSearchParams(query);
-    for (const [k, v] of want) if (have.get(k) !== v) return false;
-    return true;
+function ssDel(k) {
+    try { sessionStorage.removeItem(k); } catch { /* private mode */ }
 }
 
-/* Resolve the current tour index for a given Inertia URL (path + query). */
-function resolveIndex(url) {
-    const query = String(url).split('?')[1] || '';
-    const step = new URLSearchParams(query).get('step');
-    if (step) {
-        const i = parseInt(step, 10) - 1;
-        if (i >= 0 && i < TOUR.length) { ssSet(i + 1); return i; }
-        return -1;
-    }
-    const stored = ssGet();
-    if (!(stored >= 1 && stored <= TOUR.length)) return -1;
-    /* wandered onto another screen: if it's a stop, the tour follows you */
-    for (let k = 0; k < TOUR.length; k++) {
-        if (stopMatchesUrl(TOUR[k], url)) { ssSet(k + 1); return k; }
-    }
-    return stored - 1; /* not a stop — keep your place */
+/* Hydrate module state from the session on first load. */
+armed.value = (() => { try { return sessionStorage.getItem(FLAG) === '1'; } catch { return false; } })();
+anchor.value = (() => {
+    let a = NaN;
+    try { a = parseInt(sessionStorage.getItem(KEY) || '', 10); } catch { /* private mode */ }
+    return a >= 1 && a <= TOUR.length ? a - 1 : 0;
+})();
+
+/* Single writer for the module state: run the pure reducer, mirror to the
+   session so the mode + anchor survive navigation and reload. */
+function apply(url) {
+    const next = resolveTour({ armed: armed.value, anchor: anchor.value }, url, TOUR);
+    armed.value = next.armed;
+    index.value = next.index;
+    anchor.value = next.anchor;
+    if (next.armed) { ssSet(FLAG, '1'); ssSet(KEY, next.anchor + 1); }
+    else { ssSet(FLAG, '0'); ssDel(KEY); }
+}
+
+/* Bind the navigate listener ONCE at module scope, reading the url from the
+   event payload (no usePage needed, and no per-consumer listener pile-up). */
+let navBound = false;
+function bindNav() {
+    if (navBound) return;
+    navBound = true;
+    router.on('navigate', (event) => apply(event?.detail?.page?.url ?? '/'));
 }
 
 export function tourHref(i) {
-    const stop = TOUR[i];
-    if (!stop) return '/';
-    return stop.href + (stop.href.includes('?') ? '&' : '?') + 'step=' + (i + 1);
+    return tourHrefFor(TOUR, i);
 }
 
 export function useTour() {
     const page = usePage();
 
-    const sync = () => { index.value = resolveIndex(page.url ?? '/'); };
-    sync();
-    /* Inertia keeps one page object alive across visits; re-resolve on every
-       successful navigation (fires for the initial visit too in SSR-less apps). */
-    router.on('navigate', sync);
+    bindNav();
+    /* Inertia keeps one page object alive across visits; resolve now so the
+       initial (pre-navigate) paint is correct too. */
+    apply(page.url ?? '/');
 
-    const active = computed(() => index.value >= 0);
+    const active = computed(() => armed.value);
+    /* The Back/Next base: the real position on a stop, else the last anchor. */
+    const effective = computed(() => (index.value >= 0 ? index.value : anchor.value));
+    const onPath = computed(() => index.value >= 0);
     const stop = computed(() => (index.value >= 0 ? TOUR[index.value] : null));
-    const stepNumber = computed(() => index.value + 1);
+    /* The current page's own name, for the bar when you are off the trail. */
+    const currentTitle = computed(() => page.props?.surface?.title ?? null);
+    const stepNumber = computed(() => effective.value + 1);
     const total = TOUR.length;
-    const progressPct = computed(() => (active.value ? Math.round(stepNumber.value / total * 100) : 0));
-    const backHref = computed(() => (index.value > 0 ? tourHref(index.value - 1) : null));
-    const nextHref = computed(() => (index.value >= 0 && index.value < total - 1 ? tourHref(index.value + 1) : null));
+    const progressPct = computed(() => (armed.value ? Math.round(stepNumber.value / total * 100) : 0));
+    const backHref = computed(() => (effective.value > 0 ? tourHref(effective.value - 1) : null));
+    const nextHref = computed(() => (effective.value < total - 1 ? tourHref(effective.value + 1) : null));
+
+    /* Arm the mode IN PLACE — no navigation. The page you are on becomes the
+       position if it is a registered stop, otherwise you ride off-trail. */
+    function arm() {
+        armed.value = true; /* seed the reducer's prev.armed so apply() commits it */
+        apply(page.url ?? '/');
+    }
 
     function exit() {
-        ssClear();
-        index.value = -1;
+        /* Force-disarm directly — NOT via apply(): the current url may still
+           carry ?step=N, which the reducer always treats as an arming
+           deep-link. Any subsequent navigate (incl. the ?step strip below)
+           re-runs apply() with armed already false, so the mode stays off. */
+        armed.value = false; index.value = -1;
+        ssSet(FLAG, '0'); ssDel(KEY);
         /* strip ?step from the current URL without a page reload */
         const [path, query = ''] = String(page.url ?? '/').split('?');
         const params = new URLSearchParams(query);
@@ -98,5 +125,13 @@ export function useTour() {
         }
     }
 
-    return { active, stop, stepNumber, total, progressPct, backHref, nextHref, exit, tourHref };
+    function toggle() {
+        if (armed.value) exit();
+        else arm();
+    }
+
+    return {
+        active, onPath, stop, currentTitle, stepNumber, total, progressPct,
+        backHref, nextHref, arm, exit, toggle, tourHref,
+    };
 }

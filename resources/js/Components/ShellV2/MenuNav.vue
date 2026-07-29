@@ -7,13 +7,16 @@
  *
  * Everything renders from registry/surfaces.js — THE single machine source.
  *   href === null            → "Planned · Phase N" (disabled, never a dead link)
- *   href === 'tour:start'    → enters tour mode at stop 1
+ *   href === 'tour:start'    → the tour TOGGLE — arms the mode IN PLACE on the
+ *                              current page (A2 ruling); no navigation, toggle
+ *                              again to exit. Every page is a valid stop.
  *   item.roles ∌ user roles  → disabled with a "Requires R-xx" hint
  */
 import { computed } from 'vue';
 import { Link } from '@inertiajs/vue3';
 import Icon from '@/Components/Ui/Icon.vue';
-import { PLAYER_NAV, SITEMAP, tourStartHref } from '@/registry/surfaces.js';
+import { PLAYER_NAV, SITEMAP } from '@/registry/surfaces.js';
+import { useTour } from '@/composables/useTour.js';
 
 const props = defineProps({
     roles: { type: Array, default: () => ['R-00'] },
@@ -25,6 +28,9 @@ const props = defineProps({
 
 const roleSet = computed(() => new Set(props.roles));
 
+/* The tour is a MODE toggled in place (A2) — the menu owns its control. */
+const { active: tourActive, toggle: toggleTour } = useTour();
+
 const sitemap = computed(() =>
     SITEMAP.map((section) => ({
         ...section,
@@ -32,8 +38,8 @@ const sitemap = computed(() =>
     })).filter((section) => section.items.length),
 );
 
-function hrefFor(item) {
-    return item.href === 'tour:start' ? tourStartHref() : item.href;
+function isTour(item) {
+    return item.href === 'tour:start';
 }
 function allowed(item) {
     if (!item.roles) return true;
@@ -50,10 +56,20 @@ function prereq(item) {
         <div class="sidebar-section">
             <span class="sidebar-title eyebrow">Go</span>
             <template v-for="item in PLAYER_NAV" :key="item.id">
+                <!-- the tour is a MODE toggled in place — a button, never a link -->
+                <button
+                    v-if="isTour(item)"
+                    type="button"
+                    class="sidebar-link sidebar-link--btn"
+                    :aria-pressed="tourActive"
+                    @click="toggleTour"
+                >
+                    <Icon :name="item.icon" size="sm" /> {{ tourActive ? 'End guided tour' : item.label }}
+                </button>
                 <Link
-                    v-if="item.href"
+                    v-else-if="item.href"
                     class="sidebar-link"
-                    :href="hrefFor(item)"
+                    :href="item.href"
                     :aria-current="currentNavId === item.id ? 'page' : undefined"
                 >
                     <Icon :name="item.icon" size="sm" /> {{ item.label }}
