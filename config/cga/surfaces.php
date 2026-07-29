@@ -1000,6 +1000,31 @@ return [
         'citation'  => 'The seed list for the post-game redraft — every "as implemented" marker resolves here',
     ],
 
+    // Support lifecycle (ruling §10 item 7). Module `support` matches the
+    // LEARN_BY_MODULE fallback; the intake at /support/report keeps its own
+    // title-only PageScaffold — these two are the read/triage surfaces.
+    'support/tickets' => [
+        'title'     => 'Support',
+        'module'    => 'support',
+        'nav'       => 'support',
+        'roles'     => [],
+        'workflows' => [],
+        'forms'     => [],
+        'clocks'    => [],
+        'citation'  => 'Reports route, they never remove — the routed six · Art. I',
+    ],
+
+    'support/ticket' => [
+        'title'     => 'Support report',
+        'module'    => 'support',
+        'nav'       => 'support',
+        'roles'     => [],
+        'workflows' => [],
+        'forms'     => [],
+        'clocks'    => [],
+        'citation'  => 'Reports route, they never remove — the routed six · Art. I',
+    ],
+
     /*
     |----------------------------------------------------------------------
     | mockups-v3-wiring Phase 3c — the journeys engine

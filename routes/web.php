@@ -1064,6 +1064,15 @@ Route::middleware('auth')->group(function () {
         ->name('support.report')->withoutMiddleware('auth'); // public read
     Route::post('/support/report', [\App\Http\Controllers\Support\SupportReportController::class, 'store'])
         ->name('support.report.store');
+    // Lifecycle (ruling §10 item 7) — the read/triage door. Auth-gated; the
+    // controller further scopes each view to the report's own reporter or an
+    // operator (triage is operator-only). No withoutMiddleware here.
+    Route::get('/support/tickets', [\App\Http\Controllers\Support\SupportReportController::class, 'index'])
+        ->name('support.tickets');
+    Route::get('/support/ticket/{ref}', [\App\Http\Controllers\Support\SupportReportController::class, 'show'])
+        ->name('support.ticket');
+    Route::post('/support/ticket/{ref}', [\App\Http\Controllers\Support\SupportReportController::class, 'update'])
+        ->name('support.ticket.update');
 });
 
 // WI-4 — dev tooling: impersonation + ping simulator. Registered ONLY in

@@ -154,6 +154,10 @@ class SupportReportController extends Controller
 
         $report = SupportReport::query()->where('public_id', $ref)->firstOrFail();
 
+        // "— none —" posts an empty string; normalise to null so nullable+Rule::in
+        // passes without depending on ConvertEmptyStringsToNull being registered.
+        $request->merge(['severity' => $request->filled('severity') ? $request->input('severity') : null]);
+
         $data = $request->validate([
             'status' => ['sometimes', 'required', Rule::in(SupportReport::STATUSES)],
             'severity' => ['sometimes', 'nullable', Rule::in(SupportReport::SEVERITIES)],

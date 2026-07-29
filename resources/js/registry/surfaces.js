@@ -133,6 +133,7 @@ export const SITEMAP = [
     { key: 'help', title: 'Learn & help', items: [
         { id: 'learn', label: 'Learn & lessons', icon: 'graduation-cap', href: null, contract: 'learn/learn-home.html', phase: 7 },
         { id: 'support-report', label: 'Report an issue', icon: 'flag', href: '/support/report', contract: 'support/report.html' },
+        { id: 'support-tickets', label: 'Your reports', icon: 'list-checks', href: '/support/tickets', contract: 'support/tickets.html' },
         { id: 'accessibility', label: 'Accessibility', icon: 'shield', href: '/system/accessibility', contract: 'shared/accessibility.html' },
         { id: 'constitutional-questions', label: 'Constitutional questions', icon: 'file-text', href: '/system/constitutional-questions', contract: 'shared/constitutional-questions.html' },
     ] },
