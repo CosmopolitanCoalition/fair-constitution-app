@@ -355,7 +355,7 @@ which the "lawful at any size" fixture never sets, so the 2026-07-26 "lawful at 
 the R-A "blocked pending districting" rulings stay cleanly separated by design. R_A_OBSERVANCE
 records both. Lane 4 HOLDS for the Wave 4 Atlas build order.
 
-LANE 1 DEV-COMPLETE (all buildable-on-dev work landed; 27 Type B pins green): engine 00e959e +
+LANE 1 WAVE 3 BUILD CLOSED (four-way confirmed; dev-side complete; 27 Type B pins green): engine 00e959e +
 B3 cap 4214721 + Niue proven + B6/B7 pins 56a70dc (never-cross-parent + versioning, 117 ins) +
 MAPPER UI DOOR 67e1aaa (Step-3 "Group Type B chambers" — the CLI's parity twin; UI↔CLI parity
 row closed). ONLY REMAINING lane-1 item = the mass pass over the real ~9,708 flagged chambers,
