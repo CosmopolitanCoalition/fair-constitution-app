@@ -155,8 +155,7 @@ const machineCurrent = computed(() => {
                     The only permissible ground for rejection is the absence of a residency
                     association in the selected jurisdiction — anything else would violate
                     Art. I. If you believe this is wrong, correct your residency declaration or
-                    challenge the decision in court
-                    <span class="planned-flag">Planned · Phase E</span>.
+                    <a href="/judiciary/docket">challenge the decision in court</a>.
                     <CitationLine :text="`Recorded ground: ${myCandidacy.rejection_reason ?? 'no_residency_association'} · Art. I`" />
                 </Banner>
 

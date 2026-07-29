@@ -5,7 +5,7 @@
  *
  * One person, every role, one tabbed profile: Overview · Record · Candidacy
  * (only while standing) · Representatives · Achievements (designed empty
- * state) · Wallet (planned) · Settings. A candidacy is never a separate
+ * state) · Wallet (the door to the live /economy/wallet) · Settings. A candidacy is never a separate
  * identity and a record is never a separate page — they are tabs of this
  * same profile.
  *
@@ -33,7 +33,6 @@ import Icon from '@/Components/Ui/Icon.vue';
 import { achievementTitle } from '@/lib/achievementTitle.js';
 import { useI18n } from 'vue-i18n';
 import LogRow from '@/Components/Ui/LogRow.vue';
-import PlannedBanner from '@/Components/Ui/PlannedBanner.vue';
 import Stat from '@/Components/Ui/Stat.vue';
 import StatusBadge from '@/Components/Ui/StatusBadge.vue';
 
@@ -651,12 +650,21 @@ const associationRows = computed(() =>
             aria-labelledby="ptab-wallet"
             class="stack"
         >
-            <PlannedBanner extra="The wallet arrives with the civic economy (Phase 8). Nothing here is live yet, and no real money is anywhere." />
+            <!-- The economy ledger went LIVE 2026-07-26 (F-IND-022/023/024 write
+                 path) — the Planned banner this tab carried was stale copy about
+                 a live capability. In-profile wallet content is the civic
+                 conformance punch (gap matrix, M); this tab is the door. -->
             <Card as="section">
                 <div class="cluster" style="justify-content: space-between; align-items: flex-start">
                     <h3 style="margin: 0"><Icon name="lock" size="sm" /> Wallet</h3>
-                    <StatusBadge tone="warning" icon="clock">Planned · Phase 8</StatusBadge>
+                    <StatusBadge tone="success" icon="check">Live</StatusBadge>
                 </div>
+                <p style="margin-block-start: var(--space-3)">
+                    Your balance, transfers, and holdings live on the wallet page.
+                </p>
+                <Btn as="a" href="/economy/wallet" variant="primary" size="sm">
+                    Open my wallet
+                </Btn>
                 <p class="never-federated" style="margin-block-start: var(--space-3)">
                     <Icon name="lock" size="sm" />
                     <span>Private — like a ballot, only you can read it.</span>

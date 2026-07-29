@@ -31,7 +31,7 @@ defineProps({
 const HARDENED_RULES = [
     'Proportional voting with the Droop quota — never first-past-the-post or plurality',
     'Quorum & supermajority counted against all serving members',
-    '5–9 seats with mandatory subdivision above 9',
+    'Districts of 5–9 seats — a chamber above 9 subdivides into districts; the chamber total itself has no ceiling',
     'Ballot secrecy — identity cryptographically separated',
     'Voting & candidacy: residency only, no other requirements',
     'Common-good-corporation intellectual property perpetually public domain',
