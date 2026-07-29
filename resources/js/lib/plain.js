@@ -25,7 +25,12 @@ export function plainCodes(s) {
 
 /** Humanize a raw entity-state token for player display: an explicit map
  *  wins; otherwise strip machine punctuation ([Brackets], pipes,
- *  hyphen-chains). Verbatim port of shell-v2.js plainState. */
+ *  hyphen-chains). Port of shell-v2.js plainState, extended one step past
+ *  verbatim: the app's PHP-owned state machines speak snake_case
+ *  ("ping_monitoring", "threshold_met") — a token grammar the mockup
+ *  fixtures never used — so underscores break to spaces here too. Display
+ *  only; never feed the result back to a machine or compare it to a raw
+ *  token. */
 export function plainState(s, map) {
     s = String(s == null ? '' : s).trim();
     if (map && Object.prototype.hasOwnProperty.call(map, s)) return map[s];
@@ -33,6 +38,7 @@ export function plainState(s, map) {
         .replace(/[[\]]/g, '')
         .replace(/\s*\|\s*/g, ' / ')
         .replace(/(\w)-(\w)/g, '$1 $2')
+        .replace(/(\w)_(\w)/g, '$1 $2')
         .replace(/\s{2,}/g, ' ')
         .trim();
 }
