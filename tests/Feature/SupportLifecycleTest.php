@@ -45,22 +45,53 @@ class SupportLifecycleTest extends TestCase
         });
     }
 
+    /**
+     * OWN-THE-WORLD: this used to assert totalCount === 2 after creating two
+     * reports, which only holds on an empty database. An operator sees EVERY
+     * report by definition, so on any seeded box the assertion counts the world's
+     * reports too and fails (it saw 3 against a box carrying one pre-existing
+     * report). The fixture never owned the world; the test only assumed it did.
+     *
+     * Now it measures the CLAIM instead of a coincidence: the operator's total
+     * rises by exactly the two reports created, both of them appear in the list,
+     * and — the part that actually distinguishes an operator — the operator sees
+     * a report filed by someone else, which that someone else's own view of the
+     * same page does not show them.
+     */
     public function test_an_operator_sees_every_report(): void
     {
         $this->onLivePg(function () {
             $op = $this->aUser('Operator', operator: true);
             $a = $this->aUser('Reporter A');
-            $this->aReport($a, 'One');
-            $this->aReport($this->aUser('Reporter B'), 'Two');
+            $b = $this->aUser('Reporter B');
 
-            $this->actingAs($op)
-                ->get('/support/tickets')
-                ->assertOk()
-                ->assertInertia(fn (Assert $page) => $page
-                    ->component('Support/Tickets')
-                    ->where('isOperator', true)
-                    ->where('totalCount', 2)
-                    ->has('reports', 2));
+            $before = $this->actingAs($op)->get('/support/tickets')
+                ->assertOk()->viewData('page')['props']['totalCount'];
+
+            $one = $this->aReport($a, 'One');
+            $two = $this->aReport($b, 'Two');
+
+            $props = $this->actingAs($op)->get('/support/tickets')
+                ->assertOk()->viewData('page')['props'];
+
+            $this->assertTrue($props['isOperator'], 'the operator flag must be set for an operator');
+            $this->assertSame($before + 2, $props['totalCount'],
+                'an operator total must rise by exactly the reports filed');
+
+            // The list is ordered latest-first, so both new rows are on page one.
+            $visible = array_column($props['reports'], 'public_id');
+            $this->assertContains($one->public_id, $visible);
+            $this->assertContains($two->public_id, $visible);
+
+            // The operator sees B's report; B's own view of the same page does not
+            // show them A's. That contrast is what "sees every report" means.
+            $bProps = $this->actingAs($b)->get('/support/tickets')
+                ->assertOk()->viewData('page')['props'];
+
+            $this->assertFalse($bProps['isOperator']);
+            $this->assertSame([$two->public_id], array_column($bProps['reports'], 'public_id'),
+                'a reporter sees only their own report, whatever else exists');
+            $this->assertSame(1, $bProps['totalCount']);
         });
     }
 

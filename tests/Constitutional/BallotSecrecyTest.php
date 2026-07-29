@@ -185,6 +185,25 @@ class BallotSecrecyTest extends TestCase
      * Design §B.5.1: BallotBox is the ONLY writer of the secrecy tables.
      * Greps app/ for any other code unit that creates/inserts into
      * `ballots` or `ballot_envelopes`.
+     *
+     * WHAT THIS DOES AND DOES NOT FORBID — measured, not assumed (2026-07-29).
+     * It bans two things: model-level WRITES, and RAW query-builder access in
+     * any spelling (`DB::table(...)` and `DB::query()->from(...)` are the same
+     * bypass; only the first used to be caught).
+     *
+     * It deliberately does NOT ban Eloquent READS outside BallotBox, because
+     * reads are distributed BY DESIGN and eight-plus legitimate call sites depend
+     * on it: TabulationRecorder and PublishBallotHashesJob (the count and
+     * publication pipeline), BallotController (a voter's own receipt and
+     * double-vote state), Domain/Forms/Handlers/BallotSubmission (the has-voted
+     * check), ElectionsReceiptCheckCommand, ElectionsDemoCommand, and
+     * ElectionRace's hasMany relations. Widening the patterns to "any access"
+     * would turn all of those red, so it is NOT the rail — the rail is
+     * single-WRITER plus no-raw-access.
+     *
+     * A read that needs to be centralised for a secrecy reason should be moved
+     * into BallotBox on that argument (see participationCountFor), not because
+     * this grep happened to catch it.
      */
     public function test_ballot_box_is_the_only_writer_of_the_secrecy_tables(): void
     {
@@ -205,6 +224,12 @@ class BallotSecrecyTest extends TestCase
             'table("ballots")',
             "table('ballot_envelopes')",
             'table("ballot_envelopes")',
+            // `DB::query()->from('ballots')` is the same raw bypass as
+            // `DB::table('ballots')` — the pin caught only one of the two spellings.
+            "from('ballots')",
+            'from("ballots")',
+            "from('ballot_envelopes')",
+            'from("ballot_envelopes")',
             '->ballots()->create',
             '->ballots()->insert',
             '->envelopes()->create',
