@@ -979,14 +979,24 @@ if (app()->environment('local') && config('cga.impersonation', true)) {
         // ── Playtest time controls (P1, P2) ──────────────────────────────
         // A SECOND gate on top of DevToolsEnabled: impersonation READS the
         // world from someone else's seat, these WRITE constitutional deadlines
-        // and fire real acts. DevTimeControlsEnabled adds the cga.dev_time key,
-        // sandbox mode, and an outright refusal on any federated or peered node
-        // — a node other nodes trust must never be able to time-travel.
+        // and fire real acts. DevTimeControlsEnabled derives from the founding
+        // choice (RULED 2026-07-28 §10 item 4: a Demo-founded world gets the
+        // clocks, no env key) and refuses when connected to any NON-demo node
+        // — a node real nodes trust must never be able to time-travel; a mesh
+        // made only of declared demo instances may.
         Route::middleware([DevTimeControlsEnabled::class])->prefix('clock')->name('clock.')->group(function () {
             // Dry run by default; ?apply=1 is the deliberate second step.
             Route::post('/advance', [\App\Http\Controllers\Dev\DevClockController::class, 'advance'])->name('advance');
             Route::post('/fire/{timer}', [\App\Http\Controllers\Dev\DevClockController::class, 'fire'])->name('fire');
         });
+        // The Demo flyout's one state read (D2/D3): may the playtest controls
+        // run (the refusal sentence VERBATIM when not — the server is the
+        // truth, the UI never second-guesses it), the soonest armed timers,
+        // and the open chamber votes a bloc cast could ballot. Deliberately
+        // OUTSIDE DevTimeControlsEnabled: this route only READS, and it must
+        // answer precisely when the controls refuse or the UI could never
+        // show why. The lists are withheld until the gate opens.
+        Route::get('/playtest/state', \App\Http\Controllers\Dev\PlaytestStateController::class)->name('playtest.state');
         // Dev residency bypass: declare → simulated pings → verify, all
         // through the real engine, in one request (dev-only relocation).
         Route::post('/residency/grant', [ResidencyGrantController::class, 'grant'])->name('residency.grant');
@@ -1018,10 +1028,10 @@ if (app()->environment('local') && config('cga.impersonation', true)) {
     // Walking "a bill becomes law" by hand is 58 persona switches; this gives
     // that journey a door. It files ballots as real seated members through the
     // real engine and NEVER touches a tally or an outcome — if a vote fails,
-    // it fails. Its own gate (DevTimeControlsEnabled) adds `cga.dev_time` on
-    // top of the dev toolbox gate and refuses outright on any federated or
-    // peered node, because Full Faith & Credit means a peer takes this node's
-    // records on trust rather than re-deriving them.
+    // it fails. Its own gate (DevTimeControlsEnabled) rides the founding
+    // choice (RULED 2026-07-28 §10 item 4) and refuses when connected to any
+    // NON-demo node, because Full Faith & Credit means a peer takes this
+    // node's records on trust rather than re-deriving them.
     Route::middleware([DevTimeControlsEnabled::class, 'auth'])->prefix('dev')->name('dev.')->group(function () {
         Route::post('/chamber/cast', \App\Http\Controllers\Dev\ChamberCastController::class)->name('chamber.cast');
     });

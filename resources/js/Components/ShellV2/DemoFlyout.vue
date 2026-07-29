@@ -30,6 +30,7 @@ import { computed, ref } from 'vue';
 import { useI18n } from 'vue-i18n';
 import { LOCALES } from '@/i18n/index.js';
 import DevPersonaSwitcher from '@/Components/Shell/DevPersonaSwitcher.vue';
+import DevPlaytestPanels from '@/Components/ShellV2/DevPlaytestPanels.vue';
 
 const props = defineProps({
     /** { name } of the impersonated user, or null. */
@@ -89,6 +90,9 @@ function onPseudoToggle(event) {
              the chamber-cast console, assume-a-resident-of-a-place, scenario
              presets (V3_SYNTHESIS_PLAN §3 D1–D7). Keep each occupant a
              .dev-control row (or a block that opens with one). -->
+        <!-- lane 4 (D1+D2+D3): one wrapper, one state read; D4/D5 join it
+             behind their design notes. -->
+        <DevPlaytestPanels />
 
         <span class="demo-sep" aria-hidden="true">·</span>
         <label class="dev-control">

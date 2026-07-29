@@ -14,6 +14,7 @@ import AppShellV2 from '@/Layouts/AppShellV2.vue';
 import PageScaffold from '@/Components/Surface/PageScaffold.vue';
 import Card from '@/Components/Ui/Card.vue';
 import DataTable from '@/Components/Ui/DataTable.vue';
+import DevClockControls from '@/Components/ShellV2/DevClockControls.vue';
 import Stat from '@/Components/Ui/Stat.vue';
 import StatusBadge from '@/Components/Ui/StatusBadge.vue';
 
@@ -34,6 +35,15 @@ const props = defineProps({
      */
     dueNow: { type: Object, default: () => ({}) },
     stats: { type: Object, default: () => ({ total: 0, amendable: 0, hardened: 0 }) },
+    /**
+     * P3 (DEV_TIME_AND_ROLE_CONTROLS.md): non-null ONLY when the playtest
+     * gate allows time controls on this world (DevTimeControlsEnabled said
+     * yes server-side). The controller sent this prop for two days while
+     * nothing rendered it — the exact "server sends it, the screen does not
+     * show it" defect the fleet catalogued. Now it gates the advance panel
+     * below; the page stays read-only for everyone else.
+     */
+    playtest: { type: Object, default: null },
 });
 
 /*
@@ -136,6 +146,20 @@ const columns = [
             <Stat :value="stats.amendable" label="amendable via settings" />
             <Stat :value="stats.hardened" label="hardened or structural" />
         </div>
+
+        <!-- ============================= playtest time controls (P2+P3) ==
+             Rendered ONLY when the server said the gate allows (sandbox
+             world, dev toolbox on, no non-demo peer). Everyone else sees
+             the read-only registry and nothing more. The component shows
+             the dry run BEFORE apply, always, and renders the gate's
+             refusal sentence verbatim if the controls shut mid-session. -->
+        <Card v-if="playtest" as="section" title="Advance the world (playtest control)">
+            <p class="cc-small">
+                Pulls every registered deadline closer instead of touching the wall clock —
+                audit-marked as a dev action, dry run rendered before anything moves.
+            </p>
+            <DevClockControls />
+        </Card>
 
         <!-- ==================================== the four families ======== -->
         <Card v-for="fam in families" :key="fam.name" as="section">
