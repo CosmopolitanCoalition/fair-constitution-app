@@ -346,6 +346,13 @@ invited check ("check me on it") found: the engine already seats islands via the
 sound iff both clips hold; antimeridian guarding is real and already precedented; and
 hull-CONTACT adjacency for GROUPING reduces to a buffered proximity graph (hulls of separated
 islands never touch — the buffer distance d becomes a free parameter controlling everything).
+**GIT-OBSERVED landings (during the ledger rename, four-way reports may still be inbound):
+LANE 4 R-A UN-FLAG PIN 7d14649 (ElectionStageTest 99 ins — the sim schedules the Type B race
+the instant lane 1's mapper clears the flag; pinned against Niue's TRUE path, not a synthetic
+flip — lane 4's held item is DONE). LANE 1 MAPPER UI DOOR 67e1aaa (Step-3 "Group Type B
+chambers" — the CLI's parity twin; UI↔CLI parity row closed). LANE 2 migration reversibility
+proof 2ad6262 (down/up transactional, 84 ins). All three hash-verified.**
+
 **LANE 3 CHECKPOINT (6 commits, all verified; floor OPERABLE via 3c107cf — raise-hand →
 FIFO/named recognition → clocks reset → yield, chair-gated, ephemeral, guest-bounced 7 green):
 exit-test data RULED option A at the desk (lane seats a minimal committee as verification
