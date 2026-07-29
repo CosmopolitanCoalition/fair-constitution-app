@@ -1,0 +1,752 @@
+{
+ "screens": [
+  {
+   "area": "Economy + Organizations",
+   "changes": [
+    {
+     "file": "economy/exchange.html",
+     "title": "The exchange — the trading floor",
+     "prevBucket": "absent",
+     "nowBucket": "partial",
+     "reason": "Data file records this as absent (page=\"\", route=\"\", \"Nothing in FormRegistry, services, or tables supports share trading today\") — now stale. Wave 3 (Design Round 2 ①) shipped a real page, route, controller, and the F-ORG-008 form. The page renders live data but the core trading-floor spec is deliberately unbuilt, so it is partial, not built.",
+     "evidence": "resources/js/Pages/Economy/Exchange.vue exists (defineProps: currency, instruments, shares, order_book). routes/web.php:704 GET /economy/exchange -> EconomyController::exchange. EconomyController.php:437-478 exchange() queries marketplace_listings joined to assets on the root currency and returns real `instruments` + currency prop. F-ORG-008 registered in app/Domain/Forms/FormRegistry.php:117/375 with handler Handlers/OrganizationMarketParticipation.php. BUT order_book is hardcoded false ('continuous order book deliberately not built') and shares=[] pending F-ORG-008 issuance; the mockup's order-book ladder, trade tape, sparklines/KPIs, trader presence, and order ticket render nothing — hence partial.",
+     "nowBucket_note": "partial"
+    }
+   ],
+   "areaNow": {
+    "built": 6,
+    "partial": 12,
+    "absent": 0
+   },
+   "unchangedCount": 17,
+   "notes": "Verified all 18 rows (Economy 13 + Organizations 5) against live code, not the data file's buckets. Only economy/exchange.html changed bucket (absent -> partial). The data file snapshot (asOf 2026-07-29, commit 914a28a) already reflects most Wave 3 economy closes (request-detail, joint-ledgers, stipend = built; agreements, agreement-detail, org-settings = partial), and those live buckets still hold. Three Wave 3 items advanced substance WITHOUT flipping a tracked bucket: (1) org-settings now has a dedicated OrgSettings.vue + GET /organizations/{organization}/economy + OrgEconomyController rendering real dues (F-ORG-001-writable dials) and shares (read from org_ownership_stakes) — but the mockup's org-ledger card and taxes/levies table are absent and shares lacks fair-market/monopoly/conversion, so it remains partial (its prev page field 'OrgDetail manage panel' is now stale — the own surface exists). (2) The clause-redline / N-party negotiation subsystem landed as a NEW untracked screen ResidentAgreements.vue (GET /economy/resident-agreements, F-IND-020 handler, plus /economy/redlines propose+resolve routes) — it has no row in the gap data, so no bucket to change; agreement-detail (org_contracts) is still read-only and stays partial. (3) F-ORG-008 share issuance is now a registered form+handler, but the OrgSettings/Exchange shares sections still render honest-absence (read-only). Organizations area: no live changes beyond what was already recorded. Combined current counts across both areas: 6 built, 12 partial, 0 absent."
+  },
+  {
+   "area": "learn-tr-support (Learn · translation · support)",
+   "changes": [
+    {
+     "file": "learn/learn-home.html",
+     "title": "Learn — education tracks",
+     "prevBucket": "absent",
+     "nowBucket": "built",
+     "reason": "Page + controller + backend now exist. resources/js/Pages/Learn/LearnHome.vue defines props {tracks, recommended} and renders track/module lists. LearnController::home (app/Http/Controllers/Education/LearnController.php:34) renders Learn/LearnHome with tracks from the education_tracks/education_modules tables joined against per-user education_progress, plus a role-aware recommendation from config('cga.education.tracks_by_role'). Route GET /learn -> learn.home (routes/web.php:278). The catalog and per-user progress store the row said were missing both exist as real tables.",
+     "evidence": "LearnController.php:34-55 renders Learn/LearnHome; queries education_tracks + education_progress; LearnHome.vue:22-33 consumes props.tracks/recommended"
+    },
+    {
+     "file": "learn/lesson.html",
+     "title": "Lesson — video + SOP + check",
+     "prevBucket": "absent",
+     "nowBucket": "built",
+     "reason": "resources/js/Pages/Learn/Lesson.vue defines props {track, modules, module, questions, quiz} and renders the comprehension check with pass/fail banner. LearnController::lesson (line 58) resolves track/module from education_tracks/education_modules, loads questions, and marks completed modules from education_progress. LearnController::check (line 122) grades server-side via GradingService and, on pass, files F-EDU-001 through ConstitutionalEngine (chain record + progress latch + stipend). Routes GET /learn/{track}/{module?} and POST .../check exist (routes/web.php:280-286). Knowledge-check content and grading — the missing backend — is present.",
+     "evidence": "LearnController.php:58-150 (lesson render + GradingService grade + F-EDU-001 file); Lesson.vue:24-53 consumes track/modules/questions"
+    },
+    {
+     "file": "learn/guides.html",
+     "title": "Guides & procedures — the SOP index",
+     "prevBucket": "absent",
+     "nowBucket": "built",
+     "reason": "resources/js/Pages/Learn/Guides.vue defines prop {journeys} and renders a card per guide. LearnController::guides (line 153) renders Learn/Guides with the journey registry built from config('cga.journeys'), each linking to /journeys/{key}. Route GET /learn/guides -> learn.guides (routes/web.php:279). The row's 'nothing SOP-shaped exists' is superseded: the walkthrough index resolves from the config/cga journeys registry (the live half is the journeys engine).",
+     "evidence": "LearnController.php:153-162 renders Learn/Guides with config('cga.journeys'); Guides.vue:16-29 consumes props.journeys"
+    }
+   ],
+   "areaNow": {
+    "built": 7,
+    "partial": 1,
+    "absent": 1
+   },
+   "unchangedCount": 6,
+   "notes": "3 rows changed: all three Learn pages (learn-home, lesson, guides) went absent -> built via the Wave 3 K-2 education plane (education_tracks / education_modules / education_progress tables, GradingService, F-EDU-001 filing). Unchanged (6): video-player.html stays ABSENT — no page, surface, or controller for a video library/multi-track player exists anywhere (grep for video-player/VideoLibrary/VideoPlayer returns nothing; not in config/cga/surfaces.php). translation/translation-home stays PARTIAL — System/Translations.vue still lacks the verifier-section props and add-a-language CTA wiring; not touched by Wave 3. translation/language, support/report, support/tickets, support/ticket were already 'built' and remain so. areaNow built=7 counts the 3 new Learn pages + those 4 pre-existing built rows."
+  },
+  {
+   "area": "Shared front doors (11) + Electoral/executive (12)",
+   "areaNow": {
+    "built": 15,
+    "partial": 2,
+    "absent": 2
+   },
+   "unchangedCount": 13,
+   "changes": [
+    {
+     "file": "index.html",
+     "title": "Launchpad — arrival hub",
+     "prevBucket": "partial",
+     "nowBucket": "built",
+     "reason": "Wave 3 added a dedicated resources/js/Pages/Launchpad.vue (185 lines) served at GET /launchpad (routes/web.php:59, public). It renders the four arrival doors, a 'step into a live room' directory (4 real live-room links), the five §7 interaction-class cards sourced from registry/journeys.js CLASSES, the learn/run-a-node link grid, and the guided-tour strip via tourStartHref(). Home.vue remains the compact guest cover at '/'; the full spec (index.html) is now realized at /launchpad. It is a registry-driven cover page (no backend query) — the exact design the gap row endorsed.",
+     "evidence": "resources/js/Pages/Launchpad.vue renders doors/liveRooms/classCards/helpLinks/tour-bar; routes/web.php:59. Deltas from spec are intentional: Atlas door is href:null 'Planned', and the journey directory with progress rails is delegated to /journeys rather than embedded."
+    },
+    {
+     "file": "tour.html",
+     "title": "Guided tour — directory page",
+     "prevBucket": "absent",
+     "nowBucket": "built",
+     "reason": "Wave 3 added resources/js/Pages/Tour/Index.vue (125 lines) at GET /tour (routes/web.php:60, public). It groups the TOUR registry by act, renders the first-visit ten-stop track (FIRST_VISIT) and the complete act-grouped walkthrough, each stop linking via tourHref(i) so index and bar never drift, plus a Start-the-tour CTA. The tour MODE already existed; this closes the missing directory page — the row's only gap.",
+     "evidence": "resources/js/Pages/Tour/Index.vue imports TOUR, FIRST_VISIT, tourStartHref from registry/surfaces.js and tourHref from useTour.js; routes/web.php:60."
+    },
+    {
+     "file": "shared/live-room.html",
+     "title": "Live Civic Room keystone",
+     "prevBucket": "partial",
+     "nowBucket": "built",
+     "reason": "The fused keystone room now exists as its own page/controller/route: resources/js/Pages/Legislature/LiveCivicRoom.vue (279 lines) rendered by app/Http/Controllers/Rooms/LiveRoomController.php at GET /rooms/committee/{meeting}. It fuses the governance form (agenda from CommitteeMeeting, vote tile, sealed PublicRecord rows) with the live social floor (pseudonymous presence from CommitteeSeat, hands-raised queue, floorHolder via LiveFloorService) and lazily provisions the Matrix room. Real write paths ship: POST raise-hand/recognize/advance (routes/web.php:763-767) with chair authorization. Previously the row noted only constituent surfaces existed separately.",
+     "evidence": "LiveRoomController::committee builds the full room config from real domain and Inertia::render('Legislature/LiveCivicRoom', ...); routes/web.php:760-767. CAVEAT: only the 'committee' variant is wired end-to-end (the exit-test path); the vote tile returns null (openCommitteeVote() deliberation-only until step 4); the other 7 manifest variants are not yet routed to this page."
+    },
+    {
+     "file": "shared/coverage.html",
+     "title": "Coverage instrument",
+     "prevBucket": "absent",
+     "nowBucket": "built",
+     "reason": "Wave 3 added app/Http/Controllers/System/CoverageController::index at GET /coverage (routes/web.php:66) rendering resources/js/Pages/System/Coverage.vue (180 lines). The controller ships real ground truth — every static GET route the app serves (getRoutePatterns) and every registered surface (SurfaceMeta::ids / config cga.surfaces) — and the page cross-checks them against the JS registry via registry/coverage.js computeCoverageDrift, going RED on dead nav links, dead tour stops, or unresolved surface navs. This is the live coverage report the row specified.",
+     "evidence": "CoverageController.php:29-45 + resources/js/Pages/System/Coverage.vue:26-45 (imports PLAYER_NAV/SITEMAP/TOUR + computeCoverageDrift, defineProps routes/surfaces); registry/coverage.js exists."
+    },
+    {
+     "file": "shared/coverage-ops.html",
+     "title": "Coverage matrix (ops)",
+     "prevBucket": "absent",
+     "nowBucket": "built",
+     "reason": "Wave 3 added CoverageController::ops at GET /coverage-ops (routes/web.php:67) rendering resources/js/Pages/System/CoverageOps.vue (148 lines) with the same real routes+surfaces props (SurfaceMeta::for('shared/coverage-ops')). It is the dense build-team drift matrix companion to /coverage.",
+     "evidence": "CoverageController.php:38-45; resources/js/Pages/System/CoverageOps.vue; routes/web.php:67."
+    },
+    {
+     "file": "executive/department-detail.html",
+     "title": "Department detail — CGC oversight",
+     "prevBucket": "partial",
+     "nowBucket": "built",
+     "reason": "The row's single gap was the department↔CGC oversight link (oversees_cgcs was a hardcoded [] stub). It is now a real reverse join: DepartmentController::overseesCgcs (line 676) queries Organization where is_cgc + overseen_by_executive_id = department's executive + same jurisdiction, returning name + /organizations/{id} href, shipped on both the show and manage props (lines 132, 277). DepartmentDetail.vue:224-227 renders department.oversees_cgcs with detail links. All other machinery on the page already exceeded the mockup.",
+     "evidence": "app/Http/Controllers/Executive/DepartmentController.php:676-694 (real query) + :132/:277 (shipped); resources/js/Pages/Executive/DepartmentDetail.vue:224-227."
+    }
+   ],
+   "notes": "Verified UNCHANGED (no bucket move): (1) atlas.html — still absent: no Atlas page (Glob empty), no /atlas route, no 'atlas' surface in config/cga/surfaces.php; the /launchpad Atlas door is href:null 'Planned'. (2) shared/bill.html — still absent: no bill-conversation page or route; only the pre-existing formal record Legislature/BillDetail.vue and the hall subforum exist; no clause-redline negotiation backend. (3) executive/department-reporting.html — still partial: DepartmentReportingController::show (line 51-65) resolves $viewerSeat internally but still ships only the viewerIsGovernor boolean — no viewer seat/term/CLK-09 'Your appointment' card data, which was the row's only gap. (4) electoral/ranked-ballot.html — still partial: BallotController.php:107 still ships 'liveAggregate' => null (held for the operator-triggered out-of-band decrypt worker per BallotSecrecyTest); RankedBallot.vue:436 renders the section only under v-if=liveAggregate, so it renders nothing today. Remaining 9 electoral-exec rows were already 'built' and are unchanged. areaNow combines both my areas: shared front doors (built 5 / absent 2) + electoral-exec (built 10 / partial 2) = built 15, partial 2, absent 2 across 19 rows."
+  },
+  {
+   "area": "social-groups + civic",
+   "changes": [],
+   "areaNow": {
+    "built": 7,
+    "partial": 12,
+    "absent": 0
+   },
+   "unchangedCount": 19,
+   "notes": "Verified all 19 rows (10 civic, 9 social-groups) against live code at HEAD. NO bucket transitions found relative to v3_gap_data.json's current buckets. The file (asOf 2026-07-29, commit 914a28a) already recorded this wave's two social closures and I confirmed both are real, not over-claimed: social/profile -> resources/js/Pages/Social/PersonProfile.vue backed by app/Http/Controllers/Social/PersonProfileController.php with GET /people + POST/DELETE /people/{user}/follow (routes/web.php:259-264); social/achievements -> resources/js/Pages/Social/Achievements.vue backed by app/Http/Controllers/Social/AchievementsController.php. Both correctly 'built'. The remaining partials are UNCHANGED because the Wave 3 deliverables that touch adjacent subsystems did not wire into these surfaces: (1) journeys/journey.html stays partial - resources/js/Pages/Civic/Journey.vue explicitly defers the live-world strip + rooms section ('the live room arrives in Phase 6'); the Live Civic Room keystone landed as resources/js/Pages/Legislature/LiveCivicRoom.vue + app/Http/Controllers/Rooms/LiveRoomController.php for the LEGISLATURE, not the journey world-step derivation. (2) social/org-profile.html stays partial - resources/js/Pages/Organizations/OrgDetail.vue has no marketplace/job-board/org-ledger sections (grep found only an incidental 'ledger #q1' text mention); the economy tables exist but the page does not query them. (3) civic/today.html stays partial - app/Services/TodayFeedService.php still sources only election/session/petition/referendum (lines 57-60); no hearing/commons/group/stipend rows. (4) social/social-home.html stays partial - resources/js/Pages/Civic/PublicSquare.vue has no presence roster / @handle / seat-badge / tag rendering and MatrixCommonsController exposes no presence read. (5) groups/groups-home.html + group-create + group-detail stay partial - resources/js/Pages/Civic/PrivateRooms.vue has no unread/last-message-preview/live-now; PrivateRoom.vue describes files in copy (line 103) but has no attachment send wiring. The built civic rows (onboarding/petition-detail/petitions/residency) and social/legitimacy (Reach.vue exists) are stable pre-Wave-3 builds; not re-audited line-by-line but confirmed present. areaNow: civic = 4 built (onboarding, petition-detail, petitions, residency) / 6 partial / 0 absent; social-groups = 3 built (profile, achievements, legitimacy) / 6 partial / 0 absent."
+  },
+  {
+   "area": "jurisdictions-sys + operator",
+   "changes": [],
+   "areaNow": {
+    "built": 16,
+    "partial": 5,
+    "absent": 0
+   },
+   "unchangedCount": 21,
+   "notes": "Verified all 21 rows (12 jurisdictions-sys + 9 operator) against live code at HEAD 55b8846 vs gap-data snapshot 914a28a (confirmed ancestor). NO bucket changed. Only one Wave 3 commit touched either area: 67e1aaa added the Type B Step-3 grouping door to Setup/Step3_Districts.vue + SetupController::typeBDistrict (real backend: TypeBDistrictMapper service, route POST /api/setup/wizard/step3/type-b-district, live type_b_flagged count). It is genuinely backend-wired but is an in-place enhancement to a surface inside the already-PARTIAL 'Setup founding loop' row (empty propsMissing/backendMissing in the data — no itemized gap to close), maps to no separate row, and does not demonstrably flip the 9-page founding-loop row to fully built, so bucket stays PARTIAL. Amendments (PARTIAL): AmendmentsController still ships only the setting_changes ledger; docblock explicitly defers the current-resolved-value cards and the 'Try a proposed value' bounds checker to Phase 7 — unchanged. Term lockstep (PARTIAL): last touched 4b8255c, pre-snapshot — no Wave 3 change. Operator setup wizard (PARTIAL) and DNS (PARTIAL): zero operator page/controller commits since snapshot; Dns.vue/Moderation.vue are Wave 2 pages (cde4b1c) despite empty 'page' fields in the data. Federation-console commits (3a6c542/6a58d13/9333914) were regression repairs of a Wave 2 route move, ended green — no built->partial regression. Combined areaNow: 16 built / 5 partial / 0 absent (partials: Setup founding loop, Amendments, Term lockstep, Operator setup wizard, DNS)."
+  }
+ ],
+ "capabilities": {
+  "capabilities": [
+   {
+    "area": "Identity",
+    "capability": "Create an identity and authenticate (UUID user, session auth)",
+    "maturity": "working",
+    "scaleNote": "Federation-safe UUID PKs; works from single box to mesh."
+   },
+   {
+    "area": "Identity",
+    "capability": "Claim residency and confirm it to unlock voting + candidacy (absolute rights, no gate beyond residency)",
+    "maturity": "working",
+    "scaleNote": "Recursive ancestor-sweep associates a resident to every jurisdiction in the chain; scale-independent."
+   },
+   {
+    "area": "Identity",
+    "capability": "Private GPS pings drive residency (PostGIS point auto-geom)",
+    "maturity": "working",
+    "scaleNote": "Server-side pinging works; phone/Capacitor client is Phase 6, unbuilt."
+   },
+   {
+    "area": "Identity",
+    "capability": "Derived civic roles R-01..R-04 (never stored, computed from residency/office)",
+    "maturity": "working",
+    "scaleNote": "Any scale."
+   },
+   {
+    "area": "Identity",
+    "capability": "Art. I disclosure/privacy gating on profiles (self-or-public, hidden handles 404)",
+    "maturity": "working",
+    "scaleNote": "Hardened e1db877 after adversarial verify; any scale.",
+    "blocker": ""
+   },
+   {
+    "area": "Identity",
+    "capability": "Edit your own social profile (handle / bio / visibility)",
+    "maturity": "absent",
+    "scaleNote": "Read works everywhere; write missing everywhere.",
+    "blocker": "No HTTP write door exists — an F-IND-002 extension decision the desk deliberately deferred (DESK_LEDGER, lane 15 close-out)."
+   },
+   {
+    "area": "Identity",
+    "capability": "Person-to-person direct message",
+    "maturity": "absent",
+    "scaleNote": "No per-user primitive at any scale.",
+    "blocker": "No DM flow built; the 'Message' button links to /civic/rooms — a design decision is pending (DESK_LEDGER lane 15)."
+   },
+   {
+    "area": "Elections",
+    "capability": "Type A population races — STV/Droop, districted 5–9, no ceiling on chamber total",
+    "maturity": "working",
+    "scaleNote": "Proven at every scale: Earth 1,999 seats across 282 districts down to a 5-seat leaf. racePlan generates per-district; per-kind blocking keeps Type A alive even when Type B fails."
+   },
+   {
+    "area": "Elections",
+    "capability": "Type B second-chamber races (equal representation of constituent jurisdictions)",
+    "maturity": "blocked",
+    "scaleNote": "THE headline gap. Broken at every non-trivial scale, in two distinct ways below.",
+    "blocker": "racePlan() emits ONE pooled at-large STV race over ALL residents (ElectionLifecycleService.php:676) — the operator ruled 2026-07-29 that model is WRONG: Type B must be one at-large race PER CHILD jurisdiction, or per clump when the ladder forces grouping. election_races has no panel/grouping column, so the correct shape is currently inexpressible. Fix is a joint lane-1 (seating) + lane-3 (counting, PROTECTED VoteCountingService) Wave 4 build; the CLAUDE.md 'Type B is ONE STV race' line is itself flagged wrong."
+   },
+   {
+    "area": "Elections",
+    "capability": "Type B races for grouped/clumped chambers (~9,708 flagged worldwide)",
+    "maturity": "blocked",
+    "scaleNote": "These are exactly the large federated jurisdictions where a second chamber matters most.",
+    "blocker": "R-A guard (racePlan.php:645) returns mode=blocked with citation Art. V §3 for any chamber flagged type_b_needs_districting. The stage-two Type B district mapper (TypeBDistrictMapper) is BUILT and cleared Niue in dev, but the mass pass over the ~9,708 real flagged chambers lives on the game box and is an un-run operator-logistics item; and even after grouping, the per-clump race SHAPE above is unbuilt."
+   },
+   {
+    "area": "Elections",
+    "capability": "Ranked-choice (RCV) for single-winner offices (speaker, individual executive)",
+    "maturity": "working",
+    "scaleNote": "Any scale; supermajority-gated where required."
+   },
+   {
+    "area": "Elections",
+    "capability": "Universal countback to fill vacancies without a by-election",
+    "maturity": "working",
+    "scaleNote": "Any scale.",
+    "blocker": ""
+   },
+   {
+    "area": "Elections",
+    "capability": "Endorsements + approval season (any org or individual endorses any candidate)",
+    "maturity": "working",
+    "scaleNote": "Polymorphic endorsements table + ApprovalService; any scale."
+   },
+   {
+    "area": "Elections",
+    "capability": "Cast a secret ballot via two-phase commit/reveal (cryptographic voter-ballot separation)",
+    "maturity": "working",
+    "scaleNote": "Ballot-secrecy hard constraint enforced; decryptForCount forbids any HTTP-stack caller. Any scale."
+   },
+   {
+    "area": "Elections",
+    "capability": "Live provisional standings during an OPEN ballot (RankedBallot liveAggregate)",
+    "maturity": "absent",
+    "scaleNote": "Deliberately unbuilt at any scale.",
+    "blocker": "HELD as secrecy-critical: an in-request decrypt is a constitutional violation, so it needs an out-of-band worker (first-prefs + Droop projection only). Cadence ruled daily-batch; spin is an operator fresh-session trigger."
+   },
+   {
+    "area": "Elections",
+    "capability": "Verify your own ballot receipt against the anonymized hash",
+    "maturity": "working",
+    "scaleNote": "UI exists; CLI parity (elections:receipt-check) is open debt. Any scale."
+   },
+   {
+    "area": "Legislature",
+    "capability": "File bills → versioned laws with full history",
+    "maturity": "working",
+    "scaleNote": "Any scale.",
+    "blocker": ""
+   },
+   {
+    "area": "Legislature",
+    "capability": "Committees — rank-ordered, faction-independent assignment, hearings",
+    "maturity": "partial",
+    "scaleNote": "Assignment + seating work at any scale.",
+    "blocker": "committee_meetings.agenda is a plain string list — per-item agenda progression needs a structured-agenda schema (DESK_LEDGER agenda-schema flag, Wave 4 candidate). Committee CREATION is a bicameral act, so it inherits the Type B block at scale."
+   },
+   {
+    "area": "Legislature",
+    "capability": "Peg-quorum chamber votes (quorum = majority of ALL serving; supermajority = ceil(serving·2/3))",
+    "maturity": "working",
+    "scaleNote": "Hard-constraint arithmetic; untrained-but-seated members count as serving (withhold-training vector closed). Any scale."
+   },
+   {
+    "area": "Legislature",
+    "capability": "Bicameral dual-agreement (both chambers must independently pass)",
+    "maturity": "blocked",
+    "scaleNote": "Works as a RULE and at leaf scale (a leaf has no Type B, so it is unicameral). Fails at federated scale.",
+    "blocker": "An empty/unelectable Type B chamber blocks EVERY bicameral act by design. Because Type B cannot elect at scale (see Elections), every bicameral act — enacting a bill, creating an executive/judiciary/committee — is blocked in any multi-constituent jurisdiction that requires a second chamber. This is correct behavior of the rule; the defect is upstream in Type B seating."
+   },
+   {
+    "area": "Legislature",
+    "capability": "Referendums",
+    "maturity": "working",
+    "scaleNote": "Any scale."
+   },
+   {
+    "area": "Legislature",
+    "capability": "Petitions + initiative (5% population threshold)",
+    "maturity": "working",
+    "scaleNote": "Any scale."
+   },
+   {
+    "area": "Legislature",
+    "capability": "Emergency powers (CLK-03, 90-day constitutional ceiling)",
+    "maturity": "working",
+    "scaleNote": "Any scale."
+   },
+   {
+    "area": "Legislature",
+    "capability": "Legislature amends a constitutional setting end-to-end through the real act pipeline",
+    "maturity": "partial",
+    "scaleNote": "Setting store + validator exist; the full loop needs verification.",
+    "blocker": "R-C: amendment workflow loop flagged to verify/complete end-to-end and surface as a walkable journey (DESK_LEDGER §10). At scale it also depends on bicameral agreement where a Type B chamber is required."
+   },
+   {
+    "area": "Executive",
+    "capability": "Executive delegation then conversion to directly-elected (dual supermajority)",
+    "maturity": "partial",
+    "scaleNote": "Delegation works; committee (5+ PR-STV) and individual (RCV + top-4 advisors) both built.",
+    "blocker": "CREATING and CONVERTING an executive are bicameral acts — blocked at scale wherever the Type B chamber cannot seat."
+   },
+   {
+    "area": "Executive",
+    "capability": "Departments + Board of Governors (10-year CLK-09 terms)",
+    "maturity": "working",
+    "scaleNote": "Any scale.",
+    "blocker": ""
+   },
+   {
+    "area": "Executive",
+    "capability": "Executive orders with pre-issuance scope validation (incl. rejected orders)",
+    "maturity": "working",
+    "scaleNote": "Any scale."
+   },
+   {
+    "area": "Executive",
+    "capability": "Board elections (org + governmental boards)",
+    "maturity": "working",
+    "scaleNote": "Any scale."
+   },
+   {
+    "area": "Judiciary",
+    "capability": "Appointed or elected courts (equal-per-constituent nomination; default appointed, 10-yr)",
+    "maturity": "partial",
+    "scaleNote": "Court formation + seating built and demoable.",
+    "blocker": "Forming/converting a judiciary is a bicameral act — blocked at scale wherever Type B cannot seat. Judiciary min 5, elected requires supermajority + constituent supermajority."
+   },
+   {
+    "area": "Judiciary",
+    "capability": "Cases, panels, juries, advocates, advocate filings",
+    "maturity": "working",
+    "scaleNote": "Full lifecycle (mid-lifecycle + closed demo cases). Any scale."
+   },
+   {
+    "area": "Judiciary",
+    "capability": "Double-jeopardy protection",
+    "maturity": "working",
+    "scaleNote": "Any scale."
+   },
+   {
+    "area": "Judiciary",
+    "capability": "Art. IV §5 three-path constitutional challenge ending in DIRECT judicial law-editing (judicial_remedy version)",
+    "maturity": "working",
+    "scaleNote": "Driven to judicial_remedy_applied in demo; full history preserved. Any scale."
+   },
+   {
+    "area": "Economy",
+    "capability": "Treasury: root currency, public treasury, mint, resident wallets, stipend runs, budget",
+    "maturity": "working",
+    "scaleNote": "Services-only writes (unbalanced posting fails rather than seeds); ledger append-only. Any scale."
+   },
+   {
+    "area": "Economy",
+    "capability": "Organizational dues (recurring org_contract + honest absence — no separate scheduler)",
+    "maturity": "working",
+    "scaleNote": "Any scale.",
+    "blocker": ""
+   },
+   {
+    "area": "Economy",
+    "capability": "Currency telemetry (account-clean, accounts-never-people)",
+    "maturity": "working",
+    "scaleNote": "Reader-privacy doctrine enforced; public ledger. Any scale."
+   },
+   {
+    "area": "Economy",
+    "capability": "Exchange / marketplace (list → order → settle over fungible + non-fungible assets)",
+    "maturity": "partial",
+    "scaleNote": "The list→order→settle rail works at any scale.",
+    "blocker": "No matching engine and no order book — deliberately 'honest chrome, not built' (MarketplaceService docblock; DESIGN_ROUND_2 rec). Ride the shipped rail only."
+   },
+   {
+    "area": "Economy",
+    "capability": "Primary share issuance (F-ORG-008, equity on the NAMED ownership plane, stock-only, agent-gated)",
+    "maturity": "working",
+    "scaleNote": "Issuance works; count pinned 117. Any scale.",
+    "blocker": "Secondary share TRADING is DEFERRED to Wave 4 (needs own schema + operator ruling); the shares floor stays honest-empty."
+   },
+   {
+    "area": "Economy",
+    "capability": "Redlines + shared clause model (bilateral consent for agreements; motion+vote for bills)",
+    "maturity": "working",
+    "scaleNote": "One clause/redline model with two authority adapters; BillVersion stays whole-text. Any scale."
+   },
+   {
+    "area": "Economy",
+    "capability": "Person-to-person agreements (resident_agreements, bilateral consent, Art. I rights-tag floor)",
+    "maturity": "working",
+    "scaleNote": "Structured rights-tags refuse pre-commit + void-in-part backstop; the honest limit (prose cannot be proven rights-safe) is stated. Any scale."
+   },
+   {
+    "area": "Economy",
+    "capability": "Founding-stake-on-registration (auto-equity when an org is founded)",
+    "maturity": "absent",
+    "scaleNote": "Not built at any scale.",
+    "blocker": "DEFERRED to Wave 4 — structure-aware (100% stake is wrong for member-owned/nonprofit; touches F-IND-012)."
+   },
+   {
+    "area": "Social/Orgs",
+    "capability": "Register any organization — party, business, nonprofit, CGC, informal group",
+    "maturity": "working",
+    "scaleNote": "Universal organizations table with organization_type; no faction layer. Any scale."
+   },
+   {
+    "area": "Social/Orgs",
+    "capability": "Co-determination — worker representation (100-employee first seat, 2000 parity, CLK-13/14)",
+    "maturity": "working",
+    "scaleNote": "Hardened Art. III §6 math (PROTECTED CoDeterminationService). Any scale."
+   },
+   {
+    "area": "Social/Orgs",
+    "capability": "CGC public-domain IP register (never privatized)",
+    "maturity": "working",
+    "scaleNote": "Born-failing grant revocation pinned. Any scale."
+   },
+   {
+    "area": "Social/Orgs",
+    "capability": "Live civic rooms — committee hearing / session composed on real data, raise-hand floor (FIFO, chair-gated, ephemeral)",
+    "maturity": "partial",
+    "scaleNote": "The molecule (LiveCivicRoom) is DOM-verified on real data; floor operable; poll-first transport-agnostic substrate.",
+    "blocker": "Exit walk (seat committee → hearing in one room) is post-compaction pending; 9 hand-rolled pollers await consolidation onto useLiveRoom (named debt); no push layer by design."
+   },
+   {
+    "area": "Social/Orgs",
+    "capability": "Civic square + halls posts and sealed testimony (F-SOC-001..004)",
+    "maturity": "working",
+    "scaleNote": "Testimony sealed into append-only register. Any scale."
+   },
+   {
+    "area": "Social/Orgs",
+    "capability": "View social profiles / people directory / achievements",
+    "maturity": "working",
+    "scaleNote": "Read paths work; self-edit is the absent write path noted under Identity. Any scale."
+   },
+   {
+    "area": "Education",
+    "capability": "Pre-seating training act-gate (winners train before taking the seat; reads ONLY F-EDU-001 completion)",
+    "maturity": "partial",
+    "scaleNote": "Built (K-2: TrainingGateService, Learn pages, F-EDU-001/002 minted). Redirect fires per-role-act at any scale; ballot access never gated.",
+    "blocker": "Inert on the dev box by design (education:seed un-run so the suite stays green). ARMING SEQUENCING is an open operator question (pre-train demo members vs. seed-untrained-to-demo-the-loop vs. e2e-only) before a browser walk of the gate."
+   },
+   {
+    "area": "Federation",
+    "capability": "Peer mesh — discover / handshake / probe / gates / roles / transports",
+    "maturity": "working",
+    "scaleNote": "One-for-one CLI+UI doors (cluster:*, federation:*, mesh:role, transport:*). Handshake now carries declared_class/game_mode. Any scale."
+   },
+   {
+    "area": "Federation",
+    "capability": "Full-Faith-&-Credit sync (push tail, cold-sync full corpus in signed resumable pages)",
+    "maturity": "working",
+    "scaleNote": "CLK-20 heartbeat auto-push; trusted-peer only. Federation console reds were pre-existing (route move d69aff0) and are now fixed + green (3a6c542)."
+   },
+   {
+    "area": "Federation",
+    "capability": "Authority flip (export bundle = seed) and disintermediation / adoption",
+    "maturity": "working",
+    "scaleNote": "AuthorityFlipService + DisintermediationService (per-constituent copies with full history, ruling 2). Any scale."
+   },
+   {
+    "area": "Federation",
+    "capability": "Demo-mesh coordinated time advance across nodes",
+    "maturity": "partial",
+    "scaleNote": "DemoMeshTimeCoordinator built (originate/replay idempotent).",
+    "blocker": "The mirror/adoption exchange carries no instance_class, so adoption-minted demo meshes stay time-frozen until it does (DESK_LEDGER lane 2 items 2-3)."
+   },
+   {
+    "area": "Federation",
+    "capability": "Full internationalization (6 non-English locales)",
+    "maturity": "partial",
+    "scaleNote": "Coverage 82–87% after the NLLB pass; scales to any content via slug_sha8 keying + en fallback.",
+    "blocker": "992-string gap closed only to ai_draft behind a human-verification queue; zh-Hans has 95 QA-skips routed to Chinese readers. Not fully human-verified."
+   },
+   {
+    "area": "Federation",
+    "capability": "Mobile app (Capacitor iOS/Android geofenced GPS)",
+    "maturity": "absent",
+    "scaleNote": "Unbuilt at any scale.",
+    "blocker": "Phase 6 (Weeks 61–76) — NEXT, not started. Phone GPS (G-V1) parked."
+   },
+   {
+    "area": "Simulation",
+    "capability": "Populate a simulated world (sim:start — ~907k cohort worklist, chunked, start/resume/halt)",
+    "maturity": "working",
+    "scaleNote": "Single-run law enforced; /simworld console drives it (SimRunControl). Scales to planetary cohort via ETL-rule committed chunks."
+   },
+   {
+    "area": "Simulation",
+    "capability": "Seed standing demo institutions on demand (elections, executive/orgs, judiciary, social, economy, federation, matrix)",
+    "maturity": "working",
+    "scaleNote": "ScenarioPresetService presets, async queued-run+poll (D5); GuardsSyntheticData refusal travels to the UI verbatim. Runs on scale_demo/sandbox only."
+   },
+   {
+    "area": "Simulation",
+    "capability": "Demo worlds sized from WorldPop premade data; real worlds scale continuously with actual playerbase",
+    "maturity": "partial",
+    "scaleNote": "Demo sizing works.",
+    "blocker": "R-B activation/scale redesign (real worlds scale institutions + room counts continuously 1→∞) is a design-doc-first item touching ActivationTierService/InstitutionScaleService — not yet wired."
+   }
+  ]
+ },
+ "techDebt": {
+  "debt": [
+   {
+    "title": "THE TYPE B RACE DEFECT (Lane 1 regression) — pooled at-large race instead of per-child/per-clump",
+    "category": "correctness",
+    "severity": "high",
+    "owner": "joint lane-1 (seating) + lane-3 (counting)",
+    "status": "OPEN — Wave 4 build, operator model RULED per-unit; ONE confirm pending (per-child even when nothing overflows — desk reads YES)",
+    "location": "app/Services/ElectionLifecycleService.php racePlan():568 + createRaces():759 (at_large branch 802-813 emits ONE pooled ElectionRace over all residents); app/Services/VoteCountingService.php (PROTECTED, needs the split); database/schema/pgsql-schema.sql election_races (CREATE 1789 / COPY 5359) has NO panel/clump/group_key column",
+    "note": "Operator's two-context spec (2026-07-29): Type B = ONE AT-LARGE RACE PER CHILD JURISDICTION; when the reps-per-child ladder (5->2) + nearest-neighbor clumping forces grouping, ONE AT-LARGE RACE PER CLUMP — voted at-large within that child/clump for its own equal seats. Built code emits ONE pooled at_large race over ALL residents (the old '(i)'). Seat MATH already matches (Niue 5 clumps x2 = 10); only RACE STRUCTURE is wrong. Needs: (a) racePlan/createRaces to emit per-child/per-clump races, (b) a grouping/clump key column on election_races, (c) PROTECTED VoteCountingService to count per-unit. Grouped chambers (Niue et al., ~9,708 flagged) stay blocked until it lands. Niue re-flagged + demoted to draft on-box; its CLK-01 timers (2026-08-18/09-01) are ARMED on an advanceable dev clock, so a fired timer WOULD mint the bare wrong-shape race."
+   },
+   {
+    "title": "Doc drift: CLAUDE.md + ElectionLifecycleService docblock still teach the WRONG pooled Type B model",
+    "category": "doc",
+    "severity": "high",
+    "owner": "lane 7 desk (folds with the Type B race fix)",
+    "status": "OPEN — must be corrected with the race-shape fix",
+    "location": "CLAUDE.md § Bicameral Support At-large bullet ('Type B is ONE STV race, however many seats'); app/Services/ElectionLifecycleService.php:46 docblock ('type_b seats -> ONE at-large STV race, however many seats')",
+    "note": "Both statements are the operator-corrected-wrong model. FLEET_CONTEXT.md:109 already carries the corrected ruling and a warning; the CLAUDE.md line and the service docblock still assert the pooled shape. Fix in lockstep with debt item #1 or the doc keeps teaching the defect."
+   },
+   {
+    "title": "Five pre-existing suite reds unowned — need Wave 4 owners + baseline run",
+    "category": "test-debt",
+    "severity": "medium",
+    "owner": "unowned — route to owners for Wave 4 debt-paydown",
+    "status": "OPEN — pre-existing (Wave 3 introduced ZERO regressions, git-verified); NOT certified pre-existing with federation-level confidence because each now FAILS ALONE",
+    "location": "tests: LegalComplianceTest, MyProfileTabsTest (documented Wave 2 fixture-borrows-the-world debt — MyProfile wants an adm1 without a legislature), MatrixCarveoutEmitterTest, ModerationFlipTest, SupportLifecycleTest",
+    "note": "Wave 2 triage said MatrixCarveoutEmitter + ModerationFlip 'pass isolated', but all three of that trio FAIL ALONE now — so either stale or shifted. A shared-change interaction can't be 100% ruled out without a baseline run, which is unsafe on the shared DB. THE PROCESS FINDING: the full suite was NOT run at the Wave 2 gate, so pre-existing red hid until Wave 3 close. Run the full suite at EVERY wave gate. (The 7 federation console/handshake reds from this family were already FIXED by lane 2 @3a6c542.)"
+   },
+   {
+    "title": "Fleet-wide pixel-screenshot debt — DOM/server-verified but the browser pane won't composite",
+    "category": "verification",
+    "severity": "medium",
+    "owner": "fleet (capture at operator-present review time)",
+    "status": "OPEN — carried across all lanes",
+    "location": "review lists across lanes: lane 4 flyout clock advance; lane 15 flyout on 2-3 surfaces; lane 2 flyout mesh state (b785bae, needs columns + demo peers); lane 13 economy surfaces",
+    "note": "Standing rule is SCREENSHOT PROOF AFTER EVERY FIX, but no browser pane composites pixels on this box. Everything is DOM-verified / server-verified; the after-pixel-shot is owed at review time when the operator is present. Every lane carries some form of this debt."
+   },
+   {
+    "title": "9 hand-rolled pollers await consolidation onto useLiveRoom",
+    "category": "simplification",
+    "severity": "low",
+    "owner": "later peer-file consolidation pass (post-Wave-3)",
+    "status": "NAMED DEBT (desk, store-contract ruling c6399aa)",
+    "location": "resources/js: Pages/Civic/PrivateRoom.vue, Pages/Elections/RankedBallot.vue, Pages/Elections/Results.vue, Pages/Elections/VacancyCountback.vue, Pages/Build/Progress.vue, Pages/Operator/Operations.vue, Pages/Legislature/Districts.vue, Pages/Demo/SimConsole.vue, Pages/Setup/Step2_MapData.vue",
+    "note": "The canonical live substrate is resources/js/composables/useLiveRoom.js (+ liveRoomPolicy.js state machine, behaviorally pinned 86fcdb7). These nine predate it and each rolls its own setInterval poll; consolidate onto useLiveRoom's uniform 5s + per-group cadenceMs + status-gated contract."
+   },
+   {
+    "title": "FLEET_CONTEXT line 113 git-pathspec rule contradicts COMMIT LAW v2 (the pathspec-commit trap)",
+    "category": "doc",
+    "severity": "medium",
+    "owner": "lane 7 desk",
+    "status": "OPEN — self-contradictory doc, actively dangerous on the shared worktree",
+    "location": "docs/plans/docs-recon/FLEET_CONTEXT.md:113 ('Always git commit -- <path>') vs the SAME FILE lines 272-282 (COMMIT LAW v2: 'git commit -- <pathspec> commits the WORKING TREE and BYPASSES the index ... THE LAW: build the index to be exactly yours, then commit the INDEX — plain, no pathspec')",
+    "note": "Line 113 is the retired v1 rule the 4th sweep (2026-07-29) proved destroys partial-staging. It sits above the corrected law in the same file, so a lane reading the standing-rulings table (§4) hits the trap before reaching §COMMIT-LAW-v2. Rewrite line 113 to the index-plain-commit law."
+   },
+   {
+    "title": "Cross-class federation handshake returns HTTP 500, not a graceful 4xx",
+    "category": "hardening",
+    "severity": "medium",
+    "owner": "lane 2 (federation)",
+    "status": "OPEN — masked at Wave 3 by a TEST fixture fix (InstanceClass::override), endpoint behavior unchanged",
+    "location": "app/Services/Federation/PeerService.php:183 assertSameClass() throws plain RuntimeException; called from receiveHandshake():218 (server side of POST /api/federation/handshake); controller app/Http/Controllers/Federation/PeerController.php:48 does not catch it",
+    "note": "A demo peer contacting a production instance (or vice versa) is a LAWFUL protocol-level refusal (class-scoped federation, operator ruling 2026-07-25) but surfaces as an uncaught RuntimeException -> 500. Should be a deliberate 4xx (409/422) so the caller can distinguish 'refused by policy' from 'server broke'. The Wave 3 'fix' only stopped the fixture from tripping it; the endpoint still 500s on a real cross-class handshake."
+   },
+   {
+    "title": "Agenda per-item progression needs a structured-agenda schema (keystone Live Civic Room)",
+    "category": "schema-gap",
+    "severity": "medium",
+    "owner": "lane 3",
+    "status": "FLAG RECORDED (Wave 4 candidate)",
+    "location": "committee_meetings.agenda is a plain string list; Pages/Legislature/LiveCivicRoom.vue floor is ephemeral cache (no schema)",
+    "note": "Per-item progression through a meeting (advance/complete each agenda item) needs a structured agenda, not a flat string array. Blocks the live-room molecule from driving an agenda item-by-item. Lane 3's floor primitive (raise-hand -> FIFO/named recognition -> yield, 3c107cf) is ephemeral and deliberately schema-free for now."
+   },
+   {
+    "title": "Education arming sequencing undecided — dev box deliberately un-seeded, gate inert",
+    "category": "ux-gap",
+    "severity": "medium",
+    "owner": "lane 15",
+    "status": "OPEN QUESTION (Wave 4 decision queue / playtest-prep)",
+    "location": "education:seed arms the act-gate for 6 civic tracks; app/Services TrainingGateService; dev box UN-seeded (gate inert, suite green, e2e seeds in-transaction)",
+    "note": "Once education:seed arms, every UNTRAINED role-holder redirects on their next role-act. Before the operator's training-loop walk needs an ARMED box, decide: (A) seeders file F-EDU-001 for seated demo members = 'trained' pass [rec] / (B) seed but leave untrained so the walk demos the redirect loop live / (C) don't seed, e2e-only. Gates the operator's browser walk of the pre-seating gate."
+   },
+   {
+    "title": "AutoscaleResizeRepair SQL mirror clamps type_b_seats_per_child to 5 while PHP does not",
+    "category": "hardening",
+    "severity": "low",
+    "owner": "lane 1",
+    "status": "LATENT — desk-ruled DEFER to Wave 4; unreachable today, cannot fire against the mass pass",
+    "location": "AutoscaleResizeRepair SQL mirror vs the authoritative PHP TypeBDistrictMapper; setting type_b_seats_per_child (DDL default 5, validated out >5, all 26 rows =5)",
+    "note": "The SQL mirror clamps to 5; PHP is authoritative and doesn't. Unreachable now because the setting is validated <=5 and every row is 5. Additive CHECK-constraint is the Wave 4 hardening candidate. Recorded HIGH CONFIDENCE that it cannot fire against the game-box mass pass; found by lane 1's adversarial verification (2dc5cd0) — 'vindicates 27 pins != verified-at-scale'."
+   },
+   {
+    "title": "Founding-stake-on-registration deferred (100% stake wrong for member-owned/nonprofit)",
+    "category": "correctness",
+    "severity": "medium",
+    "owner": "lane 13 (economy)",
+    "status": "DEFERRED to Wave 4 (desk-confirmed) — surfaced to operator",
+    "location": "org registration path; touches F-IND-012; economy build (F-ORG-008 share issuance 07ae162)",
+    "note": "Structure-aware: a flat 100% founding stake is wrong for member-owned co-ops and nonprofits. Needs a structure-aware allocation. Doesn't block Wave 3 close."
+   },
+   {
+    "title": "Secondary share TRADING deferred — needs own schema + operator ruling",
+    "category": "schema-gap",
+    "severity": "medium",
+    "owner": "lane 13 (economy)",
+    "status": "DEFERRED to Wave 4 — operator ruled ISSUANCE only; shares floor stays honest-empty",
+    "location": "economy build; F-ORG-008 (issuance shipped, stock-only, agent-gated); no secondary-market schema",
+    "note": "Operator ruled share ISSUANCE (delivered); secondary trading needs its own schema + his ruling. The shares surface stays honestly empty rather than faking a market. Order book across the exchange is also honest chrome ('not built', 3f6da2a)."
+   },
+   {
+    "title": "RankedBallot liveAggregate — HELD for fresh secrecy-first treatment",
+    "category": "correctness",
+    "severity": "medium",
+    "owner": "lane 3",
+    "status": "The ONE deliberately-carried Wave 2 item; awaits operator's fresh-session trigger (spec 3505f51; cadence RULED daily-batch)",
+    "location": "app/Domain/Counting BallotBox::decryptForCount() forbids any HTTP-request-stack caller; tests/Feature BallotSecrecyTest greps for that rogue pattern; Pages/Elections/RankedBallot.vue",
+    "note": "SECRECY-CRITICAL, not a perf choice: an in-request provisional count is a CONSTITUTIONAL VIOLATION. Build must be an out-of-band worker (first-preferences + Droop-if-closed-now projection only, writing neither a tabulations row nor ballots.counted), then adversarial verification of the secrecy boundary. The no-in-request-decrypt MECHANISM stands; only the visible-standings CADENCE was the open policy call (ruled daily-batch). Do NOT rush at a run tail."
+   },
+   {
+    "title": "Demo-mesh handshake missing game_mode field + no coordinating time node + adoption exchange carries no instance_class",
+    "category": "correctness",
+    "severity": "medium",
+    "owner": "lane 2 (federation / multibox)",
+    "status": "OPEN — recorded from lane 4's D7 build; rides lane 2's multibox work",
+    "location": "app/Services/Federation InstanceIdentityService::handshakePayload(); DemoMeshTimeCoordinator (fa4e628); mirror/adoption exchange (OperationalBundleService)",
+    "note": "Three linked gaps: (1) handshake identity payload should carry game_mode (peer counts as demo only when its signed handshake declared it); (2) demo-mesh time advance needs ONE coordinating node — per-node advances skew shared deadlines (recorded in the gate docblock, deliberately not built); (3) the mirror/adoption exchange carries no instance_class at all, so adoption-minted demo meshes stay time-frozen until it does."
+   },
+   {
+    "title": "Ruling-9 divergence: federation console landed at /operator/federation, not inside /operator/mesh",
+    "category": "doc",
+    "severity": "low",
+    "owner": "lane 2 + mockup side",
+    "status": "LOGGED in divergence ledger (never silent) — neither blocks",
+    "location": "route /operator/federation (d69aff0); mesh.html spec contract; Pages/Jurisdictions/Federation.vue",
+    "note": "Substance delivered (/federation = citizen view; console on the operator plane) but the console landed as its own surface rather than inside /operator/mesh per the ruling's letter. Plausible reason: mesh.html's contract covers PEERING, not cluster hosting. Reconciliation question: does operator/mesh.html absorb the cluster console, or does the spec gain a screen? NOTE: this same Wave-2 route move (/federation -> /operator/federation) is what broke the 6 federation console tests that hid until Wave 3 close."
+   },
+   {
+    "title": "Setup ORDER conflict — v3 mockup puts ACCOUNT before the founding FORK; settled ruling is FORK-FIRST",
+    "category": "doc",
+    "severity": "low",
+    "owner": "lane 2",
+    "status": "OPEN — reorder needs the operator's word",
+    "location": "v3 setup flow mockup vs SetupController (pinned 2026-07-05 fork-first ruling)",
+    "note": "Lane 2 matched the mockup's shape only where the ruling allows. Options at review: re-rule to the mockup's order, or fix the mockup to fork-first. Related: pre-account Path-B (device-key linking, no local password) needs a pre-auth endpoint — a trust-surface design question stated honestly on the setup card, not built silently."
+   },
+   {
+    "title": "seat_training_window_days (default 30) proposed amendable setting — awaits registration-day review",
+    "category": "doc",
+    "severity": "low",
+    "owner": "lane 15",
+    "status": "OPEN — flagged for registration-day review",
+    "location": "K2_ENGINE_PLAN §5.2; TrainingGateService; constitutional_settings",
+    "note": "Proposed as a new amendable setting (the window a winner has to complete training before the seat falls to countback). Needs to be registered as a constitutional_setting with bounds. THE READING RULE stands: the pre-seating gate reads ONLY F-EDU-001 completion records — never the achievement ledger, never education_progress."
+   },
+   {
+    "title": "Orphan surfaces awaiting operator's deletion word",
+    "category": "cleanup",
+    "severity": "low",
+    "owner": "lane 15 (found) / operator (deletion)",
+    "status": "OPEN — deletion on his word",
+    "location": "resources/js/Pages/Elections/CandidateProfile.vue (unreferenced); the 'elections/candidate-profile' surfaces record (inert)",
+    "note": "Unreferenced Vue page + an inert surfaces-registry record. Deletion held for operator sign-off rather than removed silently."
+   },
+   {
+    "title": "Deliberately-not-built social primitives (design decisions needed)",
+    "category": "ux-gap",
+    "severity": "low",
+    "owner": "lane 15 / lane 3",
+    "status": "OPEN — Wave 3 material, design decisions pending",
+    "location": "social/profile surfaces; F-IND-002 extension; /civic/rooms",
+    "note": "Three: (1) per-user DM flow — Message button links to /civic/rooms; NO per-user primitive exists; (2) social-profile self-EDIT write path — handle/bio/visibility have no HTTP door (an F-IND-002 extension decision); (3) record-tab 'open the full record' link. Also: 'jurisdiction' visibility = not-public in v1. Challenge-tracker 'simulate' + judiciary-home consent sliders were DROPPED (a client-side fake contradicts the engine-snapshot rail)."
+   },
+   {
+    "title": "Tour-nav placement — PLAYER_NAV jumps straight into stop 1 instead of the /tour index",
+    "category": "ux-gap",
+    "severity": "low",
+    "owner": "lane 6",
+    "status": "OPEN — placement decision at review",
+    "location": "MenuNav special case; PLAYER_NAV; /tour index",
+    "note": "The mockup's nav 'tour' opens the /tour INDEX first (Start arms the mode); the app's PLAYER_NAV still jumps to stop 1. Index exists and is reachable via TourBar 'All steps' + the launchpad. Repointing touches MenuNav's special case. Also: two param-dependent tour targets deferred until a demo world guarantees a stable posting/handle."
+   },
+   {
+    "title": "/judiciary/docket 302s to /civic for a fresh dev-login user despite being listed public",
+    "category": "correctness",
+    "severity": "low",
+    "owner": "lanes 3/6 (walk list)",
+    "status": "OPEN — belongs on the walk list; likely data-dependent",
+    "location": "/judiciary/docket route; SITEMAP lists the docket as public",
+    "note": "A fresh dev-login user with no judiciary in their chain gets redirected to /civic. Likely data-dependent (no judiciary in the viewer's ancestor chain) rather than a guard bug, but the public listing vs the 302 is a walk-list discrepancy either way."
+   },
+   {
+    "title": "flows.js flow-step action strings unextracted for i18n; zh-Hans 95 QA-skips in the verification queue",
+    "category": "i18n-debt",
+    "severity": "low",
+    "owner": "lane 5 (translation)",
+    "status": "OPEN — extraction sweep is lane 5's call; zh-Hans skips correctly routed to Chinese readers",
+    "location": "resources/js registry/flows.js (spec-side English, unextracted); locales zh-Hans catalog (95 QA-skips)",
+    "note": "flows.js flow-step strings are spec-side English never extracted into the i18n catalogs (vue-i18n falls back to en; slug_sha8 keying survives regeneration). Separately, NLLB-600M long-form fidelity uncertainty produced 95 zh-Hans QA-skips — confirmed real with samples; the gate correctly routes them to people who read Chinese (refusal is the answer; a stronger model is the future path, never a weakened rail)."
+   },
+   {
+    "title": "Oversight-console disclosure scope — does §10-1 'public to watch' extend to the LIVE console of in-progress proceedings against NAMED members?",
+    "category": "policy-gap",
+    "severity": "low",
+    "owner": "lane 3 (found) / operator (ruling)",
+    "status": "OPEN — correctly HELD as a policy extension; desk recommends keep-live-console-gated, findings-public",
+    "location": "oversight console controller ('findings publish to the public record'); /system/public-records; §10-1",
+    "note": "§10-1 named sessions/committees/courts/referendums, not oversight. Desk recommendation: keep the live console member+R-29-gated, findings public — an in-progress investigation of a named person is not yet a proceeding of record and premature exposure is weaponizable; extend only if the operator deliberately wants the stronger transparency posture."
+   }
+  ]
+ },
+ "quality": {
+  "formsCount": 117,
+  "formsPinned": true,
+  "phasesComplete": "Phases 0-5 complete (Foundation, Identity & Jurisdictions, Elections Engine, Legislature Operations, Executive & Organizations, Judiciary & Law). Phase 6 (Federation & mobile, weeks 61-76) is NEXT / not started.",
+  "suiteNote": "DO NOT run the full suite (slow, shared DB) — this reflects the RECORDED state in DESK_LEDGER.md, not a fresh run. The full-suite gate (run by lane 15 at Wave 3 close) found 12 FAILURES; triage (3rd/final, two prior desk mis-diagnoses corrected) certified ALL 12 as PRE-EXISTING — Wave 3 introduced ZERO regressions. 7 were the federation console/handshake cluster, root-caused to lane 2's Wave 2 route move d69aff0 (/federation -> /operator/federation; tests kept hitting /federation and got the citizen view) plus the scale_demo class-fixture 500 — hidden because the full suite was NEVER run at the Wave 2 gate. Those 7 are now FIXED + GREEN by lane 2 at commit 3a6c542 (9 tests, 128 assertions; InstanceClass::override fixture scoping). That leaves ~5 pre-existing reds. THE PROCESS FINDING: run the full suite at EVERY wave gate — 'every lane green in its own domain' != 'the suite is green'. A clean full-suite confirmation is the real Wave 3 close gate.",
+  "knownReds": [
+   {
+    "test": "LegalComplianceTest",
+    "classification": "pre-existing (documented Wave 2 triage: fixture-borrows-the-world)",
+    "owner": "lane 1 (Wave 4 debt-paydown)"
+   },
+   {
+    "test": "MyProfileTabsTest (representatives-chain)",
+    "classification": "pre-existing (fixture-borrows-the-world; wants an adm1 without a legislature)",
+    "owner": "flagged by lane 15; Wave 4 debt-paydown"
+   },
+   {
+    "test": "MatrixCarveoutEmitter",
+    "classification": "pre-existing, but now FAILS ALONE (Wave 2 triage said 'pass isolated' — either stale or shifted; not certified pre-existing with federation-level confidence, a shared-change interaction can't be 100% ruled out without an unsafe baseline run)",
+    "owner": "unowned/known; route to owner for Wave 4"
+   },
+   {
+    "test": "ModerationFlipTest",
+    "classification": "pre-existing, but now FAILS ALONE (same order-dependence caveat as MatrixCarveoutEmitter)",
+    "owner": "unowned/known; route to owner for Wave 4"
+   },
+   {
+    "test": "SupportLifecycleTest",
+    "classification": "pre-existing, fails alone (grouped with the two above in the final triage)",
+    "owner": "unowned/known; route to owner for Wave 4"
+   }
+  ],
+  "waveStatus": "WAVE 1 COMPLETE (shell/demo/learn; all ten section-10 rulings settled). WAVE 2 CLOSED. WAVE 3 effectively closed: lanes 1, 2, 4, 6, 13, 15 all four-way DONE. Lane 1 = Type B district mapper engine + B3 cap + B6/B7 pins + mapper UI door (Niue = first cleared chamber; only remaining lane-1 item = the ~9,708-flagged-chamber mass pass, which lives on the GAME box, an operator-box logistics call). Lane 2 = federation/coordinator + schema queue CLOSED + the 7-red federation fix (3a6c542). Lane 13 = economy all 6 pieces -> registry 117. Lane 15 = K-2 education engine all 6 steps (minted F-EDU-001/002, 115->117). Migration schema queue CLOSED for the wave. REMAINING BEFORE WAVE 3 FORMALLY CLOSES: lane 3's exit walk (keystone LiveCivicRoom molecule built + DOM-verified; lane HOLDING with captured state, operator compaction requested, resume = seat committee A -> 4b -> exit WALK), and a clean full-suite confirmation. WAVE 4 PENDING (operator decision queue, none block Wave 3 close): (1) Grouped-Type-B RACE SHAPE build — operator clarified the model to per-unit (one at-large race per child/clump, NOT one pooled race); the BUILT code is wrong (racePlan/createRaces emit one pooled race) and the CLAUDE.md 'Type B is ONE STV race' line is also wrong — joint lane-1 seating + lane-3 counting build touching PROTECTED VoteCountingService; one confirm pending (per-child even with no clumping — desk reads YES). (2) Education ARMING sequencing (lane 15) — decide pre-train demo members vs a trained-seeding pass before the operator's training-loop walk. (3) Founding-stake-on-registration (structure-aware). (4) Secondary share TRADING (needs own schema + operator ruling). (5) The 5 pre-existing reds debt-paydown. (6) RankedBallot liveAggregate still awaits the operator's fresh-session trigger (spec 3505f51; cadence RULED daily-batch). Plus B2 residual, game-box mass pass, AutoscaleResizeRepair SQL-mirror CHECK-constraint hardening (latent, deferred)."
+ }
+}
