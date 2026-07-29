@@ -14,6 +14,7 @@ use App\Models\DepartmentReport;
 use App\Models\Executive;
 use App\Models\ExecutiveMember;
 use App\Models\GovernorRemovalRequest;
+use App\Models\Organization;
 use App\Models\Term;
 use App\Models\User;
 use App\Support\SurfaceMeta;
@@ -664,15 +665,32 @@ class DepartmentController extends Controller
     }
 
     /**
-     * CGCs overseen by THIS department. The backend models CGC oversight at
-     * the executive level (organizations.overseen_by_executive_id), not as a
-     * per-department FK — there is no department↔CGC column to source from.
-     * The honest empty state renders until that link exists (noted for the
-     * consolidator; see DepartmentDetail's oversight card gloss).
+     * CGCs overseen by THIS department. Oversight is modeled at the EXECUTIVE
+     * level (organizations.overseen_by_executive_id) — there is no per-department
+     * FK — so this resolves the CGCs chartered under the department's executive,
+     * the exact reverse of the CGC→department link CgcController::oversight
+     * already draws (same jurisdiction + same executive_id join). It is coarse
+     * by construction: two departments under one executive list the same CGCs
+     * until a per-department oversight column exists (V3_GAP_MATRIX:255-256).
      */
     private function overseesCgcs(Department $department): array
     {
-        return [];
+        if ($department->executive_id === null) {
+            return [];
+        }
+
+        return Organization::query()
+            ->where('is_cgc', true)
+            ->where('overseen_by_executive_id', $department->executive_id)
+            ->where('jurisdiction_id', $department->jurisdiction_id)
+            ->orderBy('name')
+            ->get(['id', 'name'])
+            ->map(fn (Organization $cgc) => [
+                'name' => $cgc->name,
+                // /organizations/{id} 302s to /cgc for a CGC (routes/web.php).
+                'href' => "/organizations/{$cgc->id}",
+            ])
+            ->all();
     }
 
     private function hasVacantGovernorSeat(?Board $board): bool
