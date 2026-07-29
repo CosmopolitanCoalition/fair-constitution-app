@@ -8,14 +8,12 @@ use Illuminate\Support\Facades\Schema;
  * Demo-mesh time coordination (Wave 3, lane 2 — the build half of
  * docs/plans/launch/DEMO_MESH_TIME_COORDINATION.md). Additive schema applied on
  * top of the flattened baseline (instance_settings lives in
- * database/schema/pgsql-schema.sql). Additive-only and independent of every other
- * wave-3 migration — it references only instance_settings (baseline) and creates
- * demo_time_advances, so it applies cleanly in any order relative to lane 1's
- * 150000 and lane 15's 190000. The service/CLI/UI layer shipped ahead of it
- * (fa4e628, degrading to solo without the columns). Committed on the desk's slot
- * signal; the schema was already live on the dev box (a peer's migrate applied
- * the held file — the shared-folder hazard), so this commit makes the applied
- * state official.
+ * database/schema/pgsql-schema.sql). Real-dated LAST in the wave-3 slot (the
+ * desk's order 1 → 15 → me) — after lane 1's Type B district grouping
+ * (2026_07_29_150000) and lane 15's education tables (2026_07_29_190000). The
+ * service/CLI/UI layer shipped ahead of it (fa4e628, degrading to solo without
+ * the columns); this migration lands on the desk's slot signal. down() proven
+ * live before this landed (batch-scoped rollback, DemoMeshTimeCoordinationMigrationTest).
  *
  * WHY. Full Faith & Credit syncs *records*, not *time*. When a mesh made only of
  * declared demo instances time-travels (the ruled capability, §10 item 4), each

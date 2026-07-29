@@ -9,17 +9,17 @@ use Tests\TestCase;
 
 /**
  * REVERSIBILITY PIN — the demo-mesh time coordination migration
- * (2026_07_29_180000_demo_mesh_time_coordination) is honestly reversible.
+ * (2026_07_29_200000_demo_mesh_time_coordination) is honestly reversible.
  *
- * The desk asks that a schema migration's down() be proven LIVE at the cheap
- * moment (empty tables). It cannot be proven with `migrate:rollback` here: the
- * migration landed early (a peer's migrate swept the held file) into an EARLIER
- * batch than lane 15's education schema, so a batch rollback would take lane 15's
- * tables with it — never acceptable. So the proof runs the migration's OWN up()
- * and down() against the live connection inside a rolled-back transaction: the
- * real DDL executes (Postgres transactional DDL), both directions are asserted,
- * and the rollback leaves the applied schema — and every other lane's — exactly
- * as it was. This is the live proof without the collateral.
+ * The desk asked down() be proven LIVE at the cheap moment (empty tables). It
+ * was, once, at landing: `migrate:rollback --batch=<this migration's batch>`
+ * reverted THIS migration alone — batch-scoped, so lane 15's later-batch
+ * education schema was untouched — then `migrate` re-applied it fresh at
+ * 2026_07_29_200000. This test is the PERMANENT pin that keeps it reversible:
+ * it runs the migration's OWN up() and down() against the live connection inside
+ * a rolled-back transaction, so the real DDL executes (Postgres transactional
+ * DDL), both directions are asserted, and the rollback leaves the applied schema
+ * — and every other lane's — exactly as it was. Re-checked on every suite run.
  */
 class DemoMeshTimeCoordinationMigrationTest extends TestCase
 {
@@ -36,10 +36,10 @@ class DemoMeshTimeCoordinationMigrationTest extends TestCase
 
         try {
             $migration = require base_path(
-                'database/migrations/2026_07_29_180000_demo_mesh_time_coordination.php'
+                'database/migrations/2026_07_29_200000_demo_mesh_time_coordination.php'
             );
 
-            // Precondition: the schema is applied (a peer's migrate landed it).
+            // Precondition: the schema is applied (landed at 2026_07_29_200000).
             $this->assertTrue(Schema::hasColumn('instance_settings', 'time_coordinator_server_id'));
             $this->assertTrue(Schema::hasTable('demo_time_advances'));
 

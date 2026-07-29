@@ -34,7 +34,7 @@ use Tests\TestCase;
  * Built and tested against the written-but-unlanded migration: the schema is
  * created inside the same rolled-back transaction the body runs in (Postgres
  * transactional DDL), so this is green whether or not
- * 2026_07_29_180000_demo_mesh_time_coordination has been applied. The DDL here
+ * 2026_07_29_200000_demo_mesh_time_coordination has been applied. The DDL here
  * mirrors that migration exactly — if they drift, THIS is the copy to fix.
  *
  * The clock engine is a double: this pins the COORDINATION logic (ledger, gate,
@@ -335,7 +335,7 @@ class DemoMeshTimeCoordinatorTest extends TestCase
 
     /**
      * The written-but-unlanded schema, created inside the current transaction so
-     * it is undone on rollback. Mirrors 2026_07_29_180000 exactly; IF NOT EXISTS
+     * it is undone on rollback. Mirrors 2026_07_29_200000 exactly; IF NOT EXISTS
      * makes it a no-op once that migration lands.
      */
     private function ensureSchema(): void
