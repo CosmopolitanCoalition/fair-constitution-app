@@ -1,7 +1,7 @@
 {
  "asOf": "2026-07-29",
- "commit": "c03b72f",
- "wave": "WAVE 2 closing \u2014 2/15/4/13/1 DONE; 3 mid-punch; 6 on support; 5 NLLB report pending",
+ "commit": "a2fbeea",
+ "wave": "WAVE 2 \u2014 7 of 8 lanes DONE (only lane 3 punch tail + lane 2 one column remain); lane 6 support lifecycle complete",
  "rows": [
   {
    "file": "civic/join.html",
@@ -2418,8 +2418,8 @@
    "area": "learn-tr-support",
    "areaLabel": "Learn \u00b7 translation \u00b7 support",
    "owner": "lanes 5 \u00b7 15 \u00b7 6",
-   "bucket": "partial",
-   "effort": "M",
+   "bucket": "built",
+   "effort": "none",
    "page": "resources/js/Pages/Support/Report.vue",
    "route": "GET /support/report",
    "props": "partial",
@@ -2446,7 +2446,10 @@
     "F-SOC-003 carve-out plain-words note on conduct/legal categories",
     "flash reference number for follow-up"
    ],
-   "notes": "The intake works end-to-end (validated store, public_id, ref sanitization) and self-describes as 'deliberately simple \u2014 restyled in a later phase'. Closing it is one-surface rework plus reconciling the category taxonomy to the spec; the queue link lands with the tickets row."
+   "notes": "The intake works end-to-end (validated store, public_id, ref sanitization) and self-describes as 'deliberately simple \u2014 restyled in a later phase'. Closing it is one-surface rework plus reconciling the category taxonomy to the spec; the queue link lands with the tickets row. CLOSED 2026-07-29 (096a1e9): the ruled routed six \u2014 abuse OFF-queue to moderation, translation to its interface, idea to backlog; intake shows \"Goes to:\".",
+   "page_path": "resources/js/Pages/Support/Report.vue",
+   "page_exists": true,
+   "routed": true
   },
   {
    "file": "support/tickets.html",
@@ -2454,10 +2457,10 @@
    "area": "learn-tr-support",
    "areaLabel": "Learn \u00b7 translation \u00b7 support",
    "owner": "lanes 5 \u00b7 15 \u00b7 6",
-   "bucket": "absent",
-   "effort": "L",
+   "bucket": "built",
+   "effort": "none",
    "page": "",
-   "route": "",
+   "route": "GET /support/tickets",
    "props": "none",
    "backend": "partial",
    "propsMissing": [],
@@ -2475,7 +2478,10 @@
     "report CTA"
    ],
    "appAhead": [],
-   "notes": "supports_reports rows exist with category, status (open/triaged/closed), reporter, ref, timestamps \u2014 a browsable queue is a new page + controller + small schema additions on top. No ticket-shaped UI exists anywhere (Operator pages have zero support mentions)."
+   "notes": "supports_reports rows exist with category, status (open/triaged/closed), reporter, ref, timestamps \u2014 a browsable queue is a new page + controller + small schema additions on top. No ticket-shaped UI exists anywhere (Operator pages have zero support mentions). CLOSED 2026-07-29 (2c23d49): reporter tracks own reports; operator sees all + triages; stranger 404. SupportLifecycleTest 4/4.",
+   "page_path": "resources/js/Pages/Support/Tickets.vue",
+   "page_exists": true,
+   "routed": true
   },
   {
    "file": "support/ticket.html",
@@ -2483,10 +2489,10 @@
    "area": "learn-tr-support",
    "areaLabel": "Learn \u00b7 translation \u00b7 support",
    "owner": "lanes 5 \u00b7 15 \u00b7 6",
-   "bucket": "absent",
-   "effort": "L",
+   "bucket": "built",
+   "effort": "none",
    "page": "",
-   "route": "",
+   "route": "GET /support/ticket/{ref}",
    "props": "none",
    "backend": "partial",
    "propsMissing": [],
@@ -2504,7 +2510,10 @@
     "route-note blocks linking the translation review queue or the moderation & legal plane"
    ],
    "appAhead": [],
-   "notes": "Only the intake row exists; the lifecycle after filing (thread, replies, votes, crosslinks) has no tables, controller, or page. The translation crosslink target (/system/translations/review/{code}?m=) already exists, so linkage is a foreign key + render once the page is built."
+   "notes": "Only the intake row exists; the lifecycle after filing (thread, replies, votes, crosslinks) has no tables, controller, or page. The translation crosslink target (/system/translations/review/{code}?m=) already exists, so linkage is a foreign key + render once the page is built. CLOSED 2026-07-29 (2c23d49): detail + operator status/severity triage; reporter-forbidden pinned.",
+   "page_path": "resources/js/Pages/Support/Ticket.vue",
+   "page_exists": true,
+   "routed": true
   },
   {
    "file": "index.html",
