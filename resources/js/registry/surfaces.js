@@ -202,15 +202,21 @@ export const SITEMAP = [
    contract (the Phase-10a acceptance checklist). Stops must be reachable by
    any signed-in player (no role-gated pages). */
 export const TOUR = [
+    { act: 'Arrive', href: '/register', title: 'Create your account', blurb: 'A name and a way back in. Nothing here is asked to prove you deserve a vote — living somewhere is the whole test.' },
+    { act: 'Arrive', href: '/launchpad', title: 'The four doors', blurb: 'The whole world, four ways in: be a resident, watch a government work, run an organization, or run a node.' },
     { act: 'Arrive', href: '/civic', title: 'Home', blurb: 'What’s happening now, and what’s yours to act on.' },
     { act: 'Arrive', href: '/civic/record', title: 'My record', blurb: 'Your civic life in one place — residency, votes cast (never how), and your public acts.' },
     { act: 'Arrive', href: '/journeys', title: 'Journeys', blurb: 'Learn by doing — each journey walks one real process; finishing one goes on your profile.' },
+    { act: 'Arrive', href: '/learn', title: 'Learn', blurb: 'Plain-language explanations of how any of this works. Reading costs nothing and unlocks nothing — knowing is not a qualification.' },
     { act: 'Arrive', href: '/civic/residency', title: 'Say where you live', blurb: 'Living in a place is the only requirement for every right here.' },
     { act: 'Your place', href: '/jurisdictions', title: 'Places', blurb: 'Every place on Earth, planet to neighborhood — each governs itself.' },
     { act: 'Your place', href: '/legislatures', title: 'Legislatures', blurb: 'Every chamber, sized by population — seats follow people.' },
     { act: 'Speak & gather', href: '/civic/square', title: 'The public square', blurb: 'Open speech on the public record — no one can quietly remove it.' },
     { act: 'Speak & gather', href: '/civic/rooms', title: 'Messages', blurb: 'Direct and group messages — private, like a ballot.' },
     { act: 'Speak & gather', href: '/civic/petitions', title: 'Petitions', blurb: 'Gather signatures to put a question to everyone.' },
+    { act: 'Speak & gather', href: '/civic/halls', title: 'The halls', blurb: 'Where a place talks to itself — threads bound to the bills, candidacies and petitions actually in front of it.' },
+    { act: 'Speak & gather', href: '/civic/commons/square', title: 'A place’s commons — the square', blurb: 'The square scoped to one jurisdiction: the same open record, only about here.' },
+    { act: 'Speak & gather', href: '/civic/commons/halls', title: 'A place’s commons — the halls', blurb: 'Testimony that can be sealed into the permanent record — speech that becomes evidence.' },
     { act: 'An election', href: '/elections', title: 'An election', blurb: 'The race, its phase, and the clock.' },
     { act: 'An election', href: '/elections/open-ballot', title: 'Open ballot', blurb: 'The approval phase — quietly approve the people you’d want on the ballot.' },
     { act: 'An election', href: '/elections/ranked-ballot', title: 'Ranked ballot', blurb: 'Rank your choices — seats go out in fair shares, and no vote is wasted.' },
@@ -266,6 +272,13 @@ export const TOUR = [
     { act: 'Run a node', href: '/operator', title: 'The operator plane', blurb: 'The volunteer servers the world runs on — keeping one online buys no vote and no seat.' },
     { act: 'Run a node', href: '/operator/dns', title: 'DNS & certificates', blurb: 'How a node is reached on the network, and how it proves it’s really itself.' },
     { act: 'Run a node', href: '/operator/moderation', title: 'Moderation & the legal floor', blurb: 'The only removals allowed — four narrow carve-outs, never a viewpoint.' },
+    { act: 'Run a node', href: '/operator/console', title: 'The node console', blurb: 'One node’s own health and state. Everything here is a gauge, never a lever over anybody’s rights.' },
+    { act: 'Run a node', href: '/operator/roles', title: 'Who runs this node', blurb: 'The people trusted with the machine — a separate question from who holds office, and it confers none.' },
+    { act: 'Run a node', href: '/operator/mesh', title: 'The mesh', blurb: 'Which other instances this one has met, and what it accepts from them.' },
+    { act: 'Run a node', href: '/operator/identity', title: 'Identity & keys', blurb: 'How this node proves it is itself, and how it recognises its neighbours.' },
+    { act: 'Run a node', href: '/operator/versioning', title: 'Versions & upgrades', blurb: 'What code this node is running — one world can span versions, so it has to be legible.' },
+    { act: 'Run a node', href: '/operator/operations', title: 'Day-to-day operations', blurb: 'Backups, queues and the jobs that keep the clocks turning.' },
+    { act: 'Run a node', href: '/operator/federation', title: 'Federation console', blurb: 'Peering, Full Faith & Credit, and which instance is authoritative for what.' },
     /* The LIVE CIVIC ROOM keystone (lane 3, Slice 6 — landed 0f6ea40, desk-
        unblocked). The meeting UUID is a lane-3 demo artifact (San Marino's
        Committee on Public Works hearing): a public gallery read, walkable
