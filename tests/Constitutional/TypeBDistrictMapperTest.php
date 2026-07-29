@@ -128,15 +128,25 @@ class TypeBDistrictMapperTest extends TestCase
         }
     }
 
-    /** Deterministic: identical inputs give byte-identical panels. */
+    /**
+     * Deterministic AND order-independent: identical inputs give byte-identical
+     * results, and REORDERING the input map does not change the panels (the walk
+     * ranks by (distance, population, id), never by array position).
+     */
     public function test_deterministic(): void
     {
         $pops = ['a' => 5, 'b' => 6, 'c' => 7, 'd' => 8, 'e' => 9];
         $r1 = TypeBDistrictMapper::computePanels($pops, [], 4, 35, 2);
         $r2 = TypeBDistrictMapper::computePanels($pops, [], 4, 35, 2);
 
-        $this->assertSame($r1['panels'], $r2['panels']);
-        $this->assertSame($r1['signature'] ?? null, $r2['signature'] ?? null);
+        // The ENTIRE result is deterministic, not just the panels.
+        $this->assertSame($r1, $r2, 'identical inputs give a byte-identical result');
+
+        // Order-independence: the same constituents in a different map order
+        // must produce the same panels (no reliance on PHP insertion order).
+        $reordered = ['e' => 9, 'c' => 7, 'a' => 5, 'd' => 8, 'b' => 6];
+        $r3 = TypeBDistrictMapper::computePanels($reordered, [], 4, 35, 2);
+        $this->assertSame($r1['panels'], $r3['panels'], 'panels are independent of input map order');
     }
 
     /**
@@ -174,5 +184,49 @@ class TypeBDistrictMapperTest extends TestCase
         $this->assertSame(0, $r['panel_count']);
         $this->assertSame(0, $r['seats']);
         $this->assertSame([], $r['panels']);
+    }
+
+    /**
+     * THE HARD CAP OVER A WHOLE PANEL (B3): when the combined cap leaves less
+     * than one full panel's headroom (bound < rep_floor), the mapper seats ZERO
+     * panels — never a full panel that would put type_a + type_b over population.
+     * The ladder floors these micro-populations the same way; the mapper must
+     * not diverge and over-seat. (Regression: the old undercount branch forced
+     * one panel and produced 7 reps for 6 people.)
+     */
+    public function test_bound_below_one_panel_seats_zero_not_a_full_panel(): void
+    {
+        // pop 6, two children of 3, type_a 5: bound = min(5, 6-5) = 1 < rep_floor 2.
+        // B3 invariant: type_b <= max(0, population - type_a) — the seats
+        // population leaves after type_a (type_a's own min-5 floor is a separate
+        // hardened rule and may itself exceed a micro-population).
+        $r = TypeBDistrictMapper::computePanels(['a' => 3, 'b' => 3], [], 5, 6, 2);
+        $this->assertSame(0, $r['panel_count'], 'no whole panel fits under the cap');
+        $this->assertSame(0, $r['seats'], 'zero Type B seats — never more reps than people');
+        $this->assertTrue($r['undercount'], 'the sub-panel headroom is a genuine undercount');
+        $this->assertLessThanOrEqual(max(0, 6 - 5), $r['seats'], 'type_b never exceeds what population leaves');
+
+        // The starkest: pop 4, two of 2, type_a 5 → bound 0.
+        $r2 = TypeBDistrictMapper::computePanels(['a' => 2, 'b' => 2], [], 5, 4, 2);
+        $this->assertSame(0, $r2['seats']);
+        $this->assertLessThanOrEqual(max(0, 4 - 5), $r2['seats']);
+    }
+
+    /**
+     * B2 ON THE ISLAND / NO-SIGNAL PATH: with no adjacency and no centroids
+     * (unmaterialised ETL, far-flung archipelago) and id anti-correlated with
+     * population, the undiluted size-1 panel must go to the HIGHEST-population
+     * constituent — the remainder is borne by the lowest. (Regression: the old
+     * id-ordered fallback gave the undiluted panel to a lowest-pop constituent.)
+     */
+    public function test_island_path_puts_the_remainder_on_lowest_population(): void
+    {
+        $pops = ['j_aaa' => 500, 'j_bbb' => 100, 'j_ccc' => 400, 'j_ddd' => 100, 'j_eee' => 100];
+        $r = TypeBDistrictMapper::computePanels($pops, [], 6, 1200, 2);
+
+        $this->assertSame(3, $r['panel_count']);
+        $singles = array_values(array_filter($r['panels'], fn ($p) => count($p) === 1));
+        $this->assertCount(1, $singles);
+        $this->assertSame(['j_aaa'], $singles[0], 'the undiluted panel goes to the highest-population constituent (B2)');
     }
 }

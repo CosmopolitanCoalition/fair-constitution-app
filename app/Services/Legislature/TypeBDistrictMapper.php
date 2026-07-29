@@ -91,13 +91,18 @@ class TypeBDistrictMapper
 
         // Maximum panels the bound allows; each panel seats rep_floor (B1).
         $pMax = intdiv($bound, $repFloor);
-        $undercount = false;
         if ($pMax < 1) {
-            // The bound cannot hold even one full panel (a micro-population the
-            // combined cap already squeezed). Seat one panel and flag the
-            // undercount rather than silently dropping the chamber.
-            $pMax = 1;
-            $undercount = true;
+            // The B3 combined cap leaves less than one full panel's worth of
+            // population headroom (bound < rep_floor — a micro-population where
+            // type_a already meets or exceeds the people). Seating even ONE
+            // panel would put type_a + type_b OVER population, the exact thing
+            // the cap forbids. So seat ZERO panels: the chamber lawfully has no
+            // Type B seats (the ladder floors these to 0/1 for the same reason;
+            // a sub-panel seat cannot be filled by a whole rep_floor panel).
+            // Flag the undercount for the record — the cap is a HARD ceiling, so
+            // undershooting is lawful where overshooting is not. DRIFT law: a
+            // total that misses is a drawing defect here, never lawful over-seating.
+            return self::result([], $repFloor, 0, $inert, $bound, true);
         }
         $p = min($pMax, $n);
 
@@ -121,7 +126,9 @@ class TypeBDistrictMapper
             $cursor  += $size;
         }
 
-        return self::result($panels, $repFloor, $p, $inert, $bound, $undercount);
+        // The tight-bound (undercount) case early-returned above; a full grouping
+        // is never an undercount.
+        return self::result($panels, $repFloor, $p, $inert, $bound, false);
     }
 
     /**
@@ -195,7 +202,8 @@ class TypeBDistrictMapper
 
     /**
      * Nearest unvisited constituent by centroid distance (B4 island fallback);
-     * with no centroid data, the lowest-id unvisited node (deterministic).
+     * distance ties — and the no-centroid case, one giant tie — break by
+     * LOWEST POPULATION (B2), then lowest id (deterministic).
      *
      * @param array<string,int>                    $populations
      * @param array<string,array{x:float,y:float}> $centroids
@@ -216,9 +224,22 @@ class TypeBDistrictMapper
                 $dy = $centroids[$cur]['y'] - $centroids[$id]['y'];
                 $d  = $dx * $dx + $dy * $dy;
             } else {
-                $d = INF; // no geometry to compare — falls to id order below
+                $d = INF; // no geometry to compare — population breaks the tie below
             }
-            if ($d < $bestD || ($d === $bestD && ($best === null || $id < $best))) {
+            // Nearest distance first (compactness). On a distance TIE — and the
+            // all-INF no-geometry case is one giant tie — fall back to POPULATION
+            // so the remainder-bearing head of the walk stays lowest-population
+            // (B2), then id for determinism. Ordering the tail by id (the old
+            // behaviour) inverted B2 whenever id and population anti-correlate.
+            $isBetter = false;
+            if ($best === null || $d < $bestD) {
+                $isBetter = true;
+            } elseif ($d === $bestD) {
+                $pi = $populations[$id];
+                $pb = $populations[$best];
+                $isBetter = $pi < $pb || ($pi === $pb && $id < $best);
+            }
+            if ($isBetter) {
                 $best = $id;
                 $bestD = $d;
             }
@@ -372,16 +393,22 @@ class TypeBDistrictMapper
                 }
             }
 
-            // Recompute the chamber and CLEAR the flag — the R-A guard un-blocks
-            // the Type B race the instant type_b_needs_districting is false.
-            $totalSeats = (int) $leg->type_a_seats + $plan['seats'];
-            DB::table('legislatures')->where('id', $leg->id)->update([
-                'type_b_seats'             => $plan['seats'],
-                'type_b_needs_districting' => false,
-                'total_seats'              => $totalSeats,
-                'quorum_required'          => max(3, (int) ceil($totalSeats / 2)),
-                'updated_at'               => now(),
-            ]);
+            // B7: only an ACTIVE plan takes effect THIS term. Recompute the
+            // chamber and CLEAR the flag ONLY for an active grouping — the R-A
+            // guard un-blocks the Type B race the instant type_b_needs_districting
+            // is false. A DRAFT is a next-term plan: it persists as a grouping
+            // (above) but MUST NOT resize or un-flag the sitting chamber — sitting
+            // members serve out; the draft seats only when it is later activated.
+            if ($status === 'active') {
+                $totalSeats = (int) $leg->type_a_seats + $plan['seats'];
+                DB::table('legislatures')->where('id', $leg->id)->update([
+                    'type_b_seats'             => $plan['seats'],
+                    'type_b_needs_districting' => false,
+                    'total_seats'              => $totalSeats,
+                    'quorum_required'          => max(3, (int) ceil($totalSeats / 2)),
+                    'updated_at'               => now(),
+                ]);
+            }
 
             app(AuditService::class)->append(
                 module: 'elections',

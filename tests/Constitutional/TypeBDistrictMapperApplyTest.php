@@ -184,6 +184,34 @@ class TypeBDistrictMapperApplyTest extends TestCase
     }
 
     /**
+     * B7 — a DRAFT plan does NOT disturb the sitting chamber. apply(status=draft)
+     * persists a draft grouping but must leave type_b_needs_districting set and
+     * the legislature's seats untouched — sitting members serve out; the draft
+     * seats only when it is later activated. (Regression: the legislatures update
+     * ran unconditionally, so a draft cleared the flag and resized this term.)
+     */
+    public function test_a_draft_grouping_does_not_disturb_the_sitting_chamber(): void
+    {
+        $this->onLivePg(function (): void {
+            $tag = 'tbtest-' . Str::lower(Str::random(6));
+            $legId = $this->seedFlagged($tag, 8, 5, $childIds);
+
+            (new TypeBDistrictMapper())->apply($legId, 'draft');
+
+            // The draft grouping persists; no active grouping is created.
+            $this->assertSame(1, DB::table('legislature_type_b_groupings')
+                ->where('legislature_id', $legId)->where('status', 'draft')->count());
+            $this->assertSame(0, DB::table('legislature_type_b_groupings')
+                ->where('legislature_id', $legId)->where('status', 'active')->count());
+
+            // The sitting chamber is UNTOUCHED — still flagged, still 16 seats.
+            $leg = DB::table('legislatures')->where('id', $legId)->first();
+            $this->assertTrue((bool) $leg->type_b_needs_districting, 'a draft does NOT clear the flag');
+            $this->assertSame(16, (int) $leg->type_b_seats, 'a draft does NOT resize the sitting chamber');
+        });
+    }
+
+    /**
      * Seed a flagged chamber: parent + $n inhabited children (pop 10) in a line,
      * Type A $typeA, type_b flagged. Returns the legislature id; fills $childIds.
      *
