@@ -23,7 +23,7 @@
    The player tier — where you actually go. Mirrors the mockups' "Go". */
 export const PLAYER_NAV = [
     { id: 'home', label: 'Home', icon: 'home', href: '/civic', contract: 'civic/today.html', phase: 3 },
-    { id: 'atlas', label: 'The Atlas', icon: 'globe', href: null, contract: 'atlas.html', phase: 7 },
+    { id: 'atlas', label: 'The Atlas', icon: 'globe', href: '/atlas', contract: 'atlas.html', phase: 7 },
     { id: 'public-square', label: 'The square', icon: 'users', href: '/civic/square', contract: 'social/social-home.html', phase: 3 },
     { id: 'rooms', label: 'Messages', icon: 'message-square', href: '/civic/rooms', contract: 'groups/groups-home.html', phase: 3 },
     { id: 'commons-square', label: 'Live rooms', icon: 'landmark', href: '/civic/commons/square', contract: 'shared/live-room.html?variant=group', phase: 6 },

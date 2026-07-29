@@ -1122,6 +1122,25 @@ return [
             .'(that is the allegiance/restoration test — see RestorationService) · Preamble; Art. I; Art. II §1',
     ],
 
+    // ── The Atlas — the whole world on one read-only screen (lane 4, W4①) ──
+    // Sits beside Reach deliberately: it is the same legitimacy_snapshots spine
+    // summed to the planet, read from the nightly world_stats rollup and NEVER
+    // counted live. Like Reach it offers no action, and for the same reason.
+    'system/atlas' => [
+        'title'     => 'The Atlas',
+        'module'    => 'system',
+        'nav'       => 'atlas',
+        // DESCRIPTIVE only — SurfaceMeta roles never gate a route. Watching the
+        // world is a citizen's business, so every role reads it alike.
+        'roles'     => ['R-01', 'R-02', 'R-03', 'R-04'],
+        'workflows' => [],
+        'forms'     => [],
+        'clocks'    => [],
+        'citation'  => 'A live heartbeat of the whole game. A gauge, never a lever — nothing here '
+            .'changes a vote, a seat or a right, and no figure on it is ever consulted on a rights '
+            .'path. A withheld number is a gap, never a zero (k-anonymity floor 5) · Preamble; Art. I',
+    ],
+
     'social/profile' => [
         'title'     => 'Profile',
         'module'    => 'social',

@@ -249,6 +249,15 @@ Route::post('/building/provision', [\App\Http\Controllers\BuildProgressControlle
 // once a day.
 Route::get('/reach', [\App\Http\Controllers\ReachController::class, 'index'])->name('reach.index');
 
+// ── The Atlas — the whole world on one screen (lane 4, W4①; ATLAS_DESIGN.md) ────────────
+// PUBLIC READ, never operator-walled: watching the world is a citizen's business. Same rail
+// as /reach and for the same reason — a gauge, never a lever (CI-1). It reads the nightly
+// `world_stats` rollup and NEVER counts the world live: computing the vital signs per request
+// is the ~75s SimConsoleController::world() aggregate, and a live headcount would defeat the
+// k-anonymity the nightly snapshot exists to protect. A withheld figure renders as a gap,
+// never a zero — which is also why the page is honest before the rollup has ever run.
+Route::get('/atlas', [\App\Http\Controllers\System\AtlasController::class, 'index'])->name('atlas.index');
+
 // ── The public person profile — the ?who= page (v3.2 0a: one person = one profile) ──────
 // PUBLIC read: a profile is the person shown the same way everyone is — candidacy and
 // office are tabs, never separate identities. Pseudonymity end-to-end (Art. I); the old
