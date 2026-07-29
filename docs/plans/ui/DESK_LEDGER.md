@@ -1318,3 +1318,39 @@ retires the freeze.** THE WAVE IS GREEN.
 relocation 69c4b9d; only `today` feed-breadth left → then social/groups → bill.html). Prop-drift caught
 pre-commit (relocation jurisdiction string→{id,name} would've printed [object Object]; reverted clean).
 Green-gate log saved at docs/plans/ui/w4_greengate.log. **NEXT: the rubric refresh (operator request).**
+
+### W4 tick 18 — post-gate landings: per-child + pump-wiring + Niue void; gate HELD for the per-child transition
+
+**LANE 1 — per-child LANDED (c96e757):** racePlan mode='children' for unflagged type_b (one at-large race per
+direct child, seats = TypeBSeatLadder::sumAt, drift guard Σ==type_b_seats) + createRaces + PerKindRacePlanTest
+9/9. **The pooled Type B shape is FULLY RETIRED** (at_large = type_a-only). Niue reshape confirmed live (5 panels
+per-clump, 2 cancelled, next mint per-clump). Headline unblock complete on BOTH paths (grouped + ungrouped).
+
+**⚑ FLAG 1 RULED — one editor per file (overruled the literal "one commit").** A CAS commit captures the WHOLE
+file, so lane 1 co-editing lane 4's ElectionStageTest would sweep. LANE 4 owns ALL 3 ElectionStage rewrites
+(1141 + partial-block + exactly-enough) with lane 1's shape/doctrine; lane 1 owns racePlan + PerKindRacePlanTest
+(done). Commit-law wins over the one-commit ideal.
+
+**⚑ FLAG 2 APPROVED (sequenced) — live per-clump Niue general** for the operator's walk (makes the Type B unblock
+VISIBLE). Lane 1 schedules it AFTER the per-child re-gate (not during the transition red window). Niue-specific,
+doesn't touch the suite.
+
+**⚑ GATE HELD — per-child is mid-transition, 6 KNOWN reds (NOT defects).** L1's racePlan is committed but the
+co-owned fixtures aren't: L3 CountingStage×2/SeatingStage×1 + L4 ElectionStage×3 (1141/partial-block/exactly-
+enough) fail against c96e757 until rewritten. This is the "run the full suite at every gate, but a red
+mid-transition isn't a defect" nuance. Lane 2 told to HOLD the next authoritative gate; desk re-gates (fresh
+quiet window + freeze + chown) once L3+L4 land their fixtures. The 1343/0 gate stands as the wave's green signal.
+
+**LANE 4 — WAVE 4 COMPLETE (all 4 + debt).** Pump wiring BUILT + AUTONOMOUS (2ad8b1b): governance phase
+(seating→governance→verifying), DISTINCT ON per-jurisdiction mint, no runaway by construction (ungovernable
+chamber COMPLETES with its reason), SimGovernanceWiringTest 4/4. 38 pins green (850 asserts). Only Q4a (operator).
+
+**LANE 3 — Niue void #29 DONE:** 2 pooled elections cancelled (triple-guarded: status + jurisdiction + pooled-
+shape), 3 certified untouched. ① fully closed. Now owns CountingStage/SeatingStage per-child fixture rewrites.
+
+**LANE 6 — item ① CIVIC COMPLETE (6/6):** today feed (7ef2b00, committee hearings; other mockup kinds correctly
+left out — no source table = would be fabricated). Session total: 2 gate reds + 4 unplanned bugs + tour 47→60 +
+secrecy hardened. Continuing ② social/groups → ③ bill.html.
+
+**RUBRIC note:** pump-wiring + Niue-void now DONE (rubric shows "active" — minor staleness); per-child ACTIVE
+(transition). Regen after the per-child re-gate locks the post-per-child green.
