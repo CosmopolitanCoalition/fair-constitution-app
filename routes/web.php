@@ -268,10 +268,16 @@ Route::get('/atlas', [\App\Http\Controllers\System\AtlasController::class, 'inde
 Route::get('/people', [\App\Http\Controllers\Social\PersonProfileController::class, 'show'])
     ->middleware('throttle:60,1')->name('people.show');
 Route::middleware('auth')->group(function () {
+    // The self-edit door (F-IND-002) — no {user}: you edit only your own.
+    Route::post('/people/profile', [\App\Http\Controllers\Social\PersonProfileController::class, 'updateProfile'])
+        ->name('people.profile.update');
     Route::post('/people/{user}/follow', [\App\Http\Controllers\Social\PersonProfileController::class, 'follow'])
         ->whereUuid('user')->name('people.follow');
     Route::delete('/people/{user}/follow', [\App\Http\Controllers\Social\PersonProfileController::class, 'unfollow'])
         ->whereUuid('user')->name('people.unfollow');
+    // Open a direct message with someone you found through their public acts.
+    Route::post('/people/{user}/message', [\App\Http\Controllers\Social\PersonProfileController::class, 'message'])
+        ->whereUuid('user')->name('people.message');
 });
 
 // ── The achievements page — the full catalog over the sealed ledger (K-2) ───────────────

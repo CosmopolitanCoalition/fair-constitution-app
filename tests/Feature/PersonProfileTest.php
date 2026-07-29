@@ -4,9 +4,13 @@ namespace Tests\Feature;
 
 use App\Models\Candidacy;
 use App\Models\Election;
+use App\Models\MatrixRoom;
 use App\Models\SocialFollow;
+use App\Models\SocialMembership;
 use App\Models\SocialProfile;
+use App\Models\SocialSpace;
 use App\Models\User;
+use App\Services\Matrix\MatrixRoomCreationService;
 use App\Services\RoleService;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
@@ -224,6 +228,106 @@ class PersonProfileTest extends TestCase
 
             $this->actingAs($viewer)->get('/people')
                 ->assertRedirect('/people?who='.$viewer->id);
+        });
+    }
+
+    public function test_the_self_edit_door_files_f_ind_002_and_withholds_social_values(): void
+    {
+        $this->onLivePg(function () {
+            // Guest: the self-edit door is auth-gated.
+            $this->post('/people/profile', ['display_name' => 'x'])->assertRedirect(route('login'));
+
+            $user = $this->aUser('Editor Person');
+            $secretBio = 'A distinctive private bio zzq-'.substr((string) $user->id, 0, 6);
+            $handle = 'editor-'.substr((string) $user->id, 0, 8);
+
+            $this->actingAs($user)->post('/people/profile', [
+                'display_name' => 'Edited Display',
+                'handle' => $handle,
+                'bio' => $secretBio,
+                'visibility' => 'private',
+            ])->assertRedirect();
+
+            // The user row AND the social profile both applied.
+            $this->assertSame('Edited Display', $user->fresh()->display_name);
+            $profile = SocialProfile::query()->where('user_id', (string) $user->id)->first();
+            $this->assertNotNull($profile);
+            $this->assertSame($handle, $profile->handle);
+            $this->assertSame($secretBio, $profile->bio);
+            $this->assertSame(SocialProfile::VISIBILITY_PRIVATE, $profile->visibility);
+
+            // The chain records the ACT — but NOT the social values. A chained
+            // handle history is a de-anon vector; a private bio is private.
+            $payload = (string) DB::table('audit_log')
+                ->where('ref', 'F-IND-002')->where('rejected', false)
+                ->where('actor_user_id', (string) $user->id)
+                ->orderByDesc('seq')->value('payload');
+
+            $this->assertNotSame('', $payload, 'the edit filed a F-IND-002 chain entry');
+            $this->assertStringNotContainsString($secretBio, $payload, 'the bio value must never reach the public chain');
+            $this->assertStringNotContainsString($handle, $payload, 'the handle value must never reach the public chain');
+
+            $decoded = json_decode($payload, true);
+            $this->assertContains('handle', $decoded['changed_fields'] ?? []);
+            $this->assertContains('bio', $decoded['changed_fields'] ?? []);
+            // display_name is the chosen public pseudonym — its value may chain, as today.
+            $this->assertSame('Edited Display', $decoded['changes']['display_name'] ?? null);
+        });
+    }
+
+    public function test_a_duplicate_handle_is_refused_case_insensitively(): void
+    {
+        $this->onLivePg(function () {
+            $a = $this->aUser('Handle A');
+            $b = $this->aUser('Handle B');
+            $handle = 'shared-'.substr((string) $a->id, 0, 8);
+
+            SocialProfile::create([
+                'user_id' => (string) $a->id, 'handle' => $handle,
+                'visibility' => SocialProfile::VISIBILITY_PUBLIC,
+            ]);
+
+            // Upper-cased attempt still collides (we store + compare lower).
+            $this->actingAs($b)->post('/people/profile', ['handle' => strtoupper($handle)])
+                ->assertSessionHasErrors('handle');
+
+            $this->assertNull(SocialProfile::query()->where('user_id', (string) $b->id)->value('handle'));
+        });
+    }
+
+    public function test_message_opens_a_two_person_dm_idempotently(): void
+    {
+        $this->onLivePg(function () {
+            // Keep the Matrix side effect out of the rolled-back transaction —
+            // the DM's local substrate is what this pins.
+            $this->mock(MatrixRoomCreationService::class)
+                ->shouldReceive('createPrivateRoom')->andReturn(new MatrixRoom());
+
+            $me = $this->aUser('DM Initiator');
+            $them = $this->aUser('DM Recipient');
+
+            $resp = $this->actingAs($me)->post('/people/'.$them->id.'/message')->assertRedirect();
+            $spaceId = basename((string) parse_url($resp->headers->get('Location'), PHP_URL_PATH));
+
+            $space = SocialSpace::query()->find($spaceId);
+            $this->assertNotNull($space, 'the DM opened a room');
+            $this->assertSame(SocialSpace::TYPE_GROUP, $space->space_type);
+            $this->assertTrue((bool) $space->is_private);
+            $this->assertSame((string) $me->id, (string) $space->owner_user_id);
+
+            $members = SocialMembership::query()->where('space_id', $spaceId)
+                ->whereNull('deleted_at')->pluck('user_id')->map(fn ($x) => (string) $x)->sort()->values()->all();
+            $expected = collect([(string) $me->id, (string) $them->id])->sort()->values()->all();
+            $this->assertSame($expected, $members, 'a DM is exactly the two of them');
+
+            // Idempotent: a second message reuses the same room (one DM per pair).
+            $resp2 = $this->actingAs($me)->post('/people/'.$them->id.'/message')->assertRedirect();
+            $this->assertSame($spaceId, basename((string) parse_url($resp2->headers->get('Location'), PHP_URL_PATH)));
+            $this->assertSame(1, SocialSpace::query()
+                ->where('owner_user_id', (string) $me->id)->whereNull('deleted_at')->count());
+
+            // You cannot DM yourself.
+            $this->actingAs($me)->post('/people/'.$me->id.'/message')->assertStatus(422);
         });
     }
 

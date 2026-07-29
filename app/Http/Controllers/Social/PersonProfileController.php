@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Social;
 
+use App\Domain\Engine\ConstitutionalEngine;
 use App\Http\Controllers\Controller;
 use App\Http\Controllers\Elections\ElectionController;
 use App\Http\Presenters\CandidacyPanel;
@@ -9,14 +10,18 @@ use App\Models\AuditEntry;
 use App\Models\Candidacy;
 use App\Models\Endorsement;
 use App\Models\SocialFollow;
+use App\Models\SocialMembership;
 use App\Models\SocialProfile;
+use App\Models\SocialSpace;
 use App\Models\User;
 use App\Services\JourneyService;
+use App\Services\Social\PrivateRoomService;
 use App\Support\SurfaceMeta;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
+use Illuminate\Validation\Rule;
 use Inertia\Inertia;
 use Inertia\Response;
 
@@ -57,6 +62,8 @@ class PersonProfileController extends Controller
     public function __construct(
         private readonly CandidacyPanel $candidacyPanel,
         private readonly JourneyService $journeys,
+        private readonly ConstitutionalEngine $engine,
+        private readonly PrivateRoomService $rooms,
     ) {
     }
 
@@ -121,6 +128,17 @@ class PersonProfileController extends Controller
             'tab' => $tab,
             'tabs' => $tabs,
             'isSelf' => $isSelf,
+            // The message door: you can DM anyone but yourself, once signed
+            // in. Reached FROM a profile you found through someone's public
+            // acts — never a directory search (Art. I: no user directory).
+            'canMessage' => $viewer !== null && ! $isSelf,
+            // Raw editable values for the self-edit door (F-IND-002) — self only.
+            'editable' => $isSelf ? [
+                'display_name' => $subject->display_name,
+                'handle'       => $profile?->handle,
+                'bio'          => $profile?->bio,
+                'visibility'   => $profile?->visibility ?? SocialProfile::VISIBILITY_PUBLIC,
+            ] : null,
             'person' => $this->personFor($subject, $profile, $offices, $isSelf, $isPublicProfile),
             'follow' => [
                 'canFollow' => $viewer !== null && ! $isSelf,
@@ -175,9 +193,142 @@ class PersonProfileController extends Controller
         return back()->with('status', 'Unfollowed.');
     }
 
+    /**
+     * POST /people/profile — the self-edit door (F-IND-002 extension, W4
+     * §②). Files your public-profile changes through the engine: display
+     * name (the user row, chained as today) plus handle / bio / visibility
+     * (the social profile, values withheld from the chain — see the handler).
+     * Only fields that actually differ are filed — no no-op echo.
+     */
+    public function updateProfile(Request $request): RedirectResponse
+    {
+        $user = $request->user();
+
+        // Normalise the handle before the format + uniqueness rules run, so
+        // "MyHandle" and "myhandle" collide as they should (we store lower).
+        if (is_string($request->input('handle'))) {
+            $request->merge(['handle' => mb_strtolower(trim($request->input('handle')))]);
+        }
+
+        $validated = $request->validate([
+            'display_name' => ['sometimes', 'nullable', 'string', 'max:255'],
+            'handle'       => [
+                'sometimes', 'nullable', 'string',
+                'regex:/^[a-z0-9][a-z0-9_-]{2,63}$/',
+                Rule::unique('social_profiles', 'handle')
+                    ->ignore((string) $user->getKey(), 'user_id')
+                    ->whereNull('deleted_at'),
+            ],
+            'bio'          => ['sometimes', 'nullable', 'string', 'max:2000'],
+            'visibility'   => ['sometimes', Rule::in([
+                SocialProfile::VISIBILITY_PUBLIC,
+                SocialProfile::VISIBILITY_JURISDICTION,
+                SocialProfile::VISIBILITY_PRIVATE,
+            ])],
+        ]);
+
+        $profile = SocialProfile::query()->where('user_id', (string) $user->getKey())->first();
+        $payload = [];
+
+        if (array_key_exists('display_name', $validated)
+            && $validated['display_name'] !== null
+            && $validated['display_name'] !== $user->display_name) {
+            $payload['display_name'] = $validated['display_name'];
+        }
+
+        if (array_key_exists('handle', $validated) && $validated['handle'] !== null
+            && $validated['handle'] !== $profile?->handle) {
+            $payload['handle'] = $validated['handle'];
+        }
+
+        if (array_key_exists('bio', $validated)
+            && trim((string) ($validated['bio'] ?? '')) !== (string) ($profile?->bio ?? '')) {
+            $payload['bio'] = trim((string) ($validated['bio'] ?? ''));
+        }
+
+        if (array_key_exists('visibility', $validated)
+            && $validated['visibility'] !== $profile?->visibility) {
+            $payload['visibility'] = $validated['visibility'];
+        }
+
+        if ($payload === []) {
+            return back()->with('status', 'No changes — nothing was filed.');
+        }
+
+        $this->engine->file('F-IND-002', $user, $payload);
+
+        return back()->with('status', 'Profile updated.');
+    }
+
+    /**
+     * POST /people/{user}/message — open (or reopen) a direct message with
+     * this person (W4 §②). A DM is a two-person private room; it reuses the
+     * rooms plane, so it appears in both inboxes and both can talk. Bypassing
+     * the invite link is legitimate here: you reached this person through
+     * their public acts, not a directory the constitution forbids.
+     */
+    public function message(Request $request, User $user): RedirectResponse
+    {
+        $me = $request->user();
+
+        abort_if((string) $me->getKey() === (string) $user->getKey(), 422, 'You cannot message yourself.');
+
+        $space = $this->findDirect($me, $user);
+
+        if ($space === null) {
+            $space = $this->rooms->create($me, 'Direct message');
+            $this->rooms->admit($space, $user);
+        }
+
+        return redirect('/civic/rooms/' . $space->id)
+            ->with('status', 'Conversation opened.');
+    }
+
     // =========================================================================
     // Internals
     // =========================================================================
+
+    /**
+     * An existing direct message between exactly two people — a private
+     * group room whose entire membership is {me, them}. Keeps "message this
+     * person" idempotent (one DM per pair, not a new room per click).
+     */
+    private function findDirect(User $me, User $them): ?SocialSpace
+    {
+        $meId = (string) $me->getKey();
+        $themId = (string) $them->getKey();
+
+        $candidateIds = SocialMembership::query()
+            ->whereIn('user_id', [$meId, $themId])
+            ->whereNull('deleted_at')
+            ->groupBy('space_id')
+            ->havingRaw('count(distinct user_id) = 2')
+            ->pluck('space_id');
+
+        foreach ($candidateIds as $spaceId) {
+            $total = SocialMembership::query()
+                ->where('space_id', (string) $spaceId)
+                ->whereNull('deleted_at')
+                ->count();
+
+            if ($total !== 2) {
+                continue; // a larger group that happens to contain both — not a DM
+            }
+
+            $space = SocialSpace::query()
+                ->whereKey((string) $spaceId)
+                ->where('space_type', SocialSpace::TYPE_GROUP)
+                ->where('is_private', true)
+                ->whereNull('deleted_at')
+                ->first();
+
+            if ($space !== null) {
+                return $space;
+            }
+        }
+
+        return null;
+    }
 
     /**
      * A query value that is only ever a string: bracketed params

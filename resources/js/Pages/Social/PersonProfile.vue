@@ -43,6 +43,8 @@ const props = defineProps({
     tab: { type: String, default: 'overview' },
     tabs: { type: Array, default: () => ['overview', 'record'] },
     isSelf: { type: Boolean, default: false },
+    canMessage: { type: Boolean, default: false },
+    editable: { type: Object, default: null },
     person: { type: Object, required: true },
     follow: { type: Object, default: () => ({ canFollow: false, isFollowing: false }) },
     candidacies: { type: Array, default: () => [] },
@@ -109,6 +111,35 @@ function toggleFollow() {
     const opts = { preserveScroll: true, onFinish: () => (followBusy.value = false) };
     if (props.follow.isFollowing) router.delete(`/people/${props.person.id}/follow`, opts);
     else router.post(`/people/${props.person.id}/follow`, {}, opts);
+}
+
+const messageBusy = ref(false);
+
+/* Open (or reopen) a direct message — a 2-person private room. The server
+ * finds an existing DM or makes one, then lands us in it. */
+function messagePerson() {
+    if (messageBusy.value) return;
+    messageBusy.value = true;
+    router.post(`/people/${props.person.id}/message`, {}, {
+        onFinish: () => (messageBusy.value = false),
+    });
+}
+
+/* ─────────────────────────────────────────── self-edit door (F-IND-002) */
+
+const editing = ref(false);
+const profileForm = useForm({
+    display_name: props.editable?.display_name ?? '',
+    handle: props.editable?.handle ?? '',
+    bio: props.editable?.bio ?? '',
+    visibility: props.editable?.visibility ?? 'public',
+});
+
+function saveProfile() {
+    profileForm.post('/people/profile', {
+        preserveScroll: true,
+        onSuccess: () => (editing.value = false),
+    });
 }
 
 /* ───────────────────────────────── candidacy panel (the absorbed page) */
@@ -211,9 +242,93 @@ function submitRequest() {
                     @click="toggleFollow"
                 >{{ follow.isFollowing ? 'Following ✓' : 'Follow' }}</Btn>
                 <Btn v-else-if="!signedIn" :as="Link" href="/login" variant="primary" size="sm">Sign in to follow</Btn>
-                <Btn :as="Link" href="/civic/rooms" variant="secondary" size="sm">Message</Btn>
+                <Btn
+                    v-if="canMessage"
+                    variant="secondary"
+                    size="sm"
+                    :disabled="messageBusy"
+                    @click="messagePerson"
+                >Message</Btn>
+                <Btn v-else-if="!signedIn" :as="Link" href="/login" variant="secondary" size="sm">Sign in to message</Btn>
+            </div>
+            <div v-else class="cluster" style="align-items: flex-start">
+                <Btn variant="secondary" size="sm" @click="editing = !editing">
+                    {{ editing ? 'Close editor' : 'Edit profile' }}
+                </Btn>
             </div>
         </div>
+
+        <!-- ───────────────────────────────── self-edit door (F-IND-002 §②) -->
+        <Card v-if="isSelf && editing" as="section" title="Edit your public profile">
+            <p class="gloss" style="margin-block-start: 0">
+                Your display name, handle and bio file through the constitutional engine
+                (F-IND-002). The public chain records only <em>that</em> your profile changed,
+                never the values — a handle you later change can’t be linked back (Art. I).
+            </p>
+            <Field label="Display name" :error="profileForm.errors.display_name">
+                <template #control="{ id, invalid, describedBy }">
+                    <input
+                        :id="id"
+                        v-model="profileForm.display_name"
+                        class="field-input"
+                        type="text"
+                        maxlength="255"
+                        placeholder="A pseudonym is a first-class civic identity"
+                        :aria-invalid="invalid ? 'true' : undefined"
+                        :aria-describedby="describedBy"
+                    />
+                </template>
+            </Field>
+            <Field label="Handle" :error="profileForm.errors.handle" hint="3–64 chars: a–z, 0–9, hyphen or underscore. Your @address.">
+                <template #control="{ id, invalid, describedBy }">
+                    <input
+                        :id="id"
+                        v-model="profileForm.handle"
+                        class="field-input"
+                        type="text"
+                        maxlength="64"
+                        placeholder="e.g. jordan-r"
+                        :aria-invalid="invalid ? 'true' : undefined"
+                        :aria-describedby="describedBy"
+                    />
+                </template>
+            </Field>
+            <Field label="Bio" :error="profileForm.errors.bio">
+                <template #control="{ id, invalid, describedBy }">
+                    <textarea
+                        :id="id"
+                        v-model="profileForm.bio"
+                        class="field-input"
+                        rows="3"
+                        maxlength="2000"
+                        placeholder="A line about your civic life (optional)"
+                        :aria-invalid="invalid ? 'true' : undefined"
+                        :aria-describedby="describedBy"
+                    ></textarea>
+                </template>
+            </Field>
+            <Field label="Visibility" :error="profileForm.errors.visibility" hint="A preference — it never gates a right (Art. I).">
+                <template #control="{ id, invalid, describedBy }">
+                    <select
+                        :id="id"
+                        v-model="profileForm.visibility"
+                        class="select"
+                        :aria-invalid="invalid ? 'true' : undefined"
+                        :aria-describedby="describedBy"
+                    >
+                        <option value="public">Public — anyone can see your bio, handle and counts</option>
+                        <option value="jurisdiction">Your jurisdiction only</option>
+                        <option value="private">Private — hidden from the public view</option>
+                    </select>
+                </template>
+            </Field>
+            <div class="cluster" style="margin-block-start: var(--space-3)">
+                <Btn variant="primary" size="sm" :disabled="profileForm.processing" @click="saveProfile">
+                    {{ profileForm.processing ? 'Filing F-IND-002…' : 'Save profile' }}
+                </Btn>
+                <Btn variant="ghost" size="sm" @click="editing = false">Cancel</Btn>
+            </div>
+        </Card>
         <p v-if="isSelf && person.visibility && person.visibility !== 'public'" class="citation">
             Your profile visibility is “{{ person.visibility }}” — bio, follow counts and
             achievements are hidden from this public view until you choose to show them.
