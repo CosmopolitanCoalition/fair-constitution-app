@@ -1,7 +1,7 @@
 {
  "asOf": "2026-07-29",
- "commit": "3c68031",
- "wave": "WAVE 2 \u2014 lane 2 fully DONE; only lane 3 punch tail remains (docket, banners, liveAggregate, R-B doc); wave close imminent",
+ "commit": "92350b8",
+ "wave": "WAVE 2 near close \u2014 lane 3 all RULED items + parity CLIs + 4 punch done (10 commits); 3 items remain (docket, liveAggregate, parity UIs). All other 7 lanes DONE.",
  "rows": [
   {
    "file": "civic/join.html",

@@ -328,7 +328,7 @@ return [
         'workflows' => ['WF-LEG-06', 'WF-LEG-07', 'WF-LEG-14'],
         'forms'     => [
             ['id' => 'F-LEG-003', 'citation' => 'Art. II §2 (Enact Laws via Art. V §4) — scale & scope fixed at introduction'],
-            ['id' => 'F-LEG-028', 'citation' => 'Art. V §6 (dual-supermajority act class — constituent consent panel)'],
+            ['id' => 'F-LEG-028', 'citation' => 'Art. V §2 (single-chamber cultural institution recognition)'],
         ],
         'clocks'    => [],
         'citation'  => 'Scale & scope declared at introduction · Art. II §2 via Art. V §4',
