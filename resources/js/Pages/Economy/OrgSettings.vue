@@ -21,7 +21,7 @@ import { Link, useForm } from '@inertiajs/vue3';
 import AppShellV2 from '@/Layouts/AppShellV2.vue';
 import PageScaffold from '@/Components/Surface/PageScaffold.vue';
 import Card from '@/Components/Ui/Card.vue';
-import { formatMoney, formatCount } from '@/lib/money.js';
+import { formatMoney, formatCount, formatWhen, shortId } from '@/lib/money.js';
 
 defineOptions({ layout: AppShellV2 });
 
@@ -31,6 +31,12 @@ const props = defineProps({
     org: { type: Object, required: true },
     dues: { type: Object, required: true },
     shares: { type: Object, required: true },
+    /** The org's own ledger (money plane — counterparties are accounts). */
+    ledger: { type: Object, default: () => ({ has_account: false, balance: '0.000000', movements: [] }) },
+    /** Levies filed (Art. V §4); [] when the org has filed none. */
+    taxes: { type: Array, default: () => [] },
+    /** Fair-market conversions on the org's equity (named ownership plane). */
+    conversions: { type: Array, default: () => [] },
 });
 
 const settingsPath = `/organizations/${props.org.id}/settings`;
@@ -140,6 +146,95 @@ const savePeriod = () => periodForm.post(settingsPath, { preserveScroll: true })
             </p>
         </Card>
 
+        <!-- ------------------------------------------------- org ledger -->
+        <Card as="section" title="This organization's ledger">
+            <p class="econ-desc">
+                What the organization holds and how it has moved. This is the money plane: a
+                counterparty is shown as an <strong>account</strong>, never a person — even to the
+                org's own steward.
+            </p>
+            <template v-if="ledger.has_account">
+                <dl class="econ-facts">
+                    <div><dt>Balance</dt><dd>{{ formatMoney(ledger.balance, currency) }}</dd></div>
+                    <div><dt>Recent movements</dt><dd>{{ formatCount(ledger.movements.length) }}</dd></div>
+                </dl>
+                <table v-if="ledger.movements.length" class="cap-table">
+                    <thead>
+                        <tr><th scope="col">When</th><th scope="col">In / out</th><th scope="col">Amount</th><th scope="col">Kind</th><th scope="col">Other account</th></tr>
+                    </thead>
+                    <tbody>
+                        <tr v-for="m in ledger.movements" :key="m.id">
+                            <td>{{ formatWhen(m.at) }}</td>
+                            <td>{{ m.direction === 'out' ? 'Out' : 'In' }}</td>
+                            <td>{{ (m.direction === 'out' ? '−' : '+') + formatMoney(m.amount, currency) }}</td>
+                            <td>{{ m.kind || '—' }}</td>
+                            <td class="mono">{{ m.counterparty_account_id ? shortId(m.counterparty_account_id) : '—' }}</td>
+                        </tr>
+                    </tbody>
+                </table>
+                <p v-else class="econ-note">No movements yet.</p>
+            </template>
+            <p v-else class="econ-absent">
+                This organization holds no economic account yet — it opens when the org first
+                transacts.
+            </p>
+        </Card>
+
+        <!-- --------------------------------------------------- taxes -->
+        <Card as="section" title="Taxes &amp; levies">
+            <p class="econ-desc">
+                What the organization has declared and been assessed under public revenue law
+                (Art. V §4). How a levy is computed — its base and rate — is public.
+            </p>
+            <table v-if="taxes.length" class="cap-table">
+                <thead>
+                    <tr><th scope="col">Period</th><th scope="col">Levy</th><th scope="col">Base · rate</th><th scope="col">Declared</th><th scope="col">Assessed</th><th scope="col">Status</th></tr>
+                </thead>
+                <tbody>
+                    <tr v-for="t in taxes" :key="t.id">
+                        <td>{{ t.period }}</td>
+                        <td>{{ t.stream || '—' }}</td>
+                        <td>
+                            <template v-if="t.rate">{{ t.rate }} on {{ t.base }}<template v-if="t.civic_exempt"> · civic-exempt</template></template>
+                            <template v-else>—</template>
+                        </td>
+                        <td>{{ t.declared !== null ? formatMoney(t.declared, currency) : '—' }}</td>
+                        <td>{{ t.assessed !== null ? formatMoney(t.assessed, currency) : '—' }}</td>
+                        <td>{{ t.status }}</td>
+                    </tr>
+                </tbody>
+            </table>
+            <p v-else class="econ-absent">
+                This organization has no levy filings on record.
+            </p>
+        </Card>
+
+        <!-- ------------------------------------- fair-market / conversions -->
+        <Card as="section" title="Fair-market &amp; conversions">
+            <p class="econ-desc">
+                When ownership changes form, a conversion fixes the <strong>floor</strong> and the
+                <strong>basis</strong> for what the org's equity is worth (Art. III §5) — a public
+                fact on the named ownership plane, decided by act, never here.
+            </p>
+            <table v-if="conversions.length" class="cap-table">
+                <thead>
+                    <tr><th scope="col">Direction</th><th scope="col">Via</th><th scope="col">Fair-market floor</th><th scope="col">Basis</th><th scope="col">Status</th></tr>
+                </thead>
+                <tbody>
+                    <tr v-for="c in conversions" :key="c.id">
+                        <td>{{ c.direction }}</td>
+                        <td>{{ c.via }}</td>
+                        <td>{{ c.fair_market_floor !== null ? formatMoney(c.fair_market_floor, currency) : '—' }}</td>
+                        <td>{{ c.fair_market_basis || '—' }}</td>
+                        <td>{{ c.status }}</td>
+                    </tr>
+                </tbody>
+            </table>
+            <p v-else class="econ-absent">
+                No conversion has fixed a fair-market price for this organization's equity.
+            </p>
+        </Card>
+
         <p>
             <Link :href="`/organizations/${org.id}`" class="econ-back">Back to the organization</Link>
         </p>
@@ -169,4 +264,5 @@ const savePeriod = () => periodForm.post(settingsPath, { preserveScroll: true })
 .econ-note { font-size: var(--text-sm, 0.875rem); color: var(--gov-fg-muted, #778); }
 .cap-table { inline-size: 100%; border-collapse: collapse; margin-block: var(--space-3, 1rem); }
 .cap-table th, .cap-table td { text-align: start; padding: var(--space-2, 0.5rem); border-block-end: 1px solid var(--gov-border, #dde); }
+.mono { font-family: var(--font-mono, ui-monospace, monospace); }
 </style>

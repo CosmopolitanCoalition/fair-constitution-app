@@ -106,6 +106,32 @@ class OrgShareIssuanceTest extends TestCase
         });
     }
 
+    /**
+     * The org-settings economy surface (Design Round 2 ②) ships its full
+     * published shape to a steward — including the Wave 4 economy half
+     * (ledger / taxes / conversions), which is honest-absent for a brand-new
+     * org and must be [] / has_account:false, never a missing key.
+     */
+    public function test_the_org_economy_surface_ships_its_published_props(): void
+    {
+        $this->onLivePg(function () {
+            [$org, $agent] = $this->org('stock');
+
+            $props = $this->actingAs($agent)->get("/organizations/{$org->id}/economy")
+                ->assertOk()->viewData('page')['props'];
+
+            foreach (['surface', 'currency', 'org', 'dues', 'shares', 'ledger', 'taxes', 'conversions'] as $key) {
+                $this->assertArrayHasKey($key, $props, "org-economy must ship [{$key}] — a missing key kills the render.");
+            }
+
+            $this->assertIsArray($props['taxes'], 'taxes is [] when the org has filed none, never null');
+            $this->assertIsArray($props['conversions'], 'conversions is [] when none exist, never null');
+            $this->assertArrayHasKey('has_account', $props['ledger']);
+            $this->assertIsArray($props['ledger']['movements']);
+            $this->assertFalse($props['ledger']['has_account'], 'a brand-new org holds no account yet');
+        });
+    }
+
     // ── helpers ──────────────────────────────────────────────────────────
 
     /** @return array{0: Organization, 1: User} */

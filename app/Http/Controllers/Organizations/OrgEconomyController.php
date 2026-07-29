@@ -47,6 +47,8 @@ class OrgEconomyController extends Controller
 
         $currency = $this->rootCurrency();
 
+        $accountIds = $this->orgAccountIds($organization);
+
         return Inertia::render('Economy/OrgSettings', [
             'surface'    => SurfaceMeta::for('economy/org-settings'),
             'currency'   => $this->currencyProp($currency),
@@ -57,9 +59,141 @@ class OrgEconomyController extends Controller
                 'structure' => $organization->structure === null ? null : (string) $organization->structure,
                 'is_cgc'    => (bool) $organization->is_cgc,
             ],
-            'dues'   => $this->duesProp($organization),
-            'shares' => $this->sharesProp($organization),
+            'dues'        => $this->duesProp($organization),
+            'shares'      => $this->sharesProp($organization),
+            // Design Round 2 ② — the economy half, filled from records that
+            // already exist: the org's own ledger, what it owes in levies, and
+            // any conversion that fixed a fair-market price for its equity.
+            'ledger'      => $this->ledgerProp($accountIds),
+            'taxes'       => $this->taxesProp($accountIds),
+            'conversions' => $this->conversionsProp($organization),
         ]);
+    }
+
+    /**
+     * The org's economic account ids (the money plane). An org may hold an
+     * account per currency; all are its own to view here. Empty is honest —
+     * an org with no account has no ledger, and the page says so.
+     *
+     * @return list<string>
+     */
+    private function orgAccountIds(Organization $organization): array
+    {
+        return DB::table('economic_account_bindings')
+            ->where('owner_type', 'organizations')
+            ->where('owner_id', $organization->id)
+            ->pluck('account_id')
+            ->map(fn ($id) => (string) $id)
+            ->all();
+    }
+
+    /**
+     * The org's own ledger card — its balance and recent movements. This is
+     * the MONEY plane: a counterparty is an ACCOUNT, never a person, even to
+     * the org's own steward. An org that has never transacted shows a clean
+     * zero, not an error.
+     *
+     * @param  list<string>  $accountIds
+     * @return array{has_account: bool, balance: string, movements: list<array<string, mixed>>}
+     */
+    private function ledgerProp(array $accountIds): array
+    {
+        if ($accountIds === []) {
+            return ['has_account' => false, 'balance' => '0.000000', 'movements' => []];
+        }
+
+        $balance = (string) (DB::table('economic_accounts')
+            ->whereIn('id', $accountIds)->whereNull('deleted_at')->sum('balance') ?: '0.000000');
+
+        $movements = DB::table('market_transactions')
+            ->where(fn ($q) => $q->whereIn('from_account_id', $accountIds)->orWhereIn('to_account_id', $accountIds))
+            ->orderByDesc('created_at')->limit(25)->get()
+            ->map(function ($t) use ($accountIds) {
+                $out = in_array((string) $t->from_account_id, $accountIds, true);
+                $other = $out ? $t->to_account_id : $t->from_account_id;
+
+                return [
+                    'id'                      => (string) $t->id,
+                    'direction'               => $out ? 'out' : 'in',
+                    'amount'                  => (string) $t->amount,
+                    'kind'                    => (string) $t->kind,
+                    'memo'                    => $t->memo,
+                    'at'                      => $this->iso($t->created_at),
+                    'counterparty_account_id' => $other === null ? null : (string) $other,
+                ];
+            })->all();
+
+        return ['has_account' => true, 'balance' => $balance, 'movements' => $movements];
+    }
+
+    /**
+     * What the org owes and has declared (Art. V §4). Each filing carries the
+     * levy's base and rate — how the charge is computed is public — and whether
+     * civic use is exempt. A rate crosses as a string (ratio, but anti-float
+     * for the same reason money is).
+     *
+     * @param  list<string>  $accountIds
+     * @return list<array<string, mixed>>
+     */
+    private function taxesProp(array $accountIds): array
+    {
+        if ($accountIds === []) {
+            return [];
+        }
+
+        return DB::table('tax_filings as f')
+            ->leftJoin('levies as l', 'l.id', '=', 'f.levy_id')
+            ->leftJoin('revenue_streams as r', 'r.id', '=', 'l.revenue_stream_id')
+            ->whereIn('f.account_id', $accountIds)
+            ->orderByDesc('f.created_at')->limit(25)
+            ->get(['f.id', 'f.period', 'f.declared', 'f.assessed', 'f.status',
+                'l.base', 'l.rate', 'l.civic_exempt', 'r.name as stream_name'])
+            ->map(fn ($f) => [
+                'id'           => (string) $f->id,
+                'period'       => (string) $f->period,
+                'declared'     => $f->declared === null ? null : (string) $f->declared,
+                'assessed'     => $f->assessed === null ? null : (string) $f->assessed,
+                'status'       => (string) $f->status,
+                'stream'       => $f->stream_name === null ? null : (string) $f->stream_name,
+                'base'         => $f->base === null ? null : (string) $f->base,
+                'rate'         => $f->rate === null ? null : (string) $f->rate,
+                'civic_exempt' => $f->civic_exempt === null ? null : (bool) $f->civic_exempt,
+            ])->all();
+    }
+
+    /**
+     * Fair-market conversions on the org's equity (Art. III §5). A conversion
+     * fixes a floor and a basis for what a share is worth when ownership
+     * changes hands — a public fact on the named ownership plane (Ruling B).
+     *
+     * @return list<array<string, mixed>>
+     */
+    private function conversionsProp(Organization $organization): array
+    {
+        return DB::table('org_conversions')
+            ->where('organization_id', $organization->id)
+            ->whereNull('deleted_at')
+            ->orderByDesc('created_at')->limit(10)->get()
+            ->map(fn ($c) => [
+                'id'                => (string) $c->id,
+                'direction'         => (string) $c->direction,
+                'via'               => (string) $c->via,
+                'status'            => (string) $c->status,
+                'fair_market_floor' => $c->fair_market_floor === null ? null : (string) $c->fair_market_floor,
+                'fair_market_basis' => $c->fair_market_basis === null ? null : (string) $c->fair_market_basis,
+                'completed_at'      => $this->iso($c->completed_at),
+            ])->all();
+    }
+
+    private function iso(mixed $value): ?string
+    {
+        if ($value === null) {
+            return null;
+        }
+
+        return $value instanceof \DateTimeInterface
+            ? $value->format(\DateTimeInterface::ATOM)
+            : \Illuminate\Support\Carbon::parse((string) $value)->toIso8601String();
     }
 
     /**
