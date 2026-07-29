@@ -78,6 +78,13 @@ class FormRegistry
         // with the request-detail page (Wave 2 item 2) — the page needed a
         // door and a bare POST→service would be a second write path.
         'F-IND-019' => ['name' => 'Work Application',                           'roles' => ['R-01']],
+        // F-IND-020 — Resident Agreement (Design Round 2 ③; the #9 reversal).
+        // The citizen door for the consent plane: person-to-person / N-party
+        // agreements AND the clause-redline actions on any agreement the actor
+        // is a party to (Art. I, freedom to contract on a floor no clause can
+        // lower). Takes the reserved-but-free F-IND-020 slot; the stale
+        // "Assistance Request" reservation moves to a later free id when built.
+        'F-IND-020' => ['name' => 'Resident Agreement',                         'roles' => ['R-01']],
         // Phase M — the economy's write path. Until these existed the
         // economy could be READ and not acted in: every service was built,
         // tested and driven end to end by institutions:demo-treasury, with
@@ -407,6 +414,7 @@ class FormRegistry
         'F-IND-015' => Handlers\AdvocateRegistration::class,
         'F-IND-017' => Handlers\CaseFiling::class,
         'F-IND-019' => Handlers\WorkApplication::class,
+        'F-IND-020' => Handlers\ResidentAgreement::class,
         'F-IND-022' => Handlers\MarketplaceListingOrder::class,
         'F-IND-023' => Handlers\FundsTransfer::class,
         'F-IND-024' => Handlers\AssetRegistration::class,

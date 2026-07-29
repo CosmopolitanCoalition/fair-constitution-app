@@ -114,7 +114,7 @@ class AuditChainSmokeTest extends TestCase
     // FormRegistry
     // -------------------------------------------------------------------------
 
-    public function test_registry_holds_exactly_116_canonical_forms(): void
+    public function test_registry_holds_exactly_117_canonical_forms(): void
     {
         // 103 Template forms + F-ELB-008 (Manual District Draw, Phase H) + the
         // Phase K-1 civic-commons trio F-SOC-001/002/003 (public square / halls
@@ -137,13 +137,16 @@ class AuditChainSmokeTest extends TestCase
         // + F-ORG-008 (Organization Market Participation, Design Round 2 build
         // piece 4): the org economy's ACTS door — first action issue_shares,
         // equity on the named ownership plane (Art. III §5), never a currency.
+        // + F-IND-020 (Resident Agreement, Design Round 2 build pieces 5+6):
+        // the citizen consent-plane door — person-to-person / N-party
+        // agreements AND clause-redline actions (Art. I, freedom to contract).
         //
         // WHY THIS PIN EARNS ITS KEEP: it is an EXACT count, so adding a form
         // without meaning to fails here loudly. Raising the number is the
         // deliberate half of adding one — if you are editing this line, check
         // that you meant to add a form, not that the test is in your way.
-        $this->assertCount(116, FormRegistry::FORMS);
-        $this->assertCount(116, FormRegistry::ids());
+        $this->assertCount(117, FormRegistry::FORMS);
+        $this->assertCount(117, FormRegistry::ids());
     }
 
     public function test_pure_aliases_resolve_to_canonical_ids(): void
