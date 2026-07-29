@@ -154,6 +154,17 @@ final class CountingStage
      */
     private static function electorateFor(ElectionRace $race): int
     {
+        // PER-CLUMP type_b (operator ruling 2026-07-29): the electorate is the
+        // UNION of the panel's constituent jurisdictions' residents — NOT the
+        // whole parent. createRaces sets a panel race's jurisdiction_id to the
+        // PARENT (c500a1f), so the at-large branch below would count every voter
+        // once PER CLUMP (N-fold inflation). A per-CHILD type_b race needs no
+        // branch: its jurisdiction_id already IS the child, so the at-large
+        // branch is exactly right.
+        if ($race->type_b_panel_id !== null) {
+            return self::panelElectorate((string) $race->type_b_panel_id);
+        }
+
         $cohort = DB::table('jurisdiction_cohorts')
             ->where('jurisdiction_id', $race->jurisdiction_id)
             ->orderByDesc('version')
@@ -176,6 +187,32 @@ final class CountingStage
         }
 
         return max(1, (int) floor($districtPop * (int) $cohort->turnout_pct / 100));
+    }
+
+    /**
+     * A per-clump Type B race's electorate — the latest-version cohort
+     * electorate summed over the panel's member jurisdictions
+     * (legislature_type_b_panel_jurisdictions). Turnout is already baked into
+     * each cohort's `electorate` (matching the at-large path), so a PAIR panel's
+     * electorate is the sum of its two children's and a SINGLE's is one child's
+     * — never the parent's whole roll (which would N-fold the count).
+     */
+    private static function panelElectorate(string $panelId): int
+    {
+        $memberIds = DB::table('legislature_type_b_panel_jurisdictions')
+            ->where('panel_id', $panelId)
+            ->pluck('jurisdiction_id')
+            ->all();
+
+        if ($memberIds === []) {
+            return 0;
+        }
+
+        // Latest cohort version per member jurisdiction, electorate summed.
+        return (int) DB::table('jurisdiction_cohorts as jc')
+            ->whereIn('jc.jurisdiction_id', $memberIds)
+            ->whereRaw('jc.version = (SELECT MAX(v.version) FROM jurisdiction_cohorts v WHERE v.jurisdiction_id = jc.jurisdiction_id)')
+            ->sum('jc.electorate');
     }
 
     /** Deterministic per race and version — the world is a function of its seed. */

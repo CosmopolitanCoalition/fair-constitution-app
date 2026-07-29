@@ -220,10 +220,21 @@ final class VoteCountingService
         // for districted seats.
         //
         // What this unblocks is the bodies the band was never about:
-        //   · type_b — at-large, the jurisdiction IS the district, ONE STV race
-        //     however many seats (San Marino elects 27 together). Splitting it
-        //     into smaller races is explicitly ruled out: STV elects N seats in
-        //     one race, and cutting magnitude is what destroys proportionality.
+        //   · type_b — at-large by CONSTITUENT, not pooled (operator ruling
+        //     2026-07-29). Type B is one at-large STV race PER DIRECT CHILD
+        //     (ungrouped) or PER CLUMP (grouped), each electing that child's or
+        //     panel's OWN rep_floor seats from its OWN residents — NEVER one
+        //     pooled race over the whole parent (pooling lets population dominate
+        //     equal representation). This engine still counts ONE race at a time
+        //     and is agnostic to which constituent it is: a per-child/per-clump
+        //     race is just another countStv of rep_floor seats, and the jurisdiction
+        //     or clump IS the district, so the 5–9 band does not bind it. The race
+        //     SHAPE (one row per child/panel, keyed by election_races.type_b_panel_id
+        //     for a clump, else jurisdiction_id for a child) is built in
+        //     racePlan/createRaces; the per-race electorate is scoped by
+        //     RaceFootprint (production) / CountingStage::electorateFor (demo).
+        //     (Superseded pre-2026-07-29 doctrine — "ONE STV race, splitting ruled
+        //     out, San Marino's 27 together" — is REVERSED; do not restore it.)
         //   · exec_committee / judicial_group — the schema has ALWAYS allowed
         //     these at >= 5 with no upper bound, and Art. IV §1 says a judicial
         //     race has "no ceiling" in terms. Under the old guard a 10-judge
