@@ -197,15 +197,20 @@ shares: [ { org_id, org_name, is_cgc: boolean, total_units: string,      // Wave
 kpis: null | {…telemetry snapshot…}     // Wave 4: market-health, account-clean; null pre-currency
 tape: [ { id, title, asset_kind?, asset_name?, price: string,           // Wave 4: SETTLED instrument
           quantity: string, at: string } ]                              //   trades, newest first
+offers: [ { id, org_id, org_name, is_cgc, units: string,               // Wave 4 ②: OPEN share sell-offers
+            price_per_unit: string, seller: string, is_mine } ]         //   (F-IND-021); seller NAMED (Ruling B)
+my_holdings: [ { org_id, org_name, units: string } ]                    // Wave 4 ②: viewer's stock holdings to offer
+my_id: string|null
 order_book: false                        // the continuous book is deliberately not built
 ```
 
 **Wave 4 (partial → built):** `kpis` (account-clean market health), the `tape`
-(real settled instrument trades — `marketplace_orders.status='settled'` on
-asset-backed listings), and the `shares` equity **register** (issued stakes per
-STOCK org, on the named ownership plane, Ruling B). Holder-to-holder **resale**
-is Wave 4 ② (secondary trading) — until then `shares` is what *exists*, not
-active sell-offers.
+(real settled instrument trades), and the `shares` equity **register** (issued
+stakes per STOCK org, named plane, Ruling B). **Wave 4 ② secondary trading:**
+`offers` = open share sell-offers a buyer takes whole (F-IND-021, `offer/buy/
+cancel`); the money leg is account-scoped, the units move on the named plane,
+linked by `share_offers.money_transfer_id`. An underfunded buy refuses (no
+overdraft) and rolls back both legs. `my_holdings` = what the viewer can offer.
 
 ---
 

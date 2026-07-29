@@ -479,9 +479,11 @@ class EconomyController extends Controller
      * Reader privacy: a seller that is an ORGANISATION resolves to its public
      * name (its offer is its public act); a human seller stays an account.
      */
-    public function exchange(): Response
+    public function exchange(Request $request): Response
     {
         $currency = $this->currency();
+        $myId = (string) ($request->user()?->id ?? '');
+        $myId = $myId === '' ? null : $myId;
 
         $rows = $currency === null ? collect() : DB::table('marketplace_listings as l')
             ->join('assets as a', 'a.id', '=', 'l.asset_id')
@@ -526,10 +528,89 @@ class EconomyController extends Controller
             // first. Real history, not a simulated ticker; account-scoped (a
             // trade is a price and a quantity, not a pair of names).
             'tape'        => $currency === null ? [] : $this->tradeTape(),
+            // Wave 4 ② — the shares floor, now POPULATED: open sell-offers a
+            // buyer can take (F-IND-021), and the viewer's own holdings they can
+            // offer. Equity is the NAMED plane (Ruling B), so a seller resolves
+            // to a name; the money that changes hands stays on the wallet ledger.
+            'offers'      => $this->openShareOffers($myId),
+            'my_holdings' => $this->viewerHoldings($myId),
+            'my_id'       => $myId,
             // The continuous order book is deliberately not built; trades
             // settle at a fixed price through F-IND-022. Stated, not simulated.
             'order_book'  => false,
         ]);
+    }
+
+    /**
+     * Open share sell-offers — the populated equity floor (Wave 4 ②). A share
+     * offer is a public act on the named ownership plane (the seller's stake is
+     * already on the public cap table), so the seller resolves to a name. The
+     * money leg never appears here.
+     *
+     * @return list<array<string, mixed>>
+     */
+    private function openShareOffers(?string $myId): array
+    {
+        return DB::table('share_offers as so')
+            ->join('organizations as o', 'o.id', '=', 'so.organization_id')
+            ->where('so.status', 'open')
+            ->whereNull('so.deleted_at')
+            ->whereNull('o.deleted_at')
+            ->orderByDesc('so.created_at')->limit(100)
+            ->get(['so.id', 'so.organization_id', 'so.seller_holder_type', 'so.seller_holder_id',
+                'so.units', 'so.price_per_unit', 'o.name as org_name', 'o.type as org_type'])
+            ->map(fn ($r) => [
+                'id'             => (string) $r->id,
+                'org_id'         => (string) $r->organization_id,
+                'org_name'       => (string) $r->org_name,
+                'is_cgc'         => $r->org_type === 'common_good_corp',
+                'units'          => (string) $r->units,
+                'price_per_unit' => (string) $r->price_per_unit,
+                'seller'         => $this->holderName((string) $r->seller_holder_type, (string) $r->seller_holder_id),
+                'is_mine'        => $myId !== null
+                    && $r->seller_holder_type === 'users'
+                    && (string) $r->seller_holder_id === $myId,
+            ])->all();
+    }
+
+    /**
+     * The viewer's own equity holdings, per stock org — what they could offer
+     * for sale. Empty for a guest or a non-holder (a normal state).
+     *
+     * @return list<array<string, mixed>>
+     */
+    private function viewerHoldings(?string $myId): array
+    {
+        if ($myId === null) {
+            return [];
+        }
+
+        return DB::table('org_ownership_stakes as s')
+            ->join('organizations as o', 'o.id', '=', 's.organization_id')
+            ->where('s.holder_type', 'users')->where('s.holder_id', $myId)
+            ->whereNull('s.ended_at')->whereNull('o.deleted_at')
+            ->where('o.structure', Organization::STRUCTURE_STOCK)
+            ->groupBy('o.id', 'o.name')
+            ->orderByRaw('sum(s.units) desc')
+            ->get(['o.id', 'o.name', DB::raw('sum(s.units) as units')])
+            ->map(fn ($r) => [
+                'org_id'   => (string) $r->id,
+                'org_name' => (string) $r->name,
+                'units'    => (string) $r->units,
+            ])->all();
+    }
+
+    /**
+     * Resolve a NAMED holder (the ownership plane, Ruling B) — distinct from the
+     * pseudonymous money plane. Equity ownership is a public fact.
+     */
+    private function holderName(string $type, string $id): string
+    {
+        return match ($type) {
+            'organizations' => (string) (DB::table('organizations')->where('id', $id)->value('name') ?? 'An organization'),
+            'jurisdictions' => (string) (DB::table('jurisdictions')->where('id', $id)->value('name') ?? 'A jurisdiction'),
+            default         => (string) (DB::table('users')->where('id', $id)->value('name') ?? 'A holder'),
+        };
     }
 
     /**

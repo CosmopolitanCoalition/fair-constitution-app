@@ -753,6 +753,14 @@ Route::middleware('auth')->group(function () {
     Route::post('/economy/redlines/{redline}/{how}', [\App\Http\Controllers\Economy\EconomyActionController::class, 'resolveRedline'])
         ->whereUuid('redline')->name('economy.redlines.resolve');
 
+    // Wave 4 ② — secondary share trading (F-IND-021): offer / buy / cancel.
+    Route::post('/economy/shares/offer', [\App\Http\Controllers\Economy\EconomyActionController::class, 'offerShares'])
+        ->name('economy.shares.offer');
+    Route::post('/economy/shares/{offer}/buy', [\App\Http\Controllers\Economy\EconomyActionController::class, 'buyShares'])
+        ->whereUuid('offer')->name('economy.shares.buy');
+    Route::post('/economy/shares/{offer}/cancel', [\App\Http\Controllers\Economy\EconomyActionController::class, 'cancelOffer'])
+        ->whereUuid('offer')->name('economy.shares.cancel');
+
     // ── FE-C5 — Settings register (legislature/settings) ────────────────────
     Route::get('/legislatures/{legislature}/settings', [SettingsController::class, 'show'])
         ->whereUuid('legislature')->name('settings.show');

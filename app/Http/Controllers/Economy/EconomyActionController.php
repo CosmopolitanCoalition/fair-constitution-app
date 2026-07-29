@@ -133,6 +133,47 @@ class EconomyActionController extends Controller
     }
 
     /** F-IND-024 — bring a thing into the world, or hand one on. */
+    /** F-IND-021 — offer some of your own shares in a stock org for sale. */
+    public function offerShares(Request $request): RedirectResponse
+    {
+        $validated = $request->validate([
+            'organization_id' => ['required', 'uuid'],
+            'units'           => ['required', 'numeric', 'gt:0'],
+            'price_per_unit'  => ['required', 'numeric', 'gte:0'],
+        ]);
+
+        $this->engine->file('F-IND-021', $request->user(), [
+            'action'          => 'offer_shares',
+            'organization_id' => $validated['organization_id'],
+            'units'           => $validated['units'],
+            'price_per_unit'  => (string) $validated['price_per_unit'],
+        ]);
+
+        return back()->with('status', 'Offered (F-IND-021). Your shares are listed at a fixed price — a buyer takes the whole offer, money and units moving together or not at all.');
+    }
+
+    /** F-IND-021 — buy an open share offer (the whole offer, one act). */
+    public function buyShares(Request $request, string $offer): RedirectResponse
+    {
+        $this->engine->file('F-IND-021', $request->user(), [
+            'action'   => 'buy_shares',
+            'offer_id' => $offer,
+        ]);
+
+        return back()->with('status', 'Bought (F-IND-021). Units moved on the named ownership plane, money on the wallet ledger — in one act, both or neither. No overdraft.');
+    }
+
+    /** F-IND-021 — withdraw your own open offer. */
+    public function cancelOffer(Request $request, string $offer): RedirectResponse
+    {
+        $this->engine->file('F-IND-021', $request->user(), [
+            'action'   => 'cancel_offer',
+            'offer_id' => $offer,
+        ]);
+
+        return back()->with('status', 'Withdrawn (F-IND-021). The offer is off the floor; nothing moved.');
+    }
+
     public function registerAsset(Request $request): RedirectResponse
     {
         $validated = $request->validate([

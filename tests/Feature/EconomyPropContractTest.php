@@ -51,7 +51,7 @@ class EconomyPropContractTest extends TestCase
         '/economy/joint-ledgers'  => ['surface', 'currency', 'ledgers', 'can_open', 'my_account_id'],
         // Design Round 2 build: the exchange (① instruments venue) and the
         // resident consent plane (③ person-to-person / N-party agreements).
-        '/economy/exchange'            => ['surface', 'currency', 'instruments', 'shares', 'kpis', 'tape', 'order_book'],
+        '/economy/exchange'            => ['surface', 'currency', 'instruments', 'shares', 'kpis', 'tape', 'offers', 'my_holdings', 'my_id', 'order_book'],
         '/economy/resident-agreements' => ['surface', 'agreements', 'candidates', 'my_id'],
     ];
 
@@ -65,7 +65,7 @@ class EconomyPropContractTest extends TestCase
         '/economy/stipend'  => ['examples'],
         '/economy/agreements' => ['agreements'],
         '/economy/joint-ledgers' => ['ledgers'],
-        '/economy/exchange' => ['instruments', 'shares', 'tape'],
+        '/economy/exchange' => ['instruments', 'shares', 'tape', 'offers', 'my_holdings'],
         '/economy/resident-agreements' => ['agreements', 'candidates'],
     ];
 
