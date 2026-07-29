@@ -97,6 +97,11 @@ class FormRegistry
         'F-ORG-005' => ['name' => 'Ownership Transfer Initiation',              'roles' => ['R-23']],
         'F-ORG-006' => ['name' => 'Public-Private Conversion Request',          'roles' => ['R-23', 'R-09']],
         'F-ORG-007' => ['name' => 'Organization Dissolution',                   'roles' => ['R-23']],
+        // F-ORG-009 — internal restructuring (Wave 2 item 6b). The OWNERS'
+        // act, deliberately not an agent form: consent is per stake holder,
+        // thresholds per the CURRENT structure's own rules. R-01 proves
+        // personhood; the stake gate lives in OrgRestructureService.
+        'F-ORG-009' => ['name' => 'Internal Restructuring',                     'roles' => ['R-01']],
 
         // ── F-ELB — Election Board Forms (6) ────────────────────────────────
         'F-ELB-001' => ['name' => 'Election Scheduling Order',                  'roles' => ['R-08']],
@@ -332,6 +337,7 @@ class FormRegistry
         'F-ORG-005' => Handlers\OwnershipTransferInitiation::class,
         'F-ORG-006' => Handlers\PublicPrivateConversionRequest::class,
         'F-ORG-007' => Handlers\OrganizationDissolution::class,
+        'F-ORG-009' => Handlers\InternalRestructuring::class,
         'F-LEG-019' => Handlers\CgcCreationAct::class,
         'F-LEG-026' => Handlers\MonopolyAcquisitionVote::class,
         'F-LEG-027' => Handlers\CgcReorganizationSaleVote::class,

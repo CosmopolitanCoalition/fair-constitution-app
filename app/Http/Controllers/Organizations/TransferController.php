@@ -75,7 +75,7 @@ class TransferController extends Controller
             'transfers' => $this->transferRows($orgFilter),
             'acquisitions' => $this->acquisitionRows($orgFilter),
             'conversions' => $this->conversionRows($orgFilter),
-            'restructurings' => [], // structure-history events live on OrgDetail/OwnershipPanel; none modelled here
+            'restructurings' => $this->restructureRows($orgFilter, $request),
             'dissolutions' => $this->dissolutionRows($focusOrg),
             'deepLinks' => [
                 // F-LEG-026/F-LEG-027 are legislative acts — they ride the
@@ -98,6 +98,7 @@ class TransferController extends Controller
                 'transfer' => "/organizations/{$focusOrg->id}/transfers",
                 'conversionRequest' => "/organizations/{$focusOrg->id}/conversion-requests",
                 'dissolution' => "/organizations/{$focusOrg->id}/dissolution",
+                'restructure' => "/organizations/{$focusOrg->id}/restructures",
             ] : null,
         ]);
     }
@@ -189,9 +190,85 @@ class TransferController extends Controller
         );
     }
 
+    /** F-ORG-009 'propose' — the owners' act; proposing consents. */
+    public function restructure(Request $request, Organization $organization): RedirectResponse
+    {
+        $validated = $request->validate([
+            'to_structure' => ['required', 'string', 'in:stock,partnership,equal_partnership,member_owned,worker_owned,nonprofit'],
+        ]);
+
+        $this->engine->file('F-ORG-009', $request->user(), [
+            'action' => 'propose',
+            'organization_id' => (string) $organization->id,
+            'to_structure' => $validated['to_structure'],
+        ]);
+
+        return back()->with(
+            'status',
+            'Restructuring proposed (F-ORG-009). Your consent is on it; the change adopts only when '
+            .'the current structure\'s own rule is met — the organization stays private throughout.'
+        );
+    }
+
+    /** F-ORG-009 'consent' — the consent that meets the rule adopts, in the same act. */
+    public function restructureConsent(Request $request, string $restructure): RedirectResponse
+    {
+        $this->engine->file('F-ORG-009', $request->user(), [
+            'action' => 'consent',
+            'restructure_id' => $restructure,
+        ]);
+
+        return back()->with(
+            'status',
+            'Consented (F-ORG-009). If yours met the current structure\'s rule, the new structure is '
+            .'adopted — structure history stays on the public record.'
+        );
+    }
+
     // =========================================================================
     // Presentation internals
     // =========================================================================
+
+    /**
+     * The restructure register with its live consent meters — the mockup's
+     * "9 of 12 partners" readout, from real rows. The viewer's own pending
+     * consents are marked so the page can offer the consent control.
+     */
+    private function restructureRows(callable $scope, Request $request): array
+    {
+        $viewerId = $request->user()?->id !== null ? (string) $request->user()->id : null;
+        $tallies  = app(\App\Services\Organizations\OrgRestructureService::class);
+
+        return $scope(\Illuminate\Support\Facades\DB::table('org_restructures')
+            ->whereNull('deleted_at'))
+            ->orderByDesc('created_at')
+            ->limit(50)
+            ->get()
+            ->map(function ($r) use ($tallies, $viewerId) {
+                $org = Organization::query()->find((string) $r->organization_id);
+                $tally = $tallies->tally((string) $r->id);
+
+                $iConsented = $viewerId !== null && \Illuminate\Support\Facades\DB::table('org_restructure_consents')
+                    ->where('restructure_id', (string) $r->id)
+                    ->where('holder_type', 'users')
+                    ->where('holder_id', $viewerId)
+                    ->exists();
+
+                return [
+                    'id'             => (string) $r->id,
+                    'org'            => $org === null ? null : ['name' => (string) $org->name, 'href' => "/organizations/{$org->id}"],
+                    'from_structure' => (string) $r->from_structure,
+                    'to_structure'   => (string) $r->to_structure,
+                    'status'         => (string) $r->status,
+                    'rule_applied'   => $tally['needed'],
+                    'consented'      => $tally['consented'],
+                    'holders'        => $tally['holders'],
+                    'i_consented'    => $iConsented,
+                    'consent_url'    => "/restructures/{$r->id}/consent",
+                    'at'             => $r->created_at === null ? null : \Illuminate\Support\Carbon::parse((string) $r->created_at)->toDateString(),
+                ];
+            })->all();
+    }
 
     private function transferRows(callable $scope): array
     {

@@ -75,6 +75,18 @@ function submitDissolution() {
     dissolutionForm.post(props.urls.dissolution, { preserveScroll: true, onSuccess: () => dissolutionForm.reset() });
 }
 
+/* F-ORG-009 — the owners' act. Proposing consents; the consent that meets
+   the current structure's own rule adopts, in the same act. */
+const restructureForm = useForm({ to_structure: 'partnership' });
+
+function submitRestructure() {
+    if (!props.urls?.restructure) return;
+    restructureForm.post(props.urls.restructure, { preserveScroll: true, onSuccess: () => restructureForm.reset() });
+}
+function consentRestructure(consentUrl) {
+    router.post(consentUrl, {}, { preserveScroll: true });
+}
+
 /* The 5 monopoly-acquisition stages (mockup order). stage_index is a server
    snapshot read off the conversion status — never computed as policy here. */
 const acquisitionStages = [
@@ -341,6 +353,7 @@ function consentBadge(at) {
                         { key: 'org', label: 'Organization' },
                         { key: 'change', label: 'Change' },
                         { key: 'rule', label: 'Rule applied' },
+                        { key: 'standing', label: 'Consent' },
                         { key: 'at', label: 'When', mono: true },
                     ]"
                     :rows="restructurings"
@@ -353,12 +366,59 @@ function consentBadge(at) {
                     </template>
                     <template #cell-change="{ row }"><span data-no-i18n>{{ row.from_structure }} → {{ row.to_structure }}</span></template>
                     <template #cell-rule="{ row }">{{ row.rule_applied }}</template>
+                    <template #cell-standing="{ row }">
+                        <template v-if="row.status === 'adopted'">
+                            <StatusBadge tone="success" icon="check">adopted</StatusBadge>
+                        </template>
+                        <template v-else>
+                            {{ row.consented }} of {{ row.holders }} holders
+                            <button
+                                v-if="!row.i_consented && row.status === 'proposed'"
+                                type="button"
+                                class="btn btn--secondary btn--sm"
+                                style="margin-inline-start: var(--space-2)"
+                                @click="consentRestructure(row.consent_url)"
+                            >
+                                Consent
+                            </button>
+                            <span v-else-if="row.i_consented" class="gloss"> · yours is on it</span>
+                        </template>
+                    </template>
                 </DataTable>
             </template>
             <p v-else class="gloss" style="margin-block-start: var(--space-2)">
                 No internal restructurings recorded here — structure history renders on each organization's
                 ownership panel.
             </p>
+
+            <!-- propose a restructuring (owners only — the engine refuses anyone else) -->
+            <FormCard
+                v-if="urls?.restructure"
+                :form="{ id: 'F-ORG-009', name: 'Internal Restructuring' }"
+                :inertia-form="restructureForm"
+                submit-label="Propose (F-ORG-009)"
+                style="margin-block-start: var(--space-3)"
+                @submit="submitRestructure"
+            >
+                <Field label="Target structure" :error="restructureForm.errors.to_structure">
+                    <template #control="{ id, describedBy }">
+                        <select :id="id" v-model="restructureForm.to_structure" :aria-describedby="describedBy">
+                            <option value="stock">Stock</option>
+                            <option value="partnership">Partnership</option>
+                            <option value="equal_partnership">Equal partnership</option>
+                            <option value="member_owned">Member-owned</option>
+                            <option value="worker_owned">Worker-owned</option>
+                            <option value="nonprofit">Nonprofit</option>
+                        </select>
+                    </template>
+                </Field>
+                <p class="gloss">
+                    The consent threshold comes from the current structure's own rules — an equal
+                    partnership requires unanimity; a stock structure counts voting shares instead.
+                    Proposing records your consent. Only stake holders act; the engine refuses
+                    anyone else, with the reason.
+                </p>
+            </FormCard>
 
             <!-- dissolution -->
             <div class="card card--inset" style="margin-block-start: var(--space-4)">

@@ -858,6 +858,12 @@ Route::middleware('auth')->group(function () {
         ->whereUuid('organization')->name('organizations.conversion-requests');   // F-ORG-006
     Route::post('/organizations/{organization}/dissolution', [\App\Http\Controllers\Organizations\TransferController::class, 'dissolution'])
         ->whereUuid('organization')->name('organizations.dissolution');           // F-ORG-007
+    Route::post('/organizations/{organization}/restructures', [\App\Http\Controllers\Organizations\TransferController::class, 'restructure'])
+        ->whereUuid('organization')->name('organizations.restructures');          // F-ORG-009 propose
+    Route::post('/restructures/{restructure}/consent', [\App\Http\Controllers\Organizations\TransferController::class, 'restructureConsent'])
+        ->whereUuid('restructure')->name('restructures.consent');                 // F-ORG-009 consent (per holder)
+    Route::post('/organizations/{organization}/settings', [\App\Http\Controllers\Organizations\OrganizationController::class, 'updateSettings'])
+        ->whereUuid('organization')->name('organizations.settings');              // F-ORG-001 update_settings (v3.2 0d)
 
     // ════════════════════════════════════════════════════════════════════════
     // PHASE E — Judiciary & Law (FE-E2..E6). Dockets/opinions/challenges are

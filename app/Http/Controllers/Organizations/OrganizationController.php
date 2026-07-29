@@ -194,6 +194,12 @@ class OrganizationController extends Controller
                 ],
                 'worker_count' => $workerCount,
                 'member_counts' => $memberCounts,
+                // Org-level dials (v3.2 item 0d) — the org's own rules about
+                // itself, never constitutional values.
+                'settings' => [
+                    'board_nomination_window_days' => app(\App\Services\Organizations\OrgSettingsService::class)
+                        ->get($organization, 'board_nomination_window_days'),
+                ],
             ],
             'machine' => config('cga.state_machines.organization', []),
             'ownership' => $this->ownershipProps($organization, $memberCounts, $workerCount),
@@ -229,6 +235,29 @@ class OrganizationController extends Controller
         ]);
 
         return back()->with('status', 'Profile updated (F-ORG-001 · R-23).');
+    }
+
+    /**
+     * POST /organizations/{o}/settings — F-ORG-001 'update_settings'.
+     * Org-level self-governance dials (operator v3.2 item 0d) — the first
+     * is the board-election open-nomination window. NEVER a constitutional
+     * value; bounds and the role gate live in OrgSettingsService.
+     */
+    public function updateSettings(Request $request, Organization $organization): RedirectResponse
+    {
+        $validated = $request->validate([
+            'key'   => ['required', 'string', 'max:64'],
+            'value' => ['required'],
+        ]);
+
+        $this->engine->file('F-ORG-001', $request->user(), [
+            'action'          => 'update_settings',
+            'organization_id' => (string) $organization->id,
+            'key'             => $validated['key'],
+            'value'           => $validated['value'],
+        ]);
+
+        return back()->with('status', 'Setting recorded (F-ORG-001) — an organization\'s own rule about itself, on the audit chain, never a constitutional value.');
     }
 
     /** POST /organizations/{o}/memberships — F-IND-013 (R-01). */

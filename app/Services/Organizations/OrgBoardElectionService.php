@@ -110,6 +110,28 @@ class OrgBoardElectionService
         $dates      = $this->lifecycle->defaultDates($jurisdictionId);
         $multiplier = max(1, $this->settings->resolveInt($jurisdictionId, 'finalist_multiplier', 3));
 
+        // The OPEN NOMINATION WINDOW (operator v3.2 item 0d): an org-level
+        // dial — N days of nomination (approval phase) preceding ranking —
+        // read from the org's own settings, never a constitutional value.
+        // Absent = the jurisdiction's default schedule stands. Dev
+        // compression (config, never data) is respected: compressed
+        // schedules are already minutes-scale and are not stretched back
+        // out to days.
+        $org = $board->organization();
+
+        if ($org !== null && (int) config('cga.election_demo_compression', 0) === 0) {
+            $windowDays = app(OrgSettingsService::class)->get($org, 'board_nomination_window_days');
+
+            if ($windowDays !== null) {
+                $cutoff = $dates['approval_opens_at']->copy()->addDays((int) $windowDays);
+                $delta  = $cutoff->getTimestamp() - $dates['finalist_cutoff_at']->getTimestamp();
+
+                $dates['finalist_cutoff_at'] = $cutoff;
+                $dates['ranked_opens_at']    = $dates['ranked_opens_at']->copy()->addSeconds($delta);
+                $dates['ranked_closes_at']   = $dates['ranked_closes_at']->copy()->addSeconds($delta);
+            }
+        }
+
         $election = Election::create([
             'jurisdiction_id'    => $jurisdictionId,
             'legislature_id'     => null,

@@ -86,6 +86,15 @@ function submitProfile() {
 
 /* ---------------------------------------------- endorsement grant (F-ORG-002) */
 const grantForm = useForm({ decision: 'grant', statement: '' });
+
+/* F-ORG-001 'update_settings' — the org's own dials (v3.2 item 0d). */
+const settingsForm = useForm({ key: 'board_nomination_window_days', value: '' });
+
+function submitSettings() {
+    settingsForm.post(`/organizations/${props.organization.id}/settings`, {
+        preserveScroll: true,
+    });
+}
 function decide(requestId, decision) {
     grantForm.transform((d) => ({ ...d, decision })).post(
         `/organizations/${props.organization.id}/endorsements/${requestId}/grant`,
@@ -194,6 +203,42 @@ const documentColumns = [
                     </Field>
                     <div class="cluster">
                         <Btn type="submit" variant="primary" size="sm" :disabled="profileForm.processing">Save profile</Btn>
+                    </div>
+                </form>
+            </details>
+
+            <details v-if="can.manage" style="margin-block-start: var(--space-3)">
+                <summary>Org settings — board elections</summary>
+                <form class="stack" style="gap: var(--space-2); margin-block-start: var(--space-2)" novalidate @submit.prevent="submitSettings">
+                    <Field
+                        label="Open nomination window (days before ranking opens)"
+                        :error="settingsForm.errors.value"
+                    >
+                        <template #control="{ id }">
+                            <input
+                                :id="id"
+                                v-model="settingsForm.value"
+                                class="field-input"
+                                type="number"
+                                min="1"
+                                max="90"
+                                inputmode="numeric"
+                            />
+                        </template>
+                    </Field>
+                    <p class="gloss">
+                        How long a board election's nomination phase runs before ranking opens.
+                        <template v-if="organization.settings?.board_nomination_window_days">
+                            Currently {{ organization.settings.board_nomination_window_days }} days.
+                        </template>
+                        <template v-else>
+                            Currently unset — the jurisdiction's default schedule applies.
+                        </template>
+                        An organization's own rule about itself — recorded on the audit chain,
+                        never a constitutional value.
+                    </p>
+                    <div class="cluster">
+                        <Btn type="submit" variant="primary" size="sm" :disabled="settingsForm.processing">Set the window</Btn>
                     </div>
                 </form>
             </details>

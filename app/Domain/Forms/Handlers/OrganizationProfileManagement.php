@@ -32,6 +32,7 @@ class OrganizationProfileManagement implements FormHandler
     public function __construct(
         private readonly OrgMembershipService $memberships,
         private readonly RoleService $roles,
+        private readonly \App\Services\Organizations\OrgSettingsService $orgSettings,
     ) {
     }
 
@@ -83,6 +84,7 @@ class OrganizationProfileManagement implements FormHandler
             'void_contract'           => $this->voidContract($org, $payload),
             'manage_document_package' => $this->manageDocumentPackage($org, $payload, $actor),
             'dedicate_ip'             => $this->dedicateIp($org, $payload, $actor),
+            'update_settings'         => $this->updateSettings($org, $payload, $actor),
             default                   => throw new ConstitutionalViolation(
                 "Unknown F-ORG-001 action [{$action}].",
                 'CGA Forms Catalog (F-ORG-001)'
@@ -93,6 +95,34 @@ class OrganizationProfileManagement implements FormHandler
     }
 
     // -------------------------------------------------------------------------
+
+    /**
+     * Org-level self-governance dials (operator v3.2 item 0d) — stored on
+     * organizations.settings, NEVER a constitutional value. First dial: the
+     * board-election open-nomination window. The service validates the key
+     * registry and bounds and appends the change to the audit chain.
+     *
+     * @return array<string, mixed>
+     */
+    private function updateSettings(Organization $org, array $payload, ?User $actor): array
+    {
+        if ($actor === null) {
+            throw new ConstitutionalViolation(
+                'An organization\'s settings are changed by a person — system filing is not defined.',
+                'CGA Forms Catalog (F-ORG-001)'
+            );
+        }
+
+        $key = (string) ($payload['key'] ?? '');
+
+        try {
+            $this->orgSettings->set($org, $key, $payload['value'] ?? null, $actor);
+        } catch (\InvalidArgumentException|\RuntimeException $e) {
+            throw new ConstitutionalViolation($e->getMessage(), 'CGA Forms Catalog (F-ORG-001)');
+        }
+
+        return ['key' => $key, 'value' => $payload['value'] ?? null];
+    }
 
     /** @return array<string, mixed> */
     private function updateProfile(Organization $org, array $payload): array
