@@ -356,8 +356,11 @@ islands never touch — the buffer distance d becomes a free parameter controlli
   dependency-hold, its own slate is complete). Lane 4 live-verified racePlan on REAL Niue
   (at_large 10, blocked=false) read-only.
 - **BUILDING (git-observed): lane 3** — behavioral useLiveRoom node pin landed 86fcdb7 (per the
-  desk JS-runner ruling: node tests/js idiom, no vitest); holding for the operator's compaction
-  before the exit walk (steps 4b→5). **lane 15** — Learn pages 5/5 landed 6c4ee09 (answer key
+  desk JS-runner ruling: extracted a framework-free liveRoomPolicy.js state machine, 15 node
+  assertions + source-scan belt; JS-runner question CLOSED fleet-wide — this extract-to-pin
+  pattern is the template for any future JS behavioral pin). 7-commit run accepted. **CAPTURE
+  COMPLETE + VERIFIED — safe to compact at will, zero state loss;** holding for the operator's
+  compaction before the exit walk (STEP 0 → seat committee A → 4b → the EXIT WALK). **lane 15** — Learn pages 5/5 landed 6c4ee09 (answer key
   server-only); stages ①–⑤ all appear complete, four-way DONE expected. **lane 13** — economy
   build STARTED 18fd02d (1/6, dues as membership subscription per the ruling); 5 pieces to go.
 - **REMAINING BEFORE WAVE 3 CLOSES:** lane 3's exit walk (post-compaction), lane 13's economy
