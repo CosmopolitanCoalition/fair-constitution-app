@@ -5,13 +5,16 @@ namespace App\Domain\Forms;
 use InvalidArgumentException;
 
 /**
- * Canonical registry of the constitutional forms — 115 total: the 103 Template forms +
+ * Canonical registry of the constitutional forms — 117 total: the 103 Template forms +
  * F-ELB-008 (Manual District Draw, Phase H) + the Phase K-1 civic-commons trio
  * F-SOC-001/002/003 (public square / halls testimony / carve-out removal) + the Phase K-3
  * F-SOC-004 (M-5 physical-law legal-compliance removal, operator-plane) + the Phase M
  * economy write path F-IND-022/023/024 + F-IND-019 (Work Application) + F-ORG-009
  * (Internal Restructuring) + the Phase K-2 education pair F-EDU-001/002 (training
- * completion / material publication, operator ruling 6).
+ * completion / material publication, operator ruling 6) + the Economy Design
+ * Round 2 build: F-ORG-008 (Organization Market Participation — share issuance)
+ * + F-IND-020 (Resident Agreement — person-to-person / N-party agreements +
+ * clause redlines).
  *
  * Source of truth: CGA_Constitutional_Roles_Forms_Chart.xlsx sheet
  * "3. Forms Catalog" (transcribed in docs/plans/institutions/
@@ -47,7 +50,7 @@ use InvalidArgumentException;
 class FormRegistry
 {
     /**
-     * All 115 canonical forms: id => [name, roles allowed to file].
+     * All 117 canonical forms: id => [name, roles allowed to file].
      * Roles per the catalog's "Filed by" column; 'roles' lists the role
      * codes whose holders may file (any one suffices). F-IND-006 is
      * additionally system-filed (see its handler's systemOnly()).
@@ -544,7 +547,7 @@ class FormRegistry
         return self::HANDLERS[$canonicalId] ?? null;
     }
 
-    /** @return list<string> all 115 canonical form IDs. */
+    /** @return list<string> all 117 canonical form IDs. */
     public static function ids(): array
     {
         return array_keys(self::FORMS);
