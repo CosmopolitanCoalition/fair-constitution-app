@@ -44,7 +44,7 @@ class EconomyPropContractTest extends TestCase
         // a page cannot offer a thing without knowing what you hold.
         '/economy/wallet'         => ['surface', 'currency', 'account', 'transactions', 'receipts', 'assets'],
         '/economy/market'         => ['surface', 'currency', 'offers', 'work', 'assistance', 'my_assets'],
-        '/economy/treasury'       => ['surface', 'currency', 'accounts', 'ledger', 'issuance', 'budgets', 'revenue', 'totals'],
+        '/economy/treasury'       => ['surface', 'currency', 'accounts', 'ledger', 'issuance', 'budgets', 'revenue', 'borrowings', 'totals'],
         '/economy/units'          => ['surface', 'currency', 'levers', 'supply', 'issuance_rate_bps', 'inflation_target_bps'],
         '/economy/stipend'        => ['surface', 'currency', 'stipend', 'clock', 'k_anon_floor', 'examples'],
         '/economy/agreements'     => ['surface', 'agreements'],
@@ -55,7 +55,7 @@ class EconomyPropContractTest extends TestCase
         // is [], never null. A missing key is what kills a render.
         '/economy/wallet'   => ['transactions', 'receipts', 'assets'],
         '/economy/market'   => ['offers', 'work', 'assistance', 'my_assets'],
-        '/economy/treasury' => ['accounts', 'ledger', 'issuance', 'budgets', 'revenue'],
+        '/economy/treasury' => ['accounts', 'ledger', 'issuance', 'budgets', 'revenue', 'borrowings'],
         '/economy/units'    => ['levers'],
         '/economy/stipend'  => ['examples'],
         '/economy/agreements' => ['agreements'],
@@ -129,6 +129,44 @@ class EconomyPropContractTest extends TestCase
 
         foreach ($treasury['accounts'] as $account) {
             $this->assertIsString($account['balance'], 'every treasury balance must be a string');
+        }
+
+        foreach ($treasury['budgets'] as $budget) {
+            foreach ($budget['line_items'] as $line) {
+                $this->assertIsString($line['amount'], 'a budget line amount is money, and money is a string');
+            }
+        }
+
+        foreach ($treasury['borrowings'] as $borrowing) {
+            $this->assertIsString($borrowing['principal'], 'a borrowing principal is money, and money is a string');
+        }
+    }
+
+    /**
+     * The seller-identity boundary, drawn exactly (Wave 2 item 5): an
+     * ORGANIZATION seller resolves to a name — its listing is its public
+     * act — while a HUMAN seller never resolves past the account. If this
+     * fails, either the CGC badge died or a person got named.
+     */
+    public function test_seller_identity_resolves_orgs_and_never_people(): void
+    {
+        $user = $this->actor();
+
+        $props = $this->actingAs($user)->get('/economy/market')->assertOk()->viewData('page')['props'];
+
+        foreach ($props['offers'] as $offer) {
+            $this->assertArrayHasKey('seller_org', $offer, 'every offer declares its seller_org (null for a person)');
+
+            $ownerType = DB::table('economic_account_bindings')
+                ->where('account_id', $offer['seller_account_id'])
+                ->value('owner_type');
+
+            if ($ownerType === 'organizations') {
+                $this->assertNotNull($offer['seller_org'], 'an organization seller resolves to its public name');
+                $this->assertArrayHasKey('is_cgc', $offer['seller_org']);
+            } else {
+                $this->assertNull($offer['seller_org'], 'a human seller must never resolve past the account');
+            }
         }
     }
 

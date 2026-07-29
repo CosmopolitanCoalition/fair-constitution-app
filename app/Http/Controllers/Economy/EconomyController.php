@@ -181,10 +181,16 @@ class EconomyController extends Controller
 
     public function market(Request $request): Response
     {
+        $offers = $this->offers();
+        $orgSellers = $this->orgSellers(array_column($offers, 'seller_account_id'));
+
         return Inertia::render('Economy/Market', [
             'surface'    => SurfaceMeta::for('economy/marketplace'),
             'currency'   => $this->currencyProp($this->currency()),
-            'offers'     => $this->offers(),
+            'offers'     => array_map(
+                fn ($o) => $o + ['seller_org' => $orgSellers[$o['seller_account_id']] ?? null],
+                $offers
+            ),
             // Things you hold that are not already on the market, so the
             // "offer something" form can only point at what you actually have.
             'my_assets'  => $this->unlistedAssets($request),
@@ -248,7 +254,9 @@ class EconomyController extends Controller
         return Inertia::render('Economy/Listing', [
             'surface'   => SurfaceMeta::for('economy/listing-detail'),
             'currency'  => $this->currencyProp($currency),
-            'listing'   => $row,
+            'listing'   => $row + [
+                'seller_org' => $this->orgSellers([$row['seller_account_id']])[$row['seller_account_id']] ?? null,
+            ],
             'orders'    => DB::table('marketplace_orders')->where('listing_id', $listing)->count(),
             'can_order' => $row['status'] === 'open'
                 && $myAccountId !== null
@@ -337,6 +345,25 @@ class EconomyController extends Controller
                     'status'       => (string) $b->status,
                     'enacted_at'   => $this->iso($b->enacted_at),
                     'lines'        => DB::table('budget_lines')->where('budget_id', $b->id)->count(),
+                    // The lines themselves — where public money is DIRECTED,
+                    // which is the half a count cannot show.
+                    'line_items'   => DB::table('budget_lines')->where('budget_id', $b->id)->orderBy('line')->limit(50)->get()
+                        ->map(fn ($l) => [
+                            'line'   => (string) $l->line,
+                            'amount' => (string) $l->amount,
+                        ])->all(),
+                ])->all(),
+            // Art. V §4 — borrowing is a JURISDICTION instrument (there is no
+            // personal credit anywhere in this economy). Lenders appear as
+            // accounts, never people.
+            'borrowings' => DB::table('borrowings')->orderByDesc('created_at')->limit(20)->get()
+                ->map(fn ($b) => [
+                    'id'                => (string) $b->id,
+                    'principal'         => (string) $b->principal,
+                    'terms'             => (string) $b->terms,
+                    'status'            => (string) $b->status,
+                    'lender_account_id' => $b->lender_account_id === null ? null : (string) $b->lender_account_id,
+                    'at'                => $this->iso($b->created_at),
                 ])->all(),
             'revenue' => DB::table('revenue_streams')->whereNull('deleted_at')->orderBy('name')->get()
                 ->map(fn ($r) => [
@@ -686,7 +713,48 @@ class EconomyController extends Controller
             'code'      => (string) $currency->code,
             'symbol'    => (string) $currency->symbol,
             'precision' => (int) $currency->precision,
+            // The measurement-standards power: what the unit IS and how it
+            // divides. Both are the legislature's to define; both may be
+            // honestly absent ([] / null) in a world that has not exercised
+            // the power yet.
+            'unit_kind'    => (string) $currency->unit_kind,
+            'worth_basis'  => $currency->worth_basis === null ? null : (string) $currency->worth_basis,
+            'subdivisions' => $currency->subdivisions === null
+                ? []
+                : (is_array($currency->subdivisions) ? $currency->subdivisions : (json_decode((string) $currency->subdivisions, true) ?? [])),
         ];
+    }
+
+    /**
+     * Resolve a seller account to its ORGANIZATION, when it has one.
+     *
+     * PRIVACY BOUNDARY, drawn exactly here: an organization is a public
+     * entity trading under its own name — listing goods IS its public act —
+     * so an org seller resolves to a name and a type (the CGC badge is
+     * informational; Art. III §5 gives identical terms either way). A HUMAN
+     * seller never resolves: people stay accounts, and this helper returns
+     * null for them without ever reading the user row.
+     *
+     * @return array<string, array{name: string, type: string, is_cgc: bool}>
+     *         keyed by account id — only org-owned accounts appear
+     */
+    private function orgSellers(array $accountIds): array
+    {
+        if ($accountIds === []) {
+            return [];
+        }
+
+        return DB::table('economic_account_bindings as b')
+            ->join('organizations as o', 'o.id', '=', 'b.owner_id')
+            ->where('b.owner_type', 'organizations')
+            ->whereIn('b.account_id', array_unique($accountIds))
+            ->whereNull('o.deleted_at')
+            ->get(['b.account_id', 'o.name', 'o.type'])
+            ->mapWithKeys(fn ($r) => [(string) $r->account_id => [
+                'name'   => (string) $r->name,
+                'type'   => (string) $r->type,
+                'is_cgc' => $r->type === 'common_good_corp',
+            ]])->all();
     }
 
     private function rootId(): ?string

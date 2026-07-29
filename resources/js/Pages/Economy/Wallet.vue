@@ -155,6 +155,20 @@ const assetRows = () =>
                     Your own account is <span class="mono">{{ shortId(account.id) }}</span> — the id
                     someone else needs to send you money.
                 </p>
+                <p class="econ-note">
+                    You hold {{ currency.name }} ({{ currency.symbol }}).
+                    <template v-if="currency.subdivisions?.length">
+                        It divides into
+                        <template v-for="(s, i) in currency.subdivisions" :key="s.name ?? i">
+                            <template v-if="i > 0"> · </template>{{ s.name ?? s }}
+                        </template>
+                        — display conventions on the same ledger, never a second currency.
+                    </template>
+                    <template v-else>
+                        No subdivisions are defined yet — how the unit divides is the
+                        legislature's measurement-standards power.
+                    </template>
+                </p>
             </Card>
 
             <Card as="section">

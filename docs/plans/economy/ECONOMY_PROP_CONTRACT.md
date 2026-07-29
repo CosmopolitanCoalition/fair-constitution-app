@@ -265,3 +265,12 @@ rows, not signatures. What stays private is the instrument: terms never reach a 
 READ-ONLY v1: drafting/negotiation (clauses, redlines) is the Wave 3 design-gated build; the
 draft CTA is deliberately absent until then. The both-sign floor is DB-enforced
 (`org_contracts_cosign_check`) and renders on every card. Nav row `agreements` flipped live.
+
+### Item 5 — additive props on live pages (2026-07-29)
+
+| Where | Added | Notes |
+|---|---|---|
+| `currency` (every page) | `unit_kind`, `worth_basis?`, `subdivisions[]` | the measurement-standards power; `[]`/null honest when unexercised. Wallet + Units grew subdivision sections. |
+| market `offers[]` + listing | `seller_org: {name, type, is_cgc} \| null` | **the identity boundary, drawn exactly**: an ORGANIZATION seller resolves to its public name (its listing is its public act; CGC badge informational — identical terms, Art. III §5); a HUMAN seller never resolves past the account. Pinned both directions. |
+| treasury `budgets[]` | `line_items: [{line, amount}]` (≤50) | where public money is DIRECTED — the half a count cannot show |
+| treasury | `borrowings: [{id, principal, terms, status, lender_account_id?, at}]` | Art. V §4 jurisdiction instruments; lenders are ACCOUNTS |

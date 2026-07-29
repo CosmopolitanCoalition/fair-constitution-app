@@ -83,6 +83,30 @@ const bounds = (b) => {
             </p>
         </Card>
 
+        <Card v-if="currency" as="section" title="Subdivisions — the measurement-standards power">
+            <p class="econ-desc">
+                How the unit divides is the legislature's to define, the same way weights and
+                measures are. A named subdivision is a display convention on the same ledger —
+                never a second currency.
+            </p>
+            <ul v-if="currency.subdivisions?.length" class="econ-list">
+                <li v-for="s in currency.subdivisions" :key="s.name ?? s">
+                    <template v-if="s.name">
+                        <strong>{{ s.name }}</strong>
+                        <span class="econ-note"> · {{ s.per ?? s.ratio ?? '' }} to the {{ currency.name }}</span>
+                    </template>
+                    <template v-else>{{ s }}</template>
+                </li>
+            </ul>
+            <p v-else class="econ-note">
+                No subdivisions are defined — the whole {{ currency.name }} is the only named
+                measure. A legislature defines one by act, like any monetary lever.
+            </p>
+            <p v-if="currency.worth_basis" class="econ-note">
+                What the unit is worth, as enacted: {{ currency.worth_basis }}
+            </p>
+        </Card>
+
         <Card as="section" title="Rates">
             <div class="econ-stats">
                 <Stat :value="asPercent(issuance_rate_bps)" label="New money each period" />

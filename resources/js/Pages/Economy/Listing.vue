@@ -83,15 +83,29 @@ function settle(orderId) {
                         <dt>Item</dt>
                         <dd>{{ listing.asset.name }} ({{ listing.asset.kind === 'virtual' ? 'digital' : 'physical' }})</dd>
                     </div>
-                    <div>
+                    <div v-if="listing.seller_org">
+                        <dt>Seller</dt>
+                        <dd>
+                            {{ listing.seller_org.name }}
+                            <span v-if="listing.seller_org.is_cgc" class="econ-cgc-badge">Common-good corporation</span>
+                        </dd>
+                    </div>
+                    <div v-else>
                         <dt>Seller's account</dt>
                         <dd class="mono">{{ shortId(listing.seller_account_id) }}</dd>
                     </div>
                 </dl>
 
-                <p class="econ-note">
-                    Sellers are shown as accounts, not names. Linking an account to a person is
-                    deliberately not something this page can do.
+                <p v-if="listing.seller_org" class="econ-note">
+                    An organization trades under its own name — its listing is its public act.
+                    <template v-if="listing.seller_org.is_cgc">
+                        The common-good badge is informational: a CGC trades on identical terms to
+                        private enterprise, never a different rule.
+                    </template>
+                </p>
+                <p v-else class="econ-note">
+                    A person selling is shown as an account, not a name. Linking an account to a
+                    person is deliberately not something this page can do.
                 </p>
             </Card>
 
@@ -195,5 +209,14 @@ function settle(orderId) {
 .econ-note {
     font-size: 0.875rem;
     color: var(--gov-text-muted);
+}
+.econ-cgc-badge {
+    display: inline-block;
+    margin-inline-start: 0.5rem;
+    padding: 0.1rem 0.5rem;
+    border: 1px solid var(--gov-border, #dde);
+    border-radius: 999px;
+    font-size: 0.75rem;
+    color: var(--gov-fg-muted, #667);
 }
 </style>

@@ -188,6 +188,9 @@ const counts = computed(() => ({
                     <span>Quantity {{ formatQuantity(o.quantity) }}</span>
                     <span v-if="o.asset">{{ o.asset.kind === 'virtual' ? 'Digital item' : 'Physical item' }}</span>
                     <span>{{ o.status }}</span>
+                    <span v-if="o.seller_org">
+                        by {{ o.seller_org.name }}<template v-if="o.seller_org.is_cgc"> · common-good</template>
+                    </span>
                 </p>
             </Card>
         </section>

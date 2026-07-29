@@ -29,6 +29,8 @@ const props = defineProps({
     issuance: { type: Array, default: () => [] },
     budgets: { type: Array, default: () => [] },
     revenue: { type: Array, default: () => [] },
+    /** Art. V §4 — jurisdiction instruments; lenders appear as accounts. */
+    borrowings: { type: Array, default: () => [] },
     totals: { type: Object, default: () => ({}) },
 });
 
@@ -155,9 +157,32 @@ const issuanceRows = () =>
                         · {{ b.status }} · {{ formatCount(b.lines) }} lines
                         <template v-if="b.enacted_at"> · enacted {{ formatWhen(b.enacted_at) }}</template>
                     </span>
+                    <ul v-if="b.line_items?.length" class="econ-budget-lines">
+                        <li v-for="l in b.line_items" :key="l.line">
+                            {{ l.line }} — {{ formatMoney(l.amount, currency) }}
+                        </li>
+                    </ul>
                 </li>
             </ul>
             <p v-else class="econ-note">No budget has been enacted yet.</p>
+        </Card>
+
+        <Card as="section" title="Borrowing">
+            <ul v-if="borrowings.length" class="econ-list">
+                <li v-for="b in borrowings" :key="b.id">
+                    <strong>{{ formatMoney(b.principal, currency) }}</strong>
+                    <span class="econ-note">
+                        · {{ b.status }}
+                        <template v-if="b.lender_account_id"> · lender account {{ b.lender_account_id.slice(0, 8) }}</template>
+                        <template v-if="b.at"> · {{ formatWhen(b.at) }}</template>
+                    </span>
+                    <p class="econ-note">{{ b.terms }}</p>
+                </li>
+            </ul>
+            <p v-else class="econ-note">
+                No borrowing is on the books. Borrowing is a jurisdiction instrument, enacted by
+                the chamber — there is no personal credit anywhere in this economy.
+            </p>
         </Card>
 
         <Card as="section" title="Where the money comes from">
@@ -181,6 +206,12 @@ const issuanceRows = () =>
 .econ-note {
     font-size: 0.875rem;
     color: var(--gov-text-muted);
+}
+.econ-budget-lines {
+    margin: var(--space-1, 0.25rem) 0 0;
+    padding-inline-start: 1.25rem;
+    font-size: var(--text-sm, 0.875rem);
+    color: var(--gov-fg-muted, #667);
 }
 .econ-list {
     margin: 0;
