@@ -138,6 +138,23 @@ Type B election playtesting stays blocked fleet-wide until it ships.
 - flows keying: text-deterministic slug_sha8 survives regeneration; lanes 15/6 can land
   independently (vue-i18n falls back to en).
 
+## The one deliberately-carried Wave 2 item (desk steer 2026-07-29)
+
+**RankedBallot liveAggregate — HELD for fresh secrecy-first treatment**, lane 3's own
+recommendation adopted. It is the ballot-secrecy item: `BallotBox::decryptForCount()` forbids
+any HTTP-request-stack caller and `BallotSecrecyTest` greps for exactly that rogue pattern, so
+an in-request provisional count is a CONSTITUTIONAL VIOLATION, not a perf choice. The build is
+an out-of-band worker (first-preferences + Droop-if-closed-now projection only, writing neither
+a tabulations row nor `ballots.counted`), then adversarial verification of the secrecy boundary.
+Rushing that at the tail of an 11-commit run is the wrong risk; the desk holds it as the single
+open Wave 2 item into the operator review. The 3 parity UIs (audit:reconcile / provision /
+activate — thin guarded adapters) land first.
+
+⚖ Operator cadence question (mechanism is non-negotiable regardless): live per-window
+first-preference standings during an OPEN ballot can influence later voters. Design §B.5
+sanctions visible standings; the CADENCE (per-request vs daily-frozen like approval standings)
+is a secret-ballot policy call. The no-in-request-decrypt MECHANISM stands either way.
+
 ## Divergence ledger (spec ↔ app, logged never silent)
 
 - **Ruling 9 placement (`d69aff0`)**: substance delivered (/federation = citizen view;

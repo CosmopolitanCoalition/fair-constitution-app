@@ -1,7 +1,7 @@
 {
  "asOf": "2026-07-29",
- "commit": "92350b8",
- "wave": "WAVE 2 near close \u2014 lane 3 all RULED items + parity CLIs + 4 punch done (10 commits); 3 items remain (docket, liveAggregate, parity UIs). All other 7 lanes DONE.",
+ "commit": "8745a71",
+ "wave": "WAVE 2 essentially closed \u2014 lane 3 landed 11 (all rulings + parity CLIs + 6 punch incl. whole-chain docket); 3 parity UIs next, RankedBallot liveAggregate held for fresh secrecy-first treatment; other 7 lanes DONE",
  "rows": [
   {
    "file": "civic/join.html",
@@ -842,7 +842,7 @@
     "already-voted state with committed_at",
     "Referendum question sourced from the real F-LEG-023/petition pipeline"
    ],
-   "notes": "Click-to-rank, write-in, review\u2192commit\u2192receipt and the referendum variant are all live and engine-backed. The one real gap is the live aggregate backend; the achievement toast is a Proposed-layer decision."
+   "notes": "Click-to-rank, write-in, review\u2192commit\u2192receipt and the referendum variant are all live and engine-backed. The one real gap is the live aggregate backend; the achievement toast is a Proposed-layer decision. 2026-07-29: liveAggregate HELD for fresh secrecy-first treatment \u2014 the backend needs an OUT-OF-BAND decrypt worker (BallotSecrecyTest forbids any in-request decrypt); frontend already renders the prop. The single deliberately-carried Wave 2 item."
   },
   {
    "file": "electoral/results.html",
@@ -1329,8 +1329,8 @@
    "area": "judiciary",
    "areaLabel": "Judiciary",
    "owner": "lane 3",
-   "bucket": "partial",
-   "effort": "M",
+   "bucket": "built",
+   "effort": "none",
    "page": "resources/js/Pages/Judiciary/CaseDocket.vue",
    "route": "GET /judiciaries/{judiciary}/docket",
    "props": "full",
@@ -1345,7 +1345,7 @@
     "F-ADV-001 lane on the same store endpoint with real client resolution and a constitutional error on miss",
     "Constitutional cases route to the challenge tracker while others route to case-detail (mockup hardcodes two fixture links)"
    ],
-   "notes": "Filters/search/stats/filing composer/entry cards/state-strip all present; all 4 forms registered. The one real rework is widening the docket query+header to the viewer's whole jurisdiction chain. Manifest title (Mecklenburg/Charlotte) is stale \u2014 the fixture is New York."
+   "notes": "Filters/search/stats/filing composer/entry cards/state-strip all present; all 4 forms registered. The one real rework is widening the docket query+header to the viewer's whole jurisdiction chain. Manifest title (Mecklenburg/Charlotte) is stale \u2014 the fixture is New York. CLOSED 2026-07-29 (8745a71): the docket spans the viewer whole jurisdiction chain (county+state courts one table); resolves the /judiciary/docket->/civic 302."
   },
   {
    "file": "judiciary/constitutional-challenge.html",
