@@ -150,6 +150,18 @@ Type B election playtesting stays blocked fleet-wide until it ships.
 
 ## ⚖ NEW operator items from Wave 2 execution
 
+-1. **Oversight-console disclosure (lane 3, ⚖)**: does §10-1's "public to watch" extend to
+   the LIVE oversight console — in-progress ethics investigations and removal proceedings
+   against NAMED members — or only to published findings (already public via
+   /system/public-records)? §10-1 named sessions/committees/courts/referendums, not
+   oversight; the controller's own contract says "findings publish to the public record."
+   Lane 3 verified the fold is technically clean and correctly HELD it as a policy
+   extension. **Desk recommendation: keep the live console member+R-29-gated, findings
+   public — an in-progress investigation of a named person is not yet a proceeding of
+   record, and premature exposure is weaponizable; extend only if the operator wants the
+   stronger transparency posture deliberately.** (Speaker-tools stays gated by lane 3's own
+   call — an acting workspace, not a proceeding; the session is the watchable thing.)
+
 0. **Tour-nav placement (lane 6, flag 2)**: the mockup's nav "tour" opens the /tour INDEX
    first (Start arms the mode); the app's PLAYER_NAV still jumps straight into stop 1. The
    index exists and is reachable via TourBar "All steps" + the launchpad. Repointing touches
