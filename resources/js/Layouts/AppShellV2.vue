@@ -32,6 +32,7 @@ import TourBar from '@/Components/ShellV2/TourBar.vue';
 import { PLAYER_NAV, SITEMAP } from '@/registry/surfaces.js';
 import { LOCALES } from '@/i18n/index.js';
 import { highestRole } from '@/lib/roles.js';
+import { observePseudoDom, syncPseudoDom } from '@/lib/pseudoDom.js';
 
 const props = defineProps({
     /** Main width contract: 'default' (56rem) | 'wide' (96rem) | 'flush'. */
@@ -130,7 +131,14 @@ function applyDir(code) {
 function onLocaleChange(event) {
     locale.value = event.target.value;
 }
-watch(locale, (code) => applyDir(code));
+/* S9 — whole-DOM pseudo-localization parity: vue-i18n's postTranslation only
+   reaches t()-routed strings; server-data text escapes the en-XA padding. The
+   walk (lib/pseudoDom.js, the mockup shell's pseudoTransformMain) covers the
+   rest, and the observer keeps it alive across renders and navigations. */
+watch(locale, (code) => {
+    applyDir(code);
+    syncPseudoDom(code === 'en-XA');
+});
 
 /* ------------------------------------------------- floating-header scroll
    Port of initHeaderScroll: hide on scroll-down, show the moment the player
@@ -181,17 +189,21 @@ function onDocClick(ev) {
         if (!d.contains(ev.target)) d.removeAttribute('open');
     });
 }
+let stopPseudoDom = null;
 onMounted(() => {
     document.addEventListener('keydown', onKeydown);
     document.addEventListener('click', onDocClick);
     window.addEventListener('scroll', onScroll, { passive: true });
     applyDir(locale.value);
     lastY = window.scrollY || 0;
+    stopPseudoDom = observePseudoDom(() => locale.value === 'en-XA');
+    syncPseudoDom(locale.value === 'en-XA');
 });
 onBeforeUnmount(() => {
     document.removeEventListener('keydown', onKeydown);
     document.removeEventListener('click', onDocClick);
     window.removeEventListener('scroll', onScroll);
+    stopPseudoDom?.();
 });
 </script>
 
