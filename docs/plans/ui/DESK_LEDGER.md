@@ -689,3 +689,37 @@ election_races). Rationale: it's the headline unblock and lane 3's counting side
 told to build non-schema parts meanwhile. Release order: agenda (L3) right after L1's race-fix
 migration lands, then secondary-trading (L13). Lane 3 told: wire ③ against the COMMITTED formula
 (84838b7), don't wait on lane 4's live confirm.
+
+### W4 tick 2 — slot GRANTED to lane 1 + Type B file boundary + Niue gate (2026-07-29)
+
+**LANE 1 four-way:** STEP 0 clean (HEAD 8f70cb2 ≥ 9fb0a60). ④ fixture reds both diagnosed as
+own-the-world reds on the now-seated box (MyProfileTabsTest:109 no unseated adm1;
+LegalComplianceTest:288 aJurisdiction grabbed a seated one) → fixing in the rolled-back tx
+(Wave-2 technique 1), no migration, no coordination. ① design doc writing.
+
+**⚑ KEY CONVERGENCE — Type B counting core needs ZERO change.** Lane 1's analysis (consistent
+with lane 3's "run() is per-race/agnostic"): a per-clump Type B race == a multi-seat at-large STV
+race, which VoteCountingService ALREADY runs (San Marino's live at-large race is the proof). The
+only functional election-domain edit is **RaceFootprint** — add a panel-jurisdiction LEFT JOIN so
+a per-clump race enfranchises the UNION of its constituents (per-CHILD races already work via
+jurisdiction_id). RaceFootprint is NOT protected. So the race fix is LOWER-RISK than feared — no
+PROTECTED counting-algorithm surgery, just schema + racePlan/createRaces + RaceFootprint + a
+stale-comment cleanup.
+
+**⚑ SLOT GRANTED → LANE 1** (both additive files, one slot turn):
+ (a) election_races.type_b_panel_id (nullable uuid, FK legislature_type_b_panels) — clump key.
+ (b) ⑤ AutoscaleResizeRepair SQL-clamp CHECK constraint.
+ + the SAME migration relaxes/replaces `election_races_one_at_large_per_kind` (the pooled-race
+ enforcer). Release order on lane 1's report: L3 agenda → L13 secondary-trading (both holding).
+
+**⚑ FILE-OWNERSHIP BOUNDARY (Type B race fix):**
+ • LANE 1 = schema (type_b_panel_id), racePlan, createRaces, RaceFootprint (electorate LEFT JOIN).
+ • LANE 3 = PROTECTED VoteCountingService verdict + stale L223-226 comment + counting pin.
+ Lane 1's "zero counting change" is INPUT to lane 3, NOT a verdict on lane 3's protected file
+ (standing rule: the lane that reads the code outranks reasoning-at-a-distance). Direct L1↔L3
+ coordination approved; desk arbitrates only on shape divergence.
+
+**⚑ DESK-HELD GATE:** Niue's grouping flag does NOT clear in the new shape until lane 3 CONFIRMS
+per-clump counting (we re-flagged Niue once to avoid seating a wrong-shape race — don't repeat).
+Sequence: L1 lands schema+racePlan+RaceFootprint → sends L3 the shape → L3 verifies+pins → THEN
+clear Niue. Independent adversarial verification of the counting claim reserved for the wave gate.
