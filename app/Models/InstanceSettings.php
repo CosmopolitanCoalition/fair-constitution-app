@@ -53,6 +53,11 @@ class InstanceSettings extends Model
         // Phase G — read-only mirror mode (G1).
         'mirror_of_server_id',
         'mirror_adopted_at',
+        // Wave 3 — demo-mesh time coordination. NULL time_coordinator = this node
+        // coordinates (the authoritative_server_id idiom); skew tolerance is the §4
+        // escape hatch. See DemoMeshTimeCoordinator + DEMO_MESH_TIME_COORDINATION.md.
+        'time_coordinator_server_id',
+        'demo_time_skew_tolerated',
         // Phase G — G-ID attestation authority (ships dark).
         'attestation_authority_enabled',
         // Phase G — co-member cluster home.
@@ -82,6 +87,7 @@ class InstanceSettings extends Model
         'attestation_authority_enabled' => 'boolean',
         'version_pinned_at' => 'datetime',
         'infra_overrides' => 'array',
+        'demo_time_skew_tolerated' => 'boolean',
     ];
 
     /**

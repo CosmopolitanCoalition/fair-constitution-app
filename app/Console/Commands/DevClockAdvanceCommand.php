@@ -3,6 +3,7 @@
 namespace App\Console\Commands;
 
 use App\Http\Middleware\DevTimeControlsEnabled;
+use App\Services\Dev\DemoMeshTimeCoordinator;
 use App\Services\Dev\DevClockService;
 use Illuminate\Console\Command;
 
@@ -28,7 +29,7 @@ class DevClockAdvanceCommand extends Command
 
     protected $description = 'Playtest control: bring scheduled deadlines forward so they become due';
 
-    public function handle(DevClockService $clock): int
+    public function handle(DevClockService $clock, DemoMeshTimeCoordinator $mesh): int
     {
         if ($reason = DevTimeControlsEnabled::refusalReason()) {
             $this->error($reason);
@@ -88,11 +89,23 @@ class DevClockAdvanceCommand extends Command
             return self::SUCCESS;
         }
 
+        // A FOLLOWER does not originate — its coordinator's advance replays here
+        // on sync. The preview above still ran (seeing is fine); only the apply
+        // is refused, with the coordinator named (DEMO_MESH_TIME_COORDINATION §3).
+        if ($meshReason = $mesh->localAdvanceRefusal()) {
+            $this->error($meshReason);
+
+            return self::FAILURE;
+        }
+
         $this->line('  <options=bold>Applying…</>');
         $this->line('');
 
         $last = null;
-        $result = $clock->advance($days, function (string $label, int $done, int $total) use (&$last): void {
+        // Originate through the coordinator: on a coordinator/solo node this runs
+        // the same engine advance AND publishes the mesh record declared-demo
+        // followers replay. On an un-migrated box it is a plain advance.
+        $result = $mesh->originateAdvance($days, function (string $label, int $done, int $total) use (&$last): void {
             // One line per column, rewritten in place — the ETL rule's
             // per-chunk visibility without a wall of scrollback.
             if ($label !== $last) {
@@ -112,6 +125,16 @@ class DevClockAdvanceCommand extends Command
         ));
         $this->line('  <fg=gray>Recorded on the audit chain as a dev control — a played timeline stays');
         $this->line('  distinguishable from a lived one.</>');
+
+        // When this node coordinates a mesh, the advance rode the sync stream as a
+        // signed record — its declared-demo followers replay it idempotently.
+        if (($result['advance_id'] ?? null) !== null && ($peers = $mesh->demoPeerCount()) > 0) {
+            $this->line(sprintf(
+                '  <fg=gray>Published to the mesh as advance %s — %d declared-demo peer(s) replay it on sync.</>',
+                substr((string) $result['advance_id'], 0, 8),
+                $peers,
+            ));
+        }
 
         return self::SUCCESS;
     }

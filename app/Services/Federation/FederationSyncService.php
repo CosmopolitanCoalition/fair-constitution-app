@@ -9,6 +9,7 @@ use App\Models\InstanceSettings;
 use App\Models\PublicRecord;
 use App\Models\SyncLogEntry;
 use App\Services\AuditService;
+use App\Services\Dev\DemoMeshTimeCoordinator;
 use App\Services\Identity\AttestationService;
 use Illuminate\Support\Facades\DB;
 
@@ -35,6 +36,7 @@ class FederationSyncService
         private readonly AuditService $audit,
         private readonly AuthorityResolver $authority,
         private readonly AttestationService $attestations,
+        private readonly DemoMeshTimeCoordinator $timeCoordinator,
     ) {}
 
     // ──────────────────────────────────────────────────────────────────────
@@ -322,7 +324,7 @@ class FederationSyncService
         }
 
         // 4. Apply records under authoritative-instance-wins (atomic).
-        return DB::transaction(function () use ($peer, $records, $achievements, $headHash, $fromSeq, $toSeq, $payloadHash, $entries) {
+        $log = DB::transaction(function () use ($peer, $records, $achievements, $headHash, $fromSeq, $toSeq, $payloadHash, $entries) {
             $applied = $conflicts = $nonAuthoritative = $skipped = [];
 
             foreach ($records as $rec) {
@@ -425,6 +427,24 @@ class FederationSyncService
 
             return $log;
         });
+
+        // 5. Replay any DEMO-MESH TIME ADVANCES the coordinator published in this
+        // now chain-verified tail (DEMO_MESH_TIME_COORDINATION §2). Runs AFTER the
+        // record-mirror transaction commits, through DevClockService's own
+        // bounded-chunk path — never nested inside the sync txn, so the ETL rule
+        // holds and a large advance is not wrapped atomic. Each replay is
+        // idempotent (the advance_id ledger) and RE-GATED on receipt: a node that
+        // has meanwhile peered a non-demo instance applies nothing, exactly as it
+        // would refuse a local advance. Parallels the attestation-revocation
+        // materialization above — a verified entry carrying a side effect.
+        foreach ($entries as $e) {
+            if (($e['module'] ?? null) === DemoMeshTimeCoordinator::ADVANCE_MODULE
+                && ($e['event'] ?? null) === DemoMeshTimeCoordinator::ADVANCE_EVENT) {
+                $this->timeCoordinator->replayFromSync((array) ($e['payload'] ?? []), $peer);
+            }
+        }
+
+        return $log;
     }
 
     // ──────────────────────────────────────────────────────────────────────

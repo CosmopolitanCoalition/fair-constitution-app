@@ -40,6 +40,35 @@ const local = ref(null);
 const hidden = ref(false);
 const st = computed(() => props.state ?? local.value);
 
+/* ── Demo-mesh time coordination (§3/§4) ───────────────────────────────
+ * The server's mesh state rides the same GET /dev/playtest/state read. A
+ * FOLLOWER carries a verbatim local-advance refusal — the coordinator's
+ * advance replays here on sync, so origination is disabled and that sentence
+ * shown, exactly as the server enforces it (a 422 on apply). */
+const mesh = computed(() => st.value?.mesh ?? null);
+const meshRefusal = computed(() => mesh.value?.local_advance_refusal ?? null);
+const coordBusy = ref(false);
+
+async function postCoordinator(body) {
+    coordBusy.value = true;
+    error.value = '';
+    try {
+        const r = await csrfFetch('/dev/clock/coordinator', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(body),
+        });
+        if (r.status === 404) throw new Error('route not available in this build');
+        const data = await r.json();
+        if (!r.ok) throw new Error(data?.error || `could not set coordinator (${r.status})`);
+        refresh();
+    } catch (e) {
+        error.value = e?.message || 'Could not update the mesh coordinator.';
+    } finally {
+        coordBusy.value = false;
+    }
+}
+
 async function probe() {
     try {
         const r = await fetch('/dev/playtest/state', {
@@ -149,6 +178,41 @@ const shiftedRows = computed(() =>
         <p v-if="!st.enabled" class="clockctl-refusal">{{ st.reason }}</p>
 
         <template v-else>
+            <!-- Demo-mesh coordination state (§3/§4). A follower's advance is
+                 refused with the coordinator named; the server enforces it, this
+                 mirrors it. -->
+            <div v-if="mesh" class="clockctl-mesh" :class="`clockctl-mesh--${mesh.role}`">
+                <p v-if="mesh.role === 'coordinator'" class="clockctl-mesh-head">
+                    This node <strong>coordinates</strong> the demo mesh — an advance here replays on
+                    {{ mesh.demo_peers }} declared-demo peer(s).
+                </p>
+                <p v-else-if="mesh.role === 'follower'" class="clockctl-mesh-head clockctl-mesh-head--follower">
+                    This node <strong>follows</strong> {{ mesh.coordinator.label }}.
+                    <span v-if="meshRefusal">{{ meshRefusal }}</span>
+                </p>
+                <p v-else class="clockctl-mesh-head clockctl-dim">
+                    Solo — no demo peers to coordinate with.
+                </p>
+                <div class="clockctl-mesh-controls">
+                    <button
+                        v-if="mesh.role === 'follower'"
+                        type="button"
+                        class="clockctl-btn clockctl-btn--fire"
+                        :disabled="coordBusy"
+                        @click="postCoordinator({ self: true })"
+                    >Make this node the coordinator</button>
+                    <label class="clockctl-mesh-skew">
+                        <input
+                            type="checkbox"
+                            :checked="mesh.skew_tolerated"
+                            :disabled="coordBusy"
+                            @change="postCoordinator({ skew_tolerated: $event.target.checked })"
+                        />
+                        Tolerate skew (advance independently)
+                    </label>
+                </div>
+            </div>
+
             <div class="clockctl-row">
                 <label class="clockctl-label" for="dev-clock-days">Advance the world</label>
                 <div class="clockctl-controls">
@@ -209,12 +273,15 @@ const shiftedRows = computed(() =>
                 <button
                     type="button"
                     class="clockctl-btn clockctl-btn--apply"
-                    :disabled="busy || !applyArmed"
+                    :disabled="busy || !applyArmed || !!meshRefusal"
                     @click="postAdvance(true)"
                 >
                     Apply — pull every deadline {{ planDays }} day(s) closer and fire what comes due
                 </button>
-                <p v-if="!applyArmed" class="clockctl-dim clockctl-note">
+                <p v-if="meshRefusal" class="clockctl-dim clockctl-note">
+                    Advance on the coordinator — it replays here on sync.
+                </p>
+                <p v-else-if="!applyArmed" class="clockctl-dim clockctl-note">
                     The day count changed — preview again before applying.
                 </p>
             </div>
@@ -270,6 +337,33 @@ const shiftedRows = computed(() =>
     border: 1px solid var(--gov-border, currentColor);
     border-radius: var(--radius-2, 0.375rem);
     opacity: 0.9;
+}
+.clockctl-mesh {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-2);
+    padding: var(--space-2);
+    border: 1px solid var(--gov-border, currentColor);
+    border-radius: var(--radius-2, 0.375rem);
+}
+.clockctl-mesh-head {
+    margin: 0;
+}
+.clockctl-mesh-head--follower {
+    opacity: 0.95;
+}
+.clockctl-mesh-controls {
+    display: flex;
+    align-items: center;
+    gap: var(--space-3);
+    flex-wrap: wrap;
+}
+.clockctl-mesh-skew {
+    display: flex;
+    align-items: center;
+    gap: var(--space-1, 0.25rem);
+    font-size: 0.75rem;
+    cursor: pointer;
 }
 .clockctl-row {
     display: flex;

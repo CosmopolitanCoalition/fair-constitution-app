@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Http\Middleware\DevTimeControlsEnabled;
 use App\Models\ChamberVote;
 use App\Models\ClockTimer;
+use App\Services\Dev\DemoMeshTimeCoordinator;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\DB;
 
@@ -29,7 +30,7 @@ use Illuminate\Support\Facades\DB;
  */
 class PlaytestStateController extends Controller
 {
-    public function __invoke(): JsonResponse
+    public function __invoke(DemoMeshTimeCoordinator $mesh): JsonResponse
     {
         $reason = DevTimeControlsEnabled::refusalReason();
 
@@ -38,6 +39,12 @@ class PlaytestStateController extends Controller
             'reason' => $reason,
             'armed' => $reason === null ? $this->armedTimers() : [],
             'open_votes' => $reason === null ? $this->openVotes() : [],
+            // The demo-mesh coordination state (role, coordinator, and — for a
+            // follower — the verbatim local-advance refusal). Withheld with the
+            // lists when the base gate refuses; the refusal sentence covers that
+            // case, and the mesh state means nothing on a node that may not
+            // time-travel at all.
+            'mesh' => $reason === null ? $mesh->status() : null,
         ]);
     }
 

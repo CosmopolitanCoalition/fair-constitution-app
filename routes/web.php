@@ -1107,9 +1107,15 @@ if (app()->environment('local') && config('cga.impersonation', true)) {
         // — a node real nodes trust must never be able to time-travel; a mesh
         // made only of declared demo instances may.
         Route::middleware([DevTimeControlsEnabled::class])->prefix('clock')->name('clock.')->group(function () {
-            // Dry run by default; ?apply=1 is the deliberate second step.
+            // Dry run by default; ?apply=1 is the deliberate second step. On a
+            // coordinator/solo node ?apply publishes the mesh record followers
+            // replay; on a follower it is refused (422) with the coordinator
+            // named — the plan still returns so the UI shows it (DEMO_MESH §3).
             Route::post('/advance', [\App\Http\Controllers\Dev\DevClockController::class, 'advance'])->name('advance');
             Route::post('/fire/{timer}', [\App\Http\Controllers\Dev\DevClockController::class, 'fire'])->name('fire');
+            // Demo-mesh time coordinator designation + §4 skew tolerance — the UI
+            // twin of dev:mesh-time. Same gate; only answers on a demo node.
+            Route::post('/coordinator', [\App\Http\Controllers\Dev\DevClockController::class, 'coordinator'])->name('coordinator');
         });
         // The Demo flyout's one state read (D2/D3): may the playtest controls
         // run (the refusal sentence VERBATIM when not — the server is the
