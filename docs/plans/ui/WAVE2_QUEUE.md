@@ -342,6 +342,14 @@ invited check ("check me on it") found: the engine already seats islands via the
 sound iff both clips hold; antimeridian guarding is real and already precedented; and
 hull-CONTACT adjacency for GROUPING reduces to a buffered proximity graph (hulls of separated
 islands never touch — the buffer distance d becomes a free parameter controlling everything).
+**Lane 3 provisioning DONE (30d72fe, 3 pins green): session/committee/case = PUBLIC commons
+rooms under the jurisdiction Space; board = PRIVATE entity room never Space-bound (§10-1);
+ENTITY_CASE as a PHP constant, no migration; idempotent lazy provisioning. FLAG RECORDED
+(deferred, post-wave): an organization-visibility setting (public opt-in for boards) would
+need a schema slot — correctly not written, the private default is constitutional as-is.
+QUEUED-MESSAGE MISS confirmed live (rule 4): lane 3 reported idle on Q1/Q2 after the ruling
+was sent — ruling RE-ISSUED idempotently.**
+
 **Lane 13 DELIVERED (eaabedb, DESIGN_ROUND_2.md, 529 lines, docs only, sweep-clean despite ~14
 dirty peer files): four surfaces designed OPTIONS+COSTS+REC; 11-decision matrix + 2
 cross-cutting rulings (A: separate the controller / fold the telemetry; B: equity on the NAMED
