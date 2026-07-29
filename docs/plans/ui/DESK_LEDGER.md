@@ -1041,3 +1041,53 @@ OversightGalleryDisclosureTest 22 — guest sees in-progress removal + named mem
 0f02655 shape answers all 3 hold-questions; fixtures: L1 owns seating pins, L3 owns CountingStage/SeatingStage).
 ⚑ NIUE GATE TRIGGER: when L3's per-clump counting lands + pins, L3 tells the desk → desk authorizes the Niue
 clear (L1 holds until then). NEXT: ② exit walk → ⑦ 4 pollers → ① counting.
+
+### W4 tick 12 — Atlas COMPLETE + L3 keystone exit-walk done + L6 5 commits (2 more bugs) + 3 rulings
+
+**⚑ SLOT DRAINED, no collision:** world_stats (3b9ff99, mig 230000) + share_offers (1cdf535, mig 240000)
+both landed clean — different timestamps/tables. Slot FREE; only L3 agenda (④, held) remains. CAS commits
+made the shared-index race moot for both.
+
+**LANE 4 — ATLAS FULLY LIVE (world_stats rollup 7c6a6af + migration 3b9ff99).** Walked E2E: world:stats
+--refresh wrote the row (economy+people ABSENT not zeroed), audit_log world.stats_rollup ref CI-6, /atlas
+renders 2,443 residents · 26 jur · 290 seats/257 filled · 28 open elections · 19-of-26 gauged, gaps as
+em-dashes. 00:50 schedule AFTER reach's 00:40 (sums that night's snapshots). Traps caught: seatsFilled 257
+not 654 (elected+term_ended), orgs 2 not 3 (soft-delete). W4③ ElectionStageTest 10/10 vs L1's per-clump.
+NEXT: W4② provisioning mirror + parity pin (courtTiers+extraRooms only) → W4④.
+
+**LANE 3 — KEYSTONE EXIT WALK DONE (8bcb3ee, green)** — committee-hearing e2e in one room = the acceptance
+gate. (Plus its tick-11 five landings.) NEXT: ⑦ 4 pollers → ① counting.
+
+**LANE 6 — 5 commits (through adea521), 2 MORE real bugs:** ③ 32a288a SECURITY (a removed member could
+re-invite themselves back into a private room — spaceDestination/InviteController/leave() gaps; 2 pins, 11
+green) · ④ 6d9d4a0 the first journey rendered raw class-id "people" (become-a-resident absent from
+journeys.js) + flipped L/M "planned" labels live · ⑤ ⚑ adea521 THE MENU GATED TIGHTER THAN THE CONSTITUTION
+— advocate-console/constitutional-challenge/departments unreachable by exactly whom they exist for, no route
+gate (the menu WAS the gate): residents couldn't file an Art. IV §5 challenge, nobody could join the bar.
+One-directional pin (client-more tolerated=refusal-is-an-answer; client-fewer fails). 14-agent gap analysis:
+every screen YES-WITH-HONEST-EMPTY.
+
+**RULINGS:**
+1. **PER-CHILD (ungrouped) = (a) joint-sequence AFTER L3's per-clump count pins + secrecy clears** (NOT defer,
+   NOT (c)). WHY not defer: San Marino is a DEMO jurisdiction, UNGROUPED (9×3=27), so the interim pooled race
+   shows the WRONG Type B shape in the operator's playtest walk — wrong shapes don't ship. Joint L1/3/4 step,
+   each rewrites its OWN bicameral fixtures to seed real children. Reassess with operator if it threatens the gate.
+2. **BILL-CONVERSATION: L6 builds bill.html** (Vue page + controller read) on the CONSTITUTIONAL path (motions
+   kind='amendment' + chamber vote via POST /sessions/{session}/motions — the mockup's per-party accept/reject
+   is an Art. V §3 ConstitutionalViolation RedlineService already throws); L3 keeps the live-room half; comments
+   ride 8 existing bill-bound social_subforums (no schema). HallsController subforum_id one-liner = L3's file,
+   L6 coordinates direct.
+3. **CIVIC/JOIN PRESENCE: honest-empty/reword, never fake** — verified NO presence source (useLiveRoom is a
+   poll/freshness layer). "{n} people in this room" reads as presence but is roster size; relabel or empty.
+
+**COMMIT-LAW AMENDMENT (L4, accepted):** file-list guard NARROWS the race; temp-index CAS ELIMINATES it. ⚑
+GOTCHA to carry: after `update-ref`, the real .git/index still points at OLD HEAD → reads as DELETING your new
+files → a peer committing right then would delete them → follow every plumbing commit with `git reset -q HEAD
+-- <paths>` to re-sync. CAS-for-every-commit is the fleet standard. (L4 self-reported 2 sweeps this tick — both
+repaired forward, no work lost, no rewrite.)
+
+**PIXEL DEBT de-mystified (L6):** the pane isn't broken — it must be VISIBLE to composite frames. The
+operator-present walk WILL produce pixels. Closes the unknown-cause debt.
+
+**RUBRIC deltas (still batching):** atlas built (L4) · L6 tour/ballots/journey/menu · L3 exit-walk + 5 · L2 5
+screens · L13 12 economy + share_offers · new open-Qs: Path-B (deferred), civic/join-presence (honest-empty).
