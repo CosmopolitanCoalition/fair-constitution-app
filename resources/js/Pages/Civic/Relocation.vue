@@ -41,6 +41,17 @@ const props = defineProps({
 const page = usePage();
 const flashStatus = computed(() => page.props.flash?.status ?? null);
 
+/* Plain labels for the residency lifecycle strip — the raw tokens are machine
+   grammar ("ping_monitoring"); the player chrome speaks plainly (S8). */
+const CLAIM_LABELS = {
+    declared: 'Declared',
+    ping_monitoring: 'Confirming by presence',
+    threshold_met: 'Threshold met',
+    verified: 'Verified',
+    active: 'Active — home',
+    superseded: 'Superseded',
+};
+
 const travellingForm = useForm({});
 function declareTravelling() {
     travellingForm.post(props.urls.travelling, { preserveScroll: true });
@@ -89,13 +100,15 @@ const currentMachineState = computed(() => props.newClaim?.status ?? props.homeC
             </template>
             <template v-else>
                 <div class="cluster">
-                    <StatusBadge tone="success" icon="check">No relocation pattern detected</StatusBadge>
-                    <span class="citation">away detection arrives with mobile pinging · Planned · Phase F</span>
+                    <StatusBadge tone="neutral" icon="map-pin">Away-pattern detection isn’t built yet</StatusBadge>
                 </div>
                 <p class="gloss" style="margin-block-start: var(--space-2)">
-                    This page activates when sustained pings appear outside your declared
-                    jurisdiction. Detection uses the same encrypted ping log as verification —
-                    only day-counts are ever visible, and pings stay pausable in personal settings.
+                    This card will light up when sustained pings appear outside your declared
+                    jurisdiction — but nothing is watching for that yet: automatic away-detection
+                    needs the mobile geofenced pinging that arrives in <strong>Phase 6</strong>.
+                    Until then, if you move, you tell us yourself below. When it does exist it will
+                    read the same encrypted ping log verification uses — only day-counts ever
+                    visible, pings always pausable.
                 </p>
                 <p v-if="homeClaim" class="cc-small" style="margin-block-start: var(--space-2)">
                     Home residency: <strong>{{ homeClaim.jurisdiction.name }}</strong>
@@ -120,10 +133,18 @@ const currentMachineState = computed(() => props.newClaim?.status ?? props.homeC
                 <Btn as="a" :href="urls.residency" variant="secondary">I'm moving — start re-association</Btn>
             </div>
             <p class="gloss" style="margin-block-start: var(--space-2)">
-                Travelling: detection resets, nothing changes — pings pausable in personal
-                settings; the declaration is audit-chained (WF-CIV-03). Moving: a new residency
-                declaration (F-IND-003 on the residency screen) alongside your active claim IS the
-                move — no new form exists here, by design.
+                <template v-if="detection">
+                    Travelling: detection resets, nothing changes — pings pausable in personal
+                    settings; the declaration is audit-chained (WF-CIV-03).
+                </template>
+                <template v-else>
+                    Travelling: no away-pattern has been detected — nothing needs resetting — so
+                    this is a standing declaration that a future trip is travel, not a move. It is
+                    recorded on the audit chain (WF-CIV-03) and changes nothing about your
+                    residency or your rights.
+                </template>
+                Moving: a new residency declaration (F-IND-003 on the residency screen) alongside
+                your active claim IS the move — no new form exists here, by design.
             </p>
 
             <ol class="flow-steps" style="margin-block-start: var(--space-3)">
@@ -180,11 +201,16 @@ const currentMachineState = computed(() => props.newClaim?.status ?? props.homeC
         </Card>
 
         <!-- ==================================== held offices ============= -->
-        <Card v-if="heldOffices.length" as="section" title="Held offices and the grace period">
+        <Card as="section" title="Held offices and the grace period">
             <p class="cc-small">
-                You hold an office tied to a jurisdiction. It is not dropped the instant you move —
-                the grace period lets the institution prepare while you remain accountable.
+                An office tied to a jurisdiction is not dropped the instant you move — the grace
+                period lets the institution prepare while you remain accountable.
             </p>
+            <div v-if="!heldOffices.length" class="cluster" style="margin-block-start: var(--space-3)">
+                <StatusBadge tone="neutral" icon="check">
+                    You hold no office tied to your home jurisdiction — nothing to hand over
+                </StatusBadge>
+            </div>
             <Card v-for="(office, oi) in heldOffices" :key="oi" inset>
                 <div class="cluster" style="justify-content: space-between">
                     <div>
@@ -218,7 +244,7 @@ const currentMachineState = computed(() => props.newClaim?.status ?? props.homeC
 
         <!-- ==================================== lifecycle ================ -->
         <Card as="section" title="Where you are in the residency lifecycle">
-            <StateStrip :states="machine" :current="currentMachineState" aria-label="Residency claim state machine" />
+            <StateStrip :states="machine" :current="currentMachineState" :labels="CLAIM_LABELS" aria-label="Residency claim state machine" />
             <p class="gloss" style="margin-block-start: var(--space-2)">
                 Your old residency claim becomes Superseded only when the new one verifies —
                 <HardenedChip>there is never a gap in your rights</HardenedChip>
