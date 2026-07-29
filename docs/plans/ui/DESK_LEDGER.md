@@ -852,3 +852,38 @@ fleet seam):
 block removed. Regenerated (207,592 bytes; 107 screens / 56 caps / 23 debt / 9 lanes / 14 questions)
 + REDEPLOYED to the same artifact URL (101c137d…). Stamp → "Wave 4 LAUNCHED — road to green, in
 progress", head 41d5239.
+
+### W4 tick 6 — L3 (3 landings + scope) & L15 (arming done) + journey/social-home boundary + slot queue lightened
+
+**LANE 15 four-way:** ① PRE-TRAIN ARMING DONE @ c47b50f (SeatedMemberTrainingService; education:seed
+publishes-then-pretrains; dev box UNSEEDED on purpose; 49/49 green; EducationNoGateTest strengthened,
+enforcement pinned to one home). ② PROFILE-EDIT (F-IND-002 ext, social_profiles cols exist) + p2p DM
+(reuses social_spaces/memberships via PrivateRoomService create+admit) — NO SLOT NEEDED; social values
+OFF the public chain (deanon vector); "message-from-a-found-profile, not a directory" honors
+pseudonymity. ④ seat_training_window_days dead-in-code (doc refs only), A5 stands. Holding nothing.
+
+**⚑ JOURNEY + SOCIAL-HOME BOUNDARY RULED** (L6+L15 co-owned, DESK_LEDGER co-own note). Specialty-aligned
+split (lane 15 proposed, desk confirmed): **L15 = educational slices** (journey "Understand it first" SOP
++ Learn deep-links; social-home community-standards card — four carve-outs + why-drawer); **L6 = presence
+strip / @handles / seat badges / tag chips / a11y layout**. social-home = Civic/PublicSquare.vue @
+/civic/square. L15 holds the shared .vue until L6 acks; both messaged.
+
+**LANE 3 four-way — 3 landings + scope corrections:**
+ • Landings (all green, CAS-clean): ③ formula 37b7a64 (13/101) · ⑧ ModerationFlipTest 6fe2c77 (4/29) ·
+   ⑤ department-reporting half f333eba (PhaseDPageSmokeTest 99 asserts). Accepted.
+ • ⑦ "9 pollers" → really **4** (only MatrixCommons/PrivateRoom/Results/VacancyCountback are the
+   useLiveRoom shape; the rest are job-progress fetch pollers a reload-store can't model). Ratified.
+ • ⑨ oversight-public **already LANDED** 4057b3c (ruling B in full — public incl. in-progress + named).
+   Residual = TEST-HARDENING only (guest-read pin + widen write-bounce list). Ratified.
+ • ⑥ liveAggregate **CACHE-BASED** (Redis daily-frozen ≥24h TTL + counts-only chain entry) → MIGRATION-FREE,
+   NO SLOT. Ratified (durable ranked_standings table = future slot only if audit-parity demands).
+ • ① counting half HOLDING for lane 1's confirm on 3 specifics (racePlan/createRaces status · does
+   RaceFootprint scope production electorate · CountingStage/SeatingStage fixture ownership) — RELAYED to
+   lane 1 for its shape handoff.
+
+**⚑ MIGRATION-SLOT QUEUE (lightened):** L1 DONE (released) → **slot OPEN, L4 (world_stats) next** (pinged;
+claims when its non-schema Atlas-backend parts are ready) → L3 agenda (HELD behind L1, no rush) → L13
+secondary-trading. DROPPED from the queue: L3 ⑥ (cache) + L15 ② (columns exist) — neither needs schema.
+
+**RUBRIC deltas to fold at next regen (not yet regenerated — batching):** L15 ① done; L3 ③⑧⑤ done;
+⑦ count 9→4; ⑨ production half done (residual test-only); Atlas split already in.
