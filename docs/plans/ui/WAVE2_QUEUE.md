@@ -94,8 +94,9 @@ Type B election playtesting stays blocked fleet-wide until it ships.
 
 | Family | Tests | Cause | Owner / remedy |
 |---|---|---|---|
-| Class-refusal | PeerTransportLearning ×3, CapabilityRegistry ×1 (+feeds autonomy stack) | the box is `instance_class=scale_demo`; fixtures fake peers advertising NO class, the SYMMETRIC rule refuses — pin firing on borrowed fixtures | lane 2: fixture-scoped `InstanceClass::override`; no rail weakened |
-| Fixture-borrows-the-world | AutonomyFlipRewraps ×5 + LocalAutonomyGoverned, AutoscalePin ×3, RemainderSynthesis ×3, ManualDistrictDraw ×1, LegalCompliance ×1 | the filled, now TIME-TRAVELED shared world | lanes 1/2/3 per surface (the documented class) |
+| ~~Class-refusal~~ | ~~PeerTransportLearning ×3, CapabilityRegistry ×1~~ | **CLOSED by lane 2 (`e3df1ba`): fixture-scoped `InstanceClass::override`, rail re-run green untouched** | — |
+| Fixture-borrows-the-world | ~~AutonomyFlipRewraps ×5 + LocalAutonomyGoverned~~ **CLOSED (`e3df1ba` — yes-votes = actual civic population, dual-gate meter positively asserted)**; REMAINING: AutoscalePin ×3, RemainderSynthesis ×3, ManualDistrictDraw ×1 (lane 1), LegalCompliance ×1 | the filled, time-traveled shared world | lane 1 (+1 unowned) |
+| ~~Disintermediation direction~~ | — | **CLOSED by lane 2 (`5f6615e`, ruling 2 + Art. V §8's own text): per-constituent copies w/ full history + incorporation marker, original archival-superseded, encompassing gets NOTHING; pin asserts the ruled direction** | — |
 | Order-dependence | MatrixCarveoutEmitter, ModerationFlip | pass isolated; documented | unowned, known |
 | ~~Real findings~~ | ~~LedgerIntegrity writers~~ | **CLOSED by lane 13 (`5c2742e`, Wave 2 item 1): SCAN HEURISTIC confirmed — every hit was a READ; zero writes. Pin rewritten to match writes not mentions, scope widened to database/+routes/, negative controls both directions; 13/13 green. Doctrine kept: reads are lawful — the ledger is PUBLIC; reader-privacy = accounts-never-people, never a hidden ledger.** | — |
 | ~~CgcIpPublicDomain~~ | ~~grant drift + catalog reference~~ | **CLOSED at the desk (`9ac567f`)** — born-failing grant revocation written as a real migration; doc-string false positive renamed; 6/6 green | — |
