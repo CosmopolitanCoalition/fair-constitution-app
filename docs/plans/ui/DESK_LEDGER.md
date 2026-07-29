@@ -1215,3 +1215,29 @@ half + pump wiring remain. Debt row CLOSED 5/5.
 
 **PENDING:** Q4a — with the operator (framing: courtTiers=tree-depth, extra-rooms=future room model; singular
 entities stay singular). Quiet-window gate to trigger once Niue lands + freeze confirmed (+ desk runs the chown).
+
+### W4 tick 16 — ✅ NIUE CLEARED (live-verified) + authoritative quiet-window gate TRIGGERED
+
+**✅ NIUE CLEARED — the wave's headline unblock, DONE.** Lane 1 executed TypeBDistrictMapper::apply('active')
+on Niue (dev, id 0c935e4b) and LIVE-VERIFIED through the real production racePlan path (not SQL-green):
+BEFORE type_b_seats=14/needs_districting=true/BLOCKED → AFTER type_b_seats=10/cleared/active grouping ce288f7a
+= 5 panels (2 pairs member_count=2 + 3 singles member_count=1, all 7 villages), seats_total=10. racePlan NOW:
+type_b = PANELS, 5 per-clump races, Σ=10 (no drift), blocked=false, generable_kinds=[type_a, type_b] — BOTH
+chambers elect (was type_a only), each panel scoped to its own members. Stale-grouping guard satisfied,
+undercount=false. FIRST Type B chamber cleared in the CORRECT per-clump shape. Lane 4's W4③ sim-schedule pin
+keys on the cleared flag (CLK-01 auto-mints the 5 races on schedule).
+
+**DEV-BOX HYGIENE FIXED (desk):** `chown -R www-data:www-data storage .phpunit.result.cache` on fcd_app —
+they were root-owned (a root-run artisan), which caused the GeodataRepair write failure + the .phpunit
+permission-warning family. Now www-data:www-data (verified). Clears the whole warning family before the gate.
+
+**⚑ AUTHORITATIVE QUIET-WINDOW GATE TRIGGERED.** Adopted lane 4's audit-lock finding: lane 2 (steward) holds
+the SUITE TOKEN and is running the ONE authoritative full-suite pass in a QUIET window — test runs FROZEN on
+the building lanes (4/6/15); holding lanes (1/3/5/13) aren't testing. Both wave-gate reds cleared (BallotSecrecy
+3d1abbb + Geodata 06d9545); lane 13 already saw clean 1336/0. Lane 2 applies triage (own-the-world → audit-lock
+→ real defect) + isolates any red. Its tally = the wave's DEFINITIVE green signal. AWAITING (~25 min).
+
+**⚑ PER-CHILD (joint step) HELD until AFTER the gate** — lock the current green first, THEN convene the joint
+lane-1/3/4 per-child fixture rewrite (San Marino's ungrouped correctness) so a late fixture change can't muddy
+the green signal. Lane 1 leads racePlan/createRaces per-child + co-updates test_a_large_type_b_is_one_lawful_
+at_large_race with lane 4. ② game-box mass pass = operator coordination, after per-child.
