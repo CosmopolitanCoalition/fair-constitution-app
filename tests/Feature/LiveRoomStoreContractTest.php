@@ -23,10 +23,15 @@ class LiveRoomStoreContractTest extends TestCase
 {
     private function source(): string
     {
-        $path = base_path('resources/js/composables/useLiveRoom.js');
-        $this->assertFileExists($path, 'the live-room store composable must exist');
+        // The store is split: the Vue composable + its pure policy (extracted so
+        // the Q1/Q2 logic is behaviourally pinned under node — see
+        // tests/js/liveRoomPolicy.test.mjs). The contract spans both.
+        $store = base_path('resources/js/composables/useLiveRoom.js');
+        $policy = base_path('resources/js/composables/liveRoomPolicy.js');
+        $this->assertFileExists($store, 'the live-room store composable must exist');
+        $this->assertFileExists($policy, 'the live-room pure policy must exist');
 
-        return (string) file_get_contents($path);
+        return (string) file_get_contents($store)."\n".(string) file_get_contents($policy);
     }
 
     public function test_the_five_guarantees_are_present(): void
@@ -96,13 +101,14 @@ class LiveRoomStoreContractTest extends TestCase
         $src = $this->source();
 
         // The desk pin: the stop on `adjourned` must be evaluated ONLY AFTER the
-        // merge of the snapshot that announced it. Structurally, the adjourned →
-        // stopChannel decision must live INSIDE the post-merge callback passed to
-        // merge(channel.keys, () => { ... }) — never before the reload is issued.
+        // merge of the snapshot that announced it. Structurally, the stop decision
+        // (nextInterval → stopChannel when it returns null) must live INSIDE the
+        // post-merge callback passed to merge(channel.keys, () => { ... }) — never
+        // before the reload is issued.
         $this->assertMatchesRegularExpression(
-            '/merge\(\s*channel\.keys\s*,[\s\S]{0,600}?===\s*[\'"]adjourned[\'"][\s\S]{0,160}?stopChannel/',
+            '/merge\(\s*channel\.keys\s*,[\s\S]{0,400}?nextInterval\([\s\S]{0,180}?stopChannel/',
             $src,
-            'Q2 pin: the closing snapshot merges BEFORE the transport stops on adjourned',
+            'Q2 pin: the stop is decided POST-merge (inside the merge callback), so the closing snapshot lands first',
         );
     }
 }

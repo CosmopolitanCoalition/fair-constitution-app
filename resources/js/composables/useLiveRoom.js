@@ -1,5 +1,6 @@
 import { ref, computed, onMounted, onBeforeUnmount } from 'vue';
 import { router } from '@inertiajs/vue3';
+import { normalizeChannels, nextInterval, DEFAULT_CADENCE_MS, HEARTBEAT_MS } from './liveRoomPolicy';
 
 /**
  * useLiveRoom — the transport-agnostic freshness layer for the Live Civic Room
@@ -34,10 +35,10 @@ import { router } from '@inertiajs/vue3';
  * @param {Function} [options.busy]    () => bool — skip a tick while a write is in flight.
  * @param {number|object} [options.cadenceMs] uniform ms, or a per-group map (Q1).
  * @param {string}   [options.strategy] transport seam; 'poll' only this wave.
+ *
+ * The Q1/Q2 decision logic lives in ./liveRoomPolicy (pure, framework-free) so it
+ * is behaviourally pinned under plain node (tests/js/liveRoomPolicy.test.mjs).
  */
-const DEFAULT_CADENCE_MS = 5000; // Q1: the proven MatrixCommons default.
-const HEARTBEAT_MS = 30000;      // Q2: the slow watch while a room is merely scheduled.
-
 export function useLiveRoom(options = {}) {
     const {
         keys = [],
@@ -86,18 +87,17 @@ export function useLiveRoom(options = {}) {
     function tick(index) {
         const channel = channels[index];
         if (typeof document !== 'undefined' && document.hidden) return; // paused; the visibility handler re-arms
-        const s = state();
-        if (s === 'adjourned') { stopChannel(index); return; } // already closed before this tick — nothing to poll
-        const interval = s === 'scheduled' ? HEARTBEAT_MS : channel.ms;
-        if (busy()) { schedule(index, interval); return; } // never cancel an in-flight write — retry next interval
+        const before = nextInterval(state(), channel.ms, HEARTBEAT_MS);
+        if (before === null) { stopChannel(index); return; } // already terminal before this tick — nothing to poll
+        if (busy()) { schedule(index, before); return; } // never cancel an in-flight write — retry next interval
 
         merge(channel.keys, () => {
             // POST-MERGE (the desk pin): the closing snapshot that announced
-            // adjournment is now merged. ONLY here do we evaluate the stop — the
-            // final state is therefore always shown before the transport halts.
-            const after = state();
-            if (after === 'adjourned') { stopChannel(index); return; }
-            schedule(index, after === 'scheduled' ? HEARTBEAT_MS : channel.ms);
+            // adjournment is now merged. ONLY here do we decide the stop — on the
+            // just-merged state — so the final state always shows before the halt.
+            const after = nextInterval(state(), channel.ms, HEARTBEAT_MS);
+            if (after === null) { stopChannel(index); return; }
+            schedule(index, after);
         });
     }
 
@@ -119,10 +119,10 @@ export function useLiveRoom(options = {}) {
 
     function start() {
         if (typeof window === 'undefined') return;
-        const s = state();
-        if (s === 'adjourned') return; // a concluded room never arms — refresh() is the manual check
-        const initial = s === 'scheduled' ? HEARTBEAT_MS : null;
-        channels.forEach((c, i) => schedule(i, initial ?? c.ms));
+        channels.forEach((c, i) => {
+            const ms = nextInterval(state(), c.ms, HEARTBEAT_MS);
+            if (ms !== null) schedule(i, ms); // a concluded room never arms — refresh() is the manual check
+        });
     }
 
     function stop() {
@@ -158,20 +158,4 @@ export function useLiveRoom(options = {}) {
 
     return { lastSyncedAt, isStale, isPolling, refresh, start, stop };
 }
-
-/**
- * Q1 normalisation. A number ⇒ a single uniform channel over every key. A
- * per-group map `{ group: { keys, ms } }` ⇒ one channel per group. This is the
- * only place the two cadence shapes diverge — the rest of the store is identical
- * either way, which is what lets lane 2 go tiered with no page change.
- */
-export function normalizeChannels(cadenceMs, keys) {
-    if (cadenceMs !== null && typeof cadenceMs === 'object') {
-        return Object.values(cadenceMs).map((group) => ({
-            keys: Array.isArray(group.keys) ? group.keys : keys,
-            ms: typeof group.ms === 'number' ? group.ms : DEFAULT_CADENCE_MS,
-        }));
-    }
-
-    return [{ keys, ms: typeof cadenceMs === 'number' ? cadenceMs : DEFAULT_CADENCE_MS }];
-}
+// (store composed from the pure policy in ./liveRoomPolicy)
