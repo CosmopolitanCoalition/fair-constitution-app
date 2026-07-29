@@ -98,5 +98,15 @@ Schedule::job(new \App\Jobs\EvaluateSocialStructureJob)->dailyAt('00:30')->witho
 // places it does not own. Authority is not leadership.
 Schedule::job(new \App\Jobs\SnapshotLegitimacyJob)->dailyAt('00:40')->withoutOverlapping()->onOneServer();
 
+// ── The nightly world rollup that feeds the Atlas (lane 4, W4①) ─────────
+// 00:50 keeps the nightly stagger clear (00:10 approval standings, 00:20
+// department reports, 00:25 co-determination, 00:30 social structure, 00:40
+// reach) and lands AFTER the reach snapshot on purpose: the Atlas's planet
+// reach total is a sum over that night's snapshot rows, so running first would
+// publish yesterday's figure. Both gates apply here for the same reason spelled
+// out above — onOneServer() + LeaderProbe for HA, and the per-jurisdiction
+// authoritative_server_id filter inside WorldStatsService for CI-6.
+Schedule::job(new \App\Jobs\SnapshotWorldStatsJob)->dailyAt('00:50')->withoutOverlapping()->onOneServer();
+
 // Keep Horizon's dashboard metrics fresh.
 Schedule::command('horizon:snapshot')->everyFiveMinutes()->onOneServer();

@@ -50,6 +50,19 @@ Resume (both doors built together, guards in the one shared `SimRunControl`).
 |---|---|---|---|
 | `Type B districting` (NEW capability) | minted paired | `type-b:district` CLI ↔ the Step-3 dashboard's "Group Type B chambers" control. Both doors call the ONE `TypeBDistrictMapper` service (single source); the operator gate (`abort_unless is_operator`) travels with the UI door, mirroring the eight other Step-3 operator actions. The CLI's `--dry-run`/`--limit` and the UI's bounded batch are the same guard against an unattended planet-wide sweep. | `TypeBDistrictMapperApplyTest` (service + un-flag + race-schedulable), `TypeBDistrictMapperTest` (grouping law B1–B7) |
 
+## Wave 4 closures — lane 4 (2026-07-29)
+
+| Row | Was | Now paired by | Pin |
+|---|---|---|---|
+| `World rollup / the Atlas` (NEW capability) | minted paired | **`world:stats` CLI ↔ the `/atlas` screen.** Both doors read the SAME nightly `world_stats` row through the one `WorldStatsService`, so a metric cannot exist on one surface only. `--refresh` is the CLI half of what `SnapshotWorldStatsJob` does nightly. ⚑ **NO `GuardsSyntheticData`, deliberately** — that guard stops synthetic MINTING and refuses on a production instance, whereas a rollup recomputes a real public aggregate; gating it would deny ops the gauge on a live node (corrects ATLAS_DESIGN §9; desk ACCEPTED, W4 tick 8). The rail that does travel with both doors is the suppression contract: a withheld figure is a GAP, never a zero. | `AtlasGaugeNeverLeverTest` (never counts the world · one mutating call · gap-never-zero · public read), `WorldRollupSuppressionTest` (suppressed adds nothing but is gauged · all-suppressed night publishes no total · planned domains absent), `AtlasPageTest` |
+
+**⚑ PUNCH ITEM RAISED (not lane 4's to close): `SnapshotLegitimacyJob` has NO CLI twin at all.**
+Verified three ways — no command references `snapshotAll`/`SnapshotLegitimacyJob`, and the only
+reach-named command (`mesh:reach`) is unrelated service reachability. The nightly reach pass can be
+run ONLY by the scheduler or a manual dispatch, so the Reach surface is a UI-only capability with an
+un-runnable engine half. Found while building the Atlas rollup, which does not inherit the omission.
+Owner: whoever owns Reach/Phase I.
+
 ## NEEDS A UI — terminal-only capabilities
 
 | Capability | Purpose | Guards (travel with the pair) | Proposal | Owner |
