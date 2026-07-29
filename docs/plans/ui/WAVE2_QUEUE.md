@@ -342,6 +342,16 @@ invited check ("check me on it") found: the engine already seats islands via the
 sound iff both clips hold; antimeridian guarding is real and already precedented; and
 hull-CONTACT adjacency for GROUPING reduces to a buffered proximity graph (hulls of separated
 islands never touch — the buffer distance d becomes a free parameter controlling everything).
+**LANE 2 WAVE 3 SLATE CLOSED (2nd lane done): migration LANDED fba9669 (98 ins, applied,
+suite green vs real schema) — THE SCHEMA QUEUE IS CLOSED for the wave (any further need =
+desk flag; lane 13's agreements table is the known future one). Runbook 2f34222
+(CLOUD_REHEARSAL_RUNBOOK.md: C1–C9 dry checklist + wizard-walk capture + 115-pin delta);
+pixel debt logged b785bae. ⚑ FLEET LESSON PINNED (FLEET_CONTEXT): `migrate` runs every FILE
+in database/migrations/ committed or not — lane 15's migrate applied lane 2's held file
+early (landed clean; no harm). Held migrations live in the SCRATCHPAD until the slot opens;
+check migrate:status for foreign Pending before running. Lesson relayed to lane 13. Lane 4
+rulings folded (84838b7, verified); Niue ping RE-ISSUED (its HOLD crossed the announcement).**
+
 **TRIPLE LANDING (desk-verified all seven hashes): LANE 1 — B3 cap 4214721 (SQL mirror
 byte-identical, zero drift) + THE GROUPING ENGINE 00e959e (TypeBDistrictMapper + type-b:district
 CLI, ETL-rule chunked; 25 pins; both CLAUDE.md worked examples reproduced) + **NIUE = THE FIRST

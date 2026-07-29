@@ -353,6 +353,21 @@ is modified, another lane has it open — **route your change to them instead of
 buffer.** Lanes 6 and 13 both refused to touch a peer's in-flight file today and were right both
 times; this desk nearly edited `FormRegistry.php` while lane 13 had it open.
 
+### ⚑ THE MIGRATIONS FOLDER IS LIVE — `migrate` runs every FILE present, committed or not
+
+Lane 2's discovery (2026-07-29, the coordinator migration): it "held" its migration by leaving
+the file uncommitted in `database/migrations/`, awaiting its slot. **Lane 15 then ran `migrate`
+for its own schema — and applied lane 2's held file too.** `php artisan migrate` executes every
+file in the folder; the index protects COMMITS, not the FOLDER. "Uncommitted" is not "unapplied."
+
+> **A held migration lives OUTSIDE `database/migrations/` (your scratchpad) until the slot
+> opens. The moment the file enters the folder, the next `migrate` anyone runs applies it.**
+
+It landed clean that time (additive, independent, and the slot signal arrived anyway). The next
+held file might be one that MUST NOT land yet. Corollary for the lane running `migrate`: glance
+at `migrate:status` for Pending entries that aren't yours before you run — if one appears,
+announce it rather than applying a peer's held work.
+
 ### `fatal: bad object refs/desktop.ini` — handle SILENTLY, never report
 `desktop.ini` files appearing anywhere (including inside `.git/**`) are a **KNOWN quirk of the
 operator's machine. He knows the source. His standing order, given multiple times: IGNORE IT.**
