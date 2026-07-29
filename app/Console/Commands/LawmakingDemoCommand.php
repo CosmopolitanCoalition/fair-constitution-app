@@ -44,6 +44,8 @@ use Throwable;
  */
 class LawmakingDemoCommand extends Command
 {
+    use \App\Console\Concerns\GuardsSyntheticData;
+
     protected $signature = 'institutions:demo-lawmaking
         {--jurisdiction=smr-1-san-marino : slug of the jurisdiction whose chamber to populate}
         {--fresh : clear previously seeded demo rows first}';
@@ -56,6 +58,14 @@ class LawmakingDemoCommand extends Command
 
     public function handle(ConstitutionalEngine $engine): int
     {
+        // Added 2026-07-28 (the D5 preset audit): this command was one of
+        // two demo seeders shipping WITHOUT the synthetic-data guard —
+        // nothing stopped it minting demo bills and petitions on a
+        // production world. Same gate as every other demo command.
+        if (! $this->guardSyntheticData()) {
+            return self::FAILURE;
+        }
+
         $jurisdiction = Jurisdiction::query()->where('slug', $this->option('jurisdiction'))->first();
 
         if ($jurisdiction === null) {

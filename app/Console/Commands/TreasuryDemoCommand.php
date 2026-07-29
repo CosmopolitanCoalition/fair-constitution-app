@@ -37,6 +37,8 @@ use Illuminate\Support\Str;
  */
 class TreasuryDemoCommand extends Command
 {
+    use \App\Console\Concerns\GuardsSyntheticData;
+
     protected $signature = 'institutions:demo-treasury {--fresh : tear down previously seeded demo rows first}';
 
     protected $description = 'Seed a standing economy demo (currency, treasury, wallets, a stipend run, a market with a settled sale) so the Phase L+M surfaces are browsable.';
@@ -53,6 +55,14 @@ class TreasuryDemoCommand extends Command
         LaborBoardService $labor,
         LedgerService $ledger,
     ): int {
+        // Added 2026-07-28 (the D5 preset audit): this command was one of
+        // two demo seeders shipping WITHOUT the synthetic-data guard —
+        // nothing stopped it minting a currency, wallets and a stipend run
+        // on a production world. Same gate as every other demo command.
+        if (! $this->guardSyntheticData()) {
+            return self::FAILURE;
+        }
+
         $root = DB::table('jurisdictions')->whereNull('parent_id')->whereNull('deleted_at')->first();
 
         if ($root === null) {

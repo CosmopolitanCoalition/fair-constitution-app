@@ -128,6 +128,11 @@ class SyntheticDataGuardTest extends TestCase
             \App\Console\Commands\SocialDemoCommand::class,
             \App\Console\Commands\MatrixDemoCommand::class,
             \App\Console\Commands\FederationDemoCommand::class,
+            // Guarded 2026-07-28 (the D5 preset audit found them shipping
+            // WITHOUT the gate — bills, petitions, a currency, wallets and
+            // a stipend run were mintable on a production world):
+            \App\Console\Commands\LawmakingDemoCommand::class,
+            \App\Console\Commands\TreasuryDemoCommand::class,
         ];
 
         foreach ($commands as $class) {
