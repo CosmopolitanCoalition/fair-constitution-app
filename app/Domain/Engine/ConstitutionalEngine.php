@@ -72,6 +72,16 @@ class ConstitutionalEngine
         // The operator-plane identifier never crosses into the citizen chain on a
         // rejection (the plane wall) — it is not needed for a rejection audit row.
         'operator_account_id',
+        // Graded-training answer keys (Phase K-2, K2_ENGINE_PLAN §2): a REJECTED
+        // F-EDU filing must never seal an answer key into the append-only chain —
+        // there is no delete and the chain federates. The PRIMARY defense is
+        // architectural (grading is server-side; keys never enter a form payload);
+        // this is the required belt-and-suspenders, landed BEFORE any F-EDU form
+        // registers. sanitize() lowercases and recurses, so nested / variant-case
+        // keys are stripped too.
+        'correct_keys',
+        'answer_key',
+        'answers',
     ];
 
     public function __construct(

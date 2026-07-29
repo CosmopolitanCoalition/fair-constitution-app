@@ -301,3 +301,19 @@ a message is an actuator). Lane 14 stays HELD. Deltas dispatched:
 
 Migration slot queue (Wave 3): **1 → 15 → 2**. RankedBallot liveAggregate still awaits the
 operator's fresh-session trigger (spec 3505f51; cadence RULED daily-batch).
+
+**Slot progression:** lane 1 LANDED (23452a7, `2026_07_29_150000_type_b_district_grouping.php`,
+144=144, down() proven) and reported clear ~25 min after dispatch → slot GRANTED to lane 15
+(land at stage ③ without further wait, announce hash, report clear for lane 2).
+
+**First sweep (7-agent audit, ~25 min post-dispatch): ALL SEVEN LANES ON PATH, zero
+deviations.** Lane 3 landed the A1 oversight-public fold (4057b3c) and correctly excluded a
+peer's dirty engine file from its commit; lane 15 mid-①; lane 13 running four read-only recon
+agents before authoring (docs-only respected); lane 4 gathering cited anchors (US House
+435→20 committees; civic-venue-per-population standards); lanes 2/6 in early build reads.
+
+**The 100/107 dependency note (recovered from the pre-compaction projection verbatim):** the
+~100 target COUNTS (a) the economy build (~10 rows) landing after the operator approves lane
+13's design round mid-wave, and (b) the RankedBallot fresh-session build (1 row). Video
+player + possibly Atlas were parked by name outside the 100. Both operator triggers must fire
+mid-wave for the target to hold.

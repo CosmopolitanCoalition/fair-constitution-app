@@ -135,6 +135,12 @@ class FuturePhasePlaceholdersTest extends TestCase
             'LawMergePreservesHistoryTest.php', // Art. V §8 — law-merge history preserved
             'BorderAffectedAreaDenominatorTest.php', // Art. V §2 — affected-area denominator
             'RestorationJudicialReviewTest.php', // Art. VI §2-3 — judicial review + tier order
+            // Phase K-2 — the graded education engine (act-gated training,
+            // operator ruling A5). The remaining K-2 pins of K2_ENGINE_PLAN §6
+            // (progress-never-federates, export shape, non-interference,
+            // no-gate) join this list with the build steps that make them
+            // assertable — same PR as the engine code each one pins.
+            'EducationAnswerKeySecrecyTest.php', // K2_ENGINE_PLAN §2 — the answer-key rail
         ] as $file) {
             $this->assertFileExists(
                 $base.$file,
