@@ -1293,3 +1293,28 @@ a verify-the-diagnosis save that averted 37 wrong voids. RULE (extends the sessi
 ids): never relay or act on a truncated/prefix id — a UUIDv7 prefix is ambiguous; pin the FULL id + a
 disambiguating predicate (jurisdiction + shape) before any destructive lifecycle act. The Niue void stays
 queued post-gate (2 real targets, ElectionLifecycleService::cancel).
+
+### W4 tick 17 — ✅✅ WAVE 4 IS GREEN (authoritative gate passed) + freeze lifted + post-gate dispatched
+
+**✅ AUTHORITATIVE GREEN-GATE PASSED (lane 2 steward, SUITE TOKEN, quiet window):** 1343 passed · 0 FAILED ·
+3 skipped · 308,593 assertions · 873s (~14.5 min). ZERO reds — no triage needed. The 3 skips = pre-existing
+pdo_pgsql/live-pg env-gate conditionals (benign, unchanged). VALIDATED the quiet-window call HARD: 14.5 min
+clean vs the earlier contended 24-min/3-red run, +67 more passing (1343 vs 1276) as the frozen fixes landed.
+All 3 earlier reds confirmed gone (BallotSecrecy 3d1abbb, Geodata 06d9545, SupportLifecycle own-the-world).
+**ADOPTED PERMANENTLY: SUITE TOKEN + freeze = the green-gate procedure; per-lane LIVE_PG_DATABASE post-alpha
+retires the freeze.** THE WAVE IS GREEN.
+
+**FREEZE LIFTED** — all lanes may test again. **POST-GATE QUEUE DISPATCHED** (green locked first):
+- **PER-CHILD (joint L1/3/4)** — L1 leads racePlan/createRaces per-child for unflagged; L3 rewrites
+  CountingStage/SeatingStage to per-child; L1+L4 co-update test_a_large_type_b_is_one_lawful_at_large_race
+  (pooled→per-child) in one commit. Goal: San Marino (ungrouped demo) shows the correct shape in the walk.
+- **PUMP WIRING (L4)** — GO: register GovernanceStage into SimPumpCommand (4-edit plan) + verify sim behavior
+  → W4④ built + autonomous. Plus the W4③ ElectionStage re-run vs Niue's cleared flag (R-A un-flag milestone).
+- **NIUE VOID (L3)** — GO: cancel the 2 REAL targets (019f9f58-557e-71fb-80be-8d34fd059777 +
+  019f9f76-5019-725a-a3e4-db7be3b2035c) via ElectionLifecycleService::cancel → CLK-01 re-mints per-clump →
+  L1 confirms reshape.
+
+**L6 civic: 5 of 6 built** (join · office-tab · advocate-registration · identity-verification e9325e9 ·
+relocation 69c4b9d; only `today` feed-breadth left → then social/groups → bill.html). Prop-drift caught
+pre-commit (relocation jurisdiction string→{id,name} would've printed [object Object]; reverted clean).
+Green-gate log saved at docs/plans/ui/w4_greengate.log. **NEXT: the rubric refresh (operator request).**
