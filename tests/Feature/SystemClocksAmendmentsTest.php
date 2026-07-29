@@ -28,13 +28,26 @@ class SystemClocksAmendmentsTest extends TestCase
 
     private const LIVE_CONNECTION = 'pgsql_system_pages';
 
-    public function test_a_guest_is_bounced_from_clocks(): void
+    public function test_a_guest_reads_the_clocks_publicly(): void
     {
-        $this->get('/system/clocks')->assertRedirect('/login');
+        // §10-8 (RULED 2026-07-28): the clock is a public record — a guest reads
+        // it read-only, no /login bounce. It renders on the live-pg connection
+        // like the authenticated read (the controller does SELECTs only and
+        // never touches auth()->user()); the mutating dev clock panel stays
+        // gated in its own local-only /dev group.
+        $this->onLivePg(function () {
+            $this->get('/system/clocks')
+                ->assertOk()
+                ->assertInertia(fn (Assert $page) => $page
+                    ->component('System/Clocks')
+                    ->has('clocks', 21)
+                    ->where('surface.id', 'system/clocks'));
+        });
     }
 
     public function test_a_guest_is_bounced_from_amendments(): void
     {
+        // Amendments STAYS auth-gated — only /clocks was ruled public (§10-8).
         $this->get('/system/amendments')->assertRedirect('/login');
     }
 
