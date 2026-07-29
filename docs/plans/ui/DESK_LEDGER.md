@@ -381,10 +381,28 @@ agreement form = a mint → 116→117 pinned in the build.**
   its); flagged lane 13's FormRegistry docblock drift (115 vs the 116 pin — routed to lane 13);
   is naming the 12 for its report. **lane 13** — economy 4/6 shipped, 5-6 building on the granted
   slot (schema 4d58d53).
-- **⚑ FULL-SUITE GATE: 12 FAILURES ON THE BOX** (surfaced by lane 15's gate run; NONE lane
-  15's). Desk running its own full-suite pass to get the authoritative list + owners (background,
-  slow). Likely in-flight build states (lane 13 economy 5-6, lane 3 keystone) vs real
-  regressions — TRIAGE PENDING, do not call the wave green until the 12 are named and cleared.
+- **LANE 13 DONE (four-way, verified):** economy all 6 pieces + migration + routes + UI, 9
+  commits (…d624596 backend 5+6 · 9f00b04 routes+UI · 42c4f73 render pin · 6366c47 docblock→117).
+  Registry 117 in lockstep (FormRegistry docblock + pin + CLAUDE.md; lane 13 also corrected a
+  STALE CLAUDE.md 115→117 that F-ORG-008 had missed). Subsystem sweep 123 tests / 232,743
+  assertions GREEN (economy/org/redline/ledger/co-determination/audit-117/telemetry). Two Wave 4
+  items to operator (founding-stake, secondary trading). Schema queue CLOSED.
+- **LANE 15 DONE (four-way, verified):** K-2 all 6 steps; namespace 45/45 green
+  (Education*/TrainingGate*/LearnPages/AuditChainSmoke). Arming-sequencing OPEN QUESTION refined
+  to 3 options (A: seeders file F-EDU-001 for seated demo members = "trained" pass [rec] · B:
+  seed but leave untrained so the walk demos the redirect loop live · C: don't seed, e2e-only) —
+  gates the operator's browser walk of the gate; already in the Wave 4 decision queue.
+- **⚑ FULL-SUITE GATE: 12 FAILURES — TRIAGE IN PROGRESS (not yet resolved).** Named so far
+  (lane 15's clean run): LegalComplianceTest, MatrixCarveoutEmitter, ModerationFlipTest — the
+  **K-3 moderation/federation cluster, which NO Wave 3 lane touched**. LegalComplianceTest was a
+  KNOWN pre-existing failure at Wave 2 close (order-dependence ×2 + LegalCompliance + MyProfileTabs
+  were the carryovers). Every Wave 3 lane is GREEN in its own domain (13: 123 tests; 15: 45/45;
+  1: 30 pins; 3: keystone pins). **PRELIMINARY (to VERIFY, not assert): the 12 are pre-existing
+  debt + possibly concurrent-run isolation flakes, NOT Wave 3 regressions.** VERIFICATION: desk
+  full-suite run in flight (btfw47g7l) for the authoritative 12; then git-touch each failing
+  test's subject against 50b8456..HEAD — no Wave 3 touch = pre-existing. Do NOT declare Wave 3
+  green until this completes. Caveat: concurrent suite runs on the shared DB can manufacture
+  spurious isolation failures — need a clean read.
 - **REMAINING BEFORE WAVE 3 CLOSES:** lane 3's exit walk (post-compaction), lane 13's economy
   5-6, lane 15's ACTUAL DONE (after the 12-failure gate clears), the 12-failure triage.
 
