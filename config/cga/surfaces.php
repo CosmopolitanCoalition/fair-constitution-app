@@ -1557,4 +1557,17 @@ return [
         'citation'  => 'Instruments and holdings, on the open market\'s terms — no privileged floor · Art. III §5',
     ],
 
+    'economy/resident-agreements' => [
+        'title'     => 'Resident agreements',
+        'module'    => 'economy',
+        'nav'       => null,
+        'roles'     => ['R-01'],
+        'workflows' => [],
+        'forms'     => [
+            ['id' => 'F-IND-020', 'availableTo' => ['R-01'], 'citation' => 'Freedom to contract; a clause redline that waives a right is refused · Art. I'],
+        ],
+        'clocks'    => [],
+        'citation'  => 'Every party signs, or it never takes effect; no clause waives a right · Art. I',
+    ],
+
 ];

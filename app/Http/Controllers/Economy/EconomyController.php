@@ -478,6 +478,86 @@ class EconomyController extends Controller
     }
 
     /**
+     * Resident agreements — the person-to-person / N-party consent plane
+     * (Design Round 2 ③, F-IND-020). PARTY-SCOPED: a resident sees only the
+     * agreements they are a party to. Parties are shown BY NAME (a signature
+     * is a name — the consent plane, distinct from the pseudonymous money
+     * plane). Each agreement carries its signer roster, the clause overlay,
+     * and any pending redlines to resolve.
+     */
+    public function residentAgreements(Request $request): Response
+    {
+        $me = $request->user();
+        $surface = SurfaceMeta::for('economy/resident-agreements');
+
+        if ($me === null) {
+            return Inertia::render('Economy/ResidentAgreements', [
+                'surface' => $surface, 'agreements' => [], 'candidates' => [], 'my_id' => null,
+            ]);
+        }
+
+        $myId = (string) $me->id;
+
+        $ids = DB::table('resident_agreement_signers')->where('signer_user_id', $myId)->pluck('agreement_id');
+
+        $agreements = DB::table('resident_agreements')
+            ->whereIn('id', $ids)->whereNull('deleted_at')
+            ->orderByDesc('created_at')->get()
+            ->map(function ($a) use ($myId) {
+                $signers = DB::table('resident_agreement_signers as s')
+                    ->join('users as u', 'u.id', '=', 's.signer_user_id')
+                    ->where('s.agreement_id', $a->id)
+                    ->get(['u.name', 's.signer_user_id', 's.signed_at'])
+                    ->map(fn ($s) => [
+                        'name'   => (string) $s->name,
+                        'signed' => $s->signed_at !== null,
+                        'is_me'  => (string) $s->signer_user_id === $myId,
+                    ])->all();
+
+                $iSigned = collect($signers)->firstWhere('is_me')['signed'] ?? false;
+
+                return [
+                    'id'            => (string) $a->id,
+                    'title'         => (string) $a->title,
+                    'terms'         => (string) $a->terms,
+                    'status'        => (string) $a->status,
+                    'is_initiator'  => (string) $a->initiator_user_id === $myId,
+                    'can_sign'      => ! $iSigned && $a->status !== 'active' && $a->status !== 'ended' && $a->status !== 'voided',
+                    'signers'       => $signers,
+                    'clauses'       => DB::table('clauses')
+                        ->where('subject_type', 'resident')->where('subject_id', $a->id)->whereNull('deleted_at')
+                        ->orderBy('ordinal')->get(['id', 'heading', 'body'])
+                        ->map(fn ($c) => ['id' => (string) $c->id, 'heading' => $c->heading, 'body' => (string) $c->body])->all(),
+                    'redlines'      => DB::table('redlines')
+                        ->where('subject_type', 'resident')->where('subject_id', $a->id)->where('status', 'pending')
+                        ->orderBy('created_at')->get(['id', 'kind', 'body', 'rationale', 'proposer_user_id'])
+                        ->map(fn ($r) => [
+                            'id'        => (string) $r->id,
+                            'kind'      => (string) $r->kind,
+                            'body'      => (string) $r->body,
+                            'rationale' => $r->rationale,
+                            'is_mine'   => (string) $r->proposer_user_id === $myId,
+                        ])->all(),
+                ];
+            })->all();
+
+        // The consent plane: other residents one may contract with, by name.
+        // Capped — a picker, not a directory dump.
+        $candidates = DB::table('users')
+            ->where('id', '!=', $myId)->whereNull('deleted_at')
+            ->orderBy('name')->limit(50)
+            ->get(['id', 'name'])
+            ->map(fn ($u) => ['id' => (string) $u->id, 'name' => (string) $u->name])->all();
+
+        return Inertia::render('Economy/ResidentAgreements', [
+            'surface'    => $surface,
+            'agreements' => $agreements,
+            'candidates' => $candidates,
+            'my_id'      => $myId,
+        ]);
+    }
+
+    /**
      * One work posting, end to end — the rate, the organisation, the
      * lifecycle it triggers when accepted, and the co-determination
      * thresholds it counts toward. Thresholds are RESOLVED from the

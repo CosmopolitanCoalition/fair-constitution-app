@@ -699,6 +699,10 @@ Route::middleware('auth')->group(function () {
     Route::get('/economy/agreements/{contract}', [\App\Http\Controllers\Economy\EconomyController::class, 'agreement'])
         ->whereUuid('contract')->name('economy.agreement');
     Route::get('/economy/joint-ledgers', [\App\Http\Controllers\Economy\EconomyController::class, 'jointLedgers'])->name('economy.joint');
+    // Design Round 2 build: the exchange (① instruments venue) and the resident
+    // consent plane (③ person-to-person / N-party agreements + redlines).
+    Route::get('/economy/exchange', [\App\Http\Controllers\Economy\EconomyController::class, 'exchange'])->name('economy.exchange');
+    Route::get('/economy/resident-agreements', [\App\Http\Controllers\Economy\EconomyController::class, 'residentAgreements'])->name('economy.resident-agreements');
 
     // The write path (F-IND-022/023/024). These POST to the ENGINE, not to a
     // REST resource — EconomyActionController validates shape and files, and
@@ -724,6 +728,15 @@ Route::middleware('auth')->group(function () {
         ->whereUuid('ledger')->name('economy.joint.propose');
     Route::post('/economy/joint-movements/{movement}/approve', [\App\Http\Controllers\Economy\EconomyActionController::class, 'jointApprove'])
         ->whereUuid('movement')->name('economy.joint.approve');
+    // F-IND-020 — resident agreements + clause redlines (Design Round 2 ③).
+    Route::post('/economy/resident-agreements', [\App\Http\Controllers\Economy\EconomyActionController::class, 'createAgreement'])
+        ->name('economy.resident-agreements.create');
+    Route::post('/economy/resident-agreements/{agreement}/sign', [\App\Http\Controllers\Economy\EconomyActionController::class, 'signAgreement'])
+        ->whereUuid('agreement')->name('economy.resident-agreements.sign');
+    Route::post('/economy/redlines', [\App\Http\Controllers\Economy\EconomyActionController::class, 'proposeRedline'])
+        ->name('economy.redlines.propose');
+    Route::post('/economy/redlines/{redline}/{how}', [\App\Http\Controllers\Economy\EconomyActionController::class, 'resolveRedline'])
+        ->whereUuid('redline')->name('economy.redlines.resolve');
 
     // ── FE-C5 — Settings register (legislature/settings) ────────────────────
     Route::get('/legislatures/{legislature}/settings', [SettingsController::class, 'show'])
@@ -881,6 +894,9 @@ Route::middleware('auth')->group(function () {
 
     Route::get('/organizations/{organization}', [\App\Http\Controllers\Organizations\OrganizationController::class, 'show'])
         ->whereUuid('organization')->name('organizations.show');                   // 302s is_cgc → /cgc
+    // Design Round 2 ② — the org's economic control panel (dues policy + cap table).
+    Route::get('/organizations/{organization}/economy', [\App\Http\Controllers\Organizations\OrgEconomyController::class, 'show'])
+        ->whereUuid('organization')->name('organizations.economy');
     Route::patch('/organizations/{organization}', [\App\Http\Controllers\Organizations\OrganizationController::class, 'update'])
         ->whereUuid('organization')->name('organizations.update');                 // F-ORG-001
     Route::get('/organizations/{organization}/cgc', [\App\Http\Controllers\Organizations\CgcController::class, 'show'])

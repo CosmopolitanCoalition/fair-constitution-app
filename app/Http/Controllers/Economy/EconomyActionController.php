@@ -59,6 +59,79 @@ class EconomyActionController extends Controller
         return back()->with('status', 'Sent (F-IND-023). It is on the ledger, and the ledger is append-only — a transfer cannot be unsent, only sent back.');
     }
 
+    /** F-IND-020 — open a person-to-person / N-party agreement. */
+    public function createAgreement(Request $request): RedirectResponse
+    {
+        $validated = $request->validate([
+            'title'     => ['required', 'string', 'max:200'],
+            'terms'     => ['required', 'string', 'max:10000'],
+            'signers'   => ['required', 'array', 'min:1'],
+            'signers.*' => ['uuid'],
+        ]);
+
+        $this->engine->file('F-IND-020', $request->user(), [
+            'action'  => 'create_agreement',
+            'title'   => $validated['title'],
+            'terms'   => $validated['terms'],
+            'signers' => $validated['signers'],
+        ]);
+
+        return back()->with('status', 'Agreement offered (F-IND-020). It takes effect only when every party has signed — a one-sided contract never takes effect (Art. I).');
+    }
+
+    /** F-IND-020 — a named party signs. */
+    public function signAgreement(Request $request, string $agreement): RedirectResponse
+    {
+        $this->engine->file('F-IND-020', $request->user(), [
+            'action'       => 'sign_agreement',
+            'agreement_id' => $agreement,
+        ]);
+
+        return back()->with('status', 'Signed (F-IND-020). When the last party signs, the agreement becomes active in the same act.');
+    }
+
+    /** F-IND-020 — propose a clause redline on an agreement you are party to. */
+    public function proposeRedline(Request $request): RedirectResponse
+    {
+        $validated = $request->validate([
+            'subject_type' => ['required', 'string', 'in:resident,org_contract,bill'],
+            'subject_id'   => ['required', 'uuid'],
+            'clause_id'    => ['nullable', 'uuid'],
+            'kind'         => ['required', 'string', 'in:edit,add,strike'],
+            'body'         => ['required', 'string', 'max:10000'],
+            'rationale'    => ['nullable', 'string', 'max:2000'],
+            // The Art. I floor is enforced in the service; a tagged waiver is
+            // refused there with a citation, not silently dropped here.
+            'rights_flag'  => ['nullable', 'string', 'max:32'],
+        ]);
+
+        $this->engine->file('F-IND-020', $request->user(), [
+            'action'       => 'propose_redline',
+            'subject_type' => $validated['subject_type'],
+            'subject_id'   => $validated['subject_id'],
+            'clause_id'    => $validated['clause_id'] ?? null,
+            'kind'         => $validated['kind'],
+            'body'         => $validated['body'],
+            'rationale'    => $validated['rationale'] ?? null,
+            'rights_flag'  => $validated['rights_flag'] ?? null,
+        ]);
+
+        return back()->with('status', 'Redline proposed (F-IND-020). The other party accepts, rejects, or counters.');
+    }
+
+    /** F-IND-020 — resolve a redline (accept clears the signatures). */
+    public function resolveRedline(Request $request, string $redline, string $how): RedirectResponse
+    {
+        abort_unless(in_array($how, ['accept', 'reject', 'withdraw'], true), 404);
+
+        $this->engine->file('F-IND-020', $request->user(), [
+            'action'     => $how . '_redline',
+            'redline_id' => $redline,
+        ]);
+
+        return back()->with('status', 'Redline resolved (F-IND-020). An accepted change voids the signatures — the parties re-sign the changed text.');
+    }
+
     /** F-IND-024 — bring a thing into the world, or hand one on. */
     public function registerAsset(Request $request): RedirectResponse
     {
