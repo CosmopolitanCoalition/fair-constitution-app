@@ -138,12 +138,22 @@ const corpusFiles = fs.readdirSync(rel('docs/plans/education'))
     .sort();
 let corpus = [];
 for (const f of corpusFiles) {
-    const parsed = parseCorpus(path.join('docs/plans/education', f));
-    note(`${f}: ${parsed.length} surfaces`);
+    const filePath = path.join('docs/plans/education', f);
+    /* A corpus file whose header declares `status: authored-ahead` carries
+       copy for screens that land in a LATER wave — their surface ids are not
+       in config/cga/surfaces.php yet. Those ids are the PUBLISHED contract
+       the page builders adopt (the file header lists them); the entries are
+       emitted now so the flyout lights up the moment SurfaceMeta serves the
+       id. Unknown ids in an authored-ahead file are LOGGED, never fatal;
+       in a settled file they stay fatal (a typo there is a broken join). */
+    const ahead = /status:\s*authored-ahead/.test(read(filePath).slice(0, 2000));
+    const parsed = parseCorpus(filePath);
+    note(`${f}: ${parsed.length} surfaces${ahead ? ' (authored-ahead)' : ''}`);
     for (const s of parsed) {
         const dup = corpus.find((c) => c.id === s.id);
         if (dup) fail(`surface ${s.id} authored twice (${f} and earlier)`);
         s.file = 'docs/plans/education/' + f;
+        s.ahead = ahead;
     }
     corpus = corpus.concat(parsed);
 }
@@ -154,9 +164,13 @@ const appSurfaceIds = new Set(
     [...surfacesPhp.matchAll(/^    '([a-z0-9/-]+)' => \[/gm)].map((m) => m[1]),
 );
 note(`config/cga/surfaces.php: ${appSurfaceIds.size} surface ids`);
+const aheadIds = [];
 for (const s of corpus) {
-    if (!appSurfaceIds.has(s.id)) fail(`corpus surface ${s.id} has NO record in config/cga/surfaces.php — the join key is broken`);
+    if (appSurfaceIds.has(s.id)) continue;
+    if (s.ahead) aheadIds.push(s.id);
+    else fail(`corpus surface ${s.id} has NO record in config/cga/surfaces.php — the join key is broken`);
 }
+if (aheadIds.length) note(`authored-ahead ids awaiting a surfaces.php record (${aheadIds.length}): ${aheadIds.join(', ')}`);
 
 /* ── 3. Emit c_education.json + meta + registry/education.js ────────────── */
 const eduStrings = {};   // flat i18n key -> english
