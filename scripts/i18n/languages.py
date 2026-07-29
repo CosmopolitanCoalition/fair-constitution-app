@@ -227,6 +227,15 @@ NO_MT_PAIR = [
 
 TIER_1 = ["en", "es", "ar", "zh-Hans", "hi"]   # what the app ships today
 
+# ENABLED = offered in the switcher AND negotiated by SetLocale (a SHIPPED catalog
+# exists, so switching to it renders the app rather than silently falling to English).
+# This is a switchability question, distinct from `tier` (catalog maturity): fr and
+# pt stay tier 2 (MT-drafted, behind the reader-verification queue) but now carry a
+# full set of page namespaces + c_education/c_achievements from the v3 Wave-2 NLLB
+# pass, so they are switchable. Kept as one explicit, reviewable list rather than a
+# disk scan so a half-built tier-2 catalog can never silently flip a locale live.
+ENABLED = TIER_1 + ["fr", "pt"]
+
 
 def etl_codes() -> list[str]:
     """The 115 codes in scripts/etl/languages.py — this file's only input."""
@@ -281,7 +290,7 @@ def derive() -> dict:
             "plural_categories": PLURAL_FAMILIES[plural],
             "tier": 1 if code in TIER_1 else (2 if code in translated else 3),
             "translated": code in translated,
-            "enabled": code in TIER_1,   # enabled = a catalog exists TODAY
+            "enabled": code in ENABLED,   # switchable = a shipped catalog exists
         })
 
     return {
@@ -292,7 +301,7 @@ def derive() -> dict:
             "registered": len(registered),
             "translated": len(translated),
             "display_only": len(display_only),
-            "enabled": len(TIER_1),
+            "enabled": len(ENABLED),
             "endonyms_unverified": sum(1 for r in rows if not r["endonym_verified"]),
         },
     }

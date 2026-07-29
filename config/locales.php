@@ -20,7 +20,7 @@
 */
 
 return [
-    'counts' => ['source' => 115, 'registered' => 112, 'translated' => 79, 'display_only' => 33, 'enabled' => 5, 'endonyms_unverified' => 28],
+    'counts' => ['source' => 115, 'registered' => 112, 'translated' => 79, 'display_only' => 33, 'enabled' => 7, 'endonyms_unverified' => 28],
 
     'locales' => [
         'af' => ['name' => 'Afrikaans', 'endonym' => 'Afrikaans', 'dir' => 'ltr', 'script' => 'Latn', 'plural' => 'one_other', 'tier' => 2, 'translated' => true, 'enabled' => false],
@@ -50,7 +50,7 @@ return [
         'fil' => ['name' => 'Filipino', 'endonym' => 'Filipino', 'dir' => 'ltr', 'script' => 'Latn', 'plural' => 'one_other', 'tier' => 2, 'translated' => true, 'enabled' => false],
         'fj' => ['name' => 'Fijian', 'endonym' => 'Fijian', 'dir' => 'ltr', 'script' => 'Latn', 'plural' => 'one_other', 'tier' => 3, 'translated' => false, 'enabled' => false],
         'fo' => ['name' => 'Faroese', 'endonym' => 'Føroyskt', 'dir' => 'ltr', 'script' => 'Latn', 'plural' => 'one_other', 'tier' => 2, 'translated' => true, 'enabled' => false],
-        'fr' => ['name' => 'French', 'endonym' => 'Français', 'dir' => 'ltr', 'script' => 'Latn', 'plural' => 'zero_one_other', 'tier' => 2, 'translated' => true, 'enabled' => false],
+        'fr' => ['name' => 'French', 'endonym' => 'Français', 'dir' => 'ltr', 'script' => 'Latn', 'plural' => 'zero_one_other', 'tier' => 2, 'translated' => true, 'enabled' => true],
         'ga' => ['name' => 'Irish', 'endonym' => 'Gaeilge', 'dir' => 'ltr', 'script' => 'Latn', 'plural' => 'irish', 'tier' => 2, 'translated' => true, 'enabled' => false],
         'gn' => ['name' => 'Guarani', 'endonym' => 'Guarani', 'dir' => 'ltr', 'script' => 'Latn', 'plural' => 'one_other', 'tier' => 3, 'translated' => false, 'enabled' => false],
         'gv' => ['name' => 'Manx', 'endonym' => 'Manx', 'dir' => 'ltr', 'script' => 'Latn', 'plural' => 'one_other', 'tier' => 3, 'translated' => false, 'enabled' => false],
@@ -95,7 +95,7 @@ return [
         'pau' => ['name' => 'Palauan', 'endonym' => 'Palauan', 'dir' => 'ltr', 'script' => 'Latn', 'plural' => 'one_other', 'tier' => 3, 'translated' => false, 'enabled' => false],
         'pl' => ['name' => 'Polish', 'endonym' => 'Polski', 'dir' => 'ltr', 'script' => 'Latn', 'plural' => 'polish', 'tier' => 2, 'translated' => true, 'enabled' => false],
         'ps' => ['name' => 'Pashto', 'endonym' => 'پښتو', 'dir' => 'rtl', 'script' => 'Arab', 'plural' => 'one_other', 'tier' => 2, 'translated' => true, 'enabled' => false],
-        'pt' => ['name' => 'Portuguese', 'endonym' => 'Português', 'dir' => 'ltr', 'script' => 'Latn', 'plural' => 'zero_one_other', 'tier' => 2, 'translated' => true, 'enabled' => false],
+        'pt' => ['name' => 'Portuguese', 'endonym' => 'Português', 'dir' => 'ltr', 'script' => 'Latn', 'plural' => 'zero_one_other', 'tier' => 2, 'translated' => true, 'enabled' => true],
         'qu' => ['name' => 'Quechua', 'endonym' => 'Quechua', 'dir' => 'ltr', 'script' => 'Latn', 'plural' => 'one_other', 'tier' => 3, 'translated' => false, 'enabled' => false],
         'rm' => ['name' => 'Romansh', 'endonym' => 'Romansh', 'dir' => 'ltr', 'script' => 'Latn', 'plural' => 'one_other', 'tier' => 3, 'translated' => false, 'enabled' => false],
         'rn' => ['name' => 'Kirundi', 'endonym' => 'Kirundi', 'dir' => 'ltr', 'script' => 'Latn', 'plural' => 'one_other', 'tier' => 3, 'translated' => false, 'enabled' => false],
