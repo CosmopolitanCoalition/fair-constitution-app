@@ -596,6 +596,112 @@ class EconomyController extends Controller
     }
 
     /**
+     * Joint ledgers — co-owned accounts whose movements need agreement.
+     *
+     * VISIBILITY: a PUBLIC ledger (a jurisdiction-owned shared fund) is
+     * anyone's to watch; a PRIVATE one is readable only by its co-owners —
+     * like a ballot. Parties render as ACCOUNTS (this is the money plane;
+     * accounts-never-people holds), with the viewer's own marked.
+     */
+    public function jointLedgers(Request $request, \App\Services\Economy\JointLedgerService $joint): Response
+    {
+        $currency = $this->currency();
+
+        $myAccountId = null;
+        if ($currency !== null && $request->user() !== null) {
+            $myAccountId = $this->accounts->accountIdFor('users', (string) $request->user()->id, $currency->id);
+        }
+
+        $rows = DB::table('joint_ledgers')
+            ->whereNull('deleted_at')
+            ->where(function ($q) use ($myAccountId) {
+                $q->where('public', true);
+
+                if ($myAccountId !== null) {
+                    $q->orWhereExists(fn ($p) => $p->from('joint_ledger_parties')
+                        ->whereColumn('joint_ledger_parties.joint_ledger_id', 'joint_ledgers.id')
+                        ->where('joint_ledger_parties.account_id', $myAccountId));
+                }
+            })
+            ->orderByDesc('created_at')
+            ->limit(50)
+            ->get();
+
+        $ledgers = $rows->map(function ($l) use ($joint, $myAccountId) {
+            $parties = DB::table('joint_ledger_parties')
+                ->where('joint_ledger_id', $l->id)
+                ->orderBy('created_at')
+                ->get()
+                ->map(fn ($p) => [
+                    'account_id' => (string) $p->account_id,
+                    'role'       => (string) $p->role,
+                    'is_me'      => $myAccountId !== null && (string) $p->account_id === $myAccountId,
+                ])->all();
+
+            $isParty = $myAccountId !== null
+                && in_array($myAccountId, array_column($parties, 'account_id'), true);
+
+            $needed = $l->approval_rule === 'all' ? count($parties) : intdiv(count($parties), 2) + 1;
+
+            $movements = DB::table('joint_ledger_movements')
+                ->where('joint_ledger_id', $l->id)
+                ->orderByDesc('created_at')
+                ->limit(20)
+                ->get()
+                ->map(function ($m) use ($myAccountId, $needed, $isParty) {
+                    $approvals = json_decode((string) $m->approvals, true) ?: [];
+                    $iApproved = $myAccountId !== null && in_array($myAccountId, $approvals, true);
+
+                    return [
+                        'id'            => (string) $m->id,
+                        'to_account_id' => (string) $m->to_account_id,
+                        'amount'        => (string) $m->amount,
+                        'memo'          => $m->memo,
+                        'status'        => (string) $m->status,
+                        'approvals'     => count($approvals),
+                        'needed'        => $needed,
+                        'i_approved'    => $iApproved,
+                        'can_approve'   => $isParty && ! $iApproved && $m->status === 'pending',
+                        'at'            => $this->iso($m->created_at),
+                    ];
+                })->all();
+
+            // The escrow account is the balance's truth; the mirror column
+            // is for lists. Read the truth on the detail surface.
+            $escrowId = null;
+            $balance = (string) $l->balance;
+            try {
+                $escrowId = $joint->escrowAccountId((string) $l->id);
+                $balance = $this->accounts->balance($escrowId);
+            } catch (\RuntimeException) {
+                // A ledger without an escrow renders its mirror — visible,
+                // not actionable, and the seed/service never produce one.
+            }
+
+            return [
+                'id'                => (string) $l->id,
+                'name'              => (string) $l->name,
+                'purpose'           => $l->purpose,
+                'public'            => (bool) $l->public,
+                'approval_rule'     => (string) $l->approval_rule,
+                'balance'           => $balance,
+                'escrow_account_id' => $escrowId,
+                'parties'           => $parties,
+                'is_party'          => $isParty,
+                'movements'         => $movements,
+            ];
+        })->all();
+
+        return Inertia::render('Economy/JointLedgers', [
+            'surface'  => SurfaceMeta::for('economy/joint-ledgers'),
+            'currency' => $this->currencyProp($currency),
+            'ledgers'  => $ledgers,
+            'can_open' => $myAccountId !== null,
+            'my_account_id' => $myAccountId,
+        ]);
+    }
+
+    /**
      * The visibility rule, in one place: counterparty-me, or signed-for-the-
      * org-me, or active membership in the organization.
      *

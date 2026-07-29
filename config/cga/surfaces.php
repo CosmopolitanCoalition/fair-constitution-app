@@ -1376,6 +1376,19 @@ return [
         'citation'  => 'Public money in public view — every movement on the record · Art. V §4',
     ],
 
+    'economy/joint-ledgers' => [
+        'title'     => 'Joint ledgers',
+        'module'    => 'economy',
+        'nav'       => 'joint-ledgers',
+        'roles'     => ['R-01'],
+        'workflows' => [],
+        'forms'     => [
+            ['id' => 'F-IND-023', 'availableTo' => ['R-01'], 'citation' => 'Art. V §2; Art. I (joint movement — consent before money)'],
+        ],
+        'clocks'    => [],
+        'citation'  => 'Shared money moves only by agreement — one signer never moves it alone · Art. V §2; Art. I',
+    ],
+
     'economy/agreements' => [
         'title'     => 'Agreements',
         'module'    => 'economy',

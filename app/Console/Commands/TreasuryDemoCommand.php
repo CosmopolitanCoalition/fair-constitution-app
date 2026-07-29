@@ -54,6 +54,7 @@ class TreasuryDemoCommand extends Command
         MarketplaceService $market,
         LaborBoardService $labor,
         LedgerService $ledger,
+        \App\Services\Economy\JointLedgerService $joint,
     ): int {
         // Added 2026-07-28 (the D5 preset audit): this command was one of
         // two demo seeders shipping WITHOUT the synthetic-data guard —
@@ -199,6 +200,33 @@ class TreasuryDemoCommand extends Command
             'updated_at'           => now(),
         ]);
         $this->line('8. mutual-aid request (no price, no order, no fee — Art. I association)');
+
+        // ── 8b. A joint ledger — funded, with a movement AWAITING consent ─
+        // Services-only, like everything here: open through the service,
+        // fund through the ordinary transfer, propose through the service.
+        // Rule 'all' with two signers and one signature = the standing
+        // pending state the page teaches with.
+        $jlName = 'Loom co-op fund';
+
+        if (! DB::table('joint_ledgers')->where('name', $jlName)->whereNull('deleted_at')->exists()) {
+            $opened = $joint->open(
+                $jlName,
+                'Shared upkeep for the mill loom — both weavers sign.',
+                (string) $currency->id,
+                [$sellerId, $buyerId],
+                'all',
+                false,
+            );
+
+            $accounts->transfer($sellerId, $opened['escrow_account_id'], (string) $currency->id, '20', 'transfer', 'seed the co-op fund');
+            $joint->refreshBalance($opened['ledger_id']);
+
+            $joint->propose($opened['ledger_id'], $sellerId, $buyerId, '5', 'reimburse the shuttle repair');
+
+            $this->line('8b. joint ledger: funded 20, one movement (5) waiting on the second signature — shared money moves only by agreement');
+        } else {
+            $this->line('8b. joint ledger already present — left as-is (its movements are consent state, not scenery)');
+        }
 
         // ── 9. Prove the ledger ──────────────────────────────────────────
         $chain = $ledger->verifyChain();

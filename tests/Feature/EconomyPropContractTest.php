@@ -48,6 +48,7 @@ class EconomyPropContractTest extends TestCase
         '/economy/units'          => ['surface', 'currency', 'levers', 'supply', 'issuance_rate_bps', 'inflation_target_bps'],
         '/economy/stipend'        => ['surface', 'currency', 'stipend', 'clock', 'k_anon_floor', 'examples'],
         '/economy/agreements'     => ['surface', 'agreements'],
+        '/economy/joint-ledgers'  => ['surface', 'currency', 'ledgers', 'can_open', 'my_account_id'],
     ];
 
     private const ALWAYS_ARRAY = [
@@ -59,6 +60,7 @@ class EconomyPropContractTest extends TestCase
         '/economy/units'    => ['levers'],
         '/economy/stipend'  => ['examples'],
         '/economy/agreements' => ['agreements'],
+        '/economy/joint-ledgers' => ['ledgers'],
     ];
 
     private function actor(): ?User

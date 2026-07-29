@@ -656,6 +656,7 @@ Route::middleware('auth')->group(function () {
     Route::get('/economy/agreements', [\App\Http\Controllers\Economy\EconomyController::class, 'agreements'])->name('economy.agreements');
     Route::get('/economy/agreements/{contract}', [\App\Http\Controllers\Economy\EconomyController::class, 'agreement'])
         ->whereUuid('contract')->name('economy.agreement');
+    Route::get('/economy/joint-ledgers', [\App\Http\Controllers\Economy\EconomyController::class, 'jointLedgers'])->name('economy.joint');
 
     // The write path (F-IND-022/023/024). These POST to the ENGINE, not to a
     // REST resource — EconomyActionController validates shape and files, and
@@ -675,6 +676,12 @@ Route::middleware('auth')->group(function () {
         ->whereUuid('order')->name('economy.market.settle');
     Route::post('/economy/requests/{posting}/apply', [\App\Http\Controllers\Economy\EconomyActionController::class, 'applyForWork'])
         ->whereUuid('posting')->name('economy.request.apply');
+    Route::post('/economy/joint-ledgers', [\App\Http\Controllers\Economy\EconomyActionController::class, 'jointOpen'])
+        ->name('economy.joint.open');
+    Route::post('/economy/joint-ledgers/{ledger}/propose', [\App\Http\Controllers\Economy\EconomyActionController::class, 'jointPropose'])
+        ->whereUuid('ledger')->name('economy.joint.propose');
+    Route::post('/economy/joint-movements/{movement}/approve', [\App\Http\Controllers\Economy\EconomyActionController::class, 'jointApprove'])
+        ->whereUuid('movement')->name('economy.joint.approve');
 
     // ── FE-C5 — Settings register (legislature/settings) ────────────────────
     Route::get('/legislatures/{legislature}/settings', [SettingsController::class, 'show'])

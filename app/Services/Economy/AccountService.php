@@ -44,10 +44,17 @@ class AccountService
      *
      * Idempotent: a resident has one wallet per currency, and asking twice
      * must not mint a second one.
+     *
+     * `joint_ledgers` joined the owner kinds in Wave 2 (announce-extend-pin,
+     * migration 2026_07_29_000020): a joint ledger's money lives in an
+     * ordinary ESCROW economic account owned by the ledger row, so joint
+     * movements ride the same rails as every other movement. The binding
+     * stays the one restricted object; a ledger-owned account identifies no
+     * person.
      */
     public function open(string $ownerType, string $ownerId, string $currencyId, string $kind = 'user'): EconomicAccount
     {
-        if (! in_array($ownerType, ['users', 'organizations'], true)) {
+        if (! in_array($ownerType, ['users', 'organizations', 'joint_ledgers'], true)) {
             throw new InvalidArgumentException("Unknown economic account owner type [{$ownerType}].");
         }
 

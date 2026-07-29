@@ -123,7 +123,7 @@ export const SITEMAP = [
         { id: 'marketplace', label: 'The open market', icon: 'building', href: '/economy/market', contract: 'economy/marketplace.html' },
         { id: 'agreements', label: 'Agreements', icon: 'file-text', href: '/economy/agreements', contract: 'economy/agreements.html' },
         { id: 'wallet', label: 'My wallet', icon: 'lock', href: '/economy/wallet', contract: 'economy/wallet.html' },
-        { id: 'joint-ledgers', label: 'Joint ledgers', icon: 'users', href: null, contract: 'economy/joint-ledgers.html', phase: 8 },
+        { id: 'joint-ledgers', label: 'Joint ledgers', icon: 'users', href: '/economy/joint-ledgers', contract: 'economy/joint-ledgers.html' },
         { id: 'units', label: 'Units & money', icon: 'sliders', href: '/economy/units', contract: 'economy/units.html' },
         { id: 'stipend', label: 'The civic stipend', icon: 'refresh-cw', href: '/economy/stipend', contract: 'economy/stipend.html' },
         { id: 'treasury', label: 'Public finance', icon: 'bar-chart', href: '/economy/treasury', contract: 'economy/treasury.html' },

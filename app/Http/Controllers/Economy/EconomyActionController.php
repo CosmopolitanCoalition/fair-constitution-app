@@ -150,4 +150,61 @@ class EconomyActionController extends Controller
 
         return back()->with('status', 'Applied (F-IND-019). The organization decides — if it accepts, the work agreement is recorded with both signatures, never one.');
     }
+
+    /** F-IND-023 · joint_open — open a co-owned ledger, rule named up front. */
+    public function jointOpen(Request $request): RedirectResponse
+    {
+        $validated = $request->validate([
+            'name'                => ['required', 'string', 'max:160'],
+            'purpose'             => ['nullable', 'string', 'max:500'],
+            'approval_rule'       => ['required', 'string', 'in:all,majority'],
+            'public'              => ['nullable', 'boolean'],
+            'party_account_ids'   => ['required', 'array', 'min:1', 'max:20'],
+            'party_account_ids.*' => ['uuid'],
+        ]);
+
+        $this->engine->file('F-IND-023', $request->user(), [
+            'action'            => 'joint_open',
+            'name'              => $validated['name'],
+            'purpose'           => $validated['purpose'] ?? null,
+            'approval_rule'     => $validated['approval_rule'],
+            'public'            => (bool) ($validated['public'] ?? false),
+            'party_account_ids' => $validated['party_account_ids'],
+        ]);
+
+        return back()->with('status', 'Opened (F-IND-023). Fund it with a plain transfer to its account — and from here on, no movement leaves it without the agreed signatures.');
+    }
+
+    /** F-IND-023 · joint_propose — propose a movement out; proposing is your signature. */
+    public function jointPropose(Request $request, string $ledger): RedirectResponse
+    {
+        $validated = $request->validate([
+            'to_account_id' => ['required', 'uuid'],
+            'amount'        => ['required', 'string', 'regex:/^\d{1,18}(\.\d{1,6})?$/'],
+            'memo'          => ['nullable', 'string', 'max:240'],
+        ], [
+            'amount.regex' => 'An amount is a number, up to six decimal places.',
+        ]);
+
+        $this->engine->file('F-IND-023', $request->user(), [
+            'action'        => 'joint_propose',
+            'ledger_id'     => $ledger,
+            'to_account_id' => $validated['to_account_id'],
+            'amount'        => $validated['amount'],
+            'memo'          => $validated['memo'] ?? null,
+        ]);
+
+        return back()->with('status', 'Proposed (F-IND-023). Your signature is on it; the movement waits until the ledger\'s rule is met — one signer never moves shared money alone.');
+    }
+
+    /** F-IND-023 · joint_approve — the approval that meets the rule settles it. */
+    public function jointApprove(Request $request, string $movement): RedirectResponse
+    {
+        $this->engine->file('F-IND-023', $request->user(), [
+            'action'      => 'joint_approve',
+            'movement_id' => $movement,
+        ]);
+
+        return back()->with('status', 'Approved (F-IND-023). If yours was the signature that completed the rule, the movement has settled — money moved in the same act as the consent.');
+    }
 }

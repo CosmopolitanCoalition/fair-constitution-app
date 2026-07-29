@@ -106,7 +106,7 @@ class EconomyWriteFormsTest extends TestCase
     {
         $expected = [
             MarketplaceListingOrder::class => ['$this->market->list', '$this->market->order', '$this->market->settle'],
-            FundsTransfer::class           => ['$this->accounts->transfer'],
+            FundsTransfer::class           => ['$this->accounts->transfer', '$this->joint->open', '$this->joint->propose', '$this->joint->approve'],
             AssetRegistration::class       => ['$this->assets->register', '$this->assets->transfer'],
             WorkApplication::class         => ['$this->board->apply'],
         ];

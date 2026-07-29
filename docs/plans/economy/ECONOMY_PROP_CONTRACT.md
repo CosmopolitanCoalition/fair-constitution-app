@@ -266,6 +266,36 @@ READ-ONLY v1: drafting/negotiation (clauses, redlines) is the Wave 3 design-gate
 draft CTA is deliberately absent until then. The both-sign floor is DB-enforced
 (`org_contracts_cosign_check`) and renders on every card. Nav row `agreements` flipped live.
 
+### Item 3 — joint ledgers (2026-07-29, migration slot granted)
+
+**Migration `2026_07_29_000020`** (one slot use, three needs folded): account plane admits
+`joint_ledgers` owner kind (escrow design) + `organizations.settings` jsonb (6a's home) +
+`org_restructures`/`org_restructure_consents` (6b's consent state). `down()` proven live.
+
+**`GET /economy/joint-ledgers` → `Economy/JointLedgers`** (route `economy.joint`):
+`surface` · `currency` · `ledgers[]` (`{id, name, purpose, public, approval_rule, balance
+(escrow truth), escrow_account_id, parties[{account_id, role, is_me}], is_party,
+movements[{id, to_account_id, amount, memo, status, approvals, needed, i_approved,
+can_approve, at}]}`) · `can_open` · `my_account_id`. Visibility: public ledgers to all;
+private ones to co-owners only. Money plane — parties are ACCOUNTS.
+
+**Writes — F-IND-023 actions** (the manifest's own pairing "Funds Transfer · Joint-Ledger
+Movement"): `joint_open` (POST /economy/joint-ledgers), `joint_propose`
+(POST /economy/joint-ledgers/{ledger}/propose), `joint_approve`
+(POST /economy/joint-movements/{movement}/approve). Proposing signs; the approval that
+meets the rule settles IN THE SAME ACT (consent and settlement are one transaction — an
+underfunded escrow refuses and the refused approval is not recorded; pinned).
+
+**THE DESIGN**: the ledger's money lives in an escrow economic account owned by the ledger
+row. Funding = plain F-IND-023 transfer to the escrow. Settlement = AccountService transfer
+escrow→recipient. `joint_ledgers.balance` is a cached mirror of the escrow truth.
+JointLedgerService writes ONLY the joint governance tables — the fleet-wide ledger write
+scan proves it. `AccountService::open` (PROTECTED) gained the `joint_ledgers` owner kind —
+announce-extend-pin, migration-backed. Pins: `JointLedgerTest` (rule gates settlement ·
+non-party refused · one signature per signer · no-overdraft parity · majority = ⌊N/2⌋+1 ·
+mirror = escrow). Demo: `institutions:demo-treasury` step 8b seeds a funded ledger with a
+movement awaiting its second signature. Nav row `joint-ledgers` flipped live.
+
 ### Item 5 — additive props on live pages (2026-07-29)
 
 | Where | Added | Notes |
