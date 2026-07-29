@@ -390,6 +390,12 @@ islands never touch — the buffer distance d becomes a free parameter controlli
    **demo-members-are-trained seeding pass**. Playtest-prep item.
 3. Carried: B2 residual (compact-first shipped), game-box mass pass, lane 3's compaction.
 
+*Lane 1 (holding for the game-box go + B2/race-shape rulings) is running a self-directed
+ADVERSARIAL VERIFICATION PASS over the shipped Type B engine (ladder · combined cap · grouping ·
+SQL-mirror parity · island path · determinism/DRIFT) BEFORE it meets ~9,708 real chambers —
+desk-blessed; "27 pins ≠ verified-at-scale." Feeds mass-pass confidence for the review package.
+No game box, no peer files.*
+
 **LANE 4 WAVE 3 CLOSED (four-way confirmed): R-A UN-FLAG PIN 7d14649 (ElectionStageTest 10/10;
 non-vacuous — a before-state assertion proves the race appears BECAUSE the flag cleared, via
 the REAL TypeBDistrictMapper::apply(), no stage edit). BONUS RESOLVED: lane 4's Wave-2
