@@ -380,9 +380,15 @@ islands never touch — the buffer distance d becomes a free parameter controlli
    (ungrouped Type B is ALREADY one at-large STV race with equal-rep in the seat BUDGET not the
    counting; "Type B is ONE STV race, however many seats"; grouping only reduces N to fit the
    cap) + cost + not touching hardened code. Lane 1 (builder) leans (ii) as "what grouping is
-   FOR." Genuinely the operator's call — it's what Type B REQUIRES. NIUE made safe meanwhile
-   (lane 1 directed: re-flag to blocked if auto-schedulable, else leave-cleared-with-marker;
-   grouping data persists either way).
+   FOR." Genuinely the operator's call — it's what Type B REQUIRES. **NIUE RE-FLAGGED + DESK-VERIFIED (branch YES — trigger was ARMED):**
+   EvaluateClocksJob->CLK-01->ScheduleGeneralElection is live and Niue has armed CLK-01 timers
+   (2026-08-18/09-01) on an advanceable dev clock, so a fired timer would have minted the bare
+   wrong-shape race. Lane 1 re-flagged in one tx; desk confirmed on-box: flagged_chambers=1,
+   Niue 11/14/25 (ladder placeholder restored, the type_b>type_a-IFF-flagged invariant holds),
+   grouping demoted active->DRAFT (5 panels/10 seats PERSIST as the ready-to-activate plan).
+   racePlan type_b = BLOCKED again; type_a half still generates. The "first cleared chamber"
+   milestone stands proven; re-activating the draft + clearing the flag restores Niue correctly
+   once the ruling + panel read-side land.
 2. **Education ARMING SEQUENCING (lane 15).** `education:seed` arms the act-gate for 6 civic
    tracks — once armed, every UNTRAINED role-holder redirects on their next role-act. The dev
    box is deliberately UN-seeded (gate inert, suite green, e2e seeds in-transaction). Before the
