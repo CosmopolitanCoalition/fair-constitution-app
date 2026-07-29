@@ -359,6 +359,16 @@ TRADING DEFERRED to Wave 4 (operator ruled ISSUANCE, delivered; secondary needs 
 his ruling; shares floor stays honest-empty) — surfaced to operator, doesn't block 5-6. P2P
 agreement form = a mint → 116→117 pinned in the build.**
 
+**⚑ VERIFIED APP-STATE RUBRIC (2026-07-29, 8-agent verification workflow vs LIVE code — not
+asserted): SCREENS 72 built · 32 partial · 3 absent of 107** (up from 63/34/10 at Wave 2 close;
+3 absent = video-player, atlas, bill). **CAPABILITIES 38 working · 10 partial · 3 blocked · 5
+absent of 56** (blocked = Type B second-chamber race + the bicameral-agreement it cascades to;
+absent = profile-edit, DM, founding-stake, RankedBallot-live, mobile app). **TECH DEBT 23 items
+(2 high · 10 medium · 11 low)** — high = the Type B race defect + its doc drift. Forms 117 pinned,
+phases 0–5 complete. Rubric artifact (drillable, screens+caps+debt+phases):
+https://claude.ai/code/artifact/101c137d-df9b-4785-b8ff-8072532e2619 · source
+docs/plans/ui/tools/app_progress_rubric.html.
+
 **⚑ WAVE 3 CLOSE TALLY (2026-07-29 ~12:15, HEAD=origin, all pushed):**
 - **CLOSED (four-way confirmed): lanes 1, 2, 4, 6.** Lane 2 SLOT CLEAR — coordinator migration
   landed 82f4683 (re-dated 200000, LAST in slot; down() proven batch-scoped so lane 15's batch
