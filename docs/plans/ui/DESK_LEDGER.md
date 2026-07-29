@@ -723,3 +723,39 @@ stale-comment cleanup.
 per-clump counting (we re-flagged Niue once to avoid seating a wrong-shape race — don't repeat).
 Sequence: L1 lands schema+racePlan+RaceFootprint → sends L3 the shape → L3 verifies+pins → THEN
 clear Niue. Independent adversarial verification of the counting claim reserved for the wave gate.
+
+### W4 tick 3 — slot queue set (L1→L4→L3→L13) + InstitutionScaleService seam contract (2026-07-29)
+
+**LANE 4 four-way:** STEP 0 clean (HEAD 4db2085 ≥ 9fb0a60, 0/0). Building the Atlas now
+(AtlasController, Pages/System/Atlas.vue porting mockups/v3/atlas.html, SnapshotWorldStatsJob,
+world:stats CLI) — everything non-schema first so world_stats is the last, smallest step.
+Correctly read the ledger, saw the slot is lane 1's, did NOT author the migration. NO open
+questions.
+
+**⚑ MIGRATION-SLOT QUEUE (updated):** L1 (ACTIVE — race-fix election_races) → **L4 (world_stats,
+one table)** → L3 (agenda per-item) → L13 (secondary-trading). Lane 4 inserted ahead of L3/L13
+because world_stats is the final gate on the entire Atlas front-door (absent screen + capability
+= big green lever) and L4 lands the surface the same tick the slot opens; L3/L13 aren't
+blocked-waiting on their tables. Ready-first override stands (no idle slot). Each releases on
+landing + hash report; desk pings the next holder "slot open".
+
+**⚑ InstitutionScaleService SEAM — resolved lane4↔lane3 direct, logged as a standing contract:**
+1. Formula faithful: lane 3's four §8 statics reproduce (Niue K=2/D=5 · San Marino 6/10 · Earth
+   24/30), signatures verbatim; their departmentTarget zero-rule guard is a faithful §4.1
+   improvement (kept — the doc's bare floor-3 would've given an uninhabited place 3 departments).
+2. Clean seam, no file collision: InstitutionScaleService = lane 3's; lane 4 owns the provisioning
+   CALL SITE only, consuming ONLY courtTiers + extraRooms (Q4 ruling a) — committeeTarget /
+   departmentTarget stay reserved to a seated chamber (F-LEG-009 / F-EXE-001 / F-LEG-016).
+3. ETL wrinkle, solved by precedent NOT a fork: InstitutionProvisionService is set-based chunked
+   INSERT…SELECT (ETL rule) → can't call PHP statics per row. Lane 4's SQL is a MIRROR of lane 3's
+   tierFor() reference impl (same contract as the existing sourceSql()), held by a PARITY PIN
+   across every band/boundary.
+⚑ CONTRACT (desk-pinned): lane 3 owes lane 4 a ping if any curve/clamp moves, so mirror + pin
+travel in the SAME commit. Desk flags a formula edit that lands without the ping. Sequencing:
+lane 4's parity pin depends on lane 3's statics being COMMITTED first (uncommitted as of L4's read)
+→ L4 ② after L3 ①.
+
+**WAVE-GATE CHECKLIST (accruing):** run the parity pin (mirror==PHP), run lane 3's per-clump
+counting pin, run the FULL suite — verify the cross-lane "zero counting change" + "SQL mirror ==
+PHP" claims by EXECUTION, not by trusting the ping-pong. (Standing: verify the diagnosis, don't
+infer it.)

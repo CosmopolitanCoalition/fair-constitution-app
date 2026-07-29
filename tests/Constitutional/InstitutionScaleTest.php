@@ -118,4 +118,95 @@ class InstitutionScaleTest extends TestCase
             $previous = $rank;
         }
     }
+
+    // ── The service-scale formula (SERVICE_SCALE_FORMULA.md §4, all §9 calls
+    //    RULED option (a); pins the numeric contract lane 3's R-B build wires) ──
+
+    /**
+     * §4.4 — K(S) = clamp( round(3.5 + 2.7·ln S), 1, round(S/5) ). Hits the
+     * settled app anchors (Niue 12→2, San Marino 32→6, Earth 1999→24) AND the
+     * real-world calibration anchors (US House 435→20, Senate 100→16). Both
+     * clamps bind: the staff cap for a small chamber, the log curve for a large.
+     */
+    public function test_committee_target_hits_its_anchors(): void
+    {
+        $this->assertSame(2,  Scale::committeeTarget(12),   'Niue S=12 → 2 (staff cap binds)');
+        $this->assertSame(6,  Scale::committeeTarget(32),   'San Marino S=32 → 6');
+        $this->assertSame(24, Scale::committeeTarget(1_999), 'Earth S=1999 → 24 (log curve binds)');
+        $this->assertSame(20, Scale::committeeTarget(435),  'US House → 20');
+        $this->assertSame(16, Scale::committeeTarget(100),  'US Senate → 16');
+        $this->assertSame(1,  Scale::committeeTarget(5),    'a 5-seat chamber staffs one committee');
+        $this->assertSame(0,  Scale::committeeTarget(0),    'no chamber, no committees');
+    }
+
+    /**
+     * §4.4 — D(P) = clamp( round(-7.8 + 1.67·ln P), 3, 30 ). Hits the anchors
+     * (Niue 1,819→5, San Marino 33,581→10, Earth→30 cap), floors at 3 for a
+     * small inhabited place, and honours the zero rule for an empty one.
+     */
+    public function test_department_target_hits_its_anchors_and_floors_at_three(): void
+    {
+        $this->assertSame(5,  Scale::departmentTarget(1_819),   'Niue → 5');
+        $this->assertSame(10, Scale::departmentTarget(33_581),  'San Marino → 10');
+        $this->assertSame(30, Scale::departmentTarget(7_991_888_892), 'Earth → 30 (cap)');
+        $this->assertSame(3,  Scale::departmentTarget(100),     'a tiny inhabited place floors at 3');
+        $this->assertSame(3,  Scale::departmentTarget(1),       'floor 3 holds at P=1');
+        $this->assertSame(0,  Scale::departmentTarget(0),       'the zero rule — empty place gets none');
+        $this->assertSame(0,  Scale::departmentTarget(null),    'null population gets none');
+    }
+
+    /**
+     * §4.3 — court LAYERS grow trial → +appellate → +supreme, monotone with
+     * tier. This is distinct from bench SIZE (judgeCount), which keeps its
+     * 5/5/7/9 floor untouched (Q2 ruling (a)).
+     */
+    public function test_court_tiers_grow_monotonically_with_tier(): void
+    {
+        $this->assertSame(0, Scale::courtTiers(Scale::TIER_NONE));
+        $this->assertSame(1, Scale::courtTiers(Scale::TIER_MINIMAL));
+        $this->assertSame(1, Scale::courtTiers(Scale::TIER_STANDARD));
+        $this->assertSame(2, Scale::courtTiers(Scale::TIER_EXTENDED));
+        $this->assertSame(3, Scale::courtTiers(Scale::TIER_FULL));
+
+        // The bench floor is NOT touched by the new court-tier count.
+        $this->assertSame(5, Scale::judgeCount(Scale::TIER_STANDARD));
+        $this->assertSame(9, Scale::judgeCount(Scale::TIER_FULL));
+    }
+
+    /**
+     * §4.5 — extra rooms are a LOCAL/leaf metric only (the tree carries the
+     * aggregate), anchored to 1 per 50,000 and capped at 20. Earth's node earns
+     * 0 (its rooms belong to descendants); microstates earn 0 (both < 50k).
+     */
+    public function test_extra_rooms_are_local_only_anchored_and_capped(): void
+    {
+        $this->assertSame(0,  Scale::extraRooms(7_991_888_892, false), 'Earth node — rooms belong to descendants');
+        $this->assertSame(0,  Scale::extraRooms(1_000_000, false),     'a non-local place earns no extra rooms');
+        $this->assertSame(0,  Scale::extraRooms(1_819, true),          'Niue (leaf, <50k) → square + halls only');
+        $this->assertSame(0,  Scale::extraRooms(33_581, true),         'San Marino (<50k) → 0 extra');
+        $this->assertSame(2,  Scale::extraRooms(120_000, true),        '1 per 50k');
+        $this->assertSame(20, Scale::extraRooms(2_000_000, true),      'capped at 20');
+    }
+
+    /**
+     * The count curves are monotone non-decreasing (matching the service's
+     * monotonicity posture): more chamber / more people never yields fewer
+     * institutions.
+     */
+    public function test_the_count_curves_are_monotone(): void
+    {
+        $prevK = -1;
+        foreach ([5, 12, 32, 100, 435, 1_999] as $seats) {
+            $k = Scale::committeeTarget($seats);
+            $this->assertGreaterThanOrEqual($prevK, $k, "committee regression at S={$seats}");
+            $prevK = $k;
+        }
+
+        $prevD = -1;
+        foreach ([1, 100, 1_819, 33_581, 586_351, 7_991_888_892] as $pop) {
+            $d = Scale::departmentTarget($pop);
+            $this->assertGreaterThanOrEqual($prevD, $d, "department regression at P={$pop}");
+            $prevD = $d;
+        }
+    }
 }
