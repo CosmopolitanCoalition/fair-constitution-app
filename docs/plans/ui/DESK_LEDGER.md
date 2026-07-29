@@ -364,8 +364,31 @@ islands never touch — the buffer distance d becomes a free parameter controlli
   server-only); stages ①–⑤ all appear complete, four-way DONE expected. **lane 13** — economy
   build STARTED 18fd02d (1/6, dues as membership subscription per the ruling); 5 pieces to go.
 - **REMAINING BEFORE WAVE 3 CLOSES:** lane 3's exit walk (post-compaction), lane 13's economy
-  build (2/6–6/6), lane 15's DONE confirmation. Operator items open: B2 residual, game-box mass
-  pass, lane 3's compaction.
+  build (2/6–6/6), lane 15's DONE confirmation (git-observed complete: 6 steps + e2e proof
+  b885dab; act-gate a2061f9; awaiting full-suite gate at wave close).
+
+**⚑ OPERATOR DECISION QUEUE (all Wave 4 scope — NONE block Wave 3 close):**
+1. **Grouped-Type-B RACE SHAPE (lane 1, code-verified).** A grouped Type B chamber currently
+   produces a BARE at-large STV race — racePlan emits `at_large` with N seats, createRaces makes
+   one plain STV race over all residents, and `election_races` has NO panel/grouping column, so
+   "seats follow the panels" is inexpressible without a schema + counting decision. FORK:
+   **(i)** ONE at-large N-seat STV race, panels = seat-count accounting only — additive
+   grouping_id column, counting UNCHANGED, LANE-1-OWNABLE, cheap; weakness: a small constituent
+   can be shut out (population re-enters via at-large STV). **(ii)** PANEL-PARTITIONED counting —
+   each panel elects its rep_floor seats; true equal representation; touches PROTECTED
+   VoteCountingService, JOINT lane-1/lane-3, real cost. DESK REC: **(i)** for consistency
+   (ungrouped Type B is ALREADY one at-large STV race with equal-rep in the seat BUDGET not the
+   counting; "Type B is ONE STV race, however many seats"; grouping only reduces N to fit the
+   cap) + cost + not touching hardened code. Lane 1 (builder) leans (ii) as "what grouping is
+   FOR." Genuinely the operator's call — it's what Type B REQUIRES. NIUE made safe meanwhile
+   (lane 1 directed: re-flag to blocked if auto-schedulable, else leave-cleared-with-marker;
+   grouping data persists either way).
+2. **Education ARMING SEQUENCING (lane 15).** `education:seed` arms the act-gate for 6 civic
+   tracks — once armed, every UNTRAINED role-holder redirects on their next role-act. The dev
+   box is deliberately UN-seeded (gate inert, suite green, e2e seeds in-transaction). Before the
+   operator's training-loop walk needs an ARMED box: decide **pre-train the demo members** OR a
+   **demo-members-are-trained seeding pass**. Playtest-prep item.
+3. Carried: B2 residual (compact-first shipped), game-box mass pass, lane 3's compaction.
 
 **LANE 4 WAVE 3 CLOSED (four-way confirmed): R-A UN-FLAG PIN 7d14649 (ElectionStageTest 10/10;
 non-vacuous — a before-state assertion proves the race appears BECAUSE the flag cleared, via
