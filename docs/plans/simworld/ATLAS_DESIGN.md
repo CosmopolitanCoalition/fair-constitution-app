@@ -72,13 +72,47 @@ nightly job aggregates into `world_stats`; **"Never reads"** = the CI-1 boundary
 |---|---|---|---|
 | **The world** | jurisdiction counts by `adm_level`, Σ modelled population, Earth population, civic-active count | `jurisdictions` | — |
 | **Reach & legitimacy** ⚑ | Σ *published* verified residents, # measured places, home-place reach dial + 30-night spark | **`legitimacy_snapshots` (already suppression-safe)** | any sub-k count, any live headcount, any per-person row |
-| **Representation** | legislatures, seats, filled/open, elections open, seats up, candidates, petitions gathering, committees, bills | `legislatures`, `legislature_members`, `elections`, `candidates`, `petitions`, `committees`, `bills` | who voted; ballot contents |
-| **The executive** | departments, governor seats, worker-elected seats, civil-service workers, emergency powers active + days left | `executives`, `departments`, `boards_of_governors` | — |
+| **Representation** | legislatures, seats, filled/open, elections open, seats up, candidates, petitions gathering, committees, bills | `legislatures`, `legislature_members`, `elections`, `candidacies`, `petitions`, `committees`, `bills` | who voted; ballot contents |
+| **The executive** | departments, governor seats, worker-elected seats, civil-service workers, emergency powers active + days left | `executives`, `departments`, `boards` + `board_seats` | — |
 | **The judiciary** | courts, cases open, constitutional challenges, juries seated, remedy windows | `judiciaries`, `cases`, `juries` | juror identities; sealed case content |
 | **Organizations** | count by type, endorsements made, workers represented, public-domain works | `organizations`, `endorsements`, CGC IP register | private membership rolls |
 | **The economy** *(planned)* | minted this cycle, stipend recipients (aggregate), stipend floor, market volume, public budget, agreements, ledgers, listings | lane 13 economy services | **any wallet balance — a wallet is private, like a ballot** |
-| **People & achievements** *(planned)* | verified residents, named role-holders, orgs, registered advocates, achievement *tracks* + earned/total counts | `residency_confirmations` (aggregate), `personas`, achievements | **individual achievements — private by default, no governance advantage, hard-separated from votes/seats/money** |
+| **People & achievements** *(planned)* | verified residents, named role-holders, orgs, registered advocates, achievement *tracks* + earned/total counts | `residency_confirmations` (aggregate), `social_profiles`, achievements | **individual achievements — private by default, no governance advantage, hard-separated from votes/seats/money** |
 | **The mesh** | nodes, alive now, connected peers, on-latest version, transports up, caught-up count | `federation_peers`, `federation_transports`, operator readiness | operator private keys; node internals |
+
+### 4.1 ⚑ Corrections against the LIVE schema (2026-07-29, during the build)
+
+Three table names in the original §4 list were **phantoms** — carried from the mockup's
+`fixtures` as if they were schema. Verified against `information_schema` on the dev box and
+corrected above. Anyone writing the rollup SQL must use the right-hand names:
+
+| Design said | Reality |
+|---|---|
+| `candidates` | **`candidacies`** (`App\Models\Candidacy`). Note `endorsements.candidate_id` points at it despite the column name. |
+| `boards_of_governors` | **`boards`**, polymorphic via `boardable_type`/`boardable_id`; actual seats in **`board_seats`**. No table by the BoG name exists. |
+| `personas` | **DOES NOT EXIST AND NEVER HAS.** "Persona" is a dev-tool impersonation concept (`app/Services/Dev/AssumeService.php`) with no backing table. Closest real per-user table is `social_profiles`. |
+
+Two more shape corrections found the same way:
+
+- **`jurisdictions` has no `centroid_lat`/`centroid_lng`.** It stores a PostGIS **`centroid`**
+  point, SRID 4326 — `ST_X` is longitude, `ST_Y` is latitude. The map reads those.
+- **`federation_peers` has no geometry at all**, and no `label`/`base_url`/`role`/`is_self`. The
+  real columns are `name`, `url`, `status`, `relation` (sovereign|host|mirror),
+  `last_synced_seq`, `server_id`; "this node" = the peer whose `server_id` matches the
+  `instance_settings` singleton. **Consequence: the node and organization map layers render
+  honestly EMPTY** until a coordinate source exists — a guessed pin on a map whose whole promise
+  is orientation is the one thing this surface must not do. The mockup's peer-status vocabulary
+  (`authoritative`/`healthy`/`degraded`) was fiction; the real one is `discovered`, `handshake`,
+  `trust_established`, `syncing`, `conflict_resolution`, `border_settled`, `merged`, `departed`.
+
+**Query-correctness traps for the rollup** (the convention exceptions CLAUDE.md warns about,
+confirmed live): `legislature_members` holds `elected` **and** `term_ended` rows, so a naive
+`count(*)` over-reports current seats ~2.5× — filter `status = 'elected'`. `endorsements`,
+`residency_confirmations` and `legitimacy_snapshots` carry **no `deleted_at` and no `status`**
+(liveness is `is_active`; the snapshot's status-like column is named **`state`**).
+`federation_transports` has `deleted_at` but no `status` (liveness is `enabled`).
+`jurisdictions` has **no `status`** — it has `lifecycle_status` (NULL on this box) plus
+`is_active`/`is_civic_active` booleans, and civic-active reads the boolean.
 
 ⚑ **The Reach card is the spine.** It is not a new metric — it is `LegitimacyService` summed to the
 planet. `verifiedTotal` is a sum of **already-published** snapshot rows only; a place whose snapshot
@@ -156,9 +190,21 @@ contract the build implements.**
   (port the mockup's render — map SVG, nine domain cards, trends, CTAs, node directory).
 - **Reuse, don't reinvent:** the reach dial + spark are `ReachController`/`social/legitimacy`
   components; the map projection and layer toggles are self-contained in the mockup already.
-- **UI↔CLI parity:** a `world:stats` CLI twin that prints the latest rollup (and can force a refresh
-  on a demo instance, guarded by `GuardsSyntheticData`) — the read is public, the forced refresh is
-  synthetic-only. Add the parity row to `UI_CLI_PARITY_INVENTORY.md` when built.
+- **UI↔CLI parity:** a `world:stats` CLI twin that prints the latest rollup and can force a refresh.
+  Add the parity row to `UI_CLI_PARITY_INVENTORY.md` when built.
+  ⚑ **CORRECTION (2026-07-29, during the build): the forced refresh must NOT carry
+  `GuardsSyntheticData`,** as this section originally specified. That guard's scope is *minting*
+  synthetic people/governments/civic records — its own docblock says "synthetic data may be written
+  ONLY where the world has declared itself not-real", and it refuses on a production instance. A
+  rollup refresh recomputes a **real public aggregate** — exactly what the nightly job does — so
+  gating it would deny ops the ability to refresh the gauge on a live node, which is precisely
+  backwards for a read surface. The read is public; the refresh is idempotent and ungated. (This is
+  an implementation-level correction to the *instrument*, not a change to any rule: the rail the
+  design cares about — nothing synthetic is ever minted here — is untouched, because the rollup
+  mints nothing.)
+  ⚑ Note the precedent has a parity GAP to avoid copying: `SnapshotLegitimacyJob` has **no CLI twin
+  at all** (verified — the only way to run the pass is the nightly schedule or a manual dispatch).
+  The Atlas ships its command rather than inheriting that omission.
 - **Pins:** the Atlas never runs a live count (source-scan pin, like the SimConsole control-marker
   pin); a suppressed snapshot never contributes a number to the rollup; the page carries no action.
 - **Never:** an action control, a per-person figure, a wallet balance, an individual achievement, or
