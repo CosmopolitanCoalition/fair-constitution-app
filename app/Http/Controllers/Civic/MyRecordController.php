@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Civic;
 
+use App\Domain\Ballots\BallotBox;
 use App\Domain\Engine\ConstitutionalEngine;
 use App\Http\Controllers\Auth\RegisteredUserController;
 use App\Http\Controllers\Controller;
@@ -69,6 +70,7 @@ class MyRecordController extends Controller
         private readonly ResidencyService $residency,
         private readonly RepresentativesResolver $representatives,
         private readonly JourneyService $journeys,
+        private readonly BallotBox $ballots,
     ) {
     }
 
@@ -165,10 +167,13 @@ class MyRecordController extends Controller
                 'associations'   => count($associations),
                 'qualifying_days'=> $qualifyingDays,
                 // Art. II ballot secrecy · PI-2: participation is counted from
-                // ballot_envelopes, which carries user_id, and NEVER from
-                // ballots, which deliberately carries none. This proves THAT
-                // you voted; nothing here can reveal how.
-                'ballots_cast'   => DB::table('ballot_envelopes')->where('user_id', $userId)->count(),
+                // ballot_envelopes (voter-linked, content-free) and NEVER from
+                // ballots (content-bearing, no user_id at all), so this proves
+                // THAT you voted and nothing here can reveal how. Routed through
+                // BallotBox because that class OWNS the secrecy tables — a raw
+                // query here, however correct its arithmetic, puts a second code
+                // unit on the boundary and BallotSecrecyTest rightly refuses it.
+                'ballots_cast'   => $this->ballots->participationCountFor($user),
             ],
             'profile' => [
                 'display_name' => $user->display_name,

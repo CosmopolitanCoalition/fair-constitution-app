@@ -181,6 +181,38 @@ class BallotBox
     }
 
     /**
+     * How many ballots this voter has committed — the ONE participation read
+     * outside the count pipeline, and it lives here for the same reason the
+     * writes do: BallotBox owns the secrecy boundary, so nothing else may name
+     * these tables (BallotSecrecyTest greps app/ for `table('ballot_envelopes')`
+     * and for the model's write verbs).
+     *
+     * Why a per-voter count is SAFE, and where the line is. `ballot_envelopes`
+     * is the voter-linked, CONTENT-FREE half; `ballots` is the content-bearing,
+     * VOTER-FREE half and carries no user_id at all. Counting envelopes for one
+     * user therefore proves THAT they voted and can never expose HOW — it reads
+     * only the side of the boundary that already knows who they are. This is the
+     * rail AchievementCatalog states as PI-2: "electoral participation reads
+     * `ballot_envelopes`, NEVER `ballots`."
+     *
+     * The line: a COUNT for a single voter is fine. Do NOT extend this into
+     * anything that pairs a voter with a race-and-time (a per-race envelope list
+     * or a committed_at) and then reads `ballots` in the same breath — envelope
+     * ordering against hour-bucketed ballots is exactly the linking channel the
+     * cast_bucket truncation exists to destroy.
+     *
+     * Player-facing callers: the civic home and the personal record, both of
+     * which used to hard-code 0 behind a stale "// Phase B" comment and so told
+     * every voter their record held no ballots.
+     */
+    public function participationCountFor(User $voter): int
+    {
+        return BallotEnvelope::query()
+            ->where('user_id', (string) $voter->getKey())
+            ->count();
+    }
+
+    /**
      * Decrypt a question's referendum ballots for the tally — same TRUST
      * BOUNDARY as decryptForCount(): legitimate callers are the tabulation
      * pipeline (ReferendumService::tallyForElection) and audit re-runs

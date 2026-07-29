@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Civic;
 
+use App\Domain\Ballots\BallotBox;
 use App\Http\Controllers\Controller;
 use App\Models\ResidencyClaim;
 use App\Services\ResidencyService;
@@ -32,6 +33,7 @@ class HomeController extends Controller
         private readonly ResidencyService $residency,
         private readonly RoleService $roles,
         private readonly TodayFeedService $feed,
+        private readonly BallotBox $ballots,
     ) {
     }
 
@@ -122,10 +124,10 @@ class HomeController extends Controller
                 'record_entries' => DB::table('audit_log')->where('actor_user_id', (string) $user->id)->count(),
                 'associations'   => count($associations),
                 // Art. II ballot secrecy · PI-2: counted from ballot_envelopes
-                // (carries user_id), NEVER from ballots (carries none). Kept in
-                // lockstep with MyRecordController so the two surfaces agree.
-                'ballots_cast'   => DB::table('ballot_envelopes')
-                    ->where('user_id', (string) $user->id)->count(),
+                // (carries user_id), NEVER from ballots (carries none). Through
+                // BallotBox, which owns the secrecy tables; kept in lockstep with
+                // MyRecordController so the two surfaces cannot disagree.
+                'ballots_cast'   => $this->ballots->participationCountFor($user),
                 'petitions'      => count($petitions),
             ],
             'elections' => $elections,
