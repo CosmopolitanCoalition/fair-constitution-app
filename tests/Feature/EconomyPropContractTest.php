@@ -344,6 +344,12 @@ class EconomyPropContractTest extends TestCase
 
         $this->assertSame('You', $props['agreement']['counterparty'], 'a party sees themselves as You');
         $this->assertArrayHasKey('terms_full', $props['agreement'], 'a party reads the full terms');
+
+        // Wave 4: the negotiation overlay ships to a party — clauses + pending
+        // redlines are arrays (never null), plus the negotiability flag.
+        $this->assertIsArray($props['clauses'], 'the amendment overlay is an array, never null');
+        $this->assertIsArray($props['redlines'], 'pending redlines are an array, never null');
+        $this->assertArrayHasKey('can_negotiate', $props, 'the detail ships whether it can still be negotiated');
     }
 
     /** Stipend-page money is strings, and the examples ride the real formula. */

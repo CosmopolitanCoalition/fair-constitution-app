@@ -297,21 +297,25 @@ console is item-6/Wave-3 territory and the gap is recorded, not hidden.
 | Key | Shape | Notes |
 |---|---|---|
 | `surface` | SurfaceMeta record | |
-| `agreements` | `[{id, kind, org_name, counterparty, terms (≤200), status, signed_by_org, signed_by_counterparty, signed_by_org_at?, signed_by_counterparty_at?}]` | **PARTY-SCOPED**: only instruments the viewer is party to (their counterparty side · they signed for the org · active org membership). `counterparty` is `'You'` or a NAME — never a user id. |
+| `agreements` | **UNIFIED register (Wave 4)** — `family: 'org'` rows: `{id, family, kind, org_name, counterparty, terms (≤200), status, signed_by_org, signed_by_counterparty, signed_by_org_at?, signed_by_counterparty_at?, href, sort_at}`; `family: 'resident'` rows: `{id, family, title, status, signers: [{name, signed, is_me}], href, sort_at}`. Merged newest-first. | **PARTY-SCOPED**: org contracts (counterparty side · signed for the org · active membership) AND resident agreements (a signer). `counterparty` is `'You'` or a NAME — never a user id. |
 
 ### `GET /economy/agreements/{contract}` → `Economy/AgreementDetail` (route `economy.agreement`)
 
-Same card shape + `terms_full`, `org_signer?` (name), `effective_at?`, `ended_at?`, `created_at?`.
-**404 to a non-party** — an outsider is not told the instrument exists (pinned:
+Org-contract card shape + `terms_full`, `org_signer?` (name), `effective_at?`, `ended_at?`,
+`created_at?`. **404 to a non-party** — an outsider is not told the instrument exists (pinned:
 `test_an_agreement_is_invisible_to_a_non_party` / `test_a_party_sees_their_own_agreement`).
+
+**Wave 4 negotiation overlay** (Design Round 2 ③, F-IND-020): `clauses` (accepted amendments to
+the base terms; `[]` until proposed), `redlines` (pending: `{id, kind, body, rationale?, is_mine}`),
+`can_negotiate` (true for a live draft/offered/active instrument), `my_id`. A redline files through
+the engine (`POST /economy/redlines`); accepting one **voids both signatures** and drops the
+instrument to `offered` — a signature is on a specific text (pinned:
+`test_an_org_contract_redline_clears_both_signatures`).
 
 Privacy note for this plane: contracts are the CONSENT plane, not the money plane — parties see
 each other by NAME (that is what a signature is); the accounts-never-people rule governs money
-rows, not signatures. What stays private is the instrument: terms never reach a non-party.
-
-READ-ONLY v1: drafting/negotiation (clauses, redlines) is the Wave 3 design-gated build; the
-draft CTA is deliberately absent until then. The both-sign floor is DB-enforced
-(`org_contracts_cosign_check`) and renders on every card. Nav row `agreements` flipped live.
+rows, not signatures. What stays private is the instrument: terms never reach a non-party. The
+both-sign floor is DB-enforced (`org_contracts_cosign_check`) and renders on every card.
 
 ### Item 3 — joint ledgers (2026-07-29, migration slot granted)
 

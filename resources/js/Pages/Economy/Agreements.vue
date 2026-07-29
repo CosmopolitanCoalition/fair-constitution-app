@@ -87,29 +87,52 @@ const KINDS_REFERENCE = [
         <Card as="section" title="Your agreements">
             <p v-if="!agreements.length" class="econ-empty">
                 You are not a party to any agreement yet. A hire records a labor agreement; a
-                settled sale records a commercial one.
+                settled sale records a commercial one; a resident agreement is one you offer another
+                person directly.
             </p>
-            <article v-for="a in agreements" :key="a.id" class="agr-card">
-                <p class="agr-kind">{{ KIND_LABEL[a.kind] ?? a.kind }}</p>
-                <div class="agr-head">
-                    <h3>{{ a.org_name }} ↔ {{ a.counterparty }}</h3>
-                    <span class="agr-status" :data-status="a.status">{{ STATUS_LABEL[a.status] ?? a.status }}</span>
-                </div>
-                <p class="agr-terms">{{ a.terms }}</p>
-                <p class="agr-signatures">
-                    <span :class="a.signed_by_org ? 'agr-signed' : 'agr-unsigned'">
-                        {{ a.org_name }}: {{ a.signed_by_org ? `signed ${formatWhen(a.signed_by_org_at)}` : 'not yet signed' }}
-                    </span>
-                    <span :class="a.signed_by_counterparty ? 'agr-signed' : 'agr-unsigned'">
-                        {{ a.counterparty }}: {{ a.signed_by_counterparty ? `signed ${formatWhen(a.signed_by_counterparty_at)}` : 'not yet signed' }}
-                    </span>
-                </p>
-                <p class="agr-floor">
-                    No clause may waive a right. Both parties sign — a one-sided contract never
-                    takes effect.
-                </p>
-                <p><Link :href="`/economy/agreements/${a.id}`" class="econ-back">Open this agreement</Link></p>
-            </article>
+
+            <template v-for="a in agreements" :key="a.id">
+                <!-- organization contract (labor / commercial / free-form) -->
+                <article v-if="a.family === 'org'" class="agr-card">
+                    <p class="agr-kind">{{ KIND_LABEL[a.kind] ?? a.kind }}</p>
+                    <div class="agr-head">
+                        <h3>{{ a.org_name }} ↔ {{ a.counterparty }}</h3>
+                        <span class="agr-status" :data-status="a.status">{{ STATUS_LABEL[a.status] ?? a.status }}</span>
+                    </div>
+                    <p class="agr-terms">{{ a.terms }}</p>
+                    <p class="agr-signatures">
+                        <span :class="a.signed_by_org ? 'agr-signed' : 'agr-unsigned'">
+                            {{ a.org_name }}: {{ a.signed_by_org ? `signed ${formatWhen(a.signed_by_org_at)}` : 'not yet signed' }}
+                        </span>
+                        <span :class="a.signed_by_counterparty ? 'agr-signed' : 'agr-unsigned'">
+                            {{ a.counterparty }}: {{ a.signed_by_counterparty ? `signed ${formatWhen(a.signed_by_counterparty_at)}` : 'not yet signed' }}
+                        </span>
+                    </p>
+                    <p class="agr-floor">
+                        No clause may waive a right. Both parties sign — a one-sided contract never
+                        takes effect.
+                    </p>
+                    <p><Link :href="a.href" class="econ-back">Open this agreement</Link></p>
+                </article>
+
+                <!-- person-to-person resident agreement (F-IND-020) -->
+                <article v-else class="agr-card">
+                    <p class="agr-kind">Person to person</p>
+                    <div class="agr-head">
+                        <h3>{{ a.title }}</h3>
+                        <span class="agr-status" :data-status="a.status">{{ STATUS_LABEL[a.status] ?? a.status }}</span>
+                    </div>
+                    <p class="agr-signatures">
+                        <span v-for="(s, i) in a.signers" :key="i" :class="s.signed ? 'agr-signed' : 'agr-unsigned'">
+                            {{ s.signed ? '✓' : '○' }} {{ s.name }}<template v-if="s.is_me"> (you)</template>
+                        </span>
+                    </p>
+                    <p class="agr-floor">
+                        Takes effect only when every party signs — no clause may waive a right.
+                    </p>
+                    <p><Link :href="a.href" class="econ-back">Open in resident agreements</Link></p>
+                </article>
+            </template>
         </Card>
 
         <Card as="section" title="The floor under every agreement">

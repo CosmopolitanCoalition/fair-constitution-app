@@ -843,10 +843,72 @@ class EconomyController extends Controller
      */
     public function agreements(Request $request): Response
     {
+        // The UNIFIED register (Wave 4): every kind of agreement the viewer is
+        // party to, newest first. An org contract and a person-to-person
+        // resident agreement are different families but one register — each row
+        // links to the detail surface that can act on it.
+        $org = $this->visibleContracts($request)->map(fn ($c) => $this->contractCard($c, $request) + [
+            'family'  => 'org',
+            'href'    => "/economy/agreements/{$c->id}",
+            'sort_at' => $this->iso($c->created_at) ?? '',
+        ])->all();
+
+        $resident = $this->visibleResidentAgreements($request);
+
+        $all = array_merge($org, $resident);
+        usort($all, fn ($a, $b) => strcmp((string) ($b['sort_at'] ?? ''), (string) ($a['sort_at'] ?? '')));
+
         return Inertia::render('Economy/Agreements', [
             'surface'    => SurfaceMeta::for('economy/agreements'),
-            'agreements' => $this->visibleContracts($request)->map(fn ($c) => $this->contractCard($c, $request))->all(),
+            'agreements' => $all,
         ]);
+    }
+
+    /**
+     * The viewer's resident (person-to-person) agreements as register rows.
+     * Party-scoped by signer; parties shown by NAME (the consent plane). These
+     * link to the resident-agreements surface, which can sign and negotiate.
+     *
+     * @return list<array<string, mixed>>
+     */
+    private function visibleResidentAgreements(Request $request): array
+    {
+        $user = $request->user();
+        if ($user === null) {
+            return [];
+        }
+
+        $myId = (string) $user->id;
+
+        $ids = DB::table('resident_agreement_signers')->where('signer_user_id', $myId)->pluck('agreement_id');
+        if ($ids->isEmpty()) {
+            return [];
+        }
+
+        return DB::table('resident_agreements')
+            ->whereIn('id', $ids)->whereNull('deleted_at')
+            ->orderByDesc('created_at')->get()
+            ->map(function ($a) use ($myId) {
+                $signers = DB::table('resident_agreement_signers as s')
+                    ->join('users as u', 'u.id', '=', 's.signer_user_id')
+                    ->where('s.agreement_id', $a->id)
+                    ->get(['u.name', 's.signer_user_id', 's.signed_at'])
+                    ->map(fn ($s) => [
+                        'name'   => (string) $s->name,
+                        'signed' => $s->signed_at !== null,
+                        'is_me'  => (string) $s->signer_user_id === $myId,
+                    ])->all();
+
+                return [
+                    'id'      => (string) $a->id,
+                    'family'  => 'resident',
+                    'title'   => (string) $a->title,
+                    'status'  => (string) $a->status,
+                    'signers' => $signers,
+                    'href'    => '/economy/resident-agreements',
+                    'sort_at' => $this->iso($a->created_at) ?? '',
+                ];
+            })->all();
     }
 
     /** One instrument, in full — parties only (404 to anyone else). */
@@ -860,6 +922,8 @@ class EconomyController extends Controller
             ? null
             : DB::table('users')->where('id', $row->signed_by_org_user_id)->value('name');
 
+        $myId = (string) ($request->user()?->id ?? '');
+
         return Inertia::render('Economy/AgreementDetail', [
             'surface'   => SurfaceMeta::for('economy/agreement-detail'),
             'agreement' => $this->contractCard($row, $request) + [
@@ -869,6 +933,29 @@ class EconomyController extends Controller
                 'ended_at'     => $this->iso($row->ended_at),
                 'created_at'   => $this->iso($row->created_at),
             ],
+            // The negotiation overlay (Design Round 2 ③, F-IND-020) — wired in
+            // for Wave 4. The base terms above stay authoritative; a clause is a
+            // negotiated AMENDMENT to them, a redline a pending change. Accepting
+            // one voids the signatures (a signature is on a specific text), so the
+            // parties re-sign the changed instrument.
+            'clauses'       => DB::table('clauses')
+                ->where('subject_type', 'org_contract')->where('subject_id', $row->id)->whereNull('deleted_at')
+                ->orderBy('ordinal')->get(['id', 'heading', 'body'])
+                ->map(fn ($c) => ['id' => (string) $c->id, 'heading' => $c->heading, 'body' => (string) $c->body])->all(),
+            'redlines'      => DB::table('redlines')
+                ->where('subject_type', 'org_contract')->where('subject_id', $row->id)->where('status', 'pending')
+                ->orderBy('created_at')->get(['id', 'kind', 'body', 'rationale', 'proposer_user_id'])
+                ->map(fn ($r) => [
+                    'id'        => (string) $r->id,
+                    'kind'      => (string) $r->kind,
+                    'body'      => (string) $r->body,
+                    'rationale' => $r->rationale,
+                    'is_mine'   => (string) $r->proposer_user_id === $myId,
+                ])->all(),
+            // A live instrument (draft/offered/active) can still be negotiated;
+            // an ended or voided one is history.
+            'can_negotiate' => in_array($row->status, ['draft', 'offered', 'active'], true),
+            'my_id'         => $myId === '' ? null : $myId,
         ]);
     }
 

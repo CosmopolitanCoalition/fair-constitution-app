@@ -152,6 +152,77 @@ class RedlineAndAgreementTest extends TestCase
         });
     }
 
+    /**
+     * The ORG-CONTRACT redline path — the one wired into agreement-detail in
+     * Wave 4. A party proposes an amendment through the engine; the other party
+     * accepts; both signatures clear and the instrument drops to 'offered' for
+     * re-signing. This proves the consent-plane adapter, not only the resident one.
+     */
+    public function test_an_org_contract_redline_clears_both_signatures(): void
+    {
+        $this->onLivePg(function () {
+            $root = DB::table('jurisdictions')->whereNull('parent_id')->whereNull('deleted_at')->value('id');
+            if ($root === null) {
+                $this->markTestSkipped('no root jurisdiction on this box');
+            }
+
+            $agentUser    = $this->user();
+            $counterparty = $this->user();
+
+            $orgId = (string) Str::uuid();
+            DB::table('organizations')->insert([
+                'id'              => $orgId,
+                'jurisdiction_id' => $root,
+                'type'            => 'business',
+                'name'            => 'Redline Org ' . substr($orgId, 0, 8),
+                'slug'            => 'redline-' . substr($orgId, 0, 8),
+                'structure'       => 'stock',
+                'agent_user_id'   => (string) $agentUser->id,
+                'created_at'      => now(),
+                'updated_at'      => now(),
+            ]);
+
+            $contractId = (string) Str::uuid();
+            DB::table('org_contracts')->insert([
+                'id'                        => $contractId,
+                'organization_id'           => $orgId,
+                'kind'                       => 'other',
+                'counterparty_type'          => 'users',
+                'counterparty_id'            => (string) $counterparty->id,
+                'signed_by_org_user_id'      => (string) $agentUser->id,
+                'terms'                      => 'Original terms.',
+                'status'                     => 'active',
+                'signed_by_org_at'           => now(),
+                'signed_by_counterparty_at'  => now(),
+                'created_at'                 => now(),
+                'updated_at'                 => now(),
+            ]);
+
+            $engine = app(ConstitutionalEngine::class);
+
+            // The counterparty proposes an amendment (add — needs no clause).
+            $proposed = $engine->file('F-IND-020', $counterparty, [
+                'action'       => 'propose_redline',
+                'subject_type' => 'org_contract',
+                'subject_id'   => $contractId,
+                'kind'         => 'add',
+                'body'         => 'A new clause both must re-sign.',
+            ]);
+            $redlineId = $proposed->recorded['redline_id'];
+
+            // The org's agent (the other party) accepts it.
+            $engine->file('F-IND-020', $agentUser, [
+                'action'     => 'accept_redline',
+                'redline_id' => $redlineId,
+            ]);
+
+            $c = DB::table('org_contracts')->where('id', $contractId)->first();
+            $this->assertNull($c->signed_by_org_at, 'accepting an amendment voids the org signature');
+            $this->assertNull($c->signed_by_counterparty_at, 'and the counterparty signature');
+            $this->assertSame('offered', $c->status, 'the instrument drops out of active to be re-signed');
+        });
+    }
+
     // ── helpers ──────────────────────────────────────────────────────────
 
     private function user(): User
