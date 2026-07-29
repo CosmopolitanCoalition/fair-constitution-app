@@ -1,7 +1,7 @@
 {
  "asOf": "2026-07-29",
- "commit": "9782f59",
- "wave": "WAVE 2 \u2014 heavies 2 + 15 COMPLETE, 4 complete-pending-report, 13 on the final migration batch; lane 6 launched; 3/1 next",
+ "commit": "cf8a090",
+ "wave": "WAVE 2 \u2014 heavies 2/15/4 COMPLETE; 13 on 6a/6b (migration landed, slot passed to 6); 6 + 3 running; 1 next; 5 NLLB",
  "rows": [
   {
    "file": "civic/join.html",
@@ -487,10 +487,10 @@
    "area": "economy",
    "areaLabel": "Economy",
    "owner": "lane 13",
-   "bucket": "absent",
-   "effort": "L",
+   "bucket": "built",
+   "effort": "none",
    "page": "",
-   "route": "",
+   "route": "GET /economy/joint-ledgers",
    "props": "none",
    "backend": "partial",
    "propsMissing": [],
@@ -508,7 +508,10 @@
     "public-vs-private ledger split"
    ],
    "appAhead": [],
-   "notes": "The schema is fully laid (including the Art. V \u00a72 comment in the migration) but the movement-approval engine, a form, and the whole read/write surface are unbuilt. L rather than XL because the tables and the engine-filing pattern already exist to copy."
+   "notes": "The schema is fully laid (including the Art. V \u00a72 comment in the migration) but the movement-approval engine, a form, and the whole read/write surface are unbuilt. L rather than XL because the tables and the engine-filing pattern already exist to copy. CLOSED 2026-07-29 (cf8a090): escrow design, ONE set of rails; consent-and-settlement are ONE transaction (underfunded escrow rolls BOTH back); walked as two people; down() proven live.",
+   "page_exists": true,
+   "page_path": "resources/js/Pages/Economy/JointLedgers.vue",
+   "routed": true
   },
   {
    "file": "economy/units.html",

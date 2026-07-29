@@ -152,7 +152,7 @@ Type B election playtesting stays blocked fleet-wide until it ships.
 
 ## Migration slot queue (one at a time)
 
-1. lane 13 — the joint-ledger/org-settings/restructures batch (IN FLIGHT, slot held)
+1. ~~lane 13~~ — LANDED (cf8a090, down() proven live)
 2. lane 6 — support lifecycle (subject + routing columns)
 3. lane 2 — `cluster_adoption_requests` class/mode declaration column (until then a
    queue-admitted mirror declares at its first real handshake — recorded, safe)
