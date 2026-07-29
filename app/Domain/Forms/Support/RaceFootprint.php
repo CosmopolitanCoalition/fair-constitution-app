@@ -13,8 +13,13 @@ use Illuminate\Support\Facades\DB;
  * A race's footprint (design §A B-4):
  *  - district race  → the district's member jurisdictions
  *                     (legislature_district_jurisdictions rows)
- *  - at-large race  → the race's own jurisdiction_id (the legislature's
- *                     jurisdiction)
+ *  - Type B clump   → the panel's member jurisdictions
+ *                     (legislature_type_b_panel_jurisdictions rows) — the union
+ *                     of the clumped constituents (operator ruling 2026-07-29,
+ *                     one at-large race per clump)
+ *  - at-large race  → the race's own jurisdiction_id (a per-child Type B race's
+ *                     child, or the legislature's jurisdiction for a plain
+ *                     at-large race)
  *
  * A user is "inside the footprint" when they hold an ACTIVE
  * residency_confirmations row on any footprint jurisdiction. Because the
@@ -52,10 +57,12 @@ class RaceFootprint
              FROM election_races er
              LEFT JOIN legislature_district_jurisdictions ldj
                     ON ldj.district_id = er.district_id
+             LEFT JOIN legislature_type_b_panel_jurisdictions ltbpj
+                    ON ltbpj.panel_id = er.type_b_panel_id
              JOIN residency_confirmations rc
                     ON rc.user_id = ?
                    AND rc.is_active = true
-                   AND rc.jurisdiction_id = COALESCE(ldj.jurisdiction_id, er.jurisdiction_id)
+                   AND rc.jurisdiction_id = COALESCE(ldj.jurisdiction_id, ltbpj.jurisdiction_id, er.jurisdiction_id)
              WHERE er.election_id = ?
                AND er.deleted_at IS NULL
                {$raceFilter}

@@ -42,6 +42,11 @@ class ElectionRace extends Model
         'id',
         'election_id',
         'district_id',
+        // The Type B CLUMP key (Wave 4, operator ruling 2026-07-29): a per-clump
+        // at-large race carries the panel it elects; per-child and every other
+        // race leave it NULL. The electorate resolves through the panel's
+        // member jurisdictions (RaceFootprint), never a single jurisdiction_id.
+        'type_b_panel_id',
         'jurisdiction_id',
         'seat_kind',
         'seats',
