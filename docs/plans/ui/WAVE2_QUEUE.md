@@ -119,6 +119,25 @@ Type B election playtesting stays blocked fleet-wide until it ships.
   decision); 'jurisdiction' visibility = not-public in v1; record-tab "open the full
   record" link.
 
+## Lane 5 close-out records (2026-07-29)
+
+- **Coverage after the NLLB pass**: fr 84.7 · hi 86.9 · es 86.7 · ar 86 · pt 84.7 ·
+  zh-Hans 82.1 — UP 8–10 pts despite 645 new flows keys joining the denominator. 992-string
+  gap closed to ai_draft (fr 989/992 … zh-Hans 897/992); everything behind the human
+  verification queue, worst-first verified on the rendered surface, ID tokens preserved by
+  the masking rail.
+- **BUILT-NOT-TESTED strikes again, resolved in-lane**: the "settled default" local NLLB was
+  UNPROVISIONED on the dev box (no torch, no GPU, no weights). Lane 5 stood it up in a
+  throwaway MEMORY-CAPPED container (a spike kills only its job, never the shared VM — the
+  right posture on this box); recipe in shared memory. **⚑ For lane 11 (operator's OneDrive
+  migration awareness): the dub path's "shares the GPU" comment is false on this box — there
+  is no GPU.**
+- **zh-Hans 95 QA-skips**: NLLB-600M long-form fidelity uncertainty, confirmed real with
+  samples — the gate correctly routes them to people who read Chinese. Refusal is the
+  answer; a stronger model is the future path, never a weakened rail.
+- flows keying: text-deterministic slug_sha8 survives regeneration; lanes 15/6 can land
+  independently (vue-i18n falls back to en).
+
 ## Divergence ledger (spec ↔ app, logged never silent)
 
 - **Ruling 9 placement (`d69aff0`)**: substance delivered (/federation = citizen view;
