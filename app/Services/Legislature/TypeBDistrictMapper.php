@@ -11,16 +11,12 @@ use Illuminate\Support\Str;
  *
  * When even 2-per-constituent overflows Type A (TypeBSeatLadder returns
  * needs_districting=true), whole sibling constituents are clumped into shared
- * representative PANELS. Each panel is then elected in its OWN at-large STV race
- * of rep_floor seats among its own constituents' residents (operator ruling
- * 2026-07-29 — one at-large race PER CLUMP, never one pooled race). This is a
- * balanced partition over the adjacency graph, never a cut through geometry.
+ * representative PANELS. The single at-large STV race then elects
+ * panel_count × rep_floor seats (B1) — the panels are the seat-allocation unit
+ * inside ONE race, never a cut through it.
  *
  * OPERATOR RULINGS B1–B7 (brief docs/plans/scaling/TYPE_B_DISTRICT_MAPPER_DESIGN.md):
- *  B1 — one at-large race PER PANEL (clump), each electing rep_floor seats; the
- *       chamber total = panel_count × rep_floor. (This SUPERSEDES the pre-2026-07-29
- *       pooled "ONE race" reading; racePlan/createRaces emit the per-panel races,
- *       keyed by election_races.type_b_panel_id.)
+ *  B1 — ONE at-large race; seats = panel_count × rep_floor.
  *  B2 — panels are as EQUAL as possible (representation stays equal). Where a
  *       clean equal partition is impossible, the least remainder is borne by the
  *       LOWEST-POPULATION jurisdictions — the ONE place population is consulted,

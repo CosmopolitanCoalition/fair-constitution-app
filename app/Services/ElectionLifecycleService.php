@@ -613,33 +613,7 @@ class ElectionLifecycleService implements ElectionSchedulingDelegate
         $typeB = (int) $legislature->type_b_seats;
 
         if ($typeB > 0) {
-            // THE TYPE B RACE SHAPE (operator ruling 2026-07-29, CLAUDE.md
-            // "Bicameral Support"): Type B is one at-large race PER CLUMP when a
-            // stage-two grouping has been activated, or PER CHILD when ungrouped
-            // — NEVER one pooled race over all the parent's residents (that let
-            // population dominate equal representation). This branch resolves the
-            // PER-CLUMP case; per-child for ungrouped chambers is the sequenced
-            // Wave 4 follow-up (the temporary pooled path is the final else).
-            $activeGrouping = DB::table('legislature_type_b_groupings')
-                ->where('legislature_id', $legislature->id)
-                ->where('status', 'active')
-                ->whereNull('deleted_at')
-                ->first();
-
-            if ($activeGrouping !== null) {
-                // PER-CLUMP. Each panel elects its OWN rep_floor seats at-large
-                // from the UNION of the panel's constituents' residents
-                // (RaceFootprint LEFT JOINs the panel members). The 5–9 band does
-                // not bind these races; a panel seats rep_floor. Seats are exact
-                // by construction: Σ panel.seats = grouping.seats_total = type_b.
-                $panels = DB::table('legislature_type_b_panels')
-                    ->where('grouping_id', $activeGrouping->id)
-                    ->whereNull('deleted_at')
-                    ->orderBy('panel_number')
-                    ->get();
-
-                $kinds['type_b'] = ['mode' => 'panels', 'panels' => $panels];
-            } elseif ((bool) $legislature->type_b_needs_districting) {
+            if ((bool) $legislature->type_b_needs_districting) {
                 // R-A GUARD (operator ruling 2026-07-28, V3_SYNTHESIS_PLAN §10;
                 // "We will not playtest Type B elections until this is fixed.").
                 //
@@ -675,25 +649,30 @@ class ElectionLifecycleService implements ElectionSchedulingDelegate
                 ];
                 $blocked = true;
             } else {
-                // UNGROUPED TYPE B — the INTERIM pooled path.
+                // THE 5–9 BAND IS A DISTRICT RULE. IT DOES NOT BIND TYPE B.
+                // (Operator ruling, SETTLED 2026-07-26 — CLAUDE.md "Bicameral
+                // Support (Article V §3)". Do not re-derive it.)
                 //
-                // ⚠ TEMPORARY (Wave 4, lane 1). The operator's 2026-07-29 ruling
-                // is that an ungrouped Type B chamber elects one at-large race PER
-                // DIRECT CHILD (each child seats its own contribution — rep_floor,
-                // or min(pop, rep_floor) for a ≤5-pop child — from its own
-                // residents), NEVER one pooled race. The per-clump half of that
-                // ruling is live in the branch above; the per-CHILD half for
-                // ungrouped chambers is the sequenced follow-up (it changes every
-                // bicameral chamber's shape and rewrites the racePlan pins, so it
-                // ships as its own step). Until it lands, an unflagged Type B half
-                // keeps its previous single at-large race so the chamber still
-                // elects — the WRONG shape, held knowingly and briefly.
+                // Type B is at-large: the JURISDICTION IS THE DISTRICT, so it is
+                // ONE STV race electing all Type B seats together, however many.
+                // San Marino's 27 run as a single 27-seat race.
                 //
-                // The 5–9 band is a DISTRICT rule and does not bind this race; the
-                // only bound is the Type A total, enforced upstream by
-                // TypeBSeatLadder (5 → 4 → 3 → 2). Over 2-per-constituent the
-                // chamber is flagged type_b_needs_districting and takes the
-                // grouping path above once a grouping is activated.
+                // This branch used to compare $typeB against the ceiling and block
+                // above it, which was the defect: it applied a district rule to a
+                // body that has no districts. The schema already proves nine was
+                // never a property of STV races here — `exec_committee` and
+                // `judicial_group` are both `>= 5` with NO upper bound.
+                //
+                // Splitting the chamber into smaller races is NOT the alternative
+                // and is explicitly ruled out: STV elects N seats in one race, and
+                // cutting magnitude is exactly what destroys proportionality.
+                //
+                // The only bound on Type B is the TYPE A TOTAL, and it is enforced
+                // upstream by TypeBSeatLadder (5 → 4 → 3 → 2 per constituent).
+                // Only when 2-per-constituent still overflows does the chamber get
+                // flagged `type_b_needs_districting` for grouping whole
+                // constituents into shared panels — a balanced grouping over an
+                // adjacency graph, and never a cut through this race.
                 $kinds['type_b'] = ['mode' => 'at_large', 'seats' => $typeB];
             }
         }
@@ -816,24 +795,6 @@ class ElectionLifecycleService implements ElectionSchedulingDelegate
                         'seat_kind'       => $kind,
                         'seats'           => (int) $district->seats,
                         'finalist_count'  => $multiplier * (int) $district->seats,
-                        'electorate_type' => ElectionRace::ELECTORATE_RESIDENTS,
-                        'status'          => $election->status,
-                    ]);
-                }
-            } elseif ($spec['mode'] === 'panels') {
-                // PER-CLUMP TYPE B (operator ruling 2026-07-29): one at-large
-                // race per panel, keyed by type_b_panel_id so RaceFootprint
-                // enfranchises the UNION of the panel's constituents — never the
-                // whole parent. seats = panel.seats (= the grouping's rep_floor).
-                foreach ($spec['panels'] as $panel) {
-                    $races[] = ElectionRace::create([
-                        'election_id'     => $election->id,
-                        'district_id'     => null,
-                        'type_b_panel_id' => $panel->id,
-                        'jurisdiction_id' => $legislature->jurisdiction_id,
-                        'seat_kind'       => $kind,
-                        'seats'           => (int) $panel->seats,
-                        'finalist_count'  => $multiplier * (int) $panel->seats,
                         'electorate_type' => ElectionRace::ELECTORATE_RESIDENTS,
                         'status'          => $election->status,
                     ]);
