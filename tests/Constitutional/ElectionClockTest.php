@@ -131,6 +131,12 @@ class ElectionClockTest extends TestCase
         $whitelist = [
             $this->normalize($this->appPath() . '/Services/ClockService.php'), // ClockTimer::create in arm()
             $this->normalize($this->appPath() . '/Models/ClockTimer.php'),     // fillable/casts
+            // READ, not a write: the Demo flyout's state endpoint SHAPES its
+            // JSON response with a 'fires_at' key ('fires_at' => $r->fires_at
+            // off a SELECT). The quoted-key heuristic cannot tell an output
+            // map from a mutation; the file contains no update/fill/upsert
+            // and the no-skip scan above stays silent on it. (D2, 2026-07-28)
+            $this->normalize($this->appPath() . '/Http/Controllers/Dev/PlaytestStateController.php'),
         ];
 
         $found = [];
