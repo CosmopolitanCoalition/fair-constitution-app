@@ -6,6 +6,7 @@ use App\Domain\Engine\ConstitutionalEngine;
 use App\Domain\Engine\ConstitutionalViolation;
 use App\Models\Organization;
 use App\Models\User;
+use App\Services\Organizations\OrgRegistryService;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 use Tests\Concerns\LivePgConnection;
@@ -129,6 +130,68 @@ class OrgShareIssuanceTest extends TestCase
             $this->assertArrayHasKey('has_account', $props['ledger']);
             $this->assertIsArray($props['ledger']['movements']);
             $this->assertFalse($props['ledger']['has_account'], 'a brand-new org holds no account yet');
+        });
+    }
+
+    /**
+     * Wave 4 ③ — a STOCK org's founder owns it outright at registration: a 100%
+     * founding stake on the named ownership plane. Tests register() directly
+     * (the founding-stake logic), not the F-IND-012 role gate.
+     */
+    public function test_a_stock_org_registration_opens_a_100pct_founding_stake(): void
+    {
+        $this->onLivePg(function () {
+            $root = DB::table('jurisdictions')->whereNull('parent_id')->whereNull('deleted_at')->value('id');
+            if ($root === null) {
+                $this->markTestSkipped('no root jurisdiction on this box');
+            }
+
+            $founder = $this->user();
+
+            $result = app(OrgRegistryService::class)->register($founder, [
+                'type'            => 'business',
+                'structure'       => 'stock',
+                'name'            => 'Founder Co ' . substr((string) Str::uuid(), 0, 8),
+                'jurisdiction_id' => (string) $root,
+            ]);
+
+            $stake = DB::table('org_ownership_stakes')
+                ->where('organization_id', $result['organization_id'])
+                ->whereNull('ended_at')
+                ->first();
+
+            $this->assertNotNull($stake, 'a stock org founder holds a founding stake');
+            $this->assertSame('founding', $stake->acquired_via);
+            $this->assertSame((string) $founder->id, (string) $stake->holder_id);
+            $this->assertEqualsWithDelta(100.0, (float) $stake->pct, 0.0001, 'the founder owns 100% at registration');
+        });
+    }
+
+    /**
+     * A non-stock org (member-owned/nonprofit/partnership) carries ownership AS
+     * membership — no shares, so no founding stake opens.
+     */
+    public function test_a_non_stock_org_registration_opens_no_stake(): void
+    {
+        $this->onLivePg(function () {
+            $root = DB::table('jurisdictions')->whereNull('parent_id')->whereNull('deleted_at')->value('id');
+            if ($root === null) {
+                $this->markTestSkipped('no root jurisdiction on this box');
+            }
+
+            $founder = $this->user();
+
+            $result = app(OrgRegistryService::class)->register($founder, [
+                'type'            => 'nonprofit',
+                'structure'       => 'member_owned',
+                'name'            => 'Member Co ' . substr((string) Str::uuid(), 0, 8),
+                'jurisdiction_id' => (string) $root,
+            ]);
+
+            $this->assertFalse(
+                DB::table('org_ownership_stakes')->where('organization_id', $result['organization_id'])->exists(),
+                'a member-owned org carries ownership as membership — no founding stake'
+            );
         });
     }
 

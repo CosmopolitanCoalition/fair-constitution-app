@@ -29,9 +29,17 @@ use Illuminate\Support\Str;
  */
 class OrgRegistryService
 {
+    /**
+     * The nominal founding-share count — a stock org's founder holds all of
+     * them at registration, so pct resolves to 100%. A round authorized total
+     * leaves room for later F-ORG-008 issuance without fractional founder units.
+     */
+    private const FOUNDING_UNITS = 1_000_000.0;
+
     public function __construct(
         private readonly PublicRecordService $records,
         private readonly RoleService $roles,
+        private readonly OrgOwnershipService $ownership,
     ) {
     }
 
@@ -120,6 +128,22 @@ class OrgRegistryService
         );
 
         $org->forceFill(['registration_record_id' => (string) $record->id])->save();
+
+        // A STOCK organization begins with its founder owning it outright — a
+        // 100% founding stake on the named ownership plane (Ruling B; Wave 4 ③,
+        // operator ruled A). Only stock orgs have shares: member-owned,
+        // nonprofit and partnership structures carry ownership AS membership, so
+        // no stake opens for them. openStake also seats the founder in the
+        // ownership membership class and snapshots pct to 100.
+        if ($structure === Organization::STRUCTURE_STOCK) {
+            $this->ownership->openStake(
+                $org,
+                OrgOwnershipStake::HOLDER_USERS,
+                (string) $actor->getKey(),
+                self::FOUNDING_UNITS,
+                OrgOwnershipStake::VIA_FOUNDING,
+            );
+        }
 
         // R-23 derives from agent_user_id.
         $this->roles->flushUser((string) $actor->getKey());
