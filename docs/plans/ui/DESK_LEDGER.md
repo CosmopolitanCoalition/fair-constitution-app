@@ -1091,3 +1091,37 @@ operator-present walk WILL produce pixels. Closes the unknown-cause debt.
 
 **RUBRIC deltas (still batching):** atlas built (L4) · L6 tour/ballots/journey/menu · L3 exit-walk + 5 · L2 5
 screens · L13 12 economy + share_offers · new open-Qs: Path-B (deferred), civic/join-presence (honest-empty).
+
+### W4 tick 13 — ⚑ per-clump REVERTED→re-landed (c500a1f) + index-clear FLEET LAW + steward gate (2 reds left)
+
+**⚑⚑ THE HEADLINE RACE FIX SILENTLY REVERTED FOR ~2 TICKS — now re-landed.** Lane 1's per-clump commit
+0f02655 got undone: its 7 files stayed staged in the SHARED index (from earlier attempts), and lane 4's
+later commit (pre-876fb8e) took the whole index and re-committed a STALE snapshot over 0f02655, wiping the
+change (git diff HEAD = 171+/48- missing). The shared WORKING TREE always had it (live testing + lane 3's
+in-tree build unaffected), but a fresh checkout of HEAD had old pooled racePlan. **RE-LANDED as `c500a1f`**
+(CAS, content-identical, 23 pins green) + lane 1 CLEARED its 7 files from the shared index. **SUPERSEDE
+0f02655 → c500a1f everywhere.**
+
+**⚑ INDEX-CLEAR LAW (broadcast fleet-wide, all 8 lanes):** after ANY commit, `git reset -- <your files>` so
+index==HEAD. A file left staged in the shared index gets re-committed (stale) by a peer's later commit — this
+is lane 4's post-update-ref gotcha, now CONFIRMED as the root cause of the headline reversion. CAS protects a
+commit's CREATION, not against a later peer committing your still-staged files. Pair CAS with the reset.
+
+**⚑ STEWARD GATE RESULT (lane 2, full suite): 1276 passed · 3 failed · 3 skipped · 307,391 asserts · ~24min.**
+Re-ran the flaky-looking 2 in isolation → real reds, not contention. Triage (git-confirmed ownership):
+ 1. BallotSecrecyTest:240 — **CLEARED after the run**: lane 6 routed the count through new
+    BallotBox::participationCountFor(User) (**3d1abbb**, 9/9 green + ballots_cast:2 preserved). Pin-tighten
+    (grep→any-access, closes the BallotEnvelope::query() bypass) APPROVED as a hardening. Docblock now states
+    the line: a per-voter COUNT is safe (content-free half); pairing voter+race+time reading ballots is not.
+ 2. GeodataRepairPlaneTest:283/:397 → **LANE 1** (4214721/54a3671; export-manifest file_put_contents). Routed.
+ 3. SupportLifecycleTest:62 → **LANE 6** (2c23d49; own-the-world isolation, totalCount 2 vs 3 — scope the
+    count, same class as the fixture reds). Routed.
+ 3 skipped = pre-existing env-gate skips (pdo_pgsql/live-pg), not new.
+**PLAN: L1 fixes Geodata + L6 fixes SupportLifecycle → lane 2 (steward) RE-RUNS the full suite = the wave's
+green signal.** After BallotSecrecy's clear + per-clump re-land, those 2 are the only reds between us and green.
+
+**LANDINGS:** L3 keystone exit-walk (8bcb3ee, 80 asserts) — 6 of 9 (②③⑤⑥⑧⑨); ① now builds on c500a1f
+(shape re-landed), Niue clear still desk-gated on L3's count pin. L13 share_offers slot DONE (1cdf535),
+slot released — only L3 agenda (held) remains. L2W4 DONE + holding. L2 verified its federation surfaces on
+the REAL federation_peers shape (heeded the phantom-table warning). L6 batch plan banked (L6W4_SCREEN_GAP_PLAN.md,
+9d427a9; needs-schema later: constituent_requests + room read-position — neither blocks batches 1-6).
