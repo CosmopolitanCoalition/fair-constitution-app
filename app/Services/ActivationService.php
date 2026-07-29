@@ -196,7 +196,8 @@ class ActivationService
     ): array {
         if ($childPopulations !== []) {
             $typeA  = self::cubeRootSeats($childrenPopulation);
-            $ladder = \App\Services\Legislature\TypeBSeatLadder::apportion($typeA, $childPopulations, $startingRep);
+            // B3 combined cap: type_a + type_b ≤ population (Σ constituents).
+            $ladder = \App\Services\Legislature\TypeBSeatLadder::apportion($typeA, $childPopulations, $startingRep, (int) $childrenPopulation);
 
             return [
                 'type_a'                   => $typeA,

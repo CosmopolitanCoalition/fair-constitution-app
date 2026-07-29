@@ -79,25 +79,31 @@ class AutoscaleResizeRepairCommand extends Command
                        COALESCE(SUM(LEAST(GREATEST(c.population, 0), 5)) FILTER (WHERE COALESCE(c.population, 0) <= 5), 0) AS t5,
                        COALESCE(SUM(LEAST(GREATEST(c.population, 0), 4)) FILTER (WHERE COALESCE(c.population, 0) <= 5), 0) AS t4,
                        COALESCE(SUM(LEAST(GREATEST(c.population, 0), 3)) FILTER (WHERE COALESCE(c.population, 0) <= 5), 0) AS t3,
-                       COALESCE(SUM(LEAST(GREATEST(c.population, 0), 2)) FILTER (WHERE COALESCE(c.population, 0) <= 5), 0) AS t2
+                       COALESCE(SUM(LEAST(GREATEST(c.population, 0), 2)) FILTER (WHERE COALESCE(c.population, 0) <= 5), 0) AS t2,
+                       COALESCE(SUM(GREATEST(COALESCE(c.population, 0), 0)), 0) AS pop
                   FROM legislatures l
                   JOIN jurisdictions j ON j.id = l.jurisdiction_id AND j.deleted_at IS NULL
                   JOIN jurisdictions c ON c.parent_id = j.id AND c.deleted_at IS NULL
                   LEFT JOIN constitutional_settings cs ON cs.jurisdiction_id = j.id
                  WHERE l.deleted_at IS NULL
                  GROUP BY l.id, l.type_a_seats, cs.type_b_seats_per_child
+            ), bnd AS (
+                SELECT leg_id, a, f0, big, t5, t4, t3, t2,
+                       GREATEST(0, pop - a) AS popcap,
+                       LEAST(a, GREATEST(0, pop - a)) AS bound
+                  FROM agg
             ), pick AS (
                 SELECT leg_id,
-                       CASE WHEN f0 >= 5 AND t5 + big * 5 <= a THEN 5
-                            WHEN f0 >= 4 AND t4 + big * 4 <= a THEN 4
-                            WHEN f0 >= 3 AND t3 + big * 3 <= a THEN 3
+                       CASE WHEN f0 >= 5 AND t5 + big * 5 <= bound THEN 5
+                            WHEN f0 >= 4 AND t4 + big * 4 <= bound THEN 4
+                            WHEN f0 >= 3 AND t3 + big * 3 <= bound THEN 3
                             ELSE 2 END AS f,
-                       CASE WHEN f0 >= 5 AND t5 + big * 5 <= a THEN t5 + big * 5
-                            WHEN f0 >= 4 AND t4 + big * 4 <= a THEN t4 + big * 4
-                            WHEN f0 >= 3 AND t3 + big * 3 <= a THEN t3 + big * 3
-                            ELSE t2 + big * 2 END AS b,
-                       (t2 + big * 2 > a) AS needs
-                  FROM agg
+                       CASE WHEN f0 >= 5 AND t5 + big * 5 <= bound THEN t5 + big * 5
+                            WHEN f0 >= 4 AND t4 + big * 4 <= bound THEN t4 + big * 4
+                            WHEN f0 >= 3 AND t3 + big * 3 <= bound THEN t3 + big * 3
+                            ELSE LEAST(t2 + big * 2, popcap) END AS b,
+                       (t2 + big * 2 > bound) AS needs
+                  FROM bnd
             )
             UPDATE legislatures l
                SET type_b_seats             = p.b,

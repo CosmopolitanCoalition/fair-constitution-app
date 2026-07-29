@@ -29,6 +29,15 @@ use PHPUnit\Framework\TestCase;
  * and unflagged, 0 flagged and within**. Perfect correspondence — the data is
  * honest, and this file is what keeps it that way.
  *
+ * THE COMBINED CAP (B3, operator, Wave 2 review): the invariant above is stated
+ * against Type A because every case here lives in the population-AMPLE regime
+ * (population ≥ 2·type_a), where Type A is the tighter bound. B3 adds a SECOND,
+ * always-true bound: type_a + type_b may never exceed population — never more
+ * representatives than people. The effective Type B bound is the tighter of
+ * Type A and (population − type_a); it only bites where equal representation
+ * would otherwise out-seat the residents (small / highly-fragmented parents).
+ * Pinned below in test_b3_*: seats ≤ max(0, population − type_a), ALWAYS.
+ *
  * If an edit breaks these, the edit is the constitutional violation —
  * fix the edit, not the test.
  */
@@ -149,5 +158,74 @@ class TypeBBoundTest extends TestCase
         $this->assertSame(3, $r['rep_floor'], 'it should descend only as far as it must');
         $this->assertSame(27, $r['seats']);
         $this->assertFalse($r['needs_districting']);
+    }
+
+    // ── B3 — THE COMBINED POPULATION CAP ─────────────────────────────────────
+    // type_a + type_b may never exceed population. Never more reps than people.
+
+    /**
+     * A place small enough that equal representation would out-seat its
+     * residents has type_b floored to what population leaves after type_a —
+     * WITHOUT needing districting when the capped seats still fit at a lawful
+     * rep floor. pop 9, two constituents (5, 4), type_a 5: population leaves
+     * 9 − 5 = 4 for type_b; the ladder descends to 2-per (2 + 2 = 4) and fits.
+     */
+    public function test_the_cap_floors_type_b_to_the_seats_population_leaves(): void
+    {
+        $r = TypeBSeatLadder::apportion(5, [5, 4], 5, 9);
+
+        $this->assertSame(4, $r['seats'], 'population (9) − type_a (5) = 4 seats for type_b');
+        $this->assertSame(2, $r['rep_floor']);
+        $this->assertFalse($r['needs_districting'], 'the capped seats fit at floor 2 — no grouping owed');
+        $this->assertSame(9, 5 + $r['seats'], 'type_a + type_b == population, exactly');
+    }
+
+    /**
+     * When even the floor-2 placeholder would out-seat the residents, the
+     * placeholder ITSELF is floored by the cap, and the chamber is still
+     * flagged for grouping (the survivors must be distributed equally). pop 8,
+     * three constituents (3, 3, 2), type_a 5: floor-2 demand is 6, but only
+     * 8 − 5 = 3 seats remain — capped to 3, flagged.
+     */
+    public function test_the_cap_floors_even_the_flagged_placeholder(): void
+    {
+        $r = TypeBSeatLadder::apportion(5, [3, 3, 2], 5, 8);
+
+        $this->assertSame(3, $r['seats'], 'floor-2 demand 6 capped to population − type_a = 3');
+        $this->assertSame(2, $r['rep_floor']);
+        $this->assertTrue($r['needs_districting'], 'still owes grouping to seat the 3 survivors equally');
+        $this->assertLessThanOrEqual(8, 5 + $r['seats'], 'type_a + type_b never exceeds population');
+    }
+
+    /**
+     * THE UNIVERSAL B3 INVARIANT: across every shape, type_b never exceeds the
+     * seats population leaves after type_a. In the ample regime this is slack
+     * (Type A binds first); in the tight regime it is exact. Never violated.
+     */
+    public function test_type_b_never_exceeds_what_population_leaves(): void
+    {
+        $cases = [
+            // [type_a, children, population]
+            [11, [0, 0, 0, 0, 0, 0, 0, 50, 89, 100, 117, 173, 224, 436], 1189], // Niue — ample
+            [32, [1002, 1200, 1500, 2000, 2500, 3000, 3500, 4000, 4500], 23202], // San Marino — ample
+            [5,  [5, 4], 9],                                                       // tight, fits
+            [5,  [3, 3, 2], 8],                                                    // tight, flagged
+            [5,  [2, 2], 4],                                                       // hopeless: pop == type_a
+            [6,  array_fill(0, 100, 2), 200],                                      // many tiny: floor-2 (200) > pop − a (194)
+        ];
+
+        foreach ($cases as [$typeA, $children, $pop]) {
+            $r   = TypeBSeatLadder::apportion($typeA, $children, 5, $pop);
+            $cap = max(0, $pop - $typeA);
+
+            $this->assertLessThanOrEqual(
+                $cap,
+                $r['seats'],
+                sprintf(
+                    'type_a=%d pop=%d → type_b=%d must not exceed population − type_a = %d',
+                    $typeA, $pop, $r['seats'], $cap,
+                ),
+            );
+        }
     }
 }

@@ -264,6 +264,7 @@ class ApportionmentSeedCommand extends Command
             $totalSeats,
             $children->pluck('population')->map(fn ($p) => (int) $p)->all(),
             $startingRep,
+            (int) $sumChildrenPop, // B3 combined cap: type_a + type_b ≤ population
         );
         $totalTypeB = $ladder['seats'];
 
