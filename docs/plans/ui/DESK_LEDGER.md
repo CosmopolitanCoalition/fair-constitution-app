@@ -1255,3 +1255,30 @@ SimPumpCommand makes maturation autonomous ("living world scales with playerbase
 (adds audited filings + a live-behavior change). Post-gate: L4 registers it, then VERIFIES sim behavior (demo
 populate run matures chambers correctly, no runaway, no audit-lock contention in the pump path) → W4④ built +
 autonomous. W4④ ledger: committee half f9161f5 + dept half 74603d4 BUILT; pump wiring = post-gate; Q4a = operator.
+
+### W4 — ⚑ POST-GATE QUEUE (execute AFTER lane 2's authoritative green lands + freeze lifts)
+
+All three file audited acts or change fixtures, so they wait until the gate locks the current green and the
+test-freeze lifts:
+
+1. **PER-CHILD (ungrouped) joint step — L1 leads, L1/L3/L4.** racePlan/createRaces per-child for UNFLAGGED
+   chambers (currently interim pooled); each lane rewrites its OWN bicameral fixtures to seed real children;
+   L1+L4 co-update test_a_large_type_b_is_one_lawful_at_large_race (it asserts the pooled shape → goes red →
+   per-child). Ruled (a) — needed for San Marino (demo, ungrouped) to show the correct shape in the walk.
+2. **PUMP WIRING — L4.** Register GovernanceStage into SimPumpCommand (4 edits pre-designed read-only: insert
+   'governance' phase after 'seating'; mintWorklist branch; SimWorkerJob dispatch; verify). Makes the growth
+   dial autonomous. Then verify sim behavior (matures correctly, no runaway, no audit-lock contention). → W4④
+   built + autonomous.
+3. **NIUE STALE-ELECTION VOID — L3 voids, L1 confirms.** 2 approval_open elections (019f9f58, 019f9f76) carry
+   the PRE-FIX pooled shape (type_b_panel_id=NULL, seats=14 pre-ladder); createRaces idempotent so the fix
+   won't reshape them → would certify a wrong 14-seat pooled chamber. RULED (a): void → CLK-01 timer re-mints
+   per-clump. Niue-only proving-churn data; NOT a mass-pass blocker (the 9,708 were BLOCKED, never minted a
+   pooled race). 3 certified Niue elections = history, untouched.
+
+Also pending: **Q4a** (operator — courthouse/rooms framing: courtTiers=tree-depth, extra-rooms=future room model).
+Still building (freeze-compatible, no test runs): **L6 civic partials** (today/my-profile/advocate-registration/
+identity-verification/relocation → social/groups → bill.html on the constitutional path). After all: RUBRIC REGEN
++ redeploy + the wave-close review package for the operator.
+
+**FLEET DONE:** L2 · L5 · L13 · L15 (4 fully closed). **Held-at-last-item:** L1 (Niue done, per-child+void
+queued), L3 (① done, void+④ queued), L4 (growth dial done, pump queued). **Building:** L6. Awaiting the gate tally.
