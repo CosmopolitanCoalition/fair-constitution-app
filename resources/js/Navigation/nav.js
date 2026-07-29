@@ -108,15 +108,20 @@ export const NAV = [
     ] },
     { key: 'executive', titleKey: 'nav.executive', visibility: 'role', roles: ['R-14', 'R-15', 'R-16', 'R-17', 'R-18', 'R-30'], items: [
         { id: 'executive-home', labelKey: 'nav.executiveHome', icon: 'briefcase', href: '/executive', enabledRoles: ['R-14', 'R-15', 'R-16', 'R-17'], prereq: 'R-14', phase: 'D' },
-        { id: 'departments', labelKey: 'nav.departments', icon: 'building', href: '/executive/departments', enabledRoles: ['R-14', 'R-15', 'R-16', 'R-30'], prereq: 'R-14', phase: 'D' },
+        { id: 'departments', labelKey: 'nav.departments', icon: 'building', href: '/executive/departments', enabledRoles: ['R-14', 'R-15', 'R-16', 'R-18', 'R-30'], prereq: 'R-14', phase: 'D' },
         { id: 'executive-actions', labelKey: 'nav.executiveActions', icon: 'file-text', href: '/executive/actions', enabledRoles: ['R-14', 'R-15', 'R-16'], prereq: 'R-14', phase: 'D' },
         { id: 'department-reporting', labelKey: 'nav.departmentReporting', icon: 'bar-chart', href: '/executive/reporting', enabledRoles: ['R-18'], prereq: 'R-18', phase: 'D' },
     ] },
     { key: 'court', titleKey: 'nav.court', visibility: 'role', roles: ['R-19', 'R-20', 'R-21', 'R-22'], items: [
         { id: 'judiciary-home', labelKey: 'nav.judiciaryHome', icon: 'scale', href: '/judiciary', enabledRoles: ['R-19', 'R-20', 'R-21', 'R-22'], prereq: 'R-19', phase: 'E' },
         { id: 'case-docket', labelKey: 'nav.caseDocket', icon: 'file-text', href: '/judiciary/docket', enabledRoles: ['R-19', 'R-20', 'R-21'], prereq: 'R-19', phase: 'E' },
-        { id: 'constitutional-challenge', labelKey: 'nav.challenges', icon: 'scale', href: '/judiciary/challenges', enabledRoles: ['R-19', 'R-20', 'R-21'], prereq: 'R-19', phase: 'E' },
-        { id: 'advocate-console', labelKey: 'nav.advocateConsole', icon: 'briefcase', href: '/judiciary/advocate', enabledRoles: ['R-21'], prereq: 'R-21', phase: 'E' },
+        /* Art. IV §5 — "any inhabitant, no standing gatekeeper". R-03 belongs
+           here, and R-09 files the F-LEG-035 override on this same surface. */
+        { id: 'constitutional-challenge', labelKey: 'nav.challenges', icon: 'scale', href: '/judiciary/challenges', enabledRoles: ['R-03', 'R-09', 'R-19', 'R-20'], prereq: 'R-03', phase: 'E' },
+        /* R-03, not just R-21: registering IS what this surface is for (F-IND-015,
+           availableTo R-03, confers R-21). Gating on R-21 disabled it with
+           "Requires R-21" for precisely the people who came to register. */
+        { id: 'advocate-console', labelKey: 'nav.advocateConsole', icon: 'briefcase', href: '/judiciary/advocate', enabledRoles: ['R-21', 'R-03'], prereq: 'R-03', phase: 'E' },
         { id: 'juror-view', labelKey: 'nav.jurorView', icon: 'users', href: '/judiciary/jury', enabledRoles: ['R-22'], prereq: 'R-22', phase: 'E' },
     ] },
     { key: 'system', titleKey: 'nav.system', visibility: 'all', items: [

@@ -81,15 +81,33 @@ export const SITEMAP = [
     ] },
     { key: 'executive', title: 'A place’s executive', items: [
         { id: 'executive-home', label: 'The executive', icon: 'briefcase', href: '/executive', contract: 'executive/executive-home.html', roles: ['R-14', 'R-15', 'R-16', 'R-17'] },
-        { id: 'departments', label: 'Departments', icon: 'building', href: '/executive/departments', contract: 'executive/departments.html', roles: ['R-14', 'R-15', 'R-16', 'R-30'] },
+        /* + R-18 to match config/cga/surfaces.php: a department reporter was
+           shown a prereq hint on the very surface they report to. */
+        { id: 'departments', label: 'Departments', icon: 'building', href: '/executive/departments', contract: 'executive/departments.html', roles: ['R-14', 'R-15', 'R-16', 'R-18', 'R-30'] },
         { id: 'executive-actions', label: 'Executive actions', icon: 'file-text', href: '/executive/actions', contract: 'executive/executive-actions.html', roles: ['R-14', 'R-15', 'R-16'] },
         { id: 'department-reporting', label: 'Department reporting', icon: 'bar-chart', href: '/executive/reporting', contract: 'executive/department-reporting.html', roles: ['R-18'] },
     ] },
     { key: 'courts', title: 'A place’s courts', items: [
         { id: 'public-docket', label: 'The docket', icon: 'scale', href: '/judiciary/docket', contract: 'judiciary/case-docket.html' },
         { id: 'judiciary-home', label: 'The courts', icon: 'scale', href: '/judiciary', contract: 'judiciary/judiciary-home.html', roles: ['R-19', 'R-20', 'R-21', 'R-22'] },
-        { id: 'constitutional-challenge', label: 'Challenge a law', icon: 'scale', href: '/judiciary/challenges', contract: 'judiciary/constitutional-challenge.html', roles: ['R-19', 'R-20', 'R-21'] },
-        { id: 'advocate-console', label: 'The advocate console', icon: 'briefcase', href: '/judiciary/advocate', contract: 'judiciary/advocate-console.html', roles: ['R-21'] },
+        /* R-03 FIRST and deliberately: config/cga/surfaces.php:851 admits
+           ['R-03','R-09','R-19','R-20'], and its F-IND-016 citation is the whole
+           point — "Art. IV §5 — constitutional challenge filing; ANY INHABITANT,
+           NO STANDING GATEKEEPER". The client listed R-19/R-20/R-21, so an
+           ordinary resident was shown "Requires R-21" on the door to challenge a
+           law, and R-09 — who files the F-LEG-035 supermajority override right
+           here — was locked out too. R-21 was never a server role for this
+           surface at all. There is no route-level gate; the menu WAS the gate. */
+        { id: 'constitutional-challenge', label: 'Challenge a law', icon: 'scale', href: '/judiciary/challenges', contract: 'judiciary/constitutional-challenge.html', roles: ['R-03', 'R-09', 'R-19', 'R-20'] },
+        /* roles MATCH config/cga/surfaces.php:868 ['R-21','R-03'] deliberately.
+           R-03 (any resident) is the one that matters: this surface carries
+           F-IND-015, whose own metadata is availableTo R-03 and "confers R-21".
+           Listing only R-21 meant the door that MAKES an advocate was disabled
+           for everyone who was not already one — nobody could become an advocate
+           through the UI at all. The route has no role gate and the controller
+           ships can.register = (signed in AND not yet an advocate), so the server
+           always intended this for non-advocates. Art. I — the bar is open. */
+        { id: 'advocate-console', label: 'Advocates — register & file', icon: 'briefcase', href: '/judiciary/advocate', contract: 'judiciary/advocate-console.html', roles: ['R-21', 'R-03'] },
         { id: 'juror-view', label: 'A juror’s view', icon: 'users', href: '/judiciary/jury', contract: 'judiciary/juror-view.html', roles: ['R-22'] },
     ] },
     { key: 'organizations', title: 'Organizations', items: [
