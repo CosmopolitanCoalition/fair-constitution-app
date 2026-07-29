@@ -135,11 +135,13 @@ Production has world-class atoms and no molecule. `VoteTally` IS the contract's 
 LiveKit stack covers the call surface ~1:1; the testimony bridge seals to the hash chain.
 Missing: the fusion, and the live substrate. Build order the gaps imply:
 
-1. **Events substrate** — no push layer exists at all (no echo/reverb/broadcasting config).
-   Bridge: extend the PROVEN 5-second Inertia partial-reload poll (MatrixCommons pattern) to
-   session/committee/case props. Real fix: one broadcast substrate (Reverb or SSE) that
-   presence, queue, tallies and the timeline all ride. Decision at build time; poll-first
-   matches the designer plan's own Phase-6 posture (L).
+1. **Events substrate — DECIDED (desk, 2026-07-29, Wave 3 launch): POLL-FIRST.** Extend the
+   PROVEN 5-second Inertia partial-reload pattern (MatrixCommons) to session/committee/case/
+   board props, behind a TRANSPORT-AGNOSTIC store so Reverb/SSE can replace polling later as
+   a drop-in. Rationale: proven on this box, zero new infra on a memory-fragile VM, the
+   designer plan's own Phase-6 posture — and correctness never rides the transport (server
+   snapshots stay the truth; polling only sets freshness). The upgrade path is documented in
+   the store's contract, not left implicit.
 2. **`LiveCivicRoom` Vue shell** composing the existing atoms (band + agenda + floor tile +
    vote + timeline + call) + per-institution Matrix room provisioning — rooms exist today
    only for square/halls/private, not sessions/committees/cases/boards (M).
