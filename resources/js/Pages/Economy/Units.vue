@@ -28,6 +28,8 @@ const props = defineProps({
     supply: { type: String, default: '0.000000' },
     issuance_rate_bps: { type: Number, default: null },
     inflation_target_bps: { type: Number, default: null },
+    /** Account-clean distribution telemetry (Design Round 2 ④); null pre-currency. */
+    telemetry: { type: Object, default: null },
 });
 
 /* Basis points are a specialist unit; nobody outside finance reads "120 bps".
@@ -115,6 +117,29 @@ const bounds = (b) => {
             <p class="econ-note">
                 Both are targets a legislature sets, not forces of nature. Either can be changed by
                 an act, within bounds it cannot exceed.
+            </p>
+        </Card>
+
+        <Card v-if="telemetry" as="section" title="Where the money is">
+            <p class="econ-desc">
+                A read-only picture of how the currency is distributed. Every figure is counted over
+                <strong>accounts, never people</strong> — a spread of balances says nothing about
+                who holds them. Nothing here adjusts a rate: the levers above still move only by act.
+            </p>
+            <div class="econ-stats">
+                <Stat :value="formatMoney(telemetry.in_circulation, currency)" label="In wallets" accent />
+                <Stat :value="formatMoney(telemetry.treasury_held, currency)" label="In treasuries" />
+                <Stat :value="String(telemetry.funded_wallets) + ' / ' + String(telemetry.wallets)" label="Wallets funded / total" />
+                <Stat :value="telemetry.top_decile_share_pct ? telemetry.top_decile_share_pct + '%' : '—'" label="Held by the top tenth" />
+                <Stat :value="telemetry.velocity_30d ? telemetry.velocity_30d + '×' : '—'" label="Turned over (30 days)" />
+            </div>
+            <p class="econ-note">
+                <strong>Not shown, and why.</strong> There is no per-jurisdiction or per-person
+                holdings map: an account carries no location, and the only path to one would cross
+                the privacy wall. There is no supply-over-time chart yet either — that needs a
+                periodic snapshot. Auto-managing a rate from these numbers is a separate design round
+                the operator reserved; today the reading informs a human, who still acts by the dual
+                door.
             </p>
         </Card>
 

@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Economy\Currency;
 use App\Services\ConstitutionalValidator;
 use App\Services\Economy\AccountService;
+use App\Services\Economy\CurrencyTelemetryService;
 use App\Services\Economy\IssuanceService;
 use App\Services\Economy\LedgerService;
 use App\Services\Economy\StipendService;
@@ -45,6 +46,7 @@ class EconomyController extends Controller
         private IssuanceService $issuance,
         private AccountService $accounts,
         private SettingsResolver $settings,
+        private CurrencyTelemetryService $telemetry,
     ) {}
 
     public function home(): Response
@@ -409,6 +411,10 @@ class EconomyController extends Controller
             'supply'               => $currency === null ? '0.000000' : $this->issuance->supply($currency->id),
             'issuance_rate_bps'    => $rootId === null ? null : $this->nullableInt($this->settings->resolve($rootId, 'issuance_rate_bps')),
             'inflation_target_bps' => $rootId === null ? null : $this->nullableInt($this->settings->resolve($rootId, 'inflation_target_bps')),
+            // Account-clean distribution telemetry (Design Round 2 ④): read
+            // only, aggregated over accounts and never people. The levers above
+            // still move only by dual-door act — nothing here adjusts a rate.
+            'telemetry'            => $currency === null ? null : $this->telemetry->snapshot($currency->id),
         ]);
     }
 
