@@ -59,6 +59,13 @@ Route::get('/', function (Request $request) {
 Route::get('/launchpad', fn () => Inertia::render('Launchpad'))->name('launchpad');
 Route::get('/tour', fn () => Inertia::render('Tour/Index'))->name('tour');
 
+// Coverage instruments (design contracts: mockups/v3/shared/coverage.html,
+// coverage-ops.html). "For the build team" QA — public read (surface names +
+// route paths only, no user data). They cross-check the JS nav registry against
+// the routes the app serves and the surfaces it registers, and go red on drift.
+Route::get('/coverage', [\App\Http\Controllers\System\CoverageController::class, 'index'])->name('coverage');
+Route::get('/coverage-ops', [\App\Http\Controllers\System\CoverageController::class, 'ops'])->name('coverage-ops');
+
 // Phase K-3 — Matrix .well-known delegation (public, no auth). Served dynamically so
 // MATRIX_DOMAIN/APP_URL resolve per instance (nginx cannot env-substitute a JSON body).
 Route::get('/.well-known/matrix/server', [\App\Http\Controllers\Matrix\WellKnownController::class, 'server']);

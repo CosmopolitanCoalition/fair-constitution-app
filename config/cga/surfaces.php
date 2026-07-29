@@ -981,12 +981,39 @@ return [
     'shared/constitutional-questions' => [
         'title'     => 'Constitutional questions',
         'module'    => 'shared',
-        'nav'       => 'ledger',
+        'nav'       => 'constitutional-questions',
         'roles'     => [],
         'workflows' => ['WF-SYS-05'],
         'forms'     => [],
         'clocks'    => [],
         'citation'  => 'The seed list for the post-game redraft — every "as implemented" marker resolves here',
+    ],
+
+    // The coverage instruments (mockups/v3/shared/coverage.html +
+    // coverage-ops.html). Build-team QA surfaces: they cross-check the JS nav
+    // registry against the routes the app actually serves and the surfaces
+    // registered HERE, and go red on drift. Public read (no user data, just
+    // surface names + route paths). nav ids match the registry build-team rows.
+    'shared/coverage' => [
+        'title'     => 'Coverage',
+        'module'    => 'shared',
+        'nav'       => 'coverage',
+        'roles'     => [],
+        'workflows' => [],
+        'forms'     => [],
+        'clocks'    => [],
+        'citation'  => 'Built from the manifest and the routes — anything not green is Planned across the site',
+    ],
+
+    'shared/coverage-ops' => [
+        'title'     => 'Coverage matrix',
+        'module'    => 'shared',
+        'nav'       => 'coverage-ops',
+        'roles'     => [],
+        'workflows' => [],
+        'forms'     => [],
+        'clocks'    => [],
+        'citation'  => 'Every registry row, tour stop, and surface must resolve before handoff — that green is what "done" means',
     ],
 
     // Support lifecycle (ruling §10 item 7). Module `support` matches the
@@ -995,7 +1022,7 @@ return [
     'support/tickets' => [
         'title'     => 'Support',
         'module'    => 'support',
-        'nav'       => 'support',
+        'nav'       => 'support-tickets',
         'roles'     => [],
         'workflows' => [],
         'forms'     => [],
@@ -1006,7 +1033,7 @@ return [
     'support/ticket' => [
         'title'     => 'Support report',
         'module'    => 'support',
-        'nav'       => 'support',
+        'nav'       => 'support-tickets',
         'roles'     => [],
         'workflows' => [],
         'forms'     => [],

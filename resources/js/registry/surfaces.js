@@ -165,7 +165,8 @@ export const SITEMAP = [
        a non-demo world instead of rendering a dead link. Coverage and the
        style guide have no app page yet — Planned, per the registry idiom. */
     { key: 'build-team', title: 'For the build team', items: [
-        { id: 'coverage', label: 'Coverage', icon: 'check', href: null, contract: 'shared/coverage.html' },
+        { id: 'coverage', label: 'Coverage', icon: 'check', href: '/coverage', contract: 'shared/coverage.html' },
+        { id: 'coverage-ops', label: 'Coverage matrix', icon: 'check', href: '/coverage-ops', contract: 'shared/coverage-ops.html' },
         { id: 'styleguide', label: 'Style guide', icon: 'sliders', href: null, contract: 'shared/styleguide.html' },
         { id: 'electoral-kit', label: 'Electoral kit', icon: 'vote', href: '/dev/electoral-kit', contract: null, sandbox: true },
         { id: 'legislature-kit', label: 'Legislature kit', icon: 'landmark', href: '/dev/legislature-kit', contract: null, sandbox: true },
