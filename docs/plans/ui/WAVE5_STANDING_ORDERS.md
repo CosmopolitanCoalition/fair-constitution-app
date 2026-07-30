@@ -30,11 +30,13 @@ tab (W5). Wave 4 concluded GREEN (authoritative suite 1343 / 0 / 3-skip).*
 4. **Appointed/elected courts (equal-per-constituent) → working** (rides lane 4's courtTiers reframe; verify appointed default + elected conversion).
 5. **Agenda per-item schema — build** (the deferred keystone debt; flag the desk for the migration slot).
 
-### Lane 4 — execute the Q4a ruling
-1. **Reframe courtTiers = a jurisdiction's tree-DEPTH** + wire into provisioning. Operator ruling A: Live Rooms / public squares / chats are INFRASTRUCTURE (a courthouse has many court rooms), NOT a court-as-jurisdiction. NEVER weaken the uniqueness constraints (`judiciaries_jurisdiction_live_uq`, `social_spaces_jur_type_unique`). Doc amendment, no schema, nothing built moves. This unblocks lane 3's courts capability.
+### Lane 4 — execute the Q4a ruling (VERIFY-AND-CLOSE, operator ruling 2026-07-30)
+1. **courtTiers = a jurisdiction's tree-DEPTH.** Operator ruling A: Live Rooms / public squares / chats are INFRASTRUCTURE (a courthouse has many court rooms), NOT a court-as-jurisdiction. NEVER weaken the uniqueness constraints (`judiciaries_jurisdiction_live_uq`, `social_spaces_jur_type_unique`). Doc amendment, no schema, nothing built moves.
+2. **SCOPE = verify-and-close, NOT rebuild.** Lane 3 already built `courtTiers = tree-depth` in its W4 ③. So: (a) confirm the built code + provisioning already compute tree-depth (parent_judiciary_id chain); (b) confirm the doc states tree-depth + the infrastructure-vs-jurisdiction distinction, amend if it lags; (c) if already correct end-to-end, SAY SO — that confirms the ruling was already answered. Coordinate with L3, no duplicate work. This unblocks lane 3's courts capability.
+3. **Receive lane 6's Atlas a11y findings** (their W5 ③) — triage, not a rebuild.
 
-### Lane 5 — i18n finish
-1. **fr/pt shell chrome** — 6-locale page bodies already render. OPERATOR'S CALL: (a) accept English chrome for the alpha playtest [desk rec — cosmetic + rail-held] and mark i18n playtest-adequate, or (b) a reader/stronger-model pass. Never ship raw NLLB nav.
+### Lane 5 — i18n finish (RULED: OPTION A, operator 2026-07-30)
+1. **fr/pt shell chrome → CONFIRM-AND-CLOSE.** Operator ruled OPTION A: accept English shell chrome for the alpha playtest, mark i18n playtest-adequate, NO translation/reader pass on the chrome. (a) confirm the 6-locale page bodies still render; (b) confirm fr/pt chrome falls back cleanly to English with NO raw-NLLB nav leaking; (c) mark the capability done. Hard rule stands: never ship raw unreviewed NLLB nav — English fallback yes, half-translated machine nav no.
 
 ### Lane 2 — steward
 1. **Authoritative RE-GATE** — after the build lands, run the FULL suite (SUITE TOKEN + freeze + storage-chown) in a quiet window → confirm ALL-GREEN before the walk. Triage: own-the-world → audit-lock → real defect.

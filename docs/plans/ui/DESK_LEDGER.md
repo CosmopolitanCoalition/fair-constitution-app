@@ -1454,3 +1454,38 @@ operator compacts the LANES → (3) operator compacts the DESK → (4) desk retu
 orders → (6) operator's word = LAUNCH.** LAUNCH = send each W5 lane its ACTION order (verbatim from the standing-
 orders doc + rubric W5 tab; fresh session ids). Do NOT launch before his confirm + explicit word. STEP 0 on the
 lanes' GO: `git pull` to HEAD ≥ e47e398. Resume state in memory (project_v3_synthesis_first_order, W5 block).
+
+### WAVE 5 — LAUNCHED (2026-07-30, operator's word)
+
+**Desk + fleet returned from compaction; operator gave the launch order.** Two decisions resolved on launch:
+- **i18n = OPTION A (operator ruling this turn).** Accept English shell chrome for the fr/pt alpha playtest;
+  mark i18n playtest-adequate; do NOT commission a translation/reader pass on the chrome. Hard rule stands:
+  never ship raw unreviewed NLLB nav — English fallback is fine, half-translated machine nav is not. L5's order
+  is now a confirm-and-close, not a build.
+- **L4 courtTiers = VERIFY-AND-CLOSE (operator ruling this turn).** L3 already built courtTiers = tree-depth in
+  its W4 ③, so L4 does NOT rebuild: verify the built code + provisioning already compute tree-depth, confirm the
+  doc states it (+ infrastructure-vs-jurisdiction distinction), amend doc if it lags, and if already correct say
+  so explicitly (proves the ruling was already answered). Coordinate with L3 to avoid duplicate work.
+
+**5 BUILD-LANE ACTION orders DISPATCHED** off a fresh same-turn listing (ids copied verbatim, substring-verified):
+- **L6** `local_02dae39e…` — messaging trio (ONE atomic PrivateRoom commit) + bill.html (constitutional path,
+  NOT per-party accept) + Atlas a11y pass → findings to L4.
+- **L13** `local_d8c012d5…` — board-elections + org-registry (verify vs information_schema first — phantom trap);
+  optional CHECK(balance>=0) only if it takes the slot.
+- **L3** `local_f9650382…` — committees · amendment R-C loop · exec delegation→conversion · appointed/elected
+  courts (rides L4) · agenda per-item schema (FLAG THE DESK for the migration slot).
+- **L4** `local_814a5390…` — Q4a verify-and-close (above) + receive L6's Atlas a11y findings.
+- **L5** `local_8f359358…` — i18n confirm-and-close (Option A).
+
+**HELD (operator's explicit instruction this turn):**
+- **L2** (`local_718f70ce…`) — do NOT engage until L6+L13+L3+L4+L5 are done and ready for the re-gate.
+- **L15** (`local_70cfbe6e…`) — do NOT engage; arm phase depends on the re-gate (education:seed, game box only).
+- **L1** (`local_4896cb5a…`) — arm phase (live Niue general + game-box mass pass), held for post-re-gate.
+- **L14** (`local_faf75201…`) — held (operator).
+
+**STEP 0 on every lane's GO:** `git pull` to HEAD ≥ c76e6fa. Standing law carries: private-index CAS +
+index-clear commit; migration slot one-lane-at-a-time (flag the desk); four-way reports direct to lane 7;
+verify vs information_schema before wiring a mockup port; honest-empty; SETTLED rulings never re-asked.
+
+**Desk now: self-paced W5 management loop — sweep the 5 build lanes, process four-way reports into the rubric,
+sequence the migration slot, and engage L2 for the authoritative re-gate ONLY when all five report done.**
