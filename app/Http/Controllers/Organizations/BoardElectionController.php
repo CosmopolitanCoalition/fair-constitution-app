@@ -16,6 +16,7 @@ use App\Models\OrgMembership;
 use App\Models\OrgWorker;
 use App\Models\Tabulation;
 use App\Models\User;
+use App\Services\Organizations\OrgSettingsService;
 use App\Support\SurfaceMeta;
 use Inertia\Inertia;
 use Inertia\Response;
@@ -61,6 +62,9 @@ class BoardElectionController extends Controller
             'surface' => SurfaceMeta::for('organizations/board-elections'),
             'organization' => $this->header($organization, $board),
             'composition' => $this->composition($board),
+            // The open-nomination window DIAL (operator v3.2 item 0d) — the
+            // org's own setting, read and linked here (it is set on org detail).
+            'nominationWindow' => $this->nominationWindow($organization),
             'ownerTrack' => $this->track(
                 $organization,
                 $board,
@@ -223,6 +227,17 @@ class BoardElectionController extends Controller
                 'href' => '/elections/'.$election->id,
             ] : null,
             'result' => $election !== null ? $this->result($election) : null,
+            // The open-nomination window phase for THIS track's election —
+            // dates straight off the election row (approval_opens → finalist
+            // cutoff = nominations; ranked open → close = ranking), and the
+            // current node mapped from election.status. Null until it opens.
+            'nomination' => $election !== null ? [
+                'nominations_open_at' => $election->approval_opens_at?->toIso8601String(),
+                'nominations_close_at' => $election->finalist_cutoff_at?->toIso8601String(),
+                'ranking_open_at' => $election->ranked_opens_at?->toIso8601String(),
+                'ranking_close_at' => $election->ranked_closes_at?->toIso8601String(),
+                'phase' => $this->windowPhase($election),
+            ] : null,
             // Worker-track provenance (§B.9): the scale (CLK-14) sets the
             // seat count; the first seat appears at the CLK-13 minimum.
             'trigger' => $kind === Election::KIND_ORG_BOARD_WORKER && $board !== null && (int) $board->worker_seats > 0
@@ -391,5 +406,46 @@ class BoardElectionController extends Controller
             : null;
 
         return $user?->display_name ?: ($user?->name ?? 'Seated member');
+    }
+
+    /**
+     * The open-nomination window DIAL (operator v3.2 item 0d): an org-level
+     * setting — N days of nomination before ranking opens — read straight
+     * off the org's own settings. NULL window_days = the jurisdiction's
+     * default election schedule stands (honest absence). The 1–90 bound is
+     * the setting's own validation range; the dial itself is set on the org
+     * detail page (role-gated to the agent), so this surface only reads it
+     * and links there. Never a constitutional value.
+     *
+     * @return array<string, mixed>
+     */
+    private function nominationWindow(Organization $organization): array
+    {
+        $days = app(OrgSettingsService::class)->get($organization, 'board_nomination_window_days');
+
+        return [
+            'window_days' => $days === null ? null : (int) $days,
+            'is_set' => $days !== null,
+            'min' => 1,
+            'max' => 90,
+            'settings_href' => '/organizations/'.$organization->id,
+        ];
+    }
+
+    /**
+     * Which node of the nomination → ranking → count strip an election sits
+     * in, mapped from the engine's election.status snapshot (never a clock
+     * computation here). The state strip highlights this node.
+     */
+    private function windowPhase(Election $election): string
+    {
+        return match ($election->status) {
+            Election::STATUS_SCHEDULED,
+            Election::STATUS_APPROVAL_OPEN,
+            Election::STATUS_FINALIST_CUTOFF => 'nominations',
+            Election::STATUS_RANKED_OPEN,
+            Election::STATUS_VOTING_CLOSED => 'ranking',
+            default => 'count',
+        };
     }
 }

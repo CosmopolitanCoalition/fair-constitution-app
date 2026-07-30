@@ -60,6 +60,7 @@ const q = ref('');
 const activeTypes = ref([]);
 const structure = ref('');
 const jurisdiction = ref('');
+const endorsingOnly = ref(false);
 
 function toggleType(type) {
     activeTypes.value = activeTypes.value.includes(type)
@@ -72,13 +73,19 @@ const filtered = computed(() =>
         if (activeTypes.value.length && !activeTypes.value.includes(org.type)) return false;
         if (structure.value && org.structure !== structure.value) return false;
         if (jurisdiction.value && org.jurisdiction?.name !== jurisdiction.value) return false;
+        if (endorsingOnly.value && !(org.endorsement_count > 0)) return false;
         if (q.value && !org.name.toLowerCase().includes(q.value.toLowerCase())) return false;
         return true;
     }),
 );
 
 const hasFilters = computed(
-    () => q.value !== '' || activeTypes.value.length > 0 || structure.value !== '' || jurisdiction.value !== '',
+    () =>
+        q.value !== '' ||
+        activeTypes.value.length > 0 ||
+        structure.value !== '' ||
+        jurisdiction.value !== '' ||
+        endorsingOnly.value,
 );
 
 function clearFilters() {
@@ -86,6 +93,7 @@ function clearFilters() {
     activeTypes.value = [];
     structure.value = '';
     jurisdiction.value = '';
+    endorsingOnly.value = false;
 }
 
 /* ------------------------------------------------- co-determination cell */
@@ -127,6 +135,22 @@ function submitRegistration() {
     registerForm.post('/organizations', { preserveScroll: true });
 }
 
+/* "Start a club" — the lightest path: an informal association takes only a
+   name and a purpose. The same F-IND-012 write door as the full form, with
+   the type fixed to informal and no ownership structure. The jurisdiction is
+   the viewer's nearest association (an associated resident always has one). */
+const clubForm = useForm({
+    type: 'informal',
+    structure: null,
+    name: '',
+    jurisdiction_id: props.createForm.jurisdictionOptions[0]?.id ?? null,
+    purpose: '',
+});
+
+function submitClub() {
+    clubForm.post('/organizations', { preserveScroll: true });
+}
+
 const columns = [
     { key: 'name', label: 'Organization' },
     { key: 'type', label: 'Type / structure' },
@@ -161,6 +185,13 @@ const columns = [
             </div>
         </Card>
 
+        <!-- ================================= no party privileges ======= -->
+        <Banner tone="info" role="note" title="There are no special party privileges here.">
+            A party is just an organization — anyone, an organization or a person, can endorse any
+            candidate, and nothing here treats a party differently.
+            <Link href="/constitutional-questions">How endorsements replace factions →</Link>
+        </Banner>
+
         <!-- ============================================== registry ======= -->
         <Card as="section" title="Registered organizations">
             <FilterBar label="Filter organizations">
@@ -188,6 +219,10 @@ const columns = [
                 </label>
 
                 <input v-model="q" type="search" class="field-input" placeholder="Search by name" style="inline-size: 14rem" />
+
+                <ChipToggle :pressed="endorsingOnly" @update:pressed="endorsingOnly = !endorsingOnly">
+                    Endorsing only
+                </ChipToggle>
             </FilterBar>
 
             <template v-if="organizations.length">
@@ -195,6 +230,12 @@ const columns = [
                     <template #cell-name="{ row }">
                         <Link :href="row.href"><strong style="color: var(--gov-fg)">{{ row.name }}</strong></Link>
                         <TagChip v-if="row.is_cgc" style="margin-inline-start: var(--space-1)" data-no-i18n>CGC</TagChip>
+                        <StatusBadge
+                            v-if="row.monopoly_pending"
+                            tone="warning"
+                            icon="alert-triangle"
+                            style="margin-inline-start: var(--space-1)"
+                        >monopoly finding pending</StatusBadge>
                         <span v-if="row.jurisdiction" class="cc-small" style="display: block">
                             <AdmChip :level="row.jurisdiction.adm_level" :label="row.jurisdiction.name" />
                         </span>
@@ -221,6 +262,46 @@ const columns = [
             <Banner v-else tone="info" role="status" title="No organizations registered in your association chain.">
                 Any associated resident may register one — association is the only requirement (Art. I).
             </Banner>
+        </Card>
+
+        <!-- ===================================== start a club ========== -->
+        <Card v-if="isAssociated" as="section" title="Start a club">
+            <p class="cc-small">
+                A book circle, a cleanup crew, a neighborhood band — a club is the lightest kind of
+                organization. A name and a purpose are all it takes; it registers as an informal
+                association and can grow into a business or party later.
+            </p>
+            <form
+                class="stack"
+                style="gap: var(--space-3); margin-block-start: var(--space-3)"
+                @submit.prevent="submitClub"
+            >
+                <Field label="Club name" :error="clubForm.errors.name" required>
+                    <template #control="{ id, describedBy, invalid }">
+                        <input
+                            :id="id"
+                            v-model="clubForm.name"
+                            class="field-input"
+                            :aria-invalid="invalid || undefined"
+                            :aria-describedby="describedBy"
+                        />
+                    </template>
+                </Field>
+                <Field label="What it's for" :error="clubForm.errors.purpose">
+                    <template #control="{ id }">
+                        <input
+                            :id="id"
+                            v-model="clubForm.purpose"
+                            class="field-input"
+                            placeholder="e.g. monthly book discussion"
+                        />
+                    </template>
+                </Field>
+                <div class="cluster">
+                    <Btn type="submit" variant="primary" size="sm" :disabled="clubForm.processing">Start the club</Btn>
+                    <span class="citation">Registers as an informal association — F-IND-012 · Art. I.</span>
+                </div>
+            </form>
         </Card>
 
         <!-- ============================== registration / residency CTA == -->

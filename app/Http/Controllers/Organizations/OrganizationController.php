@@ -9,6 +9,7 @@ use App\Models\BoardSeat;
 use App\Models\EndorsementRequest;
 use App\Models\Organization;
 use App\Models\OrgContract;
+use App\Models\OrgConversion;
 use App\Models\OrgDocumentPackage;
 use App\Models\OrgMembership;
 use App\Models\OrgOwnershipStake;
@@ -97,7 +98,19 @@ class OrganizationController extends Controller
         // the constants are NEVER hardcoded client-side.
         [$min, $parity] = $this->resolveThresholds($associations);
 
-        $rows = $orgs->map(fn (Organization $org) => $this->registryRow($org, $min, $parity))->all();
+        // A pending monopoly-acquisition conversion (Art. III §5) flags a row.
+        // One query for the whole list, not per row; in-flight = not yet
+        // completed or abandoned. Empty when none is pending (honest absence).
+        $monopolyPending = DB::table('org_conversions')
+            ->where('via', OrgConversion::VIA_MONOPOLY_ACQUISITION)
+            ->whereNotIn('status', [OrgConversion::STATUS_COMPLETED, OrgConversion::STATUS_ABANDONED])
+            ->whereNull('deleted_at')
+            ->distinct()
+            ->pluck('organization_id')
+            ->map(fn ($id) => (string) $id)
+            ->all();
+
+        $rows = $orgs->map(fn (Organization $org) => $this->registryRow($org, $min, $parity, $monopolyPending))->all();
 
         return Inertia::render('Organizations/Registry', [
             'surface' => SurfaceMeta::for('organizations/org-registry'),
@@ -372,7 +385,8 @@ class OrganizationController extends Controller
     // -------------------------------------------------------------------------
 
     /** @return array<string, mixed> */
-    private function registryRow(Organization $org, int $min, int $parity): array
+    /** @param  list<string>  $monopolyPending  org ids with an in-flight monopoly-acquisition conversion */
+    private function registryRow(Organization $org, int $min, int $parity, array $monopolyPending = []): array
     {
         $endorsementCount = DB::table('endorsements')
             ->where('endorser_type', 'organization')
@@ -395,6 +409,9 @@ class OrganizationController extends Controller
             'codet' => $this->codetCell($org, $min, $parity),
             'is_cgc' => (bool) $org->is_cgc,
             'status' => $org->status,
+            // Art. III §5 — a pending monopoly-acquisition conversion the
+            // registry flags on the row (honest-absent when none is in flight).
+            'monopoly_pending' => in_array((string) $org->id, $monopolyPending, true),
             'href' => '/organizations/'.$org->id,
         ];
     }

@@ -29,6 +29,7 @@ import StatusBadge from '@/Components/Ui/StatusBadge.vue';
 import StvRound from '@/Components/Electoral/StvRound.vue';
 import VoteTally from '@/Components/Legislature/VoteTally.vue';
 import BoardStrip from '@/Components/Organizations/BoardStrip.vue';
+import StateStrip from '@/Components/Ui/StateStrip.vue';
 
 /* Phase-2 restyle wave: the v3 player chrome (MASTER_PLAN). */
 defineOptions({ layout: AppShellV2 });
@@ -43,6 +44,8 @@ const props = defineProps({
     chair: { type: Object, default: null },
     seated: { type: Object, default: null },
     can: { type: Object, default: () => ({ administerOwner: false, administerWorker: false }) },
+    /** The open-nomination window dial (org setting) — read-only on this surface. */
+    nominationWindow: { type: Object, default: () => ({ window_days: null, is_set: false, min: 1, max: 90, settings_href: '#' }) },
 });
 
 const page = usePage();
@@ -79,6 +82,44 @@ function scheduleWorker() {
 
 /* Chair RCV round record — the same shape the speaker ballot renders. */
 const chairRounds = computed(() => props.chair?.rounds?.rounds ?? []);
+
+/* ------------------------------------ open-nomination window (v3.2 0d) -- */
+const WINDOW_PHASES = ['nominations', 'ranking', 'count'];
+const WINDOW_LABELS = {
+    nominations: 'Nominations open',
+    ranking: 'Ranking open',
+    count: 'Count & seating',
+};
+
+/* A one-line date summary off the election row. The dates are engine
+   snapshots (the controller read them straight off the row); this only
+   formats what it was handed. */
+function windowDates(nom) {
+    if (!nom) return null;
+    const d = (iso) => (iso ? new Date(iso).toLocaleDateString() : null);
+    const parts = [];
+    if (d(nom.nominations_open_at) && d(nom.nominations_close_at)) {
+        parts.push(`nominations ${d(nom.nominations_open_at)} → ${d(nom.nominations_close_at)}`);
+    }
+    if (d(nom.ranking_open_at) && d(nom.ranking_close_at)) {
+        parts.push(`ranking ${d(nom.ranking_open_at)} → ${d(nom.ranking_close_at)}`);
+    }
+    return parts.length ? parts.join(' · ') : null;
+}
+
+/* One phase strip per track that has an election on record. */
+const nominationStrips = computed(() => {
+    const out = [];
+    for (const [key, label, track] of [
+        ['owner', 'Owner track', props.ownerTrack],
+        ['worker', 'Worker track', props.workerTrack],
+    ]) {
+        if (track?.nomination) {
+            out.push({ key, label, phase: track.nomination.phase, dates: windowDates(track.nomination) });
+        }
+    }
+    return out;
+});
 </script>
 
 <template>
@@ -114,6 +155,59 @@ const chairRounds = computed(() => props.chair?.rounds?.rounds ?? []);
                     <StatusBadge tone="warning" icon="alert-triangle">
                         Composition invalid — a worker-track election is required before the board acts
                     </StatusBadge>
+                </p>
+            </Card>
+
+            <!-- ============================== nomination window ========= -->
+            <Card as="section" title="Before the count — the open nomination window">
+                <p>
+                    Ranking never starts cold. Before ballots open, nominations run in the open: any
+                    eligible owner (owner track) or worker (worker track) can nominate — or stand —
+                    and each nominee accepts or declines in public. The field forms where everyone
+                    can see it before anyone ranks a name.
+                </p>
+
+                <div class="lr-note" style="margin-block: var(--space-3)">
+                    <div>
+                        <strong style="color: var(--gov-fg)">The window is a setting, not a
+                        constitutional rule.</strong>
+                        The organization sets how many days nominations stay open before ranking
+                        begins — a role-gated dial on
+                        <Link :href="nominationWindow.settings_href">org settings</Link>
+                        ({{ nominationWindow.min }}–{{ nominationWindow.max }} days), never a
+                        constitutional value.
+                        <template v-if="nominationWindow.is_set">
+                            Currently <strong>{{ nominationWindow.window_days }} days</strong>.
+                        </template>
+                        <template v-else>
+                            Unset — the jurisdiction's default election schedule stands.
+                        </template>
+                        Public elections don't use this dial: their candidacy windows are
+                        constitutional clockwork.
+                    </div>
+                </div>
+
+                <template v-if="nominationStrips.length">
+                    <div
+                        v-for="strip in nominationStrips"
+                        :key="strip.key"
+                        style="margin-block-start: var(--space-3)"
+                    >
+                        <span class="eyebrow">{{ strip.label }}</span>
+                        <StateStrip :states="WINDOW_PHASES" :current="strip.phase" :labels="WINDOW_LABELS" />
+                        <p
+                            v-if="strip.dates"
+                            class="citation"
+                            data-no-i18n
+                            style="margin-block-start: var(--space-1)"
+                        >
+                            {{ strip.dates }}
+                        </p>
+                    </div>
+                </template>
+                <p v-else class="gloss" style="margin-block-start: var(--space-2)">
+                    No board election is scheduled yet — the nomination → ranking → count phases
+                    appear here once a track opens.
                 </p>
             </Card>
 

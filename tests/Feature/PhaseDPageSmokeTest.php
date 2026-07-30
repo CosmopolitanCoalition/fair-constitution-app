@@ -114,6 +114,119 @@ class PhaseDPageSmokeTest extends TestCase
         }
     }
 
+    /**
+     * Wave 5 — the two org surfaces carry their new props with REAL values,
+     * not mere presence. board-elections exposes the open-nomination window
+     * (the org dial + the per-track phase read off the election row); the
+     * registry flags an org with a pending monopoly acquisition and leaves a
+     * clean org unflagged.
+     */
+    public function test_board_elections_and_registry_carry_wave5_props(): void
+    {
+        $conn = $this->livePg();
+
+        $jurisdictionId = $conn->table('jurisdictions')->whereNull('parent_id')->whereNull('deleted_at')->value('id');
+
+        if ($jurisdictionId === null) {
+            $this->markTestSkipped('No root jurisdiction seeded — run the activation/demo seed first.');
+        }
+
+        $jurisdictionId = (string) $jurisdictionId;
+
+        $originalDefault = DB::getDefaultConnection();
+        DB::setDefaultConnection(self::LIVE_CONNECTION);
+        $conn->beginTransaction();
+
+        try {
+            $user = User::create([
+                'name' => 'W5 Props '.Str::random(5),
+                'email' => 'w5-props-'.Str::uuid().'@test.invalid',
+                'password' => Str::random(32),
+                'terms_accepted_at' => now(),
+            ]);
+
+            DB::table('residency_confirmations')->insert([
+                'id' => (string) Str::uuid(),
+                'user_id' => (string) $user->getKey(),
+                'jurisdiction_id' => $jurisdictionId,
+                'days_confirmed' => 30,
+                'confirmed_at' => now(),
+                'is_active' => true,
+                'depth' => 0,
+                'created_at' => now(),
+                'updated_at' => now(),
+            ]);
+
+            $this->actingAs($user);
+
+            // ---- board-elections: a ranking-phase owner election + a 14-day
+            //      window dial proves the per-track nomination group + the dial.
+            $org = $this->throwawayOrg($jurisdictionId, $user, isCgc: false);
+            app(\App\Services\Organizations\OrgSettingsService::class)
+                ->set($org, 'board_nomination_window_days', 14, $user);
+
+            \App\Models\Election::create([
+                'jurisdiction_id' => $jurisdictionId,
+                'kind' => \App\Models\Election::KIND_ORG_BOARD_OWNER,
+                'status' => \App\Models\Election::STATUS_RANKED_OPEN,
+                'trigger' => 'scheduled',
+                'voting_method' => 'stv_droop',
+                'board_id' => (string) $org->board_id,
+                'approval_opens_at' => now()->subDays(6),
+                'finalist_cutoff_at' => now()->subDays(1),
+                'ranked_opens_at' => now(),
+                'ranked_closes_at' => now()->addDays(4),
+            ]);
+
+            $this->get("/organizations/{$org->id}/board-elections")
+                ->assertOk()
+                ->assertInertia(fn (Assert $page) => $page
+                    ->component('Organizations/BoardElections')
+                    ->where('nominationWindow.is_set', true)
+                    ->where('nominationWindow.window_days', 14)
+                    ->where('nominationWindow.min', 1)
+                    ->where('nominationWindow.max', 90)
+                    ->where('ownerTrack.nomination.phase', 'ranking')
+                    ->where('ownerTrack.nomination.nominations_open_at', fn ($v) => $v !== null)
+                    ->etc()
+                );
+
+            // ---- registry: a pending monopoly acquisition flags one row; an
+            //      org with no conversion stays unflagged (honest absence).
+            $flagged = $this->throwawayOrg($jurisdictionId, $user, isCgc: false);
+            DB::table('org_conversions')->insert([
+                'id' => (string) Str::uuid(),
+                'organization_id' => (string) $flagged->id,
+                'direction' => \App\Models\OrgConversion::DIRECTION_PRIVATE_TO_CGC,
+                'via' => \App\Models\OrgConversion::VIA_MONOPOLY_ACQUISITION,
+                'status' => \App\Models\OrgConversion::STATUS_PROPOSED,
+                'created_at' => now(),
+                'updated_at' => now(),
+            ]);
+
+            $this->get('/organizations')
+                ->assertOk()
+                ->assertInertia(fn (Assert $page) => $page
+                    ->component('Organizations/Registry')
+                    ->where('organizations', function ($orgs) use ($flagged, $org) {
+                        $rows = collect($orgs);
+                        $flaggedRow = $rows->firstWhere('id', (string) $flagged->id);
+                        $cleanRow = $rows->firstWhere('id', (string) $org->id);
+                        $this->assertNotNull($flaggedRow, 'the flagged org appears in the registry');
+                        $this->assertTrue((bool) $flaggedRow['monopoly_pending'], 'a pending monopoly acquisition flags the row');
+                        $this->assertNotNull($cleanRow, 'the clean org appears in the registry');
+                        $this->assertFalse((bool) $cleanRow['monopoly_pending'], 'an org with no conversion is not flagged');
+
+                        return true;
+                    })
+                    ->etc()
+                );
+        } finally {
+            $conn->rollBack();
+            DB::setDefaultConnection($originalDefault);
+        }
+    }
+
     private function throwawayOrg(string $jurisdictionId, User $agent, bool $isCgc): Organization
     {
         $org = Organization::create([
