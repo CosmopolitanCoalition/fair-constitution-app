@@ -1602,3 +1602,28 @@ Niue general (L1). Items 1–2 also make the re-gate's live E2Es EXERCISE instea
 
 **Still to BUILD:** bill.html (L6 ②, last screen) · committees hearing lifecycle (L3 ①) + agenda schema (L3 ⑤).
 L13 board-elections + org-registry committed (d791a38) — held for L13's four-way report.
+
+### W5 tick 5 — L3 ① committees GREEN → ALL 55/55 ALPHA CAPS WORKING (2026-07-30)
+
+**L3 ① committees hearing lifecycle → GREEN (c947733).** Built the real gap: F-CHR-005 Meeting Open
+(scheduled→open, opened_at) + F-CHR-006 Adjournment (open→adjourned, seals minutes to the append-only public
+record) + CommitteeService::openMeeting/adjournMeeting + 2 doors/routes. FormRegistry 118→120
+(AuditChainSmokeTest raised deliberately). CommitteeHearingExitWalkTest now DRIVES the real lifecycle E2E (90
+assertions; non-chair refused by the engine gate); full committee suite 22 passed / 280 assertions, zero
+regressions. FOUND — my order was imprecise: F-SPK-005 is the ASSIGNMENT form (rank-order placement), already
+complete+pinned (CommitteeAssignmentTest, 10 pins); the genuine gap was the hearing STATE MACHINE. The in-room
+committee vote stays model-only BY DESIGN (a committee reports/refers; it is NOT a ChamberVoteProposal —
+constitutionally correct). Agenda advance() walks positions not per-item rows = ⑤ (separate keystone debt).
+
+**★ CAPABILITIES COMPLETE: 55/55 alpha working** (mobile/Capacitor = Phase 6 absent, out of alpha scope). Every
+capability the alpha needs is now green. Only SCREENS remain.
+
+**Rubric maintenance:** form count 118→120; refreshed the 3 stale W5 banners + stamp to LAUNCHED-and-in-progress
+(the dynamic Fleet banner still read "PREPARED for your go/no-go … Nothing dispatches until you launch" — a
+post-launch stale banner, same class as the Type B banner; now corrected).
+
+**MIGRATION SLOT reserved for L3's ⑤ agenda schema** — L3 flags next message with concrete table+columns; desk
+grants on review (real-dated ≥ 2026-07-05, additive-only). No other lane holds the slot.
+
+**SCREENS 104/107 built.** Remaining: bill.html (L6 ②, building) · board-elections + org-registry (L13,
+committed d791a38, held for L13's four-way report).

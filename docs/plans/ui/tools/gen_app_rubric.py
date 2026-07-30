@@ -91,7 +91,7 @@ for _q in QUESTIONS:
 # Screens / caps / debt all come from the enriched, badged corpus in this dir (repo-stable).
 _enr = json.load(open(os.path.join(_HERE, 'badged.json'), encoding='utf-8'))
 screens = _enr['screens']; caps = _enr['caps']; debt = _enr['debt']
-DATA = {'asOf': '2026-07-29', 'head': '0bd6f1c', 'forms': 118,
+DATA = {'asOf': '2026-07-30', 'head': 'c947733', 'forms': 120,
         'screens': screens, 'caps': caps, 'debt': debt, 'fleet': FLEET, 'questions': QUESTIONS}
 
 TEMPLATE = r"""<title>App Progress Rubric — CGA</title>
@@ -187,7 +187,7 @@ h1{font-size:1.55rem;font-weight:600;margin:0 0 .3rem}
 <h1>Where does the app stand — and what's the road to a playable game?</h1>
 <p class="stamp">%%STAMP%% · verified against live code · click a group, then a row, for the detail · search + filter + expand-all below</p>
 <div class="tiles" id="tiles"></div>
-<div class="note" style="border-inline-start-color:var(--good)"><b>✅ Wave 4 concluded GREEN</b> (authoritative suite 1343 / 0). <b>The Type B second-chamber race is RESOLVED</b> — the pooled shape is fully retired; per-clump (grouped) and per-child (ungrouped) chambers now elect, count, seat, and field candidates, hardened and live-verified (Niue cleared). Every open question is ruled. <b>Wave 5 = the finish:</b> the last 6 screens (→ 107/107) + 5 capabilities → all-green re-gate → arm → the operator's walk. See <b>Fleet &amp; Waves</b> for the W5 standing orders.</div>
+<div class="note" style="border-inline-start-color:var(--good)"><b>✅ Wave 4 concluded GREEN</b> (authoritative suite 1343 / 0). <b>The Type B second-chamber race is RESOLVED</b> — the pooled shape is fully retired; per-clump (grouped) and per-child (ungrouped) chambers now elect, count, seat, and field candidates, hardened and live-verified (Niue cleared). Every open question is ruled. <b>Wave 5 = the finish, now LAUNCHED and in progress:</b> the build lanes are closing the last screens + capabilities → all-green re-gate → arm → the operator's walk. See <b>Fleet &amp; Waves</b> for live W5 status.</div>
 <div class="views" role="tablist">
   <button class="view-btn" role="tab" data-v="screens" aria-selected="true">UI Screens</button>
   <button class="view-btn" role="tab" data-v="caps" aria-selected="false">Capabilities</button>
@@ -253,7 +253,7 @@ function render(){const b=document.getElementById('body');
   }
   else if(view==='fleet'){
     const waves=D.fleet.waves.map(w=>`<span class="wv">${w.id}</span> ${esc(w.name)} <span class="pill p-${w.status}">${LB[w.status]}</span>`).join(' &nbsp;·&nbsp; ');
-    let html=`<div class="note" style="border-inline-start-color:var(--warn)">⏳ <b>Wave 5 orders — PREPARED for your go / no-go.</b> Wave 4 is GREEN (authoritative suite 1343/0). Wave 5 closes the last 6 screens + 5 capabilities → all-green → arm → walk. Each lane's W5 orders (<span class="pill p-next">next</span> = the finish-line work) are drillable below; completed Wave-4 work collapses under each lane. Nothing dispatches until you launch.</div><div class="wavesline"><b>Waves:</b> ${waves}</div>`;
+    let html=`<div class="note" style="border-inline-start-color:var(--good)">🚀 <b>Wave 5 LAUNCHED (2026-07-30) — finish-line build in progress.</b> Wave 4 is GREEN (authoritative suite 1343/0). The build lanes are closing the last screens + capabilities; each flips to <span class="pill p-done">done</span> as its four-way report lands. Re-gate → arm → the operator's walk to follow. Each lane's W5 orders (<span class="pill p-next">next</span> = finish-line work) are drillable below; completed Wave-4 work collapses under each lane.</div><div class="wavesline"><b>Waves:</b> ${waves}</div>`;
     const bk=['next','done','held','deferred','active'];
     D.fleet.lanes.forEach(l=>{const items=l.items||[];
       const w5=items.filter(it=>it.wave==='W5'),w4=items.filter(it=>it.wave!=='W5');
@@ -300,7 +300,7 @@ buildFilters();render();
 </script>
 """
 
-stamp = "As of %s · main @ <code>%s</code> · Wave 4 GREEN — authoritative gate 1343 passed / 0 failed" % (DATA['asOf'], DATA['head'])
+stamp = "As of %s · main @ <code>%s</code> · Wave 5 build in progress · last authoritative gate: Wave 4 1343 / 0 · re-gate pending" % (DATA['asOf'], DATA['head'])
 html = TEMPLATE.replace('%%DATA%%', json.dumps(DATA, separators=(',', ':'))).replace('%%STAMP%%', stamp)
 out = r'E:\fair-constitution-app\docs\plans\ui\tools\app_progress_rubric.html'
 with io.open(out, 'w', encoding='utf-8') as f:
