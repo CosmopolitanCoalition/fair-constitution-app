@@ -1409,3 +1409,29 @@ on-disk tree → that WIP test would be picked up + could red the gate. Asked L6
 green or HOLD the WIP out of the tree, then confirm clean. On L6's clean confirm → freeze (active lanes) +
 chown + lane 2 SUITE TOKEN → authoritative re-gate → on GREEN: final rubric regen + L1 fires the live Niue
 per-clump general (#21, now fields) for the operator's walk. (Stray untracked "C:/"-junk dir noted, harmless.)
+
+### W4 — ⚑ TWO OPERATOR RULINGS SETTLED (do NOT re-ask) + Tech Debt reorganized by state
+
+**Both re-answered under frustration 2026-07-29 — SETTLED, never surface as open questions again:**
+
+**Q4a (court scaling) = A.** A COURTHOUSE is NOT a court-as-jurisdiction, and a court ROOM is not either.
+*"LIVE ROOMS AND PUBLIC SQUARES/CHATS ARE INFRASTRUCTURE AND NOT constitutionally the same as a court as a
+jurisdiction. Court House DOES NOT EQUAL Court Room."* → `courtTiers` = a jurisdiction's tree-DEPTH (parent_
+judiciary_id already models it); Live Rooms / squares / halls = INFRASTRUCTURE (a courthouse's many rooms), a
+future room model. The uniqueness constraints (one court/jurisdiction, one public space/type) are the
+JURISDICTIONAL entity + building identity — CORRECT, stay singular; NEVER propose weakening them. Fix = reframe
+the formula (doc amendment); NO schema, nothing built moves.
+
+**Advocate registration = A.** *"We settled this with the other roles. You want the role, you do the training.
+To do the role you do the training."* → advocate stays an INSTANT competence REGISTER (F-IND-015 registers
+immediately, rejecting only on association+duplicate). NO merits gate, NO approval lifecycle, NO qualification
+catalog, NO advocates.status gate. The gate IS the (K-2) TRAINING, same as every role. The mockup's attest-
+checkboxes + pending-review banner stay honest-empty (never built).
+
+**TECH DEBT REORGANIZED (operator: "I can't tell what's resolved vs outstanding"):** the rubric Tech Debt tab
+now leads with resolution STATE — **0 open · 8 deferred · 23 resolved** — grouped Outstanding → Deferred →
+Resolved (resolved collapsed), each item carrying its full status + severity-if-unresolved. The 8 deferred are
+all intentional post-alpha/future: pixel-capture (rides the walk), agenda schema, AutoscaleResizeRepair latent
+clamp, remaining social primitives, per-lane test DB (audit-lock), fr/pt chrome, constituent_requests +
+room-read-position schema, CHECK(balance>=0). Nothing genuinely unaddressed. Rubric committed 8893168; both
+rulings folded into Open Questions (now 0 open / 16 resolved). Memory: feedback_settled_rulings_courts_and_advocate.
