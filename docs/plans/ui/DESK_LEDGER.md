@@ -1371,3 +1371,24 @@ growth dial built+autonomous · debt 5/5 · per-child); only Q4a (operator) open
 SeatingStage to follow. When L3 commits + reports, the 6 transition reds close → desk re-gates (fresh quiet
 window + freeze + chown). L6 ② org-profile also landed (ff0f1a9). Rubric regen deferred to the post-per-child
 re-gate (then: pump-wiring/Niue-void → done, per-child → green, org-profile → built).
+
+### W4 tick 19 — PER-CHILD JOINT STEP CLOSED (① complete end-to-end); re-gate held for 1 per-clump fielding fix
+
+**⚑ PER-CHILD TRANSITION CLOSED — all 6 reds green:** L1 racePlan (c96e757) · L4 ElectionStage fielding +
+tests (64c2a27) · L3 CountingStageTest/SeatingStageTest (b9ea6d6e, 10/111). **① FULLY COMPLETE end-to-end:**
+per-clump count+seat + per-child count+seat + Niue void + purity — all pinned green. The Type B headline
+unblock is landed on EVERY axis (grouped + ungrouped, count + seat + field).
+
+**⚑ TWO real defects the co-update surfaced (verify-in-doing, both fixed/routed):**
+- L4 (64c2a27): fieldCandidates pooled ONE roster across per-child races → per-child races got 0 candidates.
+  Fixed: field by each race's own jurisdiction (safe: depth-0 confirmations, no ancestor sweep).
+- L3→L4 flag: IdentityStage::rosterSize (:198-212) counts only districts/at_large, NOT the new 'panels'
+  (per-clump) mode → a per-clump chamber's PARENT under-mints its roster → fieldCandidates(parent scope)
+  throws "roster too small". NOT latent — it would break the LIVE per-clump Niue election approved for the
+  walk (FLAG 2). ~4-line fix (mirror the districts case for 'panels') + pin per-clump fielding = L4's, routed.
+
+**⚑ RE-GATE HELD for the rosterSize fix** — one clean quiet-window run then covers per-child AND per-clump
+fielding, and the live Niue election can field. When L4 lands it: re-gate (freeze + chown + lane 2 SUITE TOKEN)
+→ re-lock green → final rubric regen (pump-wiring/Niue-void → done, per-child → green, org-profile → built) →
+approve the live Niue per-clump election for the walk. L3 done on ① (⑦ deferred, ④→L13). L6 ② org-profile in
+(ff0f1a9); messaging trio + social-home + bill.html ahead.
