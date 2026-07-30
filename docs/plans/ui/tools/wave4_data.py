@@ -63,7 +63,7 @@ FLEET = {
       {"label": "Full i18n — page bodies for all 6 locales", "status": "done", "note": "6 locales render; fr/pt monolithic CHROME withheld (NLLB confidently-wrong nav) → review queue"},
       {"label": "fr/pt monolithic shell chrome", "status": "held", "note": "rail: mechanism shipped, raw NLLB output withheld until a reader/stronger-model pass"},
     ]},
-    {"id": "6", "name": "UI Design + A11y Audit", "status": "active", "items": [
+    {"id": "6", "name": "UI Design + A11y Audit", "status": "done", "items": [
       {"label": "Civic partials → built, 6/6 (join · today · office-tab · advocate-reg · identity-verify · relocation)", "status": "done", "note": "every 'missing panel' was live data discarded by a collapsing query — no schema; genuine deferrals became honest-empty"},
       {"label": "Tour-nav placement fix + tour 47→60 stops", "status": "done", "note": "0fb053f; 13 nav destinations restored, all probed live"},
       {"label": "ballots_cast=0 bug + the BallotSecrecy fix (via BallotBox)", "status": "done", "note": "aaa0a59 → 3d1abbb; 420 voters saw a false zero; count routed through BallotBox::participationCountFor"},
@@ -73,8 +73,8 @@ FLEET = {
       {"label": "14-agent gap analysis + batch plan", "status": "done", "note": "L6W4_SCREEN_GAP_PLAN.md; every screen YES-with-honest-empty"},
       {"label": "org-profile → built (item ②)", "status": "done", "note": "ff0f1a9; real Apply POST job board, plain labels, steer-economy door; org-ledger held for L13"},
       {"label": "social-home → built (educational card restored)", "status": "done", "note": "0bd6f1c; recovered L15's community-standards card that a shared-index sweep had dropped from HEAD (47d8d57)"},
-      {"label": "Messaging trio (groups-home · group-create · group-detail)", "status": "active", "note": "not reached — one-atomic-commit over shared PrivateRoom files; remaining work"},
-      {"label": "bill.html — a bill as a conversation (constitutional path)", "status": "active", "note": "not reached — motions+chamber-vote path ruled (the mockup's per-party accept is an Art. V §3 violation)"},
+      {"label": "Messaging trio (groups-home · group-create · group-detail)", "status": "deferred", "note": "not reached this session — one-atomic-commit over shared PrivateRoom files; future work"},
+      {"label": "bill.html — a bill as a conversation (constitutional path)", "status": "deferred", "note": "not reached this session — motions+chamber-vote path ruled (the mockup's per-party accept is an Art. V §3 violation)"},
       {"label": "Atlas a11y review pass (findings → lane 4)", "status": "deferred", "note": "optional; queued behind ②③"},
       {"label": "THE WALK — 54 journeys + 117-stop tour + pixel capture", "status": "held", "note": "operator-present, runs when all-green"},
     ]},
