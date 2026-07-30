@@ -1435,3 +1435,22 @@ all intentional post-alpha/future: pixel-capture (rides the walk), agenda schema
 clamp, remaining social primitives, per-lane test DB (audit-lock), fr/pt chrome, constituent_requests +
 room-read-position schema, CHECK(balance>=0). Nothing genuinely unaddressed. Rubric committed 8893168; both
 rulings folded into Open Questions (now 0 open / 16 resolved). Memory: feedback_settled_rulings_courts_and_advocate.
+
+### WAVE 5 — orders staged + PRE-COMPACT dispatched (2026-07-30)
+
+**W5 = THE FINISH** (rubric Fleet tab W5 + docs/plans/ui/WAVE5_STANDING_ORDERS.md, committed e47e398):
+- **6 screens → 107/107:** L6 messaging trio (groups-home/create/detail) + bill.html (constitutional path);
+  L13 board-elections + org-registry.
+- **5 caps → 55/56** (mobile = Phase 6): L3 committees · amendment-workflow (R-C) · exec delegation→conversion ·
+  appointed/elected courts; L5 i18n fr/pt chrome (operator's call — accept English [rec] or reader pass).
+- **Q4a ruling → L4:** courtTiers = tree-depth reframe (doc, no schema; Live Rooms/squares = INFRASTRUCTURE;
+  never weaken the uniqueness constraints) → unblocks L3 courts.
+- **Sequence:** build → L2 authoritative re-gate (SUITE TOKEN) → arm (L15 education:seed + L1 live Niue
+  general) → the operator's walk. Both open questions RULED A (settled).
+
+**PRE-COMPACT HOLD orders SENT** to lanes 1/2/3/4/5/6/13/15 (14 held) off a fresh listing — each holds its
+L#W5 context, disposition HOLD, do NOT start. **THE OPERATOR'S SEQUENCE: (1) pre-compact sent [DONE] → (2)
+operator compacts the LANES → (3) operator compacts the DESK → (4) desk returns → (5) operator CONFIRMS the W5
+orders → (6) operator's word = LAUNCH.** LAUNCH = send each W5 lane its ACTION order (verbatim from the standing-
+orders doc + rubric W5 tab; fresh session ids). Do NOT launch before his confirm + explicit word. STEP 0 on the
+lanes' GO: `git pull` to HEAD ≥ e47e398. Resume state in memory (project_v3_synthesis_first_order, W5 block).
