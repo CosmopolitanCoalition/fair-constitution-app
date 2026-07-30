@@ -187,6 +187,99 @@ class ElectionStageTest extends TestCase
      * `type_a` race above nine remains impossible. San Marino's 27-seat
      * at-large chamber is counted, certified and seated.
      */
+    /**
+     * ⚑ PER-CLUMP fields end-to-end (lane 3's flag, desk FLAG 2 — the live Niue
+     * walk election). A per-clump Type B chamber's panel races are PARENT-scoped
+     * (createRaces sets jurisdiction_id = the chamber's jurisdiction), so the
+     * parent roster must cover districts + panels. IdentityStage::rosterSize now
+     * counts the 'panels' mode; this proves the whole pipeline fields rather than
+     * throwing "roster too small" — NON-VACUOUS because the district half alone
+     * (2 × 7 = 16 slots) exceeds VISIBLE_SAMPLE (12), so the roster floor cannot
+     * mask a missing panels count: before the rosterSize fix, fieldCandidates
+     * would throw here.
+     */
+    public function test_a_per_clump_chamber_fields_its_election_end_to_end(): void
+    {
+        $this->onLivePg(function () {
+            $tag = 'clump-'.Str::lower(Str::random(6));
+
+            // A districted type_a half [7,7] (16 slots > VISIBLE_SAMPLE) PLUS a
+            // flagged type_b that the real mapper groups into panels.
+            $parentId = $this->jurisdiction(2_000_000);
+            $legId = (string) Str::uuid();
+            DB::table('legislatures')->insert([
+                'id' => $legId, 'jurisdiction_id' => $parentId, 'term_number' => 1,
+                'status' => 'forming', 'total_seats' => 30, 'type_a_seats' => 14,
+                'type_b_seats' => 16, 'type_b_rep_floor' => 2, 'type_b_needs_districting' => true,
+                'quorum_required' => 16, 'created_at' => now(), 'updated_at' => now(),
+            ]);
+
+            // type_a district map [7,7], parent-scoped.
+            $mapId = (string) Str::uuid();
+            DB::table('legislature_district_maps')->insert([
+                'id' => $mapId, 'legislature_id' => $legId, 'name' => 'Clump Pin Map',
+                'status' => 'active', 'created_at' => now(), 'updated_at' => now(),
+            ]);
+            foreach ([7, 7] as $i => $seats) {
+                DB::table('legislature_districts')->insert([
+                    'id' => (string) Str::uuid(), 'legislature_id' => $legId, 'map_id' => $mapId,
+                    'jurisdiction_id' => $parentId, 'district_number' => $i + 1, 'seats' => $seats,
+                    'target_population' => 1_000_000, 'actual_population' => 1_000_000,
+                    'created_at' => now(), 'updated_at' => now(),
+                ]);
+            }
+
+            // 8 inhabited children + line adjacency — what the mapper clumps.
+            $childIds = [];
+            for ($i = 0; $i < 8; $i++) {
+                $cid = (string) Str::uuid();
+                $childIds[$i] = $cid;
+                DB::table('jurisdictions')->insert([
+                    'id' => $cid, 'name' => "{$tag}-c{$i}", 'slug' => "{$tag}-c{$i}",
+                    'parent_id' => $parentId, 'adm_level' => 4, 'population' => 10,
+                    'created_at' => now(), 'updated_at' => now(),
+                ]);
+            }
+            for ($i = 0; $i < 7; $i++) {
+                DB::table('jurisdiction_adjacency')->insert([
+                    'parent_id' => $parentId, 'j1' => $childIds[$i], 'j2' => $childIds[$i + 1],
+                    'dim' => 1, 'border_len' => 1.0, 'computed_at' => now(),
+                ]);
+            }
+
+            // The REAL per-clump path: group + recompute type_b_seats + clear flag.
+            $applied = (new TypeBDistrictMapper())->apply($legId);
+            $this->assertNotNull($applied, 'the mapper groups this chamber into panels');
+
+            $this->electionBoard($parentId);
+            CohortStage::run($parentId, null, 1, 62);
+            IdentityStage::run($parentId, null, 1);
+
+            // The load-bearing act: it must FIELD, not throw "roster too small".
+            $result = ElectionStage::run($parentId, null, 1);
+
+            $this->assertNotNull($result['election_id'], 'a per-clump chamber must field its election end to end');
+            $this->assertSame([], $result['blocked_kinds'], 'nothing is blocked — both halves are lawful');
+
+            $typeB = DB::table('election_races')
+                ->where('election_id', $result['election_id'])
+                ->where('seat_kind', 'type_b')
+                ->get();
+
+            $this->assertSame($applied['panel_count'], $typeB->count(), 'one race per panel the mapper produced');
+            $this->assertSame(0, $typeB->whereNull('type_b_panel_id')->count(), 'every per-clump race carries its panel key');
+
+            // Candidacies fielded for BOTH halves from the parent roster — the
+            // proof the roster covered districts + panels.
+            $allRaces = DB::table('election_races')->where('election_id', $result['election_id'])->get();
+            $this->assertSame(
+                $allRaces->sum(fn ($r) => (int) $r->seats + 1),
+                $result['candidacies'],
+                'every race was contested — the parent roster covered districts AND panels'
+            );
+        });
+    }
+
     public function test_an_unflagged_type_b_elects_one_race_per_child(): void
     {
         $this->onLivePg(function () {
