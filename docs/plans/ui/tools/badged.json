@@ -3662,7 +3662,8 @@
    "note": "Operator's two-context spec (2026-07-29): Type B = ONE AT-LARGE RACE PER CHILD JURISDICTION; when the reps-per-child ladder (5->2) + nearest-neighbor clumping forces grouping, ONE AT-LARGE RACE PER CLUMP — voted at-large within that child/clump for its own equal seats. Built code emits ONE pooled at_large race over ALL residents (the old '(i)'). Seat MATH already matches (Niue 5 clumps x2 = 10); only RACE STRUCTURE is wrong. Needs: (a) racePlan/createRaces to emit per-child/per-clump races, (b) a grouping/clump key column on election_races, (c) PROTECTED VoteCountingService to count per-unit. Grouped chambers (Niue et al., ~9,708 flagged) stay blocked until it lands. Niue re-flagged + demoted to draft on-box; its CLK-01 timers (2026-08-18/09-01) are ARMED on an advanceable dev clock, so a fired timer WOULD mint the bare wrong-shape race.",
    "badge": "L1W4",
    "lane": "1",
-   "wave": "W4"
+   "wave": "W4",
+   "state": "resolved"
   },
   {
    "title": "Doc drift: CLAUDE.md + ElectionLifecycleService docblock still teach the WRONG pooled Type B model",
@@ -3674,7 +3675,8 @@
    "note": "Both statements are the operator-corrected-wrong model. FLEET_CONTEXT.md:109 already carries the corrected ruling and a warning; the CLAUDE.md line and the service docblock still assert the pooled shape. Fix in lockstep with debt item #1 or the doc keeps teaching the defect.",
    "badge": "L7W4",
    "lane": "7",
-   "wave": "W4"
+   "wave": "W4",
+   "state": "resolved"
   },
   {
    "title": "Five pre-existing suite reds unowned — need Wave 4 owners + baseline run",
@@ -3686,7 +3688,8 @@
    "note": "Wave 2 triage said MatrixCarveoutEmitter + ModerationFlip 'pass isolated', but all three of that trio FAIL ALONE now — so either stale or shifted. A shared-change interaction can't be 100% ruled out without a baseline run, which is unsafe on the shared DB. THE PROCESS FINDING: the full suite was NOT run at the Wave 2 gate, so pre-existing red hid until Wave 3 close. Run the full suite at EVERY wave gate. (The 7 federation console/handshake reds from this family were already FIXED by lane 2 @3a6c542.)",
    "badge": "L4W4",
    "lane": "4",
-   "wave": "W4"
+   "wave": "W4",
+   "state": "resolved"
   },
   {
    "title": "Fleet-wide pixel-screenshot debt — DOM/server-verified but the browser pane won't composite",
@@ -3698,7 +3701,8 @@
    "note": "Standing rule is SCREENSHOT PROOF AFTER EVERY FIX, but no browser pane composites pixels on this box. Everything is DOM-verified / server-verified; the after-pixel-shot is owed at review time when the operator is present. Every lane carries some form of this debt.",
    "badge": "L6W4",
    "lane": "6",
-   "wave": "W4"
+   "wave": "W4",
+   "state": "deferred"
   },
   {
    "title": "9 hand-rolled pollers await consolidation onto useLiveRoom",
@@ -3710,7 +3714,8 @@
    "note": "The canonical live substrate is resources/js/composables/useLiveRoom.js (+ liveRoomPolicy.js state machine, behaviorally pinned 86fcdb7). These nine predate it and each rolls its own setInterval poll; consolidate onto useLiveRoom's uniform 5s + per-group cadenceMs + status-gated contract.",
    "badge": "L3W4",
    "lane": "3",
-   "wave": "W4"
+   "wave": "W4",
+   "state": "resolved"
   },
   {
    "title": "FLEET_CONTEXT line 113 git-pathspec rule contradicts COMMIT LAW v2 (the pathspec-commit trap)",
@@ -3722,7 +3727,8 @@
    "note": "Line 113 is the retired v1 rule the 4th sweep (2026-07-29) proved destroys partial-staging. It sits above the corrected law in the same file, so a lane reading the standing-rulings table (§4) hits the trap before reaching §COMMIT-LAW-v2. Rewrite line 113 to the index-plain-commit law.",
    "badge": "L7W4",
    "lane": "7",
-   "wave": "W4"
+   "wave": "W4",
+   "state": "resolved"
   },
   {
    "title": "Cross-class federation handshake returns HTTP 500, not a graceful 4xx",
@@ -3734,7 +3740,8 @@
    "note": "A demo peer contacting a production instance (or vice versa) is a LAWFUL protocol-level refusal (class-scoped federation, operator ruling 2026-07-25) but surfaces as an uncaught RuntimeException -> 500. Should be a deliberate 4xx (409/422) so the caller can distinguish 'refused by policy' from 'server broke'. The Wave 3 'fix' only stopped the fixture from tripping it; the endpoint still 500s on a real cross-class handshake.",
    "badge": "L2W4",
    "lane": "2",
-   "wave": "W4"
+   "wave": "W4",
+   "state": "resolved"
   },
   {
    "title": "Agenda per-item progression needs a structured-agenda schema (keystone Live Civic Room)",
@@ -3746,7 +3753,8 @@
    "note": "Per-item progression through a meeting (advance/complete each agenda item) needs a structured agenda, not a flat string array. Blocks the live-room molecule from driving an agenda item-by-item. Lane 3's floor primitive (raise-hand -> FIFO/named recognition -> yield, 3c107cf) is ephemeral and deliberately schema-free for now.",
    "badge": "L3W4",
    "lane": "3",
-   "wave": "W4"
+   "wave": "W4",
+   "state": "deferred"
   },
   {
    "title": "Education arming sequencing undecided — dev box deliberately un-seeded, gate inert",
@@ -3758,7 +3766,8 @@
    "note": "Once education:seed arms, every UNTRAINED role-holder redirects on their next role-act. Before the operator's training-loop walk needs an ARMED box, decide: (A) seeders file F-EDU-001 for seated demo members = 'trained' pass [rec] / (B) seed but leave untrained so the walk demos the redirect loop live / (C) don't seed, e2e-only. Gates the operator's browser walk of the pre-seating gate.",
    "badge": "L15W4",
    "lane": "15",
-   "wave": "W4"
+   "wave": "W4",
+   "state": "resolved"
   },
   {
    "title": "AutoscaleResizeRepair SQL mirror clamps type_b_seats_per_child to 5 while PHP does not",
@@ -3770,7 +3779,8 @@
    "note": "The SQL mirror clamps to 5; PHP is authoritative and doesn't. Unreachable now because the setting is validated <=5 and every row is 5. Additive CHECK-constraint is the Wave 4 hardening candidate. Recorded HIGH CONFIDENCE that it cannot fire against the game-box mass pass; found by lane 1's adversarial verification (2dc5cd0) — 'vindicates 27 pins != verified-at-scale'.",
    "badge": "L1W4",
    "lane": "1",
-   "wave": "W4"
+   "wave": "W4",
+   "state": "deferred"
   },
   {
    "title": "Founding-stake-on-registration deferred (100% stake wrong for member-owned/nonprofit)",
@@ -3782,7 +3792,8 @@
    "note": "Structure-aware: a flat 100% founding stake is wrong for member-owned co-ops and nonprofits. Needs a structure-aware allocation. Doesn't block Wave 3 close.",
    "badge": "L13W4",
    "lane": "13",
-   "wave": "W4"
+   "wave": "W4",
+   "state": "resolved"
   },
   {
    "title": "Secondary share TRADING deferred — needs own schema + operator ruling",
@@ -3794,7 +3805,8 @@
    "note": "Operator ruled share ISSUANCE (delivered); secondary trading needs its own schema + his ruling. The shares surface stays honestly empty rather than faking a market. Order book across the exchange is also honest chrome ('not built', 3f6da2a).",
    "badge": "L13W4",
    "lane": "13",
-   "wave": "W4"
+   "wave": "W4",
+   "state": "resolved"
   },
   {
    "title": "RankedBallot liveAggregate — HELD for fresh secrecy-first treatment",
@@ -3806,7 +3818,8 @@
    "note": "SECRECY-CRITICAL, not a perf choice: an in-request provisional count is a CONSTITUTIONAL VIOLATION. Build must be an out-of-band worker (first-preferences + Droop-if-closed-now projection only, writing neither a tabulations row nor ballots.counted), then adversarial verification of the secrecy boundary. The no-in-request-decrypt MECHANISM stands; only the visible-standings CADENCE was the open policy call (ruled daily-batch). Do NOT rush at a run tail.",
    "badge": "L3W4",
    "lane": "3",
-   "wave": "W4"
+   "wave": "W4",
+   "state": "resolved"
   },
   {
    "title": "Demo-mesh handshake missing game_mode field + no coordinating time node + adoption exchange carries no instance_class",
@@ -3818,7 +3831,8 @@
    "note": "Three linked gaps: (1) handshake identity payload should carry game_mode (peer counts as demo only when its signed handshake declared it); (2) demo-mesh time advance needs ONE coordinating node — per-node advances skew shared deadlines (recorded in the gate docblock, deliberately not built); (3) the mirror/adoption exchange carries no instance_class at all, so adoption-minted demo meshes stay time-frozen until it does.",
    "badge": "L2W4",
    "lane": "2",
-   "wave": "W4"
+   "wave": "W4",
+   "state": "resolved"
   },
   {
    "title": "Ruling-9 divergence: federation console landed at /operator/federation, not inside /operator/mesh",
@@ -3830,7 +3844,8 @@
    "note": "Substance delivered (/federation = citizen view; console on the operator plane) but the console landed as its own surface rather than inside /operator/mesh per the ruling's letter. Plausible reason: mesh.html's contract covers PEERING, not cluster hosting. Reconciliation question: does operator/mesh.html absorb the cluster console, or does the spec gain a screen? NOTE: this same Wave-2 route move (/federation -> /operator/federation) is what broke the 6 federation console tests that hid until Wave 3 close.",
    "badge": "L2W4",
    "lane": "2",
-   "wave": "W4"
+   "wave": "W4",
+   "state": "resolved"
   },
   {
    "title": "Setup ORDER conflict — v3 mockup puts ACCOUNT before the founding FORK; settled ruling is FORK-FIRST",
@@ -3842,7 +3857,8 @@
    "note": "Lane 2 matched the mockup's shape only where the ruling allows. Options at review: re-rule to the mockup's order, or fix the mockup to fork-first. Related: pre-account Path-B (device-key linking, no local password) needs a pre-auth endpoint — a trust-surface design question stated honestly on the setup card, not built silently.",
    "badge": "L2W4",
    "lane": "2",
-   "wave": "W4"
+   "wave": "W4",
+   "state": "resolved"
   },
   {
    "title": "seat_training_window_days (default 30) proposed amendable setting — awaits registration-day review",
@@ -3854,7 +3870,8 @@
    "note": "Proposed as a new amendable setting (the window a winner has to complete training before the seat falls to countback). Needs to be registered as a constitutional_setting with bounds. THE READING RULE stands: the pre-seating gate reads ONLY F-EDU-001 completion records — never the achievement ledger, never education_progress.",
    "badge": "L15W4",
    "lane": "15",
-   "wave": "W4"
+   "wave": "W4",
+   "state": "resolved"
   },
   {
    "title": "Orphan surfaces awaiting operator's deletion word",
@@ -3866,7 +3883,8 @@
    "note": "Already executed under ruling A4: Elections/CandidateProfile.vue removed from the tree; the 'elections/candidate-profile' surfaces record removed (config/cga/surfaces.php). /candidates/{candidacy} SURVIVES and 302s to people.show?tab=candidacy (the absorbing surface) — not an orphan. Unreferenced Vue page + an inert surfaces-registry record. Deletion held for operator sign-off rather than removed silently.",
    "badge": "L15W4",
    "lane": "15",
-   "wave": "W4"
+   "wave": "W4",
+   "state": "resolved"
   },
   {
    "title": "Deliberately-not-built social primitives (design decisions needed)",
@@ -3878,7 +3896,8 @@
    "note": "Three: (1) per-user DM flow — Message button links to /civic/rooms; NO per-user primitive exists; (2) social-profile self-EDIT write path — handle/bio/visibility have no HTTP door (an F-IND-002 extension decision); (3) record-tab 'open the full record' link. Also: 'jurisdiction' visibility = not-public in v1. Challenge-tracker 'simulate' + judiciary-home consent sliders were DROPPED (a client-side fake contradicts the engine-snapshot rail).",
    "badge": "L15W4",
    "lane": "15",
-   "wave": "W4"
+   "wave": "W4",
+   "state": "deferred"
   },
   {
    "title": "Tour-nav placement — PLAYER_NAV jumps straight into stop 1 instead of the /tour index",
@@ -3890,7 +3909,8 @@
    "note": "The mockup's nav 'tour' opens the /tour INDEX first (Start arms the mode); the app's PLAYER_NAV still jumps to stop 1. Index exists and is reachable via TourBar 'All steps' + the launchpad. Repointing touches MenuNav's special case. Also: two param-dependent tour targets deferred until a demo world guarantees a stable posting/handle.",
    "badge": "L6W4",
    "lane": "6",
-   "wave": "W4"
+   "wave": "W4",
+   "state": "resolved"
   },
   {
    "title": "/judiciary/docket 302s to /civic for a fresh dev-login user despite being listed public",
@@ -3902,7 +3922,8 @@
    "note": "Fixed at 8745a71: DocketController@mine returns Inertia + an honest empty state, no redirect. The 'listed public' was a nav-slug misread (public-docket slug); surfaces roles are R-19/R-20/R-21/R-03, no R-08 — never visitor-readable. The genuinely public read is /judiciaries/{judiciary}/docket (withoutMiddleware auth, Art. II §2). A per-viewer chain aggregate cannot be public by construction. A fresh dev-login user with no judiciary in their chain gets redirected to /civic. Likely data-dependent (no judiciary in the viewer's ancestor chain) rather than a guard bug, but the public listing vs the 302 is a walk-list discrepancy either way.",
    "badge": "L3W4",
    "lane": "3",
-   "wave": "W4"
+   "wave": "W4",
+   "state": "resolved"
   },
   {
    "title": "flows.js flow-step action strings unextracted for i18n; zh-Hans 95 QA-skips in the verification queue",
@@ -3914,7 +3935,8 @@
    "note": "flows.js flow-step strings are spec-side English never extracted into the i18n catalogs (vue-i18n falls back to en; slug_sha8 keying survives regeneration). Separately, NLLB-600M long-form fidelity uncertainty produced 95 zh-Hans QA-skips — confirmed real with samples; the gate correctly routes them to people who read Chinese (refusal is the answer; a stronger model is the future path, never a weakened rail).",
    "badge": "L5W4",
    "lane": "5",
-   "wave": "W4"
+   "wave": "W4",
+   "state": "resolved"
   },
   {
    "title": "Oversight-console disclosure scope — does §10-1 'public to watch' extend to the LIVE console of in-progress proceedings against NAMED members?",
@@ -3926,19 +3948,21 @@
    "note": "§10-1 named sessions/committees/courts/referendums, not oversight. Desk recommendation: keep the live console member+R-29-gated, findings public — an in-progress investigation of a named person is not yet a proceeding of record and premature exposure is weaponizable; extend only if the operator deliberately wants the stronger transparency posture.",
    "badge": "L3W4",
    "lane": "3",
-   "wave": "W4"
+   "wave": "W4",
+   "state": "resolved"
   },
   {
-   "title": "Q4a - provisioning cannot materialise court tiers / extra civic rooms (schema forbids)",
+   "title": "Court-scaling model: courtTiers = tree-depth; Live Rooms / squares are infrastructure (Q4a)",
    "severity": "medium",
    "category": "design",
    "owner": "operator -> lane 4",
    "location": "InstitutionProvisionService; judiciaries_jurisdiction_live_uq + social_spaces_jur_type_unique",
-   "status": "OPEN - operator ruling (rec: courtTiers=tree-depth; rooms=future room model; singular entities stay singular)",
+   "status": "RESOLVED (operator A, 2026-07-29 — SETTLED, do not re-ask): courtTiers = a jurisdiction's tree-DEPTH. Live Rooms / public squares / chats are INFRASTRUCTURE, NOT constitutionally the same as a court-as-jurisdiction — a COURTHOUSE has many COURT ROOMS. Reframe the formula (doc amendment); no schema, nothing built moves.",
    "note": "Materialise-as-written is impossible (one court/jurisdiction, one public space/type). min_judges-from-tier already wires the meaningful bench scaling.",
    "lane": "4",
    "badge": "L4·W4",
-   "wave": "W4"
+   "wave": "W4",
+   "state": "resolved"
   },
   {
    "title": "Pump wiring - growth dial callable but not autonomous",
@@ -3950,7 +3974,8 @@
    "note": "Committee+department halves built+pinned; registering the phase makes maturation autonomous.",
    "lane": "4",
    "badge": "L4·W4",
-   "wave": "W4"
+   "wave": "W4",
+   "state": "resolved"
   },
   {
    "title": "Per-child (ungrouped) Type B races - joint fixture rewrite",
@@ -3962,19 +3987,21 @@
    "note": "Per-clump (grouped) done+green; ungrouped still interim-pooled until this lands.",
    "lane": "1",
    "badge": "L1·W4",
-   "wave": "W4"
+   "wave": "W4",
+   "state": "resolved"
   },
   {
-   "title": "Advocate qualification catalog + approval lifecycle (rule + schema)",
+   "title": "Advocate = instant competence register; the gate is TRAINING, like every role",
    "severity": "low",
    "category": "design",
    "owner": "operator -> lane 6",
    "location": "advocates.status CHECK migration; F-IND-015 is instant-register",
-   "status": "OPEN - operator ruling (held honest-empty; the bar is a competence register, not a merits gate)",
+   "status": "RESOLVED (operator A, 2026-07-29 — SETTLED, do not re-ask): advocate stays an instant competence REGISTER — no merits gate, no approval lifecycle, no qualification catalog. Same as every role: WANT THE ROLE → DO THE (K-2) TRAINING. To do the role you do the training.",
    "note": "Mockup wanted attest-checkboxes + pending-review; that would invent an eligibility gate the constitution refuses.",
    "lane": "6",
    "badge": "L6·W4",
-   "wave": "W4"
+   "wave": "W4",
+   "state": "resolved"
   },
   {
    "title": "Full suite only composes in a quiet window (global audit advisory lock)",
@@ -3986,7 +4013,8 @@
    "note": "Adopted permanently; the 1343/0 gate ran in a quiet window. Per-lane test DB retires the freeze.",
    "lane": "2",
    "badge": "L2·W4",
-   "wave": "W4"
+   "wave": "W4",
+   "state": "deferred"
   },
   {
    "title": "fr/pt monolithic shell chrome withheld (NLLB confidently-wrong nav)",
@@ -3998,7 +4026,8 @@
    "note": "Page bodies render for all 6 locales; chrome falls back to English. Refusal-is-the-answer.",
    "lane": "5",
    "badge": "L5·W4",
-   "wave": "W4"
+   "wave": "W4",
+   "state": "deferred"
   },
   {
    "title": "needs-schema: constituent_requests + room read/unread position",
@@ -4010,7 +4039,8 @@
    "note": "Surfaced by the 14-agent gap analysis; honest-empty until built.",
    "lane": "6",
    "badge": "L6·W4",
-   "wave": "W4"
+   "wave": "W4",
+   "state": "deferred"
   },
   {
    "title": "CHECK(balance>=0) on economic_accounts - defense-in-depth",
@@ -4022,7 +4052,8 @@
    "note": "The 8-defect adversarial review closed it at the app layer; a DB CHECK is belt-and-suspenders.",
    "lane": "13",
    "badge": "L13·W4",
-   "wave": "W4"
+   "wave": "W4",
+   "state": "deferred"
   }
  ]
 }
