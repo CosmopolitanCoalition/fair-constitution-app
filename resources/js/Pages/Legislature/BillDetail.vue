@@ -136,6 +136,7 @@ function chairReferToFloor() {
                 <span class="mono">{{ bill.act_type }}</span>
                 <span class="citation">introduced {{ fmt(bill.introduced_at) }} · stored as UTC</span>
                 <Link :href="`/legislatures/${legislature.id}/bills`">← all bills</Link>
+                <Link :href="`/bills/${bill.id}/conversation`">Join the conversation on this bill →</Link>
             </p>
             <LifecycleTracker :stages="lifecycle" :current="bill.status" style="margin-block-start: var(--space-3)" />
         </Card>

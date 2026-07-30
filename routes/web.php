@@ -700,6 +700,10 @@ Route::middleware('auth')->group(function () {
         ->whereUuid('bill')->name('bills.show')->withoutMiddleware('auth'); // public read — Art. II §2
     Route::post('/bills/{bill}/refer', [BillController::class, 'refer'])
         ->whereUuid('bill')->name('bills.refer');                             // F-LEG-007 / F-CHR-003
+    Route::get('/bills/{bill}/conversation', [\App\Http\Controllers\Legislature\BillConversationController::class, 'show'])
+        ->whereUuid('bill')->name('bills.conversation')->withoutMiddleware('auth'); // public read — the conversation face
+    Route::post('/bills/{bill}/comments', [\App\Http\Controllers\Legislature\BillConversationController::class, 'comment'])
+        ->whereUuid('bill')->name('bills.comment');                           // F-SOC-001 on the bill's bound subforum
 
     // ── Phase L+M — the economy ─────────────────────────────────────────────
     // Prop shapes are published BEFORE these controllers in
