@@ -261,9 +261,9 @@ Both start as legislature-delegated. Converts to directly elected by supermajori
 The two chambers answer **different questions** and are sized by **different rules**. The old
 one-line summary here had them backwards and that error propagated into `racePlan()`, which
 blocked ~30k chambers. **A SECOND error lived here until 2026-07-29: it said Type B was "ONE STV
-race" — WRONG.** Type B is one at-large race PER CHILD (or per clump). The built code still does
-the wrong (pooled) thing; see the ⚠ flag below. Read this section before touching seats, races or
-districting.
+race" — WRONG.** Type B is one at-large race PER CHILD (or per clump) — now BUILT + hardened that
+way (Wave 4; Niue cleared LIVE, the pooled shape is retired). Read this section before touching
+seats, races or districting.
 
 **Type A — proportional. Population is everything.**
 - Total = `max(5, round(population^(1/3)))` — the cube-root law. **No ceiling on the total.**
@@ -283,12 +283,11 @@ districting.
   at-large within the clump for the clump's seats. This holds at every size — **ungrouped =
   per-child, grouped = per-clump, same rule** (no big single election over everybody, ever). The
   5–9 district band does NOT bind a Type B race (like `exec_committee` / `judicial_group`).
-- **⚠ THE BUILT CODE IS WRONG — DO NOT BUILD ON IT (fix in Wave 4).** `racePlan` / `createRaces`
-  currently emit ONE pooled at-large race over ALL the parent's residents. That is the WRONG
-  shape: it lets population dominate and defeats equal representation. The correct build is
-  per-child / per-clump races — touches PROTECTED `VoteCountingService` + needs a clump/grouping
-  key on `election_races`. The seat **math is already correct** (Niue → 5 clumps × 2 = 10); only
-  the race **grouping** must change. Until then, a grouped Type B chamber is held blocked (Niue).
+- **✅ BUILT + HARDENED (Wave 4).** `racePlan` / `createRaces` emit **per-child / per-clump**
+  at-large races — never a pooled race — and PROTECTED `VoteCountingService` counts per-unit
+  against the clump/grouping key on `election_races`. Niue cleared LIVE (5 clumps × 2 = 10, both
+  chambers elect). The old pooled shape is fully retired. Ungrouped chambers elect per-child;
+  grouped chambers (~9,708 flagged worldwide) elect per-clump via an operator-coordinated mass pass.
 - **A leaf has no Type B** — no constituents to represent. Its own representation appears in its
   PARENT's Type B chamber.
 

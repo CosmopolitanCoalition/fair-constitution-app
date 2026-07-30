@@ -3265,7 +3265,7 @@
    "capability": "Committees — rank-ordered, faction-independent assignment, hearings",
    "maturity": "partial",
    "scaleNote": "Assignment + seating work at any scale.",
-   "blocker": "committee_meetings.agenda is a plain string list — per-item agenda progression needs a structured-agenda schema (DESK_LEDGER agenda-schema flag, Wave 4 candidate). Committee CREATION is a bicameral act, so it inherits the Type B block at scale.",
+   "blocker": "committee_meetings.agenda is a plain string list — per-item agenda progression needs a structured-agenda schema (L3 W5 ⑤; DESK_LEDGER agenda-schema flag). Committee creation completes now that Type B seats (per-clump/per-child); remaining work is L3 W5 ① assignment + hearings end-to-end verification.",
    "badge": "L3·W5",
    "lane": "3",
    "wave": "W5"
@@ -3325,7 +3325,7 @@
    "capability": "Legislature amends a constitutional setting end-to-end through the real act pipeline",
    "maturity": "partial",
    "scaleNote": "Setting store + validator exist; the full loop needs verification.",
-   "blocker": "R-C: amendment workflow loop flagged to verify/complete end-to-end and surface as a walkable journey (DESK_LEDGER §10). At scale it also depends on bicameral agreement where a Type B chamber is required.",
+   "blocker": "R-C: amendment workflow loop flagged to verify/complete end-to-end and surface as a walkable journey (L3 W5 ②; DESK_LEDGER §10). Bicameral agreement now completes since the Type B chamber seats (per-clump/per-child).",
    "badge": "L3·W5",
    "lane": "3",
    "wave": "W5"
@@ -3335,7 +3335,7 @@
    "capability": "Executive delegation then conversion to directly-elected (dual supermajority)",
    "maturity": "partial",
    "scaleNote": "Delegation works; committee (5+ PR-STV) and individual (RCV + top-4 advisors) both built.",
-   "blocker": "CREATING and CONVERTING an executive are bicameral acts — blocked at scale wherever the Type B chamber cannot seat.",
+   "blocker": "Delegation works; delegation→conversion to directly-elected needs L3 W5 ③ end-to-end verification. The bicameral create/convert acts complete now that the Type B chamber seats (per-clump/per-child).",
    "badge": "L3·W5",
    "lane": "3",
    "wave": "W5"
@@ -3373,9 +3373,9 @@
   {
    "area": "Judiciary",
    "capability": "Appointed or elected courts (equal-per-constituent nomination; default appointed, 10-yr)",
-   "maturity": "partial",
-   "scaleNote": "Court formation + seating built and demoable.",
-   "blocker": "Forming/converting a judiciary is a bicameral act — blocked at scale wherever Type B cannot seat. Judiciary min 5, elected requires supermajority + constituent supermajority.",
+   "maturity": "working",
+   "scaleNote": "Verified + pinned (L3 W5): appointed-is-default-never-elected, equal-per-constituent nomination, dual-supermajority conversion (both lanes) + constituent leg, judicial/civil lockstep — 9 pins / 46 assertions green. Type B seats (per-clump/per-child) so the bicameral act completes at any scale. Live E2E walk exercises once institutions:demo-e is restored at re-gate.",
+   "blocker": "",
    "badge": "L3·W5",
    "lane": "3",
    "wave": "W5"

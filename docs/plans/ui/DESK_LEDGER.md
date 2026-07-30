@@ -1514,3 +1514,30 @@ infrastructure-≠-court holds. "Nothing built moves" confirmed.
 L3's W5 ④ appointed/elected-courts cap needs a live hierarchy — else flat per-jurisdiction courts are the clean
 close. Desk sent L3 a scope-alignment note so its ④ report credits the right artifact (not the dead static).
 **Watching L3's ④ report to confirm it reconciles this.** L4 standing by for L6's Atlas a11y handoff.
+
+### W5 tick 2 — L3 ④ courts cap CLOSED + Type B staleness swept (2026-07-30)
+
+**L3 ④ appointed/elected courts → CLOSED.** JudiciaryCreationConversionTest: 9 pins / 46 assertions green
+(appointed-is-default-never-elected, equal-per-constituent nomination, dual-supermajority conversion both lanes
++ constituent leg, judicial/civil lockstep). Cap flipped partial→working. **Caps now 51 working / 4 partial / 1
+absent** — the 4 partial are the live W5 work (committees·amendment·exec = L3; i18n = L5); the 1 absent is
+mobile/Capacitor = Phase 6. So 51/55 alpha caps, 4 to go.
+
+**L3's read CONFIRMS L4 exactly:** courtTiers is dead tier-layer code, parent_judiciary_id never written.
+Desk ruled RETIRE the dead static (not coexist/repurpose — that would be a build the ruling excludes); sent to L3.
+
+**SEED-GATE (L3 flag, routed):** institutions:demo-e is absent on the dev box → 2 live court E2E walks SKIP
+silently. Captured as a HARD re-gate pre-condition — L2 restores + verifies the standing demo seeds (demo-e +
+check elections:demo / institutions:demo-d, likely the same post-flatten gap) IN THE QUIET WINDOW, so seed-gated
+live tests EXERCISE rather than pass-by-skip. Folded into L2's eventual re-gate order; L2 stays held per operator.
+A green suite that skipped its live walks is a FALSE green — the authoritative gate must not ship that.
+
+**TYPE B STALENESS SWEPT** (same class as the banner the operator flagged this session):
+- 4 cap blockers (courts, committees, amendment, exec) claimed "blocked at scale wherever Type B cannot seat" —
+  STALE (Type B resolved in W4). Rewrote each to the real remaining L3 W5 work; Type B now seats per-clump/per-child.
+- CLAUDE.md § Bicameral Support still carried the "⚠ THE BUILT CODE IS WRONG — DO NOT BUILD ON IT (fix in Wave 4)
+  … grouped Type B held blocked (Niue)" warning — read by EVERY lane at session start, actively misleading now.
+  Replaced with "✅ BUILT + HARDENED (Wave 4); per-child/per-clump; Niue cleared LIVE; pooled shape retired."
+- Debt items #1 (pooled-shape defect) + doc-drift were already state=resolved (collapsed) — left as historical record.
+
+Rubric regenerated (51 caps working) + redeployed same URL. Ledger + CLAUDE.md + badged.json + rubric committed.
