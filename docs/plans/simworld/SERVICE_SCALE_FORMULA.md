@@ -101,23 +101,52 @@ All formulas are **pure, DB-free statics** (pinnable like `cubeRootSeats` and th
 `S = max(5, round(P^⅓))`, districted 5–9 by `DistrictingService`. **Not this formula's to compute.**
 Listed only because the other counts key off `S`. Earth→1,999 · San Marino→32 · Niue→12.
 
-### 4.3 Judiciary — bench size + court tiers
+### 4.3 Judiciary — bench size + court tiers (tree-depth)
+
+> **⚑ OPERATOR RULING — Q4a = A (2026-07-30, SETTLED, do NOT re-ask).**
+> *"LIVE ROOMS AND PUBLIC SQUARES/CHATS ARE INFRASTRUCTURE AND NOT constitutionally the same as a
+> court as a jurisdiction. Court House DOES NOT EQUAL Court Room."*
+>
+> **`courtTiers` = a jurisdiction's TREE-DEPTH, expressed ACROSS THE JURISDICTION TREE via
+> `judiciaries.parent_judiciary_id` — NOT a count of stacked court rows at one place.** Each
+> jurisdiction has exactly ONE live court (`judiciaries_jurisdiction_live_uq`, verified intact
+> 2026-07-30); the trial → appellate → supreme hierarchy is the CHAIN of those single courts up the
+> parent tree, not multiple benches at one node. A courthouse's many court rooms are infrastructure
+> *inside* one court, not many courts. **Doc reframe only: no schema, nothing built moves** — the
+> runtime already enforces exactly this (one court per jurisdiction; the parent chain is the depth
+> model). NEVER weaken `judiciaries_jurisdiction_live_uq` to make a per-place count fit.
 
 **Bench floor stays 5 (Art. IV §1), no ceiling; the constituent-per-judge rule keeps precedence
-where it applies.** The existing tier bumps already sit inside the empirical envelope:
+where it applies.** The bench-size tier bumps are live and correct — they size the STARTING bench of
+that one court (`judgeCount()`, consumed by `InstitutionProvisionService` via `judgeCountSql()`):
 
-| Tier | Existing `judgeCount` | Proposed court tiers (NEW) | Real-world reading |
+| Tier | `judgeCount` bench (LIVE) | Court-tier DEPTH reading | Real-world reading |
 |---|---|---|---|
-| minimal (village) | 5 | 1 (trial only) | one bench |
-| standard (town/city) | 5 | 1 (trial only) | one bench |
-| extended (large city/province) | 7 | 2 (trial + appellate) | appellate layer appears |
-| full (nation/planet) | 9 | 3 (trial + appellate + supreme/constitutional) | apex court |
+| minimal (village) | 5 | leaf — trial court, depth 0 | one bench |
+| standard (town/city) | 5 | leaf — trial court, depth 0 | one bench |
+| extended (large city/province) | 7 | an appellate layer sits ABOVE it in the tree | appellate layer appears |
+| full (nation/planet) | 9 | apex — supreme/constitutional at/near the tree root | apex court |
 
-**Recommendation: KEEP the existing 5/5/7/9 bench bumps (zero delta, already pinned in
-`InstitutionScaleTest`), ADD the court-tier count as the new scaled thing.** The 22-judges-per-100k
-figure is the *aggregate* calibration target, reached by **distribution across the tree** (every
-jurisdiction with a judiciary holds ≥5), not by inflating any single bench — concentrating it would
-break the min-5-per-race law. See §9-Q2 for the alternative (a log bench curve) and its cost.
+The DEPTH column is a *reading of position in the tree*, not a number the provisioner writes as extra
+rows. A place's "tiers above it" = how many court-bearing ancestors it has; that is exactly what
+`parent_judiciary_id` chains express, realised by the courts capability (F-LEG-017 formation / lane 3),
+never by the bulk provisioner minting a second court.
+
+**Bench sizing: KEEP the existing 5/5/7/9 bumps (zero delta, pinned in `InstitutionScaleTest`).** The
+22-judges-per-100k figure is the *aggregate* calibration target, reached by **distribution across the
+tree** (every jurisdiction with a judiciary holds ≥5), not by inflating any single bench —
+concentrating it would break the min-5-per-race law. See §9-Q2 for the alternative (a log bench
+curve) and its cost.
+
+**Code state (verify-and-close, 2026-07-30).** `InstitutionScaleService::courtTiers(string $tier)`
+still returns the old per-tier *count* (0/1/1/2/3) and has **zero production callers** — a
+retained-but-uncalled hint, pinned only by `InstitutionScaleTest`; the provisioner never materialises
+it (the schema forbids a second court per jurisdiction — correct). Its docblock still cites the
+pre-ruling "a provisioning engine MAY materialise these" reading, now SUPERSEDED by the ruling above;
+that docblock is flagged to the file's owner (lane 3) to reframe or retire. `parent_judiciary_id`
+exists on `judiciaries` (column + `Judiciary::parentJudiciary()` + FK index) but is **not yet
+populated by any code path** — the depth MODEL is present; populating the chain is the courts
+capability's job, not this formula's.
 
 ### 4.4 Legislative committees & executive departments — DEMO-POSTURE TARGETS ONLY
 
@@ -159,6 +188,15 @@ Anchored to 1 civic center per ~50k (§3). **The cap and the "local tier only" r
 Earth's 7.99B ÷ 50k = 159,800 rooms is nonsense at the planet node — those rooms belong to Earth's
 *descendants*, not Earth. Rooms are a leaf/local metric; the jurisdiction tree distributes them.
 Niue and San Marino (both < 50k) get square + halls and **0 extra rooms** — correct for a microstate.
+
+> **⚑ Same ruling (Q4a = A, 2026-07-30) governs rooms.** Live Rooms / public squares / chats are
+> **INFRASTRUCTURE** — not jurisdictions, not courts; a courthouse's many rooms live INSIDE one court.
+> `social_spaces` holds exactly one public space per `(jurisdiction, space_type)`
+> (`social_spaces_jur_type_unique`, verified intact 2026-07-30), and the unconditional square + halls
+> are what the provisioner writes. `extraRooms()` above is the **future room model** — a
+> retained-but-uncalled static (zero production callers, pinned only by a test), NOT rows the
+> provisioner materialises today. No schema, nothing built moves; NEVER weaken
+> `social_spaces_jur_type_unique` to fit extra rooms.
 
 ---
 
