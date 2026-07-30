@@ -130,17 +130,28 @@ final class ElectionStage
     }
 
     /**
-     * Field seats+1 candidates per race from the jurisdiction's own roster.
+     * Field seats+1 candidates per race, EACH FROM ITS OWN RACE'S JURISDICTION.
      *
      * Candidates must be RESIDENTS — `RaceFootprint` gates candidacy on an
-     * active residency association, and the identities stage wrote exactly
-     * those rows. Drawing from the local roster is therefore not a shortcut; it
-     * is the only lawful source.
+     * active residency association with the race's jurisdiction, and the
+     * identities stage wrote exactly those rows. Drawing from the local roster
+     * is therefore not a shortcut; it is the only lawful source.
      *
-     * A user may hold only ONE candidacy per election (a DB unique constraint
-     * on election_id+user_id), so the roster is consumed across races rather
-     * than reused — which is also why the identities stage sizes it as
-     * Σ(seats + 1) in the first place.
+     * ⚑ PER-CHILD (operator ruling 2026-07-29). An unflagged Type B chamber
+     * elects one at-large race PER DIRECT CHILD, each scoped to that child
+     * (`election_races.jurisdiction_id` = the child). Those candidates can only
+     * come from THAT CHILD's residents, never a pooled parent roster — pooling
+     * would let one place's residents contest another's seats, the very thing
+     * per-child exists to prevent. So races are grouped by their own
+     * jurisdiction and each group draws from that jurisdiction's roster. A
+     * district / type_a race carries the chamber's jurisdiction (or none), and
+     * falls back to the election's jurisdiction.
+     *
+     * A user may hold only ONE candidacy per election (a DB unique constraint on
+     * election_id+user_id). The identities stage writes confirmations at depth 0
+     * — this jurisdiction only, no ancestor sweep — so no user sits in two
+     * jurisdictions' rosters, and the constraint holds across groups by
+     * construction; within a group the cursor prevents reuse.
      */
     private static function fieldCandidates(
         string $jurisdictionId,
@@ -148,57 +159,73 @@ final class ElectionStage
         $races,
         int $version
     ): int {
-        $needed = $races->sum(fn ($r) => (int) $r->seats + self::EXTRA_CANDIDATES);
+        // Group each race under the jurisdiction whose residents may contest it.
+        $byScope = [];
 
-        if ($needed === 0) {
-            return 0;
-        }
-
-        // The roster, in a deterministic order — residency is what makes them
-        // eligible, so this is the same set the constitution would accept.
-        $roster = DB::table('residency_confirmations')
-            ->where('jurisdiction_id', $jurisdictionId)
-            ->where('is_active', true)
-            ->orderBy('user_id')
-            ->limit($needed)
-            ->pluck('user_id')
-            ->all();
-
-        if (count($roster) < $needed) {
-            throw new \RuntimeException(sprintf(
-                'Roster too small to contest this election: %d residents for %d seats+1 slots. '
-                .'The identities stage must run first and size to Σ(seats + 1).',
-                count($roster),
-                $needed
-            ));
+        foreach ($races as $race) {
+            $scope = ! empty($race->jurisdiction_id) ? (string) $race->jurisdiction_id : $jurisdictionId;
+            $byScope[$scope][] = $race;
         }
 
         $rng = new HashChainRandom(hash('sha256', $electionId).':v'.$version);
         $now = now();
         $rows = [];
-        $cursor = 0;
 
-        foreach ($races as $race) {
-            $slots = (int) $race->seats + self::EXTRA_CANDIDATES;
+        foreach ($byScope as $scope => $scopeRaces) {
+            $needed = 0;
+            foreach ($scopeRaces as $race) {
+                $needed += (int) $race->seats + self::EXTRA_CANDIDATES;
+            }
 
-            for ($i = 0; $i < $slots; $i++) {
-                $rows[] = [
-                    'id' => (string) Str::uuid(),
-                    'election_id' => $electionId,
-                    'race_id' => $race->id,
-                    'user_id' => $roster[$cursor++],
-                    // VALIDATED so the count can see them: the board's
-                    // validation step (F-ELB-002) is a human judgment about a
-                    // real person's residency, and there is no human here to
-                    // exercise it. The residency it would check is the row the
-                    // identities stage already wrote.
-                    'status' => Candidacy::STATUS_VALIDATED,
-                    'position_tags' => json_encode([]),
-                    'residency_attested_at' => $now,
-                    'validated_at' => $now,
-                    'created_at' => $now,
-                    'updated_at' => $now,
-                ];
+            if ($needed === 0) {
+                continue;
+            }
+
+            // The roster, in a deterministic order — residency is what makes
+            // them eligible, so this is the same set the constitution accepts.
+            $roster = DB::table('residency_confirmations')
+                ->where('jurisdiction_id', $scope)
+                ->where('is_active', true)
+                ->orderBy('user_id')
+                ->limit($needed)
+                ->pluck('user_id')
+                ->all();
+
+            if (count($roster) < $needed) {
+                throw new \RuntimeException(sprintf(
+                    'Roster too small to contest this election: %d residents in jurisdiction %s for %d '
+                    .'seats+1 slots. The identities stage must run first and size to Σ(seats + 1) for '
+                    .'each race-bearing jurisdiction (per-child races draw from each child).',
+                    count($roster),
+                    $scope,
+                    $needed
+                ));
+            }
+
+            $cursor = 0;
+
+            foreach ($scopeRaces as $race) {
+                $slots = (int) $race->seats + self::EXTRA_CANDIDATES;
+
+                for ($i = 0; $i < $slots; $i++) {
+                    $rows[] = [
+                        'id' => (string) Str::uuid(),
+                        'election_id' => $electionId,
+                        'race_id' => $race->id,
+                        'user_id' => $roster[$cursor++],
+                        // VALIDATED so the count can see them: the board's
+                        // validation step (F-ELB-002) is a human judgment about a
+                        // real person's residency, and there is no human here to
+                        // exercise it. The residency it would check is the row
+                        // the identities stage already wrote.
+                        'status' => Candidacy::STATUS_VALIDATED,
+                        'position_tags' => json_encode([]),
+                        'residency_attested_at' => $now,
+                        'validated_at' => $now,
+                        'created_at' => $now,
+                        'updated_at' => $now,
+                    ];
+                }
             }
         }
 

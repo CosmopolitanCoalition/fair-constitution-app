@@ -48,21 +48,29 @@ class ElectionStageTest extends TestCase
     public function test_it_calls_a_real_election_with_exactly_enough_candidates(): void
     {
         $this->onLivePg(function () {
-            $jid = $this->world(typeA: 14, typeB: 5, districtSeats: [7, 7]);
+            // 2 district races (type_a) + one per-child type_b race per direct
+            // child. Each per-child race draws its own seats+1 from its OWN
+            // child's roster — the headline invariant (candidacies == Σ(seats+1)
+            // over the races the engine actually generated) holds unchanged; only
+            // the type_b shape moved from one pooled race to one race per child.
+            $repFloor = 2;
+            $childCount = 3;
+            [$jid] = $this->worldPerChild(typeA: 14, districtSeats: [7, 7], childCount: $childCount, repFloor: $repFloor);
 
             $result = ElectionStage::run($jid, null, 1);
 
             $this->assertNotNull($result['election_id']);
 
-            // 2 district races + 1 lawful at-large type_b race.
-            $this->assertSame(3, $result['races']);
+            // 2 district races + childCount per-child type_b races.
+            $this->assertSame(2 + $childCount, $result['races']);
 
-            // Σ(seats + 1): (7+1) + (7+1) + (5+1) = 22.
-            $this->assertSame(22, $result['candidacies']);
+            // Σ(seats + 1): (7+1) + (7+1) + childCount × (2+1) = 16 + 9 = 25.
+            $expected = (7 + 1) + (7 + 1) + $childCount * ($repFloor + 1);
+            $this->assertSame($expected, $result['candidacies']);
 
             $rows = DB::table('election_races')->where('election_id', $result['election_id'])->get();
             $this->assertSame(
-                22,
+                $expected,
                 $rows->sum(fn ($r) => (int) $r->seats + 1),
                 'the candidate count must equal the races the engine actually generated'
             );
@@ -179,33 +187,52 @@ class ElectionStageTest extends TestCase
      * `type_a` race above nine remains impossible. San Marino's 27-seat
      * at-large chamber is counted, certified and seated.
      */
-    public function test_a_large_type_b_is_one_lawful_at_large_race(): void
+    public function test_an_unflagged_type_b_elects_one_race_per_child(): void
     {
         $this->onLivePg(function () {
-            $jid = $this->world(typeA: 14, typeB: 1141, districtSeats: [7, 7]);
+            // Operator ruling 2026-07-29: an UNFLAGGED Type B chamber elects one
+            // at-large race PER DIRECT CHILD — never one pooled race, which would
+            // let population dominate the equal representation Type B exists to
+            // deliver. The sim stage must SCHEDULE exactly those per-child races
+            // and block nothing; this pins the stage carrying the per-child shape
+            // end to end, not just racePlan. (Supersedes the old "one lawful
+            // at-large race at any size" — that shape is now unconstitutional.)
+            $repFloor = 2;
+            $childCount = 6;
+            [$jid] = $this->worldPerChild(typeA: 14, districtSeats: [7, 7], childCount: $childCount, repFloor: $repFloor);
 
             $result = ElectionStage::run($jid, null, 1);
 
             $this->assertNotNull($result['election_id']);
             $this->assertSame(
-                3,
-                $result['races'],
-                'two district races PLUS one at-large type_b race — not blocked'
-            );
-            $this->assertSame(
                 [],
                 $result['blocked_kinds'],
-                'a large type_b is lawful; nothing here should be blocked'
+                'an unflagged per-child type_b is lawful; nothing here should be blocked'
+            );
+            $this->assertSame(
+                2 + $childCount,
+                $result['races'],
+                'two district races PLUS one at-large race per direct child'
             );
 
-            $atLarge = DB::table('election_races')
+            $typeB = DB::table('election_races')
                 ->where('election_id', $result['election_id'])
                 ->where('seat_kind', 'type_b')
-                ->first();
+                ->get();
 
-            $this->assertNotNull($atLarge, 'the upper chamber gets its race');
-            $this->assertSame(1141, (int) $atLarge->seats, 'at its full size, undivided');
-            $this->assertNull($atLarge->district_id, 'at-large: the jurisdiction IS the district');
+            $this->assertSame($childCount, $typeB->count(), 'one type_b race per direct child');
+            $this->assertSame(
+                $childCount * $repFloor,
+                (int) $typeB->sum('seats'),
+                'Σ per-child seats == type_b_seats, by construction'
+            );
+            $this->assertSame(0, $typeB->whereNotNull('type_b_panel_id')->count(), 'per-child races carry no panel key');
+            $this->assertSame(0, $typeB->whereNotNull('district_id')->count(), 'at-large within each child: no district_id');
+            $this->assertSame(
+                $childCount,
+                $typeB->whereNotNull('jurisdiction_id')->count(),
+                'each per-child race is scoped to its own child jurisdiction'
+            );
         });
     }
 
@@ -231,20 +258,29 @@ class ElectionStageTest extends TestCase
     public function test_a_partially_blocked_chamber_elects_only_its_lawful_half(): void
     {
         $this->onLivePg(function () {
-            $jid = $this->world(typeA: 152, typeB: 5, districtSeats: []); // no district map
+            // type_a 152 with NO district map → the district half is blocked
+            // (over-ceiling, unmapped). The type_b half is lawful and, under
+            // per-child, elects one race per direct child — so it needs real
+            // children to be contestable (a childless type_b would be blocked by
+            // the drift guard, which is a DIFFERENT block from the one this pins).
+            $repFloor = 2;
+            $childCount = 3;
+            [$jid] = $this->worldPerChild(typeA: 152, districtSeats: [], childCount: $childCount, repFloor: $repFloor);
 
             $result = ElectionStage::run($jid, null, 1);
 
             // The lawful half elected; the whole chamber was NOT dropped.
             $this->assertNotNull($result['election_id'], 'the lawful type_b half must still elect');
-            $this->assertNotEmpty(
+            $this->assertContains(
+                'type_a',
                 $result['blocked_kinds'],
                 'the blocked district half must be RECORDED, never silently dropped'
             );
 
-            // Nothing was scheduled for the blocked half — every race is the type_b one.
+            // Nothing was scheduled for the blocked half — every race is a
+            // per-child type_b race, one per direct child, none for the district.
             $rows = DB::table('election_races')->where('election_id', $result['election_id'])->get();
-            $this->assertSame(1, $rows->count(), 'exactly the one lawful race the engine authorised');
+            $this->assertSame($childCount, $rows->count(), 'exactly the per-child races the engine authorised');
             $this->assertTrue(
                 $rows->every(fn ($r) => $r->seat_kind === 'type_b'),
                 'the stage schedules only what racePlan authorised — never a race for the blocked kind'
@@ -412,6 +448,57 @@ class ElectionStageTest extends TestCase
     }
 
     /**
+     * A per-child Type B world (operator ruling 2026-07-29): an UNFLAGGED Type B
+     * chamber elects one at-large race PER DIRECT CHILD, each seating that
+     * child's own rep_floor from that child's OWN residents. So `type_b_seats`
+     * must equal `childCount × rep_floor` (the drift guard blocks otherwise), and
+     * EACH child needs its own roster — CohortStage rosters one jurisdiction, not
+     * its descendants, so a per-child race scoped to a child has no candidates
+     * unless that child is cohorted here too.
+     *
+     * @return array{0:string, 1:list<string>} [parentJurisdictionId, childIds]
+     */
+    private function worldPerChild(int $typeA, array $districtSeats, int $childCount, int $repFloor): array
+    {
+        $jid = $this->jurisdiction(2_000_000);
+        $this->legislature($jid, $typeA, $childCount * $repFloor, $districtSeats, $repFloor);
+        $this->electionBoard($jid);
+
+        // The type_a district half draws from the parent's roster.
+        CohortStage::run($jid, null, 1, 62);
+        IdentityStage::run($jid, null, 1);
+
+        // Each direct child is a per-child Type B race, scoped to the child's own
+        // residents — so each is cohorted + rostered in its own right. Population
+        // > TINY_POP (5) so every child seats the full rep_floor.
+        $childIds = [];
+
+        for ($i = 0; $i < $childCount; $i++) {
+            $cid = (string) Str::uuid();
+            $childIds[] = $cid;
+
+            DB::table('jurisdictions')->insert([
+                'id' => $cid,
+                'parent_id' => $jid,
+                'name' => 'Child '.$i,
+                'slug' => 'child-'.Str::lower(Str::random(10)),
+                'adm_level' => 4,
+                'population' => 100_000,
+                'source' => 'user_defined',
+                'official_languages' => '["en"]',
+                'timezone' => 'UTC',
+                'created_at' => now(),
+                'updated_at' => now(),
+            ]);
+
+            CohortStage::run($cid, null, 1, 62);
+            IdentityStage::run($cid, null, 1);
+        }
+
+        return [$jid, $childIds];
+    }
+
+    /**
      * The bootstrap board. ActivationService constitutes one when a jurisdiction
      * activates for real; every other fixture here presumes an activated place.
      */
@@ -447,7 +534,7 @@ class ElectionStageTest extends TestCase
         return $id;
     }
 
-    private function legislature(string $jid, int $typeA, int $typeB, array $districtSeats): void
+    private function legislature(string $jid, int $typeA, int $typeB, array $districtSeats, ?int $repFloor = null): void
     {
         $id = (string) Str::uuid();
 
@@ -459,6 +546,9 @@ class ElectionStageTest extends TestCase
             'total_seats' => $typeA + $typeB,
             'type_a_seats' => $typeA,
             'type_b_seats' => $typeB,
+            // Per-child seats key off rep_floor; leave the column at its default
+            // when a test does not exercise the per-child path.
+            'type_b_rep_floor' => $repFloor,
             'quorum_required' => max(3, (int) ceil(($typeA + $typeB) / 2)),
             'created_at' => now(),
             'updated_at' => now(),
