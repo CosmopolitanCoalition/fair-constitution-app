@@ -1354,3 +1354,20 @@ secrecy hardened. Continuing ② social/groups → ③ bill.html.
 
 **RUBRIC note:** pump-wiring + Niue-void now DONE (rubric shows "active" — minor staleness); per-child ACTIVE
 (transition). Regen after the per-child re-gate locks the post-per-child green.
+
+### W4 tick 18b — L4 per-child co-update DONE (+ a real fielding defect); L3 fixtures the last piece
+
+**LANE 4 per-child co-update (64c2a27) — ElectionStage 10/10, one-editor-per-file (lane-4 files only).** ⚑ It
+surfaced a REAL defect, not just stale assertions: `ElectionStage::fieldCandidates` drew ONE roster from the
+election's jurisdiction and spread it across every race — for per-child that UNDER-FILLED (16 residents / 34
+slots) AND would have let one place's residents contest another's seats (defeating equal representation).
+FIX: regroup fielding by each race's OWN jurisdiction (safe by construction — IdentityStage writes depth-0
+confirmations, no ancestor sweep; VISIBLE_SAMPLE covers seats+1). ⚑ INSIGHT: per-child had THREE lane pieces —
+L1 racePlan, L3 counting/seating fixtures, L4 candidacy FIELDING — and PerKindRacePlanTest can't catch the
+fielding gap; only the sim stage does. **LANE 4 WAVE 4 FULLY CLOSED** (Atlas · provisioning bench · R-A un-flag ·
+growth dial built+autonomous · debt 5/5 · per-child); only Q4a (operator) open.
+
+**L3 per-child fixtures = the last transition piece** — CountingStageTest modified in the tree (uncommitted),
+SeatingStage to follow. When L3 commits + reports, the 6 transition reds close → desk re-gates (fresh quiet
+window + freeze + chown). L6 ② org-profile also landed (ff0f1a9). Rubric regen deferred to the post-per-child
+re-gate (then: pump-wiring/Niue-void → done, per-child → green, org-profile → built).
