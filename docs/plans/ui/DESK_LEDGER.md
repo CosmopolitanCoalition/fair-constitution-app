@@ -1682,3 +1682,25 @@ validation+payload add; service already supports it) — a nicety, not routed to
 3. L2 AUTHORITATIVE RE-GATE — quiet window, SUITE TOKEN, + arm-phase prep folded in (restore standing seeds
    institutions:demo-* + provision Matrix identities for demo users) so the 3 seed-gated live E2Es EXERCISE.
 4. ARM (education:seed [L15] + live per-clump Niue general [L1]) → the operator's walk.
+
+### W5 tick 8 — L6 slate COMPLETE (③ a11y) + L3 consolidated (⑤ built, awaiting migrate) (2026-07-30)
+
+**L6 ③ Atlas a11y DONE (9f0f5e9, findings → L4).** 1 MEDIUM (9 vital-signs cards: span titles + unlabeled
+sections → recommend h3/region) + 3 LOW (th scope, ~24px touch targets @375, off-toggle opacity .45) + 1 Phase-N
+token-contrast. A review, not a rebuild (Atlas.vue untouched). Non-blocking polish — L4 owns disposition. Strong
+baseline (reduced-motion / aria-pressed / role=status / sparkline labels / colour-never-alone all already right).
+**★ L6's ENTIRE W5 slate (①②③) COMPLETE + pushed + pinned.** L6 HOLDING for re-gate triage.
+
+**L3 consolidated:** ②①③④ caps closed. ⑤ agenda code FULLY BUILT + graceful-degrades — AgendaService guarded by
+Schema::hasTable('agenda_items') → no-ops to the JSONB-blob path until the migration runs (18 passed / 133 with
+the table ABSENT → ZERO tree hazard, no slot contention). ⑤ migrate GRANTED (tick 6; reconfirmed this tick) — L3
+runs it at convenience, proves AgendaPerItemTest + commits. courtTiers RETIRE reconfirmed SETTLED (f4c1a01) → L3
+executes the InstitutionScaleService side (remove dead courtTiers()/extraRooms() statics + their lone pins;
+runtime-inert) whenever. (L3's "④ courtTiers still OPEN" note = the execution side, not the ruling.)
+
+**a11y findings** documented in docs/plans/ui/L6W5_ATLAS_A11Y_FINDINGS.md — to fold into the rubric as a deferred
+polish debt row at the next redeploy.
+
+**TAILS:** L6 = DONE. L3 = ⑤ migration + courtTiers retire (both non-hazardous, L3's pace). When ⑤ lands → the
+build lanes are done & ready → ENGAGE L2 for the authoritative re-gate (seed restore + Matrix provision, quiet
+window, SUITE TOKEN).
