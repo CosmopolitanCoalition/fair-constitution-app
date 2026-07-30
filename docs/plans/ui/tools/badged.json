@@ -2236,9 +2236,9 @@
    "area": "Social + groups",
    "bucket": "partial",
    "effort": "M",
-   "badge": "L6·W4",
+   "badge": "L6·W5",
    "lane": "6",
-   "wave": "W4"
+   "wave": "W5"
   },
   {
    "file": "groups/group-create.html",
@@ -2263,9 +2263,9 @@
    "area": "Social + groups",
    "bucket": "partial",
    "effort": "S",
-   "badge": "L6·W4",
+   "badge": "L6·W5",
    "lane": "6",
-   "wave": "W4"
+   "wave": "W5"
   },
   {
    "file": "groups/group-detail.html",
@@ -2300,9 +2300,9 @@
    "area": "Social + groups",
    "bucket": "partial",
    "effort": "M",
-   "badge": "L6·W4",
+   "badge": "L6·W5",
    "lane": "6",
-   "wave": "W4"
+   "wave": "W5"
   },
   {
    "file": "social/achievements.html",
@@ -2785,9 +2785,9 @@
    "area": "Shared front doors",
    "bucket": "absent",
    "effort": "L",
-   "badge": "L6·W4",
+   "badge": "L6·W5",
    "lane": "6",
-   "wave": "W4"
+   "wave": "W5"
   },
   {
    "file": "shared/coverage.html",
@@ -2968,9 +2968,9 @@
    "area": "Organizations",
    "bucket": "partial",
    "effort": "S",
-   "badge": "L13W4",
+   "badge": "L13·W5",
    "lane": "13",
-   "wave": "W4"
+   "wave": "W5"
   },
   {
    "file": "organizations/cgc-detail.html",
@@ -3053,9 +3053,9 @@
    "area": "Organizations",
    "bucket": "partial",
    "effort": "S",
-   "badge": "L13W4",
+   "badge": "L13·W5",
    "lane": "13",
-   "wave": "W4"
+   "wave": "W5"
   },
   {
    "file": "organizations/transfers-conversions.html",
@@ -3266,9 +3266,9 @@
    "maturity": "partial",
    "scaleNote": "Assignment + seating work at any scale.",
    "blocker": "committee_meetings.agenda is a plain string list — per-item agenda progression needs a structured-agenda schema (DESK_LEDGER agenda-schema flag, Wave 4 candidate). Committee CREATION is a bicameral act, so it inherits the Type B block at scale.",
-   "badge": "L3W4",
+   "badge": "L3·W5",
    "lane": "3",
-   "wave": "W4"
+   "wave": "W5"
   },
   {
    "area": "Legislature",
@@ -3326,9 +3326,9 @@
    "maturity": "partial",
    "scaleNote": "Setting store + validator exist; the full loop needs verification.",
    "blocker": "R-C: amendment workflow loop flagged to verify/complete end-to-end and surface as a walkable journey (DESK_LEDGER §10). At scale it also depends on bicameral agreement where a Type B chamber is required.",
-   "badge": "L3W4",
+   "badge": "L3·W5",
    "lane": "3",
-   "wave": "W4"
+   "wave": "W5"
   },
   {
    "area": "Executive",
@@ -3336,9 +3336,9 @@
    "maturity": "partial",
    "scaleNote": "Delegation works; committee (5+ PR-STV) and individual (RCV + top-4 advisors) both built.",
    "blocker": "CREATING and CONVERTING an executive are bicameral acts — blocked at scale wherever the Type B chamber cannot seat.",
-   "badge": "L3W4",
+   "badge": "L3·W5",
    "lane": "3",
-   "wave": "W4"
+   "wave": "W5"
   },
   {
    "area": "Executive",
@@ -3376,9 +3376,9 @@
    "maturity": "partial",
    "scaleNote": "Court formation + seating built and demoable.",
    "blocker": "Forming/converting a judiciary is a bicameral act — blocked at scale wherever Type B cannot seat. Judiciary min 5, elected requires supermajority + constituent supermajority.",
-   "badge": "L3W4",
+   "badge": "L3·W5",
    "lane": "3",
-   "wave": "W4"
+   "wave": "W5"
   },
   {
    "area": "Judiciary",
@@ -3606,9 +3606,9 @@
    "maturity": "partial",
    "scaleNote": "Coverage 82–87% after the NLLB pass; scales to any content via slug_sha8 keying + en fallback.",
    "blocker": "992-string gap closed only to ai_draft behind a human-verification queue; zh-Hans has 95 QA-skips routed to Chinese readers. Not fully human-verified.",
-   "badge": "L5W4",
+   "badge": "L5·W5",
    "lane": "5",
-   "wave": "W4"
+   "wave": "W5"
   },
   {
    "area": "Federation",
@@ -3751,9 +3751,9 @@
    "location": "committee_meetings.agenda is a plain string list; Pages/Legislature/LiveCivicRoom.vue floor is ephemeral cache (no schema)",
    "status": "FLAG RECORDED (Wave 4 candidate)",
    "note": "Per-item progression through a meeting (advance/complete each agenda item) needs a structured agenda, not a flat string array. Blocks the live-room molecule from driving an agenda item-by-item. Lane 3's floor primitive (raise-hand -> FIFO/named recognition -> yield, 3c107cf) is ephemeral and deliberately schema-free for now.",
-   "badge": "L3W4",
+   "badge": "L3·W5",
    "lane": "3",
-   "wave": "W4",
+   "wave": "W5",
    "state": "deferred"
   },
   {
@@ -4025,8 +4025,8 @@
    "status": "HELD by the rail - mechanism shipped, raw output withheld until a reader/stronger-model pass",
    "note": "Page bodies render for all 6 locales; chrome falls back to English. Refusal-is-the-answer.",
    "lane": "5",
-   "badge": "L5·W4",
-   "wave": "W4",
+   "badge": "L5·W5",
+   "wave": "W5",
    "state": "deferred"
   },
   {
@@ -4051,8 +4051,8 @@
    "status": "OPTIONAL - later slot; app-layer buyer-account row lock already closes the no-overdraft hole",
    "note": "The 8-defect adversarial review closed it at the app layer; a DB CHECK is belt-and-suspenders.",
    "lane": "13",
-   "badge": "L13·W4",
-   "wave": "W4",
+   "badge": "L13·W5",
+   "wave": "W5",
    "state": "deferred"
   }
  ]
