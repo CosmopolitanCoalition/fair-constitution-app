@@ -1,61 +1,61 @@
 {
-  "generated_at": "2026-07-29T11:02:32.100Z",
-  "source_keys": 5025,
+  "generated_at": "2026-07-30T03:26:34.671Z",
+  "source_keys": 5144,
   "namespaces": 35,
   "locales": [
     {
       "locale": "ar",
-      "total": 5025,
+      "total": 5144,
       "present": 4320,
-      "missing": 705,
+      "missing": 824,
       "orphan": 0,
       "identical": 15,
-      "pct": 86
+      "pct": 84
     },
     {
       "locale": "es",
-      "total": 5025,
+      "total": 5144,
       "present": 4358,
-      "missing": 667,
+      "missing": 786,
       "orphan": 0,
       "identical": 26,
-      "pct": 86.7
+      "pct": 84.7
     },
     {
       "locale": "fr",
-      "total": 5025,
-      "present": 4255,
-      "missing": 770,
+      "total": 5144,
+      "present": 4144,
+      "missing": 1000,
       "orphan": 0,
-      "identical": 33,
-      "pct": 84.7
+      "identical": 32,
+      "pct": 80.6
     },
     {
       "locale": "hi",
-      "total": 5025,
+      "total": 5144,
       "present": 4365,
-      "missing": 660,
+      "missing": 779,
       "orphan": 0,
       "identical": 19,
-      "pct": 86.9
+      "pct": 84.9
     },
     {
       "locale": "pt",
-      "total": 5025,
-      "present": 4258,
-      "missing": 767,
+      "total": 5144,
+      "present": 4147,
+      "missing": 997,
       "orphan": 0,
-      "identical": 32,
-      "pct": 84.7
+      "identical": 31,
+      "pct": 80.6
     },
     {
       "locale": "zh-Hans",
-      "total": 5025,
+      "total": 5144,
       "present": 4127,
-      "missing": 898,
+      "missing": 1017,
       "orphan": 0,
       "identical": 12,
-      "pct": 82.1
+      "pct": 80.2
     }
   ],
   "by_namespace": [
@@ -73,7 +73,7 @@
     },
     {
       "namespace": "c_achievements",
-      "total": 141,
+      "total": 142,
       "locales": {
         "ar": 139,
         "es": 141,
@@ -97,7 +97,7 @@
     },
     {
       "namespace": "c_education",
-      "total": 851,
+      "total": 969,
       "locales": {
         "ar": 836,
         "es": 847,
@@ -221,9 +221,9 @@
       "locales": {
         "ar": 6,
         "es": 6,
-        "fr": 6,
+        "fr": 0,
         "hi": 6,
-        "pt": 6,
+        "pt": 0,
         "zh-Hans": 6
       }
     },
@@ -233,9 +233,9 @@
       "locales": {
         "ar": 7,
         "es": 7,
-        "fr": 7,
+        "fr": 0,
         "hi": 7,
-        "pt": 7,
+        "pt": 0,
         "zh-Hans": 7
       }
     },
@@ -269,9 +269,9 @@
       "locales": {
         "ar": 109,
         "es": 109,
-        "fr": 6,
+        "fr": 0,
         "hi": 109,
-        "pt": 6,
+        "pt": 0,
         "zh-Hans": 109
       }
     },
@@ -437,9 +437,9 @@
       "locales": {
         "ar": 92,
         "es": 92,
-        "fr": 92,
+        "fr": 0,
         "hi": 92,
-        "pt": 92,
+        "pt": 0,
         "zh-Hans": 92
       }
     },
@@ -480,9 +480,9 @@
       }
     }
   ],
-  "failures": 4467,
-  "warnings": 4259,
+  "failures": 5403,
+  "warnings": 4255,
   "failure_codes": {
-    "C1-missing": 4467
+    "C1-missing": 5403
   }
 }
