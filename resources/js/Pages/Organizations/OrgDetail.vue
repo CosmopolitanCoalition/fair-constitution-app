@@ -15,8 +15,8 @@
  * composition_valid / nextStepAt are ENGINE SNAPSHOTS from rows — nothing
  * here recomputes the co-determination scale.
  */
-import { computed } from 'vue';
-import { Link, useForm, usePage } from '@inertiajs/vue3';
+import { computed, ref } from 'vue';
+import { Link, router, useForm, usePage } from '@inertiajs/vue3';
 import AppShellV2 from '@/Layouts/AppShellV2.vue';
 import PageScaffold from '@/Components/Surface/PageScaffold.vue';
 import FormCard from '@/Components/Surface/FormCard.vue';
@@ -48,8 +48,51 @@ const props = defineProps({
     contracts: { type: Array, default: () => [] },
     myMembership: { type: Object, default: null },
     myWorker: { type: Object, default: null },
-    can: { type: Object, default: () => ({ manage: false, join: false, registerWorker: false, cosign: false }) },
+    /** The org's own open work postings — [{id,title,terms,rate,currency,applications}]. */
+    jobs: { type: Array, default: () => [] },
+    can: { type: Object, default: () => ({ manage: false, join: false, registerWorker: false, cosign: false, steerEconomy: false }) },
 });
+
+/* Plain labels for the org type + ownership structure — titleize() prints
+   "common good corp" / "equal partnership" as bare snake_case; the player chrome
+   speaks plainly (S8). Friendly, so lane 5 can translate (no data-no-i18n). */
+const TYPE_LABELS = {
+    political_party: 'Political party',
+    business: 'Business',
+    nonprofit: 'Nonprofit',
+    common_good_corp: 'Common-good corporation',
+    informal: 'Informal group',
+};
+const STRUCTURE_LABELS = {
+    sole: 'Sole — one owner',
+    equal_partnership: 'Equal partnership',
+    unequal_partnership: 'Unequal partnership',
+    stock: 'Stock / shareholders',
+    member_owned: 'Member-owned',
+    nonprofit: 'Nonprofit — no owners',
+};
+const typeLabel = (t) => TYPE_LABELS[t] ?? titleize(t);
+const structureLabel = (s) => STRUCTURE_LABELS[s] ?? titleize(s);
+
+/* Apply to a posting — a one-click F-IND-019 work application (the note is
+   optional server-side). Applying is a POST, so this is a real engine door, not
+   a GET link; the org decides, and the flash message carries the two-signature
+   promise back. applyingId guards the button while the request is in flight. */
+/* Display-only rate tidy: strip trailing zeros off the numeric(24,6) STRING
+   ("18.000000" → "18", "18.500000" → "18.5"). Pure string surgery — never
+   parseFloat, per ECONOMY_PROP_CONTRACT (money is a string, format never
+   compute; a float round-trip corrupts a ledger). This is a wage rate for
+   display, not a balance, but the rule holds either way. */
+const fmtRate = (s) => (s == null ? null : String(s).replace(/(\.\d*?)0+$/, '$1').replace(/\.$/, ''));
+
+const applyingId = ref(null);
+function applyForJob(id) {
+    applyingId.value = id;
+    router.post(`/economy/requests/${id}/apply`, {}, {
+        preserveScroll: true,
+        onFinish: () => { applyingId.value = null; },
+    });
+}
 
 const page = usePage();
 const flashStatus = computed(() => page.props.flash?.status ?? null);
@@ -158,11 +201,24 @@ const documentColumns = [
         <!-- ============================================ profile ========= -->
         <Card as="section" :title="`Profile — ${organization.name}`">
             <div class="cluster" style="gap: var(--space-2)">
-                <TagChip data-no-i18n>{{ titleize(organization.type) }}</TagChip>
-                <TagChip v-if="organization.structure" data-no-i18n>{{ titleize(organization.structure) }}</TagChip>
+                <TagChip>{{ typeLabel(organization.type) }}</TagChip>
+                <TagChip v-if="organization.structure">{{ structureLabel(organization.structure) }}</TagChip>
                 <StatusBadge :tone="statusTone">{{ organization.status }}</StatusBadge>
                 <FormChip :form-id="formMeta('F-ORG-001').id" :name="formMeta('F-ORG-001').name" :alias="formMeta('F-ORG-001').alias" />
             </div>
+
+            <!-- Head stat strip — the profile's numbers at a glance (mockup). -->
+            <div class="cluster" style="gap: var(--space-4); margin-block-start: var(--space-3)">
+                <Stat :value="jobs.length" label="Open jobs" />
+                <Stat :value="organization.worker_count ?? 0" label="Workers" />
+                <Stat :value="endorsements.total ?? 0" label="Endorsements" />
+                <Stat v-if="board?.exists" :value="board.strip?.seats?.length ?? 0" label="Board seats" />
+            </div>
+
+            <!-- Economy console — shown only to those maySteer actually admits. -->
+            <p v-if="can.steerEconomy" style="margin-block-start: var(--space-3)">
+                <Link :href="`/organizations/${organization.id}/economy`">Economics, shares &amp; dues →</Link>
+            </p>
             <dl class="cluster" style="gap: var(--space-6); margin-block-start: var(--space-3)">
                 <div>
                     <dt class="cc-small">Jurisdiction</dt>
@@ -277,6 +333,34 @@ const documentColumns = [
                 </li>
             </ul>
             <p v-else class="gloss">No endorsements granted yet.</p>
+        </Card>
+
+        <!-- ============================================ job board ======= -->
+        <Card as="section" title="Job board">
+            <p class="gloss">
+                Open roles this organization has posted. Applying is a person-to-person work
+                application (F-IND-019) — the organization decides; nothing here is a gate on
+                anyone's rights.
+            </p>
+            <ul v-if="jobs.length" class="offer-grid" style="margin-block-start: var(--space-3); list-style: none; padding: 0">
+                <li v-for="job in jobs" :key="job.id" class="card card--inset">
+                    <strong style="color: var(--gov-fg)">{{ job.title }}</strong>
+                    <p v-if="job.terms" class="cc-small" style="margin-block: var(--space-1)">{{ job.terms }}</p>
+                    <div class="cluster" style="gap: var(--space-2); justify-content: space-between; margin-block-start: var(--space-2)">
+                        <span class="citation">
+                            <template v-if="job.rate">{{ job.currency }}{{ fmtRate(job.rate) }}</template>
+                            <template v-else>Unpaid / by agreement</template>
+                            · {{ job.applications }} {{ job.applications === 1 ? 'application' : 'applications' }}
+                        </span>
+                        <Btn variant="secondary" size="sm" :disabled="applyingId === job.id" @click="applyForJob(job.id)">
+                            {{ applyingId === job.id ? 'Applying…' : 'Apply' }}
+                        </Btn>
+                    </div>
+                </li>
+            </ul>
+            <p v-else class="gloss" style="margin-block-start: var(--space-2)">
+                No open roles right now — postings appear here when the organization opens one.
+            </p>
         </Card>
 
         <!-- ============================================ join cards ====== -->

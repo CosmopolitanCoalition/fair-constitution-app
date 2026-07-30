@@ -209,13 +209,58 @@ class OrganizationController extends Controller
             'contracts' => $this->contractRows($organization),
             'myMembership' => $viewerId !== null ? $this->myMembership($organization, $viewerId) : null,
             'myWorker' => $viewerId !== null ? $this->myWorker($organization, $viewerId) : null,
+            // The org's own open work postings — a real card with a route into
+            // applying (F-IND-019, POST /economy/requests/{posting}/apply).
+            'jobs' => $this->jobRows($organization),
             'can' => [
                 'manage' => $isAgent,
                 'join' => in_array('R-01', $this->roles->rolesFor($viewer), true) && $organization->status === Organization::STATUS_ACTIVE,
                 'registerWorker' => in_array('R-01', $this->roles->rolesFor($viewer), true) && $organization->status === Organization::STATUS_ACTIVE,
                 'cosign' => $isAgent,
+                // Whether to SHOW the economy console link — the same two clauses
+                // OrgEconomyController::maySteer gates entry on (agent, or a seated
+                // board seat), so the door isn't hidden from someone allowed in.
+                'steerEconomy' => $isAgent || (
+                    $organization->board_id !== null && $viewerId !== null && DB::table('board_seats')
+                        ->where('board_id', (string) $organization->board_id)
+                        ->where('holder_user_id', $viewerId)
+                        ->where('status', 'seated')
+                        ->whereNull('deleted_at')
+                        ->exists()
+                ),
             ],
         ]);
+    }
+
+    /**
+     * The organization's own open work postings, newest first, each with a live
+     * count of applications filed against it. A public read over work_postings
+     * (the org's own board); applying is F-IND-019 through the engine, so this
+     * only surfaces the door — it grants nothing.
+     *
+     * @return list<array<string, mixed>>
+     */
+    private function jobRows(Organization $organization): array
+    {
+        return DB::table('work_postings as wp')
+            ->leftJoin('currencies as cur', 'cur.id', '=', 'wp.currency_id')
+            ->where('wp.organization_id', (string) $organization->id)
+            ->whereNull('wp.deleted_at')
+            ->where('wp.status', 'open')
+            ->orderByDesc('wp.created_at')
+            ->limit(25)
+            ->get(['wp.id', 'wp.title', 'wp.terms', 'wp.rate', 'wp.status', 'cur.symbol as currency_symbol', 'cur.code as currency_code'])
+            ->map(fn ($r) => [
+                'id'           => (string) $r->id,
+                'title'        => $r->title,
+                'terms'        => $r->terms,
+                // Money is a STRING (ECONOMY_PROP_CONTRACT — never a float), shown
+                // with its currency; null rate renders as "unpaid / by agreement".
+                'rate'         => $r->rate === null ? null : (string) $r->rate,
+                'currency'     => $r->currency_symbol ?? $r->currency_code,
+                'applications' => DB::table('work_applications')->where('posting_id', (string) $r->id)->count(),
+            ])
+            ->all();
     }
 
     // =========================================================================
