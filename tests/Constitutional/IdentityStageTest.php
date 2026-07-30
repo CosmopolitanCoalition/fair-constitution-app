@@ -48,13 +48,19 @@ class IdentityStageTest extends TestCase
             $this->legislature($jid, typeA: 14, typeB: 5, districtSeats: [7, 7]);
             CohortStage::run($jid, null, 1, 62);
 
-            // Σ(seats+1) over two 7-seat districts = 16, plus the lawful
-            // 5-seat at-large type_b race (+6) = 22.
-            $this->assertSame(22, IdentityStage::rosterSize($jid));
+            // Σ(seats+1) over two 7-seat districts = 16. The type_b half has NO
+            // direct children, so under the per-child ruling (2026-07-29) racePlan
+            // BLOCKS it (drift guard: an unflagged Type B with no inhabited direct
+            // children cannot elect) — a blocked kind needs nobody. So the need is
+            // the two districts, 16. This still proves the point: a 5M metropolis
+            // rosters to what it NEEDS, not to its population. (Per-child type_b
+            // sizing is covered by the race-plan-relationship test below, and
+            // per-clump PARENT sizing by the panels test.)
+            $this->assertSame(16, IdentityStage::rosterSize($jid));
 
             $result = IdentityStage::run($jid, null, 1);
 
-            $this->assertSame(22, $result['users']);
+            $this->assertSame(16, $result['users']);
             $this->assertLessThan(
                 1000,
                 $result['users'],
@@ -339,6 +345,78 @@ class IdentityStageTest extends TestCase
     }
 
     // ── fixtures ──────────────────────────────────────────────────────────
+
+    /**
+     * ⚑ PER-CLUMP: the parent roster must cover its PANELS, not just its
+     * districts. A per-clump Type B chamber (operator ruling 2026-07-29) makes
+     * racePlan emit mode='panels', and createRaces scopes every panel race to
+     * the chamber's OWN jurisdiction — so `ElectionStage::fieldCandidates` draws
+     * panel candidates from the PARENT roster. If rosterSize counts only
+     * districts (as it did before this pin), the parent under-mints and fielding
+     * throws "roster too small". Flagged by lane 3 while building the per-clump
+     * CountingStage/SeatingStage tests against the per-scope fielding.
+     *
+     * NON-VACUOUS BY DESIGN: the two districts alone are 16 (> VISIBLE_SAMPLE
+     * 12), so the roster floor cannot mask a missing panels count — if panels
+     * were uncounted, rosterSize would return 16, not the asserted 28.
+     */
+    public function test_the_roster_sizes_a_per_clump_chamber_including_its_panels(): void
+    {
+        $this->onLivePg(function () {
+            $panelSeats = [3, 3, 3];              // 3 panels × 3 = 9 type_b seats
+            $typeB = array_sum($panelSeats);
+
+            $jid = $this->jurisdiction(2_000_000);
+            $legId = $this->legislature($jid, 14, $typeB, [7, 7]);
+
+            // The exact state under which racePlan emits mode='panels': NOT
+            // re-flagged, and an ACTIVE grouping whose seats match type_b_seats.
+            DB::table('legislatures')->where('id', $legId)->update(['type_b_needs_districting' => false]);
+
+            $groupingId = (string) Str::uuid();
+            DB::table('legislature_type_b_groupings')->insert([
+                'id' => $groupingId,
+                'legislature_id' => $legId,
+                'status' => 'active',
+                'rep_floor' => 3,
+                'group_size' => 2,
+                'panel_count' => count($panelSeats),
+                'seats_total' => $typeB,
+                'type_a_bound' => 14,
+                'signature' => 'roster-pin',
+                'created_at' => now(),
+                'updated_at' => now(),
+            ]);
+
+            foreach ($panelSeats as $i => $seats) {
+                DB::table('legislature_type_b_panels')->insert([
+                    'id' => (string) Str::uuid(),
+                    'grouping_id' => $groupingId,
+                    'legislature_id' => $legId,
+                    'panel_number' => $i + 1,
+                    'seats' => $seats,
+                    'member_count' => 0,
+                    'created_at' => now(),
+                    'updated_at' => now(),
+                ]);
+            }
+
+            // Σ(district seats + 1) + Σ(panel seats + 1) = 16 + 12 = 28.
+            $expected = (7 + 1) + (7 + 1)
+                + array_sum(array_map(fn ($s) => $s + 1, $panelSeats));
+
+            $this->assertGreaterThan(
+                IdentityStage::VISIBLE_SAMPLE,
+                $expected,
+                'the fixture must exceed the roster floor, or the floor would mask a missing panels count'
+            );
+            $this->assertSame(
+                $expected,
+                IdentityStage::rosterSize($jid),
+                'the parent roster must cover its per-clump PANELS (Σ seats+1), not just its districts'
+            );
+        });
+    }
 
     private function jurisdiction(int $population, array $languages = ['en']): string
     {

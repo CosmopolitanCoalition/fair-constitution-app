@@ -207,8 +207,22 @@ final class IdentityStage
                 }
             } elseif ($spec['mode'] === 'at_large') {
                 $pool += (int) $spec['seats'] + 1;
+            } elseif ($spec['mode'] === 'panels') {
+                // PER-CLUMP TYPE B (operator ruling 2026-07-29): one at-large
+                // race per panel, and createRaces scopes EVERY panel race to the
+                // chamber's OWN jurisdiction (jurisdiction_id = parent). So the
+                // PARENT roster must cover Σ(panel seats + 1) too — mirror the
+                // districts case, or ElectionStage::fieldCandidates throws
+                // "roster too small" on the parent scope (districts + panels).
+                foreach ($spec['panels'] as $panel) {
+                    $pool += (int) $panel->seats + 1;
+                }
             }
-            // 'blocked' elects nobody, so it needs nobody.
+            // 'children' (per-CHILD ungrouped) contributes 0 to the PARENT pool
+            // ON PURPOSE: those races are child-scoped (jurisdiction_id = the
+            // child) and draw from each child's own roster, which rosterSize
+            // sizes when IdentityStage runs on the child. 'blocked' elects
+            // nobody, so it needs nobody.
         }
 
         $roster = max(self::VISIBLE_SAMPLE, $pool);
