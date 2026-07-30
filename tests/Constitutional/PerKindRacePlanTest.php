@@ -270,9 +270,57 @@ class PerKindRacePlanTest extends TestCase
         });
     }
 
+    /**
+     * PER-CHILD DRIFT GUARD (DRIFT IS ALWAYS WRONG — the per-child twin of the
+     * stale-grouping guard). racePlan derives per-child seats live from the
+     * constituents; if a re-seed changed the child set without re-sizing
+     * type_b_seats, the live sum diverges from the persisted column. Emitting
+     * the races would seat ≠ the chamber's fixed size, so it BLOCKS, never drifts.
+     */
+    public function test_per_child_blocks_when_the_seat_sum_diverges_from_the_column(): void
+    {
+        $this->onLivePg(function () {
+            // 3 children × rep 5 = 15 live, but the column says 45 (a stale re-seed).
+            // The type_a half is lawful (districted), so only the type_b half blocks.
+            $legislature = $this->legislature(typeA: 14, typeB: 45, childCount: 3, repFloor: 5);
+            $this->districtMap($legislature, [7, 7]);
+
+            $plan = app(ElectionLifecycleService::class)->racePlan($legislature);
+
+            $this->assertSame('districts', $plan['kinds']['type_a']['mode'], 'the lawful lower house is untouched');
+            $this->assertSame('blocked', $plan['kinds']['type_b']['mode'], 'a diverged per-child sum must block, not drift');
+            $this->assertStringContainsString('diverge', $plan['kinds']['type_b']['reason']);
+            $this->assertSame(['type_a'], $plan['generable_kinds']);
+        });
+    }
+
+    /**
+     * PER-CHILD seats mirror TypeBSeatLadder::sumAt EXACTLY: a >5-pop child seats
+     * rep_floor; a ≤5-pop child seats min(pop, rep_floor); a 0-pop space is INERT
+     * (no race). Σ = type_b_seats by construction — the drift guard passes.
+     */
+    public function test_per_child_seats_mirror_the_ladder_for_tiny_and_inert_children(): void
+    {
+        $this->onLivePg(function () {
+            // pops [0, 3, 100000], rep_floor 5 → ladder: 0 (inert), min(3,5)=3, 5 → Σ=8.
+            $legislature = $this->legislature(typeA: 14, typeB: 8, childCount: 0, repFloor: 5, childPops: [0, 3, 100_000]);
+            $this->districtMap($legislature, [7, 7]);
+
+            $plan = app(ElectionLifecycleService::class)->racePlan($legislature);
+
+            $this->assertSame('children', $plan['kinds']['type_b']['mode']);
+            $childRaces = $plan['kinds']['type_b']['children'];
+            $this->assertCount(2, $childRaces, 'the 0-pop child is inert — no race');
+            $seats = array_map(fn ($c) => (int) $c->seats, $childRaces);
+            sort($seats);
+            $this->assertSame([3, 5], $seats, '≤5-pop → min(pop,rep_floor); >5-pop → rep_floor');
+            $this->assertSame(8, array_sum($seats), 'Σ = type_b_seats');
+        });
+    }
+
     // ── fixtures ──────────────────────────────────────────────────────────
 
-    private function legislature(int $typeA, int $typeB, bool $needsDistricting = false, int $childCount = 0, int $repFloor = 5): Legislature
+    private function legislature(int $typeA, int $typeB, bool $needsDistricting = false, int $childCount = 0, int $repFloor = 5, ?array $childPops = null): Legislature
     {
         $jid = (string) Str::uuid();
 
@@ -295,14 +343,17 @@ class PerKindRacePlanTest extends TestCase
         // repFloor so racePlan's drift guard (Σ child seats == type_b_seats) is
         // satisfied. Flagged / type_b=0 cases pass childCount=0 (they block or
         // have no Type B half, so the per-child branch is never reached).
-        for ($i = 0; $i < $childCount; $i++) {
+        // $childPops (heterogeneous populations, incl. 0 and ≤5) overrides the
+        // uniform default so the tiny-pop / inert per-child cases can be pinned.
+        $pops = $childPops ?? array_fill(0, $childCount, 100_000);
+        foreach ($pops as $i => $pop) {
             DB::table('jurisdictions')->insert([
                 'id' => (string) Str::uuid(),
                 'parent_id' => $jid,
                 'name' => 'Per-Kind Child '.$i,
                 'slug' => 'per-kind-child-'.Str::lower(Str::random(10)),
                 'adm_level' => 3,
-                'population' => 100_000,
+                'population' => (int) $pop,
                 'source' => 'user_defined',
                 'official_languages' => '["en"]',
                 'timezone' => 'UTC',
