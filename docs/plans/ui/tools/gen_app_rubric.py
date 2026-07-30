@@ -211,7 +211,7 @@ const LB={built:'built',working:'working',partial:'partial',absent:'absent',bloc
 let view='screens',q='',filter='all';
 let ANS={};try{for(let i=0;i<localStorage.length;i++){const k=localStorage.key(i);if(k&&k.indexOf('cga4qs_')===0){const id=k.slice(7);ANS[id]=ANS[id]||{};ANS[id].sel=localStorage.getItem(k);}if(k&&k.indexOf('cga4qn_')===0){const id=k.slice(7);ANS[id]=ANS[id]||{};ANS[id].notes=localStorage.getItem(k);}}}catch(e){}
 function saveAns(id,f,v){ANS[id]=ANS[id]||{};ANS[id][f]=v;try{localStorage.setItem('cga4q'+(f==='sel'?'s':'n')+'_'+id,v);}catch(e){}}
-const FILTERS={screens:['all','built','partial','absent'],caps:['all','working','partial','blocked','absent'],debt:['all','open','deferred','resolved'],fleet:['all','done','active','held','deferred'],questions:['all','open','resolved']};
+const FILTERS={screens:['all','built','partial','absent'],caps:['all','working','partial','blocked','absent'],debt:['all','open','deferred','resolved'],fleet:['all','next','done','held','deferred'],questions:['all','open','resolved']};
 const sc=t=>D.screens.filter(r=>r.bucket===t).length,cc=t=>D.caps.filter(r=>r.maturity===t).length,dc=t=>D.debt.filter(r=>r.severity===t).length,ds=t=>D.debt.filter(r=>(r.state||'open')===t).length;
 const qOpen=D.questions.filter(x=>x.status==='open').length,qRes=D.questions.filter(x=>x.status==='resolved').length;
 function meter(parts){return parts.map(p=>p[0]?`<span class="s-${p[1]}" style="flex:${p[0]}"></span>`:'').join('');}
@@ -253,16 +253,21 @@ function render(){const b=document.getElementById('body');
   }
   else if(view==='fleet'){
     const waves=D.fleet.waves.map(w=>`<span class="wv">${w.id}</span> ${esc(w.name)} <span class="pill p-${w.status}">${LB[w.status]}</span>`).join(' &nbsp;·&nbsp; ');
-    let html=`<div class="note" style="border-inline-start-color:var(--good)">✅ <b>Wave 4 is GREEN.</b> The authoritative full suite passed <b>1343 passed · 0 failed · 3 skipped</b> in a quiet window. Each lane's Wave-4 responsibilities are broken out below with per-item status — expand a lane, then an item, like the Screens and Capabilities tabs.</div><div class="wavesline"><b>Waves:</b> ${waves}</div>`;
-    const bk=['done','active','held','deferred'];
+    let html=`<div class="note" style="border-inline-start-color:var(--warn)">⏳ <b>Wave 5 orders — PREPARED for your go / no-go.</b> Wave 4 is GREEN (authoritative suite 1343/0). Wave 5 closes the last 6 screens + 5 capabilities → all-green → arm → walk. Each lane's W5 orders (<span class="pill p-next">next</span> = the finish-line work) are drillable below; completed Wave-4 work collapses under each lane. Nothing dispatches until you launch.</div><div class="wavesline"><b>Waves:</b> ${waves}</div>`;
+    const bk=['next','done','held','deferred','active'];
     D.fleet.lanes.forEach(l=>{const items=l.items||[];
-      const vis=items.filter(it=>(filter==='all'||it.status===filter)&&(!q||('l'+l.id+' '+l.name+' '+it.label+' '+(it.note||'')).toLowerCase().includes(q)));
-      if(!vis.length)return;
-      const c={done:0,active:0,held:0,deferred:0};items.forEach(it=>{if(it.status in c)c[it.status]++;});
+      const w5=items.filter(it=>it.wave==='W5'),w4=items.filter(it=>it.wave!=='W5');
+      const cur=w5.length?w5:w4;
+      const vis=cur.filter(it=>(filter==='all'||it.status===filter)&&(!q||('l'+l.id+' '+l.name+' '+it.label+' '+(it.note||'')).toLowerCase().includes(q)));
+      const w4hit=q?w4.filter(it=>(it.label+' '+(it.note||'')).toLowerCase().includes(q)):[];
+      if(!vis.length&&!w4hit.length)return;
+      const c={};bk.forEach(k=>c[k]=0);cur.forEach(it=>{if(it.status in c)c[it.status]++;});
       const bar=bk.map(k=>c[k]?`<span class="s-${CO[k]}" style="flex:${c[k]}"></span>`:'').join('');
       const cnt=bk.filter(k=>c[k]).map(k=>c[k]+' '+k).join(' · ')||'—';
-      html+=`<section class="area"><button class="area-head" aria-expanded="false"><span class="area-name"><span class="lwbadge">L${esc(l.id)}·W4</span> Lane ${esc(l.id)} · ${esc(l.name)} <span class="pill p-${l.status}">${LB[l.status]||esc(l.status)}</span></span><span class="bar">${bar}</span><span class="counts">${esc(cnt)}</span><span class="chev">›</span></button><div class="rows hidden">`;
+      const wl=w5.length?'W5':'W4';
+      html+=`<section class="area"><button class="area-head" aria-expanded="false"><span class="area-name"><span class="lwbadge">L${esc(l.id)}·${wl}</span> Lane ${esc(l.id)} · ${esc(l.name)} <span class="pill p-${l.status}">${LB[l.status]||esc(l.status)}</span></span><span class="bar">${bar}</span><span class="counts">${esc(cnt)}</span><span class="chev">›</span></button><div class="rows hidden">`;
       vis.forEach(it=>{html+=`<div class="scr"><button class="scr-head" aria-expanded="false"><span class="dot d-${CO[it.status]}"></span><span class="scr-title">${hi(it.label)}</span><span class="pill p-${it.status}">${LB[it.status]||esc(it.status)}</span></button><div class="detail hidden"><dl>${it.note?`<dt>Detail</dt><dd>${hi(it.note)}</dd>`:'<dd class="ok">—</dd>'}</dl></div></div>`;});
+      if(w5.length&&w4.length){html+=`<details class="lanehist"><summary>Wave 4 · ${w4.length} done ✓</summary>${w4.map(it=>`<div class="donerow"><span class="dot d-${CO[it.status]}"></span> ${hi(it.label)}</div>`).join('')}</details>`;}
       html+=`</div></section>`;
     });
     b.innerHTML=html;
