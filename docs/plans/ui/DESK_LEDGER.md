@@ -1392,3 +1392,20 @@ fielding, and the live Niue election can field. When L4 lands it: re-gate (freez
 → re-lock green → final rubric regen (pump-wiring/Niue-void → done, per-child → green, org-profile → built) →
 approve the live Niue per-clump election for the walk. L3 done on ① (⑦ deferred, ④→L13). L6 ② org-profile in
 (ff0f1a9); messaging trio + social-home + bill.html ahead.
+
+### W4 tick 20 — per-child FULLY closed (all 4 lanes green); re-gate pending L6 clean tree
+
+**⚑ PER-CHILD + PER-CLUMP FIELDING FULLY GREEN — all 4 lanes:** L1 racePlan c96e757 + hardening 1ffde5b
+(11/11, +drift-guard-block + tiny/inert-seat pins) · L3 CountingStage/SeatingStage b9ea6d6 (10/111) · L4
+ElectionStage 64c2a27 (10/10) + IdentityStage/rosterSize 3976919 (11/11 — counts 'panels' so per-clump
+PARENT no longer under-mints; + the FOURTH per-child casualty, IdentityStageTest, fixed). Both per-child AND
+per-clump demo elections now field end-to-end. Total per-child ripple = 4 test files across L4's stages +
+2 hardening pins on L1 — all closed. The pooled Type B shape is FULLY RETIRED, live, pinned, HARDENED.
+Origin synced (pushed 1ffde5b + 3976919, 0/0).
+
+**⚑ RE-GATE PENDING L6 CLEAN TREE:** the tree carries L6's UNCOMMITTED social-home WIP (PublicSquareController
++ PublicSquare.vue + a new untracked PublicSquareStandardsTest.php). The full-suite re-gate runs against the
+on-disk tree → that WIP test would be picked up + could red the gate. Asked L6 to either COMMIT social-home
+green or HOLD the WIP out of the tree, then confirm clean. On L6's clean confirm → freeze (active lanes) +
+chown + lane 2 SUITE TOKEN → authoritative re-gate → on GREEN: final rubric regen + L1 fires the live Niue
+per-clump general (#21, now fields) for the operator's walk. (Stray untracked "C:/"-junk dir noted, harmless.)
