@@ -1489,3 +1489,28 @@ verify vs information_schema before wiring a mockup port; honest-empty; SETTLED 
 
 **Desk now: self-paced W5 management loop — sweep the 5 build lanes, process four-way reports into the rubric,
 sequence the migration slot, and engage L2 for the authoritative re-gate ONLY when all five report done.**
+
+### W5 tick 1 — L4W5① Q4a CLOSED (verify-and-close), premise corrected (2026-07-30)
+
+**L4 report verified.** Commit `3e1cce1` (SERVICE_SCALE_FORMULA.md §4.3+§4.5, EXACTLY 1 file, 51+/13−, descends
+from 7e9b7c0, CAS-clean no sweep). L4 read the live code + queried information_schema — did not infer.
+
+**Q4a is SATISFIED at the doctrine/enforcement level** (the constitutionally-load-bearing part): both uniqueness
+constraints `judiciaries_jurisdiction_live_uq` + `social_spaces_jur_type_unique` intact + runtime-enforced;
+`parent_judiciary_id` + `Judiciary::parentJudiciary()` + FK model the tree-depth. Singular court-as-jurisdiction +
+infrastructure-≠-court holds. "Nothing built moves" confirmed.
+
+**PREMISE CORRECTED** (I had relayed "L3 already built courtTiers = tree-depth in W4 ③" — imprecise):
+- `InstitutionScaleService::courtTiers()` was NOT rewritten — still old population-tier static (0/1/1/2/3), DEAD
+  (zero production callers; only InstitutionScaleTest pins it), docblock still cites the superseded "MAY
+  materialise" reading. Same for `extraRooms()`. Runtime-inert (schema forbids materialising them, correctly).
+- `parent_judiciary_id` is NEVER populated by any code path — chain empty, every court a root (depth 0).
+  Provisioning mints one flat court per jurisdiction (correct) and never reads courtTiers (reads judgeCountSql
+  for bench SIZE only). So it does NOT misread the tier.
+- What satisfies Q4a is the CONSTRAINTS + depth MODEL, not the dead courtTiers function.
+
+**Two follow-ups handed to L3** (owns InstitutionScaleService, one-editor-per-file), both runtime-inert:
+(1) retire the two dead statics' superseded docblocks; (2) populate `parent_judiciary_id` at formation ONLY IF
+L3's W5 ④ appointed/elected-courts cap needs a live hierarchy — else flat per-jurisdiction courts are the clean
+close. Desk sent L3 a scope-alignment note so its ④ report credits the right artifact (not the dead static).
+**Watching L3's ④ report to confirm it reconciles this.** L4 standing by for L6's Atlas a11y handoff.
