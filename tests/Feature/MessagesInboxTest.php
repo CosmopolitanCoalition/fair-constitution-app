@@ -106,6 +106,42 @@ class MessagesInboxTest extends TestCase
         });
     }
 
+    public function test_the_new_message_page_renders(): void
+    {
+        $this->onLivePg(function () {
+            $user = $this->aUser('New Message Author');
+
+            $this->actingAs($user)
+                ->get('/civic/rooms/new')
+                ->assertOk()
+                ->assertInertia(fn (Assert $page) => $page
+                    ->component('Civic/PrivateRoomCreate')
+                    ->where('surface.title', 'New message'));
+        });
+    }
+
+    public function test_inbox_rows_carry_a_real_preview_and_never_fabricate_unread_or_live(): void
+    {
+        $this->onLivePg(function () {
+            $owner = $this->aUser('Preview Owner');
+            $this->aPrivateSpace($owner, 'Quiet room'); // no Matrix room provisioned → no live channel
+
+            $this->actingAs($owner)
+                ->get('/civic/rooms')
+                ->assertOk()
+                ->assertInertia(fn (Assert $page) => $page
+                    ->component('Civic/PrivateRooms')
+                    ->has('rooms', 1)
+                    // The preview is a REAL server read: null here (no live channel), never a faked string.
+                    ->where('rooms.0.preview', null)
+                    ->where('rooms.0.lastAt', null)
+                    // Honest-empty — no source table exists for these, so the row NEVER carries them.
+                    ->missing('rooms.0.unread')
+                    ->missing('rooms.0.live')
+                    ->missing('rooms.0.kind'));
+        });
+    }
+
     // ── helpers (the PrivateRoomTest live-pg posture) ─────────────────────────────────────
 
     private function aUser(string $name): User

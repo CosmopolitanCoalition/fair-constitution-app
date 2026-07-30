@@ -1075,6 +1075,7 @@ Route::middleware('auth')->prefix('civic')->name('civic.')->group(function () {
     // is the private counterpart to /civic/matrix/call-token — gated on membership, minted locally.
     Route::get('/rooms', [\App\Http\Controllers\Civic\PrivateRoomController::class, 'index'])->name('rooms.index');
     Route::post('/rooms', [\App\Http\Controllers\Civic\PrivateRoomController::class, 'store'])->name('rooms.store');
+    Route::get('/rooms/new', [\App\Http\Controllers\Civic\PrivateRoomController::class, 'create'])->name('rooms.create');
     Route::get('/rooms/{space}', [\App\Http\Controllers\Civic\PrivateRoomController::class, 'show'])
         ->whereUuid('space')->name('rooms.show');
     Route::post('/rooms/{space}/post', [\App\Http\Controllers\Civic\PrivateRoomController::class, 'post'])
