@@ -26,6 +26,8 @@ const props = defineProps({
     threads: { type: Array, default: () => [] },
     jurisdictions: { type: Array, default: () => [] },
     isAssociated: { type: Boolean, default: false },
+    /** §③ lane 15 educational slice — community standards (own key). */
+    standards: { type: Object, default: null },
 });
 
 const page = usePage();
@@ -112,6 +114,27 @@ function submitCreate() {
                 gate as voting, and the only one (Art. I).
             </p>
             <Btn as="a" href="/civic/residency" variant="primary" size="sm">Declare residency →</Btn>
+        </Card>
+
+        <!-- ─────────────── community standards (§③ lane 15 educational slice) -->
+        <Card v-if="standards" as="section" title="Community standards">
+            <p style="margin-block-start: 0"><strong>{{ standards.headline }}</strong></p>
+            <p class="gloss">{{ standards.lede }}</p>
+            <div class="stack" style="gap: var(--space-2); margin-block-start: var(--space-3)">
+                <Card v-for="c in standards.carve_outs" :key="c.key" inset>
+                    <strong>{{ c.label }}</strong>
+                    <p class="cc-small" style="margin-block-start: var(--space-1)">{{ c.what }}</p>
+                    <details style="margin-block-start: var(--space-1)">
+                        <summary class="citation" style="cursor: pointer">Why this is the line</summary>
+                        <p class="gloss" style="margin-block-start: var(--space-1)">{{ c.why }}</p>
+                        <p class="citation">{{ c.basis }}</p>
+                    </details>
+                </Card>
+            </div>
+            <Banner tone="info" style="margin-block-start: var(--space-3)">
+                <strong>No viewpoint removal exists.</strong> {{ standards.no_viewpoint_path }}
+            </Banner>
+            <p class="citation" style="margin-block-start: var(--space-2)">{{ standards.logged }}</p>
         </Card>
 
         <template #about>
