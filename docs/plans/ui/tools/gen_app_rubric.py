@@ -187,7 +187,7 @@ h1{font-size:1.55rem;font-weight:600;margin:0 0 .3rem}
 <h1>Where does the app stand — and what's the road to a playable game?</h1>
 <p class="stamp">%%STAMP%% · verified against live code · click a group, then a row, for the detail · search + filter + expand-all below</p>
 <div class="tiles" id="tiles"></div>
-<div class="note"><b>⚠ Wave 4's headline & the one thing blocking governance at scale:</b> the <b>Type B second-chamber race</b>. The built engine runs one pooled at-large race, but the ruled model is one at-large race <b>per child</b> (or per clump). A large jurisdiction cannot elect its second chamber, cascading to block every bicameral act there. Seat math is correct; only the vote grouping must change (lanes 1+3, Wave 4). See Fleet &amp; Waves for the standing orders and Open Questions for the decision queue.</div>
+<div class="note" style="border-inline-start-color:var(--good)"><b>✅ Wave 4 concluded GREEN</b> (authoritative suite 1343 / 0). <b>The Type B second-chamber race is RESOLVED</b> — the pooled shape is fully retired; per-clump (grouped) and per-child (ungrouped) chambers now elect, count, seat, and field candidates, hardened and live-verified (Niue cleared). Every open question is ruled. <b>Wave 5 = the finish:</b> the last 6 screens (→ 107/107) + 5 capabilities → all-green re-gate → arm → the operator's walk. See <b>Fleet &amp; Waves</b> for the W5 standing orders.</div>
 <div class="views" role="tablist">
   <button class="view-btn" role="tab" data-v="screens" aria-selected="true">UI Screens</button>
   <button class="view-btn" role="tab" data-v="caps" aria-selected="false">Capabilities</button>
