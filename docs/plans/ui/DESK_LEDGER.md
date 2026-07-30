@@ -1568,3 +1568,37 @@ scheduled→open→adjourned transition via any form/route; L3 building, coupled
 "already correct end-to-end." RETIRE ruling (f4c1a01) STANDS — desk sees no coexist reason. "Unblocks L3 courts"
 dependency is MOOT: L3 ④ pinned green independent of courtTiers; Q4a reframe + L3 ④ closed on separate tracks.
 Seed-gate reconfirmed (institutions:demo-* family) — re-gate pre-condition holds. Both completeness pins deferred.
+
+### W5 tick 4 — L6 messaging trio BUILT + L5 i18n CLOSED (2026-07-30)
+
+**L6 ① MESSAGING TRIO → BUILT + PINNED (b12d058).** groups-home (inbox, v3 .conv-row, REAL member count + REAL
+last-message preview, one server read degrading to "No messages yet"), group-create (GET /civic/rooms/new "New
+message" page, invite-link arrival), group-detail (thread .msg-thread/.msg-bubble + REAL voice/video via
+LiveRoom + "make standing org" CTA). HONEST-EMPTY held exactly: unread / live-now / DM-vs-group KIND have no
+source table → never rendered. MessagesInboxTest 14/14 green (173 asserts), SFCs compile, DOM-verified :8082.
+Screens → 104/107 built. NEXT: ② bill.html (coordinating HallsController subforum_id passthrough with L3), then
+③ Atlas a11y → L4.
+
+**L5 i18n → CLOSED playtest-adequate (Option A, 6c15a27).** fr/pt shell chrome falls back cleanly to English,
+browser-proven :8082, zero raw NLLB. Caps → 54/55 alpha working. THE REAL FINDING: L5 found + DELETED a raw-NLLB
+LANDMINE — 16 fr/pt chrome/nav catalogs held confidently-WRONG machine output (log_out→"go back"/"log IN",
+impersonating→"pretend", challenge_a_law→"DEFEND"=opposite, /civic/→/civil/ URL corruption). Extracted-but-not-
+wired = DEAD today, but would leak the instant L6 wires shell markup. Deleting them makes fr/pt fall back to
+English BY CONSTRUCTION, now and post-wiring. Honest nuance folded into the cap: "6-locale bodies render" = true
+for the WIRED surface (monolithic chrome es/ar/hi/zh-Hans + c_education fr); broad page bodies await L6's parity
+wave — NOT a regression.
+
+**TWO ARM-PHASE / PIPELINE FLAGS captured (neither a blocker):**
+- DEV-BOX MATRIX INFRA (L6): posting as a login-as user 500s M_FORBIDDEN — the user's Matrix identity isn't
+  provisioned on the dev box (pre-existing postToPrivateRoom path). The GAME box provisions it. → arm-phase item.
+- PIPELINE (L5): a future bulk translate_catalog.py pass would REGENERATE the raw-NLLB fr/pt chrome unless it
+  honors Option A (fr/pt chrome = English / reader-verified-only). Pipeline must skip fr/pt chrome until a reader
+  pass lands. (L5 logged in its memory.)
+
+**ARM-PHASE CHECKLIST (game box, gates the walk) — accumulating:** (1) restore standing demo seeds
+(institutions:demo-e + elections:demo + institutions:demo-d) — L2 re-gate quiet window; (2) provision Matrix
+identities for demo/login-as users — live messaging on the walk; (3) education:seed (L15); (4) live per-clump
+Niue general (L1). Items 1–2 also make the re-gate's live E2Es EXERCISE instead of skip.
+
+**Still to BUILD:** bill.html (L6 ②, last screen) · committees hearing lifecycle (L3 ①) + agenda schema (L3 ⑤).
+L13 board-elections + org-registry committed (d791a38) — held for L13's four-way report.

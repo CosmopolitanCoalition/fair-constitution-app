@@ -2211,11 +2211,10 @@
    "title": "Informal groups — browse & create",
    "page": "resources/js/Pages/Civic/PrivateRooms.vue",
    "route": "/civic/rooms",
-   "props": "partial",
+   "props": "full",
    "backend": "partial",
    "owner": "lanes 15 · 3",
    "propsMissing": [
-    "last-message previews",
     "unread counts",
     "live-now pill",
     "DM vs group kind labels on rows"
@@ -2232,9 +2231,9 @@
     "owner/member role chips",
     "opened dates"
    ],
-   "notes": "The manifest note ('browse/join affinity groups') is stale — the mockup itself is now the MESSAGES inbox (messages-v2.js), and PrivateRooms.vue was explicitly built to that contract over SocialSpace/SocialMembership. Gap is inbox richness: previews and unread need timeline reads/counters.",
+   "notes": "BUILT + PINNED (L6 W5, b12d058): wired to v3 .conv-row chrome — avatar initials, relative time, REAL member count, REAL last-message preview (one server read, degrades to 'No messages yet' on homeserver failure, never faked). unread counts / live-now pill / DM-vs-group KIND stay HONEST-EMPTY (no source table — correctly never rendered). MessagesInboxTest 14/14 green (173 asserts), DOM-verified :8082.",
    "area": "Social + groups",
-   "bucket": "partial",
+   "bucket": "built",
    "effort": "M",
    "badge": "L6·W5",
    "lane": "6",
@@ -2245,7 +2244,7 @@
    "title": "Create a group",
    "page": "resources/js/Pages/Civic/PrivateRooms.vue",
    "route": "/civic/rooms",
-   "props": "partial",
+   "props": "full",
    "backend": "full",
    "owner": "lanes 15 · 3",
    "propsMissing": [
@@ -2259,9 +2258,9 @@
     "separate DM vs group create forms",
     "immediate post-create invite-link share step landing back on the inbox"
    ],
-   "notes": "The mockup is now 'New message' (start a DM or group). The app folds creation into the Messages inbox and swaps the handle-picker for invite links — a settled, documented divergence, not a defect. Only cosmetic alignment remains (or a dedicated /civic/rooms/new surface if strict parity is wanted).",
+   "notes": "BUILT (L6 W5, b12d058): dedicated GET /civic/rooms/new 'New message' page (the strict-parity path) with invite-link arrival notes. No @handle people-picker by design — pseudonymous, no user directory; invite links are the settled arrival mechanism. Compiles clean via Vite; DOM-verified :8082.",
    "area": "Social + groups",
-   "bucket": "partial",
+   "bucket": "built",
    "effort": "S",
    "badge": "L6·W5",
    "lane": "6",
@@ -2272,7 +2271,7 @@
    "title": "Group home",
    "page": "resources/js/Pages/Civic/PrivateRoom.vue",
    "route": "/civic/rooms/{space}",
-   "props": "partial",
+   "props": "full",
    "backend": "partial",
    "owner": "lanes 15 · 3",
    "propsMissing": [
@@ -2296,9 +2295,9 @@
     "leave action",
     "5s visibility-aware timeline polling"
    ],
-   "notes": "The mockup is now 'Conversation' (a message thread). The app room is functionally ahead on the hard parts (real Matrix timeline, real AV, gating); the missing piece with backend weight is attachments. The standing-org CTA is a one-line link — org registration already exists.",
+   "notes": "BUILT (L6 W5, b12d058): thread in v3 .msg-thread/.msg-bubble chrome + REAL voice/video via LiveRoom + member party-chips + 'make this a standing organization' CTA (into org registration). File attachments genuinely backend-deferred (Matrix bridge); voice/video are real, so the composer says so and fakes no attach chips. DOM-verified :8082. (Dev-box only: live posting needs the login-as user's Matrix identity provisioned — the game box provisions it.)",
    "area": "Social + groups",
-   "bucket": "partial",
+   "bucket": "built",
    "effort": "M",
    "badge": "L6·W5",
    "lane": "6",
@@ -3603,9 +3602,9 @@
   {
    "area": "Federation",
    "capability": "Full internationalization (6 non-English locales)",
-   "maturity": "partial",
-   "scaleNote": "Coverage 82–87% after the NLLB pass; scales to any content via slug_sha8 keying + en fallback.",
-   "blocker": "992-string gap closed only to ai_draft behind a human-verification queue; zh-Hans has 95 QA-skips routed to Chinese readers. Not fully human-verified.",
+   "maturity": "working",
+   "scaleNote": "Playtest-adequate (L5 W5, Option A, 6c15a27): the translation machinery works end-to-end; monolithic chrome renders in-language for es/ar/hi/zh-Hans, c_education (848 keys) renders fr; fr/pt shell chrome falls back cleanly to English (zero raw NLLB — 16 confidently-wrong machine catalogs deleted so the fallback holds even once shells wire). Broad page bodies (civic/legislature/elections) await lane 6's markup-wiring parity wave — not a regression.",
+   "blocker": "",
    "badge": "L5·W5",
    "lane": "5",
    "wave": "W5"
