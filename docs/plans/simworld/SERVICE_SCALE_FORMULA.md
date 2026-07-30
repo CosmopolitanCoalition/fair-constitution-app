@@ -138,15 +138,29 @@ tree** (every jurisdiction with a judiciary holds ≥5), not by inflating any si
 concentrating it would break the min-5-per-race law. See §9-Q2 for the alternative (a log bench
 curve) and its cost.
 
-**Code state (verify-and-close, 2026-07-30).** `InstitutionScaleService::courtTiers(string $tier)`
-still returns the old per-tier *count* (0/1/1/2/3) and has **zero production callers** — a
-retained-but-uncalled hint, pinned only by `InstitutionScaleTest`; the provisioner never materialises
-it (the schema forbids a second court per jurisdiction — correct). Its docblock still cites the
-pre-ruling "a provisioning engine MAY materialise these" reading, now SUPERSEDED by the ruling above;
-that docblock is flagged to the file's owner (lane 3) to reframe or retire. `parent_judiciary_id`
-exists on `judiciaries` (column + `Judiciary::parentJudiciary()` + FK index) but is **not yet
-populated by any code path** — the depth MODEL is present; populating the chain is the courts
-capability's job, not this formula's.
+**Code state + target shape (verify-and-close, 2026-07-30 — L3 + L4 read the code independently and
+agree).**
+
+- `InstitutionScaleService::courtTiers(string $tier)` returns the OLD per-tier layer *count*
+  (0/1/1/2/3) and has **zero production callers** (dead; pinned only by `InstitutionScaleTest:165-169`).
+  The provisioner never materialises it — the schema forbids a second court per jurisdiction (correct).
+- `parent_judiciary_id` exists (`judiciaries` column + `Judiciary::parentJudiciary()` + FK index) but
+  is **never written by any code path**, so the court tree is flat and any depth reading is uniformly
+  0 today. The depth MODEL is present; the chain is simply unpopulated.
+
+**Ruling — RETIRE, not coexist.** The operator DEFINED the term (`courtTiers` = tree-depth), so the
+population-tier layer-count is the *superseded* framing, not a second live concept — a static literally
+named `courtTiers` that returns a population count would re-assert the rejected model. Target shape for
+`InstitutionScaleService` (lane 3's file; lane 3 executes the code side):
+1. **Remove** `courtTiers(string $tier)` + its `InstitutionScaleTest:165-169` pins — dead code carrying
+   the rejected framing. The bench-size tiers (`judgeCount` 5/5/7/9) are a SEPARATE concern, untouched
+   and still pinned.
+2. **Tree-depth** is read from the `parent_judiciary_id` chain *where a consumer needs it* — there is
+   none today, so nothing is built now; when one arrives it walks the chain, never a population tier.
+3. No schema. The two uniqueness constraints stay intact — they ARE the singular-court model.
+
+(`extraRooms()` under §4.5 is treated DIFFERENTLY: its per-local-place formula is not a rejected model,
+only an unwired one, so it is KEPT as the future room-model input, not retired.)
 
 ### 4.4 Legislative committees & executive departments — DEMO-POSTURE TARGETS ONLY
 
