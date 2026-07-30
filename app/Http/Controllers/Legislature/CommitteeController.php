@@ -376,6 +376,42 @@ class CommitteeController extends Controller
         return back()->with('status', 'Meeting agenda set (F-CHR-002).');
     }
 
+    /** F-CHR-005 — Committee Meeting Open (gavel in; scheduled → open). */
+    public function openMeeting(Request $request, CommitteeMeeting $meeting): RedirectResponse
+    {
+        $validated = $request->validate([
+            'chair_unavailable' => ['nullable', 'boolean'],
+        ]);
+
+        $this->engine->file('F-CHR-005', $request->user(), [
+            'meeting_id'        => (string) $meeting->id,
+            'jurisdiction_id'   => (string) $meeting->committee?->legislature()->value('jurisdiction_id'),
+            'chair_unavailable' => (bool) ($validated['chair_unavailable'] ?? false),
+        ]);
+
+        return back()->with('status', 'Committee meeting opened (F-CHR-005) — the hearing floor is live.');
+    }
+
+    /** F-CHR-006 — Committee Meeting Adjournment + Minutes (open → adjourned). */
+    public function adjournMeeting(Request $request, CommitteeMeeting $meeting): RedirectResponse
+    {
+        $validated = $request->validate([
+            'minutes_body'      => ['required', 'string', 'max:20000'],
+            'minutes_title'     => ['nullable', 'string', 'max:200'],
+            'chair_unavailable' => ['nullable', 'boolean'],
+        ]);
+
+        $this->engine->file('F-CHR-006', $request->user(), [
+            'meeting_id'        => (string) $meeting->id,
+            'jurisdiction_id'   => (string) $meeting->committee?->legislature()->value('jurisdiction_id'),
+            'minutes_body'      => $validated['minutes_body'],
+            'minutes_title'     => $validated['minutes_title'] ?? null,
+            'chair_unavailable' => (bool) ($validated['chair_unavailable'] ?? false),
+        ]);
+
+        return back()->with('status', 'Committee meeting adjourned (F-CHR-006) — minutes sealed into the public record.');
+    }
+
     /**
      * F-CHR-003 — Bill Referral to Floor. The engine independently
      * enforces the gate (bill must stand `reported` — a passed committee

@@ -194,6 +194,8 @@ class FormRegistry
         'F-CHR-002' => ['name' => 'Committee Agenda Setting',                   'roles' => ['R-12']],
         'F-CHR-003' => ['name' => 'Bill Referral to Floor',                     'roles' => ['R-12']],
         'F-CHR-004' => ['name' => 'Committee Report Filing',                    'roles' => ['R-12']],
+        'F-CHR-005' => ['name' => 'Committee Meeting Open',                     'roles' => ['R-12']],
+        'F-CHR-006' => ['name' => 'Committee Meeting Adjournment',              'roles' => ['R-12']],
 
         // ── F-EXE — Executive Forms (5) ─────────────────────────────────────
         'F-EXE-001' => ['name' => 'Board of Governors Nomination',              'roles' => ['R-14', 'R-15', 'R-16']],
@@ -368,6 +370,8 @@ class FormRegistry
         'F-CHR-002' => Handlers\CommitteeAgendaSetting::class,
         'F-CHR-003' => Handlers\BillReferralToFloor::class,
         'F-CHR-004' => Handlers\CommitteeReportFiling::class,
+        'F-CHR-005' => Handlers\CommitteeMeetingOpen::class,
+        'F-CHR-006' => Handlers\CommitteeMeetingAdjourn::class,
 
         // ── Phase D — organizations scope (PHASE_D_DESIGN_organizations §D.2:
         // registry/membership/workers, board elections, transfers,

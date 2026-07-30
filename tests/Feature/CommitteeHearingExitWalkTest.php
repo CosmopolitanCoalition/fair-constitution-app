@@ -25,11 +25,12 @@ use Tests\TestCase;
  * the live social floor (presence, the hands-raised queue, recognition) on one
  * page — the wave's acceptance gate.
  *
- * TWO LEGS ARE NOT ROOM-DRIVABLE (surface map, by design) and are asserted at
- * the model level with a note: the referral vote (LiveRoomController::
- * openCommitteeVote returns null — a committee reports/refers, it is not a
- * ChamberVoteProposal) and adjourn (no route transitions a meeting off its
- * status). Both are Wave-4-flagged room wiring, not test defects.
+ * The meeting LIFECYCLE is now fully route-driven (W5 ①): the chair gavels the
+ * scheduled meeting open (F-CHR-005) and later adjourns it with minutes
+ * (F-CHR-006) — the durable scheduled→open→adjourned transitions W4 had to
+ * force-write. ONE leg remains model-only by design: the referral vote
+ * (LiveRoomController::openCommitteeVote returns null — a committee reports and
+ * refers, it is not a ChamberVoteProposal), not a test defect.
  *
  * Live-pg + rolled-back tx (default test conn is sqlite:memory, no schema);
  * MatrixClientService mocked hermetic — the room lazily provisions its Matrix
@@ -104,11 +105,26 @@ class CommitteeHearingExitWalkTest extends TestCase
                 'called_by_member_id' => (string) $chairMember->id,
                 'scheduled_for'       => now(),
                 'agenda'              => ['Hearing on the drainage ordinance'],
-                'status'              => CommitteeMeeting::STATUS_OPEN,
+                'status'              => CommitteeMeeting::STATUS_SCHEDULED,
             ]);
 
             $room      = "/rooms/committee/{$meeting->id}";
             $resHandle = '@u-'.substr(hash('sha256', (string) $residentUser->id), 0, 8);
+
+            // 0) The chair GAVELS the scheduled meeting open (F-CHR-005) — the
+            //    durable transition that makes the floor live. A non-chair's
+            //    filing is refused by the engine role gate (the meeting stays
+            //    scheduled — the gate is enforced by state, not an HTTP code).
+            $this->postAs($residentUser, "/meetings/{$meeting->id}/open");
+            $this->assertSame(CommitteeMeeting::STATUS_SCHEDULED, $meeting->refresh()->status,
+                'only the chair (R-12) or acting alternate opens a meeting');
+
+            $this->postAs($chairUser, "/meetings/{$meeting->id}/open")->assertRedirect();
+            $this->assertSame(CommitteeMeeting::STATUS_OPEN, $meeting->refresh()->status);
+            $this->assertNotNull($meeting->opened_at, 'opening stamps the durable time');
+
+            // Drop the chair's auth — the gallery leg must be observed as a GUEST.
+            $this->app['auth']->forgetGuards();
 
             // 1) A GUEST watches the hearing (Art. II §2): gallery, the agenda item
             //    is live, and there is no vote yet (a committee reports/refers).
@@ -152,9 +168,28 @@ class CommitteeHearingExitWalkTest extends TestCase
             $this->postAs($chairUser, "{$room}/advance")->assertRedirect();
             $this->get($room)->assertInertia(fn (Assert $p) => $p->where('floorHolder', null));
 
-            // GAP LEG (adjourn has no room route): force it and assert the room
-            // renders the concluded state — the surface-map-documented Wave-4 gap.
-            $meeting->update(['status' => CommitteeMeeting::STATUS_ADJOURNED]);
+            // 6) The chair ADJOURNS with minutes (F-CHR-006) — the durable close:
+            //    status flips, the time is stamped, and the minutes are sealed into
+            //    the append-only public record. A non-chair's filing is refused by
+            //    the engine role gate (the meeting stays open).
+            $this->postAs($residentUser, "/meetings/{$meeting->id}/adjourn", ['minutes_body' => 'Not the chair.']);
+            $this->assertSame(CommitteeMeeting::STATUS_OPEN, $meeting->refresh()->status,
+                'only the chair (R-12) or acting alternate adjourns a meeting');
+
+            $this->postAs($chairUser, "/meetings/{$meeting->id}/adjourn", [
+                'minutes_body' => 'The committee heard testimony on the drainage ordinance and adjourned.',
+            ])->assertRedirect();
+
+            $meeting->refresh();
+            $this->assertSame(CommitteeMeeting::STATUS_ADJOURNED, $meeting->status);
+            $this->assertNotNull($meeting->adjourned_at, 'adjournment stamps the durable time');
+            $this->assertNotNull($meeting->minutes_record_id, 'minutes sealed into the public record');
+            $this->assertSame(1, PublicRecord::query()
+                ->where('kind', 'minutes')
+                ->where('subject_type', 'committee_meetings')
+                ->where('subject_id', (string) $meeting->id)
+                ->count(), 'adjournment seals exactly one minutes record');
+
             $this->get($room)->assertInertia(fn (Assert $p) => $p
                 ->where('status.label', 'Adjourned'));
         });

@@ -8,6 +8,7 @@ use App\Domain\Engine\ConstitutionalViolation;
 use App\Models\ChamberVote;
 use App\Models\ChamberVoteProposal;
 use App\Models\Committee;
+use App\Models\CommitteeMeeting;
 use App\Models\CommitteeSeat;
 use App\Models\Legislature;
 use App\Models\LegislatureMember;
@@ -46,6 +47,84 @@ class CommitteeService
         private readonly AuditService $audit,
         private readonly RoleService $roles,
     ) {
+    }
+
+    // =========================================================================
+    // Meeting lifecycle (F-CHR-005 open · F-CHR-006 adjourn)
+    // =========================================================================
+
+    /**
+     * F-CHR-005 — gavel a SCHEDULED meeting open. Until a meeting is open the
+     * hearing room's raise-hand / recognize / testimony floor is not
+     * constitutionally live and no agenda item can be in progress
+     * (LiveRoomController::agendaItems gates `in_progress` on STATUS_OPEN).
+     * The engine audits the filing; this is the durable state transition.
+     */
+    public function openMeeting(CommitteeMeeting $meeting): CommitteeMeeting
+    {
+        if ($meeting->status !== CommitteeMeeting::STATUS_SCHEDULED) {
+            throw new ConstitutionalViolation(
+                "Only a scheduled meeting opens (status: {$meeting->status}).",
+                'CGA Forms Catalog (F-CHR-005)'
+            );
+        }
+
+        $meeting->forceFill([
+            'status'    => CommitteeMeeting::STATUS_OPEN,
+            'opened_at' => now(),
+        ])->save();
+
+        return $meeting->refresh();
+    }
+
+    /**
+     * F-CHR-006 — adjourn an OPEN meeting and seal its minutes into the
+     * append-only public record (the committee analogue of F-SPK-009).
+     * `minutes_record_id` soft-refs public_records — no FK by design.
+     */
+    public function adjournMeeting(
+        CommitteeMeeting $meeting,
+        string $minutesBody,
+        ?string $minutesTitle = null,
+    ): CommitteeMeeting {
+        if ($meeting->status !== CommitteeMeeting::STATUS_OPEN) {
+            throw new ConstitutionalViolation(
+                "Only an open meeting adjourns (status: {$meeting->status}).",
+                'CGA Forms Catalog (F-CHR-006)'
+            );
+        }
+
+        $minutes = trim($minutesBody);
+
+        if ($minutes === '') {
+            throw new ConstitutionalViolation('Minutes carry text (WF-SYS-03).', 'Art. II §2');
+        }
+
+        $committee   = $meeting->committee()->firstOrFail();
+        $legislature = $committee->legislature()->firstOrFail();
+
+        return DB::transaction(function () use ($meeting, $committee, $legislature, $minutes, $minutesTitle) {
+            $record = $this->records->publish(
+                kind: 'minutes',
+                title: $minutesTitle ?: sprintf('Minutes — %s', $committee->name),
+                body: $minutes,
+                attrs: [
+                    'jurisdiction_id' => (string) $legislature->jurisdiction_id,
+                    'legislature_id'  => (string) $legislature->id,
+                    'subject_type'    => 'committee_meetings',
+                    'subject_id'      => (string) $meeting->id,
+                    'via_workflow'    => 'WF-LEG-08',
+                ],
+            );
+
+            $meeting->forceFill([
+                'status'            => CommitteeMeeting::STATUS_ADJOURNED,
+                'adjourned_at'      => now(),
+                'minutes_record_id' => (string) $record->id,
+            ])->save();
+
+            return $meeting->refresh();
+        });
     }
 
     // =========================================================================

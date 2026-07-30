@@ -799,6 +799,10 @@ Route::middleware('auth')->group(function () {
         ->whereUuid('committee')->name('committees.meetings');                // F-CHR-001
     Route::post('/meetings/{meeting}/agenda', [\App\Http\Controllers\Legislature\CommitteeController::class, 'meetingAgenda'])
         ->whereUuid('meeting')->name('meetings.agenda');                      // F-CHR-002
+    Route::post('/meetings/{meeting}/open', [\App\Http\Controllers\Legislature\CommitteeController::class, 'openMeeting'])
+        ->whereUuid('meeting')->name('meetings.open');                        // F-CHR-005
+    Route::post('/meetings/{meeting}/adjourn', [\App\Http\Controllers\Legislature\CommitteeController::class, 'adjournMeeting'])
+        ->whereUuid('meeting')->name('meetings.adjourn');                     // F-CHR-006
     Route::post('/meetings/{meeting}/testimony', [\App\Http\Controllers\Legislature\CommitteeController::class, 'testimony'])
         ->whereUuid('meeting')->name('meetings.testimony');                   // → public_records
     Route::post('/committees/{committee}/reports', [\App\Http\Controllers\Legislature\CommitteeController::class, 'storeReport'])

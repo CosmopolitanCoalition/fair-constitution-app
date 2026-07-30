@@ -114,7 +114,7 @@ class AuditChainSmokeTest extends TestCase
     // FormRegistry
     // -------------------------------------------------------------------------
 
-    public function test_registry_holds_exactly_118_canonical_forms(): void
+    public function test_registry_holds_exactly_120_canonical_forms(): void
     {
         // 103 Template forms + F-ELB-008 (Manual District Draw, Phase H) + the
         // Phase K-1 civic-commons trio F-SOC-001/002/003 (public square / halls
@@ -143,13 +143,18 @@ class AuditChainSmokeTest extends TestCase
         // + F-IND-021 (Share Trade, Wave 4 ② build): holder-to-holder secondary
         // share RESALE on the exchange (offer/buy/cancel) — an INDIVIDUAL act
         // (R-01), units on the named ownership plane, money on the account plane.
+        // + F-CHR-005/006 (Committee Meeting Open / Adjournment, Wave 5 ① build):
+        // the durable meeting state machine the keystone hearing runs through —
+        // scheduled→open (gavel in) and open→adjourned+minutes. Before these the
+        // meeting lifecycle had no scheduled→open→adjourned transition via any
+        // form/route/handler; the W4 exit-walk force-wrote those states.
         //
         // WHY THIS PIN EARNS ITS KEEP: it is an EXACT count, so adding a form
         // without meaning to fails here loudly. Raising the number is the
         // deliberate half of adding one — if you are editing this line, check
         // that you meant to add a form, not that the test is in your way.
-        $this->assertCount(118, FormRegistry::FORMS);
-        $this->assertCount(118, FormRegistry::ids());
+        $this->assertCount(120, FormRegistry::FORMS);
+        $this->assertCount(120, FormRegistry::ids());
     }
 
     public function test_pure_aliases_resolve_to_canonical_ids(): void
