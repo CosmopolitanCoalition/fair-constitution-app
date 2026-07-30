@@ -1627,3 +1627,27 @@ grants on review (real-dated ≥ 2026-07-05, additive-only). No other lane holds
 
 **SCREENS 104/107 built.** Remaining: bill.html (L6 ②, building) · board-elections + org-registry (L13,
 committed d791a38, held for L13's four-way report).
+
+### W5 tick 6 — L13 DONE (2 org screens → 106/107) + ⑤ migration GRANTED (2026-07-30)
+
+**L13W5 DONE.** board-elections + org-registry BUILT + PINNED + committed (d791a38, 5 files). board-elections:
+nomination-window prop group (per-track dates + windowPhase() mapper + 1-90 dial), "Before the count" phase
+strip. org-registry: monopoly_pending via one list-wide join, "Endorsing only" filter, "Start a club" F-IND-012
+shortcut, monopoly badge, no-special-party-privileges banner. Pinned in PhaseDPageSmokeTest with REAL values
+(phase='ranking', dial 14/1/90, monopoly flagged-vs-clean). Phantom-table discipline held (org_conversions
+verified vs live information_schema; empty → honest-empty). No forms minted (L13 added 0; total stays 120), no
+protected files, no migration. Both screens re-badged partial→built → SCREENS 106/107. Only bill.html (L6 ②) left.
+③ CHECK(balance>=0) PARKED (app-layer row-lock closes overdraft). L13 HOLDING.
+
+**L13 FULL-SUITE run bh28i7v97: 1357 passed / 0 failed / 3 skipped (308,774 assertions, 1114.9s).** Strong health
+signal — the 3 SKIPS are the seed-gated live E2Es (institutions:demo-* absent), which QUANTIFIES the re-gate seed
+pre-condition (restore seeds → those 3 exercise). NOT the authoritative gate: ⑤ agenda pending + seeds not
+restored + L2 owns the controlled quiet-window re-gate. Held as informational.
+
+**⑤ AGENDA MIGRATION — GRANTED to L3.** Reviewed agenda_items (2026_07_30_000000): additive, real-dated, uuid pk,
+polymorphic agendable_type/id (committee_meetings keystone + legislature_sessions), soft-delete, partial-unique
+(agendable_type, agendable_id, position) WHERE deleted_at IS NULL, ref soft-link no FK, kind/status varchar+CHECK
+(not a PG ENUM type — allowed). Clean. L3 runs the one migration, proves green (screenshot + live-pg pin), commits.
+Slot is L3's until ⑤ reports done — no other lane migrates meanwhile.
+
+**REMAINING TO 107/107 · full green:** bill.html (L6 ②) + ⑤ agenda (L3, migrating) → then L2 authoritative re-gate.

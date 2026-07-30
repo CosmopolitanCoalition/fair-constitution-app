@@ -2945,8 +2945,8 @@
    "title": "Board elections",
    "page": "resources/js/Pages/Organizations/BoardElections.vue",
    "route": "GET /organizations/{organization}/board-elections",
-   "props": "partial",
-   "backend": "partial",
+   "props": "full",
+   "backend": "full",
    "owner": "lanes 13 · 14",
    "propsMissing": [
     "nomination-window phase (window dates/length, nominee accept-decline state) — no prop group exists for it"
@@ -2963,9 +2963,9 @@
     "Live-election links to the real Phase B ballot surfaces + electorate counts",
     "Composition-invalid warning, chair pending_reason=composition_changed banner, and no-board empty state"
    ],
-   "notes": "Both STV tracks, the joint chair RCV round record, and the seated BoardStrip are real engine reads (F-ORG-003/004 registered, handlers wired); the chair two-round stepper is demo theater the app correctly replaces with the certified record. The only substantive gap is the nomination-window concept, which needs an org-settings dial that has no backend. 2026-07-29 (b990110): the 0d nomination-window dial LIVE (org settings, 1-90 day bounds, audit-chained; window stretches nominations + shifts ranked dates). Remaining S: the end-to-end date proof rides the next board-election fixture/walk.",
+   "notes": "BUILT + PINNED (L13 W5, d791a38): the nomination-window prop group is surfaced — BoardElectionController exposes per-track `nomination` dates (approval_opens..finalist_cutoff = nominations, ranked_opens..closes = ranking) + a windowPhase() mapper off election.status + a nominationWindow dial (window_days, 1-90). BoardElections.vue renders the 'Before the count' StateStrip phase strip (nominations->ranking->count) + the 'setting not a rule' org-settings note. Pure reads, honest-absent until a track opens. Pinned in PhaseDPageSmokeTest with REAL values (phase='ranking', dial 14/1/90).",
    "area": "Organizations",
-   "bucket": "partial",
+   "bucket": "built",
    "effort": "S",
    "badge": "L13·W5",
    "lane": "13",
@@ -3029,7 +3029,7 @@
    "title": "Organization registry",
    "page": "resources/js/Pages/Organizations/Registry.vue",
    "route": "GET /organizations",
-   "props": "partial",
+   "props": "full",
    "backend": "full",
    "owner": "lanes 13 · 14",
    "propsMissing": [
@@ -3048,9 +3048,9 @@
     "Residency CTA replacing the form when the viewer lacks R-03",
     "Empty-registry banner and CLK-13-resolved (not hardcoded) threshold in the stat label"
    ],
-   "notes": "Registry, stats, filters, F-IND-012 FormCard, and the ESM-18 StateStrip are all live; gaps are copy/props-level (a toggle, a banner, a quick-form variant, one flag join). Registered-in shows as an AdmChip under the name rather than the mockup's dedicated column — equivalent information.",
+   "notes": "BUILT + PINNED (L13 W5, d791a38): OrganizationController adds `monopoly_pending` via ONE list-wide join (org_conversions via=monopoly_acquisition & in-flight, not per-row). Registry.vue adds the 'Endorsing only' filter chip, a 'Start a club' F-IND-012 type=informal shortcut, the monopoly-pending warning badge, and the 'no special party privileges' banner -> /constitutional-questions. Phantom-table discipline held (org_conversions verified vs live information_schema; empty -> monopoly join honest-empty, no fake badges). Pinned in PhaseDPageSmokeTest (flagged-vs-clean split).",
    "area": "Organizations",
-   "bucket": "partial",
+   "bucket": "built",
    "effort": "S",
    "badge": "L13·W5",
    "lane": "13",
