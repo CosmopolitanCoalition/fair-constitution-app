@@ -3323,9 +3323,9 @@
   {
    "area": "Legislature",
    "capability": "Legislature amends a constitutional setting end-to-end through the real act pipeline",
-   "maturity": "partial",
-   "scaleNote": "Setting store + validator exist; the full loop needs verification.",
-   "blocker": "R-C: amendment workflow loop flagged to verify/complete end-to-end and surface as a walkable journey (L3 W5 ②; DESK_LEDGER §10). Bicameral agreement now completes since the Type B chamber seats (per-clump/per-child).",
+   "maturity": "working",
+   "scaleNote": "Pinned end-to-end (L3 W5 ②, c62e3c2): propose F-LEG-031 → peg-quorum floor vote → APPLY (election_interval_months 60→48, setting_changes ledger row, SettingsResolver read-path returns 48); out-of-range refused at the door. Self-seeding live-pg E2E, always runs. Ordinary setting change enacts at the MAJORITY peg (constitutionally correct); the 12 dual-door keys (judiciary_is_elected + 11 monetary levers) + full-article amendments take supermajority + constituent consent.",
+   "blocker": "",
    "badge": "L3·W5",
    "lane": "3",
    "wave": "W5"
@@ -3333,9 +3333,9 @@
   {
    "area": "Executive",
    "capability": "Executive delegation then conversion to directly-elected (dual supermajority)",
-   "maturity": "partial",
-   "scaleNote": "Delegation works; committee (5+ PR-STV) and individual (RCV + top-4 advisors) both built.",
-   "blocker": "Delegation works; delegation→conversion to directly-elected needs L3 W5 ③ end-to-end verification. The bicameral create/convert acts complete now that the Type B chamber seats (per-clump/per-child).",
+   "maturity": "working",
+   "scaleNote": "Verified + pinned (L3 W5 ③): ExecConversionDualSupermajority + ExecDelegationProportionality = 16 passed / 187 assertions. Delegation (F-LEG-014, proportional ex-officio seating) + conversion (F-LEG-015, genuine DUAL supermajority — chamber AND constituent MultiJurisdictionVote, both from PROTECTED ConstitutionalValidator) + election scheduling. Committee (5+ PR-STV) and individual (RCV + top-4 advisors) both built. Live-observed flip to status='elected' is a deferred completeness pin (source-pinned today).",
+   "blocker": "",
    "badge": "L3·W5",
    "lane": "3",
    "wave": "W5"

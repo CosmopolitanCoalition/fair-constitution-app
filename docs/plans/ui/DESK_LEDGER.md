@@ -1541,3 +1541,30 @@ A green suite that skipped its live walks is a FALSE green — the authoritative
 - Debt items #1 (pooled-shape defect) + doc-drift were already state=resolved (collapsed) — left as historical record.
 
 Rubric regenerated (51 caps working) + redeployed same URL. Ledger + CLAUDE.md + badged.json + rubric committed.
+
+### W5 tick 3 — L3 ② amendment + ③ exec caps CLOSED; L4 close precision (2026-07-30)
+
+**L3 ② AMENDMENT R-C → GREEN (c62e3c2).** Self-seeding live-pg E2E pins the full loop: propose F-LEG-031 →
+peg-quorum floor vote → APPLY (election_interval_months 60→48 + setting_changes ledger row + SettingsResolver
+read-path returns 48); out-of-range (72>60) refused, nothing written. Always runs (no seed-gate).
+CONSTITUTIONAL NUANCE — L3 read the code, my order was loose: the ORDINARY amendable-setting change enacts at
+the MAJORITY peg, NOT 2/3. Supermajority + constituent consent is reserved for the 12 dual-door keys
+(judiciary_is_elected + 11 monetary levers) + full-article amendments (BillService::basisForActType:
+setting_change→majority, pinned). My "supermajority chamber vote" phrasing paraphrased the dual-door path; L3's
+majority build is correct — forcing supermajority would have BEEN the violation. DEFERRED (completeness, not
+blocker): the dual-door supermajority APPLY path is wired but only validator-rejection-pinned.
+
+**L3 ③ EXEC DELEGATION→CONVERSION → GREEN (verified existing pins).** ExecConversionDualSupermajority +
+ExecDelegationProportionality = 16 passed / 1 seed-gated skip / 187 assertions. Full path: delegation
+(F-LEG-014) + conversion (F-LEG-015, genuine DUAL supermajority — chamber AND constituent MultiJurisdictionVote
+via PROTECTED ConstitutionalValidator) + election scheduling. DEFERRED (completeness): live-observed flip to
+status='elected' (CertificationService) is source-pinned only; L3 builds the harness only if ①/⑤ land before
+re-gate.
+
+**CAPS NOW 53/55 alpha working.** 2 partial left: ① committees (REAL build gap — hearing lifecycle has no
+scheduled→open→adjourned transition via any form/route; L3 building, coupled to ⑤ agenda), i18n (L5).
+
+**L4 CLOSE PRECISION:** L4 clarified it closed the WORK (doc reframe genuinely needed, not a no-op), not
+"already correct end-to-end." RETIRE ruling (f4c1a01) STANDS — desk sees no coexist reason. "Unblocks L3 courts"
+dependency is MOOT: L3 ④ pinned green independent of courtTiers; Q4a reframe + L3 ④ closed on separate tracks.
+Seed-gate reconfirmed (institutions:demo-* family) — re-gate pre-condition holds. Both completeness pins deferred.
