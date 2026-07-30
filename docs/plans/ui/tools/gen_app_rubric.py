@@ -89,7 +89,7 @@ for _q in QUESTIONS:
 # Screens / caps / debt all come from the enriched, badged corpus in this dir (repo-stable).
 _enr = json.load(open(os.path.join(_HERE, 'badged.json'), encoding='utf-8'))
 screens = _enr['screens']; caps = _enr['caps']; debt = _enr['debt']
-DATA = {'asOf': '2026-07-29', 'head': '2ad8b1b', 'forms': 118,
+DATA = {'asOf': '2026-07-29', 'head': '0bd6f1c', 'forms': 118,
         'screens': screens, 'caps': caps, 'debt': debt, 'fleet': FLEET, 'questions': QUESTIONS}
 
 TEMPLATE = r"""<title>App Progress Rubric — CGA</title>
