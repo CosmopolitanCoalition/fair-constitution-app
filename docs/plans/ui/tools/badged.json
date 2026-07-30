@@ -2763,8 +2763,8 @@
    "title": "A bill — the conversation",
    "page": "",
    "route": "",
-   "props": "none",
-   "backend": "partial",
+   "props": "full",
+   "backend": "full",
    "owner": "lane 6",
    "propsMissing": [],
    "backendMissing": [
@@ -2780,9 +2780,9 @@
     "bill talk exists but lives in the auto-bound hall subforum (SubforumReconciler binds every live bill; F-SOC-001 posts) rather than on a bill page",
     "the formal record (Legislature/BillDetail.vue at /bills/{bill}) carries versions, server-computed diffs, and dual-agreement meters"
    ],
-   "notes": "The mockup itself splits conversation from the formal record; the app built only the formal half. A conversation page could compose existing pieces (bill lifecycle, hall subforum thread, TextDiff) — the clause negotiation backend is the genuinely new part.",
+   "notes": "BUILT + PINNED (L6 W5, 9f6a2ab): the CONVERSATION face of a bill on the constitutional path — BillConversationController + GET /bills/{bill}/conversation (public) + POST /bills/{bill}/comments (auth) + BillConversation.vue + 'Join the conversation' cross-link on BillDetail. Progress stages from the bill state machine; the bill's REAL current text (no summary column -> honest-empty, never fabricated); the amendment-path panel. Per-clause redline DELIBERATELY not built — a bill's words change only through amendments the chamber VOTES on (committee->floor->new BillVersions), never a per-party edit, both chambers must agree (Art. V §3). Comments ride the bill's auto-bound hall subforum (F-SOC-001; subforum_id honored by SocialSpaceService::resolveSubforum — no shared HallsController touch). BillConversationTest 2/2, 8/8 across bill/halls/square (no F-SOC-001 regression), DOM-verified :8082 (Public Libraries Act — real comment posted + rendered pseudonymously).",
    "area": "Shared front doors",
-   "bucket": "absent",
+   "bucket": "built",
    "effort": "L",
    "badge": "L6·W5",
    "lane": "6",

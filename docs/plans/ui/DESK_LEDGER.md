@@ -1651,3 +1651,34 @@ polymorphic agendable_type/id (committee_meetings keystone + legislature_session
 Slot is L3's until ⑤ reports done — no other lane migrates meanwhile.
 
 **REMAINING TO 107/107 · full green:** bill.html (L6 ②) + ⑤ agenda (L3, migrating) → then L2 authoritative re-gate.
+
+### W5 tick 7 — ★★ BUILD COMPLETE: 107/107 screens · 55/55 alpha caps (2026-07-30)
+
+**L6 ② bill.html → BUILT + PINNED (9f6a2ab).** The CONVERSATION face of a bill on the constitutional path:
+BillConversationController + GET /bills/{bill}/conversation (public) + POST /bills/{bill}/comments (auth) +
+BillConversation.vue + BillDetail cross-link (5 files, 546 ins / 0 del). Progress stages from the bill state
+machine; REAL current text (no summary column → honest-empty); amendment-path panel. **Per-clause redline
+DELIBERATELY not built** — a bill's words change only through amendments the chamber VOTES on (committee→floor→new
+BillVersions), never a per-party edit, both chambers agree (Art. V §3). The mockup's per-party accept would be the
+violation; L6 correctly refused it. Comments ride the bill's auto-bound hall subforum (F-SOC-001).
+
+FOUND (both verify-against-real-data wins): (1) subforum_id passthrough already lives in
+SocialSpaceService::resolveSubforum, so L6 files F-SOC-001 with the bill's subforum_id from its OWN controller —
+ZERO shared-HallsController touch, no lane-3 write dependency. (2) LIVE-DATA CATCH: a bill's jurisdiction_id is
+NOT always its subforum's space jurisdiction_id (false on demo data) — F-SOC-001 re-resolves from jurisdiction_id,
+so the filing passes the SUBFORUM'S space jurisdiction, else it 500s. PROOF: BillConversationTest 2/2, 8/8 across
+bill/halls/square, DOM-verified :8082 (real comment posted + rendered pseudonymously). bill.html → built.
+
+**★★ THE BUILD IS COMPLETE: 107/107 SCREENS BUILT · 55/55 ALPHA CAPS WORKING.** (mobile/Capacitor = Phase 6, out
+of alpha scope.) Every screen and capability the alpha needs is now built + pinned. This is the FULL-GREEN BUILD
+target hit — but NOT yet the authoritative gate (BUILT IS NOT TESTED): L2's exercised re-gate confirms it.
+
+**Optional flagged (non-blocking):** L6 notes HallsController::store could gain general subforum targeting (one-line
+validation+payload add; service already supports it) — a nicety, not routed to L3 mid-⑤-migration.
+
+**REMAINING to the exercised full-green + walk:**
+1. ⑤ agenda schema (L3, migration granted, running) — keystone-debt paydown, not a 107/55 blocker.
+2. L6 ③ Atlas a11y review → findings to L4 (polish).
+3. L2 AUTHORITATIVE RE-GATE — quiet window, SUITE TOKEN, + arm-phase prep folded in (restore standing seeds
+   institutions:demo-* + provision Matrix identities for demo users) so the 3 seed-gated live E2Es EXERCISE.
+4. ARM (education:seed [L15] + live per-clump Niue general [L1]) → the operator's walk.
