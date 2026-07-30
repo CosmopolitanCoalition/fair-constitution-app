@@ -91,7 +91,7 @@ for _q in QUESTIONS:
 # Screens / caps / debt all come from the enriched, badged corpus in this dir (repo-stable).
 _enr = json.load(open(os.path.join(_HERE, 'badged.json'), encoding='utf-8'))
 screens = _enr['screens']; caps = _enr['caps']; debt = _enr['debt']
-DATA = {'asOf': '2026-07-30', 'head': 'c947733', 'forms': 120,
+DATA = {'asOf': '2026-07-30', 'head': 'fe010e2', 'forms': 120,
         'screens': screens, 'caps': caps, 'debt': debt, 'fleet': FLEET, 'questions': QUESTIONS}
 
 TEMPLATE = r"""<title>App Progress Rubric — CGA</title>
@@ -300,7 +300,7 @@ buildFilters();render();
 </script>
 """
 
-stamp = "As of %s · main @ <code>%s</code> · Wave 5 build in progress · last authoritative gate: Wave 4 1343 / 0 · re-gate pending" % (DATA['asOf'], DATA['head'])
+stamp = "As of %s · main @ <code>%s</code> · Wave 5 BUILD COMPLETE: 107/107 screens · 55/55 alpha caps · authoritative re-gate pending" % (DATA['asOf'], DATA['head'])
 html = TEMPLATE.replace('%%DATA%%', json.dumps(DATA, separators=(',', ':'))).replace('%%STAMP%%', stamp)
 out = r'E:\fair-constitution-app\docs\plans\ui\tools\app_progress_rubric.html'
 with io.open(out, 'w', encoding='utf-8') as f:

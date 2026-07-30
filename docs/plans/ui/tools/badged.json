@@ -3748,7 +3748,7 @@
    "category": "schema-gap",
    "owner": "lane 3",
    "location": "committee_meetings.agenda is a plain string list; Pages/Legislature/LiveCivicRoom.vue floor is ephemeral cache (no schema)",
-   "status": "FLAG RECORDED (Wave 4 candidate)",
+   "status": "Code BUILT + graceful-degrades (AgendaService guarded by Schema::hasTable('agenda_items'); 18 passed/133 with the table absent). Migration agenda_items (2026_07_30_000000, additive) GRANTED but NOT RUN before the credit halt — committee flow uses the JSONB-blob path (functional). Landing = run migration + AgendaPerItemTest.",
    "note": "Per-item progression through a meeting (advance/complete each agenda item) needs a structured agenda, not a flat string array. Blocks the live-room molecule from driving an agenda item-by-item. Lane 3's floor primitive (raise-hand -> FIFO/named recognition -> yield, 3c107cf) is ephemeral and deliberately schema-free for now.",
    "badge": "L3·W5",
    "lane": "3",
@@ -4051,6 +4051,19 @@
    "note": "The 8-defect adversarial review closed it at the app layer; a DB CHECK is belt-and-suspenders.",
    "lane": "13",
    "badge": "L13·W5",
+   "wave": "W5",
+   "state": "deferred"
+  },
+  {
+   "title": "Atlas a11y polish (L6 W5 ③ findings → lane 4)",
+   "severity": "low",
+   "category": "a11y",
+   "owner": "lane 4 (triage)",
+   "location": "resources/js/Pages/System/Atlas.vue + atlas-* CSS; findings at docs/plans/ui/L6W5_ATLAS_A11Y_FINDINGS.md (9f0f5e9)",
+   "status": "OPEN (non-blocking polish): 1 MEDIUM (vital-signs cards need h3/region) + 3 LOW (th scope, ~24px touch @375, off-toggle opacity) + 1 Phase-N token-contrast. Strong baseline (reduced-motion/aria-pressed/role=status/colour-never-alone all right).",
+   "note": "A review, not a rebuild; Atlas.vue untouched. Does not block the walk.",
+   "badge": "L4·W5",
+   "lane": "4",
    "wave": "W5",
    "state": "deferred"
   }
