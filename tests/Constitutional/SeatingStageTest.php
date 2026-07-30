@@ -48,12 +48,12 @@ class SeatingStageTest extends TestCase
     public function test_it_certifies_and_seats_a_real_chamber(): void
     {
         $this->onLivePg(function () {
-            [$jid, $electionId] = $this->countedElection(typeA: 14, typeB: 5, districtSeats: [7, 7]);
+            [$jid, $electionId] = $this->countedElection(typeA: 14, typeB: 10, districtSeats: [7, 7]);
 
             $result = SeatingStage::run($electionId, null, 1);
 
             $this->assertTrue($result['certified'], $result['skipped'] ?? 'certification refused');
-            $this->assertSame(19, $result['seated'], '7 + 7 district seats + 5 at-large');
+            $this->assertSame(24, $result['seated'], '7 + 7 district seats + 5 children × 2 per-child');
 
             $this->assertSame(
                 Election::STATUS_CERTIFIED,
@@ -65,7 +65,7 @@ class SeatingStageTest extends TestCase
                 ->whereNull('deleted_at')
                 ->get();
 
-            $this->assertCount(19, $members);
+            $this->assertCount(24, $members);
 
             foreach ($members as $m) {
                 $this->assertNotNull($m->user_id, 'every seat is held by a real person row');
@@ -195,9 +195,26 @@ class SeatingStageTest extends TestCase
             'type_a_seats' => $typeA,
             'type_b_seats' => $typeB,
             'quorum_required' => max(3, (int) ceil(($typeA + $typeB) / 2)),
+            'type_b_rep_floor' => 2,
             'created_at' => now(),
             'updated_at' => now(),
         ]);
+
+        // Per-child Type B (racePlan mode='children', c96e757): seed
+        // childCount = type_b_seats / rep_floor direct children (pop > TINY_POP so
+        // each seats a full rep_floor of 2), or the type_b half hits racePlan's
+        // drift guard and blocks. Pass an EVEN typeB.
+        $childIds = [];
+        for ($c = 0; $c < intdiv($typeB, 2); $c++) {
+            $childIds[$c] = (string) Str::uuid();
+            DB::table('jurisdictions')->insert([
+                'id' => $childIds[$c], 'parent_id' => $jid, 'name' => 'Child '.$c,
+                'slug' => 'child-'.Str::lower(Str::random(10)), 'adm_level' => 4,
+                'population' => 100, 'source' => 'user_defined',
+                'official_languages' => '["en"]', 'timezone' => 'UTC',
+                'created_at' => now(), 'updated_at' => now(),
+            ]);
+        }
 
         // The bootstrap board — its synthetic member row (user_id NULL) is what
         // a system filing acts through. ActivationService seats one of these
@@ -250,6 +267,13 @@ class SeatingStageTest extends TestCase
 
         CohortStage::run($jid, null, 1, 62);
         IdentityStage::run($jid, null, 1);
+        foreach ($childIds as $cid) {
+            // Each child: its own cohort (per-child electorate) + identities
+            // (lane 4's fieldCandidates draws a per-child race from that child's
+            // depth-0 roster).
+            CohortStage::run($cid, null, 1, 62);
+            IdentityStage::run($cid, null, 1);
+        }
         $election = ElectionStage::run($jid, null, 1);
 
         return [$jid, (string) $election['election_id']];

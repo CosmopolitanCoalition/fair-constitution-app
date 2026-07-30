@@ -52,12 +52,12 @@ class CountingStageTest extends TestCase
     public function test_every_race_gets_a_real_complete_count(): void
     {
         $this->onLivePg(function () {
-            [$jid, $electionId] = $this->contestedElection(typeA: 14, typeB: 5, districtSeats: [7, 7]);
+            [$jid, $electionId] = $this->contestedElection(typeA: 14, typeB: 10, districtSeats: [7, 7]);
 
             $result = CountingStage::run($electionId, null, 1);
 
-            $this->assertSame(3, $result['races'], 'two districts plus the at-large upper house');
-            $this->assertSame(19, $result['seats'], '7 + 7 + 5 seats filled');
+            $this->assertSame(7, $result['races'], 'two district races plus five per-child upper-house races');
+            $this->assertSame(24, $result['seats'], '7 + 7 district + 5 children × 2 = 24 seats filled');
             $this->assertGreaterThan(0, $result['ballots']);
 
             $tabs = DB::table('tabulations as t')
@@ -65,7 +65,7 @@ class CountingStageTest extends TestCase
                 ->where('r.election_id', $electionId)
                 ->get(['t.status', 't.record_hash', 't.quota', 't.total_valid']);
 
-            $this->assertCount(3, $tabs);
+            $this->assertCount(7, $tabs);
 
             foreach ($tabs as $t) {
                 $this->assertSame('complete', $t->status);
@@ -78,7 +78,7 @@ class CountingStageTest extends TestCase
             }
 
             $this->assertSame(
-                19,
+                24,
                 DB::table('race_results as rr')
                     ->join('tabulations as t', 't.id', '=', 'rr.tabulation_id')
                     ->join('election_races as r', 'r.id', '=', 't.race_id')
@@ -181,7 +181,7 @@ class CountingStageTest extends TestCase
     public function test_the_batch_writes_one_rooted_audit_entry_not_one_per_race(): void
     {
         $this->onLivePg(function () {
-            [, $electionId] = $this->contestedElection(typeA: 14, typeB: 5, districtSeats: [7, 7]);
+            [, $electionId] = $this->contestedElection(typeA: 14, typeB: 10, districtSeats: [7, 7]);
 
             $before = DB::table('audit_log')->count();
 
@@ -197,10 +197,10 @@ class CountingStageTest extends TestCase
 
             $payload = json_decode($batchEntries->first()->payload, true);
 
-            $this->assertSame(3, $payload['races']);
-            $this->assertSame(19, $payload['seats']);
+            $this->assertSame(7, $payload['races']);
+            $this->assertSame(24, $payload['seats']);
             $this->assertNotEmpty($payload['record_hash_root'], 'the root is what makes batching honest');
-            $this->assertCount(3, $payload['record_hashes'], 'and every member hash is listed');
+            $this->assertCount(7, $payload['record_hashes'], 'and every race hash is listed');
             $this->assertSame('cohort_weighted', $payload['electorate_source'], 'provenance is recorded');
 
             // Far fewer entries than one-per-race-plus-overhead would produce.
@@ -257,9 +257,29 @@ class CountingStageTest extends TestCase
             'type_a_seats' => $typeA,
             'type_b_seats' => $typeB,
             'quorum_required' => max(3, (int) ceil(($typeA + $typeB) / 2)),
+            'type_b_rep_floor' => 2,
             'created_at' => now(),
             'updated_at' => now(),
         ]);
+
+        // Per-child Type B (racePlan mode='children', c96e757): a type_b chamber
+        // elects one at-large race PER DIRECT CHILD. A chamber with type_b_seats
+        // but NO children hits racePlan's drift guard (Σ child seats ≠
+        // type_b_seats) and blocks. Seed childCount = type_b_seats / rep_floor
+        // children (pop > TINY_POP so each seats a full rep_floor of 2); each
+        // needs its OWN cohort + identity so its per-child race can be counted
+        // (electorateFor keys on the child jurisdiction_id). Pass an EVEN typeB.
+        $childIds = [];
+        for ($c = 0; $c < intdiv($typeB, 2); $c++) {
+            $childIds[$c] = (string) Str::uuid();
+            DB::table('jurisdictions')->insert([
+                'id' => $childIds[$c], 'parent_id' => $jid, 'name' => 'Child '.$c,
+                'slug' => 'child-'.Str::lower(Str::random(10)), 'adm_level' => 4,
+                'population' => 100, 'source' => 'user_defined',
+                'official_languages' => '["en"]', 'timezone' => 'UTC',
+                'created_at' => now(), 'updated_at' => now(),
+            ]);
+        }
 
         if ($districtSeats !== []) {
             $mapId = (string) Str::uuid();
@@ -303,6 +323,15 @@ class CountingStageTest extends TestCase
 
         CohortStage::run($jid, null, 1, 62);
         IdentityStage::run($jid, null, 1);
+        foreach ($childIds as $cid) {
+            // Each child needs its OWN cohort (so its per-child race has an
+            // electorate — electorateFor keys on the child jurisdiction_id) AND
+            // its own identities: lane 4's fieldCandidates groups races by
+            // jurisdiction and a per-child race draws candidates from that child's
+            // roster (depth-0 residency, no ancestor sweep).
+            CohortStage::run($cid, null, 1, 62);
+            IdentityStage::run($cid, null, 1);
+        }
         $election = ElectionStage::run($jid, null, 1);
 
         return [$jid, (string) $election['election_id']];
