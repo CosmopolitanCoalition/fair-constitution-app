@@ -226,14 +226,23 @@ def do_boundary(conn, run_id: str, iso: str, options: dict,
             )
             already = int(cur.fetchone()["n"])
 
-        if exp >= split_min and already == 0 and pool > 1:
-            # ── SPLIT MODE: enumerate ranges, participate, barrier. ──
-            n_ranges = -(-exp // range_size)
-            log.info("%s ADM%d: SPLIT — %d expected features → %d ranges of %d",
-                     iso, file_lvl, exp, n_ranges, range_size)
+        remaining = exp - already
+        if remaining >= split_min and pool > 1:
+            # ── SPLIT MODE: enumerate ranges over the REMAINDER, participate,
+            # barrier. Inserts are a strict prefix of the order-stable stream
+            # (the same invariant resume-skip relies on), so ranges start AT
+            # the prefix boundary — a partially-imported monster level (IND
+            # mid-run) parallelizes its remainder without ever touching the
+            # already-inserted prefix or its slug scheme. ──
+            n_ranges = -(-remaining // range_size)
+            log.info("%s ADM%d: SPLIT — %d of %d features remain → %d ranges of %d "
+                     "(prefix %d already in DB)",
+                     iso, file_lvl, remaining, exp, n_ranges, range_size, already)
             rows = [
-                ("boundary_range", iso, file_lvl, range_size,
-                 json.dumps({"start": i * range_size, "count": range_size}))
+                ("boundary_range", iso, file_lvl,
+                 min(range_size, remaining - i * range_size),
+                 json.dumps({"start": already + i * range_size,
+                             "count": min(range_size, remaining - i * range_size)}))
                 for i in range(n_ranges)
             ]
             import psycopg2.extras
