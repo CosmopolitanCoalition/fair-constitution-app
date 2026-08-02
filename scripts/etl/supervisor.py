@@ -454,23 +454,48 @@ def run_pool_mode(request_payload: dict) -> int:
         log_fh.write(f"[supervisor] pool mode on run {run_id} (target {n_workers} workers)\n")
         log_fh.flush()
 
+        # Workers inherit the run's data root (source=folder/download); source=
+        # archive leaves it unset so the importers use the default /archive mount.
+        worker_env = {**os.environ}
+        if run.get("data_root"):
+            worker_env["DATA_ROOT"] = str(run["data_root"])
+
         procs: dict[str, subprocess.Popen] = {}
         tag_seq = 0
         final_status = "failed"
 
         while True:
-            # Bridge the legacy HALT control file to the DB flag (the setup
-            # control endpoint sets the flag directly for pull runs; this covers
-            # a file written by any other path).
-            if HALT.exists():
-                try:
-                    HALT.unlink(missing_ok=True)
-                except OSError:
-                    pass
-                with get_cursor(conn) as cur:
-                    cur.execute("UPDATE geodata_runs SET halt_requested_at = now() WHERE id = %s", (run_id,))
+            # A pg restart mid-run (the breaker scenario) must not kill the
+            # pool manager: reconnect and retry instead of crashing out. The
+            # workers die on their own broken connections and get re-seeded
+            # here once the DB answers again.
+            try:
+                # Bridge the legacy HALT control file to the DB flag (the setup
+                # control endpoint sets the flag directly for pull runs; this
+                # covers a file written by any other path).
+                if HALT.exists():
+                    try:
+                        HALT.unlink(missing_ok=True)
+                    except OSError:
+                        pass
+                    with get_cursor(conn) as cur:
+                        cur.execute("UPDATE geodata_runs SET halt_requested_at = now() WHERE id = %s", (run_id,))
 
-            ctl = claims.run_control(conn, run_id)
+                ctl = claims.run_control(conn, run_id)
+            except Exception as exc:
+                log_fh.write(f"[supervisor] DB error in pool loop ({exc}) — reconnecting in 10s\n")
+                log_fh.flush()
+                try:
+                    conn.close()
+                except Exception:
+                    pass
+                time.sleep(10)
+                try:
+                    conn = get_connection()
+                except Exception:
+                    pass  # still down — next loop iteration retries
+                continue
+
             status = ctl["status"]
             if status in ("done", "failed", "gone"):
                 final_status = "done" if status == "done" else "failed"
@@ -493,7 +518,7 @@ def run_pool_mode(request_payload: dict) -> int:
                 procs[tag] = subprocess.Popen(
                     ["python3", "/etl/worker.py", "--run", run_id, "--tag", tag],
                     stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL,
-                    cwd="/etl", start_new_session=True,
+                    cwd="/etl", start_new_session=True, env=worker_env,
                 )
 
             time.sleep(POLL_SECONDS)

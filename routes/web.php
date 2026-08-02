@@ -146,6 +146,13 @@ Route::post('/api/setup/wizard/step2/archive-path', [SetupController::class, 'sa
 Route::post('/api/setup/wizard/step2/start', [SetupController::class, 'startMapData'])->name('api.setup.step2.start');
 Route::get('/api/setup/wizard/step2/progress', [SetupController::class, 'mapDataProgress'])->name('api.setup.step2.progress');
 Route::post('/api/setup/wizard/step2/control', [SetupController::class, 'controlMapData'])->name('api.setup.step2.control');
+
+// Geodata pull engine (multithreaded ingestion) — start / progress / control.
+Route::post('/api/setup/wizard/step2/pull-start', [SetupController::class, 'startGeodataPull'])
+    ->middleware('auth')->name('api.setup.step2.pull-start');
+Route::get('/api/setup/wizard/step2/pull-progress', [SetupController::class, 'geodataPullProgress'])->name('api.setup.step2.pull-progress');
+Route::post('/api/setup/wizard/step2/pull-control', [SetupController::class, 'geodataPullControl'])
+    ->middleware('auth')->name('api.setup.step2.pull-control');
 // Setup v2 — download the pre-baked deployment script package (per OS × solo/join).
 Route::get('/api/setup/deploy-package', [SetupController::class, 'deployPackage'])
     ->middleware('auth')->name('api.setup.deploy-package');

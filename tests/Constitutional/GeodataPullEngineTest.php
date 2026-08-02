@@ -236,6 +236,11 @@ class GeodataPullEngineTest extends TestCase
             $this->assertSame('scanning', $run->fresh()->phase);
             Queue::assertPushed(GeodataAcceptanceScanJob::class);
 
+            // Scanning liveness: a LOST dispatch (horizon crash) must not wedge
+            // the run — every pump tick re-dispatches while the item is pending.
+            Artisan::call('geodata:pump');
+            Queue::assertPushed(GeodataAcceptanceScanJob::class, 2);
+
             // The scan job closes its item; the next pump reaches done + audits.
             $auditBefore = DB::table('audit_log')->count();
             DB::table('geodata_items')->where('run_id', $run->id)

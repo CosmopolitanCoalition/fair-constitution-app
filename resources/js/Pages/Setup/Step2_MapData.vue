@@ -5,6 +5,7 @@ import AppShell from '@/Layouts/AppShell.vue'
 import SetupStepper from '@/Components/SetupStepper.vue'
 import LiveProgress from '@/Components/Setup/LiveProgress.vue'
 import ReviewIssuesSection from '@/Components/Setup/ReviewIssuesSection.vue'
+import GeodataPullPanel from '@/Components/Geodata/GeodataPullPanel.vue'
 import { csrfFetch } from '@/lib/csrf'
 
 // Setup wizard: minimal chrome (header + footer, no sidebar), wide canvas.
@@ -56,6 +57,15 @@ const pendingControl      = ref({ halt: false, pause: false, resume: false })
 
 const source              = ref('archive')  // archive | folder | download | upload
 const customDataRoot       = ref('')         // P.8 — operator-supplied container path when source='folder'
+
+// Ingestion engine (GEODATA_PULL_ENGINE_PLAN.md): 'pull' = the multithreaded
+// pull engine (worker pool + per-worker visibility + incremental requeue) —
+// the default for archive/folder sources. 'legacy' = the original
+// single-threaded seed_database.py path. A download run always uses legacy
+// (the downloader step is a legacy-supervisor concern).
+const engine    = ref('pull')               // pull | legacy
+const pullPanel = ref(null)
+const enginePull = computed(() => engine.value === 'pull' && source.value !== 'download')
 const optFresh            = ref(false)
 const optSkipPopulation   = ref(false)
 // Renamed from optStopOnException — the new pause-and-ask behaviour replaces
@@ -353,6 +363,29 @@ async function submitRun() {
 
     submitting.value = true
     try {
+        // Pull engine: a much smaller contract — Laravel creates the run +
+        // manifest item and the ETL supervisor maintains the worker pool; the
+        // GeodataPullPanel below is the live dashboard. Legacy-only options
+        // (fresh / skip-population / pause-on-exception) don't apply.
+        if (enginePull.value) {
+            const res = await csrfFetch('/api/setup/wizard/step2/pull-start', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    source:    source.value,
+                    data_root: source.value === 'folder' ? customDataRoot.value.trim() : null,
+                    countries: parsedCountries.value,
+                }),
+            })
+            const data = await res.json().catch(() => ({}))
+            if (!res.ok) {
+                submitError.value = data.error || `Run submission failed (HTTP ${res.status}).`
+                return
+            }
+            await pullPanel.value?.fetchProgress()
+            return
+        }
+
         const downloadDatasets = []
         if (source.value === 'download') {
             if (downloadGeoboundaries.value) downloadDatasets.push('geoboundaries')
@@ -533,6 +566,7 @@ const startButtonLabel = computed(() => {
     if (submitting.value) return 'Submitting…'
     if (isRunning.value)  return 'Run in progress…'
     if (source.value === 'download') return 'Download + Ingest'
+    if (enginePull.value) return 'Start Multithreaded Ingestion'
     return 'Start ETL Run'
 })
 
@@ -974,17 +1008,43 @@ onBeforeUnmount(() => {
             <section class="bg-gray-900 border border-gray-800 rounded-lg p-6 mb-6">
                 <h2 class="text-white font-semibold mb-4">2. Run Options</h2>
 
+                <!-- Ingestion engine (hidden for downloads — those stay legacy) -->
+                <div v-if="source !== 'download'" class="mb-4 grid grid-cols-1 md:grid-cols-2 gap-3 text-sm">
+                    <label class="flex items-start gap-2 rounded border p-3 cursor-pointer"
+                           :class="engine === 'pull' ? 'border-sky-700 bg-sky-950/30' : 'border-gray-800'">
+                        <input type="radio" value="pull" v-model="engine" class="mt-1" :disabled="runOptionsDisabled" />
+                        <span>
+                            <span class="text-white font-semibold text-sm block">Multithreaded (recommended)</span>
+                            <span class="text-gray-400 text-xs">
+                                A pool of workers ingests countries in parallel — live per-worker view,
+                                halt/resume, incremental commits. Failures flag for review, never sink the run.
+                            </span>
+                        </span>
+                    </label>
+                    <label class="flex items-start gap-2 rounded border p-3 cursor-pointer"
+                           :class="engine === 'legacy' ? 'border-sky-700 bg-sky-950/30' : 'border-gray-800'">
+                        <input type="radio" value="legacy" v-model="engine" class="mt-1" :disabled="runOptionsDisabled" />
+                        <span>
+                            <span class="text-white font-semibold text-sm block">Legacy single-threaded</span>
+                            <span class="text-gray-400 text-xs">
+                                The original sequential pipeline. Slower on a full world, but supports
+                                Fresh purge, skip-population, and pause-on-exception.
+                            </span>
+                        </span>
+                    </label>
+                </div>
+
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-3 text-sm">
-                    <label class="flex items-center gap-2 text-gray-200">
-                        <input type="checkbox" v-model="optFresh" :disabled="runOptionsDisabled" />
-                        <span>Fresh (purge existing rows first)</span>
+                    <label class="flex items-center gap-2" :class="enginePull ? 'text-gray-600' : 'text-gray-200'">
+                        <input type="checkbox" v-model="optFresh" :disabled="runOptionsDisabled || enginePull" />
+                        <span>Fresh (purge existing rows first)<span v-if="enginePull" class="text-xs text-gray-600"> — legacy engine only</span></span>
                     </label>
-                    <label class="flex items-center gap-2 text-gray-200">
-                        <input type="checkbox" v-model="optSkipPopulation" :disabled="runOptionsDisabled" />
-                        <span>Skip Phase 2 (Population)</span>
+                    <label class="flex items-center gap-2" :class="enginePull ? 'text-gray-600' : 'text-gray-200'">
+                        <input type="checkbox" v-model="optSkipPopulation" :disabled="runOptionsDisabled || enginePull" />
+                        <span>Skip Phase 2 (Population)<span v-if="enginePull" class="text-xs text-gray-600"> — legacy engine only</span></span>
                     </label>
-                    <label class="flex items-start gap-2 text-gray-400">
-                        <input type="checkbox" v-model="optPauseOnException" :disabled="runOptionsDisabled" class="mt-1" />
+                    <label class="flex items-start gap-2" :class="enginePull ? 'text-gray-600' : 'text-gray-400'">
+                        <input type="checkbox" v-model="optPauseOnException" :disabled="runOptionsDisabled || enginePull" class="mt-1" />
                         <span>
                             Pause on first exception
                             <span class="block text-xs text-gray-500 italic">
@@ -1021,7 +1081,10 @@ onBeforeUnmount(() => {
                 </div>
             </section>
 
-            <!-- Live Progress -->
+            <!-- Pull-engine dashboard (renders only when a pull run exists) -->
+            <GeodataPullPanel ref="pullPanel" />
+
+            <!-- Live Progress (legacy single-threaded runs) -->
             <LiveProgress
                 :lifecycle="lifecycle"
                 :running="running"

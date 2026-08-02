@@ -45,10 +45,10 @@ def _log_line(tag: str, msg: str) -> None:
         pass
 
 
-def _parse_outcome(proc: subprocess.CompletedProcess) -> dict:
+def _parse_outcome(stdout: str, stderr: str, returncode: int) -> dict:
     """The last valid JSON line on stdout is the item result; anything else
     (missing JSON / non-zero exit / a crash) → review with the stderr tail."""
-    for line in reversed((proc.stdout or "").strip().splitlines()):
+    for line in reversed((stdout or "").strip().splitlines()):
         try:
             p = json.loads(line)
             return {
@@ -60,9 +60,50 @@ def _parse_outcome(proc: subprocess.CompletedProcess) -> dict:
             continue
     return {
         "status":  "review",
-        "reason":  f"no result JSON (exit {proc.returncode}): {(proc.stderr or '')[-400:]}",
+        "reason":  f"no result JSON (exit {returncode}): {(stderr or '')[-400:]}",
         "metrics": None,
     }
+
+
+def _run_unit(conn, run_id: str, claim: dict, token: str,
+              worker_tag: str = "w") -> tuple[dict, bool]:
+    """Run etl_unit.py for the claim, heartbeating the claimed item every ~20 s
+    so the pump's 30-min stale reclaim never false-fires on a live long unit.
+    Returns (outcome, still_ours). If the claim was reclaimed from under us
+    (pg pause + reclaim), the child is killed and the outcome is discarded."""
+    proc = subprocess.Popen(
+        ["python3", ETL_UNIT, "--run", run_id, "--item", claim["id"]],
+        stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True,
+        cwd="/etl", start_new_session=True,
+    )
+    last_beat = time.monotonic()
+    while True:
+        try:
+            stdout, stderr = proc.communicate(timeout=5)
+            break
+        except subprocess.TimeoutExpired:
+            pass
+        if (time.monotonic() - last_beat) >= 20:
+            last_beat = time.monotonic()
+            try:
+                still_ours = claims.heartbeat_claim(conn, claim["id"], token)
+                claims.touch_lease(conn, token, claim["kind"], claims.label(claim))
+            except Exception:
+                continue  # transient DB blip — keep the child running, retry next beat
+            if not still_ours:
+                # The pump reclaimed this item (we looked dead to it) and it may
+                # already be re-claimed — abandon: kill the child, discard.
+                try:
+                    proc.terminate()
+                    proc.communicate(timeout=10)
+                except Exception:
+                    proc.kill()
+                return ({}, False)
+    # Fold the child's own logging (stderr) into the unified run log.
+    if stderr:
+        for line in stderr.strip().splitlines()[-40:]:
+            _log_line(worker_tag, line)
+    return (_parse_outcome(stdout, stderr, proc.returncode), True)
 
 
 def run_worker(run_id: str, worker_tag: str) -> int:
@@ -94,19 +135,16 @@ def run_worker(run_id: str, worker_tag: str) -> int:
             _log_line(worker_tag, f"claim {claim['kind']} {claim.get('iso_code') or ''} "
                                   f"L{claim.get('adm_level')}".rstrip(" LNone"))
 
-            proc = subprocess.run(
-                ["python3", ETL_UNIT, "--run", run_id, "--item", claim["id"]],
-                capture_output=True, text=True, check=False,
-            )
-            # Fold the child's own logging (stderr) into the unified run log.
-            if proc.stderr:
-                for line in proc.stderr.strip().splitlines()[-40:]:
-                    _log_line(worker_tag, line)
+            outcome, still_ours = _run_unit(conn, run_id, claim, token, worker_tag)
+            if not still_ours:
+                _log_line(worker_tag, f"→ {claim['kind']} ABANDONED (claim reclaimed mid-run)")
+                claims.touch_lease(conn, token)
+                continue
 
-            outcome = _parse_outcome(proc)
-            claims.record_outcome(conn, claim["id"], outcome["status"],
-                                  outcome.get("reason"), outcome.get("metrics"))
-            _log_line(worker_tag, f"→ {claim['kind']} {outcome['status']}")
+            landed = claims.record_outcome(conn, claim["id"], token, outcome["status"],
+                                           outcome.get("reason"), outcome.get("metrics"))
+            _log_line(worker_tag, f"→ {claim['kind']} {outcome['status']}"
+                                  + ("" if landed else " (outcome discarded — claim no longer ours)"))
             claims.touch_lease(conn, token)  # clear the claim label
     finally:
         try:

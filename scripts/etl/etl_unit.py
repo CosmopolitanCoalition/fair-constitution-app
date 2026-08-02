@@ -208,7 +208,8 @@ def do_attribution(iso: str, level: int, apply_to_db: bool, log: logging.Logger)
 
 def do_finalize(conn, options: dict, log: logging.Logger) -> dict:
     """Planet rollup + per-country national validation (the barrier). Findings
-    are logged today; step 5 of the plan routes them to geodata_flags."""
+    land as geodata_flags rows (class national_delta_gt5) — the repair plane's
+    censusable stream — not just log warnings (GEODATA_PULL_ENGINE_PLAN.md §6)."""
     from import_worldpop import rollup_planet_population, validate_national_population
 
     rollup = rollup_planet_population(conn, log)
@@ -224,10 +225,49 @@ def do_finalize(conn, options: dict, log: logging.Logger) -> dict:
         isos = [i for i in isos if i in countries]
     for iso in isos:
         try:
-            validate_national_population(conn, iso, log)
+            validate_national_population(conn, iso, log)  # the per-iso log line
         except Exception as exc:  # a single country's validation never sinks it
             log.warning("validate_national_population(%s) failed: %s", iso, exc)
-    return {"planet_rows": int(rollup), "validated_isos": len(isos)}
+
+    # One set-based pass: every national row whose children-sum deviates >5%
+    # becomes an OPEN geodata_flags row (idempotent via fingerprint — an open
+    # flag for the same iso is not duplicated; a resolved one may re-open as a
+    # fresh detection after a re-run).
+    flagged = 0
+    with get_cursor(conn) as cur:
+        cur.execute("""
+            WITH deltas AS (
+                SELECT p.id, p.iso_code, p.population AS national,
+                       SUM(c.population) AS children_sum
+                  FROM jurisdictions p
+                  JOIN jurisdictions c ON c.parent_id = p.id AND c.deleted_at IS NULL
+                 WHERE p.adm_level = 1 AND p.deleted_at IS NULL
+                   AND p.population IS NOT NULL AND p.iso_code = ANY(%s)
+                 GROUP BY p.id, p.iso_code, p.population
+                HAVING SUM(c.population) IS NOT NULL AND p.population > 0
+                   AND ABS(SUM(c.population) - p.population)::float / p.population > 0.05
+            )
+            INSERT INTO geodata_flags
+                (category, severity, jurisdiction_id, title, payload,
+                 fingerprint, status, detected_at, created_at, updated_at)
+            SELECT 'national_delta_gt5', 'warning', d.id,
+                   'National vs children population delta > 5% — ' || d.iso_code,
+                   jsonb_build_object('iso', d.iso_code, 'national', d.national,
+                                      'children_sum', d.children_sum,
+                                      'delta_pct', ROUND(ABS(d.children_sum - d.national)::numeric
+                                                         / d.national * 100, 2)),
+                   'national_delta_gt5:' || d.iso_code, 'open', now(), now(), now()
+              FROM deltas d
+             WHERE NOT EXISTS (
+                   SELECT 1 FROM geodata_flags f
+                    WHERE f.fingerprint = 'national_delta_gt5:' || d.iso_code
+                      AND f.status = 'open' AND f.deleted_at IS NULL
+             )
+        """, (isos,))
+        flagged = cur.rowcount
+    if flagged:
+        log.warning("finalize: %d national_delta_gt5 flag(s) written", flagged)
+    return {"planet_rows": int(rollup), "validated_isos": len(isos), "flags_written": flagged}
 
 
 def main() -> int:

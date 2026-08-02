@@ -68,7 +68,10 @@ def run_control(conn, run_id: str) -> dict:
 def claim_next(conn, run_id: str, phase: str, token: str) -> dict | None:
     """Claim the next pending item of the phase's kind, atomically, or None."""
     kind = PHASE_KIND.get(phase)
-    if kind is None:
+    if kind is None or kind == "acceptance_scan":
+        # The acceptance scan is the ONE Laravel-side item (the pump dispatches
+        # GeodataAcceptanceScanJob — no docker-in-docker). A Python worker must
+        # never claim it: closing it here would skip the scan entirely.
         return None
     with get_cursor(conn) as cur:
         cur.execute(
@@ -91,9 +94,13 @@ def claim_next(conn, run_id: str, phase: str, token: str) -> dict | None:
     return dict(row) if row else None
 
 
-def record_outcome(conn, item_id: str, status: str, reason: str | None = None,
-                   metrics: dict | None = None) -> None:
-    """Write a claimed item's terminal state (done|review|failed)."""
+def record_outcome(conn, item_id: str, token: str, status: str,
+                   reason: str | None = None, metrics: dict | None = None) -> bool:
+    """Write a claimed item's terminal state (done|review|failed).
+
+    Guarded by claim_token: if the pump reclaimed this item (stale) and another
+    worker re-claimed it, OUR write must not clobber theirs. Returns whether
+    the write landed."""
     import json
     with get_cursor(conn) as cur:
         cur.execute(
@@ -101,10 +108,28 @@ def record_outcome(conn, item_id: str, status: str, reason: str | None = None,
             UPDATE geodata_items
                SET status = %s, reason = %s, metrics = %s::jsonb,
                    finished_at = now(), updated_at = now()
-             WHERE id = %s
+             WHERE id = %s AND claim_token = %s AND status = 'running'
             """,
-            (status, reason, json.dumps(metrics) if metrics is not None else None, item_id),
+            (status, reason, json.dumps(metrics) if metrics is not None else None,
+             item_id, token),
         )
+        return cur.rowcount > 0
+
+
+def heartbeat_claim(conn, item_id: str, token: str) -> bool:
+    """Bump the claimed item's updated_at so the pump's 30-min stale reclaim
+    never false-fires on a LIVE long unit (IND L6 attribution, a USA boundary
+    chain — the autoscale Falklands lesson). Returns False when the claim is
+    no longer ours (reclaimed) — the worker should abandon the unit."""
+    with get_cursor(conn) as cur:
+        cur.execute(
+            """
+            UPDATE geodata_items SET updated_at = now()
+             WHERE id = %s AND claim_token = %s AND status = 'running'
+            """,
+            (item_id, token),
+        )
+        return cur.rowcount > 0
 
 
 # ── Worker leases (per-worker liveness + the UI claim strip) ────────────────

@@ -30,6 +30,9 @@ class GeodataPumpCommand extends Command
     /** Stale threshold (seconds): a claim untouched this long returns to pending. */
     private const CLAIM_STALE = 1800;
 
+    /** The Laravel-side acceptance scan has no heartbeat — longer stale bound. */
+    private const SCAN_STALE = 7200;
+
     public function handle(): int
     {
         $runs = GeodataRun::query()
@@ -71,10 +74,22 @@ class GeodataPumpCommand extends Command
         $this->breakerTick($run);
 
         // ── Reclaims: stale running items go back to pending (set-based) ────
+        // Python workers heartbeat their claim every ~20 s, so 30 min of
+        // silence really means a dead worker. The acceptance_scan item is
+        // Laravel-side and has no heartbeat — give it the 2 h bound instead
+        // (a planet-scale detector suite can legitimately run long).
         $reclaimed = DB::table('geodata_items')
             ->where('run_id', $run->id)
             ->where('status', 'running')
-            ->where('updated_at', '<', now()->subSeconds(self::CLAIM_STALE))
+            ->where(function ($q) {
+                $q->where(function ($w) {
+                    $w->where('kind', '!=', 'acceptance_scan')
+                        ->where('updated_at', '<', now()->subSeconds(self::CLAIM_STALE));
+                })->orWhere(function ($w) {
+                    $w->where('kind', 'acceptance_scan')
+                        ->where('updated_at', '<', now()->subSeconds(self::SCAN_STALE));
+                });
+            })
             ->update([
                 'status' => 'pending', 'claim_token' => null,
                 'reason' => 'reclaimed: worker died mid-item', 'updated_at' => now(),
@@ -97,6 +112,23 @@ class GeodataPumpCommand extends Command
         // legitimately have zero items in a phase).
         if (! $run->isPaused()) {
             $this->advancePhases($run);
+        }
+
+        // Scanning liveness: the scan job dispatch at the phase transition can
+        // be lost (horizon crash, dropped payload). Re-dispatch on EVERY tick
+        // while a pending scan item exists — the job's pending→running claim
+        // is atomic, so a duplicate dispatch no-ops. This also revives a scan
+        // whose item the stale reclaim above returned to pending.
+        $run->refresh();
+        if ($run->phase === 'scanning' && $run->status === 'running') {
+            $pendingScan = DB::table('geodata_items')
+                ->where('run_id', $run->id)
+                ->where('kind', 'acceptance_scan')
+                ->where('status', 'pending')
+                ->exists();
+            if ($pendingScan) {
+                GeodataAcceptanceScanJob::dispatch((string) $run->id);
+            }
         }
 
         $this->refreshCounters($run);
@@ -127,18 +159,9 @@ class GeodataPumpCommand extends Command
             // transaction — skip when the pump runs under a test transaction).
             $this->vacuumChurned($run->phase);
 
-            // Entering scanning: dispatch the Laravel-side acceptance scan (the
-            // ONE exception to "workers execute items" — no docker-in-docker).
-            if ($run->phase === 'scanning') {
-                $pending = DB::table('geodata_items')
-                    ->where('run_id', $run->id)
-                    ->where('kind', 'acceptance_scan')
-                    ->where('status', 'pending')
-                    ->exists();
-                if ($pending) {
-                    GeodataAcceptanceScanJob::dispatch((string) $run->id);
-                }
-            }
+            // (The scanning-phase acceptance-scan dispatch lives in handle() —
+            // it fires on EVERY tick while the item is pending, which covers
+            // this transition tick too and revives a lost dispatch.)
 
             // Reached done: close the run + append the hash-chained audit entry.
             if ($run->phase === 'done') {

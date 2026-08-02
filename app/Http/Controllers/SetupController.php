@@ -1259,6 +1259,171 @@ class SetupController extends Controller
     }
 
     /**
+     * POST /api/setup/wizard/step2/pull-start — start a GEODATA PULL ENGINE run
+     * (GEODATA_PULL_ENGINE_PLAN.md): multithreaded, incrementally reprocessable,
+     * per-worker-visible ingestion. Creates the geodata_runs row + the manifest
+     * item, then writes request.json with mode="pull" so the supervisor enters
+     * pool mode. The legacy single-threaded startMapData path is untouched.
+     */
+    public function startGeodataPull(Request $request): JsonResponse
+    {
+        $data = $request->validate([
+            'source'       => ['nullable', Rule::in(['archive', 'folder'])],
+            'data_root'    => ['nullable', 'string', 'max:512'],
+            'countries'    => ['nullable', 'array'],
+            'countries.*'  => ['string', 'size:3'],
+            'adm_levels'   => ['nullable', 'array'],
+            'adm_levels.*' => ['integer', 'min:0', 'max:5'],
+            'dry_run'      => ['nullable', 'boolean'],
+        ]);
+
+        $controlDir = $this->etlControlDir();
+        if (! is_dir($controlDir) && ! @mkdir($controlDir, 0777, true)) {
+            return response()->json(['error' => 'Could not create ETL control directory.'], 500);
+        }
+        if (is_file($controlDir.'/running.json')) {
+            return response()->json(['error' => 'An ETL run is already in progress.'], 409);
+        }
+        if (\App\Models\GeodataRun::unfinished() !== null) {
+            return response()->json(['error' => 'A geodata run is already active. Halt it before starting a new one.'], 409);
+        }
+
+        $bootstrap = $this->bootstrapStatus();
+        if (! empty($bootstrap['pending_migrations'])) {
+            return response()->json([
+                'error' => 'Schema updates are pending. Apply them at /setup/bootstrap before starting an ETL run.',
+                'pending_count' => $bootstrap['pending_count'],
+            ], 409);
+        }
+
+        $source   = $data['source'] ?? 'archive';
+        $dataRoot = null;
+        if ($source === 'folder') {
+            $dataRoot = trim((string) ($data['data_root'] ?? ''));
+            if ($dataRoot === '' || $dataRoot[0] !== '/') {
+                return response()->json([
+                    'error' => 'Custom data root must be an absolute container path (e.g. /archive/snapshots/2026-05).',
+                ], 422);
+            }
+        }
+
+        $options = [
+            'countries'  => array_values($data['countries'] ?? []),
+            'adm_levels' => array_values($data['adm_levels'] ?? []),
+            'source'     => $source,
+            'dry_run'    => (bool) ($data['dry_run'] ?? false),
+        ];
+
+        $run = \App\Models\GeodataRun::create([
+            'status'            => 'running',
+            'phase'             => 'enumerating',
+            'data_root'         => $dataRoot,
+            'options'           => $options,
+            'initiator_user_id' => $request->user()?->id,
+        ]);
+        \App\Models\GeodataItem::create([
+            'run_id'   => $run->id,
+            'kind'     => 'manifest',
+            'status'   => 'pending',
+            'position' => 0,
+        ]);
+
+        file_put_contents(
+            $controlDir.'/request.json',
+            json_encode([
+                'submitted_at' => now()->toIso8601String(),
+                'mode'         => 'pull',
+                'source'       => $source,
+                'run_id'       => $run->id,
+                'options'      => $options,
+            ], JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES)
+        );
+
+        // Park the pump now so the run advances without waiting a full minute.
+        \Illuminate\Support\Facades\Artisan::call('geodata:pump');
+
+        return response()->json(['accepted' => true, 'run_id' => $run->id]);
+    }
+
+    /**
+     * GET /api/setup/wizard/step2/pull-progress — the pull engine dashboard feed:
+     * the run row, per-phase item bars (one GROUP BY), the per-worker claim strip
+     * (byte-compatible with the Step-3 autoscale strip), and the review census.
+     */
+    public function geodataPullProgress(): JsonResponse
+    {
+        $run = \App\Models\GeodataRun::query()
+            ->orderByDesc('created_at')->first();
+        if ($run === null) {
+            return response()->json(['run' => null]);
+        }
+
+        $DB = \Illuminate\Support\Facades\DB::class;
+        $layers = $DB::table('geodata_items')
+            ->where('run_id', $run->id)
+            ->selectRaw("
+                kind,
+                COUNT(*)                                          AS total,
+                COUNT(*) FILTER (WHERE status = 'done')           AS done,
+                COUNT(*) FILTER (WHERE status IN ('pending','running')) AS open,
+                COUNT(*) FILTER (WHERE status = 'review')         AS review,
+                COUNT(*) FILTER (WHERE status = 'failed')         AS failed
+            ")
+            ->groupBy('kind')->get();
+
+        $order  = array_flip(array_values(\App\Models\GeodataRun::PHASE_KIND));
+        $layers = $layers->sortBy(fn ($r) => $order[$r->kind] ?? 99)->values();
+
+        $workers = $DB::table('geodata_worker_leases')
+            ->where('run_id', $run->id)
+            ->where('last_seen_at', '>', now()->subMinutes(2))
+            ->orderBy('started_at')
+            ->get(['id', 'claim_type', 'claim_label', 'claim_started_at']);
+
+        $review = $DB::table('geodata_items')
+            ->where('run_id', $run->id)
+            ->where('status', 'review')
+            ->orderBy('kind')->limit(200)
+            ->get(['kind', 'iso_code', 'adm_level', 'reason']);
+
+        return response()->json([
+            'run' => [
+                'id'               => $run->id,
+                'status'           => $run->status,
+                'phase'            => $run->phase,
+                'items_total'      => $run->items_total,
+                'items_done'       => $run->items_done,
+                'items_review'     => $run->items_review,
+                'items_failed'     => $run->items_failed,
+                'phase_timestamps' => $run->phase_timestamps,
+                'last_error'       => $run->last_error,
+                'halt_requested'   => $run->haltRequested(),
+                'paused'           => $run->isPaused(),
+            ],
+            'layers'  => $layers,
+            'workers' => $workers,
+            'review'  => $review,
+        ]);
+    }
+
+    /**
+     * POST /api/setup/wizard/step2/pull-control — halt / resume the pull run.
+     * DB-flag based (the Python workers stop at their next claim boundary).
+     */
+    public function geodataPullControl(Request $request): JsonResponse
+    {
+        $data = $request->validate(['action' => ['required', Rule::in(['halt', 'resume'])]]);
+        $run  = \App\Models\GeodataRun::unfinished();
+        if ($run === null) {
+            return response()->json(['error' => 'No active geodata run.'], 409);
+        }
+        $run->update(['halt_requested_at' => $data['action'] === 'halt' ? now() : null]);
+        \Illuminate\Support\Facades\Artisan::call('geodata:pump');
+
+        return response()->json(['ok' => true, 'status' => $run->fresh()->status]);
+    }
+
+    /**
      * POST /api/setup/wizard/step2/control — halt / pause / resume the ETL run.
      *
      * Writes a sentinel file under /etl/control/ that the supervisor consumes

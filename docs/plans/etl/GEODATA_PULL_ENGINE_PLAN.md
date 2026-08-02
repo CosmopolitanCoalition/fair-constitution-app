@@ -17,7 +17,21 @@ idempotency via ON CONFLICT slugs / pure UPDATEs / DELETE-first raster loads).
 Only the concurrency layer is missing. This plan adds exactly that layer and
 changes as little of the importers as possible.
 
-STATUS: PLAN ONLY — nothing here is built. Build order in §9.
+STATUS: BUILT (2026-08-02) — steps 1–5 of §9 landed: migration
+`2026_07_30_000001_geodata_pull_engine` (geodata_runs/items/worker_leases) +
+GeodataRun/GeodataItem models + `GeodataClaims` + `geodata:pump` (reclaims ·
+breaker · phase advance · scan re-dispatch every tick · completion audit) +
+`GeodataAcceptanceScanJob` + `geodata:requeue`; Python `claims.py` (SKIP-LOCKED
+claim + claim heartbeat + token-guarded outcomes) / `worker.py` (pool member,
+fresh-subprocess-per-item, 20 s claim heartbeat) / `etl_unit.py` (per-kind
+dispatch; finalize writes `national_delta_gt5` geodata_flags) + importer split
+kwargs (`no_global_passes` / `global_passes_only`) + supervisor pool mode
+(`mode: "pull"` in request.json, reconnect-on-pg-restart); Step-2 UI engine
+toggle + `GeodataPullPanel.vue` (phase pipeline · per-kind bars · per-worker
+claim strip · review census · halt/resume) over pull-start/-progress/-control
+routes. Pinned in `GeodataPullEngineTest` (9 pins). NOT YET RUN at planet
+scale — the §9.6 benchmark happens on the first real ingestion; the
+`geodata:revert --iso` surgical teardown (§5 tail) is still open.
 
 ---
 
