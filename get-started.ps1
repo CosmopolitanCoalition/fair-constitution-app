@@ -336,6 +336,28 @@ if ($LASTEXITCODE -ne 0) {
         '"docker compose logs app --tail 50" in this folder and report what it says.')
 }
 
+# FRESH INSTALL: load the database schema (fresh-install walk, 2026-08-02 —
+# a brand-new clone booted with an EMPTY database and /setup 500'd; the
+# update branch below migrates, but a first install never did). The app
+# container composer-installs on first boot (minutes); wait for its DONE
+# stamp (vendor/.installed-hash — the deploy.ps1 pattern) before migrating.
+if ($justDownloaded -or $firstRun) {
+    Say 'Loading the database schema (waits for the first-boot dependency install)...'
+    $prev = $ErrorActionPreference; $ErrorActionPreference = 'Continue'
+    try {
+        for ($i = 0; $i -lt 240; $i++) {
+            & docker compose exec -T app test -f vendor/.installed-hash 2>$null
+            if ($LASTEXITCODE -eq 0) { break }
+            Start-Sleep -Seconds 5
+        }
+    } finally { $ErrorActionPreference = $prev }
+    Invoke-Docker compose exec -T app php artisan migrate --force
+    if ($LASTEXITCODE -ne 0) {
+        Start-Sleep -Seconds 15
+        Invoke-Docker compose exec -T app php artisan migrate --force
+    }
+}
+
 # Apply a downloaded update inside the running app: database migrations, a
 # fresh interface build, and a worker restart so queued jobs load the new code.
 if ($updated) {

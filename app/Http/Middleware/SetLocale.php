@@ -58,7 +58,17 @@ class SetLocale
 
     private function resolve(Request $request): string
     {
-        $user = $request->user();
+        /* Pre-schema tolerance (fresh-install walk, 2026-08-02): a STALE
+           remember-me cookie from a previous install makes the session guard
+           query a `users` table that doesn't exist yet on a fresh database —
+           which 500'd the entire app before the setup wizard could even
+           offer to load the schema. A missing table means "nobody is logged
+           in", never a crash. */
+        try {
+            $user = $request->user();
+        } catch (\Illuminate\Database\QueryException) {
+            $user = null;
+        }
         if ($user !== null && $this->isSupported($user->locale)) {
             return (string) $user->locale;
         }

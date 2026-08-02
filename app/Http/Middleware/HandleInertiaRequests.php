@@ -48,7 +48,15 @@ class HandleInertiaRequests extends Middleware
 
     public function share(Request $request): array
     {
-        $user = $request->user();
+        /* Pre-schema tolerance (fresh-install walk, 2026-08-02): a stale
+           remember-me cookie from a prior install must not 500 a fresh
+           database whose `users` table doesn't exist yet — a missing table
+           means "nobody is logged in". The setup wizard owns that state. */
+        try {
+            $user = $request->user();
+        } catch (\Illuminate\Database\QueryException) {
+            $user = null;
+        }
 
         return array_merge(parent::share($request), [
             'auth' => [

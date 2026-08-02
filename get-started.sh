@@ -236,6 +236,24 @@ if ! docker compose up -d; then
   docker compose up -d || fail "The app containers had trouble starting. This script is safe to run again and resumes where it left off - try that first. If it keeps failing, run:  docker compose logs app --tail 50   in this folder and report what it says."
 fi
 
+# FRESH INSTALL: load the database schema (fresh-install walk, 2026-08-02 —
+# a brand-new clone booted with an EMPTY database and /setup 500'd; the
+# update branch below migrates, but a first install never did). The app
+# container composer-installs on first boot (minutes); wait for its DONE
+# stamp (vendor/.installed-hash) before migrating.
+if [ "$JUST_DOWNLOADED" = "1" ] || [ "$FIRST_RUN" = "1" ]; then
+  say "Loading the database schema (waits for the first-boot dependency install)..."
+  i=0
+  while [ "$i" -lt 240 ]; do
+    if docker compose exec -T app test -f vendor/.installed-hash >/dev/null 2>&1; then break; fi
+    i=$((i+1)); sleep 5
+  done
+  if ! docker compose exec -T app php artisan migrate --force; then
+    sleep 15
+    docker compose exec -T app php artisan migrate --force || say "  Schema load failed - run:  docker compose exec app php artisan migrate --force   once the app is up."
+  fi
+fi
+
 # Apply a downloaded update inside the running app: database migrations, a
 # fresh interface build, and a worker restart so queued jobs load the new code.
 if [ "$UPDATED" = "1" ]; then
