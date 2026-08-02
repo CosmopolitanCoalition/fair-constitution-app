@@ -68,14 +68,24 @@ def get_cursor(conn: psycopg2.extensions.connection):
 
 # Columns must match the template below exactly.
 #
-# SINGLE-PARSE (2026-08-02, operator-directed dig): the original template ran
-# the FULL ST_GeomFromGeoJSON + ST_MakeValid + ST_Multi pipeline TWICE per row
-# — once for geom, once again inside ST_Centroid — doubling the per-feature
-# Postgres transient. On a Nunavut-class 200 MB feature that was 2× a 1–1.5 GB
-# parse+repair, i.e. the whole "needs 2–3 GB" legend. The LATERAL computes the
-# geometry ONCE; centroid derives from the computed value. Halves the monster
-# cost outright — the multithreaded engine now runs giants CHEAPER than the
-# legacy single-threaded path ever did.
+# SINGLE-PARSE, NOW REALLY (2026-08-02, the AUS-ADM0 kill-loop): the first
+# "single-parse" fix put the pipeline in a LATERAL and referenced g.geom
+# twice (geom + ST_Centroid(g.geom)). PROVEN INSUFFICIENT by EXPLAIN VERBOSE:
+# the planner INLINES an un-fenced LATERAL subquery, substituting the full
+# parse+MakeValid pipeline at BOTH references — with execute_values shipping
+# literals, constant-folding evaluated the monster pipeline TWICE at plan
+# time (AUS ADM0: 64 MB feature → 3.88 GB backend, kernel-killed; ~2× the
+# single cost, exactly the legacy double-parse it was meant to remove). The
+# OFFSET 0 is the optimizer fence: the plan becomes a Subquery Scan whose
+# inner Result computes the pipeline ONCE; ST_Centroid then references the
+# computed var. Verified in the plan output both ways. Do not remove it.
+#
+# WKB-FIRST (same dig): rows arrive with geom_wkb_hex whenever the importer
+# could encode the geometry client-side (all (Multi)Polygons — in practice
+# everything). decode(hex)+ST_GeomFromWKB is a near-1x transient; the
+# ST_GeomFromGeoJSON branch (json-c tree, ~10-30x the text for coordinate-
+# dense JSON — the other half of the 3.88 GB) remains only as the fallback
+# for non-polygonal/unconvertible geometries. CASE evaluates one branch.
 _JURISDICTION_INSERT_SQL = """
     INSERT INTO jurisdictions (
         name,
@@ -110,10 +120,16 @@ _JURISDICTION_INSERT_SQL = """
         NOW()
     FROM (VALUES %s) AS v(
         name, slug, iso_code, adm_level, parent_id, parent_assigned_via,
-        source, geoboundaries_id, official_languages, timezone, geom_geojson
+        source, geoboundaries_id, official_languages, timezone,
+        geom_geojson, geom_wkb_hex
     )
     CROSS JOIN LATERAL (
-        SELECT ST_Multi(ST_MakeValid(ST_SetSRID(ST_GeomFromGeoJSON(v.geom_geojson), 4326))) AS geom
+        SELECT ST_Multi(ST_MakeValid(ST_SetSRID(
+                   CASE WHEN v.geom_wkb_hex IS NOT NULL
+                        THEN ST_GeomFromWKB(decode(v.geom_wkb_hex, 'hex'))
+                        ELSE ST_GeomFromGeoJSON(v.geom_geojson)
+                   END, 4326))) AS geom
+        OFFSET 0
     ) AS g
     ON CONFLICT (slug) DO NOTHING
     RETURNING id, slug
@@ -146,28 +162,37 @@ _JURISDICTION_TEMPLATE = """(
     %(geoboundaries_id)s,
     %(official_languages)s,
     %(timezone)s,
-    %(geom_geojson)s
+    %(geom_geojson)s,
+    %(geom_wkb_hex)s
 )"""
 
 
 _GIANT_LOCK_CACHE: list = []
 
+# PG-side transient multipliers, field-calibrated 2026-08-02 (AUS ADM0:
+# 64 MB GeoJSON → 3.88 GB backend under the doubled pipeline ⇒ ~30x per
+# single evaluation; WKB hex decodes near-1x — statement text + bytea +
+# geometry + MakeValid copy ≈ 4x the hex). These size the ESTIMATED
+# backend transient an INSERT will cost, which is what exclusivity must
+# key on — the old raw-payload trigger derived from the client flush
+# ceiling (~4 MB on a sliced budget) and exclusive-convoyed the whole
+# pool behind every mid-size feature.
+_PG_COST_GEOJSON = 30
+_PG_COST_WKB_HEX = 4
+
 
 def _giant_lock_bytes() -> int:
-    """Overflow threshold for the giant-insert gate — derived, never a bare
-    constant: the caller's own byte ceiling (memory_budget.chunk_profile) is
-    the flush law, so any batch above it IS a single over-limit feature.
-    CGA_ETL_GIANT_LOCK_BYTES overrides."""
+    """ESTIMATED-TRANSIENT budget above which an insert runs EXCLUSIVE.
+    Default 1 GiB — a monster's estimate (Nunavut-class WKB ≈ 200 MB hex
+    × 4) crosses it; the mid-size field (< ~250 MB hex / ~34 MB geojson)
+    stays shared at full pool width. CGA_ETL_GIANT_LOCK_BYTES overrides
+    (same env var, now interpreted as the transient budget)."""
     if not _GIANT_LOCK_CACHE:
         env = os.environ.get("CGA_ETL_GIANT_LOCK_BYTES", "")
         if env.isdigit() and int(env) > 0:
             _GIANT_LOCK_CACHE.append(int(env))
         else:
-            try:
-                from memory_budget import chunk_profile
-                _GIANT_LOCK_CACHE.append(int(chunk_profile()[1]["BATCH_BYTE_LIMIT"]))
-            except Exception:
-                _GIANT_LOCK_CACHE.append(64 * 1024 * 1024)
+            _GIANT_LOCK_CACHE.append(1024 * 1024 * 1024)
     return _GIANT_LOCK_CACHE[0]
 
 
@@ -209,9 +234,12 @@ def bulk_insert_jurisdictions(
 
     # Defensive: allow callers that haven't been Phase-J-updated to omit
     # parent_assigned_via — default to None and let the operator's review
-    # surface flag the un-tracked rows.
+    # surface flag the un-tracked rows. geom_wkb_hex defaults for callers
+    # that still build geojson-only rows (global passes, synthetic Earth).
     for row in rows:
         row.setdefault("parent_assigned_via", None)
+        row.setdefault("geom_wkb_hex", None)
+        row.setdefault("geom_geojson", None)
 
     # THE GIANT GATE (2026-08-02, the two pg-backend OOM kills): chunking (the
     # Phase-L byte-aware batching) bounds PG's per-INSERT peak for NORMAL
@@ -226,7 +254,9 @@ def bulk_insert_jurisdictions(
     # — by the flush law, a single giant feature) takes a global advisory
     # xact lock, serializing ONLY the giants; every normal batch runs at
     # full pool width. The lock releases at commit.
-    payload_bytes = sum(len(r.get("geom_geojson") or "") for r in rows)
+    gj_bytes  = sum(len(r.get("geom_geojson") or "") for r in rows)
+    wkb_bytes = sum(len(r.get("geom_wkb_hex") or "") for r in rows)
+    est_transient = _PG_COST_GEOJSON * gj_bytes + _PG_COST_WKB_HEX * wkb_bytes
 
     with get_cursor(conn) as cur:
         # SHARED/EXCLUSIVE (operator, 2026-08-02 — "the single-threaded version
@@ -241,10 +271,12 @@ def bulk_insert_jurisdictions(
         # (legacy conditions exactly), releases at commit, and the pool
         # resumes. The engine breathes: wide on the field, single-file past
         # the monsters.
-        if payload_bytes > _giant_lock_bytes():
+        if est_transient > _giant_lock_bytes():
             logger.info(
-                "giant-batch gate: %.1f MB in %d row(s) — EXCLUSIVE (insert runs alone)",
-                payload_bytes / 1048576, len(rows),
+                "giant-batch gate: %.1f MB payload (%.0f MB est. PG transient, "
+                "%d row(s), %s) — EXCLUSIVE (insert runs alone)",
+                (gj_bytes + wkb_bytes) / 1048576, est_transient / 1048576,
+                len(rows), "wkb" if wkb_bytes else "geojson",
             )
             cur.execute("SELECT pg_advisory_xact_lock(hashtext('cga_giant_geom_insert'))")
         else:

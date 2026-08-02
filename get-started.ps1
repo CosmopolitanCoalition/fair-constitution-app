@@ -295,15 +295,26 @@ function Configure-HostMemory {
 
     function Clamp([double]$v, [int]$lo, [int]$hi) { [int][math]::Max($lo, [math]::Min($hi, [math]::Floor($v))) }
     $pgMb  = Clamp ($totalMb * 0.60) 1024 16384   # postgres ~60% of the host
-    $etlMb = Clamp ($totalMb * 0.25)  512  8192   # etl ~25%; workers derive from this
+    $etlMb = Clamp ($totalMb * 0.30) 1024  8192   # etl ~30%; workers derive from this
 
+    # THE HEADROOM LAW (2026-08-02, the AUS-ADM0 backend kill-loop): a giant
+    # boundary INSERT is ONE backend whose transient is set by the DATA (the
+    # largest single feature on Earth), not by this host — so shared_buffers
+    # must stay SMALL to leave (cap - shared_buffers) as backend headroom.
+    # The first derivation here (12.5% of host = 977MB on a 7.6GB box) shaved
+    # legacy Phase-L's 4.0GB headroom to 3.6GB and turned a surviving 3.9GB
+    # giant into a kernel kill-loop. Buffers are a cache — Postgres works
+    # fine with a modest one (the OS page cache covers the rest, which is
+    # what PG_EFFECTIVE_CACHE tells the planner). 512MB is plenty at any
+    # scale this app runs at; work_mem is per-sort-per-connection and 64MB
+    # is already generous.
     $derived = [ordered]@{
         POSTGRES_MEM_LIMIT = "${pgMb}m"
         ETL_MEM_LIMIT      = "${etlMb}m"
-        PG_SHARED_BUFFERS  = (Clamp ($totalMb * 0.125) 128 8192).ToString() + 'MB'
+        PG_SHARED_BUFFERS  = (Clamp ($pgMb / 9.0) 128  512).ToString() + 'MB'
         PG_EFFECTIVE_CACHE = (Clamp ($pgMb * 0.80) 256 13000).ToString() + 'MB'
-        PG_WORK_MEM        = (Clamp ($pgMb / 20.0)  32  512).ToString() + 'MB'
-        PG_MAINTENANCE_MEM = (Clamp ($pgMb / 5.0)   64 2048).ToString() + 'MB'
+        PG_WORK_MEM        = (Clamp ($pgMb / 72.0)   8   64).ToString() + 'MB'
+        PG_MAINTENANCE_MEM = (Clamp ($pgMb / 9.0) 128  512).ToString() + 'MB'
         PG_MAX_WAL         = (Clamp ($pgMb * 1.60) 512 16384).ToString() + 'MB'
     }
     $wrote = @()

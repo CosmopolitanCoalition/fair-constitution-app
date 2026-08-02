@@ -151,16 +151,24 @@ services:
     # whenever a giant insert hit the 1 GB headroom. Dropping shared_buffers
     # to 1 GB gives the operators ~4 GB of room — comfortable for any single
     # feature in the world dataset.
+    #
+    # 2026-08-02 (the AUS-ADM0 kill-loop, Phase-L lesson relearned): the
+    # host-derive installer wrote a SMALLER cap (60% of host) while keeping
+    # ~1 GB buffers — headroom fell below the same giant transient and the
+    # backend kill-loop returned. Defaults now match the installers' headroom
+    # law: buffers/work_mem stay small so (cap − shared_buffers) always funds
+    # the largest single-feature insert. The ETL also ships WKB now (near-1x
+    # server transient) — GeoJSON parse trees only remain for rare fallbacks.
     command:
       - "postgres"
       - "-c"
-      - "shared_buffers=${PG_SHARED_BUFFERS:-1GB}"
+      - "shared_buffers=${PG_SHARED_BUFFERS:-512MB}"
       - "-c"
       - "effective_cache_size=${PG_EFFECTIVE_CACHE:-4GB}"
       - "-c"
-      - "work_mem=${PG_WORK_MEM:-256MB}"
+      - "work_mem=${PG_WORK_MEM:-64MB}"
       - "-c"
-      - "maintenance_work_mem=${PG_MAINTENANCE_MEM:-1GB}"
+      - "maintenance_work_mem=${PG_MAINTENANCE_MEM:-512MB}"
       - "-c"
       - "max_wal_size=${PG_MAX_WAL:-8GB}"
       - "-c"

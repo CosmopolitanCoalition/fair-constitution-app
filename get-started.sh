@@ -207,16 +207,21 @@ configure_host_memory() {
 
   clamp() { v=$1; lo=$2; hi=$3; [ "$v" -lt "$lo" ] && v=$lo; [ "$v" -gt "$hi" ] && v=$hi; echo "$v"; }
   pg_mb=$(clamp $(( total_mb * 60 / 100 )) 1024 16384)   # postgres ~60% of the host
-  etl_mb=$(clamp $(( total_mb * 25 / 100 ))  512  8192)   # etl ~25%; workers derive from this
+  etl_mb=$(clamp $(( total_mb * 30 / 100 )) 1024  8192)  # etl ~30%; workers derive from this
 
+  # THE HEADROOM LAW (2026-08-02): a giant boundary INSERT is one backend
+  # whose transient is set by the DATA (largest single feature on Earth),
+  # not by this host — shared_buffers stays SMALL so (cap - shared_buffers)
+  # funds that backend. The old 12.5%-of-host derivation shaved the legacy
+  # Phase-L headroom and kernel-kill-looped giants. Mirrors get-started.ps1.
   wrote=0
   set_if_absent() { [ -n "$(get_env "$1")" ] || { set_env "$1" "$2"; wrote=1; }; }
   set_if_absent POSTGRES_MEM_LIMIT "${pg_mb}m"
   set_if_absent ETL_MEM_LIMIT      "${etl_mb}m"
-  set_if_absent PG_SHARED_BUFFERS  "$(clamp $(( total_mb * 125 / 1000 )) 128 8192)MB"
+  set_if_absent PG_SHARED_BUFFERS  "$(clamp $(( pg_mb / 9 )) 128  512)MB"
   set_if_absent PG_EFFECTIVE_CACHE "$(clamp $(( pg_mb * 80 / 100 )) 256 13000)MB"
-  set_if_absent PG_WORK_MEM        "$(clamp $(( pg_mb / 20 ))  32  512)MB"
-  set_if_absent PG_MAINTENANCE_MEM "$(clamp $(( pg_mb / 5 ))   64 2048)MB"
+  set_if_absent PG_WORK_MEM        "$(clamp $(( pg_mb / 72 ))   8   64)MB"
+  set_if_absent PG_MAINTENANCE_MEM "$(clamp $(( pg_mb / 9 )) 128  512)MB"
   set_if_absent PG_MAX_WAL         "$(clamp $(( pg_mb * 160 / 100 )) 512 16384)MB"
   [ "$wrote" -eq 1 ] && say "      Memory sized from this host (${total_mb} MB RAM): postgres ${pg_mb}m, etl ${etl_mb}m."
   return 0

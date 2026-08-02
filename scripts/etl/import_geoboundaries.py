@@ -22,7 +22,10 @@ import json
 import logging
 import os
 import re
+import struct
+import sys
 import unicodedata
+from array import array
 from datetime import datetime, timezone
 from pathlib import Path
 
@@ -47,6 +50,62 @@ DATA_ROOT          = Path(os.environ.get("DATA_ROOT", "/docs"))
 GEOBOUNDARIES_ROOT = DATA_ROOT / "geoBoundaries_repo" / "releaseData"
 GBOPEN_ROOT        = GEOBOUNDARIES_ROOT / "gbOpen"
 META_CSV           = GEOBOUNDARIES_ROOT / "geoBoundariesOpen-meta.csv"
+
+
+# ─── GeoJSON → WKB (client-side geometry encoding) ───────────────────────────
+# WKB-FIRST SHIPPING (2026-08-02, the AUS-ADM0 postgres-backend kill-loop):
+# ST_GeomFromGeoJSON makes the PG backend build a json-c parse tree whose
+# nodes cost ~50-100 bytes PER NUMBER — for coordinate-dense boundary JSON
+# that is a ~10x-30x transient over the text (field-calibrated: AUS ADM0,
+# 64 MB / 1.66M vertices, produced a 3.88 GB backend, kernel-killed). The
+# feature dict is ALREADY parsed here (ijson), so re-encoding it as WKB is a
+# straight structural walk: PG then does decode(hex) + ST_GeomFromWKB —
+# near-1x transients, no json tree at all. This is what makes Nunavut-class
+# monsters (CAN ADM1, ~250 MB one feature) insertable inside ANY sane
+# backend headroom, Raspberry-Pi included. Non-polygon geometry types (none
+# in geoBoundaries practice) and conversion failures fall back to the
+# GeoJSON path unchanged.
+
+def _wkb_polygon_body(out: bytearray, rings) -> None:
+    """Append one WKB Polygon (byte order + type + rings) to `out`."""
+    out += b"\x01"                      # little-endian
+    out += struct.pack("<I", 3)         # wkbPolygon
+    out += struct.pack("<I", len(rings))
+    for ring in rings:
+        out += struct.pack("<I", len(ring))
+        flat = array("d")
+        for pos in ring:
+            # float() eats ijson's Decimal; [0]/[1] drops any z — the
+            # jurisdictions schema is 2-D and geoBoundaries publishes 2-D.
+            flat.append(float(pos[0]))
+            flat.append(float(pos[1]))
+        if sys.byteorder != "little":
+            flat.byteswap()
+        out += flat.tobytes()
+
+
+def _geometry_to_wkb_hex(geom: dict) -> str:
+    """GeoJSON (Multi)Polygon geometry dict → 2-D little-endian WKB, hex text.
+
+    Raises on any non-polygonal type or malformed coordinates — the caller
+    falls back to the GeoJSON path, so a raise here is safe, never fatal.
+    """
+    gtype  = geom.get("type")
+    coords = geom.get("coordinates")
+    if coords is None:
+        raise ValueError(f"no coordinates for geometry type {gtype!r}")
+    out = bytearray()
+    if gtype == "Polygon":
+        _wkb_polygon_body(out, coords)
+    elif gtype == "MultiPolygon":
+        out += b"\x01"                  # little-endian
+        out += struct.pack("<I", 6)     # wkbMultiPolygon
+        out += struct.pack("<I", len(coords))
+        for poly in coords:
+            _wkb_polygon_body(out, poly)
+    else:
+        raise ValueError(f"unsupported geometry type {gtype!r}")
+    return out.hex()
 
 # ─── Constants ────────────────────────────────────────────────────────────────
 
@@ -1198,9 +1257,10 @@ def build_parent_map_for_level(
 
 def find_parent_by_strategy_ladder(
     conn: psycopg2.extensions.connection,
-    geom_geojson: str,
+    geom_payload: str,
     orphan_adm_level: int,
     iso3: str,
+    payload_is_wkb: bool = False,
 ) -> tuple[str | None, str | None]:
     """
     Find a parent for a feature at `orphan_adm_level` belonging to `iso3` via
@@ -1275,8 +1335,18 @@ def find_parent_by_strategy_ladder(
     # ST_Intersection (which OOMs on 5M-vertex geoms; see Strategy 2 notes). The
     # GIST '&&' index bounds the ST_Intersects candidate set; at the direct
     # level the parents are states/provinces, not the giant country polygon.
-    sql0 = """
-        WITH o AS (SELECT ST_SetSRID(ST_GeomFromGeoJSON(%s), 4326) AS geom)
+    #
+    # WKB-first (2026-08-02): the orphan geometry arrives as WKB hex whenever
+    # the importer could encode it (payload_is_wkb) — decode+ST_GeomFromWKB is
+    # a near-1x transient, vs the ~10-30x json-c tree ST_GeomFromGeoJSON
+    # builds per call. These lookups run per ADM2+ FEATURE on every worker
+    # concurrently, so the geojson path was invisible standing PG pressure
+    # the insert gates never saw.
+    geo = ("ST_SetSRID(ST_GeomFromWKB(decode(%s, 'hex')), 4326)"
+           if payload_is_wkb else
+           "ST_SetSRID(ST_GeomFromGeoJSON(%s), 4326)")
+    sql0 = f"""
+        WITH o AS (SELECT {geo} AS geom)
         SELECT j.id
         FROM   jurisdictions j, o
         WHERE  j.iso_code   = %s
@@ -1292,7 +1362,7 @@ def find_parent_by_strategy_ladder(
     if orphan_adm_level - 1 >= 0:
         try:
             with get_cursor(conn) as cur:
-                cur.execute(sql0, (geom_geojson, iso3, orphan_adm_level - 1))
+                cur.execute(sql0, (geom_payload, iso3, orphan_adm_level - 1))
                 row = cur.fetchone()
             if row:
                 return str(row["id"]), "direct"
@@ -1307,24 +1377,22 @@ def find_parent_by_strategy_ladder(
     # guaranteed to lie on the orphan's geometry → if a parent contains
     # the orphan, it contains this point). Cost is small — both functions
     # operate on the orphan's own geometry, which is reasonable size.
-    sql1 = """
+    sql1 = f"""
         SELECT id, adm_level
         FROM   jurisdictions
         WHERE  iso_code   = %s
           AND  adm_level  < %s
           AND  deleted_at IS NULL
           AND  (
-                ST_Contains(geom, ST_Centroid(
-                    ST_SetSRID(ST_GeomFromGeoJSON(%s), 4326)))
-             OR ST_Contains(geom, ST_PointOnSurface(
-                    ST_SetSRID(ST_GeomFromGeoJSON(%s), 4326)))
+                ST_Contains(geom, ST_Centroid({geo}))
+             OR ST_Contains(geom, ST_PointOnSurface({geo}))
           )
         ORDER BY adm_level DESC
         LIMIT 1
     """
     try:
         with get_cursor(conn) as cur:
-            cur.execute(sql1, (iso3, orphan_adm_level, geom_geojson, geom_geojson))
+            cur.execute(sql1, (iso3, orphan_adm_level, geom_payload, geom_payload))
             row = cur.fetchone()
         if row:
             parent_lvl = int(row["adm_level"])
@@ -1368,7 +1436,7 @@ def find_parent_by_strategy_ladder(
     # accelerated). Disambiguates when 3.0° pulls in multiple same-iso
     # candidates at the same level (e.g. Wuqiu sees both Kinmen and
     # Republic Of China; deepest-then-closest picks Kinmen).
-    sql2 = """
+    sql2 = f"""
         SELECT j.id, j.adm_level
         FROM   jurisdictions j
         WHERE  j.iso_code   = %s
@@ -1376,17 +1444,17 @@ def find_parent_by_strategy_ladder(
           AND  j.deleted_at IS NULL
           AND  ST_DWithin(
                    j.geom,
-                   ST_SetSRID(ST_GeomFromGeoJSON(%s), 4326),
+                   {geo},
                    3.0
                )
         ORDER BY j.adm_level DESC,
-                 ST_Centroid(ST_SetSRID(ST_GeomFromGeoJSON(%s), 4326))
+                 ST_Centroid({geo})
                    <-> j.geom
         LIMIT 1
     """
     try:
         with get_cursor(conn) as cur:
-            cur.execute(sql2, (iso3, orphan_adm_level, geom_geojson, geom_geojson))
+            cur.execute(sql2, (iso3, orphan_adm_level, geom_payload, geom_payload))
             row = cur.fetchone()
         if row:
             return str(row["id"]), "buffered"
@@ -1407,23 +1475,21 @@ def find_parent_by_strategy_ladder(
     # 'topological' when same-iso (rare; usually means Strategies 1+2 had
     # a glitch). The distinct labels let the Phase I review surface
     # surface only the genuine cross-iso bridges for operator review.
-    sql3 = """
+    sql3 = f"""
         SELECT id, adm_level, iso_code
         FROM   jurisdictions
         WHERE  adm_level  < %s
           AND  deleted_at IS NULL
           AND  (
-                ST_Contains(geom, ST_Centroid(
-                    ST_SetSRID(ST_GeomFromGeoJSON(%s), 4326)))
-             OR ST_Contains(geom, ST_PointOnSurface(
-                    ST_SetSRID(ST_GeomFromGeoJSON(%s), 4326)))
+                ST_Contains(geom, ST_Centroid({geo}))
+             OR ST_Contains(geom, ST_PointOnSurface({geo}))
           )
         ORDER BY adm_level DESC
         LIMIT 1
     """
     try:
         with get_cursor(conn) as cur:
-            cur.execute(sql3, (orphan_adm_level, geom_geojson, geom_geojson))
+            cur.execute(sql3, (orphan_adm_level, geom_payload, geom_payload))
             row = cur.fetchone()
         if row:
             chosen_iso = row["iso_code"]
@@ -1846,9 +1912,19 @@ def process_geojson_file(
                     if meta_name and meta_name.lower() not in ("unknown", "none", "null"):
                         name = meta_name
 
-                # Native GeoJSON passthrough: serialize the geometry dict back
-                # to JSON text for ST_GeomFromGeoJSON.
-                geom_geojson = json.dumps(geom_dict, separators=(",", ":"))
+                # WKB-first (2026-08-02): encode the already-parsed geometry
+                # dict as WKB hex — PG decodes it near-1x, no json-c tree.
+                # Non-polygon types / converter failures fall back to the
+                # GeoJSON text path (ST_GeomFromGeoJSON) unchanged.
+                geom_wkb_hex = None
+                if geom_dict.get("type") in ("Polygon", "MultiPolygon"):
+                    try:
+                        geom_wkb_hex = _geometry_to_wkb_hex(geom_dict)
+                    except Exception as _wkb_exc:
+                        log.warning("WKB conversion failed for %s '%s' (%s) — GeoJSON fallback",
+                                    feat_iso3, name, _wkb_exc)
+                geom_geojson = (None if geom_wkb_hex
+                                else json.dumps(geom_dict, separators=(",", ":")))
 
                 if _RANGE_MODE:
                     # Parallel-safe deterministic slug: base + stable shapeID.
@@ -1872,6 +1948,7 @@ def process_geojson_file(
                     "official_languages": official_langs,
                     "timezone":           "UTC",
                     "geom_geojson":       geom_geojson,
+                    "geom_wkb_hex":       geom_wkb_hex,
                 }
 
                 # Drop the parsed dict so the GC can reclaim ~300 MB for a
@@ -1908,7 +1985,8 @@ def process_geojson_file(
                 else:
                     # ADM2+ — strategy ladder lookup against the open conn.
                     parent_id, strategy = find_parent_by_strategy_ladder(
-                        conn, geom_geojson, adm_level_app, feat_iso3
+                        conn, geom_wkb_hex or geom_geojson, adm_level_app, feat_iso3,
+                        payload_is_wkb=geom_wkb_hex is not None,
                     )
                     row["parent_id"]           = parent_id
                     row["parent_assigned_via"] = strategy
@@ -1925,7 +2003,7 @@ def process_geojson_file(
                         )
 
                 # ── Add to batch; flush when full ──
-                rsz = len(geom_geojson)
+                rsz = len(geom_wkb_hex or geom_geojson)
                 if batch and (
                     batch_bytes + rsz > BATCH_BYTE_LIMIT
                     or len(batch)     >= BATCH_ROW_LIMIT
