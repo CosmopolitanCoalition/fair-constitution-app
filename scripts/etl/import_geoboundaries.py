@@ -1433,10 +1433,26 @@ def find_parent_by_spatial(
 
 # ─── Existing slugs cache ─────────────────────────────────────────────────────
 
-def load_existing_slugs(conn: psycopg2.extensions.connection) -> set:
-    """Load all existing slugs from the jurisdictions table into a set."""
+def load_existing_slugs(conn: psycopg2.extensions.connection,
+                        iso3: str | None = None) -> set:
+    """Load existing slugs into a set — scoped to ONE country when given.
+
+    THE WORLD-SLUG KILLER (2026-08-02, NZL/CAN/CHL exit -9 late-run): slugs
+    are prefixed `{iso3}-{level}-{name}`, so cross-ISO collision is
+    structurally impossible — yet every pull-engine child loaded the WHOLE
+    WORLD's slugs (~340k entries ≈ tens of MB by the tail). Ten concurrent
+    children each hauling a world-sized dict is memory that scales with run
+    PROGRESS, which is why the field flew and the tail OOM'd. A per-ISO
+    child needs only its own country's slugs; the DB unique constraint
+    remains the global guarantee."""
     with get_cursor(conn) as cur:
-        cur.execute("SELECT slug FROM jurisdictions WHERE deleted_at IS NULL")
+        if iso3:
+            cur.execute(
+                "SELECT slug FROM jurisdictions WHERE deleted_at IS NULL AND slug LIKE %s",
+                (iso3.lower() + "-%",),
+            )
+        else:
+            cur.execute("SELECT slug FROM jurisdictions WHERE deleted_at IS NULL")
         rows = cur.fetchall()
     return {str(row["slug"]) for row in rows}
 
@@ -1982,12 +1998,17 @@ def import_geoboundaries(
         _conn.close()
 
     # ── Load existing slugs (short-lived connection) ──
+    # Scoped to the single country on pull-engine per-ISO imports (see
+    # load_existing_slugs — the world-slug memory killer); the multi-country
+    # legacy CLI path keeps the full load.
+    _slug_iso = countries[0] if countries and len(countries) == 1 else None
     _conn = get_connection()
     try:
-        existing_slugs = load_existing_slugs(_conn)
+        existing_slugs = load_existing_slugs(_conn, _slug_iso)
     finally:
         _conn.close()
-    log.info("Loaded %d existing slugs from DB", len(existing_slugs))
+    log.info("Loaded %d existing slugs from DB%s", len(existing_slugs),
+             f" (scoped to {_slug_iso})" if _slug_iso else "")
 
     # ── Phase P.1.1: pre-register all ADM-level bars in 'pending' state so
     # the operator sees the FULL pipeline at run start, not bars revealing
