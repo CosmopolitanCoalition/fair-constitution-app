@@ -63,6 +63,21 @@ function itemLabel(it) {
     return kind + iso + lvl
 }
 
+// Honest per-item ETA from the live bar: elapsed × remaining/done. Shown
+// only once a real rate exists (>=2% done), so it never fabricates.
+function itemEta(it) {
+    if (!it.live || !it.live.total || !it.live.current) return ''
+    const frac = it.live.current / it.live.total
+    if (frac < 0.02 || frac >= 1) return ''
+    const elapsedMs = nowTick.value - new Date(it.started_at + 'Z').getTime()
+    if (elapsedMs <= 0) return ''
+    const remainMs = elapsedMs * (1 - frac) / frac
+    const m = Math.round(remainMs / 60000)
+    if (m < 1) return '· <1m left'
+    if (m < 90) return `· ~${m}m left`
+    return `· ~${Math.round(m / 60)}h left`
+}
+
 const PHASES = [
     { key: 'enumerating', kind: 'manifest',         label: 'Enumerate' },
     { key: 'boundaries',  kind: 'boundary_iso',     label: 'Boundaries' },
@@ -311,7 +326,7 @@ onBeforeUnmount(() => {
                             <template v-if="it.live && it.live.total">
                                 {{ it.live.current.toLocaleString() }} / {{ it.live.total.toLocaleString() }} {{ it.live.unit }} ·
                             </template>
-                            {{ elapsedSince(it.started_at) }}
+                            {{ elapsedSince(it.started_at) }} {{ itemEta(it) }}
                         </span>
                     </div>
                     <div class="h-1.5 bg-gray-900 rounded overflow-hidden">

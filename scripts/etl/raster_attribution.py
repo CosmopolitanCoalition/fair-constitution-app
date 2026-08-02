@@ -123,6 +123,7 @@ def attribute(
     raster_paths: list[Path],
     log: logging.Logger | None = None,
     window_px: int = DEFAULT_WINDOW_PX,
+    progress_cb: Callable[[int, int], None] | None = None,
 ) -> dict[str, int]:
     """
     Compute per-polygon population for one (iso, adm_level) pair using
@@ -180,6 +181,35 @@ def attribute(
 
     totals = np.zeros(n, dtype=np.float64)
 
+    # Incremental visibility (operator ask 2026-08-02: the pair must never
+    # look like "errors or nothing"): pre-count the window traversal from
+    # tif headers (arithmetic only — no pixel reads), then tick per window
+    # so the caller can surface live progress + an honest ETA.
+    total_windows = 0
+    if progress_cb is not None:
+        for tp in raster_paths:
+            try:
+                with rasterio.open(tp) as s:
+                    fw = windows.from_bounds(
+                        claim_minx, claim_miny, claim_maxx, claim_maxy,
+                        transform=s.transform,
+                    ).intersection(windows.Window(0, 0, s.width, s.height))
+                    if fw.width > 0 and fw.height > 0:
+                        total_windows += (-(-int(fw.height) // window_px)
+                                          * (-(-int(fw.width) // window_px)))
+            except Exception:
+                pass
+
+    _done_windows = [0]
+
+    def _tick() -> None:
+        _done_windows[0] += 1
+        if progress_cb is not None:
+            try:
+                progress_cb(_done_windows[0], total_windows)
+            except Exception:
+                pass   # progress must never sink the attribution
+
     for tif_path in raster_paths:
         try:
             _process_raster(
@@ -187,6 +217,7 @@ def attribute(
                 claim_minx, claim_miny, claim_maxx, claim_maxy,
                 l1_geom, l1_prepared, bboxes, get_geoms, centroid_tree,
                 totals, window_px, log,
+                tick=_tick,
             )
         except Exception as exc:
             log.warning("  raster_attribution[%s L%d]: %s raised %s",
@@ -210,6 +241,7 @@ def _process_raster(
     totals: np.ndarray,
     window_px: int,
     log: logging.Logger,
+    tick: Callable[[], None] | None = None,
 ) -> None:
     """Iterate one raster TIF in windows; per window, classify and
     accumulate per-polygon totals."""
@@ -235,6 +267,8 @@ def _process_raster(
         windows_processed = 0
         windows_skipped = 0
         for win in _tile_window(full_window, window_px):
+            if tick is not None:
+                tick()   # every traversed window advances the bar, skipped or not
             # Lever 1 — skip windows that the L=1 polygon doesn't
             # touch. For continental-bbox isos like CAN (89° × 43°
             # bbox, ~2300 windows at 1024 px) this drops the work

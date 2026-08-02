@@ -198,12 +198,30 @@ def main(iso: str, level: int, apply_to_db: bool) -> int:
             pre_sum = fetch_baselines_sum(conn, iso, level)
             fetcher = make_geom_fetcher(conn, iso, level, idx_to_jur)
 
+            # Live progress → the engine's item bar (operator ask 2026-08-02:
+            # attribution must show incremental detail, not "errors or
+            # nothing"). CGA_ETL_ITEM_ID is inherited from the etl_unit
+            # child, so heartbeat's item writer lands window counts on this
+            # pair's row — the pull panel renders the mini bar + ETA. Wrapped
+            # defensively: a bar failure must never sink the attribution.
+            _cb = None
+            try:
+                import heartbeat as _hb
+                _bar_key = f"t7:{iso}:L{level}"
+                _hb.bar_start(_bar_key, label=f"{iso} L{level} attribution",
+                              total=0, unit="windows")
+                def _cb(cur, tot, _k=_bar_key, _h=_hb):
+                    _h.bar_update(_k, cur, total=tot)
+            except Exception:
+                _cb = None
+
             attr_start = time.monotonic()
             attr_results = attribute(
                 iso=iso, adm_level=level,
                 l1_geom_wkb=l1_wkb,
                 polygon_meta=meta, get_geoms=fetcher,
                 raster_paths=rasters, log=log,
+                progress_cb=_cb,
             )
             attr_elapsed = time.monotonic() - attr_start
             post_sum = sum(attr_results.values())
