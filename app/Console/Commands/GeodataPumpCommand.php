@@ -1,0 +1,258 @@
+<?php
+
+namespace App\Console\Commands;
+
+use App\Jobs\GeodataAcceptanceScanJob;
+use App\Models\GeodataRun;
+use App\Services\AuditService;
+use App\Support\GeodataClaims;
+use Illuminate\Console\Command;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
+
+/**
+ * The geodata pull-engine pump (GEODATA_PULL_ENGINE_PLAN.md §5) — the run's
+ * liveness root, mirroring autoscale:pump. Runs every minute from the
+ * scheduler while a run is live. Each duty is idempotent and seconds-long.
+ *
+ * Unlike autoscale it does NOT seed workers: the geodata worker pool is Python
+ * processes maintained by supervisor.py (which watches the same run row). The
+ * pump owns exactly the DB-side liveness: stale-claim reclaim, the pg-crash
+ * breaker, phase ADVANCE (never in workers), counter refresh, acceptance-scan
+ * dispatch, and completion.
+ */
+class GeodataPumpCommand extends Command
+{
+    protected $signature = 'geodata:pump';
+
+    protected $description = 'Advance the active geodata run: reclaims, phase transitions, counters, acceptance scan, completion';
+
+    /** Stale threshold (seconds): a claim untouched this long returns to pending. */
+    private const CLAIM_STALE = 1800;
+
+    public function handle(): int
+    {
+        $runs = GeodataRun::query()
+            ->whereIn('status', ['running', 'halted'])
+            ->orderBy('created_at')
+            ->get();
+        if ($runs->isEmpty()) {
+            return self::SUCCESS;
+        }
+
+        // Supersede dedupe: the OLDEST unfinished run is the single work-list;
+        // newer duplicates (ms-window races) yield.
+        $run = $runs->first();
+        foreach ($runs->slice(1) as $dupe) {
+            $dupe->forceFill([
+                'status'      => 'failed',
+                'last_error'  => "superseded: older unfinished run {$run->id} exists",
+                'finished_at' => now(),
+            ])->save();
+        }
+
+        // ── Halt / resume state machine (DB column is the source of truth) ──
+        if ($run->haltRequested() && $run->status !== 'halted') {
+            $run->forceFill(['status' => 'halted', 'updated_at' => now()])->save();
+            Log::info('Geodata run halted by operator', ['run_id' => $run->id]);
+
+            return self::SUCCESS;
+        }
+        if ($run->status === 'halted') {
+            if ($run->haltRequested()) {
+                return self::SUCCESS; // parked until the operator resumes
+            }
+            // Operator resumed (flag cleared): re-enter running; every duty is
+            // idempotent, so re-entry is safe.
+            $run->forceFill(['status' => 'running', 'updated_at' => now()])->save();
+        }
+
+        // ── pg-crash breaker: pause claims ~10 min while Postgres recovers ──
+        $this->breakerTick($run);
+
+        // ── Reclaims: stale running items go back to pending (set-based) ────
+        $reclaimed = DB::table('geodata_items')
+            ->where('run_id', $run->id)
+            ->where('status', 'running')
+            ->where('updated_at', '<', now()->subSeconds(self::CLAIM_STALE))
+            ->update([
+                'status' => 'pending', 'claim_token' => null,
+                'reason' => 'reclaimed: worker died mid-item', 'updated_at' => now(),
+            ]);
+        if ($reclaimed > 0) {
+            Log::warning('Geodata pump reclaimed stale claims', [
+                'run_id' => $run->id, 'count' => $reclaimed,
+            ]);
+        }
+
+        // Prune stale worker leases (Python worker died without clearing).
+        DB::table('geodata_worker_leases')
+            ->where('last_seen_at', '<', now()->subMinutes(10))
+            ->delete();
+
+        // ── Phase advance (never in workers) ───────────────────────────────
+        // Walk forward while the current phase's pool is drained: done, review,
+        // and failed all count as settled. Advancing through consecutive empty
+        // phases in one tick handles filtered runs (a --countries subset may
+        // legitimately have zero items in a phase).
+        if (! $run->isPaused()) {
+            $this->advancePhases($run);
+        }
+
+        $this->refreshCounters($run);
+
+        return self::SUCCESS;
+    }
+
+    private function advancePhases(GeodataRun $run): void
+    {
+        $phases = GeodataRun::PHASES;
+
+        while ($run->phase !== 'done' && GeodataClaims::phaseDrained($run, $run->phase)) {
+            $idx  = array_search($run->phase, $phases, true);
+            $next = $phases[$idx + 1] ?? 'done';
+
+            // Stamp the benchmark timestamps: finish the current phase, start
+            // the next. phase_timestamps is the §9 report.
+            $stamps = $run->phase_timestamps ?? [];
+            $stamps[$run->phase]['finished_at'] = now()->toIso8601String();
+            if ($next !== 'done') {
+                $stamps[$next]['started_at'] = now()->toIso8601String();
+            }
+
+            $run->forceFill(['phase' => $next, 'phase_timestamps' => $stamps, 'updated_at' => now()])->save();
+            $run->refresh();
+
+            // VACUUM ANALYZE the churned tables at the boundary (never inside a
+            // transaction — skip when the pump runs under a test transaction).
+            $this->vacuumChurned($run->phase);
+
+            // Entering scanning: dispatch the Laravel-side acceptance scan (the
+            // ONE exception to "workers execute items" — no docker-in-docker).
+            if ($run->phase === 'scanning') {
+                $pending = DB::table('geodata_items')
+                    ->where('run_id', $run->id)
+                    ->where('kind', 'acceptance_scan')
+                    ->where('status', 'pending')
+                    ->exists();
+                if ($pending) {
+                    GeodataAcceptanceScanJob::dispatch((string) $run->id);
+                }
+            }
+
+            // Reached done: close the run + append the hash-chained audit entry.
+            if ($run->phase === 'done') {
+                $this->completeRun($run);
+                break;
+            }
+        }
+    }
+
+    private function completeRun(GeodataRun $run): void
+    {
+        $this->refreshCounters($run);
+        $run->refresh();
+
+        $run->forceFill(['status' => 'done', 'finished_at' => now(), 'updated_at' => now()])->save();
+
+        app(AuditService::class)->append(
+            module: 'system',
+            event: 'geodata.completed',
+            payload: [
+                'run_id'        => (string) $run->id,
+                'items_total'   => (int) $run->items_total,
+                'items_done'    => (int) $run->items_done,
+                'items_review'  => (int) $run->items_review,
+                'items_failed'  => (int) $run->items_failed,
+                'phase_timings' => $run->phase_timestamps,
+                'generator'     => 'GeodataPumpCommand (pull engine, 2026-07-20)',
+            ],
+            ref: 'WF-SYS-01',
+        );
+
+        Log::info('Geodata run complete', [
+            'run_id' => $run->id,
+            'done'   => (int) $run->items_done,
+            'review' => (int) $run->items_review,
+            'failed' => (int) $run->items_failed,
+        ]);
+    }
+
+    /**
+     * pg crash/recovery detection → pause claims 10 min (pause-only, never a
+     * governor). Fingerprint = postmaster start time || stats_reset. Parity
+     * with AutoscalePumpCommand::breakerTick.
+     */
+    private function breakerTick(GeodataRun $run): void
+    {
+        try {
+            $fp = (string) (DB::selectOne("
+                SELECT pg_postmaster_start_time()::text || '|' ||
+                       COALESCE((SELECT stats_reset::text FROM pg_stat_database
+                                  WHERE datname = current_database()), '') AS fp
+            ")->fp ?? '');
+        } catch (\Throwable) {
+            return;
+        }
+        if ($fp === '') {
+            return;
+        }
+        if ($run->pg_fingerprint === null) {
+            GeodataRun::query()->whereKey($run->id)->update(['pg_fingerprint' => $fp]);
+            $run->pg_fingerprint = $fp;
+
+            return;
+        }
+        if ($run->pg_fingerprint !== $fp) {
+            GeodataRun::query()->whereKey($run->id)->update([
+                'pg_fingerprint' => $fp,
+                'paused_until'   => now()->addMinutes(10),
+                'last_error'     => 'pg crash/recovery detected '.now()->toIso8601String().' — claims paused 10 min',
+                'updated_at'     => now(),
+            ]);
+            $run->refresh();
+            Log::warning('Geodata breaker: pg crash detected, pausing claims', ['run_id' => $run->id]);
+        }
+    }
+
+    private function vacuumChurned(string $enteredPhase): void
+    {
+        if (DB::transactionLevel() > 0) {
+            return; // never VACUUM inside a transaction (test runs, etc.)
+        }
+        // Only the phases that just churned a big table are worth the pass.
+        $tables = match ($enteredPhase) {
+            'resolving', 'rasters'    => ['jurisdictions'],
+            'attribution', 'finalizing' => ['jurisdictions', 'worldpop_rasters'],
+            default => [],
+        };
+        foreach ($tables as $t) {
+            try {
+                DB::statement("VACUUM (ANALYZE) {$t}");
+            } catch (\Throwable) {
+                // best-effort; the next autovacuum covers it.
+            }
+        }
+    }
+
+    private function refreshCounters(GeodataRun $run): void
+    {
+        $c = DB::table('geodata_items')
+            ->where('run_id', $run->id)
+            ->selectRaw("
+                COUNT(*)                                    AS total,
+                COUNT(*) FILTER (WHERE status = 'done')     AS done,
+                COUNT(*) FILTER (WHERE status = 'review')   AS review,
+                COUNT(*) FILTER (WHERE status = 'failed')   AS failed
+            ")
+            ->first();
+
+        $run->forceFill([
+            'items_total'  => (int) $c->total,
+            'items_done'   => (int) $c->done,
+            'items_review' => (int) $c->review,
+            'items_failed' => (int) $c->failed,
+            'updated_at'   => now(),
+        ])->save();
+    }
+}

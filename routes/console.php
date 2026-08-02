@@ -50,6 +50,15 @@ Schedule::command('autoscale:pump')
 Schedule::command('sim:pump')
     ->everyMinute()->withoutOverlapping(10)->runInBackground()->onOneServer();
 
+// ── Geodata pull-engine pump (GEODATA_PULL_ENGINE_PLAN.md, 2026-07-20) ────
+// The same pattern, applied to the ETL: a geodata run's DB-side liveness
+// root — stale-claim reclaim, pg-crash breaker, phase advance (never in
+// workers), lease cull, counters, acceptance-scan dispatch, completion. The
+// Python supervisor owns the worker pool; this owns the run state. No-ops in
+// ~1 query when no run is live, so it is free to leave scheduled everywhere.
+Schedule::command('geodata:pump')
+    ->everyMinute()->withoutOverlapping(10)->runInBackground()->onOneServer();
+
 // ── WI-B3: daily approval standings rollup (ESM-04) ─────────────────────
 // Public approval standings aggregate ONCE A DAY per race (Earth-scale
 // rule — never per request, never per approval; identities never leave
