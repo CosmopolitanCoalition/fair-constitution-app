@@ -686,7 +686,16 @@ def do_attribution(conn, run_id: str, iso: str, level: int, apply_to_db: bool,
                         break
                     except ValueError:
                         continue
-                if info and info.get("ok") and int(info.get("n_windows", 0)) >= split_min_windows:
+                if info is None or not info.get("ok"):
+                    # A dead/failed enumerate must NEVER silently fall
+                    # through to the unsplit monster path (observed live:
+                    # PHL L2's enumerate was OOM-killed and the pair ran
+                    # whole — the exact slow-fail the window-split exists
+                    # to prevent). Loud review; the retry re-enumerates.
+                    raise RuntimeError(
+                        f"window enumeration failed (exit {enum.returncode}): "
+                        f"{(info or {}).get('error') or (enum.stderr or '')[-200:]}")
+                if int(info.get("n_windows", 0)) >= split_min_windows:
                     return _attribution_window_split(
                         conn, run_id, iso, level, apply_to_db,
                         int(info["n_windows"]), int(info["window_px"]), pool, log)

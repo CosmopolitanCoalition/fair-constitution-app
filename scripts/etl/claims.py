@@ -222,10 +222,28 @@ def claim_range(conn, run_id: str, iso: str, file_level: int | None, token: str,
                 kind: str = "boundary_range") -> dict | None:
     """The COORDINATOR's claim: the next pending range of ITS OWN (iso, level).
     Same advisory lock as claim_next, so coordinator and free lanes never race.
-    kind selects the range family (boundary_range | raster_range — raster
-    bands carry adm_level NULL, hence IS NOT DISTINCT FROM)."""
+    kind selects the range family (boundary_range | raster_range |
+    attribution_range — bands carry adm_level NULL, hence IS NOT DISTINCT
+    FROM). Self-claims RESPECT the family width cap (observed live: three
+    coordinators' self-participation pushed the attribution family to 7
+    concurrent children past the 6-lane cap the memory math assumes)."""
+    fam_parent = {"boundary_range": "boundary_iso",
+                  "raster_range": "raster_iso",
+                  "attribution_range": "attribution_pair"}.get(kind, kind)
+    cap = kind_cap(fam_parent)
     with get_cursor(conn) as cur:
         cur.execute("SELECT pg_advisory_xact_lock(hashtext('cga_geodata_claim'))")
+        if cap is not None:
+            cur.execute(
+                """
+                SELECT COUNT(*) AS n FROM geodata_items
+                 WHERE run_id = %s AND status = 'running'
+                   AND kind IN (%s, %s)
+                """,
+                (run_id, fam_parent, kind),
+            )
+            if int(cur.fetchone()["n"]) >= cap:
+                return None
         cur.execute(
             """
             UPDATE geodata_items
