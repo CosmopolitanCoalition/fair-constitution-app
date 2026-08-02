@@ -89,6 +89,25 @@ def heavy_cap() -> int:
     return max(1, -(-pool // 5))   # ceil(20% of pool) — 10 → 2
 
 
+def heavy_drain_cap() -> int:
+    """THE DRAIN RULE (autoscale parity, operator observation 2026-08-02:
+    'light is cleared, that should leave room for the big stuff'): when NO
+    light work remains pending, the heavy door widens — but memory-derived,
+    never flung open (ten concurrent giants IS the crash we already had).
+    One giant's Python residency ≈ its largest feature + batch, observed
+    ~300–600 MB; the drain cap funds ~one giant per 512 MiB of container
+    budget, floor = the normal cap. 1.9 GiB box → 3. Env-overridable."""
+    raw = os.environ.get("CGA_ETL_HEAVY_DRAIN_CAP", "")
+    if raw.isdigit() and int(raw) > 0:
+        return int(raw)
+    try:
+        from memory_budget import etl_budget_bytes
+        by_mem = int(etl_budget_bytes() // (512 * 1024 * 1024))
+    except Exception:
+        by_mem = 0
+    return max(heavy_cap(), by_mem)
+
+
 def get_active_run(conn) -> dict | None:
     """The single active run (oldest running/halted), or None."""
     with get_cursor(conn) as cur:
@@ -157,8 +176,9 @@ def claim_next(conn, run_id: str, phase: str, token: str) -> dict | None:
 
         # Heavy lane (boundaries only — where the giant-file evidence is):
         # when the heavy slots are full, this claim is restricted to LIGHT
-        # items; heavy items wait for a slot. Runs under the same advisory
-        # lock, so the count can never race.
+        # items; heavy items wait for a slot. DRAIN RULE: once no light work
+        # remains pending, the door widens to the memory-derived drain cap.
+        # Runs under the same advisory lock, so the counts can never race.
         heavy_filter = ""
         params_extra: tuple = ()
         if kind == "boundary_iso":
@@ -171,7 +191,21 @@ def claim_next(conn, run_id: str, phase: str, token: str) -> dict | None:
                 """,
                 (run_id, kind, hb),
             )
-            if int(cur.fetchone()["n"]) >= heavy_cap():
+            heavy_running = int(cur.fetchone()["n"])
+            cap = heavy_cap()
+            if heavy_running >= cap:
+                cur.execute(
+                    """
+                    SELECT 1 FROM geodata_items
+                     WHERE run_id = %s AND kind = %s AND status = 'pending'
+                       AND est_cost <= %s LIMIT 1
+                    """,
+                    (run_id, kind, hb),
+                )
+                light_pending = cur.fetchone() is not None
+                if not light_pending:
+                    cap = heavy_drain_cap()
+            if heavy_running >= cap:
                 heavy_filter = " AND est_cost <= %s"
                 params_extra = (hb,)
 
