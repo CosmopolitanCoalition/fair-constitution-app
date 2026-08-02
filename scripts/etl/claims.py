@@ -48,13 +48,27 @@ _KIND_CAP_ENV = {
 
 
 def kind_cap(kind: str) -> int | None:
-    """The operator's cap for a kind, or None (uncapped — the default)."""
+    """The operator's cap for a kind, or None (uncapped — the default).
+
+    ATTRIBUTION IS THE EXCEPTION (2026-08-02, kill #32: seven light pairs
+    ran legally-shared and summed past the container): a pair holds its
+    whole level's geometry + window buffers (~500-700 MB observed), the
+    fattest child class in the engine. Its width therefore derives from
+    the memory budget — clamp(budget / 640 MB, 2, pool) — instead of
+    running pool-wide. Heavies are additionally serialized by the
+    giant-pair floor; this cap bounds the LIGHT class's sum."""
     env_key = _KIND_CAP_ENV.get(kind)
-    if env_key is None:
-        return None
-    raw = os.environ.get(env_key, "")
-    if raw.isdigit() and int(raw) > 0:
-        return int(raw)
+    if env_key is not None:
+        raw = os.environ.get(env_key, "")
+        if raw.isdigit() and int(raw) > 0:
+            return int(raw)
+    if kind == "attribution_pair":
+        pool = int(os.environ.get("CGA_ETL_POOL_SIZE", "0") or 0) or 12
+        try:
+            from memory_budget import etl_budget_bytes
+            return max(2, min(pool, etl_budget_bytes() // (640 * 1024 * 1024)))
+        except Exception:
+            return 3
     return None
 
 
@@ -139,14 +153,16 @@ def claim_next(conn, run_id: str, phase: str, token: str,
     with get_cursor(conn) as cur:
         cur.execute("SELECT pg_advisory_xact_lock(hashtext('cga_geodata_claim'))")
         if cap is not None:
-            # The boundaries dial caps the FAMILY (countries + ranges).
+            # The cap counts the kind's FAMILY (a country and its ranges
+            # are one budget class; a pair stands alone).
+            fam = {"boundary_iso": ("boundary_iso", "boundary_range"),
+                   "raster_iso":   ("raster_iso", "raster_range")}.get(kind, (kind, kind))
             cur.execute(
                 """
                 SELECT COUNT(*) AS n FROM geodata_items
-                 WHERE run_id = %s AND status = 'running'
-                   AND kind IN (%s, 'boundary_range')
+                 WHERE run_id = %s AND status = 'running' AND kind IN %s
                 """,
-                (run_id, kind),
+                (run_id, fam),
             )
             if int(cur.fetchone()["n"]) >= cap:
                 return None
