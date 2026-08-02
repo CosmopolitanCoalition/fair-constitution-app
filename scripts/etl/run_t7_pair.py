@@ -165,6 +165,37 @@ def make_geom_fetcher(conn, iso: str, level: int, idx_to_jur_id: dict):
     return fetch
 
 
+def _stage_tifs(paths, log) -> list:
+    """Copy tifs to the container-local volume once, shared across slices
+    (atomic replace; racers write identical bytes). MEASURED 2026-08-02:
+    windowed reads over the Windows bind mount were ~98% IO WAIT — the CAN
+    arctic slice spent 11 CPU-seconds in 10 wall-minutes. One sequential
+    mount read (which the mount does fast) turns thousands of window reads
+    local. Correctness never depends on staging — any failure falls back
+    to the mount path."""
+    import shutil
+    import tempfile
+    from pathlib import Path as _P
+    cache = _P("/data/tifcache")
+    try:
+        cache.mkdir(parents=True, exist_ok=True)
+    except Exception:
+        return paths
+    out = []
+    for p in paths:
+        try:
+            dst = cache / p.name
+            if not dst.exists() or dst.stat().st_size != p.stat().st_size:
+                fd, tmp = tempfile.mkstemp(dir=str(cache))
+                os.close(fd)
+                shutil.copyfile(p, tmp)
+                os.replace(tmp, dst)
+            out.append(dst)
+        except Exception:
+            out.append(p)
+    return out
+
+
 def main(iso: str, level: int, apply_to_db: bool,
          enumerate_only: bool = False,
          win_start: int | None = None, win_count: int | None = None,
@@ -215,6 +246,7 @@ def main(iso: str, level: int, apply_to_db: bool,
             l1_pop = fetch_l1_pop(conn, iso)
             pre_sum = fetch_baselines_sum(conn, iso, level)
             fetcher = make_geom_fetcher(conn, iso, level, idx_to_jur)
+            rasters = _stage_tifs(rasters, log)
 
             # ── WINDOW-SLICE mode (operator design: windows chunked among
             # lanes): compute ONLY [win_start, win_start+win_count) of the
