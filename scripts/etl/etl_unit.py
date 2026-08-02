@@ -1003,6 +1003,21 @@ def do_finalize(conn, options: dict, log: logging.Logger) -> dict:
     censusable stream — not just log warnings (GEODATA_PULL_ENGINE_PLAN.md §6)."""
     from import_worldpop import rollup_planet_population, validate_national_population
 
+    # National populations: the engine attributes levels 2+, and legacy's
+    # L1 raster pass isn't part of the pull flow — the national number IS
+    # the raster-sum baseline stamped at the raster phase. Set-based,
+    # fills only what attribution didn't (idempotent).
+    with get_cursor(conn) as cur:
+        cur.execute("""
+            UPDATE jurisdictions
+               SET population = population_baseline,
+                   population_year = 2023, updated_at = now()
+             WHERE adm_level = 1 AND deleted_at IS NULL
+               AND COALESCE(population, 0) = 0
+               AND COALESCE(population_baseline, 0) > 0
+        """)
+        log.info("finalize: %d national populations set from baselines", cur.rowcount)
+
     rollup = rollup_planet_population(conn, log)
 
     countries = {c.upper() for c in (options.get("countries") or [])}
