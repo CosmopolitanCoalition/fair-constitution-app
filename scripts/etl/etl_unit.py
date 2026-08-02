@@ -695,7 +695,13 @@ def do_attribution(conn, run_id: str, iso: str, level: int, apply_to_db: bool,
                     raise RuntimeError(
                         f"window enumeration failed (exit {enum.returncode}): "
                         f"{(info or {}).get('error') or (enum.stderr or '')[-200:]}")
-                if int(info.get("n_windows", 0)) >= split_min_windows:
+                # Split on window count OR vertex weight (PHL L2 lesson:
+                # 264 windows but 13M vertices — its CACHE is the load, and
+                # slicing shrinks the cache too, since a slice only parses
+                # the geoms its windows touch). Never split below 2 windows
+                # per slice.
+                if (int(info.get("n_windows", 0)) >= split_min_windows
+                        or total_v >= thresh) and int(info.get("n_windows", 0)) >= 2 * max(2, pool // 2):
                     return _attribution_window_split(
                         conn, run_id, iso, level, apply_to_db,
                         int(info["n_windows"]), int(info["window_px"]), pool, log)
