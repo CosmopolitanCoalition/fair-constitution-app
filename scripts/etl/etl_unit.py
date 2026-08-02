@@ -201,13 +201,32 @@ def do_boundary(conn, run_id: str, iso: str, options: dict,
     adm_filter = {int(a) for a in (options.get("adm_levels") or [])} or None
 
     # Expected feature counts per file-level, from the persisted meta CSV.
-    with get_cursor(conn) as cur:
-        cur.execute(
-            "SELECT adm_level, COALESCE(adm_unit_count, 0) AS n "
-            "FROM geoboundary_metadata WHERE iso_code = %s",
-            (iso,),
-        )
-        expected = {int(r["adm_level"]): int(r["n"]) for r in cur.fetchall()}
+    # FRESH-BOX RACE (operator catch 2026-08-02: "IND never subdivided, FRA
+    # did"): the metadata table is populated by the FIRST import call — a
+    # country claimed in the opening wave sees it EMPTY, decides "expected=0",
+    # and silently falls back to a sequential monster pass whose hours-long
+    # shared parse-lock hold then CONVOYS the whole engine behind any queued
+    # exclusive. Load the meta CSV directly when the table has no row for us.
+    def _load_expected() -> dict:
+        with get_cursor(conn) as cur:
+            cur.execute(
+                "SELECT adm_level, COALESCE(adm_unit_count, 0) AS n "
+                "FROM geoboundary_metadata WHERE iso_code = %s",
+                (iso,),
+            )
+            return {int(r["adm_level"]): int(r["n"]) for r in cur.fetchall()}
+
+    expected = _load_expected()
+    if not expected:
+        try:
+            from import_geoboundaries import META_CSV, load_meta_index
+            load_meta_index(META_CSV, conn=conn)
+            expected = _load_expected()
+            log.info("%s: metadata was empty — loaded the meta CSV first "
+                     "(%d levels now known)", iso, len(expected))
+        except Exception as exc:
+            log.warning("%s: could not preload metadata (%s) — split decisions "
+                        "fall back to inline for this country", iso, exc)
 
     total_inserted = 0
     import uuid as _uuid
