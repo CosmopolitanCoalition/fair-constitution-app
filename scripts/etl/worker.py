@@ -72,13 +72,29 @@ def _run_unit(conn, run_id: str, claim: dict, token: str,
     so the pump's 30-min stale reclaim never false-fires on a live long unit.
     Returns (outcome, still_ours). If the claim was reclaimed from under us
     (pg pause + reclaim), the child is killed and the outcome is discarded."""
+    # Per-worker memory slice: the child sizes its streaming chunk profile
+    # (batch bytes, raster window px — memory_budget.chunk_profile) against
+    # budget ÷ pool, not the whole container. Ten workers in a 4 GiB cap each
+    # stream in ~400 MiB instead of each assuming 4 GiB. The env override is
+    # set ONLY on the child: the worker's own cap derivation (claims.kind_cap)
+    # must keep seeing the full container budget. Floor 192 MiB — below that
+    # the smallest profile already applies.
+    child_env = {**os.environ, "CGA_ETL_ITEM_ID": claim["id"]}
+    try:
+        from memory_budget import etl_budget_bytes
+        pool = int(os.environ.get("CGA_ETL_POOL_SIZE", "0")) or 1
+        child_env["ETL_MEMORY_BUDGET_BYTES"] = str(
+            max(192 * 1024 * 1024, etl_budget_bytes() // pool))
+    except Exception:
+        pass  # child falls back to the container budget — safe, just fatter
+
     proc = subprocess.Popen(
         ["python3", ETL_UNIT, "--run", run_id, "--item", claim["id"]],
         stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True,
         cwd="/etl", start_new_session=True,
         # CGA_ETL_ITEM_ID: the child's heartbeat bar hooks write live per-
         # feature progress onto THIS item's row (the pull panel's mini bars).
-        env={**os.environ, "CGA_ETL_ITEM_ID": claim["id"]},
+        env=child_env,
     )
     last_beat = time.monotonic()
     while True:

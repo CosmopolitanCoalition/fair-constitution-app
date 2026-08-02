@@ -468,7 +468,12 @@ def run_pool_mode(request_payload: dict) -> int:
         # archive leaves it unset so the importers use the default /archive mount.
         # QUIET_BARS: N concurrent importers scribbling the shared bars.json is
         # interleaved garbage — the pull dashboard is the truth for these runs.
-        worker_env = {**os.environ, "CGA_ETL_QUIET_BARS": "1"}
+        # POOL_SIZE: workers hand each etl_unit CHILD a per-worker memory
+        # slice (container budget ÷ pool) so N children never collectively
+        # believe they own the whole container — the chunk profiles then
+        # stream in slice-sized batches and N workers FIT by construction.
+        worker_env = {**os.environ, "CGA_ETL_QUIET_BARS": "1",
+                      "CGA_ETL_POOL_SIZE": str(n_workers)}
         if run.get("data_root"):
             worker_env["DATA_ROOT"] = str(run["data_root"])
 
