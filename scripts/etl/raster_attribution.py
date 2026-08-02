@@ -140,9 +140,31 @@ _T7_FAST = os.environ.get("CGA_T7_FAST", "1") != "0"
 _CLIP_MIN_COORDS = int(os.environ.get("CGA_T7_CLIP_MIN_COORDS", "0") or 0) or 200_000
 _PART_CACHE: dict = {}   # key(-1 = L1, else polygon idx) → (parts, bounds, coord_counts)
 
+# MEASURE DOWN THE CHUNKS (operator ruling 2026-08-02, after kill #33 —
+# AUS L2 at 624 MB with six heavies in lanes): the parse cache is the fast
+# path's real footprint, so it respects the worker's per-child budget slice
+# (ETL_MEMORY_BUDGET_BYTES — the same dial that sizes every other chunk in
+# the engine). Geoms admit to the cache until ~half the slice is spent;
+# anything beyond parses per window instead — slower for that geom, but the
+# pair stays inside its lane's share and the lanes stay wide. ~32 B/vertex
+# is the empirical shapely footprint (coords + ring/object overhead).
+def _cache_budget_bytes() -> int:
+    try:
+        slice_b = int(os.environ.get("ETL_MEMORY_BUDGET_BYTES", "0") or 0)
+        if slice_b > 0:
+            return max(128 * 1024 * 1024, int(slice_b * 0.5))
+    except Exception:
+        pass
+    return 700 * 1024 * 1024
+
+
+_CACHE_SPENT = [0]
+
 
 def _parts_entry(key: int, geom=None, wkb: bytes | None = None):
-    """Parse-once cache entry: (parts list, bounds (n,4) ndarray, coord counts)."""
+    """Parse-once cache entry: (parts list, bounds (n,4) ndarray, coord counts).
+    Admission is budget-bounded; an over-budget geom is parsed and returned
+    but NOT retained (the caller re-parses it per window)."""
     got = _PART_CACHE.get(key)
     if got is not None:
         return got
@@ -150,12 +172,18 @@ def _parts_entry(key: int, geom=None, wkb: bytes | None = None):
         geom = shapely.wkb.loads(wkb)
     if geom.is_empty:
         entry = ([], np.zeros((0, 4), dtype=np.float64), [])
-    else:
-        parts = list(geom.geoms) if hasattr(geom, "geoms") else [geom]
-        bounds = np.array([p.bounds for p in parts], dtype=np.float64)
-        counts = [int(shapely.count_coordinates(p)) for p in parts]
-        entry = (parts, bounds, counts)
-    _PART_CACHE[key] = entry
+        _PART_CACHE[key] = entry
+        return entry
+    parts = list(geom.geoms) if hasattr(geom, "geoms") else [geom]
+    bounds = np.array([p.bounds for p in parts], dtype=np.float64)
+    counts = [int(shapely.count_coordinates(p)) for p in parts]
+    entry = (parts, bounds, counts)
+    est = sum(counts) * 32
+    if key == -1 or _CACHE_SPENT[0] + est <= _cache_budget_bytes():
+        # L1 (key -1) always caches — every window needs it, and dropping
+        # it would re-parse the country outline per window forever.
+        _PART_CACHE[key] = entry
+        _CACHE_SPENT[0] += est
     return entry
 
 
