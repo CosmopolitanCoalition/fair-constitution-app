@@ -30,48 +30,32 @@ PHASE_KIND = {
     "scanning":    "acceptance_scan",
 }
 
-# Per-kind concurrency caps — THE MEMORY GOVERNOR, derived from the host
-# (operator ruling 2026-08-02: never hard-code what the hardware can answer).
-# Each kind's cap = the container's memory budget divided by that kind's
-# observed worst-case per-child appetite, clamped to a sane band:
-#   boundary_iso     ~640 MiB/child (whole-geojson parse + slug map; ~800 MB
-#                     worst case Nunavut under the streaming pipeline)
-#   raster_iso       ~1 GiB/child   (MemoryFile tiles + WAL pressure)
-#   attribution_pair ~640 MiB/child (NumPy windows; T.7 fresh-process peaks)
-# On the 2 GiB reference box this yields 3 / 2 / 3; a Pi gets 1 apiece and
-# still finishes (days are acceptable — the floor is "it runs"); a 16 GiB
-# box widens toward the Postgres-contention ceiling. Surplus workers idle at
-# a 5 s poll until a slot opens. Soft caps (a claim race can overshoot by
-# one transiently) — the steady state honors them. Env overrides win.
-_KIND_CAP_RULES = {
-    #  kind               env override               divisor (bytes)      max
-    "boundary_iso":     ("CGA_ETL_CAP_BOUNDARY",     640 * 1024 * 1024,    6),
-    "raster_iso":       ("CGA_ETL_CAP_RASTER",      1024 * 1024 * 1024,    4),
-    "attribution_pair": ("CGA_ETL_CAP_ATTRIBUTION",  640 * 1024 * 1024,    8),
+# Per-kind concurrency caps — OPERATOR DIALS ONLY (2026-08-02). The derived
+# caps were retired with the pool-memory clamp: the operator demonstrated
+# 10-wide boundaries work on the reference box, and every crash was the
+# PG-side giant transient — which the shared/exclusive gate in
+# bulk_insert_jurisdictions now governs at the exact grain (a giant insert
+# runs ALONE; the field runs at full pool width). Memory on the Python side
+# is governed by the per-child budget slices + chunk profiles. So by
+# default every kind runs as wide as the pool (autoscaler philosophy: ONE
+# concurrency limiter — the pool — plus a heavy-lane gate); an env dial
+# caps a kind only when the operator says so.
+_KIND_CAP_ENV = {
+    "boundary_iso":     "CGA_ETL_CAP_BOUNDARY",
+    "raster_iso":       "CGA_ETL_CAP_RASTER",
+    "attribution_pair": "CGA_ETL_CAP_ATTRIBUTION",
 }
-_budget_cache: list = []
-
-
-def _budget() -> int:
-    if not _budget_cache:
-        try:
-            from memory_budget import etl_budget_bytes
-            _budget_cache.append(etl_budget_bytes())
-        except Exception:
-            _budget_cache.append(2 * 1024 ** 3)
-    return _budget_cache[0]
 
 
 def kind_cap(kind: str) -> int | None:
-    """The concurrency cap for a kind, or None (uncapped barriers)."""
-    rule = _KIND_CAP_RULES.get(kind)
-    if rule is None:
+    """The operator's cap for a kind, or None (uncapped — the default)."""
+    env_key = _KIND_CAP_ENV.get(kind)
+    if env_key is None:
         return None
-    env_key, divisor, cap_max = rule
     raw = os.environ.get(env_key, "")
     if raw.isdigit() and int(raw) > 0:
         return int(raw)
-    return max(1, min(cap_max, _budget() // divisor))
+    return None
 
 
 def get_active_run(conn) -> dict | None:

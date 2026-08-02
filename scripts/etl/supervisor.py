@@ -409,23 +409,21 @@ def clear_stale_pause_markers() -> None:
 
 
 def default_worker_count() -> int:
-    """CGA_ETL_WORKERS, else min(cores-2, 12) ALSO clamped by the container's
-    memory budget (~1 worker per 512 MiB): the etl container runs under a hard
-    cgroup limit (2 GiB reference box) and each idle worker + its per-item
-    child costs real memory — a cores-only dial OOM-killed children on the
-    first real run. Per-kind claim caps (claims.kind_cap) bound the heavy
-    concurrency further; this bounds the process pool itself."""
+    """CGA_ETL_WORKERS, else clamp(cores − 2, 2, 12) — EXACT parity with the
+    districting autoscaler's HostCapacity::autoscaleWorkers(), CPU-ONLY
+    (operator, 2026-08-02: 10 workers demonstrably worked on the 12-core
+    reference box; a memory clamp on the POOL was a miscalculation — workers
+    are ~30 MB claimants). Pool width and memory safety are separate dials:
+    memory is governed where it actually lives — per-child budget slices
+    (worker.py), the budget-scaled chunk profiles, the etl cgroup cap, and
+    the shared/exclusive giant gate in bulk_insert_jurisdictions (a giant
+    insert runs ALONE in Postgres). Two cores stay reserved for the
+    platform; 12 is the Postgres-contention ceiling."""
     override = os.environ.get("CGA_ETL_WORKERS")
     if override and override.isdigit() and int(override) > 0:
         return int(override)
     cores = os.cpu_count() or 4
-    by_cores = max(1, min(cores - 2, 12))
-    try:
-        from memory_budget import etl_budget_bytes
-        by_mem = max(1, int(etl_budget_bytes() // (512 * 1024 * 1024)))
-    except Exception:
-        by_mem = by_cores
-    return max(1, min(by_cores, by_mem))
+    return max(2, min(12, cores - 2))
 
 
 def run_pool_mode(request_payload: dict) -> int:
