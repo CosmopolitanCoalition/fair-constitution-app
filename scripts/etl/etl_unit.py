@@ -437,7 +437,21 @@ def do_resolve(conn, run_id: str, options: dict, log: logging.Logger) -> dict:
     countries = {c.upper() for c in (options.get("countries") or [])}
     if countries:
         pairs = [p for p in pairs if p[0] in countries]
-    rows = [("attribution_pair", iso, level, int(npolys)) for iso, level, npolys in pairs]
+
+    # est_cost = LEVEL VERTEX WEIGHT, not polygon count (2026-08-02, the
+    # attribution starvation: weight and npolys ANTI-correlate — AUS L2 is
+    # 1.8M vertices across ~1.4k polygons, so the small-first lanes kept
+    # "cheapest-first" claiming unstartable heavies while true lights
+    # starved mid-pile). Weight is what the giant-pair floor gates on, so
+    # cost and admission now speak the same unit.
+    with get_cursor(conn) as cur:
+        cur.execute("SELECT iso_code, adm_level, "
+                    "GREATEST(1,(COALESCE(mean_vertices,0)*COALESCE(adm_unit_count,0))::bigint) AS w "
+                    "FROM geoboundary_metadata")
+        weight = {(r["iso_code"], int(r["adm_level"])): int(r["w"]) for r in cur.fetchall()}
+    rows = [("attribution_pair", iso, level,
+             weight.get((iso, level - 1), int(npolys)))
+            for iso, level, npolys in pairs]
     _insert_items(conn, run_id, rows)
     log.info("resolve_global: post-pass done, %d attribution pairs enumerated", len(rows))
     return {"attribution_pairs": len(rows)}
