@@ -162,8 +162,12 @@ def claim_next(conn, run_id: str, phase: str, token: str,
         # pile drained) is gone with the drain-triggered split machinery.
         order = "est_cost DESC, position, id" if lane == "big" \
             else "est_cost ASC, position, id"
-        kinds = ("boundary_iso", "boundary_range") if kind == "boundary_iso" \
-            else (kind, kind)
+        if kind == "boundary_iso":
+            kinds = ("boundary_iso", "boundary_range")
+        elif kind == "raster_iso":
+            kinds = ("raster_iso", "raster_range")
+        else:
+            kinds = (kind, kind)
         cur.execute(
             f"""
             UPDATE geodata_items
@@ -184,9 +188,12 @@ def claim_next(conn, run_id: str, phase: str, token: str,
     return dict(row) if row else None
 
 
-def claim_range(conn, run_id: str, iso: str, file_level: int, token: str) -> dict | None:
+def claim_range(conn, run_id: str, iso: str, file_level: int | None, token: str,
+                kind: str = "boundary_range") -> dict | None:
     """The COORDINATOR's claim: the next pending range of ITS OWN (iso, level).
-    Same advisory lock as claim_next, so coordinator and free lanes never race."""
+    Same advisory lock as claim_next, so coordinator and free lanes never race.
+    kind selects the range family (boundary_range | raster_range — raster
+    bands carry adm_level NULL, hence IS NOT DISTINCT FROM)."""
     with get_cursor(conn) as cur:
         cur.execute("SELECT pg_advisory_xact_lock(hashtext('cga_geodata_claim'))")
         cur.execute(
@@ -197,15 +204,15 @@ def claim_range(conn, run_id: str, iso: str, file_level: int, token: str) -> dic
              WHERE id = (
                    SELECT id FROM geodata_items
                     WHERE run_id = %s AND status = 'pending'
-                      AND kind = 'boundary_range'
-                      AND iso_code = %s AND adm_level = %s
+                      AND kind = %s
+                      AND iso_code = %s AND adm_level IS NOT DISTINCT FROM %s
                     ORDER BY position, id
                     LIMIT 1
                     FOR UPDATE SKIP LOCKED
              )
          RETURNING id::text AS id, metrics
             """,
-            (token, run_id, iso, file_level),
+            (token, run_id, kind, iso, file_level),
         )
         row = cur.fetchone()
     return dict(row) if row else None
@@ -342,6 +349,8 @@ def label(claim: dict) -> str:
         return "resolving global (Earth + orphans + cross-ISO)"
     if kind == "raster_iso":
         return f"rasters · {iso}"
+    if kind == "raster_range":
+        return f"rasters · {iso} (parallel band)"
     if kind == "attribution_pair":
         return f"attribution · {iso}" + (f" L{lvl}" if lvl is not None else "")
     if kind == "finalize_global":

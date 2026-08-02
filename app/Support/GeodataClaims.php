@@ -84,8 +84,14 @@ final class GeodataClaims
         // Intra-country parallelism (operator ruling 2026-08-02): a giant
         // country's monster level splits into boundary_range items claimed
         // by free lanes — the boundaries phase is drained only when BOTH the
-        // country items and every enumerated range have settled.
-        $kinds = $phase === 'boundaries' ? [$kind, 'boundary_range'] : [$kind];
+        // country items and every enumerated range have settled. The raster
+        // phase pre-splits monster tifs into raster_range row bands the same
+        // way (pre-split ruling), so it drains on both kinds too.
+        $kinds = match ($phase) {
+            'boundaries' => [$kind, 'boundary_range'],
+            'rasters'    => [$kind, 'raster_range'],
+            default      => [$kind],
+        };
 
         return ! DB::table('geodata_items')
             ->where('run_id', $run->id)

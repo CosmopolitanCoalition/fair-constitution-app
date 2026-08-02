@@ -727,6 +727,8 @@ def load_raster_to_db(
     resolution_m: int = 100,
     country_jur_id: str | None = None,
     heartbeat_queue_preview: list[str] | None = None,
+    band_start: int | None = None,
+    band_count: int | None = None,
 ) -> int:
     """
     Load a WorldPop GeoTIFF into the worldpop_rasters table as 256×256 pixel tiles.
@@ -758,18 +760,30 @@ def load_raster_to_db(
     Notes:
         Fallback countries (VAT→ITA, XKX→SRB) should NOT be passed here — their
         fallback TIFs cover a much larger territory.  Skip them at the call site.
-    """
-    log.info("%s: loading raster into DB from %s …", iso3, tif_path.name)
 
-    # Delete existing tiles for this country/year (idempotent re-runs)
-    with get_cursor(conn) as cur:
-        cur.execute(
-            "DELETE FROM worldpop_rasters WHERE iso_code = %s AND year = %s",
-            (iso3, year),
-        )
-        deleted = cur.rowcount
-    if deleted:
-        log.debug("%s: removed %d stale raster tiles", iso3, deleted)
+    BAND MODE (pre-split ruling 2026-08-02): band_start/band_count select a
+    contiguous slice of the ROW-band list (row_steps indices), so a monster
+    tif pre-splits across lanes exactly like a monster boundary level —
+    except tile windows are random-access, so a band pays ZERO skip cost.
+    Idempotency shifts from country-grain to band-grain: instead of the
+    whole-country DELETE, a band deletes only ITS OWN rows' tiles, matched
+    by ST_UpperLeftY — the band's upper-left Ys are recomputed from the same
+    transform doubles a previous identical run wrote, so the match is exact.
+    """
+    band_mode = band_start is not None
+    log.info("%s: loading raster into DB from %s%s …", iso3, tif_path.name,
+             f" [bands {band_start}+{band_count}]" if band_mode else "")
+
+    if not band_mode:
+        # Delete existing tiles for this country/year (idempotent re-runs)
+        with get_cursor(conn) as cur:
+            cur.execute(
+                "DELETE FROM worldpop_rasters WHERE iso_code = %s AND year = %s",
+                (iso3, year),
+            )
+            deleted = cur.rowcount
+        if deleted:
+            log.debug("%s: removed %d stale raster tiles", iso3, deleted)
 
     tiles_inserted = 0
     batch: list[tuple] = []
@@ -788,6 +802,27 @@ def load_raster_to_db(
 
         col_steps = list(range(0, width,  RASTER_TILE_SIZE))
         row_steps = list(range(0, height, RASTER_TILE_SIZE))
+        if band_mode:
+            row_steps = row_steps[band_start:band_start + (band_count or 0)]
+            # Band-grain idempotency: clear exactly this band's tiles. The
+            # upper-left Y of every tile in a row is the row's transform Y
+            # (independent of column), computed from the same doubles as the
+            # original write — exact float match.
+            band_ys = [float(src_ctx.window_transform(
+                          rasterio.windows.Window(0, r, 1, 1)).f)
+                       for r in row_steps]
+            if band_ys:
+                with get_cursor(conn) as cur:
+                    cur.execute(
+                        """
+                        DELETE FROM worldpop_rasters
+                         WHERE iso_code = %s AND year = %s
+                           AND ST_UpperLeftY(rast) = ANY(%s::float8[])
+                        """,
+                        (iso3, year, band_ys),
+                    )
+                    if cur.rowcount:
+                        log.debug("%s: band cleared %d stale tiles", iso3, cur.rowcount)
         total_potential = len(col_steps) * len(row_steps)
         log.debug(
             "%s: raster %d×%d → up to %d tiles at %d×%d px",
@@ -856,7 +891,7 @@ def load_raster_to_db(
                     # total_potential on every update to fix that and let
                     # the bar render a real percentage.
                     heartbeat.bar_update(
-                        f"wp:{iso3}:load",
+                        f"wp:{iso3}:load" + (f":b{band_start}" if band_mode else ""),
                         tile_idx,
                         total=total_potential,
                     )

@@ -403,20 +403,151 @@ def do_resolve(conn, run_id: str, options: dict, log: logging.Logger) -> dict:
     return {"attribution_pairs": len(rows)}
 
 
-def do_raster(iso: str, log: logging.Logger) -> dict:
-    from import_worldpop import find_worldpop_tif, load_raster_to_db
+def do_raster(conn, run_id: str, iso: str, log: logging.Logger) -> dict:
+    """One ISO's raster load — PRE-SPLIT coordinator (operator ruling
+    2026-08-02: the raster phase gets the boundary treatment — half/half
+    two-ended lanes come from the shared pile; a monster tif pre-splits into
+    ROW-BAND ranges, one per big lane, that any lane can claim. Tile windows
+    are random-access, so a band range pays zero skip cost)."""
+    import claims
+    import rasterio
+    from import_worldpop import (find_worldpop_tif, load_raster_to_db,
+                                 RASTER_TILE_SIZE)
 
     tif = find_worldpop_tif(iso)
     if tif is None:
         # Honest-empty: a fallback/absent iso has no own raster; the acceptance
         # scan flags coverage gaps (raster_absent_alias). Not a failure.
         return {"tiles": 0, "note": "no raster tif for iso"}
-    conn = get_connection()
+
+    split_min_tiles = int(os.environ.get("CGA_ETL_RASTER_RANGE_MIN", "") or 20000)
+    _, range_count_override = _range_dials()
+    pool = int(os.environ.get("CGA_ETL_POOL_SIZE", "0") or 0)
+
+    with rasterio.open(tif) as src:                      # header-only: cheap
+        n_rows = -(-src.height // RASTER_TILE_SIZE)
+        n_cols = -(-src.width  // RASTER_TILE_SIZE)
+    tiles_potential = n_rows * n_cols
+
+    if tiles_potential < split_min_tiles or pool <= 1:
+        tiles = load_raster_to_db(conn, iso, tif, log)   # inline, whole tif
+        return {"tiles": int(tiles)}
+
+    # ── PRE-SPLIT into row-band ranges, one per big-first lane. ──
+    n_ranges  = max(2, range_count_override or (pool // 2))
+    n_ranges  = min(n_ranges, n_rows)                    # can't split finer than rows
+    band_size = -(-n_rows // n_ranges)
     try:
-        tiles = load_raster_to_db(conn, iso, tif, log)
-    finally:
-        conn.close()
-    return {"tiles": int(tiles)}
+        tif_bytes = os.path.getsize(tif)
+    except OSError:
+        tif_bytes = 0
+
+    with get_cursor(conn) as cur:
+        cur.execute(
+            """
+            SELECT COUNT(*) AS n FROM geodata_items
+             WHERE run_id = %s AND kind = 'raster_range' AND iso_code = %s
+            """,
+            (run_id, iso),
+        )
+        ranges_exist = int(cur.fetchone()["n"]) > 0
+    if ranges_exist:
+        log.info("%s raster: ranges already enumerated — resuming barrier", iso)
+    else:
+        log.info("%s raster: PRE-SPLIT — %d×%d tiles → %d band ranges of %d rows",
+                 iso, n_rows, n_cols, n_ranges, band_size)
+        # The whole-country stale-tile DELETE happens ONCE here (bands only
+        # self-clean their own rows, which covers requeued ranges).
+        with get_cursor(conn) as cur:
+            cur.execute("DELETE FROM worldpop_rasters WHERE iso_code = %s AND year = 2023",
+                        (iso,))
+        items = []
+        for i in range(n_ranges):
+            start = i * band_size
+            count = min(band_size, n_rows - start)
+            if count <= 0:
+                break
+            items.append(
+                ("raster_range", iso, None, "pending", start,
+                 int(tif_bytes * count / n_rows),
+                 json.dumps({"band_start": start, "band_count": count})))
+        import psycopg2.extras
+        with get_cursor(conn) as cur:
+            psycopg2.extras.execute_values(
+                cur,
+                """
+                INSERT INTO geodata_items
+                    (run_id, kind, iso_code, adm_level, status, position,
+                     est_cost, metrics, created_at, updated_at)
+                VALUES %s
+                """,
+                [(run_id, k, i2, l2, s2, p2, c2, m2)
+                 for (k, i2, l2, s2, p2, c2, m2) in items],
+                template="(%s,%s,%s,%s,%s,%s,%s,%s::jsonb,now(),now())",
+            )
+
+    import uuid as _uuid
+    token = str(_uuid.uuid4())
+    total_tiles = 0
+    # Participate: claim own band ranges alongside every free lane.
+    while True:
+        rng = claims.claim_range(conn, run_id, iso, None, token, kind="raster_range")
+        if rng is None:
+            break
+        meta = rng.get("metrics") or {}
+        if isinstance(meta, str):
+            meta = json.loads(meta)
+        bs, bc = int(meta["band_start"]), int(meta["band_count"])
+        try:
+            n = load_raster_to_db(conn, iso, tif, log, band_start=bs, band_count=bc)
+            claims.record_outcome(conn, rng["id"], token, "done",
+                                  metrics={"tiles": int(n)})
+            total_tiles += int(n)
+        except Exception as exc:
+            claims.record_outcome(conn, rng["id"], token, "review",
+                                  reason=f"{type(exc).__name__}: {exc}")
+
+    # Barrier: wait for the other lanes' bands to settle.
+    while True:
+        with get_cursor(conn) as cur:
+            cur.execute(
+                """
+                SELECT COUNT(*) FILTER (WHERE status IN ('pending','running')) AS open,
+                       COUNT(*) FILTER (WHERE status IN ('review','failed'))  AS bad,
+                       COALESCE(SUM((metrics->>'tiles')::bigint)
+                                FILTER (WHERE status = 'done'), 0)            AS tiles
+                  FROM geodata_items
+                 WHERE run_id = %s AND kind = 'raster_range' AND iso_code = %s
+                """,
+                (run_id, iso),
+            )
+            r = cur.fetchone()
+        if int(r["open"]) == 0:
+            if int(r["bad"]) > 0:
+                raise RuntimeError(
+                    f"raster: {int(r['bad'])} band range(s) failed — requeue "
+                    f"(geodata:requeue --kind=raster_range --iso={iso}) and then this item."
+                )
+            total_tiles = int(r["tiles"])
+            break
+        time.sleep(5)
+    log.info("%s raster: all band ranges settled (%d tiles)", iso, total_tiles)
+    return {"tiles": total_tiles}
+
+
+def do_raster_range(conn, item: dict, log: logging.Logger) -> dict:
+    """One row-band of one country's raster — claimed by any free lane."""
+    from import_worldpop import find_worldpop_tif, load_raster_to_db
+    meta = item.get("metrics") or {}
+    if isinstance(meta, str):
+        meta = json.loads(meta)
+    bs, bc = int(meta["band_start"]), int(meta["band_count"])
+    tif = find_worldpop_tif(item["iso_code"])
+    if tif is None:
+        return {"tiles": 0, "note": "no raster tif for iso"}
+    n = load_raster_to_db(conn, item["iso_code"], tif, log,
+                          band_start=bs, band_count=bc)
+    return {"tiles": int(n)}
 
 
 def do_attribution(iso: str, level: int, apply_to_db: bool, log: logging.Logger) -> dict:
@@ -536,7 +667,9 @@ def main() -> int:
             elif kind == "resolve_global":
                 metrics = do_resolve(conn, args.run, options, log)
             elif kind == "raster_iso":
-                metrics = do_raster(item["iso_code"], log)
+                metrics = do_raster(conn, args.run, item["iso_code"], log)
+            elif kind == "raster_range":
+                metrics = do_raster_range(conn, item, log)
             elif kind == "attribution_pair":
                 metrics = do_attribution(item["iso_code"], int(item["adm_level"]),
                                          not item["dry_run"], log)
