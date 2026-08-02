@@ -123,6 +123,27 @@ _JURISDICTION_TEMPLATE = """(
 )"""
 
 
+_GIANT_LOCK_CACHE: list = []
+
+
+def _giant_lock_bytes() -> int:
+    """Overflow threshold for the giant-insert gate — derived, never a bare
+    constant: the caller's own byte ceiling (memory_budget.chunk_profile) is
+    the flush law, so any batch above it IS a single over-limit feature.
+    CGA_ETL_GIANT_LOCK_BYTES overrides."""
+    if not _GIANT_LOCK_CACHE:
+        env = os.environ.get("CGA_ETL_GIANT_LOCK_BYTES", "")
+        if env.isdigit() and int(env) > 0:
+            _GIANT_LOCK_CACHE.append(int(env))
+        else:
+            try:
+                from memory_budget import chunk_profile
+                _GIANT_LOCK_CACHE.append(int(chunk_profile()[1]["BATCH_BYTE_LIMIT"]))
+            except Exception:
+                _GIANT_LOCK_CACHE.append(64 * 1024 * 1024)
+    return _GIANT_LOCK_CACHE[0]
+
+
 def bulk_insert_jurisdictions(
     conn: psycopg2.extensions.connection,
     rows: list[dict],
@@ -165,7 +186,28 @@ def bulk_insert_jurisdictions(
     for row in rows:
         row.setdefault("parent_assigned_via", None)
 
+    # THE GIANT GATE (2026-08-02, the two pg-backend OOM kills): chunking (the
+    # Phase-L byte-aware batching) bounds PG's per-INSERT peak for NORMAL
+    # batches, but "peak memory is bounded by the largest single feature" — a
+    # Nunavut-class MultiPolygon is ONE row whose server-side
+    # ST_GeomFromGeoJSON + ST_MakeValid transient runs 2–3 GB and cannot be
+    # chunked smaller, only funded. The legacy single-threaded pipeline was
+    # safe because it fed PG exactly ONE such transient at a time; with a
+    # worker pool, two concurrent giants OOM-killed backends (2.4 GB + 2.0 GB
+    # anon-rss, kernel log). This gate restores the legacy guarantee at the
+    # exact grain: an OVERFLOW batch (payload above the caller's byte ceiling
+    # — by the flush law, a single giant feature) takes a global advisory
+    # xact lock, serializing ONLY the giants; every normal batch runs at
+    # full pool width. The lock releases at commit.
+    payload_bytes = sum(len(r.get("geom_geojson") or "") for r in rows)
+
     with get_cursor(conn) as cur:
+        if payload_bytes > _giant_lock_bytes():
+            logger.info(
+                "giant-batch gate: %.1f MB in %d row(s) — serializing this insert",
+                payload_bytes / 1048576, len(rows),
+            )
+            cur.execute("SELECT pg_advisory_xact_lock(hashtext('cga_giant_geom_insert'))")
         result = psycopg2.extras.execute_values(
             cur,
             _JURISDICTION_INSERT_SQL,

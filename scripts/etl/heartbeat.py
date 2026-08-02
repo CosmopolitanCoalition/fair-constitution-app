@@ -397,9 +397,14 @@ def bar_complete(key: str, current: int | None = None, total: int | None = None)
     "done" headline should reflect "actual work" (loaded tiles only). Pass
     the same value as `current` to render 100 % naturally."""
     if _quiet():
-        meta = _item_bar_meta.get(key) or {}
-        final = current if current is not None else int(meta.get("total") or 0)
-        _item_progress(key, final, done=True, total=total)
+        # HONEST BARS: never fabricate completion. Legacy bar_complete
+        # cosmetically fills to total, but a FAILURE path also calls it — on
+        # the pull panel that painted a failed IND level as 649,771/649,771
+        # while the DB held 331,500. Only a caller-supplied current is real;
+        # without one, skip the write (the item's terminal metrics land via
+        # record_outcome anyway).
+        if current is not None:
+            _item_progress(key, current, done=True, total=total)
         return
     try:
         state = _load_bars()
