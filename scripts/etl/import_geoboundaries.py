@@ -73,6 +73,21 @@ BATCH_ROW_LIMIT                     = _PROFILE["BATCH_ROW_LIMIT"]
 
 ADM_LEVEL_MAP = {0: 1, 1: 2, 2: 3, 3: 4, 4: 5, 5: 6}  # geoBoundaries → app
 
+# ── Range mode (intra-country parallelism, operator ruling 2026-08-02) ──────
+# A monster level (IND ADM5: 650k neighborhoods) can be split into feature-
+# index RANGES processed by many workers at once. The stream is order-stable
+# (the resume-skip already relies on that), so a window is (start, count) over
+# the same iteration. Module globals, set per import call — safe because every
+# pull-engine item runs in its own fresh process. In range mode:
+#   • the window REPLACES the DB-count resume skip (a re-run of a range is
+#     idempotent through its deterministic slugs);
+#   • slugs carry the feature's stable shapeID instead of the sequential
+#     collision counter, so PARALLEL writers of the same level can never
+#     assign order-dependent names (the counter is only deterministic when
+#     one writer streams alone).
+_RANGE_WINDOW: tuple | None = None   # (feature_start, feature_count)
+_RANGE_MODE = False
+
 # Natural-language labels for heartbeat sub_phase strings — keep in sync with the
 # canonical PHP map at SetupController::jurisdictionsCounts(). These are used in
 # the wizard's CurrentJurisdictionCard subphase badge ("Country resolving parents
@@ -1703,7 +1718,14 @@ def process_geojson_file(
                 skip_n_resume = int(_row["n"]) if _row else 0
         except Exception:
             skip_n_resume = 0
-        if skip_n_resume > 0:
+        # Range window: replaces the DB-count resume skip entirely (range
+        # re-runs are idempotent through their deterministic slugs).
+        _win = _RANGE_WINDOW
+        if _win is not None:
+            skip_n_resume = int(_win[0])
+            log.info("%s ADM%d: RANGE window — features %d..%d",
+                     iso3, adm_n, _win[0] + 1, _win[0] + _win[1])
+        elif skip_n_resume > 0:
             log.info(
                 "%s ADM%d: resume detected — skipping the first %d features "
                 "(already in DB from prior run)",
@@ -1738,6 +1760,9 @@ def process_geojson_file(
                 # negligible relative to the work it avoids.
                 if feature_idx <= skip_n_resume:
                     continue
+                # Range window end: this range's share is done.
+                if _win is not None and (feature_idx - skip_n_resume) > _win[1]:
+                    break
 
                 geom_dict = feature.get("geometry")
                 if not geom_dict or not geom_dict.get("coordinates"):
@@ -1769,7 +1794,14 @@ def process_geojson_file(
                 # to JSON text for ST_GeomFromGeoJSON.
                 geom_geojson = json.dumps(geom_dict, separators=(",", ":"))
 
-                slug             = make_slug(feat_iso3, adm_level_app, name, existing_slugs)
+                if _RANGE_MODE:
+                    # Parallel-safe deterministic slug: base + stable shapeID.
+                    # The sequential collision counter is only deterministic
+                    # with ONE writer; N range writers need order-independence.
+                    _sid = _sanitize_name(shape_id or boundary_id or str(feature_idx))
+                    slug = f"{feat_iso3.lower()}-{adm_level_app}-{_sanitize_name(name)}-{_sid}"[:250]
+                else:
+                    slug = make_slug(feat_iso3, adm_level_app, name, existing_slugs)
                 geoboundaries_id = shape_id if shape_id else boundary_id
                 official_langs   = get_languages(feat_iso3, unsdg_region)
 
@@ -1934,6 +1966,11 @@ def import_geoboundaries(
     # post-pass). Both default False, so the legacy CLI path is unchanged.
     no_global_passes: bool = False,
     global_passes_only: bool = False,
+    # Range mode (intra-country parallelism): process ONLY features
+    # [feature_start, feature_start+feature_count) of the (single) level.
+    # Requires countries=[one] and adm_levels=[one]. See _RANGE_MODE above.
+    feature_start: int | None = None,
+    feature_count: int | None = None,
 ) -> int:
     """
     Import geoBoundaries data into the jurisdictions table.
@@ -1958,6 +1995,13 @@ def import_geoboundaries(
         Total number of jurisdictions inserted.
     """
     pause_on_exception = pause_on_exception or stop_on_exception
+    global _RANGE_WINDOW, _RANGE_MODE
+    if feature_start is not None and feature_count is not None:
+        _RANGE_WINDOW = (int(feature_start), int(feature_count))
+        _RANGE_MODE = True
+    else:
+        _RANGE_WINDOW = None
+        _RANGE_MODE = False
     if log is None:
         log = logging.getLogger(__name__)
     if progress is None:

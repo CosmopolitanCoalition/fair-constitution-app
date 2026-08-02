@@ -168,6 +168,58 @@ def claim_next(conn, run_id: str, phase: str, token: str,
             (token, run_id, kind),
         )
         row = cur.fetchone()
+
+        # RANGE FALLBACK (operator ruling 2026-08-02): once the country pile
+        # is empty, free lanes JOIN the in-progress giants by claiming
+        # feature-RANGES of their monster levels (kind=boundary_range,
+        # enumerated by the country's coordinator). Ranges are uniform, so
+        # order is by file position.
+        if row is None and kind == "boundary_iso":
+            cur.execute(
+                """
+                UPDATE geodata_items
+                   SET status = 'running', claim_token = %s,
+                       started_at = COALESCE(started_at, now()), updated_at = now()
+                 WHERE id = (
+                       SELECT id FROM geodata_items
+                        WHERE run_id = %s AND status = 'pending'
+                          AND kind = 'boundary_range'
+                        ORDER BY position, id
+                        LIMIT 1
+                        FOR UPDATE SKIP LOCKED
+                 )
+             RETURNING id::text AS id, kind, iso_code, adm_level, dry_run
+                """,
+                (token, run_id),
+            )
+            row = cur.fetchone()
+    return dict(row) if row else None
+
+
+def claim_range(conn, run_id: str, iso: str, file_level: int, token: str) -> dict | None:
+    """The COORDINATOR's claim: the next pending range of ITS OWN (iso, level).
+    Same advisory lock as claim_next, so coordinator and free lanes never race."""
+    with get_cursor(conn) as cur:
+        cur.execute("SELECT pg_advisory_xact_lock(hashtext('cga_geodata_claim'))")
+        cur.execute(
+            """
+            UPDATE geodata_items
+               SET status = 'running', claim_token = %s,
+                   started_at = COALESCE(started_at, now()), updated_at = now()
+             WHERE id = (
+                   SELECT id FROM geodata_items
+                    WHERE run_id = %s AND status = 'pending'
+                      AND kind = 'boundary_range'
+                      AND iso_code = %s AND adm_level = %s
+                    ORDER BY position, id
+                    LIMIT 1
+                    FOR UPDATE SKIP LOCKED
+             )
+         RETURNING id::text AS id, metrics
+            """,
+            (token, run_id, iso, file_level),
+        )
+        row = cur.fetchone()
     return dict(row) if row else None
 
 
@@ -292,6 +344,8 @@ def label(claim: dict) -> str:
         return "enumerating the archive"
     if kind == "boundary_iso":
         return f"boundaries · {iso}"
+    if kind == "boundary_range":
+        return f"boundaries · {iso} L{lvl} (parallel range)"
     if kind == "resolve_global":
         return "resolving global (Earth + orphans + cross-ISO)"
     if kind == "raster_iso":

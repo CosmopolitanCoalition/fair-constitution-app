@@ -25,6 +25,7 @@ import logging
 import os
 import subprocess
 import sys
+import time
 import traceback
 
 sys.path.insert(0, "/etl")
@@ -48,7 +49,7 @@ def load_item(conn, item_id: str) -> dict | None:
         cur.execute(
             """
             SELECT id::text AS id, run_id::text AS run_id, kind,
-                   iso_code, adm_level, dry_run
+                   iso_code, adm_level, dry_run, metrics
               FROM geodata_items WHERE id = %s
             """,
             (item_id,),
@@ -135,21 +136,23 @@ def do_manifest(conn, run_id: str, options: dict, log: logging.Logger) -> dict:
     return {"isos": len(iso_bytes), "items_inserted": len(rows)}
 
 
-def do_boundary(iso: str, options: dict, log: logging.Logger) -> dict:
-    """One ISO's boundary chain. DONE MUST BE EVIDENCED (operator, 2026-08-02,
-    after IND false-done'd at 331k/649k): the legacy importer records per-level
-    failures into the progress dict and RETURNS NORMALLY (progress.json was the
-    legacy UI's error surface) — so a swallowed mid-stream failure looked like
-    success here and the item marked done with rows missing. Now the progress
-    dict is inspected and ANY errored level raises → the item lands in REVIEW
-    with the real reasons, and requeue re-runs it."""
+def _run_level_import(iso: str, file_lvl: int | None, log: logging.Logger,
+                      feature_start: int | None = None,
+                      feature_count: int | None = None) -> int:
+    """One import call with DONE-MUST-BE-EVIDENCED enforcement (operator,
+    2026-08-02, after IND false-done'd at 331k/649k): the legacy importer
+    records per-level failures into the progress dict and RETURNS NORMALLY
+    (progress.json was the legacy UI's error surface). Any errored entry
+    raises → the item lands in REVIEW with the real reasons."""
     from import_geoboundaries import import_geoboundaries
 
-    adm = options.get("adm_levels") or None
     progress: dict = {}
-    n = import_geoboundaries(countries=[iso], adm_levels=adm,
-                             no_global_passes=True, log=log, progress=progress)
-
+    n = import_geoboundaries(
+        countries=[iso],
+        adm_levels=[file_lvl] if file_lvl is not None else None,
+        no_global_passes=True, log=log, progress=progress,
+        feature_start=feature_start, feature_count=feature_count,
+    )
     errored = {
         key: entry for key, entry in (progress.get("geoboundaries") or {}).items()
         if isinstance(entry, dict) and entry.get("status") == "error"
@@ -162,7 +165,154 @@ def do_boundary(iso: str, options: dict, log: logging.Logger) -> dict:
         raise RuntimeError(
             f"{len(errored)} level(s) errored (inserted {int(n)} rows before failing) — {details}"
         )
-    return {"inserted": int(n)}
+    return int(n)
+
+
+def _range_dials() -> tuple[int, int]:
+    """(split_min, range_size) — a level with >= split_min expected features
+    splits into ranges of range_size. Work-granularity dials (the autoscale
+    SINGLES_BATCH spirit), env-overridable."""
+    def _env_int(key: str, default: int) -> int:
+        raw = os.environ.get(key, "")
+        return int(raw) if raw.isdigit() and int(raw) > 0 else default
+    return _env_int("CGA_ETL_RANGE_MIN", 30000), _env_int("CGA_ETL_RANGE_SIZE", 15000)
+
+
+def do_boundary(conn, run_id: str, iso: str, options: dict,
+                log: logging.Logger) -> dict:
+    """One ISO's boundary chain — now a mapper-style COORDINATOR (operator
+    ruling 2026-08-02: a giant country's monster level is CHUNKED into
+    feature ranges that ANY free lane can claim, so once the country pile
+    drains, all lanes converge on the remaining giants).
+
+    Levels run in strict ADM order (parenting reads the level above). For a
+    VIRGIN monster level (expected features >= split_min AND zero rows so far
+    — never mixes counter-suffix slugs with range slugs), the coordinator
+    enumerates boundary_range items and then PARTICIPATES: it claims ranges
+    of its own level alongside every idle worker, and barriers until the
+    level's ranges all settle. Any failed range fails the country into
+    review (ranges stay individually requeue-able). Small levels run inline
+    exactly as before."""
+    import claims
+    from import_geoboundaries import ADM_LEVEL_MAP
+
+    split_min, range_size = _range_dials()
+    pool = int(os.environ.get("CGA_ETL_POOL_SIZE", "0") or 0)
+    adm_filter = {int(a) for a in (options.get("adm_levels") or [])} or None
+
+    # Expected feature counts per file-level, from the persisted meta CSV.
+    with get_cursor(conn) as cur:
+        cur.execute(
+            "SELECT adm_level, COALESCE(adm_unit_count, 0) AS n "
+            "FROM geoboundary_metadata WHERE iso_code = %s",
+            (iso,),
+        )
+        expected = {int(r["adm_level"]): int(r["n"]) for r in cur.fetchall()}
+
+    total_inserted = 0
+    token = f"coord-{os.getpid()}"
+
+    for file_lvl in range(6):
+        if adm_filter is not None and file_lvl not in adm_filter:
+            continue
+        app_lvl = ADM_LEVEL_MAP[file_lvl]
+        exp = expected.get(file_lvl, 0)
+
+        with get_cursor(conn) as cur:
+            cur.execute(
+                "SELECT COUNT(*) AS n FROM jurisdictions "
+                "WHERE iso_code = %s AND adm_level = %s AND deleted_at IS NULL",
+                (iso, app_lvl),
+            )
+            already = int(cur.fetchone()["n"])
+
+        if exp >= split_min and already == 0 and pool > 1:
+            # ── SPLIT MODE: enumerate ranges, participate, barrier. ──
+            n_ranges = -(-exp // range_size)
+            log.info("%s ADM%d: SPLIT — %d expected features → %d ranges of %d",
+                     iso, file_lvl, exp, n_ranges, range_size)
+            rows = [
+                ("boundary_range", iso, file_lvl, range_size,
+                 json.dumps({"start": i * range_size, "count": range_size}))
+                for i in range(n_ranges)
+            ]
+            import psycopg2.extras
+            with get_cursor(conn) as cur:
+                psycopg2.extras.execute_values(
+                    cur,
+                    """
+                    INSERT INTO geodata_items
+                        (run_id, kind, iso_code, adm_level, status, position,
+                         est_cost, metrics, created_at, updated_at)
+                    VALUES %s
+                    """,
+                    [(run_id, k, i2, l2, "pending", idx * range_size, c2, m2)
+                     for idx, (k, i2, l2, c2, m2) in enumerate(rows)],
+                    template="(%s,%s,%s,%s,%s,%s,%s,%s::jsonb,now(),now())",
+                )
+
+            # Participate: claim own ranges alongside every free lane.
+            while True:
+                rng = claims.claim_range(conn, run_id, iso, file_lvl, token)
+                if rng is None:
+                    break
+                meta = rng.get("metrics") or {}
+                if isinstance(meta, str):
+                    meta = json.loads(meta)
+                start, count = int(meta["start"]), int(meta["count"])
+                try:
+                    n = _run_level_import(iso, file_lvl, log,
+                                          feature_start=start, feature_count=count)
+                    claims.record_outcome(conn, rng["id"], token, "done",
+                                          metrics={"inserted": n, "start": start,
+                                                   "count": count})
+                    total_inserted += n
+                except Exception as exc:
+                    claims.record_outcome(conn, rng["id"], token, "review",
+                                          reason=f"{type(exc).__name__}: {exc}",
+                                          metrics={"start": start, "count": count})
+
+            # Barrier: wait for the free lanes to finish their ranges.
+            while True:
+                with get_cursor(conn) as cur:
+                    cur.execute(
+                        """
+                        SELECT COUNT(*) FILTER (WHERE status IN ('pending','running')) AS open,
+                               COUNT(*) FILTER (WHERE status IN ('review','failed'))  AS bad
+                          FROM geodata_items
+                         WHERE run_id = %s AND kind = 'boundary_range'
+                           AND iso_code = %s AND adm_level = %s
+                        """,
+                        (run_id, iso, file_lvl),
+                    )
+                    r = cur.fetchone()
+                if int(r["open"]) == 0:
+                    if int(r["bad"]) > 0:
+                        raise RuntimeError(
+                            f"ADM{file_lvl}: {int(r['bad'])} range(s) failed — "
+                            "country in review; requeue the ranges (geodata:requeue "
+                            f"--kind=boundary_range --iso={iso}) and then this item."
+                        )
+                    break
+                time.sleep(5)
+            log.info("%s ADM%d: all %d ranges settled", iso, file_lvl, n_ranges)
+        else:
+            # ── Inline (small level, partial level, or 1-worker box). ──
+            total_inserted += _run_level_import(iso, file_lvl, log)
+
+    return {"inserted": total_inserted}
+
+
+def do_boundary_range(conn, item: dict, log: logging.Logger) -> dict:
+    """One feature-range of one country's monster level — claimed by any free
+    lane once the country pile is empty."""
+    meta = item.get("metrics") or {}
+    if isinstance(meta, str):
+        meta = json.loads(meta)
+    start, count = int(meta["start"]), int(meta["count"])
+    n = _run_level_import(item["iso_code"], int(item["adm_level"]), log,
+                          feature_start=start, feature_count=count)
+    return {"inserted": n, "start": start, "count": count}
 
 
 def do_resolve(conn, run_id: str, options: dict, log: logging.Logger) -> dict:
@@ -311,7 +461,9 @@ def main() -> int:
             if kind == "manifest":
                 metrics = do_manifest(conn, args.run, options, log)
             elif kind == "boundary_iso":
-                metrics = do_boundary(item["iso_code"], options, log)
+                metrics = do_boundary(conn, args.run, item["iso_code"], options, log)
+            elif kind == "boundary_range":
+                metrics = do_boundary_range(conn, item, log)
             elif kind == "resolve_global":
                 metrics = do_resolve(conn, args.run, options, log)
             elif kind == "raster_iso":

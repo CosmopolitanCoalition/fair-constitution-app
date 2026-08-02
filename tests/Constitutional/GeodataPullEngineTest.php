@@ -37,6 +37,19 @@ class GeodataPullEngineTest extends TestCase
         $conn = $this->livePg(self::LIVE_CONNECTION);
         $original = DB::getDefaultConnection();
         DB::setDefaultConnection(self::LIVE_CONNECTION);
+
+        // The pump serves the OLDEST unfinished run (the supersede dedupe),
+        // so a box with a REAL ingestion in flight makes every synthetic-run
+        // pin read the live run's phase instead of its own — the autoscale
+        // pins' "needs a quiet box" posture applies here too.
+        $liveRun = DB::table('geodata_runs')
+            ->whereIn('status', ['running', 'halted'])
+            ->exists();
+        if ($liveRun) {
+            DB::setDefaultConnection($original);
+            $this->markTestSkipped('geodata pins need a box with no live geodata run (the pump serves the oldest unfinished run).');
+        }
+
         $conn->beginTransaction();
 
         try {
