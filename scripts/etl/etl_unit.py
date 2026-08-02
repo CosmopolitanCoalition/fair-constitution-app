@@ -632,44 +632,49 @@ def do_attribution(conn, iso: str, level: int, apply_to_db: bool,
         total_v = int(row["tv"]) if row else 0
     thresh = int(os.environ.get("CGA_ETL_GIANT_PAIR_VERTICES", "0") or 0) or 1_500_000
 
-    # GATE v2 (2026-08-02 afternoon, observed live: RUS L2's exclusive was
-    # SILENTLY LOST mid-pair — the floor migrated to IND L6 while RUS kept
-    # computing ungated — and three exclusive waiters sat parked for hours).
-    # Two structural fixes:
-    #   1. The lock lives on a DEDICATED connection whose close IS the
-    #      release — no shared-conn code path (unlock_all, resets, pool
-    #      reuse) can drop it early, and release is deterministic even on
-    #      a kill -9 of this child.
-    #   2. Exclusive acquirers TRY-and-YIELD exactly like shared ones —
-    #      never block resident. A heavy that can't take the floor exits
-    #      free; its item requeues and the worker backs off 45 s. One
-    #      heavy works, the rest of the pool stays liquid.
-    floor_conn = get_connection()
+    # FLOOR RETIRED FOR FAST PAIRS (operator ruling 2026-08-02: "instead of
+    # limiting the lanes and going OOM, measure down the chunks and leverage
+    # the lanes — the heavy ones need to be tried with the fix"). Under the
+    # T7 fast path the per-pair footprint is the parse-once cache plus
+    # slice-derived window buffers, so heavies run IN LANES, width-capped by
+    # the budget-derived kind cap. The gate v2 dance (dedicated-conn lock,
+    # try-and-yield — built after RUS's exclusive was silently lost and
+    # waiters parked resident) now applies ONLY when the fast path is
+    # disabled (CGA_T7_FAST=0), where a heavy's legacy footprint still
+    # demands the container to itself.
+    legacy_mode = os.environ.get("CGA_T7_FAST", "1") == "0"
+    floor_conn = get_connection() if legacy_mode else None
     try:
-        with get_cursor(floor_conn) as cur:
-            if total_v >= thresh:
-                cur.execute("SELECT pg_try_advisory_lock(hashtext('cga_giant_parse')) AS got")
-                if not bool(cur.fetchone()["got"]):
-                    raise GiantFloorYield(
-                        f"{iso} L{level} attribution: the floor is held")
-                log.info("%s L%d attribution: giant-pair floor — level weight %s "
-                         "vertices, EXCLUSIVE (the pair runs with the container "
-                         "to itself)", iso, level, f"{total_v:,}")
-            else:
-                cur.execute("SELECT pg_try_advisory_lock_shared(hashtext('cga_giant_parse')) AS got")
-                if not bool(cur.fetchone()["got"]):
-                    raise GiantFloorYield(
-                        f"{iso} L{level} attribution: a giant holds the floor")
+        if legacy_mode:
+            with get_cursor(floor_conn) as cur:
+                if total_v >= thresh:
+                    cur.execute("SELECT pg_try_advisory_lock(hashtext('cga_giant_parse')) AS got")
+                    if not bool(cur.fetchone()["got"]):
+                        raise GiantFloorYield(
+                            f"{iso} L{level} attribution: the floor is held")
+                    log.info("%s L%d attribution: giant-pair floor — level weight %s "
+                             "vertices, EXCLUSIVE (the pair runs with the container "
+                             "to itself)", iso, level, f"{total_v:,}")
+                else:
+                    cur.execute("SELECT pg_try_advisory_lock_shared(hashtext('cga_giant_parse')) AS got")
+                    if not bool(cur.fetchone()["got"]):
+                        raise GiantFloorYield(
+                            f"{iso} L{level} attribution: a giant holds the floor")
+        elif total_v >= thresh:
+            log.info("%s L%d attribution: heavy pair (%s vertices) in a LANE — "
+                     "fast path, chunks sized by the budget slice",
+                     iso, level, f"{total_v:,}")
 
         cmd = ["python3", PAIR_SCRIPT, iso, str(level)]
         if apply_to_db:
             cmd.append("--apply")
         proc = subprocess.run(cmd, capture_output=True, text=True, check=False)
     finally:
-        try:
-            floor_conn.close()   # session locks die with the conn
-        except Exception:
-            pass
+        if floor_conn is not None:
+            try:
+                floor_conn.close()   # session locks die with the conn
+            except Exception:
+                pass
 
     payload = None
     for line in reversed(proc.stdout.strip().splitlines()):

@@ -185,32 +185,15 @@ def claim_next(conn, run_id: str, phase: str, token: str,
         else:
             kinds = (kind, kind)
 
-        # FLOOR-AWARE CLAIMS for attribution (2026-08-02, the popping-bars
-        # annoyance): a pair that cannot take the floor RIGHT NOW must not
-        # be claimed at all — the old shape claimed it, spawned a child,
-        # yielded at the gate, and flashed a row every backoff cycle on
-        # every lane for the whole procession. Claim law mirrors the gate:
-        # a HEAVY (est_cost = level vertex weight >= the floor threshold)
-        # is claimable only when NO pair runs; a light only when no HEAVY
-        # runs (the width cap bounds light count separately). The child's
-        # gate stays as the authoritative backstop.
-        floor_pred = ""
-        params: tuple = (token, run_id, kinds)
-        if kind == "attribution_pair":
-            thresh = int(os.environ.get("CGA_ETL_GIANT_PAIR_VERTICES", "0") or 0) or 1_500_000
-            floor_pred = """
-                  AND (
-                       (est_cost >= %s AND NOT EXISTS (
-                            SELECT 1 FROM geodata_items r
-                             WHERE r.run_id = %s AND r.kind = 'attribution_pair'
-                               AND r.status = 'running'))
-                    OR (est_cost < %s AND NOT EXISTS (
-                            SELECT 1 FROM geodata_items r
-                             WHERE r.run_id = %s AND r.kind = 'attribution_pair'
-                               AND r.status = 'running' AND r.est_cost >= %s))
-                  )
-            """
-            params = (token, run_id, kinds, thresh, run_id, thresh, run_id, thresh)
+        # (Operator ruling 2026-08-02, superseding the floor-aware claim
+        # predicate the same afternoon before it ever activated: "instead
+        # of limiting the lanes, measure down the chunks and leverage the
+        # lanes." Under the T7 fast path a heavy pair's footprint is its
+        # parse cache, window buffers derive from the per-worker budget
+        # slice, and the two-ended order mixes one monster with smaller
+        # pairs — so heavies run IN LANES like everything else, bounded
+        # by the budget-derived width cap alone. Children run instead of
+        # spawn-yield-flashing, which also ends the popping bars.)
         cur.execute(
             f"""
             UPDATE geodata_items
@@ -219,14 +202,13 @@ def claim_next(conn, run_id: str, phase: str, token: str,
              WHERE id = (
                    SELECT id FROM geodata_items
                     WHERE run_id = %s AND status = 'pending' AND kind IN %s
-                    {floor_pred}
                     ORDER BY {order}
                     LIMIT 1
                     FOR UPDATE SKIP LOCKED
              )
          RETURNING id::text AS id, kind, iso_code, adm_level, dry_run
             """,
-            params,
+            (token, run_id, kinds),
         )
         row = cur.fetchone()
     return dict(row) if row else None
