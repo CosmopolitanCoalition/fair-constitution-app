@@ -147,6 +147,15 @@ ADM_LEVEL_MAP = {0: 1, 1: 2, 2: 3, 3: 4, 4: 5, 5: 6}  # geoBoundaries → app
 _RANGE_WINDOW: tuple | None = None   # (feature_start, feature_count)
 _RANGE_MODE = False
 
+# PARENTING DEFERRAL (operator ruling 2026-08-02): ADM2+ rows insert with
+# parent_id NULL; the resolve barrier's set-based post_pass_orphan_resolution
+# parents the planet in bulk (reresolve_parents.py proves the hierarchy is a
+# pure function of the stored geometries). The inline per-feature ladder cost
+# 1-4 PG round-trips per feature and serialized ADM levels; deferral makes
+# levels independent so every split-worthy level can pre-split at once.
+# Set CGA_ETL_INLINE_PARENTING=1 to restore the legacy inline ladder.
+_INLINE_PARENTING = os.environ.get("CGA_ETL_INLINE_PARENTING", "") == "1"
+
 
 class GiantFloorYield(Exception):
     """Raised when a light pass finds a giant holding (or awaiting) the parse
@@ -1858,6 +1867,7 @@ def process_geojson_file(
         batch_bytes          = 0
         n_processed          = 0
         n_orphans            = 0
+        n_deferred           = 0   # ADM2+ rows parented at the resolve barrier
         emitted_inner        = False
         feature_idx          = 0   # 1-based position in the feature stream
 
@@ -1983,24 +1993,33 @@ def process_geojson_file(
                         )
 
                 else:
-                    # ADM2+ — strategy ladder lookup against the open conn.
-                    parent_id, strategy = find_parent_by_strategy_ladder(
-                        conn, geom_wkb_hex or geom_geojson, adm_level_app, feat_iso3,
-                        payload_is_wkb=geom_wkb_hex is not None,
-                    )
-                    row["parent_id"]           = parent_id
-                    row["parent_assigned_via"] = strategy
-                    if not parent_id:
-                        log.warning("No spatial parent for %s '%s' (level %d) — inserting as orphan",
-                                    feat_iso3, name, adm_level_app_local)
-                        n_orphans += 1
-                        heartbeat.emit_event(
-                            level="warn", type="orphan_inline",
-                            phase="geoboundaries",
-                            iso=feat_iso3, name=name,
-                            adm_level=adm_level_app_local,
-                            msg="no spatial parent at insert",
+                    # ADM2+ — PARENTING DEFERRED (operator ruling 2026-08-02:
+                    # "the parent-child relationship occurs after ingestion" —
+                    # verified: reresolve_parents.py re-derives the ENTIRE
+                    # hierarchy post-hoc, and post_pass_orphan_resolution at
+                    # the resolve barrier is SET-BASED — one indexed spatial
+                    # join per level per strategy). The old inline ladder was
+                    # 1-4 PG round-trips per feature — point-in-polygon
+                    # against Nunavut-class parents made CAN's ADM2 stretch
+                    # crawl for an hour, and every worker paid it on every
+                    # ADM2+ feature on the planet. Ingestion now just lands
+                    # geometry; the resolve barrier parents everything in
+                    # bulk. This also makes ADM levels INDEPENDENT, so a
+                    # country's monster levels can all pre-split at once.
+                    # CGA_ETL_INLINE_PARENTING=1 restores the old inline path.
+                    if _INLINE_PARENTING:
+                        parent_id, strategy = find_parent_by_strategy_ladder(
+                            conn, geom_wkb_hex or geom_geojson, adm_level_app, feat_iso3,
+                            payload_is_wkb=geom_wkb_hex is not None,
                         )
+                        row["parent_id"]           = parent_id
+                        row["parent_assigned_via"] = strategy
+                        if not parent_id:
+                            n_orphans += 1
+                    else:
+                        row["parent_id"]           = None
+                        row["parent_assigned_via"] = None
+                        n_deferred += 1
 
                 # ── Add to batch; flush when full ──
                 rsz = len(geom_wkb_hex or geom_geojson)
@@ -2059,6 +2078,9 @@ def process_geojson_file(
 
         # Final flush
         _flush()
+        if n_deferred:
+            log.info("%s ADM%d: %d feature(s) inserted with parenting deferred "
+                     "to the resolve barrier (set-based)", iso3, adm_n, n_deferred)
         if emitted_inner and n_processed > 0:
             emit_heartbeat(
                 processed = n_processed,

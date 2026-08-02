@@ -238,136 +238,176 @@ def do_boundary(conn, run_id: str, iso: str, options: dict,
     import uuid as _uuid
     token = str(_uuid.uuid4())   # claim_token column is uuid-typed
 
-    for file_lvl in range(6):
-        if adm_filter is not None and file_lvl not in adm_filter:
-            continue
-        app_lvl = ADM_LEVEL_MAP[file_lvl]
-        exp = expected.get(file_lvl, 0)
+    levels = [l for l in range(6)
+              if adm_filter is None or l in adm_filter]
 
+    def _db_count(app_lvl: int) -> int:
         with get_cursor(conn) as cur:
             cur.execute(
                 "SELECT COUNT(*) AS n FROM jurisdictions "
                 "WHERE iso_code = %s AND adm_level = %s AND deleted_at IS NULL",
                 (iso, app_lvl),
             )
-            already = int(cur.fetchone()["n"])
+            return int(cur.fetchone()["n"])
 
+    # ── Pass 1: PRE-SPLIT every split-worthy level NOW (operator rulings
+    # 2026-08-02: "always split in advance where it makes sense … without
+    # any stop start logic", and — parenting deferred to the resolve
+    # barrier — "thread everything where splitting is possible"). With the
+    # inline ladder gone, ADM levels are INDEPENDENT: every monster level
+    # of this country enters the shared two-ended pile at claim time, one
+    # range per big-first lane, est_cost = feature count. The big half of
+    # the pool converges on them immediately while this coordinator
+    # streams the small levels inline. The prefix invariant holds per
+    # level: `already` is whatever strict prefix earlier passes left in
+    # the DB (0 on a fresh run); range windows partition [already, exp). ──
+    split_levels: list[int] = []
+    for file_lvl in levels:
+        exp = expected.get(file_lvl, 0)
+        if exp < split_min or pool <= 1:
+            continue
+        # Idempotent re-entry: ranges that already exist (any status) mean
+        # this level pre-split before — never enumerate a second set.
+        with get_cursor(conn) as cur:
+            cur.execute(
+                """
+                SELECT COUNT(*) AS n FROM geodata_items
+                 WHERE run_id = %s AND kind = 'boundary_range'
+                   AND iso_code = %s AND adm_level = %s
+                """,
+                (run_id, iso, file_lvl),
+            )
+            ranges_exist = int(cur.fetchone()["n"]) > 0
+        if ranges_exist:
+            log.info("%s ADM%d: ranges already enumerated — will resume barrier",
+                     iso, file_lvl)
+            split_levels.append(file_lvl)
+            continue
+
+        already   = _db_count(ADM_LEVEL_MAP[file_lvl])
         remaining = exp - already
-        if remaining >= split_min and pool > 1:
-            # ── PRE-SPLIT (operator ruling 2026-08-02, superseding the
-            # drain-triggered windows: "always split in advance where it
-            # makes sense … pre split for 5 lanes where a split is needed
-            # … this should chunk it without any stop start logic needed").
-            #
-            # A split-worthy level enumerates its ranges IMMEDIATELY — one
-            # per big-first lane (half the pool) — and they join the ONE
-            # two-ended pile with est_cost = feature count. The big-first
-            # half of the pool converges on them at once (a monster range
-            # out-costs whole mid-size countries); the small-first half
-            # keeps eating countries smallest → largest. No windows, no
-            # country-pile checks, no cut points: the prefix invariant
-            # still holds because `already` is whatever strict prefix
-            # earlier passes left in the DB (0 on a fresh run), and range
-            # windows partition [already, exp) exactly. ──
-            n_ranges = max(2, range_count_override or (pool // 2))
-            range_size = -(-remaining // n_ranges)
-            # Idempotent re-entry: a requeued coordinator whose ranges already
-            # exist (any status) must NOT enumerate a second set — it goes
-            # straight to participate + barrier over the existing ones.
+        if remaining < split_min:
+            continue   # tail smaller than a split's worth — inline below
+        n_ranges   = max(2, range_count_override or (pool // 2))
+        range_size = -(-remaining // n_ranges)
+        log.info("%s ADM%d: PRE-SPLIT — %d of %d features remain → %d ranges of %d "
+                 "(prefix %d already in DB)",
+                 iso, file_lvl, remaining, exp, n_ranges, range_size, already)
+        rows = [
+            ("boundary_range", iso, file_lvl,
+             min(range_size, remaining - i * range_size),
+             json.dumps({"start": already + i * range_size,
+                         "count": min(range_size, remaining - i * range_size)}))
+            for i in range(n_ranges)
+        ]
+        import psycopg2.extras
+        with get_cursor(conn) as cur:
+            psycopg2.extras.execute_values(
+                cur,
+                """
+                INSERT INTO geodata_items
+                    (run_id, kind, iso_code, adm_level, status, position,
+                     est_cost, metrics, created_at, updated_at)
+                VALUES %s
+                """,
+                [(run_id, k, i2, l2, "pending",
+                  already + idx * range_size,   # position = ABSOLUTE start → reconstructible
+                  c2, m2)
+                 for idx, (k, i2, l2, c2, m2) in enumerate(rows)],
+                template="(%s,%s,%s,%s,%s,%s,%s,%s::jsonb,now(),now())",
+            )
+        split_levels.append(file_lvl)
+
+    # ── Pass 2: inline walk of the non-split levels. 0→5 order is kept for
+    # the ADM0→ADM1 parent_map; with parenting deferred these are pure
+    # parse+insert — no per-feature ladder round-trips. ──
+    for file_lvl in levels:
+        if file_lvl in split_levels:
+            continue
+        total_inserted += _run_level_import(iso, file_lvl, log)
+
+    # ── Pass 3: participate in this country's own ranges (all split levels),
+    # then ONE barrier over every range of this iso. ──
+    for file_lvl in split_levels:
+        while True:
+            rng = claims.claim_range(conn, run_id, iso, file_lvl, token)
+            if rng is None:
+                break
+            meta = rng.get("metrics") or {}
+            if isinstance(meta, str):
+                meta = json.loads(meta)
+            start, count = int(meta["start"]), int(meta["count"])
+            try:
+                n = _run_level_import(iso, file_lvl, log,
+                                      feature_start=start, feature_count=count)
+                claims.record_outcome(conn, rng["id"], token, "done",
+                                      metrics={"inserted": n, "start": start,
+                                               "count": count})
+                total_inserted += n
+            except Exception as exc:
+                if type(exc).__name__ == "GiantFloorYield":
+                    # Free the range, then yield the whole country cleanly.
+                    claims.record_outcome(conn, rng["id"], token, "pending",
+                                          reason="yielded: giant holds the floor")
+                    raise
+                claims.record_outcome(conn, rng["id"], token, "review",
+                                      reason=f"{type(exc).__name__}: {exc}",
+                                      metrics={"start": start, "count": count})
+
+    if split_levels:
+        while True:
             with get_cursor(conn) as cur:
                 cur.execute(
                     """
-                    SELECT COUNT(*) AS n FROM geodata_items
+                    SELECT COUNT(*) FILTER (WHERE status IN ('pending','running')) AS open,
+                           COUNT(*) FILTER (WHERE status = 'pending')             AS pend,
+                           COUNT(*) FILTER (WHERE status IN ('review','failed'))  AS bad
+                      FROM geodata_items
                      WHERE run_id = %s AND kind = 'boundary_range'
-                       AND iso_code = %s AND adm_level = %s
+                       AND iso_code = %s
                     """,
-                    (run_id, iso, file_lvl),
+                    (run_id, iso),
                 )
-                ranges_exist = int(cur.fetchone()["n"]) > 0
-            if ranges_exist:
-                log.info("%s ADM%d: ranges already enumerated — resuming barrier",
-                         iso, file_lvl)
-            else:
-                log.info("%s ADM%d: PRE-SPLIT — %d of %d features remain → %d ranges of %d "
-                         "(prefix %d already in DB)",
-                         iso, file_lvl, remaining, exp, n_ranges, range_size, already)
-                rows = [
-                    ("boundary_range", iso, file_lvl,
-                     min(range_size, remaining - i * range_size),
-                     json.dumps({"start": already + i * range_size,
-                                 "count": min(range_size, remaining - i * range_size)}))
-                    for i in range(n_ranges)
-                ]
-                import psycopg2.extras
-                with get_cursor(conn) as cur:
-                    psycopg2.extras.execute_values(
-                        cur,
-                        """
-                        INSERT INTO geodata_items
-                            (run_id, kind, iso_code, adm_level, status, position,
-                             est_cost, metrics, created_at, updated_at)
-                        VALUES %s
-                        """,
-                        [(run_id, k, i2, l2, "pending",
-                          already + idx * range_size,   # position = ABSOLUTE start → reconstructible
-                          c2, m2)
-                         for idx, (k, i2, l2, c2, m2) in enumerate(rows)],
-                        template="(%s,%s,%s,%s,%s,%s,%s,%s::jsonb,now(),now())",
+                r = cur.fetchone()
+            if int(r["open"]) == 0:
+                if int(r["bad"]) > 0:
+                    raise RuntimeError(
+                        f"{int(r['bad'])} range(s) failed across ADM levels "
+                        f"{split_levels} — country in review; requeue the ranges "
+                        f"(geodata:requeue --kind=boundary_range --iso={iso}) "
+                        "and then this item."
                     )
-
-            # Participate: claim own ranges alongside every free lane.
-            while True:
-                rng = claims.claim_range(conn, run_id, iso, file_lvl, token)
-                if rng is None:
-                    break
-                meta = rng.get("metrics") or {}
-                if isinstance(meta, str):
-                    meta = json.loads(meta)
-                start, count = int(meta["start"]), int(meta["count"])
-                try:
-                    n = _run_level_import(iso, file_lvl, log,
-                                          feature_start=start, feature_count=count)
-                    claims.record_outcome(conn, rng["id"], token, "done",
-                                          metrics={"inserted": n, "start": start,
-                                                   "count": count})
-                    total_inserted += n
-                except Exception as exc:
-                    if type(exc).__name__ == "GiantFloorYield":
-                        # Free the range, then yield the whole country cleanly.
-                        claims.record_outcome(conn, rng["id"], token, "pending",
-                                              reason="yielded: giant holds the floor")
-                        raise
-                    claims.record_outcome(conn, rng["id"], token, "review",
-                                          reason=f"{type(exc).__name__}: {exc}",
-                                          metrics={"start": start, "count": count})
-
-            # Barrier: wait for the free lanes to finish their ranges.
-            while True:
-                with get_cursor(conn) as cur:
-                    cur.execute(
-                        """
-                        SELECT COUNT(*) FILTER (WHERE status IN ('pending','running')) AS open,
-                               COUNT(*) FILTER (WHERE status IN ('review','failed'))  AS bad
-                          FROM geodata_items
-                         WHERE run_id = %s AND kind = 'boundary_range'
-                           AND iso_code = %s AND adm_level = %s
-                        """,
-                        (run_id, iso, file_lvl),
-                    )
-                    r = cur.fetchone()
-                if int(r["open"]) == 0:
-                    if int(r["bad"]) > 0:
-                        raise RuntimeError(
-                            f"ADM{file_lvl}: {int(r['bad'])} range(s) failed — "
-                            "country in review; requeue the ranges (geodata:requeue "
-                            f"--kind=boundary_range --iso={iso}) and then this item."
-                        )
-                    break
-                time.sleep(5)
-            log.info("%s ADM%d: all %d ranges settled", iso, file_lvl, n_ranges)
-        else:
-            # ── Inline (small level, partial level, or 1-worker box). ──
-            total_inserted += _run_level_import(iso, file_lvl, log)
+                break
+            if int(r["pend"]) > 0:
+                # A range bounced back to pending (worker death + pump
+                # reclaim) while we were already waiting — re-participate
+                # instead of watching it starve.
+                for file_lvl in split_levels:
+                    rng = claims.claim_range(conn, run_id, iso, file_lvl, token)
+                    if rng is None:
+                        continue
+                    meta = rng.get("metrics") or {}
+                    if isinstance(meta, str):
+                        meta = json.loads(meta)
+                    start, count = int(meta["start"]), int(meta["count"])
+                    try:
+                        n = _run_level_import(iso, file_lvl, log,
+                                              feature_start=start, feature_count=count)
+                        claims.record_outcome(conn, rng["id"], token, "done",
+                                              metrics={"inserted": n, "start": start,
+                                                       "count": count})
+                        total_inserted += n
+                    except Exception as exc:
+                        if type(exc).__name__ == "GiantFloorYield":
+                            claims.record_outcome(conn, rng["id"], token, "pending",
+                                                  reason="yielded: giant holds the floor")
+                            raise
+                        claims.record_outcome(conn, rng["id"], token, "review",
+                                              reason=f"{type(exc).__name__}: {exc}",
+                                              metrics={"start": start, "count": count})
+                continue
+            time.sleep(5)
+        log.info("%s: all ranges settled across ADM levels %s", iso, split_levels)
 
     return {"inserted": total_inserted}
 
