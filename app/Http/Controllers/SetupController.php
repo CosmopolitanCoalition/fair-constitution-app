@@ -1398,18 +1398,38 @@ class SetupController extends Controller
             if ($it->kind !== 'acceptance_scan') {
                 continue;
             }
-            $scanStatus = cache()->get('geodata.scan.status', []);
-            $doneCats   = array_keys($scanStatus['progress'] ?? []);
-            $totalCats  = count(\App\Models\GeodataFlag::CATEGORIES);
-            $flagsSoFar = array_sum($scanStatus['progress'] ?? []);
+            // Continuous progress from the category jobs' iso-batch writes:
+            // cats = completed detectors, cats_progress = [done, total,
+            // flags] per in-flight detector. Bar unit = iso-batches across
+            // all six detectors, ticking every few seconds.
             $m = json_decode($it->metrics ?? '{}', true) ?: [];
+            $cats     = $m['cats'] ?? [];
+            $prog     = $m['cats_progress'] ?? [];
+            $perCat   = 0;
+            foreach ($prog as $p) {
+                $perCat = max($perCat, (int) ($p[1] ?? 0));
+            }
+            $perCat = max($perCat, 1);
+            $totalUnits = count(\App\Models\GeodataFlag::CATEGORIES) * $perCat;
+            $current = count($cats) * $perCat;
+            $flagsSoFar = 0;
+            $labels = [];
+            foreach ($prog as $cat => $p) {
+                if (! array_key_exists($cat, $cats)) {
+                    $current += min((int) ($p[0] ?? 0), $perCat);
+                    $labels[] = $cat . ' ' . (int) ($p[0] ?? 0) . '/' . (int) ($p[1] ?? 0);
+                }
+                $flagsSoFar += max(0, (int) ($p[2] ?? 0));
+            }
             $m['live'] = [
-                'label'   => $doneCats === []
-                    ? 'scan starting — 6 detectors'
-                    : ('after ' . end($doneCats) . ' — ' . number_format($flagsSoFar) . ' flags'),
-                'current' => count($doneCats),
-                'total'   => $totalCats,
-                'unit'    => 'detectors',
+                'label'   => $labels === []
+                    ? (count($cats) === 0 ? 'scan starting — 6 detectors'
+                                          : count($cats) . ' detectors done')
+                    : implode(' · ', array_slice($labels, 0, 3))
+                      . ' — ' . number_format($flagsSoFar) . ' flags',
+                'current' => $current,
+                'total'   => $totalUnits,
+                'unit'    => 'iso-batches',
             ];
             $it->metrics = json_encode($m);
         }
