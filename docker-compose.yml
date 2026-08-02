@@ -122,15 +122,18 @@ services:
     shm_size: 1gb
     ports:
       - "${POSTGRES_HOST_PORT:-5432}:5432" # set POSTGRES_HOST_PORT in .env to avoid clashing with another stack on 5432
-    # Phase L (memory-tuned): pair with the etl container's 2 GB cap so the
-    # two of them together fit inside the host (~7.5 GB RAM) with margin.
-    # 5 GB covers shared_buffers=4GB + a few concurrent ST_Intersects work
-    # buffers (256 MB each). Without this cap, postgres + etl could both
-    # grab system memory and the kernel OOM-killer would terminate whichever
-    # was bigger when memory ran out (this is what happened during the
-    # ADM2-ADM3 phase of the world ETL: PG backend OOM at 03:56).
-    mem_limit: 5g
-    memswap_limit: 5g
+    # HOST-DERIVED memory posture (operator ruling 2026-08-02: numbers are
+    # never hard-coded when they can derive from the host — this stack must
+    # scale from a Raspberry Pi to big iron). The installers (get-started.*)
+    # measure host RAM and write POSTGRES_MEM_LIMIT (~60% of RAM) + the PG
+    # tuning values into .env; the literals below are only the fallback for
+    # a hand-rolled .env, sized for the ~8 GB reference box. The postgres +
+    # etl caps together must fit inside the host with margin — uncapped,
+    # the two OOM-killed each other during the world ETL (PG backend OOM at
+    # 03:56, ADM2-ADM3 phase). Limits apply on container RECREATE, not
+    # restart.
+    mem_limit: ${POSTGRES_MEM_LIMIT:-5g}
+    memswap_limit: ${POSTGRES_MEM_LIMIT:-5g}
     environment:
       POSTGRES_DB: fair_constitution
       POSTGRES_USER: fc_user
@@ -151,15 +154,15 @@ services:
     command:
       - "postgres"
       - "-c"
-      - "shared_buffers=1GB"
+      - "shared_buffers=${PG_SHARED_BUFFERS:-1GB}"
       - "-c"
-      - "effective_cache_size=4GB"
+      - "effective_cache_size=${PG_EFFECTIVE_CACHE:-4GB}"
       - "-c"
-      - "work_mem=256MB"
+      - "work_mem=${PG_WORK_MEM:-256MB}"
       - "-c"
-      - "maintenance_work_mem=1GB"
+      - "maintenance_work_mem=${PG_MAINTENANCE_MEM:-1GB}"
       - "-c"
-      - "max_wal_size=8GB"
+      - "max_wal_size=${PG_MAX_WAL:-8GB}"
       - "-c"
       - "min_wal_size=1GB"
       - "-c"
@@ -459,21 +462,22 @@ services:
     # connections cleanly. Important so postgres doesn't see abandoned
     # transactions when the containers are stopped mid-run.
     stop_grace_period: 60s
-    # Phase L (memory-tuned): streaming-pipeline + 64 MB batch ceiling means
-    # per-feature peak is ~800 MB (worst case = Nunavut). 2 GB cap leaves
-    # generous headroom AND keeps the pair of containers (postgres ~4 GB +
-    # etl 2 GB) within the host's ~7.5 GB so the kernel OOM-killer doesn't
-    # fire system-wide if either side gets aggressive. The earlier 4 GB cap
-    # let etl + postgres compete for 8 GB of system memory and they took
-    # turns OOM-killing each other.
+    # HOST-DERIVED memory posture (operator ruling 2026-08-02 — see the
+    # postgres block). The installers write ETL_MEM_LIMIT (~25% of host RAM)
+    # into .env; the 2g literal is only the fallback, sized for the ~8 GB
+    # reference box (streaming pipeline + 64 MB batch ceiling → ~800 MB
+    # worst-case per-feature peak, Nunavut). The pull engine then derives
+    # its own worker pool + per-kind concurrency caps FROM this cgroup
+    # budget (scripts/etl/memory_budget.py + claims.py), so a Pi gets 1
+    # careful worker and a big box gets many — no constant edits anywhere.
     #
     # IMPORTANT: docker compose only applies these limits when the container
     # is RECREATED (`docker compose down etl && docker compose up -d etl`),
     # not on a plain restart. `docker inspect ${CONTAINER_PREFIX:-fc}_etl --format '{{.HostConfig.Memory}}'`
-    # should report 2147483648; if it reports 0, the limit isn't actually
-    # bound and a recreate is needed.
-    mem_limit: 2g
-    memswap_limit: 2g
+    # should report the byte value; if it reports 0, the limit isn't bound
+    # and a recreate is needed.
+    mem_limit: ${ETL_MEM_LIMIT:-2g}
+    memswap_limit: ${ETL_MEM_LIMIT:-2g}
     volumes:
       - ./scripts/etl:/etl                 # your python scripts
       - etl_geodata:/data                  # downloaded geodata persists (can be large)

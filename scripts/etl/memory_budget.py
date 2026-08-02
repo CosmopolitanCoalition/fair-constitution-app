@@ -103,6 +103,44 @@ def detect_memory_budget_bytes() -> int:
     return 1024 ** 3   # 1 GB
 
 
+def etl_budget_bytes() -> int:
+    """The budget the PULL ENGINE sizes its worker pool + per-kind concurrency
+    caps against (operator ruling 2026-08-02: derive from the host, never
+    hard-code).
+
+    A cgroup-CAPPED container answers with its cap (the installer sized it to
+    ~25% of host RAM). An UNCAPPED container (bare metal, a hand-rolled
+    compose without limits, a Pi image) must NOT claim the whole host —
+    postgres and the app live there too — so it self-governs to the same 25%
+    fraction of total RAM the installer would have written. Env override
+    (ETL_MEMORY_BUDGET_BYTES) wins over both."""
+    env = os.environ.get("ETL_MEMORY_BUDGET_BYTES")
+    if env:
+        try:
+            value = int(env)
+            if value > 0:
+                return value
+        except ValueError:
+            pass
+
+    for path, parse in (
+        ("/sys/fs/cgroup/memory.max", str.strip),
+        ("/sys/fs/cgroup/memory/memory.limit_in_bytes", str.strip),
+    ):
+        try:
+            with open(path) as f:
+                raw = parse(f.read())
+            if raw and raw != "max":
+                limit = int(raw)
+                if 0 < limit < _NO_LIMIT_SENTINEL_THRESHOLD:
+                    return limit
+        except (FileNotFoundError, OSError, ValueError):
+            continue
+
+    # Uncapped → a fraction of the host, floor 512 MiB (a 1 GB Pi still runs).
+    return max(512 * 1024 * 1024, int(detect_memory_budget_bytes() * 0.25))
+
+
 # Profile table — ordered by ceiling (exclusive). Each tuple is
 # (budget_ceiling_bytes, profile_name, chunk_sizes_dict).
 #

@@ -421,8 +421,8 @@ def default_worker_count() -> int:
     cores = os.cpu_count() or 4
     by_cores = max(1, min(cores - 2, 12))
     try:
-        from memory_budget import detect_memory_budget_bytes
-        by_mem = max(2, int(detect_memory_budget_bytes() // (512 * 1024 * 1024)))
+        from memory_budget import etl_budget_bytes
+        by_mem = max(1, int(etl_budget_bytes() // (512 * 1024 * 1024)))
     except Exception:
         by_mem = by_cores
     return max(1, min(by_cores, by_mem))

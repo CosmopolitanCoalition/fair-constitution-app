@@ -271,9 +271,54 @@ if ($firstRun) {
     Say '[3/5] Keeping your existing settings file (.env).'
 }
 
+# Host-derived memory posture (operator ruling 2026-08-02: never hard-code
+# what the hardware can answer — this stack must scale from a Raspberry Pi
+# to big iron). Measure host RAM once and write the container caps + PG
+# tuning into .env; docker-compose.yml consumes them with safe fallbacks.
+# WRITE-IF-ABSENT: an operator's hand-set value is never clobbered.
+function Configure-HostMemory {
+    # Docker's OWN memory ceiling is the truthful host: on native Linux (a
+    # Pi, a server) it equals machine RAM; on Docker Desktop it is the VM's
+    # allocation — sizing against raw machine RAM there would over-commit
+    # the VM and resurrect the mutual postgres/etl OOM.
+    $totalMb = 0
+    try {
+        $memBytes = [long](& docker info --format '{{.MemTotal}}' 2>$null)
+        if ($memBytes -gt 0) { $totalMb = [int]([math]::Floor($memBytes / 1MB)) }
+    } catch { }
+    if ($totalMb -le 0) {
+        try {
+            $totalMb = [int]([math]::Floor((Get-CimInstance Win32_ComputerSystem).TotalPhysicalMemory / 1MB))
+        } catch { }
+    }
+    if ($totalMb -le 0) { return }   # can't measure — compose fallbacks apply
+
+    function Clamp([double]$v, [int]$lo, [int]$hi) { [int][math]::Max($lo, [math]::Min($hi, [math]::Floor($v))) }
+    $pgMb  = Clamp ($totalMb * 0.60) 1024 16384   # postgres ~60% of the host
+    $etlMb = Clamp ($totalMb * 0.25)  512  8192   # etl ~25%; workers derive from this
+
+    $derived = [ordered]@{
+        POSTGRES_MEM_LIMIT = "${pgMb}m"
+        ETL_MEM_LIMIT      = "${etlMb}m"
+        PG_SHARED_BUFFERS  = (Clamp ($totalMb * 0.125) 128 8192).ToString() + 'MB'
+        PG_EFFECTIVE_CACHE = (Clamp ($pgMb * 0.80) 256 13000).ToString() + 'MB'
+        PG_WORK_MEM        = (Clamp ($pgMb / 20.0)  32  512).ToString() + 'MB'
+        PG_MAINTENANCE_MEM = (Clamp ($pgMb / 5.0)   64 2048).ToString() + 'MB'
+        PG_MAX_WAL         = (Clamp ($pgMb * 1.60) 512 16384).ToString() + 'MB'
+    }
+    $wrote = @()
+    foreach ($k in $derived.Keys) {
+        if ((Get-EnvValue $k) -eq '') { Set-EnvValue $k $derived[$k]; $wrote += $k }
+    }
+    if ($wrote.Count -gt 0) {
+        Say ("      Memory sized from this host ({0:N1} GB RAM): postgres {1}, etl {2}." -f ($totalMb/1024), $derived.POSTGRES_MEM_LIMIT, $derived.ETL_MEM_LIMIT)
+    }
+}
+
 # -- 4. Configure the build-dependent settings (before the containers build) --
 Say '[4/5] Configuring...'
 Configure-MapData $firstRun
+Configure-HostMemory
 
 # -- 5. Start the app --------------------------------------------------------
 Say '[5/5] Starting the app. The FIRST run downloads and builds everything (10-30 minutes); later starts take seconds...'

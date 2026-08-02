@@ -186,8 +186,45 @@ else
 fi
 
 # -- 4. Configure the build-dependent settings (before the containers build) --
+# Host-derived memory posture (operator ruling 2026-08-02: never hard-code
+# what the hardware can answer — this stack must scale from a Raspberry Pi
+# to big iron). Measure host RAM once and write the container caps + PG
+# tuning into .env; docker-compose.yml consumes them with safe fallbacks.
+# WRITE-IF-ABSENT: an operator's hand-set value is never clobbered.
+configure_host_memory() {
+  # Docker's OWN memory ceiling is the truthful host: on native Linux (a
+  # Pi, a server) it equals machine RAM; on Docker Desktop it is the VM's
+  # allocation — sizing against raw machine RAM there would over-commit
+  # the VM and resurrect the mutual postgres/etl OOM.
+  total_mb=$(( $(docker info --format '{{.MemTotal}}' 2>/dev/null || echo 0) / 1048576 ))
+  if [ "${total_mb:-0}" -le 0 ] && [ -r /proc/meminfo ]; then
+    total_mb=$(awk '/^MemTotal:/ {print int($2/1024)}' /proc/meminfo)
+  fi
+  if [ "${total_mb:-0}" -le 0 ] && command -v sysctl >/dev/null 2>&1; then
+    total_mb=$(( $(sysctl -n hw.memsize 2>/dev/null || echo 0) / 1048576 ))
+  fi
+  [ "${total_mb:-0}" -gt 0 ] || return 0   # can't measure — compose fallbacks apply
+
+  clamp() { v=$1; lo=$2; hi=$3; [ "$v" -lt "$lo" ] && v=$lo; [ "$v" -gt "$hi" ] && v=$hi; echo "$v"; }
+  pg_mb=$(clamp $(( total_mb * 60 / 100 )) 1024 16384)   # postgres ~60% of the host
+  etl_mb=$(clamp $(( total_mb * 25 / 100 ))  512  8192)   # etl ~25%; workers derive from this
+
+  wrote=0
+  set_if_absent() { [ -n "$(get_env "$1")" ] || { set_env "$1" "$2"; wrote=1; }; }
+  set_if_absent POSTGRES_MEM_LIMIT "${pg_mb}m"
+  set_if_absent ETL_MEM_LIMIT      "${etl_mb}m"
+  set_if_absent PG_SHARED_BUFFERS  "$(clamp $(( total_mb * 125 / 1000 )) 128 8192)MB"
+  set_if_absent PG_EFFECTIVE_CACHE "$(clamp $(( pg_mb * 80 / 100 )) 256 13000)MB"
+  set_if_absent PG_WORK_MEM        "$(clamp $(( pg_mb / 20 ))  32  512)MB"
+  set_if_absent PG_MAINTENANCE_MEM "$(clamp $(( pg_mb / 5 ))   64 2048)MB"
+  set_if_absent PG_MAX_WAL         "$(clamp $(( pg_mb * 160 / 100 )) 512 16384)MB"
+  [ "$wrote" -eq 1 ] && say "      Memory sized from this host (${total_mb} MB RAM): postgres ${pg_mb}m, etl ${etl_mb}m."
+  return 0
+}
+
 say "[4/5] Configuring..."
 configure_map_data "$FIRST_RUN"
+configure_host_memory
 
 # -- 5. Start the app --------------------------------------------------------
 say "[5/5] Starting the app. The FIRST run downloads and builds everything (10-30 minutes); later starts take seconds..."
