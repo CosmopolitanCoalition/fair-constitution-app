@@ -617,27 +617,45 @@ def do_attribution(conn, iso: str, level: int, apply_to_db: bool,
         row = cur.fetchone()
         total_v = int(row["tv"]) if row else 0
     thresh = int(os.environ.get("CGA_ETL_GIANT_PAIR_VERTICES", "0") or 0) or 1_500_000
-    with get_cursor(conn) as cur:
-        if total_v >= thresh:
-            log.info("%s L%d attribution: giant-pair floor — level weight %s "
-                     "vertices, EXCLUSIVE (the pair runs with the container "
-                     "to itself)", iso, level, f"{total_v:,}")
-            cur.execute("SELECT pg_advisory_lock(hashtext('cga_giant_parse'))")
-        else:
-            cur.execute("SELECT pg_try_advisory_lock_shared(hashtext('cga_giant_parse')) AS got")
-            if not bool(cur.fetchone()["got"]):
-                raise GiantFloorYield(f"{iso} L{level} attribution: a giant holds the floor")
 
-    cmd = ["python3", PAIR_SCRIPT, iso, str(level)]
-    if apply_to_db:
-        cmd.append("--apply")
+    # GATE v2 (2026-08-02 afternoon, observed live: RUS L2's exclusive was
+    # SILENTLY LOST mid-pair — the floor migrated to IND L6 while RUS kept
+    # computing ungated — and three exclusive waiters sat parked for hours).
+    # Two structural fixes:
+    #   1. The lock lives on a DEDICATED connection whose close IS the
+    #      release — no shared-conn code path (unlock_all, resets, pool
+    #      reuse) can drop it early, and release is deterministic even on
+    #      a kill -9 of this child.
+    #   2. Exclusive acquirers TRY-and-YIELD exactly like shared ones —
+    #      never block resident. A heavy that can't take the floor exits
+    #      free; its item requeues and the worker backs off 45 s. One
+    #      heavy works, the rest of the pool stays liquid.
+    floor_conn = get_connection()
     try:
+        with get_cursor(floor_conn) as cur:
+            if total_v >= thresh:
+                cur.execute("SELECT pg_try_advisory_lock(hashtext('cga_giant_parse')) AS got")
+                if not bool(cur.fetchone()["got"]):
+                    raise GiantFloorYield(
+                        f"{iso} L{level} attribution: the floor is held")
+                log.info("%s L%d attribution: giant-pair floor — level weight %s "
+                         "vertices, EXCLUSIVE (the pair runs with the container "
+                         "to itself)", iso, level, f"{total_v:,}")
+            else:
+                cur.execute("SELECT pg_try_advisory_lock_shared(hashtext('cga_giant_parse')) AS got")
+                if not bool(cur.fetchone()["got"]):
+                    raise GiantFloorYield(
+                        f"{iso} L{level} attribution: a giant holds the floor")
+
+        cmd = ["python3", PAIR_SCRIPT, iso, str(level)]
+        if apply_to_db:
+            cmd.append("--apply")
         proc = subprocess.run(cmd, capture_output=True, text=True, check=False)
     finally:
-        # Session-scope floor lock: release explicitly (conn close would
-        # too — explicit is honest, mirrors the boundary parse gate).
-        with get_cursor(conn) as cur:
-            cur.execute("SELECT pg_advisory_unlock_all()")
+        try:
+            floor_conn.close()   # session locks die with the conn
+        except Exception:
+            pass
 
     payload = None
     for line in reversed(proc.stdout.strip().splitlines()):
