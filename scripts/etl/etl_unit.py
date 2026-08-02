@@ -136,11 +136,32 @@ def do_manifest(conn, run_id: str, options: dict, log: logging.Logger) -> dict:
 
 
 def do_boundary(iso: str, options: dict, log: logging.Logger) -> dict:
+    """One ISO's boundary chain. DONE MUST BE EVIDENCED (operator, 2026-08-02,
+    after IND false-done'd at 331k/649k): the legacy importer records per-level
+    failures into the progress dict and RETURNS NORMALLY (progress.json was the
+    legacy UI's error surface) — so a swallowed mid-stream failure looked like
+    success here and the item marked done with rows missing. Now the progress
+    dict is inspected and ANY errored level raises → the item lands in REVIEW
+    with the real reasons, and requeue re-runs it."""
     from import_geoboundaries import import_geoboundaries
 
     adm = options.get("adm_levels") or None
+    progress: dict = {}
     n = import_geoboundaries(countries=[iso], adm_levels=adm,
-                             no_global_passes=True, log=log)
+                             no_global_passes=True, log=log, progress=progress)
+
+    errored = {
+        key: entry for key, entry in (progress.get("geoboundaries") or {}).items()
+        if isinstance(entry, dict) and entry.get("status") == "error"
+    }
+    if errored:
+        details = "; ".join(
+            f"{key}: {str(entry.get('error', '?'))[:140]}"
+            for key, entry in list(errored.items())[:4]
+        )
+        raise RuntimeError(
+            f"{len(errored)} level(s) errored (inserted {int(n)} rows before failing) — {details}"
+        )
     return {"inserted": int(n)}
 
 
