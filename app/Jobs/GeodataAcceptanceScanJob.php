@@ -32,7 +32,12 @@ class GeodataAcceptanceScanJob implements ShouldQueue
 
     public function __construct(private readonly string $runId)
     {
-        $this->onQueue('geodata');
+        // long-running: consumed by supervisor-long-running (timeout=0) in
+        // every environment. A dedicated 'geodata' queue had NO consumer —
+        // the job would sit forever and the run would wedge at `scanning`.
+        // Duplicate pump re-dispatches are harmless: the pending→running
+        // claim below lets exactly one instance run the scan.
+        $this->onQueue('long-running');
     }
 
     public function handle(): void
