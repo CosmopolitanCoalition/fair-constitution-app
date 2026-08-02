@@ -232,10 +232,14 @@ def record_outcome(conn, item_id: str, token: str, status: str,
     the write landed."""
     import json
     with get_cursor(conn) as cur:
+        # MERGE metrics (never replace): range items carry their window
+        # definition in metrics; an error-path outcome replacing the column
+        # would orphan the range from its own coordinates.
         cur.execute(
             """
             UPDATE geodata_items
-               SET status = %s, reason = %s, metrics = %s::jsonb,
+               SET status = %s, reason = %s,
+                   metrics = COALESCE(metrics, '{}'::jsonb) || COALESCE(%s::jsonb, '{}'::jsonb),
                    finished_at = now(), updated_at = now()
              WHERE id = %s AND claim_token = %s AND status = 'running'
             """,

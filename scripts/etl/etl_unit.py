@@ -273,7 +273,9 @@ def do_boundary(conn, run_id: str, iso: str, options: dict,
                              est_cost, metrics, created_at, updated_at)
                         VALUES %s
                         """,
-                        [(run_id, k, i2, l2, "pending", idx * range_size, c2, m2)
+                        [(run_id, k, i2, l2, "pending",
+                          already + idx * range_size,   # position = ABSOLUTE start → reconstructible
+                          c2, m2)
                          for idx, (k, i2, l2, c2, m2) in enumerate(rows)],
                         template="(%s,%s,%s,%s,%s,%s,%s,%s::jsonb,now(),now())",
                     )

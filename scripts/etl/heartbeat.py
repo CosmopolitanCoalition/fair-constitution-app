@@ -149,8 +149,13 @@ def _item_progress(key: str, current: int, done: bool = False,
             "updated_at": now_iso(),
         }})
         with _item_conn.cursor() as cur:
+            # MERGE, never replace: a range item's own window definition
+            # (start/count) lives in metrics — replacing the column with the
+            # live bar clobbered it and broke every re-claim (KeyError: start).
             cur.execute(
-                "UPDATE geodata_items SET metrics = %s::jsonb, updated_at = now() "
+                "UPDATE geodata_items "
+                "SET metrics = COALESCE(metrics, '{}'::jsonb) || %s::jsonb, "
+                "    updated_at = now() "
                 "WHERE id = %s AND status = 'running'",
                 (payload, _ITEM_ID),
             )
