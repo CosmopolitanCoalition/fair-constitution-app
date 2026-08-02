@@ -169,21 +169,27 @@ def _run_level_import(iso: str, file_lvl: int | None, log: logging.Logger,
 
 
 def _range_dials() -> tuple[int, int]:
-    """(split_min, range_size) — a level with >= split_min expected features
-    splits into ranges of range_size. Work-granularity dials (the autoscale
-    SINGLES_BATCH spirit), env-overridable."""
+    """(split_min, range_count_override) — a level with >= split_min expected
+    features PRE-SPLITS into max(2, pool//2) ranges: one per big-first lane,
+    so the big half of the pool converges on a monster level together
+    (operator ruling 2026-08-02: "pre split for 5 lanes where a split is
+    needed"). Fewer, larger ranges also bound the skip cost — every range
+    child streams the file up to its window, so ranges-per-level ≈ passes
+    over the file. CGA_ETL_RANGE_COUNT forces the count; CGA_ETL_RANGE_MIN
+    keeps the split threshold."""
     def _env_int(key: str, default: int) -> int:
         raw = os.environ.get(key, "")
         return int(raw) if raw.isdigit() and int(raw) > 0 else default
-    return _env_int("CGA_ETL_RANGE_MIN", 30000), _env_int("CGA_ETL_RANGE_SIZE", 15000)
+    return _env_int("CGA_ETL_RANGE_MIN", 30000), _env_int("CGA_ETL_RANGE_COUNT", 0)
 
 
 def do_boundary(conn, run_id: str, iso: str, options: dict,
                 log: logging.Logger) -> dict:
     """One ISO's boundary chain — now a mapper-style COORDINATOR (operator
-    ruling 2026-08-02: a giant country's monster level is CHUNKED into
-    feature ranges that ANY free lane can claim, so once the country pile
-    drains, all lanes converge on the remaining giants).
+    ruling 2026-08-02: a giant country's monster level PRE-SPLITS into
+    feature ranges — one per big-first lane — that enter the shared
+    two-ended pile immediately, so the big half of the pool converges on
+    it while the small half keeps eating countries; no drain triggers).
 
     Levels run in strict ADM order (parenting reads the level above). For a
     VIRGIN monster level (expected features >= split_min AND zero rows so far
@@ -196,7 +202,7 @@ def do_boundary(conn, run_id: str, iso: str, options: dict,
     import claims
     from import_geoboundaries import ADM_LEVEL_MAP
 
-    split_min, range_size = _range_dials()
+    split_min, range_count_override = _range_dials()
     pool = int(os.environ.get("CGA_ETL_POOL_SIZE", "0") or 0)
     adm_filter = {int(a) for a in (options.get("adm_levels") or [])} or None
 
@@ -248,60 +254,23 @@ def do_boundary(conn, run_id: str, iso: str, options: dict,
 
         remaining = exp - already
         if remaining >= split_min and pool > 1:
-            # ── MONSTER MODE, drain-triggered (operator ruling 2026-08-02:
-            # "priority countries before splitting — split decisions shouldn't
-            # occur until the drain finishes and there are free workers").
+            # ── PRE-SPLIT (operator ruling 2026-08-02, superseding the
+            # drain-triggered windows: "always split in advance where it
+            # makes sense … pre split for 5 lanes where a split is needed
+            # … this should chunk it without any stop start logic needed").
             #
-            # The coordinator works the level in SEQUENTIAL WINDOWS (one
-            # range-sized pass at a time — each window is a clean cut point,
-            # and the DB count IS the progress tracker because inserts are a
-            # strict prefix of the order-stable stream). Between windows it
-            # checks the country pile: still countries pending → keep the
-            # lanes for them, take another window. Pile drained → CUT here,
-            # split the remainder into ranges from this exact point, and
-            # every free lane converges. Windowed passes also hold the parse
-            # gate per-window instead of per-level, so a queued EXCLUSIVE
-            # giant slots in between windows — the convoy is structurally
-            # gone. ──
-            while True:
-                with get_cursor(conn) as cur:
-                    cur.execute(
-                        "SELECT COUNT(*) AS n FROM jurisdictions "
-                        "WHERE iso_code = %s AND adm_level = %s AND deleted_at IS NULL",
-                        (iso, app_lvl),
-                    )
-                    db_count = int(cur.fetchone()["n"])
-                remaining = exp - db_count
-                if remaining < split_min:
-                    # Tail smaller than a split's worth — finish inline.
-                    if remaining > 0:
-                        total_inserted += _run_level_import(iso, file_lvl, log)
-                    break
-
-                with get_cursor(conn) as cur:
-                    cur.execute(
-                        """
-                        SELECT COUNT(*) AS n FROM geodata_items
-                         WHERE run_id = %s AND kind = 'boundary_iso'
-                           AND status = 'pending'
-                        """,
-                        (run_id,),
-                    )
-                    countries_pending = int(cur.fetchone()["n"])
-                if countries_pending > 0:
-                    # Country priority: one sequential window, then re-check.
-                    total_inserted += _run_level_import(
-                        iso, file_lvl, log,
-                        feature_start=db_count, feature_count=range_size)
-                    continue
-
-                # Drain finished → split the remainder from THIS cut point.
-                already = db_count
-                break
-            if remaining < split_min:
-                continue   # level finished inline above — next level
-
-            n_ranges = -(-remaining // range_size)
+            # A split-worthy level enumerates its ranges IMMEDIATELY — one
+            # per big-first lane (half the pool) — and they join the ONE
+            # two-ended pile with est_cost = feature count. The big-first
+            # half of the pool converges on them at once (a monster range
+            # out-costs whole mid-size countries); the small-first half
+            # keeps eating countries smallest → largest. No windows, no
+            # country-pile checks, no cut points: the prefix invariant
+            # still holds because `already` is whatever strict prefix
+            # earlier passes left in the DB (0 on a fresh run), and range
+            # windows partition [already, exp) exactly. ──
+            n_ranges = max(2, range_count_override or (pool // 2))
+            range_size = -(-remaining // n_ranges)
             # Idempotent re-entry: a requeued coordinator whose ranges already
             # exist (any status) must NOT enumerate a second set — it goes
             # straight to participate + barrier over the existing ones.
@@ -319,7 +288,7 @@ def do_boundary(conn, run_id: str, iso: str, options: dict,
                 log.info("%s ADM%d: ranges already enumerated — resuming barrier",
                          iso, file_lvl)
             else:
-                log.info("%s ADM%d: SPLIT — %d of %d features remain → %d ranges of %d "
+                log.info("%s ADM%d: PRE-SPLIT — %d of %d features remain → %d ranges of %d "
                          "(prefix %d already in DB)",
                          iso, file_lvl, remaining, exp, n_ranges, range_size, already)
                 rows = [

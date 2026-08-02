@@ -58,22 +58,24 @@ def kind_cap(kind: str) -> int | None:
     return None
 
 
-# TWO-ENDED QUEUE (operator ruling 2026-08-02 — the mapper's exact shape:
-# AutoscaleClaims' bottom-up pool claims position ASC while the top-down
-# lane claims position DESC, ONE queue, no segmentation). The GENERAL lanes
-# (~80% of the pool) eat the pile SMALLEST → LARGEST; the BIG lanes (~20%)
-# eat it LARGEST → SMALLEST. All lanes stay busy at all times: the small end
-# flies through most countries while the giants get the maximum wall-clock
-# head start from the big end. Concurrent-monster count is bounded
-# structurally by the big-lane width — no thresholds, no drain special
-# cases. Big-lane width: ceil(20% of pool), CGA_ETL_BIG_LANES overrides.
+# TWO-ENDED QUEUE, HALF AND HALF (operator ruling 2026-08-02, superseding
+# the 80/20 width: "start largest to smallest on half and smallest to
+# largest on the other half — pre split for 5 lanes where a split is
+# needed"). ONE pile — countries AND pre-split monster ranges together,
+# ordered by est_cost. The small-first half of the pool flies through most
+# countries smallest → largest; the big-first half eats the pile largest →
+# smallest, which lands them on the monsters' pre-split ranges at once
+# (a split makes as many ranges as there are big lanes, so the whole big
+# half converges on one monster level together). No drain checks, no
+# stop/start — the two directions meet in the middle and every lane is
+# busy until the pile is empty. CGA_ETL_BIG_LANES overrides the width.
 
 
 def big_lane_count(pool: int) -> int:
     raw = os.environ.get("CGA_ETL_BIG_LANES", "")
     if raw.isdigit() and int(raw) > 0:
         return min(int(raw), max(1, pool - 1))
-    return max(1, -(-pool // 5))   # ceil(20%) — 10 → 2
+    return max(1, pool // 2)   # half the pool — 10 → 5
 
 
 def get_active_run(conn) -> dict | None:
@@ -137,10 +139,12 @@ def claim_next(conn, run_id: str, phase: str, token: str,
     with get_cursor(conn) as cur:
         cur.execute("SELECT pg_advisory_xact_lock(hashtext('cga_geodata_claim'))")
         if cap is not None:
+            # The boundaries dial caps the FAMILY (countries + ranges).
             cur.execute(
                 """
                 SELECT COUNT(*) AS n FROM geodata_items
-                 WHERE run_id = %s AND kind = %s AND status = 'running'
+                 WHERE run_id = %s AND status = 'running'
+                   AND kind IN (%s, 'boundary_range')
                 """,
                 (run_id, kind),
             )
@@ -149,8 +153,17 @@ def claim_next(conn, run_id: str, phase: str, token: str,
 
         # Two-ended queue: general lanes take the smallest pending item, big
         # lanes take the largest. SKIP LOCKED resolves the meeting point.
+        # ONE PILE (pre-split ruling 2026-08-02): during the boundaries
+        # phase, countries and pre-split monster RANGES share the pile —
+        # a range's est_cost is its feature count, so monster ranges sit at
+        # the large end where the big-first half of the pool converges on
+        # them immediately, while the small-first half keeps eating whole
+        # countries. The old two-tier claim (ranges only after the country
+        # pile drained) is gone with the drain-triggered split machinery.
         order = "est_cost DESC, position, id" if lane == "big" \
             else "est_cost ASC, position, id"
+        kinds = ("boundary_iso", "boundary_range") if kind == "boundary_iso" \
+            else (kind, kind)
         cur.execute(
             f"""
             UPDATE geodata_items
@@ -158,41 +171,16 @@ def claim_next(conn, run_id: str, phase: str, token: str,
                    started_at = COALESCE(started_at, now()), updated_at = now()
              WHERE id = (
                    SELECT id FROM geodata_items
-                    WHERE run_id = %s AND status = 'pending' AND kind = %s
+                    WHERE run_id = %s AND status = 'pending' AND kind IN %s
                     ORDER BY {order}
                     LIMIT 1
                     FOR UPDATE SKIP LOCKED
              )
          RETURNING id::text AS id, kind, iso_code, adm_level, dry_run
             """,
-            (token, run_id, kind),
+            (token, run_id, kinds),
         )
         row = cur.fetchone()
-
-        # RANGE FALLBACK (operator ruling 2026-08-02): once the country pile
-        # is empty, free lanes JOIN the in-progress giants by claiming
-        # feature-RANGES of their monster levels (kind=boundary_range,
-        # enumerated by the country's coordinator). Ranges are uniform, so
-        # order is by file position.
-        if row is None and kind == "boundary_iso":
-            cur.execute(
-                """
-                UPDATE geodata_items
-                   SET status = 'running', claim_token = %s,
-                       started_at = COALESCE(started_at, now()), updated_at = now()
-                 WHERE id = (
-                       SELECT id FROM geodata_items
-                        WHERE run_id = %s AND status = 'pending'
-                          AND kind = 'boundary_range'
-                        ORDER BY position, id
-                        LIMIT 1
-                        FOR UPDATE SKIP LOCKED
-                 )
-             RETURNING id::text AS id, kind, iso_code, adm_level, dry_run
-                """,
-                (token, run_id),
-            )
-            row = cur.fetchone()
     return dict(row) if row else None
 
 
