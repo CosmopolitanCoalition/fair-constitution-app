@@ -1399,23 +1399,33 @@ class SetupController extends Controller
         // the bars with the overall counts of jurisdictions being loaded").
         // expected = the geoBoundaries metadata census — the same yardstick
         // the acceptance audit uses; loaded = live planet row count.
-        $worldLoaded   = $DB::table('jurisdictions')->whereNull('deleted_at')->count();
-        $worldExpected = (int) $DB::table('geoboundary_metadata')->sum('adm_unit_count');
+        // CACHED (8 s): these are planet-scale counts and the panel polls
+        // every 2 s — uncached they were measurable load beside the resolve
+        // pass's own joins (observed live: several concurrent count backends).
+        [$worldLoaded, $worldExpected, $resolve] = cache()->remember(
+            'geodata-pull-progress-counts:' . $run->id . ':' . $run->phase,
+            8,
+            function () use ($DB, $run) {
+                $loaded   = $DB::table('jurisdictions')->whereNull('deleted_at')->count();
+                $expected = (int) $DB::table('geoboundary_metadata')->sum('adm_unit_count');
 
-        // Resolve-phase incremental visibility (operator ask 2026-08-02:
-        // "the Resolve pass is looking opaque"): with parenting deferred to
-        // this barrier, the honest live signal is the unparented ADM2+ count
-        // DRAINING as each set-based strategy pass commits. Computed only
-        // while resolving — two indexed counts per poll.
-        $resolve = null;
-        if ($run->phase === 'resolving') {
-            $resolveTotal = $DB::table('jurisdictions')
-                ->whereNull('deleted_at')->where('adm_level', '>', 1)->count();
-            $resolveOpen  = $DB::table('jurisdictions')
-                ->whereNull('deleted_at')->where('adm_level', '>', 1)
-                ->whereNull('parent_id')->count();
-            $resolve = ['total' => $resolveTotal, 'unparented' => $resolveOpen];
-        }
+                // Resolve-phase incremental visibility ("the Resolve pass is
+                // looking opaque"): with parenting deferred to this barrier,
+                // the honest live signal is the unparented ADM2+ count
+                // DRAINING as each set-based strategy pass commits.
+                $resolve = null;
+                if ($run->phase === 'resolving') {
+                    $resolve = [
+                        'total' => $DB::table('jurisdictions')
+                            ->whereNull('deleted_at')->where('adm_level', '>', 1)->count(),
+                        'unparented' => $DB::table('jurisdictions')
+                            ->whereNull('deleted_at')->where('adm_level', '>', 1)
+                            ->whereNull('parent_id')->count(),
+                    ];
+                }
+                return [$loaded, $expected, $resolve];
+            }
+        );
 
         return response()->json([
             'run' => [
