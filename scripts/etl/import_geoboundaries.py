@@ -1868,6 +1868,7 @@ def process_geojson_file(
         n_processed          = 0
         n_orphans            = 0
         n_deferred           = 0   # ADM2+ rows parented at the resolve barrier
+        n_sg_divergent       = 0   # features whose shapeGroup != source folder
         emitted_inner        = False
         feature_idx          = 0   # 1-based position in the feature stream
 
@@ -1904,7 +1905,20 @@ def process_geojson_file(
 
                 props      = feature.get("properties") or {}
                 name       = _extract_name(props, adm_n)
-                feat_iso3  = str(props.get("shapeGroup", iso3)).strip().upper() or iso3
+                # ISO comes from the SOURCE FOLDER, never the feature's
+                # shapeGroup property (operator ruling 2026-08-02: ISO sets
+                # OVERLAP — the PRI-in-USA class of dual footprints — and the
+                # parent-child chains stay clean only when every row is
+                # scoped to the folder it came from. A stray shapeGroup would
+                # mix two overlapping sets under one iso_code and the
+                # same-iso-first parenting pass would cross-wire them).
+                # KEEPING TRACK (operator, same ruling: "as long as you are
+                # keeping track"): divergent shapeGroups are censused and
+                # logged per file, so an overlap is never silently absorbed.
+                feat_iso3  = iso3
+                _sg = str(props.get("shapeGroup") or "").strip().upper()
+                if _sg and _sg != iso3:
+                    n_sg_divergent += 1
                 shape_id   = str(props.get("shapeID", "")).strip()
 
                 # ADM0 name override. geoBoundaries' source GeoJSON for some
@@ -2081,6 +2095,10 @@ def process_geojson_file(
         if n_deferred:
             log.info("%s ADM%d: %d feature(s) inserted with parenting deferred "
                      "to the resolve barrier (set-based)", iso3, adm_n, n_deferred)
+        if n_sg_divergent:
+            log.warning("%s ADM%d: %d feature(s) carried a shapeGroup differing "
+                        "from the source folder — kept under folder iso %s "
+                        "(overlapping-set tracking)", iso3, adm_n, n_sg_divergent, iso3)
         if emitted_inner and n_processed > 0:
             emit_heartbeat(
                 processed = n_processed,
