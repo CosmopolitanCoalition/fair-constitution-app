@@ -1728,24 +1728,40 @@ def process_geojson_file(
         # whole file pass: one giant-feature PARSE in the container at a
         # time — the legacy single-threaded condition, applied only where
         # the geometry demands it. Light levels never touch the lock.
-        _giant_parse_locked = False
+        # SHARED/EXCLUSIVE (v2, after CAN died WHILE holding the v1 gate): the
+        # v1 gate serialized giants against each other, but the RANGE SWARM
+        # kept eating the container beside the monster. Same trick as the
+        # insert gate, one level up: EVERY file pass holds this session lock
+        # SHARED (zero contention among themselves); a giant level takes it
+        # EXCLUSIVE — it waits for in-flight passes to finish their windows,
+        # then parses with the WHOLE CONTAINER to itself, releases, and the
+        # swarm resumes. Legacy's condition, exactly, only when geometry
+        # demands it.
+        _giant_parse_locked = None   # 'exclusive' | 'shared'
         try:
             _mv = int(float(meta_row.get("maxVertices") or 0))
         except (TypeError, ValueError):
             _mv = 0
         _mv_thresh = int(os.environ.get("CGA_ETL_GIANT_VERTICES", "0") or 0) or 1_000_000
-        if _mv >= _mv_thresh:
-            log.info("%s ADM%d: giant-parse gate — max_vertices=%s, serializing this level",
-                     iso3, adm_n, f"{_mv:,}")
-            with get_cursor(conn) as _cur:
+        with get_cursor(conn) as _cur:
+            if _mv >= _mv_thresh:
+                log.info("%s ADM%d: giant-parse gate — max_vertices=%s, EXCLUSIVE "
+                         "(waiting for in-flight passes, then the container runs this alone)",
+                         iso3, adm_n, f"{_mv:,}")
                 _cur.execute("SELECT pg_advisory_lock(hashtext('cga_giant_parse'))")
-            _giant_parse_locked = True
+                _giant_parse_locked = 'exclusive'
+            else:
+                _cur.execute("SELECT pg_advisory_lock_shared(hashtext('cga_giant_parse'))")
+                _giant_parse_locked = 'shared'
 
         # Range window: replaces the DB-count resume skip entirely (range
         # re-runs are idempotent through their deterministic slugs).
         _win = _RANGE_WINDOW
         if _win is not None:
             skip_n_resume = int(_win[0])
+            # Chunk-aware ticks: this child's bar counts ITS window only.
+            bar_baseline = 0
+            bar_cap = int(_win[1])
             log.info("%s ADM%d: RANGE window — features %d..%d",
                      iso3, adm_n, _win[0] + 1, _win[0] + _win[1])
         elif skip_n_resume > 0:
@@ -1959,10 +1975,13 @@ def process_geojson_file(
     finally:
         # Release the giant-parse gate before the connection drops (a session
         # advisory lock also dies with the connection, but explicit is honest).
-        if _giant_parse_locked:
+        if _giant_parse_locked is not None:
             try:
                 with get_cursor(conn) as _cur:
-                    _cur.execute("SELECT pg_advisory_unlock(hashtext('cga_giant_parse'))")
+                    if _giant_parse_locked == 'exclusive':
+                        _cur.execute("SELECT pg_advisory_unlock(hashtext('cga_giant_parse'))")
+                    else:
+                        _cur.execute("SELECT pg_advisory_unlock_shared(hashtext('cga_giant_parse'))")
             except Exception:
                 pass  # connection death releases session locks anyway
         conn.close()
@@ -2241,12 +2260,24 @@ def import_geoboundaries(
             expected_total = len(level_files)
 
         plural_label = NATURAL_LABEL_PLURAL.get(ADM_LEVEL_MAP[adm_n], adm_level_label)
-        heartbeat.bar_start(
-            key   = gb_bar_key,
-            label = f"Boundaries — {plural_label}",
-            total = expected_total,
-            unit  = plural_label.lower(),
-        )
+        if _RANGE_WINDOW is not None:
+            # Chunk-aware bar (operator catch 2026-08-02: eight range bars all
+            # showed the LEVEL-wide 315k/649k): a range child reports ITS OWN
+            # window — "n / 15,000 (range 316,501–331,500)" — never the level.
+            _ws, _wc = _RANGE_WINDOW
+            heartbeat.bar_start(
+                key   = gb_bar_key,
+                label = f"Boundaries — {plural_label} (range {_ws + 1:,}–{_ws + _wc:,})",
+                total = _wc,
+                unit  = plural_label.lower(),
+            )
+        else:
+            heartbeat.bar_start(
+                key   = gb_bar_key,
+                label = f"Boundaries — {plural_label}",
+                total = expected_total,
+                unit  = plural_label.lower(),
+            )
         # P.1.2 resume-aware bar counter: seed with the count of rows
         # already in DB at this app adm_level for the country files
         # we're about to process. On `--resume`, this preloads the bar
@@ -2277,6 +2308,9 @@ def import_geoboundaries(
         # Snap the bar to the seeded baseline so the operator sees the
         # in-DB count immediately on resume instead of watching it tick
         # up from zero through 26 k features that already exist.
+        # (Never in range mode — the window bar starts at 0 of ITS count.)
+        if _RANGE_WINDOW is not None:
+            bar_features_inserted = 0
         if bar_features_inserted > 0:
             heartbeat.bar_update(
                 gb_bar_key,
