@@ -58,6 +58,37 @@ def kind_cap(kind: str) -> int | None:
     return None
 
 
+# THE HEAVY LANE (2026-08-02, cgroup OOM kills at full field — AUTOSCALE
+# PARITY: AutoscaleClaims.HEAVY_TIER + heavyWorkerCap, the one cap the
+# autoscaler never retired). A giant boundary FILE costs Python-side memory
+# no chunk profile can shrink — the raw multi-hundred-MB feature string must
+# exist to be parsed — so ten concurrent monsters bust the etl cgroup and
+# the kernel reaps children (exit -9). At most ceil(20% of pool) workers may
+# hold a HEAVY boundary item at once; everyone else flows light work at full
+# width. DRAIN RULE (autoscale parity): when only heavy work remains, the
+# cap effectively opens because light claims return nothing and workers idle
+# only while the heavy slots are full — the tail still drains serially,
+# which is exactly the safe posture for monsters.
+_HEAVY_BYTES_DEFAULT = 48 * 1024 * 1024   # a file above ~48 MiB carries giant features
+
+
+def heavy_bytes() -> int:
+    raw = os.environ.get("CGA_ETL_HEAVY_BYTES", "")
+    if raw.isdigit() and int(raw) > 0:
+        return int(raw)
+    return _HEAVY_BYTES_DEFAULT
+
+
+def heavy_cap() -> int:
+    raw = os.environ.get("CGA_ETL_HEAVY_CAP", "")
+    if raw.isdigit() and int(raw) > 0:
+        return int(raw)
+    pool = int(os.environ.get("CGA_ETL_POOL_SIZE", "0") or 0)
+    if pool <= 0:
+        pool = 10
+    return max(1, -(-pool // 5))   # ceil(20% of pool) — 10 → 2
+
+
 def get_active_run(conn) -> dict | None:
     """The single active run (oldest running/halted), or None."""
     with get_cursor(conn) as cur:
@@ -123,21 +154,42 @@ def claim_next(conn, run_id: str, phase: str, token: str) -> dict | None:
             )
             if int(cur.fetchone()["n"]) >= cap:
                 return None
+
+        # Heavy lane (boundaries only — where the giant-file evidence is):
+        # when the heavy slots are full, this claim is restricted to LIGHT
+        # items; heavy items wait for a slot. Runs under the same advisory
+        # lock, so the count can never race.
+        heavy_filter = ""
+        params_extra: tuple = ()
+        if kind == "boundary_iso":
+            hb = heavy_bytes()
+            cur.execute(
+                """
+                SELECT COUNT(*) AS n FROM geodata_items
+                 WHERE run_id = %s AND kind = %s AND status = 'running'
+                   AND est_cost > %s
+                """,
+                (run_id, kind, hb),
+            )
+            if int(cur.fetchone()["n"]) >= heavy_cap():
+                heavy_filter = " AND est_cost <= %s"
+                params_extra = (hb,)
+
         cur.execute(
-            """
+            f"""
             UPDATE geodata_items
                SET status = 'running', claim_token = %s,
                    started_at = COALESCE(started_at, now()), updated_at = now()
              WHERE id = (
                    SELECT id FROM geodata_items
-                    WHERE run_id = %s AND status = 'pending' AND kind = %s
+                    WHERE run_id = %s AND status = 'pending' AND kind = %s{heavy_filter}
                     ORDER BY position
                     LIMIT 1
                     FOR UPDATE SKIP LOCKED
              )
          RETURNING id::text AS id, kind, iso_code, adm_level, dry_run
             """,
-            (token, run_id, kind),
+            (token, run_id, kind) + params_extra,
         )
         row = cur.fetchone()
     return dict(row) if row else None
