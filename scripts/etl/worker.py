@@ -72,19 +72,35 @@ def _run_unit(conn, run_id: str, claim: dict, token: str,
     so the pump's 30-min stale reclaim never false-fires on a live long unit.
     Returns (outcome, still_ours). If the claim was reclaimed from under us
     (pg pause + reclaim), the child is killed and the outcome is discarded."""
-    # Per-worker memory slice: the child sizes its streaming chunk profile
-    # (batch bytes, raster window px — memory_budget.chunk_profile) against
-    # budget ÷ pool, not the whole container. Ten workers in a 4 GiB cap each
-    # stream in ~400 MiB instead of each assuming 4 GiB. The env override is
-    # set ONLY on the child: the worker's own cap derivation (claims.kind_cap)
-    # must keep seeing the full container budget. Floor 192 MiB — below that
-    # the smallest profile already applies.
+    # Per-worker memory slice, TAIL-AWARE: the child sizes its streaming
+    # chunk profile (batch bytes, raster window px) against
+    # budget ÷ min(pool, items actually open for this kind) — never the
+    # whole container while the field is crowded, never starved at the tail.
+    # A full 232-country field on 10 workers streams lean (~budget/10); the
+    # 5-straggler tail gets double slices; THE LAST MONSTER STANDING gets
+    # the entire budget — which is exactly why the legacy single-threaded
+    # path could always digest CAN/IND/NZL: an irreducible single-FEATURE
+    # peak (Nunavut ~800 MB) can't be batched smaller, only funded. The env
+    # override is set ONLY on the child: the worker's own cap derivation
+    # (claims.kind_cap) must keep seeing the full container budget.
     child_env = {**os.environ, "CGA_ETL_ITEM_ID": claim["id"]}
     try:
         from memory_budget import etl_budget_bytes
+        from db import get_cursor
         pool = int(os.environ.get("CGA_ETL_POOL_SIZE", "0")) or 1
+        with get_cursor(conn) as cur:
+            cur.execute(
+                """
+                SELECT COUNT(*) AS n FROM geodata_items
+                 WHERE run_id = %s AND kind = %s
+                   AND status IN ('pending', 'running')
+                """,
+                (run_id, claim["kind"]),
+            )
+            open_items = max(1, int(cur.fetchone()["n"]))
+        denom = max(1, min(pool, open_items))
         child_env["ETL_MEMORY_BUDGET_BYTES"] = str(
-            max(192 * 1024 * 1024, etl_budget_bytes() // pool))
+            max(192 * 1024 * 1024, etl_budget_bytes() // denom))
     except Exception:
         pass  # child falls back to the container budget — safe, just fatter
 
