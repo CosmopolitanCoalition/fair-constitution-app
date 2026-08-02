@@ -155,8 +155,10 @@ def claim_next(conn, run_id: str, phase: str, token: str,
         if cap is not None:
             # The cap counts the kind's FAMILY (a country and its ranges
             # are one budget class; a pair stands alone).
-            fam = {"boundary_iso": ("boundary_iso", "boundary_range"),
-                   "raster_iso":   ("raster_iso", "raster_range")}.get(kind, (kind, kind))
+            fam = {"boundary_iso":      ("boundary_iso", "boundary_range"),
+                   "raster_iso":        ("raster_iso", "raster_range"),
+                   "attribution_pair":  ("attribution_pair", "attribution_range"),
+                   }.get(kind, (kind, kind))
             cur.execute(
                 """
                 SELECT COUNT(*) AS n FROM geodata_items
@@ -182,6 +184,8 @@ def claim_next(conn, run_id: str, phase: str, token: str,
             kinds = ("boundary_iso", "boundary_range")
         elif kind == "raster_iso":
             kinds = ("raster_iso", "raster_range")
+        elif kind == "attribution_pair":
+            kinds = ("attribution_pair", "attribution_range")
         else:
             kinds = (kind, kind)
 
@@ -379,6 +383,8 @@ def label(claim: dict) -> str:
         return f"rasters · {iso} (parallel band)"
     if kind == "attribution_pair":
         return f"attribution · {iso}" + (f" L{lvl}" if lvl is not None else "")
+    if kind == "attribution_range":
+        return f"attribution · {iso} L{lvl} (window slice)"
     if kind == "finalize_global":
         return "finalizing (planet rollup + validation)"
     if kind == "acceptance_scan":

@@ -88,9 +88,10 @@ final class GeodataClaims
         // phase pre-splits monster tifs into raster_range row bands the same
         // way (pre-split ruling), so it drains on both kinds too.
         $kinds = match ($phase) {
-            'boundaries' => [$kind, 'boundary_range'],
-            'rasters'    => [$kind, 'raster_range'],
-            default      => [$kind],
+            'boundaries'  => [$kind, 'boundary_range'],
+            'rasters'     => [$kind, 'raster_range'],
+            'attribution' => [$kind, 'attribution_range'],
+            default       => [$kind],
         };
 
         return ! DB::table('geodata_items')

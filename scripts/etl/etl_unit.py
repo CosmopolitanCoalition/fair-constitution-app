@@ -604,7 +604,7 @@ def do_raster_range(conn, item: dict, log: logging.Logger) -> dict:
     return {"tiles": int(n)}
 
 
-def do_attribution(conn, iso: str, level: int, apply_to_db: bool,
+def do_attribution(conn, run_id: str, iso: str, level: int, apply_to_db: bool,
                    log: logging.Logger) -> dict:
     """Run the T.7 pair in its own subprocess (run_t7_pair.py — already the
     memory-isolated pair worker) and relay its JSON verdict. A 'far' verdict is
@@ -665,6 +665,32 @@ def do_attribution(conn, iso: str, level: int, apply_to_db: bool,
                      "fast path, chunks sized by the budget slice",
                      iso, level, f"{total_v:,}")
 
+        # ── WINDOW-SPLIT (operator design 2026-08-02: "could windows
+        # themselves be chunked among lanes? … no one attribution holds up
+        # the line nor fails slowly"): per-window work is per-pixel
+        # independent and the pair's answer is the element-wise SUM of its
+        # slices' partials, so a big pair pre-splits its deterministic
+        # window sequence into attribution_range items — one per big lane —
+        # that any lane can claim. A killed range retries its slice only. ──
+        if not legacy_mode:
+            split_min_windows = int(os.environ.get("CGA_T7_SPLIT_MIN_WINDOWS", "") or 1500)
+            pool = int(os.environ.get("CGA_ETL_POOL_SIZE", "0") or 0)
+            if pool > 1:
+                enum = subprocess.run(
+                    ["python3", PAIR_SCRIPT, iso, str(level), "--enumerate"],
+                    capture_output=True, text=True, check=False)
+                info = None
+                for line in reversed((enum.stdout or "").strip().splitlines()):
+                    try:
+                        info = json.loads(line)
+                        break
+                    except ValueError:
+                        continue
+                if info and info.get("ok") and int(info.get("n_windows", 0)) >= split_min_windows:
+                    return _attribution_window_split(
+                        conn, run_id, iso, level, apply_to_db,
+                        int(info["n_windows"]), int(info["window_px"]), pool, log)
+
         cmd = ["python3", PAIR_SCRIPT, iso, str(level)]
         if apply_to_db:
             cmd.append("--apply")
@@ -692,6 +718,205 @@ def do_attribution(conn, iso: str, level: int, apply_to_db: bool,
 
     return {k: payload.get(k) for k in
             ("verdict", "n_polys", "post_sum", "l1_pop", "post_dev", "applied_rows", "elapsed_s")}
+
+
+def _attribution_window_split(conn, run_id: str, iso: str, level: int,
+                              apply_to_db: bool, n_windows: int,
+                              window_px: int, pool: int,
+                              log: logging.Logger) -> dict:
+    """Coordinator for a window-split pair: enumerate attribution_range
+    slices (idempotent), participate alongside every free lane, barrier,
+    then merge partials set-based, verdict, apply once, clean up."""
+    import claims
+    _, range_count_override = _range_dials()
+    token = str(__import__("uuid").uuid4())
+
+    with get_cursor(conn) as cur:
+        cur.execute(
+            """
+            SELECT COUNT(*) AS n,
+                   MIN((metrics->>'window_px')::int) AS px
+              FROM geodata_items
+             WHERE run_id = %s AND kind = 'attribution_range'
+               AND iso_code = %s AND adm_level = %s
+            """,
+            (run_id, iso, level),
+        )
+        r = cur.fetchone()
+        ranges_exist, pinned_px = int(r["n"]) > 0, r["px"]
+    if ranges_exist:
+        window_px = int(pinned_px or window_px)   # sequence identity wins
+        log.info("%s L%d attribution: window ranges already enumerated — resuming",
+                 iso, level)
+    else:
+        k = max(2, range_count_override or (pool // 2))
+        k = min(k, n_windows)
+        size = -(-n_windows // k)
+        log.info("%s L%d attribution: WINDOW-SPLIT — %d windows → %d slices of %d "
+                 "(window_px=%d pinned)", iso, level, n_windows, k, size, window_px)
+        rows = []
+        for i in range(k):
+            start = i * size
+            count = min(size, n_windows - start)
+            if count <= 0:
+                break
+            rows.append((run_id, "attribution_range", iso, level, "pending",
+                         start, count,
+                         json.dumps({"win_start": start, "win_count": count,
+                                     "window_px": window_px})))
+        import psycopg2.extras
+        with get_cursor(conn) as cur:
+            psycopg2.extras.execute_values(
+                cur,
+                """
+                INSERT INTO geodata_items
+                    (run_id, kind, iso_code, adm_level, status, position,
+                     est_cost, metrics, created_at, updated_at)
+                VALUES %s
+                """,
+                rows,
+                template="(%s,%s,%s,%s,%s,%s,%s,%s::jsonb,now(),now())",
+            )
+
+    def _run_slice(rng) -> None:
+        meta = rng.get("metrics") or {}
+        if isinstance(meta, str):
+            meta = json.loads(meta)
+        cmd = ["python3", PAIR_SCRIPT, iso, str(level),
+               "--win-start", str(int(meta["win_start"])),
+               "--win-count", str(int(meta["win_count"])),
+               "--window-px", str(int(meta.get("window_px") or window_px)),
+               "--run-id", run_id]
+        proc = subprocess.run(cmd, capture_output=True, text=True, check=False)
+        payload = None
+        for line in reversed((proc.stdout or "").strip().splitlines()):
+            try:
+                payload = json.loads(line)
+                break
+            except ValueError:
+                continue
+        if payload is None or not payload.get("ok"):
+            claims.record_outcome(conn, rng["id"], token, "review",
+                                  reason=(payload or {}).get(
+                                      "error", f"slice produced no JSON (exit {proc.returncode})"))
+        else:
+            claims.record_outcome(conn, rng["id"], token, "done",
+                                  metrics={"n_partial_rows": payload.get("n_partial_rows"),
+                                           "elapsed_s": payload.get("elapsed_s")})
+
+    # Participate, then barrier with re-participation (a range that bounces
+    # back to pending is picked up here instead of starving).
+    while True:
+        rng = claims.claim_range(conn, run_id, iso, level, token,
+                                 kind="attribution_range")
+        if rng is None:
+            break
+        _run_slice(rng)
+    while True:
+        with get_cursor(conn) as cur:
+            cur.execute(
+                """
+                SELECT COUNT(*) FILTER (WHERE status IN ('pending','running')) AS open,
+                       COUNT(*) FILTER (WHERE status = 'pending')             AS pend,
+                       COUNT(*) FILTER (WHERE status IN ('review','failed'))  AS bad
+                  FROM geodata_items
+                 WHERE run_id = %s AND kind = 'attribution_range'
+                   AND iso_code = %s AND adm_level = %s
+                """,
+                (run_id, iso, level),
+            )
+            r = cur.fetchone()
+        if int(r["open"]) == 0:
+            if int(r["bad"]) > 0:
+                raise RuntimeError(
+                    f"{int(r['bad'])} window slice(s) failed — requeue "
+                    f"(geodata:requeue --kind=attribution_range --iso={iso}) "
+                    "and then this pair.")
+            break
+        if int(r["pend"]) > 0:
+            rng = claims.claim_range(conn, run_id, iso, level, token,
+                                     kind="attribution_range")
+            if rng is not None:
+                _run_slice(rng)
+                continue
+        time.sleep(5)
+
+    # Merge (one GROUP BY), verdict, set-based apply, cleanup.
+    with get_cursor(conn) as cur:
+        cur.execute(
+            "SELECT COALESCE(SUM(pop),0)::bigint AS s, COUNT(DISTINCT jurisdiction_id) AS n "
+            "FROM attribution_partials WHERE run_id=%s AND iso_code=%s AND adm_level=%s",
+            (run_id, iso, level),
+        )
+        r = cur.fetchone()
+        post_sum, n_polys = int(r["s"]), int(r["n"])
+        cur.execute(
+            "SELECT COALESCE(population_baseline,0) AS p FROM jurisdictions "
+            "WHERE iso_code=%s AND adm_level=1 AND deleted_at IS NULL LIMIT 1",
+            (iso,),
+        )
+        row = cur.fetchone()
+        l1_pop = int(row["p"]) if row else 0
+    post_dev = post_sum - l1_pop
+    if l1_pop > 0:
+        pct = abs(post_dev) / l1_pop * 100
+        verdict = ("exact" if pct < 0.01 else "near" if pct < 1.0
+                   else "partial" if pct < 5.0 else "far")
+    else:
+        verdict = "no_l1"
+
+    applied = 0
+    with get_cursor(conn) as cur:
+        if apply_to_db:
+            cur.execute(
+                """
+                UPDATE jurisdictions j
+                   SET population = s.pop, updated_at = NOW()
+                  FROM (SELECT jurisdiction_id, SUM(pop)::bigint AS pop
+                          FROM attribution_partials
+                         WHERE run_id=%s AND iso_code=%s AND adm_level=%s
+                         GROUP BY 1) s
+                 WHERE j.id = s.jurisdiction_id
+                """,
+                (run_id, iso, level),
+            )
+            applied = cur.rowcount
+        cur.execute(
+            "DELETE FROM attribution_partials WHERE run_id=%s AND iso_code=%s AND adm_level=%s",
+            (run_id, iso, level),
+        )
+    log.info("%s L%d attribution: window-split merged — %d polys, verdict=%s, applied=%d",
+             iso, level, n_polys, verdict, applied)
+    return {"verdict": verdict, "n_polys": n_polys, "post_sum": post_sum,
+            "l1_pop": l1_pop, "post_dev": post_dev, "applied_rows": applied,
+            "window_split": True, "n_windows": n_windows}
+
+
+def do_attribution_range(conn, run_id: str, item: dict, log: logging.Logger) -> dict:
+    """One window slice of one pair — claimed by any free lane."""
+    meta = item.get("metrics") or {}
+    if isinstance(meta, str):
+        meta = json.loads(meta)
+    cmd = ["python3", PAIR_SCRIPT, item["iso_code"], str(int(item["adm_level"])),
+           "--win-start", str(int(meta["win_start"])),
+           "--win-count", str(int(meta["win_count"])),
+           "--window-px", str(int(meta["window_px"])),
+           "--run-id", run_id]
+    proc = subprocess.run(cmd, capture_output=True, text=True, check=False)
+    payload = None
+    for line in reversed((proc.stdout or "").strip().splitlines()):
+        try:
+            payload = json.loads(line)
+            break
+        except ValueError:
+            continue
+    if payload is None:
+        raise RuntimeError(f"slice produced no JSON (exit {proc.returncode}): "
+                           f"{(proc.stderr or '')[-300:]}")
+    if not payload.get("ok"):
+        raise RuntimeError(payload.get("error", "attribution slice failed"))
+    return {k: payload.get(k) for k in
+            ("win_start", "win_count", "n_partial_rows", "elapsed_s")}
 
 
 def do_finalize(conn, options: dict, log: logging.Logger) -> dict:
@@ -788,8 +1013,11 @@ def main() -> int:
             elif kind == "raster_range":
                 metrics = do_raster_range(conn, item, log)
             elif kind == "attribution_pair":
-                metrics = do_attribution(conn, item["iso_code"], int(item["adm_level"]),
+                metrics = do_attribution(conn, args.run, item["iso_code"],
+                                         int(item["adm_level"]),
                                          not item["dry_run"], log)
+            elif kind == "attribution_range":
+                metrics = do_attribution_range(conn, args.run, item, log)
             elif kind == "finalize_global":
                 metrics = do_finalize(conn, options, log)
             elif kind == "acceptance_scan":

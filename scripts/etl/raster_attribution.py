@@ -212,6 +212,44 @@ def _window_pieces(entry, wminx, wminy, wmaxx, wmaxy) -> list:
     return pieces
 
 
+def count_raw_windows(raster_paths: list[Path],
+                      claim_bounds: tuple[float, float, float, float],
+                      window_px: int) -> int:
+    """The DETERMINISTIC raw-grid window count for a pair: for each tif in
+    order, its claim-clipped full window tiled at window_px — header math
+    only, no pixel reads. Identity = (ordered paths, claim bounds,
+    window_px); every range child recomputes the same sequence, so a
+    window slice [start, start+count) means the same windows everywhere.
+    The L1-overlap skip happens INSIDE the traversal and does not affect
+    sequence numbering."""
+    minx, miny, maxx, maxy = claim_bounds
+    n = 0
+    for tp in raster_paths:
+        try:
+            with rasterio.open(tp) as s:
+                fw = windows.from_bounds(minx, miny, maxx, maxy,
+                                         transform=s.transform)
+                fw = fw.intersection(windows.Window(0, 0, s.width, s.height))
+                if fw.width > 0 and fw.height > 0:
+                    n += (-(-int(fw.height) // window_px)
+                          * (-(-int(fw.width) // window_px)))
+        except Exception:
+            pass
+    return n
+
+
+def claim_bounds_for(l1_geom_wkb: bytes, polygon_meta) -> tuple[float, float, float, float]:
+    """The pair's claim bbox (L1 ∪ all level polygons) — the same union
+    attribute() computes internally, exposed for window enumeration."""
+    l1 = shapely.wkb.loads(l1_geom_wkb)
+    l1_minx, l1_miny, l1_maxx, l1_maxy = l1.bounds
+    bx = np.array([(m[3], m[4], m[5], m[6]) for m in polygon_meta], dtype=np.float64)
+    return (min(l1_minx, float(bx[:, 0].min())),
+            min(l1_miny, float(bx[:, 1].min())),
+            max(l1_maxx, float(bx[:, 2].max())),
+            max(l1_maxy, float(bx[:, 3].max())))
+
+
 def attribute(
     iso: str,
     adm_level: int,
@@ -222,6 +260,7 @@ def attribute(
     log: logging.Logger | None = None,
     window_px: int = DEFAULT_WINDOW_PX,
     progress_cb: Callable[[int, int], None] | None = None,
+    window_slice: tuple[int, int] | None = None,
 ) -> dict[str, int]:
     """
     Compute per-polygon population for one (iso, adm_level) pair using
@@ -299,6 +338,8 @@ def attribute(
                 pass
 
     _done_windows = [0]
+    if window_slice is not None and progress_cb is not None:
+        total_windows = int(window_slice[1])
 
     def _tick() -> None:
         _done_windows[0] += 1
@@ -308,6 +349,17 @@ def attribute(
             except Exception:
                 pass   # progress must never sink the attribution
 
+    # WINDOW SLICE (operator design 2026-08-02: windows chunked among
+    # lanes): slice_state numbers every raw-grid window across the ordered
+    # tifs; a range child processes only [lo, hi) and skips the rest before
+    # any pixel read. The numbering ignores the L1-overlap skip, so it is
+    # identical for every child.
+    slice_state = None
+    if window_slice is not None:
+        slice_state = {"seq": 0,
+                       "lo": int(window_slice[0]),
+                       "hi": int(window_slice[0]) + int(window_slice[1])}
+
     for tif_path in raster_paths:
         try:
             _process_raster(
@@ -315,7 +367,7 @@ def attribute(
                 claim_minx, claim_miny, claim_maxx, claim_maxy,
                 l1_geom, l1_prepared, bboxes, get_geoms, centroid_tree,
                 totals, window_px, log,
-                tick=_tick,
+                tick=_tick, slice_state=slice_state,
             )
         except Exception as exc:
             log.warning("  raster_attribution[%s L%d]: %s raised %s",
@@ -340,6 +392,7 @@ def _process_raster(
     window_px: int,
     log: logging.Logger,
     tick: Callable[[], None] | None = None,
+    slice_state: dict | None = None,
 ) -> None:
     """Iterate one raster TIF in windows; per window, classify and
     accumulate per-polygon totals."""
@@ -365,6 +418,11 @@ def _process_raster(
         windows_processed = 0
         windows_skipped = 0
         for win in _tile_window(full_window, window_px):
+            if slice_state is not None:
+                _i = slice_state["seq"]
+                slice_state["seq"] += 1
+                if _i < slice_state["lo"] or _i >= slice_state["hi"]:
+                    continue   # another lane's window — sequence-skip, no IO
             if tick is not None:
                 tick()   # every traversed window advances the bar, skipped or not
             # Lever 1 — skip windows that the L=1 polygon doesn't

@@ -46,7 +46,7 @@ import traceback
 sys.path.insert(0, "/etl")
 
 from db import get_connection, get_cursor
-from raster_attribution import attribute
+from raster_attribution import attribute, DEFAULT_WINDOW_PX
 from import_worldpop import find_worldpop_tif
 
 
@@ -165,7 +165,10 @@ def make_geom_fetcher(conn, iso: str, level: int, idx_to_jur_id: dict):
     return fetch
 
 
-def main(iso: str, level: int, apply_to_db: bool) -> int:
+def main(iso: str, level: int, apply_to_db: bool,
+         enumerate_only: bool = False,
+         win_start: int | None = None, win_count: int | None = None,
+         window_px_pin: int | None = None, run_id: str | None = None) -> int:
     # Quiet logger — orchestrator collects from stdout JSON.
     logging.basicConfig(level=logging.ERROR)
     log = logging.getLogger("t7_pair")
@@ -195,9 +198,78 @@ def main(iso: str, level: int, apply_to_db: bool) -> int:
                 print(json.dumps(result))
                 return 1
 
+            # ── --enumerate: deterministic window census for the pair's
+            # coordinator (header math only). window_px is PINNED here and
+            # carried in every range's metrics — the sequence identity. ──
+            if enumerate_only:
+                from raster_attribution import (claim_bounds_for,
+                                                count_raw_windows,
+                                                DEFAULT_WINDOW_PX)
+                px = window_px_pin or DEFAULT_WINDOW_PX
+                n = count_raw_windows(rasters, claim_bounds_for(l1_wkb, meta), px)
+                print(json.dumps({"ok": True, "n_windows": int(n),
+                                  "window_px": int(px),
+                                  "n_rasters": len(rasters)}))
+                return 0
+
             l1_pop = fetch_l1_pop(conn, iso)
             pre_sum = fetch_baselines_sum(conn, iso, level)
             fetcher = make_geom_fetcher(conn, iso, level, idx_to_jur)
+
+            # ── WINDOW-SLICE mode (operator design: windows chunked among
+            # lanes): compute ONLY [win_start, win_start+win_count) of the
+            # pinned deterministic sequence, write per-jurisdiction partials
+            # in bounded chunks, and exit. No verdict, no apply — the
+            # coordinator merges all slices with one GROUP BY and applies
+            # set-based. Idempotent: this slice's prior rows are deleted
+            # first. ──
+            if win_start is not None:
+                _cb = None
+                try:
+                    import heartbeat as _hb
+                    _bar_key = f"t7:{iso}:L{level}:w{win_start}"
+                    _hb.bar_start(_bar_key, label=f"{iso} L{level} windows {win_start}+",
+                                  total=int(win_count or 0), unit="windows")
+                    def _cb(cur, tot, _k=_bar_key, _h=_hb):
+                        _h.bar_update(_k, cur, total=tot)
+                except Exception:
+                    _cb = None
+                attr_start = time.monotonic()
+                partial = attribute(
+                    iso=iso, adm_level=level, l1_geom_wkb=l1_wkb,
+                    polygon_meta=meta, get_geoms=fetcher,
+                    raster_paths=rasters, log=log,
+                    window_px=window_px_pin or DEFAULT_WINDOW_PX,
+                    progress_cb=_cb,
+                    window_slice=(int(win_start), int(win_count)),
+                )
+                with get_cursor(conn) as cur:
+                    cur.execute(
+                        "DELETE FROM attribution_partials WHERE run_id=%s "
+                        "AND iso_code=%s AND adm_level=%s AND win_start=%s",
+                        (run_id, iso, level, int(win_start)),
+                    )
+                rows = [(run_id, iso, level, int(win_start), jid, int(pop))
+                        for jid, pop in partial.items()]
+                import psycopg2.extras as _px
+                for i in range(0, len(rows), 5000):
+                    with get_cursor(conn) as cur:
+                        _px.execute_values(
+                            cur,
+                            "INSERT INTO attribution_partials "
+                            "(id, run_id, iso_code, adm_level, win_start, "
+                            " jurisdiction_id, pop) VALUES %s",
+                            rows[i:i + 5000],
+                            template="(gen_random_uuid(),%s,%s,%s,%s,%s,%s)",
+                        )
+                result.update({
+                    "ok": True, "partial": True,
+                    "win_start": int(win_start), "win_count": int(win_count),
+                    "n_partial_rows": len(rows),
+                    "elapsed_s": round(time.monotonic() - attr_start, 2),
+                })
+                print(json.dumps(result))
+                return 0
 
             # Live progress → the engine's item bar (operator ask 2026-08-02:
             # attribution must show incremental detail, not "errors or
@@ -290,9 +362,26 @@ def main(iso: str, level: int, apply_to_db: bool) -> int:
 
 if __name__ == "__main__":
     if len(sys.argv) < 3:
-        print(json.dumps({"ok": False, "error": "usage: run_t7_pair.py ISO LEVEL [--apply]"}))
+        print(json.dumps({"ok": False, "error":
+              "usage: run_t7_pair.py ISO LEVEL [--apply] [--enumerate] "
+              "[--win-start N --win-count N --window-px P --run-id UUID]"}))
         sys.exit(2)
     iso = sys.argv[1]
     level = int(sys.argv[2])
-    apply_db = "--apply" in sys.argv[3:]
-    sys.exit(main(iso, level, apply_db))
+    rest = sys.argv[3:]
+
+    def _opt(name):
+        if name in rest:
+            i = rest.index(name)
+            if i + 1 < len(rest):
+                return rest[i + 1]
+        return None
+
+    sys.exit(main(
+        iso, level, "--apply" in rest,
+        enumerate_only="--enumerate" in rest,
+        win_start=int(_opt("--win-start")) if _opt("--win-start") is not None else None,
+        win_count=int(_opt("--win-count")) if _opt("--win-count") is not None else None,
+        window_px_pin=int(_opt("--window-px")) if _opt("--window-px") is not None else None,
+        run_id=_opt("--run-id"),
+    ))
