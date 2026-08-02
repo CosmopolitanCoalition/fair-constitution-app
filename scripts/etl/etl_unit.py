@@ -1042,7 +1042,7 @@ def do_finalize(conn, options: dict, log: logging.Logger) -> dict:
                 (category, severity, jurisdiction_id, title, payload,
                  fingerprint, status, detected_at, created_at, updated_at)
             SELECT 'national_delta_gt5', 'warning', d.id,
-                   'National vs children population delta > 5% — ' || d.iso_code,
+                   'National vs children population delta > 5%% — ' || d.iso_code,
                    jsonb_build_object('iso', d.iso_code, 'national', d.national,
                                       'children_sum', d.children_sum,
                                       'delta_pct', ROUND(ABS(d.children_sum - d.national)::numeric
