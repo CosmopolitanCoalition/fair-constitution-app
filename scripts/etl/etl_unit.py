@@ -248,12 +248,59 @@ def do_boundary(conn, run_id: str, iso: str, options: dict,
 
         remaining = exp - already
         if remaining >= split_min and pool > 1:
-            # ── SPLIT MODE: enumerate ranges over the REMAINDER, participate,
-            # barrier. Inserts are a strict prefix of the order-stable stream
-            # (the same invariant resume-skip relies on), so ranges start AT
-            # the prefix boundary — a partially-imported monster level (IND
-            # mid-run) parallelizes its remainder without ever touching the
-            # already-inserted prefix or its slug scheme. ──
+            # ── MONSTER MODE, drain-triggered (operator ruling 2026-08-02:
+            # "priority countries before splitting — split decisions shouldn't
+            # occur until the drain finishes and there are free workers").
+            #
+            # The coordinator works the level in SEQUENTIAL WINDOWS (one
+            # range-sized pass at a time — each window is a clean cut point,
+            # and the DB count IS the progress tracker because inserts are a
+            # strict prefix of the order-stable stream). Between windows it
+            # checks the country pile: still countries pending → keep the
+            # lanes for them, take another window. Pile drained → CUT here,
+            # split the remainder into ranges from this exact point, and
+            # every free lane converges. Windowed passes also hold the parse
+            # gate per-window instead of per-level, so a queued EXCLUSIVE
+            # giant slots in between windows — the convoy is structurally
+            # gone. ──
+            while True:
+                with get_cursor(conn) as cur:
+                    cur.execute(
+                        "SELECT COUNT(*) AS n FROM jurisdictions "
+                        "WHERE iso_code = %s AND adm_level = %s AND deleted_at IS NULL",
+                        (iso, app_lvl),
+                    )
+                    db_count = int(cur.fetchone()["n"])
+                remaining = exp - db_count
+                if remaining < split_min:
+                    # Tail smaller than a split's worth — finish inline.
+                    if remaining > 0:
+                        total_inserted += _run_level_import(iso, file_lvl, log)
+                    break
+
+                with get_cursor(conn) as cur:
+                    cur.execute(
+                        """
+                        SELECT COUNT(*) AS n FROM geodata_items
+                         WHERE run_id = %s AND kind = 'boundary_iso'
+                           AND status = 'pending'
+                        """,
+                        (run_id,),
+                    )
+                    countries_pending = int(cur.fetchone()["n"])
+                if countries_pending > 0:
+                    # Country priority: one sequential window, then re-check.
+                    total_inserted += _run_level_import(
+                        iso, file_lvl, log,
+                        feature_start=db_count, feature_count=range_size)
+                    continue
+
+                # Drain finished → split the remainder from THIS cut point.
+                already = db_count
+                break
+            if remaining < split_min:
+                continue   # level finished inline above — next level
+
             n_ranges = -(-remaining // range_size)
             # Idempotent re-entry: a requeued coordinator whose ranges already
             # exist (any status) must NOT enumerate a second set — it goes
