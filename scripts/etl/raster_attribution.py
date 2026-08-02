@@ -187,6 +187,29 @@ def _parts_entry(key: int, geom=None, wkb: bytes | None = None):
     return entry
 
 
+_PREP_CACHE: dict = {}   # polygon idx → prepared geometry (containment tests)
+
+
+def _prepared_for(key: int, entry):
+    """Prepared geometry for whole-window containment tests, built once per
+    polygon per pair. Prep cost is paid only for polygons that get a
+    single-owner candidacy; the win is every subsequent O(log n) contains."""
+    got = _PREP_CACHE.get(key)
+    if got is not None:
+        return got
+    try:
+        from shapely.geometry import MultiPolygon
+        parts = entry[0]
+        if not parts:
+            return None
+        geom = parts[0] if len(parts) == 1 else MultiPolygon(parts)
+        prep = shapely_prep(geom)
+        _PREP_CACHE[key] = prep
+        return prep
+    except Exception:
+        return None
+
+
 def _window_pieces(entry, wminx, wminy, wmaxx, wmaxy) -> list:
     """The entry's parts that touch the window; monster parts clipped to it.
     An unclipped part is always a correct fallback."""
@@ -542,6 +565,38 @@ def _process_window(
         # stay the ORIGINAL 1-based polygon indices, piece-wise.
         need = [int(i) for i in relevant_idxs if int(i) not in _PART_CACHE]
         geom_wkbs = get_geoms(need) if need else {}
+
+        # SINGLE-OWNER WINDOW SHORTCUT (operator insight 2026-08-02: "do
+        # you know the population of the total window before the complex
+        # calculation?"): population is already read; when exactly one
+        # polygon's bbox covers this whole window AND a prepared
+        # containment test proves the window box lies inside it, every
+        # pixel belongs to that polygon — assign sum(pop) wholesale and
+        # skip rasterization entirely. Most inland windows of big
+        # jurisdictions take this path; borders (the vertex-heavy part)
+        # still do exact per-pixel work. Exactness by containment.
+        if len(relevant_idxs) == 1:
+            _ri = int(relevant_idxs[0])
+            _cover = (bboxes[_ri, 0] <= win_minx and bboxes[_ri, 1] <= win_miny
+                      and bboxes[_ri, 2] >= win_maxx and bboxes[_ri, 3] >= win_maxy)
+            if _cover:
+                _entry = _PART_CACHE.get(_ri)
+                if _entry is None:
+                    wkb = geom_wkbs.get(_ri)
+                    if wkb is not None:
+                        try:
+                            _entry = _parts_entry(_ri, wkb=wkb)
+                        except Exception:
+                            _entry = None
+                if _entry is not None and len(_entry) >= 3:
+                    _wbox = shapely_box(win_minx, win_miny, win_maxx, win_maxy)
+                    _prep = _prepared_for(_ri, _entry)
+                    try:
+                        if _prep is not None and _prep.contains(_wbox):
+                            totals[_ri] += float(pop[pop > 0].sum())
+                            return
+                    except Exception:
+                        pass   # fall through to exact per-pixel work
         claim_shapes = [(pc, 1) for pc in _window_pieces(
             _parts_entry(-1, geom=l1_geom),
             win_minx, win_miny, win_maxx, win_maxy)]
