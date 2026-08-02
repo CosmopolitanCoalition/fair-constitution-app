@@ -490,6 +490,11 @@ services:
       DB_USER: fc_user
       DB_PASSWORD: fc_password
       DATA_ROOT: /archive                  # ETL scripts read geoBoundaries/WorldPop from here
+      # Pull-engine operator dials (empty = derive from the container budget).
+      CGA_ETL_WORKERS: ${CGA_ETL_WORKERS:-}
+      CGA_ETL_CAP_BOUNDARY: ${CGA_ETL_CAP_BOUNDARY:-}
+      CGA_ETL_CAP_RASTER: ${CGA_ETL_CAP_RASTER:-}
+      CGA_ETL_CAP_ATTRIBUTION: ${CGA_ETL_CAP_ATTRIBUTION:-}
     command: python3 -u /etl/supervisor.py # polls /etl/control/request.json for Laravel-submitted jobs
     depends_on:
       postgres:
