@@ -1402,7 +1402,7 @@ class SetupController extends Controller
         // CACHED (8 s): these are planet-scale counts and the panel polls
         // every 2 s — uncached they were measurable load beside the resolve
         // pass's own joins (observed live: several concurrent count backends).
-        [$worldLoaded, $worldExpected, $resolve] = cache()->remember(
+        [$worldLoaded, $worldExpected, $resolve, $levelStats] = cache()->remember(
             'geodata-pull-progress-counts:' . $run->id . ':' . $run->phase,
             8,
             function () use ($DB, $run) {
@@ -1423,7 +1423,20 @@ class SetupController extends Controller
                             ->whereNull('parent_id')->count(),
                     ];
                 }
-                return [$loaded, $expected, $resolve];
+
+                // Per-level population counts (operator ask 2026-08-02: "I
+                // miss the by-level population counts") — the legacy panel's
+                // per-ADM census, reborn: rows fill in live as attribution
+                // applies each level.
+                $levels = $DB::table('jurisdictions')
+                    ->whereNull('deleted_at')->where('adm_level', '>', 0)
+                    ->selectRaw("adm_level,
+                                 COUNT(*) AS rows,
+                                 COUNT(*) FILTER (WHERE population > 0) AS with_pop,
+                                 COALESCE(SUM(population), 0)::bigint AS pop_sum")
+                    ->groupBy('adm_level')->orderBy('adm_level')->get();
+
+                return [$loaded, $expected, $resolve, $levels];
             }
         );
 
@@ -1447,6 +1460,7 @@ class SetupController extends Controller
             'review'   => $review,
             'world'    => ['loaded' => $worldLoaded, 'expected' => $worldExpected ?: null],
             'resolve'  => $resolve,
+            'levels'   => $levelStats,
         ]);
     }
 

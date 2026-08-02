@@ -47,6 +47,11 @@ const worldPct = computed(() => {
     return Math.min(100, Math.round(world.value.loaded / world.value.expected * 100))
 })
 
+// Per-level population census — the legacy by-level counts, reborn.
+const levels = computed(() => data.value?.levels ?? [])
+const LEVEL_NAMES = { 1: 'Countries', 2: 'States/Provinces', 3: 'Counties',
+                      4: 'Localities', 5: 'Sub-localities', 6: 'Neighborhoods' }
+
 // Resolve-phase live signal: parent chains built vs total ADM2+ rows —
 // the unparented count drains as each set-based strategy pass commits.
 const resolve = computed(() => data.value?.resolve ?? null)
@@ -273,6 +278,24 @@ onBeforeUnmount(() => {
             <div v-if="resolve.unparented === resolve.total" class="text-[11px] text-gray-500 mt-1">
                 strategy passes run as set-based SQL — the count moves in steps as each pass commits
             </div>
+        </div>
+
+        <!-- Per-level population census (the legacy by-level counts) -->
+        <div v-if="levels.length" class="mb-5">
+            <h3 class="text-gray-300 text-xs font-semibold uppercase tracking-wide mb-2">
+                Population by level
+            </h3>
+            <table class="w-full text-xs tabular-nums">
+                <tbody>
+                    <tr v-for="l in levels" :key="l.adm_level" class="border-b border-gray-800/60">
+                        <td class="py-1 text-gray-400">L{{ l.adm_level }} {{ LEVEL_NAMES[l.adm_level] ?? '' }}</td>
+                        <td class="py-1 text-right text-gray-300">{{ Number(l.with_pop).toLocaleString() }} / {{ Number(l.rows).toLocaleString() }} populated</td>
+                        <td class="py-1 text-right" :class="Number(l.pop_sum) > 0 ? 'text-emerald-300' : 'text-gray-600'">
+                            {{ Number(l.pop_sum).toLocaleString() }}
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
         </div>
 
         <!-- Per-kind progress bars -->
