@@ -91,7 +91,7 @@ def _run_unit(conn, run_id: str, claim: dict, token: str,
             last_beat = time.monotonic()
             try:
                 still_ours = claims.heartbeat_claim(conn, claim["id"], token)
-                claims.touch_lease(conn, token, claim["kind"], claims.label(claim))
+                claims.touch_lease(conn, token, claim["kind"], claims.label(claim), run_id=run_id)
             except Exception:
                 continue  # transient DB blip — keep the child running, retry next beat
             if not still_ours:
@@ -131,25 +131,25 @@ def run_worker(run_id: str, worker_tag: str) -> int:
             if claim is None:
                 # This phase is drained for us; wait for the pump to advance
                 # (or for peers to open review work). Heartbeat while idle.
-                claims.touch_lease(conn, token)
+                claims.touch_lease(conn, token, run_id=run_id)
                 time.sleep(IDLE_SLEEP_SECONDS)
                 continue
 
-            claims.touch_lease(conn, token, claim["kind"], claims.label(claim))
+            claims.touch_lease(conn, token, claim["kind"], claims.label(claim), run_id=run_id)
             _log_line(worker_tag, f"claim {claim['kind']} {claim.get('iso_code') or ''} "
                                   f"L{claim.get('adm_level')}".rstrip(" LNone"))
 
             outcome, still_ours = _run_unit(conn, run_id, claim, token, worker_tag)
             if not still_ours:
                 _log_line(worker_tag, f"→ {claim['kind']} ABANDONED (claim reclaimed mid-run)")
-                claims.touch_lease(conn, token)
+                claims.touch_lease(conn, token, run_id=run_id)
                 continue
 
             landed = claims.record_outcome(conn, claim["id"], token, outcome["status"],
                                            outcome.get("reason"), outcome.get("metrics"))
             _log_line(worker_tag, f"→ {claim['kind']} {outcome['status']}"
                                   + ("" if landed else " (outcome discarded — claim no longer ours)"))
-            claims.touch_lease(conn, token)  # clear the claim label
+            claims.touch_lease(conn, token, run_id=run_id)  # clear the claim label
     finally:
         try:
             claims.clear_lease(conn, token)

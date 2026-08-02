@@ -194,19 +194,43 @@ def register_lease(conn, run_id: str) -> str:
 
 
 def touch_lease(conn, token: str, claim_type: str | None = None,
-                claim_label: str | None = None) -> None:
-    """Heartbeat the lease; stamp/clear the current claim for the UI strip."""
+                claim_label: str | None = None, run_id: str | None = None) -> None:
+    """Heartbeat the lease; stamp/clear the current claim for the UI strip.
+
+    UPSERT when run_id is known: a lease row that vanished (operator cleanup,
+    pump cull racing a long claim) silently re-creates instead of leaving a
+    LIVE worker invisible on the dashboard forever."""
     with get_cursor(conn) as cur:
-        cur.execute(
-            """
-            UPDATE geodata_worker_leases
-               SET last_seen_at = now(),
-                   claim_type = %s, claim_label = %s,
-                   claim_started_at = CASE WHEN %s IS NULL THEN NULL ELSE now() END
-             WHERE id = %s
-            """,
-            (claim_type, claim_label, claim_type, token),
-        )
+        if run_id is not None:
+            cur.execute(
+                """
+                INSERT INTO geodata_worker_leases
+                    (id, run_id, started_at, last_seen_at,
+                     claim_type, claim_label, claim_started_at)
+                VALUES (%s, %s, now(), now(), %s, %s,
+                        CASE WHEN %s IS NULL THEN NULL ELSE now() END)
+                ON CONFLICT (id) DO UPDATE SET
+                    last_seen_at = now(),
+                    claim_type = EXCLUDED.claim_type,
+                    claim_label = EXCLUDED.claim_label,
+                    claim_started_at = CASE WHEN EXCLUDED.claim_type IS NULL
+                                            THEN NULL
+                                            ELSE COALESCE(geodata_worker_leases.claim_started_at, now())
+                                       END
+                """,
+                (token, run_id, claim_type, claim_label, claim_type),
+            )
+        else:
+            cur.execute(
+                """
+                UPDATE geodata_worker_leases
+                   SET last_seen_at = now(),
+                       claim_type = %s, claim_label = %s,
+                       claim_started_at = CASE WHEN %s IS NULL THEN NULL ELSE now() END
+                 WHERE id = %s
+                """,
+                (claim_type, claim_label, claim_type, token),
+            )
 
 
 def clear_lease(conn, token: str) -> None:
