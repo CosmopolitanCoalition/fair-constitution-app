@@ -895,6 +895,28 @@ def _attribution_window_split(conn, run_id: str, iso: str, level: int,
                 continue
         time.sleep(5)
 
+    # COVERAGE GUARD before merge (2026-08-02, learned the hard way: a
+    # coordinator resumed against a half-deleted range set, saw open=0,
+    # and merged 2 stale slices as all of Canada — 13,504 people of 39M).
+    # The merge is legal ONLY when the done slices' windows sum to the
+    # pair's full window count. Anything else is review, never silence.
+    with get_cursor(conn) as cur:
+        cur.execute(
+            """
+            SELECT COALESCE(SUM((metrics->>'win_count')::bigint), 0) AS covered
+              FROM geodata_items
+             WHERE run_id = %s AND kind = 'attribution_range'
+               AND iso_code = %s AND adm_level = %s AND status = 'done'
+            """,
+            (run_id, iso, level),
+        )
+        covered = int(cur.fetchone()["covered"])
+    if covered != n_windows:
+        raise RuntimeError(
+            f"window coverage {covered}/{n_windows} — refusing to merge an "
+            f"incomplete pair; requeue the missing ranges "
+            f"(geodata:requeue --kind=attribution_range --iso={iso})")
+
     # Merge (one GROUP BY), verdict, set-based apply, cleanup.
     with get_cursor(conn) as cur:
         cur.execute(
