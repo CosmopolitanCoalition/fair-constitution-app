@@ -1380,6 +1380,15 @@ class SetupController extends Controller
             ->orderBy('started_at')
             ->get(['id', 'claim_type', 'claim_label', 'claim_started_at']);
 
+        // In-flight items with their live per-feature progress (metrics.live,
+        // written by the etl_unit child's bar hooks) — the pull panel's
+        // per-country mini bars, the legacy stacked-bars detail reborn.
+        $inflight = $DB::table('geodata_items')
+            ->where('run_id', $run->id)
+            ->where('status', 'running')
+            ->orderBy('started_at')
+            ->get(['id', 'kind', 'iso_code', 'adm_level', 'metrics', 'started_at']);
+
         $review = $DB::table('geodata_items')
             ->where('run_id', $run->id)
             ->where('status', 'review')
@@ -1400,9 +1409,10 @@ class SetupController extends Controller
                 'halt_requested'   => $run->haltRequested(),
                 'paused'           => $run->isPaused(),
             ],
-            'layers'  => $layers,
-            'workers' => $workers,
-            'review'  => $review,
+            'layers'   => $layers,
+            'workers'  => $workers,
+            'inflight' => $inflight,
+            'review'   => $review,
         ]);
     }
 

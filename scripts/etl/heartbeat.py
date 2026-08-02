@@ -101,10 +101,70 @@ BARS    = Path("/etl/control/bars.json")
 # totals; last writer wins). Pull-mode workers set CGA_ETL_QUIET_BARS=1 so the
 # legacy single-slot heartbeat surface stays silent — the pull dashboard
 # (geodata_runs/items/worker_leases) is the truth for those runs.
+#
+# The DETAIL survives, though: with CGA_ETL_ITEM_ID also set (the claimed
+# item's uuid, passed by worker.py to the etl_unit child), the SAME bar hooks
+# the legacy stacked bars used (bar_start/update/complete — real feature
+# counts, firing per-chunk inside the importers) write a compact live-progress
+# blob into geodata_items.metrics instead. The pull panel renders it as a
+# per-country mini bar — the "counties filling in" texture, without the shared
+# file. Throttled to ~2 s; each write also bumps the row's updated_at, so it
+# doubles as an extra claim heartbeat.
 import os as _os
 
 def _quiet() -> bool:
     return bool(_os.environ.get("CGA_ETL_QUIET_BARS"))
+
+
+_ITEM_ID = _os.environ.get("CGA_ETL_ITEM_ID") or None
+_ITEM_THROTTLE_SEC = 2.0
+_item_conn = None
+_item_last_write = 0.0
+_item_bar_meta: dict = {}   # key → {label, unit, total}
+
+
+def _item_progress(key: str, current: int, done: bool = False,
+                   total: int | None = None) -> None:
+    """Write the active bar's live progress onto the claimed geodata item."""
+    global _item_conn, _item_last_write
+    if not (_quiet() and _ITEM_ID):
+        return
+    now = time.monotonic()
+    if not done and (now - _item_last_write) < _ITEM_THROTTLE_SEC:
+        return
+    meta = _item_bar_meta.get(key) or {}
+    if total is not None and total > 0:
+        meta["total"] = int(total)
+        _item_bar_meta[key] = meta
+    try:
+        if _item_conn is None or getattr(_item_conn, "closed", 1):
+            from db import get_connection
+            _item_conn = get_connection()
+        payload = json.dumps({"live": {
+            "label":      meta.get("label") or key,
+            "current":    max(int(current or 0), 0),
+            "total":      int(meta.get("total") or 0),
+            "unit":       meta.get("unit") or "features",
+            "done":       bool(done),
+            "updated_at": now_iso(),
+        }})
+        with _item_conn.cursor() as cur:
+            cur.execute(
+                "UPDATE geodata_items SET metrics = %s::jsonb, updated_at = now() "
+                "WHERE id = %s AND status = 'running'",
+                (payload, _ITEM_ID),
+            )
+        _item_conn.commit()
+        _item_last_write = now
+    except Exception:
+        # Never let progress cosmetics hurt the import; drop the connection
+        # so the next call reconnects fresh.
+        try:
+            if _item_conn is not None:
+                _item_conn.close()
+        except Exception:
+            pass
+        _item_conn = None
 
 
 # ─── Per-country preview heartbeat ──────────────────────────────────────────
@@ -248,6 +308,11 @@ def bar_start(key: str, label: str, total: int, unit: str = "features") -> None:
     existing 'pending' bar to 'running' (sets started_at); resets a
     previously-done bar (re-run scenarios). `unit` is the UI's plural
     noun (e.g. 'counties', 'cantons')."""
+    if _quiet():
+        _item_bar_meta[key] = {"label": label, "unit": unit or "features",
+                               "total": max(int(total or 0), 0)}
+        _item_progress(key, 0, done=False)
+        return
     try:
         state = _load_bars()
         bar_list = _bar_list_for_key(state, key)
@@ -288,6 +353,9 @@ def bar_update(key: str, current: int, force: bool = False, total: int | None = 
     the bar can render with a proper percentage instead of stuck at 0/0.
     """
     current_int = max(int(current or 0), 0)
+    if _quiet():
+        _item_progress(key, current_int, done=False, total=total)
+        return
     try:
         if not force:
             now = time.monotonic()
@@ -328,6 +396,11 @@ def bar_complete(key: str, current: int | None = None, total: int | None = None)
     (e.g. raster tile grid slots, including skipped ones) but the final
     "done" headline should reflect "actual work" (loaded tiles only). Pass
     the same value as `current` to render 100 % naturally."""
+    if _quiet():
+        meta = _item_bar_meta.get(key) or {}
+        final = current if current is not None else int(meta.get("total") or 0)
+        _item_progress(key, final, done=True, total=total)
+        return
     try:
         state = _load_bars()
         bar_list = _bar_list_for_key(state, key)

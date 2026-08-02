@@ -25,6 +25,25 @@ const workers = computed(() => data.value?.workers ?? [])
 const review  = computed(() => data.value?.review ?? [])
 const active  = computed(() => run.value && ['running', 'halted'].includes(run.value.status))
 
+// In-flight items enriched with their live per-feature progress (metrics.live
+// — real counts from the importer's bar hooks, the legacy stacked-bar detail).
+const inflight = computed(() => (data.value?.inflight ?? []).map(it => {
+    let live = null
+    try {
+        const m = typeof it.metrics === 'string' ? JSON.parse(it.metrics) : it.metrics
+        live = m?.live ?? null
+    } catch { /* not yet written */ }
+    return { ...it, live }
+}))
+const idleWorkers = computed(() => Math.max(0, workers.value.length - inflight.value.length))
+
+function itemLabel(it) {
+    const iso = it.iso_code ? ` · ${it.iso_code}` : ''
+    const lvl = it.adm_level !== null && it.adm_level !== undefined ? ` L${it.adm_level}` : ''
+    const kind = { boundary_iso: 'boundaries', raster_iso: 'rasters', attribution_pair: 'attribution' }[it.kind] ?? it.kind
+    return kind + iso + lvl
+}
+
 const PHASES = [
     { key: 'enumerating', kind: 'manifest',         label: 'Enumerate' },
     { key: 'boundaries',  kind: 'boundary_iso',     label: 'Boundaries' },
@@ -207,32 +226,48 @@ onBeforeUnmount(() => {
             </div>
         </div>
 
-        <!-- Per-worker claim strip: what every worker holds at this instant -->
+        <!-- What every worker holds at this instant, with live per-feature
+             progress (the legacy stacked-bar detail, one mini bar per country) -->
         <div v-if="active" class="mb-4">
             <h3 class="text-gray-300 text-xs font-semibold uppercase tracking-wide mb-2">
                 Workers ({{ workers.length }})
+                <span v-if="workers.length" class="text-gray-500 normal-case font-normal">
+                    — {{ inflight.length }} working<template v-if="idleWorkers"> · {{ idleWorkers }} idle</template>
+                </span>
             </h3>
             <div v-if="workers.length === 0" class="text-gray-500 text-xs">
                 No live workers — the ETL supervisor seeds the pool within a few seconds of the run starting.
             </div>
-            <ul v-else class="space-y-1">
+            <ul v-else class="space-y-1.5">
                 <li
-                    v-for="w in workers" :key="w.id"
-                    class="flex items-center justify-between text-xs bg-gray-800/60 rounded px-2.5 py-1.5"
+                    v-for="it in inflight" :key="it.id"
+                    class="text-xs bg-gray-800/60 rounded px-2.5 py-2"
                 >
-                    <span class="flex items-center gap-2 min-w-0">
-                        <span
-                            class="w-1.5 h-1.5 rounded-full shrink-0"
-                            :class="w.claim_label ? 'bg-sky-400 animate-pulse' : 'bg-gray-600'"
-                            aria-hidden="true"
-                        />
-                        <span class="truncate" :class="w.claim_label ? 'text-gray-200' : 'text-gray-500'">
-                            {{ w.claim_label || 'idle — waiting for the next claim' }}
+                    <div class="flex items-center justify-between mb-1">
+                        <span class="flex items-center gap-2 min-w-0">
+                            <span class="w-1.5 h-1.5 rounded-full shrink-0 bg-sky-400 animate-pulse" aria-hidden="true" />
+                            <span class="text-gray-200 font-medium">{{ itemLabel(it) }}</span>
+                            <span v-if="it.live" class="text-gray-400 truncate">{{ it.live.label }}</span>
                         </span>
-                    </span>
-                    <span v-if="w.claim_started_at" class="text-gray-500 tabular-nums shrink-0 ml-3">
-                        {{ elapsedSince(w.claim_started_at) }}
-                    </span>
+                        <span class="text-gray-500 tabular-nums shrink-0 ml-3">
+                            <template v-if="it.live && it.live.total">
+                                {{ it.live.current.toLocaleString() }} / {{ it.live.total.toLocaleString() }} {{ it.live.unit }} ·
+                            </template>
+                            {{ elapsedSince(it.started_at) }}
+                        </span>
+                    </div>
+                    <div class="h-1.5 bg-gray-900 rounded overflow-hidden">
+                        <div
+                            v-if="it.live && it.live.total"
+                            class="h-full rounded bg-sky-500 transition-all duration-700"
+                            :style="{ width: Math.min(100, Math.round(it.live.current / it.live.total * 100)) + '%' }"
+                        />
+                        <div v-else class="h-full w-1/4 rounded bg-sky-800 animate-pulse" />
+                    </div>
+                </li>
+                <li v-if="idleWorkers" class="text-xs text-gray-500 px-2.5 py-1">
+                    {{ idleWorkers }} worker{{ idleWorkers > 1 ? 's' : '' }} idle — waiting for a claim slot
+                    (per-kind memory caps keep heavy imports bounded)
                 </li>
             </ul>
         </div>

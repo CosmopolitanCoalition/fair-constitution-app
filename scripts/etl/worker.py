@@ -17,6 +17,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import os
 import signal
 import subprocess
 import sys
@@ -75,6 +76,9 @@ def _run_unit(conn, run_id: str, claim: dict, token: str,
         ["python3", ETL_UNIT, "--run", run_id, "--item", claim["id"]],
         stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True,
         cwd="/etl", start_new_session=True,
+        # CGA_ETL_ITEM_ID: the child's heartbeat bar hooks write live per-
+        # feature progress onto THIS item's row (the pull panel's mini bars).
+        env={**os.environ, "CGA_ETL_ITEM_ID": claim["id"]},
     )
     last_beat = time.monotonic()
     while True:
