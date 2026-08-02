@@ -227,7 +227,13 @@ return [
             'connection' => 'redis-long',
             'queue' => ['long-running'],
             'balance' => 'simple',
-            'maxProcesses' => 1,
+            // 4 lanes (2026-08-02, operator: parallelize the acceptance
+            // scan): the scan's six detectors now dispatch as parallel
+            // category jobs (5 independent + one chained) — SQL-driven, so
+            // PG does the work and each PHP worker is light. Width capped
+            // at 4 so concurrent planet-wide detector queries stay inside
+            // PG's headroom; host-derived floor of 2 keeps a Pi honest.
+            'maxProcesses' => max(2, min(4, \App\Support\HostCapacity::autoscaleWorkers())),
             'maxTime' => 0,
             'maxJobs' => 0,
             'memory' => 512,

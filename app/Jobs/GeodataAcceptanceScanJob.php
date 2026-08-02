@@ -58,30 +58,25 @@ class GeodataAcceptanceScanJob implements ShouldQueue
             return;
         }
 
-        $status = 'done';
-        $reason = null;
-        $started = microtime(true);
-        try {
-            // All six detectors, whole ingested tree → geodata_flags.
-            Artisan::call('geodata:scan');
-        } catch (\Throwable $e) {
-            $status = 'review';
-            $reason = 'acceptance scan errored: '.$e->getMessage();
-            Log::error('Geodata acceptance scan errored', [
-                'run_id' => $run->id, 'message' => $e->getMessage(),
-            ]);
-        }
-
+        // PARALLEL SCAN (operator order 2026-08-02): the six detectors run
+        // as independent category jobs — five in parallel, displaced_geometry
+        // chained behind mis_anchored_cluster (the documented ordering
+        // dependency). Each merges its result into this item's metrics; the
+        // job that lands the sixth closes the item. This dispatcher returns
+        // immediately — the item's live bar counts detectors as they finish.
         DB::table('geodata_items')
             ->where('run_id', $run->id)
             ->where('kind', 'acceptance_scan')
             ->where('status', 'running')
             ->update([
-                'status'      => $status,
-                'reason'      => $reason,
-                'metrics'     => json_encode(['elapsed' => round(microtime(true) - $started, 1)]),
-                'finished_at' => now(),
-                'updated_at'  => now(),
+                'metrics'    => json_encode(['cats' => (object) [],
+                                             'scan_started' => microtime(true)]),
+                'updated_at' => now(),
             ]);
+
+        GeodataScanCategoryJob::dispatch($run->id, 'mis_anchored_cluster', 'displaced_geometry');
+        foreach (['dual_coverage', 'same_space_chain', 'raster_coverage', 'orphaned_rows'] as $cat) {
+            GeodataScanCategoryJob::dispatch($run->id, $cat);
+        }
     }
 }
