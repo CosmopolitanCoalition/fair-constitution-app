@@ -1395,6 +1395,13 @@ class SetupController extends Controller
             ->orderBy('kind')->limit(200)
             ->get(['kind', 'iso_code', 'adm_level', 'reason']);
 
+        // Overall jurisdictions progress (operator ask 2026-08-02: "I miss
+        // the bars with the overall counts of jurisdictions being loaded").
+        // expected = the geoBoundaries metadata census — the same yardstick
+        // the acceptance audit uses; loaded = live planet row count.
+        $worldLoaded   = $DB::table('jurisdictions')->whereNull('deleted_at')->count();
+        $worldExpected = (int) $DB::table('geoboundary_metadata')->sum('adm_unit_count');
+
         return response()->json([
             'run' => [
                 'id'               => $run->id,
@@ -1413,6 +1420,7 @@ class SetupController extends Controller
             'workers'  => $workers,
             'inflight' => $inflight,
             'review'   => $review,
+            'world'    => ['loaded' => $worldLoaded, 'expected' => $worldExpected ?: null],
         ]);
     }
 

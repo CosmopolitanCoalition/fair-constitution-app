@@ -27,6 +27,9 @@ const active  = computed(() => run.value && ['running', 'halted'].includes(run.v
 
 // In-flight items enriched with their live per-feature progress (metrics.live
 // — real counts from the importer's bar hooks, the legacy stacked-bar detail).
+// Sorted LONGEST-RUNNING FIRST (operator ask 2026-08-02): rows keep their
+// place for their whole life — new claims append at the bottom, so the list
+// never reshuffles under the eye.
 const inflight = computed(() => (data.value?.inflight ?? []).map(it => {
     let live = null
     try {
@@ -34,8 +37,15 @@ const inflight = computed(() => (data.value?.inflight ?? []).map(it => {
         live = m?.live ?? null
     } catch { /* not yet written */ }
     return { ...it, live }
-}))
+}).sort((a, b) => (a.started_at < b.started_at ? -1 : a.started_at > b.started_at ? 1 : (a.id < b.id ? -1 : 1))))
 const idleWorkers = computed(() => Math.max(0, workers.value.length - inflight.value.length))
+
+// Overall planet progress — loaded jurisdictions vs the metadata census.
+const world = computed(() => data.value?.world ?? null)
+const worldPct = computed(() => {
+    if (!world.value?.expected) return 0
+    return Math.min(100, Math.round(world.value.loaded / world.value.expected * 100))
+})
 
 function itemLabel(it) {
     const iso = it.iso_code ? ` · ${it.iso_code}` : ''
@@ -202,6 +212,24 @@ onBeforeUnmount(() => {
             </template>
         </ol>
 
+        <!-- Overall planet progress — jurisdictions loaded vs the metadata
+             census (the legacy overall-counts bar, reborn) -->
+        <div v-if="world && world.expected" class="mb-5">
+            <div class="flex justify-between text-xs mb-1">
+                <span class="text-gray-200 font-semibold">Jurisdictions loaded</span>
+                <span class="text-gray-300 tabular-nums">
+                    {{ world.loaded.toLocaleString() }} / {{ world.expected.toLocaleString() }}
+                    <span class="text-gray-500">· {{ worldPct }}%</span>
+                </span>
+            </div>
+            <div class="h-3 bg-gray-800 rounded overflow-hidden">
+                <div
+                    class="h-full rounded bg-emerald-500 transition-all duration-700"
+                    :style="{ width: worldPct + '%' }"
+                />
+            </div>
+        </div>
+
         <!-- Per-kind progress bars -->
         <div class="space-y-2.5 mb-5">
             <div v-for="p in PHASES" :key="p.kind">
@@ -266,8 +294,8 @@ onBeforeUnmount(() => {
                     </div>
                 </li>
                 <li v-if="idleWorkers" class="text-xs text-gray-500 px-2.5 py-1">
-                    {{ idleWorkers }} worker{{ idleWorkers > 1 ? 's' : '' }} idle — waiting for a claim slot
-                    (per-kind memory caps keep heavy imports bounded)
+                    {{ idleWorkers }} worker{{ idleWorkers > 1 ? 's' : '' }} between claims —
+                    yield backoff (a giant holds the parse floor) or waiting for work
                 </li>
             </ul>
         </div>
