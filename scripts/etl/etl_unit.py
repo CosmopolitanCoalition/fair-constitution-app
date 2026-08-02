@@ -457,6 +457,31 @@ def do_resolve(conn, run_id: str, options: dict, log: logging.Logger) -> dict:
     return {"attribution_pairs": len(rows)}
 
 
+def _stamp_national_baseline(conn, iso: str, log: logging.Logger) -> None:
+    """Write the iso's L1 population_baseline = its raster tile sum — THE
+    fresh-run verdict anchor (2026-08-02: all 481 pairs of the first fresh
+    run verdicted no_l1 because baseline was a dev-era artifact comparing
+    T.7 against the LEGACY world's populations; a virgin world has none).
+    Independent of every level's partition, which is exactly what the
+    exact/near/partial/far check needs. Set-based, one iso, idempotent."""
+    try:
+        with get_cursor(conn) as cur:
+            cur.execute(
+                """
+                UPDATE jurisdictions j
+                   SET population_baseline = s.pop, updated_at = now()
+                  FROM (SELECT SUM((ST_SummaryStats(rast)).sum)::bigint AS pop
+                          FROM worldpop_rasters WHERE iso_code = %s) s
+                 WHERE j.iso_code = %s AND j.adm_level = 1
+                   AND j.deleted_at IS NULL AND s.pop IS NOT NULL
+                """,
+                (iso, iso),
+            )
+    except Exception as exc:
+        log.warning("%s: national baseline stamp failed (%s) — verdicts for "
+                    "this iso will read no_l1", iso, exc)
+
+
 def do_raster(conn, run_id: str, iso: str, log: logging.Logger) -> dict:
     """One ISO's raster load — PRE-SPLIT coordinator (operator ruling
     2026-08-02: the raster phase gets the boundary treatment — half/half
@@ -485,6 +510,7 @@ def do_raster(conn, run_id: str, iso: str, log: logging.Logger) -> dict:
 
     if tiles_potential < split_min_tiles or pool <= 1:
         tiles = load_raster_to_db(conn, iso, tif, log)   # inline, whole tif
+        _stamp_national_baseline(conn, iso, log)
         return {"tiles": int(tiles)}
 
     # ── PRE-SPLIT into row-band ranges, one per big-first lane. ──
@@ -586,6 +612,7 @@ def do_raster(conn, run_id: str, iso: str, log: logging.Logger) -> dict:
             break
         time.sleep(5)
     log.info("%s raster: all band ranges settled (%d tiles)", iso, total_tiles)
+    _stamp_national_baseline(conn, iso, log)
     return {"tiles": total_tiles}
 
 
