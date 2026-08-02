@@ -343,8 +343,15 @@ def main(iso: str, level: int, apply_to_db: bool,
             except Exception:
                 _cb = None
 
+            # GRID DECOMPOSITION is the integrated default (2026-08-02,
+            # pilot-proven: CAN L2 exact in 163s vs DNF). CGA_T7_GRID=0
+            # falls back to the legacy per-window engine wholesale.
+            _engine = attribute
+            if os.environ.get("CGA_T7_GRID", "1") != "0":
+                from raster_attribution import attribute_grid as _engine
+
             attr_start = time.monotonic()
-            attr_results = attribute(
+            attr_results = _engine(
                 iso=iso, adm_level=level,
                 l1_geom_wkb=l1_wkb,
                 polygon_meta=meta, get_geoms=fetcher,

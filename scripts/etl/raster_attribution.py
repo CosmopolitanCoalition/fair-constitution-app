@@ -302,6 +302,244 @@ def _window_pieces(entry, wminx, wminy, wmaxx, wmaxy) -> list:
     return pieces
 
 
+# ═══ GRID DECOMPOSITION — the integrated fast engine (2026-08-02) ═══════════
+# Field-proven by pilot_grid_decomp.py on the operator's named acceptance
+# case: CAN L2 (16.9M vertices, DNF under every per-window approach) →
+# VERDICT EXACT (0.004%) in 163s total; decompose 23.4s, only 497 of 2,992
+# occupied windows needed any vertex work. Core idea (external plan,
+# GEODATA_GRID_DECOMPOSITION_PLAN.md): recursive bisection decomposes each
+# geometry against the pixel-anchored window grid ONCE — O(V log W) — into
+# FULL windows (O(1) population adds) and tiny boundary PIECEs (local
+# burns). Implementation laws learned from pilot v1's 12-CPU-minute
+# overrun: NEVER make_valid stored geoms (they are ST_MakeValid products);
+# colliding pieces stay LISTS (rasterize burns lists natively — unions are
+# GEOS waste). Mask semantics identical to the legacy path by construction.
+
+def _grid_decompose(geom, t, width, height, window_px,
+                    i0, i1, j0, j1, out_full: set, out_piece: dict):
+    if geom.is_empty:
+        return
+    x0 = t.c + t.a * (i0 * window_px)
+    x1 = t.c + t.a * min(i1 * window_px, width)
+    y1 = t.f + t.e * (j0 * window_px)
+    y0 = t.f + t.e * min(j1 * window_px, height)
+    rect_area = abs((x1 - x0) * (y1 - y0))
+    if rect_area <= 0:
+        return
+    if abs(geom.area - rect_area) <= 1e-9 * rect_area:
+        for ii in range(i0, i1):
+            for jj in range(j0, j1):
+                out_full.add((ii, jj))
+        return
+    if i1 - i0 == 1 and j1 - j0 == 1:
+        out_piece.setdefault((i0, j0), []).append(geom)
+        return
+    if (i1 - i0) >= (j1 - j0):
+        im = (i0 + i1) // 2
+        xm = t.c + t.a * (im * window_px)
+        _grid_decompose(clip_by_rect(geom, x0, y0, xm, y1), t, width, height,
+                        window_px, i0, im, j0, j1, out_full, out_piece)
+        _grid_decompose(clip_by_rect(geom, xm, y0, x1, y1), t, width, height,
+                        window_px, im, i1, j0, j1, out_full, out_piece)
+    else:
+        jm = (j0 + j1) // 2
+        ym = t.f + t.e * (jm * window_px)
+        _grid_decompose(clip_by_rect(geom, x0, ym, x1, y1), t, width, height,
+                        window_px, i0, i1, j0, jm, out_full, out_piece)
+        _grid_decompose(clip_by_rect(geom, x0, y0, x1, ym), t, width, height,
+                        window_px, i0, i1, jm, j1, out_full, out_piece)
+
+
+def _decompose_against(wkb_or_geom, t, width, height, window_px):
+    """One geometry vs one tif lattice → (FULL set, {win: [pieces]}).
+    Parses at most once; per top-level part so islands short-circuit."""
+    g = (shapely.wkb.loads(wkb_or_geom) if isinstance(wkb_or_geom, (bytes, bytearray))
+         else wkb_or_geom)
+    if g.is_empty:
+        return set(), {}
+    parts = list(g.geoms) if hasattr(g, "geoms") else [g]
+    nx = -(-width // window_px)
+    ny = -(-height // window_px)
+    inv_a, inv_e = 1.0 / t.a, 1.0 / t.e
+    full: set = set()
+    piece: dict = {}
+    for p in parts:
+        if p.is_empty:
+            continue
+        bx0, by0, bx1, by1 = p.bounds
+        i0 = max(0, int((bx0 - t.c) * inv_a) // window_px)
+        i1 = min(nx, int((bx1 - t.c) * inv_a) // window_px + 1)
+        j0 = max(0, int((by1 - t.f) * inv_e) // window_px)
+        j1 = min(ny, int((by0 - t.f) * inv_e) // window_px + 1)
+        if i0 >= i1 or j0 >= j1:
+            continue
+        _grid_decompose(p, t, width, height, window_px,
+                        i0, i1, j0, j1, full, piece)
+    for k in list(piece.keys()):
+        if k in full:
+            del piece[k]
+    return full, piece
+
+
+def attribute_grid(
+    iso: str,
+    adm_level: int,
+    l1_geom_wkb: bytes,
+    polygon_meta: list,
+    get_geoms: Callable[[list[int]], dict[int, bytes]],
+    raster_paths: list[Path],
+    log: logging.Logger | None = None,
+    window_px: int = DEFAULT_WINDOW_PX,
+    progress_cb: Callable[[int, int], None] | None = None,
+) -> dict[str, int]:
+    """Grid-decomposition attribution — same inputs/outputs as attribute(),
+    same pixel semantics, O(V log W) geometry cost. Geometries decompose
+    ONE AT A TIME per tif lattice (co-residency law), then one streaming
+    pass per tif: empty windows skip, single-FULL-owner windows are O(1)
+    sum adds, boundary windows burn their piece lists."""
+    import sys as _sys
+    _sys.setrecursionlimit(100000)
+    log = log or logging.getLogger("raster_attribution")
+    if not polygon_meta or not raster_paths:
+        return {}
+    n = len(polygon_meta)
+    ids = [m[0] for m in polygon_meta]
+    centroids = np.array([(m[1], m[2]) for m in polygon_meta], dtype=np.float64)
+    centroid_tree = cKDTree(centroids)
+    totals = np.zeros(n, dtype=np.float64)
+
+    # Progress denominator: occupied windows are unknown until decompose,
+    # so tick against the raw grid total across tifs (honest upper bound).
+    total_windows = 0
+    tif_dims = []
+    for tp in raster_paths:
+        with rasterio.open(tp) as s:
+            tif_dims.append((s.transform, s.width, s.height, s.nodata))
+            total_windows += (-(-s.height // window_px)) * (-(-s.width // window_px))
+    done_windows = [0]
+
+    def _tick(k=1):
+        done_windows[0] += k
+        if progress_cb is not None:
+            try:
+                progress_cb(done_windows[0], total_windows)
+            except Exception:
+                pass
+
+    for tp, (t, width, height, nodata) in zip(raster_paths, tif_dims):
+        # ── decompose vs THIS lattice, one geometry at a time ──
+        l1_full, l1_piece = _decompose_against(
+            shapely.wkb.loads(l1_geom_wkb), t, width, height, window_px)
+        win_owners: dict = {}
+        for chunk0 in range(0, n, 200):
+            idxs = list(range(chunk0, min(chunk0 + 200, n)))
+            wkbs = get_geoms(idxs)
+            for i in idxs:
+                wkb = wkbs.get(i)
+                if wkb is None:
+                    continue
+                full, piece = _decompose_against(wkb, t, width, height, window_px)
+                for k in full:
+                    win_owners.setdefault(k, []).append((i, "F", None))
+                for k, pcs in piece.items():
+                    win_owners.setdefault(k, []).append((i, "P", pcs))
+        log.info("%s L%d grid[%s]: decomposed %d polys — %d owned windows "
+                 "(L1: %d full + %d piece)", iso, adm_level, Path(tp).name,
+                 n, len(win_owners), len(l1_full), len(l1_piece))
+
+        nx = -(-width // window_px)
+        ny = -(-height // window_px)
+        with rasterio.open(tp) as src:
+            for wj in range(ny):
+                for wi in range(nx):
+                    _tick()
+                    key = (wi, wj)
+                    owners = win_owners.get(key)
+                    in_l1 = key in l1_full or key in l1_piece
+                    if owners is None and not in_l1:
+                        continue
+                    c0, r0 = wi * window_px, wj * window_px
+                    w = min(window_px, width - c0)
+                    h = min(window_px, height - r0)
+                    win = windows.Window(c0, r0, w, h)
+                    pop = src.read(1, window=win)
+                    if nodata is not None:
+                        pop[pop == nodata] = 0
+                    np.maximum(pop, 0, out=pop)
+                    if not (pop > 0).any():
+                        continue
+                    if owners and len(owners) == 1 and owners[0][1] == "F":
+                        totals[owners[0][0]] += float(pop.sum())
+                        continue
+                    tfm = src.window_transform(win)
+                    shape = (h, w)
+                    claim_shapes = []
+                    if key in l1_full:
+                        claim = np.ones(shape, dtype=np.uint8)
+                    else:
+                        if key in l1_piece:
+                            claim_shapes += [(pc, 1) for pc in l1_piece[key]]
+                        claim = None
+                    count = np.zeros(shape, dtype=np.int16)
+                    label = np.zeros(shape, dtype=np.int32)
+                    burn_entries = []
+                    for (i, cls, pcs) in (owners or []):
+                        if cls == "F":
+                            count += 1
+                            label[:] = i + 1
+                            if claim is not None:
+                                claim[:] = 1
+                            burn_entries.append(("FULL", i, None))
+                        else:
+                            claim_shapes += [(pc, 1) for pc in pcs]
+                            m = features.rasterize(
+                                [(pc, 1) for pc in pcs], out_shape=shape,
+                                transform=tfm,
+                                merge_alg=features.MergeAlg.replace,
+                                dtype=np.uint8, fill=0, all_touched=False)
+                            count += m.astype(np.int16)
+                            label[m == 1] = i + 1
+                            burn_entries.append(("P", i, pcs))
+                    if claim is None:
+                        claim = features.rasterize(
+                            claim_shapes, out_shape=shape, transform=tfm,
+                            merge_alg=features.MergeAlg.replace,
+                            dtype=np.uint8, fill=0, all_touched=False) \
+                            if claim_shapes else np.zeros(shape, dtype=np.uint8)
+                    in_claim = (claim == 1) & (pop > 0)
+                    ones = in_claim & (count == 1)
+                    if ones.any():
+                        np.add.at(totals, label[ones].ravel() - 1,
+                                  pop[ones].ravel())
+                    over = in_claim & (count >= 2)
+                    if over.any():
+                        for (cls, i, pcs) in burn_entries:
+                            if cls == "FULL":
+                                contributes = over
+                            else:
+                                m = features.rasterize(
+                                    [(pc, 1) for pc in pcs], out_shape=shape,
+                                    transform=tfm,
+                                    merge_alg=features.MergeAlg.replace,
+                                    dtype=np.uint8, fill=0,
+                                    all_touched=False)
+                                contributes = over & (m == 1)
+                            if contributes.any():
+                                share = (pop[contributes]
+                                         / count[contributes].astype(np.float64))
+                                totals[i] += float(share.sum())
+                    gaps = in_claim & (count == 0)
+                    if gaps.any():
+                        rows, cols = np.where(gaps)
+                        xs, ys = rio_transform.xy(tfm, rows.tolist(), cols.tolist())
+                        coords = np.column_stack([np.asarray(xs), np.asarray(ys)])
+                        _, nearest = centroid_tree.query(coords, k=1)
+                        np.add.at(totals, nearest, pop[rows, cols])
+
+    return {ids[i]: int(round(float(totals[i])))
+            for i in range(n) if totals[i] > 0}
+
+
 def count_raw_windows(raster_paths: list[Path],
                       claim_bounds: tuple[float, float, float, float],
                       window_px: int) -> int:

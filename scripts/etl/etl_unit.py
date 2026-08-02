@@ -692,47 +692,12 @@ def do_attribution(conn, run_id: str, iso: str, level: int, apply_to_db: bool,
                      "fast path, chunks sized by the budget slice",
                      iso, level, f"{total_v:,}")
 
-        # ── WINDOW-SPLIT (operator design 2026-08-02: "could windows
-        # themselves be chunked among lanes? … no one attribution holds up
-        # the line nor fails slowly"): per-window work is per-pixel
-        # independent and the pair's answer is the element-wise SUM of its
-        # slices' partials, so a big pair pre-splits its deterministic
-        # window sequence into attribution_range items — one per big lane —
-        # that any lane can claim. A killed range retries its slice only. ──
-        if not legacy_mode:
-            split_min_windows = int(os.environ.get("CGA_T7_SPLIT_MIN_WINDOWS", "") or 1500)
-            pool = int(os.environ.get("CGA_ETL_POOL_SIZE", "0") or 0)
-            if pool > 1:
-                enum = subprocess.run(
-                    ["python3", PAIR_SCRIPT, iso, str(level), "--enumerate"],
-                    capture_output=True, text=True, check=False)
-                info = None
-                for line in reversed((enum.stdout or "").strip().splitlines()):
-                    try:
-                        info = json.loads(line)
-                        break
-                    except ValueError:
-                        continue
-                if info is None or not info.get("ok"):
-                    # A dead/failed enumerate must NEVER silently fall
-                    # through to the unsplit monster path (observed live:
-                    # PHL L2's enumerate was OOM-killed and the pair ran
-                    # whole — the exact slow-fail the window-split exists
-                    # to prevent). Loud review; the retry re-enumerates.
-                    raise RuntimeError(
-                        f"window enumeration failed (exit {enum.returncode}): "
-                        f"{(info or {}).get('error') or (enum.stderr or '')[-200:]}")
-                # Split on window count OR vertex weight (PHL L2 lesson:
-                # 264 windows but 13M vertices — its CACHE is the load, and
-                # slicing shrinks the cache too, since a slice only parses
-                # the geoms its windows touch). Never split below 2 windows
-                # per slice.
-                if (int(info.get("n_windows", 0)) >= split_min_windows
-                        or total_v >= thresh) and int(info.get("n_windows", 0)) >= 2 * max(2, pool // 2):
-                    return _attribution_window_split(
-                        conn, run_id, iso, level, apply_to_db,
-                        int(info["n_windows"]), int(info["window_px"]), pool, log,
-                        raster_isos=info.get("rasters") or [iso])
+        # WINDOW-SPLIT RETIRED (2026-08-02, grid-decomposition integration):
+        # with the O(V log W) engine the worst pair on Earth (CAN L2)
+        # completes whole in 163s — slicing, coordinator barriers, and the
+        # partials machinery solved a cost class that no longer exists.
+        # _attribution_window_split / do_attribution_range remain defined
+        # for any legacy attribution_range items but are no longer invoked.
 
         cmd = ["python3", PAIR_SCRIPT, iso, str(level)]
         if apply_to_db:
