@@ -202,9 +202,16 @@ def _parts_entry(key: int, geom=None, wkb: bytes | None = None):
         return (parts, bounds, counts)
 
     # Cheap probe first: WKB byte length ≈ 2x coordinate bytes, so the
-    # over-budget decision can be made BEFORE parsing.
+    # decision can be made BEFORE parsing. IN SLICE MODE clipping is not a
+    # memory fallback — it is free correctness (a slice never needs
+    # geometry outside its own band), so any sizeable geom clips
+    # UNCONDITIONALLY (2026-08-02: two slice children each cached a full
+    # Nunavut because their generous budget slices never tripped the
+    # over-budget path — 1.28G + 1.58G, both kernel-killed together).
     est_pre = (len(wkb) * 2) if wkb is not None else 0
-    over = key != -1 and est_pre + _CACHE_SPENT[0] > _cache_budget_bytes()
+    over = key != -1 and (
+        (_CLIP_BOUNDS[0] is not None and est_pre > 32 * 1024 * 1024)
+        or est_pre + _CACHE_SPENT[0] > _cache_budget_bytes())
 
     if over and _CLIP_BOUNDS[0] is not None:
         lo_x, lo_y, hi_x, hi_y = _CLIP_BOUNDS[0]
