@@ -160,25 +160,85 @@ def _cache_budget_bytes() -> int:
 
 _CACHE_SPENT = [0]
 
+# The active window-slice's own bounding box (set by attribute() in slice
+# mode). An over-budget geometry is clipped to THIS immediately after its
+# one parse — a slice never needs the whole monster, only the monster ∩
+# its own band (2026-08-02, the arctic-slice kills: three children each
+# re-parsing Nunavut's 5.4M vertices per window).
+_CLIP_BOUNDS: list = [None]
+
+
+def _serialized(fn):
+    """Run fn under a host-volume file lock — bounds the number of monster
+    parse transients alive at once to ONE across all slice children."""
+    try:
+        import fcntl
+        with open("/data/tifcache/.parse.lock", "a+") as fh:
+            fcntl.flock(fh, fcntl.LOCK_EX)
+            try:
+                return fn()
+            finally:
+                fcntl.flock(fh, fcntl.LOCK_UN)
+    except Exception:
+        return fn()   # lock unavailable — correctness unaffected
+
 
 def _parts_entry(key: int, geom=None, wkb: bytes | None = None):
     """Parse-once cache entry: (parts list, bounds (n,4) ndarray, coord counts).
-    Admission is budget-bounded; an over-budget geom is parsed and returned
-    but NOT retained (the caller re-parses it per window)."""
+    Over-budget geoms in slice mode are parsed ONCE (serialized), clipped to
+    the slice's bounds, and the small local piece is cached; outside slice
+    mode they are returned uncached (legacy behaviour)."""
     got = _PART_CACHE.get(key)
     if got is not None:
         return got
-    if geom is None:
-        geom = shapely.wkb.loads(wkb)
-    if geom.is_empty:
-        entry = ([], np.zeros((0, 4), dtype=np.float64), [])
+
+    def _build():
+        g = geom if geom is not None else shapely.wkb.loads(wkb)
+        if g.is_empty:
+            return ([], np.zeros((0, 4), dtype=np.float64), [])
+        parts = list(g.geoms) if hasattr(g, "geoms") else [g]
+        bounds = np.array([p.bounds for p in parts], dtype=np.float64)
+        counts = [int(shapely.count_coordinates(p)) for p in parts]
+        return (parts, bounds, counts)
+
+    # Cheap probe first: WKB byte length ≈ 2x coordinate bytes, so the
+    # over-budget decision can be made BEFORE parsing.
+    est_pre = (len(wkb) * 2) if wkb is not None else 0
+    over = key != -1 and est_pre + _CACHE_SPENT[0] > _cache_budget_bytes()
+
+    if over and _CLIP_BOUNDS[0] is not None:
+        lo_x, lo_y, hi_x, hi_y = _CLIP_BOUNDS[0]
+
+        def _build_clipped():
+            full = _build()
+            parts, bounds, counts = full
+            keep = []
+            for i, p in enumerate(parts):
+                b = bounds[i]
+                if b[2] < lo_x or b[0] > hi_x or b[3] < lo_y or b[1] > hi_y:
+                    continue
+                if counts[i] >= _CLIP_MIN_COORDS:
+                    try:
+                        c = clip_by_rect(p, lo_x, lo_y, hi_x, hi_y)
+                        if not c.is_empty:
+                            keep.append(c)
+                        continue
+                    except Exception:
+                        pass
+                keep.append(p)
+            if not keep:
+                return ([], np.zeros((0, 4), dtype=np.float64), [])
+            kb = np.array([p.bounds for p in keep], dtype=np.float64)
+            kc = [int(shapely.count_coordinates(p)) for p in keep]
+            return (keep, kb, kc)
+
+        entry = _serialized(_build_clipped)
         _PART_CACHE[key] = entry
+        _CACHE_SPENT[0] += sum(entry[2]) * 32
         return entry
-    parts = list(geom.geoms) if hasattr(geom, "geoms") else [geom]
-    bounds = np.array([p.bounds for p in parts], dtype=np.float64)
-    counts = [int(shapely.count_coordinates(p)) for p in parts]
-    entry = (parts, bounds, counts)
-    est = sum(counts) * 32
+
+    entry = _build()
+    est = sum(entry[2]) * 32
     if key == -1 or _CACHE_SPENT[0] + est <= _cache_budget_bytes():
         # L1 (key -1) always caches — every window needs it, and dropping
         # it would re-parse the country outline per window forever.
@@ -382,6 +442,37 @@ def attribute(
         slice_state = {"seq": 0,
                        "lo": int(window_slice[0]),
                        "hi": int(window_slice[0]) + int(window_slice[1])}
+        # The slice's own bbox (header math only): monsters get clipped to
+        # this at parse time, so a slice caches only ITS band of a coastline.
+        lo_i, hi_i = slice_state["lo"], slice_state["hi"]
+        seq = 0
+        sb = [None]
+        for tp in raster_paths:
+            try:
+                with rasterio.open(tp) as s:
+                    fw = windows.from_bounds(claim_minx, claim_miny,
+                                             claim_maxx, claim_maxy,
+                                             transform=s.transform)
+                    fw = fw.intersection(windows.Window(0, 0, s.width, s.height))
+                    if fw.width <= 0 or fw.height <= 0:
+                        continue
+                    for w in _tile_window(fw, window_px):
+                        if lo_i <= seq < hi_i:
+                            t = s.window_transform(w)
+                            x0, y1 = t.c, t.f
+                            x1 = x0 + t.a * int(w.width)
+                            y0 = y1 + t.e * int(w.height)
+                            if sb[0] is None:
+                                sb[0] = [x0, y0, x1, y1]
+                            else:
+                                sb[0][0] = min(sb[0][0], x0)
+                                sb[0][1] = min(sb[0][1], y0)
+                                sb[0][2] = max(sb[0][2], x1)
+                                sb[0][3] = max(sb[0][3], y1)
+                        seq += 1
+            except Exception:
+                pass
+        _CLIP_BOUNDS[0] = tuple(sb[0]) if sb[0] is not None else None
 
     for tif_path in raster_paths:
         try:
