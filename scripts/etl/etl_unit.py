@@ -590,14 +590,54 @@ def do_raster_range(conn, item: dict, log: logging.Logger) -> dict:
     return {"tiles": int(n)}
 
 
-def do_attribution(iso: str, level: int, apply_to_db: bool, log: logging.Logger) -> dict:
+def do_attribution(conn, iso: str, level: int, apply_to_db: bool,
+                   log: logging.Logger) -> dict:
     """Run the T.7 pair in its own subprocess (run_t7_pair.py — already the
     memory-isolated pair worker) and relay its JSON verdict. A 'far' verdict is
-    NOT a failure (the scan flags data quality); only a hard error is review."""
+    NOT a failure (the scan flags data quality); only a hard error is review.
+
+    GIANT-PAIR FLOOR (2026-08-02 overnight: 17 kernel kills / 28 pairs
+    exit -9 in the first 10-wide attribution phase — the vertex-monster club
+    plus resident bystanders beside them): a pair loads its WHOLE level, so
+    its weight is mean_vertices × adm_unit_count (file level = app − 1). At
+    or above CGA_ETL_GIANT_PAIR_VERTICES (default 1.5M — between the
+    survivors' P90 of 1.08M and the victims' median of 3.2M, run-019fc1bf
+    field data) the pair takes the SAME 'cga_giant_parse' floor the boundary
+    parses use, EXCLUSIVELY; light pairs take it shared and YIELD free
+    rather than sit resident beside a giant. Legacy's guarantee at the pair
+    grain: a monster attribution runs with the container to itself."""
+    from import_geoboundaries import GiantFloorYield
+
+    with get_cursor(conn) as cur:
+        cur.execute(
+            "SELECT COALESCE(mean_vertices,0)*COALESCE(adm_unit_count,0) AS tv "
+            "FROM geoboundary_metadata WHERE iso_code=%s AND adm_level=%s",
+            (iso, level - 1),
+        )
+        row = cur.fetchone()
+        total_v = int(row["tv"]) if row else 0
+    thresh = int(os.environ.get("CGA_ETL_GIANT_PAIR_VERTICES", "0") or 0) or 1_500_000
+    with get_cursor(conn) as cur:
+        if total_v >= thresh:
+            log.info("%s L%d attribution: giant-pair floor — level weight %s "
+                     "vertices, EXCLUSIVE (the pair runs with the container "
+                     "to itself)", iso, level, f"{total_v:,}")
+            cur.execute("SELECT pg_advisory_lock(hashtext('cga_giant_parse'))")
+        else:
+            cur.execute("SELECT pg_try_advisory_lock_shared(hashtext('cga_giant_parse')) AS got")
+            if not bool(cur.fetchone()["got"]):
+                raise GiantFloorYield(f"{iso} L{level} attribution: a giant holds the floor")
+
     cmd = ["python3", PAIR_SCRIPT, iso, str(level)]
     if apply_to_db:
         cmd.append("--apply")
-    proc = subprocess.run(cmd, capture_output=True, text=True, check=False)
+    try:
+        proc = subprocess.run(cmd, capture_output=True, text=True, check=False)
+    finally:
+        # Session-scope floor lock: release explicitly (conn close would
+        # too — explicit is honest, mirrors the boundary parse gate).
+        with get_cursor(conn) as cur:
+            cur.execute("SELECT pg_advisory_unlock_all()")
 
     payload = None
     for line in reversed(proc.stdout.strip().splitlines()):
@@ -711,7 +751,7 @@ def main() -> int:
             elif kind == "raster_range":
                 metrics = do_raster_range(conn, item, log)
             elif kind == "attribution_pair":
-                metrics = do_attribution(item["iso_code"], int(item["adm_level"]),
+                metrics = do_attribution(conn, item["iso_code"], int(item["adm_level"]),
                                          not item["dry_run"], log)
             elif kind == "finalize_global":
                 metrics = do_finalize(conn, options, log)
