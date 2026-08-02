@@ -1389,6 +1389,31 @@ class SetupController extends Controller
             ->orderBy('started_at')
             ->get(['id', 'kind', 'iso_code', 'adm_level', 'metrics', 'started_at']);
 
+        // Acceptance-scan live progress (operator ask 2026-08-02: "I don't
+        // see the acceptance scan progress"): the scan is Laravel-side and
+        // never writes Python-style item bars, but GeodataFlagService
+        // already caches per-detector completion — inject it as the scan
+        // item's live bar so the panel renders it like every other row.
+        foreach ($inflight as $it) {
+            if ($it->kind !== 'acceptance_scan') {
+                continue;
+            }
+            $scanStatus = cache()->get('geodata.scan.status', []);
+            $doneCats   = array_keys($scanStatus['progress'] ?? []);
+            $totalCats  = count(\App\Models\GeodataFlag::CATEGORIES);
+            $flagsSoFar = array_sum($scanStatus['progress'] ?? []);
+            $m = json_decode($it->metrics ?? '{}', true) ?: [];
+            $m['live'] = [
+                'label'   => $doneCats === []
+                    ? 'scan starting — 6 detectors'
+                    : ('after ' . end($doneCats) . ' — ' . number_format($flagsSoFar) . ' flags'),
+                'current' => count($doneCats),
+                'total'   => $totalCats,
+                'unit'    => 'detectors',
+            ];
+            $it->metrics = json_encode($m);
+        }
+
         $review = $DB::table('geodata_items')
             ->where('run_id', $run->id)
             ->where('status', 'review')
