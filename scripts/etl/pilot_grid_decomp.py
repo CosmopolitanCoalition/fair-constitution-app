@@ -112,16 +112,19 @@ def decompose(geom, grid: Grid, i0, i1, j0, j1, out_full: set, out_piece: dict):
 
 
 def decompose_geometry(wkb: bytes, grid: Grid) -> tuple[set, dict, int]:
-    """Parse → make_valid → per top-level part → (FULL set, PIECE dict, nverts)."""
+    """Parse → per top-level part → (FULL set, PIECE-LIST dict, nverts).
+
+    No make_valid: our stored geoms are ST_MakeValid products by
+    construction (running GEOS repair on a valid 5.4M-vertex ring was the
+    first pilot's 12-CPU-minute overrun). Colliding pieces from different
+    parts are kept as LISTS — rasterize burns multiple pieces per label
+    fine; unioning them was pure GEOS waste (Nunavut = thousands of island
+    parts)."""
     g = shapely.wkb.loads(wkb)
     nverts = int(shapely.count_coordinates(g))
-    try:
-        g = shapely.make_valid(g)
-    except Exception:
-        pass
     parts = list(g.geoms) if hasattr(g, "geoms") else [g]
     full: set = set()
-    piece: dict = {}
+    piece: dict = {}          # (wi,wj) -> [geom, geom, ...]
     inv_a, inv_e = 1.0 / grid.t.a, 1.0 / grid.t.e
     for p in parts:
         if p.is_empty:
@@ -136,10 +139,7 @@ def decompose_geometry(wkb: bytes, grid: Grid) -> tuple[set, dict, int]:
         sub_piece: dict = {}
         decompose(p, grid, i0, i1, j0, j1, full, sub_piece)
         for k, v in sub_piece.items():
-            if k in piece:
-                piece[k] = shapely.union_all([piece[k], v])
-            else:
-                piece[k] = v
+            piece.setdefault(k, []).append(v)
     # windows both FULL (from one part) and PIECE (another part) stay FULL
     for k in list(piece.keys()):
         if k in full:
@@ -245,17 +245,16 @@ def main() -> int:
                     claim = np.ones(shape, dtype=np.uint8)
                 else:
                     if key in l1_piece:
-                        claim_shapes.append((l1_piece[key], 1))
+                        claim_shapes += [(pc, 1) for pc in l1_piece[key]]
                     claim = None
-                count_shapes, label_shapes = [], []
+                count_shapes = []
                 for (i, cls) in (owners or []):
                     if cls == "F":
                         count_shapes.append(("FULL", i))
                     else:
-                        g = manifests[i][1][key]
-                        claim_shapes.append((g, 1))
-                        count_shapes.append((g, i))
-                        label_shapes.append((g, i + 1))
+                        pieces = manifests[i][1][key]
+                        claim_shapes += [(pc, 1) for pc in pieces]
+                        count_shapes.append((pieces, i))
                 if claim is None:
                     claim = features.rasterize(
                         claim_shapes, out_shape=shape, transform=tfm,
@@ -270,8 +269,9 @@ def main() -> int:
                         label[:] = entry[1] + 1
                         claim[:] = 1
                     else:
-                        g, i = entry
-                        m = features.rasterize([(g, 1)], out_shape=shape,
+                        pieces, i = entry
+                        m = features.rasterize([(pc, 1) for pc in pieces],
+                                               out_shape=shape,
                                                transform=tfm,
                                                merge_alg=features.MergeAlg.replace,
                                                dtype=np.uint8, fill=0,
@@ -286,18 +286,16 @@ def main() -> int:
                 if over.any():
                     for entry in count_shapes:
                         if entry[0] == "FULL":
-                            contributes = over
+                            contributes, i = over, entry[1]
                         else:
-                            g, i2 = entry
-                            m = features.rasterize([(g, 1)], out_shape=shape,
+                            pieces, i = entry
+                            m = features.rasterize([(pc, 1) for pc in pieces],
+                                                   out_shape=shape,
                                                    transform=tfm,
                                                    merge_alg=features.MergeAlg.replace,
                                                    dtype=np.uint8, fill=0,
                                                    all_touched=False)
                             contributes = over & (m == 1)
-                            i = i2
-                        if entry[0] == "FULL":
-                            i = entry[1]
                         if contributes.any():
                             share = pop[contributes] / count[contributes].astype(np.float64)
                             totals[i] += float(share.sum())
