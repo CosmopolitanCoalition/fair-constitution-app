@@ -44,33 +44,16 @@ class GeodataScanCategoryJob implements ShouldQueue
         $flags = null;
         $error = null;
         try {
-            // ISO-BATCHED for continuous visibility (operator order
-            // 2026-08-02: "I want to see the progress"): the service takes
-            // iso scoping as a first-class parameter, so each detector runs
-            // as batches of countries with a progress write after every
-            // batch — the panel bar moves every few seconds instead of
-            // once per 5-minute detector. deleteOpenFlags is iso-scoped,
-            // so batches compose exactly like one full pass.
-            $isos = DB::table('jurisdictions')
-                ->whereNotNull('iso_code')->whereNull('deleted_at')
-                ->where('adm_level', 1)
-                ->distinct()->orderBy('iso_code')->pluck('iso_code')->all();
-            $batches = array_chunk($isos, 10);
-            $total   = count($batches);
-            $flags   = 0;
-            foreach ($batches as $bi => $batch) {
-                $counts = $service->scan([$this->category], $batch);
-                $flags += (int) array_sum($counts);
-                DB::update(
-                    "UPDATE geodata_items
-                        SET metrics = jsonb_set(COALESCE(metrics,'{}'::jsonb),
-                                ARRAY['cats_progress', ?],
-                                jsonb_build_array(?::int, ?::int, ?::int), true),
-                            updated_at = now()
-                      WHERE run_id = ? AND kind = 'acceptance_scan' AND status = 'running'",
-                    [$this->category, $bi + 1, $total, $flags, $this->runId],
-                );
-            }
+            // WHOLE-DETECTOR runs (iso-batching REVERTED same-day: the
+            // heavy detectors open with a MATERIALIZED planet-wide CTE
+            // that computes before any iso filter applies — measured 142s
+            // per 10-iso batch, so batching multiplied cost ~24x instead
+            // of dividing it). Honest visibility grain = one tick per
+            // completed detector; finer grain requires making those CTEs
+            // iso-sargable — filed as detector-query rework, not a
+            // coordination change.
+            $counts = $service->scan([$this->category]);
+            $flags  = (int) array_sum($counts);
         } catch (\Throwable $e) {
             $error = mb_substr($e->getMessage(), 0, 300);
             Log::error('Geodata scan category errored', [
