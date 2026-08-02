@@ -202,12 +202,26 @@ def bulk_insert_jurisdictions(
     payload_bytes = sum(len(r.get("geom_geojson") or "") for r in rows)
 
     with get_cursor(conn) as cur:
+        # SHARED/EXCLUSIVE (operator, 2026-08-02 — "the single-threaded version
+        # handled NZL, CAN, FRA, IND", on this same box): legacy's real
+        # guarantee wasn't just one-giant-at-a-time, it was that a giant ran
+        # ALONE — no other backend spending work_mem beside the 2–3 GB
+        # transient. Kill #3 (3.0 GB backend, post-gate) proved serializing
+        # giants against each other isn't enough. So: every NORMAL batch
+        # holds the lock SHARED (full pool width, no contention among
+        # themselves); a GIANT takes it EXCLUSIVE — it waits for in-flight
+        # normal inserts to drain, runs as the ONLY insert in Postgres
+        # (legacy conditions exactly), releases at commit, and the pool
+        # resumes. The engine breathes: wide on the field, single-file past
+        # the monsters.
         if payload_bytes > _giant_lock_bytes():
             logger.info(
-                "giant-batch gate: %.1f MB in %d row(s) — serializing this insert",
+                "giant-batch gate: %.1f MB in %d row(s) — EXCLUSIVE (insert runs alone)",
                 payload_bytes / 1048576, len(rows),
             )
             cur.execute("SELECT pg_advisory_xact_lock(hashtext('cga_giant_geom_insert'))")
+        else:
+            cur.execute("SELECT pg_advisory_xact_lock_shared(hashtext('cga_giant_geom_insert'))")
         result = psycopg2.extras.execute_values(
             cur,
             _JURISDICTION_INSERT_SQL,
