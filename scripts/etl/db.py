@@ -67,6 +67,15 @@ def get_cursor(conn: psycopg2.extensions.connection):
 # ─── Jurisdiction bulk insert ─────────────────────────────────────────────────
 
 # Columns must match the template below exactly.
+#
+# SINGLE-PARSE (2026-08-02, operator-directed dig): the original template ran
+# the FULL ST_GeomFromGeoJSON + ST_MakeValid + ST_Multi pipeline TWICE per row
+# — once for geom, once again inside ST_Centroid — doubling the per-feature
+# Postgres transient. On a Nunavut-class 200 MB feature that was 2× a 1–1.5 GB
+# parse+repair, i.e. the whole "needs 2–3 GB" legend. The LATERAL computes the
+# geometry ONCE; centroid derives from the computed value. Halves the monster
+# cost outright — the multithreaded engine now runs giants CHEAPER than the
+# legacy single-threaded path ever did.
 _JURISDICTION_INSERT_SQL = """
     INSERT INTO jurisdictions (
         name,
@@ -84,7 +93,28 @@ _JURISDICTION_INSERT_SQL = """
         created_at,
         updated_at
     )
-    VALUES %s
+    SELECT
+        v.name,
+        v.slug,
+        v.iso_code,
+        v.adm_level::int,
+        v.parent_id::uuid,
+        v.parent_assigned_via,
+        v.source,
+        v.geoboundaries_id,
+        v.official_languages::jsonb,
+        v.timezone,
+        g.geom,
+        ST_Centroid(g.geom),
+        NOW(),
+        NOW()
+    FROM (VALUES %s) AS v(
+        name, slug, iso_code, adm_level, parent_id, parent_assigned_via,
+        source, geoboundaries_id, official_languages, timezone, geom_geojson
+    )
+    CROSS JOIN LATERAL (
+        SELECT ST_Multi(ST_MakeValid(ST_SetSRID(ST_GeomFromGeoJSON(v.geom_geojson), 4326))) AS geom
+    ) AS g
     ON CONFLICT (slug) DO NOTHING
     RETURNING id, slug
 """
@@ -114,12 +144,9 @@ _JURISDICTION_TEMPLATE = """(
     %(parent_assigned_via)s,
     %(source)s,
     %(geoboundaries_id)s,
-    %(official_languages)s::jsonb,
+    %(official_languages)s,
     %(timezone)s,
-    ST_Multi(ST_MakeValid(ST_SetSRID(ST_GeomFromGeoJSON(%(geom_geojson)s), 4326))),
-    ST_Centroid(ST_Multi(ST_MakeValid(ST_SetSRID(ST_GeomFromGeoJSON(%(geom_geojson)s), 4326)))),
-    NOW(),
-    NOW()
+    %(geom_geojson)s
 )"""
 
 
