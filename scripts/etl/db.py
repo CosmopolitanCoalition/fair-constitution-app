@@ -43,8 +43,22 @@ def get_connection() -> psycopg2.extensions.connection:
     """
     Return an open psycopg2 connection.
     Caller is responsible for calling conn.close().
+
+    synchronous_commit=off for ETL sessions (external audit §3, free win):
+    every bulk write in the engine is DELETE-first / ON CONFLICT idempotent,
+    so a crash-window tail loss is replayable BY DESIGN — the WAL-fsync
+    saving during the heavy phases costs nothing we rely on.
+    CGA_ETL_SYNC_COMMIT=on restores full durability.
     """
-    return psycopg2.connect(**DB_CONFIG)
+    conn = psycopg2.connect(**DB_CONFIG)
+    if os.environ.get("CGA_ETL_SYNC_COMMIT", "") != "on":
+        try:
+            with conn.cursor() as cur:
+                cur.execute("SET synchronous_commit = off")
+            conn.commit()
+        except Exception:
+            pass
+    return conn
 
 
 @contextmanager

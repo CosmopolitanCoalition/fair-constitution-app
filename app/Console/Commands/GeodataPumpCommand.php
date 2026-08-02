@@ -129,6 +129,45 @@ class GeodataPumpCommand extends Command
             if ($pendingScan) {
                 GeodataAcceptanceScanJob::dispatch((string) $run->id);
             }
+
+            // Parallel-scan stall audit (external audit P1): a RUNNING scan
+            // item quiet for >5 min with incomplete cats means one or more
+            // category jobs died (deploy, restart, OOM). Re-dispatch ONLY
+            // the missing categories — never the parent dispatcher, and
+            // never overwrite landed results (jsonb_set composes; a re-run
+            // detector just refreshes its own flags).
+            $stale = DB::table('geodata_items')
+                ->where('run_id', $run->id)
+                ->where('kind', 'acceptance_scan')
+                ->where('status', 'running')
+                ->where('updated_at', '<', now()->subMinutes(5))
+                ->first(['metrics']);
+            if ($stale !== null) {
+                $m = json_decode($stale->metrics ?? '{}', true) ?: [];
+                $have = array_keys($m['cats'] ?? []);
+                $missing = array_values(array_diff(\App\Models\GeodataFlag::CATEGORIES, $have));
+                $chainDisplaced = in_array('mis_anchored_cluster', $missing, true)
+                    && in_array('displaced_geometry', $missing, true);
+                foreach ($missing as $cat) {
+                    if ($cat === 'displaced_geometry' && $chainDisplaced) {
+                        continue;   // arrives via the cluster job's chain
+                    }
+                    \App\Jobs\GeodataScanCategoryJob::dispatch(
+                        (string) $run->id,
+                        $cat,
+                        $cat === 'mis_anchored_cluster' && $chainDisplaced
+                            ? 'displaced_geometry' : null,
+                    );
+                }
+                if ($missing !== []) {
+                    DB::table('geodata_items')
+                        ->where('run_id', $run->id)
+                        ->where('kind', 'acceptance_scan')
+                        ->where('status', 'running')
+                        ->update(['updated_at' => now()]);
+                    $this->info('scan audit: re-dispatched ' . implode(', ', $missing));
+                }
+            }
         }
 
         $this->refreshCounters($run);

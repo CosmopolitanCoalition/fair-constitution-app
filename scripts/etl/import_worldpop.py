@@ -771,6 +771,27 @@ def load_raster_to_db(
     transform doubles a previous identical run wrote, so the match is exact.
     """
     band_mode = band_start is not None
+
+    # Stage the tif local first (external audit §3: this loader does
+    # thousands of 256px windowed reads — the exact access pattern measured
+    # at 98% IO-wait on the bind mount — and the staging built for
+    # attribution was never wired in here). Atomic replace dedupes across
+    # concurrent band children; any failure falls back to the mount.
+    try:
+        import shutil
+        import tempfile
+        _cache = Path("/data/tifcache")
+        _cache.mkdir(parents=True, exist_ok=True)
+        _dst = _cache / tif_path.name
+        if not _dst.exists() or _dst.stat().st_size != tif_path.stat().st_size:
+            _fd, _tmp = tempfile.mkstemp(dir=str(_cache))
+            os.close(_fd)
+            shutil.copyfile(tif_path, _tmp)
+            os.replace(_tmp, _dst)
+        tif_path = _dst
+    except Exception:
+        pass
+
     log.info("%s: loading raster into DB from %s%s …", iso3, tif_path.name,
              f" [bands {band_start}+{band_count}]" if band_mode else "")
 

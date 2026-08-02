@@ -29,7 +29,7 @@ class GeodataScanCategoryJob implements ShouldQueue
     use Dispatchable, InteractsWithQueue, Queueable, SerializesModels;
 
     public int $timeout = 0;
-    public int $tries = 1;
+    public int $tries = 2;   // a hard-killed worker must not strand its category
 
     public function __construct(
         public string $runId,
@@ -54,18 +54,30 @@ class GeodataScanCategoryJob implements ShouldQueue
             ]);
         }
 
-        // Atomic merge of this category's outcome into the scan item.
-        $payload = json_encode($error === null
-            ? ['cats' => [$this->category => $flags]]
-            : ['cats' => [$this->category => -1],
-               'cat_errors' => [$this->category => $error]]);
+        // PATH-LEVEL write, never top-level concat (external audit P0,
+        // convicted live: jsonb || is a SHALLOW merge — {"cats":{"a":1}} ||
+        // {"cats":{"b":2}} = {"cats":{"b":2}}, so six categories would
+        // clobber each other, the closer could never see six keys, and the
+        // run would park in scanning forever). jsonb_set writes one path;
+        // concurrent writers serialize on the row lock and compose.
         DB::update(
             "UPDATE geodata_items
-                SET metrics = COALESCE(metrics, '{}'::jsonb) || ?::jsonb,
+                SET metrics = jsonb_set(COALESCE(metrics, '{}'::jsonb),
+                                        ARRAY['cats', ?], to_jsonb(?::int), true),
                     updated_at = now()
               WHERE run_id = ? AND kind = 'acceptance_scan' AND status = 'running'",
-            [$payload, $this->runId],
+            [$this->category, $error === null ? $flags : -1, $this->runId],
         );
+        if ($error !== null) {
+            DB::update(
+                "UPDATE geodata_items
+                    SET metrics = jsonb_set(COALESCE(metrics, '{}'::jsonb),
+                                            ARRAY['cat_errors', ?], to_jsonb(?::text), true),
+                        updated_at = now()
+                  WHERE run_id = ? AND kind = 'acceptance_scan' AND status = 'running'",
+                [$this->category, $error, $this->runId],
+            );
+        }
 
         if ($this->nextCategory !== null) {
             self::dispatch($this->runId, $this->nextCategory);

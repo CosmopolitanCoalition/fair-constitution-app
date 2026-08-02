@@ -64,15 +64,16 @@ class GeodataAcceptanceScanJob implements ShouldQueue
         // dependency). Each merges its result into this item's metrics; the
         // job that lands the sixth closes the item. This dispatcher returns
         // immediately — the item's live bar counts detectors as they finish.
-        DB::table('geodata_items')
-            ->where('run_id', $run->id)
-            ->where('kind', 'acceptance_scan')
-            ->where('status', 'running')
-            ->update([
-                'metrics'    => json_encode(['cats' => (object) [],
-                                             'scan_started' => microtime(true)]),
-                'updated_at' => now(),
-            ]);
+        // Merge-seed, never full-replace (audit P1 hazard: a re-invocation
+        // against a running item must not wipe landed category results).
+        DB::update(
+            "UPDATE geodata_items
+                SET metrics = COALESCE(metrics, '{}'::jsonb)
+                              || jsonb_build_object('scan_started', ?::float8),
+                    updated_at = now()
+              WHERE run_id = ? AND kind = 'acceptance_scan' AND status = 'running'",
+            [microtime(true), $run->id],
+        );
 
         GeodataScanCategoryJob::dispatch($run->id, 'mis_anchored_cluster', 'displaced_geometry');
         foreach (['dual_coverage', 'same_space_chain', 'raster_coverage', 'orphaned_rows'] as $cat) {
