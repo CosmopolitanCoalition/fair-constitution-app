@@ -88,20 +88,39 @@ def fetch_level_polygon_meta(conn, iso: str, level: int):
     return meta, idx_to_jur
 
 
-def fetch_relevant_rasters(conn, iso: str, level: int):
-    with get_cursor(conn) as cur:
-        cur.execute("""
-            SELECT DISTINCT r.iso_code
-            FROM   worldpop_rasters r
-            JOIN   jurisdictions j
-              ON   j.iso_code = %s
-             AND   j.adm_level IN (1, %s)
-             AND   j.deleted_at IS NULL
-            WHERE  ST_Intersects(r.rast, j.geom)
-        """, (iso, level))
-        relevant = [r["iso_code"] for r in cur.fetchall()]
+def fetch_relevant_rasters(conn, iso: str, level: int,
+                           bounds: tuple | None = None,
+                           pinned_isos: list | None = None):
+    """Which countries' tile sets could contribute pixels to this pair.
 
-    ordered = ([iso] if iso in relevant else []) + sorted(set(relevant) - {iso})
+    BOUNDING BOXES, NOT COASTLINES (operator ruling 2026-08-02: 'can
+    straight lines or circles or bounding boxes help me arrive at logical
+    conclusions that are identical while requiring far less compute?' —
+    here, literally): the old ST_Intersects(tile, geometry) detoasted a
+    Nunavut-class geometry against 251k tiles — minutes per call, run by
+    EVERY slice child, and heavy enough to crash a backend (observed).
+    Envelope overlap gives the IDENTICAL downstream answer (a bbox
+    superset only adds windows the L1-skip and zero-pop checks drop) in
+    milliseconds on the pure bbox index. pinned_isos skips the DB
+    entirely — the coordinator computes the list once and pins it."""
+    if pinned_isos is not None:
+        relevant = list(pinned_isos)
+    elif bounds is not None:
+        with get_cursor(conn) as cur:
+            cur.execute(
+                """
+                SELECT DISTINCT iso_code FROM worldpop_rasters
+                 WHERE rast && ST_MakeEnvelope(%s, %s, %s, %s, 4326)
+                """,
+                (bounds[0], bounds[1], bounds[2], bounds[3]),
+            )
+            relevant = [r["iso_code"] for r in cur.fetchall()]
+    else:
+        # Level-bbox union unavailable — country tiles alone (own tif is
+        # always first anyway; neighbours only matter for edge overhang).
+        relevant = [iso]
+
+    ordered = ([iso] if iso in relevant else [iso]) + sorted(set(relevant) - {iso})
     paths = []
     for ric in ordered:
         p = find_worldpop_tif(ric)
@@ -199,7 +218,8 @@ def _stage_tifs(paths, log) -> list:
 def main(iso: str, level: int, apply_to_db: bool,
          enumerate_only: bool = False,
          win_start: int | None = None, win_count: int | None = None,
-         window_px_pin: int | None = None, run_id: str | None = None) -> int:
+         window_px_pin: int | None = None, run_id: str | None = None,
+         rasters_pin: list | None = None) -> int:
     # Quiet logger — orchestrator collects from stdout JSON.
     logging.basicConfig(level=logging.ERROR)
     log = logging.getLogger("t7_pair")
@@ -223,24 +243,27 @@ def main(iso: str, level: int, apply_to_db: bool,
                 result["error"] = "no polygons"
                 print(json.dumps(result))
                 return 1
-            rasters = fetch_relevant_rasters(conn, iso, level)
+            from raster_attribution import claim_bounds_for
+            bounds = claim_bounds_for(l1_wkb, meta)
+            rasters = fetch_relevant_rasters(conn, iso, level,
+                                             bounds=bounds,
+                                             pinned_isos=rasters_pin)
             if not rasters:
                 result["error"] = "no rasters"
                 print(json.dumps(result))
                 return 1
 
             # ── --enumerate: deterministic window census for the pair's
-            # coordinator (header math only). window_px is PINNED here and
-            # carried in every range's metrics — the sequence identity. ──
+            # coordinator (header math only). window_px AND the raster iso
+            # list are PINNED here and carried in every range's metrics —
+            # the sequence identity (and slices never re-ask the DB). ──
             if enumerate_only:
-                from raster_attribution import (claim_bounds_for,
-                                                count_raw_windows,
-                                                DEFAULT_WINDOW_PX)
+                from raster_attribution import count_raw_windows, DEFAULT_WINDOW_PX
                 px = window_px_pin or DEFAULT_WINDOW_PX
-                n = count_raw_windows(rasters, claim_bounds_for(l1_wkb, meta), px)
+                n = count_raw_windows(rasters, bounds, px)
                 print(json.dumps({"ok": True, "n_windows": int(n),
                                   "window_px": int(px),
-                                  "n_rasters": len(rasters)}))
+                                  "rasters": [p.parent.name.upper() for p in rasters]}))
                 return 0
 
             l1_pop = fetch_l1_pop(conn, iso)
@@ -416,4 +439,5 @@ if __name__ == "__main__":
         win_count=int(_opt("--win-count")) if _opt("--win-count") is not None else None,
         window_px_pin=int(_opt("--window-px")) if _opt("--window-px") is not None else None,
         run_id=_opt("--run-id"),
+        rasters_pin=(_opt("--rasters").split(",") if _opt("--rasters") else None),
     ))

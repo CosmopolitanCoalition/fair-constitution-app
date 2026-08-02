@@ -731,7 +731,8 @@ def do_attribution(conn, run_id: str, iso: str, level: int, apply_to_db: bool,
                         or total_v >= thresh) and int(info.get("n_windows", 0)) >= 2 * max(2, pool // 2):
                     return _attribution_window_split(
                         conn, run_id, iso, level, apply_to_db,
-                        int(info["n_windows"]), int(info["window_px"]), pool, log)
+                        int(info["n_windows"]), int(info["window_px"]), pool, log,
+                        raster_isos=info.get("rasters") or [iso])
 
         cmd = ["python3", PAIR_SCRIPT, iso, str(level)]
         if apply_to_db:
@@ -765,13 +766,15 @@ def do_attribution(conn, run_id: str, iso: str, level: int, apply_to_db: bool,
 def _attribution_window_split(conn, run_id: str, iso: str, level: int,
                               apply_to_db: bool, n_windows: int,
                               window_px: int, pool: int,
-                              log: logging.Logger) -> dict:
+                              log: logging.Logger,
+                              raster_isos: list | None = None) -> dict:
     """Coordinator for a window-split pair: enumerate attribution_range
     slices (idempotent), participate alongside every free lane, barrier,
     then merge partials set-based, verdict, apply once, clean up."""
     import claims
     _, range_count_override = _range_dials()
     token = str(__import__("uuid").uuid4())
+    raster_isos = raster_isos or [iso]
 
     with get_cursor(conn) as cur:
         cur.execute(
@@ -805,7 +808,8 @@ def _attribution_window_split(conn, run_id: str, iso: str, level: int,
             rows.append((run_id, "attribution_range", iso, level, "pending",
                          start, count,
                          json.dumps({"win_start": start, "win_count": count,
-                                     "window_px": window_px})))
+                                     "window_px": window_px,
+                                     "rasters": raster_isos})))
         import psycopg2.extras
         with get_cursor(conn) as cur:
             psycopg2.extras.execute_values(
@@ -829,6 +833,8 @@ def _attribution_window_split(conn, run_id: str, iso: str, level: int,
                "--win-count", str(int(meta["win_count"])),
                "--window-px", str(int(meta.get("window_px") or window_px)),
                "--run-id", run_id]
+        if meta.get("rasters"):
+            cmd += ["--rasters", ",".join(meta["rasters"])]
         # The slice's live bar must land on ITS OWN range row — without this
         # a coordinator-run slice inherits the coordinator's env and writes
         # its bar onto the PAIR row while the range row sits at zero
@@ -950,6 +956,8 @@ def do_attribution_range(conn, run_id: str, item: dict, log: logging.Logger) -> 
            "--win-count", str(int(meta["win_count"])),
            "--window-px", str(int(meta["window_px"])),
            "--run-id", run_id]
+    if meta.get("rasters"):
+        cmd += ["--rasters", ",".join(meta["rasters"])]
     proc = subprocess.run(cmd, capture_output=True, text=True, check=False)
     payload = None
     for line in reversed((proc.stdout or "").strip().splitlines()):
