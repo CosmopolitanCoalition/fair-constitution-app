@@ -796,7 +796,13 @@ def _attribution_window_split(conn, run_id: str, iso: str, level: int,
                "--win-count", str(int(meta["win_count"])),
                "--window-px", str(int(meta.get("window_px") or window_px)),
                "--run-id", run_id]
-        proc = subprocess.run(cmd, capture_output=True, text=True, check=False)
+        # The slice's live bar must land on ITS OWN range row — without this
+        # a coordinator-run slice inherits the coordinator's env and writes
+        # its bar onto the PAIR row while the range row sits at zero
+        # (observed live: CAN slices "dead" at bar 0 while burning CPU).
+        slice_env = {**os.environ, "CGA_ETL_ITEM_ID": rng["id"]}
+        proc = subprocess.run(cmd, capture_output=True, text=True, check=False,
+                              env=slice_env)
         payload = None
         for line in reversed((proc.stdout or "").strip().splitlines()):
             try:
