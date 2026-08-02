@@ -96,6 +96,16 @@ _bar_pending_value: dict[str, int] = {}
 CURRENT = Path("/etl/control/current.json")
 BARS    = Path("/etl/control/bars.json")
 
+# Geodata pull engine: N concurrent per-ISO importers scribbling one shared
+# bars.json produces interleaved garbage (each item registers ITS country's
+# totals; last writer wins). Pull-mode workers set CGA_ETL_QUIET_BARS=1 so the
+# legacy single-slot heartbeat surface stays silent — the pull dashboard
+# (geodata_runs/items/worker_leases) is the truth for those runs.
+import os as _os
+
+def _quiet() -> bool:
+    return bool(_os.environ.get("CGA_ETL_QUIET_BARS"))
+
 
 # ─── Per-country preview heartbeat ──────────────────────────────────────────
 
@@ -106,6 +116,8 @@ def now_iso() -> str:
 def write_current(**fields) -> None:
     """Write /etl/control/current.json atomically. Silently swallows errors
     so a broken heartbeat never takes down an import run."""
+    if _quiet():
+        return
     try:
         CURRENT.parent.mkdir(parents=True, exist_ok=True)
         payload = {
@@ -158,6 +170,8 @@ def _load_bars() -> dict:
 
 
 def _write_bars(state: dict) -> None:
+    if _quiet():
+        return
     try:
         BARS.parent.mkdir(parents=True, exist_ok=True)
         tmp = BARS.with_suffix(".tmp")

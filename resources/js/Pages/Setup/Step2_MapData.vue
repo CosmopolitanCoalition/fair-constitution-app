@@ -66,6 +66,13 @@ const customDataRoot       = ref('')         // P.8 — operator-supplied contai
 const engine    = ref('pull')               // pull | legacy
 const pullPanel = ref(null)
 const enginePull = computed(() => engine.value === 'pull' && source.value !== 'download')
+
+// Live pull-run state, reported up by GeodataPullPanel. While a pull run is
+// ACTIVE the legacy Live Progress panel is hidden: N concurrent workers make
+// bars.json interleaved garbage (and pull workers now suppress those writes
+// entirely) — two dueling progress surfaces read as chaos.
+const pullRun = ref(null)
+const pullRunActive = computed(() => pullRun.value && ['running', 'halted'].includes(pullRun.value.status))
 const optFresh            = ref(false)
 const optSkipPopulation   = ref(false)
 // Renamed from optStopOnException — the new pause-and-ask behaviour replaces
@@ -1082,10 +1089,12 @@ onBeforeUnmount(() => {
             </section>
 
             <!-- Pull-engine dashboard (renders only when a pull run exists) -->
-            <GeodataPullPanel ref="pullPanel" />
+            <GeodataPullPanel ref="pullPanel" @run-state="pullRun = $event" />
 
-            <!-- Live Progress (legacy single-threaded runs) -->
+            <!-- Live Progress (legacy single-threaded runs; hidden while a
+                 pull run is active — the pull panel above is that run's truth) -->
             <LiveProgress
+                v-if="!pullRunActive"
                 :lifecycle="lifecycle"
                 :running="running"
                 :done="done"

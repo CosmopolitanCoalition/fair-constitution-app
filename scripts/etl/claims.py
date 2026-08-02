@@ -14,6 +14,7 @@ ORDER BY position ASC starts the heaviest unit first (IND L6, 649k polys).
 
 from __future__ import annotations
 
+import os
 import uuid
 
 from db import get_cursor
@@ -28,6 +29,35 @@ PHASE_KIND = {
     "finalizing":  "finalize_global",
     "scanning":    "acceptance_scan",
 }
+
+# Per-kind concurrency caps — THE MEMORY GOVERNOR. The etl container runs
+# under a hard cgroup limit (2 GiB on the reference box); each boundary
+# import can peak high (whole-geojson parse + slug map) and rasters hold
+# MemoryFile tiles, so an uncapped 10-worker pool OOM-killed children within
+# the first minute of the first real run (exit -9, NZL/PHL/CAN). Caps bound
+# the CONCURRENT children per kind; surplus workers idle at a 5 s poll until
+# a slot opens. Soft caps (a claim race can overshoot by one transiently) —
+# the steady state honors them. Env-tunable per kind.
+_KIND_CAP_DEFAULTS = {
+    "boundary_iso":     3,   # CGA_ETL_CAP_BOUNDARY
+    "raster_iso":       2,   # CGA_ETL_CAP_RASTER
+    "attribution_pair": 3,   # CGA_ETL_CAP_ATTRIBUTION
+}
+_KIND_CAP_ENV = {
+    "boundary_iso":     "CGA_ETL_CAP_BOUNDARY",
+    "raster_iso":       "CGA_ETL_CAP_RASTER",
+    "attribution_pair": "CGA_ETL_CAP_ATTRIBUTION",
+}
+
+
+def kind_cap(kind: str) -> int | None:
+    """The concurrency cap for a kind, or None (uncapped barriers)."""
+    if kind not in _KIND_CAP_DEFAULTS:
+        return None
+    raw = os.environ.get(_KIND_CAP_ENV[kind], "")
+    if raw.isdigit() and int(raw) > 0:
+        return int(raw)
+    return _KIND_CAP_DEFAULTS[kind]
 
 
 def get_active_run(conn) -> dict | None:
@@ -73,6 +103,21 @@ def claim_next(conn, run_id: str, phase: str, token: str) -> dict | None:
         # GeodataAcceptanceScanJob — no docker-in-docker). A Python worker must
         # never claim it: closing it here would skip the scan entirely.
         return None
+
+    # Memory governor: honor the per-kind concurrency cap before claiming.
+    cap = kind_cap(kind)
+    if cap is not None:
+        with get_cursor(conn) as cur:
+            cur.execute(
+                """
+                SELECT COUNT(*) AS n FROM geodata_items
+                 WHERE run_id = %s AND kind = %s AND status = 'running'
+                """,
+                (run_id, kind),
+            )
+            if int(cur.fetchone()["n"]) >= cap:
+                return None
+
     with get_cursor(conn) as cur:
         cur.execute(
             """

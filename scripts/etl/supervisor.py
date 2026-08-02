@@ -409,13 +409,23 @@ def clear_stale_pause_markers() -> None:
 
 
 def default_worker_count() -> int:
-    """CGA_ETL_WORKERS, else min(cores-2, 12) — the attribution phase is
-    CPU-bound so this dial matters (GEODATA_PULL_ENGINE_PLAN.md §7)."""
+    """CGA_ETL_WORKERS, else min(cores-2, 12) ALSO clamped by the container's
+    memory budget (~1 worker per 512 MiB): the etl container runs under a hard
+    cgroup limit (2 GiB reference box) and each idle worker + its per-item
+    child costs real memory — a cores-only dial OOM-killed children on the
+    first real run. Per-kind claim caps (claims.kind_cap) bound the heavy
+    concurrency further; this bounds the process pool itself."""
     override = os.environ.get("CGA_ETL_WORKERS")
     if override and override.isdigit() and int(override) > 0:
         return int(override)
     cores = os.cpu_count() or 4
-    return max(1, min(cores - 2, 12))
+    by_cores = max(1, min(cores - 2, 12))
+    try:
+        from memory_budget import detect_memory_budget_bytes
+        by_mem = max(2, int(detect_memory_budget_bytes() // (512 * 1024 * 1024)))
+    except Exception:
+        by_mem = by_cores
+    return max(1, min(by_cores, by_mem))
 
 
 def run_pool_mode(request_payload: dict) -> int:
@@ -456,7 +466,9 @@ def run_pool_mode(request_payload: dict) -> int:
 
         # Workers inherit the run's data root (source=folder/download); source=
         # archive leaves it unset so the importers use the default /archive mount.
-        worker_env = {**os.environ}
+        # QUIET_BARS: N concurrent importers scribbling the shared bars.json is
+        # interleaved garbage — the pull dashboard is the truth for these runs.
+        worker_env = {**os.environ, "CGA_ETL_QUIET_BARS": "1"}
         if run.get("data_root"):
             worker_env["DATA_ROOT"] = str(run["data_root"])
 
@@ -756,6 +768,26 @@ def main() -> int:
         payload = consume_request()
         if payload is not None:
             run_job(payload)
+        else:
+            # Pull-engine liveness: an ACTIVE geodata run with no request file
+            # means the supervisor restarted mid-run (deploy, crash, box
+            # reboot) — the request was consumed long ago. Re-enter pool mode
+            # so the workers come back; the pump reclaims their stale claims.
+            # Guarded: any DB error just waits for the next poll tick.
+            try:
+                import claims as _claims
+                from db import get_connection as _gc
+                _conn = _gc()
+                try:
+                    _active = _claims.get_active_run(_conn)
+                finally:
+                    _conn.close()
+                if _active is not None and _active.get("status") == "running":
+                    sys.stdout.write(f"[supervisor] resuming active pull run {_active['id']}\n")
+                    sys.stdout.flush()
+                    run_pool_mode({"resumed": True, "run_id": _active["id"]})
+            except Exception:
+                pass
         time.sleep(POLL_SECONDS)
 
 

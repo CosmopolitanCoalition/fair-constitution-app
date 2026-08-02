@@ -10,6 +10,8 @@
 import { computed, onBeforeUnmount, onMounted, ref } from 'vue'
 import { csrfFetch } from '@/lib/csrf'
 
+const emit = defineEmits(['run-state'])
+
 const data       = ref(null)   // { run, layers, workers, review }
 const error      = ref('')
 const actionBusy = ref(false)
@@ -85,6 +87,9 @@ async function fetchProgress() {
         if (!res.ok) { error.value = `Could not load pull-engine progress (HTTP ${res.status}).`; return }
         error.value = ''
         data.value = await res.json()
+        // Let the parent react (e.g. hide the legacy bars panel while a pull
+        // run is live — the two surfaces would otherwise fight for attention).
+        emit('run-state', data.value?.run ?? null)
     } catch (e) {
         error.value = String(e)
     }
