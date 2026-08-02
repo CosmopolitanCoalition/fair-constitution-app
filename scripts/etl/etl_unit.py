@@ -363,6 +363,11 @@ def do_boundary(conn, run_id: str, iso: str, options: dict,
                                                    "count": count})
                     total_inserted += n
                 except Exception as exc:
+                    if type(exc).__name__ == "GiantFloorYield":
+                        # Free the range, then yield the whole country cleanly.
+                        claims.record_outcome(conn, rng["id"], token, "pending",
+                                              reason="yielded: giant holds the floor")
+                        raise
                     claims.record_outcome(conn, rng["id"], token, "review",
                                           reason=f"{type(exc).__name__}: {exc}",
                                           metrics={"start": start, "count": count})
@@ -578,6 +583,14 @@ def main() -> int:
             print(json.dumps({"ok": True, "status": "done", "metrics": metrics}))
             return 0
         except Exception as exc:
+            # A yield is not a failure: the giant holds the parse floor, so
+            # this child exits FREE and its item requeues for after the turn.
+            if type(exc).__name__ == "GiantFloorYield":
+                print(json.dumps({
+                    "ok": True, "status": "pending",
+                    "reason": f"yielded: {exc}",
+                }))
+                return 0
             print(json.dumps({
                 "ok": False, "status": "review",
                 "reason": f"{type(exc).__name__}: {exc}",

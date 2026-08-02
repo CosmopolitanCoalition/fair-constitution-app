@@ -182,6 +182,11 @@ def run_worker(run_id: str, worker_tag: str, lane: str = "small") -> int:
             _log_line(worker_tag, f"→ {claim['kind']} {outcome['status']}"
                                   + ("" if landed else " (outcome discarded — claim no longer ours)"))
             claims.touch_lease(conn, token, run_id=run_id)  # clear the claim label
+            if outcome["status"] == "pending":
+                # The child yielded — a giant holds the parse floor. Back off
+                # so the pool doesn't churn spawn→load→yield cycles against a
+                # floor that's held for many minutes.
+                time.sleep(45)
     finally:
         try:
             claims.clear_lease(conn, token)

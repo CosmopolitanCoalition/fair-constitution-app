@@ -88,6 +88,15 @@ ADM_LEVEL_MAP = {0: 1, 1: 2, 2: 3, 3: 4, 4: 5, 5: 6}  # geoBoundaries → app
 _RANGE_WINDOW: tuple | None = None   # (feature_start, feature_count)
 _RANGE_MODE = False
 
+
+class GiantFloorYield(Exception):
+    """Raised when a light pass finds a giant holding (or awaiting) the parse
+    floor. The child EXITS instead of waiting resident — legacy's giant was
+    truly ALONE, and on unchanged hardware that is the only shape that fits:
+    nine waiters × ~150 MB parked at the gate is the memory the giant needs.
+    The item returns to pending and resumes (cheaply, prefix-skip) after the
+    giant's turn."""
+
 # Natural-language labels for heartbeat sub_phase strings — keep in sync with the
 # canonical PHP map at SetupController::jurisdictionsCounts(). These are used in
 # the wizard's CurrentJurisdictionCard subphase badge ("Country resolving parents
@@ -1751,7 +1760,15 @@ def process_geojson_file(
                 _cur.execute("SELECT pg_advisory_lock(hashtext('cga_giant_parse'))")
                 _giant_parse_locked = 'exclusive'
             else:
-                _cur.execute("SELECT pg_advisory_lock_shared(hashtext('cga_giant_parse'))")
+                # YIELD, never wait resident (operator, 2026-08-02: "why can't
+                # you do what the solo run could do — the hardware is
+                # unchanged"): legacy's giant was truly ALONE. A light pass
+                # that can't take the floor immediately EXITS free instead of
+                # parking ~150 MB at the door; its item requeues and resumes
+                # after the giant's turn.
+                _cur.execute("SELECT pg_try_advisory_lock_shared(hashtext('cga_giant_parse')) AS got")
+                if not bool(_cur.fetchone()["got"]):
+                    raise GiantFloorYield(f"{iso3} ADM{adm_n}: a giant holds the parse floor")
                 _giant_parse_locked = 'shared'
 
         # Range window: replaces the DB-count resume skip entirely (range
@@ -2432,6 +2449,8 @@ def import_geoboundaries(
                         force=True,
                     )
                     break  # success — move to next country
+                except GiantFloorYield:
+                    raise   # not an error: the child yields the whole import
                 except Exception as exc:
                     progress_key = f"{iso3}-ADM{adm_n}"
                     log.error("Unhandled error processing %s: %s", progress_key, exc, exc_info=True)
