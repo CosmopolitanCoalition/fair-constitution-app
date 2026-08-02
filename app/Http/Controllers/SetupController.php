@@ -1402,6 +1402,21 @@ class SetupController extends Controller
         $worldLoaded   = $DB::table('jurisdictions')->whereNull('deleted_at')->count();
         $worldExpected = (int) $DB::table('geoboundary_metadata')->sum('adm_unit_count');
 
+        // Resolve-phase incremental visibility (operator ask 2026-08-02:
+        // "the Resolve pass is looking opaque"): with parenting deferred to
+        // this barrier, the honest live signal is the unparented ADM2+ count
+        // DRAINING as each set-based strategy pass commits. Computed only
+        // while resolving — two indexed counts per poll.
+        $resolve = null;
+        if ($run->phase === 'resolving') {
+            $resolveTotal = $DB::table('jurisdictions')
+                ->whereNull('deleted_at')->where('adm_level', '>', 1)->count();
+            $resolveOpen  = $DB::table('jurisdictions')
+                ->whereNull('deleted_at')->where('adm_level', '>', 1)
+                ->whereNull('parent_id')->count();
+            $resolve = ['total' => $resolveTotal, 'unparented' => $resolveOpen];
+        }
+
         return response()->json([
             'run' => [
                 'id'               => $run->id,
@@ -1421,6 +1436,7 @@ class SetupController extends Controller
             'inflight' => $inflight,
             'review'   => $review,
             'world'    => ['loaded' => $worldLoaded, 'expected' => $worldExpected ?: null],
+            'resolve'  => $resolve,
         ]);
     }
 

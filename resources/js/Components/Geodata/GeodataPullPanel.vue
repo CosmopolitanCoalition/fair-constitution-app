@@ -47,6 +47,15 @@ const worldPct = computed(() => {
     return Math.min(100, Math.round(world.value.loaded / world.value.expected * 100))
 })
 
+// Resolve-phase live signal: parent chains built vs total ADM2+ rows —
+// the unparented count drains as each set-based strategy pass commits.
+const resolve = computed(() => data.value?.resolve ?? null)
+const resolvePct = computed(() => {
+    if (!resolve.value?.total) return 0
+    return Math.min(100, Math.round(
+        (resolve.value.total - resolve.value.unparented) / resolve.value.total * 100))
+})
+
 function itemLabel(it) {
     const iso = it.iso_code ? ` · ${it.iso_code}` : ''
     const lvl = it.adm_level !== null && it.adm_level !== undefined ? ` L${it.adm_level}` : ''
@@ -227,6 +236,27 @@ onBeforeUnmount(() => {
                     class="h-full rounded bg-emerald-500 transition-all duration-700"
                     :style="{ width: worldPct + '%' }"
                 />
+            </div>
+        </div>
+
+        <!-- Resolve-phase live parenting bar — visible only while the
+             resolve barrier chains the planet's parent hierarchy -->
+        <div v-if="resolve && resolve.total" class="mb-5">
+            <div class="flex justify-between text-xs mb-1">
+                <span class="text-gray-200 font-semibold">Parent chains (resolve)</span>
+                <span class="text-gray-300 tabular-nums">
+                    {{ (resolve.total - resolve.unparented).toLocaleString() }} / {{ resolve.total.toLocaleString() }}
+                    <span class="text-gray-500">· {{ resolvePct }}%</span>
+                </span>
+            </div>
+            <div class="h-3 bg-gray-800 rounded overflow-hidden">
+                <div
+                    class="h-full rounded bg-violet-500 transition-all duration-700"
+                    :style="{ width: resolvePct + '%' }"
+                />
+            </div>
+            <div v-if="resolve.unparented === resolve.total" class="text-[11px] text-gray-500 mt-1">
+                strategy passes run as set-based SQL — the count moves in steps as each pass commits
             </div>
         </div>
 
