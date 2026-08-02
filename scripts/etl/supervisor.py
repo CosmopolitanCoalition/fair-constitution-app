@@ -516,36 +516,50 @@ def run_pool_mode(request_payload: dict) -> int:
                 final_status = "done" if status == "done" else "failed"
                 break
 
-            for tag, p in list(procs.items()):
-                if p.poll() is not None:
+            for tag, entry in list(procs.items()):
+                if entry[0].poll() is not None:
                     del procs[tag]
 
-            target = n_workers if (status == "running" and not ctl["paused"] and not ctl["halt"]) else 0
-            # Shed surplus on halt/pause — workers stop at their next boundary.
-            for tag in list(procs.keys())[target:]:
-                try:
-                    procs[tag].terminate()
-                except Exception:
-                    pass
-            while len(procs) < target:
-                tag_seq += 1
-                tag = f"w{tag_seq}"
-                procs[tag] = subprocess.Popen(
-                    ["python3", "/etl/worker.py", "--run", run_id, "--tag", tag],
-                    stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL,
-                    cwd="/etl", start_new_session=True, env=worker_env,
-                )
+            active = status == "running" and not ctl["paused"] and not ctl["halt"]
+            # Two-ended queue (operator ruling 2026-08-02, the mapper's shape):
+            # ~20% of the pool are BIG lanes (largest→smallest), the rest are
+            # general lanes (smallest→largest). One pile, two directions,
+            # every lane busy until the ends meet.
+            big_target   = claims.big_lane_count(n_workers) if active else 0
+            small_target = (n_workers - big_target) if active else 0
+
+            if not active:
+                for entry in procs.values():
+                    try:
+                        entry[0].terminate()
+                    except Exception:
+                        pass
+            else:
+                have = {"big": 0, "small": 0}
+                for entry in procs.values():
+                    have[entry[1]] = have.get(entry[1], 0) + 1
+                for lane, target in (("big", big_target), ("small", small_target)):
+                    while have.get(lane, 0) < target:
+                        tag_seq += 1
+                        tag = f"w{tag_seq}"
+                        procs[tag] = (subprocess.Popen(
+                            ["python3", "/etl/worker.py", "--run", run_id,
+                             "--tag", tag, "--lane", lane],
+                            stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL,
+                            cwd="/etl", start_new_session=True, env=worker_env,
+                        ), lane)
+                        have[lane] = have.get(lane, 0) + 1
 
             time.sleep(POLL_SECONDS)
 
-        for p in procs.values():
+        for entry in procs.values():
             try:
-                p.terminate()
+                entry[0].terminate()
             except Exception:
                 pass
-        for p in procs.values():
+        for entry in procs.values():
             try:
-                p.wait(timeout=10)
+                entry[0].wait(timeout=10)
             except Exception:
                 pass
 

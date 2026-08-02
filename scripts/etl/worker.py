@@ -142,11 +142,11 @@ def _run_unit(conn, run_id: str, claim: dict, token: str,
     return (_parse_outcome(stdout, stderr, proc.returncode), True)
 
 
-def run_worker(run_id: str, worker_tag: str) -> int:
+def run_worker(run_id: str, worker_tag: str, lane: str = "small") -> int:
     conn = get_connection()
     token = claims.register_lease(conn, run_id)
     started = time.monotonic()
-    _log_line(worker_tag, f"lease {token[:8]} up on run {run_id[:8]}")
+    _log_line(worker_tag, f"lease {token[:8]} up on run {run_id[:8]} (lane={lane})")
 
     try:
         while True:
@@ -159,7 +159,7 @@ def run_worker(run_id: str, worker_tag: str) -> int:
             if ctl["status"] != "running" or ctl["halt"] or ctl["paused"]:
                 break
 
-            claim = claims.claim_next(conn, run_id, ctl["phase"], token)
+            claim = claims.claim_next(conn, run_id, ctl["phase"], token, lane=lane)
             if claim is None:
                 # This phase is drained for us; wait for the pump to advance
                 # (or for peers to open review work). Heartbeat while idle.
@@ -196,12 +196,13 @@ def main() -> int:
     ap = argparse.ArgumentParser()
     ap.add_argument("--run", required=True)
     ap.add_argument("--tag", default="w")
+    ap.add_argument("--lane", default="small", choices=["small", "big"])
     args = ap.parse_args()
 
     signal.signal(signal.SIGTERM, lambda *_: _STOP.update(v=True))
     signal.signal(signal.SIGINT, lambda *_: _STOP.update(v=True))
 
-    return run_worker(args.run, args.tag)
+    return run_worker(args.run, args.tag, args.lane)
 
 
 if __name__ == "__main__":

@@ -58,54 +58,22 @@ def kind_cap(kind: str) -> int | None:
     return None
 
 
-# THE HEAVY LANE (2026-08-02, cgroup OOM kills at full field — AUTOSCALE
-# PARITY: AutoscaleClaims.HEAVY_TIER + heavyWorkerCap, the one cap the
-# autoscaler never retired). A giant boundary FILE costs Python-side memory
-# no chunk profile can shrink — the raw multi-hundred-MB feature string must
-# exist to be parsed — so ten concurrent monsters bust the etl cgroup and
-# the kernel reaps children (exit -9). At most ceil(20% of pool) workers may
-# hold a HEAVY boundary item at once; everyone else flows light work at full
-# width. DRAIN RULE (autoscale parity): when only heavy work remains, the
-# cap effectively opens because light claims return nothing and workers idle
-# only while the heavy slots are full — the tail still drains serially,
-# which is exactly the safe posture for monsters.
-_HEAVY_BYTES_DEFAULT = 48 * 1024 * 1024   # a file above ~48 MiB carries giant features
+# TWO-ENDED QUEUE (operator ruling 2026-08-02 — the mapper's exact shape:
+# AutoscaleClaims' bottom-up pool claims position ASC while the top-down
+# lane claims position DESC, ONE queue, no segmentation). The GENERAL lanes
+# (~80% of the pool) eat the pile SMALLEST → LARGEST; the BIG lanes (~20%)
+# eat it LARGEST → SMALLEST. All lanes stay busy at all times: the small end
+# flies through most countries while the giants get the maximum wall-clock
+# head start from the big end. Concurrent-monster count is bounded
+# structurally by the big-lane width — no thresholds, no drain special
+# cases. Big-lane width: ceil(20% of pool), CGA_ETL_BIG_LANES overrides.
 
 
-def heavy_bytes() -> int:
-    raw = os.environ.get("CGA_ETL_HEAVY_BYTES", "")
+def big_lane_count(pool: int) -> int:
+    raw = os.environ.get("CGA_ETL_BIG_LANES", "")
     if raw.isdigit() and int(raw) > 0:
-        return int(raw)
-    return _HEAVY_BYTES_DEFAULT
-
-
-def heavy_cap() -> int:
-    raw = os.environ.get("CGA_ETL_HEAVY_CAP", "")
-    if raw.isdigit() and int(raw) > 0:
-        return int(raw)
-    pool = int(os.environ.get("CGA_ETL_POOL_SIZE", "0") or 0)
-    if pool <= 0:
-        pool = 10
-    return max(1, -(-pool // 5))   # ceil(20% of pool) — 10 → 2
-
-
-def heavy_drain_cap() -> int:
-    """THE DRAIN RULE (autoscale parity, operator observation 2026-08-02:
-    'light is cleared, that should leave room for the big stuff'): when NO
-    light work remains pending, the heavy door widens — but memory-derived,
-    never flung open (ten concurrent giants IS the crash we already had).
-    One giant's Python residency ≈ its largest feature + batch, observed
-    ~300–600 MB; the drain cap funds ~one giant per 512 MiB of container
-    budget, floor = the normal cap. 1.9 GiB box → 3. Env-overridable."""
-    raw = os.environ.get("CGA_ETL_HEAVY_DRAIN_CAP", "")
-    if raw.isdigit() and int(raw) > 0:
-        return int(raw)
-    try:
-        from memory_budget import etl_budget_bytes
-        by_mem = int(etl_budget_bytes() // (512 * 1024 * 1024))
-    except Exception:
-        by_mem = 0
-    return max(heavy_cap(), by_mem)
+        return min(int(raw), max(1, pool - 1))
+    return max(1, -(-pool // 5))   # ceil(20%) — 10 → 2
 
 
 def get_active_run(conn) -> dict | None:
@@ -143,8 +111,13 @@ def run_control(conn, run_id: str) -> dict:
     return dict(row)
 
 
-def claim_next(conn, run_id: str, phase: str, token: str) -> dict | None:
-    """Claim the next pending item of the phase's kind, atomically, or None."""
+def claim_next(conn, run_id: str, phase: str, token: str,
+               lane: str = "small") -> dict | None:
+    """Claim the next pending item of the phase's kind, atomically, or None.
+
+    lane='small' (the general lanes) claims from the SMALL end of the pile
+    (est_cost ASC); lane='big' claims from the LARGE end (est_cost DESC).
+    One queue, two directions — the mapper's shape."""
     kind = PHASE_KIND.get(phase)
     if kind is None or kind == "acceptance_scan":
         # The acceptance scan is the ONE Laravel-side item (the pump dispatches
@@ -174,41 +147,10 @@ def claim_next(conn, run_id: str, phase: str, token: str) -> dict | None:
             if int(cur.fetchone()["n"]) >= cap:
                 return None
 
-        # Heavy lane (boundaries only — where the giant-file evidence is):
-        # when the heavy slots are full, this claim is restricted to LIGHT
-        # items; heavy items wait for a slot. DRAIN RULE: once no light work
-        # remains pending, the door widens to the memory-derived drain cap.
-        # Runs under the same advisory lock, so the counts can never race.
-        heavy_filter = ""
-        params_extra: tuple = ()
-        if kind == "boundary_iso":
-            hb = heavy_bytes()
-            cur.execute(
-                """
-                SELECT COUNT(*) AS n FROM geodata_items
-                 WHERE run_id = %s AND kind = %s AND status = 'running'
-                   AND est_cost > %s
-                """,
-                (run_id, kind, hb),
-            )
-            heavy_running = int(cur.fetchone()["n"])
-            cap = heavy_cap()
-            if heavy_running >= cap:
-                cur.execute(
-                    """
-                    SELECT 1 FROM geodata_items
-                     WHERE run_id = %s AND kind = %s AND status = 'pending'
-                       AND est_cost <= %s LIMIT 1
-                    """,
-                    (run_id, kind, hb),
-                )
-                light_pending = cur.fetchone() is not None
-                if not light_pending:
-                    cap = heavy_drain_cap()
-            if heavy_running >= cap:
-                heavy_filter = " AND est_cost <= %s"
-                params_extra = (hb,)
-
+        # Two-ended queue: general lanes take the smallest pending item, big
+        # lanes take the largest. SKIP LOCKED resolves the meeting point.
+        order = "est_cost DESC, position, id" if lane == "big" \
+            else "est_cost ASC, position, id"
         cur.execute(
             f"""
             UPDATE geodata_items
@@ -216,14 +158,14 @@ def claim_next(conn, run_id: str, phase: str, token: str) -> dict | None:
                    started_at = COALESCE(started_at, now()), updated_at = now()
              WHERE id = (
                    SELECT id FROM geodata_items
-                    WHERE run_id = %s AND status = 'pending' AND kind = %s{heavy_filter}
-                    ORDER BY position
+                    WHERE run_id = %s AND status = 'pending' AND kind = %s
+                    ORDER BY {order}
                     LIMIT 1
                     FOR UPDATE SKIP LOCKED
              )
          RETURNING id::text AS id, kind, iso_code, adm_level, dry_run
             """,
-            (token, run_id, kind) + params_extra,
+            (token, run_id, kind),
         )
         row = cur.fetchone()
     return dict(row) if row else None
