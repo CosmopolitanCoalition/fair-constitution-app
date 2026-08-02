@@ -118,10 +118,18 @@ def claim_next(conn, run_id: str, phase: str, token: str) -> dict | None:
         # never claim it: closing it here would skip the scan entirely.
         return None
 
-    # Memory governor: honor the per-kind concurrency cap before claiming.
+    # Memory governor, HARD since the 02:59 postgres OOM: the count-then-claim
+    # pair runs inside ONE transaction serialized by an advisory xact lock, so
+    # two workers can never both see a free slot (the soft cap collapsed under
+    # the 10-worker cold-start burst — all five monsters claimed at once and
+    # their concurrent giant-geometry inserts OOM-killed a PG backend at
+    # 2.4 GB anon-rss). Mirrors AutoscaleClaims::claimScope's heavy-lane
+    # gate. Serializing ALL claims is fine: a claim is milliseconds against
+    # minutes-to-hours of item work.
     cap = kind_cap(kind)
-    if cap is not None:
-        with get_cursor(conn) as cur:
+    with get_cursor(conn) as cur:
+        cur.execute("SELECT pg_advisory_xact_lock(hashtext('cga_geodata_claim'))")
+        if cap is not None:
             cur.execute(
                 """
                 SELECT COUNT(*) AS n FROM geodata_items
@@ -131,8 +139,6 @@ def claim_next(conn, run_id: str, phase: str, token: str) -> dict | None:
             )
             if int(cur.fetchone()["n"]) >= cap:
                 return None
-
-    with get_cursor(conn) as cur:
         cur.execute(
             """
             UPDATE geodata_items
