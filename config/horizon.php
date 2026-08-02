@@ -307,7 +307,11 @@ return [
                 'balanceCooldown' => 3,
             ],
             'supervisor-long-running' => [
-                'maxProcesses' => 1,
+                // Parallel acceptance scan (2026-08-02): environment blocks
+                // OVERRIDE defaults — this 1 masked the defaults width and
+                // ran the six detectors single-file. Keep in lockstep with
+                // the defaults expression.
+                'maxProcesses' => max(2, min(4, \App\Support\HostCapacity::autoscaleWorkers())),
             ],
             'supervisor-autoscale' => [
                 'maxProcesses' => \App\Support\HostCapacity::autoscaleWorkers(),
@@ -330,7 +334,8 @@ return [
                 'maxProcesses' => 3,
             ],
             'supervisor-long-running' => [
-                'maxProcesses' => 1,
+                // See production note — env blocks mask defaults.
+                'maxProcesses' => max(2, min(4, \App\Support\HostCapacity::autoscaleWorkers())),
             ],
             'supervisor-autoscale' => [
                 'maxProcesses' => \App\Support\HostCapacity::autoscaleWorkers(),
