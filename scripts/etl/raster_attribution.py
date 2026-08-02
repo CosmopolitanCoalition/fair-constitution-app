@@ -97,10 +97,12 @@ os.environ.setdefault("GDAL_CACHEMAX", "64")  # MB
 
 import numpy as np
 import rasterio
+import shapely
 import shapely.wkb
 from rasterio import features, transform as rio_transform, windows
 from scipy.spatial import cKDTree
 from shapely.geometry import box as shapely_box
+from shapely.ops import clip_by_rect
 from shapely.prepared import prep as shapely_prep
 
 try:
@@ -112,6 +114,74 @@ except Exception:
     # outside the ETL container). Conservative default chosen so a
     # bare invocation runs without OOM on a 2 GB host.
     DEFAULT_WINDOW_PX = 1024
+
+
+# ─── FAST GEOMETRY PATH (2026-08-02 — "coastlines stop being special") ───────
+# The live-run truth: WKB *bytes* were cached across windows, but every
+# window re-parsed (shapely.wkb.loads) and re-rasterized every bbox-relevant
+# polygon IN FULL — Nunavut's 5.4M vertices were parsed hundreds of times
+# per pair. Three exactness-preserving fixes (the operator's mapper lesson:
+# do the cheap thing on a temporary construction, keep exactness where it
+# matters — stored geometry is never touched, the render-simplification ban
+# does not apply to computation scaffolding):
+#   1. PARSE ONCE — parsed parts cached per polygon for the pair's lifetime.
+#   2. PART INDEX — a MultiPolygon's parts carry their own bounds; a window
+#      rasterizes only the parts whose bbox it touches (Nunavut is
+#      thousands of islands; a window sees a handful).
+#   3. CLIP MONSTER PARTS — a ring above CGA_T7_CLIP_MIN_COORDS is
+#      clip_by_rect'd to the window first, so the rasterizer walks the
+#      local coastline, not the continent. clip_by_rect is an exact
+#      rectangle clip: in-window coverage is identical.
+# Mask math is untouched: MultiPolygon parts have disjoint interiors, so
+# per-part burning under MergeAlg.add counts exactly as whole-polygon
+# burning; label/replace and per-piece overlap masks sum identically.
+# CGA_T7_FAST=0 restores the legacy path wholesale.
+_T7_FAST = os.environ.get("CGA_T7_FAST", "1") != "0"
+_CLIP_MIN_COORDS = int(os.environ.get("CGA_T7_CLIP_MIN_COORDS", "0") or 0) or 200_000
+_PART_CACHE: dict = {}   # key(-1 = L1, else polygon idx) → (parts, bounds, coord_counts)
+
+
+def _parts_entry(key: int, geom=None, wkb: bytes | None = None):
+    """Parse-once cache entry: (parts list, bounds (n,4) ndarray, coord counts)."""
+    got = _PART_CACHE.get(key)
+    if got is not None:
+        return got
+    if geom is None:
+        geom = shapely.wkb.loads(wkb)
+    if geom.is_empty:
+        entry = ([], np.zeros((0, 4), dtype=np.float64), [])
+    else:
+        parts = list(geom.geoms) if hasattr(geom, "geoms") else [geom]
+        bounds = np.array([p.bounds for p in parts], dtype=np.float64)
+        counts = [int(shapely.count_coordinates(p)) for p in parts]
+        entry = (parts, bounds, counts)
+    _PART_CACHE[key] = entry
+    return entry
+
+
+def _window_pieces(entry, wminx, wminy, wmaxx, wmaxy) -> list:
+    """The entry's parts that touch the window; monster parts clipped to it.
+    An unclipped part is always a correct fallback."""
+    parts, bounds, counts = entry
+    if not parts:
+        return []
+    hit = np.where(
+        (bounds[:, 2] >= wminx) & (bounds[:, 0] <= wmaxx) &
+        (bounds[:, 3] >= wminy) & (bounds[:, 1] <= wmaxy)
+    )[0]
+    pieces = []
+    for i in hit:
+        p = parts[int(i)]
+        if counts[int(i)] >= _CLIP_MIN_COORDS:
+            try:
+                c = clip_by_rect(p, wminx, wminy, wmaxx, wmaxy)
+                if not c.is_empty:
+                    pieces.append(c)
+                continue
+            except Exception:
+                pass
+        pieces.append(p)
+    return pieces
 
 
 def attribute(
@@ -380,37 +450,72 @@ def _process_window(
         )
         return
 
-    # Lazy fetch: load WKB only for the polygons we actually need.
-    geom_wkbs = get_geoms(relevant_idxs.tolist())
+    if _T7_FAST:
+        # FAST path: fetch WKB only for polygons not yet parsed; window-
+        # select cached parts; clip monster rings to the window. Labels
+        # stay the ORIGINAL 1-based polygon indices, piece-wise.
+        need = [int(i) for i in relevant_idxs if int(i) not in _PART_CACHE]
+        geom_wkbs = get_geoms(need) if need else {}
+        claim_shapes = [(pc, 1) for pc in _window_pieces(
+            _parts_entry(-1, geom=l1_geom),
+            win_minx, win_miny, win_maxx, win_maxy)]
+        count_shapes: list = []
+        label_shapes: list = []
+        for idx in relevant_idxs:
+            i = int(idx)
+            entry = _PART_CACHE.get(i)
+            if entry is None:
+                wkb = geom_wkbs.get(i)
+                if wkb is None:
+                    continue
+                try:
+                    entry = _parts_entry(i, wkb=wkb)
+                except Exception as exc:
+                    log.debug("  bad WKB for idx %d: %s", i, exc)
+                    continue
+            for pc in _window_pieces(entry, win_minx, win_miny,
+                                     win_maxx, win_maxy):
+                claim_shapes.append((pc, 1))
+                count_shapes.append((pc, 1))
+                label_shapes.append((pc, i + 1))
+        if not count_shapes:
+            _attribute_gaps_only(
+                pop, l1_geom, transform, out_shape, centroid_tree,
+                totals, log,
+            )
+            return
+    else:
+        # Lazy fetch: load WKB only for the polygons we actually need.
+        geom_wkbs = get_geoms(relevant_idxs.tolist())
 
-    # Parse WKBs to shapely geoms. Build the rasterize shape lists with
-    # ORIGINAL 1-based polygon indices as labels — keeps `totals` in
-    # sync across windows that see different polygon subsets.
-    relevant_polys: list = []
-    relevant_idx_list: list[int] = []
-    for idx in relevant_idxs:
-        wkb = geom_wkbs.get(int(idx))
-        if wkb is None:
-            continue
-        try:
-            g = shapely.wkb.loads(wkb)
-            if not g.is_empty:
-                relevant_polys.append(g)
-                relevant_idx_list.append(int(idx))
-        except Exception as exc:
-            log.debug("  bad WKB for idx %d: %s", idx, exc)
+        # Parse WKBs to shapely geoms. Build the rasterize shape lists with
+        # ORIGINAL 1-based polygon indices as labels — keeps `totals` in
+        # sync across windows that see different polygon subsets.
+        relevant_polys: list = []
+        relevant_idx_list: list[int] = []
+        for idx in relevant_idxs:
+            wkb = geom_wkbs.get(int(idx))
+            if wkb is None:
+                continue
+            try:
+                g = shapely.wkb.loads(wkb)
+                if not g.is_empty:
+                    relevant_polys.append(g)
+                    relevant_idx_list.append(int(idx))
+            except Exception as exc:
+                log.debug("  bad WKB for idx %d: %s", idx, exc)
 
-    if not relevant_polys:
-        _attribute_gaps_only(
-            pop, l1_geom, transform, out_shape, centroid_tree,
-            totals, log,
-        )
-        return
+        if not relevant_polys:
+            _attribute_gaps_only(
+                pop, l1_geom, transform, out_shape, centroid_tree,
+                totals, log,
+            )
+            return
 
-    claim_shapes = [(l1_geom, 1)] + [(g, 1) for g in relevant_polys]
-    count_shapes = [(g, 1) for g in relevant_polys]
-    label_shapes = [(g, relevant_idx_list[k] + 1)
-                    for k, g in enumerate(relevant_polys)]
+        claim_shapes = [(l1_geom, 1)] + [(g, 1) for g in relevant_polys]
+        count_shapes = [(g, 1) for g in relevant_polys]
+        label_shapes = [(g, relevant_idx_list[k] + 1)
+                        for k, g in enumerate(relevant_polys)]
 
     try:
         claim_mask = features.rasterize(
@@ -472,9 +577,20 @@ def _attribute_gaps_only(
 ) -> None:
     """Handle windows where no L-polygon's bbox overlaps. Any pop pixel
     inside L=1 is a gap — attribute to nearest centroid globally."""
+    if _T7_FAST:
+        wminx = transform.c
+        wmaxy = transform.f
+        wmaxx = wminx + transform.a * out_shape[1]
+        wminy = wmaxy + transform.e * out_shape[0]
+        l1_shapes = [(pc, 1) for pc in _window_pieces(
+            _parts_entry(-1, geom=l1_geom), wminx, wminy, wmaxx, wmaxy)]
+        if not l1_shapes:
+            return
+    else:
+        l1_shapes = [(l1_geom, 1)]
     try:
         claim_mask = features.rasterize(
-            [(l1_geom, 1)], out_shape=out_shape, transform=transform,
+            l1_shapes, out_shape=out_shape, transform=transform,
             merge_alg=features.MergeAlg.replace, dtype=np.uint8,
             fill=0, all_touched=False,
         )

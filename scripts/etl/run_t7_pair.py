@@ -38,6 +38,7 @@ from __future__ import annotations
 
 import json
 import logging
+import os
 import sys
 import time
 import traceback
@@ -225,6 +226,16 @@ def main(iso: str, level: int, apply_to_db: bool) -> int:
             )
             attr_elapsed = time.monotonic() - attr_start
             post_sum = sum(attr_results.values())
+
+            # Bench/verification hook: dump per-jurisdiction results so an
+            # A/B run can prove per-ID exactness, not just total equality.
+            _dump = os.environ.get("CGA_T7_DUMP_RESULTS", "")
+            if _dump:
+                try:
+                    with open(_dump, "w") as fh:
+                        json.dump({k: int(v) for k, v in sorted(attr_results.items())}, fh)
+                except Exception:
+                    pass
             post_dev = post_sum - l1_pop
 
             if l1_pop > 0:
