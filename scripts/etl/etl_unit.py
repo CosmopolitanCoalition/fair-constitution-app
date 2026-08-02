@@ -210,7 +210,8 @@ def do_boundary(conn, run_id: str, iso: str, options: dict,
         expected = {int(r["adm_level"]): int(r["n"]) for r in cur.fetchall()}
 
     total_inserted = 0
-    token = f"coord-{os.getpid()}"
+    import uuid as _uuid
+    token = str(_uuid.uuid4())   # claim_token column is uuid-typed
 
     for file_lvl in range(6):
         if adm_filter is not None and file_lvl not in adm_filter:
@@ -235,30 +236,47 @@ def do_boundary(conn, run_id: str, iso: str, options: dict,
             # mid-run) parallelizes its remainder without ever touching the
             # already-inserted prefix or its slug scheme. ──
             n_ranges = -(-remaining // range_size)
-            log.info("%s ADM%d: SPLIT — %d of %d features remain → %d ranges of %d "
-                     "(prefix %d already in DB)",
-                     iso, file_lvl, remaining, exp, n_ranges, range_size, already)
-            rows = [
-                ("boundary_range", iso, file_lvl,
-                 min(range_size, remaining - i * range_size),
-                 json.dumps({"start": already + i * range_size,
-                             "count": min(range_size, remaining - i * range_size)}))
-                for i in range(n_ranges)
-            ]
-            import psycopg2.extras
+            # Idempotent re-entry: a requeued coordinator whose ranges already
+            # exist (any status) must NOT enumerate a second set — it goes
+            # straight to participate + barrier over the existing ones.
             with get_cursor(conn) as cur:
-                psycopg2.extras.execute_values(
-                    cur,
+                cur.execute(
                     """
-                    INSERT INTO geodata_items
-                        (run_id, kind, iso_code, adm_level, status, position,
-                         est_cost, metrics, created_at, updated_at)
-                    VALUES %s
+                    SELECT COUNT(*) AS n FROM geodata_items
+                     WHERE run_id = %s AND kind = 'boundary_range'
+                       AND iso_code = %s AND adm_level = %s
                     """,
-                    [(run_id, k, i2, l2, "pending", idx * range_size, c2, m2)
-                     for idx, (k, i2, l2, c2, m2) in enumerate(rows)],
-                    template="(%s,%s,%s,%s,%s,%s,%s,%s::jsonb,now(),now())",
+                    (run_id, iso, file_lvl),
                 )
+                ranges_exist = int(cur.fetchone()["n"]) > 0
+            if ranges_exist:
+                log.info("%s ADM%d: ranges already enumerated — resuming barrier",
+                         iso, file_lvl)
+            else:
+                log.info("%s ADM%d: SPLIT — %d of %d features remain → %d ranges of %d "
+                         "(prefix %d already in DB)",
+                         iso, file_lvl, remaining, exp, n_ranges, range_size, already)
+                rows = [
+                    ("boundary_range", iso, file_lvl,
+                     min(range_size, remaining - i * range_size),
+                     json.dumps({"start": already + i * range_size,
+                                 "count": min(range_size, remaining - i * range_size)}))
+                    for i in range(n_ranges)
+                ]
+                import psycopg2.extras
+                with get_cursor(conn) as cur:
+                    psycopg2.extras.execute_values(
+                        cur,
+                        """
+                        INSERT INTO geodata_items
+                            (run_id, kind, iso_code, adm_level, status, position,
+                             est_cost, metrics, created_at, updated_at)
+                        VALUES %s
+                        """,
+                        [(run_id, k, i2, l2, "pending", idx * range_size, c2, m2)
+                         for idx, (k, i2, l2, c2, m2) in enumerate(rows)],
+                        template="(%s,%s,%s,%s,%s,%s,%s,%s::jsonb,now(),now())",
+                    )
 
             # Participate: claim own ranges alongside every free lane.
             while True:

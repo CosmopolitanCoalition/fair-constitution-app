@@ -1718,6 +1718,29 @@ def process_geojson_file(
                 skip_n_resume = int(_row["n"]) if _row else 0
         except Exception:
             skip_n_resume = 0
+        # THE GIANT-PARSE GATE (2026-08-02, six kernel OOM kills across two
+        # generations): a Nunavut-class feature costs hundreds of MB as a
+        # parsed Python dict PLUS its re-serialized JSON string — BEFORE the
+        # insert gate ever engages. Three such parses concurrently bust the
+        # etl cgroup no matter how the inserts are serialized. The metadata
+        # CSV already knows which levels carry monsters (max_vertices), so a
+        # level above the threshold takes a SESSION advisory lock for its
+        # whole file pass: one giant-feature PARSE in the container at a
+        # time — the legacy single-threaded condition, applied only where
+        # the geometry demands it. Light levels never touch the lock.
+        _giant_parse_locked = False
+        try:
+            _mv = int(float(meta_row.get("maxVertices") or 0))
+        except (TypeError, ValueError):
+            _mv = 0
+        _mv_thresh = int(os.environ.get("CGA_ETL_GIANT_VERTICES", "0") or 0) or 1_000_000
+        if _mv >= _mv_thresh:
+            log.info("%s ADM%d: giant-parse gate — max_vertices=%s, serializing this level",
+                     iso3, adm_n, f"{_mv:,}")
+            with get_cursor(conn) as _cur:
+                _cur.execute("SELECT pg_advisory_lock(hashtext('cga_giant_parse'))")
+            _giant_parse_locked = True
+
         # Range window: replaces the DB-count resume skip entirely (range
         # re-runs are idempotent through their deterministic slugs).
         _win = _RANGE_WINDOW
@@ -1934,6 +1957,14 @@ def process_geojson_file(
             )
 
     finally:
+        # Release the giant-parse gate before the connection drops (a session
+        # advisory lock also dies with the connection, but explicit is honest).
+        if _giant_parse_locked:
+            try:
+                with get_cursor(conn) as _cur:
+                    _cur.execute("SELECT pg_advisory_unlock(hashtext('cga_giant_parse'))")
+            except Exception:
+                pass  # connection death releases session locks anyway
         conn.close()
 
     # Mark progress
