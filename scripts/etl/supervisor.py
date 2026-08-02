@@ -408,7 +408,130 @@ def clear_stale_pause_markers() -> None:
         _write_bars_json(state)
 
 
+def default_worker_count() -> int:
+    """CGA_ETL_WORKERS, else min(cores-2, 12) — the attribution phase is
+    CPU-bound so this dial matters (GEODATA_PULL_ENGINE_PLAN.md §7)."""
+    override = os.environ.get("CGA_ETL_WORKERS")
+    if override and override.isdigit() and int(override) > 0:
+        return int(override)
+    cores = os.cpu_count() or 4
+    return max(1, min(cores - 2, 12))
+
+
+def run_pool_mode(request_payload: dict) -> int:
+    """Geodata pull engine (GEODATA_PULL_ENGINE_PLAN.md §4): maintain a pool of
+    worker.py processes for the active geodata_runs row until it reaches a
+    terminal state. Laravel created the run + the manifest item and advances
+    phases + completes via geodata:pump; this only keeps the workers topped up
+    and honors halt/pause (target → 0). One run at a time, same as legacy."""
+    import claims
+    from db import get_connection, get_cursor
+
+    n_workers  = default_worker_count()
+    started_at = now_iso()
+    log_fh = LOG_FILE.open("a", buffering=1)
+    log_fh.write(f"\n==== ETL pull-engine run started at {started_at} (workers={n_workers}) ====\n")
+    log_fh.flush()
+
+    conn = get_connection()
+    try:
+        run = claims.get_active_run(conn)
+        for _ in range(30):
+            if run is not None:
+                break
+            time.sleep(2)
+            run = claims.get_active_run(conn)
+        if run is None:
+            log_fh.write("[supervisor] no active geodata_runs row — aborting pool mode.\n")
+            log_fh.close()
+            write_atomic(FAILED, {"started_at": started_at, "finished_at": now_iso(),
+                                  "error": "no active geodata run", "request": request_payload})
+            return 1
+
+        run_id = run["id"]
+        write_atomic(RUNNING, {"pid": os.getpid(), "started_at": started_at, "mode": "pull",
+                               "run_id": run_id, "request": request_payload, "paused": False})
+        log_fh.write(f"[supervisor] pool mode on run {run_id} (target {n_workers} workers)\n")
+        log_fh.flush()
+
+        procs: dict[str, subprocess.Popen] = {}
+        tag_seq = 0
+        final_status = "failed"
+
+        while True:
+            # Bridge the legacy HALT control file to the DB flag (the setup
+            # control endpoint sets the flag directly for pull runs; this covers
+            # a file written by any other path).
+            if HALT.exists():
+                try:
+                    HALT.unlink(missing_ok=True)
+                except OSError:
+                    pass
+                with get_cursor(conn) as cur:
+                    cur.execute("UPDATE geodata_runs SET halt_requested_at = now() WHERE id = %s", (run_id,))
+
+            ctl = claims.run_control(conn, run_id)
+            status = ctl["status"]
+            if status in ("done", "failed", "gone"):
+                final_status = "done" if status == "done" else "failed"
+                break
+
+            for tag, p in list(procs.items()):
+                if p.poll() is not None:
+                    del procs[tag]
+
+            target = n_workers if (status == "running" and not ctl["paused"] and not ctl["halt"]) else 0
+            # Shed surplus on halt/pause — workers stop at their next boundary.
+            for tag in list(procs.keys())[target:]:
+                try:
+                    procs[tag].terminate()
+                except Exception:
+                    pass
+            while len(procs) < target:
+                tag_seq += 1
+                tag = f"w{tag_seq}"
+                procs[tag] = subprocess.Popen(
+                    ["python3", "/etl/worker.py", "--run", run_id, "--tag", tag],
+                    stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL,
+                    cwd="/etl", start_new_session=True,
+                )
+
+            time.sleep(POLL_SECONDS)
+
+        for p in procs.values():
+            try:
+                p.terminate()
+            except Exception:
+                pass
+        for p in procs.values():
+            try:
+                p.wait(timeout=10)
+            except Exception:
+                pass
+
+        finished_at = now_iso()
+        log_fh.write(f"==== ETL pull-engine run finished at {finished_at} ({final_status}) ====\n")
+        log_fh.close()
+        write_atomic(DONE if final_status == "done" else FAILED, {
+            "started_at": started_at, "finished_at": finished_at,
+            "mode": "pull", "run_id": run_id, "request": request_payload,
+        })
+        for p in (RUNNING, CURRENT):
+            try:
+                p.unlink(missing_ok=True)
+            except OSError:
+                pass
+        return 0 if final_status == "done" else 1
+    finally:
+        conn.close()
+
+
 def run_job(request_payload: dict) -> int:
+    # Geodata pull engine: a "pull" request maintains a worker pool for the run
+    # Laravel already created; the legacy single-threaded seed path is below.
+    if request_payload.get("mode") == "pull":
+        return run_pool_mode(request_payload)
+
     options = request_payload.get("options") or {}
     source  = request_payload.get("source")
 

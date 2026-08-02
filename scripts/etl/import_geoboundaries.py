@@ -1910,6 +1910,14 @@ def import_geoboundaries(
     save_progress_fn=None,
     # Legacy alias kept for backwards compatibility — promoted to the new flag.
     stop_on_exception: bool = False,
+    # Geodata pull engine (GEODATA_PULL_ENGINE_PLAN.md §4): split the per-iso
+    # boundary work from the run-once global passes so they claim as separate
+    # items. no_global_passes → a boundary_iso item (Earth insert stays; it is
+    # idempotent via ON CONFLICT; the post-pass is deferred). global_passes_only
+    # → the resolve_global barrier (skip the per-file loop; run only the
+    # post-pass). Both default False, so the legacy CLI path is unchanged.
+    no_global_passes: bool = False,
+    global_passes_only: bool = False,
 ) -> int:
     """
     Import geoBoundaries data into the jurisdictions table.
@@ -1940,6 +1948,12 @@ def import_geoboundaries(
         progress = {}
 
     levels_to_process = set(adm_levels) if adm_levels is not None else set(range(6))
+
+    # resolve_global barrier: run ONLY the post-pass — no per-file boundary
+    # work (Earth insert below still runs, idempotently, to hand the post-pass
+    # its earth_uuid).
+    if global_passes_only:
+        levels_to_process = set()
 
     # ── Discover all available files from the filesystem ──
     # This is the authoritative source — the meta CSV is incomplete.
@@ -2391,6 +2405,14 @@ def import_geoboundaries(
         heartbeat.bar_complete(gb_bar_key, current=expected_total)
 
     log.info("import_geoboundaries: %d total jurisdictions inserted (pre-post-pass)", total_inserted)
+
+    # Per-iso boundary items (pull engine) defer the global passes to the
+    # resolve_global barrier — they run ONCE, after every iso is in the DB, so
+    # the cross-iso topological rescues see the complete hierarchy.
+    if no_global_passes:
+        log.info("import_geoboundaries (per-iso) complete: %d jurisdictions inserted "
+                 "(global passes deferred to the resolve barrier)", total_inserted)
+        return total_inserted
 
     # ── Phase J post-pass: synthesize missing country rows + re-resolve orphans
     # via the strategy ladder. Runs once at the end of the full import (not
