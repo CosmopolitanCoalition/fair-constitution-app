@@ -106,12 +106,38 @@ const GROUPS = [
 ]
 
 // Flat phase list in pipeline order (the per-kind bars iterate this).
-// Boundaries and rasters are EXCLUDED from the bar list (operator,
-// 2026-08-03): "Jurisdictions loaded" and "Parent chains" above carry far
-// more detail than the coarse 232/232 item counts did. Review/failed items
-// for those kinds still surface in the NEEDS REVIEW list.
 const ALL_PHASES = GROUPS.flat()
-const BAR_PHASES = ALL_PHASES.filter(p => !['boundary_iso', 'raster_iso'].includes(p.kind))
+
+// WHICH BARS EARN THEIR ROW (operator, 2026-08-03 — "bring back the bars
+// you took away, you took away the wrong ones"). I had dropped Boundaries
+// and Rasters, which carry real counts (232/232, 229/229), and kept the
+// single-item barriers that only ever read 0/1 or 1/1 and say nothing.
+//
+// The rule is now the count itself: a bar appears when its family holds
+// more than one item. Barriers stay hidden until they fan out — Resolve is
+// 0/1 as a coordinator but 232 per-country children once it does, and that
+// is the bar worth showing, so each phase prefers the FAMILY MEMBER WITH
+// THE MOST ITEMS.
+const FAMILY_OF = {
+    boundary_iso:     ['boundary_iso', 'boundary_range'],
+    raster_iso:       ['raster_iso', 'raster_range'],
+    resolve_global:   ['resolve_range', 'resolve_global'],
+    attribution_pair: ['attribution_pair', 'attribution_range'],
+}
+
+const BAR_ROWS = computed(() => {
+    const rows = []
+    for (const p of ALL_PHASES) {
+        const kinds = FAMILY_OF[p.kind] ?? [p.kind]
+        let best = null
+        for (const k of kinds) {
+            const l = layerByKind.value[k]
+            if (l && (best === null || Number(l.total) > Number(best.total))) best = l
+        }
+        if (best && Number(best.total) > 1) rows.push({ phase: p, layer: best })
+    }
+    return rows
+})
 
 // A bubble is current if any of its phases is, done only when all are.
 function groupState(group) {
@@ -362,25 +388,23 @@ onBeforeUnmount(() => {
 
         <!-- Per-kind progress bars -->
         <div class="space-y-2.5 mb-5">
-            <div v-for="p in BAR_PHASES" :key="p.kind">
-                <template v-if="layerByKind[p.kind]">
-                    <div class="flex justify-between text-xs mb-1">
-                        <span class="text-gray-300">{{ p.label }}</span>
-                        <span class="text-gray-400 tabular-nums">
-                            {{ (layerByKind[p.kind].total - layerByKind[p.kind].open).toLocaleString() }}
-                            / {{ layerByKind[p.kind].total.toLocaleString() }}
-                            <span v-if="Number(layerByKind[p.kind].review)" class="text-amber-400"> · {{ layerByKind[p.kind].review }} review</span>
-                            <span v-if="Number(layerByKind[p.kind].failed)" class="text-red-400"> · {{ layerByKind[p.kind].failed }} failed</span>
-                        </span>
-                    </div>
-                    <div class="h-2 bg-gray-800 rounded overflow-hidden">
-                        <div
-                            class="h-full rounded transition-all duration-500"
-                            :class="chipState(p) === 'current' ? 'bg-sky-500' : 'bg-emerald-600'"
-                            :style="{ width: pct(layerByKind[p.kind]) + '%' }"
-                        />
-                    </div>
-                </template>
+            <div v-for="row in BAR_ROWS" :key="row.phase.key">
+                <div class="flex justify-between text-xs mb-1">
+                    <span class="text-gray-300">{{ row.phase.label }}</span>
+                    <span class="text-gray-400 tabular-nums">
+                        {{ (row.layer.total - row.layer.open).toLocaleString() }}
+                        / {{ row.layer.total.toLocaleString() }}
+                        <span v-if="Number(row.layer.review)" class="text-amber-400"> · {{ row.layer.review }} review</span>
+                        <span v-if="Number(row.layer.failed)" class="text-red-400"> · {{ row.layer.failed }} failed</span>
+                    </span>
+                </div>
+                <div class="h-2 bg-gray-800 rounded overflow-hidden">
+                    <div
+                        class="h-full rounded transition-all duration-500"
+                        :class="chipState(row.phase) === 'current' ? 'bg-sky-500' : 'bg-emerald-600'"
+                        :style="{ width: pct(row.layer) + '%' }"
+                    />
+                </div>
             </div>
         </div>
 
