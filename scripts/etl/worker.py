@@ -99,11 +99,25 @@ def _run_unit(conn, run_id: str, claim: dict, token: str,
         # is funded as one merged pool regardless of which kind each child
         # actually is. Falls back to claim["kind"] alone if phase is
         # unknown (keeps old behavior for any caller that doesn't pass it).
+        #
+        # INCLUDING RANGE CHILDREN (2026-08-03 — the CAN boundary and USA
+        # raster exit -9s of this morning's fresh run). Parents-only was the
+        # claimable-closure bug: _attempt_claim hands out *_range items from
+        # the same pile, so at a phase TAIL the parent count collapses while
+        # several range children are still live — each freshly-spawned child
+        # then gets a near-full slice, the co-resident sum blows past the
+        # cgroup, and the kernel kills the fattest (Nunavut's 5.39M-vertex
+        # parse; USA's band 200+46 load). The denominator is the closure of
+        # what a lane can actually be RUNNING, or it is fiction.
+        _FAMILY = {"boundary_iso":  ("boundary_iso", "boundary_range"),
+                   "raster_iso":    ("raster_iso", "raster_range"),
+                   "attribution_pair": ("attribution_pair", "attribution_range")}
         if phase is not None:
-            denom_kinds = tuple({claims.PHASE_KIND.get(phase, claim["kind"]),
-                                  *claims.PHASE_FALLTHROUGH.get(phase, ())})
+            seeds = (claims.PHASE_KIND.get(phase, claim["kind"]),
+                     *claims.PHASE_FALLTHROUGH.get(phase, ()))
         else:
-            denom_kinds = (claim["kind"],)
+            seeds = (claim["kind"],)
+        denom_kinds = tuple({k for s in seeds for k in _FAMILY.get(s, (s,))})
         with get_cursor(conn) as cur:
             cur.execute(
                 """
