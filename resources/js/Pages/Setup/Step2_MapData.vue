@@ -875,8 +875,8 @@ onBeforeUnmount(() => {
                             <div class="text-white font-semibold text-sm">Download from official sources</div>
                             <div class="text-gray-400 text-xs mt-1">
                                 Fetch the open datasets straight from their official repos, then ingest.
-                                Country scope is optional — leave it empty (in Run Options below) to
-                                download <strong>all countries</strong>.
+                                Fetches <strong>all countries</strong> — the full-world
+                                archive the multithreaded engine ingests.
                             </div>
 
                             <div v-if="source === 'download'" class="mt-3 space-y-3">
@@ -1011,85 +1011,37 @@ onBeforeUnmount(() => {
                 </div>
             </section>
 
-            <!-- Run Options -->
+            <!-- Run Options retired (operator, 2026-08-03): the multithreaded
+                 pull engine is the only ingestion path — the legacy
+                 single-threaded engine, its purge/skip/pause dials, and the
+                 country scope are no longer offered. The Start button lives
+                 with the stats it starts. -->
             <section class="bg-gray-900 border border-gray-800 rounded-lg p-6 mb-6">
-                <h2 class="text-white font-semibold mb-4">2. Run Options</h2>
-
-                <!-- Ingestion engine (hidden for downloads — those stay legacy) -->
-                <div v-if="source !== 'download'" class="mb-4 grid grid-cols-1 md:grid-cols-2 gap-3 text-sm">
-                    <label class="flex items-start gap-2 rounded border p-3 cursor-pointer"
-                           :class="engine === 'pull' ? 'border-sky-700 bg-sky-950/30' : 'border-gray-800'">
-                        <input type="radio" value="pull" v-model="engine" class="mt-1" :disabled="runOptionsDisabled" />
-                        <span>
-                            <span class="text-white font-semibold text-sm block">Multithreaded (recommended)</span>
-                            <span class="text-gray-400 text-xs">
-                                A pool of workers ingests countries in parallel — live per-worker view,
-                                halt/resume, incremental commits. Failures flag for review, never sink the run.
-                            </span>
-                        </span>
-                    </label>
-                    <label class="flex items-start gap-2 rounded border p-3 cursor-pointer"
-                           :class="engine === 'legacy' ? 'border-sky-700 bg-sky-950/30' : 'border-gray-800'">
-                        <input type="radio" value="legacy" v-model="engine" class="mt-1" :disabled="runOptionsDisabled" />
-                        <span>
-                            <span class="text-white font-semibold text-sm block">Legacy single-threaded</span>
-                            <span class="text-gray-400 text-xs">
-                                The original sequential pipeline. Slower on a full world, but supports
-                                Fresh purge, skip-population, and pause-on-exception.
-                            </span>
-                        </span>
-                    </label>
-                </div>
-
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-3 text-sm">
-                    <label class="flex items-center gap-2" :class="enginePull ? 'text-gray-600' : 'text-gray-200'">
-                        <input type="checkbox" v-model="optFresh" :disabled="runOptionsDisabled || enginePull" />
-                        <span>Fresh (purge existing rows first)<span v-if="enginePull" class="text-xs text-gray-600"> — legacy engine only</span></span>
-                    </label>
-                    <label class="flex items-center gap-2" :class="enginePull ? 'text-gray-600' : 'text-gray-200'">
-                        <input type="checkbox" v-model="optSkipPopulation" :disabled="runOptionsDisabled || enginePull" />
-                        <span>Skip Phase 2 (Population)<span v-if="enginePull" class="text-xs text-gray-600"> — legacy engine only</span></span>
-                    </label>
-                    <label class="flex items-start gap-2" :class="enginePull ? 'text-gray-600' : 'text-gray-400'">
-                        <input type="checkbox" v-model="optPauseOnException" :disabled="runOptionsDisabled || enginePull" class="mt-1" />
-                        <span>
-                            Pause on first exception
-                            <span class="block text-xs text-gray-500 italic">
-                                When any country errors, pause the run and let you skip that country,
-                                retry, or abort. Without this, the run logs the error and continues.
-                            </span>
-                        </span>
-                    </label>
-                    <label class="flex items-center gap-2 text-gray-200">
-                        <span>
-                            Countries (ISO3, comma-separated; empty = all<template v-if="source === 'download'">, a full-world download</template>):
-                        </span>
-                        <input
-                            type="text"
-                            v-model="optCountries"
-                            placeholder="NZL,USA"
-                            class="flex-1 bg-gray-950 border rounded px-2 py-1 font-mono text-xs text-gray-100"
-                            :class="source === 'download' && parsedCountries.length === 0 ? 'border-amber-600' : 'border-gray-800'"
+                <div class="flex items-center justify-between gap-3">
+                    <div>
+                        <h2 class="text-white font-semibold">2. Ingestion</h2>
+                        <p class="text-gray-400 text-xs mt-1">
+                            Multithreaded pull engine — a pool of workers ingests countries in
+                            parallel with live per-worker view, halt/resume, and incremental
+                            commits. Failures flag for review; they never sink the run.
+                        </p>
+                    </div>
+                    <div class="flex items-center gap-3 shrink-0">
+                        <span v-if="submitError" class="text-red-400 text-sm">{{ submitError }}</span>
+                        <button
+                            type="button"
+                            @click="submitRun"
                             :disabled="runOptionsDisabled"
-                        />
-                    </label>
+                            class="bg-blue-600 hover:bg-blue-500 disabled:bg-gray-700 text-white px-5 py-2 rounded-md font-semibold transition-colors"
+                        >
+                            {{ startButtonLabel }}
+                        </button>
+                    </div>
                 </div>
 
-                <div class="mt-4 flex items-center gap-3">
-                    <button
-                        type="button"
-                        @click="submitRun"
-                        :disabled="runOptionsDisabled"
-                        class="bg-blue-600 hover:bg-blue-500 disabled:bg-gray-700 text-white px-5 py-2 rounded-md font-semibold transition-colors"
-                    >
-                        {{ startButtonLabel }}
-                    </button>
-                    <span v-if="submitError" class="text-red-400 text-sm">{{ submitError }}</span>
-                </div>
+                <!-- Pull-engine dashboard (renders only when a pull run exists) -->
+                <GeodataPullPanel ref="pullPanel" class="mt-5" @run-state="pullRun = $event" />
             </section>
-
-            <!-- Pull-engine dashboard (renders only when a pull run exists) -->
-            <GeodataPullPanel ref="pullPanel" @run-state="pullRun = $event" />
 
             <!-- Live Progress (legacy single-threaded runs; hidden while a
                  pull run is active — the pull panel above is that run's truth) -->
