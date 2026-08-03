@@ -62,9 +62,51 @@ def fetch_l1_geom(conn, iso: str) -> bytes | None:
         return bytes(row["wkb"])
 
 
-def fetch_level_polygon_meta(conn, iso: str, level: int):
+def fetch_level_claim_extent(conn, iso: str, level: int):
+    """The union bbox of every polygon at (iso, level), as ONE aggregate row.
+
+    Exists so a window SLICE can derive the pair's claim bounds without
+    materialising the whole level's metadata (2026-08-03: an IND L6 slice
+    loaded all 649,771 villages just to learn the country's extent — 676 MB
+    resident per slice, which capped attribution at ONE concurrent slice and
+    made the feature-swarm path serial. ETL paradigm law 5: a slice needs
+    the features in its own band, nothing else).
+
+    MIN(ST_XMin(geom)) in float8, NOT ST_Extent: box2d is float4-backed, so
+    its corners round away from the per-row float8 values the full-metadata
+    path uses — and the window sequence numbering is derived from these
+    bounds, so a rounded corner would shift the grid and every slice would
+    compute the WRONG windows. This form is bit-identical to the min/max
+    NumPy reduction in claim_bounds_for()."""
     with get_cursor(conn) as cur:
         cur.execute("""
+            SELECT MIN(ST_XMin(geom))::float8 AS minx,
+                   MIN(ST_YMin(geom))::float8 AS miny,
+                   MAX(ST_XMax(geom))::float8 AS maxx,
+                   MAX(ST_YMax(geom))::float8 AS maxy
+            FROM   jurisdictions
+            WHERE  iso_code = %s AND adm_level = %s AND deleted_at IS NULL
+        """, (iso, level))
+        r = cur.fetchone()
+    if not r or r["minx"] is None:
+        return None
+    return (float(r["minx"]), float(r["miny"]),
+            float(r["maxx"]), float(r["maxy"]))
+
+
+def fetch_level_polygon_meta(conn, iso: str, level: int, bbox=None):
+    """Metadata for the level's polygons. bbox=(minx,miny,maxx,maxy) narrows
+    it to the features a window slice can actually touch — see
+    fetch_level_claim_extent for why. Index order still comes from ORDER BY
+    id, and every consumer keys results by jurisdiction_id (never by index
+    across processes), so a filtered slice's labels stay self-consistent."""
+    bbox_sql = ""
+    params = [iso, level]
+    if bbox is not None:
+        bbox_sql = " AND geom && ST_MakeEnvelope(%s,%s,%s,%s,4326)"
+        params += [float(bbox[0]), float(bbox[1]), float(bbox[2]), float(bbox[3])]
+    with get_cursor(conn) as cur:
+        cur.execute(f"""
             SELECT id::text AS id,
                    ST_X(ST_Centroid(geom)) AS cx,
                    ST_Y(ST_Centroid(geom)) AS cy,
@@ -74,8 +116,9 @@ def fetch_level_polygon_meta(conn, iso: str, level: int):
                    ST_YMax(geom)::float AS maxy
             FROM   jurisdictions
             WHERE  iso_code = %s AND adm_level = %s AND deleted_at IS NULL
+                   {bbox_sql}
             ORDER  BY id
-        """, (iso, level))
+        """, params)
         meta = []
         idx_to_jur = {}
         for i, r in enumerate(cur.fetchall()):
@@ -238,13 +281,32 @@ def main(iso: str, level: int, apply_to_db: bool,
                 result["error"] = "no L=1 geom"
                 print(json.dumps(result))
                 return 1
-            meta, idx_to_jur = fetch_level_polygon_meta(conn, iso, level)
-            if not meta:
-                result["error"] = "no polygons"
-                print(json.dumps(result))
-                return 1
-            from raster_attribution import claim_bounds_for
-            bounds = claim_bounds_for(l1_wkb, meta)
+            # SLICE MODE loads metadata for its OWN BAND only (2026-08-03):
+            # the claim bbox comes from a SQL aggregate over the whole level
+            # (identical to claim_bounds_for's reduction, so the window
+            # sequence is unchanged), then the band's geographic bounds
+            # narrow the metadata query. A whole-pair run is untouched.
+            claim_override = None
+            if win_start is not None:
+                ext = fetch_level_claim_extent(conn, iso, level)
+                if ext is None:
+                    result["error"] = "no polygons"
+                    print(json.dumps(result))
+                    return 1
+                import shapely.wkb as _swkb
+                _b = _swkb.loads(l1_wkb).bounds
+                bounds = (min(_b[0], ext[0]), min(_b[1], ext[1]),
+                          max(_b[2], ext[2]), max(_b[3], ext[3]))
+                claim_override = bounds
+                meta = None
+            else:
+                meta, idx_to_jur = fetch_level_polygon_meta(conn, iso, level)
+                if not meta:
+                    result["error"] = "no polygons"
+                    print(json.dumps(result))
+                    return 1
+                from raster_attribution import claim_bounds_for
+                bounds = claim_bounds_for(l1_wkb, meta)
             rasters = fetch_relevant_rasters(conn, iso, level,
                                              bounds=bounds,
                                              pinned_isos=rasters_pin)
@@ -265,6 +327,25 @@ def main(iso: str, level: int, apply_to_db: bool,
                                   "window_px": int(px),
                                   "rasters": [p.parent.name.upper() for p in rasters]}))
                 return 0
+
+            # Band-scoped metadata: now that the raster set is known, derive
+            # THIS slice's geographic bounds from tif headers and load only
+            # the polygons that can touch it. The margin covers the gap-fill
+            # KDTree, whose nearest-centroid lookup may legitimately reach
+            # just outside the band; it is generous next to real feature
+            # sizes (IND villages ≈ 0.02°) and costs nothing.
+            if win_start is not None:
+                from raster_attribution import (slice_bounds as _slice_bounds,
+                                                DEFAULT_WINDOW_PX as _DWP)
+                _px = window_px_pin or _DWP
+                _sb = _slice_bounds(rasters, bounds, _px,
+                                    int(win_start), int(win_start) + int(win_count))
+                _m = float(os.environ.get("CGA_T7_SLICE_META_MARGIN_DEG", "") or 0.5)
+                _bbox = None if _sb is None else (_sb[0] - _m, _sb[1] - _m,
+                                                  _sb[2] + _m, _sb[3] + _m)
+                meta, idx_to_jur = fetch_level_polygon_meta(conn, iso, level, bbox=_bbox)
+                log.info("slice %s L%d [%s+%s]: %d polygons in band (of the whole level)",
+                         iso, level, win_start, win_count, len(meta))
 
             l1_pop = fetch_l1_pop(conn, iso)
             pre_sum = fetch_baselines_sum(conn, iso, level)
@@ -297,6 +378,7 @@ def main(iso: str, level: int, apply_to_db: bool,
                     window_px=window_px_pin or DEFAULT_WINDOW_PX,
                     progress_cb=_cb,
                     window_slice=(int(win_start), int(win_count)),
+                    claim_bounds_override=claim_override,
                 )
                 with get_cursor(conn) as cur:
                     cur.execute(

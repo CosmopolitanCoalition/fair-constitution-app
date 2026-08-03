@@ -67,7 +67,7 @@ def _parse_outcome(stdout: str, stderr: str, returncode: int) -> dict:
 
 
 def _run_unit(conn, run_id: str, claim: dict, token: str,
-              worker_tag: str = "w") -> tuple[dict, bool]:
+              worker_tag: str = "w", phase: str | None = None) -> tuple[dict, bool]:
     """Run etl_unit.py for the claim, heartbeating the claimed item every ~20 s
     so the pump's 30-min stale reclaim never false-fires on a live long unit.
     Returns (outcome, still_ours). If the claim was reclaimed from under us
@@ -88,14 +88,30 @@ def _run_unit(conn, run_id: str, claim: dict, token: str,
         from memory_budget import etl_budget_bytes
         from db import get_cursor
         pool = int(os.environ.get("CGA_ETL_POOL_SIZE", "0")) or 1
+        # Overlap ingest (2026-08-02, INGEST_OVERLAP_PLAN.md §3 — the one
+        # bug the plan flagged as non-optional before overlap ships):
+        # counting only claim["kind"] assumed the ladder guarantees a
+        # single kind runs at a time. Overlapped, that double-funds —
+        # 2 boundary children @ budget/2 PLUS 8 raster children @ budget/8
+        # sums to 2x budget committed, the exact co-residency shape behind
+        # kills #32/#33. The denominator now counts every kind the CURRENT
+        # PHASE can claim (its own kind + PHASE_FALLTHROUGH), so the field
+        # is funded as one merged pool regardless of which kind each child
+        # actually is. Falls back to claim["kind"] alone if phase is
+        # unknown (keeps old behavior for any caller that doesn't pass it).
+        if phase is not None:
+            denom_kinds = tuple({claims.PHASE_KIND.get(phase, claim["kind"]),
+                                  *claims.PHASE_FALLTHROUGH.get(phase, ())})
+        else:
+            denom_kinds = (claim["kind"],)
         with get_cursor(conn) as cur:
             cur.execute(
                 """
                 SELECT COUNT(*) AS n FROM geodata_items
-                 WHERE run_id = %s AND kind = %s
+                 WHERE run_id = %s AND kind = ANY(%s)
                    AND status IN ('pending', 'running')
                 """,
-                (run_id, claim["kind"]),
+                (run_id, list(denom_kinds)),
             )
             open_items = max(1, int(cur.fetchone()["n"]))
         denom = max(1, min(pool, open_items))
@@ -148,6 +164,17 @@ def run_worker(run_id: str, worker_tag: str, lane: str = "small") -> int:
     started = time.monotonic()
     _log_line(worker_tag, f"lease {token[:8]} up on run {run_id[:8]} (lane={lane})")
 
+    # Overlap ingest (2026-08-02, INGEST_OVERLAP_PLAN.md §2, "giant-gate
+    # yields become productive instead of idle"): per-kind self-skip after
+    # a GiantFloorYield. A yielded item goes back to 'pending' at the head
+    # of its own est_cost ordering, so re-trying the SAME kind immediately
+    # would almost always re-claim the exact giant this lane just yielded
+    # off of. Skip that kind for ~60s so the lane's next claims fall
+    # through to an independent kind (raster work) instead of sleeping —
+    # the sleep now fires only when nothing anywhere is claimable.
+    skip_until: dict[str, float] = {}
+    GIANT_YIELD_SKIP_SECONDS = 60
+
     try:
         while True:
             if _STOP["v"]:
@@ -159,7 +186,13 @@ def run_worker(run_id: str, worker_tag: str, lane: str = "small") -> int:
             if ctl["status"] != "running" or ctl["halt"] or ctl["paused"]:
                 break
 
-            claim = claims.claim_next(conn, run_id, ctl["phase"], token, lane=lane)
+            now = time.monotonic()
+            active_skips = frozenset(k for k, until in skip_until.items() if until > now)
+            if len(active_skips) != len(skip_until):
+                skip_until = {k: v for k, v in skip_until.items() if v > now}
+
+            claim = claims.claim_next(conn, run_id, ctl["phase"], token, lane=lane,
+                                      skip_kinds=active_skips)
             if claim is None:
                 # This phase is drained for us; wait for the pump to advance
                 # (or for peers to open review work). Heartbeat while idle.
@@ -171,7 +204,7 @@ def run_worker(run_id: str, worker_tag: str, lane: str = "small") -> int:
             _log_line(worker_tag, f"claim {claim['kind']} {claim.get('iso_code') or ''} "
                                   f"L{claim.get('adm_level')}".rstrip(" LNone"))
 
-            outcome, still_ours = _run_unit(conn, run_id, claim, token, worker_tag)
+            outcome, still_ours = _run_unit(conn, run_id, claim, token, worker_tag, phase=ctl["phase"])
             if not still_ours:
                 _log_line(worker_tag, f"→ {claim['kind']} ABANDONED (claim reclaimed mid-run)")
                 claims.touch_lease(conn, token, run_id=run_id)
@@ -183,10 +216,16 @@ def run_worker(run_id: str, worker_tag: str, lane: str = "small") -> int:
                                   + ("" if landed else " (outcome discarded — claim no longer ours)"))
             claims.touch_lease(conn, token, run_id=run_id)  # clear the claim label
             if outcome["status"] == "pending":
-                # The child yielded — a giant holds the parse floor. Back off
-                # so the pool doesn't churn spawn→load→yield cycles against a
-                # floor that's held for many minutes.
-                time.sleep(45)
+                # The child yielded — a giant holds the parse floor. Self-skip
+                # THIS kind for a while so the lane's next claim falls through
+                # to independent work (raster) instead of immediately
+                # re-claiming the same blocked giant and instead of sleeping
+                # while unrelated work sits idle (2026-08-02, replaces the
+                # old unconditional 45s sleep — operator-caught: "giants
+                # holding the rest of the lanes hostage").
+                skip_until[claim["kind"]] = time.monotonic() + GIANT_YIELD_SKIP_SECONDS
+                _log_line(worker_tag, f"yielded {claim['kind']} — skipping it for "
+                                      f"{GIANT_YIELD_SKIP_SECONDS}s, falling through")
     finally:
         try:
             claims.clear_lease(conn, token)

@@ -28,7 +28,9 @@ class GeodataRun extends Model
         'attribution', 'finalizing', 'scanning', 'done',
     ];
 
-    /** The single item kind claimable in each phase (barriers are one-item pools). */
+    /** The single item kind claimable in each phase (barriers are one-item pools).
+     *  Governs phase-DRAIN (phaseDrained() gates on this kind alone) — untouched
+     *  by PHASE_FALLTHROUGH below. Mirrors claims.py PHASE_KIND. */
     public const PHASE_KIND = [
         'enumerating' => 'manifest',
         'boundaries'  => 'boundary_iso',
@@ -37,6 +39,17 @@ class GeodataRun extends Model
         'attribution' => 'attribution_pair',
         'finalizing'  => 'finalize_global',
         'scanning'    => 'acceptance_scan',
+    ];
+
+    /** Overlap ingest (2026-08-02, INGEST_OVERLAP_PLAN.md, adopted): kinds a
+     *  lane may also claim when the phase's own kind has nothing pending —
+     *  boundaries and rasters are independent fan-outs serialized only by
+     *  phase convention. Mirrors claims.py PHASE_FALLTHROUGH exactly; keep
+     *  both in lockstep. Just 'raster_iso' — GeodataClaims::next() already
+     *  expands a kind to its range family. */
+    public const PHASE_FALLTHROUGH = [
+        'boundaries' => ['raster_iso'],
+        'resolving'  => ['raster_iso'],
     ];
 
     protected $fillable = [

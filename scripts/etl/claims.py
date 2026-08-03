@@ -20,6 +20,8 @@ import uuid
 from db import get_cursor
 
 # The single item kind claimable in each phase (barriers are one-item pools).
+# This governs PHASE-DRAIN (phaseDrained() / GeodataClaims.php gate on this
+# kind alone) — untouched by the fallthrough below.
 PHASE_KIND = {
     "enumerating": "manifest",
     "boundaries":  "boundary_iso",
@@ -28,6 +30,24 @@ PHASE_KIND = {
     "attribution": "attribution_pair",
     "finalizing":  "finalize_global",
     "scanning":    "acceptance_scan",
+}
+
+# Overlap ingest (2026-08-02, reviewed external plan INGEST_OVERLAP_PLAN.md,
+# adopted with the worker.py memory-denominator fix below): boundaries and
+# rasters are independent fan-outs — raster_iso/_range never touch
+# jurisdictions — serialized only by phase convention, which left N-1 lanes
+# idle behind the single-item resolve_global barrier and the boundaries
+# giant-gate yields. A lane that finds nothing pending in its phase's OWN
+# kind falls through to these instead of sleeping. Phase-drain semantics
+# are NOT affected — a phase still only advances when its own PHASE_KIND
+# settles, so rasters keep flowing through boundaries+resolving regardless
+# of when the boundaries/resolving gate itself opens.
+# Just "raster_iso" — _attempt_claim already expands it to the
+# (raster_iso, raster_range) family, so listing raster_range too would
+# only add a redundant second query.
+PHASE_FALLTHROUGH = {
+    "boundaries": ("raster_iso",),
+    "resolving":  ("raster_iso",),
 }
 
 # Per-kind concurrency caps — OPERATOR DIALS ONLY (2026-08-02). The derived
@@ -127,28 +147,20 @@ def run_control(conn, run_id: str) -> dict:
     return dict(row)
 
 
-def claim_next(conn, run_id: str, phase: str, token: str,
-               lane: str = "small") -> dict | None:
-    """Claim the next pending item of the phase's kind, atomically, or None.
+def _attempt_claim(conn, run_id: str, kind: str, lane: str, token: str) -> dict | None:
+    """Claim the next pending item of ONE kind, atomically, or None. The
+    body of the old single-kind claim_next, unchanged — factored out so
+    claim_next can try several kinds in sequence (overlap fallthrough)
+    without duplicating the lock/cap/claim SQL.
 
-    lane='small' (the general lanes) claims from the SMALL end of the pile
-    (est_cost ASC); lane='big' claims from the LARGE end (est_cost DESC).
-    One queue, two directions — the mapper's shape."""
-    kind = PHASE_KIND.get(phase)
-    if kind is None or kind == "acceptance_scan":
-        # The acceptance scan is the ONE Laravel-side item (the pump dispatches
-        # GeodataAcceptanceScanJob — no docker-in-docker). A Python worker must
-        # never claim it: closing it here would skip the scan entirely.
-        return None
-
-    # Memory governor, HARD since the 02:59 postgres OOM: the count-then-claim
-    # pair runs inside ONE transaction serialized by an advisory xact lock, so
-    # two workers can never both see a free slot (the soft cap collapsed under
-    # the 10-worker cold-start burst — all five monsters claimed at once and
-    # their concurrent giant-geometry inserts OOM-killed a PG backend at
-    # 2.4 GB anon-rss). Mirrors AutoscaleClaims::claimScope's heavy-lane
-    # gate. Serializing ALL claims is fine: a claim is milliseconds against
-    # minutes-to-hours of item work.
+    Memory governor, HARD since the 02:59 postgres OOM: the count-then-claim
+    pair runs inside ONE transaction serialized by an advisory xact lock, so
+    two workers can never both see a free slot (the soft cap collapsed under
+    the 10-worker cold-start burst — all five monsters claimed at once and
+    their concurrent giant-geometry inserts OOM-killed a PG backend at
+    2.4 GB anon-rss). Mirrors AutoscaleClaims::claimScope's heavy-lane
+    gate. Serializing ALL claims is fine: a claim is milliseconds against
+    minutes-to-hours of item work."""
     cap = kind_cap(kind)
     with get_cursor(conn) as cur:
         cur.execute("SELECT pg_advisory_xact_lock(hashtext('cga_geodata_claim'))")
@@ -216,6 +228,46 @@ def claim_next(conn, run_id: str, phase: str, token: str,
         )
         row = cur.fetchone()
     return dict(row) if row else None
+
+
+def claim_next(conn, run_id: str, phase: str, token: str,
+               lane: str = "small", skip_kinds: frozenset[str] = frozenset()) -> dict | None:
+    """Claim the next pending item of the phase's kind, atomically, or None.
+
+    lane='small' (the general lanes) claims from the SMALL end of the pile
+    (est_cost ASC); lane='big' claims from the LARGE end (est_cost DESC).
+    One queue, two directions — the mapper's shape.
+
+    Overlap fallthrough (2026-08-02, INGEST_OVERLAP_PLAN.md, adopted): if
+    the phase's own kind has nothing claimable (drained, or every candidate
+    sits behind a giant-gate yield), try PHASE_FALLTHROUGH's kinds before
+    giving up — boundaries and rasters are independent fan-outs, so an
+    idle lane can do real work instead of sleeping. Phase-drain still gates
+    on PHASE_KIND alone; this only widens what a lane may claim.
+
+    skip_kinds: kinds this call must not attempt even if otherwise eligible
+    (worker.py's post-yield self-skip-list — see run_worker). Without this,
+    "try the phase's own kind first" would just re-claim the SAME giant a
+    lane was just yielded off of, since a freed 'pending' item sorts back
+    to the head of its own est_cost ordering."""
+    kind = PHASE_KIND.get(phase)
+    if kind is None or kind == "acceptance_scan":
+        # The acceptance scan is the ONE Laravel-side item (the pump dispatches
+        # GeodataAcceptanceScanJob — no docker-in-docker). A Python worker must
+        # never claim it: closing it here would skip the scan entirely.
+        return None
+
+    if kind not in skip_kinds:
+        row = _attempt_claim(conn, run_id, kind, lane, token)
+        if row is not None:
+            return row
+    for fallback_kind in PHASE_FALLTHROUGH.get(phase, ()):
+        if fallback_kind in skip_kinds:
+            continue
+        row = _attempt_claim(conn, run_id, fallback_kind, lane, token)
+        if row is not None:
+            return row
+    return None
 
 
 def claim_range(conn, run_id: str, iso: str, file_level: int | None, token: str,

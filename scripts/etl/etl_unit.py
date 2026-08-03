@@ -637,67 +637,126 @@ def do_attribution(conn, run_id: str, iso: str, level: int, apply_to_db: bool,
     memory-isolated pair worker) and relay its JSON verdict. A 'far' verdict is
     NOT a failure (the scan flags data quality); only a hard error is review.
 
-    GIANT-PAIR FLOOR (2026-08-02 overnight: 17 kernel kills / 28 pairs
-    exit -9 in the first 10-wide attribution phase — the vertex-monster club
-    plus resident bystanders beside them): a pair loads its WHOLE level, so
-    its weight is mean_vertices × adm_unit_count (file level = app − 1). At
-    or above CGA_ETL_GIANT_PAIR_VERTICES (default 1.5M — between the
-    survivors' P90 of 1.08M and the victims' median of 3.2M, run-019fc1bf
-    field data) the pair takes the SAME 'cga_giant_parse' floor the boundary
-    parses use, EXCLUSIVELY; light pairs take it shared and YIELD free
-    rather than sit resident beside a giant. Legacy's guarantee at the pair
-    grain: a monster attribution runs with the container to itself."""
+    THREE SHAPES, NOT ONE (2026-08-03, operator ruling after run 019fc460
+    killed CAN L2 and IND L6 at exit -9). The single dial
+    `mean_vertices × adm_unit_count` CONFLATES two OPPOSITE problems, and
+    sending both to the same remedy regressed one of them:
+
+      * VERTEX MONSTER — few features, enormous rings (CAN L2 = 13 features
+        × 1,269,933 mean vertices; PHL L2 = 17 × 767,415). Grid
+        decomposition IS the remedy here: O(V log W) is precisely what
+        ended CAN L2's DNF/OOM history and landed it exact in 163 s. It
+        must NEVER be window-split — a slice runs the LEGACY per-window
+        attribute() (only that function takes window_slice), which is the
+        O(windows × vertices) cost class grid decomposition exists to
+        delete. What a monster needs is FUNDING, not slicing: an
+        irreducible single-feature parse peak (Nunavut ≈ 800 MB) cannot be
+        batched smaller, only given room. So: grid, holding the
+        cga_giant_parse floor EXCLUSIVELY — the container to itself.
+
+      * FEATURE SWARM — hundreds of thousands of tiny features (IND L6 =
+        649,771 features × 34 mean vertices). Bisecting a 34-vertex ring
+        buys nothing; the cost is the sheer COUNT, and the remedy is LANES.
+        This is the shape that always worked well: the coverage-guarded
+        window-split + attribution_partials coordinator, many lanes at once.
+
+      * EVERYTHING ELSE (~480 pairs) — grid decomposition in a lane,
+        width-capped by claims.kind_cap. Unchanged, proven across this run.
+
+    The two dials are separate because the axes are independent (file level
+    = app − 1). Defaults come from this run's field data, where the classes
+    separate by four orders of magnitude — mean_vertices 1.27M/767k
+    (monsters) vs 34/206/413 (swarms); adm_unit_count 13/17 (monsters) vs
+    649,771/35,010 (swarms) — so neither default sits near a real value."""
     from import_geoboundaries import GiantFloorYield
 
     with get_cursor(conn) as cur:
         cur.execute(
-            "SELECT COALESCE(mean_vertices,0)*COALESCE(adm_unit_count,0) AS tv "
+            "SELECT COALESCE(mean_vertices,0) AS mv, COALESCE(adm_unit_count,0) AS n "
             "FROM geoboundary_metadata WHERE iso_code=%s AND adm_level=%s",
             (iso, level - 1),
         )
         row = cur.fetchone()
-        total_v = int(row["tv"]) if row else 0
-    thresh = int(os.environ.get("CGA_ETL_GIANT_PAIR_VERTICES", "0") or 0) or 1_500_000
+        mean_v = int(row["mv"]) if row else 0
+        unit_n = int(row["n"]) if row else 0
+    monster_mean = int(os.environ.get("CGA_ETL_MONSTER_MEAN_VERTICES", "0") or 0) or 500_000
+    swarm_count = int(os.environ.get("CGA_ETL_SWARM_FEATURES", "0") or 0) or 100_000
+    is_monster = mean_v >= monster_mean
+    is_swarm = (not is_monster) and unit_n >= swarm_count
 
-    # FLOOR RETIRED FOR FAST PAIRS (operator ruling 2026-08-02: "instead of
-    # limiting the lanes and going OOM, measure down the chunks and leverage
-    # the lanes — the heavy ones need to be tried with the fix"). Under the
-    # T7 fast path the per-pair footprint is the parse-once cache plus
-    # slice-derived window buffers, so heavies run IN LANES, width-capped by
-    # the budget-derived kind cap. The gate v2 dance (dedicated-conn lock,
-    # try-and-yield — built after RUS's exclusive was silently lost and
-    # waiters parked resident) now applies ONLY when the fast path is
-    # disabled (CGA_T7_FAST=0), where a heavy's legacy footprint still
-    # demands the container to itself.
+    # ── FEATURE SWARM → window-split, many lanes ──
+    # `not is_monster` guards the ordering: a level with BOTH huge rings and
+    # a huge count takes the monster path, never the legacy per-window one.
+    if is_swarm:
+        # Resume identity: existing ranges PINNED a window_px, so enumerate
+        # at that same px — otherwise the coverage guard compares counts
+        # taken from two different grids and refuses a legitimate merge
+        # (9,436 windows at 1024 px vs 2,418 at 2048 px — caught before it
+        # could reject a completed pair).
+        with get_cursor(conn) as cur:
+            cur.execute(
+                "SELECT MIN((metrics->>'window_px')::int) AS px FROM geodata_items "
+                " WHERE run_id=%s AND kind='attribution_range' "
+                "   AND iso_code=%s AND adm_level=%s",
+                (run_id, iso, level),
+            )
+            r = cur.fetchone()
+            pinned_px = int(r["px"]) if r and r["px"] else None
+        enum_cmd = ["python3", PAIR_SCRIPT, iso, str(level), "--enumerate"]
+        if pinned_px:
+            enum_cmd += ["--window-px", str(pinned_px)]
+        enum_proc = subprocess.run(enum_cmd, capture_output=True, text=True, check=False)
+        enum_payload = None
+        for line in reversed((enum_proc.stdout or "").strip().splitlines()):
+            try:
+                enum_payload = json.loads(line)
+                break
+            except ValueError:
+                continue
+        if enum_payload is None or not enum_payload.get("ok"):
+            raise RuntimeError(
+                "swarm pair --enumerate produced no JSON (exit "
+                f"{enum_proc.returncode}): {(enum_proc.stderr or '')[-400:]}"
+            )
+        log.info("%s L%d attribution: FEATURE SWARM (%s features x %s mean "
+                 "vertices) — window-split across lanes, %d windows @ %dpx",
+                 iso, level, f"{unit_n:,}", f"{mean_v:,}",
+                 int(enum_payload["n_windows"]), int(enum_payload["window_px"]))
+        pool = int(os.environ.get("CGA_ETL_POOL_SIZE", "0") or 0) or 10
+        result = _attribution_window_split(
+            conn, run_id, iso, level, apply_to_db,
+            n_windows=int(enum_payload["n_windows"]),
+            window_px=int(enum_payload["window_px"]),
+            pool=pool, log=log,
+            raster_isos=enum_payload.get("rasters"),
+        )
+        return {k: result.get(k) for k in
+                ("verdict", "n_polys", "post_sum", "l1_pop", "post_dev", "applied_rows")}
+
+    # ── VERTEX MONSTER → grid decomposition, floor held EXCLUSIVELY ──
+    # The floor lives on a DEDICATED connection whose close IS the release
+    # (gate v2: deterministic even on kill -9, immune to shared-conn unlock
+    # paths). A light pair never blocks on it — only monsters take it, and a
+    # monster that finds it held yields free, whereupon the worker's
+    # post-yield skip-list moves that lane onto other work.
     legacy_mode = os.environ.get("CGA_T7_FAST", "1") == "0"
-    floor_conn = get_connection() if legacy_mode else None
+    floor_conn = get_connection() if (legacy_mode or is_monster) else None
     try:
-        if legacy_mode:
+        if is_monster:
             with get_cursor(floor_conn) as cur:
-                if total_v >= thresh:
-                    cur.execute("SELECT pg_try_advisory_lock(hashtext('cga_giant_parse')) AS got")
-                    if not bool(cur.fetchone()["got"]):
-                        raise GiantFloorYield(
-                            f"{iso} L{level} attribution: the floor is held")
-                    log.info("%s L%d attribution: giant-pair floor — level weight %s "
-                             "vertices, EXCLUSIVE (the pair runs with the container "
-                             "to itself)", iso, level, f"{total_v:,}")
-                else:
-                    cur.execute("SELECT pg_try_advisory_lock_shared(hashtext('cga_giant_parse')) AS got")
-                    if not bool(cur.fetchone()["got"]):
-                        raise GiantFloorYield(
-                            f"{iso} L{level} attribution: a giant holds the floor")
-        elif total_v >= thresh:
-            log.info("%s L%d attribution: heavy pair (%s vertices) in a LANE — "
-                     "fast path, chunks sized by the budget slice",
-                     iso, level, f"{total_v:,}")
-
-        # WINDOW-SPLIT RETIRED (2026-08-02, grid-decomposition integration):
-        # with the O(V log W) engine the worst pair on Earth (CAN L2)
-        # completes whole in 163s — slicing, coordinator barriers, and the
-        # partials machinery solved a cost class that no longer exists.
-        # _attribution_window_split / do_attribution_range remain defined
-        # for any legacy attribution_range items but are no longer invoked.
+                cur.execute("SELECT pg_try_advisory_lock(hashtext('cga_giant_parse')) AS got")
+                if not bool(cur.fetchone()["got"]):
+                    raise GiantFloorYield(
+                        f"{iso} L{level} attribution: the floor is held")
+            log.info("%s L%d attribution: VERTEX MONSTER (%s mean vertices x %s "
+                     "features) — grid decomposition, EXCLUSIVE floor",
+                     iso, level, f"{mean_v:,}", f"{unit_n:,}")
+        elif legacy_mode:
+            with get_cursor(floor_conn) as cur:
+                cur.execute("SELECT pg_try_advisory_lock_shared(hashtext('cga_giant_parse')) AS got")
+                if not bool(cur.fetchone()["got"]):
+                    raise GiantFloorYield(
+                        f"{iso} L{level} attribution: a giant holds the floor")
 
         cmd = ["python3", PAIR_SCRIPT, iso, str(level)]
         if apply_to_db:
@@ -759,7 +818,19 @@ def _attribution_window_split(conn, run_id: str, iso: str, level: int,
         log.info("%s L%d attribution: window ranges already enumerated — resuming",
                  iso, level)
     else:
-        k = max(2, range_count_override or (pool // 2))
+        # MANY FINE SLICES, not pool//2 fat ones (2026-08-03, ETL paradigm
+        # laws 1/2/5). pool//2 gave IND L6 five 499-window monoliths: only
+        # ~5 lanes could ever work it, and — because a contiguous window run
+        # is row-major — each slice spanned the country's full width, so its
+        # band still touched 68% of all 649,771 features (≈460 MB resident,
+        # which the memory-derived family cap then allowed only 1-3 of).
+        # Smaller window runs are geographically thinner bands, so they load
+        # far fewer polygons AND give every lane several chunks to steal —
+        # finer progress, shorter tail, cheaper resume. Slice count targets
+        # 4 chunks per lane minimum.
+        per_slice = int(os.environ.get("CGA_ETL_ATTR_SLICE_WINDOWS", "0") or 0) or 64
+        k = max(2, range_count_override
+                or max(pool * 4, -(-n_windows // per_slice)))
         k = min(k, n_windows)
         size = -(-n_windows // k)
         log.info("%s L%d attribution: WINDOW-SPLIT — %d windows → %d slices of %d "

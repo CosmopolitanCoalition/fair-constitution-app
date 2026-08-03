@@ -26,6 +26,7 @@ import struct
 import sys
 import unicodedata
 from array import array
+from concurrent.futures import ThreadPoolExecutor, as_completed
 from datetime import datetime, timezone
 from pathlib import Path
 
@@ -719,6 +720,7 @@ def _resolve_orphans_at_level_via_strategy(
     conn: psycopg2.extensions.connection,
     orphan_level: int,
     strategy: str,           # 'exact' | 'buffered' | 'topological'
+    iso_filter: str | None = None,
 ) -> tuple[int, int]:
     """
     Single bulk UPDATE that re-resolves all orphans at the given adm_level.
@@ -747,6 +749,18 @@ def _resolve_orphans_at_level_via_strategy(
         for features whose iso label and geographic ancestry diverge.
         Classified 'topological' if chosen iso matches orphan iso,
         'cross_iso_topological' if it differs (the meaningful audit case).
+
+    iso_filter: restrict the ORPHAN side (o.iso_code = iso_filter) to one
+    country. The mid-loop caller in import_geoboundaries() passes the iso
+    it just finished — without this the orphan CTE scanned every iso's
+    orphans at this level (all 111), so processing PRI alone dragged in
+    USA's ~3,200 level-3 orphans (57 states x 3.0deg ST_DWithin apiece)
+    and blocked PRI's own item for 20+ minutes even though PRI itself had
+    zero orphans left to resolve (operator-caught, 2026-08-02). The
+    candidate PARENT side is untouched — topological's cross-iso rescue
+    still searches every country's geometry, only the orphan set shrinks.
+    None (the end-of-run post_pass_orphan_resolution call) keeps the
+    original whole-planet behavior, which is correct there.
     """
     if strategy == "direct_intersect":
         # Direct-level intersection (mirrors find_parent_by_strategy_ladder's
@@ -817,6 +831,7 @@ def _resolve_orphans_at_level_via_strategy(
     else:
         raise ValueError(f"Unknown strategy: {strategy}")
 
+    orphan_iso_clause = "AND iso_code = %s" if iso_filter is not None else ""
     sql = f"""
         WITH orphans AS (
             SELECT id, geom, iso_code FROM jurisdictions
@@ -824,6 +839,7 @@ def _resolve_orphans_at_level_via_strategy(
               AND parent_id IS NULL
               AND adm_level > 0
               AND deleted_at IS NULL
+              {orphan_iso_clause}
         ),
         best_parent AS (
             SELECT DISTINCT ON (o.id)
@@ -857,8 +873,9 @@ def _resolve_orphans_at_level_via_strategy(
         WHERE j.id = bp.orphan_id
         RETURNING j.parent_assigned_via
     """
+    params = (orphan_level, orphan_level) if iso_filter is None else (orphan_level, iso_filter, orphan_level)
     with get_cursor(conn) as cur:
-        cur.execute(sql, (orphan_level, orphan_level))
+        cur.execute(sql, params)
         rows = cur.fetchall()
 
     n_direct       = sum(1 for r in rows if r["parent_assigned_via"] == "direct")
@@ -876,6 +893,73 @@ def _resolve_orphans_at_level_via_strategy(
     return (0, 0)
 
 
+def _resolve_orphans_for_iso(iso: str, log: logging.Logger) -> dict:
+    """One country's slice of the orphan-resolution ladder, levels 2-6 in
+    strict order (a level's newly-resolved rows are valid parents for the
+    next level DOWN, same-iso chaining) — but nothing else in the ladder
+    depends on any OTHER country, so this runs on its OWN connection and
+    post_pass_orphan_resolution fans it out across a thread pool. Every
+    strategy call is iso_filter-scoped: only ORPHANS belonging to `iso` are
+    touched; the topological strategy's cross-iso PARENT search still spans
+    every country (concurrent same-level rows in a different iso are read-
+    only from here — no lock contention, disjoint iso_code on the write
+    side). Returns the same per-strategy counts the old whole-planet loop
+    returned, just for this one country.
+    """
+    counts = {"direct": 0, "skip_ancestor": 0, "buffered": 0,
+              "topological": 0, "cross_iso_topological": 0}
+    conn = get_connection()
+    try:
+        for level in (2, 3, 4, 5, 6):
+            with get_cursor(conn) as cur:
+                cur.execute(
+                    "SELECT COUNT(*) AS cnt FROM jurisdictions "
+                    "WHERE adm_level = %s AND parent_id IS NULL "
+                    "AND deleted_at IS NULL AND iso_code = %s",
+                    (level, iso),
+                )
+                if cur.fetchone()["cnt"] == 0:
+                    continue
+
+            n_di, _ = _resolve_orphans_at_level_via_strategy(
+                conn, level, "direct_intersect", iso_filter=iso)
+            conn.commit()
+            counts["direct"] += n_di
+
+            n_direct, n_skip = _resolve_orphans_at_level_via_strategy(
+                conn, level, "exact", iso_filter=iso)
+            conn.commit()
+            counts["direct"]        += n_direct
+            counts["skip_ancestor"] += n_skip
+
+            n_buf, _ = _resolve_orphans_at_level_via_strategy(
+                conn, level, "buffered", iso_filter=iso)
+            conn.commit()
+            counts["buffered"] += n_buf
+
+            n_topo, n_cross = _resolve_orphans_at_level_via_strategy(
+                conn, level, "topological", iso_filter=iso)
+            conn.commit()
+            counts["topological"]           += n_topo
+            counts["cross_iso_topological"] += n_cross
+    finally:
+        conn.close()
+    return counts
+
+
+def _resolve_worker_count() -> int:
+    """CGA_ETL_RESOLVE_WORKERS, else min(default_worker_count(), 6) — this
+    pool runs ST_DWithin/ST_Contains joins per iso concurrently, heavier
+    per-task than the generic import workers, so it's capped below the full
+    pool width even on a big box. Same derive-from-host, env-overridable
+    shape as everywhere else (never hardcode)."""
+    override = os.environ.get("CGA_ETL_RESOLVE_WORKERS")
+    if override and override.isdigit() and int(override) > 0:
+        return int(override)
+    from supervisor import default_worker_count
+    return min(default_worker_count(), 6)
+
+
 def post_pass_orphan_resolution(
     conn: psycopg2.extensions.connection,
     earth_uuid: str,
@@ -885,10 +969,16 @@ def post_pass_orphan_resolution(
     End-of-import post-pass that synthesizes any missing country-level rows
     and then re-resolves remaining orphans via the strategy ladder.
 
-    Run AFTER all ADM levels finish loading. Walks levels shallow-to-deep so
-    each level's resolved rows become valid parents for deeper levels in
-    subsequent passes (e.g. synthesizing PRI level-1 → PRI level-3 chains
-    to it → PRI level-4 chains to PRI level-3).
+    Run AFTER all ADM levels finish loading. The per-iso ladder
+    (_resolve_orphans_for_iso) fans out across a thread pool — each country
+    is independent (only its own orphans are written), so this replaces the
+    old single-connection whole-planet-per-level loop that made this whole
+    step both invisible (one giant UPDATE per level per strategy, no commit
+    until it finished — a single country the size of the USA held the
+    "Parent chains" progress bar frozen for everyone) and single-threaded
+    despite the plan calling for multithreaded work (operator-caught,
+    2026-08-02). Levels stay ordered WITHIN each iso's own thread (shallow
+    unblocks deep); across isos there's no ordering dependency.
 
     Returns dict of counts: {synthesized, direct, skip_ancestor, buffered,
     topological, cross_iso_topological, residual}
@@ -909,62 +999,49 @@ def post_pass_orphan_resolution(
     # Phase O typically does this mid-loop (after each ADM level), so by
     # the time we reach the post-pass synthesised should usually be 0.
     # Kept here as belt-and-suspenders for any iso that surfaces only
-    # after the full Phase 1 finishes.
+    # after the full Phase 1 finishes. Small (today: 0-1 rows) — not
+    # worth sharding.
     counts["synthesized"] = synthesize_missing_country_rows(conn, earth_uuid, log)
     conn.commit()
 
-    # Step 2: re-resolve orphans level-by-level. Three strategies in
-    # increasing permissiveness:
-    #   exact       — same-iso, centroid OR PointOnSurface containment
-    #   buffered    — same-iso, simplified+buffered intersect
-    #   topological — drop iso filter, deepest containment wins. Tags
-    #                 cross_iso_topological when chosen iso ≠ orphan iso.
-    for level in (2, 3, 4, 5, 6):
-        with get_cursor(conn) as cur:
-            cur.execute(
-                "SELECT COUNT(*) AS cnt FROM jurisdictions "
-                "WHERE adm_level = %s AND parent_id IS NULL AND deleted_at IS NULL",
-                (level,)
-            )
-            initial_orphans = cur.fetchone()["cnt"]
-
-        if initial_orphans == 0:
-            continue
-
-        # Direct-level ST_Intersects first — re-chains coastal/precision sub-units
-        # to their true parent before the strict-containment classifier can
-        # mislabel them 'skip_ancestor'.
-        n_di, _ = _resolve_orphans_at_level_via_strategy(conn, level, "direct_intersect")
-        conn.commit()
-        counts["direct"] += n_di
-
-        n_direct, n_skip = _resolve_orphans_at_level_via_strategy(conn, level, "exact")
-        conn.commit()
-        counts["direct"]        += n_direct
-        counts["skip_ancestor"] += n_skip
-
-        n_buf, _ = _resolve_orphans_at_level_via_strategy(conn, level, "buffered")
-        conn.commit()
-        counts["buffered"] += n_buf
-
-        # Phase O: topological fallback runs on whatever's still orphan.
-        # Tagged cross_iso_topological when the chosen parent is in a
-        # different iso (the audit-worthy case — features whose iso
-        # label and geographic ancestry diverge, e.g. FRA Cayenne →
-        # GUF parent). 'topological' on its own is rare (means same
-        # iso but Strategies 1+2 missed; usually a precision glitch).
-        n_topo, n_cross = _resolve_orphans_at_level_via_strategy(conn, level, "topological")
-        conn.commit()
-        counts["topological"]           += n_topo
-        counts["cross_iso_topological"] += n_cross
-
-        log.info(
-            "Post-pass level %d: %d orphans → %d direct + %d skip + %d buffered "
-            "+ %d topological + %d cross_iso_topological = %d residual",
-            level, initial_orphans,
-            n_direct, n_skip, n_buf, n_topo, n_cross,
-            initial_orphans - n_direct - n_skip - n_buf - n_topo - n_cross
+    # Step 2: re-resolve orphans, one thread per country. iso list comes
+    # from the DB (not the meta CSV) so it always matches what's actually
+    # sitting unparented right now.
+    with get_cursor(conn) as cur:
+        cur.execute(
+            "SELECT DISTINCT iso_code FROM jurisdictions "
+            "WHERE iso_code IS NOT NULL AND parent_id IS NULL "
+            "AND adm_level BETWEEN 2 AND 6 AND deleted_at IS NULL"
         )
+        isos = [r["iso_code"] for r in cur.fetchall()]
+
+    n_workers = _resolve_worker_count()
+    heartbeat.bar_register(
+        key="resolve:isos", label="Resolving — parent chains",
+        total=len(isos), unit="countries",
+    )
+    log.info("Post-pass: %d countries with orphans, %d worker(s)", len(isos), n_workers)
+
+    done_isos = 0
+    if isos:
+        with ThreadPoolExecutor(max_workers=n_workers) as pool:
+            futures = {pool.submit(_resolve_orphans_for_iso, iso, log): iso for iso in isos}
+            for fut in as_completed(futures):
+                iso = futures[fut]
+                try:
+                    iso_counts = fut.result()
+                except Exception as exc:
+                    log.error("Post-pass: %s failed: %s", iso, exc)
+                    iso_counts = {}
+                for k, v in iso_counts.items():
+                    counts[k] = counts.get(k, 0) + v
+                done_isos += 1
+                heartbeat.bar_update("resolve:isos", done_isos)
+                log.info(
+                    "Post-pass %s (%d/%d): %s",
+                    iso, done_isos, len(isos), iso_counts,
+                )
+    heartbeat.bar_complete("resolve:isos", current=len(isos))
 
     # Final residual count
     with get_cursor(conn) as cur:
@@ -2643,15 +2720,32 @@ def import_geoboundaries(
                     # Re-resolve orphans at this level only — newly-synthesised
                     # parents may unblock them. Three-strategy ladder so we
                     # get the same coverage as the end-of-pass post-pass.
+                    #
+                    # SCOPED to the iso(s) this call is actually processing
+                    # (single-iso under the pull engine, since countries=[iso]
+                    # there) — not the whole planet's orphans at this level.
+                    # This ran unscoped until 2026-08-02: PRI (the one iso
+                    # whose deepest level is > 1, so this branch fires) sat
+                    # 20+ minutes with its own item stuck 'running' while this
+                    # step chewed through every OTHER country's level-3
+                    # orphans too (USA alone ~3,200, each checked against 57
+                    # state polygons). Legacy full-batch runs (countries=None
+                    # or many) keep the original whole-planet pass — there is
+                    # no single iso to scope to and the batch already spans
+                    # everyone.
+                    mid_loop_iso = (
+                        countries[0].upper()
+                        if countries and len(countries) == 1 else None
+                    )
                     app_level = ADM_LEVEL_MAP[adm_n]
                     n_d, n_s = _resolve_orphans_at_level_via_strategy(
-                        _conn, app_level, "exact")
+                        _conn, app_level, "exact", iso_filter=mid_loop_iso)
                     _conn.commit()
                     n_b, _   = _resolve_orphans_at_level_via_strategy(
-                        _conn, app_level, "buffered")
+                        _conn, app_level, "buffered", iso_filter=mid_loop_iso)
                     _conn.commit()
                     n_t, n_x = _resolve_orphans_at_level_via_strategy(
-                        _conn, app_level, "topological")
+                        _conn, app_level, "topological", iso_filter=mid_loop_iso)
                     _conn.commit()
                     if (n_d + n_s + n_b + n_t + n_x) > 0:
                         log.info(

@@ -578,6 +578,44 @@ def claim_bounds_for(l1_geom_wkb: bytes, polygon_meta) -> tuple[float, float, fl
             max(l1_maxy, float(bx[:, 3].max())))
 
 
+def slice_bounds(raster_paths: list[Path], claim_bounds: tuple,
+                 window_px: int, lo: int, hi: int):
+    """Geographic bbox of windows [lo, hi) in the deterministic sequence —
+    tif-header math only, no pixel reads. Exposed so a slice can load ONLY
+    the polygons its own band can touch (see run_t7_pair's
+    fetch_level_claim_extent). Same traversal and ordering attribute() uses
+    internally, so the bbox matches the windows the slice will actually
+    process."""
+    cminx, cminy, cmaxx, cmaxy = claim_bounds
+    seq = 0
+    sb = None
+    for tp in raster_paths:
+        try:
+            with rasterio.open(tp) as s:
+                fw = windows.from_bounds(cminx, cminy, cmaxx, cmaxy,
+                                         transform=s.transform)
+                fw = fw.intersection(windows.Window(0, 0, s.width, s.height))
+                if fw.width <= 0 or fw.height <= 0:
+                    continue
+                for w in _tile_window(fw, window_px):
+                    if lo <= seq < hi:
+                        t = s.window_transform(w)
+                        x0, y1 = t.c, t.f
+                        x1 = x0 + t.a * int(w.width)
+                        y0 = y1 + t.e * int(w.height)
+                        if sb is None:
+                            sb = [x0, y0, x1, y1]
+                        else:
+                            sb[0] = min(sb[0], x0)
+                            sb[1] = min(sb[1], y0)
+                            sb[2] = max(sb[2], x1)
+                            sb[3] = max(sb[3], y1)
+                    seq += 1
+        except Exception:
+            pass
+    return tuple(sb) if sb is not None else None
+
+
 def attribute(
     iso: str,
     adm_level: int,
@@ -589,6 +627,7 @@ def attribute(
     window_px: int = DEFAULT_WINDOW_PX,
     progress_cb: Callable[[int, int], None] | None = None,
     window_slice: tuple[int, int] | None = None,
+    claim_bounds_override: tuple | None = None,
 ) -> dict[str, int]:
     """
     Compute per-polygon population for one (iso, adm_level) pair using
@@ -639,10 +678,19 @@ def attribute(
 
     # Claim region bbox = union of L=1 bbox + every L-polygon bbox.
     l1_minx, l1_miny, l1_maxx, l1_maxy = l1_geom.bounds
-    claim_minx = min(l1_minx, float(bboxes[:, 0].min()))
-    claim_miny = min(l1_miny, float(bboxes[:, 1].min()))
-    claim_maxx = max(l1_maxx, float(bboxes[:, 2].max()))
-    claim_maxy = max(l1_maxy, float(bboxes[:, 3].max()))
+    if claim_bounds_override is not None:
+        # A window slice loads only its own band's polygons, so deriving the
+        # claim bbox from THIS process's bboxes would shrink it and shift the
+        # window sequence numbering — every slice would then compute a
+        # different grid and the merged pair would be silently wrong. The
+        # caller passes the whole pair's bounds (SQL aggregate over the full
+        # level) so the sequence stays identical across slices.
+        claim_minx, claim_miny, claim_maxx, claim_maxy = claim_bounds_override
+    else:
+        claim_minx = min(l1_minx, float(bboxes[:, 0].min()))
+        claim_miny = min(l1_miny, float(bboxes[:, 1].min()))
+        claim_maxx = max(l1_maxx, float(bboxes[:, 2].max()))
+        claim_maxy = max(l1_maxy, float(bboxes[:, 3].max()))
 
     totals = np.zeros(n, dtype=np.float64)
 

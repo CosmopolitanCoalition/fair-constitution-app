@@ -77,10 +77,21 @@ class GeodataRequeueCommand extends Command
             if (in_array('boundary_iso', $kinds, true)) {
                 $barriers[] = 'resolve_global';
             }
+            // 'running' belongs in this list too (2026-08-02, operator-caught
+            // race): phaseDrained() treats a freshly-'review'd item as settled,
+            // so the pump can claim a downstream barrier in the WINDOW between
+            // a kill and this command's requeue — resolve_global started 41s
+            // before this command even reset PRI's item, and kept running
+            // while PRI was mid-reprocess. Resetting a 'running' row to
+            // pending is safe: record_outcome() is claim_token-fenced and
+            // requires status='running', so the stray process's eventual
+            // write becomes a guaranteed no-op once claim_token is nulled
+            // here — it just finishes uselessly instead of clobbering the
+            // rewound run.
             $downstream = DB::table('geodata_items')
                 ->where('run_id', $run->id)
                 ->whereIn('kind', $barriers)
-                ->whereIn('status', ['done', 'review', 'failed'])
+                ->whereIn('status', ['done', 'review', 'failed', 'running'])
                 ->update([
                     'status' => 'pending', 'claim_token' => null, 'reason' => null,
                     'started_at' => null, 'finished_at' => null, 'updated_at' => now(),

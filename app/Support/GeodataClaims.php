@@ -41,6 +41,26 @@ final class GeodataClaims
             return null; // terminal phase — nothing to claim
         }
 
+        // Overlap ingest (2026-08-02, INGEST_OVERLAP_PLAN.md, adopted):
+        // try the phase's own kind first, then GeodataRun::PHASE_FALLTHROUGH
+        // — boundaries and rasters are independent fan-outs serialized only
+        // by phase convention, so a lane with nothing pending in its own
+        // kind can still do real work. Mirrors claims.py's claim_next.
+        $kinds = [$kind, ...(GeodataRun::PHASE_FALLTHROUGH[$run->phase] ?? [])];
+        foreach ($kinds as $tryKind) {
+            $row = self::attemptClaim($run, $token, $tryKind);
+            if ($row !== null) {
+                return $row;
+            }
+        }
+
+        return null;
+    }
+
+    /** One kind's atomic claim attempt — factored out of next() so the
+     *  overlap fallthrough can try several kinds without duplicating SQL. */
+    private static function attemptClaim(GeodataRun $run, string $token, string $kind): ?array
+    {
         $row = DB::selectOne('
             UPDATE geodata_items
                SET status = ?, claim_token = ?,
