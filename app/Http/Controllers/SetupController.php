@@ -1541,13 +1541,22 @@ class SetupController extends Controller
 
         $detectors = [];
         foreach (\App\Models\GeodataFlag::CATEGORIES as $cat) {
-            $flags = $cats[$cat] ?? null;
+            $flags   = $cats[$cat] ?? null;
+            $ageS    = isset($started[$cat])
+                ? microtime(true) - (float) $started[$cat] : null;
             if (isset($errors[$cat]) || (int) $flags < 0 && $flags !== null) {
                 $state = 'error';
             } elseif ($flags !== null) {
                 $state = 'done';
-            } elseif (isset($started[$cat])) {
-                $state = 'running';
+            } elseif ($ageS !== null) {
+                // STARTED-BUT-NO-RESULT IS NOT THE SAME AS RUNNING
+                // (2026-08-03): a detector killed mid-query leaves its
+                // cat_started marker behind, so the chip claimed "running"
+                // with a forever-climbing clock while nothing was executing.
+                // Past the pump's own re-dispatch horizon (30 min, the
+                // engine's stale-claim constant) the honest word is STALLED
+                // — and that is exactly when the pump will retry it.
+                $state = $ageS > 1800 ? 'stalled' : 'running';
             } else {
                 $state = 'pending';
             }

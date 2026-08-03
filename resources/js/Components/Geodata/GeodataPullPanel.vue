@@ -443,18 +443,21 @@ onBeforeUnmount(() => {
                     :class="{
                         'border-emerald-800 bg-emerald-900/20 text-emerald-300': d.state === 'done',
                         'border-sky-700 bg-sky-900/30 text-sky-200': d.state === 'running',
+                        'border-amber-800 bg-amber-900/20 text-amber-300': d.state === 'stalled',
                         'border-red-800 bg-red-900/20 text-red-300': d.state === 'error',
                         'border-gray-800 text-gray-500': d.state === 'pending',
                     }">
                     <span class="truncate">
                         <span v-if="d.state === 'done'" aria-hidden="true">✓ </span>
                         <span v-else-if="d.state === 'error'" aria-hidden="true">✕ </span>
+                        <span v-else-if="d.state === 'stalled'" aria-hidden="true">⚠ </span>
                         <span v-else-if="d.state === 'running'" aria-hidden="true">▶ </span>
                         {{ d.label }}
                     </span>
                     <span class="tabular-nums shrink-0 text-[11px] opacity-80">
                         <template v-if="d.state === 'done'">{{ d.flags.toLocaleString() }} flag{{ d.flags === 1 ? '' : 's' }}</template>
                         <template v-else-if="d.state === 'running'">{{ Math.floor(d.elapsed_s / 60) }}m {{ d.elapsed_s % 60 }}s</template>
+                        <template v-else-if="d.state === 'stalled'">stalled {{ Math.floor(d.elapsed_s / 60) }}m — will retry</template>
                         <template v-else-if="d.state === 'error'">errored</template>
                         <template v-else>queued</template>
                     </span>
