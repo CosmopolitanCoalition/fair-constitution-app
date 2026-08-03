@@ -574,6 +574,13 @@ def do_resolve(conn, run_id: str, options: dict, log: logging.Logger) -> dict:
     import_geoboundaries(global_passes_only=True, log=log,
                          resolve_iso_runner=_resolve_iso_fanout(conn, run_id, log))
 
+    # Baselines BEFORE pairs (2026-08-03): under the overlap most rasters
+    # finish before their country's L1 row exists, so the raster-phase stamp
+    # silently missed 173 of 232 — and every pair for those isos verdicted
+    # no_l1. Here every L1 row exists and every tile is loaded, so the
+    # catch-all closes the gap before a single verdict is computed.
+    _stamp_missing_baselines(conn, log)
+
     pairs = enumerate_iso_levels(conn)  # [(iso, level, npolys)] — DB-derived
     countries = {c.upper() for c in (options.get("countries") or [])}
     if countries:
@@ -621,6 +628,39 @@ def _stamp_national_baseline(conn, iso: str, log: logging.Logger) -> None:
     except Exception as exc:
         log.warning("%s: national baseline stamp failed (%s) — verdicts for "
                     "this iso will read no_l1", iso, exc)
+
+
+def _stamp_missing_baselines(conn, log: logging.Logger) -> int:
+    """Set-based catch-all for the per-iso stamp above (2026-08-03, the
+    59-of-232 baseline gap): the raster-phase stamp UPDATEs the iso's L1 row
+    — and under the boundary/raster OVERLAP most rasters finish BEFORE their
+    country's L1 row exists, so the UPDATE matches zero rows and vanishes
+    silently. The previous run dodged this only because the PRI stall kept
+    boundary lanes busy (almost no rasters ran early); the speedups exposed
+    it: 173 countries with loaded tiles and no baseline, 345 pairs
+    verdicting no_l1, Earth rolling up 2.7B from the 59 that had one.
+
+    One statement over every iso that has tiles but no baseline. Runs at the
+    resolve barrier (before pairs, so verdicts anchor) and again at finalize
+    (so the L1 copy + planet rollup can never see a gap). Idempotent."""
+    with get_cursor(conn) as cur:
+        cur.execute(
+            """
+            UPDATE jurisdictions j
+               SET population_baseline = s.pop, updated_at = now()
+              FROM (SELECT iso_code, SUM((ST_SummaryStats(rast)).sum)::bigint AS pop
+                      FROM worldpop_rasters GROUP BY iso_code) s
+             WHERE j.iso_code = s.iso_code AND j.adm_level = 1
+               AND j.deleted_at IS NULL AND s.pop IS NOT NULL
+               AND COALESCE(j.population_baseline, 0) = 0
+            """
+        )
+        n = cur.rowcount
+    conn.commit()
+    if n:
+        log.info("baseline catch-all: stamped %d countries the raster-phase "
+                 "stamp missed (L1 row did not exist yet under the overlap)", n)
+    return n
 
 
 def do_raster(conn, run_id: str, iso: str, log: logging.Logger) -> dict:
@@ -1179,6 +1219,11 @@ def do_finalize(conn, options: dict, log: logging.Logger) -> dict:
     land as geodata_flags rows (class national_delta_gt5) — the repair plane's
     censusable stream — not just log warnings (GEODATA_PULL_ENGINE_PLAN.md §6)."""
     from import_worldpop import rollup_planet_population, validate_national_population
+
+    # Belt-and-suspenders at the barrier: any baseline the raster-phase stamp
+    # missed (overlap ordering — see _stamp_missing_baselines) gets stamped
+    # here, so the L1 copy below and the planet rollup can never see a gap.
+    _stamp_missing_baselines(conn, log)
 
     # National populations: the engine attributes levels 2+, and legacy's
     # L1 raster pass isn't part of the pull flow — the national number IS
