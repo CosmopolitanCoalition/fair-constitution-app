@@ -408,14 +408,35 @@ def attribute_grid(
     centroid_tree = cKDTree(centroids)
     totals = np.zeros(n, dtype=np.float64)
 
-    # Progress denominator: occupied windows are unknown until decompose,
-    # so tick against the raw grid total across tifs (honest upper bound).
-    total_windows = 0
-    tif_dims = []
-    for tp in raster_paths:
-        with rasterio.open(tp) as s:
-            tif_dims.append((s.transform, s.width, s.height, s.nodata))
-            total_windows += (-(-s.height // window_px)) * (-(-s.width // window_px))
+    # ── THE CANADA FIX (2026-08-03) ────────────────────────────────────────
+    # This function used to iterate the ENTIRE GRID OF EVERY PINNED TIF and
+    # re-decompose every geometry against each tif's own lattice. CAN L2 pins
+    # three tifs, one of which is the USA: 430,706 x 62,971 px = 26,102
+    # windows, and Canada's 16.5M vertices were bisected against that lattice
+    # for nothing. That is the whole 163s -> 3005s gap between
+    # pilot_grid_decomp.py (which used Canada's own tif alone) and production.
+    # IND-class pairs paid it worse: 10 pinned tifs x 649,710 features, with
+    # the geometry cache capped at 50k rows, meant ~600k geometries re-read
+    # from postgres and re-parsed PER TIF PASS.
+    #
+    # Now: windows come from the SHARED MASTERGRID clipped to the claim bbox,
+    # each is read from every covering tif combined with fmax, and each
+    # geometry is decomposed EXACTLY ONCE. Proven bit-identical to the old
+    # path on NPL/LKA/NLD/CHE L2 across 1-6 tifs (0 jurisdictions differ,
+    # worst rel 0.00e+00) before adoption. See window_lattice.py.
+    import window_lattice as _WL
+    headers = _WL.read_headers(raster_paths)      # asserts the shared lattice
+    px = _WL.lattice_pixel_size(headers)
+    _l1 = shapely.wkb.loads(l1_geom_wkb)
+    _bx = np.array([(m[3], m[4], m[5], m[6]) for m in polygon_meta], dtype=np.float64)
+    _lb = _l1.bounds
+    claim_bounds = (min(_lb[0], float(_bx[:, 0].min())),
+                    min(_lb[1], float(_bx[:, 1].min())),
+                    max(_lb[2], float(_bx[:, 2].max())),
+                    max(_lb[3], float(_bx[:, 3].max())))
+    del _bx
+    lattice_windows = _WL.enumerate_windows(claim_bounds, window_px, headers)
+    total_windows = len(lattice_windows)
     done_windows = [0]
 
     def _tick(k=1):
@@ -426,10 +447,10 @@ def attribute_grid(
             except Exception:
                 pass
 
-    for tp, (t, width, height, nodata) in zip(raster_paths, tif_dims):
-        # ── decompose vs THIS lattice, one geometry at a time ──
-        l1_full, l1_piece = _decompose_against(
-            shapely.wkb.loads(l1_geom_wkb), t, width, height, window_px)
+    if True:
+        # ── decompose vs the GLOBAL lattice, ONCE, one geometry at a time ──
+        l1_full, l1_piece = _WL.decompose_global(_l1, window_px, px)
+        del _l1
         win_owners: dict = {}
         for chunk0 in range(0, n, 200):
             idxs = list(range(chunk0, min(chunk0 + 200, n)))
@@ -438,41 +459,34 @@ def attribute_grid(
                 wkb = wkbs.get(i)
                 if wkb is None:
                     continue
-                full, piece = _decompose_against(wkb, t, width, height, window_px)
+                full, piece = _WL.decompose_global(wkb, window_px, px)
                 for k in full:
                     win_owners.setdefault(k, []).append((i, "F", None))
                 for k, pcs in piece.items():
                     win_owners.setdefault(k, []).append((i, "P", pcs))
-        log.info("%s L%d grid[%s]: decomposed %d polys — %d owned windows "
-                 "(L1: %d full + %d piece)", iso, adm_level, Path(tp).name,
-                 n, len(win_owners), len(l1_full), len(l1_piece))
+        log.info("%s L%d grid: decomposed %d polys ONCE over %d tif(s) — "
+                 "%d owned windows, %d claim windows (L1: %d full + %d piece)",
+                 iso, adm_level, n, len(raster_paths), len(win_owners),
+                 total_windows, len(l1_full), len(l1_piece))
 
-        nx = -(-width // window_px)
-        ny = -(-height // window_px)
-        with rasterio.open(tp) as src:
-            for wj in range(ny):
-                for wi in range(nx):
+        srcs = [rasterio.open(h.path) for h in headers]
+        try:
+            for _w in lattice_windows:
                     _tick()
-                    key = (wi, wj)
+                    key = _w.key
                     owners = win_owners.get(key)
                     in_l1 = key in l1_full or key in l1_piece
                     if owners is None and not in_l1:
                         continue
-                    c0, r0 = wi * window_px, wj * window_px
-                    w = min(window_px, width - c0)
-                    h = min(window_px, height - r0)
-                    win = windows.Window(c0, r0, w, h)
-                    pop = src.read(1, window=win)
-                    if nodata is not None:
-                        pop[pop == nodata] = 0
-                    np.maximum(pop, 0, out=pop)
-                    if not (pop > 0).any():
+                    pop = _WL.read_window_fmax(key, window_px, headers,
+                                               _w.covering, srcs)
+                    if pop is None or not (pop > 0).any():
                         continue
                     if owners and len(owners) == 1 and owners[0][1] == "F":
                         totals[owners[0][0]] += float(pop.sum())
                         continue
-                    tfm = src.window_transform(win)
-                    shape = (h, w)
+                    tfm = rio_transform.from_origin(_w.bounds[0], _w.bounds[3], px, px)
+                    shape = pop.shape
                     claim_shapes = []
                     if key in l1_full:
                         claim = np.ones(shape, dtype=np.uint8)
@@ -535,6 +549,9 @@ def attribute_grid(
                         coords = np.column_stack([np.asarray(xs), np.asarray(ys)])
                         _, nearest = centroid_tree.query(coords, k=1)
                         np.add.at(totals, nearest, pop[rows, cols])
+        finally:
+            for _s in srcs:
+                _s.close()
 
     return {ids[i]: int(round(float(totals[i])))
             for i in range(n) if totals[i] > 0}
