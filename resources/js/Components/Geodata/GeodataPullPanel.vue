@@ -125,8 +125,24 @@ const FAMILY_OF = {
     attribution_pair: ['attribution_pair', 'attribution_range'],
 }
 
+// Every kind that belongs under a phase's bar, for grouping the live strips.
+const FAMILY_KINDS = {
+    manifest:         ['manifest'],
+    boundary_iso:     ['boundary_iso', 'boundary_range'],
+    raster_iso:       ['raster_iso', 'raster_range'],
+    resolve_global:   ['resolve_global', 'resolve_range'],
+    attribution_pair: ['attribution_pair', 'attribution_decompose', 'attribution_range'],
+    finalize_global:  ['finalize_global'],
+    acceptance_scan:  ['acceptance_scan'],
+}
+
+// Each phase bar carries the LANES WORKING UNDER IT, indented (operator,
+// 2026-08-03: "I want the lanes grouped under their assignment"). One flat
+// WORKERS list meant a boundary country and a raster tile-load sat adjacent
+// with nothing tying either to the bar it was advancing.
 const BAR_ROWS = computed(() => {
     const rows = []
+    const claimed = new Set()
     for (const p of ALL_PHASES) {
         const kinds = FAMILY_OF[p.kind] ?? [p.kind]
         let best = null
@@ -134,9 +150,24 @@ const BAR_ROWS = computed(() => {
             const l = layerByKind.value[k]
             if (l && (best === null || Number(l.total) > Number(best.total))) best = l
         }
-        if (best && Number(best.total) > 1) rows.push({ phase: p, layer: best })
+        const mine = inflight.value.filter(
+            it => (FAMILY_KINDS[p.kind] ?? [p.kind]).includes(it.kind))
+        mine.forEach(it => claimed.add(it.id))
+        // A bar earns its row when its family has real counts OR when lanes
+        // are visibly working it — a single-item barrier with a live worker
+        // under it is worth showing precisely because it is running.
+        if ((best && Number(best.total) > 1) || mine.length) {
+            rows.push({ phase: p, layer: best, lanes: mine })
+        }
     }
     return rows
+})
+
+// Anything the grouping missed still gets shown — never silently drop a
+// working lane because its kind is not in the family map.
+const UNGROUPED = computed(() => {
+    const inRows = new Set(BAR_ROWS.value.flatMap(r => r.lanes.map(l => l.id)))
+    return inflight.value.filter(it => !inRows.has(it.id))
 })
 
 // A bubble is current if any of its phases is, done only when all are.
@@ -389,8 +420,9 @@ onBeforeUnmount(() => {
         <!-- Per-kind progress bars -->
         <div class="space-y-2.5 mb-5">
             <div v-for="row in BAR_ROWS" :key="row.phase.key">
-                <div class="flex justify-between text-xs mb-1">
-                    <span class="text-gray-300">{{ row.phase.label }}</span>
+                <!-- The phase's own bar -->
+                <div v-if="row.layer" class="flex justify-between text-xs mb-1">
+                    <span class="text-gray-300 font-medium">{{ row.phase.label }}</span>
                     <span class="text-gray-400 tabular-nums">
                         {{ (row.layer.total - row.layer.open).toLocaleString() }}
                         / {{ row.layer.total.toLocaleString() }}
@@ -398,13 +430,41 @@ onBeforeUnmount(() => {
                         <span v-if="Number(row.layer.failed)" class="text-red-400"> · {{ row.layer.failed }} failed</span>
                     </span>
                 </div>
-                <div class="h-2 bg-gray-800 rounded overflow-hidden">
+                <div v-else class="text-xs text-gray-300 font-medium mb-1">{{ row.phase.label }}</div>
+                <div v-if="row.layer" class="h-2 bg-gray-800 rounded overflow-hidden">
                     <div
                         class="h-full rounded transition-all duration-500"
                         :class="chipState(row.phase) === 'current' ? 'bg-sky-500' : 'bg-emerald-600'"
                         :style="{ width: pct(row.layer) + '%' }"
                     />
                 </div>
+
+                <!-- The lanes working THIS assignment, indented beneath it -->
+                <ul v-if="row.lanes.length" class="mt-1.5 space-y-1 pl-4 border-l border-gray-800">
+                    <li v-for="it in row.lanes" :key="it.id" class="text-xs bg-gray-800/50 rounded px-2.5 py-1.5">
+                        <div class="flex items-center justify-between mb-1">
+                            <span class="flex items-center gap-2 min-w-0">
+                                <span class="w-1.5 h-1.5 rounded-full shrink-0 bg-sky-400 animate-pulse" aria-hidden="true" />
+                                <span class="text-gray-200 font-medium">{{ itemLabel(it) }}</span>
+                                <span v-if="it.live" class="text-gray-400 truncate">{{ it.live.label }}</span>
+                            </span>
+                            <span class="text-gray-500 tabular-nums shrink-0 ml-3">
+                                <template v-if="it.live && it.live.total">
+                                    {{ it.live.current.toLocaleString() }} / {{ it.live.total.toLocaleString() }} {{ it.live.unit }} ·
+                                </template>
+                                {{ elapsedSince(it.started_at) }} {{ itemEta(it) }}
+                            </span>
+                        </div>
+                        <div class="h-1.5 bg-gray-900 rounded overflow-hidden">
+                            <div
+                                v-if="it.live && it.live.total"
+                                class="h-full rounded bg-sky-500 transition-all duration-700"
+                                :style="{ width: Math.min(100, Math.round(it.live.current / it.live.total * 100)) + '%' }"
+                            />
+                            <div v-else class="h-full w-1/4 rounded bg-sky-800 animate-pulse" />
+                        </div>
+                    </li>
+                </ul>
             </div>
         </div>
 
@@ -421,8 +481,11 @@ onBeforeUnmount(() => {
                 No live workers — the ETL supervisor seeds the pool within a few seconds of the run starting.
             </div>
             <ul v-else class="space-y-1.5">
+                <!-- Working lanes now live UNDER the bar they are advancing
+                     (see the per-kind bars above). Only stragglers whose kind
+                     has no bar land here, so nothing is ever hidden. -->
                 <li
-                    v-for="it in inflight" :key="it.id"
+                    v-for="it in UNGROUPED" :key="it.id"
                     class="text-xs bg-gray-800/60 rounded px-2.5 py-2"
                 >
                     <div class="flex items-center justify-between mb-1">
