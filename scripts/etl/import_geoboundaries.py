@@ -1956,23 +1956,41 @@ def process_geojson_file(
                 # the field must thin until it is effectively alone. Yield is
                 # cheap (this check runs BEFORE any parse); the worker's
                 # post-yield family skip keeps the lane productive meanwhile.
-                _solo_max = int(os.environ.get("CGA_ETL_GIANT_SOLO_OPEN", "0") or 0) or 2
-                _cur.execute(
-                    "SELECT COUNT(*) AS n FROM geodata_items "
-                    " WHERE status = 'running' AND id::text <> COALESCE(%s, '')",
-                    (os.environ.get("CGA_ETL_ITEM_ID"),),
-                )
-                _crowd = int(_cur.fetchone()["n"])
-                if _crowd > _solo_max:
-                    raise GiantFloorYield(
-                        f"{iso3} ADM{adm_n}: giant needs the container "
-                        f"(~irreducible parse) but {_crowd} other items are "
-                        f"running — deferring to the tail (limit {_solo_max})")
-                log.info("%s ADM%d: giant-parse gate — max_vertices=%s, EXCLUSIVE "
-                         "(field thin: %d other running; the container runs this alone)",
-                         iso3, adm_n, f"{_mv:,}", _crowd)
-                _cur.execute("SELECT pg_advisory_lock(hashtext('cga_giant_parse'))")
-                _giant_parse_locked = 'exclusive'
+                # OPERATOR EXPERIMENT (2026-08-03): crowd deferral OFF by
+                # default — giants run in the crowded field. Every recorded
+                # giant kill predates the funding fix (9d6789b), so this is
+                # its first honest crowded test. CGA_ETL_GIANT_CROWD_GATE=1
+                # re-arms the tail-deferral; the exclusive parse floor below
+                # then reverts with it. Ungated, the monster pass takes the
+                # floor SHARED like everyone else: lights keep running
+                # beside it, which is the whole point of the experiment.
+                _gate_on = os.environ.get("CGA_ETL_GIANT_CROWD_GATE", "0") == "1"
+                if _gate_on:
+                    _solo_max = int(os.environ.get("CGA_ETL_GIANT_SOLO_OPEN", "0") or 0) or 2
+                    _cur.execute(
+                        "SELECT COUNT(*) AS n FROM geodata_items "
+                        " WHERE status = 'running' AND id::text <> COALESCE(%s, '')",
+                        (os.environ.get("CGA_ETL_ITEM_ID"),),
+                    )
+                    _crowd = int(_cur.fetchone()["n"])
+                    if _crowd > _solo_max:
+                        raise GiantFloorYield(
+                            f"{iso3} ADM{adm_n}: giant needs the container "
+                            f"(~irreducible parse) but {_crowd} other items are "
+                            f"running — deferring to the tail (limit {_solo_max})")
+                    log.info("%s ADM%d: giant-parse gate — max_vertices=%s, EXCLUSIVE "
+                             "(field thin: %d other running; the container runs this alone)",
+                             iso3, adm_n, f"{_mv:,}", _crowd)
+                    _cur.execute("SELECT pg_advisory_lock(hashtext('cga_giant_parse'))")
+                    _giant_parse_locked = 'exclusive'
+                else:
+                    log.info("%s ADM%d: GIANT IN THE CROWD — max_vertices=%s, "
+                             "shared floor, field keeps running (crowd gate off)",
+                             iso3, adm_n, f"{_mv:,}")
+                    _cur.execute("SELECT pg_try_advisory_lock_shared(hashtext('cga_giant_parse')) AS got")
+                    if not bool(_cur.fetchone()["got"]):
+                        raise GiantFloorYield(f"{iso3} ADM{adm_n}: a giant holds the parse floor")
+                    _giant_parse_locked = 'shared'
             else:
                 # YIELD, never wait resident (operator, 2026-08-02: "why can't
                 # you do what the solo run could do — the hardware is
