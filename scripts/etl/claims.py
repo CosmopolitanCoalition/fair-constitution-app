@@ -199,6 +199,46 @@ def _attempt_claim(conn, run_id: str, kind: str, lane: str, token: str) -> dict 
         # pile drained) is gone with the drain-triggered split machinery.
         order = "est_cost DESC, position, id" if lane == "big" \
             else "est_cost ASC, position, id"
+
+        # GIANT GATE AT THE CLAIM (2026-08-03, replaces the churn of gating
+        # inside the unit). The unit-side crowd check made the RIGHT call —
+        # never start a Nunavut-class parse in a crowded container — at the
+        # WRONG layer: the item was already claimed, a subprocess already
+        # spawned, and the yield went back to the head of the pile, so PHL
+        # and CAN were picked up and put down every ~45s for half an hour
+        # while the panel showed them "working" (operator-caught, twice).
+        # Here, inside the SAME advisory-locked transaction as the claim, a
+        # giant country is simply NOT ELIGIBLE while the field is crowded or
+        # another giant runs: no claim, no subprocess, no churn — the item
+        # sits honestly pending until the tail, then claims once and runs.
+        # The atomic-lock context also closes the unit-check's race where
+        # three giants claimed in the same second each saw the other two as
+        # "only 2 running" and all proceeded.
+        giant_clause = ""
+        giant_params: tuple = ()
+        if kind == "boundary_iso":
+            _gv = int(os.environ.get("CGA_ETL_GIANT_VERTICES", "0") or 0) or 1_000_000
+            _solo = int(os.environ.get("CGA_ETL_GIANT_SOLO_OPEN", "0") or 0) or 2
+            cur.execute(
+                """
+                SELECT (SELECT COUNT(*) FROM geodata_items
+                         WHERE run_id = %s AND status = 'running') AS crowd,
+                       EXISTS (SELECT 1 FROM geodata_items gi
+                                JOIN geoboundary_metadata m ON m.iso_code = gi.iso_code
+                                                           AND m.max_vertices >= %s
+                                WHERE gi.run_id = %s AND gi.status = 'running'
+                                  AND gi.kind IN ('boundary_iso','boundary_range')) AS giant_busy
+                """,
+                (run_id, _gv, run_id),
+            )
+            g = cur.fetchone()
+            if int(g["crowd"]) > _solo or bool(g["giant_busy"]):
+                giant_clause = (
+                    " AND iso_code NOT IN (SELECT DISTINCT iso_code "
+                    "   FROM geoboundary_metadata WHERE max_vertices >= %s) "
+                )
+                giant_params = (_gv,)
+
         if kind == "boundary_iso":
             kinds = ("boundary_iso", "boundary_range")
         elif kind == "raster_iso":
@@ -235,13 +275,14 @@ def _attempt_claim(conn, run_id: str, kind: str, lane: str, token: str) -> dict 
              WHERE id = (
                    SELECT id FROM geodata_items
                     WHERE run_id = %s AND status = 'pending' AND kind IN %s
+                      {giant_clause}
                     ORDER BY {order}
                     LIMIT 1
                     FOR UPDATE SKIP LOCKED
              )
          RETURNING id::text AS id, kind, iso_code, adm_level, dry_run
             """,
-            (token, run_id, kinds),
+            (token, run_id, kinds) + giant_params,
         )
         row = cur.fetchone()
     return dict(row) if row else None
