@@ -102,7 +102,12 @@ const GROUPS = [
 ]
 
 // Flat phase list in pipeline order (the per-kind bars iterate this).
+// Boundaries and rasters are EXCLUDED from the bar list (operator,
+// 2026-08-03): "Jurisdictions loaded" and "Parent chains" above carry far
+// more detail than the coarse 232/232 item counts did. Review/failed items
+// for those kinds still surface in the NEEDS REVIEW list.
 const ALL_PHASES = GROUPS.flat()
+const BAR_PHASES = ALL_PHASES.filter(p => !['boundary_iso', 'raster_iso'].includes(p.kind))
 
 // A bubble is current if any of its phases is, done only when all are.
 function groupState(group) {
@@ -353,7 +358,7 @@ onBeforeUnmount(() => {
 
         <!-- Per-kind progress bars -->
         <div class="space-y-2.5 mb-5">
-            <div v-for="p in ALL_PHASES" :key="p.kind">
+            <div v-for="p in BAR_PHASES" :key="p.kind">
                 <template v-if="layerByKind[p.kind]">
                     <div class="flex justify-between text-xs mb-1">
                         <span class="text-gray-300">{{ p.label }}</span>

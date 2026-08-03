@@ -521,12 +521,28 @@ def run_pool_mode(request_payload: dict) -> int:
                     del procs[tag]
 
             active = status == "running" and not ctl["paused"] and not ctl["halt"]
-            # Two-ended queue (operator ruling 2026-08-02, the mapper's shape):
-            # ~20% of the pool are BIG lanes (largest→smallest), the rest are
-            # general lanes (smallest→largest). One pile, two directions,
-            # every lane busy until the ends meet.
-            big_target   = claims.big_lane_count(n_workers) if active else 0
-            small_target = (n_workers - big_target) if active else 0
+            # QUADRANT LANES (operator spec, 2026-08-03): 50% boundaries /
+            # 50% population data, and within each half the two-ended split —
+            # half largest→smallest, half smallest→largest. Odd remainders go
+            # to the LIGHTER work first (rasters across the halves; the
+            # small-first direction within a half). 10 lanes → 2 boundary-big,
+            # 3 boundary-small, 2 raster-big, 3 raster-small. A lane whose
+            # preferred pile is empty falls through to the complement (the
+            # claim path handles it), so when one drain finishes its lanes
+            # join the other and the ends meet in the middle. Piles the pref
+            # doesn't cover (resolve, attribution, later phases) claim
+            # normally regardless of pref.
+            if active:
+                n_bnd = n_workers // 2                 # rasters take the odd one
+                n_ras = n_workers - n_bnd
+                targets = {
+                    ("big",   "boundary"): n_bnd // 2,
+                    ("small", "boundary"): n_bnd - n_bnd // 2,
+                    ("big",   "raster"):   n_ras // 2,
+                    ("small", "raster"):   n_ras - n_ras // 2,
+                }
+            else:
+                targets = {}
 
             if not active:
                 for entry in procs.values():
@@ -535,20 +551,20 @@ def run_pool_mode(request_payload: dict) -> int:
                     except Exception:
                         pass
             else:
-                have = {"big": 0, "small": 0}
+                have: dict = {}
                 for entry in procs.values():
                     have[entry[1]] = have.get(entry[1], 0) + 1
-                for lane, target in (("big", big_target), ("small", small_target)):
-                    while have.get(lane, 0) < target:
+                for (lane, pref), target in targets.items():
+                    while have.get((lane, pref), 0) < target:
                         tag_seq += 1
                         tag = f"w{tag_seq}"
                         procs[tag] = (subprocess.Popen(
                             ["python3", "/etl/worker.py", "--run", run_id,
-                             "--tag", tag, "--lane", lane],
+                             "--tag", tag, "--lane", lane, "--pref", pref],
                             stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL,
                             cwd="/etl", start_new_session=True, env=worker_env,
-                        ), lane)
-                        have[lane] = have.get(lane, 0) + 1
+                        ), (lane, pref))
+                        have[(lane, pref)] = have.get((lane, pref), 0) + 1
 
             time.sleep(POLL_SECONDS)
 

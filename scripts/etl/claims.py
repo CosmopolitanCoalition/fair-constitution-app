@@ -169,6 +169,8 @@ def _attempt_claim(conn, run_id: str, kind: str, lane: str, token: str) -> dict 
     gate. Serializing ALL claims is fine: a claim is milliseconds against
     minutes-to-hours of item work."""
     cap = kind_cap(kind)
+    heavy_clause = ""
+    heavy_params: tuple = ()
     with get_cursor(conn) as cur:
         cur.execute("SELECT pg_advisory_xact_lock(hashtext('cga_geodata_claim'))")
         if cap is not None:
@@ -178,15 +180,39 @@ def _attempt_claim(conn, run_id: str, kind: str, lane: str, token: str) -> dict 
                    "raster_iso":        ("raster_iso", "raster_range"),
                    "attribution_pair":  ("attribution_pair", "attribution_range"),
                    }.get(kind, (kind, kind))
-            cur.execute(
-                """
-                SELECT COUNT(*) AS n FROM geodata_items
-                 WHERE run_id = %s AND status = 'running' AND kind IN %s
-                """,
-                (run_id, fam),
-            )
-            if int(cur.fetchone()["n"]) >= cap:
-                return None
+            if kind == "attribution_pair":
+                # HEAVY pairs only (2026-08-03, the near-single-threaded
+                # attribution tail): the memory math behind the cap is about
+                # monster levels (CAN L2's ~800 MB parse), but the cap
+                # counted EVERY pair — so three 5-second light pairs held
+                # the width while ~400 more sat pending and lanes idled.
+                # Now only pairs at or above the heavy weight (est_cost =
+                # mean_vertices x unit_count, the same unit the floor gates
+                # on) count against — and only heavy candidates are excluded
+                # when the heavy slots are full. Lights run pool-wide with
+                # their lean funding slices.
+                heavy_est = int(os.environ.get("CGA_ETL_ATTR_HEAVY_EST", "0") or 0) or 5_000_000
+                cur.execute(
+                    """
+                    SELECT COUNT(*) AS n FROM geodata_items
+                     WHERE run_id = %s AND status = 'running' AND kind IN %s
+                       AND est_cost >= %s
+                    """,
+                    (run_id, fam, heavy_est),
+                )
+                if int(cur.fetchone()["n"]) >= cap:
+                    heavy_clause = " AND est_cost < %s "
+                    heavy_params = (heavy_est,)
+            else:
+                cur.execute(
+                    """
+                    SELECT COUNT(*) AS n FROM geodata_items
+                     WHERE run_id = %s AND status = 'running' AND kind IN %s
+                    """,
+                    (run_id, fam),
+                )
+                if int(cur.fetchone()["n"]) >= cap:
+                    return None
 
         # Two-ended queue: general lanes take the smallest pending item, big
         # lanes take the largest. SKIP LOCKED resolves the meeting point.
@@ -282,21 +308,22 @@ def _attempt_claim(conn, run_id: str, kind: str, lane: str, token: str) -> dict 
              WHERE id = (
                    SELECT id FROM geodata_items
                     WHERE run_id = %s AND status = 'pending' AND kind IN %s
-                      {giant_clause}
+                      {giant_clause}{heavy_clause}
                     ORDER BY {order}
                     LIMIT 1
                     FOR UPDATE SKIP LOCKED
              )
          RETURNING id::text AS id, kind, iso_code, adm_level, dry_run
             """,
-            (token, run_id, kinds) + giant_params,
+            (token, run_id, kinds) + giant_params + heavy_params,
         )
         row = cur.fetchone()
     return dict(row) if row else None
 
 
 def claim_next(conn, run_id: str, phase: str, token: str,
-               lane: str = "small", skip_kinds: frozenset[str] = frozenset()) -> dict | None:
+               lane: str = "small", skip_kinds: frozenset[str] = frozenset(),
+               pref: str | None = None) -> dict | None:
     """Claim the next pending item of the phase's kind, atomically, or None.
 
     lane='small' (the general lanes) claims from the SMALL end of the pile
@@ -322,14 +349,26 @@ def claim_next(conn, run_id: str, phase: str, token: str,
         # never claim it: closing it here would skip the scan entirely.
         return None
 
-    if kind not in skip_kinds:
-        row = _attempt_claim(conn, run_id, kind, lane, token)
-        if row is not None:
-            return row
-    for fallback_kind in PHASE_FALLTHROUGH.get(phase, ()):
-        if fallback_kind in skip_kinds:
+    # QUADRANT PREFERENCE (operator 50/50 spec, 2026-08-03). "Own kind first,
+    # fallthrough second" was itself the artificial suppression: with 232
+    # boundary items pending, a lane essentially never fell through, so the
+    # raster pile ran on scraps while boundaries hogged every lane. A lane's
+    # pref decides which INGEST pile it tries first; when its pile is empty
+    # it falls through to the complement, so the halves rebalance on their
+    # own as one drain finishes. Kinds outside the pref axis (resolve,
+    # attribution, finalize) keep the standard order.
+    try_kinds = [kind, *PHASE_FALLTHROUGH.get(phase, ())]
+    if pref == "raster" and "raster_iso" in try_kinds:
+        try_kinds.remove("raster_iso")
+        try_kinds.insert(0, "raster_iso")
+    elif pref == "boundary" and "boundary_iso" in try_kinds:
+        try_kinds.remove("boundary_iso")
+        try_kinds.insert(0, "boundary_iso")
+
+    for try_kind in try_kinds:
+        if try_kind in skip_kinds:
             continue
-        row = _attempt_claim(conn, run_id, fallback_kind, lane, token)
+        row = _attempt_claim(conn, run_id, try_kind, lane, token)
         if row is not None:
             return row
     return None
@@ -352,13 +391,21 @@ def claim_range(conn, run_id: str, iso: str, file_level: int | None, token: str,
     with get_cursor(conn) as cur:
         cur.execute("SELECT pg_advisory_xact_lock(hashtext('cga_geodata_claim'))")
         if cap is not None:
+            # Attribution's cap counts HEAVY family members only (see
+            # _attempt_claim) — a window slice or a light pair never holds
+            # the width against the memory math written for monsters.
+            heavy_filter = ""
+            hp: tuple = ()
+            if fam_parent == "attribution_pair":
+                heavy_filter = " AND est_cost >= %s"
+                hp = (int(os.environ.get("CGA_ETL_ATTR_HEAVY_EST", "0") or 0) or 5_000_000,)
             cur.execute(
-                """
+                f"""
                 SELECT COUNT(*) AS n FROM geodata_items
                  WHERE run_id = %s AND status = 'running'
-                   AND kind IN (%s, %s)
+                   AND kind IN (%s, %s) {heavy_filter}
                 """,
-                (run_id, fam_parent, kind),
+                (run_id, fam_parent, kind) + hp,
             )
             if int(cur.fetchone()["n"]) >= cap:
                 return None
@@ -518,7 +565,12 @@ def label(claim: dict) -> str:
     if kind == "boundary_iso":
         return f"boundaries · {iso}"
     if kind == "boundary_range":
-        return f"boundaries · {iso} L{lvl} (parallel range)"
+        # boundary_range items carry the FILE ADM level (they window a
+        # geoBoundaries file); display the APP level = file + 1. IND's
+        # neighborhoods file is ADM5 → app L6 — the strip said "L5" while
+        # visibly summing 650k neighborhoods (operator-caught mislabel).
+        app_lvl = (int(lvl) + 1) if lvl is not None else "?"
+        return f"boundaries · {iso} L{app_lvl} (parallel range)"
     if kind == "resolve_global":
         return "resolving global (Earth + orphans + cross-ISO)"
     if kind == "resolve_range":

@@ -616,6 +616,32 @@ def do_resolve(conn, run_id: str, options: dict, log: logging.Logger) -> dict:
     import datetime as _dt
     from import_geoboundaries import import_geoboundaries
 
+    # PRE-ENUMERATE the per-country resolve ranges before anything else
+    # (2026-08-03, operator: "it took a couple minutes for the individual
+    # lanes to come on line"). The ranges used to be enumerated inside the
+    # global passes, AFTER the baseline stamp ground its raster stats — so
+    # the field sat idle for exactly that long at phase entry. The orphan
+    # census is one cheap GROUP BY; lanes start claiming countries within
+    # seconds, and the fan-out runner sees them and resumes.
+    with get_cursor(conn) as cur:
+        cur.execute(
+            "SELECT COUNT(*) AS n FROM geodata_items "
+            " WHERE run_id=%s AND kind='resolve_range'", (run_id,))
+        if int(cur.fetchone()["n"]) == 0:
+            cur.execute(
+                """
+                SELECT iso_code, COUNT(*) AS n FROM jurisdictions
+                 WHERE parent_id IS NULL AND adm_level BETWEEN 2 AND 6
+                   AND deleted_at IS NULL AND iso_code IS NOT NULL
+                 GROUP BY iso_code
+                """)
+            census = [(r["iso_code"], int(r["n"])) for r in cur.fetchall()]
+            if census:
+                _insert_items(conn, run_id,
+                              [("resolve_range", iso, None, n) for iso, n in census])
+                log.info("resolve_global: pre-enumerated %d per-country ranges "
+                         "— lanes start immediately", len(census))
+
     # Baselines BEFORE anything verdicts (the 59-of-232 lesson): every L1
     # row exists at this barrier and every tile is loaded.
     _stamp_missing_baselines(conn, log)

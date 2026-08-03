@@ -173,7 +173,8 @@ def _run_unit(conn, run_id: str, claim: dict, token: str,
     return (_parse_outcome(stdout, stderr, proc.returncode), True)
 
 
-def run_worker(run_id: str, worker_tag: str, lane: str = "small") -> int:
+def run_worker(run_id: str, worker_tag: str, lane: str = "small",
+               pref: str | None = None) -> int:
     conn = get_connection()
     token = claims.register_lease(conn, run_id)
     started = time.monotonic()
@@ -207,7 +208,7 @@ def run_worker(run_id: str, worker_tag: str, lane: str = "small") -> int:
                 skip_until = {k: v for k, v in skip_until.items() if v > now}
 
             claim = claims.claim_next(conn, run_id, ctl["phase"], token, lane=lane,
-                                      skip_kinds=active_skips)
+                                      skip_kinds=active_skips, pref=pref)
             if claim is None:
                 # This phase is drained for us; wait for the pump to advance
                 # (or for peers to open review work). Heartbeat while idle.
@@ -256,12 +257,17 @@ def main() -> int:
     ap.add_argument("--run", required=True)
     ap.add_argument("--tag", default="w")
     ap.add_argument("--lane", default="small", choices=["small", "big"])
+    ap.add_argument("--pref", default=None, choices=["boundary", "raster"],
+                    help="Quadrant preference: which ingest pile this lane "
+                         "tries FIRST during the boundaries phase (operator "
+                         "50/50 spec, 2026-08-03). Falls through to the "
+                         "complement when its pile is empty.")
     args = ap.parse_args()
 
     signal.signal(signal.SIGTERM, lambda *_: _STOP.update(v=True))
     signal.signal(signal.SIGINT, lambda *_: _STOP.update(v=True))
 
-    return run_worker(args.run, args.tag, args.lane)
+    return run_worker(args.run, args.tag, args.lane, args.pref)
 
 
 if __name__ == "__main__":
