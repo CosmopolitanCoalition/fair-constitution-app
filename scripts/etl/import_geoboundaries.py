@@ -1921,9 +1921,34 @@ def process_geojson_file(
         _mv_thresh = int(os.environ.get("CGA_ETL_GIANT_VERTICES", "0") or 0) or 1_000_000
         with get_cursor(conn) as _cur:
             if _mv >= _mv_thresh:
+                # GATE v3 — DEFER TO THE TAIL WHEN THE FIELD IS CROWDED
+                # (2026-08-03, CAN exit -9 twice in one morning WITH the
+                # funding fix in). The v2 exclusive lock serializes giants
+                # against other BOUNDARY passes, but the raster overlap runs
+                # beside it ungated — so "the container runs this alone" was
+                # only true among boundary lanes. Nunavut's parse is an
+                # IRREDUCIBLE ~800 MB atom: it cannot be chunked, only given
+                # room, and at cold start (largest-first claims giants FIRST,
+                # ten lanes hot) that room does not exist. Room at the TAIL is
+                # guaranteed — the phase cannot drain past a pending giant, so
+                # the field must thin until it is effectively alone. Yield is
+                # cheap (this check runs BEFORE any parse); the worker's
+                # post-yield family skip keeps the lane productive meanwhile.
+                _solo_max = int(os.environ.get("CGA_ETL_GIANT_SOLO_OPEN", "0") or 0) or 2
+                _cur.execute(
+                    "SELECT COUNT(*) AS n FROM geodata_items "
+                    " WHERE status = 'running' AND id::text <> COALESCE(%s, '')",
+                    (os.environ.get("CGA_ETL_ITEM_ID"),),
+                )
+                _crowd = int(_cur.fetchone()["n"])
+                if _crowd > _solo_max:
+                    raise GiantFloorYield(
+                        f"{iso3} ADM{adm_n}: giant needs the container "
+                        f"(~irreducible parse) but {_crowd} other items are "
+                        f"running — deferring to the tail (limit {_solo_max})")
                 log.info("%s ADM%d: giant-parse gate — max_vertices=%s, EXCLUSIVE "
-                         "(waiting for in-flight passes, then the container runs this alone)",
-                         iso3, adm_n, f"{_mv:,}")
+                         "(field thin: %d other running; the container runs this alone)",
+                         iso3, adm_n, f"{_mv:,}", _crowd)
                 _cur.execute("SELECT pg_advisory_lock(hashtext('cga_giant_parse'))")
                 _giant_parse_locked = 'exclusive'
             else:
