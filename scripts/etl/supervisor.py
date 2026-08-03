@@ -533,8 +533,15 @@ def run_pool_mode(request_payload: dict) -> int:
             # doesn't cover (resolve, attribution, later phases) claim
             # normally regardless of pref.
             if active:
-                n_bnd = n_workers // 2                 # rasters take the odd one
-                n_ras = n_workers - n_bnd
+                # HALF LANES DURING A REVIEW PASS (operator, 2026-08-03): the
+                # commonest cause of a review item is memory co-residency
+                # (exit -9), so retrying at full width reproduces the kill.
+                # A thinner field is the fix that already works by hand.
+                pool = n_workers
+                if ctl.get("review_pass"):
+                    pool = max(2, n_workers // 2)
+                n_bnd = pool // 2                      # rasters take the odd one
+                n_ras = pool - n_bnd
                 targets = {
                     ("big",   "boundary"): n_bnd // 2,
                     ("small", "boundary"): n_bnd - n_bnd // 2,

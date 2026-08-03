@@ -192,9 +192,92 @@ class GeodataPumpCommand extends Command
         return self::SUCCESS;
     }
 
+    /** Item kinds belonging to each review-pass stage. */
+    private const REVIEW_STAGES = [
+        'ingest' => ['boundary_iso', 'boundary_range', 'raster_iso', 'raster_range'],
+        'derive' => ['resolve_global', 'resolve_range', 'attribution_pair',
+                     'attribution_decompose', 'attribution_range'],
+    ];
+
+    /**
+     * THE REVIEW-CLEARING PASS (operator, 2026-08-03).
+     *
+     * A stage that finishes its mainline work but leaves review/failed items
+     * behind gets ONE automatic retry at HALF LANES before the run moves on.
+     * Half, because the commonest cause of these reviews is memory
+     * co-residency (exit -9) — retrying at full width reproduces the kill,
+     * while a thinner field is the fix that already works by hand.
+     *
+     * Returns true when a pass is ACTIVE (mainline must not advance).
+     */
+    private function reviewPass(GeodataRun $run): bool
+    {
+        // An active pass blocks advance until its requeued items settle.
+        if ($run->review_pass !== null) {
+            $stage = $run->review_pass;
+            $open = DB::table('geodata_items')->where('run_id', $run->id)
+                ->whereIn('kind', self::REVIEW_STAGES[$stage] ?? [])
+                ->whereIn('status', ['pending', 'running'])->exists();
+            if ($open) {
+                return true;   // retry still running — hold at half lanes
+            }
+            $run->forceFill(['review_pass' => null, 'updated_at' => now()])->save();
+            $run->refresh();
+            $this->info("review pass [{$stage}] complete — full lanes restored");
+            return false;
+        }
+
+        // Should a pass START? Only when a stage's mainline is fully closed,
+        // it still holds review/failed items, and it has not had its pass.
+        $stamps = $run->phase_timestamps ?? [];
+        foreach (self::REVIEW_STAGES as $stage => $kinds) {
+            if (isset($stamps['_review_pass'][$stage])) {
+                continue;   // one bite only — residual review is accepted
+            }
+            $counts = DB::table('geodata_items')->where('run_id', $run->id)
+                ->whereIn('kind', $kinds)
+                ->selectRaw("COUNT(*) FILTER (WHERE status IN ('pending','running')) AS open,
+                             COUNT(*) FILTER (WHERE status IN ('review','failed'))   AS bad,
+                             COUNT(*) AS total")
+                ->first();
+            if ($counts === null || (int) $counts->total === 0) {
+                continue;   // stage not enumerated yet
+            }
+            if ((int) $counts->open > 0 || (int) $counts->bad === 0) {
+                continue;   // still working, or nothing to clear
+            }
+
+            $n = DB::table('geodata_items')->where('run_id', $run->id)
+                ->whereIn('kind', $kinds)->whereIn('status', ['review', 'failed'])
+                ->update([
+                    'status' => 'pending', 'claim_token' => null, 'reason' => null,
+                    'started_at' => null, 'finished_at' => null,
+                    'position' => 0, 'updated_at' => now(),
+                ]);
+            $stamps['_review_pass'][$stage] = now()->toIso8601String();
+            $run->forceFill([
+                'review_pass' => $stage, 'phase_timestamps' => $stamps,
+                'updated_at' => now(),
+            ])->save();
+            $run->refresh();
+            $this->info("review pass [{$stage}]: requeued {$n} item(s) at half lanes");
+
+            return true;
+        }
+
+        return false;
+    }
+
     private function advancePhases(GeodataRun $run): void
     {
         $phases = GeodataRun::PHASES;
+
+        // Hold the pointer while a stage clears its review backlog — the run
+        // must not reach finalize/scan over items that still have a retry
+        // coming (a scan over half-attributed data flags noise, not truth).
+        if ($this->reviewPass($run)) {
+            return;
+        }
 
         while ($run->phase !== 'done' && GeodataClaims::phaseDrained($run, $run->phase)) {
             $idx  = array_search($run->phase, $phases, true);

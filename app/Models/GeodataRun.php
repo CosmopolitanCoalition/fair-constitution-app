@@ -56,7 +56,7 @@ class GeodataRun extends Model
     ];
 
     protected $fillable = [
-        'id', 'status', 'phase', 'data_root', 'options',
+        'id', 'status', 'phase', 'review_pass', 'data_root', 'options',
         'items_total', 'items_done', 'items_review', 'items_failed',
         'halt_requested_at', 'paused_until', 'pg_fingerprint',
         'phase_timestamps', 'initiator_user_id', 'last_error', 'finished_at',

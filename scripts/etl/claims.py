@@ -74,6 +74,49 @@ _KIND_CAP_ENV = {
 }
 
 
+# ── STAGE READINESS (operator dependency model, 2026-08-03) ────────────────
+# "Once Boundaries is Review Free and Done the Resolver lanes can kick on.
+#  Once Boundaries AND Rasters are Review Free and Done the attribution
+#  lanes can kick on."
+#
+# The phase POINTER stopped being the real gate the moment overlap
+# fallthrough landed — it is a progress indicator now. These predicates are
+# the actual dependency order, enforced where work is handed out. REVIEW
+# FREE is the operator's word and it is load-bearing: a country still in
+# review has rows missing, so resolving parent chains over it would compute
+# against an incomplete tree and attribution would verdict against holes.
+STAGE_PREREQS: dict[str, tuple[str, ...]] = {
+    "resolve_global":      ("boundary_iso", "boundary_range"),
+    "resolve_range":       ("boundary_iso", "boundary_range"),
+    "attribution_pair":    ("boundary_iso", "boundary_range",
+                            "raster_iso", "raster_range"),
+    "attribution_decompose": ("boundary_iso", "boundary_range",
+                              "raster_iso", "raster_range"),
+    "attribution_range":   ("boundary_iso", "boundary_range",
+                            "raster_iso", "raster_range"),
+}
+
+
+def stage_ready(conn, run_id: str, kind: str) -> bool:
+    """Are `kind`'s prerequisite stages DONE and REVIEW-FREE?
+
+    Cheap (one indexed count) and called only on the claim path. Kinds with
+    no prerequisites are always ready."""
+    prereqs = STAGE_PREREQS.get(kind)
+    if not prereqs:
+        return True
+    with get_cursor(conn) as cur:
+        cur.execute(
+            """
+            SELECT COUNT(*) AS n FROM geodata_items
+             WHERE run_id = %s AND kind = ANY(%s)
+               AND status IN ('pending', 'running', 'review', 'failed')
+            """,
+            (run_id, list(prereqs)),
+        )
+        return int(cur.fetchone()["n"]) == 0
+
+
 def kind_cap(kind: str) -> int | None:
     """The operator's cap for a kind, or None (uncapped — the default).
 
@@ -141,7 +184,7 @@ def run_control(conn, run_id: str) -> dict:
     with get_cursor(conn) as cur:
         cur.execute(
             """
-            SELECT status, phase,
+            SELECT status, phase, review_pass,
                    (halt_requested_at IS NOT NULL) AS halt,
                    (paused_until IS NOT NULL AND paused_until > now()) AS paused
               FROM geodata_runs WHERE id = %s
@@ -168,6 +211,11 @@ def _attempt_claim(conn, run_id: str, kind: str, lane: str, token: str) -> dict 
     2.4 GB anon-rss). Mirrors AutoscaleClaims::claimScope's heavy-lane
     gate. Serializing ALL claims is fine: a claim is milliseconds against
     minutes-to-hours of item work."""
+    # Dependency gate BEFORE anything else: resolve waits for a done and
+    # review-free boundaries; attribution waits for boundaries AND rasters.
+    if not stage_ready(conn, run_id, kind):
+        return None
+
     cap = kind_cap(kind)
     heavy_clause = ""
     heavy_params: tuple = ()
@@ -387,6 +435,10 @@ def claim_range(conn, run_id: str, iso: str, file_level: int | None, token: str,
                   "raster_range": "raster_iso",
                   "attribution_range": "attribution_pair",
                   "resolve_range": "resolve_global"}.get(kind, kind)
+    # Coordinators self-claim through here too — same dependency gate, or a
+    # coordinator could pull its children past a stage that is not ready.
+    if not stage_ready(conn, run_id, kind):
+        return None
     cap = kind_cap(fam_parent)
     with get_cursor(conn) as cur:
         cur.execute("SELECT pg_advisory_xact_lock(hashtext('cga_geodata_claim'))")

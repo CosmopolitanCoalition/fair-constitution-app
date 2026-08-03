@@ -59,6 +59,22 @@ class GeodataScanCategoryJob implements ShouldQueue
 
     public function handle(GeodataFlagService $service): void
     {
+        // PHASE GUARD (2026-08-03, operator: "the scan is running WHILE
+        // attribution is taking place, which is hilariously broken"). The
+        // dispatch is phase-gated, but an in-flight detector keeps running
+        // if the phase REWINDS underneath it — a requeue of attribution
+        // work does exactly that. Scanning half-written data flags noise,
+        // so a detector that finds itself outside the scanning phase exits
+        // without recording; the pump re-dispatches when scanning resumes.
+        $phase = DB::table('geodata_runs')->where('id', $this->runId)->value('phase');
+        if ($phase !== 'scanning') {
+            Log::info('Geodata scan category aborted — run left the scanning phase', [
+                'run_id' => $this->runId, 'category' => $this->category, 'phase' => $phase,
+            ]);
+
+            return;
+        }
+
         // LIVENESS MARKER (2026-08-03, the 4-hour scan thrash): the pump's
         // stale audit keyed on updated_at going quiet for 5 minutes — but a
         // heavy detector is legitimately silent for 10+ while its
