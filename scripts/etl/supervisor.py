@@ -561,6 +561,37 @@ def run_pool_mode(request_payload: dict) -> int:
                 have: dict = {}
                 for entry in procs.values():
                     have[entry[1]] = have.get(entry[1], 0) + 1
+
+                # SHRINK FIRST when the target drops (2026-08-03, the review
+                # pass that ran at full width): the loop below only ever
+                # spawns UP TO target and never terminated excess, so a pool
+                # that halved stayed wide until workers retired on their own
+                # — up to CLAIM_BUDGET_SECONDS later. A worker takes SIGTERM
+                # at its next claim boundary and its in-flight item is
+                # idempotent, so shrinking is safe at any moment.
+                for (lane, pref), target in targets.items():
+                    while have.get((lane, pref), 0) > target:
+                        for tag, entry in list(procs.items()):
+                            if entry[1] == (lane, pref):
+                                try:
+                                    entry[0].terminate()
+                                except Exception:
+                                    pass
+                                del procs[tag]
+                                have[(lane, pref)] -= 1
+                                break
+                        else:
+                            break
+                # Lanes whose quadrant no longer exists at all (a pref key
+                # that dropped out of targets) retire the same way.
+                for tag, entry in list(procs.items()):
+                    if entry[1] not in targets:
+                        try:
+                            entry[0].terminate()
+                        except Exception:
+                            pass
+                        del procs[tag]
+
                 for (lane, pref), target in targets.items():
                     while have.get((lane, pref), 0) < target:
                         tag_seq += 1

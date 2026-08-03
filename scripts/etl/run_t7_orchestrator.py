@@ -81,11 +81,34 @@ def save_report(report: dict) -> None:
 
 
 def enumerate_iso_levels(conn) -> list[tuple[str, int, int]]:
+    # COUNT(*) >= 1, not >= 2 (2026-08-03, operator-caught: "I don't
+    # understand why attribution doesn't include the L1s — I didn't ask for
+    # them to be separated out").
+    #
+    # The >= 2 clause structurally excluded EVERY L1 pair: a country has
+    # exactly ONE L1 row (itself), so no national level was ever attributed.
+    # L1 population came instead from the raster-phase baseline stamp — the
+    # sum of that country's OWN TILES — which is a DIFFERENT measurement
+    # from the one every other level gets (pixels inside the geoBoundaries
+    # polygon, claim-masked). Where the two masks disagree, a country's
+    # national number and its children's sum are produced by different
+    # methods and then compared against each other by
+    # validate_national_population, which is how phantom national_delta
+    # flags are born.
+    #
+    # It also silently skipped any LEVEL holding a single polygon (a country
+    # whose L2 is one state), leaving those rows unpopulated forever.
+    #
+    # Attributing L1 like everything else makes national and children
+    # consistent BY CONSTRUCTION, and returns the baseline to what it was
+    # meant to be — an INDEPENDENT verdict anchor rather than the answer
+    # itself. Finalize's baseline copy stays as the fallback for anything
+    # attribution could not do.
     with get_cursor(conn) as cur:
         cur.execute("""
             SELECT iso_code, adm_level, COUNT(*) AS n FROM jurisdictions
             WHERE iso_code IS NOT NULL AND adm_level >= 1 AND deleted_at IS NULL
-            GROUP BY iso_code, adm_level HAVING COUNT(*) >= 2
+            GROUP BY iso_code, adm_level HAVING COUNT(*) >= 1
             ORDER BY iso_code, adm_level
         """)
         return [(r["iso_code"], r["adm_level"], r["n"]) for r in cur.fetchall()]
