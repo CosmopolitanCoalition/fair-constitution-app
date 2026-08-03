@@ -146,6 +146,23 @@ class GeodataPumpCommand extends Command
                 $m = json_decode($stale->metrics ?? '{}', true) ?: [];
                 $have = array_keys($m['cats'] ?? []);
                 $missing = array_values(array_diff(\App\Models\GeodataFlag::CATEGORIES, $have));
+
+                // LIVENESS GATE (2026-08-03, the 4-hour scan thrash): "not
+                // yet in cats" is NOT "dead" — a heavy detector is silent
+                // for 10+ minutes while its planet-wide MATERIALIZED CTE
+                // grinds, so blind re-dispatch stacked duplicates whose
+                // concurrent CTEs OOM-killed postgres backends in a loop.
+                // A category re-dispatches only when its cat_started marker
+                // (stamped by the job itself, and by the chain for the
+                // chained category) is absent or older than 30 minutes —
+                // the engine's stale-claim constant, not a second invented
+                // number.
+                $started = $m['cat_started'] ?? [];
+                $missing = array_values(array_filter($missing, function ($cat) use ($started) {
+                    $t = $started[$cat] ?? null;
+                    return $t === null || (microtime(true) - (float) $t) > 1800;
+                }));
+
                 $chainDisplaced = in_array('mis_anchored_cluster', $missing, true)
                     && in_array('displaced_geometry', $missing, true);
                 foreach ($missing as $cat) {

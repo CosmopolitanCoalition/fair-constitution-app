@@ -39,8 +39,37 @@ class GeodataScanCategoryJob implements ShouldQueue
         $this->onQueue('long-running');
     }
 
+    /** Parent-proof cat_started stamp — the pump's liveness signal. Same
+     *  jsonb form as the cats write (the parent-trap fix): the inner ||
+     *  re-inserts the CURRENT cat_started object so concurrent stamps
+     *  compose and nothing landed is lost. */
+    private static function stampStarted(string $runId, string $category): void
+    {
+        DB::update(
+            "UPDATE geodata_items
+                SET metrics = jsonb_set(
+                        COALESCE(metrics, '{}'::jsonb)
+                          || jsonb_build_object('cat_started', COALESCE(metrics->'cat_started', '{}'::jsonb)),
+                        ARRAY['cat_started', ?], to_jsonb(?::float8), true),
+                    updated_at = now()
+              WHERE run_id = ? AND kind = 'acceptance_scan' AND status = 'running'",
+            [$category, microtime(true), $runId],
+        );
+    }
+
     public function handle(GeodataFlagService $service): void
     {
+        // LIVENESS MARKER (2026-08-03, the 4-hour scan thrash): the pump's
+        // stale audit keyed on updated_at going quiet for 5 minutes — but a
+        // heavy detector is legitimately silent for 10+ while its
+        // planet-wide MATERIALIZED CTE grinds, so the audit re-dispatched
+        // LIVE detectors forever. Duplicates stacked, their concurrent CTEs
+        // OOM-killed postgres backends in a loop, and the scan span 4h17m
+        // without landing the heavy four. The pump now re-dispatches a
+        // category only when it is absent from BOTH cats and a fresh
+        // cat_started marker (30 min, the engine's stale-claim constant).
+        self::stampStarted($this->runId, $this->category);
+
         $flags = null;
         $error = null;
         try {
@@ -110,6 +139,10 @@ class GeodataScanCategoryJob implements ShouldQueue
         }
 
         if ($this->nextCategory !== null) {
+            // The chained category counts as dispatched NOW — stamp its
+            // start here so the pump never mistakes "queued behind the
+            // chain" for "never dispatched" and races a duplicate.
+            self::stampStarted($this->runId, $this->nextCategory);
             self::dispatch($this->runId, $this->nextCategory);
         }
 
