@@ -84,27 +84,33 @@ function itemEta(it) {
 }
 
 // The breadcrumb models the TRUE dependency shape, not the phase pointer's
-// flat walk (operator, 2026-08-03). Boundaries and rasters are independent
-// fan-outs that run overlapped; resolve unlocks on boundaries, attribution
-// on rasters(+resolve's enumeration). So the two tracks stack:
+// flat walk (operator, 2026-08-03; combined-bubble form same day). The two
+// ingest fan-outs run overlapped and share one bubble; the two derivation
+// steps share the next:
 //
-//   Enumerate => [ Boundaries -> Resolve | Rasters -> Attribution ] => Finalize => Scan
+//   Enumerate => [Boundaries + Rasters] => [Resolve + Attribution] => Finalize => Scan
 //
-// Each group is a column; the middle column holds two parallel tracks.
+// Each group is ONE bubble; phases inside it carry their own check/elapsed.
 const GROUPS = [
-    [ [ { key: 'enumerating', kind: 'manifest',         label: 'Enumerate' } ] ],
-    [
-      [ { key: 'boundaries',  kind: 'boundary_iso',     label: 'Boundaries' },
-        { key: 'resolving',   kind: 'resolve_global',   label: 'Resolve' } ],
-      [ { key: 'rasters',     kind: 'raster_iso',       label: 'Rasters' },
-        { key: 'attribution', kind: 'attribution_pair', label: 'Attribution' } ],
-    ],
-    [ [ { key: 'finalizing',  kind: 'finalize_global',  label: 'Finalize' } ] ],
-    [ [ { key: 'scanning',    kind: 'acceptance_scan',  label: 'Scan' } ] ],
+    [ { key: 'enumerating', kind: 'manifest',         label: 'Enumerate' } ],
+    [ { key: 'boundaries',  kind: 'boundary_iso',     label: 'Boundaries' },
+      { key: 'rasters',     kind: 'raster_iso',       label: 'Rasters' } ],
+    [ { key: 'resolving',   kind: 'resolve_global',   label: 'Resolve' },
+      { key: 'attribution', kind: 'attribution_pair', label: 'Attribution' } ],
+    [ { key: 'finalizing',  kind: 'finalize_global',  label: 'Finalize' } ],
+    [ { key: 'scanning',    kind: 'acceptance_scan',  label: 'Scan' } ],
 ]
 
 // Flat phase list in pipeline order (the per-kind bars iterate this).
-const ALL_PHASES = GROUPS.flatMap(g => g.flat())
+const ALL_PHASES = GROUPS.flat()
+
+// A bubble is current if any of its phases is, done only when all are.
+function groupState(group) {
+    const states = group.map(p => chipState(p))
+    if (states.includes('current')) return 'current'
+    if (states.every(s => s === 'done')) return 'done'
+    return 'pending'
+}
 
 const layerByKind = computed(() => {
     const m = {}
@@ -237,29 +243,31 @@ onBeforeUnmount(() => {
         <p v-if="error" class="text-red-400 text-xs mb-3">{{ error }}</p>
         <p v-if="run.last_error" class="text-amber-400/80 text-xs mb-3">{{ run.last_error }}</p>
 
-        <!-- Phase pipeline — grouped to the TRUE dependency shape:
-             Enumerate => [Boundaries -> Resolve | Rasters -> Attribution] => Finalize => Scan -->
+        <!-- Phase pipeline — one bubble per dependency stage:
+             Enumerate => [Boundaries + Rasters] => [Resolve + Attribution] => Finalize => Scan -->
         <ol class="flex flex-wrap items-center gap-1.5 mb-5" aria-label="Pipeline phases">
             <template v-for="(group, gi) in GROUPS" :key="gi">
-                <li class="flex flex-col gap-1"
-                    :class="group.length > 1 ? 'rounded-lg border border-gray-800/70 px-1.5 py-1' : ''">
-                    <div v-for="(track, ti) in group" :key="ti" class="flex items-center gap-1">
-                        <template v-for="(p, pi) in track" :key="p.key">
-                            <span
-                                class="flex items-center gap-1.5 text-xs px-2.5 py-1 rounded-full border"
-                                :class="{
-                                    'border-emerald-800 bg-emerald-900/30 text-emerald-300': chipState(p) === 'done',
-                                    'border-sky-700 bg-sky-900/40 text-sky-200 font-semibold': chipState(p) === 'current',
-                                    'border-gray-800 text-gray-500': chipState(p) === 'pending',
-                                }"
-                            >
-                                <span v-if="chipState(p) === 'done'" aria-hidden="true">✓</span>
-                                {{ p.label }}
-                                <span v-if="phaseElapsed(p.key)" class="text-[10px] opacity-70">{{ phaseElapsed(p.key) }}</span>
-                            </span>
-                            <span v-if="pi < track.length - 1" class="text-gray-700 text-xs" aria-hidden="true">→</span>
-                        </template>
-                    </div>
+                <li
+                    class="flex items-center gap-1.5 text-xs px-2.5 py-1 rounded-full border"
+                    :class="{
+                        'border-emerald-800 bg-emerald-900/30 text-emerald-300': groupState(group) === 'done',
+                        'border-sky-700 bg-sky-900/40 text-sky-200': groupState(group) === 'current',
+                        'border-gray-800 text-gray-500': groupState(group) === 'pending',
+                    }"
+                >
+                    <template v-for="(p, pi) in group" :key="p.key">
+                        <span v-if="pi > 0" class="opacity-50" aria-hidden="true">+</span>
+                        <span class="flex items-center gap-1"
+                              :class="{
+                                  'text-emerald-300': chipState(p) === 'done' && groupState(group) !== 'done',
+                                  'font-semibold': chipState(p) === 'current',
+                                  'opacity-60': chipState(p) === 'pending' && groupState(group) === 'current',
+                              }">
+                            <span v-if="chipState(p) === 'done'" aria-hidden="true">✓</span>
+                            {{ p.label }}
+                            <span v-if="phaseElapsed(p.key)" class="text-[10px] opacity-70">{{ phaseElapsed(p.key) }}</span>
+                        </span>
+                    </template>
                 </li>
                 <li v-if="gi < GROUPS.length - 1" class="text-gray-700 text-xs" aria-hidden="true">⇒</li>
             </template>
