@@ -68,19 +68,41 @@ class GeodataScanCategoryJob implements ShouldQueue
         // clobber each other, the closer could never see six keys, and the
         // run would park in scanning forever). jsonb_set writes one path;
         // concurrent writers serialize on the row lock and compose.
+        //
+        // THE PARENT TRAP (2026-08-03, observed live on run 019fc460 — scan
+        // parked in 'scanning' with metrics = {"scan_started": ...} and
+        // NOTHING else after 90 minutes): jsonb_set's create_missing creates
+        // only the FINAL path element, and only when every earlier element
+        // already exists. The dispatcher seeds only scan_started — no 'cats'
+        // parent — so jsonb_set(metrics, '{cats,x}', ...) RETURNS THE TARGET
+        // UNCHANGED. Every detector ran its planet-wide query to completion
+        // and recorded nothing; the sixth-lander close condition could never
+        // be met. Fix at the WRITE, not by seeding '{"cats":{}}' at the
+        // dispatcher with || — that is the shallow-merge clobber above
+        // wearing a new hat (a re-dispatch against a live item would wipe
+        // landed results). The inner || re-inserts the CURRENT cats object
+        // (or empty on first write) so the parent always exists and nothing
+        // landed is lost.
         DB::update(
             "UPDATE geodata_items
-                SET metrics = jsonb_set(COALESCE(metrics, '{}'::jsonb),
-                                        ARRAY['cats', ?], to_jsonb(?::int), true),
+                SET metrics = jsonb_set(
+                        COALESCE(metrics, '{}'::jsonb)
+                          || jsonb_build_object('cats', COALESCE(metrics->'cats', '{}'::jsonb)),
+                        ARRAY['cats', ?], to_jsonb(?::int), true),
                     updated_at = now()
               WHERE run_id = ? AND kind = 'acceptance_scan' AND status = 'running'",
             [$this->category, $error === null ? $flags : -1, $this->runId],
         );
         if ($error !== null) {
+            // Same trap — masked until now only because 'cats' was equally
+            // broken (an error write that lands on nothing looks identical
+            // to an error write that never happened).
             DB::update(
                 "UPDATE geodata_items
-                    SET metrics = jsonb_set(COALESCE(metrics, '{}'::jsonb),
-                                            ARRAY['cat_errors', ?], to_jsonb(?::text), true),
+                    SET metrics = jsonb_set(
+                            COALESCE(metrics, '{}'::jsonb)
+                              || jsonb_build_object('cat_errors', COALESCE(metrics->'cat_errors', '{}'::jsonb)),
+                            ARRAY['cat_errors', ?], to_jsonb(?::text), true),
                         updated_at = now()
                   WHERE run_id = ? AND kind = 'acceptance_scan' AND status = 'running'",
                 [$this->category, $error, $this->runId],
