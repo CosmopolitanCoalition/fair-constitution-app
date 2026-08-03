@@ -938,11 +938,30 @@ def do_attribution(conn, run_id: str, iso: str, level: int, apply_to_db: bool,
     monster_mean = int(os.environ.get("CGA_ETL_MONSTER_MEAN_VERTICES", "0") or 0) or 500_000
     swarm_count = int(os.environ.get("CGA_ETL_SWARM_FEATURES", "0") or 0) or 100_000
     is_monster = mean_v >= monster_mean
-    is_swarm = (not is_monster) and unit_n >= swarm_count
 
-    # ── FEATURE SWARM → window-split, many lanes ──
-    # `not is_monster` guards the ordering: a level with BOTH huge rings and
-    # a huge count takes the monster path, never the legacy per-window one.
+    # SPLIT ON TOTAL WEIGHT, NOT ON SHAPE (2026-08-03, operator: "the splits
+    # of the giants in attribution aren't numerous enough — they just need to
+    # be chunked down more").
+    #
+    # The classifier keyed on mean_vertices and unit_count SEPARATELY, so a
+    # pair heavy by neither measure alone but heavy by their PRODUCT fell
+    # through to "everything else" and ran whole, in one process, with the
+    # level's entire geometry resident. Every exit -9 in this run was that
+    # shape: NZL L3 (17,607 x 245 = 4.3M verts), AUS L3 (6,269 x 547 = 3.4M),
+    # NZL L2 (190,743 x 17 = 3.2M), AUS L2 (204,080 x 9 = 1.8M) — none of
+    # them a "swarm", none of them split, all of them OOM-killed. CAN L2
+    # (16.5M) was worse: classified MONSTER, which explicitly REFUSED to
+    # split and asked for the whole container instead.
+    #
+    # Memory tracks total vertex weight, so that is what decides. A slice
+    # clips its geometry to its own band at parse time (_CLIP_BOUNDS in
+    # raster_attribution), so banding is exactly what makes a monster fit —
+    # the old "a monster can't be banded" rule predates that clipping.
+    weight = mean_v * unit_n
+    split_weight = int(os.environ.get("CGA_ETL_ATTR_SPLIT_WEIGHT", "0") or 0) or 1_000_000
+    is_swarm = (unit_n >= swarm_count) or (weight >= split_weight)
+
+    # ── HEAVY (by count OR by weight) → window-split, many lanes ──
     if is_swarm:
         # Resume identity: existing ranges PINNED a window_px, so enumerate
         # at that same px — otherwise the coverage guard compares counts
