@@ -162,7 +162,17 @@ class GeodataScanCategoryJob implements ShouldQueue
                 < count(GeodataFlag::CATEGORIES)) {
             return;
         }
-        $errors  = $m['cat_errors'] ?? [];
+        // Defense-in-depth on the close: a cats value of -1 IS an error,
+        // whatever cat_errors says. The -1 sentinel and the cat_errors row
+        // are written by two separate statements; if the second ever
+        // regresses (the parent trap masked exactly this for a day), the
+        // close must still refuse to stamp 'done' over a failed detector.
+        $errors = $m['cat_errors'] ?? [];
+        foreach (($m['cats'] ?? []) as $cat => $flags) {
+            if ((int) $flags < 0 && ! isset($errors[$cat])) {
+                $errors[$cat] = 'detector recorded -1 (errored) with no cat_errors entry';
+            }
+        }
         $elapsed = isset($m['scan_started'])
             ? round(microtime(true) - (float) $m['scan_started'], 1)
             : null;

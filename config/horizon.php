@@ -227,13 +227,17 @@ return [
             'connection' => 'redis-long',
             'queue' => ['long-running'],
             'balance' => 'simple',
-            // 4 lanes (2026-08-02, operator: parallelize the acceptance
-            // scan): the scan's six detectors now dispatch as parallel
-            // category jobs (5 independent + one chained) — SQL-driven, so
-            // PG does the work and each PHP worker is light. Width capped
-            // at 4 so concurrent planet-wide detector queries stay inside
-            // PG's headroom; host-derived floor of 2 keeps a Pi honest.
-            'maxProcesses' => max(2, min(4, \App\Support\HostCapacity::autoscaleWorkers())),
+            // 6 lanes (2026-08-03, operator: EVERY detector gets its own
+            // lane): the scan's six detectors dispatch as parallel category
+            // jobs (5 independent + one chained) — SQL-driven, so PG does
+            // the work and each PHP worker is light. The old cap of 4
+            // existed to protect PG's headroom; that protection now lives
+            // at the right layer — each detector session clamps its own PG
+            // memory (work_mem / parallelism / jit, see
+            // GeodataFlagService::clampSessionMemory) so six concurrent
+            // planet-wide queries fit the postgres budget by construction.
+            // Host-derived floor of 2 keeps a Pi honest.
+            'maxProcesses' => max(2, min(6, \App\Support\HostCapacity::autoscaleWorkers())),
             'maxTime' => 0,
             'maxJobs' => 0,
             'memory' => 512,
@@ -311,7 +315,7 @@ return [
                 // OVERRIDE defaults — this 1 masked the defaults width and
                 // ran the six detectors single-file. Keep in lockstep with
                 // the defaults expression.
-                'maxProcesses' => max(2, min(4, \App\Support\HostCapacity::autoscaleWorkers())),
+                'maxProcesses' => max(2, min(6, \App\Support\HostCapacity::autoscaleWorkers())),
             ],
             'supervisor-autoscale' => [
                 'maxProcesses' => \App\Support\HostCapacity::autoscaleWorkers(),
@@ -335,7 +339,7 @@ return [
             ],
             'supervisor-long-running' => [
                 // See production note — env blocks mask defaults.
-                'maxProcesses' => max(2, min(4, \App\Support\HostCapacity::autoscaleWorkers())),
+                'maxProcesses' => max(2, min(6, \App\Support\HostCapacity::autoscaleWorkers())),
             ],
             'supervisor-autoscale' => [
                 'maxProcesses' => \App\Support\HostCapacity::autoscaleWorkers(),

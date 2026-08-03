@@ -70,8 +70,38 @@ class GeodataFlagService
      * @param  list<string>|null  $isoCodes    e.g. ['FRA', 'MTQ']
      * @return array<string,int>  per-category count of open flags inserted
      */
+    /**
+     * Clamp THIS session's postgres memory so parallel detectors compose.
+     *
+     * The scan runs six detectors concurrently (2026-08-03, operator: every
+     * detector gets its own lane). Their planet-wide queries each budget
+     * hash/sort memory as work_mem × hash_mem_multiplier × parallel workers
+     * — at the global defaults, six sessions of that arithmetic exceed the
+     * postgres container and the kernel shoots a backend (signal 9,
+     * observed repeatedly in the 4-hour scan thrash). Per-SESSION clamps
+     * put the protection where the cost is: a detector spills to disk when
+     * it outgrows its slice (slower, finishes) instead of growing until it
+     * is killed (fast, never finishes). JIT off — one-shot analytical
+     * queries pay compilation for nothing; parallel gather off — the
+     * parallelism is BETWEEN detectors now, and per-query workers each
+     * multiply work_mem.
+     */
+    private function clampSessionMemory(): void
+    {
+        try {
+            DB::statement("SET work_mem = '32MB'");
+            DB::statement("SET hash_mem_multiplier = 1.0");
+            DB::statement('SET max_parallel_workers_per_gather = 0');
+            DB::statement('SET jit = off');
+        } catch (\Throwable) {
+            // Session tuning must never sink the scan itself.
+        }
+    }
+
     public function scan(?array $categories = null, ?array $isoCodes = null): array
     {
+        $this->clampSessionMemory();
+
         // Canonical order matters: displaced_geometry excludes rows already
         // claimed by a mis_anchored_cluster flag, so clusters detect first.
         $categories = $categories === null || $categories === []
