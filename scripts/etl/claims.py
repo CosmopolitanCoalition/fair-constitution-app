@@ -198,6 +198,16 @@ def _attempt_claim(conn, run_id: str, kind: str, lane: str, token: str) -> dict 
             kinds = ("raster_iso", "raster_range")
         elif kind == "attribution_pair":
             kinds = ("attribution_pair", "attribution_range")
+        elif kind == "resolve_global":
+            # RESOLVE FAN-OUT (2026-08-03): resolve used to be ONE claimable
+            # item — internally threaded, but one LANE, so nine lanes idled
+            # ~30 minutes behind it and the panel's bar moved three times in
+            # half an hour (set-based strategy UPDATEs are invisible until
+            # commit). resolve_global is now a COORDINATOR that enumerates
+            # per-country resolve_range children into this same pile, so
+            # free lanes work countries in parallel and each shows its own
+            # strip with elapsed time.
+            kinds = ("resolve_global", "resolve_range")
         else:
             kinds = (kind, kind)
 
@@ -281,7 +291,8 @@ def claim_range(conn, run_id: str, iso: str, file_level: int | None, token: str,
     concurrent children past the 6-lane cap the memory math assumes)."""
     fam_parent = {"boundary_range": "boundary_iso",
                   "raster_range": "raster_iso",
-                  "attribution_range": "attribution_pair"}.get(kind, kind)
+                  "attribution_range": "attribution_pair",
+                  "resolve_range": "resolve_global"}.get(kind, kind)
     cap = kind_cap(fam_parent)
     with get_cursor(conn) as cur:
         cur.execute("SELECT pg_advisory_xact_lock(hashtext('cga_geodata_claim'))")
@@ -296,8 +307,16 @@ def claim_range(conn, run_id: str, iso: str, file_level: int | None, token: str,
             )
             if int(cur.fetchone()["n"]) >= cap:
                 return None
+        # iso=None means ANY iso of this range kind (the resolve coordinator
+        # owns the whole per-country pile, not one country's slices). The
+        # window/feature range kinds still pass their own (iso, level) and
+        # stay scoped to it.
+        scope = "" if iso is None else \
+            "AND iso_code = %s AND adm_level IS NOT DISTINCT FROM %s"
+        params = (token, run_id, kind) if iso is None \
+            else (token, run_id, kind, iso, file_level)
         cur.execute(
-            """
+            f"""
             UPDATE geodata_items
                SET status = 'running', claim_token = %s,
                    started_at = COALESCE(started_at, now()), updated_at = now()
@@ -305,14 +324,14 @@ def claim_range(conn, run_id: str, iso: str, file_level: int | None, token: str,
                    SELECT id FROM geodata_items
                     WHERE run_id = %s AND status = 'pending'
                       AND kind = %s
-                      AND iso_code = %s AND adm_level IS NOT DISTINCT FROM %s
+                      {scope}
                     ORDER BY position, id
                     LIMIT 1
                     FOR UPDATE SKIP LOCKED
              )
-         RETURNING id::text AS id, metrics
+         RETURNING id::text AS id, iso_code, adm_level, metrics
             """,
-            (token, run_id, kind, iso, file_level),
+            params,
         )
         row = cur.fetchone()
     return dict(row) if row else None
@@ -447,6 +466,8 @@ def label(claim: dict) -> str:
         return f"boundaries · {iso} L{lvl} (parallel range)"
     if kind == "resolve_global":
         return "resolving global (Earth + orphans + cross-ISO)"
+    if kind == "resolve_range":
+        return f"resolving · {iso} (parent chains)"
     if kind == "raster_iso":
         return f"rasters · {iso}"
     if kind == "raster_range":

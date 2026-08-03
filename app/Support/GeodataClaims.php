@@ -109,6 +109,11 @@ final class GeodataClaims
         // way (pre-split ruling), so it drains on both kinds too.
         $kinds = match ($phase) {
             'boundaries'  => [$kind, 'boundary_range'],
+            // Resolve fan-out (2026-08-03): the resolve barrier enumerates
+            // per-country resolve_range children claimed by every lane, so
+            // the phase drains only when the coordinator AND all children
+            // have settled. Mirrors claims.py's resolve family.
+            'resolving'   => [$kind, 'resolve_range'],
             'rasters'     => [$kind, 'raster_range'],
             'attribution' => [$kind, 'attribution_range'],
             default       => [$kind],

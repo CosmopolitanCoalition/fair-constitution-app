@@ -964,6 +964,7 @@ def post_pass_orphan_resolution(
     conn: psycopg2.extensions.connection,
     earth_uuid: str,
     log: logging.Logger,
+    iso_runner=None,
 ) -> dict:
     """
     End-of-import post-pass that synthesizes any missing country-level rows
@@ -1015,15 +1016,29 @@ def post_pass_orphan_resolution(
         )
         isos = [r["iso_code"] for r in cur.fetchall()]
 
-    n_workers = _resolve_worker_count()
     heartbeat.bar_register(
         key="resolve:isos", label="Resolving — parent chains",
         total=len(isos), unit="countries",
     )
-    log.info("Post-pass: %d countries with orphans, %d worker(s)", len(isos), n_workers)
 
-    done_isos = 0
-    if isos:
+    # RESOLVE FAN-OUT (2026-08-03) — WHO runs the per-iso ladder is
+    # injectable. Under the pull engine, `iso_runner` enumerates one
+    # resolve_range item per country and lets EVERY LANE claim them; before
+    # this, resolve was one claimable item bounded by _resolve_worker_count()
+    # (<= 6) inside a single lane while the other nine idled — and the bar
+    # only ticked at whole-country completions, which is the opacity the
+    # operator called out. With no runner (reresolve_parents.py, the legacy
+    # CLI import) the in-process thread pool below is unchanged.
+    if isos and iso_runner is not None:
+        log.info("Post-pass: %d countries with orphans — fanning out to LANES", len(isos))
+        agg = iso_runner(isos)
+        for k, v in (agg or {}).items():
+            counts[k] = counts.get(k, 0) + v
+    elif isos:
+        n_workers = _resolve_worker_count()
+        log.info("Post-pass: %d countries with orphans, %d worker(s) (in-process)",
+                 len(isos), n_workers)
+        done_isos = 0
         with ThreadPoolExecutor(max_workers=n_workers) as pool:
             futures = {pool.submit(_resolve_orphans_for_iso, iso, log): iso for iso in isos}
             for fut in as_completed(futures):
@@ -2233,6 +2248,10 @@ def import_geoboundaries(
     # Requires countries=[one] and adm_levels=[one]. See _RANGE_MODE above.
     feature_start: int | None = None,
     feature_count: int | None = None,
+    # Resolve fan-out: the resolve barrier hands down a runner that fans the
+    # per-iso orphan ladder across LANES (resolve_range items) instead of an
+    # in-process thread pool. None keeps the legacy in-process behaviour.
+    resolve_iso_runner=None,
 ) -> int:
     """
     Import geoBoundaries data into the jurisdictions table.
@@ -2790,7 +2809,8 @@ def import_geoboundaries(
     # is well under a minute.
     _conn = get_connection()
     try:
-        post_counts = post_pass_orphan_resolution(_conn, earth_uuid, log)
+        post_counts = post_pass_orphan_resolution(
+            _conn, earth_uuid, log, iso_runner=resolve_iso_runner)
         progress["geoboundaries_post_pass"] = {
             "synthesized":           post_counts["synthesized"],
             "direct":                post_counts["direct"],

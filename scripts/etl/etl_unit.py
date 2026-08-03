@@ -30,6 +30,7 @@ import traceback
 
 sys.path.insert(0, "/etl")
 
+import heartbeat  # noqa: E402
 from db import get_connection, get_cursor  # noqa: E402
 
 PAIR_SCRIPT = "/etl/run_t7_pair.py"
@@ -424,14 +425,154 @@ def do_boundary_range(conn, item: dict, log: logging.Logger) -> dict:
     return {"inserted": n, "start": start, "count": count}
 
 
+def _resolve_iso_fanout(conn, run_id: str, log: logging.Logger):
+    """RESOLVE FAN-OUT (2026-08-03) — the per-iso orphan ladder, spread
+    across every LANE instead of an in-process thread pool.
+
+    Resolve was ONE claimable item: internally threaded, but bounded by
+    _resolve_worker_count() (<= 6) inside a single lane, so the other nine
+    had nothing — measured ~30-54 minutes of near-idle field per run. It was
+    also the opacity the operator called out: the bar ticked only when a
+    whole country finished, and the giants' set-based strategy UPDATEs are
+    invisible until commit, so the panel moved three times in half an hour.
+
+    Same coordinator/range shape as boundary_range and attribution_range:
+    enumerate per-country resolve_range children (idempotent), participate
+    alongside free lanes, barrier, aggregate. Each child is its own worker
+    strip with elapsed time, and the countries bar ticks per settled child
+    from the DB — visibility falls out of the mechanism."""
+    import claims
+
+    def _runner(isos: list[str]) -> dict:
+        token = str(__import__("uuid").uuid4())
+
+        # est_cost = the country's orphan count, so the two-ended queue puts
+        # the big chains on the big lanes immediately.
+        with get_cursor(conn) as cur:
+            cur.execute(
+                """
+                SELECT iso_code, COUNT(*) AS n FROM jurisdictions
+                 WHERE parent_id IS NULL AND adm_level BETWEEN 2 AND 6
+                   AND deleted_at IS NULL AND iso_code = ANY(%s)
+                 GROUP BY iso_code
+                """,
+                (list(isos),),
+            )
+            cost = {r["iso_code"]: int(r["n"]) for r in cur.fetchall()}
+
+        with get_cursor(conn) as cur:
+            cur.execute(
+                "SELECT COUNT(*) AS n FROM geodata_items "
+                " WHERE run_id=%s AND kind='resolve_range'", (run_id,))
+            already = int(cur.fetchone()["n"]) > 0
+        if already:
+            log.info("resolve: range items already enumerated — resuming")
+        else:
+            _insert_items(conn, run_id,
+                          [("resolve_range", iso, None, cost.get(iso, 1))
+                           for iso in isos])
+            log.info("resolve: enumerated %d per-iso range items", len(isos))
+
+        total = len(isos)
+
+        def _settled() -> int:
+            """Children finished by ANYONE — the coordinator and every free
+            lane. Counting only our own completions would under-report the
+            bar by exactly the parallelism this fan-out exists to add."""
+            with get_cursor(conn) as cur:
+                cur.execute(
+                    "SELECT COUNT(*) AS n FROM geodata_items "
+                    " WHERE run_id=%s AND kind='resolve_range' "
+                    "   AND status NOT IN ('pending','running')", (run_id,))
+                return int(cur.fetchone()["n"])
+
+        def _run_one(rng) -> None:
+            from import_geoboundaries import _resolve_orphans_for_iso
+            iso = rng["iso_code"]
+            try:
+                c = _resolve_orphans_for_iso(iso, log)
+                claims.record_outcome(conn, rng["id"], token, "done", metrics=c)
+            except Exception as exc:
+                log.error("resolve %s failed: %s", iso, exc)
+                claims.record_outcome(conn, rng["id"], token, "review",
+                                      reason=f"{type(exc).__name__}: {exc}")
+            heartbeat.bar_update("resolve:isos", _settled())
+
+        # Participate, then barrier with re-participation (a child that
+        # bounces back to pending is picked up here instead of starving).
+        while True:
+            rng = claims.claim_range(conn, run_id, None, None, token,
+                                     kind="resolve_range")
+            if rng is None:
+                break
+            _run_one(rng)
+
+        while True:
+            with get_cursor(conn) as cur:
+                cur.execute(
+                    """
+                    SELECT COUNT(*) FILTER (WHERE status IN ('pending','running')) AS open,
+                           COUNT(*) FILTER (WHERE status = 'pending')             AS pend
+                      FROM geodata_items
+                     WHERE run_id = %s AND kind = 'resolve_range'
+                    """,
+                    (run_id,),
+                )
+                r = cur.fetchone()
+            if int(r["open"]) == 0:
+                break
+            if int(r["pend"]) > 0:
+                rng = claims.claim_range(conn, run_id, None, None, token,
+                                         kind="resolve_range")
+                if rng is not None:
+                    _run_one(rng)
+                    continue
+            # Waiting on OTHER lanes' children — keep the bar honest while
+            # we block, or the panel looks frozen for the whole tail.
+            heartbeat.bar_update("resolve:isos", _settled())
+            time.sleep(3)
+
+        # Aggregate the children's per-strategy counts.
+        agg: dict = {}
+        with get_cursor(conn) as cur:
+            cur.execute(
+                "SELECT metrics FROM geodata_items "
+                " WHERE run_id=%s AND kind='resolve_range' AND status='done'",
+                (run_id,))
+            for row in cur.fetchall():
+                m = row["metrics"] or {}
+                if isinstance(m, str):
+                    m = json.loads(m)
+                for k, v in m.items():
+                    if isinstance(v, int):
+                        agg[k] = agg.get(k, 0) + v
+        heartbeat.bar_update("resolve:isos", total)
+        return agg
+
+    return _runner
+
+
+def do_resolve_range(conn, item: dict, log: logging.Logger) -> dict:
+    """One country's orphan ladder — claimed by any free lane while the
+    resolve coordinator holds the barrier."""
+    from import_geoboundaries import _resolve_orphans_for_iso
+    return _resolve_orphans_for_iso(item["iso_code"], log)
+
+
 def do_resolve(conn, run_id: str, options: dict, log: logging.Logger) -> dict:
-    """The single-writer barrier after all boundaries: run the global passes
-    (Earth + synthesize + orphan resolution + cross-ISO), THEN enumerate the
-    attribution pairs from the now-populated DB (the authoritative source)."""
+    """The barrier after all boundaries: run the global passes (Earth +
+    synthesize + orphan resolution + cross-ISO), THEN enumerate the
+    attribution pairs from the now-populated DB (the authoritative source).
+
+    The per-iso orphan ladder inside the post-pass fans out to resolve_range
+    items claimed by every lane (see _resolve_iso_fanout); the cross-ISO
+    pass and the pair enumeration stay here, after the barrier, because they
+    need the complete hierarchy."""
     from import_geoboundaries import import_geoboundaries
     from run_t7_orchestrator import enumerate_iso_levels
 
-    import_geoboundaries(global_passes_only=True, log=log)
+    import_geoboundaries(global_passes_only=True, log=log,
+                         resolve_iso_runner=_resolve_iso_fanout(conn, run_id, log))
 
     pairs = enumerate_iso_levels(conn)  # [(iso, level, npolys)] — DB-derived
     countries = {c.upper() for c in (options.get("countries") or [])}
@@ -1137,6 +1278,8 @@ def main() -> int:
                 metrics = do_boundary_range(conn, item, log)
             elif kind == "resolve_global":
                 metrics = do_resolve(conn, args.run, options, log)
+            elif kind == "resolve_range":
+                metrics = do_resolve_range(conn, item, log)
             elif kind == "raster_iso":
                 metrics = do_raster(conn, args.run, item["iso_code"], log)
             elif kind == "raster_range":

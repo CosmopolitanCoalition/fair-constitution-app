@@ -111,7 +111,8 @@ def _run_unit(conn, run_id: str, claim: dict, token: str,
         # what a lane can actually be RUNNING, or it is fiction.
         _FAMILY = {"boundary_iso":  ("boundary_iso", "boundary_range"),
                    "raster_iso":    ("raster_iso", "raster_range"),
-                   "attribution_pair": ("attribution_pair", "attribution_range")}
+                   "attribution_pair": ("attribution_pair", "attribution_range"),
+                   "resolve_global": ("resolve_global", "resolve_range")}
         if phase is not None:
             seeds = (claims.PHASE_KIND.get(phase, claim["kind"]),
                      *claims.PHASE_FALLTHROUGH.get(phase, ()))
