@@ -49,7 +49,10 @@ class GeodataRun extends Model
      *  expands a kind to its range family. */
     public const PHASE_FALLTHROUGH = [
         'boundaries' => ['raster_iso'],
-        'resolving'  => ['raster_iso'],
+        // Early attribution (2026-08-03): pairs are enumerated at the START
+        // of the resolve barrier, so idle lanes attribute while the
+        // per-country ladders grind. Mirrors claims.py PHASE_FALLTHROUGH.
+        'resolving'  => ['raster_iso', 'attribution_pair'],
     ];
 
     protected $fillable = [

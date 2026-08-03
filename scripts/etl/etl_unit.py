@@ -559,27 +559,18 @@ def do_resolve_range(conn, item: dict, log: logging.Logger) -> dict:
     return _resolve_orphans_for_iso(item["iso_code"], log)
 
 
-def do_resolve(conn, run_id: str, options: dict, log: logging.Logger) -> dict:
-    """The barrier after all boundaries: run the global passes (Earth +
-    synthesize + orphan resolution + cross-ISO), THEN enumerate the
-    attribution pairs from the now-populated DB (the authoritative source).
-
-    The per-iso orphan ladder inside the post-pass fans out to resolve_range
-    items claimed by every lane (see _resolve_iso_fanout); the cross-ISO
-    pass and the pair enumeration stay here, after the barrier, because they
-    need the complete hierarchy."""
-    from import_geoboundaries import import_geoboundaries
+def _enumerate_attribution_pairs(conn, run_id: str, options: dict,
+                                 log: logging.Logger) -> int:
+    """Enumerate the attribution pairs from the DB. Idempotent — a resume
+    (or the finalize-side safety call) never duplicates the pile."""
     from run_t7_orchestrator import enumerate_iso_levels
 
-    import_geoboundaries(global_passes_only=True, log=log,
-                         resolve_iso_runner=_resolve_iso_fanout(conn, run_id, log))
-
-    # Baselines BEFORE pairs (2026-08-03): under the overlap most rasters
-    # finish before their country's L1 row exists, so the raster-phase stamp
-    # silently missed 173 of 232 — and every pair for those isos verdicted
-    # no_l1. Here every L1 row exists and every tile is loaded, so the
-    # catch-all closes the gap before a single verdict is computed.
-    _stamp_missing_baselines(conn, log)
+    with get_cursor(conn) as cur:
+        cur.execute(
+            "SELECT COUNT(*) AS n FROM geodata_items "
+            " WHERE run_id=%s AND kind='attribution_pair'", (run_id,))
+        if int(cur.fetchone()["n"]) > 0:
+            return 0
 
     pairs = enumerate_iso_levels(conn)  # [(iso, level, npolys)] — DB-derived
     countries = {c.upper() for c in (options.get("countries") or [])}
@@ -601,8 +592,66 @@ def do_resolve(conn, run_id: str, options: dict, log: logging.Logger) -> dict:
              weight.get((iso, level - 1), int(npolys)))
             for iso, level, npolys in pairs]
     _insert_items(conn, run_id, rows)
-    log.info("resolve_global: post-pass done, %d attribution pairs enumerated", len(rows))
-    return {"attribution_pairs": len(rows)}
+    return len(rows)
+
+
+def do_resolve(conn, run_id: str, options: dict, log: logging.Logger) -> dict:
+    """The barrier after all boundaries: run the global passes (Earth +
+    synthesize + orphan resolution + cross-ISO) with the per-iso ladder
+    fanned out to resolve_range items on every lane.
+
+    EARLY ATTRIBUTION (2026-08-03, operator: attribution plays nice with
+    resolve so the lanes are taken). Attribution's math never reads
+    parent_id — it needs geometry (boundaries, complete at this barrier),
+    rasters (complete), and the L1 baseline (stamped below). So the pairs
+    are enumerated FIRST and the resolving phase's claim fallthrough lets
+    idle lanes attribute while the resolve ladders grind — the field stays
+    full instead of eight lanes watching IND for twenty minutes.
+
+    The one thing resolve can do that invalidates an early pair: the
+    cross-ISO/phase-S passes may INSERT synthesized intermediary rows into a
+    level that already attributed. Those pairs are requeued at the end —
+    idempotent by design, and the redo set is measured from created_at, not
+    guessed."""
+    import datetime as _dt
+    from import_geoboundaries import import_geoboundaries
+
+    # Baselines BEFORE anything verdicts (the 59-of-232 lesson): every L1
+    # row exists at this barrier and every tile is loaded.
+    _stamp_missing_baselines(conn, log)
+
+    n_pairs = _enumerate_attribution_pairs(conn, run_id, options, log)
+    with get_cursor(conn) as cur:
+        cur.execute("SELECT now() AS t")
+        t0 = cur.fetchone()["t"]
+    log.info("resolve_global: %d attribution pairs enumerated EARLY — idle "
+             "lanes attribute while the ladders run", n_pairs)
+
+    import_geoboundaries(global_passes_only=True, log=log,
+                         resolve_iso_runner=_resolve_iso_fanout(conn, run_id, log))
+
+    # Requeue any pair whose (iso, level) gained rows during the global
+    # passes (synthesized intermediaries) — attributed before those rows
+    # existed, its numbers are stale for exactly that level.
+    with get_cursor(conn) as cur:
+        cur.execute(
+            """
+            UPDATE geodata_items gi
+               SET status='pending', claim_token=NULL, reason=NULL,
+                   started_at=NULL, finished_at=NULL, updated_at=now()
+              FROM (SELECT DISTINCT iso_code, adm_level FROM jurisdictions
+                     WHERE created_at > %s AND deleted_at IS NULL
+                       AND adm_level BETWEEN 2 AND 6) fresh
+             WHERE gi.run_id=%s AND gi.kind='attribution_pair'
+               AND gi.status IN ('done','review','failed')
+               AND gi.iso_code=fresh.iso_code AND gi.adm_level=fresh.adm_level
+            """,
+            (t0, run_id))
+        redo = cur.rowcount
+    if redo:
+        log.info("resolve_global: requeued %d pair(s) whose level gained "
+                 "synthesized rows during the global passes", redo)
+    return {"attribution_pairs": n_pairs, "pairs_requeued": redo}
 
 
 def _stamp_national_baseline(conn, iso: str, log: logging.Logger) -> None:

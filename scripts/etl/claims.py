@@ -47,7 +47,14 @@ PHASE_KIND = {
 # only add a redundant second query.
 PHASE_FALLTHROUGH = {
     "boundaries": ("raster_iso",),
-    "resolving":  ("raster_iso",),
+    # EARLY ATTRIBUTION (2026-08-03): the resolve barrier enumerates the
+    # attribution pairs FIRST (baselines already stamped, geometry and
+    # rasters complete), so idle lanes attribute while the per-country
+    # resolve ladders grind. Attribution never reads parent_id; the one
+    # hazard (synthesized intermediary rows landing mid-pass) is handled by
+    # do_resolve's requeue of affected pairs at the end. Raster leftovers
+    # first, then attribution.
+    "resolving":  ("raster_iso", "attribution_pair"),
 }
 
 # Per-kind concurrency caps — OPERATOR DIALS ONLY (2026-08-02). The derived

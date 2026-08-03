@@ -907,9 +907,39 @@ def _resolve_orphans_for_iso(iso: str, log: logging.Logger) -> dict:
     returned, just for this one country.
     """
     counts = {"direct": 0, "skip_ancestor": 0, "buffered": 0,
-              "topological": 0, "cross_iso_topological": 0}
+              "topological": 0, "cross_iso_topological": 0, "timed_out": 0}
     conn = get_connection()
+
+    # THE STRATEGY TIME BUDGET (2026-08-03, operator: "the code can't allow
+    # this to hold up the rest of the process"). Caught live: IND's L6 ladder
+    # ground ONE strategy query for 29+ minutes on CPU against 16 orphans
+    # that no strategy can place (offshore islets outside every candidate
+    # parent) — and the ladder runs FOUR such passes per level. A strategy
+    # that hasn't landed in this budget isn't going to: residual orphans are
+    # an ACCEPTED, scan-flagged outcome, so the honest move is to skip the
+    # pass and keep the run moving. statement_timeout is server-side (kills
+    # the query, not just the wait) and session-scoped to THIS ladder's
+    # connection — nothing else inherits it.
+    budget_ms = int(os.environ.get("CGA_ETL_RESOLVE_STRATEGY_TIMEOUT_MS", "0") or 0) or 180_000
+
+    def _pass(level: int, strategy: str) -> tuple[int, int]:
+        try:
+            r = _resolve_orphans_at_level_via_strategy(
+                conn, level, strategy, iso_filter=iso)
+            conn.commit()
+            return r
+        except psycopg2.errors.QueryCanceled:
+            conn.rollback()
+            counts["timed_out"] += 1
+            log.warning(
+                "%s L%d %s: strategy pass exceeded %ds budget — skipped "
+                "(unplaceable orphans stay residual; the acceptance scan "
+                "flags them)", iso, level, strategy, budget_ms // 1000)
+            return (0, 0)
+
     try:
+        with get_cursor(conn) as cur:
+            cur.execute("SET statement_timeout = %s", (budget_ms,))
         for level in (2, 3, 4, 5, 6):
             with get_cursor(conn) as cur:
                 cur.execute(
@@ -921,25 +951,17 @@ def _resolve_orphans_for_iso(iso: str, log: logging.Logger) -> dict:
                 if cur.fetchone()["cnt"] == 0:
                     continue
 
-            n_di, _ = _resolve_orphans_at_level_via_strategy(
-                conn, level, "direct_intersect", iso_filter=iso)
-            conn.commit()
+            n_di, _ = _pass(level, "direct_intersect")
             counts["direct"] += n_di
 
-            n_direct, n_skip = _resolve_orphans_at_level_via_strategy(
-                conn, level, "exact", iso_filter=iso)
-            conn.commit()
+            n_direct, n_skip = _pass(level, "exact")
             counts["direct"]        += n_direct
             counts["skip_ancestor"] += n_skip
 
-            n_buf, _ = _resolve_orphans_at_level_via_strategy(
-                conn, level, "buffered", iso_filter=iso)
-            conn.commit()
+            n_buf, _ = _pass(level, "buffered")
             counts["buffered"] += n_buf
 
-            n_topo, n_cross = _resolve_orphans_at_level_via_strategy(
-                conn, level, "topological", iso_filter=iso)
-            conn.commit()
+            n_topo, n_cross = _pass(level, "topological")
             counts["topological"]           += n_topo
             counts["cross_iso_topological"] += n_cross
     finally:
