@@ -1507,7 +1507,63 @@ class SetupController extends Controller
             'world'    => ['loaded' => $worldLoaded, 'expected' => $worldExpected ?: null],
             'resolve'  => $resolve,
             'levels'   => $levelStats,
+            // The six scan detectors run LARAVEL-side in Horizon, so they
+            // never appear in the worker strips above (those are Python ETL
+            // leases). Without this the operator sees a single opaque "Scan"
+            // item and concludes it is single-lane — it is not: cat_started
+            // shows five detectors dispatching within ~3s of each other.
+            'scan'     => $this->geodataScanDetectors($run),
         ]);
+    }
+
+    /**
+     * Per-detector state for the acceptance scan (Stage S §4).
+     *
+     * Derived from the scan item's own metrics — no extra queries, no cost.
+     * Each detector is: pending (in neither marker nor results) · running
+     * (started, no result yet — with elapsed) · done (result >= 0, with its
+     * flag count) · error (result -1 or named in cat_errors).
+     *
+     * @return array{state:string, detectors:list<array>}|null
+     */
+    private function geodataScanDetectors($run): ?array
+    {
+        $item = DB::table('geodata_items')
+            ->where('run_id', $run->id)->where('kind', 'acceptance_scan')
+            ->first(['status', 'metrics']);
+        if ($item === null) {
+            return null;
+        }
+        $m       = json_decode($item->metrics ?? '{}', true) ?: [];
+        $cats    = $m['cats'] ?? [];
+        $started = $m['cat_started'] ?? [];
+        $errors  = $m['cat_errors'] ?? [];
+
+        $detectors = [];
+        foreach (\App\Models\GeodataFlag::CATEGORIES as $cat) {
+            $flags = $cats[$cat] ?? null;
+            if (isset($errors[$cat]) || (int) $flags < 0 && $flags !== null) {
+                $state = 'error';
+            } elseif ($flags !== null) {
+                $state = 'done';
+            } elseif (isset($started[$cat])) {
+                $state = 'running';
+            } else {
+                $state = 'pending';
+            }
+            $detectors[] = [
+                'key'       => $cat,
+                'label'     => ucwords(str_replace('_', ' ', $cat)),
+                'state'     => $state,
+                'flags'     => $state === 'done' ? (int) $flags : null,
+                'elapsed_s' => isset($started[$cat])
+                    ? max(0, (int) round(microtime(true) - (float) $started[$cat]))
+                    : null,
+                'error'     => $errors[$cat] ?? null,
+            ];
+        }
+
+        return ['state' => (string) $item->status, 'detectors' => $detectors];
     }
 
     /**

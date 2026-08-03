@@ -55,6 +55,10 @@ const LEVEL_NAMES = { 1: 'Countries', 2: 'States/Provinces', 3: 'Counties',
 // Resolve-phase live signal: parent chains built vs total ADM2+ rows —
 // the unparented count drains as each set-based strategy pass commits.
 const resolve = computed(() => data.value?.resolve ?? null)
+// The six scan detectors run Laravel-side in Horizon, so they never appear
+// in the worker strips (those are Python ETL leases). Without these chips
+// the scan reads as one opaque lane when it is actually running 5-6 wide.
+const scan = computed(() => data.value?.scan ?? null)
 const resolvePct = computed(() => {
     if (!resolve.value?.total) return 0
     return Math.min(100, Math.round(
@@ -422,6 +426,38 @@ onBeforeUnmount(() => {
                 <li v-if="idleWorkers" class="text-xs text-gray-500 px-2.5 py-1">
                     {{ idleWorkers }} worker{{ idleWorkers > 1 ? 's' : '' }} between claims —
                     yield backoff (a giant holds the parse floor) or waiting for work
+                </li>
+            </ul>
+        </div>
+
+        <!-- Acceptance-scan detectors. Horizon-side work, invisible to the
+             worker strips above — six chips so the scan is never a single
+             opaque bar again. -->
+        <div v-if="scan && scan.detectors" class="mb-5">
+            <h3 class="text-gray-200 text-xs font-semibold uppercase tracking-wide mb-2">
+                Acceptance scan — {{ scan.detectors.filter(d => d.state === 'done').length }} / {{ scan.detectors.length }} detectors
+            </h3>
+            <ul class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-1.5">
+                <li v-for="d in scan.detectors" :key="d.key"
+                    class="flex items-center justify-between gap-2 text-xs px-2.5 py-1.5 rounded border"
+                    :class="{
+                        'border-emerald-800 bg-emerald-900/20 text-emerald-300': d.state === 'done',
+                        'border-sky-700 bg-sky-900/30 text-sky-200': d.state === 'running',
+                        'border-red-800 bg-red-900/20 text-red-300': d.state === 'error',
+                        'border-gray-800 text-gray-500': d.state === 'pending',
+                    }">
+                    <span class="truncate">
+                        <span v-if="d.state === 'done'" aria-hidden="true">✓ </span>
+                        <span v-else-if="d.state === 'error'" aria-hidden="true">✕ </span>
+                        <span v-else-if="d.state === 'running'" aria-hidden="true">▶ </span>
+                        {{ d.label }}
+                    </span>
+                    <span class="tabular-nums shrink-0 text-[11px] opacity-80">
+                        <template v-if="d.state === 'done'">{{ d.flags.toLocaleString() }} flag{{ d.flags === 1 ? '' : 's' }}</template>
+                        <template v-else-if="d.state === 'running'">{{ Math.floor(d.elapsed_s / 60) }}m {{ d.elapsed_s % 60 }}s</template>
+                        <template v-else-if="d.state === 'error'">errored</template>
+                        <template v-else>queued</template>
+                    </span>
                 </li>
             </ul>
         </div>
