@@ -112,6 +112,24 @@ function groupState(group) {
     return 'pending'
 }
 
+// ONE timer per bubble, at its end (operator, 2026-08-03): earliest member
+// start → latest member finish; ticking while any member is unfinished.
+function groupElapsed(group) {
+    const stamps = group
+        .map(p => run.value?.phase_timestamps?.[p.key])
+        .filter(t => t?.started_at)
+    if (!stamps.length) return ''
+    const start = Math.min(...stamps.map(t => new Date(t.started_at).getTime()))
+    const open = stamps.some(t => !t.finished_at)
+        || stamps.length < group.length && groupState(group) !== 'done'
+    const end = open ? nowTick.value
+        : Math.max(...stamps.map(t => new Date(t.finished_at).getTime()))
+    const s = Math.max(0, Math.floor((end - start) / 1000))
+    if (s < 60) return `${s}s`
+    if (s < 3600) return `${Math.floor(s / 60)}m ${s % 60}s`
+    return `${Math.floor(s / 3600)}h ${Math.floor((s % 3600) / 60)}m`
+}
+
 const layerByKind = computed(() => {
     const m = {}
     for (const l of layers.value) m[l.kind] = l
@@ -121,6 +139,9 @@ const layerByKind = computed(() => {
 // Chip state from ITEM COUNTS first, phase timestamps second — the pointer
 // alone lies under the overlap (rasters finish while the pointer still says
 // boundaries; the old index-ordered chips showed them pending regardless).
+// A kind with items actively RUNNING is current even before any completes —
+// without that, rasters sat unbolded through the whole overlap while lanes
+// were visibly loading tiles (operator-caught, twice).
 function chipState(p) {
     const r = run.value
     if (!r) return 'pending'
@@ -129,7 +150,7 @@ function chipState(p) {
     const l = layerByKind.value[p.kind]
     if (t?.finished_at || (l && l.total > 0 && l.open === 0)) return 'done'
     if (r.phase === p.key || t?.started_at
-        || (l && l.total > 0 && l.open < l.total)) return 'current'
+        || (l && l.total > 0 && (Number(l.running) > 0 || l.open < l.total))) return 'current'
     return 'pending'
 }
 
@@ -209,7 +230,7 @@ onBeforeUnmount(() => {
     <section v-if="run" class="bg-gray-900 border border-gray-800 rounded-lg p-6 mb-6">
         <div class="flex items-center justify-between mb-4">
             <div class="flex items-center gap-3">
-                <h2 class="text-white font-semibold">Multithreaded ingestion</h2>
+                <h2 class="text-white font-semibold">GeoData Ingestion</h2>
                 <span
                     class="text-xs px-2 py-0.5 rounded-full font-medium"
                     :class="{
@@ -265,9 +286,9 @@ onBeforeUnmount(() => {
                               }">
                             <span v-if="chipState(p) === 'done'" aria-hidden="true">✓</span>
                             {{ p.label }}
-                            <span v-if="phaseElapsed(p.key)" class="text-[10px] opacity-70">{{ phaseElapsed(p.key) }}</span>
                         </span>
                     </template>
+                    <span v-if="groupElapsed(group)" class="text-[10px] opacity-70">{{ groupElapsed(group) }}</span>
                 </li>
                 <li v-if="gi < GROUPS.length - 1" class="text-gray-700 text-xs" aria-hidden="true">⇒</li>
             </template>

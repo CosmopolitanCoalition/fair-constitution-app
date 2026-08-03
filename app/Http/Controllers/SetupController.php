@@ -1366,6 +1366,7 @@ class SetupController extends Controller
                 COUNT(*)                                          AS total,
                 COUNT(*) FILTER (WHERE status = 'done')           AS done,
                 COUNT(*) FILTER (WHERE status IN ('pending','running')) AS open,
+                COUNT(*) FILTER (WHERE status = 'running')        AS running,
                 COUNT(*) FILTER (WHERE status = 'review')         AS review,
                 COUNT(*) FILTER (WHERE status = 'failed')         AS failed
             ")

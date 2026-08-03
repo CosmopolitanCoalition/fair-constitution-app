@@ -3,7 +3,6 @@ import { computed, onBeforeUnmount, onMounted, ref } from 'vue'
 import { router } from '@inertiajs/vue3'
 import AppShell from '@/Layouts/AppShell.vue'
 import SetupStepper from '@/Components/SetupStepper.vue'
-import LiveProgress from '@/Components/Setup/LiveProgress.vue'
 import ReviewIssuesSection from '@/Components/Setup/ReviewIssuesSection.vue'
 import GeodataPullPanel from '@/Components/Geodata/GeodataPullPanel.vue'
 import { csrfFetch } from '@/lib/csrf'
@@ -1043,25 +1042,10 @@ onBeforeUnmount(() => {
                 <GeodataPullPanel ref="pullPanel" class="mt-5" @run-state="pullRun = $event" />
             </section>
 
-            <!-- Live Progress (legacy single-threaded runs; hidden while a
-                 pull run is active — the pull panel above is that run's truth) -->
-            <LiveProgress
-                v-if="!pullRunActive"
-                :lifecycle="lifecycle"
-                :running="running"
-                :done="done"
-                :failed="failed"
-                :progress="progress"
-                :current="current"
-                :bars="bars"
-                :events="events"
-                :error-pause="errorPause"
-                :counts="counts"
-                :log-tail="displayLines"
-                :pending-control="pendingControl"
-                v-model:include-debug="includeDebug"
-                @control="sendControl"
-            />
+            <!-- Legacy Live Progress panel retired (operator, 2026-08-03):
+                 the pull dashboard above is the one truth for ingestion.
+                 (LiveProgress.vue itself remains for the download-fetch
+                 flow's plumbing history; nothing renders it here.) -->
 
             <!-- 4. Review & Accept — post-ETL the operator inspects the imported
                  jurisdictions in the dedicated viewer (where map + stats + raster
