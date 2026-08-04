@@ -1539,8 +1539,39 @@ def _collapse_same_space_chains(conn, log: logging.Logger) -> int:
         if not pairs:
             break
 
-        merged = 0
+        merged = stale = 0
         for pid, cid in pairs:
+            with get_cursor(conn) as cur:
+                # ── STALENESS GUARD (caught live 2026-08-04: 89 detached rows).
+                # `pairs` is a SNAPSHOT. A chain P->Q->R yields BOTH (P,Q) and
+                # (Q,R) in the same sweep, because each link is a single-child
+                # parent. Merging Q into P makes the (Q,R) pair stale — and
+                # acting on it re-anchored R's children onto a Q that no longer
+                # exists, detaching them from the tree. `deleted_at IS NULL` on
+                # the merge itself was not enough: the RE-ANCHOR ran first and
+                # pointed real children at a dead row.
+                #
+                # Both ends must still be live AND still be parent-and-child.
+                # Anything stale is skipped; the next sweep re-derives it from
+                # live rows and collapses it correctly. This is why the sweep
+                # loop exists. ──
+                cur.execute("""
+                    SELECT 1
+                      FROM jurisdictions p
+                      JOIN jurisdictions c ON c.id = %s AND c.parent_id = p.id
+                     WHERE p.id = %s
+                       AND p.deleted_at IS NULL AND p.merged_into_id IS NULL
+                       AND c.deleted_at IS NULL AND c.merged_into_id IS NULL
+                """, (cid, pid))
+                fresh = cur.fetchone() is not None
+            if not fresh:
+                # Close the read's transaction before moving on — `continue`
+                # would otherwise skip the commit below and leave one
+                # idle-in-transaction per stale pair.
+                conn.commit()
+                stale += 1
+                continue
+
             with get_cursor(conn) as cur:
                 # constraint 2: lineage first — re-anchor the child's children
                 # onto the survivor before the child stops being live.
@@ -1564,8 +1595,9 @@ def _collapse_same_space_chains(conn, log: logging.Logger) -> int:
                     total  += 1
             conn.commit()          # bounded, committed chunk of work
 
-        log.info("finalize: chain collapse sweep %d — %d pair(s) merged "
-                 "(%d total)", sweep, merged, total)
+        log.info("finalize: chain collapse sweep %d — %d pair(s) merged, %d "
+                 "stale (deferred to the next sweep) · %d total",
+                 sweep, merged, stale, total)
         if merged == 0:
             break
 
