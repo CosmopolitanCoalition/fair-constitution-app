@@ -24,6 +24,7 @@ import os
 import re
 import struct
 import sys
+import time
 import unicodedata
 from array import array
 from concurrent.futures import ThreadPoolExecutor, as_completed
@@ -716,14 +717,64 @@ def synthesize_missing_country_rows(
 #      PRI level-3 chain to it; resolving PRI level-3 then lets PRI level-4
 #      chain to those (no more synthesizing chain).
 
+def _resolve_strategy_budget_ms() -> int:
+    """PER-BATCH statement budget for one orphan-resolution chunk.
+
+    Was a whole-PASS budget (2026-08-03) over a single all-or-nothing bulk
+    UPDATE, and that combination cost us India: the direct_intersect pass
+    matched all 7,143 IND L5 orphans in ~97 s on an idle box, ran past 180 s
+    under live load, and `QueryCanceled` rolled back EVERY match it had
+    already computed. The three costlier strategies behind it then ran
+    against the full un-resolved set and blew the budget too (5 timeouts).
+    Result: 7,143 orphans left unparented, dragging 649,578 correctly-
+    parented L6 descendants out of the tree with them — 656,737 rows
+    unreachable from India, to avoid holding up the run for 16 islets.
+
+    The budget now bounds ONE CHUNK, so a pathological chunk is skipped
+    (still the original intent — residual orphans are scan-flagged) while
+    every other chunk commits and stays committed."""
+    return int(os.environ.get("CGA_ETL_RESOLVE_STRATEGY_TIMEOUT_MS", "0") or 0) or 180_000
+
+
+def _resolve_batch_target_s() -> float:
+    """Wall-clock a chunk should aim for. The chunk SIZE self-tunes toward
+    this, so the same code lands sane batches on a Pi and on a workstation
+    without asking anyone to configure it (derive-from-host, and here the
+    host is measured rather than queried — throughput is what actually
+    matters and it depends on geometry complexity, not just RAM)."""
+    env = os.environ.get("CGA_ETL_RESOLVE_BATCH_TARGET_S")
+    if env:
+        try:
+            v = float(env)
+            if v > 0:
+                return v
+        except ValueError:
+            pass
+    return max(5.0, (_resolve_strategy_budget_ms() / 1000.0) / 6.0)
+
+
+# Probe size for the first chunk of a pass. NOT a tuning constant — the
+# adaptive loop below doubles/halves from here and converges within a few
+# chunks on any host, so this value does not determine steady-state
+# behaviour. Deliberately small so the first chunk is cheap and informative.
+_RESOLVE_BATCH_SEED  = int(os.environ.get("CGA_ETL_RESOLVE_BATCH_SEED", "0") or 0) or 128
+_RESOLVE_BATCH_FLOOR = 32
+_RESOLVE_BATCH_CEIL  = 8192
+
+
 def _resolve_orphans_at_level_via_strategy(
     conn: psycopg2.extensions.connection,
     orphan_level: int,
     strategy: str,           # 'exact' | 'buffered' | 'topological'
     iso_filter: str | None = None,
+    stats: dict | None = None,
+    log: logging.Logger | None = None,
 ) -> tuple[int, int]:
     """
-    Single bulk UPDATE that re-resolves all orphans at the given adm_level.
+    Chunked, per-chunk-committed UPDATE that re-resolves orphans at the
+    given adm_level (THE ETL RULE: bounded committed chunks, never one
+    planet-wide statement — see _resolve_strategy_budget_ms for what the
+    unbounded version cost).
 
     Returns:
       ('exact')        → (n_direct, n_skip_ancestor)
@@ -839,6 +890,7 @@ def _resolve_orphans_at_level_via_strategy(
               AND parent_id IS NULL
               AND adm_level > 0
               AND deleted_at IS NULL
+              AND id = ANY(%s::uuid[])
               {orphan_iso_clause}
         ),
         best_parent AS (
@@ -873,16 +925,93 @@ def _resolve_orphans_at_level_via_strategy(
         WHERE j.id = bp.orphan_id
         RETURNING j.parent_assigned_via
     """
-    params = (orphan_level, orphan_level) if iso_filter is None else (orphan_level, iso_filter, orphan_level)
-    with get_cursor(conn) as cur:
-        cur.execute(sql, params)
-        rows = cur.fetchall()
+    lg = log or logger
 
-    n_direct       = sum(1 for r in rows if r["parent_assigned_via"] == "direct")
-    n_skip         = sum(1 for r in rows if r["parent_assigned_via"] == "skip_ancestor")
-    n_buffered     = sum(1 for r in rows if r["parent_assigned_via"] == "buffered")
-    n_topo         = sum(1 for r in rows if r["parent_assigned_via"] == "topological")
-    n_cross        = sum(1 for r in rows if r["parent_assigned_via"] == "cross_iso_topological")
+    # ── The orphan roster for this pass. Id-only (no geometry), so this is
+    # cheap even at planet scale, and it is re-read per strategy so a chunk
+    # parented by an earlier strategy never enters a later one. ──
+    id_sql = (
+        "SELECT id FROM jurisdictions "
+        " WHERE adm_level = %s AND parent_id IS NULL AND adm_level > 0 "
+        "   AND deleted_at IS NULL " + orphan_iso_clause + " ORDER BY id"
+    )
+    with get_cursor(conn) as cur:
+        cur.execute(id_sql, (orphan_level,) if iso_filter is None
+                    else (orphan_level, iso_filter))
+        orphan_ids = [r["id"] for r in cur.fetchall()]
+    conn.commit()
+
+    if not orphan_ids:
+        return (0, 0)
+
+    budget_ms = _resolve_strategy_budget_ms()
+    target_s  = _resolve_batch_target_s()
+    tally     = {"direct": 0, "skip_ancestor": 0, "buffered": 0,
+                 "topological": 0, "cross_iso_topological": 0}
+    batch     = max(_RESOLVE_BATCH_FLOOR, min(_RESOLVE_BATCH_SEED, len(orphan_ids)))
+    done      = 0
+    skipped   = 0
+    started   = time.time()
+
+    while done < len(orphan_ids):
+        chunk = orphan_ids[done:done + batch]
+        t0    = time.time()
+        try:
+            with get_cursor(conn) as cur:
+                # SET LOCAL — scoped to THIS chunk's transaction, so it dies
+                # with the commit/rollback and nothing else inherits it.
+                cur.execute("SET LOCAL statement_timeout = %s", (budget_ms,))
+                cur.execute(
+                    sql,
+                    (orphan_level, chunk, orphan_level) if iso_filter is None
+                    else (orphan_level, chunk, iso_filter, orphan_level),
+                )
+                rows = cur.fetchall()
+            conn.commit()          # ← the whole point: this chunk is now SAFE
+            for r in rows:
+                key = r["parent_assigned_via"]
+                if key in tally:
+                    tally[key] += 1
+        except psycopg2.errors.QueryCanceled:
+            # One pathological chunk is skipped — the ORIGINAL intent, now
+            # costing only its own rows instead of the entire level. Those
+            # orphans stay residual and the acceptance scan flags them.
+            conn.rollback()
+            skipped += len(chunk)
+            if stats is not None:
+                stats["timed_out"] = stats.get("timed_out", 0) + 1
+            lg.warning(
+                "%s L%d %s: chunk of %d exceeded %ds — skipped, pass continues "
+                "(%d/%d orphans processed so far)",
+                iso_filter or "ALL", orphan_level, strategy, len(chunk),
+                budget_ms // 1000, done, len(orphan_ids),
+            )
+
+        done += len(chunk)
+        elapsed = time.time() - t0
+
+        # ── Adaptive sizing: converge on target_s per chunk. Fast chunks grow,
+        # slow ones shrink, so throughput tracks whatever this host and this
+        # country's geometry actually cost — no tuned constant to get wrong. ──
+        if elapsed < target_s / 2 and batch < _RESOLVE_BATCH_CEIL:
+            batch = min(_RESOLVE_BATCH_CEIL, batch * 2)
+        elif elapsed > target_s and batch > _RESOLVE_BATCH_FLOOR:
+            batch = max(_RESOLVE_BATCH_FLOOR, batch // 2)
+
+        placed = sum(tally.values())
+        lg.info(
+            "%s L%d %s: %d/%d orphans · %d placed · %d skipped · "
+            "chunk=%d took %.1fs · %.0fs elapsed",
+            iso_filter or "ALL", orphan_level, strategy, done,
+            len(orphan_ids), placed, skipped, len(chunk), elapsed,
+            time.time() - started,
+        )
+
+    n_direct   = tally["direct"]
+    n_skip     = tally["skip_ancestor"]
+    n_buffered = tally["buffered"]
+    n_topo     = tally["topological"]
+    n_cross    = tally["cross_iso_topological"]
 
     if strategy in ("direct_intersect", "exact"):
         return (n_direct, n_skip)
@@ -920,21 +1049,24 @@ def _resolve_orphans_for_iso(iso: str, log: logging.Logger) -> dict:
     # pass and keep the run moving. statement_timeout is server-side (kills
     # the query, not just the wait) and session-scoped to THIS ladder's
     # connection — nothing else inherits it.
-    budget_ms = int(os.environ.get("CGA_ETL_RESOLVE_STRATEGY_TIMEOUT_MS", "0") or 0) or 180_000
+    budget_ms = _resolve_strategy_budget_ms()
 
     def _pass(level: int, strategy: str) -> tuple[int, int]:
         try:
             r = _resolve_orphans_at_level_via_strategy(
-                conn, level, strategy, iso_filter=iso)
+                conn, level, strategy, iso_filter=iso, stats=counts, log=log)
             conn.commit()
             return r
         except psycopg2.errors.QueryCanceled:
+            # Safety net only — the chunk loop absorbs per-chunk cancellation
+            # and commits everything around it. Reaching here means a query
+            # OUTSIDE a chunk (the id roster) was cancelled.
             conn.rollback()
             counts["timed_out"] += 1
             log.warning(
-                "%s L%d %s: strategy pass exceeded %ds budget — skipped "
-                "(unplaceable orphans stay residual; the acceptance scan "
-                "flags them)", iso, level, strategy, budget_ms // 1000)
+                "%s L%d %s: orphan roster query exceeded %ds budget — pass "
+                "skipped (residual orphans are scan-flagged)",
+                iso, level, strategy, budget_ms // 1000)
             return (0, 0)
 
     try:
