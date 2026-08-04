@@ -222,6 +222,23 @@ const levelTotals = computed(() => levels.value.reduce((a, l) => ({
     pop_sum:  a.pop_sum  + Number(l.pop_sum || 0),
 }), { rows: 0, with_pop: 0, pop_sum: 0 }))
 
+// THE ONE FIGURE THAT ROLLS UP (operator, 2026-08-04). Population is
+// attributed to each ADM level INDEPENDENTLY from the raster, so every level
+// already holds the whole planet — summing the column reported ~32 billion,
+// i.e. humanity counted once per level. Earth is the sum of its countries, so
+// the shallowest level present (L1 in a full import) IS the Earth total.
+// Deriving it rather than hard-coding "level 1" keeps a scoped import that
+// starts deeper than countries honest about its own root.
+const rollupLevel = computed(() => (levels.value.length === 0
+    ? 1
+    : Math.min(...levels.value.map(l => Number(l.adm_level)))))
+
+const earthPopulation = computed(() => {
+    const root = levels.value.find(l => Number(l.adm_level) === rollupLevel.value)
+
+    return Number(root?.pop_sum || 0)
+})
+
 // A bubble is current if any of its phases is, done only when all are.
 function groupState(group) {
     const states = group.map(p => chipState(p))
@@ -444,10 +461,33 @@ onBeforeUnmount(() => {
                 Population by level
             </h3>
             <table class="w-full text-xs tabular-nums">
+                <!-- Named columns (operator, 2026-08-04). "3,216 / 3,240
+                     populated" was ambiguous about which number was which, and
+                     the distinction matters: the denominator is HOW MANY
+                     JURISDICTIONS EXIST at that level. A zero-population row is
+                     still a real place — it is not a row we failed to reach. -->
+                <thead>
+                    <tr class="border-b border-gray-700 text-[10px] uppercase tracking-wide text-gray-500">
+                        <th class="py-1 text-left font-semibold">Level</th>
+                        <th class="py-1 text-right font-semibold">
+                            <span class="relative group inline-flex items-center gap-1 cursor-help">
+                                Populated / Jurisdictions
+                                <span class="text-gray-600 text-[9px]">?</span>
+                                <div class="pointer-events-none absolute right-0 top-full mt-0.5 z-50 w-64 rounded bg-gray-700 border border-gray-600 p-2 text-[10px] text-gray-300 normal-case tracking-normal font-normal text-left leading-snug hidden group-hover:block shadow-lg">
+                                    Right-hand number is how many jurisdictions exist at this level.
+                                    Left is how many carry a population. A jurisdiction can legitimately
+                                    hold zero — a neighbourhood smaller than a 100&nbsp;m raster pixel that
+                                    falls between populated pixels reads zero and is still a real place.
+                                </div>
+                            </span>
+                        </th>
+                        <th class="py-1 text-right font-semibold">Population</th>
+                    </tr>
+                </thead>
                 <tbody>
                     <tr v-for="l in levels" :key="l.adm_level" class="border-b border-gray-800/60">
                         <td class="py-1 text-gray-400">L{{ l.adm_level }} {{ LEVEL_NAMES[l.adm_level] ?? '' }}</td>
-                        <td class="py-1 text-right text-gray-300">{{ Number(l.with_pop).toLocaleString() }} / {{ Number(l.rows).toLocaleString() }} populated</td>
+                        <td class="py-1 text-right text-gray-300">{{ Number(l.with_pop).toLocaleString() }} / {{ Number(l.rows).toLocaleString() }}</td>
                         <td class="py-1 text-right" :class="Number(l.pop_sum) > 0 ? 'text-emerald-300' : 'text-gray-600'">
                             {{ Number(l.pop_sum).toLocaleString() }}
                         </td>
@@ -457,18 +497,35 @@ onBeforeUnmount(() => {
                     <!-- The table's own total — this is where "Jurisdictions
                          loaded" went (operator, 2026-08-03): the table already
                          fills in as rows load, so a separate bar was the same
-                         number with less detail. -->
+                         number with less detail.
+
+                         The POPULATION cell is deliberately NOT the column sum
+                         (operator, 2026-08-04). Every level independently
+                         attributes the whole planet, so adding them down the
+                         column produced ~32 billion — six counts of the same
+                         humanity. The only figure that rolls up is Earth, and
+                         Earth is the sum of its countries, so that is what
+                         belongs here. -->
                     <tr class="border-t-2 border-gray-700">
                         <td class="py-1.5 text-gray-200 font-semibold">Total</td>
                         <td class="py-1.5 text-right text-gray-200 font-semibold">
-                            {{ levelTotals.with_pop.toLocaleString() }} / {{ levelTotals.rows.toLocaleString() }} populated
+                            {{ levelTotals.with_pop.toLocaleString() }} / {{ levelTotals.rows.toLocaleString() }}
                             <span v-if="world && world.expected" class="text-gray-500 font-normal">
                                 · {{ Math.round(levelTotals.rows / world.expected * 100) }}% loaded
                             </span>
                         </td>
                         <td class="py-1.5 text-right font-semibold"
-                            :class="levelTotals.pop_sum > 0 ? 'text-emerald-300' : 'text-gray-600'">
-                            {{ levelTotals.pop_sum.toLocaleString() }}
+                            :class="earthPopulation > 0 ? 'text-emerald-300' : 'text-gray-600'">
+                            <span class="relative group inline-flex items-center gap-1 cursor-help">
+                                {{ earthPopulation.toLocaleString() }}
+                                <span class="text-gray-600 text-[9px] font-normal">?</span>
+                                <div class="pointer-events-none absolute right-0 bottom-full mb-0.5 z-50 w-64 rounded bg-gray-700 border border-gray-600 p-2 text-[10px] text-gray-300 font-normal text-left leading-snug hidden group-hover:block shadow-lg">
+                                    Earth's roll-up — the sum of the countries at L{{ rollupLevel }}.
+                                    Not the column sum: each level attributes the whole planet
+                                    independently, so adding them would count the same people once
+                                    per level.
+                                </div>
+                            </span>
                         </td>
                     </tr>
                 </tfoot>

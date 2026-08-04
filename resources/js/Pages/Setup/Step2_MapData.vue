@@ -569,6 +569,25 @@ async function advance() {
 // ─── Derived UI state ───────────────────────────────────────────────────────
 
 const canAdvance = computed(() => counts.value.adm0 > 0 && counts.value.adm1 > 0)
+
+// ONE BUTTON IN THE CONTINUE SPOT (operator, 2026-08-04). "Accept Map Data &
+// Continue" and "Continue" were two buttons in two places that did the same
+// thing — acceptHere() already calls advance() once acceptance lands, so the
+// only real difference was whether acceptance had happened yet. That is a
+// LABEL, not a second control.
+const mapAccepted = computed(() => !! props.settings?.map_accepted_at)
+
+const continueLabel = computed(() => {
+    if (apportioning.value) return 'Sizing legislatures…'
+    if (accepting.value)    return 'Accepting…'
+    if (advancing.value)    return 'Saving…'
+
+    return mapAccepted.value ? 'Continue →' : 'Accept Map Data to Continue →'
+})
+
+function continueFromStep2() {
+    return mapAccepted.value ? advance() : acceptHere()
+}
 const isRunning  = computed(() => lifecycle.value === 'running')
 const runOptionsDisabled = computed(() => isRunning.value || submitting.value)
 
@@ -611,7 +630,7 @@ onBeforeUnmount(() => {
             <!-- Your map data (detected inventory at the REAL container path) -->
             <section class="bg-gray-900 border border-gray-800 rounded-lg p-6 mb-6">
                 <div class="flex items-baseline justify-between mb-1">
-                    <h2 class="text-white font-semibold">Your map data</h2>
+                    <h2 class="text-white font-semibold">1. Your Map Data &amp; Source</h2>
                     <button
                         type="button"
                         @click="fetchSources"
@@ -819,11 +838,12 @@ onBeforeUnmount(() => {
                         </div>
                     </div>
                 </div>
-            </section>
-
-            <!-- Source Picker -->
-            <section class="bg-gray-900 border border-gray-800 rounded-lg p-6 mb-6">
-                <h2 class="text-white font-semibold mb-4">1. Data Source</h2>
+            <!-- Blocks welded (operator, 2026-08-04): the detected
+                 inventory and the source chooser are the same subject — what
+                 data you have and where it comes from — so they read as one
+                 step. Inventory first, then the chooser that acts on it. -->
+            <div class="mt-8 pt-6 border-t border-gray-800">
+                <h3 class="text-white font-semibold mb-4">Data source</h3>
 
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <!-- Local Archive (default) — bind-mounted /archive folder -->
@@ -1013,23 +1033,19 @@ onBeforeUnmount(() => {
                         </div>
                     </label>
                 </div>
-            </section>
+            </div>
 
-            <!-- Run Options retired (operator, 2026-08-03): the multithreaded
-                 pull engine is the only ingestion path — the legacy
-                 single-threaded engine, its purge/skip/pause dials, and the
-                 country scope are no longer offered. The Start button lives
-                 with the stats it starts. -->
-            <section class="bg-gray-900 border border-gray-800 rounded-lg p-6 mb-6">
-                <div class="flex items-center justify-between gap-3">
-                    <div>
-                        <h2 class="text-white font-semibold">2. Ingestion</h2>
-                        <p class="text-gray-400 text-xs mt-1">
-                            Multithreaded pull engine — a pool of workers ingests countries in
-                            parallel with live per-worker view, halt/resume, and incremental
-                            commits. Failures flag for review; they never sink the run.
-                        </p>
-                    </div>
+                <!-- START lives at the END of block 1 (operator, 2026-08-04):
+                     you inspect what was detected, choose where it comes from,
+                     then start. It sat in the Ingestion block before, which
+                     asked you to scroll past the thing you were configuring to
+                     find the button that acts on it. -->
+                <div class="mt-6 pt-5 border-t border-gray-800 flex items-center justify-between gap-3 flex-wrap">
+                    <p class="text-gray-500 text-xs flex-1 min-w-[16rem]">
+                        Multithreaded pull engine — a pool of workers ingests countries in
+                        parallel with live per-worker view, halt/resume, and incremental
+                        commits. Failures flag for review; they never sink the run.
+                    </p>
                     <div class="flex items-center gap-3 shrink-0">
                         <span v-if="submitError" class="text-red-400 text-sm">{{ submitError }}</span>
                         <button
@@ -1042,6 +1058,17 @@ onBeforeUnmount(() => {
                         </button>
                     </div>
                 </div>
+            </section>
+
+            <!-- Run Options retired (operator, 2026-08-03): the multithreaded
+                 pull engine is the only ingestion path — the legacy
+                 single-threaded engine, its purge/skip/pause dials, and the
+                 country scope are no longer offered.
+                 START moved up into block 1 (operator, 2026-08-04) — it belongs
+                 with the source you configure, not with the progress it
+                 produces. This block is now purely the live run. -->
+            <section class="bg-gray-900 border border-gray-800 rounded-lg p-6 mb-6">
+                <h2 class="text-white font-semibold">2. Ingestion</h2>
 
                 <!-- Pull-engine dashboard (renders only when a pull run exists) -->
                 <GeodataPullPanel ref="pullPanel" class="mt-5"
@@ -1139,18 +1166,19 @@ onBeforeUnmount(() => {
                     </div>
                 </div>
 
+                <!-- Accept moved to the Continue slot (operator, 2026-08-04) —
+                     one button, one place. What stays here is the way OUT to
+                     the viewer, opened in a new tab so reviewing no longer
+                     drops you out of setup and back at the top of the wizard. -->
                 <div class="flex items-center gap-3">
-                    <button
-                        type="button"
-                        @click="acceptHere"
-                        :disabled="accepting"
-                        class="inline-flex items-center gap-2 px-4 py-1.5 rounded bg-emerald-700 hover:bg-emerald-600 disabled:bg-gray-700 text-white text-sm font-semibold transition-colors">
-                        {{ accepting ? 'Accepting…' : 'Accept Map Data & Continue →' }}
-                    </button>
-                    <a href="/jurisdictions"
+                    <a href="/jurisdictions" target="_blank" rel="noopener"
                        class="inline-flex items-center gap-2 px-3 py-1.5 rounded border bg-blue-900/40 border-blue-700 text-blue-200 hover:bg-blue-900/70 text-sm">
-                        Review in Jurisdiction Viewer →
+                        Review in Jurisdiction Viewer ↗
                     </a>
+                    <span class="text-gray-500 text-xs">
+                        Opens in a new tab — setup stays where it is.
+                        Accept with the button at the bottom of this page.
+                    </span>
                 </div>
             </section>
 
@@ -1159,14 +1187,22 @@ onBeforeUnmount(() => {
                     ← Back
                 </a>
                 <div class="flex flex-col items-end gap-1">
+                    <!-- The single forward control: accepts first when the map
+                         hasn't been accepted, then advances. Green while it
+                         still carries the acceptance, blue once it is only
+                         Continue — so the colour tells you which act you are
+                         about to perform. -->
                     <button
                         type="button"
-                        :disabled="advancing || !canAdvance || isRunning"
-                        @click="advance"
-                        class="bg-blue-600 hover:bg-blue-500 disabled:bg-gray-700 disabled:cursor-not-allowed text-white px-5 py-2 rounded-md font-semibold transition-colors"
-                        :title="!canAdvance ? 'Load at least one nation (ADM1) before continuing' : ''"
+                        :disabled="advancing || accepting || !canAdvance || isRunning"
+                        @click="continueFromStep2"
+                        class="disabled:bg-gray-700 disabled:cursor-not-allowed text-white px-5 py-2 rounded-md font-semibold transition-colors"
+                        :class="mapAccepted ? 'bg-blue-600 hover:bg-blue-500' : 'bg-emerald-700 hover:bg-emerald-600'"
+                        :title="!canAdvance
+                            ? 'Load at least one nation (ADM1) before continuing'
+                            : (mapAccepted ? '' : 'Accepting closes the repair window, then runs apportionment')"
                     >
-                        {{ apportioning ? 'Sizing legislatures…' : (advancing ? 'Saving…' : 'Continue →') }}
+                        {{ continueLabel }}
                     </button>
                     <span v-if="apportioning" class="text-xs text-gray-500 italic">
                         Running cube-root apportionment across the jurisdiction tree…
@@ -1176,13 +1212,12 @@ onBeforeUnmount(() => {
                     <div v-if="acceptanceRequired"
                          class="rounded-md border border-amber-800/70 bg-amber-900/20 px-3 py-2 text-xs text-amber-200 max-w-sm text-right">
                         <p>{{ advanceError }}</p>
-                        <button type="button" @click="acceptHere" :disabled="accepting"
-                                class="inline-block mt-1.5 px-2 py-1 rounded bg-emerald-700 hover:bg-emerald-600 disabled:bg-gray-700 text-white font-semibold">
-                            {{ accepting ? 'Accepting…' : 'Accept Map Data & Continue →' }}
-                        </button>
-                        <a href="/jurisdictions"
-                           class="inline-block mt-1.5 ml-2 px-2 py-1 rounded border bg-blue-900/40 border-blue-700 text-blue-200 hover:bg-blue-900/70">
-                            Review first →
+                        <!-- No duplicate Accept here any more: the button
+                             directly above IS the accept-then-continue control
+                             whenever the map is unaccepted. -->
+                        <a href="/jurisdictions" target="_blank" rel="noopener"
+                           class="inline-block mt-1.5 px-2 py-1 rounded border bg-blue-900/40 border-blue-700 text-blue-200 hover:bg-blue-900/70">
+                            Review first ↗
                         </a>
                     </div>
                     <span v-else-if="advanceError" class="text-xs text-red-400 max-w-sm text-right">
