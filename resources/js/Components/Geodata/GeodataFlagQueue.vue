@@ -148,7 +148,18 @@
                  most of these describe real-world geography rather than a
                  defect, and the queue is unreadable without that context. -->
             <div v-for="group in groupedFlags" :key="group.category" class="mb-2 last:mb-0">
-                <div class="relative group flex items-center gap-1 mb-1">
+                <!-- The HEADING collapses the whole category (operator,
+                     2026-08-04). Individual flags already collapsed, but at
+                     Earth level same-space chains alone is 8,547 rows, so the
+                     queue was one unbroken scroll with no way to put a category
+                     away once read. Big categories start closed — see
+                     COLLAPSE_ABOVE. -->
+                <div class="relative group flex items-center gap-1 mb-1 cursor-pointer select-none"
+                     role="button"
+                     :aria-expanded="isCategoryOpen(group) ? 'true' : 'false'"
+                     @click="toggleCategory(group.category)">
+                    <span class="text-gray-600 text-xs transition-transform shrink-0"
+                          :class="isCategoryOpen(group) ? 'rotate-90' : ''">›</span>
                     <span class="text-[10px] uppercase font-semibold text-gray-500">
                         {{ categoryLabel(group.category) }}
                     </span>
@@ -171,7 +182,7 @@
                         </div>
                     </div>
                 </div>
-                <div class="space-y-1">
+                <div v-if="isCategoryOpen(group)" class="space-y-1">
                     <div v-for="flag in group.flags" :key="flag.id"
                          class="rounded border bg-gray-900/70"
                          :class="severityBorder(flag.severity)">
@@ -359,6 +370,28 @@ const NATURE_CHIPS = {
     structural:    'bg-red-950/60 text-red-300 border-red-800',
     reality:       'bg-sky-950/60 text-sky-300 border-sky-800',
     informational: 'bg-gray-800 text-gray-400 border-gray-700',
+}
+
+// A category bigger than this opens COLLAPSED. Small categories stay open so
+// the queue still reads at a glance; the ones that would bury the page (Earth's
+// same-space chains is 8,547) fold themselves away until asked for.
+const COLLAPSE_ABOVE = 25
+
+// Only categories the operator has explicitly toggled live here — everything
+// else follows the size default. Keeping overrides separate from state means a
+// refresh that changes group sizes can't strand a category open or shut.
+const categoryOverride = ref({})
+
+function categoryDefaultOpen(group) {
+    return group.flags.length <= COLLAPSE_ABOVE
+}
+function isCategoryOpen(group) {
+    return categoryOverride.value[group.category] ?? categoryDefaultOpen(group)
+}
+function toggleCategory(cat) {
+    const group = groupedFlags.value.find(g => g.category === cat)
+    if (!group) return
+    categoryOverride.value = { ...categoryOverride.value, [cat]: ! isCategoryOpen(group) }
 }
 
 function natureBadge(cat) {
