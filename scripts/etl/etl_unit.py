@@ -1134,10 +1134,27 @@ def _attribution_window_split(conn, run_id: str, iso: str, level: int,
         # falls out of it. High slice counts are a symptom of a genuinely
         # large pair, and the panel's parent/child nesting now makes them
         # legible instead of a flat wall of strips.
+        # SLICE COUNT IS CAPPED AT pool*4 (2026-08-03, operator: "Russia
+        # worked and only had like 10 lanes with windows of thousands each;
+        # this seems to be making it take longer").
+        #
+        # The n_windows/64 rule came from IND L6, which used to be five
+        # 499-window monoliths only five lanes could touch. Fine slices fixed
+        # THAT and broke Russia: RUS L3's claim bbox spans eleven time zones,
+        # so 48,000 windows became 750 slices of 63 — and most of them are
+        # empty Siberia, where a slice spawns Python, imports numpy/rasterio/
+        # shapely, opens tifs, queries band metadata, and finds nothing.
+        # Measured: 2.0s floor per slice, 5.0s median, so a no-op slice is
+        # ~100% overhead and the median slice is ~40%.
+        #
+        # pool*4 keeps the original goal (four chunks per lane, enough to
+        # steal from and to keep every lane fed) while bounding the spawn
+        # count: RUS L3 goes 750 -> 40 slices of ~1,200 windows, IND L6 stays
+        # ~39, and a small pair still gets its handful. per_slice remains the
+        # band-size floor for anything under the cap.
         per_slice = int(os.environ.get("CGA_ETL_ATTR_SLICE_WINDOWS", "0") or 0) or 64
-        k = max(2, range_count_override
-                or max(pool * 4, -(-n_windows // per_slice)))
-        k = min(k, n_windows)
+        k = range_count_override or min(pool * 4, max(2, -(-n_windows // per_slice)))
+        k = max(2, min(k, n_windows))
         size = -(-n_windows // k)
         log.info("%s L%d attribution: WINDOW-SPLIT — %d windows → %d slices of %d "
                  "(window_px=%d pinned)", iso, level, n_windows, k, size, window_px)
