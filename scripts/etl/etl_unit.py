@@ -144,11 +144,11 @@ def do_manifest(conn, run_id: str, options: dict, log: logging.Logger) -> dict:
     # console tool for three weeks before it became a phase (2026-08-01) —
     # and CGA_ETL_ACCEPTANCE_SCAN=1 restores it to the pipeline. Nothing
     # about the detectors themselves is removed.
-    if os.environ.get("CGA_ETL_ACCEPTANCE_SCAN", "0") == "1":
+    if os.environ.get("CGA_ETL_ACCEPTANCE_SCAN", "1") != "0":
         rows.append(("acceptance_scan", None, None, 0))
     else:
         log.info("manifest: acceptance scan DISABLED "
-                 "(CGA_ETL_ACCEPTANCE_SCAN=1 to enable)")
+                 "(CGA_ETL_ACCEPTANCE_SCAN=0 was set)")
 
     _insert_items(conn, run_id, rows)
     log.info("manifest: %d isos → %d items enumerated", len(iso_bytes), len(rows))
