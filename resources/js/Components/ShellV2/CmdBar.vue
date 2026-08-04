@@ -27,6 +27,8 @@ defineProps({
     impersonating: { type: Object, default: null },
     /** { name } of the real (impersonating) user. */
     realUser: { type: Object, default: null },
+    /** Setup still in progress — MenuNav locks what cannot work yet. */
+    setupIncomplete: { type: Boolean, default: false },
 });
 
 const rootEl = ref(null);
@@ -71,7 +73,8 @@ onBeforeUnmount(() => {
                     <Icon name="chevron-down" size="sm" class="cmdbar-caret" />
                 </summary>
                 <div class="cmdbar-panel cmdbar-panel--menu">
-                    <MenuNav :roles="roles" :current-nav-id="currentNavId" :sandbox="demo" />
+                    <MenuNav :roles="roles" :current-nav-id="currentNavId" :sandbox="demo"
+                             :setup-incomplete="setupIncomplete" />
                 </div>
             </details>
 

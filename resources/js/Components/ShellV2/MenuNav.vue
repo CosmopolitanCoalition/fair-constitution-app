@@ -24,6 +24,9 @@ const props = defineProps({
     /** Demo/sandbox world — items flagged `sandbox: true` (the dev kits, whose
      *  routes only register there) are hidden elsewhere, never dead links. */
     sandbox: { type: Boolean, default: false },
+    /** Setup still in progress — locks the menus that cannot work yet.
+     *  See SETUP_ALLOWED_PREFIXES below. */
+    setupIncomplete: { type: Boolean, default: false },
 });
 
 const roleSet = computed(() => new Set(props.roles));
@@ -38,10 +41,34 @@ const sitemap = computed(() =>
     })).filter((section) => section.items.length),
 );
 
+/* ── SETUP LOCK (operator ruling 2026-08-04, rubric `setup-shell-menus` = A:
+ * "Everything is locked except the operator controls and setup controls and
+ * what you noted in A" — Setup, Jurisdictions and Learn).
+ *
+ * Setup now runs inside this shell rather than a chrome-less v1 layout, which
+ * is what gives it the bottom command bar and the current dev controls. The
+ * cost of that is the whole sitemap becoming reachable mid-setup, where most
+ * of it leads to surfaces that cannot work yet — there are no elections before
+ * districting, no legislature before apportionment. Locked items stay VISIBLE
+ * and disabled (the file's own contract: "never a dead link"), so the shape of
+ * the app is still legible while setup is in progress.
+ *
+ * Reads the server's own flag; nothing is inferred from the URL. */
+const SETUP_ALLOWED_PREFIXES = ['/setup', '/jurisdictions', '/learn', '/operator', '/support'];
+
+function unlockedDuringSetup(item) {
+    if (isTour(item)) return true;                 // the tour is a mode, not a place
+    if (!item.href || item.href === '#') return true;  // already inert
+    return SETUP_ALLOWED_PREFIXES.some(
+        (p) => item.href === p || item.href.startsWith(p + '/'),
+    );
+}
+
 function isTour(item) {
     return item.href === 'tour:start';
 }
 function allowed(item) {
+    if (props.setupIncomplete && ! unlockedDuringSetup(item)) return false;
     if (!item.roles) return true;
     return item.roles.some((r) => roleSet.value.has(r));
 }
@@ -67,13 +94,21 @@ function prereq(item) {
                     <Icon :name="item.icon" size="sm" /> {{ tourActive ? 'End guided tour' : item.label }}
                 </button>
                 <Link
-                    v-else-if="item.href"
+                    v-else-if="item.href && allowed(item)"
                     class="sidebar-link"
                     :href="item.href"
                     :aria-current="currentNavId === item.id ? 'page' : undefined"
                 >
                     <Icon :name="item.icon" size="sm" /> {{ item.label }}
                 </Link>
+                <!-- Locked by the setup gate: shown, disabled, and told why —
+                     the tier-1 row previously skipped allowed() entirely, so
+                     Home / Atlas / the square / economy stayed live during
+                     setup even though nothing behind them can work yet. -->
+                <span v-else-if="item.href" class="sidebar-link sidebar-link--disabled" aria-disabled="true">
+                    <Icon :name="item.icon" size="sm" /> {{ item.label }}
+                    <span class="planned-flag">Available after setup</span>
+                </span>
                 <span v-else class="sidebar-link sidebar-link--disabled" aria-disabled="true">
                     <Icon :name="item.icon" size="sm" /> {{ item.label }}
                     <span class="planned-flag">Planned<template v-if="item.phase"> · Phase {{ item.phase }}</template></span>

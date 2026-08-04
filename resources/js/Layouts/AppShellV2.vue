@@ -57,6 +57,11 @@ const impersonation = computed(() => auth.value.impersonating ?? null);
 const surface = computed(() => page.props.surface ?? null);
 const activeEmergencies = computed(() => page.props.app?.activeEmergencies ?? []);
 
+// Setup still running — the shell locks the menus that cannot work yet
+// (operator ruling, rubric `setup-shell-menus` = A). Server-provided flag;
+// never inferred from the URL.
+const setupIncomplete = computed(() => instance.value.setupComplete === false);
+
 provide('cga:surface', surface);
 
 const continueHref = computed(() => '/continue?to=' + encodeURIComponent(page.url ?? '/'));
@@ -319,6 +324,7 @@ onBeforeUnmount(() => {
             :demo="demoOn"
             :impersonating="impersonatingUser"
             :real-user="realUser"
+            :setup-incomplete="setupIncomplete"
         />
     </div>
 </template>

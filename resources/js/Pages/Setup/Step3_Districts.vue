@@ -1,12 +1,17 @@
 <script setup>
 import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue'
-import AppShell from '@/Layouts/AppShell.vue'
+import AppShellV2 from '@/Layouts/AppShellV2.vue'
 import SetupStepper from '@/Components/SetupStepper.vue'
 import { csrfFetch } from '@/lib/csrf'
 
 // Setup wizard: minimal chrome (header + footer, no sidebar), wide canvas.
 defineOptions({
-    layout: (h, page) => h(AppShell, { chrome: 'minimal', variant: 'wide' }, () => page),
+    // ShellV2 (operator, 2026-08-04). Setup ran on the v1 shell with
+    // `chrome: 'minimal'`, which is why it had NO bottom command bar and the
+    // OLD dev controls: CmdBar and the Dev* panels are ShellV2 components, so
+    // a v1 setup page could never receive either. Menus that cannot work yet
+    // are locked by MenuNav while instance.setupComplete is false.
+    layout: (h, page) => h(AppShellV2, { variant: 'wide' }, () => page),
 })
 
 const props = defineProps({
