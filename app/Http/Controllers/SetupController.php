@@ -1448,7 +1448,7 @@ class SetupController extends Controller
         // CACHED (8 s): these are planet-scale counts and the panel polls
         // every 2 s — uncached they were measurable load beside the resolve
         // pass's own joins (observed live: several concurrent count backends).
-        [$worldLoaded, $worldExpected, $resolve, $levelStats] = cache()->remember(
+        [$worldLoaded, $worldExpected, $resolve, $levelStats, $fileStats] = cache()->remember(
             'geodata-pull-progress-counts:' . $run->id . ':' . $run->phase,
             8,
             function () use ($DB, $run) {
@@ -1482,7 +1482,26 @@ class SetupController extends Controller
                                  COALESCE(SUM(population), 0)::bigint AS pop_sum")
                     ->groupBy('adm_level')->orderBy('adm_level')->get();
 
-                return [$loaded, $expected, $resolve, $levels];
+                // FILE-SLICE DENOMINATORS (operator, 2026-08-03: "the
+                // boundaries bar shouldn't be 232, it should be the number of
+                // ISO/ADM level slices"). A boundary ITEM is one country, but
+                // a country carries several ADM files — so 232 understates the
+                // work and moves in coarse jumps. geoboundary_metadata holds
+                // exactly one row per (iso, adm_level), i.e. the true file
+                // count, known in advance; progress is the (iso, level) pairs
+                // that actually have rows.
+                $filesTotal  = (int) $DB::table('geoboundary_metadata')->count();
+                $filesLoaded = (int) $DB::table('jurisdictions')
+                    ->whereNull('deleted_at')->where('adm_level', '>', 0)
+                    ->distinct()->count($DB::raw('(iso_code, adm_level)'));
+
+                // Synthesis can create (iso, level) combos the archive never
+                // shipped — PRI's L1 is the standing example — so loaded can
+                // legitimately exceed the manifest. Take the larger as the
+                // denominator rather than rendering 101%.
+                return [$loaded, $expected, $resolve, $levels,
+                        ['loaded' => $filesLoaded,
+                         'total'  => max($filesTotal, $filesLoaded)]];
             }
         );
 
@@ -1507,6 +1526,7 @@ class SetupController extends Controller
             'world'    => ['loaded' => $worldLoaded, 'expected' => $worldExpected ?: null],
             'resolve'  => $resolve,
             'levels'   => $levelStats,
+            'files'    => $fileStats,
             // The six scan detectors run LARAVEL-side in Horizon, so they
             // never appear in the worker strips above (those are Python ETL
             // leases). Without this the operator sees a single opaque "Scan"

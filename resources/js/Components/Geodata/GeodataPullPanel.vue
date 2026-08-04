@@ -9,6 +9,7 @@
 // halt/resume controls. Renders nothing until a run exists.
 import { computed, onBeforeUnmount, onMounted, ref } from 'vue'
 import { csrfFetch } from '@/lib/csrf'
+import LaneStrip from '@/Components/Geodata/LaneStrip.vue'
 
 const emit = defineEmits(['run-state'])
 
@@ -59,6 +60,7 @@ const resolve = computed(() => data.value?.resolve ?? null)
 // in the worker strips (those are Python ETL leases). Without these chips
 // the scan reads as one opaque lane when it is actually running 5-6 wide.
 const scan = computed(() => data.value?.scan ?? null)
+const files = computed(() => data.value?.files ?? null)
 const resolvePct = computed(() => {
     if (!resolve.value?.total) return 0
     return Math.min(100, Math.round(
@@ -118,11 +120,24 @@ const ALL_PHASES = GROUPS.flat()
 // 0/1 as a coordinator but 232 per-country children once it does, and that
 // is the bar worth showing, so each phase prefers the FAMILY MEMBER WITH
 // THE MOST ITEMS.
-const FAMILY_OF = {
-    boundary_iso:     ['boundary_iso', 'boundary_range'],
-    raster_iso:       ['raster_iso', 'raster_range'],
-    resolve_global:   ['resolve_range', 'resolve_global'],
-    attribution_pair: ['attribution_pair', 'attribution_range'],
+// THE DENOMINATOR IS THE WORK UNIT KNOWN IN ADVANCE (operator, 2026-08-03:
+// "this will give a definitive sense of where we are"). Not the biggest
+// family member — that made attribution's denominator CLIMB as pairs
+// enumerated their slices (716 -> 1,872 and rising), which reads as the
+// finish line running away.
+//
+//   Boundaries  → ISO x ADM FILES from the manifest (714), not 232 countries
+//   Rasters     → raster_iso (229)
+//   Resolve     → resolve_range, the per-country children enumerated up front
+//   Attribution → attribution_pair (716), fixed at enumeration
+//
+// Slices are progress WITHIN a unit, so they belong nested under their
+// parent, never in the denominator.
+const DENOM_KIND = {
+    boundary_iso:     'boundary_iso',      // overridden by `files` below
+    raster_iso:       'raster_iso',
+    resolve_global:   'resolve_range',
+    attribution_pair: 'attribution_pair',
 }
 
 // Every kind that belongs under a phase's bar, for grouping the live strips.
@@ -140,24 +155,48 @@ const FAMILY_KINDS = {
 // 2026-08-03: "I want the lanes grouped under their assignment"). One flat
 // WORKERS list meant a boundary country and a raster tile-load sat adjacent
 // with nothing tying either to the bar it was advancing.
+// Lanes nest two deep: a coordinator (the pair/parent) owns the slices of
+// its own (iso, level), so they render as its children rather than as ten
+// sibling strips with no visible relationship (operator: "perform an indent
+// with the parent/meta and slices to keep them organized").
+function groupLanes(lanes) {
+    const parents = new Map()
+    const loose = []
+    for (const it of lanes) {
+        if (!it.kind.endsWith('_range') && !it.kind.endsWith('_decompose')) {
+            parents.set(`${it.iso_code}|${it.adm_level}`, { lane: it, kids: [] })
+        }
+    }
+    for (const it of lanes) {
+        if (it.kind.endsWith('_range') || it.kind.endsWith('_decompose')) {
+            const p = parents.get(`${it.iso_code}|${it.adm_level}`)
+            if (p) p.kids.push(it)
+            else loose.push({ lane: it, kids: [] })
+        }
+    }
+    return [...parents.values(), ...loose]
+}
+
 const BAR_ROWS = computed(() => {
     const rows = []
-    const claimed = new Set()
     for (const p of ALL_PHASES) {
-        const kinds = FAMILY_OF[p.kind] ?? [p.kind]
-        let best = null
-        for (const k of kinds) {
-            const l = layerByKind.value[k]
-            if (l && (best === null || Number(l.total) > Number(best.total))) best = l
+        // Denominator: the work unit known in advance (see DENOM_KIND).
+        let layer = layerByKind.value[DENOM_KIND[p.kind] ?? p.kind] ?? null
+        if (p.kind === 'boundary_iso' && files.value?.total) {
+            layer = {
+                total: files.value.total,
+                open:  Math.max(0, files.value.total - files.value.loaded),
+                review: layerByKind.value.boundary_iso?.review ?? 0,
+                failed: layerByKind.value.boundary_iso?.failed ?? 0,
+            }
         }
         const mine = inflight.value.filter(
             it => (FAMILY_KINDS[p.kind] ?? [p.kind]).includes(it.kind))
-        mine.forEach(it => claimed.add(it.id))
-        // A bar earns its row when its family has real counts OR when lanes
-        // are visibly working it — a single-item barrier with a live worker
-        // under it is worth showing precisely because it is running.
-        if ((best && Number(best.total) > 1) || mine.length) {
-            rows.push({ phase: p, layer: best, lanes: mine })
+        // A bar earns its row when it has real counts OR when lanes are
+        // visibly working it — a barrier with a live worker under it is
+        // worth showing precisely because it is running.
+        if ((layer && Number(layer.total) > 1) || mine.length) {
+            rows.push({ phase: p, layer, lanes: groupLanes(mine) })
         }
     }
     return rows
@@ -166,9 +205,19 @@ const BAR_ROWS = computed(() => {
 // Anything the grouping missed still gets shown — never silently drop a
 // working lane because its kind is not in the family map.
 const UNGROUPED = computed(() => {
-    const inRows = new Set(BAR_ROWS.value.flatMap(r => r.lanes.map(l => l.id)))
+    const inRows = new Set(BAR_ROWS.value.flatMap(
+        r => r.lanes.flatMap(g => [g.lane.id, ...g.kids.map(k => k.id)])))
     return inflight.value.filter(it => !inRows.has(it.id))
 })
+
+// Population-by-level TOTAL (operator: the "Jurisdictions loaded" bar is
+// redundant with this table, which fills in as rows load — so the count
+// belongs as the table's own footer, not a separate bar).
+const levelTotals = computed(() => levels.value.reduce((a, l) => ({
+    rows:     a.rows     + Number(l.rows || 0),
+    with_pop: a.with_pop + Number(l.with_pop || 0),
+    pop_sum:  a.pop_sum  + Number(l.pop_sum || 0),
+}), { rows: 0, with_pop: 0, pop_sum: 0 }))
 
 // A bubble is current if any of its phases is, done only when all are.
 function groupState(group) {
@@ -360,23 +409,9 @@ onBeforeUnmount(() => {
             </template>
         </ol>
 
-        <!-- Overall planet progress — jurisdictions loaded vs the metadata
-             census (the legacy overall-counts bar, reborn) -->
-        <div v-if="world && world.expected" class="mb-5">
-            <div class="flex justify-between text-xs mb-1">
-                <span class="text-gray-200 font-semibold">Jurisdictions loaded</span>
-                <span class="text-gray-300 tabular-nums">
-                    {{ world.loaded.toLocaleString() }} / {{ world.expected.toLocaleString() }}
-                    <span class="text-gray-500">· {{ worldPct }}%</span>
-                </span>
-            </div>
-            <div class="h-3 bg-gray-800 rounded overflow-hidden">
-                <div
-                    class="h-full rounded bg-emerald-500 transition-all duration-700"
-                    :style="{ width: worldPct + '%' }"
-                />
-            </div>
-        </div>
+        <!-- ("Jurisdictions loaded" retired 2026-08-03 — the Population by
+             level table below fills in as rows load and carries the same
+             count with far more detail, so it now owns the total.) -->
 
         <!-- Resolve-phase live parenting bar — visible only while the
              resolve barrier chains the planet's parent hierarchy -->
@@ -414,6 +449,25 @@ onBeforeUnmount(() => {
                         </td>
                     </tr>
                 </tbody>
+                <tfoot>
+                    <!-- The table's own total — this is where "Jurisdictions
+                         loaded" went (operator, 2026-08-03): the table already
+                         fills in as rows load, so a separate bar was the same
+                         number with less detail. -->
+                    <tr class="border-t-2 border-gray-700">
+                        <td class="py-1.5 text-gray-200 font-semibold">Total</td>
+                        <td class="py-1.5 text-right text-gray-200 font-semibold">
+                            {{ levelTotals.with_pop.toLocaleString() }} / {{ levelTotals.rows.toLocaleString() }} populated
+                            <span v-if="world && world.expected" class="text-gray-500 font-normal">
+                                · {{ Math.round(levelTotals.rows / world.expected * 100) }}% loaded
+                            </span>
+                        </td>
+                        <td class="py-1.5 text-right font-semibold"
+                            :class="levelTotals.pop_sum > 0 ? 'text-emerald-300' : 'text-gray-600'">
+                            {{ levelTotals.pop_sum.toLocaleString() }}
+                        </td>
+                    </tr>
+                </tfoot>
             </table>
         </div>
 
@@ -441,28 +495,12 @@ onBeforeUnmount(() => {
 
                 <!-- The lanes working THIS assignment, indented beneath it -->
                 <ul v-if="row.lanes.length" class="mt-1.5 space-y-1 pl-4 border-l border-gray-800">
-                    <li v-for="it in row.lanes" :key="it.id" class="text-xs bg-gray-800/50 rounded px-2.5 py-1.5">
-                        <div class="flex items-center justify-between mb-1">
-                            <span class="flex items-center gap-2 min-w-0">
-                                <span class="w-1.5 h-1.5 rounded-full shrink-0 bg-sky-400 animate-pulse" aria-hidden="true" />
-                                <span class="text-gray-200 font-medium">{{ itemLabel(it) }}</span>
-                                <span v-if="it.live" class="text-gray-400 truncate">{{ it.live.label }}</span>
-                            </span>
-                            <span class="text-gray-500 tabular-nums shrink-0 ml-3">
-                                <template v-if="it.live && it.live.total">
-                                    {{ it.live.current.toLocaleString() }} / {{ it.live.total.toLocaleString() }} {{ it.live.unit }} ·
-                                </template>
-                                {{ elapsedSince(it.started_at) }} {{ itemEta(it) }}
-                            </span>
-                        </div>
-                        <div class="h-1.5 bg-gray-900 rounded overflow-hidden">
-                            <div
-                                v-if="it.live && it.live.total"
-                                class="h-full rounded bg-sky-500 transition-all duration-700"
-                                :style="{ width: Math.min(100, Math.round(it.live.current / it.live.total * 100)) + '%' }"
-                            />
-                            <div v-else class="h-full w-1/4 rounded bg-sky-800 animate-pulse" />
-                        </div>
+                    <li v-for="g in row.lanes" :key="g.lane.id">
+                        <LaneStrip :it="g.lane" />
+                        <!-- the coordinator's own slices, one level deeper -->
+                        <ul v-if="g.kids.length" class="mt-1 space-y-1 pl-4 border-l border-gray-800/70">
+                            <li v-for="k in g.kids" :key="k.id"><LaneStrip :it="k" /></li>
+                        </ul>
                     </li>
                 </ul>
             </div>
@@ -524,30 +562,45 @@ onBeforeUnmount(() => {
             <h3 class="text-gray-200 text-xs font-semibold uppercase tracking-wide mb-2">
                 Acceptance scan — {{ scan.detectors.filter(d => d.state === 'done').length }} / {{ scan.detectors.length }} detectors
             </h3>
-            <ul class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-1.5">
+            <!-- Detector rows in the same shape as the worker lanes above
+                 (operator, 2026-08-03: "make those scan chips like the bars
+                 for the worker threads") — a Scan bar with its six detectors
+                 indented beneath it. -->
+            <div class="h-2 bg-gray-800 rounded overflow-hidden mb-1.5">
+                <div class="h-full rounded bg-sky-500 transition-all duration-500"
+                     :style="{ width: Math.round(scan.detectors.filter(d => d.state === 'done').length / scan.detectors.length * 100) + '%' }" />
+            </div>
+            <ul class="space-y-1 pl-4 border-l border-gray-800">
                 <li v-for="d in scan.detectors" :key="d.key"
-                    class="flex items-center justify-between gap-2 text-xs px-2.5 py-1.5 rounded border"
-                    :class="{
-                        'border-emerald-800 bg-emerald-900/20 text-emerald-300': d.state === 'done',
-                        'border-sky-700 bg-sky-900/30 text-sky-200': d.state === 'running',
-                        'border-amber-800 bg-amber-900/20 text-amber-300': d.state === 'stalled',
-                        'border-red-800 bg-red-900/20 text-red-300': d.state === 'error',
-                        'border-gray-800 text-gray-500': d.state === 'pending',
-                    }">
-                    <span class="truncate">
-                        <span v-if="d.state === 'done'" aria-hidden="true">✓ </span>
-                        <span v-else-if="d.state === 'error'" aria-hidden="true">✕ </span>
-                        <span v-else-if="d.state === 'stalled'" aria-hidden="true">⚠ </span>
-                        <span v-else-if="d.state === 'running'" aria-hidden="true">▶ </span>
-                        {{ d.label }}
-                    </span>
-                    <span class="tabular-nums shrink-0 text-[11px] opacity-80">
-                        <template v-if="d.state === 'done'">{{ d.flags.toLocaleString() }} flag{{ d.flags === 1 ? '' : 's' }}</template>
-                        <template v-else-if="d.state === 'running'">{{ Math.floor(d.elapsed_s / 60) }}m {{ d.elapsed_s % 60 }}s</template>
-                        <template v-else-if="d.state === 'stalled'">stalled {{ Math.floor(d.elapsed_s / 60) }}m — will retry</template>
-                        <template v-else-if="d.state === 'error'">errored</template>
-                        <template v-else>queued</template>
-                    </span>
+                    class="text-xs bg-gray-800/50 rounded px-2.5 py-1.5">
+                    <div class="flex items-center justify-between mb-1">
+                        <span class="flex items-center gap-2 min-w-0">
+                            <span class="w-1.5 h-1.5 rounded-full shrink-0"
+                                  :class="{
+                                      'bg-emerald-400': d.state === 'done',
+                                      'bg-sky-400 animate-pulse': d.state === 'running',
+                                      'bg-amber-400': d.state === 'stalled',
+                                      'bg-red-400': d.state === 'error',
+                                      'bg-gray-600': d.state === 'pending',
+                                  }" aria-hidden="true" />
+                            <span class="text-gray-200 font-medium">{{ d.label }}</span>
+                        </span>
+                        <span class="tabular-nums shrink-0 ml-3"
+                              :class="d.state === 'error' ? 'text-red-400'
+                                    : d.state === 'stalled' ? 'text-amber-400' : 'text-gray-500'">
+                            <template v-if="d.state === 'done'">{{ d.flags.toLocaleString() }} flag{{ d.flags === 1 ? '' : 's' }}</template>
+                            <template v-else-if="d.state === 'running'">{{ Math.floor(d.elapsed_s / 60) }}m {{ d.elapsed_s % 60 }}s</template>
+                            <template v-else-if="d.state === 'stalled'">stalled {{ Math.floor(d.elapsed_s / 60) }}m — will retry</template>
+                            <template v-else-if="d.state === 'error'">errored</template>
+                            <template v-else>queued</template>
+                        </span>
+                    </div>
+                    <div class="h-1.5 bg-gray-900 rounded overflow-hidden">
+                        <div v-if="d.state === 'done'" class="h-full w-full rounded bg-emerald-600" />
+                        <div v-else-if="d.state === 'running'" class="h-full w-1/4 rounded bg-sky-800 animate-pulse" />
+                        <div v-else-if="d.state === 'stalled'" class="h-full w-1/4 rounded bg-amber-800" />
+                        <div v-else-if="d.state === 'error'" class="h-full w-full rounded bg-red-900" />
+                    </div>
                 </li>
             </ul>
         </div>

@@ -1103,10 +1103,20 @@ def _attribution_window_split(conn, run_id: str, iso: str, level: int,
         # far fewer polygons AND give every lane several chunks to steal —
         # finer progress, shorter tail, cheaper resume. Slice count targets
         # 4 chunks per lane minimum.
+        # CAP THE SLICE COUNT (2026-08-03, operator: "it perhaps makes too
+        # many slices"). Measured live: 80 slices per split pair on average,
+        # 750 for the worst. Every slice is a SUBPROCESS SPAWN plus a tif
+        # open plus a band-metadata query, so past a few per lane the fixed
+        # cost stops buying parallelism and starts buying overhead — and a
+        # long slice list lengthens the coordinator's barrier tail, which is
+        # the "meta lane open with no children running" the operator also
+        # spotted. Enough to feed every lane several times over and let a
+        # slow lane be stolen from, not so many that spawning dominates:
+        # pool*2 floor, pool*8 ceiling (20..80 on a 10-lane box).
         per_slice = int(os.environ.get("CGA_ETL_ATTR_SLICE_WINDOWS", "0") or 0) or 64
-        k = max(2, range_count_override
-                or max(pool * 4, -(-n_windows // per_slice)))
-        k = min(k, n_windows)
+        k = range_count_override or max(pool * 2, -(-n_windows // per_slice))
+        k = min(k, pool * 8)
+        k = max(2, min(k, n_windows))
         size = -(-n_windows // k)
         log.info("%s L%d attribution: WINDOW-SPLIT — %d windows → %d slices of %d "
                  "(window_px=%d pinned)", iso, level, n_windows, k, size, window_px)
