@@ -266,37 +266,15 @@
                         </template>
                     </div>
 
-                    <!-- S-grade (V3 gap matrix, jurisdiction-browser row):
-                         Powers at this level — the Art. V §4–5 joint-vs-reserved
-                         reference table. Static constitutional content: joint
-                         powers are held by all jurisdictions co-equally; reserved
-                         powers by the most-encompassing jurisdiction only. -->
-                    <div class="bg-gray-800 rounded-lg p-3">
-                        <div class="text-xs text-gray-400 mb-2">Powers at this level</div>
-                        <table class="w-full text-[11px]">
-                            <thead>
-                                <tr class="text-gray-500 text-left">
-                                    <th class="font-medium pb-1">Power</th>
-                                    <th class="font-medium pb-1 pl-2">Kind</th>
-                                </tr>
-                            </thead>
-                            <tbody class="text-gray-300">
-                                <tr v-for="p in powersAtLevel" :key="p.power" class="border-t border-gray-700/60 align-top">
-                                    <td class="py-1 pr-2">
-                                        {{ p.power }}
-                                        <span class="block text-[10px] text-gray-500">{{ p.heldBy }}</span>
-                                    </td>
-                                    <td class="py-1 pl-2">
-                                        <span class="px-1.5 py-0.5 rounded text-[10px] whitespace-nowrap"
-                                              :class="p.kind === 'joint' ? 'bg-sky-900 text-sky-300' : 'bg-amber-900 text-amber-300'">
-                                            {{ p.kind }}
-                                        </span>
-                                    </td>
-                                </tr>
-                            </tbody>
-                        </table>
-                        <p class="text-[10px] text-gray-600 mt-1.5">Joint: all jurisdictions · Reserved: most encompassing only · Art. V §4–5</p>
-                    </div>
+                    <!-- "Powers at this level" removed (operator, 2026-08-04).
+                         It was a HARD-CODED reference table — `const powersAtLevel`
+                         in this file — not a read of any constitutional mechanism,
+                         so it could never reflect the jurisdiction actually on
+                         screen. It also read wrong here by construction: in the
+                         viewer every jurisdiction IS the most-encompassing one
+                         relative to its own children, so a fixed joint/reserved
+                         split is incomplete at best. It is educational content, and
+                         education lives in the surface's Learn flyout. -->
 
                     <!-- Legislature & Districts link — kept (separate concern from
                          the new viewer's stats panel; legislature browser still
@@ -648,17 +626,10 @@ const props = defineProps({
     reach:               { type: Object, default: () => ({ state: 'unmeasurable', ratio_micro: null }) },
 })
 
-// S-grade (V3 gap matrix) — the Art. V §4–5 joint/reserved powers reference,
-// static constitutional content mirroring the jurisdiction-browser mockup.
-// Joint powers are held by all jurisdictions co-equally; reserved powers by
-// the most-encompassing jurisdiction only.
-const powersAtLevel = [
-    { power: 'Uniform structures & procedures for departments and CGCs', kind: 'joint', heldBy: 'All jurisdictions, co-equally' },
-    { power: 'Taxes, fees, and charges', kind: 'joint', heldBy: 'All jurisdictions' },
-    { power: 'Enactment of laws', kind: 'joint', heldBy: 'All jurisdictions' },
-    { power: 'Currency production & regulation; standards of measure', kind: 'reserved', heldBy: 'Most encompassing jurisdiction only' },
-    { power: 'Declaration of war (supermajority of legislature)', kind: 'reserved', heldBy: 'Most encompassing jurisdiction only' },
-]
+// `powersAtLevel` deleted with its panel (operator, 2026-08-04). It was a
+// hard-coded literal, wired to nothing — no constitutional mechanism produced
+// it and none consumed it — so it could not describe the jurisdiction on
+// screen. See the note where the panel used to render.
 
 props.jurisdiction.ancestors = props.ancestors
 
