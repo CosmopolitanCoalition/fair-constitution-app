@@ -1159,7 +1159,7 @@ a.cal-row:hover { border-color: var(--gov-link); }
 }
 
 .cmdbar {
-  position: fixed; inset-inline: 0; inset-block-end: 0; z-index: 60;
+  position: fixed; inset-inline: 0; inset-block-end: 0; z-index: 1101;
   display: flex; align-items: center; justify-content: space-between; gap: var(--space-2);
   min-block-size: var(--cmdbar-h); padding: var(--space-1) var(--space-2);
   background: var(--gov-surface); border-block-start: 1px solid var(--gov-border);
@@ -1186,7 +1186,7 @@ a.cal-row:hover { border-color: var(--gov-link); }
 .cmdbar-fly[open] > .cmdbar-btn .cmdbar-caret { transform: rotate(0deg); }
 
 .cmdbar-panel {
-  position: fixed; inset-inline: 0; inset-block-end: var(--cmdbar-h); z-index: 59;
+  position: fixed; inset-inline: 0; inset-block-end: var(--cmdbar-h); z-index: 1100;
   max-block-size: min(72vh, 40rem); overflow: auto;
   background: var(--gov-surface); border-block-start: 1px solid var(--gov-border);
   box-shadow: 0 -10px 28px color-mix(in oklch, var(--gov-fg) 20%, transparent);
@@ -1229,8 +1229,15 @@ a.cal-row:hover { border-color: var(--gov-link); }
    tour strip when active — floats: it slides away on scroll-down and reappears
    on scroll-up. The tour controls ride here; the bottom command bar keeps only
    the three flyouts. Scoped to .app-shell--v2 so v1 pages are untouched. */
+/* ABOVE LEAFLET (operator, 2026-08-04: the Learn and Demo flyouts rendered
+   UNDER the map on the jurisdiction viewer). Leaflet assigns its own stack
+   internally — panes 400, controls 800, corner containers 1000 — so chrome
+   at 55-60 was always going to lose to it. The regular menu only appeared
+   to work because it was short enough not to overlap the map.
+   Raised as a BLOCK so the existing order is preserved exactly
+   (bar above its own panel, as 60 > 59 was): chrome outranks content. */
 .app-shell.app-shell--v2 > .app-header {
-  position: sticky; inset-block-start: 0; z-index: 55;
+  position: sticky; inset-block-start: 0; z-index: 1100;
   flex-direction: column; align-items: stretch; gap: 0; padding: 0;
   transition: transform var(--dur) var(--ease-standard); will-change: transform;
 }

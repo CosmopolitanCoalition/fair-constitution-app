@@ -271,15 +271,11 @@ onBeforeUnmount(() => {
                     </div>
                 </details>
                 <span v-else class="cluster" style="gap: var(--space-2)">
-                    <!-- Guest badge — carries the banner's meaning on flush
-                         tool surfaces, where the banner itself is suppressed so
-                         the map keeps its vertical space. The title attribute
-                         holds the Art. II §2 wording the banner spelled out. -->
-                    <span v-if="surface && variant === 'flush'"
-                          class="guest-badge"
-                          title="These proceedings are public record (Art. II §2). Sign up to speak, vote, and stand for office once your residency is confirmed.">
-                        Viewing as guest
-                    </span>
+                    <!-- No guest badge (operator, 2026-08-04): "the fact that
+                         there's a login and register just makes its point on
+                         its own". The full banner still renders on document
+                         surfaces, where there is room to say more; on a flush
+                         tool surface these two buttons ARE the signal. -->
                     <Btn as="a" href="/login" variant="ghost" size="sm">Log in</Btn>
                     <Btn as="a" href="/register" variant="primary" size="sm">Register</Btn>
                 </span>

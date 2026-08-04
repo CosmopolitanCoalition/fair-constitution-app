@@ -125,6 +125,8 @@ button, [role="button"], a.btn, input, select, summary,
   background: var(--gov-surface);
   border-block-end: 1px solid var(--gov-border);
   padding-block: var(--space-2); padding-inline: var(--space-4);
+  /* v1 shells only. The v2 shell's own header rule is more specific and
+     carries the above-Leaflet stacking — see components-v2.css. */
   position: sticky; inset-block-start: 0; z-index: 40;
 }
 

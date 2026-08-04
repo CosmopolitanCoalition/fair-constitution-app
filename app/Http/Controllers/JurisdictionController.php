@@ -250,6 +250,11 @@ class JurisdictionController extends Controller
                 'map_accepted_at' => $instanceSettings?->map_accepted_at?->toIso8601String(),
                 'apportionment_completed_at' => $instanceSettings?->apportionment_completed_at?->toIso8601String(),
                 'setup_step_completed' => $instanceSettings?->setup_step_completed,
+                // Authoritative "are we still inside setup" flag. setup_step_completed
+                // alone cannot answer it — it keeps its last value after setup
+                // finishes — and the viewer needs the answer to decide whether
+                // "Accept Map Data & Continue" has anywhere to continue TO.
+                'setup_completed_at' => $instanceSettings?->setup_completed_at?->toIso8601String(),
             ],
             // S-grade addition — the Reach & participation gauge (see the
             // snapshot read above). Feeds the sidebar block that links out to

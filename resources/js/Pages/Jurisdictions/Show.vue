@@ -855,6 +855,23 @@ async function acceptMaps(acknowledge = false) {
             return
         }
         showAckModal.value = false
+
+        // THE BUTTON SAYS "& CONTINUE" — HONOUR IT (operator, 2026-08-04:
+        // "does that take me back to the setup place to go to stage three?").
+        // It did not. Acceptance reloaded the card in place and left the
+        // operator parked on the viewer, having to find their own way back to
+        // the wizard — the same "takes us out of the setup process weirdly
+        // enough" complaint as the review link.
+        //
+        // During setup, the next step genuinely lives in the wizard: Step 2's
+        // forward button runs apportionment and moves to Step 3. So send them
+        // there. Outside setup there is nowhere to continue TO, so the original
+        // reload-in-place is still the right behaviour.
+        if (! props.map_acceptance.setup_completed_at) {
+            window.location.href = '/setup/step/2'
+            return
+        }
+
         // Reload so the page reflects the persisted map_accepted_at + the
         // apportionment-running banner. Server provides the canonical state.
         router.reload({ only: ['map_acceptance'] })
