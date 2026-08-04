@@ -271,6 +271,15 @@ onBeforeUnmount(() => {
                     </div>
                 </details>
                 <span v-else class="cluster" style="gap: var(--space-2)">
+                    <!-- Guest badge — carries the banner's meaning on flush
+                         tool surfaces, where the banner itself is suppressed so
+                         the map keeps its vertical space. The title attribute
+                         holds the Art. II §2 wording the banner spelled out. -->
+                    <span v-if="surface && variant === 'flush'"
+                          class="guest-badge"
+                          title="These proceedings are public record (Art. II §2). Sign up to speak, vote, and stand for office once your residency is confirmed.">
+                        Viewing as guest
+                    </span>
                     <Btn as="a" href="/login" variant="ghost" size="sm">Log in</Btn>
                     <Btn as="a" href="/register" variant="primary" size="sm">Register</Btn>
                 </span>
@@ -284,7 +293,15 @@ onBeforeUnmount(() => {
             <div class="shell-banners" style="flex-shrink: 0">
                 <SchemaUpdateBanner />
                 <EmergencyBanner :emergencies="activeEmergencies" />
-                <Banner v-if="!user && surface" tone="info" title="You’re viewing as a guest">
+                <!-- The guest notice is a full-width banner on document
+                     surfaces, but on a FLUSH tool surface it is pure cost: it
+                     eats the fold above a map that is meant to fill the screen,
+                     and the height it takes is height the tool does not get.
+                     Operator ruled it into the header there (rubric
+                     `guest-banner` = B) — see the badge beside Log in /
+                     Register. Same information, no vertical tax. -->
+                <Banner v-if="!user && surface && variant !== 'flush'"
+                        tone="info" title="You’re viewing as a guest">
                     These proceedings are public record (Art. II §2).
                     <a :href="continueHref"><strong>Sign up to take part</strong></a> — speak, vote, and stand
                     for office once your residency is confirmed.

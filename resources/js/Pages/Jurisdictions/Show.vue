@@ -1,19 +1,31 @@
 <template>
-    <PageScaffold :surface="surface" :title="jurisdiction.name">
-        <template #intro>
-            Every place on Earth, planet to neighborhood — its boundaries, its people,
-            and who represents them. The map is real, preloaded geography; the live
-            count of verified residents layers on top. Every place governs itself —
-            sitting inside a bigger one changes scope, never rank.
-        </template>
+    <!-- FULL-BLEED TOOL SURFACE (operator, 2026-08-04, with the district mapper
+         as the stated reference: "it takes up the whole screen and it has the
+         map up in the side").
 
-    <!-- The two-pane viewer. Under the wide (scrolling) main the old
-         flex-1/flush sizing has no viewport column to fill, so the wrapper
-         is height-bound explicitly: the sidebar scrolls internally and the
-         Leaflet pane fills every remaining pixel — same containment, new
-         shell. -->
-    <div class="flex overflow-hidden min-h-0 rounded-lg border border-gray-800"
-         style="height: calc(100vh - 22rem); min-height: 32rem">
+         This was a PageScaffold under `variant: 'wide'` — a SCROLLING document
+         shell. Two consequences, both visible in the operator's screenshot:
+         wide caps content at 96rem, which is the dead space down each side; and
+         it gives the map no viewport column to fill, so the previous author
+         pinned the height with `calc(100vh - 22rem)` — a GUESS at how tall the
+         chrome above the map would be. Whenever the real chrome exceeds the
+         guess (guest banner + h1 + intro + About panel: exactly what was on
+         screen) the Leaflet pane overflows the viewport and covers the nav's
+         Learn and Demo tabs. That is the bleed.
+
+         `variant: 'flush'` is the contract this surface was always meant to
+         use — components.css names it outright: "Full-bleed tool surfaces
+         (Leaflet viewers, district mapper, jurisdiction table)". It zeroes the
+         max-width and padding, pins the shell to 100vh, and hands this element
+         the exact screen remainder. The height is MEASURED, so no magic number
+         can drift out of date again.
+
+         PageScaffold goes with it. It rendered the <h1>, the intro prose and
+         the collapsed "About this surface" panel — all moved to the Learn tab
+         per the operator, and all of it duplicating the sidebar, which already
+         carries the name, breadcrumb, population and member count. The district
+         mapper has no scaffold either. -->
+    <div class="flex flex-1 min-h-0 overflow-hidden">
 
             <!-- Left panel: metadata -->
             <aside class="w-80 shrink-0 bg-gray-900 border-r border-gray-800 flex flex-col overflow-y-auto">
@@ -581,7 +593,6 @@
             </div>
         </div>
     </div>
-    </PageScaffold>
 </template>
 
 <script setup>
@@ -589,7 +600,6 @@ import { computed, onMounted, ref, watch } from 'vue'
 import { router, useForm, usePage } from '@inertiajs/vue3'
 import { useDemoMode } from '@/composables/useDemoMode'
 import AppShellV2 from '@/Layouts/AppShellV2.vue'
-import PageScaffold from '@/Components/Surface/PageScaffold.vue'
 import GeodataFlagQueue from '@/Components/Geodata/GeodataFlagQueue.vue'
 import { csrfFetch } from '@/lib/csrf'
 import L from 'leaflet'
@@ -602,7 +612,9 @@ import 'leaflet/dist/leaflet.css'
 // wide main instead of the flush full-viewport column. The full
 // jurisdiction-browser fusion is Phase 5, NOT this pass.
 defineOptions({
-    layout: (h, page) => h(AppShellV2, { variant: 'wide' }, () => page),
+    // 'flush', not 'wide': this is a full-bleed tool surface, not a scrolling
+    // document. See the note at the top of <template> for what 'wide' cost.
+    layout: (h, page) => h(AppShellV2, { variant: 'flush' }, () => page),
 })
 
 const props = defineProps({

@@ -905,6 +905,26 @@ a, summary { transition: color var(--dur) var(--ease-standard), border-color var
    the stacked-chrome override below wins over the 64rem area remap. */
 .app-shell--flush { block-size: 100vh; }
 .app-shell--flush .sidebar { overflow-y: auto; min-block-size: 0; }
+
+/* Guest badge — the header-bar form of the "You're viewing as a guest" banner,
+   rendered only on flush tool surfaces, where the banner itself is suppressed
+   (operator ruling 2026-08-04, rubric `guest-banner` = B). A map meant to fill
+   the screen cannot afford to spend the fold on a notice; the badge carries the
+   same meaning in the chrome, with the Art. II §2 wording on its title. */
+.guest-badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.15rem 0.5rem;
+  border-radius: 999px;
+  border: 1px solid var(--border, #333a46);
+  background: var(--surface-2, #1b1f27);
+  color: var(--ink-muted, #9aa4b2);
+  font-size: 0.72rem;
+  font-weight: 600;
+  white-space: nowrap;
+  cursor: help;
+}
+
 @media (max-width: 64rem) {
   /* Stacked chrome: hand the flexible row to the tool pane, not the sidebar
      (whose <details> menu is collapsible there). */
