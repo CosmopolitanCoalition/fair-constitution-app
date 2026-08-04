@@ -130,7 +130,25 @@ def do_manifest(conn, run_id: str, options: dict, log: logging.Logger) -> dict:
 
     rows.append(("resolve_global", None, None, 0))
     rows.append(("finalize_global", None, None, 0))
-    rows.append(("acceptance_scan", None, None, 0))
+
+    # ACCEPTANCE SCAN OFF BY DEFAULT (2026-08-04, operator: "turn off these
+    # acceptance scans, obviously it's fucking busted"). The six detectors
+    # open with planet-wide MATERIALIZED CTEs that repeatedly took postgres
+    # backends down (signal 9) and, before the liveness markers landed,
+    # thrashed a run for 4h17m without finishing. The scan is a data-QUALITY
+    # report, not part of producing the world: ingest, resolve, attribution
+    # and finalize are complete and correct without it, so a run should reach
+    # `done` rather than park behind it.
+    #
+    # The scan remains fully available on demand — it was an operator-run
+    # console tool for three weeks before it became a phase (2026-08-01) —
+    # and CGA_ETL_ACCEPTANCE_SCAN=1 restores it to the pipeline. Nothing
+    # about the detectors themselves is removed.
+    if os.environ.get("CGA_ETL_ACCEPTANCE_SCAN", "0") == "1":
+        rows.append(("acceptance_scan", None, None, 0))
+    else:
+        log.info("manifest: acceptance scan DISABLED "
+                 "(CGA_ETL_ACCEPTANCE_SCAN=1 to enable)")
 
     _insert_items(conn, run_id, rows)
     log.info("manifest: %d isos → %d items enumerated", len(iso_bytes), len(rows))
