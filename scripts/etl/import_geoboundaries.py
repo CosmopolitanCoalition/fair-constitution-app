@@ -273,6 +273,41 @@ def make_slug(
 
 # ─── Filesystem discovery ─────────────────────────────────────────────────────
 
+# THE WALK IS MEMOISED (operator ruling 2026-08-04). It was called once per
+# import_geoboundaries() invocation — i.e. once per ADM LEVEL per country — and
+# each call re-stats the whole gbOpen tree. Measured on the game box: 715
+# entries, 232 countries, 11.07 s a call, because /archive is a Windows bind
+# mount and every stat crosses the virtiofs boundary. Six levels x 232
+# countries x 11 s is roughly 4 h of aggregate lane time spent listing the same
+# directories, ~2 h of it for levels that do not exist.
+#
+# The tree is static for the life of a run (the download flow completes before
+# ingestion claims anything), so one walk is enough. reset_discovery_cache()
+# exists for the fetch-then-import path, which does grow the tree mid-process.
+_DISCOVERY_CACHE: list[tuple[str, int, Path]] | None = None
+
+
+def reset_discovery_cache() -> None:
+    """Drop the memoised tree walk — call after downloading new source files
+    into GBOPEN_ROOT, otherwise the fresh files stay invisible for the rest of
+    the process."""
+    global _DISCOVERY_CACHE
+    _DISCOVERY_CACHE = None
+
+
+def available_adm_levels(iso3: str) -> set[int]:
+    """The ADM levels this country actually HAS a file for.
+
+    THE FILESYSTEM IS THE AUTHORITY HERE, never geoboundary_metadata — the meta
+    CSV is documented-incomplete (IND-ADM0 and PRI-ADM0 are absent from it
+    while the files sit on disk), so gating the level walk on the CSV would
+    silently skip real levels of real countries. Same reason discover_*()
+    exists at all."""
+    iso3 = (iso3 or "").upper()
+
+    return {n for i, n, _p in discover_geoboundaries_files() if i == iso3}
+
+
 def discover_geoboundaries_files() -> list[tuple[str, int, Path]]:
     """
     Traverse GBOPEN_ROOT and discover every available (ISO3, adm_n, geojson_path)
@@ -289,6 +324,10 @@ def discover_geoboundaries_files() -> list[tuple[str, int, Path]]:
     Returns list sorted by (adm_n, iso3) so that all ADM0 rows are processed
     before ADM1 rows, guaranteeing parents exist before children are inserted.
     """
+    global _DISCOVERY_CACHE
+    if _DISCOVERY_CACHE is not None:
+        return _DISCOVERY_CACHE
+
     results: list[tuple[str, int, Path]] = []
 
     if not GBOPEN_ROOT.is_dir():
@@ -317,10 +356,11 @@ def discover_geoboundaries_files() -> list[tuple[str, int, Path]]:
     # Strict parent-before-child ordering: sort by adm_n first, then iso3
     results.sort(key=lambda x: (x[1], x[0]))
     logger.info(
-        "Discovered %d (ISO3, ADM level) entries across %d countries",
+        "Discovered %d (ISO3, ADM level) entries across %d countries (cached)",
         len(results),
         len({iso3 for iso3, _, _ in results}),
     )
+    _DISCOVERY_CACHE = results
     return results
 
 

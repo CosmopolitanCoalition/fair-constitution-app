@@ -23,6 +23,7 @@ import argparse
 import json
 import logging
 import os
+import psycopg2   # QueryCanceled, for the collapse pass's per-batch timeout
 import subprocess
 import sys
 import time
@@ -257,8 +258,36 @@ def do_boundary(conn, run_id: str, iso: str, options: dict,
     import uuid as _uuid
     token = str(_uuid.uuid4())   # claim_token column is uuid-typed
 
+    # ONLY THE LEVELS THIS COUNTRY ACTUALLY HAS (operator ruling 2026-08-04).
+    # This walked 0..5 unconditionally, so a country like MYT — which has ADM0
+    # and ADM4 and nothing between — paid four full import calls that could
+    # only ever insert zero rows, and each of those calls re-stat'd the entire
+    # 715-entry gbOpen tree (11 s a call on the bind mount). 678 absent levels
+    # planet-wide, ~2 h of aggregate lane time producing nothing.
+    #
+    # Gated on the FILESYSTEM, never on geoboundary_metadata: the meta CSV is
+    # documented-incomplete (IND-ADM0, PRI-ADM0 have files but no CSV row), so
+    # trusting it here would skip real levels of real countries. `expected`
+    # stays what it was — a size hint for the split decision, not a existence
+    # oracle. Falls back to all six if discovery comes back empty, so a
+    # mis-pointed GBOPEN_ROOT still behaves exactly as before rather than
+    # silently importing nothing.
+    from import_geoboundaries import available_adm_levels
+
+    present = available_adm_levels(iso)
+    if not present:
+        log.warning("%s: no files discovered under GBOPEN_ROOT — walking all "
+                    "six levels as before", iso)
+        present = set(range(6))
+
     levels = [l for l in range(6)
-              if adm_filter is None or l in adm_filter]
+              if l in present
+              and (adm_filter is None or l in adm_filter)]
+
+    skipped = [l for l in range(6) if l not in present]
+    if skipped:
+        log.info("%s: levels %s absent on disk — skipped (was %d wasted "
+                 "import calls)", iso, skipped, len(skipped))
 
     def _db_count(app_lvl: int) -> int:
         with get_cursor(conn) as cur:
@@ -1370,6 +1399,182 @@ def do_attribution_range(conn, run_id: str, item: dict, log: logging.Logger) -> 
             ("win_start", "win_count", "n_partial_rows", "elapsed_s")}
 
 
+def _collapse_same_space_chains(conn, log: logging.Logger) -> int:
+    """Collapse single-child same-space chains at ingest (operator ruling
+    2026-08-04, answer B: "Collapse them at INGEST — a single-child same-space
+    pair merges on import, so the queue never fills with them").
+
+    The last full-planet scan flagged 11,919 of these, concentrated in CZE L4
+    (3,897), SVK L4 (2,497), IND L4 (3,381), JAM L3 (791) and AUT L4 (725) —
+    national releases that record one village at two ADM levels. Every repair
+    endpoint is one-chain-per-POST and the repair window shuts on acceptance,
+    so hand-working them was never possible.
+
+    WHY THIS RUNS IN FINALIZE, NOT IN THE BOUNDARY PARSE. The operator's first
+    constraint is a POPULATION check — geometry alone is not enough, because
+    two rows can overlap ~99% and the missing sliver may hold people, and
+    "any populated lack of overlap" must not get merged away. Population does
+    not exist during the boundary phase; it is attributed later, from the
+    raster. Finalize is the earliest point where the check is possible, and it
+    still precedes the acceptance scan, so the queue never fills.
+
+    The three constraints, each enforced below:
+      1. POPULATION — merge only when parent and child hold EXACTLY the same
+         population. If the non-overlapping sliver is populated the totals
+         differ and the pair is left alone. Exact equality is deliberate: it
+         errs toward not merging, and for genuinely identical geometry the
+         same raster pixels are summed so equality is guaranteed.
+      2. NEVER ORPHAN — the child's own children are re-anchored onto the
+         survivor BEFORE the child is soft-deleted, in the same transaction.
+         Nothing beneath a collapsed chain loses its lineage.
+      3. TOPMOST SURVIVES — matching GeodataRemediationService::mergeChain, so
+         a chain collapsed here is indistinguishable from one merged by hand.
+
+    Chains longer than two collapse by iteration: each pass removes one link,
+    and the loop repeats until a pass finds nothing. Per THE ETL RULE the work
+    is bounded, committed chunks — never one planet-wide statement.
+
+    Set CGA_ETL_COLLAPSE_CHAINS=0 to skip (the flags then simply surface in the
+    scan as before)."""
+    if (os.environ.get("CGA_ETL_COLLAPSE_CHAINS", "1") or "1").strip() == "0":
+        log.info("finalize: same-space chain collapse disabled by env")
+        return 0
+
+    chunk = int(os.environ.get("CGA_ETL_COLLAPSE_CHUNK", "0") or 0) or 500
+    total = 0
+
+    for sweep in range(1, 13):          # chains deeper than 12 do not occur
+        # ── STAGE A — the CHEAP classification, planet-wide.
+        #
+        # Ordered by cost, cheapest first (law 5: examine the GOAL). The goal is
+        # "is the child the same PLACE as the parent", and three of the four
+        # tests answer it for free:
+        #   population equality  integer compare      — rejects 5,126 outright
+        #   md5 of the WKB       hash                 — accepts 2,867 outright
+        #   area ratio           ST_Area, indexed-ish — rejects the rest
+        #   ST_SymDifference     THE EXPENSIVE ONE    — only the remainder
+        # Measured on the live planet: this whole query returns in seconds over
+        # 16,464 pairs. Putting ST_SymDifference in the same predicate made it
+        # unbounded and OOM-killed postgres, because the planner evaluated it
+        # before the cheap filters could reject anything.
+        #
+        # `certain` needs no geometry work at all; only `maybe` goes to stage B.
+        with get_cursor(conn) as cur:
+            cur.execute("""
+                WITH oc AS (
+                    SELECT c.parent_id AS pid, (array_agg(c.id))[1] AS cid
+                      FROM jurisdictions c
+                     WHERE c.deleted_at IS NULL AND c.merged_into_id IS NULL
+                       AND c.parent_id IS NOT NULL
+                     GROUP BY c.parent_id
+                    HAVING COUNT(*) = 1
+                )
+                SELECT p.id AS pid, c.id AS cid,
+                       (md5(ST_AsBinary(p.geom)) = md5(ST_AsBinary(c.geom))) AS certain
+                  FROM oc
+                  JOIN jurisdictions p ON p.id = oc.pid
+                  JOIN jurisdictions c ON c.id = oc.cid
+                 WHERE p.deleted_at IS NULL AND p.merged_into_id IS NULL
+                   AND p.geom IS NOT NULL AND c.geom IS NOT NULL
+                   -- constraint 1, applied FIRST because it is free: same
+                   -- space AND same population confirms same PLACE. A ~99%
+                   -- overlap whose missing sliver holds people fails here and
+                   -- is never merged.
+                   AND COALESCE(p.population, 0) = COALESCE(c.population, 0)
+                   AND (
+                        md5(ST_AsBinary(p.geom)) = md5(ST_AsBinary(c.geom))
+                        OR (ST_Area(c.geom) / NULLIF(ST_Area(p.geom), 0))
+                               BETWEEN 0.98 AND 1.02
+                   )
+            """)
+            rows = cur.fetchall()
+        conn.commit()
+
+        pairs  = [(r["pid"], r["cid"]) for r in rows if r["certain"]]
+        maybe  = [(r["pid"], r["cid"]) for r in rows if not r["certain"]]
+        log.info("finalize: chain scan sweep %d — %d identical (no geometry "
+                 "work), %d need symmetric-difference", sweep, len(pairs), len(maybe))
+
+        # ── STAGE B — the expensive test, on the remainder only, in ADAPTIVE
+        # batches. Batch size self-tunes toward a target duration because cost
+        # depends entirely on WHICH geometries land in a batch: a fixed 500 ran
+        # 3 s on one batch and was still going at 54 s on the next, with
+        # postgres at 91% of its cgroup. A fixed size is a magic number waiting
+        # for a different batch. ──
+        target_s = float(os.environ.get("CGA_ETL_COLLAPSE_TARGET_S", "0") or 0) or 10.0
+        size, i, t0 = max(8, min(chunk, 64)), 0, time.time()
+        while i < len(maybe):
+            batch = maybe[i:i + size]
+            b0 = time.time()
+            with get_cursor(conn) as cur:
+                cur.execute("SET LOCAL statement_timeout = '120s'")
+                try:
+                    cur.execute("""
+                        SELECT p.id AS pid, c.id AS cid
+                          FROM jurisdictions p
+                          JOIN jurisdictions c ON c.parent_id = p.id
+                         WHERE p.id = ANY(%s::uuid[]) AND c.id = ANY(%s::uuid[])
+                           AND ST_Area(ST_SymDifference(p.geom, c.geom))
+                               <= 0.01 * NULLIF(GREATEST(ST_Area(p.geom),
+                                                         ST_Area(c.geom)), 0)
+                    """, ([str(p) for p, _c in batch], [str(c) for _p, c in batch]))
+                    pairs.extend((r["pid"], r["cid"]) for r in cur.fetchall())
+                except psycopg2.errors.QueryCanceled:
+                    conn.rollback()
+                    log.warning("finalize: symdiff batch of %d exceeded 120s — "
+                                "skipped; those pairs stay flagged for the scan",
+                                len(batch))
+            conn.commit()
+
+            i += len(batch)
+            el = time.time() - b0
+            if el < target_s / 2:
+                size = min(chunk, size * 2)
+            elif el > target_s and size > 8:
+                size = max(8, size // 2)
+            log.info("finalize: symdiff %d/%d · %d mergeable · batch=%d took "
+                     "%.1fs · %.0fs elapsed", i, len(maybe), len(pairs),
+                     len(batch), el, time.time() - t0)
+
+        if not pairs:
+            break
+
+        merged = 0
+        for pid, cid in pairs:
+            with get_cursor(conn) as cur:
+                # constraint 2: lineage first — re-anchor the child's children
+                # onto the survivor before the child stops being live.
+                cur.execute("""
+                    UPDATE jurisdictions
+                       SET parent_id = %s, parent_assigned_via = 'merged_chain',
+                           updated_at = now()
+                     WHERE parent_id = %s AND deleted_at IS NULL
+                """, (pid, cid))
+                moved = cur.rowcount
+
+                # constraint 3: topmost survives; the child becomes a
+                # pass-through pointer, exactly as mergeChain leaves it.
+                cur.execute("""
+                    UPDATE jurisdictions
+                       SET merged_into_id = %s, deleted_at = now(), updated_at = now()
+                     WHERE id = %s AND deleted_at IS NULL
+                """, (pid, cid))
+                if cur.rowcount:
+                    merged += 1
+                    total  += 1
+            conn.commit()          # bounded, committed chunk of work
+
+        log.info("finalize: chain collapse sweep %d — %d pair(s) merged "
+                 "(%d total)", sweep, merged, total)
+        if merged == 0:
+            break
+
+    if total:
+        log.info("finalize: collapsed %d same-space chain link(s); survivors "
+                 "keep every descendant", total)
+    return total
+
+
 def do_finalize(conn, options: dict, log: logging.Logger) -> dict:
     """Planet rollup + per-country national validation (the barrier). Findings
     land as geodata_flags rows (class national_delta_gt5) — the repair plane's
@@ -1395,6 +1600,12 @@ def do_finalize(conn, options: dict, log: logging.Logger) -> dict:
                AND COALESCE(population_baseline, 0) > 0
         """)
         log.info("finalize: %d national populations set from baselines", cur.rowcount)
+
+    # Collapse same-space chains BEFORE the rollup: merged rows go
+    # deleted_at + merged_into_id, and every live() predicate in the app
+    # excludes both, so the rollup must not count a row that is about to stop
+    # being live.
+    collapsed = _collapse_same_space_chains(conn, log)
 
     rollup = rollup_planet_population(conn, log)
 

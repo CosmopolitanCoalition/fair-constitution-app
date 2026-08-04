@@ -219,6 +219,48 @@ pools that never enter the k-loop (step 6). Pinned in `DistrictingDoctrineTest`.
 
 ---
 
+## THE ETL PARADIGM (operator ruling 2026-08-02 — NEVER VIOLATE)
+
+**Read this before writing any query or pipeline code. It binds DIAGNOSTIC and
+EXPLORATORY queries exactly as hard as production writes** — that carve-out is
+the most repeated mistake in this repo's history. A read-only `SELECT` carrying
+a planet-wide `ST_SymDifference` OOM-killed PostgreSQL on 2026-08-04; the
+planner does not care that the author only meant to "look".
+
+Five laws for **all** bulk pipelines:
+
+1. **Flexible + multithreaded** — the same code runs on a Raspberry Pi and on a
+   supercomputer. Derive sizing from the host; never hard-code.
+2. **Chunkable** — bounded units of work, always.
+3. **Resumable** — commit each chunk; a kill mid-run costs one chunk, not the pass.
+4. **Visible** — fine-grained chunks with elapsed and ETA. No opaque bars, and
+   never fabricate progress.
+5. **FAST** — *"the existing ETL code base is NOT the paradigm."* Research novel
+   techniques. Examine the GOAL — how the data is actually used — before
+   optimising the mechanism.
+
+**Corollaries, each learned the hard way:**
+
+- **Never one planet-wide statement.** Bulk writes are bounded, committed chunks
+  with per-chunk progress. `VACUUM` before dependent passes.
+- **A `LIMIT` does not make a query bounded.** If the CTE or join beneath it is
+  planet-wide, the expensive predicate still materialises before the limit
+  bites. Bound the INPUT — fetch a cheap id roster, then process it in batches.
+  Never rely on bounding the output.
+- **All-or-nothing is a bug, not a safety property.** A single unchunked
+  `UPDATE` under a `statement_timeout` discards every row it already computed.
+  This cost India: 7,143 orphans dragging 649,578 correctly-parented descendants
+  out of the tree, to avoid holding up a run for 16 islets.
+- **Derive from host, never hard-code.** Sizing = clamp(fraction/appetite) read
+  from the real cgroup/host limits, env-overridable, written if absent. A magic
+  number (640 MB per pair, a 180 s budget, a 500-row cap) is a defect waiting
+  for a different host. Floor: it must still run on a Pi — days are acceptable.
+- **DONE must be EVIDENCED.** Compare audit counts against meta counts. A
+  function that returns normally after recording per-item failures has not
+  succeeded.
+
+---
+
 ## Architecture Principles
 
 ### Two-Layer Constitutional Hardening
