@@ -117,28 +117,50 @@ def stage_ready(conn, run_id: str, kind: str) -> bool:
         return int(cur.fetchone()["n"]) == 0
 
 
+# ── ATTRIBUTION'S MEASURED COST MODEL (2026-08-04) ─────────────────────────
+# Replaces a bare `640 * 1024 * 1024` literal whose only justification was a
+# comment reading "~500-700 MB observed". That hardcode violated law 1 of the
+# ETL paradigm (derive from the host, never hardcode) and, being a single
+# number for wildly unequal work, it capped the whole field at whatever the
+# fattest pair might cost.
+#
+# MEASURED on this box, each pair run ALONE, peak RSS:
+#     ESP L3  1.00M verts -> 442 MB      IRL L2  1.32M -> 433 MB
+#     EST L4  1.29M verts -> 467 MB      PAN L4  5.20M -> 742 MB
+# Least-squares through those four: ~371 MB fixed + ~71 MB per million
+# vertices. (Import baseline is only 78 MB — numpy/rasterio/shapely/scipy —
+# so the fixed term is real work: parse caches, window buffers, the
+# decomposition's piece lists. GDAL_CACHEMAX was tested and is NOT a factor:
+# capping it at 64 MB moved peak RSS by 1 MB.)
+#
+# A SLICE IS NOT CHEAPER THAN A PAIR. Measured IND L6 bands of 416 windows:
+# 871 MB and 776 MB — heavier than any whole pair above, because band-scoped
+# metadata still admits a large share of 649,771 features. So slices are
+# costed by the same model against their PARENT's geometry, not waved
+# through as "small children".
+ATTR_FIXED_MB    = int(os.environ.get("CGA_ETL_ATTR_FIXED_MB", "0") or 0) or 371
+ATTR_MB_PER_MVER = int(os.environ.get("CGA_ETL_ATTR_MB_PER_MVERT", "0") or 0) or 71
+
+
+def attribution_cost_mb(est_cost: int) -> int:
+    """Predicted peak RSS for an attribution item, from its vertex weight."""
+    return ATTR_FIXED_MB + int(ATTR_MB_PER_MVER * (max(0, int(est_cost)) / 1_000_000.0))
+
+
 def kind_cap(kind: str) -> int | None:
     """The operator's cap for a kind, or None (uncapped — the default).
 
-    ATTRIBUTION IS THE EXCEPTION (2026-08-02, kill #32: seven light pairs
-    ran legally-shared and summed past the container): a pair holds its
-    whole level's geometry + window buffers (~500-700 MB observed), the
-    fattest child class in the engine. Its width therefore derives from
-    the memory budget — clamp(budget / 640 MB, 2, pool) — instead of
-    running pool-wide. Heavies are additionally serialized by the
-    giant-pair floor; this cap bounds the LIGHT class's sum."""
+    Attribution no longer uses a count cap — admission is by MEASURED COST
+    (see _attempt_claim): a pair is admitted while the running total of
+    predicted peaks still fits the container. A count cap cannot express
+    that, because a 440 MB pair and an 870 MB India slice are not
+    interchangeable units. CGA_ETL_CAP_ATTRIBUTION still forces a hard
+    count when the operator wants one."""
     env_key = _KIND_CAP_ENV.get(kind)
     if env_key is not None:
         raw = os.environ.get(env_key, "")
         if raw.isdigit() and int(raw) > 0:
             return int(raw)
-    if kind == "attribution_pair":
-        pool = int(os.environ.get("CGA_ETL_POOL_SIZE", "0") or 0) or 12
-        try:
-            from memory_budget import etl_budget_bytes
-            return max(2, min(pool, etl_budget_bytes() // (640 * 1024 * 1024)))
-        except Exception:
-            return 3
     return None
 
 
@@ -221,6 +243,41 @@ def _attempt_claim(conn, run_id: str, kind: str, lane: str, token: str) -> dict 
     heavy_params: tuple = ()
     with get_cursor(conn) as cur:
         cur.execute("SELECT pg_advisory_xact_lock(hashtext('cga_geodata_claim'))")
+
+        # ADMISSION BY MEASURED COST, not by a count (2026-08-04). Attribution
+        # items are wildly unequal — 433 MB for IRL L2, 742 MB for PAN L4,
+        # 871 MB for an IND L6 band — so one number cannot describe "how many
+        # fit". Admit while the running total of PREDICTED PEAKS still fits
+        # the container, and exclude only candidates that would overflow it.
+        # This is the same advisory-locked transaction as the claim, so two
+        # workers can never both see the same headroom.
+        if kind == "attribution_pair" and cap is None:
+            try:
+                from memory_budget import container_budget_bytes
+                budget_mb = container_budget_bytes() // (1024 * 1024)
+            except Exception:
+                budget_mb = 2048
+            headroom = int(os.environ.get("CGA_ETL_ATTR_HEADROOM_MB", "0") or 0) or 256
+            fam = ("attribution_pair", "attribution_range")
+            cur.execute(
+                """
+                SELECT COALESCE(SUM(est_cost), 0) AS w, COUNT(*) AS n
+                  FROM geodata_items
+                 WHERE run_id = %s AND status = 'running' AND kind IN %s
+                """,
+                (run_id, fam),
+            )
+            r = cur.fetchone()
+            used_mb = (int(r["n"]) * ATTR_FIXED_MB
+                       + int(ATTR_MB_PER_MVER * (int(r["w"]) / 1_000_000.0)))
+            free_mb = budget_mb - headroom - used_mb
+            if free_mb < ATTR_FIXED_MB:
+                return None                      # not even a minimal item fits
+            # Largest vertex weight that still fits the remaining headroom.
+            max_w = int((free_mb - ATTR_FIXED_MB) / max(1, ATTR_MB_PER_MVER) * 1_000_000)
+            heavy_clause = " AND est_cost <= %s "
+            heavy_params = (max_w,)
+
         if cap is not None:
             # The cap counts the kind's FAMILY (a country and its ranges
             # are one budget class; a pair stands alone).

@@ -141,6 +141,39 @@ def etl_budget_bytes() -> int:
     return max(512 * 1024 * 1024, int(detect_memory_budget_bytes() * 0.25))
 
 
+def container_budget_bytes() -> int:
+    """The WHOLE container's memory, never a per-worker slice.
+
+    Admission control must size against the real cgroup ceiling — the only
+    limit with teeth, since ETL_MEMORY_BUDGET_BYTES is advisory (it selects
+    chunk profiles; nothing enforces it, and a child allocates past it
+    freely). etl_budget_bytes() honours that env var by design, so a
+    COORDINATOR asking it would see its own slice and admit against a
+    fraction of the truth. This deliberately ignores it."""
+    env = os.environ.get("CGA_ETL_CONTAINER_BUDGET_BYTES")
+    if env:
+        try:
+            value = int(env)
+            if value > 0:
+                return value
+        except ValueError:
+            pass
+
+    for path in ("/sys/fs/cgroup/memory.max",
+                 "/sys/fs/cgroup/memory/memory.limit_in_bytes"):
+        try:
+            with open(path) as f:
+                raw = f.read().strip()
+            if raw and raw != "max":
+                limit = int(raw)
+                if 0 < limit < _NO_LIMIT_SENTINEL_THRESHOLD:
+                    return limit
+        except (FileNotFoundError, OSError, ValueError):
+            continue
+
+    return max(512 * 1024 * 1024, int(detect_memory_budget_bytes() * 0.25))
+
+
 # Profile table — ordered by ceiling (exclusive). Each tuple is
 # (budget_ceiling_bytes, profile_name, chunk_sizes_dict).
 #

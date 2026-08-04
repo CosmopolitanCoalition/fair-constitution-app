@@ -379,11 +379,28 @@ class GeodataFlagService
 
         $pairs = DB::select(
             "
+            -- ISO-SARGABLE CTE (2026-08-04). This was the ONE detector whose
+            -- MATERIALIZED CTE had no iso filter: it built every
+            -- single-child parent on the planet before the outer query's
+            -- iso clause could apply. That is why iso-batching measured 24x
+            -- worse and was reverted (812c3ac) -- batching added overhead
+            -- while the CTE still did planet-scale work every time -- and
+            -- why this detector's memory is unbounded, since the outer query
+            -- then md5's ST_AsBinary of every candidate pair's geometry.
+            --
+            -- The filter joins to the PARENT and matches the outer query's
+            -- p.iso_code exactly, rather than filtering on the child's iso.
+            -- HAVING COUNT(*) = 1 is unaffected: every child of a parent
+            -- shares that parent, so the group is kept or dropped whole and
+            -- the single-child test cannot change meaning.
             WITH only_children AS MATERIALIZED (
-                SELECT parent_id AS pid, (array_agg(id))[1] AS cid
-                FROM jurisdictions
-                WHERE " . $this->live() . " AND parent_id IS NOT NULL
-                GROUP BY parent_id
+                SELECT c.parent_id AS pid, (array_agg(c.id))[1] AS cid
+                FROM jurisdictions c
+                JOIN jurisdictions pp ON pp.id = c.parent_id
+                 AND " . $this->live('pp') . "
+                WHERE " . $this->live('c') . " AND c.parent_id IS NOT NULL
+                  " . str_replace('p.iso_code', 'pp.iso_code', $isoSql) . "
+                GROUP BY c.parent_id
                 HAVING COUNT(*) = 1
             )
             SELECT p.id::text AS parent_id, p.slug AS parent_slug, p.name AS parent_name,
