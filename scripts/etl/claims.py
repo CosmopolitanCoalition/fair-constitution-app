@@ -228,39 +228,21 @@ def _attempt_claim(conn, run_id: str, kind: str, lane: str, token: str) -> dict 
                    "raster_iso":        ("raster_iso", "raster_range"),
                    "attribution_pair":  ("attribution_pair", "attribution_range"),
                    }.get(kind, (kind, kind))
-            if kind == "attribution_pair":
-                # HEAVY pairs only (2026-08-03, the near-single-threaded
-                # attribution tail): the memory math behind the cap is about
-                # monster levels (CAN L2's ~800 MB parse), but the cap
-                # counted EVERY pair — so three 5-second light pairs held
-                # the width while ~400 more sat pending and lanes idled.
-                # Now only pairs at or above the heavy weight (est_cost =
-                # mean_vertices x unit_count, the same unit the floor gates
-                # on) count against — and only heavy candidates are excluded
-                # when the heavy slots are full. Lights run pool-wide with
-                # their lean funding slices.
-                heavy_est = int(os.environ.get("CGA_ETL_ATTR_HEAVY_EST", "0") or 0) or 5_000_000
-                cur.execute(
-                    """
-                    SELECT COUNT(*) AS n FROM geodata_items
-                     WHERE run_id = %s AND status = 'running' AND kind IN %s
-                       AND est_cost >= %s
-                    """,
-                    (run_id, fam, heavy_est),
-                )
-                if int(cur.fetchone()["n"]) >= cap:
-                    heavy_clause = " AND est_cost < %s "
-                    heavy_params = (heavy_est,)
-            else:
-                cur.execute(
-                    """
-                    SELECT COUNT(*) AS n FROM geodata_items
-                     WHERE run_id = %s AND status = 'running' AND kind IN %s
-                    """,
-                    (run_id, fam),
-                )
-                if int(cur.fetchone()["n"]) >= cap:
-                    return None
+            # THE CAP COUNTS EVERY PAIR (reverted 2026-08-04 to the 4 PM
+            # behaviour). Exempting "light" pairs let ten run at once instead
+            # of three, which cut each one's share of the 2345 MB container
+            # from 780 MB to 234 MB — and that, not any splitting decision, is
+            # why pairs that had always run whole began dying. PHL L4 needs
+            # ~400 MB: it fits in 780 and does not fit in 234.
+            cur.execute(
+                """
+                SELECT COUNT(*) AS n FROM geodata_items
+                 WHERE run_id = %s AND status = 'running' AND kind IN %s
+                """,
+                (run_id, fam),
+            )
+            if int(cur.fetchone()["n"]) >= cap:
+                return None
 
         # Two-ended queue: general lanes take the smallest pending item, big
         # lanes take the largest. SKIP LOCKED resolves the meeting point.

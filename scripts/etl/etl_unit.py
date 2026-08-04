@@ -577,6 +577,28 @@ def _enumerate_attribution_pairs(conn, run_id: str, options: dict,
     if countries:
         pairs = [p for p in pairs if p[0] in countries]
 
+    # A COUNTRY WITH NO RASTER IS NOT AN ATTRIBUTION PAIR (2026-08-04,
+    # operator: "then there is nothing to review then for ATA eh?").
+    # Antarctica has no WorldPop tile — there is no resident population to
+    # model — so its pair could only ever fail with "no rasters", land in
+    # review, and sit there through every retry of every future run. That is
+    # a permanent false positive in a list whose entire job is "things a
+    # human should look at."
+    #
+    # Population is left NULL rather than set to 0: the honest statement is
+    # "no source data", not "measured zero". The acceptance scan's
+    # raster_coverage detector already reports isos without tiles, which is
+    # the right surface for it.
+    with get_cursor(conn) as cur:
+        cur.execute("SELECT DISTINCT iso_code FROM worldpop_rasters")
+        have_raster = {r["iso_code"] for r in cur.fetchall()}
+    skipped = sorted({p[0] for p in pairs if p[0] not in have_raster})
+    if skipped:
+        pairs = [p for p in pairs if p[0] in have_raster]
+        log.info("attribution: skipping %d iso(s) with no raster tiles — %s "
+                 "(no source data; raster_coverage flags them)",
+                 len(skipped), ", ".join(skipped))
+
     # est_cost = LEVEL VERTEX WEIGHT, not polygon count (2026-08-02, the
     # attribution starvation: weight and npolys ANTI-correlate — AUS L2 is
     # 1.8M vertices across ~1.4k polygons, so the small-first lanes kept
@@ -953,17 +975,7 @@ def do_attribution(conn, run_id: str, iso: str, level: int, apply_to_db: bool,
     # Result: only genuine swarms split (IND L6 at 649,771 units). Everything
     # else — including every heavy coastal level — runs whole, funded, as it
     # did on the good run.
-    # A pair that ALREADY DIED running whole splits on its retry — the only
-    # evidence-based split rule in the engine. Everything else runs whole,
-    # which is what made 706 of 716 pairs fast.
-    retry_split = False
-    try:
-        _m = item_metrics if isinstance(item_metrics, dict) else {}
-        retry_split = bool(_m.get("retry_split"))
-    except Exception:
-        retry_split = False
-
-    is_swarm = (not is_monster) and (unit_n >= swarm_count or retry_split)
+    is_swarm = (not is_monster) and unit_n >= swarm_count
 
     # ── FEATURE SWARM → window-split, many lanes ──
     if is_swarm:
