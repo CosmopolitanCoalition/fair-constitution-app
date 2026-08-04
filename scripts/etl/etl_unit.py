@@ -959,7 +959,25 @@ def do_attribution(conn, run_id: str, iso: str, level: int, apply_to_db: bool,
     # the old "a monster can't be banded" rule predates that clipping.
     weight = mean_v * unit_n
     split_weight = int(os.environ.get("CGA_ETL_ATTR_SPLIT_WEIGHT", "0") or 0) or 1_000_000
-    is_swarm = (unit_n >= swarm_count) or (weight >= split_weight)
+
+    # SPLITTING NEEDS MANY UNITS TO DIVIDE (2026-08-03, second correction —
+    # operator: "the run before this one didn't have this problem").
+    #
+    # Weight alone was wrong. A band loads the features whose bbox meets it,
+    # so slicing DIVIDES the work only when there are many features to divide.
+    # With ONE huge feature the bbox meets every band, so every slice parses
+    # the WHOLE geometry before clipping — slicing MULTIPLIES the parse by the
+    # slice count instead. That is exactly what the original vertex-monster
+    # rule prevented ("what a monster needs is FUNDING, not slicing"), and
+    # weight-based splitting overrode it.
+    #
+    # Convicted live: AUS L1 (1,662,375 verts x 1 unit), NZL L1 (2,989,722 x
+    # 1), NOR L1 (1,730,081 x 1) plus AUS L2 (9 units) and CAN L2 (13) --
+    # every one a few-unit level, together the entire review churn, and every
+    # one of them ran clean in the PREVIOUS run when they were not split.
+    min_units = int(os.environ.get("CGA_ETL_ATTR_SPLIT_MIN_UNITS", "0") or 0) or 200
+    is_swarm = (not is_monster) and unit_n >= min_units and (
+        unit_n >= swarm_count or weight >= split_weight)
 
     # ── HEAVY (by count OR by weight) → window-split, many lanes ──
     if is_swarm:
