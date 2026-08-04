@@ -83,6 +83,45 @@
                 </span>
             </div>
 
+            <!-- What this queue IS. These checks began as development
+                 diagnostics proving the importer wasn't at fault; they persist
+                 as the health readout for the common data set, the same way
+                 the district mapping tool keeps population equality and shape
+                 compactness on screen. Only orphaned rows describes a defect —
+                 the rest describe the world, and "accept" is frequently the
+                 correct resolution. Without this framing a first-time operator
+                 reads a healthy planet as thousands of failures. -->
+            <div v-if="statusFilter === 'open' && flags.length > 0"
+                 class="relative group mb-2 px-2 py-1.5 rounded border border-gray-700 bg-gray-900/60 text-[11px] text-gray-400 flex items-start gap-1.5">
+                <span class="shrink-0">🩺</span>
+                <span class="flex-1 leading-snug">
+                    These are <span class="text-gray-300">map health statistics</span>, not blocking errors.
+                    Most describe real-world geography the import recorded faithfully — disputed
+                    borders, island groups administered from a mainland, a source that lists the
+                    same village twice. Accepting is often the right call.
+                </span>
+                <span class="text-gray-600 text-[9px] cursor-help select-none mt-0.5">?</span>
+                <div class="pointer-events-none absolute right-0 top-full mt-0.5 z-50 w-72 rounded bg-gray-700 border border-gray-600 p-2 text-[10px] text-gray-300 leading-snug hidden group-hover:block shadow-lg space-y-1">
+                    <div>
+                        <span class="text-red-300 font-semibold">Structural</span> — the tree itself is wrong.
+                        Worth acting on; a detached parent hides its whole subtree from districting.
+                    </div>
+                    <div>
+                        <span class="text-sky-300 font-semibold">Real-world</span> — geography recorded
+                        faithfully. Disputed territory is meant to coexist in one game space rather
+                        than be resolved away.
+                    </div>
+                    <div>
+                        <span class="text-gray-400 font-semibold">Measurement</span> — a statistic to
+                        watch over time, not a list to clear.
+                    </div>
+                    <div class="pt-1 border-t border-gray-600 text-gray-400">
+                        Hover any check's <span class="text-gray-300">?</span> for what it measures and
+                        how to read it.
+                    </div>
+                </div>
+            </div>
+
             <div v-if="flagsError" class="text-[11px] text-red-400 mb-2">{{ flagsError }}</div>
             <div v-if="loadingFlags && flags.length === 0" class="text-[11px] text-gray-500 italic">
                 Loading flags…
@@ -103,11 +142,34 @@
                 filter by category, or work the queue down and refresh.
             </div>
 
-            <!-- Flags grouped by category -->
+            <!-- Flags grouped by category. Each heading carries the Map Health
+                 explainer for that check (same '?' affordance the district
+                 mapping tool uses for population equality / compactness) —
+                 most of these describe real-world geography rather than a
+                 defect, and the queue is unreadable without that context. -->
             <div v-for="group in groupedFlags" :key="group.category" class="mb-2 last:mb-0">
-                <div class="text-[10px] uppercase font-semibold text-gray-500 mb-1">
-                    {{ categoryLabel(group.category) }}
-                    <span class="text-gray-600 normal-case font-normal ml-1">{{ group.flags.length }}</span>
+                <div class="relative group flex items-center gap-1 mb-1">
+                    <span class="text-[10px] uppercase font-semibold text-gray-500">
+                        {{ categoryLabel(group.category) }}
+                    </span>
+                    <span class="text-gray-600 normal-case font-normal text-[10px]">{{ group.flags.length }}</span>
+                    <span class="px-1 py-0 rounded text-[9px] border"
+                          :class="natureChip(group.category)">
+                        {{ natureBadge(group.category).text }}
+                    </span>
+                    <span class="text-gray-600 text-[9px] cursor-help select-none ml-0.5">?</span>
+
+                    <div class="pointer-events-none absolute left-0 top-full mt-0.5 z-50 w-72 rounded bg-gray-700 border border-gray-600 p-2 text-[10px] text-gray-300 leading-snug hidden group-hover:block shadow-lg space-y-1">
+                        <div><span class="text-gray-400 font-semibold">Measures.</span> {{ describeCheck(group.category).measures }}</div>
+                        <div><span class="text-gray-400 font-semibold">Why it matters.</span> {{ describeCheck(group.category).why }}</div>
+                        <div><span class="text-gray-400 font-semibold">How to read it.</span> {{ describeCheck(group.category).reading }}</div>
+                        <div v-if="describeCheck(group.category).remedy">
+                            <span class="text-gray-400 font-semibold">Default remedy.</span> {{ describeCheck(group.category).remedy }}
+                        </div>
+                        <div class="pt-1 border-t border-gray-600 text-gray-400">
+                            {{ natureBadge(group.category).hint }}
+                        </div>
+                    </div>
                 </div>
                 <div class="space-y-1">
                     <div v-for="flag in group.flags" :key="flag.id"
@@ -262,6 +324,7 @@
 <script setup>
 import { computed, onBeforeUnmount, onMounted, ref } from 'vue'
 import { csrfFetch } from '@/lib/csrf'
+import { NATURE_BADGE, compareChecks, describeCheck } from '@/lib/mapHealth'
 import GeodataRepairModal from '@/Components/Geodata/GeodataRepairModal.vue'
 
 // Data Review & Repair queue — the operator-facing surface over
@@ -279,6 +342,9 @@ const props = defineProps({
 const emit = defineEmits(['counts'])
 
 // Category display names, keyed by the exact backend category strings.
+// Labels + the explanatory prose behind the '?' both come from the shared
+// Map Health reference so this panel, Setup Step 2 and the jurisdiction list
+// can never drift into describing the same statistic differently.
 const CATEGORY_LABELS = {
     dual_coverage:        'Dual coverage',
     mis_anchored_cluster: 'Mis-anchored clusters',
@@ -286,6 +352,20 @@ const CATEGORY_LABELS = {
     raster_coverage:      'Raster coverage',
     displaced_geometry:   'Displaced geometry',
     orphaned_rows:        'Orphaned rows',
+    national_delta_gt5:   'Attribution delta',
+}
+
+const NATURE_CHIPS = {
+    structural:    'bg-red-950/60 text-red-300 border-red-800',
+    reality:       'bg-sky-950/60 text-sky-300 border-sky-800',
+    informational: 'bg-gray-800 text-gray-400 border-gray-700',
+}
+
+function natureBadge(cat) {
+    return NATURE_BADGE[describeCheck(cat).nature] ?? NATURE_BADGE.informational
+}
+function natureChip(cat) {
+    return NATURE_CHIPS[describeCheck(cat).nature] ?? NATURE_CHIPS.informational
 }
 
 const ACTION_LABELS = {
@@ -373,14 +453,12 @@ const groupedFlags = computed(() => {
         if (!byCat.has(f.category)) byCat.set(f.category, [])
         byCat.get(f.category).push(f)
     }
-    // Stable presentation order: the known categories first, then any
-    // unknown category the backend might grow.
-    const order = Object.keys(CATEGORY_LABELS)
+    // Stable presentation order comes from the shared Map Health reference:
+    // the one structural check first, then real-world geography, then pure
+    // measurement — so the top of the queue is always the part worth acting
+    // on. Unknown categories the backend grows sort last, alphabetically.
     return [...byCat.entries()]
-        .sort((a, b) => {
-            const ia = order.indexOf(a[0]); const ib = order.indexOf(b[0])
-            return (ia === -1 ? order.length : ia) - (ib === -1 ? order.length : ib)
-        })
+        .sort((a, b) => compareChecks(a[0], b[0]))
         .map(([category, list]) => ({ category, flags: list }))
 })
 

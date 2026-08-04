@@ -11,7 +11,10 @@ import { computed, onBeforeUnmount, onMounted, ref } from 'vue'
 import { csrfFetch } from '@/lib/csrf'
 import LaneStrip from '@/Components/Geodata/LaneStrip.vue'
 
-const emit = defineEmits(['run-state'])
+// `scan-state` carries the acceptance-scan detectors to whoever renders them.
+// This panel no longer does: they belong beside their findings in Review &
+// Accept, not among the ingestion lanes. See ScanDetectorBars.vue.
+const emit = defineEmits(['run-state', 'scan-state'])
 
 const data       = ref(null)   // { run, layers, workers, review }
 const error      = ref('')
@@ -305,6 +308,7 @@ async function fetchProgress() {
         // Let the parent react (e.g. hide the legacy bars panel while a pull
         // run is live — the two surfaces would otherwise fight for attention).
         emit('run-state', data.value?.run ?? null)
+        emit('scan-state', data.value?.scan ?? null)
     } catch (e) {
         error.value = String(e)
     }
@@ -555,55 +559,12 @@ onBeforeUnmount(() => {
             </ul>
         </div>
 
-        <!-- Acceptance-scan detectors. Horizon-side work, invisible to the
-             worker strips above — six chips so the scan is never a single
-             opaque bar again. -->
-        <div v-if="scan && scan.detectors" class="mb-5">
-            <h3 class="text-gray-200 text-xs font-semibold uppercase tracking-wide mb-2">
-                Acceptance scan — {{ scan.detectors.filter(d => d.state === 'done').length }} / {{ scan.detectors.length }} detectors
-            </h3>
-            <!-- Detector rows in the same shape as the worker lanes above
-                 (operator, 2026-08-03: "make those scan chips like the bars
-                 for the worker threads") — a Scan bar with its six detectors
-                 indented beneath it. -->
-            <div class="h-2 bg-gray-800 rounded overflow-hidden mb-1.5">
-                <div class="h-full rounded bg-sky-500 transition-all duration-500"
-                     :style="{ width: Math.round(scan.detectors.filter(d => d.state === 'done').length / scan.detectors.length * 100) + '%' }" />
-            </div>
-            <ul class="space-y-1 pl-4 border-l border-gray-800">
-                <li v-for="d in scan.detectors" :key="d.key"
-                    class="text-xs bg-gray-800/50 rounded px-2.5 py-1.5">
-                    <div class="flex items-center justify-between mb-1">
-                        <span class="flex items-center gap-2 min-w-0">
-                            <span class="w-1.5 h-1.5 rounded-full shrink-0"
-                                  :class="{
-                                      'bg-emerald-400': d.state === 'done',
-                                      'bg-sky-400 animate-pulse': d.state === 'running',
-                                      'bg-amber-400': d.state === 'stalled',
-                                      'bg-red-400': d.state === 'error',
-                                      'bg-gray-600': d.state === 'pending',
-                                  }" aria-hidden="true" />
-                            <span class="text-gray-200 font-medium">{{ d.label }}</span>
-                        </span>
-                        <span class="tabular-nums shrink-0 ml-3"
-                              :class="d.state === 'error' ? 'text-red-400'
-                                    : d.state === 'stalled' ? 'text-amber-400' : 'text-gray-500'">
-                            <template v-if="d.state === 'done'">{{ d.flags.toLocaleString() }} flag{{ d.flags === 1 ? '' : 's' }}</template>
-                            <template v-else-if="d.state === 'running'">{{ Math.floor(d.elapsed_s / 60) }}m {{ d.elapsed_s % 60 }}s</template>
-                            <template v-else-if="d.state === 'stalled'">stalled {{ Math.floor(d.elapsed_s / 60) }}m — will retry</template>
-                            <template v-else-if="d.state === 'error'">errored</template>
-                            <template v-else>queued</template>
-                        </span>
-                    </div>
-                    <div class="h-1.5 bg-gray-900 rounded overflow-hidden">
-                        <div v-if="d.state === 'done'" class="h-full w-full rounded bg-emerald-600" />
-                        <div v-else-if="d.state === 'running'" class="h-full w-1/4 rounded bg-sky-800 animate-pulse" />
-                        <div v-else-if="d.state === 'stalled'" class="h-full w-1/4 rounded bg-amber-800" />
-                        <div v-else-if="d.state === 'error'" class="h-full w-full rounded bg-red-900" />
-                    </div>
-                </li>
-            </ul>
-        </div>
+        <!-- The acceptance-scan detector bars used to render here. They are
+             NOT ingestion work — they measure map health and their findings
+             are the flag queue, so they moved to Review & Accept where those
+             findings live (operator, 2026-08-04: expanding a detector here did
+             nothing because the statistics were in another section). The scan
+             state is emitted upward instead; see ScanDetectorBars.vue. -->
 
         <!-- Review census -->
         <div v-if="review.length">

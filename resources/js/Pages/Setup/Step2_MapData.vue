@@ -5,6 +5,7 @@ import AppShell from '@/Layouts/AppShell.vue'
 import SetupStepper from '@/Components/SetupStepper.vue'
 import ReviewIssuesSection from '@/Components/Setup/ReviewIssuesSection.vue'
 import GeodataPullPanel from '@/Components/Geodata/GeodataPullPanel.vue'
+import ScanDetectorBars from '@/Components/Geodata/ScanDetectorBars.vue'
 import { csrfFetch } from '@/lib/csrf'
 
 // Setup wizard: minimal chrome (header + footer, no sidebar), wide canvas.
@@ -71,6 +72,10 @@ const enginePull = computed(() => engine.value === 'pull' && source.value !== 'd
 // bars.json interleaved garbage (and pull workers now suppress those writes
 // entirely) — two dueling progress surfaces read as chaos.
 const pullRun = ref(null)
+// Acceptance-scan detectors, reported up by the pull panel. Rendered in
+// Review & Accept rather than the ingestion panel — the scan measures map
+// health and its findings are the flag list directly below it.
+const scanState = ref(null)
 const pullRunActive = computed(() => pullRun.value && ['running', 'halted'].includes(pullRun.value.status))
 const optFresh            = ref(false)
 const optSkipPopulation   = ref(false)
@@ -1039,7 +1044,9 @@ onBeforeUnmount(() => {
                 </div>
 
                 <!-- Pull-engine dashboard (renders only when a pull run exists) -->
-                <GeodataPullPanel ref="pullPanel" class="mt-5" @run-state="pullRun = $event" />
+                <GeodataPullPanel ref="pullPanel" class="mt-5"
+                                  @run-state="pullRun = $event"
+                                  @scan-state="scanState = $event" />
             </section>
 
             <!-- Legacy Live Progress panel retired (operator, 2026-08-03):
@@ -1060,10 +1067,21 @@ onBeforeUnmount(() => {
                 <p class="text-gray-400 text-xs mb-3">
                     The import finished. Open the jurisdiction viewer to inspect
                     boundaries, populations, raster overlays, dual-footprint
-                    relationships, and any flagged discrepancies — then accept the
+                    relationships, and the map health checks — then accept the
                     map data there (planet scope). Click Continue below once
                     accepted — that triggers apportionment.
                 </p>
+                <p class="text-gray-500 text-[11px] mb-3">
+                    Accepting closes the repair window, so work anything you intend to
+                    repair <span class="text-gray-400">before</span> you accept.
+                </p>
+
+                <!-- The map health scan, sitting directly above the findings it
+                     produced. It ran as part of the pull, but it is measurement,
+                     not ingestion — so it belongs to this section. -->
+                <div v-if="scanState?.detectors?.length" class="mb-4 pb-4 border-b border-gray-800">
+                    <ScanDetectorBars :detectors="scanState.detectors" />
+                </div>
 
                 <!-- Live open-flag state from the Data Review & Repair plane.
                      Continue is gated server-side on map acceptance, and the
@@ -1072,9 +1090,36 @@ onBeforeUnmount(() => {
                 <div v-if="flagState.loaded" class="mb-3">
                     <div v-if="flagState.open > 0"
                          class="rounded-md border border-amber-800/70 bg-amber-900/20 px-3 py-2 text-xs text-amber-200 flex items-center gap-2 flex-wrap">
-                        <span>
-                            ⚑ {{ flagState.open }} open data flag{{ flagState.open === 1 ? '' : 's' }}
-                            — review &amp; repair in the Jurisdiction Viewer →
+                        <span class="relative group inline-flex items-center gap-1">
+                            ⚑ {{ flagState.open }} map health flag{{ flagState.open === 1 ? '' : 's' }}
+                            — review in the Jurisdiction Viewer →
+                            <span class="text-amber-400/70 text-[10px] cursor-help select-none">?</span>
+
+                            <!-- The count alone reads as "the import failed N times",
+                                 which it almost never means. At world scale most of
+                                 these describe real geography — see lib/mapHealth.js
+                                 for the per-check prose this summarises. -->
+                            <div class="pointer-events-none absolute left-0 top-full mt-1 z-50 w-80 rounded bg-gray-700 border border-gray-600 p-2 text-[10px] text-gray-300 leading-snug hidden group-hover:block shadow-lg space-y-1 normal-case font-normal">
+                                <div class="text-gray-200 font-semibold">These are statistics, not failures.</div>
+                                <div>
+                                    Seven checks measure the health of the imported map, the same way
+                                    the district mapping tool measures population equality and shape
+                                    compactness. Only <span class="text-red-300">orphaned rows</span>
+                                    describes something the import got wrong.
+                                </div>
+                                <div>
+                                    The rest describe the world: disputed borders that must coexist in
+                                    one game space, island groups administered from a distant mainland,
+                                    a national source that records the same village at two levels, a
+                                    country the population raster doesn't cover.
+                                    <span class="text-gray-400">Accepting is frequently the correct resolution.</span>
+                                </div>
+                                <div class="pt-1 border-t border-gray-600 text-gray-400">
+                                    A large count is normal on a full-planet import. What matters is
+                                    whether the structural check is clear — open the viewer and read
+                                    each check's own explainer.
+                                </div>
+                            </div>
                         </span>
                         <span v-if="flagState.critical > 0"
                               class="px-1.5 py-0 rounded text-[10px] bg-red-900 text-red-200 border border-red-700">
@@ -1090,7 +1135,7 @@ onBeforeUnmount(() => {
                         </span>
                     </div>
                     <div v-else class="text-xs text-emerald-300">
-                        ✓ No open data flags.
+                        ✓ Map health clear — no open flags.
                     </div>
                 </div>
 
