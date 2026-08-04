@@ -939,47 +939,23 @@ def do_attribution(conn, run_id: str, iso: str, level: int, apply_to_db: bool,
     swarm_count = int(os.environ.get("CGA_ETL_SWARM_FEATURES", "0") or 0) or 100_000
     is_monster = mean_v >= monster_mean
 
-    # SPLIT ON TOTAL WEIGHT, NOT ON SHAPE (2026-08-03, operator: "the splits
-    # of the giants in attribution aren't numerous enough — they just need to
-    # be chunked down more").
+    # REVERTED TO THE METHOD THAT WORKED (2026-08-03, operator order: "go
+    # back to the way that worked").
     #
-    # The classifier keyed on mean_vertices and unit_count SEPARATELY, so a
-    # pair heavy by neither measure alone but heavy by their PRODUCT fell
-    # through to "everything else" and ran whole, in one process, with the
-    # level's entire geometry resident. Every exit -9 in this run was that
-    # shape: NZL L3 (17,607 x 245 = 4.3M verts), AUS L3 (6,269 x 547 = 3.4M),
-    # NZL L2 (190,743 x 17 = 3.2M), AUS L2 (204,080 x 9 = 1.8M) — none of
-    # them a "swarm", none of them split, all of them OOM-killed. CAN L2
-    # (16.5M) was worse: classified MONSTER, which explicitly REFUSED to
-    # split and asked for the whole container instead.
+    # Splitting is decided by FEATURE COUNT alone, exactly as it was on the
+    # run whose attribution the operator called good. My weight-based split
+    # (1141d3f) and its min-units patch both made things worse: they pulled
+    # 76 then 54 pairs into slicing that had always run whole, which is where
+    # every OOM and every extra review item came from. Weight is not the
+    # signal — a band divides work only when there are MANY FEATURES to
+    # divide among bands, and unit_n is that measure directly.
     #
-    # Memory tracks total vertex weight, so that is what decides. A slice
-    # clips its geometry to its own band at parse time (_CLIP_BOUNDS in
-    # raster_attribution), so banding is exactly what makes a monster fit —
-    # the old "a monster can't be banded" rule predates that clipping.
-    weight = mean_v * unit_n
-    split_weight = int(os.environ.get("CGA_ETL_ATTR_SPLIT_WEIGHT", "0") or 0) or 1_000_000
+    # Result: only genuine swarms split (IND L6 at 649,771 units). Everything
+    # else — including every heavy coastal level — runs whole, funded, as it
+    # did on the good run.
+    is_swarm = (not is_monster) and unit_n >= swarm_count
 
-    # SPLITTING NEEDS MANY UNITS TO DIVIDE (2026-08-03, second correction —
-    # operator: "the run before this one didn't have this problem").
-    #
-    # Weight alone was wrong. A band loads the features whose bbox meets it,
-    # so slicing DIVIDES the work only when there are many features to divide.
-    # With ONE huge feature the bbox meets every band, so every slice parses
-    # the WHOLE geometry before clipping — slicing MULTIPLIES the parse by the
-    # slice count instead. That is exactly what the original vertex-monster
-    # rule prevented ("what a monster needs is FUNDING, not slicing"), and
-    # weight-based splitting overrode it.
-    #
-    # Convicted live: AUS L1 (1,662,375 verts x 1 unit), NZL L1 (2,989,722 x
-    # 1), NOR L1 (1,730,081 x 1) plus AUS L2 (9 units) and CAN L2 (13) --
-    # every one a few-unit level, together the entire review churn, and every
-    # one of them ran clean in the PREVIOUS run when they were not split.
-    min_units = int(os.environ.get("CGA_ETL_ATTR_SPLIT_MIN_UNITS", "0") or 0) or 200
-    is_swarm = (not is_monster) and unit_n >= min_units and (
-        unit_n >= swarm_count or weight >= split_weight)
-
-    # ── HEAVY (by count OR by weight) → window-split, many lanes ──
+    # ── FEATURE SWARM → window-split, many lanes ──
     if is_swarm:
         # Resume identity: existing ranges PINNED a window_px, so enumerate
         # at that same px — otherwise the coverage guard compares counts
@@ -1111,50 +1087,42 @@ def _attribution_window_split(conn, run_id: str, iso: str, level: int,
         log.info("%s L%d attribution: window ranges already enumerated — resuming",
                  iso, level)
     else:
-        # MANY FINE SLICES, not pool//2 fat ones (2026-08-03, ETL paradigm
-        # laws 1/2/5). pool//2 gave IND L6 five 499-window monoliths: only
-        # ~5 lanes could ever work it, and — because a contiguous window run
-        # is row-major — each slice spanned the country's full width, so its
-        # band still touched 68% of all 649,771 features (≈460 MB resident,
-        # which the memory-derived family cap then allowed only 1-3 of).
-        # Smaller window runs are geographically thinner bands, so they load
-        # far fewer polygons AND give every lane several chunks to steal —
-        # finer progress, shorter tail, cheaper resume. Slice count targets
-        # 4 chunks per lane minimum.
-        # SLICE COUNT IS BOUNDED BY BAND SIZE, NOT BY A CEILING ON k
-        # (2026-08-03). The operator read the slice count as excessive — 80
-        # per split pair on average, 750 at the worst — and capping k was
-        # the obvious response. It is the wrong one, and the live data says
-        # so: 109 slices are already dying at exit -9 while holding only
-        # ~64 windows each. A ceiling on k makes bands FATTER (48k windows
-        # over 80 slices = 600 windows apiece, ten times the residency), so
-        # it would convert an overhead complaint into a memory failure.
+        # SLICE SIZE IS A MEMORY QUESTION, NOT A LANE-COUNT QUESTION
+        # (2026-08-03, operator: "number of cores is irrelevant to the number
+        # of slices. It's about how big the raster is that needs to be split
+        # to avoid crashing. How many windows can fit per core is the real
+        # test. That number is the size of your slice.").
         #
-        # per_slice is therefore the real dial: it fixes the BAND, and k
-        # falls out of it. High slice counts are a symptom of a genuinely
-        # large pair, and the panel's parent/child nesting now makes them
-        # legible instead of a flat wall of strips.
-        # SLICE COUNT IS CAPPED AT pool*4 (2026-08-03, operator: "Russia
-        # worked and only had like 10 lanes with windows of thousands each;
-        # this seems to be making it take longer").
+        # Every previous rule keyed off the pool -- pool//2, pool*4, pool*2 --
+        # and every one was wrong in the same way: the pool says how many
+        # slices can run AT ONCE, which has nothing to do with how big a slice
+        # may safely BE. Slices are a claimable pile, so the count never
+        # forces concurrency; only the per-slice footprint can crash a worker.
         #
-        # The n_windows/64 rule came from IND L6, which used to be five
-        # 499-window monoliths only five lanes could touch. Fine slices fixed
-        # THAT and broke Russia: RUS L3's claim bbox spans eleven time zones,
-        # so 48,000 windows became 750 slices of 63 — and most of them are
-        # empty Siberia, where a slice spawns Python, imports numpy/rasterio/
-        # shapely, opens tifs, queries band metadata, and finds nothing.
-        # Measured: 2.0s floor per slice, 5.0s median, so a no-op slice is
-        # ~100% overhead and the median slice is ~40%.
+        # A slice's residency is its BAND'S GEOMETRY plus a fixed floor (the
+        # interpreter, numpy/rasterio/shapely, and one window buffer --
+        # measured ~90 MB at rest, ~11 MB for a 1024px window). So:
         #
-        # pool*4 keeps the original goal (four chunks per lane, enough to
-        # steal from and to keep every lane fed) while bounding the spawn
-        # count: RUS L3 goes 750 -> 40 slices of ~1,200 windows, IND L6 stays
-        # ~39, and a small pair still gets its handful. per_slice remains the
-        # band-size floor for anything under the cap.
-        per_slice = int(os.environ.get("CGA_ETL_ATTR_SLICE_WINDOWS", "0") or 0) or 64
-        k = range_count_override or min(pool * 4, max(2, -(-n_windows // per_slice)))
-        k = max(2, min(k, n_windows))
+        #     slices = ceil(whole-pair geometry / geometry a worker can hold)
+        #
+        # and the windows per slice fall out of that. A pair whose geometry
+        # already fits gets ONE slice (i.e. it may as well run whole); a pair
+        # ten times too big gets ten. The budget is the CHILD'S slice of the
+        # container, which worker.py already sized against live concurrency,
+        # so this scales from a Pi to a workstation with no dial.
+        try:
+            from memory_budget import etl_budget_bytes
+            budget = etl_budget_bytes()
+        except Exception:
+            budget = 512 * 1024 * 1024
+        floor_b   = int(os.environ.get("CGA_ETL_SLICE_FLOOR_BYTES", "0") or 0) or 100 * 1024 * 1024
+        per_vert  = int(os.environ.get("CGA_ETL_BYTES_PER_VERTEX", "0") or 0) or 32
+        usable    = max(32 * 1024 * 1024, budget - floor_b)
+        geom_b    = max(1, mean_v * unit_n * per_vert)
+        k = range_count_override or -(-geom_b // usable)
+        k = max(1, min(int(k), n_windows))
+        log.info("%s L%d slice sizing: geometry ~%.0f MB / usable ~%.0f MB "
+                 "-> %d slice(s)", iso, level, geom_b / 1048576, usable / 1048576, k)
         size = -(-n_windows // k)
         log.info("%s L%d attribution: WINDOW-SPLIT — %d windows → %d slices of %d "
                  "(window_px=%d pinned)", iso, level, n_windows, k, size, window_px)
