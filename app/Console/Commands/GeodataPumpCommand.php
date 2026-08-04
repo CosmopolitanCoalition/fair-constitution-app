@@ -247,12 +247,23 @@ class GeodataPumpCommand extends Command
                 continue;   // still working, or nothing to clear
             }
 
+            // SPLIT ONLY WHAT HAS PROVEN IT CANNOT RUN WHOLE (operator,
+            // 2026-08-04: "make sure that happens again, and minimally split
+            // the remainder"). 706 of 716 pairs ran whole and fast, and no
+            // size threshold catches the 8 real failures without needlessly
+            // splitting 22 healthy pairs -- the kill is the CONTAINER
+            // OOM-killer taking whoever is fattest at that instant, which is
+            // collateral, not fault. So do not predict; react. A pair carries
+            // retry_split only after it has actually died, and only then
+            // does it slice.
             $n = DB::table('geodata_items')->where('run_id', $run->id)
                 ->whereIn('kind', $kinds)->whereIn('status', ['review', 'failed'])
                 ->update([
                     'status' => 'pending', 'claim_token' => null, 'reason' => null,
                     'started_at' => null, 'finished_at' => null,
                     'position' => 0, 'updated_at' => now(),
+                    'metrics' => DB::raw(
+                        "COALESCE(metrics,'{}'::jsonb) || '{\"retry_split\":true}'::jsonb"),
                 ]);
             $stamps['_review_pass'][$stage] = now()->toIso8601String();
             $run->forceFill([

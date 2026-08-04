@@ -888,7 +888,7 @@ def do_raster_range(conn, item: dict, log: logging.Logger) -> dict:
 
 
 def do_attribution(conn, run_id: str, iso: str, level: int, apply_to_db: bool,
-                   log: logging.Logger) -> dict:
+                   log: logging.Logger, item_metrics: dict | None = None) -> dict:
     """Run the T.7 pair in its own subprocess (run_t7_pair.py — already the
     memory-isolated pair worker) and relay its JSON verdict. A 'far' verdict is
     NOT a failure (the scan flags data quality); only a hard error is review.
@@ -953,7 +953,17 @@ def do_attribution(conn, run_id: str, iso: str, level: int, apply_to_db: bool,
     # Result: only genuine swarms split (IND L6 at 649,771 units). Everything
     # else — including every heavy coastal level — runs whole, funded, as it
     # did on the good run.
-    is_swarm = (not is_monster) and unit_n >= swarm_count
+    # A pair that ALREADY DIED running whole splits on its retry — the only
+    # evidence-based split rule in the engine. Everything else runs whole,
+    # which is what made 706 of 716 pairs fast.
+    retry_split = False
+    try:
+        _m = item_metrics if isinstance(item_metrics, dict) else {}
+        retry_split = bool(_m.get("retry_split"))
+    except Exception:
+        retry_split = False
+
+    is_swarm = (not is_monster) and (unit_n >= swarm_count or retry_split)
 
     # ── FEATURE SWARM → window-split, many lanes ──
     if is_swarm:
@@ -998,6 +1008,7 @@ def do_attribution(conn, run_id: str, iso: str, level: int, apply_to_db: bool,
             window_px=int(enum_payload["window_px"]),
             pool=pool, log=log,
             raster_isos=enum_payload.get("rasters"),
+            mean_v=mean_v, unit_n=unit_n,
         )
         return {k: result.get(k) for k in
                 ("verdict", "n_polys", "post_sum", "l1_pop", "post_dev", "applied_rows")}
@@ -1060,10 +1071,15 @@ def _attribution_window_split(conn, run_id: str, iso: str, level: int,
                               apply_to_db: bool, n_windows: int,
                               window_px: int, pool: int,
                               log: logging.Logger,
-                              raster_isos: list | None = None) -> dict:
+                              raster_isos: list | None = None,
+                              mean_v: int = 0, unit_n: int = 0) -> dict:
     """Coordinator for a window-split pair: enumerate attribution_range
     slices (idempotent), participate alongside every free lane, barrier,
-    then merge partials set-based, verdict, apply once, clean up."""
+    then merge partials set-based, verdict, apply once, clean up.
+
+    mean_v/unit_n are the caller's already-fetched geometry census — the
+    slice sizer needs them and this function has no other access to them
+    (a splice that assumed otherwise cost IND L6 an entire run)."""
     import claims
     _, range_count_override = _range_dials()
     token = str(__import__("uuid").uuid4())
@@ -1440,9 +1456,13 @@ def main() -> int:
             elif kind == "raster_range":
                 metrics = do_raster_range(conn, item, log)
             elif kind == "attribution_pair":
+                _im = item.get("metrics") or {}
+                if isinstance(_im, str):
+                    _im = json.loads(_im)
                 metrics = do_attribution(conn, args.run, item["iso_code"],
                                          int(item["adm_level"]),
-                                         not item["dry_run"], log)
+                                         not item["dry_run"], log,
+                                         item_metrics=_im)
             elif kind == "attribution_range":
                 metrics = do_attribution_range(conn, args.run, item, log)
             elif kind == "finalize_global":
