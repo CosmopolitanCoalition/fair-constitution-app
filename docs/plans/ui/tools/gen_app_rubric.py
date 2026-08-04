@@ -54,7 +54,55 @@ QUESTIONS = [
   "detail":"The advocate-registration mockup wanted 'I attest to X law' checkboxes + a 'pending judiciary review' banner. F-IND-015 registers instantly (rejecting only on association + duplicate) — the bar is a competence REGISTER, not a merits gate on a client's Art. I right. A catalog + pending→approved lifecycle would be a RULE change + an advocates.status CHECK migration. Held honest-empty, flagged not smuggled.",
   "options":[{"k":"A","t":"Keep it a competence register — instant, no merits gate. [held honest-empty; desk rec]"},
              {"k":"B","t":"Add a qualification catalog + an approval lifecycle (rule change + schema)."}]},
+ # ── Setup + Jurisdiction-Viewer walkthrough, opened 2026-08-04. Raised during
+ #    the operator's live walk of the post-ingestion screens; lane "map"/"ui"
+ #    rather than a fleet number (this is direct desk work, no lane owns it). ──
+ {"id":"map-adopt-scope","q":"Map adoption — planetary only, or scoped per jurisdiction?","status":"open","lane":"map",
+  "detail":"Your two phrasings point different ways: 'this is the map that applies to this CHAIN of jurisdictions' reads scoped; 'we as a planet kinda need to agree' reads planetary. Decides whether adoption carries a jurisdiction_id and whether a child can adopt a geography its parent has not.",
+  "options":[{"k":"A","t":"Planetary only — one Earth-wide geography per adoption; every jurisdiction inherits it. Simplest, and matches 'we as a planet need to agree'. [desk rec for v1]"},
+             {"k":"B","t":"Scoped — any jurisdiction adopts for its own subtree; children inherit unless they adopt their own. Federation-shaped, much larger build."},
+             {"k":"C","t":"Planetary now, scoped-ready later — ship planetary but carry the scope column so B is additive, not a rewrite."}]},
+ {"id":"map-select-authority","q":"Who SELECTS which draft map becomes the next one?","status":"open","lane":"map",
+  "detail":"Given the ruled lifecycle (drafts → one selected → locked in → effective at a term boundary): anyone may DRAFT, but selection is the consequential act — it redraws every district for the coming term. Your census example sets the cadence by rule ('if we set a rule that we do a census every ten years'), which reads legislative, but you did not say who pulls the trigger on the map itself.",
+  "options":[{"k":"A","t":"Bicameral legislative act, like any other — both chambers agree on the next map. Matches 'we as a planet need to agree'. [desk rec]"},
+             {"k":"B","t":"Referendum / constituent supermajority — it changes everyone's district, so it goes to the people."},
+             {"k":"C","t":"Operator/admin act — geography stays infrastructure even after setup."},
+             {"k":"D","t":"Whoever the standing census RULE names — selection is automatic from the rule (census year → derived map → next term), with a legislative act only to override."}]},
+ {"id":"merge-bulk","q":"11,919 same-space chains, no bulk apply — how do we work that queue?","status":"open","lane":"map",
+  "detail":"Every repair endpoint is one-chain-per-POST, and the repair window shuts on acceptance. Working 11,919 by hand is not a thing. They are real-world (a source recording one village at two ADM levels), concentrated in CZE/SVK/IND/JAM/AUT — not damage.",
+  "options":[{"k":"A","t":"Build a filtered bulk apply — 'merge all chains in ISO X' / 'at level N' / 'all', chunked + resumable per the ETL rule. [desk rec]"},
+             {"k":"B","t":"Collapse them at INGEST — a single-child same-space pair merges on import, so the queue never fills with them."},
+             {"k":"C","t":"Leave manual and accept with them open — they are real geography, and the flag is informational."}]},
+ {"id":"adm-empty-walk","q":"The empty-ADM-level walk — fix it before the next fresh run?","status":"open","lane":"map",
+  "detail":"Pass 2 walks levels 0-5 for every country unconditionally, and discover_geoboundaries_files() re-lists the whole 715-entry tree on EVERY call with no memoisation — measured 11.07 s a call. 678 nonexistent levels planet-wide ≈ 2 h of aggregate lane time, ~25 min of wall clock per run. The metadata that says which levels exist is ALREADY loaded in the same function (used for the split decision) and simply is not consulted.",
+  "options":[{"k":"A","t":"Fix both now — skip levels the metadata says are absent, and memoise the directory walk. Small, self-contained, ~25 min/run back. [desk rec]"},
+             {"k":"B","t":"Memoise the walk only — the cheap half, keeps the level loop untouched."},
+             {"k":"C","t":"Leave it — the run completes correctly, it is only slow."}]},
+ {"id":"list-stats-columns","q":"Jurisdiction list — which statistics become sortable columns, over what scope?","status":"open","lane":"ui",
+  "detail":"You asked for the statistics on columns, sortable, 'for their internal chain'. /api/geodata/flags has NO jurisdiction scoping at all — no subtree filter, no per-row rollup — so this needs a new endpoint before any column can exist. Scope decides how expensive that endpoint is.",
+  "options":[{"k":"A","t":"Subtree rollup per row — the 7 map-health checks + populated/total + population, counted over each row's descendants. Most useful, needs a recursive-CTE endpoint. [desk rec]"},
+             {"k":"B","t":"Own-row + direct children only — much cheaper, no recursion, less informative at Earth level."},
+             {"k":"C","t":"Defer until the jurisdiction map viewer conversation you flagged as coming next."}]},
+ {"id":"setup-shell-menus","q":"Setup inside the main shell — which menus unlock when?","status":"open","lane":"ui",
+  "detail":"You asked for the nav bar and menu present during setup (you are authenticated anyway), with irrelevant menus locked. Needs a rule for what 'relevant' means at each step.",
+  "options":[{"k":"A","t":"Lock everything except Setup, Jurisdictions and Learn until setup completes — the two surfaces setup actually uses, plus help. [desk rec]"},
+             {"k":"B","t":"Unlock progressively — each completed setup step unlocks the menus it enables (elections after districting, etc.)."},
+             {"k":"C","t":"Unlock everything and let empty states speak for themselves; setup is just another surface."}]},
+ {"id":"guest-banner","q":"'You're viewing as a guest' — where does it go?","status":"open","lane":"ui",
+  "detail":"Today a full-width banner eating the fold above the map. You said it is 'kinda like a pop-up thing, and I guess that can be in the map area somewhere'.",
+  "options":[{"k":"A","t":"Dismissible chip overlaid in a map corner — present, not blocking. [desk rec]"},
+             {"k":"B","t":"Collapse into the header bar as a small badge beside Log in / Register."},
+             {"k":"C","t":"Keep it a banner but show once per session, then remember the dismissal."}]},
+ {"id":"about-surface","q":"'About this surface' on the viewer — move to Learn, or delete?","status":"open","lane":"ui",
+  "detail":"You said it 'doesn't need to exist' on the viewer and belongs in the Learn tab. Confirming whether the CONTENT survives, because deleting is not the same as relocating.",
+  "options":[{"k":"A","t":"Move the content into the Learn tab, remove the block from the viewer. [desk rec]"},
+             {"k":"B","t":"Delete outright — the surface explains itself."},
+             {"k":"C","t":"Keep on the viewer but collapsed by default."}]},
  # --- resolved (read-only, recorded) ---
+ {"id":"map-adopt-lifecycle","q":"Map re-adoption after setup — is the certification lock overturned?","status":"resolved","lane":"map",
+  "detail":"RULED 2026-08-04: NOT OVERTURNED — EXTENDED. A certified map is never reopened; the desk had this backwards and proposed an overturn. Instead: after setup, maps made in-game are DRAFTS, and one draft is SELECTED as the next map. Selection LOCKS IT IN but does NOT take effect in the moment — the new geographic reality arrives when the next TERM starts. Operator's worked example (rules, not code): a rule sets a census every 10 years on the zero year → census 2030; terms run on 0 and 5 at 5-year length → the maps derived from that census take effect 2035. ⚑ TIMING WRINKLE, parked by the operator ('we'll have to explore when we get there'): districts must be remapped, and elections open INSTANTLY at the end of a term for the next term — so a new map can only land in the next election that has NOT yet opened, which is the term AFTER the next one. Consequence for the four sub-questions the desk raised: institutions already elected are never disturbed, because adoption only ever lands on a term boundary."},
+ {"id":"map-fork","q":"Can a certified map be used as the basis for a new one?","status":"resolved","lane":"map",
+  "detail":"RULED 2026-08-04: a certified map cannot be REOPENED, but a NEW map may be created BASED OFF an old map — fork/clone-from-existing as a first-class action. Operator: 'That would be a really cool and convenient mechanism. I would add that to every mapper.' Applies to EVERY mapper — jurisdiction mapper and district mapper alike. This is the mechanism that makes the draft lifecycle usable: you start the next map from the certified one rather than from nothing."},
  {"id":"typeb-shape","q":"Type B race shape — pooled vs per-child/per-clump?","status":"resolved","lane":"1",
   "detail":"RULED per-child/per-clump (each child, or clump, is its own at-large race). CLAUDE.md corrected @55b8846. Build = Wave 4 (lanes 1+3)."},
  {"id":"video","q":"Video library / multi-track player — build from scratch?","status":"resolved","lane":"5",
@@ -91,7 +139,7 @@ for _q in QUESTIONS:
 # Screens / caps / debt all come from the enriched, badged corpus in this dir (repo-stable).
 _enr = json.load(open(os.path.join(_HERE, 'badged.json'), encoding='utf-8'))
 screens = _enr['screens']; caps = _enr['caps']; debt = _enr['debt']
-DATA = {'asOf': '2026-07-30', 'head': 'fe010e2', 'forms': 120,
+DATA = {'asOf': '2026-08-04', 'head': 'aca8a83', 'forms': 120,
         'screens': screens, 'caps': caps, 'debt': debt, 'fleet': FLEET, 'questions': QUESTIONS}
 
 TEMPLATE = r"""<title>App Progress Rubric — CGA</title>
@@ -276,9 +324,9 @@ function render(){const b=document.getElementById('body');
     const vis=D.questions.filter(r=>(filter==='all'||r.status===filter)&&(!q||(r.q+' '+r.detail).toLowerCase().includes(q)));
     let html='<div class="qbar"><button class="chip" id="qexport">⭳ Export answers</button><span class="qhint">Pick an option and add notes on each open question — your answers save in the page. When done, click Export (copies to clipboard) or screenshot; either lets the desk read them and update the fleet orders.</span></div><pre id="qexport-out" class="qexport hidden"></pre>';
     vis.forEach(r=>{
-      if(r.status==='resolved'){html+=`<div class="qcard resolved"><div class="qhead"><span class="lwbadge">L${esc(r.lane)}</span><span class="qtext">${hi(r.q)}</span><span class="pill p-resolved">resolved</span></div><div class="qdetail">${hi(r.detail)}</div></div>`;}
+      if(r.status==='resolved'){html+=`<div class="qcard resolved"><div class="qhead"><span class="lwbadge">${/^\d+$/.test(String(r.lane))?'L':''}${esc(r.lane)}</span><span class="qtext">${hi(r.q)}</span><span class="pill p-resolved">resolved</span></div><div class="qdetail">${hi(r.detail)}</div></div>`;}
       else{const a=ANS[r.id]||{};const sel=a.sel||'';const nt=a.notes||'';
-        html+=`<div class="qcard open"><div class="qhead"><span class="lwbadge">L${esc(r.lane)}</span><span class="qtext">${hi(r.q)}</span><span class="pill p-open">open</span></div><div class="qdetail">${hi(r.detail)}</div><div class="qopts">`+r.options.map(o=>`<label class="qopt${sel===o.k?' on':''}"><input type="radio" name="q_${r.id}" value="${o.k}"${sel===o.k?' checked':''}><span class="qk">${o.k}</span><span>${esc(o.t)}</span></label>`).join('')+`</div><textarea class="qnotes" data-id="${r.id}" placeholder="Notes / your own answer…">${esc(nt)}</textarea></div>`;}
+        html+=`<div class="qcard open"><div class="qhead"><span class="lwbadge">${/^\d+$/.test(String(r.lane))?'L':''}${esc(r.lane)}</span><span class="qtext">${hi(r.q)}</span><span class="pill p-open">open</span></div><div class="qdetail">${hi(r.detail)}</div><div class="qopts">`+r.options.map(o=>`<label class="qopt${sel===o.k?' on':''}"><input type="radio" name="q_${r.id}" value="${o.k}"${sel===o.k?' checked':''}><span class="qk">${o.k}</span><span>${esc(o.t)}</span></label>`).join('')+`</div><textarea class="qnotes" data-id="${r.id}" placeholder="Notes / your own answer…">${esc(nt)}</textarea></div>`;}
     });
     b.innerHTML=html;
     b.querySelectorAll('input[type=radio]').forEach(inp=>inp.addEventListener('change',e=>{const id=e.target.name.slice(2);saveAns(id,'sel',e.target.value);e.target.closest('.qopts').querySelectorAll('.qopt').forEach(l=>l.classList.toggle('on',l.querySelector('input').checked));}));
@@ -300,9 +348,11 @@ buildFilters();render();
 </script>
 """
 
-stamp = "As of %s · main @ <code>%s</code> · Wave 5 BUILD COMPLETE: 107/107 screens · 55/55 alpha caps · authoritative re-gate pending" % (DATA['asOf'], DATA['head'])
+stamp = "As of %s · main @ <code>%s</code> · Planet ingested clean (1,434/1,434 items, 0 orphans) · Setup + Jurisdiction-Viewer walkthrough OPEN" % (DATA['asOf'], DATA['head'])
 html = TEMPLATE.replace('%%DATA%%', json.dumps(DATA, separators=(',', ':'))).replace('%%STAMP%%', stamp)
-out = r'E:\fair-constitution-app\docs\plans\ui\tools\app_progress_rubric.html'
+# Output next to the script, not a hard-coded box path — the generator now
+# runs on whichever checkout you are in (this regen ran on the GAME box).
+out = os.path.join(_HERE, 'app_progress_rubric.html')
 with io.open(out, 'w', encoding='utf-8') as f:
     f.write(html)
 print('wrote', out, len(html), 'bytes ·', len(screens), 'screens', len(caps), 'caps', len(debt), 'debt', len(FLEET['lanes']), 'lanes', len(QUESTIONS), 'questions')
