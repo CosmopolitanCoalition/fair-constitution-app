@@ -290,6 +290,53 @@ def _attempt_claim(conn, run_id: str, kind: str, lane: str, token: str) -> dict 
             used_mb = (int(r["n"]) * ATTR_FIXED_MB
                        + int(ATTR_MB_PER_MVER * (int(r["w"]) / 1_000_000.0)))
             free_mb = budget_mb - headroom - used_mb
+
+            # ACTUAL-VS-BUDGET FILL (operator ruling 2026-08-05: "monitor the
+            # actual against the budget to fill the lanes"). The charged model
+            # sums PREDICTED PEAKS, but incumbents past their heavy windows
+            # hold far less than their charge (measured live: 4 lights charged
+            # 371 each while holding ~210) — real slack the charge can't see.
+            # The CANDIDATE is still charged its full predicted peak, and the
+            # actual path keeps a LARGER reserve (incumbents below peak can
+            # still climb), so the OOM bet is bounded on both sides. Reader
+            # failure → None → charged model only, never a guess.
+            try:
+                from memory_budget import container_usage_bytes
+                actual_b = container_usage_bytes()
+            except Exception:
+                actual_b = None
+            if actual_b is not None:
+                actual_headroom = int(os.environ.get(
+                    "CGA_ETL_ATTR_ACTUAL_HEADROOM_MB", "0") or 0) or 512
+                free_actual = budget_mb - actual_headroom - (actual_b // (1024 * 1024))
+                free_mb = max(free_mb, free_actual)
+
+            # HEAVY RESERVATION (same ruling: "if it's a big one you wait for
+            # that number of lanes to clear to give it space, then send it").
+            # Without this, opportunistic lights re-fill every freed MB and
+            # the heaviest pending pair starves at the head of the big-first
+            # queue. While the top pending pair cannot fit the CURRENT free
+            # space — but could fit an emptier field — freed space is RESERVED
+            # for it: nothing else admits, the field drains, the heavy seats.
+            # A pair too big for even an EMPTY field is excluded (that is the
+            # decompose path's problem, not a reason to drain forever).
+            cur.execute(
+                """
+                SELECT COALESCE(MAX(est_cost), 0) AS top_w
+                  FROM geodata_items
+                 WHERE run_id = %s AND status = 'pending'
+                   AND kind = 'attribution_pair'
+                """,
+                (run_id,),
+            )
+            top_w = int(cur.fetchone()["top_w"])
+            top_peak = ATTR_FIXED_MB + int(ATTR_MB_PER_MVER * (top_w / 1_000_000.0))
+            if top_peak > free_mb and top_peak <= (budget_mb - headroom):
+                # Reservation active: admit NOTHING — every completion frees
+                # space that belongs to the waiting heavy. Once free_mb grows
+                # past its peak this branch stops matching and the normal
+                # max_w admission below seats it (big-first lane takes it).
+                return None
             if free_mb < ATTR_FIXED_MB:
                 return None                      # not even a minimal item fits
             # Largest vertex weight that still fits the remaining headroom.

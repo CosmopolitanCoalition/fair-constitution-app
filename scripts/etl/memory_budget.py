@@ -103,6 +103,25 @@ def detect_memory_budget_bytes() -> int:
     return 1024 ** 3   # 1 GB
 
 
+def container_usage_bytes() -> int | None:
+    """CURRENT memory usage of this container's cgroup, or None if unreadable.
+
+    The actual-vs-budget admission (operator ruling 2026-08-05: "monitor the
+    actual against the budget to fill the lanes") needs the live number, not
+    just the limit. v2 then v1; None on any failure so callers fall back to
+    the charged-peak model rather than guessing."""
+    for path in ("/sys/fs/cgroup/memory.current",
+                 "/sys/fs/cgroup/memory/memory.usage_in_bytes"):
+        try:
+            with open(path) as f:
+                v = int(f.read().strip())
+            if v > 0:
+                return v
+        except (FileNotFoundError, OSError, ValueError):
+            continue
+    return None
+
+
 def etl_budget_bytes() -> int:
     """The budget the PULL ENGINE sizes its worker pool + per-kind concurrency
     caps against (operator ruling 2026-08-02: derive from the host, never
