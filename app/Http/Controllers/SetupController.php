@@ -1288,6 +1288,24 @@ class SetupController extends Controller
         if (! is_dir($controlDir) && ! @mkdir($controlDir, 0777, true)) {
             return response()->json(['error' => 'Could not create ETL control directory.'], 500);
         }
+        // FRESH TAKES OVER, FROM ANY STATE (operator, 2026-08-05, verbatim:
+        // "IF A RUN IS FUCKED UP THEN WE NEED TO USE THE BUTTON" — the Fresh
+        // button IS the escape hatch, so it can never be blocked by the very
+        // run it exists to escape). No refusals: any unfinished run is
+        // abandoned on the spot and its stale control file cleared. Straggler
+        // workers self-terminate: the purge below truncates geodata_items
+        // FIRST, so every held claim vanishes and the next ~20s heartbeat
+        // returns not-ours, killing the child. A straggler's last inserts
+        // race the new planet only with IDENTICAL source rows (ON CONFLICT
+        // slug no-ops) — accepted, and the scan would flag anything odd.
+        if ((bool) ($data['fresh'] ?? false)) {
+            $stale = \App\Models\GeodataRun::unfinished();
+            if ($stale !== null) {
+                $stale->forceFill(['status' => 'abandoned', 'updated_at' => now()])->save();
+                @unlink($controlDir.'/running.json');
+            }
+        }
+
         if (is_file($controlDir.'/running.json')) {
             return response()->json(['error' => 'An ETL run is already in progress.'], 409);
         }
@@ -1329,15 +1347,15 @@ class SetupController extends Controller
                     'error' => 'Fresh run refused: the map is accepted and load-bearing. Rewind phases instead, or rebuild the box.',
                 ], 409);
             }
-            $hasRows = DB::table('jurisdictions')->limit(1)->exists();
-            if ($hasRows) {
-                foreach (['geodata_flags', 'geodata_items', 'geodata_worker_leases',
-                          'geodata_runs', 'worldpop_rasters', 'geoboundary_metadata'] as $t) {
-                    DB::statement("TRUNCATE TABLE {$t} CASCADE");
-                }
-                DB::statement('TRUNCATE TABLE jurisdictions CASCADE');
-                Log::info('geodata pull-start: FRESH purge complete — planet rebuilt from source');
+            // Items + leases FIRST: every held claim vanishes, so straggler
+            // workers from a superseded run fail their next heartbeat and
+            // kill their children. Unconditional — a virgin box no-ops.
+            foreach (['geodata_items', 'geodata_worker_leases', 'geodata_flags',
+                      'geodata_runs', 'worldpop_rasters', 'geoboundary_metadata'] as $t) {
+                DB::statement("TRUNCATE TABLE {$t} CASCADE");
             }
+            DB::statement('TRUNCATE TABLE jurisdictions CASCADE');
+            Log::info('geodata pull-start: FRESH purge complete — planet rebuilds from source');
         }
 
         $options = [
