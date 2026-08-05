@@ -25,6 +25,19 @@ class User extends Authenticatable
     use HasFactory, HasUuids, Notifiable, SoftDeletes;
 
     /**
+     * Email is CASE-INSENSITIVE by normalization (operator, 2026-08-05): every
+     * write stores lowercase, so lookups/uniqueness never depend on how a
+     * person happened to type their address. Login additionally resolves
+     * legacy any-cased rows via a lower() lookup.
+     */
+    protected function email(): \Illuminate\Database\Eloquent\Casts\Attribute
+    {
+        return \Illuminate\Database\Eloquent\Casts\Attribute::make(
+            set: fn ($value) => mb_strtolower(trim((string) $value)),
+        );
+    }
+
+    /**
      * The attributes that are mass assignable.
      *
      * @var list<string>

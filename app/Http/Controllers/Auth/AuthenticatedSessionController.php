@@ -42,6 +42,19 @@ class AuthenticatedSessionController extends Controller
             'password' => ['required', 'string'],
         ]);
 
+        // CASE-INSENSITIVE EMAIL (operator, 2026-08-05 — a differently-cased
+        // email reads as "no such user" and locks people out). New writes are
+        // normalized lowercase by the User model; legacy rows may carry any
+        // casing, so the login resolves the STORED spelling case-insensitively
+        // and authenticates against that. No user found → fall through to the
+        // normal failed attempt (identical timing/behaviour, no enumeration).
+        $stored = \App\Models\User::query()
+            ->whereRaw('lower(email) = ?', [mb_strtolower(trim($credentials['email']))])
+            ->value('email');
+        if ($stored !== null) {
+            $credentials['email'] = $stored;
+        }
+
         $throttleKey = $this->throttleKey($request);
 
         if (RateLimiter::tooManyAttempts($throttleKey, self::MAX_ATTEMPTS)) {
