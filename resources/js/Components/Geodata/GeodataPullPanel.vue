@@ -383,7 +383,7 @@ onBeforeUnmount(() => {
     <section v-if="run" class="bg-gray-900 border border-gray-800 rounded-lg p-6 mb-6">
         <div class="flex items-center justify-between mb-4">
             <div class="flex items-center gap-3">
-                <h2 class="text-white font-semibold">GeoData Ingestion</h2>
+                <h2 class="text-white font-semibold">2. GeoData Ingestion</h2>
                 <span
                     class="text-xs px-2 py-0.5 rounded-full font-medium"
                     :class="{

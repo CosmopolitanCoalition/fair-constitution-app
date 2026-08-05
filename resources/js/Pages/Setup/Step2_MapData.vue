@@ -1072,14 +1072,13 @@ onBeforeUnmount(() => {
                  START moved up into block 1 (operator, 2026-08-04) — it belongs
                  with the source you configure, not with the progress it
                  produces. This block is now purely the live run. -->
-            <section class="bg-gray-900 border border-gray-800 rounded-lg p-6 mb-6">
-                <h2 class="text-white font-semibold">2. Ingestion</h2>
-
-                <!-- Pull-engine dashboard (renders only when a pull run exists) -->
-                <GeodataPullPanel ref="pullPanel" class="mt-5"
-                                  @run-state="pullRun = $event"
-                                  @scan-state="scanState = $event" />
-            </section>
+            <!-- The pull-engine dashboard IS the ingestion card — its own
+                 bordered panel, titled "2. GeoData Ingestion". No redundant
+                 outer "2. Ingestion" box around it (operator, 2026-08-05).
+                 Renders only when a pull run exists. -->
+            <GeodataPullPanel ref="pullPanel"
+                              @run-state="pullRun = $event"
+                              @scan-state="scanState = $event" />
 
             <!-- Legacy Live Progress panel retired (operator, 2026-08-03):
                  the pull dashboard above is the one truth for ingestion.
