@@ -430,6 +430,10 @@ async function submitRun() {
                     source:    source.value,
                     data_root: source.value === 'folder' ? customDataRoot.value.trim() : null,
                     countries: parsedCountries.value,
+                    // The dropdown's Fresh run means FRESH: purge the geodata
+                    // domain first so the planet rebuilds from source
+                    // (operator-caught 2026-08-05 — it was a warm re-pass).
+                    fresh:     true,
                 }),
             })
             const data = await res.json().catch(() => ({}))

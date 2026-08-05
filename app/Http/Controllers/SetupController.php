@@ -1275,6 +1275,13 @@ class SetupController extends Controller
             'adm_levels'   => ['nullable', 'array'],
             'adm_levels.*' => ['integer', 'min:0', 'max:5'],
             'dry_run'      => ['nullable', 'boolean'],
+            // FRESH means FRESH (operator-caught 2026-08-05: the dropdown's
+            // "Fresh run" started a new run OVER the existing planet — an
+            // idempotent warm re-pass wearing a fresh label). fresh=true
+            // purges the geodata domain first so the run reproduces the
+            // planet FROM SOURCE: no inherited rows, no surviving half-state,
+            // a benchmark that means something.
+            'fresh'        => ['nullable', 'boolean'],
         ]);
 
         $controlDir = $this->etlControlDir();
@@ -1304,6 +1311,32 @@ class SetupController extends Controller
                 return response()->json([
                     'error' => 'Custom data root must be an absolute container path (e.g. /archive/snapshots/2026-05).',
                 ], 422);
+            }
+        }
+
+        // THE FRESH PURGE. Only during setup: after map acceptance the planet
+        // is load-bearing for governance rows and a wipe is FreshImage's job,
+        // not a button's. TRUNCATE is the right tool here — an O(1) metadata
+        // operation, not a planet-wide row statement — and CASCADE is safe
+        // precisely because the gate guarantees the downstream civic tables
+        // are empty at this stage. Reference rows that ride the schema dump
+        // (cosmic_addresses, instance_settings, audit genesis) are untouched.
+        if ((bool) ($data['fresh'] ?? false)) {
+            $accepted = \App\Models\InstanceSettings::query()
+                ->whereNull('deleted_at')->value('map_accepted_at');
+            if ($accepted !== null) {
+                return response()->json([
+                    'error' => 'Fresh run refused: the map is accepted and load-bearing. Rewind phases instead, or rebuild the box.',
+                ], 409);
+            }
+            $hasRows = DB::table('jurisdictions')->limit(1)->exists();
+            if ($hasRows) {
+                foreach (['geodata_flags', 'geodata_items', 'geodata_worker_leases',
+                          'geodata_runs', 'worldpop_rasters', 'geoboundary_metadata'] as $t) {
+                    DB::statement("TRUNCATE TABLE {$t} CASCADE");
+                }
+                DB::statement('TRUNCATE TABLE jurisdictions CASCADE');
+                Log::info('geodata pull-start: FRESH purge complete — planet rebuilt from source');
             }
         }
 
