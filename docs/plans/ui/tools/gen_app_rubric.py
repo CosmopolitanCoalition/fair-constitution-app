@@ -98,6 +98,29 @@ QUESTIONS = [
   "options":[{"k":"A","t":"Move the content into the Learn tab, remove the block from the viewer. [desk rec]"},
              {"k":"B","t":"Delete outright — the surface explains itself."},
              {"k":"C","t":"Keep on the viewer but collapsed by default."}]},
+ # ── District-mapping INTEGRATION package (the four scaling docs, stored
+ #    ea1ed8e). Reviewer-flagged operator questions; lane "scale". These gate the
+ #    Fable-5 integration build that follows the geodata run. ──
+ {"id":"scale-committees","q":"Committee provisioning — eager (built up front) or tier-gated (created at chamber act)?","status":"open","lane":"scale",
+  "detail":"Setup audit §3: committees are NOT in the eager provisioning STEPS; Committee::create runs only in CommitteeService at chamber-act time. That is consistent with the tier dial (\'what exists in a place is a function of how far it has come\'), but your stated expectation was \'should be built out already\'. The reviewer asks you to reconcile the two explicitly so it is not a surprise during setup review. Your answer seeds a disposition table naming every sub-institution family\'s class.",
+  "options":[{"k":"A","t":"Tier-gated — a committee is a chamber\'s ACT, created when the chamber acts (matches current code + the tier-dial doctrine). [reviewer\'s read of the code]"},
+             {"k":"B","t":"Eager — provision committees up front in STEPS alongside executives/judiciaries, so an accepted planet already has them."},
+             {"k":"C","t":"Per-family disposition table — committees tier-gated, other sub-institutions (departments, oversight organs, Matrix rooms) each get their own class; specify in notes."}]},
+ {"id":"scale-record-disposition","q":"On disintermediation, how do a dissolving intermediary\'s NON-ACT records move to its constituents?","status":"open","lane":"scale",
+  "detail":"Courts addendum §5 — the one place the package explicitly requests your review BEFORE build. Acts already clone-merge to each constituent as an independent copy with full history (built, F-LEG-030). The sketch extends that to the sealed records of ALL branches: chamber votes & proceedings, executive records & offices, judicial records. Each family needs a disposition — COPY-PER-CONSTITUENT (like Acts), SEAL-ONLY (immutable snapshot on the dissolved row, constituents start fresh), or TRANSFER. (Open cases and sitting judges are the two questions below.) The reviewer also asks that whatever table this produces read correctly IN REVERSE for `union`, or the asymmetry be justified.",
+  "options":[{"k":"A","t":"Mirror Acts — copy-per-constituent WITH history for every record family; the two hard cases handled separately. Symmetric with union by construction. [desk rec — least surprise, matches the built Act path]"},
+             {"k":"B","t":"Seal-only — snapshot the intermediary\'s records immutably; constituents inherit a citation, not the content. Cleanest, loses continuity."},
+             {"k":"C","t":"Per-family — you specify copy / seal / transfer for chamber, executive, and judicial each, in notes."}]},
+ {"id":"scale-case-venue","q":"Open court cases when an intermediary dissolves — where does venue go?","status":"open","lane":"scale",
+  "detail":"Courts addendum §5 hard case. A case in progress at the dissolving intermediary\'s court needs a new venue among the now-independent constituents. Where court panels exist (§3.2), the panel a case belongs to is a natural target; without panels the choice is open.",
+  "options":[{"k":"A","t":"To the panel where panels exist, else to the encompassing (grandparent) court the constituents re-parent to. [desk rec — uses the structure §3.2 already builds]"},
+             {"k":"B","t":"To the specific constituent court the case\'s parties/territory map to (case-by-case re-venue)."},
+             {"k":"C","t":"Seal and require refiling — the case closes without prejudice at dissolution; parties refile in the successor court."}]},
+ {"id":"scale-judge-tenure","q":"Sitting judges when their court\'s jurisdiction dissolves — serve out, or close?","status":"open","lane":"scale",
+  "detail":"Courts addendum §5 hard case; the doc notes \'Art. IV needs to say so.\' The B7 serve-out doctrine (a fresh grouping while sitting members serve out) suggests seats close at TERM rather than at dissolution, but the constitution has not stated it for judges specifically.",
+  "options":[{"k":"A","t":"Serve out the 10-year term — seats close at term end (mirrors the B7 serve-out doctrine); the judge migrates with the case load to the successor venue. [desk rec — consistent with existing serve-out]"},
+             {"k":"B","t":"Close at dissolution — the court ceases with its jurisdiction; appointments end and the successor court re-nominates."},
+             {"k":"C","t":"Migrate to the successor court for the remainder of the term, re-confirmed by the successor\'s nomination process."}]},
  # --- resolved (read-only, recorded) ---
  {"id":"map-adopt-lifecycle","q":"Map re-adoption after setup — is the certification lock overturned?","status":"resolved","lane":"map",
   "detail":"RULED 2026-08-04: NOT OVERTURNED — EXTENDED. A certified map is never reopened; the desk had this backwards and proposed an overturn. Instead: after setup, maps made in-game are DRAFTS, and one draft is SELECTED as the next map. Selection LOCKS IT IN but does NOT take effect in the moment — the new geographic reality arrives when the next TERM starts. Operator's worked example (rules, not code): a rule sets a census every 10 years on the zero year → census 2030; terms run on 0 and 5 at 5-year length → the maps derived from that census take effect 2035. ⚑ TIMING WRINKLE, parked by the operator ('we'll have to explore when we get there'): districts must be remapped, and elections open INSTANTLY at the end of a term for the next term — so a new map can only land in the next election that has NOT yet opened, which is the term AFTER the next one. Consequence for the four sub-questions the desk raised: institutions already elected are never disturbed, because adoption only ever lands on a term boundary."},
@@ -148,7 +171,7 @@ for _q in QUESTIONS:
 # Screens / caps / debt all come from the enriched, badged corpus in this dir (repo-stable).
 _enr = json.load(open(os.path.join(_HERE, 'badged.json'), encoding='utf-8'))
 screens = _enr['screens']; caps = _enr['caps']; debt = _enr['debt']
-DATA = {'asOf': '2026-08-04', 'head': 'aca8a83', 'forms': 120,
+DATA = {'asOf': '2026-08-04', 'head': 'ea1ed8e', 'forms': 120,
         'screens': screens, 'caps': caps, 'debt': debt, 'fleet': FLEET, 'questions': QUESTIONS}
 
 TEMPLATE = r"""<title>App Progress Rubric — CGA</title>
@@ -357,7 +380,7 @@ buildFilters();render();
 </script>
 """
 
-stamp = "As of %s · main @ <code>%s</code> · Planet ingested clean (1,434/1,434 items, 0 orphans) · Setup + Jurisdiction-Viewer walkthrough OPEN" % (DATA['asOf'], DATA['head'])
+stamp = "As of %s · main @ <code>%s</code> · Geodata clean (0 orphans) · UI walkthrough resolved · District-mapping INTEGRATION questions OPEN (4, lane scale) — gate the Fable-5 build" % (DATA['asOf'], DATA['head'])
 html = TEMPLATE.replace('%%DATA%%', json.dumps(DATA, separators=(',', ':'))).replace('%%STAMP%%', stamp)
 # Output next to the script, not a hard-coded box path — the generator now
 # runs on whichever checkout you are in (this regen ran on the GAME box).

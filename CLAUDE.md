@@ -261,6 +261,45 @@ Five laws for **all** bulk pipelines:
 
 ---
 
+## THE OPEN-QUESTION RUBRIC (standing communication channel — operator ruling 2026-08-04)
+
+**How the operator wants decisions surfaced to him. Reference it the way you
+reference the ETL Paradigm — always, and BEFORE you park a decision in prose.**
+This is the operator's chosen interface for direction; future models must learn
+to communicate with him through it.
+
+When work surfaces a choice that is the operator's to make — a constitutional
+option, a build-order call, a "build now vs defer", a design fork — it does NOT
+go in a chat paragraph, a scattered TODO, or a plan doc's prose where it will be
+lost or re-litigated. It goes in the **fleet-management open-question rubric**:
+
+- **Source of truth:** `docs/plans/ui/tools/gen_app_rubric.py`, the `QUESTIONS`
+  list. Each entry is
+  `{"id", "q", "status":"open", "lane", "detail", "options":[{"k","t"}, …]}`.
+  Give 2–4 real options, a `detail` that states what is actually at stake, and
+  mark `[desk rec]` on an option when you have a defensible recommendation.
+- **Regenerate:** `python3 docs/plans/ui/tools/gen_app_rubric.py` writes
+  `app_progress_rubric.html` beside it (path is self-relative — runs on any box).
+  The operator opens the **Open Questions** tab, picks an option, adds notes,
+  and clicks **Copy** / **Export answers**, then pastes the block back into chat.
+- **Record the answer; never re-ask.** Fold his reply into the `_ANS` dict — it
+  flips the question to `resolved` with the ruling AND his verbatim note
+  preserved — then regenerate. A resolved question is read-only history. Settled
+  rulings are **never re-asked**, the same standing order the constitutional
+  rulings carry.
+- **Lane tag:** a fleet number for lane-owned work, or a short word (`map`,
+  `ui`, `scale`) for desk-owned work no lane owns. The badge renders non-numeric
+  lanes as-is.
+
+Why this and not prose: it hands the operator options instead of an open-ended
+prompt, a notes box for nuance, a copy-paste round-trip that costs him seconds,
+and a durable record so no future model re-asks what he already settled. The
+diagram-first rule is its companion — he reads the chart, skips the paragraph.
+**When you have a question for the operator, the rubric is the answer to "where
+does it go."**
+
+---
+
 ## Architecture Principles
 
 ### Two-Layer Constitutional Hardening
