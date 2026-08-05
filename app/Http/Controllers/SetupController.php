@@ -1347,6 +1347,18 @@ class SetupController extends Controller
                     'error' => 'Fresh run refused: the map is accepted and load-bearing. Rewind phases instead, or rebuild the box.',
                 ], 409);
             }
+            // CLEAR THE FIELD FIRST (2026-08-05, the 500: a straggler's raster
+            // read held a lock, the TRUNCATE queued behind it, the gateway
+            // timed the request out and the cancel left a half-purged state).
+            // The hatch never waits on the run it is escaping: terminate every
+            // other active backend, then truncate into a quiet database. The
+            // panel's poll queries just retry on their next tick.
+            DB::select(
+                "SELECT pg_terminate_backend(pid) FROM pg_stat_activity
+                  WHERE datname = current_database()
+                    AND pid <> pg_backend_pid() AND state <> 'idle'"
+            );
+
             // Items + leases FIRST: every held claim vanishes, so straggler
             // workers from a superseded run fail their next heartbeat and
             // kill their children. Unconditional — a virgin box no-ops.
