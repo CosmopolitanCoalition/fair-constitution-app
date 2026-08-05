@@ -149,19 +149,51 @@ class GeodataPullEngineTest extends TestCase
             $this->assertSame('review', $can->fresh()->status, 'CAN not retried until the group drains');
 
             // Raster finishes → the WHOLE ingest group has drained → the review
-            // fires, isolated (resolve gated), requeuing CAN for its alone retry.
+            // fires, isolated (resolve gated), requeuing CAN for its retry. It is
+            // ONE item, which is <= half the pool, so lanes are NOT halved
+            // (operator: halving under half the pool is pointless). The retry is
+            // still tracked by the _review_pass stamp.
             $ras->update(['status' => 'done']);
             Artisan::call('geodata:pump');
             $run->refresh();
-            $this->assertSame('rasters', $run->phase, 'held at the ingest boundary for review');
-            $this->assertSame('ingest', $run->review_pass, 'group review, half lanes now (nothing else runs)');
+            $this->assertSame('rasters', $run->phase, 'held at the ingest boundary for the retry');
+            $this->assertNull($run->review_pass, 'a 1-item review does NOT half-lane');
+            $this->assertArrayHasKey('ingest', $run->phase_timestamps['_review_pass'] ?? [],
+                'the retry is tracked by the group stamp');
             $this->assertSame('pending', $can->fresh()->status, 'CAN requeued, isolated');
 
-            // CAN clears on the isolated retry → cross into resolve.
+            // While CAN is still RETRYING (running), the gate HOLDS — resolve
+            // must not start mid-review. This is the bug that stranded lanes.
+            $can->fresh()->update(['status' => 'running']);
+            Artisan::call('geodata:pump');
+            $this->assertSame('rasters', $run->fresh()->phase, 'holds while the retry is in flight');
+
+            // CAN clears → cross into resolve at FULL lanes.
             $can->fresh()->update(['status' => 'done']);
             Artisan::call('geodata:pump');
             $this->assertSame('resolving', $run->fresh()->phase);
-            $this->assertNull($run->fresh()->review_pass, 'full lanes restored once clear');
+            $this->assertNull($run->fresh()->review_pass, 'full lanes into resolve');
+        });
+    }
+
+    public function test_review_halves_lanes_only_when_residue_exceeds_half_the_pool(): void
+    {
+        // Operator, 2026-08-05: halve ONLY when the review count is MORE than
+        // half the pool; at half or fewer it is pointless (the items cannot even
+        // fill half the lanes) so full lanes stand. With no worker leases the
+        // pump reads the nominal pool of 10, so the threshold is > 5.
+        $this->onLivePg(function () {
+            Queue::fake();
+            $run = $this->makeRun('rasters');
+            $this->addItem($run, 'raster_iso', ['iso_code' => 'RAS', 'status' => 'done']);
+            // Six boundaries in review — 6 > 5 → HALF LANES.
+            foreach (['A', 'B', 'C', 'D', 'E', 'F'] as $iso) {
+                $this->addItem($run, 'boundary_iso', ['iso_code' => $iso, 'status' => 'review']);
+            }
+            $this->addItem($run, 'resolve_global');
+
+            Artisan::call('geodata:pump');
+            $this->assertSame('ingest', $run->fresh()->review_pass, '6 > half of 10 → half lanes');
         });
     }
 
@@ -178,10 +210,12 @@ class GeodataPullEngineTest extends TestCase
             $this->addItem($run, 'raster_iso',   ['iso_code' => 'RAS', 'status' => 'done']);
             $this->addItem($run, 'resolve_global');
 
-            // Group drained + residue → fire the isolated retry (requeue).
+            // Group drained + residue → fire the isolated retry (requeue). One
+            // item → full lanes; the retry is tracked by the group stamp.
             Artisan::call('geodata:pump');
             $this->assertSame('pending', $can->fresh()->status);
-            $this->assertSame('ingest', $run->fresh()->review_pass);
+            $this->assertNull($run->fresh()->review_pass, '1-item review runs full lanes');
+            $this->assertArrayHasKey('ingest', $run->fresh()->phase_timestamps['_review_pass'] ?? []);
 
             // Retry fails again → hold for the operator, no silent advance.
             $can->fresh()->update(['status' => 'review', 'reason' => 'again']);

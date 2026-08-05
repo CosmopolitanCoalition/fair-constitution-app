@@ -264,56 +264,88 @@ class GeodataPumpCommand extends Command
                          COUNT(*) FILTER (WHERE status IN ('review','failed'))   AS bad,
                          COUNT(*) AS total")
             ->first();
+        $open = (int) ($c->open ?? 0);
+        $bad  = (int) ($c->bad ?? 0);
+        $retryFired = isset($stamps['_review_pass'][$group]);
 
-        // Nothing in review → the group is clean; don't hold. The operator's
-        // reminder: never fail to start the next group when there's nothing to
-        // review. (phaseDrained still governs the ordinary advance.)
-        if ($c === null || (int) $c->total === 0 || (int) $c->bad === 0) {
-            if ($run->review_pass === $group && (int) ($c->open ?? 0) === 0) {
-                $run->forceFill(['review_pass' => null, 'updated_at' => now()])->save();
-                $run->refresh();
-                $this->info("review [{$group}]: cleared — full lanes restored");
+        // ── A retry is IN FLIGHT (this group's residue was already requeued).
+        //    HOLD until every requeued item settles. This is the fix for the two
+        //    live bugs: the next group can never start mid-review (so resolve
+        //    does not begin while Canada is still retrying), AND review_pass is
+        //    cleared the instant the retry finishes — FULL LANES are restored
+        //    BEFORE resolve/attribution run. The stale bug advanced the phase
+        //    while the giant was still 'running' (bad==0), stranding half-lanes
+        //    into resolve. ──
+        if ($retryFired) {
+            if ($open > 0) {
+                return true;   // retry still running — hold at the group boundary
             }
-            return false;
-        }
-
-        // Review residue exists but the group's MAINLINE is still running
-        // (rasters not done, or the retry itself in flight). HOLD — but leave
-        // review_pass NULL so the field is NOT half-laned while rasters run.
-        if ((int) $c->open > 0) {
+            if ($bad === 0) {
+                // Retry cleared. Drop half-lanes (if set) and let the run cross.
+                if ($run->review_pass !== null) {
+                    $run->forceFill(['review_pass' => null, 'updated_at' => now()])->save();
+                    $run->refresh();
+                    $this->info("review [{$group}]: cleared — full lanes restored");
+                }
+                return false;
+            }
+            // Residue survived the retry → hand it to the operator (Retry / Continue).
+            if (! isset($stamps['_review_hold'][$group])) {
+                $stamps['_review_hold'][$group] = now()->toIso8601String();
+                $run->forceFill([
+                    'review_pass' => null, 'phase_timestamps' => $stamps, 'updated_at' => now(),
+                ])->save();
+                $run->refresh();
+                $this->warn("review [{$group}]: retry left {$bad} unresolved — awaiting operator (Retry / Continue)");
+            }
             return true;
         }
 
-        // The whole group has drained and residue remains — NOW the review
-        // fires, in isolation (the next group is gated, so only these items run
-        // and a giant is alone). One automatic half-lane retry.
-        if (! isset($stamps['_review_pass'][$group])) {
-            $n = DB::table('geodata_items')->where('run_id', $run->id)
-                ->whereIn('kind', $kinds)->whereIn('status', ['review', 'failed'])
-                ->update([
-                    'status' => 'pending', 'claim_token' => null, 'reason' => null,
-                    'started_at' => null, 'finished_at' => null,
-                    'position' => 0, 'updated_at' => now(),
-                ]);
-            $stamps['_review_pass'][$group] = now()->toIso8601String();
-            $run->forceFill([
-                'review_pass' => $group, 'phase_timestamps' => $stamps, 'updated_at' => now(),
-            ])->save();
-            $run->refresh();
-            $this->info("review [{$group}]: group drained — auto-retry requeued {$n} item(s), isolated");
-            return true;
+        // ── No retry fired yet for this group. ──
+        if ($bad === 0) {
+            return false;   // clean group → advance (phaseDrained governs)
+        }
+        if ($open > 0) {
+            return true;    // residue but the group is still draining → HOLD, no half-lane
         }
 
-        // The one auto-retry ran and residue SURVIVED — hand it to the operator.
-        if (! isset($stamps['_review_hold'][$group])) {
-            $stamps['_review_hold'][$group] = now()->toIso8601String();
-            $run->forceFill([
-                'review_pass' => null, 'phase_timestamps' => $stamps, 'updated_at' => now(),
-            ])->save();
-            $run->refresh();
-            $this->warn("review [{$group}]: retry left {$c->bad} unresolved — awaiting operator (Retry / Continue)");
-        }
+        // Group fully drained + residue → fire ONE retry, isolated (the next
+        // group is gated, so only these items run). HALF LANES ONLY when the
+        // residue is MORE than half the pool: at half or below, the items don't
+        // even fill half the lanes, so halving would just idle workers
+        // (operator, 2026-08-05). A lone giant is already alone.
+        $n = DB::table('geodata_items')->where('run_id', $run->id)
+            ->whereIn('kind', $kinds)->whereIn('status', ['review', 'failed'])
+            ->update([
+                'status' => 'pending', 'claim_token' => null, 'reason' => null,
+                'started_at' => null, 'finished_at' => null,
+                'position' => 0, 'updated_at' => now(),
+            ]);
+        $stamps['_review_pass'][$group] = now()->toIso8601String();
+        $pool  = $this->activeWorkerCount();
+        $halve = $n > intdiv($pool, 2);
+        $run->forceFill([
+            'review_pass'      => $halve ? $group : null,
+            'phase_timestamps' => $stamps,
+            'updated_at'       => now(),
+        ])->save();
+        $run->refresh();
+        $this->info(sprintf('review [%s]: retry %d item(s) — %s',
+            $group, $n, $halve ? "half lanes ({$n} > half of {$pool})" : 'FULL lanes (<= half the pool)'));
         return true;
+    }
+
+    /** Live worker count, for the half-lane threshold. Falls back to a nominal
+     *  pool of 10 if no leases are visible yet (the retry fires just after the
+     *  group drains, when the field is still at full width, so this reads the
+     *  full pool). */
+    private function activeWorkerCount(): int
+    {
+        $n = (int) DB::table('geodata_worker_leases')
+            ->where('last_seen_at', '>', now()->subMinutes(2))
+            ->count();
+
+        return $n > 0 ? $n : 10;
     }
 
     private function advancePhases(GeodataRun $run): void
