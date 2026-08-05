@@ -24,6 +24,7 @@ import os
 import re
 import struct
 import sys
+import threading
 import time
 import unicodedata
 from array import array
@@ -802,6 +803,29 @@ _RESOLVE_BATCH_FLOOR = 32
 _RESOLVE_BATCH_CEIL  = 8192
 
 
+def _resolve_fanout_min() -> int:
+    """Roster size above which ONE country's level-pass fans its chunks out
+    across an in-child thread pool (each thread its own connection, its own
+    chunk loop — the work is all server-side, the client threads just submit
+    and wait). Below it the single-lane path runs, byte-identical to before.
+
+    Why in-child threads and not more claimable lanes: the bottleneck at the
+    resolve tail is ONE giant (IND L6, ~652k orphans) grinding serially while
+    the rest of the field idles — law 1 violated at the exact grain the
+    country-item fan-out (d6b7227) cannot reach. Threads inside the country's
+    own item need zero claims/pump surgery, saturate PG the same way extra
+    lanes would, and die with the item (a kill still costs only in-flight
+    chunks — committed chunks stand, law 3 intact).
+
+    Default 4× the chunk ceiling: only true monsters fan out; a Pi (whose
+    _resolve_worker_count derives to 1-2) never spawns threads for a roster
+    it could drain in a few chunks. Env-overridable like every other dial."""
+    env = os.environ.get("CGA_ETL_RESOLVE_FANOUT_MIN")
+    if env and env.isdigit() and int(env) > 0:
+        return int(env)
+    return _RESOLVE_BATCH_CEIL * 4
+
+
 def _resolve_orphans_at_level_via_strategy(
     conn: psycopg2.extensions.connection,
     orphan_level: int,
@@ -854,7 +878,22 @@ def _resolve_orphans_at_level_via_strategy(
     None (the end-of-run post_pass_orphan_resolution call) keeps the
     original whole-planet behavior, which is correct there.
     """
-    if strategy == "direct_intersect":
+    if strategy == "centroid":
+        # CHEAP-FIRST (2026-08-05, law 5 — the chain-collapse lesson applied
+        # to parenting): point-in-polygon against the STORED centroid column
+        # costs a fraction of polygon×polygon ST_Intersects — the point probe
+        # rides the parent GIST index and the exact test is O(vertices) with
+        # early exit, no intersection matrix. For a deep-level unit whose
+        # centroid sits inside its exact-level parent (the overwhelming bulk
+        # at L5/L6) it answers the same question, so the expensive passes only
+        # ever see the residue: concave/sliver straddlers, coastal clips, and
+        # NULL-centroid rows (synthesized rows may lack one — the IS NOT NULL
+        # arm lets them fall through instead of erroring). Measured motive:
+        # IND L6's 652k-orphan drain ran ~29 ms/row through ST_Intersects.
+        match_expr    = "o.centroid IS NOT NULL AND ST_Contains(p.geom, o.centroid)"
+        same_iso_join = f"p.iso_code = o.iso_code AND p.adm_level = {orphan_level - 1}"
+        strategy_expr = "'direct'::varchar(32)"
+    elif strategy == "direct_intersect":
         # Direct-level intersection (mirrors find_parent_by_strategy_ladder's
         # Strategy 0): same-iso parent at the EXACT level above the orphan,
         # matched by ST_Intersects rather than strict point-containment, so a
@@ -926,7 +965,7 @@ def _resolve_orphans_at_level_via_strategy(
     orphan_iso_clause = "AND iso_code = %s" if iso_filter is not None else ""
     sql = f"""
         WITH orphans AS (
-            SELECT id, geom, iso_code FROM jurisdictions
+            SELECT id, geom, iso_code, centroid FROM jurisdictions
             WHERE adm_level = %s
               AND parent_id IS NULL
               AND adm_level > 0
@@ -989,74 +1028,131 @@ def _resolve_orphans_at_level_via_strategy(
     target_s  = _resolve_batch_target_s()
     tally     = {"direct": 0, "skip_ancestor": 0, "buffered": 0,
                  "topological": 0, "cross_iso_topological": 0}
-    batch     = max(_RESOLVE_BATCH_FLOOR, min(_RESOLVE_BATCH_SEED, len(orphan_ids)))
-    done      = 0
-    skipped   = 0
-    placed_prev = 0     # for the per-chunk progress delta fed to progress_cb
     started   = time.time()
+    lock      = threading.Lock()          # tally / progress / stats
+    progress  = {"placed_prev": 0}
+    totals    = {"done": 0, "skipped": 0}
 
-    while done < len(orphan_ids):
-        chunk = orphan_ids[done:done + batch]
-        t0    = time.time()
-        try:
-            with get_cursor(conn) as cur:
-                # SET LOCAL — scoped to THIS chunk's transaction, so it dies
-                # with the commit/rollback and nothing else inherits it.
-                cur.execute("SET LOCAL statement_timeout = %s", (budget_ms,))
-                cur.execute(
-                    sql,
-                    (orphan_level, chunk, orphan_level) if iso_filter is None
-                    else (orphan_level, chunk, iso_filter, orphan_level),
+    def _drain_slice(slice_conn, slice_ids: list, tag: str) -> None:
+        """One roster slice: the exact chunk loop as before — adaptive batch,
+        SET LOCAL timeout per chunk, commit per chunk (law 3 — a kill costs
+        in-flight chunks only), per-chunk log + progress. Shared state only
+        under `lock`; the DB work is disjoint id sets so slices never contend
+        on rows (parents are read-only here)."""
+        batch = max(_RESOLVE_BATCH_FLOOR, min(_RESOLVE_BATCH_SEED, len(slice_ids)))
+        done  = 0
+        while done < len(slice_ids):
+            chunk = slice_ids[done:done + batch]
+            t0    = time.time()
+            try:
+                with get_cursor(slice_conn) as cur:
+                    # SET LOCAL — scoped to THIS chunk's transaction, so it
+                    # dies with the commit/rollback; nothing else inherits it.
+                    cur.execute("SET LOCAL statement_timeout = %s", (budget_ms,))
+                    cur.execute(
+                        sql,
+                        (orphan_level, chunk, orphan_level) if iso_filter is None
+                        else (orphan_level, chunk, iso_filter, orphan_level),
+                    )
+                    rows = cur.fetchall()
+                slice_conn.commit()    # ← the whole point: this chunk is SAFE
+                with lock:
+                    for r in rows:
+                        key = r["parent_assigned_via"]
+                        if key in tally:
+                            tally[key] += 1
+            except psycopg2.errors.QueryCanceled:
+                # One pathological chunk is skipped — the ORIGINAL intent, now
+                # costing only its own rows instead of the entire level. Those
+                # orphans stay residual and the acceptance scan flags them.
+                slice_conn.rollback()
+                with lock:
+                    totals["skipped"] += len(chunk)
+                    if stats is not None:
+                        stats["timed_out"] = stats.get("timed_out", 0) + 1
+                lg.warning(
+                    "%s L%d %s%s: chunk of %d exceeded %ds — skipped, pass "
+                    "continues", iso_filter or "ALL", orphan_level, strategy,
+                    tag, len(chunk), budget_ms // 1000,
                 )
-                rows = cur.fetchall()
-            conn.commit()          # ← the whole point: this chunk is now SAFE
-            for r in rows:
-                key = r["parent_assigned_via"]
-                if key in tally:
-                    tally[key] += 1
-        except psycopg2.errors.QueryCanceled:
-            # One pathological chunk is skipped — the ORIGINAL intent, now
-            # costing only its own rows instead of the entire level. Those
-            # orphans stay residual and the acceptance scan flags them.
-            conn.rollback()
-            skipped += len(chunk)
-            if stats is not None:
-                stats["timed_out"] = stats.get("timed_out", 0) + 1
-            lg.warning(
-                "%s L%d %s: chunk of %d exceeded %ds — skipped, pass continues "
-                "(%d/%d orphans processed so far)",
-                iso_filter or "ALL", orphan_level, strategy, len(chunk),
-                budget_ms // 1000, done, len(orphan_ids),
+
+            done += len(chunk)
+            elapsed = time.time() - t0
+
+            # ── Adaptive sizing: converge on target_s per chunk. Fast chunks
+            # grow, slow ones shrink, so throughput tracks whatever this host
+            # and this country's geometry actually cost — no tuned constant. ──
+            if elapsed < target_s / 2 and batch < _RESOLVE_BATCH_CEIL:
+                batch = min(_RESOLVE_BATCH_CEIL, batch * 2)
+            elif elapsed > target_s and batch > _RESOLVE_BATCH_FLOOR:
+                batch = max(_RESOLVE_BATCH_FLOOR, batch // 2)
+
+            with lock:
+                totals["done"] += len(chunk)
+                placed = sum(tally.values())
+                # Live bar: feed newly-parented orphans to the caller so the
+                # per-country ladder climbs a metrics.live bar as chunks
+                # commit — the drain is visible, never a dead slice (law 4).
+                if progress_cb is not None:
+                    try:
+                        progress_cb(placed - progress["placed_prev"])
+                    except Exception:
+                        pass
+                    progress["placed_prev"] = placed
+                done_all = totals["done"]
+                skip_all = totals["skipped"]
+            lg.info(
+                "%s L%d %s%s: %d/%d orphans · %d placed · %d skipped · "
+                "chunk=%d took %.1fs · %.0fs elapsed",
+                iso_filter or "ALL", orphan_level, strategy, tag, done_all,
+                len(orphan_ids), placed, skip_all, len(chunk), elapsed,
+                time.time() - started,
             )
 
-        done += len(chunk)
-        elapsed = time.time() - t0
+    # ── Width: fan a MONSTER roster across slice threads (law 1 — the field
+    # must not idle behind one giant), derived from the same host dial the old
+    # in-process resolve pool used; small rosters take the single-lane path on
+    # the caller's connection, byte-identical to before. Per-iso only: the
+    # whole-planet path (reresolve tooling) keeps its legacy shape. ──
+    fanout_min = _resolve_fanout_min()
+    width = 1
+    if iso_filter is not None and len(orphan_ids) >= fanout_min:
+        width = max(1, min(_resolve_worker_count(),
+                           (len(orphan_ids) + fanout_min - 1) // fanout_min))
 
-        # ── Adaptive sizing: converge on target_s per chunk. Fast chunks grow,
-        # slow ones shrink, so throughput tracks whatever this host and this
-        # country's geometry actually cost — no tuned constant to get wrong. ──
-        if elapsed < target_s / 2 and batch < _RESOLVE_BATCH_CEIL:
-            batch = min(_RESOLVE_BATCH_CEIL, batch * 2)
-        elif elapsed > target_s and batch > _RESOLVE_BATCH_FLOOR:
-            batch = max(_RESOLVE_BATCH_FLOOR, batch // 2)
+    if width <= 1:
+        _drain_slice(conn, orphan_ids, "")
+    else:
+        step   = (len(orphan_ids) + width - 1) // width
+        slices = [orphan_ids[i * step:(i + 1) * step] for i in range(width)]
+        slices = [s for s in slices if s]
+        lg.info("%s L%d %s: %d orphans — fanning across %d slice threads "
+                "(each its own connection + chunk loop)",
+                iso_filter, orphan_level, strategy, len(orphan_ids), len(slices))
 
-        placed = sum(tally.values())
-        # Live bar: feed THIS chunk's newly-parented orphans to the caller so a
-        # per-country ladder can climb a metrics.live bar as each chunk commits
-        # (the whole point — the drain is now visible, not a dead slice).
-        if progress_cb is not None:
+        def _run_slice(idx: int, ids: list) -> None:
+            c2 = get_connection()
             try:
-                progress_cb(placed - placed_prev)
-            except Exception:
-                pass
-            placed_prev = placed
-        lg.info(
-            "%s L%d %s: %d/%d orphans · %d placed · %d skipped · "
-            "chunk=%d took %.1fs · %.0fs elapsed",
-            iso_filter or "ALL", orphan_level, strategy, done,
-            len(orphan_ids), placed, skipped, len(chunk), elapsed,
-            time.time() - started,
-        )
+                _drain_slice(c2, ids, f" s{idx}")
+            finally:
+                try:
+                    c2.close()
+                except Exception:
+                    pass
+
+        first_err: list = []
+        with ThreadPoolExecutor(max_workers=len(slices)) as pool:
+            futs = [pool.submit(_run_slice, i, s) for i, s in enumerate(slices)]
+            for f in futs:
+                try:
+                    f.result()
+                except Exception as exc:      # noqa: BLE001 — preserve the
+                    first_err.append(exc)     # single-lane semantics: an
+                                              # unexpected error fails the pass
+        if first_err:
+            raise first_err[0]
+
+    skipped = totals["skipped"]
 
     n_direct   = tally["direct"]
     n_skip     = tally["skip_ancestor"]
@@ -1064,7 +1160,7 @@ def _resolve_orphans_at_level_via_strategy(
     n_topo     = tally["topological"]
     n_cross    = tally["cross_iso_topological"]
 
-    if strategy in ("direct_intersect", "exact"):
+    if strategy in ("centroid", "direct_intersect", "exact"):
         return (n_direct, n_skip)
     if strategy == "buffered":
         return (n_buffered, 0)
@@ -1094,8 +1190,9 @@ def _resolve_orphans_for_iso(iso: str, log: logging.Logger,
     slice. Left None on the legacy threaded post-pass, where many isos share
     one process and no single item owns the bar.
     """
-    counts = {"direct": 0, "skip_ancestor": 0, "buffered": 0,
-              "topological": 0, "cross_iso_topological": 0, "timed_out": 0}
+    counts = {"centroid_direct": 0, "direct": 0, "skip_ancestor": 0,
+              "buffered": 0, "topological": 0, "cross_iso_topological": 0,
+              "timed_out": 0}
     conn = get_connection()
 
     # ── Live orphan-drain bar for this country (pull engine only). total =
@@ -1106,6 +1203,7 @@ def _resolve_orphans_for_iso(iso: str, log: logging.Logger,
     # this ladder. ──
     iso_total = 0
     placed_total = [0]
+    bar_label = [f"reparenting {iso} orphans"]   # _pass stamps level+strategy
     bar_cb = None
     if bar_item_id:
         try:
@@ -1115,14 +1213,15 @@ def _resolve_orphans_for_iso(iso: str, log: logging.Logger,
                     "WHERE parent_id IS NULL AND adm_level BETWEEN 2 AND 6 "
                     "AND deleted_at IS NULL AND iso_code = %s", (iso,))
                 iso_total = int(cur.fetchone()["n"])
-            heartbeat.write_item_bar(bar_item_id, f"reparenting {iso} orphans",
+            heartbeat.write_item_bar(bar_item_id, bar_label[0],
                                      0, iso_total, unit="orphans")
         except Exception:
             iso_total = 0
 
         def bar_cb(delta):
+            # Called under the strategy pass's lock — single-writer here.
             placed_total[0] += max(0, int(delta or 0))
-            heartbeat.write_item_bar(bar_item_id, f"reparenting {iso} orphans",
+            heartbeat.write_item_bar(bar_item_id, bar_label[0],
                                      placed_total[0], iso_total, unit="orphans")
 
     # THE STRATEGY TIME BUDGET (2026-08-03, operator: "the code can't allow
@@ -1138,6 +1237,9 @@ def _resolve_orphans_for_iso(iso: str, log: logging.Logger,
     budget_ms = _resolve_strategy_budget_ms()
 
     def _pass(level: int, strategy: str) -> tuple[int, int]:
+        # The lane's bar names the pass it is in — "which strategy is IND on"
+        # is on screen, not trapped in a pipe (law 4).
+        bar_label[0] = f"reparenting {iso} · L{level} {strategy}"
         try:
             r = _resolve_orphans_at_level_via_strategy(
                 conn, level, strategy, iso_filter=iso, stats=counts, log=log,
@@ -1169,6 +1271,12 @@ def _resolve_orphans_for_iso(iso: str, log: logging.Logger,
                 )
                 if cur.fetchone()["cnt"] == 0:
                     continue
+
+            # Cheap-first: the stored-centroid point-in-polygon pass places
+            # the bulk; every later (costlier) pass re-reads the roster and
+            # only ever sees what this one could not answer.
+            n_c, _ = _pass(level, "centroid")
+            counts["centroid_direct"] += n_c
 
             n_di, _ = _pass(level, "direct_intersect")
             counts["direct"] += n_di

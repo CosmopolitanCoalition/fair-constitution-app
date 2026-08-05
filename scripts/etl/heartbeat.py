@@ -123,6 +123,11 @@ _item_last_write = 0.0
 _item_bar_meta: dict = {}   # key → {label, unit, total}
 _item_bar_last_write: dict[str, float] = {}   # item_id → monotonic (write_item_bar throttle)
 
+# The resolve ladder's slice threads (2026-08-05) can reach the shared
+# _item_conn concurrently; one lock guards every use of it.
+import threading as _threading
+_item_conn_lock = _threading.Lock()
+
 
 def _item_progress(key: str, current: int, done: bool = False,
                    total: int | None = None) -> None:
@@ -193,41 +198,42 @@ def write_item_bar(item_id: str, label: str, current: int, total: int,
     global _item_conn
     if not item_id:
         return
-    now = time.monotonic()
-    if not done and (now - _item_bar_last_write.get(item_id, 0.0)) < _ITEM_THROTTLE_SEC:
-        return
-    try:
-        if _item_conn is None or getattr(_item_conn, "closed", 1):
-            from db import get_connection
-            _item_conn = get_connection()
-        payload = json.dumps({"live": {
-            "label":      label,
-            "current":    max(int(current or 0), 0),
-            "total":      max(int(total or 0), 0),
-            "unit":       unit or "orphans",
-            "done":       bool(done),
-            "updated_at": now_iso(),
-        }})
-        with _item_conn.cursor() as cur:
-            # MERGE (||), never replace: a resolve item's own metrics may hold
-            # fields the outcome writer expects — clobbering them broke re-claim
-            # elsewhere (the range-window lesson).
-            cur.execute(
-                "UPDATE geodata_items "
-                "SET metrics = COALESCE(metrics, '{}'::jsonb) || %s::jsonb, "
-                "    updated_at = now() "
-                "WHERE id = %s AND status = 'running'",
-                (payload, item_id),
-            )
-        _item_conn.commit()
-        _item_bar_last_write[item_id] = now
-    except Exception:
+    with _item_conn_lock:
+        now = time.monotonic()
+        if not done and (now - _item_bar_last_write.get(item_id, 0.0)) < _ITEM_THROTTLE_SEC:
+            return
         try:
-            if _item_conn is not None:
-                _item_conn.close()
+            if _item_conn is None or getattr(_item_conn, "closed", 1):
+                from db import get_connection
+                _item_conn = get_connection()
+            payload = json.dumps({"live": {
+                "label":      label,
+                "current":    max(int(current or 0), 0),
+                "total":      max(int(total or 0), 0),
+                "unit":       unit or "orphans",
+                "done":       bool(done),
+                "updated_at": now_iso(),
+            }})
+            with _item_conn.cursor() as cur:
+                # MERGE (||), never replace: a resolve item's own metrics may
+                # hold fields the outcome writer expects — clobbering them
+                # broke re-claim elsewhere (the range-window lesson).
+                cur.execute(
+                    "UPDATE geodata_items "
+                    "SET metrics = COALESCE(metrics, '{}'::jsonb) || %s::jsonb, "
+                    "    updated_at = now() "
+                    "WHERE id = %s AND status = 'running'",
+                    (payload, item_id),
+                )
+            _item_conn.commit()
+            _item_bar_last_write[item_id] = now
         except Exception:
-            pass
-        _item_conn = None
+            try:
+                if _item_conn is not None:
+                    _item_conn.close()
+            except Exception:
+                pass
+            _item_conn = None
 
 
 # ─── Per-country preview heartbeat ──────────────────────────────────────────

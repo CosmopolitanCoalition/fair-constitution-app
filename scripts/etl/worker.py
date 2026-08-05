@@ -16,11 +16,13 @@ are ON CONFLICT / DELETE-first, attribution re-runs cleanly).
 from __future__ import annotations
 
 import argparse
+import collections
 import json
 import os
 import signal
 import subprocess
 import sys
+import threading
 import time
 from pathlib import Path
 
@@ -44,6 +46,64 @@ def _log_line(tag: str, msg: str) -> None:
             fh.write(f"[{tag}] {msg}\n")
     except OSError:
         pass
+
+
+def _pump_child(proc, on_stderr_line=None, stdout_cap_bytes: int = 2_000_000,
+                stderr_tail_lines: int = 400):
+    """Line-stream the child's pipes from reader threads.
+
+    stderr lines reach `on_stderr_line` AS THEY ARRIVE. The previous
+    communicate() pattern trapped every progress line in the pipe until the
+    child exited and then folded in only the LAST 40 — an hours-long resolve
+    item (IND) was completely dark in the run log the whole time it worked,
+    which is law 4 (Visible) violated at the exact moment it mattered.
+
+    stdout accumulates (capped) for the result-JSON parse; stderr keeps a
+    bounded tail for outcome reasons. Returns a join fn — call it after the
+    process exits to get (stdout_text, stderr_tail_text)."""
+    out_buf: list = []
+    out_len = [0]
+    err_tail = collections.deque(maxlen=stderr_tail_lines)
+
+    def _read(stream, sink):
+        try:
+            for line in iter(stream.readline, ""):
+                sink(line)
+        except Exception:
+            pass
+        finally:
+            try:
+                stream.close()
+            except Exception:
+                pass
+
+    def _out_sink(line: str) -> None:
+        if out_len[0] < stdout_cap_bytes:
+            out_buf.append(line)
+            out_len[0] += len(line)
+
+    def _err_sink(line: str) -> None:
+        s = line.rstrip("\n")
+        err_tail.append(s)
+        if on_stderr_line is not None:
+            try:
+                on_stderr_line(s)
+            except Exception:
+                pass
+
+    readers = [
+        threading.Thread(target=_read, args=(proc.stdout, _out_sink), daemon=True),
+        threading.Thread(target=_read, args=(proc.stderr, _err_sink), daemon=True),
+    ]
+    for t in readers:
+        t.start()
+
+    def _join(timeout: float = 10.0):
+        for t in readers:
+            t.join(timeout=timeout)
+        return "".join(out_buf), "\n".join(err_tail)
+
+    return _join
 
 
 def _parse_outcome(stdout: str, stderr: str, returncode: int) -> dict:
@@ -143,10 +203,16 @@ def _run_unit(conn, run_id: str, claim: dict, token: str,
         # feature progress onto THIS item's row (the pull panel's mini bars).
         env=child_env,
     )
+    # Live log streaming: every child line lands in the run log the moment it
+    # is emitted (tagged with the worker), instead of post-mortem last-40.
+    pump_join = _pump_child(
+        proc, on_stderr_line=lambda s: _log_line(worker_tag, s))
     last_beat = time.monotonic()
     while True:
         try:
-            stdout, stderr = proc.communicate(timeout=5)
+            # wait(), not poll+sleep: returns the INSTANT the child exits, so
+            # a seconds-long item never pays a poll-lag tax on completion.
+            proc.wait(timeout=5)
             break
         except subprocess.TimeoutExpired:
             pass
@@ -162,15 +228,13 @@ def _run_unit(conn, run_id: str, claim: dict, token: str,
                 # already be re-claimed — abandon: kill the child, discard.
                 try:
                     proc.terminate()
-                    proc.communicate(timeout=10)
+                    proc.wait(timeout=10)
                 except Exception:
                     proc.kill()
+                pump_join()
                 return ({}, False)
-    # Fold the child's own logging (stderr) into the unified run log.
-    if stderr:
-        for line in stderr.strip().splitlines()[-40:]:
-            _log_line(worker_tag, line)
-    return (_parse_outcome(stdout, stderr, proc.returncode), True)
+    stdout, stderr_tail = pump_join()
+    return (_parse_outcome(stdout, stderr_tail, proc.returncode), True)
 
 
 def run_worker(run_id: str, worker_tag: str, lane: str = "small",
