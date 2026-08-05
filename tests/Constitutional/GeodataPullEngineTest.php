@@ -110,8 +110,14 @@ class GeodataPullEngineTest extends TestCase
             $this->assertSame('boundary_iso', $claim['kind']);
             $this->assertSame('BND', $claim['iso_code']);
 
-            // The raster item stays pending until the rasters phase.
-            $this->assertNull(GeodataClaims::next($run->fresh(), (string) Str::uuid()));
+            // Once the boundary pool is empty a boundaries-phase lane FALLS
+            // THROUGH to raster_iso (PHASE_FALLTHROUGH, the 2026-08-02 ingest
+            // overlap) so rasters load concurrently — the raster is claimable
+            // now, not held to the rasters phase. (This pin predated the
+            // overlap and asserted null; corrected to the intended behavior.)
+            $next = GeodataClaims::next($run->fresh(), (string) Str::uuid());
+            $this->assertSame('raster_iso', $next['kind'] ?? null);
+            $this->assertSame('RAS', $next['iso_code'] ?? null);
         });
     }
 
@@ -271,7 +277,14 @@ class GeodataPullEngineTest extends TestCase
     public function test_counters_refresh_from_items(): void
     {
         $this->onLivePg(function () {
-            $run = $this->makeRun('boundaries');
+            // Pre-stamp the boundaries auto-retry as already spent, so the
+            // per-phase review gate holds for the operator rather than
+            // requeuing the review/failed items (which would zero the very
+            // counters this pins). This is the realistic "awaiting operator"
+            // state — residue present, counters reflect it.
+            $run = $this->makeRun('boundaries', [
+                'phase_timestamps' => ['_review_pass' => ['boundaries' => now()->toIso8601String()]],
+            ]);
             $this->addItem($run, 'boundary_iso', ['status' => 'done']);
             $this->addItem($run, 'boundary_iso', ['status' => 'done']);
             $this->addItem($run, 'boundary_iso', ['status' => 'review']);
