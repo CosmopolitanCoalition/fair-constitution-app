@@ -163,18 +163,27 @@ class GeodataPumpCommand extends Command
                     return $t === null || (microtime(true) - (float) $t) > 1800;
                 }));
 
-                $chainDisplaced = in_array('mis_anchored_cluster', $missing, true)
-                    && in_array('displaced_geometry', $missing, true);
-                foreach ($missing as $cat) {
-                    if ($cat === 'displaced_geometry' && $chainDisplaced) {
-                        continue;   // arrives via the cluster job's chain
-                    }
+                // HEAVIES CHAIN, NEVER PARALLEL (2026-08-05, the overnight
+                // crash loop): re-dispatching the geometry detectors
+                // concurrently OOM-crashed postgres into recovery mode every
+                // round — and the recovery window ate each round's result
+                // writes, so this audit re-dispatched the identical crash
+                // every 31 minutes all night. Missing heavy categories now
+                // re-dispatch as ONE ordered chain (one planet-CTE at a
+                // time, the giant-gate law); the seconds-cheap pair stays
+                // parallel.
+                $heavyOrder = ['mis_anchored_cluster', 'displaced_geometry',
+                               'same_space_chain', 'raster_coverage'];
+                $heavies = array_values(array_intersect($heavyOrder, $missing));
+                if ($heavies !== []) {
                     \App\Jobs\GeodataScanCategoryJob::dispatch(
                         (string) $run->id,
-                        $cat,
-                        $cat === 'mis_anchored_cluster' && $chainDisplaced
-                            ? 'displaced_geometry' : null,
+                        array_shift($heavies),
+                        $heavies === [] ? null : $heavies,
                     );
+                }
+                foreach (array_intersect($missing, ['dual_coverage', 'orphaned_rows']) as $cat) {
+                    \App\Jobs\GeodataScanCategoryJob::dispatch((string) $run->id, $cat);
                 }
                 if ($missing !== []) {
                     DB::table('geodata_items')
