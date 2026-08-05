@@ -45,16 +45,23 @@ PHASE_KIND = {
 # Just "raster_iso" — _attempt_claim already expands it to the
 # (raster_iso, raster_range) family, so listing raster_range too would
 # only add a redundant second query.
+# Phase order (mirrors GeodataRun::PHASES): the two GROUPS are consecutive —
+# INGEST = boundaries, rasters ; DERIVE = resolving, attribution. Within a group
+# the members overlap via fallthrough; ACROSS groups nothing leaks (that leak is
+# what let resolve start before rasters finished).
 PHASE_FALLTHROUGH = {
+    # INGEST overlap: rasters run concurrently during boundaries.
     "boundaries": ("raster_iso",),
-    # EARLY ATTRIBUTION (2026-08-03): the resolve barrier enumerates the
-    # attribution pairs FIRST (baselines already stamped, geometry and
-    # rasters complete), so idle lanes attribute while the per-country
-    # resolve ladders grind. Attribution never reads parent_id; the one
-    # hazard (synthesized intermediary rows landing mid-pass) is handled by
-    # do_resolve's requeue of affected pairs at the end. Raster leftovers
-    # first, then attribution.
-    "resolving":  ("raster_iso", "attribution_pair"),
+    # …and boundaries during rasters, so a boundary requeued by the INGEST
+    # review (e.g. Canada) is claimable while the phase sits at `rasters`.
+    "rasters":    ("boundary_iso",),
+    # DERIVE overlap (early attribution, 2026-08-03): idle lanes attribute while
+    # the resolve ladders grind. raster_iso is GONE from here — rasters belong to
+    # the ingest group and are already done + review-free before resolving opens.
+    "resolving":  ("attribution_pair",),
+    # …and resolve during attribution, so a resolve item requeued by the DERIVE
+    # review is claimable while the phase sits at `attribution`.
+    "attribution": ("resolve_global",),
 }
 
 # Per-kind concurrency caps — OPERATOR DIALS ONLY (2026-08-02). The derived
@@ -85,9 +92,21 @@ _KIND_CAP_ENV = {
 # FREE is the operator's word and it is load-bearing: a country still in
 # review has rows missing, so resolving parent chains over it would compute
 # against an incomplete tree and attribution would verdict against holes.
+# CORRECTED 2026-08-05 (operator, definitive): the pipeline is
+#   BOUNDARIES + RASTERS  →  REVIEW  →  RESOLVE + ATTRIBUTION  →  REVIEW  →  FINALIZE  →  SCAN
+# so RESOLVE is in the DERIVE group and waits for the ENTIRE ingest group —
+# boundaries AND rasters — to be done and review-free, exactly like attribution.
+# The old list had resolve waiting on boundaries only, which let it start while
+# rasters were still running (operator-caught live, twice). Resolve does not
+# NEED population, but the operator's group model gates it with attribution, and
+# stage_ready already treats review/failed as not-ready, so this one change also
+# makes a boundary or raster still in review block resolve until its review
+# clears — the "→ REVIEW →" step between the two groups.
 STAGE_PREREQS: dict[str, tuple[str, ...]] = {
-    "resolve_global":      ("boundary_iso", "boundary_range"),
-    "resolve_range":       ("boundary_iso", "boundary_range"),
+    "resolve_global":      ("boundary_iso", "boundary_range",
+                            "raster_iso", "raster_range"),
+    "resolve_range":       ("boundary_iso", "boundary_range",
+                            "raster_iso", "raster_range"),
     "attribution_pair":    ("boundary_iso", "boundary_range",
                             "raster_iso", "raster_range"),
     "attribution_decompose": ("boundary_iso", "boundary_range",

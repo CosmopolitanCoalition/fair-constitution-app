@@ -201,62 +201,56 @@ class GeodataPumpCommand extends Command
     ];
 
     /**
-     * The item kinds whose settled-state GATES advancing OUT of each phase.
-     * A phase holds until every one of these is `done` — NOT merely `review`
-     * or `failed` — or the operator accepts the residue. This is the barrier
-     * the resolve deadlock needed: the phase pointer is the only thing that
-     * makes resolve_global claimable, so holding boundaries here is exactly
-     * "resolve does not start until boundaries are review-cleared or accepted"
-     * (operator, 2026-08-05). Empty for phases with no review (enumerating,
-     * finalizing, scanning) — those advance the moment their pool drains.
+     * The review GROUP that fires at the end of each phase, or null. The review
+     * runs at the LAST phase of each group — INGEST ends at `rasters`
+     * (boundaries already drained to reach it), DERIVE ends at `attribution` —
+     * gating the crossing to the next group. Keyed on the WHOLE group so the
+     * review waits for BOTH members.
      */
-    private function phaseGateKinds(string $phase): array
+    private function reviewGroupFor(string $phase): ?string
     {
         return match ($phase) {
-            'boundaries'  => ['boundary_iso', 'boundary_range'],
-            'resolving'   => ['resolve_global', 'resolve_range'],
-            'rasters'     => ['raster_iso', 'raster_range'],
-            'attribution' => ['attribution_pair', 'attribution_decompose', 'attribution_range'],
-            default       => [],
+            'rasters'     => 'ingest',
+            'attribution' => 'derive',
+            default       => null,
         };
     }
 
     /**
-     * THE PER-PHASE REVIEW GATE (operator, 2026-08-03 → rebuilt 2026-08-05).
+     * THE PER-GROUP REVIEW GATE (operator, definitive 2026-08-05):
+     *   BOUNDARIES + RASTERS → REVIEW → RESOLVE + ATTRIBUTION → REVIEW → …
      *
-     * Returns TRUE when the CURRENT phase must not advance because its review
-     * is not clear. It also FIRES the auto-retry, in-phase, so the fix runs
-     * where its items are still claimable.
+     * Returns TRUE when the current group's review is not clear and the run must
+     * not cross into the next group. Three earlier errors this fixes, all
+     * operator-caught live:
+     *   1. it reviewed BOUNDARIES ALONE (per-phase) and advanced to resolve
+     *      while rasters were still running — resolve started before rasters;
+     *   2. it HALF-LANED while rasters were still running, slowing them for no
+     *      reason — the review had no business starting yet;
+     *   3. the retried giant therefore ran in a crowd, not isolated.
      *
-     * Why rebuilt: the old version gated on REVIEW_STAGES (ingest = boundary +
-     * raster together) and ran AFTER `phaseDrained`, which treats review/failed
-     * as "settled". So boundaries advanced to `resolving` with Canada still in
-     * review, and the retry then requeued CAN to `pending` in the resolving
-     * phase — where no worker claims a boundary item. Deadlock. CAN normally
-     * clears on the half-lane retry precisely because it runs ALONE; the early
-     * advance stole that retry.
-     *
-     * The rebuilt gate is per-PHASE and runs BEFORE the advance:
-     *   • residue = review/failed items in this phase's gate kinds.
-     *   • no residue                → don't hold (clear any half-lane flag).
-     *   • residue, no auto-retry yet → fire it: requeue review/failed → pending
-     *       IN THIS PHASE (half lanes via review_pass), stamp it, HOLD.
-     *   • residue after the retry    → NEEDS OPERATOR: stamp _review_hold, HOLD.
-     *       The UI surfaces Retry (another half-lane pass) / Continue (accept).
-     *   • operator accepted          → don't hold; advance over the residue.
+     * The gate now fires ONLY at the group's last phase and ONLY once the whole
+     * group's mainline has drained:
+     *   • nothing in review                 → don't hold; the next group starts.
+     *   • review residue, group still busy  → HOLD, but do NOT half-lane yet
+     *       (review_pass stays null — no lane reduction while rasters run).
+     *   • group fully drained, residue      → NOW fire one half-lane auto-retry,
+     *       ISOLATED: the next group is gated (phase pointer + stage_ready), so
+     *       only the requeued items run — a giant is genuinely alone.
+     *   • residue survives the retry        → NEEDS OPERATOR: Retry / Continue.
+     *   • operator accepted                 → advance over the residue.
      */
     private function reviewGateHolds(GeodataRun $run): bool
     {
-        $phase = $run->phase;
-        $kinds = $this->phaseGateKinds($phase);
-        if ($kinds === []) {
-            return false;   // enumerating / finalizing / scanning — no gate
+        $group = $this->reviewGroupFor($run->phase);
+        if ($group === null) {
+            return false;   // not a group-ending phase — no review here
         }
-
+        $kinds  = self::REVIEW_STAGES[$group];
         $stamps = $run->phase_timestamps ?? [];
 
-        // Operator pressed Continue for this phase — advance over the residue.
-        if (isset($stamps['_accepted'][$phase])) {
+        // Operator pressed Continue for this group — advance over the residue.
+        if (isset($stamps['_accepted'][$group])) {
             if ($run->review_pass !== null) {
                 $run->forceFill(['review_pass' => null, 'updated_at' => now()])->save();
                 $run->refresh();
@@ -271,27 +265,29 @@ class GeodataPumpCommand extends Command
                          COUNT(*) AS total")
             ->first();
 
-        // Stage not enumerated yet, or fully clean — nothing for the gate to do.
-        // (phaseDrained still holds the advance while `open` > 0.)
+        // Nothing in review → the group is clean; don't hold. The operator's
+        // reminder: never fail to start the next group when there's nothing to
+        // review. (phaseDrained still governs the ordinary advance.)
         if ($c === null || (int) $c->total === 0 || (int) $c->bad === 0) {
-            if ($run->review_pass === $phase && (int) ($c->open ?? 0) === 0) {
-                // The half-lane retry cleared it — restore full lanes.
+            if ($run->review_pass === $group && (int) ($c->open ?? 0) === 0) {
                 $run->forceFill(['review_pass' => null, 'updated_at' => now()])->save();
                 $run->refresh();
-                $this->info("review [{$phase}]: cleared — full lanes restored");
+                $this->info("review [{$group}]: cleared — full lanes restored");
             }
             return false;
         }
 
-        // Residue exists. While the auto-retry's requeued items are still
-        // running, hold at half lanes (phaseDrained would also hold on `open`,
-        // but returning true here keeps the intent explicit).
+        // Review residue exists but the group's MAINLINE is still running
+        // (rasters not done, or the retry itself in flight). HOLD — but leave
+        // review_pass NULL so the field is NOT half-laned while rasters run.
         if ((int) $c->open > 0) {
             return true;
         }
 
-        // Mainline closed, residue remains. One automatic half-lane retry.
-        if (! isset($stamps['_review_pass'][$phase])) {
+        // The whole group has drained and residue remains — NOW the review
+        // fires, in isolation (the next group is gated, so only these items run
+        // and a giant is alone). One automatic half-lane retry.
+        if (! isset($stamps['_review_pass'][$group])) {
             $n = DB::table('geodata_items')->where('run_id', $run->id)
                 ->whereIn('kind', $kinds)->whereIn('status', ['review', 'failed'])
                 ->update([
@@ -299,24 +295,23 @@ class GeodataPumpCommand extends Command
                     'started_at' => null, 'finished_at' => null,
                     'position' => 0, 'updated_at' => now(),
                 ]);
-            $stamps['_review_pass'][$phase] = now()->toIso8601String();
+            $stamps['_review_pass'][$group] = now()->toIso8601String();
             $run->forceFill([
-                'review_pass' => $phase, 'phase_timestamps' => $stamps, 'updated_at' => now(),
+                'review_pass' => $group, 'phase_timestamps' => $stamps, 'updated_at' => now(),
             ])->save();
             $run->refresh();
-            $this->info("review [{$phase}]: auto-retry requeued {$n} item(s) at half lanes");
+            $this->info("review [{$group}]: group drained — auto-retry requeued {$n} item(s), isolated");
             return true;
         }
 
-        // The one auto-retry ran and residue SURVIVED — do NOT silently accept
-        // and advance (the old bug). Hold and hand it to the operator.
-        if (! isset($stamps['_review_hold'][$phase])) {
-            $stamps['_review_hold'][$phase] = now()->toIso8601String();
+        // The one auto-retry ran and residue SURVIVED — hand it to the operator.
+        if (! isset($stamps['_review_hold'][$group])) {
+            $stamps['_review_hold'][$group] = now()->toIso8601String();
             $run->forceFill([
                 'review_pass' => null, 'phase_timestamps' => $stamps, 'updated_at' => now(),
             ])->save();
             $run->refresh();
-            $this->warn("review [{$phase}]: retry left {$c->bad} unresolved — awaiting operator (Retry / Continue)");
+            $this->warn("review [{$group}]: retry left {$c->bad} unresolved — awaiting operator (Retry / Continue)");
         }
         return true;
     }
@@ -326,10 +321,11 @@ class GeodataPumpCommand extends Command
         $phases = GeodataRun::PHASES;
 
         while ($run->phase !== 'done') {
-            // The review gate for the CURRENT phase runs BEFORE the drain check
-            // so a review-bearing phase can never advance over review/failed
-            // residue. This is what keeps resolve from starting before
-            // boundaries are cleared or accepted.
+            // The GROUP review gate runs BEFORE the drain check, at each group's
+            // last phase (rasters, attribution). It holds the crossing into the
+            // next group until the whole group is done AND review-clear/accepted
+            // — so resolve never starts before boundaries AND rasters are done
+            // and reviewed. A non-group-ending phase passes straight through.
             if ($this->reviewGateHolds($run)) {
                 return;
             }

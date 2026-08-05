@@ -121,77 +121,79 @@ class GeodataPullEngineTest extends TestCase
         });
     }
 
-    public function test_review_gate_holds_the_phase_then_retries_and_advances(): void
+    public function test_ingest_review_waits_for_both_then_isolates_and_advances(): void
     {
-        // THE GATE LAW (operator, 2026-08-05, replacing the old "review does not
-        // block"): a review-bearing phase must NOT advance over review/failed
-        // residue. Its one automatic half-lane retry runs IN-PHASE (where the
-        // items are still claimable), and only a clean pool — or an operator
-        // Continue — lets the next phase begin. The old behavior advanced to
-        // `resolving` with Canada still in review, then requeued it into a phase
-        // no worker could claim it in: the live deadlock this law prevents.
+        // THE GROUP GATE LAW (operator, definitive 2026-08-05):
+        //   BOUNDARIES + RASTERS → REVIEW → RESOLVE + ATTRIBUTION → …
+        // The ingest review fires only after BOTH boundaries and rasters drain,
+        // runs isolated (resolve is gated), and only then does resolve begin.
+        // No half-laning while rasters still run; resolve never starts early.
         $this->onLivePg(function () {
             Queue::fake();
             $run = $this->makeRun('boundaries');
-            $a = $this->addItem($run, 'boundary_iso', ['iso_code' => 'AAA']);
-            $b = $this->addItem($run, 'boundary_iso', ['iso_code' => 'BBB']);
-            $this->addItem($run, 'resolve_global'); // the next phase's singleton
+            $bnd = $this->addItem($run, 'boundary_iso', ['iso_code' => 'AAA']);
+            $can = $this->addItem($run, 'boundary_iso', ['iso_code' => 'CAN']);
+            $ras = $this->addItem($run, 'raster_iso',   ['iso_code' => 'RAS']);
+            $this->addItem($run, 'resolve_global'); // the derive-group singleton
 
-            // Still pending → barrier stays shut.
+            // Boundaries done, CAN in review, raster STILL running.
+            $bnd->update(['status' => 'done']);
+            $can->update(['status' => 'review', 'reason' => 'refused']);
             Artisan::call('geodata:pump');
-            $this->assertSame('boundaries', $run->fresh()->phase);
+            $run->refresh();
+            // Advanced boundaries → rasters, but NOT past the ingest group: the
+            // raster is still open, so the review has not fired and — the
+            // operator's rule — the field is NOT half-laned while rasters run.
+            $this->assertSame('rasters', $run->phase, 'ingest continues at rasters');
+            $this->assertNull($run->review_pass, 'no half-lane while rasters still run');
+            $this->assertSame('review', $can->fresh()->status, 'CAN not retried until the group drains');
 
-            // One done, one REVIEW (a refused ISO). Pool has no pending/running,
-            // but the gate HOLDS at boundaries and fires the auto-retry: the
-            // review item is requeued to pending at half lanes, IN-PHASE.
-            $a->update(['status' => 'done']);
-            $b->update(['status' => 'review', 'reason' => 'refused']);
+            // Raster finishes → the WHOLE ingest group has drained → the review
+            // fires, isolated (resolve gated), requeuing CAN for its alone retry.
+            $ras->update(['status' => 'done']);
             Artisan::call('geodata:pump');
-            $this->assertSame('boundaries', $run->fresh()->phase, 'must not advance over a review item');
-            $this->assertSame('boundaries', $run->fresh()->review_pass, 'auto-retry runs at half lanes, in-phase');
-            $this->assertSame('pending', $b->fresh()->status, 'the review item is requeued, not stranded');
+            $run->refresh();
+            $this->assertSame('rasters', $run->phase, 'held at the ingest boundary for review');
+            $this->assertSame('ingest', $run->review_pass, 'group review, half lanes now (nothing else runs)');
+            $this->assertSame('pending', $can->fresh()->status, 'CAN requeued, isolated');
 
-            // The retry succeeds (CAN clears when it runs alone) → pool clean →
-            // NOW the phase advances to resolving.
-            $b->fresh()->update(['status' => 'done']);
+            // CAN clears on the isolated retry → cross into resolve.
+            $can->fresh()->update(['status' => 'done']);
             Artisan::call('geodata:pump');
             $this->assertSame('resolving', $run->fresh()->phase);
             $this->assertNull($run->fresh()->review_pass, 'full lanes restored once clear');
         });
     }
 
-    public function test_review_retry_failure_holds_for_operator_then_continue_advances(): void
+    public function test_ingest_review_failure_holds_for_operator_then_continue_advances(): void
     {
-        // When the one auto-retry cannot clear the residue, the run does NOT
-        // silently advance (the old bug) — it HOLDS for the operator, surfacing
-        // Retry / Continue. Continue accepts the residue and advances.
+        // When the isolated retry cannot clear the residue, the run does NOT
+        // silently cross into resolve — it HOLDS for the operator (Retry /
+        // Continue). Continue accepts the residue and advances.
         $this->onLivePg(function () {
             Queue::fake();
-            $run = $this->makeRun('boundaries');
-            $a = $this->addItem($run, 'boundary_iso', ['iso_code' => 'AAA']);
-            $b = $this->addItem($run, 'boundary_iso', ['iso_code' => 'BBB']);
+            $run = $this->makeRun('rasters');   // sitting at the ingest boundary
+            $can = $this->addItem($run, 'boundary_iso', ['iso_code' => 'CAN', 'status' => 'review']);
+            $this->addItem($run, 'boundary_iso', ['iso_code' => 'AAA', 'status' => 'done']);
+            $this->addItem($run, 'raster_iso',   ['iso_code' => 'RAS', 'status' => 'done']);
             $this->addItem($run, 'resolve_global');
 
-            $a->update(['status' => 'done']);
-            $b->update(['status' => 'review', 'reason' => 'refused']);
-
-            // Tick 1: auto-retry requeues b → pending, holds.
+            // Group drained + residue → fire the isolated retry (requeue).
             Artisan::call('geodata:pump');
-            $this->assertSame('pending', $b->fresh()->status);
+            $this->assertSame('pending', $can->fresh()->status);
+            $this->assertSame('ingest', $run->fresh()->review_pass);
 
-            // The retry fails again (b back to review) → tick holds for operator.
-            $b->fresh()->update(['status' => 'review', 'reason' => 'refused again']);
+            // Retry fails again → hold for the operator, no silent advance.
+            $can->fresh()->update(['status' => 'review', 'reason' => 'again']);
             Artisan::call('geodata:pump');
             $run->refresh();
-            $this->assertSame('boundaries', $run->phase, 'still held — no silent advance');
-            $this->assertArrayHasKey('boundaries', $run->phase_timestamps['_review_hold'] ?? [],
-                'the operator hold is recorded');
+            $this->assertSame('rasters', $run->phase, 'still held at the ingest boundary');
+            $this->assertArrayHasKey('ingest', $run->phase_timestamps['_review_hold'] ?? [],
+                'the operator hold is recorded per GROUP');
 
-            // Operator presses Continue → accepts the residue. The pull-control
-            // endpoint stamps _accepted[phase]; assert the GATE honors it and
-            // advances (the endpoint wiring itself is a thin marker write).
+            // Continue → accept the residue (what pull-control stamps) → advance.
             $stamps = $run->fresh()->phase_timestamps;
-            $stamps['_accepted']['boundaries'] = now()->toIso8601String();
+            $stamps['_accepted']['ingest'] = now()->toIso8601String();
             $run->forceFill(['phase_timestamps' => $stamps, 'updated_at' => now()])->save();
             Artisan::call('geodata:pump');
             $this->assertSame('resolving', $run->fresh()->phase);
@@ -277,13 +279,13 @@ class GeodataPullEngineTest extends TestCase
     public function test_counters_refresh_from_items(): void
     {
         $this->onLivePg(function () {
-            // Pre-stamp the boundaries auto-retry as already spent, so the
-            // per-phase review gate holds for the operator rather than
-            // requeuing the review/failed items (which would zero the very
-            // counters this pins). This is the realistic "awaiting operator"
-            // state — residue present, counters reflect it.
+            // Pre-stamp the INGEST group auto-retry as already spent, so the
+            // group review gate holds for the operator rather than requeuing the
+            // review/failed items (which would zero the very counters this pins).
+            // This is the realistic "awaiting operator" state — residue present,
+            // counters reflect it.
             $run = $this->makeRun('boundaries', [
-                'phase_timestamps' => ['_review_pass' => ['boundaries' => now()->toIso8601String()]],
+                'phase_timestamps' => ['_review_pass' => ['ingest' => now()->toIso8601String()]],
             ]);
             $this->addItem($run, 'boundary_iso', ['status' => 'done']);
             $this->addItem($run, 'boundary_iso', ['status' => 'done']);

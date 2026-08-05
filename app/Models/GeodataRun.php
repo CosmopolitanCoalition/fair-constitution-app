@@ -22,9 +22,17 @@ class GeodataRun extends Model
 
     public $incrementing = false;
 
-    /** Pipeline phases, in order — the pump advances through these. */
+    /** Pipeline phases, in order — the pump advances through these.
+     *
+     *  The operator's definitive model (2026-08-05):
+     *    BOUNDARIES + RASTERS → REVIEW → RESOLVE + ATTRIBUTION → REVIEW → FINALIZE → SCAN
+     *  so the two GROUPS are consecutive: INGEST = {boundaries, rasters},
+     *  DERIVE = {resolving, attribution}. `rasters` moved BEFORE `resolving`
+     *  (it used to sit after it, which let resolve start before rasters were
+     *  done). The review fires at the END of each group — see
+     *  GeodataPumpCommand::reviewGateHolds. */
     public const PHASES = [
-        'enumerating', 'boundaries', 'resolving', 'rasters',
+        'enumerating', 'boundaries', 'rasters', 'resolving',
         'attribution', 'finalizing', 'scanning', 'done',
     ];
 
@@ -34,25 +42,28 @@ class GeodataRun extends Model
     public const PHASE_KIND = [
         'enumerating' => 'manifest',
         'boundaries'  => 'boundary_iso',
-        'resolving'   => 'resolve_global',
         'rasters'     => 'raster_iso',
+        'resolving'   => 'resolve_global',
         'attribution' => 'attribution_pair',
         'finalizing'  => 'finalize_global',
         'scanning'    => 'acceptance_scan',
     ];
 
-    /** Overlap ingest (2026-08-02, INGEST_OVERLAP_PLAN.md, adopted): kinds a
-     *  lane may also claim when the phase's own kind has nothing pending —
-     *  boundaries and rasters are independent fan-outs serialized only by
-     *  phase convention. Mirrors claims.py PHASE_FALLTHROUGH exactly; keep
-     *  both in lockstep. Just 'raster_iso' — GeodataClaims::next() already
-     *  expands a kind to its range family. */
+    /** Kinds a lane may ALSO claim when the phase's own kind has nothing
+     *  pending. WITHIN-GROUP overlap only — never across the ingest/derive
+     *  boundary (that cross-group leak is what let resolve start before rasters
+     *  finished). Mirrors claims.py PHASE_FALLTHROUGH exactly; keep in lockstep.
+     *  GeodataClaims::next() expands a kind to its range family. */
     public const PHASE_FALLTHROUGH = [
-        'boundaries' => ['raster_iso'],
-        // Early attribution (2026-08-03): pairs are enumerated at the START
-        // of the resolve barrier, so idle lanes attribute while the
-        // per-country ladders grind. Mirrors claims.py PHASE_FALLTHROUGH.
-        'resolving'  => ['raster_iso', 'attribution_pair'],
+        // INGEST overlap — rasters during boundaries, boundaries during rasters
+        // (the latter so a review-requeued boundary is claimable at `rasters`).
+        'boundaries'  => ['raster_iso'],
+        'rasters'     => ['boundary_iso'],
+        // DERIVE overlap — attribution during resolve, resolve during
+        // attribution. raster_iso is GONE from resolving: rasters are the ingest
+        // group and are done + review-free before resolving opens.
+        'resolving'   => ['attribution_pair'],
+        'attribution' => ['resolve_global'],
     ];
 
     protected $fillable = [

@@ -1607,11 +1607,11 @@ class SetupController extends Controller
     public function geodataPullControl(Request $request): JsonResponse
     {
         $data = $request->validate([
-            // review_retry / review_continue added 2026-08-05: when a phase's
+            // review_retry / review_continue added 2026-08-05: when a GROUP's
             // one automatic half-lane retry cannot clear its review residue,
             // the pump holds and hands the decision here (see reviewGateHolds).
             'action' => ['required', Rule::in(['halt', 'resume', 'review_retry', 'review_continue'])],
-            'phase'  => ['nullable', 'string'],
+            'group'  => ['nullable', Rule::in(['ingest', 'derive'])],
         ]);
         $run  = \App\Models\GeodataRun::unfinished();
         if ($run === null) {
@@ -1621,22 +1621,25 @@ class SetupController extends Controller
         if ($data['action'] === 'halt' || $data['action'] === 'resume') {
             $run->update(['halt_requested_at' => $data['action'] === 'halt' ? now() : null]);
         } else {
-            // RETRY / CONTINUE a stuck review. Target the phase the operator
-            // acted on, defaulting to the run's current phase.
-            $phase  = $data['phase'] ?: $run->phase;
+            // RETRY / CONTINUE a stuck review. Target the group the operator
+            // acted on, defaulting to whichever group is currently held.
+            $group  = $data['group']
+                ?: array_key_first($run->phase_timestamps['_review_hold'] ?? []);
             $stamps = $run->phase_timestamps ?? [];
 
-            if ($data['action'] === 'review_retry') {
-                // Clear the one-bite + hold markers so the gate fires a fresh
-                // half-lane auto-retry for this phase on the next tick.
-                unset($stamps['_review_pass'][$phase], $stamps['_review_hold'][$phase]);
-            } else { // review_continue
-                // Accept the residue: the gate stops holding and the phase
-                // advances (resolve may begin). Recorded, not silent.
-                $stamps['_accepted'][$phase] = now()->toIso8601String();
-                unset($stamps['_review_hold'][$phase]);
+            if ($group !== null) {
+                if ($data['action'] === 'review_retry') {
+                    // Clear the one-bite + hold markers so the gate fires a fresh
+                    // half-lane auto-retry for this group on the next tick.
+                    unset($stamps['_review_pass'][$group], $stamps['_review_hold'][$group]);
+                } else { // review_continue
+                    // Accept the residue: the gate stops holding and the run
+                    // crosses into the next group. Recorded, not silent.
+                    $stamps['_accepted'][$group] = now()->toIso8601String();
+                    unset($stamps['_review_hold'][$group]);
+                }
+                $run->forceFill(['phase_timestamps' => $stamps, 'updated_at' => now()])->save();
             }
-            $run->forceFill(['phase_timestamps' => $stamps, 'updated_at' => now()])->save();
         }
 
         \Illuminate\Support\Facades\Artisan::call('geodata:pump');
@@ -1652,21 +1655,25 @@ class SetupController extends Controller
      */
     private function geodataReviewHold(\App\Models\GeodataRun $run): ?array
     {
+        // Keyed by GROUP now (ingest / derive), matching the pump's per-group
+        // review gate — the review is a step BETWEEN the two groups, not a
+        // per-phase event.
         $held = array_key_first($run->phase_timestamps['_review_hold'] ?? []);
         if ($held === null) {
             return null;
         }
         $kinds = match ($held) {
-            'boundaries'  => ['boundary_iso', 'boundary_range'],
-            'resolving'   => ['resolve_global', 'resolve_range'],
-            'rasters'     => ['raster_iso', 'raster_range'],
-            'attribution' => ['attribution_pair', 'attribution_decompose', 'attribution_range'],
-            default       => [],
+            'ingest' => ['boundary_iso', 'boundary_range', 'raster_iso', 'raster_range'],
+            'derive' => ['resolve_global', 'resolve_range', 'attribution_pair',
+                         'attribution_decompose', 'attribution_range'],
+            default  => [],
         };
         $bad = DB::table('geodata_items')->where('run_id', $run->id)
             ->whereIn('kind', $kinds)->whereIn('status', ['review', 'failed'])->count();
 
-        return ['phase' => $held, 'unresolved' => $bad];
+        $label = $held === 'ingest' ? 'Boundaries + Rasters' : 'Resolve + Attribution';
+
+        return ['group' => $held, 'label' => $label, 'unresolved' => $bad];
     }
 
     /**

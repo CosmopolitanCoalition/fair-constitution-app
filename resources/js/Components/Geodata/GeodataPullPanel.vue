@@ -254,8 +254,14 @@ function groupState(group) {
 // True when this bubble contains the phase the run is holding on for operator
 // review — drives the amber "review" styling on the breadcrumb.
 function groupHeld(group) {
-    const held = run.value?.review_hold?.phase
-    return held != null && group.some(p => p.key === held)
+    // review_hold.group is 'ingest' (boundaries+rasters) or 'derive'
+    // (resolving+attribution) — map it to the breadcrumb bubble it belongs to.
+    const held = run.value?.review_hold?.group
+    if (!held) return false
+    const phases = group.map(p => p.key)
+    if (held === 'ingest') return phases.includes('boundaries') || phases.includes('rasters')
+    if (held === 'derive') return phases.includes('resolving') || phases.includes('attribution')
+    return false
 }
 
 // ONE timer per bubble, at its end (operator, 2026-08-03): earliest member
@@ -342,13 +348,13 @@ async function fetchProgress() {
     }
 }
 
-async function control(action, phase = null) {
+async function control(action, group = null) {
     actionBusy.value = true
     try {
         const res = await csrfFetch('/api/setup/wizard/step2/pull-control', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(phase ? { action, phase } : { action }),
+            body: JSON.stringify(group ? { action, group } : { action }),
         })
         if (!res.ok) {
             const d = await res.json().catch(() => ({}))
@@ -411,21 +417,20 @@ onBeforeUnmount(() => {
         <p v-if="error" class="text-red-400 text-xs mb-3">{{ error }}</p>
         <p v-if="run.last_error" class="text-amber-400/80 text-xs mb-3">{{ run.last_error }}</p>
 
-        <!-- NEEDS-OPERATOR review hold. The phase's one automatic half-lane
-             retry could not clear its review residue, so the run holds HERE
-             rather than advancing over it (that early advance is what stranded
-             Canada and deadlocked resolve). The operator decides: Retry runs
-             another half-lane pass; Continue accepts the residue and lets the
-             next phase begin. -->
+        <!-- NEEDS-OPERATOR review hold. A GROUP's one automatic half-lane retry
+             could not clear its review residue, so the run holds between the two
+             groups rather than crossing into the next one. The operator decides:
+             Retry runs another isolated half-lane pass; Continue accepts the
+             residue and lets the next group begin. -->
         <div v-if="run.review_hold"
              class="mb-4 rounded-lg border border-amber-600/70 bg-amber-950/40 px-4 py-3">
             <div class="flex items-start justify-between gap-4 flex-wrap">
                 <div class="text-sm text-amber-100">
-                    <span class="font-semibold">Review needs your call — {{ run.review_hold.phase }}.</span>
-                    Its automatic half-lane retry left
+                    <span class="font-semibold">Review needs your call — {{ run.review_hold.label }}.</span>
+                    The isolated retry left
                     <span class="font-semibold">{{ run.review_hold.unresolved }}</span>
                     item{{ run.review_hold.unresolved === 1 ? '' : 's' }} unresolved.
-                    The run is holding here — the next phase will not start until you decide.
+                    The run is holding here — the next group will not start until you decide.
                     <span class="block text-amber-300/80 text-xs mt-1">
                         A giant like Canada usually clears on a retry once it runs alone. If it keeps
                         failing, Continue accepts it as a flagged item and moves on.
@@ -433,12 +438,12 @@ onBeforeUnmount(() => {
                 </div>
                 <div class="flex gap-2 shrink-0">
                     <button type="button" :disabled="actionBusy"
-                            @click="control('review_retry', run.review_hold.phase)"
+                            @click="control('review_retry', run.review_hold.group)"
                             class="text-xs px-3 py-1.5 rounded border border-sky-600 text-sky-200 hover:bg-sky-900/40 disabled:opacity-50">
-                        Retry (half lanes)
+                        Retry (isolated)
                     </button>
                     <button type="button" :disabled="actionBusy"
-                            @click="control('review_continue', run.review_hold.phase)"
+                            @click="control('review_continue', run.review_hold.group)"
                             class="text-xs px-3 py-1.5 rounded border border-amber-500 bg-amber-900/40 text-amber-100 hover:bg-amber-900/70 disabled:opacity-50">
                         Continue anyway →
                     </button>
