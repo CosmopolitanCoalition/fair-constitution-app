@@ -385,6 +385,9 @@ def do_boundary(conn, run_id: str, iso: str, options: dict,
             if isinstance(meta, str):
                 meta = json.loads(meta)
             start, count = int(meta["start"]), int(meta["count"])
+            # Bars land on the CLAIMED RANGE row, not the coordinator's own
+            # (the "ghost lane" misroute, operator-caught 2026-08-05).
+            _tgt = heartbeat.set_item_target(rng["id"])
             try:
                 n = _run_level_import(iso, file_lvl, log,
                                       feature_start=start, feature_count=count)
@@ -401,6 +404,8 @@ def do_boundary(conn, run_id: str, iso: str, options: dict,
                 claims.record_outcome(conn, rng["id"], token, "review",
                                       reason=f"{type(exc).__name__}: {exc}",
                                       metrics={"start": start, "count": count})
+            finally:
+                heartbeat.set_item_target(_tgt)
 
     if split_levels:
         while True:
@@ -438,6 +443,7 @@ def do_boundary(conn, run_id: str, iso: str, options: dict,
                     if isinstance(meta, str):
                         meta = json.loads(meta)
                     start, count = int(meta["start"]), int(meta["count"])
+                    _tgt = heartbeat.set_item_target(rng["id"])
                     try:
                         n = _run_level_import(iso, file_lvl, log,
                                               feature_start=start, feature_count=count)
@@ -453,6 +459,8 @@ def do_boundary(conn, run_id: str, iso: str, options: dict,
                         claims.record_outcome(conn, rng["id"], token, "review",
                                               reason=f"{type(exc).__name__}: {exc}",
                                               metrics={"start": start, "count": count})
+                    finally:
+                        heartbeat.set_item_target(_tgt)
                 continue
             time.sleep(5)
         log.info("%s: all ranges settled across ADM levels %s", iso, split_levels)
@@ -913,6 +921,7 @@ def do_raster(conn, run_id: str, iso: str, log: logging.Logger) -> dict:
         if isinstance(meta, str):
             meta = json.loads(meta)
         bs, bc = int(meta["band_start"]), int(meta["band_count"])
+        _tgt = heartbeat.set_item_target(rng["id"])
         try:
             n = load_raster_to_db(conn, iso, tif, log, band_start=bs, band_count=bc)
             claims.record_outcome(conn, rng["id"], token, "done",
@@ -921,6 +930,8 @@ def do_raster(conn, run_id: str, iso: str, log: logging.Logger) -> dict:
         except Exception as exc:
             claims.record_outcome(conn, rng["id"], token, "review",
                                   reason=f"{type(exc).__name__}: {exc}")
+        finally:
+            heartbeat.set_item_target(_tgt)
 
     # Barrier: wait for the other lanes' bands to settle.
     while True:

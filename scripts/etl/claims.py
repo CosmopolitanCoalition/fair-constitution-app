@@ -346,16 +346,15 @@ def _attempt_claim(conn, run_id: str, kind: str, lane: str, token: str) -> dict 
         # The atomic-lock context also closes the unit-check's race where
         # three giants claimed in the same second each saw the other two as
         # "only 2 running" and all proceeded.
-        # OPERATOR EXPERIMENT (2026-08-03): the crowd gate is OFF by default.
-        # Every giant kill on record predates the funding-denominator fix
-        # (9d6789b), and the gate has kept giants out of crowds ever since —
-        # so the fix has never been tested on a crowded giant. The operator's
-        # hypothesis: the crashes were the funding bug, not giant-ness.
-        # CGA_ETL_GIANT_CROWD_GATE=1 re-arms the deferral if the field
-        # proves him wrong.
+        # EXPERIMENT CONCLUDED (operator order 2026-08-05, run 019fd200): the
+        # crowded field held until two IRREDUCIBLE giants coincided — CAN ADM1
+        # (5.39M vertices) and the IND raster load were SIGKILLed in the same
+        # minute (both exit -9, co-residency blew the cgroup). The gate is
+        # back ON by default; CGA_ETL_GIANT_CROWD_GATE=0 restores the crowded
+        # experiment if ever wanted.
         giant_clause = ""
         giant_params: tuple = ()
-        if kind == "boundary_iso" and os.environ.get("CGA_ETL_GIANT_CROWD_GATE", "0") == "1":
+        if kind == "boundary_iso" and os.environ.get("CGA_ETL_GIANT_CROWD_GATE", "1") == "1":
             _gv = int(os.environ.get("CGA_ETL_GIANT_VERTICES", "0") or 0) or 1_000_000
             _solo = int(os.environ.get("CGA_ETL_GIANT_SOLO_OPEN", "0") or 0) or 2
             cur.execute(

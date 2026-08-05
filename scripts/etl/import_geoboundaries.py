@@ -2293,15 +2293,14 @@ def process_geojson_file(
                 # the field must thin until it is effectively alone. Yield is
                 # cheap (this check runs BEFORE any parse); the worker's
                 # post-yield family skip keeps the lane productive meanwhile.
-                # OPERATOR EXPERIMENT (2026-08-03): crowd deferral OFF by
-                # default — giants run in the crowded field. Every recorded
-                # giant kill predates the funding fix (9d6789b), so this is
-                # its first honest crowded test. CGA_ETL_GIANT_CROWD_GATE=1
-                # re-arms the tail-deferral; the exclusive parse floor below
-                # then reverts with it. Ungated, the monster pass takes the
-                # floor SHARED like everyone else: lights keep running
-                # beside it, which is the whole point of the experiment.
-                _gate_on = os.environ.get("CGA_ETL_GIANT_CROWD_GATE", "0") == "1"
+                # EXPERIMENT CONCLUDED (operator order 2026-08-05, run
+                # 019fd200): the crowded field held until two IRREDUCIBLE
+                # giants coincided — CAN ADM1 (5.39M vertices) + the IND
+                # raster load, SIGKILLed in the same minute (exit -9 pair).
+                # Deferral is back ON by default: the monster waits for a
+                # thin field and takes the exclusive parse floor.
+                # CGA_ETL_GIANT_CROWD_GATE=0 restores the crowded experiment.
+                _gate_on = os.environ.get("CGA_ETL_GIANT_CROWD_GATE", "1") == "1"
                 if _gate_on:
                     _solo_max = int(os.environ.get("CGA_ETL_GIANT_SOLO_OPEN", "0") or 0) or 2
                     _cur.execute(

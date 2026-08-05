@@ -129,6 +129,25 @@ import threading as _threading
 _item_conn_lock = _threading.Lock()
 
 
+def set_item_target(item_id):
+    """Redirect the quiet-mode bar hooks to a specific item row; returns the
+    previous target so callers can restore it.
+
+    COORDINATOR PARTICIPATION (2026-08-05, operator-caught: "ghost lane or
+    opaque meta"): a parent that claims one of its own range children
+    IN-PROCESS keeps the parent's CGA_ETL_ITEM_ID, so the child's live bar
+    landed on the PARENT row (raster·USA showing "load:b100" — the running
+    slice's band) while the child strip sat bar-less. The attribution path
+    already fixes this by spawning slices with the child id in env; the
+    in-process boundary/raster participation paths swap the module target
+    around each range run instead."""
+    global _ITEM_ID
+    with _item_conn_lock:
+        prev = _ITEM_ID
+        _ITEM_ID = item_id or None
+        return prev
+
+
 def _item_progress(key: str, current: int, done: bool = False,
                    total: int | None = None) -> None:
     """Write the active bar's live progress onto the claimed geodata item."""
