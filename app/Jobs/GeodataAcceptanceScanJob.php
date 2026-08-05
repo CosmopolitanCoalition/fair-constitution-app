@@ -75,8 +75,19 @@ class GeodataAcceptanceScanJob implements ShouldQueue
             [microtime(true), $run->id],
         );
 
-        GeodataScanCategoryJob::dispatch($run->id, 'mis_anchored_cluster', 'displaced_geometry');
-        foreach (['dual_coverage', 'same_space_chain', 'raster_coverage', 'orphaned_rows'] as $cat) {
+        // HEAVIES RUN ALONE (2026-08-05, the overnight crash loop): the four
+        // geometry detectors each open a planet-wide MATERIALIZED CTE, and
+        // running them CONCURRENTLY on the post-IND-L6 world (~940k rows)
+        // OOM-killed a postgres backend every round — the database dropped
+        // into recovery mode every ~31 minutes from 09:04, the dying
+        // detectors' result writes died WITH it (recovery mode refuses
+        // connections), so no cats/-1 ever landed and the pump's 30-min audit
+        // re-dispatched the same crash forever. Same law as the giant insert
+        // gate: one planet-scale grind at a time. The two cheap detectors
+        // stay parallel — they finish in seconds and always have.
+        GeodataScanCategoryJob::dispatch($run->id, 'mis_anchored_cluster',
+            ['displaced_geometry', 'same_space_chain', 'raster_coverage']);
+        foreach (['dual_coverage', 'orphaned_rows'] as $cat) {
             GeodataScanCategoryJob::dispatch($run->id, $cat);
         }
     }

@@ -34,9 +34,44 @@ class GeodataScanCategoryJob implements ShouldQueue
     public function __construct(
         public string $runId,
         public string $category,
-        public ?string $nextCategory = null,
+        /** Next category, or an ORDERED CHAIN of them (2026-08-05: the four
+         *  heavy geometry detectors run strictly one-at-a-time — concurrent
+         *  planet-CTEs crash-looped postgres all night; see the dispatcher). */
+        public string|array|null $nextCategory = null,
     ) {
         $this->onQueue('long-running');
+    }
+
+    /** Run a write with reconnect-retry. THE CRASH-PROOF RECORD (2026-08-05):
+     *  when a detector's planet-CTE OOM-killed postgres, the -1/error write
+     *  raced the database's recovery window and died too — so the category
+     *  looked never-run, and the pump re-dispatched the same crash every 31
+     *  minutes, forever. A landed record (even "-1 errored") is what breaks
+     *  that loop, so the record write must survive a recovering database:
+     *  5 attempts, 10 s apart, fresh connection each time. */
+    private static function writeWithRetry(callable $write): void
+    {
+        for ($attempt = 1; ; $attempt++) {
+            try {
+                $write();
+
+                return;
+            } catch (\Throwable $e) {
+                if ($attempt >= 5) {
+                    Log::error('Geodata scan record write failed after retries', [
+                        'message' => mb_substr($e->getMessage(), 0, 200),
+                    ]);
+
+                    return;
+                }
+                sleep(10);
+                try {
+                    DB::reconnect();
+                } catch (\Throwable) {
+                    // recovering — next attempt retries the connect
+                }
+            }
+        }
     }
 
     /** Parent-proof cat_started stamp — the pump's liveness signal. Same
@@ -89,6 +124,13 @@ class GeodataScanCategoryJob implements ShouldQueue
         $flags = null;
         $error = null;
         try {
+            // MEMORY-BOUND the detector session (the OOM lever): the planet
+            // CTEs spill to disk under a clamped work_mem instead of ballooning
+            // a backend past the container cgroup — slower is fine, a crashed
+            // database is not. Session-scoped; RESET below because horizon
+            // workers reuse connections across jobs.
+            DB::statement("SET work_mem = '64MB'");
+            DB::statement("SET statement_timeout = '1800s'");
             // WHOLE-DETECTOR runs (iso-batching REVERTED same-day: the
             // heavy detectors open with a MATERIALIZED planet-wide CTE
             // that computes before any iso filter applies — measured 142s
@@ -105,6 +147,13 @@ class GeodataScanCategoryJob implements ShouldQueue
                 'run_id' => $this->runId, 'category' => $this->category,
                 'message' => $e->getMessage(),
             ]);
+        } finally {
+            try {
+                DB::statement('RESET work_mem');
+                DB::statement('RESET statement_timeout');
+            } catch (\Throwable) {
+                // dead/recovering connection — writeWithRetry reconnects fresh
+            }
         }
 
         // PATH-LEVEL write, never top-level concat (external audit P0,
@@ -128,7 +177,7 @@ class GeodataScanCategoryJob implements ShouldQueue
         // landed results). The inner || re-inserts the CURRENT cats object
         // (or empty on first write) so the parent always exists and nothing
         // landed is lost.
-        DB::update(
+        self::writeWithRetry(fn () => DB::update(
             "UPDATE geodata_items
                 SET metrics = jsonb_set(
                         COALESCE(metrics, '{}'::jsonb)
@@ -137,12 +186,12 @@ class GeodataScanCategoryJob implements ShouldQueue
                     updated_at = now()
               WHERE run_id = ? AND kind = 'acceptance_scan' AND status = 'running'",
             [$this->category, $error === null ? $flags : -1, $this->runId],
-        );
+        ));
         if ($error !== null) {
             // Same trap — masked until now only because 'cats' was equally
             // broken (an error write that lands on nothing looks identical
             // to an error write that never happened).
-            DB::update(
+            self::writeWithRetry(fn () => DB::update(
                 "UPDATE geodata_items
                     SET metrics = jsonb_set(
                             COALESCE(metrics, '{}'::jsonb)
@@ -151,15 +200,18 @@ class GeodataScanCategoryJob implements ShouldQueue
                         updated_at = now()
                   WHERE run_id = ? AND kind = 'acceptance_scan' AND status = 'running'",
                 [$this->category, $error, $this->runId],
-            );
+            ));
         }
 
-        if ($this->nextCategory !== null) {
+        if ($this->nextCategory !== null && $this->nextCategory !== []) {
             // The chained category counts as dispatched NOW — stamp its
             // start here so the pump never mistakes "queued behind the
-            // chain" for "never dispatched" and races a duplicate.
-            self::stampStarted($this->runId, $this->nextCategory);
-            self::dispatch($this->runId, $this->nextCategory);
+            // chain" for "never dispatched" and races a duplicate. A chain
+            // ARRAY hops one link per completion (heavies run one-at-a-time).
+            $chain = is_array($this->nextCategory) ? $this->nextCategory : [$this->nextCategory];
+            $next  = array_shift($chain);
+            self::stampStarted($this->runId, $next);
+            self::dispatch($this->runId, $next, $chain === [] ? null : $chain);
         }
 
         // Whoever lands the sixth category closes the item (idempotent:
@@ -192,7 +244,7 @@ class GeodataScanCategoryJob implements ShouldQueue
         $elapsed = isset($m['scan_started'])
             ? round(microtime(true) - (float) $m['scan_started'], 1)
             : null;
-        DB::update(
+        self::writeWithRetry(fn () => DB::update(
             "UPDATE geodata_items
                 SET status = ?, reason = ?,
                     metrics = COALESCE(metrics, '{}'::jsonb) || ?::jsonb,
@@ -205,6 +257,6 @@ class GeodataScanCategoryJob implements ShouldQueue
                 json_encode(['elapsed' => $elapsed, 'parallel' => true]),
                 $this->runId,
             ],
-        );
+        ));
     }
 }
