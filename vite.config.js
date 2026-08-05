@@ -75,6 +75,13 @@ export default defineConfig({
                 '**/data/**',            // ETL archive bind mount
                 '**/docs/**',            // reference documents
                 '**/tests/**',           // not touched by HMR
+                // .env is written by the setup wizard (operator host IP, map
+                // folder). It is not in the module graph, so watching it earns
+                // nothing but poll cost — and a write during setup is the prime
+                // suspect for the "Save refreshed my page" report (operator,
+                // 2026-08-05): usePolling picking up the change on a dev box.
+                '**/.env',
+                '**/.env.*',
             ],
         },
         hmr: {

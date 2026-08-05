@@ -384,7 +384,11 @@ function continueNext() {
                     (<code class="text-amber-300">docker compose up -d</code>) so the containers pick it up before peers join.
                 </div>
 
-                <button :disabled="savingProfile" @click="saveProfile"
+                <!-- type="button" is explicit: a <button> with no type defaults
+                     to submit, which would navigate (full reload) the moment
+                     this markup ever sits inside a form. Every other control
+                     here declares it; this one was the lone omission. -->
+                <button type="button" :disabled="savingProfile" @click="saveProfile"
                     class="mt-4 px-4 py-2 bg-blue-600 hover:bg-blue-500 disabled:bg-gray-700 text-white rounded-md transition">
                     {{ savingProfile ? 'Saving…' : 'Save' }}
                 </button>

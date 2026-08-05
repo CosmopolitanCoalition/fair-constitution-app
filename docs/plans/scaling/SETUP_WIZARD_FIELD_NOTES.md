@@ -14,46 +14,42 @@ for the operator host and clicking **Save** refreshes the page. From then on,
 and stays on that page," possibly a cache/staleness effect where the advance
 doesn't render.
 
-**Diagnosis (read from both ends at `84e787c`; one link still a hypothesis):**
+**Diagnosis — CORRECTED 2026-08-05 (the first pass had it wrong).** The original
+note blamed Laravel's Inertia **asset-version hash**. That was a hypothesis and
+it is WRONG: `HandleInertiaRequests` has **no `version()` override**, so the
+asset version is the vite manifest hash, which an `.env` write does not move.
+Recording the correction so it is not re-derived.
 
-- `saveProfile()` (`OperatorSetup.vue:109`) is a clean `csrfFetch` — it does no
-  reload itself. It records `restartRequired = !!data.restart_required`.
-- The backend (`SetupController.php:~3328`) writes the changed self-URL to
-  **`.env`** (`FEDERATION_SELF_URL`) and returns `restart_required: true`,
-  because an `.env` value "cannot take effect live" (its own comment, ~:3176).
-- **The refresh:** an `.env`/config change moves Laravel's Inertia **asset
-  version hash** (`HandleInertiaRequests::version()` tracks build/config state).
-  When the next Inertia request carries a stale `X-Inertia-Version`, Inertia's
-  contract is a **full hard reload** — exactly the "refresh" seen the moment
-  after Save, and again on the next navigation.
-- **Why Continue then no-ops:** `continueNext()` (`OperatorSetup.vue:260`) is
-  **not gated on `restartRequired`** — the amber banner (`:382`) only informs.
-  So Continue fires an Inertia visit into the version-mismatch / app-reload
-  window: the visit either hard-reloads back onto the same step (asset-version
-  bounce) or the server responds before the new state is durable, and it takes
-  a couple of tries before the version handshake settles.
+Confirmed facts (read at `6186f9e`):
 
-  *Unverified link (house rule):* whether the `.env` write also bounces PHP-FPM
-  itself, or whether the asset-version hash alone accounts for it. The
-  asset-version mismatch is sufficient to explain the whole symptom; a FPM
-  bounce would compound it. The next AI should confirm which before choosing
-  the fix.
+- `saveProfile()` (`OperatorSetup.vue`) is a clean `csrfFetch` and does **no**
+  reload — the refresh is not JS-triggered. There is **no `<form>`** around it
+  either, so it is not a stray submit… except the Save button was the lone
+  control missing `type="button"` (now added, defensively).
+- The backend (`SetupController::operatorProfile`) writes `FEDERATION_SELF_URL`
+  to **`.env`** and returns `restart_required: true` (the value needs a
+  container recreate to take effect — its own message says so).
+- **The environment is the suspect, not the code:** the game box serves the
+  **Vite dev server** (`public/hot` present), `vite.config.js` uses
+  `server.watch.usePolling` over the whole project, and **`.env` was not in the
+  `ignored` list**. A poll that picks up the `.env` write is the most plausible
+  trigger for a dev-mode reload.
 
-**Fix direction (for the refactor, not built here):** an `.env` write mid-wizard
-is the anti-pattern — it invalidates the running app under the operator's feet.
-Options, cheapest first:
-1. **Gate Continue on `restartRequired`** — when true, replace Continue with an
-   explicit "Apply address & restart, then Continue" affordance that performs
-   the restart (or instructs it) and only advances once the app reports healthy.
-   Smallest change; makes the existing banner actionable.
-2. **Stage the value, apply at a controlled point** — don't write `.env` on Save;
-   hold the address in instance settings and apply it at a single restart gate
-   (end of setup, or a dedicated "apply network config" step), so no mid-wizard
-   reload ever happens.
-3. Both — stage during the wizard (2), and keep (1) as the explicit apply gate.
+**What was changed here (2026-08-05), both defensible on their own merits:**
+1. `vite.config.js` — added `**/.env` and `**/.env.*` to the watch `ignored`
+   list. HMR has no reason to watch `.env`; polling it across the Windows
+   boundary is pure cost, and it removes the prime reload suspect.
+2. `OperatorSetup.vue` — `type="button"` on Save (every other control had it).
 
-**Fits the audit's §5 cross-cutting rules:** "every step is re-enterable —
-returning to the wizard shows live state, never restarts" and "every long
-operation runs off-request." An `.env`-triggered app reload is the sharp edge
-those rules exist to sand down; this is a concrete instance for the refactor to
-resolve, not a new principle.
+**NOT yet confirmed live.** Static reading could not prove the exact reload
+trigger, and two prior hypotheses were wrong — so this is hardening aimed at the
+most likely cause, not a certified fix. **Confirm during the next fresh run's
+operator-setup step:** watch the Save click (network + navigation + console) and
+verify no full reload. If it still reloads, the trigger is elsewhere and the
+live trace will show it.
+
+**For the refactor regardless (audit §5, "every step re-enterable; long ops
+off-request"):** an `.env` write mid-wizard is the anti-pattern — stage the
+value in instance settings and apply it at ONE controlled restart gate (end of
+setup, or a dedicated "apply network config" step) so no mid-wizard write can
+ever bounce the page, in dev or prod.
