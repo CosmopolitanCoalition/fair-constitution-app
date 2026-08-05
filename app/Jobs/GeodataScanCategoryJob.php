@@ -124,29 +124,53 @@ class GeodataScanCategoryJob implements ShouldQueue
         $flags = null;
         $error = null;
         try {
-            // MEMORY-BOUND the detector session (the OOM lever): the planet
-            // CTEs spill to disk under a clamped work_mem instead of ballooning
-            // a backend past the container cgroup — slower is fine, a crashed
-            // database is not. Session-scoped; RESET below because horizon
-            // workers reuse connections across jobs.
-            DB::statement("SET work_mem = '64MB'");
-            DB::statement("SET statement_timeout = '1800s'");
-            // WHOLE-DETECTOR runs (iso-batching REVERTED same-day: the
-            // heavy detectors open with a MATERIALIZED planet-wide CTE
-            // that computes before any iso filter applies — measured 142s
-            // per 10-iso batch, so batching multiplied cost ~24x instead
-            // of dividing it). Honest visibility grain = one tick per
-            // completed detector; finer grain requires making those CTEs
-            // iso-sargable — filed as detector-query rework, not a
-            // coordination change.
-            $counts = $service->scan([$this->category]);
-            $flags  = (int) array_sum($counts);
-        } catch (\Throwable $e) {
-            $error = mb_substr($e->getMessage(), 0, 300);
-            Log::error('Geodata scan category errored', [
-                'run_id' => $this->runId, 'category' => $this->category,
-                'message' => $e->getMessage(),
-            ]);
+            // DETECTOR RETRY (2026-08-05, the rescan cascade): one crash left
+            // the DB recovering for ~40s and every chained detector behind it
+            // fail-fasted a -1 into that window. A connection-class failure
+            // now waits out the recovery and RE-RUNS the detector — a crash
+            // costs one attempt, never the chain's tail.
+            for ($attempt = 1; $attempt <= 3; $attempt++) {
+                try {
+                    // MEMORY-BOUND the detector session (the OOM levers):
+                    // clamped work_mem spills to disk instead of ballooning a
+                    // backend, and ZERO parallel workers keeps it ONE backend
+                    // holding geometry transients, not N of them. The heavy
+                    // detectors are now pair/iso-chunked service-side
+                    // (2026-08-05), so each statement's peak is set by chunk
+                    // size, never geography. Session-scoped; RESET below —
+                    // horizon workers reuse connections across jobs.
+                    DB::statement("SET work_mem = '64MB'");
+                    DB::statement("SET max_parallel_workers_per_gather = 0");
+                    DB::statement("SET statement_timeout = '1800s'");
+                    $counts = $service->scan([$this->category]);
+                    $flags  = (int) array_sum($counts);
+                    $error  = null;
+                    break;
+                } catch (\Throwable $e) {
+                    $error = mb_substr($e->getMessage(), 0, 300);
+                    $connectionClass = str_contains($e->getMessage(), 'SQLSTATE[08')
+                        || str_contains($e->getMessage(), 'recovery mode')
+                        || str_contains($e->getMessage(), 'server closed the connection');
+                    if ($connectionClass && $attempt < 3) {
+                        Log::warning('Geodata scan category hit a dead/recovering connection — retrying', [
+                            'run_id' => $this->runId, 'category' => $this->category,
+                            'attempt' => $attempt,
+                        ]);
+                        sleep(30);
+                        try {
+                            DB::reconnect();
+                        } catch (\Throwable) {
+                            // still recovering — the next attempt reconnects
+                        }
+                        continue;
+                    }
+                    Log::error('Geodata scan category errored', [
+                        'run_id' => $this->runId, 'category' => $this->category,
+                        'message' => $e->getMessage(),
+                    ]);
+                    break;
+                }
+            }
         } finally {
             try {
                 DB::statement('RESET work_mem');

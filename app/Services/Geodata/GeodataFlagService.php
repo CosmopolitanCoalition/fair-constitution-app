@@ -377,22 +377,19 @@ class GeodataFlagService
     {
         [$isoSql, $bindings] = $this->isoClause('p.iso_code', $isoCodes, 'pisos');
 
-        $pairs = DB::select(
+        // TWO-STAGE, PAIR-CHUNKED (2026-08-05 — pg logged sig-9 kills of this
+        // query at 16:09 AND 17:50; the 2026-08-04 comment here itself said
+        // "this detector's memory is unbounded"). The finalize collapse's
+        // proven shape, applied to the detector:
+        //   Stage 1 — the pair ROSTER, GEOMETRY-FREE: the single-child CTE +
+        //   joins return ids/slugs/pops only (~13k tiny rows planet-wide).
+        //   Running it once avoids the 24x per-batch-CTE trap that got
+        //   iso-batching reverted (812c3ac).
+        //   Stage 2 — md5/area/symdiff verdicts in BOUNDED 250-pair chunks:
+        //   each statement detoasts ~250 pairs of geometry, no more, so peak
+        //   memory is set by the chunk size — never by geography.
+        $roster = DB::select(
             "
-            -- ISO-SARGABLE CTE (2026-08-04). This was the ONE detector whose
-            -- MATERIALIZED CTE had no iso filter: it built every
-            -- single-child parent on the planet before the outer query's
-            -- iso clause could apply. That is why iso-batching measured 24x
-            -- worse and was reverted (812c3ac) -- batching added overhead
-            -- while the CTE still did planet-scale work every time -- and
-            -- why this detector's memory is unbounded, since the outer query
-            -- then md5's ST_AsBinary of every candidate pair's geometry.
-            --
-            -- The filter joins to the PARENT and matches the outer query's
-            -- p.iso_code exactly, rather than filtering on the child's iso.
-            -- HAVING COUNT(*) = 1 is unaffected: every child of a parent
-            -- shares that parent, so the group is kept or dropped whole and
-            -- the single-child test cannot change meaning.
             WITH only_children AS MATERIALIZED (
                 SELECT c.parent_id AS pid, (array_agg(c.id))[1] AS cid
                 FROM jurisdictions c
@@ -406,28 +403,53 @@ class GeodataFlagService
             SELECT p.id::text AS parent_id, p.slug AS parent_slug, p.name AS parent_name,
                    p.iso_code AS parent_iso, COALESCE(p.population, 0) AS parent_pop,
                    c.id::text AS child_id, c.slug AS child_slug,
-                   COALESCE(c.population, 0) AS child_pop,
-                   (md5(ST_AsBinary(p.geom)) = md5(ST_AsBinary(c.geom))) AS md5_twin
+                   COALESCE(c.population, 0) AS child_pop
             FROM only_children oc
             JOIN jurisdictions p ON p.id = oc.pid
              AND " . $this->live('p') . "
             JOIN jurisdictions c ON c.id = oc.cid
             WHERE p.geom IS NOT NULL AND c.geom IS NOT NULL
               {$isoSql}
-              AND (CASE
-                     -- CASE forces evaluation order (PG does not guarantee OR/AND
-                     -- short-circuit): the ~3k md5 twins skip ST_SymDifference
-                     -- entirely, and the cheap area-ratio band gates the expensive
-                     -- symmetric difference for everything else.
-                     WHEN md5(ST_AsBinary(p.geom)) = md5(ST_AsBinary(c.geom)) THEN true
-                     WHEN (ST_Area(c.geom) / NULLIF(ST_Area(p.geom), 0)) BETWEEN 0.98 AND 1.02
-                          THEN ST_Area(ST_SymDifference(p.geom, c.geom))
-                               <= 0.01 * NULLIF(GREATEST(ST_Area(p.geom), ST_Area(c.geom)), 0)
-                     ELSE false
-                   END)
             ",
             $bindings
         );
+
+        $pairs = [];
+        foreach (array_chunk($roster, 250) as $chunk) {
+            $pids = $this->pgTextArray(array_map(fn ($r) => $r->parent_id, $chunk));
+            $verdicts = DB::select(
+                "
+                SELECT p.id::text AS parent_id,
+                       (md5(ST_AsBinary(p.geom)) = md5(ST_AsBinary(c.geom))) AS md5_twin,
+                       (CASE
+                          -- CASE forces evaluation order (PG does not guarantee
+                          -- OR/AND short-circuit): md5 twins skip
+                          -- ST_SymDifference entirely; the cheap area-ratio band
+                          -- gates the expensive symmetric difference.
+                          WHEN md5(ST_AsBinary(p.geom)) = md5(ST_AsBinary(c.geom)) THEN true
+                          WHEN (ST_Area(c.geom) / NULLIF(ST_Area(p.geom), 0)) BETWEEN 0.98 AND 1.02
+                               THEN ST_Area(ST_SymDifference(p.geom, c.geom))
+                                    <= 0.01 * NULLIF(GREATEST(ST_Area(p.geom), ST_Area(c.geom)), 0)
+                          ELSE false
+                        END) AS same_space
+                FROM jurisdictions p
+                JOIN jurisdictions c ON c.parent_id = p.id AND " . $this->live('c') . "
+                WHERE p.id = ANY(CAST(:pids AS uuid[]))
+                ",
+                ['pids' => $pids]
+            );
+            $verdictByParent = [];
+            foreach ($verdicts as $v) {
+                $verdictByParent[$v->parent_id] = $v;
+            }
+            foreach ($chunk as $r) {
+                $v = $verdictByParent[$r->parent_id] ?? null;
+                if ($v !== null && (bool) $v->same_space) {
+                    $r->md5_twin = (bool) $v->md5_twin;
+                    $pairs[] = $r;
+                }
+            }
+        }
 
         // Chain consecutive pairs (a.child = b.parent) into maximal runs.
         $byParent = [];
@@ -634,7 +656,10 @@ class GeodataFlagService
                 ->whereNotNull('iso_code')->where('adm_level', '>=', 2)
                 ->distinct()->orderBy('iso_code')->pluck('iso_code')->all();
             $rows = [];
-            foreach (array_chunk($isos, 8) as $batch) {
+            // Batch of ONE (2026-08-05: an 8-iso batch holding an IND-class
+            // member still detoasted enough parent geometry to get sig-9'd —
+            // pg log 17:49:51). Per-ISO is the bounded grain.
+            foreach (array_chunk($isos, 1) as $batch) {
                 $rows = array_merge(
                     $rows, $this->displacedRows($batch, $excludedArr, $limit));
                 if (count($rows) > self::DISPLACED_CAP) {
