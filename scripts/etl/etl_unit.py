@@ -521,6 +521,12 @@ def _resolve_iso_fanout(conn, run_id: str, log: logging.Logger):
             log.info("resolve: enumerated %d per-iso range items", len(isos))
 
         total = len(isos)
+        # Seed the coordinator's own lane with a real denominator so
+        # resolve_global reads "X / N countries" instead of an indeterminate
+        # pulse (bar_start in quiet mode primes the item bar's total; the
+        # bar_update calls below then tick it as children settle).
+        heartbeat.bar_start("resolve:isos", "resolving parent chains",
+                            total=total, unit="countries")
 
         def _settled() -> int:
             """Children finished by ANYONE — the coordinator and every free
@@ -537,7 +543,9 @@ def _resolve_iso_fanout(conn, run_id: str, log: logging.Logger):
             from import_geoboundaries import _resolve_orphans_for_iso
             iso = rng["iso_code"]
             try:
-                c = _resolve_orphans_for_iso(iso, log)
+                # bar_item_id = the child's own id (not resolve_global's) so the
+                # bar lands on the right lane even when the coordinator runs it.
+                c = _resolve_orphans_for_iso(iso, log, bar_item_id=rng["id"])
                 claims.record_outcome(conn, rng["id"], token, "done", metrics=c)
             except Exception as exc:
                 log.error("resolve %s failed: %s", iso, exc)
@@ -603,7 +611,9 @@ def do_resolve_range(conn, item: dict, log: logging.Logger) -> dict:
     """One country's orphan ladder — claimed by any free lane while the
     resolve coordinator holds the barrier."""
     from import_geoboundaries import _resolve_orphans_for_iso
-    return _resolve_orphans_for_iso(item["iso_code"], log)
+    # Pass our own item id so the ladder writes a live orphan-drain bar onto
+    # this lane — a giant like IND now shows a filling bar, not a dead slice.
+    return _resolve_orphans_for_iso(item["iso_code"], log, bar_item_id=item["id"])
 
 
 def _enumerate_attribution_pairs(conn, run_id: str, options: dict,

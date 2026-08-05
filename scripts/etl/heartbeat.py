@@ -121,6 +121,7 @@ _ITEM_THROTTLE_SEC = 2.0
 _item_conn = None
 _item_last_write = 0.0
 _item_bar_meta: dict = {}   # key → {label, unit, total}
+_item_bar_last_write: dict[str, float] = {}   # item_id → monotonic (write_item_bar throttle)
 
 
 def _item_progress(key: str, current: int, done: bool = False,
@@ -164,6 +165,63 @@ def _item_progress(key: str, current: int, done: bool = False,
     except Exception:
         # Never let progress cosmetics hurt the import; drop the connection
         # so the next call reconnects fresh.
+        try:
+            if _item_conn is not None:
+                _item_conn.close()
+        except Exception:
+            pass
+        _item_conn = None
+
+
+def write_item_bar(item_id: str, label: str, current: int, total: int,
+                   unit: str = "orphans", done: bool = False) -> None:
+    """Merge a live progress bar onto a SPECIFIC geodata item, addressed by id.
+
+    Unlike _item_progress (which targets the process-global CGA_ETL_ITEM_ID),
+    this writes to whatever item the caller names. The orphan-resolve ladder
+    needs that: a per-country resolve_range child may be run by its own free
+    lane (process item == the child) OR inline by the resolve coordinator
+    (process item == resolve_global). Writing by explicit id lands the bar on
+    the right row either way, so a giant like IND shows a filling bar instead
+    of a dead multi-minute slice.
+
+    Same shape the pull panel already renders (metrics.live → LaneStrip mini
+    bar). Throttled ~2 s per item; a `done` write bypasses the throttle so the
+    final value always lands. Best-effort — a progress-cosmetic failure must
+    never hurt the import, so every error is swallowed and the connection is
+    dropped for a fresh reconnect next call."""
+    global _item_conn
+    if not item_id:
+        return
+    now = time.monotonic()
+    if not done and (now - _item_bar_last_write.get(item_id, 0.0)) < _ITEM_THROTTLE_SEC:
+        return
+    try:
+        if _item_conn is None or getattr(_item_conn, "closed", 1):
+            from db import get_connection
+            _item_conn = get_connection()
+        payload = json.dumps({"live": {
+            "label":      label,
+            "current":    max(int(current or 0), 0),
+            "total":      max(int(total or 0), 0),
+            "unit":       unit or "orphans",
+            "done":       bool(done),
+            "updated_at": now_iso(),
+        }})
+        with _item_conn.cursor() as cur:
+            # MERGE (||), never replace: a resolve item's own metrics may hold
+            # fields the outcome writer expects — clobbering them broke re-claim
+            # elsewhere (the range-window lesson).
+            cur.execute(
+                "UPDATE geodata_items "
+                "SET metrics = COALESCE(metrics, '{}'::jsonb) || %s::jsonb, "
+                "    updated_at = now() "
+                "WHERE id = %s AND status = 'running'",
+                (payload, item_id),
+            )
+        _item_conn.commit()
+        _item_bar_last_write[item_id] = now
+    except Exception:
         try:
             if _item_conn is not None:
                 _item_conn.close()

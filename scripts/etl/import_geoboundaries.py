@@ -809,6 +809,7 @@ def _resolve_orphans_at_level_via_strategy(
     iso_filter: str | None = None,
     stats: dict | None = None,
     log: logging.Logger | None = None,
+    progress_cb=None,        # called per committed chunk with orphans placed this chunk
 ) -> tuple[int, int]:
     """
     Chunked, per-chunk-committed UPDATE that re-resolves orphans at the
@@ -991,6 +992,7 @@ def _resolve_orphans_at_level_via_strategy(
     batch     = max(_RESOLVE_BATCH_FLOOR, min(_RESOLVE_BATCH_SEED, len(orphan_ids)))
     done      = 0
     skipped   = 0
+    placed_prev = 0     # for the per-chunk progress delta fed to progress_cb
     started   = time.time()
 
     while done < len(orphan_ids):
@@ -1039,6 +1041,15 @@ def _resolve_orphans_at_level_via_strategy(
             batch = max(_RESOLVE_BATCH_FLOOR, batch // 2)
 
         placed = sum(tally.values())
+        # Live bar: feed THIS chunk's newly-parented orphans to the caller so a
+        # per-country ladder can climb a metrics.live bar as each chunk commits
+        # (the whole point — the drain is now visible, not a dead slice).
+        if progress_cb is not None:
+            try:
+                progress_cb(placed - placed_prev)
+            except Exception:
+                pass
+            placed_prev = placed
         lg.info(
             "%s L%d %s: %d/%d orphans · %d placed · %d skipped · "
             "chunk=%d took %.1fs · %.0fs elapsed",
@@ -1062,7 +1073,8 @@ def _resolve_orphans_at_level_via_strategy(
     return (0, 0)
 
 
-def _resolve_orphans_for_iso(iso: str, log: logging.Logger) -> dict:
+def _resolve_orphans_for_iso(iso: str, log: logging.Logger,
+                             bar_item_id: str | None = None) -> dict:
     """One country's slice of the orphan-resolution ladder, levels 2-6 in
     strict order (a level's newly-resolved rows are valid parents for the
     next level DOWN, same-iso chaining) — but nothing else in the ladder
@@ -1074,10 +1086,44 @@ def _resolve_orphans_for_iso(iso: str, log: logging.Logger) -> dict:
     only from here — no lock contention, disjoint iso_code on the write
     side). Returns the same per-strategy counts the old whole-planet loop
     returned, just for this one country.
+
+    bar_item_id (pull engine): the resolve_range child item this ladder is
+    fulfilling. When set, the ladder writes a live orphan-drain bar onto that
+    item (metrics.live) so the panel renders a filling per-country bar with an
+    honest ETA — the fix for a giant like IND reading as a dead 35-minute
+    slice. Left None on the legacy threaded post-pass, where many isos share
+    one process and no single item owns the bar.
     """
     counts = {"direct": 0, "skip_ancestor": 0, "buffered": 0,
               "topological": 0, "cross_iso_topological": 0, "timed_out": 0}
     conn = get_connection()
+
+    # ── Live orphan-drain bar for this country (pull engine only). total =
+    # the country's orphan count at resolve start; current climbs as chunks
+    # commit. Residue (unplaceable islets) legitimately leaves current < total
+    # — the bar stops short rather than fabricating 100 %. Written by explicit
+    # item id so it lands correctly whether a free lane or the coordinator runs
+    # this ladder. ──
+    iso_total = 0
+    placed_total = [0]
+    bar_cb = None
+    if bar_item_id:
+        try:
+            with get_cursor(conn) as cur:
+                cur.execute(
+                    "SELECT COUNT(*) AS n FROM jurisdictions "
+                    "WHERE parent_id IS NULL AND adm_level BETWEEN 2 AND 6 "
+                    "AND deleted_at IS NULL AND iso_code = %s", (iso,))
+                iso_total = int(cur.fetchone()["n"])
+            heartbeat.write_item_bar(bar_item_id, f"reparenting {iso} orphans",
+                                     0, iso_total, unit="orphans")
+        except Exception:
+            iso_total = 0
+
+        def bar_cb(delta):
+            placed_total[0] += max(0, int(delta or 0))
+            heartbeat.write_item_bar(bar_item_id, f"reparenting {iso} orphans",
+                                     placed_total[0], iso_total, unit="orphans")
 
     # THE STRATEGY TIME BUDGET (2026-08-03, operator: "the code can't allow
     # this to hold up the rest of the process"). Caught live: IND's L6 ladder
@@ -1094,7 +1140,8 @@ def _resolve_orphans_for_iso(iso: str, log: logging.Logger) -> dict:
     def _pass(level: int, strategy: str) -> tuple[int, int]:
         try:
             r = _resolve_orphans_at_level_via_strategy(
-                conn, level, strategy, iso_filter=iso, stats=counts, log=log)
+                conn, level, strategy, iso_filter=iso, stats=counts, log=log,
+                progress_cb=bar_cb)
             conn.commit()
             return r
         except psycopg2.errors.QueryCanceled:
@@ -1137,6 +1184,16 @@ def _resolve_orphans_for_iso(iso: str, log: logging.Logger) -> dict:
             counts["topological"]           += n_topo
             counts["cross_iso_topological"] += n_cross
     finally:
+        # Land the bar's final value (honest: current == orphans actually
+        # placed, so residue shows as a bar that stops short of full). done=True
+        # bypasses the throttle so the last value always reaches the panel.
+        if bar_item_id:
+            try:
+                heartbeat.write_item_bar(bar_item_id, f"reparenting {iso} orphans",
+                                         placed_total[0], iso_total,
+                                         unit="orphans", done=True)
+            except Exception:
+                pass
         conn.close()
     return counts
 
