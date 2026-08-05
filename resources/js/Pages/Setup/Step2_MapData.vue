@@ -82,6 +82,28 @@ const pullRun = ref(null)
 // health and its findings are the flag list directly below it.
 const scanState = ref(null)
 const pullRunActive = computed(() => pullRun.value && ['running', 'halted'].includes(pullRun.value.status))
+
+// ─── Rewind control (operator, 2026-08-05) — fused into the start button.
+// "Fresh run" is the only choice until phases complete; each completed phase
+// unlocks its rewind point. Rewinding resets that point + everything
+// downstream and moves forward from there — no fresh ingestion to test a fix.
+const rewindTarget = ref('fresh')
+const REWIND_OPTS = [
+    { v: 'fresh',              t: 'Fresh run',                    need: null },
+    { v: 'boundaries_rasters', t: 'Re-run boundaries + rasters',  need: ['boundaries', 'rasters'] },
+    { v: 'boundaries',         t: 'Re-run boundaries',            need: ['boundaries'] },
+    { v: 'rasters',            t: 'Re-run rasters',               need: ['rasters'] },
+    { v: 'resolve_attribute',  t: 'Re-resolve + attribute',       need: ['resolving', 'attribution'] },
+    { v: 'resolve',            t: 'Re-resolve',                   need: ['resolving'] },
+    { v: 'attribute',          t: 'Re-attribute',                 need: ['attribution'] },
+    { v: 'scan',               t: 'Re-scan',                      need: ['scanning'] },
+]
+const phaseComplete = (k) => !!(pullRun.value?.phase_timestamps?.[k]?.finished_at)
+const rewindOptions = computed(() => REWIND_OPTS.map(o => ({
+    ...o,
+    enabled: o.v === 'fresh'
+        || (!pullRunActive.value && (o.need ?? []).every(phaseComplete)),
+})))
 const optFresh            = ref(false)
 const optSkipPopulation   = ref(false)
 // Renamed from optStopOnException — the new pause-and-ask behaviour replaces
@@ -384,6 +406,23 @@ async function submitRun() {
         // GeodataPullPanel below is the live dashboard. Legacy-only options
         // (fresh / skip-population / pause-on-exception) don't apply.
         if (enginePull.value) {
+            // Rewind path: a completed phase re-runs IN PLACE (items reset +
+            // downstream, pointer rewound) instead of a fresh ingestion.
+            if (rewindTarget.value !== 'fresh') {
+                const rw = await csrfFetch('/api/setup/wizard/step2/pull-control', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ action: 'rewind', target: rewindTarget.value }),
+                })
+                const rwData = await rw.json().catch(() => ({}))
+                if (!rw.ok) {
+                    submitError.value = rwData.error || `Rewind failed (HTTP ${rw.status}).`
+                    return
+                }
+                rewindTarget.value = 'fresh'
+                pullPanel.value?.fetchProgress?.()
+                return
+            }
             const res = await csrfFetch('/api/setup/wizard/step2/pull-start', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
@@ -601,7 +640,10 @@ const startButtonLabel = computed(() => {
     if (submitting.value) return 'Submitting…'
     if (isRunning.value)  return 'Run in progress…'
     if (source.value === 'download') return 'Download + Ingest'
-    if (enginePull.value) return 'Start Multithreaded Ingestion'
+    if (enginePull.value) {
+        return rewindTarget.value === 'fresh'
+            ? 'Start Multithreaded Ingestion' : 'Rewind & Re-run'
+    }
     return 'Start ETL Run'
 })
 
@@ -1053,10 +1095,21 @@ onBeforeUnmount(() => {
                     </p>
                     <div class="flex items-center gap-3 shrink-0">
                         <span v-if="submitError" class="text-red-400 text-sm">{{ submitError }}</span>
+                        <select
+                            v-if="enginePull"
+                            v-model="rewindTarget"
+                            :disabled="submitting"
+                            class="bg-gray-800 border border-gray-700 text-gray-200 text-sm rounded-md px-3 py-2"
+                            aria-label="Run mode — fresh run or rewind to a completed phase"
+                        >
+                            <option v-for="o in rewindOptions" :key="o.v" :value="o.v" :disabled="!o.enabled">
+                                {{ o.t }}
+                            </option>
+                        </select>
                         <button
                             type="button"
                             @click="submitRun"
-                            :disabled="runOptionsDisabled"
+                            :disabled="rewindTarget === 'fresh' ? runOptionsDisabled : submitting"
                             class="bg-blue-600 hover:bg-blue-500 disabled:bg-gray-700 text-white px-5 py-2 rounded-md font-semibold transition-colors"
                         >
                             {{ startButtonLabel }}

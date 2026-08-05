@@ -1610,35 +1610,81 @@ class SetupController extends Controller
             // review_retry / review_continue added 2026-08-05: when a GROUP's
             // one automatic half-lane retry cannot clear its review residue,
             // the pump holds and hands the decision here (see reviewGateHolds).
-            'action' => ['required', Rule::in(['halt', 'resume', 'review_retry', 'review_continue', 'rescan'])],
+            'action' => ['required', Rule::in(['halt', 'resume', 'review_retry', 'review_continue', 'rescan', 'rewind'])],
             'group'  => ['nullable', Rule::in(['ingest', 'derive'])],
+            'target' => ['nullable', Rule::in(['scan', 'resolve', 'attribute', 'resolve_attribute',
+                                              'boundaries', 'rasters', 'boundaries_rasters'])],
         ]);
 
-        // RESCAN (operator order 2026-08-05): re-run the acceptance scan IN
-        // PLACE against the already-loaded planet — no full ingestion needed
-        // to field-test detector fixes. Targets the LATEST run even when done
-        // (unfinished() below would 409). Resets the scan item (scan keys
-        // stripped, window metrics kept), rewinds the run to scanning, and
-        // dispatches the chained scan job; when the sixth detector lands the
-        // pump advances the run back to done. Acceptance stays available
-        // throughout — the scan is advisory, never a gate.
-        if ($data['action'] === 'rescan') {
-            $run = \App\Models\GeodataRun::query()->orderByDesc('created_at')->first();
-            if ($run === null || ! in_array($run->phase, ['scanning', 'done'], true)) {
-                return response()->json(['error' => 'No completed run to rescan.'], 409);
+        // REWIND (operator order 2026-08-05): re-run any completed phase IN
+        // PLACE against the already-loaded planet — no fresh ingestion to
+        // field-test a fix. The clock rewinds to the chosen point and moves
+        // forward: the target's items reset to pending, its RANGE children
+        // are deleted (their coordinators re-enumerate them idempotently),
+        // and everything strictly DOWNSTREAM resets with it. Paired phases
+        // (boundaries/rasters, resolve/attribution) rewind independently or
+        // together — rewinding one sibling never touches the other. All the
+        // per-item work is idempotent by the engine's crash-safety contract
+        // (ON CONFLICT / DELETE-first / versioned), so a re-run lands the
+        // same planet. 'rescan' is the scan-only alias. Acceptance stays
+        // available throughout — the scan is advisory, never a gate.
+        if (in_array($data['action'], ['rescan', 'rewind'], true)) {
+            $target = $data['action'] === 'rescan' ? 'scan' : ($data['target'] ?? null);
+            if ($target === null) {
+                return response()->json(['error' => 'rewind requires a target.'], 422);
             }
-            DB::table('geodata_items')
-                ->where('run_id', $run->id)->where('kind', 'acceptance_scan')
-                ->update([
-                    'status' => 'pending', 'started_at' => null, 'finished_at' => null,
-                    'reason' => null, 'claim_token' => null,
-                    'metrics' => DB::raw("COALESCE(metrics, '{}'::jsonb) - 'cats' - 'cat_started' - 'cat_errors' - 'scan_started' - 'elapsed' - 'parallel' - 'live'"),
+            $run = \App\Models\GeodataRun::query()->orderByDesc('created_at')->first();
+            if ($run === null || ! ($run->status === 'done' || $run->phase === 'scanning')) {
+                return response()->json(['error' => 'No completed run to rewind.'], 409);
+            }
+            // [reset parent kinds, delete child kinds, rewind phase pointer]
+            $derivDel = ['resolve_range', 'attribution_pair', 'attribution_range', 'attribution_decompose'];
+            $plan = [
+                'scan'               => [['acceptance_scan'], [], 'scanning'],
+                'attribute'          => [['attribution_pair', 'finalize_global', 'acceptance_scan'],
+                                         ['attribution_range', 'attribution_decompose'], 'attribution'],
+                'resolve'            => [['resolve_global', 'finalize_global', 'acceptance_scan'],
+                                         ['resolve_range'], 'resolving'],
+                'resolve_attribute'  => [['resolve_global', 'attribution_pair', 'finalize_global', 'acceptance_scan'],
+                                         ['resolve_range', 'attribution_range', 'attribution_decompose'], 'resolving'],
+                'boundaries'         => [['boundary_iso', 'resolve_global', 'finalize_global', 'acceptance_scan'],
+                                         array_merge(['boundary_range'], $derivDel), 'boundaries'],
+                'rasters'            => [['raster_iso', 'resolve_global', 'finalize_global', 'acceptance_scan'],
+                                         array_merge(['raster_range'], $derivDel), 'rasters'],
+                'boundaries_rasters' => [['boundary_iso', 'raster_iso', 'resolve_global', 'finalize_global', 'acceptance_scan'],
+                                         array_merge(['boundary_range', 'raster_range'], $derivDel), 'boundaries'],
+            ];
+            [$resetKinds, $deleteKinds, $phase] = $plan[$target];
+            if ($deleteKinds !== []) {
+                DB::table('geodata_items')->where('run_id', $run->id)
+                    ->whereIn('kind', $deleteKinds)->delete();
+            }
+            DB::table('geodata_items')->where('run_id', $run->id)
+                ->whereIn('kind', $resetKinds)->update([
+                    'status' => 'pending', 'claim_token' => null, 'started_at' => null,
+                    'finished_at' => null, 'reason' => null, 'metrics' => null,
                     'updated_at' => now(),
                 ]);
-            $run->forceFill(['phase' => 'scanning', 'status' => 'running', 'updated_at' => now()])->save();
-            \App\Jobs\GeodataAcceptanceScanJob::dispatch((string) $run->id);
+            // The clock: drop timestamps for the rewound phase and everything
+            // after it; clear the review markers the rewind invalidates.
+            $order  = \App\Models\GeodataRun::PHASES;
+            $stamps = $run->phase_timestamps ?? [];
+            foreach (array_slice($order, (int) array_search($phase, $order, true)) as $p) {
+                unset($stamps[$p]);
+            }
+            foreach (['_review_pass', '_review_hold', '_accepted'] as $k) {
+                unset($stamps[$k]['derive']);
+                if (in_array($target, ['boundaries', 'rasters', 'boundaries_rasters'], true)) {
+                    unset($stamps[$k]['ingest']);
+                }
+            }
+            $run->forceFill(['phase' => $phase, 'status' => 'running', 'review_pass' => null,
+                             'phase_timestamps' => $stamps, 'updated_at' => now()])->save();
+            if ($target === 'scan') {
+                \App\Jobs\GeodataAcceptanceScanJob::dispatch((string) $run->id);
+            }
 
-            return response()->json(['ok' => true, 'rescanning' => true]);
+            return response()->json(['ok' => true, 'rewound_to' => $phase]);
         }
 
         $run  = \App\Models\GeodataRun::unfinished();
