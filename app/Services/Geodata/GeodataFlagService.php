@@ -619,10 +619,67 @@ class GeodataFlagService
         }
         $excludedArr = $this->pgTextArray(array_keys($excluded));
 
-        [$isoSql, $isoBindings] = $this->isoClause('c.iso_code', $isoCodes, 'cisos');
         $limit = self::DISPLACED_CAP + 1; // +1 to detect truncation
 
-        $rows = DB::select(
+        // ISO-SARGABLE WALK (2026-08-05, run 019fd200): this was the LAST
+        // detector able to OOM postgres single-handed — the scored CTE
+        // materializes ST_Intersection for EVERY centroid-outside pair, and
+        // planet-wide in one statement that transient crashed the DB into
+        // recovery even running ALONE on the chained scan. Same rework
+        // same_space_chain received 2026-08-04: bound the INPUT — a planet
+        // scan walks iso batches as separate bounded statements, cap applied
+        // across the walk. A LIMIT does not bound a planet-wide join.
+        if ($isoCodes === null) {
+            $isos = DB::table('jurisdictions')->whereNull('deleted_at')
+                ->whereNotNull('iso_code')->where('adm_level', '>=', 2)
+                ->distinct()->orderBy('iso_code')->pluck('iso_code')->all();
+            $rows = [];
+            foreach (array_chunk($isos, 8) as $batch) {
+                $rows = array_merge(
+                    $rows, $this->displacedRows($batch, $excludedArr, $limit));
+                if (count($rows) > self::DISPLACED_CAP) {
+                    break;               // cap hit — later batches cannot add
+                }
+            }
+        } else {
+            $rows = $this->displacedRows($isoCodes, $excludedArr, $limit);
+        }
+        $truncated = count($rows) > self::DISPLACED_CAP;
+        if ($truncated) {
+            $rows = array_slice($rows, 0, self::DISPLACED_CAP);
+        }
+
+        $findings = [];
+        foreach ($rows as $row) {
+            $payload = [
+                'iso'               => $row->iso_code,
+                'slug'              => $row->slug,
+                'overlap_ratio'     => round((float) $row->overlap_ratio, 4),
+                'parent_slug'       => $row->parent_slug,
+                'candidate_parents' => json_decode($row->candidates ?? '[]', true) ?: [],
+            ];
+            if ($truncated) {
+                $payload['note'] = 'scan capped at ' . self::DISPLACED_CAP . ' displaced_geometry flags — more exist; rescan after repairs';
+            }
+            $findings[] = [
+                'severity'         => 'warning',
+                'jurisdiction_id'  => $row->jurisdiction_id,
+                'title'            => "\"{$row->name}\" lies outside its parent {$row->parent_slug}",
+                'suggested_action' => 'reparent',
+                'fingerprint'      => $this->fingerprint('displaced_geometry', [$row->slug], (string) $row->parent_slug),
+                'payload'          => $payload,
+            ];
+        }
+
+        return $findings;
+    }
+
+    /** One bounded displaced_geometry batch — see the iso-sargable walk above. */
+    private function displacedRows(array $isoCodes, string $excludedArr, int $limit): array
+    {
+        [$isoSql, $isoBindings] = $this->isoClause('c.iso_code', $isoCodes, 'cisos');
+
+        return DB::select(
             "
             WITH pre AS MATERIALIZED (
                 SELECT c.id AS child_id, c.parent_id
@@ -668,35 +725,6 @@ class GeodataFlagService
             ",
             array_merge($isoBindings, ['excluded' => $excludedArr])
         );
-
-        $truncated = count($rows) > self::DISPLACED_CAP;
-        if ($truncated) {
-            $rows = array_slice($rows, 0, self::DISPLACED_CAP);
-        }
-
-        $findings = [];
-        foreach ($rows as $row) {
-            $payload = [
-                'iso'               => $row->iso_code,
-                'slug'              => $row->slug,
-                'overlap_ratio'     => round((float) $row->overlap_ratio, 4),
-                'parent_slug'       => $row->parent_slug,
-                'candidate_parents' => json_decode($row->candidates ?? '[]', true) ?: [],
-            ];
-            if ($truncated) {
-                $payload['note'] = 'scan capped at ' . self::DISPLACED_CAP . ' displaced_geometry flags — more exist; rescan after repairs';
-            }
-            $findings[] = [
-                'severity'         => 'warning',
-                'jurisdiction_id'  => $row->jurisdiction_id,
-                'title'            => "\"{$row->name}\" lies outside its parent {$row->parent_slug}",
-                'suggested_action' => 'reparent',
-                'fingerprint'      => $this->fingerprint('displaced_geometry', [$row->slug], (string) $row->parent_slug),
-                'payload'          => $payload,
-            ];
-        }
-
-        return $findings;
     }
 
     // ─── Detector 6: orphaned_rows ───────────────────────────────────────────

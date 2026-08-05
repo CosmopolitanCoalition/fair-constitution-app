@@ -241,6 +241,15 @@ class GeodataScanCategoryJob implements ShouldQueue
                 $errors[$cat] = 'detector recorded -1 (errored) with no cat_errors entry';
             }
         }
+        // A retried category that SUCCEEDED leaves its attempt-1 error entry
+        // behind (run 019fd200: same_space landed 639 flags on attempt 2 yet
+        // still closed the scan as review). Only a cat whose RESULT is -1 is
+        // an error; stale entries for landed cats drop.
+        $errors = array_filter(
+            $errors,
+            fn ($msg, $cat) => (int) ($m['cats'][$cat] ?? -1) < 0,
+            ARRAY_FILTER_USE_BOTH,
+        );
         $elapsed = isset($m['scan_started'])
             ? round(microtime(true) - (float) $m['scan_started'], 1)
             : null;
