@@ -411,6 +411,16 @@ onBeforeUnmount(() => {
                 >
                     Resume
                 </button>
+                <!-- Re-run the acceptance scan in place (operator, 2026-08-05):
+                     field-test detector fixes against the loaded planet without
+                     a full ingestion. Acceptance stays available throughout. -->
+                <button
+                    v-if="run.status === 'done'"
+                    type="button" :disabled="actionBusy" @click="control('rescan')"
+                    class="text-xs px-3 py-1.5 rounded border border-sky-700 text-sky-300 hover:bg-sky-900/40 disabled:opacity-50"
+                >
+                    Re-run scan
+                </button>
             </div>
         </div>
 

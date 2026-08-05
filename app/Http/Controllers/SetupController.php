@@ -1610,9 +1610,37 @@ class SetupController extends Controller
             // review_retry / review_continue added 2026-08-05: when a GROUP's
             // one automatic half-lane retry cannot clear its review residue,
             // the pump holds and hands the decision here (see reviewGateHolds).
-            'action' => ['required', Rule::in(['halt', 'resume', 'review_retry', 'review_continue'])],
+            'action' => ['required', Rule::in(['halt', 'resume', 'review_retry', 'review_continue', 'rescan'])],
             'group'  => ['nullable', Rule::in(['ingest', 'derive'])],
         ]);
+
+        // RESCAN (operator order 2026-08-05): re-run the acceptance scan IN
+        // PLACE against the already-loaded planet — no full ingestion needed
+        // to field-test detector fixes. Targets the LATEST run even when done
+        // (unfinished() below would 409). Resets the scan item (scan keys
+        // stripped, window metrics kept), rewinds the run to scanning, and
+        // dispatches the chained scan job; when the sixth detector lands the
+        // pump advances the run back to done. Acceptance stays available
+        // throughout — the scan is advisory, never a gate.
+        if ($data['action'] === 'rescan') {
+            $run = \App\Models\GeodataRun::query()->orderByDesc('created_at')->first();
+            if ($run === null || ! in_array($run->phase, ['scanning', 'done'], true)) {
+                return response()->json(['error' => 'No completed run to rescan.'], 409);
+            }
+            DB::table('geodata_items')
+                ->where('run_id', $run->id)->where('kind', 'acceptance_scan')
+                ->update([
+                    'status' => 'pending', 'started_at' => null, 'finished_at' => null,
+                    'reason' => null, 'claim_token' => null,
+                    'metrics' => DB::raw("COALESCE(metrics, '{}'::jsonb) - 'cats' - 'cat_started' - 'cat_errors' - 'scan_started' - 'elapsed' - 'parallel' - 'live'"),
+                    'updated_at' => now(),
+                ]);
+            $run->forceFill(['phase' => 'scanning', 'status' => 'running', 'updated_at' => now()])->save();
+            \App\Jobs\GeodataAcceptanceScanJob::dispatch((string) $run->id);
+
+            return response()->json(['ok' => true, 'rescanning' => true]);
+        }
+
         $run  = \App\Models\GeodataRun::unfinished();
         if ($run === null) {
             return response()->json(['error' => 'No active geodata run.'], 409);
