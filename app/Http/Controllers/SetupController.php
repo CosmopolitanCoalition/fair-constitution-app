@@ -1366,7 +1366,30 @@ class SetupController extends Controller
                       'geodata_runs', 'worldpop_rasters', 'geoboundary_metadata'] as $t) {
                 DB::statement("TRUNCATE TABLE {$t} CASCADE");
             }
-            DB::statement('TRUNCATE TABLE jurisdictions CASCADE');
+            // THE DOCKET RAIL FORBIDS TRUNCATE (caught live 2026-08-05:
+            // TRUNCATE jurisdictions CASCADE reaches case_filings, whose
+            // append-only trigger RAISEs even on an empty table — "nothing
+            // argued in open court is sealed retroactively"). The rail is
+            // LAW; the channel changes: chunked row DELETEs. Empty civic
+            // tables cascade zero rows; a world holding real filings fails
+            // loudly, which is correct — and the accepted-map gate above
+            // already refuses such worlds. Deepest level first for the
+            // self-referencing parent FK; known row-holders first.
+            foreach (['residency_confirmations', 'location_pings',
+                      'constitutional_settings'] as $t) {
+                do {
+                    $n = DB::delete(
+                        "DELETE FROM {$t} WHERE ctid IN (SELECT ctid FROM {$t} LIMIT 50000)");
+                } while ($n > 0);
+            }
+            for ($level = 6; $level >= 0; $level--) {
+                do {
+                    $n = DB::delete(
+                        'DELETE FROM jurisdictions WHERE id IN
+                           (SELECT id FROM jurisdictions WHERE adm_level = ? LIMIT 20000)',
+                        [$level]);
+                } while ($n > 0);
+            }
             Log::info('geodata pull-start: FRESH purge complete — planet rebuilds from source');
         }
 
