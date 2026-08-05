@@ -241,10 +241,21 @@ const earthPopulation = computed(() => {
 
 // A bubble is current if any of its phases is, done only when all are.
 function groupState(group) {
+    // A held group outranks every other state — it is where the run is
+    // WAITING on the operator, and it must never read as done (the bug that
+    // let "Boundaries ✓" show while Canada was still in review).
+    if (groupHeld(group)) return 'held'
     const states = group.map(p => chipState(p))
     if (states.includes('current')) return 'current'
     if (states.every(s => s === 'done')) return 'done'
     return 'pending'
+}
+
+// True when this bubble contains the phase the run is holding on for operator
+// review — drives the amber "review" styling on the breadcrumb.
+function groupHeld(group) {
+    const held = run.value?.review_hold?.phase
+    return held != null && group.some(p => p.key === held)
 }
 
 // ONE timer per bubble, at its end (operator, 2026-08-03): earliest member
@@ -331,13 +342,13 @@ async function fetchProgress() {
     }
 }
 
-async function control(action) {
+async function control(action, phase = null) {
     actionBusy.value = true
     try {
         const res = await csrfFetch('/api/setup/wizard/step2/pull-control', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ action }),
+            body: JSON.stringify(phase ? { action, phase } : { action }),
         })
         if (!res.ok) {
             const d = await res.json().catch(() => ({}))
@@ -400,6 +411,41 @@ onBeforeUnmount(() => {
         <p v-if="error" class="text-red-400 text-xs mb-3">{{ error }}</p>
         <p v-if="run.last_error" class="text-amber-400/80 text-xs mb-3">{{ run.last_error }}</p>
 
+        <!-- NEEDS-OPERATOR review hold. The phase's one automatic half-lane
+             retry could not clear its review residue, so the run holds HERE
+             rather than advancing over it (that early advance is what stranded
+             Canada and deadlocked resolve). The operator decides: Retry runs
+             another half-lane pass; Continue accepts the residue and lets the
+             next phase begin. -->
+        <div v-if="run.review_hold"
+             class="mb-4 rounded-lg border border-amber-600/70 bg-amber-950/40 px-4 py-3">
+            <div class="flex items-start justify-between gap-4 flex-wrap">
+                <div class="text-sm text-amber-100">
+                    <span class="font-semibold">Review needs your call — {{ run.review_hold.phase }}.</span>
+                    Its automatic half-lane retry left
+                    <span class="font-semibold">{{ run.review_hold.unresolved }}</span>
+                    item{{ run.review_hold.unresolved === 1 ? '' : 's' }} unresolved.
+                    The run is holding here — the next phase will not start until you decide.
+                    <span class="block text-amber-300/80 text-xs mt-1">
+                        A giant like Canada usually clears on a retry once it runs alone. If it keeps
+                        failing, Continue accepts it as a flagged item and moves on.
+                    </span>
+                </div>
+                <div class="flex gap-2 shrink-0">
+                    <button type="button" :disabled="actionBusy"
+                            @click="control('review_retry', run.review_hold.phase)"
+                            class="text-xs px-3 py-1.5 rounded border border-sky-600 text-sky-200 hover:bg-sky-900/40 disabled:opacity-50">
+                        Retry (half lanes)
+                    </button>
+                    <button type="button" :disabled="actionBusy"
+                            @click="control('review_continue', run.review_hold.phase)"
+                            class="text-xs px-3 py-1.5 rounded border border-amber-500 bg-amber-900/40 text-amber-100 hover:bg-amber-900/70 disabled:opacity-50">
+                        Continue anyway →
+                    </button>
+                </div>
+            </div>
+        </div>
+
         <!-- Phase pipeline — one bubble per dependency stage:
              Enumerate => [Boundaries + Rasters] => [Resolve + Attribution] => Finalize => Scan -->
         <ol class="flex flex-wrap items-center gap-1.5 mb-5" aria-label="Pipeline phases">
@@ -407,6 +453,7 @@ onBeforeUnmount(() => {
                 <li
                     class="flex items-center gap-1.5 text-xs px-2.5 py-1 rounded-full border"
                     :class="{
+                        'border-amber-500 bg-amber-900/40 text-amber-200': groupState(group) === 'held',
                         'border-emerald-800 bg-emerald-900/30 text-emerald-300': groupState(group) === 'done',
                         'border-sky-700 bg-sky-900/40 text-sky-200': groupState(group) === 'current',
                         'border-gray-800 text-gray-500': groupState(group) === 'pending',
@@ -416,14 +463,19 @@ onBeforeUnmount(() => {
                         <span v-if="pi > 0" class="opacity-50" aria-hidden="true">+</span>
                         <span class="flex items-center gap-1"
                               :class="{
-                                  'text-emerald-300': chipState(p) === 'done' && groupState(group) !== 'done',
-                                  'font-semibold': chipState(p) === 'current',
+                                  'text-emerald-300': chipState(p) === 'done' && groupState(group) === 'done',
+                                  'font-semibold': chipState(p) === 'current' || groupState(group) === 'held',
                                   'opacity-60': chipState(p) === 'pending' && groupState(group) === 'current',
                               }">
-                            <span v-if="chipState(p) === 'done'" aria-hidden="true">✓</span>
+                            <!-- No ✓ while the group is HELD: the phase is not
+                                 done, it is waiting on review (the old ✓-while-
+                                 unresolved is exactly the lie the operator hit). -->
+                            <span v-if="chipState(p) === 'done' && groupState(group) !== 'held'" aria-hidden="true">✓</span>
                             {{ p.label }}
                         </span>
                     </template>
+                    <span v-if="groupState(group) === 'held'"
+                          class="text-[10px] font-semibold uppercase tracking-wide">⚑ review</span>
                     <span v-if="groupElapsed(group)" class="text-[10px] opacity-70">{{ groupElapsed(group) }}</span>
                 </li>
                 <li v-if="gi < GROUPS.length - 1" class="text-gray-700 text-xs" aria-hidden="true">⇒</li>

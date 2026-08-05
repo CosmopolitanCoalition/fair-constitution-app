@@ -192,7 +192,8 @@ class GeodataPumpCommand extends Command
         return self::SUCCESS;
     }
 
-    /** Item kinds belonging to each review-pass stage. */
+    /** Item kinds belonging to each review-pass stage (kept for
+     *  GeodataRequeueCommand compat). The pump's own gate is per-PHASE below. */
     private const REVIEW_STAGES = [
         'ingest' => ['boundary_iso', 'boundary_range', 'raster_iso', 'raster_range'],
         'derive' => ['resolve_global', 'resolve_range', 'attribution_pair',
@@ -200,53 +201,97 @@ class GeodataPumpCommand extends Command
     ];
 
     /**
-     * THE REVIEW-CLEARING PASS (operator, 2026-08-03).
-     *
-     * A stage that finishes its mainline work but leaves review/failed items
-     * behind gets ONE automatic retry at HALF LANES before the run moves on.
-     * Half, because the commonest cause of these reviews is memory
-     * co-residency (exit -9) — retrying at full width reproduces the kill,
-     * while a thinner field is the fix that already works by hand.
-     *
-     * Returns true when a pass is ACTIVE (mainline must not advance).
+     * The item kinds whose settled-state GATES advancing OUT of each phase.
+     * A phase holds until every one of these is `done` — NOT merely `review`
+     * or `failed` — or the operator accepts the residue. This is the barrier
+     * the resolve deadlock needed: the phase pointer is the only thing that
+     * makes resolve_global claimable, so holding boundaries here is exactly
+     * "resolve does not start until boundaries are review-cleared or accepted"
+     * (operator, 2026-08-05). Empty for phases with no review (enumerating,
+     * finalizing, scanning) — those advance the moment their pool drains.
      */
-    private function reviewPass(GeodataRun $run): bool
+    private function phaseGateKinds(string $phase): array
     {
-        // An active pass blocks advance until its requeued items settle.
-        if ($run->review_pass !== null) {
-            $stage = $run->review_pass;
-            $open = DB::table('geodata_items')->where('run_id', $run->id)
-                ->whereIn('kind', self::REVIEW_STAGES[$stage] ?? [])
-                ->whereIn('status', ['pending', 'running'])->exists();
-            if ($open) {
-                return true;   // retry still running — hold at half lanes
+        return match ($phase) {
+            'boundaries'  => ['boundary_iso', 'boundary_range'],
+            'resolving'   => ['resolve_global', 'resolve_range'],
+            'rasters'     => ['raster_iso', 'raster_range'],
+            'attribution' => ['attribution_pair', 'attribution_decompose', 'attribution_range'],
+            default       => [],
+        };
+    }
+
+    /**
+     * THE PER-PHASE REVIEW GATE (operator, 2026-08-03 → rebuilt 2026-08-05).
+     *
+     * Returns TRUE when the CURRENT phase must not advance because its review
+     * is not clear. It also FIRES the auto-retry, in-phase, so the fix runs
+     * where its items are still claimable.
+     *
+     * Why rebuilt: the old version gated on REVIEW_STAGES (ingest = boundary +
+     * raster together) and ran AFTER `phaseDrained`, which treats review/failed
+     * as "settled". So boundaries advanced to `resolving` with Canada still in
+     * review, and the retry then requeued CAN to `pending` in the resolving
+     * phase — where no worker claims a boundary item. Deadlock. CAN normally
+     * clears on the half-lane retry precisely because it runs ALONE; the early
+     * advance stole that retry.
+     *
+     * The rebuilt gate is per-PHASE and runs BEFORE the advance:
+     *   • residue = review/failed items in this phase's gate kinds.
+     *   • no residue                → don't hold (clear any half-lane flag).
+     *   • residue, no auto-retry yet → fire it: requeue review/failed → pending
+     *       IN THIS PHASE (half lanes via review_pass), stamp it, HOLD.
+     *   • residue after the retry    → NEEDS OPERATOR: stamp _review_hold, HOLD.
+     *       The UI surfaces Retry (another half-lane pass) / Continue (accept).
+     *   • operator accepted          → don't hold; advance over the residue.
+     */
+    private function reviewGateHolds(GeodataRun $run): bool
+    {
+        $phase = $run->phase;
+        $kinds = $this->phaseGateKinds($phase);
+        if ($kinds === []) {
+            return false;   // enumerating / finalizing / scanning — no gate
+        }
+
+        $stamps = $run->phase_timestamps ?? [];
+
+        // Operator pressed Continue for this phase — advance over the residue.
+        if (isset($stamps['_accepted'][$phase])) {
+            if ($run->review_pass !== null) {
+                $run->forceFill(['review_pass' => null, 'updated_at' => now()])->save();
+                $run->refresh();
             }
-            $run->forceFill(['review_pass' => null, 'updated_at' => now()])->save();
-            $run->refresh();
-            $this->info("review pass [{$stage}] complete — full lanes restored");
             return false;
         }
 
-        // Should a pass START? Only when a stage's mainline is fully closed,
-        // it still holds review/failed items, and it has not had its pass.
-        $stamps = $run->phase_timestamps ?? [];
-        foreach (self::REVIEW_STAGES as $stage => $kinds) {
-            if (isset($stamps['_review_pass'][$stage])) {
-                continue;   // one bite only — residual review is accepted
-            }
-            $counts = DB::table('geodata_items')->where('run_id', $run->id)
-                ->whereIn('kind', $kinds)
-                ->selectRaw("COUNT(*) FILTER (WHERE status IN ('pending','running')) AS open,
-                             COUNT(*) FILTER (WHERE status IN ('review','failed'))   AS bad,
-                             COUNT(*) AS total")
-                ->first();
-            if ($counts === null || (int) $counts->total === 0) {
-                continue;   // stage not enumerated yet
-            }
-            if ((int) $counts->open > 0 || (int) $counts->bad === 0) {
-                continue;   // still working, or nothing to clear
-            }
+        $c = DB::table('geodata_items')->where('run_id', $run->id)
+            ->whereIn('kind', $kinds)
+            ->selectRaw("COUNT(*) FILTER (WHERE status IN ('pending','running')) AS open,
+                         COUNT(*) FILTER (WHERE status IN ('review','failed'))   AS bad,
+                         COUNT(*) AS total")
+            ->first();
 
+        // Stage not enumerated yet, or fully clean — nothing for the gate to do.
+        // (phaseDrained still holds the advance while `open` > 0.)
+        if ($c === null || (int) $c->total === 0 || (int) $c->bad === 0) {
+            if ($run->review_pass === $phase && (int) ($c->open ?? 0) === 0) {
+                // The half-lane retry cleared it — restore full lanes.
+                $run->forceFill(['review_pass' => null, 'updated_at' => now()])->save();
+                $run->refresh();
+                $this->info("review [{$phase}]: cleared — full lanes restored");
+            }
+            return false;
+        }
+
+        // Residue exists. While the auto-retry's requeued items are still
+        // running, hold at half lanes (phaseDrained would also hold on `open`,
+        // but returning true here keeps the intent explicit).
+        if ((int) $c->open > 0) {
+            return true;
+        }
+
+        // Mainline closed, residue remains. One automatic half-lane retry.
+        if (! isset($stamps['_review_pass'][$phase])) {
             $n = DB::table('geodata_items')->where('run_id', $run->id)
                 ->whereIn('kind', $kinds)->whereIn('status', ['review', 'failed'])
                 ->update([
@@ -254,32 +299,44 @@ class GeodataPumpCommand extends Command
                     'started_at' => null, 'finished_at' => null,
                     'position' => 0, 'updated_at' => now(),
                 ]);
-            $stamps['_review_pass'][$stage] = now()->toIso8601String();
+            $stamps['_review_pass'][$phase] = now()->toIso8601String();
             $run->forceFill([
-                'review_pass' => $stage, 'phase_timestamps' => $stamps,
-                'updated_at' => now(),
+                'review_pass' => $phase, 'phase_timestamps' => $stamps, 'updated_at' => now(),
             ])->save();
             $run->refresh();
-            $this->info("review pass [{$stage}]: requeued {$n} item(s) at half lanes");
-
+            $this->info("review [{$phase}]: auto-retry requeued {$n} item(s) at half lanes");
             return true;
         }
 
-        return false;
+        // The one auto-retry ran and residue SURVIVED — do NOT silently accept
+        // and advance (the old bug). Hold and hand it to the operator.
+        if (! isset($stamps['_review_hold'][$phase])) {
+            $stamps['_review_hold'][$phase] = now()->toIso8601String();
+            $run->forceFill([
+                'review_pass' => null, 'phase_timestamps' => $stamps, 'updated_at' => now(),
+            ])->save();
+            $run->refresh();
+            $this->warn("review [{$phase}]: retry left {$c->bad} unresolved — awaiting operator (Retry / Continue)");
+        }
+        return true;
     }
 
     private function advancePhases(GeodataRun $run): void
     {
         $phases = GeodataRun::PHASES;
 
-        // Hold the pointer while a stage clears its review backlog — the run
-        // must not reach finalize/scan over items that still have a retry
-        // coming (a scan over half-attributed data flags noise, not truth).
-        if ($this->reviewPass($run)) {
-            return;
-        }
+        while ($run->phase !== 'done') {
+            // The review gate for the CURRENT phase runs BEFORE the drain check
+            // so a review-bearing phase can never advance over review/failed
+            // residue. This is what keeps resolve from starting before
+            // boundaries are cleared or accepted.
+            if ($this->reviewGateHolds($run)) {
+                return;
+            }
+            if (! GeodataClaims::phaseDrained($run, $run->phase)) {
+                return;   // work still pending/running — hold
+            }
 
-        while ($run->phase !== 'done' && GeodataClaims::phaseDrained($run, $run->phase)) {
             $idx  = array_search($run->phase, $phases, true);
             $next = $phases[$idx + 1] ?? 'done';
 
@@ -297,10 +354,6 @@ class GeodataPumpCommand extends Command
             // VACUUM ANALYZE the churned tables at the boundary (never inside a
             // transaction — skip when the pump runs under a test transaction).
             $this->vacuumChurned($run->phase);
-
-            // (The scanning-phase acceptance-scan dispatch lives in handle() —
-            // it fires on EVERY tick while the item is pending, which covers
-            // this transition tick too and revives a lost dispatch.)
 
             // Reached done: close the run + append the hash-chained audit entry.
             if ($run->phase === 'done') {

@@ -1518,6 +1518,11 @@ class SetupController extends Controller
                 'last_error'       => $run->last_error,
                 'halt_requested'   => $run->haltRequested(),
                 'paused'           => $run->isPaused(),
+                // NEEDS-OPERATOR review hold: the phase whose automatic
+                // half-lane retry could not clear its review residue, plus how
+                // many items remain, so the UI can offer Retry / Continue.
+                // Null when no phase is waiting on the operator.
+                'review_hold'      => $this->geodataReviewHold($run),
             ],
             'layers'   => $layers,
             'workers'  => $workers,
@@ -1601,15 +1606,67 @@ class SetupController extends Controller
      */
     public function geodataPullControl(Request $request): JsonResponse
     {
-        $data = $request->validate(['action' => ['required', Rule::in(['halt', 'resume'])]]);
+        $data = $request->validate([
+            // review_retry / review_continue added 2026-08-05: when a phase's
+            // one automatic half-lane retry cannot clear its review residue,
+            // the pump holds and hands the decision here (see reviewGateHolds).
+            'action' => ['required', Rule::in(['halt', 'resume', 'review_retry', 'review_continue'])],
+            'phase'  => ['nullable', 'string'],
+        ]);
         $run  = \App\Models\GeodataRun::unfinished();
         if ($run === null) {
             return response()->json(['error' => 'No active geodata run.'], 409);
         }
-        $run->update(['halt_requested_at' => $data['action'] === 'halt' ? now() : null]);
+
+        if ($data['action'] === 'halt' || $data['action'] === 'resume') {
+            $run->update(['halt_requested_at' => $data['action'] === 'halt' ? now() : null]);
+        } else {
+            // RETRY / CONTINUE a stuck review. Target the phase the operator
+            // acted on, defaulting to the run's current phase.
+            $phase  = $data['phase'] ?: $run->phase;
+            $stamps = $run->phase_timestamps ?? [];
+
+            if ($data['action'] === 'review_retry') {
+                // Clear the one-bite + hold markers so the gate fires a fresh
+                // half-lane auto-retry for this phase on the next tick.
+                unset($stamps['_review_pass'][$phase], $stamps['_review_hold'][$phase]);
+            } else { // review_continue
+                // Accept the residue: the gate stops holding and the phase
+                // advances (resolve may begin). Recorded, not silent.
+                $stamps['_accepted'][$phase] = now()->toIso8601String();
+                unset($stamps['_review_hold'][$phase]);
+            }
+            $run->forceFill(['phase_timestamps' => $stamps, 'updated_at' => now()])->save();
+        }
+
         \Illuminate\Support\Facades\Artisan::call('geodata:pump');
 
         return response()->json(['ok' => true, 'status' => $run->fresh()->status]);
+    }
+
+    /**
+     * The phase (if any) whose automatic review retry could not clear its
+     * residue and is now waiting on the operator — the signal the Step-2 UI
+     * uses to show Retry / Continue. Mirrors GeodataPumpCommand::phaseGateKinds
+     * so the count reported matches exactly what the gate is holding on.
+     */
+    private function geodataReviewHold(\App\Models\GeodataRun $run): ?array
+    {
+        $held = array_key_first($run->phase_timestamps['_review_hold'] ?? []);
+        if ($held === null) {
+            return null;
+        }
+        $kinds = match ($held) {
+            'boundaries'  => ['boundary_iso', 'boundary_range'],
+            'resolving'   => ['resolve_global', 'resolve_range'],
+            'rasters'     => ['raster_iso', 'raster_range'],
+            'attribution' => ['attribution_pair', 'attribution_decompose', 'attribution_range'],
+            default       => [],
+        };
+        $bad = DB::table('geodata_items')->where('run_id', $run->id)
+            ->whereIn('kind', $kinds)->whereIn('status', ['review', 'failed'])->count();
+
+        return ['phase' => $held, 'unresolved' => $bad];
     }
 
     /**
