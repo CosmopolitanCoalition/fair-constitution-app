@@ -110,6 +110,14 @@ class GeodataRepairCountryNamesCommand extends Command
             Log::info(sprintf('geodata:repair-country-names — %s "%s" (%s) → "%s" (%s)',
                 $r['iso'], $r['old_name'], $r['old_slug'], $r['new_name'], $r['new_slug']));
         }
+
+        // The map viewer's GeoJSON rides rememberForever caches with SLUGS
+        // baked into the feature properties — renamed slugs would 404 every
+        // map click until cleared (operator-caught, 2026-08-06). The store
+        // is regenerable by design; first load after this recomputes.
+        \Illuminate\Support\Facades\Cache::flush();
+        $this->info('Cache flushed — map GeoJSON re-caches with the new slugs on next load.');
+
         $this->info(sprintf('Renamed %d country row(s) to canonical metadata names.', count($rows)));
 
         return self::SUCCESS;
