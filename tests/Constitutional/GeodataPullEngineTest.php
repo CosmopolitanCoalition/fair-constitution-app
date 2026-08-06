@@ -217,8 +217,23 @@ class GeodataPullEngineTest extends TestCase
             $this->assertNull($run->fresh()->review_pass, '1-item review runs full lanes');
             $this->assertArrayHasKey('ingest', $run->fresh()->phase_timestamps['_review_pass'] ?? []);
 
-            // Retry fails again → hold for the operator, no silent advance.
+            // Retry fails again → the SERIAL pass fires first (operator ruling
+            // 2026-08-06, run 019fd562: residue that only dies in company gets
+            // one round ALONE — "one at a time back to back" — before anyone
+            // is woken). One item per tick; no hold while rungs remain.
             $can->fresh()->update(['status' => 'review', 'reason' => 'again']);
+            Artisan::call('geodata:pump');
+            $run->refresh();
+            $this->assertSame('rasters', $run->phase, 'still held at the ingest boundary');
+            $this->assertSame('pending', $can->fresh()->status, 'serial pass requeues it alone');
+            $this->assertSame(1,
+                (int) ($run->phase_timestamps['_review_serial']['ingest']['fired'] ?? 0),
+                'the serial ladder rung is recorded');
+            $this->assertArrayNotHasKey('ingest', $run->phase_timestamps['_review_hold'] ?? [],
+                'no operator hold while the serial ladder still has rungs');
+
+            // Fails EVEN ALONE → now hold for the operator, no silent advance.
+            $can->fresh()->update(['status' => 'review', 'reason' => 'again2']);
             Artisan::call('geodata:pump');
             $run->refresh();
             $this->assertSame('rasters', $run->phase, 'still held at the ingest boundary');
@@ -319,7 +334,14 @@ class GeodataPullEngineTest extends TestCase
             // This is the realistic "awaiting operator" state — residue present,
             // counters reflect it.
             $run = $this->makeRun('boundaries', [
-                'phase_timestamps' => ['_review_pass' => ['ingest' => now()->toIso8601String()]],
+                'phase_timestamps' => [
+                    '_review_pass'   => ['ingest' => now()->toIso8601String()],
+                    // The serial ladder too (2026-08-06): marked SPENT, so the
+                    // gate holds for the operator instead of requeueing one
+                    // residue item per tick — which would zero the very
+                    // counters this test pins.
+                    '_review_serial' => ['ingest' => ['total' => 2, 'fired' => 2]],
+                ],
             ]);
             $this->addItem($run, 'boundary_iso', ['status' => 'done']);
             $this->addItem($run, 'boundary_iso', ['status' => 'done']);

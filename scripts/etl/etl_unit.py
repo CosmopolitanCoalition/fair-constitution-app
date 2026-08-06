@@ -204,6 +204,30 @@ def _range_dials() -> tuple[int, int]:
     return _env_int("CGA_ETL_RANGE_MIN", 30000), _env_int("CGA_ETL_RANGE_COUNT", 0)
 
 
+def _range_mass_min_mvert() -> float:
+    """Total-vertex-MASS split threshold, in millions of vertices — the
+    second SPLITTABLE giant class (operator ruling 2026-08-06: "we don't
+    hard-code on specific geography… the operative point is the CLASS").
+    The feature-count dial catches crowd giants (hundreds of thousands of
+    tiny units); this catches the opposite signature — a moderate count of
+    HEAVY polygons whose total mass makes the level a monster even though
+    its count never trips the 30k dial. Run 019fd562: three such levels
+    (17/87/1,647 units × 767k/151k/8.4k mean vertices ≈ 13–14 Mvert each)
+    ran 69 minutes on one lane and set the entire ingest floor, while
+    every level under ~8 Mvert cleared in ≤ ~21 min. The default sits in
+    that measured gap; env-overridable like its siblings RANGE_MIN and
+    RASTER_RANGE_MIN, and detected purely from geoboundary_metadata
+    (adm_unit_count × mean_vertices) — no geography is ever named."""
+    raw = os.environ.get("CGA_ETL_RANGE_MASS_MIN_MVERT", "")
+    try:
+        v = float(raw)
+        if v > 0:
+            return v
+    except ValueError:
+        pass
+    return 8.0
+
+
 def do_boundary(conn, run_id: str, iso: str, options: dict,
                 log: logging.Logger) -> dict:
     """One ISO's boundary chain — now a mapper-style COORDINATOR (operator
@@ -234,21 +258,24 @@ def do_boundary(conn, run_id: str, iso: str, options: dict,
     # and silently falls back to a sequential monster pass whose hours-long
     # shared parse-lock hold then CONVOYS the whole engine behind any queued
     # exclusive. Load the meta CSV directly when the table has no row for us.
-    def _load_expected() -> dict:
+    def _load_expected() -> tuple[dict, dict]:
         with get_cursor(conn) as cur:
             cur.execute(
-                "SELECT adm_level, COALESCE(adm_unit_count, 0) AS n "
+                "SELECT adm_level, COALESCE(adm_unit_count, 0) AS n, "
+                "       COALESCE(mean_vertices, 0) AS mv "
                 "FROM geoboundary_metadata WHERE iso_code = %s",
                 (iso,),
             )
-            return {int(r["adm_level"]): int(r["n"]) for r in cur.fetchall()}
+            rows = cur.fetchall()
+        return ({int(r["adm_level"]): int(r["n"]) for r in rows},
+                {int(r["adm_level"]): int(r["mv"]) for r in rows})
 
-    expected = _load_expected()
+    expected, mean_vpf = _load_expected()
     if not expected:
         try:
             from import_geoboundaries import META_CSV, load_meta_index
             load_meta_index(META_CSV, conn=conn)
-            expected = _load_expected()
+            expected, mean_vpf = _load_expected()
             log.info("%s: metadata was empty — loaded the meta CSV first "
                      "(%d levels now known)", iso, len(expected))
         except Exception as exc:
@@ -310,10 +337,27 @@ def do_boundary(conn, run_id: str, iso: str, options: dict,
     # streams the small levels inline. The prefix invariant holds per
     # level: `already` is whatever strict prefix earlier passes left in
     # the DB (0 on a fresh run); range windows partition [already, exp). ──
+    n_ranges_nom   = max(2, range_count_override or (pool // 2))
+    mass_min_mvert = _range_mass_min_mvert()
+
+    def _split_worthy(n_feat: int, file_lvl: int) -> bool:
+        """The two SPLITTABLE giant classes (class-not-geography, 2026-08-06):
+        FEATURE-COUNT (a crowd of tiny units — the 30k dial) and VERTEX MASS
+        (moderate count × heavy polygons — n × mean_vertices, straight from
+        the metadata already loaded). The mass arm also demands enough
+        features that every range holds a real share: a dozen continent-
+        scale polygons (the vertex-GIANT-FEATURE class) stay whole for the
+        giant gate + funding law to own — splitting cannot shrink a single
+        feature's parse."""
+        if n_feat >= split_min:
+            return True
+        mass = n_feat * mean_vpf.get(file_lvl, 0) / 1_000_000.0
+        return mass >= mass_min_mvert and n_feat >= 4 * n_ranges_nom
+
     split_levels: list[int] = []
     for file_lvl in levels:
         exp = expected.get(file_lvl, 0)
-        if exp < split_min or pool <= 1:
+        if pool <= 1 or not _split_worthy(exp, file_lvl):
             continue
         # Idempotent re-entry: ranges that already exist (any status) mean
         # this level pre-split before — never enumerate a second set.
@@ -335,9 +379,9 @@ def do_boundary(conn, run_id: str, iso: str, options: dict,
 
         already   = _db_count(ADM_LEVEL_MAP[file_lvl])
         remaining = exp - already
-        if remaining < split_min:
-            continue   # tail smaller than a split's worth — inline below
-        n_ranges   = max(2, range_count_override or (pool // 2))
+        if not _split_worthy(remaining, file_lvl):
+            continue   # tail not a split's worth by either class — inline below
+        n_ranges   = n_ranges_nom
         range_size = -(-remaining // n_ranges)
         log.info("%s ADM%d: PRE-SPLIT — %d of %d features remain → %d ranges of %d "
                  "(prefix %d already in DB)",
