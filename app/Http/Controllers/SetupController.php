@@ -1719,10 +1719,17 @@ class SetupController extends Controller
             if ($target === null) {
                 return response()->json(['error' => 'rewind requires a target.'], 422);
             }
+            // ANY STATE (operator, 2026-08-05 — the same escape-hatch law as
+            // Fresh: rewind is a recovery control, so it seizes a mid-flight
+            // run too). Seizure is safe by the claim machinery: reset items
+            // lose their claim_token, workers' next heartbeat returns
+            // not-ours, children die within ~20s. Leases cleared so the
+            // panel's worker view restarts honest.
             $run = \App\Models\GeodataRun::query()->orderByDesc('created_at')->first();
-            if ($run === null || ! ($run->status === 'done' || $run->phase === 'scanning')) {
-                return response()->json(['error' => 'No completed run to rewind.'], 409);
+            if ($run === null) {
+                return response()->json(['error' => 'No run to rewind.'], 409);
             }
+            DB::table('geodata_worker_leases')->where('run_id', $run->id)->delete();
             // [reset parent kinds, delete child kinds, rewind phase pointer]
             $derivDel = ['resolve_range', 'attribution_pair', 'attribution_range', 'attribution_decompose'];
             $plan = [
