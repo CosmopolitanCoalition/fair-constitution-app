@@ -261,6 +261,42 @@ Five laws for **all** bulk pipelines:
 
 ---
 
+## THE MULTI-LANE AUTOSCALING PARADIGM (MAX USE OF RESOURCES — operator ruling 2026-08-05, NEVER FORGET)
+
+The lane law for every parallel engine in this codebase. **Recall it at the
+START of every turn that touches engine code; VERIFY the turn's changes held
+it at the END of every such turn** — the operator had to restate parts of it
+five times in one day, and that must never happen again.
+
+1. **ONE PILE PER KIND, ordered by est_cost, drained from BOTH ENDS AT ONCE**:
+   half its lanes eat largest→smallest (monsters start immediately — crashes
+   surface early), half eat smallest→largest (lights churn — small-class bugs
+   surface on their own). *Debug to the middle.*
+2. **Independent sibling kinds split the pool 50/50** (boundaries+rasters;
+   resolve+attribution), odd lane tiebroken arbitrarily. **A finished
+   sibling's lanes flow to the other side immediately.** Two directions per
+   pile × two piles = four concurrent drain directions per group.
+3. **THE SMALLS NEVER STOP.** A reservation for a waiting monster holds the
+   monster's space OUT of the budget while lights keep admitting into the
+   remainder. Any mechanism that zeroes the small-first direction violates
+   the paradigm (proven live: the width-2 full-stop drain, 2026-08-05).
+4. **MAX USE OF RESOURCES, all derived, nothing hard-coded**: pool width from
+   host cores; admission from container memory (charged PEAK-sum — actuals
+   look generous while incumbents are below peak, then peaks arrive together:
+   ten exit-9s in one minute, cc63c80); slice/chunk sizes adaptive. When one
+   phase releases resources, the surviving phase takes them automatically.
+5. **THE ESCAPE-HATCH LAW**: a recovery control (Fresh, rewind, halt-resume,
+   retry) is NEVER blocked by, waiting on, or deferring to the state it
+   exists to recover from — in ANY layer: endpoint guard, DB state, control
+   files, AND frontend enablement. It SEIZES: abandon stale runs, terminate
+   holders, clear control files, then act. The only lawful refusal protects
+   a DIFFERENT thing (e.g. an accepted load-bearing map). When the operator
+   states a law about one control, apply it to EVERY sibling control in the
+   same turn.
+6. **Reviews run MINIMAL, not zero**: a review retry fires only after its
+   whole GROUP drains, retries all residue together, halves lanes only when
+   residue exceeds half the pool, and the next group waits for review-clear.
+
 ## THE OPEN-QUESTION RUBRIC (standing communication channel — operator ruling 2026-08-04)
 
 **How the operator wants decisions surfaced to him. Reference it the way you
