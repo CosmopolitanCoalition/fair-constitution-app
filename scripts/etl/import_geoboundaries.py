@@ -2454,17 +2454,24 @@ def process_geojson_file(
 
                 # ADM0 name override. geoBoundaries' source GeoJSON for some
                 # countries has a buggy `shapeName` at ADM0 — observed
-                # in-the-wild: ITA-ADM0 says "Nord-Ovest" (one of its
-                # macro-regions); IND-ADM0 says "Puducherry" (a union
-                # territory). The curated `geoboundary_metadata` CSV
-                # carries the correct country name, so we prefer it for
-                # country-level features. Falls through silently when
-                # meta_row doesn't have a name (e.g. iso has no L0 row in
-                # the CSV) — in that case the existing _extract_name
-                # output is kept.
+                # in-the-wild: a country file naming itself after one of its
+                # own children (a macro-region, a union territory). The
+                # curated meta CSV carries the correct country name on every
+                # row, so it wins for country-level features.
+                # ⚠ FIXED 2026-08-06: this read `meta_row.get("name")` — the
+                # DB COLUMN — but meta_row holds RAW CSV HEADERS, where the
+                # field is `boundaryName`. The wrong key returned None for
+                # every country on Earth and the defensive fallthrough
+                # swallowed it silently: the override never fired once in
+                # its life (42 live rows drifted, 2 wrong-entity). A silent
+                # fallback on a typo'd key is how a fix ships dead — hence
+                # the loud log line below when the override actually fires.
                 if adm_n == 0:
-                    meta_name = (meta_row.get("name") or "").strip()
+                    meta_name = (meta_row.get("boundaryName") or "").strip()
                     if meta_name and meta_name.lower() not in ("unknown", "none", "null"):
+                        if meta_name != name:
+                            log.info("%s ADM0: file shapeName '%s' overridden by "
+                                     "canonical country name '%s'", iso3, name, meta_name)
                         name = meta_name
 
                 # WKB-first (2026-08-02): encode the already-parsed geometry
@@ -2993,6 +3000,19 @@ def import_geoboundaries(
         for idx, (iso3, geojson_path) in enumerate(level_files):
             # Supplementary metadata from CSV — empty dict if not present
             meta_row = meta_index.get((iso3, adm_n), {})
+            # COUNTRY-NAME fallback (2026-08-06): the ADM0 name override
+            # below needs boundaryName, but some isos ship an ADM0 FILE with
+            # no ADM0 CSV row (documented-incomplete). boundaryName is the
+            # COUNTRY name on every one of an iso's rows, so borrow it from
+            # any sibling level rather than falling through to the file's
+            # (sometimes wrong-entity) shapeName.
+            if adm_n == 0 and not (meta_row.get("boundaryName") or "").strip():
+                for _lvl in range(1, 6):
+                    _bn = ((meta_index.get((iso3, _lvl)) or {})
+                           .get("boundaryName") or "").strip()
+                    if _bn:
+                        meta_row = {**meta_row, "boundaryName": _bn}
+                        break
 
             # Heartbeat: let the UI know what's being loaded right now.
             queue_preview = [nxt for nxt, _ in level_files[idx + 1 : idx + 3]]
