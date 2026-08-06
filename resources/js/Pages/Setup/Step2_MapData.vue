@@ -98,11 +98,16 @@ const REWIND_OPTS = [
     { v: 'attribute',          t: 'Re-attribute',                 need: ['attribution'] },
     { v: 'scan',               t: 'Re-scan',                      need: ['scanning'] },
 ]
-const phaseComplete = (k) => !!(pullRun.value?.phase_timestamps?.[k]?.finished_at)
+// THE ESCAPE-HATCH LAW, frontend edition (operator, 2026-08-05 — the FIFTH
+// catch of the same law: the backend learned to seize any state while this
+// computed kept the options greyed behind "run active" and behind phase
+// timestamps that rewinding itself deletes). A recovery control is never
+// blocked by the state it exists to recover from: every rewind option is
+// ENABLED whenever a run exists, in any state. The backend seizes; the
+// operator decides.
 const rewindOptions = computed(() => REWIND_OPTS.map(o => ({
     ...o,
-    enabled: o.v === 'fresh'
-        || (!pullRunActive.value && (o.need ?? []).every(phaseComplete)),
+    enabled: o.v === 'fresh' || !!pullRun.value,
 })))
 const optFresh            = ref(false)
 const optSkipPopulation   = ref(false)
