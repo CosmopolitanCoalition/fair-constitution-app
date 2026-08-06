@@ -44,6 +44,52 @@ logger = logging.getLogger(__name__)
 # and we fall through to the next detection mechanism.
 _NO_LIMIT_SENTINEL_THRESHOLD = 1 << 50   # 1 PB
 
+# The installer's memory posture (get-started.ps1/.sh, ruling 2026-08-02):
+# postgres ~60% of the host, etl ~30%. When there is no cgroup cap to read
+# (the uncapped default since 2026-08-06, or bare metal), self-sizing uses
+# the SAME fraction — so profiles and the attribution cost constants keep
+# behaving exactly like the capped reference box they were measured on
+# (2,345 MB on the 7.8 GB benchmark host), and postgres/the app keep the
+# share the posture always gave them.
+ETL_POSTURE_FRACTION = 0.30
+
+
+def _meminfo_bytes(field: str) -> int | None:
+    """One field from /proc/meminfo (VM-wide — meminfo is not namespaced,
+    which is exactly why it is the right wall for an uncapped container),
+    or None if unreadable."""
+    try:
+        with open("/proc/meminfo") as f:
+            for line in f:
+                if line.startswith(field + ":"):
+                    parts = line.split()
+                    if len(parts) >= 2:
+                        return int(parts[1]) * 1024
+    except (FileNotFoundError, OSError, ValueError):
+        pass
+    return None
+
+
+def cgroup_limit_bytes() -> int | None:
+    """This container's cgroup memory ceiling, or None when uncapped."""
+    for path in ("/sys/fs/cgroup/memory.max",
+                 "/sys/fs/cgroup/memory/memory.limit_in_bytes"):
+        try:
+            with open(path) as f:
+                raw = f.read().strip()
+            if raw and raw != "max":
+                limit = int(raw)
+                if 0 < limit < _NO_LIMIT_SENTINEL_THRESHOLD:
+                    return limit
+        except (FileNotFoundError, OSError, ValueError):
+            continue
+    return None
+
+
+def host_memtotal_bytes() -> int | None:
+    """The VM/host MemTotal — the outermost wall everything shares."""
+    return _meminfo_bytes("MemTotal")
+
 
 def detect_memory_budget_bytes() -> int:
     """
@@ -66,37 +112,21 @@ def detect_memory_budget_bytes() -> int:
                 "ETL_MEMORY_BUDGET_BYTES=%r is not a positive int — ignoring", env
             )
 
-    # 2. cgroup v2 — modern Docker / systemd-cgroup hosts.
-    try:
-        with open("/sys/fs/cgroup/memory.max") as f:
-            raw = f.read().strip()
-        if raw and raw != "max":
-            limit = int(raw)
-            if 0 < limit < _NO_LIMIT_SENTINEL_THRESHOLD:
-                return limit
-    except (FileNotFoundError, OSError, ValueError):
-        pass
+    # 2./3. cgroup v2 then v1 — a capped container answers with its cap.
+    limit = cgroup_limit_bytes()
+    if limit is not None:
+        return limit
 
-    # 3. cgroup v1 — older Docker hosts.
-    try:
-        with open("/sys/fs/cgroup/memory/memory.limit_in_bytes") as f:
-            limit = int(f.read().strip())
-        if 0 < limit < _NO_LIMIT_SENTINEL_THRESHOLD:
-            return limit
-    except (FileNotFoundError, OSError, ValueError):
-        pass
-
-    # 4. /proc/meminfo — bare-metal Linux without container limits.
-    try:
-        with open("/proc/meminfo") as f:
-            for line in f:
-                if line.startswith("MemTotal:"):
-                    parts = line.split()
-                    if len(parts) >= 2:
-                        kb = int(parts[1])
-                        return kb * 1024
-    except (FileNotFoundError, OSError, ValueError):
-        pass
+    # 4. Uncapped container / bare metal: self-govern to the installer's
+    # ETL share of the host instead of claiming the whole machine —
+    # postgres and the app live here too, and every chunk profile and
+    # attribution cost constant was measured at this posture. (Before
+    # 2026-08-06 this branch returned full MemTotal, which would have
+    # jumped an uncapped container two profile tiers the moment the
+    # cgroup cap came off.)
+    total = host_memtotal_bytes()
+    if total is not None:
+        return max(512 * 1024 * 1024, int(total * ETL_POSTURE_FRACTION))
 
     # 5. Conservative fallback — choose the smallest profile so a misconfigured
     # host runs slower rather than OOMing.
@@ -142,33 +172,42 @@ def etl_budget_bytes() -> int:
         except ValueError:
             pass
 
-    for path, parse in (
-        ("/sys/fs/cgroup/memory.max", str.strip),
-        ("/sys/fs/cgroup/memory/memory.limit_in_bytes", str.strip),
-    ):
-        try:
-            with open(path) as f:
-                raw = parse(f.read())
-            if raw and raw != "max":
-                limit = int(raw)
-                if 0 < limit < _NO_LIMIT_SENTINEL_THRESHOLD:
-                    return limit
-        except (FileNotFoundError, OSError, ValueError):
-            continue
+    limit = cgroup_limit_bytes()
+    if limit is not None:
+        return limit
 
-    # Uncapped → a fraction of the host, floor 512 MiB (a 1 GB Pi still runs).
-    return max(512 * 1024 * 1024, int(detect_memory_budget_bytes() * 0.25))
+    # Uncapped → detect_memory_budget_bytes already self-governs to the
+    # installer's posture fraction (do NOT multiply again — the old 0.25
+    # here predates the fraction moving into detect; applying both would
+    # quarter the quarter). Floor 512 MiB — a 1 GB Pi still runs.
+    return max(512 * 1024 * 1024, detect_memory_budget_bytes())
 
 
-def container_budget_bytes() -> int:
-    """The WHOLE container's memory, never a per-worker slice.
+def admission_wall_bytes() -> int:
+    """The wall ADMISSION charges against — live, whole-container scope,
+    never a per-worker slice.
 
-    Admission control must size against the real cgroup ceiling — the only
-    limit with teeth, since ETL_MEMORY_BUDGET_BYTES is advisory (it selects
-    chunk profiles; nothing enforces it, and a child allocates past it
-    freely). etl_budget_bytes() honours that env var by design, so a
-    COORDINATOR asking it would see its own slice and admit against a
-    fraction of the truth. This deliberately ignores it."""
+    Capped container → the cgroup ceiling: the only limit with teeth,
+    static, exactly the pre-2026-08-06 behaviour. Uncapped (operator
+    ruling 2026-08-06 — "remove the limits entirely and manage memory on
+    the fly as lanes drain and shift"): MemAvailable plus our own current
+    usage — the footprint this container could grow to if every OTHER
+    resident (postgres, the app) stayed flat. The wall therefore BREATHES
+    with the phases: postgres fattens during ingest and the wall narrows;
+    postgres idles during attribution and the wall opens to most of the
+    box. Read per claim — procfs is free.
+
+    What this is NOT: the actuals boost (cc63c80). Our OWN incumbents are
+    still charged their full predicted peaks — the model that survives
+    peaks arriving together. Only the wall is measured, and it measures
+    OTHERS, whose growth is covered by the admission headroom and by the
+    OOM-score tilt (etl sacrificial, postgres protected): a lost bet
+    kills one ETL child — one review retry — never the database.
+
+    CGA_ETL_CONTAINER_BUDGET_BYTES overrides everything (a hard wall
+    without a cgroup). ETL_MEMORY_BUDGET_BYTES is deliberately ignored —
+    it is the per-child PROFILE slice, and a coordinator asking it would
+    admit against a fraction of the truth."""
     env = os.environ.get("CGA_ETL_CONTAINER_BUDGET_BYTES")
     if env:
         try:
@@ -178,19 +217,16 @@ def container_budget_bytes() -> int:
         except ValueError:
             pass
 
-    for path in ("/sys/fs/cgroup/memory.max",
-                 "/sys/fs/cgroup/memory/memory.limit_in_bytes"):
-        try:
-            with open(path) as f:
-                raw = f.read().strip()
-            if raw and raw != "max":
-                limit = int(raw)
-                if 0 < limit < _NO_LIMIT_SENTINEL_THRESHOLD:
-                    return limit
-        except (FileNotFoundError, OSError, ValueError):
-            continue
+    cap = cgroup_limit_bytes()
+    if cap is not None:
+        return cap
 
-    return max(512 * 1024 * 1024, int(detect_memory_budget_bytes() * 0.25))
+    avail = _meminfo_bytes("MemAvailable")
+    if avail is not None:
+        own = container_usage_bytes() or 0
+        return max(512 * 1024 * 1024, avail + own)
+
+    return max(512 * 1024 * 1024, detect_memory_budget_bytes())
 
 
 # Profile table — ordered by ceiling (exclusive). Each tuple is

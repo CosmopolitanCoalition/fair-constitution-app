@@ -159,6 +159,12 @@ def stage_ready(conn, run_id: str, kind: str) -> bool:
 # through as "small children".
 ATTR_FIXED_MB    = int(os.environ.get("CGA_ETL_ATTR_FIXED_MB", "0") or 0) or 371
 ATTR_MB_PER_MVER = int(os.environ.get("CGA_ETL_ATTR_MB_PER_MVERT", "0") or 0) or 71
+# The lane-side cost of a RUNNING item beyond its child's RSS: pipe buffers,
+# roster bookkeeping, the psycopg connection — measured ~80 MB per live item
+# (2026-08-05, the "parents uncharged" gap in the admission-model audit:
+# charged 1.79 GB vs actual 2.01+). Invisible inside the headroom at width
+# 4; ~800 MB at width 10, so the wide field must charge it per item.
+ATTR_PARENT_MB   = int(os.environ.get("CGA_ETL_ATTR_PARENT_MB", "0") or 0) or 80
 
 
 def attribution_cost_mb(est_cost: int) -> int:
@@ -271,12 +277,36 @@ def _attempt_claim(conn, run_id: str, kind: str, lane: str, token: str) -> dict 
         # This is the same advisory-locked transaction as the claim, so two
         # workers can never both see the same headroom.
         if kind == "attribution_pair" and cap is None:
+            # THE LIVE WALL (operator ruling 2026-08-06): capped container →
+            # static cgroup ceiling as always; uncapped → the wall breathes
+            # (MemAvailable + own usage, read per claim), so admission
+            # widens into whatever postgres and the app are not using and
+            # narrows when they fatten. Own incumbents stay charged at
+            # predicted peaks — cc63c80 stands.
             try:
-                from memory_budget import container_budget_bytes
-                budget_mb = container_budget_bytes() // (1024 * 1024)
+                from memory_budget import (admission_wall_bytes,
+                                           cgroup_limit_bytes,
+                                           host_memtotal_bytes)
+                budget_mb = admission_wall_bytes() // (1024 * 1024)
+                capped = cgroup_limit_bytes() is not None
             except Exception:
-                budget_mb = 2048
-            headroom = int(os.environ.get("CGA_ETL_ATTR_HEADROOM_MB", "0") or 0) or 256
+                budget_mb, capped = 2048, True
+            env_h = os.environ.get("CGA_ETL_ATTR_HEADROOM_MB", "")
+            if env_h.isdigit() and int(env_h) > 0:
+                headroom = int(env_h)
+            elif capped:
+                headroom = 256
+            else:
+                # No cgroup teeth → others can GROW after we admit (a
+                # postgres transient, an app spike). Reserve a host-derived
+                # share for them; the OOM tilt covers the residual bet.
+                try:
+                    total_mb = (host_memtotal_bytes() or 0) // (1024 * 1024)
+                except Exception:
+                    total_mb = 0
+                headroom = max(256, total_mb // 10)
+            # Per-item charge = child peak + the parent lane's overhead.
+            fixed_mb = ATTR_FIXED_MB + ATTR_PARENT_MB
             fam = ("attribution_pair", "attribution_range")
             cur.execute(
                 """
@@ -287,7 +317,7 @@ def _attempt_claim(conn, run_id: str, kind: str, lane: str, token: str) -> dict 
                 (run_id, fam),
             )
             r = cur.fetchone()
-            used_mb = (int(r["n"]) * ATTR_FIXED_MB
+            used_mb = (int(r["n"]) * fixed_mb
                        + int(ATTR_MB_PER_MVER * (int(r["w"]) / 1_000_000.0)))
             free_mb = budget_mb - headroom - used_mb
 
@@ -331,7 +361,7 @@ def _attempt_claim(conn, run_id: str, kind: str, lane: str, token: str) -> dict 
                 (run_id, fam),
             )
             top_w = int(cur.fetchone()["top_w"])
-            top_peak = ATTR_FIXED_MB + int(ATTR_MB_PER_MVER * (top_w / 1_000_000.0))
+            top_peak = fixed_mb + int(ATTR_MB_PER_MVER * (top_w / 1_000_000.0))
             # TWO-SIDED ADMISSION — THE DRAINING PARADIGM (operator,
             # 2026-08-05: two directions per pile, and "the smalls never
             # stop"). While a seatable monster waits, its peak is a STANDING
@@ -343,8 +373,8 @@ def _attempt_claim(conn, run_id: str, kind: str, lane: str, token: str) -> dict 
             if top_w > 0 and top_peak <= (budget_mb - headroom):
                 lights_room = free_mb - top_peak
                 max_w_light = (
-                    int((lights_room - ATTR_FIXED_MB) / max(1, ATTR_MB_PER_MVER) * 1_000_000)
-                    if lights_room >= ATTR_FIXED_MB else -1
+                    int((lights_room - fixed_mb) / max(1, ATTR_MB_PER_MVER) * 1_000_000)
+                    if lights_room >= fixed_mb else -1
                 )
                 heavy_ok = free_mb >= top_peak
                 if max_w_light < 0 and not heavy_ok:
@@ -359,10 +389,10 @@ def _attempt_claim(conn, run_id: str, kind: str, lane: str, token: str) -> dict 
                     heavy_clause = " AND est_cost <= %s "
                     heavy_params = (max_w_light,)
             else:
-                if free_mb < ATTR_FIXED_MB:
+                if free_mb < fixed_mb:
                     return None                  # not even a minimal item fits
                 # Largest vertex weight that still fits the remaining headroom.
-                max_w = int((free_mb - ATTR_FIXED_MB) / max(1, ATTR_MB_PER_MVER) * 1_000_000)
+                max_w = int((free_mb - fixed_mb) / max(1, ATTR_MB_PER_MVER) * 1_000_000)
                 heavy_clause = " AND est_cost <= %s "
                 heavy_params = (max_w,)
 

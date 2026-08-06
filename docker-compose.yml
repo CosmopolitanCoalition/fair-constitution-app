@@ -134,6 +134,13 @@ services:
     # restart.
     mem_limit: ${POSTGRES_MEM_LIMIT:-5g}
     memswap_limit: ${POSTGRES_MEM_LIMIT:-5g}
+    # THE LIVE WALL companion (2026-08-06): etl now defaults UNCAPPED and
+    # its admission bets against MemAvailable. Postgres KEEPS its cap (its
+    # needs are known and bounded — the 03:56 mutual-OOM above is why) and
+    # is OOM-PROTECTED: under host pressure the kernel must take an ETL
+    # child (one review retry), never a PG backend (crash recovery, the
+    # 31-minute crash-loop class).
+    oom_score_adj: -500
     environment:
       POSTGRES_DB: fair_constitution
       POSTGRES_USER: fc_user
@@ -470,22 +477,27 @@ services:
     # connections cleanly. Important so postgres doesn't see abandoned
     # transactions when the containers are stopped mid-run.
     stop_grace_period: 60s
-    # HOST-DERIVED memory posture (operator ruling 2026-08-02 — see the
-    # postgres block). The installers write ETL_MEM_LIMIT (~25% of host RAM)
-    # into .env; the 2g literal is only the fallback, sized for the ~8 GB
-    # reference box (streaming pipeline + 64 MB batch ceiling → ~800 MB
-    # worst-case per-feature peak, Nunavut). The pull engine then derives
-    # its own worker pool + per-kind concurrency caps FROM this cgroup
-    # budget (scripts/etl/memory_budget.py + claims.py), so a Pi gets 1
-    # careful worker and a big box gets many — no constant edits anywhere.
+    # THE LIVE WALL (operator ruling 2026-08-06: "remove the limits
+    # entirely and manage memory usage on the fly as lanes drain and
+    # shift" — superseding the static 2026-08-02 split for this side).
+    # Default is UNCAPPED: admission sizes against MemAvailable live
+    # (memory_budget.admission_wall_bytes, read per claim), so the engine
+    # widens into whatever postgres and the app are not using and narrows
+    # when they fatten — no static split, no stranded slack. Chunk
+    # profiles self-govern to the installer's 30% posture fraction, so
+    # per-worker behaviour matches the capped reference box exactly. Set
+    # ETL_MEM_LIMIT in .env to restore a hard cgroup wall (admission then
+    # charges against the cap, the pre-08-06 behaviour, byte-identical).
+    # oom_score_adj tilts the kernel for the uncapped bet: an over-commit
+    # kills an ETL child — survivable, one review retry — never postgres.
     #
-    # IMPORTANT: docker compose only applies these limits when the container
-    # is RECREATED (`docker compose down etl && docker compose up -d etl`),
-    # not on a plain restart. `docker inspect ${CONTAINER_PREFIX:-fc}_etl --format '{{.HostConfig.Memory}}'`
-    # should report the byte value; if it reports 0, the limit isn't bound
-    # and a recreate is needed.
-    mem_limit: ${ETL_MEM_LIMIT:-2g}
-    memswap_limit: ${ETL_MEM_LIMIT:-2g}
+    # IMPORTANT: docker compose only applies these when the container is
+    # RECREATED (`docker compose up -d --force-recreate etl`), not on a
+    # plain restart. `docker inspect ${CONTAINER_PREFIX:-fc}_etl --format '{{.HostConfig.Memory}}'`
+    # reports the bound value; 0 = uncapped.
+    mem_limit: ${ETL_MEM_LIMIT:-0}
+    memswap_limit: ${ETL_MEM_LIMIT:-0}
+    oom_score_adj: 500
     volumes:
       - ./scripts/etl:/etl                 # your python scripts
       - etl_geodata:/data                  # downloaded geodata persists (can be large)

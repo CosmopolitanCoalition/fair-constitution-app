@@ -295,7 +295,11 @@ function Configure-HostMemory {
 
     function Clamp([double]$v, [int]$lo, [int]$hi) { [int][math]::Max($lo, [math]::Min($hi, [math]::Floor($v))) }
     $pgMb  = Clamp ($totalMb * 0.60) 1024 16384   # postgres ~60% of the host
-    $etlMb = Clamp ($totalMb * 0.30) 1024  8192   # etl ~30%; workers derive from this
+    # ETL_MEM_LIMIT is no longer written (THE LIVE WALL, 2026-08-06): etl
+    # runs uncapped and its admission sizes against MemAvailable on the fly;
+    # chunk profiles self-govern to the same 30% posture in code
+    # (memory_budget.ETL_POSTURE_FRACTION). An existing pin in .env still
+    # wins — blank it to go live-wall.
 
     # THE HEADROOM LAW (2026-08-02, the AUS-ADM0 backend kill-loop): a giant
     # boundary INSERT is ONE backend whose transient is set by the DATA (the
@@ -310,7 +314,6 @@ function Configure-HostMemory {
     # is already generous.
     $derived = [ordered]@{
         POSTGRES_MEM_LIMIT = "${pgMb}m"
-        ETL_MEM_LIMIT      = "${etlMb}m"
         PG_SHARED_BUFFERS  = (Clamp ($pgMb / 9.0) 128  512).ToString() + 'MB'
         PG_EFFECTIVE_CACHE = (Clamp ($pgMb * 0.80) 256 13000).ToString() + 'MB'
         PG_WORK_MEM        = (Clamp ($pgMb / 72.0)   8   64).ToString() + 'MB'
@@ -322,7 +325,7 @@ function Configure-HostMemory {
         if ((Get-EnvValue $k) -eq '') { Set-EnvValue $k $derived[$k]; $wrote += $k }
     }
     if ($wrote.Count -gt 0) {
-        Say ("      Memory sized from this host ({0:N1} GB RAM): postgres {1}, etl {2}." -f ($totalMb/1024), $derived.POSTGRES_MEM_LIMIT, $derived.ETL_MEM_LIMIT)
+        Say ("      Memory sized from this host ({0:N1} GB RAM): postgres {1}, etl uncapped (live wall)." -f ($totalMb/1024), $derived.POSTGRES_MEM_LIMIT)
     }
 }
 
