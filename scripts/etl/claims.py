@@ -331,18 +331,39 @@ def _attempt_claim(conn, run_id: str, kind: str, lane: str, token: str) -> dict 
             )
             top_w = int(cur.fetchone()["top_w"])
             top_peak = ATTR_FIXED_MB + int(ATTR_MB_PER_MVER * (top_w / 1_000_000.0))
-            if top_peak > free_mb and top_peak <= (budget_mb - headroom):
-                # Reservation active: admit NOTHING — every completion frees
-                # space that belongs to the waiting heavy. Once free_mb grows
-                # past its peak this branch stops matching and the normal
-                # max_w admission below seats it (big-first lane takes it).
-                return None
-            if free_mb < ATTR_FIXED_MB:
-                return None                      # not even a minimal item fits
-            # Largest vertex weight that still fits the remaining headroom.
-            max_w = int((free_mb - ATTR_FIXED_MB) / max(1, ATTR_MB_PER_MVER) * 1_000_000)
-            heavy_clause = " AND est_cost <= %s "
-            heavy_params = (max_w,)
+            # TWO-SIDED ADMISSION — THE DRAINING PARADIGM (operator,
+            # 2026-08-05: two directions per pile, and "the smalls never
+            # stop"). While a seatable monster waits, its peak is a STANDING
+            # RESERVATION: lights admit only into the space BESIDE it (so
+            # they can never re-block it — the flaw in both earlier forms),
+            # and the monster itself admits the instant the field drains
+            # enough to hold it. Small-first churns, big-first seats, the
+            # pile drains from both ends toward the middle.
+            if top_w > 0 and top_peak <= (budget_mb - headroom):
+                lights_room = free_mb - top_peak
+                max_w_light = (
+                    int((lights_room - ATTR_FIXED_MB) / max(1, ATTR_MB_PER_MVER) * 1_000_000)
+                    if lights_room >= ATTR_FIXED_MB else -1
+                )
+                heavy_ok = free_mb >= top_peak
+                if max_w_light < 0 and not heavy_ok:
+                    return None      # pure drain window — nothing fits yet
+                if heavy_ok and max_w_light >= 0:
+                    heavy_clause = " AND (est_cost <= %s OR est_cost >= %s) "
+                    heavy_params = (max_w_light, top_w)
+                elif heavy_ok:
+                    heavy_clause = " AND est_cost >= %s "
+                    heavy_params = (top_w,)
+                else:
+                    heavy_clause = " AND est_cost <= %s "
+                    heavy_params = (max_w_light,)
+            else:
+                if free_mb < ATTR_FIXED_MB:
+                    return None                  # not even a minimal item fits
+                # Largest vertex weight that still fits the remaining headroom.
+                max_w = int((free_mb - ATTR_FIXED_MB) / max(1, ATTR_MB_PER_MVER) * 1_000_000)
+                heavy_clause = " AND est_cost <= %s "
+                heavy_params = (max_w,)
 
         if cap is not None:
             # The cap counts the kind's FAMILY (a country and its ranges
