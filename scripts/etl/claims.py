@@ -316,14 +316,19 @@ def _attempt_claim(conn, run_id: str, kind: str, lane: str, token: str) -> dict 
             # for it: nothing else admits, the field drains, the heavy seats.
             # A pair too big for even an EMPTY field is excluded (that is the
             # decompose path's problem, not a reason to drain forever).
+            # The reservation scans the whole FAMILY (2026-08-06): a pending
+            # decompose BAND is claimable through this same query and often
+            # outweighs every pending pair — with top_w computed from pairs
+            # alone, the est_cost >= top_w arm would admit the band against
+            # a top_peak measured for something lighter (the exit-9 class).
             cur.execute(
                 """
                 SELECT COALESCE(MAX(est_cost), 0) AS top_w
                   FROM geodata_items
                  WHERE run_id = %s AND status = 'pending'
-                   AND kind = 'attribution_pair'
+                   AND kind IN %s
                 """,
-                (run_id,),
+                (run_id, fam),
             )
             top_w = int(cur.fetchone()["top_w"])
             top_peak = ATTR_FIXED_MB + int(ATTR_MB_PER_MVER * (top_w / 1_000_000.0))
