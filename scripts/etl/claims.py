@@ -300,16 +300,12 @@ def _attempt_claim(conn, run_id: str, kind: str, lane: str, token: str) -> dict 
             # actual path keeps a LARGER reserve (incumbents below peak can
             # still climb), so the OOM bet is bounded on both sides. Reader
             # failure → None → charged model only, never a guess.
-            try:
-                from memory_budget import container_usage_bytes
-                actual_b = container_usage_bytes()
-            except Exception:
-                actual_b = None
-            if actual_b is not None:
-                actual_headroom = int(os.environ.get(
-                    "CGA_ETL_ATTR_ACTUAL_HEADROOM_MB", "0") or 0) or 512
-                free_actual = budget_mb - actual_headroom - (actual_b // (1024 * 1024))
-                free_mb = max(free_mb, free_actual)
+            # ACTUALS BOOST REVERTED (2026-08-05, ten exit -9s in one minute:
+            # incumbents sit BELOW their eventual peaks, so actual-free looks
+            # generous, admission widens, then the peaks arrive TOGETHER and
+            # the kernel collects — PAN L4, a pair the linear model already
+            # under-charges, among the bodies. The 512MB bet lost. Charged
+            # peak-sum math only: it is the model that survives simultaneity.
 
             # HEAVY RESERVATION (same ruling: "if it's a big one you wait for
             # that number of lanes to clear to give it space, then send it").
