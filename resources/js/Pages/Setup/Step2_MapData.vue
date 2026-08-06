@@ -542,6 +542,41 @@ async function sendControl(action) {
 // viewer's button; open flags surface in a confirm() before acceptance.
 const accepting = ref(false)
 
+// MANUAL-FIRST SWITCH (operator, 2026-08-06). Checked = the shipped
+// one-click flow: accepting starts the planet-wide build (every legislature
+// sized, every jurisdiction mapped). Unchecked = acceptance only — mapping
+// proceeds one jurisdiction at a time (Earth, USA, …) and the
+// "Start planet-wide generation" control below re-hooks the full build
+// whenever the operator is ready.
+const generateOnAccept = ref(true)
+const rehooking = ref(false)
+const rehookMsg = ref('')
+
+async function startPlanetGeneration() {
+    if (rehooking.value) return
+    rehooking.value = true
+    rehookMsg.value = ''
+    try {
+        const res = await csrfFetch('/api/jurisdictions/accept-maps', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ start_autoscale: true }),
+        })
+        const data = await res.json().catch(() => ({}))
+        if (!res.ok || !data.ok) {
+            rehookMsg.value = data.error || `start failed (HTTP ${res.status})`
+            return
+        }
+        rehookMsg.value = data.autoscale_run_id
+            ? `Planet-wide generation running (run ${String(data.autoscale_run_id).slice(0, 8)}…)`
+            : 'Planet-wide generation started.'
+    } catch (e) {
+        rehookMsg.value = String(e?.message || e)
+    } finally {
+        rehooking.value = false
+    }
+}
+
 async function acceptHere() {
     if (accepting.value) return
     accepting.value = true
@@ -550,7 +585,7 @@ async function acceptHere() {
         let res = await csrfFetch('/api/jurisdictions/accept-maps', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({}),
+            body: JSON.stringify(generateOnAccept.value ? {} : { defer_autoscale: true }),
         })
         let data = await res.json().catch(() => ({}))
 
@@ -564,7 +599,9 @@ async function acceptHere() {
             res = await csrfFetch('/api/jurisdictions/accept-maps', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ acknowledge_open_flags: true }),
+                body: JSON.stringify(generateOnAccept.value
+                    ? { acknowledge_open_flags: true }
+                    : { acknowledge_open_flags: true, defer_autoscale: true }),
             })
             data = await res.json().catch(() => ({}))
         }
@@ -575,8 +612,8 @@ async function acceptHere() {
         }
 
         acceptanceRequired.value = false
-        // Acceptance started the full-scale build — advance the wizard and
-        // land on the Step-3 dashboard.
+        // Acceptance landed — with or without the full-scale build, per the
+        // manual-first switch — advance the wizard to the Step-3 dashboard.
         await advance()
     } catch (e) {
         advanceError.value = String(e?.message || e)
@@ -1258,6 +1295,15 @@ onBeforeUnmount(() => {
                          still carries the acceptance, blue once it is only
                          Continue — so the colour tells you which act you are
                          about to perform. -->
+                    <!-- MANUAL-FIRST SWITCH (operator, 2026-08-06): the ONE
+                         continue button stays the only continue control; this
+                         only chooses what acceptance STARTS. -->
+                    <label v-if="!mapAccepted"
+                           class="flex items-center justify-end gap-2 text-xs text-gray-400 select-none cursor-pointer">
+                        <input type="checkbox" v-model="generateOnAccept" class="accent-emerald-600" />
+                        Generate all maps &amp; institutions on accept (planet-wide) —
+                        uncheck to map manually, one jurisdiction at a time
+                    </label>
                     <button
                         type="button"
                         :disabled="advancing || accepting || !canAdvance || isRunning"
@@ -1273,6 +1319,16 @@ onBeforeUnmount(() => {
                     <span v-if="apportioning" class="text-xs text-gray-500 italic">
                         Running cube-root apportionment across the jurisdiction tree…
                     </span>
+                    <!-- THE RE-HOOK: visible once accepted — starts (or resumes)
+                         the deferred planet-wide build whenever the manual
+                         mapping arc is done. Idempotent on the backend. -->
+                    <div v-if="mapAccepted" class="flex items-center justify-end gap-2">
+                        <button type="button" :disabled="rehooking" @click="startPlanetGeneration"
+                                class="text-xs px-3 py-1.5 rounded border border-violet-600 text-violet-200 hover:bg-violet-900/40 disabled:opacity-50">
+                            {{ rehooking ? 'Starting…' : 'Start planet-wide generation →' }}
+                        </button>
+                        <span v-if="rehookMsg" class="text-xs text-gray-400">{{ rehookMsg }}</span>
+                    </div>
                     <!-- Map-acceptance gate 422: guidance, not failure — the
                          operator just hasn't accepted the map data yet. -->
                     <div v-if="acceptanceRequired"

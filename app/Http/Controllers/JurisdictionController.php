@@ -643,6 +643,19 @@ class JurisdictionController extends Controller
                     ]), 'kick_pump' => true];
                 }
 
+                // THE RE-HOOK (operator 2026-08-06, the manual-first arc):
+                // acceptance may have DEFERRED the planet-wide build; the
+                // "Start planet-wide generation" control re-posts with
+                // start_autoscale=true and the run is created below through
+                // the same path as a fresh acceptance. An unfinished run was
+                // already handled above; a completed one is deliberately left
+                // alone — re-running the planet is the mass-reseed sweep's
+                // job, not acceptance's.
+                if ($request->boolean('start_autoscale')) {
+                    return ['instance' => $instance, 'rehook' => true,
+                            'open_flags' => ['critical' => 0, 'warning' => 0, 'info' => 0]];
+                }
+
                 return ['response' => response()->json([
                     'ok' => true,
                     'already_accepted' => true,
@@ -698,6 +711,28 @@ class JurisdictionController extends Controller
         }
         $instance  = $gate['instance'];
         $openFlags = $gate['open_flags'];
+
+        // MANUAL-FIRST MODE (operator 2026-08-06: "I want to return to
+        // building One Jurisdiction at a time manually"): acceptance stamps
+        // and closes the repair window exactly as always, but the planet-
+        // wide build does NOT start. The operator maps manually
+        // (apportionment:seed --jurisdiction=… + the mapper), then the
+        // Start-planet-wide-generation control re-hooks the full build via
+        // the re-hook branch above.
+        if ($request->boolean('defer_autoscale') && ! ($gate['rehook'] ?? false)) {
+            \Illuminate\Support\Facades\Log::info(sprintf(
+                'Map data accepted — planet-wide autoscale DEFERRED (manual-first). '.
+                'Open flags at acceptance: %d critical, %d warning, %d info.',
+                $openFlags['critical'], $openFlags['warning'], $openFlags['info'],
+            ));
+
+            return response()->json([
+                'ok' => true,
+                'map_accepted_at' => $instance->map_accepted_at->toIso8601String(),
+                'open_flags_at_acceptance' => $openFlags,
+                'autoscale_deferred' => true,
+            ]);
+        }
 
         // AUTOSCALE (pull engine, 2026-07-19): acceptance kicks off
         // governance for ALL jurisdictions — sizing every legislature (TRUE

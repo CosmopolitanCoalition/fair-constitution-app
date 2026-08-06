@@ -398,9 +398,28 @@
                             <div v-if="reopenError" class="mt-1 text-xs text-red-400">
                                 {{ reopenError }}
                             </div>
+                            <!-- THE RE-HOOK (2026-08-06): starts/resumes the
+                                 deferred planet-wide build when the manual
+                                 mapping arc is done. Idempotent backend. -->
+                            <button type="button"
+                                    :disabled="rehooking"
+                                    @click="startPlanetGeneration"
+                                    class="mt-2 block w-full text-center text-xs font-medium px-3 py-1.5 rounded
+                                           bg-violet-900/40 hover:bg-violet-900/70 disabled:opacity-50
+                                           text-violet-200 border border-violet-600 transition-colors">
+                                {{ rehooking ? 'Starting…' : 'Start planet-wide generation →' }}
+                            </button>
+                            <div v-if="rehookMsg" class="mt-1 text-xs text-gray-400">{{ rehookMsg }}</div>
                         </div>
-                        <button v-else
-                                type="button"
+                        <template v-else>
+                        <!-- MANUAL-FIRST SWITCH (2026-08-06): chooses what
+                             acceptance STARTS, not whether it accepts. -->
+                        <label class="mb-2 flex items-start gap-2 text-xs text-gray-400 select-none cursor-pointer">
+                            <input type="checkbox" v-model="generateOnAccept" class="mt-0.5 accent-emerald-600" />
+                            <span>Generate all maps &amp; institutions on accept (planet-wide) —
+                            uncheck to map manually, one jurisdiction at a time</span>
+                        </label>
+                        <button type="button"
                                 @click="acceptMaps()"
                                 :disabled="acceptingMaps"
                                 class="block w-full text-center text-sm font-semibold px-3 py-2.5 rounded
@@ -408,6 +427,7 @@
                                        text-white transition-colors">
                             {{ acceptingMaps ? 'Accepting…' : 'Accept Map Data &amp; Continue →' }}
                         </button>
+                        </template>
                         <div v-if="acceptError" class="mt-2 text-xs text-red-400">
                             {{ acceptError }}
                         </div>
@@ -641,6 +661,38 @@ const hoveredChild   = ref(null)
 const acceptingMaps = ref(false)
 const acceptError   = ref('')
 
+// MANUAL-FIRST SWITCH + RE-HOOK (operator, 2026-08-06) — mirrors Step 2:
+// checked = accepting starts the planet-wide build; unchecked = acceptance
+// only, and the re-hook button starts the full build later.
+const generateOnAccept = ref(true)
+const rehooking = ref(false)
+const rehookMsg = ref('')
+
+async function startPlanetGeneration() {
+    if (rehooking.value) return
+    rehooking.value = true
+    rehookMsg.value = ''
+    try {
+        const res = await csrfFetch('/api/jurisdictions/accept-maps', {
+            method:  'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body:    JSON.stringify({ jurisdiction_id: props.jurisdiction.id, start_autoscale: true }),
+        })
+        const data = await res.json().catch(() => ({}))
+        if (!res.ok || !data.ok) {
+            rehookMsg.value = data.error || `start failed (HTTP ${res.status})`
+            return
+        }
+        rehookMsg.value = data.autoscale_run_id
+            ? `Planet-wide generation running (run ${String(data.autoscale_run_id).slice(0, 8)}…)`
+            : 'Planet-wide generation started.'
+    } catch (e) {
+        rehookMsg.value = String(e?.message || e)
+    } finally {
+        rehooking.value = false
+    }
+}
+
 // Data Review & Repair plane — the acceptance gate now refuses to stamp
 // map_accepted_at while open geodata_flags exist unless the operator
 // explicitly acknowledges them (422 requires_acknowledgment → modal).
@@ -806,6 +858,9 @@ async function acceptMaps(acknowledge = false) {
         // flags in the modal — the backend treats presence of the boolean
         // as the acknowledgment, so a plain accept omits it entirely.
         if (acknowledge) body.acknowledge_open_flags = true
+        // MANUAL-FIRST SWITCH (operator, 2026-08-06): unchecked = accept
+        // only; the planet-wide build waits for the re-hook control.
+        if (!generateOnAccept.value) body.defer_autoscale = true
 
         const res = await csrfFetch('/api/jurisdictions/accept-maps', {
             method:  'POST',
