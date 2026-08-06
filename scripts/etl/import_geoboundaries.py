@@ -25,6 +25,7 @@ import re
 import struct
 import sys
 import threading
+import random
 import time
 import unicodedata
 from array import array
@@ -1041,6 +1042,7 @@ def _resolve_orphans_at_level_via_strategy(
         on rows (parents are read-only here)."""
         batch = max(_RESOLVE_BATCH_FLOOR, min(_RESOLVE_BATCH_SEED, len(slice_ids)))
         done  = 0
+        deadlocks = 0
         while done < len(slice_ids):
             chunk = slice_ids[done:done + batch]
             t0    = time.time()
@@ -1049,6 +1051,24 @@ def _resolve_orphans_at_level_via_strategy(
                     # SET LOCAL — scoped to THIS chunk's transaction, so it
                     # dies with the commit/rollback; nothing else inherits it.
                     cur.execute("SET LOCAL statement_timeout = %s", (budget_ms,))
+                    # THE WRITER HANDSHAKE (2026-08-06, run 019fd562: the IND
+                    # L6 deadlock pair). This chunk's parent_id UPDATE and
+                    # attribution's population apply hit the SAME (iso, level)
+                    # rows in different lock orders — PG shot one of each,
+                    # BOTH items went to review, and the joint review retry
+                    # re-collided (three deadlocks logged 06:31–07:10, then a
+                    # 5-hour operator hold). The (iso, level) writer lock is
+                    # held SHARED here so slice threads stay parallel with
+                    # each other, while the attribution apply takes it
+                    # EXCLUSIVE (etl_unit + run_t7_pair) and slots between
+                    # chunks. Released with this chunk's commit/rollback.
+                    # The lock wait shares the chunk's statement budget — an
+                    # apply holds it well under a minute, so the wait can
+                    # never eat the 180 s alone.
+                    cur.execute(
+                        "SELECT pg_advisory_xact_lock_shared(hashtext(%s))",
+                        (f"cga_juris_write:{iso_filter or 'ALL'}:{orphan_level}",),
+                    )
                     cur.execute(
                         sql,
                         (orphan_level, chunk, orphan_level) if iso_filter is None
@@ -1061,6 +1081,24 @@ def _resolve_orphans_at_level_via_strategy(
                         key = r["parent_assigned_via"]
                         if key in tally:
                             tally[key] += 1
+            except psycopg2.errors.DeadlockDetected:
+                # Losing a deadlock is a retryable COLLISION, not this chunk's
+                # defect: roll back, jitter, run the SAME chunk again — the
+                # rows are untouched and the winner finished meanwhile. The
+                # handshake above should make this unreachable; it stays as
+                # the seatbelt, bounded so a pathological storm still ends.
+                slice_conn.rollback()
+                deadlocks += 1
+                if deadlocks <= 12:
+                    time.sleep(random.uniform(0.5, 2.5))
+                    continue                      # same chunk, no advance
+                with lock:
+                    totals["skipped"] += len(chunk)
+                lg.warning(
+                    "%s L%d %s%s: chunk of %d lost %d deadlocks — skipped",
+                    iso_filter or "ALL", orphan_level, strategy, tag,
+                    len(chunk), deadlocks,
+                )
             except psycopg2.errors.QueryCanceled:
                 # One pathological chunk is skipped — the ORIGINAL intent, now
                 # costing only its own rows instead of the entire level. Those

@@ -296,16 +296,62 @@ class GeodataPumpCommand extends Command
                     $run->refresh();
                     $this->info("review [{$group}]: cleared — full lanes restored");
                 }
+                if (isset($stamps['_review_serial'][$group])) {
+                    // Spent serial-ladder state must not leak into a re-entry
+                    // (rewind + rerun would inherit fired==total and skip
+                    // straight to the operator hold).
+                    unset($stamps['_review_serial'][$group]);
+                    $run->forceFill(['phase_timestamps' => $stamps, 'updated_at' => now()])->save();
+                    $run->refresh();
+                }
                 return false;
             }
-            // Residue survived the retry → hand it to the operator (Retry / Continue).
+            // ── SERIAL PASS (operator ruling 2026-08-06, run 019fd562: IND L6
+            //    resolve and IND L6 attribution deadlocked each other, and the
+            //    joint retry re-ran them TOGETHER — same collision, both dead
+            //    again, five hours of "awaiting operator" overnight. His call:
+            //    "one at a time, back to back"). Residue that survived the
+            //    joint retry gets ONE more automatic round, each item ALONE —
+            //    an item that only dies in company clears here without waking
+            //    anyone. One item per tick; the next fires when the field is
+            //    empty again. Only residue that fails EVEN ALONE reaches the
+            //    operator hold. ──
+            $serial = $stamps['_review_serial'][$group] ?? null;
+            if ($serial === null) {
+                $serial = ['total' => $bad, 'fired' => 0];
+            }
+            if ((int) $serial['fired'] < (int) $serial['total']) {
+                // Oldest-touched first: a serially-retried item carries a fresh
+                // updated_at and sinks behind the not-yet-tried ones, so every
+                // residue item gets exactly one solo attempt before the hold.
+                $next = DB::table('geodata_items')->where('run_id', $run->id)
+                    ->whereIn('kind', $kinds)->whereIn('status', ['review', 'failed'])
+                    ->orderBy('updated_at')->value('id');
+                if ($next !== null) {
+                    DB::table('geodata_items')->where('id', $next)->update([
+                        'status' => 'pending', 'claim_token' => null, 'reason' => null,
+                        'started_at' => null, 'finished_at' => null,
+                        'position' => 0, 'updated_at' => now(),
+                    ]);
+                }
+                $serial['fired'] = (int) $serial['fired'] + 1;
+                $stamps['_review_serial'][$group] = $serial;
+                $run->forceFill([
+                    'review_pass' => null, 'phase_timestamps' => $stamps, 'updated_at' => now(),
+                ])->save();
+                $run->refresh();
+                $this->info(sprintf('review [%s]: SERIAL retry %d/%d — one item, alone',
+                    $group, $serial['fired'], $serial['total']));
+                return true;
+            }
+            // Residue failed even ALONE → hand it to the operator (Retry / Continue).
             if (! isset($stamps['_review_hold'][$group])) {
                 $stamps['_review_hold'][$group] = now()->toIso8601String();
                 $run->forceFill([
                     'review_pass' => null, 'phase_timestamps' => $stamps, 'updated_at' => now(),
                 ])->save();
                 $run->refresh();
-                $this->warn("review [{$group}]: retry left {$bad} unresolved — awaiting operator (Retry / Continue)");
+                $this->warn("review [{$group}]: joint + serial retries left {$bad} unresolved — awaiting operator (Retry / Continue)");
             }
             return true;
         }

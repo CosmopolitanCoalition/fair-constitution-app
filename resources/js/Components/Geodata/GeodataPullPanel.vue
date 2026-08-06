@@ -264,6 +264,19 @@ function groupHeld(group) {
     return false
 }
 
+// HONEST CLOCK under a review hold (operator, 2026-08-06: the run timer kept
+// climbing through a 5-hour "awaiting operator" hold and read as progress —
+// "that hides reality"). While the run waits on the operator, no work is
+// happening: every ticking work-timer freezes at the hold's start, and the
+// banner ticks a separate "waiting on you" clock instead.
+const holdSinceMs = computed(() => {
+    const s = run.value?.review_hold?.since
+    return s ? new Date(s).getTime() : null
+})
+// The clock work-timers tick against: real time normally, frozen at the
+// hold's start while the operator holds the run.
+const workNow = computed(() => holdSinceMs.value ?? nowTick.value)
+
 // ONE timer per bubble, at its end (operator, 2026-08-03): earliest member
 // start → latest member finish; ticking while any member is unfinished.
 function groupElapsed(group) {
@@ -274,7 +287,7 @@ function groupElapsed(group) {
     const start = Math.min(...stamps.map(t => new Date(t.started_at).getTime()))
     const open = stamps.some(t => !t.finished_at)
         || stamps.length < group.length && groupState(group) !== 'done'
-    const end = open ? nowTick.value
+    const end = open ? Math.max(start, workNow.value)
         : Math.max(...stamps.map(t => new Date(t.finished_at).getTime()))
     const s = Math.max(0, Math.floor((end - start) / 1000))
     if (s < 60) return `${s}s`
@@ -322,7 +335,11 @@ function phaseElapsed(key) {
         const s = Math.max(0, Math.floor((new Date(t.finished_at) - new Date(t.started_at)) / 1000))
         return s < 60 ? `${s}s` : `${Math.floor(s / 60)}m`
     }
-    return elapsedSince(t.started_at)
+    // Open phase: tick against the honest clock (frozen during a hold).
+    const s = Math.max(0, Math.floor((workNow.value - new Date(t.started_at).getTime()) / 1000))
+    if (s < 60) return `${s}s`
+    if (s < 3600) return `${Math.floor(s / 60)}m ${s % 60}s`
+    return `${Math.floor(s / 3600)}h ${Math.floor((s % 3600) / 60)}m`
 }
 
 function pct(l) {
@@ -433,17 +450,23 @@ onBeforeUnmount(() => {
              Retry runs another isolated half-lane pass; Continue accepts the
              residue and lets the next group begin. -->
         <div v-if="run.review_hold"
-             class="mb-4 rounded-lg border border-amber-600/70 bg-amber-950/40 px-4 py-3">
+             class="mb-4 rounded-lg border-2 border-amber-500 bg-amber-950/60 px-4 py-3 animate-pulse-border">
             <div class="flex items-start justify-between gap-4 flex-wrap">
                 <div class="text-sm text-amber-100">
-                    <span class="font-semibold">Review needs your call — {{ run.review_hold.label }}.</span>
-                    The isolated retry left
-                    <span class="font-semibold">{{ run.review_hold.unresolved }}</span>
-                    item{{ run.review_hold.unresolved === 1 ? '' : 's' }} unresolved.
-                    The run is holding here — the next group will not start until you decide.
+                    <span class="font-semibold text-base">⏸ RUN PAUSED — waiting on you</span>
+                    <span v-if="run.review_hold.since" class="ml-2 font-mono text-amber-300">
+                        {{ elapsedSince(run.review_hold.since) }} and counting
+                    </span>
+                    <span class="block mt-1">
+                        {{ run.review_hold.label }}: the automatic retries (together, then one
+                        at a time) left
+                        <span class="font-semibold">{{ run.review_hold.unresolved }}</span>
+                        item{{ run.review_hold.unresolved === 1 ? '' : 's' }} unresolved.
+                        No work is happening — the work timers are frozen until you decide.
+                    </span>
                     <span class="block text-amber-300/80 text-xs mt-1">
-                        A giant like Canada usually clears on a retry once it runs alone. If it keeps
-                        failing, Continue accepts it as a flagged item and moves on.
+                        Retry re-runs the full automatic ladder. Continue accepts the residue
+                        as flagged items and moves on.
                     </span>
                 </div>
                 <div class="flex gap-2 shrink-0">
@@ -710,3 +733,13 @@ onBeforeUnmount(() => {
         </p>
     </section>
 </template>
+
+<style scoped>
+/* The paused-run banner breathes its border so a wall of ambient amber can't
+   swallow it (2026-08-06: a 5-hour operator hold went unnoticed overnight). */
+@keyframes pulseBorder {
+    0%, 100% { border-color: rgb(245 158 11); }
+    50%      { border-color: rgb(245 158 11 / 0.25); }
+}
+.animate-pulse-border { animation: pulseBorder 1.6s ease-in-out infinite; }
+</style>

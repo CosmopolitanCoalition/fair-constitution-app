@@ -37,9 +37,11 @@ as a hard failure and marks the pair as failed in the progress file.
 from __future__ import annotations
 
 import json
+import psycopg2
 import logging
 import os
 import sys
+import random
 import time
 import traceback
 
@@ -475,9 +477,25 @@ def main(iso: str, level: int, apply_to_db: bool,
                     FROM   (VALUES {values}) AS t(id, pop)
                     WHERE  j.id = t.id
                 """
-                with get_cursor(conn) as cur:
-                    cur.execute(sql)
-                    applied_rows = cur.rowcount
+                for _dl_try in range(4):
+                    try:
+                        with get_cursor(conn) as cur:
+                            # THE WRITER HANDSHAKE, exclusive side (2026-08-06)
+                            # — whole-pair twin of the window-split apply in
+                            # etl_unit.py; see import_geoboundaries._drain_slice
+                            # for the shared side and the IND L6 deadlock story.
+                            cur.execute(
+                                "SELECT pg_advisory_xact_lock(hashtext(%s))",
+                                (f"cga_juris_write:{iso}:{level}",),
+                            )
+                            cur.execute(sql)
+                            applied_rows = cur.rowcount
+                        break
+                    except psycopg2.errors.DeadlockDetected:
+                        conn.rollback()
+                        if _dl_try == 3:
+                            raise
+                        time.sleep(random.uniform(0.5, 2.5))
                 conn.commit()
 
             result.update({

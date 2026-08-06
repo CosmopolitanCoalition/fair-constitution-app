@@ -1765,7 +1765,7 @@ class SetupController extends Controller
             foreach (array_slice($order, (int) array_search($phase, $order, true)) as $p) {
                 unset($stamps[$p]);
             }
-            foreach (['_review_pass', '_review_hold', '_accepted'] as $k) {
+            foreach (['_review_pass', '_review_hold', '_review_serial', '_accepted'] as $k) {
                 unset($stamps[$k]['derive']);
                 if (in_array($target, ['boundaries', 'rasters', 'boundaries_rasters'], true)) {
                     unset($stamps[$k]['ingest']);
@@ -1796,9 +1796,11 @@ class SetupController extends Controller
 
             if ($group !== null) {
                 if ($data['action'] === 'review_retry') {
-                    // Clear the one-bite + hold markers so the gate fires a fresh
-                    // half-lane auto-retry for this group on the next tick.
-                    unset($stamps['_review_pass'][$group], $stamps['_review_hold'][$group]);
+                    // Clear the one-bite + hold + serial-ladder markers so the
+                    // gate re-runs the FULL automatic ladder (joint → serial)
+                    // for this group on the next tick.
+                    unset($stamps['_review_pass'][$group], $stamps['_review_hold'][$group],
+                          $stamps['_review_serial'][$group]);
                 } else { // review_continue
                     // Accept the residue: the gate stops holding and the run
                     // crosses into the next group. Recorded, not silent.
@@ -1840,7 +1842,16 @@ class SetupController extends Controller
 
         $label = $held === 'ingest' ? 'Boundaries + Rasters' : 'Resolve + Attribution';
 
-        return ['group' => $held, 'label' => $label, 'unresolved' => $bad];
+        return [
+            'group'      => $held,
+            'label'      => $label,
+            'unresolved' => $bad,
+            // When the hold began — the panel freezes the work timers here
+            // and ticks a separate "waiting on you" clock (2026-08-06: the
+            // run-timer kept climbing through a 5-hour hold and read as
+            // progress; the operator's words: "that hides reality").
+            'since'      => $run->phase_timestamps['_review_hold'][$held] ?? null,
+        ];
     }
 
     /**

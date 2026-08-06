@@ -26,6 +26,7 @@ import os
 import psycopg2   # QueryCanceled, for the collapse pass's per-batch timeout
 import subprocess
 import sys
+import random
 import time
 import traceback
 
@@ -1365,25 +1366,46 @@ def _attribution_window_split(conn, run_id: str, iso: str, level: int,
         verdict = "no_l1"
 
     applied = 0
-    with get_cursor(conn) as cur:
-        if apply_to_db:
-            cur.execute(
-                """
-                UPDATE jurisdictions j
-                   SET population = s.pop, updated_at = NOW()
-                  FROM (SELECT jurisdiction_id, SUM(pop)::bigint AS pop
-                          FROM attribution_partials
-                         WHERE run_id=%s AND iso_code=%s AND adm_level=%s
-                         GROUP BY 1) s
-                 WHERE j.id = s.jurisdiction_id
-                """,
-                (run_id, iso, level),
-            )
-            applied = cur.rowcount
-        cur.execute(
-            "DELETE FROM attribution_partials WHERE run_id=%s AND iso_code=%s AND adm_level=%s",
-            (run_id, iso, level),
-        )
+    for _dl_try in range(4):
+        try:
+            with get_cursor(conn) as cur:
+                # THE WRITER HANDSHAKE, exclusive side (2026-08-06, run
+                # 019fd562: this very UPDATE deadlocked against IND L6
+                # resolve slices three times and put both items in review).
+                # Resolve chunks hold the (iso, level) writer lock SHARED
+                # (import_geoboundaries._drain_slice); this apply takes it
+                # EXCLUSIVE — waits out in-flight chunks (~20 s each), then
+                # writes alone. Released at this transaction's commit.
+                cur.execute(
+                    "SELECT pg_advisory_xact_lock(hashtext(%s))",
+                    (f"cga_juris_write:{iso}:{level}",),
+                )
+                if apply_to_db:
+                    cur.execute(
+                        """
+                        UPDATE jurisdictions j
+                           SET population = s.pop, updated_at = NOW()
+                          FROM (SELECT jurisdiction_id, SUM(pop)::bigint AS pop
+                                  FROM attribution_partials
+                                 WHERE run_id=%s AND iso_code=%s AND adm_level=%s
+                                 GROUP BY 1) s
+                         WHERE j.id = s.jurisdiction_id
+                        """,
+                        (run_id, iso, level),
+                    )
+                    applied = cur.rowcount
+                cur.execute(
+                    "DELETE FROM attribution_partials WHERE run_id=%s AND iso_code=%s AND adm_level=%s",
+                    (run_id, iso, level),
+                )
+            break
+        except psycopg2.errors.DeadlockDetected:
+            # Seatbelt under the handshake: a lost deadlock rolls the whole
+            # apply back (partials intact) — jitter and re-run it.
+            conn.rollback()
+            if _dl_try == 3:
+                raise
+            time.sleep(random.uniform(0.5, 2.5))
     log.info("%s L%d attribution: window-split merged — %d polys, verdict=%s, applied=%d",
              iso, level, n_polys, verdict, applied)
     return {"verdict": verdict, "n_polys": n_polys, "post_sum": post_sum,
