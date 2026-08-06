@@ -28,6 +28,15 @@ class JurisdictionController extends Controller
             ->select(
                 'id', 'name', 'slug', 'adm_level', 'population', 'population_year'
             )
+            // Per-row legislature presence drives the Activate / Districts
+            // action column (manual-first arc, operator 2026-08-06).
+            ->selectSub(function ($q) {
+                $q->from('legislatures')
+                  ->whereColumn('legislatures.jurisdiction_id', 'jurisdictions.id')
+                  ->whereNull('legislatures.deleted_at')
+                  ->select('legislatures.id')
+                  ->limit(1);
+            }, 'legislature_id')
             ->paginate(50)
             ->withQueryString();
 
@@ -779,6 +788,60 @@ class JurisdictionController extends Controller
             'map_accepted_at' => $instance->map_accepted_at->toIso8601String(),
             'open_flags_at_acceptance' => $openFlags,
             'autoscale_run_id' => $run?->id,
+        ]);
+    }
+
+    /**
+     * POST /api/jurisdictions/{jurisdiction}/activate-legislature — the
+     * MANUAL-FIRST arc (operator, 2026-08-06): size THIS one jurisdiction's
+     * legislature via the cube-root law so the mapper buttons light up —
+     * the UI face of `apportionment:seed --jurisdiction=<slug>`, one
+     * jurisdiction at a time while the planet-wide build stays un-hooked.
+     *
+     * Operator-only. Idempotent: an existing legislature short-circuits.
+     */
+    public function activateLegislature(Request $request, Jurisdiction $jurisdiction): JsonResponse
+    {
+        abort_unless((bool) $request->user()?->is_operator, 403);
+
+        $existing = DB::table('legislatures')
+            ->where('jurisdiction_id', $jurisdiction->id)
+            ->whereNull('deleted_at')
+            ->select('id', 'total_seats')
+            ->first();
+        if ($existing !== null) {
+            return response()->json([
+                'ok' => true, 'already_active' => true,
+                'legislature_id' => $existing->id,
+                'total_seats'    => (int) $existing->total_seats,
+            ]);
+        }
+
+        $exit = \Illuminate\Support\Facades\Artisan::call('apportionment:seed', [
+            '--jurisdiction' => $jurisdiction->slug,
+        ]);
+        $leg = DB::table('legislatures')
+            ->where('jurisdiction_id', $jurisdiction->id)
+            ->whereNull('deleted_at')
+            ->select('id', 'total_seats')
+            ->first();
+        if ($exit !== 0 || $leg === null) {
+            $tail = substr(trim(\Illuminate\Support\Facades\Artisan::output()), -400);
+            return response()->json([
+                'ok' => false,
+                'error' => 'apportionment:seed did not produce a legislature: '.$tail,
+            ], 422);
+        }
+
+        \Illuminate\Support\Facades\Log::info(sprintf(
+            'Manual legislature activation — %s (%s): legislature %s, %d seats.',
+            $jurisdiction->name, $jurisdiction->slug, $leg->id, (int) $leg->total_seats,
+        ));
+
+        return response()->json([
+            'ok' => true,
+            'legislature_id' => $leg->id,
+            'total_seats'    => (int) $leg->total_seats,
         ]);
     }
 

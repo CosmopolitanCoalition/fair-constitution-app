@@ -329,6 +329,23 @@
                             Election — {{ electionPhaseLabel }} →
                         </a>
                     </template>
+                    <!-- State 1 filled (manual-first arc, operator 2026-08-06):
+                         pre-apportionment used to show NO button; the operator
+                         now activates THIS jurisdiction's legislature here —
+                         one at a time — and the buttons above appear on
+                         reload. The UI face of apportionment:seed. -->
+                    <button v-else-if="isOperator"
+                            type="button"
+                            :disabled="activatingLeg"
+                            @click="activateLegislature"
+                            class="block w-full text-center text-xs font-medium px-3 py-2 rounded
+                                   bg-violet-800 hover:bg-violet-700 disabled:opacity-50
+                                   text-violet-100 transition-colors">
+                        {{ activatingLeg ? 'Sizing legislature…' : 'Activate legislature →' }}
+                    </button>
+                    <div v-if="activateLegError" class="text-xs text-red-400 mt-1">
+                        {{ activateLegError }}
+                    </div>
 
                     <!-- FE-D0 — public entry to the executive surfaces (the
                          Executive nav section is officeholder-gated, so this
@@ -660,6 +677,37 @@ const hoveredChild   = ref(null)
 // P.6 — review-badges + accept-maps state
 const acceptingMaps = ref(false)
 const acceptError   = ref('')
+
+// ACTIVATE LEGISLATURE (manual-first arc, operator 2026-08-06): the state-1
+// slot of the legislature button machine — sizes THIS jurisdiction's
+// legislature (apportionment:seed, cube-root law), then reloads so the
+// Chamber / District-map buttons appear. Operator-only; backend idempotent.
+const isOperator       = computed(() => !! usePage().props.auth?.user?.is_operator)
+const activatingLeg    = ref(false)
+const activateLegError = ref('')
+
+async function activateLegislature() {
+    if (activatingLeg.value) return
+    activatingLeg.value = true
+    activateLegError.value = ''
+    try {
+        const res = await csrfFetch(`/api/jurisdictions/${props.jurisdiction.id}/activate-legislature`, {
+            method:  'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body:    '{}',
+        })
+        const data = await res.json().catch(() => ({}))
+        if (!res.ok || !data.ok) {
+            activateLegError.value = data.error || `activation failed (HTTP ${res.status})`
+            return
+        }
+        router.reload()
+    } catch (e) {
+        activateLegError.value = String(e?.message || e)
+    } finally {
+        activatingLeg.value = false
+    }
+}
 
 // MANUAL-FIRST SWITCH + RE-HOOK (operator, 2026-08-06) — mirrors Step 2:
 // checked = accepting starts the planet-wide build; unchecked = acceptance

@@ -42,6 +42,7 @@
                         <tr class="text-left text-xs text-gray-400 uppercase tracking-wide">
                             <th class="px-4 py-2 font-medium border-b border-gray-800 w-48">Level</th>
                             <th class="px-4 py-2 font-medium border-b border-gray-800">Name</th>
+                            <th class="px-4 py-2 font-medium border-b border-gray-800 w-44">Legislature</th>
                             <th class="px-4 py-2 font-medium border-b border-gray-800 font-mono text-xs">Slug</th>
                             <th class="px-4 py-2 font-medium border-b border-gray-800 text-right">Population</th>
                         </tr>
@@ -59,6 +60,27 @@
                                 </span>
                             </td>
                             <td class="px-4 py-2 font-medium text-white">{{ j.name }}</td>
+                            <!-- Activate / mapper actions (manual-first arc,
+                                 operator 2026-08-06). @click.stop — the row
+                                 itself navigates to the viewer. -->
+                            <td class="px-4 py-2" @click.stop>
+                                <a v-if="j.legislature_id"
+                                   :href="`/legislatures/${j.slug}/districts`"
+                                   class="inline-block text-xs px-2.5 py-1 rounded border border-emerald-600
+                                          text-emerald-200 hover:bg-emerald-900/40 transition-colors">
+                                    Districts →
+                                </a>
+                                <button v-else-if="isOperator"
+                                        type="button"
+                                        :disabled="!!busy[j.id]"
+                                        @click="activateRow(j)"
+                                        class="inline-block text-xs px-2.5 py-1 rounded border border-violet-600
+                                               text-violet-200 hover:bg-violet-900/40 disabled:opacity-50 transition-colors">
+                                    {{ busy[j.id] ? 'Sizing…' : 'Activate' }}
+                                </button>
+                                <span v-else class="text-xs text-gray-600">—</span>
+                                <span v-if="rowErr[j.id]" class="ml-2 text-xs text-red-400">{{ rowErr[j.id] }}</span>
+                            </td>
                             <td class="px-4 py-2 font-mono text-xs text-gray-400">{{ j.slug }}</td>
                             <td class="px-4 py-2 text-right text-gray-300 tabular-nums">
                                 {{ j.population ? Number(j.population).toLocaleString() : '—' }}
@@ -95,9 +117,10 @@
 </template>
 
 <script setup>
-import { ref } from 'vue'
-import { router } from '@inertiajs/vue3'
+import { computed, ref } from 'vue'
+import { router, usePage } from '@inertiajs/vue3'
 import AppShellV2 from '@/Layouts/AppShellV2.vue'
+import { csrfFetch } from '@/lib/csrf'
 
 // Table-led tool surface: full chrome + flush main, reproducing the legacy
 // full-height column (toolbar / scrolling table / pinned pagination).
@@ -127,6 +150,37 @@ const props = defineProps({
 
 const search   = ref(props.filters?.search    ?? '')
 const admLevel = ref(props.filters?.adm_level ?? '')
+
+// ACTIVATE-per-row (manual-first arc, operator 2026-08-06): sizes ONE
+// jurisdiction's legislature (apportionment:seed via the endpoint) and swaps
+// the button for the Districts link in place — no page reload, the 940k-row
+// table keeps its position.
+const isOperator = computed(() => !! usePage().props.auth?.user?.is_operator)
+const busy   = ref({})
+const rowErr = ref({})
+
+async function activateRow(j) {
+    if (busy.value[j.id]) return
+    busy.value   = { ...busy.value, [j.id]: true }
+    rowErr.value = { ...rowErr.value, [j.id]: '' }
+    try {
+        const res = await csrfFetch(`/api/jurisdictions/${j.id}/activate-legislature`, {
+            method:  'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body:    '{}',
+        })
+        const data = await res.json().catch(() => ({}))
+        if (!res.ok || !data.ok) {
+            rowErr.value = { ...rowErr.value, [j.id]: data.error || `HTTP ${res.status}` }
+            return
+        }
+        j.legislature_id = data.legislature_id   // in-place swap → Districts link
+    } catch (e) {
+        rowErr.value = { ...rowErr.value, [j.id]: String(e?.message || e) }
+    } finally {
+        busy.value = { ...busy.value, [j.id]: false }
+    }
+}
 
 let searchTimer = null
 
