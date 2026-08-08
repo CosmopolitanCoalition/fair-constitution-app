@@ -58,16 +58,27 @@ class ActivateSubtreeJob implements ShouldQueue
                 ->where('jurisdiction_id', $row->id)
                 ->whereNull('deleted_at')
                 ->exists();
-            if ($has) {
-                $skipped++;
 
-                continue;
+            if (! $has) {
+                $exit = Artisan::call('apportionment:seed', ['--jurisdiction' => $row->slug]);
+                $exit === 0 ? $done++ : $failed++;
+                if ($exit !== 0) {
+                    Log::warning(sprintf('ActivateSubtreeJob: seed failed for %s (exit %d)', $row->slug, $exit));
+
+                    continue;
+                }
+            } else {
+                $skipped++;
             }
 
-            $exit = Artisan::call('apportionment:seed', ['--jurisdiction' => $row->slug]);
-            $exit === 0 ? $done++ : $failed++;
-            if ($exit !== 0) {
-                Log::warning(sprintf('ActivateSubtreeJob: seed failed for %s (exit %d)', $row->slug, $exit));
+            // THE FULL BOOT (2026-08-08): sizing alone is not activation —
+            // WF-JUR-01 adopts the legislature and constitutes the bootstrap
+            // board (the mapper's R-08 substrate). Idempotent per node.
+            $bootExit = Artisan::call('jurisdiction:activate', [
+                'slug' => $row->slug, '--force' => true,
+            ]);
+            if ($bootExit !== 0) {
+                Log::warning(sprintf('ActivateSubtreeJob: activation exited %d for %s', $bootExit, $row->slug));
             }
 
             if (($i + 1) % 50 === 0) {

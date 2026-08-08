@@ -900,6 +900,15 @@ class JurisdictionController extends Controller
             ->select('id', 'total_seats')
             ->first();
         if ($existing !== null) {
+            // HEAL (operator-caught 2026-08-08: seats without the BOOT left
+            // the mapper refusing F-ELB-008 — no bootstrap board, no R-08).
+            // Re-clicking Activate runs the full WF-JUR-01 activation, which
+            // adopts the existing legislature (never resizes) and constitutes
+            // the bootstrap board. Idempotent on an already-booted place.
+            \Illuminate\Support\Facades\Artisan::call('jurisdiction:activate', [
+                'slug' => $jurisdiction->slug, '--force' => true,
+            ]);
+
             return response()->json([
                 'ok' => true, 'already_active' => true,
                 'legislature_id' => $existing->id,
@@ -921,6 +930,25 @@ class JurisdictionController extends Controller
                 'ok' => false,
                 'error' => 'apportionment:seed did not produce a legislature: '.$tail,
             ], 422);
+        }
+
+        // THE FULL BOOT (operator-caught 2026-08-08): sizing alone is not
+        // activation. WF-JUR-01 adopts the seeded legislature (never
+        // resizes) and constitutes the bootstrap election board — the R-08
+        // substrate the mapper's F-ELB-008 filing requires (RoleService:
+        // the operator holds R-08 while an active bootstrap board exists).
+        // Leaves get the clamp posture (no map minted — the manual canvas
+        // stays blank); over-ceiling parents ensure an initial map when
+        // none exists, the offer-to-generate alternative.
+        $bootExit = \Illuminate\Support\Facades\Artisan::call('jurisdiction:activate', [
+            'slug' => $jurisdiction->slug, '--force' => true,
+        ]);
+        if ($bootExit !== 0) {
+            \Illuminate\Support\Facades\Log::warning(sprintf(
+                'Activate %s: seed OK but activation exited %d — %s',
+                $jurisdiction->slug, $bootExit,
+                substr(trim(\Illuminate\Support\Facades\Artisan::output()), -300),
+            ));
         }
 
         \Illuminate\Support\Facades\Log::info(sprintf(
