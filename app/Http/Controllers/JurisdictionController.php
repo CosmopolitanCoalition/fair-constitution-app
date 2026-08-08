@@ -55,6 +55,18 @@ class JurisdictionController extends Controller
             ->selectRaw("EXISTS (SELECT 1 FROM election_boards eb
                                   WHERE eb.jurisdiction_id = jurisdictions.id
                                     AND eb.status = 'active' AND eb.deleted_at IS NULL) AS has_board")
+            // DIRECT children still lacking a legislature (operator, 2026-08-08):
+            // "+ children" must survive the parent's own activation — a place
+            // can be activated while its whole subtree is not. Direct children
+            // only, on the parent_id index: cheap at any page size, and once
+            // those activate the button reappears on THEM, so the tree stays
+            // walkable level by level (the recursive job still does the whole
+            // subtree in one click from any height).
+            ->selectRaw("(SELECT count(*) FROM jurisdictions c
+                           WHERE c.parent_id = jurisdictions.id AND c.deleted_at IS NULL
+                             AND NOT EXISTS (SELECT 1 FROM legislatures l
+                                              WHERE l.jurisdiction_id = c.id
+                                                AND l.deleted_at IS NULL)) AS inactive_children")
             // The ancestor CHAIN per row (operator tour, 2026-08-08): same-named
             // places are only tellable apart by their lineage — "Earth › USA ›
             // Illinois". Scalar recursive subquery, ≤6 hops, page-bounded.

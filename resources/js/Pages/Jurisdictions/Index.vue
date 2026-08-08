@@ -176,19 +176,25 @@
                                     <button type="button"
                                             :disabled="!!busy[j.id]"
                                             @click="activateRow(j)"
-                                            class="inline-block text-xs px-2.5 py-1 rounded-l border border-violet-600
+                                            class="inline-block text-xs px-2.5 py-1 rounded border border-violet-600
                                                    text-violet-200 hover:bg-violet-900/40 disabled:opacity-50 transition-colors">
                                         {{ busy[j.id] ? 'Sizing…' : 'Activate' }}
                                     </button>
-                                    <button type="button"
-                                            :disabled="!!busy[j.id]"
-                                            @click="activateChildren(j)"
-                                            title="Activate this jurisdiction and its whole subtree (queued)"
-                                            class="inline-block text-xs px-2 py-1 rounded-r border border-l-0 border-violet-600
-                                                   text-violet-300 hover:bg-violet-900/40 disabled:opacity-50 transition-colors">
-                                        + children
-                                    </button>
                                 </template>
+                                <!-- "+ children" is driven by the SUBTREE's
+                                     state, not this row's (operator,
+                                     2026-08-08): a parent can be activated
+                                     while its children are not, and the
+                                     button must stay for exactly that case. -->
+                                <button v-if="isOperator && j.inactive_children"
+                                        type="button"
+                                        :disabled="!!busy[j.id]"
+                                        @click="activateChildren(j)"
+                                        :title="`Activate this jurisdiction and its whole subtree (queued) — ${j.inactive_children} direct child(ren) still inactive`"
+                                        class="ml-1 inline-block text-xs px-2 py-1 rounded border border-violet-600
+                                               text-violet-300 hover:bg-violet-900/40 disabled:opacity-50 transition-colors">
+                                    + children ({{ j.inactive_children }})
+                                </button>
                                 <span v-else class="text-xs text-gray-600">—</span>
                                 <span v-if="rowErr[j.id]" class="ml-2 text-xs text-red-400">{{ rowErr[j.id] }}</span>
                             </td>
