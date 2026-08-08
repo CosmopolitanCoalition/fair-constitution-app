@@ -32,11 +32,35 @@ cat docs/extracted/roles_forms_chart.md        # All constitutional roles, forms
 The `docs/extracted/` folder is .gitignored (generated at session start). Source files in `docs/` are committed.
 
 **Priority of documents:**
-1. `Fair_Constitution_Labeled.docx` — supreme authority on all policy and rules
-2. `CGA_Architecture_Plan.docx` — authoritative technical architecture decisions
+1. `Fair_Constitution_Labeled.docx` — supreme authority on all POLICY and rules (what the law says)
+2. `CGA_Architecture_Plan.docx` — historical planning record (see THE CODE IS THE AUTHORITY below)
 3. `CGA_Constitutional_Roles_Forms_Chart.xlsx` — exhaustive role/form/institution mapping
 4. `The_Chart.drawio` — principles diagram and governance structure visualization
 5. `App_Flows.drawio` — application flow maps (work in progress)
+
+---
+
+## THE CODE IS THE AUTHORITY (operator ruling 2026-08-08 — binds every session from this day forward)
+
+The application is BUILT. The plans served as what to build; they are done serving.
+
+- **The code is the authority on what is built and how it behaves.** Planning
+  documents — `docs/plans/**`, phase plans, design MDs, formula docs,
+  architecture notes — are historical records of what was INTENDED. They are
+  not statements of what IS, and they are not a source of memory.
+- **When the operator asks whether something "is a certain way," he is asking
+  about THE CODE.** Answer by reading the running code (and the live box where
+  state matters) — never by quoting a plan. A plan-sourced answer to a
+  code question is a wrong answer even when it happens to match.
+- **A deviation between code and plan is, at best, a FLAG** — something to
+  consider adding or changing in the code or in the plan. It is generally not
+  a measure of what is. What is, is the code.
+- The goal is that the game RUNS as planned — and "runs" is verified in code,
+  never assumed from documents.
+- Scope boundary: this ruling governs "what is built." The constitution
+  (`Fair_Constitution_Labeled.docx`) remains the supreme POLICY authority, and
+  the settled rulings + hard constraints in this file stand — those say what
+  the law IS, which the code must implement.
 
 ---
 
