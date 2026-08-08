@@ -32,7 +32,7 @@ cat docs/extracted/roles_forms_chart.md        # All constitutional roles, forms
 The `docs/extracted/` folder is .gitignored (generated at session start). Source files in `docs/` are committed.
 
 **Priority of documents:**
-1. `Fair_Constitution_Labeled.docx` — supreme authority on all POLICY and rules (what the law says)
+1. `Fair_Constitution_Labeled.docx` — the FOUNDING reference, now ADVISORY (operator ruling 2026-08-08): the built game has advanced policy-wise past this document (polymorphic voting, more advanced districting, …) and those changes are not yet incorporated back into it. See THE CODE IS THE AUTHORITY below.
 2. `CGA_Architecture_Plan.docx` — historical planning record (see THE CODE IS THE AUTHORITY below)
 3. `CGA_Constitutional_Roles_Forms_Chart.xlsx` — exhaustive role/form/institution mapping
 4. `The_Chart.drawio` — principles diagram and governance structure visualization
@@ -57,10 +57,17 @@ The application is BUILT. The plans served as what to build; they are done servi
   a measure of what is. What is, is the code.
 - The goal is that the game RUNS as planned — and "runs" is verified in code,
   never assumed from documents.
-- Scope boundary: this ruling governs "what is built." The constitution
-  (`Fair_Constitution_Labeled.docx`) remains the supreme POLICY authority, and
-  the settled rulings + hard constraints in this file stand — those say what
-  the law IS, which the code must implement.
+- **This includes the constitution document itself** (operator correction,
+  same ruling): the game has advanced policy-wise PAST
+  `Fair_Constitution_Labeled.docx` — polymorphic voting, more advanced
+  districting, and other evolutions live in code but are not yet incorporated
+  back into the document — so even the docx is ADVISORY now. The
+  authoritative statement of current policy is **the code plus the operator's
+  settled rulings** (this file's hard constraints and rulings record those;
+  where the code has advanced past a recorded constraint with the operator's
+  sanction, the code + ruling win). Where code and docx diverge, that is a
+  FLAG — usually a document-update debt, not a code defect. Changes to the
+  constitution's TEXT remain the operator's alone.
 
 ---
 
