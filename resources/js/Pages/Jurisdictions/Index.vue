@@ -38,10 +38,16 @@
                             class="px-2 py-1 rounded-r border border-l-0 border-emerald-600 text-emerald-300 hover:bg-emerald-900/40 disabled:opacity-40 transition-colors">
                         + children
                     </button>
+                    <button v-if="scale?.half_activated" type="button" :disabled="healBusy" @click="finishActivations"
+                            title="These places have seats but no election board, so district plans cannot be accepted"
+                            class="px-2.5 py-1 rounded border border-amber-500 bg-amber-900/30 text-amber-100 hover:bg-amber-900/60 disabled:opacity-50 transition-colors">
+                        {{ healBusy ? 'Booting…' : `Finish activation (${scale.half_activated.toLocaleString()})` }}
+                    </button>
                     <button type="button" :disabled="allBusy" @click="activateAll"
                             class="px-2.5 py-1 rounded border border-violet-600 text-violet-200 hover:bg-violet-900/40 disabled:opacity-50 transition-colors">
                         {{ allBusy ? 'Starting…' : 'Activate All — planet-wide build' }}
                     </button>
+                    <span v-if="healMsg" class="text-gray-400">{{ healMsg }}</span>
                     <span v-if="bulkMsg" class="text-gray-400">{{ bulkMsg }}</span>
                     <span v-if="allMsg" class="text-gray-400">{{ allMsg }}</span>
                 </span>
@@ -353,9 +359,13 @@ async function activateSelected() {
     let done = 0
     try {
         for (const j of props.jurisdictions.data) {
-            if (!selected.value[j.id] || j.legislature_id) continue
+            // Skip only rows that are FULLY activated (seats AND board) — a
+            // half-activated row must still be bootable in bulk, or the heal
+            // path is unreachable exactly where it is needed (the b3161b9
+            // lesson, 2026-08-08).
+            if (!selected.value[j.id] || (j.legislature_id && j.has_board)) continue
             await activateRow(j)
-            if (j.legislature_id) done++
+            if (j.legislature_id && j.has_board) done++
         }
         bulkMsg.value = `Activated ${done} of ${selectedCount.value} selected.`
         selected.value = {}
@@ -427,6 +437,37 @@ async function activateChildren(j) {
         rowErr.value = { ...rowErr.value, [j.id]: String(e?.message || e) }
     } finally {
         busy.value = { ...busy.value, [j.id]: false }
+    }
+}
+
+// Bulk heal: boot every half-activated place (legislature, no election
+// board) in one queued pass — hundreds of rows are normal after a subtree
+// queue, and nine pages of clicking is not a heal path.
+const healBusy = ref(false)
+const healMsg  = ref('')
+
+async function finishActivations() {
+    if (healBusy.value) return
+    healBusy.value = true
+    healMsg.value = ''
+    try {
+        const res = await csrfFetch('/api/jurisdictions/finish-activations', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: '{}',
+        })
+        const data = await res.json().catch(() => ({}))
+        if (!res.ok || !data.ok) {
+            healMsg.value = data.error || `HTTP ${res.status}`
+            return
+        }
+        healMsg.value = data.queued
+            ? `Booting ${Number(data.count).toLocaleString()} place(s) — refresh to watch the count fall.`
+            : 'Nothing to finish — every activated place has its board.'
+    } catch (e) {
+        healMsg.value = String(e?.message || e)
+    } finally {
+        healBusy.value = false
     }
 }
 

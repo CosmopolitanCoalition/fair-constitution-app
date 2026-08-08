@@ -82,6 +82,9 @@ class JurisdictionController extends Controller
                 'map_accepted_at' => $instance?->map_accepted_at?->toIso8601String(),
                 // Sandbox worlds get the per-row Simulate control.
                 'is_sandbox'      => $instance?->game_mode === 'sandbox',
+                // Half-activated backlog (legislature, no board) — the bulk
+                // boot's badge. Cheap: an anti-join over activated places.
+                'half_activated'  => $this->halfActivatedCount(),
             ],
         ]);
     }
@@ -977,6 +980,39 @@ class JurisdictionController extends Controller
             'total_seats'    => (int) $leg->total_seats,
             'has_board'      => $hasBoard,
         ]);
+    }
+
+    /**
+     * POST /api/jurisdictions/finish-activations — boot every half-activated
+     * jurisdiction (legislature, no election board) in one queued pass.
+     * Operator-only; idempotent; safe to re-run.
+     */
+    public function finishActivations(Request $request): JsonResponse
+    {
+        abort_unless((bool) $request->user()?->is_operator, 403);
+
+        $n = $this->halfActivatedCount();
+        if ($n === 0) {
+            return response()->json(['ok' => true, 'queued' => false, 'count' => 0]);
+        }
+
+        \App\Jobs\FinishActivationsJob::dispatch();
+
+        return response()->json(['ok' => true, 'queued' => true, 'count' => $n]);
+    }
+
+    /** Jurisdictions holding a legislature but no active election board. */
+    private function halfActivatedCount(): int
+    {
+        return DB::table('jurisdictions as j')
+            ->join('legislatures as l', function ($join) {
+                $join->on('l.jurisdiction_id', '=', 'j.id')->whereNull('l.deleted_at');
+            })
+            ->whereNull('j.deleted_at')
+            ->whereNotExists(fn ($q) => $q->from('election_boards as eb')
+                ->whereColumn('eb.jurisdiction_id', 'j.id')
+                ->where('eb.status', 'active')->whereNull('eb.deleted_at'))
+            ->count();
     }
 
     /**
