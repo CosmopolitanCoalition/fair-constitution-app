@@ -214,6 +214,15 @@ class SimWorkerJob implements ShouldQueue
                 (string) $run->id,
                 $version,
             ),
+            // The bench (2026-08-08): F-LEG-017 creation + per-seat F-LEG-021
+            // constituent nominations through the real forms — the sim's
+            // courtrooms stop being empty shells. Jurisdiction-scoped like
+            // governance; defers-with-reason where formation cannot pass yet.
+            'judiciary_scope' => \App\Services\Demo\Stages\JudiciaryStage::run(
+                (string) $item->jurisdiction_id,
+                (string) $run->id,
+                $version,
+            ),
             // Stages land here as they are built; an unknown kind is a REVIEW
             // row naming itself rather than a crash.
             default => throw new \RuntimeException("No stage is wired for item kind '{$item->kind}'."),

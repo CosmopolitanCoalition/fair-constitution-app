@@ -54,13 +54,21 @@ class SimGovernanceWiringTest extends TestCase
 
         $seating = array_search('seating', $phases, true);
         $governance = array_search('governance', $phases, true);
+        $judiciary = array_search('judiciary', $phases, true);
         $verifying = array_search('verifying', $phases, true);
 
         $this->assertNotFalse($governance, 'a governance phase must exist');
         $this->assertSame($seating + 1, $governance, 'governance runs immediately after seating');
-        $this->assertSame($governance + 1, $verifying, 'verifying (the acceptance scan) runs after governance, so it sees the matured world');
+        // The bench phase (operator 2026-08-08 — the courtroom gap): the
+        // matured world now includes the judge pools, so verifying moves to
+        // after JUDICIARY. F-LEG-017 needs seated chambers (governance-era
+        // state), and the scan must see the benches.
+        $this->assertNotFalse($judiciary, 'a judiciary phase must exist');
+        $this->assertSame($governance + 1, $judiciary, 'the bench forms immediately after the growth dial');
+        $this->assertSame($judiciary + 1, $verifying, 'verifying (the acceptance scan) runs after judiciary, so it sees the fully matured world');
 
         $this->assertSame(['governance_scope'], SimRun::PHASE_KINDS['governance']);
+        $this->assertSame(['judiciary_scope'], SimRun::PHASE_KINDS['judiciary']);
     }
 
     public function test_the_pump_mints_one_governance_item_per_seated_jurisdiction_and_is_idempotent(): void

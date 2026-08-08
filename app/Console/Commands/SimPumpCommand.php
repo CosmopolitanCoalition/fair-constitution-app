@@ -274,6 +274,27 @@ class SimPumpCommand extends Command
                     )
                   LIMIT ".self::MINT_CHUNK,
 
+            // The bench (operator 2026-08-08 — the courtroom gap): one
+            // judiciary item per jurisdiction whose growth-dial item settled.
+            // JudiciaryStage files the real F-LEG-017 + per-seat F-LEG-021 and
+            // defers-with-reason where a place cannot yet form (leaf committee
+            // mode, unseated Type B half, no provisioned shell).
+            'judiciary' => "INSERT INTO sim_items
+                    (id, run_id, kind, status, jurisdiction_id, adm_level, unit_key,
+                     position, est_cost, metrics, created_at, updated_at)
+                 SELECT gen_random_uuid(), ?, 'judiciary_scope', 'pending',
+                        s.jurisdiction_id, s.adm_level, s.jurisdiction_id::text,
+                        s.position, 0, '{}', now(), now()
+                   FROM sim_items s
+                  WHERE s.run_id = ? AND s.kind = 'governance_scope'
+                    AND s.status = 'done'
+                    AND NOT EXISTS (
+                        SELECT 1 FROM sim_items x
+                         WHERE x.run_id = ? AND x.kind = 'judiciary_scope'
+                           AND x.unit_key = s.jurisdiction_id::text
+                    )
+                  LIMIT ".self::MINT_CHUNK,
+
             default => null,
         };
 

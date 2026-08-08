@@ -46,6 +46,7 @@ class SimRun extends Model
         'counting',
         'seating',
         'governance',
+        'judiciary',
         'verifying',
         'done',
     ];
@@ -69,6 +70,12 @@ class SimRun extends Model
         // GovernanceStage files F-LEG-009/014/016, never a direct row. One item
         // per jurisdiction whose seating landed.
         'governance' => ['governance_scope'],
+        // The bench (Art. IV, operator 2026-08-08 — the courtroom gap): once a
+        // place's growth dial has run, JudiciaryStage files the real F-LEG-017
+        // creation + per-seat F-LEG-021 constituent nominations, so the
+        // constituent-shaped judge pools appear through the forms. One item
+        // per jurisdiction whose governance item settled.
+        'judiciary' => ['judiciary_scope'],
         'verifying' => ['acceptance_scan'],
         'done' => [],
     ];
