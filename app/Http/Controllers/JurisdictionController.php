@@ -23,6 +23,14 @@ class JurisdictionController extends Controller
             ->whereNull('deleted_at')
             ->when($request->search, fn ($q, $s) => $q->where('name', 'ilike', "%{$s}%"))
             ->when($request->filled('adm_level'), fn ($q) => $q->where('adm_level', (int) $request->adm_level))
+            // Activation filter (operator tour, 2026-08-08): activated =
+            // holds a live legislature.
+            ->when($request->filled('active'), function ($q) use ($request) {
+                $exists = fn ($qq) => $qq->from('legislatures')
+                    ->whereColumn('legislatures.jurisdiction_id', 'jurisdictions.id')
+                    ->whereNull('legislatures.deleted_at');
+                $request->boolean('active') ? $q->whereExists($exists) : $q->whereNotExists($exists);
+            })
             ->orderBy('adm_level')
             ->orderBy('name')
             ->select(
@@ -61,7 +69,7 @@ class JurisdictionController extends Controller
 
         return Inertia::render('Jurisdictions/Index', [
             'jurisdictions' => $jurisdictions,
-            'filters' => $request->only(['search', 'adm_level']),
+            'filters' => $request->only(['search', 'adm_level', 'active']),
             'scale' => [
                 'mode'            => (string) ($instance?->institution_scale_mode ?? 'eager'),
                 'map_accepted_at' => $instance?->map_accepted_at?->toIso8601String(),
@@ -955,6 +963,23 @@ class JurisdictionController extends Controller
             return response()->json([
                 'ok' => false,
                 'error' => 'Activate this jurisdiction first — the sim elects into chambers that exist.',
+            ], 422);
+        }
+
+        // THE MAP GATE (operator, 2026-08-08): elections need districts to
+        // elect FROM — simulating a chamber with no active district map would
+        // have no races to run. Draw one (Districts →) or autoseed it in the
+        // mapper first.
+        $hasActiveMap = DB::table('legislature_district_maps')
+            ->join('legislatures', 'legislatures.id', '=', 'legislature_district_maps.legislature_id')
+            ->where('legislatures.jurisdiction_id', $jurisdiction->id)
+            ->whereNull('legislatures.deleted_at')
+            ->where('legislature_district_maps.status', 'active')
+            ->exists();
+        if (! $hasActiveMap) {
+            return response()->json([
+                'ok' => false,
+                'error' => 'No active district map — open Districts → and draw or autoseed one first. Elections need districts to elect from.',
             ], 422);
         }
 

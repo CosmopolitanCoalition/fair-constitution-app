@@ -19,6 +19,16 @@
                             : 'Nothing is automatic: Activate rows here (or + children), draw maps, build institutions through their forms.' }}
                 </span>
                 <span class="ml-auto flex items-center gap-2">
+                    <a href="/setup/step/2"
+                       class="px-2.5 py-1 rounded border border-gray-600 text-gray-300 hover:bg-gray-800 transition-colors">
+                        ← Setup
+                    </a>
+                    <button type="button" :disabled="advancingSetup" @click="continueSetup"
+                            title="Mark this step done and continue to review & confirm"
+                            class="px-2.5 py-1 rounded border border-blue-600 text-blue-200 hover:bg-blue-900/40 disabled:opacity-50 transition-colors">
+                        {{ advancingSetup ? 'Advancing…' : 'Continue setup →' }}
+                    </button>
+                    <span v-if="setupMsg" class="text-gray-400">{{ setupMsg }}</span>
                     <button type="button" :disabled="bulkBusy || selectedCount === 0" @click="activateSelected"
                             class="px-2.5 py-1 rounded-l border border-emerald-600 text-emerald-200 hover:bg-emerald-900/40 disabled:opacity-40 transition-colors">
                         {{ bulkBusy ? 'Activating…' : `Activate selected (${selectedCount})` }}
@@ -50,6 +60,17 @@
                     class="w-64 bg-gray-800 border border-gray-700 rounded px-3 py-1.5 text-sm text-white placeholder-gray-500 focus:outline-none focus:border-blue-500"
                 />
 
+                <!-- Activation filter (operator tour, 2026-08-08) -->
+                <select
+                    v-model="activeFilter"
+                    @change="onFilter"
+                    class="bg-gray-800 border border-gray-700 rounded px-3 py-1.5 text-sm text-white focus:outline-none focus:border-blue-500"
+                >
+                    <option value="">Active &amp; inactive</option>
+                    <option value="1">Activated only</option>
+                    <option value="0">Not activated</option>
+                </select>
+
                 <!-- ADM level filter -->
                 <select
                     v-model="admLevel"
@@ -76,7 +97,9 @@
                 <table class="w-full text-sm border-collapse">
                     <thead class="sticky top-0 bg-gray-900 z-10">
                         <tr class="text-left text-xs text-gray-400 uppercase tracking-wide">
-                            <th v-if="isOperator" class="px-2 py-2 font-medium border-b border-gray-800 w-8"></th>
+                            <th v-if="isOperator" class="px-2 py-2 font-medium border-b border-gray-800 w-8" @click.stop>
+                                <input type="checkbox" v-model="allSelected" title="Select all on this page" class="accent-emerald-600" />
+                            </th>
                             <th class="px-4 py-2 font-medium border-b border-gray-800 w-48">Level</th>
                             <th class="px-4 py-2 font-medium border-b border-gray-800">Name</th>
                             <th class="px-4 py-2 font-medium border-b border-gray-800 w-44">Legislature</th>
@@ -216,8 +239,9 @@ const props = defineProps({
     scale: Object,   // { mode, map_accepted_at } — the activation-mode context
 })
 
-const search   = ref(props.filters?.search    ?? '')
-const admLevel = ref(props.filters?.adm_level ?? '')
+const search       = ref(props.filters?.search    ?? '')
+const admLevel     = ref(props.filters?.adm_level ?? '')
+const activeFilter = ref(props.filters?.active    ?? '')
 
 // ACTIVATE-per-row (manual-first arc, operator 2026-08-06): sizes ONE
 // jurisdiction's legislature (apportionment:seed via the endpoint) and swaps
@@ -261,6 +285,46 @@ const MODE_LABEL = {
 }
 const selected = ref({})
 const selectedCount = computed(() => Object.values(selected.value).filter(Boolean).length)
+
+// Select-all for the visible page (operator tour, 2026-08-08).
+const allSelected = computed({
+    get: () => props.jurisdictions.data.length > 0
+        && props.jurisdictions.data.every(j => !!selected.value[j.id]),
+    set: (v) => {
+        const next = { ...selected.value }
+        for (const j of props.jurisdictions.data) next[j.id] = v
+        selected.value = next
+    },
+})
+
+// The list + mapper ARE step 3 in practice (operator, 2026-08-08): give the
+// wizard rails here — back to Step 2, or advance the wizard and continue to
+// the review/confirm step when this surface's work is done.
+const advancingSetup = ref(false)
+const setupMsg = ref('')
+
+async function continueSetup() {
+    if (advancingSetup.value) return
+    advancingSetup.value = true
+    setupMsg.value = ''
+    try {
+        const res = await csrfFetch('/api/setup/wizard/step1/activate', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: '{}',
+        })
+        const data = await res.json().catch(() => ({}))
+        if (!res.ok) {
+            setupMsg.value = data.error || `advance failed (HTTP ${res.status})`
+            return
+        }
+        router.visit('/setup/step/3')
+    } catch (e) {
+        setupMsg.value = String(e?.message || e)
+    } finally {
+        advancingSetup.value = false
+    }
+}
 const bulkBusy = ref(false)
 const bulkMsg  = ref('')
 
@@ -392,6 +456,7 @@ function applyFilters() {
     router.get('/jurisdictions', {
         search:    search.value || undefined,
         adm_level: admLevel.value !== '' ? admLevel.value : undefined,
+        active:    activeFilter.value !== '' ? activeFilter.value : undefined,
     }, {
         preserveState: true,
         replace: true,
