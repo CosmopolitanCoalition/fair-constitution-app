@@ -223,6 +223,13 @@ class SimWorkerJob implements ShouldQueue
                 (string) $run->id,
                 $version,
             ),
+            // Census-flavored orgs + bills (2026-08-08, rubric B): real
+            // per-capita rates, sampled rows, true counts in metrics.
+            'civics_scope' => \App\Services\Demo\Stages\CivicsStage::run(
+                (string) $item->jurisdiction_id,
+                (string) $run->id,
+                $version,
+            ),
             // Stages land here as they are built; an unknown kind is a REVIEW
             // row naming itself rather than a crash.
             default => throw new \RuntimeException("No stage is wired for item kind '{$item->kind}'."),

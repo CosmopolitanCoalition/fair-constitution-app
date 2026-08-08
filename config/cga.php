@@ -30,6 +30,24 @@ return [
     // which builds set-based instead of one seed per node.
     'activate_recursive_max' => env('CGA_ACTIVATE_RECURSIVE_MAX', 5000),
 
+    // CENSUS-FLAVORED sim civics (operator ruling 2026-08-08, rubric
+    // sim-org-bill-rates = B): real per-capita rates — US anchors: ~1
+    // nonprofit per 180 people (1.8M/331M), ~1 business per 10 (33M/331M),
+    // ~20 bills per member per session (Congress-order) — with a SAMPLE
+    // dial so planet-scale realism stays boxable: every Nth entity gets a
+    // real row, the TRUE census counts ride the sim item's metrics as the
+    // aggregate truth. Parties sit in the observed 2–8 effective-parties
+    // band, log-scaled by chamber size.
+    'sim_civics' => [
+        'nonprofit_per'    => env('CGA_SIM_NONPROFIT_PER', 180),
+        'business_per'     => env('CGA_SIM_BUSINESS_PER', 10),
+        'org_sample'       => env('CGA_SIM_ORG_SAMPLE', 1000),
+        'bills_per_member' => env('CGA_SIM_BILLS_PER_MEMBER', 20),
+        'bill_sample'      => env('CGA_SIM_BILL_SAMPLE', 1000),
+        'parties_min'      => env('CGA_SIM_PARTIES_MIN', 2),
+        'parties_max'      => env('CGA_SIM_PARTIES_MAX', 8),
+    ],
+
     /*
     | Pull engine (2026-07-19). autoscale_precompute: 'upfront' (default)
     | gates sweep-scope claims behind the run-level sibling-adjacency

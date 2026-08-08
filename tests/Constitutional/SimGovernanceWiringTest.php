@@ -65,10 +65,17 @@ class SimGovernanceWiringTest extends TestCase
         // state), and the scan must see the benches.
         $this->assertNotFalse($judiciary, 'a judiciary phase must exist');
         $this->assertSame($governance + 1, $judiciary, 'the bench forms immediately after the growth dial');
-        $this->assertSame($judiciary + 1, $verifying, 'verifying (the acceptance scan) runs after judiciary, so it sees the fully matured world');
+        // Census-flavored civics (rubric sim-org-bill-rates = B, 2026-08-08):
+        // orgs + bills follow the bench; verifying still runs LAST so the
+        // scan sees the fully matured world.
+        $civics = array_search('civics', $phases, true);
+        $this->assertNotFalse($civics, 'a civics phase must exist');
+        $this->assertSame($judiciary + 1, $civics, 'civics (orgs + bills) follows the bench');
+        $this->assertSame($civics + 1, $verifying, 'verifying (the acceptance scan) runs after civics, so it sees the fully matured world');
 
         $this->assertSame(['governance_scope'], SimRun::PHASE_KINDS['governance']);
         $this->assertSame(['judiciary_scope'], SimRun::PHASE_KINDS['judiciary']);
+        $this->assertSame(['civics_scope'], SimRun::PHASE_KINDS['civics']);
     }
 
     public function test_the_pump_mints_one_governance_item_per_seated_jurisdiction_and_is_idempotent(): void

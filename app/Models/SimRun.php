@@ -47,6 +47,7 @@ class SimRun extends Model
         'seating',
         'governance',
         'judiciary',
+        'civics',
         'verifying',
         'done',
     ];
@@ -76,6 +77,12 @@ class SimRun extends Model
         // constituent-shaped judge pools appear through the forms. One item
         // per jurisdiction whose governance item settled.
         'judiciary' => ['judiciary_scope'],
+        // CENSUS-FLAVORED civics (operator ruling 2026-08-08, rubric
+        // sim-org-bill-rates = B): per-capita orgs (parties, nonprofits,
+        // businesses) + bills per session — real rates, sampled rows, true
+        // counts in metrics. One item per jurisdiction whose bench item
+        // settled.
+        'civics' => ['civics_scope'],
         'verifying' => ['acceptance_scan'],
         'done' => [],
     ];

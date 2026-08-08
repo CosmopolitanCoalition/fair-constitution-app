@@ -41,9 +41,10 @@ use Illuminate\Support\Facades\DB;
  *   - no `forming` judiciary row → skip (the provisioner's shell has not run
  *     here — eager mode chains it; nothing is minted from this stage);
  *   - a LEAF jurisdiction derives COMMITTEE nomination (no constituents) —
- *     the committee-slate path is a different service verb, deferred to the
- *     next sim round with its reason on the item, never faked through the
- *     constituent verb;
+ *     the act states the bench (committee_judge_count = the floor) and seats
+ *     fill through committeeNominate(), the same consent pipeline (rubric
+ *     sim-leaf-courts = A, 2026-08-08: full courts everywhere BEFORE the
+ *     demo);
  *   - a constituent without a resident to nominate defers that seat.
  */
 final class JudiciaryStage
@@ -107,23 +108,26 @@ final class JudiciaryStage
         if ($judiciary->status === Judiciary::STATUS_FORMING) {
             $constituents = \App\Services\Judiciary\JudiciaryFormationService::constituentJurisdictionIds($legislature);
 
-            if ($constituents === []) {
-                // Leaf → committee nomination mode. The committee-slate verb is
-                // a different path; deferred honestly rather than faked.
-                return self::skip('leaf jurisdiction — committee-slate nomination is the next sim round');
+            $minJudges = max(5, (int) $judiciary->min_judges);
+            $payload = [
+                'legislature_id' => (string) $legislature->id,
+                'jurisdiction_id' => (string) $jurisdictionId,
+                'court_name' => (string) ($judiciary->court_name ?: 'Superior Court'),
+                'function_text' => 'Hears the civil, criminal, administrative, and constitutional matters of this jurisdiction (growth dial, §5 stage 3).',
+            ];
+            if ($constituents !== []) {
+                // Constituent mode: the Type B shape — the act picks the
+                // multiple; the floor decides the minimum multiple.
+                $payload['judges_per_constituent'] = max(1, (int) ceil($minJudges / count($constituents)));
+            } else {
+                // LEAF (rubric sim-leaf-courts = A, 2026-08-08: full courts
+                // everywhere BEFORE the demo): committee nomination mode —
+                // the act states the bench, floored at min_judges.
+                $payload['committee_judge_count'] = $minJudges;
             }
 
-            $minJudges = max(5, (int) $judiciary->min_judges);
-            $jpc = max(1, (int) ceil($minJudges / count($constituents)));
-
             try {
-                $result = $engine->file('F-LEG-017', $proposerUser, [
-                    'legislature_id' => (string) $legislature->id,
-                    'jurisdiction_id' => (string) $jurisdictionId,
-                    'court_name' => (string) ($judiciary->court_name ?: 'Superior Court'),
-                    'function_text' => 'Hears the civil, criminal, administrative, and constitutional matters of this jurisdiction (growth dial, §5 stage 3).',
-                    'judges_per_constituent' => $jpc,
-                ]);
+                $result = $engine->file('F-LEG-017', $proposerUser, $payload);
             } catch (\Throwable $e) {
                 return self::skip('creation refused: '.$e->getMessage());
             }
@@ -150,26 +154,35 @@ final class JudiciaryStage
 
         $deferredSeats = 0;
         foreach ($vacant as $seat) {
-            if ($seat->seat_class !== JudicialSeat::CLASS_CONSTITUENT_NOMINATED
-                || $seat->nominating_jurisdiction_id === null) {
-                $deferredSeats++;   // committee-class seat — next round's verb
+            // The nominee pool: a constituent-nominated seat draws from ITS
+            // constituent's residents (Art. IV §2 — each nominates its own);
+            // a committee-nominated seat (leaf court) draws from the
+            // jurisdiction's own residents. Same consent pipeline either way.
+            $poolJurisdictionId = $seat->seat_class === JudicialSeat::CLASS_CONSTITUENT_NOMINATED
+                ? (string) $seat->nominating_jurisdiction_id
+                : $jurisdictionId;
+
+            if ($poolJurisdictionId === '') {
+                $deferredSeats++;
 
                 continue;
             }
 
-            $nominee = self::residentOf((string) $seat->nominating_jurisdiction_id, $judiciary);
+            $nominee = self::residentOf($poolJurisdictionId, $judiciary);
             if ($nominee === null) {
-                $deferredSeats++;   // constituent without a resident yet
+                $deferredSeats++;   // no resident to nominate yet
 
                 continue;
             }
 
             try {
-                $out = $seatsSvc->nominate(
-                    $seat,
-                    (string) $nominee->id,
-                    (string) $seat->nominating_jurisdiction_id,
-                );
+                $out = $seat->seat_class === JudicialSeat::CLASS_CONSTITUENT_NOMINATED
+                    ? $seatsSvc->nominate(
+                        $seat,
+                        (string) $nominee->id,
+                        (string) $seat->nominating_jurisdiction_id,
+                    )
+                    : $seatsSvc->committeeNominate($seat, (string) $nominee->id);
                 self::carryVote($votes, $serving, $out['consent_vote_id'] ?? null);
             } catch (\Throwable $e) {
                 $deferredSeats++;

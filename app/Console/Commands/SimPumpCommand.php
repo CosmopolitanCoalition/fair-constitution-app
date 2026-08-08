@@ -295,6 +295,25 @@ class SimPumpCommand extends Command
                     )
                   LIMIT ".self::MINT_CHUNK,
 
+            // CENSUS-FLAVORED civics (2026-08-08, rubric B): one item per
+            // jurisdiction whose bench item settled — real per-capita rates,
+            // sampled rows, true counts in metrics (CivicsStage).
+            'civics' => "INSERT INTO sim_items
+                    (id, run_id, kind, status, jurisdiction_id, adm_level, unit_key,
+                     position, est_cost, metrics, created_at, updated_at)
+                 SELECT gen_random_uuid(), ?, 'civics_scope', 'pending',
+                        s.jurisdiction_id, s.adm_level, s.jurisdiction_id::text,
+                        s.position, 0, '{}', now(), now()
+                   FROM sim_items s
+                  WHERE s.run_id = ? AND s.kind = 'judiciary_scope'
+                    AND s.status = 'done'
+                    AND NOT EXISTS (
+                        SELECT 1 FROM sim_items x
+                         WHERE x.run_id = ? AND x.kind = 'civics_scope'
+                           AND x.unit_key = s.jurisdiction_id::text
+                    )
+                  LIMIT ".self::MINT_CHUNK,
+
             default => null,
         };
 
