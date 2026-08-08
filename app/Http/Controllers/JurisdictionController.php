@@ -45,6 +45,13 @@ class JurisdictionController extends Controller
                   ->select('legislatures.id')
                   ->limit(1);
             }, 'legislature_id')
+            // HALF-ACTIVATED detector (operator-caught 2026-08-08): a place can
+            // hold a legislature (seat math) with NO active election board —
+            // the R-08 substrate the mapper's F-ELB-008 filing needs. The row
+            // then offers "Finish activation" instead of pretending it is done.
+            ->selectRaw("EXISTS (SELECT 1 FROM election_boards eb
+                                  WHERE eb.jurisdiction_id = jurisdictions.id
+                                    AND eb.status = 'active' AND eb.deleted_at IS NULL) AS has_board")
             // The ancestor CHAIN per row (operator tour, 2026-08-08): same-named
             // places are only tellable apart by their lineage — "Earth › USA ›
             // Illinois". Scalar recursive subquery, ≤6 hops, page-bounded.
@@ -913,6 +920,9 @@ class JurisdictionController extends Controller
                 'ok' => true, 'already_active' => true,
                 'legislature_id' => $existing->id,
                 'total_seats'    => (int) $existing->total_seats,
+                'has_board'      => DB::table('election_boards')
+                    ->where('jurisdiction_id', $jurisdiction->id)
+                    ->where('status', 'active')->whereNull('deleted_at')->exists(),
             ]);
         }
 
@@ -951,15 +961,21 @@ class JurisdictionController extends Controller
             ));
         }
 
+        $hasBoard = DB::table('election_boards')
+            ->where('jurisdiction_id', $jurisdiction->id)
+            ->where('status', 'active')->whereNull('deleted_at')->exists();
+
         \Illuminate\Support\Facades\Log::info(sprintf(
-            'Manual legislature activation — %s (%s): legislature %s, %d seats.',
+            'Manual legislature activation — %s (%s): legislature %s, %d seats, board %s.',
             $jurisdiction->name, $jurisdiction->slug, $leg->id, (int) $leg->total_seats,
+            $hasBoard ? 'constituted' : 'MISSING',
         ));
 
         return response()->json([
             'ok' => true,
             'legislature_id' => $leg->id,
             'total_seats'    => (int) $leg->total_seats,
+            'has_board'      => $hasBoard,
         ]);
     }
 

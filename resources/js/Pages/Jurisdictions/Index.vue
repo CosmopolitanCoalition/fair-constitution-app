@@ -134,6 +134,20 @@
                                  itself navigates to the viewer. -->
                             <td class="px-4 py-2" @click.stop>
                                 <template v-if="j.legislature_id">
+                                    <!-- HALF-ACTIVATED (operator-caught,
+                                         2026-08-08): seats exist but no
+                                         election board, so the mapper's
+                                         Accept-plan filing has no R-08 to
+                                         stand on. One click completes the
+                                         boot; idempotent. -->
+                                    <button v-if="isOperator && !j.has_board"
+                                            type="button" :disabled="!!busy[j.id]"
+                                            @click="activateRow(j)"
+                                            title="Seats exist but this place never finished activation — no election board, so district plans cannot be accepted"
+                                            class="mr-1 inline-block text-xs px-2.5 py-1 rounded border border-amber-500
+                                                   bg-amber-900/30 text-amber-100 hover:bg-amber-900/60 disabled:opacity-50 transition-colors">
+                                        {{ busy[j.id] ? 'Booting…' : 'Finish activation' }}
+                                    </button>
                                     <a :href="`/legislatures/${j.slug}/districts`"
                                        class="inline-block text-xs px-2.5 py-1 rounded border border-emerald-600
                                               text-emerald-200 hover:bg-emerald-900/40 transition-colors">
@@ -267,6 +281,10 @@ async function activateRow(j) {
             return
         }
         j.legislature_id = data.legislature_id   // in-place swap → Districts link
+        j.has_board = !!data.has_board           // clears "Finish activation"
+        if (!data.has_board) {
+            rowErr.value = { ...rowErr.value, [j.id]: 'activated, but the election board did not constitute — check the logs' }
+        }
     } catch (e) {
         rowErr.value = { ...rowErr.value, [j.id]: String(e?.message || e) }
     } finally {
