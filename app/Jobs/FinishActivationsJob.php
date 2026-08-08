@@ -49,10 +49,17 @@ class FinishActivationsJob implements ShouldQueue
         $booted = 0;
         $failed = 0;
         foreach ($roster as $i => $slug) {
-            $exit = Artisan::call('jurisdiction:activate', ['slug' => $slug, '--force' => true]);
-            $exit === 0 ? $booted++ : $failed++;
-            if ($exit !== 0) {
-                Log::warning(sprintf('FinishActivationsJob: %s exited %d', $slug, $exit));
+            // One bad node must never end the pass — 419 places behind it
+            // still deserve their boards (the all-or-nothing-is-a-bug law).
+            try {
+                $exit = Artisan::call('jurisdiction:activate', ['slug' => $slug, '--force' => true]);
+                $exit === 0 ? $booted++ : $failed++;
+                if ($exit !== 0) {
+                    Log::warning(sprintf('FinishActivationsJob: %s exited %d', $slug, $exit));
+                }
+            } catch (\Throwable $e) {
+                $failed++;
+                Log::warning(sprintf('FinishActivationsJob: %s threw — %s', $slug, $e->getMessage()));
             }
             if (($i + 1) % 50 === 0) {
                 Log::info(sprintf('FinishActivationsJob: %d/%d — %d booted, %d failed',

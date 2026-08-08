@@ -915,9 +915,19 @@ class JurisdictionController extends Controller
             // Re-clicking Activate runs the full WF-JUR-01 activation, which
             // adopts the existing legislature (never resizes) and constitutes
             // the bootstrap board. Idempotent on an already-booted place.
-            \Illuminate\Support\Facades\Artisan::call('jurisdiction:activate', [
-                'slug' => $jurisdiction->slug, '--force' => true,
-            ]);
+            // A throw comes back as its MESSAGE, not a bare 500: "HTTP 500"
+            // on a row told the operator nothing while the real cause
+            // ("Unknown clock [CLK-18] — registry seeded?") sat in the log.
+            try {
+                \Illuminate\Support\Facades\Artisan::call('jurisdiction:activate', [
+                    'slug' => $jurisdiction->slug, '--force' => true,
+                ]);
+            } catch (\Throwable $e) {
+                return response()->json([
+                    'ok' => false,
+                    'error' => 'Activation failed: '.$e->getMessage(),
+                ], 422);
+            }
 
             return response()->json([
                 'ok' => true, 'already_active' => true,
@@ -953,9 +963,16 @@ class JurisdictionController extends Controller
         // Leaves get the clamp posture (no map minted — the manual canvas
         // stays blank); over-ceiling parents ensure an initial map when
         // none exists, the offer-to-generate alternative.
-        $bootExit = \Illuminate\Support\Facades\Artisan::call('jurisdiction:activate', [
-            'slug' => $jurisdiction->slug, '--force' => true,
-        ]);
+        try {
+            $bootExit = \Illuminate\Support\Facades\Artisan::call('jurisdiction:activate', [
+                'slug' => $jurisdiction->slug, '--force' => true,
+            ]);
+        } catch (\Throwable $e) {
+            return response()->json([
+                'ok' => false,
+                'error' => 'Seats created, but activation failed: '.$e->getMessage(),
+            ], 422);
+        }
         if ($bootExit !== 0) {
             \Illuminate\Support\Facades\Log::warning(sprintf(
                 'Activate %s: seed OK but activation exited %d — %s',
@@ -999,6 +1016,18 @@ class JurisdictionController extends Controller
         \App\Jobs\FinishActivationsJob::dispatch();
 
         return response()->json(['ok' => true, 'queued' => true, 'count' => $n]);
+    }
+
+    /**
+     * GET /api/jurisdictions/activation-status — the live half-activated
+     * count, so the bulk boot shows real progress instead of a frozen badge
+     * (operator, 2026-08-08: "a progress indicator that runs would be nice").
+     */
+    public function activationStatus(Request $request): JsonResponse
+    {
+        abort_unless((bool) $request->user()?->is_operator, 403);
+
+        return response()->json(['half_activated' => $this->halfActivatedCount()]);
     }
 
     /** Jurisdictions holding a legislature but no active election board. */

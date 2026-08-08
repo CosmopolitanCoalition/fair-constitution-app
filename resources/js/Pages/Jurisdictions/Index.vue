@@ -38,10 +38,11 @@
                             class="px-2 py-1 rounded-r border border-l-0 border-emerald-600 text-emerald-300 hover:bg-emerald-900/40 disabled:opacity-40 transition-colors">
                         + children
                     </button>
-                    <button v-if="scale?.half_activated" type="button" :disabled="healBusy" @click="finishActivations"
+                    <button v-if="halfCount" type="button" :disabled="healBusy" @click="finishActivations"
                             title="These places have seats but no election board, so district plans cannot be accepted"
                             class="px-2.5 py-1 rounded border border-amber-500 bg-amber-900/30 text-amber-100 hover:bg-amber-900/60 disabled:opacity-50 transition-colors">
-                        {{ healBusy ? 'Booting…' : `Finish activation (${scale.half_activated.toLocaleString()})` }}
+                        <span v-if="healBusy" class="inline-block animate-spin">◠</span>
+                        {{ healBusy ? `Booting… ${halfCount.toLocaleString()} left` : `Finish activation (${halfCount.toLocaleString()})` }}
                     </button>
                     <button type="button" :disabled="allBusy" @click="activateAll"
                             class="px-2.5 py-1 rounded border border-violet-600 text-violet-200 hover:bg-violet-900/40 disabled:opacity-50 transition-colors">
@@ -227,7 +228,7 @@
 </template>
 
 <script setup>
-import { computed, ref } from 'vue'
+import { computed, onBeforeUnmount, ref } from 'vue'
 import { router, usePage } from '@inertiajs/vue3'
 import AppShellV2 from '@/Layouts/AppShellV2.vue'
 import { csrfFetch } from '@/lib/csrf'
@@ -445,6 +446,34 @@ async function activateChildren(j) {
 // queue, and nine pages of clicking is not a heal path.
 const healBusy = ref(false)
 const healMsg  = ref('')
+// LIVE count (operator, 2026-08-08: "a progress indicator that runs would be
+// nice") — the badge polls while the queued boot drains, instead of sitting
+// frozen until a manual refresh.
+const halfCount = ref(Number(props.scale?.half_activated ?? 0))
+let healPoll = null
+
+async function pollHalfCount() {
+    try {
+        const res = await fetch('/api/jurisdictions/activation-status', {
+            headers: { Accept: 'application/json' },
+        })
+        if (!res.ok) return
+        const data = await res.json()
+        const prev = halfCount.value
+        halfCount.value = Number(data.half_activated ?? 0)
+        if (halfCount.value === 0) {
+            stopHealPoll()
+            healMsg.value = 'All activated places have their election board.'
+            healBusy.value = false
+        } else if (halfCount.value !== prev) {
+            healMsg.value = `Booting… ${halfCount.value.toLocaleString()} remaining`
+        }
+    } catch { /* transient — the next tick retries */ }
+}
+
+function stopHealPoll() {
+    if (healPoll) { clearInterval(healPoll); healPoll = null }
+}
 
 async function finishActivations() {
     if (healBusy.value) return
@@ -459,17 +488,25 @@ async function finishActivations() {
         const data = await res.json().catch(() => ({}))
         if (!res.ok || !data.ok) {
             healMsg.value = data.error || `HTTP ${res.status}`
+            healBusy.value = false
             return
         }
-        healMsg.value = data.queued
-            ? `Booting ${Number(data.count).toLocaleString()} place(s) — refresh to watch the count fall.`
-            : 'Nothing to finish — every activated place has its board.'
+        if (!data.queued) {
+            healMsg.value = 'Nothing to finish — every activated place has its board.'
+            healBusy.value = false
+            return
+        }
+        // Stay "busy" while the queued job drains; the poll ends it.
+        healMsg.value = `Booting… ${Number(data.count).toLocaleString()} remaining`
+        stopHealPoll()
+        healPoll = setInterval(pollHalfCount, 2500)
     } catch (e) {
         healMsg.value = String(e?.message || e)
-    } finally {
         healBusy.value = false
     }
 }
+
+onBeforeUnmount(stopHealPoll)
 
 const allBusy = ref(false)
 const allMsg  = ref('')
