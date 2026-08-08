@@ -12,6 +12,9 @@ use Inertia\Response;
 
 class JurisdictionController extends Controller
 {
+    /** Rows-per-page choices for the jurisdictions list (2026-08-08). */
+    private const PER_PAGE_OPTIONS = [25, 50, 100, 200];
+
     /**
      * Searchable, filterable, paginated list of all jurisdictions.
      * Replaces the old world-map index — legislative data is visible here
@@ -67,7 +70,13 @@ class JurisdictionController extends Controller
                 )
                 SELECT string_agg(up.name, ' › ' ORDER BY up.depth DESC) FROM up
             ) AS chain")
-            ->paginate(50)
+            // Rows per page (operator, 2026-08-08). Allowlisted, not free —
+            // each row carries a recursive ancestor-chain subquery, so an
+            // arbitrary ?per_page=100000 would be a self-inflicted planet
+            // scan. 200 is the ceiling that still paints instantly.
+            ->paginate(in_array((int) $request->input('per_page'), self::PER_PAGE_OPTIONS, true)
+                ? (int) $request->input('per_page')
+                : 50)
             ->withQueryString();
 
         // Activation-mode context for the list's operator controls
@@ -76,7 +85,8 @@ class JurisdictionController extends Controller
 
         return Inertia::render('Jurisdictions/Index', [
             'jurisdictions' => $jurisdictions,
-            'filters' => $request->only(['search', 'adm_level', 'active']),
+            'filters' => $request->only(['search', 'adm_level', 'active', 'per_page']),
+            'per_page_options' => self::PER_PAGE_OPTIONS,
             'scale' => [
                 'mode'            => (string) ($instance?->institution_scale_mode ?? 'eager'),
                 'map_accepted_at' => $instance?->map_accepted_at?->toIso8601String(),

@@ -204,9 +204,18 @@
 
             <!-- Pagination -->
             <div class="flex items-center justify-between px-6 py-3 bg-gray-900 border-t border-gray-800 shrink-0 text-xs text-gray-400">
-                <span>
-                    Showing {{ jurisdictions.from?.toLocaleString() ?? 0 }}–{{ jurisdictions.to?.toLocaleString() ?? 0 }}
-                    of {{ jurisdictions.total.toLocaleString() }}
+                <span class="flex items-center gap-2">
+                    <label class="flex items-center gap-1.5">
+                        <span class="text-gray-500">Rows</span>
+                        <select v-model="perPage" @change="onFilter"
+                                class="bg-gray-800 border border-gray-700 rounded px-2 py-1 text-xs text-white focus:outline-none focus:border-blue-500">
+                            <option v-for="n in (per_page_options || [25,50,100,200])" :key="n" :value="String(n)">{{ n }}</option>
+                        </select>
+                    </label>
+                    <span>
+                        Showing {{ jurisdictions.from?.toLocaleString() ?? 0 }}–{{ jurisdictions.to?.toLocaleString() ?? 0 }}
+                        of {{ jurisdictions.total.toLocaleString() }}
+                    </span>
                 </span>
                 <div class="flex gap-1">
                     <component
@@ -257,12 +266,14 @@ function admLabel(level) {
 const props = defineProps({
     jurisdictions: Object,
     filters: Object,
-    scale: Object,   // { mode, map_accepted_at } — the activation-mode context
+    scale: Object,             // { mode, map_accepted_at, is_sandbox, half_activated }
+    per_page_options: Array,   // allowlisted rows-per-page choices
 })
 
 const search       = ref(props.filters?.search    ?? '')
 const admLevel     = ref(props.filters?.adm_level ?? '')
 const activeFilter = ref(props.filters?.active    ?? '')
+const perPage      = ref(String(props.filters?.per_page ?? 50))
 
 // ACTIVATE-per-row (manual-first arc, operator 2026-08-06): sizes ONE
 // jurisdiction's legislature (apportionment:seed via the endpoint) and swaps
@@ -553,6 +564,9 @@ function applyFilters() {
         search:    search.value || undefined,
         adm_level: admLevel.value !== '' ? admLevel.value : undefined,
         active:    activeFilter.value !== '' ? activeFilter.value : undefined,
+        // Changing rows-per-page returns to page 1 — page 9 of 50/page does
+        // not exist at 200/page.
+        per_page:  perPage.value !== '50' ? perPage.value : undefined,
     }, {
         preserveState: true,
         replace: true,
