@@ -8,6 +8,15 @@ sys.path.insert(0, _HERE)
 from wave4_data import FLEET
 # Structured, fillable open-questions (options + owning lane). Resolved ones are read-only.
 QUESTIONS = [
+ {"id":"sim-org-bill-rates","q":"Sim org + bill generators — what should the simulation create, and how much?","status":"open","lane":"sim",
+  "detail":"The sim now seats chambers, grows committees/departments, and forms courts through the real forms — but generates ZERO organizations and ZERO bills (only 'org affinity' priors are reserved in the plan). Rates are policy-flavored choices, not derivable from code. Real-world anchors: effective parties per chamber 2–8; US nonprofits ≈ 1 per 180 people; bills: one founding bill per committee ties to the already-ruled K(S) formula.","options":[
+   {"k":"A","t":"Minimal-legible: 3 parties per active chamber + 1 founding bill PER COMMITTEE (rides K(S)) + a handful of orgs per local place — dialed via config, demo-scale not census-scale. [desk rec]"},
+   {"k":"B","t":"Census-flavored: per-capita org rates (parties, nonprofits, businesses) + bills per session — realistic but mints millions of org rows planet-wide."},
+   {"k":"C","t":"Defer both — demo ships with governance+courts only; orgs/bills stay player-driven."}]},
+ {"id":"sim-leaf-courts","q":"Leaf-jurisdiction courts in the sim — when to build the committee-slate nomination round?","status":"open","lane":"sim",
+  "detail":"JudiciaryStage forms constituent-mode courts (every non-leaf: Earth 232, USA 56, …) through F-LEG-017/021. LEAF courts derive COMMITTEE nomination — a different service verb (slate gated on a passed committee act) — and currently defer-with-reason on their sim items. ~90% of jurisdictions are leaves, but their courts are the least demo-visible.","options":[
+   {"k":"A","t":"Next sim round, before the demo — full courts everywhere. [desk rec if the demo drills into villages]"},
+   {"k":"B","t":"After the demo — the mapped/governed tiers carry the demo; leaf benches follow."}]},
  {"id":"edu-arming","q":"Education arming sequencing — how do untrained demo members behave when the gate arms?","status":"open","lane":"15",
   "detail":"education:seed arms the act-gate for 6 civic tracks; every untrained role-holder then redirects on their next role-act. Gates your browser walk of the training gate.",
   "options":[{"k":"A","t":"Pre-train demo members (seeders file F-EDU-001) — the walk shows a trained fleet. [lane 15 rec]"},
