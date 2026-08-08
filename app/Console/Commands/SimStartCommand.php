@@ -8,6 +8,7 @@ use App\Services\AuditService;
 use App\Services\Demo\Stages\CohortStage;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Str;
 
 /**
  * Start a simulated-world populate run and enumerate its worklist.
@@ -33,6 +34,7 @@ class SimStartCommand extends Command
                             {--turnout=62 : Percent of population that casts a ballot}
                             {--adm-max=6 : Deepest adm level to populate}
                             {--limit= : Only enumerate the N largest jurisdictions (a smoke run)}
+                            {--jurisdiction= : Scope the world to this jurisdiction and its subtree (slug or UUID) — the narrow co-test posture}
                             {--resume : Adopt the newest unfinished run instead of starting one}';
 
     protected $description = 'Start a simulated-world populate run and enumerate its worklist';
@@ -56,6 +58,26 @@ class SimStartCommand extends Command
         $admMax = (int) $this->option('adm-max');
         $limit = $this->option('limit') !== null ? (int) $this->option('limit') : null;
 
+        // SUBTREE SCOPE (operator, 2026-08-08 — the manual-map co-test: he
+        // activates a jurisdiction, draws its map, then simulates THAT
+        // jurisdiction; the sim engine runs identically, just over a narrower
+        // roster). Slug or UUID; unknown → refuse loudly.
+        $scopeRootId = null;
+        $scope = trim((string) $this->option('jurisdiction'));
+        if ($scope !== '') {
+            $scopeRootId = DB::table('jurisdictions')
+                ->whereNull('deleted_at')
+                ->where(fn ($q) => $q->where('slug', $scope)
+                    ->when(Str::isUuid($scope), fn ($qq) => $qq->orWhere('id', $scope)))
+                ->value('id');
+            if ($scopeRootId === null) {
+                $this->error("No jurisdiction matches '{$scope}'.");
+
+                return self::FAILURE;
+            }
+            $scopeRootId = (string) $scopeRootId;
+        }
+
         $run = $this->option('resume')
             ? SimRun::query()->whereIn('status', ['queued', 'running', 'halted'])->orderByDesc('created_at')->first()
             : null;
@@ -77,6 +99,7 @@ class SimStartCommand extends Command
                     'turnout_pct' => $turnout,
                     'adm_max' => $admMax,
                     'limit' => $limit,
+                    'scope_jurisdiction_id' => $scopeRootId,
                 ],
                 'phase_timings' => [],
             ]);
@@ -86,7 +109,8 @@ class SimStartCommand extends Command
             $this->info("resuming run {$run->id}");
         }
 
-        $minted = $this->enumerateCohorts($run, $admMax, $limit);
+        $minted = $this->enumerateCohorts($run, $admMax, $limit,
+            $scopeRootId ?? ($run->options['scope_jurisdiction_id'] ?? null));
 
         // ONE summary audit entry, appended LAST — after the bulk writes have
         // committed. The append takes a GLOBAL advisory lock held for the whole
@@ -118,14 +142,33 @@ class SimStartCommand extends Command
      * biggest populations start immediately rather than defining the tail —
      * the geodata plan's inversion of autoscale's simplest-first.
      */
-    private function enumerateCohorts(SimRun $run, int $admMax, ?int $limit): int
+    private function enumerateCohorts(SimRun $run, int $admMax, ?int $limit, ?string $scopeRootId = null): int
     {
-        $eligible = DB::table('jurisdictions')
-            ->whereNull('deleted_at')
-            ->where('adm_level', '<=', $admMax)
-            ->count();
+        // Subtree scope: the SAME enumeration over a narrower roster. The
+        // recursive CTE rides inside each chunk's statement — bounded, and
+        // NOT EXISTS keeps redo clean exactly as before.
+        $subtreeCte = "WITH RECURSIVE sub AS (
+                        SELECT id FROM jurisdictions WHERE id = ? AND deleted_at IS NULL
+                        UNION ALL
+                        SELECT c.id FROM jurisdictions c JOIN sub ON c.parent_id = sub.id
+                         WHERE c.deleted_at IS NULL
+                       )";
 
-        $this->line("eligible jurisdictions (adm ≤ {$admMax}): {$eligible}");
+        $eligible = $scopeRootId === null
+            ? DB::table('jurisdictions')
+                ->whereNull('deleted_at')
+                ->where('adm_level', '<=', $admMax)
+                ->count()
+            : (int) DB::selectOne(
+                "$subtreeCte SELECT count(*) AS n FROM jurisdictions j
+                   JOIN sub ON sub.id = j.id
+                  WHERE j.deleted_at IS NULL AND j.adm_level <= ?",
+                [$scopeRootId, $admMax],
+            )->n;
+
+        $this->line($scopeRootId === null
+            ? "eligible jurisdictions (adm ≤ {$admMax}): {$eligible}"
+            : "eligible jurisdictions (adm ≤ {$admMax}, subtree of {$scopeRootId}): {$eligible}");
 
         $bar = $this->output->createProgressBar($limit ?? $eligible);
         $bar->start();
@@ -142,25 +185,49 @@ class SimStartCommand extends Command
 
             // Each chunk is its own committed statement. NOT EXISTS makes redo
             // clean, so a crash mid-enumeration resumes without duplicates.
-            $n = DB::affectingStatement(
-                "INSERT INTO sim_items
-                    (id, run_id, kind, status, jurisdiction_id, adm_level, unit_key,
-                     position, est_cost, metrics, created_at, updated_at)
-                 SELECT gen_random_uuid(), ?, 'cohort_scope', 'pending', j.id, j.adm_level, j.id::text,
-                        ?, COALESCE(j.population, 0), '{}', now(), now()
-                   FROM (
-                        SELECT id, adm_level, population
-                          FROM jurisdictions
-                         WHERE deleted_at IS NULL AND adm_level <= ?
-                         ORDER BY COALESCE(population, 0) DESC, id
-                         LIMIT ? OFFSET ?
-                   ) j
-                  WHERE NOT EXISTS (
-                        SELECT 1 FROM sim_items s
-                         WHERE s.run_id = ? AND s.kind = 'cohort_scope' AND s.unit_key = j.id::text
-                  )",
-                [$run->id, $offset, $admMax, $take, $offset, $run->id]
-            );
+            if ($scopeRootId === null) {
+                $n = DB::affectingStatement(
+                    "INSERT INTO sim_items
+                        (id, run_id, kind, status, jurisdiction_id, adm_level, unit_key,
+                         position, est_cost, metrics, created_at, updated_at)
+                     SELECT gen_random_uuid(), ?, 'cohort_scope', 'pending', j.id, j.adm_level, j.id::text,
+                            ?, COALESCE(j.population, 0), '{}', now(), now()
+                       FROM (
+                            SELECT id, adm_level, population
+                              FROM jurisdictions
+                             WHERE deleted_at IS NULL AND adm_level <= ?
+                             ORDER BY COALESCE(population, 0) DESC, id
+                             LIMIT ? OFFSET ?
+                       ) j
+                      WHERE NOT EXISTS (
+                            SELECT 1 FROM sim_items s
+                             WHERE s.run_id = ? AND s.kind = 'cohort_scope' AND s.unit_key = j.id::text
+                      )",
+                    [$run->id, $offset, $admMax, $take, $offset, $run->id]
+                );
+            } else {
+                $n = DB::affectingStatement(
+                    "$subtreeCte
+                     INSERT INTO sim_items
+                        (id, run_id, kind, status, jurisdiction_id, adm_level, unit_key,
+                         position, est_cost, metrics, created_at, updated_at)
+                     SELECT gen_random_uuid(), ?, 'cohort_scope', 'pending', j.id, j.adm_level, j.id::text,
+                            ?, COALESCE(j.population, 0), '{}', now(), now()
+                       FROM (
+                            SELECT j2.id, j2.adm_level, j2.population
+                              FROM jurisdictions j2
+                              JOIN sub ON sub.id = j2.id
+                             WHERE j2.deleted_at IS NULL AND j2.adm_level <= ?
+                             ORDER BY COALESCE(j2.population, 0) DESC, j2.id
+                             LIMIT ? OFFSET ?
+                       ) j
+                      WHERE NOT EXISTS (
+                            SELECT 1 FROM sim_items s
+                             WHERE s.run_id = ? AND s.kind = 'cohort_scope' AND s.unit_key = j.id::text
+                      )",
+                    [$scopeRootId, $run->id, $offset, $admMax, $take, $offset, $run->id]
+                );
+            }
 
             $total += $n;
             $offset += $take;

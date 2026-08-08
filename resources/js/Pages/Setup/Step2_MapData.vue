@@ -1332,10 +1332,10 @@ onBeforeUnmount(() => {
                         </label>
                         <span class="text-[11px] text-gray-500 max-w-md text-right">
                             {{ scaleMode === 'eager'
-                                ? 'Every legislature sized, every map drawn, institution shells provisioned on completion.'
+                                ? 'PREBUILD only: every legislature sized, every map drawn, institution shells provisioned. Simulated people, orgs & bills is the separate Dev option below.'
                                 : scaleMode === 'population'
                                     ? 'Nothing pre-built — each place boots automatically as verified residents cross its threshold (5–9).'
-                                    : 'Nothing automatic — use Activate on the Jurisdictions list, draw maps, and build institutions through their forms.' }}
+                                    : 'Nothing automatic — Activate per jurisdiction on the list, draw maps, build institutions through their forms; on sandbox worlds each activated row also gets a Simulate button.' }}
                         </span>
                     </div>
                     <button

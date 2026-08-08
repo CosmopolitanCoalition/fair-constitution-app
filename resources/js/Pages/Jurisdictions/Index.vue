@@ -14,12 +14,19 @@
                         ? 'The full-scale build runs on its own; these controls are for reruns and spot work.'
                         : scale.mode === 'population'
                             ? 'Places boot automatically as verified residents cross their threshold — or activate them here ahead of demand.'
+                            : scale?.is_sandbox
+                            ? 'Nothing is automatic: Activate rows here (or + children), draw maps — and Simulate populates an activated jurisdiction with simulated residents, orgs, and bills.'
                             : 'Nothing is automatic: Activate rows here (or + children), draw maps, build institutions through their forms.' }}
                 </span>
                 <span class="ml-auto flex items-center gap-2">
                     <button type="button" :disabled="bulkBusy || selectedCount === 0" @click="activateSelected"
-                            class="px-2.5 py-1 rounded border border-emerald-600 text-emerald-200 hover:bg-emerald-900/40 disabled:opacity-40 transition-colors">
+                            class="px-2.5 py-1 rounded-l border border-emerald-600 text-emerald-200 hover:bg-emerald-900/40 disabled:opacity-40 transition-colors">
                         {{ bulkBusy ? 'Activating…' : `Activate selected (${selectedCount})` }}
+                    </button>
+                    <button type="button" :disabled="bulkBusy || selectedCount === 0" @click="activateSelectedChildren"
+                            title="Each selected jurisdiction AND its whole subtree (queued)"
+                            class="px-2 py-1 rounded-r border border-l-0 border-emerald-600 text-emerald-300 hover:bg-emerald-900/40 disabled:opacity-40 transition-colors">
+                        + children
                     </button>
                     <button type="button" :disabled="allBusy" @click="activateAll"
                             class="px-2.5 py-1 rounded border border-violet-600 text-violet-200 hover:bg-violet-900/40 disabled:opacity-50 transition-colors">
@@ -92,17 +99,35 @@
                                     {{ admLabel(j.adm_level) }}
                                 </span>
                             </td>
-                            <td class="px-4 py-2 font-medium text-white">{{ j.name }}</td>
+                            <td class="px-4 py-2 font-medium text-white">
+                                {{ j.name }}
+                                <!-- The lineage chain (operator tour, 2026-08-08):
+                                     same-named places are only tellable apart by
+                                     where they sit in the tree. -->
+                                <div v-if="j.chain" class="text-[11px] font-normal text-gray-500">{{ j.chain }}</div>
+                            </td>
                             <!-- Activate / mapper actions (manual-first arc,
                                  operator 2026-08-06). @click.stop — the row
                                  itself navigates to the viewer. -->
                             <td class="px-4 py-2" @click.stop>
-                                <a v-if="j.legislature_id"
-                                   :href="`/legislatures/${j.slug}/districts`"
-                                   class="inline-block text-xs px-2.5 py-1 rounded border border-emerald-600
-                                          text-emerald-200 hover:bg-emerald-900/40 transition-colors">
-                                    Districts →
-                                </a>
+                                <template v-if="j.legislature_id">
+                                    <a :href="`/legislatures/${j.slug}/districts`"
+                                       class="inline-block text-xs px-2.5 py-1 rounded border border-emerald-600
+                                              text-emerald-200 hover:bg-emerald-900/40 transition-colors">
+                                        Districts →
+                                    </a>
+                                    <!-- Simulate = the fake people/orgs/bills build,
+                                         a SEPARATE act from activation (operator
+                                         tour, 2026-08-08). Sandbox worlds only. -->
+                                    <button v-if="isOperator && scale?.is_sandbox"
+                                            type="button" :disabled="!!busy[j.id]"
+                                            @click="simulateRow(j)"
+                                            title="Populate this jurisdiction's subtree with simulated residents, elections, orgs, and bills"
+                                            class="ml-1 inline-block text-xs px-2.5 py-1 rounded border border-amber-600
+                                                   text-amber-200 hover:bg-amber-900/40 disabled:opacity-50 transition-colors">
+                                        Simulate
+                                    </button>
+                                </template>
                                 <template v-else-if="isOperator">
                                     <button type="button"
                                             :disabled="!!busy[j.id]"
@@ -254,6 +279,49 @@ async function activateSelected() {
         selected.value = {}
     } finally {
         bulkBusy.value = false
+    }
+}
+
+// The companion to Activate Selected (operator tour, 2026-08-08): each
+// selected row's whole subtree, queued — same per-row recursive endpoint,
+// same big-tree refusal toward Activate All.
+async function activateSelectedChildren() {
+    if (bulkBusy.value) return
+    bulkBusy.value = true
+    bulkMsg.value = ''
+    let queued = 0
+    try {
+        for (const j of props.jurisdictions.data) {
+            if (!selected.value[j.id]) continue
+            await activateChildren(j)
+            if ((rowErr.value[j.id] || '').startsWith('queued')) queued++
+        }
+        bulkMsg.value = `Queued ${queued} subtree(s) of ${selectedCount.value} selected.`
+        selected.value = {}
+    } finally {
+        bulkBusy.value = false
+    }
+}
+
+// The narrow co-test (operator, 2026-08-08): simulate THIS jurisdiction's
+// subtree — sandbox worlds only; the backend also requires activation first.
+async function simulateRow(j) {
+    if (busy.value[j.id]) return
+    busy.value   = { ...busy.value, [j.id]: true }
+    rowErr.value = { ...rowErr.value, [j.id]: '' }
+    try {
+        const res = await csrfFetch(`/api/jurisdictions/${j.id}/simulate`, {
+            method:  'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body:    '{}',
+        })
+        const data = await res.json().catch(() => ({}))
+        rowErr.value = { ...rowErr.value,
+            [j.id]: (!res.ok || !data.ok) ? (data.error || `HTTP ${res.status}`) : 'simulation queued' }
+    } catch (e) {
+        rowErr.value = { ...rowErr.value, [j.id]: String(e?.message || e) }
+    } finally {
+        busy.value = { ...busy.value, [j.id]: false }
     }
 }
 

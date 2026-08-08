@@ -37,6 +37,21 @@ class JurisdictionController extends Controller
                   ->select('legislatures.id')
                   ->limit(1);
             }, 'legislature_id')
+            // The ancestor CHAIN per row (operator tour, 2026-08-08): same-named
+            // places are only tellable apart by their lineage — "Earth › USA ›
+            // Illinois". Scalar recursive subquery, ≤6 hops, page-bounded.
+            ->selectRaw("(
+                WITH RECURSIVE up AS (
+                    SELECT p.id, p.parent_id, p.name, 1 AS depth
+                      FROM jurisdictions p
+                     WHERE p.id = jurisdictions.parent_id AND p.deleted_at IS NULL
+                    UNION ALL
+                    SELECT a.id, a.parent_id, a.name, up.depth + 1
+                      FROM jurisdictions a JOIN up ON a.id = up.parent_id
+                     WHERE a.deleted_at IS NULL
+                )
+                SELECT string_agg(up.name, ' › ' ORDER BY up.depth DESC) FROM up
+            ) AS chain")
             ->paginate(50)
             ->withQueryString();
 
@@ -50,6 +65,8 @@ class JurisdictionController extends Controller
             'scale' => [
                 'mode'            => (string) ($instance?->institution_scale_mode ?? 'eager'),
                 'map_accepted_at' => $instance?->map_accepted_at?->toIso8601String(),
+                // Sandbox worlds get the per-row Simulate control.
+                'is_sandbox'      => $instance?->game_mode === 'sandbox',
             ],
         ]);
     }
@@ -908,6 +925,42 @@ class JurisdictionController extends Controller
             'legislature_id' => $leg->id,
             'total_seats'    => (int) $leg->total_seats,
         ]);
+    }
+
+    /**
+     * POST /api/jurisdictions/{jurisdiction}/simulate — the narrow co-test
+     * (operator, 2026-08-08): simulate THIS jurisdiction's subtree — people,
+     * elections, seated chambers, committees, courts, census civics — after
+     * its map is drawn. Operator-only, sandbox worlds only, and the place
+     * must be activated first (the sim elects into chambers that exist).
+     * Queued: enumeration is bulk work.
+     */
+    public function simulateJurisdiction(Request $request, Jurisdiction $jurisdiction): JsonResponse
+    {
+        abort_unless((bool) $request->user()?->is_operator, 403);
+
+        $instance = \App\Models\InstanceSettings::query()->whereNull('deleted_at')->first();
+        if ($instance === null || $instance->game_mode !== 'sandbox') {
+            return response()->json([
+                'ok' => false,
+                'error' => 'Simulation runs only on a sandbox world (game_mode).',
+            ], 422);
+        }
+
+        $hasLegislature = DB::table('legislatures')
+            ->where('jurisdiction_id', $jurisdiction->id)
+            ->whereNull('deleted_at')
+            ->exists();
+        if (! $hasLegislature) {
+            return response()->json([
+                'ok' => false,
+                'error' => 'Activate this jurisdiction first — the sim elects into chambers that exist.',
+            ], 422);
+        }
+
+        \App\Jobs\SimulateJurisdictionJob::dispatch((string) $jurisdiction->slug);
+
+        return response()->json(['ok' => true, 'queued' => true]);
     }
 
     /**
