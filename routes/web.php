@@ -368,6 +368,7 @@ Route::post('/api/jurisdictions/{jurisdiction}/activate-legislature', [Jurisdict
 Route::post('/api/jurisdictions/{jurisdiction}/simulate', [JurisdictionController::class, 'simulateJurisdiction'])->name('jurisdictions.simulate');
 Route::post('/api/jurisdictions/finish-activations', [JurisdictionController::class, 'finishActivations'])->name('jurisdictions.finish-activations');
 Route::get('/api/jurisdictions/activation-status', [JurisdictionController::class, 'activationStatus'])->name('jurisdictions.activation-status');
+Route::get('/api/jurisdictions/{jurisdiction}/subtree-progress', [JurisdictionController::class, 'subtreeProgress'])->name('jurisdictions.subtree-progress');
 
 // P.9: export/import endpoints for the portable-archive paradigm. Export
 // streams a tar.gz of jurisdictions + worldpop + meta tables; import

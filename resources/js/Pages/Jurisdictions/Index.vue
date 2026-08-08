@@ -186,14 +186,33 @@
                                      2026-08-08): a parent can be activated
                                      while its children are not, and the
                                      button must stay for exactly that case. -->
-                                <button v-if="isOperator && j.inactive_children"
+                                <!-- Running: the bar takes the button's place
+                                     and tracks the WHOLE subtree (the label
+                                     never claimed a count — direct children
+                                     are not what gets queued). -->
+                                <span v-if="subtreeProgress[j.id]"
+                                      class="ml-1 inline-flex items-center gap-1.5 align-middle"
+                                      :title="`${subtreeProgress[j.id].processed} of ${subtreeProgress[j.id].total} jurisdictions`">
+                                    <span class="inline-block w-24 h-1.5 rounded bg-gray-700 overflow-hidden align-middle">
+                                        <span class="block h-full rounded transition-all duration-500"
+                                              :class="subtreeProgress[j.id].finished ? 'bg-emerald-500' : 'bg-violet-500'"
+                                              :style="{ width: subtreePct(j) + '%' }"></span>
+                                    </span>
+                                    <span class="text-[10px] tabular-nums"
+                                          :class="subtreeProgress[j.id].finished ? 'text-emerald-300' : 'text-violet-300'">
+                                        {{ subtreeProgress[j.id].finished
+                                            ? `${subtreeProgress[j.id].total.toLocaleString()} done`
+                                            : `${subtreeProgress[j.id].processed.toLocaleString()}/${subtreeProgress[j.id].total.toLocaleString()}` }}
+                                    </span>
+                                </span>
+                                <button v-else-if="isOperator && j.inactive_children"
                                         type="button"
                                         :disabled="!!busy[j.id]"
                                         @click="activateChildren(j)"
-                                        :title="`Activate this jurisdiction and its whole subtree (queued) — ${j.inactive_children} direct child(ren) still inactive`"
+                                        title="Activate this jurisdiction and its whole subtree (queued)"
                                         class="ml-1 inline-block text-xs px-2 py-1 rounded border border-violet-600
                                                text-violet-300 hover:bg-violet-900/40 disabled:opacity-50 transition-colors">
-                                    + children ({{ j.inactive_children }})
+                                    + children
                                 </button>
                                 <span v-else class="text-xs text-gray-600">—</span>
                                 <span v-if="rowErr[j.id]" class="ml-2 text-xs text-red-400">{{ rowErr[j.id] }}</span>
@@ -435,6 +454,43 @@ async function simulateRow(j) {
     }
 }
 
+// Per-row subtree progress: { [jurisdictionId]: {total, processed, finished} }
+// fed by ActivateSubtreeJob's published counters, so the bar tracks real
+// work instead of a "queued" message that never moves.
+const subtreeProgress = ref({})
+const subtreePolls = {}
+
+function stopSubtreePoll(id) {
+    if (subtreePolls[id]) { clearInterval(subtreePolls[id]); delete subtreePolls[id] }
+}
+
+function startSubtreePoll(j) {
+    stopSubtreePoll(j.id)
+    subtreePolls[j.id] = setInterval(async () => {
+        try {
+            const res = await fetch(`/api/jurisdictions/${j.id}/subtree-progress`, {
+                headers: { Accept: 'application/json' },
+            })
+            if (!res.ok) return
+            const { progress } = await res.json()
+            if (!progress) {           // finished and expired, or never started
+                stopSubtreePoll(j.id)
+                subtreeProgress.value = { ...subtreeProgress.value, [j.id]: undefined }
+                j.inactive_children = 0
+                return
+            }
+            subtreeProgress.value = { ...subtreeProgress.value, [j.id]: progress }
+            if (progress.finished) {
+                stopSubtreePoll(j.id)
+                j.inactive_children = 0
+                setTimeout(() => {
+                    subtreeProgress.value = { ...subtreeProgress.value, [j.id]: undefined }
+                }, 4000)
+            }
+        } catch { /* transient — next tick retries */ }
+    }, 2000)
+}
+
 async function activateChildren(j) {
     if (busy.value[j.id]) return
     busy.value   = { ...busy.value, [j.id]: true }
@@ -450,7 +506,12 @@ async function activateChildren(j) {
             rowErr.value = { ...rowErr.value, [j.id]: data.error || `HTTP ${res.status}` }
             return
         }
-        rowErr.value = { ...rowErr.value, [j.id]: `queued: ${Number(data.subtree_count).toLocaleString()} jurisdictions` }
+        // Seed the bar immediately so the click has a visible effect before
+        // the job's first publish lands.
+        subtreeProgress.value = { ...subtreeProgress.value, [j.id]: {
+            total: Number(data.subtree_count || 0), processed: 0, finished: false,
+        } }
+        startSubtreePoll(j)
     } catch (e) {
         rowErr.value = { ...rowErr.value, [j.id]: String(e?.message || e) }
     } finally {
@@ -523,7 +584,25 @@ async function finishActivations() {
     }
 }
 
-onBeforeUnmount(stopHealPoll)
+// Adopt any run already in flight when the page loads (his refresh habit
+// must not orphan a running bar).
+for (const j of props.jurisdictions.data) {
+    if (j.subtree_progress) {
+        subtreeProgress.value[j.id] = j.subtree_progress
+        if (!j.subtree_progress.finished) startSubtreePoll(j)
+    }
+}
+
+function subtreePct(j) {
+    const p = subtreeProgress.value[j.id]
+    if (!p || !p.total) return 0
+    return Math.min(100, Math.round((p.processed / p.total) * 100))
+}
+
+onBeforeUnmount(() => {
+    stopHealPoll()
+    Object.keys(subtreePolls).forEach(stopSubtreePoll)
+})
 
 const allBusy = ref(false)
 const allMsg  = ref('')

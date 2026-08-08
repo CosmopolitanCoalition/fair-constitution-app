@@ -35,6 +35,12 @@ class ActivateSubtreeJob implements ShouldQueue
     {
     }
 
+    /** The cache key this job publishes progress to, and the UI reads. */
+    public static function progressKey(string $rootJurisdictionId): string
+    {
+        return "activate_subtree_progress:{$rootJurisdictionId}";
+    }
+
     public function handle(): void
     {
         $roster = DB::select(<<<'SQL'
@@ -49,6 +55,20 @@ class ActivateSubtreeJob implements ShouldQueue
             SELECT t.id, t.slug FROM t
              ORDER BY t.adm_level, t.name
         SQL, [$this->rootJurisdictionId]);
+
+        // LIVE PROGRESS (operator, 2026-08-08): the job publishes its own
+        // counters to cache so the row's mini bar polls a single key instead
+        // of re-walking the subtree every tick — a recursive CTE per poll
+        // would be brutal on a planet-sized subtree.
+        $cacheKey = self::progressKey($this->rootJurisdictionId);
+        $total = count($roster);
+        $publish = function (int $processed, int $booted, bool $finished = false) use ($cacheKey, $total) {
+            \Illuminate\Support\Facades\Cache::put($cacheKey, [
+                'total' => $total, 'processed' => $processed,
+                'booted' => $booted, 'finished' => $finished,
+            ], $finished ? 120 : 7200);
+        };
+        $publish(0, 0);
 
         $done = 0;
         $skipped = 0;
@@ -81,6 +101,8 @@ class ActivateSubtreeJob implements ShouldQueue
                 Log::warning(sprintf('ActivateSubtreeJob: activation exited %d for %s', $bootExit, $row->slug));
             }
 
+            $publish($i + 1, $done + $skipped);
+
             if (($i + 1) % 50 === 0) {
                 Log::info(sprintf(
                     'ActivateSubtreeJob %s: %d/%d — %d seeded, %d skipped, %d failed',
@@ -88,6 +110,8 @@ class ActivateSubtreeJob implements ShouldQueue
                 ));
             }
         }
+
+        $publish($total, $done + $skipped, finished: true);
 
         Log::info(sprintf(
             'ActivateSubtreeJob %s COMPLETE: %d seeded, %d already active, %d failed of %d nodes.',

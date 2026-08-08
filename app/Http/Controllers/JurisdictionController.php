@@ -91,6 +91,20 @@ class JurisdictionController extends Controller
                 : 50)
             ->withQueryString();
 
+        // Attach any RUNNING subtree activation to its row, so a mid-run page
+        // refresh still shows the bar instead of dropping back to a button
+        // (2026-08-08). One cache round-trip for the page, not one per row.
+        $rows = $jurisdictions->getCollection();
+        if ($rows->isNotEmpty()) {
+            $keys = $rows->map(fn ($j) => \App\Jobs\ActivateSubtreeJob::progressKey((string) $j->id))->all();
+            $progress = \Illuminate\Support\Facades\Cache::many($keys);
+            $rows->transform(function ($j) use ($progress) {
+                $j->subtree_progress = $progress[\App\Jobs\ActivateSubtreeJob::progressKey((string) $j->id)] ?? null;
+
+                return $j;
+            });
+        }
+
         // Activation-mode context for the list's operator controls
         // (2026-08-08 — the harmonized activation surface).
         $instance = \App\Models\InstanceSettings::query()->whereNull('deleted_at')->first();
@@ -1038,6 +1052,23 @@ class JurisdictionController extends Controller
         \App\Jobs\FinishActivationsJob::dispatch();
 
         return response()->json(['ok' => true, 'queued' => true, 'count' => $n]);
+    }
+
+    /**
+     * GET /api/jurisdictions/{jurisdiction}/subtree-progress — the live
+     * counters ActivateSubtreeJob publishes for this row's mini progress bar
+     * (operator, 2026-08-08). Null payload = nothing running (or finished
+     * and expired), which the UI reads as "restore the button".
+     */
+    public function subtreeProgress(Request $request, Jurisdiction $jurisdiction): JsonResponse
+    {
+        abort_unless((bool) $request->user()?->is_operator, 403);
+
+        $p = \Illuminate\Support\Facades\Cache::get(
+            \App\Jobs\ActivateSubtreeJob::progressKey((string) $jurisdiction->id)
+        );
+
+        return response()->json(['progress' => $p ?: null]);
     }
 
     /**
