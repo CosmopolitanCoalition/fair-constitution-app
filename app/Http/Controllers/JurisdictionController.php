@@ -40,9 +40,17 @@ class JurisdictionController extends Controller
             ->paginate(50)
             ->withQueryString();
 
+        // Activation-mode context for the list's operator controls
+        // (2026-08-08 — the harmonized activation surface).
+        $instance = \App\Models\InstanceSettings::query()->whereNull('deleted_at')->first();
+
         return Inertia::render('Jurisdictions/Index', [
             'jurisdictions' => $jurisdictions,
             'filters' => $request->only(['search', 'adm_level']),
+            'scale' => [
+                'mode'            => (string) ($instance?->institution_scale_mode ?? 'eager'),
+                'map_accepted_at' => $instance?->map_accepted_at?->toIso8601String(),
+            ],
         ]);
     }
 
@@ -699,12 +707,34 @@ class JurisdictionController extends Controller
                 ], 422)];
             }
 
+            // THE THREE ACTIVATION MODES (operator, 2026-08-08). The mode is
+            // chosen at acceptance and stored; everything downstream reads it:
+            //   eager      → the full-scale build starts below (autoscale),
+            //                and its completion chains institution
+            //                provisioning (AutoscalePumpCommand done-flip).
+            //   population → nothing starts; CLK-06 boots each place as
+            //                verified residents cross its threshold.
+            //   manual     → nothing starts; the Activate controls and the
+            //                governance forms build the world by hand.
+            // simulate_at_scale is dev-only (game_mode sandbox) and only
+            // meaningful under eager. Legacy defer_autoscale (no mode sent)
+            // maps to manual.
+            $mode = (string) $request->input('scale_mode', '');
+            if (! in_array($mode, ['eager', 'population', 'manual'], true)) {
+                $mode = $request->boolean('defer_autoscale') ? 'manual' : 'eager';
+            }
+            $simulate = $mode === 'eager'
+                && $request->boolean('simulate_at_scale')
+                && $instance->game_mode === 'sandbox';
+
             $instance->forceFill([
                 'map_accepted_at' => now(),
                 'setup_step_completed' => max((int) $instance->setup_step_completed, 2),
+                'institution_scale_mode' => $mode,
+                'simulate_at_scale' => $simulate,
             ])->save();
 
-            return ['instance' => $instance, 'open_flags' => $openFlags];
+            return ['instance' => $instance, 'open_flags' => $openFlags, 'mode' => $mode];
         });
 
         if (isset($gate['response'])) {
@@ -728,17 +758,19 @@ class JurisdictionController extends Controller
         // (apportionment:seed --jurisdiction=… + the mapper), then the
         // Start-planet-wide-generation control re-hooks the full build via
         // the re-hook branch above.
-        if ($request->boolean('defer_autoscale') && ! ($gate['rehook'] ?? false)) {
+        $mode = $gate['mode'] ?? 'eager';
+        if ($mode !== 'eager' && ! ($gate['rehook'] ?? false)) {
             \Illuminate\Support\Facades\Log::info(sprintf(
-                'Map data accepted — planet-wide autoscale DEFERRED (manual-first). '.
+                'Map data accepted — mode %s: planet-wide autoscale DEFERRED. '.
                 'Open flags at acceptance: %d critical, %d warning, %d info.',
-                $openFlags['critical'], $openFlags['warning'], $openFlags['info'],
+                $mode, $openFlags['critical'], $openFlags['warning'], $openFlags['info'],
             ));
 
             return response()->json([
                 'ok' => true,
                 'map_accepted_at' => $instance->map_accepted_at->toIso8601String(),
                 'open_flags_at_acceptance' => $openFlags,
+                'institution_scale_mode' => $mode,
                 'autoscale_deferred' => true,
             ]);
         }
@@ -803,6 +835,39 @@ class JurisdictionController extends Controller
     public function activateLegislature(Request $request, Jurisdiction $jurisdiction): JsonResponse
     {
         abort_unless((bool) $request->user()?->is_operator, 403);
+
+        // RECURSIVE (operator, 2026-08-08): this jurisdiction AND its whole
+        // subtree, as a queued chunked job — one seed per node, resumable.
+        // Big subtrees are refused toward Activate All: the autoscale engine
+        // builds those set-based instead of node-by-node.
+        if ($request->boolean('recursive')) {
+            $count = (int) DB::selectOne(<<<'SQL'
+                WITH RECURSIVE t AS (
+                    SELECT id FROM jurisdictions WHERE id = ? AND deleted_at IS NULL
+                    UNION ALL
+                    SELECT c.id FROM jurisdictions c JOIN t ON c.parent_id = t.id
+                     WHERE c.deleted_at IS NULL
+                )
+                SELECT count(*) AS n FROM t
+            SQL, [$jurisdiction->id])->n;
+
+            $max = (int) config('cga.activate_recursive_max', 5000);
+            if ($count > $max) {
+                return response()->json([
+                    'ok' => false,
+                    'error' => sprintf(
+                        'Subtree holds %s jurisdictions (cap %s) — use Activate All (the planet-wide build) for trees this size.',
+                        number_format($count), number_format($max),
+                    ),
+                ], 422);
+            }
+
+            \App\Jobs\ActivateSubtreeJob::dispatch((string) $jurisdiction->id);
+
+            return response()->json([
+                'ok' => true, 'queued' => true, 'subtree_count' => $count,
+            ]);
+        }
 
         $existing = DB::table('legislatures')
             ->where('jurisdiction_id', $jurisdiction->id)

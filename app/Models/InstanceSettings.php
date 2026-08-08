@@ -36,6 +36,8 @@ class InstanceSettings extends Model
         'setup_completion_notes',
         'pending_constitutional_defaults',
         'map_accepted_at',                // P.6 — operator confirmed map data
+        'institution_scale_mode',         // 2026-08-08 — 'eager' | 'population' | 'manual' (the three activation modes)
+        'simulate_at_scale',              // 2026-08-08 — dev-only (game_mode sandbox): sim populates after the eager build
         'apportionment_completed_at',
         'apportionment_log',
         'setup_districts_confirmed_at',
@@ -79,6 +81,7 @@ class InstanceSettings extends Model
         'setup_completion_notes' => 'array',
         'pending_constitutional_defaults' => 'array',
         'map_accepted_at' => 'datetime',
+        'simulate_at_scale' => 'boolean',
         'apportionment_completed_at' => 'datetime',
         'setup_districts_confirmed_at' => 'datetime',
         'signing_key_generated_at' => 'datetime',

@@ -429,13 +429,12 @@
                             <div v-if="rehookMsg" class="mt-1 text-xs text-gray-400">{{ rehookMsg }}</div>
                         </div>
                         <template v-else>
-                        <!-- MANUAL-FIRST SWITCH (2026-08-06): chooses what
-                             acceptance STARTS, not whether it accepts. -->
-                        <label class="mb-2 flex items-start gap-2 text-xs text-gray-400 select-none cursor-pointer">
-                            <input type="checkbox" v-model="generateOnAccept" class="mt-0.5 accent-emerald-600" />
-                            <span>Generate all maps &amp; institutions on accept (planet-wide) —
-                            uncheck to map manually, one jurisdiction at a time</span>
-                        </label>
+                        <!-- THE THREE ACTIVATION MODES (2026-08-08): chooses
+                             what acceptance STARTS, not whether it accepts. -->
+                        <select v-model="scaleMode"
+                                class="mb-2 w-full bg-gray-800 border border-gray-700 rounded px-3 py-1.5 text-xs text-white focus:outline-none focus:border-emerald-500">
+                            <option v-for="o in MODE_OPTS" :key="o.v" :value="o.v">{{ o.t }}</option>
+                        </select>
                         <button type="button"
                                 @click="acceptMaps()"
                                 :disabled="acceptingMaps"
@@ -709,10 +708,15 @@ async function activateLegislature() {
     }
 }
 
-// MANUAL-FIRST SWITCH + RE-HOOK (operator, 2026-08-06) — mirrors Step 2:
-// checked = accepting starts the planet-wide build; unchecked = acceptance
-// only, and the re-hook button starts the full build later.
-const generateOnAccept = ref(true)
+// THE THREE ACTIVATION MODES + RE-HOOK (operator, 2026-08-08) — mirrors
+// Step 2's dropdown. eager = full build on accept; population = CLK-06
+// boots places as residents arrive; manual = Activate controls only.
+const MODE_OPTS = [
+    { v: 'eager',      t: 'Activate & Scale Institutions Now' },
+    { v: 'population', t: 'Activate & Scale Institutions As Players Join' },
+    { v: 'manual',     t: 'Activate & Scale Institutions Manually' },
+]
+const scaleMode = ref('eager')
 const rehooking = ref(false)
 const rehookMsg = ref('')
 
@@ -906,9 +910,8 @@ async function acceptMaps(acknowledge = false) {
         // flags in the modal — the backend treats presence of the boolean
         // as the acknowledgment, so a plain accept omits it entirely.
         if (acknowledge) body.acknowledge_open_flags = true
-        // MANUAL-FIRST SWITCH (operator, 2026-08-06): unchecked = accept
-        // only; the planet-wide build waits for the re-hook control.
-        if (!generateOnAccept.value) body.defer_autoscale = true
+        // THE THREE ACTIVATION MODES (operator, 2026-08-08).
+        body.scale_mode = scaleMode.value
 
         const res = await csrfFetch('/api/jurisdictions/accept-maps', {
             method:  'POST',

@@ -1,6 +1,35 @@
 <template>
     <div class="flex flex-col flex-1 min-h-0 bg-gray-950 text-white">
 
+            <!-- The harmonized activation surface (operator, 2026-08-08):
+                 mode context + Activate All / Selected, integrated here so
+                 Step 2's Continue lands somewhere that explains itself. -->
+            <div v-if="isOperator && scale?.map_accepted_at"
+                 class="flex items-center gap-3 px-6 py-2 bg-gray-900/80 border-b border-gray-800 shrink-0 text-xs">
+                <span class="px-2 py-0.5 rounded-full bg-violet-900/60 text-violet-200 border border-violet-700">
+                    {{ MODE_LABEL[scale.mode] ?? scale.mode }}
+                </span>
+                <span class="text-gray-400">
+                    {{ scale.mode === 'eager'
+                        ? 'The full-scale build runs on its own; these controls are for reruns and spot work.'
+                        : scale.mode === 'population'
+                            ? 'Places boot automatically as verified residents cross their threshold — or activate them here ahead of demand.'
+                            : 'Nothing is automatic: Activate rows here (or + children), draw maps, build institutions through their forms.' }}
+                </span>
+                <span class="ml-auto flex items-center gap-2">
+                    <button type="button" :disabled="bulkBusy || selectedCount === 0" @click="activateSelected"
+                            class="px-2.5 py-1 rounded border border-emerald-600 text-emerald-200 hover:bg-emerald-900/40 disabled:opacity-40 transition-colors">
+                        {{ bulkBusy ? 'Activating…' : `Activate selected (${selectedCount})` }}
+                    </button>
+                    <button type="button" :disabled="allBusy" @click="activateAll"
+                            class="px-2.5 py-1 rounded border border-violet-600 text-violet-200 hover:bg-violet-900/40 disabled:opacity-50 transition-colors">
+                        {{ allBusy ? 'Starting…' : 'Activate All — planet-wide build' }}
+                    </button>
+                    <span v-if="bulkMsg" class="text-gray-400">{{ bulkMsg }}</span>
+                    <span v-if="allMsg" class="text-gray-400">{{ allMsg }}</span>
+                </span>
+            </div>
+
             <!-- Toolbar -->
             <div class="flex items-center gap-3 px-6 py-3 bg-gray-900 border-b border-gray-800 shrink-0">
                 <h1 class="text-sm font-semibold text-gray-200 mr-2">Jurisdictions</h1>
@@ -40,6 +69,7 @@
                 <table class="w-full text-sm border-collapse">
                     <thead class="sticky top-0 bg-gray-900 z-10">
                         <tr class="text-left text-xs text-gray-400 uppercase tracking-wide">
+                            <th v-if="isOperator" class="px-2 py-2 font-medium border-b border-gray-800 w-8"></th>
                             <th class="px-4 py-2 font-medium border-b border-gray-800 w-48">Level</th>
                             <th class="px-4 py-2 font-medium border-b border-gray-800">Name</th>
                             <th class="px-4 py-2 font-medium border-b border-gray-800 w-44">Legislature</th>
@@ -54,6 +84,9 @@
                             @click="visit(j.slug)"
                             class="border-b border-gray-800/60 hover:bg-gray-800/50 cursor-pointer transition-colors"
                         >
+                            <td v-if="isOperator" class="px-2 py-2" @click.stop>
+                                <input type="checkbox" v-model="selected[j.id]" class="accent-emerald-600" />
+                            </td>
                             <td class="px-4 py-2">
                                 <span class="inline-block text-xs px-2 py-0.5 rounded-full bg-blue-900/60 text-blue-300">
                                     {{ admLabel(j.adm_level) }}
@@ -70,14 +103,23 @@
                                           text-emerald-200 hover:bg-emerald-900/40 transition-colors">
                                     Districts →
                                 </a>
-                                <button v-else-if="isOperator"
-                                        type="button"
-                                        :disabled="!!busy[j.id]"
-                                        @click="activateRow(j)"
-                                        class="inline-block text-xs px-2.5 py-1 rounded border border-violet-600
-                                               text-violet-200 hover:bg-violet-900/40 disabled:opacity-50 transition-colors">
-                                    {{ busy[j.id] ? 'Sizing…' : 'Activate' }}
-                                </button>
+                                <template v-else-if="isOperator">
+                                    <button type="button"
+                                            :disabled="!!busy[j.id]"
+                                            @click="activateRow(j)"
+                                            class="inline-block text-xs px-2.5 py-1 rounded-l border border-violet-600
+                                                   text-violet-200 hover:bg-violet-900/40 disabled:opacity-50 transition-colors">
+                                        {{ busy[j.id] ? 'Sizing…' : 'Activate' }}
+                                    </button>
+                                    <button type="button"
+                                            :disabled="!!busy[j.id]"
+                                            @click="activateChildren(j)"
+                                            title="Activate this jurisdiction and its whole subtree (queued)"
+                                            class="inline-block text-xs px-2 py-1 rounded-r border border-l-0 border-violet-600
+                                                   text-violet-300 hover:bg-violet-900/40 disabled:opacity-50 transition-colors">
+                                        + children
+                                    </button>
+                                </template>
                                 <span v-else class="text-xs text-gray-600">—</span>
                                 <span v-if="rowErr[j.id]" class="ml-2 text-xs text-red-400">{{ rowErr[j.id] }}</span>
                             </td>
@@ -146,6 +188,7 @@ function admLabel(level) {
 const props = defineProps({
     jurisdictions: Object,
     filters: Object,
+    scale: Object,   // { mode, map_accepted_at } — the activation-mode context
 })
 
 const search   = ref(props.filters?.search    ?? '')
@@ -179,6 +222,90 @@ async function activateRow(j) {
         rowErr.value = { ...rowErr.value, [j.id]: String(e?.message || e) }
     } finally {
         busy.value = { ...busy.value, [j.id]: false }
+    }
+}
+
+// ── The harmonized activation surface (operator, 2026-08-08) ────────────────
+// Selection + Activate Selected (sequential, per-row feedback), per-row
+// "+ children recursively" (queued subtree job; big trees are refused toward
+// Activate All), and Activate All = the planet-wide build (re-hook).
+const MODE_LABEL = {
+    eager:      'Activate & Scale Institutions Now',
+    population: 'Activate & Scale Institutions As Players Join',
+    manual:     'Activate & Scale Institutions Manually',
+}
+const selected = ref({})
+const selectedCount = computed(() => Object.values(selected.value).filter(Boolean).length)
+const bulkBusy = ref(false)
+const bulkMsg  = ref('')
+
+async function activateSelected() {
+    if (bulkBusy.value) return
+    bulkBusy.value = true
+    bulkMsg.value = ''
+    let done = 0
+    try {
+        for (const j of props.jurisdictions.data) {
+            if (!selected.value[j.id] || j.legislature_id) continue
+            await activateRow(j)
+            if (j.legislature_id) done++
+        }
+        bulkMsg.value = `Activated ${done} of ${selectedCount.value} selected.`
+        selected.value = {}
+    } finally {
+        bulkBusy.value = false
+    }
+}
+
+async function activateChildren(j) {
+    if (busy.value[j.id]) return
+    busy.value   = { ...busy.value, [j.id]: true }
+    rowErr.value = { ...rowErr.value, [j.id]: '' }
+    try {
+        const res = await csrfFetch(`/api/jurisdictions/${j.id}/activate-legislature`, {
+            method:  'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body:    JSON.stringify({ recursive: true }),
+        })
+        const data = await res.json().catch(() => ({}))
+        if (!res.ok || !data.ok) {
+            rowErr.value = { ...rowErr.value, [j.id]: data.error || `HTTP ${res.status}` }
+            return
+        }
+        rowErr.value = { ...rowErr.value, [j.id]: `queued: ${Number(data.subtree_count).toLocaleString()} jurisdictions` }
+    } catch (e) {
+        rowErr.value = { ...rowErr.value, [j.id]: String(e?.message || e) }
+    } finally {
+        busy.value = { ...busy.value, [j.id]: false }
+    }
+}
+
+const allBusy = ref(false)
+const allMsg  = ref('')
+
+async function activateAll() {
+    if (allBusy.value) return
+    if (!confirm('Activate ALL: start the planet-wide build (every legislature sized, every founding map drawn)?')) return
+    allBusy.value = true
+    allMsg.value = ''
+    try {
+        const res = await csrfFetch('/api/jurisdictions/accept-maps', {
+            method:  'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body:    JSON.stringify({ start_autoscale: true }),
+        })
+        const data = await res.json().catch(() => ({}))
+        if (!res.ok || !data.ok) {
+            allMsg.value = data.error || `start failed (HTTP ${res.status})`
+            return
+        }
+        allMsg.value = data.autoscale_run_id
+            ? `Planet-wide build running (run ${String(data.autoscale_run_id).slice(0, 8)}…)`
+            : 'Planet-wide build started.'
+    } catch (e) {
+        allMsg.value = String(e?.message || e)
+    } finally {
+        allBusy.value = false
     }
 }
 

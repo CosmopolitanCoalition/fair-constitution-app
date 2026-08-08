@@ -21,6 +21,8 @@ defineOptions({
 const props = defineProps({
     step: { type: Number, required: true },
     settings: { type: Object, required: true },
+    is_dev_world: { type: Boolean, default: false },
+    scale_mode: { type: String, default: 'eager' },
 })
 
 // ─── Reactive state ─────────────────────────────────────────────────────────
@@ -542,13 +544,23 @@ async function sendControl(action) {
 // viewer's button; open flags surface in a confirm() before acceptance.
 const accepting = ref(false)
 
-// MANUAL-FIRST SWITCH (operator, 2026-08-06). Checked = the shipped
-// one-click flow: accepting starts the planet-wide build (every legislature
-// sized, every jurisdiction mapped). Unchecked = acceptance only — mapping
-// proceeds one jurisdiction at a time (Earth, USA, …) and the
-// "Start planet-wide generation" control below re-hooks the full build
-// whenever the operator is ready.
-const generateOnAccept = ref(true)
+// THE THREE ACTIVATION MODES (operator, 2026-08-08 — replaces the binary
+// switch). Chosen beside Continue, stored at acceptance:
+//   eager      — Activate & Scale Institutions Now (full-scale build; its
+//                completion chains institution provisioning)
+//   population — Activate & Scale As Players Join (CLK-06 boots each place
+//                at its resident threshold)
+//   manual     — Activate & Scale Manually (Activate controls + governance
+//                forms; nothing automatic)
+// Dev sandbox worlds add "simulate at scale" under eager: the sim populates
+// the built world through the real governance engine.
+const MODE_OPTS = [
+    { v: 'eager',      t: 'Activate & Scale Institutions Now' },
+    { v: 'population', t: 'Activate & Scale Institutions As Players Join' },
+    { v: 'manual',     t: 'Activate & Scale Institutions Manually' },
+]
+const scaleMode       = ref(props.scale_mode || 'eager')
+const simulateAtScale = ref(false)
 const rehooking = ref(false)
 const rehookMsg = ref('')
 
@@ -582,10 +594,14 @@ async function acceptHere() {
     accepting.value = true
     advanceError.value = ''
     try {
+        const acceptBody = {
+            scale_mode: scaleMode.value,
+            simulate_at_scale: scaleMode.value === 'eager' && simulateAtScale.value,
+        }
         let res = await csrfFetch('/api/jurisdictions/accept-maps', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(generateOnAccept.value ? {} : { defer_autoscale: true }),
+            body: JSON.stringify(acceptBody),
         })
         let data = await res.json().catch(() => ({}))
 
@@ -599,9 +615,7 @@ async function acceptHere() {
             res = await csrfFetch('/api/jurisdictions/accept-maps', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(generateOnAccept.value
-                    ? { acknowledge_open_flags: true }
-                    : { acknowledge_open_flags: true, defer_autoscale: true }),
+                body: JSON.stringify({ ...acceptBody, acknowledge_open_flags: true }),
             })
             data = await res.json().catch(() => ({}))
         }
@@ -612,9 +626,15 @@ async function acceptHere() {
         }
 
         acceptanceRequired.value = false
-        // Acceptance landed — with or without the full-scale build, per the
-        // manual-first switch — advance the wizard to the Step-3 dashboard.
-        await advance()
+        // Landing by mode (operator, 2026-08-08): eager keeps the Step-3
+        // build dashboard (watch the full-scale build); population/manual
+        // continue straight to the Jurisdictions List, where the Activate
+        // controls and explanations live.
+        if (scaleMode.value === 'eager') {
+            await advance()
+        } else {
+            router.visit('/jurisdictions')
+        }
     } catch (e) {
         advanceError.value = String(e?.message || e)
     } finally {
@@ -672,7 +692,9 @@ const continueLabel = computed(() => {
     if (accepting.value)    return 'Accepting…'
     if (advancing.value)    return 'Saving…'
 
-    return mapAccepted.value ? 'Continue →' : 'Accept Map Data to Continue →'
+    // ONE plain Continue (operator, 2026-08-08): the mode dropdown beside it
+    // carries what acceptance starts; the button just continues.
+    return 'Continue →'
 })
 
 function continueFromStep2() {
@@ -1295,15 +1317,27 @@ onBeforeUnmount(() => {
                          still carries the acceptance, blue once it is only
                          Continue — so the colour tells you which act you are
                          about to perform. -->
-                    <!-- MANUAL-FIRST SWITCH (operator, 2026-08-06): the ONE
-                         continue button stays the only continue control; this
-                         only chooses what acceptance STARTS. -->
-                    <label v-if="!mapAccepted"
-                           class="flex items-center justify-end gap-2 text-xs text-gray-400 select-none cursor-pointer">
-                        <input type="checkbox" v-model="generateOnAccept" class="accent-emerald-600" />
-                        Generate all maps &amp; institutions on accept (planet-wide) —
-                        uncheck to map manually, one jurisdiction at a time
-                    </label>
+                    <!-- THE THREE ACTIVATION MODES (operator, 2026-08-08): the
+                         ONE continue button stays the only continue control;
+                         the dropdown beside it chooses what acceptance STARTS. -->
+                    <div v-if="!mapAccepted" class="flex flex-col items-end gap-1.5">
+                        <select v-model="scaleMode"
+                                class="bg-gray-800 border border-gray-700 rounded px-3 py-1.5 text-xs text-white focus:outline-none focus:border-emerald-500">
+                            <option v-for="o in MODE_OPTS" :key="o.v" :value="o.v">{{ o.t }}</option>
+                        </select>
+                        <label v-if="is_dev_world && scaleMode === 'eager'"
+                               class="flex items-center gap-2 text-xs text-violet-300 select-none cursor-pointer">
+                            <input type="checkbox" v-model="simulateAtScale" class="accent-violet-500" />
+                            Dev: simulate the data at scale after the build (sandbox world only)
+                        </label>
+                        <span class="text-[11px] text-gray-500 max-w-md text-right">
+                            {{ scaleMode === 'eager'
+                                ? 'Every legislature sized, every map drawn, institution shells provisioned on completion.'
+                                : scaleMode === 'population'
+                                    ? 'Nothing pre-built — each place boots automatically as verified residents cross its threshold (5–9).'
+                                    : 'Nothing automatic — use Activate on the Jurisdictions list, draw maps, and build institutions through their forms.' }}
+                        </span>
+                    </div>
                     <button
                         type="button"
                         :disabled="advancing || accepting || !canAdvance || isRunning"

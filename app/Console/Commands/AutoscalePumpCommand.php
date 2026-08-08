@@ -247,6 +247,26 @@ class AutoscalePumpCommand extends Command
         if ((int) $counts->open_items === 0 && (int) $counts->open_scopes === 0) {
             $run->forceFill(['status' => 'done', 'finished_at' => now()])->save();
 
+            // THE EAGER CHAIN (operator, 2026-08-08 — the three activation
+            // modes): under 'eager' the full-scale build's completion chains
+            // the institution shell set (idempotent, all steps) and — dev
+            // sandbox + simulate_at_scale only — the simulated world after
+            // it. This flip is the run's single done-transition, so the
+            // chain dispatches exactly once per run.
+            $instance = \App\Models\InstanceSettings::query()->whereNull('deleted_at')->first();
+            if ($instance !== null && $instance->institution_scale_mode === 'eager') {
+                if ((bool) $instance->simulate_at_scale && $instance->game_mode === 'sandbox') {
+                    \Illuminate\Support\Facades\Bus::chain([
+                        new \App\Jobs\ProvisionInstitutionsJob(),
+                        new \App\Jobs\StartSimulationJob(),
+                    ])->dispatch();
+                    $this->info('autoscale done → provisioning chain + simulation queued (eager + simulate).');
+                } else {
+                    \App\Jobs\ProvisionInstitutionsJob::dispatch();
+                    $this->info('autoscale done → institution provisioning queued (eager).');
+                }
+            }
+
             app(AuditService::class)->append(
                 module: 'elections',
                 event: 'autoscale.completed',

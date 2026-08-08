@@ -25,6 +25,11 @@ return [
     */
     'autoscale_adm_max' => env('CGA_AUTOSCALE_ADM_MAX', 6),
 
+    // Ceiling for per-row "Activate + children recursively" (2026-08-08):
+    // above it the subtree belongs to the autoscale engine (Activate All),
+    // which builds set-based instead of one seed per node.
+    'activate_recursive_max' => env('CGA_ACTIVATE_RECURSIVE_MAX', 5000),
+
     /*
     | Pull engine (2026-07-19). autoscale_precompute: 'upfront' (default)
     | gates sweep-scope claims behind the run-level sibling-adjacency

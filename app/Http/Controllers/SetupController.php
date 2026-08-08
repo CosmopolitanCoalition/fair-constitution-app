@@ -153,6 +153,13 @@ class SetupController extends Controller
                 : null;
         }
 
+        if ($n === 2) {
+            // THE THREE ACTIVATION MODES dropdown (operator, 2026-08-08):
+            // the simulate sub-option only renders on a sandbox world.
+            $extra['is_dev_world'] = $settings->game_mode === 'sandbox';
+            $extra['scale_mode']   = (string) ($settings->institution_scale_mode ?? 'eager');
+        }
+
         if ($n === 4) {
             $extra['summary'] = $this->buildStep4Summary();
             // Note: data-quality review lives in Step 2 (post-ETL,
