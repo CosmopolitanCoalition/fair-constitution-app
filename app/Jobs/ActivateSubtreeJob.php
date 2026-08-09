@@ -46,8 +46,11 @@ class ActivateSubtreeJob implements ShouldQueue
 
     public function handle(): void
     {
+        // Prebuild activates to READY, not to ELECTING — only population
+        // mode (CLK-06, a real resident arriving) schedules. See
+        // JurisdictionController::skipFoundingElections for the ruling.
         $this->skipElections = \App\Models\InstanceSettings::query()
-            ->whereNull('deleted_at')->value('institution_scale_mode') === 'manual';
+            ->whereNull('deleted_at')->value('institution_scale_mode') !== 'population';
         // MATERIALISE ONCE, THEN KEYSET-WALK (THE ETL RULE: bound the INPUT).
         // The recursive walk runs a single time into a temp roster carrying
         // its own sequence — shallowest first, so a parent boots before its

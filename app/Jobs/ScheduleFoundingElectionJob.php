@@ -50,11 +50,12 @@ class ScheduleFoundingElectionJob implements ShouldQueue
             return;
         }
 
-        // MANUAL mode: drawing a map must NOT start an election cycle — the
-        // operator draws first and holds elections when he is ready
-        // (2026-08-08). The other modes want the loop closed automatically.
+        // Drawing a map must not start a CLOCK on an empty planet (operator
+        // ruling 2026-08-08). Only POPULATION mode closes the loop
+        // automatically — there a place activates because residents arrived,
+        // so its blocked election is genuinely waiting on the map.
         if (\App\Models\InstanceSettings::query()->whereNull('deleted_at')
-                ->value('institution_scale_mode') === 'manual') {
+                ->value('institution_scale_mode') !== 'population') {
             return;
         }
 

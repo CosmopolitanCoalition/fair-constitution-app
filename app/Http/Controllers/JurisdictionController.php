@@ -1077,15 +1077,23 @@ class JurisdictionController extends Controller
     }
 
     /**
-     * MANUAL mode activates to READY, not to ELECTING (operator, 2026-08-08:
-     * "I don't need election cycles to kick off just the ability to draw").
-     * The bootstrap board is what unlocks the mapper; scheduling a founding
-     * election is a separate act he takes when the maps are drawn.
+     * PREBUILD ACTIVATES TO READY, NOT TO ELECTING (operator ruling
+     * 2026-08-08: "The Game clock starts at the end of setup when the first
+     * player (simulated or real) arrives"). Scheduling an election ARMS
+     * CLK-18/CLK-01 timers that the every-minute clock evaluator then ticks
+     * — so a prebuilt world would run cycles on an empty planet.
+     *
+     * Only POPULATION mode schedules: there, activation fires from CLK-06
+     * when verified residents cross the threshold, which IS the player
+     * arriving. manual and eager both stop at ready — the bootstrap board
+     * unlocks the mapper, and the simulation brings its own elections.
+     * (This also makes Activate All and "+ children" agree: neither
+     * prebuild path arms a clock.)
      */
     private function skipFoundingElections(): bool
     {
         return \App\Models\InstanceSettings::query()
-            ->whereNull('deleted_at')->value('institution_scale_mode') === 'manual';
+            ->whereNull('deleted_at')->value('institution_scale_mode') !== 'population';
     }
 
     /** Jurisdictions holding a legislature but no active election board. */
