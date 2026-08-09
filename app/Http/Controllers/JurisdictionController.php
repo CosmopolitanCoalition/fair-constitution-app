@@ -946,9 +946,10 @@ class JurisdictionController extends Controller
             // on a row told the operator nothing while the real cause
             // ("Unknown clock [CLK-18] — registry seeded?") sat in the log.
             try {
-                \Illuminate\Support\Facades\Artisan::call('jurisdiction:activate', [
+                \Illuminate\Support\Facades\Artisan::call('jurisdiction:activate', array_filter([
                     'slug' => $jurisdiction->slug, '--force' => true,
-                ]);
+                    '--no-election' => $this->skipFoundingElections(),
+                ]));
             } catch (\Throwable $e) {
                 return response()->json([
                     'ok' => false,
@@ -991,9 +992,10 @@ class JurisdictionController extends Controller
         // stays blank); over-ceiling parents ensure an initial map when
         // none exists, the offer-to-generate alternative.
         try {
-            $bootExit = \Illuminate\Support\Facades\Artisan::call('jurisdiction:activate', [
+            $bootExit = \Illuminate\Support\Facades\Artisan::call('jurisdiction:activate', array_filter([
                 'slug' => $jurisdiction->slug, '--force' => true,
-            ]);
+                '--no-election' => $this->skipFoundingElections(),
+            ]));
         } catch (\Throwable $e) {
             return response()->json([
                 'ok' => false,
@@ -1072,6 +1074,18 @@ class JurisdictionController extends Controller
         abort_unless((bool) $request->user()?->is_operator, 403);
 
         return response()->json(['half_activated' => $this->halfActivatedCount()]);
+    }
+
+    /**
+     * MANUAL mode activates to READY, not to ELECTING (operator, 2026-08-08:
+     * "I don't need election cycles to kick off just the ability to draw").
+     * The bootstrap board is what unlocks the mapper; scheduling a founding
+     * election is a separate act he takes when the maps are drawn.
+     */
+    private function skipFoundingElections(): bool
+    {
+        return \App\Models\InstanceSettings::query()
+            ->whereNull('deleted_at')->value('institution_scale_mode') === 'manual';
     }
 
     /** Jurisdictions holding a legislature but no active election board. */

@@ -41,8 +41,13 @@ class ActivateSubtreeJob implements ShouldQueue
         return "activate_subtree_progress:{$rootJurisdictionId}";
     }
 
+    /** True in MANUAL mode: activate to READY (board + posture), no elections. */
+    private bool $skipElections = false;
+
     public function handle(): void
     {
+        $this->skipElections = \App\Models\InstanceSettings::query()
+            ->whereNull('deleted_at')->value('institution_scale_mode') === 'manual';
         // MATERIALISE ONCE, THEN KEYSET-WALK (THE ETL RULE: bound the INPUT).
         // The recursive walk runs a single time into a temp roster carrying
         // its own sequence — shallowest first, so a parent boots before its
@@ -130,10 +135,15 @@ class ActivateSubtreeJob implements ShouldQueue
 
                     // THE FULL BOOT: sizing alone is not activation —
                     // WF-JUR-01 adopts the legislature and constitutes the
-                    // bootstrap board (the mapper's R-08 substrate).
-                    $bootExit = Artisan::call('jurisdiction:activate', [
+                    // bootstrap board (the mapper's R-08 substrate). In
+                    // MANUAL mode the founding election is NOT scheduled
+                    // (operator, 2026-08-08): he is activating to get into
+                    // position to DRAW, and elections are his act to take
+                    // when he is ready.
+                    $bootExit = Artisan::call('jurisdiction:activate', array_filter([
                         'slug' => $row->slug, '--force' => true,
-                    ]);
+                        '--no-election' => $this->skipElections,
+                    ]));
                     if ($bootExit !== 0) {
                         Log::warning(sprintf('ActivateSubtreeJob: activation exited %d for %s', $bootExit, $row->slug));
                     }

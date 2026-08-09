@@ -32,7 +32,8 @@ class JurisdictionActivateCommand extends Command
     protected $signature = 'jurisdiction:activate
                             {slug : Jurisdiction slug or UUID}
                             {--force : Bypass the CLK-06 critical-population check}
-                            {--replan : Re-run step 3.5 (sizing clamp / initial map / board / first election) on an already-activated jurisdiction}';
+                            {--replan : Re-run step 3.5 (sizing clamp / initial map / board / first election) on an already-activated jurisdiction}
+                            {--no-election : Stop after the board + sizing posture — do NOT schedule the first general election (the mapper needs the board, not an election)}';
 
     protected $description = 'Run the WF-JUR-01 activation pipeline for a jurisdiction (legislature sizing + institution stubs + bootstrap elections)';
 
@@ -113,7 +114,7 @@ class JurisdictionActivateCommand extends Command
             $activation->onCriticalPopulation($jurisdiction->id, $verifiedResidents, $threshold);
         }
 
-        $row = $activation->activate($jurisdiction);
+        $row = $activation->activate($jurisdiction, ! (bool) $this->option('no-election'));
 
         return $this->report($jurisdiction, $row);
     }

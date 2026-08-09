@@ -50,6 +50,14 @@ class ScheduleFoundingElectionJob implements ShouldQueue
             return;
         }
 
+        // MANUAL mode: drawing a map must NOT start an election cycle — the
+        // operator draws first and holds elections when he is ready
+        // (2026-08-08). The other modes want the loop closed automatically.
+        if (\App\Models\InstanceSettings::query()->whereNull('deleted_at')
+                ->value('institution_scale_mode') === 'manual') {
+            return;
+        }
+
         // Already holding an open cycle? Nothing to schedule.
         $open = DB::table('elections as e')
             ->join('legislatures as l', 'l.id', '=', 'e.legislature_id')

@@ -287,7 +287,7 @@ class ActivationService
      * adopted, never resized (the Earth legislature is simply the first
      * activated instance).
      */
-    public function activate(Jurisdiction $jurisdiction): JurisdictionActivation
+    public function activate(Jurisdiction $jurisdiction, bool $scheduleElection = true): JurisdictionActivation
     {
         // ── Step 1: → bootstrapping ─────────────────────────────────────────
         $activation = DB::transaction(function () use ($jurisdiction) {
@@ -348,7 +348,11 @@ class ActivationService
         );
 
         // ── Step 3.5: bootstrap elections (WI-B7, design §B.3) ─────────────
-        $this->bootstrapElections($jurisdiction, $activation);
+        // $scheduleElection=false stops after the board + sizing posture
+        // (operator, 2026-08-08: "I don't need election cycles to kick off
+        // just the ability to draw"). The BOARD is what unlocks drawing;
+        // the first election is a separate act, taken when he is ready.
+        $this->bootstrapElections($jurisdiction, $activation, $scheduleElection);
 
         // ── Step 4: → self_governing ────────────────────────────────────────
         DB::transaction(function () use ($jurisdiction, $activation, $legislature) {
@@ -559,8 +563,11 @@ class ActivationService
      * + forming (a seated chamber is never touched). Every sub-step is
      * individually idempotent and audited.
      */
-    private function bootstrapElections(Jurisdiction $jurisdiction, JurisdictionActivation $activation): void
-    {
+    private function bootstrapElections(
+        Jurisdiction $jurisdiction,
+        JurisdictionActivation $activation,
+        bool $scheduleElection = true,
+    ): void {
         $legislature = $this->legislatureRow($jurisdiction->id);
 
         if ($legislature === null || ! $this->isMemberlessForming($legislature)) {
@@ -573,8 +580,13 @@ class ActivationService
         // (b)/(c) sizing posture: initial map (children) or clamp (leaf).
         $legislature = $this->applySeatPosture($jurisdiction, $activation, $legislature);
 
-        // (d) first general election — F-ELB-001 through the engine.
-        $this->scheduleBootstrapElection($jurisdiction, $activation, $legislature);
+        // (d) first general election — F-ELB-001 through the engine. Skipped
+        // when the caller only wants the place READY (board + posture): the
+        // mapper needs the board, not a scheduled election, and an election
+        // nobody asked for is state to manage later.
+        if ($scheduleElection) {
+            $this->scheduleBootstrapElection($jurisdiction, $activation, $legislature);
+        }
     }
 
     /**
