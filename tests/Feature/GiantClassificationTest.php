@@ -22,16 +22,21 @@ use Tests\TestCase;
  * and redirected every click back to the root scope. The page offered a door
  * the server would not open, and the operator lost an evening to it.
  *
- * The fixture below reproduces that arithmetic exactly:
- *   budget 30, children 10.4 / 9.4 / 5.1 / 5.1 of the full quota.
- *   The 10.4 child is a giant and locks 10 seats.
- *   ngQuota = (30.0 − 10.4) / (30 − 10) = 0.98 of the full quota,
- *   so the 9.4 child displays 9.4 / 0.98 = 9.59 — over the threshold,
- *   while the cascade still (correctly) says it is NOT a giant.
+ * The deeper fault the operator then named ("Are you saying that Ukraine gets
+ * turned into a Giant after the initial round of Giant Rounding?"): the
+ * classification itself only ran ONCE. Apportionment law step 4 requires the
+ * split to ITERATE — "if redistribution pushes a share past the ceiling, the
+ * giant split repeats until no layer has an unsplit giant" — so Ukraine, at
+ * 9.5244 of the redistributed quota, was owed a split it never got. The
+ * sidebar's 10 seats were closer to the law than the guard's refusal.
  *
- * The payload must therefore ship a fractional_seats at or above the
- * threshold AND is_giant false. Any future change that goes back to deriving
- * gianthood from the float fails here.
+ * The fixture reproduces that arithmetic exactly:
+ *   budget 30, children 10.4 / 9.4 / 5.1 / 5.1 of the full quota.
+ *   Round 1: the 10.4 child is a giant and locks 10.
+ *   Redistribute: (30.0 − 10.4) / (30 − 10) = 0.98 of the quota.
+ *   Round 2: the 9.4 child is now 9.59 — past the ceiling — and is PROMOTED.
+ *   Redistribute again: 10 seats for 10.2 units puts the smalls at 5.0, so the
+ *   loop settles. It converges; it does not cascade.
  */
 class GiantClassificationTest extends TestCase
 {
@@ -39,7 +44,7 @@ class GiantClassificationTest extends TestCase
 
     private const LIVE_CONNECTION = 'pgsql_giant_classification';
 
-    public function test_a_rescaled_child_over_the_threshold_is_still_not_a_giant(): void
+    public function test_redistribution_promotes_a_child_past_the_ceiling_to_a_giant(): void
     {
         $this->onLivePg(function () {
             $slug = 'giantclass-' . substr((string) Str::uuid(), 0, 8);
@@ -68,25 +73,37 @@ class GiantClassificationTest extends TestCase
                     $border = $children['Borderland'];
                     $big    = $children['Bigland'];
 
-                    $this->assertGreaterThanOrEqual(
-                        9.5,
-                        (float) $border['fractional_seats'],
-                        'the fixture must actually reproduce the hazard: the rescaled share crosses the threshold'
-                    );
-                    $this->assertFalse(
-                        (bool) $border['is_giant'],
-                        'a child the CASCADE calls a non-giant must never be shipped as a giant, '
-                        . 'however its display share rescales — the sidebar drills on this flag'
-                    );
+                    // THE SPLIT ITERATES. Borderland is 9.4 of the FULL quota —
+                    // not a giant in round one — but once Bigland locks 10 the
+                    // remainder redistributes at 0.98 of the quota and
+                    // Borderland is 9.59: past the ceiling, and owed a split.
+                    // Law step 4: "if redistribution pushes a share past the
+                    // ceiling, the giant split repeats until no layer has an
+                    // unsplit giant."
                     $this->assertTrue(
                         (bool) $big['is_giant'],
-                        'and a real giant must still be marked as one'
+                        'the round-one giant is a giant'
                     );
-                    $this->assertSame(
-                        10,
-                        (int) $big['cascade_seats'],
-                        'the seats column reads the cascade lock, not a re-round of a display float'
+                    $this->assertSame(10, (int) $big['cascade_seats'],
+                        'and locks its nearest whole');
+
+                    $this->assertTrue(
+                        (bool) $border['is_giant'],
+                        'a child pushed past the ceiling BY THE REDISTRIBUTION must be promoted — '
+                        . 'classifying once against the pre-redistribution quota is what left Ukraine '
+                        . 'displaying 10 seats behind a drill arrow the server refused to open'
                     );
+                    $this->assertSame(10, (int) $border['cascade_seats'],
+                        'the promoted giant locks the nearest whole of its REDISTRIBUTED share (9.59 -> 10)');
+
+                    // And the loop settles: with 10 seats left for 10.2 units of
+                    // population the smalls sit at 5.0 — nobody else crosses.
+                    foreach (['Smalland A', 'Smalland B'] as $name) {
+                        $this->assertFalse(
+                            (bool) $children[$name]['is_giant'],
+                            "{$name} must not be swept up — the fixpoint converges, it does not cascade"
+                        );
+                    }
                 });
         });
     }

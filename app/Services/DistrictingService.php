@@ -109,6 +109,13 @@ class DistrictingService
     private array $seatBudgetMemo = [];
 
     /**
+     * Per-request memo for giantChildrenForScope(). Keyed "{legId}:{scopeId}".
+     * The fixpoint loop is cheap but not free, and computeSeatBudget now asks
+     * the parent's table for every child it resolves.
+     */
+    private array $giantScopeMemo = [];
+
+    /**
      * Memoized legislature row loader. Same row may be needed by several
      * computeSeatBudget() walks during one request.
      */
@@ -233,6 +240,16 @@ class DistrictingService
             return $this->seatBudgetMemo[$key] = null;
         }
 
+        // A LOCKED GIANT'S BUDGET COMES FROM THE PARENT'S TABLE. That table
+        // iterates the redistribution (law step 4); the single-pass Calc-A frac
+        // below does not — so for a giant promoted in a LATER round the two
+        // disagree by a seat (Ukraine: 9 here, 10 there), and every surface
+        // inherits whichever it happened to ask.
+        $parentGiants = $this->giantChildrenForScope((string) $self->parent_id, $legislatureId);
+        if (isset($parentGiants[$jurisdictionId])) {
+            return $this->seatBudgetMemo[$key] = $parentGiants[$jurisdictionId];
+        }
+
         // Calc A: Q(parent) = Σ children pop / S(parent);
         //         frac(self) = self.pop / Q(parent).
         // Sum of all parent-children fracs equals S(parent) exactly,
@@ -269,9 +286,14 @@ class DistrictingService
      */
     public function giantChildrenForScope(string $scopeId, string $legislatureId): array
     {
+        $memoKey = "{$legislatureId}:{$scopeId}";
+        if (array_key_exists($memoKey, $this->giantScopeMemo)) {
+            return $this->giantScopeMemo[$memoKey];
+        }
+
         $budget = $this->computeSeatBudget($scopeId, $legislatureId);
         if ($budget === null || $budget <= 0) {
-            return [];
+            return $this->giantScopeMemo[$memoKey] = [];
         }
 
         $leg = $this->getLegislature($legislatureId);
@@ -295,16 +317,73 @@ class DistrictingService
             return [];
         }
 
-        $quota = $childSum / max($budget, 1);
-        $out = [];
-        foreach ($children as $c) {
-            $frac = ((int) $c->population) / max($quota, 1);
-            if ($frac >= $threshold && $c->has_geom) {
-                $out[(string) $c->id] = max($floor, (int) round($frac));
+        // ── THE GIANT SPLIT ITERATES (apportionment law, step 4) ─────────────
+        // "Budget minus locked giants redistributes among the rest; repeat down
+        // the layers. If redistribution pushes a share past the ceiling, the
+        // giant split repeats until no layer has an unsplit giant."
+        //
+        // Classifying ONCE against the pre-redistribution quota misses exactly
+        // the band that sentence exists to catch. Earth, live: Ukraine is
+        // 9.4809 of the full quota — not a giant — but once the real giants
+        // lock their 1,642 seats and the remainder redistributes, the quota
+        // falls from 4,010,325 to 3,991,987 and Ukraine is 9.5244: past the
+        // ceiling, owed a split it never got. It surfaced as a jurisdiction the
+        // sidebar drew with 10 seats and a drill arrow the server refused to
+        // open, because the two sides were reading different rounds of the same
+        // law (operator, 2026-08-09: "Are you saying that Ukraine gets turned
+        // into a Giant after the initial round of Giant Rounding?" — yes).
+        //
+        // Terminates: a pass only ever ADDS giants and the child set is finite.
+        // It converges fast because a promoted giant usually rounds UP, which
+        // RAISES the quota for the remaining pool and pulls the other
+        // borderline children down rather than cascading.
+        //
+        // Geomless giants are locked for the MATH (they consume budget) but
+        // stay out of the returned set, which is the existing contract: a
+        // geomless giant cannot be a scope, it is the assessor's review flag.
+        $locked = [];
+        for ($pass = 0, $maxPasses = $children->count() + 1; $pass < $maxPasses; $pass++) {
+            $lockedPop = 0;
+            $lockedSeats = 0;
+            foreach ($children as $c) {
+                if (isset($locked[(string) $c->id])) {
+                    $lockedPop   += (int) $c->population;
+                    $lockedSeats += $locked[(string) $c->id];
+                }
+            }
+            $poolPop    = $childSum - $lockedPop;
+            $poolBudget = $budget - $lockedSeats;
+            if ($poolPop <= 0 || $poolBudget <= 0) {
+                break;
+            }
+
+            $poolQuota = $poolPop / $poolBudget;
+            $promoted  = false;
+            foreach ($children as $c) {
+                $id = (string) $c->id;
+                if (isset($locked[$id])) {
+                    continue;
+                }
+                $frac = ((int) $c->population) / max($poolQuota, 1);
+                if ($frac >= $threshold) {
+                    $locked[$id] = max($floor, (int) round($frac));
+                    $promoted = true;
+                }
+            }
+            if (! $promoted) {
+                break;
             }
         }
 
-        return $out;
+        $out = [];
+        foreach ($children as $c) {
+            $id = (string) $c->id;
+            if (isset($locked[$id]) && $c->has_geom) {
+                $out[$id] = $locked[$id];
+            }
+        }
+
+        return $this->giantScopeMemo[$memoKey] = $out;
     }
 
     /**
