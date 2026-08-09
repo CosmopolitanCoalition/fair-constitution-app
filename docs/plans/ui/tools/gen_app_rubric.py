@@ -8,6 +8,11 @@ sys.path.insert(0, _HERE)
 from wave4_data import FLEET
 # Structured, fillable open-questions (options + owning lane). Resolved ones are read-only.
 QUESTIONS = [
+ {"id":"subtree-activation-shape","q":"'+ children' subtree activation — set-based (fast) or full per-node boot?","status":"open","lane":"map",
+  "detail":"Audited against the ETL paradigm and it only half-complies: chunkable YES, resumable-by-idempotence, but SERIAL (no lanes, nothing derived from host), no elapsed/ETA, and ~2 Artisan boots per node (~29k invocations for Sri Lanka's 14,409). The goal decomposes: seat sizing (chunkable), boards+stubs (InstitutionProvisionService::provisionStep ALREADY does bootstrap boards set-based in bulk SQL), and the bootstrap ELECTION (inherently per-node — engine filing + hash-chained audit, a serial writer).","options":[
+   {"k":"A","t":"Set-based seats + provisionStep over the subtree; skip the per-node bootstrap election (the mapper needs the BOARD; the sim runs its own elections). Minutes instead of hours. [desk rec]"},
+   {"k":"B","t":"Keep the full per-node boot but make it MULTI-LANE (pool width from cores, two-ended pile, elapsed+ETA) — slower than A, but every place gets its first election."},
+   {"k":"C","t":"Leave it serial — subtree activation is an occasional operator act, not a pipeline."}]},
  {"id":"sim-org-bill-rates","q":"Sim org + bill generators — what should the simulation create, and how much?","status":"open","lane":"sim",
   "detail":"The sim now seats chambers, grows committees/departments, and forms courts through the real forms — but generates ZERO organizations and ZERO bills (only 'org affinity' priors are reserved in the plan). Rates are policy-flavored choices, not derivable from code. Real-world anchors: effective parties per chamber 2–8; US nonprofits ≈ 1 per 180 people; bills: one founding bill per committee ties to the already-ruled K(S) formula.","options":[
    {"k":"A","t":"Minimal-legible: 3 parties per active chamber + 1 founding bill PER COMMITTEE (rides K(S)) + a handful of orgs per local place — dialed via config, demo-scale not census-scale. [desk rec]"},
