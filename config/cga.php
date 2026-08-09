@@ -82,6 +82,43 @@ return [
     'autoscale_topdown_cap' => env('CGA_AUTOSCALE_TOPDOWN_CAP', 0),
 
     /*
+    | Districting engine — OPERATIONAL dials only (2026-08-09, the São Paulo
+    | runtime). No constitutional value lives here: the seating law, the 5-9
+    | band and the scoreRank ladder are all untouched by every key below.
+    |
+    | heartbeat_seconds — how often the Step-8 search may write a liveness
+    | beat. The search used to publish nothing at all between 'classified' and
+    | 'binning_done', so the pump could not distinguish a working scope from a
+    | dead one and reclaimed live workers into an execute-redo loop.
+    |
+    | line_first modes — the border-first generator (bisectionCandidates, the
+    | operator's own method: sweep a line, cut the MEMBER LIST at the whole-seat
+    | population boundary, never cut geometry) already exists as one candidate
+    | among ~36. These decide whether it also runs FIRST:
+    |   'off'    — today's behaviour exactly (byte-identical).
+    |   'shadow' — compute it, LOG its scoreRank beside the search winner's,
+    |              adopt the SEARCH winner. The default: this is how a flip to
+    |              'auto' gets earned on the real corpus instead of asserted.
+    |   'auto'   — engage when the structural cost projection clears
+    |              line_first_ops; a doctrine-clean line map then skips the
+    |              growth search entirely.
+    |   'always' — engage on every multi-district component (tests).
+    |
+    | line_first_ops is n × (n + directed component edges) × |k candidates| —
+    | a function of the GRAPH, never of elapsed time. A wall-clock gate would
+    | make a Raspberry Pi and a server draw DIFFERENT maps from identical data.
+    | The ETL law's "derive from host" governs SIZING; the drawing itself must
+    | stay host-invariant.
+    */
+    'districting' => [
+        'heartbeat_seconds' => env('CGA_DISTRICTING_HEARTBEAT_SECONDS', 5),
+        'step_timings'      => env('CGA_DISTRICTING_STEP_TIMINGS', true),
+        'line_first'        => env('CGA_DISTRICTING_LINE_FIRST', 'shadow'),
+        'line_first_ops'    => env('CGA_DISTRICTING_LINE_FIRST_OPS', 2000000),
+        'line_first_polish' => env('CGA_DISTRICTING_LINE_FIRST_POLISH', 3),
+    ],
+
+    /*
     | Dev impersonation + dev tooling (WI-4). The /dev/* routes (user
     | impersonation, ping simulator) are registered only in the local
     | environment AND gated at runtime by this flag — flipping it to false

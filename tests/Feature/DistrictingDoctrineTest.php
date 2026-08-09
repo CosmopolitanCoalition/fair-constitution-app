@@ -1697,6 +1697,100 @@ class DistrictingDoctrineTest extends TestCase
         });
     }
 
+    // ─── (28) The runtime work is output-neutral ────────────────────────────
+    // The 2026-08-09 São Paulo-runtime pass rewrote the search's inner
+    // mechanics — head cursors for array_shift, a hoisted component edge cap,
+    // a memoized donor fragment count. Every one of them is a COST change and
+    // none of them may be a MAP change. These pins hold that line: a speedup
+    // that alters a drawing is a defect, however much faster it runs.
+
+    public function test_hoisted_edge_cap_produces_identical_bins(): void
+    {
+        $svc = app(DistrictingService::class);
+        $exp = new \ReflectionMethod($svc, 'geographicSeedExpansion');
+        $exp->setAccessible(true);
+        $cap = new \ReflectionMethod($svc, 'componentEdgeCapSq');
+        $cap->setAccessible(true);
+
+        // 5×4 grid with one far-flung island: the island's false-looking edges
+        // are exactly what the p90×16 cap exists to suppress, so this fixture
+        // proves the hoist on a component where the cap actually bites.
+        $childById = []; $centroids = []; $adj = []; $byCell = [];
+        for ($gy = 0; $gy < 4; $gy++) {
+            for ($gx = 0; $gx < 5; $gx++) {
+                $id = sprintf('h%d%d', $gx, $gy);
+                $byCell["$gx,$gy"] = $id;
+                $childById[$id] = (object) ['population' => 100_000, 'fractional_seats' => 0.5,
+                                            'centroid_x' => $gx + 0.5, 'centroid_y' => $gy + 0.5];
+                $centroids[$id] = ['x' => $gx + 0.5, 'y' => $gy + 0.5];
+                $adj[$id] = [];
+            }
+        }
+        foreach ($byCell as $key => $id) {
+            [$gx, $gy] = array_map('intval', explode(',', $key));
+            foreach ([[1, 0], [-1, 0], [0, 1], [0, -1]] as [$dx, $dy]) {
+                $nb = $byCell[($gx + $dx) . ',' . ($gy + $dy)] ?? null;
+                if ($nb !== null) $adj[$id][] = $nb;
+            }
+        }
+        $island = 'h-island';
+        $childById[$island] = (object) ['population' => 100_000, 'fractional_seats' => 0.5,
+                                        'centroid_x' => 40.0, 'centroid_y' => 40.0];
+        $centroids[$island] = ['x' => 40.0, 'y' => 40.0];
+        $adj[$island] = [$byCell['0,0']];
+        $adj[$byCell['0,0']][] = $island;
+
+        $ids     = array_merge(array_values($byCell), [$island]);
+        $hoisted = $cap->invoke($svc, $ids, $adj, $centroids);
+        $this->assertIsFloat($hoisted);
+
+        foreach ([[$byCell['0,0'], $byCell['4,3']], [$byCell['4,0'], $byCell['0,3']]] as $seeds) {
+            foreach ([true, false] as $bfsOnly) {
+                $internal = $exp->invoke($svc, $ids, $childById, $adj, $centroids, $seeds, 9.5, 5.0, $bfsOnly, 10);
+                $passedIn = $exp->invoke($svc, $ids, $childById, $adj, $centroids, $seeds, 9.5, 5.0, $bfsOnly, 10, null, $hoisted);
+                $this->assertSame($internal, $passedIn,
+                    'hoisting the edge cap must not move a single jurisdiction');
+            }
+        }
+    }
+
+    public function test_queue_cursors_preserve_traversal_results(): void
+    {
+        $svc = app(DistrictingService::class);
+        $frag = new \ReflectionMethod($svc, 'fragmentCount');
+        $frag->setAccessible(true);
+        $conn = new \ReflectionMethod($svc, 'connectedSet');
+        $conn->setAccessible(true);
+
+        // A dumbbell: two 3-cell lobes joined by a single articulation cell.
+        // Removing the neck must split it in two, and only then.
+        $ids = ['q0', 'q1', 'q2', 'neck', 'q3', 'q4', 'q5'];
+        $centroids = []; $adj = [];
+        foreach ($ids as $i => $id) {
+            $centroids[$id] = ['x' => (float) $i, 'y' => 0.0];
+            $adj[$id] = [];
+        }
+        for ($i = 1; $i < count($ids); $i++) {
+            $adj[$ids[$i - 1]][] = $ids[$i];
+            $adj[$ids[$i]][]     = $ids[$i - 1];
+        }
+
+        $this->assertSame(1, $frag->invoke($svc, $ids, $adj, $centroids, PHP_FLOAT_MAX),
+            'the intact chain is one piece');
+        $this->assertTrue($conn->invoke($svc, $ids, $adj, $centroids, PHP_FLOAT_MAX));
+
+        $broken = array_values(array_filter($ids, fn ($x) => $x !== 'neck'));
+        $this->assertSame(2, $frag->invoke($svc, $broken, $adj, $centroids, PHP_FLOAT_MAX),
+            'pulling the articulation cell splits the chain in two');
+        $this->assertFalse($conn->invoke($svc, $broken, $adj, $centroids, PHP_FLOAT_MAX));
+
+        // The distance filter still bites: a cap below the step length leaves
+        // every cell its own fragment, which is what stops a false adjacency
+        // row from silently gluing distant places into one district.
+        $this->assertSame(count($ids), $frag->invoke($svc, $ids, $adj, $centroids, 0.5),
+            'edges longer than the cap are not traversed');
+    }
+
     private function makeScopeFixture(string $prefix, array $pops, int $popUnit, int $seats): array
     {
         $n      = count($pops);

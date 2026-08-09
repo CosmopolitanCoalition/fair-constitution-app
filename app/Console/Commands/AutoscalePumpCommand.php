@@ -55,6 +55,17 @@ class AutoscalePumpCommand extends Command
      */
     private const HEAVY_SCOPE_STALE = 14400;
 
+    /**
+     * How long a worker lease may go untouched before the pump treats the
+     * worker as gone (2026-08-09, the re-run loop). ONE constant for BOTH the
+     * lease prune below and the reclaim guard above it — they answer the same
+     * question ("is this worker alive?") and must never drift apart. The
+     * engine's heartbeat (DistrictingService::publishMassProgress) refreshes
+     * the lease from inside a long scope, so this window now measures worker
+     * DEATH rather than worker BUSYNESS.
+     */
+    private const WORKER_LEASE_STALE = 600;
+
     public function handle(): int
     {
         $runs = AutoscaleRun::query()
@@ -133,6 +144,16 @@ class AutoscalePumpCommand extends Command
 
         // ── Reclaims: stale claims go back to pending (set-based, bounded) ──
         $reclaimed = 0;
+        // A LIVE WORKER IS NEVER RECLAIMED (2026-08-09, the re-run loop).
+        // Staleness of the WORK is not evidence of death of the WORKER: a
+        // heavy scope's search legitimately runs longer than the bound, and
+        // reclaiming it did not stop the original worker — it just started a
+        // SECOND one on the same scope, which took equally long and was
+        // reclaimed in turn. The scope never finished and the pool grew.
+        // The lease is the liveness evidence, so a fresh lease holding this
+        // claim vetoes the seizure. A dead worker leaves no fresh lease, so
+        // genuine recovery still fires on the same schedule as before — this
+        // narrows the seizure to actually-dead holders, it does not weaken it.
         $reclaimed += DB::update("
             UPDATE autoscale_scopes s
                SET status = 'pending', claim_token = NULL,
@@ -144,7 +165,16 @@ class AutoscalePumpCommand extends Command
                AND s.updated_at < now() - make_interval(secs =>
                        CASE WHEN COALESCE(s.area_tier, ai.area_tier, 1) >= ?::int
                             THEN ?::double precision ELSE ?::double precision END)
-        ", [$run->id, \App\Support\AutoscaleClaims::HEAVY_TIER, self::HEAVY_SCOPE_STALE, self::SCOPE_STALE]);
+               AND NOT EXISTS (
+                     SELECT 1
+                       FROM autoscale_worker_leases wl
+                      WHERE wl.id = s.claim_token
+                        AND wl.last_seen_at > now() - make_interval(secs => ?::double precision)
+                   )
+        ", [
+            $run->id, \App\Support\AutoscaleClaims::HEAVY_TIER,
+            self::HEAVY_SCOPE_STALE, self::SCOPE_STALE, self::WORKER_LEASE_STALE,
+        ]);
         $reclaimed += DB::table('autoscale_items')
             ->where('run_id', $run->id)
             ->where('kind', 'single')
@@ -214,7 +244,7 @@ class AutoscalePumpCommand extends Command
 
         // ── Worker seeding: keep the fixed pool topped up ──────────────────
         DB::table('autoscale_worker_leases')
-            ->where('last_seen_at', '<', now()->subMinutes(10))
+            ->where('last_seen_at', '<', now()->subSeconds(self::WORKER_LEASE_STALE))
             ->delete();
 
         if (! $run->isPaused() && AutoscaleClaims::workAvailable($run)) {

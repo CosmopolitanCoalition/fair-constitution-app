@@ -83,6 +83,28 @@ class DistrictingService
      */
     private array $borderLen = [];
 
+    /**
+     * Monotonic ns of the last progress beat — the heartbeat throttle's clock
+     * (2026-08-09, the re-run loop). hrtime, never microtime: a wall-clock jump
+     * mid-scope would either silence the beat or flood it, and this signal is
+     * what stands between a long scope and being reclaimed as dead.
+     */
+    private float $lastBeatNs = 0.0;
+
+    /** Resolved heartbeat gap in ns — config() is too costly for a 639-iteration loop. */
+    private ?int $beatGapNs = null;
+
+    /** Accumulated ms per labelled step, and the call count behind each. */
+    private array $stepMs = [];
+
+    private array $stepN = [];
+
+    /** Open step timers, label => start ns. */
+    private array $stepOpen = [];
+
+    /** Resolved once — the timers sit in hot loops. */
+    private ?bool $stepTimingsOn = null;
+
     /** Per-request memo for computeSeatBudget(). Keyed "{legId}:{jid}". */
     private array $seatBudgetMemo = [];
 
@@ -284,6 +306,11 @@ class DistrictingService
         $floor   = ConstitutionalDefaults::floor($leg->jurisdiction_id);
         $ceiling = ConstitutionalDefaults::ceiling($leg->jurisdiction_id);
 
+        // Fresh timing record per scope — the service is resolved once per
+        // worker and drains many scopes, so a carried-over record would
+        // attribute one scope's cost to the next.
+        $this->stepMs = $this->stepN = $this->stepOpen = [];
+
         // ── Step 1: Fetch ALL direct children with geometry ──────────────────
         $this->publishMassProgress($legislature_id, [
             'phase'       => 'loading',
@@ -424,6 +451,7 @@ class DistrictingService
         }
         $childIds = array_column($nonGiantRows, 'id');
 
+        $this->stepBegin('step7.edges');
         // ── Step 7: Adjacency + BFS connected components ──────────────────────
         // Two-tier conditional simplify on huge geoms. ST_Intersection on raw
         // multipart polygons (Quebec, Russian oblasts, Nunavut) takes 30-180s
@@ -531,11 +559,22 @@ class DistrictingService
         $components = [];
         foreach ($childIds as $id) {
             if (isset($visited[$id])) continue;
+            // HEAD CURSOR, NOT array_shift (2026-08-09, the São Paulo runtime).
+            // array_shift reindexes the whole array on every pop, so a BFS over
+            // n nodes costs O(n²) in zval moves alone — on a 638-municipality
+            // component that is ~200k pointless memmoves per traversal, and the
+            // refinement passes run thousands of traversals. A cursor yields the
+            // same elements in the same order (the queues here are append-only
+            // FIFOs, never spliced), so every drawn map is bit-identical; only
+            // peak memory differs, bounded by total pushes. Do NOT "simplify"
+            // any of these to array_pop: this one sets $component's order, which
+            // is load-bearing — it seeds the Phase-A scan.
             $component = [];
             $queue     = [$id];
+            $qh        = 0;
             $visited[$id] = true;
-            while (!empty($queue)) {
-                $curr        = array_shift($queue);
+            while (isset($queue[$qh])) {
+                $curr        = $queue[$qh++];
                 $component[] = $curr;
                 foreach ($adj[$curr] as $neighbor) {
                     if (!isset($visited[$neighbor])) {
@@ -586,6 +625,8 @@ class DistrictingService
             }
         }
 
+        $this->stepEnd('step7.edges');
+
         // ── Step 8: Multi-attempt seed expansion — retain best by the operator's doctrine ────
         // For each component, tries every integer k in [kMin, min(kMax, kMin+7)]; for each k,
         // every component member seeds one attempt (far-point spread for the rest) plus one
@@ -626,6 +667,17 @@ class DistrictingService
             $kMin = max(2, (int) ceil($compFrac / (float) $ceiling));
             $kMax = max($kMin, (int) floor($compFrac / (float) $floor));
 
+            $this->publishMassProgress($legislature_id, [
+                'phase'         => 'binning',
+                'phase_label'   => sprintf(
+                    'Component %d/%d — %d children, %d seats, k∈[%d..%d]',
+                    $componentIdx + 1, count($components), count($component),
+                    (int) round($compFrac), $kMin, min($kMax, $kMin + 7)
+                ),
+                'phase_current' => $componentIdx + 1,
+                'phase_total'   => count($components),
+            ]);
+
             // Exhaustive integer range [kMin, min(kMax, kMin+7)].
             // Cap at kMin+7 so runtime stays bounded for very large budgets.
             // Full range ensures UPD-optimal k values (e.g. k=10 for a 61-seat budget) are never skipped.
@@ -638,6 +690,9 @@ class DistrictingService
                 ? (int) round($compBinPop * $nonGiantBudget / $totalBinPop)
                 : $nonGiantBudget;
             $quotaPopC  = $compBudget > 0 ? (float) $compBinPop / $compBudget : 0.0;
+
+            // One edge cap for every generator on this component (2026-08-09).
+            $compEdgeCapSq = $this->componentEdgeCapSq($component, $adj, $centroids);
 
             // Population-anchor seed ordering (deterministic: population desc, then id)
             $byPop = $component;
@@ -683,8 +738,12 @@ class DistrictingService
                 $seedSets[] = array_slice($byPop, 0, min($k, count($byPop)));
 
                 $bfsCandidates = [];
-                foreach ($seedSets as $seeds) {
-                    $bfsBins  = $this->geographicSeedExpansion($component, $childById, $adj, $centroids, $seeds, $giantThreshold, $floorBoundary, true, $compBudget);
+                $this->stepBegin("phaseA.k{$k}");
+                foreach ($seedSets as $seedIdx => $seeds) {
+                    $this->beat($legislature_id, sprintf(
+                        'k=%d: seed scan %d/%d', $k, $seedIdx + 1, count($seedSets)
+                    ));
+                    $bfsBins  = $this->geographicSeedExpansion($component, $childById, $adj, $centroids, $seeds, $giantThreshold, $floorBoundary, true, $compBudget, null, $compEdgeCapSq);
                     $binPopsA = array_map(
                         fn($bin) => array_sum(array_map(fn($jid) => (float) $childById[$jid]->population, $bin)),
                         $bfsBins
@@ -713,6 +772,7 @@ class DistrictingService
                     $bfsCandidates[] = ['seeds' => $seeds, 'dev' => $devProxy];
                 }
                 usort($bfsCandidates, fn($a, $b) => $a['dev'] <=> $b['dev']);
+                $this->stepEnd("phaseA.k{$k}");
 
                 // ── Phase B: Full pipeline (balance + compact + balance) on top 20 ────
                 // Running the full pipeline on every seed set is unnecessary; the integer-
@@ -748,8 +808,12 @@ class DistrictingService
                     return [$landed, $this->scoreConfiguration($virtualize($landed), $childById, $adj, (float) $compBinPop, $effBudget, $floor, $ceiling, $floorBoundary)];
                 };
 
-                foreach (array_slice($bfsCandidates, 0, $topN) as $candidate) {
-                    $bins = $this->geographicSeedExpansion($component, $childById, $adj, $centroids, $candidate['seeds'], $giantThreshold, $floorBoundary, false, $compBudget);
+                $this->stepBegin("phaseB.k{$k}");
+                foreach (array_slice($bfsCandidates, 0, $topN) as $candIdx => $candidate) {
+                    $this->beat($legislature_id, sprintf(
+                        'k=%d: refining candidate %d/%d', $k, $candIdx + 1, $topN
+                    ));
+                    $bins = $this->geographicSeedExpansion($component, $childById, $adj, $centroids, $candidate['seeds'], $giantThreshold, $floorBoundary, false, $compBudget, null, $compEdgeCapSq);
 
                     $effectiveBudget = max(count($bins), $compBudget);
 
@@ -775,6 +839,8 @@ class DistrictingService
                     }
                 }
 
+                $this->stepEnd("phaseB.k{$k}");
+
                 // ── Sequential constructive candidates (round-5): the operator's
                 // manual method as a generator. Build toward the most-equal
                 // partition of this budget at this k, in both build orders
@@ -789,7 +855,9 @@ class DistrictingService
                         // probe): the adaptive flavor wins archipelagos and fat
                         // atoms, the fixed-target flavor won Mexico's 0.84% —
                         // generate both, let the comparator pick per scope.
+                        $this->stepBegin("builders.k{$k}");
                         foreach ([[true, true], [true, false], [false, true], [false, false]] as [$bigFirst, $adaptive]) {
+                            $this->beat($legislature_id, sprintf('k=%d: sequential builders', $k));
                             $sBins = $this->sequentialBuild($component, $childById, $adj, $centroids, $compBudget, $k, $quotaPopC, $giantThreshold, $floor, $ceiling, $bigFirst, $adaptive);
                             if ($sBins === null) continue;
                             $sBins = $this->breakRebalance($sBins, $childById, $centroids, $adj, $quotaPopC, $compBudget, $floor, $ceiling, $giantThreshold, $floorBoundary, $parts, true);
@@ -797,7 +865,7 @@ class DistrictingService
                             // Phase-B candidates get (compact exchanges + border
                             // smoothing under integer-target caps) — the remainder
                             // crescent becomes blocks at bounded balance cost.
-                            $sBins = $this->geographicSeedExpansion($component, $childById, $adj, $centroids, [], $giantThreshold, $floorBoundary, false, $compBudget, $sBins);
+                            $sBins = $this->geographicSeedExpansion($component, $childById, $adj, $centroids, [], $giantThreshold, $floorBoundary, false, $compBudget, $sBins, $compEdgeCapSq);
                             $effectiveBudget = max(count($sBins), $compBudget);
                             $sScore = $this->scoreConfiguration($virtualize($sBins), $childById, $adj, (float) $compBinPop, $effectiveBudget, $floor, $ceiling, $floorBoundary);
                             if ($bestScoreK === null || $this->scoreBeats($sScore, $bestScoreK)) {
@@ -826,9 +894,13 @@ class DistrictingService
                         // polish as the sequential ones and competes under the
                         // full comparator (cut_length recognizes blocky borders
                         // on sight since round 10).
+                        $this->stepEnd("builders.k{$k}");
+
+                        $this->stepBegin("bisection.k{$k}");
                         foreach ($this->bisectionCandidates($component, $childById, $adj, $centroids, $compBudget, $k, $quotaPopC, $floor, $ceiling) as $bBins) {
+                            $this->beat($legislature_id, sprintf('k=%d: bisection sweep', $k));
                             $bBins = $this->breakRebalance($bBins, $childById, $centroids, $adj, $quotaPopC, $compBudget, $floor, $ceiling, $giantThreshold, $floorBoundary, $parts, true);
-                            $bBins = $this->geographicSeedExpansion($component, $childById, $adj, $centroids, [], $giantThreshold, $floorBoundary, false, $compBudget, $bBins);
+                            $bBins = $this->geographicSeedExpansion($component, $childById, $adj, $centroids, [], $giantThreshold, $floorBoundary, false, $compBudget, $bBins, $compEdgeCapSq);
                             if (!$bBins) continue;
                             $effectiveBudget = max(count($bBins), $compBudget);
                             $bScore = $this->scoreConfiguration($virtualize($bBins), $childById, $adj, (float) $compBinPop, $effectiveBudget, $floor, $ceiling, $floorBoundary);
@@ -866,7 +938,9 @@ class DistrictingService
             // spawn a variant, and the variant must WIN under scoreRank() (a full equality
             // band or better) to displace the contiguous configuration.
             $bestBins = null; $bestScore = null;
+            $this->stepBegin('variants');
             foreach ($candidateConfigs as $cfg) {
+                $this->beat($legislature_id, 'weighing break / equalization variants');
                 if ($bestScore === null || $this->scoreBeats($cfg['score'], $bestScore)) {
                     $bestBins  = $cfg['bins'];
                     $bestScore = $cfg['score'];
@@ -915,6 +989,8 @@ class DistrictingService
                     }
                 }
             }
+
+            $this->stepEnd('variants');
 
             $allBins = array_merge($allBins, $bestBins ?? [$component]);
         }
@@ -1395,6 +1471,7 @@ class DistrictingService
             'phase_current' => 0,
             'phase_total'   => $totalDistricts,
         ]);
+        $this->stepBegin('step12.geometry');
         foreach ($binData as $binIdx => $bin) {
             // Per-district progress so the operator can tell whether a slow
             // scope is stuck on geometry computation (Step 12, dominant cost)
@@ -1452,6 +1529,18 @@ class DistrictingService
 
             $districtsCreated++;
         }
+        $this->stepEnd('step12.geometry');
+
+        // The one flush recomputeDistrict skipped per district above.
+        Cache::tags(["revealed.{$legislature_id}"])->flush();
+
+        // Final unthrottled beat so the scope's completed timing record lands
+        // before the worker releases the claim — a throttled beat here could
+        // be swallowed and the whole measurement lost.
+        $this->publishMassProgress($legislature_id, [
+            'phase'       => 'inserted',
+            'phase_label' => sprintf('Inserted %d districts', $districtsCreated),
+        ]);
 
         return ['districts_created' => $districtsCreated, 'error' => null];
     }
@@ -1536,9 +1625,14 @@ class DistrictingService
         $seatsOf = function (int $pop) use ($binQuota, $minSeat, $ceiling): int {
             return max($minSeat, min($ceiling, (int) round($pop / max($binQuota, 1))));
         };
-        $touches = function (array $binJids, string $jid) use ($adj): bool {
+        // Hashed membership, not a linear scan: this fires in the innermost
+        // loop (donor bin × every member × receiver bin), so an in_array over a
+        // 300-member bin was most of the repair's cost. array_flip on UUIDs
+        // gives string keys — never numeric, so no key coercion — which makes
+        // isset() exactly in_array(..., true).
+        $touches = function (array $binSet, string $jid) use ($adj): bool {
             foreach ($adj[$jid] ?? [] as $nb) {
-                if (in_array($nb, $binJids, true)) {
+                if (isset($binSet[$nb])) {
                     return true;
                 }
             }
@@ -1554,6 +1648,13 @@ class DistrictingService
             $gap = $sum - $effectiveBudget;
             if ($gap === 0) {
                 break;
+            }
+
+            // One flip per pass serves every adjacency test in it — $binData is
+            // only mutated at the END of a pass, below.
+            $binSets = [];
+            foreach ($binData as $bi => $b) {
+                $binSets[$bi] = array_flip($b['jids']);
             }
 
             $best = null;   // ['from'=>i,'to'=>j,'jid'=>x,'gain'=>int,'adjacent'=>bool]
@@ -1574,7 +1675,7 @@ class DistrictingService
                         if ($gain <= 0) {
                             continue;
                         }
-                        $adjacent = $touches($binData[$j]['jids'], $jid);
+                        $adjacent = $touches($binSets[$j], $jid);
                         $cand = ['from' => $i, 'to' => $j, 'jid' => $jid, 'gain' => $gain, 'adjacent' => $adjacent];
                         if ($best === null
                             || $cand['gain'] > $best['gain']
@@ -2027,8 +2128,9 @@ class DistrictingService
 
             $visited = [];
             $queue   = [$startNode];
-            while (!empty($queue)) {
-                $node = array_shift($queue);
+            $qh      = 0;
+            while (isset($queue[$qh])) {
+                $node = $queue[$qh++];
                 if (isset($visited[$node])) continue;
                 $visited[$node] = true;
                 foreach ($adj[$node] ?? [] as $nb) {
@@ -2129,7 +2231,14 @@ class DistrictingService
         // Flush all revealed GeoJSON caches for this legislature.
         // The broad tag "revealed.{$legislatureId}" was added to every revealedGeoJson()
         // cache entry, so one flush here invalidates every scope × map × zoom combination.
-        Cache::tags(["revealed.{$legislatureId}"])->flush();
+        //
+        // NOT on the autoseed path ($skipSeatsUpdate): there this runs once per
+        // district, and flushing the same tag N times leaves exactly the state
+        // one flush leaves. runAutoCompositeForScope flushes once after Step 12
+        // instead. The manual create/update path passes false and is untouched.
+        if (! $skipSeatsUpdate) {
+            Cache::tags(["revealed.{$legislatureId}"])->flush();
+        }
     }
 
     /**
@@ -2194,6 +2303,35 @@ class DistrictingService
      * @param  array $centroids ['x' => lon, 'y' => lat] keyed by jurisdiction ID
      * @return array           Array of bins; each bin = array of jurisdiction IDs
      */
+    /**
+     * The component's false-positive-edge cap: p90 of the squared centroid
+     * distance over its adjacency edges, ×16 (= 4²). Any edge longer than 4×
+     * the "typical longest real edge" is ignored in BFS queuing, isolated-jid
+     * lookup, swap guards and the post-swap revert check — without it a single
+     * bad adjacency row pulls a distant jurisdiction into a bin and the result
+     * looks contiguous in the graph while being split on the ground.
+     *
+     * Extracted verbatim from geographicSeedExpansion (2026-08-09) so a k's
+     * seed sets pay it once between them instead of once each.
+     */
+    private function componentEdgeCapSq(array $jids, array $adj, array $centroids): float
+    {
+        $jidSet     = array_flip($jids);
+        $adjDistsSq = [];
+        foreach ($jids as $jid) {
+            foreach ($adj[$jid] ?? [] as $nb) {
+                if (!isset($jidSet[$nb])) continue;
+                $dx = ($centroids[$jid]['x'] ?? 0.0) - ($centroids[$nb]['x'] ?? 0.0);
+                $dy = ($centroids[$jid]['y'] ?? 0.0) - ($centroids[$nb]['y'] ?? 0.0);
+                $adjDistsSq[] = $dx * $dx + $dy * $dy;
+            }
+        }
+        sort($adjDistsSq);
+        $p90Idx = max(0, (int) floor(count($adjDistsSq) * 0.90) - 1);
+
+        return !empty($adjDistsSq) ? $adjDistsSq[$p90Idx] * 16.0 : PHP_FLOAT_MAX;
+    }
+
     private function geographicSeedExpansion(
         array $jids,
         array $childById,
@@ -2204,7 +2342,8 @@ class DistrictingService
         float $floorBoundary,
         bool  $bfsOnly = false, // when true: return after BFS expansion, skip balance/compact passes
         int   $compBudget = 0,  // component seat budget — enables integer-quota targeting in the passes
-        ?array $presetBins = null // round-7: refine these bins through the passes, skipping seed+BFS
+        ?array $presetBins = null, // round-7: refine these bins through the passes, skipping seed+BFS
+        ?float $edgeCapSq = null   // caller-hoisted componentEdgeCapSq() — identical value, computed once
     ): array {
         // Pre-compute the "BFS full" threshold (slightly below giant) used to gate
         // expansion. With default 5/9 this is 9.49 (giant=9.5 minus epsilon).
@@ -2241,18 +2380,14 @@ class DistrictingService
         // component, multiply by 16 (= 4²).  Any edge longer than 4× the "typical longest
         // real edge" is ignored in BFS queuing, isolated-jid lookup, swap guards, and the
         // post-swap full-revert check.
-        $adjDistsSq = [];
-        foreach ($jids as $jid) {
-            foreach ($adj[$jid] ?? [] as $nb) {
-                if (!isset($jidSet[$nb])) continue;
-                $dx = ($centroids[$jid]['x'] ?? 0.0) - ($centroids[$nb]['x'] ?? 0.0);
-                $dy = ($centroids[$jid]['y'] ?? 0.0) - ($centroids[$nb]['y'] ?? 0.0);
-                $adjDistsSq[] = $dx * $dx + $dy * $dy;
-            }
-        }
-        sort($adjDistsSq);
-        $p90Idx        = max(0, (int) floor(count($adjDistsSq) * 0.90) - 1);
-        $maxEdgeDistSq = !empty($adjDistsSq) ? $adjDistsSq[$p90Idx] * 16.0 : PHP_FLOAT_MAX;
+        //
+        // Hoisted (2026-08-09): this depends only on the component, the
+        // adjacency map and the centroids — none of which change across a k's
+        // seed sets — yet it was rebuilt and re-sorted on every one of the 639
+        // Phase-A calls. The caller computes it once per component and passes
+        // it in; the fallback keeps every other caller (and the reflection-
+        // driven pins) on the original path with the identical value.
+        $maxEdgeDistSq = $edgeCapSq ?? $this->componentEdgeCapSq($jids, $adj, $centroids);
 
         // ── Preset mode (round-7, the operator's five stringiness flags) ─────────
         // The sequential builder's winners never met the compact/smoothing passes —
@@ -2281,6 +2416,7 @@ class DistrictingService
         $binFracs = array_fill(0, $k, 0.0);
         $assigned = [];
         $queues   = array_fill(0, $k, []);
+        $qHead    = array_fill(0, $k, 0);
 
         foreach ($seeds as $i => $seed) {
             $bins[$i][]      = $seed;
@@ -2317,8 +2453,8 @@ class DistrictingService
 
                 if ($binFull && $activeBins > 0) continue;
 
-                while (!empty($queues[$i])) {
-                    $next = array_shift($queues[$i]);
+                while (isset($queues[$i][$qHead[$i]])) {
+                    $next = $queues[$i][$qHead[$i]++];
                     if (isset($assigned[$next]) || !isset($jidSet[$next])) continue;
 
                     $nextFrac = (float) $childById[$next]->fractional_seats;
@@ -2530,8 +2666,9 @@ class DistrictingService
                             $remSet = array_flip($remainingI);
                             $vis    = [$remainingI[0] => true];
                             $bfsQ   = [$remainingI[0]];
-                            while (!empty($bfsQ)) {
-                                $cur = array_shift($bfsQ);
+                            $bfsQh  = 0;
+                            while (isset($bfsQ[$bfsQh])) {
+                                $cur = $bfsQ[$bfsQh++];
                                 foreach ($adj[$cur] ?? [] as $nb) {
                                     if (!isset($remSet[$nb]) || isset($vis[$nb])) continue;
                                     $dx = ($centroids[$cur]['x'] ?? 0.0) - ($centroids[$nb]['x'] ?? 0.0);
@@ -2673,8 +2810,9 @@ class DistrictingService
                             $remSet = array_flip($remainingI);
                             $vis    = [$remainingI[0] => true];
                             $bfsQ   = [$remainingI[0]];
-                            while (!empty($bfsQ)) {
-                                $cur = array_shift($bfsQ);
+                            $bfsQh  = 0;
+                            while (isset($bfsQ[$bfsQh])) {
+                                $cur = $bfsQ[$bfsQh++];
                                 foreach ($adj[$cur] ?? [] as $nb) {
                                     if (!isset($remSet[$nb]) || isset($vis[$nb])) continue;
                                     $dx = ($centroids[$cur]['x'] ?? 0.0) - ($centroids[$nb]['x'] ?? 0.0);
@@ -3023,8 +3161,9 @@ class DistrictingService
                             $remSet = array_flip($remainingI);
                             $vis    = [$remainingI[0] => true];
                             $bfsQ   = [$remainingI[0]];
-                            while (!empty($bfsQ)) {
-                                $cur = array_shift($bfsQ);
+                            $bfsQh  = 0;
+                            while (isset($bfsQ[$bfsQh])) {
+                                $cur = $bfsQ[$bfsQh++];
                                 foreach ($adj[$cur] ?? [] as $nb) {
                                     if (!isset($remSet[$nb]) || isset($vis[$nb])) continue;
                                     $dx = ($centroids[$cur]['x'] ?? 0.0) - ($centroids[$nb]['x'] ?? 0.0);
@@ -3080,8 +3219,9 @@ class DistrictingService
             $cs = array_flip($checkBin);
             $cv = [$checkBin[0] => true];
             $cq = [$checkBin[0]];
-            while (!empty($cq)) {
-                $cur = array_shift($cq);
+            $cqh = 0;
+            while (isset($cq[$cqh])) {
+                $cur = $cq[$cqh++];
                 foreach ($adj[$cur] ?? [] as $nb) {
                     if (!isset($cs[$nb]) || isset($cv[$nb])) continue;
                     $dx = ($centroids[$cur]['x'] ?? 0.0) - ($centroids[$nb]['x'] ?? 0.0);
@@ -3334,9 +3474,10 @@ class DistrictingService
                 if (isset($seen[$start])) continue;
                 $frag         = [];
                 $queue        = [$start];
+                $qh           = 0;
                 $seen[$start] = true;
-                while (!empty($queue)) {
-                    $curr   = array_shift($queue);
+                while (isset($queue[$qh])) {
+                    $curr   = $queue[$qh++];
                     $frag[] = $curr;
                     foreach ($adj[$curr] ?? [] as $nb) {
                         if (!isset($binSet[$nb]) || isset($seen[$nb])) continue;
@@ -4193,7 +4334,7 @@ class DistrictingService
                         $dist = $this->closestApproachSq([$jid], $recv, $centroids);
                         if (empty($adj[$jid])) {
                             // island monotone rule: edge-less members only move closer
-                            $rest = array_values(array_diff($donor, [$jid]));
+                            $rest = array_values(array_filter($donor, static fn($x) => $x !== $jid));
                             if (!empty($rest) && $dist >= $this->closestApproachSq([$jid], $rest, $centroids)) continue;
                         }
                         if ($best === null || $dist < $best[0]) {
@@ -4364,7 +4505,7 @@ class DistrictingService
                         if ($dMis > 0 || ($dMis === 0 && $dCont >= -1e-9)) continue;
                         $dist = $this->closestApproachSq([$jid], $recv, $centroids);
                         if (empty($adj[$jid])) {
-                            $rest = array_values(array_diff($donor, [$jid]));
+                            $rest = array_values(array_filter($donor, static fn($x) => $x !== $jid));
                             if (!empty($rest) && $dist >= $this->closestApproachSq([$jid], $rest, $centroids)) continue;
                             $tier = 2;                        // islands never count as clean joins
                         } else {
@@ -4384,10 +4525,17 @@ class DistrictingService
             // the donor's fragment count.
             usort($cands, fn($a, $b) => ($a[0] <=> $b[0]) ?: ($a[1] <=> $b[1]) ?: ($a[2] <=> $b[2]));
             $best = null;
+            // The donor's BEFORE count is invariant across this loop — $bins is
+            // not mutated until after $best is chosen — so it is computed once
+            // per donor instead of once per candidate. At k=2 the 40 candidates
+            // share at most two donors, which is 40 full graph traversals per
+            // step collapsing to two. Pure memoization: fragmentCount reads only
+            // its arguments, so the veto reaches the identical verdict.
+            $beforeMemo = [];
             foreach (array_slice($cands, 0, 40) as $cand) {
                 [, , , $di, $jid] = $cand;
-                $before = $this->fragmentCount($bins[$di], $adj, $centroids, PHP_FLOAT_MAX);
-                $rest   = array_values(array_diff($bins[$di], [$jid]));
+                $before = $beforeMemo[$di] ??= $this->fragmentCount($bins[$di], $adj, $centroids, PHP_FLOAT_MAX);
+                $rest   = array_values(array_filter($bins[$di], static fn($x) => $x !== $jid));
                 $after  = $this->fragmentCount($rest, $adj, $centroids, PHP_FLOAT_MAX);
                 if ($after > $before) continue;
                 $best = $cand;
@@ -4634,10 +4782,11 @@ class DistrictingService
         foreach ($jids as $start) {
             if (isset($seen[$start])) continue;
             $frags++;
-            $q = [$start];
+            $q  = [$start];
+            $qh = 0;
             $seen[$start] = true;
-            while (!empty($q)) {
-                $cur = array_shift($q);
+            while (isset($q[$qh])) {
+                $cur = $q[$qh++];
                 foreach ($adj[$cur] ?? [] as $nb) {
                     if (!isset($set[$nb]) || isset($seen[$nb])) continue;
                     $dx = ($centroids[$cur]['x'] ?? 0.0) - ($centroids[$nb]['x'] ?? 0.0);
@@ -4662,8 +4811,9 @@ class DistrictingService
         $set = array_flip($jids);
         $vis = [$jids[0] => true];
         $q   = [$jids[0]];
-        while (!empty($q)) {
-            $cur = array_shift($q);
+        $qh  = 0;
+        while (isset($q[$qh])) {
+            $cur = $q[$qh++];
             foreach ($adj[$cur] ?? [] as $nb) {
                 if (!isset($set[$nb]) || isset($vis[$nb])) continue;
                 $dx = ($centroids[$cur]['x'] ?? 0.0) - ($centroids[$nb]['x'] ?? 0.0);
@@ -4710,8 +4860,62 @@ class DistrictingService
      * "Queued — waiting for worker" paired with "5m 12s on scope" leftover
      * from a previous Sudan run.
      */
-    public function publishMassProgress(string $legislature_id, array $patch, bool $reset = false): void
+    /**
+     * Start a named step timer (2026-08-09, the São Paulo runtime). Nestable by
+     * label, monotonic, and cheap enough to sit in a generator loop: a
+     * re-opened label keeps the earliest start, so a timer opened per iteration
+     * measures the whole span rather than the last lap.
+     */
+    private function stepBegin(string $label): void
     {
+        if ($this->stepTimingsOn ??= (bool) config('cga.districting.step_timings', true)) {
+            $this->stepOpen[$label] ??= hrtime(true);
+        }
+    }
+
+    /** Close a named step timer and fold its elapsed ms into the record. */
+    private function stepEnd(string $label): void
+    {
+        if (! isset($this->stepOpen[$label])) {
+            return;
+        }
+        $this->stepMs[$label] = round(($this->stepMs[$label] ?? 0.0)
+            + (hrtime(true) - $this->stepOpen[$label]) / 1_000_000, 1);
+        $this->stepN[$label]  = ($this->stepN[$label] ?? 0) + 1;
+        unset($this->stepOpen[$label]);
+    }
+
+    /**
+     * A throttled liveness beat from inside the Step-8 search (2026-08-09, the
+     * re-run loop). The search used to publish NOTHING between 'classified'
+     * and 'binning_done' — minutes to hours of silence — so the pump could not
+     * tell a working scope from a dead one, and the mapper showed a dead
+     * spinner. Every generator loop now beats; publishMassProgress collapses
+     * them to one write per heartbeat_seconds.
+     */
+    private function beat(string $legislature_id, string $label): void
+    {
+        $this->publishMassProgress($legislature_id, [
+            'phase'       => 'binning',
+            'phase_label' => $label,
+        ], false, true);
+    }
+
+    public function publishMassProgress(string $legislature_id, array $patch, bool $reset = false, bool $throttled = false): void
+    {
+        // THROTTLE (2026-08-09, the re-run loop): Step 8 beats from inside its
+        // generator loops so the pump can see the search is alive. Phase
+        // transitions publish unconditionally ($throttled = false); in-search
+        // beats collapse to at most one write per heartbeat_seconds, so
+        // liveness costs a bounded trickle instead of becoming its own load.
+        if ($throttled) {
+            $gapNs = $this->beatGapNs ??= max(1, (int) config('cga.districting.heartbeat_seconds', 5)) * 1_000_000_000;
+            if ($this->lastBeatNs > 0.0 && (hrtime(true) - $this->lastBeatNs) < $gapNs) {
+                return;
+            }
+        }
+        $this->lastBeatNs = (float) hrtime(true);
+
         // Pull-engine context (2026-07-19, mechanics only): a claimed scope
         // worker heartbeats its OWN claim rows — never the whole legislature.
         // Two scope workers can lawfully share one legislature (Earth root +
@@ -4722,15 +4926,36 @@ class DistrictingService
         if (\App\Support\AutoscaleContext::active()) {
             try {
                 if (\App\Support\AutoscaleContext::$scopeId !== null) {
+                    // The timings ride the beat that was already going to be
+                    // written — measurement costs zero extra round trips.
+                    $scopePatch = ['updated_at' => now()];
+                    if ($this->stepMs !== []) {
+                        $scopePatch['step_timings'] = json_encode([
+                            'ms' => $this->stepMs, 'n' => $this->stepN,
+                        ]);
+                    }
                     \Illuminate\Support\Facades\DB::table('autoscale_scopes')
                         ->where('id', \App\Support\AutoscaleContext::$scopeId)
                         ->where('status', 'running')
-                        ->update(['updated_at' => now()]);
+                        ->update($scopePatch);
                 }
                 if (\App\Support\AutoscaleContext::$itemId !== null) {
                     \Illuminate\Support\Facades\DB::table('autoscale_items')
                         ->where('id', \App\Support\AutoscaleContext::$itemId)
                         ->update(['updated_at' => now()]);
+                }
+                // THE LEASE IS THE LIVENESS SIGNAL (2026-08-09, the re-run
+                // loop). The worker stamped last_seen_at only at claim
+                // BOUNDARIES, so a worker inside one long scope looked dead
+                // to the pump: its lease was pruned at 10 minutes, a
+                // replacement worker was dispatched beside it, and the scope
+                // was reclaimed at 30 and redrawn from scratch — forever,
+                // because the redraw takes just as long. Touching the lease
+                // from the same beat makes BUSY distinguishable from DEAD.
+                if (\App\Support\AutoscaleContext::$workerToken !== null) {
+                    \Illuminate\Support\Facades\DB::table('autoscale_worker_leases')
+                        ->where('id', \App\Support\AutoscaleContext::$workerToken)
+                        ->update(['last_seen_at' => now()]);
                 }
             } catch (\Throwable) {
                 // Transient DB hiccup — the pump's reclaim margin absorbs it.
@@ -4744,7 +4969,7 @@ class DistrictingService
         if (! is_array($existing)) $existing = [];
         Cache::put($key, array_merge($existing, $patch, [
             'last_update_at' => time(),
-        ]), 7200);
+        ], $this->stepMs !== [] ? ['step_timings' => ['ms' => $this->stepMs, 'n' => $this->stepN]] : []), 7200);
 
         // Liveness lease (interactive sweeps, non-law mechanics): a sweep
         // that is publishing progress is alive — extend its mass_running flag

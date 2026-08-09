@@ -151,9 +151,9 @@ class AutoscaleWorkerJob implements ShouldQueue
                 try {
                     match ($claim['type']) {
                         'singles'    => app(SinglesBatchProcessor::class)->process($run, $token),
-                        'finalize'   => app(SweepScopeProcessor::class)->finalize($run, $claim['item_id']),
+                        'finalize'   => app(SweepScopeProcessor::class)->finalize($run, $claim['item_id'], $token),
                         'precompute' => app(AdjacencyPrecompute::class)->processParent($claim['parent_id']),
-                        'scope'      => app(SweepScopeProcessor::class)->process($run, $claim),
+                        'scope'      => app(SweepScopeProcessor::class)->process($run, $claim, $token),
                     };
                     $failures = 0;
                 } catch (\Throwable $e) {

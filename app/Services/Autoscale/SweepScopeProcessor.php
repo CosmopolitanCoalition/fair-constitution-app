@@ -36,8 +36,10 @@ class SweepScopeProcessor
      *
      * @param array{scope_id: string, item_id: string, legislature_id: string,
      *              scope_jurisdiction_id: string, depth: int} $claim
+     * @param string|null $workerToken  the claiming lease id, so the engine's
+     *        heartbeat can keep this worker's lease alive through a long scope
      */
-    public function process(AutoscaleRun $run, array $claim): void
+    public function process(AutoscaleRun $run, array $claim, ?string $workerToken = null): void
     {
         $scopeId       = $claim['scope_id'];
         $itemId        = $claim['item_id'];
@@ -124,7 +126,7 @@ class SweepScopeProcessor
         // A resumed run's stale halt flag must not instantly halt the sweep.
         Cache::forget("legislature.{$legislatureId}.mass_halt");
 
-        AutoscaleContext::enter((string) $run->id, $itemId, $scopeId);
+        AutoscaleContext::enter((string) $run->id, $itemId, $scopeId, $workerToken);
 
         try {
             $leg = DB::table('legislatures')
@@ -241,7 +243,7 @@ class SweepScopeProcessor
      * the real giant tree, bare activation on a complete map, ONE summary
      * audit append, item → done|review|failed.
      */
-    public function finalize(AutoscaleRun $run, string $itemId): void
+    public function finalize(AutoscaleRun $run, string $itemId, ?string $workerToken = null): void
     {
         $item = AutoscaleItem::query()->find($itemId);
         if ($item === null) {
@@ -250,7 +252,7 @@ class SweepScopeProcessor
         $legislatureId = (string) $item->legislature_id;
         $mapId         = (string) $item->map_id;
 
-        AutoscaleContext::enter((string) $run->id, $itemId, null);
+        AutoscaleContext::enter((string) $run->id, $itemId, null, $workerToken);
 
         try {
             $leg = DB::table('legislatures')
