@@ -1697,6 +1697,59 @@ class DistrictingDoctrineTest extends TestCase
         });
     }
 
+    // ─── (30) A retired map never answers a seat budget ─────────────────────
+    // Found 2026-08-09 by the manual-vs-auto comparison, live on San Marino:
+    // the cascade locked Serravalle at 10 while computeSeatBudget returned 9,
+    // because its Path-2 membership lookup carried no map filter and answered
+    // from the ARCHIVED bootstrap map. A budget that depends on which retired
+    // maps happen to still exist is not a budget — and the defect only appears
+    // once a legislature has a second map, which is exactly what cloning a map
+    // to hand-tweak it creates.
+
+    public function test_an_archived_map_never_answers_a_seat_budget(): void
+    {
+        $this->onLivePg(function () {
+            [$leg, $scopeId] = $this->makeScopeFixture('zzam', [9000, 9000, 9000, 9000], 1, 20);
+            $child = DB::table('jurisdictions')
+                ->where('parent_id', $scopeId)->whereNull('deleted_at')
+                ->orderBy('id')->first(['id']);
+            $this->assertNotNull($child);
+
+            // Seat that child in a district on an ARCHIVED map, at a number the
+            // cascade could never produce.
+            $mapId = (string) Str::uuid();
+            DB::table('legislature_district_maps')->insert([
+                'id' => $mapId, 'legislature_id' => $leg->id,
+                'name' => 'Retired bootstrap', 'status' => 'archived',
+                'created_at' => now(), 'updated_at' => now(),
+            ]);
+            $distId = (string) Str::uuid();
+            DB::table('legislature_districts')->insert([
+                'id' => $distId, 'legislature_id' => $leg->id, 'jurisdiction_id' => $scopeId,
+                'map_id' => $mapId, 'district_number' => 99, 'seats' => 7,
+                'target_population' => 0, 'actual_population' => 0,
+                'created_at' => now(), 'updated_at' => now(),
+            ]);
+            DB::table('legislature_district_jurisdictions')->insert([
+                'id' => (string) Str::uuid(), 'district_id' => $distId,
+                'jurisdiction_id' => $child->id,
+            ]);
+
+            // Fresh instance: computeSeatBudget memoizes per resolution.
+            $budget = app(DistrictingService::class)
+                ->computeSeatBudget((string) $child->id, (string) $leg->id);
+
+            $this->assertNotSame(7, $budget,
+                'a district on an ARCHIVED map must never supply a live seat budget');
+
+            // And the explicit-map form still answers from the map it is given,
+            // which is what makes a per-map comparison trustworthy.
+            $this->assertSame(7, app(DistrictingService::class)
+                ->computeSeatBudget((string) $child->id, (string) $leg->id, $mapId),
+                'asked about a specific map, the helper answers about that map');
+        });
+    }
+
     // ─── (29) The line-first fast path may skip generators, never doctrine ──
     // Round 13 runs the border-first generator FIRST and, under 'auto', lets a
     // clean result stand instead of drawing 36 candidates to beat it. It may

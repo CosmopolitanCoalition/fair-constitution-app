@@ -154,9 +154,9 @@ class DistrictingService
      * @return int|null  null when chain breaks (no legislature, no
      *                   parent, zero children pop, etc.)
      */
-    public function computeSeatBudget(string $jurisdictionId, string $legislatureId): ?int
+    public function computeSeatBudget(string $jurisdictionId, string $legislatureId, ?string $mapId = null): ?int
     {
-        $key = "{$legislatureId}:{$jurisdictionId}";
+        $key = "{$legislatureId}:{$jurisdictionId}:" . ($mapId ?? '-');
         if (array_key_exists($key, $this->seatBudgetMemo)) {
             return $this->seatBudgetMemo[$key];
         }
@@ -173,16 +173,44 @@ class DistrictingService
         // If this jurisdiction is already a member of a district in this
         // legislature, return that district's seats. Avoids any cascade
         // work for the common non-giant case.
-        $row = DB::selectOne("
+        //
+        // THE MAP MATTERS (2026-08-09, the Serravalle 9-vs-10). This lookup
+        // carried no map filter, so it answered from district membership in
+        // ANY map of the legislature — including RETIRED ones. The moment a
+        // second map exists (and cloning a map to hand-tweak it is the normal
+        // way to get one), a jurisdiction seated in an archived draft returned
+        // that dead map's seat count and the live cascade never ran: San
+        // Marino's cascade locked Serravalle at 10 while this returned the
+        // archived bootstrap's 9. A budget that depends on which retired maps
+        // happen to still exist is not a budget.
+        //
+        // An explicit $mapId answers from that map alone. Unqualified callers
+        // get every NON-archived map, which preserves the load-bearing in-run
+        // behaviour — a sweep building a draft must keep seeing the districts
+        // it is inserting — while retired maps stop voting.
+        $sql = "
             SELECT ld.seats
               FROM legislature_districts ld
               JOIN legislature_district_jurisdictions ldj
                 ON ldj.district_id = ld.id
+              LEFT JOIN legislature_district_maps m
+                ON m.id = ld.map_id
              WHERE ldj.jurisdiction_id = ?
                AND ld.legislature_id  = ?
                AND ld.deleted_at IS NULL
+               AND " . ($mapId !== null
+                    ? 'ld.map_id = ?'
+                    // LEFT JOIN, and map-less districts still count: a district
+                    // with no map_id predates the versioned-map era (and is what
+                    // the reflection fixtures build). Excluding it would not fix
+                    // a stale budget, it would erase a live one.
+                    : "(m.id IS NULL OR (m.deleted_at IS NULL AND m.status <> 'archived'))") . "
              ORDER BY ld.seats DESC LIMIT 1
-        ", [$jurisdictionId, $legislatureId]);
+        ";
+        $bindings = $mapId !== null
+            ? [$jurisdictionId, $legislatureId, $mapId]
+            : [$jurisdictionId, $legislatureId];
+        $row = DB::selectOne($sql, $bindings);
         if ($row) {
             return $this->seatBudgetMemo[$key] = (int) $row->seats;
         }
