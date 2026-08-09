@@ -1185,7 +1185,7 @@
                                           :class="member.fractional_seats > SEAT_CEILING ? 'text-red-400' : 'text-gray-400'">
                                         {{ member.fractional_seats.toFixed(2) }}
                                     </span>
-                                    <button v-if="member.fractional_seats >= GIANT_THRESHOLD && member.child_count > 0"
+                                    <button v-if="isGiantChild(member) && member.child_count > 0"
                                             @click.stop="drillTo(member.id)"
                                             class="shrink-0 text-gray-500 hover:text-emerald-400 transition-colors"
                                             title="Drill into sub-districts">▶</button>
@@ -1302,14 +1302,14 @@
                                  compact hand-drawn progress; absent on older payloads. -->
                             <span v-if="typeof row.giant.drawn_seats === 'number'"
                                   class="shrink-0 text-[10px] tabular-nums px-1 rounded"
-                                  :class="row.giant.drawn_seats >= Math.round(row.giant.fractional_seats)
+                                  :class="row.giant.drawn_seats >= seatsOf(row.giant)
                                       ? 'text-emerald-400 bg-emerald-950/60'
                                       : 'text-amber-300 bg-amber-950/60'"
-                                  :title="`${row.giant.drawn_seats} of ${Math.round(row.giant.fractional_seats)} seats hand-drawn`">
-                                drawn {{ row.giant.drawn_seats }}/{{ Math.round(row.giant.fractional_seats) }}<template v-if="row.giant.drawn_seats >= Math.round(row.giant.fractional_seats)"> ✓</template>
+                                  :title="`${row.giant.drawn_seats} of ${seatsOf(row.giant)} seats hand-drawn`">
+                                drawn {{ row.giant.drawn_seats }}/{{ seatsOf(row.giant) }}<template v-if="row.giant.drawn_seats >= seatsOf(row.giant)"> ✓</template>
                             </span>
                             <span class="tabular-nums w-12 text-right shrink-0"
-                                  :class="seatClass(Math.round(row.giant.fractional_seats))">{{ Math.round(row.giant.fractional_seats) }}</span><!-- Seats -->
+                                  :class="seatClass(seatsOf(row.giant))">{{ seatsOf(row.giant) }}</span><!-- Seats -->
                             <span class="text-gray-400 tabular-nums w-20 text-right shrink-0">{{ row.giant.population > 0 ? formatPop(row.giant.population) : '—' }}</span><!-- Population -->
                             <span class="text-gray-600 tabular-nums w-12 text-right shrink-0">{{ row.giant.fractional_seats.toFixed(2) }}</span>
                             <span class="text-gray-500 text-xs transition-transform w-4 text-center shrink-0"
@@ -1745,6 +1745,35 @@ async function returnToSetup() {
 // Plain constants rather than refs/computed: constitutional settings don't
 // change mid-session (any change requires a page reload to re-fetch settings).
 const GIANT_THRESHOLD = props.constitutional?.giant_threshold ?? 9.5
+
+/**
+ * THE one place this page decides whether a child is a giant (2026-08-09, the
+ * Ukraine bounce). Gianthood is a cascade verdict the backend ships as
+ * `is_giant` (giantChildrenForScope — the same helper the sweep and the
+ * wizard read), NOT a comparison against `fractional_seats`: that float is
+ * rescaled for non-giants so their shares sum to the non-giant budget, and the
+ * rescaling can carry a borderline child past the threshold. Ukraine rendered
+ * as a drillable 10-seat giant at 9.5244 while the server, testing the
+ * unadjusted 9.4809, redirected every click back to the root.
+ *
+ * The threshold fallback keeps older payloads (and any partial reload that
+ * predates the flag) behaving exactly as before.
+ */
+function isGiantChild(c) {
+    if (c == null) return false
+    return c.is_giant ?? ((c.fractional_seats ?? 0) >= GIANT_THRESHOLD)
+}
+
+/**
+ * How many seats a child rounds to. `cascade_seats` is the budget the cascade
+ * LOCKED for a giant, and is null for everyone else — so the fallback covers
+ * non-giants and older payloads with identical arithmetic. This is what the
+ * seats column and every giant-budget sum read, so the number on screen is the
+ * engine's number rather than a re-round of a display float.
+ */
+function seatsOf(c) {
+    return c?.cascade_seats ?? Math.round(c?.fractional_seats ?? 0)
+}
 const FLOOR_BOUNDARY  = props.constitutional?.floor_boundary  ?? 5.0
 const FLOOR_OVERRIDE  = props.constitutional?.floor_override  ?? 4.5
 const SEAT_CEILING    = props.constitutional?.ceiling         ?? 9
@@ -2462,7 +2491,7 @@ function buildJursLabelHtml(child) {
 
     // ── Draw-mode delta indicator ─────────────────────────────────────────────
     let deltaHtml = ''
-    if (isEditing && frac < GIANT_THRESHOLD) {
+    if (isEditing && !isGiantChild(child)) {
         const baseFrac  = pendingFractionalTotal.value
         const afterFrac = isInPending ? baseFrac - frac : baseFrac + frac
 
@@ -2707,12 +2736,12 @@ const assignedCount = computed(() => childrenRef.value.filter(c => c.district_id
 
 // Compositable: fractional < GIANT_THRESHOLD (can be composited or placed in a district)
 const assignableChildren = computed(() =>
-    childrenRef.value.filter(c => c.fractional_seats < GIANT_THRESHOLD)
+    childrenRef.value.filter(c => !isGiantChild(c))
 )
 
 // Giants: fractional >= GIANT_THRESHOLD (must drill down — cannot form a district here)
 const giantChildren = computed(() =>
-    childrenRef.value.filter(c => c.fractional_seats >= GIANT_THRESHOLD)
+    childrenRef.value.filter(c => isGiantChild(c))
 )
 
 // ── Optimal district configuration hint ───────────────────────────────────────
@@ -2726,7 +2755,7 @@ const optimalConfig = computed(() => {
     if (!n || n < SEAT_FLOOR) return null
 
     const giants     = giantChildren.value
-    const giantSeats = giants.reduce((sum, c) => sum + Math.round(c.fractional_seats), 0)
+    const giantSeats = giants.reduce((sum, c) => sum + seatsOf(c), 0)
     const giantCount = giants.length
 
     let pool            = [...assignableChildren.value]
@@ -2752,18 +2781,18 @@ const optimalConfig = computed(() => {
         if (!best) break
 
         const maxAllowed = best.q + (best.r > 0 ? 1 : 0)
-        const newLarge   = pool.filter(c => Math.round(c.fractional_seats) > maxAllowed)
+        const newLarge   = pool.filter(c => seatsOf(c) > maxAllowed)
         if (newLarge.length === 0) {
             return { ...best, expansionGroups, giantCount, giantSeats }
         }
         // Peel expansion singles out — group by rounded seat count
         for (const c of newLarge) {
-            const s = Math.round(c.fractional_seats)
+            const s = seatsOf(c)
             expansionGroups[s] = (expansionGroups[s] ?? 0) + 1
         }
-        const newLargeSeats = newLarge.reduce((sum, c) => sum + Math.round(c.fractional_seats), 0)
+        const newLargeSeats = newLarge.reduce((sum, c) => sum + seatsOf(c), 0)
         poolSeats -= newLargeSeats
-        pool       = pool.filter(c => Math.round(c.fractional_seats) <= maxAllowed)
+        pool       = pool.filter(c => seatsOf(c) <= maxAllowed)
     }
 
     // Fallback after loop exhausted
@@ -2800,12 +2829,12 @@ const optimalConfig = computed(() => {
 const suboptimalConfig = computed(() => {
     // Pool = unassigned compositable children (not yet in any committed district)
     const pool = childrenRef.value.filter(c =>
-        c.fractional_seats < GIANT_THRESHOLD && !c.district_id
+        !isGiantChild(c) && !c.district_id
     )
     const assignedSeats = seatCountableDistricts.value.reduce((s, d) => s + d.seats, 0)
     // Giant seats must always be excluded — they're never compositable at this scope.
     // (Same treatment as optimalConfig; failing to subtract them causes inflated pool budgets.)
-    const giantSeats    = giantChildren.value.reduce((s, c) => s + Math.round(c.fractional_seats), 0)
+    const giantSeats    = giantChildren.value.reduce((s, c) => s + seatsOf(c), 0)
     const poolSeats0    = (props.scope_seats ?? 0) - assignedSeats - giantSeats
     // Allow poolSeats0 in (0, floor) — those jurisdictions still need a floor-exception district.
     // Only skip when pool is empty (nothing left to district) or budget is fully exhausted.
@@ -2832,15 +2861,15 @@ const suboptimalConfig = computed(() => {
         }
         if (!best) break
         const maxAllowed = best.q + (best.r > 0 ? 1 : 0)
-        const newLarge   = remainingPool.filter(c => Math.round(c.fractional_seats) > maxAllowed)
+        const newLarge   = remainingPool.filter(c => seatsOf(c) > maxAllowed)
         if (newLarge.length === 0) return { ...best, expansionGroups, assignedSeats, giantSeats }
         for (const c of newLarge) {
-            const s = Math.round(c.fractional_seats)
+            const s = seatsOf(c)
             expansionGroups[s] = (expansionGroups[s] ?? 0) + 1
         }
-        const newLargeSeats = newLarge.reduce((s, c) => s + Math.round(c.fractional_seats), 0)
+        const newLargeSeats = newLarge.reduce((s, c) => s + seatsOf(c), 0)
         poolSeats    -= newLargeSeats
-        remainingPool = remainingPool.filter(c => Math.round(c.fractional_seats) <= maxAllowed)
+        remainingPool = remainingPool.filter(c => seatsOf(c) <= maxAllowed)
     }
     // Fallback after loop exhausted
     if (poolSeats >= SEAT_FLOOR) {
@@ -3065,7 +3094,7 @@ function giantStatus(giant) {
 const giantStatusCache = computed(() => {
     const map = new Map()
     for (const child of childrenRef.value) {
-        if (child.fractional_seats >= GIANT_THRESHOLD) {
+        if (isGiantChild(child)) {
             map.set(child.id, giantStatus(child))
         }
     }
@@ -3246,7 +3275,7 @@ const pendingFractionalTotal = computed(() => {
 })
 // Remaining seat budget for non-giant compositable pool (quota cap takes precedence over floor)
 const remainingBudget = computed(() => {
-    const giantSeats     = giantChildren.value.reduce((s, c) => s + Math.round(c.fractional_seats), 0)
+    const giantSeats     = giantChildren.value.reduce((s, c) => s + seatsOf(c), 0)
     const committedSeats = seatCountableDistricts.value.reduce((s, d) => s + d.seats, 0)
     return Math.max(0, (props.scope_seats ?? 0) - giantSeats - committedSeats)
 })
@@ -3574,7 +3603,7 @@ function getLayerStyle(jid) {
 
     // Large jurisdictions that can't be directly assigned — hide if broken into sub-districts,
     // otherwise show same grey as ordinary unassigned polygons.
-    if (child.fractional_seats >= GIANT_THRESHOLD) {
+    if (isGiantChild(child)) {
         if (brokenGiantIds.value.has(child.id)) {
             return { fillOpacity: 0, opacity: 0, weight: 0 }
         }
@@ -3788,7 +3817,7 @@ function togglePendingRemove(jid) {
 // ── Unassigned click handler ──────────────────────────────────────────────────
 function handleUnassignedClick(child, fromSidebar = false) {
     // Only compositable (non-giant) jurisdictions can be added
-    if (child.fractional_seats >= GIANT_THRESHOLD) return
+    if (isGiantChild(child)) return
     if (!editingDistrictId.value) {
         // Browse mode: auto-start draw mode and pre-select this jurisdiction.
         // Guard: if cancel was just fired (within CANCEL_DEBOUNCE_MS), do not re-enter draw mode.
@@ -5356,7 +5385,7 @@ async function reinitMapLayers() {
                 // Dynamic tooltip content (called on each mouseover/mousemove)
                 function tooltipContent() {
                     const c = childById[jid] ?? child
-                    const isGiant = c.fractional_seats >= GIANT_THRESHOLD
+                    const isGiant = isGiantChild(c)
                     const lines = [
                         `<strong>${c.name}</strong>`,
                         `Pop: ${c.population.toLocaleString()}`,
@@ -5419,7 +5448,7 @@ async function reinitMapLayers() {
                 layer.on('click', function (e) {
                     L.DomEvent.stop(e)  // prevent map background _map.on('click') from also firing
                     const c = childrenRef.value.find(x => x.id === jid) ?? child
-                    const isGiant = c.fractional_seats >= GIANT_THRESHOLD
+                    const isGiant = isGiantChild(c)
 
                     // Edit existing district — click member to remove, click other to add/steal
                     if (editingDistrictId.value && editingDistrictId.value !== 'new') {
@@ -6018,7 +6047,7 @@ onMounted(async () => {
         for (const child of childrenRef.value) {
             // Giants cannot be composited at this scope — skip them entirely.
             // This mirrors the single-click handler's `if (isGiant) return` guard.
-            if (child.fractional_seats >= GIANT_THRESHOLD) continue
+            if (isGiantChild(child)) continue
 
             const layer = nativeLayer(child.id)
             if (!layer) continue

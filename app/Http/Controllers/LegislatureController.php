@@ -779,6 +779,30 @@ class LegislatureController extends Controller
             unset($c);
         }
 
+        // ── GIANTHOOD IS A CASCADE VERDICT, NOT A FLOAT COMPARISON ───────────
+        // (2026-08-09, the Ukraine bounce.) The rescaling above applies to
+        // NON-giants — and it can push a borderline child UP across the giant
+        // threshold. Ukraine: 9.4809 raw against Earth's share base, 9.5244
+        // once rescaled. The sidebar, which classified from this very float,
+        // then drew it as a 10-seat giant with a drill-down arrow, while the
+        // server's own guard tested the UNADJUSTED value, called it a
+        // non-giant, and redirected every click back to the root. The page was
+        // offering a door the server would not open.
+        //
+        // One field cannot answer two questions. `fractional_seats` answers
+        // "what is this child's share, for equality display". Gianthood is a
+        // cascade verdict, and giantChildrenForScope() is the ONE-FRAME LAW
+        // helper that the mass sweep, the wizard stepper, the completeness
+        // assessor and the leaf-giant test already read. Shipping it
+        // explicitly is what makes every reader agree with the engine — and
+        // with each other.
+        $cascadeGiants = $this->districting->giantChildrenForScope($scopeId, $legislature_id);
+        foreach ($children as &$c) {
+            $c->is_giant      = isset($cascadeGiants[$c->id]);
+            $c->cascade_seats = $cascadeGiants[$c->id] ?? null;
+        }
+        unset($c);
+
         // Districts with full member data — one row per district-member pair at this scope.
         // Grouped in PHP so each district gets a `members` array with IDs for map highlighting.
         // color_index is NOT pulled here — it's computed below from the
@@ -1188,13 +1212,17 @@ class LegislatureController extends Controller
                     'slug'             => $c->slug,
                     'adm_level'        => $c->adm_level,
                     'population'       => (int) $c->population,
-                    // At non-root scopes, giant children (frac >= giant_threshold) display
-                    // their integer allocation (round of local-quota frac) so that
-                    // composite_sum + giant_integers = scopeSeats exactly. Root scope keeps
-                    // raw fractionals (e.g. India 357.94).
-                    'fractional_seats' => !$isRootScope && (float) $c->fractional_seats >= $giantThreshold
-                        ? (float) round((float) $c->fractional_seats)
+                    // At non-root scopes, giant children display their integer
+                    // allocation so that composite_sum + giant_integers =
+                    // scopeSeats exactly. Root scope keeps raw fractionals
+                    // (e.g. India 357.94). Gianthood and the integer both come
+                    // from the cascade now, never from comparing this float.
+                    'fractional_seats' => !$isRootScope && ($c->is_giant ?? false)
+                        ? (float) ($c->cascade_seats ?? round((float) $c->fractional_seats))
                         : (float) $c->fractional_seats,
+                    // THE authoritative classification — see giantChildrenForScope().
+                    'is_giant'         => (bool) ($c->is_giant ?? false),
+                    'cascade_seats'    => isset($c->cascade_seats) ? (int) $c->cascade_seats : null,
                     'district_id'      => $c->district_id,
                     'district_seats'   => $c->district_seats !== null ? (int) $c->district_seats : null,
                     'floor_override'   => (bool) $c->floor_override,
