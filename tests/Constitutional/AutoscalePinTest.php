@@ -632,8 +632,29 @@ class AutoscalePinTest extends TestCase
             }
             $this->assertNotNull($scopeClaim, 'the ladder reaches sweep scopes after singles + precompute drain');
 
-            // The claiming worker "dies": nothing processes the scope; its
-            // heartbeat goes stale; the pump reclaims it to pending.
+            // A LIVE worker is NEVER reclaimed (2026-08-09, the re-run loop).
+            // Same stale scope row, but a fresh lease still holds the claim.
+            // Staleness of the WORK is not evidence of death of the WORKER: a
+            // long search legitimately outruns the bound, and reclaiming it did
+            // not stop the original worker — it started a SECOND one on the same
+            // scope, which took just as long and was reclaimed in turn, forever.
+            DB::table('autoscale_worker_leases')->insert([
+                'id'           => $probeToken,
+                'run_id'       => $run->id,
+                'started_at'   => now(),
+                'last_seen_at' => now(),
+            ]);
+            DB::table('autoscale_scopes')->where('id', $scopeClaim['scope_id'])
+                ->update(['status' => 'running', 'claim_token' => $probeToken, 'updated_at' => now()->subMinutes(45)]);
+            Artisan::call('autoscale:pump');
+            $this->assertSame('running', DB::table('autoscale_scopes')->where('id', $scopeClaim['scope_id'])->value('status'),
+                'a scope whose worker still heartbeats its lease is never seized out from under it');
+
+            // The claiming worker now really dies: the lease ages out with it,
+            // and the pump reclaims the scope to pending on the same schedule
+            // as before — the guard narrows the seizure, it does not weaken it.
+            DB::table('autoscale_worker_leases')->where('id', $probeToken)
+                ->update(['last_seen_at' => now()->subMinutes(45)]);
             DB::table('autoscale_scopes')->where('id', $scopeClaim['scope_id'])
                 ->update(['updated_at' => now()->subMinutes(45)]);
             Artisan::call('autoscale:pump');

@@ -1697,6 +1697,85 @@ class DistrictingDoctrineTest extends TestCase
         });
     }
 
+    // ─── (29) The line-first fast path may skip generators, never doctrine ──
+    // Round 13 runs the border-first generator FIRST and, under 'auto', lets a
+    // clean result stand instead of drawing 36 candidates to beat it. It may
+    // trade away CANDIDATES; it may never trade away a doctrine key. And the
+    // shipped default ('shadow') must adopt nothing at all.
+
+    public function test_line_first_never_ships_drift_a_break_or_a_worse_mix(): void
+    {
+        $this->onLivePg(function () {
+            config(['cga.districting.line_first' => 'always']);
+
+            $pops = array_fill(0, 12, 1000);
+            [$leg, $scopeId] = $this->makeScopeFixture('zzlf', $pops, 1, 12);
+
+            $result = app(DistrictingService::class)->runAutoCompositeForScope(
+                $leg->id, $leg, $scopeId, false, 12, null
+            );
+            $this->assertNull($result['error']);
+
+            $districts = DB::table('legislature_districts')
+                ->where('legislature_id', $leg->id)
+                ->whereNull('deleted_at')
+                ->get(['id', 'seats', 'is_contiguous']);
+
+            $this->assertSame(12, (int) $districts->sum('seats'),
+                'DRIFT IS ALWAYS WRONG — the fast path is gated on exactness and may never ship a drifted total');
+            foreach ($districts as $d) {
+                $this->assertGreaterThanOrEqual(5, (int) $d->seats, 'constitutional floor holds on the fast path');
+                $this->assertLessThanOrEqual(9, (int) $d->seats, 'constitutional ceiling holds on the fast path');
+            }
+            $seats = $districts->pluck('seats')->map(fn ($s) => (int) $s)->all();
+            $this->assertLessThanOrEqual(1, max($seats) - min($seats),
+                'the gate requires a seat mix no worse than the canonical partition');
+        });
+    }
+
+    public function test_line_first_shadow_mode_adopts_nothing(): void
+    {
+        $this->onLivePg(function () {
+            $pops = array_fill(0, 12, 1000);
+            [$leg, $scopeId] = $this->makeScopeFixture('zzsh', $pops, 1, 12);
+            $svc = app(DistrictingService::class);
+
+            $members = function (string $legId): array {
+                $rows = DB::table('legislature_districts as d')
+                    ->join('legislature_district_jurisdictions as dj', 'dj.district_id', '=', 'd.id')
+                    ->where('d.legislature_id', $legId)
+                    ->whereNull('d.deleted_at')
+                    ->orderBy('d.district_number')
+                    ->get(['d.district_number', 'd.seats', 'dj.jurisdiction_id']);
+                $out = [];
+                foreach ($rows as $r) {
+                    $out[$r->district_number]['seats'] = (int) $r->seats;
+                    $out[$r->district_number]['jids'][] = (string) $r->jurisdiction_id;
+                }
+                foreach ($out as &$d) { sort($d['jids']); }
+                ksort($out);
+
+                return $out;
+            };
+
+            config(['cga.districting.line_first' => 'off']);
+            $this->assertNull($svc->runAutoCompositeForScope($leg->id, $leg, $scopeId, false, 12, null)['error']);
+            $off = $members($leg->id);
+
+            // ops => 1 forces the structural gate open, so shadow genuinely
+            // BUILDS and scores the border-first candidate here. Without it a
+            // 12-child fixture never clears the projection and this pin would
+            // pass without exercising the path at all.
+            config(['cga.districting.line_first' => 'shadow', 'cga.districting.line_first_ops' => 1]);
+            $this->assertNull($svc->runAutoCompositeForScope($leg->id, $leg, $scopeId, true, 12, null)['error']);
+            $shadow = $members($leg->id);
+
+            $this->assertNotEmpty($off);
+            $this->assertSame($off, $shadow,
+                'shadow mode observes and logs — the shipped default must never move a jurisdiction');
+        });
+    }
+
     // ─── (28) The runtime work is output-neutral ────────────────────────────
     // The 2026-08-09 São Paulo-runtime pass rewrote the search's inner
     // mechanics — head cursors for array_shift, a hoisted component edge cap,

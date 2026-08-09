@@ -722,7 +722,38 @@ class DistrictingService
 
             $candidateConfigs = [];
 
-            foreach ($kCandidates as $k) {
+            // ── Line-first fast path (round 13, the São Paulo runtime) ────────
+            // The border-first generator already existed as candidate 25-of-36;
+            // running it FIRST is what makes it useful, because its own cost is
+            // twelve sorts of the member list while the growth search around it
+            // scales with child count. When its polished winner is clean under
+            // the UNTOUCHED ladder, the search has nothing left to win.
+            // Default mode is 'shadow': compute, log against the winner the
+            // search chose, adopt nothing — the flip to 'auto' is earned on the
+            // real corpus, not argued. On any fall-through the original loop
+            // runs with its original bindings; the fast path writes no instance
+            // state, so 'off' and a refusal are byte-identical to before.
+            $lfMode    = (string) config('cga.districting.line_first', 'shadow');
+            $lineFirst = null;
+            if ($lfMode !== 'off' && $this->lineFirstEngaged($component, $adj, $kCandidates, $lfMode)) {
+                $this->beat($legislature_id, 'line-first: border sweep');
+                $this->stepBegin('linefirst');
+                $lineFirst = $this->lineFirstCandidate(
+                    $component, $childById, $adj, $centroids, $kCandidates,
+                    $compBudget, (float) $compBinPop, $quotaPopC,
+                    $floor, $ceiling, $giantThreshold, $floorBoundary,
+                    $virtualize, $compEdgeCapSq
+                );
+                $this->stepEnd('linefirst');
+            }
+            $adoptLineFirst = $lineFirst !== null
+                && $lineFirst['clean']
+                && ($lfMode === 'auto' || $lfMode === 'always');
+            if ($adoptLineFirst) {
+                $candidateConfigs[] = ['bins' => $lineFirst['bins'], 'score' => $lineFirst['score']];
+            }
+
+            foreach (($adoptLineFirst ? [] : $kCandidates) as $k) {
                 $targetPopK = $compBinPop > 0 ? (float) $compBinPop / $k : 0.0;
 
                 // ── Phase A: BFS-only scan — every jid as first seed + a population-anchor set ─
@@ -991,6 +1022,25 @@ class DistrictingService
             }
 
             $this->stepEnd('variants');
+
+            // Shadow comparison: the border-first candidate did not compete, so
+            // record how it WOULD have scored against the map the search chose.
+            // One line per component; this is the evidence the 'auto' flip is
+            // supposed to rest on.
+            if ($lineFirst !== null && ! $adoptLineFirst && $bestScore !== null) {
+                \Illuminate\Support\Facades\Log::info('districting line-first shadow', [
+                    'legislature_id'  => $legislature_id,
+                    'scope_id'        => $scopeId,
+                    'children'        => count($component),
+                    'budget'          => $compBudget,
+                    'line_first_k'    => $lineFirst['k'],
+                    'line_first_clean'=> $lineFirst['clean'],
+                    'line_first_rank' => $this->scoreRank($lineFirst['score']),
+                    'search_rank'     => $this->scoreRank($bestScore),
+                    'line_first_wins' => $this->scoreBeats($lineFirst['score'], $bestScore),
+                    'line_first_ms'   => $this->stepMs['linefirst'] ?? null,
+                ]);
+            }
 
             $allBins = array_merge($allBins, $bestBins ?? [$component]);
         }
@@ -4606,6 +4656,119 @@ class DistrictingService
         }
 
         return $bins;
+    }
+
+    /**
+     * Should the border-first fast path run on this component? (round 13, the
+     * São Paulo runtime.)
+     *
+     * The decision is a deterministic function of the GRAPH, never of elapsed
+     * time. A wall-clock gate would make a Raspberry Pi and a server draw
+     * DIFFERENT maps from identical data — the ETL law's "derive from host"
+     * governs SIZING (lanes, memory, chunk width); the drawing itself must stay
+     * host-invariant. The projection mirrors what the search actually costs:
+     * n seed sets, each an O(n + e) traversal, once per k.
+     */
+    private function lineFirstEngaged(array $component, array $adj, array $kCandidates, string $mode): bool
+    {
+        if ($mode === 'always') return true;
+        if ($mode !== 'auto' && $mode !== 'shadow') return false;
+
+        // Shadow uses the SAME gate as auto — measuring a population you would
+        // never have acted on tells you nothing about the flip.
+        $n      = count($component);
+        $inComp = array_flip($component);
+        $e      = 0;
+        foreach ($component as $jid) {
+            foreach ($adj[$jid] ?? [] as $nb) {
+                if (isset($inComp[$nb])) $e++;
+            }
+        }
+
+        return ($n * ($n + $e) * max(1, count($kCandidates)))
+            >= (float) config('cga.districting.line_first_ops', 2000000);
+    }
+
+    /**
+     * The best polished border-first candidate across every k (round 13).
+     *
+     * This is the operator's own method, run FIRST instead of twelfth-of-
+     * thirty-six: sweep a line, cut the MEMBER LIST at the whole-seat
+     * population boundary — never the land, so real borders are honoured for
+     * free and no jurisdiction is ever split — polish, and score. It uses the
+     * same generators, the same polish and the same comparator as the k-loop;
+     * it only changes the ORDER in which they run.
+     *
+     * `clean` reports whether the result satisfies the doctrine's own prefix
+     * keys (exact budget, inside the acceptability band, whole, and a seat mix
+     * no worse than canonical). Reading scoreRank rather than restating 4.0 /
+     * 10.0 means the gate can never drift from the ladder: re-tune the bands
+     * and this follows automatically. cut_length, necks and Rg² are
+     * deliberately NOT gated — those are qualities, and the premise of the
+     * whole path is that a chosen border beats a grown one on exactly those.
+     *
+     * @return array{bins: array<int, list<string>>, score: array<string, mixed>, clean: bool, k: int}|null
+     */
+    private function lineFirstCandidate(
+        array    $component,
+        array    $childById,
+        array    $adj,
+        array    $centroids,
+        array    $kCandidates,
+        int      $compBudget,
+        float    $compBinPop,
+        float    $quotaPopC,
+        int      $floor,
+        int      $ceiling,
+        float    $giantThreshold,
+        float    $floorBoundary,
+        callable $virtualize,
+        ?float   $compEdgeCapSq
+    ): ?array {
+        if ($quotaPopC <= 0.0) return null;
+
+        $bestBins = null; $bestScore = null; $bestK = null;
+        $polishN  = max(1, (int) config('cga.districting.line_first_polish', 3));
+
+        foreach ($kCandidates as $k) {
+            $parts = $this->canonicalPartition($compBudget, $k, $floor, $ceiling);
+            if ($parts === null) continue;
+            $raw = $this->bisectionCandidates($component, $childById, $adj, $centroids, $compBudget, $k, $quotaPopC, $floor, $ceiling);
+            if ($raw === []) continue;
+
+            // Score the raw cuts (cheap — no polish) and take only the best few
+            // into the expensive refinement.
+            $ranked = [];
+            foreach ($raw as $bins) {
+                $eff      = max(count($bins), $compBudget);
+                $ranked[] = [$bins, $this->scoreConfiguration($virtualize($bins), $childById, $adj, $compBinPop, $eff, $floor, $ceiling, $floorBoundary)];
+            }
+            usort($ranked, fn ($a, $b) => $this->scoreBeats($a[1], $b[1]) ? -1 : ($this->scoreBeats($b[1], $a[1]) ? 1 : 0));
+
+            foreach (array_slice($ranked, 0, $polishN) as [$bins, $rawScore]) {
+                $bins = $this->breakRebalance($bins, $childById, $centroids, $adj, $quotaPopC, $compBudget, $floor, $ceiling, $giantThreshold, $floorBoundary, $parts, true);
+                $bins = $this->geographicSeedExpansion($component, $childById, $adj, $centroids, [], $giantThreshold, $floorBoundary, false, $compBudget, $bins, $compEdgeCapSq);
+                if (!$bins) continue;
+                $eff   = max(count($bins), $compBudget);
+                $score = $this->scoreConfiguration($virtualize($bins), $childById, $adj, $compBinPop, $eff, $floor, $ceiling, $floorBoundary);
+                if ($bestScore === null || $this->scoreBeats($score, $bestScore)) {
+                    $bestBins = $bins; $bestScore = $score; $bestK = $k;
+                }
+            }
+        }
+        if ($bestBins === null || $bestScore === null) return null;
+
+        $rank      = $this->scoreRank($bestScore);
+        $live      = array_values(array_filter($bestBins, fn ($b) => !empty($b)));
+        $livePart  = $this->canonicalPartition($compBudget, count($live), $floor, $ceiling);
+        $clean     = $rank[0] === 0        // BUDGET EXACTNESS — drift is always wrong
+            && $rank[1] === 0              // average balance inside acceptability
+            && $rank[2] === 0              // worst district inside acceptability
+            && $rank[3] === 0              // whole: no contiguity breaks
+            && $livePart !== null
+            && $bestScore['seat_spread'] <= (max($livePart) - min($livePart));
+
+        return ['bins' => $bestBins, 'score' => $bestScore, 'clean' => $clean, 'k' => (int) $bestK];
     }
 
     /**
