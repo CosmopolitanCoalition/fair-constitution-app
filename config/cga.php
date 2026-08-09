@@ -25,10 +25,11 @@ return [
     */
     'autoscale_adm_max' => env('CGA_AUTOSCALE_ADM_MAX', 6),
 
-    // Ceiling for per-row "Activate + children recursively" (2026-08-08):
-    // above it the subtree belongs to the autoscale engine (Activate All),
-    // which builds set-based instead of one seed per node.
-    'activate_recursive_max' => env('CGA_ACTIVATE_RECURSIVE_MAX', 5000),
+    // Batch size for the recursive "+ children" walk (2026-08-08). There is
+    // NO SIZE CAP on the subtree itself (operator ruling: "Remove this
+    // restriction") — the job keyset-walks a materialised roster, so memory
+    // is flat whether the tree holds 34 nodes or the whole planet.
+    'activate_subtree_batch' => env('CGA_ACTIVATE_SUBTREE_BATCH', 500),
 
     // CENSUS-FLAVORED sim civics (operator ruling 2026-08-08, rubric
     // sim-org-bill-rates = B): real per-capita rates — US anchors: ~1

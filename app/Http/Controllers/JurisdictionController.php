@@ -908,9 +908,11 @@ class JurisdictionController extends Controller
         abort_unless((bool) $request->user()?->is_operator, 403);
 
         // RECURSIVE (operator, 2026-08-08): this jurisdiction AND its whole
-        // subtree, as a queued chunked job — one seed per node, resumable.
-        // Big subtrees are refused toward Activate All: the autoscale engine
-        // builds those set-based instead of node-by-node.
+        // subtree, as a queued job — one boot per node, resumable.
+        // NO SIZE CAP (his ruling, 2026-08-08: "Remove this restriction").
+        // The job no longer holds a roster in memory — it materialises the
+        // subtree once and keyset-walks it in batches — so a 14,409-node
+        // tree and a 940k-node planet cost the same working set.
         if ($request->boolean('recursive')) {
             $count = (int) DB::selectOne(<<<'SQL'
                 WITH RECURSIVE t AS (
@@ -921,17 +923,6 @@ class JurisdictionController extends Controller
                 )
                 SELECT count(*) AS n FROM t
             SQL, [$jurisdiction->id])->n;
-
-            $max = (int) config('cga.activate_recursive_max', 5000);
-            if ($count > $max) {
-                return response()->json([
-                    'ok' => false,
-                    'error' => sprintf(
-                        'Subtree holds %s jurisdictions (cap %s) — use Activate All (the planet-wide build) for trees this size.',
-                        number_format($count), number_format($max),
-                    ),
-                ], 422);
-            }
 
             \App\Jobs\ActivateSubtreeJob::dispatch((string) $jurisdiction->id);
 

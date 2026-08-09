@@ -43,7 +43,20 @@ class ActivateSubtreeJob implements ShouldQueue
 
     public function handle(): void
     {
-        $roster = DB::select(<<<'SQL'
+        // MATERIALISE ONCE, THEN KEYSET-WALK (THE ETL RULE: bound the INPUT).
+        // The recursive walk runs a single time into a temp roster carrying
+        // its own sequence — shallowest first, so a parent boots before its
+        // children — and the loop below reads that roster in batches. Working
+        // memory is flat whether the subtree holds 34 nodes or the whole
+        // planet, which is what lets the old 5,000-node cap go entirely
+        // (operator ruling 2026-08-08: "Remove this restriction").
+        // DDL first, then a PARAMETERISED insert: PostgreSQL does not accept
+        // bound parameters inside CREATE TABLE AS (a utility statement), and
+        // interpolating an id into DDL is not something this codebase does.
+        DB::statement('DROP TABLE IF EXISTS subtree_roster');
+        DB::statement('CREATE TEMP TABLE subtree_roster (seq bigint PRIMARY KEY, id uuid NOT NULL, slug text NOT NULL)');
+        DB::insert(<<<'SQL'
+            INSERT INTO subtree_roster (seq, id, slug)
             WITH RECURSIVE t AS (
                 SELECT id, slug, adm_level, name
                   FROM jurisdictions WHERE id = ? AND deleted_at IS NULL
@@ -52,8 +65,9 @@ class ActivateSubtreeJob implements ShouldQueue
                   FROM jurisdictions c JOIN t ON c.parent_id = t.id
                  WHERE c.deleted_at IS NULL
             )
-            SELECT t.id, t.slug FROM t
-             ORDER BY t.adm_level, t.name
+            SELECT row_number() OVER (ORDER BY t.adm_level, t.name, t.id),
+                   t.id, t.slug
+              FROM t
         SQL, [$this->rootJurisdictionId]);
 
         // LIVE PROGRESS (operator, 2026-08-08): the job publishes its own
@@ -61,7 +75,7 @@ class ActivateSubtreeJob implements ShouldQueue
         // of re-walking the subtree every tick — a recursive CTE per poll
         // would be brutal on a planet-sized subtree.
         $cacheKey = self::progressKey($this->rootJurisdictionId);
-        $total = count($roster);
+        $total = (int) DB::table('subtree_roster')->count();
         $publish = function (int $processed, int $booted, bool $finished = false) use ($cacheKey, $total) {
             \Illuminate\Support\Facades\Cache::put($cacheKey, [
                 'total' => $total, 'processed' => $processed,
@@ -70,52 +84,81 @@ class ActivateSubtreeJob implements ShouldQueue
         };
         $publish(0, 0);
 
+        $batchSize = max(50, (int) config('cga.activate_subtree_batch', 500));
         $done = 0;
         $skipped = 0;
         $failed = 0;
-        foreach ($roster as $i => $row) {
-            $has = DB::table('legislatures')
-                ->where('jurisdiction_id', $row->id)
-                ->whereNull('deleted_at')
-                ->exists();
+        $processed = 0;
+        $afterSeq = 0;
 
-            if (! $has) {
-                $exit = Artisan::call('apportionment:seed', ['--jurisdiction' => $row->slug]);
-                $exit === 0 ? $done++ : $failed++;
-                if ($exit !== 0) {
-                    Log::warning(sprintf('ActivateSubtreeJob: seed failed for %s (exit %d)', $row->slug, $exit));
+        while (true) {
+            $batch = DB::table('subtree_roster')
+                ->where('seq', '>', $afterSeq)
+                ->orderBy('seq')
+                ->limit($batchSize)
+                ->get(['seq', 'id', 'slug']);
 
-                    continue;
+            if ($batch->isEmpty()) {
+                break;
+            }
+
+            foreach ($batch as $row) {
+                $afterSeq = (int) $row->seq;
+                $processed++;
+
+                // One bad node must never end the pass — everything behind it
+                // still deserves its board (all-or-nothing is a bug).
+                try {
+                    $has = DB::table('legislatures')
+                        ->where('jurisdiction_id', $row->id)
+                        ->whereNull('deleted_at')
+                        ->exists();
+
+                    if (! $has) {
+                        $exit = Artisan::call('apportionment:seed', ['--jurisdiction' => $row->slug]);
+                        if ($exit !== 0) {
+                            $failed++;
+                            Log::warning(sprintf('ActivateSubtreeJob: seed failed for %s (exit %d)', $row->slug, $exit));
+                            $publish($processed, $done + $skipped);
+
+                            continue;
+                        }
+                        $done++;
+                    } else {
+                        $skipped++;
+                    }
+
+                    // THE FULL BOOT: sizing alone is not activation —
+                    // WF-JUR-01 adopts the legislature and constitutes the
+                    // bootstrap board (the mapper's R-08 substrate).
+                    $bootExit = Artisan::call('jurisdiction:activate', [
+                        'slug' => $row->slug, '--force' => true,
+                    ]);
+                    if ($bootExit !== 0) {
+                        Log::warning(sprintf('ActivateSubtreeJob: activation exited %d for %s', $bootExit, $row->slug));
+                    }
+                } catch (\Throwable $e) {
+                    $failed++;
+                    Log::warning(sprintf('ActivateSubtreeJob: %s threw — %s', $row->slug, $e->getMessage()));
                 }
-            } else {
-                $skipped++;
-            }
 
-            // THE FULL BOOT (2026-08-08): sizing alone is not activation —
-            // WF-JUR-01 adopts the legislature and constitutes the bootstrap
-            // board (the mapper's R-08 substrate). Idempotent per node.
-            $bootExit = Artisan::call('jurisdiction:activate', [
-                'slug' => $row->slug, '--force' => true,
-            ]);
-            if ($bootExit !== 0) {
-                Log::warning(sprintf('ActivateSubtreeJob: activation exited %d for %s', $bootExit, $row->slug));
-            }
+                $publish($processed, $done + $skipped);
 
-            $publish($i + 1, $done + $skipped);
-
-            if (($i + 1) % 50 === 0) {
-                Log::info(sprintf(
-                    'ActivateSubtreeJob %s: %d/%d — %d seeded, %d skipped, %d failed',
-                    $this->rootJurisdictionId, $i + 1, count($roster), $done, $skipped, $failed,
-                ));
+                if ($processed % 50 === 0) {
+                    Log::info(sprintf(
+                        'ActivateSubtreeJob %s: %d/%d — %d seeded, %d already active, %d failed',
+                        $this->rootJurisdictionId, $processed, $total, $done, $skipped, $failed,
+                    ));
+                }
             }
         }
 
         $publish($total, $done + $skipped, finished: true);
+        DB::statement('DROP TABLE IF EXISTS subtree_roster');
 
         Log::info(sprintf(
             'ActivateSubtreeJob %s COMPLETE: %d seeded, %d already active, %d failed of %d nodes.',
-            $this->rootJurisdictionId, $done, $skipped, $failed, count($roster),
+            $this->rootJurisdictionId, $done, $skipped, $failed, $total,
         ));
     }
 }
