@@ -119,6 +119,20 @@ class SubdivisionBoundaryDrawing implements FormHandler
             'effective_start' => now()->toDateString(),
         ])->save();
 
+        // THE MISSING LINK (operator, 2026-08-08): activation schedules the
+        // founding election, which needs districts — so a chamber over the
+        // 5–9 per-race ceiling with nothing drawn had its election refused
+        // and nothing ever re-attempted it once the map existed. Now the
+        // plan going ACTIVE re-enters WF-JUR-01 step 3.5. Queued and
+        // afterCommit so it never nests engine filings inside this
+        // transaction; replan's own guard makes a seated chamber a no-op.
+        $jurisdictionId = DB::table('legislatures')
+            ->where('id', (string) $map->legislature_id)
+            ->value('jurisdiction_id');
+        if ($jurisdictionId !== null) {
+            \App\Jobs\ScheduleFoundingElectionJob::dispatch((string) $jurisdictionId)->afterCommit();
+        }
+
         return [
             'map_id' => (string) $map->id,
             'legislature_id' => (string) $map->legislature_id,
