@@ -206,6 +206,81 @@ class GiantClassificationTest extends TestCase
         });
     }
 
+    /**
+     * THE GREY TILE (2026-08-10). A promoted giant's hand-drawn districts must
+     * PAINT at the parent scope. The revealed-map query gated on the round-one
+     * flat share (pop * seats / root_pop >= 9.5), which Ukraine fails at 9.4809
+     * — so its drawn pieces never emitted and its tile rendered grey while the
+     * sidebar listed the districts. Pins that the reveal layer classifies
+     * giants by the cascade, so a promoted giant renders.
+     */
+    public function test_a_promoted_giants_drawn_pieces_render_at_the_parent_scope(): void
+    {
+        $this->onLivePg(function () {
+            $slug = 'greytile-' . substr((string) Str::uuid(), 0, 8);
+            $rootId = $this->jurisdiction('Greytile Root', $slug, 0, null, 30_000_000, 0, 6);
+
+            $legId = (string) Str::uuid();
+            DB::table('legislatures')->insert([
+                'id' => $legId, 'jurisdiction_id' => $rootId, 'status' => 'forming',
+                'type_a_seats' => 30, 'type_b_seats' => 0,
+                'created_at' => now(), 'updated_at' => now(),
+            ]);
+
+            // Borderland is promoted to a giant at 10 by the redistribution —
+            // Ukraine's exact shape (9.4 flat, 9.59 after Bigland locks 10).
+            $this->jurisdiction('Bigland', $slug . '-big', 1, $rootId, 10_400_000, 0, 2);
+            $borderId = $this->jurisdiction('Borderland', $slug . '-border', 1, $rootId, 9_400_000, 2, 4);
+            $this->jurisdiction('Smalland A', $slug . '-a', 1, $rootId, 5_100_000, 4, 5);
+            $this->jurisdiction('Smalland B', $slug . '-b', 1, $rootId, 5_100_000, 5, 6);
+
+            $this->assertSame(10, app(\App\Services\DistrictingService::class)
+                ->computeSeatBudget($borderId, $legId), 'precondition: Borderland is a giant at 10');
+
+            // Hand-draw one subdivision district inside Borderland, exactly as
+            // the draw tools do: a district_subdivisions row carrying the
+            // geometry, joined to a legislature_districts row via subdivision_id.
+            $mapId = (string) Str::uuid();
+            DB::table('legislature_district_maps')->insert([
+                'id' => $mapId, 'legislature_id' => $legId,
+                'name' => 'Hand drawn', 'status' => 'draft',
+                'created_at' => now(), 'updated_at' => now(),
+            ]);
+            $subId = (string) Str::uuid();
+            DB::statement("
+                INSERT INTO district_subdivisions (id, map_id, parent_jurisdiction_id, method, label,
+                    population, seats, status, geom, created_at, updated_at)
+                VALUES (?, ?, ?, 'manual', 'BORDER 01', 4700000, 5, 'draft',
+                    ST_GeomFromText('MULTIPOLYGON(((2 0, 3 0, 3 3, 2 3, 2 0)))', 4326), NOW(), NOW())
+            ", [$subId, $mapId, $borderId]);
+            $distId = (string) Str::uuid();
+            DB::table('legislature_districts')->insert([
+                'id' => $distId, 'legislature_id' => $legId, 'jurisdiction_id' => $borderId,
+                'map_id' => $mapId, 'district_number' => 1, 'seats' => 5,
+                'target_population' => 0, 'actual_population' => 4_700_000,
+                'created_at' => now(), 'updated_at' => now(),
+            ]);
+            DB::table('legislature_district_jurisdictions')->insert([
+                'id' => (string) Str::uuid(), 'district_id' => $distId, 'subdivision_id' => $subId,
+            ]);
+
+            // The revealed layer for the ROOT scope must include Borderland's
+            // drawn piece — the branch that paints hand-drawn giant pieces.
+            $resp = $this->getJson("/api/legislatures/{$legId}/revealed.geojson?scope={$rootId}&map={$mapId}");
+            $resp->assertOk();
+            $features = $resp->json('features') ?? [];
+            $painted = collect($features)->contains(
+                fn ($f) => ($f['properties']['parent_name'] ?? null) === 'Borderland'
+                    || ($f['properties']['jurisdiction_id'] ?? null) === $borderId
+            );
+            $this->assertTrue(
+                $painted,
+                'a promoted giant\'s hand-drawn district must render at the parent scope — the reveal '
+                . 'layer must not gate on the round-one flat share that Ukraine (9.4809) fails'
+            );
+        });
+    }
+
     private function jurisdiction(
         string $name,
         string $slug,

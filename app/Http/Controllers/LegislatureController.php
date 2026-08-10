@@ -628,9 +628,13 @@ class LegislatureController extends Controller
         $childMapFilter3 = $mapId !== null ? 'AND ld3.map_id = :map_id3' : '';
         $childMapBindings = $mapId !== null ? ['map_id2' => $mapId, 'map_id3' => $mapId] : [];
 
+        // Cascade giant set — seeds the giant-descent CTE by the one-frame law,
+        // not a re-derived flat share (2026-08-10).
+        $childGiantIn = $this->giantDescendantIdList($scopeId, $legislature_id);
+
         $children = DB::select("
             WITH RECURSIVE giant_children AS (
-                -- Only giant children (frac >= giant_threshold) ever have sub-districts;
+                -- Only giant children (cascade verdict) ever have sub-districts;
                 -- non-giants are always composited at this scope level so their
                 -- child_assigned_seats is always 0. Scoping the seed to giants only reduces
                 -- CTE rows from millions (all descendants of all ~232 countries) to just the
@@ -639,7 +643,7 @@ class LegislatureController extends Controller
                 FROM   jurisdictions
                 WHERE  parent_id  = :scope_id_r
                   AND  deleted_at IS NULL
-                  AND  (CAST(population AS numeric) * :total_seats_c / :root_pop_c) >= :giant_threshold_c
+                  AND  id IN ({$childGiantIn})
             ),
             desc_tree AS (
                 -- Seed: giant children only (root_child_id tracks which giant each
@@ -727,9 +731,8 @@ class LegislatureController extends Controller
             'leg_id3'            => $legislature_id,
             'scope_id'           => $scopeId,
             'scope_id_r'         => $scopeId,
-            'total_seats_c'      => (int) $leg->type_a_seats,
-            'root_pop_c'         => $rootPop,
-            'giant_threshold_c'  => $giantThreshold,
+            // total_seats_c/root_pop_c/giant_threshold_c removed 2026-08-10:
+            // the seed gates on {$childGiantIn} (cascade), not a flat share.
         ], $mapBindings, $childMapBindings));
 
         // Re-sort in PHP after DISTINCT ON forces ORDER BY j.id above.
@@ -2097,6 +2100,10 @@ class LegislatureController extends Controller
             $revRootPop, $revTotalSeats, $giantThreshold, $tol
         ) {
 
+        // The cascade giant set for this scope, inlined into every branch's
+        // gianthood gate (see giantDescendantIdList).
+        $giantIn = $this->giantDescendantIdList($scopeId, $legislature_id);
+
         // Revealed layer returns one GeoJSON feature per constituent jurisdiction per district,
         // using each jurisdiction's own geometry (jurisdictions.geom) rather than a pre-computed
         // district union polygon. This gives full fidelity with zero geometry computation.
@@ -2114,9 +2121,14 @@ class LegislatureController extends Controller
         // (same as the 9-seat cap that triggers Phase 4 splitting in the ETL).
         //
         // UNION ALL is used because PDO named params cannot be reused across branches;
-        // :leg_id2 / :scope_id2 / :total_seats2 / :root_pop2 are aliases for the same values.
+        // :leg_id2 / :scope_id2 are aliases for the same values.
         // color_index is filled in below via colorIndicesForDistricts() — the
         // adjacency graph is built from the resulting district set.
+        //
+        // Gianthood is the CASCADE's verdict (2026-08-10): every branch below
+        // gates `j_giant.id IN ({$giantIn})` — the recursive giant set — instead
+        // of a re-derived flat share, so a redistribution-promoted giant
+        // (Ukraine) paints its pieces here exactly as the sidebar lists them.
         $rows = DB::select("
             -- Branch 1: ADM2-level members whose direct parent is a giant Earth-child
             SELECT
@@ -2161,7 +2173,7 @@ class LegislatureController extends Controller
             JOIN jurisdictions j_giant ON j_giant.id = j_member.parent_id
                 AND j_giant.parent_id = :scope_id
                 AND j_giant.deleted_at IS NULL
-                AND (CAST(j_giant.population AS numeric) * :total_seats / :root_pop) >= :giant_threshold
+                AND j_giant.id IN ({$giantIn})
             LEFT JOIN jurisdictions j_gp ON j_gp.id = j_giant.parent_id
             -- scope_pop / scope_child_count are properties of the district's own
             -- scope jurisdiction (ld.jurisdiction_id). Computed via set-based joins
@@ -2228,7 +2240,7 @@ class LegislatureController extends Controller
             JOIN jurisdictions j_giant ON j_giant.id = j_state.parent_id
                 AND j_giant.parent_id = :scope_id2
                 AND j_giant.deleted_at IS NULL
-                AND (CAST(j_giant.population AS numeric) * :total_seats2 / :root_pop2) >= :giant_threshold2
+                AND j_giant.id IN ({$giantIn})
             -- Same set-based rewrite as Branch 1 (see note above).
             LEFT JOIN jurisdictions j_dscope2 ON j_dscope2.id = ld.jurisdiction_id
                 AND j_dscope2.deleted_at IS NULL
@@ -2333,7 +2345,7 @@ class LegislatureController extends Controller
             JOIN jurisdictions j_giant ON j_giant.id = ld.jurisdiction_id
                 AND j_giant.parent_id = :scope_id4
                 AND j_giant.deleted_at IS NULL
-                AND (CAST(j_giant.population AS numeric) * :total_seats4 / :root_pop4) >= :giant_threshold4
+                AND j_giant.id IN ({$giantIn})
             LEFT JOIN jurisdictions j_gp4 ON j_gp4.id = j_giant.parent_id
             WHERE ld.legislature_id = :leg_id4
               AND ld.deleted_at IS NULL
@@ -2376,7 +2388,7 @@ class LegislatureController extends Controller
                 AND ds.geom IS NOT NULL
             JOIN jurisdictions j_giant ON j_giant.id = ld.jurisdiction_id
                 AND j_giant.deleted_at IS NULL
-                AND (CAST(j_giant.population AS numeric) * :total_seats5 / :root_pop5) >= :giant_threshold5
+                AND j_giant.id IN ({$giantIn})
             JOIN jurisdictions j_mid5 ON j_mid5.id = j_giant.parent_id
                 AND j_mid5.parent_id = :scope_id5
                 AND j_mid5.deleted_at IS NULL
@@ -2385,28 +2397,18 @@ class LegislatureController extends Controller
               AND ld.deleted_at IS NULL
               {$revMapFil5}
         ", array_merge([
-            'leg_id'           => $legislature_id,
-            'scope_id'         => $scopeId,
-            'total_seats'      => $revTotalSeats,
-            'root_pop'         => $revRootPop,
-            'giant_threshold'  => $giantThreshold,
-            'leg_id2'          => $legislature_id,
-            'scope_id2'        => $scopeId,
-            'total_seats2'     => $revTotalSeats,
-            'root_pop2'        => $revRootPop,
-            'giant_threshold2' => $giantThreshold,
-            'leg_id3'          => $legislature_id,
-            'scope_id3'        => $scopeId,
-            'leg_id4'          => $legislature_id,
-            'scope_id4'        => $scopeId,
-            'total_seats4'     => $revTotalSeats,
-            'root_pop4'        => $revRootPop,
-            'giant_threshold4' => $giantThreshold,
-            'leg_id5'          => $legislature_id,
-            'scope_id5'        => $scopeId,
-            'total_seats5'     => $revTotalSeats,
-            'root_pop5'        => $revRootPop,
-            'giant_threshold5' => $giantThreshold,
+            // total_seats*/root_pop*/giant_threshold* removed 2026-08-10: the
+            // branches gate on {$giantIn} (the cascade set) now, not a flat share.
+            'leg_id'    => $legislature_id,
+            'scope_id'  => $scopeId,
+            'leg_id2'   => $legislature_id,
+            'scope_id2' => $scopeId,
+            'leg_id3'   => $legislature_id,
+            'scope_id3' => $scopeId,
+            'leg_id4'   => $legislature_id,
+            'scope_id4' => $scopeId,
+            'leg_id5'   => $legislature_id,
+            'scope_id5' => $scopeId,
         ], $revMapBind));
 
         // Adjacency-aware greedy 7-coloring over the WHOLE legislature/map.
@@ -2487,7 +2489,7 @@ class LegislatureController extends Controller
                 AND j_giant.parent_id = :scope_id_o
                 AND j_giant.deleted_at IS NULL
                 AND j_giant.geom IS NOT NULL
-                AND (CAST(j_giant.population AS numeric) * :total_seats_o / :root_pop_o) >= :giant_threshold_o
+                AND j_giant.id IN ({$giantIn})
             WHERE ld.legislature_id = :leg_id_o
               AND ld.deleted_at IS NULL
 
@@ -2518,7 +2520,7 @@ class LegislatureController extends Controller
                 AND j_giant.parent_id = :scope_id_o2
                 AND j_giant.deleted_at IS NULL
                 AND j_giant.geom IS NOT NULL
-                AND (CAST(j_giant.population AS numeric) * :total_seats_o2 / :root_pop_o2) >= :giant_threshold_o2
+                AND j_giant.id IN ({$giantIn})
             WHERE ld.legislature_id = :leg_id_o2
               AND ld.deleted_at IS NULL
 
@@ -2549,7 +2551,7 @@ class LegislatureController extends Controller
             JOIN jurisdictions j_giant ON j_giant.id = j_state.parent_id
                 AND j_giant.parent_id = :scope_id_o3
                 AND j_giant.deleted_at IS NULL
-                AND (CAST(j_giant.population AS numeric) * :total_seats_o3 / :root_pop_o3) >= :giant_threshold_o3
+                AND j_giant.id IN ({$giantIn})
             WHERE ld.legislature_id = :leg_id_o3
               AND ld.deleted_at IS NULL
 
@@ -2570,30 +2572,20 @@ class LegislatureController extends Controller
                 AND j_giant.parent_id = :scope_id_o4
                 AND j_giant.deleted_at IS NULL
                 AND j_giant.geom IS NOT NULL
-                AND (CAST(j_giant.population AS numeric) * :total_seats_o4 / :root_pop_o4) >= :giant_threshold_o4
+                AND j_giant.id IN ({$giantIn})
             WHERE ld.legislature_id = :leg_id_o4
               AND ld.deleted_at IS NULL
         ", [
-            'leg_id_o'           => $legislature_id,
-            'scope_id_o'         => $scopeId,
-            'total_seats_o'      => $revTotalSeats,
-            'root_pop_o'         => $revRootPop,
-            'giant_threshold_o'  => $giantThreshold,
-            'leg_id_o2'          => $legislature_id,
-            'scope_id_o2'        => $scopeId,
-            'total_seats_o2'     => $revTotalSeats,
-            'root_pop_o2'        => $revRootPop,
-            'giant_threshold_o2' => $giantThreshold,
-            'leg_id_o3'          => $legislature_id,
-            'scope_id_o3'        => $scopeId,
-            'total_seats_o3'     => $revTotalSeats,
-            'root_pop_o3'        => $revRootPop,
-            'giant_threshold_o3' => $giantThreshold,
-            'leg_id_o4'          => $legislature_id,
-            'scope_id_o4'        => $scopeId,
-            'total_seats_o4'     => $revTotalSeats,
-            'root_pop_o4'        => $revRootPop,
-            'giant_threshold_o4' => $giantThreshold,
+            // total_seats_o*/root_pop_o*/giant_threshold_o* removed 2026-08-10:
+            // the outline branches gate on {$giantIn} now, not a flat share.
+            'leg_id_o'    => $legislature_id,
+            'scope_id_o'  => $scopeId,
+            'leg_id_o2'   => $legislature_id,
+            'scope_id_o2' => $scopeId,
+            'leg_id_o3'   => $legislature_id,
+            'scope_id_o3' => $scopeId,
+            'leg_id_o4'   => $legislature_id,
+            'scope_id_o4' => $scopeId,
         ]);
 
         $outlineFeatures = [];
@@ -3802,6 +3794,41 @@ class LegislatureController extends Controller
         return $result;
     }
 
+    /**
+     * A safe, inlinable SQL id-list of every CASCADE giant at or below a scope
+     * (2026-08-10, the sixth-through-tenth surface — the Ukraine grey tile).
+     *
+     * The map-render and children-load queries each carried their own inline
+     * gianthood test — `pop * total_seats / root_pop >= threshold` — which is
+     * round ONE of a law that iterates (giantChildrenForScope). Ukraine, at
+     * 9.4809 of the flat share but promoted to a giant by the redistribution,
+     * failed every one of those gates: its hand-drawn districts were never
+     * painted, so the tile rendered grey while the sidebar correctly listed
+     * them. Ten gates re-derived what the one-frame helper owns.
+     *
+     * collectGiantDescendants() is that helper's recursive verdict, so gating a
+     * query on `<col>.id IN (<this>)` is exactly the classification the sidebar,
+     * the flags and the drill guard now use. The ids come from our own
+     * jurisdictions table and are re-validated as UUIDs here, so inlining them
+     * (the queries already interpolate {$tol}) carries no injection risk and
+     * sidesteps PDO's no-reused-named-params limit across UNION branches. An
+     * empty set yields a sentinel that matches nothing — correct: no giants
+     * below the scope means nothing for these branches to paint.
+     */
+    private function giantDescendantIdList(string $scopeId, string $legislatureId): string
+    {
+        $ids = $this->collectGiantDescendants($scopeId, $legislatureId);
+        $valid = array_values(array_filter(
+            $ids,
+            fn ($id) => is_string($id) && preg_match('/^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$/', $id)
+        ));
+        if ($valid === []) {
+            return "'00000000-0000-0000-0000-000000000000'";
+        }
+
+        return "'" . implode("','", $valid) . "'";
+    }
+
     private function resolveMassScopeIds(
         string  $legislature_id,
         object  $leg,
@@ -4194,9 +4221,11 @@ class LegislatureController extends Controller
         // Sort by seats descending
         usort($districts, fn($a, $b) => $b['seats'] - $a['seats']);
 
-        // Giant children of this scope (fractional_seats >= 9.5).
-        // has_districts uses member-based lookup (same ADM2/ADM3 logic as $dmRows above)
-        // so it correctly detects Phase 4 sub-districts rather than relying on jurisdiction_id FK.
+        // Giant children of this scope — the CASCADE verdict (2026-08-10), not a
+        // re-derived flat share. has_districts uses member-based lookup (same
+        // ADM2/ADM3 logic as $dmRows above) so it correctly detects Phase 4
+        // sub-districts rather than relying on jurisdiction_id FK.
+        $giantIn4 = $this->giantDescendantIdList($scopeId, $legislature_id);
         $childRows = DB::select("
             SELECT
                 j.id, j.name, j.iso_code, j.adm_level, j.population,
@@ -4244,16 +4273,15 @@ class LegislatureController extends Controller
             FROM jurisdictions j
             WHERE j.parent_id = :scope_id
               AND j.deleted_at IS NULL
-              AND (CAST(j.population AS numeric) * :total_seats2 / :root_pop2) >= :giant_threshold
+              AND j.id IN ({$giantIn4})
         ", [
             'total_seats'     => $totalSeats,
             'root_pop'        => $rootPop,
             'leg_id'          => $legislature_id,
             'leg_id2'         => $legislature_id,
             'scope_id'        => $scopeId,
-            'total_seats2'    => $totalSeats,
-            'root_pop2'       => $rootPop,
-            'giant_threshold' => $giantThreshold,
+            // total_seats2/root_pop2/giant_threshold removed 2026-08-10: the
+            // gate is {$giantIn4} (cascade) now, not a flat share.
         ]);
 
         $giants = [];
