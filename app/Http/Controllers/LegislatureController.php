@@ -4444,20 +4444,21 @@ class LegislatureController extends Controller
                 SELECT DISTINCT orig_scope_id AS scope_id
                   FROM ancestor_walk
                  WHERE current_id = ?
-            ),
-            scope_budget AS (
-                SELECT ldj.jurisdiction_id, MAX(ld2.seats) AS seats
-                  FROM legislature_districts ld2
-                  JOIN legislature_district_jurisdictions ldj
-                    ON ldj.district_id = ld2.id
-                 WHERE ld2.legislature_id = ?
-                   AND ld2.deleted_at IS NULL
-                 GROUP BY ldj.jurisdiction_id
             )
+            -- NO scope_budget CTE (2026-08-09, the Ukraine +1 flag). This
+            -- used to derive a scope's budget as MAX(seats) over any district
+            -- merely holding it as a MEMBER, with no map filter at all — the
+            -- same membership-answers-the-budget shortcut that was removed
+            -- from computeSeatBudget, reimplemented inline in SQL. For a GIANT
+            -- that is always wrong: its seats are locked by the cascade and its
+            -- districts live one scope down. Ukraine's own page read 10 while
+            -- this read 9 off a stale membership row, and raised a
+            -- constitutional flag against a correct map. The budget is asked of
+            -- the cascade in PHP below, per row — the row set is the scopes
+            -- that actually hold districts, and computeSeatBudget memoizes.
             SELECT
                 j.id                AS scope_id,
                 j.name              AS scope_name,
-                sb.seats            AS budget,
                 COUNT(ld.id)        AS num_districts,
                 SUM(ld.seats)::int  AS seat_sum,
                 MAX(ld.seats)::int  AS max_seats,
@@ -4470,17 +4471,27 @@ class LegislatureController extends Controller
                  AND ld.legislature_id  = ?
                  AND ld.deleted_at      IS NULL
                  {$deepMapClause}
-            JOIN scope_budget sb ON sb.jurisdiction_id = j.id
-            GROUP BY j.id, j.name, sb.seats
+            GROUP BY j.id, j.name
         ", array_merge(
             [$legId], $deepMapBinding,   // scopes_with_districts
             [$scopeId],                  // interesting_scopes WHERE current_id = ?
-            [$legId],                    // scope_budget
             [$legId], $deepMapBinding    // outer JOIN to legislature_districts
         ));
 
         foreach ($deepScopeRows as $row) {
-            $budget   = (int) $row->budget;
+            // THE CASCADE OWNS THE BUDGET. A scope with giant children is
+            // responsible only for its own share; each giant's seats are
+            // delegated to that giant's own scope, which appears in this row
+            // set in its own right and is judged there.
+            $scopeBudget = $this->computeSeatBudget((string) $row->scope_id, $legId);
+            if ($scopeBudget === null) {
+                continue;   // no lawful budget to judge against — never guess one
+            }
+            $delegated = 0;
+            foreach ($this->districting->giantChildrenForScope((string) $row->scope_id, $legId) as $giantSeats) {
+                $delegated += (int) $giantSeats;
+            }
+            $budget   = max(0, $scopeBudget - $delegated);
             $seatSum  = (int) $row->seat_sum;
             $numDist  = (int) $row->num_districts;
             $maxS     = (int) $row->max_seats;
