@@ -491,9 +491,23 @@ class LegislatureController extends Controller
 
         // Guard: non-root scopes must be giants (fractional_seats >= giant threshold at root quota).
         // Prevents URL-based access to non-giant sub-scopes (indivisible jurisdictions).
+        // ASK THE CASCADE, DO NOT RE-DERIVE IT (2026-08-09, the second Ukraine
+        // bounce). This guard used to compute its own single-pass fraction
+        // against the root quota — which is round ONE of a law that iterates
+        // (see giantChildrenForScope). After the fixpoint landed, Ukraine was
+        // correctly promoted to a giant and correctly drawn with a drill arrow,
+        // and this guard still measured 9.4809 and still refused it. A surface
+        // that re-derives gianthood will always drift from the helper that owns
+        // it; the fix is to stop re-deriving.
+        $isGiantScope = function (?string $jid, ?string $parentId) use ($legislature_id): bool {
+            if ($jid === null || $parentId === null) {
+                return false;
+            }
+
+            return isset($this->districting->giantChildrenForScope($parentId, $legislature_id)[$jid]);
+        };
         if ($scopeId !== $leg->jurisdiction_id) {
-            $scopeFrac = (int) $scope->population * (int) $leg->type_a_seats / $rootPop;
-            if ($scopeFrac < $giantThreshold) {
+            if (! $isGiantScope($scopeId, $scope->parent_id !== null ? (string) $scope->parent_id : null)) {
                 // Walk up to find the nearest giant (or root) ancestor to redirect to.
                 $redirectScopeId = $leg->jurisdiction_id;  // fallback: root
                 $parentId = $scope->parent_id;
@@ -503,8 +517,7 @@ class LegislatureController extends Controller
                         ->whereNull('deleted_at')
                         ->first();
                     if (!$parentRow) break;
-                    $parentFrac = (int) $parentRow->population * (int) $leg->type_a_seats / $rootPop;
-                    if ($parentFrac >= $giantThreshold) {
+                    if ($isGiantScope((string) $parentId, $parentRow->parent_id !== null ? (string) $parentRow->parent_id : null)) {
                         $redirectScopeId = $parentId;
                         break;
                     }
