@@ -108,6 +108,104 @@ class GiantClassificationTest extends TestCase
         });
     }
 
+    /**
+     * THE UKRAINE FLAG, END TO END (2026-08-10). A giant drawn to exactly its
+     * cascade budget must raise NO constitutional overage. The panel used to
+     * read the giant's budget off a stale district-membership row (9) while its
+     * own scope drew the cascade's 10, and flagged the correct map: "Ukraine:
+     * districts total 10 seats (budget 9, +1)". This pins that the flag builder
+     * asks the cascade, so a redraw can never chase a phantom overage again.
+     */
+    public function test_a_giant_drawn_to_its_budget_raises_no_overage_flag(): void
+    {
+        $this->onLivePg(function () {
+            $slug = 'giantflag-' . substr((string) Str::uuid(), 0, 8);
+            $rootId = $this->jurisdiction('Giantflag Root', $slug, 0, null, 30_000_000, 0, 6);
+
+            $legId = (string) Str::uuid();
+            DB::table('legislatures')->insert([
+                'id' => $legId, 'jurisdiction_id' => $rootId, 'status' => 'forming',
+                'type_a_seats' => 30, 'type_b_seats' => 0,
+                'created_at' => now(), 'updated_at' => now(),
+            ]);
+
+            // Same arithmetic as the classification pin: Borderland is promoted
+            // to a giant at 10 by the redistribution — Ukraine's exact shape.
+            $bigId    = $this->jurisdiction('Bigland', $slug . '-big', 1, $rootId, 10_400_000, 0, 2);
+            $borderId = $this->jurisdiction('Borderland', $slug . '-border', 1, $rootId, 9_400_000, 2, 4);
+            $this->jurisdiction('Smalland A', $slug . '-a', 1, $rootId, 5_100_000, 4, 5);
+            $this->jurisdiction('Smalland B', $slug . '-b', 1, $rootId, 5_100_000, 5, 6);
+
+            $svc = app(\App\Services\DistrictingService::class);
+            $this->assertSame(10, $svc->computeSeatBudget($borderId, $legId),
+                'precondition: the promoted giant locks 10');
+
+            $mapId = (string) Str::uuid();
+            DB::table('legislature_district_maps')->insert([
+                'id' => $mapId, 'legislature_id' => $legId,
+                'name' => 'Drawn giants', 'status' => 'draft',
+                'created_at' => now(), 'updated_at' => now(),
+            ]);
+
+            $drawInto = function (string $giantId, array $seatVec) use ($legId, $mapId) {
+                static $dn = 1;
+                foreach ($seatVec as $seats) {
+                    $distId = (string) Str::uuid();
+                    DB::table('legislature_districts')->insert([
+                        'id' => $distId, 'legislature_id' => $legId,
+                        'jurisdiction_id' => $giantId, 'map_id' => $mapId,
+                        'district_number' => $dn++, 'seats' => $seats,
+                        'target_population' => 0, 'actual_population' => 4_700_000,
+                        'created_at' => now(), 'updated_at' => now(),
+                    ]);
+                }
+            };
+
+            // FAITHFUL REPRODUCTION of the Ukraine bug: seat the promoted giant
+            // as a MEMBER of a root-scope district at the STALE number (9) — the
+            // pre-fixpoint seating that made the old CTE derive budget=9 — while
+            // its own scope is drawn to the cascade's 10 (5+5). Old code:
+            // seat_sum 10 > budget 9 → "+1". New code: budget = cascade 10 → clean.
+            $staleRoot = (string) Str::uuid();
+            DB::table('legislature_districts')->insert([
+                'id' => $staleRoot, 'legislature_id' => $legId,
+                'jurisdiction_id' => $rootId, 'map_id' => $mapId,
+                'district_number' => 90, 'seats' => 9,
+                'target_population' => 0, 'actual_population' => 9_400_000,
+                'created_at' => now(), 'updated_at' => now(),
+            ]);
+            DB::table('legislature_district_jurisdictions')->insert([
+                'id' => (string) Str::uuid(), 'district_id' => $staleRoot,
+                'jurisdiction_id' => $borderId,
+            ]);
+            $drawInto($borderId, [5, 5]);            // correct: sums to the cascade's 10
+
+            // POSITIVE CONTROL: draw the round-one giant genuinely OVER its
+            // budget (11 > 10). This must still flag — proving the overage path
+            // is live and the fix removed a false positive, not the check.
+            $drawInto($bigId, [6, 5]);
+
+            $this->get("/legislatures/{$slug}/districts?map={$mapId}")
+                ->assertOk()
+                ->assertInertia(function (Assert $page) use ($borderId, $bigId) {
+                    $overages = collect($page->toArray()['props']['flags']['deep_overages'] ?? [])
+                        ->keyBy('scope_id');
+
+                    $this->assertFalse(
+                        $overages->has($borderId),
+                        'a giant drawn to its cascade budget (10) is NOT over budget — the panel must '
+                        . 'not invent a smaller budget (9) from a stale membership row and flag a correct map'
+                    );
+                    $this->assertTrue(
+                        $overages->has($bigId),
+                        'the overage check is still live: a giant drawn to 11 against a budget of 10 flags'
+                    );
+                    $this->assertSame(1, (int) $overages[$bigId]['delta'],
+                        'and reports the true overage of +1 against the CASCADE budget');
+                });
+        });
+    }
+
     private function jurisdiction(
         string $name,
         string $slug,
