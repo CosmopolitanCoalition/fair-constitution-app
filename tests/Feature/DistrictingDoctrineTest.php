@@ -1706,6 +1706,52 @@ class DistrictingDoctrineTest extends TestCase
     // once a legislature has a second map, which is exactly what cloning a map
     // to hand-tweak it creates.
 
+    public function test_a_locked_giants_budget_ignores_district_membership(): void
+    {
+        $this->onLivePg(function () {
+            // budget 30; 10.4 / 9.4 / 5.1 / 5.1 of the quota. The 10.4 child is
+            // a giant and the cascade locks it at 10.
+            [$leg, $scopeId] = $this->makeScopeFixture('zzgm', [10400, 9400, 5100, 5100], 1000, 30);
+            $giant = DB::table('jurisdictions')
+                ->where('parent_id', $scopeId)->whereNull('deleted_at')
+                ->orderByDesc('population')->first(['id']);
+            $this->assertNotNull($giant);
+
+            $svc = app(DistrictingService::class);
+            $this->assertSame(10, $svc->computeSeatBudget((string) $giant->id, (string) $leg->id),
+                'the cascade locks the giant at 10 before anything is drawn');
+
+            // Now seat that giant as a MEMBER of a root district at a stale
+            // number — the shape a pre-fixpoint map leaves behind, and the one
+            // that made Ukraine report 9 while its own scope drew 10.
+            $mapId = (string) Str::uuid();
+            DB::table('legislature_district_maps')->insert([
+                'id' => $mapId, 'legislature_id' => $leg->id,
+                'name' => 'Stale seating', 'status' => 'draft',
+                'created_at' => now(), 'updated_at' => now(),
+            ]);
+            $distId = (string) Str::uuid();
+            DB::table('legislature_districts')->insert([
+                'id' => $distId, 'legislature_id' => $leg->id, 'jurisdiction_id' => $scopeId,
+                'map_id' => $mapId, 'district_number' => 1, 'seats' => 7,
+                'target_population' => 0, 'actual_population' => 0,
+                'created_at' => now(), 'updated_at' => now(),
+            ]);
+            DB::table('legislature_district_jurisdictions')->insert([
+                'id' => (string) Str::uuid(), 'district_id' => $distId,
+                'jurisdiction_id' => $giant->id,
+            ]);
+
+            // Fresh instance — the budget memoizes per resolution.
+            $this->assertSame(
+                10,
+                app(DistrictingService::class)->computeSeatBudget((string) $giant->id, (string) $leg->id),
+                'a LOCKED GIANT takes its budget from the cascade, never from a district that seats it: '
+                . 'membership is a shortcut for ordinary children, and a giant draws one scope DOWN'
+            );
+        });
+    }
+
     public function test_an_archived_map_never_answers_a_seat_budget(): void
     {
         $this->onLivePg(function () {

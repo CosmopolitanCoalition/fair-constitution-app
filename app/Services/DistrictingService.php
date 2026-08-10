@@ -176,6 +176,34 @@ class DistrictingService
             return $this->seatBudgetMemo[$key] = (int) $leg->type_a_seats;
         }
 
+        // ── Path 1.5: A LOCKED GIANT — THE CASCADE OUTRANKS MEMBERSHIP ──
+        // (2026-08-09, the Ukraine "+1" flag.) Path 2 below is a shortcut with
+        // an unstated precondition: "if this jurisdiction is already seated in
+        // a district, that district's seats ARE its budget." True for an
+        // ordinary child. FALSE for a giant — a giant's seats are locked by the
+        // cascade and its districts live one scope DOWN, drawn to that lock, so
+        // a membership row for a giant is either stale or somebody else's
+        // scope. Asking membership first let an old seating outrank the law:
+        // Ukraine, seated at 9 under the pre-fixpoint classification, kept
+        // reporting 9 while its own scope correctly drew 10 — surfacing as
+        // "Ukraine: districts total 10 seats (budget 9, +1)", a constitutional
+        // flag raised against a map that was right.
+        //
+        // So the cascade is asked FIRST, for exactly the case it owns, and the
+        // membership shortcut still handles everything else.
+        $self = DB::table('jurisdictions')
+            ->where('id', $jurisdictionId)
+            ->whereNull('deleted_at')
+            ->first(['id', 'parent_id', 'population']);
+        if ($self !== null
+            && $self->parent_id !== null
+            && (string) $self->parent_id !== $jurisdictionId) {   // self-parent data guard
+            $parentGiants = $this->giantChildrenForScope((string) $self->parent_id, $legislatureId);
+            if (isset($parentGiants[$jurisdictionId])) {
+                return $this->seatBudgetMemo[$key] = $parentGiants[$jurisdictionId];
+            }
+        }
+
         // ── Path 2: LOOKUP (cheap; gates the recursion) ──────────────
         // If this jurisdiction is already a member of a district in this
         // legislature, return that district's seats. Avoids any cascade
@@ -223,14 +251,11 @@ class DistrictingService
         }
 
         // ── Path 3: CASCADE — only when lookup missed ────────────────
-        // Reaches here ONLY when the jurisdiction has no district
-        // membership: either it's a giant at its parent's scope
-        // (Step 12 doesn't insert a district for giants) or the parent
-        // scope's autoseed hasn't run yet (first-time-create path).
-        $self = DB::table('jurisdictions')
-            ->where('id', $jurisdictionId)
-            ->whereNull('deleted_at')
-            ->first(['id', 'parent_id', 'population']);
+        // Reaches here when an ORDINARY child has no district membership yet:
+        // the parent scope's autoseed hasn't run (first-time-create path), or
+        // it sits outside every drawn district. Giants never reach here —
+        // Path 1.5 answers them from the cascade, which is the whole point.
+        // ($self was already loaded by Path 1.5 — giants are resolved there.)
         if (!$self || !$self->parent_id) {
             return $this->seatBudgetMemo[$key] = null;
         }
@@ -238,16 +263,6 @@ class DistrictingService
         $parentBudget = $this->computeSeatBudget($self->parent_id, $legislatureId);
         if ($parentBudget === null) {
             return $this->seatBudgetMemo[$key] = null;
-        }
-
-        // A LOCKED GIANT'S BUDGET COMES FROM THE PARENT'S TABLE. That table
-        // iterates the redistribution (law step 4); the single-pass Calc-A frac
-        // below does not — so for a giant promoted in a LATER round the two
-        // disagree by a seat (Ukraine: 9 here, 10 there), and every surface
-        // inherits whichever it happened to ask.
-        $parentGiants = $this->giantChildrenForScope((string) $self->parent_id, $legislatureId);
-        if (isset($parentGiants[$jurisdictionId])) {
-            return $this->seatBudgetMemo[$key] = $parentGiants[$jurisdictionId];
         }
 
         // Calc A: Q(parent) = Σ children pop / S(parent);
