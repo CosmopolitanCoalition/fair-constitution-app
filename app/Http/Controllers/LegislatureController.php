@@ -1690,15 +1690,23 @@ class LegislatureController extends Controller
             $this->primeColorCache($legislature_id, $mapId, $scopeColors);
 
             // Districts that lost members had their seats recomputed via recomputeDistrict() above.
+            // Stats ride along (2026-08-23): recomputeDistrict refreshed
+            // convex_hull_ratio / is_contiguous too, and omitting them left the
+            // source district's row showing a stale verdict — the operator pulled
+            // the offending member off a non-contiguous district, the server
+            // recomputed it Intact, and the screen kept the ✗ until reload.
             $affectedDistrictsData = [];
             foreach ($existingDistrictIds as $did) {
                 $affRow = DB::table('legislature_districts')->where('id', $did)->whereNull('deleted_at')->first();
                 if ($affRow) {
                     $affectedDistrictsData[] = [
-                        'id'             => $did,
-                        'seats'          => (int) $affRow->seats,
-                        'floor_override' => (bool) $affRow->floor_override,
-                        'color_index'    => $scopeColors[$did] ?? 0,
+                        'id'                => $did,
+                        'seats'             => (int) $affRow->seats,
+                        'floor_override'    => (bool) $affRow->floor_override,
+                        'color_index'       => $scopeColors[$did] ?? 0,
+                        'fractional_seats'  => round((float) $affRow->fractional_seats, 4),
+                        'convex_hull_ratio' => $affRow->convex_hull_ratio !== null ? round((float) $affRow->convex_hull_ratio, 3) : null,
+                        'is_contiguous'     => $affRow->is_contiguous !== null ? (bool) $affRow->is_contiguous : null,
                     ];
                 }
             }
@@ -1918,15 +1926,20 @@ class LegislatureController extends Controller
             }
             $this->primeColorCache($legislature_id, $resolvedMapId, $scopeColors);
 
+            // Stats ride along (2026-08-23) — same reason as createDistrict's
+            // affected payload: the recomputed verdicts must reach the screen.
             $affectedDistrictsData = [];
             foreach (array_unique($affectedDistrictIds) as $did) {
                 $affRow = DB::table('legislature_districts')->where('id', $did)->whereNull('deleted_at')->first();
                 if ($affRow) {
                     $affectedDistrictsData[] = [
-                        'id'             => $did,
-                        'seats'          => (int) $affRow->seats,
-                        'floor_override' => (bool) $affRow->floor_override,
-                        'color_index'    => $scopeColors[$did] ?? 0,
+                        'id'                => $did,
+                        'seats'             => (int) $affRow->seats,
+                        'floor_override'    => (bool) $affRow->floor_override,
+                        'color_index'       => $scopeColors[$did] ?? 0,
+                        'fractional_seats'  => round((float) $affRow->fractional_seats, 4),
+                        'convex_hull_ratio' => $affRow->convex_hull_ratio !== null ? round((float) $affRow->convex_hull_ratio, 3) : null,
+                        'is_contiguous'     => $affRow->is_contiguous !== null ? (bool) $affRow->is_contiguous : null,
                     ];
                 }
             }
@@ -1981,30 +1994,42 @@ class LegislatureController extends Controller
         $scopeId = $district->jurisdiction_id ?? ($leg ? $leg->jurisdiction_id : null);
         $distMapId = $this->getMapId($legislature_id, $district->map_id ?? null);
 
-        // A DRAWN district (leaf-giant subdivision) carries its geometry on a
-        // district_subdivisions row reached through a subdivision_id membership.
-        // Retire that row WITH the district: leaving it live is the "ghost"
-        // that blocked every later draw at the scope — its label collided with
-        // the next auto-numbered filing (23505) and its geometry tripped the
-        // sibling-overlap gate. Composite districts have no subdivision rows,
-        // so this is a no-op for them.
-        $subdivisionIds = DB::table('legislature_district_jurisdictions')
-            ->where('district_id', $district_id)
-            ->whereNotNull('subdivision_id')
-            ->pluck('subdivision_id');
-        if ($subdivisionIds->isNotEmpty()) {
-            DB::table('district_subdivisions')
-                ->whereIn('id', $subdivisionIds)
-                ->whereNull('deleted_at')
-                ->update(['deleted_at' => now(), 'updated_at' => now()]);
-        }
+        // Atomic (2026-08-23): the writes below used to run bare, so when
+        // renumberDistricts threw (the created_at-order collision), the district
+        // was already gone and its junctions hard-deleted — a half-applied delete
+        // the operator couldn't see. All-or-nothing is the contract now.
+        DB::beginTransaction();
+        try {
+            // A DRAWN district (leaf-giant subdivision) carries its geometry on a
+            // district_subdivisions row reached through a subdivision_id membership.
+            // Retire that row WITH the district: leaving it live is the "ghost"
+            // that blocked every later draw at the scope — its label collided with
+            // the next auto-numbered filing (23505) and its geometry tripped the
+            // sibling-overlap gate. Composite districts have no subdivision rows,
+            // so this is a no-op for them.
+            $subdivisionIds = DB::table('legislature_district_jurisdictions')
+                ->where('district_id', $district_id)
+                ->whereNotNull('subdivision_id')
+                ->pluck('subdivision_id');
+            if ($subdivisionIds->isNotEmpty()) {
+                DB::table('district_subdivisions')
+                    ->whereIn('id', $subdivisionIds)
+                    ->whereNull('deleted_at')
+                    ->update(['deleted_at' => now(), 'updated_at' => now()]);
+            }
 
-        DB::table('legislature_district_jurisdictions')->where('district_id', $district_id)->delete();
-        DB::table('legislature_districts')->where('id', $district_id)->update(['deleted_at' => now()]);
+            DB::table('legislature_district_jurisdictions')->where('district_id', $district_id)->delete();
+            DB::table('legislature_districts')->where('id', $district_id)->update(['deleted_at' => now()]);
 
-        // Renumber remaining districts so the sequence stays compact (no gaps from soft deletes)
-        if ($scopeId) {
-            $this->renumberDistricts($legislature_id, $scopeId, $distMapId);
+            // Renumber remaining districts so the sequence stays compact (no gaps from soft deletes)
+            if ($scopeId) {
+                $this->renumberDistricts($legislature_id, $scopeId, $distMapId);
+            }
+
+            DB::commit();
+        } catch (\Throwable $e) {
+            DB::rollBack();
+            return response()->json(['error' => 'Failed to delete district: ' . $e->getMessage()], 500);
         }
 
         $this->flushRevealedCache($legislature_id, $distMapId, $scopeId);
@@ -3909,26 +3934,50 @@ class LegislatureController extends Controller
 
     /**
      * Renumber all non-deleted districts for a given (legislature, scope, map) triple
-     * so that district_number is a compact 1..N sequence ordered by creation date.
+     * so that district_number is a compact 1..N sequence.
      *
      * Called after any create or soft-delete so draft maps never have gaps.
-     * Safe to call inside or outside a transaction — uses a single UPDATE per record.
+     *
+     * Ordered by CURRENT district_number (2026-08-23) — compaction, not reshuffle.
+     * The old created_at ordering broke on batch-created maps (clone / draft-copy
+     * stamps every district one identical created_at, leaving random UUID order):
+     * the walk no longer matched the numbering, the first per-row UPDATE collided
+     * with the live holder of that number (23505, legislature_districts_live_unique),
+     * and had it succeeded it would have reshuffled the operator's district numbers
+     * — which the EAR-NN labels derive from. Number-order preserves every label and
+     * only closes gaps.
+     *
+     * Two-phase against the live unique index: the per-row assignments are applied
+     * to numbers first bumped above the scope's max, so no intermediate state can
+     * collide — regardless of how scrambled the existing numbering is, and in the
+     * $mapId=null case where the walk spans several maps whose numberings overlap.
      */
     private function renumberDistricts(string $legislatureId, string $jurisdictionId, ?string $mapId): void
     {
-        $query = DB::table('legislature_districts')
+        $scope = DB::table('legislature_districts')
             ->where('legislature_id', $legislatureId)
             ->where('jurisdiction_id', $jurisdictionId)
-            ->whereNull('deleted_at')
-            ->orderBy('created_at')
-            ->orderBy('id');   // tie-break: stable sort
+            ->whereNull('deleted_at');
 
         if ($mapId !== null) {
-            $query->where('map_id', $mapId);
+            $scope->where('map_id', $mapId);
         }
 
-        $rows = $query->pluck('id');
+        $rows = (clone $scope)
+            ->orderBy('district_number')
+            ->orderBy('created_at')
+            ->orderBy('id')   // tie-breaks: only reachable when the walk spans maps
+            ->pluck('id');
 
+        if ($rows->isEmpty()) {
+            return;
+        }
+
+        // Phase 1: lift everything clear of the target range in one statement.
+        $bump = 1 + (int) (clone $scope)->max('district_number');
+        (clone $scope)->update(['district_number' => DB::raw('district_number + ' . $bump)]);
+
+        // Phase 2: assign the compact 1..N finals — all below the bumped range.
         foreach ($rows as $i => $id) {
             DB::table('legislature_districts')
                 ->where('id', $id)

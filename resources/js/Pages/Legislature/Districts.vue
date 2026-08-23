@@ -4834,7 +4834,16 @@ async function createDistrictFromPending() {
                         members: remainingMembers,
                         fractional_seats: remainingMembers.reduce((s, m) => s + m.fractional_seats, 0),
                         color_index: newColor,
-                        ...(affUpdate ? { seats: affUpdate.seats, floor_override: affUpdate.floor_override } : {}),
+                        // Server-recomputed values win, stats included — without CHR and
+                        // contiguity here the source row keeps a stale verdict after
+                        // losing the very member that caused it.
+                        ...(affUpdate ? {
+                            seats: affUpdate.seats,
+                            floor_override: affUpdate.floor_override,
+                            ...(affUpdate.fractional_seats !== undefined ? { fractional_seats: affUpdate.fractional_seats } : {}),
+                            ...(affUpdate.convex_hull_ratio !== undefined ? { convex_hull_ratio: affUpdate.convex_hull_ratio } : {}),
+                            ...(affUpdate.is_contiguous !== undefined ? { is_contiguous: affUpdate.is_contiguous } : {}),
+                        } : {}),
                     }
                 }
                 return { ...existing, color_index: newColor }
@@ -4923,7 +4932,15 @@ async function saveDistrictEdit(districtId) {
                     members: remainingMembers,
                     fractional_seats: remainingMembers.reduce((s, m) => s + m.fractional_seats, 0),
                     color_index: newColor,
-                    ...(affUpdate2 ? { seats: affUpdate2.seats, floor_override: affUpdate2.floor_override } : {}),
+                    // Server-recomputed values win, stats included (same fix as the
+                    // create handler above).
+                    ...(affUpdate2 ? {
+                        seats: affUpdate2.seats,
+                        floor_override: affUpdate2.floor_override,
+                        ...(affUpdate2.fractional_seats !== undefined ? { fractional_seats: affUpdate2.fractional_seats } : {}),
+                        ...(affUpdate2.convex_hull_ratio !== undefined ? { convex_hull_ratio: affUpdate2.convex_hull_ratio } : {}),
+                        ...(affUpdate2.is_contiguous !== undefined ? { is_contiguous: affUpdate2.is_contiguous } : {}),
+                    } : {}),
                 }
             }
             // Sibling whose color shifted due to scope-wide re-coloring
