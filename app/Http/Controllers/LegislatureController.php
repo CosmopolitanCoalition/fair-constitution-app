@@ -3666,6 +3666,7 @@ class LegislatureController extends Controller
         $now      = now();
         $idMap    = [];   // old district id → new district id
 
+        try {
         DB::transaction(function () use ($map, $map_id, $legislature_id, $newMapId, $newName, $now, &$idMap) {
             // 1. New map record
             DB::table('legislature_district_maps')->insert([
@@ -3716,21 +3717,88 @@ class LegislatureController extends Controller
                 ]);
             }
 
-            // 3. Copy junction rows for all copied districts
+            // 2.5. Deep-copy the map's DRAWN geometry (district_subdivisions is
+            // map-owned: splitline / manual cuts inside giants). The clone used
+            // to skip this, so a junction row whose membership was a
+            // subdivision (jurisdiction_id NULL) was copied as (NULL, NULL) —
+            // tripping ldj_member_kind_xor_check and killing the whole clone on
+            // any map that contains drawn districts (USA; Earth's all-composite
+            // maps never hit it). Copies are made parent-first because
+            // parent_subdivision_id is a self-FK, and via INSERT…SELECT so
+            // geometry never round-trips through PHP.
+            $subIdMap = [];   // old subdivision id → new subdivision id
+            $subs = DB::table('district_subdivisions')
+                ->where('map_id', $map_id)
+                ->whereNull('deleted_at')
+                ->get(['id', 'parent_subdivision_id']);
+            foreach ($subs as $s) {
+                $subIdMap[$s->id] = (string) Str::uuid();
+            }
+            $pending = $subs->all();
+            while (!empty($pending)) {
+                $stillPending = [];
+                $progressed   = false;
+                foreach ($pending as $s) {
+                    $parentOld = $s->parent_subdivision_id;
+                    // Parent outside the live set (or none): copy as a root.
+                    $parentNew = $parentOld !== null ? ($subIdMap[$parentOld] ?? null) : null;
+                    if ($parentNew !== null && !DB::table('district_subdivisions')->where('id', $parentNew)->exists()) {
+                        $stillPending[] = $s;   // parent copy not inserted yet
+
+                        continue;
+                    }
+                    DB::statement('
+                        INSERT INTO district_subdivisions
+                            (id, map_id, parent_jurisdiction_id, parent_subdivision_id, method, label,
+                             population, population_source, population_year, fractional_seats, seats,
+                             status, created_at, updated_at, geom, centroid)
+                        SELECT ?, ?, parent_jurisdiction_id, ?, method, label,
+                               population, population_source, population_year, fractional_seats, seats,
+                               status, ?, ?, geom, centroid
+                        FROM district_subdivisions WHERE id = ?
+                    ', [$subIdMap[$s->id], $newMapId, $parentNew, $now, $now, $s->id]);
+                    $progressed = true;
+                }
+                if (!$progressed && !empty($stillPending)) {
+                    throw new \RuntimeException('Subdivision parent cycle in map ' . $map_id);
+                }
+                $pending = $stillPending;
+            }
+
+            // 3. Copy junction rows for all copied districts, preserving the
+            // member KIND: exactly one of jurisdiction_id / subdivision_id
+            // (drawn memberships point at the NEW subdivision copies).
             if (!empty($idMap)) {
                 $ldj = DB::table('legislature_district_jurisdictions')
                     ->whereIn('district_id', array_keys($idMap))
                     ->get();
 
                 foreach ($ldj as $row) {
+                    $newSubId = null;
+                    if ($row->subdivision_id !== null) {
+                        $newSubId = $subIdMap[$row->subdivision_id] ?? null;
+                        if ($newSubId === null) {
+                            // A live district referencing a retired subdivision is
+                            // corrupt data — fail loudly, roll back, name the row.
+                            throw new \RuntimeException(
+                                "District {$row->district_id} references subdivision {$row->subdivision_id} which is not live on map {$map_id}"
+                            );
+                        }
+                    }
                     DB::table('legislature_district_jurisdictions')->insert([
                         'id'              => (string) Str::uuid(),
                         'district_id'     => $idMap[$row->district_id],
                         'jurisdiction_id' => $row->jurisdiction_id,
+                        'subdivision_id'  => $newSubId,
                     ]);
                 }
             }
         });
+        } catch (\Throwable $e) {
+            // Surface the real reason as JSON — an uncaught throw here rendered
+            // as a bare 500 the mapper could only report as "network error".
+            return response()->json(['error' => 'Failed to copy map: ' . $e->getMessage()], 500);
+        }
 
         return response()->json([
             'id'             => $newMapId,

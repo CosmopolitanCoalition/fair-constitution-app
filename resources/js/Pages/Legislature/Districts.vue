@@ -3952,23 +3952,33 @@ async function runWizardAutoActions() {
     }
 
     // All-done halt: if we're sitting on the final wizard step (root scope,
-    // last element of wizardSteps) and the backend's incomplete_scopes flag
-    // is empty with no hard overages, the whole map is fully districted —
-    // signal "navigated away" so the caller doesn't restart the auto-step
-    // timer. Without this guard, wizardStepForward's modulo wrap would cycle
-    // the operator endlessly back to the first giant after a clean sweep.
+    // last element of wizardSteps) and COVERAGE is total — every scope
+    // composited, every leaf giant fully drawn — the sweep is finished.
+    //
+    // Two corrections from the USA run (2026-08-23, "the stepper keeps going"):
+    // 1. DONE is a COVERAGE question, not a quality one. The old guard also
+    //    demanded zero cap/overage flags, so a fully drawn map carrying a
+    //    quality flag could never satisfy it and the modulo wrap cycled the
+    //    ring forever. Quality flags live in Map Quality; they don't mean
+    //    "keep stepping".
+    // 2. Turn the OPERATOR'S CHECKBOX off, not just this cycle's timer.
+    //    Returning true skipped one re-arm, but Auto Step stayed checked and
+    //    any later navigation's countdown resumed the carousel. The
+    //    wizardAutoStep watcher persists the uncheck and clears the timer.
     const isFinalStep    = wizardCurrentIndex.value === wizardSteps.value.length - 1
     const noIncomplete   = (props.flags?.incomplete_scopes?.length ?? 0) === 0
-    const noCap          = !props.flags?.cap
-    const noDeepOverages = (props.flags?.deep_overages?.length ?? 0) === 0
     // flags.undrawn_leaf_giants (additive) counts leaf giants MAP-WIDE that
     // still lack a full drawn set — absence (older payload) reads as OK.
     const noUndrawnLeaves = (props.flags?.undrawn_leaf_giants ?? 0) === 0
     // flags.incomplete_scopes is leaf-blind (backend residual): an undrawn
     // leaf giant never registers there. Require the CURRENT stop's leaf-aware
     // completeness too before declaring the sweep done.
-    if (isFinalStep && noIncomplete && noCap && noDeepOverages && noUndrawnLeaves && scopeComplete.value) {
-        showStatus('success', 'Map complete — every scope districted.')
+    if (isFinalStep && noIncomplete && noUndrawnLeaves && scopeComplete.value) {
+        const qualityClean = !props.flags?.cap && (props.flags?.deep_overages?.length ?? 0) === 0
+        if (wizardAutoStep.value) wizardAutoStep.value = false
+        showStatus('success', qualityClean
+            ? 'Map complete — every scope districted. Auto Step off.'
+            : 'Map fully drawn — Auto Step off. Quality flags remain (see Map Quality).')
         return true   // skip startAutoStepTimer() in the caller
     }
 
