@@ -2,195 +2,128 @@
 
 namespace App\Console\Commands;
 
+use App\Services\DistrictingService;
 use Illuminate\Console\Command;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 
 /**
  * php artisan districts:backfill-stats
  *
- * Backfills polsby_popper, num_geom_parts, and is_contiguous for districts
- * that are missing one or more of these cached spatial stats columns.
+ * Backfills the cached spatial stats — convex_hull_ratio, num_geom_parts,
+ * is_contiguous — for districts missing them (cloned maps before 0befbb9
+ * carried none; older rows predate the columns).
  *
- * Districts are always created through PHP (createDistrict / massReseed), so
- * all districts have member junctions available for computation.
+ * ONE OWNER OF THE MATH (2026-08-23). This command used to carry its own copy
+ * of the contiguity test, and that copy still used the RETIRED predicate
+ * `ST_Expand(geom, 1.35)` — the one DistrictingService::recomputeDistrict
+ * replaced because it "created ~150 km false adjacencies". So a backfilled
+ * district could read Intact where a redraw of the same district read
+ * non-contiguous, on the exact constitutional metric the operator was
+ * tuning. It now delegates to recomputeDistrict with $skipSeatsUpdate=true
+ * (stats only — seats are never re-derived), so backfilled and redrawn
+ * verdicts are identical by construction, and the revealed-GeoJSON cache is
+ * flushed ONCE per legislature at the end rather than per district.
  *
  * Options:
- *   --legislature-id=UUID   Limit backfill to a single legislature
- *   --dry-run               Report count without making any writes
+ *   --legislature-id=UUID   Limit to one legislature
+ *   --map-id=UUID           Limit to one district map
+ *   --force                 Reset existing values and recompute everything in scope
+ *   --dry-run               Report the count without writing
  *
- * Safe to re-run: the query guard targets rows where is_contiguous IS NULL,
- * so already-processed rows are skipped automatically.
+ * Safe to re-run: without --force only rows with convex_hull_ratio IS NULL
+ * are touched.
  */
 class BackfillDistrictSpatialStatsCommand extends Command
 {
     protected $signature = 'districts:backfill-stats
                             {--legislature-id= : Limit backfill to a single legislature UUID}
-                            {--force           : Reset all existing PP values and recompute everything}
+                            {--map-id=         : Limit backfill to a single district map UUID}
+                            {--force           : Reset existing stats in scope and recompute everything}
                             {--dry-run         : Report count without making any writes}';
 
-    protected $description = 'Backfill polsby_popper / num_geom_parts / is_contiguous for districts';
+    protected $description = 'Backfill convex_hull_ratio / num_geom_parts / is_contiguous for districts (delegates to DistrictingService::recomputeDistrict)';
 
-    public function handle(): int
+    public function handle(DistrictingService $districting): int
     {
         $legislatureId = $this->option('legislature-id');
+        $mapId         = $this->option('map-id');
         $dryRun        = (bool) $this->option('dry-run');
         $force         = (bool) $this->option('force');
 
         $label = $dryRun ? ' [DRY RUN]' : '';
         $this->info("Backfilling spatial stats for districts{$label}…");
 
-        $query = DB::table('legislature_districts')->whereNull('deleted_at');
-
+        $scope = DB::table('legislature_districts')->whereNull('deleted_at');
         if ($legislatureId) {
-            $query->where('legislature_id', $legislatureId);
+            $scope->where('legislature_id', $legislatureId);
+        }
+        if ($mapId) {
+            $scope->where('map_id', $mapId);
         }
 
-        if (!$force) {
-            // Default: only rows where compactness hasn't been computed yet
-            $query->whereNull('convex_hull_ratio');
+        if ($force) {
+            if ($dryRun) {
+                $this->info('--force with --dry-run: nothing reset.');
+            } else {
+                $this->info('--force: resetting stats in scope before recompute…');
+                (clone $scope)->update([
+                    'convex_hull_ratio' => null, 'num_geom_parts' => null, 'is_contiguous' => null,
+                ]);
+            }
         } else {
-            $this->info('--force: resetting all compactness values before recompute…');
-            $reset = DB::table('legislature_districts')->whereNull('deleted_at');
-            if ($legislatureId) $reset->where('legislature_id', $legislatureId);
-            $reset->update(['convex_hull_ratio' => null, 'num_geom_parts' => null]);
+            $scope->whereNull('convex_hull_ratio');
         }
 
-        $districtIds = $query->pluck('id')->toArray();
-        $total       = count($districtIds);
+        $rows  = $scope->orderBy('legislature_id')->orderBy('district_number')->get(['id', 'legislature_id']);
+        $total = $rows->count();
 
         $this->info("Found {$total} district(s) needing backfill.");
-
         if ($dryRun || $total === 0) {
             return self::SUCCESS;
         }
 
-        // Process one district at a time — ST_Union on complex sub-national
-        // geometries is memory-intensive to batch.  Each individual query is fast.
+        // The legislature rows recomputeDistrict wants, fetched once each.
+        $legs = DB::table('legislatures')
+            ->whereIn('id', $rows->pluck('legislature_id')->unique()->all())
+            ->get()->keyBy('id');
+
+        $bar = $this->output->createProgressBar($total);
+        $bar->start();
+
         $updated = 0;
-        $skipped = 0;
+        $failed  = 0;
+        foreach ($rows as $row) {
+            $leg = $legs->get($row->legislature_id);
+            if ($leg === null) {
+                $failed++;
+                $bar->advance();
 
-        foreach ($districtIds as $districtId) {
-            // ── Shape compactness (CHR) + clustering (centroid spread) ────────
-            // Union first so shared borders cancel; then derive both metrics from
-            // the merged geometry.  Wrapped in try/catch: one bad geometry skips
-            // compactness but still records contiguity.
-            $spatialRow = null;
-            try {
-                $spatialRow = DB::selectOne("
-                    WITH union_cte AS (
-                        SELECT ST_MakeValid(ST_Union(ST_MakeValid(j.geom))) AS geom
-                        FROM legislature_district_jurisdictions ldj
-                        JOIN jurisdictions j ON j.id = ldj.jurisdiction_id
-                            AND j.geom IS NOT NULL AND j.deleted_at IS NULL
-                        WHERE ldj.district_id = ?
-                    )
-                    SELECT
-                        ST_Area(geom) / NULLIF(ST_Area(ST_ConvexHull(geom)), 0) AS convex_hull_ratio,
-                        ST_NumGeometries(geom)                                   AS num_geom_parts
-                    FROM union_cte
-                ", [$districtId]);
-            } catch (\Throwable $e) {
-                // Geometry error on this district — skip compactness, still compute contiguity
-            }
-
-            // ── Contiguity: BFS graph connectivity ───────────────────────────
-            // Same algorithm as recomputeDistrict() — ST_Intersects adjacency
-            // detects shared borders, ignoring internal island geometry within
-            // individual members (Michigan UP, Hawaiian islands, etc.).
-            $jids = DB::table('legislature_district_jurisdictions')
-                ->where('district_id', $districtId)
-                ->pluck('jurisdiction_id')
-                ->toArray();
-
-            if (empty($jids)) {
-                $skipped++;
                 continue;
             }
 
-            if (count($jids) <= 1) {
-                $isContiguous = true;
-            } else {
-                $jidPh1   = implode(',', array_fill(0, count($jids), '?'));
-                $jidPh2   = implode(',', array_fill(0, count($jids), '?'));
-                $adjPairs = DB::select("
-                    SELECT a.id AS a_id, b.id AS b_id
-                    FROM jurisdictions a
-                    JOIN jurisdictions b ON b.id > a.id
-                        AND b.id IN ({$jidPh2})
-                        AND b.geom IS NOT NULL AND b.deleted_at IS NULL
-                        AND a.geom && ST_Expand(b.geom, 1.35)
-                    WHERE a.id IN ({$jidPh1})
-                      AND a.geom IS NOT NULL AND a.deleted_at IS NULL
-                ", array_merge($jids, $jids));
-
-                $adj = [];
-                foreach ($adjPairs as $p) {
-                    $adj[$p->a_id][] = $p->b_id;
-                    $adj[$p->b_id][] = $p->a_id;
-                }
-                $visited = [];
-                $queue   = [$jids[0]];
-                while (!empty($queue)) {
-                    $node = array_shift($queue);
-                    if (isset($visited[$node])) continue;
-                    $visited[$node] = true;
-                    foreach ($adj[$node] ?? [] as $nb) {
-                        if (!isset($visited[$nb])) $queue[] = $nb;
-                    }
-                }
-                $isContiguous = count($visited) === count($jids);
-
-                // If non-contiguous, check whether contiguity was even achievable.
-                // Island jurisdictions (Hawaii, Puerto Rico…) can never be made
-                // contiguous with mainland members — no map can fix it.
-                // Per-orphan EXISTS check: does this member share any border with
-                // any sibling (same parent_id)?  GiST bbox pre-filter makes this
-                // near-instant for true islands (bbox has no overlap with any other
-                // sibling → 0 candidates, exits immediately).
-                if (!$isContiguous) {
-                    $orphanedJids = array_values(array_filter($jids, fn($j) => !isset($visited[$j])));
-                    foreach ($orphanedJids as $oj) {
-                        $hasSiblingBorder = DB::selectOne("
-                            SELECT 1
-                            FROM jurisdictions a
-                            JOIN jurisdictions b
-                                ON b.parent_id = a.parent_id
-                                AND b.id != a.id
-                                AND b.deleted_at IS NULL
-                                AND b.geom IS NOT NULL
-                                AND ST_Intersects(a.geom, b.geom)
-                            WHERE a.id = ?
-                              AND a.deleted_at IS NULL
-                            LIMIT 1
-                        ", [$oj]);
-                        if (!$hasSiblingBorder) {
-                            $isContiguous = true;
-                            break;
-                        }
-                    }
-                }
+            try {
+                // stats only — seats are NEVER re-derived here
+                $districting->recomputeDistrict((string) $row->id, (string) $row->legislature_id, $leg, true);
+                $updated++;
+            } catch (\Throwable $e) {
+                $failed++;
+                $this->newLine();
+                $this->warn("  {$row->id}: {$e->getMessage()}");
             }
+            $bar->advance();
+        }
+        $bar->finish();
+        $this->newLine();
 
-            // polsby_popper column dropped by migration 2026_04_23_000003.
-            // convex_hull_ratio supersedes it; do not re-add.
-            DB::table('legislature_districts')
-                ->where('id', $districtId)
-                ->update([
-                    'num_geom_parts'    => $spatialRow && $spatialRow->num_geom_parts !== null    ? (int)   $spatialRow->num_geom_parts    : null,
-                    'convex_hull_ratio' => $spatialRow && $spatialRow->convex_hull_ratio !== null ? round((float) $spatialRow->convex_hull_ratio, 6) : null,
-                    'is_contiguous'     => $isContiguous,
-                    'updated_at'        => now(),
-                ]);
-
-            $updated++;
-
-            if ($updated % 25 === 0 || $updated === $total) {
-                $this->line("  {$updated}/{$total} updated");
-            }
+        // recomputeDistrict skips the flush on the stats-only path; flush once
+        // per legislature so the mapper repaints with the new numbers.
+        foreach ($legs->keys() as $lid) {
+            Cache::tags(["revealed.{$lid}"])->flush();
         }
 
-        $this->info("Done. Updated: {$updated}  Skipped (no geometry): {$skipped}");
+        $this->info("Done. Updated {$updated}, failed {$failed}.");
 
-        return self::SUCCESS;
+        return $failed === 0 ? self::SUCCESS : self::FAILURE;
     }
 }
