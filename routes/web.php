@@ -116,7 +116,15 @@ Route::post('/api/setup/bootstrap/create-founder', [SetupController::class, 'cre
     ->name('api.setup.bootstrap.create-founder');
 
 Route::get('/api/setup/state', [SetupController::class, 'state'])->name('api.setup.state');
-Route::post('/api/setup/cosmic-address', [SetupController::class, 'saveCosmicAddress'])->name('api.setup.cosmic-address');
+// Setup-loop audit (2026-08-23, ahead of the first public/cloud box): every
+// MUTATING post-founder wizard endpoint is AUTH-gated here and is_operator-
+// gated in its handler — the posture pull-start/constants/game-mode already
+// had. The setup window is a public surface; reads (state, progress, summary,
+// review drills) stay open, writes belong to the founder alone. Pre-founder
+// endpoints (mode, join, bootstrap/migrate, create-founder) cannot be
+// auth-gated — nobody can log in to an empty box — and guard themselves.
+Route::post('/api/setup/cosmic-address', [SetupController::class, 'saveCosmicAddress'])
+    ->middleware('auth')->name('api.setup.cosmic-address');
 // Setup v2 — the founding constitution + economy defaults. AUTH-gated for the
 // same reason game-mode is: this writes constitutional_settings RAW, bypassing
 // F-LEG-031 / EnactmentService, so it must never be a guest trigger. The handler
@@ -137,15 +145,18 @@ Route::post('/api/setup/operator/profile', [SetupController::class, 'saveOperato
 Route::post('/api/setup/operator/roles/establish', [SetupController::class, 'establishFoundingRoles'])
     ->middleware('auth')->name('api.setup.operator.roles.establish');
 Route::post('/api/setup/wizard/step1/detect', [SetupController::class, 'detectStep1'])->name('api.setup.step1.detect');
-Route::post('/api/setup/wizard/step1/activate', [SetupController::class, 'activateStep1'])->name('api.setup.step1.activate');
+Route::post('/api/setup/wizard/step1/activate', [SetupController::class, 'activateStep1'])
+    ->middleware('auth')->name('api.setup.step1.activate');
 // Setup v2 — detect which map datasets are staged, and point the ETL at a local folder.
 Route::get('/api/setup/wizard/step2/sources', [SetupController::class, 'mapDataSources'])->name('api.setup.step2.sources');
 // AUTH-gated: writes .env (ARCHIVE_PATH / PROTOMAPS_DIR); handler requires is_operator.
 Route::post('/api/setup/wizard/step2/archive-path', [SetupController::class, 'saveArchivePath'])
     ->middleware('auth')->name('api.setup.step2.archive-path');
-Route::post('/api/setup/wizard/step2/start', [SetupController::class, 'startMapData'])->name('api.setup.step2.start');
+Route::post('/api/setup/wizard/step2/start', [SetupController::class, 'startMapData'])
+    ->middleware('auth')->name('api.setup.step2.start');
 Route::get('/api/setup/wizard/step2/progress', [SetupController::class, 'mapDataProgress'])->name('api.setup.step2.progress');
-Route::post('/api/setup/wizard/step2/control', [SetupController::class, 'controlMapData'])->name('api.setup.step2.control');
+Route::post('/api/setup/wizard/step2/control', [SetupController::class, 'controlMapData'])
+    ->middleware('auth')->name('api.setup.step2.control');
 
 // Geodata pull engine (multithreaded ingestion) — start / progress / control.
 Route::post('/api/setup/wizard/step2/pull-start', [SetupController::class, 'startGeodataPull'])
@@ -157,7 +168,8 @@ Route::post('/api/setup/wizard/step2/pull-control', [SetupController::class, 'ge
 Route::get('/api/setup/deploy-package', [SetupController::class, 'deployPackage'])
     ->middleware('auth')->name('api.setup.deploy-package');
 Route::get('/api/setup/wizard/step3/summary', [SetupController::class, 'step3Summary'])->name('api.setup.step3.summary');
-Route::post('/api/setup/wizard/step3/complete', [SetupController::class, 'completeStep3'])->name('api.setup.step3.complete');
+Route::post('/api/setup/wizard/step3/complete', [SetupController::class, 'completeStep3'])
+    ->middleware('auth')->name('api.setup.step3.complete');
 // Autoscale (2026-07-18) — the Step-3 dashboard's poll target + operator
 // halt/resume for the full-scale run. Halt/resume are AUTH-gated (handlers
 // additionally require is_operator, same posture as accept-maps).
@@ -175,7 +187,8 @@ Route::post('/api/setup/wizard/step3/autoscale-revert', [SetupController::class,
 // CLI (operator-gated in the controller; same TypeBDistrictMapper service).
 Route::post('/api/setup/wizard/step3/type-b-district', [SetupController::class, 'typeBDistrict'])
     ->middleware('auth')->name('api.setup.step3.type-b-district');
-Route::post('/api/setup/wizard/step4/complete', [SetupController::class, 'completeStep4'])->name('api.setup.step4.complete');
+Route::post('/api/setup/wizard/step4/complete', [SetupController::class, 'completeStep4'])
+    ->middleware('auth')->name('api.setup.step4.complete');
 
 // Step 2 manual data review — surfaces post-ETL discrepancies BEFORE the user
 // clicks Continue (which fires apportionment). Reviewing after districting
@@ -204,6 +217,7 @@ Route::get('/api/setup/wizard/step2/review/{category}/{jurisdiction}/detail',
 Route::post('/api/setup/wizard/step2/review/{category}/{jurisdiction}/decision',
     [SetupController::class, 'reviewDecision'])
     ->where(['category' => '[a-z_]+', 'jurisdiction' => '[a-f0-9\-]+'])
+    ->middleware('auth')
     ->name('api.setup.step2.review.decision');
 
 Route::get('/api/cosmic-addresses/default-path', [CosmicAddressController::class, 'defaultPath'])->name('api.cosmic-addresses.default-path');

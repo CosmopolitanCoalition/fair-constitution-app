@@ -106,9 +106,12 @@ function goHome() {
                 <h2 class="text-white font-semibold mb-3">What happens when you click Finish</h2>
                 <ul class="text-sm text-gray-300 space-y-2 pl-4 list-disc">
                     <li>
-                        For every jurisdiction with a legislature we'll insert one <code>executives</code>
-                        row (default type: <em>committee</em>) and one <code>judiciaries</code> row
-                        (default type: <em>appointed</em>, min 5 judges, 10-year terms).
+                        For every jurisdiction with a legislature we'll queue its institution shell:
+                        one <code>executives</code> row (default type: <em>committee</em>), one
+                        <code>judiciaries</code> row (default type: <em>appointed</em>, min 5 judges,
+                        10-year terms), its election board, and its civic spaces. The work runs off
+                        this page in bounded chunks — a planet takes minutes; watch it land on
+                        <code>/building</code>. A world already provisioned reports zero pending.
                     </li>
                     <li>
                         No members or seats are populated — those land via the elections engine.
@@ -142,11 +145,14 @@ function goHome() {
                     elections. Welcome to your fair constitution.
                 </p>
                 <div v-if="result" class="text-xs text-emerald-300/70 mt-6 grid grid-cols-2 gap-3 max-w-sm mx-auto">
-                    <div class="text-right">Executives seeded:</div>
-                    <div class="text-left font-mono">{{ result.stubs?.executives_created ?? 0 }}</div>
-                    <div class="text-right">Judiciaries seeded:</div>
-                    <div class="text-left font-mono">{{ result.stubs?.judiciaries_created ?? 0 }}</div>
+                    <div class="text-right">Executives queued:</div>
+                    <div class="text-left font-mono">{{ result.stubs?.executives_pending ?? result.stubs?.executives_created ?? 0 }}</div>
+                    <div class="text-right">Judiciaries queued:</div>
+                    <div class="text-left font-mono">{{ result.stubs?.judiciaries_pending ?? result.stubs?.judiciaries_created ?? 0 }}</div>
                 </div>
+                <p v-if="result?.stubs?.queued" class="text-xs text-emerald-300/60 mt-3">
+                    Provisioning runs in the background — follow it on <a href="/building" class="underline">/building</a>.
+                </p>
             </section>
 
             <div v-if="error" class="bg-red-900/30 border border-red-800 rounded p-4 text-sm text-red-200 mb-6">

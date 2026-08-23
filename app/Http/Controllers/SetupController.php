@@ -488,8 +488,19 @@ class SetupController extends Controller
      * the rest stay on the simple Artisan::call path used elsewhere in this
      * controller (e.g. apportionment:seed).
      */
-    public function runMigrations(): JsonResponse
+    public function runMigrations(Request $request): JsonResponse
     {
+        // Pre-founder this MUST stay open (nobody can log in to an empty box —
+        // the bootstrap page is how the schema gets there). Once a founder
+        // exists, only the operator may apply schema updates from the web: on
+        // a public box the bootstrap page is reachable by anyone, and
+        // `migrate --force` is a state change a guest must never trigger.
+        // (Schema guard first: on an uninitialised box the users table itself
+        // does not exist yet.)
+        if (Schema::hasTable('users') && User::query()->exists() && ! (bool) $request->user()?->is_operator) {
+            abort(403);
+        }
+
         // Refuse to migrate during an ETL run — schema changes mid-load would
         // break in-flight queries against tables the ETL is writing to.
         if (is_file($this->etlControlDir().'/running.json')) {
@@ -730,6 +741,12 @@ class SetupController extends Controller
      */
     public function saveCosmicAddress(Request $request): JsonResponse
     {
+        // Operator-only (route is auth-gated). Step 0 comes AFTER the founder
+        // account by construction (index() sends a userless box to
+        // /setup/operator first), so this never locks a founder out; it stops a
+        // guest on a public box renaming the instance or re-pointing its address.
+        abort_unless((bool) $request->user()?->is_operator, 403);
+
         $data = $request->validate([
             'instance_name'               => ['required', 'string', 'max:255'],
             'cosmic_address_id'           => ['required', 'uuid', 'exists:cosmic_addresses,id'],
@@ -1068,6 +1085,10 @@ class SetupController extends Controller
      */
     public function startMapData(Request $request): JsonResponse
     {
+        // Operator-only (route is auth-gated) — same posture as pull-start: an
+        // ETL run is a state change a guest must never be able to trigger.
+        abort_unless((bool) $request->user()?->is_operator, 403);
+
         $data = $request->validate([
             // Phase P.8: source kinds.
             //   'archive'  — bind-mounted /archive (current default)
@@ -1365,6 +1386,22 @@ class SetupController extends Controller
                   WHERE datname = current_database()
                     AND pid <> pg_backend_pid() AND state <> 'idle'"
             );
+
+            // KEEP THE AUTHORED CONSTITUTION (setup-loop audit, 2026-08-23).
+            // The purge below deletes constitutional_settings, and the planet
+            // the re-run builds gets a DB-DEFAULT row from the importer. If
+            // Step 1 had already written the founder's values straight onto a
+            // planet row (saveConstants does that — and nulls the stash —
+            // whenever a planet exists), a Fresh run would silently replace
+            // the authored constitution and economy with template defaults.
+            // Re-stash them now so activateStep1 re-applies them exactly as a
+            // first run would. A stash that already holds values wins.
+            $instance = InstanceSettings::current();
+            if (! is_array($instance->pending_constitutional_defaults) && $this->resolveRootJurisdiction() !== null) {
+                $instance->pending_constitutional_defaults = $this->currentConstitutionalDefaults($instance);
+                $instance->save();
+                \App\Services\ConstitutionalDefaults::flush();
+            }
 
             // Items + leases FIRST: every held claim vanishes, so straggler
             // workers from a superseded run fail their next heartbeat and
@@ -1881,6 +1918,12 @@ class SetupController extends Controller
      */
     public function controlMapData(Request $request): JsonResponse
     {
+        // Operator-only (route is auth-gated) — same posture as pull-control.
+        // This protects WHO may drive the run, not the run's state: the
+        // escape-hatch law (a recovery control is never blocked by the state it
+        // recovers from) is untouched — an operator's halt/resume always lands.
+        abort_unless((bool) $request->user()?->is_operator, 403);
+
         $data = $request->validate([
             'action' => ['required', Rule::in([
                 'halt', 'pause', 'resume',
@@ -2570,8 +2613,11 @@ class SetupController extends Controller
      * after activating a map. Advances setup_step_completed past Step 3 so
      * the wizard considers the build-districts step done.
      */
-    public function completeStep3(): JsonResponse
+    public function completeStep3(Request $request): JsonResponse
     {
+        // Operator-only (route is auth-gated): a step advance is the founder's act.
+        abort_unless((bool) $request->user()?->is_operator, 403);
+
         $settings = InstanceSettings::current();
         $settings->setup_step_completed = max((int) $settings->setup_step_completed, 4);
         $settings->save();
@@ -2984,15 +3030,45 @@ class SetupController extends Controller
     /**
      * POST /api/setup/wizard/step4/complete — finish setup.
      *
-     * Generates institution stub rows (one executives row + one judiciaries
-     * row per jurisdiction that has a legislature), records confirmation,
-     * and flips setup_completed_at. From this point /setup redirects home.
+     * Queues the institution shell set for every jurisdiction that holds a
+     * legislature (executive, court, election board + system member, civic
+     * spaces), records confirmation, and flips setup_completed_at. From this
+     * point /setup redirects home.
+     *
+     * THE ETL RULE (setup-loop audit, 2026-08-23): this used to call
+     * InstitutionStubService::generate(null) inline — one planet-wide pluck of
+     * every legislature's jurisdiction_id rebound as `IN (?,?,?…)`. Above
+     * 65,535 legislatures PostgreSQL refuses the statement outright ("number
+     * of parameters must be between 0 and 65535" — proven live), so an eager
+     * full-scale world could never finish setup. The whole-world case now
+     * rides the same keyset-chunked, committed-per-chunk, idempotent
+     * InstitutionProvisionService the eager chain and /building use, off the
+     * request via ProvisionInstitutionsJob (its own docblock forbids running
+     * it inline). The per-jurisdiction stub path (ActivationService) is
+     * bounded and stays as it is. A world the eager chain already provisioned
+     * simply reports zero pending — the job is a no-op there.
      */
-    public function completeStep4(): JsonResponse
+    public function completeStep4(Request $request): JsonResponse
     {
-        $stubs = DB::transaction(function () {
-            return $this->generateInstitutionStubs();
-        });
+        // Operator-only (route is auth-gated): finishing setup closes the
+        // founding window for good (constants + game mode lock), so a guest on
+        // a public box must never be able to end it.
+        abort_unless((bool) $request->user()?->is_operator, 403);
+
+        $provision = app(\App\Services\InstitutionProvisionService::class);
+        $pending   = [];
+        foreach (\App\Services\InstitutionProvisionService::STEPS as $step) {
+            $pending[$step] = $provision->pendingTotal($step);
+        }
+        \App\Jobs\ProvisionInstitutionsJob::dispatch();
+
+        $stubs = [
+            // Kept for the Step 4 page's counters (now "queued", not "created").
+            'executives_pending'  => $pending['executives'],
+            'judiciaries_pending' => $pending['judiciaries'],
+            'pending'             => $pending,
+            'queued'              => true,
+        ];
 
         $settings = InstanceSettings::current();
         $settings->setup_districts_confirmed_at = now();
@@ -3191,6 +3267,10 @@ class SetupController extends Controller
      */
     public function reviewDecision(string $category, string $jurisdiction, Request $request): JsonResponse
     {
+        // Operator-only (route is auth-gated): a recorded review decision is the
+        // founder's judgment on the data; the drill/read endpoints stay public.
+        abort_unless((bool) $request->user()?->is_operator, 403);
+
         $allowedCategories = [
             'population_gaps',
             'aggregation_discrepancies',
@@ -3217,21 +3297,6 @@ class SetupController extends Controller
     }
 
     /**
-     * Insert one executives + judiciaries stub row per jurisdiction that has
-     * a legislature, skipping any that already exist (idempotent on re-run).
-     *
-     * Extracted to InstitutionStubService (WI-7) so the activation engine
-     * (ActivationService) shares the same implementation; this method is
-     * the Setup Step 4 delegate (all legislatures, no jurisdiction scope).
-     *
-     * @return array{executives_created:int, judiciaries_created:int}
-     */
-    private function generateInstitutionStubs(): array
-    {
-        return app(\App\Services\InstitutionStubService::class)->generate();
-    }
-
-    /**
      * POST /api/setup/wizard/step1/activate — advance past the Map Data step (step 2).
      *
      * (Kept at the historical /wizard/step1 URL so bookmarks and the Vue call sites
@@ -3251,8 +3316,13 @@ class SetupController extends Controller
      * the pending_constitutional_defaults apply logic and the step-completion
      * advance; apportionment is decoupled.
      */
-    public function activateStep1(): JsonResponse
+    public function activateStep1(Request $request): JsonResponse
     {
+        // Operator-only (route is auth-gated). Advancing the wizard and applying
+        // the stashed constitution are the founder's acts; on a PUBLIC box the
+        // setup window is reachable by anyone, so a guest must never drive it.
+        abort_unless((bool) $request->user()?->is_operator, 403);
+
         $settings = InstanceSettings::current();
 
         // Geodata acceptance gate: the wizard cannot advance past Map Data
