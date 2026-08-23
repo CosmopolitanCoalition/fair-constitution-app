@@ -3674,6 +3674,18 @@ class LegislatureController extends Controller
                     'status'            => $d->status,
                     'floor_override'    => $d->floor_override,
                     'fractional_seats'  => $d->fractional_seats,
+                    // Cached spatial stats ride along (2026-08-23): the clone
+                    // copies the membership junctions verbatim below, so the
+                    // district's geometry — and therefore its stats — are
+                    // IDENTICAL. Omitting them left every cloned district
+                    // reading 'CHR —' and '? Contig' until the operator
+                    // redrew it, which is what he caught in the mapper.
+                    // Copying beats recomputing: a 282-district clone would
+                    // otherwise cost 282 PostGIS unions for numbers we
+                    // already hold.
+                    'num_geom_parts'    => $d->num_geom_parts,
+                    'is_contiguous'     => $d->is_contiguous,
+                    'convex_hull_ratio' => $d->convex_hull_ratio,
                     'created_at'        => $now,
                     'updated_at'        => $now,
                 ]);
