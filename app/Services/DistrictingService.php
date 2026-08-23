@@ -1373,6 +1373,22 @@ class DistrictingService
             }
         }
 
+        // ── Step 8c: HULL REPAIR on the final drawing (Good Maps, 2026-08-23) ──
+        // The in-loop shape currency is cut length; the standard is measured in
+        // convex hull ratio, and on concave/coastal scopes the two anticorrelate
+        // (iter-5: Ukraine's shorter-cut re-split dropped the REAL hull ratio
+        // .738 → .662; West Java lost a tied .792 the same way). One bounded
+        // round over the FINAL bins: per touching pair, hull-check the incumbent
+        // split against the cut-best and Rg²-best of the pair's 12 bisection
+        // candidates — the exact recomputeDistrict formula, so the pass
+        // optimizes the reported number itself — and adopt a strictly better
+        // mean under the standing guards. Final-config-only keeps the PostGIS
+        // cost to 2-3 union calls per pair.
+        $allBins = $this->hullRepairPass(
+            $allBins, $childById, $adj, $centroids, $legislature_id,
+            $nonGiantBudget, $floor, $ceiling, $giantThreshold, $floorBoundary
+        );
+
         // ── Step 9: Clear existing districts if requested ─────────────────────
         if ($clearExisting) {
             $this->publishMassProgress($legislature_id, [
@@ -3856,6 +3872,239 @@ class DistrictingService
      * free at score time from the Step-7 edge query. Community integrity is
      * determined at classification time (giants pre-separated) — not scored here.
      */
+    /**
+     * Hull repair on the final drawing (Good Maps, 2026-08-23). The in-loop
+     * shape currency (cut length) anticorrelates with the REPORTED compactness
+     * metric (convex hull ratio) on concave/coastal scopes — iter-5's shorter
+     * cuts dropped Ukraine .738 → .662 and West Java .792 → .677. One bounded
+     * round over the final bins: per touching pair, the incumbent split
+     * defends against the cut-best and Rg²-best legal candidates from the
+     * pair's 12-direction bisection sweep; the challengers are measured with
+     * recomputeDistrict's EXACT hull formula (two-tier simplify + cache →
+     * union → area/hull-area), so the pass optimizes the reported number
+     * itself. Adoption needs a strictly better pair-mean hull ratio (or equal
+     * hull with shorter cut) under the standing guards. 2-3 PostGIS union
+     * calls per pair, final config only.
+     */
+    private function hullRepairPass(
+        array $bins,
+        array $childById,
+        array $adj,
+        array $centroids,
+        string $legislatureId,
+        int   $budget,
+        int   $floor,
+        int   $ceiling,
+        float $giantThreshold,
+        float $floorBoundary
+    ): array {
+        $bins = array_values(array_filter($bins, fn ($b) => !empty($b)));
+        $k = count($bins);
+        if ($k < 2 || $budget <= 0 || empty($this->borderLen)) return $bins;
+
+        $binPops  = array_map(fn ($b) => array_sum(array_map(fn ($j) => (int) $childById[$j]->population, $b)), $bins);
+        $totalPop = array_sum($binPops);
+        if ($totalPop <= 0) return $bins;
+        $quotaPop = $totalPop / $budget;
+
+        $assigned = [];
+        foreach ($bins as $bi => $bj) { foreach ($bj as $jm) { $assigned[$jm] = $bi; } }
+
+        $low     = ($budget >= $k * $floor) ? $floor : 1;
+        $targets = $this->optimalIntegerTargets($binPops, $quotaPop, $budget, $low, $ceiling);
+        if (count($targets) !== $k) return $bins;
+
+        // p90×16 edge cap, same recipe as the expansion passes.
+        $dists = [];
+        foreach ($assigned as $jid => $_) {
+            foreach ($adj[$jid] ?? [] as $nb) {
+                if (!isset($assigned[$nb])) continue;
+                $dx = ($centroids[$jid]['x'] ?? 0.0) - ($centroids[$nb]['x'] ?? 0.0);
+                $dy = ($centroids[$jid]['y'] ?? 0.0) - ($centroids[$nb]['y'] ?? 0.0);
+                $dists[] = $dx * $dx + $dy * $dy;
+            }
+        }
+        sort($dists);
+        $p90 = max(0, (int) floor(count($dists) * 0.90) - 1);
+        $maxEdgeDistSq = !empty($dists) ? $dists[$p90] * 16.0 : PHP_FLOAT_MAX;
+
+        $blOf = fn (string $a, string $b): float =>
+            $this->borderLen[$a . '|' . $b] ?? $this->borderLen[$b . '|' . $a] ?? 0.0;
+
+        $pairCut = function (array $A, array $B) use ($adj, $blOf): float {
+            $bSet = array_flip($B);
+            $cut  = 0.0;
+            foreach ($A as $a) {
+                foreach ($adj[$a] ?? [] as $nb) {
+                    if (isset($bSet[$nb])) $cut += $blOf((string) $a, (string) $nb);
+                }
+            }
+            return $cut;
+        };
+        $pairRg = function (array $A, array $B) use ($childById, $centroids): float {
+            $rg = 0.0;
+            foreach ([$A, $B] as $half) {
+                $M = 0.0; $sx = 0.0; $sy = 0.0; $sx2 = 0.0; $sy2 = 0.0;
+                foreach ($half as $jm) {
+                    $p = (float) $childById[$jm]->population;
+                    $x = $centroids[$jm]['x'] ?? 0.0;
+                    $y = $centroids[$jm]['y'] ?? 0.0;
+                    $M += $p; $sx += $p * $x; $sy += $p * $y;
+                    $sx2 += $p * $x * $x; $sy2 += $p * $y * $y;
+                }
+                if ($M > 0) $rg += ($sx2 + $sy2) / $M - ($sx * $sx + $sy * $sy) / ($M * $M);
+            }
+            return $rg;
+        };
+
+        $pairsSeen = 0;
+        for ($i = 0; $i < $k; $i++) {
+            for ($j = $i + 1; $j < $k; $j++) {
+                if (empty($bins[$i]) || empty($bins[$j])) continue;
+                $touching = false;
+                foreach ($bins[$i] as $m) {
+                    foreach ($adj[$m] ?? [] as $nb) {
+                        if (($assigned[$nb] ?? -1) === $j) { $touching = true; break 2; }
+                    }
+                }
+                if (!$touching) continue;
+                $union = array_merge($bins[$i], $bins[$j]);
+                $n = count($union);
+                if ($n < 4 || $n > 240) continue;
+                $pairBudget = (int) ($targets[$i] + $targets[$j]);
+                $parts2 = $this->canonicalPartition($pairBudget, 2, $floor, $ceiling);
+                if ($parts2 === null) continue;
+
+                $legal = function (array $A, array $B) use ($childById, $parts2, $quotaPop, $floorBoundary, $giantThreshold, $adj, $centroids, $maxEdgeDistSq): bool {
+                    $popA = 0.0; $fracA = 0.0;
+                    foreach ($A as $a) { $popA += (float) $childById[$a]->population; $fracA += (float) $childById[$a]->fractional_seats; }
+                    $popB = 0.0; $fracB = 0.0;
+                    foreach ($B as $b) { $popB += (float) $childById[$b]->population; $fracB += (float) $childById[$b]->fractional_seats; }
+                    if ($fracA < $floorBoundary || $fracA >= $giantThreshold) return false;
+                    if ($fracB < $floorBoundary || $fracB >= $giantThreshold) return false;
+                    $pBig = max($parts2) * $quotaPop; $pSmall = min($parts2) * $quotaPop;
+                    $tA = $popA >= $popB ? $pBig : $pSmall;
+                    $tB = $popA >= $popB ? $pSmall : $pBig;
+                    if (abs($popA - $tA) / max($tA, 1.0) > 0.025) return false;
+                    if (abs($popB - $tB) / max($tB, 1.0) > 0.025) return false;
+                    if (!$this->connectedSet($A, $adj, $centroids, $maxEdgeDistSq)) return false;
+                    if (!$this->connectedSet($B, $adj, $centroids, $maxEdgeDistSq)) return false;
+                    return true;
+                };
+
+                // Cheap pre-rank of the sweeps: cut-best and Rg²-best legal candidates.
+                $bestCut = null; $bestCutV = PHP_FLOAT_MAX;
+                $bestRg  = null; $bestRgV  = PHP_FLOAT_MAX;
+                foreach ($this->bisectionCandidates($union, $childById, $adj, $centroids, $pairBudget, 2, $quotaPop, $floor, $ceiling) as $halves) {
+                    if (count($halves) !== 2 || empty($halves[0]) || empty($halves[1])) continue;
+                    if (!$legal($halves[0], $halves[1])) continue;
+                    $cv = $pairCut($halves[0], $halves[1]);
+                    if ($cv < $bestCutV) { $bestCutV = $cv; $bestCut = $halves; }
+                    $rv = $pairRg($halves[0], $halves[1]);
+                    if ($rv < $bestRgV) { $bestRgV = $rv; $bestRg = $halves; }
+                }
+                if ($bestCut === null && $bestRg === null) continue;
+
+                if (++$pairsSeen % 8 === 1) {
+                    $this->publishMassProgress($legislatureId, [
+                        'phase'       => 'hull_repair',
+                        'phase_label' => sprintf('Hull repair: pair %d (districts %d+%d)', $pairsSeen, $i + 1, $j + 1),
+                    ]);
+                }
+
+                $curHull = $this->pairHullMean($bins[$i], $bins[$j]);
+                if ($curHull === null) continue;
+                $curSig  = $this->pairSig($bins[$i], $bins[$j]);
+                $best = ['halves' => null, 'hull' => $curHull, 'cut' => $pairCut($bins[$i], $bins[$j])];
+                $tried = [$curSig => true];
+                foreach ([$bestCut, $bestRg] as $cand) {
+                    if ($cand === null) continue;
+                    $sig = $this->pairSig($cand[0], $cand[1]);
+                    if (isset($tried[$sig])) continue;
+                    $tried[$sig] = true;
+                    $h = $this->pairHullMean($cand[0], $cand[1]);
+                    if ($h === null) continue;
+                    $cv = $pairCut($cand[0], $cand[1]);
+                    if ($h > $best['hull'] + 1e-9
+                        || (abs($h - $best['hull']) <= 1e-9 && $cv < $best['cut'] - 1e-12)) {
+                        $best = ['halves' => $cand, 'hull' => $h, 'cut' => $cv];
+                    }
+                }
+
+                if ($best['halves'] !== null) {
+                    [$hA, $hB] = $best['halves'];
+                    $bins[$i] = array_values($hA);
+                    $bins[$j] = array_values($hB);
+                    foreach ($hA as $m) { $assigned[$m] = $i; }
+                    foreach ($hB as $m) { $assigned[$m] = $j; }
+                    $binPops[$i] = array_sum(array_map(fn ($jm) => (int) $childById[$jm]->population, $hA));
+                    $binPops[$j] = array_sum(array_map(fn ($jm) => (int) $childById[$jm]->population, $hB));
+                }
+            }
+        }
+
+        return $bins;
+    }
+
+    /** Orientation-free signature of a 2-way split (for dedupe in hullRepairPass). */
+    private function pairSig(array $A, array $B): string
+    {
+        $a = $A; $b = $B;
+        sort($a); sort($b);
+        $sa = implode(',', $a);
+        $sb = implode(',', $b);
+
+        return strcmp($sa, $sb) <= 0 ? md5($sa . '||' . $sb) : md5($sb . '||' . $sa);
+    }
+
+    /**
+     * Mean convex-hull ratio of two member sets, by recomputeDistrict's EXACT
+     * formula (two-tier simplify + jurisdiction_simplified cache → union →
+     * area / hull area) so hullRepairPass optimizes the reported stat itself.
+     */
+    private function pairHullMean(array $A, array $B): ?float
+    {
+        if (empty($A) || empty($B)) return null;
+        $aStr = '{' . implode(',', $A) . '}';
+        $bStr = '{' . implode(',', $B) . '}';
+        try {
+            $row = DB::selectOne("
+                WITH ga AS (
+                    SELECT COALESCE(s.geom,
+                               CASE
+                                   WHEN ST_NPoints(j.geom) > 1000000 THEN ST_MakeValid(ST_Simplify(j.geom, 0.01))
+                                   WHEN ST_NPoints(j.geom) > 50000  THEN ST_MakeValid(ST_Simplify(j.geom, 0.001))
+                                   ELSE ST_MakeValid(j.geom)
+                               END) AS geom
+                    FROM jurisdictions j
+                    LEFT JOIN jurisdiction_simplified s ON s.jurisdiction_id = j.id
+                    WHERE j.id = ANY(:a::uuid[]) AND j.geom IS NOT NULL AND j.deleted_at IS NULL
+                ),
+                ua AS (SELECT ST_MakeValid(ST_Union(geom)) AS geom FROM ga),
+                gb AS (
+                    SELECT COALESCE(s.geom,
+                               CASE
+                                   WHEN ST_NPoints(j.geom) > 1000000 THEN ST_MakeValid(ST_Simplify(j.geom, 0.01))
+                                   WHEN ST_NPoints(j.geom) > 50000  THEN ST_MakeValid(ST_Simplify(j.geom, 0.001))
+                                   ELSE ST_MakeValid(j.geom)
+                               END) AS geom
+                    FROM jurisdictions j
+                    LEFT JOIN jurisdiction_simplified s ON s.jurisdiction_id = j.id
+                    WHERE j.id = ANY(:b::uuid[]) AND j.geom IS NOT NULL AND j.deleted_at IS NULL
+                ),
+                ub AS (SELECT ST_MakeValid(ST_Union(geom)) AS geom FROM gb)
+                SELECT
+                    (SELECT ST_Area(geom) / NULLIF(ST_Area(ST_ConvexHull(geom)), 0) FROM ua) AS ra,
+                    (SELECT ST_Area(geom) / NULLIF(ST_Area(ST_ConvexHull(geom)), 0) FROM ub) AS rb
+            ", ['a' => $aStr, 'b' => $bStr]);
+        } catch (\Throwable $e) {
+            return null; // reflection-driven tests / degenerate geometry — pass stays inert
+        }
+        if ($row === null || $row->ra === null || $row->rb === null) return null;
+
+        return ((float) $row->ra + (float) $row->rb) / 2.0;
+    }
+
     private function scoreConfiguration(
         array $bins,
         array $childById,
