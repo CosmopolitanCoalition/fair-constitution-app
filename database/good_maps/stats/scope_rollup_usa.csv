@@ -1,0 +1,61 @@
+map,scope,districts,seats,frac_sum,fit_gap,noncontig,avg_chr,band_violations,floor_overrides,scope_jurisdiction_id
+Initial Map (bootstrap),Alabama,2,10,10.0000,0.0025,0,0.8443,0,1,407ef8b2-ad56-46a1-bdaa-e5ce80b3740e
+Manual Map Draft,Alabama,2,10,10.0000,0.0025,0,0.8443,0,1,407ef8b2-ad56-46a1-bdaa-e5ce80b3740e
+Initial Map (bootstrap),Arizona,1,7,7.0000,0.0000,0,0.8854,0,0,cc9f21e4-618a-448e-8c85-1fc00cf5aa4a
+Manual Map Draft,Arizona,1,7,7.0000,0.0000,0,0.8854,0,0,cc9f21e4-618a-448e-8c85-1fc00cf5aa4a
+Initial Map (bootstrap),California,10,66,66.0000,1.4633,0,0.7142,0,0,12ad98fb-6e9e-47b2-9662-7b0dc58a1132
+Manual Map Draft,California,9,66,66.0000,2.0708,0,0.8344,0,0,12ad98fb-6e9e-47b2-9662-7b0dc58a1132
+Initial Map (bootstrap),Colorado,2,11,11.0000,0.1001,0,0.8285,0,1,5804c271-502a-4fe9-8d98-20588076ba96
+Manual Map Draft,Colorado,2,11,11.0000,0.1001,0,0.8285,0,1,5804c271-502a-4fe9-8d98-20588076ba96
+Initial Map (bootstrap),Cook,2,11,11.0000,0.0730,0,0.8655,0,0,e90487eb-9e89-489c-98ba-bd1e4f72164f
+Manual Map Draft,Cook,2,11,11.0000,0.0730,0,0.8655,0,0,e90487eb-9e89-489c-98ba-bd1e4f72164f
+Initial Map (bootstrap),Florida,6,50,50.0000,0.3828,0,0.6912,0,0,e291639e-ef3f-48a2-af2c-2384cd4aa184
+Manual Map Draft,Florida,6,50,50.0000,0.6935,0,0.6654,0,0,e291639e-ef3f-48a2-af2c-2384cd4aa184
+Initial Map (bootstrap),Georgia,3,23,23.0000,0.0182,0,0.8334,0,0,e004b3ce-73e8-46f7-a575-89ca8edb148c
+Manual Map Draft,Georgia,3,23,23.0000,0.0182,0,0.8334,0,0,e004b3ce-73e8-46f7-a575-89ca8edb148c
+Initial Map (bootstrap),Harris,2,10,10.0000,0.0025,0,0.8950,0,0,d8718216-beb7-4173-8f88-a4cdff5fb013
+Manual Map Draft,Harris,2,10,10.0000,0.0025,0,0.8950,0,0,d8718216-beb7-4173-8f88-a4cdff5fb013
+Initial Map (bootstrap),Illinois,2,16,16.0000,0.1318,0,0.7877,0,0,49d7c831-31e6-472d-9d0a-5036e8756445
+Manual Map Draft,Illinois,2,16,16.0000,0.1318,0,0.7877,0,0,49d7c831-31e6-472d-9d0a-5036e8756445
+Initial Map (bootstrap),Indiana,2,13,13.0000,0.0157,0,0.8590,0,0,0cd0f961-5721-4430-a2f1-8b980a437e7b
+Manual Map Draft,Indiana,2,13,13.0000,0.0157,0,0.8590,0,0,0cd0f961-5721-4430-a2f1-8b980a437e7b
+Initial Map (bootstrap),Los Angeles,3,22,22.0000,0.0092,1,0.6895,0,0,8a9fb9cc-c3e2-421d-a52d-b378e36b3ee4
+Manual Map Draft,Los Angeles,3,22,22.0000,0.0092,1,0.6895,0,0,8a9fb9cc-c3e2-421d-a52d-b378e36b3ee4
+Initial Map (bootstrap),Louisiana,2,10,10.0000,0.0323,0,0.7001,0,1,6fcdeab8-2d64-4709-ba75-c67f20a90622
+Manual Map Draft,Louisiana,2,10,10.0000,0.0323,0,0.7001,0,1,6fcdeab8-2d64-4709-ba75-c67f20a90622
+Initial Map (bootstrap),Maricopa,2,11,11.0000,0.0005,0,0.8871,0,0,22ae29df-2daf-4a19-a548-f5dfc04e7775
+Manual Map Draft,Maricopa,2,11,11.0000,0.0005,0,0.8871,0,0,22ae29df-2daf-4a19-a548-f5dfc04e7775
+Initial Map (bootstrap),Maryland,2,13,13.0000,0.0294,0,0.5381,0,0,34d73f9e-08c7-4d4c-8cb9-781cc03800b4
+Manual Map Draft,Maryland,2,13,13.0000,0.2643,0,0.5211,0,0,34d73f9e-08c7-4d4c-8cb9-781cc03800b4
+Initial Map (bootstrap),Massachusetts,2,14,14.0000,0.4229,0,0.6724,0,0,aadec238-4775-4644-95ec-59a32eb36ed7
+Manual Map Draft,Massachusetts,2,14,14.0000,0.4229,0,0.6724,0,0,aadec238-4775-4644-95ec-59a32eb36ed7
+Initial Map (bootstrap),Michigan,3,22,22.0000,0.1294,1,0.5599,0,0,378bdbbc-588a-4f6c-b2aa-2f6bbfe80665
+Manual Map Draft,Michigan,3,22,22.0000,0.1108,1,0.7074,0,0,378bdbbc-588a-4f6c-b2aa-2f6bbfe80665
+Initial Map (bootstrap),Minnesota,2,12,12.0000,0.0264,0,0.7823,0,0,11279f31-ca83-4273-a52c-c9c9ed67e7ae
+Manual Map Draft,Minnesota,2,12,12.0000,0.0264,0,0.7823,0,0,11279f31-ca83-4273-a52c-c9c9ed67e7ae
+Initial Map (bootstrap),Missouri,2,13,13.0000,0.0007,0,0.8073,0,0,efe4b6d1-e1ec-4f58-8e2e-802bf44fff9b
+Manual Map Draft,Missouri,2,13,13.0000,0.0007,0,0.8073,0,0,efe4b6d1-e1ec-4f58-8e2e-802bf44fff9b
+Initial Map (bootstrap),New Jersey,3,19,19.0000,0.3057,0,0.7707,0,0,33117274-0680-4831-a7dc-6301f32e6076
+Manual Map Draft,New Jersey,3,19,19.0000,0.3057,0,0.7707,0,0,33117274-0680-4831-a7dc-6301f32e6076
+Initial Map (bootstrap),New York,6,40,40.0000,1.4175,0,0.6689,0,0,ac01fe33-1bd5-4a5c-895a-849a1ccfcdd4
+Manual Map Draft,New York,5,40,40.0000,1.5218,2,0.6789,0,0,ac01fe33-1bd5-4a5c-895a-849a1ccfcdd4
+Initial Map (bootstrap),North Carolina,3,23,23.0000,0.0450,0,0.7532,0,0,2eb9a6b1-4235-446b-9534-67f156ec4ace
+Manual Map Draft,North Carolina,3,23,23.0000,0.0450,0,0.7532,0,0,2eb9a6b1-4235-446b-9534-67f156ec4ace
+Initial Map (bootstrap),Ohio,3,23,23.0000,0.0207,0,0.8100,0,0,da6d8007-1112-4394-b79a-b8185e72f3a4
+Manual Map Draft,Ohio,3,23,23.0000,0.0606,0,0.8488,0,0,da6d8007-1112-4394-b79a-b8185e72f3a4
+Initial Map (bootstrap),Pennsylvania,3,26,26.0000,0.1305,0,0.8279,0,0,f3baf969-43c3-4b38-9fcb-4aef59ffb6fe
+Manual Map Draft,Pennsylvania,3,26,26.0000,0.3667,0,0.8243,0,0,f3baf969-43c3-4b38-9fcb-4aef59ffb6fe
+Initial Map (bootstrap),South Carolina,2,10,10.0000,0.0003,0,0.8309,0,1,25e4ca32-695b-42ba-abfb-bc8e8ef76343
+Manual Map Draft,South Carolina,2,10,10.0000,0.1082,0,0.8437,0,0,25e4ca32-695b-42ba-abfb-bc8e8ef76343
+Initial Map (bootstrap),Tennessee,2,14,14.0000,0.0119,0,0.8838,0,0,5ab43674-26fa-4f78-b6b1-ddc62aa62c70
+Manual Map Draft,Tennessee,2,14,14.0000,0.0119,0,0.8838,0,0,5ab43674-26fa-4f78-b6b1-ddc62aa62c70
+Initial Map (bootstrap),Texas,10,50,50.0000,1.1056,0,0.7236,0,5,4d8d3a87-a166-4070-b542-a4fba7652364
+Manual Map Draft,Texas,6,50,50.0000,0.4994,0,0.7957,0,0,4d8d3a87-a166-4070-b542-a4fba7652364
+Initial Map (bootstrap),United States of America,16,116,116.0000,4.2330,2,0.7250,0,0,cd7f7810-915a-4d9e-a424-b8645c25ec42
+Manual Map Draft,United States of America,17,116,116.0000,3.7408,2,0.7349,0,0,cd7f7810-915a-4d9e-a424-b8645c25ec42
+Initial Map (bootstrap),Virginia,3,19,19.0000,0.1642,1,0.7055,0,0,4df75309-cf35-4142-a6bb-4400d889d78b
+Manual Map Draft,Virginia,3,19,19.0000,0.1642,1,0.6944,0,0,4df75309-cf35-4142-a6bb-4400d889d78b
+Initial Map (bootstrap),Washington,2,16,16.0000,0.1064,0,0.7977,0,0,1a671cf3-91b0-4ec0-b93b-f6aaf8979e59
+Manual Map Draft,Washington,2,16,16.0000,0.1064,0,0.7977,0,0,1a671cf3-91b0-4ec0-b93b-f6aaf8979e59
+Initial Map (bootstrap),Wisconsin,2,12,12.0000,0.0496,0,0.7002,0,0,af2f43ab-c8a4-4541-a77a-2ea7edc82d5b
+Manual Map Draft,Wisconsin,2,12,12.0000,0.0496,0,0.7002,0,0,af2f43ab-c8a4-4541-a77a-2ea7edc82d5b

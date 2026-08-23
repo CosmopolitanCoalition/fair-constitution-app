@@ -1,0 +1,61 @@
+map,scope,fingerprint,districts,scope_jurisdiction_id
+Initial Map (bootstrap),Alabama,59aaae4eda07afa80705c63a9f5affc4,2,407ef8b2-ad56-46a1-bdaa-e5ce80b3740e
+Manual Map Draft,Alabama,59aaae4eda07afa80705c63a9f5affc4,2,407ef8b2-ad56-46a1-bdaa-e5ce80b3740e
+Initial Map (bootstrap),Arizona,ba0ec0ef89f9201dec9b7ff464506324,1,cc9f21e4-618a-448e-8c85-1fc00cf5aa4a
+Manual Map Draft,Arizona,ba0ec0ef89f9201dec9b7ff464506324,1,cc9f21e4-618a-448e-8c85-1fc00cf5aa4a
+Initial Map (bootstrap),California,9fa412952c2ba695c1ded8a799690956,10,12ad98fb-6e9e-47b2-9662-7b0dc58a1132
+Manual Map Draft,California,25ff5f5d4f49fa842a9f69a98fa6b02e,9,12ad98fb-6e9e-47b2-9662-7b0dc58a1132
+Initial Map (bootstrap),Colorado,6415d38a1b451b6d2aab2bb5b1987a5f,2,5804c271-502a-4fe9-8d98-20588076ba96
+Manual Map Draft,Colorado,6415d38a1b451b6d2aab2bb5b1987a5f,2,5804c271-502a-4fe9-8d98-20588076ba96
+Initial Map (bootstrap),Cook,b39ba29d7517eb4e3f3eb1067595ceaa,2,e90487eb-9e89-489c-98ba-bd1e4f72164f
+Manual Map Draft,Cook,b39ba29d7517eb4e3f3eb1067595ceaa,2,e90487eb-9e89-489c-98ba-bd1e4f72164f
+Initial Map (bootstrap),Florida,92288359105d55b36754b21d4332a2f9,6,e291639e-ef3f-48a2-af2c-2384cd4aa184
+Manual Map Draft,Florida,6b52c8f58a7a0861ed9f9f874ac3901a,6,e291639e-ef3f-48a2-af2c-2384cd4aa184
+Initial Map (bootstrap),Georgia,db625c9970e719c6559cc6c7b178a20d,3,e004b3ce-73e8-46f7-a575-89ca8edb148c
+Manual Map Draft,Georgia,db625c9970e719c6559cc6c7b178a20d,3,e004b3ce-73e8-46f7-a575-89ca8edb148c
+Initial Map (bootstrap),Harris,d030615bb456ffcec0f8fc8270f9fd91,2,d8718216-beb7-4173-8f88-a4cdff5fb013
+Manual Map Draft,Harris,d030615bb456ffcec0f8fc8270f9fd91,2,d8718216-beb7-4173-8f88-a4cdff5fb013
+Initial Map (bootstrap),Illinois,4726cf3372af0fb9de87d8234ccba274,2,49d7c831-31e6-472d-9d0a-5036e8756445
+Manual Map Draft,Illinois,4726cf3372af0fb9de87d8234ccba274,2,49d7c831-31e6-472d-9d0a-5036e8756445
+Initial Map (bootstrap),Indiana,f64c8b2347201c8817c7a855cc969785,2,0cd0f961-5721-4430-a2f1-8b980a437e7b
+Manual Map Draft,Indiana,f64c8b2347201c8817c7a855cc969785,2,0cd0f961-5721-4430-a2f1-8b980a437e7b
+Initial Map (bootstrap),Los Angeles,910bc29806c2428485075dc87a22b702,3,8a9fb9cc-c3e2-421d-a52d-b378e36b3ee4
+Manual Map Draft,Los Angeles,910bc29806c2428485075dc87a22b702,3,8a9fb9cc-c3e2-421d-a52d-b378e36b3ee4
+Initial Map (bootstrap),Louisiana,cf63b1b82cb8d9a69194084c58f68adf,2,6fcdeab8-2d64-4709-ba75-c67f20a90622
+Manual Map Draft,Louisiana,cf63b1b82cb8d9a69194084c58f68adf,2,6fcdeab8-2d64-4709-ba75-c67f20a90622
+Initial Map (bootstrap),Maricopa,564716149bcc78fca7557ca4eab66ea4,2,22ae29df-2daf-4a19-a548-f5dfc04e7775
+Manual Map Draft,Maricopa,564716149bcc78fca7557ca4eab66ea4,2,22ae29df-2daf-4a19-a548-f5dfc04e7775
+Initial Map (bootstrap),Maryland,8c7dd7f7711dafd8ed8736629176b34a,2,34d73f9e-08c7-4d4c-8cb9-781cc03800b4
+Manual Map Draft,Maryland,6ae850cef21693943a0b0c2fd15f587d,2,34d73f9e-08c7-4d4c-8cb9-781cc03800b4
+Initial Map (bootstrap),Massachusetts,6f646e76584bb9cfb56c6928ca6ac460,2,aadec238-4775-4644-95ec-59a32eb36ed7
+Manual Map Draft,Massachusetts,6f646e76584bb9cfb56c6928ca6ac460,2,aadec238-4775-4644-95ec-59a32eb36ed7
+Initial Map (bootstrap),Michigan,b9c59823d268c8816d2a9ce67d64113c,3,378bdbbc-588a-4f6c-b2aa-2f6bbfe80665
+Manual Map Draft,Michigan,89fc3e1e8811f0841e5b107e6057e506,3,378bdbbc-588a-4f6c-b2aa-2f6bbfe80665
+Initial Map (bootstrap),Minnesota,2f16541d68913dbaaebd26f949c157e2,2,11279f31-ca83-4273-a52c-c9c9ed67e7ae
+Manual Map Draft,Minnesota,2f16541d68913dbaaebd26f949c157e2,2,11279f31-ca83-4273-a52c-c9c9ed67e7ae
+Initial Map (bootstrap),Missouri,547a93962ffdd09a90e960b8c338e4d6,2,efe4b6d1-e1ec-4f58-8e2e-802bf44fff9b
+Manual Map Draft,Missouri,547a93962ffdd09a90e960b8c338e4d6,2,efe4b6d1-e1ec-4f58-8e2e-802bf44fff9b
+Initial Map (bootstrap),New Jersey,64718f3f1e7568f7a432bb9554ca65b0,3,33117274-0680-4831-a7dc-6301f32e6076
+Manual Map Draft,New Jersey,64718f3f1e7568f7a432bb9554ca65b0,3,33117274-0680-4831-a7dc-6301f32e6076
+Initial Map (bootstrap),New York,22f6bc9c69736ab0b267b44d08151509,6,ac01fe33-1bd5-4a5c-895a-849a1ccfcdd4
+Manual Map Draft,New York,ef4d4233cb1b3d754572b705efb35003,5,ac01fe33-1bd5-4a5c-895a-849a1ccfcdd4
+Initial Map (bootstrap),North Carolina,898efaed8194925f1f0efe58e0e97457,3,2eb9a6b1-4235-446b-9534-67f156ec4ace
+Manual Map Draft,North Carolina,898efaed8194925f1f0efe58e0e97457,3,2eb9a6b1-4235-446b-9534-67f156ec4ace
+Initial Map (bootstrap),Ohio,3b7bd39861a0cc4dd67c1f478e1336a7,3,da6d8007-1112-4394-b79a-b8185e72f3a4
+Manual Map Draft,Ohio,2f8d58f2b7b51585c60d2c846b300d68,3,da6d8007-1112-4394-b79a-b8185e72f3a4
+Initial Map (bootstrap),Pennsylvania,26fe1a037e04a62ce6f6382fd7e4e9de,3,f3baf969-43c3-4b38-9fcb-4aef59ffb6fe
+Manual Map Draft,Pennsylvania,cf0b188db96668529c23e5c193dba5a1,3,f3baf969-43c3-4b38-9fcb-4aef59ffb6fe
+Initial Map (bootstrap),South Carolina,ef10e5a3c832b7ff3e7e9c0123dd644d,2,25e4ca32-695b-42ba-abfb-bc8e8ef76343
+Manual Map Draft,South Carolina,9987825bb31eef592deff97694f870cf,2,25e4ca32-695b-42ba-abfb-bc8e8ef76343
+Initial Map (bootstrap),Tennessee,806f708a6361528e6c27470a44642f59,2,5ab43674-26fa-4f78-b6b1-ddc62aa62c70
+Manual Map Draft,Tennessee,806f708a6361528e6c27470a44642f59,2,5ab43674-26fa-4f78-b6b1-ddc62aa62c70
+Initial Map (bootstrap),Texas,b527ef12418307a73d9b381773f8b9f0,10,4d8d3a87-a166-4070-b542-a4fba7652364
+Manual Map Draft,Texas,3fb0c110d5359ab8adc64fc22ec7348f,6,4d8d3a87-a166-4070-b542-a4fba7652364
+Initial Map (bootstrap),United States of America,47984a1435be37eb667c021edc89826a,16,cd7f7810-915a-4d9e-a424-b8645c25ec42
+Manual Map Draft,United States of America,32239c7300f3d9125a937dad4fb2e436,17,cd7f7810-915a-4d9e-a424-b8645c25ec42
+Initial Map (bootstrap),Virginia,d354c3a38c26cc68234e5f74741c85c3,3,4df75309-cf35-4142-a6bb-4400d889d78b
+Manual Map Draft,Virginia,45cea7464a657e5ab1c27589cdc838be,3,4df75309-cf35-4142-a6bb-4400d889d78b
+Initial Map (bootstrap),Washington,0074a9d462c200bef14e70efb9b2466a,2,1a671cf3-91b0-4ec0-b93b-f6aaf8979e59
+Manual Map Draft,Washington,0074a9d462c200bef14e70efb9b2466a,2,1a671cf3-91b0-4ec0-b93b-f6aaf8979e59
+Initial Map (bootstrap),Wisconsin,630d1ce9e626dadfdee01ca1909760b0,2,af2f43ab-c8a4-4541-a77a-2ea7edc82d5b
+Manual Map Draft,Wisconsin,630d1ce9e626dadfdee01ca1909760b0,2,af2f43ab-c8a4-4541-a77a-2ea7edc82d5b
