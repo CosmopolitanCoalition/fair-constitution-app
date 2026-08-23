@@ -1298,16 +1298,6 @@
                                       class="text-amber-300 text-[10px]"
                                       title="Unassigned compositable children within this scope">…</span>
                             </span>
-                            <!-- Leaf-giant children carry drawn_seats (additive prop) —
-                                 compact hand-drawn progress; absent on older payloads. -->
-                            <span v-if="typeof row.giant.drawn_seats === 'number'"
-                                  class="shrink-0 text-[10px] tabular-nums px-1 rounded"
-                                  :class="row.giant.drawn_seats >= seatsOf(row.giant)
-                                      ? 'text-emerald-400 bg-emerald-950/60'
-                                      : 'text-amber-300 bg-amber-950/60'"
-                                  :title="`${row.giant.drawn_seats} of ${seatsOf(row.giant)} seats hand-drawn`">
-                                drawn {{ row.giant.drawn_seats }}/{{ seatsOf(row.giant) }}<template v-if="row.giant.drawn_seats >= seatsOf(row.giant)"> ✓</template>
-                            </span>
                             <span class="tabular-nums w-12 text-right shrink-0"
                                   :class="seatClass(seatsOf(row.giant))">{{ seatsOf(row.giant) }}</span><!-- Seats -->
                             <span class="text-gray-400 tabular-nums w-20 text-right shrink-0">{{ row.giant.population > 0 ? formatPop(row.giant.population) : '—' }}</span><!-- Population -->
