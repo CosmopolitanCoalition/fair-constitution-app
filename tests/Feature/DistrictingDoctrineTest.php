@@ -524,9 +524,17 @@ class DistrictingDoctrineTest extends TestCase
         });
     }
 
-    // ─── (9) A full point of equality outranks compactness — a fraction never ─
+    // ─── (9) Within acceptability, SHAPE decides — deviation is the late tiebreak ─
+    //
+    // Good Maps retune (operator order 2026-08-23: "arrive as close to my maps
+    // as possible or Better on all counts"). The standard maps spend a full
+    // deviation band for large shape wins — South Carolina +1.08pp for −21%
+    // cut length, Pennsylvania +0.87pp for −23% — so the former round-4
+    // relaxation (1pp equality sub-bands outranking shape) is SUPERSEDED:
+    // within the 2026-07-08 acceptability threshold ("all tie"), compactness
+    // decides, and raw deviation returns only as the last word.
 
-    public function test_equality_point_beats_compactness_but_fractions_do_not(): void
+    public function test_within_acceptability_shape_decides_deviation_is_late_tiebreak(): void
     {
         $svc = app(DistrictingService::class);
         $m   = new \ReflectionMethod($svc, 'scoreBeats');
@@ -536,22 +544,103 @@ class DistrictingDoctrineTest extends TestCase
             'non_contiguous_count' => 0, 'fragment_gap' => 0.0, 'neck_count' => 0,
             'seat_spread' => 0, 'avg_droop_threshold' => 0.13,
         ];
-        // Round-4 relaxation: within acceptability and at equal mix, a config a
-        // full 1pp band better on equality beats a more compact one…
-        $balanced = $base + ['avg_deviation_pct' => 1.2, 'max_deviation_pct' => 2.1, 'avg_rg_sq' => 2.6];
-        $compact  = $base + ['avg_deviation_pct' => 2.4, 'max_deviation_pct' => 3.0, 'avg_rg_sq' => 1.4];
+        // The South Carolina specimen: a full band of deviation is a fair price
+        // for a materially shorter internal border.
+        $shapely  = $base + ['avg_deviation_pct' => 1.2, 'max_deviation_pct' => 2.1, 'cut_length' => 3.7, 'avg_rg_sq' => 1.5];
+        $tight    = $base + ['avg_deviation_pct' => 0.1, 'max_deviation_pct' => 0.3, 'cut_length' => 4.7, 'avg_rg_sq' => 1.5];
         $this->assertTrue(
-            $m->invoke($svc, $balanced, $compact),
-            'a full equality point buys shape (the operator round-4 relaxation)'
+            $m->invoke($svc, $shapely, $tight),
+            'within acceptability the shorter cut wins — deviation sub-bands no longer veto shape (Good Maps 2026-08-23)'
         );
 
-        // …but within the same 1pp band, compactness still decides — the São
-        // Paulo snake can never be bought with a fraction of a point.
+        // The São Paulo snake still can never be bought: at equal balance class
+        // the compact form wins on shape directly.
         $snake = $base + ['avg_deviation_pct' => 0.4, 'max_deviation_pct' => 0.9, 'avg_rg_sq' => 3.1];
         $block = $base + ['avg_deviation_pct' => 0.8, 'max_deviation_pct' => 1.2, 'avg_rg_sq' => 1.5];
         $this->assertTrue(
             $m->invoke($svc, $block, $snake),
-            'within a band, the compact shape wins regardless of a fractional equality edge'
+            'the compact shape wins regardless of a fractional equality edge'
+        );
+
+        // At identical shape, tighter raw deviation still decides — the tiebreak survives.
+        $sameShapeTighter = $base + ['avg_deviation_pct' => 0.2, 'max_deviation_pct' => 0.5, 'cut_length' => 5.0, 'avg_rg_sq' => 1.5];
+        $sameShapeLooser  = $base + ['avg_deviation_pct' => 1.9, 'max_deviation_pct' => 2.8, 'cut_length' => 5.0, 'avg_rg_sq' => 1.5];
+        $this->assertTrue(
+            $m->invoke($svc, $sameShapeTighter, $sameShapeLooser),
+            'raw deviation remains the late tiebreak at equal shape'
+        );
+
+        // Beyond the acceptability threshold nothing changed: shape never buys
+        // unacceptable balance.
+        $shapelyUnacceptable = $base + ['avg_deviation_pct' => 4.6, 'max_deviation_pct' => 6.0, 'cut_length' => 1.0, 'avg_rg_sq' => 0.9];
+        $this->assertTrue(
+            $m->invoke($svc, $tight, $shapelyUnacceptable),
+            'shape never buys balance past the acceptability threshold'
+        );
+    }
+
+    // ─── (9b) Across-k: spread EXCESS over the canonical mix, never raw spread ─
+    //
+    // The Texas specimen (Good Maps head-to-head, 2026-08-23): budget 50 at
+    // k=6 canonically partitions 9+9+8+8+8+8 — spread 1 is ARITHMETIC at that
+    // k, not a quality defect. Raw spread let 10×5 (spread 0) beat the
+    // operator's 6-district plan despite 2.3× the cut length, 12 necks and a
+    // worse Droop threshold. scoreRank now ranks spread EXCESS over the
+    // candidate's own canonical partition; the within-k doctrine (test 7) is
+    // unchanged because a non-canonical mix at the same k carries the same
+    // penalty as before.
+
+    public function test_across_k_spread_excess_lets_fat_plans_compete(): void
+    {
+        $svc = app(DistrictingService::class);
+        $m   = new \ReflectionMethod($svc, 'scoreBeats');
+        $m->setAccessible(true);
+
+        $base = [
+            'seat_drift' => 0, 'non_contiguous_count' => 0, 'fragment_gap' => 0.0,
+            'avg_droop_threshold' => 0.0, 'avg_rg_sq' => 0.0,
+        ];
+        // k=6 canonical 9+9+8+8+8+8: raw spread 1, excess 0 — the fat plan.
+        $fat  = $base + [
+            'seat_spread' => 1, 'seat_spread_excess' => 0,
+            'cut_length' => 24.1, 'neck_count' => 0,
+            'avg_deviation_pct' => 0.97, 'max_deviation_pct' => 2.4,
+        ];
+        // k=10 canonical 10×5: raw spread 0, excess 0 — the thin plan.
+        $thin = $base + [
+            'seat_spread' => 0, 'seat_spread_excess' => 0,
+            'cut_length' => 55.8, 'neck_count' => 12,
+            'avg_deviation_pct' => 2.21, 'max_deviation_pct' => 3.9,
+        ];
+        $this->assertTrue(
+            $m->invoke($svc, $fat, $thin),
+            'the canonical fat-district plan beats the thin plan on shape (Texas, Good Maps 2026-08-23)'
+        );
+
+        // Within one k the mix doctrine is untouched: a non-canonical mix
+        // (excess 2) still loses to the canonical mix at the same k, even
+        // when it is better-balanced and more compact.
+        $canonicalMix    = $base + [
+            'seat_spread' => 0, 'seat_spread_excess' => 0,
+            'cut_length' => 9.0, 'neck_count' => 0,
+            'avg_deviation_pct' => 2.6, 'max_deviation_pct' => 3.9,
+        ];
+        $nonCanonicalMix = $base + [
+            'seat_spread' => 2, 'seat_spread_excess' => 2,
+            'cut_length' => 7.0, 'neck_count' => 0,
+            'avg_deviation_pct' => 0.4, 'max_deviation_pct' => 0.8,
+        ];
+        $this->assertTrue(
+            $m->invoke($svc, $canonicalMix, $nonCanonicalMix),
+            'within a k, the canonical mix still wins (the round-3 doctrine, unchanged)'
+        );
+
+        // Scores that predate the excess field fall back to raw spread.
+        $legacyEven   = $base + ['seat_spread' => 0, 'cut_length' => 5.0, 'neck_count' => 0, 'avg_deviation_pct' => 1.0, 'max_deviation_pct' => 1.5];
+        $legacyUneven = $base + ['seat_spread' => 2, 'cut_length' => 5.0, 'neck_count' => 0, 'avg_deviation_pct' => 1.0, 'max_deviation_pct' => 1.5];
+        $this->assertTrue(
+            $m->invoke($svc, $legacyEven, $legacyUneven),
+            'legacy scores without the excess field rank by raw spread'
         );
     }
 
@@ -945,7 +1034,11 @@ class DistrictingDoctrineTest extends TestCase
             'a shorter border never buys a seat-spread increase (São Paulo)'
         );
 
-        // Shape never buys a full 1pp equality band (round-4 tuning stands).
+        // Good Maps retune (2026-08-23): within the acceptability threshold a
+        // shorter border DOES buy in-band deviation (the South Carolina trade
+        // on the standard map: +1.08pp for −21% cut). The round-4 sub-band
+        // veto is superseded — see test (9). Beyond the threshold, balance
+        // still rules absolutely (pinned in tests 7 and 9).
         $blockyBandWorse = $base + [
             'avg_deviation_pct' => 1.40, 'max_deviation_pct' => 1.90,
             'seat_spread' => 0, 'cut_length' => 4.0, 'neck_count' => 0, 'avg_rg_sq' => 1.4,
@@ -955,8 +1048,8 @@ class DistrictingDoctrineTest extends TestCase
             'seat_spread' => 0, 'cut_length' => 9.0, 'neck_count' => 0, 'avg_rg_sq' => 1.9,
         ];
         $this->assertTrue(
-            $m->invoke($svc, $wigglyBandBetter, $blockyBandWorse),
-            'a shorter border never buys a full 1pp equality band'
+            $m->invoke($svc, $blockyBandWorse, $wigglyBandBetter),
+            'within acceptability the shorter border wins the in-band deviation trade (Good Maps 2026-08-23)'
         );
 
         // Shape never buys a contiguity break. (Overrides on the LEFT of `+` —

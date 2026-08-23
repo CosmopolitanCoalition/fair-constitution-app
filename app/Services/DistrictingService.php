@@ -756,14 +756,19 @@ class DistrictingService
         // population — Canada-class — gets its own bins). A cheap BFS-only proxy scored
         // against INTEGER seat targets gates the top 20 into the full pipeline.
         //
-        // Scoring priority (operator doctrine rulings 2026-07-08 + 2026-07-13 — see scoreRank()):
+        // Scoring priority (operator doctrine rulings 2026-07-08 + 2026-07-13, retuned to the
+        // Good Maps standard 2026-08-23 — see scoreRank()):
         //   0. BUDGET EXACTNESS (seat_drift): drawings whose nearest-rounded seats miss the
         //      pool budget are EXCLUDED whenever any exact drawing exists
-        //   1. Population balance as an ACCEPTABILITY THRESHOLD (≤4% avg / ≤10% max all tie)
+        //   1. Population balance as an ACCEPTABILITY THRESHOLD (≤4% avg / ≤10% max all tie —
+        //      within it, deviation only returns as the LAST tiebreak)
         //   2. Contiguity (fewest breaks; then fragment_gap — broken pieces kept close)
-        //   3. Compactness (cut_length: REAL border length between districts — stringy = bad;
+        //   3. Seat-mix equality as EXCESS over the candidate k's canonical partition —
+        //      an uneven canonical mix (budget % k ≠ 0) is arithmetic, not a defect,
+        //      so fat-district plans compete across k on their real qualities
+        //   4. Compactness (cut_length: REAL border length between districts — stringy = bad;
         //      then neck_count pinch points, then avg Rg² as the centroid fallback)
-        //   4. Seat-mix / UPD diversity (avg Droop threshold) — sacrificed first
+        //   5. Seat-mix / UPD diversity (avg Droop threshold) — sacrificed first
         // The constitutional floor/ceiling stay hard throughout (frac guards + Step-11 clamps).
         //
         // After the contiguity-preserving pipeline, any per-k winner still >2.5% off its
@@ -3588,6 +3593,23 @@ class DistrictingService
         // 6/6/6 → 0; 7/6/5 → 2. Ranked above compactness by scoreRank().
         $seatSpread = $binCount > 0 ? max($binSeats) - min($binSeats) : 0;
 
+        // Spread EXCESS over this k's own canonical partition (Good Maps retune,
+        // operator order 2026-08-23 — "arrive as close to my maps as possible or
+        // Better on all counts"). budget % k ≠ 0 makes spread 1 an arithmetic
+        // NECESSITY at that k, not a quality defect — raw spread punished every
+        // k whose canonical mix is uneven and short-circuited the across-k
+        // choice toward thin plans (the Texas specimen: 10×5 beat the operator's
+        // 9+9+8+8+8+8 on raw spread alone, against a 2.3× cut-length cost, 12
+        // necks and a worse Droop threshold). Excess preserves the within-k
+        // doctrine byte-intact: a non-canonical mix at the same k still carries
+        // its full penalty (7/6/5 where 6/6/6 exists → excess 2). No legal
+        // canonical at this k (drifted / satellite-adjusted budgets) → excess
+        // falls back to the raw spread.
+        $canonForSpread   = $this->canonicalPartition($nonGiantBudget, $binCount, $floor, $ceiling);
+        $seatSpreadExcess = $canonForSpread !== null
+            ? max(0, $seatSpread - (max($canonForSpread) - min($canonForSpread)))
+            : $seatSpread;
+
         // In-memory contiguity: BFS reachability within each bin using the adjacency graph.
         // Apply the same distance-based false-positive filter used in geographicSeedExpansion:
         // ignore adjacency edges whose centroid distance exceeds 4× the 90th-percentile edge
@@ -3776,6 +3798,7 @@ class DistrictingService
             'fragment_gap'         => $fragmentGap,
             'neck_count'           => $neckCount,
             'seat_spread'          => $seatSpread,
+            'seat_spread_excess'   => $seatSpreadExcess,
             'cut_length'           => $cutLength,
             'avg_rg_sq'            => $avgRgSq,
             'avg_droop_threshold'  => $avgDroopThreshold,
@@ -3928,20 +3951,35 @@ class DistrictingService
         $gap     = max(0.0, (float) $s['fragment_gap']);
         $gapBand = (int) floor(log(1.0 + $gap) / log(2.0));
 
+        // Good Maps retune (operator order 2026-08-23, the standard-map campaign):
+        //   • key 6 is now spread EXCESS over the candidate's own canonical
+        //     partition — raw spread made 5×10 beat the operator's 9+9+8+8+8+8
+        //     in Texas purely because 50%10=0, an across-k artifact (the
+        //     within-k mix doctrine is unchanged: non-canonical mixes at the
+        //     same k carry the same penalty as before). Raw spread remains in
+        //     the score array for the Phase-B gates and as the fallback when a
+        //     score predates the excess field.
+        //   • the former 1pp equality sub-band key is GONE: the 2026-07-08
+        //     ruling makes balance an ACCEPTABILITY THRESHOLD ("within it all
+        //     tie"), and the operator's standard maps spend a full band for
+        //     large shape wins (South Carolina +1.08pp for −21% cut length,
+        //     Pennsylvania +0.87pp for −23%). Within acceptability, shape
+        //     decides; raw deviation returns as the late tiebreak (key 11).
+        //     This supersedes the round-4 relaxation — pinned the new way in
+        //     DistrictingDoctrineTest.
         return [
             $s['seat_drift'] ?? 0,                       //  1. BUDGET EXACTNESS — drifted drawings are excluded
             $avgExcess,                                  //  2. balance beyond acceptability (2pp bands)
             $maxExcess,                                  //  3. worst district beyond acceptability (5pp bands)
             $s['non_contiguous_count'],                  //  4. contiguity breaks (absolute — never banded)
             $gapBand,                                    //  5. break quality: fragments close, in doubling bands
-            $s['seat_spread'],                           //  6. reps-per-district equality
-            (int) floor($s['avg_deviation_pct'] / 1.0),  //  7. equality, 1pp sub-bands — outranks shape
-            $s['cut_length'] ?? 0.0,                     //  8. compactness lead: real border length (round 10)
-            $s['neck_count'],                            //  9. pinch points (shape spirit, within cut ties)
-            $s['avg_rg_sq'],                             // 10. compactness fallback (centroid proxy)
-            $s['avg_droop_threshold'],                   // 11. seat-mix / UPD — abandoned first
-            $s['avg_deviation_pct'],                     // 12. raw equality tiebreak
-            $s['fragment_gap'],                          // 13. raw proximity — the very last word
+            $s['seat_spread_excess'] ?? $s['seat_spread'], //  6. reps-per-district equality beyond this k's canonical mix
+            $s['cut_length'] ?? 0.0,                     //  7. compactness lead: real border length (round 10)
+            $s['neck_count'],                            //  8. pinch points (shape spirit, within cut ties)
+            $s['avg_rg_sq'],                             //  9. compactness fallback (centroid proxy)
+            $s['avg_droop_threshold'],                   // 10. seat-mix / UPD — abandoned first
+            $s['avg_deviation_pct'],                     // 11. raw equality tiebreak
+            $s['fragment_gap'],                          // 12. raw proximity — the very last word
         ];
     }
 
