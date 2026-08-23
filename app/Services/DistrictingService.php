@@ -1013,10 +1013,14 @@ class DistrictingService
                         // probe): the adaptive flavor wins archipelagos and fat
                         // atoms, the fixed-target flavor won Mexico's 0.84% —
                         // generate both, let the comparator pick per scope.
+                        // Metro-seeded pair (Good Maps 2026-08-23): city cores
+                        // first, big targets first — reaches the standard's
+                        // metro districts (Michigan's Wayne+Oakland+Macomb)
+                        // that corner seeding structurally splits.
                         $this->stepBegin("builders.k{$k}");
-                        foreach ([[true, true], [true, false], [false, true], [false, false]] as [$bigFirst, $adaptive]) {
+                        foreach ([[true, true, false], [true, false, false], [false, true, false], [false, false, false], [true, true, true], [true, false, true]] as [$bigFirst, $adaptive, $metroSeed]) {
                             $this->beat($legislature_id, sprintf('k=%d: sequential builders', $k));
-                            $sBins = $this->sequentialBuild($component, $childById, $adj, $centroids, $compBudget, $k, $quotaPopC, $giantThreshold, $floor, $ceiling, $bigFirst, $adaptive);
+                            $sBins = $this->sequentialBuild($component, $childById, $adj, $centroids, $compBudget, $k, $quotaPopC, $giantThreshold, $floor, $ceiling, $bigFirst, $adaptive, $metroSeed);
                             if ($sBins === null) continue;
                             $sBins = $this->breakRebalance($sBins, $childById, $centroids, $adj, $quotaPopC, $compBudget, $floor, $ceiling, $giantThreshold, $floorBoundary, $parts, true);
                             // Round-7: the built candidate gets the same shape passes
@@ -3422,6 +3426,182 @@ class DistrictingService
             }
         }
 
+        // --- Cut-length descent (Good Maps retune, 2026-08-23) ---
+        // scoreRank ranks real cut LENGTH (the round-10 stringiness currency)
+        // but no pass above optimizes it: the compact exchanges climb Rg² and
+        // the smoothing pass counts discrete cut EDGES. The Ohio specimen sat
+        // one 2-for-1 exchange from the standard's cut (7.59 vs 8.94) with no
+        // pass able to reach it. Descend the summed border length between bins
+        // directly — border single moves, 1:1 exchanges, and 2:1 exchanges —
+        // each accepted only on a strict cut-length decrease under the same
+        // guards as the passes above (frac window, dev caps vs integer
+        // targets, affected bins stay connected, no bin emptied). Same
+        // borderLen the scorer sums, so the descent moves the ranked number
+        // itself. Deterministic: stable scan order, strict improvement,
+        // best-candidate-per-iteration. Empty borderLen (reflection-driven
+        // tests) → the pass is inert.
+        if (!empty($this->borderLen) && $k > 1) {
+            $blOf = function (string $a, string $b): float {
+                return $this->borderLen[$a . '|' . $b] ?? $this->borderLen[$b . '|' . $a] ?? 0.0;
+            };
+            // Δ cut length for reassigning $moves (jid => newBin): only edges
+            // incident to a moved member can flip; count each pair once.
+            $cutDelta = function (array $moves) use (&$assigned, $adj, $blOf): float {
+                $delta = 0.0;
+                $seenPair = [];
+                foreach ($moves as $jid => $to) {
+                    foreach ($adj[$jid] ?? [] as $nb) {
+                        if (!isset($assigned[$nb])) continue;
+                        $pk = strcmp((string) $jid, (string) $nb) < 0 ? $jid . '|' . $nb : $nb . '|' . $jid;
+                        if (isset($seenPair[$pk])) continue;
+                        $seenPair[$pk] = true;
+                        $len = $blOf((string) $jid, (string) $nb);
+                        if ($len <= 0.0) continue;
+                        $oldCut = $assigned[$jid] !== $assigned[$nb];
+                        $newCut = $to !== ($moves[$nb] ?? $assigned[$nb]);
+                        if ($oldCut !== $newCut) $delta += $newCut ? $len : -$len;
+                    }
+                }
+                return $delta;
+            };
+            // Full validity check for a candidate move set; returns false when
+            // any guard fails. Bounded: at most 3 moved members per candidate.
+            $movesValid = function (array $moves, array $tpops) use (
+                &$bins, &$binPops, &$binFracs, &$assigned, $childById, $adj, $centroids,
+                $maxEdgeDistSq, $compactTol, $floorBoundary, $giantThreshold
+            ): bool {
+                $dPop = []; $dFrac = []; $affected = [];
+                foreach ($moves as $jid => $to) {
+                    $from = $assigned[$jid];
+                    $p = (float) $childById[$jid]->population;
+                    $f = (float) $childById[$jid]->fractional_seats;
+                    $dPop[$from] = ($dPop[$from] ?? 0.0) - $p; $dPop[$to] = ($dPop[$to] ?? 0.0) + $p;
+                    $dFrac[$from] = ($dFrac[$from] ?? 0.0) - $f; $dFrac[$to] = ($dFrac[$to] ?? 0.0) + $f;
+                    $affected[$from] = true; $affected[$to] = true;
+                }
+                foreach (array_keys($affected) as $b) {
+                    $newFrac = $binFracs[$b] + ($dFrac[$b] ?? 0.0);
+                    if ($newFrac < $floorBoundary || $newFrac >= $giantThreshold) return false;
+                    $newPop = $binPops[$b] + ($dPop[$b] ?? 0.0);
+                    if ($newPop <= 0) return false;
+                    if (abs($newPop - $tpops[$b]) / $tpops[$b] > $compactTol) return false;
+                }
+                foreach (array_keys($affected) as $b) {
+                    $set = [];
+                    foreach ($bins[$b] as $m) { if (!isset($moves[$m])) $set[] = $m; }
+                    foreach ($moves as $jid => $to) { if ($to === $b) $set[] = $jid; }
+                    if (empty($set)) return false;
+                    if (!$this->connectedSet($set, $adj, $centroids, $maxEdgeDistSq)) return false;
+                }
+                return true;
+            };
+
+            $cutIter = 0;
+            $cutMax  = min(count($jids) * 2, 240);
+            do {
+                $targetsL = $useIntTargets
+                    ? $this->optimalIntegerTargets($binPops, $quotaPop, $compBudget, $intFloor, $intCeiling)
+                    : null;
+                $tpopsL = [];
+                for ($ti = 0; $ti < $k; $ti++) {
+                    $tpopsL[$ti] = $targetsL !== null ? max($targetsL[$ti] * $quotaPop, 1.0) : max($targetPop, 1.0);
+                }
+
+                $bestDelta = -1e-12;
+                $bestMoves = null;
+                for ($i = 0; $i < $k; $i++) {
+                    if (count($bins[$i]) <= 1) continue;
+                    for ($j = 0; $j < $k; $j++) {
+                        if ($j === $i || $binPops[$j] <= 0) continue;
+                        $iBorder = [];
+                        foreach ($bins[$i] as $bc) {
+                            foreach ($adj[$bc] ?? [] as $nb) {
+                                if (($assigned[$nb] ?? -1) === $j) { $iBorder[] = $bc; break; }
+                            }
+                        }
+                        if (empty($iBorder)) continue;
+                        $iBorder = array_slice($iBorder, 0, 48);
+
+                        // Border single moves i → j.
+                        foreach ($iBorder as $c) {
+                            $moves = [$c => $j];
+                            $d = $cutDelta($moves);
+                            if ($d >= $bestDelta) continue;
+                            if (!$movesValid($moves, $tpopsL)) continue;
+                            $bestDelta = $d; $bestMoves = $moves;
+                        }
+
+                        if ($j < $i) continue; // exchanges are symmetric — scan each pair once
+                        $jBorder = [];
+                        foreach ($bins[$j] as $bd) {
+                            foreach ($adj[$bd] ?? [] as $nb) {
+                                if (($assigned[$nb] ?? -1) === $i) { $jBorder[] = $bd; break; }
+                            }
+                        }
+                        if (empty($jBorder)) continue;
+                        $jBorder = array_slice($jBorder, 0, 48);
+
+                        // 1:1 exchanges.
+                        foreach ($iBorder as $c) {
+                            foreach ($jBorder as $dJ) {
+                                $moves = [$c => $j, $dJ => $i];
+                                $d = $cutDelta($moves);
+                                if ($d >= $bestDelta) continue;
+                                if (!$movesValid($moves, $tpopsL)) continue;
+                                $bestDelta = $d; $bestMoves = $moves;
+                            }
+                        }
+
+                        // 2:1 exchanges (the Ohio move), both directions,
+                        // second donor limited to in-bin neighbors of the first.
+                        $twoForOne = function (array $fromBorder, int $from, int $to, array $toBorder) use (
+                            &$bins, &$assigned, $adj, $cutDelta, $movesValid, $tpopsL, &$bestDelta, &$bestMoves
+                        ): void {
+                            foreach (array_slice($fromBorder, 0, 24) as $c1) {
+                                $mates = 0;
+                                foreach ($adj[$c1] ?? [] as $c2) {
+                                    if (($assigned[$c2] ?? -1) !== $from || $c2 === $c1) continue;
+                                    if (++$mates > 8) break;
+                                    foreach (array_slice($toBorder, 0, 24) as $dX) {
+                                        if ($dX === $c1 || $dX === $c2) continue;
+                                        $moves = [$c1 => $to, $c2 => $to, $dX => $from];
+                                        $d = $cutDelta($moves);
+                                        if ($d >= $bestDelta) continue;
+                                        if (!$movesValid($moves, $tpopsL)) continue;
+                                        $bestDelta = $d; $bestMoves = $moves;
+                                    }
+                                }
+                            }
+                        };
+                        $twoForOne($iBorder, $i, $j, $jBorder);
+                        $twoForOne($jBorder, $j, $i, $iBorder);
+                    }
+                }
+
+                $cutMade = false;
+                if ($bestMoves !== null) {
+                    foreach ($bestMoves as $mJid => $to) {
+                        $from = $assigned[$mJid];
+                        $mPop  = (float) $childById[$mJid]->population;
+                        $mFrac = (float) $childById[$mJid]->fractional_seats;
+                        $mx = $centroids[$mJid]['x'] ?? 0.0;
+                        $my = $centroids[$mJid]['y'] ?? 0.0;
+                        $bins[$from]      = array_values(array_filter($bins[$from], fn($x) => $x !== $mJid));
+                        $bins[$to][]      = $mJid;
+                        $binPops[$from]  -= $mPop;            $binPops[$to]  += $mPop;
+                        $binFracs[$from] -= $mFrac;           $binFracs[$to] += $mFrac;
+                        $binSx[$from]  -= $mPop * $mx;        $binSx[$to]  += $mPop * $mx;
+                        $binSy[$from]  -= $mPop * $my;        $binSy[$to]  += $mPop * $my;
+                        $binSx2[$from] -= $mPop * $mx * $mx;  $binSx2[$to] += $mPop * $mx * $mx;
+                        $binSy2[$from] -= $mPop * $my * $my;  $binSy2[$to] += $mPop * $my * $my;
+                        $assigned[$mJid] = $to;
+                    }
+                    $cutMade = true;
+                }
+                $cutIter++;
+            } while ($cutMade && $cutIter < $cutMax);
+        }
+
         // --- Post-repair: merge bins that cannot round to the floor ---
         // $binFracs is already live-tracked throughout BFS — no need to recompute.
         // After swap refinement this path is rare (standalone isolated-jid bins only).
@@ -4047,9 +4227,18 @@ class DistrictingService
         int   $floor,
         int   $ceiling,
         bool  $bigFirst,
-        bool  $adaptive = true  // false = round-5 flavor: fixed canonical targets,
+        bool  $adaptive = true, // false = round-5 flavor: fixed canonical targets,
                                 // plain nearest choice (the Mexico probe: each
                                 // flavor wins geographies the other loses)
+        // Good Maps retune (2026-08-23): seed each district at the most
+        // POPULOUS unassigned child instead of the most-constrained corner.
+        // The Michigan specimen: the standard's metro district (Wayne +
+        // Oakland + Macomb = exactly 7 seats) is unreachable from corner
+        // seeds — every population-anchor attempt splits the metro across
+        // k bins as SEEDS, and corner growth arrives with its budget spent.
+        // A population seed grows outward from the metro core and closes at
+        // the turning point, exactly how the operator draws a city district.
+        bool  $metroSeed = false
     ): ?array {
         if ($k < 1 || $quotaPop <= 0 || count($jids) < $k) return null;
 
@@ -4099,16 +4288,30 @@ class DistrictingService
             $T = $t * $quotaPop;
 
             // Most-constrained seed: fewest unassigned neighbors (corners and
-            // pockets first), deterministic tie-break by id.
-            $seed = null; $seedDeg = PHP_INT_MAX;
-            foreach ($unassigned as $jid => $_) {
-                $deg = 0;
-                foreach ($adj[$jid] ?? [] as $nb) {
-                    if (isset($unassigned[$nb])) $deg++;
+            // pockets first), deterministic tie-break by id. Metro flavor:
+            // the most populous unassigned child seeds instead — city cores
+            // first, each district closing around its population center.
+            $seed = null;
+            if ($metroSeed) {
+                $seedPop = -1.0;
+                foreach ($unassigned as $jid => $_) {
+                    $p = (float) $childById[$jid]->population;
+                    if ($seed === null || $p > $seedPop
+                        || ($p === $seedPop && strcmp((string) $jid, (string) $seed) < 0)) {
+                        $seedPop = $p; $seed = $jid;
+                    }
                 }
-                if ($seed === null || $deg < $seedDeg
-                    || ($deg === $seedDeg && strcmp((string) $jid, (string) $seed) < 0)) {
-                    $seedDeg = $deg; $seed = $jid;
+            } else {
+                $seedDeg = PHP_INT_MAX;
+                foreach ($unassigned as $jid => $_) {
+                    $deg = 0;
+                    foreach ($adj[$jid] ?? [] as $nb) {
+                        if (isset($unassigned[$nb])) $deg++;
+                    }
+                    if ($seed === null || $deg < $seedDeg
+                        || ($deg === $seedDeg && strcmp((string) $jid, (string) $seed) < 0)) {
+                        $seedDeg = $deg; $seed = $jid;
+                    }
                 }
             }
 
