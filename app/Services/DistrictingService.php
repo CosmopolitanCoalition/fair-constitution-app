@@ -3902,11 +3902,15 @@ class DistrictingService
      *   and adopt a split that reduces the pair's flagged count; among
      *   flag-equal candidates the lower pair Rg² wins (no geometry calls).
      *
-     * Deviation caps sit at the ACCEPTABILITY band edge (±4% of the integer
-     * target — his order pays deviation for contiguity), which still
-     * guarantees seat exactness: 0.04 × 9 quota = 0.36 quota < the 0.5
-     * nearest-rounding boundary, so every bin still rounds to its target
-     * and the landed budget is preserved.
+     * Acceptance is THE LAW itself, not proxy caps (the iter-8 lesson — a
+     * flat 4%-of-target cap fired zero adoptions; the standard pays 6.1%
+     * avg in Spain for a whole mainland): a trial must land the budget
+     * EXACTLY under Step 11's own rounding arithmetic, keep every district
+     * within the 10% max-deviation band, create no NEW sub-floor bin
+     * (already-override bins — the China remainder class — may reshuffle),
+     * and strictly reduce the flagged count. The avg-deviation band is
+     * deliberately not enforced on break-eliminating adoptions:
+     * contiguity outranks deviation in the operator's order.
      */
     private function breakRepairPass(
         array $bins,
@@ -3995,20 +3999,46 @@ class DistrictingService
         };
 
         $low = ($budget >= $k * $floor) ? $floor : 1;
-        // Acceptability-band caps that still guarantee exactness (see docblock).
-        $devCap = 0.04;
-        $capsOk = function (int $bIdx, float $newPop, float $newFrac, array $targets) use ($quotaPop, $devCap, $floorBoundary, $giantThreshold): bool {
-            if ($newFrac < $floorBoundary || $newFrac >= $giantThreshold) return false;
-            $t = max(($targets[$bIdx] ?? 0) * $quotaPop, 1.0);
-            return $newPop > 0 && abs($newPop - $t) / $t <= $devCap;
+        // Acceptance = THE LAW, not proxy caps (iter-8 fired zero adoptions:
+        // a flat 4%-of-target per-bin cap rejected every repair — the standard
+        // itself pays 6.1% avg in Spain for a whole mainland, and exactness
+        // comes from target re-derivation + Step-11 arithmetic, not from tight
+        // caps). A trial configuration is acceptable when:
+        //   • Step 11's own rounding lands the budget EXACTLY (drift is law);
+        //   • no district exceeds the 10% max-deviation band;
+        //   • no NEW sub-floor bin appears (bins already in the floor_override
+        //     posture — the China remainder class — may reshuffle);
+        //   • no bin crosses the giant threshold.
+        $seatVectorOf = function (array $trialBins) use ($childById, $quotaPop, $budget, $floor, $ceiling): ?array {
+            $bc = count($trialBins);
+            $minSeat = ($budget >= $bc * $floor) ? $floor : 1;
+            $seats = [];
+            foreach ($trialBins as $tb) {
+                if (empty($tb)) return null;
+                $p = array_sum(array_map(fn ($j) => (float) $childById[$j]->population, $tb));
+                $seats[] = max($minSeat, min($ceiling, (int) round($quotaPop > 0 ? $p / $quotaPop : 0.0)));
+            }
+            return $seats;
+        };
+        $lawOk = function (array $trialBins) use ($seatVectorOf, $childById, $quotaPop, $budget): bool {
+            $seats = $seatVectorOf($trialBins);
+            if ($seats === null || array_sum($seats) !== $budget) return false; // drift is always wrong
+            foreach ($trialBins as $ti => $tb) {
+                $p = array_sum(array_map(fn ($j) => (float) $childById[$j]->population, $tb));
+                if ($seats[$ti] <= 0) return false;
+                if (abs($p / $seats[$ti] - $quotaPop) / $quotaPop > 0.10) return false; // max band
+            }
+            return true;
         };
         $binFracsL = array_map(fn ($b) => array_sum(array_map(fn ($j) => (float) $childById[$j]->fractional_seats, $b)), $bins);
+        $windowOk = function (float $newFrac, float $oldFrac) use ($floorBoundary, $giantThreshold): bool {
+            if ($newFrac >= $giantThreshold) return false;
+            return $newFrac >= $floorBoundary || $oldFrac < $floorBoundary; // no NEW sub-floor bins
+        };
 
         // ── Pass A: fragment consolidation ─────────────────────────────────
         $before = $flaggedCount();
         for ($round = 0; $round < 6 && $before > 0; $round++) {
-            $targets = $this->optimalIntegerTargets($binPops, $quotaPop, $budget, $low, $ceiling);
-            if (count($targets) !== $k) break;
             $bestMove = null; $bestAfter = $before;
             for ($b = 0; $b < $k; $b++) {
                 foreach ($avoidableFrags($bins[$b]) as $frag) {
@@ -4028,15 +4058,15 @@ class DistrictingService
                         if ($c !== $b && !empty($avoidableFrags($bins[$c]))) $dests[$c] = true;
                     }
                     foreach (array_keys($dests) as $c) {
-                        if (!$capsOk($b, $binPops[$b] - $fragPop, $binFracsL[$b] - $fragFrac, $targets)) continue;
-                        if (!$capsOk($c, $binPops[$c] + $fragPop, $binFracsL[$c] + $fragFrac, $targets)) continue;
-                        // Trial-apply, measure, revert.
+                        if (!$windowOk($binFracsL[$b] - $fragFrac, $binFracsL[$b])) continue;
+                        if (!$windowOk($binFracsL[$c] + $fragFrac, $binFracsL[$c])) continue;
+                        // Trial-apply, measure under the law, revert.
                         $fragSet = array_flip($frag);
                         $savedB = $bins[$b]; $savedC = $bins[$c];
                         $bins[$b] = array_values(array_filter($bins[$b], fn ($x) => !isset($fragSet[$x])));
                         $bins[$c] = array_merge($bins[$c], $frag);
                         foreach ($frag as $m) { $assigned[$m] = $c; }
-                        $after = $flaggedCount();
+                        $after = $lawOk($bins) ? $flaggedCount() : PHP_INT_MAX;
                         $bins[$b] = $savedB; $bins[$c] = $savedC;
                         foreach ($frag as $m) { $assigned[$m] = $b; }
                         if ($after < $bestAfter) {
@@ -4108,18 +4138,21 @@ class DistrictingService
                             }
                             if ($toA) { $hA = array_merge($hA, $sc); } else { $hB = array_merge($hB, $sc); }
                         }
-                        $popA = 0.0; $fracA = 0.0;
-                        foreach ($hA as $a) { $popA += (float) $childById[$a]->population; $fracA += (float) $childById[$a]->fractional_seats; }
-                        $popB = 0.0; $fracB = 0.0;
-                        foreach ($hB as $b2) { $popB += (float) $childById[$b2]->population; $fracB += (float) $childById[$b2]->fractional_seats; }
-                        // Match halves to the pair's two targets (larger↔larger).
-                        $tBig = max($parts2); $tSmall = min($parts2);
-                        $tA = $popA >= $popB ? $tBig : $tSmall;
-                        $tB = $popA >= $popB ? $tSmall : $tBig;
-                        if ($fracA < $floorBoundary || $fracA >= $giantThreshold) continue;
-                        if ($fracB < $floorBoundary || $fracB >= $giantThreshold) continue;
-                        if (abs($popA - $tA * $quotaPop) / max($tA * $quotaPop, 1.0) > $devCap) continue;
-                        if (abs($popB - $tB * $quotaPop) / max($tB * $quotaPop, 1.0) > $devCap) continue;
+                        $fracA = 0.0;
+                        foreach ($hA as $a) { $fracA += (float) $childById[$a]->fractional_seats; }
+                        $fracB = 0.0;
+                        foreach ($hB as $b2) { $fracB += (float) $childById[$b2]->fractional_seats; }
+                        if (!$windowOk($fracA, min($binFracsL[$i], $binFracsL[$j]))) continue;
+                        if (!$windowOk($fracB, min($binFracsL[$i], $binFracsL[$j]))) continue;
+                        // The law, on the full trial configuration: exact landing
+                        // + max band (the avg band is deliberately not enforced
+                        // here — the standard pays up to ~6% avg for a whole
+                        // mainland, contiguity > deviation).
+                        $savedI = $bins[$i]; $savedJ = $bins[$j];
+                        $bins[$i] = $hA; $bins[$j] = $hB;
+                        $trialOk = $lawOk($bins);
+                        $bins[$i] = $savedI; $bins[$j] = $savedJ;
+                        if (!$trialOk) continue;
                         $flagA = empty($avoidableFrags($hA)) ? 0 : 1;
                         $flagB = empty($avoidableFrags($hB)) ? 0 : 1;
                         $flag  = $flagA + $flagB;
