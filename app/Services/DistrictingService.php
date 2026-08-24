@@ -4065,29 +4065,37 @@ class DistrictingService
                     if (count($frag) >= count($bins[$b])) continue; // never empty the donor
                     $fragFrac = array_sum(array_map(fn ($m) => (float) $childById[$m]->fractional_seats, $frag));
                     $dOwn = $this->closestApproachSq($frag, $mains[$b], $centroids);
-                    $bestC = -1; $bestD = $dOwn;
+                    // Rank ALL nearer hosts and try the closest three — Step-11
+                    // rounding walls (a receiver ceiling-clipping) often block
+                    // THE nearest host while the second-nearest absorbs the
+                    // piece cleanly; refusing to try it froze Hawaii in place.
+                    $hosts = [];
                     for ($c = 0; $c < $k; $c++) {
                         if ($c === $b || empty($mains[$c])) continue;
                         $d = $this->closestApproachSq($frag, $mains[$c], $centroids);
-                        if ($d < $bestD) { $bestD = $d; $bestC = $c; }
+                        if ($d < $dOwn) $hosts[] = ['c' => $c, 'd' => $d];
                     }
-                    if ($bestC < 0) continue;
-                    $gain = sqrt(max($dOwn, 0.0)) - sqrt(max($bestD, 0.0));
-                    if ($gain <= $bestGain) continue;
-                    if (!$windowOk($binFracsL[$b] - $fragFrac, $binFracsL[$b])) continue;
-                    if (!$windowOk($binFracsL[$bestC] + $fragFrac, $binFracsL[$bestC])) continue;
-                    // Trial under the law, revert.
-                    $fragSet = array_flip($frag);
-                    $savedB = $bins[$b]; $savedC = $bins[$bestC];
-                    $bins[$b] = array_values(array_filter($bins[$b], fn ($x) => !isset($fragSet[$x])));
-                    $bins[$bestC] = array_merge($bins[$bestC], $frag);
-                    $ok = $lawOk($bins);
-                    $bins[$b] = $savedB; $bins[$bestC] = $savedC;
-                    if (!$ok) continue;
-                    $bestGain = $gain;
-                    $bestMove = ['frag' => $frag, 'from' => $b, 'to' => $bestC,
-                                 'pop'  => array_sum(array_map(fn ($m) => (float) $childById[$m]->population, $frag)),
-                                 'frac' => $fragFrac];
+                    if (empty($hosts)) continue;
+                    usort($hosts, fn ($x, $y) => $x['d'] <=> $y['d']);
+                    foreach (array_slice($hosts, 0, 3) as $host) {
+                        $gain = sqrt(max($dOwn, 0.0)) - sqrt(max($host['d'], 0.0));
+                        if ($gain <= $bestGain) break; // ranked — later hosts gain less
+                        if (!$windowOk($binFracsL[$b] - $fragFrac, $binFracsL[$b])) break;
+                        if (!$windowOk($binFracsL[$host['c']] + $fragFrac, $binFracsL[$host['c']])) continue;
+                        // Trial under the law, revert.
+                        $fragSet = array_flip($frag);
+                        $savedB = $bins[$b]; $savedC = $bins[$host['c']];
+                        $bins[$b] = array_values(array_filter($bins[$b], fn ($x) => !isset($fragSet[$x])));
+                        $bins[$host['c']] = array_merge($bins[$host['c']], $frag);
+                        $ok = $lawOk($bins);
+                        $bins[$b] = $savedB; $bins[$host['c']] = $savedC;
+                        if (!$ok) continue;
+                        $bestGain = $gain;
+                        $bestMove = ['frag' => $frag, 'from' => $b, 'to' => $host['c'],
+                                     'pop'  => array_sum(array_map(fn ($m) => (float) $childById[$m]->population, $frag)),
+                                     'frac' => $fragFrac];
+                        break;
+                    }
                 }
             }
             if ($bestMove === null) break;
@@ -4899,7 +4907,9 @@ class DistrictingService
                     $minSq = PHP_FLOAT_MAX;
                     foreach ($fragments[$f] as $aJid) {
                         foreach ($main as $mJid) {
-                            $dx = ($childById[$aJid]->centroid_x ?? 0.0) - ($childById[$mJid]->centroid_x ?? 0.0);
+                            // Antimeridian-aware, as closestApproachSq (2026-08-24).
+                            $dx = abs(($childById[$aJid]->centroid_x ?? 0.0) - ($childById[$mJid]->centroid_x ?? 0.0));
+                            if ($dx > 180.0) $dx = 360.0 - $dx;
                             $dy = ($childById[$aJid]->centroid_y ?? 0.0) - ($childById[$mJid]->centroid_y ?? 0.0);
                             $d  = $dx * $dx + $dy * $dy;
                             if ($d < $minSq) $minSq = $d;
@@ -6312,12 +6322,21 @@ class DistrictingService
      */
     private function closestApproachSq(array $aJids, array $bJids, array $centroids): float
     {
+        // ANTIMERIDIAN-AWARE (found on the operator's iteration-13 walk prep,
+        // 2026-08-24): raw longitude deltas measured Guam (+144°) as 226° from
+        // Florida but 299° from Hawaii, so the attachment law genuinely
+        // believed the US EAST COAST was Guam's nearest host — the direct
+        // mechanism behind the trans-oceanic grab-bag districts the operator
+        // vetoed, and the reason wrap-inflated Pacific gaps saturated the
+        // fragment-gap bands until they stopped discriminating. Longitude
+        // wraps at ±180: the shorter way around is the distance.
         $best = PHP_FLOAT_MAX;
         foreach ($aJids as $a) {
             $ax = $centroids[$a]['x'] ?? 0.0;
             $ay = $centroids[$a]['y'] ?? 0.0;
             foreach ($bJids as $b) {
-                $dx = $ax - ($centroids[$b]['x'] ?? 0.0);
+                $dx = abs($ax - ($centroids[$b]['x'] ?? 0.0));
+                if ($dx > 180.0) $dx = 360.0 - $dx;
                 $dy = $ay - ($centroids[$b]['y'] ?? 0.0);
                 $d  = $dx * $dx + $dy * $dy;
                 if ($d < $best) $best = $d;
