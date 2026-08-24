@@ -4098,7 +4098,80 @@ class DistrictingService
                     }
                 }
             }
+            // DISSOLUTION (iter-15, the remainder-pool class): a bin assembled
+            // from far-flung sub-floor leftovers (USA #16: Hawaii + Rhode
+            // Island + Guam around a lone main) traps every piece — any single
+            // donation re-creates a sub-floor bin, which the window forbids.
+            // The standard's structure has NO pool bin: each small rides a
+            // NEARBY big district as a passenger. So try scattering the whole
+            // bin — every fragment to its own nearest host — k drops by one
+            // and the seat vector re-derives; accepted under the law when the
+            // total spread strictly improves on the best single move.
+            for ($b = 0; $b < $k; $b++) {
+                $frs = $fragmentsOf($bins[$b]);
+                if (count($frs) < 2) continue;
+                $others = [];
+                for ($c = 0; $c < $k; $c++) { if ($c !== $b && !empty($mains[$c])) $others[] = $c; }
+                if (count($others) < 2) continue;
+                $gainSum = 0.0; $placement = [];
+                foreach ($frs as $frag) {
+                    $dOwn = count($frs) > 1 ? $this->closestApproachSq($frag, $mains[$b], $centroids) : 0.0;
+                    $bc = -1; $bd = PHP_FLOAT_MAX;
+                    foreach ($others as $c) {
+                        $d = $this->closestApproachSq($frag, $mains[$c], $centroids);
+                        if ($d < $bd) { $bd = $d; $bc = $c; }
+                    }
+                    if ($bc < 0) { $placement = null; break; }
+                    $placement[] = ['frag' => $frag, 'to' => $bc];
+                    // The main fragment contributes no own-gap; pieces gain
+                    // their (own − new) distance.
+                    if ($frag !== $frs[0]) $gainSum += sqrt(max($dOwn, 0.0)) - sqrt(max($bd, 0.0));
+                }
+                if ($placement === null || $gainSum <= $bestGain) continue;
+                $trial = $bins;
+                $okWindows = true;
+                $delta = [];
+                foreach ($placement as $p) {
+                    $ff = array_sum(array_map(fn ($m) => (float) $childById[$m]->fractional_seats, $p['frag']));
+                    $delta[$p['to']] = ($delta[$p['to']] ?? 0.0) + $ff;
+                }
+                foreach ($delta as $c => $df) {
+                    if (!$windowOk($binFracsL[$c] + $df, $binFracsL[$c])) { $okWindows = false; break; }
+                }
+                if (!$okWindows) continue;
+                foreach ($placement as $p) { $trial[$p['to']] = array_merge($trial[$p['to']], $p['frag']); }
+                $trial[$b] = [];
+                $trialLive = array_values(array_filter($trial, fn ($tb) => !empty($tb)));
+                if (count($trialLive) < 2) continue;
+                if (!$lawOk($trialLive)) continue;
+                $bestGain = $gainSum;
+                $bestMove = ['dissolve' => $b, 'placement' => $placement];
+            }
+
             if ($bestMove === null) break;
+            if (isset($bestMove['dissolve'])) {
+                $b = $bestMove['dissolve'];
+                foreach ($bestMove['placement'] as $p) {
+                    $fp = array_sum(array_map(fn ($m) => (float) $childById[$m]->population, $p['frag']));
+                    $ff = array_sum(array_map(fn ($m) => (float) $childById[$m]->fractional_seats, $p['frag']));
+                    $bins[$p['to']] = array_merge($bins[$p['to']], $p['frag']);
+                    foreach ($p['frag'] as $m) { $assigned[$m] = $p['to']; }
+                    $binPops[$p['to']] += $fp; $binFracsL[$p['to']] += $ff;
+                }
+                $bins[$b] = []; $binPops[$b] = 0.0; $binFracsL[$b] = 0.0;
+                // Compact away the emptied bin so indices stay dense.
+                $bins = array_values(array_filter($bins, fn ($tb) => !empty($tb)));
+                $k = count($bins);
+                $binPops = array_map(fn ($tb) => array_sum(array_map(fn ($j2) => (int) $childById[$j2]->population, $tb)), $bins);
+                $binFracsL = array_map(fn ($tb) => array_sum(array_map(fn ($j2) => (float) $childById[$j2]->fractional_seats, $tb)), $bins);
+                $assigned = [];
+                foreach ($bins as $bi => $bj) { foreach ($bj as $jm) { $assigned[$jm] = $bi; } }
+                $this->publishMassProgress($legislatureId, [
+                    'phase'       => 'break_repair',
+                    'phase_label' => sprintf('Spread repair: dissolved a remainder-pool district (Δ %.1f°, now %d districts)', $bestGain, $k),
+                ]);
+                continue;
+            }
             $fragSet = array_flip($bestMove['frag']);
             $bins[$bestMove['from']] = array_values(array_filter($bins[$bestMove['from']], fn ($x) => !isset($fragSet[$x])));
             $bins[$bestMove['to']]   = array_merge($bins[$bestMove['to']], $bestMove['frag']);
