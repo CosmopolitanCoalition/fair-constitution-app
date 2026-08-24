@@ -4477,6 +4477,61 @@ class DistrictingService
         $scoreOf = fn (array $b) => $this->scoreConfiguration($b, $childById, $adj, $totalPop, $budget, $floor, $ceiling, $floorBoundary);
         $cur = $scoreOf($bins);
 
+        // Avoidable-flag guard (iter-11 lesson): fit moves flipped the
+        // REPORTED contiguity in ways the in-memory score cannot see (Earth
+        // gave back 19 → 21 clusters). Same fragment/avoidability logic the
+        // break repair uses; a polish adoption may never raise it.
+        $dists = [];
+        foreach ($assigned as $jid => $_) {
+            foreach ($adj[$jid] ?? [] as $nb) {
+                if (!isset($assigned[$nb])) continue;
+                $dx = ($centroids[$jid]['x'] ?? 0.0) - ($centroids[$nb]['x'] ?? 0.0);
+                $dy = ($centroids[$jid]['y'] ?? 0.0) - ($centroids[$nb]['y'] ?? 0.0);
+                $dists[] = $dx * $dx + $dy * $dy;
+            }
+        }
+        sort($dists);
+        $p90 = max(0, (int) floor(count($dists) * 0.90) - 1);
+        $maxEdgeDistSq = !empty($dists) ? $dists[$p90] * 16.0 : PHP_FLOAT_MAX;
+        $flaggedOf = function (array $trialBins) use ($adj, $centroids, $maxEdgeDistSq, &$assigned): int {
+            $n = 0;
+            foreach ($trialBins as $tb) {
+                if (count($tb) <= 1) continue;
+                $set = array_flip($tb);
+                $seen = []; $frags = [];
+                foreach ($tb as $start) {
+                    if (isset($seen[$start])) continue;
+                    $frag = []; $queue = [$start]; $qh = 0; $seen[$start] = true;
+                    while (isset($queue[$qh])) {
+                        $curN = $queue[$qh++];
+                        $frag[] = $curN;
+                        foreach ($adj[$curN] ?? [] as $nb) {
+                            if (!isset($set[$nb]) || isset($seen[$nb])) continue;
+                            $dx = ($centroids[$curN]['x'] ?? 0.0) - ($centroids[$nb]['x'] ?? 0.0);
+                            $dy = ($centroids[$curN]['y'] ?? 0.0) - ($centroids[$nb]['y'] ?? 0.0);
+                            if ($dx * $dx + $dy * $dy > $maxEdgeDistSq) continue;
+                            $seen[$nb] = true;
+                            $queue[] = $nb;
+                        }
+                    }
+                    $frags[] = $frag;
+                }
+                if (count($frags) <= 1) continue;
+                usort($frags, fn ($a, $b) => count($b) <=> count($a));
+                for ($f = 1, $fc = count($frags); $f < $fc; $f++) {
+                    $hasEdge = false;
+                    foreach ($frags[$f] as $m) {
+                        foreach ($adj[$m] ?? [] as $nb) {
+                            if (isset($assigned[$nb])) { $hasEdge = true; break 2; }
+                        }
+                    }
+                    if ($hasEdge) { $n++; break; }
+                }
+            }
+            return $n;
+        };
+        $curFlagged = $flaggedOf($bins);
+
         $iter = 0;
         $iterMax = min(count($members) * 2, 120);
         do {
@@ -4534,6 +4589,7 @@ class DistrictingService
                         // strictly improves AND the full vector does not worsen.
                         if (($ts['avg_deviation_pct'] ?? 99.0) >= ($cur['avg_deviation_pct'] ?? 99.0) - 1e-9) continue;
                         if ($this->scoreBeats($cur, $ts)) continue;
+                        if ($flaggedOf($trial) > $curFlagged) continue;
                         if ($bestScore === null
                             || (($ts['avg_deviation_pct'] ?? 99.0) < ($bestScore['avg_deviation_pct'] ?? 99.0))) {
                             $bestBins = $trial; $bestScore = $ts;
@@ -4546,6 +4602,7 @@ class DistrictingService
                 $cur  = $bestScore;
                 $assigned = [];
                 foreach ($bins as $bi => $bj) { foreach ($bj as $jm) { $assigned[$jm] = $bi; } }
+                $curFlagged = $flaggedOf($bins);
             }
             $iter++;
         } while ($bestBins !== null && $iter < $iterMax);
