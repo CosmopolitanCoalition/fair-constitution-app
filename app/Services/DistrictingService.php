@@ -4525,8 +4525,17 @@ class DistrictingService
                         }
                         if ($emptied) continue;
                         $ts = $scoreOf($trial);
-                        if (!$this->scoreBeats($ts, $cur)) continue;
-                        if ($bestScore === null || $this->scoreBeats($ts, $bestScore)) {
+                        // FIT-RECOVERY ONLY (iter-10 lesson): unconstrained
+                        // ascent kept trading deviation UP the vector for more
+                        // compactness (Earth fit 40 → 53 and the contiguity
+                        // edge slipped) — the comparator lawfully prefers that,
+                        // but this pass exists to claw back the LAST count, not
+                        // to keep spending it. Adopt only when deviation
+                        // strictly improves AND the full vector does not worsen.
+                        if (($ts['avg_deviation_pct'] ?? 99.0) >= ($cur['avg_deviation_pct'] ?? 99.0) - 1e-9) continue;
+                        if ($this->scoreBeats($cur, $ts)) continue;
+                        if ($bestScore === null
+                            || (($ts['avg_deviation_pct'] ?? 99.0) < ($bestScore['avg_deviation_pct'] ?? 99.0))) {
                             $bestBins = $trial; $bestScore = $ts;
                         }
                     }
