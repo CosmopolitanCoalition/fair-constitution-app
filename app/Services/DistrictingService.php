@@ -1397,6 +1397,10 @@ class DistrictingService
             $allBins, $childById, $adj, $centroids, $legislature_id,
             $nonGiantBudget, $floor, $ceiling, $giantThreshold, $floorBoundary
         );
+        $allBins = $this->comparatorPolishPass(
+            $allBins, $childById, $adj, $centroids,
+            $nonGiantBudget, $floor, $ceiling, $floorBoundary
+        );
 
         // ── Step 9: Clear existing districts if requested ─────────────────────
         if ($clearExisting) {
@@ -4431,6 +4435,111 @@ class DistrictingService
                 }
             }
         }
+
+        return $bins;
+    }
+
+    /**
+     * Comparator polish on the final drawing (Good Maps, 2026-08-23; the
+     * closing pass). After the repair passes win contiguity and compactness,
+     * deviation — the last-ranked count — often carries residue the repairs
+     * spent but no longer need. Greedy ascent on scoreRank ITSELF: a border
+     * single move or 1:1 exchange is adopted only when the FULL rank vector
+     * strictly improves under scoreBeats — so a fit gain (raw deviation,
+     * key 11) goes through only when every higher key (drift, bands, breaks,
+     * fragment bands, spread excess, cut, necks, Rg²) holds or improves.
+     * No new constants, no new trade rules: the comparator is the law and
+     * this pass simply climbs it. Skipped on very large scopes (the Earth
+     * root already lands fit BELOW the standard; the residue lives in the
+     * small bisected scopes where trials are cheap).
+     */
+    private function comparatorPolishPass(
+        array $bins,
+        array $childById,
+        array $adj,
+        array $centroids,
+        int   $budget,
+        int   $floor,
+        int   $ceiling,
+        float $floorBoundary
+    ): array {
+        $bins = array_values(array_filter($bins, fn ($b) => !empty($b)));
+        $k = count($bins);
+        $members = array_merge(...($bins ?: [[]]));
+        if ($k < 2 || $budget <= 0 || count($members) > 150) return $bins;
+
+        $totalPop = array_sum(array_map(fn ($j) => (float) $childById[$j]->population, $members));
+        if ($totalPop <= 0) return $bins;
+
+        $assigned = [];
+        foreach ($bins as $bi => $bj) { foreach ($bj as $jm) { $assigned[$jm] = $bi; } }
+
+        $scoreOf = fn (array $b) => $this->scoreConfiguration($b, $childById, $adj, $totalPop, $budget, $floor, $ceiling, $floorBoundary);
+        $cur = $scoreOf($bins);
+
+        $iter = 0;
+        $iterMax = min(count($members) * 2, 120);
+        do {
+            $bestBins = null; $bestScore = null;
+            for ($i = 0; $i < $k; $i++) {
+                if (count($bins[$i]) <= 1) continue;
+                for ($j = 0; $j < $k; $j++) {
+                    if ($j === $i || empty($bins[$j])) continue;
+                    $iBorder = [];
+                    foreach ($bins[$i] as $bc) {
+                        foreach ($adj[$bc] ?? [] as $nb) {
+                            if (($assigned[$nb] ?? -1) === $j) { $iBorder[] = $bc; break; }
+                        }
+                    }
+                    if (empty($iBorder)) continue;
+                    $iBorder = array_slice($iBorder, 0, 24);
+
+                    $trials = [];
+                    foreach ($iBorder as $c) {
+                        $trials[] = [[$c => $j]];
+                    }
+                    if ($j > $i) {
+                        $jBorder = [];
+                        foreach ($bins[$j] as $bd) {
+                            foreach ($adj[$bd] ?? [] as $nb) {
+                                if (($assigned[$nb] ?? -1) === $i) { $jBorder[] = $bd; break; }
+                            }
+                        }
+                        foreach ($iBorder as $c) {
+                            foreach (array_slice($jBorder, 0, 24) as $dJ) {
+                                $trials[] = [[$c => $j, $dJ => $i]];
+                            }
+                        }
+                    }
+
+                    foreach ($trials as [$moves]) {
+                        $trial = $bins;
+                        foreach ($moves as $mJid => $to) {
+                            $from = $assigned[$mJid];
+                            $trial[$from] = array_values(array_filter($trial[$from], fn ($x) => $x !== $mJid));
+                            $trial[$to][] = $mJid;
+                        }
+                        $emptied = false;
+                        foreach ($moves as $mJid => $to) {
+                            if (empty($trial[$assigned[$mJid]])) { $emptied = true; break; }
+                        }
+                        if ($emptied) continue;
+                        $ts = $scoreOf($trial);
+                        if (!$this->scoreBeats($ts, $cur)) continue;
+                        if ($bestScore === null || $this->scoreBeats($ts, $bestScore)) {
+                            $bestBins = $trial; $bestScore = $ts;
+                        }
+                    }
+                }
+            }
+            if ($bestBins !== null) {
+                $bins = $bestBins;
+                $cur  = $bestScore;
+                $assigned = [];
+                foreach ($bins as $bi => $bj) { foreach ($bj as $jm) { $assigned[$jm] = $bi; } }
+            }
+            $iter++;
+        } while ($bestBins !== null && $iter < $iterMax);
 
         return $bins;
     }
