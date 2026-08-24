@@ -3975,7 +3975,63 @@ class DistrictingService
                 $parts2 = $this->canonicalPartition($pairBudget, 2, $floor, $ceiling);
                 if ($parts2 === null) continue;
 
-                $legal = function (array $A, array $B) use ($childById, $parts2, $quotaPop, $floorBoundary, $giantThreshold, $adj, $centroids, $maxEdgeDistSq): bool {
+                // SATELLITE-AWARE bisection (iter-7 fix): island-carrying pairs
+                // froze in iter-6 — any half holding a detached member failed
+                // connectedSet, so every challenger was illegal and the
+                // incumbent won by default (France, Spain, Philippines, Canada,
+                // Russia, Ukraine's Crimea edge, the whole class). Mirror the
+                // engine's own island doctrine (round-9 accounting, Draft-6
+                // attach-after-scoring): bisect the union's MAINLAND, re-attach
+                // each detached component to the closest half, and exempt
+                // satellites from the connectivity test — the same exemption
+                // the reported is_contiguous stat gives real islands.
+                $unionSet = array_flip($union);
+                $seenU    = [];
+                $comps    = [];
+                foreach ($union as $start) {
+                    if (isset($seenU[$start])) continue;
+                    $comp = []; $queue = [$start]; $qh = 0; $seenU[$start] = true;
+                    while (isset($queue[$qh])) {
+                        $cur = $queue[$qh++];
+                        $comp[] = $cur;
+                        foreach ($adj[$cur] ?? [] as $nb) {
+                            if (!isset($unionSet[$nb]) || isset($seenU[$nb])) continue;
+                            $dx = ($centroids[$cur]['x'] ?? 0.0) - ($centroids[$nb]['x'] ?? 0.0);
+                            $dy = ($centroids[$cur]['y'] ?? 0.0) - ($centroids[$nb]['y'] ?? 0.0);
+                            if ($dx * $dx + $dy * $dy > $maxEdgeDistSq) continue;
+                            $seenU[$nb] = true;
+                            $queue[] = $nb;
+                        }
+                    }
+                    $comps[] = $comp;
+                }
+                usort($comps, fn ($a, $b) => count($b) <=> count($a));
+                $mainland   = $comps[0];
+                $satellites = array_slice($comps, 1);
+                if (count($mainland) < 4) continue;
+                $satSet = [];
+                foreach ($satellites as $sc) { foreach ($sc as $sm) { $satSet[$sm] = true; } }
+
+                $attach = function (array $hA, array $hB) use ($satellites, $centroids): array {
+                    foreach ($satellites as $sc) {
+                        $bestD = PHP_FLOAT_MAX; $toA = true;
+                        foreach ($sc as $sm) {
+                            $sx = $centroids[$sm]['x'] ?? 0.0; $sy = $centroids[$sm]['y'] ?? 0.0;
+                            foreach ([[true, $hA], [false, $hB]] as [$isA, $half]) {
+                                foreach ($half as $hm) {
+                                    $dx = $sx - ($centroids[$hm]['x'] ?? 0.0);
+                                    $dy = $sy - ($centroids[$hm]['y'] ?? 0.0);
+                                    $d = $dx * $dx + $dy * $dy;
+                                    if ($d < $bestD) { $bestD = $d; $toA = $isA; }
+                                }
+                            }
+                        }
+                        if ($toA) { $hA = array_merge($hA, $sc); } else { $hB = array_merge($hB, $sc); }
+                    }
+                    return [$hA, $hB];
+                };
+
+                $legal = function (array $A, array $B) use ($childById, $parts2, $quotaPop, $floorBoundary, $giantThreshold, $adj, $centroids, $maxEdgeDistSq, $satSet): bool {
                     $popA = 0.0; $fracA = 0.0;
                     foreach ($A as $a) { $popA += (float) $childById[$a]->population; $fracA += (float) $childById[$a]->fractional_seats; }
                     $popB = 0.0; $fracB = 0.0;
@@ -3987,23 +4043,33 @@ class DistrictingService
                     $tB = $popA >= $popB ? $pSmall : $pBig;
                     if (abs($popA - $tA) / max($tA, 1.0) > 0.025) return false;
                     if (abs($popB - $tB) / max($tB, 1.0) > 0.025) return false;
-                    if (!$this->connectedSet($A, $adj, $centroids, $maxEdgeDistSq)) return false;
-                    if (!$this->connectedSet($B, $adj, $centroids, $maxEdgeDistSq)) return false;
+                    // Connectivity judged on the mainland part only — attached
+                    // satellites are the lawful island exemption.
+                    $mA = array_values(array_filter($A, fn ($x) => !isset($satSet[$x])));
+                    $mB = array_values(array_filter($B, fn ($x) => !isset($satSet[$x])));
+                    if (empty($mA) || empty($mB)) return false;
+                    if (!$this->connectedSet($mA, $adj, $centroids, $maxEdgeDistSq)) return false;
+                    if (!$this->connectedSet($mB, $adj, $centroids, $maxEdgeDistSq)) return false;
                     return true;
                 };
 
-                // Cheap pre-rank of the sweeps: cut-best and Rg²-best legal candidates.
+                // Cheap pre-rank of the sweeps: cut-best plus the top-3 by Rg²
+                // (Rg² tracks hull compactness far better than cut — iter-6
+                // trimmed to two challengers and dropped hull winners).
                 $bestCut = null; $bestCutV = PHP_FLOAT_MAX;
-                $bestRg  = null; $bestRgV  = PHP_FLOAT_MAX;
-                foreach ($this->bisectionCandidates($union, $childById, $adj, $centroids, $pairBudget, 2, $quotaPop, $floor, $ceiling) as $halves) {
+                $rgRank  = [];
+                foreach ($this->bisectionCandidates($mainland, $childById, $adj, $centroids, $pairBudget, 2, $quotaPop, $floor, $ceiling) as $halves) {
                     if (count($halves) !== 2 || empty($halves[0]) || empty($halves[1])) continue;
-                    if (!$legal($halves[0], $halves[1])) continue;
-                    $cv = $pairCut($halves[0], $halves[1]);
-                    if ($cv < $bestCutV) { $bestCutV = $cv; $bestCut = $halves; }
-                    $rv = $pairRg($halves[0], $halves[1]);
-                    if ($rv < $bestRgV) { $bestRgV = $rv; $bestRg = $halves; }
+                    [$fA, $fB] = $attach($halves[0], $halves[1]);
+                    if (!$legal($fA, $fB)) continue;
+                    $cv = $pairCut($fA, $fB);
+                    if ($cv < $bestCutV) { $bestCutV = $cv; $bestCut = [$fA, $fB]; }
+                    $rgRank[] = ['rg' => $pairRg($fA, $fB), 'halves' => [$fA, $fB]];
                 }
-                if ($bestCut === null && $bestRg === null) continue;
+                if ($bestCut === null && empty($rgRank)) continue;
+                usort($rgRank, fn ($a, $b) => $a['rg'] <=> $b['rg']);
+                $challengers = [$bestCut];
+                foreach (array_slice($rgRank, 0, 3) as $rr) { $challengers[] = $rr['halves']; }
 
                 if (++$pairsSeen % 8 === 1) {
                     $this->publishMassProgress($legislatureId, [
@@ -4017,7 +4083,7 @@ class DistrictingService
                 $curSig  = $this->pairSig($bins[$i], $bins[$j]);
                 $best = ['halves' => null, 'hull' => $curHull, 'cut' => $pairCut($bins[$i], $bins[$j])];
                 $tried = [$curSig => true];
-                foreach ([$bestCut, $bestRg] as $cand) {
+                foreach ($challengers as $cand) {
                     if ($cand === null) continue;
                     $sig = $this->pairSig($cand[0], $cand[1]);
                     if (isset($tried[$sig])) continue;
