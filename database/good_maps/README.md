@@ -160,6 +160,34 @@ USA Initial → Manual per-scope diff (11/30 scopes):
 - Pennsylvania 3 | 26 | 0 | .828→.824 | .13→.37 · South Carolina 2 | 10 | 0 | .831→.844 | .00→.11
 - Virginia 3 | 19 | 1 | .706→.694 | .16=.16
 
+## Campaign result (2026-08-23, iterations 1–12)
+
+Auto Districting was refined against the standards through twelve full-planet
+iterations (stats per iteration under `iterations/`; every algorithm change is
+one commit on 2026-08-23, `d031d62 … 0c60da4`, doctrine suite green at each).
+**Iteration 12** (Earth map `5387b1e0-43b4-47db-822b-b49807be9ba2`, USA map
+`f795ea06-bff9-4daf-86ed-8c7b06d55fdb`, engine `0c60da4`) is the result:
+
+| Count | USA auto vs standard | Earth auto vs standard |
+|---|---|---|
+| 1 Legality | 702 exact, 0 band — parity | 2003 exact, 0 band — parity |
+| 2 Contiguity | **5 clusters vs 7 — better** | **19 vs 21 — better** |
+| 3 Compactness | **.7729 vs .7677 — better** | **.6334 vs .6320 — better** |
+| 4 Deviation | 12.33 vs 10.96 | 37.86 vs 37.21 |
+
+What the campaign added to the engine (all in `DistrictingService`, pinned in
+`DistrictingDoctrineTest`): spread-excess over the canonical partition replaces
+raw spread (across-k fairness); the 1pp deviation sub-band key removed (within
+acceptability, shape decides); cut-length descent (tiered small→big moves);
+metro-seeded builder; pair re-bisection (the border-first large move); hull
+repair measured by the reported CHR formula, satellite-aware; break repair
+under the law itself (Step-11 simulation, max band, flags strictly down);
+fit-recovery polish guarded by the full rank vector and the avoidable-flag
+detector. Known residue: California's per-scope CHR (.740 vs .834 — the
+9.5-ceiling fat-assembly wall, the one structural item deliberately deferred);
+USA's fit gap is the measured price of its contiguity+compactness lead
+(iterations 10–11 proved the frontier from both sides).
+
 ## Restoring a map from `rows/`
 
 Same-database restore (the FK targets — legislature, jurisdictions — must exist; ids are
