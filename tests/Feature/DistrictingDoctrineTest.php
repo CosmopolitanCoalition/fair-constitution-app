@@ -579,6 +579,51 @@ class DistrictingDoctrineTest extends TestCase
         );
     }
 
+    // ─── (9c) THE SPREAD LAW: forced pieces sit near their hosts ─────────────
+    //
+    // Operator walk of iteration 12 (2026-08-23): "even in non-contiguity
+    // forced situations we can make them as compact as possible to minimize
+    // the spread." Vetoed specimens: Hawaii riding with Rhode Island,
+    // Georgia with Cyprus, the EAR-25 dumping ground — plans that
+    // concentrated orphans into FEWER flagged districts at planetary
+    // spread. The gap band now ranks before the break count: distributed
+    // tight breaks beat concentrated far ones; within a spread class the
+    // count still decides; a break-free plan still beats both (gap 0).
+
+    public function test_spread_law_distributed_tight_beats_concentrated_far(): void
+    {
+        $svc = app(DistrictingService::class);
+        $m   = new \ReflectionMethod($svc, 'scoreBeats');
+        $m->setAccessible(true);
+
+        $base = [
+            'seat_drift' => 0, 'neck_count' => 0, 'seat_spread' => 0,
+            'avg_rg_sq' => 1.5, 'avg_droop_threshold' => 0.13, 'cut_length' => 10.0,
+            'avg_deviation_pct' => 1.0, 'max_deviation_pct' => 2.0,
+        ];
+        // Three flagged districts, every piece hugging its host (~1° total)…
+        $distributedTight = $base + ['non_contiguous_count' => 3, 'fragment_gap' => 1.0];
+        // …versus one grab-bag district spanning an ocean (~80°).
+        $concentratedFar  = $base + ['non_contiguous_count' => 1, 'fragment_gap' => 80.0];
+        $this->assertTrue(
+            $m->invoke($svc, $distributedTight, $concentratedFar),
+            'tight distributed breaks beat the trans-oceanic grab-bag (the spread law, 2026-08-23)'
+        );
+
+        // Within one spread class, fewer breaks still win.
+        $oneTight = $base + ['non_contiguous_count' => 1, 'fragment_gap' => 0.9];
+        $twoTight = $base + ['non_contiguous_count' => 2, 'fragment_gap' => 1.0];
+        $this->assertTrue(
+            $m->invoke($svc, $oneTight, $twoTight),
+            'within a spread class the break count still decides'
+        );
+
+        // And a break-free plan still beats both (gap 0, count 0).
+        $contiguous = $base + ['non_contiguous_count' => 0, 'fragment_gap' => 0.0];
+        $this->assertTrue($m->invoke($svc, $contiguous, $distributedTight));
+        $this->assertTrue($m->invoke($svc, $contiguous, $oneTight));
+    }
+
     // ─── (9b) Across-k: spread EXCESS over the canonical mix, never raw spread ─
     //
     // The Texas specimen (Good Maps head-to-head, 2026-08-23): budget 50 at
@@ -1545,14 +1590,19 @@ class DistrictingDoctrineTest extends TestCase
             'a genuine scattering still loses regardless of mix and balance'
         );
 
-        // And an EXTRA break still loses absolutely — banding never touches
-        // the count key.
+        // THE SPREAD LAW (operator walk of iteration 12, 2026-08-23 —
+        // supersedes the old absolute-count clause of this pin): an extra
+        // break whose pieces HUG their hosts (gap 0.5°, band 0) now BEATS a
+        // lower count whose pieces sit a whole distance class away (3.95°,
+        // band 2) — "even in non-contiguity forced situations we can make
+        // them as compact as possible to minimize the spread." Within the
+        // SAME spread class the count still decides (test 9c).
         $extraBreak = $betterMixSlightlyFarther;
         $extraBreak['non_contiguous_count'] = 3;
         $extraBreak['fragment_gap'] = 0.5;
         $this->assertTrue(
-            $m->invoke($svc, $tighterPiecesWorseMix, $extraBreak),
-            'more broken districts always lose, however close their pieces sit'
+            $m->invoke($svc, $extraBreak, $tighterPiecesWorseMix),
+            'tight extra breaks beat fewer far ones (the spread law, 2026-08-23)'
         );
 
         // Within the same band AND same spread/balance/shape, closer pieces

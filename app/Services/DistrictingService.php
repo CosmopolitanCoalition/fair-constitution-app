@@ -762,7 +762,9 @@ class DistrictingService
         //      pool budget are EXCLUDED whenever any exact drawing exists
         //   1. Population balance as an ACCEPTABILITY THRESHOLD (≤4% avg / ≤10% max all tie —
         //      within it, deviation only returns as the LAST tiebreak)
-        //   2. Contiguity (fewest breaks; then fragment_gap — broken pieces kept close)
+        //   2. Contiguity — SPREAD first (fragment_gap bands: forced pieces sit
+        //      near their hosts, the operator's 2026-08-23 spread law), then
+        //      fewest breaks within a spread class
         //   3. Seat-mix equality as EXCESS over the candidate k's canonical partition —
         //      an uneven canonical mix (budget % k ≠ 0) is arithmetic, not a defect,
         //      so fat-district plans compete across k on their real qualities
@@ -4040,44 +4042,52 @@ class DistrictingService
             return $newFrac >= $floorBoundary || $oldFrac < $floorBoundary; // no NEW sub-floor bins
         };
 
-        // ── Pass A: fragment consolidation ─────────────────────────────────
-        $before = $flaggedCount();
-        for ($round = 0; $round < 6 && $before > 0; $round++) {
-            $bestMove = null; $bestAfter = $before;
+        // ── Pass A: NEAREST-HOST redistribution (THE SPREAD LAW, operator
+        // walk of iteration 12, 2026-08-23). The old consolidation pass moved
+        // fragments to MINIMIZE THE FLAG COUNT — which built the grab-bags he
+        // vetoed (Hawaii riding with Rhode Island, Cyprus with Georgia, the
+        // EAR-25 dumping ground): fewer flagged districts, planetary spread.
+        // Inverted: every detached fragment — avoidable AND island-exempt
+        // alike — belongs with the bin whose MAIN landmass it sits nearest.
+        // The single move with the largest spread reduction applies each
+        // round, under the law (exact landing, max band, no new sub-floor).
+        for ($round = 0, $roundMax = 4 * $k; $round < $roundMax; $round++) {
+            $bestMove = null; $bestGain = 1e-12;
+            $mains = [];
             for ($b = 0; $b < $k; $b++) {
-                foreach ($avoidableFrags($bins[$b]) as $frag) {
-                    $fragPop  = array_sum(array_map(fn ($m) => (float) $childById[$m]->population, $frag));
-                    $fragFrac = array_sum(array_map(fn ($m) => (float) $childById[$m]->fractional_seats, $frag));
+                $fr = $fragmentsOf($bins[$b]);
+                $mains[$b] = $fr[0] ?? [];
+            }
+            for ($b = 0; $b < $k; $b++) {
+                $frs = $fragmentsOf($bins[$b]);
+                for ($f = 1, $fc = count($frs); $f < $fc; $f++) {
+                    $frag = $frs[$f];
                     if (count($frag) >= count($bins[$b])) continue; // never empty the donor
-                    // Destinations: bins the fragment borders, and bins already
-                    // holding avoidable fragments (the consolidation target).
-                    $dests = [];
-                    foreach ($frag as $m) {
-                        foreach ($adj[$m] ?? [] as $nb) {
-                            $bn = $assigned[$nb] ?? -1;
-                            if ($bn >= 0 && $bn !== $b) $dests[$bn] = true;
-                        }
-                    }
+                    $fragFrac = array_sum(array_map(fn ($m) => (float) $childById[$m]->fractional_seats, $frag));
+                    $dOwn = $this->closestApproachSq($frag, $mains[$b], $centroids);
+                    $bestC = -1; $bestD = $dOwn;
                     for ($c = 0; $c < $k; $c++) {
-                        if ($c !== $b && !empty($avoidableFrags($bins[$c]))) $dests[$c] = true;
+                        if ($c === $b || empty($mains[$c])) continue;
+                        $d = $this->closestApproachSq($frag, $mains[$c], $centroids);
+                        if ($d < $bestD) { $bestD = $d; $bestC = $c; }
                     }
-                    foreach (array_keys($dests) as $c) {
-                        if (!$windowOk($binFracsL[$b] - $fragFrac, $binFracsL[$b])) continue;
-                        if (!$windowOk($binFracsL[$c] + $fragFrac, $binFracsL[$c])) continue;
-                        // Trial-apply, measure under the law, revert.
-                        $fragSet = array_flip($frag);
-                        $savedB = $bins[$b]; $savedC = $bins[$c];
-                        $bins[$b] = array_values(array_filter($bins[$b], fn ($x) => !isset($fragSet[$x])));
-                        $bins[$c] = array_merge($bins[$c], $frag);
-                        foreach ($frag as $m) { $assigned[$m] = $c; }
-                        $after = $lawOk($bins) ? $flaggedCount() : PHP_INT_MAX;
-                        $bins[$b] = $savedB; $bins[$c] = $savedC;
-                        foreach ($frag as $m) { $assigned[$m] = $b; }
-                        if ($after < $bestAfter) {
-                            $bestAfter = $after;
-                            $bestMove  = ['frag' => $frag, 'from' => $b, 'to' => $c, 'pop' => $fragPop, 'frac' => $fragFrac];
-                        }
-                    }
+                    if ($bestC < 0) continue;
+                    $gain = sqrt(max($dOwn, 0.0)) - sqrt(max($bestD, 0.0));
+                    if ($gain <= $bestGain) continue;
+                    if (!$windowOk($binFracsL[$b] - $fragFrac, $binFracsL[$b])) continue;
+                    if (!$windowOk($binFracsL[$bestC] + $fragFrac, $binFracsL[$bestC])) continue;
+                    // Trial under the law, revert.
+                    $fragSet = array_flip($frag);
+                    $savedB = $bins[$b]; $savedC = $bins[$bestC];
+                    $bins[$b] = array_values(array_filter($bins[$b], fn ($x) => !isset($fragSet[$x])));
+                    $bins[$bestC] = array_merge($bins[$bestC], $frag);
+                    $ok = $lawOk($bins);
+                    $bins[$b] = $savedB; $bins[$bestC] = $savedC;
+                    if (!$ok) continue;
+                    $bestGain = $gain;
+                    $bestMove = ['frag' => $frag, 'from' => $b, 'to' => $bestC,
+                                 'pop'  => array_sum(array_map(fn ($m) => (float) $childById[$m]->population, $frag)),
+                                 'frac' => $fragFrac];
                 }
             }
             if ($bestMove === null) break;
@@ -4087,10 +4097,9 @@ class DistrictingService
             foreach ($bestMove['frag'] as $m) { $assigned[$m] = $bestMove['to']; }
             $binPops[$bestMove['from']]  -= $bestMove['pop'];  $binPops[$bestMove['to']]  += $bestMove['pop'];
             $binFracsL[$bestMove['from']] -= $bestMove['frac']; $binFracsL[$bestMove['to']] += $bestMove['frac'];
-            $before = $bestAfter;
             $this->publishMassProgress($legislatureId, [
                 'phase'       => 'break_repair',
-                'phase_label' => sprintf('Break repair: consolidated a fragment (%d flagged bins remain)', $before),
+                'phase_label' => sprintf('Spread repair: moved a detached piece to its nearest host (Δ %.2f°)', $bestGain),
             ]);
         }
 
@@ -4100,7 +4109,10 @@ class DistrictingService
             if (count($targets) !== $k) break;
             $improved = false;
             for ($i = 0; $i < $k; $i++) {
-                if (empty($avoidableFrags($bins[$i]))) continue;
+                // Any multi-fragment bin qualifies for spread work — not only
+                // avoidable-flagged ones (the spread law covers island-exempt
+                // pieces too).
+                if (count($fragmentsOf($bins[$i])) <= 1) continue;
                 for ($j = 0; $j < $k; $j++) {
                     if ($j === $i || empty($bins[$j])) continue;
                     $touching = false;
@@ -4116,13 +4128,22 @@ class DistrictingService
                     $parts2 = $this->canonicalPartition($pairBudget, 2, $floor, $ceiling);
                     if ($parts2 === null) continue;
 
+                    $gapOf = function (array $members) use ($fragmentsOf, $centroids): float {
+                        $frs = $fragmentsOf($members);
+                        $g = 0.0;
+                        for ($f = 1, $fc = count($frs); $f < $fc; $f++) {
+                            $g += sqrt(max($this->closestApproachSq($frs[$f], $frs[0], $centroids), 0.0));
+                        }
+                        return $g;
+                    };
                     $pairFlagged = (empty($avoidableFrags($bins[$i])) ? 0 : 1) + (empty($avoidableFrags($bins[$j])) ? 0 : 1);
+                    $pairGapCur  = $gapOf($bins[$i]) + $gapOf($bins[$j]);
                     $comps = $fragmentsOf($union);
                     $mainland = $comps[0];
                     $satellites = array_slice($comps, 1);
                     if (count($mainland) < 4) continue;
 
-                    $bestSplit = null; $bestFlag = $pairFlagged; $bestRgV = PHP_FLOAT_MAX;
+                    $bestSplit = null; $bestFlag = $pairFlagged; $bestGapV = $pairGapCur; $bestRgV = PHP_FLOAT_MAX;
                     foreach ($this->bisectionCandidates($mainland, $childById, $adj, $centroids, $pairBudget, 2, $quotaPop, $floor, $ceiling) as $halves) {
                         if (count($halves) !== 2 || empty($halves[0]) || empty($halves[1])) continue;
                         [$hA, $hB] = $halves;
@@ -4161,6 +4182,7 @@ class DistrictingService
                         $flagB = empty($avoidableFrags($hB)) ? 0 : 1;
                         $flag  = $flagA + $flagB;
                         if ($flag > $bestFlag) continue;
+                        $gap = $gapOf($hA) + $gapOf($hB);
                         $rg = 0.0;
                         foreach ([$hA, $hB] as $half) {
                             $M = 0.0; $sx = 0.0; $sy = 0.0; $sx2 = 0.0; $sy2 = 0.0;
@@ -4171,11 +4193,16 @@ class DistrictingService
                             }
                             if ($M > 0) $rg += ($sx2 + $sy2) / $M - ($sx * $sx + $sy * $sy) / ($M * $M);
                         }
-                        if ($flag < $bestFlag || ($flag === $bestFlag && $bestSplit !== null && $rg < $bestRgV)) {
-                            $bestFlag = $flag; $bestRgV = $rg; $bestSplit = [$hA, $hB];
+                        // Selection: fewest flags, then tightest spread (the
+                        // 2026-08-23 spread law), then Rg².
+                        if ($flag < $bestFlag
+                            || ($flag === $bestFlag && $gap < $bestGapV - 1e-9)
+                            || ($flag === $bestFlag && abs($gap - $bestGapV) <= 1e-9 && $bestSplit !== null && $rg < $bestRgV)) {
+                            $bestFlag = $flag; $bestGapV = $gap; $bestRgV = $rg; $bestSplit = [$hA, $hB];
                         }
                     }
-                    if ($bestSplit !== null && $bestFlag < $pairFlagged) {
+                    if ($bestSplit !== null
+                        && ($bestFlag < $pairFlagged || $bestGapV < $pairGapCur - 1e-9)) {
                         [$hA, $hB] = $bestSplit;
                         $bins[$i] = array_values($hA);
                         $bins[$j] = array_values($hB);
@@ -4392,6 +4419,36 @@ class DistrictingService
                     $cv = $pairCut($fA, $fB);
                     if ($cv < $bestCutV) { $bestCutV = $cv; $bestCut = [$fA, $fB]; }
                     $rgRank[] = ['rg' => $pairRg($fA, $fB), 'halves' => [$fA, $fB]];
+                }
+
+                // 1:1 swap variants of the INCUMBENT halves (the Ukraine
+                // Poltava class, operator walk 2026-08-23: "could easily have
+                // been swapped with Chernihiv or Cherkasy … and it wouldn't
+                // force a stringy case"): straight-line sweeps never generate
+                // a single-member trade, so the hull vote never saw it.
+                $iBorderH = [];
+                foreach ($bins[$i] as $bc) {
+                    foreach ($adj[$bc] ?? [] as $nb) {
+                        if (($assigned[$nb] ?? -1) === $j) { $iBorderH[] = $bc; break; }
+                    }
+                }
+                $jBorderH = [];
+                foreach ($bins[$j] as $bd) {
+                    foreach ($adj[$bd] ?? [] as $nb) {
+                        if (($assigned[$nb] ?? -1) === $i) { $jBorderH[] = $bd; break; }
+                    }
+                }
+                foreach (array_slice($iBorderH, 0, 16) as $sc) {
+                    foreach (array_slice($jBorderH, 0, 16) as $sd) {
+                        $vA = array_values(array_filter($bins[$i], fn ($x) => $x !== $sc));
+                        $vA[] = $sd;
+                        $vB = array_values(array_filter($bins[$j], fn ($x) => $x !== $sd));
+                        $vB[] = $sc;
+                        if (!$legal($vA, $vB)) continue;
+                        $cv = $pairCut($vA, $vB);
+                        if ($cv < $bestCutV) { $bestCutV = $cv; $bestCut = [$vA, $vB]; }
+                        $rgRank[] = ['rg' => $pairRg($vA, $vB), 'halves' => [$vA, $vB]];
+                    }
                 }
                 if ($bestCut === null && empty($rgRank)) continue;
                 usort($rgRank, fn ($a, $b) => $a['rg'] <=> $b['rg']);
@@ -5095,8 +5152,9 @@ class DistrictingService
         // jumping a class still blocks. Near pieces get fine scrutiny (the
         // first bands are narrow), far pieces are all just "far" — the same
         // proportionality the operator gave balance (1pp bands) and necks.
-        // EXTRA breaks still lose absolutely at the count key above; the raw
-        // gap returns as the very last tiebreak.
+        // Since the 2026-08-23 spread law the gap band ranks BEFORE the break
+        // count: extra breaks lose within a spread class, and the raw gap
+        // still returns as the very last tiebreak.
         $gap     = max(0.0, (float) $s['fragment_gap']);
         $gapBand = (int) floor(log(1.0 + $gap) / log(2.0));
 
@@ -5120,8 +5178,17 @@ class DistrictingService
             $s['seat_drift'] ?? 0,                       //  1. BUDGET EXACTNESS — drifted drawings are excluded
             $avgExcess,                                  //  2. balance beyond acceptability (2pp bands)
             $maxExcess,                                  //  3. worst district beyond acceptability (5pp bands)
-            $s['non_contiguous_count'],                  //  4. contiguity breaks (absolute — never banded)
-            $gapBand,                                    //  5. break quality: fragments close, in doubling bands
+            // THE SPREAD LAW (operator walk of iteration 12, 2026-08-23):
+            // "even in non-contiguity forced situations we can make them as
+            // compact as possible to minimize the spread." Gap bands now rank
+            // BEFORE the break count: a plan whose forced pieces sit near
+            // their hosts beats one that concentrates orphans into fewer but
+            // planet-spanning districts (the Hawaii+Rhode-Island / Georgia+
+            // Cyprus grab-bag class). Every pre-existing pin is preserved —
+            // a 0-break side carries gap 0 and still wins both orders; only
+            // multi-break comparisons flip, exactly the operator's intent.
+            $gapBand,                                    //  4. break spread: fragments close, in doubling bands
+            $s['non_contiguous_count'],                  //  5. break count (within a spread class)
             $s['seat_spread_excess'] ?? $s['seat_spread'], //  6. reps-per-district equality beyond this k's canonical mix
             $s['cut_length'] ?? 0.0,                     //  7. compactness lead: real border length (round 10)
             $s['neck_count'],                            //  8. pinch points (shape spirit, within cut ties)
