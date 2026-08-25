@@ -4212,6 +4212,175 @@ class DistrictingService
             ]);
         }
 
+        // ── Pass A2: SMALLS RE-CLUSTER (iter-17, the answer key from the
+        // operator's own root map). A remainder pool of detached smalls
+        // (Hawaii + Rhode Island + territories) cannot be repaired by moves
+        // at fixed k: every crowded receiver breaks the ceiling window and a
+        // shrunken donor's floor-clamped seats break the exact landing. The
+        // standard's structure RAISES k: it mints TIGHT pools — the Pacific
+        // pieces anchored by Alaska (4.98 fr → 5 seats, lawful with no
+        // override), the Atlantic smalls as Delaware+Rhode Island+Vermont —
+        // and the donors all stay legal. Generalized: collect the far
+        // pieces (fragments ≥ 10° from their own main, plus whole pool
+        // bins) and nearby sub-frac members (≤ 2.5 fr within 8° of a
+        // collected piece — the Vermont class), greedy-clump them by
+        // proximity into pools that cross the floor, re-place leftovers at
+        // hosts with window slack, and adopt the whole restructure only
+        // when Step-11 lands the budget exactly and the total spread
+        // strictly improves. One deterministic shot per scope.
+        $spreadOf = function (array $theBins) use ($fragmentsOf, $centroids): float {
+            $g = 0.0;
+            foreach ($theBins as $tb) {
+                $frs2 = $fragmentsOf($tb);
+                for ($f2 = 1, $fc2 = count($frs2); $f2 < $fc2; $f2++) {
+                    $g += sqrt(max($this->closestApproachSq($frs2[$f2], $frs2[0], $centroids), 0.0));
+                }
+            }
+            return $g;
+        };
+        do {
+            if ($k < 3) break;
+            $mains = [];
+            for ($b = 0; $b < $k; $b++) {
+                $fr0 = $fragmentsOf($bins[$b]);
+                $mains[$b] = $fr0[0] ?? [];
+            }
+            // 1. Collect pieces: far fragments + entire all-fragment pools.
+            $pieces = [];          // each: ['m' => members, 'bin' => idx, 'frac' => f]
+            $fromBin = [];         // bin idx => list of piece indices
+            for ($b = 0; $b < $k; $b++) {
+                $frs = $fragmentsOf($bins[$b]);
+                if (count($frs) < 2) continue;
+                $allSingles = count($frs) === count($bins[$b]);
+                for ($f = 0; $f < count($frs); $f++) {
+                    if ($f === 0 && !$allSingles) continue; // mains stay unless the bin is a pure pool
+                    $d = sqrt(max($this->closestApproachSq($frs[$f], $frs[0], $centroids), 0.0));
+                    if ($f > 0 && $d < 10.0 && !$allSingles) continue;
+                    $pi = count($pieces);
+                    $pieces[] = ['m' => $frs[$f], 'bin' => $b,
+                                 'frac' => array_sum(array_map(fn ($m) => (float) $childById[$m]->fractional_seats, $frs[$f]))];
+                    $fromBin[$b][] = $pi;
+                }
+            }
+            if (count($pieces) < 3 || count($pieces) > 14) break;
+            // 2. Augment with nearby small contiguous members (the Vermont class).
+            $pieceMembers = [];
+            foreach ($pieces as $p) { foreach ($p['m'] as $m) { $pieceMembers[$m] = true; } }
+            for ($b = 0; $b < $k && count($pieces) < 14; $b++) {
+                foreach ($bins[$b] as $m) {
+                    if (isset($pieceMembers[$m])) continue;
+                    $mf = (float) $childById[$m]->fractional_seats;
+                    if ($mf > 2.5) continue;
+                    $near = false;
+                    foreach ($pieces as $p) {
+                        if (sqrt(max($this->closestApproachSq([$m], $p['m'], $centroids), 0.0)) <= 8.0) { $near = true; break; }
+                    }
+                    if (!$near) continue;
+                    // Its bin must survive the donation whole and connected.
+                    $rem = array_values(array_filter($bins[$b], fn ($x) => $x !== $m));
+                    $remFrac = array_sum(array_map(fn ($x) => (float) $childById[$x]->fractional_seats, $rem));
+                    if ($remFrac < $floorBoundary || count($fragmentsOf($rem)) > count($fragmentsOf($bins[$b]))) continue;
+                    $pi = count($pieces);
+                    $pieces[] = ['m' => [$m], 'bin' => $b, 'frac' => $mf];
+                    $fromBin[$b][] = $pi;
+                    $pieceMembers[$m] = true;
+                }
+            }
+            // 3. Greedy proximity clumping into floor-crossing pools.
+            $unused = array_keys($pieces);
+            $pools = [];   // list of piece-index lists
+            while (count($unused) >= 2) {
+                // Seed: the unused piece farthest from every existing bin main.
+                $seedI = null; $seedD = -1.0;
+                foreach ($unused as $pi) {
+                    $dMin = PHP_FLOAT_MAX;
+                    for ($c = 0; $c < $k; $c++) {
+                        if (empty($mains[$c])) continue;
+                        $d = $this->closestApproachSq($pieces[$pi]['m'], $mains[$c], $centroids);
+                        if ($d < $dMin) $dMin = $d;
+                    }
+                    if ($dMin > $seedD) { $seedD = $dMin; $seedI = $pi; }
+                }
+                if ($seedI === null) break;
+                $clump = [$seedI];
+                $cf = $pieces[$seedI]['frac'];
+                $rest = array_values(array_diff($unused, [$seedI]));
+                while ($cf < $floorBoundary && !empty($rest)) {
+                    $bestJ = null; $bestD = PHP_FLOAT_MAX;
+                    foreach ($rest as $pj) {
+                        $dMin = PHP_FLOAT_MAX;
+                        foreach ($clump as $pc) {
+                            $d = $this->closestApproachSq($pieces[$pj]['m'], $pieces[$pc]['m'], $centroids);
+                            if ($d < $dMin) $dMin = $d;
+                        }
+                        if ($dMin < $bestD) { $bestD = $dMin; $bestJ = $pj; }
+                    }
+                    if ($bestJ === null || $cf + $pieces[$bestJ]['frac'] >= $giantThreshold) break;
+                    $clump[] = $bestJ;
+                    $cf += $pieces[$bestJ]['frac'];
+                    $rest = array_values(array_diff($rest, [$bestJ]));
+                }
+                if ($cf >= $floorBoundary && $cf < $giantThreshold) {
+                    $pools[] = $clump;
+                    $unused = $rest;
+                } else {
+                    // Seed cannot reach a lawful pool — retire it from seeding.
+                    $unused = array_values(array_diff($unused, [$seedI]));
+                }
+            }
+            if (empty($pools)) break;
+            // 4. Build the trial: strip every pooled piece from its bin, add pools.
+            $pooledPieces = array_merge(...$pools);
+            $strip = [];
+            foreach ($pooledPieces as $pi) { foreach ($pieces[$pi]['m'] as $m) { $strip[$m] = true; } }
+            $trial = [];
+            $donorOk = true;
+            for ($b = 0; $b < $k; $b++) {
+                $rem = array_values(array_filter($bins[$b], fn ($m) => !isset($strip[$m])));
+                if (empty($rem)) continue; // fully consumed donor vanishes
+                $remFrac = array_sum(array_map(fn ($m) => (float) $childById[$m]->fractional_seats, $rem));
+                $oldFrac = $binFracsL[$b];
+                if ($remFrac < $floorBoundary && $oldFrac >= $floorBoundary) { $donorOk = false; break; }
+                $trial[] = $rem;
+            }
+            if (!$donorOk) break;
+            foreach ($pools as $clump) {
+                $nb = [];
+                foreach ($clump as $pi) { $nb = array_merge($nb, $pieces[$pi]['m']); }
+                $trial[] = $nb;
+            }
+            if (count($trial) < 2) break;
+            if (!$lawOk($trial)) {
+                \Illuminate\Support\Facades\Log::info('breakRepair recluster rejected', [
+                    'legislature_id' => $legislatureId, 'pools' => count($pools),
+                    'pieces' => count($pooledPieces), 'reason' => 'law',
+                ]);
+                break;
+            }
+            $spreadBefore = $spreadOf($bins);
+            $spreadAfter  = $spreadOf($trial);
+            if ($spreadAfter >= $spreadBefore - 1e-9) {
+                \Illuminate\Support\Facades\Log::info('breakRepair recluster rejected', [
+                    'legislature_id' => $legislatureId, 'pools' => count($pools),
+                    'spread_before' => round($spreadBefore, 2), 'spread_after' => round($spreadAfter, 2),
+                    'reason' => 'spread',
+                ]);
+                break;
+            }
+            // Adopt.
+            $bins = $trial;
+            $k = count($bins);
+            $binPops   = array_map(fn ($tb) => array_sum(array_map(fn ($j2) => (int) $childById[$j2]->population, $tb)), $bins);
+            $binFracsL = array_map(fn ($tb) => array_sum(array_map(fn ($j2) => (float) $childById[$j2]->fractional_seats, $tb)), $bins);
+            $assigned = [];
+            foreach ($bins as $bi => $bj) { foreach ($bj as $jm) { $assigned[$jm] = $bi; } }
+            $this->publishMassProgress($legislatureId, [
+                'phase'       => 'break_repair',
+                'phase_label' => sprintf('Spread repair: re-clustered %d far pieces into %d tight pool(s) (spread %.1f° → %.1f°, now %d districts)',
+                    count($pooledPieces), count($pools), $spreadBefore, $spreadAfter, $k),
+            ]);
+        } while (false);
+
         // ── Pass B: mainland re-split of still-flagged pairs ───────────────
         for ($round = 0; $round < 2; $round++) {
             $targets = $this->optimalIntegerTargets($binPops, $quotaPop, $budget, $low, $ceiling);
