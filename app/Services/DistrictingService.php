@@ -4039,7 +4039,15 @@ class DistrictingService
         $binFracsL = array_map(fn ($b) => array_sum(array_map(fn ($j) => (float) $childById[$j]->fractional_seats, $b)), $bins);
         $windowOk = function (float $newFrac, float $oldFrac) use ($floorBoundary, $giantThreshold): bool {
             if ($newFrac >= $giantThreshold) return false;
-            return $newFrac >= $floorBoundary || $oldFrac < $floorBoundary; // no NEW sub-floor bins
+            // Donors may enter the floor_override zone (down to the satellite
+            // boundary, floor - 0.5): that posture is LAWFUL and the standard
+            // map uses it 15 times, while forbidding it kept far pieces as
+            // BALLAST - Cyprus rode 12.5 deg with the Caucasus and Mongolia
+            // 29 deg from DPRK purely so their donors stayed above 4.5 (the
+            // Zhoushan pin: flag with the override, never "fix" with
+            // ballast). Below the override zone stays forbidden.
+            $satB = $floorBoundary - 0.5;
+            return $newFrac >= $satB || $oldFrac < $satB;
         };
 
         // ── Pass A: NEAREST-HOST redistribution (THE SPREAD LAW, operator
@@ -4275,7 +4283,7 @@ class DistrictingService
                 foreach ($bins[$b] as $m) {
                     if (isset($inS[$m])) continue;
                     $mf = (float) $childById[$m]->fractional_seats;
-                    if ($mf > 2.5 || $near([$m]) > 8.0) continue;
+                    if ($mf > 2.5 || $near([$m]) > 12.0) continue;
                     $rem = array_values(array_filter($bins[$b], fn ($x) => $x !== $m));
                     if (empty($rem)) continue;
                     $remFrac = array_sum(array_map(fn ($x) => (float) $childById[$x]->fractional_seats, $rem));
