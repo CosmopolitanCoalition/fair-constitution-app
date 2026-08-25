@@ -4104,48 +4104,76 @@ class DistrictingService
             // donation re-creates a sub-floor bin, which the window forbids.
             // The standard's structure has NO pool bin: each small rides a
             // NEARBY big district as a passenger. So try scattering the whole
-            // bin — every fragment to its own nearest host — k drops by one
-            // and the seat vector re-derives; accepted under the law when the
-            // total spread strictly improves on the best single move.
+            // bin — k drops by one and the seat vector re-derives. Iter-15
+            // fired ZERO with first-choice-only placement: the Pacific pieces
+            // (Hawaii + Guam + CNMI) all name the SAME west bin as nearest
+            // host, whose combined intake breaks the giant window, and even a
+            // window-legal placement can miss the exact seat landing by one.
+            // Iter-16: enumerate placement COMBINATIONS — top-3 hosts per
+            // fragment, bounded odometer — and take the first combination
+            // that passes the windows AND lands the budget exactly. Rejection
+            // reasons are logged so a silent zero-adoption run can never
+            // happen again.
             for ($b = 0; $b < $k; $b++) {
                 $frs = $fragmentsOf($bins[$b]);
-                if (count($frs) < 2) continue;
+                $nf  = count($frs);
+                if ($nf < 2 || $nf > 6) continue;
                 $others = [];
                 for ($c = 0; $c < $k; $c++) { if ($c !== $b && !empty($mains[$c])) $others[] = $c; }
                 if (count($others) < 2) continue;
-                $gainSum = 0.0; $placement = [];
-                foreach ($frs as $frag) {
-                    $dOwn = count($frs) > 1 ? $this->closestApproachSq($frag, $mains[$b], $centroids) : 0.0;
-                    $bc = -1; $bd = PHP_FLOAT_MAX;
+
+                $nChoices = $nf <= 5 ? 3 : 2;
+                $choices = []; $dOwnArr = []; $fragFr = []; $fragPo = [];
+                foreach ($frs as $fi => $frag) {
+                    $dOwnArr[$fi] = sqrt(max($this->closestApproachSq($frag, $mains[$b], $centroids), 0.0));
+                    $fragFr[$fi]  = array_sum(array_map(fn ($m) => (float) $childById[$m]->fractional_seats, $frag));
+                    $fragPo[$fi]  = array_sum(array_map(fn ($m) => (float) $childById[$m]->population, $frag));
+                    $rank = [];
                     foreach ($others as $c) {
-                        $d = $this->closestApproachSq($frag, $mains[$c], $centroids);
-                        if ($d < $bd) { $bd = $d; $bc = $c; }
+                        $rank[] = ['c' => $c, 'd' => sqrt(max($this->closestApproachSq($frag, $mains[$c], $centroids), 0.0))];
                     }
-                    if ($bc < 0) { $placement = null; break; }
-                    $placement[] = ['frag' => $frag, 'to' => $bc];
-                    // The main fragment contributes no own-gap; pieces gain
-                    // their (own − new) distance.
-                    if ($frag !== $frs[0]) $gainSum += sqrt(max($dOwn, 0.0)) - sqrt(max($bd, 0.0));
+                    usort($rank, fn ($x, $y) => $x['d'] <=> $y['d']);
+                    $choices[$fi] = array_slice($rank, 0, $nChoices);
                 }
-                if ($placement === null || $gainSum <= $bestGain) continue;
-                $trial = $bins;
-                $okWindows = true;
-                $delta = [];
-                foreach ($placement as $p) {
-                    $ff = array_sum(array_map(fn ($m) => (float) $childById[$m]->fractional_seats, $p['frag']));
-                    $delta[$p['to']] = ($delta[$p['to']] ?? 0.0) + $ff;
+
+                $comboMax = (int) pow($nChoices, $nf);   // ≤ 243
+                $rejWindow = 0; $rejLaw = 0; $rejGain = 0;
+                for ($ci = 0; $ci < $comboMax; $ci++) {
+                    $idx = $ci; $gainSum = 0.0; $delta = []; $placement = []; $valid = true;
+                    for ($fi = 0; $fi < $nf; $fi++) {
+                        $pick = $choices[$fi][$idx % $nChoices] ?? null;
+                        $idx  = intdiv($idx, $nChoices);
+                        if ($pick === null) { $valid = false; break; }
+                        $placement[] = ['frag' => $frs[$fi], 'to' => $pick['c'], 'pop' => $fragPo[$fi], 'frac' => $fragFr[$fi]];
+                        $delta[$pick['c']] = ($delta[$pick['c']] ?? 0.0) + $fragFr[$fi];
+                        // The main fragment (fi=0) contributes no own-gap;
+                        // pieces gain their (own − new) distance.
+                        if ($fi > 0) $gainSum += $dOwnArr[$fi] - $pick['d'];
+                    }
+                    if (!$valid) continue;
+                    if ($gainSum <= $bestGain) { $rejGain++; continue; }
+                    $okWindows = true;
+                    foreach ($delta as $c => $df) {
+                        if (!$windowOk($binFracsL[$c] + $df, $binFracsL[$c])) { $okWindows = false; break; }
+                    }
+                    if (!$okWindows) { $rejWindow++; continue; }
+                    $trial = $bins;
+                    foreach ($placement as $p) { $trial[$p['to']] = array_merge($trial[$p['to']], $p['frag']); }
+                    $trial[$b] = [];
+                    $trialLive = array_values(array_filter($trial, fn ($tb) => !empty($tb)));
+                    if (count($trialLive) < 2) continue;
+                    if (!$lawOk($trialLive)) { $rejLaw++; continue; }
+                    $bestGain = $gainSum;
+                    $bestMove = ['dissolve' => $b, 'placement' => $placement];
+                    break; // first passing combination (odometer order is deterministic)
                 }
-                foreach ($delta as $c => $df) {
-                    if (!$windowOk($binFracsL[$c] + $df, $binFracsL[$c])) { $okWindows = false; break; }
+                if ($bestMove === null && ($rejWindow + $rejLaw) > 0) {
+                    \Illuminate\Support\Facades\Log::info('breakRepair dissolution rejected', [
+                        'legislature_id' => $legislatureId,
+                        'bin' => $b, 'fragments' => $nf, 'combos' => $comboMax,
+                        'rej_window' => $rejWindow, 'rej_law' => $rejLaw, 'rej_gain' => $rejGain,
+                    ]);
                 }
-                if (!$okWindows) continue;
-                foreach ($placement as $p) { $trial[$p['to']] = array_merge($trial[$p['to']], $p['frag']); }
-                $trial[$b] = [];
-                $trialLive = array_values(array_filter($trial, fn ($tb) => !empty($tb)));
-                if (count($trialLive) < 2) continue;
-                if (!$lawOk($trialLive)) continue;
-                $bestGain = $gainSum;
-                $bestMove = ['dissolve' => $b, 'placement' => $placement];
             }
 
             if ($bestMove === null) break;
