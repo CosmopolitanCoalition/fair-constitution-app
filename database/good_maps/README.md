@@ -1,5 +1,12 @@
 # Good Maps — the standard maps and their detailed statistics
 
+**CAMPAIGN ACCEPTED (operator, 2026-08-25):** *"With very little exception I
+would say this is the best map set you have ever created."* The accepted maps
+are **"Good Maps — Auto Iteration 19"** (Earth `6dc4117a…`, USA `41682156…`),
+engine commit `42495b5`. **The full algorithm, laws, results, and rebuild
+guide are in [ALGORITHM.md](ALGORITHM.md)** — written so a human could build
+it or an AI could recreate it.
+
 **Standing order (operator, 2026-08-23):** the two manually finished maps below form the basis
 for **Good Maps**. They and their detailed statistics are saved here durably — committed and
 pushed — so they can never be lost the way the old good-map statistics were. Auto Districting is
