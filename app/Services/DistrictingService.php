@@ -4097,12 +4097,82 @@ class DistrictingService
                         $bins[$host['c']] = array_merge($bins[$host['c']], $frag);
                         $ok = $lawOk($bins);
                         $bins[$b] = $savedB; $bins[$host['c']] = $savedC;
-                        if (!$ok) continue;
-                        $bestGain = $gain;
-                        $bestMove = ['frag' => $frag, 'from' => $b, 'to' => $host['c'],
-                                     'pop'  => array_sum(array_map(fn ($m) => (float) $childById[$m]->population, $frag)),
-                                     'frac' => $fragFrac];
-                        break;
+                        if ($ok) {
+                            $bestGain = $gain;
+                            $bestMove = ['frag' => $frag, 'from' => $b, 'to' => $host['c'],
+                                         'pop'  => array_sum(array_map(fn ($m) => (float) $childById[$m]->population, $frag)),
+                                         'frac' => $fragFrac];
+                            break;
+                        }
+                        // COMPENSATED MOVE (iter-19, the operator's own chain):
+                        // the plain move fails the law because the donor's
+                        // remainder deviates past the band or the landing
+                        // shifts — the standard fixes exactly this by moving a
+                        // NEIGHBOR in alongside (his Caucasus keeps its floor by
+                        // gaining Turkmenistan when Cyprus leaves for the
+                        // Levant). Try pairing the move with one compensator Q
+                        // (a fragment or small member of another bin within 15°
+                        // of the donor's main, ≤2.5 fr, donor-of-Q stays whole)
+                        // — accepted under the full law with the combined
+                        // spread delta strictly positive.
+                        $comp = [];
+                        for ($e = 0; $e < $k && count($comp) < 12; $e++) {
+                            if ($e === $b || $e === $host['c']) continue;
+                            $frsE = $fragmentsOf($bins[$e]);
+                            foreach ($frsE as $fe => $fragE) {
+                                if ($fe === 0 && count($frsE) > 1) continue; // far pieces + whole-bin mains excluded
+                                if ($fe === 0 && count($frsE) === 1) {
+                                    // contiguous bin: offer its small members individually
+                                    foreach ($bins[$e] as $mQ) {
+                                        $qf = (float) $childById[$mQ]->fractional_seats;
+                                        if ($qf > 2.5) continue;
+                                        $dQ = sqrt(max($this->closestApproachSq([$mQ], $mains[$b], $centroids), 0.0));
+                                        if ($dQ > 15.0) continue;
+                                        $comp[] = ['m' => [$mQ], 'e' => $e, 'frac' => $qf, 'd' => $dQ, 'dOwnQ' => 0.0];
+                                        if (count($comp) >= 12) break;
+                                    }
+                                    continue;
+                                }
+                                $qf = array_sum(array_map(fn ($m) => (float) $childById[$m]->fractional_seats, $fragE));
+                                if ($qf > 2.5) continue;
+                                $dQ = sqrt(max($this->closestApproachSq($fragE, $mains[$b], $centroids), 0.0));
+                                if ($dQ > 15.0) continue;
+                                $dOwnQ = sqrt(max($this->closestApproachSq($fragE, $frsE[0], $centroids), 0.0));
+                                $comp[] = ['m' => $fragE, 'e' => $e, 'frac' => $qf, 'd' => $dQ, 'dOwnQ' => $dOwnQ];
+                            }
+                        }
+                        usort($comp, fn ($x, $y) => $x['d'] <=> $y['d']);
+                        foreach ($comp as $q) {
+                            $totalGain = $gain + ($q['dOwnQ'] - $q['d']);
+                            if ($totalGain <= $bestGain) continue;
+                            $e = $q['e'];
+                            $qSet = array_flip($q['m']);
+                            $remE = array_values(array_filter($bins[$e], fn ($x) => !isset($qSet[$x])));
+                            if (empty($remE)) continue;
+                            $remEF = array_sum(array_map(fn ($x) => (float) $childById[$x]->fractional_seats, $remE));
+                            if (!$windowOk($remEF, $binFracsL[$e])) continue;
+                            if (!$windowOk($binFracsL[$b] - $fragFrac + $q['frac'], $binFracsL[$b])) continue;
+                            $savedB2 = $bins[$b]; $savedC2 = $bins[$host['c']]; $savedE2 = $bins[$e];
+                            $bins[$b] = array_merge(
+                                array_values(array_filter($bins[$b], fn ($x) => !isset($fragSet[$x]))),
+                                $q['m']
+                            );
+                            $bins[$host['c']] = array_merge($bins[$host['c']], $frag);
+                            $bins[$e] = $remE;
+                            $ok2 = $lawOk($bins);
+                            $bins[$b] = $savedB2; $bins[$host['c']] = $savedC2; $bins[$e] = $savedE2;
+                            if (!$ok2) continue;
+                            $bestGain = $totalGain;
+                            $bestMove = ['pair' => true,
+                                         'frag' => $frag, 'from' => $b, 'to' => $host['c'],
+                                         'pop'  => array_sum(array_map(fn ($m) => (float) $childById[$m]->population, $frag)),
+                                         'frac' => $fragFrac,
+                                         'q' => $q['m'], 'qe' => $e,
+                                         'qpop' => array_sum(array_map(fn ($m) => (float) $childById[$m]->population, $q['m'])),
+                                         'qfrac' => $q['frac']];
+                            break;
+                        }
+                        if ($bestMove !== null && isset($bestMove['pair'])) break;
                     }
                 }
             }
@@ -4214,9 +4284,19 @@ class DistrictingService
             foreach ($bestMove['frag'] as $m) { $assigned[$m] = $bestMove['to']; }
             $binPops[$bestMove['from']]  -= $bestMove['pop'];  $binPops[$bestMove['to']]  += $bestMove['pop'];
             $binFracsL[$bestMove['from']] -= $bestMove['frac']; $binFracsL[$bestMove['to']] += $bestMove['frac'];
+            if (isset($bestMove['pair'])) {
+                $qSet = array_flip($bestMove['q']);
+                $bins[$bestMove['qe']]   = array_values(array_filter($bins[$bestMove['qe']], fn ($x) => !isset($qSet[$x])));
+                $bins[$bestMove['from']] = array_merge($bins[$bestMove['from']], $bestMove['q']);
+                foreach ($bestMove['q'] as $m) { $assigned[$m] = $bestMove['from']; }
+                $binPops[$bestMove['qe']]   -= $bestMove['qpop'];  $binPops[$bestMove['from']]  += $bestMove['qpop'];
+                $binFracsL[$bestMove['qe']] -= $bestMove['qfrac']; $binFracsL[$bestMove['from']] += $bestMove['qfrac'];
+            }
             $this->publishMassProgress($legislatureId, [
                 'phase'       => 'break_repair',
-                'phase_label' => sprintf('Spread repair: moved a detached piece to its nearest host (Δ %.2f°)', $bestGain),
+                'phase_label' => sprintf('Spread repair: %s (Δ %.2f°)',
+                    isset($bestMove['pair']) ? 'compensated exchange toward nearest hosts' : 'moved a detached piece to its nearest host',
+                    $bestGain),
             ]);
         }
 
