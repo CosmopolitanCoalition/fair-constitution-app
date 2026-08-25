@@ -4329,21 +4329,35 @@ class DistrictingService
                 }
             }
             if (empty($pools)) break;
-            // 4. Build the trial: strip every pooled piece from its bin, add pools.
-            $pooledPieces = array_merge(...$pools);
-            $strip = [];
-            foreach ($pooledPieces as $pi) { foreach ($pieces[$pi]['m'] as $m) { $strip[$m] = true; } }
-            $trial = [];
-            $donorOk = true;
-            for ($b = 0; $b < $k; $b++) {
-                $rem = array_values(array_filter($bins[$b], fn ($m) => !isset($strip[$m])));
-                if (empty($rem)) continue; // fully consumed donor vanishes
-                $remFrac = array_sum(array_map(fn ($m) => (float) $childById[$m]->fractional_seats, $rem));
-                $oldFrac = $binFracsL[$b];
-                if ($remFrac < $floorBoundary && $oldFrac >= $floorBoundary) { $donorOk = false; break; }
-                $trial[] = $rem;
+            // 4. Build the trial. A pool whose combined strips break a donor
+            // (the {New Mexico, DC} case stranding West Virginia sub-floor)
+            // is DROPPED, not fatal — the sound pools still adopt.
+            $trial = null;
+            for ($guard = 0; $guard <= count($pools) && !empty($pools); $guard++) {
+                $pooledPieces = array_merge(...$pools);
+                $strip = []; $pieceOfMember = [];
+                foreach ($pooledPieces as $pi) {
+                    foreach ($pieces[$pi]['m'] as $m) { $strip[$m] = true; $pieceOfMember[$m] = $pi; }
+                }
+                $trial = [];
+                $badPiece = null;
+                for ($b = 0; $b < $k; $b++) {
+                    $rem = array_values(array_filter($bins[$b], fn ($m) => !isset($strip[$m])));
+                    if (empty($rem)) continue; // fully consumed donor vanishes
+                    $remFrac = array_sum(array_map(fn ($m) => (float) $childById[$m]->fractional_seats, $rem));
+                    if ($remFrac < $floorBoundary && $binFracsL[$b] >= $floorBoundary) {
+                        foreach ($bins[$b] as $m) {
+                            if (isset($pieceOfMember[$m])) { $badPiece = $pieceOfMember[$m]; break; }
+                        }
+                        break;
+                    }
+                    $trial[] = $rem;
+                }
+                if ($badPiece === null) break; // every donor legal — trial stands
+                $pools = array_values(array_filter($pools, fn ($cl) => !in_array($badPiece, $cl, true)));
+                $trial = null;
             }
-            if (!$donorOk) break;
+            if ($trial === null || empty($pools)) break;
             foreach ($pools as $clump) {
                 $nb = [];
                 foreach ($clump as $pi) { $nb = array_merge($nb, $pieces[$pi]['m']); }
