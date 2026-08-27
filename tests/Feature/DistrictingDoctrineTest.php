@@ -520,7 +520,10 @@ class DistrictingDoctrineTest extends TestCase
                 ->where('id', '!=', $islandDistrict->id)
                 ->sole();
             $this->assertSame(5, (int) $chainDistrict->seats, 'the 4.70-frac chain rounds to the floor on its own');
-            $this->assertTrue((bool) $chainDistrict->floor_override, 'flagged for audit, not "fixed" with ballast');
+            // Operator walk 2026-08-27: floor_override now means TRUE sub-floor
+            // seats (the last-resort posture). A 4.70-frac district seated AT
+            // the floor holds it lawfully — no ballast, and no exception badge.
+            $this->assertFalse((bool) $chainDistrict->floor_override, 'floor held lawfully — not an exception, and never "fixed" with ballast');
         });
     }
 
@@ -576,6 +579,35 @@ class DistrictingDoctrineTest extends TestCase
         $this->assertTrue(
             $m->invoke($svc, $tight, $shapelyUnacceptable),
             'shape never buys balance past the acceptability threshold'
+        );
+    }
+
+    // ─── (9e) ILLEGAL COMPOSITES: fractional ≥ ceiling + 0.5 is a breach ────
+    //
+    // The Giza 9.57 (operator walk 2026-08-27): a composite whose fractional
+    // reaches ceiling + 0.5 would round past the ceiling — the manual plane
+    // has always refused it, but generation let the ceiling clamp hide it at
+    // 9 seats. The breach now ranks immediately after drift, so any
+    // breach-free alternative wins regardless of every other quality.
+
+    public function test_ceiling_breach_composites_lose_to_any_alternative(): void
+    {
+        $svc = app(DistrictingService::class);
+        $m   = new \ReflectionMethod($svc, 'scoreBeats');
+        $m->setAccessible(true);
+
+        $base = [
+            'seat_drift' => 0, 'floor_override_count' => 0, 'non_contiguous_count' => 0,
+            'fragment_gap' => 0.0, 'neck_count' => 0, 'seat_spread' => 0,
+            'avg_droop_threshold' => 0.12, 'avg_rg_sq' => 1.5,
+        ];
+        $breached = $base + ['ceiling_breach_count' => 1, 'cut_length' => 3.0,
+            'avg_deviation_pct' => 0.5, 'max_deviation_pct' => 1.0];
+        $lawful   = $base + ['ceiling_breach_count' => 0, 'cut_length' => 9.0,
+            'avg_deviation_pct' => 3.5, 'max_deviation_pct' => 6.0];
+        $this->assertTrue(
+            $m->invoke($svc, $lawful, $breached),
+            'a breach-free plan beats an illegal composite regardless of shape and balance (the Giza 9.57)'
         );
     }
 

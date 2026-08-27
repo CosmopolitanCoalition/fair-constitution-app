@@ -448,8 +448,20 @@ class DistrictingService
         $allChildrenRows = DB::select("
             SELECT
                 j.id, j.name, j.population,
-                COALESCE(pc.x, ST_X(ST_Centroid(j.geom))) AS centroid_x,
-                COALESCE(pc.y, ST_Y(ST_Centroid(j.geom))) AS centroid_y
+                -- ANTIMERIDIAN-AWARE centroids (operator walk 2026-08-27):
+                -- a geometry spanning the date line gets its centroid from the
+                -- shifted-longitude frame, normalized back to (-180,180] —
+                -- Kiribati's raw centroid landed in the mid-ATLANTIC (-51°),
+                -- poisoning every distance it touched and building the
+                -- ocean-spanning districts the operator vetoed.
+                COALESCE(pc.x, CASE WHEN ST_XMax(j.geom) - ST_XMin(j.geom) > 180 THEN
+                    CASE WHEN ST_X(ST_Centroid(ST_ShiftLongitude(j.geom))) > 180
+                         THEN ST_X(ST_Centroid(ST_ShiftLongitude(j.geom))) - 360
+                         ELSE ST_X(ST_Centroid(ST_ShiftLongitude(j.geom))) END
+                    ELSE ST_X(ST_Centroid(j.geom)) END) AS centroid_x,
+                COALESCE(pc.y, CASE WHEN ST_XMax(j.geom) - ST_XMin(j.geom) > 180
+                    THEN ST_Y(ST_Centroid(ST_ShiftLongitude(j.geom)))
+                    ELSE ST_Y(ST_Centroid(j.geom)) END) AS centroid_y
             FROM jurisdictions j
             LEFT JOIN jurisdiction_centroids pc ON pc.jurisdiction_id = j.id
             WHERE j.parent_id = :scope_id
@@ -1595,8 +1607,11 @@ class DistrictingService
         );
         foreach ($binData as $bi => &$b) {
             $b['fractional']     = $b['pop'] / max($binQuota, 1);
-            $b['floor_override'] = $b['fractional'] < $floorBoundary;
             $b['seats']          = $landedSeats[$bi] ?? min($ceiling, max(1, (int) round($b['fractional'])));
+            // TRUE exception only (operator walk 2026-08-27): the flag means
+            // seats BELOW the floor — the last-resort posture. A 4.9-frac bin
+            // seated at 5 holds the floor lawfully and wears no badge.
+            $b['floor_override'] = $b['seats'] < $floor;
         }
         unset($b);
 
@@ -1696,8 +1711,8 @@ class DistrictingService
                 );
                 foreach ($binData as $bi2 => &$b) {
                     $b['fractional']     = $b['pop'] / max($binQuota, 1);
-                    $b['floor_override'] = $b['fractional'] < $floorBoundary;
                     $b['seats']          = $landedSeats2[$bi2] ?? min($ceiling, max(1, (int) round($b['fractional'])));
+                    $b['floor_override'] = $b['seats'] < $floor;
                 }
                 unset($b);
             }
@@ -4051,14 +4066,23 @@ class DistrictingService
             $seats = $this->nearestSeatsWithSubFloorLifts($pops, $quotaPop, $budget, $floor, $ceiling);
             return $seats;
         };
-        $lawOk = function (array $trialBins) use ($seatVectorOf, $childById, $quotaPop, $budget): bool {
+        $subFloorOf = function (array $theBins) use ($seatVectorOf, $floor): int {
+            $sv = $seatVectorOf($theBins);
+            return $sv === null ? PHP_INT_MAX : count(array_filter($sv, fn ($x) => $x < $floor));
+        };
+        $lawOk = function (array $trialBins) use ($seatVectorOf, $childById, $quotaPop, $budget, $subFloorOf, &$bins, $ceiling): bool {
             $seats = $seatVectorOf($trialBins);
             if ($seats === null || array_sum($seats) !== $budget) return false; // drift is always wrong
             foreach ($trialBins as $ti => $tb) {
                 $p = array_sum(array_map(fn ($j) => (float) $childById[$j]->population, $tb));
                 if ($seats[$ti] <= 0) return false;
                 if (abs($p / $seats[$ti] - $quotaPop) / $quotaPop > 0.10) return false; // max band
+                // Illegal composite (the Giza 9.57): frac >= ceiling + 0.5
+                if ($quotaPop > 0 && $p / $quotaPop >= $ceiling + 0.5) return false;
             }
+            // Overrides are a LAST RESORT (operator walk 2026-08-27): no
+            // repair may mint a new true-sub-floor district.
+            if ($subFloorOf($trialBins) > $subFloorOf($bins)) return false;
             return true;
         };
         $binFracsL = array_map(fn ($b) => array_sum(array_map(fn ($j) => (float) $childById[$j]->fractional_seats, $b)), $bins);
@@ -5413,6 +5437,15 @@ class DistrictingService
 
         return [
             'seat_drift'           => $seatDrift,
+            // Illegal composites (operator walk 2026-08-27, the Giza 9.57):
+            // a bin whose fractional reaches ceiling + 0.5 would round past
+            // the ceiling — mandatory-subdivision territory. The ceiling
+            // clamp hid these at 9 seats; now they rank as a legality breach
+            // right after drift, so any alternative wins.
+            'ceiling_breach_count' => count(array_filter(
+                $binPops,
+                fn ($p) => $binQuota > 0 && ($p / $binQuota) >= ($ceiling + 0.5)
+            )),
             'floor_override_count' => count(array_filter($binSeats, fn ($sv) => $sv < $floor)),
             'non_contiguous_count' => $nonContiguousCount,
             'fragment_gap'         => $fragmentGap,
@@ -5627,7 +5660,8 @@ class DistrictingService
         // resort, never a band-arbitrage tool.
         return [
             $s['seat_drift'] ?? 0,                       //  1. BUDGET EXACTNESS — drifted drawings are excluded
-            $maxExcess,                                  //  2. worst district beyond acceptability (5pp bands)
+            $s['ceiling_breach_count'] ?? 0,             //  2. illegal composites (frac ≥ ceiling+0.5 — the Giza 9.57)
+            $maxExcess,                                  //  3. worst district beyond acceptability (5pp bands)
             $s['floor_override_count'] ?? 0,             //  3. sub-floor overrides — last resort, not arbitrage
             $avgExcess,                                  //  4. balance beyond acceptability (2pp bands)
             // THE SPREAD LAW (operator walk of iteration 12, 2026-08-23):

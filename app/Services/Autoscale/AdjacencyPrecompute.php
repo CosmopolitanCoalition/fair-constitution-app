@@ -90,7 +90,15 @@ class AdjacencyPrecompute
             //    mixed-provenance stored column).
             DB::statement('
                 INSERT INTO jurisdiction_centroids (jurisdiction_id, x, y)
-                SELECT id, ST_X(ST_Centroid(geom)), ST_Y(ST_Centroid(geom))
+                SELECT id,
+                       CASE WHEN ST_XMax(geom) - ST_XMin(geom) > 180 THEN
+                            CASE WHEN ST_X(ST_Centroid(ST_ShiftLongitude(geom))) > 180
+                                 THEN ST_X(ST_Centroid(ST_ShiftLongitude(geom))) - 360
+                                 ELSE ST_X(ST_Centroid(ST_ShiftLongitude(geom))) END
+                            ELSE ST_X(ST_Centroid(geom)) END,
+                       CASE WHEN ST_XMax(geom) - ST_XMin(geom) > 180
+                            THEN ST_Y(ST_Centroid(ST_ShiftLongitude(geom)))
+                            ELSE ST_Y(ST_Centroid(geom)) END
                   FROM jurisdictions
                  WHERE parent_id = ?
                    AND deleted_at IS NULL
