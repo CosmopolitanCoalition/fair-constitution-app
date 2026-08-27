@@ -1403,6 +1403,15 @@ class DistrictingService
         // districts and re-split pairs whose mainland was broken by a balance
         // variant. Hull repair then polishes shape without re-introducing
         // breaks (its mainland-connectivity guard forbids them).
+        // Override elimination runs FIRST: floor exceptions are a last
+        // resort (operator walk 2, 2026-08-27) and their repair outranks
+        // contiguity in the comparator, so the later passes polish around
+        // the exception-free shape (break repair's lawOk cannot mint a
+        // sub-floor bin back).
+        $allBins = $this->overrideRepairPass(
+            $allBins, $childById, $adj, $centroids,
+            $nonGiantBudget, $floor, $ceiling, $giantThreshold, $floorBoundary
+        );
         $allBins = $this->breakRepairPass(
             $allBins, $childById, $adj, $centroids, $legislature_id,
             $nonGiantBudget, $floor, $ceiling, $giantThreshold, $floorBoundary
@@ -3929,6 +3938,203 @@ class DistrictingService
      * free at score time from the Step-7 edge query. Community integrity is
      * determined at classification time (giants pre-separated) — not scored here.
      */
+    /**
+     * ── OVERRIDE-ELIMINATION REPAIR (operator walk 2, 2026-08-27) ──
+     *
+     * "Floor exceptions are a last resort and occur when the budget is
+     * otherwise exhausted." A landed configuration may carry a sub-floor
+     * district ONLY when no lawful re-partition of the same pool removes
+     * it. The generators respect adjacency, so they never propose the two
+     * moves the operator's own maps use to kill avoidable exceptions:
+     *
+     *   MEMBER PULL — lift a sub-floor bin above the satellite boundary
+     *   by pulling one member across the pool (his New Valley: one
+     *   2.87-share member crosses the oasis/valley divide and
+     *   (7.44 | 2.56) becomes (4.57 | 5.43) → (5,5), exact, zero
+     *   exceptions).
+     *
+     *   DISSOLUTION — a sub-floor LONER whose plane neighbors were all
+     *   promoted as giants merges wholesale into the nearest lawful
+     *   host, and compensating single-member moves elsewhere restore the
+     *   exact landing (his Matrouh: the loner joins the Sinai group and
+     *   South Sinai shifts to Damietta; the plane lands exactly with one
+     *   district fewer).
+     *
+     * Trials may cross adjacency — the comparator already ranks
+     * floor_override_count above non_contiguous_count, and nearest-first
+     * ordering keeps the spread law (pieces sit near hosts). Acceptance
+     * is THE LAW plus the comparator: exact landing under Step-11
+     * arithmetic, no illegal composite (frac ≥ ceiling + 0.5), every
+     * district inside the 10% max band, STRICTLY fewer sub-floor bins,
+     * and scoreBeats over the incumbent. Forced exceptions
+     * (dominant-atom dust, sub-floor pools beside locked giants) refuse
+     * every trial here and stand — that is their lawful posture.
+     */
+    private function overrideRepairPass(
+        array $bins,
+        array $childById,
+        array $adj,
+        array $centroids,
+        int   $budget,
+        int   $floor,
+        int   $ceiling,
+        float $giantThreshold,
+        float $floorBoundary
+    ): array {
+        $bins = array_values(array_filter($bins, fn ($b) => !empty($b)));
+        $k = count($bins);
+        if ($k < 2 || $budget <= 0) return $bins;
+
+        $members  = array_merge(...$bins);
+        $totalPop = array_sum(array_map(fn ($j) => (float) $childById[$j]->population, $members));
+        if ($totalPop <= 0) return $bins;
+        $quotaPop = $totalPop / $budget;
+
+        $popOf = fn (array $b) => array_sum(array_map(fn ($j) => (float) $childById[$j]->population, $b));
+        $seatVectorOf = function (array $trialBins) use ($popOf, $quotaPop, $budget, $floor, $ceiling): ?array {
+            $pops = [];
+            foreach ($trialBins as $tb) {
+                if (empty($tb)) return null;
+                $pops[] = $popOf($tb);
+            }
+            return $this->nearestSeatsWithSubFloorLifts($pops, $quotaPop, $budget, $floor, $ceiling);
+        };
+        $subFloorOf = function (array $theBins) use ($seatVectorOf, $floor): int {
+            $sv = $seatVectorOf($theBins);
+            return $sv === null ? PHP_INT_MAX : count(array_filter($sv, fn ($x) => $x < $floor));
+        };
+        $lawOk = function (array $trialBins) use ($seatVectorOf, $popOf, $quotaPop, $budget, $ceiling): bool {
+            $seats = $seatVectorOf($trialBins);
+            if ($seats === null || array_sum($seats) !== $budget) return false; // drift is always wrong
+            foreach ($trialBins as $ti => $tb) {
+                $p = $popOf($tb);
+                if ($seats[$ti] <= 0) return false;
+                if (abs($p / $seats[$ti] - $quotaPop) / $quotaPop > 0.10) return false; // max band
+                if ($quotaPop > 0 && $p / $quotaPop >= $ceiling + 0.5) return false;   // illegal composite
+            }
+            return true;
+        };
+
+        $startSub = $subFloorOf($bins);
+        if ($startSub === 0 || $startSub === PHP_INT_MAX) return $bins;
+
+        $scoreOf = fn (array $b) => $this->scoreConfiguration($b, $childById, $adj, $totalPop, $budget, $floor, $ceiling, $floorBoundary);
+
+        // Greedy exactness compensator on plain bins (the Damietta move):
+        // single member moves that shrink |landing − budget|, adjacency
+        // preferred on ties, never emptying a bin. Intermediate states may
+        // hold an over-ceiling composite mid-flight; lawOk vets the END
+        // shape and refuses any trial that keeps one.
+        $compensate = function (array $trialBins) use ($childById, $adj, $quotaPop, $budget, $ceiling, $popOf): array {
+            $seatsOf = fn (float $pop) => min($ceiling, max(1, (int) round($pop / max($quotaPop, 1))));
+            for ($pass = 0; $pass < 50; $pass++) {
+                $pops = array_map($popOf, $trialBins);
+                $sum  = array_sum(array_map($seatsOf, $pops));
+                $gap  = $sum - $budget;
+                if ($gap === 0) break;
+                $sets = array_map('array_flip', $trialBins);
+                $best = null;
+                foreach ($trialBins as $i => $bi) {
+                    if (count($bi) < 2) continue; // never empty a bin
+                    foreach ($bi as $jid) {
+                        $cp = (float) $childById[$jid]->population;
+                        foreach ($trialBins as $j => $bj) {
+                            if ($i === $j) continue;
+                            $delta = ($seatsOf($pops[$i] - $cp) + $seatsOf($pops[$j] + $cp))
+                                   - ($seatsOf($pops[$i]) + $seatsOf($pops[$j]));
+                            $gain = abs($gap) - abs($gap + $delta);
+                            if ($gain <= 0) continue;
+                            $adjacent = false;
+                            foreach ($adj[$jid] ?? [] as $nb) {
+                                if (isset($sets[$j][$nb])) { $adjacent = true; break; }
+                            }
+                            $cand = ['from' => $i, 'to' => $j, 'jid' => $jid, 'gain' => $gain, 'adjacent' => $adjacent];
+                            if ($best === null
+                                || $cand['gain'] > $best['gain']
+                                || ($cand['gain'] === $best['gain'] && $cand['adjacent'] && !$best['adjacent'])) {
+                                $best = $cand;
+                            }
+                        }
+                    }
+                }
+                if ($best === null) break;
+                $trialBins[$best['from']] = array_values(array_filter(
+                    $trialBins[$best['from']], fn ($x) => $x !== $best['jid']
+                ));
+                $trialBins[$best['to']][] = $best['jid'];
+            }
+            return $trialBins;
+        };
+
+        for ($round = 0; $round < $k; $round++) {
+            $sv = $seatVectorOf($bins);
+            if ($sv === null) break;
+            $ovrIdx = array_keys(array_filter($sv, fn ($s) => $s < $floor));
+            if (empty($ovrIdx)) break;
+            $curScore = $scoreOf($bins);
+            $curSub   = $subFloorOf($bins);
+
+            $bestTrial = null; $bestScore = null;
+            $consider = function (array $trial) use (&$bestTrial, &$bestScore, $lawOk, $subFloorOf, $curSub, $scoreOf, $curScore, $compensate): void {
+                // Drop emptied bins BEFORE compensating: an empty bin's
+                // 1-seat safety clamp fakes an exact landing and starves
+                // the compensator (the Matrouh relay never fired).
+                $trial = array_values(array_filter($trial, fn ($b) => !empty($b)));
+                if (empty($trial)) return;
+                $trial = $compensate($trial);
+                if (!$lawOk($trial)) return;
+                if ($subFloorOf($trial) >= $curSub) return;   // must strictly reduce
+                $s = $scoreOf($trial);
+                if (!$this->scoreBeats($s, $curScore)) return; // the comparator is the judge
+                if ($bestScore === null || $this->scoreBeats($s, $bestScore)) {
+                    $bestTrial = $trial; $bestScore = $s;
+                }
+            };
+
+            foreach ($ovrIdx as $o) {
+                // Family A: MEMBER PULL into the sub-floor bin, nearest members
+                // first (the spread law), bounded search width.
+                $pulls = [];
+                foreach ($bins as $d => $donor) {
+                    if ($d === $o || count($donor) < 2) continue; // never empty the donor
+                    foreach ($donor as $m) {
+                        $pulls[] = [$d, $m, $this->closestApproachSq([$m], $bins[$o], $centroids)];
+                    }
+                }
+                usort($pulls, fn ($a, $b) => $a[2] <=> $b[2]);
+                foreach (array_slice($pulls, 0, 24) as [$d, $m, $_]) {
+                    $trial = $bins;
+                    $trial[$d] = array_values(array_filter($trial[$d], fn ($x) => $x !== $m));
+                    $trial[$o][] = $m;
+                    $consider($trial);
+                }
+
+                // Family B: DISSOLUTION into a host — every host, nearest first
+                // (the pool's k is small; geometric top-3 hid the operator's
+                // Matrouh→Sinai shape behind two closer hosts whose merges
+                // breach, and the comparator is the judge anyway).
+                $hosts = [];
+                foreach ($bins as $h => $hb) {
+                    if ($h === $o) continue;
+                    $hosts[] = [$h, $this->closestApproachSq($bins[$o], $hb, $centroids)];
+                }
+                usort($hosts, fn ($a, $b) => $a[1] <=> $b[1]);
+                foreach ($hosts as [$h, $_]) {
+                    $trial = $bins;
+                    $trial[$h] = array_merge($trial[$h], $trial[$o]);
+                    $trial[$o] = [];
+                    $consider($trial);
+                }
+            }
+
+            if ($bestTrial === null) break; // remaining exceptions are genuinely forced
+            $bins = array_values(array_filter($bestTrial, fn ($b) => !empty($b)));
+            $k = count($bins);
+        }
+
+        return $bins;
+    }
+
     /**
      * Break repair on the final drawing (Good Maps, 2026-08-23; iter-8).
      * The reported is_contiguous flags a district only when its break was

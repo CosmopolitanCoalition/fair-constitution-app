@@ -18,6 +18,12 @@ import csv
 import sys
 from collections import defaultdict
 
+# Jurisdiction names carry the full Unicode range (Gujarāt, Rājasthān …);
+# a cp1252 Windows console must not kill the report mid-print.
+for _s in (sys.stdout, sys.stderr):
+    if hasattr(_s, 'reconfigure'):
+        _s.reconfigure(encoding='utf-8', errors='replace')
+
 
 def load(path):
     scopes = defaultdict(list)

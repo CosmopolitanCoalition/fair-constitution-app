@@ -655,6 +655,134 @@ class DistrictingDoctrineTest extends TestCase
         });
     }
 
+    // ─── (9f) OVERRIDE-ELIMINATION REPAIR: exceptions are a LAST RESORT ─────
+    //
+    // Operator walk 2 (2026-08-27): "Floor exceptions are a last resort and
+    // occur when the budget is otherwise exhausted." His own maps kill the
+    // avoidable ones with two moves the adjacency-respecting generators never
+    // propose: a MEMBER PULL across the pool (New Valley: one 2.87-share
+    // member crosses the oasis/valley divide and (7.44 | 2.56) lands (5,5)),
+    // and a loner DISSOLUTION with compensating moves (Matrouh, isolated on
+    // its plane because every neighbor was promoted as a giant). Forced
+    // exceptions (dominant-atom dust, sub-floor pools beside locked giants)
+    // refuse every trial and stand — pinned below and end-to-end by the
+    // dominant-atom test above, whose 9+1 must SURVIVE this pass.
+
+    private function invokeOverridePass(array $bins, array $childById, array $adj, array $centroids, int $budget): array
+    {
+        $svc = app(DistrictingService::class);
+        $m   = new \ReflectionMethod($svc, 'overrideRepairPass');
+        $m->setAccessible(true);
+
+        return $m->invoke($svc, $bins, $childById, $adj, $centroids, $budget, 5, 9, 9.5, 5.0);
+    }
+
+    public function test_override_repair_pulls_a_member_to_kill_an_avoidable_exception(): void
+    {
+        // New Valley in miniature (budget 10, quota 114,709): a valley chain
+        // at 7.44 and an oasis chain at 2.56. Only the 2.87-share member can
+        // cross and land (5,5) — every other pull leaves a sub-floor bin.
+        $c = fn (int $pop, float $x, float $y) => (object) ['population' => $pop, 'centroid_x' => $x, 'centroid_y' => $y];
+        $childById = [
+            'qina'    => $c(425_570, 0.0, 0.0),
+            'guhayna' => $c(329_213, 2.0, 0.0),
+            'waqf'    => $c(98_650, 1.0, 0.0),
+            'kharga'  => $c(134_210, 10.0, 0.0),
+            'dakhla'  => $c(118_150, 11.0, 0.0),
+            'farafra' => $c(41_297, 12.0, 0.0),
+        ];
+        $adj = [
+            'qina' => ['waqf'], 'waqf' => ['qina', 'guhayna'], 'guhayna' => ['waqf'],
+            'kharga' => ['dakhla'], 'dakhla' => ['kharga', 'farafra'], 'farafra' => ['dakhla'],
+        ];
+        $centroids = array_map(fn ($o) => ['x' => $o->centroid_x, 'y' => $o->centroid_y], $childById);
+        $bins = [['qina', 'guhayna', 'waqf'], ['kharga', 'dakhla', 'farafra']];
+
+        $out = $this->invokeOverridePass($bins, $childById, $adj, $centroids, 10);
+
+        $this->assertCount(2, $out);
+        $sets = array_map(fn ($b) => array_values(array_unique($b)), $out);
+        $oasis = null;
+        foreach ($sets as $s) {
+            if (in_array('kharga', $s, true)) $oasis = $s;
+        }
+        $this->assertNotNull($oasis);
+        $this->assertContains('guhayna', $oasis, 'the 2.87-share member crossed the divide (the New Valley pull)');
+        foreach ($out as $b) {
+            $pop = array_sum(array_map(fn ($j) => $childById[$j]->population, $b));
+            $this->assertSame(5, (int) round($pop / 114_709.0), 'both districts seat the floor — the exception is gone');
+        }
+    }
+
+    public function test_override_repair_dissolves_an_isolated_loner_with_compensation(): void
+    {
+        // The Matrouh shape (budget 44, quota 100,000): five lawful groups and
+        // one 2.88-share loner whose plane neighbors were all promoted as
+        // giants. Every lawful resolution needs a cross-pool move; the law
+        // pins are shape-agnostic: exact landing, zero sub-floor, no illegal
+        // composite.
+        $c = fn (int $pop, float $x, float $y) => (object) ['population' => $pop, 'centroid_x' => $x, 'centroid_y' => $y];
+        $childById = [
+            'dam' => $c(811_500, 8.0, 4.0),
+            'lux' => $c(796_600, 8.0, 0.0),
+            'asw' => $c(748_700, 9.0, 1.0), 'red' => $c(182_200, 6.0, 2.0),
+            'prt' => $c(382_000, 10.0, 4.0), 'nsi' => $c(223_000, 11.0, 4.0), 'ssi' => $c(52_900, 11.0, 3.0),
+            'ism' => $c(559_000, 9.5, 3.5), 'suz' => $c(355_900, 9.6, 3.2),
+            'mat' => $c(288_300, 0.0, 4.0),
+        ];
+        $adj = [
+            'asw' => ['red'], 'red' => ['asw'],
+            'prt' => ['nsi'], 'nsi' => ['prt', 'ssi'], 'ssi' => ['nsi'],
+            'ism' => ['suz'], 'suz' => ['ism'],
+        ];
+        $centroids = array_map(fn ($o) => ['x' => $o->centroid_x, 'y' => $o->centroid_y], $childById);
+        $bins = [['dam'], ['lux'], ['asw', 'red'], ['prt', 'nsi', 'ssi'], ['ism', 'suz'], ['mat']];
+
+        $out = $this->invokeOverridePass($bins, $childById, $adj, $centroids, 44);
+
+        $quota = array_sum(array_map(fn ($o) => $o->population, $childById)) / 44.0;
+        $seatSum = 0;
+        foreach ($out as $b) {
+            $pop  = array_sum(array_map(fn ($j) => $childById[$j]->population, $b));
+            $frac = $pop / $quota;
+            $this->assertLessThan(9.5, $frac, 'no illegal composite may appear (frac >= ceiling + 0.5)');
+            $seats = min(9, max(1, (int) round($frac)));
+            $this->assertGreaterThanOrEqual(5, $seats, 'the isolated loner\'s exception is eliminated — last resort only');
+            $seatSum += $seats;
+        }
+        $this->assertSame(44, $seatSum, 'the plane still lands its budget exactly (drift is always wrong)');
+    }
+
+    public function test_override_repair_refuses_forced_exceptions(): void
+    {
+        $c = fn (int $pop, float $x, float $y) => (object) ['population' => $pop, 'centroid_x' => $x, 'centroid_y' => $y];
+
+        // Ilocos class: three atoms, budget 10 — every k=2 partition carries a
+        // sub-floor bin and the k=1 merge breaches. The landed override stands.
+        $childById = [
+            'sur' => $c(330_000, 0.0, 0.0), 'nor' => $c(285_000, 1.0, 0.0), 'lau' => $c(385_000, 0.5, 1.0),
+        ];
+        $adj = ['sur' => ['nor', 'lau'], 'nor' => ['sur'], 'lau' => ['sur']];
+        $centroids = array_map(fn ($o) => ['x' => $o->centroid_x, 'y' => $o->centroid_y], $childById);
+        $bins = [['sur', 'nor'], ['lau']];
+        $out  = $this->invokeOverridePass($bins, $childById, $adj, $centroids, 10);
+        $norm = fn (array $bb) => array_map(fn ($b) => implode(',', collect($b)->sort()->values()->all()), $bb);
+        $this->assertSame($norm($bins), $norm($out), 'a genuinely forced exception refuses every trial and stands');
+
+        // Dominant-atom class: one 7.95 atom plus dust, budget 11 — the dust
+        // can never reach the satellite boundary and the merge breaches.
+        $childById2 = [
+            'city' => $c(795_500, 0.0, 0.0),
+            'd1' => $c(84_000, 1.0, 0.0), 'd2' => $c(45_000, 1.2, 0.2), 'd3' => $c(80_500, 1.4, 0.4),
+            'd4' => $c(95_000, 1.6, 0.6),
+        ];
+        $adj2 = ['city' => ['d1'], 'd1' => ['city', 'd2'], 'd2' => ['d1', 'd3'], 'd3' => ['d2', 'd4'], 'd4' => ['d3']];
+        $centroids2 = array_map(fn ($o) => ['x' => $o->centroid_x, 'y' => $o->centroid_y], $childById2);
+        $bins2 = [['city'], ['d1', 'd2', 'd3', 'd4']];
+        $out2  = $this->invokeOverridePass($bins2, $childById2, $adj2, $centroids2, 11);
+        $this->assertSame($norm($bins2), $norm($out2), 'dominant-atom dust keeps its lawful override (never ballast, never a breach)');
+    }
+
     // ─── (9c) THE SPREAD LAW: forced pieces sit near their hosts ─────────────
     //
     // Operator walk of iteration 12 (2026-08-23): "even in non-contiguity

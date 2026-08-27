@@ -303,8 +303,60 @@ the campaign transcript pattern or rebuild from §6.
 | 17 | `c9feb3e` | **Pool 2-center split** → the standard's own USA root structure, k 16→17 |
 | 18 | `5c79ba4` | Override-zone donors; helper radius 12° |
 | 19 | `42495b5` | Compensated moves (the Turkmenistan chain shape) → **ACCEPTED SET** |
+| 20 | `f5611ff`+`7131c95` | **THE DOMINANT-ATOM LAW** (operator walk 1, 2026-08-26): nearest seats everywhere + sub-floor lifts only (`nearestSeatsWithSubFloorLifts`); `floor_override_count` comparator key; small-member caps derive from the floor (floor/2). Gate run 20: byte-identical marks |
+| 21 | `be703b8` | **Walk-2 laws** (2026-08-27): antimeridian-aware centroids (a date-line-crossing geometry's raw centroid sat in the wrong ocean — Kiribati at −51°E; ShiftLongitude frame, engine + precompute byte-identical); **illegal composite** = stored fractional ≥ ceiling + 0.5 (the Giza 9.57) as comparator key 2 + refusal in every repair; `floor_override` flag = seats < floor ONLY (a 4.9-frac district seated at 5 wears no badge). Gate run 21: USA identical 4cl/.7723/12.48; Earth 17cl/.6332/40.79 — CHR better than accepted, fit +0.93 = the breach ban outlawing shapes the accepted set still used (India 9.507). Legality > deviation |
+| 22 | — | **Override-elimination repair** (walk 2, high-priority 2/3): floor exceptions are a LAST RESORT — see §10b |
 
-Record commits: standards `9697d07`, verdicts/statistics through `680c5ee`.
+Record commits: standards `9697d07`, verdicts/statistics through `680c5ee`;
+walk-era gate stats in `iterations/iter20` and `iterations/iter21`.
+
+## 10b. The override-elimination repair (operator walk 2, 2026-08-27)
+
+**The law:** *"Floor exceptions are a last resort and occur when the budget
+is otherwise exhausted."* A landed configuration may carry a sub-floor
+district ONLY when no lawful re-partition of the same pool removes it. The
+operator's own maps kill the avoidable ones with two moves the
+adjacency-respecting generators never propose, so a dedicated pass
+(`overrideRepairPass`, invoked FIRST in the Step-8c repair layer, before
+break repair) mechanizes them:
+
+- **MEMBER PULL** — lift a sub-floor bin above the satellite boundary
+  (floor − 0.5) by pulling one member across the pool, nearest members
+  first, bounded width (24). His New Valley: the one 2.87-share member
+  crosses the oasis/valley divide and (7.44 | 2.56) lands (5,5) — exact,
+  zero exceptions. No other pull works; the pass finds exactly that one.
+- **DISSOLUTION** — a sub-floor loner (its plane neighbors all promoted as
+  giants) merges wholesale into a host (every host tried, nearest first),
+  then a greedy **exactness compensator** (single member moves shrinking
+  |landing − budget|, adjacency-preferred, bins never emptied) restores the
+  exact landing. His Matrouh: loner + compensating relay; the machine's
+  adopted shape ({Matrouh, Red Sea}, one break) actually outranks his
+  manual (two breaks) under the settled spread law — within the max band,
+  break count decides.
+
+**Acceptance = the law + the comparator:** exact landing under Step-11
+arithmetic, no illegal composite, every district inside the 10% max band,
+STRICTLY fewer sub-floor bins, and `scoreBeats` over the incumbent. Trials
+may cross adjacency — `floor_override_count` outranks
+`non_contiguous_count`, which is exactly why the generators alone could
+never do this.
+
+**The forced classes refuse every trial and stand** (verified live on all
+six candidate maps): dominant-atom dust (the donor is a single atom — no
+pull; the merge breaches), sub-floor pools beside locked giants (Montréal 2,
+Calgary 3, the UK Celtic remainder 3 — nothing in the pool to merge with),
+and all-partitions-carry-one scopes (Ilocos, W. Visayas, Santiago — every
+lawful re-partition still holds a sub-floor bin, so the comparator-best one
+ships). Two traps the lab caught, preserved here so no rebuild repeats
+them: an EMPTIED bin must be dropped **before** the compensator runs (its
+1-seat safety clamp fakes an exact landing and starves the relay), and the
+dissolution host list must be **every** host, not a geometric top-3 — the
+nearest hosts often breach while a farther one absorbs cleanly.
+
+Pinned: `test_override_repair_pulls_a_member_to_kill_an_avoidable_exception`,
+`test_override_repair_dissolves_an_isolated_loner_with_compensation`,
+`test_override_repair_refuses_forced_exceptions`; the dominant-atom
+end-to-end pin doubles as the no-op guard (its 9+1 must survive the pass).
 
 ## 11. THE REGRESSION GATE and the next phase (operator orders, 2026-08-25)
 
