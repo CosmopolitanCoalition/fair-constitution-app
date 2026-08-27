@@ -4150,7 +4150,7 @@ class DistrictingService
                                     // contiguous bin: offer its small members individually
                                     foreach ($bins[$e] as $mQ) {
                                         $qf = (float) $childById[$mQ]->fractional_seats;
-                                        if ($qf > 2.5) continue;
+                                        if ($qf > $floor / 2.0) continue;
                                         $dQ = sqrt(max($this->closestApproachSq([$mQ], $mains[$b], $centroids), 0.0));
                                         if ($dQ > 15.0) continue;
                                         $comp[] = ['m' => [$mQ], 'e' => $e, 'frac' => $qf, 'd' => $dQ, 'dOwnQ' => 0.0];
@@ -4159,7 +4159,7 @@ class DistrictingService
                                     continue;
                                 }
                                 $qf = array_sum(array_map(fn ($m) => (float) $childById[$m]->fractional_seats, $fragE));
-                                if ($qf > 2.5) continue;
+                                if ($qf > $floor / 2.0) continue;
                                 $dQ = sqrt(max($this->closestApproachSq($fragE, $mains[$b], $centroids), 0.0));
                                 if ($dQ > 15.0) continue;
                                 $dOwnQ = sqrt(max($this->closestApproachSq($fragE, $frsE[0], $centroids), 0.0));
@@ -4388,7 +4388,7 @@ class DistrictingService
                 foreach ($bins[$b] as $m) {
                     if (isset($inS[$m])) continue;
                     $mf = (float) $childById[$m]->fractional_seats;
-                    if ($mf > 2.5 || $near([$m]) > 12.0) continue;
+                    if ($mf > $floor / 2.0 || $near([$m]) > 12.0) continue;
                     $rem = array_values(array_filter($bins[$b], fn ($x) => $x !== $m));
                     if (empty($rem)) continue;
                     $remFrac = array_sum(array_map(fn ($x) => (float) $childById[$x]->fractional_seats, $rem));
