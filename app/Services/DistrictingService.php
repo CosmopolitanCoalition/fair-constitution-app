@@ -1327,7 +1327,7 @@ class DistrictingService
                 $finalParts = $this->canonicalPartition($nonGiantBudget, count($allBins), $floor, $ceiling);
                 if ($finalParts !== null && count($allBins) >= 2) {
                     $roundsNow = array_map(
-                        fn($b) => max($floor, min($ceiling, (int) round(
+                        fn($b) => min($ceiling, max(1, (int) round(
                             array_sum(array_map(fn($jid) => (float) $childById[$jid]->population, $b)) / $quotaPopAll
                         ))),
                         $allBins
@@ -1355,7 +1355,7 @@ class DistrictingService
                         $landed = $this->landSeatVector($allBins, $finalParts, $childById, $centroids, $adj, $quotaPopAll, $floor, $ceiling, $giantThreshold, $floorBoundary);
                         if ($landed !== $allBins) {
                             $landedSum = array_sum(array_map(
-                                fn ($b) => max($floor, min($ceiling, (int) round(
+                                fn ($b) => min($ceiling, max(1, (int) round(
                                     array_sum(array_map(fn ($jid) => (float) $childById[$jid]->population, $b)) / $quotaPopAll
                                 ))),
                                 $landed
@@ -1570,14 +1570,33 @@ class DistrictingService
         $totalBinPop     = array_sum(array_column($binData, 'pop'));
         $effectiveBudget = $nonGiantBudget;
         $binCount        = count($binData);
-        $floorFeasible   = ($effectiveBudget >= $binCount * $floor);
-        $minSeat         = $floorFeasible ? $floor : 1;
+        // THE DOMINANT-ATOM FIX (operator's six-map walk, 2026-08-26): the old
+        // pool-global floor test (budget >= bins x floor -> clamp every bin UP
+        // to the floor) flipped the law on bin COUNT — Coquimbo at three bins
+        // rounded 8+3+1 exact, while Cordillera/Ottawa/Edmonton/Davao at two
+        // bins clamped their dust remainders to 5 and drifted every scope
+        // over budget (14 vs 10). Drift is always wrong; the UK Celtic
+        // remainder (3 seats, floor_override) is the blessed posture. Seats
+        // now round NEAREST everywhere, ceiling-clamped, minimum 1; sub-floor
+        // stays lawful ONLY as the marked floor_override posture.
         $binQuota        = $totalBinPop / max($effectiveBudget, 1);
 
-        foreach ($binData as &$b) {
+        // Seats come from the LANDED vector (the Mbwe pin, 2026-07-24 +
+        // 2026-08-26): nearest is the start, then optimalIntegerTargets'
+        // least-distortion ±1 repair lands the budget exactly — when every
+        // rounding falls the same way (9.33+5.12+6.18+4.37: nearest sums 24
+        // on a 25 pool) the cheapest bump (4.37 → 5) is the lawful landing.
+        // Floor low-bound is 1: sub-floor stays lawful as the marked
+        // floor_override posture, and the comparator's override-count key
+        // keeps it a last resort during generation.
+        $landedSeats = $this->nearestSeatsWithSubFloorLifts(
+            array_map(fn ($bb) => (float) $bb['pop'], $binData),
+            $binQuota, $effectiveBudget, $floor, $ceiling
+        );
+        foreach ($binData as $bi => &$b) {
             $b['fractional']     = $b['pop'] / max($binQuota, 1);
             $b['floor_override'] = $b['fractional'] < $floorBoundary;
-            $b['seats']          = max($minSeat, min($ceiling, (int) round($b['fractional'])));
+            $b['seats']          = $landedSeats[$bi] ?? min($ceiling, max(1, (int) round($b['fractional'])));
         }
         unset($b);
 
@@ -1670,12 +1689,15 @@ class DistrictingService
                     $binData[] = ['jids' => $g, 'pop' => $gp, 'floor_override' => false, 'seats' => 0, 'fractional' => 0.0];
                 }
                 $binCount      = count($binData);
-                $floorFeasible = ($effectiveBudget >= $binCount * $floor);
-                $minSeat       = $floorFeasible ? $floor : 1;
-                foreach ($binData as &$b) {
+                // Dominant-atom fix: nearest everywhere (see Step 11).
+                $landedSeats2 = $this->nearestSeatsWithSubFloorLifts(
+                    array_map(fn ($bb) => (float) $bb['pop'], $binData),
+                    $binQuota, $effectiveBudget, $floor, $ceiling
+                );
+                foreach ($binData as $bi2 => &$b) {
                     $b['fractional']     = $b['pop'] / max($binQuota, 1);
                     $b['floor_override'] = $b['fractional'] < $floorBoundary;
-                    $b['seats']          = max($minSeat, min($ceiling, (int) round($b['fractional'])));
+                    $b['seats']          = $landedSeats2[$bi2] ?? min($ceiling, max(1, (int) round($b['fractional'])));
                 }
                 unset($b);
             }
@@ -1847,8 +1869,10 @@ class DistrictingService
         int $ceiling,
         int $minSeat
     ): array {
-        $seatsOf = function (int $pop) use ($binQuota, $minSeat, $ceiling): int {
-            return max($minSeat, min($ceiling, (int) round($pop / max($binQuota, 1))));
+        // $minSeat retired by the dominant-atom fix (2026-08-26): nearest
+        // rounding with a 1-seat safety floor, ceiling-clamped — mirrors Step 11.
+        $seatsOf = function (int $pop) use ($binQuota, $ceiling): int {
+            return min($ceiling, max(1, (int) round($pop / max($binQuota, 1))));
         };
         // Hashed membership, not a linear scan: this fires in the innermost
         // loop (donor bin × every member × receiver bin), so an in_array over a
@@ -2227,7 +2251,10 @@ class DistrictingService
             $giantSiblingIds = [];      // no scope context — treat every sibling as available
         }
         $fractional = $totalPop / max($quota, 1);
-        $seats      = max($effectiveFloor, min($ceiling, (int) round($fractional)));
+        // Dominant-atom fix (2026-08-26): nearest, ceiling-clamped, min 1 —
+        // the manual/recompute plane mirrors Step 11 exactly; sub-floor is the
+        // marked floor_override posture, never inflated seats.
+        $seats      = min($ceiling, max(1, (int) round($fractional)));
         $floorOverride = $seats < $floor;
 
         // Pre-compute spatial stats from member jurisdiction geometries.
@@ -4016,14 +4043,12 @@ class DistrictingService
         //     posture — the China remainder class — may reshuffle);
         //   • no bin crosses the giant threshold.
         $seatVectorOf = function (array $trialBins) use ($childById, $quotaPop, $budget, $floor, $ceiling): ?array {
-            $bc = count($trialBins);
-            $minSeat = ($budget >= $bc * $floor) ? $floor : 1;
-            $seats = [];
+            $pops = [];
             foreach ($trialBins as $tb) {
                 if (empty($tb)) return null;
-                $p = array_sum(array_map(fn ($j) => (float) $childById[$j]->population, $tb));
-                $seats[] = max($minSeat, min($ceiling, (int) round($quotaPop > 0 ? $p / $quotaPop : 0.0)));
+                $pops[] = array_sum(array_map(fn ($j) => (float) $childById[$j]->population, $tb));
             }
+            $seats = $this->nearestSeatsWithSubFloorLifts($pops, $quotaPop, $budget, $floor, $ceiling);
             return $seats;
         };
         $lawOk = function (array $trialBins) use ($seatVectorOf, $childById, $quotaPop, $budget): bool {
@@ -5124,8 +5149,11 @@ class DistrictingService
     ): array {
         $binCount      = count($bins);
         $binQuota      = $totalBinPop / max($nonGiantBudget, 1);
-        $floorFeasible = ($nonGiantBudget >= $binCount * $floor);
-        $minSeat       = $floorFeasible ? $floor : 1;
+        // Dominant-atom fix (2026-08-26): nearest everywhere, so candidates
+        // whose lawful landing includes a floor_override district (9+1 on a
+        // 10 budget) score drift 0 and can WIN — the old clamp made every
+        // arrangement of a dominant-atom scope drift identically, blinding
+        // the exactness key.
 
         // Simulate the SEATING LAW in-memory (operator ruling 2026-07-13,
         // mirrors Step 11 exactly): each bin rounds to NEAREST independently,
@@ -5139,10 +5167,7 @@ class DistrictingService
             fn($b) => array_sum(array_map(fn($jid) => (int) $childById[$jid]->population, $b)),
             $bins
         );
-        $binSeats = array_map(
-            fn($p) => max($minSeat, min($ceiling, (int) round($binQuota > 0 ? $p / $binQuota : 0.0))),
-            $binPops
-        );
+        $binSeats = $this->nearestSeatsWithSubFloorLifts($binPops, $binQuota, $nonGiantBudget, $floor, $ceiling);
 
         // Seat drift: |Σ nearest-rounded seats − pool budget|. The operator's
         // exactness rule (ruling 2026-07-13, the Draft-9 undercount): "generated
@@ -5388,6 +5413,7 @@ class DistrictingService
 
         return [
             'seat_drift'           => $seatDrift,
+            'floor_override_count' => count(array_filter($binSeats, fn ($sv) => $sv < $floor)),
             'non_contiguous_count' => $nonContiguousCount,
             'fragment_gap'         => $fragmentGap,
             'neck_count'           => $neckCount,
@@ -5399,6 +5425,35 @@ class DistrictingService
             'avg_deviation_pct'    => empty($deviations) ? 0.0 : array_sum($deviations) / count($deviations),
             'max_deviation_pct'    => empty($deviations) ? 0.0 : max($deviations),
         ];
+    }
+
+
+    /**
+     * The sub-floor lift (the Mbwe pin, 2026-07-24, generalized 2026-08-26):
+     * seats start at NEAREST per bin (min 1, ceiling-clamped — every drawn
+     * district seats its own rounding, the 2026-07-13 ruling). When the sum
+     * falls SHORT of the budget, the only lawful seat-level adjustment is
+     * lifting SUB-FLOOR bins toward the floor, largest fractional first
+     * (least distortion), never past the floor and never touching a bin
+     * already at or above it — everything else is the member-repair
+     * machinery's job. Sub-floor bins that remain carry floor_override.
+     */
+    private function nearestSeatsWithSubFloorLifts(array $pops, float $quota, int $budget, int $floor, int $ceiling): array
+    {
+        if ($quota <= 0) return array_map(fn ($p) => 1, $pops);
+        $fracs = array_map(fn ($p) => (float) $p / $quota, $pops);
+        $seats = array_map(fn ($f) => min($ceiling, max(1, (int) round($f))), $fracs);
+        $sum   = array_sum($seats);
+        while ($sum < $budget) {
+            $bestI = -1; $bestF = -1.0;
+            foreach ($seats as $i => $sv) {
+                if ($sv >= $floor) continue;
+                if ($fracs[$i] > $bestF) { $bestF = $fracs[$i]; $bestI = $i; }
+            }
+            if ($bestI < 0) break;
+            $seats[$bestI]++; $sum++;
+        }
+        return $seats;
     }
 
     /**
@@ -5562,10 +5617,19 @@ class DistrictingService
         //     decides; raw deviation returns as the late tiebreak (key 11).
         //     This supersedes the round-4 relaxation — pinned the new way in
         //     DistrictingDoctrineTest.
+        // Dominant-atom refinement (2026-08-26): the max band ranks before
+        // the average band, and the FLOOR-OVERRIDE COUNT sits between them —
+        // so a floor-honoring plan wins whenever its worst district stays
+        // in-band (the forced 5+5 and the France probe), while a dominant-atom
+        // scope, where clamping the dust to the floor explodes the max band,
+        // lawfully lands nearest with the marked override (Cordillera 9+1,
+        // Ottawa 9+4, the operator's Coquimbo 8+4). Override is the last
+        // resort, never a band-arbitrage tool.
         return [
             $s['seat_drift'] ?? 0,                       //  1. BUDGET EXACTNESS — drifted drawings are excluded
-            $avgExcess,                                  //  2. balance beyond acceptability (2pp bands)
-            $maxExcess,                                  //  3. worst district beyond acceptability (5pp bands)
+            $maxExcess,                                  //  2. worst district beyond acceptability (5pp bands)
+            $s['floor_override_count'] ?? 0,             //  3. sub-floor overrides — last resort, not arbitrage
+            $avgExcess,                                  //  4. balance beyond acceptability (2pp bands)
             // THE SPREAD LAW (operator walk of iteration 12, 2026-08-23):
             // "even in non-contiguity forced situations we can make them as
             // compact as possible to minimize the spread." Gap bands now rank
@@ -6139,11 +6203,10 @@ class DistrictingService
         if ($quotaPop <= 0) return $bins;
         $bins = array_values(array_filter($bins, fn($b) => !empty($b)));
         $binCount      = count($bins);
-        $floorFeasible = ($budget >= $binCount * $floor);
-        $minSeat       = $floorFeasible ? $floor : 1;
+        // Dominant-atom fix (2026-08-26): nearest everywhere (see Step 11).
         $guardLo       = $floorBoundary - 0.5;
 
-        $seatOf = fn(float $f) => max($minSeat, min($ceiling, (int) round($f)));
+        $seatOf = fn(float $f) => min($ceiling, max(1, (int) round($f)));
         $fracs  = array_map(
             fn($b) => array_sum(array_map(fn($jid) => (float) $childById[$jid]->population, $b)) / $quotaPop,
             $bins

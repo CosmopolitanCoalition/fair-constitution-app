@@ -1565,7 +1565,10 @@ class LegislatureController extends Controller
 
         // NEAREST rounding (the operator's seating law, ruling 2026-07-13) —
         // clamp to [effectiveFloor, ceiling]
-        $seats         = max($effectiveFloor, min($ceiling, (int) round($fractional)));
+        // Dominant-atom fix (2026-08-26): nearest, ceiling-clamped, min 1 —
+        // mirrors Step 11; the old effectiveFloor clamp inflated sub-floor
+        // remainders to 5 and drove manual edits overbudget (the Coquimbo 2b).
+        $seats         = min($ceiling, max(1, (int) round($fractional)));
         $floorOverride = $seats < $floor;
 
         DB::beginTransaction();

@@ -579,6 +579,50 @@ class DistrictingDoctrineTest extends TestCase
         );
     }
 
+    // ─── (9d) THE DOMINANT-ATOM LAW: nearest seats everywhere, never a
+    // pool-global floor clamp ────────────────────────────────────────────────
+    //
+    // The operator's six-map walk (2026-08-26): scopes shaped as one
+    // near-ceiling atom plus dust (Puente Alto 9.27 + 0.73, Ottawa 9.40 +
+    // 3.60, Edmonton 8.99 + 4.01, Davao City 7.95 + 3.05) drifted over
+    // budget because the old floor test was pool-global — budget ≥ bins×5
+    // clamped the dust remainder UP to 5 — and the law flipped on bin COUNT
+    // (Coquimbo at three bins lawfully rounded 8+3+1; his merge to two bins
+    // turned the 4.14 into a clamped 5, overbudget). Seats now round NEAREST
+    // everywhere (ceiling-clamped, minimum 1); sub-floor is lawful only as
+    // the marked floor_override posture — the UK Celtic remainder's blessed
+    // shape.
+
+    public function test_dominant_atom_scopes_land_exactly_with_floor_override(): void
+    {
+        $this->onLivePg(function () {
+            // Provincia de Cordillera in miniature: one 9.27-frac atom + two
+            // dust villages (0.73 combined) on a 10-seat budget. The lawful
+            // landing is 9 + 1 with the 1-seat district flagged, never 9 + 5.
+            $rootId  = $this->makeJurisdiction('zzda-0-root', 'Atom Root', 0, null, $this->square(0, 0, 20, 20), 679_605);
+            $scopeId = $this->makeJurisdiction('zzda-1-scope', 'Atom Scope', 1, $rootId, $this->square(0, 0, 12, 6), 679_605);
+            $this->makeJurisdiction('zzda-2-atom', 'Dominant City', 2, $scopeId, $this->square(0, 0, 8, 6), 629_727);
+            $this->makeJurisdiction('zzda-2-dust1', 'Dust East', 2, $scopeId, $this->square(8, 0, 10, 6), 29_544);
+            $this->makeJurisdiction('zzda-2-dust2', 'Dust Far', 2, $scopeId, $this->square(10, 0, 12, 6), 20_334);
+            $leg = $this->makeLegislature($rootId, 10);
+
+            $result = app(DistrictingService::class)->runAutoCompositeForScope(
+                $leg->id, $leg, $scopeId, false, 10, null
+            );
+            $this->assertNull($result['error']);
+
+            $rows = DB::table('legislature_districts')
+                ->where('legislature_id', $leg->id)
+                ->whereNull('deleted_at')
+                ->orderByDesc('seats')
+                ->get(['seats', 'floor_override']);
+            $this->assertSame(10, (int) $rows->sum('seats'), 'the dominant-atom scope lands its budget exactly (drift is always wrong)');
+            $this->assertSame(9, (int) $rows[0]->seats, 'the near-ceiling atom seats at nearest, not promoted');
+            $this->assertSame(1, (int) $rows[1]->seats, 'the dust remainder rounds to nearest below the floor');
+            $this->assertTrue((bool) $rows[1]->floor_override, 'the sub-floor district carries the override for audit');
+        });
+    }
+
     // ─── (9c) THE SPREAD LAW: forced pieces sit near their hosts ─────────────
     //
     // Operator walk of iteration 12 (2026-08-23): "even in non-contiguity
