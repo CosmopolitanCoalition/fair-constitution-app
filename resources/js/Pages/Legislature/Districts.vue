@@ -317,7 +317,7 @@
                     <Teleport to="body">
                     <template v-if="(props.stats && (districtsRef.length > 0 || (props.stats.population_equality?.district_count ?? 0) > 0)) || hasAnyFlag || optimalLabel">
                         <button @click="statsPanelCollapsed = !statsPanelCollapsed"
-                                class="fixed z-40 flex items-center gap-2 rounded border bg-gray-900/95 px-2.5 py-1 text-[11px] shadow-lg backdrop-blur select-none
+                                class="fixed z-[1100] flex items-center gap-2 rounded border bg-gray-900/95 px-2.5 py-1 text-[11px] shadow-lg backdrop-blur select-none
                                        bottom-20 right-2
                                        md:bottom-auto md:right-auto md:top-2 md:left-1/2 md:-translate-x-1/2"
                                 :class="hardFlagCount > 0 ? 'border-red-800' : hasAnyFlag ? 'border-amber-800' : 'border-cyan-900'">
@@ -335,7 +335,7 @@
                             <span class="text-gray-600 transition-transform" :class="statsPanelCollapsed ? '' : 'rotate-90'">›</span>
                         </button>
                         <div v-if="!statsPanelCollapsed"
-                             class="fixed z-40 rounded border bg-gray-900/95 shadow-2xl backdrop-blur
+                             class="fixed z-[1100] rounded border bg-gray-900/95 shadow-2xl backdrop-blur
                                     bottom-28 left-2 right-2
                                     md:bottom-auto md:left-1/2 md:right-auto md:top-10 md:w-[400px] md:-translate-x-1/2"
                              :class="hardFlagCount > 0 ? 'border-red-800' : hasAnyFlag ? 'border-amber-800' : 'border-cyan-900'">
