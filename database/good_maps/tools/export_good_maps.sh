@@ -10,6 +10,18 @@ declare -A MAPS=(
   [earth_auto_draft1_79782bdd]=79782bdd-0832-4acc-ad50-3d8cd93af842
   [usa_manual_draft_3cdf1d8b]=3cdf1d8b-bdcf-4047-8670-b5adae480e46
   [usa_initial_a2e0df5a]=a2e0df5a-eedd-409c-8e66-5162450d8e45
+  # ── THE BLOCK (operator blessing 2026-08-28): the eight-map non-regression
+  # gate for the mass respawn. Earth/India/PHL/Egypt = his Manual Baseline v3
+  # (v3 auto + his ten improvements); Canada = v3 auto adopted verbatim (his
+  # rename); USA/Chile/San Marino = v3 autos standing unchanged.
+  [block_earth_a367d7ac]=a367d7ac-cd3f-4880-80e7-7f1b42f96cec
+  [block_usa_e110d9a6]=e110d9a6-cdf1-4ec0-b67c-8877b167c34b
+  [block_india_2ae715b9]=2ae715b9-4d1e-48aa-b865-025b110e4f0f
+  [block_phl_fa329e1a]=fa329e1a-3d22-4590-a02f-b62523e8a1c8
+  [block_canada_5572e141]=5572e141-5779-4850-9f59-2b250035c42b
+  [block_egypt_d42923b6]=d42923b6-fea6-4d66-9589-12af274c8a3a
+  [block_chile_b75c8126]=b75c8126-b194-4190-a92a-998c49c48a6b
+  [block_sanmarino_b584f8f7]=b584f8f7-4d1c-464a-9f87-3bf29444ead2
 )
 
 mkdir -p "$OUT/stats"

@@ -358,19 +358,68 @@ Pinned: `test_override_repair_pulls_a_member_to_kill_an_avoidable_exception`,
 `test_override_repair_refuses_forced_exceptions`; the dominant-atom
 end-to-end pin doubles as the no-op guard (its 9+1 must survive the pass).
 
-## 11. THE REGRESSION GATE and the next phase (operator orders, 2026-08-25)
+## 10c. Walk 3 — the ten improvements (operator, 2026-08-28; the block blessing)
 
-**Standing rule — the Earth+USA pair is the permanent benchmark:** *"Any
-tweaks made to the algorithm would necessitate an iteration of Earth and USA
-map to make sure the logic isn't being compromised."* Concretely: after ANY
-change to `DistrictingService`, (1) run the doctrine suite, (2) regenerate a
-fresh Earth + USA draft pair via `map_plus_children_all` from each root,
-(3) score both against the standards with `tools/score.py` and probe the
-Class-1 cases, (4) require: budgets exact, 0 unsanctioned band violations,
-contiguity clusters ≤ the accepted set's (USA 4 / Earth 17) with no new
-far-spread pieces, CHR and fit within noise of the accepted set (USA
-.7723/12.48, Earth .6279/39.86) or better in the operator's priority order.
-A change that degrades any count is not shipped without his word.
+His verdict on the v3 eights: *"These maps are the closest thing to perfect
+I have ever seen."* He made TEN manual improvements (in his Manual Baseline
+v3 clones), each a specimen for the engine — verified lawful (all five
+manual maps: chambers exact, zero band, zero breach, only the forced
+overrides). The exact moves (auto v3 → his manual), with the engine gap
+each exposes:
+
+| # | Scope | His move | Gap class |
+|---|-------|----------|-----------|
+| 1 | PHL / Quezon | {Agdangan, Padre Burgos, Pitogo, Unisan} into #1, {Mauban} back — bridges the two Quezon pieces, deviation also improves (4.87/5.13 → 4.93/5.07) | Contiguity bridge the break repair never proposed |
+| 2 | India / Haryāna | 2:2 swap {Jind, Rohtak} ↔ {Mahendragarh, Rewari} — more compact within band | Polish move set has no 2:2 exchange |
+| 3 | Egypt / Giza | Full 4-district re-arrangement — kills the Kardasa-class enclave-in-foreign-district via a bridge; pays deviation (max 2.2% → 5.0%), lawful (contiguity > deviation) | Enclave avoidance not a generation objective |
+| 4 | Earth / Fujian | Wholesale re-bisection on a different axis → 4.999/5.001 (near-perfect) + more compact | Bisection candidate set missed the cut |
+| 5 | PHL / Cebu | Metro-core consolidation: #1 = {Cebu City, Mandaue, Lapu-Lapu, Consolacion, Cordova} 9.14; north+islands ride #3 | Metro-seeded builder didn't hold the core |
+| 6 | Egypt / Dakahlia | Full re-arrangement — avg deviation + compactness both improve | Multi-bin rebalance beyond single-move descent |
+| 7 | Earth / Japan | {Hyogo, Kyoto} from the Kansai bin into #2: 6.19/9.03 → 8.15/7.07 — spread + deviation improve | Pair move, same direction — not in the move set |
+| 8 | Earth / Algeria | {Béchar, Tindouf} both into #1: 5.896/5.104 → **6.000/5.000** + more compact | Pair move, same direction — not in the move set |
+| 9 | Earth / Ukraine | Re-split (Odessa east; Cherkasy/Chernihiv/Sumy west): pays equality (1.6%→2.2%) for shape — the old iter-12 Poltava-stringy note, finally cashed | Bisection axis + cut/hull anticorrelation |
+| 10 | Earth root | **Antarctica rides Chile's district** ("it was closest") — was with the southern-Africa group | Zero-pop satellites must attach to the NEAREST host (spread law extends to pop-0 members) |
+
+Classes to build, in rough order of reach: (a) same-direction PAIR moves +
+2:2 exchanges in the polish/descent move sets (items 2, 7, 8 — three of
+ten); (b) nearest-host attachment for zero-pop members (item 10);
+(c) enclave-avoidance as a lawOk/generation concern (item 3); (d) richer
+bisection axes + metro-core retention (items 4, 5, 9); (e) multi-bin
+rebalance (items 1, 6). Each build re-runs the FULL block gate below.
+
+## 11. THE REGRESSION GATE — the eight-map block (operator blessing 2026-08-28)
+
+**His ruling:** *"this block of maps should form a new non-regression gate
+for when we respawn all the maps enmasse."* The gate grew from the
+Earth+USA pair to EIGHT standards — his Manual Baseline v3 where he
+tweaked, the v3 autos where he did not (Canada = the v3 auto he renamed
+manual, adopting it verbatim; zero member diffs):
+
+| Standard | map_id | Marks (noncontig / avgCHR / fit) |
+|---|---|---|
+| Earth (manual) | `a367d7ac-cd3f-4880-80e7-7f1b42f96cec` | 17 / .6351 / 40.57 |
+| USA (auto v3) | `e110d9a6-cdf1-4ec0-b67c-8877b167c34b` | 4 / .7723 / 12.48 |
+| India (manual) | `2ae715b9-4d1e-48aa-b865-025b110e4f0f` | 3 / .7157 / 26.39 |
+| Philippines (manual) | `fa329e1a-3d22-4590-a02f-b62523e8a1c8` | 9 / .5921 / 9.27 |
+| Canada (auto, his rename) | `5572e141-5779-4850-9f59-2b250035c42b` | 5 / .7295 / 6.94 |
+| Egypt (manual) | `d42923b6-fea6-4d66-9589-12af274c8a3a` | 5 / .7007 / 11.79 |
+| Chile (auto v3) | `b75c8126-b194-4190-a92a-998c49c48a6b` | 5 / .6507 / 6.73 |
+| San Marino (auto v3) | `b584f8f7-4d1c-464a-9f87-3bf29444ead2` | 0 / .7639 / 0.42 |
+
+Rows + stats for all eight live in `rows/block_*` and
+`stats/districts_block_*.csv` (export_good_maps.sh regenerates them).
+After ANY change to `DistrictingService`: (1) doctrine suite, (2)
+regenerate fresh autos for ALL EIGHT via `map_plus_children_all` from each
+root, (3) score each against its block standard with `tools/score.py`,
+(4) require: budgets exact, 0 unsanctioned band violations, 0 breaches,
+override count ≤ the standard's, clusters ≤ the standard's with no new
+far-spread pieces, CHR and fit within noise of the marks above or better
+in the operator's priority order. A change that degrades any count is not
+shipped without his word.
+
+**Before the mass respawn** (his order, same message): one more sweep of
+the HISTORICAL record for trouble jurisdictions not yet covered by the
+block — candidates go to the rubric for his pick.
 
 **Next phase:** fully map ALL jurisdictions planet-wide (the re-hook /
 multithreaded Type A sweep), every legislature staying legal and optimized

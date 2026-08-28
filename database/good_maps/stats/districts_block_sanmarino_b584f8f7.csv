@@ -1,0 +1,6 @@
+scope,district_number,seats,fractional_seats,floor_override,target_population,actual_population,convex_hull_ratio,num_geom_parts,is_contiguous,members,district_id,scope_jurisdiction_id
+San Marino,1,8,8.104233,f,8284,8284,0.686929,1,t,Domagnano; Faetano; Fiorentino; Montegiardino,896d461a-eb6f-4553-b8f4-51d1390b5620,bc7cbfc2-ad47-44f5-8e74-ffd1ea01a718
+San Marino,2,7,7.102455,f,7260,7260,0.800304,1,t,Acquaviva; Chiesanuova; Città di San Marino,9b05e62a-0b01-4f74-90e7-f149e5b2a71b,bc7cbfc2-ad47-44f5-8e74-ffd1ea01a718
+San Marino,3,7,6.793312,f,6944,6944,0.639251,1,t,Borgo Maggiore,c6042278-483d-4497-ba7c-f7f398a7cc3a,bc7cbfc2-ad47-44f5-8e74-ffd1ea01a718
+Serravalle,1,5,5.001386,f,5414,5414,0.846765,1,t,sub:Serravalle — drawn district 1 (pop 5414),f0f2d43d-a6c6-4f8b-8576-27aeca9bd2e6,4b12a988-0643-47b5-a636-7cbbf11ed0dc
+Serravalle,2,5,4.998614,f,5411,5411,0.846201,1,t,sub:Serravalle — drawn district 2 (pop 5411),f7f015bf-ed98-45a5-bee1-99ad05a1fb62,4b12a988-0643-47b5-a636-7cbbf11ed0dc

@@ -1,0 +1,2 @@
+id,legislature_id,name,description,status,effective_start,effective_end,created_at,updated_at,deleted_at
+fa329e1a-3d22-4590-a02f-b62523e8a1c8,319c1990-6128-4bd8-a797-bb5de6b79ad3,Manual Baseline v3 (override repair),Fresh full-auto baseline on the override-repair engine for the regression-panel candidate.,draft,,,2026-08-28 00:33:41,2026-08-28 00:34:06,
