@@ -1,0 +1,150 @@
+scope,district_number,seats,fractional_seats,floor_override,bonus_seats,target_population,actual_population,convex_hull_ratio,num_geom_parts,is_contiguous,members,district_id,scope_jurisdiction_id
+Andhra Pradesh,1,7,7.365702,f,0,9459877,9459877,0.811933,1,t,East Godavari; West Godavari; Yanam,72639a9d-0d15-450d-b322-8e3e62cf1a66,c5c5061d-a654-4e0c-aed6-10fd0a35dad5
+Andhra Pradesh,2,8,7.863378,f,0,10099049,10099049,0.733282,2,t,Guntur; Krishna,6aed5d40-c257-4087-8346-ebe317008d82,c5c5061d-a654-4e0c-aed6-10fd0a35dad5
+Andhra Pradesh,3,7,6.877251,f,0,8832553,8832553,0.720573,1,t,Srikakulam; Visakhapatnam; Vizianagaram,8d9df5f3-defb-4517-a951-599c2c21019a,c5c5061d-a654-4e0c-aed6-10fd0a35dad5
+Andhra Pradesh,4,9,8.635171,f,0,11090274,11090274,0.686660,1,t,Anantapur; Kurnool; Prakasam,25fec2e0-3dac-4a77-b136-3adb7e0a3739,c5c5061d-a654-4e0c-aed6-10fd0a35dad5
+Andhra Pradesh,5,9,9.258499,f,0,11890823,11890823,0.787958,1,t,Chittoor; Kadapa(YSR); Sri Potti Sriramulu Nellore,2f2fa639-6589-47f9-8056-b14b8a822c24,c5c5061d-a654-4e0c-aed6-10fd0a35dad5
+Assam,1,7,6.979899,f,0,8494264,8494264,0.669889,9,t,Biswanath; Cachar; Dima Hasao; Golaghat; Hailakandi; Hojai; Karbi Anglong East; Karbi Anglong West; Karimganj; Majuli,1bf5a975-b3ab-43a8-860a-a113e7a6632a,a267d3e8-3d19-461c-ab45-204a28a37b49
+Assam,2,7,7.019710,f,0,8542712,8542712,0.735183,1,t,Charaideo; Dhemaji; Dibrugarh; Jorhat; Lakhimpur; Sivasagar; Tinsukia,88d72480-eeb4-4199-9eff-eaf705b9e992,a267d3e8-3d19-461c-ab45-204a28a37b49
+Assam,3,8,8.028497,f,0,9770367,9770367,0.694102,1,t,Barpeta; Bongaigaon; Chirang; Dhubri; Goalpara; Kamrup; Kokrajhar; Nalbari; South Salmara-Mankachar,28d0f485-6062-436c-b720-b96d9e52f51d,a267d3e8-3d19-461c-ab45-204a28a37b49
+Assam,4,7,6.971894,f,0,8484522,8484522,0.736997,2,t,Baksa; Darrang; Morigaon; Nagaon; Sonitpur; Udalguri,f3fe2f3a-af67-45ad-a457-5917af200807,a267d3e8-3d19-461c-ab45-204a28a37b49
+Bihār,1,8,8.048173,f,0,10265688,10265688,0.656101,1,t,Banka; Bhagalpur; Katihar,e25eb061-0328-420a-83de-8dab228fdb5c,3e6d7a4d-0fd1-4169-8c47-bf4965a336e2
+Bihār,2,8,8.360995,f,0,10664703,10664703,0.805967,1,t,Pashchim Champaran; Purba Champaran,fe9e031c-fb95-45e6-8409-8c547bf819a3,3e6d7a4d-0fd1-4169-8c47-bf4965a336e2
+Bihār,3,6,5.863072,f,0,7478526,7478526,0.608902,1,t,Patna,55efe7a6-9970-44cf-90a5-91967422c71a,3e6d7a4d-0fd1-4169-8c47-bf4965a336e2
+Bihār,4,8,8.195469,f,0,10453569,10453569,0.799782,1,t,Darbhanga; Madhubani,7e1cd997-5d73-4daa-891e-a32d5eb6f27c,3e6d7a4d-0fd1-4169-8c47-bf4965a336e2
+Bihār,5,8,8.240417,f,0,10510902,10510902,0.689479,1,t,Araria; Madhepura; Supaul,d41415b1-2445-44f4-b13b-658d3e9b3c9e,3e6d7a4d-0fd1-4169-8c47-bf4965a336e2
+Bihār,6,6,5.762711,f,0,7350513,7350513,0.773222,1,t,Gopalganj; Siwan,20d9751b-78e3-4946-abb3-11eb4c15704d,3e6d7a4d-0fd1-4169-8c47-bf4965a336e2
+Bihār,7,8,8.123421,f,0,10361669,10361669,0.792925,1,t,Muzaffarpur; Sheohar; Sitamarhi,41c4186c-fbd1-4a4b-9a9a-4bfda3d2bf12,3e6d7a4d-0fd1-4169-8c47-bf4965a336e2
+Bihār,8,8,7.925380,f,0,10109062,10109062,0.838328,1,t,Aurangabad; Buxar; Kaimur (Bhabua); Rohtas,7b04fa0b-2604-4633-ac33-6ba7f1fde1a0,3e6d7a4d-0fd1-4169-8c47-bf4965a336e2
+Bihār,9,7,6.782944,f,0,8651851,8651851,0.638248,1,t,Arwal; Bhojpur; Saran,22f174a1-e8ee-474f-bd3c-f1b898faa097,3e6d7a4d-0fd1-4169-8c47-bf4965a336e2
+Bihār,10,7,6.821131,f,0,8700559,8700559,0.676463,1,t,Begusarai; Khagaria; Lakhisarai; Saharsa,081ef870-6c7d-4ee7-90ff-fa2bea3e5c0d,3e6d7a4d-0fd1-4169-8c47-bf4965a336e2
+Bihār,11,8,7.956252,f,0,10148440,10148440,0.746307,1,t,Samastipur; Vaishali,d6c25913-3d8b-44e9-b31a-764fef4093b4,3e6d7a4d-0fd1-4169-8c47-bf4965a336e2
+Bihār,12,6,6.169061,f,0,7868824,7868824,0.623285,1,t,Kishanganj; Purnia,2db6d64d-0366-4f9b-ba17-061477039c33,3e6d7a4d-0fd1-4169-8c47-bf4965a336e2
+Bihār,13,8,7.796131,f,0,9944201,9944201,0.608565,1,t,Jamui; Munger; Nalanda; Nawada; Sheikhpura,6464b0f1-7ed6-47c7-97ca-56b39ee555fa,3e6d7a4d-0fd1-4169-8c47-bf4965a336e2
+Bihār,14,6,5.954843,f,0,7595583,7595583,0.701736,1,t,Gaya; Jehanabad,cf73d1f4-7255-444a-a326-9dbffdc20461,3e6d7a4d-0fd1-4169-8c47-bf4965a336e2
+Chhattīsgarh,1,8,7.822484,f,0,10095169,10095169,0.705418,1,t,Baloda Bazar; Bemetra; Bilaspur; Gaurella Pendra Marwahi; Kabeerdham; Mahasamund; Mungeli; Raipur,f66dd8a5-216f-4e4e-b688-4040cc51ede6,084f54dd-1287-495d-be94-7a861f1c7d46
+Chhattīsgarh,2,8,8.271206,f,0,10674259,10674259,0.790818,1,t,Balod; Bastar; Bijapur; Dakshin Bastar Dantewada; Dhamtari; Durg; Gariaband; Kondagaon; Narayanpur; Rajnandgaon; Sukma; Uttar Bastar Kanker,63616fa6-ad23-4a96-888c-fc3c959c5b0e,084f54dd-1287-495d-be94-7a861f1c7d46
+Chhattīsgarh,3,8,7.906310,f,0,10203349,10203349,0.775107,1,t,Balrampur; Janjgir-Champa; Jashpur; Korba; Koriya; Raigarh; Surajpur; Surguja,20503c64-92c1-4303-bba9-6f810543ade0,084f54dd-1287-495d-be94-7a861f1c7d46
+Delhi,1,9,9.190500,f,0,11815010,11815010,0.791496,1,t,New Delhi; South; South East; South West; West,ec188c51-0314-4512-bb22-1359ba4309c9,91b678c8-8dd1-427a-93d7-b0301ac77e5f
+Delhi,2,8,7.809500,f,0,10039640,10039640,0.768530,1,t,Central; East; North; North East; North West; Shahdara,7442572c-e3c1-4699-a7e8-a2e67e1870cd,91b678c8-8dd1-427a-93d7-b0301ac77e5f
+Gujarāt,1,8,7.897191,f,0,10252951,10252951,0.679874,1,t,Dadra & Nagar Haveli; Narmada; Navsari; Surat; Tapi; The Dangs; Valsad,c8387fd8-15db-41e4-9c54-cf6d0b73a6ea,9b8e8125-1bbb-47ad-b852-499f8dd30d80
+Gujarāt,2,8,7.641494,f,0,9920978,9920978,0.825550,2,t,Anand; Bharuch; Kheda; Vadodara,121b9004-1a37-438d-8941-bfaff8564e78,9b8e8125-1bbb-47ad-b852-499f8dd30d80
+Gujarāt,3,8,8.272739,f,0,10740526,10740526,0.640861,4,t,Amreli; Morbi; Rajkot; Surendranagar,dbc3d033-639b-4ccc-9ba5-be320f7ef50a,9b8e8125-1bbb-47ad-b852-499f8dd30d80
+Gujarāt,4,9,9.131824,f,0,11855879,11855879,0.654536,3,t,Ahmadabad; Batod; Bhavnagar; Mahesana,8d273f4e-af5a-46a2-ae28-50b4248d9c3f,9b8e8125-1bbb-47ad-b852-499f8dd30d80
+Gujarāt,5,8,7.647805,f,0,9929172,9929172,0.665841,19,t,Devbhumi Dwarka; Gir Somnath; Jamnagar; Junagadh; Porbandar,1ae19b69-4cc1-4959-9c15-a6d21e064022,9b8e8125-1bbb-47ad-b852-499f8dd30d80
+Gujarāt,6,8,8.272989,f,0,10740850,10740850,0.787175,5,t,Banas Kantha; Kachchh; Patan,59b14e4b-c1f1-4ee4-9325-e14191e4f981,9b8e8125-1bbb-47ad-b852-499f8dd30d80
+Gujarāt,7,8,8.135957,f,0,10562941,10562941,0.652335,1,t,Aravali; Chhota Udaipur; Dohad; Gandhinagar; Mahisagar; Panch Mahals; Sabar Kantha,d31aabcc-4f38-40a6-876f-4e188938b927,9b8e8125-1bbb-47ad-b852-499f8dd30d80
+Haryāna,1,8,7.803565,f,0,10106493,10106493,0.642370,1,t,Ambala; Kaithal; Karnal; Kurukshetra; Panchkula; Panipat; Sonipat; Yamunanagar,acedebf2-1b3b-42d0-b0be-5d04e71a2e25,2f55d66a-a4cf-42f9-ab86-68b88d8d2dae
+Haryāna,2,8,8.127258,f,0,10525712,10525712,0.552239,1,t,Faridabad; Gurgaon; Jhajjar; Jind; Mewat; Palwal; Rohtak,e42408ab-9719-43cd-abdd-435a4d14d8e3,2f55d66a-a4cf-42f9-ab86-68b88d8d2dae
+Haryāna,3,8,8.069177,f,0,10450490,10450490,0.624930,1,t,Bhiwani; Fatehabad; Hisar; Mahendragarh; Rewari; Sirsa,8e2e94dc-6930-4723-856b-7509b4533790,2f55d66a-a4cf-42f9-ab86-68b88d8d2dae
+India,1,9,8.784454,f,0,10509648,10509648,0.170567,37,t,Chandīgarh; Himāchal Pradesh; Ladākh; Lakshadweep,765f5f9a-70b7-49a4-bcc8-31ddf40a5954,24576efc-f6c8-4304-891b-4c19eac6695e
+India,2,9,9.241451,f,0,11056396,11056396,0.033475,223,f,Andaman and Nicobar Islands; Arunāchal Pradesh; Dādra and Nagar Haveli and Damān and Diu; Goa; Manipur; Mizoram; Puducherry,f96a0c32-0753-46fe-bf90-a0b33ec7bfe9,24576efc-f6c8-4304-891b-4c19eac6695e
+India,3,9,8.974095,f,0,10736533,10736533,0.240738,5,f,Meghālaya; Nāgāland; Sikkim; Tripura,163060b9-dc6a-46ae-bfd3-9c2ab0d11fba,24576efc-f6c8-4304-891b-4c19eac6695e
+Jammu and Kashmīr,1,8,8.037012,f,0,7526187,7526187,0.784447,1,t,Anantnag; Badgam; Bandipore; Baramula; Doda; Ganderbal; Kishtwar; Kulgam; Kupwara; Pulwama; Punch; Shupiyan; Srinagar,d133a9b2-f1db-4b11-9fae-0b0667f35d9a,7d204158-2f79-4cd5-bb42-580ef8d2ae23
+Jammu and Kashmīr,2,7,6.962988,f,0,6520427,6520427,0.827885,1,t,Jammu; Kathua; Rajouri; Ramban; Reasi; Samba; Udhampur,79ae5423-6c05-4f82-a6d7-a0ab3af70019,7d204158-2f79-4cd5-bb42-580ef8d2ae23
+Jhārkhand,1,8,7.655469,f,0,9719221,9719221,0.659386,1,t,Khunti; Lohardaga; Purbi Singhbhum; Ranchi; Saraikela-Kharsawan,2c03195e-bc40-4de9-9f59-62555ab51719,1bf3192e-e316-493b-ab1b-f3dc6e9250aa
+Jhārkhand,2,8,7.773222,f,0,9868718,9868718,0.592223,1,t,Chatra; Garhwa; Gumla; Latehar; Palamu; Pashchimi Singhbhum; Simdega,6c1b6c8e-f790-4333-ad98-d691c1dbaffa,1bf3192e-e316-493b-ab1b-f3dc6e9250aa
+Jhārkhand,3,8,8.107882,f,0,10293595,10293595,0.807149,1,t,Bokaro; Giridih; Hazaribagh; Kodarma; Ramgarh,ddd7a25c-3138-410f-8411-2e3439251d90,1bf3192e-e316-493b-ab1b-f3dc6e9250aa
+Jhārkhand,4,8,8.463427,f,0,10744987,10744987,0.811297,1,t,Deoghar; Dhanbad; Dumka; Godda; Jamtara; Pakur; Sahibganj,dc1ea36d-abe2-4f1f-8da5-4e7adc392fe7,1bf3192e-e316-493b-ab1b-f3dc6e9250aa
+Karnātaka,1,8,8.285967,f,0,10538890,10538890,0.738851,1,t,Bidar; Bijapur; Gulbarga; Koppal; Raichur; Yadgir,92b2c338-e173-4641-9e34-c8b9ea6e980a,688e4841-8254-4d76-9b20-72550aad9208
+Karnātaka,2,7,7.340953,f,0,9336930,9336930,0.693905,2,t,Bangalore Rural; Chikkaballapura; Kolar; Tumkur,db67356d-b0a3-4b02-b9f5-5888b7d36c56,688e4841-8254-4d76-9b20-72550aad9208
+Karnātaka,3,8,7.726506,f,0,9827313,9827313,0.804971,1,t,Bangalore; Ramanagara,0b07df59-e3cf-4897-b51a-46651d5b1ef7,688e4841-8254-4d76-9b20-72550aad9208
+Karnātaka,4,8,8.103710,f,0,10307078,10307078,0.815498,1,t,Chamarajanagar; Hassan; Kodagu; Mandya; Mysore,a67fe6e5-1a79-4a2c-9a1c-9e29b61b4d33,688e4841-8254-4d76-9b20-72550aad9208
+Karnātaka,5,8,7.555169,f,0,9609391,9609391,0.698682,5,t,Dakshina Kannada; Shimoga; Udupi,7084e1fa-56ec-41d2-a98c-99f39765124f,688e4841-8254-4d76-9b20-72550aad9208
+Karnātaka,6,8,8.285487,f,0,10538280,10538280,0.585425,10,t,Bellary; Chikmagalur; Chitradurga; Davanagere; Haveri; Uttara Kannada,944b208d-d520-4b4a-bf81-3bedf9b8fbb0,688e4841-8254-4d76-9b20-72550aad9208
+Karnātaka,7,8,7.702208,f,0,9796409,9796409,0.766455,1,t,Bagalkot; Belgaum; Dharwad; Gadag,0d7ccb2f-d7f0-4cae-b196-d699cbd3b93e,688e4841-8254-4d76-9b20-72550aad9208
+Kerala,1,6,5.667229,f,0,7224286,7224286,0.746588,1,t,Kannur; Kasaragod; Kozhikode; Wayanad,7f600cde-38f3-44db-9287-e2329f963ed2,969cad98-c4e1-4119-bdcc-75f7825f9f09
+Kerala,2,8,8.152677,f,0,10392604,10392604,0.824544,1,t,Kollam; Kottayam; Pathanamthitta; Thiruvananthapuram,47be771d-a7ac-404f-a370-4a95621e6d53,969cad98-c4e1-4119-bdcc-75f7825f9f09
+Kerala,3,8,8.278501,f,0,10552998,10552998,0.860341,1,t,Malappuram; Palakkad; Thrissur,52e09cde-6dac-4d2d-9bc4-a10c564ccaeb,969cad98-c4e1-4119-bdcc-75f7825f9f09
+Kerala,4,7,6.901592,f,0,8797787,8797787,0.604052,1,t,Alappuzha; Ernakulam; Idukki,ddf58c41-3ce4-4832-b54b-8d5ce9f06119,969cad98-c4e1-4119-bdcc-75f7825f9f09
+Madhya Pradesh,1,8,8.063284,f,0,10259547,10259547,0.571410,1,t,Jhabua; Mandsaur; Neemuch; Ratlam; Shajapur; Ujjain,9dfc1615-4bf4-4faa-a784-56e42bdccf0c,a590ccbb-79cc-42ea-87cd-84428d95f854
+Madhya Pradesh,2,8,7.775052,f,0,9892807,9892807,0.728407,1,t,Rewa; Shahdol; Sidhi; Singrauli,021c178e-020f-43ed-860f-a1f7b0d166e4,a590ccbb-79cc-42ea-87cd-84428d95f854
+Madhya Pradesh,3,8,7.951464,f,0,10117269,10117269,0.860551,1,t,Betul; Chhindwara; Harda; Hoshangabad; Narsimhapur; Seoni,4542c281-bfa6-4651-8dd4-92dfdb6cfb0e,a590ccbb-79cc-42ea-87cd-84428d95f854
+Madhya Pradesh,4,7,6.565548,f,0,8353860,8353860,0.881372,1,t,Bhind; Datia; Gwalior; Morena; Sheopur; Shivpuri,65fba2b5-2f91-4492-a6cb-b2372319679b,a590ccbb-79cc-42ea-87cd-84428d95f854
+Madhya Pradesh,5,8,7.955568,f,0,10122491,10122491,0.758174,1,t,Alirajpur; Barwani; Burhanpur; Dhar; Khandwa (East Nimar); Khargone (West Nimar),f714840d-db19-4373-922c-286e0c91804b,a590ccbb-79cc-42ea-87cd-84428d95f854
+Madhya Pradesh,6,8,8.109008,f,0,10317725,10317725,0.729137,1,t,Chhatarpur; Damoh; Katni; Niwari; Panna; Satna; Tikamgarh,c744798f-3d4c-485c-a668-056bdd7901be,a590ccbb-79cc-42ea-87cd-84428d95f854
+Madhya Pradesh,7,8,8.162474,f,0,10385754,10385754,0.617146,1,t,Agar; Dewas; Indore; Rajgarh; Sehore,39b75d76-e399-43fd-afd3-a599796750a2,a590ccbb-79cc-42ea-87cd-84428d95f854
+Madhya Pradesh,8,8,8.222008,f,0,10461504,10461504,0.799594,1,t,Ashoknagar; Bhopal; Guna; Raisen; Sagar; Vidisha,840c14ca-3e22-4799-8a41-86d2e6c51811,a590ccbb-79cc-42ea-87cd-84428d95f854
+Madhya Pradesh,9,7,7.195595,f,0,9155518,9155518,0.626429,1,t,Anuppur; Balaghat; Dindori; Jabalpur; Mandla; Umaria,476d6dbd-f477-4aae-8a5b-96e84eaf7cf7,a590ccbb-79cc-42ea-87cd-84428d95f854
+Mahārāshtra,1,9,8.942018,f,0,11490214,11490214,0.864307,3,t,Mumbai Suburban; Palghar; Thane,1964446e-2fd9-4a19-b888-e6135066eb8f,d9d25ed5-9f43-43cc-b034-73945fd31051
+Mahārāshtra,2,6,5.886892,f,0,7564473,7564473,0.674961,1,t,Solapur,2a888ec3-4acf-49f2-be46-496055de401e,d9d25ed5-9f43-43cc-b034-73945fd31051
+Mahārāshtra,3,6,5.718736,f,0,7348397,7348397,0.817394,1,t,Aurangabad; Jalna,9a06e0bf-e4f4-41e4-b888-fad0959daa0d,d9d25ed5-9f43-43cc-b034-73945fd31051
+Mahārāshtra,4,8,8.175581,f,0,10505367,10505367,0.554676,1,t,Chandrapur; Gadchiroli; Nanded; Wardha; Yavatmal,ead70b00-668f-4fd4-b29f-34e0f0b67fbf,d9d25ed5-9f43-43cc-b034-73945fd31051
+Mahārāshtra,5,7,7.259068,f,0,9327676,9327676,0.773309,1,t,Sangli; Satara,b5334804-0633-4b87-92d8-4c6d66cb8cb3,d9d25ed5-9f43-43cc-b034-73945fd31051
+Mahārāshtra,6,9,9.106558,f,0,11701643,11701643,0.624661,14,f,Kolhapur; Mumbai; Raigarh; Ratnagiri; Sindhudurg,8362b9bb-2440-4d69-867e-6db9d73e273c,d9d25ed5-9f43-43cc-b034-73945fd31051
+Mahārāshtra,7,9,8.677873,f,0,11150796,11150796,0.830237,1,t,Nashik,4a2d75ae-54ae-41d7-9c26-069cb06cc44d,d9d25ed5-9f43-43cc-b034-73945fd31051
+Mahārāshtra,8,7,7.096875,f,0,9119263,9119263,0.737998,1,t,Akola; Amravati; Buldana; Hingoli; Washim,a689bf05-ef2c-40c1-8eb5-8cd3b40c7569,d9d25ed5-9f43-43cc-b034-73945fd31051
+Mahārāshtra,9,7,7.017040,f,0,9016678,9016678,0.839561,1,t,Bhandara; Gondiya; Nagpur,677e65c9-5059-4361-b594-81be1be2f82b,d9d25ed5-9f43-43cc-b034-73945fd31051
+Mahārāshtra,10,8,7.850836,f,0,10088079,10088079,0.758137,1,t,Bid; Latur; Osmanabad; Parbhani,b144c7b6-3005-4f5b-a30e-c9348db5e1c4,d9d25ed5-9f43-43cc-b034-73945fd31051
+Mahārāshtra,11,8,8.025555,f,0,10312588,10312588,0.716575,1,t,Ahmadnagar,66474969-e9ab-478b-abe1-c57a8ddbb7ca,d9d25ed5-9f43-43cc-b034-73945fd31051
+Mahārāshtra,12,6,6.242966,f,0,8022017,8022017,0.701702,1,t,Dhule; Jalgaon; Nandurbar,08170226-ad6c-498c-a36c-454afbcb0c7d,d9d25ed5-9f43-43cc-b034-73945fd31051
+Odisha,1,7,6.950834,f,0,8740008,8740008,0.766011,1,t,Ganjam; Khordha; Nayagarh; Puri,976fc3f6-0793-4739-b771-5bff7285ba42,bf31e7f8-eef5-464f-a3bc-c2a49fb8b13c
+Odisha,2,8,8.019708,f,0,10084015,10084015,0.691604,1,t,Bargarh; Baudh; Debagarh; Jharsuguda; Sambalpur; Subarnapur; Sundargarh,91682a83-dcf8-4557-bd0e-25fd327d935c,bf31e7f8-eef5-464f-a3bc-c2a49fb8b13c
+Odisha,3,7,7.098740,f,0,8925986,8925986,0.771389,4,t,Baleshwar; Bhadrak; Kendujhar; Mayurbhanj,07b08762-6c75-4c7a-bfd3-441c9a4f4b6b,bf31e7f8-eef5-464f-a3bc-c2a49fb8b13c
+Odisha,4,8,8.034304,f,0,10102367,10102367,0.733905,6,t,Anugul; Cuttack; Dhenkanal; Jagatsinghapur; Jajapur; Kendrapara,5d57f76f-534b-4c38-9fab-dc60da8b2e6c,bf31e7f8-eef5-464f-a3bc-c2a49fb8b13c
+Odisha,5,8,7.896413,f,0,9928983,9928983,0.693875,1,t,Balangir; Gajapati; Kalahandi; Kandhamal; Koraput; Malkangiri; Nabarangapur; Nuapada; Rayagada,47524cb4-192b-4fd8-9336-755658856a6a,bf31e7f8-eef5-464f-a3bc-c2a49fb8b13c
+Pune,1,6,5.944247,f,0,7328729,7328729,0.675214,2,t,Baramati; Bhor; Daund; Haveli; Indapur; Purandhar; Shirur; Velhe,b3c62239-6f4a-429e-a6fd-98db3b99185c,0ade322e-d4f6-4d5e-8062-e7d8af3b5804
+Pune,2,6,6.055753,f,0,7466205,7466205,0.803738,1,t,Ambegaon; Junnar; Khed; Mawal; Mulshi; Pune City,32f3e449-4e65-4326-8e97-8687f869a8a4,0ade322e-d4f6-4d5e-8062-e7d8af3b5804
+Punjab,1,9,8.713236,f,0,11088528,11088528,0.734134,1,t,Fatehgarh Sahib; Ludhiana; Patiala; Rupnagar; Sahibzada Ajit Singh Nagar; Sangrur,77e5dca6-bd0a-4b5c-8939-d28ecb3bfcc8,ffd9aa34-6a7b-4148-a350-46c35650706a
+Punjab,2,8,8.184871,f,0,10416127,10416127,0.738938,1,t,Barnala; Bathinda; Faridkot; Fazilka; Firozpur; Mansa; Moga; Muktsar; Tarn Taran,616a1906-2cb6-4406-9fd4-8bbbc1b103ea,ffd9aa34-6a7b-4148-a350-46c35650706a
+Punjab,3,8,8.101893,f,0,10310528,10310528,0.717039,1,t,Amritsar; Gurdaspur; Hoshiarpur; Jalandhar; Kapurthala; Pathankot; Shahid Bhagat Singh Nagar,51ab859f-ad9b-4a0a-add3-b4a73fdf94ff,ffd9aa34-6a7b-4148-a350-46c35650706a
+Rājasthān,1,7,7.409576,f,0,9522961,9522961,0.712144,1,t,Barmer; Jaisalmer; Jalor; Pali,1a4cf840-d1f2-4de2-9bb5-504ff1209a8c,a0614e7a-dc45-41d3-b9f3-59b746890a9a
+Rājasthān,2,7,7.240158,f,0,9305221,9305221,0.743138,1,t,Alwar; Bharatpur; Dausa; Dhaulpur; Karauli,16e0e5a9-f661-4865-ae57-786fa50743c7,a0614e7a-dc45-41d3-b9f3-59b746890a9a
+Rājasthān,3,7,6.721481,f,0,8638606,8638606,0.701272,1,t,Ajmer; Bhilwara; Rajsamand; Tonk,913e636d-b374-4c7e-a680-52527647101c,a0614e7a-dc45-41d3-b9f3-59b746890a9a
+Rājasthān,4,7,6.851924,f,0,8806254,8806254,0.537196,2,t,Baran; Bundi; Chittaurgarh; Jhalawar; Kota; Sawai Madhopur,e0b9100a-b6c1-4cbc-a235-ef711506d4f7,a0614e7a-dc45-41d3-b9f3-59b746890a9a
+Rājasthān,5,8,8.171194,f,0,10501810,10501810,0.800121,1,t,Jodhpur; Nagaur,422c350f-9684-4ecc-b59f-b7b25067ccd5,a0614e7a-dc45-41d3-b9f3-59b746890a9a
+Rājasthān,6,8,7.665493,f,0,9851872,9851872,0.782493,1,t,Churu; Jhunjhunun; Sikar,374e95ac-c695-4b95-ad4f-5d461c650dfc,a0614e7a-dc45-41d3-b9f3-59b746890a9a
+Rājasthān,7,7,7.029268,f,0,9034181,9034181,0.749498,1,t,Bikaner; Ganganagar; Hanumangarh,42b4083c-ab25-4e28-b4b3-318656b02a47,a0614e7a-dc45-41d3-b9f3-59b746890a9a
+Rājasthān,8,7,7.175072,f,0,9221571,9221571,0.759004,1,t,Banswara; Dungarpur; Pratapgarh; Sirohi; Udaipur,c053a41f-506b-4acd-8d3b-61ab2b166037,a0614e7a-dc45-41d3-b9f3-59b746890a9a
+Rājasthān,9,7,6.735834,f,0,8657052,8657052,0.799588,1,t,Jaipur,c2a7aacd-2e86-43f4-a166-fe0790fac131,a0614e7a-dc45-41d3-b9f3-59b746890a9a
+Tamil Nādu,1,7,6.809126,f,0,8884165,8884165,0.864451,2,t,Kanniyakumari; Tenkasi; Thoothukkudi; Tirunelveli; Virudhunagar,b1a829c1-2cb9-48f5-a2b4-f80cd415178e,fc3aa94a-6300-420f-9d3c-babc4b9efea3
+Tamil Nādu,2,8,7.665785,f,0,10001885,10001885,0.720467,8,t,Ariyalur; Cuddalore; Mayiladuthurai; Nagapattinam; Puducherry; Thanjavur; Thiruvarur,4b3b9d43-95fc-4e09-8b75-550232b1ad26,fc3aa94a-6300-420f-9d3c-babc4b9efea3
+Tamil Nādu,3,8,8.164404,f,0,10652455,10652455,0.705576,1,t,Coimbatore; The Nilgiris; Tiruppur,1fee6231-1568-4d96-bc10-07c8bc4642c5,fc3aa94a-6300-420f-9d3c-babc4b9efea3
+Tamil Nādu,4,8,8.467923,f,0,11048470,11048470,0.661124,13,t,Dindigul; Madurai; Pudukkottai; Ramanathapuram; Sivaganga; Theni,b1b10ab9-7ab0-4ce3-a270-2e9ac9dcf339,fc3aa94a-6300-420f-9d3c-babc4b9efea3
+Tamil Nādu,5,8,7.993375,f,0,10429307,10429307,0.695421,1,t,Krishnagiri; Ranipet; Tirupathur; Tiruvannamalai; Vellore; Viluppuram,211715c8-5ac5-424a-a4b0-4bb702bbe8ee,fc3aa94a-6300-420f-9d3c-babc4b9efea3
+Tamil Nādu,6,8,8.272484,f,0,10793472,10793472,0.692126,1,t,Chengalputtu; Chennai; Kancheepuram; Thiruvallur,bbb6cdeb-f0bf-4d13-bb81-ef29a474195a,fc3aa94a-6300-420f-9d3c-babc4b9efea3
+Tamil Nādu,7,8,7.853017,f,0,10246175,10246175,0.790480,1,t,Dharmapuri; Kallakurichi; Namakkal; Salem,de08d0b2-9209-4f74-853a-ec94deba739a,fc3aa94a-6300-420f-9d3c-babc4b9efea3
+Tamil Nādu,8,7,6.773887,f,0,8838187,8838187,0.550134,1,t,Erode; Karur; Perambalur; Tiruchirappalli,873f838a-7ae8-44d1-b318-4937a0983ba8,fc3aa94a-6300-420f-9d3c-babc4b9efea3
+Telangāna,1,9,8.918430,f,0,11335526,11335526,0.824919,1,t,Jogulamba; Mahabubnagar; Nagarkurnool; Nalgonda; Narayanpet; Rangareddy; Vikarabad; Wanaparthy,84b1212a-3886-4dac-8749-780afec3dec3,ba5acc44-e185-43e0-a5b1-857777c9d194
+Telangāna,2,8,8.019332,f,0,10192752,10192752,0.765007,1,t,Adilabad; Jagtial; Jayashankar; Kamareddy; Karimnagar; Komaram Bheem; Mancherial; Nirmal; Nizamabad; Peddapalli,e7247650-29b2-48aa-8180-2f1a55d6b428,ba5acc44-e185-43e0-a5b1-857777c9d194
+Telangāna,3,8,7.890548,f,0,10029064,10029064,0.746626,1,t,Bhadradri; Jangaon; Khammam; Mahabubabad; Mulugu; Suryapet; Warangal (R); Warangal (U); Yadadri Bhongiri,859dd779-e648-4454-bcb5-c33f4b037cb9,ba5acc44-e185-43e0-a5b1-857777c9d194
+Telangāna,4,9,9.171690,f,0,11657424,11657424,0.699216,1,t,Hydrabad; Medak; Medchal; Rajanna Sircilla; Sangareddy; Siddipet,15c32397-6553-447f-8e5b-9bbc234ba5b2,ba5acc44-e185-43e0-a5b1-857777c9d194
+Uttar Pradesh,1,8,8.451139,f,0,10784905,10784905,0.659490,1,t,Hamirpur; Jalaun; Jhansi; Lalitpur; Mahoba,e69c7ea1-8aea-4e35-8cb0-b563d67aa246,bc2eaef9-36f0-4b80-aed2-621166f11900
+Uttar Pradesh,2,7,7.255995,f,0,9259724,9259724,0.713750,1,t,Baghpat; Muzaffarnagar; Saharanpur; Samli,530b2b0e-dde3-4534-960f-42c608d8fdfc,bc2eaef9-36f0-4b80-aed2-621166f11900
+Uttar Pradesh,3,7,6.734563,f,0,8594300,8594300,0.800833,1,t,Banda; Chitrakoot; Fatehpur; Kaushambi,88e711b4-8815-4131-aa06-cf9bc1144cca,bc2eaef9-36f0-4b80-aed2-621166f11900
+Uttar Pradesh,4,6,6.030815,f,0,7696213,7696213,0.738464,1,t,Mirzapur; Sonbhadra,6b2855fe-8496-4cfe-8840-80ebd2835150,bc2eaef9-36f0-4b80-aed2-621166f11900
+Uttar Pradesh,5,8,8.339206,f,0,10642061,10642061,0.814589,1,t,Auraiya; Etawah; Farrukhabad; Kannauj; Kanpur Dehat; Mainpuri,75cce0e1-e974-4de2-af80-86fa7a423ee2,bc2eaef9-36f0-4b80-aed2-621166f11900
+Uttar Pradesh,6,9,8.950403,f,0,11422039,11422039,0.597483,1,t,Hardoi; Kanpur Nagar; Sitapur,5b68d07d-e8c2-4f81-9b38-540110ae2c76,bc2eaef9-36f0-4b80-aed2-621166f11900
+Uttar Pradesh,7,6,5.898065,f,0,7526804,7526804,0.712961,1,t,Etah; Firozabad; Kanshiram Nagar; Mahamaya Nagar,59630d9c-818f-455b-8ca5-65f7d2f065eb,bc2eaef9-36f0-4b80-aed2-621166f11900
+Uttar Pradesh,8,9,8.736957,f,0,11149651,11149651,0.583233,1,t,Agra; Mathura,0cb194a6-789b-4d2f-ad80-3ce9cc88a555,bc2eaef9-36f0-4b80-aed2-621166f11900
+Uttar Pradesh,9,7,7.186007,f,0,9170409,9170409,0.802027,1,t,Lucknow,3e6d1eca-6d59-4988-9c13-98d61ec576f3,bc2eaef9-36f0-4b80-aed2-621166f11900
+Uttar Pradesh,10,9,9.168026,f,0,11699759,11699759,0.814089,1,t,Bareilly; Budaun; Moradabad; Rampur,6df06228-0a16-4cfb-bd7b-038214a5a8d8,bc2eaef9-36f0-4b80-aed2-621166f11900
+Uttar Pradesh,11,7,6.758763,f,0,8625182,8625182,0.731504,1,t,Kheri; Pilibhit; Shahjahanpur,e8eeffba-0a21-4793-89a6-de2f7b73dc83,bc2eaef9-36f0-4b80-aed2-621166f11900
+Uttar Pradesh,12,7,7.123602,f,0,9090771,9090771,0.674907,1,t,Bijnor; Hapur; Meerut,601c2c64-d6a5-4c39-a436-4ddf30e67247,bc2eaef9-36f0-4b80-aed2-621166f11900
+Uttar Pradesh,13,9,8.510514,f,0,10860676,10860676,0.772167,1,t,Aligarh; Bulandshahr; Jyotiba Phule Nagar; Sambhal,c2a1ebc2-ca53-4d8c-a0b2-b321378f83c5,bc2eaef9-36f0-4b80-aed2-621166f11900
+Uttar Pradesh,14,9,9.092713,f,0,11603648,11603648,0.648889,1,t,Gautam Buddha Nagar; Ghaziabad,7f75391d-01af-4675-a48b-a50dbc1188e6,bc2eaef9-36f0-4b80-aed2-621166f11900
+Uttar Pradesh,15,7,6.609707,f,0,8434965,8434965,0.727493,1,t,Bahraich; Gonda; Shrawasti,ed756ad0-a31f-4ba2-81af-23480d3fd2ac,bc2eaef9-36f0-4b80-aed2-621166f11900
+Uttar Pradesh,16,6,5.903996,f,0,7534373,7534373,0.742078,1,t,Balrampur; Basti; Siddharthnagar,75ca7e0f-97dc-4718-8a5c-fe2810eb4463,bc2eaef9-36f0-4b80-aed2-621166f11900
+Uttar Pradesh,17,8,7.957972,f,0,10155550,10155550,0.695831,1,t,Deoria; Kushinagar; Mahrajganj,631d6a0f-4b82-4188-96eb-10a00c9f9ce5,bc2eaef9-36f0-4b80-aed2-621166f11900
+Uttar Pradesh,18,5,5.028043,f,0,6416527,6416527,0.827338,1,t,Azamgarh,144f679a-1083-4bad-b307-d9ca0a1564de,bc2eaef9-36f0-4b80-aed2-621166f11900
+Uttar Pradesh,19,7,6.837919,f,0,8726197,8726197,0.821449,1,t,Gorakhpur; Sant Kabir Nagar,61c76fc9-870e-448a-b995-2a88e60e315f,bc2eaef9-36f0-4b80-aed2-621166f11900
+Uttar Pradesh,20,5,4.997298,f,0,6377292,6377292,0.751890,1,t,Jaunpur,3fee528f-6ebe-4ac7-97df-c95a903286cb,bc2eaef9-36f0-4b80-aed2-621166f11900
+Uttar Pradesh,21,7,6.923965,f,0,8836005,8836005,0.812698,1,t,Allahabad,685e2ca3-0601-4ccd-b48f-b080a4358960,bc2eaef9-36f0-4b80-aed2-621166f11900
+Uttar Pradesh,22,8,8.474669,f,0,10814933,10814933,0.563335,1,t,Chandauli; Sant Ravidas Nagar (Bhadohi); Varanasi,a311b030-ca25-4a4f-963d-58a0ede4fa1a,bc2eaef9-36f0-4b80-aed2-621166f11900
+Uttar Pradesh,23,9,9.033550,f,0,11528147,11528147,0.784177,1,t,Ballia; Ghazipur; Mau,92e559c1-454d-4b04-ab12-968cff147311,bc2eaef9-36f0-4b80-aed2-621166f11900
+Uttar Pradesh,24,6,6.124045,f,0,7815188,7815188,0.712239,1,t,Pratapgarh; Sultanpur,7d202222-1f63-439a-95c9-d5cff50043d2,bc2eaef9-36f0-4b80-aed2-621166f11900
+Uttar Pradesh,25,7,7.076799,f,0,9031044,9031044,0.720022,1,t,Amethi; Rae Bareli; Unnao,0c7b4955-ac14-44d7-b498-2ff697bf621b,bc2eaef9-36f0-4b80-aed2-621166f11900
+Uttar Pradesh,26,8,7.795269,f,0,9947918,9947918,0.647058,1,t,Ambedkar Nagar; Bara Banki; Faizabad,e8dffee6-9070-437e-af1e-bf2c292807fe,bc2eaef9-36f0-4b80-aed2-621166f11900
+Uttarākhand,1,5,5.015568,f,0,5922170,5922170,0.803295,1,t,Almora; Bageshwar; Chamoli; Champawat; Nainital; Pithoragarh; Udham Singh Nagar,0de09c8f-416d-4562-89bc-ec19b3dce190,7efe61eb-3e40-481c-86bb-a404ca4ce670
+Uttarākhand,2,5,4.984432,f,0,5885405,5885405,0.809680,1,t,Dehradun; Garhwal; Hardwar; Rudraprayag; Tehri Garhwal; Uttarkashi,e6402949-09ba-4d54-abe8-4f179625b4a8,7efe61eb-3e40-481c-86bb-a404ca4ce670
+West Bengal,1,8,8.158278,f,0,10470010,10470010,0.670391,1,t,Barddhaman; Birbhum,fd98d6e3-dd61-4cb5-a507-8cbcd0d1191f,28ca5f4f-a07d-4c5b-8b47-feff8603fa11
+West Bengal,2,5,4.951068,f,0,6354004,6354004,0.752932,1,t,Darjiling; Jalpaiguri; Kalimpong,1376860d-4379-435b-a1d9-9beb777cc118,28ca5f4f-a07d-4c5b-8b47-feff8603fa11
+West Bengal,3,9,9.328905,f,0,11972346,11972346,0.826018,1,t,Kolkata; South Twenty Four Parganas,8bfc5d68-b9bd-4a1a-84e9-fc4e7ec17b19,28ca5f4f-a07d-4c5b-8b47-feff8603fa11
+West Bengal,4,8,8.007218,f,0,10276146,10276146,0.537574,1,t,Dakshin Dinajpur; Maldah; Uttar Dinajpur,5c0ecb8e-02a8-41cf-a97b-e91201d2924e,28ca5f4f-a07d-4c5b-8b47-feff8603fa11
+West Bengal,5,5,4.892533,f,0,6278882,6278882,0.661708,1,t,Bankura; Jhargram,d7fb76ed-14c2-477c-b0e1-a51eb988123a,28ca5f4f-a07d-4c5b-8b47-feff8603fa11
+West Bengal,6,6,5.847809,f,0,7504846,7504846,0.588449,1,t,Paschim Barddhaman; Puruliya,0140cc5f-c115-4d4a-a2dc-bd554e60f015,28ca5f4f-a07d-4c5b-8b47-feff8603fa11
+West Bengal,7,5,4.612209,f,0,5919126,5919126,0.791747,1,t,Alipurduar; Koch Bihar,665d063e-5ced-4267-9ce9-ed315ee23afd,28ca5f4f-a07d-4c5b-8b47-feff8603fa11
+West Bengal,8,9,8.840708,f,0,11345814,11345814,0.700206,1,t,Haora; Hugli,570f7c5d-7556-43c1-ad12-c8a8e6197501,28ca5f4f-a07d-4c5b-8b47-feff8603fa11
+West Bengal,9,9,8.959272,f,0,11497974,11497974,0.889938,1,t,Paschim Medinipur; Purba Medinipur,70d085d0-2c53-4134-af57-1dd61896b1d7,28ca5f4f-a07d-4c5b-8b47-feff8603fa11
+West Bengal,10,7,7.164363,f,0,9194459,9194459,0.650404,1,t,North Twenty Four Parganas,f02de78b-9608-4c93-897c-56dc7831712b,28ca5f4f-a07d-4c5b-8b47-feff8603fa11
+West Bengal,11,9,9.237636,f,0,11855215,11855215,0.664426,1,t,Murshidabad; Nadia,0ce16731-b211-4148-ba75-7a520a281eb1,28ca5f4f-a07d-4c5b-8b47-feff8603fa11

@@ -1,0 +1,40 @@
+scope,district_number,seats,fractional_seats,floor_override,bonus_seats,target_population,actual_population,convex_hull_ratio,num_geom_parts,is_contiguous,members,district_id,scope_jurisdiction_id
+Chile,1,9,9.169726,f,0,678378,678378,0.845369,7,t,Región de Antofagasta,15e22bcb-f932-4965-8777-22231a94b306,a1ff92ee-d624-4cfd-be8f-852a8cb49d83
+Chile,2,5,4.983619,f,0,368689,368689,0.873720,1,t,Región de Tarapacá,a5f5cb98-d8ee-4285-8d89-ae9be34af6c4,a1ff92ee-d624-4cfd-be8f-852a8cb49d83
+Chile,3,8,7.723109,f,0,571357,571357,0.324323,8,f,Región de Arica y Parinacota; Región de Atacama,c648bf91-f8b5-45ee-9431-af0d7e2524fc,a1ff92ee-d624-4cfd-be8f-852a8cb49d83
+Chile,4,9,8.804142,f,0,651332,651332,0.332868,2092,f,Región de Aysén del Gral.Ibañez del Campo; Región de Ñuble,3cf22e02-8060-4ff0-81f6-ae9f161126a5,a1ff92ee-d624-4cfd-be8f-852a8cb49d83
+Chile,5,8,8.319404,f,0,615471,615471,0.215634,708,f,Región de Los Ríos; Región de Magallanes y Antártica Chilena,5987e08a-34bb-4759-a13d-d9f275293f04,a1ff92ee-d624-4cfd-be8f-852a8cb49d83
+Provincia de Cachapoal,1,5,5.049459,f,0,363859,363859,0.825305,1,t,Codegua; Graneros; Mostazal; Olivar; Rancagua,5a236576-bedc-41fa-94d9-3ea70cac060e,6f2f3978-dffc-487d-9c24-8ddfbcbd39ef
+Provincia de Cachapoal,2,5,4.950541,f,0,356731,356731,0.711922,1,t,Coinco; Coltauco; Doñihue; Las Cabras; Machalí; Malloa; Peumo; Pichidegua; Quinta de Tilcoco; Rengo; Requínoa; San Vicente,2c18be5a-252a-43e6-a799-bd6dc9a01ae9,6f2f3978-dffc-487d-9c24-8ddfbcbd39ef
+Provincia de Cautín,1,6,6.007326,f,0,419856,419856,0.808173,1,t,Cunco; Curarrehue; Freire; Gorbea; Lautaro; Loncoche; Melipeuco; Padre Las Casas; Perquenco; Pitrufquén; Pucón; Teodoro Schmidt; Toltén; Vilcún; Villarrica,d45b0781-111c-4ac2-be2e-90968e1819d9,7004519e-c9fd-41d6-83f5-5f1b896a7ba2
+Provincia de Cautín,2,6,5.992674,f,0,418832,418832,0.833619,1,t,Carahue; Cholchol; Galvarino; Nueva Imperial; Saavedra; Temuco,e7963703-aa12-4608-94fe-f7a723f8ab51,7004519e-c9fd-41d6-83f5-5f1b896a7ba2
+Provincia de Concepción,1,7,6.941943,f,0,513421,513421,0.710569,1,t,Chiguayante; Concepción; Florida; Hualqui; Penco; Santa Juana; Tomé,e65bb198-f2ee-49b9-bb0c-6e5812ff7794,f83e57d3-46be-4bef-8e7d-d07ff2135a7a
+Provincia de Concepción,2,8,8.058057,f,0,595968,595968,0.307866,5,t,Coronel; Hualpén; Lota; San Pedro de la Paz; Talcahuano,faaf6ec1-4e62-4628-9633-f5a07351abc8,f83e57d3-46be-4bef-8e7d-d07ff2135a7a
+Provincia de Cordillera,1,2,0.733926,t,1,49878,49878,0.733611,1,t,Pirque; San José de Maipo,bab26fdf-4b3d-4b5c-bc7e-bab76472528e,475a9629-ccdd-4ed8-9e49-48dfdf9b36df
+Provincia de Cordillera,2,9,9.266074,f,0,629727,629727,0.842295,1,t,Puente Alto,7ae84606-9c6a-4d07-91dd-bf71f7ca3a11,475a9629-ccdd-4ed8-9e49-48dfdf9b36df
+Provincia de Santiago,1,8,8.284587,f,0,606960,606960,0.621943,1,t,La Florida; La Pintana,9c7a3c02-70b6-469a-a910-4753876e3e93,56e0fce1-3500-4d64-88f8-5d245c835a99
+Provincia de Santiago,2,8,8.091053,f,0,592781,592781,0.741221,1,t,Cerrillos; El Bosque; La Cisterna; Lo Espejo; Pedro Aguirre Cerda,36aaf0b1-1af1-4b7d-a5e2-29fb5b24b35a,56e0fce1-3500-4d64-88f8-5d245c835a99
+Provincia de Santiago,3,8,7.928817,f,0,580895,580895,0.872315,1,t,Maipú,b91ab28f-10e1-47c7-942d-e85a56650fbf,56e0fce1-3500-4d64-88f8-5d245c835a99
+Provincia de Santiago,4,8,7.898516,f,0,578675,578675,0.787774,1,t,La Granja; Macul; San Joaquín; San Miguel; San Ramón,8bbbb1cd-447d-434a-9420-65dc9f2ea37c,56e0fce1-3500-4d64-88f8-5d245c835a99
+Provincia de Santiago,5,8,8.283181,f,0,606857,606857,0.822079,1,t,La Reina; Peñalolén; Ñuñoa,d4429812-bd76-4323-abd9-8c5e2651279b,56e0fce1-3500-4d64-88f8-5d245c835a99
+Provincia de Santiago,6,8,7.728173,f,0,566195,566195,0.777501,1,t,Independencia; Santiago,a08f4e2f-c6df-433f-b7a3-0f8276b37097,56e0fce1-3500-4d64-88f8-5d245c835a99
+Provincia de Santiago,7,8,8.160842,f,0,597894,597894,0.747946,1,t,Lo Prado; Pudahuel; Quilicura,395b3271-9ebc-432b-a619-fbedf686a892,56e0fce1-3500-4d64-88f8-5d245c835a99
+Provincia de Santiago,8,8,8.195907,f,0,600463,600463,0.727003,1,t,Cerro Navia; Estación Central; Quinta Normal; Renca,34333ae5-60da-49f5-af70-43a87000cfe8,56e0fce1-3500-4d64-88f8-5d245c835a99
+Provincia de Santiago,9,8,7.816675,f,0,572679,572679,0.601412,1,t,Conchalí; Providencia; Recoleta; Vitacura,ef56f137-7a40-497c-add9-e7159230bad6,56e0fce1-3500-4d64-88f8-5d245c835a99
+Provincia de Santiago,10,8,7.612249,f,0,557702,557702,0.874892,1,t,Huechuraba; Las Condes; Lo Barnechea,31527f1d-2e35-4935-af4e-f47a40711380,56e0fce1-3500-4d64-88f8-5d245c835a99
+Provincia de Valparaíso,1,5,5.178966,f,0,361866,361866,0.003521,361,t,Casablanca; Juan Fernández; Valparaíso,a84dfa1c-c2f1-418b-b944-5823310154a5,fa218b94-d2f4-401a-b502-425ca4ce784d
+Provincia de Valparaíso,2,7,6.821034,f,0,476601,476601,0.703143,7,t,Concón; Puchuncaví; Quintero; Viña del Mar,056c486f-de42-4c85-8809-19cd9ae8c626,fa218b94-d2f4-401a-b502-425ca4ce784d
+Región Metropolitana de Santiago,1,8,7.559529,f,0,555210,555210,0.748080,1,t,Provincia de Maipo,b2b9473d-a6f4-44f5-a246-3f5b8c9aa687,2ce1c577-db82-4ae2-92e1-2a02313e6390
+Región Metropolitana de Santiago,2,7,7.376739,f,0,541785,541785,0.749778,1,t,Provincia de Melipilla; Provincia de Talagante,7e238bde-ae2e-487b-9aae-f1997ae0086a,2ce1c577-db82-4ae2-92e1-2a02313e6390
+Región Metropolitana de Santiago,3,4,4.063732,t,0,298461,298461,0.860283,1,t,Provincia de Chacabuco,704cfe7f-1611-4600-880e-9f48c32a6d28,2ce1c577-db82-4ae2-92e1-2a02313e6390
+Región de Coquimbo,1,8,7.858372,f,0,553141,553141,0.711187,1,t,Provincia de Elqui,632c5fc8-2f2d-443d-ae2c-d70af7fb3379,2081a3c9-90c9-4082-994b-d266ae3aa0ac
+Región de Coquimbo,2,4,4.141628,t,0,291524,291524,0.788157,1,t,Provincia de Choapa; Provincia de Limarí,3340d429-4314-460c-b1ee-460aff618690,2081a3c9-90c9-4082-994b-d266ae3aa0ac
+Región de La Araucanía,1,3,3.000000,t,0,228863,228863,0.649499,1,t,Provincia de Malleco,df7c05f2-8875-4b89-983a-5fe580e74fcb,cf57648a-31a6-45fb-807b-86ceafe7028d
+Región de Los Lagos,1,7,6.688643,f,0,475474,475474,0.588134,25,t,Provincia de Llanquihue; Provincia de Palena,d3e94b97-2df5-426e-b155-eb51d9bcd9d8,e248d517-41e6-4974-b93b-1e94fb8ddb44
+Región de Los Lagos,2,6,6.311357,f,0,448654,448654,0.391326,30,f,Provincia de Chiloé; Provincia de Osorno,a05488e0-46fa-4e68-a2b4-c833ae04d7ee,e248d517-41e6-4974-b93b-1e94fb8ddb44
+Región de Valparaíso,1,8,8.216648,f,0,610024,610024,0.827793,1,t,Provincia de Los Andes; Provincia de Petorca; Provincia de Quillota; Provincia de San Felipe de Aconcagua,d825fd35-0470-4ecf-849e-c060f34504e7,96e5b014-9713-47c5-aab7-ae3862fa3ad8
+Región de Valparaíso,2,8,7.783352,f,0,577855,577855,0.011457,3,t,Easter Island Province; Provincia de Marga Marga; Provincia de San Antonio,43b6229a-baeb-422b-b518-d1e557eef5dc,96e5b014-9713-47c5-aab7-ae3862fa3ad8
+Región del Bío-Bío,1,9,9.000000,f,0,625687,625687,0.553402,2,t,Provincia de Arauco; Provincia de Bío-Bío,0d6d7174-93ae-40af-8451-c314076b9fc1,84f4605c-87aa-4cfb-8374-0ed315e56e67
+Región del Libertador Bernardo O'Higgins,1,4,4.000000,t,0,299279,299279,0.676704,1,t,Provincia de Cardenal Caro; Provincia de Colchagua,f749f29a-4b53-4862-9fd0-c634683c93bd,f8f129d2-3a03-4696-b34c-4bebf18c853c
+Región del Maule,1,9,8.809894,f,0,641934,641934,0.618698,2,f,Provincia de Curicó; Provincia de Linares,2f34dd52-4413-479d-b057-8d8aa4503499,e4eef3ac-5525-44cf-9091-df8577fdcb76
+Región del Maule,2,7,7.190106,f,0,523908,523908,0.555719,1,t,Provincia de Cauquenes; Provincia de Talca,af66938f-9ce2-4b0c-ad7c-51f2629094a4,e4eef3ac-5525-44cf-9091-df8577fdcb76

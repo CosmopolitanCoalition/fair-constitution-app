@@ -1,0 +1,86 @@
+scope,district_number,seats,fractional_seats,floor_override,bonus_seats,target_population,actual_population,convex_hull_ratio,num_geom_parts,is_contiguous,members,district_id,scope_jurisdiction_id
+Barisal,1,9,8.798385,f,0,2930891,2930891,0.698829,3,t,Barguna; Jhalokati; Pirojpur,25eb0c2f-8174-4053-a4a2-08cb117e2fa9,e1bf0185-5de5-484f-b84d-761335ecbade
+Barisal,2,5,5.394235,f,0,1796911,1796911,0.627282,46,t,Patuakhali,8fc07d6f-ad68-4cd3-84f6-e1d29da6a587,e1bf0185-5de5-484f-b84d-761335ecbade
+Barisal,3,6,5.901645,f,0,1965938,1965938,0.509775,73,t,Bhola,594a9180-45ac-4c29-99c9-46a2c6244cb5,e1bf0185-5de5-484f-b84d-761335ecbade
+Barisal,4,8,7.905735,f,0,2633534,2633534,0.633049,35,t,Barisal,2f3d5b05-7938-4560-affc-fd78e1552ec9,e1bf0185-5de5-484f-b84d-761335ecbade
+Bogra,1,7,7.033630,f,0,2080108,2080108,0.711826,1,t,Adamdighi; Bogra Sadar; Dhupchanchia; Kahaloo; Shajahanpur; Shibganj,6a0f949d-8f1a-46bc-a0ba-9ad4b0baffbc,0c1a6a97-1e13-417a-bb6a-8e912bff00d3
+Bogra,2,6,5.966370,f,0,1764479,1764479,0.644519,1,t,Dhunat; Gabtali; Nandigram; Sariakandi; Sherpur; Sonatola,ac512527-6e7a-415f-aeef-a66a9892372c,0c1a6a97-1e13-417a-bb6a-8e912bff00d3
+Brahamanbaria,1,6,6.120305,f,0,1900693,1900693,0.771500,1,t,Akhaura; Ashuganj; Bijoynagar; Brahmanbaria Sadar; Nasirnagar; Sarail,8fbe7677-8cc7-43cd-bc73-2c47755396db,531aa11c-1e65-4a88-bd3d-0fe226fd520f
+Brahamanbaria,2,5,4.879695,f,0,1515415,1515415,0.575332,1,t,Banchharampur; Kasba; Nabinagar,6757a61a-0742-4b57-a1ba-e832738d790e,531aa11c-1e65-4a88-bd3d-0fe226fd520f
+Chittagong,1,9,8.816225,f,0,2867785,2867785,0.534391,12,t,Cox's Bazar,4da8e941-9eb2-44b8-ae8e-014617882d6f,65838bca-f386-4200-b6ae-91c1f125cf79
+Chittagong,1,6,6.218136,f,0,2032914,2032914,0.657841,6,t,Bakalia; Bayejid Bostami; Chandgaon; Chittagong Port; Double Mooring; Halishahar; Hathazari; Khulshi; Kotwali; Panchlaish; Patenga,9935f0a7-ab76-40aa-bd30-1ad946615c47,bc9fbbc9-6785-4e04-806c-caf94c47d956
+Chittagong,2,6,6.091285,f,0,1991442,1991442,0.800992,7,t,Banshkhali; Chandanaish; Lohagara; Satkania,12ed4d78-f530-4ec7-a763-51146745939e,bc9fbbc9-6785-4e04-806c-caf94c47d956
+Chittagong,2,5,4.694992,f,0,1527210,1527210,0.785269,3,t,Khagrachhari; Rangamati,665648c1-d8bb-4148-85b4-9db134e99942,65838bca-f386-4200-b6ae-91c1f125cf79
+Chittagong,3,6,6.139145,f,0,2007089,2007089,0.745835,9,t,Anowara; Boalkhali; Patiya; Rangunia,39eaa64b-5d79-4760-9dc0-16df80b59f4e,bc9fbbc9-6785-4e04-806c-caf94c47d956
+Chittagong,3,8,8.093775,f,0,2632783,2632783,0.695083,28,t,Chandpur,3c94cf39-6fa5-4bb5-8b34-c31a4a13a1f7,65838bca-f386-4200-b6ae-91c1f125cf79
+Chittagong,4,5,4.635035,f,0,1515346,1515346,0.740299,2,t,Fatikchhari; Raozan,9db5a752-9c8c-42ef-a2ac-77c6e91537e6,bc9fbbc9-6785-4e04-806c-caf94c47d956
+Chittagong,4,6,6.222308,f,0,2024023,2024023,0.626799,16,t,Lakshmipur,055186f1-5415-4f81-9874-696fb8eead5e,65838bca-f386-4200-b6ae-91c1f125cf79
+Chittagong,5,7,7.172700,f,0,2333171,2333171,0.356883,8,f,Bandarban; Feni,6d70b556-b87e-4e5c-b645-9de01c185c30,65838bca-f386-4200-b6ae-91c1f125cf79
+Chittagong,5,6,5.916399,f,0,1934266,1934266,0.446953,8,t,Mirsharai; Pahartali; Sandwip; Sitakunda,3c893825-ee71-435b-b5f4-ad51b5323f6e,bc9fbbc9-6785-4e04-806c-caf94c47d956
+Comilla,1,6,6.351359,f,0,2040484,2040484,0.647810,1,t,Barura; Brahman Para; Burichang; Chandina; Comilla Adarsha Sadar,91227b91-6d15-4435-ba48-b433165808a3,06e2585c-14ed-4345-88b7-a0dbb9774f12
+Comilla,2,7,6.845281,f,0,2199165,2199165,0.841518,1,t,Chauddagram; Comilla Sadar Dakshin; Laksam; Manoharganj; Nangalkot,a7987a30-4bab-4c6c-aaab-920fd64ccbcc,06e2585c-14ed-4345-88b7-a0dbb9774f12
+Comilla,3,7,6.803360,f,0,2185697,2185697,0.810853,1,t,Daudkandi; Debidwar; Homna; Meghna; Muradnagar; Titas,d9755b1e-32b9-4d22-b273-6bafce70ade6,06e2585c-14ed-4345-88b7-a0dbb9774f12
+Dhaka,1,9,9.121762,f,0,2734005,2734005,0.774576,1,t,Narsingdi,22e84a87-443b-4909-a263-9bf2c2772b60,532d1ba8-7a54-451b-b7e0-fd8700db33c5
+Dhaka,1,7,6.828412,f,0,2073457,2073457,0.828861,1,t,Bangshal; Chak Bazar; Demra; Gendaria; Jatrabari; Kadamtali; Khilgaon; Kotwali; Motijheel; Paltan; Ramna; Rampura; Sabujbagh; Shahbagh; Shyampur; Sutrapur,bbbf682f-7060-4f88-9e8e-28de6da5835f,7ba0b3db-acfe-4c6b-bb25-0d73a4a4a988
+Dhaka,2,7,7.042460,f,0,2138453,2138453,0.781422,1,t,Adabor; Cantonment; Darus Salam; Dhanmondi; Hazaribagh; Kafrul; Kalabagan; Mirpur; Mohammadpur; Pallabi; Shah Ali; Sher-e-bangla Nagar; Tejgaon; Turag,82f2b1cd-0a1c-428e-84ef-11b48d038a73,7ba0b3db-acfe-4c6b-bb25-0d73a4a4a988
+Dhaka,2,9,8.879903,f,0,2661514,2661514,0.746913,1,t,Gopalganj; Madaripur,b88b2886-b084-43ed-90f5-3360fbd45310,532d1ba8-7a54-451b-b7e0-fd8700db33c5
+Dhaka,3,7,7.441269,f,0,2230322,2230322,0.741671,1,t,Faridpur,e21578bc-7a50-4681-b918-bc8e64055b8e,532d1ba8-7a54-451b-b7e0-fd8700db33c5
+Dhaka,3,7,7.089886,f,0,2152854,2152854,0.766195,1,t,Kamrangir Char; Keraniganj; Lalbagh; New Market,065c4570-c98d-4257-9232-e2b587a6fc71,7ba0b3db-acfe-4c6b-bb25-0d73a4a4a988
+Dhaka,4,6,6.057492,f,0,1839366,1839366,0.754936,1,t,Badda; Biman Bandar; Dakshinkhan; Gulshan; Khilkhet; Tejgaon Ind. Area; Uttar Khan; Uttara,fca91cde-0ca7-4b15-8a9f-de34f0d3632e,7ba0b3db-acfe-4c6b-bb25-0d73a4a4a988
+Dhaka,4,6,5.747934,f,0,1722790,1722790,0.755023,1,t,Munshiganj,221696b1-3779-4b75-b49c-849d8c5b6c05,532d1ba8-7a54-451b-b7e0-fd8700db33c5
+Dhaka,5,9,8.570557,f,0,2568796,2568796,0.417778,14,f,Rajbari; Shariatpur,d7eed0d7-30f0-494c-9084-40becb77feb9,532d1ba8-7a54-451b-b7e0-fd8700db33c5
+Dhaka,5,6,5.900325,f,0,1791642,1791642,0.845844,1,t,Dohar; Nawabganj,f30b5745-7e3a-4999-94f5-94631b12cd33,7ba0b3db-acfe-4c6b-bb25-0d73a4a4a988
+Dhaka,6,5,5.238574,f,0,1570123,1570123,0.768459,1,t,Manikganj,c9ea28b0-2dc6-4aae-9ecf-8d9b5e0a5348,532d1ba8-7a54-451b-b7e0-fd8700db33c5
+Dhaka,6,5,5.081425,f,0,1542982,1542982,0.806627,1,t,Dhamrai,f8b2919e-b67e-4f89-80c0-065ad122ff6c,7ba0b3db-acfe-4c6b-bb25-0d73a4a4a988
+Dinajpur,1,6,5.959370,f,0,1914837,1914837,0.775446,1,t,Birampur; Chirirbandar; Fulbari; Ghoraghat; Hakimpur; Khansama; Nawabganj; Parbatipur,534b4d93-cd55-4639-9861-c40f5c67d62f,160654ec-92d5-49f1-b3cc-f16d32ba0161
+Dinajpur,2,5,5.040630,f,0,1619632,1619632,0.851813,1,t,Biral; Birganj; Bochaganj; Dinajpur Sadar; Kaharole,73d8038c-f9ca-4cc5-88bb-22c5ff4b33a8,160654ec-92d5-49f1-b3cc-f16d32ba0161
+Gazipur,1,5,5.156057,f,0,1532646,1532646,0.507117,2,f,Kaliakair; Kapasia,23127721-8f04-4d3f-a24c-a364d97f15cf,eb6aede4-e646-4bde-8cd6-911bbbcb8243
+Gazipur,2,6,5.878717,f,0,1747458,1747458,0.574555,1,t,Kaliganj; Sreepur,4131d84a-c53b-4fcb-b678-e1732ddaa2c9,eb6aede4-e646-4bde-8cd6-911bbbcb8243
+Gazipur,3,8,7.965226,f,0,2367676,2367676,0.736686,1,t,Gazipur Sadar,1fc8161b-ec6b-4a9a-9bf6-8d99aeb5a4bc,eb6aede4-e646-4bde-8cd6-911bbbcb8243
+Jessore,1,5,4.825020,f,0,1554081,1554081,0.774746,1,t,Jhikargachha; Keshabpur; Manirampur; Sharsha,16b0d766-53ef-4a86-bcac-c93ff263e327,86a26064-7bb6-493b-8975-e5cec43721d2
+Jessore,2,5,5.174980,f,0,1666799,1666799,0.606721,1,t,Abhaynagar; Bagher Para; Chaugachha; Kotwali,0808347b-38cf-4e62-aa56-e2ea556bf441,86a26064-7bb6-493b-8975-e5cec43721d2
+Khulna,1,8,8.179758,f,0,2512601,2512601,0.597389,17,t,Bagerhat; Narail,15e51987-3a1a-4bcb-910a-66e3e89dc972,cb861432-f08a-422b-9b53-5badf2354e3b
+Khulna,2,9,8.760291,f,0,2690925,2690925,0.707410,17,t,Khulna,0edc7463-63f4-487b-8069-55b5e30e7519,cb861432-f08a-422b-9b53-5badf2354e3b
+Khulna,3,7,7.236651,f,0,2222904,2222904,0.675351,11,t,Satkhira,cec770e4-3100-4918-a65f-aa0d5c042b47,cb861432-f08a-422b-9b53-5badf2354e3b
+Khulna,4,8,7.628580,f,0,2343294,2343294,0.502019,2,f,Chuadanga; Magura,9067c1e6-4a3d-4ddf-bd7c-c4d68fad63b5,cb861432-f08a-422b-9b53-5badf2354e3b
+Khulna,5,7,7.179599,f,0,2205379,2205379,0.733656,1,t,Kushtia,43fb8024-2f45-4c63-9bad-dc3d950f6c22,cb861432-f08a-422b-9b53-5badf2354e3b
+Khulna,6,9,9.015121,f,0,2769202,2769202,0.539894,2,f,Jhenaidah; Meherpur,428470e7-d663-4e01-ac3e-3d67ef0a1b22,cb861432-f08a-422b-9b53-5badf2354e3b
+Kishoreganj,1,5,5.075443,f,0,1551897,1551897,0.723224,1,t,Austagram; Bajitpur; Bhairab; Itna; Katiadi; Kuliar Char; Mithamain; Nikli,0dde9218-d685-4619-ac6d-9134cf14a82b,826d9c0e-da4b-4db7-b023-03ee74633a9a
+Kishoreganj,2,6,5.924557,f,0,1811527,1811527,0.725234,1,t,Hossainpur; Karimganj; Kishoreganj Sadar; Pakundia; Tarail,6bc95339-ae8c-4900-a2ea-6c8947474813,826d9c0e-da4b-4db7-b023-03ee74633a9a
+Mymensingh,1,8,8.292511,f,0,2579307,2579307,0.630011,1,t,Jamalpur,2b5faec0-6b48-443d-95ad-20831e2aeb8d,ab127c08-dffe-4773-bb96-3463fcbabb3e
+Mymensingh,1,7,7.196274,f,0,2221942,2221942,0.656517,1,t,Gaffargaon; Gauripur; Ishwarganj; Nandail; Trishal,9e5a213f-b155-4095-b95f-38d6480e7826,fcffed46-7348-456b-91bc-7ff14bb90867
+Mymensingh,2,5,5.071297,f,0,1577379,1577379,0.872673,1,t,Sherpur,6fd7d2a1-c338-4d6f-b498-435da8f26cf1,ab127c08-dffe-4773-bb96-3463fcbabb3e
+Mymensingh,2,7,6.909504,f,0,2133398,2133398,0.778289,1,t,Dhobaura; Haluaghat; Mymensingh Sadar; Phulpur,6f381f2c-a09f-43d8-82f9-87251ee3b99c,fcffed46-7348-456b-91bc-7ff14bb90867
+Mymensingh,3,8,7.636191,f,0,2375165,2375165,0.789131,1,t,Netrakona,aaa1e7e0-4729-47ae-a1b8-b46e21fc34e0,ab127c08-dffe-4773-bb96-3463fcbabb3e
+Mymensingh,3,6,5.894223,f,0,1819917,1819917,0.722564,1,t,Bhaluka; Fulbaria; Muktagachha,f9601bb0-8b46-4e64-950f-6169aa36bb61,fcffed46-7348-456b-91bc-7ff14bb90867
+Narayanganj,1,5,5.107774,f,0,1584507,1584507,0.803922,1,t,Bandar; Narayanganj Sadar,5123c693-aa45-4cb2-95ac-2ac6639a9461,13b19b37-e482-4213-a15c-73a97b5dbcd7
+Narayanganj,2,8,7.892226,f,0,2448285,2448285,0.713103,1,t,Araihazar; Rupganj; Sonargaon,2eab0cf5-5ff6-45aa-81f5-10162037f12d,13b19b37-e482-4213-a15c-73a97b5dbcd7
+Noakhali,1,6,6.224390,f,0,1929191,1929191,0.598451,6,t,Begumganj; Chatkhil; Companiganj; Senbagh; Sonaimuri,e23453c1-32a2-4522-a292-8571cd26884b,a6801b48-285a-43a4-8613-e6ac79dddfa0
+Noakhali,2,6,5.775610,f,0,1790096,1790096,0.546380,15,t,Hatiya; Kabirhat; Noakhali Sadar (Sudharam); Subarnachar,45b6f742-0ee0-4eee-834c-e12a88993cbf,a6801b48-285a-43a4-8613-e6ac79dddfa0
+Pabna,1,5,5.057028,f,0,1491174,1491174,0.727454,1,t,Ishwardi; Pabna Sadar; Sujanagar,e856c56a-40c9-4446-9f97-fec84c80e92a,855c44fc-690d-4b84-a222-6a77686e58ae
+Pabna,2,5,4.942972,f,0,1457542,1457542,0.734125,1,t,Atgharia; Bera; Bhangura; Chatmohar; Faridpur; Santhia,afbafb45-f411-46d5-9648-40a9d400a1b9,855c44fc-690d-4b84-a222-6a77686e58ae
+Rajshahi,1,5,5.147925,f,0,1559201,1559201,0.665213,1,t,Bagha; Boalia; Charghat; Godagari; Matihar; Paba; Rajpara; Shah Makhdum,1d82b61d-42c3-4814-a5bc-c46c33e10b6b,1ecd31eb-6d48-4817-9b33-d72de6054403
+Rajshahi,2,5,4.852075,f,0,1469594,1469594,0.754528,1,t,Baghmara; Durgapur; Mohanpur; Puthia; Tanore,bc96dd55-5a43-41ca-a5e8-cc1b35b8ad4e,1ecd31eb-6d48-4817-9b33-d72de6054403
+Rajshani,1,9,9.302182,f,0,2866780,2866780,0.783572,1,t,Naogaon,f8e0d977-628f-4648-97d8-3e2354db3ac3,871d8476-d12c-485b-8f35-a94e685d63b3
+Rajshani,2,6,6.177947,f,0,1903942,1903942,0.798354,1,t,Natore,9d988d99-6527-4bd4-ae6f-e9c66f833ff6,871d8476-d12c-485b-8f35-a94e685d63b3
+Rajshani,3,6,6.148549,f,0,1894882,1894882,0.771098,1,t,Nawabganj,1ccabab0-e46b-429f-be71-da47df974a8a,871d8476-d12c-485b-8f35-a94e685d63b3
+Rajshani,4,4,3.371322,t,0,1038986,1038986,0.797432,1,t,Joypurhat,b41c5eb8-4b9d-4a00-8f9c-4b15b320bdcb,871d8476-d12c-485b-8f35-a94e685d63b3
+Rangpur,1,8,7.987416,f,0,2482218,2482218,0.763391,13,t,Kurigram,447677d5-a965-49d0-bd7f-7f7b228b1ce8,80ae77bc-4894-4ec6-a804-c735802cba98
+Rangpur,1,6,5.986512,f,0,1777570,1777570,0.705582,1,t,Badarganj; Gangachara; Kaunia; Rangpur Sadar; Taraganj,196aea4b-f9fa-49e6-acc7-2fda1268e335,da171f97-51ed-4de6-875c-9aa5d6e0c85f
+Rangpur,2,5,5.013488,f,0,1488651,1488651,0.808219,1,t,Mitha Pukur; Pirgachha; Pirganj,82a3d3b7-0d72-4a4b-a9ea-f3bce0b5d3d8,da171f97-51ed-4de6-875c-9aa5d6e0c85f
+Rangpur,2,5,5.326286,f,0,1655229,1655229,0.787187,1,t,Thakurgaon,6d92b424-0df9-42d8-8f1f-a5d3fc741371,80ae77bc-4894-4ec6-a804-c735802cba98
+Rangpur,3,7,6.927233,f,0,2152749,2152749,0.826365,1,t,Nilphamari,57aefea1-c7dd-48c0-afc1-bd7ac44309ff,80ae77bc-4894-4ec6-a804-c735802cba98
+Rangpur,4,8,8.418599,f,0,2616215,2616215,0.802244,1,t,Gaibandha,e76bf57a-9869-4fd6-a197-fbc11f705ed5,80ae77bc-4894-4ec6-a804-c735802cba98
+Rangpur,5,5,4.941546,f,0,1535665,1535665,0.587520,18,t,Lalmonirhat,c0e0b793-61e4-48b7-ba75-ccf48571e86e,80ae77bc-4894-4ec6-a804-c735802cba98
+Rangpur,6,5,4.398920,f,0,1367035,1367035,0.640735,1,t,Panchagarh,c462f454-ff96-4034-937a-5419cfad8be4,80ae77bc-4894-4ec6-a804-c735802cba98
+Savar,1,6,6.098054,f,0,1888333,1888333,0.774306,1,t,Amin Bazar; Banagram; Bhakurta; Biralia; Kaundia; Pathalia (part); Savar; Savar Paurashava; Tetuljhora,fb9bf759-5111-43dc-99ae-61faa52c787d,9783c483-9895-4ea6-9b28-3d839147e23e
+Savar,2,6,5.901946,f,0,1827606,1827606,0.688521,1,t,Ashulia; Dhamsana; Shimulia; Yearpur,95778188-cd8b-408f-857c-5d2d6ab2a901,9783c483-9895-4ea6-9b28-3d839147e23e
+Sirajganj,1,6,5.886800,f,0,1835020,1835020,0.676334,1,t,Kamarkhanda; Kazipur; Royganj; Sirajganj Sadar; Tarash,5b4bacc3-ee6c-4d07-afa8-2cbcb396c23a,9ed49086-51e7-4a67-9a9a-8ab682febd07
+Sirajganj,2,5,5.113200,f,0,1593875,1593875,0.835080,1,t,Belkuchi; Chauhali; Shahjadpur; Ullah Para,d52e6ec7-31b5-4750-9214-343a77e42819,9ed49086-51e7-4a67-9a9a-8ab682febd07
+Sylhet,1,7,7.230819,f,0,2225032,2225032,0.766217,6,t,Maulvibazar,77c6f676-9882-49ee-a0f9-825b6a1d9a92,dfe77b3f-5126-4031-a04f-8bb14684b849
+Sylhet,1,7,6.808700,f,0,2124722,2124722,0.729877,1,t,Beani Bazar; Companiganj; Golabganj; Gowainghat; Jaintiapur; Kanaighat; Zakiganj,696ed8b1-bdca-4845-9016-4c3b8a6d4a79,67d09ef1-86c6-4c0f-98e7-ea64c1185cef
+Sylhet,2,6,6.191300,f,0,1932056,1932056,0.782182,1,t,Balaganj; Bishwanath; Dakshin Surma; Fenchuganj; Sylhet Sadar,7e35ca92-c6ff-450b-9b44-9a16396f3d59,67d09ef1-86c6-4c0f-98e7-ea64c1185cef
+Sylhet,2,8,7.858679,f,0,2418234,2418234,0.774990,2,t,Habiganj,c8aa740d-9f01-4683-be82-8d10d9a3f569,dfe77b3f-5126-4031-a04f-8bb14684b849
+Sylhet,3,9,8.910502,f,0,2741896,2741896,0.825977,1,t,Sunamganj,fb476932-9ead-4cad-bbb2-0f9d8ca8c5b8,dfe77b3f-5126-4031-a04f-8bb14684b849
+Tangail,1,7,7.195062,f,0,2144312,2144312,0.687963,1,t,Delduar; Mirzapur; Nagarpur; Sakhipur; Tangail Sadar,2f8881e1-dc74-4123-9293-8b6e7195e6d5,c4757d66-a8e4-4dad-9815-d2bb91b0b4a9
+Tangail,2,7,6.804938,f,0,2028045,2028045,0.726773,1,t,Basail; Bhuapur; Dhanbari; Ghatail; Gopalpur; Kalihati; Madhupur,89caa05c-b4e5-453c-bee6-d011cb8a3f2d,c4757d66-a8e4-4dad-9815-d2bb91b0b4a9

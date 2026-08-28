@@ -1,0 +1,66 @@
+scope,district_number,seats,fractional_seats,floor_override,bonus_seats,target_population,actual_population,convex_hull_ratio,num_geom_parts,is_contiguous,members,district_id,scope_jurisdiction_id
+Al Sharqia Governorate,1,9,8.569214,f,0,2150571,2150571,0.751015,1,t,Al-Qanayat; El-Ibrahimiya; Hihya; Zaqaziq; Zaqaziq 1; Zaqaziq 2,a3b27791-6f03-4de1-b658-a5ce3c14f692,b26fb4de-a385-45fd-bb89-1d85d26ba82e
+Al Sharqia Governorate,2,8,8.482361,f,0,2128774,2128774,0.745761,1,t,Bilbis; Mashtul Al-Suq; Minya al-Qamh,b2f1934b-1c01-495f-9e2a-8e139549b1a9,b26fb4de-a385-45fd-bb89-1d85d26ba82e
+Al Sharqia Governorate,3,9,8.857195,f,0,2222844,2222844,0.514210,1,t,10 Ramadan 2; Abu Hammad; Abu Kabir; Dyarb Nigm; Kafr Saqr; Zemam Out,5f3b8297-85e1-41b9-bd66-8e2bd3a91510,b26fb4de-a385-45fd-bb89-1d85d26ba82e
+Al Sharqia Governorate,4,8,8.091231,f,0,2030614,2030614,0.861826,1,t,Al-Husayniya; Al-Salhiyya; Awlad Saqr; Faqus; Faqus; Qurin,0afb3a70-8cd1-4e44-93f2-8aeaef213d73,b26fb4de-a385-45fd-bb89-1d85d26ba82e
+Alexandria Governorate,1,9,8.918721,f,0,2017684,2017684,0.756850,1,t,Al Raml; Bab Sharqi; Karmuz; Kesm than Al Raml; Muharam Bik; Sidi Gabir,de5c3db6-bee5-4fdd-9b0e-8f63604e677c,311e3570-1272-4124-b45b-38aec7552353
+Alexandria Governorate,2,9,8.888853,f,0,2010927,2010927,0.649093,1,t,A L Labban; Al Amreia; Al Attarin; Al Dikhila; Al Gumruk; Al Manshiyya; Burg Al-Arab City; Mina Al-Basal; Port Alexandria Police Department; Zemam Out,7e9ecc45-e7b4-4ae9-bf6e-af6381255210,311e3570-1272-4124-b45b-38aec7552353
+Alexandria Governorate,3,8,8.192426,f,0,1853374,1853374,0.834749,1,t,Muntazah,daf76255-5e2f-4530-8ce6-ff2d9cb6dd1d,311e3570-1272-4124-b45b-38aec7552353
+Asyut Governorate,1,7,7.014598,f,0,1824930,1824930,0.694154,4,t,Al-Qusia; Dayrut; Manfalut,6b67547a-eec2-43a3-b958-1c23689aa8e9,78a2335c-3d6a-4bcc-a38d-5f10ac5b99ac
+Asyut Governorate,2,7,6.825657,f,0,1775775,1775775,0.627444,1,t,Abu Tig; Assuit; Kesm Awal Assuit; Kesm Than Assuit; Sidfa,4491cce1-9e3e-4357-89f4-daf745da1e3e,78a2335c-3d6a-4bcc-a38d-5f10ac5b99ac
+Asyut Governorate,3,6,6.159745,f,0,1602530,1602530,0.845526,2,t,Abnub; Al- Badari; Alfath; Assuit City; Sahil Silim; Zemam Out,673438d4-a770-4d27-8928-fe7d48813f54,78a2335c-3d6a-4bcc-a38d-5f10ac5b99ac
+Beheira Governorate,1,8,8.313481,f,0,2006727,2006727,0.855543,1,t,Abu-l-Matamir; Al-Dilingat; Badr; Hush Isa; Nubariyya West; Wadi Al-NatrUn; Zemam Out,74d037e7-6d34-423a-a1be-cefdcebfb5f1,224bc5a2-a8af-4b98-9abf-0ba21aa59a0d
+Beheira Governorate,2,7,7.064739,f,0,1705303,1705303,0.665390,1,t,Al-Rahmaniyya; Itay Al-Barud; Kum Hamada; Shubra Khît,9a99f4bc-8334-4505-8ca0-fae9279ac4bf,224bc5a2-a8af-4b98-9abf-0ba21aa59a0d
+Beheira Governorate,3,8,8.021947,f,0,1936356,1936356,0.793288,1,t,Abu Hummus; Al-Mahmudiyya; Damanhur; Damanhur,0896bda0-1d8a-4a53-84ff-de48fbfc0ee6,224bc5a2-a8af-4b98-9abf-0ba21aa59a0d
+Beheira Governorate,4,8,7.599833,f,0,1834465,1834465,0.538921,1,t,Idku; Kafr Al-Dawwar; Kafr Al-Dawwar; Rashid,95702786-e627-4658-ab78-ab66303974c6,224bc5a2-a8af-4b98-9abf-0ba21aa59a0d
+Beni Suef Governorate,1,9,8.859167,f,0,2005609,2005609,0.590291,4,t,Ahnasya; Al Fashn; Bani Swayf City; Biba; Sumusta; Zemam Out,8a32f3a6-c049-4e5c-b87b-b0b81c61e22c,1a192dc1-ae28-4ed2-94fd-a16f753b722e
+Beni Suef Governorate,2,8,8.140833,f,0,1842987,1842987,0.762338,2,t,Al Wasta; Bani Swayf; Bani Swayf; Nasir,2863d688-3941-4578-9ddc-8030f1f502ad,1a192dc1-ae28-4ed2-94fd-a16f753b722e
+Cairo Governorate,1,8,7.965036,f,0,1839104,1839104,0.689860,1,t,Al Matariyya; Al Wayli; Al Zaytun; Hadaiq Al-Qubba; Madinat Nasr-2; Minshat Nasir,07c7e92a-74cb-405f-ac86-0b5d639039a3,1f6817f1-3e56-46b3-a260-9553c5fd2355
+Cairo Governorate,2,8,8.040268,f,0,1856475,1856475,0.841382,1,t,Ain Shams; Misr al-Gadida; Nasr City; Nuzha,13c7bf80-0912-4662-9e0f-1cd474611ad9,1f6817f1-3e56-46b3-a260-9553c5fd2355
+Cairo Governorate,3,8,7.944113,f,0,1834273,1834273,0.844577,1,t,Abdin; Al Azbakiyya; Al Darb al-Ahmar; Al Sahil; Al Sharabiyya; Al Zahir; Bab Al-Shariyya; Bulaq; Gamaliyya; Muski; Qasr Al-Nile; Rud Al-Farag; Sayyida Zainab; Shubra; Zawiyya Al-Hamra,93b0c07f-1abe-4cfa-a938-45e8dad793a5,1f6817f1-3e56-46b3-a260-9553c5fd2355
+Cairo Governorate,4,8,8.125479,f,0,1876150,1876150,0.822057,5,t,Al Khalifa; Basatin; Misr Al-Qadima,4a1e5516-7d3c-482b-9d71-6f1b6d2d5671,1f6817f1-3e56-46b3-a260-9553c5fd2355
+Cairo Governorate,5,9,8.925104,f,0,2060781,2060781,0.856607,3,t,10 Ramadan 1; 15 Mayu; Al Tibbin; Badr; Hilwan; Maadi; New Cairo-1; New Cairo-2; New Cairo-3; Shroq; Tura; Zemam Out,3c1a2178-204a-4373-9537-f7cb549120aa,1f6817f1-3e56-46b3-a260-9553c5fd2355
+Dakahlia Governorate,1,9,9.172066,f,0,1903693,1903693,0.319360,7,t,Al-Manasra; Dikirnis; E Mansora 2; El Mansora; El Mansora 1; Mahalet Demna,6caf7e6c-581d-4d0c-b806-20ddf4571243,af7f4ef1-103b-41fa-b8ab-1b55c834f529
+Dakahlia Governorate,2,8,7.668988,f,0,1591724,1591724,0.777976,1,t,Aga; Mit Ghamr; Mit Ghamr,35a8d54c-a5c5-4962-bb40-2d1b6d829cbc,af7f4ef1-103b-41fa-b8ab-1b55c834f529
+Dakahlia Governorate,3,9,8.842594,f,0,1835310,1835310,0.494243,2,f,Bany Abeed; Gamaliyya; Manzala; Matariyya; Sinbillawin; Tamy Al-Amdid,8cde4e7d-2200-471b-9758-ab932c78ae03,af7f4ef1-103b-41fa-b8ab-1b55c834f529
+Dakahlia Governorate,4,9,9.316352,f,0,1933640,1933640,0.759822,2,t,Bilqas; Gamsa; Nebro; Shirbin; Talkha,5652085c-e64e-43c6-87ea-18189bea5d1f,af7f4ef1-103b-41fa-b8ab-1b55c834f529
+Egypt,1,8,8.114547,f,0,1932310,1932310,0.869381,1,t,Damietta Governorate,ee84e1ab-596a-4741-83aa-ad8d745a6190,ea4a3117-f793-40ac-90f1-a46e44228583
+Egypt,2,8,7.966388,f,0,1897029,1897029,0.906918,1,t,Luxor Governate,43f72daf-a0ac-4e4b-8a98-4462782c22be,ea4a3117-f793-40ac-90f1-a46e44228583
+Egypt,3,7,7.487459,f,0,1782982,1782982,0.965719,1,t,Aswan Governorate,026e47b3-59a5-4cbc-a5bd-cd6675653c3f,ea4a3117-f793-40ac-90f1-a46e44228583
+Egypt,4,7,6.579183,f,0,1566695,1566695,0.803459,8,t,North Sinai Governorate; Port Said Governorate; South Sinai Governorate,3fc3bf76-5c4a-4f55-8be3-5e747dec735a,ea4a3117-f793-40ac-90f1-a46e44228583
+Egypt,5,9,9.148621,f,0,2178553,2178553,0.736497,8,t,Ismailia Governorate; Suez Governorate,64ab227a-857a-4d7b-9c01-60e1d053e7ad,ea4a3117-f793-40ac-90f1-a46e44228583
+Egypt,6,5,4.703801,f,0,1120112,1120112,0.410758,21,f,Matrouh Governorate; Red Sea Governorate,b2996349-eed4-46ba-a493-41bd85ef8423,ea4a3117-f793-40ac-90f1-a46e44228583
+Faiyum Governorate,1,9,8.975790,f,0,2177614,2177614,0.724901,1,t,Atsa; Fayyum; Fayyum; Fayyum City; Zemam Out,60a53d4f-44e2-4a55-a284-eb52eed9d254,484d23ca-a25d-4424-906b-1b4d7a50abaf
+Faiyum Governorate,2,9,9.024210,f,0,2189361,2189361,0.667046,1,t,Abshaway; Sinuras; Tamya; Yousef El sadeq,bc4ef69f-8f77-404f-b6fb-096f805946e7,484d23ca-a25d-4424-906b-1b4d7a50abaf
+Gharbiyya Governorate,1,8,7.887693,f,0,1999882,1999882,0.757115,1,t,El Mahalla El Kobra; El Mahalla El Kobra 1; El Mahalla El Kobra 2; Qutur,22c0142d-2236-496c-b78b-62a6b62496a3,68cd0feb-7b86-4897-b8d2-b2ce00c351c8
+Gharbiyya Governorate,2,9,9.159501,f,0,2322342,2322342,0.711809,1,t,Basyun; Kafr Al-Zayyat; Tanta; Tanta 1; Tanta 2,bb5752a3-0e64-47a2-9def-aa7ef5e85ed4,68cd0feb-7b86-4897-b8d2-b2ce00c351c8
+Gharbiyya Governorate,3,8,7.952806,f,0,2016391,2016391,0.658481,1,t,Birkat Al-Sab; Samannud; Santa; Zifta,06c8313e-1e43-4493-9988-35b85a4da725,68cd0feb-7b86-4897-b8d2-b2ce00c351c8
+Giza Governorate,1,9,9.204356,f,0,2079292,2079292,0.573431,5,t,6 October-1; 6 October-2; Atfeh; Ayat; Bahariya Oasis; Saf; Zemam Out,39195777-6a51-48b4-bf8d-741af82e0414,f319452c-9f4b-48b2-84fd-082d57b37f6c
+Giza Governorate,2,8,7.926073,f,0,1790524,1790524,0.489616,2,f,Al-Ahram; Kardasa; Shaykh Zayed,bf749f5a-4fe3-4781-a320-9790ca90630b,f319452c-9f4b-48b2-84fd-082d57b37f6c
+Giza Governorate,3,9,9.034889,f,0,2041009,2041009,0.706164,2,t,Al-Aguza; Bulaq Al-DakrUr; DuqqI; Umraniyya; Zamalik,a139811e-47c5-4719-8c7f-6984af4290f6,f319452c-9f4b-48b2-84fd-082d57b37f6c
+Giza Governorate,4,8,7.825255,f,0,1767749,1767749,0.699801,4,t,Badrashain; Giza; Giza; Hwamdeia,f654005e-b9be-4392-a35d-b24fee60463b,f319452c-9f4b-48b2-84fd-082d57b37f6c
+Giza Governorate,5,9,9.009427,f,0,2035257,2035257,0.814293,3,t,Auseem; Imbaba; Waraq,44abafd5-2de2-44a4-aa4d-074f433c9b8b,f319452c-9f4b-48b2-84fd-082d57b37f6c
+Kafr el-Sheikh Governorate,1,5,4.815288,f,0,951944,951944,0.647363,2,t,Al Hamul; Biyalu; Burullus,caff1db0-8606-423e-82be-d4246491f35b,34ed95f2-a41e-49de-bccb-ef7a6e324007
+Kafr el-Sheikh Governorate,2,5,4.885064,f,0,965738,965738,0.749734,1,t,Kafr Al-Shaykh; Kafr Al-Shaykh; Riyad,66e1ccab-e406-46d1-8fc0-30ca321a19ae,34ed95f2-a41e-49de-bccb-ef7a6e324007
+Kafr el-Sheikh Governorate,3,5,4.925141,f,0,973661,973661,0.783083,1,t,Disuq; Disuq; Qillin,4831d7a7-2198-4d9c-9717-46fa2efe29e8,34ed95f2-a41e-49de-bccb-ef7a6e324007
+Kafr el-Sheikh Governorate,4,5,5.374507,f,0,1062497,1062497,0.551216,1,t,Fuwwa; Mitubas; Sidi Salim,2876e4e0-e1c1-4064-9f3e-d571fac4393a,34ed95f2-a41e-49de-bccb-ef7a6e324007
+Minya Governate,1,7,6.889318,f,0,1668068,1668068,0.725478,2,t,Markz Al Minya; Markz Samalut,e755383b-b5d9-48d5-8de0-dfbedf61b3d7,8c3e3e63-07c8-4faf-ba63-2dc294f8e5d7
+Minya Governate,2,7,6.791149,f,0,1644299,1644299,0.811279,3,t,Markz Al Idwa; Markz Maghagha; Markz Matay; New Minya; Zemam Out,99034452-c8a2-47f9-bd5d-04e6a52b453d,8c3e3e63-07c8-4faf-ba63-2dc294f8e5d7
+Minya Governate,3,7,7.392734,f,0,1789957,1789957,0.776627,3,t,Kesm Mallawi; Markz Abu Qurqas; Markz Mallawi,4db9ee52-2f15-4261-bae2-43b69417b988,8c3e3e63-07c8-4faf-ba63-2dc294f8e5d7
+Minya Governate,4,7,6.926799,f,0,1677143,1677143,0.193939,5,f,Kesm Al-minya; Markz Bani Mazar; Markz Dir Mawas,47d2cc03-afe4-4c47-98a9-9910aecec395,8c3e3e63-07c8-4faf-ba63-2dc294f8e5d7
+Monufia Governorate,1,7,7.068298,f,0,1797219,1797219,0.675607,1,t,Al-Bagur; Minuf; Minuf City; Quwisna; Sirs Al-Layyana City,21cc15ae-967e-4c16-8df0-23fc9b7d43f8,5096bfc0-ec6e-4d52-8b89-54320f2833a9
+Monufia Governorate,2,7,7.086645,f,0,1801884,1801884,0.660052,3,f,Ashmun; Imbaba; Sadat City,9234577b-686f-492e-8d63-f30c72886ecf,5096bfc0-ec6e-4d52-8b89-54320f2833a9
+Monufia Governorate,3,7,6.845058,f,0,1740457,1740457,0.810034,1,t,Al-Shuhada; Shibin al-Kum; Shibin al-Kum; Tala,02b04f91-f41d-4e94-be9e-86fdbe90a895,5096bfc0-ec6e-4d52-8b89-54320f2833a9
+New Valley Governorate,1,5,4.567398,f,0,523923,523923,0.113941,5,t,Al Waqf; Qina; Suhag City,a6b030bd-f17c-4826-8326-404ea77a2ac1,8e2300f7-5b0b-4cfa-afd5-ce692e1b208d
+New Valley Governorate,2,5,5.432602,f,0,623170,623170,0.976912,2,t,A-Dakhla Oasis; Al Farafra Oasis; Al-Kharga Oasis; Guhayna Al-Gharbiyya; Paris Paris,6f698176-0b3c-40e2-8c52-3d9447ba702b,8e2300f7-5b0b-4cfa-afd5-ce692e1b208d
+Qalyubia Governorate,1,7,6.917909,f,0,1647577,1647577,0.688104,1,t,Al Salam; Marg,524ac518-aa38-46f4-bb4c-b861f85188c7,775be9d4-5bdc-4d96-aa5f-32521d442e45
+Qalyubia Governorate,2,6,5.933302,f,0,1413082,1413082,0.804552,1,t,Abour; Al Khanka; Khsos; Zemam Out,98946709-058b-414b-a008-f4f64961e354,775be9d4-5bdc-4d96-aa5f-32521d442e45
+Qalyubia Governorate,3,8,8.292155,f,0,1974869,1974869,0.501782,2,t,Qanatir Al-Khayriyya; Shubra Al-Khayma 1; Shubra Al-Khayma 2,639e451e-526c-43df-ad10-a01e493f1435,775be9d4-5bdc-4d96-aa5f-32521d442e45
+Qalyubia Governorate,4,7,6.757345,f,0,1609337,1609337,0.711377,1,t,Qaha; Qalyub; Qalyub; Shibin al-Qanatir,c3b37a2b-2bcd-4843-b468-ee3cd7c90b47,775be9d4-5bdc-4d96-aa5f-32521d442e45
+Qalyubia Governorate,5,7,7.099290,f,0,1690775,1690775,0.690593,2,t,Banha; Banha; Kafr Shukr; Tukh,8d0c60b3-ed77-4553-9a25-bb9f507c2106,775be9d4-5bdc-4d96-aa5f-32521d442e45
+Qena Governorate,1,7,6.661517,f,0,1569815,1569815,0.617397,2,t,Isna; Qift; Qina; Qina City; Zemam Out,1057a756-1e06-42f6-a099-b83ca33a63fd,2ba85d8e-a476-4da6-bbbb-6c55528f58ab
+Qena Governorate,2,7,7.338483,f,0,1729345,1729345,0.609544,2,t,Abu Tisht; Dishna; Farshut; Nag Hammadi,018287e9-85d5-4b84-81fd-cf23c33cbb20,2ba85d8e-a476-4da6-bbbb-6c55528f58ab
+Sohag Governorate,1,6,6.396306,f,0,1729102,1729102,0.650418,3,t,Al-Ghanayem; Al-Maragha; Kesm Tahta; Tahta; Tama,58b31713-795b-485d-88a6-d423d8d20f23,c2091fa1-8e5e-44b4-ba25-c52af926f7cf
+Sohag Governorate,2,5,4.866147,f,0,1315457,1315457,0.766261,1,t,Al-Minshat; Suhag; Suhag; Suhag-2,105804e9-ee73-4e19-b1e2-b259e646b5ca,c2091fa1-8e5e-44b4-ba25-c52af926f7cf
+Sohag Governorate,3,5,4.985062,f,0,1347603,1347603,0.823300,1,t,Al Usayrat; Al-Balyana; Girga; Girga,4a3ce400-4d5a-4efc-ac71-9b2f4dc8180a,c2091fa1-8e5e-44b4-ba25-c52af926f7cf
+Sohag Governorate,4,6,5.752485,f,0,1555059,1555059,0.747589,2,t,Akhmim; Akhmim City; Dar al-Salam; Kawther; Saqulta; Zemam Out,b492935d-f4d3-4ef1-af32-f21485e0456f,c2091fa1-8e5e-44b4-ba25-c52af926f7cf

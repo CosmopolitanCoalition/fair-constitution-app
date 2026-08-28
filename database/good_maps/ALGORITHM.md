@@ -434,20 +434,28 @@ ending"* if auto never reproduces them. All future maps come from this
 algorithm; the thousands of maps other eras created came from older
 engines and none of them share this pedigree.
 
-The eight AUTO standards (engine `6f4ee42`; regenerating any of them on
-that engine reproduces it byte-identically — determinism proven at gates
-21/22):
+The AUTO standards (engine `500373b`, the ceiling-exception engine —
+gate 23, 2026-08-28: all eight block maps regenerated at BYTE-IDENTICAL
+marks to their `6f4ee42` v3 standards; the only deltas anywhere are the
+two lawful bonus lifts. The era-1 retest trio joins the roster as
+candidate standards pending the operator's walk. Fit is bonus-netted):
 
-| Auto standard | map_id | Marks (noncontig / avgCHR / fit) |
+| Auto standard | map_id (v4) | Marks (noncontig / avgCHR / fit / bonus) |
 |---|---|---|
-| Earth | `9928f2e2-47f1-49f6-ae19-2c819c0816dd` | 17 / .6332 / 40.79 |
-| USA | `e110d9a6-cdf1-4ec0-b67c-8877b167c34b` | 4 / .7723 / 12.48 |
-| India | `03680363-c29e-49eb-b0d9-82b2ac52bcf6` | 3 / .7145 / 26.34 |
-| Philippines | `2663e10e-56c4-47e2-a5f5-24c35fdecb0e` | 8 / .5947 / 9.50 |
-| Canada | `5572e141-5779-4850-9f59-2b250035c42b` (his rename of the auto — zero member diffs) | 5 / .7295 / 6.94 |
-| Egypt | `83c47521-082d-4c60-a63d-bbdf77387bc1` | 5 / .6996 / 11.60 |
-| Chile | `b75c8126-b194-4190-a92a-998c49c48a6b` | 5 / .6507 / 6.73 |
-| San Marino | `b584f8f7-4d1c-464a-9f87-3bf29444ead2` | 0 / .7639 / 0.42 |
+| Earth | `82f284ff-6e8e-430b-88b9-7091e0d048c0` | 17 / .6332 / 40.79 / 0 |
+| USA | `ceb9e502-8360-4a12-b164-188e26748df5` | 4 / .7723 / 12.48 / 0 |
+| India | `9a9b19da-0373-4709-a381-6b86a4073773` | 3 / .7145 / 26.34 / 0 |
+| Philippines | `e320f3a2-ac54-46d4-b34f-7dbf0cdeeab8` | 8 / .5947 / 9.50 / 0 |
+| Canada | `72c951d8-74a2-4101-8143-26eed47c61d9` | 5 / .7295 / 6.94 / 0 |
+| Egypt | `5b658ed8-d765-488c-afb5-a21e0d86829e` | 5 / .6996 / 11.60 / 0 |
+| Chile | `1546a2b6-f19e-4084-aebf-71975ecb643d` | 5 / .6507 / 6.73 / **1** (Cordillera [9,2], chamber 271) |
+| San Marino | `249caa68-c77a-459e-97ab-14477ee20efd` | 0 / .7639 / 0.42 / 0 |
+| Maldives (retest) | `c8c90639-a8b0-4ed1-845a-da2083ff8927` | 2 / .5322 / 2.17 / 0 |
+| Malaysia (retest) | `815cd119-c9d2-46a7-b0c0-f75aca012275` | 2 / .6454 / 5.73 / **2** (KL residue 0+2, chamber 329) |
+| Bangladesh (retest) | `32246075-2aef-482a-9049-686b1a07774b` | 5 / .7084 / 14.56 / 0 |
+
+(The superseded `6f4ee42` v3 auto ids remain in `rows/auto_v3_*`; per-map
+stats for all eleven v4 maps in `iterations/iter23`.)
 
 His manual reference set (the "even closer" targets — Earth
 `a367d7ac`, India `2ae715b9`, PHL `fa329e1a`, Egypt `d42923b6`; marks

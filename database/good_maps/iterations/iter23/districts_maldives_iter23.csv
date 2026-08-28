@@ -1,0 +1,11 @@
+scope,district_number,seats,fractional_seats,floor_override,bonus_seats,target_population,actual_population,convex_hull_ratio,num_geom_parts,is_contiguous,members,district_id,scope_jurisdiction_id
+Maldives,1,8,7.688697,f,0,49969,49969,0.029352,2,t,Kaafu,5a5681ec-006e-4111-a478-b301ef31bc9c,f0cb0c96-2ee6-4d11-87f1-ef5bf1721ef8
+Maldives,2,9,9.457732,f,0,61466,61466,0.655206,4,t,Lhaviyani; Noonu; Raa,cc2f0d44-c3a8-4c9d-924f-2a197d8753dd,f0cb0c96-2ee6-4d11-87f1-ef5bf1721ef8
+Maldives,3,8,8.379108,f,0,54456,54456,0.011102,16,t,Haa Alif; Haa Dhaalu; Shaviyani,d5d13ded-89d7-4e04-8162-4c19b713b5de,f0cb0c96-2ee6-4d11-87f1-ef5bf1721ef8
+Maldives,4,6,5.675163,f,0,36883,36883,0.559552,7,f,Faafu; Laamu; Thaa; Vaavu,7b39d02d-2624-418c-9a9a-3b949cc95cfa,f0cb0c96-2ee6-4d11-87f1-ef5bf1721ef8
+Maldives,5,8,8.137380,f,0,52885,52885,0.004171,9,t,Addu; Gaafu Alif; Gaafu Dhaalu; Gnaviyani,828f8802-81be-440e-b361-e3a9e01da28e,f0cb0c96-2ee6-4d11-87f1-ef5bf1721ef8
+Maldives,6,9,8.661920,f,0,56294,56294,0.236819,5,f,Alif Alif; Alif Dhaalu; Baa; Dhaalu; Meemu,81b16a11-74a0-43a1-9b53-0b47c6018cb7,f0cb0c96-2ee6-4d11-87f1-ef5bf1721ef8
+Male',1,8,8.031070,f,0,31729,31729,0.942919,1,t,sub:Male' — drawn district 1 (pop 31729),2c97a441-17f9-4624-b8b6-3a068f791e1a,1e943e75-b815-4e50-b5a3-89edeb3775b1
+Male',2,8,7.979434,f,0,31525,31525,1.000000,1,t,sub:Male' — drawn district 2 (pop 31525),8afa6403-7708-4572-83c1-bc7b14f6c0a4,1e943e75-b815-4e50-b5a3-89edeb3775b1
+Male',3,8,8.081946,f,0,31930,31930,0.997666,1,t,sub:Male' — drawn district 3 (pop 31930),f7cb8233-f636-4b9b-960a-4aff98cef0e3,1e943e75-b815-4e50-b5a3-89edeb3775b1
+Male',4,8,7.907297,f,0,31240,31240,0.885425,1,t,sub:Male' — drawn district 4 (pop 31240),611480d3-187a-4351-99ed-b63fae2e0817,1e943e75-b815-4e50-b5a3-89edeb3775b1
