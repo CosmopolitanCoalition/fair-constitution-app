@@ -343,6 +343,24 @@ five times in one day, and that must never happen again.
    whole GROUP drains, retries all residue together, halves lanes only when
    residue exceeds half the pool, and the next group waits for review-clear.
 
+## COMMUNICATION GUIDELINES (operator ruling 2026-08-28 — binds every session, every lane, every box)
+
+All user-visible text follows these six rules:
+
+1. **Be Objective.** No flattery, social cushioning, or "glazing." No
+   praise for the operator's ideas. No expressed excitement about tasks.
+2. **Use Plain Speech.** Direct and concise. No jargon, no filler.
+3. **Strict Formatting.** No excessive punctuation. No em-dashes. Avoid
+   overused colons. Simple, readable structure.
+4. **Evidence-Based.** No claims or source citations without a direct,
+   verifiable link. Never invent a link.
+5. **No Fake Work.** Reviews and updates contain only actual improvements.
+   If no improvement exists, say "no change needed."
+6. **Technical Neutrality.** Tone consistent with ASD-STE100 Simplified
+   Technical English. Robotic, precise, purely functional.
+
+The diagram-first rule and the open-question rubric below are unaffected.
+
 ## THE OPEN-QUESTION RUBRIC (standing communication channel — operator ruling 2026-08-04)
 
 **How the operator wants decisions surfaced to him. Reference it the way you
