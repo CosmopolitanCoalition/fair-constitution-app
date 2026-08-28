@@ -307,23 +307,44 @@
                          apportionment (optimalConfig), so it's known before any
                          district is drawn. The district-derived sections inside
                          degrade gracefully ("— not yet computed" / hidden). -->
-                    <div v-if="(props.stats && (districtsRef.length > 0 || (props.stats.population_equality?.district_count ?? 0) > 0)) || hasAnyFlag || optimalLabel"
-                         class="mx-2 mt-2 mb-1 rounded bg-gray-900 shrink-0 border"
-                         :class="hardFlagCount > 0 ? 'border-red-800' : hasAnyFlag ? 'border-amber-800' : 'border-cyan-900'">
-                        <div class="flex items-center justify-between px-3 py-1.5 border-b border-gray-800 cursor-pointer select-none"
-                             @click="statsPanelCollapsed = !statsPanelCollapsed">
-                            <div class="flex items-center gap-1.5">
+                    <!-- Map Quality moved OUT of the sidebar (operator item 4,
+                         2026-08-28): the stats strip lives in the header's empty
+                         middle and the full panel FLOATS over the map — the
+                         sidebar keeps only the picker, autoseed/clear and the
+                         district tools. Mobile-first: the strip is a compact
+                         pill bottom-right (above the Menu bar), the panel is
+                         near-full-width; md+ centers both in/under the top bar. -->
+                    <Teleport to="body">
+                    <template v-if="(props.stats && (districtsRef.length > 0 || (props.stats.population_equality?.district_count ?? 0) > 0)) || hasAnyFlag || optimalLabel">
+                        <button @click="statsPanelCollapsed = !statsPanelCollapsed"
+                                class="fixed z-40 flex items-center gap-2 rounded border bg-gray-900/95 px-2.5 py-1 text-[11px] shadow-lg backdrop-blur select-none
+                                       bottom-20 right-2
+                                       md:bottom-auto md:right-auto md:top-2 md:left-1/2 md:-translate-x-1/2"
+                                :class="hardFlagCount > 0 ? 'border-red-800' : hasAnyFlag ? 'border-amber-800' : 'border-cyan-900'">
+                            <span class="font-semibold text-cyan-400 uppercase tracking-wide">Map Quality</span>
+                            <span v-if="hardFlagCount > 0" class="text-red-400">⛔ {{ hardFlagCount }}</span>
+                            <span v-else-if="hasAnyFlag" class="text-amber-400">⚠</span>
+                            <span v-else class="text-emerald-400">✓</span>
+                            <span v-if="props.stats?.population_equality?.avg_deviation_pct !== undefined"
+                                  class="text-gray-400 hidden md:inline">
+                                Eq {{ Number(props.stats.population_equality.avg_deviation_pct).toFixed(1) }}%
+                            </span>
+                            <span v-if="props.stats?.contiguity" class="text-gray-400 hidden md:inline">
+                                Contig {{ props.stats.contiguity.contiguous_count }}/{{ props.stats.contiguity.contiguous_count + props.stats.contiguity.non_contiguous_count }}
+                            </span>
+                            <span class="text-gray-600 transition-transform" :class="statsPanelCollapsed ? '' : 'rotate-90'">›</span>
+                        </button>
+                        <div v-if="!statsPanelCollapsed"
+                             class="fixed z-40 rounded border bg-gray-900/95 shadow-2xl backdrop-blur
+                                    bottom-28 left-2 right-2
+                                    md:bottom-auto md:left-1/2 md:right-auto md:top-10 md:w-[400px] md:-translate-x-1/2"
+                             :class="hardFlagCount > 0 ? 'border-red-800' : hasAnyFlag ? 'border-amber-800' : 'border-cyan-900'">
+                            <div class="flex items-center justify-between px-3 py-1.5 border-b border-gray-800">
                                 <span class="text-xs font-semibold text-cyan-400 uppercase tracking-wide">Map Quality</span>
-                                <span v-if="hardFlagCount > 0" class="text-[10px] text-red-400">⛔ {{ hardFlagCount }}</span>
-                                <span v-else-if="hasAnyFlag" class="text-[10px] text-amber-400">⚠</span>
+                                <button @click="statsPanelCollapsed = true"
+                                        class="px-1 text-xs text-gray-500 hover:text-white">✕</button>
                             </div>
-                            <span class="text-gray-600 text-xs transition-transform"
-                                  :class="statsPanelCollapsed ? '' : 'rotate-90'">›</span>
-                        </div>
-                        <!-- Bounded height + internal scroll (2026-08-28): the expanded
-                             panel used to swallow the whole sidebar, forcing constant
-                             collapse/re-expand while drawing. -->
-                        <div v-if="!statsPanelCollapsed" class="px-3 py-2 space-y-2.5 text-xs max-h-[42vh] overflow-y-auto">
+                        <div class="px-3 py-2 space-y-2.5 text-xs max-h-[50vh] md:max-h-[65vh] overflow-y-auto">
 
                             <!-- ── Constitutional Flags (inline, shown when any exist) ── -->
                             <div v-if="hasAnyFlag" class="pb-2 border-b border-gray-800">
@@ -638,7 +659,9 @@
                             </div>
 
                         </div>
-                    </div>
+                        </div>
+                    </template>
+                    </Teleport>
 
                     <!-- Mass tools toolbar — ONE shape everywhere (2026-07-17 rework):
                          composite scopes get ⚡ Autoseed + ✕ Clear; a leaf giant gets the
@@ -3176,7 +3199,25 @@ const sidebarRows = computed(() => {
         }
     }
 
-    function pushGiants(giants, depth) {
+    // Split a district list into flat rows and drawn rows grouped by their
+    // giant — the same nesting rule applies at EVERY tree level (operator
+    // walk 2, 2026-08-28: a leafless giant inside an expansion — city
+    // Montréal, city Toronto — must hold its drawn districts too).
+    function partitionDrawn(districts) {
+        const byGiant = new Map()
+        const flat = []
+        for (const d of districts) {
+            if (d.method === 'drawn' && d.giant_jurisdiction_id) {
+                if (!byGiant.has(d.giant_jurisdiction_id)) byGiant.set(d.giant_jurisdiction_id, [])
+                byGiant.get(d.giant_jurisdiction_id).push(d)
+            } else {
+                flat.push(d)
+            }
+        }
+        return { flat, byGiant }
+    }
+
+    function pushGiants(giants, depth, drawnMap = drawnByGiant) {
         for (const g of giants) {
             rows.push({ type: 'giant', giant: g, depth })
             if (expandedNodes[g.id]) {
@@ -3185,20 +3226,26 @@ const sidebarRows = computed(() => {
                 } else {
                     const sub = nestedData[g.id]
                     if (sub) {
-                        // Nested districts sorted by seats desc by default
+                        // Nested districts sorted by seats desc by default;
+                        // drawn rows re-partition so THIS expansion's sub-giants
+                        // hold their own drawn districts.
                         const subDistricts = Array.isArray(sub.districts) ? sub.districts : []
                         const subGiants    = Array.isArray(sub.giants)    ? sub.giants    : []
-                        const sorted = [...subDistricts].sort((a, b) => b.seats - a.seats)
-                        pushDistricts(sorted, depth + 1, true)
-                        pushGiants(subGiants, depth + 1)
+                        const { flat: subFlat, byGiant: subDrawn } = partitionDrawn(subDistricts)
+                        pushDistricts([...subFlat].sort((a, b) => b.seats - a.seats), depth + 1, true)
+                        pushGiants(subGiants, depth + 1, subDrawn)
+                        // Drawn rows whose giant has no row in this expansion.
+                        for (const [, orphans] of subDrawn) {
+                            pushDistricts([...orphans].sort((a, b) => a.district_number - b.district_number), depth + 1, true)
+                        }
                     }
                 }
-                drawnByGiant.delete(g.id)   // expanded view lists them live
+                drawnMap.delete(g.id)   // expanded view lists them live
             } else {
-                const drawn = drawnByGiant.get(g.id)
+                const drawn = drawnMap.get(g.id)
                 if (drawn?.length) {
                     pushDistricts([...drawn].sort((a, b) => a.district_number - b.district_number), depth + 1, true)
-                    drawnByGiant.delete(g.id)
+                    drawnMap.delete(g.id)
                 }
             }
         }

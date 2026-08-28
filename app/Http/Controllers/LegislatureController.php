@@ -4448,6 +4448,62 @@ class LegislatureController extends Controller
             ];
         }
 
+        // DRAWN districts (subdivision members) were invisible to this
+        // endpoint — the member join above is jurisdiction-only, so a
+        // leafless giant's line-split districts never reached the nested
+        // tree and its row sat childless (operator walk, 2026-08-28:
+        // Montréal/Toronto). Surface them here: the scope's own drawn
+        // districts plus those of giants ONE level below, tagged with
+        // giant_jurisdiction_id so the sidebar nests them under their
+        // giant's row.
+        $drawnAtRows = DB::select("
+            SELECT DISTINCT ON (ld.id)
+                ld.id, ld.seats, COALESCE(ld.bonus_seats, 0) AS bonus_seats,
+                ld.district_number, ld.actual_population,
+                ld.fractional_seats, ld.floor_override,
+                ld.convex_hull_ratio, ld.is_contiguous,
+                ds.label,
+                jg.id   AS giant_jid,
+                jg.name AS giant_name
+            FROM legislature_districts ld
+            JOIN legislature_district_jurisdictions ldj ON ldj.district_id = ld.id
+                AND ldj.subdivision_id IS NOT NULL
+            JOIN district_subdivisions ds ON ds.id = ldj.subdivision_id
+                AND ds.deleted_at IS NULL
+            JOIN jurisdictions jg ON jg.id = ld.jurisdiction_id
+                AND jg.deleted_at IS NULL
+            WHERE ld.legislature_id = :leg_id_d
+              AND ld.deleted_at IS NULL
+              " . ($atMapId ? 'AND ld.map_id = :map_id_d' : '') . "
+              AND (jg.id = :scope_d1 OR jg.parent_id = :scope_d2)
+            ORDER BY ld.id, ds.label
+        ", array_merge([
+            'leg_id_d' => $legislature_id,
+            'scope_d1' => $scopeId,
+            'scope_d2' => $scopeId,
+        ], $atMapId ? ['map_id_d' => $atMapId] : []));
+
+        foreach ($drawnAtRows as $row) {
+            $districts[] = [
+                'id'                => $row->id,
+                'seats'             => (int) $row->seats,
+                'bonus_seats'       => (int) $row->bonus_seats,
+                'district_number'   => (int) $row->district_number,
+                'population'        => (int) ($row->actual_population ?? 0),
+                'fractional_seats'  => round((float) $row->fractional_seats, 2),
+                'color_index'       => $colorMap[$row->id] ?? 0,
+                'floor_override'    => (bool) $row->floor_override,
+                'convex_hull_ratio' => $row->convex_hull_ratio !== null ? round((float) $row->convex_hull_ratio, 3) : null,
+                'is_contiguous'     => $row->is_contiguous !== null ? (bool) $row->is_contiguous : null,
+                'has_integrity'     => true,
+                'name'              => $row->label,
+                'method'            => 'drawn',
+                'giant_jurisdiction_id' => ((string) $row->giant_jid === (string) $scopeId) ? null : $row->giant_jid,
+                'scope_name'        => $row->giant_name,
+                'members'           => [],
+            ];
+        }
+
         return response()->json(compact('districts', 'giants'));
     }
 
