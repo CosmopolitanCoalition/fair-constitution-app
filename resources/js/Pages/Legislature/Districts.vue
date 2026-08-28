@@ -133,7 +133,7 @@
                             <!-- Rename row -->
                             <div v-else-if="renamingMapId === m.id"
                                  class="flex items-center gap-1.5 px-3 py-2 bg-gray-800 border-b border-gray-700">
-                                <input v-model="renameValue"
+                                <input id="map-rename-input" v-model="renameValue"
                                        @keyup.enter="submitRename(m.id)"
                                        @keyup.escape="cancelRename"
                                        class="flex-1 px-1.5 py-0.5 rounded text-xs bg-gray-700 border border-gray-600 text-gray-200 focus:outline-none focus:border-indigo-500 min-w-0" />
@@ -164,7 +164,7 @@
                                     ⛔{{ countFlags(m.flags) }}
                                 </span>
                                 <!-- Rename + copy + delete buttons (visible on hover) -->
-                                <span class="shrink-0 flex items-center gap-0.5 opacity-0 group-hover:opacity-100 transition-opacity">
+                                <span class="shrink-0 flex items-center gap-0.5 opacity-60 group-hover:opacity-100 transition-opacity">
                                     <button @click.stop="startRename(m)"
                                             title="Rename"
                                             class="px-1 py-0.5 rounded text-[10px] text-gray-400 hover:text-white hover:bg-gray-600 transition-colors">
@@ -320,7 +320,10 @@
                             <span class="text-gray-600 text-xs transition-transform"
                                   :class="statsPanelCollapsed ? '' : 'rotate-90'">›</span>
                         </div>
-                        <div v-if="!statsPanelCollapsed" class="px-3 py-2 space-y-2.5 text-xs">
+                        <!-- Bounded height + internal scroll (2026-08-28): the expanded
+                             panel used to swallow the whole sidebar, forcing constant
+                             collapse/re-expand while drawing. -->
+                        <div v-if="!statsPanelCollapsed" class="px-3 py-2 space-y-2.5 text-xs max-h-[42vh] overflow-y-auto">
 
                             <!-- ── Constitutional Flags (inline, shown when any exist) ── -->
                             <div v-if="hasAnyFlag" class="pb-2 border-b border-gray-800">
@@ -1329,6 +1332,14 @@
                              class="border-b border-gray-800 py-2 text-xs text-gray-600 italic"
                              :style="{ paddingLeft: (12 + row.depth * 14) + 'px' }">
                             loading…
+                        </div>
+
+                        <!-- Drawn-group header: surfaced drawn districts whose giant has
+                             no top-level row here nest under this label (2026-08-28). -->
+                        <div v-else-if="row.type === 'drawn-group'"
+                             class="border-b border-gray-800 py-1.5 text-[11px] uppercase tracking-wide text-gray-500"
+                             :style="{ paddingLeft: (12 + row.depth * 14) + 'px' }">
+                            ✎ {{ row.name }} — drawn districts
                         </div>
 
                         <!-- Member jurisdiction row (from expanded nested district) -->
@@ -3182,7 +3193,30 @@ const sidebarRows = computed(() => {
                         pushGiants(subGiants, depth + 1)
                     }
                 }
+                drawnByGiant.delete(g.id)   // expanded view lists them live
+            } else {
+                const drawn = drawnByGiant.get(g.id)
+                if (drawn?.length) {
+                    pushDistricts([...drawn].sort((a, b) => a.district_number - b.district_number), depth + 1, true)
+                    drawnByGiant.delete(g.id)
+                }
             }
+        }
+    }
+
+    // Drawn districts surfaced from descendant leaf giants NEST under their
+    // giant instead of listing flat (operator walk fix, 2026-08-28) — the
+    // flat mix made big maps unscannable. Group them by giant id; they show
+    // under the giant's collapsed row (its expanded view fetches the same
+    // districts live, so we hide the summary group then to avoid doubles).
+    const drawnByGiant = new Map()
+    const flatDistricts = []
+    for (const d of districtsRef.value) {
+        if (d.method === 'drawn' && d.giant_jurisdiction_id) {
+            if (!drawnByGiant.has(d.giant_jurisdiction_id)) drawnByGiant.set(d.giant_jurisdiction_id, [])
+            drawnByGiant.get(d.giant_jurisdiction_id).push(d)
+        } else {
+            flatDistricts.push(d)
         }
     }
 
@@ -3190,7 +3224,7 @@ const sidebarRows = computed(() => {
     // Each entry: { kind: 'district'|'giant', item }
     const dir = sortDir.value === 'asc' ? 1 : -1
     const topLevel = [
-        ...districtsRef.value.map(d => ({ kind: 'district', item: d })),
+        ...flatDistricts.map(d => ({ kind: 'district', item: d })),
         ...giantChildren.value.map(g => ({ kind: 'giant',    item: g })),
     ].sort((a, b) => {
         function val(entry) {
@@ -3222,6 +3256,13 @@ const sidebarRows = computed(() => {
         } else {
             pushGiants([entry.item], 0)
         }
+    }
+    // Drawn districts whose giant sits two levels down (no top-level giant
+    // row to nest under): group them under a labeled header instead of
+    // scattering them through the flat list.
+    for (const [, drawn] of drawnByGiant) {
+        rows.push({ type: 'drawn-group', name: drawn[0]?.scope_name ?? 'Drawn districts', depth: 0 })
+        pushDistricts([...drawn].sort((a, b) => a.district_number - b.district_number), 1, true)
     }
     return rows
 })
@@ -3506,9 +3547,13 @@ async function activateCurrentMap() {
 }
 
 function startRename(map) {
+    // The rename input lives INSIDE the selector dropdown — closing it here
+    // (the old behavior) made the input vanish and forced a reopen: the
+    // recorded "renaming takes a lot of clicks" pain. Keep it open and
+    // focus the input.
     renamingMapId.value = map.id
     renameValue.value   = map.name
-    mapSelectorOpen.value = false
+    nextTick(() => document.getElementById('map-rename-input')?.focus())
 }
 
 async function submitRename(mapId) {
@@ -3525,7 +3570,9 @@ async function submitRename(mapId) {
         )
         if (!resp.ok) { showStatus('error', 'Failed to rename map'); return }
         renamingMapId.value = null
-        router.visit(mapUrl(props.scope.id))   // reload to refresh map list
+        // Partial reload — a full router.visit() tore the whole page down
+        // (and the map view with it) just to refresh a name.
+        router.reload({ only: ['maps', 'active_map'] })
     } catch (e) {
         console.error('renameMap:', e)
         showStatus('error', 'Network error')
@@ -4894,7 +4941,12 @@ async function createDistrictFromPending() {
         selectedDistrictId.value = d.id
         restyleAll()
         showStatus('success', `District created: ${d.seats} seats · ${jids.length} jurisdictions`)
-        router.reload({ only: ['flags', 'stats'] })
+        // Converge to server truth (2026-08-28 stale-screen fix): the optimistic
+        // surgery above gives instant feedback, but only the awaited authoritative
+        // reload guarantees the list, counters and layers match the server —
+        // the un-awaited {flags,stats} partial left every other prop stale, and
+        // any surgery divergence stuck until a manual refresh.
+        await reloadThenRepaint()
     } catch (e) {
         console.error('createDistrict:', e)
         showStatus('error', e?.name === 'TimeoutError'
@@ -4982,7 +5034,12 @@ async function saveDistrictEdit(districtId) {
         selectedDistrictId.value = districtId
         restyleAll()
         showStatus('success', `District updated: ${updated.seats} seats`)
-        router.reload({ only: ['flags', 'stats'] })
+        // Converge to server truth (2026-08-28 stale-screen fix): the optimistic
+        // surgery above gives instant feedback, but only the awaited authoritative
+        // reload guarantees the list, counters and layers match the server —
+        // the un-awaited {flags,stats} partial left every other prop stale, and
+        // any surgery divergence stuck until a manual refresh.
+        await reloadThenRepaint()
     } catch (e) {
         console.error('saveDistrictEdit:', e)
         showStatus('error', e?.name === 'TimeoutError'
@@ -5025,7 +5082,12 @@ async function deleteDistrict(districtId) {
         rebuildDistrictLabelGroup()
         restyleAll()
         showStatus('success', 'District disbanded')
-        router.reload({ only: ['flags', 'stats'] })
+        // Converge to server truth (2026-08-28 stale-screen fix): the optimistic
+        // surgery above gives instant feedback, but only the awaited authoritative
+        // reload guarantees the list, counters and layers match the server —
+        // the un-awaited {flags,stats} partial left every other prop stale, and
+        // any surgery divergence stuck until a manual refresh.
+        await reloadThenRepaint()
     } catch (e) {
         console.error('deleteDistrict:', e)
         showStatus('error', e?.name === 'TimeoutError'
