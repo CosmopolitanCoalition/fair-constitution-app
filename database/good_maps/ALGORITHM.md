@@ -387,39 +387,57 @@ ten); (b) nearest-host attachment for zero-pop members (item 10);
 bisection axes + metro-core retention (items 4, 5, 9); (e) multi-bin
 rebalance (items 1, 6). Each build re-runs the FULL block gate below.
 
-## 11. THE REGRESSION GATE — the eight-map block (operator blessing 2026-08-28)
+## 11. THE REGRESSION GATE — the eight-map block (operator, 2026-08-28)
 
-**His ruling:** *"this block of maps should form a new non-regression gate
-for when we respawn all the maps enmasse."* The gate grew from the
-Earth+USA pair to EIGHT standards — his Manual Baseline v3 where he
-tweaked, the v3 autos where he did not (Canada = the v3 auto he renamed
-manual, adopting it verbatim; zero member diffs):
+**GROUND TRUTH (his correction, 2026-08-28): THE ALGORITHM IS THE
+STANDARD, not any stored map.** The eight AUTO maps below are the product
+of engine `6f4ee42`, and *"the non regression must be pegged to the
+algorithm that produced these 8 auto maps — or another algorithm that
+could get even closer to the 8 maps including the manual tweaks."* His
+Manual Baseline v3 tweaks (§10c) are the DIRECTION "closer" points — an
+aspirational reference, committed because they were close, but *"not life
+ending"* if auto never reproduces them. All future maps come from this
+algorithm; the thousands of maps other eras created came from older
+engines and none of them share this pedigree.
 
-| Standard | map_id | Marks (noncontig / avgCHR / fit) |
+The eight AUTO standards (engine `6f4ee42`; regenerating any of them on
+that engine reproduces it byte-identically — determinism proven at gates
+21/22):
+
+| Auto standard | map_id | Marks (noncontig / avgCHR / fit) |
 |---|---|---|
-| Earth (manual) | `a367d7ac-cd3f-4880-80e7-7f1b42f96cec` | 17 / .6351 / 40.57 |
-| USA (auto v3) | `e110d9a6-cdf1-4ec0-b67c-8877b167c34b` | 4 / .7723 / 12.48 |
-| India (manual) | `2ae715b9-4d1e-48aa-b865-025b110e4f0f` | 3 / .7157 / 26.39 |
-| Philippines (manual) | `fa329e1a-3d22-4590-a02f-b62523e8a1c8` | 9 / .5921 / 9.27 |
-| Canada (auto, his rename) | `5572e141-5779-4850-9f59-2b250035c42b` | 5 / .7295 / 6.94 |
-| Egypt (manual) | `d42923b6-fea6-4d66-9589-12af274c8a3a` | 5 / .7007 / 11.79 |
-| Chile (auto v3) | `b75c8126-b194-4190-a92a-998c49c48a6b` | 5 / .6507 / 6.73 |
-| San Marino (auto v3) | `b584f8f7-4d1c-464a-9f87-3bf29444ead2` | 0 / .7639 / 0.42 |
+| Earth | `9928f2e2-47f1-49f6-ae19-2c819c0816dd` | 17 / .6332 / 40.79 |
+| USA | `e110d9a6-cdf1-4ec0-b67c-8877b167c34b` | 4 / .7723 / 12.48 |
+| India | `03680363-c29e-49eb-b0d9-82b2ac52bcf6` | 3 / .7145 / 26.34 |
+| Philippines | `2663e10e-56c4-47e2-a5f5-24c35fdecb0e` | 8 / .5947 / 9.50 |
+| Canada | `5572e141-5779-4850-9f59-2b250035c42b` (his rename of the auto — zero member diffs) | 5 / .7295 / 6.94 |
+| Egypt | `83c47521-082d-4c60-a63d-bbdf77387bc1` | 5 / .6996 / 11.60 |
+| Chile | `b75c8126-b194-4190-a92a-998c49c48a6b` | 5 / .6507 / 6.73 |
+| San Marino | `b584f8f7-4d1c-464a-9f87-3bf29444ead2` | 0 / .7639 / 0.42 |
 
-Rows + stats for all eight live in `rows/block_*` and
-`stats/districts_block_*.csv` (export_good_maps.sh regenerates them).
+His manual reference set (the "even closer" targets — Earth
+`a367d7ac`, India `2ae715b9`, PHL `fa329e1a`, Egypt `d42923b6`; marks
+Earth 17/.6351/40.57 · India 3/.7157/26.39 · PHL 9/.5921/9.27 · Egypt
+5/.7007/11.79) is preserved under `rows/block_*` and
+`stats/districts_block_*.csv`; the auto standards' rows/stats live under
+`rows/auto_v3_*` and `stats/districts_auto_v3_*.csv`
+(export_good_maps.sh regenerates both sets).
+
 After ANY change to `DistrictingService`: (1) doctrine suite, (2)
-regenerate fresh autos for ALL EIGHT via `map_plus_children_all` from each
-root, (3) score each against its block standard with `tools/score.py`,
-(4) require: budgets exact, 0 unsanctioned band violations, 0 breaches,
-override count ≤ the standard's, clusters ≤ the standard's with no new
-far-spread pieces, CHR and fit within noise of the marks above or better
-in the operator's priority order. A change that degrades any count is not
+regenerate fresh autos for ALL EIGHT via `map_plus_children_all` from
+each root, (3) score each against its AUTO standard with
+`tools/score.py`, (4) require: budgets exact, 0 unsanctioned band
+violations, 0 breaches, override count ≤ the standard's, clusters ≤ the
+standard's with no new far-spread pieces, CHR and fit at the marks above
+or better in the operator's priority order — where "better" is measured
+toward the manual reference set. A change that degrades any count is not
 shipped without his word.
 
-**Before the mass respawn** (his order, same message): one more sweep of
-the HISTORICAL record for trouble jurisdictions not yet covered by the
-block — candidates go to the rubric for his pick.
+**History of the gate:** in the FIRST ERA (the prior campaign, on a box
+that no longer exists) only Earth and USA formed the standard; the other
+six of this block were that era's known problem maps, now regression-
+gated. Before the mass respawn: sweep the first-era record for any
+remaining problem jurisdictions not yet re-tested (candidates → rubric).
 
 **Next phase:** fully map ALL jurisdictions planet-wide (the re-hook /
 multithreaded Type A sweep), every legislature staying legal and optimized

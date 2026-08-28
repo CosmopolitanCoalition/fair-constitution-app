@@ -10,10 +10,16 @@ declare -A MAPS=(
   [earth_auto_draft1_79782bdd]=79782bdd-0832-4acc-ad50-3d8cd93af842
   [usa_manual_draft_3cdf1d8b]=3cdf1d8b-bdcf-4047-8670-b5adae480e46
   [usa_initial_a2e0df5a]=a2e0df5a-eedd-409c-8e66-5162450d8e45
-  # ── THE BLOCK (operator blessing 2026-08-28): the eight-map non-regression
-  # gate for the mass respawn. Earth/India/PHL/Egypt = his Manual Baseline v3
-  # (v3 auto + his ten improvements); Canada = v3 auto adopted verbatim (his
-  # rename); USA/Chile/San Marino = v3 autos standing unchanged.
+  # ── THE BLOCK (operator, 2026-08-28): THE ALGORITHM IS THE STANDARD — the
+  # gate pegs to the eight AUTO v3 maps (engine 6f4ee42). auto_v3_* = the four
+  # auto standards whose manual counterparts differ; block_canada / block_usa /
+  # block_chile / block_sanmarino are already the auto content (Canada = his
+  # rename of the auto, zero diffs). block_earth/india/phl/egypt = his Manual
+  # Baseline v3 — the aspirational "even closer" reference, not the peg.
+  [auto_v3_earth_9928f2e2]=9928f2e2-47f1-49f6-ae19-2c819c0816dd
+  [auto_v3_india_03680363]=03680363-c29e-49eb-b0d9-82b2ac52bcf6
+  [auto_v3_phl_2663e10e]=2663e10e-56c4-47e2-a5f5-24c35fdecb0e
+  [auto_v3_egypt_83c47521]=83c47521-082d-4c60-a63d-bbdf77387bc1
   [block_earth_a367d7ac]=a367d7ac-cd3f-4880-80e7-7f1b42f96cec
   [block_usa_e110d9a6]=e110d9a6-cdf1-4ec0-b67c-8877b167c34b
   [block_india_2ae715b9]=2ae715b9-4d1e-48aa-b865-025b110e4f0f
