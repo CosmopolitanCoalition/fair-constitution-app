@@ -49,7 +49,7 @@ for slug in "${!MAPS[@]}"; do
 
   $PSQL -c "COPY (
     SELECT sj.name AS scope, d.district_number, d.seats, d.fractional_seats,
-           d.floor_override,
+           d.floor_override, d.bonus_seats,
            d.target_population, d.actual_population,
            d.convex_hull_ratio, d.num_geom_parts, d.is_contiguous,
            (SELECT string_agg(COALESCE(mj.name, 'sub:'||ds.label||' (pop '||ds.population||')'), '; '

@@ -647,11 +647,53 @@ class DistrictingDoctrineTest extends TestCase
                 ->where('legislature_id', $leg->id)
                 ->whereNull('deleted_at')
                 ->orderByDesc('seats')
-                ->get(['seats', 'floor_override']);
-            $this->assertSame(10, (int) $rows->sum('seats'), 'the dominant-atom scope lands its budget exactly (drift is always wrong)');
+                ->get(['seats', 'bonus_seats', 'floor_override']);
+            // THE LEGISLATURE CEILING EXCEPTION (operator ruling 2026-08-28):
+            // the dust's lawful landing is 1 — the ONE case — so a bonus seat
+            // lifts it to exactly 2 (the runner-up is represented too). The
+            // lawful landing still sums the budget exactly: seats − bonus.
+            $this->assertSame(10, (int) $rows->sum(fn ($r) => $r->seats - $r->bonus_seats), 'the lawful landing sums the budget exactly (drift is always wrong)');
+            $this->assertSame(11, (int) $rows->sum('seats'), 'the chamber grows by exactly the bonus');
             $this->assertSame(9, (int) $rows[0]->seats, 'the near-ceiling atom seats at nearest, not promoted');
-            $this->assertSame(1, (int) $rows[1]->seats, 'the dust remainder rounds to nearest below the floor');
+            $this->assertSame(2, (int) $rows[1]->seats, 'the sub-2 dust lifts to exactly 2 via the ceiling exception');
+            $this->assertSame(1, (int) $rows[1]->bonus_seats, 'one bonus seat, added to the legislature');
             $this->assertTrue((bool) $rows[1]->floor_override, 'the sub-floor district carries the override for audit');
+        });
+    }
+
+    public function test_zero_budget_residue_seats_by_ceiling_exception_bonus(): void
+    {
+        $this->onLivePg(function () {
+            // The Kuala Lumpur shape in miniature: one child at 96% of the
+            // scope promotes as a giant and locks the ENTIRE 10-seat budget
+            // (frac 9.6 ≥ 9.5 → nearest 10); the dust residue (4%) lands on a
+            // zero-budget drawn plane. Before the ruling the engine minted an
+            // unlawful +1 with a fabricated 1.00 fractional (Malaysia,
+            // chamber 328/327). Now: ONE residue district seated entirely by
+            // bonus (0 lawful + 2), honest fractional, marked override.
+            $rootId  = $this->makeJurisdiction('zzcx-0-root', 'Residue Root', 0, null, $this->square(0, 0, 20, 20), 1_000_000);
+            $scopeId = $this->makeJurisdiction('zzcx-1-scope', 'Residue Scope', 1, $rootId, $this->square(0, 0, 12, 6), 1_000_000);
+            $this->makeJurisdiction('zzcx-2-giant', 'Metro Giant', 2, $scopeId, $this->square(0, 0, 10, 6), 960_000);
+            $this->makeJurisdiction('zzcx-2-dust1', 'Sliver East', 2, $scopeId, $this->square(10, 0, 11, 6), 22_000);
+            $this->makeJurisdiction('zzcx-2-dust2', 'Sliver Far', 2, $scopeId, $this->square(11, 0, 12, 6), 18_000);
+            $leg = $this->makeLegislature($rootId, 10);
+
+            $result = app(DistrictingService::class)->runAutoCompositeForScope(
+                $leg->id, $leg, $scopeId, false, 10, null
+            );
+            $this->assertNull($result['error']);
+            $this->assertSame(1, (int) $result['districts_created']);
+
+            $row = DB::table('legislature_districts')
+                ->where('legislature_id', $leg->id)
+                ->whereNull('deleted_at')
+                ->first(['seats', 'bonus_seats', 'fractional_seats', 'floor_override', 'actual_population']);
+            $this->assertSame(2, (int) $row->seats, 'the residue district seats exactly 2 — the zero case');
+            $this->assertSame(2, (int) $row->bonus_seats, 'both seats are bonus: the lawful landing is 0');
+            $this->assertTrue((bool) $row->floor_override);
+            $this->assertSame(40_000, (int) $row->actual_population, 'all residue atoms ride the one district');
+            $this->assertEqualsWithDelta(0.4, (float) $row->fractional_seats, 0.02,
+                'the fractional stays HONEST (the fabricated 1.00 is dead)');
         });
     }
 

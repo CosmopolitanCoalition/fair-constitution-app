@@ -243,10 +243,25 @@ or implement one. The procedure (per legislature):
      Deterministic ties: lowest bin index, then lowest child id.
    This is still a REDRAWING, not a redistribution loop — step 5 stands.
 
+8. **THE LEGISLATURE CEILING EXCEPTION** (operator ruling 2026-08-28 —
+   "everyone, everywhere, all the time"). A FORCED floor exception whose
+   lawful landing is 1 or 0 seats receives BONUS SEATS added to the
+   legislature itself, raising that district to exactly 2 — so the
+   runner-up is represented too, and no resident is ever seatless. The
+   chamber total for such a map = cube-root total + Σ bonus. Bonus is
+   stored per district (`legislature_districts.bonus_seats`); every
+   exactness identity compares `seats − bonus_seats` against the budget.
+   Elimination still comes first (the override repair); the bonus is the
+   LAST step, applied only to forced sub-2 landings. The zero case is the
+   giant-consumed residue plane (Kuala Lumpur, 2026-08-28); the one case
+   is dominant-atom dust (Cordillera's [9,1] → [9,2]).
+
 Implementation: `DistrictingService::computeSeatBudget` (cascade, steps 1-4),
 Step 11 of `runAutoCompositeForScope` (step 5), `seat_drift` as `scoreRank()`'s
-first key, and the final-bin break-tolerant repair for scattered-component
-pools that never enter the k-loop (step 6). Pinned in `DistrictingDoctrineTest`.
+first key, the final-bin break-tolerant repair for scattered-component
+pools that never enter the k-loop (step 6), `overrideRepairPass` (last-resort
+elimination) and the sub-2 bonus lift at every seat-writing plane (step 8).
+Pinned in `DistrictingDoctrineTest`.
 
 ---
 

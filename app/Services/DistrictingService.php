@@ -224,7 +224,7 @@ class DistrictingService
         // behaviour — a sweep building a draft must keep seeing the districts
         // it is inserting — while retired maps stop voting.
         $sql = "
-            SELECT ld.seats
+            SELECT (ld.seats - COALESCE(ld.bonus_seats, 0)) AS seats
               FROM legislature_districts ld
               JOIN legislature_district_jurisdictions ldj
                 ON ldj.district_id = ld.id
@@ -555,6 +555,23 @@ class DistrictingService
 
         if (empty($nonGiantRows)) {
             return ['districts_created' => 0, 'error' => 'No compositable (non-giant) children found at this scope'];
+        }
+
+        // THE LEGISLATURE CEILING EXCEPTION — the zero case (operator ruling
+        // 2026-08-28, the Kuala Lumpur residue): locked giants consumed the
+        // ENTIRE scope budget while residue atoms remain on the drawn plane.
+        // No lawful seat exists for them, and "everyone, everywhere, all the
+        // time" is the law — the residue forms ONE district seated entirely
+        // by bonus (lawful 0 + 2), honest fractional, marked floor_override.
+        // The chamber grows by the bonus; every exactness identity nets
+        // bonus_seats out. (Before this guard the engine minted an unlawful
+        // +1 district with a fabricated 1.00 fractional — Malaysia, the
+        // era-1 retest, chamber 328/327.)
+        if ($nonGiantBudget <= 0 && $seatBudget > 0) {
+            return $this->insertZeroBudgetResidueDistrict(
+                $legislature_id, $scopeId, $mapId, $clearExisting, $leg,
+                $nonGiantRows, $giantRows, $seatBudget
+            );
         }
 
         // ── Step 6: Filter already-assigned non-giants (when not clearing) ────
@@ -1768,15 +1785,22 @@ class DistrictingService
 
             $districtId = (string) \Illuminate\Support\Str::uuid();
 
+            // THE LEGISLATURE CEILING EXCEPTION (operator ruling 2026-08-28):
+            // applied at write time only, AFTER every landing/repair pass —
+            // those all reason pre-bonus, so drift stays measured against the
+            // lawful landing. A forced sub-2 bin lifts to exactly 2.
+            $bonusSeats = $this->ceilingExceptionBonus((int) $bin['seats']);
+
             DB::table('legislature_districts')->insert([
                 'id'               => $districtId,
                 'legislature_id'   => $legislature_id,
                 'map_id'           => $mapId,
                 'jurisdiction_id'  => $scopeId,
                 'district_number'  => $districtNumber,
-                'seats'            => $bin['seats'],
+                'seats'            => $bin['seats'] + $bonusSeats,
+                'bonus_seats'      => $bonusSeats,
                 'fractional_seats' => $binQuota > 0 ? round($bin['pop'] / $binQuota, 6) : 0.0,
-                'floor_override'   => $bin['floor_override'],
+                'floor_override'   => $bin['floor_override'] || $bonusSeats > 0,
                 'target_population'=> $bin['pop'],
                 'actual_population'=> $bin['pop'],
                 'status'           => 'active',
@@ -2275,11 +2299,15 @@ class DistrictingService
             $giantSiblingIds = [];      // no scope context — treat every sibling as available
         }
         $fractional = $totalPop / max($quota, 1);
-        // Dominant-atom fix (2026-08-26): nearest, ceiling-clamped, min 1 —
-        // the manual/recompute plane mirrors Step 11 exactly; sub-floor is the
-        // marked floor_override posture, never inflated seats.
-        $seats      = min($ceiling, max(1, (int) round($fractional)));
-        $floorOverride = $seats < $floor;
+        // Dominant-atom fix (2026-08-26): nearest, ceiling-clamped — the
+        // manual/recompute plane mirrors Step 11 exactly; sub-floor is the
+        // marked floor_override posture, never inflated seats. The ceiling
+        // exception (2026-08-28) then lifts any forced sub-2 landing to
+        // exactly 2 via bonus seats added to the legislature.
+        $lawfulSeats   = min($ceiling, max(0, (int) round($fractional)));
+        $bonusSeats    = $this->ceilingExceptionBonus($lawfulSeats);
+        $seats         = $lawfulSeats + $bonusSeats;
+        $floorOverride = $lawfulSeats < $floor;
 
         // Pre-compute spatial stats from member jurisdiction geometries.
         // Running per-district at write time (create/update) is fast — typically
@@ -2497,6 +2525,7 @@ class DistrictingService
         ];
         if (!$skipSeatsUpdate) {
             $distUpdate['seats']            = $seats;
+            $distUpdate['bonus_seats']      = $bonusSeats;
             $distUpdate['fractional_seats'] = $fractional;
             $distUpdate['floor_override']   = $floorOverride;
         }
@@ -5677,6 +5706,100 @@ class DistrictingService
      * already at or above it — everything else is the member-repair
      * machinery's job. Sub-floor bins that remain carry floor_override.
      */
+    /**
+     * THE LEGISLATURE CEILING EXCEPTION (operator ruling 2026-08-28 —
+     * "everyone, everywhere, all the time"): a FORCED floor exception whose
+     * lawful landing is 1 or 0 seats receives bonus seats — added to the
+     * legislature itself, on top of the cube-root total — raising the
+     * district to exactly 2 so the runner-up is represented too. Applied at
+     * every seat-WRITING plane, after all landing/repair arithmetic (which
+     * stays pre-bonus: drift, scoring, and every exactness identity compare
+     * seats − bonus_seats against the budget). Elimination outranks bonus:
+     * the override repair runs first, and only a forced sub-2 landing is
+     * lifted. The zero case is the giant-consumed residue plane (Kuala
+     * Lumpur); the one case is dominant-atom dust (Cordillera [9,1]→[9,2]).
+     */
+    private function ceilingExceptionBonus(int $lawfulSeats): int
+    {
+        return $lawfulSeats < 2 ? 2 - $lawfulSeats : 0;
+    }
+
+    /**
+     * The ceiling exception's ZERO case: the scope's locked giants consumed
+     * the whole budget and residue atoms remain. One district holds all of
+     * them, seated entirely by bonus (lawful 0 + 2), honest fractional.
+     */
+    private function insertZeroBudgetResidueDistrict(
+        string $legislature_id,
+        string $scopeId,
+        ?string $mapId,
+        bool $clearExisting,
+        object $leg,
+        array $nonGiantRows,
+        array $giantRows,
+        int $seatBudget
+    ): array {
+        if ($clearExisting) {
+            $clearQ = DB::table('legislature_districts')
+                ->where('legislature_id', $legislature_id)
+                ->where('jurisdiction_id', $scopeId)
+                ->whereNull('deleted_at');
+            if ($mapId !== null) {
+                $clearQ->where('map_id', $mapId);
+            }
+            foreach ($clearQ->pluck('id') as $eid) {
+                DB::table('legislature_district_jurisdictions')->where('district_id', $eid)->delete();
+                DB::table('legislature_districts')->where('id', $eid)->delete();
+            }
+        }
+
+        $residuePop = array_sum(array_map(fn ($c) => (int) $c->population, $nonGiantRows));
+        $allPop     = $residuePop + array_sum(array_map(fn ($c) => (int) $c->population, $giantRows));
+        $quota      = $allPop > 0 ? $allPop / $seatBudget : 0.0;
+        $bonus      = $this->ceilingExceptionBonus(0);
+
+        $distNumQ = DB::table('legislature_districts')
+            ->where('legislature_id', $legislature_id)
+            ->where('jurisdiction_id', $scopeId)
+            ->whereNull('deleted_at');
+        if ($mapId !== null) {
+            $distNumQ->where('map_id', $mapId);
+        }
+        $districtNumber = 1 + (int) $distNumQ->max('district_number');
+
+        $districtId = (string) \Illuminate\Support\Str::uuid();
+        DB::table('legislature_districts')->insert([
+            'id'                => $districtId,
+            'legislature_id'    => $legislature_id,
+            'map_id'            => $mapId,
+            'jurisdiction_id'   => $scopeId,
+            'district_number'   => $districtNumber,
+            'seats'             => $bonus,
+            'bonus_seats'       => $bonus,
+            'fractional_seats'  => $quota > 0 ? round($residuePop / $quota, 6) : 0.0,
+            'floor_override'    => true,
+            'target_population' => $residuePop,
+            'actual_population' => $residuePop,
+            'status'            => 'active',
+            'created_at'        => now(),
+            'updated_at'        => now(),
+        ]);
+        DB::table('legislature_district_jurisdictions')->insert(array_map(fn ($c) => [
+            'id'              => (string) \Illuminate\Support\Str::uuid(),
+            'district_id'     => $districtId,
+            'jurisdiction_id' => $c->id,
+        ], array_values($nonGiantRows)));
+        $this->recomputeDistrict($districtId, $legislature_id, $leg, true);
+        Cache::tags(["revealed.{$legislature_id}"])->flush();
+
+        $this->publishMassProgress($legislature_id, [
+            'phase'       => 'inserted',
+            'phase_label' => 'Ceiling exception: residue district seated by bonus (2)',
+        ]);
+
+        return ['districts_created' => 1, 'error' => null];
+    }
+
     private function nearestSeatsWithSubFloorLifts(array $pops, float $quota, int $budget, int $floor, int $ceiling): array
     {
         if ($quota <= 0) return array_map(fn ($p) => 1, $pops);

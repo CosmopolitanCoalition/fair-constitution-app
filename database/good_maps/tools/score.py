@@ -45,7 +45,10 @@ def rollup(scopes):
         out[s] = {
             'districts': len(rows),
             'seats': sum(r['seats'] for r in rows),
-            'fit': sum(abs(r['fractional_seats'] - r['seats']) for r in rows),
+            # Ceiling-exception bonus seats (2026-08-28) are LAW, not a
+            # quality defect — fit measures the lawful landing.
+            'fit': sum(abs(r['fractional_seats'] - (r['seats'] - int(r.get('bonus_seats') or 0))) for r in rows),
+            'bonus': sum(int(r.get('bonus_seats') or 0) for r in rows),
             'noncontig': sum(1 for r in rows if not r['is_contiguous']),
             'avg_chr': sum(chrs) / len(chrs) if chrs else None,
             'band': sum(1 for r in rows if (r['seats'] < 5 and not r['floor_override']) or r['seats'] > 9),
@@ -76,10 +79,13 @@ def main():
     total_std = sum(v['seats'] for v in rs.values())
     total_cand = sum(v['seats'] for v in rc.values())
     band_cand = sum(v['band'] for v in rc.values())
+    bonus_cand = sum(v['bonus'] for v in rc.values())
+    lawful_cand = total_cand - bonus_cand
 
     print(f'=== 1 LEGALITY ===')
-    print(f'chamber: candidate {total_cand} vs budget {budget} vs standard {total_std}'
-          f'  -> {"PASS" if total_cand == budget else "FAIL (drift " + str(total_cand - budget) + ")"}')
+    bonus_note = f' (+{bonus_cand} ceiling-exception bonus = {total_cand} seated)' if bonus_cand else ''
+    print(f'chamber: candidate {lawful_cand} vs budget {budget} vs standard {total_std}{bonus_note}'
+          f'  -> {"PASS" if lawful_cand == budget else "FAIL (drift " + str(lawful_cand - budget) + ")"}')
     print(f'band violations: {band_cand}  -> {"PASS" if band_cand == 0 else "FAIL"}')
 
     cs, cc = clusters(std), clusters(cand)

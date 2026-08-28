@@ -1565,11 +1565,16 @@ class LegislatureController extends Controller
 
         // NEAREST rounding (the operator's seating law, ruling 2026-07-13) —
         // clamp to [effectiveFloor, ceiling]
-        // Dominant-atom fix (2026-08-26): nearest, ceiling-clamped, min 1 —
+        // Dominant-atom fix (2026-08-26): nearest, ceiling-clamped —
         // mirrors Step 11; the old effectiveFloor clamp inflated sub-floor
         // remainders to 5 and drove manual edits overbudget (the Coquimbo 2b).
-        $seats         = min($ceiling, max(1, (int) round($fractional)));
-        $floorOverride = $seats < $floor;
+        // THE LEGISLATURE CEILING EXCEPTION (2026-08-28): a forced sub-2
+        // landing lifts to exactly 2 via bonus seats added to the
+        // legislature — the runner-up is represented too.
+        $lawfulSeats   = min($ceiling, max(0, (int) round($fractional)));
+        $bonusSeats    = $lawfulSeats < 2 ? 2 - $lawfulSeats : 0;
+        $seats         = $lawfulSeats + $bonusSeats;
+        $floorOverride = $lawfulSeats < $floor;
 
         DB::beginTransaction();
         try {
@@ -1595,6 +1600,7 @@ class LegislatureController extends Controller
                 'jurisdiction_id'  => $scopeId,
                 'district_number'  => $districtNumber,
                 'seats'            => $seats,
+                'bonus_seats'      => $bonusSeats,
                 'fractional_seats' => $fractional,
                 'floor_override'   => $floorOverride,
                 'target_population'=> $totalPop,

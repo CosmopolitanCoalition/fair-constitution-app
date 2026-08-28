@@ -387,6 +387,40 @@ ten); (b) nearest-host attachment for zero-pop members (item 10);
 bisection axes + metro-core retention (items 4, 5, 9); (e) multi-bin
 rebalance (items 1, 6). Each build re-runs the FULL block gate below.
 
+## 10d. THE LEGISLATURE CEILING EXCEPTION (operator ruling 2026-08-28)
+
+*"In keeping with representation for 'everyone, everywhere, all the time'
+… When a floor exception reaches 1 or 0 then bonus seats should be added
+to the legislature to bring those floor exceptions up to 2. This would
+allow the runners up to also be represented."*
+
+The law: a FORCED floor exception whose lawful landing is 1 or 0 seats
+receives bonus seats — added to the legislature itself, on top of the
+cube-root total — raising the district to exactly 2. Elimination still
+comes first (`overrideRepairPass`); the bonus is the last step, applied
+only at the seat-WRITING planes (`ceilingExceptionBonus`): Step 12's
+insert, the zero-budget residue path, `recomputeDistrict`, and the manual
+create endpoint. Every landing/repair/scoring pass reasons PRE-bonus, so
+drift and all exactness identities compare `seats − bonus_seats`
+(new column, migration 2026_08_28) against the budget;
+`computeSeatBudget` Path 2 reads the lawful value the same way.
+
+The two cases, both found by the campaign:
+- **ONE** — dominant-atom dust (Chile / Cordillera [9,1] → [9,2], chamber
+  270 → 271): a 1-seat district is winner-take-all; the bonus seats the
+  runner-up.
+- **ZERO** — the giant-consumed residue plane (Malaysia / Kuala Lumpur,
+  the era-1 retest): locked giants consume the whole scope budget with
+  residue atoms left over. Before the ruling the engine minted an
+  unlawful +1 with a fabricated 1.00 fractional (chamber 328/327); now
+  the residue forms one district seated entirely by bonus (0 + 2),
+  honest fractional, marked override. Chamber 327 → 329.
+
+Pinned: the dominant-atom pin now asserts the [9,2]/bonus-1 shape and
+the netted exactness; `test_zero_budget_residue_seats_by_ceiling_exception_bonus`
+pins the zero case (honest 0.4 fractional). Tooling: score.py nets bonus
+out of fit and the chamber compare; the exporters carry `bonus_seats`.
+
 ## 11. THE REGRESSION GATE — the eight-map block (operator, 2026-08-28)
 
 **GROUND TRUTH (his correction, 2026-08-28): THE ALGORITHM IS THE
