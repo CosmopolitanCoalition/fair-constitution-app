@@ -669,9 +669,10 @@ class LegislatureController extends Controller
                 -- to the parent scope's counters. The UNION dedupes by district id
                 -- (a district is never reachable both ways).
                 SELECT distinct_d.root_child_id,
-                       SUM(distinct_d.seats) AS child_assigned_seats
+                       SUM(distinct_d.seats) AS child_assigned_seats,
+                       SUM(distinct_d.bonus_seats) AS child_bonus_seats
                 FROM (
-                    SELECT DISTINCT ld2.id, ld2.seats, dt.root_child_id
+                    SELECT DISTINCT ld2.id, ld2.seats, COALESCE(ld2.bonus_seats, 0) AS bonus_seats, dt.root_child_id
                     FROM   desc_tree dt
                     JOIN   legislature_district_jurisdictions ldj2
                                ON ldj2.jurisdiction_id = dt.id
@@ -681,7 +682,7 @@ class LegislatureController extends Controller
                               AND ld2.deleted_at IS NULL
                               {$childMapFilter2}
                     UNION
-                    SELECT DISTINCT ld3.id, ld3.seats, dt3.root_child_id
+                    SELECT DISTINCT ld3.id, ld3.seats, COALESCE(ld3.bonus_seats, 0) AS bonus_seats, dt3.root_child_id
                     FROM   desc_tree dt3
                     JOIN   district_subdivisions ds3
                                ON ds3.parent_jurisdiction_id = dt3.id
@@ -712,7 +713,8 @@ class LegislatureController extends Controller
                 ld.seats                                           AS district_seats,
                 ld.floor_override,
                 (SELECT COUNT(*) FROM jurisdictions c WHERE c.parent_id = j.id AND c.deleted_at IS NULL) AS child_count,
-                COALESCE(cc.child_assigned_seats, 0)               AS child_assigned_seats
+                COALESCE(cc.child_assigned_seats, 0)               AS child_assigned_seats,
+                COALESCE(cc.child_bonus_seats, 0)                  AS child_bonus_seats
             FROM jurisdictions j
             LEFT JOIN child_committed cc ON cc.root_child_id = j.id
             LEFT JOIN legislature_district_jurisdictions ldj ON ldj.jurisdiction_id = j.id
@@ -827,6 +829,7 @@ class LegislatureController extends Controller
             SELECT
                 ld.id               AS district_id,
                 ld.seats,
+                COALESCE(ld.bonus_seats, 0) AS bonus_seats,
                 ld.floor_override,
                 ld.status,
                 ld.district_number  AS dnum,
@@ -890,6 +893,7 @@ class LegislatureController extends Controller
                 $districtMap[$did] = [
                     'id'               => $did,
                     'seats'            => (int) $row->seats,
+                    'bonus_seats'      => (int) ($row->bonus_seats ?? 0),
                     'floor_override'   => (bool) $row->floor_override,
                     'status'           => $row->status,
                     'color_index'      => 0,   // overlaid below from greedy coloring
@@ -1016,6 +1020,7 @@ class LegislatureController extends Controller
             SELECT
                 ld.id                AS district_id,
                 ld.seats,
+                COALESCE(ld.bonus_seats, 0) AS bonus_seats,
                 ld.floor_override,
                 ld.status,
                 ld.district_number   AS dnum,
@@ -1055,6 +1060,7 @@ class LegislatureController extends Controller
             $districtMap[$row->district_id] = [
                 'id'                => $row->district_id,
                 'seats'             => $seats,
+                'bonus_seats'       => (int) ($row->bonus_seats ?? 0),
                 'floor_override'    => (bool) $row->floor_override,
                 'status'            => $row->status,
                 'color_index'       => 0,   // overlaid below, same as composites
@@ -1130,6 +1136,7 @@ class LegislatureController extends Controller
             SELECT
                 ld.id                AS district_id,
                 ld.seats,
+                COALESCE(ld.bonus_seats, 0) AS bonus_seats,
                 ld.floor_override,
                 ld.status,
                 ld.district_number   AS dnum,
@@ -1189,6 +1196,7 @@ class LegislatureController extends Controller
             $districts[] = [
                 'id'                => $row->district_id,
                 'seats'             => $seats,
+                'bonus_seats'       => (int) ($row->bonus_seats ?? 0),
                 'floor_override'    => (bool) $row->floor_override,
                 'status'            => $row->status,
                 'color_index'       => $colorMap[$row->district_id] ?? 0,
@@ -1244,6 +1252,7 @@ class LegislatureController extends Controller
                     'floor_override'   => (bool) $c->floor_override,
                     'child_count'          => (int) $c->child_count,
                     'child_assigned_seats' => (int) ($c->child_assigned_seats ?? 0),
+                    'child_bonus_seats'    => (int) ($c->child_bonus_seats ?? 0),
                     'type_a_apportioned'   => $c->type_a_apportioned !== null ? (int) $c->type_a_apportioned : null,
                     // Seats committed as DRAWN districts inside this child (a
                     // childless leaf giant) — lets the sidebar show the giant's
@@ -4466,7 +4475,12 @@ class LegislatureController extends Controller
         $flags = [
             'cap'               => null,
             'floor_exceptions'  => [],
-            'deep_overages'     => [],   // over budget (delta = actual − budget)
+            // THE LEGISLATURE CEILING EXCEPTION (operator ruling 2026-08-28):
+            // bonus-seated districts are LAWFUL — they render as informational
+            // warnings like floor exceptions, never as violations, and every
+            // seat comparison below nets bonus_seats out.
+            'ceiling_exceptions' => [],
+            'deep_overages'     => [],   // over budget (delta = lawful actual − budget)
             'incomplete_scopes' => [],   // scopes with unassigned compositable children
             // Childless leaf giants MAP-WIDE whose drawn seats < budget.
             // null = not computed (see the lazy gate at the bottom); the Vue
@@ -4508,7 +4522,9 @@ class LegislatureController extends Controller
             if ($mapId !== null) {
                 $capQuery->where('map_id', $mapId);
             }
-            $total  = (int) $capQuery->sum('seats');
+            // Lawful seats only: ceiling-exception bonus rides ON TOP of the
+            // cube-root total by design and is never a cap violation.
+            $total  = (int) $capQuery->sum(DB::raw('seats - COALESCE(bonus_seats, 0)'));
             $budget = (int) $leg->type_a_seats;
         } else {
             // Gated cascade. Returns NULL only in degenerate cases — same
@@ -4524,13 +4540,15 @@ class LegislatureController extends Controller
             $GIANT_THRESHOLD = $giantThreshold;
             $directSeats = 0;
             foreach ($districts as $d) {
-                $directSeats += (int) $d['seats'];
+                // Lawful seats: net the ceiling-exception bonus.
+                $directSeats += (int) $d['seats'] - (int) ($d['bonus_seats'] ?? 0);
             }
             $giantSubtreeSeats = 0;
             foreach ($children as $child) {
                 $frac = $child->fractional_seats ?? 0.0;
                 if ((float) $frac >= $GIANT_THRESHOLD) {
-                    $giantSubtreeSeats += (int) ($child->child_assigned_seats ?? 0);
+                    $giantSubtreeSeats += (int) ($child->child_assigned_seats ?? 0)
+                                        - (int) ($child->child_bonus_seats ?? 0);
                 }
             }
             $total = $directSeats + $giantSubtreeSeats;
@@ -4554,6 +4572,18 @@ class LegislatureController extends Controller
                     'district_name' => $d['name'],
                     'seats'         => $d['seats'],
                     'fractional'    => $d['fractional_seats'],
+                ];
+            }
+            // Ceiling exceptions at this scope — informational, like floor
+            // exceptions: the bonus seats are the LAW's own remedy for a
+            // forced sub-2 landing ("everyone, everywhere, all the time").
+            if ((int) ($d['bonus_seats'] ?? 0) > 0) {
+                $flags['ceiling_exceptions'][] = [
+                    'district_id'   => $d['id'],
+                    'district_name' => $d['name'] ?? null,
+                    'seats'         => $d['seats'],
+                    'bonus'         => (int) $d['bonus_seats'],
+                    'fractional'    => $d['fractional_seats'] ?? null,
                 ];
             }
         }
@@ -4626,7 +4656,8 @@ class LegislatureController extends Controller
                 j.id                AS scope_id,
                 j.name              AS scope_name,
                 COUNT(ld.id)        AS num_districts,
-                SUM(ld.seats)::int  AS seat_sum,
+                SUM(ld.seats - COALESCE(ld.bonus_seats, 0))::int AS seat_sum,
+                SUM(COALESCE(ld.bonus_seats, 0))::int            AS bonus_sum,
                 MAX(ld.seats)::int  AS max_seats,
                 MIN(ld.seats)::int  AS min_seats,
                 BOOL_OR(ld.floor_override) AS has_floor
@@ -4665,13 +4696,26 @@ class LegislatureController extends Controller
             $hasFloor = (bool) $row->has_floor;
 
             if ($seatSum > $budget) {
-                // Over-budget only — under-budget is normal when giants handle sub-scopes.
+                // Over-budget only — under-budget is normal when giants handle
+                // sub-scopes. seat_sum is bonus-netted, so a lawful ceiling
+                // exception never lands here.
                 $flags['deep_overages'][] = [
                     'scope_id'   => $row->scope_id,
                     'scope_name' => $row->scope_name,
                     'budget'     => $budget,
                     'actual'     => $seatSum,
                     'delta'      => $seatSum - $budget,
+                ];
+            }
+            // Surface deeper scopes' ceiling exceptions here too (the root
+            // view used to show them as red overages — KL, Cordillera); the
+            // scope-local loop above already covers the current scope, so
+            // skip it to avoid a duplicate row.
+            if ((int) ($row->bonus_sum ?? 0) > 0 && (string) $row->scope_id !== $scopeId) {
+                $flags['ceiling_exceptions'][] = [
+                    'scope_id'   => $row->scope_id,
+                    'scope_name' => $row->scope_name,
+                    'bonus'      => (int) $row->bonus_sum,
                 ];
             }
         }
@@ -5676,6 +5720,7 @@ class LegislatureController extends Controller
     {
         return ($flags['cap'] !== null ? 1 : 0)
             + count($flags['floor_exceptions'] ?? [])
+            + count($flags['ceiling_exceptions'] ?? [])
             + count($flags['deep_overages'] ?? [])
             + count($flags['incomplete_scopes'] ?? []);
     }

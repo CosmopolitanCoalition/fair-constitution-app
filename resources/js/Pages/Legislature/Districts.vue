@@ -328,7 +328,7 @@
                                      :class="hardFlagCount > 0 ? 'text-red-400' : 'text-amber-400'">
                                     Constitutional Flags
                                     <span class="text-gray-500 normal-case font-normal ml-1">
-                                        {{ (props.flags.cap ? 1 : 0) + (props.flags.floor_exceptions?.length ?? 0) + (props.flags.deep_overages?.length ?? 0) + (props.flags.incomplete_scopes?.length ?? 0) }} issue(s)
+                                        {{ (props.flags.cap ? 1 : 0) + (props.flags.floor_exceptions?.length ?? 0) + (props.flags.ceiling_exceptions?.length ?? 0) + (props.flags.deep_overages?.length ?? 0) + (props.flags.incomplete_scopes?.length ?? 0) }} issue(s)
                                     </span>
                                 </div>
                                 <div class="space-y-1">
@@ -360,6 +360,21 @@
                                          class="flex items-start gap-2 text-amber-400">
                                         <span class="shrink-0">ℹ</span>
                                         <span>{{ props.flags.floor_exceptions.length }} floor exception{{ props.flags.floor_exceptions.length === 1 ? '' : 's' }} — fractional &lt; {{ FLOOR_OVERRIDE }}, rounds below minimum without override</span>
+                                    </div>
+                                    <!-- THE LEGISLATURE CEILING EXCEPTION (2026-08-28): lawful
+                                         bonus seats — informational, like floor exceptions. -->
+                                    <div v-for="ce in (props.flags.ceiling_exceptions ?? [])"
+                                         :key="'ce-' + (ce.scope_id ?? ce.district_id)"
+                                         class="flex items-start gap-2 text-amber-400">
+                                        <span class="shrink-0">ℹ</span>
+                                        <span>
+                                            Ceiling exception —
+                                            <template v-if="ce.scope_id">
+                                                <a @click.prevent="drillTo(ce.scope_id)" href="#" class="underline hover:text-amber-300 cursor-pointer">{{ ce.scope_name }}</a>:
+                                            </template>
+                                            <template v-else>{{ ce.district_name || 'district' }}:</template>
+                                            +{{ ce.bonus }} bonus seat{{ ce.bonus === 1 ? '' : 's' }} added to the legislature (sub-2 exception seats 2 — runners-up represented)
+                                        </span>
                                     </div>
                                 </div>
                             </div>
@@ -1682,7 +1697,7 @@ const props = defineProps({
     children:  { type: Array, default: () => [] },     // [{ id, name, population, fractional_seats, district_id, district_seats, child_count }]
     districts: { type: Array, default: () => [] },     // [{ id, seats, floor_override, status, color_index, district_number, name, members:[...] }]
     quota:     { type: Number, default: 0 },
-    flags: { type: Object, default: () => ({ cap: null, floor_exceptions: [], deep_overages: [], incomplete_scopes: [] }) },
+    flags: { type: Object, default: () => ({ cap: null, floor_exceptions: [], ceiling_exceptions: [], deep_overages: [], incomplete_scopes: [] }) },
     stats: { type: Object, default: null },
     mass_tool_running: { type: Boolean, default: false },
     maps:       { type: Array,  default: () => [] },   // [{ id, name, status, district_count, flags }]
@@ -3413,6 +3428,7 @@ function countFlags(flags) {
     if (!flags) return 0
     return (flags.cap ? 1 : 0)
         + (flags.floor_exceptions?.length ?? 0)
+        + (flags.ceiling_exceptions?.length ?? 0)
         + (flags.deep_overages?.length ?? 0)
         + (flags.incomplete_scopes?.length ?? 0)
 }
