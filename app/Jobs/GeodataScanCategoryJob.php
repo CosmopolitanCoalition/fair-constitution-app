@@ -78,7 +78,7 @@ class GeodataScanCategoryJob implements ShouldQueue
      *  jsonb form as the cats write (the parent-trap fix): the inner ||
      *  re-inserts the CURRENT cat_started object so concurrent stamps
      *  compose and nothing landed is lost. */
-    private static function stampStarted(string $runId, string $category): void
+    public static function stampStarted(string $runId, string $category): void
     {
         DB::update(
             "UPDATE geodata_items

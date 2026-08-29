@@ -176,6 +176,13 @@ class GeodataPumpCommand extends Command
                                'same_space_chain', 'raster_coverage'];
                 $heavies = array_values(array_intersect($heavyOrder, $missing));
                 if ($heavies !== []) {
+                    // Stamp every chain member (the duplicate-chain hole,
+                    // 2026-08-29): tails queued behind the head are STARTED
+                    // state — an unstamped tail re-dispatches as a second
+                    // concurrent planet pass five minutes later.
+                    foreach ($heavies as $cat) {
+                        \App\Jobs\GeodataScanCategoryJob::stampStarted((string) $run->id, $cat);
+                    }
                     \App\Jobs\GeodataScanCategoryJob::dispatch(
                         (string) $run->id,
                         array_shift($heavies),

@@ -88,8 +88,20 @@ class GeodataAcceptanceScanJob implements ShouldQueue
         // re-dispatched the same crash forever. Same law as the giant insert
         // gate: one planet-scale grind at a time. The two cheap detectors
         // stay parallel — they finish in seconds and always have.
-        GeodataScanCategoryJob::dispatch($run->id, 'mis_anchored_cluster',
-            ['displaced_geometry', 'same_space_chain', 'raster_coverage']);
+        // THE DUPLICATE-CHAIN HOLE (caught live 2026-08-29, round-3 scan):
+        // chain-TAIL categories carried no cat_started stamp while the head
+        // ground its planet CTE, so after 5 quiet minutes the pump's stale
+        // audit saw "absent + unstamped" and dispatched a SECOND concurrent
+        // chain — two planet-wide passes at once, the exact OOM-kill shape
+        // the serial chain exists to prevent (it crashed round 2's postgres
+        // and drew two more kills in round 3). Stamp EVERY chain member at
+        // dispatch: "queued behind the chain" is a started state, not a
+        // missing one. The audit's 30-minute staleness rule then governs.
+        $chain = ['displaced_geometry', 'same_space_chain', 'raster_coverage'];
+        GeodataScanCategoryJob::dispatch($run->id, 'mis_anchored_cluster', $chain);
+        foreach ($chain as $cat) {
+            GeodataScanCategoryJob::stampStarted($run->id, $cat);
+        }
         foreach (['dual_coverage', 'orphaned_rows', 'stray_synthetic'] as $cat) {
             GeodataScanCategoryJob::dispatch($run->id, $cat);
         }
