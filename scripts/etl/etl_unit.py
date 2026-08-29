@@ -855,23 +855,50 @@ def _stamp_missing_baselines(conn, log: logging.Logger) -> int:
     it: 173 countries with loaded tiles and no baseline, 345 pairs
     verdicting no_l1, Earth rolling up 2.7B from the 59 that had one.
 
-    One statement over every iso that has tiles but no baseline. Runs at the
-    resolve barrier (before pairs, so verdicts anchor) and again at finalize
-    (so the L1 copy + planet rollup can never see a gap). Idempotent."""
+    Runs at the resolve barrier (before pairs, so verdicts anchor) and again
+    at finalize (so the L1 copy + planet rollup can never see a gap).
+    Idempotent.
+
+    BOUNDED ROSTER FORM (2026-08-29, operator fix set): the old single
+    statement aggregated EVERY raster tile on the planet before the join
+    could conclude nothing needed stamping — the ETL paradigm's banned
+    shape, and the step that dragged every finalize under memory pressure
+    (7+ minutes to stamp zero rows). Now: one cheap roster query for the
+    isos that NEED a stamp (tiles exist, L1 baseline absent), then one
+    bounded aggregate per needy iso, committed per iso. Empty roster does
+    zero heavy work."""
     with get_cursor(conn) as cur:
         cur.execute(
             """
-            UPDATE jurisdictions j
-               SET population_baseline = s.pop, updated_at = now()
-              FROM (SELECT iso_code, SUM((ST_SummaryStats(rast)).sum)::bigint AS pop
-                      FROM worldpop_rasters GROUP BY iso_code) s
-             WHERE j.iso_code = s.iso_code AND j.adm_level = 1
-               AND j.deleted_at IS NULL AND s.pop IS NOT NULL
+            SELECT DISTINCT j.iso_code
+              FROM jurisdictions j
+             WHERE j.adm_level = 1 AND j.deleted_at IS NULL
+               AND j.iso_code IS NOT NULL
                AND COALESCE(j.population_baseline, 0) = 0
+               AND EXISTS (SELECT 1 FROM worldpop_rasters w
+                            WHERE w.iso_code = j.iso_code)
             """
         )
-        n = cur.rowcount
+        needy = [r["iso_code"] for r in cur.fetchall()]
     conn.commit()
+
+    n = 0
+    for _iso in needy:
+        with get_cursor(conn) as cur:
+            cur.execute(
+                """
+                UPDATE jurisdictions j
+                   SET population_baseline = s.pop, updated_at = now()
+                  FROM (SELECT SUM((ST_SummaryStats(rast)).sum)::bigint AS pop
+                          FROM worldpop_rasters WHERE iso_code = %s) s
+                 WHERE j.iso_code = %s AND j.adm_level = 1
+                   AND j.deleted_at IS NULL AND s.pop IS NOT NULL
+                   AND COALESCE(j.population_baseline, 0) = 0
+                """,
+                (_iso, _iso),
+            )
+            n += cur.rowcount
+        conn.commit()
     if n:
         log.info("baseline catch-all: stamped %d countries the raster-phase "
                  "stamp missed (L1 row did not exist yet under the overlap)", n)

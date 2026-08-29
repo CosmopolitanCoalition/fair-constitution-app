@@ -365,6 +365,23 @@ async function fetchProgress() {
     }
 }
 
+async function setAutoScan(v) {
+    try {
+        const res = await csrfFetch('/api/setup/wizard/step2/pull-option', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ auto_scan: !!v }),
+        })
+        if (!res.ok) {
+            const d = await res.json().catch(() => ({}))
+            error.value = d.error || `Scan option change failed (HTTP ${res.status}).`
+        }
+        await fetchProgress()
+    } catch (e) {
+        error.value = String(e)
+    }
+}
+
 async function control(action, group = null) {
     actionBusy.value = true
     try {
@@ -413,7 +430,24 @@ onBeforeUnmount(() => {
                     {{ run.paused ? 'paused (pg recovery)' : run.status }}
                 </span>
             </div>
-            <div class="flex gap-2">
+            <div class="flex gap-2 items-center">
+                <!-- Optional scan (operator ruling 2026-08-29): checked = the
+                     acceptance scan runs automatically after finalize;
+                     unchecked = the run completes without it and the button
+                     below runs it on demand. Flippable while the run lives. -->
+                <label
+                    v-if="active"
+                    class="flex items-center gap-1.5 text-xs text-gray-300 select-none cursor-pointer"
+                    title="When unchecked, the run finishes at finalize and the scan becomes an on-demand button."
+                >
+                    <input
+                        type="checkbox" class="accent-sky-500"
+                        :checked="run.auto_scan !== false"
+                        :disabled="actionBusy"
+                        @change="setAutoScan($event.target.checked)"
+                    >
+                    Scan after finalize
+                </label>
                 <button
                     v-if="run.status === 'running' && !run.halt_requested"
                     type="button" :disabled="actionBusy" @click="control('halt')"
@@ -436,7 +470,7 @@ onBeforeUnmount(() => {
                     type="button" :disabled="actionBusy" @click="control('rescan')"
                     class="text-xs px-3 py-1.5 rounded border border-sky-700 text-sky-300 hover:bg-sky-900/40 disabled:opacity-50"
                 >
-                    Re-run scan
+                    {{ run.scan_skipped ? 'Run scan' : 'Re-run scan' }}
                 </button>
             </div>
         </div>

@@ -94,6 +94,28 @@ class GeodataPumpCommand extends Command
                 'status' => 'pending', 'claim_token' => null,
                 'reason' => 'reclaimed: worker died mid-item', 'updated_at' => now(),
             ]);
+        // LEASE-KEYED RECLAIM (2026-08-29, operator fix set): an item whose
+        // claim_token has no living lease row is provably orphaned — the
+        // lease prune below removes silent leases at 10 minutes, and a
+        // worker's exit path now deletes its own lease and releases its
+        // claim. The 30-minute updated_at rule above stays as the backstop;
+        // this clause turns a stranded finalize from a 30-minute wait into
+        // minutes (the round-2 stall). Scan items carry no claim_token.
+        $orphaned = DB::table('geodata_items')
+            ->where('run_id', $run->id)
+            ->where('status', 'running')
+            ->whereNotNull('claim_token')
+            ->whereNotExists(function ($q) {
+                $q->select(DB::raw(1))
+                    ->from('geodata_worker_leases')
+                    ->whereColumn('geodata_worker_leases.id', 'geodata_items.claim_token');
+            })
+            ->update([
+                'status' => 'pending', 'claim_token' => null,
+                'reason' => 'reclaimed: claim lease vanished', 'updated_at' => now(),
+            ]);
+        $reclaimed += $orphaned;
+
         if ($reclaimed > 0) {
             Log::warning('Geodata pump reclaimed stale claims', [
                 'run_id' => $run->id, 'count' => $reclaimed,
@@ -126,6 +148,29 @@ class GeodataPumpCommand extends Command
                 ->where('kind', 'acceptance_scan')
                 ->where('status', 'pending')
                 ->exists();
+            // THE OPTIONAL SCAN (operator ruling 2026-08-29): when the run's
+            // auto_scan option is off, the pending scan item settles as done
+            // with a skipped marker instead of dispatching — the run then
+            // completes normally and the panel offers an on-demand scan
+            // button (the existing off-run GeodataScanJob path). Recorded as
+            // 'done' + metrics.skipped rather than a new status so every
+            // drain/counter/UI consumer keeps working unchanged.
+            $autoScan = (bool) (($run->options['auto_scan'] ?? true));
+            if ($pendingScan && ! $autoScan) {
+                DB::table('geodata_items')
+                    ->where('run_id', $run->id)
+                    ->where('kind', 'acceptance_scan')
+                    ->where('status', 'pending')
+                    ->update([
+                        'status'      => 'done',
+                        'reason'      => 'scan skipped by operator option (run it on demand from the panel)',
+                        'metrics'     => json_encode(['skipped' => true]),
+                        'started_at'  => now(),
+                        'finished_at' => now(),
+                        'updated_at'  => now(),
+                    ]);
+                $pendingScan = false;
+            }
             if ($pendingScan) {
                 GeodataAcceptanceScanJob::dispatch((string) $run->id);
             }

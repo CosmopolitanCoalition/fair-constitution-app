@@ -58,6 +58,9 @@ class GeodataChainDownloadCommand extends Command
             // Provenance: this planet came from the official-source download.
             'source'     => 'download',
             'dry_run'    => false,
+            // The acceptance scan is optional (operator ruling 2026-08-29);
+            // default on, flippable mid-run via the Step 2 checkbox.
+            'auto_scan'  => (bool) ($reqOpts['auto_scan'] ?? true),
         ];
 
         $run = GeodataRun::create([

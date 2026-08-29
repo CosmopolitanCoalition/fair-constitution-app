@@ -161,6 +161,8 @@ Route::post('/api/setup/wizard/step2/control', [SetupController::class, 'control
 // Geodata pull engine (multithreaded ingestion) — start / progress / control.
 Route::post('/api/setup/wizard/step2/pull-start', [SetupController::class, 'startGeodataPull'])
     ->middleware('auth')->name('api.setup.step2.pull-start');
+Route::post('/api/setup/wizard/step2/pull-option', [SetupController::class, 'setGeodataPullOption'])
+    ->middleware('auth')->name('api.setup.step2.pull-option');
 Route::get('/api/setup/wizard/step2/pull-progress', [SetupController::class, 'geodataPullProgress'])->name('api.setup.step2.pull-progress');
 Route::post('/api/setup/wizard/step2/pull-control', [SetupController::class, 'geodataPullControl'])
     ->middleware('auth')->name('api.setup.step2.pull-control');

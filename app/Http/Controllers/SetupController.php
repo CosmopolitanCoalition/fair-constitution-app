@@ -1310,6 +1310,11 @@ class SetupController extends Controller
             // planet FROM SOURCE: no inherited rows, no surviving half-state,
             // a benchmark that means something.
             'fresh'        => ['nullable', 'boolean'],
+            // Operator ruling 2026-08-29: the acceptance scan is OPTIONAL.
+            // true (default) = the scan runs automatically after finalize;
+            // false = the run completes without it and the panel offers a
+            // run-scan button. Toggleable mid-run via pull-option below.
+            'auto_scan'    => ['nullable', 'boolean'],
         ]);
 
         $controlDir = $this->etlControlDir();
@@ -1442,6 +1447,7 @@ class SetupController extends Controller
             'adm_levels' => array_values($data['adm_levels'] ?? []),
             'source'     => $source,
             'dry_run'    => (bool) ($data['dry_run'] ?? false),
+            'auto_scan'  => (bool) ($data['auto_scan'] ?? true),
         ];
 
         $run = \App\Models\GeodataRun::create([
@@ -1473,6 +1479,30 @@ class SetupController extends Controller
         \Illuminate\Support\Facades\Artisan::call('geodata:pump');
 
         return response()->json(['accepted' => true, 'run_id' => $run->id]);
+    }
+
+    /**
+     * POST /api/setup/wizard/step2/pull-option {auto_scan: bool} — flip the
+     * acceptance-scan checkbox on the ACTIVE run while it is still running
+     * (operator ruling 2026-08-29: the scan is optional; the choice can be
+     * made any time before finalize completes). No active run: 409.
+     */
+    public function setGeodataPullOption(Request $request): JsonResponse
+    {
+        $data = $request->validate([
+            'auto_scan' => ['required', 'boolean'],
+        ]);
+
+        $run = \App\Models\GeodataRun::unfinished();
+        if ($run === null) {
+            return response()->json(['error' => 'No active geodata run.'], 409);
+        }
+
+        $options = (array) ($run->options ?? []);
+        $options['auto_scan'] = (bool) $data['auto_scan'];
+        $run->forceFill(['options' => $options, 'updated_at' => now()])->save();
+
+        return response()->json(['ok' => true, 'auto_scan' => $options['auto_scan']]);
     }
 
     /**
@@ -1653,6 +1683,15 @@ class SetupController extends Controller
                 // many items remain, so the UI can offer Retry / Continue.
                 // Null when no phase is waiting on the operator.
                 'review_hold'      => $this->geodataReviewHold($run),
+                // The optional-scan checkbox state (operator ruling
+                // 2026-08-29) and whether this run's scan item settled as
+                // skipped — the panel shows the on-demand scan button then.
+                'auto_scan'        => (bool) (($run->options['auto_scan'] ?? true)),
+                'scan_skipped'     => (bool) $DB::table('geodata_items')
+                    ->where('run_id', $run->id)
+                    ->where('kind', 'acceptance_scan')
+                    ->where('metrics->skipped', true)
+                    ->exists(),
             ],
             'layers'   => $layers,
             'workers'  => $workers,

@@ -199,6 +199,13 @@ NATURAL_LABEL_PLURAL = {
 }
 
 # GeoJSON property keys tried in order when reading feature name
+# Curated corrections over the meta-CSV canon (2026-08-29): the CSV's own
+# typos, keyed by the exact wrong string (never by iso — string-keyed
+# corrections generalize; iso keys would be a trigger list).
+CANONICAL_NAME_CORRECTIONS = {
+    "Antartica": "Antarctica",
+}
+
 NAME_KEYS = ["shapeName", "name", "NAME", "ADM5_EN", "ADM4_EN", "ADM3_EN",
              "ADM2_EN", "ADM1_EN", "ADM0_EN", "Local", "VARNAME_1"]
 
@@ -2363,6 +2370,33 @@ def process_geojson_file(
                 skip_n_resume = int(_row["n"]) if _row else 0
         except Exception:
             skip_n_resume = 0
+        # THE MODE-INDEPENDENT RESUME SET (2026-08-29, the Zarraga/Zumarraga
+        # duplicates). The positional skip above assumed DB-count == file
+        # prefix; the same-space collapse lawfully removes rows mid-set, so a
+        # repair pass counted 1645, skipped the file's first 1645, and
+        # re-imported the tail — and because RANGE mode slugs carry a shapeID
+        # suffix while sequential mode bumps '-2', the same feature holds two
+        # lawful slugs and the DB unique constraint cannot dedupe across
+        # modes. The stable identity is geoboundaries_id (shapeID): skip any
+        # feature whose shapeID already exists for this (iso, level) — in ANY
+        # slug mode, live or soft-deleted (a collapsed feature must never
+        # resurrect). Synthetic rows carry NULL geoboundaries_id and thus
+        # never occupy this set. Positional skipping remains ONLY as range
+        # WINDOW geometry (which features belong to this child), never as
+        # resume logic.
+        existing_shape_ids: set = set()
+        try:
+            with get_cursor(conn) as _cur:
+                _cur.execute(
+                    "SELECT geoboundaries_id FROM jurisdictions "
+                    "WHERE iso_code = %s AND adm_level = %s "
+                    "AND geoboundaries_id IS NOT NULL",
+                    (iso3, adm_level_app_local),
+                )
+                existing_shape_ids = {str(r["geoboundaries_id"]).strip()
+                                      for r in _cur.fetchall()}
+        except Exception:
+            existing_shape_ids = set()
         # THE GIANT-PARSE GATE (2026-08-02, six kernel OOM kills across two
         # generations): a Nunavut-class feature costs hundreds of MB as a
         # parsed Python dict PLUS its re-serialized JSON string — BEFORE the
@@ -2461,8 +2495,8 @@ def process_geojson_file(
                      iso3, adm_n, _win[0] + 1, _win[0] + _win[1])
         elif skip_n_resume > 0:
             log.info(
-                "%s ADM%d: resume detected — skipping the first %d features "
-                "(already in DB from prior run)",
+                "%s ADM%d: resume — %d rows already in DB; features whose "
+                "shapeID is present skip in-stream (set-based, 2026-08-29)",
                 iso3, adm_n, skip_n_resume,
             )
 
@@ -2490,11 +2524,10 @@ def process_geojson_file(
         try:
             for feature in feature_stream:
                 feature_idx += 1
-                # P.1.2: skip features already processed in a prior run.
-                # Cheap (just an int compare), positioned BEFORE the
-                # geometry/name/shapeID extraction so the skip cost is
-                # negligible relative to the work it avoids.
-                if feature_idx <= skip_n_resume:
+                # Window GEOMETRY only (which features belong to this range
+                # child). Resume skipping is set-based below — the positional
+                # skip is the proven duplicate-minting class (2026-08-29).
+                if _win is not None and feature_idx <= skip_n_resume:
                     continue
                 # Range window end: this range's share is done.
                 if _win is not None and (feature_idx - skip_n_resume) > _win[1]:
@@ -2507,6 +2540,16 @@ def process_geojson_file(
                     continue
 
                 props      = feature.get("properties") or {}
+                # SET-BASED RESUME: the feature's stable identity (shapeID)
+                # already exists for this (iso, level) — imported in a prior
+                # run under either slug mode, or lawfully collapse-removed.
+                # Skip before any name/WKB work; never re-import, never
+                # resurrect.
+                _sid_resume = str(props.get("shapeID") or "").strip()
+                if _sid_resume and _sid_resume in existing_shape_ids:
+                    del feature, geom_dict, props
+                    continue
+
                 name       = _extract_name(props, adm_n)
                 # ISO comes from the SOURCE FOLDER, never the feature's
                 # shapeGroup property (operator ruling 2026-08-02: ISO sets
@@ -2540,6 +2583,12 @@ def process_geojson_file(
                 # the loud log line below when the override actually fires.
                 if adm_n == 0:
                     meta_name = (meta_row.get("boundaryName") or "").strip()
+                    # Curated corrections OVER the CSV canon (2026-08-29,
+                    # operator-sanctioned fix set): the meta CSV itself
+                    # carries typos and the override applies them faithfully
+                    # without this layer ('Antartica' shipped planet-wide).
+                    # Keyed by the exact wrong STRING, never by iso.
+                    meta_name = CANONICAL_NAME_CORRECTIONS.get(meta_name, meta_name)
                     if meta_name and meta_name.lower() not in ("unknown", "none", "null"):
                         if meta_name != name:
                             log.info("%s ADM0: file shapeName '%s' overridden by "

@@ -307,11 +307,38 @@ def run_worker(run_id: str, worker_tag: str, lane: str = "small",
                 _log_line(worker_tag, f"yielded {claim['kind']} — skipping it for "
                                       f"{GIANT_YIELD_SKIP_SECONDS}s, falling through")
     finally:
+        # THE CLAIM RELEASE (2026-08-29, operator fix set): a worker dying
+        # mid-item used to strand its claim 'running' until the pump's
+        # 30-minute stale backstop (the round-2 finalize stall). On ANY exit
+        # path, release whatever this token still holds — on a FRESH
+        # connection, because the death class that matters (postgres
+        # recovery) kills the loop connection itself. The guard
+        # (claim_token = token AND status = 'running') can never clobber
+        # another worker's re-claim, and the lease delete makes the pump's
+        # lease-keyed reclaim treat any residue as orphaned immediately.
+        try:
+            _c2 = get_connection()
+            try:
+                with _c2.cursor() as _cur:
+                    _cur.execute(
+                        "UPDATE geodata_items SET status = 'pending', claim_token = NULL, "
+                        "reason = 'released: worker exited mid-item', updated_at = now() "
+                        "WHERE claim_token = %s AND status = 'running'", (token,))
+                    _cur.execute(
+                        "DELETE FROM geodata_worker_leases WHERE id = %s", (token,))
+                _c2.commit()
+            finally:
+                _c2.close()
+        except Exception:
+            pass
         try:
             claims.clear_lease(conn, token)
         except Exception:
             pass
-        conn.close()
+        try:
+            conn.close()
+        except Exception:
+            pass
         _log_line(worker_tag, "exit")
     return 0
 
