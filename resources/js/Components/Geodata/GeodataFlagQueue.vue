@@ -363,6 +363,7 @@ const CATEGORY_LABELS = {
     raster_coverage:      'Raster coverage',
     displaced_geometry:   'Displaced geometry',
     orphaned_rows:        'Orphaned rows',
+    stray_synthetic:      'Stray synthetics',
     national_delta_gt5:   'Attribution delta',
 }
 
@@ -408,6 +409,7 @@ const ACTION_LABELS = {
     reparent:             'Reparent',
     recompute_population: 'Recompute population',
     prune:                'Prune',
+    reimport_boundaries:  'Reimport boundaries',
 }
 
 const tab           = ref('flags')

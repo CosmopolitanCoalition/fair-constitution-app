@@ -182,7 +182,7 @@ class GeodataPumpCommand extends Command
                         $heavies === [] ? null : $heavies,
                     );
                 }
-                foreach (array_intersect($missing, ['dual_coverage', 'orphaned_rows']) as $cat) {
+                foreach (array_intersect($missing, ['dual_coverage', 'orphaned_rows', 'stray_synthetic']) as $cat) {
                     \App\Jobs\GeodataScanCategoryJob::dispatch((string) $run->id, $cat);
                 }
                 if ($missing !== []) {

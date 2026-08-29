@@ -33,6 +33,7 @@ class GeodataFlag extends Model
         'raster_coverage',
         'displaced_geometry',
         'orphaned_rows',
+        'stray_synthetic',
     ];
 
     public const SEVERITIES = ['info', 'warning', 'critical'];

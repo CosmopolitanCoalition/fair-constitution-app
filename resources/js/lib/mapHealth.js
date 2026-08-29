@@ -9,8 +9,9 @@
  * shape compactness, seat drift), which nobody reads as "errors" either.
  *
  * The distinction that matters, and the reason this file is prose and not a
- * lookup table: only ONE of these checks describes a defect the code can
- * cause. The rest describe the WORLD — disputed territory that must coexist in
+ * lookup table: only TWO of these checks describe a defect the code can
+ * cause (orphaned rows, stray synthetics). The rest describe the WORLD —
+ * disputed territory that must coexist in
  * one game space, colonial-era administrative anchoring, a source release that
  * records the same village at two ADM levels, a country the population raster
  * simply doesn't cover. A flag is an invitation to look, and the right
@@ -41,6 +42,15 @@ export const MAP_HEALTH_CHECKS = {
         why:      'Anything that walks the tree down from Earth — districting, apportionment, population rollups — simply cannot see a detached row. It is the one check here that describes a defect rather than the world.',
         reading:  'Expect zero. Any non-zero count is worth acting on, and the count understates it: a detached parent takes its whole subtree with it.',
         remedy:   'Reparent — though the right answer is sometimes that the row is genuinely top-level and should become an L1 of its own.',
+    },
+
+    stray_synthetic: {
+        label:    'Stray synthetics',
+        nature:   'structural',
+        measures: 'Country rows that are synthesized placeholders even though the source dataset ships a real ADM0 boundary file for that country.',
+        why:      'A placeholder country carries derived geometry and population instead of the imported ones — every rollup, seat count and map above it inherits the error. The importer synthesizes a country row only when the dataset truly ships none (Puerto Rico); one appearing where a file exists means an import race replaced real data, the defect the Philippines certification run caught.',
+        reading:  'Expect zero. Any entry is worth acting on immediately — the row it names is standing in for real data that exists on disk.',
+        remedy:   'Re-run the boundary import scoped to that country: the importer upgrades the placeholder in place with the shipped geometry, then re-attribution restores its population.',
     },
 
     displaced_geometry: {
@@ -101,6 +111,7 @@ export const MAP_HEALTH_CHECKS = {
 /** Order used wherever the checks are listed: actionable first, then reality, then measurement. */
 export const MAP_HEALTH_ORDER = [
     'orphaned_rows',
+    'stray_synthetic',
     'raster_coverage',
     'same_space_chain',
     'mis_anchored_cluster',

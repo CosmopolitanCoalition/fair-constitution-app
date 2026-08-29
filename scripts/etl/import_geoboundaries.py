@@ -540,6 +540,48 @@ def load_meta_index(meta_csv_path: Path, conn=None) -> dict:
             logger.warning("geoboundary_metadata DB load failed (continuing with in-memory only): %s", exc)
             conn.rollback()
 
+    # THE FILESYSTEM GAP-FILL (2026-08-29, the PHL synthetic race). The meta
+    # CSV is documented-incomplete (IND-ADM0 ships on disk with no CSV row),
+    # and the Laravel-side acceptance scan cannot see /data — so record file
+    # PRESENCE for every discovered (iso, gb level) the CSV missed, marked
+    # boundary_source='filesystem enumeration'. This table stays a RECORD,
+    # never an authority: engine decisions keep gating on the filesystem
+    # (available_adm_levels above). The scan's stray_synthetic detector reads
+    # these rows to convict a synthetic country row minted where a real ADM0
+    # file exists. Diff-gated so the steady-state cost per item is one cheap
+    # SELECT; concurrent workers race benignly into ON CONFLICT DO NOTHING.
+    if conn is not None:
+        try:
+            discovered = {(i, n) for i, n, _p in discover_geoboundaries_files()}
+            with get_cursor(conn) as cur:
+                cur.execute("SELECT iso_code, adm_level FROM geoboundary_metadata")
+                have = {(str(r["iso_code"]).strip().upper(), int(r["adm_level"]))
+                        for r in cur.fetchall()}
+            missing = sorted(discovered - have)
+            if missing:
+                _now = datetime.now(timezone.utc)
+                with get_cursor(conn) as cur:
+                    psycopg2.extras.execute_values(
+                        cur,
+                        """
+                        INSERT INTO geoboundary_metadata
+                          (iso_code, adm_level, boundary_source, created_at, updated_at)
+                        VALUES %s
+                        ON CONFLICT (iso_code, adm_level) DO NOTHING
+                        """,
+                        [(i, n, "filesystem enumeration", _now, _now) for i, n in missing],
+                    )
+                conn.commit()
+                logger.info(
+                    "geoboundary_metadata: filled %d filesystem-presence rows the CSV missed: %s",
+                    len(missing),
+                    ", ".join(f"{i}-ADM{n}" for i, n in missing[:8])
+                    + ("…" if len(missing) > 8 else ""),
+                )
+        except Exception as exc:
+            logger.warning("geoboundary_metadata filesystem gap-fill failed (non-fatal): %s", exc)
+            conn.rollback()
+
     logger.info("Meta index loaded: %d entries (supplementary, in-memory + DB)", len(index))
     return index
 

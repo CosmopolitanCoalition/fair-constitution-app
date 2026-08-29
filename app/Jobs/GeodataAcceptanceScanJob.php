@@ -58,12 +58,15 @@ class GeodataAcceptanceScanJob implements ShouldQueue
             return;
         }
 
-        // PARALLEL SCAN (operator order 2026-08-02): the six detectors run
-        // as independent category jobs — five in parallel, displaced_geometry
-        // chained behind mis_anchored_cluster (the documented ordering
-        // dependency). Each merges its result into this item's metrics; the
-        // job that lands the sixth closes the item. This dispatcher returns
-        // immediately — the item's live bar counts detectors as they finish.
+        // PARALLEL SCAN (operator order 2026-08-02): the detectors run
+        // as independent category jobs — the cheap ones in parallel,
+        // displaced_geometry chained behind mis_anchored_cluster (the
+        // documented ordering dependency). Each merges its result into this
+        // item's metrics; the job that lands the LAST category closes the
+        // item (the closer counts GeodataFlag::CATEGORIES, so growing the
+        // list grows the close condition automatically). This dispatcher
+        // returns immediately — the item's live bar counts detectors as
+        // they finish.
         // Merge-seed, never full-replace (audit P1 hazard: a re-invocation
         // against a running item must not wipe landed category results).
         DB::update(
@@ -87,7 +90,7 @@ class GeodataAcceptanceScanJob implements ShouldQueue
         // stay parallel — they finish in seconds and always have.
         GeodataScanCategoryJob::dispatch($run->id, 'mis_anchored_cluster',
             ['displaced_geometry', 'same_space_chain', 'raster_coverage']);
-        foreach (['dual_coverage', 'orphaned_rows'] as $cat) {
+        foreach (['dual_coverage', 'orphaned_rows', 'stray_synthetic'] as $cat) {
             GeodataScanCategoryJob::dispatch($run->id, $cat);
         }
     }

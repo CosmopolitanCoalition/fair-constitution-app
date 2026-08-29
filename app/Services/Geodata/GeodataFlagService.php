@@ -135,6 +135,7 @@ class GeodataFlagService
                     'raster_coverage'      => $this->detectRasterCoverage($isoCodes),
                     'displaced_geometry'   => $this->detectDisplacedGeometry($isoCodes),
                     'orphaned_rows'        => $this->detectOrphanedRows($isoCodes),
+                    'stray_synthetic'      => $this->detectStraySynthetic($isoCodes),
                 };
 
                 $counts[$category] = DB::transaction(function () use ($category, $isoCodes, $findings) {
@@ -798,6 +799,68 @@ class GeodataFlagService
                     'adm_level'    => (int) $row->adm_level,
                     'count'        => (int) $row->cnt,
                     'sample_slugs' => json_decode($row->sample_slugs, true) ?: [],
+                ],
+            ];
+        }
+
+        return $findings;
+    }
+
+    /**
+     * A synthetic country row that SHADOWS a shipped ADM0 file (the PHL race,
+     * 2026-08-29): under the parallel pull engine, a pre-split range item can
+     * land deep-level rows before the parent item imports ADM0; the mid-phase
+     * synthesizer then reads "no country row yet" as "the dataset has no
+     * country file" and mints a placeholder, which the resume counters used
+     * to mistake for the imported feature. The importer now guards all three
+     * legs; this detector is the standing DONE-IS-EVIDENCED check so a
+     * regression of any leg can never pass an acceptance scan silently.
+     *
+     * Ground truth is what the dataset SHIPS. The scan cannot see /data, so
+     * the ETL records file presence into geoboundary_metadata at enumeration
+     * (rows the meta CSV missed carry boundary_source='filesystem
+     * enumeration'). Scoped to adm_level=1 deliberately: a country file
+     * covers its whole iso, so a synthetic there is categorically wrong when
+     * the file exists (PRI, which ships no ADM0, stays lawful and unflagged).
+     * Deeper-level synthetics are Phase S intermediaries for PARTIAL gaps
+     * and are lawful beside shipped files — they must not flag.
+     */
+    private function detectStraySynthetic(?array $isoCodes): array
+    {
+        [$isoSql, $bindings] = $this->isoClause('j.iso_code', $isoCodes, 'ssisos');
+
+        $rows = DB::select(
+            "
+            SELECT j.id, j.slug, j.iso_code, j.name, j.population
+            FROM jurisdictions j
+            WHERE " . $this->live('j') . "
+              AND j.adm_level = 1
+              AND j.source = 'synthetic'
+              AND EXISTS (SELECT 1 FROM geoboundary_metadata m
+                           WHERE m.iso_code = j.iso_code AND m.adm_level = 0)
+              {$isoSql}
+            ORDER BY j.iso_code
+            ",
+            $bindings
+        );
+
+        $findings = [];
+        foreach ($rows as $row) {
+            $iso = $row->iso_code ?? '??';
+            $findings[] = [
+                'severity'         => 'critical',
+                'jurisdiction_id'  => $row->id,
+                'title'            => "Synthetic country row for {$iso} shadows a shipped ADM0 file",
+                'suggested_action' => 'reimport_boundaries',
+                'fingerprint'      => $this->fingerprint('stray_synthetic', [$row->slug], 'shadows-shipped-adm0'),
+                'payload'          => [
+                    'iso'        => $row->iso_code,
+                    'slug'       => $row->slug,
+                    'population' => $row->population === null ? null : (int) $row->population,
+                    'note'       => 'The dataset ships a real ADM0 boundary for this country, but the row in '
+                                  . 'the tree is a synthesized placeholder — its geometry and population are '
+                                  . 'derived, not imported. A scoped boundary re-pass for this country '
+                                  . 'upgrades the row in place.',
                 ],
             ];
         }
