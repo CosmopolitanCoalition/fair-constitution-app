@@ -79,6 +79,27 @@ class GeodataRemediationService
                 'updated_at'          => now(),
             ]);
 
+            // BORDER STALENESS HOOK (operator ruling 2026-08-29, the
+            // ingest-tail rider): a re-parent changes both parents' child
+            // sets, so their precomputed sibling-border graphs are stale —
+            // re-queue exactly those two in the run-independent ledger.
+            // "Paid once per GEOMETRY" means per CURRENT geometry-set; a
+            // lawful repair mints a new one. The PHL fourteen were the
+            // proof case.
+            foreach (array_filter([$newParent->id, $target->parent_id]) as $pid) {
+                DB::statement("
+                    INSERT INTO jurisdiction_adjacency_parents (parent_id, adm_level, child_count, status, created_at, updated_at)
+                    SELECT p.id, p.adm_level,
+                           (SELECT COUNT(*) FROM jurisdictions c WHERE c.parent_id = p.id AND c.deleted_at IS NULL),
+                           'pending', now(), now()
+                      FROM jurisdictions p WHERE p.id = ?
+                    ON CONFLICT (parent_id) DO UPDATE
+                       SET status = 'pending',
+                           child_count = EXCLUDED.child_count,
+                           updated_at = now()
+                ", [$pid]);
+            }
+
             $repair = $this->recordRepair($flag, 'reparent', $target, [
                 'target_id'               => $target->id,
                 'new_parent_slug'         => $newParentSlug,
