@@ -447,6 +447,17 @@ onBeforeUnmount(stopPolling)
                             <div class="h-full bg-amber-500 transition-all" :style="{ width: pct(run.sized_parents, run.parents_total) + '%' }"></div>
                         </div>
                     </div>
+                    <!-- Founding-map mint: the step between sizing and the
+                         mapping flip. Bar appears the moment maps exist. -->
+                    <div v-if="run.status === 'sizing' && run.maps_minted > 0 && run.maps_total">
+                        <div class="flex justify-between text-xs text-gray-400 mb-1">
+                            <span>Founding maps minted (one per legislature)</span>
+                            <span class="tabular-nums">{{ run.maps_minted.toLocaleString() }} / {{ run.maps_total.toLocaleString() }}</span>
+                        </div>
+                        <div class="h-2 bg-gray-800 rounded overflow-hidden">
+                            <div class="h-full bg-sky-500 transition-all" :style="{ width: pct(run.maps_minted, run.maps_total) + '%' }"></div>
+                        </div>
+                    </div>
                     <div v-if="run.sized_live != null && run.sizing_total && !parentsPassActive">
                         <div class="flex justify-between text-xs text-gray-400 mb-1">
                             <span>Legislature rows in database</span>

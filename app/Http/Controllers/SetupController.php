@@ -2813,6 +2813,17 @@ class SetupController extends Controller
                     })->count());
         }
 
+        // Founding-map mint (operator, 2026-08-29: 75k maps minted in two
+        // minutes with zero pixels moving on this page): a live bar for the
+        // minting step, denominated by the enumerated item count.
+        $mapsMinted = null;
+        $mapsTotal  = null;
+        if (in_array($run->status, ['queued', 'sizing'], true)) {
+            $mapsMinted = (int) DB::table('legislature_district_maps')->count();
+            $mapsTotal  = (int) Cache::remember('autoscale.items_total.'.$run->id, 600, fn () =>
+                DB::table('autoscale_items')->where('run_id', $run->id)->count());
+        }
+
         // LIVE mapping counters + per-ADM-layer bars — a fresh GROUP BY per
         // poll (the Step-2 pattern: real numbers every 2 s, never the
         // pump's once-a-minute denormalized copies). Index-only on
@@ -2940,6 +2951,8 @@ class SetupController extends Controller
                 'sized_live'         => $sizedLive,
                 'sizing_total'       => $sizingTotal,
                 'parents_total'      => $parentsTotal,
+                'maps_minted'        => $mapsMinted,
+                'maps_total'         => $mapsTotal,
                 // Pull engine: ONE concurrency limiter — the live worker pool.
                 'workers'            => $workers,
                 'workers_target'     => \App\Support\HostCapacity::autoscaleWorkers(),
