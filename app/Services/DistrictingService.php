@@ -1667,7 +1667,10 @@ class DistrictingService
         // one. Walk single-child moves between bins, take the one that
         // reduces |gap| while both bins stay inside the band, and repeat.
         if ($seatSum !== $effectiveBudget && count($allJids) > 10 && $totalBinPop > 0) {
-            $binData = $this->repairSeatSumByMoves($binData, $childById, $adj, $binQuota, $effectiveBudget, $floor, $ceiling, $minSeat);
+            // ($minSeat was retired by the dominant-atom fix 2026-08-26; the
+            // stranded argument crashed every large-scope repair — the
+            // Seoul/Istanbul/Mexico review class, caught live 2026-08-29.)
+            $binData = $this->repairSeatSumByMoves($binData, $childById, $adj, $binQuota, $effectiveBudget, $floor, $ceiling);
             $seatSum = array_sum(array_column($binData, 'seats'));
         }
 
@@ -1901,7 +1904,8 @@ class DistrictingService
      * that touches it (adjacency preferred — a move across the map would buy
      * exactness with a scattered district), recomputes both bins' rounded
      * seats, and keeps the move that reduces |total - budget| the most while
-     * leaving every bin non-empty and inside [minSeat, ceiling]. Deterministic
+     * leaving every bin non-empty and inside the band (1-seat safety floor,
+     * ceiling clamp — the dominant-atom arithmetic). Deterministic
      * throughout: ties break on the lowest bin index, then the lowest child id.
      *
      * @param  array  $binData  [['jids'=>[], 'pop'=>int, 'seats'=>int, ...], ...]
@@ -1914,11 +1918,13 @@ class DistrictingService
         float $binQuota,
         int $effectiveBudget,
         int $floor,
-        int $ceiling,
-        int $minSeat
+        int $ceiling
     ): array {
         // $minSeat retired by the dominant-atom fix (2026-08-26): nearest
         // rounding with a 1-seat safety floor, ceiling-clamped — mirrors Step 11.
+        // (The parameter itself removed 2026-08-29 — the retirement left it in
+        // the signature while the caller's definition was deleted, so PHP's
+        // undefined-variable error killed every >10-child drift repair.)
         $seatsOf = function (int $pop) use ($binQuota, $ceiling): int {
             return min($ceiling, max(1, (int) round($pop / max($binQuota, 1))));
         };
