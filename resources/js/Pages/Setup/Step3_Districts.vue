@@ -135,6 +135,17 @@ function workerElapsed(w) {
     if (!w._t0) w._t0 = Date.now() - w.claim_secs * 1000
     return fmtEta(Math.round((Date.now() - w._t0) / 1000))
 }
+// STABLE SLOTS (operator, 2026-08-29: "everything seems bouncing around"):
+// each worker keeps a fixed row, sorted by its id — the label and clock
+// change in place, the rows never reshuffle. A batch lane's bar fills with
+// its real i/N progress parsed from the label; other claims pulse.
+const workersStable = computed(() =>
+    [...(autoscale.value?.workers_detail ?? [])].sort((a, b) => String(a.id).localeCompare(String(b.id))))
+function batchFill(w) {
+    const m = /(\d+)\s*\/\s*(\d+)/.exec(w.claim_label ?? '')
+    if (!m) return null
+    return Math.min(100, Math.round(Number(m[1]) / Number(m[2]) * 100))
+}
 const precompute = computed(() => autoscale.value?.precompute ?? null)
 const runActive = computed(() => run.value && ['queued', 'sizing', 'mapping'].includes(run.value.status))
 const precomputeOpen = computed(() =>
@@ -597,14 +608,14 @@ onBeforeUnmount(stopPolling)
                         Workers ({{ autoscale.workers_detail.length }})
                     </div>
                     <ul class="space-y-1.5">
-                        <li v-for="w in autoscale.workers_detail" :key="w.id"
+                        <li v-for="w in workersStable" :key="w.id"
                             class="text-xs bg-gray-800/60 rounded px-2.5 py-2">
                             <div class="flex items-center justify-between mb-1">
                                 <span class="flex items-center gap-2 min-w-0">
                                     <span class="w-1.5 h-1.5 rounded-full shrink-0"
                                           :class="w.claim_label ? 'bg-blue-400 animate-pulse' : 'bg-gray-600'" aria-hidden="true" />
                                     <span v-if="w.claim_label" class="text-gray-200 font-medium truncate">{{ w.claim_label }}</span>
-                                    <span v-else class="text-gray-500 italic">between claims</span>
+                                    <span v-else class="text-gray-500 italic">idle — next claim within seconds</span>
                                 </span>
                                 <span class="text-gray-500 tabular-nums shrink-0 ml-3">
                                     <template v-if="w.claim_label">{{ workerElapsed(w) }} on claim · </template>
@@ -612,7 +623,10 @@ onBeforeUnmount(stopPolling)
                                 </span>
                             </div>
                             <div class="h-1.5 bg-gray-900 rounded overflow-hidden">
-                                <div v-if="w.claim_label" class="h-full w-1/4 rounded bg-blue-800 animate-pulse" />
+                                <div v-if="batchFill(w) !== null"
+                                     class="h-full rounded bg-blue-500 transition-all duration-700"
+                                     :style="{ width: batchFill(w) + '%' }" />
+                                <div v-else-if="w.claim_label" class="h-full w-1/4 rounded bg-blue-800 animate-pulse" />
                                 <div v-else class="h-full w-0" />
                             </div>
                         </li>
