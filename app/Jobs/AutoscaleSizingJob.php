@@ -104,6 +104,27 @@ class AutoscaleSizingJob implements ShouldQueue
         // No self-revival: the pump re-dispatches on the stale lease.
     }
 
+    /** A2 (operator order 2026-08-29): step markers — resume enters at the
+     *  first unfinished step; a crash costs one step's remainder, never the
+     *  pass (the 36,826-parent re-walk was the defect this kills). */
+    private function stepDone(AutoscaleRun $run, string $step): bool
+    {
+        return isset(((array) json_decode((string) DB::table('autoscale_runs')
+            ->where('id', $run->id)->value('sizing_steps'), true))[$step]);
+    }
+
+    private function markStep(AutoscaleRun $run, string $step): void
+    {
+        DB::update(
+            "UPDATE autoscale_runs
+                SET sizing_steps = COALESCE(sizing_steps, '{}'::jsonb)
+                                   || jsonb_build_object(?::text, now()::text),
+                    updated_at = now()
+              WHERE id = ?",
+            [$step, $run->id],
+        );
+    }
+
     private function runSizing(AutoscaleRun $run): void
     {
         $admMax = (int) $run->adm_max;
@@ -112,16 +133,19 @@ class AutoscaleSizingJob implements ShouldQueue
         // (upserts). Childless rows are excluded (--parents-only); they get
         // the set-based treatment below — a per-row loop over 903k leaves
         // would alone take days.
-        Log::info('Autoscale Phase A: sizing parents', ['run_id' => $run->id]);
-        // A1 (operator order 2026-08-29): the seed writes heartbeat + a live
-        // sized_parents count into this run every 200-row chunk, so the
-        // dashboard moves during the grind instead of reading zeros for the
-        // whole pass (and each chunk releases collected cycles — A2).
-        Artisan::call('apportionment:seed', [
-            '--parents-only' => true,
-            '--adm-max'      => $admMax,
-            '--progress-run' => (string) $run->id,
-        ]);
+        if (! $this->stepDone($run, 'parents')) {
+            Log::info('Autoscale Phase A: sizing parents', ['run_id' => $run->id]);
+            // A1 (operator order 2026-08-29): the seed writes heartbeat + a
+            // live sized_parents count into this run every 200-row chunk, so
+            // the dashboard moves during the grind instead of reading zeros
+            // for the whole pass (each chunk releases collected cycles).
+            Artisan::call('apportionment:seed', [
+                '--parents-only' => true,
+                '--adm-max'      => $admMax,
+                '--progress-run' => (string) $run->id,
+            ]);
+            $this->markStep($run, 'parents');
+        }
         $this->heartbeat($run);
 
         if ($this->haltRequested($run)) {
@@ -141,6 +165,9 @@ class AutoscaleSizingJob implements ShouldQueue
         for ($lvl = 0; $lvl <= $admMax; $lvl++) {
             if ($this->haltRequested($run)) {
                 return;
+            }
+            if ($this->stepDone($run, "leaves_l{$lvl}")) {
+                continue;
             }
             $leavesSoFar += DB::affectingStatement("
                 INSERT INTO legislatures
@@ -167,6 +194,7 @@ class AutoscaleSizingJob implements ShouldQueue
                 'sized_leaves' => $leavesSoFar,
                 'updated_at'   => now(),
             ]);
+            $this->markStep($run, "leaves_l{$lvl}");
             $this->heartbeat($run); // per level
         }
 
@@ -216,6 +244,7 @@ class AutoscaleSizingJob implements ShouldQueue
         // is provisional — the operator's simplest-first key
         // (AutoscaleEnumeration) replaces it below. Idempotent via the
         // per-run NOT EXISTS.
+        if (! $this->stepDone($run, 'enumerate')) {
         DB::statement("
             INSERT INTO autoscale_items
                 (id, run_id, legislature_id, jurisdiction_id, adm_level, kind,
@@ -243,7 +272,15 @@ class AutoscaleSizingJob implements ShouldQueue
         // R2 — the simplest-first ordering keys (est_districts, cascade
         // height, position). Shared with the revert command so re-derivation
         // can never drift from enumeration.
-        \App\Support\AutoscaleEnumeration::deriveOrderingKeys((string) $run->id, $ceiling);
+        \App\Support\AutoscaleEnumeration::deriveOrderingKeys(
+            (string) $run->id,
+            $ceiling,
+            // A2: heartbeat between every set-based pass — the ordering
+            // derivation ran 5+ silent minutes and read as a stall.
+            fn () => $this->heartbeat($run),
+        );
+        $this->markStep($run, 'enumerate');
+        }
         $this->heartbeat($run);
 
         // B2 — ADOPT pre-pass (never bulldoze, set-based): a sweep legislature

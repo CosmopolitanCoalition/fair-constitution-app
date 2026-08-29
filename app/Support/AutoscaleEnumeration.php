@@ -33,8 +33,11 @@ final class AutoscaleEnumeration
      * Derive est_districts + cascade_height + position for every item of a
      * run. Set-based; idempotent; safe to re-run.
      */
-    public static function deriveOrderingKeys(string $runId, int $ceiling): void
+    public static function deriveOrderingKeys(string $runId, int $ceiling, ?callable $tick = null): void
     {
+        // A2 (2026-08-29): $tick heartbeats between every set-based pass so
+        // the run row never goes silent for minutes mid-derivation.
+        $beat = static function () use ($tick) { if ($tick) { $tick(); } };
         // Planet-wide joins (the height loop, the position ROW_NUMBER) must
         // not recruit parallel workers: their DSM segments exceed Docker's
         // default 64 MB /dev/shm. Serial is fine for these set-based
@@ -59,6 +62,7 @@ final class AutoscaleEnumeration
             UPDATE autoscale_items SET cascade_height = 0
              WHERE run_id = ? AND child_count = 0
         ", [$runId]);
+        $beat();
         for ($pass = 0; $pass < 12; $pass++) {
             $updated = DB::update('
                 UPDATE autoscale_items p
@@ -83,6 +87,7 @@ final class AutoscaleEnumeration
         // Safety valve: a child jurisdiction without an item row (out-of-scope
         // adm level, data quirk) leaves its ancestors NULL — backfill high so
         // they sort last, and log the honest count.
+        $beat();
         $orphans = DB::update("
             UPDATE autoscale_items SET cascade_height = 99
              WHERE run_id = ? AND cascade_height IS NULL
@@ -140,6 +145,7 @@ final class AutoscaleEnumeration
              WHERE ai.id = r.id
         ', [$runId]);
 
+        $beat();
         DB::statement('RESET max_parallel_workers_per_gather');
     }
 
