@@ -57,7 +57,19 @@ final class AutoscaleClaims
             return $override;
         }
 
-        return max(1, (int) ceil(0.2 * HostCapacity::autoscaleWorkers()));
+        // MEMORY-DERIVED (operator, 2026-08-29: everything derives). A
+        // heavy scope's postgres transients cost ~1.5-3 GB at peak, and
+        // the 20%-of-lanes rule alone would let a big pool overrun a small
+        // box. The cap is whichever is tighter: 20% of the lanes, or the
+        // host's memory beyond a 4 GB base at ~2 GB per concurrent giant.
+        // 8 GB reference box → 2 (today's proven number); 256 GB cloud
+        // box → lane-bound, so the Earth-class tail parallelizes.
+        $memCap = (int) floor(max(0.0, HostCapacity::hostMemoryGb() - 3.0) / 2.0);
+
+        return max(1, min(
+            (int) ceil(0.2 * HostCapacity::autoscaleWorkers()),
+            max(1, $memCap),
+        ));
     }
 
     /**

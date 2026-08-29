@@ -47,7 +47,50 @@ class HostCapacity
         $reserve    = (float) (env('CGA_AUTOSCALE_CORE_RESERVE') ?: 0.5);
         $busyFactor = $busyFactor > 0.1 ? $busyFactor : 0.86;
 
-        return max(2, min(16, (int) floor((self::cpuCores() - $reserve) / $busyFactor)));
+        // The ceiling DERIVES too (operator, 2026-08-29: "it should always
+        // be a derivation"): each lane holds one postgres connection, so
+        // the honest cap is the connection budget — max_connections minus
+        // a reserve for the web app, the pump, horizon's other queues and
+        // superuser slots, divided by a small safety factor for each
+        // lane's occasional second connection. On the 8 GB reference box
+        // (max_connections 200) this yields ~56, far above the core-bound
+        // 13; on big iron it frees the formula to use the cores.
+        $connCap = (int) floor((self::pgMaxConnections() - 30) / 3);
+
+        return max(2, min(max(4, $connCap), (int) floor((self::cpuCores() - $reserve) / $busyFactor)));
+    }
+
+    /** postgres max_connections, cached per process; 100 when unreachable. */
+    public static function pgMaxConnections(): int
+    {
+        static $n = null;
+        if ($n !== null) {
+            return $n;
+        }
+        try {
+            $n = (int) (\Illuminate\Support\Facades\DB::selectOne('SELECT current_setting(?) AS v', ['max_connections'])->v ?? 100);
+        } catch (\Throwable) {
+            $n = 100;
+        }
+
+        return $n > 0 ? $n : 100;
+    }
+
+    /** Host (VM) memory in GiB, from /proc/meminfo; 8 when unreadable. */
+    public static function hostMemoryGb(): float
+    {
+        static $gb = null;
+        if ($gb !== null) {
+            return $gb;
+        }
+        $kb = 0;
+        if (is_readable('/proc/meminfo')
+            && preg_match('/^MemTotal:\s+(\d+)\s+kB/m', (string) file_get_contents('/proc/meminfo'), $m)) {
+            $kb = (int) $m[1];
+        }
+        $gb = $kb > 0 ? $kb / 1048576 : 8.0;
+
+        return $gb;
     }
 
     public static function cpuCores(): int
