@@ -2297,9 +2297,15 @@ def process_geojson_file(
         # 2026-04 release).
         try:
             with get_cursor(conn) as _cur:
+                # SYNTHETIC ROWS ARE NOT IMPORTED FEATURES (the PHL skip,
+                # 2026-08-29): a mid-run placeholder minted by
+                # synthesize_missing_country_rows counted here as "already
+                # imported" and the genuine ADM0 feature was skipped. Same
+                # exclusion as _db_count in etl_unit.py — keep them in step.
                 _cur.execute(
                     "SELECT COUNT(*) AS n FROM jurisdictions "
-                    "WHERE iso_code = %s AND adm_level = %s AND deleted_at IS NULL",
+                    "WHERE iso_code = %s AND adm_level = %s AND deleted_at IS NULL "
+                    "AND source IS DISTINCT FROM 'synthetic'",
                     (iso3, adm_level_app_local),
                 )
                 _row = _cur.fetchone()
