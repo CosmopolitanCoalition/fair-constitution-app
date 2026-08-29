@@ -180,10 +180,13 @@ class ApportionmentSeedCommand extends Command
                 }
                 if ($this->progressRunId !== '') {
                     $this->progressCount += count($parents);
+                    // sizing_lease_at IS the run's heartbeat column (the API
+                    // serializes it as heartbeat_at — the alias that cost a
+                    // planet-run stall when written literally, 2026-08-29).
                     DB::table('autoscale_runs')->where('id', $this->progressRunId)->update([
-                        'sized_parents' => $this->progressCount,
-                        'heartbeat_at'  => now(),
-                        'updated_at'    => now(),
+                        'sized_parents'   => $this->progressCount,
+                        'sizing_lease_at' => now(),
+                        'updated_at'      => now(),
                     ]);
                     gc_collect_cycles();
                 }
