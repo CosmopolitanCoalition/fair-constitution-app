@@ -98,6 +98,43 @@ function sampleSizing(r) {
     s.push({ t: Date.now(), v: r.sized_parents })
     if (s.length > 40) s.splice(0, s.length - 40)
 }
+
+// THE GEODATA TIMING GRAMMAR, imported (operator order 2026-08-29): every
+// live bar carries measured rate, honest ETA, and elapsed — computed from
+// this page's own poll samples per bar key, exactly the ingestion panel's
+// discipline (an ETA appears only once a real rate exists; never fabricated).
+const barSamples = ref({})
+const nowTick = ref(Date.now())
+setInterval(() => { nowTick.value = Date.now() }, 1000)
+function trackBar(key, v) {
+    if (v == null || v <= 0) return
+    const all = barSamples.value
+    const s = (all[key] ??= [])
+    if (s.length && s[s.length - 1].v === v) return
+    s.push({ t: Date.now(), v })
+    if (s.length > 40) s.splice(0, s.length - 40)
+}
+function barTiming(key, done, total) {
+    void nowTick.value
+    const s = barSamples.value[key]
+    if (!s || s.length < 2 || !done) return ''
+    const a = s[0], b = s[s.length - 1]
+    const dt = (b.t - a.t) / 1000
+    if (dt < 15 || b.v <= a.v) return ''
+    const perMin = (b.v - a.v) / (dt / 60)
+    const elapsed = fmtEta(Math.round((Date.now() - a.t) / 1000))
+    let out = ` · ${Math.round(perMin).toLocaleString()}/min · ${elapsed} elapsed`
+    if (total && done < total && perMin > 0) {
+        out += ` · ~${fmtEta(Math.round((total - done) / perMin * 60))} left`
+    }
+    return out
+}
+function workerElapsed(w) {
+    void nowTick.value
+    if (w.claim_secs == null) return ''
+    if (!w._t0) w._t0 = Date.now() - w.claim_secs * 1000
+    return fmtEta(Math.round((Date.now() - w._t0) / 1000))
+}
 const precompute = computed(() => autoscale.value?.precompute ?? null)
 const runActive = computed(() => run.value && ['queued', 'sizing', 'mapping'].includes(run.value.status))
 const precomputeOpen = computed(() =>
@@ -118,6 +155,17 @@ async function fetchAutoscale() {
         const wasActive = runActive.value
         autoscale.value = data
         sampleSizing(autoscale.value?.run)
+        {
+            const r = autoscale.value?.run
+            const p = autoscale.value?.precompute
+            if (r) {
+                trackBar('singles', r.singles_done)
+                trackBar('sweeps', r.sweeps_done)
+                trackBar('mint', r.maps_minted)
+            }
+            if (p) trackBar('precompute', p.done + p.failed)
+            for (const l of (autoscale.value?.layers ?? [])) trackBar(`layer:${l.key}`, l.done)
+        }
 
         const status = autoscale.value?.run?.status
         if (wasActive && !runActive.value) {
@@ -452,7 +500,7 @@ onBeforeUnmount(stopPolling)
                     <div v-if="run.status === 'sizing' && run.maps_minted > 0 && run.maps_total">
                         <div class="flex justify-between text-xs text-gray-400 mb-1">
                             <span>Founding maps minted (one per legislature)</span>
-                            <span class="tabular-nums">{{ run.maps_minted.toLocaleString() }} / {{ run.maps_total.toLocaleString() }}</span>
+                            <span class="tabular-nums">{{ run.maps_minted.toLocaleString() }} / {{ run.maps_total.toLocaleString() }}{{ barTiming('mint', run.maps_minted, run.maps_total) }}</span>
                         </div>
                         <div class="h-2 bg-gray-800 rounded overflow-hidden">
                             <div class="h-full bg-sky-500 transition-all" :style="{ width: pct(run.maps_minted, run.maps_total) + '%' }"></div>
@@ -470,7 +518,7 @@ onBeforeUnmount(stopPolling)
                     <div v-if="precompute && precompute.total > 0">
                         <div class="flex justify-between text-xs text-gray-400 mb-1">
                             <span>Geometry precompute (sibling borders, paid once)</span>
-                            <span class="tabular-nums">{{ shown('precompute', precompute.done) }} / {{ precompute.total.toLocaleString() }}
+                            <span class="tabular-nums">{{ shown('precompute', precompute.done) }} / {{ precompute.total.toLocaleString() }}{{ barTiming('precompute', precompute.done + precompute.failed, precompute.total) }}
                                 <span v-if="precompute.failed" class="text-amber-400">· {{ precompute.failed }} fall back live</span>
                             </span>
                         </div>
@@ -481,7 +529,7 @@ onBeforeUnmount(stopPolling)
                     <div>
                         <div class="flex justify-between text-xs text-gray-400 mb-1">
                             <span>Leaf councils (single at-large districts)</span>
-                            <span class="tabular-nums">{{ shown('singles_done', run.singles_done) }} / {{ run.singles_total.toLocaleString() }}</span>
+                            <span class="tabular-nums">{{ shown('singles_done', run.singles_done) }} / {{ run.singles_total.toLocaleString() }}{{ barTiming('singles', run.singles_done, run.singles_total) }}</span>
                         </div>
                         <div class="h-2 bg-gray-800 rounded overflow-hidden">
                             <div class="h-full bg-teal-500 transition-all" :style="{ width: pct(run.singles_done, run.singles_total) + '%' }"></div>
@@ -490,7 +538,7 @@ onBeforeUnmount(stopPolling)
                     <div>
                         <div class="flex justify-between text-xs text-gray-400 mb-1">
                             <span>District-map sweeps (jurisdictions with constituents)</span>
-                            <span class="tabular-nums">{{ shown('sweeps_done', run.sweeps_done) }} / {{ run.sweeps_total.toLocaleString() }}</span>
+                            <span class="tabular-nums">{{ shown('sweeps_done', run.sweeps_done) }} / {{ run.sweeps_total.toLocaleString() }}{{ barTiming('sweeps', run.sweeps_done, run.sweeps_total) }}</span>
                         </div>
                         <div class="h-2 bg-gray-800 rounded overflow-hidden">
                             <div class="h-full bg-blue-500 transition-all" :style="{ width: pct(run.sweeps_done, run.sweeps_total) + '%' }"></div>
@@ -512,7 +560,7 @@ onBeforeUnmount(stopPolling)
                                     {{ layerLabel(l) }}
                                     <span v-if="l.review" class="text-amber-400 ml-1">· {{ l.review }} review</span>
                                 </span>
-                                <span class="tabular-nums">{{ shown(`layer:${l.key}`, l.done) }} / {{ l.total.toLocaleString() }}</span>
+                                <span class="tabular-nums">{{ shown(`layer:${l.key}`, l.done) }} / {{ l.total.toLocaleString() }}{{ l.status === 'running' ? barTiming(`layer:${l.key}`, l.done, l.total) : '' }}</span>
                             </div>
                             <div class="h-1.5 bg-gray-800 rounded overflow-hidden">
                                 <div class="h-full transition-all"
@@ -538,20 +586,35 @@ onBeforeUnmount(stopPolling)
                 <!-- THE WORKER STRIP: one honest line per live worker — what
                      each one holds RIGHT NOW (fast sweeps blink through the
                      scope list below; this never lies about the pool). -->
+                <!-- Workers as live bars (operator order 2026-08-29: the
+                     geodata idiom — each lane is a bar naming its claim with
+                     a ticking clock, never a hex-id listing; the id survives
+                     as a small suffix). No per-claim totals exist for these
+                     units, so the fill is the ingestion panel's honest
+                     working-pulse sliver. -->
                 <div v-if="autoscale.workers_detail?.length" class="mt-4 border-t border-gray-700/50 pt-3">
                     <div class="text-gray-400 text-xs uppercase tracking-wide mb-2">
                         Workers ({{ autoscale.workers_detail.length }})
                     </div>
-                    <ul class="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-1 text-sm">
-                        <li v-for="w in autoscale.workers_detail" :key="w.id" class="flex items-baseline gap-2">
-                            <span class="inline-block w-1.5 h-1.5 rounded-full"
-                                  :class="w.claim_label ? 'bg-blue-400 animate-pulse' : 'bg-gray-600'"></span>
-                            <span class="text-gray-500 text-xs font-mono">{{ w.id }}</span>
-                            <span v-if="w.claim_label" class="text-gray-200 truncate">
-                                {{ w.claim_label }}
-                                <span v-if="w.claim_secs != null" class="text-gray-500 text-xs">· {{ w.claim_secs }}s</span>
-                            </span>
-                            <span v-else class="text-gray-500 italic text-xs">between claims</span>
+                    <ul class="space-y-1.5">
+                        <li v-for="w in autoscale.workers_detail" :key="w.id"
+                            class="text-xs bg-gray-800/60 rounded px-2.5 py-2">
+                            <div class="flex items-center justify-between mb-1">
+                                <span class="flex items-center gap-2 min-w-0">
+                                    <span class="w-1.5 h-1.5 rounded-full shrink-0"
+                                          :class="w.claim_label ? 'bg-blue-400 animate-pulse' : 'bg-gray-600'" aria-hidden="true" />
+                                    <span v-if="w.claim_label" class="text-gray-200 font-medium truncate">{{ w.claim_label }}</span>
+                                    <span v-else class="text-gray-500 italic">between claims</span>
+                                </span>
+                                <span class="text-gray-500 tabular-nums shrink-0 ml-3">
+                                    <template v-if="w.claim_label">{{ workerElapsed(w) }} on claim · </template>
+                                    <span class="font-mono">{{ w.id }}</span>
+                                </span>
+                            </div>
+                            <div class="h-1.5 bg-gray-900 rounded overflow-hidden">
+                                <div v-if="w.claim_label" class="h-full w-1/4 rounded bg-blue-800 animate-pulse" />
+                                <div v-else class="h-full w-0" />
+                            </div>
                         </li>
                     </ul>
                 </div>
