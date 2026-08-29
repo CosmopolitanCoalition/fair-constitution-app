@@ -30,7 +30,24 @@ class HostCapacity
             return (int) $override;
         }
 
-        return max(2, min(12, self::cpuCores() - 2));
+        // THE WAIT-AWARE FORMULA (operator order 2026-08-29, the durable
+        // fix). The old cores−2 counted workers as if always busy, but a
+        // sweep worker's second splits between PHP compute and waiting on
+        // postgres — during the wait its core is free, so lanes can
+        // lawfully exceed cores. Measured on the planet run (10 lanes,
+        // 12 cores): PHP busy ≈ 0.55 cores/worker and postgres serving
+        // them ≈ 0.31 cores/worker, so each lane's true cost ≈ 0.86 of a
+        // core. workers = (cores − reserve) / busy_factor, reserve 0.5
+        // for the OS + web app. On this box: (12 − 0.5) / 0.86 ≈ 13.
+        // Both constants are env-tunable (re-measure with `docker stats`:
+        // busy_factor = (horizon_cpu + postgres_cpu) / lanes / 100).
+        // Floor 2 keeps a Pi honest; cap 16 keeps a big host from
+        // outrunning the postgres connection budget.
+        $busyFactor = (float) (env('CGA_AUTOSCALE_BUSY_FACTOR') ?: 0.86);
+        $reserve    = (float) (env('CGA_AUTOSCALE_CORE_RESERVE') ?: 0.5);
+        $busyFactor = $busyFactor > 0.1 ? $busyFactor : 0.86;
+
+        return max(2, min(16, (int) floor((self::cpuCores() - $reserve) / $busyFactor)));
     }
 
     public static function cpuCores(): int
