@@ -85,10 +85,17 @@ class SweepScopeProcessor
             ->orderByDesc('m.created_at')
             ->first(['m.id']);
         if ($adopted !== null) {
-            $seated = (int) DB::table('legislature_districts')
+            // BONUS NETTING (operator order 2026-08-29): every exactness
+            // identity compares seats − bonus_seats against the budget (the
+            // 08-28 ceiling-exception law). Raw sums flagged lawful bonus
+            // lifts as drift — Uttar Pradesh wore a +4 for four lawful lifts.
+            $agg = DB::table('legislature_districts')
                 ->where('map_id', $adopted->id)
                 ->whereNull('deleted_at')
-                ->sum('seats');
+                ->selectRaw('COALESCE(SUM(seats),0) AS s, COALESCE(SUM(bonus_seats),0) AS b')
+                ->first();
+            $seated = (int) $agg->s;
+            $bonus  = (int) $agg->b;
             $expected = (int) DB::table('legislatures')
                 ->where('id', $legislatureId)->value('type_a_seats');
 
@@ -113,7 +120,7 @@ class SweepScopeProcessor
                     ]);
             });
             $this->finishItem($itemId, ['pending', 'running'], 'done', $seated, $expected,
-                'adopted: an active map with districts already exists');
+                'adopted: an active map with districts already exists', $bonus);
             return;
             }
         }
@@ -291,10 +298,15 @@ class SweepScopeProcessor
 
             $assessment = $this->assessCompleteness($leg, $mapId, ['errors' => $scopeReasons]);
 
-            $seated = (int) DB::table('legislature_districts')
+            // BONUS NETTING (operator order 2026-08-29): identities compare
+            // seats − bonus_seats against the budget, per the 08-28 law.
+            $agg = DB::table('legislature_districts')
                 ->where('map_id', $mapId)
                 ->whereNull('deleted_at')
-                ->sum('seats');
+                ->selectRaw('COALESCE(SUM(seats),0) AS s, COALESCE(SUM(bonus_seats),0) AS b')
+                ->first();
+            $seated = (int) $agg->s;
+            $bonus  = (int) $agg->b;
             $expected = (int) $leg->type_a_seats;
 
             if ($assessment['complete']) {
@@ -331,7 +343,8 @@ class SweepScopeProcessor
                         'district_count'  => (int) DB::table('legislature_districts')
                             ->where('map_id', $mapId)->whereNull('deleted_at')->count(),
                         'seats_seated'    => $seated,
-                        'seat_drift'      => $seated - $expected, // informational — never forced
+                        'bonus_seats'     => $bonus,
+                        'seat_drift'      => ($seated - $bonus) - $expected, // net of lawful bonus lifts
                         'generator'       => 'SweepScopeProcessor mixed autoseed (pull engine, 2026-07-19)',
                     ],
                     ref: 'WF-ELE-02',
@@ -341,7 +354,7 @@ class SweepScopeProcessor
                 $this->finishItem($itemId, ['assessing'], 'done', $seated, $expected,
                     $assessment['notes'] !== []
                         ? 'notes: ' . implode(' | ', array_slice($assessment['notes'], 0, 6))
-                        : null);
+                        : null, $bonus);
             } else {
                 // Map stays draft; the operator reviews from the dashboard.
                 // A flagged repair redraw runs on an ACTIVE map (adoption
@@ -354,7 +367,7 @@ class SweepScopeProcessor
                     ->where('status', 'active')
                     ->update(['status' => 'draft', 'updated_at' => now()]);
                 $this->finishItem($itemId, ['assessing'], 'review', $seated, $expected,
-                    implode(' | ', array_slice($assessment['reasons'], 0, 12)));
+                    implode(' | ', array_slice($assessment['reasons'], 0, 12)), $bonus);
             }
 
             try {
@@ -630,7 +643,7 @@ class SweepScopeProcessor
      *        a late worker after a (rare) false reclaim must not clobber the
      *        new owner's state.
      */
-    private function finishItem(string $itemId, array $fromStatuses, string $status, ?int $seated, ?int $expected, ?string $reason): void
+    private function finishItem(string $itemId, array $fromStatuses, string $status, ?int $seated, ?int $expected, ?string $reason, int $bonus = 0): void
     {
         $update = [
             'status'      => $status,
@@ -646,7 +659,11 @@ class SweepScopeProcessor
         if ($seated !== null && $expected !== null) {
             $update['seats_seated']   = $seated;
             $update['seats_expected'] = $expected;
-            $update['drift']          = $seated - $expected;
+            // Net of lawful bonus lifts (operator order 2026-08-29): the
+            // 08-28 ceiling-exception law says every exactness identity
+            // compares seats − bonus_seats against the budget. A pure
+            // bonus-lift map records drift 0 — legal and good, not drift.
+            $update['drift']          = ($seated - $bonus) - $expected;
         }
 
         AutoscaleItem::query()->whereKey($itemId)

@@ -2776,8 +2776,31 @@ class SetupController extends Controller
                 'j.name as jurisdiction_name', 'j.slug as jurisdiction_slug',
             ]);
 
-        // Σ-seat drift ships as INFORMATION (seating law: no total-forcing) —
-        // surfaced per item and as a run-wide histogram headline. The
+        // DRIFTED-DONE DRILLDOWN (operator order 2026-08-29, "the same thing
+        // must be true in the interface"): completed maps whose NET drift
+        // (seats − bonus, per the 08-28 law — the writer now nets) misses
+        // the budget render as clickable rows exactly like the review list,
+        // so the operator walks straight into each mapper without asking.
+        $driftedItems = DB::table('autoscale_items as ai')
+            ->join('jurisdictions as j', 'j.id', '=', 'ai.jurisdiction_id')
+            ->leftJoin('legislature_district_maps as m', function ($join) {
+                $join->on('m.legislature_id', '=', 'ai.legislature_id')
+                    ->where('m.status', 'active')->whereNull('m.deleted_at');
+            })
+            ->where('ai.run_id', $run->id)
+            ->where('ai.status', 'done')
+            ->whereRaw('COALESCE(ai.drift, 0) <> 0')
+            ->orderByRaw('abs(ai.drift) DESC')
+            ->limit(100)
+            ->get([
+                'ai.legislature_id', 'ai.jurisdiction_id', 'ai.adm_level',
+                'ai.kind', 'ai.reason', 'ai.seats_expected', 'ai.seats_seated',
+                'ai.drift', 'm.id as map_id',
+                'j.name as jurisdiction_name', 'j.slug as jurisdiction_slug',
+            ]);
+
+        // Σ-seat drift: the count nets lawful bonus lifts (writer + backfill
+        // 2026-08-29) — a pure lift map is legal and good, not drift. The
         // attention count covers everything the review table lists
         // (review + failed + halted), so the header never undercounts it.
         $driftRow = DB::table('autoscale_items')
@@ -2908,6 +2931,21 @@ class SetupController extends Controller
             ? (int) round((max(0, (int) $run->sweeps_total - $sweepsDoneNow) / $sweepRatePerH) * 3600)
             : null;
 
+        // Idle-cause aggregates (operator approval 2026-08-29): when a slot
+        // sits idle the strip names WHY instead of a bare "idle". Cheap
+        // reads only — the running set is small, and light-pending is an
+        // EXISTS probe, never a planet count.
+        $heavyRunning = null;
+        $lightPending = null;
+        if (in_array($run->status, ['mapping', 'halted'], true)) {
+            $heavyRunning = (int) DB::table('autoscale_scopes')
+                ->where('run_id', $run->id)->where('status', 'running')
+                ->where('area_tier', '>=', 4)->count();
+            $lightPending = DB::table('autoscale_scopes')
+                ->where('run_id', $run->id)->where('status', 'pending')
+                ->where('area_tier', '<', 4)->exists();
+        }
+
         // Live workers = lease rows seen in the last 2 minutes, each with
         // the claim it is holding RIGHT NOW (fast sweeps blink through the
         // scope list; this strip is the honest per-worker view).
@@ -2939,7 +2977,9 @@ class SetupController extends Controller
                 'sweeps_done'        => $sweepsDoneNow,
                 'review_count'       => (int) $run->review_count,
                 'last_error'         => $run->last_error,
+                'created_at'            => $run->created_at?->toIso8601String(),
                 'sizing_started_at'  => $run->sizing_started_at?->toIso8601String(),
+                'precompute_started_at' => $run->precompute_started_at?->toIso8601String(),
                 'mapping_started_at' => $run->mapping_started_at?->toIso8601String(),
                 'finished_at'        => $run->finished_at?->toIso8601String(),
                 'heartbeat_at'       => $run->updated_at?->toIso8601String(),
@@ -2961,12 +3001,16 @@ class SetupController extends Controller
                 // Pull engine: ONE concurrency limiter — the live worker pool.
                 'workers'            => $workers,
                 'workers_target'     => \App\Support\HostCapacity::autoscaleWorkers(),
+                'heavy_running'      => $heavyRunning,
+                'heavy_cap'          => \App\Support\AutoscaleClaims::heavyWorkerCap(),
+                'light_pending'      => $lightPending,
             ],
             'layers'         => $layers,
             'precompute'     => $precompute,
             'workers_detail' => $workersDetail,
             'live_items'     => $liveItems,
             'review_items'   => $reviewItems,
+            'drifted_items'  => $driftedItems,
             // Type B districting worklist — the flagged-chamber count the
             // dashboard's "Group Type B chambers" control acts on.
             'type_b_flagged' => (int) DB::table('legislatures')

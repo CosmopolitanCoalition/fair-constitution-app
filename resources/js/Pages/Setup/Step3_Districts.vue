@@ -162,6 +162,44 @@ function batchFill(w) {
     if (!m) return null
     return Math.min(100, Math.round(Number(m[1]) / Number(m[2]) * 100))
 }
+// IDLE-CAUSE NAMING (operator approval 2026-08-29): an idle slot names WHY
+// from the run's own aggregates — never a bare "idle" when the cause is
+// knowable. The smalls-never-stop law makes "only giants remain" the one
+// honest long-idle state.
+const idleCause = computed(() => {
+    const r = run.value
+    if (!r) return 'idle — next claim within seconds'
+    const left = Math.max(0, (r.sweeps_total ?? 0) - (r.sweeps_done ?? 0))
+    if (left === 0) return 'idle — pile drained, closing out'
+    if (r.light_pending === false) {
+        return `idle — only giants remain (heavy slots ${r.heavy_running ?? '?'}/${r.heavy_cap ?? '?'} busy)`
+    }
+    return 'idle — next claim within seconds'
+})
+// PHASE BREADCRUMB (operator approval 2026-08-29): the run's own stamps,
+// each phase with its measured elapsed; the live phase ticks.
+const phaseTrail = computed(() => {
+    const r = run.value
+    if (!r) return []
+    void nowTick.value
+    const t = (s) => (s ? Date.parse(s) : null)
+    const stamps = [
+        { key: 'queued',     at: t(r.created_at) },
+        { key: 'sizing',     at: t(r.sizing_started_at) },
+        { key: 'precompute', at: t(r.precompute_started_at) },
+        { key: 'mapping',    at: t(r.mapping_started_at) },
+        { key: 'done',       at: t(r.finished_at) },
+    ].filter((p) => p.at !== null)
+    return stamps.map((p, i) => {
+        const end = i + 1 < stamps.length ? stamps[i + 1].at : (r.finished_at ? t(r.finished_at) : Date.now())
+        const live = i === stamps.length - 1 && !r.finished_at
+        return {
+            key: p.key,
+            live,
+            elapsed: p.key === 'done' ? null : fmtEta(Math.max(0, Math.round((end - p.at) / 1000))),
+        }
+    })
+})
 const precompute = computed(() => autoscale.value?.precompute ?? null)
 const runActive = computed(() => run.value && ['queued', 'sizing', 'mapping'].includes(run.value.status))
 const precomputeOpen = computed(() =>
@@ -467,6 +505,19 @@ onBeforeUnmount(stopPolling)
                     </div>
                 </div>
 
+                <!-- Phase breadcrumb (operator approval 2026-08-29): the run's
+                     own stamps, each phase with its measured elapsed; the live
+                     phase ticks with the clock. -->
+                <div v-if="phaseTrail.length" class="flex flex-wrap items-center gap-1 text-xs text-gray-400 mb-3">
+                    <template v-for="(p, i) in phaseTrail" :key="p.key">
+                        <span v-if="i > 0" class="text-gray-600">›</span>
+                        <span :class="p.live ? 'text-blue-300' : 'text-gray-400'">
+                            {{ p.key }}<span v-if="p.elapsed" class="text-gray-500"> {{ p.elapsed }}</span>
+                            <span v-if="p.live" class="inline-block w-1.5 h-1.5 rounded-full bg-blue-400 animate-pulse ml-0.5 align-middle"></span>
+                        </span>
+                    </template>
+                </div>
+
                 <!-- Headline counters -->
                 <div class="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm mb-4">
                     <div>
@@ -640,7 +691,7 @@ onBeforeUnmount(stopPolling)
                                     <span class="w-1.5 h-1.5 rounded-full shrink-0"
                                           :class="w.claim_label ? 'bg-blue-400 animate-pulse' : 'bg-gray-600'" aria-hidden="true" />
                                     <span v-if="w.claim_label" class="text-gray-200 font-medium truncate">{{ w.claim_label }}</span>
-                                    <span v-else class="text-gray-500 italic">idle — next claim within seconds</span>
+                                    <span v-else class="text-gray-500 italic">{{ idleCause }}</span>
                                 </span>
                                 <span class="text-gray-500 tabular-nums shrink-0 ml-3">
                                     <template v-if="w.claim_label">{{ workerElapsed(w) }} on claim · </template>
@@ -715,6 +766,45 @@ onBeforeUnmount(stopPolling)
                                     <td class="py-1.5 pr-2">{{ it.kind === 'sweep' ? 'sweep' : 'single' }}</td>
                                     <td class="py-1.5 pr-2">{{ it.status }}</td>
                                     <td class="py-1.5 text-gray-400">{{ it.reason || '—' }}</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- Drifted-done drilldown (operator order 2026-08-29): every
+                     completed map whose NET seat total misses the budget,
+                     clickable straight into its mapper like the review list.
+                     Pure bonus-lift maps net to zero and never appear here. -->
+                <div v-if="autoscale.drifted_items?.length" class="mt-4 border-t border-gray-700/50 pt-3">
+                    <div class="text-rose-300 text-xs uppercase tracking-wide mb-2">
+                        Completed with drift ({{ (run.drifted_done ?? autoscale.drifted_items.length).toLocaleString() }})
+                    </div>
+                    <div class="max-h-64 overflow-y-auto">
+                        <table class="w-full text-xs text-left">
+                            <thead class="text-gray-500 uppercase">
+                                <tr>
+                                    <th class="py-1 pr-2">Legislature</th>
+                                    <th class="py-1 pr-2">Expected</th>
+                                    <th class="py-1 pr-2">Seated</th>
+                                    <th class="py-1">Net drift</th>
+                                </tr>
+                            </thead>
+                            <tbody class="text-gray-300">
+                                <tr v-for="it in autoscale.drifted_items" :key="it.legislature_id" class="border-t border-gray-800">
+                                    <td class="py-1.5 pr-2 whitespace-nowrap">
+                                        <a :href="it.map_id ? `/legislatures/${it.jurisdiction_slug}/districts?map=${it.map_id}` : `/legislatures/${it.jurisdiction_slug}`"
+                                           target="_blank"
+                                           class="text-rose-300 hover:text-rose-100 underline-offset-2 hover:underline">
+                                            {{ it.jurisdiction_name }}
+                                        </a>
+                                        <span class="text-gray-500"> ADM{{ it.adm_level }}</span>
+                                    </td>
+                                    <td class="py-1.5 pr-2">{{ it.seats_expected }}</td>
+                                    <td class="py-1.5 pr-2">{{ it.seats_seated }}</td>
+                                    <td class="py-1.5" :class="it.drift > 0 ? 'text-amber-300' : 'text-rose-300'">
+                                        {{ it.drift > 0 ? '+' + it.drift : it.drift }}
+                                    </td>
                                 </tr>
                             </tbody>
                         </table>

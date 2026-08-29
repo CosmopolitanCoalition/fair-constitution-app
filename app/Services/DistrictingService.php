@@ -7344,9 +7344,21 @@ class DistrictingService
                 // because the redraw takes just as long. Touching the lease
                 // from the same beat makes BUSY distinguishable from DEAD.
                 if (\App\Support\AutoscaleContext::$workerToken !== null) {
-                    \Illuminate\Support\Facades\DB::table('autoscale_worker_leases')
-                        ->where('id', \App\Support\AutoscaleContext::$workerToken)
-                        ->update(['last_seen_at' => now()]);
+                    // CASCADE INNER COUNTERS (operator approval 2026-08-29):
+                    // the beat mirrors the engine's live phase into the lease
+                    // label, after a ' ⋯ ' separator so the claim-time base
+                    // label (map owner › scope) survives every rewrite. The
+                    // dashboard strip renders claim_label verbatim, so the
+                    // inner progress arrives with zero page changes.
+                    $phase = mb_substr((string) ($patch['phase_label'] ?? $patch['phase'] ?? ''), 0, 60);
+                    \Illuminate\Support\Facades\DB::update(
+                        "UPDATE autoscale_worker_leases
+                            SET last_seen_at = now(),
+                                claim_label = split_part(claim_label, ' ⋯ ', 1)
+                                              || CASE WHEN ?::text <> '' THEN ' ⋯ ' || ?::text ELSE '' END
+                          WHERE id = ?",
+                        [$phase, $phase, \App\Support\AutoscaleContext::$workerToken]
+                    );
                 }
             } catch (\Throwable) {
                 // Transient DB hiccup — the pump's reclaim margin absorbs it.

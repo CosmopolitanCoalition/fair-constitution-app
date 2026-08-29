@@ -1445,6 +1445,10 @@ Route::middleware('auth:operator')->group(function () {
 // check inside the controller (same as saveGameMode). The repair WINDOW itself (setup
 // incomplete + map data not yet accepted) is enforced in GeodataRemediationService, so
 // none of these routes needs window logic of its own.
+// B4 background-job monitor feed (operator ruling 2026-08-29): public read —
+// government is public; the floating widget polls this for honest bars.
+Route::get('/api/background-jobs', [\App\Http\Controllers\BackgroundJobsController::class, 'active'])
+    ->name('api.background-jobs');
 Route::get('/api/geodata/flags', [\App\Http\Controllers\GeodataRepairController::class, 'flags'])
     ->name('api.geodata.flags');
 Route::get('/api/geodata/scan/status', [\App\Http\Controllers\GeodataRepairController::class, 'scanStatus'])

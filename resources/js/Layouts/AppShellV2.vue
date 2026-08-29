@@ -24,6 +24,7 @@ import AppFooter from '@/Components/Shell/AppFooter.vue';
 import EmergencyBanner from '@/Components/Shell/EmergencyBanner.vue';
 import JurisdictionSwitcher from '@/Components/Shell/JurisdictionSwitcher.vue';
 import SchemaUpdateBanner from '@/Components/SchemaUpdateBanner.vue';
+import BackgroundJobsWidget from '@/Components/BackgroundJobsWidget.vue';
 import Banner from '@/Components/Ui/Banner.vue';
 import Btn from '@/Components/Ui/Btn.vue';
 import Icon from '@/Components/Ui/Icon.vue';
@@ -311,6 +312,10 @@ onBeforeUnmount(() => {
 
             <slot />
         </main>
+
+        <!-- B4 (2026-08-29): floating background-job monitor — self-hides
+             when the box carries no long-running workstreams. -->
+        <BackgroundJobsWidget />
 
         <AppFooter
             :citation="surface?.citation ?? null"
