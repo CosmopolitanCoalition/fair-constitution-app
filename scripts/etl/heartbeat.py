@@ -127,6 +127,11 @@ _item_bar_last_write: dict[str, float] = {}   # item_id → monotonic (write_ite
 # _item_conn concurrently; one lock guards every use of it.
 import threading as _threading
 _item_conn_lock = _threading.Lock()
+# Serializes every load-modify-write of bars.json: the multi-lane download
+# engine (2026-08-29) updates bars from concurrent lanes, and unlocked
+# read-modify-write lost updates (a done state could vanish under a stale
+# overwrite from a sibling lane).
+_bars_lock = _threading.Lock()
 
 
 def set_item_target(item_id):
@@ -351,9 +356,10 @@ def set_phase(phase: str) -> None:
     """Write the top-level phase indicator. Frontend uses this to choose
     which sub-stack to highlight."""
     try:
-        state = _load_bars()
-        state["phase"] = phase
-        _write_bars(state)
+        with _bars_lock:
+            state = _load_bars()
+            state["phase"] = phase
+            _write_bars(state)
     except Exception:
         pass
 
@@ -372,21 +378,22 @@ def bar_register(key: str, label: str, total: int = 0, unit: str = "features") -
     No-op if the bar already exists (so re-registration during resumes
     doesn't clobber a running/done bar's timestamps)."""
     try:
-        state = _load_bars()
-        bar_list = _bar_list_for_key(state, key)
-        if _find_bar(bar_list, key) is not None:
-            return   # already registered — preserve its current state
-        bar_list.append({
-            "key":          key,
-            "label":        label,
-            "current":      0,
-            "total":        max(int(total or 0), 0),
-            "unit":         unit or "features",
-            "status":       "pending",
-            "started_at":   None,
-            "completed_at": None,
-        })
-        _write_bars(state)
+        with _bars_lock:
+            state = _load_bars()
+            bar_list = _bar_list_for_key(state, key)
+            if _find_bar(bar_list, key) is not None:
+                return   # already registered — preserve its current state
+            bar_list.append({
+                "key":          key,
+                "label":        label,
+                "current":      0,
+                "total":        max(int(total or 0), 0),
+                "unit":         unit or "features",
+                "status":       "pending",
+                "started_at":   None,
+                "completed_at": None,
+            })
+            _write_bars(state)
     except Exception:
         pass
 
@@ -402,25 +409,26 @@ def bar_start(key: str, label: str, total: int, unit: str = "features") -> None:
         _item_progress(key, 0, done=False)
         return
     try:
-        state = _load_bars()
-        bar_list = _bar_list_for_key(state, key)
-        existing = _find_bar(bar_list, key)
-        bar = {
-            "key":          key,
-            "label":        label,
-            "current":      0,
-            "total":        max(int(total or 0), 0),
-            "unit":         unit or "features",
-            "status":       "running",
-            "started_at":   now_iso(),
-            "completed_at": None,
-        }
-        if existing:
-            existing.update(bar)
-        else:
-            bar_list.append(bar)
-        state["active_key"] = key
-        _write_bars(state)
+        with _bars_lock:
+            state = _load_bars()
+            bar_list = _bar_list_for_key(state, key)
+            existing = _find_bar(bar_list, key)
+            bar = {
+                "key":          key,
+                "label":        label,
+                "current":      0,
+                "total":        max(int(total or 0), 0),
+                "unit":         unit or "features",
+                "status":       "running",
+                "started_at":   now_iso(),
+                "completed_at": None,
+            }
+            if existing:
+                existing.update(bar)
+            else:
+                bar_list.append(bar)
+            state["active_key"] = key
+            _write_bars(state)
     except Exception:
         pass
 
@@ -445,30 +453,31 @@ def bar_update(key: str, current: int, force: bool = False, total: int | None = 
         _item_progress(key, current_int, done=False, total=total)
         return
     try:
-        if not force:
-            now = time.monotonic()
-            last = _bar_last_write_at.get(key, 0.0)
-            if (now - last) < _BAR_THROTTLE_SEC:
-                # Within throttle window — stash the value for next flush
-                _bar_pending_value[key] = current_int
-                return
+        with _bars_lock:
+            if not force:
+                now = time.monotonic()
+                last = _bar_last_write_at.get(key, 0.0)
+                if (now - last) < _BAR_THROTTLE_SEC:
+                    # Within throttle window — stash the value for next flush
+                    _bar_pending_value[key] = current_int
+                    return
 
-        state = _load_bars()
-        bar_list = _bar_list_for_key(state, key)
-        bar = _find_bar(bar_list, key)
-        if bar is None:
-            return  # silently ignore — caller should bar_start first
-        bar["current"] = current_int
-        if total is not None and total > 0:
-            bar["total"] = int(total)
-        if bar.get("status") != "running":
-            bar["status"] = "running"
-            if not bar.get("started_at"):
-                bar["started_at"] = now_iso()
-        state["active_key"] = key
-        _write_bars(state)
-        _bar_last_write_at[key] = time.monotonic()
-        _bar_pending_value.pop(key, None)
+            state = _load_bars()
+            bar_list = _bar_list_for_key(state, key)
+            bar = _find_bar(bar_list, key)
+            if bar is None:
+                return  # silently ignore — caller should bar_start first
+            bar["current"] = current_int
+            if total is not None and total > 0:
+                bar["total"] = int(total)
+            if bar.get("status") != "running":
+                bar["status"] = "running"
+                if not bar.get("started_at"):
+                    bar["started_at"] = now_iso()
+            state["active_key"] = key
+            _write_bars(state)
+            _bar_last_write_at[key] = time.monotonic()
+            _bar_pending_value.pop(key, None)
     except Exception:
         pass
 
@@ -495,39 +504,40 @@ def bar_complete(key: str, current: int | None = None, total: int | None = None)
             _item_progress(key, current, done=True, total=total)
         return
     try:
-        state = _load_bars()
-        bar_list = _bar_list_for_key(state, key)
-        bar = _find_bar(bar_list, key)
-        if bar is None:
-            # Caller never started — synthesise a "done" bar so the UI sees
-            # the step happened.
-            bar = {
-                "key":          key,
-                "label":        key,
-                "current":      current if current is not None else 0,
-                "total":        total if total is not None
-                                else (current if current is not None else 0),
-                "status":       "done",
-                "started_at":   now_iso(),
-                "completed_at": now_iso(),
-            }
-            bar_list.append(bar)
-        else:
-            if current is not None:
-                bar["current"] = max(int(current), 0)
-            elif bar.get("total"):
-                bar["current"] = bar["total"]
-            if total is not None and total > 0:
-                bar["total"] = int(total)
-            bar["status"]       = "done"
-            bar["completed_at"] = now_iso()
-        if state.get("active_key") == key:
-            state["active_key"] = None
-        _write_bars(state)
-        # Clear throttle state for this key so a future bar_start reset
-        # doesn't get stale-throttled.
-        _bar_last_write_at.pop(key, None)
-        _bar_pending_value.pop(key, None)
+        with _bars_lock:
+            state = _load_bars()
+            bar_list = _bar_list_for_key(state, key)
+            bar = _find_bar(bar_list, key)
+            if bar is None:
+                # Caller never started — synthesise a "done" bar so the UI sees
+                # the step happened.
+                bar = {
+                    "key":          key,
+                    "label":        key,
+                    "current":      current if current is not None else 0,
+                    "total":        total if total is not None
+                                    else (current if current is not None else 0),
+                    "status":       "done",
+                    "started_at":   now_iso(),
+                    "completed_at": now_iso(),
+                }
+                bar_list.append(bar)
+            else:
+                if current is not None:
+                    bar["current"] = max(int(current), 0)
+                elif bar.get("total"):
+                    bar["current"] = bar["total"]
+                if total is not None and total > 0:
+                    bar["total"] = int(total)
+                bar["status"]       = "done"
+                bar["completed_at"] = now_iso()
+            if state.get("active_key") == key:
+                state["active_key"] = None
+            _write_bars(state)
+            # Clear throttle state for this key so a future bar_start reset
+            # doesn't get stale-throttled.
+            _bar_last_write_at.pop(key, None)
+            _bar_pending_value.pop(key, None)
     except Exception:
         pass
 

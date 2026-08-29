@@ -137,9 +137,11 @@ import json
 import logging
 import os
 import sys
+import threading
 import time
 import urllib.error
 import urllib.request
+from concurrent.futures import ThreadPoolExecutor, as_completed
 from datetime import datetime, timezone
 from pathlib import Path
 
@@ -597,7 +599,7 @@ def download_geoboundaries_for_country(gbopen_root: Path, iso3: str,
         if download_to_file(
             gj_url, dest,
             label=f"{iso3} — boundary ADM{adm_n}",
-            bar_key=f"download:gb:{iso3}:adm{adm_n}",
+            bar_key=f"gb:{iso3}:adm{adm_n}",
         ):
             present += 1
 
@@ -859,7 +861,7 @@ def download_worldpop_for_country(worldpop_root: Path, iso3: str,
     return download_to_file(
         href, dest,
         label=f"{iso3} — population raster {year}",
-        bar_key=f"download:wp:{iso3}",
+        bar_key=f"wp:{iso3}",
     )
 
 
@@ -1050,11 +1052,10 @@ def download_datasets(
 
     heartbeat.set_phase("download")
 
-    # Protomaps is independent of the country list — run it up front so its
-    # long haul overlaps nothing else oddly and its ACTION-REQUIRED note lands
-    # early in the log.
-    if want_pm:
-        download_protomaps(protomaps_root)
+    # Protomaps used to run FIRST — a ~100 GB display-only basemap starving
+    # the math data (boundaries + population) for hours. It now runs LAST
+    # (operator, 2026-08-29): the ingestible datasets land first, and the
+    # basemap haul follows once everything the seeder needs is on disk.
 
     # ── Resolve the working country list ──
     gb_iso_list: list[str] = countries
@@ -1089,30 +1090,135 @@ def download_datasets(
 
     gb_countries_with_data = 0
 
-    # ── geoBoundaries pass ──
+    # ── THE MULTI-LANE DOWNLOAD ENGINE (the lane law, 2026-08-29) ──────────
+    # One pile per KIND (boundaries / rasters), each ordered by est_cost and
+    # drained from BOTH ENDS at once: the submission order interleaves
+    # largest, smallest, 2nd-largest, 2nd-smallest… so the monsters start
+    # immediately while the smalls never stop. The two sibling kinds then
+    # interleave 1:1 into ONE shared pool, so when either pile drains its
+    # lanes flow to the survivor automatically. Lane width DERIVES from the
+    # host — min(8, 2×cores), env DL_LANES overrides — capped for politeness
+    # to the two upstream hosts. Every file is atomic + skip-existing, so a
+    # killed run costs at most one in-flight file per lane.
+    lanes = int(os.environ.get("DL_LANES", "0") or 0) \
+        or max(2, min(8, 2 * (os.cpu_count() or 2)))
+
+    # est_cost, boundaries: published-boundary row count per ISO from the
+    # (pinned) meta CSV already on disk — free, and proportional to the
+    # number of files a country will fetch.
+    gb_est: dict[str, int] = {}
     if want_gb:
-        for idx, iso3 in enumerate(gb_iso_list):
-            queue_preview = gb_iso_list[idx + 1: idx + 3]
-            logger.info("")
-            logger.info("──── boundaries %d/%d: %s ────",
-                        idx + 1, len(gb_iso_list), iso3)
-            n_files = download_geoboundaries_for_country(
-                gbopen_root, iso3, gb_release, queue_preview,
+        try:
+            meta_path = gb_release_root / "geoBoundariesOpen-meta.csv"
+            with open(meta_path, encoding="utf-8", errors="replace") as fh:
+                for row in csv.DictReader(fh):
+                    iso = str(row.get("boundaryISO", "")).strip().upper()
+                    if iso:
+                        gb_est[iso] = gb_est.get(iso, 0) + 1
+        except OSError as exc:
+            logger.warning("boundary sizing pre-pass skipped (%s) — pile order "
+                           "falls back to alphabetical", exc)
+
+    # est_cost, rasters: Content-Length of the frozen R2025A URL, gathered by
+    # a pooled HEAD pre-pass (seconds). Only meaningful for the default
+    # constrained product; other variants order alphabetically.
+    wp_est: dict[str, int] = {}
+    if want_wp and wp_variant == "constrained" and not wp_un_adjusted:
+        logger.info("Sizing pre-pass: HEAD-probing %d frozen raster URLs on "
+                    "%d lanes…", len(wp_iso_list), lanes)
+
+        def _head_size(iso: str) -> tuple[str, int]:
+            url = WORLDPOP_R2025A_FILE.format(
+                year=wp_year, iso_u=iso.upper(), iso_l=iso.lower(),
+                res=wp_resolution,
             )
+            try:
+                with _open(url, timeout=30, method="HEAD") as resp:
+                    return iso, int(resp.headers.get("Content-Length") or 0)
+            except Exception:  # noqa: BLE001
+                return iso, 0
+
+        with ThreadPoolExecutor(max_workers=lanes) as sizing_pool:
+            for iso, size in sizing_pool.map(_head_size, wp_iso_list):
+                wp_est[iso] = size
+
+    def _two_ended(isos: list[str], est: dict[str, int]) -> list[str]:
+        ordered = sorted(isos, key=lambda i: (-est.get(i, 0), i))
+        out, lo, hi, big = [], 0, len(ordered) - 1, True
+        while lo <= hi:
+            out.append(ordered[lo] if big else ordered[hi])
+            if big:
+                lo += 1
+            else:
+                hi -= 1
+            big = not big
+        return out
+
+    gb_order = _two_ended(list(gb_iso_list), gb_est) if want_gb else []
+    wp_order = _two_ended(list(wp_iso_list), wp_est) if want_wp else []
+
+    counters_lock = threading.Lock()
+    done_counts = {"gb": 0, "wp": 0}
+    if gb_order:
+        heartbeat.bar_start("gb:ALL", "Boundaries — countries complete",
+                            total=len(gb_order), unit="countries")
+    if wp_order:
+        heartbeat.bar_start("wp:ALL", "Population — countries complete",
+                            total=len(wp_order), unit="countries")
+
+    def _run_gb(iso3: str) -> None:
+        nonlocal gb_countries_with_data
+        n_files = download_geoboundaries_for_country(
+            gbopen_root, iso3, gb_release, [],
+        )
+        with counters_lock:
             if n_files > 0:
                 gb_countries_with_data += 1
+            done_counts["gb"] += 1
+            heartbeat.bar_update("gb:ALL", done_counts["gb"],
+                                 force=True, total=len(gb_order))
 
-    # ── WorldPop pass ──
-    if want_wp:
-        for idx, iso3 in enumerate(wp_iso_list):
-            queue_preview = wp_iso_list[idx + 1: idx + 3]
-            logger.info("")
-            logger.info("──── population %d/%d: %s ────",
-                        idx + 1, len(wp_iso_list), iso3)
-            download_worldpop_for_country(
-                worldpop_root, iso3, wp_year, wp_variant,
-                wp_resolution, wp_un_adjusted, queue_preview,
-            )
+    def _run_wp(iso3: str) -> None:
+        download_worldpop_for_country(
+            worldpop_root, iso3, wp_year, wp_variant,
+            wp_resolution, wp_un_adjusted, [],
+        )
+        with counters_lock:
+            done_counts["wp"] += 1
+            heartbeat.bar_update("wp:ALL", done_counts["wp"],
+                                 force=True, total=len(wp_order))
+
+    tasks: list[tuple] = []
+    for k in range(max(len(gb_order), len(wp_order))):
+        if k < len(gb_order):
+            tasks.append((_run_gb, gb_order[k]))
+        if k < len(wp_order):
+            tasks.append((_run_wp, wp_order[k]))
+
+    if tasks:
+        logger.info("")
+        logger.info("Multi-lane download: %d lanes over %d boundary + %d "
+                    "raster tasks (two-ended piles, kinds interleaved 1:1)",
+                    lanes, len(gb_order), len(wp_order))
+        with ThreadPoolExecutor(max_workers=lanes,
+                                thread_name_prefix="dl") as pool:
+            futures = [pool.submit(fn, iso) for fn, iso in tasks]
+            for fut in as_completed(futures):
+                # Per-country failures are logged inside the task; an
+                # unexpected exception must surface, not vanish in a lane.
+                exc = fut.exception()
+                if exc is not None:
+                    logger.error("lane task raised: %s", exc)
+    if gb_order:
+        heartbeat.bar_complete("gb:ALL", current=done_counts["gb"],
+                               total=len(gb_order))
+    if wp_order:
+        heartbeat.bar_complete("wp:ALL", current=done_counts["wp"],
+                               total=len(wp_order))
+
+    # ── Protomaps LAST — display-only, never ahead of the math data ──
+    if want_pm:
+        download_protomaps(protomaps_root)
 
     heartbeat.clear_current()
     logger.info("")
