@@ -51,127 +51,48 @@ class ActivateSubtreeJob implements ShouldQueue
         // JurisdictionController::skipFoundingElections for the ruling.
         $this->skipElections = \App\Models\InstanceSettings::query()
             ->whereNull('deleted_at')->value('institution_scale_mode') !== 'population';
-        // MATERIALISE ONCE, THEN KEYSET-WALK (THE ETL RULE: bound the INPUT).
-        // The recursive walk runs a single time into a temp roster carrying
-        // its own sequence — shallowest first, so a parent boots before its
-        // children — and the loop below reads that roster in batches. Working
-        // memory is flat whether the subtree holds 34 nodes or the whole
-        // planet, which is what lets the old 5,000-node cap go entirely
-        // (operator ruling 2026-08-08: "Remove this restriction").
-        // DDL first, then a PARAMETERISED insert: PostgreSQL does not accept
-        // bound parameters inside CREATE TABLE AS (a utility statement), and
-        // interpolating an id into DDL is not something this codebase does.
-        DB::statement('DROP TABLE IF EXISTS subtree_roster');
-        DB::statement('CREATE TEMP TABLE subtree_roster (seq bigint PRIMARY KEY, id uuid NOT NULL, slug text NOT NULL)');
+        // A4 (operator ruling 2026-08-29): THE COORDINATOR SHAPE. This job
+        // now only enumerates the subtree into the pile (one row per node,
+        // depth = adm_level so parents sit in shallower waves) and
+        // dispatches host-derived lanes; SubtreeBootLaneJob does the
+        // per-node boots one claim per fresh-slate job. Chunkable,
+        // resumable (a kill costs one node), visible (the same progress
+        // cache the mini bar always polled), lanes from the host, and the
+        // depth-wave claim keeps every parent before its children.
         DB::insert(<<<'SQL'
-            INSERT INTO subtree_roster (seq, id, slug)
+            INSERT INTO subtree_boot_items
+                (id, root_id, jurisdiction_id, slug, depth, status, created_at, updated_at)
             WITH RECURSIVE t AS (
-                SELECT id, slug, adm_level, name
+                SELECT id, slug, adm_level
                   FROM jurisdictions WHERE id = ? AND deleted_at IS NULL
                 UNION ALL
-                SELECT c.id, c.slug, c.adm_level, c.name
+                SELECT c.id, c.slug, c.adm_level
                   FROM jurisdictions c JOIN t ON c.parent_id = t.id
                  WHERE c.deleted_at IS NULL
             )
-            SELECT row_number() OVER (ORDER BY t.adm_level, t.name, t.id),
-                   t.id, t.slug
+            SELECT gen_random_uuid(), ?, t.id, t.slug, t.adm_level, 'pending', now(), now()
               FROM t
-        SQL, [$this->rootJurisdictionId]);
+             ON CONFLICT (root_id, jurisdiction_id) DO NOTHING
+        SQL, [$this->rootJurisdictionId, $this->rootJurisdictionId]);
 
-        // LIVE PROGRESS (operator, 2026-08-08): the job publishes its own
-        // counters to cache so the row's mini bar polls a single key instead
-        // of re-walking the subtree every tick — a recursive CTE per poll
-        // would be brutal on a planet-sized subtree.
-        $cacheKey = self::progressKey($this->rootJurisdictionId);
-        $total = (int) DB::table('subtree_roster')->count();
-        $publish = function (int $processed, int $booted, bool $finished = false) use ($cacheKey, $total) {
-            \Illuminate\Support\Facades\Cache::put($cacheKey, [
-                'total' => $total, 'processed' => $processed,
-                'booted' => $booted, 'finished' => $finished,
-            ], $finished ? 120 : 7200);
-        };
-        $publish(0, 0);
+        $open = (int) DB::table('subtree_boot_items')
+            ->where('root_id', $this->rootJurisdictionId)
+            ->whereIn('status', ['pending', 'running'])
+            ->count();
+        $total = (int) DB::table('subtree_boot_items')
+            ->where('root_id', $this->rootJurisdictionId)->count();
+        \Illuminate\Support\Facades\Cache::put(
+            self::progressKey($this->rootJurisdictionId),
+            ['total' => $total, 'processed' => $total - $open, 'booted' => 0, 'finished' => $open === 0],
+            7200,
+        );
 
-        $batchSize = max(50, (int) config('cga.activate_subtree_batch', 500));
-        $done = 0;
-        $skipped = 0;
-        $failed = 0;
-        $processed = 0;
-        $afterSeq = 0;
-
-        while (true) {
-            $batch = DB::table('subtree_roster')
-                ->where('seq', '>', $afterSeq)
-                ->orderBy('seq')
-                ->limit($batchSize)
-                ->get(['seq', 'id', 'slug']);
-
-            if ($batch->isEmpty()) {
-                break;
-            }
-
-            foreach ($batch as $row) {
-                $afterSeq = (int) $row->seq;
-                $processed++;
-
-                // One bad node must never end the pass — everything behind it
-                // still deserves its board (all-or-nothing is a bug).
-                try {
-                    $has = DB::table('legislatures')
-                        ->where('jurisdiction_id', $row->id)
-                        ->whereNull('deleted_at')
-                        ->exists();
-
-                    if (! $has) {
-                        $exit = Artisan::call('apportionment:seed', ['--jurisdiction' => $row->slug]);
-                        if ($exit !== 0) {
-                            $failed++;
-                            Log::warning(sprintf('ActivateSubtreeJob: seed failed for %s (exit %d)', $row->slug, $exit));
-                            $publish($processed, $done + $skipped);
-
-                            continue;
-                        }
-                        $done++;
-                    } else {
-                        $skipped++;
-                    }
-
-                    // THE FULL BOOT: sizing alone is not activation —
-                    // WF-JUR-01 adopts the legislature and constitutes the
-                    // bootstrap board (the mapper's R-08 substrate). In
-                    // MANUAL mode the founding election is NOT scheduled
-                    // (operator, 2026-08-08): he is activating to get into
-                    // position to DRAW, and elections are his act to take
-                    // when he is ready.
-                    $bootExit = Artisan::call('jurisdiction:activate', array_filter([
-                        'slug' => $row->slug, '--force' => true,
-                        '--no-election' => $this->skipElections,
-                    ]));
-                    if ($bootExit !== 0) {
-                        Log::warning(sprintf('ActivateSubtreeJob: activation exited %d for %s', $bootExit, $row->slug));
-                    }
-                } catch (\Throwable $e) {
-                    $failed++;
-                    Log::warning(sprintf('ActivateSubtreeJob: %s threw — %s', $row->slug, $e->getMessage()));
-                }
-
-                $publish($processed, $done + $skipped);
-
-                if ($processed % 50 === 0) {
-                    Log::info(sprintf(
-                        'ActivateSubtreeJob %s: %d/%d — %d seeded, %d already active, %d failed',
-                        $this->rootJurisdictionId, $processed, $total, $done, $skipped, $failed,
-                    ));
-                }
-            }
+        $lanes = max(2, min(\App\Support\HostCapacity::autoscaleWorkers(), $open));
+        for ($i = 0; $i < $lanes; $i++) {
+            SubtreeBootLaneJob::dispatch($this->rootJurisdictionId, $i, $this->skipElections);
         }
-
-        $publish($total, $done + $skipped, finished: true);
-        DB::statement('DROP TABLE IF EXISTS subtree_roster');
-
-        Log::info(sprintf(
-            'ActivateSubtreeJob %s COMPLETE: %d seeded, %d already active, %d failed of %d nodes.',
-            $this->rootJurisdictionId, $done, $skipped, $failed, $total,
-        ));
+        Log::info('ActivateSubtreeJob: pile enumerated, lanes dispatched', [
+            'root' => $this->rootJurisdictionId, 'open' => $open, 'total' => $total, 'lanes' => $lanes,
+        ]);
     }
 }
