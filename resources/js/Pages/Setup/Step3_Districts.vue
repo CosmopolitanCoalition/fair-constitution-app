@@ -63,6 +63,41 @@ let summaryTick = 0
 
 const run = computed(() => autoscale.value?.run ?? null)
 const layers = computed(() => autoscale.value?.layers ?? [])
+
+// A1 (operator order 2026-08-29): the parents SIZING PASS as a real bar —
+// live count / total with rate, ETA and elapsed computed from this page's
+// own poll samples (honest measurement, never fabricated). Active while
+// the pass is genuinely mid-walk; the row-count bar steps aside then.
+const sizingSamples = ref([])   // [{t, v}] of run.sized_parents
+const parentsPassActive = computed(() =>
+    run.value && run.value.status === 'sizing'
+    && (run.value.parents_total ?? 0) > 0
+    && run.value.sized_parents > 0
+    && run.value.sized_parents < run.value.parents_total)
+const sizingRatePerMin = computed(() => {
+    const s = sizingSamples.value
+    if (s.length < 2) return null
+    const a = s[0], b = s[s.length - 1]
+    const dt = (b.t - a.t) / 1000
+    if (dt < 15 || b.v <= a.v) return null
+    return (b.v - a.v) / (dt / 60)
+})
+const sizingEtaSeconds = computed(() => {
+    if (!parentsPassActive.value || !sizingRatePerMin.value) return null
+    return Math.round((run.value.parents_total - run.value.sized_parents) / sizingRatePerMin.value * 60)
+})
+const sizingElapsed = computed(() => {
+    const s = sizingSamples.value
+    if (!s.length) return null
+    return Math.round((Date.now() - s[0].t) / 1000)
+})
+function sampleSizing(r) {
+    if (!r || r.status !== 'sizing' || !(r.sized_parents > 0)) { sizingSamples.value = []; return }
+    const s = sizingSamples.value
+    if (s.length && s[s.length - 1].v === r.sized_parents) return
+    s.push({ t: Date.now(), v: r.sized_parents })
+    if (s.length > 40) s.splice(0, s.length - 40)
+}
 const precompute = computed(() => autoscale.value?.precompute ?? null)
 const runActive = computed(() => run.value && ['queued', 'sizing', 'mapping'].includes(run.value.status))
 const precomputeOpen = computed(() =>
@@ -82,6 +117,7 @@ async function fetchAutoscale() {
         const data = await res.json()
         const wasActive = runActive.value
         autoscale.value = data
+        sampleSizing(autoscale.value?.run)
 
         const status = autoscale.value?.run?.status
         if (wasActive && !runActive.value) {
@@ -390,9 +426,30 @@ onBeforeUnmount(stopPolling)
                     <!-- Live sizing bar: during Phase A the phase counters only
                          land at phase end — the legislatures count is the real
                          heartbeat, polled every 2s. -->
-                    <div v-if="run.sized_live != null && run.sizing_total">
+                    <!-- THE SIZING PASS as a real bar (operator order
+                         2026-08-29): live parents count over the true total,
+                         with rate / ETA / elapsed measured from this page's
+                         own polls. While it runs, the row-count bar below
+                         steps aside — a full database does not mean a
+                         finished pass, and showing 100% mid-walk was ruled
+                         misinformation. -->
+                    <div v-if="parentsPassActive">
                         <div class="flex justify-between text-xs text-gray-400 mb-1">
-                            <span>Legislatures sized (live)</span>
+                            <span>Sizing pass — parent legislatures (re-verifies every parent)</span>
+                            <span class="tabular-nums">
+                                {{ run.sized_parents.toLocaleString() }} / {{ run.parents_total.toLocaleString() }}
+                                <span v-if="sizingRatePerMin"> · {{ Math.round(sizingRatePerMin).toLocaleString() }}/min</span>
+                                <span> · ETA {{ fmtEta(sizingEtaSeconds) }}</span>
+                                <span v-if="sizingElapsed != null"> · {{ fmtEta(sizingElapsed) }} elapsed</span>
+                            </span>
+                        </div>
+                        <div class="h-2 bg-gray-800 rounded overflow-hidden">
+                            <div class="h-full bg-amber-500 transition-all" :style="{ width: pct(run.sized_parents, run.parents_total) + '%' }"></div>
+                        </div>
+                    </div>
+                    <div v-if="run.sized_live != null && run.sizing_total && !parentsPassActive">
+                        <div class="flex justify-between text-xs text-gray-400 mb-1">
+                            <span>Legislature rows in database</span>
                             <span class="tabular-nums">{{ shown('sized_live', run.sized_live) }} / {{ run.sizing_total.toLocaleString() }}</span>
                         </div>
                         <div class="h-2 bg-gray-800 rounded overflow-hidden">

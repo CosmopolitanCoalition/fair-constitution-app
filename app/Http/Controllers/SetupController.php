@@ -2796,10 +2796,21 @@ class SetupController extends Controller
         // count.
         $sizedLive = null;
         $sizingTotal = null;
+        $parentsTotal = null;
         if (in_array($run->status, ['queued', 'sizing'], true)) {
             $sizedLive   = (int) DB::table('legislatures')->whereNull('deleted_at')->count();
             $sizingTotal = (int) Cache::remember('autoscale.sizing_total', 3600, fn () =>
                 DB::table('jurisdictions')->whereNull('deleted_at')->count());
+            // A1 (operator order 2026-08-29): the denominator for the LIVE
+            // parents-pass bar — sized_parents ticks every 200-row chunk and
+            // the dashboard renders it as a real bar with rate + ETA. The
+            // row-count bar above must never impersonate pass progress again.
+            $parentsTotal = (int) Cache::remember('autoscale.parents_total', 300, fn () =>
+                DB::table('jurisdictions as p')->whereNull('p.deleted_at')
+                    ->whereExists(function ($q) {
+                        $q->select(DB::raw(1))->from('jurisdictions as c')
+                          ->whereColumn('c.parent_id', 'p.id')->whereNull('c.deleted_at');
+                    })->count());
         }
 
         // LIVE mapping counters + per-ADM-layer bars — a fresh GROUP BY per
@@ -2928,6 +2939,7 @@ class SetupController extends Controller
                 'attention_count'    => (int) ($driftRow->attention ?? 0),
                 'sized_live'         => $sizedLive,
                 'sizing_total'       => $sizingTotal,
+                'parents_total'      => $parentsTotal,
                 // Pull engine: ONE concurrency limiter — the live worker pool.
                 'workers'            => $workers,
                 'workers_target'     => \App\Support\HostCapacity::autoscaleWorkers(),
