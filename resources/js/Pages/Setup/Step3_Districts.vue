@@ -141,6 +141,22 @@ function workerElapsed(w) {
 // its real i/N progress parsed from the label; other claims pulse.
 const workersStable = computed(() =>
     [...(autoscale.value?.workers_detail ?? [])].sort((a, b) => String(a.id).localeCompare(String(b.id))))
+// THE INGESTION GROUPING (operator, 2026-08-29: "look at the geodata
+// notes"): lanes render under the work they advance, clustered by kind —
+// the flat strip was unreadable. Batch lanes eat the two-cutter wall,
+// cascade lanes hold the giants, assessment closes maps.
+const laneGroups = computed(() => {
+    const g = { batch: [], cascade: [], assess: [], other: [], idle: [] }
+    for (const w of workersStable.value) {
+        const l = w.claim_label ?? ''
+        if (!l) g.idle.push(w)
+        else if (l.startsWith('2-cut batch')) g.batch.push(w)
+        else if (l.startsWith('assessing')) g.assess.push(w)
+        else if (w.claim_type === 'scope' || l.includes('depth')) g.cascade.push(w)
+        else g.other.push(w)
+    }
+    return g
+})
 function batchFill(w) {
     const m = /(\d+)\s*\/\s*(\d+)/.exec(w.claim_label ?? '')
     if (!m) return null
@@ -607,8 +623,17 @@ onBeforeUnmount(stopPolling)
                     <div class="text-gray-400 text-xs uppercase tracking-wide mb-2">
                         Workers ({{ autoscale.workers_detail.length }})
                     </div>
+                    <div class="space-y-3">
+                        <div v-for="grp in [
+                                { key: 'batch',   title: 'Two-cutter wall — batch lanes', list: laneGroups.batch },
+                                { key: 'cascade', title: 'Giant cascades — one scope per lane', list: laneGroups.cascade },
+                                { key: 'assess',  title: 'Assessment — closing finished maps', list: laneGroups.assess },
+                                { key: 'other',   title: 'Other work', list: laneGroups.other },
+                                { key: 'idle',    title: 'Idle lanes', list: laneGroups.idle },
+                             ].filter(x => x.list.length)" :key="grp.key">
+                            <div class="text-gray-500 text-[11px] uppercase tracking-wide mb-1">{{ grp.title }} ({{ grp.list.length }})</div>
                     <ul class="space-y-1.5">
-                        <li v-for="w in workersStable" :key="w.id"
+                        <li v-for="w in grp.list" :key="w.id"
                             class="text-xs bg-gray-800/60 rounded px-2.5 py-2">
                             <div class="flex items-center justify-between mb-1">
                                 <span class="flex items-center gap-2 min-w-0">
@@ -631,6 +656,8 @@ onBeforeUnmount(stopPolling)
                             </div>
                         </li>
                     </ul>
+                        </div>
+                    </div>
                 </div>
 
                 <!-- Live scopes: the real in-flight work units (Earth's giant
