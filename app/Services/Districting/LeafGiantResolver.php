@@ -365,13 +365,14 @@ class LeafGiantResolver
 
                 return ['plan' => $plan, 'template' => $tpl, 'fallback' => $i > 0];
             } catch (PlanRefused $e) {
-                // Components' refusal never masks a cutting template's reason
-                // (same posture as the commit ladder).
-                if ($last === null || $tpl !== SubdivisionAutoseedService::TEMPLATE_COMPONENTS) {
+                // A last-resort rung's refusal (components, mask) never masks
+                // a cutting template's reason (same posture as the commit
+                // ladder).
+                if ($last === null || ! in_array($tpl, [SubdivisionAutoseedService::TEMPLATE_COMPONENTS, SubdivisionAutoseedService::TEMPLATE_MASK], true)) {
                     $last = $e;
                 }
             } catch (RuntimeException $e) {
-                if ($last === null || $tpl !== SubdivisionAutoseedService::TEMPLATE_COMPONENTS) {
+                if ($last === null || ! in_array($tpl, [SubdivisionAutoseedService::TEMPLATE_COMPONENTS, SubdivisionAutoseedService::TEMPLATE_MASK], true)) {
                     $last = new PlanRefused($e->getMessage(), previous: $e);
                 }
             }

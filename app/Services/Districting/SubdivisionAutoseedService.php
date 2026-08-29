@@ -38,9 +38,25 @@ class SubdivisionAutoseedService
      *  - components         : whole detached parts as districts — NO cutting
      *                         (run-6 watch fix 2026-07-19; the LA-islands
      *                         doctrine taken to its limit for scopes whose
-     *                         every straight cut strands a fragment). Rides
-     *                         LAST in the registry so the ladder only reaches
-     *                         it when every cutting template has refused.
+     *                         every straight cut strands a fragment).
+     *  - mask               : the masked-blob rule (operator ruling
+     *                         2026-08-29, extending his 2026-07-22 half-plane
+     *                         order). The scope's parts are ONE pixel cloud;
+     *                         the blade cuts EVERYTHING by sign — detached
+     *                         parts included — and empty space between parts
+     *                         costs nothing because nobody lives there. Built
+     *                         for the big-detached-part class (a lobe worth
+     *                         more seats than one lawful district: the
+     *                         Chintamanpur two-part village, away lobe 9.82
+     *                         quotas), where islands-ride-whole and
+     *                         components both lawfully refuse. Every cut side
+     *                         still honors the Art. II §8 one-fragment law
+     *                         (at most one landmass cut, its territory one
+     *                         chunk), checked per candidate in
+     *                         splitRegionMask. Rides LAST in the registry so
+     *                         the ladder only reaches it when every other
+     *                         template has refused — scopes that draw today
+     *                         never execute this code.
      */
     public const TEMPLATE_SHORTEST = 'shortest';
 
@@ -52,12 +68,15 @@ class SubdivisionAutoseedService
 
     public const TEMPLATE_COMPONENTS = 'components';
 
+    public const TEMPLATE_MASK = 'mask';
+
     public const TEMPLATES = [
         self::TEMPLATE_SHORTEST,
         self::TEMPLATE_VERTICAL_STRIPS,
         self::TEMPLATE_HORIZONTAL_STRIPS,
         self::TEMPLATE_COMMUNITY_CELLS,
         self::TEMPLATE_COMPONENTS,
+        self::TEMPLATE_MASK,
     ];
 
     /** Blade over-extension in degrees — giants/castelli are << 1°, so this always fully crosses. */
@@ -85,6 +104,9 @@ class SubdivisionAutoseedService
 
     /** Remaining findBlade calls for the plan in flight. */
     private int $bladeBudget = self::BLADE_BUDGET_PER_PLAN;
+
+    /** Scope id of the mask-template plan in flight; null on every other template. */
+    private ?string $maskScopeId = null;
 
     /** Candidate blade angle counts over 180°: the coarse pass, then the fine retry. */
     private const ANGLE_PASSES = [24, 48];
@@ -125,6 +147,12 @@ class SubdivisionAutoseedService
         // rung below (the service is container-shared, so it must be reset
         // here and nowhere else).
         $this->bladeBudget = self::BLADE_BUDGET_PER_PLAN;
+
+        // MASK MODE (see the template docblock): the scope id rides on the
+        // service so findBlade's mask splitter can run the Art. II §8
+        // component census against the scope's own dissolved landmasses.
+        // Reset per plan call, same as bladeBudget.
+        $this->maskScopeId = $template === self::TEMPLATE_MASK ? $scopeId : null;
 
         // Cycle-2 (2026-07-19): zero-raster-coverage scopes (a geometry
         // outside its iso's tiles) fall back to the area-proportional grid —
@@ -197,7 +225,12 @@ class SubdivisionAutoseedService
         $mainlandGj = $region->gj;
         $mainPartIdx = count($comps) === 1 ? (int) $comps[0]->idx : 0;
         $islands = [];
-        if (count($comps) > 1) {
+        if ($template === self::TEMPLATE_MASK) {
+            // MASK MODE: no island partition at all. The whole dissolved
+            // scope is the blade's region, every pixel keeps its own sign,
+            // and the leaf assembly clips against ALL parts (sentinel -1).
+            $mainPartIdx = -1;
+        } elseif (count($comps) > 1) {
             // Partition the grid across ALL parts first (boundary-ambiguous
             // cells stay with the largest-area part, as ever) …
             $rest = $pixels;
@@ -1025,6 +1058,14 @@ class SubdivisionAutoseedService
                 $islands,
             ));
 
+            // MASK MODE (mainPartIdx -1): a mask cut descends from the WHOLE
+            // scope, not a mainland part — clip against every dissolved part
+            // collected. No islands exist, so the isl CTE receives an empty
+            // index set and contributes nothing.
+            $mainTarget = $mainPartIdx === -1
+                ? '(SELECT ST_CollectionExtract(ST_Collect(g), 3) FROM parts)'
+                : '(SELECT g FROM parts WHERE idx = :main_idx)';
+
             $row = DB::selectOne(
                 'WITH parts AS (
                           SELECT d.geom AS g, COALESCE(d.path[1], 1) AS idx
@@ -1035,7 +1076,7 @@ class SubdivisionAutoseedService
                       ix AS (
                           SELECT ST_CollectionExtract(ST_Intersection(
                                      ST_CollectionExtract(ST_MakeValid(ST_GeomFromGeoJSON(:gj)), 3),
-                                     (SELECT g FROM parts WHERE idx = :main_idx)), 3) AS g
+                                     '.$mainTarget.'), 3) AS g
                       ),
                       -- PER-PART shave (2026-07-20, the Penamaluru merge): a
                       -- collection-level negative buffer re-nodes lattice-
@@ -1072,12 +1113,14 @@ class SubdivisionAutoseedService
                  SELECT ST_AsGeoJSON((SELECT g FROM leaf), 15) AS gj,
                         ST_Area((SELECT g FROM leaf))
                             / NULLIF(ST_Area(ST_ConvexHull((SELECT g FROM leaf))), 0) AS chr',
-                [
-                    'scope'    => $scopeId,
-                    'gj'       => $gj,
-                    'main_idx' => $mainPartIdx,
-                    'idxs'     => '{'.implode(',', $islandIdxs).'}',
-                ]
+                array_merge(
+                    [
+                        'scope' => $scopeId,
+                        'gj'    => $gj,
+                        'idxs'  => '{'.implode(',', $islandIdxs).'}',
+                    ],
+                    $mainPartIdx === -1 ? [] : ['main_idx' => $mainPartIdx],
+                )
             );
             if ($row?->gj === null) {
                 throw new RuntimeException("District {$path} collapsed to an empty geometry — cut it by hand.");
@@ -1296,7 +1339,10 @@ class SubdivisionAutoseedService
         // (splitRegionAbsorb) — with population RECOUNTED from the assigned
         // geometry and the per-seat guard re-applied, so a rescue never
         // ships an unlawful balance.
-        foreach ([false, true] as $absorb) {
+        // Mask mode never absorbs: sign assignment IS the doctrine, and the
+        // frame chain stays exact because nothing regroups geometrically.
+        $absorbModes = $template === self::TEMPLATE_MASK ? [false] : [false, true];
+        foreach ($absorbModes as $absorb) {
             foreach (self::anglePasses($template) as $pass) {
                 $candidates = [];
                 foreach ($pass as $i => $angleDeg) {
@@ -1336,9 +1382,13 @@ class SubdivisionAutoseedService
                 usort($candidates, fn (array $a, array $b) => $a['len'] <=> $b['len'] ?: $a['i'] <=> $b['i']);
 
                 foreach ($candidates as $cand) {
-                    $sides = $absorb
-                        ? $this->splitRegionAbsorb($regionGj, $cand, $lon0, $lat0, $cosLat)
-                        : $this->splitRegion($regionGj, $cand, $lon0, $lat0, $cosLat);
+                    if ($template === self::TEMPLATE_MASK) {
+                        $sides = $this->splitRegionMask($regionGj, $cand, $lon0, $lat0, $cosLat);
+                    } else {
+                        $sides = $absorb
+                            ? $this->splitRegionAbsorb($regionGj, $cand, $lon0, $lat0, $cosLat)
+                            : $this->splitRegion($regionGj, $cand, $lon0, $lat0, $cosLat);
+                    }
                     if ($sides === null) {
                         continue;
                     }
@@ -1513,6 +1563,82 @@ class SubdivisionAutoseedService
         }
 
         return isset($out['a'], $out['b']) ? $out : null;
+    }
+
+    /**
+     * THE MASK SPLITTER (operator ruling 2026-08-29 — the masked-blob rule).
+     * Split every part of the region by the blade and assign each piece by
+     * the SAME half-plane sign predicate the pixel balance used. Any part
+     * count per side is accepted: the empty space between detached parts is
+     * unpopulated, so a line crossing it costs nothing, and a side made of
+     * several pieces is the mask doctrine working as intended.
+     *
+     * The one bound is constitutional, not geometric: each side must pass
+     * the Art. II §8 one-fragment census (at most ONE of the scope's
+     * landmasses cut, its cut territory ONE connected chunk) — checked with
+     * the FILING HANDLER'S OWN arithmetic (ManualDistrictDraw::partCensus),
+     * so a cut accepted here can never be refused at filing on fragment
+     * grounds. A candidate whose line severs two detached landmasses at
+     * once, or chops one landmass into two chunks on the same side, returns
+     * null and the sweep tries the next candidate.
+     *
+     * @return array{a: string, b: string}|null
+     */
+    private function splitRegionMask(string $regionGj, array $cand, float $lon0, float $lat0, float $cosLat): ?array
+    {
+        [$ax, $ay, $bx, $by] = $cand['blade'];
+
+        // Per-part split (ST_Split of a bare POLYGON by a line is the fully
+        // supported form; a part the blade misses passes through whole).
+        $rows = DB::select(
+            "WITH r AS (SELECT ST_MakeValid(ST_GeomFromGeoJSON(:gj)) AS g),
+                  blade AS (SELECT ST_SetSRID(ST_MakeLine(ST_MakePoint(:ax, :ay), ST_MakePoint(:bx, :by)), 4326) AS l),
+                  parts0 AS (SELECT (ST_Dump((SELECT g FROM r))).geom AS part),
+                  pieces AS (
+                      SELECT (ST_Dump(ST_Split(part, (SELECT l FROM blade)))).geom AS piece FROM parts0
+                  ),
+                  sided AS (
+                      SELECT piece,
+                             CASE WHEN :nx * ((ST_X(ST_PointOnSurface(piece)) - :lon0) * :coslat)
+                                     + :ny * (ST_Y(ST_PointOnSurface(piece)) - :lat0) < :c
+                                  THEN 'a' ELSE 'b' END AS side
+                        FROM pieces
+                  )
+             SELECT side, ST_AsGeoJSON(ST_CollectionExtract(ST_Collect(piece), 3), 15) AS gj
+               FROM sided GROUP BY side ORDER BY side",
+            [
+                'gj' => $regionGj, 'ax' => $ax, 'ay' => $ay, 'bx' => $bx, 'by' => $by,
+                'nx' => $cand['nx'], 'lon0' => $lon0, 'coslat' => $cosLat,
+                'ny' => $cand['ny'], 'lat0' => $lat0, 'c' => $cand['c'],
+            ]
+        );
+
+        if (count($rows) !== 2) {
+            return null;                       // every piece fell on one side
+        }
+        $out = [];
+        foreach ($rows as $row) {
+            if ($row->gj === null) {
+                return null;
+            }
+            $out[(string) $row->side] = (string) $row->gj;
+        }
+        if (! isset($out['a'], $out['b'])) {
+            return null;
+        }
+
+        // Art. II §8, per side, by the filing handler's own census.
+        if ($this->maskScopeId !== null) {
+            foreach (['a', 'b'] as $s) {
+                $census = \App\Domain\Forms\Handlers\ManualDistrictDraw::partCensus($out[$s], $this->maskScopeId);
+                if ($census === null || (bool) $census->empty
+                 || (int) $census->cut_components > 1 || (int) $census->fragment_pieces > 1) {
+                    return null;
+                }
+            }
+        }
+
+        return $out;
     }
 
     /**

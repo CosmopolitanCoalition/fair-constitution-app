@@ -186,12 +186,19 @@ class MixedAutoseedSweepTest extends TestCase
                 ->sum('seats');
             $this->assertSame(34, $total, 'composite + line-split must seat the complete legislature');
 
-            // Authorship: the filings carry the REAL initiating actor — never
-            // the null system actor.
-            $authored = (int) DB::table('audit_log')
-                ->where('actor_user_id', (string) $user->id)
-                ->count();
-            $this->assertGreaterThanOrEqual(2, $authored, 'each line-split district files as the initiating operator');
+            // ONE MAP, ONE PERMISSION MODEL (operator ruling 2026-08-29):
+            // the auto sweep draws the whole map as the engine, so its
+            // line-splits file F-ELB-008 as the SYSTEM — hash-chained audit
+            // rows with the null actor, never the initiating operator. The
+            // R-08 gate still binds HUMAN draws through the Phase H
+            // endpoints.
+            $elbRows = DB::table('audit_log')->where('ref', 'F-ELB-008')->get(['actor_user_id']);
+            $this->assertGreaterThanOrEqual(2, $elbRows->count(),
+                'each line-split district leaves a hash-chained F-ELB-008 entry');
+            foreach ($elbRows as $row) {
+                $this->assertNull($row->actor_user_id,
+                    'auto-sweep line-splits file as the system, never the initiating operator');
+            }
 
             // Pin 4 — resume: an _unassigned re-run leaves the drawn giant
             // alone (skip, not replace, not error).
@@ -219,27 +226,40 @@ class MixedAutoseedSweepTest extends TestCase
         });
     }
 
-    public function test_a_sweep_without_an_operator_refuses_the_leaf_giant(): void
+    public function test_a_sweep_without_an_operator_line_splits_as_the_system(): void
     {
         $this->onLivePg(function (array $ctx) {
+            // ONE MAP, ONE PERMISSION MODEL (operator ruling 2026-08-29,
+            // overruling the 2026-07-17 initiator-threading this pin used to
+            // assert): the sweep needs NO initiating operator — the giant
+            // line-splits through the system path, every other protection
+            // (geometry proofs, seat band, floor rules, audit chain) intact.
             $result = app(LegislatureController::class)->executeMassReseedSweep(
                 $ctx['legislature_id'],
                 'map_view_all',
                 $ctx['giant_id'],
                 $ctx['map_id'],
-                null,   // no initiating operator
+                null,   // no initiating operator — lawful for the auto sweep
                 null,
             );
 
-            $this->assertCount(1, $result['errors'], 'the leaf giant must fail per-scope');
-            $this->assertStringContainsString('operator', $result['errors'][0]);
+            foreach ($result['errors'] as $err) {
+                $this->assertStringNotContainsString('operator', $err,
+                    'the system sweep must not demand an initiating operator');
+            }
 
-            $none = (int) DB::table('district_subdivisions')
+            $drawn = DB::table('district_subdivisions')
                 ->where('parent_jurisdiction_id', $ctx['giant_id'])
                 ->where('map_id', $ctx['map_id'])
                 ->whereNull('deleted_at')
-                ->count();
-            $this->assertSame(0, $none, 'nothing may file through the null-actor system path');
+                ->get(['seats']);
+            $this->assertCount(2, $drawn, 'the giant line-splits through the system path');
+            $this->assertSame(10, (int) $drawn->sum('seats'), 'drawn seats must equal the giant budget');
+
+            $elbRows = DB::table('audit_log')->where('ref', 'F-ELB-008')->get(['actor_user_id']);
+            foreach ($elbRows as $row) {
+                $this->assertNull($row->actor_user_id, 'system filings carry the null actor');
+            }
         });
     }
 
