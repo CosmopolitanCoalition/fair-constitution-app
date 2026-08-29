@@ -50,6 +50,14 @@ Schedule::command('autoscale:pump')
 Schedule::command('sim:pump')
     ->everyMinute()->withoutOverlapping(10)->runInBackground()->onOneServer();
 
+// ── THE MULTITHREADED CHAIN (operator ruling 2026-08-29) ─────────────────
+// A completed official-source download hands off to the MULTITHREADED pull
+// engine via control/chain_pull.json — the legacy single-threaded seeder is
+// unreachable from the download flow. This tick consumes the marker and
+// starts the pull run; guarded, idempotent, ~1 stat call when idle.
+Schedule::command('geodata:chain-download')
+    ->everyMinute()->withoutOverlapping(10)->runInBackground()->onOneServer();
+
 // ── Geodata pull-engine pump (GEODATA_PULL_ENGINE_PLAN.md, 2026-07-20) ────
 // The same pattern, applied to the ETL: a geodata run's DB-side liveness
 // root — stale-claim reclaim, pg-crash breaker, phase advance (never in

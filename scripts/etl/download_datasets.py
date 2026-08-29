@@ -392,7 +392,9 @@ def download_to_file(
     part = dest.with_suffix(dest.suffix + ".part")
 
     last_exc: Exception | None = None
-    for attempt in range(MAX_RETRIES):
+    attempts_without_progress = 0
+    while attempts_without_progress < MAX_RETRIES:
+        written_this_attempt = 0
         try:
             # HTTP RANGE RESUME (2026-08-29): a surviving .part continues from
             # its last byte instead of restarting from zero — a killed 100 GB
@@ -433,6 +435,7 @@ def download_to_file(
                             break
                         fh.write(chunk)
                         written += len(chunk)
+                        written_this_attempt += len(chunk)
                         if bar_key is not None:
                             # bar_update throttles disk writes internally, so
                             # calling it per-chunk is cheap.
@@ -440,6 +443,16 @@ def download_to_file(
                                 bar_key, written,
                                 total=total if total else None,
                             )
+            # COMPLETION VALIDATION (2026-08-29): end-of-stream is NOT
+            # success. The protomaps host closed the stream at 16.8 GB of a
+            # 128 GB build and the old code stamped the stump as done. When
+            # the expected size is known, a short read keeps the .part and
+            # goes back around the resume loop.
+            if total and written != total:
+                raise IOError(
+                    f"short read: {written:,} of {total:,} bytes — stream "
+                    f"closed early; resuming"
+                )
             # Success — atomically publish.
             os.replace(part, dest)
             if bar_key is not None:
@@ -448,16 +461,29 @@ def download_to_file(
             return True
         except Exception as exc:  # noqa: BLE001
             last_exc = exc
-            # KEEP the partial — the next attempt (or the next run) resumes
-            # from its last byte via the Range header above.
+            # KEEP the partial — the next attempt resumes from its last byte
+            # via the Range header above.
             if not _is_retryable(exc):
                 logger.error("  FAILED (non-retryable) %s: %s", dest.name, exc)
                 break
-            if attempt < MAX_RETRIES - 1:
-                wait = RETRY_BACKOFF_SEC[attempt]
+            # An attempt that moved bytes forward does not burn the retry
+            # budget — a 128 GB haul over a connection that drops hourly
+            # must grind forward, not give up after MAX_RETRIES drops.
+            if written_this_attempt > 0:
                 logger.warning(
-                    "  transient error on %s (attempt %d/%d): %s — retrying in %ds",
-                    dest.name, attempt + 1, MAX_RETRIES, exc, wait,
+                    "  transient error on %s after +%s bytes: %s — resuming",
+                    dest.name, f"{written_this_attempt:,}", exc,
+                )
+                continue
+            attempts_without_progress += 1
+            if attempts_without_progress < MAX_RETRIES:
+                wait = RETRY_BACKOFF_SEC[
+                    min(attempts_without_progress - 1, len(RETRY_BACKOFF_SEC) - 1)
+                ]
+                logger.warning(
+                    "  transient error on %s (no-progress attempt %d/%d): %s — "
+                    "retrying in %ds",
+                    dest.name, attempts_without_progress, MAX_RETRIES, exc, wait,
                 )
                 time.sleep(wait)
 

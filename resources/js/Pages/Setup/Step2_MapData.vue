@@ -153,7 +153,7 @@ const downloadProtomaps     = ref(false)
 // Dataset variants — sent only when the relevant dataset is selected. Defaults
 // mirror the canonical archive layout (worldpop_100m_latest / gbOpen) so a
 // plain download reproduces what a local archive would have contained.
-const wpYear        = ref('2020')          // '2020' | '2023' | 'latest'
+const wpYear        = ref('2023')          // '2020' | '2023' | 'latest' — 2023 = the equivalence pin's frozen R2025A vintage
 const wpVariant     = ref('constrained')   // 'constrained' | 'unconstrained'
 const wpResolution  = ref('100m')          // '100m' | '1km'
 const wpUnAdjusted  = ref(false)

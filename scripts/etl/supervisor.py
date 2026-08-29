@@ -51,6 +51,12 @@ CURRENT = CONTROL_DIR / "current.json"
 HALT    = CONTROL_DIR / "halt.request"
 PAUSE   = CONTROL_DIR / "pause.request"
 RESUME  = CONTROL_DIR / "resume.request"
+# THE MULTITHREADED CHAIN (operator ruling 2026-08-29): a successful
+# source=download run writes this marker instead of seeding. The app
+# scheduler (geodata:chain-download, every minute) consumes it and starts
+# the MULTITHREADED pull run against the downloaded /data. The legacy
+# single-threaded seeder is unreachable from the download flow.
+CHAIN_PULL = CONTROL_DIR / "chain_pull.json"
 
 # Phase P.1.2: bar-state file the supervisor patches on pause/resume so the
 # frontend's elapsed-time computations freeze while paused. Heartbeat.py
@@ -696,6 +702,43 @@ def run_job(request_payload: dict) -> int:
             # A clean-but-halted download still exits 0; surface non-zero so the
             # UI treats an operator halt as "stopped", not "done".
             return dl_rc if dl_rc != 0 else 130
+
+        # ── THE MULTITHREADED CHAIN (operator ruling 2026-08-29) ────────────
+        # "The legacy seeder should never be used ever again. It is always
+        # supposed to be multithreaded. Always." A successful download does
+        # NOT fall through to seed_database.py: it writes the chain marker
+        # and finishes. The app scheduler (geodata:chain-download) sees the
+        # marker within a minute and starts the multithreaded pull run
+        # against the downloaded /data — download bars flow straight into
+        # the pull dashboard with no operator step between.
+        chain_payload = {
+            "chained_at": now_iso(),
+            "data_root":  DOWNLOAD_DATA_ROOT,
+            "request":    request_payload,
+        }
+        write_atomic(CHAIN_PULL, chain_payload)
+        finished_at = now_iso()
+        log_fh.write("[supervisor] download complete — handing off to the "
+                     "MULTITHREADED pull engine (chain_pull.json written; the "
+                     "app scheduler starts the run within a minute). The "
+                     "legacy seeder is not part of this flow.\n")
+        log_fh.write(f"==== ETL run finished at {finished_at} (exit 0) ====\n")
+        log_fh.close()
+        write_atomic(DONE, {
+            "pid":         None,
+            "started_at":  started_at,
+            "finished_at": finished_at,
+            "exit_code":   0,
+            "request":     request_payload,
+            "chained":     "pull",
+        })
+        freeze_bar_timers(finished_at)
+        for p in (RUNNING, CURRENT, HALT, PAUSE, RESUME):
+            try:
+                p.unlink(missing_ok=True)
+            except OSError:
+                pass
+        return 0
 
     log_fh.write(f"argv: {' '.join(argv)}\n")
     log_fh.flush()
