@@ -2981,12 +2981,23 @@ class LegislatureController extends Controller
 
         $clearExisting = str_ends_with($operationScope, '_all');
 
-        // Mixed autoseed (2026-07-17): resolve the F-ELB-008 filing actor and
-        // the line-split template ONCE for the whole sweep. The actor is the
-        // initiating operator (threaded through MassReseedJob) — leaf-giant
-        // filings must never ride the null-actor system path, so a missing
-        // actor fails those scopes per-scope instead of bypassing R-08.
-        $actor = $initiatorUserId !== null ? \App\Models\User::find($initiatorUserId) : null;
+        // ONE MAP, ONE PERMISSION MODEL (operator ruling 2026-08-29,
+        // overruling the 2026-07-17 initiator-threading): the auto sweep
+        // draws every composite district as the engine, so its leaf-giant
+        // line-splits file F-ELB-008 the same way — as the SYSTEM (null
+        // actor), the engine's first-class job-filing path that bypasses
+        // only the role gate (ConstitutionalEngine::authorize). Every other
+        // protection stands untouched: geometry proofs, the seat band, the
+        // floor rules, the hash-chained audit entry (recorded as a system
+        // filing, like clock and job filings everywhere else). The R-08
+        // gate remains fully in force for HUMAN manual draws through the
+        // Phase H endpoints, which pass the real user. Caught live on the
+        // fresh box: the gate-24 sweep refused LA/Cook/Harris/Maricopa,
+        // Toronto/Montreal/Calgary, Male, Serravalle and the KL pieces
+        // because the initiating operator held only R-01 there — 54 seats
+        // missing from the USA chamber for a permissions asymmetry inside
+        // one drawing.
+        $actor = null;
         $lineTemplate = $template ?? ConstitutionalDefaults::districtingTemplate($leg->jurisdiction_id);
 
         $rootPop = \App\Services\Districting\LeafGiantResolver::shareBase((string) $leg->jurisdiction_id);
@@ -3093,14 +3104,10 @@ class LegislatureController extends Controller
                     DB::beginTransaction();
                 }
                 try {
-                    if ($actor === null) {
-                        // Never file F-ELB-008 as the null system actor — that
-                        // would bypass the R-08 authorship gate entirely.
-                        throw new \RuntimeException(
-                            'Line-split autoseed requires the initiating operator — re-run from the mapper while signed in.'
-                        );
-                    }
-
+                    // (The old null-actor refusal stood here; removed under
+                    // the one-map-one-permission ruling above — the sweep IS
+                    // a system filing, and ManualDistrictDraw handles the
+                    // null actor as such.)
                     if (! $clearExisting && $this->leafGiants->liveDrawnCount($sid, $mapId) > 0) {
                         // _unassigned resume: drawn districts already exist at
                         // this giant — leave the operator's work alone (the
