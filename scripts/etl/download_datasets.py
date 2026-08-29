@@ -131,6 +131,8 @@ source == 'download'; see supervisor.build_download_argv / run_download_step.
 """
 
 import argparse
+import csv
+import io
 import json
 import logging
 import os
@@ -179,6 +181,49 @@ GEOBOUNDARIES_META_CSV = {
         "releaseData/geoBoundariesAuthoritative-meta.csv"
     ),
 }
+
+# ─── THE EQUIVALENCE PIN (operator ruling 2026-08-28) ─────────────────────────
+# The reference archive (the operator's local mirror, the substrate under every
+# accepted map standard) is a geoBoundaries clone at ONE exact commit. gbOpen
+# on the moving main branch receives daily bot merges, so an unpinned download
+# cannot reproduce the reference archive or its map mathematics.
+#
+# When GB_PIN_REF is non-empty (default = the reference commit), boundary
+# GeoJSONs are fetched AT THAT REF via GitHub's LFS media host, the meta CSV
+# at the same ref via the raw host, and the full-world ISO list is parsed from
+# that pinned meta CSV — byte-identical to the reference archive. Set
+# GB_PIN_REF= (empty) in the etl environment to fall back to the live
+# current-release API instead.
+GEOBOUNDARIES_PIN_REF = os.environ.get(
+    "GB_PIN_REF", "78a697d230c11919c50c0fea5565c9fd021e0800"
+).strip()
+# GeoJSONs are Git-LFS objects; only the media host serves their CONTENT at a
+# pinned ref (raw.githubusercontent.com would return the tiny LFS pointer file).
+GEOBOUNDARIES_PINNED_FILE = (
+    "https://media.githubusercontent.com/media/wmgeolab/geoBoundaries/"
+    "{ref}/releaseData/{release}/{iso3}/ADM{n}/geoBoundaries-{iso3}-ADM{n}.geojson"
+)
+# The meta CSV is a regular git blob (not LFS) — the raw host serves it at a ref.
+GEOBOUNDARIES_PINNED_META = (
+    "https://raw.githubusercontent.com/wmgeolab/geoBoundaries/"
+    "{ref}/releaseData/geoBoundaries{name}-meta.csv"
+)
+GEOBOUNDARIES_RELEASE_NAME = {
+    "gbOpen": "Open",
+    "gbHumanitarian": "Humanitarian",
+    "gbAuthoritative": "Authoritative",
+}
+
+# WorldPop frozen-release direct URL (preferred over the STAC for the default
+# constrained product): R2025A v1 is a FROZEN release, so these files are the
+# exact bytes of the reference archive's *_pop_{year}_CN_{res}_R2025A_v1.tif
+# rasters. The STAC is a moving catalog (it may drop old vintages or serve a
+# newer revision); the frozen URL cannot drift. Verified live for the 2023
+# 100m constrained product. Falls back to the STAC on a 404.
+WORLDPOP_R2025A_FILE = (
+    "https://data.worldpop.org/GIS/Population/Global_2015_2030/R2025A/"
+    "{year}/{iso_u}/v1/{res}/constrained/{iso_l}_pop_{year}_CN_{res}_R2025A_v1.tif"
+)
 
 # WorldPop STAC API — one collection per ISO3, paginated `items`. The R2025A
 # "Global_2015_2030" release this serves is CONSTRAINED (CN) only, at 100m and
@@ -402,6 +447,30 @@ def enumerate_all_geoboundaries_isos(release: str) -> list[str]:
     caller then aborts with a clear message rather than silently downloading
     nothing).
     """
+    # Pinned ref: enumerate from the pinned meta CSV — the live ALL endpoint
+    # describes the CURRENT release, which is not the pinned tree.
+    if GEOBOUNDARIES_PIN_REF:
+        name = GEOBOUNDARIES_RELEASE_NAME.get(release, "Open")
+        url = GEOBOUNDARIES_PINNED_META.format(ref=GEOBOUNDARIES_PIN_REF, name=name)
+        logger.info("Enumerating ISO3 codes from the PINNED meta CSV "
+                    "(ref %s, %s)", GEOBOUNDARIES_PIN_REF[:9], url)
+        try:
+            with _open(url, timeout=120) as resp:
+                text = resp.read().decode("utf-8", errors="replace")
+            rows = csv.DictReader(io.StringIO(text))
+            isos = sorted({
+                str(r.get("boundaryISO", "")).strip().upper()
+                for r in rows
+                if str(r.get("boundaryISO", "")).strip()
+            })
+        except Exception as exc:  # noqa: BLE001
+            logger.error("Pinned enumeration failed: %s — refusing to mix a "
+                         "pinned download with live enumeration", exc)
+            return []
+        logger.info("Pinned enumeration: %d ISO3 codes at ref %s",
+                    len(isos), GEOBOUNDARIES_PIN_REF[:9])
+        return isos
+
     url = GEOBOUNDARIES_API_ALL.format(release=release)
     logger.info("Enumerating ALL ISO3 codes for release %s (%s)", release, url)
     try:
@@ -432,7 +501,13 @@ def download_geoboundaries_meta(gb_release_root: Path, release: str) -> bool:
     regardless of release, so we always write to THAT filename even when the
     bytes came from the Humanitarian/Authoritative release CSV."""
     dest = gb_release_root / "geoBoundariesOpen-meta.csv"
-    src_url = GEOBOUNDARIES_META_CSV.get(release, GEOBOUNDARIES_META_CSV["gbOpen"])
+    if GEOBOUNDARIES_PIN_REF:
+        src_url = GEOBOUNDARIES_PINNED_META.format(
+            ref=GEOBOUNDARIES_PIN_REF,
+            name=GEOBOUNDARIES_RELEASE_NAME.get(release, "Open"),
+        )
+    else:
+        src_url = GEOBOUNDARIES_META_CSV.get(release, GEOBOUNDARIES_META_CSV["gbOpen"])
     logger.info("geoBoundaries meta CSV (%s) → %s", release, dest)
     heartbeat.write_current(
         name="geoBoundaries metadata", phase="download",
@@ -470,35 +545,47 @@ def download_geoboundaries_for_country(gbopen_root: Path, iso3: str,
     logger.info("=== geoBoundaries (%s): %s ===", release, iso3)
 
     for adm_n in GEOBOUNDARIES_ADM_LEVELS:
-        api_url = GEOBOUNDARIES_API.format(release=release, iso3=iso3, n=adm_n)
         heartbeat.write_current(
             name=iso3, iso_code=iso3, adm_level=adm_n, phase="download",
             sub_phase=f"resolving boundary ADM{adm_n} download URL",
             queue_preview=queue_preview,
         )
-        try:
-            meta = fetch_json(api_url)
-        except Exception as exc:  # noqa: BLE001
-            logger.warning("  %s ADM%d: metadata lookup failed after retries: %s "
-                           "— skipping this level", iso3, adm_n, exc)
-            continue
-        if meta is None:
-            # 404 — this level doesn't exist for this country. Higher levels
-            # won't exist either, but probe them anyway (cheap, and coverage
-            # is not always contiguous for every ISO).
-            logger.info("  %s ADM%d: not published — skipping", iso3, adm_n)
-            continue
+        if GEOBOUNDARIES_PIN_REF:
+            # THE EQUIVALENCE PIN: fetch the file AT THE PINNED REF via the
+            # LFS media host. A HEAD probe stands in for the API's level
+            # discovery — 404 means the pinned tree has no such level.
+            gj_url = GEOBOUNDARIES_PINNED_FILE.format(
+                ref=GEOBOUNDARIES_PIN_REF, release=release, iso3=iso3, n=adm_n,
+            )
+            if not url_exists(gj_url):
+                logger.info("  %s ADM%d: not in the pinned tree — skipping",
+                            iso3, adm_n)
+                continue
+        else:
+            api_url = GEOBOUNDARIES_API.format(release=release, iso3=iso3, n=adm_n)
+            try:
+                meta = fetch_json(api_url)
+            except Exception as exc:  # noqa: BLE001
+                logger.warning("  %s ADM%d: metadata lookup failed after retries: %s "
+                               "— skipping this level", iso3, adm_n, exc)
+                continue
+            if meta is None:
+                # 404 — this level doesn't exist for this country. Higher levels
+                # won't exist either, but probe them anyway (cheap, and coverage
+                # is not always contiguous for every ISO).
+                logger.info("  %s ADM%d: not published — skipping", iso3, adm_n)
+                continue
 
-        # The per-boundary API returns a single object; the ALL endpoint an
-        # array. Here we always query a single (iso, adm) pair, so a dict is
-        # expected — but guard defensively.
-        if isinstance(meta, list):
-            meta = meta[0] if meta else None
-        gj_url = (meta or {}).get("gjDownloadURL")
-        if not gj_url:
-            logger.warning("  %s ADM%d: API returned no gjDownloadURL — skipping",
-                           iso3, adm_n)
-            continue
+            # The per-boundary API returns a single object; the ALL endpoint an
+            # array. Here we always query a single (iso, adm) pair, so a dict is
+            # expected — but guard defensively.
+            if isinstance(meta, list):
+                meta = meta[0] if meta else None
+            gj_url = (meta or {}).get("gjDownloadURL")
+            if not gj_url:
+                logger.warning("  %s ADM%d: API returned no gjDownloadURL — skipping",
+                               iso3, adm_n)
+                continue
 
         dest = (gbopen_root / iso3 / f"ADM{adm_n}"
                 / f"geoBoundaries-{iso3}-ADM{adm_n}.geojson")
@@ -729,9 +816,26 @@ def download_worldpop_for_country(worldpop_root: Path, iso3: str,
             if resolved is not None:
                 year, href = resolved
         else:
-            asset = resolve_worldpop_asset(candidate, wp_year, wp_resolution)
-            if asset is not None:
-                year, href, _item_id = asset
+            # THE EQUIVALENCE PIN (2026-08-28): prefer the FROZEN R2025A v1
+            # direct URL — the exact bytes of the reference archive's
+            # canonical rasters. The STAC is a moving catalog (it may drop
+            # the requested vintage or serve a newer revision); the frozen
+            # release cannot drift. STAC remains the fallback on a 404.
+            frozen = WORLDPOP_R2025A_FILE.format(
+                year=wp_year, iso_u=candidate.upper(),
+                iso_l=candidate.lower(), res=wp_resolution,
+            )
+            if url_exists(frozen):
+                year, href = wp_year, frozen
+                logger.info("  %s: frozen R2025A v1 product resolved directly "
+                            "(equivalence pin)", candidate.upper())
+            else:
+                logger.info("  %s: no frozen R2025A v1 file for year=%d res=%s "
+                            "— falling back to the STAC catalog",
+                            candidate.upper(), wp_year, wp_resolution)
+                asset = resolve_worldpop_asset(candidate, wp_year, wp_resolution)
+                if asset is not None:
+                    year, href, _item_id = asset
         if href is not None:
             if candidate != iso3:
                 logger.info("  %s: found via WorldPop legacy code %s",
