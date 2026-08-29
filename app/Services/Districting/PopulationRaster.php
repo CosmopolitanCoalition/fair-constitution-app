@@ -424,10 +424,13 @@ class PopulationRaster
      */
     public function areaGrid(string $scopeId, int $year = 2023): array
     {
-        $areaKm2 = (float) (DB::selectOne(
-            'SELECT ST_Area(geom::geography) / 1e6 AS km2 FROM jurisdictions WHERE id = ?',
+        $row = DB::selectOne(
+            'SELECT ST_Area(geom::geography) / 1e6 AS km2, GREATEST(COALESCE(population, 0), 0) AS pop
+               FROM jurisdictions WHERE id = ?',
             [$scopeId]
-        )->km2 ?? 0.0);
+        );
+        $areaKm2 = (float) ($row->km2 ?? 0.0);
+        $pop = (float) ($row->pop ?? 0.0);
 
         // The pixelGrid ladder, extended DOWNWARD: no native 100 m tier
         // exists without a raster, and a micro-village (~0.04 km²) at the
@@ -441,6 +444,28 @@ class PopulationRaster
             $areaKm2 <= 300000.0 => 0.02,
             default              => 0.05,
         };
+
+        // GRANULARITY FLOOR (2026-08-29, the Hevuxu class): this grid is
+        // SYNTHETIC — its whole purpose is to make a zero-coverage scope
+        // drawable — yet a micro-scope's cells could out-weigh the balance
+        // window itself (Hevuxu: 16 cells of 59-120 people vs a ±23.7-person
+        // window for a 5-seat side; the prefix sum stepped OVER the window
+        // at all 48 angles and a convex village refused). Derive the cell
+        // count from the tightest lawful side's window: at the cube-root
+        // chamber size S, a floor-seat side's 5% band spans 0.25·floor·pop/S
+        // people, so cells of at most HALF that mass keep every window
+        // reachable — cells >= 8·S (uniform density). Deterministic from
+        // stored population + geometry alone, so every mesh node still
+        // derives the identical grid. Raster-backed scopes never enter here.
+        if ($pop > 0 && $areaKm2 > 0) {
+            $seatsLaw = max(5, (int) round($pop ** (1 / 3)));
+            $minCells = max(16, 8 * $seatsLaw);
+            $cellKm = $cell * 111.0;
+            while ($cell > 0.00002 && ($areaKm2 / ($cellKm * $cellKm)) < $minCells) {
+                $cell /= 2.0;
+                $cellKm = $cell * 111.0;
+            }
+        }
 
         $compute = function () use ($scopeId, $cell) {
             // Same inside-the-territory guarantee as pixelGrid (2026-07-21):
@@ -499,7 +524,13 @@ class PopulationRaster
             return $memo[$scopeId];
         }
 
-        return Cache::rememberForever("districting.areagrid.v1.{$scopeId}", $compute);
+        // v2 key (2026-08-29): the cell size joins the identity — the same
+        // lesson pixelGrid's v2 key already recorded. The granularity floor
+        // rescales micro-scopes, and a rescaled ladder must never serve the
+        // stale coarse grid (Hevuxu re-probed 16 points straight from v1).
+        $cellKey = rtrim(rtrim(sprintf('%.5f', $cell), '0'), '.');
+
+        return Cache::rememberForever("districting.areagrid.v2.{$scopeId}.{$cellKey}", $compute);
     }
 
     /**
