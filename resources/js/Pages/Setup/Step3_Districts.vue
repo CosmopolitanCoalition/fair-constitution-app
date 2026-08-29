@@ -451,7 +451,7 @@ onBeforeUnmount(stopPolling)
                         <div class="text-white text-lg font-semibold mt-1 tabular-nums">{{ run.sized_leaves.toLocaleString() }}</div>
                     </div>
                     <div>
-                        <div class="text-gray-400 text-xs uppercase tracking-wide">Sweep rate (30 min)</div>
+                        <div class="text-gray-400 text-xs uppercase tracking-wide">Sweep rate (10 min)</div>
                         <div class="text-white text-lg font-semibold mt-1 tabular-nums">
                             {{ run.sweeps_per_hour != null && run.sweeps_per_hour > 0 ? `${run.sweeps_per_hour.toLocaleString()}/h` : '—' }}
                         </div>

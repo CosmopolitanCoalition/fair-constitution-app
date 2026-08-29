@@ -154,6 +154,24 @@ class AutoscaleWorkerJob implements ShouldQueue
                         'finalize'   => app(SweepScopeProcessor::class)->finalize($run, $claim['item_id'], $token),
                         'precompute' => app(AdjacencyPrecompute::class)->processParent($claim['parent_id']),
                         'scope'      => app(SweepScopeProcessor::class)->process($run, $claim, $token),
+                        // Two-cutter batch (2026-08-29): one claim, up to 100
+                        // small leaf splits, drawn one by one through the
+                        // untouched per-scope engine; halt honored between
+                        // scopes, lease touched every few so the strip ticks.
+                        'scope_batch' => (function () use ($run, $claim, $token) {
+                            foreach ($claim['scopes'] as $i => $sc) {
+                                if ($i % 5 === 4) {
+                                    DB::table('autoscale_worker_leases')->where('id', $token)->update([
+                                        'claim_label'  => '2-cut batch '.($i + 1).'/'.count($claim['scopes']),
+                                        'last_seen_at' => now(),
+                                    ]);
+                                    if ($run->refresh()->haltRequested()) {
+                                        break;
+                                    }
+                                }
+                                app(SweepScopeProcessor::class)->process($run, $sc, $token);
+                            }
+                        })(),
                     };
                     $failures = 0;
                 } catch (\Throwable $e) {
@@ -201,7 +219,8 @@ class AutoscaleWorkerJob implements ShouldQueue
         };
 
         return match ($claim['type']) {
-            'singles'    => 'leaf-council batch (' . number_format($claim['count']) . ')',
+            'singles'     => 'leaf-council batch (' . number_format($claim['count']) . ')',
+            'scope_batch' => '2-cut batch (' . count($claim['scopes']) . ')',
             'precompute' => 'borders: ' . $name($claim['parent_id']),
             'scope'      => $name($claim['scope_jurisdiction_id'])
                 . ($claim['depth'] > 0 ? ' (cascade depth ' . $claim['depth'] . ')' : ''),

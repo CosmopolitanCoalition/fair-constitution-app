@@ -2889,16 +2889,21 @@ class SetupController extends Controller
 
         // Windowed rates (last 30 min) → honest per-track ETA. The whole-run
         // average lied under bottom-up ordering (cheap leaves first).
+        // TRUTH WINDOW (operator order 2026-08-29: "the tile should use the
+        // close-to-the-truth numbers"): a 10-minute window converges on the
+        // real sweep rate in minutes instead of diluting it across half an
+        // hour of pre-sweep phases. The bar-level samplers on the page use
+        // the same discipline; the tile now agrees with them.
         $rateRow = DB::table('autoscale_items')
             ->where('run_id', $run->id)
-            ->where('finished_at', '>', now()->subMinutes(30))
+            ->where('finished_at', '>', now()->subMinutes(10))
             ->selectRaw("
                 COUNT(*) FILTER (WHERE kind = 'sweep'  AND status = 'done') AS sweeps_30m,
                 COUNT(*) FILTER (WHERE kind = 'single' AND status = 'done') AS singles_30m
             ")
             ->first();
         $sweepsDoneNow = (int) ($freshCounts['sweeps_done'] ?? $run->sweeps_done);
-        $sweepRatePerH = round(((int) $rateRow->sweeps_30m) * 2.0, 1);
+        $sweepRatePerH = round(((int) $rateRow->sweeps_30m) * 6.0, 1);
         $etaSeconds = $sweepRatePerH > 0
             ? (int) round((max(0, (int) $run->sweeps_total - $sweepsDoneNow) / $sweepRatePerH) * 3600)
             : null;
@@ -2943,7 +2948,7 @@ class SetupController extends Controller
                 // the breaker window lapses and must not render as state.
                 'paused_until'       => $run->isPaused() ? $run->paused_until->toIso8601String() : null,
                 'sweeps_per_hour'    => $sweepRatePerH,
-                'singles_per_hour'   => round(((int) $rateRow->singles_30m) * 2.0, 1),
+                'singles_per_hour'   => round(((int) $rateRow->singles_30m) * 6.0, 1),
                 'eta_seconds'        => $etaSeconds,
                 'drifted_done'       => (int) ($driftRow->drifted ?? 0),
                 'net_drift'          => (int) ($driftRow->net_drift ?? 0),

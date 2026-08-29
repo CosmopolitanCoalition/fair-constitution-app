@@ -102,6 +102,17 @@ final class AutoscaleClaims
                 return $claim;
             }
         }
+        // THE TWO-CUTTER BATCH (operator order 2026-08-29, the 4-day law):
+        // 364k lawful 2-3 district leaf splits each cost more to CLAIM (a
+        // planet-join) than to DRAW. Bottom-up lanes take them 100 at a
+        // time — order within the class is irrelevant (they are peers), so
+        // the claim skips the position sort entirely and runs in
+        // milliseconds. The drawing path per scope is untouched.
+        if ($lane !== 'topdown') {
+            if ($claim = static::claimScopeBatch($run, $token)) {
+                return $claim;
+            }
+        }
         if ($claim = static::claimScope($run, $token, $lane)) {
             return $claim;
         }
@@ -324,6 +335,44 @@ final class AutoscaleClaims
             'legislature_id'        => (string) $row->legislature_id,
             'scope_jurisdiction_id' => (string) $row->scope_jurisdiction_id,
             'depth'                 => (int) $row->depth,
+        ];
+    }
+
+    /** Claim up to 100 light childless small-split scopes in one shot. */
+    private static function claimScopeBatch(AutoscaleRun $run, string $token): ?array
+    {
+        $rows = DB::select("
+            UPDATE autoscale_scopes s
+               SET status = 'running', claim_token = ?,
+                   started_at = COALESCE(s.started_at, now()), updated_at = now()
+             WHERE s.id IN (
+                   SELECT s2.id FROM autoscale_scopes s2
+                    JOIN autoscale_items ai ON ai.id = s2.item_id
+                   WHERE s2.run_id = ? AND s2.status = 'pending'
+                     AND ai.child_count = 0
+                     AND COALESCE(ai.est_districts, 99) <= 3
+                     AND COALESCE(s2.area_tier, ai.area_tier, 1) < ?
+                   ORDER BY s2.id
+                   LIMIT 100
+                   FOR UPDATE SKIP LOCKED
+             )
+         RETURNING s.id, s.item_id, s.legislature_id, s.scope_jurisdiction_id, s.depth
+        ", [$token, $run->id, self::HEAVY_TIER]);
+
+        if ($rows === []) {
+            return null;
+        }
+
+        return [
+            'type'   => 'scope_batch',
+            'scopes' => array_map(static fn ($r) => [
+                'type'                  => 'scope',
+                'scope_id'              => (string) $r->id,
+                'item_id'               => (string) $r->item_id,
+                'legislature_id'        => (string) $r->legislature_id,
+                'scope_jurisdiction_id' => (string) $r->scope_jurisdiction_id,
+                'depth'                 => (int) $r->depth,
+            ], $rows),
         ];
     }
 }
