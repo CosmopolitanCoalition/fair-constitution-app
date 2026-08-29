@@ -304,6 +304,18 @@ def _open(url: str, timeout: int, method: str = "GET"):
     return urllib.request.urlopen(req, timeout=timeout)
 
 
+def _open_ranged(url: str, timeout: int, resume_from: int):
+    """Open a URL requesting bytes from `resume_from`. Returns (resp,
+    resumed): resumed is True when the server honored the Range (206) and the
+    stream continues mid-file; False when it ignored it (200, full body)."""
+    headers = {"User-Agent": USER_AGENT}
+    if resume_from > 0:
+        headers["Range"] = f"bytes={resume_from}-"
+    req = urllib.request.Request(url, headers=headers, method="GET")
+    resp = urllib.request.urlopen(req, timeout=timeout)
+    return resp, (resume_from > 0 and getattr(resp, "status", 200) == 206)
+
+
 def _is_retryable(exc: Exception) -> bool:
     """True for transient conditions worth retrying; False for terminal ones
     (notably 404, which means the resource genuinely isn't there)."""
@@ -382,17 +394,39 @@ def download_to_file(
     last_exc: Exception | None = None
     for attempt in range(MAX_RETRIES):
         try:
-            with _open(url, HTTP_TIMEOUT_DOWNLOAD) as resp:
-                total = resp.headers.get("Content-Length")
-                total = int(total) if total and total.isdigit() else 0
+            # HTTP RANGE RESUME (2026-08-29): a surviving .part continues from
+            # its last byte instead of restarting from zero — a killed 100 GB
+            # basemap haul at 8% used to discard 10+ GB. When the server
+            # ignores the Range (200), the .part is truncated and the fetch
+            # starts clean, exactly as before.
+            resume_from = 0
+            try:
+                if part.exists():
+                    resume_from = part.stat().st_size
+            except OSError:
+                resume_from = 0
+            resp, resumed = _open_ranged(url, HTTP_TIMEOUT_DOWNLOAD, resume_from)
+            with resp:
+                length = resp.headers.get("Content-Length")
+                length = int(length) if length and length.isdigit() else 0
+                if resumed:
+                    total = resume_from + length
+                    written = resume_from
+                    mode = "ab"
+                    logger.info("  resuming %s at byte %s", dest.name,
+                                f"{resume_from:,}")
+                else:
+                    total = length
+                    written = 0
+                    mode = "wb"
                 if bar_key is not None:
                     heartbeat.bar_start(
                         key=bar_key, label=label, total=total, unit="bytes",
                     )
-                written = 0
-                # Fresh .part each attempt so a partial read from a failed try
-                # never bleeds into the next.
-                with open(part, "wb") as fh:
+                    if written:
+                        heartbeat.bar_update(bar_key, written, force=True,
+                                             total=total if total else None)
+                with open(part, mode) as fh:
                     while True:
                         chunk = resp.read(STREAM_CHUNK)
                         if not chunk:
@@ -414,11 +448,8 @@ def download_to_file(
             return True
         except Exception as exc:  # noqa: BLE001
             last_exc = exc
-            # Clean up the partial so a stale .part doesn't linger.
-            try:
-                part.unlink(missing_ok=True)
-            except OSError:
-                pass
+            # KEEP the partial — the next attempt (or the next run) resumes
+            # from its last byte via the Range header above.
             if not _is_retryable(exc):
                 logger.error("  FAILED (non-retryable) %s: %s", dest.name, exc)
                 break
@@ -1216,9 +1247,36 @@ def download_datasets(
         heartbeat.bar_complete("wp:ALL", current=done_counts["wp"],
                                total=len(wp_order))
 
-    # ── Protomaps LAST — display-only, never ahead of the math data ──
+    # ── Protomaps: A LANE UNTO ITSELF (operator ruling 2026-08-29) ──────────
+    # The planet basemap is an OPTIONAL, display-only dependency. It must
+    # never gate ingestion or the rest of bootstrapping: instead of running
+    # inline (which held the seed phase behind a ~100 GB haul), it spawns as
+    # a DETACHED protomaps-only invocation of this same script and this
+    # step returns immediately. The child survives this process, resumes
+    # any .part via the Range support above, and keeps writing its own
+    # progress bar. DL_PROTOMAPS_INLINE=1 restores the old blocking
+    # behavior (used by the detached child itself).
     if want_pm:
-        download_protomaps(protomaps_root)
+        if os.environ.get("DL_PROTOMAPS_INLINE", "").strip() in ("1", "true"):
+            download_protomaps(protomaps_root)
+        else:
+            child_env = dict(os.environ, DL_PROTOMAPS_INLINE="1")
+            log_path = data_root / "protomaps" / "download.log"
+            log_path.parent.mkdir(parents=True, exist_ok=True)
+            with open(log_path, "ab") as lf:
+                import subprocess
+                subprocess.Popen(
+                    [sys.executable, "-u", os.path.abspath(__file__),
+                     "--countries",
+                     "--datasets", "protomaps",
+                     "--data-root", str(data_root)],
+                    stdout=lf, stderr=subprocess.STDOUT,
+                    env=child_env, start_new_session=True,
+                )
+            logger.info("")
+            logger.info("Protomaps basemap: detached as its own lane (resumes "
+                        "any partial; log: %s). Ingestion proceeds WITHOUT "
+                        "waiting for it.", log_path)
 
     heartbeat.clear_current()
     logger.info("")
