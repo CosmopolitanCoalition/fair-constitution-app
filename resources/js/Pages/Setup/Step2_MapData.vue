@@ -5,6 +5,7 @@ import AppShellV2 from '@/Layouts/AppShellV2.vue'
 import SetupStepper from '@/Components/SetupStepper.vue'
 import ReviewIssuesSection from '@/Components/Setup/ReviewIssuesSection.vue'
 import GeodataPullPanel from '@/Components/Geodata/GeodataPullPanel.vue'
+import StackedProgressBars from '@/Components/Setup/StackedProgressBars.vue'
 import ScanDetectorBars from '@/Components/Geodata/ScanDetectorBars.vue'
 import { csrfFetch } from '@/lib/csrf'
 
@@ -1197,6 +1198,36 @@ onBeforeUnmount(() => {
                  bordered panel, titled "2. GeoData Ingestion". No redundant
                  outer "2. Ingestion" box around it (operator, 2026-08-05).
                  Renders only when a pull run exists. -->
+            <!-- Official-source DOWNLOAD + legacy-ingest live panel
+                 (2026-08-29). When LiveProgress was retired for the pull
+                 dashboard, the download-fetch flow LOST its renderer: the
+                 page polled lifecycle/bars every 2 s and rendered none of it
+                 — a running full-world download looked like a dead page
+                 (operator: "it looks like nothing happened"). This section
+                 renders the already-polled bars for any running run the pull
+                 panel does not cover (the download phase and the legacy
+                 seed that follows it), so download bars lead straight into
+                 ingestion bars. -->
+            <section v-if="isRunning && !pullRunActive"
+                     class="bg-gray-900 border border-emerald-900 rounded-lg p-6 mb-6">
+                <div class="flex items-baseline justify-between mb-1">
+                    <h2 class="text-white font-semibold">2. Download &amp; Ingestion — live</h2>
+                    <span class="text-[11px] text-emerald-400">running</span>
+                </div>
+                <p class="text-gray-500 text-xs mb-4">
+                    Fetching from the official hosts on parallel lanes, then ingesting.
+                    Every bar is written by the engine itself — nothing here is fabricated.
+                </p>
+                <StackedProgressBars :bars="bars" :current="current" :lifecycle="lifecycle" />
+                <div v-if="current?.sub_phase" class="mt-3 text-xs text-gray-400">
+                    <span class="text-gray-500">now:</span>
+                    {{ current.name || current.iso_code }} — {{ current.sub_phase }}
+                </div>
+                <div v-if="logBuffer.length" class="mt-3 max-h-40 overflow-y-auto rounded bg-gray-950 border border-gray-800 p-2 font-mono text-[11px] text-gray-400 leading-snug">
+                    <div v-for="(ln, i) in logBuffer.slice(-14)" :key="i">{{ ln }}</div>
+                </div>
+            </section>
+
             <GeodataPullPanel ref="pullPanel"
                               @run-state="pullRun = $event"
                               @scan-state="scanState = $event" />

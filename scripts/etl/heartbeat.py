@@ -315,16 +315,45 @@ def _empty_bars_state() -> dict:
     }
 
 
+# Last-good in-memory bars state. /etl/control is a WINDOWS BIND MOUNT and
+# rename-replace is not atomic there: a reader can catch a torn/empty file,
+# and before this cache that torn read returned _empty_bars_state() — whose
+# very next write WIPED every bar (observed live 2026-08-29: phase nulled,
+# summary bars vanished, later completes synthesized raw-key labels).
+_bars_cache: dict | None = None
+
+
 def _load_bars() -> dict:
+    global _bars_cache
     try:
-        return json.loads(BARS.read_text())
+        state = json.loads(BARS.read_text())
+        _bars_cache = state
+        return state
     except (OSError, ValueError):
+        if _bars_cache is not None:
+            return _bars_cache
         return _empty_bars_state()
 
 
 def _write_bars(state: dict) -> None:
+    global _bars_cache
+    _bars_cache = state
     if _quiet():
         return
+    # Bound every list: completed bars beyond the newest 14 per section are
+    # pruned (running/pending always kept). A full-world download completes
+    # 1,400+ files; unpruned lists bloat the JSON and the DOM that renders it.
+    try:
+        for k in ("geoboundaries_bars", "cleanup_bars",
+                  "worldpop_current_country_bars"):
+            lst = state.get(k) or []
+            done = [b for b in lst if b.get("status") == "done"]
+            if len(done) > 14:
+                done_sorted = sorted(done, key=lambda b: str(b.get("completed_at") or ""))
+                drop = {id(b) for b in done_sorted[:len(done) - 14]}
+                state[k] = [b for b in lst if id(b) not in drop]
+    except Exception:
+        pass
     try:
         BARS.parent.mkdir(parents=True, exist_ok=True)
         tmp = BARS.with_suffix(".tmp")
