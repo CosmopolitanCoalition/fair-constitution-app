@@ -56,33 +56,40 @@ Status vocabulary:
 | 37 | download workers | scripts/etl/download_datasets.py:1161 | max(2, min(**8**, 2×cores)) | DERIVED with HARD CAP 8 |
 | 38 | HostCapacity fallbacks | HostCapacity.php:76,91,110 | cores 4, mem 8 GB, conns 100 when unreadable | DERIVED (safe floors) |
 
-## Violations of the derive law (fix candidates, ranked by cloud impact)
+## The complete fix list (operator order 2026-08-29: nothing excluded)
 
-1. **The install-derived postgres block freezes at first boot and its ceilings are
-   small-box sized** (rows 1, 4, 5, 6, 7): 16 GB postgres cap, 13 GB cache, 64 MB
-   work_mem, on a 128 to 256 GB burst box. Write-if-absent means a resize never
-   re-derives. Needs a re-derive step that runs on boot or on demand and still
-   never clobbers a hand-set value (requires marking script-written values, for
-   example a `# host-derived` suffix comment in `.env`).
-2. **max_connections 200** (row 10): plain hard, and it is the number that caps
-   every lane everywhere at 56. Should derive from the postgres memory cap.
-3. **etl pool width cap 12** (row 33): the PHP side got the wait-aware plus
-   connection-budget upgrade 2026-08-29; the python pool kept the old cores−2
-   cap-12 shape. Same generalization applies.
-4. **pg parallel workers 8/8/4/4** (row 9): derive from cores.
-5. **redis maxmemory 768mb** (row 11): derive as a host fraction with the current
-   value as the floor.
-6. **php memory_limit 8G, fpm children 16** (rows 14, 15): derive from host memory
-   and cores.
-7. **shm_size 1gb** (row 2): should scale with work_mem × parallel workers once
-   rows 5 and 9 derive.
-8. Minor: supervisor-1 10/3 (row 20), download cap 8 (row 37, partly a courtesy
-   cap toward the source servers), nginx worker_connections 1024 (row 16).
+Every HARD and INSTALL-DERIVED row, each with its proposed derivation. Where the
+current number encodes a real constraint, the constraint becomes PART of the
+formula (a floor, a reserve, a data-driven term). It is never a reason to leave
+the number fixed.
 
-## Deliberate ceilings, excluded from the fix list unless overruled
-
-- shared_buffers small (row 3): the headroom law, operator ruling 2026-08-02. A
-  giant boundary insert's transient is set by the data, not the host, so
-  (cap − shared_buffers) must fund it.
-- prewarm single writer (row 21), the 20% shares (rows 24, 25), the protocol and
-  bounded-unit constants (rows 29 to 32), recycle thresholds (row 22).
+| Row | Item | Proposed derivation |
+|---|---|---|
+| 1 | postgres memory cap (60%, ceiling 16 GB, frozen at install) | re-derive on every deploy/boot; drop the 16 GB ceiling; mark script-written `.env` values so hand-set ones are never clobbered |
+| 2 | shm_size 1gb | derive from work_mem × parallel workers + headroom |
+| 3 | shared_buffers (pg/9, ceiling 512MB) | derive: shared_buffers = fraction × cap, bounded so (cap − shared_buffers) always funds the largest single-feature insert transient (a data-driven reserve, measured, not a fixed 512MB). The 2026-08-02 comment records why the ceiling exists today; the reserve carries that protection into the formula |
+| 4 | effective_cache_size (ceiling 13 GB) | derive 80% of cap, no ceiling |
+| 5 | work_mem (ceiling 64MB) | derive from cap and max_connections, transient-reserve aware |
+| 6 | maintenance_work_mem (ceiling 512MB) | derive from cap |
+| 7 | max_wal_size (ceiling 16 GB) | derive from cap and disk headroom |
+| 8 | min_wal_size 1GB, wal_buffers 64MB | derive with max_wal / from cap |
+| 9 | pg parallel workers 8/8/4/4 | derive from cores |
+| 10 | max_connections 200 | derive from the postgres memory cap (this widens the 56-lane universe) |
+| 11 | redis maxmemory 768mb | derive host fraction, current value as floor |
+| 14 | php memory_limit 8G | derive from host memory |
+| 15 | php-fpm children 16/4/2/8 | derive from cores and memory |
+| 16 | nginx worker_connections 1024 | derive from cores / expected fpm children |
+| 17 | synapse/mas/livekit image defaults | expose and derive what the images allow (for example synapse cache factor via env) |
+| 20 | supervisor-1 10 prod / 3 local | derive as a share of lanes |
+| 21 | supervisor-prewarm 1 | on the list: either make the shared-disk write race-safe and derive, or the derivation is min(1, …) with the race named as the reason in code |
+| 22 | worker recycle 128/512 MB | derive from host memory per lane |
+| 19 | long-running cap 6 | derive = min(detector count, lanes); detector count is read from the code, not typed |
+| 28 | singles workers 4 | derive as a share of lanes |
+| 29 | subtree batch 500 | derive from the memory budget |
+| 30 | purge chunks 50k/20k | derive from memory budget and row width |
+| 31 | provisioning param chunk 65,535 | protocol maximum; derivation = read/keep the protocol limit, chunk count derives from it |
+| 32 | scan session clamps (32MB) | derive from the postgres budget divided by detector count |
+| 33 | etl pool cap 12 | derive via the same wait-aware + connection-budget formula as HostCapacity |
+| 37 | download workers cap 8 | derive from cores; any per-source courtesy limit becomes a named constant per source |
+| 38 | HostCapacity fallbacks 4/8/100 | keep only as unreadable-host floors; they never apply when the host can be measured |
+| 18 | busy factor 0.86 / reserve 0.5 | measured constants, env-tunable; add the re-measure recipe as a command so they re-derive per host instead of riding the 12-core measurement |
