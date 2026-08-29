@@ -2090,14 +2090,23 @@ def load_existing_slugs(conn: psycopg2.extensions.connection,
     PROGRESS, which is why the field flew and the tail OOM'd. A per-ISO
     child needs only its own country's slugs; the DB unique constraint
     remains the global guarantee."""
+    # SYNTHETIC SLUGS DO NOT OCCUPY THE NAMESPACE (the PHL race, fourth
+    # reader, 2026-08-29): with the placeholder's slug in this set, the
+    # in-memory dedup BUMPED the genuine country feature to '-2' — so the
+    # insert never hit the DB slug conflict and the synthetic-upgrade upsert
+    # in bulk_insert_jurisdictions could never fire. A real feature must land
+    # on the canonical slug and let the DB conflict resolve by authority
+    # (real replaces synthetic in place; real-vs-real keeps skip semantics).
     with get_cursor(conn) as cur:
         if iso3:
             cur.execute(
-                "SELECT slug FROM jurisdictions WHERE deleted_at IS NULL AND slug LIKE %s",
+                "SELECT slug FROM jurisdictions WHERE deleted_at IS NULL "
+                "AND source IS DISTINCT FROM 'synthetic' AND slug LIKE %s",
                 (iso3.lower() + "-%",),
             )
         else:
-            cur.execute("SELECT slug FROM jurisdictions WHERE deleted_at IS NULL")
+            cur.execute("SELECT slug FROM jurisdictions WHERE deleted_at IS NULL "
+                        "AND source IS DISTINCT FROM 'synthetic'")
         rows = cur.fetchall()
     return {str(row["slug"]) for row in rows}
 
