@@ -113,9 +113,14 @@ class AutoscaleSizingJob implements ShouldQueue
         // the set-based treatment below — a per-row loop over 903k leaves
         // would alone take days.
         Log::info('Autoscale Phase A: sizing parents', ['run_id' => $run->id]);
+        // A1 (operator order 2026-08-29): the seed writes heartbeat + a live
+        // sized_parents count into this run every 200-row chunk, so the
+        // dashboard moves during the grind instead of reading zeros for the
+        // whole pass (and each chunk releases collected cycles — A2).
         Artisan::call('apportionment:seed', [
             '--parents-only' => true,
             '--adm-max'      => $admMax,
+            '--progress-run' => (string) $run->id,
         ]);
         $this->heartbeat($run);
 
@@ -132,11 +137,12 @@ class AutoscaleSizingJob implements ShouldQueue
         $floor   = ConstitutionalDefaults::floor();
         $ceiling = ConstitutionalDefaults::ceiling();
 
+        $leavesSoFar = 0;
         for ($lvl = 0; $lvl <= $admMax; $lvl++) {
             if ($this->haltRequested($run)) {
                 return;
             }
-            DB::statement("
+            $leavesSoFar += DB::affectingStatement("
                 INSERT INTO legislatures
                     (id, jurisdiction_id, term_number, status,
                      total_seats, type_a_seats, type_b_seats, quorum_required,
@@ -156,6 +162,11 @@ class AutoscaleSizingJob implements ShouldQueue
                    AND NOT EXISTS (SELECT 1 FROM legislatures l
                                     WHERE l.jurisdiction_id = j.id AND l.deleted_at IS NULL)
             ", [$floor, $lvl]);
+            // A1: live leaf counter per level, beside the heartbeat.
+            AutoscaleRun::query()->whereKey($run->id)->update([
+                'sized_leaves' => $leavesSoFar,
+                'updated_at'   => now(),
+            ]);
             $this->heartbeat($run); // per level
         }
 

@@ -41,12 +41,20 @@ class ApportionmentSeedCommand extends Command
                             {--adm-max=6 : Only process parent jurisdictions with adm_level <= N}
                             {--jurisdiction= : Seed only the direct children of this jurisdiction (slug or UUID)}
                             {--parents-only : Size only jurisdictions that have children (autoscale seeds childless leaves set-based)}
-                            {--stamp-instance : Stamp instance_settings.apportionment_completed_at (setup-wizard runs only)}';
+                            {--stamp-instance : Stamp instance_settings.apportionment_completed_at (setup-wizard runs only)}
+                            {--progress-run= : Autoscale run id — heartbeat + live sized_parents count written per chunk (A1, 2026-08-29)}';
 
     protected $description = 'Compute cube-root legislature sizes and upsert legislature records (no districts)';
 
     private int $jurisdictionsProcessed = 0;
     private int $legislaturesCreated    = 0;
+
+    // A1 (operator order 2026-08-29): when --progress-run is given, every
+    // 200-row chunk writes heartbeat_at + a live sized_parents count into
+    // the autoscale run row, and releases collected cycles — the sizing
+    // grind stays visible and memory-bounded instead of silent for 20 min.
+    private string $progressRunId = '';
+    private int $progressCount    = 0;
 
     public function handle(): int
     {
@@ -55,6 +63,7 @@ class ApportionmentSeedCommand extends Command
         $admMax      = (int)    $this->option('adm-max');
         $targetSlug  = (string) $this->option('jurisdiction');
         $parentsOnly = (bool)   $this->option('parents-only');
+        $this->progressRunId = (string) ($this->option('progress-run') ?? '');
 
         $this->info('Apportionment seeder — legislature sizing (cube root law)' . ($dryRun ? ' [DRY RUN]' : ''));
 
@@ -168,6 +177,15 @@ class ApportionmentSeedCommand extends Command
                 foreach ($parents as $parent) {
                     $this->processParent($parent, $dryRun);
                     $bar->advance();
+                }
+                if ($this->progressRunId !== '') {
+                    $this->progressCount += count($parents);
+                    DB::table('autoscale_runs')->where('id', $this->progressRunId)->update([
+                        'sized_parents' => $this->progressCount,
+                        'heartbeat_at'  => now(),
+                        'updated_at'    => now(),
+                    ]);
+                    gc_collect_cycles();
                 }
             });
 
