@@ -694,6 +694,21 @@ def synthesize_missing_country_rows(
 
     inserted_rows: list[dict] = []
     for iso, deepest in targets:
+        # THE PHL GUARD (2026-08-29): only synthesize when the DATASET
+        # itself ships no country file. Under the parallel pull engine an
+        # iso whose ADM0 item simply has not run yet also shows
+        # MIN(adm_level) > 1 mid-phase — synthesizing then plants a
+        # placeholder that blocked the real import (the resume detector
+        # counted it) and left a union-built country geometry with a wrong
+        # population. The filesystem is the truth: an ADM0 file on disk
+        # means a real country row is coming — skip.
+        adm0_file = (GBOPEN_ROOT / iso / "ADM0"
+                     / f"geoBoundaries-{iso}-ADM0.geojson")
+        if adm0_file.exists():
+            log.info("synthesize: %s has an ADM0 source file — its country "
+                     "row comes from the import, not synthesis. Skipping.",
+                     iso)
+            continue
         # Use boundaryName from the meta table; fall back to iso code if
         # the iso has no row (e.g. brand-new iso the CSV doesn't cover).
         display_name = name_lookup.get(iso) or iso

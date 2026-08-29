@@ -145,7 +145,26 @@ _JURISDICTION_INSERT_SQL = """
                    END, 4326))) AS geom
         OFFSET 0
     ) AS g
-    ON CONFLICT (slug) DO NOTHING
+    ON CONFLICT (slug) DO UPDATE SET
+        -- UPGRADE A SYNTHETIC PLACEHOLDER (the PHL heal, 2026-08-29): a
+        -- mid-phase synthesized country row holds the same deterministic
+        -- slug the real import mints. DO NOTHING left the placeholder in
+        -- place (union-built geometry, wrong population) and the genuine
+        -- source feature was lost. When the incumbent is synthetic, the
+        -- real feature replaces its geometry and identity; real rows are
+        -- never clobbered (the WHERE keeps every non-synthetic conflict a
+        -- no-op update of updated_at only through the guard below).
+        name               = EXCLUDED.name,
+        iso_code           = EXCLUDED.iso_code,
+        adm_level          = EXCLUDED.adm_level,
+        source             = EXCLUDED.source,
+        geoboundaries_id   = EXCLUDED.geoboundaries_id,
+        geom               = EXCLUDED.geom,
+        centroid           = EXCLUDED.centroid,
+        population         = NULL,
+        updated_at         = NOW()
+    WHERE jurisdictions.source = 'synthetic'
+      AND EXCLUDED.source IS DISTINCT FROM 'synthetic'
     RETURNING id, slug
 """
 

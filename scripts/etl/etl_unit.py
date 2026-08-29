@@ -318,10 +318,18 @@ def do_boundary(conn, run_id: str, iso: str, options: dict,
                  "import calls)", iso, skipped, len(skipped))
 
     def _db_count(app_lvl: int) -> int:
+        # SYNTHETIC ROWS ARE NOT IMPORTED FEATURES (the PHL skip,
+        # 2026-08-29): under the parallel pull engine the mid-phase country
+        # synthesizer can mint a placeholder L1 row before this iso's real
+        # ADM0 item runs; counting it here made the resume detector skip
+        # the genuine source feature ("resume detected — skipping the
+        # first 1 features") and the country kept a union-built geometry
+        # with a wrong population. Placeholders never count as progress.
         with get_cursor(conn) as cur:
             cur.execute(
                 "SELECT COUNT(*) AS n FROM jurisdictions "
-                "WHERE iso_code = %s AND adm_level = %s AND deleted_at IS NULL",
+                "WHERE iso_code = %s AND adm_level = %s AND deleted_at IS NULL "
+                "  AND source IS DISTINCT FROM 'synthetic'",
                 (iso, app_lvl),
             )
             return int(cur.fetchone()["n"])
