@@ -222,8 +222,18 @@ class AutoscaleWorkerJob implements ShouldQueue
             'singles'     => 'leaf-council batch (' . number_format($claim['count']) . ')',
             'scope_batch' => '2-cut batch (' . count($claim['scopes']) . ')',
             'precompute' => 'borders: ' . $name($claim['parent_id']),
-            'scope'      => $name($claim['scope_jurisdiction_id'])
-                . ($claim['depth'] > 0 ? ' (cascade depth ' . $claim['depth'] . ')' : ''),
+            // Name the MAP the scope belongs to (operator, 2026-08-29:
+            // "Japan (cascade depth 1)" was Earth drawing its Japan block,
+            // unreadably): "Earth › Japan (depth 1)".
+            'scope'      => (function () use ($claim, $name) {
+                $mapOwner = DB::table('autoscale_items')
+                    ->where('id', $claim['item_id'])->value('jurisdiction_id');
+                $scope = $name($claim['scope_jurisdiction_id']);
+                $owner = $mapOwner ? $name((string) $mapOwner) : null;
+                $label = ($owner !== null && $owner !== $scope) ? $owner.' › '.$scope : $scope;
+
+                return $label . ($claim['depth'] > 0 ? ' (depth ' . $claim['depth'] . ')' : '');
+            })(),
             'finalize'   => 'assessing: ' . $name(
                 DB::table('autoscale_items')->where('id', $claim['item_id'])->value('jurisdiction_id')
             ),
