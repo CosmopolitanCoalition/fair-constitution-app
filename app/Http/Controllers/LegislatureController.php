@@ -3961,7 +3961,9 @@ class LegislatureController extends Controller
         return "'" . implode("','", $valid) . "'";
     }
 
-    private function resolveMassScopeIds(
+    // Public since 2026-08-29: the paradigm-compliant map sweep (map:sweep +
+    // MapScopeLaneJob) enumerates its work pile through this exact closure.
+    public function resolveMassScopeIds(
         string  $legislature_id,
         object  $leg,
         string  $scopeId,
