@@ -349,6 +349,7 @@ function Configure-HostMemory {
         PG_PARALLEL_MAINTENANCE = (Clamp ($cores / 4.0) 1 8).ToString()
         # The queue redis (noeviction) sizes from the host.
         REDIS_QUEUE_MAXMEMORY   = (Clamp ($totalMb / 40.0) 128 1024).ToString() + 'mb'
+        PG_AUTOVACUUM_COST_LIMIT = (Clamp (200 * $cores / 2.0) 200 2000).ToString()
     }
 
     # THE RE-DERIVE MECHANISM (operator order 2026-08-30): the DERIVED_KEYS

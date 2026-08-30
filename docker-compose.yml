@@ -212,6 +212,13 @@ services:
       - "statement_timeout=0"
       - "-c"
       - "idle_in_transaction_session_timeout=0"
+      # Autovacuum derivation (audit row, 2026-08-30 — was ALTER SYSTEM on
+      # the reference box only; a fresh box must get it from code). Cost
+      # limit scales with cores: clamp(200 × cores/2, 200, 2000) — 1200 on
+      # the 12-core reference. Per-table scale factors ride the
+      # 2026_08_30_050000 migration. Installers write the env key.
+      - "-c"
+      - "autovacuum_vacuum_cost_limit=${PG_AUTOVACUUM_COST_LIMIT:-200}"
     volumes:
       - postgres_data:/var/lib/postgresql/data   # named volume — persists across rebuilds
       - ./docker/postgres/init.sql:/docker-entrypoint-initdb.d/init.sql:ro
@@ -540,6 +547,11 @@ services:
       DATA_ROOT: /archive                  # ETL scripts read geoBoundaries/WorldPop from here
       # Pull-engine operator dials (empty = derive from the container budget).
       CGA_ETL_WORKERS: ${CGA_ETL_WORKERS:-}
+      # Wait-aware wiring (outside review catch, 2026-08-30): supervisor.py
+      # reads both — without the passthrough the container always fell back
+      # (busy 0.86, conn cap 56) and burst iron past ~48 vCPUs would pin.
+      CGA_ETL_BUSY_FACTOR: ${CGA_ETL_BUSY_FACTOR:-}
+      PG_MAX_CONNECTIONS: ${PG_MAX_CONNECTIONS:-}
       CGA_ETL_CAP_BOUNDARY: ${CGA_ETL_CAP_BOUNDARY:-}
       CGA_ETL_CAP_RASTER: ${CGA_ETL_CAP_RASTER:-}
       CGA_ETL_CAP_ATTRIBUTION: ${CGA_ETL_CAP_ATTRIBUTION:-}

@@ -217,10 +217,11 @@ return [
         // within seconds, so PrewarmRasterTilesJob (and any future
         // export/import workers) goes on this queue instead.
         //
-        // maxProcesses=1: the prewarm writes to a shared disk cache; one
-        // worker at a time avoids file_put_contents races. The export job
-        // (Phase P) writes to per-id files so it could parallelise, but
-        // we don't gain much because it's I/O-bound on pg_dump.
+        // (Prewarm width now DERIVES — the tile writer is per-writer temp
+        // file + atomic rename since 2026-08-30, so the old one-at-a-time
+        // file_put_contents race is gone. The export job (Phase P) writes
+        // to per-id files so it could parallelise, but we don't gain much
+        // because it's I/O-bound on pg_dump.
         //
         // timeout=0: no per-job ceiling. The job's own ->timeout hint is
         // also 0. The operator cancels via Horizon's UI if needed.

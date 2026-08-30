@@ -274,6 +274,7 @@ configure_host_memory() {
   # The queue redis (noeviction) sizes from the host; the split itself is
   # host-independent wiring, written once, never rederived.
   write_derived REDIS_QUEUE_MAXMEMORY "$(clamp $(( total_mb / 40 )) 128 1024)mb"
+  write_derived PG_AUTOVACUUM_COST_LIMIT "$(clamp $(( 200 * cores / 2 )) 200 2000)"
   [ -n "$(get_env REDIS_QUEUE_HOST)" ] || set_env REDIS_QUEUE_HOST redis_queue
   set_env DERIVED_KEYS "$ledger"
   [ "$wrote" -eq 1 ] && say "      Memory sized from this host (${total_mb} MB RAM, ${cores} cores): postgres ${pg_mb}m, etl uncapped (live wall)."

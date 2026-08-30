@@ -65,7 +65,7 @@ return [
     | and sweeps).
     */
     'autoscale_precompute' => env('CGA_AUTOSCALE_PRECOMPUTE', 'upfront'),
-    // Derived (audit row, 2026-08-30): a third of the lane pool — 4 on the
+    // Derived (audit row, 2026-08-30): a third of the lane pool — 5 on the
     // 13-lane reference box, exactly the proven dial. Env still overrides.
     'autoscale_singles_workers' => env('CGA_AUTOSCALE_SINGLES_WORKERS')
         ?: max(2, (int) ceil(\App\Support\HostCapacity::autoscaleWorkers() / 3)),
