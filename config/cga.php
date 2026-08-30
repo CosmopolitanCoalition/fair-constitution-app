@@ -29,7 +29,11 @@ return [
     // NO SIZE CAP on the subtree itself (operator ruling: "Remove this
     // restriction") — the job keyset-walks a materialised roster, so memory
     // is flat whether the tree holds 34 nodes or the whole planet.
-    'activate_subtree_batch' => env('CGA_ACTIVATE_SUBTREE_BATCH', 500),
+    // Derived (audit row, 2026-08-30): rows per committed chunk scale with
+    // host memory — clamp(64 × host GB, 200, 4000); ~490 on the 8 GB
+    // reference, a Pi gets 200, big iron 4000. Env still overrides.
+    'activate_subtree_batch' => env('CGA_ACTIVATE_SUBTREE_BATCH')
+        ?: max(200, min(4000, (int) (\App\Support\HostCapacity::hostMemoryGb() * 64))),
 
     // CENSUS-FLAVORED sim civics (operator ruling 2026-08-08, rubric
     // sim-org-bill-rates = B): real per-capita rates — US anchors: ~1
@@ -61,7 +65,10 @@ return [
     | and sweeps).
     */
     'autoscale_precompute' => env('CGA_AUTOSCALE_PRECOMPUTE', 'upfront'),
-    'autoscale_singles_workers' => env('CGA_AUTOSCALE_SINGLES_WORKERS', 4),
+    // Derived (audit row, 2026-08-30): a third of the lane pool — 4 on the
+    // 13-lane reference box, exactly the proven dial. Env still overrides.
+    'autoscale_singles_workers' => env('CGA_AUTOSCALE_SINGLES_WORKERS')
+        ?: max(2, (int) ceil(\App\Support\HostCapacity::autoscaleWorkers() / 3)),
 
     /*
     | Heavy-lane cap override (2026-07-22). 0 = the formula

@@ -206,7 +206,9 @@ configure_host_memory() {
   [ "${total_mb:-0}" -gt 0 ] || return 0   # can't measure — compose fallbacks apply
 
   clamp() { v=$1; lo=$2; hi=$3; [ "$v" -lt "$lo" ] && v=$lo; [ "$v" -gt "$hi" ] && v=$hi; echo "$v"; }
-  pg_mb=$(clamp $(( total_mb * 60 / 100 )) 1024 16384)   # postgres ~60% of the host
+  # Ceiling lifted (audit row, 2026-08-30): the frozen 16 GB cap starved
+  # burst iron — a 256 GB box got a 16 GB postgres. 60% holds at any size.
+  pg_mb=$(clamp $(( total_mb * 60 / 100 )) 1024 262144)   # postgres ~60% of the host
   # ETL_MEM_LIMIT is no longer written (THE LIVE WALL, 2026-08-06): etl runs
   # uncapped, admission sizes against MemAvailable on the fly, and chunk
   # profiles self-govern to the 30% posture in code. An existing .env pin
@@ -247,12 +249,22 @@ configure_host_memory() {
       say "      rederived $1: $cur -> $2"
     fi
   }
+  # Ceilings lifted where they only bound big iron (audit rows 2026-08-30).
+  # DELIBERATELY KEPT: shared_buffers ≤ 512MB (the headroom law — cap minus
+  # buffers must fund the largest single-feature insert transient) and
+  # global work_mem ≤ 64MB (per-connection safety; districting lanes raise
+  # their own sessions via HostCapacity::laneWorkMemMb).
   write_derived POSTGRES_MEM_LIMIT "${pg_mb}m"
   write_derived PG_SHARED_BUFFERS  "$(clamp $(( pg_mb / 9 )) 128  512)MB"
-  write_derived PG_EFFECTIVE_CACHE "$(clamp $(( pg_mb * 80 / 100 )) 256 13000)MB"
+  write_derived PG_EFFECTIVE_CACHE "$(clamp $(( pg_mb * 80 / 100 )) 256 210000)MB"
   write_derived PG_WORK_MEM        "$(clamp $(( pg_mb / 72 ))   8   64)MB"
-  write_derived PG_MAINTENANCE_MEM "$(clamp $(( pg_mb / 9 )) 128  512)MB"
-  write_derived PG_MAX_WAL         "$(clamp $(( pg_mb * 160 / 100 )) 512 16384)MB"
+  write_derived PG_MAINTENANCE_MEM "$(clamp $(( pg_mb / 9 )) 128 4096)MB"
+  write_derived PG_MAX_WAL         "$(clamp $(( pg_mb * 160 / 100 )) 512 65536)MB"
+  write_derived PG_MIN_WAL         "$(clamp $(( pg_mb * 20 / 100 )) 512 8192)MB"
+  write_derived PG_WAL_BUFFERS     "$(clamp $(( pg_mb / 72 )) 16 128)MB"
+  write_derived PG_SHM_SIZE        "$(clamp $(( pg_mb / 4 )) 1024 8192)m"
+  write_derived PG_MAX_CONNECTIONS "$(clamp $(( pg_mb / 23 )) 100 800)"
+  write_derived REDIS_CACHE_MAXMEMORY "$(clamp $(( total_mb / 10 )) 768 8192)mb"
   # Parallel posture: workers=cores, parallel=cores/2, per_gather small
   # (many concurrent lanes beat wide gathers), maintenance=cores/4.
   write_derived PG_MAX_WORKER_PROCESSES  "$(clamp "$cores" 8 64)"

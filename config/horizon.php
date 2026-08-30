@@ -183,7 +183,8 @@ return [
     |
     */
 
-    'memory_limit' => 64,
+    // Derived (audit row, 2026-08-30): clamp(16 × host GB, 64, 256).
+    'memory_limit' => \App\Support\HostCapacity::horizonMasterMemoryMb(),
 
     /*
     |--------------------------------------------------------------------------
@@ -205,7 +206,7 @@ return [
             'maxProcesses' => 1,
             'maxTime' => 0,
             'maxJobs' => 0,
-            'memory' => 128,
+            'memory' => \App\Support\HostCapacity::workerRecycleLightMb(),
             'tries' => 1,
             'timeout' => 60,
             'nice' => 0,
@@ -237,10 +238,10 @@ return [
             // GeodataFlagService::clampSessionMemory) so six concurrent
             // planet-wide queries fit the postgres budget by construction.
             // Host-derived floor of 2 keeps a Pi honest.
-            'maxProcesses' => max(2, min(6, \App\Support\HostCapacity::autoscaleWorkers())),
+            'maxProcesses' => max(2, min(count(\App\Models\GeodataFlag::CATEGORIES), \App\Support\HostCapacity::autoscaleWorkers())),
             'maxTime' => 0,
             'maxJobs' => 0,
-            'memory' => 512,
+            'memory' => \App\Support\HostCapacity::workerRecycleHeavyMb(),
             'tries' => 1,
             'timeout' => 0,
             'nice' => 0,
@@ -259,7 +260,7 @@ return [
             'maxProcesses' => \App\Support\HostCapacity::autoscaleWorkers(),
             'maxTime' => 0,
             'maxJobs' => 0,
-            'memory' => 512,
+            'memory' => \App\Support\HostCapacity::workerRecycleHeavyMb(),
             'tries' => 1,
             'timeout' => 0,
             'nice' => 5,
@@ -283,7 +284,7 @@ return [
             'maxProcesses' => \App\Support\HostCapacity::autoscaleWorkers(),
             'maxTime' => 0,
             'maxJobs' => 0,
-            'memory' => 512,
+            'memory' => \App\Support\HostCapacity::workerRecycleHeavyMb(),
             'tries' => 1,
             'timeout' => 0,
             'nice' => 8,
@@ -293,10 +294,14 @@ return [
             'connection' => 'redis-long',
             'queue' => ['prewarm'],
             'balance' => 'simple',
-            'maxProcesses' => 1,
+            // Derived (audit structural row, 2026-08-30): the width-1 pin
+            // guarded a shared-disk tile write race; the tile writer is now
+            // per-writer temp file + atomic rename (RasterTileController::
+            // writeCache), so the width derives — a quarter of the lanes.
+            'maxProcesses' => max(1, min(4, (int) ceil(\App\Support\HostCapacity::autoscaleWorkers() / 4))),
             'maxTime' => 0,
             'maxJobs' => 0,
-            'memory' => 512,
+            'memory' => \App\Support\HostCapacity::workerRecycleHeavyMb(),
             'tries' => 1,
             'timeout' => 0,
             'nice' => 10,
@@ -306,7 +311,8 @@ return [
     'environments' => [
         'production' => [
             'supervisor-1' => [
-                'maxProcesses' => 10,
+                // Derived (audit row, 2026-08-30): a third of the lanes.
+                'maxProcesses' => \App\Support\HostCapacity::defaultQueueWorkers(),
                 'balanceMaxShift' => 1,
                 'balanceCooldown' => 3,
             ],
@@ -315,7 +321,7 @@ return [
                 // OVERRIDE defaults — this 1 masked the defaults width and
                 // ran the six detectors single-file. Keep in lockstep with
                 // the defaults expression.
-                'maxProcesses' => max(2, min(6, \App\Support\HostCapacity::autoscaleWorkers())),
+                'maxProcesses' => max(2, min(count(\App\Models\GeodataFlag::CATEGORIES), \App\Support\HostCapacity::autoscaleWorkers())),
             ],
             'supervisor-autoscale' => [
                 'maxProcesses' => \App\Support\HostCapacity::autoscaleWorkers(),
@@ -329,17 +335,19 @@ return [
                 'maxProcesses' => \App\Support\HostCapacity::autoscaleWorkers(),
             ],
             'supervisor-prewarm' => [
-                'maxProcesses' => 1,
+                // See defaults — race fixed, width derives (2026-08-30).
+                'maxProcesses' => max(1, min(4, (int) ceil(\App\Support\HostCapacity::autoscaleWorkers() / 4))),
             ],
         ],
 
         'local' => [
             'supervisor-1' => [
-                'maxProcesses' => 3,
+                // Derived (audit row, 2026-08-30): a third of the lanes.
+                'maxProcesses' => \App\Support\HostCapacity::defaultQueueWorkers(),
             ],
             'supervisor-long-running' => [
                 // See production note — env blocks mask defaults.
-                'maxProcesses' => max(2, min(6, \App\Support\HostCapacity::autoscaleWorkers())),
+                'maxProcesses' => max(2, min(count(\App\Models\GeodataFlag::CATEGORIES), \App\Support\HostCapacity::autoscaleWorkers())),
             ],
             'supervisor-autoscale' => [
                 'maxProcesses' => \App\Support\HostCapacity::autoscaleWorkers(),

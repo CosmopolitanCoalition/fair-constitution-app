@@ -5,6 +5,34 @@ cores, workers, connections, or sizing was located and classified. Sorted by sta
 (operator order, same day): the issue first, the already-derived last. Reads only;
 no fixes applied yet.
 
+## IMPLEMENTATION STATUS (2026-08-30, operator order "implement the changes that remain")
+
+DONE — live in code or applied at recreate: the re-derive mechanism
+(DERIVED_KEYS ledger + --rederive/-Rederive, both installers), redis
+queue/cache split with derived sizing, autovacuum family, pg parallel
+posture (env-driven compose), per-lane session work_mem, scan-clamp
+derivation, php memory_limit 6G, max_connections derivation, install-formula
+ceilings lifted (pg cap/effective cache/maintenance/max_wal), min_wal +
+wal_buffers + shm_size derived, horizon master memory derived, supervisor-1
+share-of-lanes, worker recycle thresholds derived (proven values as
+floors), long-running width reads count(GeodataFlag::CATEGORIES),
+supervisor shared budget enforced at sim's seeding plane (dynamic, yields
+to live autoscale lanes), prewarm tile write race-fixed (temp+rename) and
+width derived, singles workers + subtree batch + purge chunks derived,
+etl pool wait-aware + connection-budget, download courtesy cap named,
+busy-factor re-measure command (scripts/measure-busy-factor.sh),
+HostCapacity docblock rewritten.
+
+KEPT DELIBERATELY (the constraint IS the formula): shared_buffers ≤ 512MB
+(the headroom law), global work_mem ≤ 64MB (lanes raise their own
+sessions), provisioning param chunk 65,535 (protocol maximum).
+
+DEFERRED with reason — needs a generated-include design (php ini and
+fpm/nginx conf formats cannot consume env vars; a committed-with-defaults
+generated file would leave every box's git tree dirty): php-fpm children,
+opcache sizing, nginx worker_connections, synapse/mas/livekit knobs. None
+gate burst-box throughput; revisit with the cloud image build.
+
 Status vocabulary:
 - **HARD**: plain hard-coded number. The issue.
 - **INSTALL-DERIVED**: computed from the host ONCE by `get-started.sh

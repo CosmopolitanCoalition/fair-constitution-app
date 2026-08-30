@@ -1157,8 +1157,13 @@ def download_datasets(
     # host — min(8, 2×cores), env DL_LANES overrides — capped for politeness
     # to the two upstream hosts. Every file is atomic + skip-existing, so a
     # killed run costs at most one in-flight file per lane.
+    # Courtesy cap NAMED per source (audit row, 2026-08-30): the bound is
+    # politeness to geoBoundaries + WorldPop, not hardware — it scales
+    # gently with cores instead of freezing at 8, and stays modest so the
+    # two upstream hosts never see a hammering.
+    courtesy_lanes_per_source = 6
     lanes = int(os.environ.get("DL_LANES", "0") or 0) \
-        or max(2, min(8, 2 * (os.cpu_count() or 2)))
+        or max(2, min(2 * courtesy_lanes_per_source, 2 * (os.cpu_count() or 2)))
 
     # est_cost, boundaries: published-boundary row count per ISO from the
     # (pinned) meta CSV already on disk — free, and proportional to the

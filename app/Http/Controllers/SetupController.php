@@ -1424,18 +1424,24 @@ class SetupController extends Controller
             // loudly, which is correct — and the accepted-map gate above
             // already refuses such worlds. Deepest level first for the
             // self-referencing parent FK; known row-holders first.
+            // Chunk sizes derive from host memory (audit row, 2026-08-30):
+            // ~6,500 narrow rows / GB and ~2,600 wide (geometry-bearing)
+            // rows / GB reproduce the proven 50k/20k on the 8 GB reference
+            // box and scale both directions.
+            $narrowChunk = (int) max(10000, min(200000, \App\Support\HostCapacity::hostMemoryGb() * 6500));
+            $wideChunk   = (int) max(5000, min(80000, \App\Support\HostCapacity::hostMemoryGb() * 2600));
             foreach (['residency_confirmations', 'location_pings',
                       'constitutional_settings'] as $t) {
                 do {
                     $n = DB::delete(
-                        "DELETE FROM {$t} WHERE ctid IN (SELECT ctid FROM {$t} LIMIT 50000)");
+                        "DELETE FROM {$t} WHERE ctid IN (SELECT ctid FROM {$t} LIMIT {$narrowChunk})");
                 } while ($n > 0);
             }
             for ($level = 6; $level >= 0; $level--) {
                 do {
                     $n = DB::delete(
-                        'DELETE FROM jurisdictions WHERE id IN
-                           (SELECT id FROM jurisdictions WHERE adm_level = ? LIMIT 20000)',
+                        "DELETE FROM jurisdictions WHERE id IN
+                           (SELECT id FROM jurisdictions WHERE adm_level = ? LIMIT {$wideChunk})",
                         [$level]);
                 } while ($n > 0);
             }

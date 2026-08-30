@@ -119,7 +119,9 @@ services:
     # shared-memory segments beyond it and dies with "could not resize
     # shared memory segment … No space left on device". 1 GB comfortably
     # covers work_mem × parallel workers inside the 5 GB container cap.
-    shm_size: 1gb
+    # Derived (audit row, 2026-08-30): work_mem × parallel workers +
+    # headroom ≈ pg cap / 4, clamped [1g, 8g]. Installers write PG_SHM_SIZE.
+    shm_size: ${PG_SHM_SIZE:-1gb}
     ports:
       - "${POSTGRES_HOST_PORT:-5432}:5432" # set POSTGRES_HOST_PORT in .env to avoid clashing with another stack on 5432
     # HOST-DERIVED memory posture (operator ruling 2026-08-02: numbers are
@@ -179,11 +181,11 @@ services:
       - "-c"
       - "max_wal_size=${PG_MAX_WAL:-8GB}"
       - "-c"
-      - "min_wal_size=1GB"
+      - "min_wal_size=${PG_MIN_WAL:-1GB}"
       - "-c"
       - "checkpoint_completion_target=0.9"
       - "-c"
-      - "wal_buffers=64MB"
+      - "wal_buffers=${PG_WAL_BUFFERS:-64MB}"
       - "-c"
       - "random_page_cost=1.1"
       - "-c"
@@ -201,8 +203,11 @@ services:
       - "max_parallel_workers_per_gather=${PG_PARALLEL_PER_GATHER:-2}"
       - "-c"
       - "max_parallel_maintenance_workers=${PG_PARALLEL_MAINTENANCE:-3}"
+      # Derived (audit row, 2026-08-30): from the postgres memory cap —
+      # each connection is real memory. clamp(pg_mb/23, 100, 800): 200 on
+      # the 8 GB reference, 800 on burst iron (widens the lane universe).
       - "-c"
-      - "max_connections=200"
+      - "max_connections=${PG_MAX_CONNECTIONS:-200}"
       - "-c"
       - "statement_timeout=0"
       - "-c"
@@ -362,7 +367,8 @@ services:
     # which reads as random mapper hangs/499s. Bounding memory keeps the
     # reload window sub-second; allkeys-lru evicts the coldest regenerable
     # cache entries first.
-    command: redis-server --appendonly yes --maxmemory 768mb --maxmemory-policy allkeys-lru
+    # Derived (audit row, 2026-08-30): host/10 with the proven 768mb floor.
+    command: redis-server --appendonly yes --maxmemory ${REDIS_CACHE_MAXMEMORY:-768mb} --maxmemory-policy allkeys-lru
     volumes:
       - redis_data:/data                   # persists cache/queue data
     networks:

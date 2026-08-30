@@ -314,7 +314,16 @@ class RasterTileController extends Controller
         if (!is_dir($dir)) {
             @mkdir($dir, 0775, true);
         }
-        @file_put_contents($fullPath, $png);
+        // RACE-SAFE (audit structural row, operator order 2026-08-30): two
+        // writers on one tile used to interleave through a shared
+        // file_put_contents — the stated reason supervisor-prewarm was
+        // pinned to 1. Per-writer temp file + atomic rename: a reader only
+        // ever sees a complete tile, the last full write wins, and the
+        // prewarm width may now derive instead of staying serialized.
+        $tmp = $fullPath.'.'.getmypid().'.tmp';
+        if (@file_put_contents($tmp, $png) !== false) {
+            @rename($tmp, $fullPath) || @unlink($tmp);
+        }
     }
 
     /**

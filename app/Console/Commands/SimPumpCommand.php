@@ -136,7 +136,19 @@ class SimPumpCommand extends Command
             return;
         }
 
-        $target = HostCapacity::autoscaleWorkers();
+        // THE SHARED BUDGET (audit structural row, operator order
+        // 2026-08-30): supervisor-autoscale and supervisor-sim each size
+        // to the full host, so simultaneous work used to double-book the
+        // box at 2× lanes. The budget is enforced HERE, at the seeding
+        // plane, where it can be dynamic: sim yields to live autoscale
+        // lanes and takes the remainder (floor 2, the lane law's
+        // lanes-flow-to-the-survivor in the other direction — when the
+        // autoscale run drains, sim inherits the full width on the next
+        // pump minute).
+        $autoscaleLive = (int) DB::table('autoscale_worker_leases')
+            ->where('last_seen_at', '>', now()->subMinutes(2))
+            ->count();
+        $target = max(2, HostCapacity::autoscaleWorkers() - $autoscaleLive);
 
         $live = (int) DB::table('sim_worker_leases')
             ->where('run_id', $run->id)

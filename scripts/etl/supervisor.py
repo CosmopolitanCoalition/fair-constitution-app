@@ -429,7 +429,24 @@ def default_worker_count() -> int:
     if override and override.isdigit() and int(override) > 0:
         return int(override)
     cores = os.cpu_count() or 4
-    return max(2, min(12, cores - 2))
+    # WAIT-AWARE (audit row, 2026-08-30 — the same upgrade the PHP lane
+    # formula got on 2026-08-29): a worker's second splits between compute
+    # and waiting on postgres, so lanes lawfully exceed cores; busy_factor
+    # prices a lane's true core cost (0.86 measured on the 12-core
+    # reference; CGA_ETL_BUSY_FACTOR re-pins per host). The ceiling is the
+    # postgres connection budget, mirroring HostCapacity: (max_connections
+    # − 30) / 3, read from PG_MAX_CONNECTIONS (the installers write it),
+    # floored at 4 so a tiny setting cannot strangle a capable host.
+    try:
+        busy = float(os.environ.get("CGA_ETL_BUSY_FACTOR", "0.86")) or 0.86
+    except ValueError:
+        busy = 0.86
+    try:
+        max_conn = int(os.environ.get("PG_MAX_CONNECTIONS", "200") or 200)
+    except ValueError:
+        max_conn = 200
+    conn_cap = max(4, (max_conn - 30) // 3)
+    return max(2, min(conn_cap, int((cores - 0.5) / busy)))
 
 
 def run_pool_mode(request_payload: dict) -> int:

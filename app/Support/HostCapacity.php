@@ -3,23 +3,28 @@
 namespace App\Support;
 
 /**
- * Host worker sizing (pull engine, 2026-07-19).
+ * Host capacity derivations (pull engine, 2026-07-19; wait-aware rewrite
+ * 2026-08-29; audit derivations 2026-08-30).
  *
  * ONE concurrency limiter: the Horizon supervisor-autoscale process count =
- * autoscaleWorkers(). The AIMD width governor and the per-job release()
- * gate are gone (operator ruling: the stacked self-regulation "clearly does
- * not know what it's doing"). A pull worker claims one unit at a time, so
- * process count IS concurrency — no second dial.
+ * autoscaleWorkers(). A pull worker claims one unit at a time, so process
+ * count IS concurrency — no second dial.
  *
- *   workers = clamp( cores − 2, 2, 12 )
+ *   workers = min( (cores − reserve) / busy_factor,  (max_connections − 30) / 3 )
  *
- * Two cores stay reserved for the platform (web, redis, scheduler, the
- * operator's own browsing); 12 is the contention cap (audit-chain lock +
- * Postgres). 12-core box → 10.
+ * The wait-aware formula (operator order 2026-08-29): a lane's second
+ * splits between PHP compute and waiting on postgres, so lanes lawfully
+ * exceed cores; busy_factor (measured 0.86 on the 12-core reference:
+ * php 0.55 + pg 0.31 per lane) prices a lane's true core cost. The
+ * ceiling derives from the postgres connection budget (each lane holds a
+ * connection, ~3× safety, 30 reserved for the web tier), floored at 4 so
+ * a tiny max_connections cannot strangle a capable host. Floor 2 keeps a
+ * Pi honest. Re-measure busy_factor with scripts/measure-busy-factor.sh
+ * (operator order 2026-08-30) and pin via CGA_AUTOSCALE_BUSY_FACTOR.
  *
- * CGA_AUTOSCALE_WORKERS overrides everything (operator dial). The value is
- * resolved at config load, so `config:cache` freezes it per host — exactly
- * right: capacity is a host property.
+ * CGA_AUTOSCALE_WORKERS overrides everything (operator dial). Values
+ * resolve at config load, so `config:cache` freezes them per host —
+ * exactly right: capacity is a host property.
  */
 class HostCapacity
 {
@@ -58,6 +63,36 @@ class HostCapacity
         $connCap = (int) floor((self::pgMaxConnections() - 30) / 3);
 
         return max(2, min(max(4, $connCap), (int) floor((self::cpuCores() - $reserve) / $busyFactor)));
+    }
+
+    /**
+     * Horizon master memory limit in MB (audit row, 2026-08-30):
+     * clamp(16 × host GB, 64, 256). 128 on the 8 GB reference box.
+     */
+    public static function horizonMasterMemoryMb(): int
+    {
+        return (int) max(64, min(256, self::hostMemoryGb() * 16));
+    }
+
+    /** Default-queue supervisor width: a third of the lane pool (audit row). */
+    public static function defaultQueueWorkers(): int
+    {
+        return max(2, (int) ceil(self::autoscaleWorkers() / 3));
+    }
+
+    /**
+     * Per-worker memory-recycle thresholds in MB (audit row): heavy lanes
+     * (autoscale/sim/long-running) and light lanes (default queue) scale
+     * with the host, floored at today's proven values so no box regresses.
+     */
+    public static function workerRecycleHeavyMb(): int
+    {
+        return (int) max(512, min(2048, self::hostMemoryGb() * 64));
+    }
+
+    public static function workerRecycleLightMb(): int
+    {
+        return (int) max(128, min(512, self::hostMemoryGb() * 16));
     }
 
     /** postgres max_connections, cached per process; 100 when unreachable. */

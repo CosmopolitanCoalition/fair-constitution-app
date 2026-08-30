@@ -300,7 +300,8 @@ function Configure-HostMemory {
     if ($totalMb -le 0) { return }   # can't measure — compose fallbacks apply
 
     function Clamp([double]$v, [int]$lo, [int]$hi) { [int][math]::Max($lo, [math]::Min($hi, [math]::Floor($v))) }
-    $pgMb  = Clamp ($totalMb * 0.60) 1024 16384   # postgres ~60% of the host
+    # Ceiling lifted (audit row, 2026-08-30): 16 GB starved burst iron.
+    $pgMb  = Clamp ($totalMb * 0.60) 1024 262144   # postgres ~60% of the host
     # ETL_MEM_LIMIT is no longer written (THE LIVE WALL, 2026-08-06): etl
     # runs uncapped and its admission sizes against MemAvailable on the fly;
     # chunk profiles self-govern to the same 30% posture in code
@@ -325,13 +326,21 @@ function Configure-HostMemory {
     if ($cores -le 0) { try { $cores = [int]$env:NUMBER_OF_PROCESSORS } catch { } }
     if ($cores -le 0) { $cores = 4 }
 
+    # Ceilings lifted where they only bound big iron (audit 2026-08-30).
+    # KEPT deliberately: shared_buffers <= 512MB (the headroom law) and
+    # global work_mem <= 64MB (lanes raise their own sessions).
     $derived = [ordered]@{
         POSTGRES_MEM_LIMIT = "${pgMb}m"
         PG_SHARED_BUFFERS  = (Clamp ($pgMb / 9.0) 128  512).ToString() + 'MB'
-        PG_EFFECTIVE_CACHE = (Clamp ($pgMb * 0.80) 256 13000).ToString() + 'MB'
+        PG_EFFECTIVE_CACHE = (Clamp ($pgMb * 0.80) 256 210000).ToString() + 'MB'
         PG_WORK_MEM        = (Clamp ($pgMb / 72.0)   8   64).ToString() + 'MB'
-        PG_MAINTENANCE_MEM = (Clamp ($pgMb / 9.0) 128  512).ToString() + 'MB'
-        PG_MAX_WAL         = (Clamp ($pgMb * 1.60) 512 16384).ToString() + 'MB'
+        PG_MAINTENANCE_MEM = (Clamp ($pgMb / 9.0) 128 4096).ToString() + 'MB'
+        PG_MAX_WAL         = (Clamp ($pgMb * 1.60) 512 65536).ToString() + 'MB'
+        PG_MIN_WAL         = (Clamp ($pgMb * 0.20) 512 8192).ToString() + 'MB'
+        PG_WAL_BUFFERS     = (Clamp ($pgMb / 72.0) 16 128).ToString() + 'MB'
+        PG_SHM_SIZE        = (Clamp ($pgMb / 4.0) 1024 8192).ToString() + 'm'
+        PG_MAX_CONNECTIONS = (Clamp ($pgMb / 23.0) 100 800).ToString()
+        REDIS_CACHE_MAXMEMORY = (Clamp ($totalMb / 10.0) 768 8192).ToString() + 'mb'
         # Parallel posture: workers=cores, parallel=cores/2, per_gather
         # small (many concurrent lanes beat wide gathers), maintenance=cores/4.
         PG_MAX_WORKER_PROCESSES = (Clamp $cores 8 64).ToString()
