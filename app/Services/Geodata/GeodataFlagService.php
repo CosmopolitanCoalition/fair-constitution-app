@@ -89,7 +89,16 @@ class GeodataFlagService
     private function clampSessionMemory(): void
     {
         try {
-            DB::statement("SET work_mem = '32MB'");
+            // DERIVED, not the 32MB constant (lane 2G's audit row 3,
+            // operator order 2026-08-30): the postgres cap (~60% of host)
+            // minus shared_buffers minus the 2 GB giant-geometry reserve,
+            // split across the six detector lanes, halved for a second
+            // sort node. Detectors sort in memory on a box that affords it
+            // and still spill safely on a Pi. ~128MB on the 8 GB reference.
+            $mb = (int) max(32, min(512,
+                (\App\Support\HostCapacity::hostMemoryGb() * 1024.0 * 0.6 - 512.0 - 2048.0) / 6.0 / 2.0
+            ));
+            DB::statement(sprintf("SET work_mem = '%dMB'", $mb));
             DB::statement("SET hash_mem_multiplier = 1.0");
             DB::statement('SET max_parallel_workers_per_gather = 0');
             DB::statement('SET jit = off');

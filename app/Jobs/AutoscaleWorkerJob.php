@@ -106,6 +106,18 @@ class AutoscaleWorkerJob implements ShouldQueue
         $startedAt = time();
         $failures  = 0;
 
+        // Per-lane session work_mem (lane 2G's audit row 4, operator order
+        // 2026-08-30): the global setting stays web-tier conservative; a
+        // districting lane's session sorts and hashes bigger. Derived,
+        // session-scoped, dies with this worker's connection.
+        try {
+            // SET is a utility statement — no bind parameters; the value is
+            // an int from our own derivation.
+            DB::statement(sprintf("SET work_mem = '%dMB'", HostCapacity::laneWorkMemMb()));
+        } catch (\Throwable) {
+            // The global default stands — never fatal.
+        }
+
         try {
             while (true) {
                 if (\function_exists('pcntl_signal_dispatch')) {

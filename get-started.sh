@@ -217,17 +217,71 @@ configure_host_memory() {
   # not by this host — shared_buffers stays SMALL so (cap - shared_buffers)
   # funds that backend. The old 12.5%-of-host derivation shaved the legacy
   # Phase-L headroom and kernel-kill-looped giants. Mirrors get-started.ps1.
+
+  # Cores for the parallel posture (lane 2G's audit, operator order
+  # 2026-08-30). Docker's own count is the truthful host, same as memory.
+  cores=$(docker info --format '{{.NCPU}}' 2>/dev/null || echo 0)
+  [ "${cores:-0}" -gt 0 ] || cores=$(nproc 2>/dev/null || echo 4)
+
+  # THE RE-DERIVE MECHANISM (operator order 2026-08-30, the cloud-box
+  # enabler): every value this function writes is listed in the
+  # DERIVED_KEYS ledger inside .env. `./get-started.sh --rederive` (after
+  # a resize) re-measures the host and overwrites every value STILL in the
+  # ledger; a hand-pinned value is one the operator edited AND removed
+  # from DERIVED_KEYS — it is never clobbered. A missing ledger
+  # bootstraps itself: any current value that exactly equals its fresh
+  # derivation is self-evidently derived and joins the ledger.
+  ledger="$(get_env DERIVED_KEYS)"
+  ledger_boot=0; [ -z "$ledger" ] && ledger_boot=1
+  in_ledger()  { case ",$ledger," in *",$1,"*) return 0;; *) return 1;; esac; }
+  ledger_add() { in_ledger "$1" || ledger="${ledger:+$ledger,}$1"; }
   wrote=0
-  set_if_absent() { [ -n "$(get_env "$1")" ] || { set_env "$1" "$2"; wrote=1; }; }
-  set_if_absent POSTGRES_MEM_LIMIT "${pg_mb}m"
-  set_if_absent PG_SHARED_BUFFERS  "$(clamp $(( pg_mb / 9 )) 128  512)MB"
-  set_if_absent PG_EFFECTIVE_CACHE "$(clamp $(( pg_mb * 80 / 100 )) 256 13000)MB"
-  set_if_absent PG_WORK_MEM        "$(clamp $(( pg_mb / 72 ))   8   64)MB"
-  set_if_absent PG_MAINTENANCE_MEM "$(clamp $(( pg_mb / 9 )) 128  512)MB"
-  set_if_absent PG_MAX_WAL         "$(clamp $(( pg_mb * 160 / 100 )) 512 16384)MB"
-  [ "$wrote" -eq 1 ] && say "      Memory sized from this host (${total_mb} MB RAM): postgres ${pg_mb}m, etl uncapped (live wall)."
+  write_derived() { # key fresh-value
+    cur="$(get_env "$1")"
+    if [ -z "$cur" ]; then
+      set_env "$1" "$2"; wrote=1; ledger_add "$1"
+    elif [ "$ledger_boot" -eq 1 ] && [ "$cur" = "$2" ]; then
+      ledger_add "$1"
+    elif [ "${REDERIVE:-0}" = "1" ] && in_ledger "$1" && [ "$cur" != "$2" ]; then
+      set_env "$1" "$2"; wrote=1
+      say "      rederived $1: $cur -> $2"
+    fi
+  }
+  write_derived POSTGRES_MEM_LIMIT "${pg_mb}m"
+  write_derived PG_SHARED_BUFFERS  "$(clamp $(( pg_mb / 9 )) 128  512)MB"
+  write_derived PG_EFFECTIVE_CACHE "$(clamp $(( pg_mb * 80 / 100 )) 256 13000)MB"
+  write_derived PG_WORK_MEM        "$(clamp $(( pg_mb / 72 ))   8   64)MB"
+  write_derived PG_MAINTENANCE_MEM "$(clamp $(( pg_mb / 9 )) 128  512)MB"
+  write_derived PG_MAX_WAL         "$(clamp $(( pg_mb * 160 / 100 )) 512 16384)MB"
+  # Parallel posture: workers=cores, parallel=cores/2, per_gather small
+  # (many concurrent lanes beat wide gathers), maintenance=cores/4.
+  write_derived PG_MAX_WORKER_PROCESSES  "$(clamp "$cores" 8 64)"
+  write_derived PG_MAX_PARALLEL_WORKERS  "$(clamp $(( cores / 2 )) 2 32)"
+  write_derived PG_PARALLEL_PER_GATHER   "$(clamp $(( cores / 6 )) 1 4)"
+  write_derived PG_PARALLEL_MAINTENANCE  "$(clamp $(( cores / 4 )) 1 8)"
+  # The queue redis (noeviction) sizes from the host; the split itself is
+  # host-independent wiring, written once, never rederived.
+  write_derived REDIS_QUEUE_MAXMEMORY "$(clamp $(( total_mb / 40 )) 128 1024)mb"
+  [ -n "$(get_env REDIS_QUEUE_HOST)" ] || set_env REDIS_QUEUE_HOST redis_queue
+  set_env DERIVED_KEYS "$ledger"
+  [ "$wrote" -eq 1 ] && say "      Memory sized from this host (${total_mb} MB RAM, ${cores} cores): postgres ${pg_mb}m, etl uncapped (live wall)."
   return 0
 }
+
+# --rederive (operator order 2026-08-30): after a host resize — the cloud
+# burst box throttling up or down — re-measure and overwrite every value
+# still in the DERIVED_KEYS ledger, report what changed, and stop. The
+# operator recreates the named services when ready; nothing boots here.
+if [ "${1:-}" = "--rederive" ]; then
+  REDERIVE=1
+  say "Re-deriving host-sized values (hand-pinned values — those removed from DERIVED_KEYS — stay untouched)..."
+  configure_host_memory
+  say "Done. Changed values apply on service RECREATE:"
+  say "  postgres  — POSTGRES_MEM_LIMIT + every PG_* value"
+  say "  redis_queue — REDIS_QUEUE_MAXMEMORY"
+  say "  docker compose up -d --force-recreate postgres redis_queue   (when the box is quiet)"
+  exit 0
+fi
 
 say "[4/5] Configuring..."
 configure_map_data "$FIRST_RUN"

@@ -76,6 +76,37 @@ class HostCapacity
         return $n > 0 ? $n : 100;
     }
 
+    /**
+     * Per-lane session work_mem in MB (lane 2G's audit row 4, operator
+     * order 2026-08-30). Postgres' global work_mem stays conservative for
+     * the web tier; a districting lane's session may sort/hash bigger.
+     * Derivation: the postgres container cap is ~60% of host (the
+     * installers' law), minus shared_buffers, minus a 2 GB transient
+     * reserve for giant-geometry operators, split across the lanes, halved
+     * for the occasional second sort node. Clamped [16, 256]. On the 8 GB
+     * reference box: (4691 − 512 − 2048) / 13 / 2 ≈ 81 MB.
+     */
+    public static function laneWorkMemMb(): int
+    {
+        $override = (int) env('CGA_LANE_WORK_MEM_MB', 0);
+        if ($override > 0) {
+            return $override;
+        }
+        $pgCapMb = self::hostMemoryGb() * 1024.0 * 0.6;
+        $sharedMb = 512.0;
+        try {
+            $raw = (string) (\Illuminate\Support\Facades\DB::selectOne(
+                'SELECT current_setting(?) AS v', ['shared_buffers'])->v ?? '512MB');
+            $sharedMb = str_ends_with($raw, 'GB')
+                ? ((float) $raw) * 1024.0
+                : (float) $raw;
+        } catch (\Throwable) {
+            // fallback stands
+        }
+
+        return (int) max(16, min(256, ($pgCapMb - $sharedMb - 2048.0) / max(self::autoscaleWorkers(), 1) / 2.0));
+    }
+
     /** Host (VM) memory in GiB, from /proc/meminfo; 8 when unreadable. */
     public static function hostMemoryGb(): float
     {

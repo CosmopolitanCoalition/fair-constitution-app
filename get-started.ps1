@@ -2,7 +2,13 @@ param(
     # Re-ask the build-dependent questions (map-data folder, etc.) on an existing
     # box and recreate the containers so the answers take effect. Use this instead
     # of hand-running docker commands to change where the app reads map data.
-    [switch]$Reconfigure
+    [switch]$Reconfigure,
+    # Re-derive host-sized values after a resize (operator order 2026-08-30,
+    # the cloud-box enabler): re-measures the host and overwrites every value
+    # still listed in the .env DERIVED_KEYS ledger, reports what changed, and
+    # stops. Hand-pinned values (edited AND removed from DERIVED_KEYS) are
+    # never clobbered. Recreate postgres / redis_queue afterwards.
+    [switch]$Rederive
 )
 
 # Cosmopolitan Governance App - get started (Windows 10/11)
@@ -312,6 +318,13 @@ function Configure-HostMemory {
     # what PG_EFFECTIVE_CACHE tells the planner). 512MB is plenty at any
     # scale this app runs at; work_mem is per-sort-per-connection and 64MB
     # is already generous.
+    # Cores for the parallel posture (lane 2G's audit, operator order
+    # 2026-08-30). Docker's own count is the truthful host, same as memory.
+    $cores = 0
+    try { $cores = [int](& docker info --format '{{.NCPU}}' 2>$null) } catch { }
+    if ($cores -le 0) { try { $cores = [int]$env:NUMBER_OF_PROCESSORS } catch { } }
+    if ($cores -le 0) { $cores = 4 }
+
     $derived = [ordered]@{
         POSTGRES_MEM_LIMIT = "${pgMb}m"
         PG_SHARED_BUFFERS  = (Clamp ($pgMb / 9.0) 128  512).ToString() + 'MB'
@@ -319,14 +332,55 @@ function Configure-HostMemory {
         PG_WORK_MEM        = (Clamp ($pgMb / 72.0)   8   64).ToString() + 'MB'
         PG_MAINTENANCE_MEM = (Clamp ($pgMb / 9.0) 128  512).ToString() + 'MB'
         PG_MAX_WAL         = (Clamp ($pgMb * 1.60) 512 16384).ToString() + 'MB'
+        # Parallel posture: workers=cores, parallel=cores/2, per_gather
+        # small (many concurrent lanes beat wide gathers), maintenance=cores/4.
+        PG_MAX_WORKER_PROCESSES = (Clamp $cores 8 64).ToString()
+        PG_MAX_PARALLEL_WORKERS = (Clamp ($cores / 2.0) 2 32).ToString()
+        PG_PARALLEL_PER_GATHER  = (Clamp ($cores / 6.0) 1 4).ToString()
+        PG_PARALLEL_MAINTENANCE = (Clamp ($cores / 4.0) 1 8).ToString()
+        # The queue redis (noeviction) sizes from the host.
+        REDIS_QUEUE_MAXMEMORY   = (Clamp ($totalMb / 40.0) 128 1024).ToString() + 'mb'
     }
+
+    # THE RE-DERIVE MECHANISM (operator order 2026-08-30): the DERIVED_KEYS
+    # ledger in .env lists every value this function owns. -Rederive
+    # overwrites values still in the ledger; a hand-pinned value (edited
+    # AND removed from the ledger) is never clobbered. A missing ledger
+    # bootstraps itself: a current value equal to its fresh derivation is
+    # self-evidently derived. Mirrors get-started.sh exactly.
+    $ledger = @((Get-EnvValue 'DERIVED_KEYS') -split ',' | Where-Object { $_ -ne '' })
+    $ledgerBoot = ($ledger.Count -eq 0)
     $wrote = @()
     foreach ($k in $derived.Keys) {
-        if ((Get-EnvValue $k) -eq '') { Set-EnvValue $k $derived[$k]; $wrote += $k }
+        $cur = Get-EnvValue $k
+        if ($cur -eq '') {
+            Set-EnvValue $k $derived[$k]; $wrote += $k
+            if ($ledger -notcontains $k) { $ledger += $k }
+        } elseif ($ledgerBoot -and $cur -eq $derived[$k]) {
+            $ledger += $k
+        } elseif ($Rederive -and $ledger -contains $k -and $cur -ne $derived[$k]) {
+            Set-EnvValue $k $derived[$k]; $wrote += $k
+            Say "      rederived ${k}: $cur -> $($derived[$k])"
+        }
     }
+    if ((Get-EnvValue 'REDIS_QUEUE_HOST') -eq '') { Set-EnvValue 'REDIS_QUEUE_HOST' 'redis_queue' }
+    Set-EnvValue 'DERIVED_KEYS' ($ledger -join ',')
     if ($wrote.Count -gt 0) {
-        Say ("      Memory sized from this host ({0:N1} GB RAM): postgres {1}, etl uncapped (live wall)." -f ($totalMb/1024), $derived.POSTGRES_MEM_LIMIT)
+        Say ("      Memory sized from this host ({0:N1} GB RAM, {1} cores): postgres {2}, etl uncapped (live wall)." -f ($totalMb/1024), $cores, $derived.POSTGRES_MEM_LIMIT)
     }
+}
+
+# -Rederive (operator order 2026-08-30): after a host resize — the cloud
+# burst box throttling up or down — re-measure, overwrite every value still
+# in the DERIVED_KEYS ledger, report, and stop. Nothing boots here.
+if ($Rederive) {
+    Say 'Re-deriving host-sized values (hand-pinned values - those removed from DERIVED_KEYS - stay untouched)...'
+    Configure-HostMemory
+    Say 'Done. Changed values apply on service RECREATE:'
+    Say '  postgres    - POSTGRES_MEM_LIMIT + every PG_* value'
+    Say '  redis_queue - REDIS_QUEUE_MAXMEMORY'
+    Say '  docker compose up -d --force-recreate postgres redis_queue   (when the box is quiet)'
+    exit 0
 }
 
 # -- 4. Configure the build-dependent settings (before the containers build) --

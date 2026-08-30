@@ -188,14 +188,19 @@ services:
       - "random_page_cost=1.1"
       - "-c"
       - "effective_io_concurrency=200"
+      # Derived parallel posture (lane 2G's audit, operator order
+      # 2026-08-30): workers=cores, parallel=cores/2, per_gather=2 (13
+      # concurrent lanes leave no headroom for 4-wide gathers per query),
+      # maintenance=cores/4. Env-overridable; installers derive per host.
+      # Applies on container RECREATE, not restart.
       - "-c"
-      - "max_worker_processes=8"
+      - "max_worker_processes=${PG_MAX_WORKER_PROCESSES:-12}"
       - "-c"
-      - "max_parallel_workers=8"
+      - "max_parallel_workers=${PG_MAX_PARALLEL_WORKERS:-6}"
       - "-c"
-      - "max_parallel_workers_per_gather=4"
+      - "max_parallel_workers_per_gather=${PG_PARALLEL_PER_GATHER:-2}"
       - "-c"
-      - "max_parallel_maintenance_workers=4"
+      - "max_parallel_maintenance_workers=${PG_PARALLEL_MAINTENANCE:-3}"
       - "-c"
       - "max_connections=200"
       - "-c"
