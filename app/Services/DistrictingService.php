@@ -39,15 +39,26 @@ use Illuminate\Support\Str;
  *
  * APPORTIONMENT LAW (operator ruling 2026-07-13 — there is NO Webster /
  * Sainte-Laguë / largest-remainder method anywhere in this legislature):
- * the root's cube-root total splits to children by population share with
- * the CHILDREN-SUM as denominator (geodata noise means parent pop ≠
- * Σchildren); children whose share would round past the ceiling (≥
- * ceiling+0.5) round to NEAREST WHOLE immediately and lock; the budget
+ * the root's cube-root total splits to children by population share, each
+ * child's own row over the sum of the direct children's own rows (THE
+ * LEVEL LAW below); children whose share would round past the
+ * ceiling (≥ ceiling+0.5) round to NEAREST WHOLE immediately and lock; the budget
  * minus the locked giants redistributes among the rest, repeating down the
  * layers (computeSeatBudget + Steps 2-5). Drawn districts then round to
  * nearest INDEPENDENTLY (Step 11) — no total-forcing, no rebudgeting after
  * the giant split. A pool whose drawn districts miss whole multiples seats
  * a drifted total; that is the drawing's defect to fix by redrawing.
+ *
+ * THE LEVEL LAW (operator ruling 2026-08-30, his walk): every seat split
+ * reads exactly ONE level — the direct children's own population rows.
+ * Each child's own row is its numerator; the sum of the children's own
+ * rows is the denominator; drilling into a giant starts the same
+ * calculation fresh over that giant's direct children's own rows; the
+ * root's chamber sizes from the root's OWN row. One split, one level, one
+ * frame (levelRows). Three landings make every total exact (the Germany
+ * 439 convergence, 2026-08-30): the fixed-composition seat landing at
+ * Step 11, the all-giant lock landing in giantChildrenForScope, and the
+ * stale-scope purge after every full-map sweep.
  */
 class DistrictingService
 {
@@ -73,6 +84,39 @@ class DistrictingService
 
     /** Per-request memo for getLegislature(). */
     private array $legislatureMemo = [];
+
+    /** Per-request memo for the level-law reader (levelRows). */
+    private array $levelRowsMemo = [];
+
+    /**
+     * THE LEVEL LAW (operator ruling 2026-08-30, his walk): every seat
+     * split reads exactly ONE level — the direct children's own population
+     * rows. The child's own row is every numerator; the sum of the
+     * children's rows is the denominator; drilling into a giant starts the
+     * same calculation fresh over ITS direct children's rows. No number
+     * from the level above ever crosses down. The memo lives on the
+     * instance only — a base pinned across population writes minted the
+     * Founding-Map Bayern 70/71.
+     *
+     * @return array<string, int> direct live child id => its own population row
+     */
+    public function levelRows(string $parentId): array
+    {
+        if (isset($this->levelRowsMemo[$parentId])) {
+            return $this->levelRowsMemo[$parentId];
+        }
+
+        $out = [];
+        $rows = DB::table('jurisdictions')
+            ->where('parent_id', $parentId)
+            ->whereNull('deleted_at')
+            ->pluck('population', 'id');
+        foreach ($rows as $id => $pop) {
+            $out[(string) $id] = (int) $pop;
+        }
+
+        return $this->levelRowsMemo[$parentId] = $out;
+    }
 
     /**
      * Shared-border lengths for the scope currently being autoseeded, keyed
@@ -128,6 +172,14 @@ class DistrictingService
             ->where('id', $legislatureId)
             ->whereNull('deleted_at')
             ->first();
+        // NULL IS NOT A MEMOIZABLE ANSWER (the Bayern 70/71 verdict,
+        // 2026-08-30): one transient miss cached here poisoned every
+        // downstream budget ask for the instance's whole life. A found row
+        // caches; a miss retries next ask.
+        if ($row === null) {
+            return null;
+        }
+
         return $this->legislatureMemo[$legislatureId] = $row;
     }
 
@@ -169,7 +221,8 @@ class DistrictingService
         }
 
         $leg = $this->getLegislature($legislatureId);
-        if (!$leg) return $this->seatBudgetMemo[$key] = null;
+        // Null is never memoized (the Bayern verdict, 2026-08-30).
+        if (!$leg) return null;
 
         // ── Path 1: ROOT ─────────────────────────────────────────────
         if ($jurisdictionId === $leg->jurisdiction_id) {
@@ -257,28 +310,31 @@ class DistrictingService
         // Path 1.5 answers them from the cascade, which is the whole point.
         // ($self was already loaded by Path 1.5 — giants are resolved there.)
         if (!$self || !$self->parent_id) {
-            return $this->seatBudgetMemo[$key] = null;
+            return null;   // null is never memoized (2026-08-30)
         }
 
         $parentBudget = $this->computeSeatBudget($self->parent_id, $legislatureId);
         if ($parentBudget === null) {
-            return $this->seatBudgetMemo[$key] = null;
+            return null;   // null is never memoized (2026-08-30)
         }
 
-        // Calc A: Q(parent) = Σ children pop / S(parent);
-        //         frac(self) = self.pop / Q(parent).
-        // Sum of all parent-children fracs equals S(parent) exactly,
-        // so chaining stays budget-exact at every level.
-        $parentChildrenPop = (int) DB::table('jurisdictions')
-            ->where('parent_id', $self->parent_id)
-            ->whereNull('deleted_at')
-            ->sum('population');
+        // Calc A — THE LEVEL LAW (operator ruling 2026-08-30, his walk):
+        //         Q(parent) = Σ direct-children rows / S(parent);
+        //         frac(self) = self's own row / Q(parent).
+        // Every split reads ONE level: the direct children's own rows give
+        // every numerator, and their sum gives the denominator. No number
+        // from the level above ever crosses down; drilling a giant starts
+        // the same calculation fresh over ITS direct children's rows. The
+        // sum of all parent-children fracs equals S(parent) exactly, so
+        // chaining stays budget-exact at every level.
+        $siblings = $this->levelRows((string) $self->parent_id);
+        $parentChildrenPop = array_sum($siblings);
         if ($parentChildrenPop <= 0) {
-            return $this->seatBudgetMemo[$key] = null;
+            return null;   // null is never memoized (2026-08-30)
         }
 
         $parentLocalQuota = $parentChildrenPop / max($parentBudget, 1);
-        $frac  = ((int) $self->population) / max($parentLocalQuota, 1);
+        $frac  = ($siblings[$jurisdictionId] ?? 0) / max($parentLocalQuota, 1);
         $floor = ConstitutionalDefaults::floor($leg->jurisdiction_id);
 
         return $this->seatBudgetMemo[$key] = max($floor, (int) round($frac));
@@ -327,6 +383,8 @@ class DistrictingService
             ->whereNull('deleted_at')
             ->get(['id', 'population', DB::raw('(geom IS NOT NULL) AS has_geom')]);
 
+        // THE LEVEL LAW (2026-08-30): the rows above ARE the frame — each
+        // child's own row is its numerator and their sum is the denominator.
         $childSum = (int) $children->sum('population');
         if ($childSum <= 0) {
             return [];
@@ -387,6 +445,68 @@ class DistrictingService
             }
             if (! $promoted) {
                 break;
+            }
+        }
+
+        // THE ALL-GIANT LOCK LANDING (operator, 2026-08-30 — the NRW 95-on-94).
+        // When EVERY populated child is a locked giant, there is no pool to
+        // absorb rounding: nearest locks can oversum the scope budget
+        // (Düsseldorf 27 + Köln 24 + Arnsberg 19 + Münster 14 + Detmold 11
+        // = 95 on NRW's 94) and the law's redistribution step has no "rest"
+        // to run on. The lock vector lands by the same least-distortion
+        // greedy as optimalIntegerTargets, in the scope's own frame
+        // (quota = children-sum / budget): repeatedly demote (or promote)
+        // the lock whose change costs the least |pop − seats×quota|, floor
+        // low-bound, deterministic ties to the lowest child id. Exactness
+        // outranks nearest (drift-is-always-wrong, 0e9eda0).
+        $unlockedPop = 0;
+        foreach ($children as $c) {
+            if (! isset($locked[(string) $c->id])) {
+                $unlockedPop += (int) $c->population;
+            }
+        }
+        $lockedSum = array_sum($locked);
+        if ($locked !== [] && $unlockedPop === 0 && $lockedSum !== $budget) {
+            $popById = [];
+            foreach ($children as $c) {
+                $popById[(string) $c->id] = (float) $c->population;
+            }
+            $frameQuota = $childSum / max($budget, 1);
+            $cost = fn (float $p, int $s): float => abs($p - $s * $frameQuota);
+            while ($lockedSum > $budget) {
+                $bestId = null;
+                $bestDelta = PHP_FLOAT_MAX;
+                foreach ($locked as $id => $s) {
+                    if ($s <= max($floor, 1)) {
+                        continue;
+                    }
+                    $delta = $cost($popById[$id], $s - 1) - $cost($popById[$id], $s);
+                    if ($delta < $bestDelta || ($delta === $bestDelta && ($bestId === null || $id < $bestId))) {
+                        $bestDelta = $delta;
+                        $bestId = $id;
+                    }
+                }
+                if ($bestId === null) {
+                    break;
+                }
+                $locked[$bestId]--;
+                $lockedSum--;
+            }
+            while ($lockedSum < $budget) {
+                $bestId = null;
+                $bestDelta = PHP_FLOAT_MAX;
+                foreach ($locked as $id => $s) {
+                    $delta = $cost($popById[$id], $s + 1) - $cost($popById[$id], $s);
+                    if ($delta < $bestDelta || ($delta === $bestDelta && ($bestId === null || $id < $bestId))) {
+                        $bestDelta = $delta;
+                        $bestId = $id;
+                    }
+                }
+                if ($bestId === null) {
+                    break;
+                }
+                $locked[$bestId]++;
+                $lockedSum++;
             }
         }
 
@@ -530,8 +650,25 @@ class DistrictingService
         // downstream reads it — so adopt it whenever it is available and
         // agrees about the budget being divided.
         $cascadeGiants = $this->giantChildrenForScope($scopeId, $legislature_id);
+        // THE GATE THAT KNEW now SAYS SO (the Bayern 70/71 verdict, operator
+        // order 2026-08-30): this compare detected the draw-time budget
+        // disagreement and previously took a silent else-branch, drawing the
+        // wrong number in the local frame — the conflict was computed,
+        // compared, and discarded. A mismatch now fails the scope loudly
+        // into review with both numbers logged; a silent wrong map becomes
+        // a loud flagged one.
+        $gateBudget = $this->computeSeatBudget($scopeId, $legislature_id);
+        if ($cascadeGiants !== [] && $gateBudget !== $seatBudget) {
+            throw new \RuntimeException(sprintf(
+                'Budget-frame disagreement at scope %s: the cascade says %s, this draw was handed %d '
+                .'— refusing to seat a disputed budget (operator ruling 2026-08-30).',
+                $scopeId,
+                $gateBudget === null ? 'null' : (string) $gateBudget,
+                $seatBudget
+            ));
+        }
         if ($cascadeGiants !== []
-            && $this->computeSeatBudget($scopeId, $legislature_id) === $seatBudget) {
+            && $gateBudget === $seatBudget) {
             $giantSeats   = [];
             $regrouped    = [];
             $regroupedNon = [];
@@ -1631,6 +1768,23 @@ class DistrictingService
             array_map(fn ($bb) => (float) $bb['pop'], $binData),
             $binQuota, $effectiveBudget, $floor, $ceiling
         );
+        // THE FIXED-COMPOSITION LANDING (operator, 2026-08-30 — "the correct
+        // number is 439 and 70"). When the nearest vector misses the budget
+        // and no recomposition is legal (the Bayern pool: 6.92+6.65+5.89+5.54
+        // rounds 7+7+6+6=26 on 25, every merge overshoots the ceiling), the
+        // seat VECTOR itself lands via optimalIntegerTargets — the operator's
+        // own least-distortion method, already the generation-plane targeter.
+        // Adopted only when it lands the budget exactly; exactness outranks
+        // nearest (drift-is-always-wrong, 0e9eda0).
+        if (array_sum($landedSeats) !== $effectiveBudget) {
+            $opt = $this->optimalIntegerTargets(
+                array_map(fn ($bb) => (float) $bb['pop'], $binData),
+                $binQuota, $effectiveBudget, $floor, $ceiling
+            );
+            if ($opt !== [] && array_sum($opt) === $effectiveBudget) {
+                $landedSeats = $opt;
+            }
+        }
         foreach ($binData as $bi => &$b) {
             $b['fractional']     = $b['pop'] / max($binQuota, 1);
             $b['seats']          = $landedSeats[$bi] ?? min($ceiling, max(1, (int) round($b['fractional'])));
@@ -1738,6 +1892,17 @@ class DistrictingService
                     array_map(fn ($bb) => (float) $bb['pop'], $binData),
                     $binQuota, $effectiveBudget, $floor, $ceiling
                 );
+                // Fixed-composition landing here too (2026-08-30): the exact
+                // partition's own nearest vector can still miss the budget.
+                if (array_sum($landedSeats2) !== $effectiveBudget) {
+                    $opt2 = $this->optimalIntegerTargets(
+                        array_map(fn ($bb) => (float) $bb['pop'], $binData),
+                        $binQuota, $effectiveBudget, $floor, $ceiling
+                    );
+                    if ($opt2 !== [] && array_sum($opt2) === $effectiveBudget) {
+                        $landedSeats2 = $opt2;
+                    }
+                }
                 foreach ($binData as $bi2 => &$b) {
                     $b['fractional']     = $b['pop'] / max($binQuota, 1);
                     $b['seats']          = $landedSeats2[$bi2] ?? min($ceiling, max(1, (int) round($b['fractional'])));
@@ -2032,14 +2197,16 @@ class DistrictingService
      */
     public function childLayerIsInert(string $scopeId): bool
     {
-        $row = DB::selectOne('
-            SELECT (SELECT COALESCE(population, 0) FROM jurisdictions WHERE id = ?) AS scope_pop,
-                   COUNT(*) AS n, COALESCE(SUM(c.population), 0) AS cs
-              FROM jurisdictions c
-             WHERE c.parent_id = ? AND c.deleted_at IS NULL
-        ', [$scopeId, $scopeId]);
+        // THE LEVEL LAW (2026-08-30): inertness reads the children's own
+        // rows, the same frame every split reads.
+        $scopePop = (int) DB::table('jurisdictions')
+            ->where('id', $scopeId)->value('population');
+        if ($scopePop <= 0) {
+            return false;
+        }
+        $rows = $this->levelRows($scopeId);
 
-        return $row !== null && (int) $row->n > 0 && (int) $row->cs === 0 && (int) $row->scope_pop > 0;
+        return $rows !== [] && array_sum($rows) === 0;
     }
 
     /**
@@ -2261,8 +2428,16 @@ class DistrictingService
             $reRootPop    = \App\Services\Districting\LeafGiantResolver::shareBase((string) $leg->jurisdiction_id);
             // Seat budget via the gated cascade. Falls back to proportional
             // approximation only in degenerate cases.
-            $distSeatBudget = $this->computeSeatBudget($distScopeId, $legislatureId)
-                ?? max($floor, (int) round((int) ($distScopeRow ? $distScopeRow->population : 0) * (int) $leg->type_a_seats / $reRootPop));
+            // Refusal, not approximation (the Bayern 70/71 verdict,
+            // operator order 2026-08-30): the repair/recompute plane minted
+            // through this same silent path — it now fails loudly instead.
+            $distSeatBudget = $this->computeSeatBudget($distScopeId, $legislatureId);
+            if ($distSeatBudget === null) {
+                throw new \RuntimeException(
+                    'Seat budget resolver returned null for scope '.$distScopeId
+                    .' — refusing to approximate (operator ruling 2026-08-30).'
+                );
+            }
             $fullQuota = $scopeChildrenPop / max($distSeatBudget, 1);
             // Adjust to non-giant quota so stored fractional is comparable to
             // sibling fracs. `type_a_apportioned` here is the legacy property

@@ -197,11 +197,17 @@ class SweepScopeProcessor
                     // the Earth-swarm crash): a geometry-less tier-1 item can
                     // cascade into continental sub-scopes — the heavy cap
                     // must see the scope's real weight, not the item's.
+                    // THE BUDGET STAMP (operator order 2026-08-30, one
+                    // owner): the cascade's answer for this child is in
+                    // hand RIGHT HERE — it is stamped onto the scope row,
+                    // and the sweep draws to the stamp instead of asking
+                    // again later under different live state. The 70/71
+                    // class dies at this line.
                     DB::statement("
                         INSERT INTO autoscale_scopes
                             (id, run_id, item_id, legislature_id, scope_jurisdiction_id,
-                             parent_scope_id, depth, status, area_tier, created_at, updated_at)
-                        SELECT gen_random_uuid(), ?, ?, ?, j.id, ?, ?, ?,
+                             parent_scope_id, depth, status, seat_budget, area_tier, created_at, updated_at)
+                        SELECT gen_random_uuid(), ?, ?, ?, j.id, ?, ?, ?, ?,
                                CASE WHEN j.geom IS NULL THEN 1 ELSE CASE
                                    WHEN bbox.km2 <= 300      THEN 1
                                    WHEN bbox.km2 <= 3000     THEN 2
@@ -219,7 +225,7 @@ class SweepScopeProcessor
                             ON CONFLICT ON CONSTRAINT autoscale_scopes_scope_uq DO NOTHING
                     ", [
                         $run->id, $itemId, $legislatureId,
-                        $scopeId, $claim['depth'] + 1, 'pending',
+                        $scopeId, $claim['depth'] + 1, 'pending', (int) $budget,
                         (string) $childJid,
                     ]);
                 }

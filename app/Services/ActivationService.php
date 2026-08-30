@@ -68,6 +68,12 @@ use RuntimeException;
  * The seat math lives in pure statics (cubeRootSeats / seatPlan /
  * quorumRequired) so tests/Constitutional/ActivationMathTest pins it
  * without a database.
+ *
+ * THE LEVEL LAW (operator ruling 2026-08-30): a chamber sizes from its
+ * jurisdiction's OWN population row (cube root, floor 5), and every seat
+ * split reads the direct children's own rows, one level per split. The
+ * analytic seat ledger (apportion:scan) computes every chamber's full
+ * seat breakdown from the tree alone, with no drawing.
  */
 class ActivationService
 {

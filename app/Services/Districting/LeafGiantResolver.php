@@ -37,36 +37,38 @@ class LeafGiantResolver
 
     /**
      * THE share base for flat proportional entitlements under a legislature
-     * root: the SUM of the root's direct children's populations, never the
-     * root's own stored figure (Kentucky ruling 2026-07-18; seating law step
-     * 2 — "children-sum as denominator, never the parent's stored population:
-     * geodata noise"). The stored figure and the children-sum drift apart
-     * (USA: 342.35M stored vs 346.04M children-sum), and any classification
-     * computed on one base while the binding cascade runs on the other
-     * manufactures phantom giants — Kentucky displayed as an undrawn 10-seat
-     * scope while the law had already seated it as a 9-seat district, and
-     * every drill attempt bounced. One base, everywhere. Falls back to the
-     * stored population only when the root has no children (a leaf-rooted
-     * legislature). Memoized per process; populations do not move mid-request
-     * or mid-sweep.
+     * root: the SUM of the root's children's populations (Kentucky ruling
+     * 2026-07-18, "one base, everywhere"; THE ONE-MASS LAW, operator ruling
+     * 2026-08-30: population at every layer = the recursive descendant
+     * children-sum, a leaf supplying its own attributed figure, and that
+     * one mass supplies every numerator and every denominator). Every
+     * classification and the binding cascade read this same base, so every
+     * frame agrees on every scope's seats. A leaf-rooted legislature takes
+     * the leaf's own attributed figure as its mass (the one-mass leaf rule).
      */
     public static function shareBase(string $rootJurisdictionId): int
     {
-        static $memo = [];
-        if (! isset($memo[$rootJurisdictionId])) {
+        // THE STATIC MEMO IS GONE (the Bayern 70/71 verdict, 2026-08-30):
+        // it lived for the whole PHP process, spanning every claim, map and
+        // legislature a worker touched, and a denominator pinned before a
+        // population write survived to later draws — a fraction-of-a-percent
+        // stale base flips a .49 to a .50 and mints a phantom seat. One
+        // indexed SUM per ask is the honest price of a truthful base.
+        // THE LEVEL LAW (operator ruling 2026-08-30, his walk): the share
+        // base is the sum of the DIRECT children's own rows — the same one
+        // level every split reads. A leaf-rooted legislature takes the
+        // leaf's own row.
+        $sum = (int) DB::table('jurisdictions')
+            ->where('parent_id', $rootJurisdictionId)
+            ->whereNull('deleted_at')
+            ->sum('population');
+        if ($sum <= 0) {
             $sum = (int) DB::table('jurisdictions')
-                ->where('parent_id', $rootJurisdictionId)
-                ->whereNull('deleted_at')
-                ->sum('population');
-            if ($sum <= 0) {
-                $sum = (int) DB::table('jurisdictions')
-                    ->where('id', $rootJurisdictionId)
-                    ->value('population');
-            }
-            $memo[$rootJurisdictionId] = max($sum, 1);
+                ->where('id', $rootJurisdictionId)
+                ->value('population');
         }
 
-        return $memo[$rootJurisdictionId];
+        return max($sum, 1);
     }
 
     /**

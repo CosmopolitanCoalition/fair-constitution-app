@@ -24,6 +24,12 @@ use RuntimeException;
  * All population arithmetic runs over PopulationRaster::pixelGrid (cached
  * WorldPop centroids — aggregate-only, never individual records); PostGIS is
  * consulted only for geometry (blade clipping, ST_Split, hull ratios).
+ *
+ * THE LEVEL LAW (operator ruling 2026-08-30): the seat budgets this
+ * service cuts against derive from one level at a time — each split reads
+ * the direct children's own population rows, numerator and denominator
+ * alike. The raster grid supplies the spatial distribution of people
+ * inside a polygon for cutting.
  */
 class SubdivisionAutoseedService
 {

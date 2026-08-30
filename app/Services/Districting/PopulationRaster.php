@@ -20,6 +20,11 @@ use Illuminate\Support\Facades\DB;
  * It returns only AGGREGATE population (a BIGINT sum at 100 m resolution) —
  * never raw locations or individual records (§5 P1 / P2). Callers gate access
  * (R-08) and floor tiny polygons before exposing a count to a human.
+ *
+ * THE LEVEL LAW (operator ruling 2026-08-30): seat math reads one level
+ * at a time — each split consumes the direct children's own population
+ * rows. This service supplies the spatial distribution of people inside
+ * an arbitrary polygon for drawing and cutting.
  */
 class PopulationRaster
 {

@@ -77,17 +77,26 @@ for −21% cut). Every retune preserved all prior pinned outcomes because
 
 ## 3. Seat budgets — the cascade (settled law, never re-derive)
 
-- **THE ONE-MASS LAW (operator ruling 2026-08-30).** Population, everywhere
-  in this algorithm, is the recursive sum of a place's descendants'
-  populations, down to the leaves; a leaf supplies its own attributed
-  figure. One place has one mass, identical from every frame. Sizing, the
-  cascade's numerators, the cascade's denominators, giant tests, drawing,
-  and display all read this same recursive sum.
-- Chamber = cube root of population (the recursive children-sum),
-  nearest-rounded. No Webster, Sainte-Laguë, or largest-remainder anywhere.
-- A scope's budget splits to children by population share, the numerator
-  and the denominator both drawn from the **recursive children-sum**
-  (one-mass law). A child whose share reaches
+- **THE LEVEL LAW (operator ruling 2026-08-30, his walk).** Every seat
+  split reads exactly ONE level: the direct children's own population
+  rows. Each child's own row is its numerator; the sum of the children's
+  own rows is the denominator. Drilling into a giant starts the same
+  calculation fresh over that giant's direct children's own rows. The
+  root's chamber sizes from the root's OWN row. One split, one level, one
+  frame, no memo that outlives the request.
+- Chamber = cube root of the root's own row, nearest-rounded. No Webster,
+  Sainte-Laguë, or largest-remainder anywhere.
+- A scope's budget splits to children by population share, each child's
+  own row over the **sum of the direct children's own rows** (level law).
+- **The three landings (2026-08-30, the Germany 439 convergence).** When
+  nearest-rounding cannot meet the budget: (a) a pool whose composition is
+  fixed lands its seat VECTOR via `optimalIntegerTargets` (Bayern's four
+  Bezirke 7+7+6+6=26 on 25 land 7+7+6+5); (b) a scope whose children are
+  ALL giants lands its lock vector the same way (NRW 95 on 94 lands with
+  Arnsberg 19→18); (c) after every full-map sweep, districts of scopes
+  outside the lawful walk disband (the stale-scope purge). Exactness
+  outranks nearest; the analytic ledger (cascade walk, no drawing) equals
+  the chamber total by construction. A child whose share reaches
   `ceiling + 0.5` (9.5) fractional seats is a **giant**: it locks at its
   nearest-rounded seats and becomes its own scope; the remainder
   redistributes among the rest, **recursively** (nth-order promotion — a

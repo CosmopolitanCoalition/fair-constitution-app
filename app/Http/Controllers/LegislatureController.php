@@ -2766,8 +2766,15 @@ class LegislatureController extends Controller
                 // Gated cascade — Path 2 for composite scopes, Path 3 for
                 // giants. Falls back to proportional approx only in
                 // degenerate cases.
-                $seatBudget = $this->computeSeatBudget($scopeId, $legislature_id)
-                    ?? max(ConstitutionalDefaults::floor($leg->jurisdiction_id), (int) round((int) ($autoScope ? $autoScope->population : 0) * (int) $leg->type_a_seats / $autoRootPop));
+                // Refusal, not approximation (2026-08-30) — see the sweep
+                // site for the law.
+                $seatBudget = $this->computeSeatBudget($scopeId, $legislature_id);
+                if ($seatBudget === null) {
+                    throw new \RuntimeException(
+                        'Seat budget resolver returned null for scope '.$scopeId
+                        .' — refusing to approximate (operator ruling 2026-08-30).'
+                    );
+                }
             }
 
             $result = $this->runAutoCompositeForScope(
@@ -3046,13 +3053,18 @@ class LegislatureController extends Controller
         // total_seats/quorum_required re-derive WITH type_a (cycle-2 bug
         // fix: the sweep used to leave them stale against the refreshed a).
         if ($scopeId === $leg->jurisdiction_id) {
-            $sumChildPop = (int) DB::table('jurisdictions')
-                ->where('parent_id', $scopeId)
-                ->whereNull('deleted_at')
-                ->sum('population');
-            $base = $sumChildPop > 0
-                ? $sumChildPop
-                : (int) DB::table('jurisdictions')->where('id', $scopeId)->value('population');
+            // THE LEVEL LAW (operator, 2026-08-30): the ROOT sizes from its
+            // OWN row ("the cube root of Germany's population, which is the
+            // root for its legislature"). The children-sum is the SPLIT
+            // denominator one level down, never the sizing base. Children-sum
+            // remains the fallback for a root with an empty row.
+            $ownPop = (int) DB::table('jurisdictions')->where('id', $scopeId)->value('population');
+            $base = $ownPop > 0
+                ? $ownPop
+                : (int) DB::table('jurisdictions')
+                    ->where('parent_id', $scopeId)
+                    ->whereNull('deleted_at')
+                    ->sum('population');
             $newSeats = ConstitutionalDefaults::sizeFromPopulation($base, $leg->jurisdiction_id);
             if ((int) $leg->type_a_seats !== $newSeats) {
                 $newTotal = $newSeats + (int) $leg->type_b_seats;
@@ -3196,8 +3208,33 @@ class LegislatureController extends Controller
                 // (which was the source of the +13 overcount: it used
                 // sum-of-children pop × root quota for giants, producing
                 // 32 instead of 29 for Guangzhou).
-                $seatBudget = $this->computeSeatBudget($sid, $legislature_id)
-                    ?? max(ConstitutionalDefaults::floor($leg->jurisdiction_id), (int) round(($sidScope ? (int) $sidScope->population : $sidChildPop) * (int) $leg->type_a_seats / $rootPop));
+                // THE STAMP OUTRANKS THE LIVE ASK (operator order
+                // 2026-08-30, one owner): a scope minted by the cascade
+                // carries its budget stamped on its own row — frozen at
+                // materialization, immune to whatever live state exists by
+                // the time a lane draws it. Only an unstamped scope (roots,
+                // pre-stamp rows) asks the live resolver.
+                $stamped = DB::table('autoscale_scopes')
+                    ->where('legislature_id', $legislature_id)
+                    ->where('scope_jurisdiction_id', $sid)
+                    ->whereNotNull('seat_budget')
+                    ->orderByDesc('created_at')
+                    ->value('seat_budget');
+                // A FALLBACK THAT APPROXIMATES IS A SECOND LAW (the Bayern
+                // 70/71 verdict, operator order 2026-08-30): when the
+                // resolver cannot answer, the scope REFUSES into review
+                // with the fact logged — a rough number is never minted
+                // into a real map. Post-fix this is unreachable for healthy
+                // scopes, so any firing is itself the diagnostic.
+                $seatBudget = $stamped !== null
+                    ? (int) $stamped
+                    : $this->computeSeatBudget($sid, $legislature_id);
+                if ($seatBudget === null) {
+                    throw new \RuntimeException(
+                        'Seat budget resolver returned null for scope '.$sid
+                        .' — refusing to approximate (operator ruling 2026-08-30).'
+                    );
+                }
             }
 
             DB::beginTransaction();
@@ -3223,12 +3260,38 @@ class LegislatureController extends Controller
             }
         }
 
+        // THE STALE-SCOPE PURGE (operator, 2026-08-30 — the Brandenburg +13).
+        // A full-map sweep clears districts per WALKED scope, so districts
+        // belonging to a scope the current cascade no longer recognizes (a
+        // giant minted by an earlier vintage of the math, since demoted)
+        // survive untouched and seat their people twice. After a completed
+        // _all sweep, every district on this map whose scope is outside the
+        // lawful walk is stale by definition and disbands.
+        $stalePurged = 0;
+        if ($clearExisting && ! $halted && $scopeIds !== []) {
+            $stalePurged = (int) DB::table('legislature_districts')
+                ->where('map_id', $mapId)
+                ->where('legislature_id', $legislature_id)
+                ->whereNull('deleted_at')
+                ->whereNotNull('jurisdiction_id')
+                ->whereNotIn('jurisdiction_id', $scopeIds)
+                ->update(['deleted_at' => now(), 'updated_at' => now()]);
+            if ($stalePurged > 0) {
+                \Illuminate\Support\Facades\Log::info('Mass sweep purged stale-scope districts', [
+                    'legislature_id' => $legislature_id,
+                    'map_id'         => $mapId,
+                    'purged'         => $stalePurged,
+                ]);
+            }
+        }
+
         $this->publishMassProgress($legislature_id, [
             'completed'   => $halted ? $scopesProcessed : $totalScopes,
             'phase'       => $halted ? 'halted' : 'sweep_done',
             'phase_label' => $halted
                 ? "Halted by operator: {$scopesProcessed}/{$totalScopes} scopes complete, {$totalCreated} districts"
-                : "Sweep complete: {$scopesProcessed}/{$totalScopes} scopes, {$totalCreated} districts",
+                : "Sweep complete: {$scopesProcessed}/{$totalScopes} scopes, {$totalCreated} districts"
+                    . ($stalePurged > 0 ? ", {$stalePurged} stale purged" : ''),
         ]);
 
         // Clean up the recorded backend PID — we're done, no further halts apply.
