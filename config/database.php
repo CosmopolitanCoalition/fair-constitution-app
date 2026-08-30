@@ -164,9 +164,14 @@ return [
             'persistent' => env('REDIS_PERSISTENT', false),
         ],
 
+        // THE QUEUE/CACHE SPLIT (operator order 2026-08-30): the default
+        // connection carries queues + worker leases, which must never be
+        // evicted — it points at the dedicated noeviction instance when one
+        // exists (REDIS_QUEUE_HOST), and falls back to the shared instance
+        // on boxes without the split, so nothing breaks elsewhere.
         'default' => [
             'url' => env('REDIS_URL'),
-            'host' => env('REDIS_HOST', '127.0.0.1'),
+            'host' => env('REDIS_QUEUE_HOST', env('REDIS_HOST', '127.0.0.1')),
             'username' => env('REDIS_USERNAME'),
             'password' => env('REDIS_PASSWORD'),
             'port' => env('REDIS_PORT', '6379'),

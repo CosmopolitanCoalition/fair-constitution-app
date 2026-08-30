@@ -330,6 +330,23 @@ services:
       - fc_network
 
   # ─── Redis 7 ─────────────────────────────────────────────────
+  # ─── Redis queue instance (operator order 2026-08-30, the split) ──
+  # Queues and worker leases must NEVER be evicted: the shared instance
+  # ran allkeys-lru at 92% with 31k evictions — job payloads and leases
+  # were structurally evictable. Queue traffic gets its own instance on
+  # noeviction (a full queue instance fails loudly instead of silently
+  # eating jobs); the cache instance below keeps allkeys-lru for the
+  # regenerable map cache. Sizing env-overridable per host.
+  redis_queue:
+    image: redis:7.4-alpine
+    container_name: ${CONTAINER_PREFIX:-fc}_redis_queue
+    restart: unless-stopped
+    command: redis-server --appendonly yes --maxmemory ${REDIS_QUEUE_MAXMEMORY:-192mb} --maxmemory-policy noeviction
+    volumes:
+      - redis_queue_data:/data
+    networks:
+      - fc_network
+
   redis:
     image: redis:7.4-alpine
     container_name: ${CONTAINER_PREFIX:-fc}_redis
@@ -529,6 +546,8 @@ volumes:
   matrix_data:                 # Phase K-3 — Synapse config, signing key, media store
     driver: local
   redis_data:
+    driver: local
+  redis_queue_data:
     driver: local
   etl_geodata:
     driver: local
