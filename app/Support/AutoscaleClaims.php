@@ -120,7 +120,7 @@ final class AutoscaleClaims
         // priority_at), so the fast batch path pays ~nothing when nobody
         // is waiting; claimScope's ORDER serves stamped items first.
         if (static::priorityPending($run)) {
-            if ($claim = static::claimScope($run, $token, $lane)) {
+            if ($claim = static::claimScope($run, $token, $lane, true)) {
                 return $claim;
             }
         }
@@ -307,7 +307,7 @@ final class AutoscaleClaims
         return ['type' => 'precompute', 'parent_id' => (string) $row->parent_id];
     }
 
-    private static function claimScope(AutoscaleRun $run, string $token, string $lane = 'auto'): ?array
+    private static function claimScope(AutoscaleRun $run, string $token, string $lane = 'auto', bool $priorityOnly = false): ?array
     {
         // Sweeps wait for the precompute pass (their Step 7 then reads the
         // table instead of paying ST_Intersection live). Under =lazy the gate
@@ -331,7 +331,7 @@ final class AutoscaleClaims
         // bound), so a kill can't wedge the lane shut. Serializing ALL
         // scope claims is fine: a claim is milliseconds against seconds-to-
         // minutes of scope work.
-        $row = DB::transaction(function () use ($run, $token, $lane) {
+        $row = DB::transaction(function () use ($run, $token, $lane, $priorityOnly) {
             DB::statement("SELECT pg_advisory_xact_lock(hashtext('cga_heavy_claim'))");
 
             // Tier resolution is SCOPE-first (2026-07-22, the Earth-swarm
@@ -357,11 +357,20 @@ final class AutoscaleClaims
             }
 
             $heavyPredicate = $allowHeavy ? 'true' : 'false';
-            // Demand priority outranks the pile order in BOTH lanes: a
-            // stamped item is a person waiting at a map (2026-08-30).
-            $order = $lane === 'topdown'
-                ? 'ai.priority_at ASC NULLS LAST, ai.position DESC, s2.depth, s2.id'
-                : 'ai.priority_at ASC NULLS LAST, ai.position, s2.depth, s2.id';
+            // DEMAND PRIORITY runs as its OWN tiny query ($priorityOnly),
+            // never as an ORDER prefix on the main claim: putting
+            // priority_at first in this ORDER BY defeated the position
+            // index and made every claim sort the whole pending pile —
+            // seconds per claim, seven lanes reading idle (caught live on
+            // the dashboard, 2026-08-30 02:40). The priority path filters
+            // to stamped items (partial index, a handful of rows); the
+            // normal path keeps the index-friendly position order.
+            $priorityPredicate = $priorityOnly ? 'ai.priority_at IS NOT NULL' : 'true';
+            $order = $priorityOnly
+                ? 'ai.priority_at ASC, s2.depth, s2.id'
+                : ($lane === 'topdown'
+                    ? 'ai.position DESC, s2.depth, s2.id'
+                    : 'ai.position, s2.depth, s2.id');
 
             return DB::selectOne("
                 UPDATE autoscale_scopes s
@@ -371,6 +380,7 @@ final class AutoscaleClaims
                        SELECT s2.id FROM autoscale_scopes s2
                         JOIN autoscale_items ai ON ai.id = s2.item_id
                        WHERE s2.run_id = ? AND s2.status = ?
+                         AND {$priorityPredicate}
                          AND (COALESCE(s2.area_tier, ai.area_tier, 1) < ? OR {$heavyPredicate})
                        ORDER BY {$order}
                        LIMIT 1
