@@ -243,9 +243,22 @@ class AutoscalePumpCommand extends Command
         ", [$run->id, $run->id]);
 
         // ── Worker seeding: keep the fixed pool topped up ──────────────────
-        DB::table('autoscale_worker_leases')
-            ->where('last_seen_at', '<', now()->subSeconds(self::WORKER_LEASE_STALE))
-            ->delete();
+        // THE LOCK IS LIVENESS (2026-08-30, the corpse-claims blackout): a
+        // worker inside a scope transaction beats its lease UNCOMMITTED, so
+        // outside snapshots still read a stale last_seen_at — and this
+        // prune, as a naked DELETE, then WAITED on that worker's row lock.
+        // One in-flight beat wedged the pump mid-pass; withoutOverlapping
+        // silently skipped every scheduled pump behind it, so reclaim and
+        // reseeding both ceased: three-hour corpse claims filled the heavy
+        // slots and the pool bled 13 → 10 with nobody healing it. SKIP
+        // LOCKED makes the row lock itself the liveness signal: locked =
+        // alive mid-scope (skip), unlocked and stale = truly dead (prune).
+        DB::statement('
+            DELETE FROM autoscale_worker_leases
+             WHERE id IN (SELECT id FROM autoscale_worker_leases
+                           WHERE last_seen_at < ?
+                             FOR UPDATE SKIP LOCKED)
+        ', [now()->subSeconds(self::WORKER_LEASE_STALE)]);
 
         if (! $run->isPaused() && AutoscaleClaims::workAvailable($run)) {
             // Two pools since the top-down ruling (2026-07-22): 20% of the

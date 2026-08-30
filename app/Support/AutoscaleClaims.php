@@ -129,6 +129,27 @@ final class AutoscaleClaims
             return $claim;
         }
 
+        // LANES FLOW TO THE SURVIVOR (lane law #2, applied 2026-08-30, the
+        // corpse-claims blackout): a top-down lane whose whole top is
+        // heavy-capped — including slots held by dead claims until the
+        // heavy margin clears them — must not die idle while light work
+        // remains. It flows to the bottom-up side for THIS claim and tries
+        // the top again on its next one, so giant pickup resumes the moment
+        // a heavy slot frees. Without this, reseeded top-down workers
+        // claimed nothing, exited without a lease, and the pump reseeded
+        // them into the same wall every minute (13 lanes bled to 10).
+        if ($lane === 'topdown') {
+            if ($claim = static::claimScopeBatch($run, $token)) {
+                return $claim;
+            }
+            if ($claim = static::claimSingles($run, $token)) {
+                return $claim;
+            }
+            if ($claim = static::claimPrecompute($run, $token)) {
+                return $claim;
+            }
+        }
+
         return null;
     }
 
