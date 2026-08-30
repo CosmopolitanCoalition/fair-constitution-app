@@ -140,7 +140,10 @@ function workerElapsed(w) {
 // change in place, the rows never reshuffle. A batch lane's bar fills with
 // its real i/N progress parsed from the label; other claims pulse.
 const workersStable = computed(() =>
-    [...(autoscale.value?.workers_detail ?? [])].sort((a, b) => String(a.id).localeCompare(String(b.id))))
+    // Longest-running claim first (operator order 2026-08-30); the id
+    // tiebreak keeps equal-age rows from swapping between polls.
+    [...(autoscale.value?.workers_detail ?? [])].sort((a, b) =>
+        (b.claim_secs ?? -1) - (a.claim_secs ?? -1) || String(a.id).localeCompare(String(b.id))))
 // THE INGESTION GROUPING (operator, 2026-08-29: "look at the geodata
 // notes"): lanes render under the work they advance, clustered by kind —
 // the flat strip was unreadable. Batch lanes eat the two-cutter wall,
@@ -229,7 +232,7 @@ async function fetchAutoscale() {
                 trackBar('mint', r.maps_minted)
             }
             if (p) trackBar('precompute', p.done + p.failed)
-            for (const l of (autoscale.value?.layers ?? [])) trackBar(`layer:${l.key}`, l.done)
+            for (const l of (autoscale.value?.layers ?? [])) trackBar(`layer:${l.key}`, l.scopes_total ? l.scopes_done : l.done)
         }
 
         const status = autoscale.value?.run?.status
@@ -373,7 +376,14 @@ watch(autoscale, (data) => {
     tweenTo('singles_done', r.singles_done ?? 0)
     tweenTo('sweeps_done', r.sweeps_done ?? 0)
     if (r.sized_live != null) tweenTo('sized_live', r.sized_live)
-    for (const l of data?.layers ?? []) tweenTo(`layer:${l.key}`, l.done)
+    // Rate/ETA tracks SCOPES when the layer has them (operator order
+    // 2026-08-30): scope completions are the fluid unit, so the per-minute
+    // rate and the "~left" estimate come from them.
+    for (const l of data?.layers ?? []) {
+        const v = l.scopes_total ? l.scopes_done : l.done
+        tweenTo(`layer:${l.key}`, v)
+        trackBar(`layer:${l.key}`, v)
+    }
     if (data?.precompute) tweenTo('precompute', data.precompute.done)
 })
 
@@ -384,7 +394,9 @@ function fmtEta(seconds) {
     const m = Math.round((seconds % 3600) / 60)
     if (h >= 48) return `${Math.floor(h / 24)}d ${h % 24}h`
     if (h >= 1) return `${h}h ${m}m`
-    return `${m}m`
+    // The second hand survives the minute mark (operator order 2026-08-30):
+    // "3m 42s", so the counter keeps visibly ticking.
+    return `${Math.floor(seconds / 60)}m ${seconds % 60}s`
 }
 
 function pct(done, total) {
@@ -393,6 +405,10 @@ function pct(done, total) {
 }
 
 function layerLabel(l) {
+    // Collapsed level rows carry their canonical name from the backend
+    // (Planet, Countries, States / Provinces, ...). Legacy split rows keep
+    // the old form until the payload refreshes.
+    if (l.label) return l.label
     const kind = l.kind === 'single' ? 'leaf councils' : 'sweeps'
     return `ADM${l.adm_level} ${kind}`
 }
@@ -627,7 +643,7 @@ onBeforeUnmount(stopPolling)
                 <!-- Per-ADM-layer bars (bottom-up: deepest first — the order the
                      run actually works in; the big scopes are the last bars) -->
                 <div v-if="layers.length" class="mt-4 border-t border-gray-700/50 pt-3">
-                    <div class="text-gray-400 text-xs uppercase tracking-wide mb-2">By layer (bottom-up)</div>
+                    <div class="text-gray-400 text-xs uppercase tracking-wide mb-2">By layer (biggest first)</div>
                     <div class="space-y-2">
                         <div v-for="l in layers" :key="l.key">
                             <div class="flex justify-between text-xs mb-0.5"
@@ -638,12 +654,15 @@ onBeforeUnmount(stopPolling)
                                     {{ layerLabel(l) }}
                                     <span v-if="l.review" class="text-amber-400 ml-1">· {{ l.review }} review</span>
                                 </span>
-                                <span class="tabular-nums">{{ shown(`layer:${l.key}`, l.done) }} / {{ l.total.toLocaleString() }}{{ l.status === 'running' ? barTiming(`layer:${l.key}`, l.done, l.total) : '' }}</span>
+                                <span class="tabular-nums">
+                                    <template v-if="l.scopes_total">{{ shown(`layer:${l.key}`, l.scopes_done) }} / {{ l.scopes_total.toLocaleString() }} scopes · {{ l.done.toLocaleString() }} / {{ l.total.toLocaleString() }}{{ l.status === 'running' ? barTiming(`layer:${l.key}`, l.scopes_done, l.scopes_total) : '' }}</template>
+                                    <template v-else>{{ shown(`layer:${l.key}`, l.done) }} / {{ l.total.toLocaleString() }}{{ l.status === 'running' ? barTiming(`layer:${l.key}`, l.done, l.total) : '' }}</template>
+                                </span>
                             </div>
                             <div class="h-1.5 bg-gray-800 rounded overflow-hidden">
                                 <div class="h-full transition-all"
                                      :class="l.kind === 'single' ? 'bg-teal-500' : 'bg-blue-500'"
-                                     :style="{ width: pct(l.done, l.total) + '%' }"></div>
+                                     :style="{ width: pct(l.scopes_total ? l.scopes_done : l.done, l.scopes_total || l.total) + '%' }"></div>
                             </div>
                         </div>
                     </div>

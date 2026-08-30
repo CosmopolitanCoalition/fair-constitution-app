@@ -2873,25 +2873,71 @@ class SetupController extends Controller
                 ->orderByRaw('adm_level DESC, kind DESC')
                 ->get();
 
+            // ONE ROW PER LEVEL (operator order 2026-08-30): sweeps and leaf
+            // councils collapse into a single layer bar, counted by SCOPES
+            // (the fluid unit of drawing work) with the jurisdiction counter
+            // kept beside it. Labels are the geodata ingestion's canonical
+            // names — no ADM jargon user-facing.
+            // A scope counts to the MAP it draws (operator catch 2026-08-30:
+            // Earth's 81 scopes are all Planet-row work, however deep each
+            // scope's own jurisdiction sits), so the grouping key is the
+            // ITEM's level, never the scope jurisdiction's.
+            $scopeRows = DB::table('autoscale_scopes as s')
+                ->join('autoscale_items as ai', 'ai.id', '=', 's.item_id')
+                ->where('s.run_id', $run->id)
+                ->selectRaw("
+                    ai.adm_level,
+                    COUNT(*)                                                  AS total,
+                    COUNT(*) FILTER (WHERE s.status = 'done')                 AS done,
+                    COUNT(*) FILTER (WHERE s.status = 'running')              AS running
+                ")
+                ->groupBy('ai.adm_level')
+                ->get()->keyBy('adm_level');
+
+            $levelLabels = [
+                0 => 'Planet', 1 => 'Countries', 2 => 'States / Provinces',
+                3 => 'Counties', 4 => 'Municipalities', 5 => 'Townships',
+                6 => 'Neighborhoods',
+            ];
+
             $singlesDoneLive = 0;
             $sweepsDoneLive  = 0;
+            $byLevel = [];
             foreach ($layerRows as $row) {
                 if ($row->kind === 'single') {
                     $singlesDoneLive += (int) $row->done;
                 } else {
                     $sweepsDoneLive += (int) $row->done;
                 }
+                $lvl = (int) $row->adm_level;
+                $byLevel[$lvl] = [
+                    'total'   => ($byLevel[$lvl]['total'] ?? 0) + (int) $row->total,
+                    'done'    => ($byLevel[$lvl]['done'] ?? 0) + (int) $row->done,
+                    'running' => ($byLevel[$lvl]['running'] ?? 0) + (int) $row->running,
+                    'review'  => ($byLevel[$lvl]['review'] ?? 0) + (int) $row->review,
+                ];
+            }
+            // Top-down (operator order 2026-08-30): the run now works
+            // biggest-first, so Planet leads the panel and the leaf layers
+            // close it.
+            ksort($byLevel);
+            foreach ($byLevel as $lvl => $c) {
+                $sc = $scopeRows[$lvl] ?? null;
                 $layers[] = [
-                    'key'       => "{$row->kind}:{$row->adm_level}",
-                    'kind'      => $row->kind,
-                    'adm_level' => (int) $row->adm_level,
-                    'total'     => (int) $row->total,
-                    'done'      => (int) $row->done,
-                    'running'   => (int) $row->running,
-                    'review'    => (int) $row->review,
-                    'status'    => (int) $row->done >= (int) $row->total
+                    'key'           => "level:{$lvl}",
+                    'kind'          => 'level',
+                    'adm_level'     => $lvl,
+                    'label'         => $levelLabels[$lvl] ?? "Level {$lvl}",
+                    'total'         => $c['total'],
+                    'done'          => $c['done'],
+                    'running'       => $c['running'],
+                    'review'        => $c['review'],
+                    'scopes_total'  => $sc !== null ? (int) $sc->total : 0,
+                    'scopes_done'   => $sc !== null ? (int) $sc->done : 0,
+                    'scopes_running'=> $sc !== null ? (int) $sc->running : 0,
+                    'status'        => $c['done'] >= $c['total']
                         ? 'done'
-                        : (((int) $row->running > 0 || (int) $row->done > 0) ? 'running' : 'pending'),
+                        : (($c['running'] > 0 || $c['done'] > 0) ? 'running' : 'pending'),
                 ];
             }
             $freshCounts = ['singles_done' => $singlesDoneLive, 'sweeps_done' => $sweepsDoneLive];
@@ -2952,13 +2998,22 @@ class SetupController extends Controller
                 ->where('area_tier', '<', 4)->exists();
         }
 
-        // Live workers = lease rows seen in the last 2 minutes, each with
-        // the claim it is holding RIGHT NOW (fast sweeps blink through the
-        // scope list; this strip is the honest per-worker view).
+        // Live workers = a fresh heartbeat OR an open claim (operator order
+        // 2026-08-30, lane visibility): a lane deep in one long PostGIS
+        // call cannot heartbeat, and it must stay on the strip with its
+        // claim label and elapsed seconds for as long as the claim is open.
         $workerRows = DB::table('autoscale_worker_leases')
             ->where('run_id', $run->id)
-            ->where('last_seen_at', '>', now()->subMinutes(2))
-            ->orderBy('started_at')
+            ->where(function ($q) {
+                $q->where('last_seen_at', '>', now()->subMinutes(2))
+                  ->orWhere(function ($q2) {
+                      $q2->whereNotNull('claim_started_at')
+                         ->where('claim_started_at', '>', now()->subHours(4));
+                  });
+            })
+            // Longest-running claim on top (operator order 2026-08-30): the
+            // grinders lead the strip, fresh claims join at the bottom.
+            ->orderByRaw('claim_started_at ASC NULLS LAST, started_at')
             ->get(['id', 'claim_type', 'claim_label', 'claim_started_at', 'started_at']);
         $workers = $workerRows->count();
         $workersDetail = $workerRows->map(fn ($w) => [

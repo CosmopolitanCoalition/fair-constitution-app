@@ -7521,11 +7521,15 @@ class DistrictingService
                         ->where('status', 'running')
                         ->update($scopePatch);
                 }
-                if (\App\Support\AutoscaleContext::$itemId !== null) {
-                    \Illuminate\Support\Facades\DB::table('autoscale_items')
-                        ->where('id', \App\Support\AutoscaleContext::$itemId)
-                        ->update(['updated_at' => now()]);
-                }
+                // THE ITEM ROW IS NEVER BEAT-TOUCHED (operator's bottleneck
+                // hunt, 2026-08-30, caught live: eight lanes queued 3+ min
+                // on this one UPDATE). The lane path wraps a scope in one
+                // long transaction, so the first beat's touch held the
+                // shared item row until scope commit and every sibling
+                // lane's beat queued behind it — thirteen lanes serialized
+                // on a timestamp. Liveness rides the two per-lane rows the
+                // beat already touches: the scope row above and the lease
+                // below.
                 // THE LEASE IS THE LIVENESS SIGNAL (2026-08-09, the re-run
                 // loop). The worker stamped last_seen_at only at claim
                 // BOUNDARIES, so a worker inside one long scope looked dead
@@ -7541,7 +7545,15 @@ class DistrictingService
                     // label (map owner › scope) survives every rewrite. The
                     // dashboard strip renders claim_label verbatim, so the
                     // inner progress arrives with zero page changes.
-                    $phase = mb_substr((string) ($patch['phase_label'] ?? $patch['phase'] ?? ''), 0, 60);
+                    // STEP PROGRESS ON THE STRIP (operator order 2026-08-30):
+                    // the label carries the phase's own x/y whenever the
+                    // engine publishes one, so a lane shows movement inside
+                    // a step, never just the step's name.
+                    $phase = (string) ($patch['phase_label'] ?? $patch['phase'] ?? '');
+                    if (isset($patch['phase_current'], $patch['phase_total']) && (int) $patch['phase_total'] > 0) {
+                        $phase .= ' ' . (int) $patch['phase_current'] . '/' . (int) $patch['phase_total'];
+                    }
+                    $phase = mb_substr($phase, 0, 70);
                     \Illuminate\Support\Facades\DB::update(
                         "UPDATE autoscale_worker_leases
                             SET last_seen_at = now(),

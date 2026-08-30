@@ -203,6 +203,27 @@ final class AutoscaleClaims
             ->exists();
     }
 
+    /**
+     * CLAIMABLE work only (operator catch 2026-08-30, the tail churn): a
+     * lane's self-respawn asks this, not workAvailable — an in-flight item
+     * with zero pending scopes is work for the PUMP's bookkeeping, but a
+     * fresh lane spawned against it finds nothing, exits, and respawns
+     * another, spinning until the finalize lands. Respawn only when a
+     * claim could actually succeed.
+     */
+    public static function claimableWork(AutoscaleRun $run): bool
+    {
+        if (DB::table('autoscale_items')->where('run_id', $run->id)->where('status', 'pending')->exists()) {
+            return true;
+        }
+        if (DB::table('autoscale_scopes')->where('run_id', $run->id)->where('status', 'pending')->exists()) {
+            return true;
+        }
+
+        return static::precomputeEnabled()
+            && DB::table('jurisdiction_adjacency_parents')->where('status', 'pending')->exists();
+    }
+
     public static function precomputeEnabled(): bool
     {
         return config('cga.autoscale_precompute', 'upfront') !== 'lazy';
@@ -366,11 +387,16 @@ final class AutoscaleClaims
             // to stamped items (partial index, a handful of rows); the
             // normal path keeps the index-friendly position order.
             $priorityPredicate = $priorityOnly ? 'ai.priority_at IS NOT NULL' : 'true';
+            // THE STEPPER ORDER (operator order 2026-08-30, benchmark 3):
+            // stamped walk_position leads every lane's order — post-order,
+            // largest-first, root last, identical to the UI wizard. Unstamped
+            // rows (legacy incremental materialization) sort after and keep
+            // their old keys.
             $order = $priorityOnly
-                ? 'ai.priority_at ASC, s2.depth, s2.id'
+                ? 's2.walk_position ASC NULLS LAST, ai.priority_at ASC, s2.depth, s2.id'
                 : ($lane === 'topdown'
-                    ? 'ai.position DESC, s2.depth, s2.id'
-                    : 'ai.position, s2.depth, s2.id');
+                    ? 's2.walk_position ASC NULLS LAST, ai.position DESC, s2.depth, s2.id'
+                    : 's2.walk_position ASC NULLS LAST, ai.position, s2.depth, s2.id');
 
             return DB::selectOne("
                 UPDATE autoscale_scopes s
@@ -384,7 +410,13 @@ final class AutoscaleClaims
                          AND (COALESCE(s2.area_tier, ai.area_tier, 1) < ? OR {$heavyPredicate})
                        ORDER BY {$order}
                        LIMIT 1
-                       FOR UPDATE SKIP LOCKED
+                       -- OF s2 (2026-08-30, the single-item Earth stall):
+                       -- locking the joined ITEM row too made every claim
+                       -- skip ALL of one item's scopes whenever any worker
+                       -- held that item row — a one-legislature run
+                       -- collapsed to width 2. The claim mutates scopes
+                       -- only; lock scopes only.
+                       FOR UPDATE OF s2 SKIP LOCKED
                  )
              RETURNING s.id, s.item_id, s.legislature_id, s.scope_jurisdiction_id, s.depth
             ", ['running', $token, $run->id, 'pending', self::HEAVY_TIER]);
@@ -420,7 +452,7 @@ final class AutoscaleClaims
                      AND COALESCE(s2.area_tier, ai.area_tier, 1) < ?
                    ORDER BY s2.id
                    LIMIT 100
-                   FOR UPDATE SKIP LOCKED
+                   FOR UPDATE OF s2 SKIP LOCKED
              )
          RETURNING s.id, s.item_id, s.legislature_id, s.scope_jurisdiction_id, s.depth
         ", [$token, $run->id, self::HEAVY_TIER]);

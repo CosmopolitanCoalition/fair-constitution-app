@@ -252,4 +252,62 @@ final class AutoscaleEnumeration
 
         return $total;
     }
+
+    /**
+     * UPFRONT SCOPE-TREE MATERIALIZATION (operator order 2026-08-30,
+     * benchmark 3). The budgets are pure arithmetic on the population rows
+     * (the level law), so the whole giant tree is knowable before a single
+     * district draws. This walks giantChildrenForScope exactly like the UI
+     * stepper — recurse largest budget first, emit POST-ORDER, root last —
+     * and upserts every scope with its walk_position, so lanes claim in the
+     * stepper's order from second zero and no lane waits for a parent to
+     * finish before its siblings even exist.
+     *
+     * @return int scopes materialized or restamped
+     */
+    public static function materializeScopeTree(string $runId, string $itemId): int
+    {
+        $item = DB::table('autoscale_items')->where('id', $itemId)->first();
+        if ($item === null) {
+            return 0;
+        }
+
+        $districting = new \App\Services\DistrictingService();
+        $steps = [];   // post-order emit: [scope_jurisdiction_id, depth, parent_jid]
+        $walk = function (string $jid, int $depth, ?string $parentJid) use (&$walk, &$steps, $districting, $item) {
+            $giants = $districting->giantChildrenForScope($jid, (string) $item->legislature_id);
+            arsort($giants);   // largest budget first — the stepper's key
+            foreach ($giants as $gid => $budget) {
+                $walk((string) $gid, $depth + 1, $jid);
+            }
+            $steps[] = [$jid, $depth, $parentJid];   // post-order: children emitted, then self
+        };
+        $walk((string) $item->jurisdiction_id, 0, null);
+
+        $idByJid = [];
+        $pos = 0;
+        foreach ($steps as [$jid, $depth, $parentJid]) {
+            $idByJid[$jid] = $idByJid[$jid] ?? (string) \Illuminate\Support\Str::uuid();
+        }
+        foreach ($steps as [$jid, $depth, $parentJid]) {
+            DB::statement('
+                INSERT INTO autoscale_scopes
+                    (id, run_id, item_id, legislature_id, scope_jurisdiction_id,
+                     parent_scope_id, depth, status, area_tier, walk_position,
+                     created_at, updated_at)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, now(), now())
+                    ON CONFLICT ON CONSTRAINT autoscale_scopes_scope_uq
+                    DO UPDATE SET walk_position = EXCLUDED.walk_position,
+                                  parent_scope_id = COALESCE(autoscale_scopes.parent_scope_id, EXCLUDED.parent_scope_id),
+                                  updated_at = now()
+            ', [
+                $idByJid[$jid], $runId, $itemId, $item->legislature_id, $jid,
+                $parentJid !== null ? ($idByJid[$parentJid] ?? null) : null,
+                $depth, 'pending', $item->area_tier, $pos,
+            ]);
+            $pos++;
+        }
+
+        return $pos;
+    }
 }

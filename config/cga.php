@@ -104,11 +104,15 @@ return [
     | among ~36. These decide whether it also runs FIRST:
     |   'off'    — today's behaviour exactly (byte-identical).
     |   'shadow' — compute it, LOG its scoreRank beside the search winner's,
-    |              adopt the SEARCH winner. The default: this is how a flip to
-    |              'auto' gets earned on the real corpus instead of asserted.
+    |              adopt the SEARCH winner.
     |   'auto'   — engage when the structural cost projection clears
     |              line_first_ops; a doctrine-clean line map then skips the
-    |              growth search entirely.
+    |              growth search entirely. THE DEFAULT since the operator's
+    |              flip (2026-08-30): earned on Earth benchmarks 5→6 —
+    |              São Paulo 6m54s → 8s, planet 7m43s → 5m57s, every mark
+    |              identical to the digit (281 districts, 19 noncontig,
+    |              CHR .6283, dev .147). A non-clean line map still falls
+    |              through to the full search (Russia does, by design).
     |   'always' — engage on every multi-district component (tests).
     |
     | line_first_ops is n × (n + directed component edges) × |k candidates| —
@@ -120,7 +124,7 @@ return [
     'districting' => [
         'heartbeat_seconds' => env('CGA_DISTRICTING_HEARTBEAT_SECONDS', 5),
         'step_timings'      => env('CGA_DISTRICTING_STEP_TIMINGS', true),
-        'line_first'        => env('CGA_DISTRICTING_LINE_FIRST', 'shadow'),
+        'line_first'        => env('CGA_DISTRICTING_LINE_FIRST', 'auto'),
         'line_first_ops'    => env('CGA_DISTRICTING_LINE_FIRST_OPS', 2000000),
         'line_first_polish' => env('CGA_DISTRICTING_LINE_FIRST_POLISH', 3),
     ],

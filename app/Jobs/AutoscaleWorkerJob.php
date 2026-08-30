@@ -217,6 +217,28 @@ class AutoscaleWorkerJob implements ShouldQueue
                 // A dropped connection loses the lease row's delete — the
                 // pump prunes stale leases anyway.
             }
+
+            // THE LANE SIGNALS ITS SUCCESSOR (operator order 2026-08-30,
+            // benchmark 3): a lane exiting for a benign reason — claim-time
+            // budget, memory recycle, a momentarily empty pile — dispatches
+            // its own replacement while work remains, so the pool sustains
+            // itself with no scheduler and the fan-out after a serial phase
+            // gets eaten the second it appears. Guards: the run must still
+            // be mapping and unhalted, work must exist, and the startup
+            // over-dispatch check culls any surplus. A stopping (SIGTERM)
+            // exit never respawns — deploys stay clean.
+            try {
+                if (! $this->stopping) {
+                    $run?->refresh();
+                    if ($run !== null && $run->status === 'mapping'
+                        && ! $run->haltRequested() && ! $run->isPaused()
+                        && AutoscaleClaims::claimableWork($run)) {
+                        self::dispatch($this->runId, $this->lane);
+                    }
+                }
+            } catch (\Throwable) {
+                // Respawn is best-effort; the pump remains the backstop.
+            }
         }
     }
 
@@ -234,17 +256,25 @@ class AutoscaleWorkerJob implements ShouldQueue
             'singles'     => 'leaf-council batch (' . number_format($claim['count']) . ')',
             'scope_batch' => '2-cut batch (' . count($claim['scopes']) . ')',
             'precompute' => 'borders: ' . $name($claim['parent_id']),
-            // Name the MAP the scope belongs to (operator, 2026-08-29:
-            // "Japan (cascade depth 1)" was Earth drawing its Japan block,
-            // unreadably): "Earth › Japan (depth 1)".
+            // THE FULL BREADCRUMB (operator catch 2026-08-30): the label
+            // walks the real jurisdiction chain from the map's root down to
+            // the scope — "Earth › India › Uttar Pradesh" — never just the
+            // endpoints. Bounded: parent hops of one scope, ≤ tree depth.
             'scope'      => (function () use ($claim, $name) {
-                $mapOwner = DB::table('autoscale_items')
-                    ->where('id', $claim['item_id'])->value('jurisdiction_id');
-                $scope = $name($claim['scope_jurisdiction_id']);
-                $owner = $mapOwner ? $name((string) $mapOwner) : null;
-                $label = ($owner !== null && $owner !== $scope) ? $owner.' › '.$scope : $scope;
+                $mapOwner = (string) (DB::table('autoscale_items')
+                    ->where('id', $claim['item_id'])->value('jurisdiction_id') ?? '');
+                $chain = [];
+                $cursor = $claim['scope_jurisdiction_id'];
+                for ($hops = 0; $cursor !== null && $hops < 10; $hops++) {
+                    array_unshift($chain, $name((string) $cursor));
+                    if ((string) $cursor === $mapOwner) {
+                        break;
+                    }
+                    $cursor = DB::table('jurisdictions')->where('id', $cursor)->value('parent_id');
+                }
 
-                return $label . ($claim['depth'] > 0 ? ' (depth ' . $claim['depth'] . ')' : '');
+                return implode(' › ', $chain)
+                    . ($claim['depth'] > 0 ? ' (depth ' . $claim['depth'] . ')' : '');
             })(),
             'finalize'   => 'assessing: ' . $name(
                 DB::table('autoscale_items')->where('id', $claim['item_id'])->value('jurisdiction_id')

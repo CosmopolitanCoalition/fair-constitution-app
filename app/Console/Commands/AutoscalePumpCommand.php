@@ -253,12 +253,19 @@ class AutoscalePumpCommand extends Command
         // slots and the pool bled 13 → 10 with nobody healing it. SKIP
         // LOCKED makes the row lock itself the liveness signal: locked =
         // alive mid-scope (skip), unlocked and stale = truly dead (prune).
+        // A LANE WITH AN OPEN CLAIM IS ALIVE (operator order 2026-08-30,
+        // lane visibility): a heavy scope grinds inside one PostGIS call
+        // for far longer than the heartbeat window, so the prune must never
+        // eat a lease whose claim is still open and younger than the heavy
+        // wall (4 h). Only claimless-stale leases and truly ancient claims
+        // (a dead worker's orphan) prune.
         DB::statement('
             DELETE FROM autoscale_worker_leases
              WHERE id IN (SELECT id FROM autoscale_worker_leases
                            WHERE last_seen_at < ?
+                             AND (claim_started_at IS NULL OR claim_started_at < ?)
                              FOR UPDATE SKIP LOCKED)
-        ', [now()->subSeconds(self::WORKER_LEASE_STALE)]);
+        ', [now()->subSeconds(self::WORKER_LEASE_STALE), now()->subHours(4)]);
 
         if (! $run->isPaused() && AutoscaleClaims::workAvailable($run)) {
             // Two pools since the top-down ruling (2026-07-22): 20% of the
@@ -373,14 +380,37 @@ class AutoscalePumpCommand extends Command
         }
 
         if ($run->pg_fingerprint !== $fp) {
+            // PROBE, NEVER A TIMER (operator, 2026-08-30): the fingerprint
+            // query above only succeeds when postgres is already answering,
+            // so recovery is over the moment a crash is detectable. Claims
+            // resume after two consecutive healthy probes 15 s apart (the
+            // pair filters a flapping mid-recovery restart); the old flat
+            // 10-minute pause was pure dead time.
+            $healthy = 0;
+            for ($i = 0; $i < 40 && $healthy < 2; $i++) {
+                try {
+                    $inRecovery = (bool) (DB::selectOne('SELECT pg_is_in_recovery() AS r')->r ?? true);
+                    $healthy = $inRecovery ? 0 : $healthy + 1;
+                } catch (\Throwable) {
+                    $healthy = 0;
+                }
+                if ($healthy < 2) {
+                    sleep(15);
+                }
+            }
             AutoscaleRun::query()->whereKey($run->id)->update([
                 'pg_fingerprint' => $fp,
-                'paused_until'   => now()->addMinutes(10),
-                'last_error'     => 'pg crash/recovery detected '.now()->toIso8601String().' — claims paused 10 min',
+                'paused_until'   => $healthy >= 2 ? null : now()->addSeconds(30),
+                'last_error'     => $healthy >= 2
+                    ? null
+                    : 'pg crash/recovery detected '.now()->toIso8601String().' — probe still failing, retrying',
                 'updated_at'     => now(),
             ]);
             $run->refresh();
-            Log::warning('Autoscale breaker: pg crash detected, pausing claims', ['run_id' => $run->id]);
+            Log::warning('Autoscale breaker: pg restart detected', [
+                'run_id'  => $run->id,
+                'resumed' => $healthy >= 2,
+            ]);
         }
     }
 
