@@ -3267,8 +3267,15 @@ class LegislatureController extends Controller
         // survive untouched and seat their people twice. After a completed
         // _all sweep, every district on this map whose scope is outside the
         // lawful walk is stale by definition and disbands.
+        // ROOT-ANCHORED ONLY (2026-08-30, the Earth 3-district lesson): the
+        // lane path runs this method one scope at a time, and a purge keyed
+        // to a single-scope walk deletes every OTHER scope's districts —
+        // 278 of Earth's 281 died that way overnight. The purge fires only
+        // when the walk covered the whole map: an _all sweep anchored at
+        // the legislature's own root.
         $stalePurged = 0;
-        if ($clearExisting && ! $halted && $scopeIds !== []) {
+        if ($clearExisting && ! $halted && $scopeIds !== []
+            && $scopeId === (string) $leg->jurisdiction_id) {
             $stalePurged = (int) DB::table('legislature_districts')
                 ->where('map_id', $mapId)
                 ->where('legislature_id', $legislature_id)
