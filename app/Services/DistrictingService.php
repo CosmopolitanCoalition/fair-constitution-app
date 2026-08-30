@@ -2002,10 +2002,17 @@ class DistrictingService
             $binData[$best['to']]['pop'] += $cp;
         }
 
-        // Re-seat every bin under the same Step 11 arithmetic.
+        // Re-seat every bin under the same Step 11 arithmetic — INCLUDING
+        // the override badge (operator hand-check 2026-08-30, the Seoul
+        // 3-seat district): the walk-2 law says floor_override = seats
+        // below the floor, and a repaired bin's seats changed, so the flag
+        // must re-stamp. Before this, a lawful sub-floor landing left the
+        // repair UNFLAGGED and the completeness band check rightly refused
+        // the whole map into review.
         foreach ($binData as &$b) {
             $b['fractional'] = $b['pop'] / max($binQuota, 1);
             $b['seats'] = $seatsOf((int) $b['pop']);
+            $b['floor_override'] = $b['seats'] < $floor;
         }
         unset($b);
 
