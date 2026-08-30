@@ -2976,7 +2976,13 @@ class SetupController extends Controller
                 'sweeps_total'       => (int) $run->sweeps_total,
                 'sweeps_done'        => $sweepsDoneNow,
                 'review_count'       => (int) $run->review_count,
-                'last_error'         => $run->last_error,
+                // A lapsed breaker note is history, not state (operator
+                // catch 2026-08-30: the red line outlived its pause by an
+                // hour). Ship last_error only while its pause is live or
+                // the run itself is stopped on it.
+                'last_error'         => ($run->isPaused() || in_array($run->status, ['failed', 'halted'], true))
+                    ? $run->last_error
+                    : null,
                 'created_at'            => $run->created_at?->toIso8601String(),
                 'sizing_started_at'  => $run->sizing_started_at?->toIso8601String(),
                 'precompute_started_at' => $run->precompute_started_at?->toIso8601String(),
