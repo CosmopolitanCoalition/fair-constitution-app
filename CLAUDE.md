@@ -206,9 +206,20 @@ There is **NO Webster, Sainte-Laguë, largest-remainder, or any other textbook
 apportionment method** anywhere in seat allocation. Do not describe, propose,
 or implement one. The procedure (per legislature):
 
-1. The legislature ROOT's seats = rounded cube root of its population (Earth → 1999).
-2. Split to children by population share **with the CHILDREN-SUM as denominator**
-   — never the parent's stored population (geodata noise: parent ≠ Σchildren).
+0. **THE ONE-MASS LAW (operator ruling 2026-08-30. Read this first; every
+   step below consumes this mass.)** A jurisdiction's population, for every
+   seat computation at every layer, is the RECURSIVE sum of its descendants'
+   populations, down to the leaves. A leaf's mass is its own attributed
+   figure. One place has one mass, identical from every frame. Every
+   numerator, every denominator, every share, every giant test, every gate,
+   and every displayed fraction reads this same recursive sum. The mass of a
+   place is the sum of the masses of its children, and each child's mass is
+   the sum of its own children's masses, all the way down.
+1. The legislature ROOT's seats = rounded cube root of its population, the
+   recursive children-sum per step 0 (Earth → 1999).
+2. Split to children by population share. Each child's share = the child's
+   own recursive children-sum over the sum of all the children's recursive
+   children-sums. Step 0 supplies both the numerator and the denominator.
 3. A child whose share would round **past the ceiling** (frac ≥ ceiling + 0.5)
    rounds to its **nearest whole immediately and locks** (a "giant"). Shares
    that round to the ceiling or below do not round here.
@@ -447,7 +458,9 @@ way (Wave 4; Niue cleared LIVE, the pooled shape is retired). Read this section 
 seats, races or districting.
 
 **Type A — proportional. Population is everything.**
-- Total = `max(5, round(population^(1/3)))` — the cube-root law. **No ceiling on the total.**
+- Total = `max(5, round(population^(1/3)))` — the cube-root law, population =
+  the recursive children-sum (THE ONE-MASS LAW, apportionment step 0). **No
+  ceiling on the total.**
 - That total is **districted into races of 5–9 seats**, drawn so population shares are as exact
   as the engine can make them (splitline · cells · composite · graph partition).
 - **The 5–9 band is a DISTRICT rule, not a chamber rule.** A legislature total above 9 is normal

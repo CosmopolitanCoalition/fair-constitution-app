@@ -77,10 +77,17 @@ for −21% cut). Every retune preserved all prior pinned outcomes because
 
 ## 3. Seat budgets — the cascade (settled law, never re-derive)
 
-- Chamber = cube root of population, nearest-rounded. No Webster,
-  Sainte-Laguë, or largest-remainder anywhere.
-- A scope's budget splits to children by population share with the
-  **children-sum** as denominator. A child whose share reaches
+- **THE ONE-MASS LAW (operator ruling 2026-08-30).** Population, everywhere
+  in this algorithm, is the recursive sum of a place's descendants'
+  populations, down to the leaves; a leaf supplies its own attributed
+  figure. One place has one mass, identical from every frame. Sizing, the
+  cascade's numerators, the cascade's denominators, giant tests, drawing,
+  and display all read this same recursive sum.
+- Chamber = cube root of population (the recursive children-sum),
+  nearest-rounded. No Webster, Sainte-Laguë, or largest-remainder anywhere.
+- A scope's budget splits to children by population share, the numerator
+  and the denominator both drawn from the **recursive children-sum**
+  (one-mass law). A child whose share reaches
   `ceiling + 0.5` (9.5) fractional seats is a **giant**: it locks at its
   nearest-rounded seats and becomes its own scope; the remainder
   redistributes among the rest, **recursively** (nth-order promotion — a
