@@ -79,7 +79,72 @@ Compose fallbacks when `.env` is silent: 5g / 512MB / 4GB / 64MB / 512MB / 8GB
 | HostCapacity fallbacks | HostCapacity.php:76,91,110 (cores 4, mem 8 GB, conns 100; only when the host is unreadable) |
 
 Tally: 17 HARD + 6 INSTALL-DERIVED + 4 DERIVED+CAP = 27 of 38 need work; 11 already
-derive.
+derive. (Superseded by the addendum below: 44 tracked, 33 need work.)
+
+## Addendum: external review folded in (2026-08-29, desk-verified)
+
+A second AI reviewed this audit against HEAD dc2120f. Every checkable claim was
+re-verified against the code before acceptance. Verdict: all corrections real,
+one proposed remedy rejected with cause, one risk confirmed LIVE.
+
+Corrections to existing rows:
+- Provisioning param chunk is at SetupController.php:3154 in the working tree
+  (3110 at the earlier read). Cause identified: the district-drawing session is
+  actively editing that file today; both line numbers were correct at their
+  timestamps.
+- Scan session clamps set a FOURTH value: `jit = off`
+  (Geodata/GeodataFlagService.php:96).
+- Row 18 addendum: the lane formula also floors the connection cap at 4
+  (`max(4, $connCap)`, HostCapacity.php:60). And HostCapacity.php's own
+  docblock is stale: the header still documents `clamp(cores − 2, 2, 12)` and
+  an inline comment says "cap 16", while the code is the wait-aware +
+  connection-budget formula. The file misdescribes itself; agents read that
+  header. Fix queued with the derivation build (the file sits next to the
+  active district session's work; not edited mid-run).
+
+New rows (44 tracked total):
+
+| Setting | Where | Value | Status |
+|---|---|---|---|
+| horizon master memory_limit | config/horizon.php:186 | 64 MB | HARD |
+| opcache sizing | docker/php/php-local.ini:49-51,30 | 256M, 20,000 files, 16M interned, 4M realpath | HARD |
+| postgres autovacuum family | absent from docker-compose.yml | image defaults (3 workers, cost limit 200) | HARD (by omission) — a real knob for day-long write-heavy runs |
+| etl resolve pool | scripts/etl/import_geoboundaries.py:1411-1422 | min(pool width, 6), env `CGA_ETL_RESOLVE_WORKERS` | DERIVED + CAP (cap 6, per-task-weight rationale stated in code) |
+| redis queue/cache colocation | docker-compose.yml:343 + .env.example:133 + config/database.php:167-186 | queues (redis DB 0) and cache (DB 1) share ONE 768mb allkeys-lru instance; eviction policy is instance-wide | STRUCTURAL RISK — **confirmed live 2026-08-29: evicted_keys 31,612, used 709/768 MB, during the mapping run.** Hot queue keys are LRU-protected in practice; cold job payloads and leases are structurally evictable |
+| supervisor double-booking | config/horizon.php:259,283 | supervisor-autoscale and supervisor-sim EACH size to the full host; simultaneous work = 2× lanes on one box | STRUCTURAL — needs a shared budget or a stated sequencing guarantee |
+
+New tally: 20 HARD + 6 INSTALL-DERIVED + 5 DERIVED+CAP + 2 STRUCTURAL = 33 of 44
+need work; 11 derive.
+
+Fix-list additions from the review (all accepted):
+- Fix HostCapacity.php's stale header and cap-16 comment (queued, see above).
+- `.env` marker mechanism for script-written values (`# fc-derived` suffix) so
+  re-derivation refreshes derived lines and never touches hand-set ones.
+- Session-scoped work_mem RAISES for districting lanes (the inverse of
+  clampSessionMemory): `SET work_mem` ≈ (pg_cap − shared_buffers −
+  transient_reserve) / lanes / 2 clamped, plus gather = 0. Derived, scoped,
+  leaves ingest safety untouched. Owner note: districting lane files are under
+  the active district session; coordinate before touching.
+- Autovacuum derivation: workers from cores, cost limit scaled, per-table scale
+  factors on hot districting tables, log_autovacuum_min_duration=0 during runs.
+- Redis split: queue instance with noeviction, cache instance stays
+  allkeys-lru; fold the derive-maxmemory-from-host row in, 768mb floor.
+  **The reviewer's alternative (volatile-lru on the single instance) is
+  REJECTED for this codebase**: the map GeoJSON cache is
+  rememberForever/no-TTL (docker-compose.yml:337-340), so under volatile-lru
+  nothing is evictable, the instance fills, and ALL writes fail, queue pushes
+  included.
+- Prewarm: conditional; if a backlog shows, per-key temp file + atomic rename,
+  then derive the lane count.
+- Shared budget across autoscale + sim supervisors, or a code comment stating
+  the sequencing guarantee if one exists.
+- Minor derivations: horizon master memory_limit, opcache sizing from host
+  memory.
+
+Frame note: the reviewer's deferral list (max_connections, the etl wait-aware
+upgrade, download lanes) is correct for the 12-core laptop this week and exactly
+inverted for the cloud burst box, where those three are the throughput levers.
+Both priority orders stand, each in its own frame.
 
 ## The complete fix list (operator order 2026-08-29: nothing excluded)
 
