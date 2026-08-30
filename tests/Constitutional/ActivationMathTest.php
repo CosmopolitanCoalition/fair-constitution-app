@@ -39,15 +39,34 @@ class ActivationMathTest extends TestCase
 
     public function test_floor_of_five_seats_applies(): void
     {
-        // Art. II §2 — never below 5 seats, however small the population.
-        $this->assertSame(5, ActivationService::cubeRootSeats(1));
-        $this->assertSame(5, ActivationService::cubeRootSeats(0));
+        // Art. II §2 — never below 5 seats — BOWING TO THE POPULATION
+        // REALITY CAP (operator ruling 2026-08-30): representation never
+        // exceeds residents. Five people or more get the full floor.
+        $this->assertSame(5, ActivationService::cubeRootSeats(5));
         $this->assertSame(5, ActivationService::cubeRootSeats(64));   // ∛64 = 4 → floored
         $this->assertSame(5, ActivationService::cubeRootSeats(91));   // ∛91 ≈ 4.50 → rounds 4–5, floor guarantees 5
 
         // First population whose cube root rounds to 6 (5.5³ = 166.375).
         $this->assertSame(5, ActivationService::cubeRootSeats(166));
         $this->assertSame(6, ActivationService::cubeRootSeats(167));
+    }
+
+    public function test_population_reality_cap(): void
+    {
+        // Operator ruling 2026-08-30: you cannot have more representatives
+        // than people. One resident is one seat; an empty space seats
+        // nobody and is effectively inactive.
+        $this->assertSame(0, ActivationService::cubeRootSeats(0));
+        $this->assertSame(1, ActivationService::cubeRootSeats(1));
+        $this->assertSame(3, ActivationService::cubeRootSeats(3));
+        $this->assertSame(4, ActivationService::cubeRootSeats(4));
+        $this->assertSame(5, ActivationService::cubeRootSeats(5));
+
+        // Quorum bows to the same reality: never more than the chamber.
+        $this->assertSame(0, ActivationService::quorumRequired(0));
+        $this->assertSame(1, ActivationService::quorumRequired(1));
+        $this->assertSame(2, ActivationService::quorumRequired(2));
+        $this->assertSame(3, ActivationService::quorumRequired(4));
     }
 
     public function test_rounding_is_round_half_up_not_truncation(): void
@@ -119,6 +138,8 @@ class ActivationMathTest extends TestCase
         $this->assertSame(4, ActivationService::quorumRequired(7));
         $this->assertSame(5, ActivationService::quorumRequired(9));
         $this->assertSame(30, ActivationService::quorumRequired(59)); // San Marino: 32 + 27 (the ladder)
-        $this->assertSame(3, ActivationService::quorumRequired(1));   // floor of 3
+        // Reality cap (operator ruling 2026-08-30): quorum never exceeds
+        // the chamber — a 1-seat chamber convenes with its 1 member.
+        $this->assertSame(1, ActivationService::quorumRequired(1));
     }
 }

@@ -4,6 +4,7 @@ namespace App\Services\Autoscale;
 
 use App\Models\AutoscaleRun;
 use App\Services\AuditService;
+use App\Services\ConstitutionalDefaults;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 
@@ -61,7 +62,8 @@ class SinglesBatchProcessor
                  fractional_seats, floor_override, map_id, created_at, updated_at)
             SELECT gen_random_uuid(), l.id, l.jurisdiction_id, 1, l.type_a_seats,
                    COALESCE(j.population, 0), COALESCE(j.population, 0), 'active',
-                   l.type_a_seats::numeric, false, m.map_id, now(), now()
+                   l.type_a_seats::numeric,
+                   l.type_a_seats < ?, m.map_id, now(), now()
               FROM autoscale_items ai
               JOIN legislatures l ON l.id = ai.legislature_id AND l.deleted_at IS NULL
               JOIN jurisdictions j ON j.id = l.jurisdiction_id
@@ -71,9 +73,13 @@ class SinglesBatchProcessor
                     ORDER BY m2.created_at DESC LIMIT 1
              ) m
              WHERE {$itemFilter}
+               -- POPULATION REALITY CAP (operator ruling 2026-08-30): a
+               -- 0-seat chamber is inactive space — no district at all.
+               -- Sub-floor singles (pop 1-4) draw with the override posture.
+               AND l.type_a_seats > 0
                AND NOT EXISTS (SELECT 1 FROM legislature_districts d
                                 WHERE d.map_id = m.map_id AND d.deleted_at IS NULL)
-        ", $params);
+        ", [ConstitutionalDefaults::floor(), ...$params]);
 
         // 3. Membership: the jurisdiction itself (ldj XOR: jurisdiction side).
         DB::statement("

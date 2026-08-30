@@ -59,7 +59,12 @@ class ConstitutionalDefaults
             'cube_root' => (int) round(pow($pop, 1.0 / 3.0)),
             default     => (int) round(pow($pop, 1.0 / 3.0)),
         };
-        return max(self::floor($jurisdictionId), $size);
+
+        // THE POPULATION REALITY CAP (operator ruling 2026-08-30):
+        // representation never exceeds residents. The floor clamp bows to
+        // the people who actually exist — one resident is one seat, an
+        // empty space seats nobody and is effectively inactive.
+        return (int) min(max(self::floor($jurisdictionId), $size), max(0.0, floor($population)));
     }
 
     /**

@@ -1792,7 +1792,7 @@ class DistrictingService
             // applied at write time only, AFTER every landing/repair pass —
             // those all reason pre-bonus, so drift stays measured against the
             // lawful landing. A forced sub-2 bin lifts to exactly 2.
-            $bonusSeats = $this->ceilingExceptionBonus((int) $bin['seats']);
+            $bonusSeats = $this->ceilingExceptionBonus((int) $bin['seats'], (int) round((float) $bin['pop']));
 
             DB::table('legislature_districts')->insert([
                 'id'               => $districtId,
@@ -2311,7 +2311,7 @@ class DistrictingService
         // exception (2026-08-28) then lifts any forced sub-2 landing to
         // exactly 2 via bonus seats added to the legislature.
         $lawfulSeats   = min($ceiling, max(0, (int) round($fractional)));
-        $bonusSeats    = $this->ceilingExceptionBonus($lawfulSeats);
+        $bonusSeats    = $this->ceilingExceptionBonus($lawfulSeats, (int) round((float) $totalPop));
         $seats         = $lawfulSeats + $bonusSeats;
         $floorOverride = $lawfulSeats < $floor;
 
@@ -5725,9 +5725,15 @@ class DistrictingService
      * lifted. The zero case is the giant-consumed residue plane (Kuala
      * Lumpur); the one case is dominant-atom dust (Cordillera [9,1]→[9,2]).
      */
-    private function ceilingExceptionBonus(int $lawfulSeats): int
+    private function ceilingExceptionBonus(int $lawfulSeats, int $population): int
     {
-        return $lawfulSeats < 2 ? 2 - $lawfulSeats : 0;
+        // THE POPULATION REALITY CAP (operator ruling 2026-08-30, refining
+        // the 08-28 lift): the lift raises a forced sub-2 landing toward 2,
+        // but its target bows to the residents who actually exist — one
+        // person seats one representative, an empty space seats nobody.
+        $target = min(2, max(0, $population));
+
+        return $lawfulSeats < $target ? $target - $lawfulSeats : 0;
     }
 
     /**
@@ -5762,7 +5768,10 @@ class DistrictingService
         $residuePop = array_sum(array_map(fn ($c) => (int) $c->population, $nonGiantRows));
         $allPop     = $residuePop + array_sum(array_map(fn ($c) => (int) $c->population, $giantRows));
         $quota      = $allPop > 0 ? $allPop / $seatBudget : 0.0;
-        $bonus      = $this->ceilingExceptionBonus(0);
+        // Reality-capped lift (2026-08-30): an uninhabited residue plane
+        // seats nobody — the district still exists so every atom stays
+        // mapped, but its seats are exactly its residents, at most 2.
+        $bonus      = $this->ceilingExceptionBonus(0, $residuePop);
 
         $distNumQ = DB::table('legislature_districts')
             ->where('legislature_id', $legislature_id)
@@ -5800,7 +5809,7 @@ class DistrictingService
 
         $this->publishMassProgress($legislature_id, [
             'phase'       => 'inserted',
-            'phase_label' => 'Ceiling exception: residue district seated by bonus (2)',
+            'phase_label' => "Ceiling exception: residue district seated by bonus ({$bonus})",
         ]);
 
         return ['districts_created' => 1, 'error' => null];

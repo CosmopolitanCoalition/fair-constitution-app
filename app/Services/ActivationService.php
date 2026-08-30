@@ -170,7 +170,14 @@ class ActivationService
     {
         $pop = max((float) $population, 1.0);
 
-        return max($floor, (int) round(pow($pop, 1.0 / 3.0)));
+        // THE POPULATION REALITY CAP (operator ruling 2026-08-30): never
+        // more representatives than residents. pop 0 → 0 (inactive space),
+        // pop 1-4 → pop, pop ≥ floor unchanged. Mirrors
+        // ConstitutionalDefaults::sizeFromPopulation exactly.
+        return (int) min(
+            max($floor, (int) round(pow($pop, 1.0 / 3.0))),
+            max(0.0, floor((float) $population))
+        );
     }
 
     /**
@@ -220,7 +227,14 @@ class ActivationService
     /** Quorum sizing used at instantiation (matches ApportionmentSeedCommand). */
     public static function quorumRequired(int $totalSeats): int
     {
-        return max(3, (int) ceil($totalSeats / 2));
+        // Reality cap (2026-08-30): quorum can never exceed the chamber —
+        // a 1-seat chamber convenes with its 1 member, a 0-seat chamber
+        // (inactive space) has no quorum at all.
+        if ($totalSeats <= 0) {
+            return 0;
+        }
+
+        return min($totalSeats, max(3, (int) ceil($totalSeats / 2)));
     }
 
     // =========================================================================
