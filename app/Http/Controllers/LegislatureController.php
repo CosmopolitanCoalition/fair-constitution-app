@@ -246,6 +246,8 @@ class LegislatureController extends Controller
         abort_if(!$leg, 404, 'Legislature not found.');
         $legislature_id = $leg->id;   // canonicalize to UUID for all downstream use
 
+        $this->frontDemandPriority((string) $leg->id);
+
         $legSlug = DB::table('jurisdictions')->where('id', $leg->jurisdiction_id)->value('slug');
         $legPath = $legSlug ?? $leg->id;
 
@@ -360,6 +362,38 @@ class LegislatureController extends Controller
      * Scope defaults to the legislature's own parent jurisdiction.
      * Drill-down is achieved by passing ?scope=<child_jurisdiction_id>.
      */
+    /**
+     * DEMAND PRIORITY (operator order 2026-08-30, world-entry-early): the
+     * world is browsable while the planet run draws, and whatever people
+     * actually LOOK AT draws next. Viewing a legislature whose founding
+     * map is still on the pile stamps its item; the claim ladder serves
+     * stamped items ahead of the whole pile. Idempotent (first view
+     * stamps, later views no-op), one indexed UPDATE, and free when no
+     * run is live (the 60 s cached run-id probe short-circuits).
+     */
+    private function frontDemandPriority(string $legislatureId): void
+    {
+        try {
+            $runId = Cache::remember('autoscale.live_run_id', 60, function () {
+                return (string) (DB::table('autoscale_runs')
+                    ->where('status', 'mapping')
+                    ->orderByDesc('created_at')
+                    ->value('id') ?? '');
+            });
+            if ($runId === '') {
+                return;
+            }
+            DB::table('autoscale_items')
+                ->where('run_id', $runId)
+                ->where('legislature_id', $legislatureId)
+                ->whereIn('status', ['pending', 'running'])
+                ->whereNull('priority_at')
+                ->update(['priority_at' => now(), 'updated_at' => now()]);
+        } catch (\Throwable) {
+            // A page view must never fail on the priority stamp.
+        }
+    }
+
     public function districts(Request $request, string $legislature_id): Response|RedirectResponse
     {
         // Dual-accept the path param: a UUID (legacy / internal links) OR a
@@ -386,6 +420,8 @@ class LegislatureController extends Controller
 
         abort_if(!$leg, 404, 'Legislature not found.');
         $legislature_id = $leg->id;   // canonicalize to UUID for all downstream use
+
+        $this->frontDemandPriority((string) $leg->id);
 
         // Scope: which level of the hierarchy to display. Defaults to the
         // legislature's own root jurisdiction (Earth, USA, etc.). Accepts a

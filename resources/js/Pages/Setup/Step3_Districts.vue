@@ -923,6 +923,9 @@ onBeforeUnmount(stopPolling)
                     <ul class="text-sm text-gray-400 space-y-2 mb-5 pl-4 list-disc">
                         <li>A banner at the top of the mapper will remind you you're in setup mode.</li>
                         <li>Review items above link straight into the affected legislature's mapper.</li>
+                        <li>The whole world is browsable while maps draw — and whatever
+                            legislature you visit <strong>jumps the queue</strong>: its map
+                            draws next.</li>
                         <li>You can always come back here by visiting <code class="text-gray-300">/setup</code>.</li>
                     </ul>
 

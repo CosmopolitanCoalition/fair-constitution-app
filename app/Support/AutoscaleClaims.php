@@ -114,6 +114,16 @@ final class AutoscaleClaims
                 return $claim;
             }
         }
+        // DEMAND PRIORITY (operator order 2026-08-30, world-entry-early):
+        // a stamped item — someone is LOOKING at that legislature — jumps
+        // the whole pile. The probe is an indexed EXISTS (partial index on
+        // priority_at), so the fast batch path pays ~nothing when nobody
+        // is waiting; claimScope's ORDER serves stamped items first.
+        if (static::priorityPending($run)) {
+            if ($claim = static::claimScope($run, $token, $lane)) {
+                return $claim;
+            }
+        }
         // THE TWO-CUTTER BATCH (operator order 2026-08-29, the 4-day law):
         // 364k lawful 2-3 district leaf splits each cost more to CLAIM (a
         // planet-join) than to DRAW. Bottom-up lanes take them 100 at a
@@ -151,6 +161,17 @@ final class AutoscaleClaims
         }
 
         return null;
+    }
+
+    /** Any demanded (priority-stamped) item still holding a pending scope? */
+    public static function priorityPending(AutoscaleRun $run): bool
+    {
+        return DB::table('autoscale_scopes AS s')
+            ->join('autoscale_items AS ai', 'ai.id', '=', 's.item_id')
+            ->where('s.run_id', $run->id)
+            ->where('s.status', 'pending')
+            ->whereNotNull('ai.priority_at')
+            ->exists();
     }
 
     /** Anything claimable right now? (The pump's worker-seeding gate.) */
@@ -336,9 +357,11 @@ final class AutoscaleClaims
             }
 
             $heavyPredicate = $allowHeavy ? 'true' : 'false';
+            // Demand priority outranks the pile order in BOTH lanes: a
+            // stamped item is a person waiting at a map (2026-08-30).
             $order = $lane === 'topdown'
-                ? 'ai.position DESC, s2.depth, s2.id'
-                : 'ai.position, s2.depth, s2.id';
+                ? 'ai.priority_at ASC NULLS LAST, ai.position DESC, s2.depth, s2.id'
+                : 'ai.priority_at ASC NULLS LAST, ai.position, s2.depth, s2.id';
 
             return DB::selectOne("
                 UPDATE autoscale_scopes s
