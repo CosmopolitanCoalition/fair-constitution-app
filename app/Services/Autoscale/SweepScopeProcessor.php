@@ -268,8 +268,7 @@ class SweepScopeProcessor
                           ) bbox ON true
                          WHERE j.id = ?
                             ON CONFLICT (legislature_id, scope_jurisdiction_id)
-                            DO UPDATE SET seat_budget = EXCLUDED.seat_budget, updated_at = now()
-                                WHERE apportionment_ledger_scopes.status = 'pending'
+                            DO NOTHING
                     ", [
                         $legislatureId, $scopeJid,
                         $claim['depth'] + 1, 'pending', (int) $budget,

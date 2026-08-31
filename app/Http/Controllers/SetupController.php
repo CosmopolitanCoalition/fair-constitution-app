@@ -2769,10 +2769,22 @@ class SetupController extends Controller
         if ($row === null) {
             return null;
         }
-        $report = \Illuminate\Support\Facades\Cache::remember(
-            'setup.world_build.report', 10,
-            fn () => \App\Support\WorldBuildVerifier::report(),
-        );
+        // A COMPLETE build's report is stable — cache it long. A building
+        // world refreshes every 15 s, single-flight via lock so concurrent
+        // polls never stack the planet-wide coverage anti-joins.
+        $ttl = $row->status === 'complete' ? 600 : 15;
+        $report = \Illuminate\Support\Facades\Cache::get('setup.world_build.report');
+        if ($report === null) {
+            $lock = \Illuminate\Support\Facades\Cache::lock('setup.world_build.report.lock', 30);
+            if ($lock->get()) {
+                try {
+                    $report = \App\Support\WorldBuildVerifier::report();
+                    \Illuminate\Support\Facades\Cache::put('setup.world_build.report', $report, $ttl);
+                } finally {
+                    $lock->release();
+                }
+            }
+        }
 
         return [
             'status'     => (string) $row->status,

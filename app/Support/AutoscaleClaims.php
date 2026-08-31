@@ -61,21 +61,12 @@ final class AutoscaleClaims
     }
 
     /**
-     * THE BLOCK GATE (operator ruling 2026-08-31, spoken table): a claim
-     * serves only the LOWEST unfinished block_rank — planet, then each
-     * layer's composites, then that layer's leaves. 'running'/'assessing'
-     * count as unfinished so a block holds until its last map lands.
-     * Unstamped headers pass the gate unchanged.
-     *
-     * @param string $alias the apportionment_ledger alias in the query
+     * THE BLOCK ORDER IS A PRIORITY, NEVER A LOCKOUT (operator ruling
+     * 2026-08-31, second ruling: "all 13 lanes should be going at all
+     * times"): every claim ORDERS by block_rank first — the lowest block's
+     * work always wins — and when the current block cannot feed a lane,
+     * the lane spills forward into the next block instead of idling.
      */
-    private static function blockGateSql(string $alias): string
-    {
-        return "({$alias}.block_rank IS NULL OR {$alias}.block_rank = (
-                    SELECT MIN(x.block_rank) FROM apportionment_ledger x
-                     WHERE x.map_status IN ('pending', 'running', 'assessing')
-                       AND x.block_rank IS NOT NULL))";
-    }
 
     public static function topDownWorkerCap(): int
     {
@@ -92,18 +83,18 @@ final class AutoscaleClaims
      */
     public static function next(AutoscaleRun $run, string $token, string $lane = 'auto'): ?array
     {
-        if ($lane !== 'topdown') {
-            if ($claim = static::claimSingles($run, $token)) {
-                return $claim;
-            }
-        }
+        // THE LADDER IS BLOCK-AWARE (operator ruling 2026-08-31, benchmark
+        // 14's out-of-order evidence): rung TYPE never outranks THE BLOCK
+        // ORDER. Finalize and precompute lead (cheap, order-neutral); then
+        // the demand-priority jump; then the block decides WHICH kind of
+        // work comes next — singles claim when their lowest block precedes
+        // the scopes' lowest block, scopes otherwise — and the batch and
+        // singles rungs run as fallthroughs so a lane never idles.
         if ($claim = static::claimFinalize($run, $token)) {
             return $claim;
         }
-        if ($lane !== 'topdown') {
-            if ($claim = static::claimPrecompute($run, $token)) {
-                return $claim;
-            }
+        if ($claim = static::claimPrecompute($run, $token)) {
+            return $claim;
         }
         // DEMAND PRIORITY (operator order 2026-08-30, world-entry-early):
         // a stamped header — someone is LOOKING at that legislature — jumps
@@ -113,29 +104,35 @@ final class AutoscaleClaims
                 return $claim;
             }
         }
-        // THE TWO-CUTTER BATCH (operator order 2026-08-29, the 4-day law):
-        // the trivial-split leaf mass claims 100 at a time.
-        if ($lane !== 'topdown') {
-            if ($claim = static::claimScopeBatch($run, $token)) {
+
+        $singlesBlock = DB::scalar("
+            SELECT MIN(block_rank) FROM apportionment_ledger
+             WHERE kind = 'single' AND map_status = 'pending' AND block_rank IS NOT NULL
+        ");
+        $scopeBlock = DB::scalar("
+            SELECT MIN(h.block_rank) FROM apportionment_ledger_scopes s
+              JOIN apportionment_ledger h ON h.legislature_id = s.legislature_id
+             WHERE s.status = 'pending' AND h.block_rank IS NOT NULL
+        ");
+
+        if ($singlesBlock !== null && ($scopeBlock === null || (int) $singlesBlock < (int) $scopeBlock)) {
+            if ($claim = static::claimSingles($run, $token, (int) $singlesBlock)) {
                 return $claim;
             }
         }
         if ($claim = static::claimScope($run, $token, $lane)) {
             return $claim;
         }
-
-        // LANES FLOW TO THE SURVIVOR (lane law #2): a capped lane must not
-        // die idle while light work remains.
-        if ($lane === 'topdown') {
-            if ($claim = static::claimScopeBatch($run, $token)) {
-                return $claim;
-            }
-            if ($claim = static::claimSingles($run, $token)) {
-                return $claim;
-            }
-            if ($claim = static::claimPrecompute($run, $token)) {
-                return $claim;
-            }
+        // THE TWO-CUTTER BATCH (operator order 2026-08-29, the 4-day law):
+        // the trivial-split leaf mass claims 100 at a time — as the
+        // fallthrough behind the ordered scope claim, never ahead of it.
+        if ($claim = static::claimScopeBatch($run, $token)) {
+            return $claim;
+        }
+        // LANES NEVER IDLE (lane law): singles from their lowest block as
+        // the final fallthrough.
+        if ($claim = static::claimSingles($run, $token, $singlesBlock !== null ? (int) $singlesBlock : null)) {
+            return $claim;
         }
 
         return null;
@@ -196,7 +193,7 @@ final class AutoscaleClaims
         return config('cga.autoscale_precompute', 'upfront') !== 'lazy';
     }
 
-    private static function claimSingles(AutoscaleRun $run, string $token): ?array
+    private static function claimSingles(AutoscaleRun $run, string $token, ?int $blockRank = null): ?array
     {
         $hasPending = DB::table('apportionment_ledger')
             ->where('kind', 'single')
@@ -216,21 +213,25 @@ final class AutoscaleClaims
             return null;
         }
 
-        $claimed = DB::select('
+        // ONE BLOCK PER BATCH (operator ruling 2026-08-31): a batch never
+        // straddles a block boundary — the 15k bite eats its own block's
+        // singles only, so deep-layer leaves cannot ride an early batch.
+        $blockPredicate = $blockRank !== null ? 'h.block_rank = '.((int) $blockRank) : 'true';
+        $claimed = DB::select("
             UPDATE apportionment_ledger
                SET map_status = ?, claim_token = ?,
                    started_at = COALESCE(started_at, now()), updated_at = now()
              WHERE legislature_id IN (
                    SELECT h.legislature_id FROM apportionment_ledger h
                     WHERE h.kind = ? AND h.map_status = ?
-                      AND ' . self::blockGateSql('h') . '
-                    ORDER BY h.block_order ASC NULLS LAST, h.position
+                      AND {$blockPredicate}
+                    ORDER BY h.block_rank ASC NULLS LAST, h.block_order ASC NULLS LAST, h.position
                     LIMIT ?
                     FOR UPDATE SKIP LOCKED
              )
                AND map_status = ?
          RETURNING legislature_id
-        ', ['running', $token, 'single', 'pending', self::SINGLES_BATCH, 'pending']);
+        ", ['running', $token, 'single', 'pending', self::SINGLES_BATCH, 'pending']);
 
         if ($claimed === []) {
             return null;
@@ -320,7 +321,6 @@ final class AutoscaleClaims
             $lightPending = DB::table('apportionment_ledger_scopes AS s')
                 ->join('apportionment_ledger AS h', 'h.legislature_id', '=', 's.legislature_id')
                 ->where('s.status', 'pending')
-                ->whereRaw(self::blockGateSql('h'))
                 ->whereRaw('COALESCE(s.area_tier, h.area_tier, 1) < ?', [self::HEAVY_TIER])
                 ->exists();
             if ($lightPending) {
@@ -335,11 +335,6 @@ final class AutoscaleClaims
 
             $heavyPredicate = $allowHeavy ? 'true' : 'false';
             $priorityPredicate = $priorityOnly ? 'h.priority_at IS NOT NULL' : 'true';
-            // THE BLOCK ORDER (operator ruling 2026-08-31): every lane runs
-            // ONE direction — the current block's maps by block_order
-            // (composites biggest-first, leaves smallest-first), the stamped
-            // walk within each map. 'bottomup' (two-ended, disabled) keeps
-            // its reverse key.
             $order = $priorityOnly
                 ? 's2.walk_position ASC NULLS LAST, h.priority_at ASC, s2.depth, s2.id'
                 : match ($lane) {
@@ -348,7 +343,15 @@ final class AutoscaleClaims
                     default    => 'h.block_order ASC NULLS LAST, s2.walk_position ASC NULLS LAST, h.position, s2.depth, s2.id',
                 };
 
-            return DB::selectOne("
+            // TWO-PHASE PRIORITY (operator ruling 2026-08-31, "all 13 lanes
+            // at all times"): phase 1 claims INSIDE the current block — a
+            // small, index-friendly set. On a miss (the block's tail cannot
+            // feed this lane) phase 2 SPILLS forward: the same claim with
+            // the block filter as an ordering key instead, so a lane takes
+            // the next block's head rather than idling. Priority preserved,
+            // idleness abolished, and the expensive whole-pile sort runs
+            // only during tails.
+            $claimSql = fn (string $blockPredicate, string $ord) => "
                 UPDATE apportionment_ledger_scopes s
                    SET status = ?, claim_token = ?,
                        started_at = COALESCE(s.started_at, now()), updated_at = now()
@@ -357,16 +360,35 @@ final class AutoscaleClaims
                         JOIN apportionment_ledger h ON h.legislature_id = s2.legislature_id
                        WHERE s2.status = ?
                          AND {$priorityPredicate}
-                         AND " . self::blockGateSql('h') . "
+                         AND {$blockPredicate}
                          AND (COALESCE(s2.area_tier, h.area_tier, 1) < ? OR {$heavyPredicate})
-                       ORDER BY {$order}
+                       ORDER BY {$ord}
                        LIMIT 1
                        -- OF s2 (2026-08-30, the single-item Earth stall):
                        -- lock scopes only; never the joined header row.
                        FOR UPDATE OF s2 SKIP LOCKED
                  )
              RETURNING s.id, s.legislature_id, s.scope_jurisdiction_id, s.depth
-            ", ['running', $token, 'pending', self::HEAVY_TIER]);
+            ";
+            $params = ['running', $token, 'pending', self::HEAVY_TIER];
+
+            $currentBlock = DB::scalar("
+                SELECT MIN(block_rank) FROM apportionment_ledger
+                 WHERE map_status IN ('pending', 'running', 'assessing')
+                   AND block_rank IS NOT NULL
+            ");
+            if ($currentBlock !== null) {
+                $row = DB::selectOne($claimSql('h.block_rank = '.((int) $currentBlock), $order), $params);
+                if ($row !== null) {
+                    return $row;
+                }
+            }
+
+            $spillOrder = $priorityOnly || $lane === 'bottomup'
+                ? $order
+                : 'h.block_rank ASC NULLS LAST, '.$order;
+
+            return DB::selectOne($claimSql('true', $spillOrder), $params);
         });
 
         if ($row === null) {
@@ -385,7 +407,9 @@ final class AutoscaleClaims
     /** Claim up to 100 light childless small-split scopes in one shot. */
     private static function claimScopeBatch(AutoscaleRun $run, string $token): ?array
     {
-        $rows = DB::select("
+        // Two-phase, same shape as claimScope: the current block first,
+        // spill forward on a miss.
+        $sql = fn (string $blockPredicate, string $ord) => "
             UPDATE apportionment_ledger_scopes s
                SET status = 'running', claim_token = ?,
                    started_at = COALESCE(s.started_at, now()), updated_at = now()
@@ -395,14 +419,25 @@ final class AutoscaleClaims
                    WHERE s2.status = 'pending'
                      AND h.child_count = 0
                      AND COALESCE(h.est_districts, 99) <= 3
-                     AND " . self::blockGateSql('h') . "
+                     AND {$blockPredicate}
                      AND COALESCE(s2.area_tier, h.area_tier, 1) < ?
-                   ORDER BY h.block_order ASC NULLS LAST, s2.id
+                   ORDER BY {$ord}
                    LIMIT 100
                    FOR UPDATE OF s2 SKIP LOCKED
              )
          RETURNING s.id, s.legislature_id, s.scope_jurisdiction_id, s.depth
-        ", [$token, self::HEAVY_TIER]);
+        ";
+        $currentBlock = DB::scalar("
+            SELECT MIN(block_rank) FROM apportionment_ledger
+             WHERE map_status IN ('pending', 'running', 'assessing')
+               AND block_rank IS NOT NULL
+        ");
+        $rows = $currentBlock !== null
+            ? DB::select($sql('h.block_rank = '.((int) $currentBlock), 'h.block_order ASC NULLS LAST, s2.id'), [$token, self::HEAVY_TIER])
+            : [];
+        if ($rows === []) {
+            $rows = DB::select($sql('true', 'h.block_rank ASC NULLS LAST, h.block_order ASC NULLS LAST, s2.id'), [$token, self::HEAVY_TIER]);
+        }
 
         if ($rows === []) {
             return null;
