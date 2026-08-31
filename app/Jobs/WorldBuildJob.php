@@ -127,6 +127,8 @@ class WorldBuildJob implements ShouldQueue
                 \App\Services\ConstitutionalDefaults::ceiling(), $beat);
             AutoscaleEnumeration::seedSweepLeafSelfScopes();
             AutoscaleEnumeration::stampReversePositions();
+            // THE DISPATCH ORDER: the one global sequence claims pop from.
+            AutoscaleEnumeration::stampDispatchOrder($beat);
             $beat();
             AutoscaleEnumeration::stampGateRefusals();
             AutoscaleEnumeration::mintFoundingMapsLedger(fn () => $beat());

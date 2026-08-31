@@ -99,37 +99,40 @@ class HeavyLaneClaimTest extends TestCase
         });
     }
 
-    public function test_topdown_lane_claims_the_highest_position(): void
+    public function test_every_lane_pops_the_same_global_head(): void
     {
         $this->onLivePg(function (AutoscaleRun $run): void {
-            $low  = $this->mkScope($run, 1, 'pending', position: 1);
-            $high = $this->mkScope($run, 1, 'pending', position: 900000);
+            // ONE DIRECTION (operator ruling 2026-08-31, THE BLOCK ORDER):
+            // lane splitting is retired — a 'topdown' lane pops the same
+            // global dispatch head as every other lane.
+            $head = $this->mkScope($run, 1, 'pending', position: 1);
+            $next = $this->mkScope($run, 1, 'pending', position: 900000);
 
             $claim = $this->claimScope($run, 'topdown');
 
             $this->assertNotNull($claim);
-            $this->assertSame($high, $claim['scope_id'], 'the top-down lane works the queue from the top');
+            $this->assertSame($head, $claim['scope_id'], 'every lane pops the global dispatch head');
 
-            // The auto lane still takes the bottom.
             $claim2 = $this->claimScope($run, 'auto');
-            $this->assertSame($low, $claim2['scope_id'], 'the auto lane keeps bottom-up order');
+            $this->assertSame($next, $claim2['scope_id'], 'the next claim pops the next stamped number');
         });
     }
 
-    public function test_topdown_lane_respects_the_global_heavy_cap(): void
+    public function test_capped_lane_skips_the_heavy_head(): void
     {
         $this->onLivePg(function (AutoscaleRun $run): void {
-            // Heavy pool full; the TOP of the queue is a heavy scope. The
-            // top-down claim must skip it and take the highest-position
-            // LIGHT scope instead — one memory bound binds across lanes.
+            // Heavy pool full; the HEAD of the dispatch order is a heavy
+            // scope. The claim must skip it and take the next LIGHT scope
+            // — one memory bound binds across all lanes, and the smalls
+            // never stop.
             $this->fillHeavyPool($run, AutoscaleClaims::heavyWorkerCap());
-            $this->mkScope($run, 5, 'pending', position: 900000);
-            $lightTop = $this->mkScope($run, 1, 'pending', position: 800000);
+            $this->mkScope($run, 5, 'pending', position: 1);
+            $lightNext = $this->mkScope($run, 1, 'pending', position: 2);
 
             $claim = $this->claimScope($run, 'topdown');
 
             $this->assertNotNull($claim);
-            $this->assertSame($lightTop, $claim['scope_id'], 'a capped top-down worker takes the highest-position light work');
+            $this->assertSame($lightNext, $claim['scope_id'], 'a capped worker skips the heavy head and takes the next light scope');
         });
     }
 
@@ -174,8 +177,9 @@ class HeavyLaneClaimTest extends TestCase
      * Insert one sweep header + its ledger scope; returns the scope id.
      * FIXTURES DOMINATE THE WORLD GATE: block_rank -100 makes the block
      * gate's MIN resolve to the fixture block inside this transaction, so
-     * the live box's own pending world never wins a test claim. block_order
-     * is constant so ordering falls to h.position (the pinned key).
+     * the live box's own pending world never wins a test claim. The scope's
+     * walk_position carries $position — the one global dispatch number the
+     * claim pops (headers keep position for the singles order).
      */
     private function mkScope(AutoscaleRun $run, int $areaTier, string $status, int $position): string
     {
@@ -193,7 +197,7 @@ class HeavyLaneClaimTest extends TestCase
         DB::table('apportionment_ledger_scopes')->insert([
             'id' => $scopeId, 'legislature_id' => $legId,
             'scope_jurisdiction_id' => (string) Str::uuid(),
-            'depth' => 0, 'walk_position' => 0, 'seat_budget' => 20,
+            'depth' => 0, 'walk_position' => $position, 'seat_budget' => 20,
             'status' => $status,
             'created_at' => now(), 'updated_at' => now(),
         ]);

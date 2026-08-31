@@ -229,7 +229,7 @@ final class AutoscaleClaims
                    SELECT h.legislature_id FROM apportionment_ledger h
                     WHERE h.kind = ? AND h.map_status = ?
                       AND {$blockPredicate}
-                    ORDER BY h.block_rank ASC NULLS LAST, h.block_order ASC NULLS LAST, h.position
+                    ORDER BY h.position ASC NULLS LAST
                     LIMIT ?
                     FOR UPDATE SKIP LOCKED
              )
@@ -339,23 +339,18 @@ final class AutoscaleClaims
 
             $heavyPredicate = $allowHeavy ? 'true' : 'false';
             $priorityPredicate = $priorityOnly ? 'h.priority_at IS NOT NULL' : 'true';
+            // THE DISPATCH POP (operator confirmation 2026-08-31): the
+            // stamped GLOBAL walk_position is the whole benchmark's
+            // sequence — block order, within-block order, and spill in one
+            // number. The (status, walk_position) index serves its leading
+            // edge; a claim is an index descent, never a sort.
             $order = $priorityOnly
-                ? 's2.walk_position ASC NULLS LAST, h.priority_at ASC, s2.depth, s2.id'
-                : match ($lane) {
-                    'bottomup' => 's2.reverse_position ASC NULLS LAST, s2.walk_position DESC, s2.depth, s2.id',
-                    'topdown'  => 'h.block_order ASC NULLS LAST, s2.walk_position ASC NULLS LAST, h.position DESC, s2.depth, s2.id',
-                    default    => 'h.block_order ASC NULLS LAST, s2.walk_position ASC NULLS LAST, h.position, s2.depth, s2.id',
-                };
+                ? 'h.priority_at ASC, s2.walk_position ASC NULLS LAST, s2.id'
+                : ($lane === 'bottomup'
+                    ? 's2.reverse_position ASC NULLS LAST, s2.walk_position DESC, s2.id'
+                    : 's2.walk_position ASC NULLS LAST, s2.id');
 
-            // TWO-PHASE PRIORITY (operator ruling 2026-08-31, "all 13 lanes
-            // at all times"): phase 1 claims INSIDE the current block — a
-            // small, index-friendly set. On a miss (the block's tail cannot
-            // feed this lane) phase 2 SPILLS forward: the same claim with
-            // the block filter as an ordering key instead, so a lane takes
-            // the next block's head rather than idling. Priority preserved,
-            // idleness abolished, and the expensive whole-pile sort runs
-            // only during tails.
-            $claimSql = fn (string $blockPredicate, string $ord) => "
+            return DB::selectOne("
                 UPDATE apportionment_ledger_scopes s
                    SET status = ?, claim_token = ?,
                        started_at = COALESCE(s.started_at, now()), updated_at = now()
@@ -364,35 +359,15 @@ final class AutoscaleClaims
                         JOIN apportionment_ledger h ON h.legislature_id = s2.legislature_id
                        WHERE s2.status = ?
                          AND {$priorityPredicate}
-                         AND {$blockPredicate}
                          AND (COALESCE(s2.area_tier, h.area_tier, 1) < ? OR {$heavyPredicate})
-                       ORDER BY {$ord}
+                       ORDER BY {$order}
                        LIMIT 1
                        -- OF s2 (2026-08-30, the single-item Earth stall):
                        -- lock scopes only; never the joined header row.
                        FOR UPDATE OF s2 SKIP LOCKED
                  )
              RETURNING s.id, s.legislature_id, s.scope_jurisdiction_id, s.depth
-            ";
-            $params = ['running', $token, 'pending', self::HEAVY_TIER];
-
-            $currentBlock = DB::scalar("
-                SELECT MIN(block_rank) FROM apportionment_ledger
-                 WHERE map_status IN ('pending', 'running')
-                   AND block_rank IS NOT NULL
-            ");
-            if ($currentBlock !== null) {
-                $row = DB::selectOne($claimSql('h.block_rank = '.((int) $currentBlock), $order), $params);
-                if ($row !== null) {
-                    return $row;
-                }
-            }
-
-            $spillOrder = $priorityOnly || $lane === 'bottomup'
-                ? $order
-                : 'h.block_rank ASC NULLS LAST, '.$order;
-
-            return DB::selectOne($claimSql('true', $spillOrder), $params);
+            ", ['running', $token, 'pending', self::HEAVY_TIER]);
         });
 
         if ($row === null) {
@@ -411,9 +386,8 @@ final class AutoscaleClaims
     /** Claim up to 100 light childless small-split scopes in one shot. */
     private static function claimScopeBatch(AutoscaleRun $run, string $token): ?array
     {
-        // Two-phase, same shape as claimScope: the current block first,
-        // spill forward on a miss.
-        $sql = fn (string $blockPredicate, string $ord) => "
+        // The dispatch pop, batch edition: 100 consecutive tickets.
+        $rows = DB::select("
             UPDATE apportionment_ledger_scopes s
                SET status = 'running', claim_token = ?,
                    started_at = COALESCE(s.started_at, now()), updated_at = now()
@@ -423,25 +397,13 @@ final class AutoscaleClaims
                    WHERE s2.status = 'pending'
                      AND h.child_count = 0
                      AND COALESCE(h.est_districts, 99) <= 3
-                     AND {$blockPredicate}
                      AND COALESCE(s2.area_tier, h.area_tier, 1) < ?
-                   ORDER BY {$ord}
+                   ORDER BY s2.walk_position ASC NULLS LAST, s2.id
                    LIMIT 100
                    FOR UPDATE OF s2 SKIP LOCKED
              )
          RETURNING s.id, s.legislature_id, s.scope_jurisdiction_id, s.depth
-        ";
-        $currentBlock = DB::scalar("
-            SELECT MIN(block_rank) FROM apportionment_ledger
-             WHERE map_status IN ('pending', 'running')
-               AND block_rank IS NOT NULL
-        ");
-        $rows = $currentBlock !== null
-            ? DB::select($sql('h.block_rank = '.((int) $currentBlock), 'h.block_order ASC NULLS LAST, s2.id'), [$token, self::HEAVY_TIER])
-            : [];
-        if ($rows === []) {
-            $rows = DB::select($sql('true', 'h.block_rank ASC NULLS LAST, h.block_order ASC NULLS LAST, s2.id'), [$token, self::HEAVY_TIER]);
-        }
+        ", [$token, self::HEAVY_TIER]);
 
         if ($rows === []) {
             return null;

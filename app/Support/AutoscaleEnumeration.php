@@ -381,6 +381,90 @@ final class AutoscaleEnumeration
         return $total;
     }
 
+    /**
+     * THE DISPATCH ORDER (operator confirmation 2026-08-31): the pool holds
+     * the whole benchmark's sequence as ONE number per row, stamped once at
+     * the world build — scopes' walk_position becomes the GLOBAL sequence
+     * (block_rank, block_order, within-map walk), headers' position the
+     * same over (block_rank, block_order). A claim is then an index pop of
+     * the leading edge: no sort, no probe, no join. Idempotent: re-running
+     * over already-global numbers reproduces the same sequence. NULL-walk
+     * rows (the unstamped repair sentinel) keep their NULL.
+     */
+    public static function stampDispatchOrder(?callable $beat = null): void
+    {
+        DB::statement('SET max_parallel_workers_per_gather = 0');
+
+        // Scopes: one chunk per block (ETL law — bounded, committed,
+        // resumable at block granularity). Each block's rows rank within
+        // the block and add the running offset of every lower block, so
+        // the stamps join into the one global sequence. Repair sentinels
+        // (walk_position NULL) stay unstamped and pop last at claim time.
+        $blocks = DB::select('
+            SELECT h.block_rank, count(*) AS n
+              FROM apportionment_ledger_scopes s
+              JOIN apportionment_ledger h ON h.legislature_id = s.legislature_id
+             WHERE s.walk_position IS NOT NULL
+             GROUP BY h.block_rank
+             ORDER BY h.block_rank ASC NULLS LAST
+        ');
+        $offset = 0;
+        foreach ($blocks as $b) {
+            $predicate = $b->block_rank === null ? 'h.block_rank IS NULL' : 'h.block_rank = '.((int) $b->block_rank);
+            DB::update("
+                WITH ranked AS (
+                    SELECT s.id,
+                           ROW_NUMBER() OVER (
+                               ORDER BY h.block_order ASC NULLS LAST,
+                                        s.walk_position ASC, s.id
+                           ) + ? AS rn
+                      FROM apportionment_ledger_scopes s
+                      JOIN apportionment_ledger h ON h.legislature_id = s.legislature_id
+                     WHERE s.walk_position IS NOT NULL AND {$predicate}
+                )
+                UPDATE apportionment_ledger_scopes s
+                   SET walk_position = r.rn, updated_at = now()
+                  FROM ranked r
+                 WHERE s.id = r.id AND s.walk_position IS DISTINCT FROM r.rn
+            ", [$offset]);
+            $offset += (int) $b->n;
+            if ($beat !== null) {
+                $beat();
+            }
+        }
+
+        // Headers: the singles pop order, same per-block chunking.
+        $blocks = DB::select('
+            SELECT block_rank, count(*) AS n FROM apportionment_ledger
+             GROUP BY block_rank ORDER BY block_rank ASC NULLS LAST
+        ');
+        $offset = 0;
+        foreach ($blocks as $b) {
+            $predicate = $b->block_rank === null ? 'block_rank IS NULL' : 'block_rank = '.((int) $b->block_rank);
+            DB::update("
+                WITH ranked AS (
+                    SELECT legislature_id,
+                           ROW_NUMBER() OVER (
+                               ORDER BY block_order ASC NULLS LAST, legislature_id
+                           ) + ? AS rn
+                      FROM apportionment_ledger
+                     WHERE {$predicate}
+                )
+                UPDATE apportionment_ledger h
+                   SET position = r.rn, updated_at = now()
+                  FROM ranked r
+                 WHERE h.legislature_id = r.legislature_id
+                   AND h.position IS DISTINCT FROM r.rn
+            ", [$offset]);
+            $offset += (int) $b->n;
+            if ($beat !== null) {
+                $beat();
+            }
+        }
+
+        DB::statement('RESET max_parallel_workers_per_gather');
+    }
+
     /** The bottom-up claim key (two-ended stays disabled; the fact rides). */
     public static function stampReversePositions(): int
     {
