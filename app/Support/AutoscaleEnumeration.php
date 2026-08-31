@@ -556,6 +556,11 @@ final class AutoscaleEnumeration
                   FROM legislatures l
                   JOIN jurisdictions j ON j.id = l.jurisdiction_id AND j.deleted_at IS NULL
                  WHERE l.deleted_at IS NULL
+                   -- COMPOSITES ONLY (operator ruling 2026-08-31): a childless
+                   -- legislature's tree is itself and its gate cannot refuse —
+                   -- the ledger walks only jurisdictions with children.
+                   AND EXISTS (SELECT 1 FROM jurisdictions c
+                                WHERE c.parent_id = l.jurisdiction_id AND c.deleted_at IS NULL)
                    AND NOT EXISTS (SELECT 1 FROM apportionment_ledger al WHERE al.legislature_id = l.id)
                  LIMIT " . self::CHUNK . '
                     ON CONFLICT (legislature_id) DO NOTHING
