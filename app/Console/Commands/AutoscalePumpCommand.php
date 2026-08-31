@@ -68,6 +68,8 @@ class AutoscalePumpCommand extends Command
 
     public function handle(): int
     {
+        $this->worldBuildTick();
+
         $runs = AutoscaleRun::query()
             ->whereIn('status', ['queued', 'sizing', 'mapping', 'halted'])
             ->orderBy('created_at')
@@ -452,6 +454,30 @@ class AutoscalePumpCommand extends Command
      * moves stats_reset WITHOUT a postmaster restart). Pause-only — no
      * width, no AIMD: a circuit breaker, not a governor.
      */
+    /**
+     * PHASE-2 LIVENESS (operator plan 2026-08-31): a building world with a
+     * stale lease gets its job re-dispatched — the sizing-dispatch throttle
+     * pattern, no new schedule entry. Never fires beside a truly active run
+     * (the job's own guard also refuses).
+     */
+    private function worldBuildTick(): void
+    {
+        if (DB::table('autoscale_runs')->whereIn('status', ['queued', 'sizing', 'mapping'])->exists()) {
+            return;
+        }
+        $stale = DB::table('world_builds')
+            ->where('status', 'building')
+            ->where(function ($q) {
+                $q->whereNull('lease_at')->orWhere('lease_at', '<', now()->subMinutes(10));
+            })
+            ->orderByDesc('created_at')
+            ->first(['id']);
+        if ($stale !== null) {
+            DB::table('world_builds')->where('id', $stale->id)->update(['lease_at' => now(), 'updated_at' => now()]);
+            \App\Jobs\WorldBuildJob::dispatch();
+        }
+    }
+
     private function breakerTick(AutoscaleRun $run): void
     {
         try {

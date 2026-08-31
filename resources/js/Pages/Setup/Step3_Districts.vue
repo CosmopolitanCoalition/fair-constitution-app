@@ -62,6 +62,7 @@ let pollTimer = null
 let summaryTick = 0
 
 const run = computed(() => autoscale.value?.run ?? null)
+const worldBuild = computed(() => autoscale.value?.world_build ?? null)
 const layers = computed(() => autoscale.value?.layers ?? [])
 
 // A1 (operator order 2026-08-29): the parents SIZING PASS as a real bar —
@@ -829,6 +830,51 @@ onBeforeUnmount(stopPolling)
             <div v-else-if="autoscaleError" class="bg-red-900/30 border border-red-800 rounded p-4 text-sm text-red-200 mb-6">
                 {{ autoscaleError }}
             </div>
+
+            <!-- Phase 2 — the world build (no run yet): the same numbers the
+                 accept gate verifies, live. -->
+            <section
+                v-else-if="worldBuild"
+                class="rounded-lg p-5 mb-6 border bg-gray-900/60 border-gray-800"
+            >
+                <div class="flex items-center justify-between gap-3 mb-3">
+                    <h2 class="font-semibold text-white">World build</h2>
+                    <span
+                        :class="worldBuild.status === 'complete' ? 'text-emerald-400' : 'text-blue-300'"
+                        class="text-xs uppercase tracking-wide"
+                    >{{ worldBuild.status }}</span>
+                </div>
+                <div v-if="worldBuild.report" class="grid grid-cols-2 md:grid-cols-3 gap-3 text-sm">
+                    <div class="bg-gray-800/60 rounded p-3">
+                        <div class="text-gray-400 text-xs uppercase mb-1">Apportionment</div>
+                        <div class="text-white">{{ worldBuild.report.apportionment.done.toLocaleString() }} / {{ worldBuild.report.apportionment.total.toLocaleString() }}</div>
+                        <div v-if="worldBuild.report.apportionment.refusals > 0" class="text-amber-300 text-xs mt-1">{{ worldBuild.report.apportionment.refusals }} gate refusals</div>
+                    </div>
+                    <div class="bg-gray-800/60 rounded p-3">
+                        <div class="text-gray-400 text-xs uppercase mb-1">Borders precomputed</div>
+                        <div class="text-white">{{ (worldBuild.report.adjacency.total - worldBuild.report.adjacency.open).toLocaleString() }} / {{ worldBuild.report.adjacency.total.toLocaleString() }}</div>
+                    </div>
+                    <div class="bg-gray-800/60 rounded p-3">
+                        <div class="text-gray-400 text-xs uppercase mb-1">Founding maps</div>
+                        <div class="text-white">{{ worldBuild.report.maps.unstamped === 0 ? 'all stamped' : worldBuild.report.maps.unstamped.toLocaleString() + ' unstamped' }}</div>
+                    </div>
+                    <div class="bg-gray-800/60 rounded p-3">
+                        <div class="text-gray-400 text-xs uppercase mb-1">Legislatures</div>
+                        <div class="text-white">{{ worldBuild.report.legislatures.missing_headers === 0 ? 'all covered' : worldBuild.report.legislatures.missing_headers.toLocaleString() + ' uncovered' }}</div>
+                    </div>
+                    <div class="bg-gray-800/60 rounded p-3">
+                        <div class="text-gray-400 text-xs uppercase mb-1">Block keys</div>
+                        <div class="text-white">{{ worldBuild.report.block_keys_missing === 0 ? 'stamped' : worldBuild.report.block_keys_missing.toLocaleString() + ' missing' }}</div>
+                    </div>
+                    <div class="bg-gray-800/60 rounded p-3">
+                        <div class="text-gray-400 text-xs uppercase mb-1">Bootstrap board</div>
+                        <div class="text-white">{{ worldBuild.report.board ? 'seated' : 'missing' }}</div>
+                    </div>
+                </div>
+                <p v-if="worldBuild.status === 'complete'" class="text-emerald-300 text-sm mt-3">
+                    Phase 2 is complete. Accepting the map data starts the drawing immediately.
+                </p>
+            </section>
 
             <!-- Type B districting — the UI door to `type-b:district` (parity).
                  Shows whenever chambers are flagged type_b_needs_districting;

@@ -7,6 +7,7 @@ use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
 use Illuminate\Queue\InteractsWithQueue;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
 
@@ -22,6 +23,13 @@ class ApportionmentLaneJob implements ShouldQueue
     use Dispatchable, InteractsWithQueue, Queueable;
 
     public int $timeout = 3600;
+
+    public function __construct()
+    {
+        // The autoscale queue's long-retry connection: the default queue's
+        // 90s retry_after re-delivered this hour-class job as duplicates.
+        $this->onQueue('autoscale');
+    }
 
     public function handle(): void
     {
@@ -43,5 +51,10 @@ class ApportionmentLaneJob implements ShouldQueue
             }
         }
         Log::info('Apportionment lane drained', ['computed' => $done, 'elapsed_s' => time() - $t0]);
+        // A drained lane advances the world build's tail without waiting a
+        // pump minute (the build gates its stamp steps on this drain).
+        if ($done > 0 && DB::table('world_builds')->where('status', 'building')->exists()) {
+            WorldBuildJob::dispatch();
+        }
     }
 }

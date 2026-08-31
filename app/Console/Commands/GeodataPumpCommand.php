@@ -527,13 +527,13 @@ class GeodataPumpCommand extends Command
             'failed' => (int) $run->items_failed,
         ]);
 
-        // THE INGEST TAIL (operator ruling 2026-08-29, rubric pin): a
-        // finished ingestion immediately sizes every chamber and pays the
-        // sibling borders — before acceptance, which is not a precondition
-        // (unaccepted data makes the work moot, not wrong). Acceptance then
-        // drops straight into district drawing. Idempotent; skips itself
-        // when a full-scale run is active.
-        \App\Jobs\IngestTailProvisionJob::dispatch((string) $run->id);
+        // PHASE 2 — THE WORLD BUILD (operator plan 2026-08-31): a finished
+        // ingestion immediately writes every fact the drawing reads —
+        // legislatures, adjacency, the apportionment ledger, founding-map
+        // containers, block keys, the bootstrap board. Acceptance then
+        // verifies this build and drops straight into drawing. Idempotent;
+        // skips itself while a run is truly active.
+        \App\Jobs\WorldBuildJob::dispatch((string) $run->id);
     }
 
     /**

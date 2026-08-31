@@ -2742,12 +2742,37 @@ class SetupController extends Controller
      * review list. `run: null` means no autoscale has ever been started
      * (pre-acceptance, or a legacy box).
      */
+    /**
+     * PHASE-2 VISIBILITY (operator plan 2026-08-31): the world build's live
+     * report — the same numbers the accept gate verifies. Cached briefly:
+     * the coverage anti-joins are planet-scale and the wizard polls at 2 s.
+     */
+    private function worldBuildBlock(): ?array
+    {
+        $row = DB::table('world_builds')->orderByDesc('created_at')->first();
+        if ($row === null) {
+            return null;
+        }
+        $report = \Illuminate\Support\Facades\Cache::remember(
+            'setup.world_build.report', 10,
+            fn () => \App\Support\WorldBuildVerifier::report(),
+        );
+
+        return [
+            'status'     => (string) $row->status,
+            'steps'      => (array) json_decode((string) ($row->steps ?? '{}'), true),
+            'last_error' => $row->last_error,
+            'report'     => $report,
+        ];
+    }
+
     public function autoscaleProgress(): JsonResponse
     {
         $run = \App\Models\AutoscaleRun::query()->orderByDesc('created_at')->first();
         if ($run === null) {
             return response()->json([
                 'run' => null,
+                'world_build' => $this->worldBuildBlock(),
                 'type_b_flagged' => (int) DB::table('legislatures')
                     ->where('type_b_needs_districting', true)->whereNull('deleted_at')->count(),
             ]);
@@ -3092,6 +3117,7 @@ class SetupController extends Controller
             'live_items'     => $liveItems,
             'review_items'   => $reviewItems,
             'drifted_items'  => $driftedItems,
+            'world_build'    => $this->worldBuildBlock(),
             // Type B districting worklist — the flagged-chamber count the
             // dashboard's "Group Type B chambers" control acts on.
             'type_b_flagged' => (int) DB::table('legislatures')
