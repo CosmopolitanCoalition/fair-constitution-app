@@ -690,6 +690,27 @@ class JurisdictionController extends Controller
         // be able to slam it shut (or, via reopen, swing it open).
         abort_unless((bool) $request->user()?->is_operator, 403);
 
+        // THE ACCEPT GATE (operator plan 2026-08-31): phase 3 is verify +
+        // flip. Any request that would START the drawing verifies the world
+        // build FIRST — before anything stamps — and an incomplete build
+        // returns the live progress report as a 422 (the wizard renders the
+        // same bars the step-3 empty state shows). Non-run modes (manual /
+        // population) stamp acceptance without the gate, exactly as before.
+        $requestedMode = (string) $request->input('scale_mode', '');
+        if (! in_array($requestedMode, ['eager', 'population', 'manual'], true)) {
+            $requestedMode = $request->boolean('defer_autoscale') ? 'manual' : 'eager';
+        }
+        if ($requestedMode === 'eager' || $request->boolean('start_autoscale')) {
+            $worldReport = \App\Support\WorldBuildVerifier::report();
+            if (! $worldReport['complete']) {
+                return response()->json([
+                    'ok' => false,
+                    'world_build_incomplete' => true,
+                    'progress' => $worldReport,
+                ], 422);
+            }
+        }
+
         // Locked check-then-stamp: repairs take the same instance_settings row
         // lock as the FIRST statement of their transactions, so acceptance
         // serializes against an in-flight repair instead of racing it.
@@ -811,7 +832,10 @@ class JurisdictionController extends Controller
         if (isset($gate['response'])) {
             if ($gate['kick_pump'] ?? false) {
                 try {
-                    \Illuminate\Support\Facades\Artisan::call('autoscale:pump');
+                    // QUEUED, never inline (operator plan 2026-08-31): the
+                    // pump's pg-recovery probe can sleep ten minutes and must
+                    // never do it inside a web request.
+                    \Illuminate\Support\Facades\Artisan::queue('autoscale:pump')->onQueue('autoscale');
                 } catch (\Throwable) {
                     // The scheduler's next pump minute resumes it anyway.
                 }
@@ -860,16 +884,25 @@ class JurisdictionController extends Controller
             // ms-window against a racing CLI start.
             $run = \App\Models\AutoscaleRun::unfinished();
             if ($run === null) {
+                // Born MAPPING: the sizing phase retired into the world
+                // build, so the flip IS the benchmark clock.
+                $kinds = DB::table('apportionment_ledger')
+                    ->selectRaw("COUNT(*) FILTER (WHERE kind = 'single') AS singles,
+                                 COUNT(*) FILTER (WHERE kind IS DISTINCT FROM 'single') AS sweeps")
+                    ->first();
                 $run = \App\Models\AutoscaleRun::create([
-                    'status'            => 'queued',
-                    'adm_max'           => (int) config('cga.autoscale_adm_max', 6),
-                    'initiator_user_id' => $request->user()?->getKey(),
-                    'template'          => null, // constitutional default per legislature
+                    'status'             => 'mapping',
+                    'mapping_started_at' => now(),
+                    'adm_max'            => (int) config('cga.autoscale_adm_max', 6),
+                    'initiator_user_id'  => $request->user()?->getKey(),
+                    'template'           => null, // constitutional default per legislature
+                    'singles_total'      => (int) ($kinds->singles ?? 0),
+                    'sweeps_total'       => (int) ($kinds->sweeps ?? 0),
                 ]);
             } else {
                 $run->forceFill(['halt_requested_at' => null])->save();
             }
-            \Illuminate\Support\Facades\Artisan::call('autoscale:pump');
+            \Illuminate\Support\Facades\Artisan::queue('autoscale:pump')->onQueue('autoscale');
         } catch (\Throwable $e) {
             // Don't fail the acceptance — the scheduler's next pump minute
             // starts the run anyway.

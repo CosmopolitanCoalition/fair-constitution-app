@@ -1123,6 +1123,17 @@ class SetupController extends Controller
             'adm_levels.*'        => ['integer', 'min:0', 'max:5'],
         ]);
 
+        // THE LEGACY BYPASS IS CLOSED (operator plan 2026-08-31): an
+        // archive/folder ingestion belongs to the PULL engine (pull-start),
+        // which creates the geodata run whose completion runs the world
+        // build. This endpoint's legacy branch launches the retired
+        // single-thread seeder with no run row — no completion, no phase 2.
+        if (in_array($data['source'], ['archive', 'folder'], true)) {
+            return response()->json([
+                'error' => 'Archive and folder ingestion run on the pull engine — use the pull-start endpoint.',
+            ], 422);
+        }
+
         $isFresh = (bool) ($data['fresh'] ?? false);
 
         // Coalesce both flags into a single canonical pause_on_exception.
@@ -1295,6 +1306,11 @@ class SetupController extends Controller
      */
     public function startGeodataPull(Request $request): JsonResponse
     {
+        // Operator-only (fix 2026-08-31): starting — and with fresh=true,
+        // PURGING — the planet is the operator's act, same as every sibling
+        // control on this page.
+        abort_unless((bool) $request->user()?->is_operator, 403);
+
         $data = $request->validate([
             'source'       => ['nullable', Rule::in(['archive', 'folder'])],
             'data_root'    => ['nullable', 'string', 'max:512'],
