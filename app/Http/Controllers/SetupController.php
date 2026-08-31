@@ -2797,29 +2797,28 @@ class SetupController extends Controller
         // Live + review slices (names joined for the dashboard's tables).
         // Under the pull engine the live sweep view is the SCOPE list — the
         // real in-flight work units (Earth's provinces show individually).
-        $liveItems = DB::table('autoscale_scopes as s')
+        $liveItems = DB::table('apportionment_ledger_scopes as s')
             ->join('jurisdictions as j', 'j.id', '=', 's.scope_jurisdiction_id')
-            ->join('autoscale_items as ai', 'ai.id', '=', 's.item_id')
-            ->where('s.run_id', $run->id)
+            ->join('apportionment_ledger as h', 'h.legislature_id', '=', 's.legislature_id')
             ->where('s.status', 'running')
             ->orderBy('s.started_at')
             ->limit(15)
             ->get([
                 's.legislature_id', 's.scope_jurisdiction_id as jurisdiction_id',
-                'ai.adm_level', 'ai.kind', 's.status', 's.started_at', 's.depth',
+                'h.adm_level', 'h.kind', 's.status', 's.started_at', 's.depth',
                 'j.name as jurisdiction_name', 'j.slug as jurisdiction_slug',
             ]);
 
-        $reviewItems = DB::table('autoscale_items as ai')
-            ->join('jurisdictions as j', 'j.id', '=', 'ai.jurisdiction_id')
-            ->where('ai.run_id', $run->id)
-            ->whereIn('ai.status', ['review', 'failed', 'halted'])
-            ->orderBy('ai.position')
+        $reviewItems = DB::table('apportionment_ledger as h')
+            ->join('jurisdictions as j', 'j.id', '=', 'h.jurisdiction_id')
+            ->whereIn('h.map_status', ['review', 'failed'])
+            ->orderBy('h.position')
             ->limit(100)
             ->get([
-                'ai.legislature_id', 'ai.jurisdiction_id', 'ai.adm_level',
-                'ai.kind', 'ai.status', 'ai.reason', 'ai.seats_expected',
-                'ai.seats_seated', 'ai.drift',
+                'h.legislature_id', 'h.jurisdiction_id', 'h.adm_level',
+                'h.kind', 'h.map_status as status', 'h.reason',
+                'h.head_seats as seats_expected',
+                'h.seats_seated', 'h.drift',
                 'j.name as jurisdiction_name', 'j.slug as jurisdiction_slug',
             ]);
 
@@ -2828,21 +2827,21 @@ class SetupController extends Controller
         // (seats − bonus, per the 08-28 law — the writer now nets) misses
         // the budget render as clickable rows exactly like the review list,
         // so the operator walks straight into each mapper without asking.
-        $driftedItems = DB::table('autoscale_items as ai')
-            ->join('jurisdictions as j', 'j.id', '=', 'ai.jurisdiction_id')
+        $driftedItems = DB::table('apportionment_ledger as h')
+            ->join('jurisdictions as j', 'j.id', '=', 'h.jurisdiction_id')
             ->leftJoin('legislature_district_maps as m', function ($join) {
-                $join->on('m.legislature_id', '=', 'ai.legislature_id')
+                $join->on('m.legislature_id', '=', 'h.legislature_id')
                     ->where('m.status', 'active')->whereNull('m.deleted_at');
             })
-            ->where('ai.run_id', $run->id)
-            ->where('ai.status', 'done')
-            ->whereRaw('COALESCE(ai.drift, 0) <> 0')
-            ->orderByRaw('abs(ai.drift) DESC')
+            ->where('h.map_status', 'done')
+            ->whereRaw('COALESCE(h.drift, 0) <> 0')
+            ->orderByRaw('abs(h.drift) DESC')
             ->limit(100)
             ->get([
-                'ai.legislature_id', 'ai.jurisdiction_id', 'ai.adm_level',
-                'ai.kind', 'ai.reason', 'ai.seats_expected', 'ai.seats_seated',
-                'ai.drift', 'm.id as map_id',
+                'h.legislature_id', 'h.jurisdiction_id', 'h.adm_level',
+                'h.kind', 'h.reason', 'h.head_seats as seats_expected',
+                'h.seats_seated',
+                'h.drift', 'm.id as map_id',
                 'j.name as jurisdiction_name', 'j.slug as jurisdiction_slug',
             ]);
 
@@ -2850,12 +2849,11 @@ class SetupController extends Controller
         // 2026-08-29) — a pure lift map is legal and good, not drift. The
         // attention count covers everything the review table lists
         // (review + failed + halted), so the header never undercounts it.
-        $driftRow = DB::table('autoscale_items')
-            ->where('run_id', $run->id)
+        $driftRow = DB::table('apportionment_ledger')
             ->selectRaw("
-                COUNT(*) FILTER (WHERE status = 'done' AND COALESCE(drift, 0) <> 0) AS drifted,
-                COALESCE(SUM(drift) FILTER (WHERE status = 'done'), 0)              AS net_drift,
-                COUNT(*) FILTER (WHERE status IN ('review','failed','halted'))      AS attention
+                COUNT(*) FILTER (WHERE map_status = 'done' AND COALESCE(drift, 0) <> 0) AS drifted,
+                COALESCE(SUM(drift) FILTER (WHERE map_status = 'done'), 0)              AS net_drift,
+                COUNT(*) FILTER (WHERE map_status IN ('review','failed'))               AS attention
             ")
             ->first();
 
@@ -2891,7 +2889,7 @@ class SetupController extends Controller
         if (in_array($run->status, ['queued', 'sizing'], true)) {
             $mapsMinted = (int) DB::table('legislature_district_maps')->count();
             $mapsTotal  = (int) Cache::remember('autoscale.items_total.'.$run->id, 600, fn () =>
-                DB::table('autoscale_items')->where('run_id', $run->id)->count());
+                DB::table('apportionment_ledger')->count());
         }
 
         // LIVE mapping counters + per-ADM-layer bars — a fresh GROUP BY per
@@ -2901,14 +2899,13 @@ class SetupController extends Controller
         $freshCounts = null;
         $layers = [];
         if (in_array($run->status, ['mapping', 'halted', 'done'], true)) {
-            $layerRows = DB::table('autoscale_items')
-                ->where('run_id', $run->id)
+            $layerRows = DB::table('apportionment_ledger')
                 ->selectRaw("
                     kind, adm_level,
-                    COUNT(*)                                                        AS total,
-                    COUNT(*) FILTER (WHERE status = 'done')                         AS done,
-                    COUNT(*) FILTER (WHERE status IN ('running','assessing'))       AS running,
-                    COUNT(*) FILTER (WHERE status IN ('review','failed'))           AS review
+                    COUNT(*)                                                            AS total,
+                    COUNT(*) FILTER (WHERE map_status = 'done')                         AS done,
+                    COUNT(*) FILTER (WHERE map_status IN ('running','assessing'))       AS running,
+                    COUNT(*) FILTER (WHERE map_status IN ('review','failed'))           AS review
                 ")
                 ->groupBy('kind', 'adm_level')
                 ->orderByRaw('adm_level DESC, kind DESC')
@@ -2923,16 +2920,15 @@ class SetupController extends Controller
             // Earth's 81 scopes are all Planet-row work, however deep each
             // scope's own jurisdiction sits), so the grouping key is the
             // ITEM's level, never the scope jurisdiction's.
-            $scopeRows = DB::table('autoscale_scopes as s')
-                ->join('autoscale_items as ai', 'ai.id', '=', 's.item_id')
-                ->where('s.run_id', $run->id)
+            $scopeRows = DB::table('apportionment_ledger_scopes as s')
+                ->join('apportionment_ledger as h', 'h.legislature_id', '=', 's.legislature_id')
                 ->selectRaw("
-                    ai.adm_level,
+                    h.adm_level,
                     COUNT(*)                                                  AS total,
                     COUNT(*) FILTER (WHERE s.status = 'done')                 AS done,
                     COUNT(*) FILTER (WHERE s.status = 'running')              AS running
                 ")
-                ->groupBy('ai.adm_level')
+                ->groupBy('h.adm_level')
                 ->get()->keyBy('adm_level');
 
             $levelLabels = [
@@ -3010,12 +3006,11 @@ class SetupController extends Controller
         // real sweep rate in minutes instead of diluting it across half an
         // hour of pre-sweep phases. The bar-level samplers on the page use
         // the same discipline; the tile now agrees with them.
-        $rateRow = DB::table('autoscale_items')
-            ->where('run_id', $run->id)
+        $rateRow = DB::table('apportionment_ledger')
             ->where('finished_at', '>', now()->subMinutes(10))
             ->selectRaw("
-                COUNT(*) FILTER (WHERE kind = 'sweep'  AND status = 'done') AS sweeps_30m,
-                COUNT(*) FILTER (WHERE kind = 'single' AND status = 'done') AS singles_30m
+                COUNT(*) FILTER (WHERE kind = 'sweep'  AND map_status = 'done') AS sweeps_30m,
+                COUNT(*) FILTER (WHERE kind = 'single' AND map_status = 'done') AS singles_30m
             ")
             ->first();
         $sweepsDoneNow = (int) ($freshCounts['sweeps_done'] ?? $run->sweeps_done);
@@ -3024,13 +3019,11 @@ class SetupController extends Controller
         // fluid unit of drawing. A map counts done only when its LAST scope
         // lands, so item-rate lags reality by whole maps; scope-rate agrees
         // with the layer bars and with the operator's own eyes.
-        $scopeRate = DB::table('autoscale_scopes')
-            ->where('run_id', $run->id)
+        $scopeRate = DB::table('apportionment_ledger_scopes')
             ->where('status', 'done')
             ->where('finished_at', '>', now()->subMinutes(10))
             ->count();
-        $scopesLeft = (int) DB::table('autoscale_scopes')
-            ->where('run_id', $run->id)
+        $scopesLeft = (int) DB::table('apportionment_ledger_scopes')
             ->whereIn('status', ['pending', 'running'])
             ->count();
         $sweepRatePerH = round($scopeRate * 6.0, 1);
@@ -3045,11 +3038,11 @@ class SetupController extends Controller
         $heavyRunning = null;
         $lightPending = null;
         if (in_array($run->status, ['mapping', 'halted'], true)) {
-            $heavyRunning = (int) DB::table('autoscale_scopes')
-                ->where('run_id', $run->id)->where('status', 'running')
+            $heavyRunning = (int) DB::table('apportionment_ledger_scopes')
+                ->where('status', 'running')
                 ->where('area_tier', '>=', 4)->count();
-            $lightPending = DB::table('autoscale_scopes')
-                ->where('run_id', $run->id)->where('status', 'pending')
+            $lightPending = DB::table('apportionment_ledger_scopes')
+                ->where('status', 'pending')
                 ->where('area_tier', '<', 4)->exists();
         }
 

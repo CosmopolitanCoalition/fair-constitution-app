@@ -58,18 +58,26 @@ class AutoscaleRunControl
         }
 
         if ($requeueReview) {
-            $requeued = DB::table('autoscale_items')
-                ->where('run_id', $run->id)
-                ->whereIn('status', ['review', 'failed', 'halted'])
-                ->pluck('id');
-            if ($requeued->isNotEmpty()) {
-                // Their scope trees are stale attempts — drop them; the pump's
-                // repair re-mints fresh root scopes within a minute.
-                DB::table('autoscale_scopes')->whereIn('item_id', $requeued)->delete();
-                DB::table('autoscale_items')
-                    ->whereIn('id', $requeued)
+            // STATUS-CLEAR, NEVER ROW-DELETE (single-home law, 2026-08-31):
+            // scope rows are FACTS; a retry resets their work state in
+            // bounded chunks. A gate-refused header returns to review, not
+            // pending — a refusal only moves when the data changes.
+            $requeued = DB::table('apportionment_ledger')
+                ->whereIn('map_status', ['review', 'failed'])
+                ->whereNull('gate_reason')
+                ->pluck('legislature_id');
+            foreach ($requeued->chunk(5000) as $chunk) {
+                DB::table('apportionment_ledger_scopes')
+                    ->whereIn('legislature_id', $chunk)
                     ->update([
-                        'status'      => 'pending', 'reason' => null,
+                        'status' => 'pending', 'claim_token' => null, 'reason' => null,
+                        'started_at' => null, 'finished_at' => null,
+                        'retry_count' => 0, 'updated_at' => now(),
+                    ]);
+                DB::table('apportionment_ledger')
+                    ->whereIn('legislature_id', $chunk)
+                    ->update([
+                        'map_status'  => 'pending', 'reason' => null,
                         'claim_token' => null, 'updated_at' => now(),
                     ]);
             }

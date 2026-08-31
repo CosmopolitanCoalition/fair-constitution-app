@@ -36,10 +36,18 @@ class HeavyLaneClaimTest extends TestCase
 
     public function test_cap_arithmetic(): void
     {
-        $this->assertSame(
-            max(1, (int) ceil(0.2 * HostCapacity::autoscaleWorkers())),
-            AutoscaleClaims::heavyWorkerCap()
-        );
+        $override = (int) config('cga.autoscale_heavy_cap', 0);
+        if ($override > 0) {
+            // The operator's dial outranks the formula (derived defaults,
+            // env-overridable — the standing law).
+            $this->assertSame($override, AutoscaleClaims::heavyWorkerCap());
+        } else {
+            $memCap = (int) floor(max(0.0, HostCapacity::hostMemoryGb() - 3.0) / 2.0);
+            $this->assertSame(
+                max(1, min((int) ceil(0.2 * HostCapacity::autoscaleWorkers()), max(1, $memCap))),
+                AutoscaleClaims::heavyWorkerCap()
+            );
+        }
         $this->assertGreaterThanOrEqual(1, AutoscaleClaims::heavyWorkerCap());
     }
 
@@ -136,6 +144,15 @@ class HeavyLaneClaimTest extends TestCase
         $conn->beginTransaction();
 
         try {
+            // HERMETIC WORLD (single-home tables are world-shared): session
+            // TEMP tables shadow the ledger for this connection — pg_temp
+            // resolves first — so the fixtures ARE the world and the live
+            // box never leaks into a claim. Dropped with the session.
+            DB::statement('CREATE TEMP TABLE apportionment_ledger
+                           (LIKE public.apportionment_ledger INCLUDING DEFAULTS INCLUDING INDEXES)');
+            DB::statement('CREATE TEMP TABLE apportionment_ledger_scopes
+                           (LIKE public.apportionment_ledger_scopes INCLUDING DEFAULTS INCLUDING INDEXES)');
+
             $runId = (string) Str::uuid();
             DB::table('autoscale_runs')->insert([
                 'id' => $runId, 'status' => 'mapping', 'adm_max' => 6,
@@ -153,22 +170,31 @@ class HeavyLaneClaimTest extends TestCase
         }
     }
 
-    /** Insert one sweep item + its scope; returns the scope id. */
+    /**
+     * Insert one sweep header + its ledger scope; returns the scope id.
+     * FIXTURES DOMINATE THE WORLD GATE: block_rank -100 makes the block
+     * gate's MIN resolve to the fixture block inside this transaction, so
+     * the live box's own pending world never wins a test claim. block_order
+     * is constant so ordering falls to h.position (the pinned key).
+     */
     private function mkScope(AutoscaleRun $run, int $areaTier, string $status, int $position): string
     {
-        $itemId = (string) Str::uuid();
-        DB::table('autoscale_items')->insert([
-            'id' => $itemId, 'run_id' => $run->id,
-            'legislature_id' => (string) Str::uuid(), 'jurisdiction_id' => (string) Str::uuid(),
-            'adm_level' => 5, 'kind' => 'sweep', 'status' => 'running',
-            'position' => $position, 'child_count' => 0, 'area_tier' => $areaTier,
+        $legId = (string) Str::uuid();
+        DB::table('apportionment_ledger')->insert([
+            'legislature_id' => $legId, 'jurisdiction_id' => (string) Str::uuid(),
+            'population' => 1000, 'head_seats' => 20, 'scope_count' => 1,
+            'compute_status' => 'done', 'computed_at' => now(),
+            'adm_level' => 5, 'kind' => 'sweep', 'child_count' => 0,
+            'map_status' => 'running', 'position' => $position,
+            'block_rank' => -100, 'block_order' => 0, 'area_tier' => $areaTier,
             'created_at' => now(), 'updated_at' => now(),
         ]);
         $scopeId = (string) Str::uuid();
-        DB::table('autoscale_scopes')->insert([
-            'id' => $scopeId, 'run_id' => $run->id, 'item_id' => $itemId,
-            'legislature_id' => (string) Str::uuid(), 'scope_jurisdiction_id' => (string) Str::uuid(),
-            'depth' => 0, 'status' => $status,
+        DB::table('apportionment_ledger_scopes')->insert([
+            'id' => $scopeId, 'legislature_id' => $legId,
+            'scope_jurisdiction_id' => (string) Str::uuid(),
+            'depth' => 0, 'walk_position' => 0, 'seat_budget' => 20,
+            'status' => $status,
             'created_at' => now(), 'updated_at' => now(),
         ]);
 

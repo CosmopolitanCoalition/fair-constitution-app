@@ -3,7 +3,6 @@
 namespace App\Services\Autoscale;
 
 use App\Http\Controllers\LegislatureController;
-use App\Models\AutoscaleItem;
 use App\Models\AutoscaleRun;
 use App\Services\AuditService;
 use App\Services\ConstitutionalDefaults;
@@ -42,7 +41,6 @@ class SweepScopeProcessor
     public function process(AutoscaleRun $run, array $claim, ?string $workerToken = null): void
     {
         $scopeId       = $claim['scope_id'];
-        $itemId        = $claim['item_id'];
         $legislatureId = $claim['legislature_id'];
         $scopeJid      = $claim['scope_jurisdiction_id'];
 
@@ -64,9 +62,9 @@ class SweepScopeProcessor
             }
         }
 
-        $item = AutoscaleItem::query()->find($itemId);
-        if ($item === null) {
-            $this->releaseScope($scopeId, 'item vanished');
+        $header = \App\Models\LedgerHeader::query()->find($legislatureId);
+        if ($header === null) {
+            $this->releaseScope($scopeId, 'ledger header vanished');
             return;
         }
 
@@ -119,16 +117,16 @@ class SweepScopeProcessor
 
             // DRIFT-REPAIR REQUEUE (operator ruling 2026-07-22, "there
             // should be no drift in seat counts"): an EXPLICITLY flagged
-            // item (autoscale_items.redraw_requested_at, set by the repair
+            // header (redraw_requested_at, set by the repair
             // requeue) skips adoption so the sweep below retires and
             // refiles through the audited replace path. Everything else
             // keeps ADOPT-NEVER-BULLDOZE byte-identical — an operator's
             // accepted work is never archived by a plain requeue.
-            if ($item->redraw_requested_at === null) {
+            if ($header->redraw_requested_at === null) {
 
-            DB::transaction(function () use ($run, $itemId, $scopeId) {
-                DB::table('autoscale_scopes')
-                    ->where('item_id', $itemId)
+            DB::transaction(function () use ($legislatureId) {
+                DB::table('apportionment_ledger_scopes')
+                    ->where('legislature_id', $legislatureId)
                     ->whereIn('status', ['pending', 'running'])
                     ->update([
                         'status'      => 'done',
@@ -137,21 +135,21 @@ class SweepScopeProcessor
                         'updated_at'  => now(),
                     ]);
             });
-            $this->finishItem($itemId, ['pending', 'running'], 'done', $seated, $expected,
+            $this->finishHeader($legislatureId, ['pending', 'running'], 'done', $seated, $expected,
                 'adopted: an active map with districts already exists', $bonus);
             return;
             }
         }
 
-        // First scope of the item flips it running (idempotent).
-        AutoscaleItem::query()->whereKey($itemId)
-            ->where('status', 'pending')
-            ->update(['status' => 'running', 'started_at' => now(), 'updated_at' => now()]);
+        // First scope of the map flips its header running (idempotent).
+        \App\Models\LedgerHeader::query()->whereKey($legislatureId)
+            ->where('map_status', 'pending')
+            ->update(['map_status' => 'running', 'started_at' => now(), 'updated_at' => now()]);
 
         // A resumed run's stale halt flag must not instantly halt the sweep.
         Cache::forget("legislature.{$legislatureId}.mass_halt");
 
-        AutoscaleContext::enter((string) $run->id, $itemId, $scopeId, $workerToken);
+        AutoscaleContext::enter((string) $run->id, $legislatureId, $scopeId, $workerToken);
 
         try {
             $leg = DB::table('legislatures')
@@ -161,8 +159,8 @@ class SweepScopeProcessor
             if ($leg === null) {
                 throw new \RuntimeException('Legislature vanished before its sweep.');
             }
-            if ($item->map_id === null) {
-                throw new \RuntimeException('Item has no founding map (enumeration incomplete) — pump repair will re-mint.');
+            if ($header->map_id === null) {
+                throw new \RuntimeException('Header has no founding map (world build incomplete) — re-run the world build.');
             }
 
             // MATERIALIZE BEFORE ANY DRAWING (operator order 2026-08-31,
@@ -173,14 +171,14 @@ class SweepScopeProcessor
             // claim back so the next claim follows the stamped walk
             // (deepest first, root last). No run needs a manual
             // materialize pass; every box gets this by claiming.
-            $stamped = DB::table('autoscale_scopes')
+            $stamped = DB::table('apportionment_ledger_scopes')
                 ->where('id', $scopeId)
                 ->whereNotNull('walk_position')
                 ->whereNotNull('seat_budget')
                 ->exists();
             if (! $stamped) {
-                \App\Support\AutoscaleEnumeration::materializeScopeTree((string) $run->id, $itemId);
-                if ((int) $item->child_count > 0) {
+                \App\Support\AutoscaleEnumeration::materializeLedgerTree($legislatureId);
+                if ((int) $header->child_count > 0) {
                     // Composite: the tree just grew — hand the claim back so
                     // the stamped walk decides what draws first.
                     $this->releaseScope($scopeId, null);
@@ -203,7 +201,7 @@ class SweepScopeProcessor
                 $legislatureId,
                 'map_view_all',
                 $scopeJid,
-                (string) $item->map_id,
+                (string) $header->map_id,
                 $run->initiator_user_id !== null ? (string) $run->initiator_user_id : null,
                 $run->template,
                 leafScopeTx: false,
@@ -224,8 +222,8 @@ class SweepScopeProcessor
             $districting = app(\App\Services\DistrictingService::class);
             $giants = $districting->giantChildrenForScope($scopeJid, $legislatureId);
 
-            DB::transaction(function () use ($run, $scopeId, $itemId, $legislatureId, $claim, $giants, $reason) {
-                DB::table('autoscale_scopes')
+            DB::transaction(function () use ($scopeId, $legislatureId, $scopeJid, $claim, $giants, $reason) {
+                DB::table('apportionment_ledger_scopes')
                     ->where('id', $scopeId)
                     ->where('status', 'running')
                     ->update([
@@ -246,11 +244,15 @@ class SweepScopeProcessor
                     // and the sweep draws to the stamp instead of asking
                     // again later under different live state. The 70/71
                     // class dies at this line.
+                    // In a ledger-built world this is a stamp CONFIRMATION
+                    // of the pre-walked row; a genuinely new row (data moved
+                    // under the ledger) is late-born and marked by its NULL
+                    // walk_position.
                     DB::statement("
-                        INSERT INTO autoscale_scopes
-                            (id, run_id, item_id, legislature_id, scope_jurisdiction_id,
-                             parent_scope_id, depth, status, seat_budget, area_tier, created_at, updated_at)
-                        SELECT gen_random_uuid(), ?, ?, ?, j.id, ?, ?, ?, ?,
+                        INSERT INTO apportionment_ledger_scopes
+                            (legislature_id, scope_jurisdiction_id, parent_jurisdiction_id,
+                             depth, status, seat_budget, area_tier, created_at, updated_at)
+                        SELECT ?, j.id, ?, ?, ?, ?,
                                CASE WHEN j.geom IS NULL THEN 1 ELSE CASE
                                    WHEN bbox.km2 <= 300      THEN 1
                                    WHEN bbox.km2 <= 3000     THEN 2
@@ -265,12 +267,12 @@ class SweepScopeProcessor
                                       * (ST_YMax(j.geom) - ST_YMin(j.geom)) * 110.57 AS km2
                           ) bbox ON true
                          WHERE j.id = ?
-                            ON CONFLICT ON CONSTRAINT autoscale_scopes_scope_uq
+                            ON CONFLICT (legislature_id, scope_jurisdiction_id)
                             DO UPDATE SET seat_budget = EXCLUDED.seat_budget, updated_at = now()
-                                WHERE autoscale_scopes.status = 'pending'
+                                WHERE apportionment_ledger_scopes.status = 'pending'
                     ", [
-                        $run->id, $itemId, $legislatureId,
-                        $scopeId, $claim['depth'] + 1, 'pending', (int) $budget,
+                        $legislatureId, $scopeJid,
+                        $claim['depth'] + 1, 'pending', (int) $budget,
                         (string) $childJid,
                     ]);
                 }
@@ -291,9 +293,9 @@ class SweepScopeProcessor
                 '/LOADING Redis|Connection refused|server closed the connection|no connection to the server|SQLSTATE\[08|Connection timed out/i',
                 $e->getMessage()
             );
-            $retries = (int) DB::table('autoscale_scopes')->where('id', $scopeId)->value('retry_count');
+            $retries = (int) DB::table('apportionment_ledger_scopes')->where('id', $scopeId)->value('retry_count');
             if ($transient && $retries < 3) {
-                DB::table('autoscale_scopes')
+                DB::table('apportionment_ledger_scopes')
                     ->where('id', $scopeId)
                     ->where('status', 'running')
                     ->update([
@@ -305,7 +307,7 @@ class SweepScopeProcessor
                         'updated_at'  => now(),
                     ]);
             } else {
-                DB::table('autoscale_scopes')
+                DB::table('apportionment_ledger_scopes')
                     ->where('id', $scopeId)
                     ->where('status', 'running')
                     ->update([
@@ -326,16 +328,15 @@ class SweepScopeProcessor
      * the real giant tree, bare activation on a complete map, ONE summary
      * audit append, item → done|review|failed.
      */
-    public function finalize(AutoscaleRun $run, string $itemId, ?string $workerToken = null): void
+    public function finalize(AutoscaleRun $run, string $legislatureId, ?string $workerToken = null): void
     {
-        $item = AutoscaleItem::query()->find($itemId);
-        if ($item === null) {
+        $header = \App\Models\LedgerHeader::query()->find($legislatureId);
+        if ($header === null) {
             return;
         }
-        $legislatureId = (string) $item->legislature_id;
-        $mapId         = (string) $item->map_id;
+        $mapId = (string) $header->map_id;
 
-        AutoscaleContext::enter((string) $run->id, $itemId, null, $workerToken);
+        AutoscaleContext::enter((string) $run->id, $legislatureId, null, $workerToken);
 
         try {
             $leg = DB::table('legislatures')
@@ -343,13 +344,13 @@ class SweepScopeProcessor
                 ->whereNull('deleted_at')
                 ->first();
             if ($leg === null) {
-                $this->finishItem($itemId, ['assessing'], 'failed', null, null, 'legislature vanished before assessment');
+                $this->finishHeader($legislatureId, ['assessing'], 'failed', null, null, 'legislature vanished before assessment');
                 return;
             }
 
             // Scope-level errors ride into the assessment as diagnostics.
-            $scopeReasons = DB::table('autoscale_scopes')
-                ->where('item_id', $itemId)
+            $scopeReasons = DB::table('apportionment_ledger_scopes')
+                ->where('legislature_id', $legislatureId)
                 ->whereNotNull('reason')
                 ->orderBy('depth')
                 ->limit(12)
@@ -427,7 +428,7 @@ class SweepScopeProcessor
                     jurisdictionId: (string) $leg->jurisdiction_id,
                 );
 
-                $this->finishItem($itemId, ['assessing'], 'done', $seated, $expected,
+                $this->finishHeader($legislatureId, ['assessing'], 'done', $seated, $expected,
                     $assessment['notes'] !== []
                         ? 'notes: ' . implode(' | ', array_slice($assessment['notes'], 0, 6))
                         : null, $bonus);
@@ -442,7 +443,7 @@ class SweepScopeProcessor
                     ->where('id', $mapId)
                     ->where('status', 'active')
                     ->update(['status' => 'draft', 'updated_at' => now()]);
-                $this->finishItem($itemId, ['assessing'], 'review', $seated, $expected,
+                $this->finishHeader($legislatureId, ['assessing'], 'review', $seated, $expected,
                     implode(' | ', array_slice($assessment['reasons'], 0, 12)), $bonus);
             }
 
@@ -454,9 +455,9 @@ class SweepScopeProcessor
             }
         } catch (\Throwable $e) {
             Log::error('Autoscale finalize error', [
-                'item_id' => $itemId, 'message' => $e->getMessage(),
+                'legislature_id' => $legislatureId, 'message' => $e->getMessage(),
             ]);
-            $this->finishItem($itemId, ['assessing'], 'failed', null, null, mb_substr($e->getMessage(), 0, 1000));
+            $this->finishHeader($legislatureId, ['assessing'], 'failed', null, null, mb_substr($e->getMessage(), 0, 1000));
         } finally {
             AutoscaleContext::clear();
         }
@@ -464,7 +465,7 @@ class SweepScopeProcessor
 
     private function releaseScope(string $scopeId, ?string $reason): void
     {
-        DB::table('autoscale_scopes')
+        DB::table('apportionment_ledger_scopes')
             ->where('id', $scopeId)
             ->where('status', 'running')
             ->update([
@@ -719,10 +720,10 @@ class SweepScopeProcessor
      *        a late worker after a (rare) false reclaim must not clobber the
      *        new owner's state.
      */
-    private function finishItem(string $itemId, array $fromStatuses, string $status, ?int $seated, ?int $expected, ?string $reason, int $bonus = 0): void
+    private function finishHeader(string $legislatureId, array $fromStatuses, string $status, ?int $seated, ?int $expected, ?string $reason, int $bonus = 0): void
     {
         $update = [
-            'status'      => $status,
+            'map_status'  => $status,
             'reason'      => $reason,
             'finished_at' => now(),
             'updated_at'  => now(),
@@ -730,20 +731,16 @@ class SweepScopeProcessor
             // the NEXT plain requeue adopts again (never a standing bypass).
             'redraw_requested_at' => null,
         ];
-        // Keep the enumeration-time expectation when a failure never measured
-        // anything — a null overwrite would blank the dashboard's seat column.
         if ($seated !== null && $expected !== null) {
-            $update['seats_seated']   = $seated;
-            $update['seats_expected'] = $expected;
-            // Net of lawful bonus lifts (operator order 2026-08-29): the
-            // 08-28 ceiling-exception law says every exactness identity
-            // compares seats − bonus_seats against the budget. A pure
-            // bonus-lift map records drift 0 — legal and good, not drift.
-            $update['drift']          = ($seated - $bonus) - $expected;
+            $update['seats_seated'] = $seated;
+            // Net of lawful bonus lifts (operator order 2026-08-29): every
+            // exactness identity compares seats - bonus_seats against the
+            // head. head_seats IS the expected — no second copy exists.
+            $update['drift']        = ($seated - $bonus) - $expected;
         }
 
-        AutoscaleItem::query()->whereKey($itemId)
-            ->whereIn('status', $fromStatuses)
+        \App\Models\LedgerHeader::query()->whereKey($legislatureId)
+            ->whereIn('map_status', $fromStatuses)
             ->update($update);
     }
 }

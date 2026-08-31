@@ -7686,7 +7686,10 @@ class DistrictingService
                             'ms' => $this->stepMs, 'n' => $this->stepN,
                         ]);
                     }
-                    \Illuminate\Support\Facades\DB::table('autoscale_scopes')
+                    // THE LEDGER SINGLE HOME (operator plan 2026-08-31): the
+                    // scope's work state lives on the ledger scope row; this
+                    // beat's updated_at IS the pump's reclaim clock.
+                    \Illuminate\Support\Facades\DB::table('apportionment_ledger_scopes')
                         ->where('id', \App\Support\AutoscaleContext::$scopeId)
                         ->where('status', 'running')
                         ->update($scopePatch);

@@ -2,7 +2,6 @@
 
 namespace App\Console\Commands;
 
-use App\Jobs\AutoscaleSizingJob;
 use App\Jobs\AutoscaleWorkerJob;
 use App\Models\AutoscaleRun;
 use App\Services\AuditService;
@@ -91,8 +90,7 @@ class AutoscalePumpCommand extends Command
 
         // ── Halt / resume state machine (DB column is the source of truth) ──
         if ($run->haltRequested() && $run->status !== 'halted') {
-            $running = DB::table('autoscale_scopes')
-                ->where('run_id', $run->id)
+            $running = DB::table('apportionment_ledger_scopes')
                 ->where('status', 'running')
                 ->distinct()
                 ->pluck('legislature_id');
@@ -114,10 +112,12 @@ class AutoscalePumpCommand extends Command
             }
             // Operator resumed (flag cleared): rewind to the interrupted
             // phase; every phase step is idempotent, so re-entry is safe.
+            // Sizing retired into the world build (2026-08-31): a resumed
+            // run maps; a run born queued (ms creation window) maps on its
+            // first pump minute via the queued branch below.
             $run->forceFill([
-                'status' => $run->mapping_started_at !== null
-                    ? 'mapping'
-                    : ($run->sizing_started_at !== null ? 'sizing' : 'queued'),
+                'status' => 'mapping',
+                'mapping_started_at' => $run->mapping_started_at ?? now(),
                 'updated_at' => now(),
             ])->save();
         }
@@ -125,19 +125,15 @@ class AutoscalePumpCommand extends Command
         // ── pg-crash breaker: pause claims while Postgres recovers ─────────
         $this->breakerTick($run);
 
-        // ── Sizing: dispatch (10-min throttle; the job's per-run advisory
-        //    lock is the true single-writer guard, so duplicates no-op) ─────
+        // Sizing retired (operator plan 2026-08-31): phase 2 wrote every
+        // fact, acceptance verified it — a queued run flips straight to
+        // mapping on its first pump minute.
         if (in_array($run->status, ['queued', 'sizing'], true)) {
-            $leaseStale = $run->sizing_lease_at === null
-                || $run->sizing_lease_at->lt(now()->subMinutes(10));
-            if ($leaseStale) {
-                AutoscaleRun::query()->whereKey($run->id)
-                    ->update(['sizing_lease_at' => now(), 'updated_at' => now()]);
-                AutoscaleSizingJob::dispatch((string) $run->id);
-            }
-            $this->refreshCounters($run);
-
-            return self::SUCCESS;
+            $run->forceFill([
+                'status' => 'mapping',
+                'mapping_started_at' => $run->mapping_started_at ?? now(),
+                'updated_at' => now(),
+            ])->save();
         }
 
         if ($run->status !== 'mapping') {
@@ -157,15 +153,14 @@ class AutoscalePumpCommand extends Command
         // genuine recovery still fires on the same schedule as before — this
         // narrows the seizure to actually-dead holders, it does not weaken it.
         $reclaimed += DB::update("
-            UPDATE autoscale_scopes s
+            UPDATE apportionment_ledger_scopes s
                SET status = 'pending', claim_token = NULL,
                    reason = 'reclaimed: worker died mid-scope', updated_at = now()
-              FROM autoscale_items ai
-             WHERE ai.id = s.item_id
-               AND s.run_id = ?
+              FROM apportionment_ledger h
+             WHERE h.legislature_id = s.legislature_id
                AND s.status = 'running'
                AND s.updated_at < now() - make_interval(secs =>
-                       CASE WHEN COALESCE(s.area_tier, ai.area_tier, 1) >= ?::int
+                       CASE WHEN COALESCE(s.area_tier, h.area_tier, 1) >= ?::int
                             THEN ?::double precision ELSE ?::double precision END)
                AND NOT EXISTS (
                      SELECT 1
@@ -174,39 +169,29 @@ class AutoscalePumpCommand extends Command
                         AND wl.last_seen_at > now() - make_interval(secs => ?::double precision)
                    )
         ", [
-            $run->id, \App\Support\AutoscaleClaims::HEAVY_TIER,
+            \App\Support\AutoscaleClaims::HEAVY_TIER,
             self::HEAVY_SCOPE_STALE, self::SCOPE_STALE, self::WORKER_LEASE_STALE,
         ]);
-        $reclaimed += DB::table('autoscale_items')
-            ->where('run_id', $run->id)
+        $reclaimed += DB::table('apportionment_ledger')
             ->where('kind', 'single')
-            ->where('status', 'running')
+            ->where('map_status', 'running')
             ->where('updated_at', '<', now()->subSeconds(self::SINGLES_STALE))
             ->update([
-                'status' => 'pending', 'claim_token' => null,
+                'map_status' => 'pending', 'claim_token' => null,
                 'reason' => 'reclaimed: worker died mid-batch', 'updated_at' => now(),
             ]);
         $reclaimed += DB::table('jurisdiction_adjacency_parents')
             ->where('status', 'running')
             ->where('updated_at', '<', now()->subSeconds(self::PRECOMP_STALE))
             ->update(['status' => 'pending', 'claim_token' => null, 'updated_at' => now()]);
-        $reclaimed += DB::table('autoscale_items')
-            ->where('run_id', $run->id)
-            ->where('status', 'assessing')
+        $reclaimed += DB::table('apportionment_ledger')
+            ->where('map_status', 'assessing')
             ->where('updated_at', '<', now()->subSeconds(self::ASSESS_STALE))
             ->update([
-                'status' => 'running', 'claim_token' => null,
+                'map_status' => 'running', 'claim_token' => null,
                 'reason' => 'reclaimed: worker died mid-assessment', 'updated_at' => now(),
             ]);
-        // Legacy-engine compat: 'queued' items belonged to the retired
-        // dispatch model — nothing delivers their payloads anymore.
-        $reclaimed += DB::table('autoscale_items')
-            ->where('run_id', $run->id)
-            ->whereIn('status', ['queued', 'halted'])
-            ->update([
-                'status' => 'pending', 'claim_token' => null,
-                'reason' => 'reclaimed: legacy dispatch state', 'updated_at' => now(),
-            ]);
+
         if ($reclaimed > 0) {
             Log::warning('Autoscale pump reclaimed stale claims', [
                 'run_id' => $run->id, 'count' => $reclaimed,
@@ -232,17 +217,19 @@ class AutoscalePumpCommand extends Command
 
         // Enumeration-crash repair: a pending sweep item must always have its
         // root scope row (idempotent through the unique key).
+        // A pending sweep header with no scope rows gets an UNSTAMPED self
+        // scope (walk/budget NULL) — the first claim's repair branch
+        // rebuilds the tree from the walk.
         DB::statement("
-            INSERT INTO autoscale_scopes
-                (id, run_id, item_id, legislature_id, scope_jurisdiction_id,
-                 depth, status, created_at, updated_at)
-            SELECT gen_random_uuid(), ?, ai.id, ai.legislature_id, ai.jurisdiction_id,
-                   0, 'pending', now(), now()
-              FROM autoscale_items ai
-             WHERE ai.run_id = ? AND ai.kind = 'sweep' AND ai.status = 'pending'
-               AND NOT EXISTS (SELECT 1 FROM autoscale_scopes s WHERE s.item_id = ai.id)
-                ON CONFLICT ON CONSTRAINT autoscale_scopes_scope_uq DO NOTHING
-        ", [$run->id, $run->id]);
+            INSERT INTO apportionment_ledger_scopes
+                (legislature_id, scope_jurisdiction_id, depth, status, created_at, updated_at)
+            SELECT h.legislature_id, h.jurisdiction_id, 0, 'pending', now(), now()
+              FROM apportionment_ledger h
+             WHERE h.kind = 'sweep' AND h.map_status = 'pending'
+               AND NOT EXISTS (SELECT 1 FROM apportionment_ledger_scopes s
+                                WHERE s.legislature_id = h.legislature_id)
+                ON CONFLICT (legislature_id, scope_jurisdiction_id) DO NOTHING
+        ");
 
         // ── Worker seeding: keep the fixed pool topped up ──────────────────
         // THE LOCK IS LIVENESS (2026-08-30, the corpse-claims blackout): a
@@ -270,7 +257,7 @@ class AutoscalePumpCommand extends Command
                AND NOT EXISTS (SELECT 1 FROM pg_stat_activity a WHERE a.pid = l.pg_backend_pid)
         ', [now()->subMinutes(2)]);
         foreach ($corpses as $corpse) {
-            DB::table('autoscale_scopes')
+            DB::table('apportionment_ledger_scopes')
                 ->where('claim_token', $corpse->id)
                 ->where('status', 'running')
                 ->update([
@@ -293,8 +280,8 @@ class AutoscalePumpCommand extends Command
         // human. Engine-shaped reasons (unassigned constituents, seat
         // disagreements) never auto-retry.
         $requeued = DB::update("
-            UPDATE autoscale_items
-               SET status = 'pending',
+            UPDATE apportionment_ledger
+               SET map_status = 'pending',
                    redraw_requested_at = now(),
                    priority_at = now(),
                    transient_retries = transient_retries + 1,
@@ -302,26 +289,25 @@ class AutoscalePumpCommand extends Command
                    seats_seated = NULL, drift = NULL,
                    started_at = NULL, finished_at = NULL, claim_token = NULL,
                    updated_at = now()
-             WHERE run_id = ?
-               AND status = 'review'
+             WHERE map_status = 'review'
                AND transient_retries < 1
                AND reason ~* 'SQLSTATE|no connection|Connection refused|LOADING Redis|server closed the connection|Connection timed out'
-        ", [$run->id]);
+        ");
         // The retried items' scopes go back with them — EVERY tick, not
         // only the tick that requeued (that gating stranded the first
         // three for one cycle, caught live 2026-08-30). Idempotent: it
         // matches only transient-retry items still pending with un-pended
         // scope trees.
         DB::update("
-            UPDATE autoscale_scopes s
+            UPDATE apportionment_ledger_scopes s
                SET status = 'pending', claim_token = NULL, started_at = NULL,
                    finished_at = NULL, updated_at = now()
-              FROM autoscale_items i
-             WHERE i.id = s.item_id AND i.run_id = ?
-               AND i.status = 'pending' AND i.redraw_requested_at IS NOT NULL
-               AND i.reason ~* '^transient auto-retry'
+              FROM apportionment_ledger h
+             WHERE h.legislature_id = s.legislature_id
+               AND h.map_status = 'pending' AND h.redraw_requested_at IS NOT NULL
+               AND h.reason ~* '^transient auto-retry'
                AND s.status NOT IN ('pending', 'running')
-        ", [$run->id]);
+        ");
         if ($requeued > 0) {
             Log::warning('Autoscale pump: transient reviews requeued', ['count' => $requeued]);
         }
@@ -370,20 +356,15 @@ class AutoscalePumpCommand extends Command
                     AutoscaleWorkerJob::dispatch((string) $run->id, 'bottomup');
                 }
             } else {
-                $targetTop = min(AutoscaleClaims::topDownWorkerCap(), max($target - 1, 0));
-                $targetAuto = $target - $targetTop;
-
-                $fresh = DB::table('autoscale_worker_leases')
+                // ONE POOL, ONE DIRECTION (operator ruling 2026-08-31): the
+                // block order decides everything; the old top-down/auto lane
+                // split is retired.
+                $fresh = (int) DB::table('autoscale_worker_leases')
                     ->where('run_id', $run->id)
                     ->where('last_seen_at', '>', now()->subMinutes(2))
-                    ->selectRaw("COUNT(*) FILTER (WHERE lane = 'topdown') AS top,
-                                 COUNT(*) FILTER (WHERE lane IS NULL OR lane != 'topdown') AS auto")
-                    ->first();
-                for ($i = 0; $i < ($targetAuto - (int) ($fresh->auto ?? 0)); $i++) {
+                    ->count();
+                for ($i = 0; $i < ($target - $fresh); $i++) {
                     AutoscaleWorkerJob::dispatch((string) $run->id, 'auto');
-                }
-                for ($i = 0; $i < ($targetTop - (int) ($fresh->top ?? 0)); $i++) {
-                    AutoscaleWorkerJob::dispatch((string) $run->id, 'topdown');
                 }
             }
         }
@@ -391,7 +372,7 @@ class AutoscalePumpCommand extends Command
         // ── Counters + completion ──────────────────────────────────────────
         $counts = $this->refreshCounters($run);
 
-        if ((int) $counts->open_items === 0 && (int) $counts->open_scopes === 0) {
+        if ((int) $counts->open_headers === 0 && (int) $counts->open_scopes === 0) {
             $run->forceFill(['status' => 'done', 'finished_at' => now()])->save();
 
             // THE EAGER CHAIN (operator, 2026-08-08 — the three activation
@@ -537,17 +518,15 @@ class AutoscalePumpCommand extends Command
 
     private function refreshCounters(AutoscaleRun $run): object
     {
-        $counts = DB::table('autoscale_items')
-            ->where('run_id', $run->id)
+        $counts = DB::table('apportionment_ledger')
             ->selectRaw("
-                COUNT(*) FILTER (WHERE kind = 'single' AND status = 'done')   AS singles_done,
-                COUNT(*) FILTER (WHERE kind = 'sweep'  AND status = 'done')   AS sweeps_done,
-                COUNT(*) FILTER (WHERE status = 'review')                     AS review_count,
-                COUNT(*) FILTER (WHERE status IN ('pending','queued','running','assessing')) AS open_items
+                COUNT(*) FILTER (WHERE kind = 'single' AND map_status = 'done') AS singles_done,
+                COUNT(*) FILTER (WHERE kind = 'sweep'  AND map_status = 'done') AS sweeps_done,
+                COUNT(*) FILTER (WHERE map_status = 'review')                   AS review_count,
+                COUNT(*) FILTER (WHERE map_status IN ('pending','running','assessing')) AS open_headers
             ")
             ->first();
-        $counts->open_scopes = (int) DB::table('autoscale_scopes')
-            ->where('run_id', $run->id)
+        $counts->open_scopes = (int) DB::table('apportionment_ledger_scopes')
             ->whereIn('status', ['pending', 'running'])
             ->count();
 

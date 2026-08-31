@@ -937,6 +937,30 @@ final class AutoscaleEnumeration
     }
 
     /**
+     * THE REPAIR MATERIALIZATION (single-home law): an unstamped scope met
+     * at claim time rebuilds its map's tree straight into the ledger —
+     * facts rewritten, work state preserved (writeLedger's contract). A
+     * gate refusal throws so the worker routes the map to review.
+     */
+    public static function materializeLedgerTree(string $legislatureId): int
+    {
+        $jid = (string) DB::table('apportionment_ledger')
+            ->where('legislature_id', $legislatureId)->value('jurisdiction_id');
+        if ($jid === '') {
+            throw new \RuntimeException('No ledger header for this legislature — the world build has not covered it.');
+        }
+        $districting = new \App\Services\DistrictingService();
+        $head = $districting->resizeRootSeats($legislatureId);
+        $computed = self::computeApportionment($legislatureId, $jid, $head, $districting);
+        self::writeLedger($legislatureId, $jid, $head, $computed);
+        if ($computed['gate_reason'] !== null) {
+            throw new \RuntimeException($computed['gate_reason']);
+        }
+
+        return count($computed['steps']);
+    }
+
+    /**
      * Claim + compute ONE pending ledger row. Returns false when the
      * worklist is drained. The lane loop around this is the ingest tail's
      * (and the manual command's) drain.

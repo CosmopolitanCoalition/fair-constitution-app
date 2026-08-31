@@ -191,7 +191,7 @@ class AutoscaleWorkerJob implements ShouldQueue
                 try {
                     match ($claim['type']) {
                         'singles'    => app(SinglesBatchProcessor::class)->process($run, $token),
-                        'finalize'   => app(SweepScopeProcessor::class)->finalize($run, $claim['item_id'], $token),
+                        'finalize'   => app(SweepScopeProcessor::class)->finalize($run, $claim['legislature_id'], $token),
                         'precompute' => app(AdjacencyPrecompute::class)->processParent($claim['parent_id']),
                         'scope'      => app(SweepScopeProcessor::class)->process($run, $claim, $token),
                         // Two-cutter batch (2026-08-29): one claim, up to 100
@@ -289,8 +289,8 @@ class AutoscaleWorkerJob implements ShouldQueue
             // the scope — "Earth › India › Uttar Pradesh" — never just the
             // endpoints. Bounded: parent hops of one scope, ≤ tree depth.
             'scope'      => (function () use ($claim, $name) {
-                $mapOwner = (string) (DB::table('autoscale_items')
-                    ->where('id', $claim['item_id'])->value('jurisdiction_id') ?? '');
+                $mapOwner = (string) (DB::table('apportionment_ledger')
+                    ->where('legislature_id', $claim['legislature_id'])->value('jurisdiction_id') ?? '');
                 $chain = [];
                 $cursor = $claim['scope_jurisdiction_id'];
                 for ($hops = 0; $cursor !== null && $hops < 10; $hops++) {
@@ -305,7 +305,7 @@ class AutoscaleWorkerJob implements ShouldQueue
                     . ($claim['depth'] > 0 ? ' (depth ' . $claim['depth'] . ')' : '');
             })(),
             'finalize'   => 'assessing: ' . $name(
-                DB::table('autoscale_items')->where('id', $claim['item_id'])->value('jurisdiction_id')
+                DB::table('apportionment_ledger')->where('legislature_id', $claim['legislature_id'])->value('jurisdiction_id')
             ),
             default      => $claim['type'],
         };
@@ -316,21 +316,20 @@ class AutoscaleWorkerJob implements ShouldQueue
     {
         try {
             match ($claim['type']) {
-                'singles' => DB::table('autoscale_items')
-                    ->where('run_id', $run->id)
+                'singles' => DB::table('apportionment_ledger')
                     ->where('kind', 'single')
-                    ->where('status', 'running')
+                    ->where('map_status', 'running')
                     ->where('claim_token', $token)
-                    ->update(['status' => 'pending', 'claim_token' => null, 'updated_at' => now()]),
-                'finalize' => DB::table('autoscale_items')
-                    ->where('id', $claim['item_id'])
-                    ->where('status', 'assessing')
-                    ->update(['status' => 'running', 'claim_token' => null, 'updated_at' => now()]),
+                    ->update(['map_status' => 'pending', 'claim_token' => null, 'updated_at' => now()]),
+                'finalize' => DB::table('apportionment_ledger')
+                    ->where('legislature_id', $claim['legislature_id'])
+                    ->where('map_status', 'assessing')
+                    ->update(['map_status' => 'running', 'claim_token' => null, 'updated_at' => now()]),
                 'precompute' => DB::table('jurisdiction_adjacency_parents')
                     ->where('parent_id', $claim['parent_id'])
                     ->where('status', 'running')
                     ->update(['status' => 'pending', 'claim_token' => null, 'updated_at' => now()]),
-                'scope' => DB::table('autoscale_scopes')
+                'scope' => DB::table('apportionment_ledger_scopes')
                     ->where('id', $claim['scope_id'])
                     ->where('status', 'running')
                     ->update(['status' => 'pending', 'claim_token' => null, 'updated_at' => now()]),

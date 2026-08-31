@@ -56,24 +56,12 @@ class AutoscaleDistrictingCommand extends Command
             }
 
             if ((bool) $this->option('resume')) {
-                $requeuedIds = DB::table('autoscale_items')
-                    ->where('run_id', $existing->id)
-                    ->whereIn('status', ['review', 'failed', 'halted'])
-                    ->pluck('id');
-                if ($requeuedIds->isNotEmpty()) {
-                    // Stale attempt scope trees go; the pump re-mints roots.
-                    DB::table('autoscale_scopes')->whereIn('item_id', $requeuedIds)->delete();
-                    DB::table('autoscale_items')
-                        ->whereIn('id', $requeuedIds)
-                        ->update([
-                            'status' => 'pending', 'reason' => null,
-                            'claim_token' => null, 'updated_at' => now(),
-                        ]);
-                }
-                $this->info('Requeued '.count($requeuedIds).' review/failed/halted items.');
-                if ($existing->status === 'done') {
-                    $existing->forceFill(['status' => 'mapping', 'finished_at' => null])->save();
-                }
+                // ONE owner for the requeue (single-owner rails): the same
+                // status-clear the dashboard's retry-all runs.
+                $result = app(\App\Services\Autoscale\AutoscaleRunControl::class)->resume(true);
+                $this->info('Retry-all requeue: '.json_encode($result));
+
+                return self::SUCCESS;
             }
 
             $existing->forceFill(['halt_requested_at' => null])->save();

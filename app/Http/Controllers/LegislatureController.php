@@ -383,10 +383,9 @@ class LegislatureController extends Controller
             if ($runId === '') {
                 return;
             }
-            DB::table('autoscale_items')
-                ->where('run_id', $runId)
+            DB::table('apportionment_ledger')
                 ->where('legislature_id', $legislatureId)
-                ->whereIn('status', ['pending', 'running'])
+                ->whereIn('map_status', ['pending', 'running'])
                 ->whereNull('priority_at')
                 ->update(['priority_at' => now(), 'updated_at' => now()]);
         } catch (\Throwable) {
@@ -2860,11 +2859,12 @@ class LegislatureController extends Controller
         // autoscale scope on the same legislature. (Scope workers defer to
         // the interactive mass_running flag on their side — operator
         // spot-checks win when they start first.)
-        $autoscaleBusy = DB::table('autoscale_scopes as s')
-            ->join('autoscale_runs as r', 'r.id', '=', 's.run_id')
+        $autoscaleBusy = DB::table('apportionment_ledger_scopes as s')
             ->where('s.legislature_id', $legislature_id)
             ->whereIn('s.status', ['pending', 'running'])
-            ->whereIn('r.status', ['mapping'])
+            ->whereExists(function ($q) {
+                $q->select(DB::raw(1))->from('autoscale_runs as r')->where('r.status', 'mapping');
+            })
             ->exists();
         if ($autoscaleBusy) {
             return response()->json([
@@ -3128,11 +3128,12 @@ class LegislatureController extends Controller
             // head; the quota re-derives from it so the planner cuts pieces
             // in the SAME frame the header displays.
             if ($leafCtx !== null && $sid !== $leg->jurisdiction_id) {
-                $stampedLeaf = DB::table('autoscale_scopes')
+                // One stamp, one answer (single-home law): the composite key
+                // is unique, so no newest-row disambiguation exists anymore.
+                $stampedLeaf = DB::table('apportionment_ledger_scopes')
                     ->where('legislature_id', $legislature_id)
                     ->where('scope_jurisdiction_id', $sid)
                     ->whereNotNull('seat_budget')
-                    ->orderByDesc('created_at')
                     ->value('seat_budget');
                 if ($stampedLeaf !== null && (int) $stampedLeaf !== (int) $leafCtx['budget']) {
                     $leafPop = (int) DB::table('jurisdictions')->where('id', $sid)->value('population');
@@ -3223,11 +3224,10 @@ class LegislatureController extends Controller
                 // materialization, immune to whatever live state exists by
                 // the time a lane draws it. Only an unstamped scope (roots,
                 // pre-stamp rows) asks the live resolver.
-                $stamped = DB::table('autoscale_scopes')
+                $stamped = DB::table('apportionment_ledger_scopes')
                     ->where('legislature_id', $legislature_id)
                     ->where('scope_jurisdiction_id', $sid)
                     ->whereNotNull('seat_budget')
-                    ->orderByDesc('created_at')
                     ->value('seat_budget');
                 // A FALLBACK THAT APPROXIMATES IS A SECOND LAW (the Bayern
                 // 70/71 verdict, operator order 2026-08-30): when the
@@ -3637,11 +3637,12 @@ class LegislatureController extends Controller
         // autoscale_busy (pull engine): the full-scale run owns this
         // legislature while any of its scopes are open — the mapper shows
         // "autoscale is drawing this one" instead of a dead ⚡ button.
-        $autoscaleBusy = DB::table('autoscale_scopes as s')
-            ->join('autoscale_runs as r', 'r.id', '=', 's.run_id')
+        $autoscaleBusy = DB::table('apportionment_ledger_scopes as s')
             ->where('s.legislature_id', $legislature_id)
             ->whereIn('s.status', ['pending', 'running'])
-            ->where('r.status', 'mapping')
+            ->whereExists(function ($q) {
+                $q->select(DB::raw(1))->from('autoscale_runs as r')->where('r.status', 'mapping');
+            })
             ->exists();
 
         return response()->json([

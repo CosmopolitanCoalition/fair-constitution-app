@@ -2,9 +2,9 @@
 
 namespace Tests\Constitutional;
 
-use App\Jobs\AutoscaleSizingJob;
+use App\Models\LedgerHeader;
+use App\Support\AutoscaleEnumeration;
 use App\Jobs\AutoscaleWorkerJob;
-use App\Models\AutoscaleItem;
 use App\Models\AutoscaleRun;
 use App\Services\ConstitutionalDefaults;
 use Illuminate\Support\Facades\Artisan;
@@ -44,7 +44,7 @@ use Tests\TestCase;
  *     line-split via the AREA-PROPORTIONAL fallback with honest
  *     population_source provenance;
  *  6. the run is durable state: counters + per-item outcomes land in
- *     autoscale_runs/autoscale_items, and the summary audit appends exist;
+ *     autoscale_runs + the ledger headers, and the summary audit appends exist;
  *  +  the Type B ladder (bound by Type A, tiny-pop cap) and the
  *     simplest-first ordering key (est_districts, cascade_height, adm DESC,
  *     population ASC) are pinned on the same fixture.
@@ -69,7 +69,8 @@ class AutoscalePinTest extends TestCase
      */
     private function driveRun(AutoscaleRun $run, int $maxRounds = 10): void
     {
-        (new AutoscaleSizingJob((string) $run->id))->handle();
+        $this->worldBuild();
+        $this->flipToMapping($run);
         for ($round = 0; $round < $maxRounds; $round++) {
             (new AutoscaleWorkerJob((string) $run->id))->handle();
             Artisan::call('autoscale:pump');
@@ -77,6 +78,45 @@ class AutoscalePinTest extends TestCase
                 break;
             }
         }
+    }
+
+    /**
+     * PHASE 2 inline (the world-build sequence, function-for-function what
+     * WorldBuildJob runs — lanes drained in-process because Queue is faked).
+     */
+    private function worldBuild(): void
+    {
+        Artisan::call('apportionment:seed', ['--parents-only' => true]);
+        $floor = ConstitutionalDefaults::floor();
+        for ($lvl = 0; $lvl <= 6; $lvl++) {
+            AutoscaleEnumeration::seedLeafLegislatures($lvl, $floor);
+        }
+        AutoscaleEnumeration::ensureRootBootstrapBoard();
+        AutoscaleEnumeration::seedApportionmentWorklist();
+        $tok = (string) Str::uuid();
+        while (AutoscaleEnumeration::processApportionmentClaim($tok)) {
+        }
+        AutoscaleEnumeration::deriveOrderingKeysOnLedger(ConstitutionalDefaults::ceiling());
+        AutoscaleEnumeration::seedSweepLeafSelfScopes();
+        AutoscaleEnumeration::stampReversePositions();
+        AutoscaleEnumeration::stampGateRefusals();
+        AutoscaleEnumeration::mintFoundingMapsLedger();
+        AutoscaleEnumeration::stampFoundingMapIdsLedger();
+    }
+
+    /** PHASE 3's flip (what acceptance does after the verifier passes). */
+    private function flipToMapping(AutoscaleRun $run): void
+    {
+        $kinds = DB::table('apportionment_ledger')
+            ->selectRaw("COUNT(*) FILTER (WHERE kind = 'single') AS singles,
+                         COUNT(*) FILTER (WHERE kind IS DISTINCT FROM 'single') AS sweeps")
+            ->first();
+        $run->forceFill([
+            'status'             => 'mapping',
+            'mapping_started_at' => now(),
+            'singles_total'      => (int) ($kinds->singles ?? 0),
+            'sweeps_total'       => (int) ($kinds->sweeps ?? 0),
+        ])->save();
     }
 
     public function test_full_scale_autoscale_builds_every_legislature_and_map(): void
@@ -102,7 +142,6 @@ class AutoscalePinTest extends TestCase
                     ->where('payload->generator', 'like', '%SweepScopeProcessor%')->count(),
                 'autoscale.singles_generated'    => (int) DB::table('audit_log')->where('event', 'autoscale.singles_generated')->count(),
                 'autoscale.completed'            => (int) DB::table('audit_log')->where('event', 'autoscale.completed')->count(),
-                'autoscale.sizing_completed'     => (int) DB::table('audit_log')->where('event', 'autoscale.sizing_completed')->count(),
                 'bootstrap_board_constituted'    => (int) DB::table('audit_log')->where('event', 'bootstrap_board_constituted')->count(),
                 'district_map.zero_pop_absorbed' => (int) DB::table('audit_log')->where('event', 'district_map.zero_pop_absorbed')->count(),
             ];
@@ -172,9 +211,9 @@ class AutoscalePinTest extends TestCase
             // drawn districts (parent = itself) whose seats sum EXACTLY to
             // type_a (the Splitline in-band decomposition), map ACTIVE.
             $stripLegId = DB::table('legislatures')->where('jurisdiction_id', $ctx['pin_giant_id'])->whereNull('deleted_at')->value('id');
-            $stripItem  = AutoscaleItem::query()->where('run_id', $run->id)->where('legislature_id', $stripLegId)->first();
+            $stripItem  = LedgerHeader::query()->find($stripLegId);
             $this->assertSame('sweep', $stripItem->kind, 'an over-ceiling leaf enumerates as a line-split sweep, never a single');
-            $this->assertSame('done', $stripItem->status);
+            $this->assertSame('done', $stripItem->map_status);
             $stripMap = DB::table('legislature_district_maps')
                 ->where('legislature_id', $stripLegId)->where('status', 'active')->whereNull('deleted_at')->first();
             $this->assertNotNull($stripMap, 'the over-ceiling leaf has its OWN active founding map');
@@ -217,8 +256,8 @@ class AutoscalePinTest extends TestCase
 
             // Quarter 1 (the 3rd level): its own sweep is exact and clean.
             $q1LegId = DB::table('legislatures')->where('jurisdiction_id', $ctx['quarter1_id'])->whereNull('deleted_at')->value('id');
-            $q1Item = AutoscaleItem::query()->where('run_id', $run->id)->where('legislature_id', $q1LegId)->first();
-            $this->assertSame('done', $q1Item->status);
+            $q1Item = LedgerHeader::query()->find($q1LegId);
+            $this->assertSame('done', $q1Item->map_status);
             $this->assertSame(0, (int) $q1Item->drift, 'Quarter 1 is exact: 4 villages × 5 seats = 20 = type_a');
             $this->assertSame(20, (int) $q1Item->seats_seated);
 
@@ -228,21 +267,21 @@ class AutoscalePinTest extends TestCase
             // 4-bin drawing exists; single-member bins cannot land), so the
             // map seats 35 vs type_a 34. A reintroduced total-forcer would
             // make this 34/0 — the CONCRETE +1 is the pin.
-            $pinlandItem = AutoscaleItem::query()->where('run_id', $run->id)->where('legislature_id', $pinlandLegId)->first();
-            $this->assertSame('done', $pinlandItem->status,
+            $pinlandItem = LedgerHeader::query()->find($pinlandLegId);
+            $this->assertSame('done', $pinlandItem->map_status,
                 'a complete map activates regardless of Σ-seat drift (no total-forcing, ruling 2026-07-13)');
             $seated = (int) DB::table('legislature_districts')->where('map_id', $pinlandMap->id)->whereNull('deleted_at')->sum('seats');
             $this->assertSame(35, $seated, 'nearest-rounded seats: 7+6+6+6 composite + 5+5 drawn');
             $this->assertSame(1, (int) $pinlandItem->drift,
                 'the +1 drift is recorded honestly — never repaired by total-forcing');
-            $this->assertSame($seated - (int) $pinlandItem->seats_expected, (int) $pinlandItem->drift);
+            $this->assertSame($seated - (int) $pinlandItem->head_seats, (int) $pinlandItem->drift);
 
             // ── Pin 5: HONEST review + the AREA-PROPORTIONAL rescue ───────
             // (a) Brokenland flags: its GEOMETRY-LESS giant constituent can
             // neither composite nor be drawn — nothing can rescue it.
             $brokenLegId = DB::table('legislatures')->where('jurisdiction_id', $ctx['brokenland_id'])->whereNull('deleted_at')->value('id');
-            $brokenItem = AutoscaleItem::query()->where('run_id', $run->id)->where('legislature_id', $brokenLegId)->first();
-            $this->assertSame('review', $brokenItem->status,
+            $brokenItem = LedgerHeader::query()->find($brokenLegId);
+            $this->assertSame('review', $brokenItem->map_status,
                 'a scope with a geometry-less giant constituent lands on the review list');
             $this->assertStringContainsString('geometry-less giant', (string) $brokenItem->reason);
 
@@ -275,8 +314,8 @@ class AutoscalePinTest extends TestCase
             // (c) a geometry-less OVER-CEILING leaf flags ITSELF — no
             // geometry means no line split, honestly reviewed.
             $ghostLegId = DB::table('legislatures')->where('jurisdiction_id', $ctx['broken_ghost_id'])->whereNull('deleted_at')->value('id');
-            $ghostItem  = AutoscaleItem::query()->where('run_id', $run->id)->where('legislature_id', $ghostLegId)->first();
-            $this->assertSame('review', $ghostItem->status,
+            $ghostItem  = LedgerHeader::query()->find($ghostLegId);
+            $this->assertSame('review', $ghostItem->map_status,
                 'a geometry-less over-ceiling leaf cannot be drawn — honest review');
             $this->assertStringContainsString('no line-split districts', (string) $ghostItem->reason);
 
@@ -311,11 +350,10 @@ class AutoscalePinTest extends TestCase
             // ── THE ORDERING PIN (cycle-2): simplest-first — est_districts
             // ASC, cascade_height ASC, adm DESC, population ASC. The in-band
             // hamlet leads; Pin Earth (est 7, height 3) is dead last.
-            $ord = DB::table('autoscale_items')
-                ->where('run_id', $run->id)
-                ->join('jurisdictions as j', 'j.id', '=', 'autoscale_items.jurisdiction_id')
-                ->get(['autoscale_items.position', 'autoscale_items.est_districts',
-                       'autoscale_items.cascade_height', 'j.name'])
+            $ord = DB::table('apportionment_ledger')
+                ->join('jurisdictions as j', 'j.id', '=', 'apportionment_ledger.jurisdiction_id')
+                ->get(['apportionment_ledger.position', 'apportionment_ledger.est_districts',
+                       'apportionment_ledger.cascade_height', 'j.name'])
                 ->keyBy('name');
             $this->assertSame(1, (int) $ord['Pin Hamlet']->est_districts);
             $this->assertSame(0, (int) $ord['Pin Hamlet']->cascade_height);
@@ -327,15 +365,15 @@ class AutoscalePinTest extends TestCase
             $this->assertLessThan((int) $ord['Pin Quarter 1']->position, (int) $ord['Pin Giant Strip']->position,
                 'same est class: leaves (height 0) work before parents (height 1)');
             $this->assertSame(3, (int) $ord['Pin Earth']->cascade_height);
-            $this->assertSame((int) DB::table('autoscale_items')->where('run_id', $run->id)->max('position'),
+            $this->assertSame((int) DB::table('apportionment_ledger')->max('position'),
                 (int) $ord['Pin Earth']->position, 'the planet root is the LAST work item — the honest ETA tail');
 
             // ── THE ONE-FRAME PIN (2026-07-19): Dom Core — a LOCAL giant of
             // Dom Province, sub-threshold in the root frame — gets its own
             // line-split scope. The old root-flat-share walk stranded it.
             $domlandLegId = DB::table('legislatures')->where('jurisdiction_id', $ctx['domland_id'])->whereNull('deleted_at')->value('id');
-            $domlandItem  = AutoscaleItem::query()->where('run_id', $run->id)->where('legislature_id', $domlandLegId)->first();
-            $this->assertSame('done', $domlandItem->status,
+            $domlandItem  = LedgerHeader::query()->find($domlandLegId);
+            $this->assertSame('done', $domlandItem->map_status,
                 'the one-frame walk completes the dominant-child scope instead of stranding it');
             $domlandMapId = DB::table('legislature_district_maps')
                 ->where('legislature_id', $domlandLegId)->where('name', 'Founding Map')->whereNull('deleted_at')->value('id');
@@ -354,7 +392,6 @@ class AutoscalePinTest extends TestCase
             $this->assertSame($auditBase['autoscale.singles_generated'] + 1, (int) DB::table('audit_log')->where('event', 'autoscale.singles_generated')->count(),
                 'EXACTLY one singles append per claimed batch (all fixture leaves fit one batch) — never per-row');
             $this->assertSame($auditBase['autoscale.completed'] + 1, (int) DB::table('audit_log')->where('event', 'autoscale.completed')->count());
-            $this->assertSame($auditBase['autoscale.sizing_completed'] + 1, (int) DB::table('audit_log')->where('event', 'autoscale.sizing_completed')->count());
             $this->assertSame($auditBase['bootstrap_board_constituted'] + 1, (int) DB::table('audit_log')->where('event', 'bootstrap_board_constituted')->count(),
                 'the founding bootstrap board (R-08 substrate) is constituted exactly once');
 
@@ -364,16 +401,18 @@ class AutoscalePinTest extends TestCase
             // machine redraw). This is the dashboard's "retry" path: item
             // back to pending, stale scope tree dropped, run revived; the
             // pump re-mints the root scope and the first claim adopts.
-            AutoscaleItem::query()->whereKey($pinlandItem->id)->update([
-                'status' => 'pending', 'claim_token' => null, 'updated_at' => now(),
+            LedgerHeader::query()->whereKey($pinlandItem->legislature_id)->update([
+                'map_status' => 'pending', 'claim_token' => null, 'updated_at' => now(),
             ]);
-            DB::table('autoscale_scopes')->where('item_id', $pinlandItem->id)->delete();
+            DB::table('apportionment_ledger_scopes')->where('legislature_id', $pinlandItem->legislature_id)
+                ->update(['status' => 'pending', 'claim_token' => null, 'reason' => null,
+                          'started_at' => null, 'finished_at' => null, 'updated_at' => now()]);
             $run->forceFill(['status' => 'mapping', 'finished_at' => null])->save();
-            Artisan::call('autoscale:pump'); // re-mints the root scope
+            Artisan::call('autoscale:pump');
             (new AutoscaleWorkerJob((string) $run->id))->handle();
             Artisan::call('autoscale:pump');
             $pinlandItem->refresh();
-            $this->assertSame('done', $pinlandItem->status);
+            $this->assertSame('done', $pinlandItem->map_status);
             $this->assertStringContainsString('adopted', (string) $pinlandItem->reason,
                 'a re-run over an activated map adopts it instead of re-sweeping');
             $this->assertSame('active', DB::table('legislature_district_maps')->where('id', $pinlandMap->id)->value('status'),
@@ -387,39 +426,41 @@ class AutoscalePinTest extends TestCase
             // redraws through the audited replace path; the flag is consumed
             // on completion so a later plain requeue adopts again. Direct
             // process() call: the pump/worker plumbing is pin 7's territory.
-            AutoscaleItem::query()->whereKey($pinlandItem->id)->update([
-                'status' => 'pending', 'claim_token' => null, 'reason' => null,
+            LedgerHeader::query()->whereKey($pinlandItem->legislature_id)->update([
+                'map_status' => 'pending', 'claim_token' => null, 'reason' => null,
                 'redraw_requested_at' => now(), 'updated_at' => now(),
             ]);
-            DB::table('autoscale_scopes')->where('item_id', $pinlandItem->id)->delete();
+            DB::table('apportionment_ledger_scopes')->where('legislature_id', $pinlandItem->legislature_id)->delete();
             $run->forceFill(['status' => 'mapping', 'finished_at' => null])->save();
             $repairScopeId = (string) Str::uuid();
-            DB::table('autoscale_scopes')->insert([
-                'id' => $repairScopeId, 'run_id' => $run->id, 'item_id' => $pinlandItem->id,
+            DB::table('apportionment_ledger_scopes')->insert([
+                'id' => $repairScopeId,
                 'legislature_id' => $pinlandItem->legislature_id,
                 'scope_jurisdiction_id' => $pinlandItem->jurisdiction_id,
-                'depth' => 0, 'status' => 'running', 'claim_token' => (string) Str::uuid(),
+                'depth' => 0, 'walk_position' => 0,
+                'seat_budget' => (int) $pinlandItem->head_seats,
+                'status' => 'running', 'claim_token' => (string) Str::uuid(),
                 'created_at' => now(), 'updated_at' => now(),
             ]);
             app(\App\Services\Autoscale\SweepScopeProcessor::class)->process($run->refresh(), [
                 'scope_id'              => $repairScopeId,
-                'item_id'               => (string) $pinlandItem->id,
                 'legislature_id'        => (string) $pinlandItem->legislature_id,
                 'scope_jurisdiction_id' => (string) $pinlandItem->jurisdiction_id,
+                'depth'                 => 0,
             ]);
             // The item's terminal state (and the flag consumption inside
             // finishItem) lands in the FINALIZE rung, same as the worker
             // ladder runs it — the claim rung flips running → assessing
             // before handing the item to finalize.
-            AutoscaleItem::query()->whereKey($pinlandItem->id)
-                ->update(['status' => 'assessing', 'updated_at' => now()]);
-            app(\App\Services\Autoscale\SweepScopeProcessor::class)->finalize($run->refresh(), (string) $pinlandItem->id);
+            LedgerHeader::query()->whereKey($pinlandItem->legislature_id)
+                ->update(['map_status' => 'assessing', 'updated_at' => now()]);
+            app(\App\Services\Autoscale\SweepScopeProcessor::class)->finalize($run->refresh(), (string) $pinlandItem->legislature_id);
             $pinlandItem->refresh();
             $this->assertStringNotContainsString('adopted', (string) $pinlandItem->reason,
                 'a flagged repair item must REDRAW, never adopt the existing active map');
             $this->assertNull($pinlandItem->redraw_requested_at,
                 'the repair flag is consumed by the attempt it triggered');
-            $this->assertNotSame('pending', $pinlandItem->status,
+            $this->assertNotSame('pending', $pinlandItem->map_status,
                 'the flagged repair attempt runs to a terminal state');
 
             // ── Pin 8: the PARTIAL-FILL GATE (2026-07-23, Zamboanga class) —
@@ -468,11 +509,11 @@ class AutoscalePinTest extends TestCase
             // activates — no rotten borough ever ships.
             $preSeated = (int) DB::table('legislature_districts')
                 ->where('map_id', $pinlandMap->id)->whereNull('deleted_at')->sum('seats');
-            AutoscaleItem::query()->whereKey($pinlandItem->id)
-                ->update(['status' => 'assessing', 'updated_at' => now()]);
-            app(\App\Services\Autoscale\SweepScopeProcessor::class)->finalize($run->refresh(), (string) $pinlandItem->id);
+            LedgerHeader::query()->whereKey($pinlandItem->legislature_id)
+                ->update(['map_status' => 'assessing', 'updated_at' => now()]);
+            app(\App\Services\Autoscale\SweepScopeProcessor::class)->finalize($run->refresh(), (string) $pinlandItem->legislature_id);
             $pinlandItem->refresh();
-            $this->assertSame('done', $pinlandItem->status,
+            $this->assertSame('done', $pinlandItem->map_status,
                 'a zero-pop district with live siblings absorbs at finalize — the map completes');
             $this->assertNotNull(DB::table('legislature_districts')->where('id', $zeroId)->value('deleted_at'),
                 'the absorbed zero-pop district is soft-deleted');
@@ -502,11 +543,11 @@ class AutoscalePinTest extends TestCase
                 ->where('parent_jurisdiction_id', $ctx['pin_giant_id'])
                 ->whereNull('deleted_at')->orderBy('id')->value('id');
             DB::table('district_subdivisions')->where('id', $halfId2)->update(['deleted_at' => now()]);
-            AutoscaleItem::query()->whereKey($pinlandItem->id)
-                ->update(['status' => 'assessing', 'updated_at' => now()]);
-            app(\App\Services\Autoscale\SweepScopeProcessor::class)->finalize($run->refresh(), (string) $pinlandItem->id);
+            LedgerHeader::query()->whereKey($pinlandItem->legislature_id)
+                ->update(['map_status' => 'assessing', 'updated_at' => now()]);
+            app(\App\Services\Autoscale\SweepScopeProcessor::class)->finalize($run->refresh(), (string) $pinlandItem->legislature_id);
             $pinlandItem->refresh();
-            $this->assertSame('review', $pinlandItem->status,
+            $this->assertSame('review', $pinlandItem->map_status,
                 'the doctored partial-fill map lands on review');
             $this->assertSame('draft', DB::table('legislature_district_maps')->where('id', $pinlandMap->id)->value('status'),
                 'an active map failing assessment demotes to draft — never stays live');
@@ -526,12 +567,13 @@ class AutoscalePinTest extends TestCase
                 'template'          => null,
             ]);
 
-            // Sizing completes, mapping starts, root scopes minted.
-            (new AutoscaleSizingJob((string) $run->id))->handle();
+            // The world build wrote every fact; the flip starts mapping.
+            $this->worldBuild();
+            $this->flipToMapping($run);
             $this->assertSame('mapping', $run->refresh()->status);
-            $this->assertGreaterThan(0, DB::table('autoscale_scopes')
-                ->where('run_id', $run->id)->where('status', 'pending')->count(),
-                'root scopes are minted at enumeration');
+            $this->assertGreaterThan(0, DB::table('apportionment_ledger_scopes')
+                ->where('status', 'pending')->count(),
+                'the stamped scope trees exist before any claim');
 
             // HALT (DB column, pull engine): the pump parks the run; a
             // worker seeing a halted run exits at its claim boundary without
@@ -541,10 +583,10 @@ class AutoscalePinTest extends TestCase
             $this->assertSame('halted', $run->refresh()->status, 'the pump parks a halt-requested run');
 
             (new AutoscaleWorkerJob((string) $run->id))->handle();
-            $this->assertSame(0, AutoscaleItem::query()->where('run_id', $run->id)->whereIn('status', ['done'])
+            $this->assertSame(0, LedgerHeader::query()->where('map_status', 'done')
                 ->where('kind', 'sweep')->count(), 'no sweep ran during the halt');
-            $this->assertSame(0, DB::table('autoscale_scopes')
-                ->where('run_id', $run->id)->where('status', 'running')->count(),
+            $this->assertSame(0, DB::table('apportionment_ledger_scopes')
+                ->where('status', 'running')->count(),
                 'no scope was claimed during the halt');
 
             // RESUME (the dashboard-button / accept-maps re-POST path):
@@ -594,7 +636,8 @@ class AutoscalePinTest extends TestCase
                 'initiator_user_id' => $ctx['operator_id'],
                 'template'          => null,
             ]);
-            (new AutoscaleSizingJob((string) $run->id))->handle();
+            $this->worldBuild();
+            $this->flipToMapping($run);
             $this->assertSame('mapping', $run->refresh()->status);
 
             // ── a. breaker: a changed pg fingerprint pauses claims ────────
@@ -603,11 +646,11 @@ class AutoscalePinTest extends TestCase
             $run->refresh();
             $this->assertNotNull($run->paused_until, 'a fingerprint change pauses claims');
             (new AutoscaleWorkerJob((string) $run->id))->handle();
-            $this->assertSame(0, DB::table('autoscale_scopes')
-                ->where('run_id', $run->id)->where('status', 'running')->count(),
+            $this->assertSame(0, DB::table('apportionment_ledger_scopes')
+                ->where('status', 'running')->count(),
                 'a paused run hands out no claims');
-            $this->assertSame(0, AutoscaleItem::query()->where('run_id', $run->id)
-                ->where('kind', 'single')->where('status', 'running')->count(),
+            $this->assertSame(0, LedgerHeader::query()
+                ->where('kind', 'single')->where('map_status', 'running')->count(),
                 'singles batches respect the pause too');
             $run->forceFill(['paused_until' => now()->subMinute()])->save();
 
@@ -626,7 +669,7 @@ class AutoscalePinTest extends TestCase
                 }
                 match ($claim['type']) {
                     'singles'    => app(\App\Services\Autoscale\SinglesBatchProcessor::class)->process($run, $probeToken),
-                    'finalize'   => app(\App\Services\Autoscale\SweepScopeProcessor::class)->finalize($run, $claim['item_id']),
+                    'finalize'   => app(\App\Services\Autoscale\SweepScopeProcessor::class)->finalize($run, $claim['legislature_id']),
                     'precompute' => app(\App\Services\Autoscale\AdjacencyPrecompute::class)->processParent($claim['parent_id']),
                 };
             }
@@ -644,10 +687,10 @@ class AutoscalePinTest extends TestCase
                 'started_at'   => now(),
                 'last_seen_at' => now(),
             ]);
-            DB::table('autoscale_scopes')->where('id', $scopeClaim['scope_id'])
+            DB::table('apportionment_ledger_scopes')->where('id', $scopeClaim['scope_id'])
                 ->update(['status' => 'running', 'claim_token' => $probeToken, 'updated_at' => now()->subMinutes(45)]);
             Artisan::call('autoscale:pump');
-            $this->assertSame('running', DB::table('autoscale_scopes')->where('id', $scopeClaim['scope_id'])->value('status'),
+            $this->assertSame('running', DB::table('apportionment_ledger_scopes')->where('id', $scopeClaim['scope_id'])->value('status'),
                 'a scope whose worker still heartbeats its lease is never seized out from under it');
 
             // The claiming worker now really dies: the lease ages out with it,
@@ -655,10 +698,10 @@ class AutoscalePinTest extends TestCase
             // as before — the guard narrows the seizure, it does not weaken it.
             DB::table('autoscale_worker_leases')->where('id', $probeToken)
                 ->update(['last_seen_at' => now()->subMinutes(45)]);
-            DB::table('autoscale_scopes')->where('id', $scopeClaim['scope_id'])
+            DB::table('apportionment_ledger_scopes')->where('id', $scopeClaim['scope_id'])
                 ->update(['updated_at' => now()->subMinutes(45)]);
             Artisan::call('autoscale:pump');
-            $this->assertSame('pending', DB::table('autoscale_scopes')->where('id', $scopeClaim['scope_id'])->value('status'),
+            $this->assertSame('pending', DB::table('apportionment_ledger_scopes')->where('id', $scopeClaim['scope_id'])->value('status'),
                 'the pump reclaims a stale scope claim in minutes — never hours, never a level');
 
             // Run to completion; the redo must be clean (exactly one active map).
@@ -741,7 +784,7 @@ class AutoscalePinTest extends TestCase
             $this->assertSame('done', $run->status, 'the reverted run re-completes');
             $this->assertSame(2, (int) $run->review_count, 'the same lawful review outcomes');
             $pinlandLegId = DB::table('legislatures')->where('jurisdiction_id', $ctx['pinland_id'])->whereNull('deleted_at')->value('id');
-            $pinlandItem = AutoscaleItem::query()->where('run_id', $run->id)->where('legislature_id', $pinlandLegId)->first();
+            $pinlandItem = LedgerHeader::query()->find($pinlandLegId);
             $this->assertSame(1, (int) $pinlandItem->drift, 'the honest +1 drift reproduces after revert (determinism)');
             $doubleActive = DB::table('legislature_district_maps')
                 ->select('legislature_id')
