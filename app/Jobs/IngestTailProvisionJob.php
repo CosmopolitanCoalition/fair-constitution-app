@@ -84,6 +84,20 @@ class IngestTailProvisionJob implements ShouldQueue
             PrecomputeLaneJob::dispatch();
         }
 
-        Log::info('IngestTail: dispatched', ['pending_parents' => $pending, 'lanes' => $lanes]);
+        // THE APPORTIONMENT LEDGER (operator order 2026-08-31): the seat
+        // arithmetic is a property of the POPULATION DATA — computed here,
+        // at the ingest tail, once per dataset. Heads, stamped scope trees,
+        // walk order, and pre-draw gate verdicts for the whole world land
+        // in apportionment_ledger before any run exists; runs copy.
+        $seeded = \App\Support\AutoscaleEnumeration::seedApportionmentWorklist();
+        $aLanes = max(2, min(HostCapacity::autoscaleWorkers(), max(1, $seeded)));
+        for ($i = 0; $i < $aLanes; $i++) {
+            \App\Jobs\ApportionmentLaneJob::dispatch();
+        }
+
+        Log::info('IngestTail: dispatched', [
+            'pending_parents' => $pending, 'lanes' => $lanes,
+            'apportionment_pending' => $seeded, 'apportionment_lanes' => $aLanes,
+        ]);
     }
 }

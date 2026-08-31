@@ -322,43 +322,70 @@ final class AutoscaleEnumeration
         // the head can never change between a child's draw and the root's.
         $rootBudget = $districting->resizeRootSeats((string) $item->legislature_id);
 
-        $steps = [];   // post-order emit: [scope_jurisdiction_id, depth, parent_jid, budget]
-        $walk = function (string $jid, int $depth, ?string $parentJid, int $budget) use (&$walk, &$steps, $districting, $item) {
-            $giants = $districting->giantChildrenForScope($jid, (string) $item->legislature_id);
-
-            // THE PRE-DRAW GATE (operator order 2026-08-30): apportionment
-            // is knowable before any geometry. Each scope's giant budgets
-            // plus its pool must fit inside the scope's own budget — the
-            // head distributes to the children, so a giant set that
-            // oversubscribes its head is already wrong on a blank map.
-            // Refuse to enumerate; the item lands in review with the fact.
-            $giantSum = array_sum($giants);
-            if ($giantSum > $budget) {
-                $names = DB::table('jurisdictions')->whereIn('id', array_keys($giants))->pluck('name', 'id');
-                $parts = [];
-                foreach ($giants as $gid => $b) {
-                    $parts[] = ($names[$gid] ?? $gid) . "={$b}";
-                }
-                throw new \RuntimeException(
-                    'Pre-draw apportionment gate: giant budgets ('.implode(', ', $parts).") sum {$giantSum}"
-                    . " over scope budget {$budget} at {$jid} — the head cannot distribute; refusing before any drawing."
-                );
+        // THE LEDGER FAST PATH (operator order 2026-08-31): materialization
+        // lives at the INGEST TAIL — a run COPIES its stamped tree from the
+        // world ledger when the ledger's head matches the freshly resized
+        // head (the freshness proof: same own-row arithmetic, same answer).
+        // A refused ledger verdict throws the stored fact so the item lands
+        // in review without recomputing the refusal.
+        $ledger = DB::table('apportionment_ledger')
+            ->where('legislature_id', (string) $item->legislature_id)
+            ->where('status', 'done')
+            ->first();
+        if ($ledger !== null && (int) $ledger->head_seats === $rootBudget) {
+            if ($ledger->gate_reason !== null) {
+                throw new \RuntimeException((string) $ledger->gate_reason);
             }
 
-            arsort($giants);   // largest budget first — the stepper's key
-            foreach ($giants as $gid => $gBudget) {
-                $walk((string) $gid, $depth + 1, $jid, (int) $gBudget);
-            }
-            $steps[] = [$jid, $depth, $parentJid, $budget];   // post-order: children emitted, then self
-        };
-        $walk((string) $item->jurisdiction_id, 0, null, $rootBudget);
+            DB::statement('
+                INSERT INTO autoscale_scopes
+                    (id, run_id, item_id, legislature_id, scope_jurisdiction_id,
+                     depth, status, area_tier, walk_position, seat_budget,
+                     created_at, updated_at)
+                SELECT gen_random_uuid(), ?, ?, ?, ls.scope_jurisdiction_id,
+                       ls.depth, ?, ?, ls.walk_position, ls.seat_budget,
+                       now(), now()
+                  FROM apportionment_ledger_scopes ls
+                 WHERE ls.legislature_id = ?
+                    ON CONFLICT ON CONSTRAINT autoscale_scopes_scope_uq
+                    DO UPDATE SET walk_position = EXCLUDED.walk_position,
+                                  seat_budget = EXCLUDED.seat_budget,
+                                  updated_at = now()
+            ', [$runId, $itemId, $item->legislature_id, 'pending', $item->area_tier, $item->legislature_id]);
+            DB::statement('
+                UPDATE autoscale_scopes s
+                   SET parent_scope_id = p.id
+                  FROM apportionment_ledger_scopes ls
+                  JOIN autoscale_scopes p
+                    ON p.item_id = s.item_id AND p.scope_jurisdiction_id = ls.parent_jurisdiction_id
+                 WHERE s.item_id = ? AND s.scope_jurisdiction_id = ls.scope_jurisdiction_id
+                   AND ls.legislature_id = ? AND s.parent_scope_id IS NULL
+                   AND ls.parent_jurisdiction_id IS NOT NULL
+            ', [$itemId, $item->legislature_id]);
+
+            return (int) $ledger->scope_count;
+        }
+
+        // LIVE PATH (ledger missing or stale): compute the walk now, stamp
+        // the run's scopes, and refresh the ledger as a side effect so the
+        // next run copies.
+        $computed = self::computeApportionment(
+            (string) $item->legislature_id,
+            (string) $item->jurisdiction_id,
+            $rootBudget,
+            $districting,
+        );
+        self::writeLedger((string) $item->legislature_id, (string) $item->jurisdiction_id, $rootBudget, $computed);
+        if ($computed['gate_reason'] !== null) {
+            throw new \RuntimeException($computed['gate_reason']);
+        }
 
         $idByJid = [];
         $pos = 0;
-        foreach ($steps as [$jid, $depth, $parentJid, $budget]) {
+        foreach ($computed['steps'] as [$jid, $depth, $parentJid, $budget]) {
             $idByJid[$jid] = $idByJid[$jid] ?? (string) \Illuminate\Support\Str::uuid();
         }
-        foreach ($steps as [$jid, $depth, $parentJid, $budget]) {
+        foreach ($computed['steps'] as [$jid, $depth, $parentJid, $budget]) {
             // THE STAMP IS THE HEAD (2026-08-30): the budget is frozen on
             // the scope row at materialization. Lanes draw to the stamp —
             // the composite path and the leaf-giant path both read it
@@ -384,5 +411,172 @@ final class AutoscaleEnumeration
         }
 
         return $pos;
+    }
+
+    /**
+     * THE WALK, PURE (operator order 2026-08-31): the cascade + pre-draw
+     * gate as a computation with no side effects on run tables. Returns the
+     * post-order steps and the gate verdict; a refusal is a RESULT here
+     * (gate_reason text), so the ledger can record the whole world's
+     * verdicts in one pass.
+     *
+     * @return array{steps: array<int, array{0:string,1:int,2:?string,3:int}>, gate_reason: ?string}
+     */
+    public static function computeApportionment(
+        string $legislatureId,
+        string $rootJid,
+        int $rootBudget,
+        ?\App\Services\DistrictingService $districting = null,
+    ): array {
+        $districting ??= new \App\Services\DistrictingService();
+
+        $steps = [];   // post-order emit: [scope_jurisdiction_id, depth, parent_jid, budget]
+        $gate  = null;
+        $walk = function (string $jid, int $depth, ?string $parentJid, int $budget) use (&$walk, &$steps, &$gate, $districting, $legislatureId) {
+            if ($gate !== null) {
+                return;
+            }
+            $giants = $districting->giantChildrenForScope($jid, $legislatureId);
+
+            // THE PRE-DRAW GATE (operator order 2026-08-30): apportionment
+            // is knowable before any geometry. A giant set that
+            // oversubscribes its head is already wrong on a blank map.
+            $giantSum = array_sum($giants);
+            if ($giantSum > $budget) {
+                $names = DB::table('jurisdictions')->whereIn('id', array_keys($giants))->pluck('name', 'id');
+                $parts = [];
+                foreach ($giants as $gid => $b) {
+                    $parts[] = ($names[$gid] ?? $gid) . "={$b}";
+                }
+                $gate = 'Pre-draw apportionment gate: giant budgets ('.implode(', ', $parts).") sum {$giantSum}"
+                    . " over scope budget {$budget} at {$jid} — the head cannot distribute; refusing before any drawing.";
+
+                return;
+            }
+
+            arsort($giants);   // largest budget first — the stepper's key
+            foreach ($giants as $gid => $gBudget) {
+                $walk((string) $gid, $depth + 1, $jid, (int) $gBudget);
+            }
+            $steps[] = [$jid, $depth, $parentJid, $budget];   // post-order: children emitted, then self
+        };
+        $walk($rootJid, 0, null, $rootBudget);
+
+        return ['steps' => $gate === null ? $steps : [], 'gate_reason' => $gate];
+    }
+
+    /** Upsert one legislature's ledger header + scope tree (transactional). */
+    public static function writeLedger(string $legislatureId, string $jurisdictionId, int $head, array $computed): void
+    {
+        $pop = (int) DB::table('jurisdictions')->where('id', $jurisdictionId)->value('population');
+        DB::transaction(function () use ($legislatureId, $jurisdictionId, $head, $computed, $pop) {
+            DB::statement("
+                INSERT INTO apportionment_ledger
+                    (legislature_id, jurisdiction_id, population, head_seats,
+                     scope_count, gate_reason, status, claim_token, computed_at,
+                     created_at, updated_at)
+                VALUES (?, ?, ?, ?, ?, ?, 'done', NULL, now(), now(), now())
+                    ON CONFLICT (legislature_id)
+                    DO UPDATE SET population = EXCLUDED.population,
+                                  head_seats = EXCLUDED.head_seats,
+                                  scope_count = EXCLUDED.scope_count,
+                                  gate_reason = EXCLUDED.gate_reason,
+                                  status = 'done', claim_token = NULL,
+                                  computed_at = now(), updated_at = now()
+            ", [
+                $legislatureId, $jurisdictionId, $pop, $head,
+                count($computed['steps']), $computed['gate_reason'],
+            ]);
+            DB::table('apportionment_ledger_scopes')->where('legislature_id', $legislatureId)->delete();
+            $pos = 0;
+            foreach ($computed['steps'] as [$jid, $depth, $parentJid, $budget]) {
+                DB::table('apportionment_ledger_scopes')->insert([
+                    'legislature_id'         => $legislatureId,
+                    'scope_jurisdiction_id'  => $jid,
+                    'parent_jurisdiction_id' => $parentJid,
+                    'depth'                  => $depth,
+                    'walk_position'          => $pos++,
+                    'seat_budget'            => $budget,
+                ]);
+            }
+        });
+    }
+
+    /**
+     * Seed the world apportionment worklist (the adjacency pattern): a
+     * pending ledger header for every legislature with no fresh ledger —
+     * missing, or whose stored population differs from the current own row.
+     * Chunked; idempotent.
+     */
+    public static function seedApportionmentWorklist(): int
+    {
+        $total = 0;
+        do {
+            $n = DB::affectingStatement("
+                INSERT INTO apportionment_ledger
+                    (legislature_id, jurisdiction_id, population, status, created_at, updated_at)
+                SELECT l.id, l.jurisdiction_id, COALESCE(j.population, 0), 'pending', now(), now()
+                  FROM legislatures l
+                  JOIN jurisdictions j ON j.id = l.jurisdiction_id AND j.deleted_at IS NULL
+                 WHERE l.deleted_at IS NULL
+                   AND NOT EXISTS (SELECT 1 FROM apportionment_ledger al WHERE al.legislature_id = l.id)
+                 LIMIT " . self::CHUNK . '
+                    ON CONFLICT (legislature_id) DO NOTHING
+            ');
+            $total += $n;
+        } while ($n > 0);
+
+        // Stale rows re-open: population moved under a computed ledger.
+        $total += DB::update("
+            UPDATE apportionment_ledger al
+               SET status = 'pending', claim_token = NULL, updated_at = now()
+              FROM jurisdictions j
+             WHERE j.id = al.jurisdiction_id
+               AND al.status = 'done'
+               AND al.population IS DISTINCT FROM COALESCE(j.population, 0)
+        ");
+
+        return $total;
+    }
+
+    /**
+     * Claim + compute ONE pending ledger row. Returns false when the
+     * worklist is drained. The lane loop around this is the ingest tail's
+     * (and the manual command's) drain.
+     */
+    public static function processApportionmentClaim(string $token): bool
+    {
+        $row = DB::selectOne("
+            UPDATE apportionment_ledger
+               SET status = 'running', claim_token = ?, updated_at = now()
+             WHERE legislature_id = (
+                   SELECT legislature_id FROM apportionment_ledger
+                    WHERE status = 'pending'
+                    ORDER BY population DESC
+                    LIMIT 1
+                    FOR UPDATE SKIP LOCKED
+             )
+         RETURNING legislature_id, jurisdiction_id
+        ", [$token]);
+        if ($row === null) {
+            return false;
+        }
+
+        try {
+            $districting = new \App\Services\DistrictingService();
+            $head = $districting->resizeRootSeats((string) $row->legislature_id);
+            $computed = self::computeApportionment((string) $row->legislature_id, (string) $row->jurisdiction_id, $head, $districting);
+            self::writeLedger((string) $row->legislature_id, (string) $row->jurisdiction_id, $head, $computed);
+        } catch (\Throwable $e) {
+            while (DB::transactionLevel() > 0) {
+                DB::rollBack();
+            }
+            DB::table('apportionment_ledger')->where('legislature_id', (string) $row->legislature_id)->update([
+                'status' => 'failed', 'gate_reason' => mb_substr('compute failed: ' . $e->getMessage(), 0, 1000),
+                'claim_token' => null, 'updated_at' => now(),
+            ]);
+        }
+
+        return true;
     }
 }
