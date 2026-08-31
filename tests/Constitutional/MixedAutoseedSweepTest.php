@@ -31,7 +31,7 @@ use Tests\TestCase;
  *     refuses child-bearing and sub-threshold scopes;
  *  3. THE MIXED SWEEP: map_plus_children_all from the root creates composite
  *     districts at the root scope AND line-split districts at the giant, in
- *     the same run, seats exact (24 composite + 10 drawn = 34), every drawn
+ *     the same run, seats exact (24 composite + 11 drawn = 35), every drawn
  *     piece an audited F-ELB-008 by the REAL actor (never null);
  *  4. _unassigned resume skips a giant whose drawn set already exists —
  *     the operator's work is never silently replaced;
@@ -79,12 +79,12 @@ class MixedAutoseedSweepTest extends TestCase
 
             $giant = $resolver->context($ctx['legislature_id'], $ctx['giant_id']);
             $this->assertNotNull($giant, 'the childless giant must be detected');
-            $this->assertSame(10, $giant['budget'], 'budget = max(floor, round(10.2)) = 10');
-            $this->assertEqualsWithDelta(1200.0, $giant['quota'], 0.001);
+            $this->assertSame(11, $giant['budget'], 'budget = max(floor, round(10.5)) = 11 (head 35, children-sum quota)');
+            $this->assertEqualsWithDelta(12000.0 / 11, $giant['quota'], 0.001);
 
             // A child-bearing scope (the root) is never a leaf giant.
             $this->assertNull($resolver->context($ctx['legislature_id'], $ctx['root_id']));
-            // A sub-threshold child (frac 5.95 < 9.5) is never a leaf giant.
+            // A sub-threshold child (frac 6.125 < 9.5) is never a leaf giant.
             $this->assertNull($resolver->context($ctx['legislature_id'], $ctx['composite_ids'][0]));
 
             // INERT CHILD LAYER (operator ruling 2026-07-23): zero the whole
@@ -145,7 +145,7 @@ class MixedAutoseedSweepTest extends TestCase
                 $this->assertLessThanOrEqual(9, (int) $d->seats);
             }
 
-            // Line-split districts at the giant: budget 10 → [5,5], each an
+            // Line-split districts at the giant: budget 11 → [6,5], each an
             // F-ELB-008-filed synthetic piece (district_subdivisions row).
             $subdivisions = DB::table('district_subdivisions')
                 ->where('parent_jurisdiction_id', $ctx['giant_id'])
@@ -156,7 +156,7 @@ class MixedAutoseedSweepTest extends TestCase
             foreach ($subdivisions as $s) {
                 $this->assertSame('manual', $s->method, 'autoseed leaves persist through the F-ELB-008 handler');
             }
-            $this->assertSame(10, (int) $subdivisions->sum('seats'), 'drawn seats must equal the giant budget');
+            $this->assertSame(11, (int) $subdivisions->sum('seats'), 'drawn seats must equal the giant budget');
 
             $drawn = DB::table('legislature_districts')
                 ->where('legislature_id', $ctx['legislature_id'])
@@ -165,7 +165,7 @@ class MixedAutoseedSweepTest extends TestCase
                 ->whereNull('deleted_at')
                 ->get(['seats', 'num_geom_parts', 'is_contiguous']);
             $this->assertCount(2, $drawn);
-            $this->assertSame(10, (int) $drawn->sum('seats'));
+            $this->assertSame(11, (int) $drawn->sum('seats'));
 
             // ISLAND RIDING (the LA-County shape): the giant is mainland +
             // one detached island — exactly ONE of the two districts carries
@@ -178,13 +178,13 @@ class MixedAutoseedSweepTest extends TestCase
             $this->assertCount(1, $drawn->where('is_contiguous', true),
                 'the other district is a single contiguous cut piece');
 
-            // The whole map seats the full legislature: 24 + 10 = 34 = type_a.
+            // The whole map seats the full legislature: 24 + 11 = 35 = type_a.
             $total = (int) DB::table('legislature_districts')
                 ->where('legislature_id', $ctx['legislature_id'])
                 ->where('map_id', $ctx['map_id'])
                 ->whereNull('deleted_at')
                 ->sum('seats');
-            $this->assertSame(34, $total, 'composite + line-split must seat the complete legislature');
+            $this->assertSame(35, $total, 'composite + line-split must seat the complete legislature');
 
             // ONE MAP, ONE PERMISSION MODEL (operator ruling 2026-08-29):
             // the auto sweep draws the whole map as the engine, so its
@@ -254,7 +254,7 @@ class MixedAutoseedSweepTest extends TestCase
                 ->whereNull('deleted_at')
                 ->get(['seats']);
             $this->assertCount(2, $drawn, 'the giant line-splits through the system path');
-            $this->assertSame(10, (int) $drawn->sum('seats'), 'drawn seats must equal the giant budget');
+            $this->assertSame(11, (int) $drawn->sum('seats'), 'drawn seats must equal the giant budget');
 
             $elbRows = DB::table('audit_log')->where('ref', 'F-ELB-008')->get(['actor_user_id']);
             foreach ($elbRows as $row) {
@@ -374,10 +374,10 @@ class MixedAutoseedSweepTest extends TestCase
     }
 
     /**
-     * Pinland (pop 40 000, type_a 34 = round(40000^⅓), quota ≈ 1176):
-     *   - 4 composite children (pop 7 000 each → frac 5.95, in band)
+     * Pinland (own row 43 000 → type_a 35 = round(43000^⅓); children sum 40 000, quota ≈ 1143):
+     *   - 4 composite children (pop 7 000 each → frac 6.125, in band)
      *     as adjacent 0.1°×0.1° squares along the top row;
-     *   - 1 CHILDLESS GIANT strip (pop 12 000 → frac 10.2 ≥ 9.5) across the
+     *   - 1 CHILDLESS GIANT strip (pop 12 000 → frac 10.5 ≥ 9.5) across the
      *     bottom: [10.0,10.4]×[50.0,50.1];
      *   - a synthetic uniform WorldPop tile over the giant (80×20 pixels of
      *     7.5 people = 12 000 exactly), so the splitline autoseeder's raster
@@ -418,10 +418,14 @@ class MixedAutoseedSweepTest extends TestCase
 
         // Root STORED population is deliberately NOISY (43 000) while the
         // children sum to 40 000 — the USA-style geodata drift (342.35M stored
-        // vs 346.04M children-sum) that manufactured the phantom-giant
-        // Kentucky. Every share in the system must divide by the CHILDREN-SUM
-        // (seating law step 2); on the old stored base the giant's share reads
-        // 12000×34/43000 = 9.49 < 9.5 and every giant test goes blind.
+        // vs 346.04M children-sum). THE LEVEL LAW splits the two roles: the
+        // HEAD sizes from the root's OWN row (43000^⅓ → 35, step 1, the one
+        // sizing owner resizeRootSeats), while every SHARE divides by the
+        // CHILDREN-SUM (step 2 — the phantom-giant Kentucky lesson: on a
+        // stored-base denominator the giant's share reads 12000×35/43000 =
+        // 9.77, blind near the threshold). With both roles right, the giant
+        // reads 12000/(40000/35) = 10.5 ≥ 9.5 and the children sum to the
+        // head exactly even though the population layers disagree.
         $rootId = $mkJur('Pinland', null, 1, 43000, [[10.0, 50.0, 10.4, 50.2], [10.05, 49.90, 10.15, 49.95]]);
         $compositeIds = [];
         foreach (range(0, 3) as $i) {
@@ -439,8 +443,8 @@ class MixedAutoseedSweepTest extends TestCase
             'jurisdiction_id' => $rootId,
             'term_number'     => 1,
             'status'          => 'forming',
-            'total_seats'     => 34,
-            'type_a_seats'    => 34,
+            'total_seats'     => 35,
+            'type_a_seats'    => 35,
             'type_b_seats'    => 0,
             'quorum_required' => 18,
             'created_at'      => $now,

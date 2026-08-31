@@ -2750,15 +2750,10 @@ class LegislatureController extends Controller
         DB::beginTransaction();
         try {
             if ($isAutoRoot) {
-                $sumChildPop = (int) DB::table('jurisdictions')
-                    ->where('parent_id', $scopeId)
-                    ->whereNull('deleted_at')
-                    ->sum('population');
-                $newSeats = ConstitutionalDefaults::sizeFromPopulation($sumChildPop, $leg->jurisdiction_id);
-                if ((int) $leg->type_a_seats !== $newSeats) {
-                    DB::table('legislatures')->where('id', $legislature_id)->update(['type_a_seats' => $newSeats]);
-                    $leg->type_a_seats = $newSeats;
-                }
+                // THE ONE HEAD (2026-08-30): sizing delegates to the single
+                // owner — own-row base per the level law. This block sized
+                // from children-sum until the Guyana 91-on-84.
+                $leg->type_a_seats = $this->districting->resizeRootSeats($legislature_id);
                 $seatBudget = (int) $leg->type_a_seats;
             } else {
                 $autoScope   = DB::table('jurisdictions')->where('id', $scopeId)->whereNull('deleted_at')->first();
@@ -3054,27 +3049,11 @@ class LegislatureController extends Controller
         // fix: the sweep used to leave them stale against the refreshed a).
         if ($scopeId === $leg->jurisdiction_id) {
             // THE LEVEL LAW (operator, 2026-08-30): the ROOT sizes from its
-            // OWN row ("the cube root of Germany's population, which is the
-            // root for its legislature"). The children-sum is the SPLIT
-            // denominator one level down, never the sizing base. Children-sum
-            // remains the fallback for a root with an empty row.
-            $ownPop = (int) DB::table('jurisdictions')->where('id', $scopeId)->value('population');
-            $base = $ownPop > 0
-                ? $ownPop
-                : (int) DB::table('jurisdictions')
-                    ->where('parent_id', $scopeId)
-                    ->whereNull('deleted_at')
-                    ->sum('population');
-            $newSeats = ConstitutionalDefaults::sizeFromPopulation($base, $leg->jurisdiction_id);
-            if ((int) $leg->type_a_seats !== $newSeats) {
-                $newTotal = $newSeats + (int) $leg->type_b_seats;
-                DB::table('legislatures')->where('id', $legislature_id)->update([
-                    'type_a_seats'    => $newSeats,
-                    'total_seats'     => $newTotal,
-                    'quorum_required' => max(3, (int) ceil($newTotal / 2)),
-                ]);
-                $leg->type_a_seats = $newSeats;
-            }
+            // OWN row. Sizing delegates to the single owner
+            // (DistrictingService::resizeRootSeats) so this site, the mint,
+            // and scope-tree materialization can never size from different
+            // bases inside one map (the Guyana 91-on-84).
+            $leg->type_a_seats = $this->districting->resizeRootSeats($legislature_id);
         }
 
         $rootQuota = $rootPop / max((int) $leg->type_a_seats, 1);
@@ -3109,8 +3088,17 @@ class LegislatureController extends Controller
         // progress survives any error in subsequent scopes.
         foreach ($scopeIds as $scopeIdx => $sid) {
             // Halt poll — checked between scopes so a halt request takes effect
-            // on the next scope boundary instead of mid-tx.
-            if (Cache::get("legislature.{$legislature_id}.mass_halt")) {
+            // on the next scope boundary instead of mid-tx. THE CACHE IS
+            // NEVER LOAD-BEARING (operator, 2026-08-30): a dead or reloading
+            // Redis reads as "no halt requested" and the drawing continues;
+            // the data path is pure postgres.
+            $haltFlag = false;
+            try {
+                $haltFlag = (bool) Cache::get("legislature.{$legislature_id}.mass_halt");
+            } catch (\Throwable) {
+                // Cache weather — drawing continues, halt lands next poll.
+            }
+            if ($haltFlag) {
                 $halted = true;
                 $this->publishMassProgress($legislature_id, [
                     'phase'       => 'halted',
@@ -3131,6 +3119,27 @@ class LegislatureController extends Controller
             // no longer excluded here; child-bearing roots still resolve
             // null and composite as always.
             $leafCtx = $this->leafGiants->context($legislature_id, $sid);
+
+            // THE STAMP OUTRANKS THE LIVE ASK — leaf-giant arm (operator
+            // ruling 2026-08-30, the Guyana 91-on-84). Every drifted scope
+            // in benchmark 12 was a line-split plane: context() answered
+            // live while the composite path read stamps, so the two planes
+            // could draw one map in two frames. The stamped budget is the
+            // head; the quota re-derives from it so the planner cuts pieces
+            // in the SAME frame the header displays.
+            if ($leafCtx !== null && $sid !== $leg->jurisdiction_id) {
+                $stampedLeaf = DB::table('autoscale_scopes')
+                    ->where('legislature_id', $legislature_id)
+                    ->where('scope_jurisdiction_id', $sid)
+                    ->whereNotNull('seat_budget')
+                    ->orderByDesc('created_at')
+                    ->value('seat_budget');
+                if ($stampedLeaf !== null && (int) $stampedLeaf !== (int) $leafCtx['budget']) {
+                    $leafPop = (int) DB::table('jurisdictions')->where('id', $sid)->value('population');
+                    $leafCtx['budget'] = (int) $stampedLeaf;
+                    $leafCtx['quota']  = $leafPop / max((int) $stampedLeaf, 1);
+                }
+            }
 
             $scopeStart = time();
             $this->publishMassProgress($legislature_id, [
@@ -3306,6 +3315,16 @@ class LegislatureController extends Controller
 
         // Clean up the recorded backend PID — we're done, no further halts apply.
         Cache::forget("legislature.{$legislature_id}.mass_db_pid");
+
+        // DRAFT SHAPES DIE AT SWEEP END (operator rule 2026-08-30): the
+        // shape store keeps only what seated districts use. Winners were
+        // marked kept when their districts recomputed; comparison drafts
+        // purge here.
+        try {
+            DB::table('district_shape_stats')->where('kept', false)->delete();
+        } catch (\Throwable) {
+            // Pre-migration boxes: the store is optional.
+        }
 
         return [
             'districts_created' => $totalCreated,

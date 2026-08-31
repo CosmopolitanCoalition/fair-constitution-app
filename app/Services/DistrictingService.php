@@ -88,6 +88,63 @@ class DistrictingService
     /** Per-request memo for the level-law reader (levelRows). */
     private array $levelRowsMemo = [];
 
+    /** Per-request memo over the shape-stats store. */
+    private array $shapeStatsMemo = [];
+
+    /**
+     * THE SHAPE-STATS STORE (operator order 2026-08-30): hull ratio, part
+     * count and contiguity are pure functions of the member set, so they
+     * are computed once per unique set and recalled forever after. The
+     * fingerprint is md5 of the sorted member ids. The store holds three
+     * numbers, never geometry.
+     */
+    private function shapeFingerprint(array $jids): string
+    {
+        $ids = array_map('strval', $jids);
+        sort($ids);
+
+        return md5(implode(',', $ids));
+    }
+
+    private function shapeStatsLookup(string $fp): ?object
+    {
+        if (array_key_exists($fp, $this->shapeStatsMemo)) {
+            return $this->shapeStatsMemo[$fp];
+        }
+        try {
+            $row = DB::table('district_shape_stats')->where('member_fingerprint', $fp)->first();
+        } catch (\Throwable) {
+            $row = null;   // pre-migration boxes: the store is optional
+        }
+
+        return $this->shapeStatsMemo[$fp] = $row;
+    }
+
+    private function shapeStatsStore(string $fp, ?float $chr, ?int $parts, ?bool $contiguous, bool $kept): void
+    {
+        try {
+            DB::statement('
+                INSERT INTO district_shape_stats
+                    (member_fingerprint, convex_hull_ratio, num_geom_parts, is_contiguous, kept, created_at)
+                VALUES (?, ?, ?, ?, ?, now())
+                ON CONFLICT (member_fingerprint) DO UPDATE
+                    SET convex_hull_ratio = COALESCE(district_shape_stats.convex_hull_ratio, EXCLUDED.convex_hull_ratio),
+                        num_geom_parts    = COALESCE(district_shape_stats.num_geom_parts, EXCLUDED.num_geom_parts),
+                        is_contiguous     = COALESCE(district_shape_stats.is_contiguous, EXCLUDED.is_contiguous),
+                        kept              = district_shape_stats.kept OR EXCLUDED.kept
+            ', [$fp, $chr, $parts, $contiguous, $kept]);
+            $this->shapeStatsMemo[$fp] = (object) [
+                'member_fingerprint' => $fp,
+                'convex_hull_ratio'  => $chr,
+                'num_geom_parts'     => $parts,
+                'is_contiguous'      => $contiguous,
+                'kept'               => $kept,
+            ];
+        } catch (\Throwable) {
+            // The store is an accelerator, never load-bearing.
+        }
+    }
+
     /**
      * THE LEVEL LAW (operator ruling 2026-08-30, his walk): every seat
      * split reads exactly ONE level — the direct children's own population
@@ -519,6 +576,57 @@ class DistrictingService
         }
 
         return $this->giantScopeMemo[$memoKey] = $out;
+    }
+
+    /**
+     * THE ONE HEAD (operator ruling 2026-08-30, the Guyana 91-on-84).
+     * Resize a legislature's Type A chamber from the sizing law and return
+     * the landed size. This is the ONLY writer of a root's size during
+     * districting: the mint, the mass sweep's root block, and scope-tree
+     * materialization all call HERE, so the head can never be sized from
+     * two different bases inside one map.
+     *
+     * THE LEVEL LAW (step 1): the root sizes from its OWN population row.
+     * Children-sum is the fallback for an empty own row only — never a
+     * competing base. The disease this kills: the mint sized Guyana from
+     * its children-sum (825,547 → 94), the child scopes drew their frames
+     * against 94 (Essequibo 15, East Berbice 12, Demerara 40), then the
+     * root scope — last under stepper order — re-sized from the own row
+     * (596,856 → 84) and drew its pool at 24. Sum of children 91 on a head
+     * of 84. The head is DISTRIBUTED to the children, so the sum of the
+     * children must equal the head even when the population layers
+     * disagree; two sizing moments with two bases is the only way that
+     * identity can break, and this method removes both.
+     */
+    public function resizeRootSeats(string $legislatureId): int
+    {
+        $leg = $this->getLegislature($legislatureId);
+        if (! $leg) {
+            throw new \RuntimeException("resizeRootSeats: unknown legislature {$legislatureId}");
+        }
+        $rootId = (string) $leg->jurisdiction_id;
+        $ownPop = (int) DB::table('jurisdictions')->where('id', $rootId)->value('population');
+        $base = $ownPop > 0
+            ? $ownPop
+            : (int) DB::table('jurisdictions')
+                ->where('parent_id', $rootId)
+                ->whereNull('deleted_at')
+                ->sum('population');
+        $newSeats = \App\Services\ConstitutionalDefaults::sizeFromPopulation($base, $rootId);
+        if ((int) $leg->type_a_seats !== $newSeats) {
+            $newTotal = $newSeats + (int) $leg->type_b_seats;
+            DB::table('legislatures')->where('id', $legislatureId)->update([
+                'type_a_seats'    => $newSeats,
+                'total_seats'     => $newTotal,
+                'quorum_required' => \App\Services\ActivationService::quorumRequired($newTotal),
+            ]);
+            // The memoized budgets were computed against the old head.
+            $this->seatBudgetMemo = [];
+            $this->giantScopeMemo = [];
+            unset($this->legislatureMemo[$legislatureId]);
+        }
+
+        return $newSeats;
     }
 
     /**
@@ -2514,6 +2622,19 @@ class DistrictingService
         // resolution can spend 5-10 min in this one call. Simplified inputs
         // make Union seconds. Compactness (area-ratio) and component count
         // are insensitive to ~110m boundary precision; the metric is robust.
+        // SHAPE RECALL (operator order 2026-08-30): the three numbers below
+        // are pure functions of the member set. A store hit skips the
+        // fusion and the contiguity walk entirely; a miss computes exactly
+        // as before and remembers the result as a kept winner.
+        $shapeFp = $this->shapeFingerprint($jids);
+        $cachedShape = $this->shapeStatsLookup($shapeFp);
+        if ($cachedShape !== null && $cachedShape->is_contiguous !== null) {
+            $spatialRow = (object) [
+                'convex_hull_ratio' => $cachedShape->convex_hull_ratio,
+                'num_geom_parts'    => $cachedShape->num_geom_parts,
+            ];
+            $isContiguous = (bool) $cachedShape->is_contiguous;
+        } else {
         $jidPlaceholders = implode(',', array_fill(0, count($jids), '?'));
         // Pull-engine read path (2026-07-19, mechanics only): the simplify
         // cache holds the EXACT tier expression for >50k-vertex rows —
@@ -2691,6 +2812,15 @@ class DistrictingService
                     $isContiguous = true;
                 }
             }
+        }
+
+        $this->shapeStatsStore(
+            $shapeFp,
+            $spatialRow?->convex_hull_ratio !== null ? (float) $spatialRow->convex_hull_ratio : null,
+            $spatialRow?->num_geom_parts !== null ? (int) $spatialRow->num_geom_parts : null,
+            $isContiguous,
+            kept: true,
+        );
         }
 
         // No geometry stored on the district record itself —
@@ -5544,6 +5674,20 @@ class DistrictingService
     private function pairHullMean(array $A, array $B): ?float
     {
         if (empty($A) || empty($B)) return null;
+
+        // SHAPE RECALL (operator order 2026-08-30): each half's hull ratio
+        // is a pure function of its member set. Both halves cached — zero
+        // geometry work. Misses compute as before and are remembered as
+        // DRAFTS (kept=false), purged at every sweep's end per the
+        // operator's rule.
+        $fpA = $this->shapeFingerprint($A);
+        $fpB = $this->shapeFingerprint($B);
+        $ca = $this->shapeStatsLookup($fpA);
+        $cb = $this->shapeStatsLookup($fpB);
+        if ($ca?->convex_hull_ratio !== null && $cb?->convex_hull_ratio !== null) {
+            return ((float) $ca->convex_hull_ratio + (float) $cb->convex_hull_ratio) / 2.0;
+        }
+
         $aStr = '{' . implode(',', $A) . '}';
         $bStr = '{' . implode(',', $B) . '}';
         try {
@@ -5580,6 +5724,9 @@ class DistrictingService
             return null; // reflection-driven tests / degenerate geometry — pass stays inert
         }
         if ($row === null || $row->ra === null || $row->rb === null) return null;
+
+        $this->shapeStatsStore($fpA, (float) $row->ra, null, null, kept: false);
+        $this->shapeStatsStore($fpB, (float) $row->rb, null, null, kept: false);
 
         return ((float) $row->ra + (float) $row->rb) / 2.0;
     }
@@ -7084,6 +7231,15 @@ class DistrictingService
         if ($mode === 'always') return true;
         if ($mode !== 'auto' && $mode !== 'shadow') return false;
 
+        // TWO DISTRICTS ONLY (operator rule, 2026-08-30, the São Paulo /
+        // Russia / Texas triage): one blade yields two sides, so the line
+        // is the definitive tool exactly when the pool lands two districts
+        // — knowable upfront from the seat budget alone. Bigger pools
+        // (Russia, Texas) skip the sweep entirely and pay nothing.
+        if (! in_array(2, $kCandidates, true) || max($kCandidates) > 2) {
+            return false;
+        }
+
         // Shadow uses the SAME gate as auto — measuring a population you would
         // never have acted on tells you nothing about the flip.
         $n      = count($component);
@@ -7554,9 +7710,16 @@ class DistrictingService
                         $phase .= ' ' . (int) $patch['phase_current'] . '/' . (int) $patch['phase_total'];
                     }
                     $phase = mb_substr($phase, 0, 70);
+                    // The beat also refreshes the backend pid (reaper
+                    // hardening 2026-08-30): pg_backend_pid() evaluates on
+                    // THIS connection, so after any reconnect the lease
+                    // carries the current backend and the reaper's
+                    // certain-death test never mistakes a reconnected
+                    // grinder for a corpse.
                     \Illuminate\Support\Facades\DB::update(
                         "UPDATE autoscale_worker_leases
                             SET last_seen_at = now(),
+                                pg_backend_pid = pg_backend_pid(),
                                 claim_label = split_part(claim_label, ' ⋯ ', 1)
                                               || CASE WHEN ?::text <> '' THEN ' ⋯ ' || ?::text ELSE '' END
                           WHERE id = ?",
@@ -7570,12 +7733,19 @@ class DistrictingService
             return;
         }
 
-        $key = "legislature.{$legislature_id}.mass_progress";
-        $existing = $reset ? [] : (Cache::get($key, []) ?: []);
-        if (! is_array($existing)) $existing = [];
-        Cache::put($key, array_merge($existing, $patch, [
-            'last_update_at' => time(),
-        ], $this->stepMs !== [] ? ['step_timings' => ['ms' => $this->stepMs, 'n' => $this->stepN]] : []), 7200);
+        // THE CACHE IS NEVER LOAD-BEARING (operator, 2026-08-30): progress
+        // publication is cosmetic; a dead or reloading Redis costs a dark
+        // dashboard for a few seconds, never a scope.
+        try {
+            $key = "legislature.{$legislature_id}.mass_progress";
+            $existing = $reset ? [] : (Cache::get($key, []) ?: []);
+            if (! is_array($existing)) $existing = [];
+            Cache::put($key, array_merge($existing, $patch, [
+                'last_update_at' => time(),
+            ], $this->stepMs !== [] ? ['step_timings' => ['ms' => $this->stepMs, 'n' => $this->stepN]] : []), 7200);
+        } catch (\Throwable) {
+            return;
+        }
 
         // Liveness lease (interactive sweeps, non-law mechanics): a sweep
         // that is publishing progress is alive — extend its mass_running flag

@@ -216,7 +216,19 @@ or implement one. The procedure (per legislature):
    words: "at no point ever will you use the numerator for the prior step
    as the denominator for the next step."
 1. The legislature ROOT's seats = rounded cube root of the root's OWN
-   population row (Germany 84,399,813 → 439).
+   population row (Germany 84,399,813 → 439). **THE ONE HEAD (operator
+   ruling 2026-08-30, the Guyana 91-on-84): one sizing owner
+   (`DistrictingService::resizeRootSeats`), own-row base, called by the
+   mint, the sweep's root block, and scope-tree materialization. The head
+   is sized ONCE per map — at scope materialization, before any scope
+   draws — and every scope's budget is STAMPED on its scope row then.
+   Lanes draw to the stamp (composite AND leaf-giant planes). The head is
+   distributed to the children, so Σ(children seats) == head is an
+   identity that holds regardless of population-layer noise; the whole
+   apportionment is knowable on a blank map, and the PRE-DRAW GATE in
+   `AutoscaleEnumeration::materializeScopeTree` refuses enumeration when
+   any scope's giant budgets oversubscribe its head — before any line,
+   any composite, any geometry.**
 2. Split to children by population share. Each child's share = the child's
    own row over the sum of all the direct children's own rows. Quota =
    children-row-sum / budget; frac(child) = child's own row / quota.

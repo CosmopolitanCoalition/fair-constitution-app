@@ -1445,18 +1445,22 @@ class DistrictingDoctrineTest extends TestCase
         });
     }
 
-    // ─── (16) The seating law: nearest rounding, no total-forcing ───────────
+    // ─── (16) The seating law: the fixed-composition landing seats the head ─
+    // (operator ruling 2026-08-30, the Germany 439 convergence + the head-
+    // distribution law: "the sum of children should always equal the head".)
+    // When the composition is fixed (indivisible atoms) and nearest rounding
+    // misses the pool budget, the seat VECTOR lands via optimalIntegerTargets:
+    // exactness outranks nearest (drift-is-always-wrong, 0e9eda0). Every seat
+    // stays within one of its own fractional's nearest round, inside the band.
 
-    public function test_drawn_districts_round_to_nearest_with_no_total_forcing(): void
+    public function test_fixed_composition_atoms_land_the_pool_budget_exactly(): void
     {
         $this->onLivePg(function () {
             // UNDER-seat direction (the Puducherry case, distilled): three
             // indivisible atoms at 5.4 + 5.4 + 6.2 fracs of a 17-seat pool.
             // No legal 2-way grouping exists (either grouping makes a >9.5
-            // bin), so the engine must seat the atoms as three districts.
-            // Nearest rounding gives 5 + 5 + 6 = 16 of 17 — the drift is
-            // deliberate law, not a defect: no loop may force the total by
-            // handing a 5.4 district a sixth seat.
+            // bin). Nearest sums 16; the landing lifts the least-distorting
+            // atom by one and seats the head exactly.
             [$leg, $scopeId] = $this->makeScopeFixture('zzdj', [54, 54, 62], 10_000, 17);
             $result = app(DistrictingService::class)->runAutoCompositeForScope(
                 $leg->id, $leg, $scopeId, false, 17, null
@@ -1468,21 +1472,20 @@ class DistrictingDoctrineTest extends TestCase
                 ->where('legislature_id', $leg->id)->whereNull('deleted_at')
                 ->get(['seats', 'fractional_seats']);
             foreach ($districts as $d) {
-                $this->assertSame(
-                    (int) round((float) $d->fractional_seats),
-                    (int) $d->seats,
-                    'every drawn district seats exactly its nearest rounding'
+                $this->assertLessThanOrEqual(
+                    1,
+                    abs((int) round((float) $d->fractional_seats) - (int) $d->seats),
+                    'a landed seat stays within one of its own nearest rounding'
                 );
             }
-            $this->assertSame([5, 5, 6], $districts->pluck('seats')->sort()->values()->all());
-            $this->assertSame(16, (int) $districts->sum('seats'),
-                'the pool seats 16 of 17 — the missing seat is the drawing\'s defect, never redistributed');
+            $this->assertSame(17, (int) $districts->sum('seats'),
+                'the head distributes: the pool seats exactly its budget');
         });
 
         $this->onLivePg(function () {
             // OVER-seat direction (the China 7.529 case, distilled): three
-            // atoms at 5.667 fracs each of a 17-seat pool. Nearest rounding
-            // gives 6 + 6 + 6 = 18 — one over, equally deliberate.
+            // atoms at 5.667 fracs each of a 17-seat pool. Nearest sums 18;
+            // the landing demotes the least-distorting atom by one.
             [$leg, $scopeId] = $this->makeScopeFixture('zzdk', [58, 58, 58], 10_000, 17);
             $result = app(DistrictingService::class)->runAutoCompositeForScope(
                 $leg->id, $leg, $scopeId, false, 17, null
@@ -1493,9 +1496,9 @@ class DistrictingDoctrineTest extends TestCase
             $districts = DB::table('legislature_districts')
                 ->where('legislature_id', $leg->id)->whereNull('deleted_at')
                 ->get(['seats', 'fractional_seats']);
-            $this->assertSame([6, 6, 6], $districts->pluck('seats')->sort()->values()->all());
-            $this->assertSame(18, (int) $districts->sum('seats'),
-                'nearest rounding may seat one over the pool — no seat is clawed back to force the total');
+            $this->assertSame([5, 6, 6], $districts->pluck('seats')->sort()->values()->all());
+            $this->assertSame(17, (int) $districts->sum('seats'),
+                'the head distributes: the pool seats exactly its budget');
         });
     }
 

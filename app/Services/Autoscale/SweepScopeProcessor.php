@@ -222,7 +222,9 @@ class SweepScopeProcessor
                                       * (ST_YMax(j.geom) - ST_YMin(j.geom)) * 110.57 AS km2
                           ) bbox ON true
                          WHERE j.id = ?
-                            ON CONFLICT ON CONSTRAINT autoscale_scopes_scope_uq DO NOTHING
+                            ON CONFLICT ON CONSTRAINT autoscale_scopes_scope_uq
+                            DO UPDATE SET seat_budget = EXCLUDED.seat_budget, updated_at = now()
+                                WHERE autoscale_scopes.status = 'pending'
                     ", [
                         $run->id, $itemId, $legislatureId,
                         $scopeId, $claim['depth'] + 1, 'pending', (int) $budget,
@@ -236,15 +238,40 @@ class SweepScopeProcessor
                 'legislature_id' => $legislatureId,
                 'message'        => $e->getMessage(),
             ]);
-            DB::table('autoscale_scopes')
-                ->where('id', $scopeId)
-                ->where('status', 'running')
-                ->update([
-                    'status'      => 'failed',
-                    'reason'      => mb_substr($e->getMessage(), 0, 1000),
-                    'finished_at' => now(),
-                    'updated_at'  => now(),
-                ]);
+            // TRANSIENT WEATHER SELF-REQUEUES (operator order 2026-08-30,
+            // the Canada 30-seat lesson): an infrastructure-class failure —
+            // Redis mid-reload, a refused or dropped connection — goes back
+            // to pending with a bounded retry count, and a lane re-eats it
+            // seconds later. Three strikes fail for real. Engine errors
+            // (anything else) fail immediately as before.
+            $transient = (bool) preg_match(
+                '/LOADING Redis|Connection refused|server closed the connection|no connection to the server|SQLSTATE\[08|Connection timed out/i',
+                $e->getMessage()
+            );
+            $retries = (int) DB::table('autoscale_scopes')->where('id', $scopeId)->value('retry_count');
+            if ($transient && $retries < 3) {
+                DB::table('autoscale_scopes')
+                    ->where('id', $scopeId)
+                    ->where('status', 'running')
+                    ->update([
+                        'status'      => 'pending',
+                        'retry_count' => $retries + 1,
+                        'claim_token' => null,
+                        'started_at'  => null,
+                        'reason'      => 'transient retry '.($retries + 1).'/3: '.mb_substr($e->getMessage(), 0, 200),
+                        'updated_at'  => now(),
+                    ]);
+            } else {
+                DB::table('autoscale_scopes')
+                    ->where('id', $scopeId)
+                    ->where('status', 'running')
+                    ->update([
+                        'status'      => 'failed',
+                        'reason'      => mb_substr($e->getMessage(), 0, 1000),
+                        'finished_at' => now(),
+                        'updated_at'  => now(),
+                    ]);
+            }
         } finally {
             AutoscaleContext::clear();
         }

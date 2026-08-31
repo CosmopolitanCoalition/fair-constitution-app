@@ -2978,9 +2978,23 @@ class SetupController extends Controller
             ")
             ->first();
         $sweepsDoneNow = (int) ($freshCounts['sweeps_done'] ?? $run->sweeps_done);
-        $sweepRatePerH = round(((int) $rateRow->sweeps_30m) * 6.0, 1);
+        // SCOPES, NOT JURISDICTIONS (operator order 2026-08-30, the 222/h
+        // vs 96-day ETA absurdity): the headline rate and ETA price the
+        // fluid unit of drawing. A map counts done only when its LAST scope
+        // lands, so item-rate lags reality by whole maps; scope-rate agrees
+        // with the layer bars and with the operator's own eyes.
+        $scopeRate = DB::table('autoscale_scopes')
+            ->where('run_id', $run->id)
+            ->where('status', 'done')
+            ->where('finished_at', '>', now()->subMinutes(10))
+            ->count();
+        $scopesLeft = (int) DB::table('autoscale_scopes')
+            ->where('run_id', $run->id)
+            ->whereIn('status', ['pending', 'running'])
+            ->count();
+        $sweepRatePerH = round($scopeRate * 6.0, 1);
         $etaSeconds = $sweepRatePerH > 0
-            ? (int) round((max(0, (int) $run->sweeps_total - $sweepsDoneNow) / $sweepRatePerH) * 3600)
+            ? (int) round(($scopesLeft / $sweepRatePerH) * 3600)
             : null;
 
         // Idle-cause aggregates (operator approval 2026-08-29): when a slot

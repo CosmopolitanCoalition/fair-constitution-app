@@ -188,8 +188,9 @@ class ActivationService
 
     /**
      * Full chamber plan (cycle-2 Type B ladder, operator ruling 2026-07-19):
-     *  - constituents present → bicameral: type_a from Σ children
-     *    population (cube root); type_b from TypeBSeatLadder — equal
+     *  - constituents present → bicameral: type_a from the OWN population
+     *    row (cube root; children-sum only when the own row is empty — the
+     *    level law step 1, 2026-08-30); type_b from TypeBSeatLadder — equal
      *    representation of the constituents, bound by type_a (each
      *    constituent contributes rep_floor seats, tiny pop ≤ 5 contributes
      *    min(pop, rep_floor); the ladder descends 5 → 2, then flags for
@@ -208,7 +209,13 @@ class ActivationService
         int $startingRep = 5,
     ): array {
         if ($childPopulations !== []) {
-            $typeA  = self::cubeRootSeats($childrenPopulation);
+            // THE LEVEL LAW step 1 (operator ruling 2026-08-30): the chamber
+            // sizes from the jurisdiction's OWN population row; children-sum
+            // is the fallback for an empty own row only. One sizing base at
+            // every writer (mirrors DistrictingService::resizeRootSeats) —
+            // the Guyana 91-on-84 came from this branch sizing children-sum
+            // while the sweep sized own-row.
+            $typeA  = self::cubeRootSeats($ownPopulation > 0 ? $ownPopulation : $childrenPopulation);
             // B3 combined cap: type_a + type_b ≤ population (Σ constituents).
             $ladder = \App\Services\Legislature\TypeBSeatLadder::apportion($typeA, $childPopulations, $startingRep, (int) $childrenPopulation);
 

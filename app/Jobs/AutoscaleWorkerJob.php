@@ -73,12 +73,23 @@ class AutoscaleWorkerJob implements ShouldQueue
         }
 
         $token = (string) Str::uuid();
+        // THE REAPER'S EYES (operator order 2026-08-30): the lane's own
+        // postgres backend pid rides on the lease, so the pump can tell a
+        // dead worker (backend gone) from a quiet grinder (backend present,
+        // deep in one long query) with certainty instead of timers.
+        $backendPid = null;
+        try {
+            $backendPid = (int) (DB::selectOne('SELECT pg_backend_pid() AS pid')->pid ?? 0) ?: null;
+        } catch (\Throwable) {
+            // NULL pid falls back to the timer prune — never fatal.
+        }
         DB::table('autoscale_worker_leases')->insert([
-            'id'           => $token,
-            'run_id'       => $run->id,
-            'lane'         => $this->lane,
-            'started_at'   => now(),
-            'last_seen_at' => now(),
+            'id'             => $token,
+            'run_id'         => $run->id,
+            'lane'           => $this->lane,
+            'pg_backend_pid' => $backendPid,
+            'started_at'     => now(),
+            'last_seen_at'   => now(),
         ]);
 
         // Over-dispatch self-correction: the pump counts live leases before

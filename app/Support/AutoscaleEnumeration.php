@@ -273,37 +273,71 @@ final class AutoscaleEnumeration
         }
 
         $districting = new \App\Services\DistrictingService();
-        $steps = [];   // post-order emit: [scope_jurisdiction_id, depth, parent_jid]
-        $walk = function (string $jid, int $depth, ?string $parentJid) use (&$walk, &$steps, $districting, $item) {
+
+        // THE ONE HEAD (operator ruling 2026-08-30, the Guyana 91-on-84):
+        // the root is sized HERE, once, before a single scope exists — the
+        // single sizing owner, own-row base. Every scope below draws inside
+        // this head; the sweep's root block recomputes the same number, so
+        // the head can never change between a child's draw and the root's.
+        $rootBudget = $districting->resizeRootSeats((string) $item->legislature_id);
+
+        $steps = [];   // post-order emit: [scope_jurisdiction_id, depth, parent_jid, budget]
+        $walk = function (string $jid, int $depth, ?string $parentJid, int $budget) use (&$walk, &$steps, $districting, $item) {
             $giants = $districting->giantChildrenForScope($jid, (string) $item->legislature_id);
-            arsort($giants);   // largest budget first — the stepper's key
-            foreach ($giants as $gid => $budget) {
-                $walk((string) $gid, $depth + 1, $jid);
+
+            // THE PRE-DRAW GATE (operator order 2026-08-30): apportionment
+            // is knowable before any geometry. Each scope's giant budgets
+            // plus its pool must fit inside the scope's own budget — the
+            // head distributes to the children, so a giant set that
+            // oversubscribes its head is already wrong on a blank map.
+            // Refuse to enumerate; the item lands in review with the fact.
+            $giantSum = array_sum($giants);
+            if ($giantSum > $budget) {
+                $names = DB::table('jurisdictions')->whereIn('id', array_keys($giants))->pluck('name', 'id');
+                $parts = [];
+                foreach ($giants as $gid => $b) {
+                    $parts[] = ($names[$gid] ?? $gid) . "={$b}";
+                }
+                throw new \RuntimeException(
+                    'Pre-draw apportionment gate: giant budgets ('.implode(', ', $parts).") sum {$giantSum}"
+                    . " over scope budget {$budget} at {$jid} — the head cannot distribute; refusing before any drawing."
+                );
             }
-            $steps[] = [$jid, $depth, $parentJid];   // post-order: children emitted, then self
+
+            arsort($giants);   // largest budget first — the stepper's key
+            foreach ($giants as $gid => $gBudget) {
+                $walk((string) $gid, $depth + 1, $jid, (int) $gBudget);
+            }
+            $steps[] = [$jid, $depth, $parentJid, $budget];   // post-order: children emitted, then self
         };
-        $walk((string) $item->jurisdiction_id, 0, null);
+        $walk((string) $item->jurisdiction_id, 0, null, $rootBudget);
 
         $idByJid = [];
         $pos = 0;
-        foreach ($steps as [$jid, $depth, $parentJid]) {
+        foreach ($steps as [$jid, $depth, $parentJid, $budget]) {
             $idByJid[$jid] = $idByJid[$jid] ?? (string) \Illuminate\Support\Str::uuid();
         }
-        foreach ($steps as [$jid, $depth, $parentJid]) {
+        foreach ($steps as [$jid, $depth, $parentJid, $budget]) {
+            // THE STAMP IS THE HEAD (2026-08-30): the budget is frozen on
+            // the scope row at materialization. Lanes draw to the stamp —
+            // the composite path and the leaf-giant path both read it
+            // before any live resolver — so the frame a scope draws in is
+            // decided once, here, and cannot move under a running map.
             DB::statement('
                 INSERT INTO autoscale_scopes
                     (id, run_id, item_id, legislature_id, scope_jurisdiction_id,
                      parent_scope_id, depth, status, area_tier, walk_position,
-                     created_at, updated_at)
-                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, now(), now())
+                     seat_budget, created_at, updated_at)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, now(), now())
                     ON CONFLICT ON CONSTRAINT autoscale_scopes_scope_uq
                     DO UPDATE SET walk_position = EXCLUDED.walk_position,
                                   parent_scope_id = COALESCE(autoscale_scopes.parent_scope_id, EXCLUDED.parent_scope_id),
+                                  seat_budget = EXCLUDED.seat_budget,
                                   updated_at = now()
             ', [
                 $idByJid[$jid], $runId, $itemId, $item->legislature_id, $jid,
                 $parentJid !== null ? ($idByJid[$parentJid] ?? null) : null,
-                $depth, 'pending', $item->area_tier, $pos,
+                $depth, 'pending', $item->area_tier, $pos, $budget,
             ]);
             $pos++;
         }

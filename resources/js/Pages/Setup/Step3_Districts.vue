@@ -229,6 +229,10 @@ async function fetchAutoscale() {
             if (r) {
                 trackBar('singles', r.singles_done)
                 trackBar('sweeps', r.sweeps_done)
+                // Scope-based rate (operator order 2026-08-30): one total,
+                // every scope — leaves included, since a leaf IS one scope.
+                trackBar('all_scopes', (r.singles_done ?? 0)
+                    + (autoscale.value?.layers ?? []).reduce((s, l) => s + (l.scopes_done ?? 0), 0))
                 trackBar('mint', r.maps_minted)
             }
             if (p) trackBar('precompute', p.done + p.failed)
@@ -545,13 +549,13 @@ onBeforeUnmount(stopPolling)
                         <div class="text-white text-lg font-semibold mt-1 tabular-nums">{{ run.sized_leaves.toLocaleString() }}</div>
                     </div>
                     <div>
-                        <div class="text-gray-400 text-xs uppercase tracking-wide">Sweep rate (10 min)</div>
+                        <div class="text-gray-400 text-xs uppercase tracking-wide">Sweep rate (scopes, 10 min)</div>
                         <div class="text-white text-lg font-semibold mt-1 tabular-nums">
                             {{ run.sweeps_per_hour != null && run.sweeps_per_hour > 0 ? `${run.sweeps_per_hour.toLocaleString()}/h` : '—' }}
                         </div>
                     </div>
                     <div>
-                        <div class="text-gray-400 text-xs uppercase tracking-wide">ETA (sweeps)</div>
+                        <div class="text-gray-400 text-xs uppercase tracking-wide">ETA (scopes)</div>
                         <div class="text-white text-lg font-semibold mt-1 tabular-nums">{{ fmtEta(run.eta_seconds) }}</div>
                     </div>
                     <div v-if="run.workers_target">
@@ -609,33 +613,24 @@ onBeforeUnmount(stopPolling)
                             <div class="h-full bg-emerald-500 transition-all" :style="{ width: pct(run.sized_live, run.sizing_total) + '%' }"></div>
                         </div>
                     </div>
-                    <div v-if="precompute && precompute.total > 0">
-                        <div class="flex justify-between text-xs text-gray-400 mb-1">
-                            <span>Geometry precompute (sibling borders, paid once)</span>
-                            <span class="tabular-nums">{{ shown('precompute', precompute.done) }} / {{ precompute.total.toLocaleString() }}{{ barTiming('precompute', precompute.done + precompute.failed, precompute.total) }}
-                                <span v-if="precompute.failed" class="text-amber-400">· {{ precompute.failed }} fall back live</span>
-                            </span>
-                        </div>
-                        <div class="h-2 bg-gray-800 rounded overflow-hidden">
-                            <div class="h-full bg-purple-500 transition-all" :style="{ width: pct(precompute.done + precompute.failed, precompute.total) + '%' }"></div>
-                        </div>
-                    </div>
+                    <!-- ONE TOTAL, ALL SCOPES (operator order 2026-08-30):
+                         precompute retired to ingestion; leaf councils and
+                         sweeps merged — a leaf IS one scope by definition,
+                         so the single bar counts every scope on the planet
+                         and moves at the true machine rate. -->
                     <div>
                         <div class="flex justify-between text-xs text-gray-400 mb-1">
-                            <span>Leaf councils (single at-large districts)</span>
-                            <span class="tabular-nums">{{ shown('singles_done', run.singles_done) }} / {{ run.singles_total.toLocaleString() }}{{ barTiming('singles', run.singles_done, run.singles_total) }}</span>
+                            <span>Scopes (every district drawing, leaves included)</span>
+                            <!-- Total counts every future scope too: an
+                                 unmaterialized sweep map holds at least its
+                                 own root scope, so each layer contributes
+                                 max(scopes seen, jurisdictions) and the
+                                 planet reads ~940k, growing as giants
+                                 materialize their sub-scopes. -->
+                            <span class="tabular-nums">{{ ((run.singles_done ?? 0) + layers.reduce((s, l) => s + (l.scopes_done ?? 0), 0)).toLocaleString() }} / {{ layers.reduce((s, l) => s + Math.max(l.scopes_total ?? 0, l.total ?? 0), 0).toLocaleString() }}{{ barTiming('all_scopes', (run.singles_done ?? 0) + layers.reduce((s, l) => s + (l.scopes_done ?? 0), 0), layers.reduce((s, l) => s + Math.max(l.scopes_total ?? 0, l.total ?? 0), 0)) }}</span>
                         </div>
                         <div class="h-2 bg-gray-800 rounded overflow-hidden">
-                            <div class="h-full bg-teal-500 transition-all" :style="{ width: pct(run.singles_done, run.singles_total) + '%' }"></div>
-                        </div>
-                    </div>
-                    <div>
-                        <div class="flex justify-between text-xs text-gray-400 mb-1">
-                            <span>District-map sweeps (jurisdictions with constituents)</span>
-                            <span class="tabular-nums">{{ shown('sweeps_done', run.sweeps_done) }} / {{ run.sweeps_total.toLocaleString() }}{{ barTiming('sweeps', run.sweeps_done, run.sweeps_total) }}</span>
-                        </div>
-                        <div class="h-2 bg-gray-800 rounded overflow-hidden">
-                            <div class="h-full bg-blue-500 transition-all" :style="{ width: pct(run.sweeps_done, run.sweeps_total) + '%' }"></div>
+                            <div class="h-full bg-blue-500 transition-all" :style="{ width: pct((run.singles_done ?? 0) + layers.reduce((s, l) => s + (l.scopes_done ?? 0), 0), layers.reduce((s, l) => s + Math.max(l.scopes_total ?? 0, l.total ?? 0), 0)) + '%' }"></div>
                         </div>
                     </div>
                 </div>
@@ -668,12 +663,12 @@ onBeforeUnmount(stopPolling)
                     </div>
                 </div>
 
-                <!-- Informational drift (seating law: never forced) -->
-                <p v-if="run.drifted_done > 0" class="text-gray-400 text-xs mt-3">
+                <!-- Drift is always wrong (operator ruling 2026-07-26, 0e9eda0). -->
+                <p v-if="run.drifted_done > 0" class="text-amber-300 text-xs mt-3">
                     {{ run.drifted_done.toLocaleString() }} completed maps seat a total that differs from their
                     legislature's apportioned seats (net {{ run.net_drift > 0 ? '+' : '' }}{{ run.net_drift.toLocaleString() }}).
-                    That drift is informational — the seating law forbids forcing totals; it's the drawing's
-                    honest posture, revisitable per legislature in the mapper.
+                    Drift is a defect. The head distributes to the children, so a map's seats must sum to its
+                    apportioned total. These maps need a redraw.
                 </p>
 
                 <p v-if="run.last_error" class="text-red-300 text-xs mt-3 font-mono break-all">

@@ -221,7 +221,7 @@
   "setup_step3_districts.back_go_to_district_mapper": "← Back Go to District Mapper →",
   "setup_step3_districts.build_your_districts": "Build Your Districts",
   "setup_step3_districts.by_layer_bottom_up": "By layer (bottom-up)",
-  "setup_step3_districts.completed_maps_seat_a_total_that_differs_f": "{run} completed maps seat a total that differs from their legislature's apportioned seats (net {run2}{run3}). That drift is informational — the seating law forbids forcing totals; it's the drawing's honest posture, revisitable per legislature in the mapper.",
+  "setup_step3_districts.completed_maps_seat_a_total_that_differs_f": "{run} completed maps seat a total that differs from their legislature's apportioned seats (net {run2}{run3}). Drift is a defect. The head distributes to the children, so a map's seats must sum to its apportioned total. These maps need a redraw.",
   "setup_step3_districts.cube_root_sizing_applied_per_taagepera_s_l": "Cube-root sizing applied per Taagepera's law — every jurisdiction, all the way down.",
   "setup_step3_districts.district_map_sweeps_jurisdictions_with_con": "District-map sweeps (jurisdictions with constituents){shown} / {run}",
   "setup_step3_districts.eta_sweeps": "ETA (sweeps)",

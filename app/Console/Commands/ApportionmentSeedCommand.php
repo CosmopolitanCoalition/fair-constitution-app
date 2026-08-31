@@ -263,9 +263,15 @@ class ApportionmentSeedCommand extends Command
             return;
         }
 
-        // Level-local sizing: sum(children pops) → ConstitutionalDefaults (cube_root law in v1).
+        // THE LEVEL LAW step 1 (operator ruling 2026-08-30): the root sizes
+        // from its OWN population row; children-sum is only the fallback for
+        // an empty own row. The children-sum stays the SPLIT denominator
+        // (the quota below) — never the sizing base. Sizing from
+        // children-sum here while the sweep sized from the own row gave one
+        // map two heads (the Guyana 91-on-84).
         $sumChildrenPop = (float) $children->sum('population');
-        $totalSeats     = ConstitutionalDefaults::sizeFromPopulation($sumChildrenPop, $parent->id);
+        $sizingBase     = ((float) $parent->population) > 0 ? (float) $parent->population : $sumChildrenPop;
+        $totalSeats     = ConstitutionalDefaults::sizeFromPopulation($sizingBase, $parent->id);
         $quota          = $sumChildrenPop > 0 ? $sumChildrenPop / $totalSeats : 1.0;
 
         // THE TYPE B LADDER (cycle-2 ruling 2026-07-19): Type B — equal

@@ -387,6 +387,10 @@ services:
       context: .
       dockerfile: docker/php/Dockerfile
     container_name: ${CONTAINER_PREFIX:-fc}_vite
+    # Auto-resurrect (operator order 2026-08-30): the OOM killer took vite
+    # mid-benchmark and the dashboard went white for half an hour. Every
+    # other service already carries this policy; vite was the one gap.
+    restart: unless-stopped
     working_dir: /var/www/html
     volumes:
       - .:/var/www/html

@@ -253,21 +253,93 @@ class AutoscalePumpCommand extends Command
         // slots and the pool bled 13 → 10 with nobody healing it. SKIP
         // LOCKED makes the row lock itself the liveness signal: locked =
         // alive mid-scope (skip), unlocked and stale = truly dead (prune).
-        // A LANE WITH AN OPEN CLAIM IS ALIVE (operator order 2026-08-30,
-        // lane visibility): a heavy scope grinds inside one PostGIS call
-        // for far longer than the heartbeat window, so the prune must never
-        // eat a lease whose claim is still open and younger than the heavy
-        // wall (4 h). Only claimless-stale leases and truly ancient claims
-        // (a dead worker's orphan) prune.
+        // THE REAPER (operator order 2026-08-30, the ten-ghost afternoon).
+        // Positive death detection: a lease whose heartbeat is stale AND
+        // whose recorded postgres backend is GONE from pg_stat_activity is
+        // certainly dead — a live lane mid-query cannot heartbeat, but its
+        // backend is present, so it is never touched. Each certain corpse:
+        // lease deleted, its claimed scopes returned to pending with a
+        // transient-retry mark, and the seeding below dispatches the
+        // replacement in this same tick.
+        $corpses = DB::select('
+            SELECT id FROM autoscale_worker_leases l
+             WHERE l.last_seen_at < ?
+               AND l.pg_backend_pid IS NOT NULL
+               AND NOT EXISTS (SELECT 1 FROM pg_stat_activity a WHERE a.pid = l.pg_backend_pid)
+        ', [now()->subMinutes(2)]);
+        foreach ($corpses as $corpse) {
+            DB::table('autoscale_scopes')
+                ->where('claim_token', $corpse->id)
+                ->where('status', 'running')
+                ->update([
+                    'status'      => 'pending',
+                    'claim_token' => null,
+                    'started_at'  => null,
+                    'reason'      => 'reaped: worker died mid-claim',
+                    'retry_count' => DB::raw('retry_count + 1'),
+                    'updated_at'  => now(),
+                ]);
+            DB::table('autoscale_worker_leases')->where('id', $corpse->id)->delete();
+            Log::warning('Autoscale reaper: dead worker reclaimed', ['lease' => (string) $corpse->id]);
+        }
+
+        // TRANSIENT REVIEWS SELF-REQUEUE (operator order 2026-08-30, the
+        // Saudi/Australia class): an item that fell to review on certain
+        // infrastructure weather — a dead connection, a reloading Redis —
+        // goes back on the pile ONCE, redraw-flagged. The marker in its
+        // reason bounds it: a second transient fall stays in review for a
+        // human. Engine-shaped reasons (unassigned constituents, seat
+        // disagreements) never auto-retry.
+        $requeued = DB::update("
+            UPDATE autoscale_items
+               SET status = 'pending',
+                   redraw_requested_at = now(),
+                   priority_at = now(),
+                   transient_retries = transient_retries + 1,
+                   reason = 'transient auto-retry: ' || LEFT(reason, 900),
+                   seats_seated = NULL, drift = NULL,
+                   started_at = NULL, finished_at = NULL, claim_token = NULL,
+                   updated_at = now()
+             WHERE run_id = ?
+               AND status = 'review'
+               AND transient_retries < 1
+               AND reason ~* 'SQLSTATE|no connection|Connection refused|LOADING Redis|server closed the connection|Connection timed out'
+        ", [$run->id]);
+        // The retried items' scopes go back with them — EVERY tick, not
+        // only the tick that requeued (that gating stranded the first
+        // three for one cycle, caught live 2026-08-30). Idempotent: it
+        // matches only transient-retry items still pending with un-pended
+        // scope trees.
+        DB::update("
+            UPDATE autoscale_scopes s
+               SET status = 'pending', claim_token = NULL, started_at = NULL,
+                   finished_at = NULL, updated_at = now()
+              FROM autoscale_items i
+             WHERE i.id = s.item_id AND i.run_id = ?
+               AND i.status = 'pending' AND i.redraw_requested_at IS NOT NULL
+               AND i.reason ~* '^transient auto-retry'
+               AND s.status NOT IN ('pending', 'running')
+        ", [$run->id]);
+        if ($requeued > 0) {
+            Log::warning('Autoscale pump: transient reviews requeued', ['count' => $requeued]);
+        }
+
+        // Legacy timer prune, for pre-migration leases with no recorded
+        // backend only — claimless and stale means gone.
         DB::statement('
             DELETE FROM autoscale_worker_leases
              WHERE id IN (SELECT id FROM autoscale_worker_leases
                            WHERE last_seen_at < ?
-                             AND (claim_started_at IS NULL OR claim_started_at < ?)
+                             AND pg_backend_pid IS NULL
+                             AND claim_started_at IS NULL
                              FOR UPDATE SKIP LOCKED)
-        ', [now()->subSeconds(self::WORKER_LEASE_STALE), now()->subHours(4)]);
+        ', [now()->subSeconds(self::WORKER_LEASE_STALE)]);
 
-        if (! $run->isPaused() && AutoscaleClaims::workAvailable($run)) {
+        // Seed only against CLAIMABLE work (operator catch 2026-08-30, the
+        // idle-lane churn at the tail): an in-flight item with zero pending
+        // scopes is bookkeeping, not a seat for a worker — seeding against
+        // it spawns lanes that look, find nothing, and leave.
+        if (! $run->isPaused() && AutoscaleClaims::claimableWork($run)) {
             // Two pools since the top-down ruling (2026-07-22): 20% of the
             // threads work the queue from the TOP (most complex, highest
             // pop — the fast composite/mixed maps + early bug discovery),
