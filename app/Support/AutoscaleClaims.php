@@ -109,10 +109,14 @@ final class AutoscaleClaims
             SELECT MIN(block_rank) FROM apportionment_ledger
              WHERE kind = 'single' AND map_status = 'pending' AND block_rank IS NOT NULL
         ");
+        // HEADER-ONLY, INDEX-SHAPED (operator catch 2026-08-31, the
+        // between-claims dead time): the block question is answered by the
+        // partial header index in microseconds — never by joining the
+        // planet's pending scope pile.
         $scopeBlock = DB::scalar("
-            SELECT MIN(h.block_rank) FROM apportionment_ledger_scopes s
-              JOIN apportionment_ledger h ON h.legislature_id = s.legislature_id
-             WHERE s.status = 'pending' AND h.block_rank IS NOT NULL
+            SELECT MIN(block_rank) FROM apportionment_ledger
+             WHERE map_status IN ('pending', 'running')
+               AND kind = 'sweep' AND block_rank IS NOT NULL
         ");
 
         if ($singlesBlock !== null && ($scopeBlock === null || (int) $singlesBlock < (int) $scopeBlock)) {
@@ -374,7 +378,7 @@ final class AutoscaleClaims
 
             $currentBlock = DB::scalar("
                 SELECT MIN(block_rank) FROM apportionment_ledger
-                 WHERE map_status IN ('pending', 'running', 'assessing')
+                 WHERE map_status IN ('pending', 'running')
                    AND block_rank IS NOT NULL
             ");
             if ($currentBlock !== null) {
@@ -429,7 +433,7 @@ final class AutoscaleClaims
         ";
         $currentBlock = DB::scalar("
             SELECT MIN(block_rank) FROM apportionment_ledger
-             WHERE map_status IN ('pending', 'running', 'assessing')
+             WHERE map_status IN ('pending', 'running')
                AND block_rank IS NOT NULL
         ");
         $rows = $currentBlock !== null
