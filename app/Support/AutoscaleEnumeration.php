@@ -524,18 +524,32 @@ final class AutoscaleEnumeration
                 $legislatureId, $jurisdictionId, $pop, $head,
                 count($computed['steps']), $computed['gate_reason'],
             ]);
-            DB::table('apportionment_ledger_scopes')->where('legislature_id', $legislatureId)->delete();
+            // WORK-PRESERVING FACT UPSERT (single-home law): a recompute
+            // rewrites the FACT columns only; a scope row's work state
+            // (status, claim, retries, timings) survives. Rows the walk no
+            // longer produces are deleted — they are no longer facts.
             $pos = 0;
+            $kept = [];
             foreach ($computed['steps'] as [$jid, $depth, $parentJid, $budget]) {
-                DB::table('apportionment_ledger_scopes')->insert([
-                    'legislature_id'         => $legislatureId,
-                    'scope_jurisdiction_id'  => $jid,
-                    'parent_jurisdiction_id' => $parentJid,
-                    'depth'                  => $depth,
-                    'walk_position'          => $pos++,
-                    'seat_budget'            => $budget,
-                ]);
+                DB::statement('
+                    INSERT INTO apportionment_ledger_scopes
+                        (legislature_id, scope_jurisdiction_id, parent_jurisdiction_id,
+                         depth, walk_position, seat_budget, created_at, updated_at)
+                    VALUES (?, ?, ?, ?, ?, ?, now(), now())
+                        ON CONFLICT (legislature_id, scope_jurisdiction_id)
+                        DO UPDATE SET parent_jurisdiction_id = EXCLUDED.parent_jurisdiction_id,
+                                      depth = EXCLUDED.depth,
+                                      walk_position = EXCLUDED.walk_position,
+                                      seat_budget = EXCLUDED.seat_budget,
+                                      updated_at = now()
+                ', [$legislatureId, $jid, $parentJid, $depth, $pos++, $budget]);
+                $kept[] = $jid;
             }
+            $stale = DB::table('apportionment_ledger_scopes')->where('legislature_id', $legislatureId);
+            if ($kept !== []) {
+                $stale->whereNotIn('scope_jurisdiction_id', $kept);
+            }
+            $stale->delete();
         });
     }
 
@@ -568,7 +582,30 @@ final class AutoscaleEnumeration
             $total += $n;
         } while ($n > 0);
 
+        // LEAF HEADERS (single-home law): every childless legislature gets a
+        // header born computed — its tree is itself, its head is its own
+        // type_a, and its gate cannot refuse. Set-based, no walk.
+        do {
+            $n = DB::affectingStatement("
+                INSERT INTO apportionment_ledger
+                    (legislature_id, jurisdiction_id, population, head_seats,
+                     scope_count, compute_status, computed_at, created_at, updated_at)
+                SELECT l.id, l.jurisdiction_id, COALESCE(j.population, 0), l.type_a_seats,
+                       0, 'done', now(), now(), now()
+                  FROM legislatures l
+                  JOIN jurisdictions j ON j.id = l.jurisdiction_id AND j.deleted_at IS NULL
+                 WHERE l.deleted_at IS NULL
+                   AND NOT EXISTS (SELECT 1 FROM jurisdictions c
+                                    WHERE c.parent_id = l.jurisdiction_id AND c.deleted_at IS NULL)
+                   AND NOT EXISTS (SELECT 1 FROM apportionment_ledger al WHERE al.legislature_id = l.id)
+                 LIMIT " . self::CHUNK . '
+                    ON CONFLICT (legislature_id) DO NOTHING
+            ');
+            $total += $n;
+        } while ($n > 0);
+
         // Stale rows re-open: population moved under a computed ledger.
+        // Leaf heads refresh in place (their compute is the SQL expression).
         $total += DB::update("
             UPDATE apportionment_ledger al
                SET compute_status = 'pending', claim_token = NULL, updated_at = now()
@@ -576,9 +613,327 @@ final class AutoscaleEnumeration
              WHERE j.id = al.jurisdiction_id
                AND al.compute_status = 'done'
                AND al.population IS DISTINCT FROM COALESCE(j.population, 0)
+               AND EXISTS (SELECT 1 FROM jurisdictions c
+                            WHERE c.parent_id = al.jurisdiction_id AND c.deleted_at IS NULL)
+        ");
+        $total += DB::update("
+            UPDATE apportionment_ledger al
+               SET population = COALESCE(j.population, 0), head_seats = l.type_a_seats,
+                   computed_at = now(), updated_at = now()
+              FROM jurisdictions j, legislatures l
+             WHERE j.id = al.jurisdiction_id AND l.id = al.legislature_id
+               AND al.compute_status = 'done'
+               AND (al.population IS DISTINCT FROM COALESCE(j.population, 0)
+                    OR al.head_seats IS DISTINCT FROM l.type_a_seats)
+               AND NOT EXISTS (SELECT 1 FROM jurisdictions c
+                                WHERE c.parent_id = al.jurisdiction_id AND c.deleted_at IS NULL)
         ");
 
         return $total;
+    }
+
+    /**
+     * THE LEDGER ORDERING STAMP (single-home law, 2026-08-31): every header
+     * carries its facts — kind, child_count, adm_level, est_districts,
+     * cascade_height, area_tier, position, and THE BLOCK ORDER keys.
+     * The ledger edition of deriveOrderingKeys + stampBlockOrder; set-based,
+     * idempotent, safe to re-run whenever legislature sizes change.
+     */
+    public static function deriveOrderingKeysOnLedger(int $ceiling, ?callable $tick = null): void
+    {
+        $beat = static function () use ($tick) { if ($tick) { $tick(); } };
+        DB::statement('SET max_parallel_workers_per_gather = 0');
+
+        DB::statement('
+            UPDATE apportionment_ledger al
+               SET adm_level = j.adm_level,
+                   child_count = cc.n,
+                   kind = CASE WHEN cc.n > 0 OR COALESCE(al.head_seats, l.type_a_seats) > ? THEN ? ELSE ? END,
+                   est_districts = CEIL(COALESCE(al.head_seats, l.type_a_seats)::numeric / ?)::smallint,
+                   updated_at = now()
+              FROM legislatures l, jurisdictions j,
+                   LATERAL (SELECT COUNT(*)::int AS n FROM jurisdictions c
+                             WHERE c.parent_id = j.id AND c.deleted_at IS NULL) cc
+             WHERE l.id = al.legislature_id AND j.id = al.jurisdiction_id
+        ', [max($ceiling, 1), 'sweep', 'single', max($ceiling, 1)]);
+        $beat();
+
+        DB::statement('UPDATE apportionment_ledger SET cascade_height = NULL');
+        DB::statement('UPDATE apportionment_ledger SET cascade_height = 0 WHERE child_count = 0');
+        for ($pass = 0; $pass < 12; $pass++) {
+            $updated = DB::update('
+                UPDATE apportionment_ledger p
+                   SET cascade_height = x.h
+                  FROM (
+                        SELECT p2.legislature_id, (1 + MAX(ci.cascade_height))::smallint AS h
+                          FROM apportionment_ledger p2
+                          JOIN jurisdictions c
+                                 ON c.parent_id = p2.jurisdiction_id AND c.deleted_at IS NULL
+                          LEFT JOIN apportionment_ledger ci ON ci.jurisdiction_id = c.id
+                         WHERE p2.cascade_height IS NULL
+                         GROUP BY p2.legislature_id
+                        HAVING bool_and(ci.cascade_height IS NOT NULL)
+                  ) x
+                 WHERE p.legislature_id = x.legislature_id
+            ');
+            if ($updated === 0) {
+                break;
+            }
+        }
+        $beat();
+        DB::update('UPDATE apportionment_ledger SET cascade_height = 99 WHERE cascade_height IS NULL');
+
+        DB::statement("
+            UPDATE apportionment_ledger al
+               SET area_tier = CASE
+                       WHEN j.geom IS NULL THEN 1
+                       ELSE CASE
+                           WHEN bbox.km2 <= 300      THEN 1
+                           WHEN bbox.km2 <= 3000     THEN 2
+                           WHEN bbox.km2 <= 30000    THEN 3
+                           WHEN bbox.km2 <= 300000   THEN 4
+                           ELSE 5
+                       END
+                   END
+              FROM jurisdictions j
+              LEFT JOIN LATERAL (
+                   SELECT (ST_XMax(j.geom) - ST_XMin(j.geom)) * 111.32
+                          * GREATEST(cos(radians((ST_YMin(j.geom) + ST_YMax(j.geom)) / 2)), 0.01)
+                          * (ST_YMax(j.geom) - ST_YMin(j.geom)) * 110.57 AS km2
+              ) bbox ON true
+             WHERE j.id = al.jurisdiction_id
+        ");
+        $beat();
+
+        DB::statement('
+            WITH ranked AS (
+                SELECT al.legislature_id,
+                       ROW_NUMBER() OVER (
+                           ORDER BY al.est_districts ASC, al.cascade_height ASC,
+                                    COALESCE(al.area_tier, 1) ASC,
+                                    al.adm_level DESC, al.population ASC NULLS FIRST, al.legislature_id
+                       ) AS rn
+                  FROM apportionment_ledger al
+            )
+            UPDATE apportionment_ledger al
+               SET position = r.rn
+              FROM ranked r
+             WHERE al.legislature_id = r.legislature_id
+        ');
+        $beat();
+
+        // THE BLOCK ORDER: planet, then each layer composites (biggest
+        // first) then leaves (smallest first — trivials lead by definition).
+        DB::statement("
+            UPDATE apportionment_ledger
+               SET block_rank  = adm_level * 2 + CASE WHEN child_count > 0 THEN 0 ELSE 1 END,
+                   block_order = CASE WHEN child_count > 0
+                                      THEN -GREATEST(COALESCE(population, 0), 0)
+                                      ELSE  GREATEST(COALESCE(population, 0), 0) END,
+                   updated_at = now()
+        ");
+        $beat();
+        DB::statement('RESET max_parallel_workers_per_gather');
+    }
+
+    /**
+     * A sweep-leaf (over-ceiling childless legislature) owns exactly ONE
+     * scope: itself, budget = its head. Seeded set-based so claimScope has
+     * a stamped row from second zero; in-band singles own no scope rows.
+     */
+    public static function seedSweepLeafSelfScopes(): int
+    {
+        $total = 0;
+        do {
+            $n = DB::affectingStatement("
+                INSERT INTO apportionment_ledger_scopes
+                    (legislature_id, scope_jurisdiction_id, parent_jurisdiction_id,
+                     depth, walk_position, seat_budget, area_tier, status, created_at, updated_at)
+                SELECT al.legislature_id, al.jurisdiction_id, NULL,
+                       0, 0, al.head_seats, al.area_tier, 'pending', now(), now()
+                  FROM apportionment_ledger al
+                 WHERE al.kind = 'sweep' AND al.child_count = 0
+                   AND NOT EXISTS (SELECT 1 FROM apportionment_ledger_scopes s
+                                    WHERE s.legislature_id = al.legislature_id
+                                      AND s.scope_jurisdiction_id = al.jurisdiction_id)
+                 LIMIT " . self::CHUNK . '
+                    ON CONFLICT (legislature_id, scope_jurisdiction_id) DO NOTHING
+            ');
+            $total += $n;
+        } while ($n > 0);
+
+        return $total;
+    }
+
+    /** The bottom-up claim key (two-ended stays disabled; the fact rides). */
+    public static function stampReversePositions(): int
+    {
+        return DB::update('
+            WITH ranked AS (
+                SELECT s.id,
+                       ROW_NUMBER() OVER (ORDER BY j.adm_level DESC, j.population ASC NULLS FIRST, s.id) AS rn
+                  FROM apportionment_ledger_scopes s
+                  JOIN jurisdictions j ON j.id = s.scope_jurisdiction_id
+            )
+            UPDATE apportionment_ledger_scopes s
+               SET reverse_position = r.rn, updated_at = now()
+              FROM ranked r
+             WHERE s.id = r.id AND s.reverse_position IS DISTINCT FROM r.rn
+        ');
+    }
+
+    /**
+     * A refused gate verdict is born on the review list — no claim is ever
+     * spent on a map the arithmetic already refused.
+     */
+    public static function stampGateRefusals(): int
+    {
+        $total = 0;
+        do {
+            $n = DB::update("
+                UPDATE apportionment_ledger
+                   SET map_status = 'review', reason = gate_reason, updated_at = now()
+                 WHERE legislature_id IN (
+                       SELECT legislature_id FROM apportionment_ledger
+                        WHERE gate_reason IS NOT NULL AND map_status = 'pending'
+                        LIMIT " . self::CHUNK . '
+                 )
+            ');
+            $total += $n;
+        } while ($n > 0);
+
+        return $total;
+    }
+
+    /** Founding-map containers for EVERY header lacking one (facts). */
+    public static function mintFoundingMapsLedger(?callable $progress = null): int
+    {
+        $total = 0;
+        do {
+            $n = DB::affectingStatement("
+                INSERT INTO legislature_district_maps
+                    (id, legislature_id, name, description, status, created_at, updated_at)
+                SELECT gen_random_uuid(), x.legislature_id, 'Founding Map',
+                       'Auto-generated by full-scale autoscale (True All Scale, 2026-07-18) — mixed autoseed sweep.',
+                       'draft', now(), now()
+                  FROM (
+                        SELECT al.legislature_id
+                          FROM apportionment_ledger al
+                         WHERE al.map_id IS NULL
+                           AND NOT EXISTS (SELECT 1 FROM legislature_district_maps m
+                                            WHERE m.legislature_id = al.legislature_id
+                                              AND m.name = 'Founding Map'
+                                              AND m.deleted_at IS NULL)
+                         LIMIT " . self::CHUNK . '
+                  ) x
+            ');
+            $total += $n;
+            if ($progress !== null && $n > 0) {
+                $progress($total);
+            }
+        } while ($n > 0);
+
+        return $total;
+    }
+
+    /** Stamp header map_id from the newest Founding Map per legislature. */
+    public static function stampFoundingMapIdsLedger(?callable $progress = null): int
+    {
+        $total = 0;
+        do {
+            $n = DB::update("
+                UPDATE apportionment_ledger al
+                   SET map_id = fm.id, updated_at = now()
+                  FROM (
+                        SELECT DISTINCT ON (legislature_id) id, legislature_id
+                          FROM legislature_district_maps
+                         WHERE name = 'Founding Map' AND deleted_at IS NULL
+                         ORDER BY legislature_id, created_at DESC
+                  ) fm
+                 WHERE al.legislature_id IN (
+                        SELECT al2.legislature_id FROM apportionment_ledger al2
+                         WHERE al2.map_id IS NULL
+                           AND EXISTS (SELECT 1 FROM legislature_district_maps m
+                                        WHERE m.legislature_id = al2.legislature_id
+                                          AND m.name = 'Founding Map'
+                                          AND m.deleted_at IS NULL)
+                         LIMIT " . self::CHUNK . '
+                 )
+                   AND fm.legislature_id = al.legislature_id
+            ');
+            $total += $n;
+            if ($progress !== null && $n > 0) {
+                $progress($total);
+            }
+        } while ($n > 0);
+
+        return $total;
+    }
+
+    /**
+     * The founding bootstrap board at the planet root — R-08's substrate
+     * (moved here from the retired sizing job; the world build owns it).
+     * One active is_bootstrap board + the synthetic system member. An
+     * existing ACTIVE board is adopted. Idempotent.
+     */
+    public static function ensureRootBootstrapBoard(): void
+    {
+        $root = DB::table('jurisdictions')
+            ->where('adm_level', 0)
+            ->whereNull('deleted_at')
+            ->orderBy('created_at')
+            ->first(['id']);
+        if ($root === null) {
+            return;
+        }
+
+        $existing = DB::table('election_boards')
+            ->where('jurisdiction_id', $root->id)
+            ->where('status', 'active')
+            ->whereNull('deleted_at')
+            ->exists();
+        if ($existing) {
+            return;
+        }
+
+        $legislatureId = DB::table('legislatures')
+            ->where('jurisdiction_id', $root->id)
+            ->whereNull('deleted_at')
+            ->value('id');
+
+        $boardId  = (string) \Illuminate\Support\Str::uuid();
+        $memberId = (string) \Illuminate\Support\Str::uuid();
+        DB::table('election_boards')->insert([
+            'id'              => $boardId,
+            'jurisdiction_id' => $root->id,
+            'legislature_id'  => $legislatureId,
+            'is_bootstrap'    => true,
+            'status'          => 'active',
+            'created_at'      => now(),
+            'updated_at'      => now(),
+        ]);
+        DB::table('election_board_members')->insert([
+            'id'                => $memberId,
+            'election_board_id' => $boardId,
+            'user_id'           => null, // THE SYSTEM ITSELF (B-2 schema)
+            'status'            => 'seated',
+            'created_at'        => now(),
+            'updated_at'        => now(),
+        ]);
+        app(\App\Services\AuditService::class)->append(
+            module: 'elections',
+            event: 'bootstrap_board_constituted',
+            payload: [
+                'election_board_id' => $boardId,
+                'legislature_id'    => $legislatureId,
+                'is_bootstrap'      => true,
+                'system_member_id'  => $memberId,
+                'banner'            => 'temporary · replacement queued (retired by WF-ELE-10, Phase C)',
+                'generator'         => 'WorldBuild (ledger single home, 2026-08-31)',
+            ],
+            ref: 'WF-ELE-02',
+            jurisdictionId: (string) $root->id,
+        );
     }
 
     /**
