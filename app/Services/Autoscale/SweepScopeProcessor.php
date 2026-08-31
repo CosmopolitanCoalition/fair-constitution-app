@@ -165,6 +165,31 @@ class SweepScopeProcessor
                 throw new \RuntimeException('Item has no founding map (enumeration incomplete) — pump repair will re-mint.');
             }
 
+            // MATERIALIZE BEFORE ANY DRAWING (operator order 2026-08-31,
+            // benchmark 14 — THE ONE HEAD made structural): a map's first
+            // claim materializes its FULL stamped scope tree — root sized
+            // once, every scope's seat budget stamped, the pre-draw gate
+            // run, walk_position emitted post-order — and then hands the
+            // claim back so the next claim follows the stamped walk
+            // (deepest first, root last). No run needs a manual
+            // materialize pass; every box gets this by claiming.
+            $stamped = DB::table('autoscale_scopes')
+                ->where('id', $scopeId)
+                ->whereNotNull('walk_position')
+                ->whereNotNull('seat_budget')
+                ->exists();
+            if (! $stamped) {
+                \App\Support\AutoscaleEnumeration::materializeScopeTree((string) $run->id, $itemId);
+                if ((int) $item->child_count > 0) {
+                    // Composite: the tree just grew — hand the claim back so
+                    // the stamped walk decides what draws first.
+                    $this->releaseScope($scopeId, null);
+                    return;
+                }
+                // Leaf: the tree IS this scope — stamped now, draw in the
+                // same claim.
+            }
+
             /** @var LegislatureController $ctrl */
             $ctrl = app(LegislatureController::class);
 
