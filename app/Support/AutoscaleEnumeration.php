@@ -265,6 +265,43 @@ final class AutoscaleEnumeration
         return $total;
     }
 
+    /**
+     * THE ONE LEAF STATEMENT (operator order 2026-08-31): leaf legislatures
+     * are seeded by exactly this statement, from every caller — the run's
+     * sizing pass and the ingest tail alike. One owner, one answer. The
+     * guards ride with it everywhere: seats never exceed residents, a
+     * zero-population space seats nobody, quorum never exceeds the seats.
+     *
+     * @return int legislatures created at this level
+     */
+    public static function seedLeafLegislatures(int $admLevel, int $floor): int
+    {
+        return DB::affectingStatement("
+            INSERT INTO legislatures
+                (id, jurisdiction_id, term_number, status,
+                 total_seats, type_a_seats, type_b_seats, quorum_required,
+                 created_at, updated_at)
+            SELECT gen_random_uuid(), j.id, 1, 'forming',
+                   s.seats, s.seats, 0,
+                   LEAST(s.seats, GREATEST(3, CEIL(s.seats / 2.0)))::int,
+                   now(), now()
+              FROM jurisdictions j
+             CROSS JOIN LATERAL (
+                   SELECT LEAST(
+                              GREATEST(?, ROUND(POWER(GREATEST(COALESCE(j.population, 0), 1)::numeric, 1.0/3.0))),
+                              GREATEST(COALESCE(j.population, 0), 0)
+                          )::int AS seats
+             ) s
+             WHERE j.deleted_at IS NULL
+               AND j.adm_level = ?
+               AND COALESCE(j.population, 0) > 0
+               AND NOT EXISTS (SELECT 1 FROM jurisdictions c
+                                WHERE c.parent_id = j.id AND c.deleted_at IS NULL)
+               AND NOT EXISTS (SELECT 1 FROM legislatures l
+                                WHERE l.jurisdiction_id = j.id AND l.deleted_at IS NULL)
+        ", [$floor, $admLevel]);
+    }
+
     /** Mint the root scope row for every open sweep item lacking one. */
     public static function mintRootScopes(string $runId, ?callable $progress = null): int
     {

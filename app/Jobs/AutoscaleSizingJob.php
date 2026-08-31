@@ -169,35 +169,11 @@ class AutoscaleSizingJob implements ShouldQueue
             if ($this->stepDone($run, "leaves_l{$lvl}")) {
                 continue;
             }
-            $leavesSoFar += DB::affectingStatement("
-                INSERT INTO legislatures
-                    (id, jurisdiction_id, term_number, status,
-                     total_seats, type_a_seats, type_b_seats, quorum_required,
-                     created_at, updated_at)
-                SELECT gen_random_uuid(), j.id, 1, 'forming',
-                       s.seats, s.seats, 0,
-                       LEAST(s.seats, GREATEST(3, CEIL(s.seats / 2.0)))::int,
-                       now(), now()
-                  FROM jurisdictions j
-                 CROSS JOIN LATERAL (
-                       -- POPULATION REALITY CAP (operator ruling 2026-08-30):
-                       -- never more seats than residents; pop 1-4 seats pop.
-                       SELECT LEAST(
-                                  GREATEST(?, ROUND(POWER(GREATEST(COALESCE(j.population, 0), 1)::numeric, 1.0/3.0))),
-                                  GREATEST(COALESCE(j.population, 0), 0)
-                              )::int AS seats
-                 ) s
-                 WHERE j.deleted_at IS NULL
-                   AND j.adm_level = ?
-                   -- pop 0 = inactive space (operator ruling 2026-08-30):
-                   -- no residents, no chamber. CLK-06 boots one if people
-                   -- ever confirm residency there.
-                   AND COALESCE(j.population, 0) > 0
-                   AND NOT EXISTS (SELECT 1 FROM jurisdictions c
-                                    WHERE c.parent_id = j.id AND c.deleted_at IS NULL)
-                   AND NOT EXISTS (SELECT 1 FROM legislatures l
-                                    WHERE l.jurisdiction_id = j.id AND l.deleted_at IS NULL)
-            ", [$floor, $lvl]);
+            // THE ONE LEAF STATEMENT: the shared owner
+            // (AutoscaleEnumeration::seedLeafLegislatures) carries the
+            // population reality cap, the pop-0 skip, and the quorum cap
+            // for every caller — this pass and the ingest tail alike.
+            $leavesSoFar += \App\Support\AutoscaleEnumeration::seedLeafLegislatures($lvl, $floor);
             // A1: live leaf counter per level, beside the heartbeat.
             AutoscaleRun::query()->whereKey($run->id)->update([
                 'sized_leaves' => $leavesSoFar,

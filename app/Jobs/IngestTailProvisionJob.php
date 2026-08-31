@@ -50,30 +50,12 @@ class IngestTailProvisionJob implements ShouldQueue
         Log::info('IngestTail: sizing parents (cube-root law)', ['geodata_run' => $this->geodataRunId]);
         Artisan::call('apportionment:seed', ['--parents-only' => true]);
 
-        // Leaves, set-based per level — the cycle-2 leaf law (floor clamp
-        // only), the same statement the autoscale sizing runs.
+        // Leaves, set-based per level — THE ONE LEAF STATEMENT
+        // (AutoscaleEnumeration::seedLeafLegislatures), the same owner the
+        // run's sizing pass calls, so the two paths cannot drift.
         $floor = \App\Services\ConstitutionalDefaults::floor();
         for ($lvl = 0; $lvl <= 6; $lvl++) {
-            DB::statement("
-                INSERT INTO legislatures
-                    (id, jurisdiction_id, term_number, status,
-                     total_seats, type_a_seats, type_b_seats, quorum_required,
-                     created_at, updated_at)
-                SELECT gen_random_uuid(), j.id, 1, 'forming',
-                       s.seats, s.seats, 0,
-                       GREATEST(3, CEIL(s.seats / 2.0))::int,
-                       now(), now()
-                  FROM jurisdictions j
-                 CROSS JOIN LATERAL (
-                       SELECT GREATEST(?, ROUND(POWER(GREATEST(COALESCE(j.population, 0), 1)::numeric, 1.0/3.0)))::int AS seats
-                 ) s
-                 WHERE j.deleted_at IS NULL
-                   AND j.adm_level = ?
-                   AND NOT EXISTS (SELECT 1 FROM jurisdictions c
-                                    WHERE c.parent_id = j.id AND c.deleted_at IS NULL)
-                   AND NOT EXISTS (SELECT 1 FROM legislatures l
-                                    WHERE l.jurisdiction_id = j.id AND l.deleted_at IS NULL)
-            ", [$floor, $lvl]);
+            \App\Support\AutoscaleEnumeration::seedLeafLegislatures($lvl, $floor);
         }
 
         // Border precompute worklist + lanes (run-independent ledger; paid
