@@ -523,7 +523,21 @@ class DistrictingService
             }
         }
         $lockedSum = array_sum($locked);
-        if ($locked !== [] && $unlockedPop === 0 && $lockedSum !== $budget) {
+        // THE DUST-RESIDUE EXTENSION (operator gate catch 2026-08-31, the
+        // Greece 219-on-218): a pool whose own nearest share is ZERO seats
+        // (Agion Oros, 1,675 people beside seven giants) cannot absorb a
+        // lock oversum any more than an empty pool can — the giants must
+        // land budget − 0 themselves, and the residue rides the
+        // giant-consumed-residue plane (ceiling exception step 8, the Kuala
+        // Lumpur zero case: drawn 0, lifted to exactly 2 by bonus). The
+        // landing therefore targets budget − nearest(pool share) whenever
+        // the pool's nearest share is 0; a pool with real seats keeps
+        // absorbing through the drawing landings as before.
+        $frameQuotaPre = $childSum / max($budget, 1);
+        $poolNearest = (int) round($unlockedPop / max($frameQuotaPre, 1));
+        $landTarget = $budget - ($unlockedPop > 0 ? $poolNearest : 0);
+        if ($locked !== [] && ($unlockedPop === 0 || $poolNearest === 0) && $lockedSum !== $landTarget) {
+            $budget = $landTarget;
             $popById = [];
             foreach ($children as $c) {
                 $popById[(string) $c->id] = (float) $c->population;
@@ -7716,12 +7730,22 @@ class DistrictingService
                     // carries the current backend and the reaper's
                     // certain-death test never mistakes a reconnected
                     // grinder for a corpse.
+                    // left(…, 160) makes the write TOTAL (operator recycle
+                    // 2026-08-31, the Bosnia four-canton 25P02): a breadcrumb
+                    // base near the column limit plus the phase suffix
+                    // overflowed varchar(160), the beat's catch swallowed the
+                    // PHP error, but the statement had already ABORTED the
+                    // engine's open transaction — every later statement of
+                    // the scope failed 25P02 and the map filed unassigned
+                    // constituents. Exactly the cantons with the longest
+                    // names, deterministically. A beat must never be able to
+                    // error inside someone else's transaction.
                     \Illuminate\Support\Facades\DB::update(
                         "UPDATE autoscale_worker_leases
                             SET last_seen_at = now(),
                                 pg_backend_pid = pg_backend_pid(),
-                                claim_label = split_part(claim_label, ' ⋯ ', 1)
-                                              || CASE WHEN ?::text <> '' THEN ' ⋯ ' || ?::text ELSE '' END
+                                claim_label = left(split_part(claim_label, ' ⋯ ', 1)
+                                              || CASE WHEN ?::text <> '' THEN ' ⋯ ' || ?::text ELSE '' END, 160)
                           WHERE id = ?",
                         [$phase, $phase, \App\Support\AutoscaleContext::$workerToken]
                     );

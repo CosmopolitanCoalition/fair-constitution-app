@@ -392,11 +392,19 @@ final class AutoscaleClaims
             // largest-first, root last, identical to the UI wizard. Unstamped
             // rows (legacy incremental materialization) sort after and keep
             // their old keys.
+            // THE MEET-IN-THE-MIDDLE ORDER (operator order 2026-08-31):
+            // 'bottomup' lanes read reverse_position — deepest layer first,
+            // lowest population first — so they fly through the trivial mass
+            // while the other half grinds the giants; the directions meet in
+            // the middle and SKIP LOCKED gives the tie to whichever side
+            // claims first (top-down, at the meeting point, by arrival).
             $order = $priorityOnly
                 ? 's2.walk_position ASC NULLS LAST, ai.priority_at ASC, s2.depth, s2.id'
-                : ($lane === 'topdown'
-                    ? 's2.walk_position ASC NULLS LAST, ai.position DESC, s2.depth, s2.id'
-                    : 's2.walk_position ASC NULLS LAST, ai.position, s2.depth, s2.id');
+                : match ($lane) {
+                    'topdown'  => 's2.walk_position ASC NULLS LAST, ai.position DESC, s2.depth, s2.id',
+                    'bottomup' => 's2.reverse_position ASC NULLS LAST, s2.walk_position DESC, s2.depth, s2.id',
+                    default    => 's2.walk_position ASC NULLS LAST, ai.position, s2.depth, s2.id',
+                };
 
             return DB::selectOne("
                 UPDATE autoscale_scopes s

@@ -81,6 +81,18 @@ return [
     'autoscale_heavy_cap' => env('CGA_AUTOSCALE_HEAVY_CAP', 0),
 
     /*
+    | THE MEET-IN-THE-MIDDLE LANES (operator order 2026-08-31). true =
+    | the pool splits two-ended: the larger half claims top-down (the
+    | stepper walk, biggest maps first — odd lane counts favor this
+    | side), the other half claims bottom-up (reverse_position: deepest
+    | layer first, lowest population first) and flies through the
+    | trivial mass while the top side grinds the giants; the directions
+    | meet in the middle. false = the whole pool claims top-down as on
+    | benchmark day. Enable only between runs.
+    */
+    'autoscale_two_ended' => env('CGA_AUTOSCALE_TWO_ENDED', false),
+
+    /*
     | Top-down lane share (operator ruling 2026-07-22). 0 = the formula
     | (max(1, ceil(0.2 × workers))): that share of the pool works the queue
     | from the TOP — most complex, highest population first — churning the

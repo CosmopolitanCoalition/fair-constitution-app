@@ -155,6 +155,21 @@ class AutoscaleWorkerJob implements ShouldQueue
                     break;
                 }
 
+                // CONNECTION HYGIENE AT THE CLAIM BOUNDARY (2026-08-31, the
+                // Bosnia four-canton 25P02): every claim starts at
+                // transaction level ZERO — an aborted residue from the
+                // previous claim poisons every statement after it while the
+                // culprit's own error stays swallowed.
+                if (DB::transactionLevel() > 0) {
+                    Log::warning('Autoscale lane holds an open transaction at the claim boundary — rolling back', [
+                        'run_id' => $run->id, 'lane' => $this->lane,
+                        'tx_level' => DB::transactionLevel(),
+                    ]);
+                    while (DB::transactionLevel() > 0) {
+                        DB::rollBack();
+                    }
+                }
+
                 $claim = AutoscaleClaims::next($run, $token, $this->lane);
                 if ($claim === null) {
                     break;
@@ -166,7 +181,9 @@ class AutoscaleWorkerJob implements ShouldQueue
                 // every worker holds at any instant.
                 DB::table('autoscale_worker_leases')->where('id', $token)->update([
                     'claim_type'       => $claim['type'],
-                    'claim_label'      => $this->claimLabel($claim),
+                    // 160 = the column's width; a longer breadcrumb must
+                    // truncate, never error (the Bosnia 25P02, 2026-08-31).
+                    'claim_label'      => mb_substr($this->claimLabel($claim), 0, 160),
                     'claim_started_at' => now(),
                     'last_seen_at'     => now(),
                 ]);

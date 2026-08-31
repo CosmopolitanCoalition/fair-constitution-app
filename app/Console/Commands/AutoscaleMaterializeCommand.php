@@ -4,6 +4,7 @@ namespace App\Console\Commands;
 
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Schema;
 
 /**
  * THE ONE HEAD, ahead of the lanes (operator ruling 2026-08-30, the Guyana
@@ -71,6 +72,33 @@ class AutoscaleMaterializeCommand extends Command
                 ]);
                 $this->error("[{$name}] ".$e->getMessage());
             }
+        }
+
+        // THE MEET-IN-THE-MIDDLE KEY (operator order 2026-08-31): stamp
+        // reverse_position across the whole run — deepest admin layer
+        // first, lowest population first within a layer — the bottom-up
+        // lanes' claim order. Set-based, idempotent, one statement over
+        // the run's scopes (bounded: scopes are the enumerated tree, not
+        // the planet's jurisdictions).
+        if (Schema::hasColumn('autoscale_scopes', 'reverse_position')) {
+            DB::statement('
+                WITH ranked AS (
+                    SELECT s.id,
+                           ROW_NUMBER() OVER (
+                               ORDER BY j.adm_level DESC,
+                                        j.population ASC NULLS FIRST,
+                                        s.id
+                           ) AS rn
+                      FROM autoscale_scopes s
+                      JOIN jurisdictions j ON j.id = s.scope_jurisdiction_id
+                     WHERE s.run_id = ?
+                )
+                UPDATE autoscale_scopes s
+                   SET reverse_position = r.rn
+                  FROM ranked r
+                 WHERE s.id = r.id
+            ', [$runId]);
+            $this->line('reverse_position stamped (bottom-up claim key).');
         }
 
         $this->info("Materialized {$done}, refused {$failed}.");

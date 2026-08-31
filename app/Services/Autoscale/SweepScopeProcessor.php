@@ -46,6 +46,24 @@ class SweepScopeProcessor
         $legislatureId = $claim['legislature_id'];
         $scopeJid      = $claim['scope_jurisdiction_id'];
 
+        // CONNECTION HYGIENE AT THE CLAIM BOUNDARY (operator recycle order
+        // 2026-08-31, the Bosnia four-canton 25P02): a scope must start at
+        // transaction level ZERO. A prior scope's error can leave an
+        // aborted transaction open on this lane's connection, and then
+        // every statement of every following scope fails with 25P02 while
+        // the real culprit's error is swallowed — Sarajevo Canton drew 18
+        // seats clean by hand while failing on the poisoned lane. Roll the
+        // residue back and log it; the log names the poisoning boundary.
+        if (DB::transactionLevel() > 0) {
+            Log::warning('Autoscale lane arrived at a claim with an open transaction — rolling back the residue', [
+                'scope_id' => $scopeId, 'legislature_id' => $legislatureId,
+                'tx_level' => DB::transactionLevel(),
+            ]);
+            while (DB::transactionLevel() > 0) {
+                DB::rollBack();
+            }
+        }
+
         $item = AutoscaleItem::query()->find($itemId);
         if ($item === null) {
             $this->releaseScope($scopeId, 'item vanished');

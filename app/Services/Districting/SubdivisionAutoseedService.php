@@ -160,6 +160,19 @@ class SubdivisionAutoseedService
         // Reset per plan call, same as bladeBudget.
         $this->maskScopeId = $template === self::TEMPLATE_MASK ? $scopeId : null;
 
+        // THE REGION CACHE (operator diagnosis 2026-08-31, "it should take
+        // seconds"): the candidate loop used to ship the FULL region
+        // GeoJSON to Postgres — megabytes for a 4,404-part French
+        // Polynesia — and re-run ST_MakeValid on it for EVERY candidate
+        // blade's length score and split test. The geometry never changes
+        // between candidates, so it validates ONCE into a session temp
+        // table and every candidate query references it by key.
+        // Byte-identical results; the shipping and re-validation vanish.
+        // Truncated per plan call so a long-lived worker session stays
+        // bounded.
+        DB::statement('CREATE TEMP TABLE IF NOT EXISTS cga_region_cache (k text PRIMARY KEY, g geometry)');
+        DB::statement('TRUNCATE cga_region_cache');
+
         // Cycle-2 (2026-07-19): zero-raster-coverage scopes (a geometry
         // outside its iso's tiles) fall back to the area-proportional grid —
         // same shape, deterministic from geometry + stored population. Only
@@ -214,8 +227,14 @@ class SubdivisionAutoseedService
         // against a monster collection (the pg clip kill). ST_UnaryUnion is
         // deterministic, so the same index set names the same parts in every
         // later query against this scope.
+        // MASK MODE skips the per-part GeoJSON payload (2026-08-31, the
+        // archipelago grind): no island partition happens there, so
+        // serializing thousands of island polygons to PHP bought nothing.
+        // The strict path keeps the full payload for
+        // partitionPixelsByPolygon, unchanged.
+        $compGjCol = $template === self::TEMPLATE_MASK ? "'' AS gj" : 'ST_AsGeoJSON(g, 15) AS gj';
         $comps = DB::select(
-            'SELECT ST_AsGeoJSON(g, 15) AS gj,
+            "SELECT {$compGjCol},
                     idx,
                     ST_Area(g::geography) AS area,
                     ST_X(ST_PointOnSurface(g)) AS cx,
@@ -224,7 +243,7 @@ class SubdivisionAutoseedService
                        FROM jurisdictions j,
                             LATERAL ST_Dump(ST_UnaryUnion(ST_MakeValid(j.geom))) d
                       WHERE j.id = ?) t
-              ORDER BY ST_Area(g::geography) DESC, ST_X(ST_PointOnSurface(g)), ST_Y(ST_PointOnSurface(g))',
+              ORDER BY ST_Area(g::geography) DESC, ST_X(ST_PointOnSurface(g)), ST_Y(ST_PointOnSurface(g))",
             [$scopeId]
         );
 
@@ -1374,13 +1393,22 @@ class SubdivisionAutoseedService
                     ];
                 }
 
+                // In-region blade length summed over bbox-hit PARTS (gist
+                // index) — identical to intersecting the whole region
+                // (parts partition it) without touching untouched islands.
+                $regionKey = $this->regionPartsRef($regionGj);
                 foreach ($candidates as &$cand) {
+                    $seqs = $this->bladeCrossedSeqs($regionKey, $cand, $lon0, $lat0, $cosLat);
+                    if ($seqs === []) {
+                        $cand['len'] = 0.0;
+                        continue;
+                    }
                     $row = DB::selectOne(
-                        'SELECT ST_Length(ST_Intersection(
-                             ST_SetSRID(ST_MakeLine(ST_MakePoint(?, ?), ST_MakePoint(?, ?)), 4326),
-                             ST_MakeValid(ST_GeomFromGeoJSON(?))
-                         )::geography) AS len',
-                        [...$cand['blade'], $regionGj]
+                        'WITH blade AS (SELECT ST_SetSRID(ST_MakeLine(ST_MakePoint(?, ?), ST_MakePoint(?, ?)), 4326) AS l)
+                         SELECT COALESCE(sum(ST_Length(ST_Intersection((SELECT l FROM blade), p.g)::geography)), 0) AS len
+                           FROM cga_region_parts p
+                          WHERE p.k = ? AND p.seq IN ('.implode(',', $seqs).')',
+                        [...$cand['blade'], $regionKey]
                     );
                     $cand['len'] = (float) ($row->len ?? 0.0);
                 }
@@ -1534,7 +1562,7 @@ class SubdivisionAutoseedService
         [$ax, $ay, $bx, $by] = $cand['blade'];
 
         $rows = DB::select(
-            "WITH r AS (SELECT ST_MakeValid(ST_GeomFromGeoJSON(:gj)) AS g),
+            "WITH r AS (SELECT g FROM cga_region_cache WHERE k = :gj),
                   blade AS (SELECT ST_SetSRID(ST_MakeLine(ST_MakePoint(:ax, :ay), ST_MakePoint(:bx, :by)), 4326) AS l),
                   parts AS (
                       SELECT (ST_Dump(ST_Split((SELECT g FROM r), (SELECT l FROM blade)))).geom AS piece
@@ -1551,7 +1579,7 @@ class SubdivisionAutoseedService
                     ST_NumGeometries(ST_Multi(ST_Union(piece))) AS parts
                FROM sided GROUP BY side ORDER BY side",
             [
-                'gj' => $regionGj, 'ax' => $ax, 'ay' => $ay, 'bx' => $bx, 'by' => $by,
+                'gj' => $this->regionRef($regionGj), 'ax' => $ax, 'ay' => $ay, 'bx' => $bx, 'by' => $by,
                 'nx' => $cand['nx'], 'lon0' => $lon0, 'coslat' => $cosLat,
                 'ny' => $cand['ny'], 'lat0' => $lat0, 'c' => $cand['c'],
             ]
@@ -1594,28 +1622,82 @@ class SubdivisionAutoseedService
     {
         [$ax, $ay, $bx, $by] = $cand['blade'];
 
-        // Per-part split (ST_Split of a bare POLYGON by a line is the fully
-        // supported form; a part the blade misses passes through whole).
+        // TOUCH ONLY WHAT THE BLADE TOUCHES (operator model 2026-08-31,
+        // "draw a circle and use the mask — it should take seconds"): the
+        // parts are dumped ONCE per region into the session parts cache
+        // with their point-on-surface precomputed. A candidate splits only
+        // the parts its line actually crosses; every untouched island
+        // takes its side from the precomputed point — arithmetic, not
+        // geometry. Identical sides to splitting everything (ST_Split of a
+        // missed part returns the part; its point-on-surface is constant).
+        if ($this->maskScopeId !== null) {
+            $this->scopeLandmassesRef($this->maskScopeId);
+        } else {
+            DB::statement('CREATE TEMP TABLE IF NOT EXISTS cga_scope_landmasses
+                           (scope text, id serial, g geometry, area float8)');
+        }
+        $pk = $this->regionPartsRef($regionGj);
+        $crossSeqs = $this->bladeCrossedSeqs($pk, $cand, $lon0, $lat0, $cosLat);
+        $seqList = $crossSeqs === [] ? '-1' : implode(',', $crossSeqs);
         $rows = DB::select(
-            "WITH r AS (SELECT ST_MakeValid(ST_GeomFromGeoJSON(:gj)) AS g),
-                  blade AS (SELECT ST_SetSRID(ST_MakeLine(ST_MakePoint(:ax, :ay), ST_MakePoint(:bx, :by)), 4326) AS l),
-                  parts0 AS (SELECT (ST_Dump((SELECT g FROM r))).geom AS part),
+            "WITH blade AS (SELECT ST_SetSRID(ST_MakeLine(ST_MakePoint(:ax, :ay), ST_MakePoint(:bx, :by)), 4326) AS l),
                   pieces AS (
-                      SELECT (ST_Dump(ST_Split(part, (SELECT l FROM blade)))).geom AS piece FROM parts0
+                      SELECT d.geom AS piece,
+                             ST_X(ST_PointOnSurface(d.geom)) AS px,
+                             ST_Y(ST_PointOnSurface(d.geom)) AS py,
+                             p.lm, ST_Area(d.geom) AS area
+                        FROM cga_region_parts p,
+                             LATERAL ST_Dump(ST_Split(p.g, (SELECT l FROM blade))) d
+                       WHERE p.k = :k1 AND p.seq IN ({$seqList})
+                         AND ST_Intersects(p.g, (SELECT l FROM blade))
+                      UNION ALL
+                      SELECT p.g, p.px, p.py, p.lm, p.area
+                        FROM cga_region_parts p
+                       WHERE p.k = :k2 AND (p.seq NOT IN ({$seqList})
+                         OR NOT ST_Intersects(p.g, (SELECT l FROM blade)))
                   ),
                   sided AS (
-                      SELECT piece,
-                             CASE WHEN :nx * ((ST_X(ST_PointOnSurface(piece)) - :lon0) * :coslat)
-                                     + :ny * (ST_Y(ST_PointOnSurface(piece)) - :lat0) < :c
+                      SELECT piece, lm, area,
+                             CASE WHEN :nx * ((px - :lon0) * :coslat)
+                                     + :ny * (py - :lat0) < :c
                                   THEN 'a' ELSE 'b' END AS side
                         FROM pieces
+                  ),
+                  -- Art. II §8 census by AGGREGATION (the handler's own
+                  -- thresholds): pieces partition the landmasses, so a
+                  -- landmass's area on a side is the SUM of its pieces'
+                  -- areas — no geometry intersections per candidate at all.
+                  lmtot AS (
+                      SELECT lm, side, area,
+                             sum(area) OVER (PARTITION BY lm, side) AS sarea
+                        FROM sided WHERE lm >= 0
+                  ),
+                  lmside AS (
+                      SELECT lm, side, max(sarea) AS sarea,
+                             count(*) FILTER (WHERE area > 0.01 * sarea) AS big_pieces
+                        FROM lmtot GROUP BY lm, side
+                  ),
+                  cutlms AS (
+                      SELECT l.side, l.lm, l.big_pieces
+                        FROM lmside l
+                        JOIN cga_scope_landmasses s ON s.scope = :scope AND s.id = l.lm
+                       WHERE l.sarea > 0.02 * s.area AND l.sarea < 0.98 * s.area
+                  ),
+                  agg AS (
+                      SELECT side, ST_CollectionExtract(ST_Collect(piece), 3) AS g
+                        FROM sided GROUP BY side
                   )
-             SELECT side, ST_AsGeoJSON(ST_CollectionExtract(ST_Collect(piece), 3), 15) AS gj
-               FROM sided GROUP BY side ORDER BY side",
+             SELECT a.side, ST_AsGeoJSON(a.g, 15) AS gj,
+                    ST_IsEmpty(a.g) AS empty,
+                    (SELECT count(*) FROM cutlms c WHERE c.side = a.side) AS cut_components,
+                    (SELECT COALESCE(sum(c.big_pieces), 0) FROM cutlms c WHERE c.side = a.side) AS fragment_pieces
+               FROM agg a ORDER BY a.side",
             [
-                'gj' => $regionGj, 'ax' => $ax, 'ay' => $ay, 'bx' => $bx, 'by' => $by,
+                'ax' => $ax, 'ay' => $ay, 'bx' => $bx, 'by' => $by,
+                'k1' => $pk, 'k2' => $pk,
                 'nx' => $cand['nx'], 'lon0' => $lon0, 'coslat' => $cosLat,
                 'ny' => $cand['ny'], 'lat0' => $lat0, 'c' => $cand['c'],
+                'scope' => $this->maskScopeId ?? '',
             ]
         );
 
@@ -1627,24 +1709,128 @@ class SubdivisionAutoseedService
             if ($row->gj === null) {
                 return null;
             }
+            // The census columns rode along in the same statement — the
+            // handler's own thresholds. The filing handler still runs the
+            // real partCensus, so this gate can only refuse early, never
+            // admit what filing would refuse.
+            if ($this->maskScopeId !== null
+                && ((bool) $row->empty
+                    || (int) $row->cut_components > 1
+                    || (int) $row->fragment_pieces > 1)) {
+                return null;
+            }
             $out[(string) $row->side] = (string) $row->gj;
         }
         if (! isset($out['a'], $out['b'])) {
             return null;
         }
 
-        // Art. II §8, per side, by the filing handler's own census.
-        if ($this->maskScopeId !== null) {
-            foreach (['a', 'b'] as $s) {
-                $census = \App\Domain\Forms\Handlers\ManualDistrictDraw::partCensus($out[$s], $this->maskScopeId);
-                if ($census === null || (bool) $census->empty
-                 || (int) $census->cut_components > 1 || (int) $census->fragment_pieces > 1) {
-                    return null;
-                }
+        return $out;
+    }
+
+    /**
+     * Dump a cached region's parts once per session, point-on-surface
+     * precomputed — the mask splitter's per-candidate work then touches
+     * only blade-crossed parts.
+     */
+    private function regionPartsRef(string $regionGj): string
+    {
+        $k = $this->regionRef($regionGj);
+        DB::statement('CREATE TEMP TABLE IF NOT EXISTS cga_scope_landmasses
+                       (scope text, id serial, g geometry, area float8)');
+        DB::statement('CREATE TEMP TABLE IF NOT EXISTS cga_region_parts
+                       (k text, seq int, g geometry, px float8, py float8,
+                        lm int, area float8, PRIMARY KEY (k, seq))');
+        DB::statement('CREATE INDEX IF NOT EXISTS cga_region_parts_gix
+                       ON cga_region_parts USING gist (g)');
+        if (DB::selectOne('SELECT 1 AS x FROM cga_region_parts WHERE k = ? LIMIT 1', [$k]) === null) {
+            // Each part carries its landmass id (which dissolved landmass
+            // its point-on-surface falls in; -1 = ribbon-class residue the
+            // census ignores) and its planar area — the per-candidate
+            // census then needs NO geometry at all for untouched parts.
+            DB::statement(
+                'INSERT INTO cga_region_parts (k, seq, g, px, py, lm, area)
+                 SELECT c.k, d.path[1], d.geom,
+                        pos.x, pos.y,
+                        COALESCE((SELECT lm.id FROM cga_scope_landmasses lm
+                                   WHERE lm.scope = ?
+                                     AND lm.g && d.geom
+                                     AND ST_Covers(lm.g, ST_SetSRID(ST_MakePoint(pos.x, pos.y), 4326))
+                                   LIMIT 1), -1),
+                        ST_Area(d.geom)
+                   FROM cga_region_cache c,
+                        LATERAL ST_Dump(ST_Multi(c.g)) d,
+                        LATERAL (SELECT ST_X(ST_PointOnSurface(d.geom)) AS x,
+                                        ST_Y(ST_PointOnSurface(d.geom)) AS y) pos
+                  WHERE c.k = ?
+                     ON CONFLICT (k, seq) DO NOTHING',
+                [$this->maskScopeId ?? '', $k]
+            );
+        }
+
+        if (! isset($this->partBoxes[$k])) {
+            $this->partBoxes[$k] = DB::select(
+                'SELECT seq, ST_XMin(g) AS x0, ST_YMin(g) AS y0, ST_XMax(g) AS x1, ST_YMax(g) AS y1
+                   FROM cga_region_parts WHERE k = ?', [$k]
+            );
+        }
+
+        return $k;
+    }
+
+    /** Per-region part bboxes, loaded once — the PHP-side blade prune. */
+    private array $partBoxes = [];
+
+    /**
+     * Part seqs whose bbox the candidate's infinite line crosses — pure
+     * arithmetic (4 corner signs). The blade over-extends past the whole
+     * region (full-crossing law), so its own bbox prunes nothing; THIS
+     * prune is what keeps a candidate's split work proportional to the
+     * parts the line touches, not the archipelago's size.
+     *
+     * @return list<int>
+     */
+    private function bladeCrossedSeqs(string $k, array $cand, float $lon0, float $lat0, float $cosLat): array
+    {
+        $out = [];
+        foreach ($this->partBoxes[$k] ?? [] as $b) {
+            $min = INF;
+            $max = -INF;
+            foreach ([[$b->x0, $b->y0], [$b->x1, $b->y0], [$b->x0, $b->y1], [$b->x1, $b->y1]] as [$x, $y]) {
+                $t = $cand['nx'] * (((float) $x - $lon0) * $cosLat) + $cand['ny'] * ((float) $y - $lat0) - $cand['c'];
+                if ($t < $min) { $min = $t; }
+                if ($t > $max) { $max = $t; }
+            }
+            if ($min <= 0.0 && $max >= 0.0) {
+                $out[] = (int) $b->seq;
             }
         }
 
         return $out;
+    }
+
+    /**
+     * Dissolve + ribbon-filter a scope\'s landmasses once per session —
+     * byte-identical to partCensus\'s gcomps CTE, paid once instead of per
+     * candidate side.
+     */
+    private function scopeLandmassesRef(string $scopeId): void
+    {
+        DB::statement('CREATE TEMP TABLE IF NOT EXISTS cga_scope_landmasses
+                       (scope text, id serial, g geometry, area float8)');
+        if (DB::selectOne('SELECT 1 AS x FROM cga_scope_landmasses WHERE scope = ? LIMIT 1', [$scopeId]) === null) {
+            DB::statement(
+                'INSERT INTO cga_scope_landmasses (scope, g, area)
+                 SELECT ?, c, ST_Area(c) FROM (
+                     SELECT (ST_Dump(ST_UnaryUnion(ST_MakeValid(geom)))).geom AS c
+                       FROM jurisdictions WHERE id = ?
+                 ) t
+                 WHERE 2 * ST_Area(c::geography) / NULLIF(ST_Perimeter(c::geography), 0) >= 0.5',
+                [$scopeId, $scopeId]
+            );
+            DB::statement('CREATE INDEX IF NOT EXISTS cga_scope_landmasses_gix
+                           ON cga_scope_landmasses USING gist (g)');
+        }
     }
 
     /**
@@ -1674,7 +1860,7 @@ class SubdivisionAutoseedService
         [$ax, $ay, $bx, $by] = $cand['blade'];
 
         $rows = DB::select(
-            "WITH r AS (SELECT ST_MakeValid(ST_GeomFromGeoJSON(:gj)) AS g),
+            "WITH r AS (SELECT g FROM cga_region_cache WHERE k = :gj),
                   blade AS (SELECT ST_SetSRID(ST_MakeLine(ST_MakePoint(:ax, :ay), ST_MakePoint(:bx, :by)), 4326) AS l),
                   parts AS (
                       SELECT (ST_Dump(ST_Split((SELECT g FROM r), (SELECT l FROM blade)))).geom AS piece
@@ -1686,7 +1872,7 @@ class SubdivisionAutoseedService
                FROM parts
               ORDER BY ST_Area(piece) DESC, ST_X(ST_PointOnSurface(piece)), ST_Y(ST_PointOnSurface(piece))",
             [
-                'gj' => $regionGj, 'ax' => $ax, 'ay' => $ay, 'bx' => $bx, 'by' => $by,
+                'gj' => $this->regionRef($regionGj), 'ax' => $ax, 'ay' => $ay, 'bx' => $bx, 'by' => $by,
                 'nx' => $cand['nx'], 'lon0' => $lon0, 'coslat' => $cosLat,
                 'ny' => $cand['ny'], 'lat0' => $lat0, 'c' => $cand['c'],
             ]
@@ -1746,15 +1932,39 @@ class SubdivisionAutoseedService
      *
      * @return array{type: string, coordinates: array}|null
      */
+    /**
+     * Validate a region into the session cache once; return its key. Every
+     * candidate-loop query references the cached geometry by this key
+     * instead of shipping and re-validating the GeoJSON (the archipelago
+     * ten-minute grind, 2026-08-31). The PK probe is a single indexed
+     * lookup, so a cache hit costs microseconds even after a reconnect
+     * empties the temp table.
+     */
+    private function regionRef(string $regionGj): string
+    {
+        $k = md5($regionGj);
+        DB::statement('CREATE TEMP TABLE IF NOT EXISTS cga_region_cache (k text PRIMARY KEY, g geometry)');
+        if (DB::selectOne('SELECT 1 AS x FROM cga_region_cache WHERE k = ?', [$k]) === null) {
+            DB::statement(
+                'INSERT INTO cga_region_cache (k, g)
+                 VALUES (?, ST_MakeValid(ST_GeomFromGeoJSON(?)))
+                     ON CONFLICT (k) DO NOTHING',
+                [$k, $regionGj]
+            );
+        }
+
+        return $k;
+    }
+
     private function clippedLine(string $regionGj, array $blade, float $cosLat): ?array
     {
         [$ax, $ay, $bx, $by] = $blade;
         $row = DB::selectOne(
             'SELECT ST_AsGeoJSON(ST_Intersection(
                  ST_SetSRID(ST_MakeLine(ST_MakePoint(?, ?), ST_MakePoint(?, ?)), 4326),
-                 ST_MakeValid(ST_GeomFromGeoJSON(?))
+                 (SELECT g FROM cga_region_cache WHERE k = ?)
              ), 15) AS gj',
-            [$ax, $ay, $bx, $by, $regionGj]
+            [$ax, $ay, $bx, $by, $this->regionRef($regionGj)]
         );
 
         $coords = self::collectCoordinates($row?->gj !== null ? json_decode($row->gj, true) : null);

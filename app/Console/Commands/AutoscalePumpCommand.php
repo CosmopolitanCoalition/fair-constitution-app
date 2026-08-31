@@ -345,21 +345,44 @@ class AutoscalePumpCommand extends Command
             // pop — the fast composite/mixed maps + early bug discovery),
             // the rest bottom-up as ever. Legacy NULL-lane leases count as
             // 'auto'. Both pools obey the one global heavy cap in claims.
-            $target    = HostCapacity::autoscaleWorkers();
-            $targetTop = min(AutoscaleClaims::topDownWorkerCap(), max($target - 1, 0));
-            $targetAuto = $target - $targetTop;
+            $target = HostCapacity::autoscaleWorkers();
+            if (config('cga.autoscale_two_ended')) {
+                // THE MEET-IN-THE-MIDDLE SPLIT (operator order 2026-08-31):
+                // the larger half claims top-down (odd counts favor it, 13
+                // lanes = 7 + 6), the other half bottom-up by
+                // reverse_position — trivial mass first, meeting in the
+                // middle. Lanes still flow to the survivor through the
+                // claim fallthroughs.
+                $targetBottom = intdiv($target, 2);
+                $targetMain   = $target - $targetBottom;
+                $fresh = DB::table('autoscale_worker_leases')
+                    ->where('run_id', $run->id)
+                    ->where('last_seen_at', '>', now()->subMinutes(2))
+                    ->selectRaw("COUNT(*) FILTER (WHERE lane = 'bottomup') AS bottom,
+                                 COUNT(*) FILTER (WHERE lane IS NULL OR lane != 'bottomup') AS main")
+                    ->first();
+                for ($i = 0; $i < ($targetMain - (int) ($fresh->main ?? 0)); $i++) {
+                    AutoscaleWorkerJob::dispatch((string) $run->id, 'auto');
+                }
+                for ($i = 0; $i < ($targetBottom - (int) ($fresh->bottom ?? 0)); $i++) {
+                    AutoscaleWorkerJob::dispatch((string) $run->id, 'bottomup');
+                }
+            } else {
+                $targetTop = min(AutoscaleClaims::topDownWorkerCap(), max($target - 1, 0));
+                $targetAuto = $target - $targetTop;
 
-            $fresh = DB::table('autoscale_worker_leases')
-                ->where('run_id', $run->id)
-                ->where('last_seen_at', '>', now()->subMinutes(2))
-                ->selectRaw("COUNT(*) FILTER (WHERE lane = 'topdown') AS top,
-                             COUNT(*) FILTER (WHERE lane IS NULL OR lane != 'topdown') AS auto")
-                ->first();
-            for ($i = 0; $i < ($targetAuto - (int) ($fresh->auto ?? 0)); $i++) {
-                AutoscaleWorkerJob::dispatch((string) $run->id, 'auto');
-            }
-            for ($i = 0; $i < ($targetTop - (int) ($fresh->top ?? 0)); $i++) {
-                AutoscaleWorkerJob::dispatch((string) $run->id, 'topdown');
+                $fresh = DB::table('autoscale_worker_leases')
+                    ->where('run_id', $run->id)
+                    ->where('last_seen_at', '>', now()->subMinutes(2))
+                    ->selectRaw("COUNT(*) FILTER (WHERE lane = 'topdown') AS top,
+                                 COUNT(*) FILTER (WHERE lane IS NULL OR lane != 'topdown') AS auto")
+                    ->first();
+                for ($i = 0; $i < ($targetAuto - (int) ($fresh->auto ?? 0)); $i++) {
+                    AutoscaleWorkerJob::dispatch((string) $run->id, 'auto');
+                }
+                for ($i = 0; $i < ($targetTop - (int) ($fresh->top ?? 0)); $i++) {
+                    AutoscaleWorkerJob::dispatch((string) $run->id, 'topdown');
+                }
             }
         }
 
