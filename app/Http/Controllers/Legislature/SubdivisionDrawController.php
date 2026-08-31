@@ -798,11 +798,63 @@ class SubdivisionDrawController extends Controller
         // detached components of the giant (islands the lasso captured
         // entire) — the handler's Art. II §8 rule, mirrored here so a lasso
         // over mainland + Catalina measures and files instead of refusing.
-        // Two-plus cut fragments of a single landmass still refuse.
         $clipParts = (int) $row->clip_parts;
         $fragmentParts = $clipParts - (int) ($row->clip_whole_parts ?? 0);
         if ($fragmentParts > 1) {
-            return ['error' => "Clipping to the boundary splits your polygon into {$fragmentParts} separate cut pieces — draw inside."];
+            // THE STROKE REPAIRS ITSELF (operator order 2026-08-31, the New
+            // Caledonia manual draw: "why can't it just fix itself to
+            // boundaries?"). A rough hand stroke across a ragged coast
+            // clips into several chunks of the cut landmass. Art. II §8
+            // binds the DISTRICT, not the pencil: the district keeps the
+            // LARGEST connected cut chunk plus every whole island the
+            // lasso captured; the smaller slop chunks stay undrawn
+            // territory for the next stroke. The handler's own census
+            // still verifies the filed result — this repair can only
+            // produce shapes that census accepts by construction, and a
+            // failure there still refuses.
+            $repaired = DB::selectOne(
+                'WITH d AS (SELECT ST_MakeValid(ST_GeomFromGeoJSON(:gj)) AS g),
+                      gi AS (SELECT ST_MakeValid(geom) AS g
+                               FROM jurisdictions
+                              WHERE id = :scope AND geom IS NOT NULL AND deleted_at IS NULL),
+                      clip AS (
+                          SELECT ST_CollectionExtract(ST_MakeValid(ST_Buffer(
+                                     ST_CollectionExtract(
+                                         ST_Intersection((SELECT g FROM d), (SELECT g FROM gi)), 3),
+                                     -0.00000001)), 3) AS g
+                      ),
+                      cparts AS (SELECT (ST_Dump((SELECT g FROM clip))).geom AS p),
+                      gcomps AS (SELECT (ST_Dump((SELECT g FROM gi))).geom AS c),
+                      classified AS (
+                          SELECT cp.p, ST_Area(cp.p) AS area,
+                                 EXISTS (
+                                     SELECT 1 FROM gcomps gc
+                                      WHERE ST_Intersects(cp.p, gc.c)
+                                        AND ST_Area(ST_Intersection(cp.p, gc.c)) >= 0.98 * ST_Area(gc.c)
+                                        AND ST_Area(ST_Intersection(cp.p, gc.c)) >= 0.98 * ST_Area(cp.p)
+                                 ) AS whole
+                            FROM cparts cp
+                      ),
+                      keptcut AS (
+                          SELECT p FROM classified WHERE NOT whole ORDER BY area DESC LIMIT 1
+                      )
+                 SELECT ST_AsGeoJSON(ST_Multi(ST_Collect(p)), 15) AS gj,
+                        count(*) AS parts
+                   FROM (SELECT p FROM classified WHERE whole
+                         UNION ALL SELECT p FROM keptcut) k',
+                ['gj' => $geoJson, 'scope' => $scopeId]
+            );
+            if ($repaired === null || $repaired->gj === null) {
+                return ['error' => "The polygon lies entirely outside {$name}."];
+            }
+
+            return [
+                'geojson'  => (string) $repaired->gj,
+                'clipped'  => true,
+                'repaired' => true,
+                'parts'    => (int) $repaired->parts,
+                'fragments' => 1,
+            ];
         }
 
         return ['geojson' => (string) $row->clip_gj, 'clipped' => true, 'parts' => $clipParts, 'fragments' => $fragmentParts];

@@ -83,6 +83,24 @@ final class AutoscaleClaims
      * 2-concurrent memory bound binds across lanes; a capped top-down
      * worker takes the highest-position LIGHT work instead.
      */
+    /**
+     * THE BLOCK GATE (operator ruling 2026-08-31, spoken table): a claim
+     * serves only the LOWEST unfinished block_rank — planet, then each
+     * layer's composites, then that layer's leaves. 'running' counts as
+     * unfinished so a block holds until its last map lands. Items without
+     * a stamp (legacy runs) pass the gate unchanged.
+     *
+     * @param string $alias the autoscale_items alias in the calling query
+     */
+    private static function blockGateSql(string $alias): string
+    {
+        return "({$alias}.block_rank IS NULL OR {$alias}.block_rank = (
+                    SELECT MIN(x.block_rank) FROM autoscale_items x
+                     WHERE x.run_id = {$alias}.run_id
+                       AND x.status IN ('pending', 'running')
+                       AND x.block_rank IS NOT NULL))";
+    }
+
     public static function topDownWorkerCap(): int
     {
         $override = (int) config('cga.autoscale_topdown_cap', 0);
@@ -258,9 +276,10 @@ final class AutoscaleClaims
                SET status = ?, claim_token = ?,
                    started_at = COALESCE(started_at, now()), updated_at = now()
              WHERE id IN (
-                   SELECT id FROM autoscale_items
-                    WHERE run_id = ? AND kind = ? AND status = ?
-                    ORDER BY position
+                   SELECT ai.id FROM autoscale_items ai
+                    WHERE ai.run_id = ? AND ai.kind = ? AND ai.status = ?
+                      AND ' . self::blockGateSql('ai') . '
+                    ORDER BY ai.block_order ASC NULLS LAST, ai.position
                     LIMIT ?
                     FOR UPDATE SKIP LOCKED
              )
@@ -398,12 +417,17 @@ final class AutoscaleClaims
             // while the other half grinds the giants; the directions meet in
             // the middle and SKIP LOCKED gives the tie to whichever side
             // claims first (top-down, at the meeting point, by arrival).
+            // THE BLOCK ORDER (operator ruling 2026-08-31): every lane runs
+            // ONE direction — the current block's maps by block_order
+            // (composites biggest-first, leaves smallest-first), the stamped
+            // walk within each map. Legacy runs (block_order NULL) fall
+            // through to the old position keys unchanged.
             $order = $priorityOnly
                 ? 's2.walk_position ASC NULLS LAST, ai.priority_at ASC, s2.depth, s2.id'
                 : match ($lane) {
-                    'topdown'  => 's2.walk_position ASC NULLS LAST, ai.position DESC, s2.depth, s2.id',
                     'bottomup' => 's2.reverse_position ASC NULLS LAST, s2.walk_position DESC, s2.depth, s2.id',
-                    default    => 's2.walk_position ASC NULLS LAST, ai.position, s2.depth, s2.id',
+                    'topdown'  => 'ai.block_order ASC NULLS LAST, s2.walk_position ASC NULLS LAST, ai.position DESC, s2.depth, s2.id',
+                    default    => 'ai.block_order ASC NULLS LAST, s2.walk_position ASC NULLS LAST, ai.position, s2.depth, s2.id',
                 };
 
             return DB::selectOne("
@@ -415,6 +439,7 @@ final class AutoscaleClaims
                         JOIN autoscale_items ai ON ai.id = s2.item_id
                        WHERE s2.run_id = ? AND s2.status = ?
                          AND {$priorityPredicate}
+                         AND " . self::blockGateSql('ai') . "
                          AND (COALESCE(s2.area_tier, ai.area_tier, 1) < ? OR {$heavyPredicate})
                        ORDER BY {$order}
                        LIMIT 1
@@ -457,8 +482,9 @@ final class AutoscaleClaims
                    WHERE s2.run_id = ? AND s2.status = 'pending'
                      AND ai.child_count = 0
                      AND COALESCE(ai.est_districts, 99) <= 3
+                     AND " . self::blockGateSql('ai') . "
                      AND COALESCE(s2.area_tier, ai.area_tier, 1) < ?
-                   ORDER BY s2.id
+                   ORDER BY ai.block_order ASC NULLS LAST, s2.id
                    LIMIT 100
                    FOR UPDATE OF s2 SKIP LOCKED
              )

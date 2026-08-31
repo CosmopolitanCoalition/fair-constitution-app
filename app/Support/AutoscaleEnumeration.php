@@ -173,7 +173,7 @@ final class AutoscaleEnumeration
                   FROM (
                         SELECT ai.legislature_id
                           FROM autoscale_items ai
-                         WHERE ai.run_id = ? AND ai.kind = 'sweep' AND ai.status = 'pending'
+                         WHERE ai.run_id = ? AND ai.status = 'pending'
                            AND NOT EXISTS (SELECT 1 FROM legislature_district_maps m
                                             WHERE m.legislature_id = ai.legislature_id
                                               AND m.name = 'Founding Map'
@@ -206,7 +206,7 @@ final class AutoscaleEnumeration
                   ) fm
                  WHERE ai.id IN (
                         SELECT ai2.id FROM autoscale_items ai2
-                         WHERE ai2.run_id = ? AND ai2.kind = 'sweep' AND ai2.map_id IS NULL
+                         WHERE ai2.run_id = ? AND ai2.map_id IS NULL
                            AND EXISTS (SELECT 1 FROM legislature_district_maps m
                                         WHERE m.legislature_id = ai2.legislature_id
                                           AND m.name = 'Founding Map'
@@ -214,6 +214,47 @@ final class AutoscaleEnumeration
                          LIMIT " . self::CHUNK . '
                  )
                    AND fm.legislature_id = ai.legislature_id
+            ', [$runId]);
+            $total += $n;
+            if ($progress !== null && $n > 0) {
+                $progress($total);
+            }
+        } while ($n > 0);
+
+        return $total;
+    }
+
+    /**
+     * THE BLOCK ORDER STAMP (operator ruling 2026-08-31, spoken table).
+     * Stamp every item's block key from its own row — the whole priority
+     * becomes data the claim reads, never status staging:
+     *
+     *   block_rank  = adm_level * 2 + (composite 0 | leaf 1)
+     *                 planet → countries composites → countries leaves →
+     *                 states composites → … → neighborhoods leaves.
+     *   block_order = composites -population (biggest first);
+     *                 leaves +population (smallest first — trivials lead).
+     *
+     * Chunked and resumable (block_rank IS NULL is the cursor).
+     */
+    public static function stampBlockOrder(string $runId, ?callable $progress = null): int
+    {
+        $total = 0;
+        do {
+            $n = DB::update('
+                UPDATE autoscale_items ai
+                   SET block_rank  = ai.adm_level * 2 + CASE WHEN ai.child_count > 0 THEN 0 ELSE 1 END,
+                       block_order = CASE WHEN ai.child_count > 0
+                                          THEN -GREATEST(COALESCE(j.population, 0), 0)
+                                          ELSE  GREATEST(COALESCE(j.population, 0), 0) END,
+                       updated_at  = now()
+                  FROM jurisdictions j
+                 WHERE j.id = ai.jurisdiction_id
+                   AND ai.id IN (
+                        SELECT id FROM autoscale_items
+                         WHERE run_id = ? AND block_rank IS NULL
+                         LIMIT ' . self::CHUNK . '
+                 )
             ', [$runId]);
             $total += $n;
             if ($progress !== null && $n > 0) {

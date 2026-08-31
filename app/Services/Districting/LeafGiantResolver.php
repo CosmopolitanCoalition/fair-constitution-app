@@ -6,6 +6,7 @@ use App\Domain\Engine\ConstitutionalEngine;
 use App\Models\User;
 use App\Services\ConstitutionalDefaults;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 use RuntimeException;
 
 /**
@@ -240,7 +241,7 @@ class LeafGiantResolver
         // one-fragment rule against a concave boundary) retires its partial
         // set and the next template tries; only when every template has
         // refused at either stage does the scope land on the review list.
-        $order = array_values(array_unique(array_merge([$template], SubdivisionAutoseedService::TEMPLATES)));
+        $order = $this->ladderOrder($scopeId, $ctx, $template);
         $first = null;
         foreach ($order as $i => $tpl) {
             try {
@@ -253,9 +254,11 @@ class LeafGiantResolver
                 // to M disjoint parts") over the shortest template's honest
                 // NoContiguousCut — an entire review class was misdiagnosed
                 // behind that mask during run 6.
+                Log::info('ladder template refused (plan)', ['scope' => $scopeId, 'template' => $tpl, 'error' => $e->getMessage()]);
                 $first ??= $e;
                 continue;
             } catch (RuntimeException $e) {
+                Log::info('ladder template refused (runtime)', ['scope' => $scopeId, 'template' => $tpl, 'error' => $e->getMessage()]);
                 $first ??= new PlanRefused($e->getMessage(), previous: $e);
                 continue;
             }
@@ -347,6 +350,38 @@ class LeafGiantResolver
     }
 
     /**
+     * Ladder order for an autoseed (fallback-allowed) attempt.
+     *
+     * ARCHIPELAGO CLASS (operator order 2026-08-31, the New Caledonia
+     * grind): when the scope's polygon PART COUNT exceeds its seat budget,
+     * every straight-cut side must hold multiple parts, so the cutting
+     * templates cannot land a one-fragment side and burn their full search
+     * before refusing. The MASK template — blade by population arithmetic,
+     * parts assigned to sides by sign, census by aggregation — is the only
+     * method whose acceptance rule matches that geometry, so it leads.
+     * The class is detected from geometry features only.
+     */
+    private function ladderOrder(string $scopeId, array $ctx, string $template): array
+    {
+        $order = array_values(array_unique(array_merge([$template], SubdivisionAutoseedService::TEMPLATES)));
+
+        $budget = (int) ($ctx['budget'] ?? 0);
+        if ($budget > 0) {
+            $parts = (int) DB::table('jurisdictions')
+                ->where('id', $scopeId)
+                ->value(DB::raw('ST_NumGeometries(ST_CollectionExtract(geom, 3))'));
+            if ($parts > $budget) {
+                $order = array_values(array_unique(array_merge(
+                    [SubdivisionAutoseedService::TEMPLATE_MASK],
+                    $order,
+                )));
+            }
+        }
+
+        return $order;
+    }
+
+    /**
      * Try the requested template; when $allowFallback and it refuses, walk
      * the remaining templates in registry order (shortest → vertical_strips
      * → horizontal_strips → community_cells) and take the first that plans.
@@ -358,7 +393,9 @@ class LeafGiantResolver
      */
     public function planWithFallback(string $scopeId, array $ctx, int $year, string $template, bool $allowFallback): array
     {
-        $order = array_values(array_unique(array_merge([$template], SubdivisionAutoseedService::TEMPLATES)));
+        $order = $allowFallback
+            ? $this->ladderOrder($scopeId, $ctx, $template)
+            : array_values(array_unique(array_merge([$template], SubdivisionAutoseedService::TEMPLATES)));
         $last  = null;
 
         foreach ($order as $i => $tpl) {

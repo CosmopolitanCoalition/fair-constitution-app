@@ -575,7 +575,24 @@ class PopulationRaster
 
     public function gridWithFallback(string $scopeId, int $year = 2023): array
     {
-        return match ($this->basis($scopeId, $year)) {
+        // THE GRID LOADS ONCE (operator map read 2026-08-31, the New
+        // Caledonia 218-second grid): basis() computed the full pixel grid
+        // and kept only its classification string, so every
+        // gridWithFallback call re-ran the tile clip — twice per plan()
+        // (basis + branch), once more per template rung in the ladder. The
+        // grid is deterministic per (scope, year); it loads once and every
+        // rung reads the memo. Bounded to the last few scopes so a
+        // long-lived worker's memory stays flat.
+        static $memo = [];
+        $key = "{$scopeId}.{$year}";
+        if (isset($memo[$key])) {
+            return $memo[$key];
+        }
+        if (count($memo) >= 4) {
+            array_shift($memo);
+        }
+
+        return $memo[$key] = match ($this->basis($scopeId, $year)) {
             'raster'   => $this->pixelGrid($scopeId, $year),
             'subpixel' => (function () use ($scopeId, $year) {
                 [$sx, $sy] = $this->tileScale($scopeId, $year);

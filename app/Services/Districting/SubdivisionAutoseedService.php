@@ -251,10 +251,20 @@ class SubdivisionAutoseedService
         $mainPartIdx = count($comps) === 1 ? (int) $comps[0]->idx : 0;
         $islands = [];
         if ($template === self::TEMPLATE_MASK) {
-            // MASK MODE: no island partition at all. The whole dissolved
-            // scope is the blade's region, every pixel keeps its own sign,
-            // and the leaf assembly clips against ALL parts (sentinel -1).
+            // MASK MODE — THE BOX IS WHAT GETS SLICED (operator order
+            // 2026-08-31, "draw a giant mask and slice up the circle"):
+            // the recursion's region is the scope's expanded ENVELOPE, a
+            // five-vertex polygon. Every cut halves that convex cell in
+            // pure PHP arithmetic (splitCellMask) — no coastline geometry
+            // is touched per cut. Land enters exactly once, at the leaf
+            // assembly, which already intersects the leaf cell against
+            // ALL dissolved parts (sentinel -1). Population accounting is
+            // pixel-sign throughout, unchanged.
             $mainPartIdx = -1;
+            $mainlandGj = (string) DB::selectOne(
+                'SELECT ST_AsGeoJSON(ST_Expand(ST_Envelope(geom), 0.05), 15) AS gj FROM jurisdictions WHERE id = ?',
+                [$scopeId]
+            )->gj;
         } elseif (count($comps) > 1) {
             // Partition the grid across ALL parts first (boundary-ambiguous
             // cells stay with the largest-area part, as ever) …
@@ -1393,6 +1403,15 @@ class SubdivisionAutoseedService
                     ];
                 }
 
+                // MASK MODE scores nothing: every blade halves the convex
+                // cell, so the first pixel-balanced candidate wins. The
+                // blade's land-length is meaningless against a box.
+                if ($template === self::TEMPLATE_MASK) {
+                    foreach ($candidates as &$cand) {
+                        $cand['len'] = (float) $cand['i'];
+                    }
+                    unset($cand);
+                } else {
                 // In-region blade length summed over bbox-hit PARTS (gist
                 // index) — identical to intersecting the whole region
                 // (parts partition it) without touching untouched islands.
@@ -1413,11 +1432,12 @@ class SubdivisionAutoseedService
                     $cand['len'] = (float) ($row->len ?? 0.0);
                 }
                 unset($cand);
+                }
                 usort($candidates, fn (array $a, array $b) => $a['len'] <=> $b['len'] ?: $a['i'] <=> $b['i']);
 
                 foreach ($candidates as $cand) {
                     if ($template === self::TEMPLATE_MASK) {
-                        $sides = $this->splitRegionMask($regionGj, $cand, $lon0, $lat0, $cosLat);
+                        $sides = $this->splitCellMask($regionGj, $cand, $lon0, $lat0, $cosLat);
                     } else {
                         $sides = $absorb
                             ? $this->splitRegionAbsorb($regionGj, $cand, $lon0, $lat0, $cosLat)
@@ -1561,6 +1581,14 @@ class SubdivisionAutoseedService
     {
         [$ax, $ay, $bx, $by] = $cand['blade'];
 
+        // LOSERS DIE ON THE COUNT (operator recycle 2026-08-31, the New
+        // Caledonia 65-second candidate): "each side one polygon" is a
+        // PIECE COUNT — one piece per side IS one polygon per side, no
+        // union needed, and a failing candidate (three bay fragments on a
+        // ragged coast) refuses without ever unioning or serializing its
+        // multi-megabyte sides. Acceptance is byte-identical: the winning
+        // sides each hold exactly one piece, and that piece is what the
+        // union used to return.
         $rows = DB::select(
             "WITH r AS (SELECT g FROM cga_region_cache WHERE k = :gj),
                   blade AS (SELECT ST_SetSRID(ST_MakeLine(ST_MakePoint(:ax, :ay), ST_MakePoint(:bx, :by)), 4326) AS l),
@@ -1575,8 +1603,8 @@ class SubdivisionAutoseedService
                         FROM parts
                   )
              SELECT side,
-                    ST_AsGeoJSON(ST_Union(piece), 15) AS gj,
-                    ST_NumGeometries(ST_Multi(ST_Union(piece))) AS parts
+                    count(*) AS parts,
+                    CASE WHEN count(*) = 1 THEN max(ST_AsGeoJSON(piece, 15)) END AS gj
                FROM sided GROUP BY side ORDER BY side",
             [
                 'gj' => $this->regionRef($regionGj), 'ax' => $ax, 'ay' => $ay, 'bx' => $bx, 'by' => $by,
@@ -1590,13 +1618,73 @@ class SubdivisionAutoseedService
         }
         $out = [];
         foreach ($rows as $row) {
-            if ((int) $row->parts !== 1) {
+            if ((int) $row->parts !== 1 || $row->gj === null) {
                 return null;                   // a stranded fragment — side not contiguous
             }
             $out[$row->side] = $row->gj;
         }
 
         return isset($out['a'], $out['b']) ? $out : null;
+    }
+
+    /**
+     * THE CELL SPLITTER (operator order 2026-08-31, "slice up the circle,
+     * then remove the mask"). Mask-mode regions are convex cells descended
+     * from the scope's envelope, so a blade cut is a convex polygon halved
+     * by a line — pure PHP arithmetic (Sutherland–Hodgman against each
+     * half-plane), no database, microseconds. Population stays pixel-sign
+     * as ever; land is only touched at the leaf assembly's single
+     * intersection per district, and legality is proven there by the
+     * filing handler's own census.
+     *
+     * @return array{a: string, b: string}|null
+     */
+    private function splitCellMask(string $regionGj, array $cand, float $lon0, float $lat0, float $cosLat): ?array
+    {
+        $poly = json_decode($regionGj, true);
+        $ring = $poly['coordinates'][0] ?? null;
+        if (($poly['type'] ?? '') !== 'Polygon' || ! is_array($ring) || count($ring) < 4) {
+            return null;
+        }
+
+        $f = fn (array $p): float => $cand['nx'] * (($p[0] - $lon0) * $cosLat) + $cand['ny'] * ($p[1] - $lat0) - $cand['c'];
+
+        $clip = function (bool $keepNegative) use ($ring, $f): ?array {
+            $out = [];
+            $n = count($ring) - 1;             // ring is closed; walk open edges
+            for ($i = 0; $i < $n; $i++) {
+                $cur = $ring[$i];
+                $nxt = $ring[$i + 1];
+                $fc = $f($cur);
+                $fn = $f($nxt);
+                $curIn = $keepNegative ? $fc < 0 : $fc >= 0;
+                $nxtIn = $keepNegative ? $fn < 0 : $fn >= 0;
+                if ($curIn) {
+                    $out[] = $cur;
+                }
+                if ($curIn !== $nxtIn && abs($fn - $fc) > 1e-30) {
+                    $t = $fc / ($fc - $fn);
+                    $out[] = [$cur[0] + $t * ($nxt[0] - $cur[0]), $cur[1] + $t * ($nxt[1] - $cur[1])];
+                }
+            }
+            if (count($out) < 3) {
+                return null;
+            }
+            $out[] = $out[0];
+
+            return $out;
+        };
+
+        $a = $clip(true);
+        $b = $clip(false);
+        if ($a === null || $b === null) {
+            return null;
+        }
+
+        return [
+            'a' => json_encode(['type' => 'Polygon', 'coordinates' => [$a]]),
+            'b' => json_encode(['type' => 'Polygon', 'coordinates' => [$b]]),
+        ];
     }
 
     /**

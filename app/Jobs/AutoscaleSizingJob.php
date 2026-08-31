@@ -333,6 +333,14 @@ class AutoscaleSizingJob implements ShouldQueue
             $this->heartbeat($run);
         });
 
+        // B3b — THE BLOCK ORDER STAMP (operator ruling 2026-08-31): every
+        // item carries its block key; the claim serves the lowest unfinished
+        // block only, composites biggest-first, leaves smallest-first.
+        \App\Support\AutoscaleEnumeration::stampBlockOrder((string) $run->id, function (int $n) use ($run) {
+            Log::info('Autoscale sizing: block order stamped', ['run_id' => $run->id, 'count' => $n]);
+            $this->heartbeat($run);
+        });
+
         // B4 — one ROOT SCOPE per open sweep item (chunked): the seed of the
         // incremental giant-cascade materialization. Children scopes are
         // minted by each completing scope (the one-frame law forbids
