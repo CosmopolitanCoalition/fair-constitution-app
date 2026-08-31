@@ -367,7 +367,7 @@ final class AutoscaleEnumeration
         // in review without recomputing the refusal.
         $ledger = DB::table('apportionment_ledger')
             ->where('legislature_id', (string) $item->legislature_id)
-            ->where('status', 'done')
+            ->where('compute_status', 'done')
             ->first();
         if ($ledger !== null && (int) $ledger->head_seats === $rootBudget) {
             if ($ledger->gate_reason !== null) {
@@ -510,7 +510,7 @@ final class AutoscaleEnumeration
             DB::statement("
                 INSERT INTO apportionment_ledger
                     (legislature_id, jurisdiction_id, population, head_seats,
-                     scope_count, gate_reason, status, claim_token, computed_at,
+                     scope_count, gate_reason, compute_status, claim_token, computed_at,
                      created_at, updated_at)
                 VALUES (?, ?, ?, ?, ?, ?, 'done', NULL, now(), now(), now())
                     ON CONFLICT (legislature_id)
@@ -518,7 +518,7 @@ final class AutoscaleEnumeration
                                   head_seats = EXCLUDED.head_seats,
                                   scope_count = EXCLUDED.scope_count,
                                   gate_reason = EXCLUDED.gate_reason,
-                                  status = 'done', claim_token = NULL,
+                                  compute_status = 'done', claim_token = NULL,
                                   computed_at = now(), updated_at = now()
             ", [
                 $legislatureId, $jurisdictionId, $pop, $head,
@@ -551,7 +551,7 @@ final class AutoscaleEnumeration
         do {
             $n = DB::affectingStatement("
                 INSERT INTO apportionment_ledger
-                    (legislature_id, jurisdiction_id, population, status, created_at, updated_at)
+                    (legislature_id, jurisdiction_id, population, compute_status, created_at, updated_at)
                 SELECT l.id, l.jurisdiction_id, COALESCE(j.population, 0), 'pending', now(), now()
                   FROM legislatures l
                   JOIN jurisdictions j ON j.id = l.jurisdiction_id AND j.deleted_at IS NULL
@@ -571,10 +571,10 @@ final class AutoscaleEnumeration
         // Stale rows re-open: population moved under a computed ledger.
         $total += DB::update("
             UPDATE apportionment_ledger al
-               SET status = 'pending', claim_token = NULL, updated_at = now()
+               SET compute_status = 'pending', claim_token = NULL, updated_at = now()
               FROM jurisdictions j
              WHERE j.id = al.jurisdiction_id
-               AND al.status = 'done'
+               AND al.compute_status = 'done'
                AND al.population IS DISTINCT FROM COALESCE(j.population, 0)
         ");
 
@@ -590,10 +590,10 @@ final class AutoscaleEnumeration
     {
         $row = DB::selectOne("
             UPDATE apportionment_ledger
-               SET status = 'running', claim_token = ?, updated_at = now()
+               SET compute_status = 'running', claim_token = ?, updated_at = now()
              WHERE legislature_id = (
                    SELECT legislature_id FROM apportionment_ledger
-                    WHERE status = 'pending'
+                    WHERE compute_status = 'pending'
                     ORDER BY population DESC
                     LIMIT 1
                     FOR UPDATE SKIP LOCKED
@@ -614,7 +614,7 @@ final class AutoscaleEnumeration
                 DB::rollBack();
             }
             DB::table('apportionment_ledger')->where('legislature_id', (string) $row->legislature_id)->update([
-                'status' => 'failed', 'gate_reason' => mb_substr('compute failed: ' . $e->getMessage(), 0, 1000),
+                'compute_status' => 'failed', 'gate_reason' => mb_substr('compute failed: ' . $e->getMessage(), 0, 1000),
                 'claim_token' => null, 'updated_at' => now(),
             ]);
         }

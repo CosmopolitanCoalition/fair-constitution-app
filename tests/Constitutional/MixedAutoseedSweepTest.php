@@ -192,7 +192,13 @@ class MixedAutoseedSweepTest extends TestCase
             // rows with the null actor, never the initiating operator. The
             // R-08 gate still binds HUMAN draws through the Phase H
             // endpoints.
-            $elbRows = DB::table('audit_log')->where('ref', 'F-ELB-008')->get(['actor_user_id']);
+            // Scoped to THIS test's legislature: the suite runs on a live
+            // box whose audit log holds real operator hand-draw filings
+            // (actor-bearing, lawful) — only the fixture's own rows pin.
+            $elbRows = DB::table('audit_log')
+                ->where('ref', 'F-ELB-008')
+                ->where('payload->legislature_id', $ctx['legislature_id'])
+                ->get(['actor_user_id']);
             $this->assertGreaterThanOrEqual(2, $elbRows->count(),
                 'each line-split district leaves a hash-chained F-ELB-008 entry');
             foreach ($elbRows as $row) {
@@ -256,7 +262,12 @@ class MixedAutoseedSweepTest extends TestCase
             $this->assertCount(2, $drawn, 'the giant line-splits through the system path');
             $this->assertSame(11, (int) $drawn->sum('seats'), 'drawn seats must equal the giant budget');
 
-            $elbRows = DB::table('audit_log')->where('ref', 'F-ELB-008')->get(['actor_user_id']);
+            // Scoped to this fixture's legislature (live-box audit logs hold
+            // real actor-bearing hand-draw filings — lawful, out of scope).
+            $elbRows = DB::table('audit_log')
+                ->where('ref', 'F-ELB-008')
+                ->where('payload->legislature_id', $ctx['legislature_id'])
+                ->get(['actor_user_id']);
             foreach ($elbRows as $row) {
                 $this->assertNull($row->actor_user_id, 'system filings carry the null actor');
             }

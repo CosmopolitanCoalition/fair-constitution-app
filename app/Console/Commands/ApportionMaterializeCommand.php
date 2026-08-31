@@ -23,7 +23,7 @@ class ApportionMaterializeCommand extends Command
     public function handle(): int
     {
         $seeded = AutoscaleEnumeration::seedApportionmentWorklist();
-        $pending = (int) DB::table('apportionment_ledger')->where('status', 'pending')->count();
+        $pending = (int) DB::table('apportionment_ledger')->where('compute_status', 'pending')->count();
         $this->info("Worklist seeded: {$seeded} new/stale; {$pending} pending total.");
 
         if (! $this->option('inline')) {
@@ -48,8 +48,8 @@ class ApportionMaterializeCommand extends Command
                 $this->info(sprintf('  %d/%d computed · %.1f/s · ~%dm %ds left', $done, $pending, $rate, intdiv($left, 60), $left % 60));
             }
         }
-        $refused = (int) DB::table('apportionment_ledger')->whereNotNull('gate_reason')->where('status', 'done')->count();
-        $failed  = (int) DB::table('apportionment_ledger')->where('status', 'failed')->count();
+        $refused = (int) DB::table('apportionment_ledger')->whereNotNull('gate_reason')->where('compute_status', 'done')->count();
+        $failed  = (int) DB::table('apportionment_ledger')->where('compute_status', 'failed')->count();
         $this->info("Drained: {$done} computed in " . (time() - $t0) . "s. Gate refusals: {$refused}. Compute failures: {$failed}.");
 
         return self::SUCCESS;
