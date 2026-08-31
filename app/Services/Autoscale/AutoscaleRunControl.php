@@ -87,7 +87,15 @@ class AutoscaleRunControl
             $run->forceFill(['status' => 'mapping', 'finished_at' => null])->save();
         }
 
-        $run->forceFill(['halt_requested_at' => null])->save();
+        // THE FRESH CLOCK (operator rule 2026-08-31, "reset to 0 before
+        // starting so I can gauge proper time"): a zero-progress run is a
+        // fresh benchmark — its clock stamps at the GO, not at the reset.
+        // A mid-run resume (progress exists) keeps its original start.
+        $fresh = (int) $run->sweeps_done === 0 && (int) $run->singles_done === 0;
+        $run->forceFill([
+            'halt_requested_at'  => null,
+            'mapping_started_at' => $fresh ? now() : $run->mapping_started_at,
+        ])->save();
         Artisan::call('autoscale:pump');
 
         return ['ok' => true, 'run_id' => (string) $run->id];
