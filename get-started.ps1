@@ -347,8 +347,11 @@ function Configure-HostMemory {
         PG_MAX_PARALLEL_WORKERS = (Clamp ($cores / 2.0) 2 32).ToString()
         PG_PARALLEL_PER_GATHER  = (Clamp ($cores / 6.0) 1 4).ToString()
         PG_PARALLEL_MAINTENANCE = (Clamp ($cores / 4.0) 1 8).ToString()
-        # The queue redis (noeviction) sizes from the host.
-        REDIS_QUEUE_MAXMEMORY   = (Clamp ($totalMb / 40.0) 128 1024).ToString() + 'mb'
+        # The queue redis (volatile-ttl: TTL'd horizon metadata self-trims,
+        # queue payloads never evict) sizes from the host — host/20 since
+        # the 2026-09-01 OOM (host/40 could not hold a planet run's
+        # failure archive for even a day).
+        REDIS_QUEUE_MAXMEMORY   = (Clamp ($totalMb / 20.0) 192 512).ToString() + 'mb'
         PG_AUTOVACUUM_COST_LIMIT = (Clamp (200 * $cores / 2.0) 200 2000).ToString()
     }
 

@@ -115,8 +115,14 @@ return [
         'recent' => 60,
         'pending' => 60,
         'completed' => 60,
-        'recent_failed' => 10080,
-        'failed' => 10080,
+        // 24h failed retention (operator order 2026-09-01, the queue-redis
+        // OOM): a planet run's halt-era failures carry ~20KB traces each and
+        // 7 days of them overflowed the queue redis (9,089 records = 190MB,
+        // every write refused, the app 500'd). Failures are triaged
+        // same-day; the DURABLE record is the ledger's review rows in
+        // postgres, never redis traces.
+        'recent_failed' => 1440,
+        'failed' => 1440,
         'monitored' => 10080,
     ],
 

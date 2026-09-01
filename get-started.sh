@@ -271,9 +271,12 @@ configure_host_memory() {
   write_derived PG_MAX_PARALLEL_WORKERS  "$(clamp $(( cores / 2 )) 2 32)"
   write_derived PG_PARALLEL_PER_GATHER   "$(clamp $(( cores / 6 )) 1 4)"
   write_derived PG_PARALLEL_MAINTENANCE  "$(clamp $(( cores / 4 )) 1 8)"
-  # The queue redis (noeviction) sizes from the host; the split itself is
-  # host-independent wiring, written once, never rederived.
-  write_derived REDIS_QUEUE_MAXMEMORY "$(clamp $(( total_mb / 40 )) 128 1024)mb"
+  # The queue redis (volatile-ttl: TTL'd horizon metadata self-trims, the
+  # untouched-TTL queue payloads never evict) sizes from the host — host/20
+  # since the 2026-09-01 OOM (host/40 = 192mb could not hold one day's
+  # failure archive on a planet run); the split itself is host-independent
+  # wiring, written once, never rederived.
+  write_derived REDIS_QUEUE_MAXMEMORY "$(clamp $(( total_mb / 20 )) 192 512)mb"
   write_derived PG_AUTOVACUUM_COST_LIMIT "$(clamp $(( 200 * cores / 2 )) 200 2000)"
   [ -n "$(get_env REDIS_QUEUE_HOST)" ] || set_env REDIS_QUEUE_HOST redis_queue
   set_env DERIVED_KEYS "$ledger"

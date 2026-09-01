@@ -358,7 +358,13 @@ services:
     image: redis:7.4-alpine
     container_name: ${CONTAINER_PREFIX:-fc}_redis_queue
     restart: unless-stopped
-    command: redis-server --appendonly yes --maxmemory ${REDIS_QUEUE_MAXMEMORY:-192mb} --maxmemory-policy noeviction
+    # volatile-ttl (operator order 2026-09-01, the queue-redis OOM): queue
+    # payloads carry NO TTL and are never evicted — they keep noeviction-
+    # grade safety. Horizon's metadata (failure traces, dashboard records)
+    # is TTL'd by the trim windows; under memory pressure the oldest-
+    # expiring metadata sheds first, so the archive is a self-trimming
+    # ring and a metadata flood can never block the queue or the app.
+    command: redis-server --appendonly yes --maxmemory ${REDIS_QUEUE_MAXMEMORY:-192mb} --maxmemory-policy volatile-ttl
     volumes:
       - redis_queue_data:/data
     networks:
