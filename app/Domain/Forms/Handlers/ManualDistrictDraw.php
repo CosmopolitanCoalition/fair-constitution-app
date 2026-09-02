@@ -282,11 +282,9 @@ class ManualDistrictDraw implements FormHandler
         $planTotal = (int) ($payload['plan_total_pop'] ?? 0);
         $plannedSeatsEarly = $payload['planned_seats'] ?? null;
         if (is_int($plannedSeatsEarly) && $planPop > 0 && $planTotal > 0) {
-            if (abs($pop - $planPop) > max(1, (int) round(0.02 * $planPop))) {
-                \Illuminate\Support\Facades\Log::info('district filing: polygon re-measurement differs from the plan partition (plan recorded)', [
-                    'scope_id' => $scopeId, 'plan_pop' => $planPop, 'measured_pop' => $pop, 'source' => $popSource,
-                ]);
-            }
+            // No log (operator, 2026-09-02): the polygon re-measurement is
+            // known to drop coastal cell centers; its disagreement carries
+            // no information. The plan's partition is the record.
             // The source stays the raster basis the plan partitioned (the
             // subdivisions table's CHECK constraint names the bases).
             $pop = $planPop;
