@@ -105,33 +105,16 @@ final class AutoscaleClaims
             }
         }
 
-        $singlesBlock = DB::scalar("
-            SELECT MIN(block_rank) FROM apportionment_ledger
-             WHERE kind = 'single' AND map_status = 'pending' AND block_rank IS NOT NULL
-        ");
-        // THE LOWEST PENDING DRAWN SCOPE (operator catch 2026-09-02, the
-        // starved county trivials): the block question is answered by ONE
-        // index pop on (status, walk_position) — the head of the pending
-        // pile — never by a join over it and never by headers, because a
-        // header held open by a running or failed straggler kept its whole
-        // block "open" while its trivials starved and lanes spilled forward.
-        $scopeBlock = DB::scalar("
-            SELECT h.block_rank
-              FROM apportionment_ledger_scopes s
-              JOIN apportionment_ledger h ON h.legislature_id = s.legislature_id
-             WHERE s.status = 'pending'
-             ORDER BY s.walk_position ASC NULLS LAST
-             LIMIT 1
-        ");
-
-        // TRIVIALS LEAD THEIR BLOCK (operator order 2026-09-02: a leaf block
-        // is population ascending and the one-district maps are its smallest
-        // members, so they seat FIRST — at or below the lowest pending drawn
-        // block, never strictly below it).
-        if ($singlesBlock !== null && ($scopeBlock === null || (int) $singlesBlock <= (int) $scopeBlock)) {
-            if ($claim = static::claimSingles($run, $token, (int) $singlesBlock)) {
-                return $claim;
-            }
+        // TRIVIALS FIRST, ALL OF THEM (operator ruling 2026-09-02): a
+        // one-district map has nothing to draw, so the trivials are their
+        // own block at the very top of the order — seated set-based, 15,000
+        // per claim, before any drawn scope. The singles rung is capped at a
+        // few concurrent claimants (claimSingles), so the remaining lanes
+        // fall through to the drawn-scope pile and nobody idles. This
+        // replaces the block comparison that glued two number lines
+        // together and starved the county trivials behind one straggler.
+        if ($claim = static::claimSingles($run, $token, null)) {
+            return $claim;
         }
         if ($claim = static::claimScope($run, $token, $lane)) {
             return $claim;
@@ -144,9 +127,6 @@ final class AutoscaleClaims
         }
         // LANES NEVER IDLE (lane law): singles from their lowest block as
         // the final fallthrough.
-        if ($claim = static::claimSingles($run, $token, $singlesBlock !== null ? (int) $singlesBlock : null)) {
-            return $claim;
-        }
 
         return null;
     }
@@ -216,7 +196,11 @@ final class AutoscaleClaims
             return null;
         }
 
-        $cap = (int) config('cga.autoscale_singles_workers', 4);
+        // ALL LANES (operator ruling 2026-09-02): trivials are the top block
+        // and every lane seats them until none remain; the old cap of 4
+        // existed for a DB-bound tail that no longer exists at the top.
+        // A config value still overrides when set.
+        $cap = (int) (config('cga.autoscale_singles_workers') ?: HostCapacity::autoscaleWorkers());
         $active = (int) DB::table('apportionment_ledger')
             ->where('kind', 'single')
             ->where('map_status', 'running')
