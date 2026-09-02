@@ -134,10 +134,17 @@ final class AutoscaleClaims
     /** Any demanded (priority-stamped) map still holding a pending scope? */
     public static function priorityPending(AutoscaleRun $run): bool
     {
-        return DB::table('apportionment_ledger_scopes AS s')
-            ->join('apportionment_ledger AS h', 'h.legislature_id', '=', 's.legislature_id')
-            ->where('s.status', 'pending')
+        // Headers first (lane-time audit 2026-09-02): the priority headers
+        // are a handful under al_priority_idx; the old scopes-first join
+        // walked every pending scope on the planet (3 s per call).
+        return DB::table('apportionment_ledger AS h')
             ->whereNotNull('h.priority_at')
+            ->whereIn('h.map_status', ['pending', 'running'])
+            ->whereExists(function ($q) {
+                $q->selectRaw('1')->from('apportionment_ledger_scopes AS s')
+                  ->whereColumn('s.legislature_id', 'h.legislature_id')
+                  ->where('s.status', 'pending');
+            })
             ->exists();
     }
 
