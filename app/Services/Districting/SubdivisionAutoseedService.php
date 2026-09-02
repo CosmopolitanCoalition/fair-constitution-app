@@ -1923,38 +1923,62 @@ class SubdivisionAutoseedService
      * precomputed — the mask splitter's per-candidate work then touches
      * only blade-crossed parts.
      */
+    /** Session-once DDL for the region-parts scratch tables (leaf audit 2026-09-02). */
+    private bool $regionPartsDdlDone = false;
+
+    /** Landmass count per scope, so a one-landmass scope skips the per-part ST_Covers. */
+    private array $landmassCount = [];
+
     private function regionPartsRef(string $regionGj): string
     {
         $k = $this->regionRef($regionGj);
-        DB::statement('CREATE TEMP TABLE IF NOT EXISTS cga_scope_landmasses
-                       (scope text, id serial, g geometry, area float8)');
-        DB::statement('CREATE TEMP TABLE IF NOT EXISTS cga_region_parts
-                       (k text, seq int, g geometry, px float8, py float8,
-                        lm int, area float8, PRIMARY KEY (k, seq))');
-        DB::statement('CREATE INDEX IF NOT EXISTS cga_region_parts_gix
-                       ON cga_region_parts USING gist (g)');
+        // THE REGION-PARTS BUILD (leaf audit 2026-09-02: 46% of lane SQL time
+        // on one-second leaf scopes). Three cuts, same rows out:
+        //  1. the scratch-table DDL runs once per session, not per candidate
+        //     (regionPartsRef is called inside the blade-candidate loop);
+        //  2. ST_PointOnSurface runs once per part, not twice (X and Y);
+        //  3. a scope with a single dissolved landmass skips the per-part
+        //     ST_Covers: every part belongs to that landmass.
+        if (! $this->regionPartsDdlDone) {
+            DB::statement('CREATE TEMP TABLE IF NOT EXISTS cga_scope_landmasses
+                           (scope text, id serial, g geometry, area float8)');
+            DB::statement('CREATE TEMP TABLE IF NOT EXISTS cga_region_parts
+                           (k text, seq int, g geometry, px float8, py float8,
+                            lm int, area float8, PRIMARY KEY (k, seq))');
+            DB::statement('CREATE INDEX IF NOT EXISTS cga_region_parts_gix
+                           ON cga_region_parts USING gist (g)');
+            $this->regionPartsDdlDone = true;
+        }
         if (DB::selectOne('SELECT 1 AS x FROM cga_region_parts WHERE k = ? LIMIT 1', [$k]) === null) {
+            $scope = $this->maskScopeId ?? '';
+            if (! array_key_exists($scope, $this->landmassCount)) {
+                $this->landmassCount[$scope] = (int) DB::scalar(
+                    'SELECT count(*) FROM cga_scope_landmasses WHERE scope = ?', [$scope]
+                );
+            }
             // Each part carries its landmass id (which dissolved landmass
             // its point-on-surface falls in; -1 = ribbon-class residue the
             // census ignores) and its planar area — the per-candidate
             // census then needs NO geometry at all for untouched parts.
+            $lmExpr = $this->landmassCount[$scope] === 1
+                ? '(SELECT lm.id FROM cga_scope_landmasses lm WHERE lm.scope = ? LIMIT 1)'
+                : '(SELECT lm.id FROM cga_scope_landmasses lm
+                     WHERE lm.scope = ?
+                       AND lm.g && d.geom
+                       AND ST_Covers(lm.g, pp.p)
+                     LIMIT 1)';
             DB::statement(
-                'INSERT INTO cga_region_parts (k, seq, g, px, py, lm, area)
+                "INSERT INTO cga_region_parts (k, seq, g, px, py, lm, area)
                  SELECT c.k, d.path[1], d.geom,
-                        pos.x, pos.y,
-                        COALESCE((SELECT lm.id FROM cga_scope_landmasses lm
-                                   WHERE lm.scope = ?
-                                     AND lm.g && d.geom
-                                     AND ST_Covers(lm.g, ST_SetSRID(ST_MakePoint(pos.x, pos.y), 4326))
-                                   LIMIT 1), -1),
+                        ST_X(pp.p), ST_Y(pp.p),
+                        COALESCE({$lmExpr}, -1),
                         ST_Area(d.geom)
                    FROM cga_region_cache c,
                         LATERAL ST_Dump(ST_Multi(c.g)) d,
-                        LATERAL (SELECT ST_X(ST_PointOnSurface(d.geom)) AS x,
-                                        ST_Y(ST_PointOnSurface(d.geom)) AS y) pos
+                        LATERAL (SELECT ST_PointOnSurface(d.geom) AS p) pp
                   WHERE c.k = ?
-                     ON CONFLICT (k, seq) DO NOTHING',
-                [$this->maskScopeId ?? '', $k]
+                     ON CONFLICT (k, seq) DO NOTHING",
+                [$scope, $k]
             );
         }
 
