@@ -95,6 +95,20 @@ class PopulationRaster
             $areaKm2 <= 300000.0 => 0.02,    // ~2 km cells (childless giant states)
             default              => 0.05,    // ~5 km cells (continental-class)
         };
+
+        // SPARSE SCOPES PLAN ON REAL PIXELS (operator ruling 2026-09-02, the
+        // Okhotsky/Kujalleq cuts): the ladder above picks the cell by AREA,
+        // so a 158,000 km² rayon with 5,500 people planned on 2 km bins and
+        // a town a few km wide straddled the cut — 50/50 by bin centers,
+        // 75/25 by people. The planning grid exists for MEMORY, not area:
+        // when the populated-pixel count is small the scope plans at native
+        // 100 m regardless of its size. The count is bounded by the stored
+        // population with a 2x margin (sparse pixels can hold under one
+        // person each), against a budget derived from the PHP memory limit.
+        $storedPop = (int) (DB::table('jurisdictions')->where('id', $scopeId)->value('population') ?? 0);
+        if ($cell !== null && $storedPop > 0 && $storedPop * 2 <= self::planPointBudget()) {
+            $cell = null;
+        }
         $cellKey = $cell === null ? 'native' : rtrim(rtrim(sprintf('%.3f', $cell), '0'), '.');
 
         // v2 key: the cell size is part of the identity, so a rescaled ladder
@@ -833,5 +847,28 @@ class PopulationRaster
         $ceiling = ConstitutionalDefaults::ceiling($jurisdictionId);
 
         return $seats >= $floor && $seats <= $ceiling;
+    }
+
+    /**
+     * How many grid points one plan may hold in memory — derived from the
+     * PHP memory limit (a point is ~3 floats in PHP arrays, budgeted at
+     * ~4 KB each so the 48-angle blade sorts stay in seconds), clamped
+     * [50k, 200k]. Env override: CGA_PLAN_POINT_BUDGET.
+     */
+    public static function planPointBudget(): int
+    {
+        $override = (int) env('CGA_PLAN_POINT_BUDGET', 0);
+        if ($override > 0) {
+            return $override;
+        }
+        $limit = (string) ini_get('memory_limit');
+        $bytes = (float) $limit;
+        $unit = strtolower(substr(trim($limit), -1));
+        $bytes *= match ($unit) { 'g' => 1073741824, 'm' => 1048576, 'k' => 1024, default => 1 };
+        if ($bytes <= 0) {
+            $bytes = 768.0 * 1048576;
+        }
+
+        return (int) max(50000, min(200000, floor($bytes / 4000)));
     }
 }
