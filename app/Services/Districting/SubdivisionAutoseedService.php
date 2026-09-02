@@ -1284,34 +1284,15 @@ class SubdivisionAutoseedService
             // holds more people. Only the TERMINAL 2-way cut gets this
             // fallback; deeper (k>2) nodes keep the original throw so a giant's
             // upper-level balance is never traded away silently.
-            if (count($sizes) !== 2) {
-                throw $e;
-            }
-            $sNode = $seatsA + $seatsB;
-            $alts  = self::lawfulTwoSplitFallback($sNode, $floor, $ceiling, $seatsA);
-
-            $cut = null;
-            foreach ($alts as $a) {
-                try {
-                    $cut    = $this->findBlade($gj, $pixels, $islands, $a, $sNode - $a, $quota, $template);
-                    $aSizes = [$a];
-                    $bSizes = [$sNode - $a];
-                    $seatsA = $a;
-                    $seatsB = $sNode - $a;
-                    break;
-                } catch (NoContiguousCut $inner) {
-                    continue;
-                }
-            }
-            if ($cut === null) {
-                $lo = max($floor, $sNode - $ceiling);
-                $hi = min($ceiling, $sNode - $floor);
-                $tried = implode(', ', array_map(fn (int $a) => "{$a}:" . ($sNode - $a), range($lo, $hi)));
-                throw new NoContiguousCut(
-                    "No contiguous in-band straight cut found for a {$sNode}-seat two-district split "
-                    ."at any lawful sizing ({$tried}) — cut it by hand."
-                );
-            }
+            // THE VECTOR IS LAW (operator ruling 2026-09-02, Kujalleq 9/7 on a
+            // 16 head): the head fixes the seat vector in advance (16 -> 8/8)
+            // and contiguity is a hope, not a gate. Trading the vector for a
+            // contiguous cut (the 2026-07-21 two-split fallback: 9:7 because
+            // 8:8 stranded a fragment) is therefore no longer lawful. The
+            // balanced cut's refusal bubbles; the ladder falls to the box,
+            // which keeps 8/8 and records the parts. lawfulTwoSplitFallback
+            // stays as a pure helper (pinned) but is no longer called here.
+            throw $e;
         }
 
         $cuts[] = [
