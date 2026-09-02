@@ -270,15 +270,15 @@ final class AutoscaleClaims
     {
         $row = DB::selectOne("
             UPDATE apportionment_ledger h
-               SET map_status = 'assessing', claim_token = ?, updated_at = now()
+               SET map_status = 'assessing', claim_token = ?, finalize_ready = false, updated_at = now()
              WHERE h.legislature_id = (
+                   -- THE READY FLAG (window-1 audit 2026-09-02): the old probe
+                   -- re-checked every running header's scopes on every claim;
+                   -- with the leaf pile drawing leaf-giant scopes out of 2,673
+                   -- open composite maps that was 0.3 s and growing. A header
+                   -- is flagged ready by the scope close that empties it.
                    SELECT i.legislature_id FROM apportionment_ledger i
-                    WHERE i.kind = 'sweep' AND i.map_status = 'running'
-                      AND EXISTS (SELECT 1 FROM apportionment_ledger_scopes s
-                                   WHERE s.legislature_id = i.legislature_id)
-                      AND NOT EXISTS (SELECT 1 FROM apportionment_ledger_scopes s
-                                       WHERE s.legislature_id = i.legislature_id
-                                         AND s.status IN ('pending', 'running'))
+                    WHERE i.finalize_ready AND i.kind = 'sweep' AND i.map_status = 'running'
                     ORDER BY i.position
                     LIMIT 1
                     FOR UPDATE SKIP LOCKED

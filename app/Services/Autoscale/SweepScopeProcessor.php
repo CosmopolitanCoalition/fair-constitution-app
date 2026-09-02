@@ -700,6 +700,17 @@ class SweepScopeProcessor
             ->where('map_status', 'pending')
             ->update(['map_status' => 'running', 'started_at' => now(), 'updated_at' => now()]);
 
+        // THE READY FLAG (2026-09-02): true when no scope of this header is
+        // pending or running. claimFinalize pops the flag, never the scopes.
+        DB::update("
+            UPDATE apportionment_ledger h
+               SET finalize_ready = NOT EXISTS (SELECT 1 FROM apportionment_ledger_scopes s
+                                                 WHERE s.legislature_id = h.legislature_id
+                                                   AND s.status IN ('pending', 'running')),
+                   updated_at = now()
+             WHERE h.legislature_id = ? AND h.map_status = 'running'
+        ", [$legislatureId]);
+
         return \App\Models\LedgerHeader::query()->whereKey($legislatureId)
             ->where('map_status', 'running')
             ->exists();

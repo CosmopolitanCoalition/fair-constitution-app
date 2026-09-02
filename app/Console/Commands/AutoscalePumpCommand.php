@@ -164,6 +164,17 @@ class AutoscalePumpCommand extends Command
         // leaving the table. reclaimDeadScopes reads exactly that.
         $scopeReclaim = self::reclaimDeadScopes();
         $reclaimed += $scopeReclaim['reclaimed'];
+        // THE READY FLAG safety net (2026-09-02): a header emptied by a path
+        // that did not call handHeaderToFinalize (a kill, a reclaim park, the
+        // halt reaper) is flagged here, bounded to the running headers.
+        DB::update("
+            UPDATE apportionment_ledger h
+               SET finalize_ready = true, updated_at = now()
+             WHERE h.kind = 'sweep' AND h.map_status = 'running' AND NOT h.finalize_ready
+               AND EXISTS (SELECT 1 FROM apportionment_ledger_scopes s WHERE s.legislature_id = h.legislature_id)
+               AND NOT EXISTS (SELECT 1 FROM apportionment_ledger_scopes s
+                                WHERE s.legislature_id = h.legislature_id AND s.status IN ('pending', 'running'))
+        ");
         $reclaimed += DB::table('apportionment_ledger')
             ->where('kind', 'single')
             ->where('map_status', 'running')
@@ -692,7 +703,7 @@ class AutoscalePumpCommand extends Command
         // returns to running for re-claim on resume.
         $headers = DB::update("
             UPDATE apportionment_ledger h
-               SET map_status = 'running', claim_token = NULL, updated_at = now()
+               SET map_status = 'running', claim_token = NULL, finalize_ready = true, updated_at = now()
              WHERE h.map_status = 'assessing'
         ");
         $headers += DB::update("
