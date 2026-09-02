@@ -160,12 +160,15 @@ class CompositePlannerCostTest extends TestCase
     {
         $body = $this->methodSource(DistrictingService::class, 'runAutoCompositeForScope');
 
-        $this->assertStringContainsString('$kOrder = $this->orderKCandidates($kCandidates, $compBudget, $floor, $ceiling);', $body);
+        $this->assertStringContainsString('? $this->orderKCandidates($kCandidates, $compBudget, $floor, $ceiling)', $body);
+        $this->assertStringContainsString('$fanOutCut = count($component) >= self::FANOUT_CUT_MEMBERS;', $body,
+            'the k order applies only under the fan-out size gate');
         $this->assertStringContainsString('foreach (($adoptLineFirst ? [] : $kOrder) as $k) {', $body,
             'the k-loop iterates the ordered set');
         $this->assertStringNotContainsString('foreach (($adoptLineFirst ? [] : $kCandidates) as $k) {', $body);
         $this->assertStringContainsString('$kMisses = $this->kLoopMisses($kMisses, $incumbentScore, $improved);', $body);
-        $this->assertStringContainsString('if ($kMisses >= self::K_LOOP_MISS_LIMIT) {', $body);
+        $this->assertStringContainsString('if ($fanOutCut && $kMisses >= self::K_LOOP_MISS_LIMIT) {', $body,
+            'the early exit applies only under the fan-out size gate');
 
         // The line-first path keeps the ascending range.
         $this->assertStringContainsString('$this->lineFirstEngaged($component, $adj, $kCandidates, $lfMode)', $body);
@@ -182,16 +185,36 @@ class CompositePlannerCostTest extends TestCase
         $gate = strpos($body, '$phaseBLeads = $bestScoreK !== null');
         $this->assertNotFalse($gate);
         $this->assertStringContainsString('$this->isExactScore($bestScoreK)', substr($body, $gate, 300));
-        $this->assertStringContainsString('if ($quotaPopC > 0 && ! $phaseBLeads) {', $body,
+        $this->assertStringContainsString('if ($quotaPopC > 0 && ! ($fanOutCut && $phaseBLeads)) {', $body,
             'the builders and the bisection sweep run only when Phase B does not already lead with an exact landing');
 
         // Both generators sit inside the gated block.
-        $gatedBlock = substr($body, strpos($body, 'if ($quotaPopC > 0 && ! $phaseBLeads) {'),
-            strpos($body, 'if ($bestBinsK !== null) {') - strpos($body, 'if ($quotaPopC > 0 && ! $phaseBLeads) {'));
+        $gatedBlock = substr($body, strpos($body, 'if ($quotaPopC > 0 && ! ($fanOutCut && $phaseBLeads)) {'),
+            strpos($body, 'if ($bestBinsK !== null) {') - strpos($body, 'if ($quotaPopC > 0 && ! ($fanOutCut && $phaseBLeads)) {'));
         $this->assertStringContainsString('$this->sequentialBuild(', $gatedBlock);
         $this->assertStringContainsString('$this->bisectionCandidates(', $gatedBlock);
         // Phase B itself stays ungated.
         $this->assertLessThan($gate, strpos($body, "\$this->stepEnd(\"phaseB.k{\$k}\");"));
+    }
+
+    /**
+     * THE FAN-OUT SIZE GATE (operator ruling 2026-09-02, the gate27 New York
+     * regression): the k order, the early exit and the builder gate apply only
+     * to components with FANOUT_CUT_MEMBERS or more children; below that the
+     * full search runs as before. One shared cap with the polish passes.
+     */
+    public function test_the_fan_out_cut_applies_only_at_or_above_the_shared_member_cap(): void
+    {
+        $body = $this->methodSource(DistrictingService::class, 'runAutoCompositeForScope');
+        $this->assertStringContainsString('$fanOutCut = count($component) >= self::FANOUT_CUT_MEMBERS;', $body);
+        $this->assertStringContainsString(': array_values($kCandidates);', $body, 'small components keep the ascending range');
+        $this->assertStringContainsString('if ($quotaPopC > 0 && ! ($fanOutCut && $phaseBLeads)) {', $body);
+        $this->assertStringContainsString('if ($fanOutCut && $kMisses >= self::K_LOOP_MISS_LIMIT) {', $body);
+
+        $ref = new \ReflectionClassConstant(DistrictingService::class, 'FANOUT_CUT_MEMBERS');
+        $this->assertSame(150, $ref->getValue());
+        $polish = new \ReflectionClassConstant(DistrictingService::class, 'POLISH_MEMBER_CAP');
+        $this->assertSame($polish->getValue(), $ref->getValue(), 'one member cap shared with the polish passes');
     }
 
     public function test_step12_hands_the_step7_adjacency_to_recompute_and_times_the_write_phase(): void

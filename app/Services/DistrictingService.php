@@ -218,6 +218,19 @@ class DistrictingService
      */
     private const POLISH_MEMBER_CAP = 150;
 
+    /**
+     * THE FAN-OUT SIZE GATE (operator ruling 2026-09-02, the gate27 New York
+     * regression): the k-order, the early exit and the builder gate cut the
+     * Step 8 candidate set to save time, and the time they save exists only
+     * on big components (measured: <50 children 0-1 s, 50-149 children 19 s,
+     * >=150 children 88 s at the median). Below this member count the full
+     * search runs exactly as before (ascending k, every builder, every
+     * bisection candidate): New York's 62 counties lost a 6-district map to
+     * a 5-district one with a non-contiguous district for a saving of
+     * seconds. Shares the polish passes' cap so there is one number.
+     */
+    private const FANOUT_CUT_MEMBERS = self::POLISH_MEMBER_CAP;
+
     /** Ceiling on the 1:1 swap grid per side in hullRepairPass; the pair's size derives the rest. */
     private const HULL_SWAP_CAP = 16;
 
@@ -1192,7 +1205,12 @@ class DistrictingService
             // for one. Candidates reach the variants plane in ascending k
             // order whatever the visit order, so tie resolution there is
             // unchanged. The line-first path keeps the ascending range.
-            $kOrder = $this->orderKCandidates($kCandidates, $compBudget, $floor, $ceiling);
+            // THE FAN-OUT SIZE GATE: see the constant. Small components keep
+            // the ascending range, every generator and no early exit.
+            $fanOutCut = count($component) >= self::FANOUT_CUT_MEMBERS;
+            $kOrder = $fanOutCut
+                ? $this->orderKCandidates($kCandidates, $compBudget, $floor, $ceiling)
+                : array_values($kCandidates);
 
             // One edge cap for every generator on this component (2026-08-09).
             $compEdgeCapSq = $this->componentEdgeCapSq($component, $adj, $centroids);
@@ -1399,7 +1417,7 @@ class DistrictingService
                 $phaseBLeads = $bestScoreK !== null
                     && $this->isExactScore($bestScoreK)
                     && ($incumbentScore === null || $this->scoreBeats($bestScoreK, $incumbentScore));
-                if ($quotaPopC > 0 && ! $phaseBLeads) {
+                if ($quotaPopC > 0 && ! ($fanOutCut && $phaseBLeads)) {
                     $parts = $this->canonicalPartition($compBudget, $k, $floor, $ceiling);
                     if ($parts !== null) {
                         $buildersRan = true;
@@ -1510,7 +1528,7 @@ class DistrictingService
                     $incumbentScore = $bestScoreK;
                 }
                 $kMisses = $this->kLoopMisses($kMisses, $incumbentScore, $improved);
-                if ($kMisses >= self::K_LOOP_MISS_LIMIT) {
+                if ($fanOutCut && $kMisses >= self::K_LOOP_MISS_LIMIT) {
                     \Illuminate\Support\Facades\Log::info('districting pool k-loop early exit', [
                         'legislature_id' => $legislature_id,
                         'scope_id'       => $scopeId,
