@@ -96,7 +96,7 @@ class AutoscaleWorkerJob implements ShouldQueue
      * Tested after every claim AND between the scopes of a batch claim
      * (operator order 2026-09-02) — never mid-scope.
      */
-    private const MEMORY_RECYCLE_BYTES = 480 * 1048576;
+    public const MEMORY_RECYCLE_BYTES = 480 * 1048576;
 
     /** Consecutive claim failures before the worker exits (≈1-min backoff via the pump). */
     private const MAX_CONSECUTIVE_FAILURES = 3;

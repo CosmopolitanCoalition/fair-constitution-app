@@ -384,10 +384,10 @@ function Configure-HostMemory {
         ETL_MEM_LIMIT = $(if ($open) { '0' } else { (Clamp ($budgetMb * $sh.etl / 1000.0) 96 262144).ToString() + 'm' })
         MEM_REDIS_CACHE = $(if ($open) { "${totalMb}m" } else { "${rcMb}m" })
         MEM_REDIS_QUEUE = $(if ($open) { "${totalMb}m" } else { "${rqMb}m" })
-        MEM_MATRIX    = $(if ($open) { "${totalMb}m" } else { ([int]($auxMb * 0.40)).ToString() + 'm' })
-        MEM_SCHEDULER = $(if ($open) { "${totalMb}m" } else { ([int]($auxMb * 0.35)).ToString() + 'm' })
-        MEM_MAS       = $(if ($open) { "${totalMb}m" } else { ([int]($auxMb * 0.17)).ToString() + 'm' })
-        MEM_NGINX     = $(if ($open) { "${totalMb}m" } else { ([int]($auxMb * 0.08)).ToString() + 'm' })
+        MEM_MATRIX    = $(if ($open) { "${totalMb}m" } else { (Clamp ($auxMb * 0.40) 160 4096).ToString() + 'm' })
+        MEM_SCHEDULER = $(if ($open) { "${totalMb}m" } else { (Clamp ($auxMb * 0.35) 96 2048).ToString() + 'm' })
+        MEM_MAS       = $(if ($open) { "${totalMb}m" } else { (Clamp ($auxMb * 0.17) 48 1024).ToString() + 'm' })
+        MEM_NGINX     = $(if ($open) { "${totalMb}m" } else { (Clamp ($auxMb * 0.08) 32 512).ToString() + 'm' })
         REDIS_CACHE_MAXMEMORY = $(if ($open) { (Clamp ($totalMb / 10.0) 768 8192).ToString() + 'mb' } else { ([int]($rcMb * 0.85)).ToString() + 'mb' })
         # Parallel posture: workers=cores, parallel=cores/2, per_gather
         # small (many concurrent lanes beat wide gathers), maintenance=cores/4.
@@ -409,14 +409,24 @@ function Configure-HostMemory {
     # self-evidently derived. Mirrors get-started.sh exactly.
     $ledger = @((Get-EnvValue 'DERIVED_KEYS') -split ',' | Where-Object { $_ -ne '' })
     $ledgerBoot = ($ledger.Count -eq 0)
+    # THE LEDGER BOOT DERIVES EVERYTHING + THE HOST-SIZE RE-DERIVE (WoS
+    # 2026-09-02): before the ledger existed nothing was a pin, so the first
+    # run owns every key; a changed host size re-derives every ledger value.
+    $derived['DERIVED_HOST_MB'] = "$totalMb"
+    $prevHost = Get-EnvValue 'DERIVED_HOST_MB'
+    if ($prevHost -ne '' -and $prevHost -ne "$totalMb" -and -not $Rederive) {
+        $Rederive = $true
+        Say "  host RAM changed ($prevHost -> $totalMb MB): re-deriving every ledger value"
+    }
     $wrote = @()
     foreach ($k in $derived.Keys) {
         $cur = Get-EnvValue $k
         if ($cur -eq '') {
             Set-EnvValue $k $derived[$k]; $wrote += $k
             if ($ledger -notcontains $k) { $ledger += $k }
-        } elseif ($ledgerBoot -and $cur -eq $derived[$k]) {
-            $ledger += $k
+        } elseif ($ledgerBoot) {
+            if ($cur -ne $derived[$k]) { Set-EnvValue $k $derived[$k]; $wrote += $k; Say "      derived ${k}: $cur -> $($derived[$k]) (ledger boot)" }
+            if ($ledger -notcontains $k) { $ledger += $k }
         } elseif ($Rederive -and $ledger -contains $k -and $cur -ne $derived[$k]) {
             Set-EnvValue $k $derived[$k]; $wrote += $k
             Say "      rederived ${k}: $cur -> $($derived[$k])"

@@ -277,11 +277,25 @@ configure_host_memory() {
   in_ledger()  { case ",$ledger," in *",$1,"*) return 0;; *) return 1;; esac; }
   ledger_add() { in_ledger "$1" || ledger="${ledger:+$ledger,}$1"; }
   wrote=0
+  # THE LEDGER BOOT DERIVES EVERYTHING (WoS 2026-09-02): before the ledger
+  # existed no value could have been a pin, so the first run of this
+  # function owns every key it writes. A value left over from the old
+  # 60%-of-host derivation (POSTGRES_MEM_LIMIT 2347m on a 3.9 GB box) was
+  # being kept as if hand-pinned, and the caps summed past the host.
+  # THE HOST-SIZE RE-DERIVE: when the measured host differs from the host
+  # the ledger was derived on (a cloud resize), every ledger key re-derives
+  # without the operator remembering --rederive.
+  prev_host="$(get_env DERIVED_HOST_MB)"
+  if [ -n "$prev_host" ] && [ "$prev_host" != "$total_mb" ] && [ "${REDERIVE:-0}" != "1" ]; then
+    REDERIVE=1
+    say "  host RAM changed (${prev_host} -> ${total_mb} MB): re-deriving every ledger value"
+  fi
   write_derived() { # key fresh-value
     cur="$(get_env "$1")"
     if [ -z "$cur" ]; then
       set_env "$1" "$2"; wrote=1; ledger_add "$1"
-    elif [ "$ledger_boot" -eq 1 ] && [ "$cur" = "$2" ]; then
+    elif [ "$ledger_boot" -eq 1 ]; then
+      [ "$cur" != "$2" ] && { set_env "$1" "$2"; wrote=1; say "      derived $1: $cur -> $2 (ledger boot)"; }
       ledger_add "$1"
     elif [ "${REDERIVE:-0}" = "1" ] && in_ledger "$1" && [ "$cur" != "$2" ]; then
       set_env "$1" "$2"; wrote=1
@@ -293,6 +307,7 @@ configure_host_memory() {
   # buffers must fund the largest single-feature insert transient) and
   # global work_mem ≤ 64MB (per-connection safety; districting lanes raise
   # their own sessions via HostCapacity::laneWorkMemMb).
+  write_derived DERIVED_HOST_MB "$total_mb"
   write_derived POSTGRES_MEM_LIMIT "${pg_mb}m"
   write_derived PG_SHARED_BUFFERS  "$(clamp $(( pg_mb / 9 )) 128  512)MB"
   write_derived PG_EFFECTIVE_CACHE "$(clamp $(( pg_mb * 80 / 100 )) 256 210000)MB"
@@ -334,10 +349,13 @@ configure_host_memory() {
     write_derived MEM_REDIS_QUEUE "${rq_mb}m"
     write_derived REDIS_CACHE_MAXMEMORY "$(( rc_mb * 85 / 100 ))mb"
     aux_mb=$(clamp $(( budget_mb * sh_aux / 1000 )) 192 4096)
-    write_derived MEM_MATRIX    "$(( aux_mb * 40 / 100 ))m"
-    write_derived MEM_SCHEDULER "$(( aux_mb * 35 / 100 ))m"
-    write_derived MEM_MAS       "$(( aux_mb * 17 / 100 ))m"
-    write_derived MEM_NGINX     "$(( aux_mb * 8 / 100 ))m"
+    # Floors = the measured idle need of each service (WoS 2026-09-02:
+    # matrix idles at ~110 MB, the scheduler sat at the edge at 67 MB). A
+    # cap below the idle need is a kill loop, not a budget.
+    write_derived MEM_MATRIX    "$(clamp $(( aux_mb * 40 / 100 )) 160 4096)m"
+    write_derived MEM_SCHEDULER "$(clamp $(( aux_mb * 35 / 100 )) 96 2048)m"
+    write_derived MEM_MAS       "$(clamp $(( aux_mb * 17 / 100 )) 48 1024)m"
+    write_derived MEM_NGINX     "$(clamp $(( aux_mb * 8 / 100 )) 32 512)m"
   fi
   # Parallel posture: workers=cores, parallel=cores/2, per_gather small
   # (many concurrent lanes beat wide gathers), maintenance=cores/4.

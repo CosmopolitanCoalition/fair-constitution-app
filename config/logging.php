@@ -62,6 +62,10 @@ return [
             'driver' => 'single',
             'path' => storage_path('logs/laravel.log'),
             'level' => env('LOG_LEVEL', 'debug'),
+            // Root-run artisan (docker exec, the scheduler) creates the file;
+            // php-fpm runs as www-data and must still append (WoS 2026-09-02:
+            // control endpoints acted, then 500 on the log write).
+            'permission' => 0666,
             'replace_placeholders' => true,
         ],
 
@@ -70,6 +74,7 @@ return [
             'path' => storage_path('logs/laravel.log'),
             'level' => env('LOG_LEVEL', 'debug'),
             'days' => env('LOG_DAILY_DAYS', 14),
+            'permission' => 0666,
             'replace_placeholders' => true,
         ],
 

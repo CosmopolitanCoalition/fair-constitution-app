@@ -63,7 +63,35 @@ class HostCapacity
         // 13; on big iron it frees the formula to use the cores.
         $connCap = (int) floor((self::pgMaxConnections() - 30) / 3);
 
-        return max(2, min(max(4, $connCap), (int) floor((self::cpuCores() - $reserve) / $busyFactor)));
+        // THE APPETITE DERIVES FROM THE MEMORY SHARE (WoS 2026-09-02): a cap
+        // limits what Horizon may hold, it does not shrink what the lanes
+        // ask for, so on a small host the pool blew its cap and looped
+        // through kills. The lane count now also fits the container's
+        // memory share: three quarters of MEM_HORIZON for lanes (the rest
+        // is the master and the idle pools of the other supervisors), at
+        // 5/6 of the worker recycle bound per lane (a lane recycles at
+        // 480 MB, so its resident size sits below it). No cap known
+        // (the open profile writes the host size) = no memory bound.
+        $memCap = self::horizonMemoryCapMb();
+        $laneMb = (int) round(\App\Jobs\AutoscaleWorkerJob::MEMORY_RECYCLE_BYTES / 1048576 * 5 / 6);
+        $memLanes = $memCap > 0 ? (int) floor($memCap * 0.75 / max(64, $laneMb)) : PHP_INT_MAX;
+
+        return max(2, min(max(4, $connCap), max(2, $memLanes), (int) floor((self::cpuCores() - $reserve) / $busyFactor)));
+    }
+
+    /**
+     * The Horizon container's memory cap in MB from the budget ledger
+     * (MEM_HORIZON, written by get-started as "NNNm" or "NNg"); 0 when unset.
+     */
+    public static function horizonMemoryCapMb(): int
+    {
+        $raw = strtolower(trim((string) env('MEM_HORIZON', '')));
+        if ($raw === '' || ! preg_match('/^(\d+)\s*([kmg]?)b?$/', $raw, $m)) {
+            return 0;
+        }
+        $n = (int) $m[1];
+
+        return match ($m[2]) { 'g' => $n * 1024, 'k' => intdiv($n, 1024), default => $n };
     }
 
     /**
