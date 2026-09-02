@@ -279,6 +279,27 @@ or implement one. The procedure (per legislature):
    giant-consumed residue plane (Kuala Lumpur, 2026-08-28); the one case
    is dominant-atom dust (Cordillera's [9,1] → [9,2]).
 
+9. **THE POOL LANDING (operator rulings 2026-09-02, the drift redraw pass).**
+   The pool = the non-giant children after the giants lock. Three rules:
+   - **Land before you judge (Class A).** The pool's seat vector is landed
+     to the pool budget BEFORE any band test. A single indivisible atom whose
+     landed seats fall below the floor FILES as a forced floor exception
+     (`floor_override`); landed 1 or 0 takes the sub-2 lift of step 8. An
+     exact landing with a floor exception outranks an inexact in-band one.
+     Milunga proves the old order was a defect: 5+5 was exact and in band
+     and the search threw it away because nearest gave 5+4.
+   - **The spare seat goes to the highest round-down (Class B, his words:
+     "giving the highest round down the spare seat. If it becomes a giant,
+     then check for children to split amongst. failing that line draw it as
+     a 10").** When the pool owes more than its atoms can hold under the
+     ceiling, each spare seat goes to the atom that lost the most to nearest
+     rounding. An atom pushed past the ceiling IS a giant: with children the
+     level law splits it; a childless one line-splits as a leaf giant (a 10
+     lands 5+5). Vĩnh Long, Le Raincy.
+   - **Zero is zero (Class D).** A head of 0 over zero population, children
+     included, is lawful inactive: zero districts, closed done. Never one
+     seat. (The giant-consumed POPULATED residue keeps its step-8 lift.)
+
 Implementation: `DistrictingService::computeSeatBudget` + `levelRows` (the
 level law, cascade steps 0-4), Step 11 of `runAutoCompositeForScope` (step 5),
 `seat_drift` as `scoreRank()`'s first key, the final-bin break-tolerant repair

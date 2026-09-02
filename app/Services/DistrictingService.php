@@ -235,6 +235,14 @@ class DistrictingService
     private const HULL_SWAP_CAP = 16;
 
     /**
+     * THE ZERO-POPULATION CLOSE (operator ruling 2026-09-02): the one reason
+     * text for a legislature with no residents and no seats. The singles
+     * path (SinglesBatchProcessor), the composite arm (Step 1b) and the
+     * sweep's finalize all write this string.
+     */
+    public const ZERO_POPULATION_REASON = 'zero population: no seats to fill';
+
+    /**
      * The work connection's PDO the cached backend pid was read on
      * (workBackendPid). A reconnect replaces the PDO object; the mismatch
      * re-reads the pid. Weak, so the reference never keeps a dead PDO alive.
@@ -460,9 +468,12 @@ class DistrictingService
      * autoscale completeness assessor, the F-ELB-008 leaf-giant test) reads
      * THIS helper, so a child that dominates its parent (Kozhikode/Kerala,
      * Saint-Pierre/Réunion) can never again be a giant to the composite yet
-     * invisible to the scope list. READ-ONLY EXPOSURE of the settled
-     * cascade — no seat math changes (Calc-A frac, ≥ ceiling+0.5, nearest,
-     * floor clamp — identical arithmetic to the cascade path above).
+     * invisible to the scope list. This helper IS the giant decision: the
+     * threshold fixpoint (Calc-A frac, ≥ ceiling+0.5, nearest, floor
+     * clamp), the pool capacity promotion (operator ruling 2026-09-02: a
+     * pool owing more than its atoms hold under the ceiling promotes its
+     * highest round-down atom to ceiling + 1, a giant), and the all-giant
+     * lock landing. Every reader of gianthood reads this one answer.
      *
      * @return array<string, int> geometry-bearing giant child id => cascade budget
      */
@@ -484,6 +495,7 @@ class DistrictingService
         }
         $threshold = ConstitutionalDefaults::giantThreshold($leg->jurisdiction_id);
         $floor     = ConstitutionalDefaults::floor($leg->jurisdiction_id);
+        $ceiling   = ConstitutionalDefaults::ceiling($leg->jurisdiction_id);
 
         // Denominator: ALL live children (matching the cascade's
         // parentChildrenPop); output: geometry-bearing giants only — a
@@ -526,6 +538,7 @@ class DistrictingService
         // stay out of the returned set, which is the existing contract: a
         // geomless giant cannot be a scope, it is the assessor's review flag.
         $locked = [];
+        for ($outer = 0, $maxOuter = $children->count() + 1; $outer < $maxOuter; $outer++) {
         for ($pass = 0, $maxPasses = $children->count() + 1; $pass < $maxPasses; $pass++) {
             $lockedPop = 0;
             $lockedSeats = 0;
@@ -557,6 +570,72 @@ class DistrictingService
             if (! $promoted) {
                 break;
             }
+        }
+
+        // THE POOL CAPACITY PROMOTION (operator ruling 2026-09-02, the Vinh
+        // Long / Le Raincy class). The pool can owe more seats than its
+        // atoms can hold under the ceiling: Vinh Long's residue owes 28 over
+        // three atoms of 9.40 / 9.35 / 9.27 (capacity 3 x 9 = 27), so every
+        // drawing filed 27 and the chamber drifted -1. The ruling: each
+        // spare seat goes to the pool atom with the highest round-down (the
+        // largest fraction lost to nearest rounding; ties to the larger
+        // population, then the lower id). That atom now holds ceiling + 1
+        // seats, so it IS a giant: it locks here, the walk materializes it
+        // as a scope with this budget, and it splits among its own children
+        // by the level law, or line-splits as a leaf giant when it has none
+        // (a 10 lands as 5 + 5). Capacity counts geometry-bearing pool atoms
+        // whose nearest share is at least one seat (ceiling each) plus the
+        // one bin the crumbs can form together (the Cordillera dust seats
+        // its own 1, so a dominant atom beside dust is NOT this case). Only
+        // an atom already seated at the ceiling is promoted; one promotion
+        // per pass, and the threshold pass above re-runs over the remaining
+        // pool before the next capacity test.
+        $lockedPop   = 0;
+        $lockedSeats = 0;
+        foreach ($children as $c) {
+            if (isset($locked[(string) $c->id])) {
+                $lockedPop   += (int) $c->population;
+                $lockedSeats += $locked[(string) $c->id];
+            }
+        }
+        $poolPop    = $childSum - $lockedPop;
+        $poolBudget = $budget - $lockedSeats;
+        if ($poolPop <= 0 || $poolBudget <= 0) {
+            break;
+        }
+        $poolQuota  = $poolPop / $poolBudget;
+        $holders    = 0;
+        $crumbFrac  = 0.0;
+        $promote    = null;   // [roundDown, population, id]
+        foreach ($children as $c) {
+            $id = (string) $c->id;
+            if (isset($locked[$id]) || ! $c->has_geom || (int) $c->population <= 0) {
+                continue;
+            }
+            $frac    = ((int) $c->population) / max($poolQuota, 1);
+            $nearest = (int) round($frac);
+            if ($nearest >= 1) {
+                $holders++;
+            } else {
+                $crumbFrac += $frac;
+            }
+            if ($nearest < $ceiling) {
+                continue;   // only an atom seated at the ceiling can take a spare seat
+            }
+            $roundDown = $frac - $ceiling;
+            $pop       = (int) $c->population;
+            if ($promote === null
+                || $roundDown > $promote[0] + 1e-12
+                || (abs($roundDown - $promote[0]) <= 1e-12
+                    && ($pop > $promote[1] || ($pop === $promote[1] && $id < $promote[2])))) {
+                $promote = [$roundDown, $pop, $id];
+            }
+        }
+        $capacity = $holders * $ceiling + min($ceiling, (int) round($crumbFrac));
+        if ($promote === null || $poolBudget <= $capacity) {
+            break;
+        }
+        $locked[$promote[2]] = $ceiling + 1;
         }
 
         // THE ALL-GIANT LOCK LANDING (operator, 2026-08-30 — the NRW 95-on-94).
@@ -777,6 +856,43 @@ class DistrictingService
 
         if (empty($allChildrenRows)) {
             return ['districts_created' => 0, 'error' => 'No children with geometry found at this scope'];
+        }
+
+        // ── Step 1b: ZERO POPULATION (operator ruling 2026-09-02) ───────────
+        // A composite whose head is 0 has no seats to fill: its own row holds
+        // nobody and every child row holds nobody (Hatohobei, Sonsorol, the
+        // Åland composites). The lawful inactive map is ZERO districts, done,
+        // the same answer the singles path gives ('zero population: no seats
+        // to fill'). Before this guard the k-loop ran on a zero quota and the
+        // one-seat safety clamp minted a 1-seat district over no residents.
+        // The giant-consumed POPULATED residue (Kuala Lumpur) never reaches
+        // here: its head is positive and it keeps its sub-2 lift below.
+        if ($seatBudget <= 0) {
+            $ownPop = (int) DB::table('jurisdictions')->where('id', $scopeId)->value('population');
+            $kidPop = array_sum(array_map(fn ($c) => (int) $c->population, $allChildrenRows));
+            if ($ownPop <= 0 && $kidPop <= 0) {
+                if ($clearExisting) {
+                    DB::transaction(function () use ($legislature_id, $scopeId, $mapId) {
+                        $clearQ = DB::table('legislature_districts')
+                            ->where('legislature_id', $legislature_id)
+                            ->where('jurisdiction_id', $scopeId)
+                            ->whereNull('deleted_at');
+                        if ($mapId !== null) {
+                            $clearQ->where('map_id', $mapId);
+                        }
+                        foreach ($clearQ->pluck('id') as $eid) {
+                            DB::table('legislature_district_jurisdictions')->where('district_id', $eid)->delete();
+                            DB::table('legislature_districts')->where('id', $eid)->delete();
+                        }
+                    });
+                }
+                $this->publishMassProgress($legislature_id, [
+                    'phase'       => 'inserted',
+                    'phase_label' => self::ZERO_POPULATION_REASON,
+                ]);
+
+                return ['districts_created' => 0, 'error' => null, 'reason' => self::ZERO_POPULATION_REASON];
+            }
         }
 
         // ── Step 2: Level-local quota + fractional seats ──────────────────────
@@ -2109,14 +2225,33 @@ class DistrictingService
         // When the chosen bins' nearest-rounded seats MISS the pool budget,
         // a drifting configuration is EXCLUDED if another configuration
         // lands exactly: for scopes with <= 10 live children, exhaustively
-        // enumerate set partitions under Step 11's own arithmetic (partition
-        // quota, minSeat, ceiling clamp), keep those whose seats sum to the
-        // budget EXACTLY, and adopt the best by the standing doctrine ladder
-        // (scoreConfiguration: banded balance > contiguity > compactness).
-        // The Mbwe class proved the gap: 4 children with fracs summing 25.00
-        // filed 24 while the trivial one-per-child partition lands 25. When
-        // NO exact partition exists the current bins ship unchanged — a
-        // PROVEN indivisible atom (Pinland pin 4 stays +1 by exhaustion).
+        // enumerate set partitions, LAND each one with Step 11's own
+        // arithmetic (nearestSeatsWithSubFloorLifts: nearest, min 1,
+        // ceiling clamp, sub-floor lifts), keep those whose landed seats sum
+        // to the budget EXACTLY, and adopt the best by the standing doctrine
+        // ladder (scoreConfiguration: banded balance > contiguity >
+        // compactness). The Mbwe class proved the gap: 4 children with fracs
+        // summing 25.00 filed 24 while the trivial one-per-child partition
+        // lands 25. When NO exact partition exists the current bins ship
+        // unchanged — a PROVEN indivisible atom (Pinland pin 4 stays +1 by
+        // exhaustion).
+        //
+        // THE LANDING RUNS BEFORE THE LEGALITY TEST (operator ruling
+        // 2026-09-02, the Cagayan Valley / Erbil / Ica -1 class). The
+        // enumeration used to clamp every group UP to the floor whenever
+        // budget >= floor x k, so the one exact partition of a two-atom
+        // pool owing 10 (Koysinjaq 8.36 + Al-Zibar 1.64 -> 8 + 2) was
+        // seated 8 + 5 = 13 and rejected, and the pool shipped one 9-seat
+        // district. Now every partition lands first. Partitions whose
+        // landed vector keeps every bin at or above the floor compete
+        // first; a partition carrying a sub-floor bin competes ONLY when no
+        // fully in-band exact partition exists, and its sub-floor bin files
+        // as a floor exception (floor_override), the forced last resort
+        // (a single indivisible atom, or the pool-level forced case where
+        // no in-band exact drawing exists at all). Its landed 1 or 0 takes
+        // the sub-2 lift at write time (Batanes 0.84 -> 1 -> 2, bonus 1).
+        // Exactness outranks the comparator: an exact partition with a
+        // floor exception beats an inexact in-band drawing.
         $seatSum = array_sum(array_column($binData, 'seats'));
         $allJids = array_merge(...array_map(fn ($b) => $b['jids'], $binData ?: [['jids' => []]]));
         // LARGE SCOPES GET A MOVE-BASED REPAIR (2026-07-26). The exhaustive
@@ -2137,29 +2272,39 @@ class DistrictingService
         }
 
         if ($seatSum !== $effectiveBudget && count($allJids) >= 2 && count($allJids) <= 10 && $totalBinPop > 0) {
-            $exact = [];
+            $exactInBand    = [];   // every landed bin at or above the floor
+            $exactException = [];   // exact, with a sub-floor bin: the forced last resort
             $groups = [];
-            $enumerate = function (int $i) use (&$enumerate, &$groups, &$exact, $allJids, $childById, $totalBinPop, $effectiveBudget, $floor, $ceiling): void {
-                if (count($exact) >= 2000) {
+            $enumQuota = $totalBinPop / max($effectiveBudget, 1);
+            $enumerate = function (int $i) use (&$enumerate, &$groups, &$exactInBand, &$exactException, $allJids, $childById, $enumQuota, $effectiveBudget, $floor, $ceiling): void {
+                if (count($exactInBand) >= 2000) {
                     return; // plenty of exact candidates — scoring picks the best
                 }
                 if ($i === count($allJids)) {
-                    $k = count($groups);
-                    $min = ($effectiveBudget >= $floor * $k) ? $floor : 1;
-                    $quota = $totalBinPop / max($effectiveBudget, 1);
-                    $sum = 0;
+                    $pops = [];
+                    $sum  = 0;
                     foreach ($groups as $g) {
                         $gp = 0;
                         foreach ($g as $jid) {
                             $gp += (int) $childById[$jid]->population;
                         }
-                        $sum += max($min, min($ceiling, (int) round($gp / max($quota, 1))));
+                        $pops[] = (float) $gp;
+                        // Lifts only ever ADD seats: a nearest sum already
+                        // over the budget can never land, so prune here.
+                        $sum += min($ceiling, max(1, (int) round($gp / max($enumQuota, 1))));
                         if ($sum > $effectiveBudget) {
                             return;
                         }
                     }
-                    if ($sum === $effectiveBudget) {
-                        $exact[] = array_map(fn ($g) => array_values($g), $groups);
+                    $seats = $this->nearestSeatsWithSubFloorLifts($pops, $enumQuota, $effectiveBudget, $floor, $ceiling);
+                    if (array_sum($seats) !== $effectiveBudget) {
+                        return;
+                    }
+                    $partition = array_map(fn ($g) => array_values($g), $groups);
+                    if (min($seats) >= $floor) {
+                        $exactInBand[] = $partition;
+                    } elseif (count($exactException) < 2000) {
+                        $exactException[] = $partition;
                     }
                     return;
                 }
@@ -2173,6 +2318,10 @@ class DistrictingService
                 array_pop($groups);
             };
             $enumerate(0);
+
+            // In-band exact partitions outrank exception-bearing ones; the
+            // exception class is admitted only when the in-band class is empty.
+            $exact = $exactInBand !== [] ? $exactInBand : $exactException;
 
             if ($exact !== []) {
                 $best = null;
@@ -6453,7 +6602,45 @@ class DistrictingService
             if ($bestI < 0) break;
             $seats[$bestI]++; $sum++;
         }
+
+        // THE IN-BAND LANDING OUTRANKS THE EXCEPTION (operator ruling
+        // 2026-09-02, the Milunga 6+4 on a 5+5 pool). A floor exception is
+        // the last resort. When the nearest vector lands the budget with a
+        // sub-floor bin and an all-in-band vector (optimalIntegerTargets,
+        // floor low-bound) lands it too, the in-band vector wins unless it
+        // costs a worse worst-district band. That is scoreRank's own order
+        // for the same bins (max band before the override count): Milunga
+        // [5.55, 4.45] lands 5 + 5 (both 11%, band 1, no exception) over
+        // 6 + 4 (11.25%, band 1, one exception); Cordillera [9.27, 0.73]
+        // keeps 9 + 1 (band 4) over 5 + 5 (585%, band 116); Saigang
+        // [5.89, 4.11] keeps 6 + 4 (2.75%, band 0) over 5 + 5 (17.8%,
+        // band 2).
+        if ($sum === $budget && $seats !== [] && min($seats) < $floor && $budget >= $floor * count($pops)) {
+            $inBand = $this->optimalIntegerTargets($pops, $quota, $budget, $floor, $ceiling);
+            if ($inBand !== [] && array_sum($inBand) === $budget && min($inBand) >= $floor
+                && $this->maxDeviationBand($pops, $inBand, $quota) <= $this->maxDeviationBand($pops, $seats, $quota)) {
+                return $inBand;
+            }
+        }
+
         return $seats;
+    }
+
+    /**
+     * The worst-district acceptability band of a seat vector, exactly as
+     * scoreRank grades max_deviation_pct: 0 inside 10%, then one band per
+     * 5pp beyond it. Used to choose between two landings of the SAME bins.
+     */
+    private function maxDeviationBand(array $pops, array $seats, float $quota): int
+    {
+        $max = 0.0;
+        foreach ($pops as $i => $p) {
+            $s = (int) ($seats[$i] ?? 0);
+            if ($s <= 0 || $quota <= 0) continue;
+            $max = max($max, abs(((float) $p) / $s - $quota) / $quota * 100.0);
+        }
+
+        return $max <= 10.0 ? 0 : 1 + (int) floor(($max - 10.0) / 5.0);
     }
 
     /**

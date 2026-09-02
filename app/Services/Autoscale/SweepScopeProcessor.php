@@ -215,6 +215,32 @@ class SweepScopeProcessor
                 return;
             }
 
+            // ZERO POPULATION (operator ruling 2026-09-02): a head of 0 over
+            // a root that holds nobody has no seats to fill. No k-loop runs:
+            // this lane retires any stale district at the scope on this map
+            // (the pre-ruling 1-seat composite) and closes the scope done
+            // with the singles path's reason text. finalize closes the
+            // header the same way.
+            if ((int) $header->head_seats === 0 && (int) $header->population === 0) {
+                // Memberships go first, as every sibling retire plane does
+                // (review catch 2026-09-02): a soft-deleted district must not
+                // leave live membership rows behind it.
+                $staleIds = DB::table('legislature_districts')
+                    ->where('legislature_id', $legislatureId)
+                    ->where('map_id', (string) $header->map_id)
+                    ->where('jurisdiction_id', $scopeJid)
+                    ->whereNull('deleted_at')
+                    ->pluck('id')->all();
+                if ($staleIds !== []) {
+                    DB::table('legislature_district_jurisdictions')->whereIn('district_id', $staleIds)->delete();
+                    DB::table('legislature_districts')->whereIn('id', $staleIds)
+                        ->update(['deleted_at' => now(), 'updated_at' => now()]);
+                }
+                $this->closeScopeDone($scopeId, $legislatureId, $scopeJid, (int) $claim['depth'], [],
+                    \App\Services\DistrictingService::ZERO_POPULATION_REASON, $workerToken);
+                return;
+            }
+
             /** @var LegislatureController $ctrl */
             $ctrl = app(LegislatureController::class);
 
@@ -463,6 +489,18 @@ class SweepScopeProcessor
                 ->first();
             if ($leg === null) {
                 $this->finishHeader($legislatureId, ['assessing'], 'failed', null, null, 'legislature vanished before assessment', 0, $workerToken);
+                return;
+            }
+
+            // ZERO POPULATION (operator ruling 2026-09-02): a head of 0 over
+            // a root with no residents closes DONE with nothing seated, the
+            // close the singles path writes. The assessor's no-districts
+            // rule judges populated maps only.
+            $rootOwnPop = (int) DB::table('jurisdictions')
+                ->where('id', (string) $leg->jurisdiction_id)->value('population');
+            if ((int) $leg->type_a_seats === 0 && $rootOwnPop === 0) {
+                $this->finishHeader($legislatureId, ['assessing'], 'done', 0, 0,
+                    \App\Services\DistrictingService::ZERO_POPULATION_REASON, 0, $workerToken);
                 return;
             }
 
