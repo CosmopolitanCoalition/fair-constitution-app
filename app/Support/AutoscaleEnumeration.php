@@ -357,6 +357,45 @@ final class AutoscaleEnumeration
      * scope: itself, budget = its head. Seeded set-based so claimScope has
      * a stamped row from second zero; in-band singles own no scope rows.
      */
+    /**
+     * THE SCOPE CLASS STAMP (operator order 2026-09-02, the segmented layer
+     * bars): is_leaf = the scope jurisdiction has no live children — the
+     * same child test deriveOrderingKeysOnLedger applies to headers. A leaf
+     * scope is a LINE-SPLIT (box / line templates); a scope with children
+     * is a COMPOSITE. Chunked, idempotent (only NULL stamps are written), so
+     * a re-materialized scope row is stamped by the next pass. The child
+     * test is a LATERAL LIMIT-1 probe on jurisdictions(parent_id): the
+     * NOT EXISTS form made the planner hash a full seq scan of the
+     * planet's jurisdictions (2 GB of geometry pages) once PER CHUNK.
+     * Lane-safe: rows a lane holds are skipped (SKIP LOCKED) and the
+     * chunk is small, so a stamp never waits on a draw and a draw never
+     * waits long on a stamp — the live box stalled 14 minutes on 2026-09-02
+     * when two 25k-row chunks queued behind a lane's transaction.
+     */
+    public static function stampScopeClass(?callable $tick = null): int
+    {
+        $total = 0;
+        do {
+            $n = DB::update('
+                UPDATE apportionment_ledger_scopes s
+                   SET is_leaf = (h.hit IS NULL)
+                  FROM (SELECT id, scope_jurisdiction_id
+                          FROM apportionment_ledger_scopes
+                         WHERE is_leaf IS NULL
+                         LIMIT ' . intdiv(self::CHUNK, 5) . '
+                           FOR UPDATE SKIP LOCKED) t
+                  LEFT JOIN LATERAL (SELECT 1 AS hit FROM jurisdictions c
+                                      WHERE c.parent_id = t.scope_jurisdiction_id
+                                        AND c.deleted_at IS NULL LIMIT 1) h ON TRUE
+                 WHERE s.id = t.id
+            ');
+            $total += $n;
+            if ($tick) { $tick(); }
+        } while ($n > 0);
+
+        return $total;
+    }
+
     public static function seedSweepLeafSelfScopes(): int
     {
         $total = 0;
@@ -364,9 +403,9 @@ final class AutoscaleEnumeration
             $n = DB::affectingStatement("
                 INSERT INTO apportionment_ledger_scopes
                     (legislature_id, scope_jurisdiction_id, parent_jurisdiction_id,
-                     depth, walk_position, seat_budget, area_tier, status, created_at, updated_at)
+                     depth, walk_position, seat_budget, area_tier, is_leaf, status, created_at, updated_at)
                 SELECT al.legislature_id, al.jurisdiction_id, NULL,
-                       0, 0, al.head_seats, al.area_tier, 'pending', now(), now()
+                       0, 0, al.head_seats, al.area_tier, TRUE, 'pending', now(), now()
                   FROM apportionment_ledger al
                  WHERE al.kind = 'sweep' AND al.child_count = 0
                    AND NOT EXISTS (SELECT 1 FROM apportionment_ledger_scopes s

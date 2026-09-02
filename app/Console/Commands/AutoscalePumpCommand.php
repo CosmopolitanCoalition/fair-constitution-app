@@ -108,6 +108,11 @@ class AutoscalePumpCommand extends Command
         }
         if ($run->status === 'halted') {
             if ($run->haltRequested()) {
+                // THE HALT SEIZES (operator order 2026-09-02, the three
+                // Tumaco lanes that outlived the halt by an hour): while
+                // the run is parked, every pump minute reaps the lanes.
+                self::reapHaltedLanes($run);
+
                 return self::SUCCESS; // parked until the operator resumes
             }
             // Operator resumed (flag cleared): rewind to the interrupted
@@ -572,5 +577,57 @@ class AutoscalePumpCommand extends Command
         ])->save();
 
         return $counts;
+    }
+
+    /**
+     * A parked run owns no lanes (THE ESCAPE-HATCH LAW). Three steps, each
+     * bounded to this run's lease rows:
+     *  1. A lane whose database session is still connected two minutes after
+     *     the halt was requested is terminated at the database; its job
+     *     fails at the next statement and exits.
+     *  2. A lease with no connected session (or, when the session pid is
+     *     unknown, no heartbeat for two minutes) is deleted — the dashboard
+     *     shows lanes from this table, so a dead lease is a phantom worker.
+     *  3. A running claim held by no lease returns to pending; a header with
+     *     no running scope returns to pending. The resume claims them fresh.
+     */
+    private static function reapHaltedLanes(AutoscaleRun $run): void
+    {
+        if ($run->halt_requested_at !== null && $run->halt_requested_at->lt(now()->subMinutes(2))) {
+            DB::select("
+                SELECT pg_terminate_backend(a.pid)
+                  FROM autoscale_worker_leases l
+                  JOIN pg_stat_activity a ON a.pid = l.pg_backend_pid
+                 WHERE l.run_id = ? AND a.usename = current_user
+            ", [$run->id]);
+        }
+
+        $leases = DB::delete("
+            DELETE FROM autoscale_worker_leases l
+             WHERE l.run_id = ?
+               AND CASE WHEN l.pg_backend_pid IS NOT NULL
+                        THEN NOT EXISTS (SELECT 1 FROM pg_stat_activity a WHERE a.pid = l.pg_backend_pid)
+                        ELSE l.last_seen_at < now() - interval '2 minutes' END
+        ", [$run->id]);
+
+        $scopes = DB::update("
+            UPDATE apportionment_ledger_scopes s
+               SET status = 'pending', claim_token = NULL, started_at = NULL, updated_at = now()
+             WHERE s.status = 'running'
+               AND NOT EXISTS (SELECT 1 FROM autoscale_worker_leases l WHERE l.id = s.claim_token)
+        ");
+        $headers = DB::update("
+            UPDATE apportionment_ledger h
+               SET map_status = 'pending', claim_token = NULL, updated_at = now()
+             WHERE h.map_status IN ('running', 'assessing')
+               AND NOT EXISTS (SELECT 1 FROM apportionment_ledger_scopes s
+                                WHERE s.legislature_id = h.legislature_id AND s.status = 'running')
+        ");
+
+        if ($leases > 0 || $scopes > 0 || $headers > 0) {
+            Log::info('Autoscale halt reaper', [
+                'run_id' => $run->id, 'leases' => $leases, 'scopes' => $scopes, 'headers' => $headers,
+            ]);
+        }
     }
 }

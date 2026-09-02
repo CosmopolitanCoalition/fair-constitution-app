@@ -385,7 +385,7 @@ watch(autoscale, (data) => {
     // 2026-08-30): scope completions are the fluid unit, so the per-minute
     // rate and the "~left" estimate come from them.
     for (const l of data?.layers ?? []) {
-        const v = l.scopes_total ? l.scopes_done : l.done
+        const v = l.units_total != null ? l.units_done : (l.scopes_total ? l.scopes_done : l.done)
         tweenTo(`layer:${l.key}`, v)
         trackBar(`layer:${l.key}`, v)
     }
@@ -426,7 +426,7 @@ const phaseLabel = computed(() => {
         case 'mapping':
             return precomputeOpen.value
                 ? 'Phase B — leaf councils + geometry precompute (borders paid once, not 48k times)'
-                : 'Phase B — drawing every founding district map (bottom-up: small scopes first, giants last)'
+                : 'Phase B — drawing every founding district map (trivials first, then biggest scopes first)'
         case 'done': return 'Complete — every jurisdiction has a legislature and a founding map'
         case 'halted': return 'Halted by operator — resume any time'
         case 'failed': return 'Failed — see the error below'
@@ -636,10 +636,22 @@ onBeforeUnmount(stopPolling)
                     </div>
                 </div>
 
-                <!-- Per-ADM-layer bars (bottom-up: deepest first — the order the
-                     run actually works in; the big scopes are the last bars) -->
+                <!-- Per-ADM-layer bars (operator order 2026-09-02): one bar per
+                     level, segmented by class in a FIXED visual order —
+                     trivials | line-splits | composites — each segment filled
+                     by that class's done count over the level's units; the
+                     void on the right is what the level still owes. The
+                     processing order differs (trivials, then composites, then
+                     line-splits); the picture always fills left to right. -->
                 <div v-if="layers.length" class="mt-4 border-t border-gray-700/50 pt-3">
-                    <div class="text-gray-400 text-xs uppercase tracking-wide mb-2">By layer (biggest first)</div>
+                    <div class="flex flex-wrap items-center justify-between gap-x-4 gap-y-1 mb-2">
+                        <div class="text-gray-400 text-xs uppercase tracking-wide">By layer (biggest first)</div>
+                        <div class="flex items-center gap-3 text-[11px] text-gray-400">
+                            <span class="flex items-center gap-1"><span class="inline-block w-2 h-2 rounded-sm bg-teal-500"></span>Trivials</span>
+                            <span class="flex items-center gap-1"><span class="inline-block w-2 h-2 rounded-sm bg-sky-500"></span>Line-splits</span>
+                            <span class="flex items-center gap-1"><span class="inline-block w-2 h-2 rounded-sm bg-violet-500"></span>Composites</span>
+                        </div>
+                    </div>
                     <div class="space-y-2">
                         <div v-for="l in layers" :key="l.key">
                             <div class="flex justify-between text-xs mb-0.5"
@@ -651,11 +663,18 @@ onBeforeUnmount(stopPolling)
                                     <span v-if="l.review" class="text-amber-400 ml-1">· {{ l.review }} review</span>
                                 </span>
                                 <span class="tabular-nums">
-                                    <template v-if="l.scopes_total">{{ shown(`layer:${l.key}`, l.scopes_done) }} / {{ l.scopes_total.toLocaleString() }} scopes · {{ l.done.toLocaleString() }} / {{ l.total.toLocaleString() }}{{ l.status === 'running' ? barTiming(`layer:${l.key}`, l.scopes_done, l.scopes_total) : '' }}</template>
+                                    <template v-if="l.units_total != null">{{ shown(`layer:${l.key}`, l.units_done) }} / {{ l.units_total.toLocaleString() }}{{ l.status === 'running' ? barTiming(`layer:${l.key}`, l.units_done, l.units_total) : '' }}</template>
+                                    <template v-else-if="l.scopes_total">{{ shown(`layer:${l.key}`, l.scopes_done) }} / {{ l.scopes_total.toLocaleString() }} scopes · {{ l.done.toLocaleString() }} / {{ l.total.toLocaleString() }}{{ l.status === 'running' ? barTiming(`layer:${l.key}`, l.scopes_done, l.scopes_total) : '' }}</template>
                                     <template v-else>{{ shown(`layer:${l.key}`, l.done) }} / {{ l.total.toLocaleString() }}{{ l.status === 'running' ? barTiming(`layer:${l.key}`, l.done, l.total) : '' }}</template>
                                 </span>
                             </div>
-                            <div class="h-1.5 bg-gray-800 rounded overflow-hidden">
+                            <div v-if="l.units_total != null" class="h-1.5 bg-gray-800 rounded overflow-hidden flex"
+                                 :title="`${l.trivial_done.toLocaleString()} / ${l.trivial_total.toLocaleString()} trivials · ${l.line_done.toLocaleString()} / ${l.line_total.toLocaleString()} line-splits · ${l.comp_done.toLocaleString()} / ${l.comp_total.toLocaleString()} composites`">
+                                <div class="h-full bg-teal-500 transition-all"   :style="{ width: pct(l.trivial_done, l.units_total) + '%' }"></div>
+                                <div class="h-full bg-sky-500 transition-all"    :style="{ width: pct(l.line_done, l.units_total) + '%' }"></div>
+                                <div class="h-full bg-violet-500 transition-all" :style="{ width: pct(l.comp_done, l.units_total) + '%' }"></div>
+                            </div>
+                            <div v-else class="h-1.5 bg-gray-800 rounded overflow-hidden">
                                 <div class="h-full transition-all"
                                      :class="l.kind === 'single' ? 'bg-teal-500' : 'bg-blue-500'"
                                      :style="{ width: pct(l.scopes_total ? l.scopes_done : l.done, l.scopes_total || l.total) + '%' }"></div>

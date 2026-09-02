@@ -126,6 +126,7 @@ class WorldBuildJob implements ShouldQueue
             AutoscaleEnumeration::deriveOrderingKeysOnLedger(
                 \App\Services\ConstitutionalDefaults::ceiling(), $beat);
             AutoscaleEnumeration::seedSweepLeafSelfScopes();
+            AutoscaleEnumeration::stampScopeClass($beat);
             AutoscaleEnumeration::stampReversePositions();
             // THE DISPATCH ORDER: the one global sequence claims pop from.
             AutoscaleEnumeration::stampDispatchOrder($beat);

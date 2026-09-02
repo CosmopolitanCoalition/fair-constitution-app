@@ -2759,6 +2759,117 @@ class SetupController extends Controller
      * (pre-acceptance, or a legacy box).
      */
     /**
+     * THE LAYER BARS (Step 3): one row per level, counted by the three
+     * classes — trivial maps (single headers), line-split scopes (leaf
+     * giants) and composite scopes — plus the live single/sweep done
+     * counters. Returns [$layers, $freshCounts].
+     */
+    private static function layerBars(): array
+    {
+        $layers = [];
+        $layerRows = DB::table('apportionment_ledger')
+            ->selectRaw("
+                kind, adm_level,
+                COUNT(*)                                                            AS total,
+                COUNT(*) FILTER (WHERE map_status = 'done')                         AS done,
+                COUNT(*) FILTER (WHERE map_status IN ('running','assessing'))       AS running,
+                COUNT(*) FILTER (WHERE map_status IN ('review','failed'))           AS review
+            ")
+            ->groupBy('kind', 'adm_level')
+            ->orderByRaw('adm_level DESC, kind DESC')
+            ->get();
+
+        // ONE ROW PER LEVEL (operator order 2026-08-30): sweeps and leaf
+        // councils collapse into a single layer bar, counted by SCOPES
+        // (the fluid unit of drawing work) with the jurisdiction counter
+        // kept beside it. Labels are the geodata ingestion's canonical
+        // names — no ADM jargon user-facing.
+        // A scope counts to the MAP it draws (operator catch 2026-08-30:
+        // Earth's 81 scopes are all Planet-row work, however deep each
+        // scope's own jurisdiction sits), so the grouping key is the
+        // ITEM's level, never the scope jurisdiction's.
+        $scopeRows = DB::table('apportionment_ledger_scopes as s')
+            ->join('apportionment_ledger as h', 'h.legislature_id', '=', 's.legislature_id')
+            ->selectRaw("
+                h.adm_level,
+                COUNT(*)                                                  AS total,
+                COUNT(*) FILTER (WHERE s.status = 'done')                 AS done,
+                COUNT(*) FILTER (WHERE s.status = 'running')              AS running,
+                COUNT(*) FILTER (WHERE COALESCE(s.is_leaf, h.child_count = 0))                     AS leaf_total,
+                COUNT(*) FILTER (WHERE COALESCE(s.is_leaf, h.child_count = 0) AND s.status = 'done') AS leaf_done
+            ")
+            ->groupBy('h.adm_level')
+            ->get()->keyBy('adm_level');
+
+        $levelLabels = [
+            0 => 'Planet', 1 => 'Countries', 2 => 'States / Provinces',
+            3 => 'Counties', 4 => 'Municipalities', 5 => 'Townships',
+            6 => 'Neighborhoods',
+        ];
+
+        $singlesDoneLive = 0;
+        $sweepsDoneLive  = 0;
+        $byLevel = [];
+        foreach ($layerRows as $row) {
+            $lvl = (int) $row->adm_level;
+            if ($row->kind === 'single') {
+                $singlesDoneLive += (int) $row->done;
+                $byLevel[$lvl]['trivial_total'] = ($byLevel[$lvl]['trivial_total'] ?? 0) + (int) $row->total;
+                $byLevel[$lvl]['trivial_done']  = ($byLevel[$lvl]['trivial_done'] ?? 0) + (int) $row->done;
+            } else {
+                $sweepsDoneLive += (int) $row->done;
+            }
+            $byLevel[$lvl] = [
+                'total'   => ($byLevel[$lvl]['total'] ?? 0) + (int) $row->total,
+                'done'    => ($byLevel[$lvl]['done'] ?? 0) + (int) $row->done,
+                'running' => ($byLevel[$lvl]['running'] ?? 0) + (int) $row->running,
+                'review'  => ($byLevel[$lvl]['review'] ?? 0) + (int) $row->review,
+                'trivial_total' => $byLevel[$lvl]['trivial_total'] ?? 0,
+                'trivial_done'  => $byLevel[$lvl]['trivial_done'] ?? 0,
+            ];
+        }
+        // Top-down (operator order 2026-08-30): the run now works
+        // biggest-first, so Planet leads the panel and the leaf layers
+        // close it.
+        ksort($byLevel);
+        foreach ($byLevel as $lvl => $c) {
+            $sc = $scopeRows[$lvl] ?? null;
+            $layers[] = [
+                'key'           => "level:{$lvl}",
+                'kind'          => 'level',
+                'adm_level'     => $lvl,
+                'label'         => $levelLabels[$lvl] ?? "Level {$lvl}",
+                'total'         => $c['total'],
+                'done'          => $c['done'],
+                'running'       => $c['running'],
+                'review'        => $c['review'],
+                'scopes_total'  => $sc !== null ? (int) $sc->total : 0,
+                'scopes_done'   => $sc !== null ? (int) $sc->done : 0,
+                'scopes_running'=> $sc !== null ? (int) $sc->running : 0,
+                // THE THREE CLASSES (operator order 2026-09-02): one
+                // bar per level, segmented trivials | line-splits |
+                // composites, each filled by its own done count over
+                // the level's units (trivial maps + drawn scopes); the
+                // void on the right is whatever the level still owes.
+                'trivial_total' => $c['trivial_total'],
+                'trivial_done'  => $c['trivial_done'],
+                'line_total'    => $sc !== null ? (int) $sc->leaf_total : 0,
+                'line_done'     => $sc !== null ? (int) $sc->leaf_done : 0,
+                'comp_total'    => $sc !== null ? (int) $sc->total - (int) $sc->leaf_total : 0,
+                'comp_done'     => $sc !== null ? (int) $sc->done - (int) $sc->leaf_done : 0,
+                'units_total'   => $c['trivial_total'] + ($sc !== null ? (int) $sc->total : 0),
+                'units_done'    => $c['trivial_done'] + ($sc !== null ? (int) $sc->done : 0),
+                'status'        => $c['done'] >= $c['total']
+                    ? 'done'
+                    : (($c['running'] > 0 || $c['done'] > 0) ? 'running' : 'pending'),
+            ];
+        }
+        $freshCounts = ['singles_done' => $singlesDoneLive, 'sweeps_done' => $sweepsDoneLive];
+
+        return [$layers, $freshCounts];
+    }
+
+    /**
      * PHASE-2 VISIBILITY (operator plan 2026-08-31): the world build's live
      * report — the same numbers the accept gate verifies. Cached briefly:
      * the coverage anti-joins are planet-scale and the wizard polls at 2 s.
@@ -2911,85 +3022,14 @@ class SetupController extends Controller
         $freshCounts = null;
         $layers = [];
         if (in_array($run->status, ['mapping', 'halted', 'done'], true)) {
-            $layerRows = DB::table('apportionment_ledger')
-                ->selectRaw("
-                    kind, adm_level,
-                    COUNT(*)                                                            AS total,
-                    COUNT(*) FILTER (WHERE map_status = 'done')                         AS done,
-                    COUNT(*) FILTER (WHERE map_status IN ('running','assessing'))       AS running,
-                    COUNT(*) FILTER (WHERE map_status IN ('review','failed'))           AS review
-                ")
-                ->groupBy('kind', 'adm_level')
-                ->orderByRaw('adm_level DESC, kind DESC')
-                ->get();
-
-            // ONE ROW PER LEVEL (operator order 2026-08-30): sweeps and leaf
-            // councils collapse into a single layer bar, counted by SCOPES
-            // (the fluid unit of drawing work) with the jurisdiction counter
-            // kept beside it. Labels are the geodata ingestion's canonical
-            // names — no ADM jargon user-facing.
-            // A scope counts to the MAP it draws (operator catch 2026-08-30:
-            // Earth's 81 scopes are all Planet-row work, however deep each
-            // scope's own jurisdiction sits), so the grouping key is the
-            // ITEM's level, never the scope jurisdiction's.
-            $scopeRows = DB::table('apportionment_ledger_scopes as s')
-                ->join('apportionment_ledger as h', 'h.legislature_id', '=', 's.legislature_id')
-                ->selectRaw("
-                    h.adm_level,
-                    COUNT(*)                                                  AS total,
-                    COUNT(*) FILTER (WHERE s.status = 'done')                 AS done,
-                    COUNT(*) FILTER (WHERE s.status = 'running')              AS running
-                ")
-                ->groupBy('h.adm_level')
-                ->get()->keyBy('adm_level');
-
-            $levelLabels = [
-                0 => 'Planet', 1 => 'Countries', 2 => 'States / Provinces',
-                3 => 'Counties', 4 => 'Municipalities', 5 => 'Townships',
-                6 => 'Neighborhoods',
-            ];
-
-            $singlesDoneLive = 0;
-            $sweepsDoneLive  = 0;
-            $byLevel = [];
-            foreach ($layerRows as $row) {
-                if ($row->kind === 'single') {
-                    $singlesDoneLive += (int) $row->done;
-                } else {
-                    $sweepsDoneLive += (int) $row->done;
-                }
-                $lvl = (int) $row->adm_level;
-                $byLevel[$lvl] = [
-                    'total'   => ($byLevel[$lvl]['total'] ?? 0) + (int) $row->total,
-                    'done'    => ($byLevel[$lvl]['done'] ?? 0) + (int) $row->done,
-                    'running' => ($byLevel[$lvl]['running'] ?? 0) + (int) $row->running,
-                    'review'  => ($byLevel[$lvl]['review'] ?? 0) + (int) $row->review,
-                ];
-            }
-            // Top-down (operator order 2026-08-30): the run now works
-            // biggest-first, so Planet leads the panel and the leaf layers
-            // close it.
-            ksort($byLevel);
-            foreach ($byLevel as $lvl => $c) {
-                $sc = $scopeRows[$lvl] ?? null;
-                $layers[] = [
-                    'key'           => "level:{$lvl}",
-                    'kind'          => 'level',
-                    'adm_level'     => $lvl,
-                    'label'         => $levelLabels[$lvl] ?? "Level {$lvl}",
-                    'total'         => $c['total'],
-                    'done'          => $c['done'],
-                    'running'       => $c['running'],
-                    'review'        => $c['review'],
-                    'scopes_total'  => $sc !== null ? (int) $sc->total : 0,
-                    'scopes_done'   => $sc !== null ? (int) $sc->done : 0,
-                    'scopes_running'=> $sc !== null ? (int) $sc->running : 0,
-                    'status'        => $c['done'] >= $c['total']
-                        ? 'done'
-                        : (($c['running'] > 0 || $c['done'] > 0) ? 'running' : 'pending'),
-                ];
-            }
-            $freshCounts = ['singles_done' => $singlesDoneLive, 'sweeps_done' => $sweepsDoneLive];
+            // ONE SCAN PER FEW SECONDS, SHARED (the live box 2026-09-02):
+            // the scope aggregation walks every scope row on the planet
+            // (4.5 s under 13 lanes) while the page polls every 2 s, so
+            // six copies of the scan ran at once. The copy lives 5 s;
+            // every poll still shows live numbers.
+            [$layers, $freshCounts] = Cache::remember(
+                'autoscale.layers.'.$run->id, 5, fn () => self::layerBars()
+            );
         }
 
         // Precompute bar (global worklist — shown once seeded).
