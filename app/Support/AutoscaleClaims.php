@@ -109,17 +109,26 @@ final class AutoscaleClaims
             SELECT MIN(block_rank) FROM apportionment_ledger
              WHERE kind = 'single' AND map_status = 'pending' AND block_rank IS NOT NULL
         ");
-        // HEADER-ONLY, INDEX-SHAPED (operator catch 2026-08-31, the
-        // between-claims dead time): the block question is answered by the
-        // partial header index in microseconds — never by joining the
-        // planet's pending scope pile.
+        // THE LOWEST PENDING DRAWN SCOPE (operator catch 2026-09-02, the
+        // starved county trivials): the block question is answered by ONE
+        // index pop on (status, walk_position) — the head of the pending
+        // pile — never by a join over it and never by headers, because a
+        // header held open by a running or failed straggler kept its whole
+        // block "open" while its trivials starved and lanes spilled forward.
         $scopeBlock = DB::scalar("
-            SELECT MIN(block_rank) FROM apportionment_ledger
-             WHERE map_status IN ('pending', 'running')
-               AND kind = 'sweep' AND block_rank IS NOT NULL
+            SELECT h.block_rank
+              FROM apportionment_ledger_scopes s
+              JOIN apportionment_ledger h ON h.legislature_id = s.legislature_id
+             WHERE s.status = 'pending'
+             ORDER BY s.walk_position ASC NULLS LAST
+             LIMIT 1
         ");
 
-        if ($singlesBlock !== null && ($scopeBlock === null || (int) $singlesBlock < (int) $scopeBlock)) {
+        // TRIVIALS LEAD THEIR BLOCK (operator order 2026-09-02: a leaf block
+        // is population ascending and the one-district maps are its smallest
+        // members, so they seat FIRST — at or below the lowest pending drawn
+        // block, never strictly below it).
+        if ($singlesBlock !== null && ($scopeBlock === null || (int) $singlesBlock <= (int) $scopeBlock)) {
             if ($claim = static::claimSingles($run, $token, (int) $singlesBlock)) {
                 return $claim;
             }

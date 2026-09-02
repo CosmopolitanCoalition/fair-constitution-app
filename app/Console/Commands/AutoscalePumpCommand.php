@@ -312,6 +312,40 @@ class AutoscalePumpCommand extends Command
             Log::warning('Autoscale pump: transient reviews requeued', ['count' => $requeued]);
         }
 
+        // TRANSIENT FAILED SCOPES SELF-REQUEUE (operator catch 2026-09-02,
+        // the four county leaves stuck 25 hours): a SCOPE that failed on
+        // infrastructure weather (a redis restart's DNS blip, a lost
+        // connection) under a header still open never reached the header
+        // rule above — nothing retried it, the map never closed, and its
+        // block stayed open. Bounded by retry_count like the processor's own
+        // three strikes; engine-shaped failures never auto-retry.
+        $scopesRequeued = DB::update("
+            UPDATE apportionment_ledger_scopes
+               SET status = 'pending', claim_token = NULL, started_at = NULL, finished_at = NULL,
+                   retry_count = retry_count + 1,
+                   reason = 'transient auto-retry: ' || LEFT(reason, 900),
+                   updated_at = now()
+             WHERE status = 'failed'
+               AND retry_count < 3
+               AND reason ~* 'LOADING Redis|Connection refused|server closed the connection|no connection|SQLSTATE\\[08|Connection timed out|Connection lost|getaddrinfo|went away|recovery mode|not yet accepting connections'
+        ");
+        if ($scopesRequeued > 0) {
+            // A header already closed over a failed scope (done with the
+            // seats it never drew, or review) reopens with the redraw flag
+            // so the retried scope redraws through the normal flow and the
+            // header finalizes again on the real result.
+            DB::update("
+                UPDATE apportionment_ledger h
+                   SET map_status = 'pending', redraw_requested_at = now(), seats_seated = NULL, drift = NULL,
+                       finished_at = NULL, claim_token = NULL, updated_at = now()
+                 WHERE h.map_status IN ('done', 'review', 'failed')
+                   AND EXISTS (SELECT 1 FROM apportionment_ledger_scopes s
+                                WHERE s.legislature_id = h.legislature_id AND s.status = 'pending'
+                                  AND s.reason LIKE 'transient auto-retry%')
+            ");
+            Log::warning('Autoscale pump: transient failed scopes requeued', ['count' => $scopesRequeued]);
+        }
+
         // Legacy timer prune, for pre-migration leases with no recorded
         // backend only — claimless and stale means gone.
         DB::statement('

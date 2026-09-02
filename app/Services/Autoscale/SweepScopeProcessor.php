@@ -289,7 +289,7 @@ class SweepScopeProcessor
             // seconds later. Three strikes fail for real. Engine errors
             // (anything else) fail immediately as before.
             $transient = (bool) preg_match(
-                '/LOADING Redis|Connection refused|server closed the connection|no connection to the server|SQLSTATE\[08|Connection timed out/i',
+                '/LOADING Redis|Connection refused|server closed the connection|no connection to the server|SQLSTATE\[08|Connection timed out|Connection lost|getaddrinfo|went away|recovery mode|not yet accepting connections/i',
                 $e->getMessage()
             );
             $retries = (int) DB::table('apportionment_ledger_scopes')->where('id', $scopeId)->value('retry_count');
