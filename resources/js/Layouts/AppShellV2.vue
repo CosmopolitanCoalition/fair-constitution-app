@@ -24,7 +24,10 @@ import AppFooter from '@/Components/Shell/AppFooter.vue';
 import EmergencyBanner from '@/Components/Shell/EmergencyBanner.vue';
 import JurisdictionSwitcher from '@/Components/Shell/JurisdictionSwitcher.vue';
 import SchemaUpdateBanner from '@/Components/SchemaUpdateBanner.vue';
-import BackgroundJobsWidget from '@/Components/BackgroundJobsWidget.vue';
+// BackgroundJobsWidget: hidden (operator ruling 2026-09-02). The background-jobs
+// strip was built so play could continue while maps generate, but it saw little
+// development and showed stale piles as live work. The component stays in
+// resources/js/Components for the day it returns.
 import Banner from '@/Components/Ui/Banner.vue';
 import Btn from '@/Components/Ui/Btn.vue';
 import Icon from '@/Components/Ui/Icon.vue';
@@ -315,7 +318,7 @@ onBeforeUnmount(() => {
 
         <!-- B4 (2026-08-29): floating background-job monitor — self-hides
              when the box carries no long-running workstreams. -->
-        <BackgroundJobsWidget />
+        <!-- BackgroundJobsWidget hidden (operator ruling 2026-09-02); see the script note. -->
 
         <AppFooter
             :citation="surface?.citation ?? null"
