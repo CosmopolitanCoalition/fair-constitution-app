@@ -259,7 +259,7 @@ return [
         // at a time, so processes = concurrency. cores−2, capped 12
         // (CGA_AUTOSCALE_WORKERS overrides). The width governor, per-job
         // release() gate, and the orchestrator's tick lane are all retired.
-        // timeout=0: a monster-scope sweep can legitimately run for hours.
+        // timeout: derived from the lane's claim budget (see the key below).
         'supervisor-autoscale' => [
             'connection' => 'redis-long',
             'queue' => ['autoscale'],
@@ -269,7 +269,12 @@ return [
             'maxJobs' => 0,
             'memory' => \App\Support\HostCapacity::workerRecycleHeavyMb(),
             'tries' => 1,
-            'timeout' => 0,
+            // Twice the lane's claim budget (operator order 2026-09-02): a
+            // lane exits on its own at the budget between claims; a lane
+            // still inside one claim at twice the budget is killed here and
+            // the pump reclaims its scope on backend absence. Derived from
+            // the job's constant, never a second number.
+            'timeout' => 2 * \App\Jobs\AutoscaleWorkerJob::CLAIM_BUDGET_SECONDS,
             'nice' => 5,
         ],
 

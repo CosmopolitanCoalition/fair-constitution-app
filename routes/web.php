@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\AutoscaleLaneController;
 use App\Http\Controllers\Civic\HomeController;
 use App\Http\Controllers\Civic\IdentityVerificationController;
 use App\Http\Controllers\Civic\MyRecordController;
@@ -189,6 +190,13 @@ Route::post('/api/setup/wizard/step3/autoscale-revert', [SetupController::class,
 // CLI (operator-gated in the controller; same TypeBDistrictMapper service).
 Route::post('/api/setup/wizard/step3/type-b-district', [SetupController::class, 'typeBDistrict'])
     ->middleware('auth')->name('api.setup.step3.type-b-district');
+// Lane kill controls (operator order 2026-09-02): deadlines are warnings,
+// kills are manual (per lane) or opt-in automatic (per run). Operator-gated
+// in the controller, the same posture as halt / resume.
+Route::post('/api/setup/wizard/step3/lanes/{lease}/kill', [AutoscaleLaneController::class, 'kill'])
+    ->middleware('auth')->name('api.setup.step3.lane-kill');
+Route::post('/api/setup/wizard/step3/auto-kill', [AutoscaleLaneController::class, 'autoKill'])
+    ->middleware('auth')->name('api.setup.step3.auto-kill');
 Route::post('/api/setup/wizard/step4/complete', [SetupController::class, 'completeStep4'])
     ->middleware('auth')->name('api.setup.step4.complete');
 

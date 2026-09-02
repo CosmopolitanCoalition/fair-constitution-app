@@ -50,15 +50,27 @@ async function loadSummary() {
 // ── Autoscale dashboard (pull engine, 2026-07-19) ────────────────────────
 // Map-data acceptance kicks off the full-scale run: every jurisdiction gets
 // a sized legislature + a founding district map. This panel polls the run
-// every 2 s with the Step-2 contract: the poll is ALWAYS armed while the
-// page is open (even with no run yet, or a halted one — a run created or
-// resumed elsewhere appears within a poll), and stops only on done/failed.
-// Every action handler re-arms it.
+// with the Step-2 contract: the poll is ALWAYS armed while the page is open
+// (even with no run yet, or a halted one, so a run created or resumed
+// elsewhere appears within a poll), and stops only on done/failed. Every
+// action handler re-arms it.
+//
+// THE POLL CADENCE (fix 7, 2026-09-02): 2 s while the run works (queued,
+// sizing, mapping, or no run yet), 10 s while it is halted or paused, none
+// after done/failed. One request in flight at a time. A request aborts
+// after 15 s. A hidden tab stops polling; the tab becoming visible again
+// polls at once and restarts the chain.
 
 const autoscale = ref(null)      // { run, layers, precompute, live_items, review_items }
 const autoscaleError = ref('')
 const actionBusy = ref(false)
-let pollTimer = null
+const POLL_FAST_MS = 2000
+const POLL_SLOW_MS = 10000
+const POLL_ABORT_MS = 15000
+let pollTimer = null             // the pending setTimeout of the poll chain
+let pollArmed = false            // true while the page wants the chain running
+let pollInFlight = false         // one request at a time
+let pollAbort = null             // AbortController of the in-flight request
 let summaryTick = 0
 
 const run = computed(() => autoscale.value?.run ?? null)
@@ -130,11 +142,46 @@ function barTiming(key, done, total) {
     }
     return out
 }
+function liveClaimSecs(w) {
+    if (w.claim_secs == null) return null
+    // Anchor the lane's clock once per payload row; the 1 s tick moves it.
+    if (!w._t0) w._t0 = Date.now() - w.claim_secs * 1000
+    return Math.max(0, Math.round((Date.now() - w._t0) / 1000))
+}
 function workerElapsed(w) {
     void nowTick.value
-    if (w.claim_secs == null) return ''
-    if (!w._t0) w._t0 = Date.now() - w.claim_secs * 1000
-    return fmtEta(Math.round((Date.now() - w._t0) / 1000))
+    const s = liveClaimSecs(w)
+    return s == null ? '' : fmtEta(s)
+}
+// LANE WARNINGS (operator ruling 2026-09-02): deadlines are warnings, not
+// kills. Past the first threshold the lane turns amber, past the second
+// red. The thresholds come from the payload (run.lane_warn_seconds); this
+// page never hard-codes them.
+const laneWarn = computed(() => {
+    const t = run.value?.lane_warn_seconds
+    return Array.isArray(t) && t.length >= 2 ? [Number(t[0]), Number(t[1])] : null
+})
+function laneLevel(w) {
+    void nowTick.value
+    const s = liveClaimSecs(w)
+    if (s == null || !laneWarn.value) return 'normal'
+    if (s >= laneWarn.value[1]) return 'red'
+    if (s >= laneWarn.value[0]) return 'amber'
+    return 'normal'
+}
+const laneTone = {
+    normal: { label: 'text-gray-200',  clock: 'text-gray-500',  dot: 'bg-blue-400',  bar: 'bg-blue-500',  pulse: 'bg-blue-800' },
+    amber:  { label: 'text-amber-300', clock: 'text-amber-400', dot: 'bg-amber-400', bar: 'bg-amber-500', pulse: 'bg-amber-700' },
+    red:    { label: 'text-red-300',   clock: 'text-red-400',   dot: 'bg-red-400',   bar: 'bg-red-500',   pulse: 'bg-red-700' },
+}
+function laneTitle(w) {
+    const t = laneWarn.value
+    if (!t || w.claim_secs == null) return ''
+    const base = `Claim open for ${workerElapsed(w)}. Amber after ${fmtEta(t[0])}, red after ${fmtEta(t[1])}.`
+    const lvl = laneLevel(w)
+    if (lvl === 'red') return `${base} Past the second warning. Kill parks the scope in review.`
+    if (lvl === 'amber') return `${base} Past the first warning.`
+    return base
 }
 // STABLE SLOTS (operator, 2026-08-29: "everything seems bouncing around"):
 // each worker keeps a fixed row, sorted by its id — the label and clock
@@ -209,11 +256,34 @@ const runActive = computed(() => run.value && ['queued', 'sizing', 'mapping'].in
 const precomputeOpen = computed(() =>
     precompute.value && (precompute.value.done + precompute.value.failed) < precompute.value.total)
 
+function pollDelayMs() {
+    const r = run.value
+    const status = r?.status
+    if (status === 'done' || status === 'failed') return null
+    if (status === 'halted' || r?.paused_until) return POLL_SLOW_MS
+    return POLL_FAST_MS
+}
+
+function scheduleNextPoll() {
+    if (pollTimer) { clearTimeout(pollTimer); pollTimer = null }
+    if (!pollArmed) return
+    if (typeof document !== 'undefined' && document.hidden) return   // resumes on visibilitychange
+    const delay = pollDelayMs()
+    if (delay === null) { pollArmed = false; return }
+    pollTimer = setTimeout(fetchAutoscale, delay)
+}
+
 async function fetchAutoscale() {
+    if (pollInFlight) return
+    pollInFlight = true
+    const ctl = typeof AbortController !== 'undefined' ? new AbortController() : null
+    pollAbort = ctl
+    const abortTimer = ctl ? setTimeout(() => ctl.abort(), POLL_ABORT_MS) : null
     try {
         const res = await fetch('/api/setup/wizard/step3/autoscale-progress', {
             credentials: 'same-origin',
             headers: { 'Accept': 'application/json' },
+            signal: ctl?.signal,
         })
         if (!res.ok) {
             autoscaleError.value = `Could not load autoscale progress (HTTP ${res.status}).`
@@ -252,24 +322,40 @@ async function fetchAutoscale() {
         }
         // Terminal short-circuit only — halted/null keep polling (Resume or
         // an accept elsewhere must surface without a page reload).
-        if ((status === 'done' || status === 'failed') && pollTimer) {
+        if (status === 'done' || status === 'failed') {
             stopPolling()
         }
     } catch (e) {
-        autoscaleError.value = String(e)
+        autoscaleError.value = e?.name === 'AbortError'
+            ? `Progress request aborted after ${POLL_ABORT_MS / 1000} s. The next poll retries.`
+            : String(e)
+    } finally {
+        if (abortTimer) clearTimeout(abortTimer)
+        pollAbort = null
+        pollInFlight = false
+        scheduleNextPoll()
     }
 }
 
 function startPolling() {
-    stopPolling()
-    pollTimer = setInterval(fetchAutoscale, 2000)
+    pollArmed = true
+    scheduleNextPoll()
 }
 
 function stopPolling() {
+    pollArmed = false
     if (pollTimer) {
-        clearInterval(pollTimer)
+        clearTimeout(pollTimer)
         pollTimer = null
     }
+}
+
+function onVisibilityChange() {
+    if (document.hidden) {
+        if (pollTimer) { clearTimeout(pollTimer); pollTimer = null }
+        return
+    }
+    if (pollArmed && !pollInFlight) fetchAutoscale()
 }
 
 async function haltRun() {
@@ -349,6 +435,123 @@ async function groupTypeB() {
     } finally {
         typeBBusy.value = false
     }
+}
+
+// ── Lane kill + auto-kill (operator ruling 2026-09-02) ───────────────────
+// A kill is a request: the lane stops at its next boundary and the scope
+// parks in review. Two clicks per kill (arm, then confirm) so one stray
+// click never kills a lane; the arm lapses after a few seconds. Auto-kill
+// is the unattended dial, stored on the run.
+const KILL_ARM_MS = 6000
+const killArmed = ref({})        // lease_id -> true after the first click
+const killPending = ref({})      // lease_id -> true while the POST is in flight
+const killSent = ref({})         // lease_id -> the claim label the kill was sent for
+const killArmTimers = {}
+function laneKey(w) { return w.lease_id ?? w.id }
+function killState(w) {
+    const k = laneKey(w)
+    if (w.kill_requested || killSent.value[k] === (w.claim_label ?? '')) return 'requested'
+    if (killPending.value[k]) return 'pending'
+    if (killArmed.value[k]) return 'armed'
+    return 'idle'
+}
+function disarmKill(k) {
+    clearTimeout(killArmTimers[k])
+    delete killArmTimers[k]
+    if (killArmed.value[k]) {
+        const next = { ...killArmed.value }
+        delete next[k]
+        killArmed.value = next
+    }
+}
+async function killLane(w) {
+    const k = laneKey(w)
+    if (!killArmed.value[k]) {
+        killArmed.value = { ...killArmed.value, [k]: true }
+        clearTimeout(killArmTimers[k])
+        killArmTimers[k] = setTimeout(() => disarmKill(k), KILL_ARM_MS)
+        return
+    }
+    disarmKill(k)
+    killPending.value = { ...killPending.value, [k]: true }
+    try {
+        const res = await csrfFetch(`/api/setup/wizard/step3/lanes/${encodeURIComponent(k)}/kill`, { method: 'POST' })
+        const data = await res.json().catch(() => ({}))
+        if (!res.ok || !data.ok) {
+            autoscaleError.value = data.error || data.message || `Kill request failed (HTTP ${res.status}).`
+            return
+        }
+        killSent.value = { ...killSent.value, [k]: w.claim_label ?? '' }
+        await fetchAutoscale()
+    } catch (e) {
+        autoscaleError.value = String(e)
+    } finally {
+        const next = { ...killPending.value }
+        delete next[k]
+        killPending.value = next
+    }
+}
+
+const autoKillOn = ref(false)
+const autoKillMinutes = ref(null)
+const autoKillBusy = ref(false)
+const autoKillError = ref('')
+// Default when the operator switches it on with no stored value: twice the
+// red threshold, in whole minutes (derived from the payload, never typed).
+const autoKillDefaultMinutes = computed(() => {
+    const t = laneWarn.value
+    return t ? Math.max(1, Math.ceil((t[1] * 2) / 60)) : 30
+})
+watch(() => run.value?.auto_kill_minutes, (m) => {
+    if (autoKillBusy.value) return          // the POST in flight owns the value
+    autoKillOn.value = m != null
+    if (m != null) autoKillMinutes.value = m
+}, { immediate: true })
+async function saveAutoKill() {
+    autoKillError.value = ''
+    let minutes = null
+    if (autoKillOn.value) {
+        minutes = Math.round(Number(autoKillMinutes.value))
+        if (!Number.isFinite(minutes) || minutes < 1) {
+            minutes = autoKillDefaultMinutes.value
+            autoKillMinutes.value = minutes
+        }
+        // The endpoint accepts 1..1440 (one day); clamp before the POST so
+        // a typed 5000 never round-trips as a 422.
+        if (minutes > 1440) {
+            minutes = 1440
+            autoKillMinutes.value = minutes
+        }
+    }
+    autoKillBusy.value = true
+    try {
+        const res = await csrfFetch('/api/setup/wizard/step3/auto-kill', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ minutes }),
+        })
+        const data = await res.json().catch(() => ({}))
+        if (!res.ok || !data.ok) {
+            // A 422 carries Laravel's `message`, other failures carry `error`.
+            autoKillError.value = data.error || data.message || `Auto-kill setting failed (HTTP ${res.status}).`
+            const m = run.value?.auto_kill_minutes ?? null   // back to what the run holds
+            autoKillOn.value = m != null
+            if (m != null) autoKillMinutes.value = m
+            return
+        }
+        const m = data.auto_kill_minutes ?? null
+        autoKillOn.value = m != null
+        if (m != null) autoKillMinutes.value = m
+    } catch (e) {
+        autoKillError.value = String(e)
+    } finally {
+        autoKillBusy.value = false
+    }
+}
+function toggleAutoKill(on) {
+    autoKillOn.value = on
+    if (on && !(Number(autoKillMinutes.value) >= 1)) autoKillMinutes.value = autoKillDefaultMinutes.value
+    saveAutoKill()
 }
 
 // ── Number tweening (the Step-2 feel) ────────────────────────────────────
@@ -444,9 +647,15 @@ onMounted(async () => {
     if (status !== 'done' && status !== 'failed') {
         startPolling()
     }
+    document.addEventListener('visibilitychange', onVisibilityChange)
 })
 
-onBeforeUnmount(stopPolling)
+onBeforeUnmount(() => {
+    stopPolling()
+    document.removeEventListener('visibilitychange', onVisibilityChange)
+    pollAbort?.abort()
+    for (const k of Object.keys(killArmTimers)) clearTimeout(killArmTimers[k])
+})
 </script>
 
 <template>
@@ -704,6 +913,45 @@ onBeforeUnmount(stopPolling)
                      as a small suffix). No per-claim totals exist for these
                      units, so the fill is the ingestion panel's honest
                      working-pulse sliver. -->
+                <!-- LANE WARNINGS + AUTO-KILL (operator ruling 2026-09-02):
+                     deadlines are warnings. A lane turns amber past the
+                     first threshold and red past the second; the thresholds
+                     come from the payload. Auto-kill is the unattended
+                     dial: a lane past N minutes on one claim is killed and
+                     its scope parks in review. Stored on the run. -->
+                <div v-if="run.status !== 'done' && run.status !== 'failed'" class="mt-4 border-t border-gray-700/50 pt-3">
+                    <div class="flex flex-wrap items-center justify-between gap-x-4 gap-y-2 text-xs">
+                        <!-- One label per control: the label owns the
+                             checkbox only; the minutes input carries its
+                             own accessible name. -->
+                        <div class="flex items-center gap-2 text-gray-300 select-none">
+                            <label class="flex items-center gap-2">
+                                <input type="checkbox"
+                                       class="rounded border-gray-600 bg-gray-800"
+                                       :checked="autoKillOn"
+                                       :disabled="autoKillBusy"
+                                       @change="toggleAutoKill($event.target.checked)" />
+                                <span>Auto-kill a lane after</span>
+                            </label>
+                            <input type="number" min="1" max="1440" step="1"
+                                   aria-label="Auto-kill minutes on one claim"
+                                   class="w-16 rounded bg-gray-800 border border-gray-700 px-1.5 py-0.5 text-gray-100 tabular-nums disabled:opacity-50"
+                                   v-model.number="autoKillMinutes"
+                                   :placeholder="autoKillDefaultMinutes"
+                                   :disabled="!autoKillOn || autoKillBusy"
+                                   @change="saveAutoKill" />
+                            <span>min on one claim</span>
+                            <span v-if="autoKillBusy" class="text-gray-500">saving</span>
+                            <span v-else-if="run.auto_kill_minutes != null" class="text-emerald-400">on, {{ run.auto_kill_minutes }} min</span>
+                            <span v-else class="text-gray-500">off</span>
+                        </div>
+                        <span v-if="laneWarn" class="text-gray-500">
+                            Lane warning: amber after {{ fmtEta(laneWarn[0]) }}, red after {{ fmtEta(laneWarn[1]) }}. A killed scope parks in review.
+                        </span>
+                    </div>
+                    <p v-if="autoKillError" class="text-red-300 text-xs mt-1">{{ autoKillError }}</p>
+                </div>
+
                 <div v-if="autoscale.workers_detail?.length" class="mt-4 border-t border-gray-700/50 pt-3">
                     <div class="text-gray-400 text-xs uppercase tracking-wide mb-2">
                         Workers ({{ autoscale.workers_detail.length }})
@@ -718,25 +966,49 @@ onBeforeUnmount(stopPolling)
                              ].filter(x => x.list.length)" :key="grp.key">
                             <div class="text-gray-500 text-[11px] uppercase tracking-wide mb-1">{{ grp.title }} ({{ grp.list.length }})</div>
                     <ul class="space-y-1.5">
+                        <!-- Lane color by claim age against run.lane_warn_seconds
+                             (normal, amber, red). Kill is two clicks: arm,
+                             then confirm; "kill requested" once the lane
+                             holds the flag. -->
                         <li v-for="w in grp.list" :key="w.id"
-                            class="text-xs bg-gray-800/60 rounded px-2.5 py-2">
+                            class="text-xs bg-gray-800/60 rounded px-2.5 py-2"
+                            :class="{ 'ring-1 ring-amber-700/60': laneLevel(w) === 'amber', 'ring-1 ring-red-700/70': laneLevel(w) === 'red' }"
+                            :title="laneTitle(w)">
                             <div class="flex items-center justify-between mb-1">
                                 <span class="flex items-center gap-2 min-w-0">
                                     <span class="w-1.5 h-1.5 rounded-full shrink-0"
-                                          :class="w.claim_label ? 'bg-blue-400 animate-pulse' : 'bg-gray-600'" aria-hidden="true" />
-                                    <span v-if="w.claim_label" class="text-gray-200 font-medium truncate">{{ w.claim_label }}</span>
+                                          :class="w.claim_label ? [laneTone[laneLevel(w)].dot, 'animate-pulse'] : 'bg-gray-600'" aria-hidden="true" />
+                                    <span v-if="w.claim_label" class="font-medium truncate" :class="laneTone[laneLevel(w)].label">{{ w.claim_label }}</span>
                                     <span v-else class="text-gray-500 italic">{{ idleCause }}</span>
                                 </span>
-                                <span class="text-gray-500 tabular-nums shrink-0 ml-3">
-                                    <template v-if="w.claim_label">{{ workerElapsed(w) }} on claim · </template>
-                                    <span class="font-mono">{{ w.id }}</span>
+                                <span class="flex items-center gap-2 tabular-nums shrink-0 ml-3" :class="laneTone[laneLevel(w)].clock">
+                                    <template v-if="w.claim_label">
+                                        <span>{{ workerElapsed(w) }} on claim<span v-if="laneLevel(w) !== 'normal'"> ({{ laneLevel(w) }} warning)</span></span>
+                                        <span v-if="killState(w) === 'requested'" class="text-red-300 italic">kill requested</span>
+                                        <button v-else
+                                                type="button"
+                                                @click="killLane(w)"
+                                                :disabled="killState(w) === 'pending' || run.status === 'done' || run.status === 'failed'"
+                                                class="px-2 py-0.5 rounded border transition-colors disabled:opacity-50"
+                                                :class="killState(w) === 'armed'
+                                                    ? 'border-red-500 bg-red-900/50 text-red-100'
+                                                    : 'border-gray-600 text-gray-300 hover:border-red-600 hover:text-red-200'"
+                                                :title="killState(w) === 'armed'
+                                                    ? 'Click again to kill this lane. The scope parks in review.'
+                                                    : 'Kill this lane at its next boundary. Two clicks.'">
+                                            {{ killState(w) === 'pending' ? 'Killing' : (killState(w) === 'armed' ? 'Confirm kill' : 'Kill') }}
+                                        </button>
+                                        <span>·</span>
+                                    </template>
+                                    <span class="font-mono text-gray-500">{{ w.id }}</span>
                                 </span>
                             </div>
                             <div class="h-1.5 bg-gray-900 rounded overflow-hidden">
                                 <div v-if="batchFill(w) !== null"
-                                     class="h-full rounded bg-blue-500 transition-all duration-700"
+                                     class="h-full rounded transition-all duration-700"
+                                     :class="laneTone[laneLevel(w)].bar"
                                      :style="{ width: batchFill(w) + '%' }" />
-                                <div v-else-if="w.claim_label" class="h-full w-1/4 rounded bg-blue-800 animate-pulse" />
+                                <div v-else-if="w.claim_label" class="h-full w-1/4 rounded animate-pulse" :class="laneTone[laneLevel(w)].pulse" />
                                 <div v-else class="h-full w-0" />
                             </div>
                         </li>

@@ -5,6 +5,8 @@ namespace App\Console\Commands;
 use App\Jobs\AutoscaleWorkerJob;
 use App\Models\AutoscaleRun;
 use App\Services\AuditService;
+use App\Services\Autoscale\AutoscaleRunControl;
+use App\Services\Autoscale\SweepScopeProcessor;
 use App\Support\AutoscaleClaims;
 use App\Support\HostCapacity;
 use Illuminate\Console\Command;
@@ -29,41 +31,35 @@ class AutoscalePumpCommand extends Command
 {
     protected $signature = 'autoscale:pump';
 
-    protected $description = 'Advance the active autoscale run: phase transitions, stale-claim reclaims, worker seeding, counters';
+    protected $description = 'Advance the active autoscale run: phase transitions, kill sweep, dead-lane reclaims, worker seeding, counters';
 
     /**
-     * Stale thresholds (seconds). Claims are item/scope-sized — minutes, not
-     * levels. SCOPE_STALE = 30 min, the proven cadence bound from the old
-     * engine: publishMassProgress heartbeats between engine phases and
-     * districts, but a single monster PostGIS call (ST_Union on a giant
-     * district) can legitimately go ~quiet for many minutes — a tighter
-     * bound would false-reclaim a LIVE worker and double-run its scope.
+     * Stale thresholds (seconds) for the NON-scope claim kinds. Claims are
+     * item-sized — minutes, not levels. SCOPES have no timer: a running
+     * scope is reclaimed on BACKEND ABSENCE only (reclaimDeadScopes below,
+     * operator order 2026-09-02) — a live lane deep in one long PostGIS
+     * statement is never reclaimed, however long the statement runs.
      */
-    private const SCOPE_STALE   = 1800;
     private const SINGLES_STALE = 1800;  // a batch's 5 statements run minutes; no mid-statement heartbeat
     private const PRECOMP_STALE = 1800;  // one parent's pair pass; heavy parents take minutes
     private const ASSESS_STALE  = 1800;  // completeness assessment is minutes at worst
 
     /**
-     * HEAVY scopes (area_tier ≥ 4) get a 4-hour stale bound (2026-07-22):
-     * an extreme-multipart monster (Falkland Islands ~700 islands, Cabo de
-     * Hornos) legitimately spends >30 min inside ONE PostGIS statement with
-     * no heartbeat — the 30-min bound false-reclaimed LIVE workers and,
-     * combined with OOM kills, wedged the heavy lane in an execute-redo
-     * loop (both frontier scopes cycled 12-21 hours without finishing).
-     */
-    private const HEAVY_SCOPE_STALE = 14400;
-
-    /**
-     * How long a worker lease may go untouched before the pump treats the
-     * worker as gone (2026-08-09, the re-run loop). ONE constant for BOTH the
-     * lease prune below and the reclaim guard above it — they answer the same
-     * question ("is this worker alive?") and must never drift apart. The
-     * engine's heartbeat (DistrictingService::publishMassProgress) refreshes
-     * the lease from inside a long scope, so this window now measures worker
-     * DEATH rather than worker BUSYNESS.
+     * How long a lease WITHOUT a recorded backend pid may go untouched
+     * before the pump treats its worker as gone (2026-08-09, the re-run
+     * loop). ONE constant for BOTH the legacy lease prune and rule (c) of
+     * the scope reclaim — they answer the same question ("is this worker
+     * alive?") and must never drift apart. A lease WITH a pid answers by
+     * pg_stat_activity presence, never by this timer.
      */
     private const WORKER_LEASE_STALE = 600;
+
+    /**
+     * The reclaim that PARKS (operator order 2026-09-02): a scope reclaimed
+     * this many times goes to review with no further retry — the pile
+     * never re-eats a scope that kills its lanes.
+     */
+    public const RECLAIM_PARK_AT = 3;
 
     public function handle(): int
     {
@@ -111,6 +107,8 @@ class AutoscalePumpCommand extends Command
                 // THE HALT SEIZES (operator order 2026-09-02, the three
                 // Tumaco lanes that outlived the halt by an hour): while
                 // the run is parked, every pump minute reaps the lanes.
+                // An operator's kill request is honored while parked too.
+                app(AutoscaleRunControl::class)->sweepKills($run);
                 self::reapHaltedLanes($run);
 
                 return self::SUCCESS; // parked until the operator resumes
@@ -145,38 +143,27 @@ class AutoscalePumpCommand extends Command
             return self::SUCCESS;
         }
 
-        // ── Reclaims: stale claims go back to pending (set-based, bounded) ──
+        // ── Kill controls (operator order 2026-09-02) ──────────────────────
+        // Deadlines are warnings; kills are manual (kill_requested_at) or
+        // opt-in automatic (auto_kill_minutes). A killed scope PARKS in
+        // review. One implementation, AutoscaleRunControl::killLease.
+        $killed = app(AutoscaleRunControl::class)->sweepKills($run);
+        if ($killed > 0) {
+            Log::warning('Autoscale pump killed lanes', ['run_id' => $run->id, 'count' => $killed]);
+        }
+
+        // ── Reclaims: dead lanes' claims go back to pending (set-based, bounded) ──
         $reclaimed = 0;
-        // A LIVE WORKER IS NEVER RECLAIMED (2026-08-09, the re-run loop).
-        // Staleness of the WORK is not evidence of death of the WORKER: a
-        // heavy scope's search legitimately runs longer than the bound, and
-        // reclaiming it did not stop the original worker — it just started a
-        // SECOND one on the same scope, which took equally long and was
-        // reclaimed in turn. The scope never finished and the pool grew.
-        // The lease is the liveness evidence, so a fresh lease holding this
-        // claim vetoes the seizure. A dead worker leaves no fresh lease, so
-        // genuine recovery still fires on the same schedule as before — this
-        // narrows the seizure to actually-dead holders, it does not weaken it.
-        $reclaimed += DB::update("
-            UPDATE apportionment_ledger_scopes s
-               SET status = 'pending', claim_token = NULL,
-                   reason = 'reclaimed: worker died mid-scope', updated_at = now()
-              FROM apportionment_ledger h
-             WHERE h.legislature_id = s.legislature_id
-               AND s.status = 'running'
-               AND s.updated_at < now() - make_interval(secs =>
-                       CASE WHEN COALESCE(s.area_tier, h.area_tier, 1) >= ?::int
-                            THEN ?::double precision ELSE ?::double precision END)
-               AND NOT EXISTS (
-                     SELECT 1
-                       FROM autoscale_worker_leases wl
-                      WHERE wl.id = s.claim_token
-                        AND wl.last_seen_at > now() - make_interval(secs => ?::double precision)
-                   )
-        ", [
-            \App\Support\AutoscaleClaims::HEAVY_TIER,
-            self::HEAVY_SCOPE_STALE, self::SCOPE_STALE, self::WORKER_LEASE_STALE,
-        ]);
+        // A LIVE WORKER IS NEVER RECLAIMED (2026-08-09, the re-run loop;
+        // made structural 2026-09-02). Staleness of the WORK is not
+        // evidence of death of the WORKER: a heavy scope's search runs as
+        // long as it runs, and reclaiming it did not stop the original
+        // worker — it started a SECOND one on the same scope (Tumaco: three
+        // lanes, retry_count 4). The evidence of death is the lane's
+        // postgres backend leaving pg_stat_activity, or its lease row
+        // leaving the table. reclaimDeadScopes reads exactly that.
+        $scopeReclaim = self::reclaimDeadScopes();
+        $reclaimed += $scopeReclaim['reclaimed'];
         $reclaimed += DB::table('apportionment_ledger')
             ->where('kind', 'single')
             ->where('map_status', 'running')
@@ -198,8 +185,9 @@ class AutoscalePumpCommand extends Command
             ]);
 
         if ($reclaimed > 0) {
-            Log::warning('Autoscale pump reclaimed stale claims', [
+            Log::warning('Autoscale pump reclaimed dead lanes\' claims', [
                 'run_id' => $run->id, 'count' => $reclaimed,
+                'scopes_parked' => $scopeReclaim['parked'],
             ]);
         }
 
@@ -251,10 +239,11 @@ class AutoscalePumpCommand extends Command
         // Positive death detection: a lease whose heartbeat is stale AND
         // whose recorded postgres backend is GONE from pg_stat_activity is
         // certainly dead — a live lane mid-query cannot heartbeat, but its
-        // backend is present, so it is never touched. Each certain corpse:
-        // lease deleted, its claimed scopes returned to pending with a
-        // transient-retry mark, and the seeding below dispatches the
-        // replacement in this same tick.
+        // backend is present, so it is never touched. Each certain corpse's
+        // lease is deleted here; its scopes were already returned by
+        // reclaimDeadScopes above (the ONE owner of scope reclaim state,
+        // 2026-09-02), and the seeding below dispatches the replacement in
+        // this same tick.
         $corpses = DB::select('
             SELECT id FROM autoscale_worker_leases l
              WHERE l.last_seen_at < ?
@@ -262,19 +251,8 @@ class AutoscalePumpCommand extends Command
                AND NOT EXISTS (SELECT 1 FROM pg_stat_activity a WHERE a.pid = l.pg_backend_pid)
         ', [now()->subMinutes(2)]);
         foreach ($corpses as $corpse) {
-            DB::table('apportionment_ledger_scopes')
-                ->where('claim_token', $corpse->id)
-                ->where('status', 'running')
-                ->update([
-                    'status'      => 'pending',
-                    'claim_token' => null,
-                    'started_at'  => null,
-                    'reason'      => 'reaped: worker died mid-claim',
-                    'retry_count' => DB::raw('retry_count + 1'),
-                    'updated_at'  => now(),
-                ]);
             DB::table('autoscale_worker_leases')->where('id', $corpse->id)->delete();
-            Log::warning('Autoscale reaper: dead worker reclaimed', ['lease' => (string) $corpse->id]);
+            Log::warning('Autoscale reaper: dead worker lease deleted', ['lease' => (string) $corpse->id]);
         }
 
         // TRANSIENT REVIEWS SELF-REQUEUE (operator order 2026-08-30, the
@@ -555,6 +533,95 @@ class AutoscalePumpCommand extends Command
         }
     }
 
+    /**
+     * RECLAIM ON BACKEND ABSENCE, NEVER ON A TIMER (operator order
+     * 2026-09-02, the three Tumaco lanes on one scope). A running scope
+     * returns to the pile only when its lane is certainly gone:
+     *  (a) it carries no token, or its lease row is missing;
+     *  (b) its lease records a backend pid and that pid is absent from
+     *      pg_stat_activity;
+     *  (c) its lease records no pid (pre-pid lease) and the heartbeat is
+     *      older than WORKER_LEASE_STALE.
+     * A live lane deep in one long statement is never touched: its backend
+     * is present. The rows are selected FOR UPDATE OF the scope SKIP LOCKED,
+     * so the pump never waits behind a lane's row lock. Every reclaim bumps
+     * retry_count; when it reaches RECLAIM_PARK_AT the scope PARKS in review
+     * (no retry) and its header is handed to the finalize rung, the
+     * processor's one review path (SweepScopeProcessor::handHeaderToFinalize).
+     *
+     * @return array{reclaimed:int, parked:int}
+     */
+    public static function reclaimDeadScopes(): array
+    {
+        $rows = DB::select("
+            WITH dead AS (
+                SELECT s.id,
+                       CASE
+                         WHEN s.claim_token IS NULL      THEN 'reclaimed: running scope held no lease'
+                         WHEN wl.id IS NULL              THEN 'reclaimed: lease gone mid-scope'
+                         WHEN wl.pg_backend_pid IS NOT NULL THEN 'reclaimed: worker backend gone mid-scope'
+                         ELSE 'reclaimed: worker heartbeat stale mid-scope'
+                       END AS cause,
+                       -- THE SCOPE IN HAND (review catch 2026-09-02): a batch
+                       -- lane holds up to 100 scopes under one token but works
+                       -- one at a time. Only that one carries the evidence of
+                       -- a bad scope; the untouched remainder returns to the
+                       -- pile with no bump and no reason.
+                       NOT (wl.claim_type = 'scope_batch'
+                            AND wl.current_scope_id IS NOT NULL
+                            AND s.id <> wl.current_scope_id) AS in_hand
+                  FROM apportionment_ledger_scopes s
+                  LEFT JOIN autoscale_worker_leases wl ON wl.id = s.claim_token
+                 WHERE s.status = 'running'
+                   AND (
+                        s.claim_token IS NULL
+                     OR wl.id IS NULL
+                     OR (wl.pg_backend_pid IS NOT NULL
+                         AND NOT EXISTS (SELECT 1 FROM pg_stat_activity a WHERE a.pid = wl.pg_backend_pid))
+                     OR (wl.pg_backend_pid IS NULL
+                         AND wl.last_seen_at < now() - make_interval(secs => ?::double precision))
+                   )
+                 FOR UPDATE OF s SKIP LOCKED
+            )
+            UPDATE apportionment_ledger_scopes s
+               SET status      = CASE WHEN d.in_hand AND s.retry_count + 1 >= ?::int THEN 'review' ELSE 'pending' END,
+                   claim_token = NULL,
+                   started_at  = NULL,
+                   finished_at = CASE WHEN d.in_hand AND s.retry_count + 1 >= ?::int THEN now() ELSE NULL END,
+                   retry_count = CASE WHEN d.in_hand THEN s.retry_count + 1 ELSE s.retry_count END,
+                   reason      = CASE WHEN NOT d.in_hand THEN s.reason
+                                      WHEN s.retry_count + 1 >= ?::int
+                                      THEN LEFT('reclaimed ' || (s.retry_count + 1)::text || ' times: ' || d.cause
+                                                || COALESCE(' | prior: ' || LEFT(s.reason, 300), ''), 1000)
+                                      ELSE d.cause END,
+                   updated_at  = now()
+              FROM dead d
+             WHERE s.id = d.id
+         RETURNING s.id, s.legislature_id, s.status, s.reason, d.in_hand
+        ", [self::WORKER_LEASE_STALE, self::RECLAIM_PARK_AT, self::RECLAIM_PARK_AT, self::RECLAIM_PARK_AT]);
+
+        $parked = 0;
+        $processor = null;
+        foreach ($rows as $row) {
+            if ($row->status !== 'review') {
+                continue;
+            }
+            $parked++;
+            $processor ??= app(SweepScopeProcessor::class);
+            $handed = $processor->handHeaderToFinalize((string) $row->legislature_id);
+            Log::warning('Autoscale pump parked a scope in review after repeated reclaims', [
+                'scope_id'       => (string) $row->id,
+                'legislature_id' => (string) $row->legislature_id,
+                'reason'         => (string) $row->reason,
+                'header_running' => $handed,
+            ]);
+        }
+
+        $inHand = count(array_filter($rows, static fn ($r) => (bool) $r->in_hand));
+
+        return ['reclaimed' => $inHand, 'released' => count($rows) - $inHand, 'parked' => $parked];
+    }
+
     private function refreshCounters(AutoscaleRun $run): object
     {
         $counts = DB::table('apportionment_ledger')
@@ -591,7 +658,7 @@ class AutoscalePumpCommand extends Command
      *  3. A running claim held by no lease returns to pending; a header with
      *     no running scope returns to pending. The resume claims them fresh.
      */
-    private static function reapHaltedLanes(AutoscaleRun $run): void
+    public static function reapHaltedLanes(AutoscaleRun $run): void
     {
         if ($run->halt_requested_at !== null && $run->halt_requested_at->lt(now()->subMinutes(2))) {
             DB::select("
@@ -616,12 +683,26 @@ class AutoscalePumpCommand extends Command
              WHERE s.status = 'running'
                AND NOT EXISTS (SELECT 1 FROM autoscale_worker_leases l WHERE l.id = s.claim_token)
         ");
+        // THE FINALIZE INPUT STAYS RUNNING (review catch 2026-09-02): a
+        // header whose scopes are all closed is exactly what claimFinalize
+        // takes (map_status = 'running'); flipping it to pending stranded
+        // it for good, because no rung claims a pending header with no
+        // pending scope. Only a header that still owns a pending scope
+        // returns to pending; a finalize claim in flight (assessing)
+        // returns to running for re-claim on resume.
         $headers = DB::update("
             UPDATE apportionment_ledger h
+               SET map_status = 'running', claim_token = NULL, updated_at = now()
+             WHERE h.map_status = 'assessing'
+        ");
+        $headers += DB::update("
+            UPDATE apportionment_ledger h
                SET map_status = 'pending', claim_token = NULL, updated_at = now()
-             WHERE h.map_status IN ('running', 'assessing')
+             WHERE h.map_status = 'running'
                AND NOT EXISTS (SELECT 1 FROM apportionment_ledger_scopes s
                                 WHERE s.legislature_id = h.legislature_id AND s.status = 'running')
+               AND EXISTS (SELECT 1 FROM apportionment_ledger_scopes s
+                            WHERE s.legislature_id = h.legislature_id AND s.status = 'pending')
         ");
 
         if ($leases > 0 || $scopes > 0 || $headers > 0) {

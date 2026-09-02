@@ -101,6 +101,23 @@ return [
     'autoscale_topdown_cap' => env('CGA_AUTOSCALE_TOPDOWN_CAP', 0),
 
     /*
+    | Lane deadlines are WARNINGS (operator order 2026-09-02). The Step-3
+    | strip colors a lane at these two marks (seconds into its claim).
+    | Nothing kills on a timer: kills are manual (the lane's kill button)
+    | or opt-in automatic (autoscale_runs.auto_kill_minutes). The second
+    | mark also derives the lane session's statement_timeout
+    | (AutoscaleWorkerJob). Env override CGA_LANE_WARN_SECONDS as 'a,b'.
+    */
+    'lane_warn_seconds' => (static function (): array {
+        $marks = array_values(array_filter(array_map(
+            static fn ($v) => (int) trim((string) $v),
+            explode(',', (string) (env('CGA_LANE_WARN_SECONDS') ?: '300,900'))
+        ), static fn (int $v) => $v > 0));
+
+        return count($marks) === 2 && $marks[0] < $marks[1] ? $marks : [300, 900];
+    })(),
+
+    /*
     | Districting engine — OPERATIONAL dials only (2026-08-09, the São Paulo
     | runtime). No constitutional value lives here: the seating law, the 5-9
     | band and the scoreRank ladder are all untouched by every key below.

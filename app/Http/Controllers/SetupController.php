@@ -2750,15 +2750,6 @@ class SetupController extends Controller
     }
 
     /**
-     * GET /api/setup/wizard/step3/autoscale-progress — the Step-3 dashboard's
-     * poll target during a full-scale autoscale run (2 s cadence, same
-     * pattern as Step 2's mapDataProgress).
-     *
-     * Returns the newest run with counters, live items, rates/ETA, and the
-     * review list. `run: null` means no autoscale has ever been started
-     * (pre-acceptance, or a legacy box).
-     */
-    /**
      * THE LAYER BARS (Step 3): one row per level, counted by the three
      * classes — trivial maps (single headers), line-split scopes (leaf
      * giants) and composite scopes — plus the live single/sweep done
@@ -2796,7 +2787,8 @@ class SetupController extends Controller
                 COUNT(*) FILTER (WHERE s.status = 'done')                 AS done,
                 COUNT(*) FILTER (WHERE s.status = 'running')              AS running,
                 COUNT(*) FILTER (WHERE COALESCE(s.is_leaf, h.child_count = 0))                     AS leaf_total,
-                COUNT(*) FILTER (WHERE COALESCE(s.is_leaf, h.child_count = 0) AND s.status = 'done') AS leaf_done
+                COUNT(*) FILTER (WHERE COALESCE(s.is_leaf, h.child_count = 0) AND s.status = 'done') AS leaf_done,
+                COUNT(*) FILTER (WHERE s.status IN ('review', 'failed'))                              AS parked
             ")
             ->groupBy('h.adm_level')
             ->get()->keyBy('adm_level');
@@ -2846,6 +2838,7 @@ class SetupController extends Controller
                 'scopes_total'  => $sc !== null ? (int) $sc->total : 0,
                 'scopes_done'   => $sc !== null ? (int) $sc->done : 0,
                 'scopes_running'=> $sc !== null ? (int) $sc->running : 0,
+                'scopes_parked' => $sc !== null ? (int) $sc->parked : 0,
                 // THE THREE CLASSES (operator order 2026-09-02): one
                 // bar per level, segmented trivials | line-splits |
                 // composites, each filled by its own done count over
@@ -2905,6 +2898,26 @@ class SetupController extends Controller
         ];
     }
 
+    /**
+     * GET /api/setup/wizard/step3/autoscale-progress. The Step-3 dashboard's
+     * poll target during a full-scale autoscale run (2 s cadence while the
+     * run works, 10 s while it is halted or paused; the page stops on
+     * done/failed and pauses while its tab is hidden).
+     *
+     * Returns the newest run with counters, live items, rates/ETA, and the
+     * review list. `run: null` means no autoscale has ever been started
+     * (pre-acceptance, or a legacy box).
+     *
+     * THE POLL LOAD (fix 7, 2026-09-02): every planet-wide aggregate here
+     * is computed at most once per 5 s and shared by every open tab, the
+     * layerBars pattern. That covers the ledger (1.03M rows), the scopes
+     * table, the sizing-phase counters over legislatures (940k rows) and
+     * legislature_district_maps (1.38M rows), the precompute worklist
+     * aggregate over jurisdiction_adjacency_parents, the drifted list and
+     * the Type B count. The numbers stay live; 5 s is the ceiling. Cheap
+     * indexed reads (the running set, the lease strip, the idle-cause
+     * probes) stay per-poll.
+     */
     public function autoscaleProgress(): JsonResponse
     {
         $run = \App\Models\AutoscaleRun::query()->orderByDesc('created_at')->first();
@@ -2912,10 +2925,26 @@ class SetupController extends Controller
             return response()->json([
                 'run' => null,
                 'world_build' => $this->worldBuildBlock(),
-                'type_b_flagged' => (int) DB::table('legislatures')
-                    ->where('type_b_needs_districting', true)->whereNull('deleted_at')->count(),
+                'type_b_flagged' => (int) Cache::remember('autoscale.type_b_flagged.none', 5, fn () =>
+                    DB::table('legislatures')
+                        ->where('type_b_needs_districting', true)->whereNull('deleted_at')->count()),
             ]);
         }
+
+        // Lane deadlines are WARNINGS, not kills (operator ruling
+        // 2026-09-02): the page colors a lane amber past the first
+        // threshold and red past the second. The thresholds ship in the
+        // payload so the page never hard-codes them.
+        $laneWarnSeconds = array_values(array_map(
+            'intval',
+            (array) config('cga.lane_warn_seconds', [300, 900])
+        ));
+        if (count($laneWarnSeconds) < 2) {
+            $laneWarnSeconds = [300, 900];
+        }
+        // Null-safe before the Workstream A migration lands: a missing
+        // column reads as null, never as an exception.
+        $autoKillMinutes = $run->getAttributes()['auto_kill_minutes'] ?? null;
 
         // Live + review slices (names joined for the dashboard's tables).
         // Under the pull engine the live sweep view is the SCOPE list — the
@@ -2950,35 +2979,40 @@ class SetupController extends Controller
         // (seats − bonus, per the 08-28 law — the writer now nets) misses
         // the budget render as clickable rows exactly like the review list,
         // so the operator walks straight into each mapper without asking.
-        $driftedItems = DB::table('apportionment_ledger as h')
-            ->join('jurisdictions as j', 'j.id', '=', 'h.jurisdiction_id')
-            ->leftJoin('legislature_district_maps as m', function ($join) {
-                $join->on('m.legislature_id', '=', 'h.legislature_id')
-                    ->where('m.status', 'active')->whereNull('m.deleted_at');
-            })
-            ->where('h.map_status', 'done')
-            ->whereRaw('COALESCE(h.drift, 0) <> 0')
-            ->orderByRaw('abs(h.drift) DESC')
-            ->limit(100)
-            ->get([
-                'h.legislature_id', 'h.jurisdiction_id', 'h.adm_level',
-                'h.kind', 'h.reason', 'h.head_seats as seats_expected',
-                'h.seats_seated',
-                'h.drift', 'm.id as map_id',
-                'j.name as jurisdiction_name', 'j.slug as jurisdiction_slug',
-            ]);
+        // Planet-wide: the sort walks every done row with drift (a 189k-row
+        // sort on the live box), so one copy per 5 s serves every tab.
+        $driftedItems = Cache::remember('autoscale.drifted_items.'.$run->id, 5, fn () =>
+            DB::table('apportionment_ledger as h')
+                ->join('jurisdictions as j', 'j.id', '=', 'h.jurisdiction_id')
+                ->leftJoin('legislature_district_maps as m', function ($join) {
+                    $join->on('m.legislature_id', '=', 'h.legislature_id')
+                        ->where('m.status', 'active')->whereNull('m.deleted_at');
+                })
+                ->where('h.map_status', 'done')
+                ->whereRaw('COALESCE(h.drift, 0) <> 0')
+                ->orderByRaw('abs(h.drift) DESC')
+                ->limit(100)
+                ->get([
+                    'h.legislature_id', 'h.jurisdiction_id', 'h.adm_level',
+                    'h.kind', 'h.reason', 'h.head_seats as seats_expected',
+                    'h.seats_seated',
+                    'h.drift', 'm.id as map_id',
+                    'j.name as jurisdiction_name', 'j.slug as jurisdiction_slug',
+                ])->all());
 
         // Σ-seat drift: the count nets lawful bonus lifts (writer + backfill
         // 2026-08-29) — a pure lift map is legal and good, not drift. The
         // attention count covers everything the review table lists
         // (review + failed + halted), so the header never undercounts it.
-        $driftRow = DB::table('apportionment_ledger')
+        // Planet-wide (a full parallel scan of the ledger, no WHERE): one
+        // copy per 5 s, shared.
+        $driftRow = Cache::remember('autoscale.drift_row.'.$run->id, 5, fn () => (array) DB::table('apportionment_ledger')
             ->selectRaw("
                 COUNT(*) FILTER (WHERE map_status = 'done' AND COALESCE(drift, 0) <> 0) AS drifted,
                 COALESCE(SUM(drift) FILTER (WHERE map_status = 'done'), 0)              AS net_drift,
                 COUNT(*) FILTER (WHERE map_status IN ('review','failed'))               AS attention
             ")
-            ->first();
+            ->first());
 
         // LIVE sizing progress (operator finding, run 2: during Phase A the
         // run-row counters only land at phase end and the page looked
@@ -2989,7 +3023,10 @@ class SetupController extends Controller
         $sizingTotal = null;
         $parentsTotal = null;
         if (in_array($run->status, ['queued', 'sizing'], true)) {
-            $sizedLive   = (int) DB::table('legislatures')->whereNull('deleted_at')->count();
+            // A parallel scan of every legislature row (940k on the live
+            // box): one copy per 5 s, shared by every tab.
+            $sizedLive   = (int) Cache::remember('autoscale.sized_live.'.$run->id, 5, fn () =>
+                DB::table('legislatures')->whereNull('deleted_at')->count());
             $sizingTotal = (int) Cache::remember('autoscale.sizing_total', 3600, fn () =>
                 DB::table('jurisdictions')->whereNull('deleted_at')->count());
             // A1 (operator order 2026-08-29): the denominator for the LIVE
@@ -3010,7 +3047,10 @@ class SetupController extends Controller
         $mapsMinted = null;
         $mapsTotal  = null;
         if (in_array($run->status, ['queued', 'sizing'], true)) {
-            $mapsMinted = (int) DB::table('legislature_district_maps')->count();
+            // An index-only walk of every map row (1.38M on the live box):
+            // one copy per 5 s, shared.
+            $mapsMinted = (int) Cache::remember('autoscale.maps_minted.'.$run->id, 5, fn () =>
+                DB::table('legislature_district_maps')->count());
             $mapsTotal  = (int) Cache::remember('autoscale.items_total.'.$run->id, 600, fn () =>
                 DB::table('apportionment_ledger')->count());
         }
@@ -3032,23 +3072,30 @@ class SetupController extends Controller
             );
         }
 
-        // Precompute bar (global worklist — shown once seeded).
+        // Precompute bar (global worklist — shown once seeded). A no-WHERE
+        // aggregate over the whole worklist table (a sequential scan of
+        // every parent row); it runs on every poll of every tab for the
+        // rest of the run once precompute has started, so one copy per
+        // 5 s serves them all.
         $precompute = null;
         if ($run->precompute_started_at !== null) {
-            $pc = DB::table('jurisdiction_adjacency_parents')
-                ->selectRaw("
-                    COUNT(*)                                        AS total,
-                    COUNT(*) FILTER (WHERE status = 'done')         AS done,
-                    COUNT(*) FILTER (WHERE status = 'running')      AS running,
-                    COUNT(*) FILTER (WHERE status = 'failed')       AS failed
-                ")
-                ->first();
-            $precompute = [
-                'total'   => (int) $pc->total,
-                'done'    => (int) $pc->done,
-                'running' => (int) $pc->running,
-                'failed'  => (int) $pc->failed,
-            ];
+            $precompute = Cache::remember('autoscale.precompute.'.$run->id, 5, function () {
+                $pc = DB::table('jurisdiction_adjacency_parents')
+                    ->selectRaw("
+                        COUNT(*)                                        AS total,
+                        COUNT(*) FILTER (WHERE status = 'done')         AS done,
+                        COUNT(*) FILTER (WHERE status = 'running')      AS running,
+                        COUNT(*) FILTER (WHERE status = 'failed')       AS failed
+                    ")
+                    ->first();
+
+                return [
+                    'total'   => (int) ($pc->total ?? 0),
+                    'done'    => (int) ($pc->done ?? 0),
+                    'running' => (int) ($pc->running ?? 0),
+                    'failed'  => (int) ($pc->failed ?? 0),
+                ];
+            });
         }
 
         // Windowed rates (last 30 min) → honest per-track ETA. The whole-run
@@ -3058,26 +3105,41 @@ class SetupController extends Controller
         // real sweep rate in minutes instead of diluting it across half an
         // hour of pre-sweep phases. The bar-level samplers on the page use
         // the same discipline; the tile now agrees with them.
-        $rateRow = DB::table('apportionment_ledger')
-            ->where('finished_at', '>', now()->subMinutes(10))
-            ->selectRaw("
-                COUNT(*) FILTER (WHERE kind = 'sweep'  AND map_status = 'done') AS sweeps_30m,
-                COUNT(*) FILTER (WHERE kind = 'single' AND map_status = 'done') AS singles_30m
-            ")
-            ->first();
+        // The ledger rate reads finished_at alone (index al_finished_at_idx,
+        // migration 2026_09_02_000004); scopes_left counts every open scope
+        // on the planet. Both are computed once per 5 s and shared; the
+        // scope rate rides in the same copy so the tile's numbers agree.
+        $rates = Cache::remember('autoscale.rates.'.$run->id, 5, function () {
+            $rateRow = DB::table('apportionment_ledger')
+                ->where('finished_at', '>', now()->subMinutes(10))
+                ->selectRaw("
+                    COUNT(*) FILTER (WHERE kind = 'sweep'  AND map_status = 'done') AS sweeps_30m,
+                    COUNT(*) FILTER (WHERE kind = 'single' AND map_status = 'done') AS singles_30m
+                ")
+                ->first();
+            // SCOPES, NOT JURISDICTIONS (operator order 2026-08-30, the 222/h
+            // vs 96-day ETA absurdity): the headline rate and ETA price the
+            // fluid unit of drawing. A map counts done only when its LAST scope
+            // lands, so item-rate lags reality by whole maps; scope-rate agrees
+            // with the layer bars and with the operator's own eyes.
+            $scopeRate = DB::table('apportionment_ledger_scopes')
+                ->where('status', 'done')
+                ->where('finished_at', '>', now()->subMinutes(10))
+                ->count();
+            $scopesLeft = (int) DB::table('apportionment_ledger_scopes')
+                ->whereIn('status', ['pending', 'running'])
+                ->count();
+
+            return [
+                'sweeps_30m'  => (int) ($rateRow->sweeps_30m ?? 0),
+                'singles_30m' => (int) ($rateRow->singles_30m ?? 0),
+                'scope_rate'  => (int) $scopeRate,
+                'scopes_left' => $scopesLeft,
+            ];
+        });
+        $scopeRate  = $rates['scope_rate'];
+        $scopesLeft = $rates['scopes_left'];
         $sweepsDoneNow = (int) ($freshCounts['sweeps_done'] ?? $run->sweeps_done);
-        // SCOPES, NOT JURISDICTIONS (operator order 2026-08-30, the 222/h
-        // vs 96-day ETA absurdity): the headline rate and ETA price the
-        // fluid unit of drawing. A map counts done only when its LAST scope
-        // lands, so item-rate lags reality by whole maps; scope-rate agrees
-        // with the layer bars and with the operator's own eyes.
-        $scopeRate = DB::table('apportionment_ledger_scopes')
-            ->where('status', 'done')
-            ->where('finished_at', '>', now()->subMinutes(10))
-            ->count();
-        $scopesLeft = (int) DB::table('apportionment_ledger_scopes')
-            ->whereIn('status', ['pending', 'running'])
-            ->count();
         $sweepRatePerH = round($scopeRate * 6.0, 1);
         $etaSeconds = $sweepRatePerH > 0
             ? (int) round(($scopesLeft / $sweepRatePerH) * 3600)
@@ -3114,15 +3176,24 @@ class SetupController extends Controller
             // Longest-running claim on top (operator order 2026-08-30): the
             // grinders lead the strip, fresh claims join at the bottom.
             ->orderByRaw('claim_started_at ASC NULLS LAST, started_at')
-            ->get(['id', 'claim_type', 'claim_label', 'claim_started_at', 'started_at']);
+            // All columns on purpose: kill_requested_at lands with the
+            // Workstream A migration, and a named select of a column that
+            // does not exist yet would break the page before it runs. The
+            // lease table holds one row per lane, so the width is free.
+            ->get();
         $workers = $workerRows->count();
         $workersDetail = $workerRows->map(fn ($w) => [
             'id'          => substr((string) $w->id, 0, 8),
+            // The full lease id is the {leaseId} the kill endpoint takes.
+            'lease_id'    => (string) $w->id,
             'claim_type'  => $w->claim_type,
             'claim_label' => $w->claim_label,
             'claim_secs'  => $w->claim_started_at !== null
                 ? max(0, (int) now()->diffInSeconds(\Illuminate\Support\Carbon::parse($w->claim_started_at), true))
                 : null,
+            // A kill is a request the lane honors at its next boundary; the
+            // page shows "kill requested" until the claim ends.
+            'kill_requested' => ($w->kill_requested_at ?? null) !== null,
         ])->values();
 
         return response()->json([
@@ -3155,11 +3226,16 @@ class SetupController extends Controller
                 // the breaker window lapses and must not render as state.
                 'paused_until'       => $run->isPaused() ? $run->paused_until->toIso8601String() : null,
                 'sweeps_per_hour'    => $sweepRatePerH,
-                'singles_per_hour'   => round(((int) $rateRow->singles_30m) * 6.0, 1),
+                'singles_per_hour'   => round($rates['singles_30m'] * 6.0, 1),
                 'eta_seconds'        => $etaSeconds,
-                'drifted_done'       => (int) ($driftRow->drifted ?? 0),
-                'net_drift'          => (int) ($driftRow->net_drift ?? 0),
-                'attention_count'    => (int) ($driftRow->attention ?? 0),
+                'drifted_done'       => (int) ($driftRow['drifted'] ?? 0),
+                'net_drift'          => (int) ($driftRow['net_drift'] ?? 0),
+                'attention_count'    => (int) ($driftRow['attention'] ?? 0),
+                // Lane deadlines are warnings (operator ruling 2026-09-02):
+                // [amber_after_seconds, red_after_seconds]. Auto-kill is the
+                // operator's unattended dial, stored on the run; null = off.
+                'lane_warn_seconds'  => $laneWarnSeconds,
+                'auto_kill_minutes'  => $autoKillMinutes !== null ? (int) $autoKillMinutes : null,
                 'sized_live'         => $sizedLive,
                 'sizing_total'       => $sizingTotal,
                 'parents_total'      => $parentsTotal,
@@ -3180,9 +3256,11 @@ class SetupController extends Controller
             'drifted_items'  => $driftedItems,
             'world_build'    => $this->worldBuildBlock(),
             // Type B districting worklist — the flagged-chamber count the
-            // dashboard's "Group Type B chambers" control acts on.
-            'type_b_flagged' => (int) DB::table('legislatures')
-                ->where('type_b_needs_districting', true)->whereNull('deleted_at')->count(),
+            // dashboard's "Group Type B chambers" control acts on. A bitmap
+            // over ~10k flagged rows per poll; one copy per 5 s.
+            'type_b_flagged' => (int) Cache::remember('autoscale.type_b_flagged.'.$run->id, 5, fn () =>
+                DB::table('legislatures')
+                    ->where('type_b_needs_districting', true)->whereNull('deleted_at')->count()),
         ]);
     }
 

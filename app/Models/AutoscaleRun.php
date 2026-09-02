@@ -46,6 +46,7 @@ class AutoscaleRun extends Model
         'pg_fingerprint',
         'sizing_lease_at',
         'precompute_started_at',
+        'auto_kill_minutes',
     ];
 
     protected $casts = [
@@ -64,6 +65,9 @@ class AutoscaleRun extends Model
         'paused_until'       => 'datetime',
         'sizing_lease_at'    => 'datetime',
         'precompute_started_at' => 'datetime',
+        // Lane kill controls (operator order 2026-09-02): NULL = no
+        // automatic kill; N = the pump kills scope claims older than N min.
+        'auto_kill_minutes'  => 'integer',
     ];
 
     public function items(): HasMany

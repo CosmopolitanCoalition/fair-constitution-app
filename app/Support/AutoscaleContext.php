@@ -50,4 +50,23 @@ final class AutoscaleContext
     {
         return static::$runId !== null;
     }
+
+    /**
+     * Does this lane still hold the scope it is drawing? A lane whose scope
+     * was reclaimed or killed must not retire or file anything further
+     * (operator order 2026-09-02, the Tumaco three-lane pattern). No worker
+     * token (a test, a human draw, the CLI) always owns its scope.
+     */
+    public static function ownsScope(): bool
+    {
+        if (static::$workerToken === null || static::$scopeId === null) {
+            return true;
+        }
+
+        return \Illuminate\Support\Facades\DB::table('apportionment_ledger_scopes')
+            ->where('id', static::$scopeId)
+            ->where('status', 'running')
+            ->where('claim_token', static::$workerToken)
+            ->exists();
+    }
 }

@@ -21,7 +21,10 @@ use RuntimeException;
  *  - commit()   : the plan-recompute + per-leaf F-ELB-008 filing loop —
  *                 Request-free, so a Horizon worker (the method-aware mass
  *                 sweep) can file the same audited districts the mapper's
- *                 Accept button does.
+ *                 Accept button does. It runs inside withScopeService():
+ *                 ONE DistrictingService for the length of one leaf scope,
+ *                 shared by every piece's context() and the filed-scope
+ *                 beat, forgotten when the scope finishes or fails.
  *
  * NOT part of the PROTECTED DistrictingService: this is orchestration around
  * the existing SubdivisionAutoseedService plan and the existing F-ELB-008
@@ -213,84 +216,210 @@ class LeafGiantResolver
         // before giving up to the review list. A previewed commit
         // ($expectedPlanHash set) never ladders — silently swapping the
         // template a human previewed would betray the hash contract.
+        // ONE DistrictingService PER LEAF SCOPE (2026-09-02): for the length
+        // of this call every app(DistrictingService::class) resolution (each
+        // piece's context() through ManualDistrictDraw, the filed-scope
+        // beat) is the same instance, so the parent giant cascade runs once
+        // per scope instead of once per piece. The instance is forgotten
+        // when the scope finishes or fails (withScopeService).
+        return self::withScopeService(fn () => $this->commitWithinScope(
+            $legislatureId, $scopeId, $mapId, $actor, $ctx, $year, $template, $replace, $expectedPlanHash,
+        ));
+    }
+
+    /** The commit body, run inside one scope service (withScopeService). */
+    private function commitWithinScope(
+        string $legislatureId,
+        string $scopeId,
+        string $mapId,
+        ?User $actor,
+        array $ctx,
+        int $year,
+        string $template,
+        bool $replace,
+        ?string $expectedPlanHash,
+    ): array {
         $jurisdictionId = (string) DB::table('legislatures')->where('id', $legislatureId)->value('jurisdiction_id');
 
-        // PREVIEWED PATH (hash set): one template, no ladder, violations
-        // bubble raw — byte-identical to the pre-extraction behavior.
-        if ($expectedPlanHash !== null) {
-            $planned = $this->planWithFallback($scopeId, $ctx, $year, $template, false);
-            if (! hash_equals($planned['plan']['plan_hash'], $expectedPlanHash)) {
-                throw new PlanRefused('Plan changed — run the preview again.');
-            }
-            $replaced = $replace ? $this->retireDrawnDistricts($legislatureId, $scopeId, $mapId) : 0;
-            $ids = $this->fileDistricts($legislatureId, $jurisdictionId, $scopeId, $mapId, $actor, $planned['plan'], $year, false);
-
-            return [
-                'districts_created' => count($ids),
-                'replaced'          => $replaced,
-                'district_ids'      => $ids,
-                'template'          => $planned['template'],
-                'template_fallback' => false,
-            ];
-        }
-
-        // AUTOSEED PATH (the recompute IS the plan): the FULL ladder —
-        // "ladder first, manual for the residue" now survives FILING-stage
-        // refusals too, not just planning-stage ones. A template whose
-        // planned piece violates a filing gate (e.g. the Art. II §8
-        // one-fragment rule against a concave boundary) retires its partial
-        // set and the next template tries; only when every template has
-        // refused at either stage does the scope land on the review list.
-        $order = $this->ladderOrder($scopeId, $ctx, $template);
-        $first = null;
-        foreach ($order as $i => $tpl) {
-            try {
-                $plan = $this->autoseed->plan($scopeId, $ctx, $year, $tpl);
-            } catch (PlanRefused $e) {
-                // FIRST failure wins (2026-07-21): the ladder's PRIMARY
-                // template holds the scope's real diagnosis. Later rungs'
-                // refusals previously overwrote it, so every review row
-                // displayed the LAST cutter's noise ("Community cell N clips
-                // to M disjoint parts") over the shortest template's honest
-                // NoContiguousCut — an entire review class was misdiagnosed
-                // behind that mask during run 6.
-                Log::info('ladder template refused (plan)', ['scope' => $scopeId, 'template' => $tpl, 'error' => $e->getMessage()]);
-                $first ??= $e;
-                continue;
-            } catch (RuntimeException $e) {
-                Log::info('ladder template refused (runtime)', ['scope' => $scopeId, 'template' => $tpl, 'error' => $e->getMessage()]);
-                $first ??= new PlanRefused($e->getMessage(), previous: $e);
-                continue;
-            }
-
-            // Each attempt owns the scope's drawn set: retire whatever is
-            // live (the caller's $replace on the first attempt; a previous
-            // attempt's partial filings on later ones).
-            $replaced = ($replace || $i > 0) ? $this->retireDrawnDistricts($legislatureId, $scopeId, $mapId) : 0;
-
-            try {
-                $ids = $this->fileDistricts($legislatureId, $jurisdictionId, $scopeId, $mapId, $actor, $plan, $year, true);
+        // THE SCOPE'S DISSOLVED PARTS (2026-09-02) are filled once on first
+        // need (SubdivisionAutoseedService::scopePartsRef) and dropped when
+        // the scope finishes or fails, whichever path ran.
+        try {
+            // PREVIEWED PATH (hash set): one template, no ladder, violations
+            // bubble raw — byte-identical to the pre-extraction behavior.
+            if ($expectedPlanHash !== null) {
+                $planned = $this->planWithFallback($scopeId, $ctx, $year, $template, false);
+                if (! hash_equals($planned['plan']['plan_hash'], $expectedPlanHash)) {
+                    throw new PlanRefused('Plan changed — run the preview again.');
+                }
+                $this->assertScopeOwned();
+                $replaced = $replace ? $this->retireDrawnDistricts($legislatureId, $scopeId, $mapId) : 0;
+                $ids = $this->fileDistricts($legislatureId, $jurisdictionId, $scopeId, $mapId, $actor, $planned['plan'], $year, false);
 
                 return [
                     'districts_created' => count($ids),
                     'replaced'          => $replaced,
                     'district_ids'      => $ids,
-                    'template'          => $tpl,
-                    'template_fallback' => $i > 0,
+                    'template'          => $planned['template'],
+                    'template_fallback' => false,
                 ];
-            } catch (\App\Domain\Engine\ConstitutionalViolation $e) {
-                // A filing gate refused this template's pieces — clean up the
-                // partial set and ladder on. The chain honestly records the
-                // attempted filings; the retirement is the same plan-editing
-                // posture as the delete endpoint. First failure wins here
-                // too: the primary template's filing refusal (a band-gate
-                // number, a fragment count) is the diagnosis worth keeping.
-                $this->retireDrawnDistricts($legislatureId, $scopeId, $mapId);
-                $first ??= new PlanRefused($e->getMessage(), previous: $e);
+            }
+
+            return $this->commitLadder($legislatureId, $jurisdictionId, $scopeId, $mapId, $actor, $ctx, $year, $template, $replace);
+        } finally {
+            self::forgetScopePartsQuietly($scopeId);
+        }
+    }
+
+    /**
+     * Drop the scope's stored parts without replacing a pending diagnosis.
+     * Callers with an outer per-scope transaction (leafScopeTx=true, the
+     * HTTP DB::transaction) reach this finally with that transaction
+     * ABORTED after a failed statement: every further statement answers
+     * 25P02, and an exception thrown from a finally block would replace the
+     * primary template's refusal (first failure wins). The rollback drops
+     * the rows anyway, so a failed cleanup is logged and the diagnosis
+     * stands. The sweep path (leafScopeTx=false) cleans up normally.
+     */
+    private static function forgetScopePartsQuietly(string $scopeId): void
+    {
+        try {
+            SubdivisionAutoseedService::forgetScopeParts($scopeId);
+        } catch (\Throwable $e) {
+            Log::debug('scope parts cleanup skipped (the pending diagnosis stands)', [
+                'scope' => $scopeId, 'error' => $e->getMessage(),
+            ]);
+        }
+    }
+
+    /**
+     * ONE DistrictingService PER LEAF SCOPE (2026-09-02). Registers one
+     * instance in the container for the length of $fn and forgets it after,
+     * whichever way $fn ends. Inside, every app(DistrictingService::class)
+     * resolution is that instance: the pieces of one scope share the giant
+     * cascade memos and the step-timing collector, and the filed-scope beat
+     * publishes that collector. Outside, resolution builds a fresh instance,
+     * as it always did.
+     *
+     * The lifetime is ONE SCOPE by design. A process-lifetime instance
+     * carried one scope's step timings onto the next scope's ledger row
+     * (the controller beats scope_start before commit) and pinned the
+     * population memos across population writes, the class the Bayern
+     * 70/71 verdict removed from shareBase. A container owner that already
+     * shares the service (a registered instance, a shared binding) keeps its
+     * own lifetime; this method then registers and forgets nothing.
+     */
+    public static function withScopeService(callable $fn): mixed
+    {
+        $container = app();
+        $abstract  = \App\Services\DistrictingService::class;
+        if ($container->isShared($abstract)) {
+            return $fn();
+        }
+        $svc = $container->make($abstract);
+        $container->instance($abstract, $svc);
+        try {
+            return $fn();
+        } finally {
+            if ($container->make($abstract) === $svc) {
+                $container->forgetInstance($abstract);
             }
         }
+    }
 
-        throw $first ?? new PlanRefused('No districting template produced a filable plan.');
+    /**
+     * AUTOSEED PATH (the recompute IS the plan): the FULL ladder —
+     * "ladder first, manual for the residue" survives FILING-stage refusals
+     * too, not just planning-stage ones. A template whose planned piece
+     * violates a filing gate retires its partial set and the next template
+     * tries; only when every template has refused at either stage does the
+     * scope land on the review list.
+     *
+     * ONE BLADE POOL PER SCOPE (2026-09-02, the Tumaco grind): the cutting
+     * rungs share one counter opened here; when it is spent every remaining
+     * rung but the box is skipped. Each rung is timed as 'leaf.<template>'
+     * into the composites' step collector; a filed scope beats once so the
+     * timings reach the ledger row before the sweep marks it done.
+     *
+     * @return array{districts_created:int, replaced:int, district_ids:array<int,string>, template:string, template_fallback:bool}
+     */
+    private function commitLadder(
+        string $legislatureId,
+        string $jurisdictionId,
+        string $scopeId,
+        string $mapId,
+        ?User $actor,
+        array $ctx,
+        int $year,
+        string $template,
+        bool $replace,
+    ): array {
+        $order = $this->ladderOrder($scopeId, $template);
+        $first = null;
+        $this->autoseed->openBladePool($scopeId);
+        try {
+            foreach ($order as $i => $tpl) {
+                if ($tpl !== SubdivisionAutoseedService::TEMPLATE_BOX
+                    && $this->autoseed->bladeBudgetRemaining() <= 0) {
+                    Log::info('ladder blade pool exhausted, skipping to box', ['scope' => $scopeId, 'template' => $tpl]);
+                    continue;
+                }
+                try {
+                    self::stepBegin("leaf.{$tpl}");
+                    $plan = $this->autoseed->plan($scopeId, $ctx, $year, $tpl);
+                } catch (PlanRefused $e) {
+                    // FIRST failure wins (2026-07-21): the ladder's PRIMARY
+                    // template holds the scope's real diagnosis. Later rungs'
+                    // refusals previously overwrote it, so every review row
+                    // displayed the LAST cutter's noise ("Community cell N clips
+                    // to M disjoint parts") over the shortest template's honest
+                    // NoContiguousCut — an entire review class was misdiagnosed
+                    // behind that mask during run 6.
+                    Log::info('ladder template refused (plan)', ['scope' => $scopeId, 'template' => $tpl, 'error' => $e->getMessage()]);
+                    $first ??= $e;
+                    continue;
+                } catch (RuntimeException $e) {
+                    Log::info('ladder template refused (runtime)', ['scope' => $scopeId, 'template' => $tpl, 'error' => $e->getMessage()]);
+                    $first ??= new PlanRefused($e->getMessage(), previous: $e);
+                    continue;
+                } finally {
+                    self::stepEnd("leaf.{$tpl}");
+                }
+
+                // Each attempt owns the scope's drawn set: retire whatever is
+                // live (the caller's $replace on the first attempt; a previous
+                // attempt's partial filings on later ones).
+                $this->assertScopeOwned();
+                $replaced = ($replace || $i > 0) ? $this->retireDrawnDistricts($legislatureId, $scopeId, $mapId) : 0;
+
+                try {
+                    $ids = $this->fileDistricts($legislatureId, $jurisdictionId, $scopeId, $mapId, $actor, $plan, $year, true);
+                    $this->beatFiled($legislatureId, $tpl, count($ids));
+
+                    return [
+                        'districts_created' => count($ids),
+                        'replaced'          => $replaced,
+                        'district_ids'      => $ids,
+                        'template'          => $tpl,
+                        'template_fallback' => $i > 0,
+                    ];
+                } catch (\App\Domain\Engine\ConstitutionalViolation $e) {
+                    // A filing gate refused this template's pieces — clean up the
+                    // partial set and ladder on. The chain honestly records the
+                    // attempted filings; the retirement is the same plan-editing
+                    // posture as the delete endpoint. First failure wins here
+                    // too: the primary template's filing refusal (a band-gate
+                    // number, a fragment count) is the diagnosis worth keeping.
+                    $this->assertScopeOwned();
+                    $this->retireDrawnDistricts($legislatureId, $scopeId, $mapId);
+                    $first ??= new PlanRefused($e->getMessage(), previous: $e);
+                }
+            }
+
+            throw $first ?? new PlanRefused('No districting template produced a filable plan.');
+        } finally {
+            $this->autoseed->closeBladePool();
+        }
     }
 
     /** File one F-ELB-008 per planned district; returns the district ids. */
@@ -306,105 +435,119 @@ class LeafGiantResolver
     ): array {
         $ids = [];
         foreach ($plan['districts'] as $d) {
-            $res = $this->engine->file('F-ELB-008', $actor, [
-                'legislature_id'  => $legislatureId,
-                'jurisdiction_id' => $jurisdictionId,
-                'scope_id'        => $scopeId,
-                'map_id'          => $mapId,
-                // INDEXED PARTS (2026-07-22): splitline and components leaves
-                // carry their geometry as a RAW GeoJSON string — a monster
-                // leaf decoded into PHP arrays was a 768M fatal. Cells leaves
-                // (small by construction) still carry decoded geometry.
-                'geojson'         => $d['geometry_json'] ?? json_encode($d['geometry']),
-                'label'           => null,
-                'population_year' => $year,
-                // Autoseed only: a marginally sub-floor piece records the
-                // floor_override posture instead of refusing — pixel
-                // granularity, not unlawfulness.
-                'floor_posture'   => $floorPosture,
-                // Machine-cut pieces carry their half-plane chain (operator
-                // ruling 2026-07-22) — the handler re-applies the planner's
-                // own per-point rule instead of geometric measurement.
-                // Null (hand-drawn, components, cells, absorb) keeps the
-                // geometric path.
-                'cut_path'        => $d['cut_path'] ?? null,
-                // PLANNED SEATS (operator ruling 2026-07-26, drift is always
-                // wrong): the plan's seat vector sums to the giant's budget
-                // BY CONSTRUCTION (seatGroups → sizes → a blade balanced to
-                // those sizes). Re-deriving each piece's seats from a fresh
-                // measurement at filing re-introduces rounding-edge noise, and
-                // a single piece landing one seat off drifts the whole
-                // chamber — Germany filed Berlin 20 + Hamburg 10 against
-                // budgets summing to 27. This is the AUTOSEED path: the plan
-                // was computed server-side in this same process from this
-                // same raster, so there is no client to distrust. The handler
-                // still measures, still gates the band, and still refuses a
-                // real mismatch — it only stops overruling the plan on a
-                // one-seat rounding disagreement.
-                'planned_seats'   => $d['seats'] ?? null,
-                // ISLANDS COUNT (operator law 2026-09-02): the mass of the
-                // parts riding this piece whole, so the chain measurement
-                // sums to the scope (Kujalleq 9+5 on 16 lost its islands).
-                'island_pop'      => (float) ($d['island_pop'] ?? 0),
-                // THE ORIGINAL COUNT (operator ruling 2026-09-02, the
-                // Okhotsky 2,724/1,464 display): the plan's pixel partition
-                // is the recount — every pixel on exactly one side, summing
-                // to the scope. The piece records THESE numbers; the
-                // handler's polygon re-measurement is a logged witness.
-                'plan_pop'        => (int) round((float) ($d['pop'] ?? 0)),
-                'plan_total_pop'  => (int) ($plan['total_pop'] ?? 0),
-            ]);
+            self::stepBegin('leaf.file');
+            try {
+                $res = $this->fileOne($legislatureId, $jurisdictionId, $scopeId, $mapId, $actor, $d, $plan, $year, $floorPosture);
+            } finally {
+                self::stepEnd('leaf.file');
+            }
             $ids[] = $res->recorded['district_id'];
         }
 
         return $ids;
     }
 
+    /** One F-ELB-008 filing (timed as 'leaf.file' by the caller). */
+    private function fileOne(
+        string $legislatureId,
+        string $jurisdictionId,
+        string $scopeId,
+        string $mapId,
+        ?User $actor,
+        array $d,
+        array $plan,
+        int $year,
+        bool $floorPosture,
+    ): object {
+        $res = $this->engine->file('F-ELB-008', $actor, [
+            'legislature_id'  => $legislatureId,
+            'jurisdiction_id' => $jurisdictionId,
+            'scope_id'        => $scopeId,
+            'map_id'          => $mapId,
+            // INDEXED PARTS (2026-07-22): splitline and components leaves
+            // carry their geometry as a RAW GeoJSON string — a monster
+            // leaf decoded into PHP arrays was a 768M fatal. Cells leaves
+            // (small by construction) still carry decoded geometry.
+            'geojson'         => $d['geometry_json'] ?? json_encode($d['geometry']),
+            'label'           => null,
+            'population_year' => $year,
+            // Autoseed only: a marginally sub-floor piece records the
+            // floor_override posture instead of refusing — pixel
+            // granularity, not unlawfulness.
+            'floor_posture'   => $floorPosture,
+            // Machine-cut pieces carry their half-plane chain (operator
+            // ruling 2026-07-22) — the handler re-applies the planner's
+            // own per-point rule instead of geometric measurement.
+            // Null (hand-drawn, components, cells, absorb) keeps the
+            // geometric path.
+            'cut_path'        => $d['cut_path'] ?? null,
+            // PLANNED SEATS (operator ruling 2026-07-26, drift is always
+            // wrong): the plan's seat vector sums to the giant's budget
+            // BY CONSTRUCTION (seatGroups → sizes → a blade balanced to
+            // those sizes). Re-deriving each piece's seats from a fresh
+            // measurement at filing re-introduces rounding-edge noise, and
+            // a single piece landing one seat off drifts the whole
+            // chamber — Germany filed Berlin 20 + Hamburg 10 against
+            // budgets summing to 27. This is the AUTOSEED path: the plan
+            // was computed server-side in this same process from this
+            // same raster, so there is no client to distrust. The handler
+            // still measures, still gates the band, and still refuses a
+            // real mismatch — it only stops overruling the plan on a
+            // one-seat rounding disagreement.
+            'planned_seats'   => $d['seats'] ?? null,
+            // ISLANDS COUNT (operator law 2026-09-02): the mass of the
+            // parts riding this piece whole, so the chain measurement
+            // sums to the scope (Kujalleq 9+5 on 16 lost its islands).
+            'island_pop'      => (float) ($d['island_pop'] ?? 0),
+            // THE ORIGINAL COUNT (operator ruling 2026-09-02, the
+            // Okhotsky 2,724/1,464 display): the plan's pixel partition
+            // is the recount — every pixel on exactly one side, summing
+            // to the scope. The piece records THESE numbers; the
+            // handler's polygon re-measurement is a logged witness.
+            'plan_pop'        => (int) round((float) ($d['pop'] ?? 0)),
+            'plan_total_pop'  => (int) ($plan['total_pop'] ?? 0),
+        ]);
+
+        return $res;
+    }
+
     /**
-     * Ladder order for an autoseed (fallback-allowed) attempt.
-     *
-     * ARCHIPELAGO CLASS (operator order 2026-08-31, the New Caledonia
-     * grind): when the scope's polygon PART COUNT exceeds its seat budget,
-     * every straight-cut side must hold multiple parts, so the cutting
-     * templates cannot land a one-fragment side and burn their full search
-     * before refusing. The MASK template — blade by population arithmetic,
-     * parts assigned to sides by sign, census by aggregation — is the only
-     * method whose acceptance rule matches that geometry, so it leads.
-     * The class is detected from geometry features only.
+     * Ladder order for an autoseed (fallback-allowed) attempt: the stored
+     * part count is read once (ST_NumGeometries on the stored geometry, no
+     * dissolve) and the order is the pure orderTemplates() rule.
      */
-    private function ladderOrder(string $scopeId, array $ctx, string $template): array
+    private function ladderOrder(string $scopeId, string $template): array
+    {
+        $row = DB::selectOne(
+            'SELECT ST_NumGeometries(ST_CollectionExtract(geom, 3)) AS parts FROM jurisdictions WHERE id = ?',
+            [$scopeId]
+        );
+
+        return self::orderTemplates($template, (int) ($row->parts ?? 1));
+    }
+
+    /**
+     * THE BOX LEADS EVERY MULTI-PART SCOPE (operator ruling 2026-09-02, the
+     * Tumaco grind: a coastal mainland with islets ground every cutting
+     * template for hours before reaching the box). Any scope with more than
+     * one polygon part starts with the box: pure arithmetic on the envelope,
+     * one clip per piece, parts recorded, contiguity a hope not a gate. The
+     * cutting templates stay behind it as fallback only. A single-part
+     * scope keeps the cutting ladder (the requested template first, then
+     * registry order) with the box last.
+     *
+     * Pure: the part count is the only geometry feature consulted.
+     *
+     * @return list<string>
+     */
+    public static function orderTemplates(string $template, int $parts): array
     {
         $order = array_values(array_unique(array_merge([$template], SubdivisionAutoseedService::TEMPLATES)));
-
-        $budget = (int) ($ctx['budget'] ?? 0);
-        if ($budget > 0) {
-            // MULTI-PART LEADS WITH THE MASK (operator ruling 2026-09-02, the
-            // 63-map archipelago review class: every failed root leaf was
-            // multi-part, average 50 parts, and the mask never led because
-            // the old gate needed parts > budget). A straight cut cannot make
-            // contiguous districts out of islands, so on any multi-part scope
-            // the mask (one blob around the whole chain, sliced by population
-            // arithmetic, contiguity not required) leads; the cutting
-            // templates stay behind it as fallback only. The one exception
-            // keeps the working thousands untouched: a mainland with islets
-            // (largest part >= 90% of the area) still cuts by line first,
-            // since islands ride whole on a side there.
-            $row = DB::selectOne('
-                SELECT ST_NumGeometries(g) AS parts,
-                       (SELECT max(ST_Area(d.geom)) FROM ST_Dump(g) d) / NULLIF(ST_Area(g), 0) AS largest_share
-                  FROM (SELECT ST_CollectionExtract(geom, 3) AS g FROM jurisdictions WHERE id = ?) x
-            ', [$scopeId]);
-            $parts = (int) ($row->parts ?? 1);
-            $largestShare = (float) ($row->largest_share ?? 1.0);
-            // THE BOX LEADS (operator method 2026-09-02): pure arithmetic on
-            // the envelope, one clip per piece, parts recorded, contiguity
-            // a hope not a gate. The mask is retired from the ladder.
-            if ($parts > 1 && ($parts > $budget || $largestShare < 0.9)) {
-                $order = array_values(array_unique(array_merge(
-                    [SubdivisionAutoseedService::TEMPLATE_BOX],
-                    $order,
-                )));
-            }
+        if ($parts > 1) {
+            $order = array_values(array_unique(array_merge(
+                [SubdivisionAutoseedService::TEMPLATE_BOX],
+                $order,
+            )));
         }
 
         return $order;
@@ -423,34 +566,119 @@ class LeafGiantResolver
     public function planWithFallback(string $scopeId, array $ctx, int $year, string $template, bool $allowFallback): array
     {
         $order = $allowFallback
-            ? $this->ladderOrder($scopeId, $ctx, $template)
+            ? $this->ladderOrder($scopeId, $template)
             : array_values(array_unique(array_merge([$template], SubdivisionAutoseedService::TEMPLATES)));
         $last  = null;
 
-        foreach ($order as $i => $tpl) {
-            try {
-                $plan = $this->autoseed->plan($scopeId, $ctx, $year, $tpl);
-
-                return ['plan' => $plan, 'template' => $tpl, 'fallback' => $i > 0];
-            } catch (PlanRefused $e) {
-                // A last-resort rung's refusal (components, mask) never masks
-                // a cutting template's reason (same posture as the commit
-                // ladder).
-                if ($last === null || ! in_array($tpl, [SubdivisionAutoseedService::TEMPLATE_COMPONENTS, SubdivisionAutoseedService::TEMPLATE_MASK], true)) {
-                    $last = $e;
+        // ONE BLADE POOL PER SCOPE (2026-09-02): a fallback walk shares one
+        // counter across its cutting rungs and skips to the box when it is
+        // spent. A single-template ask lets plan() own its counter.
+        if ($allowFallback) {
+            $this->autoseed->openBladePool($scopeId);
+        }
+        try {
+            foreach ($order as $i => $tpl) {
+                if ($allowFallback
+                    && $tpl !== SubdivisionAutoseedService::TEMPLATE_BOX
+                    && $this->autoseed->bladeBudgetRemaining() <= 0) {
+                    continue;
                 }
-            } catch (RuntimeException $e) {
-                if ($last === null || ! in_array($tpl, [SubdivisionAutoseedService::TEMPLATE_COMPONENTS, SubdivisionAutoseedService::TEMPLATE_MASK], true)) {
-                    $last = new PlanRefused($e->getMessage(), previous: $e);
+                try {
+                    self::stepBegin("leaf.{$tpl}");
+                    $plan = $this->autoseed->plan($scopeId, $ctx, $year, $tpl);
+
+                    return ['plan' => $plan, 'template' => $tpl, 'fallback' => $i > 0];
+                } catch (PlanRefused $e) {
+                    // A last-resort rung's refusal (components, mask) never masks
+                    // a cutting template's reason (same posture as the commit
+                    // ladder).
+                    if ($last === null || ! in_array($tpl, [SubdivisionAutoseedService::TEMPLATE_COMPONENTS, SubdivisionAutoseedService::TEMPLATE_MASK], true)) {
+                        $last = $e;
+                    }
+                } catch (RuntimeException $e) {
+                    if ($last === null || ! in_array($tpl, [SubdivisionAutoseedService::TEMPLATE_COMPONENTS, SubdivisionAutoseedService::TEMPLATE_MASK], true)) {
+                        $last = new PlanRefused($e->getMessage(), previous: $e);
+                    }
+                } finally {
+                    self::stepEnd("leaf.{$tpl}");
+                }
+
+                if (! $allowFallback) {
+                    throw $last;
                 }
             }
 
-            if (! $allowFallback) {
-                throw $last;
+            throw $last ?? new PlanRefused('No districting template produced a plan.');
+        } finally {
+            if ($allowFallback) {
+                $this->autoseed->closeBladePool();
             }
         }
+    }
 
-        throw $last ?? new PlanRefused('No districting template produced a plan.');
+    // ── step timings: the composites' collector, shared with the leaf path ──
+
+    /**
+     * Per method: whether DistrictingService exposes it publicly (resolved
+     * once per process). The collector's methods are called only when they
+     * are public; otherwise the leaf timers are no-ops, so this class never
+     * reaches into the PROTECTED service's private state.
+     */
+    private static array $collectorExposed = [];
+
+    /**
+     * The collector is the SHARED DistrictingService: the scope service
+     * withScopeService registered (or another container owner). With no
+     * shared instance there is no record to persist, so the call is a
+     * no-op rather than a timer on a throwaway instance.
+     */
+    private static function collectorCall(string $method, array $args = []): void
+    {
+        if (! array_key_exists($method, self::$collectorExposed)) {
+            try {
+                self::$collectorExposed[$method] = (new \ReflectionMethod(\App\Services\DistrictingService::class, $method))->isPublic();
+            } catch (\ReflectionException) {
+                self::$collectorExposed[$method] = false;
+            }
+        }
+        if (self::$collectorExposed[$method] && app()->isShared(\App\Services\DistrictingService::class)) {
+            app(\App\Services\DistrictingService::class)->{$method}(...$args);
+        }
+    }
+
+    /**
+     * Open a leaf-path step timer on the composites' collector
+     * (DistrictingService::stepBegin) — 'leaf.<template>', 'leaf.dissolve',
+     * 'leaf.file', 'leaf.census'. The record lives on the scope service
+     * (one per leaf scope, so it starts empty) and reaches
+     * apportionment_ledger_scopes.step_timings through the filed-scope beat.
+     */
+    public static function stepBegin(string $label): void
+    {
+        self::collectorCall('stepBegin', [$label]);
+    }
+
+    public static function stepEnd(string $label): void
+    {
+        self::collectorCall('stepEnd', [$label]);
+    }
+
+    /**
+     * One unthrottled beat after a leaf scope files: the sweep beats at
+     * scope start and on failure only, and the ledger row leaves 'running'
+     * right after commit() returns, so without this beat a filed leaf's
+     * timings never reach step_timings. Sweep context only; the interactive
+     * mapper has no ledger row to carry them.
+     */
+    private function beatFiled(string $legislatureId, string $template, int $created): void
+    {
+        if (! \App\Support\AutoscaleContext::active()) {
+            return;
+        }
+        app(\App\Services\DistrictingService::class)->publishMassProgress($legislatureId, [
+            'phase'       => 'leaf_filed',
+            'phase_label' => "Line-split filed ({$template}, {$created} districts)",
+        ]);
     }
 
     /** Live drawn districts at a scope+plan — the set a whole-scope autoseed would displace. */
@@ -472,6 +700,18 @@ class LeafGiantResolver
      * the replacement districts each file an audited F-ELB-008 right after.
      * Caller supplies the transaction.
      */
+    /**
+     * A lane that lost its claim (reclaimed or killed) stops before the
+     * destructive step. Two lanes on one scope retired each other's filings
+     * in turn on 2026-09-02; this is the check that ends it inside the draw.
+     */
+    private function assertScopeOwned(): void
+    {
+        if (! \App\Support\AutoscaleContext::ownsScope()) {
+            throw new \RuntimeException('scope lost: claim_token no longer this lane');
+        }
+    }
+
     public function retireDrawnDistricts(string $legislatureId, string $scopeId, string $mapId): int
     {
         // Keyed off the SUBDIVISIONS — the exact basis the Art. II §8 overlap

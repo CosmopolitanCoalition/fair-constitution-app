@@ -110,6 +110,33 @@ return [
             'sslmode' => env('DB_SSLMODE', 'prefer'),
         ],
 
+        // THE BEAT CONNECTION (2026-09-02, the composite transaction split).
+        // A second session to the same Postgres, built from the same env
+        // variables as 'pgsql'. DistrictingService::publishMassProgress
+        // writes a lane's two liveness rows (its ledger scope row and its
+        // worker lease) through this connection only. A heartbeat written on
+        // the lane's work connection joins the lane's open transaction: the
+        // rows stay locked and the update stays invisible until the scope
+        // commits, so sibling lanes block on the scopes table and the pump
+        // reads stale liveness. On this connection every beat autocommits.
+        // Laravel caches one connection per name (DatabaseManager::connection
+        // stores it in $this->connections[$name]), so a lane process holds
+        // exactly one beat session for its whole life.
+        'pgsql_beat' => [
+            'driver' => 'pgsql',
+            'url' => env('DB_URL'),
+            'host' => env('DB_HOST', '127.0.0.1'),
+            'port' => env('DB_PORT', '5432'),
+            'database' => env('DB_DATABASE', 'laravel'),
+            'username' => env('DB_USERNAME', 'root'),
+            'password' => env('DB_PASSWORD', ''),
+            'charset' => env('DB_CHARSET', 'utf8'),
+            'prefix' => '',
+            'prefix_indexes' => true,
+            'search_path' => 'public',
+            'sslmode' => env('DB_SSLMODE', 'prefer'),
+        ],
+
         'sqlsrv' => [
             'driver' => 'sqlsrv',
             'url' => env('DB_URL'),

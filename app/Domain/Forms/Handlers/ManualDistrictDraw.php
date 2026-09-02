@@ -212,7 +212,18 @@ class ManualDistrictDraw implements FormHandler
         // two different landmasses, refuse exactly as ever (Art. II §8 —
         // the one-fragment LAW is unchanged; only its bookkeeping is
         // merge-proof now).
-        $geo = self::partCensus($geoJson, $scopeId);
+        // A MACHINE piece (planned_seats present) needs only its part
+        // count, emptiness and containment. The component census fed the
+        // fragment refusal, which the leaf law does not apply to machine
+        // pieces, so it is skipped for them (2026-09-02: thousands of
+        // per-landmass intersections per piece on an archipelago).
+        $machinePiece = is_int($payload['planned_seats'] ?? null);
+        \App\Services\Districting\LeafGiantResolver::stepBegin('leaf.census');
+        try {
+            $geo = self::partCensus($geoJson, $scopeId, ! $machinePiece);
+        } finally {
+            \App\Services\Districting\LeafGiantResolver::stepEnd('leaf.census');
+        }
 
         if ($geo === null || (bool) $geo->empty) {
             throw new ConstitutionalViolation('The drawn polygon is empty or invalid.', 'Art. II §2');
@@ -227,7 +238,6 @@ class ManualDistrictDraw implements FormHandler
         // A MACHINE piece (planned_seats present: box, mask, components)
         // files with its parts recorded and is_contiguous scored, never
         // refused. The hand-draw path keeps the refusal as guidance.
-        $machinePiece = is_int($payload['planned_seats'] ?? null);
         if (! $machinePiece && ($cutComponents > 1 || $fragmentPieces > 1)) {
             throw new ConstitutionalViolation(
                 "A district may not fragment {$giant->name}'s territory (the drawn shape cuts "
@@ -243,75 +253,28 @@ class ManualDistrictDraw implements FormHandler
             );
         }
 
-        // Aggregate population inside the drawn piece, and its seat
-        // entitlement. Cycle-2: measured with the SAME zero-coverage
-        // fallback the planners use (population × area-share, provenance
-        // 'area_proportional') — otherwise this band gate would refuse
-        // every piece an area-planned cut lawfully produced.
-        // HALF-PLANE PATH (operator ruling 2026-07-22): a machine-cut piece
-        // carries its cut chain — measured by the planner's own per-point
-        // rule (pure arithmetic; the geometric path's distance recovery ran
-        // HOURS per piece on archipelago monsters). The sums are recomputed
-        // from the filed frames — never copied from the plan — so the gate
-        // stays fail-closed. Hand-drawn and non-blade pieces keep the
-        // geometric measurement.
-        // ISLANDS RIDE WHOLE, AND THEY COUNT (operator law 2026-09-02, the
-        // Kujalleq 9+5 on 16): the half-plane chain measures the cut
-        // MAINLAND only; parts the plan assigned whole to this side never
-        // entered either piece's measurement, so the pieces' shares summed
-        // below 1 and the chamber lost seats. The plan's island mass for
-        // this piece rides in island_pop and is added to the chain sum.
-        $cutPath = $payload['cut_path'] ?? null;
-        $islandPop = (float) ($payload['island_pop'] ?? 0);
-        $measure = is_array($cutPath)
-            ? $this->raster->measureByCutPath($scopeId, $cutPath, $year, $islandPop)
-            : $this->raster->measureWithFallback($scopeId, $geoJson, $year);
-        $pop = $measure['pop'];
-        $popSource = $measure['source'];
-        $fractional = $this->raster->impliedSeats($pop, $quota);
-        $seats = (int) round($fractional);
+        // The piece's population and seat entitlement (pieceCount): a
+        // machine piece records the plan's own lossless pixel partition and
+        // runs NO raster measurement; a hand-drawn piece measures with the
+        // SAME zero-coverage fallback the planners use.
+        $count = $this->pieceCount($scopeId, $year, $S, $quota, $geoJson, $payload);
+        $pop = $count['pop'];
+        $popSource = $count['source'];
+        $fractional = $count['fractional'];
+        $seats = $count['seats'];
 
-        // THE ORIGINAL COUNT IS THE RECORD (operator ruling 2026-09-02): the
-        // planner partitioned the scope's pixels losslessly — every pixel on
-        // exactly one side, the sides summing to the scope. This polygon
-        // re-measurement drops coastal cells (Okhotsky: 2,755/2,784 became
-        // 2,724/1,464 on the map, a 3:1 display of a 50:50 cut). A machine
-        // piece therefore RECORDS the plan's population and its share of the
-        // head; the re-measurement stays a witness in the log.
-        $planPop = (int) ($payload['plan_pop'] ?? 0);
-        $planTotal = (int) ($payload['plan_total_pop'] ?? 0);
-        $plannedSeatsEarly = $payload['planned_seats'] ?? null;
-        if (is_int($plannedSeatsEarly) && $planPop > 0 && $planTotal > 0) {
-            // No log (operator, 2026-09-02): the polygon re-measurement is
-            // known to drop coastal cell centers; its disagreement carries
-            // no information. The plan's partition is the record.
-            // The source stays the raster basis the plan partitioned (the
-            // subdivisions table's CHECK constraint names the bases).
-            $pop = $planPop;
-            $fractional = $S * $planPop / $planTotal;
-            $seats = (int) round($fractional);
-        }
-
-        // PLAN PARITY (operator ruling 2026-07-26: drift is ALWAYS wrong).
-        // The autoseed plan's seat vector sums to the giant's budget by
-        // construction; this re-measurement exists to VERIFY the piece, not to
-        // re-allocate it. When the two disagree by exactly one seat — the
-        // rounding edge, where a piece measures 8.49 here and planned 9 there
-        // — the plan wins, because its total is the constitutional one and a
-        // single displaced seat drifts the whole chamber. A disagreement
-        // larger than one seat is a REAL mismatch: the plan does not override
-        // it, and the band gate below refuses as it always has.
         // THE LEAF LAW (operator ruling 2026-09-02, the Okhotsky 9+5 on 18):
         // for a leaf the head fixes the seat vector IN ADVANCE (18 -> 9/9
         // inside the band); the cut splits whatever population exists in
         // that same proportion; the row-versus-raster gap never enters. A
-        // machine piece therefore files its PLANNED seats, always. This
-        // measurement verifies PROPORTION only: a piece whose measured share
-        // disagrees with its planned share by more than one seat is not a
-        // re-seating case but an unbalanced cut, and it REFUSES so the ladder
-        // tries a better template (fail-closed) instead of silently drifting
-        // the chamber (the old rule let the measurement win past one seat:
-        // Okhotsky filed 9+5 on 18, Kujalleq 9+5 on 16).
+        // machine piece therefore files its PLANNED seats, always. PLAN
+        // PARITY (operator ruling 2026-07-26: drift is ALWAYS wrong): the
+        // planned vector sums to the head, and that is the law.
+        // The fractional share above is the plan's own partition for a
+        // machine piece (pieceCount) and the measured share for a hand-drawn
+        // piece. Either share is a WITNESS: a share more than one seat away
+        // from the planned seats is logged for the record and never changes
+        // the seats.
         $plannedSeats = $payload['planned_seats'] ?? null;
         if (is_int($plannedSeats)
             && $plannedSeats >= 1
@@ -319,13 +282,7 @@ class ManualDistrictDraw implements FormHandler
             && ($plannedSeats >= $floor || $floorPosture)
         ) {
             // THE MEASUREMENT IS A WITNESS, NOT A JUDGE (operator law
-            // 2026-09-02): the plan partitioned the grid by blade sign —
-            // exact, lossless. This re-measurement (ray-cast over the filed
-            // polygon, or the half-plane chain) drops coastal and boundary
-            // cells on sparse scopes (Kujalleq lost 13%, Okhotsky 24%), so a
-            // disagreement here is measurement loss far more often than a
-            // bad cut. It is LOGGED for the record and never changes the
-            // seats: the planned vector sums to the head, and that is the law.
+            // 2026-09-02).
             if (abs($fractional - $plannedSeats) > 1.0) {
                 \Illuminate\Support\Facades\Log::warning('district filing: measurement disagrees with the plan (planned seats kept)', [
                     'scope_id' => $scopeId, 'planned' => $plannedSeats,
@@ -487,6 +444,57 @@ class ManualDistrictDraw implements FormHandler
     }
 
     /**
+     * The piece's population, fractional seats and source.
+     *
+     * THE ORIGINAL COUNT IS THE RECORD (operator ruling 2026-09-02): the
+     * planner partitioned the scope's pixels losslessly, every pixel on
+     * exactly one side, the sides summing to the scope. A MACHINE piece
+     * (planned_seats with plan_pop and plan_total_pop) records that count:
+     * pop = plan_pop, fractional seats = S x plan_pop / plan_total_pop.
+     * No raster measurement runs for it. The leaf law fixes its seats in
+     * advance, so a re-measurement changed nothing and cost a full-grid
+     * ray-cast per piece (dropped 2026-09-02).
+     *
+     * A HAND-DRAWN piece measures: the half-plane chain when the payload
+     * carries cut_path (pure arithmetic over the planning grid, island mass
+     * added: the Kujalleq class), else the ray-cast share of the planning
+     * grid with the same zero-coverage fallback the planners use.
+     *
+     * @return array{pop:int, fractional:float, seats:int, source:string}
+     */
+    public function pieceCount(string $scopeId, int $year, int $S, float $quota, string $geoJson, array $payload): array
+    {
+        $planPop = (int) ($payload['plan_pop'] ?? 0);
+        $planTotal = (int) ($payload['plan_total_pop'] ?? 0);
+        if (is_int($payload['planned_seats'] ?? null) && $planPop > 0 && $planTotal > 0) {
+            $fractional = $S * $planPop / $planTotal;
+
+            return [
+                'pop'        => $planPop,
+                'fractional' => $fractional,
+                'seats'      => (int) round($fractional),
+                // The basis the plan partitioned on names the source (the
+                // subdivisions table's CHECK constraint names the bases).
+                'source'     => $this->raster->basis($scopeId, $year) === 'area' ? 'area_proportional' : 'worldpop_raster',
+            ];
+        }
+
+        $cutPath = $payload['cut_path'] ?? null;
+        $islandPop = (float) ($payload['island_pop'] ?? 0);
+        $measure = is_array($cutPath)
+            ? $this->raster->measureByCutPath($scopeId, $cutPath, $year, $islandPop)
+            : $this->raster->measureWithFallback($scopeId, $geoJson, $year);
+        $fractional = $this->raster->impliedSeats((int) $measure['pop'], $quota);
+
+        return [
+            'pop'        => (int) $measure['pop'],
+            'fractional' => $fractional,
+            'seats'      => (int) round($fractional),
+            'source'     => (string) $measure['source'],
+        ];
+    }
+
+    /**
      * The Art. II §8 COMPONENT census — merge-proof by construction: instead
      * of classifying the piece's parts (which union-merging distorts), it
      * asks the scope's own components what happened to them.
@@ -501,10 +509,62 @@ class ManualDistrictDraw implements FormHandler
      * Public + static so the constitutional pin can interrogate the exact
      * arithmetic the handler enforces (FragmentAccountingTest).
      *
+     * $componentCensus = false (machine pieces, 2026-09-02) returns the part
+     * count, containment and emptiness only, with cut_components and
+     * fragment_pieces reported as 0: the fragment refusal does not apply to
+     * a machine piece, so its per-landmass intersections are not computed.
+     *
+     * THE STORED PARTS FIRST (2026-09-02): when the session already holds
+     * the scope's dissolved parts (SubdivisionAutoseedService::scopePartsRef,
+     * filled once per scope by the ladder) the landmasses come from that
+     * store; a human draw with no stored parts dissolves live, as before.
+     * The intersection of the piece with a touched landmass is computed
+     * ONCE per landmass and reused by the share test and the chunk dump.
+     *
      * @return object{parts:int, cut_components:int, fragment_pieces:int, within:bool, empty:bool}|null
      */
-    public static function partCensus(string $geoJson, string $scopeId): ?object
+    public static function partCensus(string $geoJson, string $scopeId, bool $componentCensus = true): ?object
     {
+        if (! $componentCensus) {
+            return DB::selectOne(
+                'WITH d AS (
+                     SELECT ST_MakeValid(ST_GeomFromGeoJSON(:gj)) AS g
+                 ),
+                 gi AS (
+                     SELECT ST_MakeValid(geom) AS g FROM jurisdictions WHERE id = :scope
+                 )
+                 SELECT
+                     ST_NumGeometries(ST_Multi((SELECT g FROM d)))              AS parts,
+                     0                                                          AS cut_components,
+                     0                                                          AS fragment_pieces,
+                     ST_CoveredBy((SELECT g FROM d), (SELECT g FROM gi))        AS within,
+                     ST_IsEmpty((SELECT g FROM d))                              AS empty',
+                ['gj' => $geoJson, 'scope' => $scopeId]
+            );
+        }
+
+        $stored = \App\Services\Districting\SubdivisionAutoseedService::hasScopeParts($scopeId);
+        $gcomps = $stored
+            ? 'SELECT g AS c FROM '.\App\Services\Districting\SubdivisionAutoseedService::SCOPE_PARTS_TABLE.'
+                WHERE scope = :scope_parts
+                  AND 2 * area_m2 / NULLIF(perim_m, 0) >= 0.5'
+            // TRUE landmasses: UnaryUnion dissolves loosely-touching rings
+            // AND overlapping duplicate slivers (scattered-remainder data
+            // noise) into the connected landmasses the law protects (the
+            // Penamaluru class). DEGENERATE RIBBONS, landmasses with
+            // effective width under ~1 m (2*area/perimeter < 0.5 m), are
+            // boundary noise, not territory: censused on the same
+            // de-minimis footing as the interior shave.
+            : 'SELECT c FROM (
+                   SELECT (ST_Dump(ST_UnaryUnion((SELECT g FROM gi)))).geom AS c
+               ) t
+               WHERE 2 * ST_Area(c::geography)
+                     / NULLIF(ST_Perimeter(c::geography), 0) >= 0.5';
+        $bindings = ['gj' => $geoJson, 'scope' => $scopeId];
+        if ($stored) {
+            $bindings['scope_parts'] = $scopeId;
+        }
+
         return DB::selectOne(
             'WITH d AS (
                  SELECT ST_MakeValid(ST_GeomFromGeoJSON(:gj)) AS g
@@ -512,36 +572,19 @@ class ManualDistrictDraw implements FormHandler
              gi AS (
                  SELECT ST_MakeValid(geom) AS g FROM jurisdictions WHERE id = :scope
              ),
-             gcomps AS (
-                 -- TRUE landmasses: UnaryUnion dissolves loosely-touching
-                 -- rings AND overlapping duplicate slivers (scattered-
-                 -- remainder data noise) into the connected landmasses the
-                 -- law actually protects. Without this, a whole island
-                 -- overlapping a duplicate neighbor ring reads as a second
-                 -- "cut landmass" (the Penamaluru class). DEGENERATE
-                 -- RIBBONS — landmasses with effective width under ~1 m
-                 -- (2·area/perimeter < 0.5 m; Penamaluru carries 1 cm ×
-                 -- 4 km subtraction residue) — are boundary noise, not
-                 -- territory: they cannot host a resident, the interior
-                 -- shave disintegrates them, and they are censused on the
-                 -- same de-minimis footing as the shave itself.
-                 SELECT c FROM (
-                     SELECT (ST_Dump(ST_UnaryUnion((SELECT g FROM gi)))).geom AS c
-                 ) t
-                 WHERE 2 * ST_Area(c::geography)
-                       / NULLIF(ST_Perimeter(c::geography), 0) >= 0.5
-             ),
+             gcomps AS ('.$gcomps.'),
              cutcomps AS (
-                 SELECT gc.c,
-                        ST_Area(ST_Intersection((SELECT g FROM d), gc.c)) AS ia
-                   FROM gcomps gc
-                  WHERE ST_Intersects((SELECT g FROM d), gc.c)
-                    AND ST_Area(ST_Intersection((SELECT g FROM d), gc.c)) > 0.02 * ST_Area(gc.c)
-                    AND ST_Area(ST_Intersection((SELECT g FROM d), gc.c)) < 0.98 * ST_Area(gc.c)
+                 SELECT gc.c, x.ig, ST_Area(x.ig) AS ia
+                   FROM (SELECT c FROM gcomps
+                          WHERE ST_Intersects((SELECT g FROM d), c)) gc
+                  CROSS JOIN LATERAL (
+                      SELECT ST_Intersection((SELECT g FROM d), gc.c) AS ig
+                  ) x
+                  WHERE ST_Area(x.ig) > 0.02 * ST_Area(gc.c)
+                    AND ST_Area(x.ig) < 0.98 * ST_Area(gc.c)
              ),
              fragchunks AS (
-                 SELECT (ST_Dump(ST_CollectionExtract(
-                            ST_MakeValid(ST_Intersection((SELECT g FROM d), cc.c)), 3))).geom AS fg,
+                 SELECT (ST_Dump(ST_CollectionExtract(ST_MakeValid(cc.ig), 3))).geom AS fg,
                         cc.ia
                    FROM cutcomps cc
              )
@@ -552,7 +595,7 @@ class ManualDistrictDraw implements FormHandler
                    WHERE ST_Area(fg) > 0.01 * ia)                           AS fragment_pieces,
                  ST_CoveredBy((SELECT g FROM d), (SELECT g FROM gi))        AS within,
                  ST_IsEmpty((SELECT g FROM d))                              AS empty',
-            ['gj' => $geoJson, 'scope' => $scopeId]
+            $bindings
         );
     }
 }

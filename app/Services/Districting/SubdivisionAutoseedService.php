@@ -105,7 +105,14 @@ class SubdivisionAutoseedService
      */
     private const MAX_BISECTIONS_PER_NODE = 3;
 
-    private const BLADE_BUDGET_PER_PLAN = 240;
+    /**
+     * ONE BLADE POOL PER SCOPE (2026-09-02, the Tumaco grind): the ladder
+     * opens the pool once per scope (openBladePool) and every cutting
+     * template rung draws from the same counter. When the pool is spent the
+     * ladder goes straight to the box. A plan() call outside an open pool
+     * (a single-template preview) owns a fresh counter of the same size.
+     */
+    private const BLADE_BUDGET_PER_SCOPE = 240;
 
     /**
      * How many EXTRA districts the composition ladder may add above the
@@ -115,8 +122,25 @@ class SubdivisionAutoseedService
      */
     private const MAX_COMPOSITION_STEPS = 3;
 
-    /** Remaining findBlade calls for the plan in flight. */
-    private int $bladeBudget = self::BLADE_BUDGET_PER_PLAN;
+    /** Remaining findBlade calls in the pool (or the standalone plan) in flight. */
+    private int $bladeBudget = self::BLADE_BUDGET_PER_SCOPE;
+
+    /** Scope id whose blade pool is open (the ladder owns it); null = no pool. */
+    private ?string $bladePoolScope = null;
+
+    /**
+     * THE SCOPE PARTS STORE (2026-09-02): a session scratch table holding
+     * the scope's dissolved parts, filled once per scope on first need.
+     * Every site that used to run ST_Dump(ST_UnaryUnion(ST_MakeValid(geom)))
+     * live (plan entry, componentsPlan, the group loop, the leaf assembly,
+     * the filing census) reads these rows instead. Session-local, dropped
+     * when the scope finishes or fails (forgetScopeParts) and at session end.
+     */
+    public const SCOPE_PARTS_TABLE = 'cga_scope_parts';
+
+    private const SCOPE_PARTS_DDL = 'CREATE TEMP TABLE IF NOT EXISTS cga_scope_parts
+                       (scope text, idx int, g geometry, area_m2 float8, perim_m float8,
+                        PRIMARY KEY (scope, idx))';
 
     /** Scope id of the mask-template plan in flight; null on every other template. */
     private ?string $maskScopeId = null;
@@ -132,6 +156,85 @@ class SubdivisionAutoseedService
         private readonly SubdivisionCellSeedService $cells,
         private readonly SubdivisionBoxSeedService $box,
     ) {
+    }
+
+    // ── the per-scope blade pool (the ladder owns it) ───────────────────────
+
+    /** Open one blade pool for a scope: every rung the ladder runs shares it. */
+    public function openBladePool(string $scopeId): void
+    {
+        $this->bladePoolScope = $scopeId;
+        $this->bladeBudget = self::BLADE_BUDGET_PER_SCOPE;
+    }
+
+    /** Close the pool; the next standalone plan() owns a fresh counter. */
+    public function closeBladePool(): void
+    {
+        $this->bladePoolScope = null;
+    }
+
+    public function bladePoolOpenFor(string $scopeId): bool
+    {
+        return $this->bladePoolScope === $scopeId;
+    }
+
+    /** findBlade calls left in the pool (or in the standalone plan in flight). */
+    public function bladeBudgetRemaining(): int
+    {
+        return max(0, $this->bladeBudget);
+    }
+
+    // ── the scope parts store: dissolve once per scope ──────────────────────
+
+    /**
+     * Fill the session scratch table with the scope's dissolved parts when
+     * it holds none: ST_Dump(ST_UnaryUnion(ST_MakeValid(geom))) with the
+     * same idx every site derived live before (COALESCE(path[1], 1)), plus
+     * the geography area and perimeter the ribbon filters read. One
+     * statement, atomic: a set is either complete or absent. ST_UnaryUnion
+     * is deterministic, so rows left by an interrupted session name the
+     * same parts a fresh dissolve would.
+     */
+    public static function scopePartsRef(string $scopeId): void
+    {
+        if (self::hasScopeParts($scopeId)) {
+            return;
+        }
+        LeafGiantResolver::stepBegin('leaf.dissolve');
+        try {
+            DB::statement(
+                'INSERT INTO '.self::SCOPE_PARTS_TABLE.' (scope, idx, g, area_m2, perim_m)
+                 SELECT ?, COALESCE(d.path[1], 1), d.geom,
+                        ST_Area(d.geom::geography), ST_Perimeter(d.geom::geography)
+                   FROM jurisdictions j,
+                        LATERAL ST_Dump(ST_UnaryUnion(ST_MakeValid(j.geom))) d
+                  WHERE j.id = ?
+                     ON CONFLICT (scope, idx) DO NOTHING',
+                [$scopeId, $scopeId]
+            );
+        } finally {
+            LeafGiantResolver::stepEnd('leaf.dissolve');
+        }
+    }
+
+    /** True when the session table already holds this scope's parts. */
+    public static function hasScopeParts(string $scopeId): bool
+    {
+        DB::statement(self::SCOPE_PARTS_DDL);
+
+        return DB::selectOne('SELECT 1 AS x FROM '.self::SCOPE_PARTS_TABLE.' WHERE scope = ? LIMIT 1', [$scopeId]) !== null;
+    }
+
+    /**
+     * Drop a scope's parts when the scope finishes or fails. Throws like any
+     * statement; LeafGiantResolver::commit calls it through a guard so a
+     * cleanup that fails under an aborted outer transaction never replaces
+     * the scope's own diagnosis.
+     */
+    public static function forgetScopeParts(string $scopeId): void
+    {
+        DB::statement(self::SCOPE_PARTS_DDL);
+        DB::delete('DELETE FROM '.self::SCOPE_PARTS_TABLE.' WHERE scope = ?', [$scopeId]);
     }
 
     /**
@@ -160,10 +263,13 @@ class SubdivisionAutoseedService
         if ($template === self::TEMPLATE_COMPONENTS) {
             return $this->componentsPlan($scopeId, $ctx, $year);
         }
-        // Fresh backtracking budget per plan CALL — spans every composition
-        // rung below (the service is container-shared, so it must be reset
-        // here and nowhere else).
-        $this->bladeBudget = self::BLADE_BUDGET_PER_PLAN;
+        // THE BLADE POOL IS PER SCOPE (2026-09-02): under an open pool the
+        // rungs share one counter and the ladder skips to the box when it
+        // is spent. A plan call outside a pool (a one-template preview)
+        // owns a fresh counter for itself.
+        if ($this->bladePoolScope !== $scopeId) {
+            $this->bladeBudget = self::BLADE_BUDGET_PER_SCOPE;
+        }
 
         // MASK MODE (see the template docblock): the scope id rides on the
         // service so findBlade's mask splitter can run the Art. II §8
@@ -243,18 +349,20 @@ class SubdivisionAutoseedService
         // serializing thousands of island polygons to PHP bought nothing.
         // The strict path keeps the full payload for
         // partitionPixelsByPolygon, unchanged.
+        // DISSOLVE ONCE PER SCOPE (2026-09-02): the parts come from the
+        // session store, filled on first need; the group loop, the leaf
+        // assembly and the filing census read the same rows.
+        self::scopePartsRef($scopeId);
         $compGjCol = $template === self::TEMPLATE_MASK ? "'' AS gj" : 'ST_AsGeoJSON(g, 15) AS gj';
         $comps = DB::select(
             "SELECT {$compGjCol},
                     idx,
-                    ST_Area(g::geography) AS area,
+                    area_m2 AS area,
                     ST_X(ST_PointOnSurface(g)) AS cx,
                     ST_Y(ST_PointOnSurface(g)) AS cy
-               FROM (SELECT d.geom AS g, COALESCE(d.path[1], 1) AS idx
-                       FROM jurisdictions j,
-                            LATERAL ST_Dump(ST_UnaryUnion(ST_MakeValid(j.geom))) d
-                      WHERE j.id = ?) t
-              ORDER BY ST_Area(g::geography) DESC, ST_X(ST_PointOnSurface(g)), ST_Y(ST_PointOnSurface(g))",
+               FROM ".self::SCOPE_PARTS_TABLE."
+              WHERE scope = ?
+              ORDER BY area_m2 DESC, ST_X(ST_PointOnSurface(g)), ST_Y(ST_PointOnSurface(g))",
             [$scopeId]
         );
 
@@ -392,10 +500,10 @@ class SubdivisionAutoseedService
             $cuts = [];
             $districts = [];
             $order = 0;
-            // The blade budget spans the WHOLE plan, ladder included — a
-            // per-rung reset let one hopeless scope burn rungs × templates ×
-            // 240 blade calls (hours on a big state). A scope that exhausts
-            // the budget reaches its honest refusal instead.
+            // The blade budget spans the WHOLE SCOPE: one pool across every
+            // composition rung and every cutting template the ladder runs
+            // (2026-09-02). A scope that exhausts the pool reaches its
+            // honest refusal here, and the ladder goes straight to the box.
             if ($this->bladeBudget <= 0) {
                 break;
             }
@@ -456,18 +564,17 @@ class SubdivisionAutoseedService
 
         // TRUE landmasses — same dissolve as the splitline island partition
         // and the filing census (one bookkeeping everywhere).
+        self::scopePartsRef($scopeId);
         $comps = DB::select(
             'SELECT ST_AsGeoJSON(g, 15) AS gj,
                     idx,
-                    ST_Area(g::geography) AS area,
+                    area_m2 AS area,
                     ST_X(ST_PointOnSurface(g)) AS cx,
                     ST_Y(ST_PointOnSurface(g)) AS cy
-               FROM (SELECT d.geom AS g, COALESCE(d.path[1], 1) AS idx
-                       FROM jurisdictions j,
-                            LATERAL ST_Dump(ST_UnaryUnion(ST_MakeValid(j.geom))) d
-                      WHERE j.id = ?) t
-              WHERE 2 * ST_Area(g::geography) / NULLIF(ST_Perimeter(g::geography), 0) >= 0.5
-              ORDER BY ST_Area(g::geography) DESC, ST_X(ST_PointOnSurface(g)), ST_Y(ST_PointOnSurface(g))',
+               FROM '.self::SCOPE_PARTS_TABLE.'
+              WHERE scope = ?
+                AND 2 * area_m2 / NULLIF(perim_m, 0) >= 0.5
+              ORDER BY area_m2 DESC, ST_X(ST_PointOnSurface(g)), ST_Y(ST_PointOnSurface(g))',
             [$scopeId]
         );
         if (count($comps) < 2) {
@@ -572,10 +679,7 @@ class SubdivisionAutoseedService
             $idxs = array_map(fn (int $ci) => (int) $comps[$ci]->idx, $group['members']);
             $row = DB::selectOne(
                 'WITH parts AS (
-                          SELECT d.geom AS g, COALESCE(d.path[1], 1) AS idx
-                            FROM jurisdictions j,
-                                 LATERAL ST_Dump(ST_UnaryUnion(ST_MakeValid(j.geom))) d
-                           WHERE j.id = :scope
+                          SELECT g, idx FROM '.self::SCOPE_PARTS_TABLE.' WHERE scope = :scope
                       ),
                       -- Per-part shave: the filed GeoJSON text still
                       -- round-trips through the parser at filing, so the
@@ -1117,12 +1221,10 @@ class SubdivisionAutoseedService
                 ? '(SELECT ST_CollectionExtract(ST_Collect(g), 3) FROM parts)'
                 : '(SELECT g FROM parts WHERE idx = :main_idx)';
 
+            self::scopePartsRef($scopeId);
             $row = DB::selectOne(
                 'WITH parts AS (
-                          SELECT d.geom AS g, COALESCE(d.path[1], 1) AS idx
-                            FROM jurisdictions j,
-                                 LATERAL ST_Dump(ST_UnaryUnion(ST_MakeValid(j.geom))) d
-                           WHERE j.id = :scope
+                          SELECT g, idx FROM '.self::SCOPE_PARTS_TABLE.' WHERE scope = :scope
                       ),
                       ix AS (
                           SELECT ST_CollectionExtract(ST_Intersection(
@@ -1907,13 +2009,13 @@ class SubdivisionAutoseedService
         DB::statement('CREATE TEMP TABLE IF NOT EXISTS cga_scope_landmasses
                        (scope text, id serial, g geometry, area float8)');
         if (DB::selectOne('SELECT 1 AS x FROM cga_scope_landmasses WHERE scope = ? LIMIT 1', [$scopeId]) === null) {
+            self::scopePartsRef($scopeId);
             DB::statement(
                 'INSERT INTO cga_scope_landmasses (scope, g, area)
-                 SELECT ?, c, ST_Area(c) FROM (
-                     SELECT (ST_Dump(ST_UnaryUnion(ST_MakeValid(geom)))).geom AS c
-                       FROM jurisdictions WHERE id = ?
-                 ) t
-                 WHERE 2 * ST_Area(c::geography) / NULLIF(ST_Perimeter(c::geography), 0) >= 0.5',
+                 SELECT ?, g, ST_Area(g) FROM '.self::SCOPE_PARTS_TABLE.'
+                  WHERE scope = ?
+                    AND 2 * area_m2 / NULLIF(perim_m, 0) >= 0.5
+                  ORDER BY idx',
                 [$scopeId, $scopeId]
             );
             DB::statement('CREATE INDEX IF NOT EXISTS cga_scope_landmasses_gix

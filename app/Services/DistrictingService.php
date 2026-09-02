@@ -195,6 +195,44 @@ class DistrictingService
     /** Resolved heartbeat gap in ns — config() is too costly for a 639-iteration loop. */
     private ?int $beatGapNs = null;
 
+    /**
+     * THE BEAT CONNECTION (2026-09-02, the composite transaction split): the
+     * named connection publishMassProgress writes a lane's liveness rows
+     * through. Same env as 'pgsql' (config/database.php); a separate session,
+     * so a beat never joins the lane's work transaction and commits at once.
+     */
+    public const BEAT_CONNECTION = 'pgsql_beat';
+
+    /**
+     * THE K-LOOP EARLY EXIT (2026-09-02, the composite planner cost): once a
+     * component's incumbent is EXACT (seat_drift 0), this many consecutive k
+     * values that fail to beat it end the k-loop. The loop never ends on
+     * misses while no exact landing exists.
+     */
+    private const K_LOOP_MISS_LIMIT = 2;
+
+    /**
+     * Member cap shared by the final-drawing polish passes (hullRepairPass,
+     * comparatorPolishPass): above it a pass returns its bins untouched. The
+     * standard maps' polish wins live in the small bisected scopes.
+     */
+    private const POLISH_MEMBER_CAP = 150;
+
+    /** Ceiling on the 1:1 swap grid per side in hullRepairPass; the pair's size derives the rest. */
+    private const HULL_SWAP_CAP = 16;
+
+    /**
+     * The work connection's PDO the cached backend pid was read on
+     * (workBackendPid). A reconnect replaces the PDO object; the mismatch
+     * re-reads the pid. Weak, so the reference never keeps a dead PDO alive.
+     *
+     * @var \WeakReference<\PDO>|null
+     */
+    private ?\WeakReference $beatPdoRef = null;
+
+    /** The work connection's postgres backend pid, cached per PDO instance. */
+    private ?int $beatWorkPid = null;
+
     /** Accumulated ms per labelled step, and the call count behind each. */
     private array $stepMs = [];
 
@@ -202,6 +240,9 @@ class DistrictingService
 
     /** Open step timers, label => start ns. */
     private array $stepOpen = [];
+
+    /** Facts recorded beside the timers (caps, gates, counts), label => facts. */
+    private array $stepMeta = [];
 
     /** Resolved once — the timers sit in hot loops. */
     private ?bool $stepTimingsOn = null;
@@ -646,12 +687,19 @@ class DistrictingService
     /**
      * Core auto-composite algorithm for a single scope.
      *
-     * Caller is responsible for the DB transaction boundary. Colors are
-     * computed at read time by colorIndicesForDistricts() (scope-local greedy
-     * adjacency 7-coloring), so no recompute step is needed here.
+     * THE TRANSACTION BOUNDARY IS THE WRITE PHASE (2026-09-02, the composite
+     * transaction split). Steps 1-8 (reads, adjacency, the pure-PHP search)
+     * run with no transaction open. This method opens ONE transaction where
+     * the writes begin (Step 9 clears through Step 12 inserts and recompute;
+     * the early residue plane is wrapped the same way) and commits or rolls
+     * it back itself, so a crash mid-write cannot leave a half-drawn map and
+     * an exception never leaves an open transaction on the lane. A caller
+     * that holds its own transaction nests this one as a savepoint. Colors
+     * are computed at read time by colorIndicesForDistricts() (scope-local
+     * greedy adjacency 7-coloring), so no recompute step is needed here.
      * Returns ['districts_created' => int, 'error' => string|null].
      * 'error' is non-null for recoverable no-op cases (e.g. no compositable children).
-     * Throws on genuine exceptions — caller should catch and roll back.
+     * Throws on genuine exceptions after rolling back its own write phase.
      *
      * @param int $seatBudget  Exact integer seat allocation for this scope
      *                         (leg->type_a_seats at root; type_a_apportioned at sub-scopes).
@@ -673,7 +721,7 @@ class DistrictingService
         // Fresh timing record per scope — the service is resolved once per
         // worker and drains many scopes, so a carried-over record would
         // attribute one scope's cost to the next.
-        $this->stepMs = $this->stepN = $this->stepOpen = [];
+        $this->stepMs = $this->stepN = $this->stepOpen = $this->stepMeta = [];
 
         // ── Step 1: Fetch ALL direct children with geometry ──────────────────
         $this->publishMassProgress($legislature_id, [
@@ -687,6 +735,7 @@ class DistrictingService
         // childrenGeoJson falls back to ST_PointOnSurface); a different
         // centroid would move BFS seeds and violate the Draft-4/5
         // byte-identity property.
+        $this->stepBegin('step1.load');
         $allChildrenRows = DB::select("
             SELECT
                 j.id, j.name, j.population,
@@ -711,6 +760,7 @@ class DistrictingService
               AND j.geom IS NOT NULL
             ORDER BY j.population DESC, j.id
         ", ['scope_id' => $scopeId]);
+        $this->stepEnd('step1.load');
 
         if (empty($allChildrenRows)) {
             return ['districts_created' => 0, 'error' => 'No children with geometry found at this scope'];
@@ -771,6 +821,7 @@ class DistrictingService
         // The cascade's answer is the authoritative one — everything
         // downstream reads it — so adopt it whenever it is available and
         // agrees about the budget being divided.
+        $this->stepBegin('step4.cascade');
         $cascadeGiants = $this->giantChildrenForScope($scopeId, $legislature_id);
         // THE GATE THAT KNEW now SAYS SO (the Bayern 70/71 verdict, operator
         // order 2026-08-30): this compare detected the draw-time budget
@@ -780,6 +831,7 @@ class DistrictingService
         // into review with both numbers logged; a silent wrong map becomes
         // a loud flagged one.
         $gateBudget = $this->computeSeatBudget($scopeId, $legislature_id);
+        $this->stepEnd('step4.cascade');
         if ($cascadeGiants !== [] && $gateBudget !== $seatBudget) {
             throw new \RuntimeException(sprintf(
                 'Budget-frame disagreement at scope %s: the cascade says %s, this draw was handed %d '
@@ -827,14 +879,17 @@ class DistrictingService
         // +1 district with a fabricated 1.00 fractional — Malaysia, the
         // era-1 retest, chamber 328/327.)
         if ($nonGiantBudget <= 0 && $seatBudget > 0) {
-            return $this->insertZeroBudgetResidueDistrict(
+            // A write plane (insert + memberships + recompute): one
+            // transaction, the same rule as Steps 9-12 below.
+            return DB::transaction(fn () => $this->insertZeroBudgetResidueDistrict(
                 $legislature_id, $scopeId, $mapId, $clearExisting, $leg,
                 $nonGiantRows, $giantRows, $seatBudget
-            );
+            ));
         }
 
         // ── Step 6: Filter already-assigned non-giants (when not clearing) ────
         if (!$clearExisting) {
+            $this->stepBegin('step6.assigned');
             $nonGiantIds  = array_column($nonGiantRows, 'id');
             $assignedQuery = DB::table('legislature_district_jurisdictions as ldj')
                 ->join('legislature_districts as ld', 'ld.id', '=', 'ldj.district_id')
@@ -846,6 +901,7 @@ class DistrictingService
             }
             $assignedIds  = $assignedQuery->pluck('ldj.jurisdiction_id')->toArray();
             $nonGiantRows = array_values(array_filter($nonGiantRows, fn($c) => !in_array($c->id, $assignedIds)));
+            $this->stepEnd('step6.assigned');
         }
 
         if (empty($nonGiantRows)) {
@@ -1121,6 +1177,23 @@ class DistrictingService
                 : $nonGiantBudget;
             $quotaPopC  = $compBudget > 0 ? (float) $compBinPop / $compBudget : 0.0;
 
+            // THE K ORDER + EARLY EXIT (2026-09-02, the composite planner
+            // cost). The range above is unchanged; only the ORDER the loop
+            // visits it in changes: nearest-first to the middle of the
+            // district band (budget / k closest to (floor + ceiling) / 2,
+            // ties to the lower k), so the k most likely to land a clean
+            // canonical mix is searched first. After each k the loop keeps an
+            // incumbent (the best per-k winner so far). Once the incumbent is
+            // EXACT (seat_drift 0, scoreRank's first key), a k whose winner
+            // does not beat it counts a miss, and K_LOOP_MISS_LIMIT
+            // consecutive misses end the loop. The loop never ends on misses
+            // while no exact landing exists: exactness outranks the
+            // comparator (drift is always wrong), so the search keeps looking
+            // for one. Candidates reach the variants plane in ascending k
+            // order whatever the visit order, so tie resolution there is
+            // unchanged. The line-first path keeps the ascending range.
+            $kOrder = $this->orderKCandidates($kCandidates, $compBudget, $floor, $ceiling);
+
             // One edge cap for every generator on this component (2026-08-09).
             $compEdgeCapSq = $this->componentEdgeCapSq($component, $adj, $centroids);
 
@@ -1183,7 +1256,13 @@ class DistrictingService
                 $candidateConfigs[] = ['bins' => $lineFirst['bins'], 'score' => $lineFirst['score']];
             }
 
-            foreach (($adoptLineFirst ? [] : $kCandidates) as $k) {
+            $perKConfigs    = [];     // k => its winner(s); flattened in ascending k below
+            $incumbentScore = null;   // best per-k winner across the k values visited so far
+            $kMisses        = 0;
+            $kVisited       = [];
+            foreach (($adoptLineFirst ? [] : $kOrder) as $k) {
+                $kVisited[]  = $k;
+                $buildersRan = false;
                 $targetPopK = $compBinPop > 0 ? (float) $compBinPop / $k : 0.0;
 
                 // ── Phase A: BFS-only scan — every jid as first seed + a population-anchor set ─
@@ -1309,9 +1388,21 @@ class DistrictingService
                 // rebalance toward the same partition, and let them compete.
                 // These reach the canonical configurations the transfer-walking
                 // passes stall on (Egypt 7+7+7+7, Russia 9+9+9+9, Bihar 9+8+8+8).
-                if ($quotaPopC > 0) {
+                // THE BUILDER GATE (2026-09-02, the composite planner cost):
+                // the sequential builders and the bisection sweep run for
+                // this k only when Phase B has NOT already produced an exact
+                // landing that beats the incumbent across k. Phase B exact
+                // and ahead: the rest of this k's generators are skipped.
+                // Phase B drifted, or exact but behind the incumbent: they
+                // run as before. The comparator is untouched; only the
+                // number of candidates it sees changes.
+                $phaseBLeads = $bestScoreK !== null
+                    && $this->isExactScore($bestScoreK)
+                    && ($incumbentScore === null || $this->scoreBeats($bestScoreK, $incumbentScore));
+                if ($quotaPopC > 0 && ! $phaseBLeads) {
                     $parts = $this->canonicalPartition($compBudget, $k, $floor, $ceiling);
                     if ($parts !== null) {
+                        $buildersRan = true;
                         // Both builder flavors per order (round-8.1, the Mexico
                         // probe): the adaptive flavor wins archipelagos and fat
                         // atoms, the fixed-target flavor won Mexico's 0.84% —
@@ -1383,7 +1474,7 @@ class DistrictingService
                 }
 
                 if ($bestBinsK !== null) {
-                    $candidateConfigs[] = ['bins' => $bestBinsK, 'score' => $bestScoreK];
+                    $perKConfigs[$k][] = ['bins' => $bestBinsK, 'score' => $bestScoreK];
                     // Good Maps pool telemetry (2026-08-23): one line per k so a
                     // wrong across-k choice (the California probe: k=10 keeps
                     // beating the standard's fat k=9 class) is diagnosable from
@@ -1394,6 +1485,8 @@ class DistrictingService
                         'scope_id'       => $scopeId,
                         'component'      => $componentIdx,
                         'k'              => $k,
+                        'k_visit'        => count($kVisited),
+                        'builders_ran'   => $buildersRan,
                         'bins'           => count($bestBinsK),
                         'rank'           => $this->scoreRank($bestScoreK),
                     ]);
@@ -1405,7 +1498,34 @@ class DistrictingService
                 // Phase-B base). Keep the Phase-B best as its own candidate so
                 // the variant machinery below walks BOTH.
                 if ($bestPhaseB !== null && $bestPhaseB !== $bestBinsK) {
-                    $candidateConfigs[] = ['bins' => $bestPhaseB, 'score' => $bestPhaseBScore];
+                    $perKConfigs[$k][] = ['bins' => $bestPhaseB, 'score' => $bestPhaseBScore];
+                }
+
+                // THE EARLY EXIT (2026-09-02): see the k-order note above. An
+                // improvement resets the miss count; a miss counts only while
+                // the incumbent is exact.
+                $improved = $bestScoreK !== null
+                    && ($incumbentScore === null || $this->scoreBeats($bestScoreK, $incumbentScore));
+                if ($improved) {
+                    $incumbentScore = $bestScoreK;
+                }
+                $kMisses = $this->kLoopMisses($kMisses, $incumbentScore, $improved);
+                if ($kMisses >= self::K_LOOP_MISS_LIMIT) {
+                    \Illuminate\Support\Facades\Log::info('districting pool k-loop early exit', [
+                        'legislature_id' => $legislature_id,
+                        'scope_id'       => $scopeId,
+                        'component'      => $componentIdx,
+                        'k_visited'      => $kVisited,
+                        'k_skipped'      => array_values(array_diff($kOrder, $kVisited)),
+                    ]);
+                    break;
+                }
+            }
+            // Ascending k into the variants plane, whatever the visit order.
+            ksort($perKConfigs);
+            foreach ($perKConfigs as $kCfgs) {
+                foreach ($kCfgs as $kCfg) {
+                    $candidateConfigs[] = $kCfg;
                 }
             }
 
@@ -1498,6 +1618,10 @@ class DistrictingService
             'phase_current' => count($allBins),
             'phase_total'   => count($allBins),
         ]);
+
+        // 'step8.final' (2026-09-02): attachment, the post-attachment
+        // rebalance, the pool-budget and canonical landings — untimed before.
+        $this->stepBegin('step8.final');
 
         // Cross-component post-repair (the ATTACHMENT plane — runs AFTER scoring, so
         // it must be conservative). Merges bins that cannot legally round to the
@@ -1676,6 +1800,8 @@ class DistrictingService
             }
         }
 
+        $this->stepEnd('step8.final');
+
         // ── Step 8c: HULL REPAIR on the final drawing (Good Maps, 2026-08-23) ──
         // The in-loop shape currency is cut length; the standard is measured in
         // convex hull ratio, and on concave/coastal scopes the two anticorrelate
@@ -1697,25 +1823,50 @@ class DistrictingService
         // contiguity in the comparator, so the later passes polish around
         // the exception-free shape (break repair's lawOk cannot mint a
         // sub-floor bin back).
+        // Each pass carries its own timer (2026-09-02) so the next audit
+        // sees the four final-drawing passes apart from the search.
+        $this->stepBegin('step8c.override');
         $allBins = $this->overrideRepairPass(
             $allBins, $childById, $adj, $centroids,
             $nonGiantBudget, $floor, $ceiling, $giantThreshold, $floorBoundary
         );
+        $this->stepEnd('step8c.override');
+        $this->stepBegin('step8c.breakrepair');
         $allBins = $this->breakRepairPass(
             $allBins, $childById, $adj, $centroids, $legislature_id,
             $nonGiantBudget, $floor, $ceiling, $giantThreshold, $floorBoundary
         );
+        $this->stepEnd('step8c.breakrepair');
+        $this->stepBegin('step8c.hullrepair');
         $allBins = $this->hullRepairPass(
             $allBins, $childById, $adj, $centroids, $legislature_id,
             $nonGiantBudget, $floor, $ceiling, $giantThreshold, $floorBoundary
         );
+        $this->stepEnd('step8c.hullrepair');
+        $this->stepBegin('step8c.polish');
         $allBins = $this->comparatorPolishPass(
             $allBins, $childById, $adj, $centroids,
             $nonGiantBudget, $floor, $ceiling, $floorBoundary
         );
+        $this->stepEnd('step8c.polish');
 
+        // ── THE WRITE PHASE IS THE TRANSACTION (2026-09-02, the composite
+        // transaction split). Everything above is reads and pure PHP. A
+        // transaction opened around it held the lane's connection idle in
+        // transaction for the whole Step-8 search, kept the first heartbeat's
+        // row locks until scope commit, and queued sibling lanes on the
+        // scopes table. Only the writes below need atomicity: Step 9 clears
+        // through Step 12 inserts and recompute commit as one unit, so a
+        // crash mid-write still cannot leave a half-drawn map. An exception
+        // rolls this phase back and rethrows, so the lane's connection is
+        // never left inside an aborted transaction. The try body keeps its
+        // existing indentation on purpose: the block is the whole write
+        // phase, and a re-indent would bury the change in whitespace.
+        DB::beginTransaction();
+        try {
         // ── Step 9: Clear existing districts if requested ─────────────────────
         if ($clearExisting) {
+            $this->stepBegin('step9.clear');
             $this->publishMassProgress($legislature_id, [
                 'phase'       => 'clearing',
                 'phase_label' => 'Clearing existing districts at this scope',
@@ -1749,8 +1900,12 @@ class DistrictingService
                 DB::table('legislature_district_jurisdictions')->where('district_id', $eid)->delete();
                 DB::table('legislature_districts')->where('id', $eid)->delete();
             }
+            $this->stepEnd('step9.clear');
         }
 
+        // 'step10.seat' (2026-09-02): Steps 10-11b — bin populations, zero-pop
+        // absorption, nearest seating and the exactness repairs.
+        $this->stepBegin('step10.seat');
         // ── Step 10: Collect bin populations ─────────────────────────────────
         $binData = [];
         foreach ($allBins as $binJids) {
@@ -2047,6 +2202,8 @@ class DistrictingService
             }
         }
 
+        $this->stepEnd('step10.seat');
+
         // ── Step 12: Insert districts ──────────────────────────────────────────
         // The district's `seats` value is the canonical seat budget for any
         // composite member at this scope. When a downstream caller needs a
@@ -2062,7 +2219,23 @@ class DistrictingService
             'phase_current' => 0,
             'phase_total'   => $totalDistricts,
         ]);
-        $this->stepBegin('step12.geometry');
+        // Timers (2026-09-02, the composite planner cost): 'step12' is the
+        // whole insert loop; 'step12.writes' the district + membership
+        // inserts; 'step12.recompute' the per-district recompute as a whole,
+        // with 'step12.geometry' inside it for the PostGIS union + hull that
+        // runs only on a shape-store miss.
+        $this->stepBegin('step12');
+        // The next district number is read ONCE (2026-09-02): this lane holds
+        // the scope claim and every row below takes the number it is handed,
+        // so the per-district MAX() re-read returned exactly this counter.
+        $distNumQ = DB::table('legislature_districts')
+            ->where('legislature_id', $legislature_id)
+            ->where('jurisdiction_id', $scopeId)
+            ->whereNull('deleted_at');
+        if ($mapId !== null) {
+            $distNumQ->where('map_id', $mapId);
+        }
+        $nextDistrictNumber = 1 + (int) $distNumQ->max('district_number');
         foreach ($binData as $binIdx => $bin) {
             // Per-district progress so the operator can tell whether a slow
             // scope is stuck on geometry computation (Step 12, dominant cost)
@@ -2077,14 +2250,7 @@ class DistrictingService
                 'phase_total'   => $totalDistricts,
             ]);
 
-            $distNumQ = DB::table('legislature_districts')
-                ->where('legislature_id', $legislature_id)
-                ->where('jurisdiction_id', $scopeId)
-                ->whereNull('deleted_at');
-            if ($mapId !== null) {
-                $distNumQ->where('map_id', $mapId);
-            }
-            $districtNumber = 1 + (int) $distNumQ->max('district_number');
+            $districtNumber = $nextDistrictNumber++;
 
             $districtId = (string) \Illuminate\Support\Str::uuid();
 
@@ -2094,6 +2260,7 @@ class DistrictingService
             // lawful landing. A forced sub-2 bin lifts to exactly 2.
             $bonusSeats = $this->ceilingExceptionBonus((int) $bin['seats'], (int) round((float) $bin['pop']));
 
+            $this->stepBegin('step12.writes');
             DB::table('legislature_districts')->insert([
                 'id'               => $districtId,
                 'legislature_id'   => $legislature_id,
@@ -2117,17 +2284,29 @@ class DistrictingService
                 'jurisdiction_id' => $jid,
             ], $bin['jids']);
             DB::table('legislature_district_jurisdictions')->insert($memberships);
+            $this->stepEnd('step12.writes');
 
             // Compute and cache spatial stats (convex_hull_ratio, num_geom_parts, is_contiguous)
             // so reseeded districts have stats immediately — same as manual create/update.
             // Pass $skipSeatsUpdate=true: Step 11 already seated the district against the
             // scope's pool quota; recomputeDistrict must not re-derive seats from a
-            // different quota context.
-            $this->recomputeDistrict($districtId, $legislature_id, $leg, true);
+            // different quota context. Step 7's adjacency rides along
+            // (2026-09-02): the contiguity walk reads it instead of running a
+            // pairwise ST_Intersects query per district, and the seat frame
+            // (scope budget, sibling quotas) is not loaded — nothing in it is
+            // written on this path.
+            $this->stepBegin('step12.recompute');
+            $this->recomputeDistrict($districtId, $legislature_id, $leg, true, $adj);
+            $this->stepEnd('step12.recompute');
 
             $districtsCreated++;
         }
-        $this->stepEnd('step12.geometry');
+        $this->stepEnd('step12');
+        DB::commit();
+        } catch (\Throwable $e) {
+            DB::rollBack();
+            throw $e;
+        }
 
         // The one flush recomputeDistrict skipped per district above.
         Cache::tags(["revealed.{$legislature_id}"])->flush();
@@ -2523,18 +2702,29 @@ class DistrictingService
     /**
      * Recompute seats + geometry for a district based on its current members.
      * If the district has no remaining members, soft-delete it.
+     *
+     * $poolAdj (2026-09-02, the composite planner cost): the caller's sibling
+     * adjacency — Step 7's $adj, jid => neighbour jids over the scope's
+     * AVAILABLE children (non-giant, geometry-bearing, unassigned). When it
+     * is given, the contiguity walk and the avoidability test read it and
+     * the two pairwise ST_Intersects queries per district do not run; with
+     * $skipSeatsUpdate the seat frame (scope budget, sibling quotas, share
+     * base) is not loaded either, because nothing in it is written. A pool
+     * neighbour is an available sibling by construction, so an orphan with
+     * any pool neighbour marks an avoidable break and one with none (it
+     * borders giants or nothing) is the lawful island exemption — the same
+     * two outcomes the queries produced. Callers without the adjacency (the
+     * manual draw, the backfill, the residue plane) pass null and run as
+     * before.
      */
     public function recomputeDistrict(
         string $districtId,
         string $legislatureId,
         object $leg,
-        bool   $skipSeatsUpdate = false  // true when called from auto-composite: preserve Step-11 seats
+        bool   $skipSeatsUpdate = false,  // true when called from auto-composite: preserve Step-11 seats
+        ?array $poolAdj = null
     ): void
     {
-        ['giant' => $giantThreshold, 'floor' => $floorBoundary] = $this->thresholds($leg->jurisdiction_id);
-        $floor   = ConstitutionalDefaults::floor($leg->jurisdiction_id);
-        $ceiling = ConstitutionalDefaults::ceiling($leg->jurisdiction_id);
-
         $jids = DB::table('legislature_district_jurisdictions as ldj')
             ->where('ldj.district_id', $districtId)
             ->pluck('ldj.jurisdiction_id')
@@ -2549,18 +2739,29 @@ class DistrictingService
 
         $totalPop = (int) DB::table('jurisdictions')->whereIn('id', $jids)->sum('population');
 
+        // THE SEAT FRAME (2026-09-02, the composite planner cost): scope
+        // budget, sibling quotas and the giant-sibling set. Loaded to WRITE
+        // seats (the manual path) and, when the caller brought no adjacency,
+        // to name the giant siblings for the avoidability test. The autoseed
+        // path with $poolAdj needs neither and skips the whole frame. The
+        // unused scope-row read and the unused share-base read that sat in
+        // the scope branch are gone; shareBase is read once, on the
+        // scope-less branch that uses it. The frame body keeps its
+        // indentation on purpose: a re-indent would bury the change.
+        $needFrame       = ! $skipSeatsUpdate || $poolAdj === null;
+        $giantSiblingIds = [];
+        if ($needFrame) {
+        ['giant' => $giantThreshold, 'floor' => $floorBoundary] = $this->thresholds($leg->jurisdiction_id);
+        $floor   = ConstitutionalDefaults::floor($leg->jurisdiction_id);
+        $ceiling = ConstitutionalDefaults::ceiling($leg->jurisdiction_id);
+
         // Use local quota from the district's scope rather than the root quota.
-        $districtRow = DB::table('legislature_districts')->where('id', $districtId)->first();
-        $distScopeId = $districtRow ? $districtRow->jurisdiction_id : null;
+        $distScopeId = DB::table('legislature_districts')->where('id', $districtId)->value('jurisdiction_id');
         if ($distScopeId) {
             $scopeChildrenPop = (int) DB::table('jurisdictions')
                 ->where('parent_id', $distScopeId)
                 ->whereNull('deleted_at')
                 ->sum('population');
-            $distScopeRow = DB::table('jurisdictions')->where('id', $distScopeId)->whereNull('deleted_at')->first();
-            // Children-sum share base (Kentucky ruling 2026-07-18) — the
-            // fallback denominator must match the cascade's own base.
-            $reRootPop    = \App\Services\Districting\LeafGiantResolver::shareBase((string) $leg->jurisdiction_id);
             // Seat budget via the gated cascade. Falls back to proportional
             // approximation only in degenerate cases.
             // Refusal, not approximation (the Bayern 70/71 verdict,
@@ -2616,6 +2817,8 @@ class DistrictingService
             }
             $effectiveFloor = min($floor, max(1, $distSeatBudget - $giantSeatsForFloor));
         } else {
+            // Children-sum share base (Kentucky ruling 2026-07-18) — the
+            // fallback denominator must match the cascade's own base.
             $reRootPop = \App\Services\Districting\LeafGiantResolver::shareBase((string) $leg->jurisdiction_id);
             $quota = $reRootPop / max((int) $leg->type_a_seats, 1);
             $effectiveFloor = $floor;   // no scope context — cannot determine quota cap
@@ -2631,6 +2834,7 @@ class DistrictingService
         $bonusSeats    = $this->ceilingExceptionBonus($lawfulSeats, (int) round((float) $totalPop));
         $seats         = $lawfulSeats + $bonusSeats;
         $floorOverride = $lawfulSeats < $floor;
+        }   // end of the seat frame
 
         // Pre-compute spatial stats from member jurisdiction geometries.
         // Running per-district at write time (create/update) is fast — typically
@@ -2668,6 +2872,7 @@ class DistrictingService
         // ST_Simplify is deterministic, so COALESCE preserves identical
         // outputs while skipping the expensive per-call simplify (Nunavut's
         // tier-1 pass alone is ~55 s, paid once at precompute).
+        $this->stepBegin('step12.geometry');
         $spatialRow = DB::selectOne("
             WITH g AS (
                 SELECT COALESCE(s.geom,
@@ -2692,6 +2897,7 @@ class DistrictingService
                 ST_NumGeometries(geom)                                   AS num_geom_parts
             FROM union_cte
         ", $jids);
+        $this->stepEnd('step12.geometry');
 
         // Contiguity: graph connectivity check via ST_Intersects adjacency + BFS.
         // Single-member districts are always contiguous by definition — their
@@ -2714,6 +2920,22 @@ class DistrictingService
             // (>50k verts) at 0.001° (~110m) for normal large geoms.
             // ST_MakeValid handles self-intersections that simplification can
             // introduce on complex coastlines.
+            $adj       = [];
+            $adjCounts = [];
+            if ($poolAdj !== null) {
+                // Caller adjacency (Step 7's edges among available siblings),
+                // restricted to this district's members. Degree = the number
+                // of member neighbours, the same count the pair rows gave.
+                $inDistrict = array_flip(array_map('strval', $jids));
+                foreach ($jids as $ja) {
+                    foreach ($poolAdj[$ja] ?? [] as $nb) {
+                        if (isset($inDistrict[$nb])) {
+                            $adj[$ja][] = $nb;
+                            $adjCounts[$ja] = ($adjCounts[$ja] ?? 0) + 1;
+                        }
+                    }
+                }
+            } else {
             $jidPh = implode(',', array_fill(0, count($jids), '?'));
             // Pull-engine read path (2026-07-19, mechanics only): same
             // simplify-cache COALESCE as the union CTE above — identical
@@ -2743,14 +2965,13 @@ class DistrictingService
                     AND ST_Intersects(a.geom, b.geom)
             ", $jids);
 
-            $adj       = [];
-            $adjCounts = [];
             foreach ($adjPairs as $p) {
                 $adj[$p->a_id][] = $p->b_id;
                 $adj[$p->b_id][] = $p->a_id;
                 $adjCounts[$p->a_id] = ($adjCounts[$p->a_id] ?? 0) + 1;
                 $adjCounts[$p->b_id] = ($adjCounts[$p->b_id] ?? 0) + 1;
             }
+            }   // end of the query path
 
             // Start BFS from the most-connected member (highest adjacency count).
             // This prevents the case where $jids[0] is a geographic island with zero
@@ -2801,6 +3022,16 @@ class DistrictingService
                 $allUnavoidable = true;
                 $orphanedJids = array_values(array_filter($jids, fn($j) => !isset($visited[$j])));
                 foreach ($orphanedJids as $oj) {
+                    if ($poolAdj !== null) {
+                        // Caller adjacency: any pool neighbour is an available
+                        // sibling, so the break was avoidable; none means the
+                        // piece borders only giants or nothing (unavoidable).
+                        if (! empty($poolAdj[$oj])) {
+                            $allUnavoidable = false;
+                            break;
+                        }
+                        continue;
+                    }
                     // Ask: does this orphaned member share any spatial border with
                     // any sibling (same parent_id) jurisdiction at all?
                     // Uses ST_Intersects (not ST_Touches or ST_Dimension) because:
@@ -5270,6 +5501,16 @@ class DistrictingService
         $bins = array_values(array_filter($bins, fn ($b) => !empty($b)));
         $k = count($bins);
         if ($k < 2 || $budget <= 0 || empty($this->borderLen)) return $bins;
+        // THE SCOPE GATE (2026-09-02, the composite planner cost): the member
+        // cap comparatorPolishPass applies. Above it the pass returns the bins
+        // untouched — its per-pair cost (12 bisections, the swap grid, a
+        // PostGIS union + hull per challenger) is paid on every touching
+        // pair, and the standard maps' hull wins live in the small bisected
+        // scopes, not in 150+ member roots.
+        $memberCount = array_sum(array_map('count', $bins));
+        $this->stepNote('step8c.hullrepair', ['members' => $memberCount, 'member_cap' => self::POLISH_MEMBER_CAP]);
+        if ($memberCount > self::POLISH_MEMBER_CAP) return $bins;
+        $swapCapMax = 0;
 
         $binPops  = array_map(fn ($b) => array_sum(array_map(fn ($j) => (int) $childById[$j]->population, $b)), $bins);
         $totalPop = array_sum($binPops);
@@ -5453,8 +5694,15 @@ class DistrictingService
                         if (($assigned[$nb] ?? -1) === $i) { $jBorderH[] = $bd; break; }
                     }
                 }
-                foreach (array_slice($iBorderH, 0, 16) as $sc) {
-                    foreach (array_slice($jBorderH, 0, 16) as $sd) {
+                // THE SWAP CAP (2026-09-02): the 1:1 swap grid is bounded per
+                // side by min(HULL_SWAP_CAP, ceil(sqrt(n))) for the pair's n
+                // members — a 16-member pair tries 4x4, a 240-member pair the
+                // full 16x16. Border members keep their bin order, so the cap
+                // is deterministic. The cap used is recorded beside the timers.
+                $swapCap    = min(self::HULL_SWAP_CAP, (int) ceil(sqrt($n)));
+                $swapCapMax = max($swapCapMax, $swapCap);
+                foreach (array_slice($iBorderH, 0, $swapCap) as $sc) {
+                    foreach (array_slice($jBorderH, 0, $swapCap) as $sd) {
                         $vA = array_values(array_filter($bins[$i], fn ($x) => $x !== $sc));
                         $vA[] = $sd;
                         $vB = array_values(array_filter($bins[$j], fn ($x) => $x !== $sd));
@@ -5507,6 +5755,7 @@ class DistrictingService
                 }
             }
         }
+        $this->stepNote('step8c.hullrepair', ['pairs' => $pairsSeen, 'swap_cap_max' => $swapCapMax]);
 
         return $bins;
     }
@@ -5538,7 +5787,7 @@ class DistrictingService
         $bins = array_values(array_filter($bins, fn ($b) => !empty($b)));
         $k = count($bins);
         $members = array_merge(...($bins ?: [[]]));
-        if ($k < 2 || $budget <= 0 || count($members) > 150) return $bins;
+        if ($k < 2 || $budget <= 0 || count($members) > self::POLISH_MEMBER_CAP) return $bins;
 
         $totalPop = array_sum(array_map(fn ($j) => (float) $childById[$j]->population, $members));
         if ($totalPop <= 0) return $bins;
@@ -6628,6 +6877,55 @@ class DistrictingService
     }
 
     /**
+     * EXACT = seat_drift 0, the first scoreRank key (2026-09-02, the
+     * composite planner cost). The k-loop's early exit and builder gate
+     * read exactness through this one test.
+     */
+    private function isExactScore(array $score): bool
+    {
+        return ((int) ($score['seat_drift'] ?? 0)) <= 0;
+    }
+
+    /**
+     * THE K ORDER (2026-09-02, the composite planner cost): the same k set,
+     * visited nearest-first to the middle of the district band — budget / k
+     * closest to (floor + ceiling) / 2 — ties to the lower k. Deterministic;
+     * the set is never changed, only its order.
+     *
+     * @param  list<int> $kCandidates
+     * @return list<int>
+     */
+    private function orderKCandidates(array $kCandidates, int $compBudget, int $floor, int $ceiling): array
+    {
+        $mid = ($floor + $ceiling) / 2.0;
+        $ks  = array_values($kCandidates);
+        usort($ks, function (int $a, int $b) use ($compBudget, $mid): int {
+            $da = abs($compBudget / max($a, 1) - $mid);
+            $db = abs($compBudget / max($b, 1) - $mid);
+
+            return ($da <=> $db) ?: ($a <=> $b);
+        });
+
+        return $ks;
+    }
+
+    /**
+     * THE EARLY-EXIT MISS COUNT (2026-09-02): after one k finishes, the new
+     * consecutive-miss count. An improvement resets it to zero. A k that did
+     * not beat the incumbent counts a miss ONLY while the incumbent is
+     * exact; with no exact incumbent the count stays zero, so the loop never
+     * ends on misses while no exact landing exists.
+     */
+    private function kLoopMisses(int $misses, ?array $incumbentScore, bool $improved): int
+    {
+        if ($improved || $incumbentScore === null || ! $this->isExactScore($incumbentScore)) {
+            return 0;
+        }
+
+        return $misses + 1;
+    }
+
+    /**
      * Deliberate-break rebalance — the operator's last resort, mechanized:
      * "Sometimes that doesn't work either and I have to break contiguity in order
      * to be above the floor and below the ceiling … Even when I can't be contiguous
@@ -7631,7 +7929,7 @@ class DistrictingService
      * re-opened label keeps the earliest start, so a timer opened per iteration
      * measures the whole span rather than the last lap.
      */
-    private function stepBegin(string $label): void
+    public function stepBegin(string $label): void
     {
         if ($this->stepTimingsOn ??= (bool) config('cga.districting.step_timings', true)) {
             $this->stepOpen[$label] ??= hrtime(true);
@@ -7639,7 +7937,7 @@ class DistrictingService
     }
 
     /** Close a named step timer and fold its elapsed ms into the record. */
-    private function stepEnd(string $label): void
+    public function stepEnd(string $label): void
     {
         if (! isset($this->stepOpen[$label])) {
             return;
@@ -7648,6 +7946,28 @@ class DistrictingService
             + (hrtime(true) - $this->stepOpen[$label]) / 1_000_000, 1);
         $this->stepN[$label]  = ($this->stepN[$label] ?? 0) + 1;
         unset($this->stepOpen[$label]);
+    }
+
+    /**
+     * Record facts beside the timers (2026-09-02): a cap, a gate, a count.
+     * Merged per label; published under step_timings.meta with the ms and n.
+     */
+    private function stepNote(string $label, array $facts): void
+    {
+        if ($this->stepTimingsOn ??= (bool) config('cga.districting.step_timings', true)) {
+            $this->stepMeta[$label] = array_merge($this->stepMeta[$label] ?? [], $facts);
+        }
+    }
+
+    /** The step_timings record as published: ms, n, and meta when any fact was recorded. */
+    private function stepTimingsPayload(): array
+    {
+        $payload = ['ms' => $this->stepMs, 'n' => $this->stepN];
+        if ($this->stepMeta !== []) {
+            $payload['meta'] = $this->stepMeta;
+        }
+
+        return $payload;
     }
 
     /**
@@ -7664,6 +7984,36 @@ class DistrictingService
             'phase'       => 'binning',
             'phase_label' => $label,
         ], false, true);
+    }
+
+    /**
+     * The WORK connection's postgres backend pid, read once per PDO instance
+     * (2026-09-02, the composite transaction split). The lease's
+     * pg_backend_pid must name the backend that runs the drawing: the
+     * reaper's certain-death test and the halt terminate
+     * (AutoscalePumpCommand) look for THAT pid, and the beat now writes the
+     * lease from its own session. A reconnect replaces the PDO object, so the
+     * WeakReference mismatch re-reads the pid on the next beat. An aborted or
+     * lost work connection cannot answer; then the last known pid stands, and
+     * the lease UPDATE keeps its stored value through COALESCE when this
+     * returns null.
+     */
+    private function workBackendPid(): ?int
+    {
+        try {
+            $pdo = DB::connection()->getPdo();
+            if ($this->beatPdoRef === null || $this->beatPdoRef->get() !== $pdo) {
+                $pid = (int) (DB::selectOne('SELECT pg_backend_pid() AS pid')->pid ?? 0);
+                if ($pid > 0) {
+                    $this->beatWorkPid = $pid;
+                    $this->beatPdoRef  = \WeakReference::create($pdo);
+                }
+            }
+        } catch (\Throwable) {
+            // The last known pid stands.
+        }
+
+        return $this->beatWorkPid;
     }
 
     public function publishMassProgress(string $legislature_id, array $patch, bool $reset = false, bool $throttled = false): void
@@ -7689,33 +8039,49 @@ class DistrictingService
         // mass_progress cache key would garble the two workers' phase
         // streams. The interactive mapper path below is unchanged.
         if (\App\Support\AutoscaleContext::active()) {
+            // THE BEAT CONNECTION (2026-09-02, the composite transaction
+            // split): both liveness rows are written through 'pgsql_beat',
+            // a second session that never joins the lane's work
+            // transaction. A beat on the work connection stayed invisible
+            // until scope commit and held both row locks that long: sibling
+            // lanes queued on INSERT ... ON CONFLICT into the scopes table
+            // and the pump read stale liveness. Every beat below commits at
+            // once. Laravel caches the connection by name, so the session
+            // opens once per lane process (DatabaseManager::connection).
             try {
+                $beat  = DB::connection(self::BEAT_CONNECTION);
+                $token = \App\Support\AutoscaleContext::$workerToken;
                 if (\App\Support\AutoscaleContext::$scopeId !== null) {
                     // The timings ride the beat that was already going to be
                     // written — measurement costs zero extra round trips.
                     $scopePatch = ['updated_at' => now()];
                     if ($this->stepMs !== []) {
-                        $scopePatch['step_timings'] = json_encode([
-                            'ms' => $this->stepMs, 'n' => $this->stepN,
-                        ]);
+                        $scopePatch['step_timings'] = json_encode($this->stepTimingsPayload());
                     }
                     // THE LEDGER SINGLE HOME (operator plan 2026-08-31): the
                     // scope's work state lives on the ledger scope row; this
                     // beat's updated_at IS the pump's reclaim clock.
-                    \Illuminate\Support\Facades\DB::table('apportionment_ledger_scopes')
+                    // THE CLAIM-TOKEN GUARD (2026-09-02): the worker token
+                    // IS the scope's claim_token (AutoscaleClaims::claimScope
+                    // stamps the lease id). A lane whose claim was reaped
+                    // and re-claimed by a sibling must not refresh the
+                    // sibling's clock, so the beat matches the token it
+                    // holds. A context without a token (tests, interactive
+                    // probes) beats the scope row unguarded, as before.
+                    $scopeBeat = $beat->table('apportionment_ledger_scopes')
                         ->where('id', \App\Support\AutoscaleContext::$scopeId)
-                        ->where('status', 'running')
-                        ->update($scopePatch);
+                        ->where('status', 'running');
+                    if ($token !== null) {
+                        $scopeBeat->where('claim_token', $token);
+                    }
+                    $scopeBeat->update($scopePatch);
                 }
                 // THE ITEM ROW IS NEVER BEAT-TOUCHED (operator's bottleneck
                 // hunt, 2026-08-30, caught live: eight lanes queued 3+ min
-                // on this one UPDATE). The lane path wraps a scope in one
-                // long transaction, so the first beat's touch held the
-                // shared item row until scope commit and every sibling
-                // lane's beat queued behind it — thirteen lanes serialized
-                // on a timestamp. Liveness rides the two per-lane rows the
-                // beat already touches: the scope row above and the lease
-                // below.
+                // on this one UPDATE). Liveness rides the two per-lane rows
+                // the beat touches: the scope row above and the lease
+                // below. Both ride the beat connection, so no beat row lock
+                // outlives the beat itself.
                 // THE LEASE IS THE LIVENESS SIGNAL (2026-08-09, the re-run
                 // loop). The worker stamped last_seen_at only at claim
                 // BOUNDARIES, so a worker inside one long scope looked dead
@@ -7724,7 +8090,7 @@ class DistrictingService
                 // was reclaimed at 30 and redrawn from scratch — forever,
                 // because the redraw takes just as long. Touching the lease
                 // from the same beat makes BUSY distinguishable from DEAD.
-                if (\App\Support\AutoscaleContext::$workerToken !== null) {
+                if ($token !== null) {
                     // CASCADE INNER COUNTERS (operator approval 2026-08-29):
                     // the beat mirrors the engine's live phase into the lease
                     // label, after a ' ⋯ ' separator so the claim-time base
@@ -7740,12 +8106,15 @@ class DistrictingService
                         $phase .= ' ' . (int) $patch['phase_current'] . '/' . (int) $patch['phase_total'];
                     }
                     $phase = mb_substr($phase, 0, 70);
-                    // The beat also refreshes the backend pid (reaper
-                    // hardening 2026-08-30): pg_backend_pid() evaluates on
-                    // THIS connection, so after any reconnect the lease
-                    // carries the current backend and the reaper's
-                    // certain-death test never mistakes a reconnected
-                    // grinder for a corpse.
+                    // THE WORK BACKEND PID (reaper hardening 2026-08-30, kept
+                    // across the connection split): the lease carries the
+                    // WORK connection's backend, never the beat session's.
+                    // The reaper's certain-death test and the halt
+                    // terminate (AutoscalePumpCommand) look for the backend
+                    // that runs the drawing. workBackendPid() reads it once
+                    // per PDO instance, so a reconnect refreshes it;
+                    // COALESCE keeps the stored pid when the work connection
+                    // cannot answer.
                     // left(…, 160) makes the write TOTAL (operator recycle
                     // 2026-08-31, the Bosnia four-canton 25P02): a breadcrumb
                     // base near the column limit plus the phase suffix
@@ -7755,15 +8124,16 @@ class DistrictingService
                     // the scope failed 25P02 and the map filed unassigned
                     // constituents. Exactly the cantons with the longest
                     // names, deterministically. A beat must never be able to
-                    // error inside someone else's transaction.
-                    \Illuminate\Support\Facades\DB::update(
+                    // error inside someone else's transaction; on its own
+                    // session it cannot.
+                    $beat->update(
                         "UPDATE autoscale_worker_leases
                             SET last_seen_at = now(),
-                                pg_backend_pid = pg_backend_pid(),
+                                pg_backend_pid = COALESCE(?::integer, pg_backend_pid),
                                 claim_label = left(split_part(claim_label, ' ⋯ ', 1)
                                               || CASE WHEN ?::text <> '' THEN ' ⋯ ' || ?::text ELSE '' END, 160)
                           WHERE id = ?",
-                        [$phase, $phase, \App\Support\AutoscaleContext::$workerToken]
+                        [$this->workBackendPid(), $phase, $phase, $token]
                     );
                 }
             } catch (\Throwable) {
@@ -7782,7 +8152,7 @@ class DistrictingService
             if (! is_array($existing)) $existing = [];
             Cache::put($key, array_merge($existing, $patch, [
                 'last_update_at' => time(),
-            ], $this->stepMs !== [] ? ['step_timings' => ['ms' => $this->stepMs, 'n' => $this->stepN]] : []), 7200);
+            ], $this->stepMs !== [] ? ['step_timings' => $this->stepTimingsPayload()] : []), 7200);
         } catch (\Throwable) {
             return;
         }

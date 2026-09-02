@@ -2965,10 +2965,15 @@ class LegislatureController extends Controller
      * MassReseedJob (running in Horizon) can call it without a Request and
      * without holding a php-fpm worker for the duration.
      *
-     * Each scope commits in its own transaction so partial progress survives
-     * any error or timeout. Between scopes the job polls a halt flag in
-     * cache (`legislature.{id}.mass_halt`) — if set, the sweep aborts
-     * cleanly with `halted => true`.
+     * Each scope commits on its own so partial progress survives any error
+     * or timeout. A composite scope commits its write phase (Step 9 clears
+     * through Step 12 inserts) in one transaction opened inside
+     * runAutoCompositeForScope; its Steps 1-8 run with no transaction open
+     * (the composite transaction split, 2026-09-02). A leaf-giant scope
+     * commits per district (leafScopeTx=false) or per scope (true). Between
+     * scopes the job polls a halt flag in cache
+     * (`legislature.{id}.mass_halt`) — if set, the sweep aborts cleanly with
+     * `halted => true`.
      *
      * @return array{districts_created:int, scopes_processed:int, errors:array<int,string>, halted:bool, scope_ids:array<int,string>}
      */
@@ -3084,8 +3089,10 @@ class LegislatureController extends Controller
             'phase_label'   => 'Starting mass-reseed sweep',
         ]);
 
-        // Per-scope transactions: each scope commits independently so partial
-        // progress survives any error in subsequent scopes.
+        // Per-scope commits: each scope commits independently so partial
+        // progress survives any error in subsequent scopes. The composite
+        // arm's transaction lives inside runAutoCompositeForScope (write
+        // phase only); the leaf arm's is governed by $leafScopeTx.
         foreach ($scopeIds as $scopeIdx => $sid) {
             // Halt poll — checked between scopes so a halt request takes effect
             // on the next scope boundary instead of mid-tx. THE CACHE IS
@@ -3246,21 +3253,26 @@ class LegislatureController extends Controller
                 }
             }
 
-            DB::beginTransaction();
+            // THE COMPOSITE TRANSACTION SPLIT (2026-09-02): no transaction
+            // opens here. runAutoCompositeForScope runs Steps 1-8 (reads and
+            // the pure-PHP search) with the connection at transaction level
+            // zero and wraps ONLY its write phase (Step 9 clears through
+            // Step 12 inserts and recompute) in one transaction of its own,
+            // rolled back on any throw. A whole-draw transaction here held
+            // the lane's connection idle in transaction for minutes, kept the
+            // first heartbeat's row locks until scope commit, and queued
+            // sibling lanes on the scopes table.
             try {
                 $result = $this->runAutoCompositeForScope(
                     $legislature_id, $leg, $sid, $clearExisting, $seatBudget, $mapId
                 );
                 if ($result['error'] !== null) {
-                    DB::commit();
                     $errors[] = ($scopeNames[$sid] ?? $sid) . ": " . $result['error'];
                 } else {
-                    DB::commit();
                     $totalCreated    += $result['districts_created'];
                     $scopesProcessed++;
                 }
             } catch (\Throwable $e) {
-                DB::rollBack();
                 $errors[] = ($scopeNames[$sid] ?? $sid) . ": " . $e->getMessage();
                 $this->publishMassProgress($legislature_id, [
                     'phase'       => 'scope_failed',

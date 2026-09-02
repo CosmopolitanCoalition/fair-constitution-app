@@ -7,6 +7,7 @@ use App\Models\AutoscaleRun;
 use App\Services\AuditService;
 use App\Services\ConstitutionalDefaults;
 use App\Support\AutoscaleContext;
+use Illuminate\Database\LostConnectionException;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
@@ -26,7 +27,10 @@ use Illuminate\Support\Facades\Log;
  *
  * Failures never sink the run: a throwable becomes scope status `failed`
  * with the message; the item finalizes honestly (the assessor finds any
- * uncovered territory) as review.
+ * uncovered territory) as review. A LOST DATABASE SESSION is the one
+ * throwable that is rethrown with no write (isLostConnection): the lane's
+ * session died, its scope left it (a kill parked it, or the pump reclaims
+ * it on backend absence), and the worker ends the lane.
  */
 class SweepScopeProcessor
 {
@@ -62,15 +66,28 @@ class SweepScopeProcessor
             }
         }
 
+        // THE CLAIM-TOKEN GUARD (operator order 2026-09-02, the three Tumaco
+        // lanes on one scope): a lane acts on a scope only while the scope
+        // row still carries this lane's token. A reclaimed or killed scope
+        // belongs to nobody or to another lane. This lane logs the loss and
+        // returns to its claim loop with no write. Every scope state write
+        // below repeats the token in its WHERE and checks the row count.
+        if (! $this->ownsScope($scopeId, $workerToken)) {
+            Log::warning('Autoscale lane lost its scope before work started', [
+                'scope_id' => $scopeId, 'legislature_id' => $legislatureId, 'token' => $workerToken,
+            ]);
+            return;
+        }
+
         $header = \App\Models\LedgerHeader::query()->find($legislatureId);
         if ($header === null) {
-            $this->releaseScope($scopeId, 'ledger header vanished');
+            $this->releaseScope($scopeId, 'ledger header vanished', $workerToken);
             return;
         }
 
         // Run-level halt: hand the claim back for the resume.
         if ($run->refresh()->haltRequested() || $run->status === 'halted') {
-            $this->releaseScope($scopeId, null);
+            $this->releaseScope($scopeId, null, $workerToken);
             return;
         }
 
@@ -78,7 +95,7 @@ class SweepScopeProcessor
         // spot-check sets mass_running through massReseed). Never run two
         // sweeps on one legislature — hand the scope back for later.
         if (Cache::get("legislature.{$legislatureId}.mass_running")) {
-            $this->releaseScope($scopeId, 'deferred: an interactive sweep holds this legislature');
+            $this->releaseScope($scopeId, 'deferred: an interactive sweep holds this legislature', $workerToken);
             return;
         }
 
@@ -181,11 +198,21 @@ class SweepScopeProcessor
                 if ((int) $header->child_count > 0) {
                     // Composite: the tree just grew — hand the claim back so
                     // the stamped walk decides what draws first.
-                    $this->releaseScope($scopeId, null);
+                    $this->releaseScope($scopeId, null, $workerToken);
                     return;
                 }
                 // Leaf: the tree IS this scope — stamped now, draw in the
                 // same claim.
+            }
+
+            // The token guard fires BEFORE the drawing (the destructive
+            // step: the leaf ladder retires and refiles districts). One
+            // indexed read; a lost scope draws nothing.
+            if (! $this->ownsScope($scopeId, $workerToken)) {
+                Log::warning('Autoscale lane lost its scope before the drawing', [
+                    'scope_id' => $scopeId, 'legislature_id' => $legislatureId, 'token' => $workerToken,
+                ]);
+                return;
             }
 
             /** @var LegislatureController $ctrl */
@@ -208,7 +235,7 @@ class SweepScopeProcessor
             );
 
             if ($result['halted']) {
-                $this->releaseScope($scopeId, null);
+                $this->releaseScope($scopeId, null, $workerToken);
                 return;
             }
 
@@ -222,103 +249,195 @@ class SweepScopeProcessor
             $districting = app(\App\Services\DistrictingService::class);
             $giants = $districting->giantChildrenForScope($scopeJid, $legislatureId);
 
-            DB::transaction(function () use ($scopeId, $legislatureId, $scopeJid, $claim, $giants, $reason) {
-                DB::table('apportionment_ledger_scopes')
-                    ->where('id', $scopeId)
-                    ->where('status', 'running')
-                    ->update([
-                        'status'      => 'done',
-                        'reason'      => $reason,
-                        'finished_at' => now(),
-                        'updated_at'  => now(),
-                    ]);
-
-                foreach ($giants as $childJid => $budget) {
-                    // Sub-scope tier from the CHILD's own bbox (2026-07-22,
-                    // the Earth-swarm crash): a geometry-less tier-1 item can
-                    // cascade into continental sub-scopes — the heavy cap
-                    // must see the scope's real weight, not the item's.
-                    // THE BUDGET STAMP (operator order 2026-08-30, one
-                    // owner): the cascade's answer for this child is in
-                    // hand RIGHT HERE — it is stamped onto the scope row,
-                    // and the sweep draws to the stamp instead of asking
-                    // again later under different live state. The 70/71
-                    // class dies at this line.
-                    // In a ledger-built world this is a stamp CONFIRMATION
-                    // of the pre-walked row; a genuinely new row (data moved
-                    // under the ledger) is late-born and marked by its NULL
-                    // walk_position.
-                    DB::statement("
-                        INSERT INTO apportionment_ledger_scopes
-                            (legislature_id, scope_jurisdiction_id, parent_jurisdiction_id,
-                             depth, status, seat_budget, area_tier, created_at, updated_at)
-                        SELECT ?, j.id, ?, ?, ?, ?,
-                               CASE WHEN j.geom IS NULL THEN 1 ELSE CASE
-                                   WHEN bbox.km2 <= 300      THEN 1
-                                   WHEN bbox.km2 <= 3000     THEN 2
-                                   WHEN bbox.km2 <= 30000    THEN 3
-                                   WHEN bbox.km2 <= 300000   THEN 4
-                                   ELSE 5 END END,
-                               now(), now()
-                          FROM jurisdictions j
-                          LEFT JOIN LATERAL (
-                               SELECT (ST_XMax(j.geom) - ST_XMin(j.geom)) * 111.32
-                                      * GREATEST(cos(radians((ST_YMin(j.geom) + ST_YMax(j.geom)) / 2)), 0.01)
-                                      * (ST_YMax(j.geom) - ST_YMin(j.geom)) * 110.57 AS km2
-                          ) bbox ON true
-                         WHERE j.id = ?
-                            ON CONFLICT (legislature_id, scope_jurisdiction_id)
-                            DO NOTHING
-                    ", [
-                        $legislatureId, $scopeJid,
-                        $claim['depth'] + 1, 'pending', (int) $budget,
-                        (string) $childJid,
-                    ]);
-                }
-            });
+            $this->closeScopeDone($scopeId, $legislatureId, $scopeJid, (int) $claim['depth'], $giants, $reason, $workerToken);
         } catch (\Throwable $e) {
+            // A LOST SESSION ABANDONS THE CLAIM (2026-09-02, the kill that
+            // restarted its work): a terminated backend (kill, idle-in-
+            // transaction timeout, postgres restart) means this lane's
+            // session died and its scope left it. Nothing is written for
+            // the scope; the throwable goes up to the worker, which ends
+            // the lane. The pump's backend-absence reclaim carries the
+            // retry accounting for a scope that was not parked by a kill.
+            if (self::isLostConnection($e)) {
+                Log::warning('Autoscale lane lost its database session mid-scope: claim abandoned, no write', [
+                    'scope_id'       => $scopeId,
+                    'legislature_id' => $legislatureId,
+                    'token'          => $workerToken,
+                    'message'        => mb_substr($e->getMessage(), 0, 300),
+                ]);
+                throw $e;
+            }
             Log::error('Autoscale scope failed', [
                 'scope_id'       => $scopeId,
                 'legislature_id' => $legislatureId,
                 'message'        => $e->getMessage(),
             ]);
             // TRANSIENT WEATHER SELF-REQUEUES (operator order 2026-08-30,
-            // the Canada 30-seat lesson): an infrastructure-class failure —
-            // Redis mid-reload, a refused or dropped connection — goes back
-            // to pending with a bounded retry count, and a lane re-eats it
+            // the Canada 30-seat lesson): an infrastructure-class failure
+            // on a session that is still alive (Redis mid-reload, a refused
+            // or timed-out side connection, a resolver fault) goes back to
+            // pending with a bounded retry count, and a lane re-eats it
             // seconds later. Three strikes fail for real. Engine errors
             // (anything else) fail immediately as before.
             $transient = (bool) preg_match(
-                '/LOADING Redis|Connection refused|server closed the connection|no connection to the server|SQLSTATE\[08|Connection timed out|Connection lost|getaddrinfo|went away|recovery mode|not yet accepting connections/i',
+                '/LOADING Redis|Connection refused|Connection timed out|Connection lost|getaddrinfo|went away|recovery mode|not yet accepting connections/i',
                 $e->getMessage()
             );
             $retries = (int) DB::table('apportionment_ledger_scopes')->where('id', $scopeId)->value('retry_count');
+            $write = DB::table('apportionment_ledger_scopes')
+                ->where('id', $scopeId)
+                ->where('status', 'running')
+                ->when($workerToken !== null, fn ($q) => $q->where('claim_token', $workerToken));
             if ($transient && $retries < 3) {
-                DB::table('apportionment_ledger_scopes')
-                    ->where('id', $scopeId)
-                    ->where('status', 'running')
-                    ->update([
-                        'status'      => 'pending',
-                        'retry_count' => $retries + 1,
-                        'claim_token' => null,
-                        'started_at'  => null,
-                        'reason'      => 'transient retry '.($retries + 1).'/3: '.mb_substr($e->getMessage(), 0, 200),
-                        'updated_at'  => now(),
-                    ]);
+                $n = $write->update([
+                    'status'      => 'pending',
+                    'retry_count' => $retries + 1,
+                    'claim_token' => null,
+                    'started_at'  => null,
+                    'reason'      => 'transient retry '.($retries + 1).'/3: '.mb_substr($e->getMessage(), 0, 200),
+                    'updated_at'  => now(),
+                ]);
             } else {
-                DB::table('apportionment_ledger_scopes')
-                    ->where('id', $scopeId)
-                    ->where('status', 'running')
-                    ->update([
-                        'status'      => 'failed',
-                        'reason'      => mb_substr($e->getMessage(), 0, 1000),
-                        'finished_at' => now(),
-                        'updated_at'  => now(),
-                    ]);
+                $n = $write->update([
+                    'status'      => 'failed',
+                    'reason'      => mb_substr($e->getMessage(), 0, 1000),
+                    'finished_at' => now(),
+                    'updated_at'  => now(),
+                ]);
+            }
+            if ($n === 0) {
+                // The scope left this lane while it worked (reclaim or
+                // kill). Nothing further is filed or retired for it.
+                Log::warning('Autoscale lane lost its scope before the failure write', [
+                    'scope_id' => $scopeId, 'legislature_id' => $legislatureId, 'token' => $workerToken,
+                ]);
             }
         } finally {
             AutoscaleContext::clear();
         }
+    }
+
+    /**
+     * Scope done + giant-child materialization, one transaction, guarded by
+     * the lane's token. The unique (legislature, scope) key makes a
+     * crash-redo clean. Returns false when the done write affected no row:
+     * the scope left this lane (reclaimed or killed) and NOTHING further is
+     * written for it — no giant rows, no header flip.
+     *
+     * @param array<string, int> $giants child jurisdiction id => seat budget
+     */
+    private function closeScopeDone(string $scopeId, string $legislatureId, string $scopeJid, int $depth, array $giants, ?string $reason, ?string $workerToken): bool
+    {
+        $owned = true;
+        DB::transaction(function () use ($scopeId, $legislatureId, $scopeJid, $depth, $giants, $reason, $workerToken, &$owned) {
+            $n = DB::table('apportionment_ledger_scopes')
+                ->where('id', $scopeId)
+                ->where('status', 'running')
+                ->when($workerToken !== null, fn ($q) => $q->where('claim_token', $workerToken))
+                ->update([
+                    'status'      => 'done',
+                    'reason'      => $reason,
+                    'finished_at' => now(),
+                    'updated_at'  => now(),
+                ]);
+            if ($n === 0) {
+                $owned = false;
+
+                return;
+            }
+
+            foreach ($giants as $childJid => $budget) {
+                // Sub-scope tier from the CHILD's own bbox (2026-07-22,
+                // the Earth-swarm crash): a geometry-less tier-1 item can
+                // cascade into continental sub-scopes — the heavy cap
+                // must see the scope's real weight, not the item's.
+                // THE BUDGET STAMP (operator order 2026-08-30, one
+                // owner): the cascade's answer for this child is in
+                // hand RIGHT HERE — it is stamped onto the scope row,
+                // and the sweep draws to the stamp instead of asking
+                // again later under different live state. The 70/71
+                // class dies at this line.
+                // In a ledger-built world this is a stamp CONFIRMATION
+                // of the pre-walked row; a genuinely new row (data moved
+                // under the ledger) is late-born and marked by its NULL
+                // walk_position.
+                DB::statement("
+                    INSERT INTO apportionment_ledger_scopes
+                        (legislature_id, scope_jurisdiction_id, parent_jurisdiction_id,
+                         depth, status, seat_budget, area_tier, created_at, updated_at)
+                    SELECT ?, j.id, ?, ?, ?, ?,
+                           CASE WHEN j.geom IS NULL THEN 1 ELSE CASE
+                               WHEN bbox.km2 <= 300      THEN 1
+                               WHEN bbox.km2 <= 3000     THEN 2
+                               WHEN bbox.km2 <= 30000    THEN 3
+                               WHEN bbox.km2 <= 300000   THEN 4
+                               ELSE 5 END END,
+                           now(), now()
+                      FROM jurisdictions j
+                      LEFT JOIN LATERAL (
+                           SELECT (ST_XMax(j.geom) - ST_XMin(j.geom)) * 111.32
+                                  * GREATEST(cos(radians((ST_YMin(j.geom) + ST_YMax(j.geom)) / 2)), 0.01)
+                                  * (ST_YMax(j.geom) - ST_YMin(j.geom)) * 110.57 AS km2
+                      ) bbox ON true
+                     WHERE j.id = ?
+                        ON CONFLICT (legislature_id, scope_jurisdiction_id)
+                        DO NOTHING
+                ", [
+                    $legislatureId, $scopeJid,
+                    $depth + 1, 'pending', (int) $budget,
+                    (string) $childJid,
+                ]);
+            }
+        });
+
+        if (! $owned) {
+            Log::warning('Autoscale lane lost its scope before the done write', [
+                'scope_id' => $scopeId, 'legislature_id' => $legislatureId, 'token' => $workerToken,
+            ]);
+        }
+
+        return $owned;
+    }
+
+    /**
+     * Is this throwable a lost database session? The lane's connection
+     * guard throws LostConnectionException; a dead PDO reports 57P01
+     * ("terminating connection due to administrator command"), "server
+     * closed the connection unexpectedly", "no connection to the server",
+     * or an 08xxx connection-class SQLSTATE. The whole previous-chain is
+     * read. ONE detector for the processor and the worker.
+     */
+    public static function isLostConnection(\Throwable $e): bool
+    {
+        for ($cursor = $e; $cursor !== null; $cursor = $cursor->getPrevious()) {
+            if ($cursor instanceof LostConnectionException) {
+                return true;
+            }
+            if (preg_match(
+                '/57P01|terminating connection due to administrator command|Admin shutdown'
+                .'|server closed the connection unexpectedly|no connection to the server'
+                .'|connection has been closed|SSL SYSCALL error|SQLSTATE\[08/i',
+                $cursor->getMessage()
+            )) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    /** Does the scope row still carry this lane's token? A null token (a direct test call) always owns. */
+    private function ownsScope(string $scopeId, ?string $workerToken): bool
+    {
+        if ($workerToken === null) {
+            return true;
+        }
+
+        return DB::table('apportionment_ledger_scopes')
+            ->where('id', $scopeId)
+            ->where('status', 'running')
+            ->where('claim_token', $workerToken)
+            ->exists();
     }
 
     /**
@@ -343,7 +462,7 @@ class SweepScopeProcessor
                 ->whereNull('deleted_at')
                 ->first();
             if ($leg === null) {
-                $this->finishHeader($legislatureId, ['assessing'], 'failed', null, null, 'legislature vanished before assessment');
+                $this->finishHeader($legislatureId, ['assessing'], 'failed', null, null, 'legislature vanished before assessment', 0, $workerToken);
                 return;
             }
 
@@ -430,20 +549,14 @@ class SweepScopeProcessor
                 $this->finishHeader($legislatureId, ['assessing'], 'done', $seated, $expected,
                     $assessment['notes'] !== []
                         ? 'notes: ' . implode(' | ', array_slice($assessment['notes'], 0, 6))
-                        : null, $bonus);
+                        : null, $bonus, $workerToken);
             } else {
                 // Map stays draft; the operator reviews from the dashboard.
-                // A flagged repair redraw runs on an ACTIVE map (adoption
-                // skipped) — if it still assesses incomplete, the map demotes
-                // to draft: an invalid map never remains the live map
-                // (operator ruling 2026-07-22, no drift). No-op for the
-                // normal first-pass path, whose maps are already draft.
-                DB::table('legislature_district_maps')
-                    ->where('id', $mapId)
-                    ->where('status', 'active')
-                    ->update(['status' => 'draft', 'updated_at' => now()]);
-                $this->finishHeader($legislatureId, ['assessing'], 'review', $seated, $expected,
-                    implode(' | ', array_slice($assessment['reasons'], 0, 12)), $bonus);
+                // THE ONE REVIEW PATH: closeHeaderAsReview demotes an active
+                // map to draft, stamps seated/drift and flips the header.
+                // The kill and the third reclaim close through it too.
+                $this->closeHeaderAsReview($legislatureId, ['assessing'],
+                    implode(' | ', array_slice($assessment['reasons'], 0, 12)), $workerToken);
             }
 
             try {
@@ -456,23 +569,102 @@ class SweepScopeProcessor
             Log::error('Autoscale finalize error', [
                 'legislature_id' => $legislatureId, 'message' => $e->getMessage(),
             ]);
-            $this->finishHeader($legislatureId, ['assessing'], 'failed', null, null, mb_substr($e->getMessage(), 0, 1000));
+            $this->finishHeader($legislatureId, ['assessing'], 'failed', null, null, mb_substr($e->getMessage(), 0, 1000), 0, $workerToken);
         } finally {
             AutoscaleContext::clear();
         }
     }
 
-    private function releaseScope(string $scopeId, ?string $reason): void
+    /**
+     * Hand a running scope back to the pile. Guarded by the lane's token: a
+     * scope that already left this lane is not touched, and the loss is
+     * logged.
+     */
+    private function releaseScope(string $scopeId, ?string $reason, ?string $workerToken = null): void
     {
-        DB::table('apportionment_ledger_scopes')
+        $n = DB::table('apportionment_ledger_scopes')
             ->where('id', $scopeId)
             ->where('status', 'running')
+            ->when($workerToken !== null, fn ($q) => $q->where('claim_token', $workerToken))
             ->update([
                 'status'      => 'pending',
                 'claim_token' => null,
                 'reason'      => $reason,
                 'updated_at'  => now(),
             ]);
+        if ($n === 0 && $workerToken !== null) {
+            Log::warning('Autoscale lane lost its scope before the release', [
+                'scope_id' => $scopeId, 'token' => $workerToken,
+            ]);
+        }
+    }
+
+    /**
+     * THE ONE REVIEW PATH for a header. Demotes an active map to draft (an
+     * invalid map never stays live, operator ruling 2026-07-22), stamps the
+     * seated / drift facts when a map exists, and flips the header to review
+     * from one of $fromStatuses. Caller: finalize's incomplete branch. A
+     * parked scope (third reclaim, lane kill) reaches it through the
+     * finalize rung (handHeaderToFinalize), never directly.
+     *
+     * @param list<string> $fromStatuses
+     */
+    public function closeHeaderAsReview(string $legislatureId, array $fromStatuses, string $reason, ?string $claimToken = null): void
+    {
+        $header = \App\Models\LedgerHeader::query()->find($legislatureId);
+        if ($header === null) {
+            return;
+        }
+        $mapId    = $header->map_id !== null ? (string) $header->map_id : null;
+        $seated   = null;
+        $expected = null;
+        $bonus    = 0;
+        if ($mapId !== null) {
+            DB::table('legislature_district_maps')
+                ->where('id', $mapId)
+                ->where('status', 'active')
+                ->update(['status' => 'draft', 'updated_at' => now()]);
+            // BONUS NETTING (operator order 2026-08-29): identities compare
+            // seats − bonus_seats against the head.
+            $agg = DB::table('legislature_districts')
+                ->where('map_id', $mapId)
+                ->whereNull('deleted_at')
+                ->selectRaw('COALESCE(SUM(seats),0) AS s, COALESCE(SUM(bonus_seats),0) AS b')
+                ->first();
+            $typeA = DB::table('legislatures')
+                ->where('id', $legislatureId)
+                ->whereNull('deleted_at')
+                ->value('type_a_seats');
+            if ($typeA !== null) {
+                $seated   = (int) $agg->s;
+                $bonus    = (int) $agg->b;
+                $expected = (int) $typeA;
+            }
+        }
+        $this->finishHeader($legislatureId, $fromStatuses, 'review', $seated, $expected,
+            mb_substr($reason, 0, 1000), $bonus, $claimToken);
+    }
+
+    /**
+     * After a scope PARKS in review (third reclaim, operator kill), its
+     * header takes THE ONE REVIEW PATH: the finalize rung. claimFinalize
+     * (AutoscaleClaims) picks a running header once no scope of it is
+     * pending or running (a review scope counts as closed), and finalize's
+     * assessment closes the header as review with the parked scope's reason
+     * riding in as a diagnostic. This method only makes the header visible
+     * to that rung: a header still 'pending' (the scope parked before its
+     * first flip) becomes 'running', the same idempotent flip the first
+     * scope of a map performs. Returns true when the header is running.
+     */
+    public function handHeaderToFinalize(string $legislatureId): bool
+    {
+        \App\Models\LedgerHeader::query()->whereKey($legislatureId)
+            ->where('map_status', 'pending')
+            ->update(['map_status' => 'running', 'started_at' => now(), 'updated_at' => now()]);
+
+        return \App\Models\LedgerHeader::query()->whereKey($legislatureId)
+            ->where('map_status', 'running')
+            ->exists();
     }
 
     /**
@@ -719,7 +911,7 @@ class SweepScopeProcessor
      *        a late worker after a (rare) false reclaim must not clobber the
      *        new owner's state.
      */
-    private function finishHeader(string $legislatureId, array $fromStatuses, string $status, ?int $seated, ?int $expected, ?string $reason, int $bonus = 0): void
+    private function finishHeader(string $legislatureId, array $fromStatuses, string $status, ?int $seated, ?int $expected, ?string $reason, int $bonus = 0, ?string $claimToken = null): void
     {
         $update = [
             'map_status'  => $status,
@@ -738,8 +930,17 @@ class SweepScopeProcessor
             $update['drift']        = ($seated - $bonus) - $expected;
         }
 
-        \App\Models\LedgerHeader::query()->whereKey($legislatureId)
+        // THE CLAIM-TOKEN GUARD (2026-09-02): a finalize lane closes its
+        // header only while the header still carries its token. A header
+        // the halt reaper or a reclaim took back is left to its new owner.
+        $n = \App\Models\LedgerHeader::query()->whereKey($legislatureId)
             ->whereIn('map_status', $fromStatuses)
+            ->when($claimToken !== null, fn ($q) => $q->where('claim_token', $claimToken))
             ->update($update);
+        if ($n === 0 && $claimToken !== null) {
+            Log::warning('Autoscale lane lost its header before the finish write', [
+                'legislature_id' => $legislatureId, 'status' => $status, 'token' => $claimToken,
+            ]);
+        }
     }
 }

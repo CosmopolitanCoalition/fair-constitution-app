@@ -53,11 +53,12 @@ class HostCapacity
         $busyFactor = $busyFactor > 0.1 ? $busyFactor : 0.86;
 
         // The ceiling DERIVES too (operator, 2026-08-29: "it should always
-        // be a derivation"): each lane holds one postgres connection, so
-        // the honest cap is the connection budget — max_connections minus
-        // a reserve for the web app, the pump, horizon's other queues and
-        // superuser slots, divided by a small safety factor for each
-        // lane's occasional second connection. On the 8 GB reference box
+        // be a derivation"): each lane holds TWO postgres sessions (its
+        // work connection and the 'pgsql_beat' heartbeat connection, since
+        // 2026-09-02), so the honest cap is the connection budget:
+        // max_connections minus a reserve for the web app, the pump,
+        // horizon's other queues and superuser slots, divided by three
+        // (two sessions plus a margin). On the 8 GB reference box
         // (max_connections 200) this yields ~56, far above the core-bound
         // 13; on big iron it frees the formula to use the cores.
         $connCap = (int) floor((self::pgMaxConnections() - 30) / 3);
