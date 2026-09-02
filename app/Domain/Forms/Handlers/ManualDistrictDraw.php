@@ -271,6 +271,29 @@ class ManualDistrictDraw implements FormHandler
         $fractional = $this->raster->impliedSeats($pop, $quota);
         $seats = (int) round($fractional);
 
+        // THE ORIGINAL COUNT IS THE RECORD (operator ruling 2026-09-02): the
+        // planner partitioned the scope's pixels losslessly — every pixel on
+        // exactly one side, the sides summing to the scope. This polygon
+        // re-measurement drops coastal cells (Okhotsky: 2,755/2,784 became
+        // 2,724/1,464 on the map, a 3:1 display of a 50:50 cut). A machine
+        // piece therefore RECORDS the plan's population and its share of the
+        // head; the re-measurement stays a witness in the log.
+        $planPop = (int) ($payload['plan_pop'] ?? 0);
+        $planTotal = (int) ($payload['plan_total_pop'] ?? 0);
+        $plannedSeatsEarly = $payload['planned_seats'] ?? null;
+        if (is_int($plannedSeatsEarly) && $planPop > 0 && $planTotal > 0) {
+            if (abs($pop - $planPop) > max(1, (int) round(0.02 * $planPop))) {
+                \Illuminate\Support\Facades\Log::info('district filing: polygon re-measurement differs from the plan partition (plan recorded)', [
+                    'scope_id' => $scopeId, 'plan_pop' => $planPop, 'measured_pop' => $pop, 'source' => $popSource,
+                ]);
+            }
+            // The source stays the raster basis the plan partitioned (the
+            // subdivisions table's CHECK constraint names the bases).
+            $pop = $planPop;
+            $fractional = $S * $planPop / $planTotal;
+            $seats = (int) round($fractional);
+        }
+
         // PLAN PARITY (operator ruling 2026-07-26: drift is ALWAYS wrong).
         // The autoseed plan's seat vector sums to the giant's budget by
         // construction; this re-measurement exists to VERIFY the piece, not to

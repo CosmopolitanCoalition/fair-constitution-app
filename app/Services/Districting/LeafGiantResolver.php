@@ -346,6 +346,13 @@ class LeafGiantResolver
                 // parts riding this piece whole, so the chain measurement
                 // sums to the scope (Kujalleq 9+5 on 16 lost its islands).
                 'island_pop'      => (float) ($d['island_pop'] ?? 0),
+                // THE ORIGINAL COUNT (operator ruling 2026-09-02, the
+                // Okhotsky 2,724/1,464 display): the plan's pixel partition
+                // is the recount — every pixel on exactly one side, summing
+                // to the scope. The piece records THESE numbers; the
+                // handler's polygon re-measurement is a logged witness.
+                'plan_pop'        => (int) round((float) ($d['pop'] ?? 0)),
+                'plan_total_pop'  => (int) ($plan['total_pop'] ?? 0),
             ]);
             $ids[] = $res->recorded['district_id'];
         }
