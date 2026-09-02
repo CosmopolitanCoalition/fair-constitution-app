@@ -72,6 +72,10 @@ data are never touched by an update.
 6. **Districts and institutions** — district maps are drawn and the civic institutions are
    seated. You're in, signed in as the founder, with a live world.
 
+**On a server or a cloud machine**, open the same page at that machine's address instead of
+`localhost` (for example `http://10.0.0.6:8080/setup` over your VPN, or your domain once DNS is
+set). The interface is a built bundle served on port 8080; no other port is needed.
+
 **Didn't open?** Make sure Docker Desktop is running, give a first run a few more minutes (it's
 still building), then reload the page.
 
@@ -119,6 +123,11 @@ For people running servers or contributing code — none of this is needed for a
   (`FEDERATION_SELF_URL`) must be set before bring-up so peers can reach you back.
 - **The survival mesh** — redundant secure transports between instances (private tailnet, Tor,
   Yggdrasil): [bootstrap/README.md](bootstrap/README.md).
+- **Developing the interface** — a normal install serves a built bundle and never runs the
+  Vite dev server. Developers set `COMPOSE_PROFILES=dev` (plus `APP_ENV=local`,
+  `APP_DEBUG=true`) in `.env` to run the hot-reload dev server on port 5173; on a remote dev
+  box also set `VITE_DEV_ORIGIN=http://<box-address>:5173`. Re-run the start script after
+  changing them.
 - **Technical and contributor documentation** — [docs/](docs/), including the ETL pipeline
   reference at [scripts/etl/README.md](scripts/etl/README.md).
 
