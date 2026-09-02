@@ -48,6 +48,7 @@ class AutoscaleRun extends Model
         'precompute_started_at',
         'auto_kill_minutes',
         'leaf_lanes',
+        'leaf_lanes_pct',
     ];
 
     protected $casts = [
@@ -71,6 +72,7 @@ class AutoscaleRun extends Model
         'auto_kill_minutes'  => 'integer',
         // Two piles by class (operator order 2026-09-02): N lanes prefer line-splits.
         'leaf_lanes'         => 'integer',
+        'leaf_lanes_pct'     => 'integer',
     ];
 
     public function items(): HasMany

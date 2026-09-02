@@ -13,15 +13,17 @@ use Illuminate\Console\Command;
  */
 class AutoscaleLeafLanesCommand extends Command
 {
-    protected $signature = 'autoscale:leaf-lanes {n : lanes that prefer line-split scopes (0 = one pile)}';
+    protected $signature = 'autoscale:leaf-lanes {n : lanes that prefer line-split scopes: a count (6), a share of the derived pool (50%), or 0 = one pile}';
 
     protected $description = 'Set how many autoscale lanes prefer the line-split pile (composites take the rest; both spill)';
 
     public function handle(): int
     {
-        $n = (string) $this->argument('n');
-        if (! ctype_digit($n) || (int) $n > 64) {
-            $this->error('Give a whole number 0..64.');
+        $raw = trim((string) $this->argument('n'));
+        $isPct = str_ends_with($raw, '%');
+        $n = rtrim($raw, '%');
+        if (! ctype_digit($n) || ($isPct && (int) $n > 100) || (! $isPct && (int) $n > 512)) {
+            $this->error('Give a count 0..512, or a share 1%..100%.');
 
             return self::FAILURE;
         }
@@ -31,10 +33,18 @@ class AutoscaleLeafLanesCommand extends Command
 
             return self::FAILURE;
         }
-        $run->forceFill(['leaf_lanes' => (int) $n])->save();
-        $this->info((int) $n === 0
-            ? 'One pile: every lane follows the walk order.'
-            : "Two piles: {$n} lane(s) prefer line-splits, the rest composites; both spill.");
+        if ($isPct) {
+            $run->forceFill(['leaf_lanes_pct' => (int) $n, 'leaf_lanes' => null])->save();
+            $pool = \App\Support\HostCapacity::autoscaleWorkers();
+            $this->info((int) $n === 0
+                ? 'One pile: every lane follows the walk order.'
+                : sprintf('Two piles: %d%% of the pool prefers line-splits (%d of %d lanes on this host), the rest composites; both spill.', (int) $n, max(1, (int) round($pool * (int) $n / 100)), $pool));
+        } else {
+            $run->forceFill(['leaf_lanes' => (int) $n, 'leaf_lanes_pct' => null])->save();
+            $this->info((int) $n === 0
+                ? 'One pile: every lane follows the walk order.'
+                : "Two piles: {$n} lane(s) prefer line-splits, the rest composites; both spill.");
+        }
 
         return self::SUCCESS;
     }

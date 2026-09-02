@@ -327,7 +327,13 @@ final class AutoscaleClaims
      */
     private static function leafPreference(AutoscaleRun $run, string $token): ?bool
     {
-        $n = (int) ($run->leaf_lanes ?? 0);
+        // A SHARE SCALES WITH THE POOL (operator 2026-09-02, the 96-core box):
+        // leaf_lanes_pct = N% of the derived pool on THIS host; leaf_lanes
+        // = an absolute count. The share wins when both are set.
+        $pct = (int) ($run->leaf_lanes_pct ?? 0);
+        $n = $pct > 0
+            ? max(1, (int) round(\App\Support\HostCapacity::autoscaleWorkers() * $pct / 100))
+            : (int) ($run->leaf_lanes ?? 0);
         if ($n <= 0) {
             return null;
         }
