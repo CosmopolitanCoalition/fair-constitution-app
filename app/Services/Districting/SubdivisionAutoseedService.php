@@ -502,7 +502,12 @@ class SubdivisionAutoseedService
         // populations above remain the GROUPING heuristic only; a
         // boundary-dominated sliver the handler would measure to 0 seats now
         // refuses here at plan stage instead of dying at filing.
-        $quota = (float) ($ctx['quota'] ?? 0) > 0 ? (float) $ctx['quota'] : $total / max($S, 1);
+        // THE PLAN'S FRAME (operator law 2026-09-02): the quota is the pixel
+        // sum over the budget — the sum of the children — never the stored
+        // row. The handler now seats in this frame through plan_quota, so
+        // the parity this line once bought by adopting the row quota is kept
+        // the other way round: both sides divide by the same pixel mass.
+        $quota = $total / max($S, 1);
 
         // LPT-greedy into k districts: heaviest part first, always onto the
         // lightest district so far; every tie breaks by index. With

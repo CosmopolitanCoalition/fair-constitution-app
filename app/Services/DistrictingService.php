@@ -1074,8 +1074,21 @@ class DistrictingService
             // will attach to it after scoring (round-9 budget accounting).
             $compFrac = $accountedFrac[$componentIdx];
 
-            // Single-district components need no splitting — skip multi-attempt overhead
-            if ($compFrac < $giantThreshold) {
+            // Single-district components need no splitting — skip multi-attempt overhead.
+            // THE POOL-RESIDUE LANDING (operator ruling 2026-09-02, the Cagayan
+            // Valley / Erbil −1 class): the shortcut tests the component's
+            // POPULATION share, but the seats it must carry are its share of
+            // the REMAINDER (budget − locked giants). Giants lock at nearest,
+            // so the remainder can exceed the ceiling while the population
+            // share rounds under it (Erbil pool: 10 seats owed, 9.4 by
+            // population) — one district then cannot hold the residue and
+            // the chamber drifts −1. When the owed seats exceed the ceiling
+            // the pool must split, so it enters the k-loop (k ≥ 2) and lands
+            // its remainder exactly (the Cordillera [9,1]→[9,2] precedent).
+            $compBudgetPre = $totalBinPop > 0
+                ? (int) round($accountedPop[$componentIdx] * $nonGiantBudget / $totalBinPop)
+                : $nonGiantBudget;
+            if ($compFrac < $giantThreshold && $compBudgetPre <= $ceiling) {
                 $allBins[] = $component;
                 continue;
             }

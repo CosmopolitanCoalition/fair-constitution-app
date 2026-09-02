@@ -268,13 +268,33 @@ class ManualDistrictDraw implements FormHandler
         // single displaced seat drifts the whole chamber. A disagreement
         // larger than one seat is a REAL mismatch: the plan does not override
         // it, and the band gate below refuses as it always has.
+        // THE LEAF LAW (operator ruling 2026-09-02, the Okhotsky 9+5 on 18):
+        // for a leaf the head fixes the seat vector IN ADVANCE (18 -> 9/9
+        // inside the band); the cut splits whatever population exists in
+        // that same proportion; the row-versus-raster gap never enters. A
+        // machine piece therefore files its PLANNED seats, always. This
+        // measurement verifies PROPORTION only: a piece whose measured share
+        // disagrees with its planned share by more than one seat is not a
+        // re-seating case but an unbalanced cut, and it REFUSES so the ladder
+        // tries a better template (fail-closed) instead of silently drifting
+        // the chamber (the old rule let the measurement win past one seat:
+        // Okhotsky filed 9+5 on 18, Kujalleq 9+5 on 16).
         $plannedSeats = $payload['planned_seats'] ?? null;
         if (is_int($plannedSeats)
             && $plannedSeats >= 1
             && $plannedSeats <= $ceiling
             && ($plannedSeats >= $floor || $floorPosture)
-            && abs($plannedSeats - $seats) <= 1
         ) {
+            if (abs($fractional - $plannedSeats) > 1.0) {
+                throw new ConstitutionalViolation(
+                    sprintf(
+                        'The cut is not proportional: this piece was planned at %d seats but holds %.2f seats of the '
+                        .'scope population (%s people). Redraw it so the pieces split the population in the planned ratio.',
+                        $plannedSeats, $fractional, number_format($pop)
+                    ),
+                    'Art. II §2'
+                );
+            }
             $seats = $plannedSeats;
         }
 
