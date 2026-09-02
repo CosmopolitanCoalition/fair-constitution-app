@@ -507,7 +507,18 @@ if ($updated) {
         Start-Sleep -Seconds 15
         Invoke-Docker compose exec -T app php artisan migrate --force
     }
-    Invoke-Docker compose run --rm --no-deps vite npm run build
+    # Built bundle by default (WoS 2026-09-02): own derived cap, loud failure; the dev profile skips it.
+    $profiles = Get-EnvValue 'COMPOSE_PROFILES'
+    if ((",$profiles,") -like '*,dev,*') {
+        Say '  Developer profile: the Vite dev server serves the interface (no build).'
+    } else {
+        $buildMb = Clamp ($totalMb / 4.0) 1024 4096
+        Say "  Building the interface (memory cap ${buildMb}m)..."
+        $env:MEM_VITE = "${buildMb}m"
+        Invoke-Docker compose run --rm --no-deps vite npm run build
+        if ($LASTEXITCODE -ne 0) { throw "The interface build failed under a ${buildMb}m cap. Run:  MEM_VITE=${buildMb}m docker compose run --rm --no-deps vite npm run build" }
+        Remove-Item -Force -ErrorAction SilentlyContinue public/hot
+    }
     Invoke-Docker compose restart app horizon scheduler
     Say 'Update applied.'
 }

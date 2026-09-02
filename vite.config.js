@@ -48,11 +48,18 @@ export default defineConfig({
         // strictPort: fail loudly if 5173 is taken inside the container instead
         // of silently jumping and breaking the host port mapping.
         strictPort: true,
-        origin: `http://localhost:${VITE_HOST_PORT}`,
+        // THE DEV ORIGIN IS ENV-DRIVEN (WoS 2026-09-02): a remote browser
+        // cannot reach localhost:5173 on the server. VITE_DEV_ORIGIN names
+        // the address browsers should load dev assets from; APP_URL joins
+        // the CORS list. Default installs serve the BUILT bundle and never
+        // run this server (compose profile "dev").
+        origin: process.env.VITE_DEV_ORIGIN || `http://localhost:${VITE_HOST_PORT}`,
         cors: {
             origin: [
                 `http://localhost:${NGINX_HOST_PORT}`,
                 `http://localhost:${VITE_HOST_PORT}`,
+                ...(process.env.VITE_DEV_ORIGIN ? [process.env.VITE_DEV_ORIGIN] : []),
+                ...(process.env.APP_URL ? [process.env.APP_URL] : []),
             ],
             credentials: true,
         },

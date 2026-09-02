@@ -406,6 +406,27 @@ say "[4/5] Configuring..."
 configure_map_data "$FIRST_RUN"
 configure_host_memory
 
+# THE INTERFACE IS A BUILT BUNDLE BY DEFAULT (WoS 2026-09-02): a remote
+# browser cannot load assets from a dev server bound to localhost:5173, so
+# the default path builds the interface and nginx serves it from /build.
+# COMPOSE_PROFILES=dev in .env keeps the hot-reload dev server for
+# developers and skips the build. The build runs under its own derived cap
+# (it needs ~1 GB; the service cap on a small host killed it silently) and
+# a failed build stops the script loudly.
+build_interface() {
+  case ",$(get_env COMPOSE_PROFILES)," in
+    *",dev,"*) say "  Developer profile: the Vite dev server serves the interface (no build)."; return 0;;
+  esac
+  local host_mb="${total_mb:-4096}" build_mb
+  build_mb=$(clamp $(( host_mb / 4 )) 1024 4096)
+  say "  Building the interface (memory cap ${build_mb}m)..."
+  if MEM_VITE="${build_mb}m" docker compose run --rm --no-deps vite npm run build; then
+    rm -f public/hot   # a stale dev-server marker would send browsers to :5173
+  else
+    fail "The interface build failed under a ${build_mb}m cap. Nothing else changed. Fix, then run:  MEM_VITE=${build_mb}m docker compose run --rm --no-deps vite npm run build"
+  fi
+}
+
 # -- 5. Start the app --------------------------------------------------------
 say "[5/5] Starting the app. The FIRST run downloads and builds everything (10-30 minutes); later starts take seconds..."
 if ! docker compose up -d; then
@@ -415,6 +436,7 @@ if ! docker compose up -d; then
   sleep 20
   docker compose up -d || fail "The app containers had trouble starting. This script is safe to run again and resumes where it left off - try that first. If it keeps failing, run:  docker compose logs app --tail 50   in this folder and report what it says."
 fi
+build_interface
 
 # FRESH INSTALL: load the database schema (fresh-install walk, 2026-08-02 —
 # a brand-new clone booted with an EMPTY database and /setup 500'd; the
@@ -443,7 +465,7 @@ if [ "$UPDATED" = "1" ]; then
     sleep 15
     docker compose exec -T app php artisan migrate --force || say "  Migration failed - run:  docker compose exec app php artisan migrate --force   once the app is up."
   fi
-  docker compose run --rm --no-deps vite npm run build || say "  Interface build failed - run:  docker compose run --rm --no-deps vite npm run build"
+  build_interface
   docker compose restart app horizon scheduler || true
   say "Update applied."
 fi

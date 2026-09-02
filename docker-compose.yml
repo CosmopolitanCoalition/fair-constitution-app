@@ -405,6 +405,10 @@ services:
       context: .
       dockerfile: docker/php/Dockerfile
     container_name: ${CONTAINER_PREFIX:-fc}_vite
+    # THE DEV SERVER IS OPT-IN (WoS 2026-09-02): default installs serve the
+    # built bundle from nginx; COMPOSE_PROFILES=dev in .env runs this
+    # hot-reload server for developers.
+    profiles: ["dev"]
     mem_limit: ${MEM_VITE:-2g}
     memswap_limit: ${MEM_VITE:-2g}
     # Auto-resurrect (operator order 2026-08-30): the OOM killer took vite
