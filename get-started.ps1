@@ -300,13 +300,47 @@ function Configure-HostMemory {
     if ($totalMb -le 0) { return }   # can't measure — compose fallbacks apply
 
     function Clamp([double]$v, [int]$lo, [int]$hi) { [int][math]::Max($lo, [math]::Min($hi, [math]::Floor($v))) }
-    # Ceiling lifted (audit row, 2026-08-30): 16 GB starved burst iron.
-    $pgMb  = Clamp ($totalMb * 0.60) 1024 262144   # postgres ~60% of the host
-    # ETL_MEM_LIMIT is no longer written (THE LIVE WALL, 2026-08-06): etl
-    # runs uncapped and its admission sizes against MemAvailable on the fly;
-    # chunk profiles self-govern to the same 30% posture in code
-    # (memory_budget.ETL_POSTURE_FRACTION). An existing pin in .env still
-    # wins — blank it to go live-wall.
+    # THE CLOSED BUDGET (operator ruling 2026-09-01, the WoS reclaim-
+    # livelock freeze): every service cap is a SHARE of one derived
+    # budget (HOST_BUDGET_PCT of host RAM) and the shares sum to 1000
+    # per mille — the application total can never pass the host. The
+    # reserved ~20% is the kernel's working room. Enforcement is the
+    # cgroup OOM killer: app fails, host lives. The live wall stays as
+    # the etl's graceful governor; the cap is the guarantee (revises the
+    # 2026-08-06 etl-uncapped ruling, operator word 2026-09-01). Two
+    # profiles: 'geodata' (etl-led ingest) and 'mapping' (horizon-led
+    # drawing). Mirrors get-started.sh exactly.
+    $budgetPct = 80
+    $cur = Get-EnvValue 'HOST_BUDGET_PCT'
+    if ($cur -ne '') { $budgetPct = [int]$cur }
+    $budgetMb = [int]($totalMb * $budgetPct / 100)
+    $profile = Get-EnvValue 'CGA_MEM_PROFILE'
+    if ($profile -eq '') {
+        $profile = 'geodata'
+        try {
+            $probe = & docker compose exec -T postgres psql -U ($(Get-EnvValue 'DB_USERNAME'), 'fc_user' | Where-Object { $_ })[0] -d ($(Get-EnvValue 'DB_DATABASE'), 'fair_constitution' | Where-Object { $_ })[0] -t -A -c 'SELECT 1 FROM autoscale_runs LIMIT 1' 2>$null
+            if ("$probe" -match '1') { $profile = 'mapping' }
+        } catch { }
+    }
+    # 'open' (operator pin only): the legacy overcommit posture — postgres
+    # 60% of host, everything else uncapped. The E-box speed gate
+    # (2026-09-01) proved closed shares must come from REAL peaks (cgroup
+    # memory.peak over a run), not snapshots. Mirrors get-started.sh.
+    if ($profile -eq 'open') {
+        $sh = @{ pg=0; etl=0; horizon=0; app=0; vite=0; rcache=0; rqueue=0; aux=0 }
+        $pgMb = Clamp ($totalMb * 0.60) 1024 262144
+    } elseif ($profile -eq 'mapping') {
+        $sh = @{ pg=260; etl=15;  horizon=430; app=25; vite=70; rcache=75; rqueue=60; aux=65 }
+        $pgMb = Clamp ($budgetMb * $sh.pg / 1000.0) 1024 262144
+    } else {
+        $sh = @{ pg=340; etl=340; horizon=100; app=30; vite=50; rcache=60; rqueue=40; aux=40 }
+        $pgMb = Clamp ($budgetMb * $sh.pg / 1000.0) 1024 262144
+    }
+    $rcMb  = Clamp ($budgetMb * $sh.rcache / 1000.0) 256 16384
+    $rqMb  = Clamp ($budgetMb * $sh.rqueue / 1000.0) 226 1024
+    $auxMb = Clamp ($budgetMb * $sh.aux / 1000.0) 192 4096
+    $open  = ($profile -eq 'open')
+    if ($open) { $rqMb = [int]((Clamp ($totalMb / 20.0) 192 512) * 100 / 85) }
 
     # THE HEADROOM LAW (2026-08-02, the AUS-ADM0 backend kill-loop): a giant
     # boundary INSERT is ONE backend whose transient is set by the DATA (the
@@ -340,7 +374,21 @@ function Configure-HostMemory {
         PG_WAL_BUFFERS     = (Clamp ($pgMb / 72.0) 16 128).ToString() + 'MB'
         PG_SHM_SIZE        = (Clamp ($pgMb / 4.0) 1024 8192).ToString() + 'm'
         PG_MAX_CONNECTIONS = (Clamp ($pgMb / 23.0) 100 800).ToString()
-        REDIS_CACHE_MAXMEMORY = (Clamp ($totalMb / 10.0) 768 8192).ToString() + 'mb'
+        # Budget-ledger keys. maxmemory = 85% of each redis container cap,
+        # so eviction (or the queue's volatile-ttl shed) always fires
+        # before the cgroup killer reaps the whole redis.
+        HOST_BUDGET_PCT = $budgetPct.ToString()
+        MEM_HORIZON = $(if ($open) { "${totalMb}m" } else { (Clamp ($budgetMb * $sh.horizon / 1000.0) 512 65536).ToString() + 'm' })
+        MEM_APP     = $(if ($open) { "${totalMb}m" } else { (Clamp ($budgetMb * $sh.app / 1000.0) 128 8192).ToString() + 'm' })
+        MEM_VITE    = $(if ($open) { "${totalMb}m" } else { (Clamp ($budgetMb * $sh.vite / 1000.0) 256 4096).ToString() + 'm' })
+        ETL_MEM_LIMIT = $(if ($open) { '0' } else { (Clamp ($budgetMb * $sh.etl / 1000.0) 96 262144).ToString() + 'm' })
+        MEM_REDIS_CACHE = $(if ($open) { "${totalMb}m" } else { "${rcMb}m" })
+        MEM_REDIS_QUEUE = $(if ($open) { "${totalMb}m" } else { "${rqMb}m" })
+        MEM_MATRIX    = $(if ($open) { "${totalMb}m" } else { ([int]($auxMb * 0.40)).ToString() + 'm' })
+        MEM_SCHEDULER = $(if ($open) { "${totalMb}m" } else { ([int]($auxMb * 0.35)).ToString() + 'm' })
+        MEM_MAS       = $(if ($open) { "${totalMb}m" } else { ([int]($auxMb * 0.17)).ToString() + 'm' })
+        MEM_NGINX     = $(if ($open) { "${totalMb}m" } else { ([int]($auxMb * 0.08)).ToString() + 'm' })
+        REDIS_CACHE_MAXMEMORY = $(if ($open) { (Clamp ($totalMb / 10.0) 768 8192).ToString() + 'mb' } else { ([int]($rcMb * 0.85)).ToString() + 'mb' })
         # Parallel posture: workers=cores, parallel=cores/2, per_gather
         # small (many concurrent lanes beat wide gathers), maintenance=cores/4.
         PG_MAX_WORKER_PROCESSES = (Clamp $cores 8 64).ToString()
@@ -348,10 +396,8 @@ function Configure-HostMemory {
         PG_PARALLEL_PER_GATHER  = (Clamp ($cores / 6.0) 1 4).ToString()
         PG_PARALLEL_MAINTENANCE = (Clamp ($cores / 4.0) 1 8).ToString()
         # The queue redis (volatile-ttl: TTL'd horizon metadata self-trims,
-        # queue payloads never evict) sizes from the host — host/20 since
-        # the 2026-09-01 OOM (host/40 could not hold a planet run's
-        # failure archive for even a day).
-        REDIS_QUEUE_MAXMEMORY   = (Clamp ($totalMb / 20.0) 192 512).ToString() + 'mb'
+        # queue payloads never evict) sizes from its budget share.
+        REDIS_QUEUE_MAXMEMORY   = ([int]($rqMb * 0.85)).ToString() + 'mb'
         PG_AUTOVACUUM_COST_LIMIT = (Clamp (200 * $cores / 2.0) 200 2000).ToString()
     }
 
@@ -379,8 +425,9 @@ function Configure-HostMemory {
     if ((Get-EnvValue 'REDIS_QUEUE_HOST') -eq '') { Set-EnvValue 'REDIS_QUEUE_HOST' 'redis_queue' }
     Set-EnvValue 'DERIVED_KEYS' ($ledger -join ',')
     if ($wrote.Count -gt 0) {
-        Say ("      Memory sized from this host ({0:N1} GB RAM, {1} cores): postgres {2}, etl uncapped (live wall)." -f ($totalMb/1024), $cores, $derived.POSTGRES_MEM_LIMIT)
+        Say ("      Memory sized from this host ({0:N1} GB RAM, {1} cores): budget {2}m ({3}%), profile {4}, postgres {5}." -f ($totalMb/1024), $cores, $budgetMb, $budgetPct, $profile, $derived.POSTGRES_MEM_LIMIT)
     }
+    Set-EnvValue 'CGA_MEM_PROFILE' $profile
 }
 
 # -Rederive (operator order 2026-08-30): after a host resize — the cloud
@@ -390,9 +437,10 @@ if ($Rederive) {
     Say 'Re-deriving host-sized values (hand-pinned values - those removed from DERIVED_KEYS - stay untouched)...'
     Configure-HostMemory
     Say 'Done. Changed values apply on service RECREATE:'
+    Say '  every capped service - its MEM_* share of the closed budget'
     Say '  postgres    - POSTGRES_MEM_LIMIT + every PG_* value'
-    Say '  redis_queue - REDIS_QUEUE_MAXMEMORY'
-    Say '  docker compose up -d --force-recreate postgres redis_queue   (when the box is quiet)'
+    Say '  redis pair  - REDIS_*_MAXMEMORY + MEM_REDIS_*'
+    Say '  docker compose up -d   (when the box is quiet; recreates changed services)'
     exit 0
 }
 

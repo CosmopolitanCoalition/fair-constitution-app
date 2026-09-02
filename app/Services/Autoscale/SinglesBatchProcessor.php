@@ -183,6 +183,24 @@ class SinglesBatchProcessor
                AND s.seated > 0
         ", $params);
 
+        // ZERO POPULATION (operator ruling 2026-09-02): a place with no
+        // residents has no seats to fill — it is DONE with nothing seated,
+        // never a review item (the pop-0 law mints no legislature; a
+        // pre-existing chamber sized to 0 closes here).
+        DB::table('apportionment_ledger')
+            ->where('kind', 'single')
+            ->where('map_status', 'running')
+            ->where('claim_token', $token)
+            ->where('head_seats', 0)
+            ->update([
+                'map_status'  => 'done',
+                'seats_seated' => 0,
+                'drift'       => 0,
+                'reason'      => 'zero population: no seats to fill',
+                'finished_at' => now(),
+                'updated_at'  => now(),
+            ]);
+
         // Anything still claimed in this batch has no seated district even
         // after the passes above (no legislature row? no active map?) —
         // surface it for review instead of looping forever.

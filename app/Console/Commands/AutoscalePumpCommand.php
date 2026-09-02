@@ -291,7 +291,7 @@ class AutoscalePumpCommand extends Command
                    updated_at = now()
              WHERE map_status = 'review'
                AND transient_retries < 1
-               AND reason ~* 'SQLSTATE|no connection|Connection refused|LOADING Redis|server closed the connection|Connection timed out'
+               AND reason ~* 'SQLSTATE|no connection|Connection refused|LOADING Redis|server closed the connection|Connection timed out|went away|recovery mode|not yet accepting connections'
         ");
         // The retried items' scopes go back with them — EVERY tick, not
         // only the tick that requeued (that gating stranded the first

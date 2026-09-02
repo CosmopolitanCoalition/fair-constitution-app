@@ -6,6 +6,8 @@ services:
       context: .
       dockerfile: docker/php/Dockerfile
     container_name: ${CONTAINER_PREFIX:-fc}_app
+    mem_limit: ${MEM_APP:-1g}
+    memswap_limit: ${MEM_APP:-1g}
     restart: unless-stopped
     # G8b: reach host-resident daemons (a Tor SOCKS proxy, or a host-bound overlay relay)
     # from inside the container — federation egress originates here. Docker Desktop provides
@@ -71,6 +73,8 @@ services:
   nginx:
     image: nginx:1.27-alpine
     container_name: ${CONTAINER_PREFIX:-fc}_nginx
+    mem_limit: ${MEM_NGINX:-256m}
+    memswap_limit: ${MEM_NGINX:-256m}
     restart: unless-stopped
     ports:
       - "${NGINX_HOST_PORT:-8080}:80"      # set NGINX_HOST_PORT in .env per checkout (parent=8080, worktrees pick different ports)
@@ -241,6 +245,8 @@ services:
   matrix:
     image: ${MATRIX_IMAGE:-ghcr.io/element-hq/synapse:latest}
     container_name: ${CONTAINER_PREFIX:-fc}_matrix
+    mem_limit: ${MEM_MATRIX:-1g}
+    memswap_limit: ${MEM_MATRIX:-1g}
     restart: unless-stopped
     environment:
       SYNAPSE_SERVER_NAME: ${MATRIX_DOMAIN:-localhost}
@@ -280,6 +286,8 @@ services:
   mas:
     image: ${MAS_IMAGE:-ghcr.io/element-hq/matrix-authentication-service:latest}
     container_name: ${CONTAINER_PREFIX:-fc}_mas
+    mem_limit: ${MEM_MAS:-512m}
+    memswap_limit: ${MEM_MAS:-512m}
     restart: unless-stopped
     command: ["server", "--config", "/config/config.yaml"]
     ports:
@@ -357,6 +365,8 @@ services:
   redis_queue:
     image: redis:7.4-alpine
     container_name: ${CONTAINER_PREFIX:-fc}_redis_queue
+    mem_limit: ${MEM_REDIS_QUEUE:-512m}
+    memswap_limit: ${MEM_REDIS_QUEUE:-512m}
     restart: unless-stopped
     # volatile-ttl (operator order 2026-09-01, the queue-redis OOM): queue
     # payloads carry NO TTL and are never evicted — they keep noeviction-
@@ -373,6 +383,8 @@ services:
   redis:
     image: redis:7.4-alpine
     container_name: ${CONTAINER_PREFIX:-fc}_redis
+    mem_limit: ${MEM_REDIS_CACHE:-2g}
+    memswap_limit: ${MEM_REDIS_CACHE:-2g}
     restart: unless-stopped
     # maxmemory + LRU: the map GeoJSON cache (rememberForever, no TTL) once
     # bloated the RDB past 1.2 GB — every Redis restart then BLOCKED all
@@ -393,6 +405,8 @@ services:
       context: .
       dockerfile: docker/php/Dockerfile
     container_name: ${CONTAINER_PREFIX:-fc}_vite
+    mem_limit: ${MEM_VITE:-2g}
+    memswap_limit: ${MEM_VITE:-2g}
     # Auto-resurrect (operator order 2026-08-30): the OOM killer took vite
     # mid-benchmark and the dashboard went white for half an hour. Every
     # other service already carries this policy; vite was the one gap.
@@ -457,6 +471,8 @@ services:
       context: .
       dockerfile: docker/php/Dockerfile
     container_name: ${CONTAINER_PREFIX:-fc}_horizon
+    mem_limit: ${MEM_HORIZON:-6g}
+    memswap_limit: ${MEM_HORIZON:-6g}
     restart: unless-stopped
     # G8b: the federation heartbeat (CLK-20 push + cold-sync + probe) runs here, so it
     # needs the same host-daemon reachability as the app. See G8b-OVERLAY-EGRESS.md.
@@ -489,6 +505,8 @@ services:
       context: .
       dockerfile: docker/php/Dockerfile
     container_name: ${CONTAINER_PREFIX:-fc}_scheduler
+    mem_limit: ${MEM_SCHEDULER:-512m}
+    memswap_limit: ${MEM_SCHEDULER:-512m}
     restart: unless-stopped
     # G8b: parity with app/horizon for host-daemon reachability. See G8b-OVERLAY-EGRESS.md.
     extra_hosts:

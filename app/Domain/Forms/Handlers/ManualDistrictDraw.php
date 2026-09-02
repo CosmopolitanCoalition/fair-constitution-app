@@ -187,6 +187,15 @@ class ManualDistrictDraw implements FormHandler
         $giantPop = (int) $giant->population;
         $S = (int) $ctx['budget'];
         $quota = $giantPop / max($S, 1);
+        // THE PLAN'S FRAME (operator law 2026-09-02): a machine plan carries
+        // its own quota, pixel-mass / budget — the sum of the children. The
+        // piece is seated in that frame, so the filed vector sums to the
+        // budget exactly as planned. The row frame stays for hand-drawn
+        // pieces, which have no plan.
+        $planQuota = (float) ($payload['plan_quota'] ?? 0);
+        if ($planQuota > 0) {
+            $quota = $planQuota;
+        }
 
         // Geometry validation in one round-trip: contiguity, within the giant,
         // and the piece's part census for persistence.

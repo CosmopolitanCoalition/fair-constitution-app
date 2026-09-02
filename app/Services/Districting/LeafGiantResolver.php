@@ -342,6 +342,14 @@ class LeafGiantResolver
                 // real mismatch — it only stops overruling the plan on a
                 // one-seat rounding disagreement.
                 'planned_seats'   => $d['seats'] ?? null,
+                // THE PLAN'S FRAME (operator law restated 2026-09-02, the
+                // remote under-seating class): the head sets the budget; every
+                // denominator is the sum of the children. The plan's quota is
+                // pixel-mass / budget — the children's sum. The handler must
+                // seat the piece in THAT frame, never the row's (row / budget):
+                // where raster mass and row disagree (Chukotka, Taymyr,
+                // Nome, the atolls) the row frame under-seated leaves 2-4.
+                'plan_quota'      => (float) ($plan['quota'] ?? 0),
             ]);
             $ids[] = $res->recorded['district_id'];
         }
@@ -367,10 +375,25 @@ class LeafGiantResolver
 
         $budget = (int) ($ctx['budget'] ?? 0);
         if ($budget > 0) {
-            $parts = (int) DB::table('jurisdictions')
-                ->where('id', $scopeId)
-                ->value(DB::raw('ST_NumGeometries(ST_CollectionExtract(geom, 3))'));
-            if ($parts > $budget) {
+            // MULTI-PART LEADS WITH THE MASK (operator ruling 2026-09-02, the
+            // 63-map archipelago review class: every failed root leaf was
+            // multi-part, average 50 parts, and the mask never led because
+            // the old gate needed parts > budget). A straight cut cannot make
+            // contiguous districts out of islands, so on any multi-part scope
+            // the mask (one blob around the whole chain, sliced by population
+            // arithmetic, contiguity not required) leads; the cutting
+            // templates stay behind it as fallback only. The one exception
+            // keeps the working thousands untouched: a mainland with islets
+            // (largest part >= 90% of the area) still cuts by line first,
+            // since islands ride whole on a side there.
+            $row = DB::selectOne('
+                SELECT ST_NumGeometries(g) AS parts,
+                       (SELECT max(ST_Area(d.geom)) FROM ST_Dump(g) d) / NULLIF(ST_Area(g), 0) AS largest_share
+                  FROM (SELECT ST_CollectionExtract(geom, 3) AS g FROM jurisdictions WHERE id = ?) x
+            ', [$scopeId]);
+            $parts = (int) ($row->parts ?? 1);
+            $largestShare = (float) ($row->largest_share ?? 1.0);
+            if ($parts > 1 && ($parts > $budget || $largestShare < 0.9)) {
                 $order = array_values(array_unique(array_merge(
                     [SubdivisionAutoseedService::TEMPLATE_MASK],
                     $order,

@@ -206,13 +206,52 @@ configure_host_memory() {
   [ "${total_mb:-0}" -gt 0 ] || return 0   # can't measure — compose fallbacks apply
 
   clamp() { v=$1; lo=$2; hi=$3; [ "$v" -lt "$lo" ] && v=$lo; [ "$v" -gt "$hi" ] && v=$hi; echo "$v"; }
-  # Ceiling lifted (audit row, 2026-08-30): the frozen 16 GB cap starved
-  # burst iron — a 256 GB box got a 16 GB postgres. 60% holds at any size.
-  pg_mb=$(clamp $(( total_mb * 60 / 100 )) 1024 262144)   # postgres ~60% of the host
-  # ETL_MEM_LIMIT is no longer written (THE LIVE WALL, 2026-08-06): etl runs
-  # uncapped, admission sizes against MemAvailable on the fly, and chunk
-  # profiles self-govern to the 30% posture in code. An existing .env pin
-  # still wins — blank it to go live-wall.
+  # THE CLOSED BUDGET (operator ruling 2026-09-01, the WoS reclaim-livelock
+  # freeze): every service cap is a SHARE of one derived budget —
+  # HOST_BUDGET_PCT of host RAM — and the shares sum to 1000 per mille, so
+  # the application total can never pass the host. The reserved ~20% is
+  # the kernel's working room (page cache, dirty writeback, reclaim
+  # slack); its absence froze WoS for 18 hours with no log line.
+  # Enforcement is the cgroup OOM killer: app fails, host lives. The live
+  # wall stays as the etl's graceful governor; the cap is the guarantee
+  # (revises the 2026-08-06 etl-uncapped ruling, operator word 2026-09-01).
+  # Two profiles, because the phases have different heavies: 'geodata'
+  # (etl-led ingest) and 'mapping' (horizon-led drawing). Floors on tiny
+  # hosts may overshoot the budget slightly — a Pi runs kill-heavy and
+  # slow, never frozen.
+  budget_pct="$(get_env HOST_BUDGET_PCT)"; [ -n "$budget_pct" ] || budget_pct=80
+  budget_mb=$(( total_mb * budget_pct / 100 ))
+  profile="$(get_env CGA_MEM_PROFILE)"
+  if [ -z "$profile" ]; then
+    # A reachable database holding an autoscale run = a drawing box; a
+    # virgin or ingesting box is geodata-led. Operator override: set
+    # CGA_MEM_PROFILE in .env.
+    if docker compose exec -T postgres psql -U "${DB_USERNAME:-fc_user}" -d "${DB_DATABASE:-fair_constitution}" -t -A -c "SELECT 1 FROM autoscale_runs LIMIT 1" 2>/dev/null | grep -q 1; then
+      profile=mapping
+    else
+      profile=geodata
+    fi
+  fi
+  # 'open' (operator pin only, never auto-detected): the legacy overcommit
+  # posture — postgres 60% of host, everything else uncapped. The E-box
+  # speed gate (2026-09-01: mapping shares from snapshot "peaks" killed
+  # postgres backends twice and cut the benchmark to a fifth) proved that
+  # closed shares must come from REAL peaks (cgroup memory.peak over a
+  # full run window), not snapshots. A box that has never frozen keeps
+  # 'open' while its peaks are measured; a box that froze runs closed.
+  if [ "$profile" = "open" ]; then
+    sh_pg=0; sh_etl=0; sh_horizon=0; sh_app=0; sh_vite=0
+    sh_rcache=0; sh_rqueue=0; sh_aux=0
+    pg_mb=$(clamp $(( total_mb * 60 / 100 )) 1024 262144)
+  elif [ "$profile" = "mapping" ]; then
+    sh_pg=260; sh_etl=15;  sh_horizon=430; sh_app=25; sh_vite=70
+    sh_rcache=75; sh_rqueue=60; sh_aux=65
+    pg_mb=$(clamp $(( budget_mb * sh_pg / 1000 )) 1024 262144)
+  else
+    sh_pg=340; sh_etl=340; sh_horizon=100; sh_app=30; sh_vite=50
+    sh_rcache=60; sh_rqueue=40; sh_aux=40
+    pg_mb=$(clamp $(( budget_mb * sh_pg / 1000 )) 1024 262144)
+  fi
 
   # THE HEADROOM LAW (2026-08-02): a giant boundary INSERT is one backend
   # whose transient is set by the DATA (largest single feature on Earth),
@@ -264,7 +303,42 @@ configure_host_memory() {
   write_derived PG_WAL_BUFFERS     "$(clamp $(( pg_mb / 72 )) 16 128)MB"
   write_derived PG_SHM_SIZE        "$(clamp $(( pg_mb / 4 )) 1024 8192)m"
   write_derived PG_MAX_CONNECTIONS "$(clamp $(( pg_mb / 23 )) 100 800)"
-  write_derived REDIS_CACHE_MAXMEMORY "$(clamp $(( total_mb / 10 )) 768 8192)mb"
+  # The budget ledger's own keys. maxmemory = 85% of each redis container
+  # cap, so eviction (or the queue's volatile-ttl shed) always fires
+  # before the cgroup killer reaps the whole redis.
+  write_derived HOST_BUDGET_PCT "$budget_pct"
+  set_env CGA_MEM_PROFILE "$profile"
+  if [ "$profile" = "open" ]; then
+    # Legacy posture: caps at host size (= uncapped), etl live-wall (0 =
+    # no limit in compose), redis maxmemory by the host formulas.
+    write_derived MEM_HORIZON "${total_mb}m"
+    write_derived MEM_APP     "${total_mb}m"
+    write_derived MEM_VITE    "${total_mb}m"
+    write_derived ETL_MEM_LIMIT "0"
+    write_derived MEM_REDIS_CACHE "${total_mb}m"
+    write_derived MEM_REDIS_QUEUE "${total_mb}m"
+    write_derived REDIS_CACHE_MAXMEMORY "$(clamp $(( total_mb / 10 )) 768 8192)mb"
+    rq_mb=$(clamp $(( total_mb / 20 )) 192 512); rq_mb=$(( rq_mb * 100 / 85 ))
+    write_derived MEM_MATRIX    "${total_mb}m"
+    write_derived MEM_SCHEDULER "${total_mb}m"
+    write_derived MEM_MAS       "${total_mb}m"
+    write_derived MEM_NGINX     "${total_mb}m"
+  else
+    write_derived MEM_HORIZON "$(clamp $(( budget_mb * sh_horizon / 1000 )) 512 65536)m"
+    write_derived MEM_APP     "$(clamp $(( budget_mb * sh_app / 1000 )) 128 8192)m"
+    write_derived MEM_VITE    "$(clamp $(( budget_mb * sh_vite / 1000 )) 256 4096)m"
+    write_derived ETL_MEM_LIMIT "$(clamp $(( budget_mb * sh_etl / 1000 )) 96 262144)m"
+    rc_mb=$(clamp $(( budget_mb * sh_rcache / 1000 )) 256 16384)
+    rq_mb=$(clamp $(( budget_mb * sh_rqueue / 1000 )) 226 1024)
+    write_derived MEM_REDIS_CACHE "${rc_mb}m"
+    write_derived MEM_REDIS_QUEUE "${rq_mb}m"
+    write_derived REDIS_CACHE_MAXMEMORY "$(( rc_mb * 85 / 100 ))mb"
+    aux_mb=$(clamp $(( budget_mb * sh_aux / 1000 )) 192 4096)
+    write_derived MEM_MATRIX    "$(( aux_mb * 40 / 100 ))m"
+    write_derived MEM_SCHEDULER "$(( aux_mb * 35 / 100 ))m"
+    write_derived MEM_MAS       "$(( aux_mb * 17 / 100 ))m"
+    write_derived MEM_NGINX     "$(( aux_mb * 8 / 100 ))m"
+  fi
   # Parallel posture: workers=cores, parallel=cores/2, per_gather small
   # (many concurrent lanes beat wide gathers), maintenance=cores/4.
   write_derived PG_MAX_WORKER_PROCESSES  "$(clamp "$cores" 8 64)"
@@ -272,15 +346,26 @@ configure_host_memory() {
   write_derived PG_PARALLEL_PER_GATHER   "$(clamp $(( cores / 6 )) 1 4)"
   write_derived PG_PARALLEL_MAINTENANCE  "$(clamp $(( cores / 4 )) 1 8)"
   # The queue redis (volatile-ttl: TTL'd horizon metadata self-trims, the
-  # untouched-TTL queue payloads never evict) sizes from the host — host/20
-  # since the 2026-09-01 OOM (host/40 = 192mb could not hold one day's
-  # failure archive on a planet run); the split itself is host-independent
-  # wiring, written once, never rederived.
-  write_derived REDIS_QUEUE_MAXMEMORY "$(clamp $(( total_mb / 20 )) 192 512)mb"
+  # untouched-TTL queue payloads never evict) sizes from its budget share;
+  # the split itself is host-independent wiring, written once, never
+  # rederived.
+  write_derived REDIS_QUEUE_MAXMEMORY "$(( rq_mb * 85 / 100 ))mb"
   write_derived PG_AUTOVACUUM_COST_LIMIT "$(clamp $(( 200 * cores / 2 )) 200 2000)"
   [ -n "$(get_env REDIS_QUEUE_HOST)" ] || set_env REDIS_QUEUE_HOST redis_queue
   set_env DERIVED_KEYS "$ledger"
-  [ "$wrote" -eq 1 ] && say "      Memory sized from this host (${total_mb} MB RAM, ${cores} cores): postgres ${pg_mb}m, etl uncapped (live wall)."
+  [ "$wrote" -eq 1 ] && say "      Memory sized from this host (${total_mb} MB RAM, ${cores} cores): budget ${budget_mb}m (${budget_pct}%), profile ${profile}, postgres ${pg_mb}m."
+
+  # earlyoom (operator ruling 2026-09-01, the second belt): on Linux hosts
+  # a userspace OOM daemon kills the single biggest process before reclaim
+  # livelock can freeze the box — it catches any derivation bug that leaks
+  # past the closed budget. Debian/Ubuntu only; absence is never fatal.
+  if [ "$(uname -s)" = "Linux" ] && command -v systemctl >/dev/null 2>&1 \
+     && ! systemctl is-active --quiet earlyoom 2>/dev/null \
+     && command -v apt-get >/dev/null 2>&1; then
+    sudo apt-get install -y earlyoom >/dev/null 2>&1 \
+      && sudo systemctl enable --now earlyoom >/dev/null 2>&1 \
+      && say "      earlyoom armed (host OOM guarantee)" || true
+  fi
   return 0
 }
 
