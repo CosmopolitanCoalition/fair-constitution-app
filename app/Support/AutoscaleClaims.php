@@ -116,7 +116,17 @@ final class AutoscaleClaims
         if ($claim = static::claimSingles($run, $token, null)) {
             return $claim;
         }
-        if ($claim = static::claimScope($run, $token, $lane)) {
+        // TWO PILES BY CLASS (operator order 2026-09-02): with leaf_lanes = N
+        // on the run, the first N lanes (by lease rank) prefer LINE-SPLIT
+        // scopes and the rest prefer COMPOSITES. Each pile keeps the block
+        // order and the walk inside it; only the interleaving changes. A
+        // pile that runs dry spills its lanes to the other (the lane law).
+        // leaf_lanes 0 or NULL = one pile, as before.
+        $prefer = static::leafPreference($run, $token);
+        if ($claim = static::claimScope($run, $token, $lane, false, $prefer)) {
+            return $claim;
+        }
+        if ($prefer !== null && ($claim = static::claimScope($run, $token, $lane, false, ! $prefer))) {
             return $claim;
         }
         // THE TWO-CUTTER BATCH (operator order 2026-08-29, the 4-day law):
@@ -297,7 +307,27 @@ final class AutoscaleClaims
         return ['type' => 'precompute', 'parent_id' => (string) $row->parent_id];
     }
 
-    private static function claimScope(AutoscaleRun $run, string $token, string $lane = 'auto', bool $priorityOnly = false): ?array
+    /**
+     * Which pile this lane prefers: true = line-splits, false = composites,
+     * null = no preference (leaf_lanes unset). Lane rank = the lease's
+     * position among this run's leases ordered by id, so exactly N lanes
+     * take the leaf pile; leaf_lanes >= the pool puts every lane on leaves.
+     */
+    private static function leafPreference(AutoscaleRun $run, string $token): ?bool
+    {
+        $n = (int) ($run->leaf_lanes ?? 0);
+        if ($n <= 0) {
+            return null;
+        }
+        $rank = (int) DB::table('autoscale_worker_leases')
+            ->where('run_id', (string) $run->id)
+            ->where('id', '<', $token)
+            ->count();
+
+        return $rank < $n;
+    }
+
+    private static function claimScope(AutoscaleRun $run, string $token, string $lane = 'auto', bool $priorityOnly = false, ?bool $preferLeaf = null): ?array
     {
         // Sweeps wait for the precompute pass (their Step 7 then reads the
         // table instead of paying ST_Intersection live).
@@ -315,7 +345,7 @@ final class AutoscaleClaims
         // lock — two workers can never both see a free heavy slot. The
         // heavy count ignores claims idle >30 min (orphans of killed
         // workers), so a kill can't wedge the lane shut.
-        $row = DB::transaction(function () use ($token, $lane, $priorityOnly) {
+        $row = DB::transaction(function () use ($token, $lane, $priorityOnly, $preferLeaf) {
             DB::statement("SELECT pg_advisory_xact_lock(hashtext('cga_heavy_claim'))");
 
             $allowHeavy = true;
@@ -339,6 +369,10 @@ final class AutoscaleClaims
 
             $heavyPredicate = $allowHeavy ? 'true' : 'false';
             $priorityPredicate = $priorityOnly ? 'h.priority_at IS NOT NULL' : 'true';
+            // The class pile (2026-09-02): an unstamped scope counts as a
+            // composite, the same fallback the dashboard uses.
+            $classPredicate = $preferLeaf === null ? 'true'
+                : ($preferLeaf ? 's2.is_leaf IS TRUE' : 'COALESCE(s2.is_leaf, false) = false');
             // THE DISPATCH POP (operator confirmation 2026-08-31): the
             // stamped GLOBAL walk_position is the whole benchmark's
             // sequence — block order, within-block order, and spill in one
@@ -359,6 +393,7 @@ final class AutoscaleClaims
                         JOIN apportionment_ledger h ON h.legislature_id = s2.legislature_id
                        WHERE s2.status = ?
                          AND {$priorityPredicate}
+                         AND {$classPredicate}
                          AND (COALESCE(s2.area_tier, h.area_tier, 1) < ? OR {$heavyPredicate})
                        ORDER BY {$order}
                        LIMIT 1

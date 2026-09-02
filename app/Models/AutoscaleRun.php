@@ -47,6 +47,7 @@ class AutoscaleRun extends Model
         'sizing_lease_at',
         'precompute_started_at',
         'auto_kill_minutes',
+        'leaf_lanes',
     ];
 
     protected $casts = [
@@ -68,6 +69,8 @@ class AutoscaleRun extends Model
         // Lane kill controls (operator order 2026-09-02): NULL = no
         // automatic kill; N = the pump kills scope claims older than N min.
         'auto_kill_minutes'  => 'integer',
+        // Two piles by class (operator order 2026-09-02): N lanes prefer line-splits.
+        'leaf_lanes'         => 'integer',
     ];
 
     public function items(): HasMany
