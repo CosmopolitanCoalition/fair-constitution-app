@@ -205,10 +205,22 @@ final class AutoscaleClaims
 
     private static function claimSingles(AutoscaleRun $run, string $token, ?int $blockRank = null): ?array
     {
-        $hasPending = DB::table('apportionment_ledger')
-            ->where('kind', 'single')
-            ->where('map_status', 'pending')
-            ->exists();
+        // THE SINGLES GATE IS CHEAP (lane-time audit 2026-09-02, window 1):
+        // the plain EXISTS on (kind, map_status) walked 65k index pages of
+        // singles that flipped to done this morning, 1.2 s on EVERY claim
+        // (41% of lane time on one-second leaf scopes). Two guards: the
+        // run's own counter answers "all singles done" without a query, and
+        // the probe is shaped for the partial index al_singles_pop_idx
+        // (position WHERE kind = single AND map_status = pending), which is
+        // empty when nothing is pending.
+        if ((int) $run->singles_total > 0 && (int) $run->singles_done >= (int) $run->singles_total) {
+            return null;
+        }
+        $hasPending = DB::selectOne("
+            SELECT 1 FROM apportionment_ledger
+             WHERE kind = 'single' AND map_status = 'pending'
+             ORDER BY position LIMIT 1
+        ") !== null;
         if (! $hasPending) {
             return null;
         }
