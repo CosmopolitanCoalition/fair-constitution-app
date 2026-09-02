@@ -76,13 +76,20 @@ class SubdivisionAutoseedService
 
     public const TEMPLATE_MASK = 'mask';
 
+    /** The operator's box method (2026-09-02) — see SubdivisionBoxSeedService. */
+    public const TEMPLATE_BOX = 'box';
+
+    // The mask stays callable by name but leaves the ladder (operator,
+    // 2026-09-02: its per-piece dissolve of thousand-part scopes was the
+    // memory event, and its arithmetic disagreed with its geometry on
+    // Alamudun); the box is the last-resort rung now.
     public const TEMPLATES = [
         self::TEMPLATE_SHORTEST,
         self::TEMPLATE_VERTICAL_STRIPS,
         self::TEMPLATE_HORIZONTAL_STRIPS,
         self::TEMPLATE_COMMUNITY_CELLS,
         self::TEMPLATE_COMPONENTS,
-        self::TEMPLATE_MASK,
+        self::TEMPLATE_BOX,
     ];
 
     /** Blade over-extension in degrees — giants/castelli are << 1°, so this always fully crosses. */
@@ -123,6 +130,7 @@ class SubdivisionAutoseedService
     public function __construct(
         private readonly PopulationRaster $raster,
         private readonly SubdivisionCellSeedService $cells,
+        private readonly SubdivisionBoxSeedService $box,
     ) {
     }
 
@@ -140,8 +148,11 @@ class SubdivisionAutoseedService
      */
     public function plan(string $scopeId, array $ctx, int $year = 2023, string $template = self::TEMPLATE_SHORTEST): array
     {
-        if (! in_array($template, self::TEMPLATES, true)) {
+        if (! in_array($template, self::TEMPLATES, true) && $template !== self::TEMPLATE_MASK) {
             throw new RuntimeException("Unknown districting template '{$template}'.");
+        }
+        if ($template === self::TEMPLATE_BOX) {
+            return $this->box->plan($scopeId, $ctx, $year);
         }
         if ($template === self::TEMPLATE_COMMUNITY_CELLS) {
             return $this->cells->plan($scopeId, $ctx, $year);

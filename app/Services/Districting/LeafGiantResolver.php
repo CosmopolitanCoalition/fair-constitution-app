@@ -389,9 +389,12 @@ class LeafGiantResolver
             ', [$scopeId]);
             $parts = (int) ($row->parts ?? 1);
             $largestShare = (float) ($row->largest_share ?? 1.0);
+            // THE BOX LEADS (operator method 2026-09-02): pure arithmetic on
+            // the envelope, one clip per piece, parts recorded, contiguity
+            // a hope not a gate. The mask is retired from the ladder.
             if ($parts > 1 && ($parts > $budget || $largestShare < 0.9)) {
                 $order = array_values(array_unique(array_merge(
-                    [SubdivisionAutoseedService::TEMPLATE_MASK],
+                    [SubdivisionAutoseedService::TEMPLATE_BOX],
                     $order,
                 )));
             }

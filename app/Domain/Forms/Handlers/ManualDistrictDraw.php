@@ -220,7 +220,15 @@ class ManualDistrictDraw implements FormHandler
         $parts = (int) $geo->parts;
         $cutComponents = (int) $geo->cut_components;
         $fragmentPieces = (int) $geo->fragment_pieces;
-        if ($cutComponents > 1 || $fragmentPieces > 1) {
+        // CONTIGUITY IS A HOPE, NOT A GATE (operator ruling 2026-09-02): the
+        // fragment refusal was an incorrect reading of Art. II §8 — the
+        // composite side has filed non-contiguous districts all along
+        // (Los Angeles County, USA map: mainland + Catalina + San Clemente).
+        // A MACHINE piece (planned_seats present: box, mask, components)
+        // files with its parts recorded and is_contiguous scored, never
+        // refused. The hand-draw path keeps the refusal as guidance.
+        $machinePiece = is_int($payload['planned_seats'] ?? null);
+        if (! $machinePiece && ($cutComponents > 1 || $fragmentPieces > 1)) {
             throw new ConstitutionalViolation(
                 "A district may not fragment {$giant->name}'s territory (the drawn shape cuts "
                 ."{$cutComponents} separate landmasses and carries the cut territory in {$fragmentPieces} "
