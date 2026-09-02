@@ -3431,10 +3431,12 @@ function formatPop(n) {
     // a TypeError inside a template aborts Vue's patch and freezes the
     // whole panel at its last paint (the "stuck at Proposing…" bug).
     if (n == null || Number.isNaN(n)) return '—'
-    if (n >= 1_000_000_000) return (n / 1_000_000_000).toFixed(1) + 'B'
-    if (n >= 1_000_000)     return (n / 1_000_000).toFixed(1) + 'M'
-    if (n >= 1_000)         return (n / 1_000).toFixed(0) + 'K'
-    return n.toLocaleString()
+    // PRECISION (operator order 2026-09-02): the sidebar rounded 2,361 and
+    // 1,806 both to "2K" and hid a 30% difference behind a 9/7 split.
+    // Below a million the exact figure shows; above it, two decimals.
+    if (n >= 1_000_000_000) return (n / 1_000_000_000).toFixed(2) + 'B'
+    if (n >= 1_000_000)     return (n / 1_000_000).toFixed(2) + 'M'
+    return Math.round(n).toLocaleString()
 }
 function pct(n, total, decimals = 1) {
     if (!total || total <= 0) return '0%'
