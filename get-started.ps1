@@ -512,11 +512,13 @@ if ($updated) {
     if ((",$profiles,") -like '*,dev,*') {
         Say '  Developer profile: the Vite dev server serves the interface (no build).'
     } else {
-        $buildMb = Clamp ($totalMb / 4.0) 1024 4096
-        Say "  Building the interface (memory cap ${buildMb}m)..."
+        # Cap plus an explicit V8 heap limit (WoS D2, 2026-09-02): Node died at a 505 MB heap under a 1024 MB cap.
+        $buildMb = Clamp ($totalMb / 4.0) 1536 4096
+        $heapMb = [int]($buildMb * 0.7)
+        Say "  Building the interface (memory cap ${buildMb}m, node heap ${heapMb}m)..."
         $env:MEM_VITE = "${buildMb}m"
-        Invoke-Docker compose run --rm --no-deps vite npm run build
-        if ($LASTEXITCODE -ne 0) { throw "The interface build failed under a ${buildMb}m cap. Run:  MEM_VITE=${buildMb}m docker compose run --rm --no-deps vite npm run build" }
+        Invoke-Docker compose run --rm --no-deps -e "NODE_OPTIONS=--max-old-space-size=$heapMb" vite npm run build
+        if ($LASTEXITCODE -ne 0) { throw "The interface build failed under a ${buildMb}m cap. Run:  MEM_VITE=${buildMb}m docker compose run --rm --no-deps -e NODE_OPTIONS=--max-old-space-size=$heapMb vite npm run build" }
         Remove-Item -Force -ErrorAction SilentlyContinue public/hot
     }
     Invoke-Docker compose restart app horizon scheduler

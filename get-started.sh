@@ -417,13 +417,19 @@ build_interface() {
   case ",$(get_env COMPOSE_PROFILES)," in
     *",dev,"*) say "  Developer profile: the Vite dev server serves the interface (no build)."; return 0;;
   esac
-  local host_mb="${total_mb:-4096}" build_mb
-  build_mb=$(clamp $(( host_mb / 4 )) 1024 4096)
-  say "  Building the interface (memory cap ${build_mb}m)..."
-  if MEM_VITE="${build_mb}m" docker compose run --rm --no-deps vite npm run build; then
+  # The cap alone is not enough (WoS D2, 2026-09-02): V8 sizes its own heap
+  # from what it believes is available and died at a 505 MB heap under a
+  # 1024 MB cap. The build gets an explicit heap limit at 70% of the cap,
+  # and the cap floor is 1536 MB: a production build of this interface
+  # needs about 1 GB of heap.
+  local host_mb="${total_mb:-4096}" build_mb heap_mb
+  build_mb=$(clamp $(( host_mb / 4 )) 1536 4096)
+  heap_mb=$(( build_mb * 70 / 100 ))
+  say "  Building the interface (memory cap ${build_mb}m, node heap ${heap_mb}m)..."
+  if MEM_VITE="${build_mb}m" docker compose run --rm --no-deps -e NODE_OPTIONS="--max-old-space-size=${heap_mb}" vite npm run build; then
     rm -f public/hot   # a stale dev-server marker would send browsers to :5173
   else
-    fail "The interface build failed under a ${build_mb}m cap. Nothing else changed. Fix, then run:  MEM_VITE=${build_mb}m docker compose run --rm --no-deps vite npm run build"
+    fail "The interface build failed under a ${build_mb}m cap. Nothing else changed. Fix, then run:  MEM_VITE=${build_mb}m docker compose run --rm --no-deps -e NODE_OPTIONS=--max-old-space-size=${heap_mb} vite npm run build"
   fi
 }
 
