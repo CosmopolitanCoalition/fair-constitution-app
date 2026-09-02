@@ -766,11 +766,15 @@ class PopulationRaster
      *
      * @return array{pop: int, source: string}
      */
-    public function measureByCutPath(string $scopeId, array $cutPath, int $year = 2023): array
+    public function measureByCutPath(string $scopeId, array $cutPath, int $year = 2023, float $islandPop = 0.0): array
     {
         [, $storedPop] = $this->coverageStats($scopeId, $year);
         $grid = $this->gridWithFallback($scopeId, $year);
         [$sum, $total] = self::sumByCutPath($grid, $cutPath);
+        // Whole parts riding this side (islands the blade never crossed) are
+        // in $total but in no chain — add their plan-time mass to this piece
+        // so the sides' shares sum to one (2026-09-02, the Kujalleq class).
+        $sum += max(0.0, $islandPop);
         $pop = ($total > 0 && $storedPop > 0)
             ? (int) round($storedPop * $sum / $total)
             : (int) round($sum);

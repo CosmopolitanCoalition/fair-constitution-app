@@ -342,14 +342,10 @@ class LeafGiantResolver
                 // real mismatch — it only stops overruling the plan on a
                 // one-seat rounding disagreement.
                 'planned_seats'   => $d['seats'] ?? null,
-                // THE PLAN'S FRAME (operator law restated 2026-09-02, the
-                // remote under-seating class): the head sets the budget; every
-                // denominator is the sum of the children. The plan's quota is
-                // pixel-mass / budget — the children's sum. The handler must
-                // seat the piece in THAT frame, never the row's (row / budget):
-                // where raster mass and row disagree (Chukotka, Taymyr,
-                // Nome, the atolls) the row frame under-seated leaves 2-4.
-                'plan_quota'      => (float) ($plan['quota'] ?? 0),
+                // ISLANDS COUNT (operator law 2026-09-02): the mass of the
+                // parts riding this piece whole, so the chain measurement
+                // sums to the scope (Kujalleq 9+5 on 16 lost its islands).
+                'island_pop'      => (float) ($d['island_pop'] ?? 0),
             ]);
             $ids[] = $res->recorded['district_id'];
         }

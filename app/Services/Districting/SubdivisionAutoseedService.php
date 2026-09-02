@@ -1177,6 +1177,9 @@ class SubdivisionAutoseedService
                 // whole scope, null = an absorb level broke the chain — the
                 // measurement falls back to the geometric path).
                 'cut_path'               => $cutPath,
+                // Island mass riding this side whole — the chain measurement
+                // must add it (2026-09-02, the Kujalleq class).
+                'island_pop'             => array_sum(array_map(fn (array $isl) => (float) $isl['pop'], $islands)),
             ];
 
             return;
