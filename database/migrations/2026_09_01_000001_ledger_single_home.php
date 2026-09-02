@@ -54,6 +54,9 @@ return new class extends Migration
                         WHERE map_status IN ('pending','running') AND block_rank IS NOT NULL");
         DB::statement('CREATE INDEX al_priority_idx ON apportionment_ledger (priority_at) WHERE priority_at IS NOT NULL');
         DB::statement('CREATE INDEX al_claim_idx ON apportionment_ledger (claim_token) WHERE claim_token IS NOT NULL');
+        // The block-priority index (2026_08_31_230000) skips itself on a virgin
+        // database because these columns did not exist yet; it lands here.
+        DB::statement('CREATE INDEX IF NOT EXISTS al_block_priority_idx ON apportionment_ledger (block_rank, block_order)');
 
         Schema::table('apportionment_ledger_scopes', function (Blueprint $t) {
             $t->uuid('id')->default(DB::raw('gen_random_uuid()'))->unique();
