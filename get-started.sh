@@ -339,7 +339,13 @@ configure_host_memory() {
     write_derived MEM_MAS       "${total_mb}m"
     write_derived MEM_NGINX     "${total_mb}m"
   else
-    write_derived MEM_HORIZON "$(clamp $(( budget_mb * sh_horizon / 1000 )) 512 65536)m"
+    # THE HORIZON FLOOR (WoS 2026-09-02, 41 restarts on a 4 GB host): the
+    # idle fleet alone is nine workers (default 2, long-running 2,
+    # autoscale 2, sim 2, prewarm 1) at ~64 MB resident plus the master,
+    # ~700 MB before any job runs, so a 512 MB cap was a kill loop at
+    # idle. 1024 funds the idle fleet plus one heavy job at its recycle
+    # bound (HostCapacity::workerRecycleHeavyMb, itself bounded by this cap).
+    write_derived MEM_HORIZON "$(clamp $(( budget_mb * sh_horizon / 1000 )) 1024 65536)m"
     write_derived MEM_APP     "$(clamp $(( budget_mb * sh_app / 1000 )) 128 8192)m"
     write_derived MEM_VITE    "$(clamp $(( budget_mb * sh_vite / 1000 )) 256 4096)m"
     write_derived ETL_MEM_LIMIT "$(clamp $(( budget_mb * sh_etl / 1000 )) 96 262144)m"
@@ -348,12 +354,19 @@ configure_host_memory() {
     write_derived MEM_REDIS_CACHE "${rc_mb}m"
     write_derived MEM_REDIS_QUEUE "${rq_mb}m"
     write_derived REDIS_CACHE_MAXMEMORY "$(( rc_mb * 85 / 100 ))mb"
-    aux_mb=$(clamp $(( budget_mb * sh_aux / 1000 )) 192 4096)
-    # Floors = the measured idle need of each service (WoS 2026-09-02:
-    # matrix idles at ~110 MB, the scheduler sat at the edge at 67 MB). A
-    # cap below the idle need is a kill loop, not a budget.
+    aux_mb=$(clamp $(( budget_mb * sh_aux / 1000 )) 640 4096)
+    # Floors = the measured PEAK need of each service, not its idle need
+    # (WoS 2026-09-02). Matrix idles at ~110 MB. The scheduler idles at
+    # ~74 MB, but schedule:work spawns four artisan children every minute
+    # (autoscale:pump, sim:pump, geodata:chain-download, geodata:pump)
+    # plus horizon:snapshot every five, each a full Laravel boot at 40 to
+    # 60 MB RSS, so its peak is ~375 MB. The old 96 MB idle floor killed
+    # a child every minute (35 restarts in 35 minutes) and the download
+    # handoff was never consumed. A cap below the peak need is a kill
+    # loop, not a budget. The aux pot floor (640) is the sum of the four
+    # service floors.
     write_derived MEM_MATRIX    "$(clamp $(( aux_mb * 40 / 100 )) 160 4096)m"
-    write_derived MEM_SCHEDULER "$(clamp $(( aux_mb * 35 / 100 )) 96 2048)m"
+    write_derived MEM_SCHEDULER "$(clamp $(( aux_mb * 35 / 100 )) 384 2048)m"
     write_derived MEM_MAS       "$(clamp $(( aux_mb * 17 / 100 )) 48 1024)m"
     write_derived MEM_NGINX     "$(clamp $(( aux_mb * 8 / 100 )) 32 512)m"
   fi

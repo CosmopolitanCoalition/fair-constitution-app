@@ -47,6 +47,9 @@ const events              = ref([])
 // Non-null while the ETL is paused on a per-country error awaiting an
 // operator decision (skip/retry/abort). Surfaced as a card by LiveProgress.
 const errorPause          = ref(null)
+// THE HANDOFF (WoS 2026-09-02): the download finished and the pull run has
+// not started. { chained_at, waiting_seconds } from the backend; null otherwise.
+const handoff             = ref(null)
 // Data-quality review summary — populated by the backend when lifecycle
 // ∈ {done, failed}. Null while running. Drives the ReviewIssuesSection
 // post-ETL, BEFORE the operator clicks Continue (apportionment).
@@ -255,6 +258,7 @@ async function fetchProgress() {
         bars.value           = data.bars || null   // Phase P.1 stacked-bar state
         events.value         = Array.isArray(data.events) ? data.events : []   // P.3
         errorPause.value     = data.error_pause || null
+        handoff.value        = data.handoff || null
         // The `review` block is no longer rendered in Step 2 — the legacy
         // inline ReviewIssuesSection moved into the Jurisdiction Viewer's
         // drill-down panels (see the comment above the "4. Review & Accept"
@@ -707,6 +711,13 @@ const isRunning  = computed(() => lifecycle.value === 'running')
 // escape-hatch law: a recovery control exists on every layer). The pause
 // state comes from the supervisor's `_paused_at` stamp in bars.json.
 const downloadPaused = computed(() => !!(bars.value && bars.value._paused_at))
+// The scheduler consumes the handoff marker within a minute. Past two minutes
+// the scheduler container is not running, and the card says so.
+const handoffLate      = computed(() => (handoff.value?.waiting_seconds ?? 0) > 120)
+const handoffWaitLabel = computed(() => {
+    const s = handoff.value?.waiting_seconds ?? 0
+    return s < 90 ? `${s} s` : `${Math.round(s / 60)} min`
+})
 const runOptionsDisabled = computed(() => isRunning.value || submitting.value)
 
 // Label for the primary "Start" button — download runs read differently.
@@ -1224,6 +1235,36 @@ onBeforeUnmount(() => {
                  panel does not cover (the download phase and the legacy
                  seed that follows it), so download bars lead straight into
                  ingestion bars. -->
+            <!-- THE HANDOFF (WoS 2026-09-02): the download finished and the
+                 multithreaded pull run has not started yet. The app scheduler
+                 (geodata:chain-download) consumes the handoff marker on its
+                 next tick, normally within a minute. A long wait means the
+                 scheduler container is not running; the page says so instead
+                 of rendering "import finished" over an empty planet. -->
+            <section v-if="lifecycle === 'handoff'"
+                     class="bg-gray-900 border border-sky-900 rounded-lg p-6 mb-6">
+                <div class="flex items-baseline justify-between mb-1">
+                    <h2 class="text-white font-semibold">2. Download complete — waiting for the ingest engine</h2>
+                    <span class="text-[11px]" :class="handoffLate ? 'text-amber-400' : 'text-sky-400'">
+                        {{ handoffLate ? 'late' : 'handing off' }}
+                    </span>
+                </div>
+                <p class="text-gray-400 text-xs mb-3">
+                    All files are downloaded. The multithreaded pull run starts on the app scheduler's
+                    next tick, normally within one minute. Waiting {{ handoffWaitLabel }}.
+                </p>
+                <div v-if="handoffLate"
+                     class="mb-3 rounded-md border border-amber-800/70 bg-amber-900/20 px-3 py-2 text-xs text-amber-200 leading-relaxed">
+                    The handoff has waited more than two minutes. The scheduler container is not consuming it.
+                    On the server run <code class="text-amber-100">docker compose ps scheduler</code> and
+                    <code class="text-amber-100">docker compose logs --tail 50 scheduler</code>. A restart loop
+                    there means its memory cap is below its need: update the app, run the installer again, then
+                    <code class="text-amber-100">docker compose up -d scheduler</code>. The handoff marker stays
+                    on disk and the run starts on the first surviving tick.
+                </div>
+                <StackedProgressBars :bars="bars" :current="current" :lifecycle="lifecycle" />
+            </section>
+
             <section v-if="isRunning && !pullRunActive"
                      class="bg-gray-900 border border-emerald-900 rounded-lg p-6 mb-6">
                 <div class="flex items-baseline justify-between mb-1">

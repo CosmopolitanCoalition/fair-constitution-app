@@ -114,9 +114,30 @@ class HostCapacity
      * (autoscale/sim/long-running) and light lanes (default queue) scale
      * with the host, floored at today's proven values so no box regresses.
      */
+    /**
+     * The idle fleet a closed Horizon cap must fund before any job runs:
+     * nine workers at the supervisor floors (default 2, long-running 2,
+     * autoscale 2, sim 2, prewarm 1) at ~64 MB resident each (WoS 2026-09-02).
+     */
+    public const IDLE_FLEET_MB = 9 * 64;
+
     public static function workerRecycleHeavyMb(): int
     {
-        return (int) max(512, min(2048, self::hostMemoryGb() * 64));
+        $heavy = (int) max(512, min(2048, self::hostMemoryGb() * 64));
+        // THE CAP BOUNDS THE RECYCLE (WoS 2026-09-02, 41 Horizon restarts on
+        // a 4 GB host): a worker may grow to this bound before Horizon
+        // recycles it, so the bound must fit inside the container cap after
+        // the master and the idle fleet, with room for two such workers at
+        // once. Floor 256 keeps a tiny host working. No cap known (the open
+        // profile writes the host size) leaves the host formula alone. On
+        // the reference box (7.6 GB Docker VM, cap 7.8 GB) this changes nothing: 512.
+        $capMb = self::horizonMemoryCapMb();
+        if ($capMb > 0) {
+            $room  = max(0, $capMb - self::horizonMasterMemoryMb() - self::IDLE_FLEET_MB);
+            $heavy = min($heavy, max(256, intdiv($room, 2)));
+        }
+
+        return $heavy;
     }
 
     public static function workerRecycleLightMb(): int

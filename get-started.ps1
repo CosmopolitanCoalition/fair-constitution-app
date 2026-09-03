@@ -338,7 +338,11 @@ function Configure-HostMemory {
     }
     $rcMb  = Clamp ($budgetMb * $sh.rcache / 1000.0) 256 16384
     $rqMb  = Clamp ($budgetMb * $sh.rqueue / 1000.0) 226 1024
-    $auxMb = Clamp ($budgetMb * $sh.aux / 1000.0) 192 4096
+    # Floors = the measured PEAK need (WoS 2026-09-02): scheduler 384 (the
+    # schedule:work parent plus five concurrent artisan children), horizon
+    # 1024 (the nine-worker idle fleet, the master and one heavy job), aux
+    # pot 640 (the sum of the four service floors). Mirrors get-started.sh.
+    $auxMb = Clamp ($budgetMb * $sh.aux / 1000.0) 640 4096
     $open  = ($profile -eq 'open')
     if ($open) { $rqMb = [int]((Clamp ($totalMb / 20.0) 192 512) * 100 / 85) }
 
@@ -378,14 +382,14 @@ function Configure-HostMemory {
         # so eviction (or the queue's volatile-ttl shed) always fires
         # before the cgroup killer reaps the whole redis.
         HOST_BUDGET_PCT = $budgetPct.ToString()
-        MEM_HORIZON = $(if ($open) { "${totalMb}m" } else { (Clamp ($budgetMb * $sh.horizon / 1000.0) 512 65536).ToString() + 'm' })
+        MEM_HORIZON = $(if ($open) { "${totalMb}m" } else { (Clamp ($budgetMb * $sh.horizon / 1000.0) 1024 65536).ToString() + 'm' })
         MEM_APP     = $(if ($open) { "${totalMb}m" } else { (Clamp ($budgetMb * $sh.app / 1000.0) 128 8192).ToString() + 'm' })
         MEM_VITE    = $(if ($open) { "${totalMb}m" } else { (Clamp ($budgetMb * $sh.vite / 1000.0) 256 4096).ToString() + 'm' })
         ETL_MEM_LIMIT = $(if ($open) { '0' } else { (Clamp ($budgetMb * $sh.etl / 1000.0) 96 262144).ToString() + 'm' })
         MEM_REDIS_CACHE = $(if ($open) { "${totalMb}m" } else { "${rcMb}m" })
         MEM_REDIS_QUEUE = $(if ($open) { "${totalMb}m" } else { "${rqMb}m" })
         MEM_MATRIX    = $(if ($open) { "${totalMb}m" } else { (Clamp ($auxMb * 0.40) 160 4096).ToString() + 'm' })
-        MEM_SCHEDULER = $(if ($open) { "${totalMb}m" } else { (Clamp ($auxMb * 0.35) 96 2048).ToString() + 'm' })
+        MEM_SCHEDULER = $(if ($open) { "${totalMb}m" } else { (Clamp ($auxMb * 0.35) 384 2048).ToString() + 'm' })
         MEM_MAS       = $(if ($open) { "${totalMb}m" } else { (Clamp ($auxMb * 0.17) 48 1024).ToString() + 'm' })
         MEM_NGINX     = $(if ($open) { "${totalMb}m" } else { (Clamp ($auxMb * 0.08) 32 512).ToString() + 'm' })
         REDIS_CACHE_MAXMEMORY = $(if ($open) { (Clamp ($totalMb / 10.0) 768 8192).ToString() + 'mb' } else { ([int]($rcMb * 0.85)).ToString() + 'mb' })

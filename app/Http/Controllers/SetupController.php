@@ -2080,6 +2080,41 @@ class SetupController extends Controller
         elseif ($failed !== null)    $lifecycle = 'failed';
         elseif ($done !== null)      $lifecycle = 'done';
 
+        // THE HANDOFF IS NOT THE END (WoS 2026-09-02). A download run's
+        // done.json carries `chained: pull`: the download finished and the
+        // multithreaded pull run is still to come (geodata:chain-download
+        // consumes control/chain_pull.json on the scheduler's next tick).
+        // Reporting that as `done` rendered "the import finished, map health
+        // clear" over an empty planet and fired the post-import warm-ups on
+        // nothing. Until the chained pull run has finished the lifecycle is
+        // `handoff` (the marker is still on disk, waiting for the scheduler)
+        // or `running` (the pull run exists and is unfinished). `done` comes
+        // back only when no unfinished run remains and the marker is gone.
+        $handoff = null;
+        if ($lifecycle === 'done' && is_array($done) && ($done['chained'] ?? null) === 'pull') {
+            $marker = $this->etlControlDir().'/chain_pull.json';
+            if (\App\Models\GeodataRun::unfinished() !== null) {
+                $lifecycle = 'running';
+            } elseif (is_file($marker)) {
+                $lifecycle = 'handoff';
+                $chainedAt = null;
+                try {
+                    $chainedAt = ! empty($done['finished_at']) ? \Carbon\Carbon::parse((string) $done['finished_at']) : null;
+                } catch (\Throwable) {
+                    $chainedAt = null;
+                }
+                $handoff = [
+                    'chained_at'      => $chainedAt?->toIso8601String(),
+                    'waiting_seconds' => $chainedAt ? max(0, (int) $chainedAt->diffInSeconds(now())) : null,
+                ];
+                // Earlier polls that read this state as `done` wrote the
+                // post-import sentinels over the empty planet. The real import
+                // is still ahead; the sentinels must not block its warm-ups.
+                @unlink($this->etlControlDir().'/caches_warmed.json');
+                @unlink($this->etlControlDir().'/raster_prewarm_dispatched.json');
+            }
+        }
+
         // Phase L: post-ETL viewer cache warmup. When the ETL has just
         // completed successfully, prime the most-visited GeoJSON endpoints
         // (Earth's children + every legislature's revealed view) so the first
@@ -2158,6 +2193,7 @@ class SetupController extends Controller
             'bars'                 => $bars,         // Phase P.1 stacked bars
             'progress'             => $progress,
             'error_pause'          => $errorPause,   // null when no pause active
+            'handoff'              => $handoff,      // download done, pull run not started (chained_at, waiting_seconds)
             'log_tail'             => $logTail,
             'events'               => $events,       // Phase P.3 structured events
             'jurisdictions_counts' => $this->jurisdictionsCounts(),
