@@ -28,25 +28,6 @@ const mapperHref = props.root_legislature_id
     ? `/legislatures/${props.root_jurisdiction?.slug ?? props.root_legislature_id}?setup=1`
     : null
 
-const summary = ref(null)
-const summaryError = ref('')
-
-async function loadSummary() {
-    try {
-        const res = await fetch('/api/setup/wizard/step3/summary', {
-            credentials: 'same-origin',
-            headers: { 'Accept': 'application/json' },
-        })
-        if (!res.ok) {
-            summaryError.value = `Could not load apportionment summary (HTTP ${res.status}).`
-            return
-        }
-        summary.value = await res.json()
-    } catch (e) {
-        summaryError.value = String(e)
-    }
-}
-
 // ── Autoscale dashboard (pull engine, 2026-07-19) ────────────────────────
 // Map-data acceptance kicks off the full-scale run: every jurisdiction gets
 // a sized legislature + a founding district map. This panel polls the run
@@ -71,7 +52,6 @@ let pollTimer = null             // the pending setTimeout of the poll chain
 let pollArmed = false            // true while the page wants the chain running
 let pollInFlight = false         // one request at a time
 let pollAbort = null             // AbortController of the in-flight request
-let summaryTick = 0
 
 const run = computed(() => autoscale.value?.run ?? null)
 const worldBuild = computed(() => autoscale.value?.world_build ?? null)
@@ -296,7 +276,6 @@ async function fetchAutoscale() {
         }
         autoscaleError.value = ''
         const data = await res.json()
-        const wasActive = runActive.value
         autoscale.value = data
         sampleSizing(autoscale.value?.run)
         {
@@ -316,15 +295,6 @@ async function fetchAutoscale() {
         }
 
         const status = autoscale.value?.run?.status
-        if (wasActive && !runActive.value) {
-            loadSummary()
-        }
-        // The Apportionment card reads the legislatures table — refresh its
-        // headline every ~20 s in EVERY active phase, so the numbers move
-        // without a manual page reload.
-        if (runActive.value && ++summaryTick % 10 === 0) {
-            loadSummary()
-        }
         // Terminal short-circuit only — halted/null keep polling (Resume or
         // an accept elsewhere must surface without a page reload).
         if (status === 'done' || status === 'failed') {
@@ -707,7 +677,6 @@ const phaseLabel = computed(() => {
 })
 
 onMounted(async () => {
-    await loadSummary()
     await fetchAutoscale()
     // ALWAYS arm unless the run is already terminal — a null or halted run
     // still polls (the old conditional arming was why the page froze until
@@ -1315,63 +1284,6 @@ onBeforeUnmount(() => {
                 </p>
             </section>
 
-            <!-- Apportionment summary -->
-            <section
-                v-if="summary"
-                class="bg-emerald-900/20 border border-emerald-800/50 rounded-lg p-5 mb-6"
-            >
-                <div class="flex items-baseline gap-2 mb-3">
-                    <span class="text-emerald-400 text-lg">✓</span>
-                    <h2 class="text-emerald-200 font-semibold">Apportionment</h2>
-                </div>
-                <div class="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
-                    <div>
-                        <div class="text-gray-400 text-xs uppercase tracking-wide">Legislatures sized</div>
-                        <div class="text-white text-xl font-semibold mt-1">{{ summary.legislatures.toLocaleString() }}</div>
-                    </div>
-                    <div>
-                        <div class="text-gray-400 text-xs uppercase tracking-wide">Total seats apportioned</div>
-                        <div class="text-white text-xl font-semibold mt-1">{{ summary.total_seats.toLocaleString() }}</div>
-                    </div>
-                    <div v-if="summary.largest">
-                        <div class="text-gray-400 text-xs uppercase tracking-wide">Largest legislature</div>
-                        <div class="text-white text-xl font-semibold mt-1">
-                            {{ summary.largest.name }}
-                            <span class="text-gray-400 text-sm font-normal">
-                                · {{ summary.largest.seats.toLocaleString() }} seats
-                            </span>
-                        </div>
-                    </div>
-                </div>
-                <!-- WI-9: enumerate the legislatures. Each row links to its
-                     own district mapper. -->
-                <div v-if="summary.rows?.length" class="mt-4 border-t border-emerald-800/50 pt-3">
-                    <div class="text-gray-400 text-xs uppercase tracking-wide mb-2">Legislatures</div>
-                    <ul class="space-y-1 text-sm">
-                        <li v-for="leg in summary.rows" :key="leg.slug" class="flex items-baseline gap-2">
-                            <a :href="`/legislatures/${leg.slug}`" class="text-emerald-300 hover:text-emerald-100 underline-offset-2 hover:underline">
-                                {{ leg.name }}
-                            </a>
-                            <span class="text-gray-400 text-xs tabular-nums">
-                                {{ (leg.type_a_seats + leg.type_b_seats).toLocaleString() }} seats
-                                <template v-if="leg.type_b_seats > 0">
-                                    ({{ leg.type_a_seats.toLocaleString() }} A + {{ leg.type_b_seats.toLocaleString() }} B)
-                                </template>
-                            </span>
-                        </li>
-                        <li v-if="summary.legislatures > summary.rows.length" class="text-gray-500 text-xs italic">
-                            … and {{ (summary.legislatures - summary.rows.length).toLocaleString() }} more
-                        </li>
-                    </ul>
-                </div>
-                <p class="text-gray-400 text-xs mt-4 italic">
-                    Cube-root sizing applied per Taagepera's law — every jurisdiction, all the way down.
-                </p>
-            </section>
-
-            <div v-else-if="summaryError" class="bg-red-900/30 border border-red-800 rounded p-4 text-sm text-red-200 mb-6">
-                {{ summaryError }}
-            </div>
 
             <section class="bg-gray-900 border border-gray-800 rounded-lg p-6 space-y-4">
                 <div v-if="!mapperHref" class="bg-amber-900/30 border border-amber-800 rounded p-4 text-sm text-amber-200">
