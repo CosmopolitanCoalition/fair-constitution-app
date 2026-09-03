@@ -2369,6 +2369,62 @@ class DistrictingService
             }
         }
 
+        // ── Step 11c: DRIFT-GATED POOL REPLAN (operator ruling 2026-09-03) ──
+        // Every repair above MOVES members between the finalized bins or
+        // re-partitions a small (<= 10-child) pool; none can RAISE the bin
+        // count. When the low-frac merge left too few bins to seat the pool
+        // budget (count x ceiling < budget), the pool drifts no matter how
+        // members move (Manjung's 20-seat pool shipped two [9,9] = 18 bins).
+        // If drift remains here, re-partition the SAME members into a feasible
+        // bin count with the file's own generators and adopt the result ONLY
+        // when it lands the budget exactly. Gated on drift, so clean scopes
+        // never enter this block and stay byte-identical.
+        $seatSum = array_sum(array_column($binData, 'seats'));
+        if ($seatSum !== $effectiveBudget && $totalBinPop > 0) {
+            $replan = $this->replanDriftedPool(
+                $binData, $childById, $adj, $centroids,
+                $effectiveBudget, $floor, $ceiling, $giantThreshold, $floorBoundary
+            );
+            if ($replan !== null) {
+                $rebuilt = [];
+                foreach ($replan as $g) {
+                    if (empty($g)) continue;
+                    $gp = 0;
+                    foreach ($g as $jid) {
+                        $gp += (int) $childById[$jid]->population;
+                    }
+                    $rebuilt[] = ['jids' => array_values($g), 'pop' => $gp, 'floor_override' => false, 'seats' => 0, 'fractional' => 0.0];
+                }
+                // Re-seat under the identical Step-11 arithmetic (nearest, then
+                // the fixed-composition landing). $binQuota is unchanged: the
+                // replan re-partitions the same members, so the pool pop and
+                // quota are identical.
+                $rSeats = $this->nearestSeatsWithSubFloorLifts(
+                    array_map(fn ($bb) => (float) $bb['pop'], $rebuilt),
+                    $binQuota, $effectiveBudget, $floor, $ceiling
+                );
+                if (array_sum($rSeats) !== $effectiveBudget) {
+                    $rOpt = $this->optimalIntegerTargets(
+                        array_map(fn ($bb) => (float) $bb['pop'], $rebuilt),
+                        $binQuota, $effectiveBudget, $floor, $ceiling
+                    );
+                    if ($rOpt !== [] && array_sum($rOpt) === $effectiveBudget) $rSeats = $rOpt;
+                }
+                // Adopt ONLY when the rebuilt pool lands the budget exactly.
+                // A miss leaves the current (drifted) bins untouched.
+                if (array_sum($rSeats) === $effectiveBudget) {
+                    foreach ($rebuilt as $bi3 => &$b) {
+                        $b['fractional']     = $b['pop'] / max($binQuota, 1);
+                        $b['seats']          = $rSeats[$bi3] ?? min($ceiling, max(1, (int) round($b['fractional'])));
+                        $b['floor_override'] = $b['seats'] < $floor;
+                    }
+                    unset($b);
+                    $binData  = $rebuilt;
+                    $binCount = count($binData);
+                }
+            }
+        }
+
         $this->stepEnd('step10.seat');
 
         // ── Step 12: Insert districts ──────────────────────────────────────────
@@ -6837,6 +6893,190 @@ class DistrictingService
             $s['avg_deviation_pct'],                     // 11. raw equality tiebreak
             $s['fragment_gap'],                          // 12. raw proximity — the very last word
         ];
+    }
+
+    /**
+     * DRIFT-GATED POOL REPLAN (operator ruling 2026-09-03, the Manjung /
+     * Bhopalpattnam / Phek / Thingsulthliah drift class).
+     *
+     * The bin pipeline can finalize a non-giant pool with FEWER bins than the
+     * budget can be seated into. The low-frac merge (Step 8) folds satellites
+     * into their nearest legal host until only near-ceiling bins remain, and
+     * when the survivors' count x ceiling < budget no seating can reach the
+     * pool budget — Manjung's 20-seat pool collapsed to two [9,9] = 18 bins,
+     * two seats short. The existing Step-11 repairs MOVE members between the
+     * finalized bins (repairSeatSumByMoves) or re-partition a small pool
+     * exhaustively (<= 10 children); none can RAISE the bin count, which is
+     * the exact miss here.
+     *
+     * This is the "make the bins in advance, then draw" pass. It runs ONLY
+     * when the finalized pool drifts (seat sum != pool budget), so every clean
+     * scope is byte-identical to before this pass existed — zero regression by
+     * construction. It re-partitions the SAME pool members (it never adds,
+     * drops, or reseats a giant) into a feasible bin count
+     * (>= ceil(budget / ceiling)) using the file's own trusted generators
+     * (sequentialBuild — the operator's manual method; geographicSeedExpansion),
+     * seats each candidate under the identical Step-11 arithmetic, and returns
+     * the best candidate that lands the budget EXACTLY. It returns null when no
+     * candidate lands exact — the caller then keeps the drifted result
+     * unchanged (no worse than today) and the completeness gate flags it.
+     *
+     * A pool of a single childless atom (a giant-consumed residue that must
+     * LINE-SPLIT its own geometry) has < 2 members and is out of scope here:
+     * that is the Class-B line-split path, a different mechanism.
+     *
+     * @param  array $binData current finalized bins: [['jids'=>[...],'pop'=>int], ...]
+     * @return array|null     a new bin set (list of jid lists) landing the
+     *                        budget exactly, or null to keep the current bins
+     */
+    private function replanDriftedPool(
+        array $binData,
+        array $childById,
+        array $adj,
+        array $centroids,
+        int   $budget,
+        int   $floor,
+        int   $ceiling,
+        float $giantThreshold,
+        float $floorBoundary
+    ): ?array {
+        // Flatten the pool members (order-stable, de-duplicated).
+        $members = [];
+        $seen    = [];
+        foreach ($binData as $b) {
+            foreach ($b['jids'] as $jid) {
+                if (isset($seen[$jid])) continue;
+                $seen[$jid] = true;
+                $members[]  = $jid;
+            }
+        }
+        $n = count($members);
+        if ($n < 2 || $budget < $floor) return null;
+
+        $totalPop = 0;
+        foreach ($members as $jid) {
+            $totalPop += (int) $childById[$jid]->population;
+        }
+        if ($totalPop <= 0) return null;
+        $quota = $totalPop / $budget;
+
+        // Feasible bin-count window. The lower bound is the whole point of this
+        // pass: at least ceil(budget / ceiling) bins so the ceiling can hold
+        // the budget. The upper bound keeps every bin able to reach the floor
+        // (budget / floor) and can never exceed the member count.
+        $minCount = (int) ceil($budget / $ceiling);
+        if ($minCount < 2) $minCount = 2;
+        $maxCount = min($n, intdiv($budget, $floor));
+        if ($maxCount < $minCount) return null;   // atoms cannot hold the budget in band
+
+        $edgeCapSq = $this->componentEdgeCapSq($members, $adj, $centroids);
+
+        // Population-descending order for the population-anchor seed set.
+        $byPop = $members;
+        usort($byPop, fn ($a, $b) =>
+            ((int) $childById[$b]->population <=> (int) $childById[$a]->population) ?: strcmp($a, $b)
+        );
+
+        // Seat a candidate under the exact Step-11 arithmetic; try the
+        // fixed-composition landing and the canonical-vector landing before
+        // giving up. Returns [bins, seats] landing the budget exactly, or null
+        // when this candidate cannot land exact.
+        $popOf   = fn (array $b) => (float) array_sum(array_map(fn ($jid) => (int) $childById[$jid]->population, $b));
+        $seatsOf = function (array $bins) use ($popOf, $quota, $budget, $floor, $ceiling, $childById, $adj, $centroids, $giantThreshold, $floorBoundary): ?array {
+            $bins = array_values(array_filter($bins, fn ($b) => !empty($b)));
+            if (count($bins) < 2) return null;
+
+            $pops  = array_map($popOf, $bins);
+            $seats = $this->nearestSeatsWithSubFloorLifts($pops, $quota, $budget, $floor, $ceiling);
+            if (array_sum($seats) !== $budget) {
+                $opt = $this->optimalIntegerTargets($pops, $quota, $budget, $floor, $ceiling);
+                if ($opt !== [] && array_sum($opt) === $budget) $seats = $opt;
+            }
+            if (array_sum($seats) === $budget) return [$bins, $seats];
+
+            // Move members to hit the canonical vector, then re-seat.
+            $canon = $this->canonicalPartition($budget, count($bins), $floor, $ceiling);
+            if ($canon !== null) {
+                $landed = $this->landSeatVector($bins, $canon, $childById, $centroids, $adj, $quota, $floor, $ceiling, $giantThreshold, $floorBoundary);
+                $landed = array_values(array_filter($landed, fn ($b) => !empty($b)));
+                if (count($landed) === count($bins)) {
+                    $lpops  = array_map($popOf, $landed);
+                    $lseats = $this->nearestSeatsWithSubFloorLifts($lpops, $quota, $budget, $floor, $ceiling);
+                    if (array_sum($lseats) !== $budget) {
+                        $opt = $this->optimalIntegerTargets($lpops, $quota, $budget, $floor, $ceiling);
+                        if ($opt !== [] && array_sum($opt) === $budget) $lseats = $opt;
+                    }
+                    if (array_sum($lseats) === $budget) return [$landed, $lseats];
+                }
+            }
+            return null;
+        };
+
+        $coversAll = function (array $bins) use ($members, $n): bool {
+            $flat = [];
+            foreach ($bins as $b) {
+                foreach ($b as $jid) $flat[$jid] = true;
+            }
+            if (count($flat) !== $n) return false;
+            foreach ($members as $jid) {
+                if (!isset($flat[$jid])) return false;
+            }
+            return true;
+        };
+
+        $best = null; $bestScore = null;
+        for ($k = $minCount; $k <= min($maxCount, $minCount + 3); $k++) {
+            // Every generator the k-loop trusts, at the forced k.
+            $candidates = [];
+            $candidates[] = $this->geographicSeedExpansion(
+                $members, $childById, $adj, $centroids,
+                array_slice($byPop, 0, $k), $giantThreshold, $floorBoundary, false, $budget, null, $edgeCapSq
+            );
+            $candidates[] = $this->geographicSeedExpansion(
+                $members, $childById, $adj, $centroids,
+                $this->farPointSeeds($byPop[0], $k, $members, $centroids), $giantThreshold, $floorBoundary, false, $budget, null, $edgeCapSq
+            );
+            foreach ([[true, true], [false, true], [true, false], [false, false]] as [$bigFirst, $adaptive]) {
+                $sb = $this->sequentialBuild($members, $childById, $adj, $centroids, $budget, $k, $quota, $giantThreshold, $floor, $ceiling, $bigFirst, $adaptive);
+                if ($sb !== null) $candidates[] = $sb;
+            }
+            $sbMetro = $this->sequentialBuild($members, $childById, $adj, $centroids, $budget, $k, $quota, $giantThreshold, $floor, $ceiling, true, true, true);
+            if ($sbMetro !== null) $candidates[] = $sbMetro;
+
+            // Expand each raw partition with its canonical-landed variant. A
+            // population partition can land exact yet carry a sub-floor bin
+            // (Manjung's [9,8,3] on a 20 pool where [9,6,5] exists): moving
+            // members toward the canonical vector opens an all-in-band drawing
+            // that beats it on scoreRank's floor_override_count key. Both forms
+            // compete; the comparator disposes.
+            $expanded = [];
+            foreach ($candidates as $bins) {
+                $bins = array_values(array_filter($bins, fn ($b) => !empty($b)));
+                if (count($bins) < 2) continue;
+                $expanded[] = $bins;
+                $canon = $this->canonicalPartition($budget, count($bins), $floor, $ceiling);
+                if ($canon !== null) {
+                    $landed = $this->landSeatVector($bins, $canon, $childById, $centroids, $adj, $quota, $floor, $ceiling, $giantThreshold, $floorBoundary);
+                    $landed = array_values(array_filter($landed, fn ($b) => !empty($b)));
+                    if (count($landed) === count($bins)) $expanded[] = $landed;
+                }
+            }
+
+            foreach ($expanded as $bins) {
+                if (!$coversAll($bins)) continue;
+                $seated = $seatsOf($bins);
+                if ($seated === null) continue;
+                [$finBins] = $seated;
+                if (!$coversAll($finBins)) continue;   // landSeatVector never drops members; guard anyway
+                $score = $this->scoreConfiguration($finBins, $childById, $adj, (float) $totalPop, $budget, $floor, $ceiling, $floorBoundary);
+                if ($best === null || $this->scoreBeats($score, $bestScore)) {
+                    $best      = $finBins;
+                    $bestScore = $score;
+                }
+            }
+        }
+
+        return $best;
     }
 
     /**
