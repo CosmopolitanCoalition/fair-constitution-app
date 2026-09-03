@@ -570,6 +570,9 @@ services:
       - etl_geodata:/data                  # downloaded geodata persists (can be large)
       - ./docs:/docs:ro                    # constitutional docs (not ETL data)
       - ${ARCHIVE_PATH:-./data/archive}:/archive:ro  # geoBoundaries+WorldPop archive (override with ARCHIVE_PATH env in .env)
+      # The Protomaps download lands straight in the served folder (WoS 2026-09-02):
+      # the same PROTOMAPS_DIR the app serves, writable here.
+      - ${PROTOMAPS_DIR:-./data/protomaps}:/protomaps
     environment:
       DB_HOST: postgres
       DB_PORT: 5432
@@ -577,6 +580,7 @@ services:
       DB_USER: fc_user
       DB_PASSWORD: fc_password
       DATA_ROOT: /archive                  # ETL scripts read geoBoundaries/WorldPop from here
+      PROTOMAPS_OUT: /protomaps            # the served basemap folder, writable (download_datasets.py)
       # Pull-engine operator dials (empty = derive from the container budget).
       CGA_ETL_WORKERS: ${CGA_ETL_WORKERS:-}
       # Wait-aware wiring (outside review catch, 2026-08-30): supervisor.py

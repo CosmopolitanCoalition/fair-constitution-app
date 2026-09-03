@@ -3811,7 +3811,29 @@ class SetupController extends Controller
         $archiveEnv = $this->readEnvValue('ARCHIVE_PATH');
         $isDefaultPath = ($archiveEnv === null || $archiveEnv === '' || $archiveEnv === './data/archive');
         $anyPresent = ($gbCount > 0 || $wpCount > 0 || count($pmFiles) > 0);
-        $applyPending = (! $isDefaultPath && $gbCount === 0 && $wpCount === 0);
+        // THE BIND CHECK (WoS 2026-09-02): an applied bind over an EMPTY folder
+        // was reported as "the containers haven't picked it up yet". On a
+        // Linux host /proc/self/mountinfo names the host path behind /archive
+        // (field 4); when it equals the .env value the bind is applied and
+        // the folder is simply empty. Docker Desktop shows a VM path there,
+        // so the check answers null and the old advice stands.
+        $bindOk = null;
+        if (is_string($archiveEnv) && str_starts_with($archiveEnv, '/') && is_readable('/proc/self/mountinfo')) {
+            foreach (file('/proc/self/mountinfo', FILE_IGNORE_NEW_LINES) ?: [] as $line) {
+                $f = preg_split('/\s+/', $line);
+                if (($f[4] ?? '') !== '/archive') {
+                    continue;
+                }
+                $root = rtrim(str_replace('\\040', ' ', $f[3] ?? ''), '/');
+                if (str_starts_with($root, '/run/desktop/') || str_starts_with($root, '/host_mnt/')) {
+                    break;                       // Docker Desktop: a VM path, not comparable
+                }
+                $bindOk = ($root === rtrim($archiveEnv, '/'));
+                break;
+            }
+        }
+        $archiveEmpty = ($bindOk === true && ! $anyPresent);
+        $applyPending = (! $isDefaultPath && $gbCount === 0 && $wpCount === 0 && $bindOk !== true);
 
         return response()->json([
             // The container-visible mount points (constant); the HOST folder is
@@ -3824,6 +3846,8 @@ class SetupController extends Controller
             // still needs a `docker compose up -d` to take effect.
             'archive_env_path' => $archiveEnv,
             'apply_pending'    => $applyPending,
+            'archive_bind_ok'  => $bindOk,
+            'archive_empty'    => $archiveEmpty,
             'datasets' => [
                 'geoboundaries' => [
                     'present'   => $gbCount > 0,

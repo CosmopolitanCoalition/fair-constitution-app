@@ -771,7 +771,18 @@ onBeforeUnmount(() => {
                      operator ran stop/start (or Docker Desktop restart), which
                      reuses the old mount. Recreation via `up -d` is required. -->
                 <div
-                    v-if="sources?.apply_pending"
+                    v-if="sources?.archive_empty"
+                    class="mb-4 rounded-md border border-sky-700 bg-sky-900/20 px-4 py-3 text-sky-100 text-sm"
+                >
+                    <p class="font-semibold text-sky-200">Your folder is mounted and empty</p>
+                    <p class="mt-1 text-sky-100/90">
+                        <code class="text-sky-200 break-all">{{ sources.archive_env_path }}</code> is bound to
+                        <code>/archive</code>. It holds no datasets yet. Download below, or place the files in that
+                        folder, then click Re-check. No container restart is needed.
+                    </p>
+                </div>
+                <div
+                    v-else-if="sources?.apply_pending"
                     class="mb-4 rounded-md border border-amber-600 bg-amber-900/30 px-4 py-3 text-amber-100 text-sm"
                 >
                     <div class="flex items-start gap-2">

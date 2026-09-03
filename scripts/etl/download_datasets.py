@@ -974,6 +974,18 @@ def download_protomaps(protomaps_root: Path) -> bool:
     if stamp is None:
         return False
 
+    # THE SERVED FOLDER FIRST (WoS 2026-09-02): compose now binds the app's
+    # PROTOMAPS_DIR into this container at $PROTOMAPS_OUT (/protomaps),
+    # writable. When it is there the file lands where the app serves it and
+    # no operator step follows. The etl volume stays the fallback.
+    served = Path(os.environ.get("PROTOMAPS_OUT", "/protomaps"))
+    landed_in_served = False
+    if served.is_dir() and os.access(served, os.W_OK):
+        protomaps_root = served
+        landed_in_served = True
+    else:
+        protomaps_root.mkdir(parents=True, exist_ok=True)
+
     url = PROTOMAPS_BUILD_URL.format(date=stamp)
     dest = protomaps_root / f"{stamp}.pmtiles"
     heartbeat.write_current(
@@ -986,8 +998,10 @@ def download_protomaps(protomaps_root: Path) -> bool:
         bar_key="download:protomaps",
     )
 
-    if ok:
-        # The etl container can't write into the app's protomaps mount. Tell the
+    if ok and landed_in_served:
+        logger.info("Protomaps basemap saved to the served folder: %s (the app serves it at /maps/protomaps/%s.pmtiles; click Re-check on Step 2)", dest, stamp)
+    elif ok:
+        # The served folder was not mounted writable in this container. Tell the
         # operator exactly where the file is (inside the etl_geodata volume) and
         # what PROTOMAPS_DIR must point at. The container path is /data/protomaps;
         # the host path is wherever docker put the etl_geodata volume (or, if the
