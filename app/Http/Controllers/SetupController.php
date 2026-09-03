@@ -2935,6 +2935,144 @@ class SetupController extends Controller
     }
 
     /**
+     * THE DASHBOARD PAYS FOR ITSELF ONCE PER WINDOW (2026-09-03, the
+     * post-reboot disk storm). One viewer polling every 5 s re-ran the
+     * full-ledger aggregates (940k headers, 1M scopes) on every poll once a
+     * cold cache pushed each set past the 5 s per-aggregate TTL: 21
+     * sequential scans and 3.5 GB of disk reads per 20 s, and the lanes'
+     * PostGIS steps ran 2 to 5 times slower. The heavy payload is now a
+     * single-flight SNAPSHOT: one request computes it under a lock, every
+     * other request and the next PROGRESS_SNAPSHOT_SECONDS of polls read the
+     * stored copy. The cheap live parts (run status, the lane strip, the
+     * in-flight scope list) refresh on every poll.
+     */
+    public const PROGRESS_SNAPSHOT_SECONDS = 15;
+
+    public function autoscaleProgress(): JsonResponse
+    {
+        $run = \App\Models\AutoscaleRun::query()->orderByDesc('created_at')->first();
+        if ($run === null) {
+            return response()->json([
+                'run' => null,
+                'world_build' => $this->worldBuildBlock(),
+                'type_b_flagged' => (int) Cache::remember('autoscale.type_b_flagged.none', 5, fn () =>
+                    DB::table('legislatures')
+                        ->where('type_b_needs_districting', true)->whereNull('deleted_at')->count()),
+            ]);
+        }
+
+        $snapKey  = 'autoscale.progress.snapshot.'.$run->id;
+        $freshKey = $snapKey.'.fresh';
+        $payload  = Cache::get($snapKey);
+        if (! is_array($payload) || ! Cache::has($freshKey)) {
+            $lock = Cache::lock('autoscale.progress.lock.'.$run->id, 120);
+            if ($lock->get()) {
+                try {
+                    $payload = $this->autoscaleProgressPayload($run);
+                    $payload['snapshot_at'] = now()->toIso8601String();
+                    Cache::put($snapKey, $payload, 900);
+                    Cache::put($freshKey, 1, self::PROGRESS_SNAPSHOT_SECONDS);
+                } finally {
+                    $lock->release();
+                }
+            } elseif (! is_array($payload)) {
+                // First viewer while another request computes: wait for the copy
+                // rather than starting a second scan of the ledger.
+                for ($i = 0; $i < 60 && ! is_array($payload); $i++) {
+                    usleep(500000);
+                    $payload = Cache::get($snapKey);
+                }
+                if (! is_array($payload)) {
+                    $payload = $this->autoscaleProgressPayload($run);
+                    $payload['snapshot_at'] = now()->toIso8601String();
+                }
+            }
+        }
+
+        // The live overlay: cheap reads, fresh on every poll.
+        $autoKill = $run->getAttributes()['auto_kill_minutes'] ?? null;
+        $payload['run'] = array_merge(is_array($payload['run'] ?? null) ? $payload['run'] : [], [
+            'status'            => $run->status,
+            'finished_at'       => $run->finished_at?->toIso8601String(),
+            'heartbeat_at'      => $run->updated_at?->toIso8601String(),
+            'halt_requested'    => $run->halt_requested_at !== null,
+            'paused_until'      => $run->isPaused() ? $run->paused_until->toIso8601String() : null,
+            'auto_kill_minutes' => $autoKill !== null ? (int) $autoKill : null,
+        ]);
+        [$workers, $workersDetail] = $this->liveWorkersBlock($run);
+        $payload['run']['workers'] = $workers;
+        $payload['workers_detail'] = $workersDetail;
+        $payload['live_items']     = $this->liveItemsBlock();
+
+        return response()->json($payload);
+    }
+
+    /** The in-flight scope list (the live sweep view), indexed and cheap. */
+    private function liveItemsBlock(): \Illuminate\Support\Collection
+    {
+        $liveItems = DB::table('apportionment_ledger_scopes as s')
+            ->join('jurisdictions as j', 'j.id', '=', 's.scope_jurisdiction_id')
+            ->join('apportionment_ledger as h', 'h.legislature_id', '=', 's.legislature_id')
+            ->where('s.status', 'running')
+            ->orderBy('s.started_at')
+            ->limit(15)
+            ->get([
+                's.legislature_id', 's.scope_jurisdiction_id as jurisdiction_id',
+                'h.adm_level', 'h.kind', 's.status', 's.started_at', 's.depth',
+                'j.name as jurisdiction_name', 'j.slug as jurisdiction_slug',
+            ]);
+
+        return $liveItems;
+    }
+
+    /**
+     * The lane strip: one row per lane, cheap on every poll.
+     *
+     * @return array{0:int, 1:\Illuminate\Support\Collection}
+     */
+    private function liveWorkersBlock(\App\Models\AutoscaleRun $run): array
+    {
+        // Live workers = a fresh heartbeat OR an open claim (operator order
+        // 2026-08-30, lane visibility): a lane deep in one long PostGIS
+        // call cannot heartbeat, and it must stay on the strip with its
+        // claim label and elapsed seconds for as long as the claim is open.
+        $workerRows = DB::table('autoscale_worker_leases')
+            ->where('run_id', $run->id)
+            ->where(function ($q) {
+                $q->where('last_seen_at', '>', now()->subMinutes(2))
+                  ->orWhere(function ($q2) {
+                      $q2->whereNotNull('claim_started_at')
+                         ->where('claim_started_at', '>', now()->subHours(4));
+                  });
+            })
+            // Longest-running claim on top (operator order 2026-08-30): the
+            // grinders lead the strip, fresh claims join at the bottom.
+            ->orderByRaw('claim_started_at ASC NULLS LAST, started_at')
+            // All columns on purpose: kill_requested_at lands with the
+            // Workstream A migration, and a named select of a column that
+            // does not exist yet would break the page before it runs. The
+            // lease table holds one row per lane, so the width is free.
+            ->get();
+        $workers = $workerRows->count();
+        $workersDetail = $workerRows->map(fn ($w) => [
+            'id'          => substr((string) $w->id, 0, 8),
+            // The full lease id is the {leaseId} the kill endpoint takes.
+            'lease_id'    => (string) $w->id,
+            'claim_type'  => $w->claim_type,
+            'claim_label' => $w->claim_label,
+            'claim_secs'  => $w->claim_started_at !== null
+                ? max(0, (int) now()->diffInSeconds(\Illuminate\Support\Carbon::parse($w->claim_started_at), true))
+                : null,
+            // A kill is a request the lane honors at its next boundary; the
+            // page shows "kill requested" until the claim ends.
+            'kill_requested' => ($w->kill_requested_at ?? null) !== null,
+        ])->values();
+
+        return [$workers, $workersDetail];
+    }
+
+
+    /**
      * GET /api/setup/wizard/step3/autoscale-progress. The Step-3 dashboard's
      * poll target during a full-scale autoscale run (2 s cadence while the
      * run works, 10 s while it is halted or paused; the page stops on
@@ -2954,18 +3092,8 @@ class SetupController extends Controller
      * indexed reads (the running set, the lease strip, the idle-cause
      * probes) stay per-poll.
      */
-    public function autoscaleProgress(): JsonResponse
+    private function autoscaleProgressPayload(\App\Models\AutoscaleRun $run): array
     {
-        $run = \App\Models\AutoscaleRun::query()->orderByDesc('created_at')->first();
-        if ($run === null) {
-            return response()->json([
-                'run' => null,
-                'world_build' => $this->worldBuildBlock(),
-                'type_b_flagged' => (int) Cache::remember('autoscale.type_b_flagged.none', 5, fn () =>
-                    DB::table('legislatures')
-                        ->where('type_b_needs_districting', true)->whereNull('deleted_at')->count()),
-            ]);
-        }
 
         // Lane deadlines are WARNINGS, not kills (operator ruling
         // 2026-09-02): the page colors a lane amber past the first
@@ -2985,17 +3113,7 @@ class SetupController extends Controller
         // Live + review slices (names joined for the dashboard's tables).
         // Under the pull engine the live sweep view is the SCOPE list — the
         // real in-flight work units (Earth's provinces show individually).
-        $liveItems = DB::table('apportionment_ledger_scopes as s')
-            ->join('jurisdictions as j', 'j.id', '=', 's.scope_jurisdiction_id')
-            ->join('apportionment_ledger as h', 'h.legislature_id', '=', 's.legislature_id')
-            ->where('s.status', 'running')
-            ->orderBy('s.started_at')
-            ->limit(15)
-            ->get([
-                's.legislature_id', 's.scope_jurisdiction_id as jurisdiction_id',
-                'h.adm_level', 'h.kind', 's.status', 's.started_at', 's.depth',
-                'j.name as jurisdiction_name', 'j.slug as jurisdiction_slug',
-            ]);
+        $liveItems = $this->liveItemsBlock();
 
         $reviewItems = DB::table('apportionment_ledger as h')
             ->join('jurisdictions as j', 'j.id', '=', 'h.jurisdiction_id')
@@ -3196,43 +3314,9 @@ class SetupController extends Controller
                 ->where('area_tier', '<', 4)->exists();
         }
 
-        // Live workers = a fresh heartbeat OR an open claim (operator order
-        // 2026-08-30, lane visibility): a lane deep in one long PostGIS
-        // call cannot heartbeat, and it must stay on the strip with its
-        // claim label and elapsed seconds for as long as the claim is open.
-        $workerRows = DB::table('autoscale_worker_leases')
-            ->where('run_id', $run->id)
-            ->where(function ($q) {
-                $q->where('last_seen_at', '>', now()->subMinutes(2))
-                  ->orWhere(function ($q2) {
-                      $q2->whereNotNull('claim_started_at')
-                         ->where('claim_started_at', '>', now()->subHours(4));
-                  });
-            })
-            // Longest-running claim on top (operator order 2026-08-30): the
-            // grinders lead the strip, fresh claims join at the bottom.
-            ->orderByRaw('claim_started_at ASC NULLS LAST, started_at')
-            // All columns on purpose: kill_requested_at lands with the
-            // Workstream A migration, and a named select of a column that
-            // does not exist yet would break the page before it runs. The
-            // lease table holds one row per lane, so the width is free.
-            ->get();
-        $workers = $workerRows->count();
-        $workersDetail = $workerRows->map(fn ($w) => [
-            'id'          => substr((string) $w->id, 0, 8),
-            // The full lease id is the {leaseId} the kill endpoint takes.
-            'lease_id'    => (string) $w->id,
-            'claim_type'  => $w->claim_type,
-            'claim_label' => $w->claim_label,
-            'claim_secs'  => $w->claim_started_at !== null
-                ? max(0, (int) now()->diffInSeconds(\Illuminate\Support\Carbon::parse($w->claim_started_at), true))
-                : null,
-            // A kill is a request the lane honors at its next boundary; the
-            // page shows "kill requested" until the claim ends.
-            'kill_requested' => ($w->kill_requested_at ?? null) !== null,
-        ])->values();
+        [$workers, $workersDetail] = $this->liveWorkersBlock($run);
 
-        return response()->json([
+        return [
             'run' => [
                 'id'                 => (string) $run->id,
                 'status'             => $run->status,
@@ -3297,7 +3381,7 @@ class SetupController extends Controller
             'type_b_flagged' => (int) Cache::remember('autoscale.type_b_flagged.'.$run->id, 5, fn () =>
                 DB::table('legislatures')
                     ->where('type_b_needs_districting', true)->whereNull('deleted_at')->count()),
-        ]);
+        ];
     }
 
     /**
