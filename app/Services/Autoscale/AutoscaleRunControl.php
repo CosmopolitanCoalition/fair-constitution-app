@@ -147,6 +147,63 @@ class AutoscaleRunControl
     }
 
     /**
+     * Redraw completed maps that finalized with a nonzero drift (operator
+     * order 2026-09-03: "run them through"). recheckDrift only re-sums the
+     * existing districts; this REQUEUES the drifted done header and its scope
+     * tree to pending at priority, so the lanes draw the map afresh with the
+     * current engine. Used once the engine can seat a map that previously
+     * drifted (the drift-gated pool replan). Same status-clear as
+     * requeueReviewMaps, plus the drift/seats_seated reset. A gate-refused
+     * header only moves when its data changes, so it is left in place.
+     *
+     * @param  array<int,string>|null  $legislatureIds  null = every drifted done map
+     * @return array{ok:bool, requeued?:int, error?:string}
+     */
+    public function requeueDriftMaps(?array $legislatureIds = null): array
+    {
+        $run = AutoscaleRun::unfinished();
+        if ($run === null) {
+            return ['ok' => false, 'error' => 'No active autoscale run.'];
+        }
+
+        $ids = DB::table('apportionment_ledger')
+            ->where('map_status', 'done')
+            ->whereNotNull('drift')->where('drift', '<>', 0)
+            ->whereNull('gate_reason')
+            ->when($legislatureIds !== null, fn ($q) => $q->whereIn('legislature_id', $legislatureIds))
+            ->pluck('legislature_id');
+
+        $n = 0;
+        foreach ($ids->chunk(5000) as $chunk) {
+            DB::table('apportionment_ledger_scopes')
+                ->whereIn('legislature_id', $chunk)
+                ->update([
+                    'status' => 'pending', 'claim_token' => null, 'reason' => null,
+                    'started_at' => null, 'finished_at' => null,
+                    'retry_count' => 0, 'updated_at' => now(),
+                ]);
+            $n += DB::table('apportionment_ledger')
+                ->whereIn('legislature_id', $chunk)
+                ->update([
+                    // redraw_requested_at is LOAD-BEARING: it makes the sweep's
+                    // adopt-existing-map guard skip and redraw through the
+                    // audited replace path (SweepScopeProcessor). Without it a
+                    // requeued done map is ADOPTED (its old drifted districts
+                    // kept) instead of redrawn. The processor clears the flag
+                    // after the redraw, so the bypass is one-shot.
+                    'map_status'          => 'pending', 'reason' => null, 'claim_token' => null,
+                    'redraw_requested_at' => now(), 'priority_at' => now(),
+                    'drift'               => null, 'seats_seated' => null,
+                    'started_at'          => null, 'finished_at' => null,
+                    'updated_at'          => now(),
+                ]);
+        }
+        Artisan::call('autoscale:pump');
+
+        return ['ok' => true, 'requeued' => $n];
+    }
+
+    /**
      * Recompute a completed map's seated total and drift from its CURRENT
      * active districts (operator order 2026-09-03: "a recheck button on the
      * drift maps ... I can make changes in the map manually ... close the loop
