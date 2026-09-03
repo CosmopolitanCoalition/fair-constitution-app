@@ -396,11 +396,38 @@ async function resumeRun(requeueReview = false) {
 }
 
 // Review requeue + drift recheck, per-row and all (operator order 2026-09-03).
-// requeueReview puts review/failed maps back on the pile mid-run at priority;
-// recheckDrift recomputes a completed map's seated total from its current
-// districts so a manual fix in the mapper closes the loop with no redraw.
-// rowBusy holds the legislature_id of the row currently acting (per-row spinner).
+// The review and drift lists live in the ~60 s cached snapshot, so a map queued
+// back or rechecked-to-zero would otherwise linger in the list until the
+// snapshot catches up (operator, 2026-09-03: "it did queue back but the row
+// stuck around"). We hide it the instant the action succeeds and keep hiding it
+// until a poll's payload confirms it is gone — then stop, so a map that later
+// returns to review reappears. rowBusy is the row acting now (per-row spinner).
 const rowBusy = ref('')
+const requeuedIds = ref(new Set())       // review maps queued back, hidden until the snapshot drops them
+const clearedDriftIds = ref(new Set())   // drift maps rechecked to 0, hidden until the snapshot drops them
+
+const reviewItems = computed(() =>
+    (autoscale.value?.review_items ?? []).filter(it => !requeuedIds.value.has(it.legislature_id)))
+const driftItems = computed(() =>
+    (autoscale.value?.drifted_items ?? []).filter(it => !clearedDriftIds.value.has(it.legislature_id)))
+const reviewCount = computed(() => {
+    const base = run.value?.attention_count ?? run.value?.review_count ?? (autoscale.value?.review_items?.length ?? 0)
+    return Math.max(reviewItems.value.length, base - requeuedIds.value.size)
+})
+const driftCount = computed(() => {
+    const base = run.value?.drifted_done ?? (autoscale.value?.drifted_items?.length ?? 0)
+    return Math.max(driftItems.value.length, base - clearedDriftIds.value.size)
+})
+
+// Stop hiding an id once the fresh payload no longer lists it (snapshot caught up).
+watch(autoscale, (data) => {
+    if (!data) return
+    const rev = new Set((data.review_items ?? []).map(i => i.legislature_id))
+    requeuedIds.value.forEach(id => { if (!rev.has(id)) requeuedIds.value.delete(id) })
+    const dr = new Set((data.drifted_items ?? []).map(i => i.legislature_id))
+    clearedDriftIds.value.forEach(id => { if (!dr.has(id)) clearedDriftIds.value.delete(id) })
+})
+
 async function postRowAction(url, ids) {
     if (ids && ids.length === 1) rowBusy.value = ids[0]; else actionBusy.value = true
     try {
@@ -420,8 +447,17 @@ async function postRowAction(url, ids) {
         actionBusy.value = false
     }
 }
-const requeueReview = (ids = null) => postRowAction('/api/setup/wizard/step3/requeue-review', ids)
-const recheckDrift  = (ids = null) => postRowAction('/api/setup/wizard/step3/recheck-drift', ids)
+async function requeueReview(ids = null) {
+    const targets = ids ?? reviewItems.value.map(it => it.legislature_id)
+    const data = await postRowAction('/api/setup/wizard/step3/requeue-review', ids)
+    if (data?.ok) targets.forEach(id => requeuedIds.value.add(id))
+}
+async function recheckDrift(ids = null) {
+    const data = await postRowAction('/api/setup/wizard/step3/recheck-drift', ids)
+    if (data?.ok && Array.isArray(data.results)) {
+        data.results.forEach(r => { if (r.drift === 0) clearedDriftIds.value.add(r.legislature_id) })
+    }
+}
 
 // "Rewind mapping" — the UI door to `autoscale:revert` (UI↔CLI parity). Only
 // offered on a HALTED run (the command's own guard), and the confirm dialog is
@@ -1069,10 +1105,10 @@ onBeforeUnmount(() => {
                 </div>
 
                 <!-- Review list -->
-                <div v-if="autoscale.review_items?.length" class="mt-4 border-t border-gray-700/50 pt-3">
+                <div v-if="reviewItems.length" class="mt-4 border-t border-gray-700/50 pt-3">
                     <div class="flex items-center justify-between mb-2">
                         <div class="text-amber-300 text-xs uppercase tracking-wide">
-                            Needs attention ({{ (run.attention_count ?? run.review_count).toLocaleString() }})
+                            Needs attention ({{ reviewCount.toLocaleString() }})
                         </div>
                         <div class="flex items-center gap-2">
                             <!-- Queue all back is visible MID-RUN (operator order
@@ -1085,7 +1121,7 @@ onBeforeUnmount(() => {
                                 :disabled="actionBusy"
                                 class="text-xs px-2 py-1 rounded border border-amber-700 text-amber-200 hover:bg-amber-900/40 transition-colors disabled:opacity-50"
                             >
-                                Queue all back
+                                Requeue all
                             </button>
                             <button
                                 v-else
@@ -1109,7 +1145,7 @@ onBeforeUnmount(() => {
                                 </tr>
                             </thead>
                             <tbody class="text-gray-300">
-                                <tr v-for="it in autoscale.review_items" :key="it.legislature_id" class="border-t border-gray-800">
+                                <tr v-for="it in reviewItems" :key="it.legislature_id" class="border-t border-gray-800">
                                     <td class="py-1.5 pr-2 whitespace-nowrap">
                                         <a :href="`/legislatures/${it.jurisdiction_slug}`" target="_blank"
                                            class="text-amber-300 hover:text-amber-100 underline-offset-2 hover:underline">
@@ -1126,7 +1162,7 @@ onBeforeUnmount(() => {
                                             :disabled="actionBusy || rowBusy === it.legislature_id"
                                             class="text-[11px] px-2 py-0.5 rounded border border-amber-700 text-amber-200 hover:bg-amber-900/40 transition-colors disabled:opacity-50"
                                         >
-                                            {{ rowBusy === it.legislature_id ? 'Queuing…' : 'Queue back' }}
+                                            {{ rowBusy === it.legislature_id ? 'Requeuing…' : 'Requeue' }}
                                         </button>
                                     </td>
                                 </tr>
@@ -1139,10 +1175,10 @@ onBeforeUnmount(() => {
                      completed map whose NET seat total misses the budget,
                      clickable straight into its mapper like the review list.
                      Pure bonus-lift maps net to zero and never appear here. -->
-                <div v-if="autoscale.drifted_items?.length" class="mt-4 border-t border-gray-700/50 pt-3">
+                <div v-if="driftItems.length" class="mt-4 border-t border-gray-700/50 pt-3">
                     <div class="flex items-center justify-between mb-2">
                         <div class="text-rose-300 text-xs uppercase tracking-wide">
-                            Completed with drift ({{ (run.drifted_done ?? autoscale.drifted_items.length).toLocaleString() }})
+                            Completed with drift ({{ driftCount.toLocaleString() }})
                         </div>
                         <!-- Recheck all recomputes every drifted map's seated total
                              from its current districts (operator order 2026-09-03):
@@ -1168,7 +1204,7 @@ onBeforeUnmount(() => {
                                 </tr>
                             </thead>
                             <tbody class="text-gray-300">
-                                <tr v-for="it in autoscale.drifted_items" :key="it.legislature_id" class="border-t border-gray-800">
+                                <tr v-for="it in driftItems" :key="it.legislature_id" class="border-t border-gray-800">
                                     <td class="py-1.5 pr-2 whitespace-nowrap">
                                         <a :href="it.map_id ? `/legislatures/${it.jurisdiction_slug}/districts?map=${it.map_id}` : `/legislatures/${it.jurisdiction_slug}`"
                                            target="_blank"
