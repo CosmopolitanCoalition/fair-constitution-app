@@ -2946,7 +2946,7 @@ class SetupController extends Controller
      * stored copy. The cheap live parts (run status, the lane strip, the
      * in-flight scope list) refresh on every poll.
      */
-    public const PROGRESS_SNAPSHOT_SECONDS = 15;
+    public const PROGRESS_SNAPSHOT_SECONDS = 60;
 
     public function autoscaleProgress(): JsonResponse
     {
