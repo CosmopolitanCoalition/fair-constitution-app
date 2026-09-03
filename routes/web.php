@@ -181,6 +181,12 @@ Route::post('/api/setup/wizard/step3/autoscale-halt', [SetupController::class, '
     ->middleware('auth')->name('api.setup.step3.autoscale-halt');
 Route::post('/api/setup/wizard/step3/autoscale-resume', [SetupController::class, 'autoscaleResume'])
     ->middleware('auth')->name('api.setup.step3.autoscale-resume');
+// Requeue review maps (one or all) mid-run; recheck drift maps after a manual
+// fix (operator order 2026-09-03). Both operator-gated in the controller.
+Route::post('/api/setup/wizard/step3/requeue-review', [SetupController::class, 'autoscaleRequeueReview'])
+    ->middleware('auth')->name('api.setup.step3.requeue-review');
+Route::post('/api/setup/wizard/step3/recheck-drift', [SetupController::class, 'autoscaleRecheckDrift'])
+    ->middleware('auth')->name('api.setup.step3.recheck-drift');
 // The Step-3 "Rewind mapping" control — UI door to the autoscale:revert CLI
 // (operator-gated in the controller; the confirm dialog is the deliberate
 // -intent gate the CLI's --force represents).

@@ -395,6 +395,34 @@ async function resumeRun(requeueReview = false) {
     }
 }
 
+// Review requeue + drift recheck, per-row and all (operator order 2026-09-03).
+// requeueReview puts review/failed maps back on the pile mid-run at priority;
+// recheckDrift recomputes a completed map's seated total from its current
+// districts so a manual fix in the mapper closes the loop with no redraw.
+// rowBusy holds the legislature_id of the row currently acting (per-row spinner).
+const rowBusy = ref('')
+async function postRowAction(url, ids) {
+    if (ids && ids.length === 1) rowBusy.value = ids[0]; else actionBusy.value = true
+    try {
+        const res = await csrfFetch(url, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(ids ? { legislature_ids: ids } : {}),
+        })
+        const data = await res.json().catch(() => ({}))
+        if (!res.ok || data.ok === false) {
+            autoscaleError.value = data.error || `request failed (HTTP ${res.status})`
+        }
+        await fetchAutoscale()
+        return data
+    } finally {
+        rowBusy.value = ''
+        actionBusy.value = false
+    }
+}
+const requeueReview = (ids = null) => postRowAction('/api/setup/wizard/step3/requeue-review', ids)
+const recheckDrift  = (ids = null) => postRowAction('/api/setup/wizard/step3/recheck-drift', ids)
+
 // "Rewind mapping" — the UI door to `autoscale:revert` (UI↔CLI parity). Only
 // offered on a HALTED run (the command's own guard), and the confirm dialog is
 // the deliberate-intent gate the CLI's --force represents. Deletes generated
@@ -861,9 +889,9 @@ onBeforeUnmount(() => {
                     <div class="flex flex-wrap items-center justify-between gap-x-4 gap-y-1 mb-2">
                         <div class="text-gray-400 text-xs uppercase tracking-wide">By layer (biggest first)</div>
                         <div class="flex items-center gap-3 text-[11px] text-gray-400">
-                            <span class="flex items-center gap-1"><span class="inline-block w-2 h-2 rounded-sm bg-teal-500"></span>Trivials</span>
-                            <span class="flex items-center gap-1"><span class="inline-block w-2 h-2 rounded-sm bg-sky-500"></span>Line-splits</span>
-                            <span class="flex items-center gap-1"><span class="inline-block w-2 h-2 rounded-sm bg-violet-500"></span>Composites</span>
+                            <span class="flex items-center gap-1"><span class="inline-block w-2 h-2 rounded-sm bg-teal-500"></span>At-Large Maps</span>
+                            <span class="flex items-center gap-1"><span class="inline-block w-2 h-2 rounded-sm bg-sky-500"></span>Line-Split Maps</span>
+                            <span class="flex items-center gap-1"><span class="inline-block w-2 h-2 rounded-sm bg-violet-500"></span>Constituent-Split Maps</span>
                         </div>
                     </div>
                     <div class="space-y-2">
@@ -883,7 +911,7 @@ onBeforeUnmount(() => {
                                 </span>
                             </div>
                             <div v-if="l.units_total != null" class="h-1.5 bg-gray-800 rounded overflow-hidden flex"
-                                 :title="`${l.trivial_done.toLocaleString()} / ${l.trivial_total.toLocaleString()} trivials · ${l.line_done.toLocaleString()} / ${l.line_total.toLocaleString()} line-splits · ${l.comp_done.toLocaleString()} / ${l.comp_total.toLocaleString()} composites`">
+                                 :title="`${l.trivial_done.toLocaleString()} / ${l.trivial_total.toLocaleString()} at-large maps · ${l.line_done.toLocaleString()} / ${l.line_total.toLocaleString()} line-split maps · ${l.comp_done.toLocaleString()} / ${l.comp_total.toLocaleString()} constituent-split maps`">
                                 <div class="h-full bg-teal-500 transition-all"   :style="{ width: pct(l.trivial_done, l.units_total) + '%' }"></div>
                                 <div class="h-full bg-sky-500 transition-all"    :style="{ width: pct(l.line_done, l.units_total) + '%' }"></div>
                                 <div class="h-full bg-violet-500 transition-all" :style="{ width: pct(l.comp_done, l.units_total) + '%' }"></div>
@@ -1046,14 +1074,28 @@ onBeforeUnmount(() => {
                         <div class="text-amber-300 text-xs uppercase tracking-wide">
                             Needs attention ({{ (run.attention_count ?? run.review_count).toLocaleString() }})
                         </div>
-                        <button
-                            v-if="!runActive"
-                            @click="resumeRun(true)"
-                            :disabled="actionBusy"
-                            class="text-xs px-2 py-1 rounded border border-gray-600 text-gray-300 hover:bg-gray-800 transition-colors"
-                        >
-                            Retry all review items
-                        </button>
+                        <div class="flex items-center gap-2">
+                            <!-- Queue all back is visible MID-RUN (operator order
+                                 2026-09-03): put every review map back on the pile
+                                 at priority without resuming. The halted-state
+                                 button still resumes and requeues in one step. -->
+                            <button
+                                v-if="runActive"
+                                @click="requeueReview()"
+                                :disabled="actionBusy"
+                                class="text-xs px-2 py-1 rounded border border-amber-700 text-amber-200 hover:bg-amber-900/40 transition-colors disabled:opacity-50"
+                            >
+                                Queue all back
+                            </button>
+                            <button
+                                v-else
+                                @click="resumeRun(true)"
+                                :disabled="actionBusy"
+                                class="text-xs px-2 py-1 rounded border border-gray-600 text-gray-300 hover:bg-gray-800 transition-colors"
+                            >
+                                Retry all review items
+                            </button>
+                        </div>
                     </div>
                     <div class="max-h-64 overflow-y-auto">
                         <table class="w-full text-xs text-left">
@@ -1062,7 +1104,8 @@ onBeforeUnmount(() => {
                                     <th class="py-1 pr-2">Legislature</th>
                                     <th class="py-1 pr-2">Kind</th>
                                     <th class="py-1 pr-2">Status</th>
-                                    <th class="py-1">Reason</th>
+                                    <th class="py-1 pr-2">Reason</th>
+                                    <th class="py-1 text-right">Action</th>
                                 </tr>
                             </thead>
                             <tbody class="text-gray-300">
@@ -1076,7 +1119,16 @@ onBeforeUnmount(() => {
                                     </td>
                                     <td class="py-1.5 pr-2">{{ it.kind === 'sweep' ? 'sweep' : 'single' }}</td>
                                     <td class="py-1.5 pr-2">{{ it.status }}</td>
-                                    <td class="py-1.5 text-gray-400">{{ it.reason || '—' }}</td>
+                                    <td class="py-1.5 pr-2 text-gray-400">{{ it.reason || '—' }}</td>
+                                    <td class="py-1.5 pl-2 text-right whitespace-nowrap">
+                                        <button
+                                            @click="requeueReview([it.legislature_id])"
+                                            :disabled="actionBusy || rowBusy === it.legislature_id"
+                                            class="text-[11px] px-2 py-0.5 rounded border border-amber-700 text-amber-200 hover:bg-amber-900/40 transition-colors disabled:opacity-50"
+                                        >
+                                            {{ rowBusy === it.legislature_id ? 'Queuing…' : 'Queue back' }}
+                                        </button>
+                                    </td>
                                 </tr>
                             </tbody>
                         </table>
@@ -1088,8 +1140,21 @@ onBeforeUnmount(() => {
                      clickable straight into its mapper like the review list.
                      Pure bonus-lift maps net to zero and never appear here. -->
                 <div v-if="autoscale.drifted_items?.length" class="mt-4 border-t border-gray-700/50 pt-3">
-                    <div class="text-rose-300 text-xs uppercase tracking-wide mb-2">
-                        Completed with drift ({{ (run.drifted_done ?? autoscale.drifted_items.length).toLocaleString() }})
+                    <div class="flex items-center justify-between mb-2">
+                        <div class="text-rose-300 text-xs uppercase tracking-wide">
+                            Completed with drift ({{ (run.drifted_done ?? autoscale.drifted_items.length).toLocaleString() }})
+                        </div>
+                        <!-- Recheck all recomputes every drifted map's seated total
+                             from its current districts (operator order 2026-09-03):
+                             a map hand-fixed in the mapper to sum exactly drops off
+                             this list. No redraw — manual work is preserved. -->
+                        <button
+                            @click="recheckDrift()"
+                            :disabled="actionBusy"
+                            class="text-xs px-2 py-1 rounded border border-rose-700 text-rose-200 hover:bg-rose-900/40 transition-colors disabled:opacity-50"
+                        >
+                            Recheck all
+                        </button>
                     </div>
                     <div class="max-h-64 overflow-y-auto">
                         <table class="w-full text-xs text-left">
@@ -1098,7 +1163,8 @@ onBeforeUnmount(() => {
                                     <th class="py-1 pr-2">Legislature</th>
                                     <th class="py-1 pr-2">Expected</th>
                                     <th class="py-1 pr-2">Seated</th>
-                                    <th class="py-1">Net drift</th>
+                                    <th class="py-1 pr-2">Net drift</th>
+                                    <th class="py-1 text-right">Action</th>
                                 </tr>
                             </thead>
                             <tbody class="text-gray-300">
@@ -1113,8 +1179,17 @@ onBeforeUnmount(() => {
                                     </td>
                                     <td class="py-1.5 pr-2">{{ it.seats_expected }}</td>
                                     <td class="py-1.5 pr-2">{{ it.seats_seated }}</td>
-                                    <td class="py-1.5" :class="it.drift > 0 ? 'text-amber-300' : 'text-rose-300'">
+                                    <td class="py-1.5 pr-2" :class="it.drift > 0 ? 'text-amber-300' : 'text-rose-300'">
                                         {{ it.drift > 0 ? '+' + it.drift : it.drift }}
+                                    </td>
+                                    <td class="py-1.5 pl-2 text-right whitespace-nowrap">
+                                        <button
+                                            @click="recheckDrift([it.legislature_id])"
+                                            :disabled="actionBusy || rowBusy === it.legislature_id"
+                                            class="text-[11px] px-2 py-0.5 rounded border border-rose-700 text-rose-200 hover:bg-rose-900/40 transition-colors disabled:opacity-50"
+                                        >
+                                            {{ rowBusy === it.legislature_id ? 'Rechecking…' : 'Recheck' }}
+                                        </button>
                                     </td>
                                 </tr>
                             </tbody>

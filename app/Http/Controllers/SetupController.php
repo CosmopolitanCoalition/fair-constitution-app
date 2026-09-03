@@ -3476,6 +3476,51 @@ class SetupController extends Controller
     }
 
     /**
+     * POST /api/setup/wizard/step3/requeue-review — put review/failed maps back
+     * on the pile MID-RUN, at priority (operator order 2026-09-03). Body:
+     * legislature_ids (array) requeues those; omit it to requeue every review
+     * map. No resume — the run keeps mapping and the lanes take them next.
+     */
+    public function autoscaleRequeueReview(Request $request, \App\Services\Autoscale\AutoscaleRunControl $control): JsonResponse
+    {
+        abort_unless((bool) $request->user()?->is_operator, 403);
+
+        $ids = $this->legislatureIdsFromRequest($request);
+        $result = $control->requeueReviewMaps($ids);
+
+        return response()->json($result, ($result['ok'] ?? false) ? 200 : 422);
+    }
+
+    /**
+     * POST /api/setup/wizard/step3/recheck-drift — recompute drifted maps'
+     * seated total and drift from their current active districts (operator
+     * order 2026-09-03), so a manual fix in the mapper closes the loop without
+     * a redraw. Body: legislature_ids (array) rechecks those; omit it to
+     * recheck every drifted map.
+     */
+    public function autoscaleRecheckDrift(Request $request, \App\Services\Autoscale\AutoscaleRunControl $control): JsonResponse
+    {
+        abort_unless((bool) $request->user()?->is_operator, 403);
+
+        $ids = $this->legislatureIdsFromRequest($request);
+        $result = $control->recheckDrift($ids);
+
+        return response()->json($result);
+    }
+
+    /** legislature_ids body param → a clean string list, or null for "all". */
+    private function legislatureIdsFromRequest(Request $request): ?array
+    {
+        $ids = $request->input('legislature_ids');
+        if (! is_array($ids)) {
+            return null;
+        }
+        $ids = array_values(array_filter($ids, static fn ($v) => is_string($v) && $v !== ''));
+
+        return $ids === [] ? null : $ids;
+    }
+
+    /**
      * POST /api/setup/wizard/step3/autoscale-revert — the Step-3 dashboard's
      * "Rewind mapping" control (UI↔CLI parity with the `autoscale:revert` CLI).
      * Rewinds the run to the mapping start: deletes autoscale-generated maps,

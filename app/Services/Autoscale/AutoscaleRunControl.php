@@ -102,6 +102,106 @@ class AutoscaleRunControl
         return ['ok' => true, 'run_id' => (string) $run->id];
     }
 
+    /**
+     * Put review/failed maps back on the pile MID-RUN, at priority so the
+     * lanes take them next (operator order 2026-09-03: "queue one at a time
+     * ... and queue all, mid run"). No resume: the run is already mapping.
+     * Same status-clear as resume(requeueReview), minus the run-status change,
+     * plus priority_at so the claim ladder pops them ahead of the walk.
+     *
+     * @param  array<int,string>|null  $legislatureIds  null = every review/failed map
+     * @return array{ok:bool, requeued?:int, error?:string}
+     */
+    public function requeueReviewMaps(?array $legislatureIds = null): array
+    {
+        $run = AutoscaleRun::unfinished();
+        if ($run === null) {
+            return ['ok' => false, 'error' => 'No active autoscale run.'];
+        }
+
+        $ids = DB::table('apportionment_ledger')
+            ->whereIn('map_status', ['review', 'failed'])
+            ->whereNull('gate_reason')   // a gate refusal only moves when the data changes
+            ->when($legislatureIds !== null, fn ($q) => $q->whereIn('legislature_id', $legislatureIds))
+            ->pluck('legislature_id');
+
+        $n = 0;
+        foreach ($ids->chunk(5000) as $chunk) {
+            DB::table('apportionment_ledger_scopes')
+                ->whereIn('legislature_id', $chunk)
+                ->update([
+                    'status' => 'pending', 'claim_token' => null, 'reason' => null,
+                    'started_at' => null, 'finished_at' => null,
+                    'retry_count' => 0, 'updated_at' => now(),
+                ]);
+            $n += DB::table('apportionment_ledger')
+                ->whereIn('legislature_id', $chunk)
+                ->update([
+                    'map_status'  => 'pending', 'reason' => null, 'claim_token' => null,
+                    'priority_at' => now(), 'updated_at' => now(),
+                ]);
+        }
+        Artisan::call('autoscale:pump');
+
+        return ['ok' => true, 'requeued' => $n];
+    }
+
+    /**
+     * Recompute a completed map's seated total and drift from its CURRENT
+     * active districts (operator order 2026-09-03: "a recheck button on the
+     * drift maps ... I can make changes in the map manually ... close the loop
+     * on the residuals"). Same formula as the finalize: (seats − bonus_seats)
+     * against the legislature's type_a_seats. A map an operator has hand-fixed
+     * to sum exactly recomputes to drift 0 and drops off the drift list. No
+     * redraw, so the operator's manual work is preserved.
+     *
+     * @param  array<int,string>|null  $legislatureIds  null = every drifted map
+     * @return array{ok:bool, rechecked:int, cleared:int, results:array}
+     */
+    public function recheckDrift(?array $legislatureIds = null): array
+    {
+        $headers = DB::table('apportionment_ledger')
+            ->where('map_status', 'done')
+            ->when(
+                $legislatureIds !== null,
+                fn ($q) => $q->whereIn('legislature_id', $legislatureIds),
+                fn ($q) => $q->whereNotNull('drift')->where('drift', '<>', 0),
+            )
+            ->pluck('legislature_id');
+
+        $results = [];
+        $cleared = 0;
+        foreach ($headers as $legislatureId) {
+            $adopted = DB::table('legislature_district_maps')
+                ->where('legislature_id', $legislatureId)
+                ->where('status', 'active')->whereNull('deleted_at')
+                ->orderByDesc('created_at')->first(['id']);
+            if ($adopted === null) {
+                continue; // no active map to measure — leave it for a redraw
+            }
+            $agg = DB::table('legislature_districts')
+                ->where('map_id', $adopted->id)->whereNull('deleted_at')
+                ->selectRaw('COALESCE(SUM(seats),0) AS s, COALESCE(SUM(bonus_seats),0) AS b')
+                ->first();
+            $expected = (int) DB::table('legislatures')
+                ->where('id', $legislatureId)->value('type_a_seats');
+            $seated = (int) $agg->s;
+            $drift  = ($seated - (int) $agg->b) - $expected;   // net of lawful bonus lifts
+
+            DB::table('apportionment_ledger')
+                ->where('legislature_id', $legislatureId)
+                ->where('map_status', 'done')
+                ->update(['seats_seated' => $seated, 'drift' => $drift, 'updated_at' => now()]);
+
+            if ($drift === 0) {
+                $cleared++;
+            }
+            $results[] = ['legislature_id' => (string) $legislatureId, 'seated' => $seated, 'drift' => $drift];
+        }
+
+        return ['ok' => true, 'rechecked' => count($results), 'cleared' => $cleared, 'results' => $results];
+    }
+
     // ── Lane kill controls (operator order 2026-09-02) ─────────────────────
     //
     // Deadlines are WARNINGS. A kill is manual (the lane's kill button, the
