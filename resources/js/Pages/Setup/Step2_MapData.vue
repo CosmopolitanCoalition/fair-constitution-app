@@ -702,6 +702,11 @@ function continueFromStep2() {
     return mapAccepted.value ? advance() : acceptHere()
 }
 const isRunning  = computed(() => lifecycle.value === 'running')
+// THE DOWNLOAD CONTROLS (WoS 2026-09-02): the backend accepted halt / pause /
+// resume since the first commit and the page never offered them (the
+// escape-hatch law: a recovery control exists on every layer). The pause
+// state comes from the supervisor's `_paused_at` stamp in bars.json.
+const downloadPaused = computed(() => !!(bars.value && bars.value._paused_at))
 const runOptionsDisabled = computed(() => isRunning.value || submitting.value)
 
 // Label for the primary "Start" button — download runs read differently.
@@ -1223,7 +1228,26 @@ onBeforeUnmount(() => {
                      class="bg-gray-900 border border-emerald-900 rounded-lg p-6 mb-6">
                 <div class="flex items-baseline justify-between mb-1">
                     <h2 class="text-white font-semibold">2. Download &amp; Ingestion — live</h2>
-                    <span class="text-[11px] text-emerald-400">running</span>
+                    <div class="flex items-center gap-2">
+                        <span class="text-[11px]" :class="downloadPaused ? 'text-amber-400' : 'text-emerald-400'">
+                            {{ downloadPaused ? 'paused' : 'running' }}
+                        </span>
+                        <button v-if="!downloadPaused" type="button" @click="sendControl('pause')"
+                                :disabled="pendingControl.pause"
+                                class="px-2.5 py-1 rounded text-[11px] font-semibold border border-amber-700 text-amber-200 hover:bg-amber-900/40 disabled:opacity-50">
+                            {{ pendingControl.pause ? 'Pausing…' : 'Pause' }}
+                        </button>
+                        <button v-else type="button" @click="sendControl('resume')"
+                                :disabled="pendingControl.resume"
+                                class="px-2.5 py-1 rounded text-[11px] font-semibold border border-emerald-700 text-emerald-200 hover:bg-emerald-900/40 disabled:opacity-50">
+                            {{ pendingControl.resume ? 'Resuming…' : 'Resume' }}
+                        </button>
+                        <button type="button" @click="sendControl('halt')"
+                                :disabled="pendingControl.halt"
+                                class="px-2.5 py-1 rounded text-[11px] font-semibold border border-red-700 text-red-200 hover:bg-red-900/40 disabled:opacity-50">
+                            {{ pendingControl.halt ? 'Halting…' : 'Halt' }}
+                        </button>
+                    </div>
                 </div>
                 <p class="text-gray-500 text-xs mb-4">
                     Fetching from the official hosts on parallel lanes, then ingesting.

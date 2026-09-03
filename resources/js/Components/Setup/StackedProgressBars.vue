@@ -234,6 +234,17 @@ const wpCountryBars     = computed(() => props.bars?.worldpop_current_country_ba
 // correction). Routed via heartbeat keys `cleanup:*` from the Python ETL.
 const cleanupBars       = computed(() => props.bars?.cleanup_bars || [])
 
+// THE STRIP SHOWS WORK IN FLIGHT (operator order 2026-09-02, the Step-3
+// posture): category summary bars stay; a per-item bar is shown while it
+// runs and disappears when it is done. Queued items live in the summary's
+// remainder, not as a stack of "waiting…" rows. Elapsed and ETA math above
+// still reads the full lists.
+const isSummaryBar = (b) => /summary|countries complete|overall/i.test(`${b?.key || ''} ${b?.label || ''}`)
+const visibleGbBars      = computed(() => gbBars.value.filter(b => isSummaryBar(b) || b.status === 'running'))
+const visibleWpCountryBars = computed(() => wpCountryBars.value.filter(b => isSummaryBar(b) || b.status === 'running'))
+const visibleCleanupBars = computed(() => cleanupBars.value.filter(b => isSummaryBar(b) || b.status !== 'done'))
+const gbDoneCount        = computed(() => gbBars.value.filter(b => !isSummaryBar(b) && b.status === 'done').length)
+
 // P.1.2: structured sub-progress for the active country — progress_current
 // of progress_total. These MUST be declared before the watch below references
 // `activeProgressCurrent` in its source array, or JavaScript's TDZ rules will
@@ -385,13 +396,14 @@ const hasAny = computed(() =>
                     <span v-if="gbElapsed !== null" class="text-gray-500 text-[11px] tabular-nums">
                         total {{ fmtDuration(gbElapsed) }}
                     </span>
+                    <span v-if="gbDoneCount" class="text-gray-500 text-[11px] tabular-nums">{{ gbDoneCount }} files done</span>
                     <span v-if="phase === 'geoboundaries' && isRunning" class="text-blue-400">
                         in progress
                     </span>
                 </div>
             </header>
             <div class="space-y-1.5">
-                <div v-for="b in gbBars" :key="b.key"
+                <div v-for="b in visibleGbBars" :key="b.key"
                      class="rounded border px-3 py-2"
                      :class="[trackColor(b), b.status === 'pending' ? 'border-gray-800/60 opacity-70' : 'border-gray-800']">
                     <div class="flex items-baseline justify-between mb-1 gap-2">
@@ -498,7 +510,7 @@ const hasAny = computed(() =>
 
             <!-- Current country's per-step bars (load + per-ADM) -->
             <div v-if="wpCountryBars.length" class="space-y-1.5 ml-3 border-l-2 border-gray-800 pl-3">
-                <div v-for="b in wpCountryBars" :key="b.key"
+                <div v-for="b in visibleWpCountryBars" :key="b.key"
                      class="rounded border border-gray-800 px-3 py-2"
                      :class="trackColor(b)">
                     <div class="flex items-baseline justify-between mb-1 gap-2">
@@ -550,7 +562,7 @@ const hasAny = computed(() =>
                 </div>
             </header>
             <div class="space-y-1.5">
-                <div v-for="b in cleanupBars" :key="b.key"
+                <div v-for="b in visibleCleanupBars" :key="b.key"
                      class="rounded border px-3 py-2"
                      :class="[trackColor(b), b.status === 'pending' ? 'border-gray-800/60 opacity-70' : 'border-gray-800']">
                     <div class="flex items-baseline justify-between mb-1 gap-2">
