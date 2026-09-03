@@ -135,7 +135,12 @@ function barTiming(key, done, total) {
     const dt = (b.t - a.t) / 1000
     if (dt < 15 || b.v <= a.v) return ''
     const perMin = (b.v - a.v) / (dt / 60)
-    const elapsed = fmtEta(Math.round((Date.now() - a.t) / 1000))
+    // FREEZE ON COMPLETION (2026-09-03): a full bar (done >= total) stops its
+    // clock at the last count change (b.t) instead of ticking off the live
+    // clock forever. Only a still-running bar measures elapsed to now.
+    const complete = total != null && done >= total
+    const endT = complete ? b.t : Date.now()
+    const elapsed = fmtEta(Math.round((endT - a.t) / 1000))
     let out = ` · ${Math.round(perMin).toLocaleString()}/min · ${elapsed} elapsed`
     if (total && done < total && perMin > 0) {
         out += ` · ~${fmtEta(Math.round((total - done) / perMin * 60))} left`

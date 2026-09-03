@@ -2945,8 +2945,18 @@ class SetupController extends Controller
      * other request and the next PROGRESS_SNAPSHOT_SECONDS of polls read the
      * stored copy. The cheap live parts (run status, the lane strip, the
      * in-flight scope list) refresh on every poll.
+     *
+     * SINCE 2026-09-03 the heavy scan is owned by the scheduler
+     * (autoscale:progress-snapshot -> refreshProgressSnapshot), which keeps
+     * the copy warm every minute WHILE A VIEWER IS PRESENT. A routine poll
+     * then only ever reads; it never runs the 12-to-18-second scan itself, so
+     * it never trips the page's 15 s abort. A closed dashboard marks no
+     * viewer, so the scheduler skips the scan and the run pays nothing.
      */
     public const PROGRESS_SNAPSHOT_SECONDS = 60;
+
+    /** A viewer counts as present for this long after their last poll. */
+    public const PROGRESS_VIEWER_TTL = 180;
 
     public function autoscaleProgress(): JsonResponse
     {
@@ -2961,30 +2971,34 @@ class SetupController extends Controller
             ]);
         }
 
+        // A viewer is here. Mark it so the scheduler keeps the snapshot warm
+        // while the page is open, and skips the scan when it is closed.
+        Cache::put('autoscale.progress.viewer_seen', now()->timestamp, self::PROGRESS_VIEWER_TTL);
+
         $snapKey  = 'autoscale.progress.snapshot.'.$run->id;
         $freshKey = $snapKey.'.fresh';
         $payload  = Cache::get($snapKey);
         if (! is_array($payload) || ! Cache::has($freshKey)) {
+            // Cold start, or the scheduler is not running: the FIRST poll
+            // computes once under a lock. Every poll after reads the copy the
+            // scheduler renews each minute, so the heavy scan never runs inside
+            // a routine poll again.
             $lock = Cache::lock('autoscale.progress.lock.'.$run->id, 120);
             if ($lock->get()) {
                 try {
-                    $payload = $this->autoscaleProgressPayload($run);
-                    $payload['snapshot_at'] = now()->toIso8601String();
-                    Cache::put($snapKey, $payload, 900);
-                    Cache::put($freshKey, 1, self::PROGRESS_SNAPSHOT_SECONDS);
+                    $payload = $this->storeProgressSnapshot($run);
                 } finally {
                     $lock->release();
                 }
             } elseif (! is_array($payload)) {
-                // First viewer while another request computes: wait for the copy
-                // rather than starting a second scan of the ledger.
+                // Another request is computing: wait for the copy rather than
+                // starting a second scan of the ledger.
                 for ($i = 0; $i < 60 && ! is_array($payload); $i++) {
                     usleep(500000);
                     $payload = Cache::get($snapKey);
                 }
                 if (! is_array($payload)) {
-                    $payload = $this->autoscaleProgressPayload($run);
-                    $payload['snapshot_at'] = now()->toIso8601String();
+                    $payload = $this->storeProgressSnapshot($run);
                 }
             }
         }
@@ -3005,6 +3019,41 @@ class SetupController extends Controller
         $payload['live_items']     = $this->liveItemsBlock();
 
         return response()->json($payload);
+    }
+
+    /**
+     * Compute the heavy dashboard payload once and cache it. Used by the
+     * scheduler and, on a cold start only, by the endpoint. The fresh flag
+     * lives twice the snapshot cadence, so a minute-cadence scheduler always
+     * renews it before it expires and a routine poll never finds it stale.
+     */
+    private function storeProgressSnapshot(\App\Models\AutoscaleRun $run): array
+    {
+        $payload = $this->autoscaleProgressPayload($run);
+        $payload['snapshot_at'] = now()->toIso8601String();
+        Cache::put('autoscale.progress.snapshot.'.$run->id, $payload, 900);
+        Cache::put('autoscale.progress.snapshot.'.$run->id.'.fresh', 1, 2 * self::PROGRESS_SNAPSHOT_SECONDS);
+
+        return $payload;
+    }
+
+    /**
+     * Scheduler entry (autoscale:progress-snapshot, every minute): keep the
+     * Step 3 snapshot warm WHILE SOMEONE IS WATCHING, so the page reads a
+     * ready copy and never runs the 12-to-18-second ledger scan in-request.
+     * When no viewer has polled inside PROGRESS_VIEWER_TTL the scan is
+     * skipped, so a closed dashboard costs the run nothing.
+     */
+    public function refreshProgressSnapshot(): void
+    {
+        $seen = (int) Cache::get('autoscale.progress.viewer_seen', 0);
+        if ($seen === 0 || (now()->timestamp - $seen) > self::PROGRESS_VIEWER_TTL) {
+            return; // nobody watching — do not scan the ledger
+        }
+        $run = \App\Models\AutoscaleRun::query()->orderByDesc('created_at')->first();
+        if ($run !== null) {
+            $this->storeProgressSnapshot($run);
+        }
     }
 
     /** The in-flight scope list (the live sweep view), indexed and cheap. */

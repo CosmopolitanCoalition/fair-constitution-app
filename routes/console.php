@@ -67,6 +67,16 @@ Schedule::command('geodata:chain-download')
 Schedule::command('geodata:pump')
     ->everyMinute()->withoutOverlapping(10)->runInBackground()->onOneServer();
 
+// ── Step 3 dashboard snapshot (2026-09-03, the post-reboot disk storm) ────
+// Keeps the heavy district-progress aggregates warm off the poll path so a
+// page poll never runs the 12-to-18 s ledger scan itself and never trips the
+// page's 15 s abort. Viewer-gated: SetupController::refreshProgressSnapshot
+// no-ops in one cache read when nobody has the dashboard open, so a closed
+// page adds nothing to the run. runInBackground so the scan never delays the
+// clock job; withoutOverlapping so a slow scan can't stack.
+Schedule::command('autoscale:progress-snapshot')
+    ->everyMinute()->withoutOverlapping(5)->runInBackground()->onOneServer();
+
 // ── WI-B3: daily approval standings rollup (ESM-04) ─────────────────────
 // Public approval standings aggregate ONCE A DAY per race (Earth-scale
 // rule — never per request, never per approval; identities never leave
