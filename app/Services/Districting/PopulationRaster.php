@@ -119,18 +119,29 @@ class PopulationRaster
         // gigabytes for entries nobody reads twice. Interactive callers keep
         // the cache (the mapper's blade sweeps re-read the grid constantly).
         $compute = function () use ($scopeId, $year, $cell) {
-            // Per-tile clip + pixel-centroids of the giant's OWN country raster —
-            // NO ST_Union (unioning border-overlapping tiles is ~500× slower). A
-            // childless leaf giant sits inside one country, so iso_code suffices.
-            // (A rare cross-border giant would need the multi path — out of scope.)
-            $inner = "SELECT ST_X(pc.geom) AS x, ST_Y(pc.geom) AS y, pc.val AS val
-                   FROM worldpop_rasters r
-                   CROSS JOIN g
-                   CROSS JOIN LATERAL ST_PixelAsCentroids(ST_Clip(r.rast, g.geom, TRUE), 1) AS pc
-                  WHERE r.iso_code = g.iso_code
-                    AND r.year = ?::smallint
-                    AND ST_Intersects(r.rast, g.geom)
-                    AND pc.val > 0";
+            // Per-tile clip + pixel-centroids of EVERY raster that COVERS the
+            // scope, keyed by GEOMETRY not iso (operator order 2026-09-04). A
+            // jurisdiction whose governance iso differs from its raster iso —
+            // an overseas territory (French Guiana tagged FRA, raster GUF) or a
+            // disputed region (Kashmir tagged IND, raster mostly PAK/CHN) — has
+            // NO own-iso pixels over its land and silently fell to the synthetic
+            // area grid. Reading by ST_Intersects(rast, geom) reads the REAL
+            // raster. Border-overlap pixels (two country rasters covering the
+            // same 100 m cell) de-dup by MAX at the shared centroid — the rule
+            // population_within_multi uses, here WITHOUT ST_Union: WorldPop's
+            // per-country extracts share one global grid, so an overlapped cell
+            // has an identical centroid from each raster and collapses in the
+            // GROUP BY. A single-iso scope has unique centroids, so the group is
+            // a no-op and its grid stays byte-identical to the pre-change path.
+            $inner = "SELECT x, y, MAX(val) AS val FROM (
+                        SELECT ST_X(pc.geom) AS x, ST_Y(pc.geom) AS y, pc.val AS val
+                          FROM worldpop_rasters r
+                          CROSS JOIN g
+                          CROSS JOIN LATERAL ST_PixelAsCentroids(ST_Clip(r.rast, g.geom, TRUE), 1) AS pc
+                         WHERE r.year = ?::smallint
+                           AND ST_Intersects(r.rast, g.geom)
+                           AND pc.val > 0
+                      ) raw GROUP BY x, y";
 
             $pts = $cell === null
                 ? $inner
@@ -298,7 +309,7 @@ class PopulationRaster
                 'SELECT ST_ScaleX(r.rast) AS sx, ST_ScaleY(r.rast) AS sy
                    FROM worldpop_rasters r
                    JOIN jurisdictions g ON g.id = ?
-                  WHERE r.iso_code = g.iso_code AND r.year = ?::smallint
+                  WHERE r.year = ?::smallint AND ST_Intersects(r.rast, g.geom)
                   LIMIT 1',
                 [$scopeId, $year]
             );
@@ -418,7 +429,6 @@ class PopulationRaster
                                    )).sum))::bigint
                               FROM worldpop_rasters r
                              WHERE r.year = ?::smallint
-                               AND r.iso_code = s.iso_code
                                AND ST_Intersects(r.rast, s.geom)
                         ), 0) AS raster_pop,
                         s.stored_pop AS stored_pop
