@@ -527,30 +527,37 @@ class LeafGiantResolver
     }
 
     /**
-     * THE BOX LEADS EVERY MULTI-PART SCOPE (operator ruling 2026-09-02, the
-     * Tumaco grind: a coastal mainland with islets ground every cutting
-     * template for hours before reaching the box). Any scope with more than
-     * one polygon part starts with the box: pure arithmetic on the envelope,
-     * one clip per piece, parts recorded, contiguity a hope not a gate. The
-     * cutting templates stay behind it as fallback only. A single-part
-     * scope keeps the cutting ladder (the requested template first, then
-     * registry order) with the box last.
+     * SHORTEST LEADS, THE BOX IS THE GENERAL FALLBACK (operator ruling
+     * 2026-09-03). The box-first-for-multi-part rule (2026-09-02, the Tumaco
+     * grind) drew rectangles where shortest draws compact districts on every
+     * island scope — Guernsey split Sark into two, Corfu filed non-contiguous,
+     * both compact under shortest. The order is now the same for every scope:
+     *   shortest -> box -> community_cells -> strips -> components.
+     * Shortest wins the overwhelming majority (207,268 of 211,931 leaf scopes);
+     * the box catches the fragmented remainder it cannot draw (Natales, 3,798
+     * parts). The box basically always plans, so the three trailing cutting
+     * methods are a near-dead tail (0, 0 and 1 win across the whole run) — kept
+     * only as a fallback for the degenerate case where the box itself refuses
+     * (no raster, or a piece clipping to no land). The Tumaco grind stays
+     * bounded by the blade budget (SubdivisionAutoseedService::openBladePool),
+     * which skips a spent cutting ladder straight to the box.
      *
-     * Pure: the part count is the only geometry feature consulted.
+     * $parts is no longer consulted (kept for the call signature).
      *
      * @return list<string>
      */
     public static function orderTemplates(string $template, int $parts): array
     {
-        $order = array_values(array_unique(array_merge([$template], SubdivisionAutoseedService::TEMPLATES)));
-        if ($parts > 1) {
-            $order = array_values(array_unique(array_merge(
-                [SubdivisionAutoseedService::TEMPLATE_BOX],
-                $order,
-            )));
-        }
+        $ladder = [
+            SubdivisionAutoseedService::TEMPLATE_SHORTEST,
+            SubdivisionAutoseedService::TEMPLATE_BOX,
+            SubdivisionAutoseedService::TEMPLATE_COMMUNITY_CELLS,
+            SubdivisionAutoseedService::TEMPLATE_VERTICAL_STRIPS,
+            SubdivisionAutoseedService::TEMPLATE_HORIZONTAL_STRIPS,
+            SubdivisionAutoseedService::TEMPLATE_COMPONENTS,
+        ];
 
-        return $order;
+        return array_values(array_unique(array_merge([$template], $ladder)));
     }
 
     /**

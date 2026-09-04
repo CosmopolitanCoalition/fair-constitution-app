@@ -309,7 +309,7 @@ class AutoscaleRunControl
      *
      * @return array{ok:bool, terminated:bool, parked:int, released:int, headers_handed:int}|null null when no such lease
      */
-    public function killLease(string $leaseId, string $reasonPrefix, ?int $limitMinutes = null): ?array
+    public function killLease(string $leaseId, string $reasonPrefix, ?int $limitMinutes = null, bool $shuntToBox = false): ?array
     {
         $lease = DB::table('autoscale_worker_leases')->where('id', $leaseId)->first();
         if ($lease === null) {
@@ -348,7 +348,27 @@ class AutoscaleRunControl
                 ->where('status', 'running')
                 ->value('id');
         }
-        $parked = $current === null ? [] : DB::select("
+        // GRIND SHUNT (operator order 2026-09-03): the backend is dead; now
+        // requeue the stuck scope to REDRAW AS A BOX instead of parking it in
+        // review — the box completes the scope where shortest ground (proven
+        // on Tumaco: box draws in ~4 s). Loop guard: a scope that grinds AGAIN
+        // while force_box is ALREADY set (the box itself could not finish)
+        // falls through to the normal review park below.
+        $shunted = [];
+        if ($shuntToBox && $current !== null) {
+            $shunted = DB::select("
+                UPDATE apportionment_ledger_scopes
+                   SET status = 'pending', force_box = true, claim_token = NULL,
+                       started_at = NULL, finished_at = NULL, reason = ?, updated_at = now()
+                 WHERE id = ?::uuid AND claim_token = ?::uuid AND status = 'running'
+                   AND force_box = false
+             RETURNING id, legislature_id
+            ", [$reason.' — redraw as box', (string) $current, $leaseId]);
+        }
+
+        // Not shunted (a normal kill, or the loop guard fired): the scope in
+        // hand parks in review with the kill reason.
+        $parked = ($current === null || $shunted !== []) ? [] : DB::select("
             UPDATE apportionment_ledger_scopes
                SET status = 'review', claim_token = NULL, reason = ?,
                    finished_at = now(), updated_at = now()
@@ -408,7 +428,8 @@ class AutoscaleRunControl
 
         return [
             'ok' => true, 'terminated' => $terminated,
-            'parked' => count($parked), 'released' => $released, 'headers_handed' => $handed,
+            'parked' => count($parked), 'shunted' => count($shunted),
+            'released' => $released, 'headers_handed' => $handed,
         ];
     }
 
@@ -457,6 +478,82 @@ class AutoscaleRunControl
         }
 
         return $killed;
+    }
+
+    /**
+     * THE GRIND SHUNT (operator order 2026-09-03). A leaf whose blade search
+     * grinds on an uninterruptible PostGIS raster query cannot be stopped by
+     * the in-process wall cap or statement_timeout — only a backend terminate
+     * stops it (proven on Tumaco: pg_terminate_backend killed the stuck query
+     * in 1 s). This per-tick sweep terminates such a lane and requeues its
+     * scope to REDRAW AS A BOX (killLease shuntToBox), so the scope completes
+     * (~4 s on Tumaco) instead of hanging or parking in review. The limit is
+     * SECONDS (grind_box_seconds), tighter than the minutes-based auto_kill,
+     * and generous enough to clear a legitimate slow load. Runs BEFORE
+     * sweepKills so a shunt-eligible lane shunts rather than parks. Returns the
+     * number of lanes shunted.
+     */
+    public function sweepGrindShunts(AutoscaleRun $run): int
+    {
+        if (! self::laneControlColumnsPresent()
+            || ! \Illuminate\Support\Facades\Schema::hasColumn('apportionment_ledger_scopes', 'force_box')) {
+            return 0;
+        }
+
+        $seconds = (int) config('cga.districting.grind_box_seconds', 120);
+        if ($seconds <= 0) {
+            return 0;
+        }
+
+        $shunted = 0;
+        $overdue = DB::table('autoscale_worker_leases')
+            ->where('run_id', $run->id)
+            ->whereIn('claim_type', ['scope', 'scope_batch'])
+            ->whereNotNull('claim_started_at')
+            ->where('claim_started_at', '<', now()->subSeconds($seconds))
+            ->pluck('id');
+        foreach ($overdue as $leaseId) {
+            $res = $this->killLease((string) $leaseId, 'grind shunt', null, true);
+            if ($res !== null && (int) ($res['shunted'] ?? 0) > 0) {
+                $shunted++;
+            }
+        }
+
+        return $shunted;
+    }
+
+    /**
+     * FINALIZE-ORPHAN RECOVERY (operator order 2026-09-04): a sweep header can
+     * be left at map_status = pending with every scope already closed and
+     * finalize_ready = false — a requeue or reclaim reset the header while no
+     * further scope close ran to arm it. The finalize claimer only picks
+     * running + finalize_ready headers, so such a header never finalizes: its
+     * map is complete and seated, yet the header (and its layer bar's done
+     * count, and the ✓) never closes, and its scopes read as not-done. This
+     * per-tick sweep re-arms them to running + finalize_ready so the finalize
+     * lane assesses and closes them the normal way. Guarded on ALL scopes
+     * being closed (a fresh pending header still has open scopes and is
+     * skipped) and on at least one scope existing. Returns the number
+     * re-armed. Cheap: the anti-join is index probes on
+     * (legislature_id, status), and only orphans (usually none) are written.
+     */
+    public function sweepFinalizeOrphans(AutoscaleRun $run): int
+    {
+        if (! \Illuminate\Support\Facades\Schema::hasColumn('apportionment_ledger', 'finalize_ready')) {
+            return 0;
+        }
+
+        return DB::update("
+            UPDATE apportionment_ledger h
+               SET map_status = 'running', finalize_ready = true, updated_at = now()
+             WHERE h.kind = 'sweep'
+               AND h.map_status = 'pending'
+               AND EXISTS (SELECT 1 FROM apportionment_ledger_scopes s
+                            WHERE s.legislature_id = h.legislature_id)
+               AND NOT EXISTS (SELECT 1 FROM apportionment_ledger_scopes s
+                                WHERE s.legislature_id = h.legislature_id
+                                  AND s.status IN ('pending', 'running'))
+        ");
     }
 
     private static bool $laneControlColumnsPresent = false;

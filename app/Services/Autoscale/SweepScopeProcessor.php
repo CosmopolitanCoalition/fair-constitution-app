@@ -250,13 +250,19 @@ class SweepScopeProcessor
             // engine's per-district transaction is the atomic unit, so the
             // global audit advisory lock is held ~ms per filing instead of
             // for the whole scope.
+            // GRIND SHUNT (operator order 2026-09-03): a scope the grind
+            // watchdog terminated is flagged force_box; it redraws through the
+            // box template (which does not grind) instead of shortest.
+            $template = $this->scopeForcesBox($scopeId)
+                ? \App\Services\Districting\SubdivisionAutoseedService::TEMPLATE_BOX
+                : $run->template;
             $result = $ctrl->executeMassReseedSweep(
                 $legislatureId,
                 'map_view_all',
                 $scopeJid,
                 (string) $header->map_id,
                 $run->initiator_user_id !== null ? (string) $run->initiator_user_id : null,
-                $run->template,
+                $template,
                 leafScopeTx: false,
             );
 
@@ -464,6 +470,26 @@ class SweepScopeProcessor
             ->where('status', 'running')
             ->where('claim_token', $workerToken)
             ->exists();
+    }
+
+    /**
+     * Does this scope carry the grind-shunt force_box flag (operator order
+     * 2026-09-03)? Column-safe: absent before the migration, it reads false.
+     * The column presence is cached only once TRUE, so a worker started before
+     * the migration picks it up without a restart (the laneControl pattern).
+     */
+    private static bool $forceBoxColumn = false;
+
+    private function scopeForcesBox(string $scopeId): bool
+    {
+        if (! self::$forceBoxColumn) {
+            self::$forceBoxColumn = \Illuminate\Support\Facades\Schema::hasColumn('apportionment_ledger_scopes', 'force_box');
+            if (! self::$forceBoxColumn) {
+                return false;
+            }
+        }
+
+        return (bool) DB::table('apportionment_ledger_scopes')->where('id', $scopeId)->value('force_box');
     }
 
     /**
@@ -990,6 +1016,29 @@ class SweepScopeProcessor
             Log::warning('Autoscale lane lost its header before the finish write', [
                 'legislature_id' => $legislatureId, 'status' => $status, 'token' => $claimToken,
             ]);
+        }
+
+        // SUPERSEDED-SCOPE CLOSE (2026-09-04): a map that finalizes DONE
+        // supersedes any scope still parked in review from an earlier
+        // auto-killed or grind-shunted attempt. Left open, that row reads as
+        // not-done in the per-tier progress bar (units_done counts scope
+        // status = 'done') and inflates the review scope tally, though the
+        // map is complete and fully seated. Close the superseded rows the
+        // same instant the header goes done, gated on the header write
+        // landing ($n > 0, the claim-token guard) so a lane that lost its
+        // header to a reclaim touches nothing. A header closed to review or
+        // failed keeps its review scopes — those are the real diagnostics.
+        // The original reason rides along as history.
+        if ($status === 'done' && $n > 0) {
+            DB::table('apportionment_ledger_scopes')
+                ->where('legislature_id', $legislatureId)
+                ->where('status', 'review')
+                ->update([
+                    'status'      => 'done',
+                    'reason'      => DB::raw("COALESCE(reason, '') || ' | superseded by finalized map'"),
+                    'finished_at' => now(),
+                    'updated_at'  => now(),
+                ]);
         }
     }
 }

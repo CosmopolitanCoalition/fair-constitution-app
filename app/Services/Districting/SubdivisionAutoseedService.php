@@ -115,6 +115,38 @@ class SubdivisionAutoseedService
     private const BLADE_BUDGET_PER_SCOPE = 240;
 
     /**
+     * WALL-CLOCK GRIND CAP (operator ruling 2026-09-03, the Tumaco grind):
+     * the cutting ladder gets this many SECONDS per scope, not just a call
+     * count. A coastal scope whose blades each cost seconds (Tumaco) could
+     * spend the 240-call budget over ten minutes before falling to the box;
+     * the time cap makes it fall in ~60 s. Env-overridable
+     * (cga.districting.leaf_time_budget_seconds); the box catches it either
+     * way (shortest leads, box is the general fallback — orderTemplates).
+     */
+    private const BLADE_TIME_BUDGET_SECONDS = 60;
+
+    /**
+     * PER-QUERY GRIND CAP (operator ruling 2026-09-03). The wall-clock cap
+     * above fires only BETWEEN the leaf's PostGIS queries; a single ST_Split /
+     * ST_Intersection on a raw coastal geometry can run uninterrupted for
+     * minutes inside ONE query, past the wall cap (Tumaco at 60 s). A Postgres
+     * statement_timeout cancels such a query at the DB level — the same
+     * backend-cancel the auto-kill uses, but per query and precise — and the
+     * resulting QueryException routes the scope to the box
+     * (planWithFallback's RuntimeException arm). Env-overridable
+     * (cga.districting.leaf_query_timeout_ms). 0 disables it.
+     *
+     * DISABLED (operator finding 2026-09-03, the Falklands review): it never
+     * caught the raster grind (that PostGIS query ignores the cancel — proven
+     * on Tumaco), and it CANCELLED the mask's legitimate long query on a
+     * far-apart archipelago (Falklands, 1,198 parts), sending the scope to
+     * review. The grind is handled by the grind shunt (backend terminate),
+     * not by a per-query cancel. Kept at 0 as the default; the backend kill is
+     * the real bound.
+     */
+    private const LEAF_QUERY_TIMEOUT_MS = 0;
+
+    /**
      * How many EXTRA districts the composition ladder may add above the
      * minimum lawful count before a scope is honestly refused. Each step
      * shrinks the districts and buys slack; the first (k_min) rung is the
@@ -124,6 +156,9 @@ class SubdivisionAutoseedService
 
     /** Remaining findBlade calls in the pool (or the standalone plan) in flight. */
     private int $bladeBudget = self::BLADE_BUDGET_PER_SCOPE;
+
+    /** Wall-clock start of the current pool/plan blade search (microtime), or null. */
+    private ?float $bladeStartedAt = null;
 
     /** Scope id whose blade pool is open (the ladder owns it); null = no pool. */
     private ?string $bladePoolScope = null;
@@ -165,12 +200,26 @@ class SubdivisionAutoseedService
     {
         $this->bladePoolScope = $scopeId;
         $this->bladeBudget = self::BLADE_BUDGET_PER_SCOPE;
+        $this->bladeStartedAt = microtime(true);
+        // Per-query grind cap: a single uninterruptible ST_Split /
+        // ST_Intersection is cancelled by Postgres and routed to the box.
+        $ms = (int) config('cga.districting.leaf_query_timeout_ms', self::LEAF_QUERY_TIMEOUT_MS);
+        if ($ms > 0) {
+            DB::statement('SET statement_timeout = '.$ms);
+        }
     }
 
     /** Close the pool; the next standalone plan() owns a fresh counter. */
     public function closeBladePool(): void
     {
         $this->bladePoolScope = null;
+        // Restore the session default so the timeout never leaks to the lane's
+        // next scope or its write phase. A dropped session cannot be reset;
+        // the next checkout is clean.
+        try {
+            DB::statement('RESET statement_timeout');
+        } catch (\Throwable) {
+        }
     }
 
     public function bladePoolOpenFor(string $scopeId): bool
@@ -182,6 +231,28 @@ class SubdivisionAutoseedService
     public function bladeBudgetRemaining(): int
     {
         return max(0, $this->bladeBudget);
+    }
+
+    /**
+     * The blade search is exhausted when its CALL budget is spent OR its
+     * WALL-CLOCK cap has elapsed (operator ruling 2026-09-03, the Tumaco
+     * grind). Either way the cutting ladder stops and the box catches the
+     * scope. The time cap is what bounds a scope whose individual blades are
+     * each slow, where the call count alone would grind for minutes.
+     */
+    private function bladeExhausted(): bool
+    {
+        if ($this->bladeBudget <= 0) {
+            return true;
+        }
+        if ($this->bladeStartedAt !== null) {
+            $cap = (float) config('cga.districting.leaf_time_budget_seconds', self::BLADE_TIME_BUDGET_SECONDS);
+            if ($cap > 0.0 && (microtime(true) - $this->bladeStartedAt) > $cap) {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     // ── the scope parts store: dissolve once per scope ──────────────────────
@@ -269,6 +340,7 @@ class SubdivisionAutoseedService
         // owns a fresh counter for itself.
         if ($this->bladePoolScope !== $scopeId) {
             $this->bladeBudget = self::BLADE_BUDGET_PER_SCOPE;
+            $this->bladeStartedAt = microtime(true);
         }
 
         // MASK MODE (see the template docblock): the scope id rides on the
@@ -504,7 +576,7 @@ class SubdivisionAutoseedService
             // composition rung and every cutting template the ladder runs
             // (2026-09-02). A scope that exhausts the pool reaches its
             // honest refusal here, and the ladder goes straight to the box.
-            if ($this->bladeBudget <= 0) {
+            if ($this->bladeExhausted()) {
                 break;
             }
             try {
@@ -1333,7 +1405,7 @@ class SubdivisionAutoseedService
                 array_splice($districts, $districtsMark);
                 $order = $orderMark;
                 $lastFailure = $e;
-                if ($this->bladeBudget <= 0) {
+                if ($this->bladeExhausted()) {
                     break;
                 }
             }
@@ -1363,7 +1435,7 @@ class SubdivisionAutoseedService
 
         // Budget exhausted → refuse THIS node honestly rather than keep
         // grinding; the refusal unwinds to the plan's hand-draw verdict.
-        if ($this->bladeBudget <= 0) {
+        if ($this->bladeExhausted()) {
             throw new NoContiguousCut(
                 "The blade search budget was exhausted for this scope at {$path} — cut it by hand."
             );
@@ -1481,8 +1553,22 @@ class SubdivisionAutoseedService
         $absorbModes = $template === self::TEMPLATE_MASK ? [false] : [false, true];
         foreach ($absorbModes as $absorb) {
             foreach (self::anglePasses($template) as $pass) {
+                // WALL-CLOCK CAP inside the angle sweep (operator ruling
+                // 2026-09-03): one findBlade call can grind for minutes here on
+                // a coastal scope, and the between-node budget check never runs
+                // until it returns. BladeBudgetExhausted unwinds PAST the
+                // recursion's NoContiguousCut catches to the box.
+                if ($this->bladeExhausted()) {
+                    throw new BladeBudgetExhausted('Leaf blade search hit its wall-clock cap mid-angle-sweep.');
+                }
                 $candidates = [];
                 foreach ($pass as $i => $angleDeg) {
+                    // Per-ANGLE cap: bladeOffsetSearch below is pure-PHP pixel
+                    // work with no DB query, so neither statement_timeout nor a
+                    // pass-level check can bound a heavy angle sweep (Tumaco).
+                    if ($this->bladeExhausted()) {
+                        throw new BladeBudgetExhausted('Leaf blade search hit its wall-clock cap mid-angle.');
+                    }
                     $theta = deg2rad($angleDeg);
                     $nx = -sin($theta);
                     $ny = cos($theta);
@@ -1519,6 +1605,12 @@ class SubdivisionAutoseedService
                 // (parts partition it) without touching untouched islands.
                 $regionKey = $this->regionPartsRef($regionGj);
                 foreach ($candidates as &$cand) {
+                    // The PostGIS scoring query below is the per-candidate cost
+                    // that grinds; check the cap before each (operator ruling
+                    // 2026-09-03).
+                    if ($this->bladeExhausted()) {
+                        throw new BladeBudgetExhausted('Leaf blade search hit its wall-clock cap mid-scoring.');
+                    }
                     $seqs = $this->bladeCrossedSeqs($regionKey, $cand, $lon0, $lat0, $cosLat);
                     if ($seqs === []) {
                         $cand['len'] = 0.0;

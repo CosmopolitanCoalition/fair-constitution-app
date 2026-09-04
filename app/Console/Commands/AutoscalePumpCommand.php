@@ -147,9 +147,25 @@ class AutoscalePumpCommand extends Command
         // Deadlines are warnings; kills are manual (kill_requested_at) or
         // opt-in automatic (auto_kill_minutes). A killed scope PARKS in
         // review. One implementation, AutoscaleRunControl::killLease.
+        // The grind shunt runs FIRST (operator order 2026-09-03): a lane stuck
+        // on an uninterruptible raster query past grind_box_seconds is
+        // terminated and its scope requeued to redraw as a box, instead of
+        // parking in review. sweepKills (the minutes auto-kill) is the backstop.
+        $shunted = app(AutoscaleRunControl::class)->sweepGrindShunts($run);
+        if ($shunted > 0) {
+            Log::warning('Autoscale pump shunted grinding lanes to box', ['run_id' => $run->id, 'count' => $shunted]);
+        }
         $killed = app(AutoscaleRunControl::class)->sweepKills($run);
         if ($killed > 0) {
             Log::warning('Autoscale pump killed lanes', ['run_id' => $run->id, 'count' => $killed]);
+        }
+
+        // FINALIZE-ORPHAN RECOVERY (operator order 2026-09-04): re-arm any
+        // sweep header left pending with all scopes closed so it finalizes
+        // instead of stranding a complete map with an open header + ✓.
+        $rearmed = app(AutoscaleRunControl::class)->sweepFinalizeOrphans($run);
+        if ($rearmed > 0) {
+            Log::warning('Autoscale pump re-armed finalize orphans', ['run_id' => $run->id, 'count' => $rearmed]);
         }
 
         // ── Reclaims: dead lanes' claims go back to pending (set-based, bounded) ──
