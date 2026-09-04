@@ -3085,23 +3085,41 @@ class SetupController extends Controller
         // 2026-08-30, lane visibility): a lane deep in one long PostGIS
         // call cannot heartbeat, and it must stay on the strip with its
         // claim label and elapsed seconds for as long as the claim is open.
-        $workerRows = DB::table('autoscale_worker_leases')
-            ->where('run_id', $run->id)
+        // Breadcrumb the scope in hand to the map it belongs to (operator
+        // order 2026-09-04): current_scope_id → the scope's own jurisdiction
+        // (linked, with the map's ADM level) under the map owner. Guarded on
+        // the lane-control columns so an older box without current_scope_id
+        // still renders the plain claim label.
+        $hasLaneCols = \App\Services\Autoscale\AutoscaleRunControl::laneControlColumnsPresent();
+        $workerQuery = DB::table('autoscale_worker_leases as wl')
+            ->where('wl.run_id', $run->id)
             ->where(function ($q) {
-                $q->where('last_seen_at', '>', now()->subMinutes(2))
+                $q->where('wl.last_seen_at', '>', now()->subMinutes(2))
                   ->orWhere(function ($q2) {
-                      $q2->whereNotNull('claim_started_at')
-                         ->where('claim_started_at', '>', now()->subHours(4));
+                      $q2->whereNotNull('wl.claim_started_at')
+                         ->where('wl.claim_started_at', '>', now()->subHours(4));
                   });
             })
             // Longest-running claim on top (operator order 2026-08-30): the
             // grinders lead the strip, fresh claims join at the bottom.
-            ->orderByRaw('claim_started_at ASC NULLS LAST, started_at')
-            // All columns on purpose: kill_requested_at lands with the
-            // Workstream A migration, and a named select of a column that
-            // does not exist yet would break the page before it runs. The
-            // lease table holds one row per lane, so the width is free.
-            ->get();
+            ->orderByRaw('wl.claim_started_at ASC NULLS LAST, wl.started_at');
+        if ($hasLaneCols) {
+            $workerQuery
+                ->leftJoin('apportionment_ledger_scopes as s', 's.id', '=', 'wl.current_scope_id')
+                ->leftJoin('jurisdictions as sj', 'sj.id', '=', 's.scope_jurisdiction_id')
+                ->leftJoin('apportionment_ledger as h', 'h.legislature_id', '=', 's.legislature_id')
+                ->leftJoin('jurisdictions as mj', 'mj.id', '=', 'h.jurisdiction_id')
+                ->addSelect([
+                    'sj.name as scope_name', 'sj.slug as scope_slug',
+                    'mj.name as map_name', 'mj.slug as map_slug',
+                    'h.adm_level as adm_level',
+                ]);
+        }
+        // All lease columns on purpose: kill_requested_at lands with the
+        // Workstream A migration, and a named select of a column that does
+        // not exist yet would break the page before it runs. One row per
+        // lane, so the width is free.
+        $workerRows = $workerQuery->addSelect('wl.*')->get();
         $workers = $workerRows->count();
         $workersDetail = $workerRows->map(fn ($w) => [
             'id'          => substr((string) $w->id, 0, 8),
@@ -3115,6 +3133,12 @@ class SetupController extends Controller
             // A kill is a request the lane honors at its next boundary; the
             // page shows "kill requested" until the claim ends.
             'kill_requested' => ($w->kill_requested_at ?? null) !== null,
+            // The scope in hand, linked, under the map it belongs to.
+            'scope_name'  => $w->scope_name ?? null,
+            'scope_slug'  => $w->scope_slug ?? null,
+            'map_name'    => $w->map_name ?? null,
+            'map_slug'    => $w->map_slug ?? null,
+            'adm_level'   => $w->adm_level ?? null,
         ])->values();
 
         return [$workers, $workersDetail];

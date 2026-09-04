@@ -56,6 +56,16 @@ let pollAbort = null             // AbortController of the in-flight request
 const run = computed(() => autoscale.value?.run ?? null)
 const worldBuild = computed(() => autoscale.value?.world_build ?? null)
 const layers = computed(() => autoscale.value?.layers ?? [])
+// The lane's work phase — the claim_label tail after the ' ⋯ ' base
+// (operator order 2026-09-04): the map › scope base is now a linked
+// breadcrumb, so the strip shows only the phase (e.g. "Line-split filed
+// (shortest, 2 districts)"). No scope data (idle/old box) → the full label.
+function lanePhase(w) {
+    const l = w.claim_label ?? ''
+    const i = l.indexOf(' ⋯ ')
+    if (i >= 0) return l.slice(i + 3)
+    return w.scope_slug ? '' : l
+}
 
 // A1 (operator order 2026-08-29): the parents SIZING PASS as a real bar —
 // live count / total with rate, ETA and elapsed computed from this page's
@@ -724,94 +734,27 @@ onBeforeUnmount(() => {
                     'bg-red-900/20 border-red-800/50': run.status === 'failed',
                 }"
             >
-                <div class="flex items-center justify-between gap-3 mb-3">
-                    <div class="flex items-baseline gap-2">
-                        <span v-if="runActive" class="inline-block w-2 h-2 rounded-full bg-blue-400 animate-pulse"></span>
-                        <span v-else-if="run.status === 'done'" class="text-emerald-400 text-lg">✓</span>
-                        <h2 class="font-semibold"
-                            :class="{
-                                'text-blue-200': runActive,
-                                'text-emerald-200': run.status === 'done',
-                                'text-amber-200': run.status === 'halted',
-                                'text-red-200': run.status === 'failed',
-                            }">
-                            {{ phaseLabel }}
-                        </h2>
-                    </div>
-                    <div class="flex items-center gap-2">
-                        <button
-                            v-if="runActive && !run.halt_requested"
-                            @click="haltRun"
-                            :disabled="actionBusy"
-                            class="text-xs px-3 py-1.5 rounded border border-amber-700 text-amber-300 hover:bg-amber-900/40 transition-colors"
-                        >
-                            Halt
-                        </button>
-                        <span v-else-if="runActive && run.halt_requested" class="text-xs text-amber-300 italic">
-                            halting at the next boundary…
-                        </span>
-                        <button
-                            v-if="run.status === 'halted'"
-                            @click="resumeRun(false)"
-                            :disabled="actionBusy"
-                            class="text-xs px-3 py-1.5 rounded border border-emerald-700 text-emerald-300 hover:bg-emerald-900/40 transition-colors"
-                        >
-                            Resume
-                        </button>
-                        <!-- Rewind mapping — the UI door to `autoscale:revert`
-                             (parity). Halted-state only, like Resume; the
-                             confirm dialog is the deliberate-intent gate. -->
-                        <button
-                            v-if="run.status === 'halted'"
-                            @click="rewindRun"
-                            :disabled="actionBusy"
-                            class="text-xs px-3 py-1.5 rounded border border-rose-700 text-rose-300 hover:bg-rose-900/40 transition-colors"
-                            title="Delete generated maps and re-mint fresh founding drafts (sizing + precompute kept)"
-                        >
-                            Rewind mapping
-                        </button>
-                    </div>
-                </div>
-
-                <!-- Phase breadcrumb (operator approval 2026-08-29): the run's
-                     own stamps, each phase with its measured elapsed; the live
-                     phase ticks with the clock. -->
-                <div v-if="phaseTrail.length" class="flex flex-wrap items-center gap-1 text-xs text-gray-400 mb-3">
-                    <template v-for="(p, i) in phaseTrail" :key="p.key">
-                        <span v-if="i > 0" class="text-gray-600">›</span>
-                        <span :class="p.live ? 'text-blue-300' : 'text-gray-400'">
-                            {{ p.key }}<span v-if="p.elapsed" class="text-gray-500"> {{ p.elapsed }}</span>
-                            <span v-if="p.live" class="inline-block w-1.5 h-1.5 rounded-full bg-blue-400 animate-pulse ml-0.5 align-middle"></span>
-                        </span>
-                    </template>
-                </div>
+                <!-- The phase title and the queued/sizing/precompute/mapping
+                     timeline were removed (operator order 2026-09-04): the
+                     phase reads from the section border + the layer bars, and
+                     the phase timers were superseded by Step 2. Run controls
+                     (Halt / Resume / Rewind) moved to the auto-kill row below. -->
 
                 <!-- Headline counters -->
-                <div class="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm mb-4">
+                <div class="grid grid-cols-2 md:grid-cols-3 gap-4 text-sm mb-4">
                     <div>
-                        <div class="text-gray-400 text-xs uppercase tracking-wide">Parents sized</div>
-                        <div class="text-white text-lg font-semibold mt-1 tabular-nums">{{ run.sized_parents.toLocaleString() }}</div>
+                        <div class="text-gray-400 text-xs uppercase tracking-wide">Legislatures sized</div>
+                        <div class="text-white text-lg font-semibold mt-1 tabular-nums">{{ (run.sized_parents + run.sized_leaves).toLocaleString() }}</div>
                     </div>
                     <div>
-                        <div class="text-gray-400 text-xs uppercase tracking-wide">Leaves sized</div>
-                        <div class="text-white text-lg font-semibold mt-1 tabular-nums">{{ run.sized_leaves.toLocaleString() }}</div>
-                    </div>
-                    <div>
-                        <div class="text-gray-400 text-xs uppercase tracking-wide">Sweep rate (scopes, 10 min)</div>
+                        <div class="text-gray-400 text-xs uppercase tracking-wide">Sweep rate</div>
                         <div class="text-white text-lg font-semibold mt-1 tabular-nums">
                             {{ run.sweeps_per_hour != null && run.sweeps_per_hour > 0 ? `${run.sweeps_per_hour.toLocaleString()}/h` : '—' }}
                         </div>
                     </div>
                     <div>
-                        <div class="text-gray-400 text-xs uppercase tracking-wide">ETA (scopes)</div>
+                        <div class="text-gray-400 text-xs uppercase tracking-wide">ETA</div>
                         <div class="text-white text-lg font-semibold mt-1 tabular-nums">{{ fmtEta(run.eta_seconds) }}</div>
-                    </div>
-                    <div v-if="run.workers_target">
-                        <div class="text-gray-400 text-xs uppercase tracking-wide">Workers</div>
-                        <div class="text-white text-lg font-semibold mt-1 tabular-nums">
-                            {{ run.workers }}<span class="text-gray-500 text-sm font-normal">/{{ run.workers_target }}</span>
-                            <span v-if="run.paused_until" class="text-amber-300 text-xs font-normal ml-1">paused (pg recovering)</span>
-                        </div>
                     </div>
                 </div>
 
@@ -868,7 +811,7 @@ onBeforeUnmount(() => {
                          and moves at the true machine rate. -->
                     <div>
                         <div class="flex justify-between text-xs text-gray-400 mb-1">
-                            <span>Scopes (every district drawing, leaves included)</span>
+                            <span>Scopes</span>
                             <!-- Total counts every future scope too: an
                                  unmaterialized sweep map holds at least its
                                  own root scope, so each layer contributes
@@ -892,7 +835,7 @@ onBeforeUnmount(() => {
                      line-splits); the picture always fills left to right. -->
                 <div v-if="layers.length" class="mt-4 border-t border-gray-700/50 pt-3">
                     <div class="flex flex-wrap items-center justify-between gap-x-4 gap-y-1 mb-2">
-                        <div class="text-gray-400 text-xs uppercase tracking-wide">By layer (biggest first)</div>
+                        <div class="text-gray-400 text-xs uppercase tracking-wide">By layer</div>
                         <div class="flex items-center gap-3 text-[11px] text-gray-400">
                             <span class="flex items-center gap-1"><span class="inline-block w-2 h-2 rounded-sm bg-teal-500"></span>At-Large Maps</span>
                             <span class="flex items-center gap-1"><span class="inline-block w-2 h-2 rounded-sm bg-sky-500"></span>Line-Split Maps</span>
@@ -958,7 +901,7 @@ onBeforeUnmount(() => {
                      dial: a lane past N minutes on one claim is killed and
                      its scope parks in review. Stored on the run. -->
                 <div v-if="run.status !== 'done' && run.status !== 'failed'" class="mt-4 border-t border-gray-700/50 pt-3">
-                    <div class="flex flex-wrap items-center justify-between gap-x-4 gap-y-2 text-xs">
+                    <div class="flex flex-wrap items-center gap-x-4 gap-y-2 text-xs">
                         <!-- One label per control: the label owns the
                              checkbox only; the minutes input carries its
                              own accessible name. -->
@@ -983,26 +926,64 @@ onBeforeUnmount(() => {
                             <span v-else-if="run.auto_kill_minutes != null" class="text-emerald-400">on, {{ run.auto_kill_minutes }} min</span>
                             <span v-else class="text-gray-500">off</span>
                         </div>
-                        <span v-if="laneWarn" class="text-gray-500">
-                            Lane warning: amber after {{ fmtEta(laneWarn[0]) }}, red after {{ fmtEta(laneWarn[1]) }}. A killed scope parks in review.
-                        </span>
+                        <!-- Workers count (moved here 2026-09-04): beside the
+                             auto-kill control, not a headline stat. -->
+                        <div v-if="run.workers_target" class="flex items-center gap-1.5 text-gray-300">
+                            <span class="text-gray-400 uppercase tracking-wide">Workers</span>
+                            <span class="tabular-nums font-semibold text-gray-100">{{ run.workers }}<span class="text-gray-500 font-normal">/{{ run.workers_target }}</span></span>
+                            <span v-if="run.paused_until" class="text-amber-300">paused (pg recovering)</span>
+                        </div>
+                        <!-- Run controls (moved here 2026-09-04): Halt / Resume /
+                             Rewind share the row with workers + auto-kill. -->
+                        <div class="flex items-center gap-2 ml-auto">
+                            <button
+                                v-if="runActive && !run.halt_requested"
+                                @click="haltRun"
+                                :disabled="actionBusy"
+                                class="px-3 py-1 rounded border border-amber-700 text-amber-300 hover:bg-amber-900/40 transition-colors"
+                            >
+                                Halt
+                            </button>
+                            <span v-else-if="runActive && run.halt_requested" class="text-amber-300 italic">
+                                halting at the next boundary…
+                            </span>
+                            <button
+                                v-if="run.status === 'halted'"
+                                @click="resumeRun(false)"
+                                :disabled="actionBusy"
+                                class="px-3 py-1 rounded border border-emerald-700 text-emerald-300 hover:bg-emerald-900/40 transition-colors"
+                            >
+                                Resume
+                            </button>
+                            <button
+                                v-if="run.status === 'halted'"
+                                @click="rewindRun"
+                                :disabled="actionBusy"
+                                class="px-3 py-1 rounded border border-rose-700 text-rose-300 hover:bg-rose-900/40 transition-colors"
+                                title="Delete generated maps and re-mint fresh founding drafts (sizing + precompute kept)"
+                            >
+                                Rewind mapping
+                            </button>
+                        </div>
                     </div>
+                    <p v-if="laneWarn" class="text-gray-500 mt-1.5">
+                        Lane warning: amber after {{ fmtEta(laneWarn[0]) }}, red after {{ fmtEta(laneWarn[1]) }}. A killed scope parks in review.
+                    </p>
                     <p v-if="autoKillError" class="text-red-300 text-xs mt-1">{{ autoKillError }}</p>
                 </div>
 
                 <div v-if="autoscale.workers_detail?.length" class="mt-4 border-t border-gray-700/50 pt-3">
-                    <div class="text-gray-400 text-xs uppercase tracking-wide mb-2">
-                        Workers ({{ autoscale.workers_detail.length }})
-                    </div>
+                    <!-- Workers heading + per-group titles removed (operator
+                         order 2026-09-04): the lanes speak for themselves; the
+                         grouping order is kept, the labels dropped. -->
                     <div class="space-y-3">
                         <div v-for="grp in [
-                                { key: 'batch',   title: 'Two-cutter wall — batch lanes', list: laneGroups.batch },
-                                { key: 'cascade', title: 'Giant cascades — one scope per lane', list: laneGroups.cascade },
-                                { key: 'assess',  title: 'Assessment — closing finished maps', list: laneGroups.assess },
-                                { key: 'other',   title: 'Other work', list: laneGroups.other },
-                                { key: 'idle',    title: 'Idle lanes', list: laneGroups.idle },
+                                { key: 'batch',   list: laneGroups.batch },
+                                { key: 'cascade', list: laneGroups.cascade },
+                                { key: 'assess',  list: laneGroups.assess },
+                                { key: 'other',   list: laneGroups.other },
+                                { key: 'idle',    list: laneGroups.idle },
                              ].filter(x => x.list.length)" :key="grp.key">
-                            <div class="text-gray-500 text-[11px] uppercase tracking-wide mb-1">{{ grp.title }} ({{ grp.list.length }})</div>
                     <ul class="space-y-1.5">
                         <!-- Lane color by claim age against run.lane_warn_seconds
                              (normal, amber, red). Kill is two clicks: arm,
@@ -1016,7 +997,20 @@ onBeforeUnmount(() => {
                                 <span class="flex items-center gap-2 min-w-0">
                                     <span class="w-1.5 h-1.5 rounded-full shrink-0"
                                           :class="w.claim_label ? [laneTone[laneLevel(w)].dot, 'animate-pulse'] : 'bg-gray-600'" aria-hidden="true" />
-                                    <span v-if="w.claim_label" class="font-medium truncate" :class="laneTone[laneLevel(w)].label">{{ w.claim_label }}</span>
+                                    <!-- Scope in hand, linked, breadcrumbed under
+                                         its map (operator order 2026-09-04): the
+                                         map prefix shows only when it differs
+                                         from the scope (composites), then the
+                                         work phase from the claim label. -->
+                                    <span v-if="w.scope_slug" class="truncate min-w-0" :class="laneTone[laneLevel(w)].label">
+                                        <template v-if="w.map_slug && w.map_name && w.map_name !== w.scope_name">
+                                            <a :href="`/legislatures/${w.map_slug}`" target="_blank" class="text-gray-400 hover:text-gray-200 underline-offset-2 hover:underline">{{ w.map_name }}</a><span class="text-gray-600"> › </span>
+                                        </template>
+                                        <a :href="`/legislatures/${w.scope_slug}`" target="_blank" class="font-medium underline-offset-2 hover:underline">{{ w.scope_name }}</a>
+                                        <span v-if="w.adm_level != null" class="text-gray-500 ml-1">ADM{{ w.adm_level }}</span>
+                                        <span v-if="lanePhase(w)" class="text-gray-400"> · {{ lanePhase(w) }}</span>
+                                    </span>
+                                    <span v-else-if="w.claim_label" class="font-medium truncate" :class="laneTone[laneLevel(w)].label">{{ w.claim_label }}</span>
                                     <span v-else class="text-gray-500 italic">{{ idleCause }}</span>
                                 </span>
                                 <span class="flex items-center gap-2 tabular-nums shrink-0 ml-3" :class="laneTone[laneLevel(w)].clock">
@@ -1055,23 +1049,10 @@ onBeforeUnmount(() => {
                     </div>
                 </div>
 
-                <!-- Live scopes: the real in-flight work units (Earth's giant
-                     provinces show individually while Earth sweeps). -->
-                <div v-if="autoscale.live_items?.length" class="mt-4 border-t border-gray-700/50 pt-3">
-                    <div class="text-gray-400 text-xs uppercase tracking-wide mb-2">Sweeping now</div>
-                    <ul class="space-y-1 text-sm">
-                        <li v-for="it in autoscale.live_items" :key="`${it.legislature_id}:${it.jurisdiction_id}`" class="flex items-baseline gap-2">
-                            <span class="inline-block w-1.5 h-1.5 rounded-full bg-blue-400 animate-pulse"></span>
-                            <a :href="`/legislatures/${it.jurisdiction_slug}`" target="_blank"
-                               class="text-blue-300 hover:text-blue-100 underline-offset-2 hover:underline">
-                                {{ it.jurisdiction_name }}
-                            </a>
-                            <span class="text-gray-500 text-xs">
-                                ADM{{ it.adm_level }}<span v-if="it.depth > 0"> · cascade depth {{ it.depth }}</span>
-                            </span>
-                        </li>
-                    </ul>
-                </div>
+                <!-- "Sweeping now" removed (operator order 2026-09-04): each
+                     lane in the Workers strip now names its scope in hand as a
+                     link, breadcrumbed under its map, so the flat list was
+                     redundant. -->
 
                 <!-- Review list -->
                 <div v-if="reviewItems.length" class="mt-4 border-t border-gray-700/50 pt-3">
@@ -1292,22 +1273,8 @@ onBeforeUnmount(() => {
                 </div>
 
                 <div v-else>
-                    <p class="text-gray-300 mb-4">
-                        Spot-check any legislature in the interactive district mapper — the
-                        <strong>{{ root_jurisdiction?.name ?? 'root' }}</strong> map is the natural first look.
-                        Reading is always safe mid-run; a legislature currently being swept has its
-                        autoseed controls locked until its sweep finishes.
-                    </p>
-
-                    <ul class="text-sm text-gray-400 space-y-2 mb-5 pl-4 list-disc">
-                        <li>A banner at the top of the mapper will remind you you're in setup mode.</li>
-                        <li>Review items above link straight into the affected legislature's mapper.</li>
-                        <li>The whole world is browsable while maps draw — and whatever
-                            legislature you visit <strong>jumps the queue</strong>: its map
-                            draws next.</li>
-                        <li>You can always come back here by visiting <code class="text-gray-300">/setup</code>.</li>
-                    </ul>
-
+                    <!-- Intro paragraph + bullet list removed (operator order
+                         2026-09-04): extraneous; the controls below remain. -->
                     <div class="flex items-center justify-between gap-4 pt-3 border-t border-gray-800">
                         <a href="/setup/step/2" class="text-gray-400 hover:text-gray-200 text-sm px-2 py-2">
                             ← Back
