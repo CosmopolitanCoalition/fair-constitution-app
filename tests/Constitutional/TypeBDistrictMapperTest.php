@@ -51,6 +51,46 @@ class TypeBDistrictMapperTest extends TestCase
         $this->assertFalse($ladder['needs_districting']);
     }
 
+    /**
+     * SEEDS PER COMPONENT (the Yap class, 2026-09-05): a disconnected graph —
+     * an 8-member chain plus 12 isolated parts, 20 in all, bound 20 → 10 panels
+     * of 2. Farthest-first seeding used to give every isolated part a seed and
+     * leave the chain in ONE panel of 8; seeds now go by component size, so the
+     * chain splits into four contiguous pairs and the isolated parts pair up as
+     * islands (B4 — contiguity impossible for them). Every panel holds 2.
+     */
+    public function test_a_disconnected_graph_seeds_by_component_and_splits_even(): void
+    {
+        $pops = [];
+        $adj  = [];
+        for ($i = 0; $i < 8; $i++) {
+            $pops['c' . $i] = 100;
+        }
+        for ($i = 0; $i < 7; $i++) {
+            $adj['c' . $i]['c' . ($i + 1)] = 1.0;
+            $adj['c' . ($i + 1)]['c' . $i] = 1.0;
+        }
+        for ($i = 0; $i < 12; $i++) {
+            $pops['i' . $i] = 100;
+        }
+
+        $r = TypeBDistrictMapper::computePanels($pops, $adj, 20, 2000, 2);
+
+        $this->assertSame(10, $r['panel_count'], 'floor(bound 20 / 2) = 10 panels');
+        $this->assertSame([2 => 10], array_count_values(array_map('count', $r['panels'])), 'every panel holds exactly 2');
+        $chainPanels = 0;
+        foreach ($r['panels'] as $panel) {
+            $chain = array_values(array_filter($panel, fn ($id) => $id[0] === 'c'));
+            if ($chain === []) {
+                continue;
+            }
+            $this->assertCount(2, $chain, 'a chain member never pairs with an isolated part while a chain pair is possible');
+            $this->assertTrue(isset($adj[$chain[0]][$chain[1]]), 'a chain pair is contiguous');
+            $chainPanels++;
+        }
+        $this->assertSame(4, $chainPanels, 'the 8-member chain splits into four contiguous pairs');
+    }
+
     /** Clumping begins only where the ladder overflows: 6 parts at 2 = 12 > bound 11. */
     public function test_clumping_starts_only_when_the_ladder_overflows(): void
     {

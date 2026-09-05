@@ -253,7 +253,14 @@ class TypeBDistrictMapper
             return [];
         }
         $ids   = array_map('strval', $ids);
-        $seeds = self::pickSpreadSeeds($ids, $adjacency, $p);
+        // SEEDS PER COMPONENT (2026-09-05, the Yap class): a disconnected
+        // constituent graph gets its seeds in proportion to component size,
+        // farthest-first inside each component. Plain farthest-first took
+        // every isolated constituent first (infinite distance) and starved
+        // the mainland — Yap's 8-member component sat in ONE panel beside
+        // nine singleton panels. A component that earns no seed becomes
+        // islands for the B4 distributor below.
+        $seeds = self::pickSeedsByComponent($ids, $adjacency, $p);
 
         // Stage 1: multi-source BFS Voronoi — connected regions by construction.
         [$region, $islands] = self::voronoiRegions($ids, $adjacency, $seeds);
@@ -437,13 +444,37 @@ class TypeBDistrictMapper
                 if ($counts[$R] <= 1) {
                     continue; // never drain a region to empty — every panel keeps a member
                 }
-                if (! self::connectedWithout($members[$R], $adjacency, $m)) {
-                    continue; // move would split R — contiguity is the hard rule
+                // THE TRANSFER (2026-09-05, the chain class): a boundary
+                // member that is a cut vertex of R does not move alone — it
+                // moves WITH the smaller pieces it separates, and R keeps its
+                // largest piece. Chain-like geography (a member with a tail
+                // behind it) blocked every single-member move and left one
+                // seed holding 38 members beside seventeen singletons
+                // (Northwest / Nord-ouest). The pieces hang off the moved
+                // member, so S ∪ {m} ∪ pieces stays connected and so does the
+                // kept piece. Allowed only while Σ excess² strictly falls
+                // (t < eR − eS), which also keeps the loop terminating.
+                $pieces = self::piecesWithout($members[$R], $adjacency, $m);
+                $moveSet = [$m];
+                if (count($pieces) > 1) {
+                    usort($pieces, static fn (array $x, array $y) => (count($y) <=> count($x)) ?: strcmp((string) $x[0], (string) $y[0]));
+                    array_shift($pieces);   // R keeps its largest piece
+                    foreach ($pieces as $piece) {
+                        foreach ($piece as $pm) {
+                            $moveSet[] = (string) $pm;
+                        }
+                    }
                 }
-                unset($members[$R][$m]);
-                $members[$bestS][$m] = true;
-                $region[$m]          = $bestS;
-                $counts[$R]--; $counts[$bestS]++;
+                $t = count($moveSet);
+                if ($t >= $eR - $bestE || $counts[$R] - $t < 1) {
+                    continue; // the transfer would not improve the balance, or would empty R
+                }
+                foreach ($moveSet as $mm) {
+                    unset($members[$R][$mm]);
+                    $members[$bestS][$mm] = true;
+                    $region[$mm]          = $bestS;
+                }
+                $counts[$R] -= $t; $counts[$bestS] += $t;
                 $moved = true;
             }
         } while ($moved && ++$pass < $maxPasses);
@@ -454,11 +485,22 @@ class TypeBDistrictMapper
     /**
      * FLOW the residual excess to distant deficits so the sizes land even. Each
      * round takes the MOST-over region and the MOST-under region, finds a path
-     * between them in the region-adjacency graph, and pushes ONE member along it
+     * between them over ADMISSIBLE hops, and pushes ONE member along it
      * (processed from the deficit end back, so every intermediate region nets
      * zero and only the two endpoints change size). Each hop moves a boundary
      * member whose removal keeps its region connected — contiguity is preserved.
      * Each successful round cuts total |excess| by two, so it terminates.
+     *
+     * ADMISSIBLE HOPS (2026-09-05, the 142 connected stalls): a hop a → b is
+     * usable only when some member of a bordering b can leave a without
+     * splitting it. The old search took the SHORTEST region path and gave up
+     * when one hop on it was blocked by a cut vertex, though a longer path
+     * around the block existed (Minas Gerais: 210 pairs, every shortest path
+     * blocked, spread 4..7 against 6/7). The path search now runs over the
+     * admissible hops, judged lazily in the current state; a hop that still
+     * fails at push time (the state moved under it) is dropped for the round
+     * and the search repeats, so every round either pushes or proves no
+     * admissible route exists.
      *
      * @param array<string,int>                 $region id => panel index
      * @param array<string,array<string,float>> $adjacency
@@ -498,15 +540,43 @@ class TypeBDistrictMapper
             $moved = false;
             foreach (array_keys($overs) as $o) {
                 foreach (array_keys($unders) as $u) {
-                    $path = self::regionPath($o, $u, $members, $adjacency, $region);
-                    if ($path !== null && self::pushAlongPath($path, $members, $counts, $region, $adjacency)) {
-                        $moved = true;
-                        break 2;
+                    // Two hop-dropping strategies per pair, each on its own
+                    // blocked set: first drop the last hop the exact search
+                    // ACCEPTED (the entry that brought the wrong member —
+                    // {x,y} entered on x had to give x; entering on y works),
+                    // then drop the hop the forward push FAILED on (the exit
+                    // that has no safe member). Different blocks, different
+                    // detours; a pair is given up only when both run dry.
+                    foreach ([true, false] as $dropEntry) {
+                        $blocked = [];   // "a:b" hops dropped for this attempt
+                        while (true) {
+                            $path = self::admissiblePath($o, $u, $members, $adjacency, $region, $blocked);
+                            if ($path === null) {
+                                break;
+                            }
+                            // THE EXACT PUSH first: the members for every hop
+                            // are chosen together so each region's final set
+                            // is connected (a region may hand on the very
+                            // member it received). The forward push with the
+                            // re-bisection fallback is the second attempt.
+                            $deepest = 0;
+                            if (self::pushAlongPathExact($path, $members, $counts, $region, $adjacency, $deepest)) {
+                                $moved = true;
+                                break 4;
+                            }
+                            $failedHop = self::pushAlongPath($path, $members, $counts, $region, $adjacency);
+                            if ($failedHop === null) {
+                                $moved = true;
+                                break 4;
+                            }
+                            $drop = $dropEntry ? $deepest : $failedHop;
+                            $blocked[$path[$drop] . ':' . $path[$drop + 1]] = true;
+                        }
                     }
                 }
             }
             if (! $moved) {
-                break; // no over→under pair admits a connectivity-safe push
+                break; // no over→under pair admits a connectivity-safe route
             }
         }
 
@@ -514,16 +584,20 @@ class TypeBDistrictMapper
     }
 
     /**
-     * Shortest path from region $src to region $dst in the REGION-ADJACENCY graph
-     * (two regions adjacent when a member of one borders a member of the other),
-     * as a list of region indices, or null when unreachable.
+     * Shortest path from region $src to region $dst over ADMISSIBLE hops in the
+     * region-adjacency graph: a → b when a member of a borders b AND that hop
+     * admits a connectivity-safe boundary member in the current state
+     * (boundaryMember), excluding hops in $blocked. Admissibility is judged
+     * lazily on the regions the search reaches, memoised per call. Returns the
+     * region indices, or null when no admissible route exists.
      *
      * @param array<int,array<string,bool>>     $members  region index => member set
      * @param array<string,array<string,float>> $adjacency
      * @param array<string,int>                 $region
+     * @param array<string,bool>                $blocked  "a:b" hops to skip
      * @return list<int>|null
      */
-    private static function regionPath(int $src, int $dst, array $members, array $adjacency, array $region): ?array
+    private static function admissiblePath(int $src, int $dst, array $members, array $adjacency, array $region, array $blocked): ?array
     {
         $prev  = [$src => -1];
         $queue = [$src];
@@ -548,10 +622,22 @@ class TypeBDistrictMapper
             }
             ksort($nbrRegions);
             foreach (array_keys($nbrRegions) as $rn) {
-                if (! isset($prev[$rn])) {
-                    $prev[$rn] = $cur;
-                    $queue[]   = $rn;
+                if (isset($prev[$rn]) || isset($blocked[$cur . ':' . $rn])) {
+                    continue;
                 }
+                // The FIRST hop is judged exactly: the source gives from its
+                // current members, so it needs a bordering member whose
+                // removal keeps it connected. An INTERMEDIATE gives only after
+                // it has received, so its state at push time differs from now
+                // (a single-member region holds two by then and can always
+                // give one); it is admitted on bordering alone, and a hop that
+                // still fails at push time is dropped by the caller and the
+                // search repeats without it.
+                if ($cur === $src && self::boundaryMember($cur, $rn, $members, $region, $adjacency) === null) {
+                    continue;
+                }
+                $prev[$rn] = $cur;
+                $queue[]   = $rn;
             }
         }
 
@@ -563,8 +649,9 @@ class TypeBDistrictMapper
      * each intermediate receives before it gives), so the first region loses a
      * member, the last gains one, and every intermediate nets zero WITHOUT ever
      * dropping below its starting count (an intermediate would empty if it gave
-     * before receiving). Returns false if any hop has no connectivity-safe
-     * boundary member (a partial push still leaves a valid contiguous partition).
+     * before receiving). Returns null on success, or the index of the hop that
+     * had no connectivity-safe boundary member — the partial push is undone
+     * atomically, so the caller resumes from a clean contiguous partition.
      *
      * @param list<int>                         $path
      * @param array<int,array<string,bool>>     $members  (mutated)
@@ -572,7 +659,7 @@ class TypeBDistrictMapper
      * @param array<string,int>                 $region   (mutated)
      * @param array<string,array<string,float>> $adjacency
      */
-    private static function pushAlongPath(array $path, array &$members, array &$counts, array &$region, array $adjacency): bool
+    private static function pushAlongPath(array $path, array &$members, array &$counts, array &$region, array $adjacency): ?int
     {
         $hops    = count($path) - 1;
         $applied = [];
@@ -581,8 +668,17 @@ class TypeBDistrictMapper
             $b = $path[$i + 1];
             $m = self::boundaryMember($a, $b, $members, $region, $adjacency);
             if ($m === null) {
+                // THE RE-BISECTION HOP (2026-09-05): every member of $a that
+                // borders $b is a cut vertex, so no single member can cross.
+                // The two regions are re-cut as ONE union into two contiguous
+                // parts of the hop's sizes (|a| − 1, |b| + 1); members may
+                // change sides in both directions, which a one-member move
+                // cannot do. Recorded as moves so the atomic undo below holds.
+                if (self::rebisectPair($a, $b, $members, $counts, $region, $adjacency, $applied)) {
+                    continue;
+                }
                 // ATOMIC: undo the partial push so the caller can try another
-                // pair from a clean state (a stuck member left mid-path would
+                // route from a clean state (a stuck member left mid-path would
                 // create a fresh over-target region and could oscillate).
                 foreach (array_reverse($applied) as [$mm, $aa, $bb]) {
                     unset($members[$bb][$mm]);
@@ -591,7 +687,7 @@ class TypeBDistrictMapper
                     $counts[$bb]--;
                     $counts[$aa]++;
                 }
-                return false;
+                return $i;
             }
             unset($members[$a][$m]);
             $members[$b][$m] = true;
@@ -601,7 +697,191 @@ class TypeBDistrictMapper
             $applied[] = [$m, $a, $b];
         }
 
+        return null;
+    }
+
+    /**
+     * THE EXACT PATH PUSH (2026-09-05): choose the member that crosses each hop
+     * of $path so that EVERY region's final set is connected — the source
+     * minus its giver, each intermediate minus its giver plus what it
+     * received (it may hand on the received member itself), the sink plus
+     * what it received. A depth-first search over the hop candidates (members
+     * bordering the next region, id order), pruned by the connectivity of each
+     * region as soon as its two choices are fixed, bounded by a node budget.
+     * The forward push chose greedily hop by hop and stalled where the
+     * received member attached to the very member that had to leave (Brasov:
+     * {x,y} receives m on x, must give x, {y,m} falls apart). On success the
+     * moves are applied in path order; $deepest reports the farthest hop the
+     * search reached (the caller drops it when nothing works).
+     *
+     * @param list<int>                         $path
+     * @param array<int,array<string,bool>>     $members  (mutated on success)
+     * @param array<int,int>                    $counts   (mutated on success)
+     * @param array<string,int>                 $region   (mutated on success)
+     * @param array<string,array<string,float>> $adjacency
+     */
+    private static function pushAlongPathExact(array $path, array &$members, array &$counts, array &$region, array $adjacency, int &$deepest): bool
+    {
+        $k = count($path) - 1;
+        if ($k < 1) {
+            return false;
+        }
+        $orig = [];
+        for ($i = 0; $i <= $k; $i++) {
+            $orig[$i] = $members[$path[$i]];
+        }
+        $choice  = array_fill(0, $k, null);
+        $budget  = 4000;
+        $deepest = 0;
+        $dfs = function (int $i, ?string $received) use (&$dfs, &$choice, &$budget, &$deepest, $k, $orig, $adjacency): bool {
+            if (--$budget < 0) {
+                return false;
+            }
+            if ($i === $k) {
+                $final = $orig[$k];
+                $final[$received] = true;
+                return self::connectedWithout($final, $adjacency, '');
+            }
+            $pool = $orig[$i];
+            if ($received !== null) {
+                $pool[$received] = true;
+            }
+            $next  = $orig[$i + 1];
+            $cands = [];
+            foreach (array_keys($pool) as $m) {
+                $m = (string) $m;
+                foreach ($adjacency[$m] ?? [] as $nbr => $_) {
+                    if (isset($next[(string) $nbr])) {
+                        $cands[] = $m;
+                        break;
+                    }
+                }
+            }
+            sort($cands);
+            foreach ($cands as $m) {
+                $final = $pool;
+                unset($final[$m]);
+                if ($final === [] || ! self::connectedWithout($final, $adjacency, '')) {
+                    continue;
+                }
+                $deepest    = max($deepest, $i);
+                $choice[$i] = $m;
+                if ($dfs($i + 1, $m)) {
+                    return true;
+                }
+            }
+
+            return false;
+        };
+        if (! $dfs(0, null)) {
+            return false;
+        }
+        for ($i = 0; $i < $k; $i++) {
+            $m    = (string) $choice[$i];
+            $from = $path[$i];
+            $to   = $path[$i + 1];
+            unset($members[$from][$m]);
+            $members[$to][$m] = true;
+            $region[$m]       = $to;
+            $counts[$from]--;
+            $counts[$to]++;
+        }
+
         return true;
+    }
+
+    /**
+     * Re-cut the union of adjacent regions $a and $b into two CONTIGUOUS parts
+     * of sizes |a| − 1 and |b| + 1. The new $a grows by BFS inside the union
+     * from a seed of the old $a, seeds tried farthest-from-$b first (ties by
+     * id), neighbours in id order; the remainder must be connected. On
+     * success every member that changed side is applied and appended to
+     * $applied as [member, from, to]. Deterministic. Returns false when no
+     * seed yields two connected parts.
+     *
+     * @param array<int,array<string,bool>>     $members  (mutated)
+     * @param array<int,int>                    $counts   (mutated)
+     * @param array<string,int>                 $region   (mutated)
+     * @param array<string,array<string,float>> $adjacency
+     * @param list<array{0:string,1:int,2:int}> $applied  (appended)
+     */
+    private static function rebisectPair(int $a, int $b, array &$members, array &$counts, array &$region, array $adjacency, array &$applied): bool
+    {
+        $sizeA = count($members[$a]) - 1;
+        if ($sizeA < 1 || $members[$b] === []) {
+            return false;
+        }
+        $union = $members[$a] + $members[$b];
+
+        // Hop distance from $b's members, inside the union.
+        $dist = [];
+        foreach (array_keys($union) as $id) {
+            $dist[(string) $id] = PHP_INT_MAX;
+        }
+        $queue = [];
+        foreach (array_keys($members[$b]) as $id) {
+            $dist[(string) $id] = 0;
+            $queue[]            = (string) $id;
+        }
+        $head = 0;
+        while ($head < count($queue)) {
+            $cur = $queue[$head++];
+            foreach ($adjacency[$cur] ?? [] as $nbr => $_) {
+                $nbr = (string) $nbr;
+                if (isset($union[$nbr]) && $dist[$cur] + 1 < $dist[$nbr]) {
+                    $dist[$nbr] = $dist[$cur] + 1;
+                    $queue[]    = $nbr;
+                }
+            }
+        }
+        $seeds = array_map('strval', array_keys($members[$a]));
+        usort($seeds, static fn (string $x, string $y) => ($dist[$y] <=> $dist[$x]) ?: strcmp($x, $y));
+
+        foreach ($seeds as $s) {
+            $newA  = [$s => true];
+            $queue = [$s];
+            $head  = 0;
+            while ($head < count($queue) && count($newA) < $sizeA) {
+                $cur  = $queue[$head++];
+                $nbrs = array_map('strval', array_keys($adjacency[$cur] ?? []));
+                sort($nbrs);
+                foreach ($nbrs as $nbr) {
+                    if (! isset($union[$nbr]) || isset($newA[$nbr])) {
+                        continue;
+                    }
+                    $newA[$nbr] = true;
+                    $queue[]    = $nbr;
+                    if (count($newA) === $sizeA) {
+                        break;
+                    }
+                }
+            }
+            if (count($newA) !== $sizeA) {
+                continue;
+            }
+            $newB = array_diff_key($union, $newA);
+            if (! self::connectedWithout($newB, $adjacency, '')) {
+                continue;
+            }
+            foreach (array_keys($union) as $id) {
+                $id     = (string) $id;
+                $target = isset($newA[$id]) ? $a : $b;
+                $from   = $region[$id];
+                if ($from === $target) {
+                    continue;
+                }
+                unset($members[$from][$id]);
+                $members[$target][$id] = true;
+                $region[$id]           = $target;
+                $counts[$from]--;
+                $counts[$target]++;
+                $applied[] = [$id, $from, $target];
+            }
+
+            return true;
+        }
+
+        return false;
     }
 
     /**
@@ -635,6 +915,47 @@ class TypeBDistrictMapper
         }
 
         return null;
+    }
+
+    /**
+     * The connected pieces of a region ($members: id => true) after removing
+     * $exclude, each a sorted list of ids; one piece when $exclude is not a cut
+     * vertex. Intra-region edges only.
+     *
+     * @param array<string,bool>                $members
+     * @param array<string,array<string,float>> $adjacency
+     * @return list<list<string>>
+     */
+    private static function piecesWithout(array $members, array $adjacency, string $exclude): array
+    {
+        unset($members[$exclude]);
+        $pieces = [];
+        $seen   = [];
+        $ids    = array_map('strval', array_keys($members));
+        sort($ids);
+        foreach ($ids as $start) {
+            if (isset($seen[$start])) {
+                continue;
+            }
+            $piece         = [];
+            $stack         = [$start];
+            $seen[$start]  = true;
+            while ($stack !== []) {
+                $cur     = array_pop($stack);
+                $piece[] = $cur;
+                foreach ($adjacency[$cur] ?? [] as $nbr => $_) {
+                    $nbr = (string) $nbr;
+                    if (isset($members[$nbr]) && ! isset($seen[$nbr])) {
+                        $seen[$nbr] = true;
+                        $stack[]    = $nbr;
+                    }
+                }
+            }
+            sort($piece);
+            $pieces[] = $piece;
+        }
+
+        return $pieces;
     }
 
     /**
@@ -715,6 +1036,99 @@ class TypeBDistrictMapper
             $isSeed[$pick] = true;
             $dist[$pick]   = 0;
             self::bfsRelax($pick, $adjacency, $dist);
+        }
+
+        return $seeds;
+    }
+
+    /**
+     * SEEDS PER COMPONENT (2026-09-05): split the members into connected
+     * components (an isolated member is a component of one), give each
+     * component its largest-remainder share of the $p seeds (size × p / n,
+     * never more seeds than members; ties to the larger component, then the
+     * lower first id), and seed each component farthest-first within itself.
+     * A component with no seed is left unseeded: its members become islands
+     * for the centroid distributor (B4). A connected graph is unchanged: one
+     * component, all $p seeds, the plain farthest-first order.
+     *
+     * @param list<string>                      $ids
+     * @param array<string,array<string,float>> $adjacency
+     * @return list<string>
+     */
+    private static function pickSeedsByComponent(array $ids, array $adjacency, int $p): array
+    {
+        if ($ids === [] || $p <= 0) {
+            return [];
+        }
+        $set    = array_flip($ids);
+        $sorted = $ids;
+        sort($sorted);
+        $seen       = [];
+        $components = [];
+        foreach ($sorted as $id) {
+            if (isset($seen[$id])) {
+                continue;
+            }
+            $comp      = [];
+            $stack     = [$id];
+            $seen[$id] = true;
+            while ($stack !== []) {
+                $cur    = array_pop($stack);
+                $comp[] = $cur;
+                foreach ($adjacency[$cur] ?? [] as $nbr => $_) {
+                    $nbr = (string) $nbr;
+                    if (isset($set[$nbr]) && ! isset($seen[$nbr])) {
+                        $seen[$nbr] = true;
+                        $stack[]    = $nbr;
+                    }
+                }
+            }
+            sort($comp);
+            $components[] = $comp;
+        }
+        if (count($components) === 1) {
+            return self::pickSpreadSeeds($ids, $adjacency, $p);
+        }
+
+        // Largest remainder over component sizes; larger component first.
+        usort($components, static fn (array $a, array $b) => (count($b) <=> count($a)) ?: strcmp($a[0], $b[0]));
+        $n     = count($ids);
+        $alloc = [];
+        $rem   = [];
+        $given = 0;
+        foreach ($components as $i => $comp) {
+            $q         = count($comp) * $p / $n;
+            $alloc[$i] = (int) floor($q);
+            $rem[$i]   = $q - $alloc[$i];
+            $given    += $alloc[$i];
+        }
+        $order = array_keys($rem);
+        usort($order, static fn (int $a, int $b) => ($rem[$b] <=> $rem[$a]) ?: ($a <=> $b));
+        for ($left = $p - $given; $left > 0;) {
+            $placed = false;
+            foreach ($order as $i) {
+                if ($left <= 0) {
+                    break;
+                }
+                if ($alloc[$i] < count($components[$i])) {
+                    $alloc[$i]++;
+                    $left--;
+                    $placed = true;
+                }
+            }
+            if (! $placed) {
+                break; // every component is saturated (p > n cannot happen; guard)
+            }
+        }
+
+        $seeds = [];
+        foreach ($components as $i => $comp) {
+            if ($alloc[$i] <= 0) {
+                continue;
+            }
+            foreach (self::pickSpreadSeeds($comp, $adjacency, $alloc[$i]) as $s) {
+                $seeds[] = $s;
+            }
         }
 
         return $seeds;
