@@ -98,6 +98,21 @@ const qualityColumns = computed(() => {
     const a = q.type_a, b = q.type_b
     const zeroGood = n => (Number(n) === 0 ? 'good' : 'bad')
     const shapePop = k => (b.shapes_pop ? `${qpop(b.shapes_pop[k])} pop (${qpct(b.shapes_pop[k], b.shapes_pop.all)})` : undefined)
+    // Rung rows nested under a parent row: ordered by the ladder's priority
+    // (jsonb storage reorders object keys), each with its share of the
+    // parent's count and population.
+    const methodRows = (methods, total, popTotal) => Object.entries(methods ?? {})
+        .sort(([x], [y]) => (Q_LADDER.indexOf(x) === -1 ? 99 : Q_LADDER.indexOf(x)) - (Q_LADDER.indexOf(y) === -1 ? 99 : Q_LADDER.indexOf(y)))
+        .map(([m, v]) => {
+            const n = typeof v === 'object' ? (v.maps ?? 0) : Number(v || 0)
+            const pop = typeof v === 'object' ? (v.pop ?? 0) : null
+            return {
+                dot: 'muted', indent: true,
+                label: `${Q_METHOD_LABELS[m] ?? m}:`,
+                value: `${qnum(n)} (${qpct(n, total)})`,
+                right: pop != null ? `${qpop(pop)} pop (${qpct(pop, popTotal)})` : undefined,
+            }
+        })
     const popRow = (dot, label, count, total, pop, popTotal) => ({
         dot, label, value: `${qnum(count)} (${qpct(count, total)})`,
         right: `${qpop(pop)} pop (${qpct(pop, popTotal)})`,
@@ -124,6 +139,9 @@ const qualityColumns = computed(() => {
                     rows: [
                         popRow('good', 'Intact:', a.integrity.intact_count, a.integrity.intact_count + a.integrity.segmented_count, a.integrity.intact_pop, a.integrity.intact_pop + a.integrity.segmented_pop),
                         popRow('warn', 'Segmented:', a.integrity.segmented_count, a.integrity.intact_count + a.integrity.segmented_count, a.integrity.segmented_pop, a.integrity.intact_pop + a.integrity.segmented_pop),
+                        // The segmented pieces by the rung that filed them, nested under
+                        // Segmented in the ladder's priority (jsonb reorders keys).
+                        ...methodRows(a.integrity.methods, a.integrity.segmented_count, a.integrity.segmented_pop),
                     ],
                 },
                 {
@@ -134,20 +152,8 @@ const qualityColumns = computed(() => {
                         popRow('good', 'At large:', a.leaves.at_large_maps, a.leaves.at_large_maps + a.leaves.line_split_maps, a.leaves.at_large_pop, a.leaves.at_large_pop + a.leaves.line_split_pop),
                         popRow('warn', 'Line-split:', a.leaves.line_split_maps, a.leaves.at_large_maps + a.leaves.line_split_maps, a.leaves.line_split_pop, a.leaves.at_large_pop + a.leaves.line_split_pop),
                         // The filing rungs, indented under Line-split, in the ladder's
-                        // priority (the mapper's picker and the auto ladder share it);
-                        // ordered here because jsonb storage reorders object keys.
-                        ...Object.entries(a.leaves.methods ?? {})
-                            .sort(([x], [y]) => (Q_LADDER.indexOf(x) === -1 ? 99 : Q_LADDER.indexOf(x)) - (Q_LADDER.indexOf(y) === -1 ? 99 : Q_LADDER.indexOf(y)))
-                            .map(([m, v]) => {
-                                const n = typeof v === 'object' ? (v.maps ?? 0) : Number(v || 0)
-                                const pop = typeof v === 'object' ? (v.pop ?? 0) : null
-                                return {
-                                    dot: 'muted', indent: true,
-                                    label: `${Q_METHOD_LABELS[m] ?? m}:`,
-                                    value: `${qnum(n)} (${qpct(n, a.leaves.line_split_maps)})`,
-                                    right: pop != null ? `${qpop(pop)} pop (${qpct(pop, a.leaves.line_split_pop)})` : undefined,
-                                }
-                            }),
+                        // priority (the mapper's picker and the auto ladder share it).
+                        ...methodRows(a.leaves.methods, a.leaves.line_split_maps, a.leaves.line_split_pop),
                     ] : [{ dot: 'muted', label: 'Not yet computed', value: '' }],
                 },
                 {

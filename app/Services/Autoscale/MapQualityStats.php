@@ -152,6 +152,34 @@ class MapQualityStats
              GROUP BY 1, 2
         ");
 
+        // The SEGMENTED pieces inside composite maps, by the rung that filed
+        // their leaf-giant scope (the same reading of the scope timings):
+        // pieces = the line-split districts at that scope on the active map.
+        $beat('Type A composite maps: segmented pieces by rung');
+        $segRows = DB::select("
+            SELECT h.adm_level,
+                   CASE
+                     WHEN s.force_box                                                    THEN 'box'
+                     WHEN jsonb_exists(s.step_timings -> 'n', 'leaf.components')        THEN 'components'
+                     WHEN jsonb_exists(s.step_timings -> 'n', 'leaf.horizontal_strips') THEN 'horizontal_strips'
+                     WHEN jsonb_exists(s.step_timings -> 'n', 'leaf.vertical_strips')   THEN 'vertical_strips'
+                     WHEN jsonb_exists(s.step_timings -> 'n', 'leaf.community_cells')   THEN 'community_cells'
+                     WHEN jsonb_exists(s.step_timings -> 'n', 'leaf.box')               THEN 'box'
+                     WHEN jsonb_exists(s.step_timings -> 'n', 'leaf.mask')              THEN 'mask'
+                     WHEN jsonb_exists(s.step_timings -> 'n', 'leaf.shortest')          THEN 'shortest'
+                     ELSE 'unrecorded'
+                   END AS method,
+                   COUNT(d.id) AS maps,
+                   COALESCE(SUM(d.actual_population), 0) AS pop
+              FROM apportionment_ledger_scopes s
+              JOIN apportionment_ledger h ON h.legislature_id = s.legislature_id
+              JOIN legislature_districts d ON d.map_id = h.map_id AND d.jurisdiction_id = s.scope_jurisdiction_id AND d.deleted_at IS NULL
+             WHERE s.scope_kind = 'type_a' AND s.is_leaf IS TRUE AND s.status = 'done'
+               AND h.child_count > 0 AND h.map_status = 'done'
+               AND EXISTS (SELECT 1 FROM legislature_district_jurisdictions x WHERE x.district_id = d.id AND x.subdivision_id IS NOT NULL)
+             GROUP BY 1, 2
+        ");
+
         // ── Type B: groupings, panels, legality, shapes, diversity, per layer. ──
         $beat('Type B groupings: aggregating by layer');
         $bRows = DB::select("
@@ -257,18 +285,22 @@ class MapQualityStats
         foreach ($methodRows as $r) {
             $methodsBy[(int) $r->adm_level][(string) $r->method] = ['maps' => (int) $r->maps, 'pop' => (int) $r->pop];
         }
+        $segBy = [];
+        foreach ($segRows as $r) {
+            $segBy[(int) $r->adm_level][(string) $r->method] = ['maps' => (int) $r->maps, 'pop' => (int) $r->pop];
+        }
         $allLevels = array_unique(array_merge(array_keys($aBy), array_keys($lBy), array_keys($bBy), array_keys($contig), array_keys($diversity)));
         sort($allLevels);
         $levels = [];
         foreach ($allLevels as $lvl) {
             $levels[(string) $lvl] = self::block(
-                $aBy[$lvl] ?? null, $lBy[$lvl] ?? null, $methodsBy[$lvl] ?? [],
+                $aBy[$lvl] ?? null, $lBy[$lvl] ?? null, $methodsBy[$lvl] ?? [], $segBy[$lvl] ?? [],
                 $bBy[$lvl] ?? null, $contig[$lvl] ?? self::emptyContig(), $diversity[$lvl] ?? self::emptyDiversity(),
                 $floor
             );
         }
         $all = self::block(
-            self::sumRows($aRows), self::sumRows($ledgerRows), self::sumMethods($methodsBy),
+            self::sumRows($aRows), self::sumRows($ledgerRows), self::sumMethods($methodsBy), self::sumMethods($segBy),
             self::sumRows($bRows), self::sumAssoc(array_values($contig), self::emptyContig()),
             self::sumAssoc(array_values($diversity), self::emptyDiversity()),
             $floor
@@ -350,7 +382,7 @@ class MapQualityStats
     }
 
     /** One card block (the same shape for a layer and for all layers). */
-    private static function block(?object $a, ?object $l, array $methods, ?object $b, array $contig, array $diversity, int $floor): array
+    private static function block(?object $a, ?object $l, array $methods, array $segMethods, ?object $b, array $contig, array $diversity, int $floor): array
     {
         $g = static fn (?object $o, string $k) => (int) ($o->$k ?? 0);
         $eqCount  = $g($a, 'eq_count');
@@ -358,6 +390,8 @@ class MapQualityStats
         $rank = static fn (string $m) => (($i = array_search($m, self::LADDER, true)) === false ? 99 : $i);
         $sorted = $methods;
         uksort($sorted, static fn ($x, $y) => $rank((string) $x) <=> $rank((string) $y));
+        $sortedSeg = $segMethods;
+        uksort($sortedSeg, static fn ($x, $y) => $rank((string) $x) <=> $rank((string) $y));
 
         return [
             'type_a' => [
@@ -379,6 +413,7 @@ class MapQualityStats
                     'maps' => $g($a, 'integrity_maps'),
                     'intact_count' => $g($a, 'intact_count'), 'intact_pop' => $g($a, 'intact_pop'),
                     'segmented_count' => $g($a, 'segmented_count'), 'segmented_pop' => $g($a, 'segmented_pop'),
+                    'methods' => $sortedSeg,   // segmented pieces by the rung that filed them
                 ],
                 'leaves'      => [
                     'at_large_maps' => $g($a, 'at_large_maps'), 'at_large_pop' => $g($a, 'at_large_pop'),
