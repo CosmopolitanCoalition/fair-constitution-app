@@ -500,6 +500,100 @@ class SweepScopeProcessor
     }
 
     /**
+     * THE TYPE B ASSESSMENT (operator order 2026-09-05, "B also checked just
+     * like A"): the chamber's CURRENT active grouping is judged the way the
+     * Type A map is judged at finalize — the three panel-map legalities the
+     * mapper surface flags (seat breach over the Type B ceiling, unassigned
+     * constituents, uneven clumps) plus the seat identities (Σ panel seats ==
+     * grouping.seats_total == chamber type_b_seats) and no empty panel. A
+     * machine map passes by construction (every constituent placed, split
+     * base / base+1, p × rep_floor ≤ bound); a hand map is judged here, so
+     * the review list is the one place an illegal map of either kind lands.
+     * A population-capped zero-panel grouping (bound below one panel) is
+     * lawful and noted, not failed. Read-only.
+     *
+     * @return array{reasons: list<string>, notes: list<string>}
+     */
+    private function assessTypeB(object $leg, string $legislatureId): array
+    {
+        $grouping = DB::table('legislature_type_b_groupings')
+            ->where('legislature_id', $legislatureId)
+            ->where('status', 'active')
+            ->whereNull('deleted_at')
+            ->orderByDesc('created_at')
+            ->first();
+        if ($grouping === null) {
+            return ['reasons' => ['Type B panel map missing (no active grouping)'], 'notes' => []];
+        }
+
+        $kids = DB::table('jurisdictions')
+            ->where('parent_id', (string) $leg->jurisdiction_id)
+            ->whereNull('deleted_at')
+            ->selectRaw('COUNT(*) AS n, COALESCE(SUM(GREATEST(population, 0)), 0) AS pop')
+            ->first();
+        $n        = (int) $kids->n;
+        $typeA    = (int) $leg->type_a_seats;
+        $bound    = min($typeA, max(0, (int) $kids->pop - $typeA));
+        $repFloor = max((int) $grouping->rep_floor, \App\Services\Legislature\TypeBSeatLadder::MIN_REP);
+
+        $panels = DB::table('legislature_type_b_panels as p')
+            ->leftJoin('legislature_type_b_panel_jurisdictions as pj', 'pj.panel_id', '=', 'p.id')
+            ->where('p.grouping_id', $grouping->id)
+            ->whereNull('p.deleted_at')
+            ->groupBy('p.id', 'p.seats')
+            ->selectRaw('p.id, p.seats, COUNT(pj.id) AS members')
+            ->get();
+        $seatSum = (int) $panels->sum('seats');
+        $reasons = [];
+        $notes   = [];
+
+        // Seat identities: panels ↔ grouping ↔ chamber.
+        if ($seatSum !== (int) $grouping->seats_total) {
+            $reasons[] = "Type B seat identity: panels seat {$seatSum}, grouping records {$grouping->seats_total}";
+        }
+        if ((int) $grouping->seats_total !== (int) $leg->type_b_seats) {
+            $reasons[] = "Type B seat identity: grouping {$grouping->seats_total} vs chamber type_b_seats {$leg->type_b_seats}";
+        }
+        // Seat breach over the Type B ceiling.
+        if ($seatSum > $bound) {
+            $reasons[] = "Type B seat breach: {$seatSum} seats over the ceiling {$bound}";
+        }
+        // The lawful zero-panel map: the ceiling holds less than one panel.
+        $lawfulZero = $panels->isEmpty() && $bound < $repFloor;
+        if ($lawfulZero) {
+            $notes[] = "Type B population-capped undercount: ceiling {$bound} below one panel of {$repFloor}, zero panels lawful";
+        }
+        // Unassigned constituents (every live direct child is a member).
+        if (! $lawfulZero) {
+            $assigned = (int) DB::table('legislature_type_b_panel_jurisdictions as pj')
+                ->join('jurisdictions as c', 'c.id', '=', 'pj.jurisdiction_id')
+                ->where('pj.grouping_id', $grouping->id)
+                ->where('c.parent_id', (string) $leg->jurisdiction_id)
+                ->whereNull('c.deleted_at')
+                ->distinct()
+                ->count('pj.jurisdiction_id');
+            if ($assigned < $n) {
+                $reasons[] = 'Type B unassigned constituents: ' . ($n - $assigned) . " of {$n} in no panel";
+            }
+        }
+        // Empty panels elect nobody.
+        $empty = $panels->where('members', 0)->count();
+        if ($empty > 0) {
+            $reasons[] = "Type B empty panels: {$empty}";
+        }
+        // Uneven clumps: member counts must be as even as the integers allow.
+        if ($panels->count() > 1) {
+            $mx = (int) $panels->max('members');
+            $mn = (int) $panels->min('members');
+            if ($mx - $mn > 1) {
+                $reasons[] = "Type B uneven clumps: members {$mn}..{$mx} across " . $panels->count() . ' panels (spread over 1)';
+            }
+        }
+
+        return ['reasons' => $reasons, 'notes' => $notes];
+    }
+
+    /**
      * Draw the chamber's Type B panel map (operator order 2026-09-05). The
      * mapper mints an ACTIVE grouping (archiving any prior active one),
      * writes the panels, recomputes type_b_seats / total_seats / quorum and
@@ -750,6 +844,14 @@ class SweepScopeProcessor
                         $typeBReasons[] = 'Type B panel map missing (panel scope ' . $panelScope->status
                             . ($panelScope->reason !== null ? ': ' . mb_substr((string) $panelScope->reason, 0, 300) : '')
                             . ($hasCurrentGrouping ? '' : '; no current active grouping') . ')';
+                    } else {
+                        // THE TYPE B ASSESSMENT (operator order 2026-09-05,
+                        // "B also checked just like A"): the standing panel
+                        // map is judged for legality the way the Type A map
+                        // is, and an illegal one parks the header in review.
+                        $tb = $this->assessTypeB($leg, $legislatureId);
+                        $typeBReasons = array_merge($typeBReasons, $tb['reasons']);
+                        $assessment['notes'] = array_merge($assessment['notes'], $tb['notes']);
                     }
                 }
             }
