@@ -23,12 +23,18 @@
             <!-- max-w-96 prevents content overflow from bleeding onto the map -->
             <aside class="lm-sidebar w-96 max-w-96 shrink-0 bg-gray-900 border-r border-gray-800 flex flex-col overflow-hidden">
 
-                <!-- Header — no corner seat total (Type B is flat, one scope; the
-                     seat count lives in the badge row below). -->
+                <!-- Header — corner shows the combined Legislature Seats (A+B),
+                     the same total as the Type A map (operator 2026-09-05). -->
                 <div class="px-4 py-3 border-b border-gray-800 shrink-0">
-                    <div class="min-w-0">
-                        <div class="text-xs text-gray-500 mb-0.5">Legislature Browser</div>
-                        <h1 class="text-base font-bold text-white leading-tight truncate">{{ scope.name }}</h1>
+                    <div class="flex items-center justify-between gap-2">
+                        <div class="min-w-0">
+                            <div class="text-xs text-gray-500 mb-0.5">Legislature Browser</div>
+                            <h1 class="text-base font-bold text-white leading-tight truncate">{{ scope.name }}</h1>
+                        </div>
+                        <div class="text-right shrink-0">
+                            <div class="text-xs text-gray-500 leading-tight">Legislature Seats</div>
+                            <div class="text-base font-bold text-emerald-400">{{ legislatureSeats.toLocaleString() }}</div>
+                        </div>
                     </div>
                     <!-- Cross-navigation to this legislature's Type A district map.
                          Type B implies a non-leaf jurisdiction and the map is flat
@@ -64,7 +70,7 @@
                 <!-- Stats: Constituent Jurisdictions · Seats · Panels (operator 2026-09-05). -->
                 <div class="px-3 py-2 border-b border-gray-800 grid grid-cols-3 gap-1.5 text-center shrink-0">
                     <div class="bg-gray-800 rounded p-1.5">
-                        <div class="text-xs text-gray-500 leading-tight">Constituent Jurisdictions</div>
+                        <div class="text-xs text-gray-500">Constituents</div>
                         <div class="text-sm font-semibold text-white">{{ childrenRef.length }}</div>
                     </div>
                     <div class="bg-gray-800 rounded p-1.5">
@@ -2966,6 +2972,9 @@ const optimalLabel = computed(() => {
 // odd ceiling is left unused).
 const seatedSeats = computed(() => props.districts.reduce((s, d) => s + (d.seats || 0), 0))
 // isRootScope is already declared later in this file; the cross-nav button uses it.
+// Legislature Seats = Type A + Type B combined — the whole chamber total, shown
+// in the corner on BOTH maps and stable across scopes (operator 2026-09-05).
+const legislatureSeats = computed(() => (props.legislature?.type_a_seats ?? 0) + (props.legislature?.type_b_seats ?? 0))
 
 // "Uniform Political Diversity" for Type B = evenly-sized CLUMPS. The formula is
 // the member-count distribution of the panels — how many constituent parts each

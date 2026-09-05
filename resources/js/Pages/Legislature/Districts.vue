@@ -31,8 +31,8 @@
                             <h1 class="text-base font-bold text-white leading-tight truncate">{{ scope.name }}</h1>
                         </div>
                         <div class="text-right shrink-0">
-                            <div class="text-xs text-gray-500 leading-tight">Total District Seats</div>
-                            <div class="text-base font-bold text-emerald-400">{{ legislature.type_a_seats.toLocaleString() }}</div>
+                            <div class="text-xs text-gray-500 leading-tight">Legislature Seats</div>
+                            <div class="text-base font-bold text-emerald-400">{{ legislatureSeats.toLocaleString() }}</div>
                         </div>
                     </div>
                     <!-- Cross-navigation to this legislature's Type B panels map —
@@ -71,7 +71,7 @@
                      compressed into the Seats badge here. -->
                 <div class="px-3 py-2 border-b border-gray-800 grid grid-cols-3 gap-1.5 text-center shrink-0">
                     <div class="bg-gray-800 rounded p-1.5">
-                        <div class="text-xs text-gray-500 leading-tight">Constituent Jurisdictions</div>
+                        <div class="text-xs text-gray-500">Constituents</div>
                         <div class="text-sm font-semibold text-white">{{ childrenRef.length }}</div>
                     </div>
                     <div class="bg-gray-800 rounded p-1.5">
@@ -1920,6 +1920,9 @@ const districtsRef = ref(props.districts.map(districtRowFromProp))
 // Non-leaf = has constituent children, so a Type B panels map exists to link to
 // (operator 2026-09-05). isRootScope is already declared later in this file.
 const hasChildren = computed(() => (props.children?.length ?? 0) > 0)
+// Legislature Seats = Type A + Type B combined — the whole chamber total, shown
+// in the corner on BOTH maps and stable across every scope (operator 2026-09-05).
+const legislatureSeats = computed(() => (props.legislature?.type_a_seats ?? 0) + (props.legislature?.type_b_seats ?? 0))
 
 // Partial reloads (draw/split/autoseed commits, undo, drawn deletes — and the
 // deferred props' first delivery after mount) hand us FRESH prop references;
