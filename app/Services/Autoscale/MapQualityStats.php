@@ -117,7 +117,8 @@ class MapQualityStats
             panels AS (
                 SELECT p.grouping_id AS gid, COUNT(*) AS panels, SUM(p.seats) AS seats,
                        MAX(p.member_count) - MIN(p.member_count) AS spread,
-                       COUNT(*) FILTER (WHERE p.member_count = 0) AS empty
+                       COUNT(*) FILTER (WHERE p.member_count = 0) AS empty,
+                       MIN(p.seats) AS min_seats
                   FROM legislature_type_b_panels p JOIN g ON g.id = p.grouping_id
                  WHERE p.deleted_at IS NULL
                  GROUP BY p.grouping_id
@@ -130,6 +131,12 @@ class MapQualityStats
             SELECT COUNT(*)                                                                   AS groupings,
                    COUNT(*) FILTER (WHERE COALESCE(panels.panels, 0) < kids.n AND COALESCE(panels.panels, 0) > 0) AS clumped,
                    COUNT(*) FILTER (WHERE COALESCE(panels.panels, 0) = kids.n)                AS ungrouped,
+                   -- One panel per constituent: every panel seats the full rep floor
+                   -- (meets the floor), or some constituent is too small to fill
+                   -- its panel — the ladder seats a tiny part at its population
+                   -- (sub floor). Operator order 2026-09-05: called out separately.
+                   COUNT(*) FILTER (WHERE COALESCE(panels.panels, 0) = kids.n AND panels.min_seats >= g.rep_floor) AS ungrouped_meet_floor,
+                   COUNT(*) FILTER (WHERE COALESCE(panels.panels, 0) = kids.n AND panels.min_seats <  g.rep_floor) AS ungrouped_sub_floor,
                    COUNT(*) FILTER (WHERE COALESCE(panels.panels, 0) = 0)                     AS zero_panel,
                    COALESCE(SUM(panels.panels), 0)                                            AS panels,
                    COALESCE(SUM(g.seats_total), 0)                                            AS seats,
@@ -218,6 +225,8 @@ class MapQualityStats
                 'groupings'    => (int) $b->groupings,
                 'clumped'      => (int) $b->clumped,
                 'ungrouped'    => (int) $b->ungrouped,
+                'ungrouped_meet_floor' => (int) $b->ungrouped_meet_floor,
+                'ungrouped_sub_floor'  => (int) $b->ungrouped_sub_floor,
                 'zero_panel'   => (int) $b->zero_panel,
                 'panels'       => (int) $b->panels,
                 'seats'        => (int) $b->seats,

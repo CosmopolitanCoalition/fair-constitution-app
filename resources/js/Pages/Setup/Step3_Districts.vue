@@ -139,7 +139,7 @@ const qualityColumns = computed(() => {
             ],
         },
         {
-            title: 'Constituent Jurisdiction Panels',
+            title: 'Equal-Constituent Jurisdiction Maps',
             meta: [`${qnum(b.groupings)} maps`, `${qnum(b.panels)} panels`, `${qnum(b.seats)} seats`],
             sections: [
                 {
@@ -150,9 +150,13 @@ const qualityColumns = computed(() => {
                         { dot: zeroGood(b.legality.unassigned_parts), label: 'Unassigned constituents:', value: qnum(b.legality.unassigned_parts), right: `of ${qnum(b.constituents)}` },
                         { dot: zeroGood(b.legality.empty_panels), label: 'Empty panels:', value: qnum(b.legality.empty_panels) },
                         { dot: zeroGood(b.legality.identity_mismatch), label: 'Seat mismatches:', value: qnum(b.legality.identity_mismatch) },
-                        { dot: 'muted', label: 'Clumped chambers:', value: qnum(b.clumped) },
-                        { dot: 'muted', label: 'One panel per constituent:', value: qnum(b.ungrouped) },
-                        { dot: 'muted', label: 'Zero-panel chambers:', value: qnum(b.zero_panel), right: 'ceiling below one panel' },
+                        // Chamber shapes, in the operator's order (2026-09-05): one panel
+                        // per constituent meeting the rep floor; one per constituent with
+                        // a part too small to fill its panel (sub floor); clumped; empty.
+                        { dot: 'good', label: 'Meet floor:', value: `${qnum(b.ungrouped_meet_floor ?? b.ungrouped)} (${qpct(b.ungrouped_meet_floor ?? b.ungrouped, b.groupings)})`, right: 'one panel per constituent' },
+                        { dot: 'warn', label: 'Sub floor:', value: `${qnum(b.ungrouped_sub_floor ?? 0)} (${qpct(b.ungrouped_sub_floor ?? 0, b.groupings)})`, right: 'a part seated at its population' },
+                        { dot: 'warn', label: 'Clumped:', value: `${qnum(b.clumped)} (${qpct(b.clumped, b.groupings)})`, right: 'shared panels' },
+                        { dot: 'muted', label: 'Empty:', value: `${qnum(b.zero_panel)} (${qpct(b.zero_panel, b.groupings)})`, right: 'ceiling below one panel' },
                     ],
                 },
                 {
