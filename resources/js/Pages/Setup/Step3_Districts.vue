@@ -56,6 +56,20 @@ let pollAbort = null             // AbortController of the in-flight request
 const run = computed(() => autoscale.value?.run ?? null)
 const worldBuild = computed(() => autoscale.value?.world_build ?? null)
 const layers = computed(() => autoscale.value?.layers ?? [])
+// MAP QUALITY (operator order 2026-09-05): the planet-wide aggregates of a
+// finished run, cached on the run row (never computed on the poll path),
+// shown in the map view's MAP QUALITY style below the layer bars.
+const quality = computed(() => autoscale.value?.quality ?? null)
+const qualityAt = computed(() => autoscale.value?.quality_computed_at ?? null)
+function qpct(a, b) { a = Number(a || 0); b = Number(b || 0); return b > 0 ? (100 * a / b).toFixed(1) + '%' : '0%' }
+function qpop(n) {
+    n = Number(n || 0)
+    if (n >= 1e9) return (n / 1e9).toFixed(2) + 'B'
+    if (n >= 1e6) return (n / 1e6).toFixed(2) + 'M'
+    if (n >= 1e3) return (n / 1e3).toFixed(1) + 'K'
+    return String(n)
+}
+function qnum(n) { return Number(n || 0).toLocaleString() }
 // The lane's work phase — the claim_label tail after the ' ⋯ ' base
 // (operator order 2026-09-04): the map › scope base is now a linked
 // breadcrumb, so the strip shows only the phase (e.g. "Line-split filed
@@ -1219,6 +1233,242 @@ onBeforeUnmount(() => {
                 <p v-if="worldBuild.status === 'complete'" class="text-emerald-300 text-sm mt-3">
                     Phase 2 is complete. Accepting the map data starts the drawing immediately.
                 </p>
+            </section>
+
+            <!-- MAP QUALITY (operator order 2026-09-05): the planet's quality
+                 aggregates once a run is done, in the map view's MAP QUALITY
+                 style — Type A district maps beside Type B panel maps, each
+                 section a count and a population per row. Cached on the run
+                 row by the done flip (MapQualityStatsJob) or by
+                 `autoscale:quality-stats`; the poll only reads it. -->
+            <section v-if="run && (run.status === 'done' || quality)"
+                     class="rounded-lg mb-6 border bg-gray-900 border-gray-800">
+                <div class="flex items-center justify-between px-5 pt-4 pb-2">
+                    <h2 class="text-cyan-400 text-xs font-bold uppercase tracking-wide">Map Quality</h2>
+                    <span v-if="quality" class="text-gray-500 text-[10px]">computed {{ new Date(qualityAt).toLocaleString() }} · {{ quality.seconds }}s</span>
+                </div>
+                <div v-if="!quality" class="px-5 pb-4 text-gray-500 text-xs">
+                    Computing the planet-wide statistics — they appear here when the job finishes.
+                </div>
+                <div v-else class="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-4 px-5 pb-5 text-xs">
+
+                    <!-- ── Type A · district maps ── -->
+                    <div class="space-y-3">
+                        <div class="flex items-baseline justify-between border-b border-gray-800 pb-1">
+                            <span class="text-gray-200 font-semibold">Type A · District maps</span>
+                            <span class="text-gray-500 tabular-nums">{{ qnum(quality.type_a.maps) }} maps · {{ qnum(quality.type_a.districts) }} districts · {{ qnum(quality.type_a.seats) }} seats</span>
+                        </div>
+
+                        <div>
+                            <div class="text-gray-500 text-[10px] uppercase font-semibold mb-0.5">Constitutional Legality</div>
+                            <div class="space-y-0.5">
+                                <div class="flex items-baseline gap-1">
+                                    <span :class="quality.type_a.legality.sweeps_exact === quality.type_a.legality.sweeps_done ? 'text-emerald-400' : 'text-red-400'">&#9632;</span>
+                                    <span class="text-gray-400 whitespace-nowrap">Exact seat totals:</span>
+                                    <span class="text-gray-200">{{ qnum(quality.type_a.legality.sweeps_exact) }} ({{ qpct(quality.type_a.legality.sweeps_exact, quality.type_a.legality.sweeps_done) }})</span>
+                                    <span class="text-gray-500 ml-auto whitespace-nowrap">{{ qnum(quality.type_a.legality.sweeps_done - quality.type_a.legality.sweeps_exact) }} drift</span>
+                                </div>
+                                <div class="flex items-baseline gap-1">
+                                    <span :class="quality.type_a.legality.over_ceiling + quality.type_a.legality.sub_floor_unflagged === 0 ? 'text-emerald-400' : 'text-red-400'">&#9632;</span>
+                                    <span class="text-gray-400 whitespace-nowrap">Band breaches:</span>
+                                    <span class="text-gray-200">{{ qnum(quality.type_a.legality.over_ceiling + quality.type_a.legality.sub_floor_unflagged) }}</span>
+                                    <span class="text-gray-500 ml-auto whitespace-nowrap">over 9 · under 5 unrecorded</span>
+                                </div>
+                                <div class="flex items-baseline gap-1">
+                                    <span class="text-amber-400">&#9632;</span>
+                                    <span class="text-gray-400 whitespace-nowrap">Floor exceptions:</span>
+                                    <span class="text-gray-200">{{ qnum(quality.type_a.legality.floor_overrides) }} ({{ qpct(quality.type_a.legality.floor_overrides, quality.type_a.districts) }})</span>
+                                    <span class="text-gray-500 ml-auto whitespace-nowrap">recorded, Art. II §2</span>
+                                </div>
+                                <div class="flex items-baseline gap-1">
+                                    <span class="text-amber-400">&#9632;</span>
+                                    <span class="text-gray-400 whitespace-nowrap">Ceiling exceptions:</span>
+                                    <span class="text-gray-200">{{ qnum(quality.type_a.legality.bonus_maps) }} maps</span>
+                                    <span class="text-gray-500 ml-auto whitespace-nowrap">{{ qnum(quality.type_a.legality.bonus_seats) }} bonus seats</span>
+                                </div>
+                                <div class="flex items-baseline gap-1">
+                                    <span :class="quality.type_a.legality.maps_review === 0 ? 'text-emerald-400' : 'text-red-400'">&#9632;</span>
+                                    <span class="text-gray-400 whitespace-nowrap">Awaiting review:</span>
+                                    <span class="text-gray-200">{{ qnum(quality.type_a.legality.maps_review) }}</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div>
+                            <div class="text-gray-500 text-[10px] uppercase font-semibold mb-0.5">Community Integrity</div>
+                            <div class="space-y-0.5">
+                                <div class="flex items-baseline gap-1">
+                                    <span class="text-emerald-400">&#9632;</span>
+                                    <span class="text-gray-400 whitespace-nowrap">Intact:</span>
+                                    <span class="text-gray-200">{{ qnum(quality.type_a.integrity.intact_count) }} ({{ qpct(quality.type_a.integrity.intact_count, quality.type_a.districts) }})</span>
+                                    <span class="text-gray-500 ml-auto whitespace-nowrap">{{ qpop(quality.type_a.integrity.intact_pop) }} pop ({{ qpct(quality.type_a.integrity.intact_pop, quality.type_a.population) }})</span>
+                                </div>
+                                <div class="flex items-baseline gap-1">
+                                    <span class="text-amber-400">&#9632;</span>
+                                    <span class="text-gray-400 whitespace-nowrap">Segmented:</span>
+                                    <span class="text-gray-200">{{ qnum(quality.type_a.integrity.segmented_count) }} ({{ qpct(quality.type_a.integrity.segmented_count, quality.type_a.districts) }})</span>
+                                    <span class="text-gray-500 ml-auto whitespace-nowrap">{{ qpop(quality.type_a.integrity.segmented_pop) }} pop ({{ qpct(quality.type_a.integrity.segmented_pop, quality.type_a.population) }})</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div>
+                            <div class="text-gray-500 text-[10px] uppercase font-semibold mb-0.5">Constitutional Contiguity</div>
+                            <div class="space-y-0.5">
+                                <div class="flex items-baseline gap-1">
+                                    <span class="text-emerald-400">&#9632;</span>
+                                    <span class="text-gray-400 whitespace-nowrap">Contiguous:</span>
+                                    <span class="text-gray-200">{{ qnum(quality.type_a.contiguity.contiguous_count) }} ({{ qpct(quality.type_a.contiguity.contiguous_count, quality.type_a.districts) }})</span>
+                                    <span class="text-gray-500 ml-auto whitespace-nowrap">{{ qpop(quality.type_a.contiguity.contiguous_pop) }} pop ({{ qpct(quality.type_a.contiguity.contiguous_pop, quality.type_a.population) }})</span>
+                                </div>
+                                <div class="flex items-baseline gap-1">
+                                    <span class="text-red-400">&#9632;</span>
+                                    <span class="text-gray-400 whitespace-nowrap">Non-contiguous:</span>
+                                    <span class="text-gray-200">{{ qnum(quality.type_a.contiguity.non_contiguous_count) }} ({{ qpct(quality.type_a.contiguity.non_contiguous_count, quality.type_a.districts) }})</span>
+                                    <span class="text-gray-500 ml-auto whitespace-nowrap">{{ qpop(quality.type_a.contiguity.non_contiguous_pop) }} pop ({{ qpct(quality.type_a.contiguity.non_contiguous_pop, quality.type_a.population) }})</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div>
+                            <div class="flex items-baseline justify-between mb-0.5">
+                                <span class="text-gray-500 text-[10px] uppercase font-semibold">Population Equality <span class="normal-case font-normal text-gray-600">({{ qnum(quality.type_a.equality.district_count) }} districts)</span></span>
+                                <span class="text-[10px]"><span class="text-gray-500">Avg</span> <span class="text-emerald-400 font-semibold">{{ quality.type_a.equality.avg_pct }}%</span></span>
+                            </div>
+                            <div class="space-y-0.5">
+                                <div class="flex items-baseline gap-1">
+                                    <span class="text-emerald-400">&#9632;</span>
+                                    <span class="text-gray-400 whitespace-nowrap">Good (≤5%):</span>
+                                    <span class="text-gray-200">{{ qnum(quality.type_a.equality.good_count) }} ({{ qpct(quality.type_a.equality.good_count, quality.type_a.equality.district_count) }})</span>
+                                    <span class="text-gray-500 ml-auto whitespace-nowrap">{{ qpop(quality.type_a.equality.good_pop) }} pop ({{ qpct(quality.type_a.equality.good_pop, quality.type_a.equality.pop) }})</span>
+                                </div>
+                                <div class="flex items-baseline gap-1">
+                                    <span class="text-amber-400">&#9632;</span>
+                                    <span class="text-gray-400 whitespace-nowrap">OK (5–10%):</span>
+                                    <span class="text-gray-200">{{ qnum(quality.type_a.equality.ok_count) }} ({{ qpct(quality.type_a.equality.ok_count, quality.type_a.equality.district_count) }})</span>
+                                    <span class="text-gray-500 ml-auto whitespace-nowrap">{{ qpop(quality.type_a.equality.ok_pop) }} pop ({{ qpct(quality.type_a.equality.ok_pop, quality.type_a.equality.pop) }})</span>
+                                </div>
+                                <div class="flex items-baseline gap-1">
+                                    <span class="text-red-400">&#9632;</span>
+                                    <span class="text-gray-400 whitespace-nowrap">Bad (>10%):</span>
+                                    <span class="text-gray-200">{{ qnum(quality.type_a.equality.bad_count) }} ({{ qpct(quality.type_a.equality.bad_count, quality.type_a.equality.district_count) }})</span>
+                                    <span class="text-gray-500 ml-auto whitespace-nowrap">{{ qpop(quality.type_a.equality.bad_pop) }} pop ({{ qpct(quality.type_a.equality.bad_pop, quality.type_a.equality.pop) }})</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div>
+                            <div class="flex items-baseline justify-between mb-0.5">
+                                <span class="text-gray-500 text-[10px] uppercase font-semibold">Shape Compactness</span>
+                                <span class="text-[10px]"><span class="text-gray-500">Mean</span> <span class="text-gray-200 font-semibold">{{ quality.type_a.compactness.mean.toFixed(3) }}</span></span>
+                            </div>
+                            <div class="space-y-0.5">
+                                <div class="flex items-baseline gap-1">
+                                    <span class="text-emerald-400">&#9632;</span>
+                                    <span class="text-gray-400 whitespace-nowrap">Compact (≥0.70):</span>
+                                    <span class="text-gray-200">{{ qnum(quality.type_a.compactness.compact_count) }} ({{ qpct(quality.type_a.compactness.compact_count, quality.type_a.compactness.count) }})</span>
+                                    <span class="text-gray-500 ml-auto whitespace-nowrap">{{ qpop(quality.type_a.compactness.compact_pop) }} pop ({{ qpct(quality.type_a.compactness.compact_pop, quality.type_a.compactness.pop) }})</span>
+                                </div>
+                                <div class="flex items-baseline gap-1">
+                                    <span class="text-amber-400">&#9632;</span>
+                                    <span class="text-gray-400 whitespace-nowrap">Moderate (0.50–0.70):</span>
+                                    <span class="text-gray-200">{{ qnum(quality.type_a.compactness.moderate_count) }} ({{ qpct(quality.type_a.compactness.moderate_count, quality.type_a.compactness.count) }})</span>
+                                    <span class="text-gray-500 ml-auto whitespace-nowrap">{{ qpop(quality.type_a.compactness.moderate_pop) }} pop ({{ qpct(quality.type_a.compactness.moderate_pop, quality.type_a.compactness.pop) }})</span>
+                                </div>
+                                <div class="flex items-baseline gap-1">
+                                    <span class="text-red-400">&#9632;</span>
+                                    <span class="text-gray-400 whitespace-nowrap">Irregular (<0.50):</span>
+                                    <span class="text-gray-200">{{ qnum(quality.type_a.compactness.irregular_count) }} ({{ qpct(quality.type_a.compactness.irregular_count, quality.type_a.compactness.count) }})</span>
+                                    <span class="text-gray-500 ml-auto whitespace-nowrap">{{ qpop(quality.type_a.compactness.irregular_pop) }} pop ({{ qpct(quality.type_a.compactness.irregular_pop, quality.type_a.compactness.pop) }})</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- ── Type B · panel maps ── -->
+                    <div class="space-y-3">
+                        <div class="flex items-baseline justify-between border-b border-gray-800 pb-1">
+                            <span class="text-gray-200 font-semibold">Type B · Panel maps</span>
+                            <span class="text-gray-500 tabular-nums">{{ qnum(quality.type_b.groupings) }} maps · {{ qnum(quality.type_b.panels) }} panels · {{ qnum(quality.type_b.seats) }} seats</span>
+                        </div>
+
+                        <div>
+                            <div class="text-gray-500 text-[10px] uppercase font-semibold mb-0.5">Constitutional Legality</div>
+                            <div class="space-y-0.5">
+                                <div class="flex items-baseline gap-1">
+                                    <span :class="quality.type_b.legality.breach === 0 ? 'text-emerald-400' : 'text-red-400'">&#9632;</span>
+                                    <span class="text-gray-400 whitespace-nowrap">Seat breaches:</span>
+                                    <span class="text-gray-200">{{ qnum(quality.type_b.legality.breach) }}</span>
+                                    <span class="text-gray-500 ml-auto whitespace-nowrap">over the Type B ceiling</span>
+                                </div>
+                                <div class="flex items-baseline gap-1">
+                                    <span :class="quality.type_b.legality.unassigned_parts === 0 ? 'text-emerald-400' : 'text-red-400'">&#9632;</span>
+                                    <span class="text-gray-400 whitespace-nowrap">Unassigned constituents:</span>
+                                    <span class="text-gray-200">{{ qnum(quality.type_b.legality.unassigned_parts) }}</span>
+                                    <span class="text-gray-500 ml-auto whitespace-nowrap">of {{ qnum(quality.type_b.constituents) }}</span>
+                                </div>
+                                <div class="flex items-baseline gap-1">
+                                    <span :class="quality.type_b.legality.empty_panels + quality.type_b.legality.identity_mismatch === 0 ? 'text-emerald-400' : 'text-red-400'">&#9632;</span>
+                                    <span class="text-gray-400 whitespace-nowrap">Empty panels · seat mismatches:</span>
+                                    <span class="text-gray-200">{{ qnum(quality.type_b.legality.empty_panels) }} · {{ qnum(quality.type_b.legality.identity_mismatch) }}</span>
+                                </div>
+                                <div class="flex items-baseline gap-1">
+                                    <span class="text-gray-500">&#9632;</span>
+                                    <span class="text-gray-400 whitespace-nowrap">Clumped · one panel each · zero-panel:</span>
+                                    <span class="text-gray-200">{{ qnum(quality.type_b.clumped) }} · {{ qnum(quality.type_b.ungrouped) }} · {{ qnum(quality.type_b.zero_panel) }}</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div>
+                            <div class="text-gray-500 text-[10px] uppercase font-semibold mb-0.5">Constitutional Contiguity</div>
+                            <div class="space-y-0.5">
+                                <div class="flex items-baseline gap-1">
+                                    <span class="text-emerald-400">&#9632;</span>
+                                    <span class="text-gray-400 whitespace-nowrap">Contiguous:</span>
+                                    <span class="text-gray-200">{{ qnum(quality.type_b.contiguity.contiguous_count) }} ({{ qpct(quality.type_b.contiguity.contiguous_count, quality.type_b.panels) }})</span>
+                                    <span class="text-gray-500 ml-auto whitespace-nowrap">{{ qpop(quality.type_b.contiguity.contiguous_pop) }} pop</span>
+                                </div>
+                                <div class="flex items-baseline gap-1">
+                                    <span class="text-amber-400">&#9632;</span>
+                                    <span class="text-gray-400 whitespace-nowrap">Non-contiguous, islands:</span>
+                                    <span class="text-gray-200">{{ qnum(quality.type_b.contiguity.forced_count) }} ({{ qpct(quality.type_b.contiguity.forced_count, quality.type_b.panels) }})</span>
+                                    <span class="text-gray-500 ml-auto whitespace-nowrap">{{ qpop(quality.type_b.contiguity.forced_pop) }} pop</span>
+                                </div>
+                                <div class="flex items-baseline gap-1">
+                                    <span class="text-red-400">&#9632;</span>
+                                    <span class="text-gray-400 whitespace-nowrap">Non-contiguous, for the even split:</span>
+                                    <span class="text-gray-200">{{ qnum(quality.type_b.contiguity.spread_count) }} ({{ qpct(quality.type_b.contiguity.spread_count, quality.type_b.panels) }})</span>
+                                    <span class="text-gray-500 ml-auto whitespace-nowrap">{{ qpop(quality.type_b.contiguity.spread_pop) }} pop</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div>
+                            <div class="text-gray-500 text-[10px] uppercase font-semibold mb-0.5">Uniform Political Diversity</div>
+                            <div class="space-y-0.5">
+                                <div class="flex items-baseline gap-1">
+                                    <span class="text-emerald-400">&#9632;</span>
+                                    <span class="text-gray-400 whitespace-nowrap">Even, equal clumps:</span>
+                                    <span class="text-gray-200">{{ qnum(quality.type_b.diversity.spread0) }} ({{ qpct(quality.type_b.diversity.spread0, quality.type_b.groupings) }})</span>
+                                    <span class="text-gray-500 ml-auto whitespace-nowrap">spread 0</span>
+                                </div>
+                                <div class="flex items-baseline gap-1">
+                                    <span class="text-emerald-400">&#9632;</span>
+                                    <span class="text-gray-400 whitespace-nowrap">Even, equal except one:</span>
+                                    <span class="text-gray-200">{{ qnum(quality.type_b.diversity.spread1) }} ({{ qpct(quality.type_b.diversity.spread1, quality.type_b.groupings) }})</span>
+                                    <span class="text-gray-500 ml-auto whitespace-nowrap">spread 1</span>
+                                </div>
+                                <div class="flex items-baseline gap-1">
+                                    <span :class="quality.type_b.diversity.spread_over === 0 ? 'text-emerald-400' : 'text-red-400'">&#9632;</span>
+                                    <span class="text-gray-400 whitespace-nowrap">Uneven:</span>
+                                    <span class="text-gray-200">{{ qnum(quality.type_b.diversity.spread_over) }} ({{ qpct(quality.type_b.diversity.spread_over, quality.type_b.groupings) }})</span>
+                                    <span class="text-gray-500 ml-auto whitespace-nowrap">spread over 1</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
             </section>
 
             <section class="bg-gray-900 border border-gray-800 rounded-lg p-6 space-y-4">

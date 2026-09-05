@@ -50,6 +50,8 @@ class AutoscaleRun extends Model
         'leaf_lanes',
         'leaf_lanes_pct',
         'type_b_seeded_at',
+        'quality_stats',
+        'quality_computed_at',
     ];
 
     protected $casts = [
@@ -77,6 +79,10 @@ class AutoscaleRun extends Model
         // Type B panel scopes (operator order 2026-09-05): NULL = the pump's
         // materialization pass has not completed for this run; resume clears it.
         'type_b_seeded_at'   => 'datetime',
+        // Map quality statistics (operator order 2026-09-05): computed once
+        // per finished run, cached here for the Step 3 card.
+        'quality_stats'       => 'array',
+        'quality_computed_at' => 'datetime',
     ];
 
     public function items(): HasMany

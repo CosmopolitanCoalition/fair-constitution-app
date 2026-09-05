@@ -474,6 +474,14 @@ class AutoscalePumpCommand extends Command
         if ((int) $counts->open_headers === 0 && (int) $counts->open_scopes === 0 && ! $typeBOwed) {
             $run->forceFill(['status' => 'done', 'finished_at' => now()])->save();
 
+            // MAP QUALITY STATISTICS (operator order 2026-09-05): the planet's
+            // quality aggregates, computed once per finished run off the tick
+            // (the Type B contiguity walk takes minutes) and cached on the
+            // run row for the Step 3 card.
+            if (\Illuminate\Support\Facades\Schema::hasColumn('autoscale_runs', 'quality_stats')) {
+                \App\Jobs\MapQualityStatsJob::dispatch((string) $run->id);
+            }
+
             // THE EAGER CHAIN (operator, 2026-08-08 — the three activation
             // modes): under 'eager' the full-scale build's completion chains
             // the institution shell set (idempotent, all steps) and — dev

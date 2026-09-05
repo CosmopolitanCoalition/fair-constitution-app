@@ -3450,6 +3450,11 @@ class SetupController extends Controller
             'review_items'   => $reviewItems,
             'drifted_items'  => $driftedItems,
             'world_build'    => $this->worldBuildBlock(),
+            // MAP QUALITY (operator order 2026-09-05): the cached planet-wide
+            // aggregates of a finished run — read from the run row, never
+            // computed on the poll path.
+            'quality'        => $run->quality_stats,
+            'quality_computed_at' => $run->quality_computed_at?->toIso8601String(),
         ];
     }
 
