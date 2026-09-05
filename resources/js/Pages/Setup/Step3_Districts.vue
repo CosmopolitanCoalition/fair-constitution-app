@@ -922,10 +922,10 @@ onBeforeUnmount(() => {
                                  max(scopes seen, jurisdictions) and the
                                  planet reads ~940k, growing as giants
                                  materialize their sub-scopes. -->
-                            <span class="tabular-nums">{{ ((run.singles_done ?? 0) + layers.reduce((s, l) => s + (l.scopes_done ?? 0), 0)).toLocaleString() }} / {{ layers.reduce((s, l) => s + Math.max(l.scopes_total ?? 0, l.total ?? 0), 0).toLocaleString() }}{{ barTiming('all_scopes', (run.singles_done ?? 0) + layers.reduce((s, l) => s + (l.scopes_done ?? 0), 0), layers.reduce((s, l) => s + Math.max(l.scopes_total ?? 0, l.total ?? 0), 0)) }}</span>
+                            <span class="tabular-nums">{{ ((run.singles_done ?? 0) + layers.reduce((s, l) => s + (l.scopes_done ?? 0), 0)).toLocaleString() }} / {{ layers.reduce((s, l) => s + (l.units_total ?? Math.max(l.scopes_total ?? 0, l.total ?? 0)), 0).toLocaleString() }}{{ barTiming('all_scopes', (run.singles_done ?? 0) + layers.reduce((s, l) => s + (l.scopes_done ?? 0), 0), layers.reduce((s, l) => s + (l.units_total ?? Math.max(l.scopes_total ?? 0, l.total ?? 0)), 0)) }}</span>
                         </div>
                         <div class="h-2 bg-gray-800 rounded overflow-hidden">
-                            <div class="h-full bg-blue-500 transition-all" :style="{ width: pct((run.singles_done ?? 0) + layers.reduce((s, l) => s + (l.scopes_done ?? 0), 0), layers.reduce((s, l) => s + Math.max(l.scopes_total ?? 0, l.total ?? 0), 0)) + '%' }"></div>
+                            <div class="h-full bg-blue-500 transition-all" :style="{ width: pct((run.singles_done ?? 0) + layers.reduce((s, l) => s + (l.scopes_done ?? 0), 0), layers.reduce((s, l) => s + (l.units_total ?? Math.max(l.scopes_total ?? 0, l.total ?? 0)), 0)) + '%' }"></div>
                         </div>
                     </div>
                 </div>
