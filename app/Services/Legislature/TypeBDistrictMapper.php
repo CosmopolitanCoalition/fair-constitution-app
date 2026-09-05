@@ -52,19 +52,24 @@ use Illuminate\Support\Str;
  * panels hold one more member (base+1). The bonus_seats column is vestigial
  * (always 0).
  *
- * CLUMP PRIORITY (operator ruling 2026-09-05, DEFINITIVE — population dropped):
- *   1. CONTIGUITY — the HARD gate. Clumps must be contiguous wherever the
- *      geography allows (multi-source Voronoi + connectivity-safe rebalance); a
- *      non-contiguous member appears only on a disconnected graph (island
- *      fallback, B4).
- *   2. EQUAL MEMBERS — member counts are as even as possible (base, base+1);
- *      with equal seats per panel this keeps representation equal (B2).
- *   3. MOST NEIGHBOUR (compactness) — the diffusion prefers the least-filled
- *      neighbour region; ties by id.
+ * CLUMP PRIORITY — THE SPREAD LAW (operator ruling 2026-09-05 evening,
+ * DEFINITIVE; supersedes the morning's contiguity-first wording):
+ *   1. CLUMPING SPREAD — member counts are as even as the integers allow
+ *      (base, base+1); with equal seats per panel this keeps representation
+ *      equal (B2). Always reached: the final stage (compactBalance) crosses a
+ *      member between panels even where no contiguous move exists.
+ *   2. CONTIGUITY — kept wherever it does not cost the spread: seeds per
+ *      component, multi-source Voronoi, connectivity-safe diffusion with the
+ *      cut-vertex transfer, the exact path push, the re-bisection hop. A
+ *      non-contiguous member appears only where the geography forces it (an
+ *      island, a hub whose neighbours are all leaves, a pendant chain with no
+ *      even cut) — scored on the map, never a gate.
+ *   3. COMPACTNESS — the diffusion prefers the least-filled neighbour region;
+ *      a forced non-contiguous move takes the nearest centroid.
  *   4. id — deterministic final tie-break.
  * POPULATION IS NOT A DRIVER (operator ruling 2026-09-05: "throw population
- * equality out for this seat type since STV should deal with it"). Contiguity
- * overtakes any internal population balance; STV absorbs the residual.
+ * equality out for this seat type since STV should deal with it"). STV absorbs
+ * any internal population imbalance.
  *
  * NO geometry is ever cut: this is a balanced grouping over the constituent
  * adjacency graph, not a drawing operation. Seats are exact by construction
@@ -318,10 +323,83 @@ class TypeBDistrictMapper
             }
         }
 
+        // THE SPREAD LAW (operator ruling 2026-09-05 evening: Clumping Spread >
+        // Contiguity > Compactness). The even split is the first requirement
+        // and is always reached. Where the contiguity-preserving stages above
+        // stop short (a hub whose neighbours are all leaves, a pendant chain
+        // with no 2/2 cut), a member crosses from an over panel to an under
+        // panel anyway: the move that keeps both panels contiguous if one
+        // exists, else the one that breaks the fewest, then the most compact
+        // (nearest centroid). Contiguity stays a scored quality on the map.
+        $panels = self::compactBalance($panels, $sizes, $adjacency, $centroids);
+
         foreach ($panels as &$pnl) {
             sort($pnl);
         }
         unset($pnl);
+
+        return $panels;
+    }
+
+    /**
+     * Close any remaining spread with single-member moves from over-target to
+     * under-target panels, contiguity preferred, compactness next. Each move
+     * cuts Σ|excess| by two, so it terminates with every panel at target.
+     * Score of a candidate move (member m from O to U): breaks = [O splits
+     * without m] + [m borders no member of U], then the squared centroid
+     * distance from m to U's members, then O index, U index, m id.
+     *
+     * @param list<list<string>>                   $panels
+     * @param list<int>                            $sizes
+     * @param array<string,array<string,float>>    $adjacency
+     * @param array<string,array{x:float,y:float}> $centroids
+     * @return list<list<string>>
+     */
+    private static function compactBalance(array $panels, array $sizes, array $adjacency, array $centroids): array
+    {
+        $p     = count($sizes);
+        $guard = 0;
+        while ($guard++ < 4 * array_sum($sizes) + 64) {
+            $overs = []; $unders = [];
+            for ($i = 0; $i < $p; $i++) {
+                $e = count($panels[$i]) - $sizes[$i];
+                if ($e > 0) { $overs[] = $i; } elseif ($e < 0) { $unders[] = $i; }
+            }
+            if ($overs === [] || $unders === []) {
+                break;
+            }
+            $best = null; $bestKey = null;
+            foreach ($overs as $o) {
+                $set = array_flip($panels[$o]);
+                foreach ($panels[$o] as $m) {
+                    $m = (string) $m;
+                    $splits = count($panels[$o]) > 1 && ! self::connectedWithout($set, $adjacency, $m) ? 1 : 0;
+                    foreach ($unders as $u) {
+                        $borders = 0;
+                        foreach ($panels[$u] as $um) {
+                            if (isset($adjacency[$m][(string) $um])) { $borders = 1; break; }
+                        }
+                        $d = INF;
+                        $pc = self::panelCentroid($panels[$u], $centroids);
+                        if ($pc !== null && isset($centroids[$m])) {
+                            $dx = $pc['x'] - $centroids[$m]['x'];
+                            $dy = $pc['y'] - $centroids[$m]['y'];
+                            $d  = $dx * $dx + $dy * $dy;
+                        }
+                        $key = [$splits + (1 - $borders), $d, $o, $u, $m];
+                        if ($best === null || $key < $bestKey) {
+                            $best = [$o, $u, $m]; $bestKey = $key;
+                        }
+                    }
+                }
+            }
+            if ($best === null) {
+                break;
+            }
+            [$o, $u, $m] = $best;
+            $panels[$o] = array_values(array_filter($panels[$o], static fn ($x) => (string) $x !== $m));
+            $panels[$u][] = $m;
+        }
 
         return $panels;
     }

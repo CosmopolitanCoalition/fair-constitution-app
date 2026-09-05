@@ -1117,21 +1117,15 @@
                                 <div class="px-3 py-2 flex items-center gap-2 flex-wrap border-b border-gray-700 bg-gray-900/50">
                                     <template v-if="editingDistrictId === row.district.id">
                                         <!-- Seat preview pill -->
+                                        <!-- Type B pill (operator 2026-09-05): members picked
+                                             against the clump target, and the seats the panel
+                                             elects — never the Type A fractional → seats read. -->
                                         <span v-if="pendingAdd.size > 0 || pendingRemove.size > 0"
                                               class="text-xs px-2 py-0.5 rounded-full font-medium flex flex-col items-start"
-                                              :class="!pendingValid ? 'bg-red-900 text-red-300'
-                                                    : pendingFloor  ? 'bg-orange-900 text-orange-300'
-                                                    :                 'bg-emerald-900 text-emerald-300'">
-                                            <span>{{ pendingFractionalTotal.toFixed(2) }} → {{ pendingSeats }} seats
-                                            <span v-if="!pendingValid"> ✗ exceeds 9</span>
-                                            <span v-else-if="pendingFloor"> ⚑ floor</span></span>
-                                            <span v-if="suboptimalConfig &&
-                                                        suboptimalConfig.d > 0 &&
-                                                        !(pendingSeats >= suboptimalConfig.q &&
-                                                          pendingSeats <= suboptimalConfig.q + (suboptimalConfig.r > 0 ? 1 : 0))"
-                                                  class="text-[10px] text-gray-400 font-normal">
-                                                target: {{ suboptimalConfig.q }}{{ suboptimalConfig.r > 0 ? '–' + (suboptimalConfig.q + 1) : '' }}
-                                            </span>
+                                              :class="pendingMemberCount === 0 ? 'bg-red-900 text-red-300'
+                                                    : pendingOnTarget        ? 'bg-emerald-900 text-emerald-300'
+                                                    :                          'bg-amber-900 text-amber-300'">
+                                            <span>{{ pendingMemberCount }} / {{ clumpTargetLabel }} members · {{ clumpRepFloor }} seats</span>
                                         </span>
                                         <!-- Save -->
                                         <button @click="saveDistrictEdit(row.district.id)"
@@ -1371,21 +1365,12 @@
                             <template v-if="editingDistrictId === 'new'">
                                 <div class="flex items-center gap-1 flex-wrap justify-end shrink-0">
                                     <!-- Seat preview pill in new-district mode -->
+                                    <!-- Type B pill (operator 2026-09-05): members picked against
+                                         the clump target, and the seats the new panel elects. -->
                                     <span v-if="pendingAdd.size > 0"
                                           class="text-xs px-2 py-0.5 rounded-full font-medium flex flex-col items-start"
-                                          :class="!pendingValid ? 'bg-red-900 text-red-300'
-                                                : pendingFloor  ? 'bg-orange-900 text-orange-300'
-                                                :                 'bg-emerald-900 text-emerald-300'">
-                                        <span>{{ pendingFractionalTotal.toFixed(2) }} → {{ pendingSeats }} seats
-                                        <span v-if="!pendingValid"> ✗</span>
-                                        <span v-else-if="pendingFloor"> ⚑</span></span>
-                                        <span v-if="suboptimalConfig &&
-                                                    suboptimalConfig.d > 0 &&
-                                                    !(pendingSeats >= suboptimalConfig.q &&
-                                                      pendingSeats <= suboptimalConfig.q + (suboptimalConfig.r > 0 ? 1 : 0))"
-                                              class="text-[10px] text-gray-400 font-normal">
-                                            target: {{ suboptimalConfig.q }}{{ suboptimalConfig.r > 0 ? '–' + (suboptimalConfig.q + 1) : '' }}
-                                        </span>
+                                          :class="pendingOnTarget ? 'bg-emerald-900 text-emerald-300' : 'bg-amber-900 text-amber-300'">
+                                        <span>{{ pendingMemberCount }} / {{ clumpTargetLabel }} members · {{ clumpRepFloor }} seats</span>
                                     </span>
                                     <button @click="createDistrictFromPending"
                                             :disabled="pendingAdd.size === 0 || savingEdit || !pendingValid"
@@ -2984,29 +2969,69 @@ function clumpFormula(groups, total) {
     if (!sizes.length) return ''
     return sizes.map(sz => `(${groups[sz]}×${sz})`).join(' + ') + ` = ${total} parts`
 }
-// Optimal: the ideal EVEN split of n parts across p clumps (base, base+1).
-const clumpOptimalLabel = computed(() => {
-    const p = props.districts.length
-    if (!p) return ''
-    const n = props.districts.reduce((s, d) => s + (d.members?.length ?? 0), 0)
-    const base = Math.floor(n / p), rem = n % p
-    const groups = {}
-    if (rem > 0) groups[base + 1] = rem
-    if (p - rem > 0) groups[base] = (groups[base] ?? 0) + (p - rem)
-    return clumpFormula(groups, n)
+// THE CLUMP TARGET (operator 2026-09-05): a function of the CHAMBER — n
+// constituents, the Type B ceiling (scope_seats) and the seats each panel
+// elects (rep floor) — never of what is drawn, so it stands on a blank map
+// and holds still while a map is built. p = min(floor(ceiling / rep), n)
+// panels; a chamber whose ladder fits (every constituent seated on its own
+// within the ceiling) is ungrouped, one panel per constituent.
+const clumpRepFloor = computed(() => Math.max(2, props.legislature?.type_b_rep_floor ?? 2))
+const clumpTarget = computed(() => {
+    const n = childrenRef.value.length
+    const bound = props.scope_seats ?? 0
+    const rep = clumpRepFloor.value
+    if (!n || bound < 1) return { n, p: 0, base: 0, rem: 0 }
+    const ungrouped = childrenRef.value.reduce((s, c) => {
+        const pop = c.population ?? 0
+        return s + (pop <= 5 ? Math.max(0, Math.min(pop, rep)) : rep)
+    }, 0)
+    const p = ungrouped <= bound ? n : Math.min(Math.floor(bound / rep), n)
+    if (!p) return { n, p: 0, base: 0, rem: 0 }
+    return { n, p, base: Math.floor(n / p), rem: n % p }
 })
-// Current: the ACTUAL member split of the drawn clumps.
-const clumpCurrentLabel = computed(() => {
-    const p = props.districts.length
-    if (!p) return ''
+// "3–4" (or "3") — the member count a panel should hold.
+const clumpTargetLabel = computed(() => {
+    const t = clumpTarget.value
+    if (!t.p) return '—'
+    return t.rem > 0 ? `${t.base}–${t.base + 1}` : `${t.base}`
+})
+// Optimal: the ideal EVEN split of ALL n parts across the p target clumps.
+const clumpOptimalLabel = computed(() => {
+    const t = clumpTarget.value
+    if (!t.p) return ''
     const groups = {}
-    let n = 0
-    for (const d of props.districts) {
+    if (t.rem > 0) groups[t.base + 1] = t.rem
+    if (t.p - t.rem > 0) groups[t.base] = (groups[t.base] ?? 0) + (t.p - t.rem)
+    return clumpFormula(groups, t.n)
+})
+// Current: the ACTUAL member split of the drawn clumps, plus what is still
+// unassigned — the whole chamber, so a half-built map never reads as done.
+const clumpCurrentLabel = computed(() => {
+    const groups = {}
+    let assigned = 0
+    for (const d of districtsRef.value) {
         const m = d.members?.length ?? 0
-        n += m
+        assigned += m
         groups[m] = (groups[m] ?? 0) + 1
     }
-    return clumpFormula(groups, n)
+    const unassigned = Math.max(0, clumpTarget.value.n - assigned)
+    const drawn = districtsRef.value.length ? clumpFormula(groups, assigned) : 'nothing drawn'
+    return unassigned > 0 ? `${drawn} + ${unassigned} unassigned` : drawn
+})
+// The pill while building or editing a panel: members picked so far against
+// the target, and the seats the panel elects.
+const pendingMemberCount = computed(() => {
+    let n = pendingAdd.value.size
+    if (editingDistrictId.value && editingDistrictId.value !== 'new') {
+        const d = districtsRef.value.find(x => x.id === editingDistrictId.value)
+        n += (d?.members ?? []).filter(m => !pendingRemove.value.has(m.id)).length
+    }
+    return n
+})
+const pendingOnTarget = computed(() => {
+    const t = clumpTarget.value
+    const c = pendingMemberCount.value
+    return t.p > 0 && c >= t.base && c <= t.base + (t.rem > 0 ? 1 : 0)
 })
 
 // Suboptimal label: best achievable distribution for the REMAINING unassigned pool.

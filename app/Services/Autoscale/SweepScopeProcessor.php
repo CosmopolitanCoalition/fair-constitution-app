@@ -581,70 +581,20 @@ class SweepScopeProcessor
         if ($empty > 0) {
             $reasons[] = "Type B empty panels: {$empty}";
         }
-        // Uneven clumps: member counts must be as even as the CONNECTED graph
-        // allows (the settled formula's own words). A spread over 1 is
-        // judged against the engine's own best on the same graph: worse
-        // than the machine reaches is a defect (a hand map, or an older
-        // engine); equal is the geometry's limit (a pendant chain u–x–y can
-        // never split 2/2 contiguously — Brasov, 2026-09-05) and is noted.
+        // Uneven clumps: member counts must be as even as the integers allow
+        // (THE SPREAD LAW, operator ruling 2026-09-05: Clumping Spread >
+        // Contiguity > Compactness — the even split is always reachable, so
+        // a spread over 1 is a defect, never a geometry note).
         if ($panels->count() > 1) {
             $mx = (int) $panels->max('members');
             $mn = (int) $panels->min('members');
             if ($mx - $mn > 1) {
-                $best = self::engineSpread($leg, $repFloor);
-                if ($best === null || $mx - $mn > $best) {
-                    $reasons[] = "Type B uneven clumps: members {$mn}..{$mx} across " . $panels->count()
-                        . ' panels (spread ' . ($mx - $mn) . ($best !== null ? ", the engine reaches {$best}" : '') . ')';
-                } else {
-                    $notes[] = "Type B uneven clumps forced by contiguity: members {$mn}..{$mx} across "
-                        . $panels->count() . " panels (engine best spread {$best})";
-                }
+                $reasons[] = "Type B uneven clumps: members {$mn}..{$mx} across " . $panels->count()
+                    . ' panels (spread ' . ($mx - $mn) . ')';
             }
         }
 
         return ['reasons' => $reasons, 'notes' => $notes];
-    }
-
-    /**
-     * The member spread (max − min) the clumping engine reaches on this
-     * chamber's constituent graph right now — the yardstick for a stored
-     * map's unevenness. Pure recompute over the same inputs apply() reads;
-     * null when the chamber cannot be computed (no constituents).
-     */
-    private static function engineSpread(object $leg, int $repFloor): ?int
-    {
-        $children = DB::table('jurisdictions')
-            ->where('parent_id', (string) $leg->jurisdiction_id)
-            ->whereNull('deleted_at')
-            ->get(['id', 'population']);
-        if ($children->isEmpty()) {
-            return null;
-        }
-        $populations = [];
-        $popSum = 0;
-        foreach ($children as $c) {
-            $populations[(string) $c->id] = (int) $c->population;
-            $popSum += max((int) $c->population, 0);
-        }
-        $adjacency = [];
-        foreach (DB::table('jurisdiction_adjacency')
-                    ->where('parent_id', (string) $leg->jurisdiction_id)
-                    ->where('dim', '>=', 1)
-                    ->get(['j1', 'j2', 'border_len']) as $e) {
-            $adjacency[(string) $e->j1][(string) $e->j2] = (float) $e->border_len;
-            $adjacency[(string) $e->j2][(string) $e->j1] = (float) $e->border_len;
-        }
-        $centroids = [];
-        foreach (DB::table('jurisdiction_centroids')
-                    ->whereIn('jurisdiction_id', array_keys($populations))
-                    ->get(['jurisdiction_id', 'x', 'y']) as $row) {
-            $centroids[(string) $row->jurisdiction_id] = ['x' => (float) $row->x, 'y' => (float) $row->y];
-        }
-        $plan  = \App\Services\Legislature\TypeBDistrictMapper::computePanels(
-            $populations, $adjacency, (int) $leg->type_a_seats, $popSum, $repFloor, $centroids);
-        $sizes = array_map('count', $plan['panels']);
-
-        return $sizes === [] ? 0 : max($sizes) - min($sizes);
     }
 
     /**

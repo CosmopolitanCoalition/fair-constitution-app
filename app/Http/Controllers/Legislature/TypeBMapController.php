@@ -305,6 +305,9 @@ class TypeBMapController extends Controller
                 'root_jurisdiction_id' => $jid,
                 'type_a_seats'         => (int) $leg['type_a_seats'],
                 'type_b_seats'         => (int) $leg['type_b_seats'],
+                // The seats every panel elects on a clumped map (the ladder's
+                // rep floor); the sidebar pill reads it (operator 2026-09-05).
+                'type_b_rep_floor'     => max(2, $repFloor),
                 'status'               => $status,
                 'chamber_seated'       => $chamberSeated,
             ],
