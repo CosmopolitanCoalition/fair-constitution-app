@@ -60,6 +60,23 @@ const layers = computed(() => autoscale.value?.layers ?? [])
 // finished run, cached on the run row (never computed on the poll path),
 // shown in the map view's MAP QUALITY style below the layer bars.
 const quality = computed(() => autoscale.value?.quality ?? null)
+// Layer tabs (operator order 2026-09-05): the card shows all layers or one
+// layer at a time; each layer carries the same block shape as the whole.
+const qualityTab = ref('all')
+const qualityTabs = computed(() => {
+    const q = quality.value
+    if (!q?.levels) return [{ key: 'all', label: 'All layers' }]
+    const tabs = [{ key: 'all', label: 'All layers' }]
+    for (const k of Object.keys(q.levels).filter(k => k !== 'all').sort((x, y) => Number(x) - Number(y))) {
+        tabs.push({ key: k, label: q.level_labels?.[k] ?? `Level ${k}` })
+    }
+    return tabs
+})
+const qualityBlock = computed(() => {
+    const q = quality.value
+    if (!q) return null
+    return q.levels?.[qualityTab.value] ?? q.levels?.all ?? q
+})
 const qualityAt = computed(() => autoscale.value?.quality_computed_at ?? null)
 function qpct(a, b) { a = Number(a || 0); b = Number(b || 0); return b > 0 ? (100 * a / b).toFixed(1) + '%' : '0%' }
 function qpop(n) {
@@ -74,8 +91,8 @@ const Q_DOT = { good: 'text-emerald-400', warn: 'text-amber-400', bad: 'text-red
 // The card's two columns as data — one statistic per line, every section
 // with the tooltip the map views carry (operator order 2026-09-05).
 const qualityColumns = computed(() => {
-    const q = quality.value
-    if (!q) return []
+    const q = qualityBlock.value
+    if (!q?.type_a || !q?.type_b) return []
     const a = q.type_a, b = q.type_b
     const zeroGood = n => (Number(n) === 0 ? 'good' : 'bad')
     const popRow = (dot, label, count, total, pop, popTotal) => ({
@@ -99,11 +116,26 @@ const qualityColumns = computed(() => {
                 },
                 {
                     title: 'Community Integrity',
-                    tip: 'Districts drawn along pre-existing administrative boundaries help preserve community integrity. Manual line-drawing is only needed when a jurisdiction has more seats than the constitutional ceiling allows and has no child subdivisions. In all other cases, sub-districts can be created along existing administrative borders.',
+                    sub: a.integrity.maps != null ? `(${qnum(a.integrity.maps)} composite maps)` : '',
+                    tip: 'Judged on the composite maps only (jurisdictions with constituents). Districts drawn along pre-existing administrative boundaries keep communities intact; a line-split piece appears inside a composite map only where a constituent holds more seats than the ceiling allows and has no subdivisions of its own. Leaf maps have their own section below.',
                     rows: [
-                        popRow('good', 'Intact:', a.integrity.intact_count, a.districts, a.integrity.intact_pop, a.population),
-                        popRow('warn', 'Segmented:', a.integrity.segmented_count, a.districts, a.integrity.segmented_pop, a.population),
+                        popRow('good', 'Intact:', a.integrity.intact_count, a.integrity.intact_count + a.integrity.segmented_count, a.integrity.intact_pop, a.integrity.intact_pop + a.integrity.segmented_pop),
+                        popRow('warn', 'Segmented:', a.integrity.segmented_count, a.integrity.intact_count + a.integrity.segmented_count, a.integrity.segmented_pop, a.integrity.intact_pop + a.integrity.segmented_pop),
                     ],
+                },
+                {
+                    title: 'Leaf Maps',
+                    sub: a.leaves ? `(${qnum(a.leaves.at_large_maps + a.leaves.line_split_maps)} maps)` : '',
+                    tip: 'Jurisdictions with no constituents. Within the seat band a leaf is one at-large district; above the ceiling it is line-split by the leaf ladder, whose rungs are tried in order (shortest split-line, box, community cells, vertical strips, horizontal strips, whole components) until one files. The rows name the rung that filed each map; "unrecorded" maps were drawn before the ladder timings were kept.',
+                    rows: a.leaves ? [
+                        popRow('good', 'At large:', a.leaves.at_large_maps, a.leaves.at_large_maps + a.leaves.line_split_maps, a.leaves.at_large_pop, a.leaves.at_large_pop + a.leaves.line_split_pop),
+                        popRow('warn', 'Line-split:', a.leaves.line_split_maps, a.leaves.at_large_maps + a.leaves.line_split_maps, a.leaves.line_split_pop, a.leaves.at_large_pop + a.leaves.line_split_pop),
+                        ...Object.entries(a.leaves.methods ?? {}).map(([m, n]) => ({
+                            dot: 'muted',
+                            label: `${({ shortest: 'Shortest split-line', box: 'Box', community_cells: 'Community cells', vertical_strips: 'Vertical strips', horizontal_strips: 'Horizontal strips', components: 'Whole components', mask: 'Mask', unrecorded: 'Unrecorded' })[m] ?? m}:`,
+                            value: `${qnum(n)} (${qpct(n, a.leaves.line_split_maps)})`,
+                        })),
+                    ] : [{ dot: 'muted', label: 'Not yet computed', value: '' }],
                 },
                 {
                     title: 'Constitutional Contiguity',
@@ -123,6 +155,15 @@ const qualityColumns = computed(() => {
                         popRow('warn', 'OK (5–10%):', a.equality.ok_count, a.equality.district_count, a.equality.ok_pop, a.equality.pop),
                         popRow('bad', 'Bad (>10%):', a.equality.bad_count, a.equality.district_count, a.equality.bad_pop, a.equality.pop),
                     ],
+                },
+                {
+                    title: 'Uniform Political Diversity',
+                    sub: a.diversity ? `(${qnum(a.diversity.scopes)} scopes)` : '',
+                    tip: 'For every composite scope, the drawn district seat counts are compared with the Optimal the map view shows: the balanced partition of the scope\'s composed seats with the lowest average Droop threshold (the most uniform political diversity), a lawful one-jurisdiction single counted beside it. Optimal means the two match; Not optimal means the drawing differs, which includes every recorded floor exception.',
+                    rows: a.diversity ? [
+                        { dot: 'good', label: 'Optimal:', value: `${qnum(a.diversity.optimal)} (${qpct(a.diversity.optimal, a.diversity.scopes)})`, right: `${qpop(a.diversity.optimal_pop)} pop (${qpct(a.diversity.optimal_pop, a.diversity.pop)})` },
+                        { dot: 'warn', label: 'Not optimal:', value: `${qnum(a.diversity.suboptimal)} (${qpct(a.diversity.suboptimal, a.diversity.scopes)})`, right: `${qpop(a.diversity.suboptimal_pop)} pop (${qpct(a.diversity.suboptimal_pop, a.diversity.pop)})` },
+                    ] : [{ dot: 'muted', label: 'Not yet computed', value: '' }],
                 },
                 {
                     title: 'Shape Compactness',
@@ -1354,9 +1395,22 @@ onBeforeUnmount(() => {
                  `autoscale:quality-stats`; the poll only reads it. -->
             <section v-if="run && (run.status === 'done' || quality)"
                      class="rounded-lg mb-6 border bg-gray-900 border-gray-800">
-                <div class="flex items-center justify-between px-5 pt-4 pb-2">
-                    <h2 class="text-cyan-400 text-xs font-bold uppercase tracking-wide">Map Quality</h2>
-                    <span v-if="quality" class="text-gray-500 text-[10px]">computed {{ new Date(qualityAt).toLocaleString() }} · {{ quality.seconds }}s</span>
+                <div class="flex flex-wrap items-center justify-between gap-x-4 gap-y-2 px-5 pt-4 pb-2">
+                    <div class="flex items-baseline gap-3">
+                        <h2 class="text-cyan-400 text-xs font-bold uppercase tracking-wide">Map Quality</h2>
+                        <span v-if="quality" class="text-gray-500 text-[10px]">computed {{ new Date(qualityAt).toLocaleString() }} · {{ quality.seconds }}s</span>
+                    </div>
+                    <!-- Layer tabs: all layers, then one tab per layer. -->
+                    <div v-if="quality" class="flex flex-wrap items-center gap-1">
+                        <button v-for="t in qualityTabs" :key="t.key"
+                                @click="qualityTab = t.key"
+                                class="px-2 py-0.5 rounded text-[11px] border transition-colors"
+                                :class="qualityTab === t.key
+                                    ? 'bg-cyan-900/40 border-cyan-700 text-cyan-200'
+                                    : 'bg-gray-800/60 border-gray-700 text-gray-400 hover:text-gray-200'">
+                            {{ t.label }}
+                        </button>
+                    </div>
                 </div>
                 <div v-if="!quality" class="px-5 pb-4 text-gray-500 text-xs">
                     Computing the planet-wide statistics — they appear here when the job finishes.
@@ -1364,9 +1418,11 @@ onBeforeUnmount(() => {
                 <div v-else class="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-4 px-5 pb-5 text-xs">
                     <div v-for="col in qualityColumns" :key="col.title" class="space-y-3">
                         <!-- Column header: the map class, then one total per line. -->
-                        <div class="border-b border-gray-800 pb-1">
+                        <div class="flex items-start justify-between gap-3 border-b border-gray-800 pb-1">
                             <div class="text-gray-200 font-semibold">{{ col.title }}</div>
-                            <div v-for="m in col.meta" :key="m" class="text-gray-500 tabular-nums">{{ m }}</div>
+                            <div class="text-right shrink-0">
+                                <div v-for="m in col.meta" :key="m" class="text-gray-500 tabular-nums">{{ m }}</div>
+                            </div>
                         </div>
                         <!-- Sections: label with hover tooltip (the map view's pattern), an
                              optional right-hand statistic, then one row per statistic. -->
