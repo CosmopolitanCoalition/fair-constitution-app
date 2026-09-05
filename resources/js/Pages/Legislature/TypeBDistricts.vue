@@ -23,39 +23,22 @@
             <!-- max-w-96 prevents content overflow from bleeding onto the map -->
             <aside class="lm-sidebar w-96 max-w-96 shrink-0 bg-gray-900 border-r border-gray-800 flex flex-col overflow-hidden">
 
-                <!-- Header -->
+                <!-- Header — no corner seat total (Type B is flat, one scope; the
+                     seat count lives in the badge row below). -->
                 <div class="px-4 py-3 border-b border-gray-800 shrink-0">
-                    <div class="flex items-center justify-between gap-2">
-                        <div class="min-w-0">
-                            <div class="text-xs text-gray-500 mb-0.5">Legislature Browser</div>
-                            <h1 class="text-base font-bold text-white leading-tight truncate">{{ scope.name }}</h1>
-                        </div>
-                        <div class="text-right shrink-0">
-                            <div class="text-xs text-gray-500 leading-tight">Total District Seats</div>
-                            <div class="text-base font-bold text-emerald-400">{{ legislature.type_a_seats.toLocaleString() }}</div>
-                        </div>
+                    <div class="min-w-0">
+                        <div class="text-xs text-gray-500 mb-0.5">Legislature Browser</div>
+                        <h1 class="text-base font-bold text-white leading-tight truncate">{{ scope.name }}</h1>
                     </div>
-                    <!-- Cross-navigation to this legislature's Type B panels map —
-                         only at the root scope (where the breadcrumb is absent) and
-                         only for a non-leaf jurisdiction (operator 2026-09-05). -->
-                    <a v-if="isRootScope && hasChildren"
-                       :href="`/legislatures/${legislature.slug ?? legislature.id}/panels`"
+                    <!-- Cross-navigation to this legislature's Type A district map.
+                         Type B implies a non-leaf jurisdiction and the map is flat
+                         (always root), so this always shows (operator 2026-09-05). -->
+                    <a v-if="isRootScope"
+                       :href="`/legislatures/${legislature.slug ?? legislature.id}/districts`"
                        class="block w-full text-center text-xs font-medium px-3 py-2 rounded mt-2
                               bg-indigo-800 hover:bg-indigo-700 text-indigo-100 transition-colors">
-                        View Legislative Panels →
+                        View Legislative Districts →
                     </a>
-                    <!-- Breadcrumb (scope trail) — only when drilled BELOW root; the
-                         root scope shows the cross-nav button instead. Sits directly
-                         under the legislature name (operator 2026-09-05). -->
-                    <div v-if="ancestors.length > 1" class="mt-2 text-xs text-gray-400 flex flex-wrap gap-1 items-center">
-                        <template v-for="(anc, i) in ancestors" :key="anc.id">
-                            <a v-if="i < ancestors.length - 1"
-                               @click.prevent="drillTo(anc.id)" href="#"
-                               class="hover:text-white transition-colors cursor-pointer">{{ anc.name }}</a>
-                            <span v-else class="text-gray-200 font-medium">{{ anc.name }}</span>
-                            <span v-if="i < ancestors.length - 1" class="text-gray-600">›</span>
-                        </template>
-                    </div>
                     <!-- FE-C2 — seated chamber: reverse link into the
                          legislature-home surface. -->
                     <a v-if="legislature.chamber_seated"
@@ -65,10 +48,20 @@
                     </a>
                 </div>
 
-                <!-- Stats: Constituent Jurisdictions · Seats (this scope) · Districts
-                     (operator 2026-09-05). Root Seats moved to the corner label
-                     "Total District Seats"; the "seats to assign / quota" line is
-                     compressed into the Seats badge here. -->
+                <!-- Breadcrumb — only when there is a drill path; a flat Type B map
+                     has a single ancestor (== the title), so it is hidden to avoid
+                     showing the jurisdiction name twice (operator 2026-09-05). -->
+                <div v-if="ancestors.length > 1" class="px-4 py-2 border-b border-gray-800 text-xs text-gray-400 flex flex-wrap gap-1 items-center shrink-0">
+                    <template v-for="(anc, i) in ancestors" :key="anc.id">
+                        <a v-if="i < ancestors.length - 1"
+                           @click.prevent="drillTo(anc.id)" href="#"
+                           class="hover:text-white transition-colors cursor-pointer">{{ anc.name }}</a>
+                        <span v-else class="text-gray-200 font-medium">{{ anc.name }}</span>
+                        <span v-if="i < ancestors.length - 1" class="text-gray-600">›</span>
+                    </template>
+                </div>
+
+                <!-- Stats: Constituent Jurisdictions · Seats · Panels (operator 2026-09-05). -->
                 <div class="px-3 py-2 border-b border-gray-800 grid grid-cols-3 gap-1.5 text-center shrink-0">
                     <div class="bg-gray-800 rounded p-1.5">
                         <div class="text-xs text-gray-500 leading-tight">Constituent Jurisdictions</div>
@@ -76,10 +69,10 @@
                     </div>
                     <div class="bg-gray-800 rounded p-1.5">
                         <div class="text-xs text-gray-500">Seats</div>
-                        <div class="text-sm font-semibold text-emerald-400">{{ scope_seats.toLocaleString() }}</div>
+                        <div class="text-sm font-semibold text-emerald-400">{{ seatedSeats.toLocaleString() }}</div>
                     </div>
                     <div class="bg-gray-800 rounded p-1.5">
-                        <div class="text-xs text-gray-500">Districts</div>
+                        <div class="text-xs text-gray-500">Panels</div>
                         <div class="text-sm font-semibold text-white">{{ districtsRef.length }}</div>
                     </div>
                 </div>
@@ -320,7 +313,7 @@
                          pill bottom-right (above the Menu bar), the panel is
                          near-full-width; md+ centers both in/under the top bar. -->
                     <Teleport to="body">
-                    <template v-if="(props.stats && (districtsRef.length > 0 || (props.stats.population_equality?.district_count ?? 0) > 0)) || hasAnyFlag || optimalLabel">
+                    <template v-if="props.stats || hasAnyFlag || optimalLabel">
                         <button @click="statsPanelCollapsed = !statsPanelCollapsed"
                                 class="fixed z-[1100] flex items-center gap-2 rounded border bg-gray-900/95 px-2.5 py-1 text-[11px] shadow-lg backdrop-blur select-none
                                        bottom-20 right-2
@@ -330,10 +323,6 @@
                             <span v-if="hardFlagCount > 0" class="text-red-400">⛔ {{ hardFlagCount }}</span>
                             <span v-else-if="hasAnyFlag" class="text-amber-400">⚠</span>
                             <span v-else class="text-emerald-400">✓</span>
-                            <span v-if="props.stats?.population_equality?.avg_deviation_pct !== undefined"
-                                  class="text-gray-400 hidden md:inline">
-                                Eq {{ Number(props.stats.population_equality.avg_deviation_pct).toFixed(1) }}%
-                            </span>
                             <span v-if="props.stats?.contiguity" class="text-gray-400 hidden md:inline">
                                 Contig {{ props.stats.contiguity.contiguous_count }}/{{ props.stats.contiguity.contiguous_count + props.stats.contiguity.non_contiguous_count }}
                             </span>
@@ -357,7 +346,7 @@
                                      :class="hardFlagCount > 0 ? 'text-red-400' : 'text-amber-400'">
                                     Constitutional Flags
                                     <span class="text-gray-500 normal-case font-normal ml-1">
-                                        {{ (props.flags.cap ? 1 : 0) + (props.flags.floor_exceptions?.length ?? 0) + (props.flags.ceiling_exceptions?.length ?? 0) + (props.flags.deep_overages?.length ?? 0) + (props.flags.incomplete_scopes?.length ?? 0) }} issue(s)
+                                        {{ (props.flags.cap ? 1 : 0) + (props.flags.floor_exceptions?.length ?? 0) + (props.flags.ceiling_exceptions?.length ?? 0) + (props.flags.deep_overages?.length ?? 0) + (props.flags.incomplete_scopes?.length ?? 0) + (props.flags.uneven_clumps ? 1 : 0) }} issue(s)
                                     </span>
                                 </div>
                                 <div class="space-y-1">
@@ -405,11 +394,21 @@
                                             +{{ ce.bonus }} bonus seat{{ ce.bonus === 1 ? '' : 's' }} added to the legislature (sub-2 exception seats 2 — runners-up represented)
                                         </span>
                                     </div>
+                                    <!-- Uneven clumps (Type B): members per panel spread beyond the forced base/base+1. -->
+                                    <div v-if="props.flags.uneven_clumps" class="flex items-start gap-2 text-red-400">
+                                        <span class="shrink-0">⛔</span>
+                                        <span>
+                                            Uneven clumps — members per panel range {{ props.flags.uneven_clumps.min }}–{{ props.flags.uneven_clumps.max }}
+                                            (spread {{ props.flags.uneven_clumps.spread }}); an even split differs by at most 1.
+                                        </span>
+                                    </div>
                                 </div>
                             </div>
 
-                            <!-- ── 1. Community Integrity ── -->
-                            <div>
+                            <!-- ── 1. Community Integrity — removed for Type B
+                                 (operator 2026-09-05): line-based integrity is
+                                 irrelevant; clumps are whole administrative units. -->
+                            <div v-if="false">
                                 <div class="relative group inline-flex items-center gap-1 mb-0.5">
                                     <span class="text-gray-500 text-[10px] uppercase font-semibold">Community Integrity</span>
                                     <span class="text-gray-600 text-[9px] cursor-help select-none ml-0.5">?</span>
@@ -495,8 +494,10 @@
                                 <span v-else class="text-gray-600 text-[10px]">— not yet computed</span>
                             </div>
 
-                            <!-- ── 3. Population Equality ── -->
-                            <div v-if="props.stats?.population_equality">
+                            <!-- ── 3. Population Equality + Extremes — removed for Type B
+                                 (operator 2026-09-05): equal representation of parts,
+                                 not population-per-seat, so these do not apply. -->
+                            <div v-if="false">
                                 <div class="relative group flex items-baseline justify-between gap-2 mb-1">
                                     <div class="inline-flex items-center gap-1">
                                         <span class="text-gray-500 text-[10px] uppercase font-semibold">Population Equality</span>
@@ -638,27 +639,23 @@
                                 <span v-else class="text-gray-600 text-[10px]">— not yet computed</span>
                             </div>
 
-                            <!-- ── 5. Uniform Political Diversity ── -->
-                            <div v-if="optimalLabel">
+                            <!-- ── 5. Uniform Political Diversity (Type B: even clump sizes) ── -->
+                            <div v-if="clumpOptimalLabel">
                                 <div class="relative group inline-flex items-center gap-1 mb-1">
                                     <span class="text-gray-500 text-[10px] uppercase font-semibold">Uniform Political Diversity</span>
                                     <span class="text-gray-600 text-[9px] cursor-help select-none ml-0.5">?</span>
                                     <div class="pointer-events-none absolute left-0 top-full mt-0.5 z-50 w-56 rounded bg-gray-700 border border-gray-600 p-1.5 text-[10px] text-gray-300 leading-snug hidden group-hover:block shadow-lg">
-                                        Tracks whether the current map produces evenly-sized districts. Optimal shows the mathematically ideal grouping for this scope. Suboptimal (if shown) is the best achievable given giants and floor exceptions. Current shows what has been committed so far.
+                                        Tracks whether the clumps hold an even number of constituent parts. Optimal shows the ideal even split (base and base+1). Current shows the actual member split of the drawn clumps. When they match, every clump is as equal as the part count allows.
                                     </div>
                                 </div>
                                 <div class="space-y-0.5">
                                     <div class="flex items-baseline gap-1">
                                         <span class="text-gray-500 text-[10px] w-16 shrink-0">Optimal:</span>
-                                        <span class="text-cyan-400 font-medium">{{ optimalLabel }}</span>
+                                        <span class="text-cyan-400 font-medium">{{ clumpOptimalLabel }}</span>
                                     </div>
-                                    <div v-if="suboptimalLabel" class="flex items-baseline gap-1">
-                                        <span class="text-gray-500 text-[10px] w-16 shrink-0">Suboptimal:</span>
-                                        <span class="text-violet-400 font-medium">{{ suboptimalLabel }}</span>
-                                    </div>
-                                    <div v-if="currentConfigLabel" class="flex items-baseline gap-1">
+                                    <div v-if="clumpCurrentLabel" class="flex items-baseline gap-1">
                                         <span class="text-gray-500 text-[10px] w-16 shrink-0">Current:</span>
-                                        <span class="text-amber-400">{{ currentConfigLabel }}</span>
+                                        <span class="text-amber-400">{{ clumpCurrentLabel }}</span>
                                     </div>
                                 </div>
                             </div>
@@ -718,41 +715,10 @@
                         </button>
                     </div>
 
-                    <!-- ── Wizard Stepper control rows (always visible) ───────────────
-                         Row 1: ← prev  |  ↑ parent name (center)  |  next →
-                         Row 2: Auto-seed □  Skip □  Auto Step □  [delay]  · N/M [·Xs] -->
-
-                        <!-- Row 1: three-column navigation grid -->
-                        <div class="shrink-0 grid grid-cols-3 gap-1 px-2 py-1.5 bg-violet-950 border-b border-violet-800">
-                            <!-- Left: previous scope (wraps from first → last) -->
-                            <button @click="wizardStepBackward"
-                                    :disabled="wizardSteps.length === 0 || wizardLoading"
-                                    :title="wizardSteps.length > 0 ? (wizardStepLabel(wizardSteps[(wizardCurrentIndex - 1 + wizardSteps.length) % wizardSteps.length]) ?? '') : ''"
-                                    class="flex items-center gap-1 px-2 py-0.5 rounded text-xs border border-violet-700
-                                           text-violet-300 hover:bg-violet-800 transition-colors
-                                           disabled:opacity-40 disabled:cursor-not-allowed min-w-0">
-                                ←&nbsp;<span class="truncate">{{ wizardSteps.length > 0 ? (wizardStepLabel(wizardSteps[(wizardCurrentIndex - 1 + wizardSteps.length) % wizardSteps.length]) ?? '—') : '—' }}</span>
-                            </button>
-                            <!-- Centre: parent scope (↑ up) -->
-                            <button @click="wizardStepUp"
-                                    :disabled="props.ancestors.length < 2 || wizardLoading"
-                                    :title="props.ancestors[props.ancestors.length - 2]?.name"
-                                    class="flex items-center justify-center gap-1 px-2 py-0.5 rounded text-xs border border-violet-700
-                                           text-violet-300 hover:bg-violet-800 transition-colors
-                                           disabled:opacity-40 disabled:cursor-not-allowed min-w-0">
-                                <span class="shrink-0">↑</span>
-                                <span class="truncate">{{ props.ancestors[props.ancestors.length - 2]?.name ?? '—' }}</span>
-                            </button>
-                            <!-- Right: next scope (wraps from last → first) -->
-                            <button @click="wizardStepForward"
-                                    :disabled="wizardSteps.length === 0 || wizardLoading"
-                                    :title="wizardSteps.length > 0 ? (wizardStepLabel(wizardSteps[(wizardCurrentIndex + 1) % wizardSteps.length]) ?? '') : ''"
-                                    class="flex items-center justify-end gap-1 px-2 py-0.5 rounded text-xs border border-violet-700
-                                           text-violet-300 hover:bg-violet-800 transition-colors
-                                           disabled:opacity-40 disabled:cursor-not-allowed min-w-0">
-                                <span class="truncate">{{ wizardSteps.length > 0 ? (wizardStepLabel(wizardSteps[(wizardCurrentIndex + 1) % wizardSteps.length]) ?? '—') : '—' }}</span>&nbsp;→
-                            </button>
-                        </div>
+                    <!-- Wizard stepper removed for the flat Type B map (no scope
+                         stepping): the ← ↑ → scope nav and the Auto-seed / Skip /
+                         Auto Step row are Type A scope machinery. -->
+                    <template v-if="false">
                         <!-- Row 2: options / in-progress indicator + pagination -->
                         <div class="shrink-0 flex items-center gap-2.5 px-3 py-1.5 bg-violet-900/20 border-b border-violet-800">
                             <template v-if="massToolRunning">
@@ -799,17 +765,20 @@
                                       class="ml-0.5 font-bold text-violet-300">· {{ wizardAutoCountdown }}s</span>
                             </span>
                         </div>
+                    </template>
 
                     <!-- Scope picker panel -->
                     <div v-if="massToolPanel !== null"
                          class="shrink-0 border-b border-gray-700 bg-gray-900/80 px-3 py-3">
                         <div class="flex items-center justify-between mb-2">
                             <span class="text-xs font-semibold text-white">
-                                {{ massToolPanel === 'reseed' ? '⚡ Reseed' : '✕ Clear' }} — choose scope
+                                {{ massToolPanel === 'reseed' ? '⚡ Reseed — choose scope' : '✕ Clear map?' }}
                             </span>
                             <button @click="closeMassToolPanel" class="text-xs text-gray-500 hover:text-gray-300">✕</button>
                         </div>
-                        <div class="flex flex-col gap-1">
+                        <!-- Reseed picks a scope; Clear has a single option ("All"),
+                             so it is a plain confirm, not a picker (operator 2026-09-05). -->
+                        <div v-if="massToolPanel !== 'clear'" class="flex flex-col gap-1">
                             <button v-for="opt in visibleMassScopes" :key="opt.key"
                                     @click="massToolScope = opt.key"
                                     class="text-left px-2 py-1.5 rounded text-xs border transition-colors w-full"
@@ -820,6 +789,9 @@
                                 <div class="text-gray-500 text-[10px] mt-0.5">{{ opt.desc }}</div>
                                 <div v-if="opt.warn" class="text-amber-400 text-[10px] mt-0.5">⚠ May be slow for large legislatures</div>
                             </button>
+                        </div>
+                        <div v-else class="text-xs text-gray-400 leading-snug">
+                            Remove every panel from this map. The grouping is kept, so you can hand-build or re-autoseed.
                         </div>
                         <div class="flex items-center justify-end gap-2 mt-3">
                             <button @click="closeMassToolPanel"
@@ -834,7 +806,7 @@
                                         : massToolPanel === 'clear'
                                             ? 'bg-red-700 border-red-600 text-white hover:bg-red-600'
                                             : 'bg-indigo-700 border-indigo-600 text-white hover:bg-indigo-600'">
-                                Run
+                                {{ massToolPanel === 'clear' ? 'Clear' : 'Run' }}
                             </button>
                         </div>
                     </div>
@@ -1073,7 +1045,7 @@
                         <button class="flex-1 text-left hover:text-gray-300 truncate" @click="toggleSort('name')">Name{{ sortIndicator('name') }}</button>
                         <button class="w-12 text-right hover:text-gray-300 shrink-0" @click="toggleSort('seats')">Seats{{ sortIndicator('seats') }}</button>
                         <button class="w-20 text-right hover:text-gray-300 shrink-0" @click="toggleSort('pop')">Population{{ sortIndicator('pop') }}</button>
-                        <button class="w-12 text-right hover:text-gray-300 shrink-0" @click="toggleSort('frac')">Rep{{ sortIndicator('frac') }}</button>
+                        <button class="w-16 text-right hover:text-gray-300 shrink-0" @click="toggleSort('members')">Members{{ sortIndicator('members') }}</button>
                         <span class="w-4 shrink-0"></span><!-- chevron spacer -->
                     </div>
 
@@ -1105,11 +1077,9 @@
                                         return ms > 0 ? formatPop(ms) : '—'
                                     })() }}
                                 </span>
-                                <span class="text-xs text-gray-500 tabular-nums w-12 text-right shrink-0">
-                                    {{ (row.district.fractional_seats > 0
-                                        ? row.district.fractional_seats
-                                        : row.district.members.reduce((s, m) => s + m.fractional_seats, 0)
-                                    ).toFixed(2) }}
+                                <span class="text-xs text-gray-300 tabular-nums w-16 text-right shrink-0"
+                                      title="Constituent parts in this clump">
+                                    {{ row.district.members.length }}
                                 </span>
                                 <span class="text-gray-600 text-xs transition-transform shrink-0"
                                       :class="selectedDistrictId === row.district.id ? 'rotate-90' : ''">›</span>
@@ -1118,22 +1088,6 @@
                             <!-- Quality strip — always visible, mirrors Map Quality section labels -->
                             <div class="flex items-center gap-2 px-3 py-0.5 border-b border-gray-800/60 bg-gray-900/40 text-[10px] tabular-nums flex-wrap"
                                  :style="{ paddingLeft: (12 + row.depth * 14) + 'px' }">
-                                <!-- Population deviation -->
-                                <span :style="{ color: devColor((() => {
-                                    const frac = row.district.fractional_seats > 0
-                                        ? row.district.fractional_seats
-                                        : row.district.members.reduce((s,m) => s + m.fractional_seats, 0)
-                                    return row.district.seats > 0 ? (frac / row.district.seats - 1) * 100 : null
-                                })()) }"
-                                      title="Population deviation from ideal quota per seat">
-                                    {{ devLabel((() => {
-                                        const frac = row.district.fractional_seats > 0
-                                            ? row.district.fractional_seats
-                                            : row.district.members.reduce((s,m) => s + m.fractional_seats, 0)
-                                        return row.district.seats > 0 ? (frac / row.district.seats - 1) * 100 : null
-                                    })()) }}
-                                </span>
-                                <span class="text-gray-700">·</span>
                                 <!-- Compactness (CHR) -->
                                 <span :style="{ color: chrColor(row.district.convex_hull_ratio) }"
                                       :title="shapeLabel(row.district.convex_hull_ratio)">
@@ -1145,12 +1099,9 @@
                                       :title="row.district.is_contiguous === true ? 'Contiguous' : row.district.is_contiguous === false ? 'Non-contiguous' : 'Contiguity not yet computed'">
                                     {{ contigLabel(row.district.is_contiguous) }}
                                 </span>
-                                <span class="text-gray-700">·</span>
-                                <!-- Community Integrity -->
-                                <span :style="{ color: integrityColor(row.district.has_integrity) }"
-                                      :title="row.district.has_integrity === true ? 'Drawn along admin boundaries' : row.district.has_integrity === false ? 'Leaf giant — requires manual line-drawing' : 'Integrity not computed'">
-                                    {{ integrityLabel(row.district.has_integrity) }}
-                                </span>
+                                <!-- Community Integrity ("Intact") removed for Type B
+                                     (operator 2026-09-05): line-based integrity is
+                                     irrelevant; clumps are whole administrative units. -->
                             </div>
 
                             <!-- Expanded member list -->
@@ -1196,7 +1147,10 @@
                                     <template v-else-if="row.district.method === 'drawn'">
                                         <span class="text-xs text-gray-500">Drawn district — manage it at its own scope.</span>
                                     </template>
-                                    <template v-else>
+                                    <!-- Panels are editable only on a DRAFT map (active_map.editable).
+                                         On the active (seated) map or a blank chamber the affordances
+                                         are replaced by a hint so a click never hits a guaranteed 422. -->
+                                    <template v-else-if="props.active_map?.editable">
                                         <button @click.stop="startEdit(row.district.id)"
                                                 class="px-2 py-1.5 rounded text-xs border bg-gray-800 border-gray-700 text-gray-400 hover:text-emerald-400 hover:border-emerald-700 transition-colors">
                                             ✏ Edit
@@ -1217,6 +1171,9 @@
                                             </button>
                                         </template>
                                     </template>
+                                    <template v-else>
+                                        <span class="text-xs text-gray-500">Seated map — activate a draft to edit, or make a new draft.</span>
+                                    </template>
                                 </div>
 
                                 <!-- Members -->
@@ -1227,10 +1184,7 @@
                                      @mouseleave="unhighlightJids([member.id])">
                                     <span class="text-gray-300 truncate flex-1">{{ member.name }}</span>
                                     <span class="text-gray-500 tabular-nums w-20 text-right shrink-0">{{ member.population > 0 ? formatPop(member.population) : '—' }}</span>
-                                    <span class="tabular-nums w-12 text-right shrink-0"
-                                          :class="member.fractional_seats > SEAT_CEILING ? 'text-red-400' : 'text-gray-400'">
-                                        {{ member.fractional_seats.toFixed(2) }}
-                                    </span>
+                                    <span class="tabular-nums w-16 text-right shrink-0 text-gray-500" title="One constituent part">1</span>
                                     <button v-if="isGiantChild(member) && member.child_count > 0"
                                             @click.stop="drillTo(member.id)"
                                             class="shrink-0 text-gray-500 hover:text-emerald-400 transition-colors"
@@ -1438,10 +1392,14 @@
                                 </div>
                             </template>
                             <div v-else class="flex items-center gap-1 shrink-0">
-                                <button @click="startNewDistrict"
+                                <!-- Building panels needs an editable DRAFT map. On a blank chamber
+                                     or the seated map, point the operator at New map / Autoseed. -->
+                                <button v-if="props.active_map?.editable"
+                                        @click="startNewDistrict"
                                         class="px-2 py-1 rounded text-xs border bg-gray-800 border-gray-700 text-gray-400 hover:text-emerald-400 hover:border-emerald-700 transition-colors">
                                     + New
                                 </button>
+                                <span v-else class="text-[10px] text-gray-500 italic">New map or Autoseed to build panels</span>
                             </div>
                         </div>
 
@@ -1917,10 +1875,6 @@ function districtRowFromProp(d) {
 const childrenRef  = ref(props.children.map(c => ({ ...c })))
 const districtsRef = ref(props.districts.map(districtRowFromProp))
 
-// Non-leaf = has constituent children, so a Type B panels map exists to link to
-// (operator 2026-09-05). isRootScope is already declared later in this file.
-const hasChildren = computed(() => (props.children?.length ?? 0) > 0)
-
 // Partial reloads (draw/split/autoseed commits, undo, drawn deletes — and the
 // deferred props' first delivery after mount) hand us FRESH prop references;
 // the local copies above were otherwise seeded once and went stale until a
@@ -2283,7 +2237,7 @@ async function haltMassOperation() {
     wizardAutoSeed.value = false
     clearAutoStepTimer()
     try {
-        const resp = await fetch(`/api/legislatures/${props.legislature.id}/mass-halt`, {
+        const resp = await fetch(`/api/legislatures/${props.legislature.id}/type-b-map/halt`, {
             method: 'POST',
             credentials: 'same-origin',
             headers: {
@@ -2331,7 +2285,7 @@ function startMassStatusPolling() {
         try {
             // Per-poll timeout — a hung fetch piles up silently; fail the tick
             // and let the next interval retry instead.
-            const res  = await fetch(`/api/legislatures/${props.legislature.id}/mass-status`,
+            const res  = await fetch(`/api/legislatures/${props.legislature.id}/type-b-map/status`,
                 { signal: AbortSignal.timeout(15_000) })
             const data = await res.json()
             if (data.mass_progress) {
@@ -2351,16 +2305,12 @@ function startMassStatusPolling() {
     }, 2500)
 }
 
-// Mixed autoseed (2026-07-17): the recursive sweeps now also LINE-DRAW every
-// childless giant they reach (an area with more seats than the ceiling but no
-// smaller units to group) — one operation produces the complete map, composite
-// + line-split districts together. "All — recursively" from the root is the
-// canonical produce-the-whole-map run.
+// Type B is FLAT — no nested scopes or giants — so only two operations apply:
+// fill the unassigned constituents into the current map, or redo the whole map.
+// The Type A "recursively" scopes (nested giants) are removed here.
 const MASS_SCOPES = [
-    { key: 'map_view_unassigned',          label: 'Unassigned — this scope',  desc: 'Fill gaps only, keep existing districts',            clearable: false },
-    { key: 'map_view_all',                 label: 'All — this scope',         desc: 'Clear and redo all districts at this level',         clearable: true,  clearDesc: 'Remove all districts at this level' },
-    { key: 'map_plus_children_unassigned', label: 'Unassigned — recursively', desc: 'Fill gaps here and at every nested giant scope — undivided giants are line-drawn automatically', clearable: false },
-    { key: 'map_plus_children_all',        label: 'All — recursively',        desc: 'Clear and redo here and at every nested giant scope, line-drawing undivided giants — the complete map in one run', clearable: true,  clearDesc: 'Remove all districts here and at every nested giant scope' },
+    { key: 'map_view_unassigned', label: 'Unassigned', desc: 'Fill only the unassigned constituents, keep the existing panels', clearable: false },
+    { key: 'map_view_all',        label: 'All',        desc: 'Redo the whole map from scratch, regardless of current assignment', clearable: true, clearDesc: 'Remove every panel from this map' },
 ]
 
 // Clear only removes existing districts, so the "Unassigned" (fill-gaps) scopes
@@ -3011,6 +2961,45 @@ const optimalLabel = computed(() => {
     return buildEquationLabel(compGroups, expansionGroups ?? {}, giantSeats ?? 0, total)
 })
 
+// ── TYPE B header + clump-evenness labels ──────────────────────────────────
+// Seated Type B seats = Σ panel seats (p × rep_floor; the odd spare under an
+// odd ceiling is left unused).
+const seatedSeats = computed(() => props.districts.reduce((s, d) => s + (d.seats || 0), 0))
+// isRootScope is already declared later in this file; the cross-nav button uses it.
+
+// "Uniform Political Diversity" for Type B = evenly-sized CLUMPS. The formula is
+// the member-count distribution of the panels — how many constituent parts each
+// clump holds — not the Type A even-seat partition.
+function clumpFormula(groups, total) {
+    const sizes = Object.keys(groups).map(Number).sort((a, b) => b - a)
+    if (!sizes.length) return ''
+    return sizes.map(sz => `(${groups[sz]}×${sz})`).join(' + ') + ` = ${total} parts`
+}
+// Optimal: the ideal EVEN split of n parts across p clumps (base, base+1).
+const clumpOptimalLabel = computed(() => {
+    const p = props.districts.length
+    if (!p) return ''
+    const n = props.districts.reduce((s, d) => s + (d.members?.length ?? 0), 0)
+    const base = Math.floor(n / p), rem = n % p
+    const groups = {}
+    if (rem > 0) groups[base + 1] = rem
+    if (p - rem > 0) groups[base] = (groups[base] ?? 0) + (p - rem)
+    return clumpFormula(groups, n)
+})
+// Current: the ACTUAL member split of the drawn clumps.
+const clumpCurrentLabel = computed(() => {
+    const p = props.districts.length
+    if (!p) return ''
+    const groups = {}
+    let n = 0
+    for (const d of props.districts) {
+        const m = d.members?.length ?? 0
+        n += m
+        groups[m] = (groups[m] ?? 0) + 1
+    }
+    return clumpFormula(groups, n)
+})
+
 // Suboptimal label: best achievable distribution for the REMAINING unassigned pool.
 // Committed districts appear in parens (they ARE valid districts, not drill-down giants).
 // Bare number = true giant seats only — same semantics as Optimal.
@@ -3103,13 +3092,15 @@ const hasAnyFlag = computed(() =>
     !!(props.flags?.cap
     || props.flags?.floor_exceptions?.length
     || props.flags?.deep_overages?.length
-    || props.flags?.incomplete_scopes?.length)
+    || props.flags?.incomplete_scopes?.length
+    || props.flags?.uneven_clumps)
 )
 
 const hardFlagCount = computed(() =>
     (props.flags?.cap ? 1 : 0)
     + (props.flags?.deep_overages?.length ?? 0)
     + (props.flags?.incomplete_scopes?.length ?? 0)
+    + (props.flags?.uneven_clumps ? 1 : 0)
 )
 
 function giantFlagType(id) {
@@ -3296,10 +3287,10 @@ const sidebarRows = computed(() => {
                     ? (item.population > 0 ? item.population : item.members.reduce((s, m) => s + m.population, 0))
                     : item.population
             }
-            // frac
+            // members — count of constituent parts in the clump
             return kind === 'district'
-                ? (item.fractional_seats > 0 ? item.fractional_seats : item.members.reduce((s, m) => s + m.fractional_seats, 0))
-                : item.fractional_seats
+                ? (item.members?.length ?? 0)
+                : 1
         }
         const va = val(a), vb = val(b)
         if (sortKey.value === 'name') return dir * va.localeCompare(vb)
@@ -3329,7 +3320,7 @@ const unassignedAssignable = computed(() =>
 )
 
 // ── Sortable district list ────────────────────────────────────────────────────
-const sortKey = ref('seats')   // 'name' | 'seats' | 'pop' | 'frac'
+const sortKey = ref('seats')   // 'name' | 'seats' | 'pop' | 'members'
 const sortDir = ref('desc')    // 'asc' | 'desc'
 
 function toggleSort(key) {
@@ -3520,7 +3511,7 @@ function mapUrl(scopeId, mapId) {
     if (mid)     q.push(`map=${mid}`)
     const setup = new URLSearchParams(window.location.search).get('setup')
     if (setup)   q.push(`setup=${setup}`)
-    return `/legislatures/${legPath}/districts` + (q.length ? `?${q.join('&')}` : '')
+    return `/legislatures/${legPath}/panels` + (q.length ? `?${q.join('&')}` : '')
 }
 
 function countFlags(flags) {
@@ -3542,7 +3533,7 @@ async function submitNewMap() {
     if (!name || creatingMap.value) return
     creatingMap.value = true
     try {
-        const resp = await fetch(`/api/legislatures/${props.legislature.id}/maps`, {
+        const resp = await fetch(`/api/legislatures/${props.legislature.id}/type-b-map/maps`, {
             method:  'POST',
             headers: { 'Content-Type': 'application/json', ...csrfHeaders() },
             body:    JSON.stringify({ name }),
@@ -3593,7 +3584,7 @@ async function activateCurrentMap() {
     if (!confirm(`Activate "${props.active_map.name}" as the official apportionment?`)) return
     try {
         const resp = await fetch(
-            `/api/legislatures/${props.legislature.id}/maps/${props.active_map.id}/activate`,
+            `/api/legislatures/${props.legislature.id}/type-b-map/maps/${props.active_map.id}/activate`,
             { method: 'POST', headers: { ...csrfHeaders() } }
         )
         if (!resp.ok) { showStatus('error', 'Failed to activate map'); return }
@@ -3619,7 +3610,7 @@ async function submitRename(mapId) {
     if (!name) { renamingMapId.value = null; return }
     try {
         const resp = await fetch(
-            `/api/legislatures/${props.legislature.id}/maps/${mapId}`,
+            `/api/legislatures/${props.legislature.id}/type-b-map/maps/${mapId}`,
             {
                 method:  'PATCH',
                 headers: { 'Content-Type': 'application/json', ...csrfHeaders() },
@@ -3648,7 +3639,7 @@ async function duplicateMap(mapId) {
     const name   = 'Copy of ' + (srcMap?.name ?? 'Map')
     try {
         const resp = await fetch(
-            `/api/legislatures/${props.legislature.id}/maps/${mapId}/copy`,
+            `/api/legislatures/${props.legislature.id}/type-b-map/maps/${mapId}/copy`,
             {
                 method:  'POST',
                 headers: { 'Content-Type': 'application/json', ...csrfHeaders() },
@@ -3670,14 +3661,14 @@ async function confirmDeleteMap(mapId) {
     deletingMapId.value = null
     try {
         const resp = await fetch(
-            `/api/legislatures/${props.legislature.id}/maps/${mapId}`,
+            `/api/legislatures/${props.legislature.id}/type-b-map/maps/${mapId}`,
             { method: 'DELETE', headers: { ...csrfHeaders() } }
         )
         const data = await resp.json()
         if (!resp.ok) { showStatus('error', data.error ?? 'Failed to delete map'); return }
         // If we deleted the map we're currently viewing, navigate to root (no map param)
         if (mapId === props.active_map?.id) {
-            router.visit(`/legislatures/${props.legislature.slug ?? props.legislature.id}/districts`)
+            router.visit(`/legislatures/${props.legislature.slug ?? props.legislature.id}/panels`)
         } else {
             router.visit(mapUrl(props.scope.id))
         }
@@ -4868,7 +4859,9 @@ async function runLeafAutoseed() {
 async function reloadThenRepaint(only = ['flags', 'stats', 'maps', 'active_map', 'children', 'districts', 'scope_seats']) {
     await new Promise(resolve => router.reload({ only, onFinish: resolve }))
     await nextTick()          // flush the fresh props into computeds
-    await reinitMapLayers()   // repaint Leaflet from the fresh state
+    // preserveView: a repaint after a make/edit keeps the operator's current
+    // centre/zoom — never re-fits to the whole scope (operator 2026-09-05).
+    await reinitMapLayers({ preserveView: true })
 }
 
 // ── Undo last commit (split / polygon / autoseed accept) ─────────────────────
@@ -4890,7 +4883,7 @@ async function undoLastCommit() {
         while (entry.ids.length) {
             const id   = entry.ids[entry.ids.length - 1]
             const resp = await fetch(
-                `/api/legislatures/${props.legislature.id}/districts/${id}`,
+                `/api/legislatures/${props.legislature.id}/type-b-map/panels/${id}`,
                 { method: 'DELETE', headers: { ...csrfHeaders() },
                   signal: AbortSignal.timeout(60_000) }
             )
@@ -4921,7 +4914,7 @@ async function createDistrictFromPending() {
     savingEdit.value = true
     const jids = [...pendingAdd.value]
     try {
-        const resp = await fetch(`/api/legislatures/${props.legislature.id}/districts`, {
+        const resp = await fetch(`/api/legislatures/${props.legislature.id}/type-b-map/panels`, {
             method:  'POST',
             headers: { 'Content-Type': 'application/json', ...csrfHeaders() },
             body:    JSON.stringify({
@@ -5024,7 +5017,7 @@ async function saveDistrictEdit(districtId) {
     savingEdit.value = true
     try {
         const resp = await fetch(
-            `/api/legislatures/${props.legislature.id}/districts/${districtId}/members`,
+            `/api/legislatures/${props.legislature.id}/type-b-map/panels/${districtId}/members`,
             {
                 method:  'PATCH',
                 headers: { 'Content-Type': 'application/json', ...csrfHeaders() },
@@ -5111,12 +5104,12 @@ async function saveDistrictEdit(districtId) {
 async function deleteDistrict(districtId) {
     try {
         const resp = await fetch(
-            `/api/legislatures/${props.legislature.id}/districts/${districtId}`,
+            `/api/legislatures/${props.legislature.id}/type-b-map/panels/${districtId}`,
             { method: 'DELETE', headers: { ...csrfHeaders() },
               signal: AbortSignal.timeout(60_000) }
         )
         const data = await resp.json()
-        if (!resp.ok) { showStatus('error', 'Failed to disband district'); return }
+        if (!resp.ok) { showStatus('error', data.error ?? 'Failed to disband district'); return }
 
         const memberIds    = districtsRef.value.find(d => d.id === districtId)?.members.map(m => m.id) ?? []
         const numUpdates   = data.district_numbers ?? {}
@@ -5164,7 +5157,7 @@ async function deleteDrawnDistrict(d) {
     deletingDrawnId.value = d.id
     try {
         const resp = await fetch(
-            `/api/legislatures/${props.legislature.id}/districts/${d.id}`,
+            `/api/legislatures/${props.legislature.id}/type-b-map/panels/${d.id}`,
             { method: 'DELETE', headers: { ...csrfHeaders() },
               signal: AbortSignal.timeout(60_000) }
         )
@@ -5188,7 +5181,9 @@ async function deleteDrawnDistrict(d) {
 // ── Mass tools ────────────────────────────────────────────────────────────────
 function openMassTool(type) {
     massToolPanel.value = type
-    massToolScope.value = null
+    // Clear has a single scope ("All"), so it is a plain confirm, not a picker:
+    // auto-select it (operator 2026-09-05). Reseed still offers Unassigned / All.
+    massToolScope.value = type === 'clear' ? 'map_view_all' : null
 }
 
 function closeMassToolPanel() {
@@ -5219,7 +5214,7 @@ async function waitForMassJob({ pollMs = 2500 } = {}) {
             // Per-poll timeout: a hung status fetch would wedge this awaited
             // loop (and the wizard's busy chip) forever — time out and let the
             // catch below fall through to the next poll instead.
-            const res  = await fetch(`/api/legislatures/${props.legislature.id}/mass-status`,
+            const res  = await fetch(`/api/legislatures/${props.legislature.id}/type-b-map/status`,
                 { signal: AbortSignal.timeout(15_000) })
             const data = await res.json()
             if (data.mass_progress) massProgress.value = data.mass_progress
@@ -5240,7 +5235,7 @@ async function runMassReseed(scope, overrideScopeId = null, silent = false) {
         startMassStatusPolling()
     }
     try {
-        const resp = await fetch(`/api/legislatures/${props.legislature.id}/mass-reseed`, {
+        const resp = await fetch(`/api/legislatures/${props.legislature.id}/type-b-map/autoseed`, {
             method:  'POST',
             headers: { 'Content-Type': 'application/json', ...csrfHeaders() },
             body:    JSON.stringify({
@@ -5312,7 +5307,7 @@ async function runMassDisband(scope) {
     massJobRunning.value  = true
     startMassStatusPolling()
     try {
-        const resp = await fetch(`/api/legislatures/${props.legislature.id}/mass-disband`, {
+        const resp = await fetch(`/api/legislatures/${props.legislature.id}/type-b-map/clear`, {
             method:  'POST',
             headers: { 'Content-Type': 'application/json', ...csrfHeaders() },
             body:    JSON.stringify({ operation_scope: scope, scope_id: props.scope.id, map_id: props.active_map?.id ?? null }),
@@ -5368,8 +5363,17 @@ function fetchJsonXhr(url, onBytes, timeout = 45000) {
 }
 
 // ── Map layer init (called on mount AND on every scope change via watch) ───────
-async function reinitMapLayers() {
+async function reinitMapLayers({ preserveView = false } = {}) {
     if (!_map) return
+
+    // preserveView (operator 2026-09-05): a repaint after a make/edit/disband
+    // must keep the operator's current centre+zoom. Capture it now and restore it
+    // after the layers are rebuilt, so NO auto-fit can zoom the map out from under
+    // them. Removing/adding layers never moves the view; only a fitBounds does,
+    // and that is also skipped below when preserveView is set.
+    const savedView = preserveView
+        ? (() => { try { return { center: _map.getCenter(), zoom: _map.getZoom() } } catch { return null } })()
+        : null
 
     // Capture revision immediately — any later reinitMapLayers() call will increment this,
     // letting us detect that our in-flight fetches have been superseded and should be discarded.
@@ -5450,6 +5454,17 @@ async function reinitMapLayers() {
             z = Math.round(_map.getZoom()) || 6
         }
 
+        // TYPE B FIX (clone-only): a Type B chamber is loaded DIRECTLY (never
+        // drilled into), so a mount-time 0-size map makes getBoundsZoom return the
+        // world min-zoom (2). At that tolerance ST_Simplify collapses small
+        // constituent polygons to empty geometry — nothing renders and bounds go
+        // NaN. Floor the fetch zoom by the scope's depth so geometry never
+        // degenerates regardless of the transient map size.
+        {
+            const admFloor = Math.min(12, Math.max(6, ((props.scope?.adm_level ?? 3) * 2 + 3)))
+            if (!Number.isFinite(z) || z < admFloor) z = admFloor
+        }
+
         // Fetch children GeoJSON and revealed sub-districts in parallel,
         // tracking download progress so the loading bar fills in real time.
         let childBytes = 0, childTotal = 0
@@ -5471,7 +5486,7 @@ async function reinitMapLayers() {
                 (b, t) => { childBytes = b; childTotal = t; updateProgress() }
             ).catch(() => ({ features: [] })),
             fetchJsonXhr(
-                `/api/legislatures/${props.legislature.id}/revealed.geojson?scope=${props.scope.id}&map=${props.active_map?.id ?? ''}&zoom=${z}`,
+                `/api/legislatures/${props.legislature.id}/type-b-map/revealed.geojson?scope=${props.scope.id}&map=${props.active_map?.id ?? ''}&zoom=${z}`,
                 (b, t) => { revBytes = b; revTotal = t; updateProgress() },
                 0   // no client timeout — cold PostGIS query can take >45s; nginx allows 300s
             ).catch(() => ({ features: [] })),
@@ -5493,6 +5508,20 @@ async function reinitMapLayers() {
         if (myRevision !== _reinitRevision) {
             mapLoading.value = false
             return
+        }
+
+        // Establish a VALID map view from the scope bbox BEFORE projecting any
+        // layer (clone-only guard). Without a prior view the flat Type B map can
+        // project features at the degenerate "M0 0" origin when the later
+        // auto-fit is skipped/caught — leaving a blank pane on a chamber with no
+        // grouping. setView with an explicit centre+zoom never runs the
+        // getBoundsZoom path that can NaN.
+        _map.invalidateSize()
+        if (props.scope.bbox) {
+            try {
+                const [bs, bw, bn, be] = props.scope.bbox
+                _map.setView([(Math.max(bs, -85) + Math.min(bn, 85)) / 2, (bw + be) / 2], z)
+            } catch (_) { /* fall through to the auto-fit below */ }
         }
 
         // Split revealed features: parent_outline features become the non-interactive outline layer;
@@ -5656,22 +5685,64 @@ async function reinitMapLayers() {
         // the native one and registers under layerByJid for cross-copy restyle.
         addAntimeridianWraps(gj, feat => getLayerStyle(feat.id ?? feat.properties?.id), bindChildFeature)
 
-        if (gj.features.length > 0) {
-            _map.fitBounds(childLayer.getBounds(), { padding: [30, 30] })
-        } else if (selfGj && (selfGj.features?.length ?? 0) > 0) {
-            // Leaf giant — render its OWN boundary as the drawing canvas (faint,
-            // non-interactive so map clicks and the draw tool pass through) and fit
-            // to it so the basemap + raster center on the giant.
-            const giantOutline = L.geoJSON(selfGj, {
-                interactive: false,
-                style: { color: '#fbbf24', weight: 2, fill: false, dashArray: '4 3' },
-            }).addTo(_map)
-            const gb = giantOutline.getBounds()
-            if (gb.isValid()) _map.fitBounds(gb, { padding: [40, 40] })
-        } else if (props.scope.bbox) {
-            // Last resort: fit to the scope bbox so the map is never blank.
-            const [s, w, n, e] = props.scope.bbox
-            _map.fitBounds(L.latLngBounds([[Math.max(s, -85), w], [Math.min(n, 85), e]]), { padding: [40, 40] })
+        // MOUNT-SIZING GUARD (clone-only): a direct-loaded Type B chamber can
+        // reach this block before the flush layout has given the map a size —
+        // fitBounds on a 0×0 map computes a NaN centre (Leaflet unproject) and
+        // aborts the whole render. Ensure a real container size first, retrying
+        // one animation frame if the layout is still settling.
+        _map.invalidateSize()
+        if (_map.getSize().x < 1 || _map.getSize().y < 1) {
+            await new Promise((r) => requestAnimationFrame(r))
+            _map.invalidateSize()
+        }
+
+        // The auto-fit must NEVER abort the render (the constituent polygons are
+        // already added). A transient projection state can make fitBounds compute
+        // a NaN centre (Leaflet unproject); catch it and fall back to a plain
+        // centre so the map still shows the constituents (clone-only guard).
+        //
+        // preserveView (operator 2026-09-05): a REPAINT after a make/edit must
+        // NOT re-fit to the whole scope — that zoomed the map far out and lost
+        // the operator's local placement. Skip the auto-fit entirely; the current
+        // centre/zoom (invalidateSize keeps it) stays put. Only the initial mount
+        // / scope navigation (preserveView false) fits.
+        try {
+            if (savedView) {
+                // keep the current view — no fit (restored explicitly below too)
+            } else if (gj.features.length > 0) {
+                const cb = childLayer.getBounds()
+                if (cb.isValid()) _map.fitBounds(cb, { padding: [30, 30] })
+            } else if (selfGj && (selfGj.features?.length ?? 0) > 0) {
+                // Leaf giant — render its OWN boundary as the drawing canvas (faint,
+                // non-interactive so map clicks and the draw tool pass through) and fit
+                // to it so the basemap + raster center on the giant.
+                const giantOutline = L.geoJSON(selfGj, {
+                    interactive: false,
+                    style: { color: '#fbbf24', weight: 2, fill: false, dashArray: '4 3' },
+                }).addTo(_map)
+                const gb = giantOutline.getBounds()
+                if (gb.isValid()) _map.fitBounds(gb, { padding: [40, 40] })
+            } else if (props.scope.bbox) {
+                // Last resort: fit to the scope bbox so the map is never blank.
+                const [s, w, n, e] = props.scope.bbox
+                _map.fitBounds(L.latLngBounds([[Math.max(s, -85), w], [Math.min(n, 85), e]]), { padding: [40, 40] })
+            }
+        } catch (fitErr) {
+            console.warn('Type B map auto-fit skipped:', fitErr?.message ?? fitErr)
+            try {
+                if (props.scope.bbox) {
+                    const [s, w, n, e] = props.scope.bbox
+                    _map.setView([(Math.max(s, -85) + Math.min(n, 85)) / 2, (w + e) / 2], 9)
+                } else if (! _map._loaded) {
+                    _map.setView([20, 0], 3)
+                }
+            } catch (_) { /* leave whatever view exists */ }
+        }
+
+        // preserveView: restore the operator's exact centre+zoom, overriding any
+        // fit that slipped through (belt-and-suspenders).
+        if (savedView) {
+            try { _map.setView(savedView.center, savedView.zoom, { animate: false }) } catch (_) { /* keep view */ }
         }
 
         // ── District label layers (combined badge per district, toggled via buttons) ──

@@ -88,6 +88,18 @@
                         </div>
                     </div>
 
+                    <!-- Primary legislature entry (operator 2026-09-05): "View
+                         Legislature" directly under the name, defaulting to the
+                         Districts map. The bottom institution-nav card keeps the
+                         Chamber / Create-first-map / Election / Executive / Judiciary
+                         links. -->
+                    <a v-if="legislature_id && has_district_map"
+                       :href="`/legislatures/${jurisdiction.slug}/districts`"
+                       class="block w-full text-center text-xs font-medium px-3 py-2 rounded
+                              bg-emerald-800 hover:bg-emerald-700 text-emerald-100 transition-colors">
+                        View Legislature →
+                    </a>
+
                     <!-- P.6 — Review-issue badges. Lights up when this row
                          shows up in any DataReviewService category so the
                          operator can audit specific jurisdictions during
@@ -302,19 +314,10 @@
                                   bg-amber-800 hover:bg-amber-700 text-amber-100 transition-colors">
                             Chamber →
                         </a>
-                        <!-- This jurisdiction IS the legislature's root, so its
-                             own slug is the legislature's canonical address.
-                             District links go straight to the extracted mapper
-                             (Phase 3e); the overview lives one level up at
-                             /legislatures/{slug}. -->
-                        <a v-if="has_district_map"
-                           :href="`/legislatures/${jurisdiction.slug}/districts`"
-                           :class="chamber_seated ? 'mt-1.5' : ''"
-                           class="block w-full text-center text-xs font-medium px-3 py-2 rounded
-                                  bg-emerald-800 hover:bg-emerald-700 text-emerald-100 transition-colors">
-                            {{ chamber_seated ? 'District map →' : 'View Legislature & Districts →' }}
-                        </a>
-                        <a v-else
+                        <!-- The Districts link moved UP to "View Legislature" under
+                             the jurisdiction name (operator 2026-09-05). Only the
+                             no-map "Create first district map" CTA remains here. -->
+                        <a v-if="!has_district_map"
                            :href="`/legislatures/${jurisdiction.slug}/districts`"
                            class="block w-full text-center text-xs font-medium px-3 py-2 rounded
                                   bg-violet-800 hover:bg-violet-700 text-violet-100 transition-colors">

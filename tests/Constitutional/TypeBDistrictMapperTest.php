@@ -6,14 +6,20 @@ use App\Services\Legislature\TypeBDistrictMapper;
 use PHPUnit\Framework\TestCase;
 
 /**
- * CONSTITUTIONAL PIN — THE TYPE B DISTRICT MAPPER (Wave 3, operator B1–B7).
+ * CONSTITUTIONAL PIN — THE TYPE B DISTRICT MAPPER (operator rulings 2026-09-05).
  *
- * Stage two of the Type B ladder: whole sibling constituents clump into equal,
- * compact PANELS sharing rep_floor seats, elected in ONE at-large race
- * (seats = panel_count × rep_floor). The grouping is a balanced partition over
- * the constituent adjacency graph — NO geometry is cut. Populations are
- * consulted only for the residual (B2). Seats are exact by construction
- * (panel_count × rep_floor ≤ bound) — DRIFT law holds.
+ * Stage two of the Type B ladder: whole sibling constituents clump into PANELS.
+ * THE MODEL:
+ *   - EVERY constituent is a clump member — zero-population parts INCLUDED (B3).
+ *   - p = floor(bound / rep_floor) panels; seats spread as evenly as possible,
+ *     each >= rep_floor. The leftover odd seat is a BONUS seat on ONE panel
+ *     (with rep_floor 2, at most one 3-seat panel).
+ *   - Member counts are PROPORTIONAL TO SEATS, so representation WEIGHT
+ *     (members per seat) is uniform: the bonus panel holds ~1.5x the members.
+ *   - Panels are CONTIGUOUS on a connected graph (multi-source Voronoi +
+ *     connectivity-safe rebalance). Population is never consulted; STV absorbs
+ *     intra-clump lopsidedness.
+ *   - Seats are exact by construction (Σ panel seats == bound) — DRIFT law holds.
  *
  * computePanels() is pure arithmetic + graph, like TypeBSeatLadder. If an edit
  * breaks these, the edit is the constitutional violation.
@@ -22,8 +28,10 @@ class TypeBDistrictMapperTest extends TestCase
 {
     /**
      * THE CLAUDE.md WORKED EXAMPLE: 50 states, 1,000 people, Type A 10. At 2
-     * apiece Type B is 100; grouping settles on 5 panels of 10 states × 2 = 10,
-     * fitting Type A exactly. Ten states share one panel.
+     * apiece Type B is 100; the grouping settles on 5 panels of 10 states x 2 =
+     * 10, fitting Type A exactly. Ten states share one panel. No adjacency, so
+     * this also pins the island distributor SPREADING evenly (never piling on
+     * panel 0).
      */
     public function test_fifty_states_group_into_five_panels_of_ten(): void
     {
@@ -44,12 +52,14 @@ class TypeBDistrictMapperTest extends TestCase
     }
 
     /**
-     * NIUE: 7 inhabited villages (50..436) and 7 empty ones, Type A 11. The
-     * empties are INERT (B3 — no seats, not grouped); the 7 inhabited clump into
-     * the 5 panels the bound allows, and the two PAIRS fall on the four
-     * lowest-population villages (B2 — the residual is borne low).
+     * NIUE: 7 inhabited villages and 7 empty ones, Type A 11. EVERY part is a
+     * member (B3 — the empties are territory, placed in a clump), so all 14 group
+     * into the 5 panels the bound allows. NO bonus seat: every panel elects
+     * rep_floor (2), the total is 10 ≤ bound 11, and the odd spare seat goes
+     * UNUSED (Type A is a ceiling, not a target). Members split as even as
+     * possible: [3,3,3,3,2] — "equal except one".
      */
-    public function test_niue_groups_the_inhabited_and_leaves_empties_inert(): void
+    public function test_niue_groups_all_parts_no_bonus_seat(): void
     {
         $pops = [
             'v1' => 50, 'v2' => 89, 'v3' => 100, 'v4' => 117, 'v5' => 173, 'v6' => 224, 'v7' => 436,
@@ -59,28 +69,16 @@ class TypeBDistrictMapperTest extends TestCase
         $r = TypeBDistrictMapper::computePanels($pops, [], 11, 1189, 2);
 
         $this->assertSame(5, $r['panel_count'], 'floor(11/2) = 5 panels');
-        $this->assertSame(10, $r['seats'], '5 x 2 = 10 <= Type A 11');
-        $this->assertLessThanOrEqual(11, $r['seats']);
-        $this->assertCount(7, $r['inert'], 'the seven empty villages are inert');
+        $this->assertSame(10, $r['seats'], '5 x rep_floor 2 = 10 <= bound 11 (the odd spare seat is unused)');
+        $this->assertSame(14, array_sum(array_map('count', $r['panels'])), 'all 14 parts placed — zeros are members (B3)');
 
-        $assigned = array_merge(...$r['panels']);
-        $this->assertCount(7, $assigned, 'every inhabited village placed exactly once');
-        $this->assertSame(7, count(array_unique($assigned)));
+        // NO bonus — every panel elects rep_floor.
+        $this->assertSame([2, 2, 2, 2, 2], $r['panel_seats'], 'every panel seats rep_floor; no bonus panel');
 
+        // Even member split: base 2, base+1 on the remainder — "equal except one".
         $sizes = array_map('count', $r['panels']);
         rsort($sizes);
-        $this->assertSame([2, 2, 1, 1, 1], $sizes, 'as equal as possible: two pairs, three singles');
-
-        // B2: the two PAIRS bear the residual — the four lowest-population
-        // villages (50, 89, 100, 117).
-        $paired = [];
-        foreach ($r['panels'] as $panel) {
-            if (count($panel) === 2) {
-                $paired = array_merge($paired, $panel);
-            }
-        }
-        sort($paired);
-        $this->assertSame(['v1', 'v2', 'v3', 'v4'], $paired, 'lowest-population villages bear the pairing');
+        $this->assertSame([3, 3, 3, 3, 2], $sizes, 'members split as even as possible (base, base+1)');
     }
 
     /** The grouping never seats more than the bound — even at massive fan-out. */
@@ -116,22 +114,25 @@ class TypeBDistrictMapperTest extends TestCase
         $r = TypeBDistrictMapper::computePanels($pops, $adj, 6, 600, 2);
 
         $this->assertSame(3, $r['panel_count'], 'floor(6/2) = 3 panels');
-        $this->assertSame(3, count($r['panels']));
-        // Each panel is a contiguous pair along the line a-b-c-d-e-f.
-        $contiguousPairs = [['a', 'b'], ['c', 'd'], ['e', 'f']];
+        foreach ($r['panels'] as $panel) {
+            $this->assertCount(2, $panel, 'even pairs');
+            $this->assertTrue($this->isConnected($panel, $adj), 'each pair is contiguous along the line');
+        }
+        // The pairs follow the line a-b / c-d / e-f.
         $got = array_map(function (array $panel): array {
             sort($panel);
             return $panel;
         }, $r['panels']);
-        foreach ($contiguousPairs as $pair) {
+        foreach ([['a', 'b'], ['c', 'd'], ['e', 'f']] as $pair) {
             $this->assertContains($pair, $got, 'panels follow the adjacency line');
         }
     }
 
     /**
-     * Deterministic AND order-independent: identical inputs give byte-identical
-     * results, and REORDERING the input map does not change the panels (the walk
-     * ranks by (distance, population, id), never by array position).
+     * Deterministic AND order-independent: identical inputs give a byte-identical
+     * result, and REORDERING the input map does not change the panels (seeding,
+     * Voronoi and rebalance all rank by graph distance then id, never by array
+     * position).
      */
     public function test_deterministic(): void
     {
@@ -139,23 +140,22 @@ class TypeBDistrictMapperTest extends TestCase
         $r1 = TypeBDistrictMapper::computePanels($pops, [], 4, 35, 2);
         $r2 = TypeBDistrictMapper::computePanels($pops, [], 4, 35, 2);
 
-        // The ENTIRE result is deterministic, not just the panels.
         $this->assertSame($r1, $r2, 'identical inputs give a byte-identical result');
+        $this->assertSame(2, $r1['panel_count']);
+        $this->assertSame(4, $r1['seats']);
 
-        // Order-independence: the same constituents in a different map order
-        // must produce the same panels (no reliance on PHP insertion order).
         $reordered = ['e' => 9, 'c' => 7, 'a' => 5, 'd' => 8, 'b' => 6];
         $r3 = TypeBDistrictMapper::computePanels($reordered, [], 4, 35, 2);
         $this->assertSame($r1['panels'], $r3['panels'], 'panels are independent of input map order');
     }
 
     /**
-     * INERT constituents never enter the walk — even when they sit between
-     * inhabited ones on the adjacency graph (B3: zero-pop is not grouped). Two
-     * inhabited villages bridged only through an empty one must still group
-     * the inhabited pair, never the empty bridge.
+     * ZERO-POPULATION PARTS ARE MEMBERS (operator ruling 2026-09-05): an
+     * unpopulated part is not dropped — it is a clump member (territory that
+     * votes with the clump the instant someone lives there). On a connected graph
+     * it joins a panel contiguously, never excluded.
      */
-    public function test_inert_neighbours_never_enter_the_walk(): void
+    public function test_zero_population_parts_are_members(): void
     {
         $pops = ['a' => 100, 'b' => 0, 'c' => 100, 'd' => 100, 'e' => 0];
         $adj  = [
@@ -169,12 +169,11 @@ class TypeBDistrictMapperTest extends TestCase
         $r = TypeBDistrictMapper::computePanels($pops, $adj, 4, 300, 2);
 
         $flat = array_merge(...$r['panels']);
-        $this->assertNotContains('b', $flat, 'the inert bridge is never grouped');
-        $this->assertNotContains('e', $flat);
-        foreach (['a', 'c', 'd'] as $inhabited) {
-            $this->assertContains($inhabited, $flat);
+        sort($flat);
+        $this->assertSame(['a', 'b', 'c', 'd', 'e'], $flat, 'every part — zeros included — is a clump member');
+        foreach ($r['panels'] as $panel) {
+            $this->assertTrue($this->isConnected($panel, $adj), 'each clump is one connected patch');
         }
-        $this->assertSame(['b', 'e'], $r['inert']);
     }
 
     /** A leaf-like empty constituent set produces no panels. */
@@ -190,21 +189,15 @@ class TypeBDistrictMapperTest extends TestCase
      * THE HARD CAP OVER A WHOLE PANEL (B3): when the combined cap leaves less
      * than one full panel's headroom (bound < rep_floor), the mapper seats ZERO
      * panels — never a full panel that would put type_a + type_b over population.
-     * The ladder floors these micro-populations the same way; the mapper must
-     * not diverge and over-seat. (Regression: the old undercount branch forced
-     * one panel and produced 7 reps for 6 people.)
      */
     public function test_bound_below_one_panel_seats_zero_not_a_full_panel(): void
     {
         // pop 6, two children of 3, type_a 5: bound = min(5, 6-5) = 1 < rep_floor 2.
-        // B3 invariant: type_b <= max(0, population - type_a) — the seats
-        // population leaves after type_a (type_a's own min-5 floor is a separate
-        // hardened rule and may itself exceed a micro-population).
         $r = TypeBDistrictMapper::computePanels(['a' => 3, 'b' => 3], [], 5, 6, 2);
         $this->assertSame(0, $r['panel_count'], 'no whole panel fits under the cap');
         $this->assertSame(0, $r['seats'], 'zero Type B seats — never more reps than people');
         $this->assertTrue($r['undercount'], 'the sub-panel headroom is a genuine undercount');
-        $this->assertLessThanOrEqual(max(0, 6 - 5), $r['seats'], 'type_b never exceeds what population leaves');
+        $this->assertLessThanOrEqual(max(0, 6 - 5), $r['seats']);
 
         // The starkest: pop 4, two of 2, type_a 5 → bound 0.
         $r2 = TypeBDistrictMapper::computePanels(['a' => 2, 'b' => 2], [], 5, 4, 2);
@@ -213,20 +206,121 @@ class TypeBDistrictMapperTest extends TestCase
     }
 
     /**
-     * B2 ON THE ISLAND / NO-SIGNAL PATH: with no adjacency and no centroids
-     * (unmaterialised ETL, far-flung archipelago) and id anti-correlated with
-     * population, the undiluted size-1 panel must go to the HIGHEST-population
-     * constituent — the remainder is borne by the lowest. (Regression: the old
-     * id-ordered fallback gave the undiluted panel to a lowest-pop constituent.)
+     * NO BONUS SEAT — THE SPARE STAYS UNUSED (operator ruling 2026-09-05,
+     * corrected). Type A is the CEILING, not a target: the at-large ladder gives
+     * each child rep_floor and leaves spare seats unused, so clumping does the
+     * same. 21 parts, bound 7 (odd) → 3 panels, every panel rep_floor (2) = 6
+     * seats; the 7th seat is UNUSED, never awarded as a bonus. Members divide
+     * evenly: [7,7,7].
      */
-    public function test_island_path_puts_the_remainder_on_lowest_population(): void
+    public function test_no_bonus_seat_the_spare_stays_unused(): void
     {
-        $pops = ['j_aaa' => 500, 'j_bbb' => 100, 'j_ccc' => 400, 'j_ddd' => 100, 'j_eee' => 100];
-        $r = TypeBDistrictMapper::computePanels($pops, [], 6, 1200, 2);
+        $pops = [];
+        for ($i = 0; $i < 21; $i++) {
+            $pops['x' . sprintf('%02d', $i)] = 1000; // Σ = 21000
+        }
+
+        $r = TypeBDistrictMapper::computePanels($pops, [], 7, 21000, 2);
+
+        $this->assertSame(3, $r['panel_count'], 'floor(7/2) = 3 panels');
+        $this->assertSame(6, $r['seats'], '3 x 2 = 6 <= bound 7; the odd spare seat is unused, not a bonus');
+        $this->assertSame(21, array_sum(array_map('count', $r['panels'])), 'all placed');
+        $this->assertSame([2, 2, 2], $r['panel_seats'], 'every panel seats rep_floor — no bonus');
+
+        $sizes = array_map('count', $r['panels']);
+        rsort($sizes);
+        $this->assertSame([7, 7, 7], $sizes, 'members divide evenly when n is a multiple of p');
+    }
+
+    /**
+     * CONTIGUITY IS THE HARD RULE (operator ruling 2026-09-05): on a connected
+     * graph EVERY clump is a connected patch. A 2x3 grid partitioned into 3
+     * panels of 2 yields three adjacent pairs — never a panel split across the
+     * grid.
+     */
+    public function test_panels_are_contiguous_on_a_connected_graph(): void
+    {
+        // a-b-c over d-e-f grid.
+        $pops = ['a' => 100, 'b' => 100, 'c' => 100, 'd' => 100, 'e' => 100, 'f' => 100];
+        $adj = [
+            'a' => ['b' => 1.0, 'd' => 1.0],
+            'b' => ['a' => 1.0, 'c' => 1.0, 'e' => 1.0],
+            'c' => ['b' => 1.0, 'f' => 1.0],
+            'd' => ['a' => 1.0, 'e' => 1.0],
+            'e' => ['b' => 1.0, 'd' => 1.0, 'f' => 1.0],
+            'f' => ['c' => 1.0, 'e' => 1.0],
+        ];
+
+        $r = TypeBDistrictMapper::computePanels($pops, $adj, 6, 600, 2);
 
         $this->assertSame(3, $r['panel_count']);
-        $singles = array_values(array_filter($r['panels'], fn ($p) => count($p) === 1));
-        $this->assertCount(1, $singles);
-        $this->assertSame(['j_aaa'], $singles[0], 'the undiluted panel goes to the highest-population constituent (B2)');
+        foreach ($r['panels'] as $panel) {
+            $this->assertCount(2, $panel);
+            $this->assertTrue($this->isConnected($panel, $adj), 'each clump is one connected patch');
+        }
+    }
+
+    /**
+     * CONTIGUITY HOLDS ON A LARGER GRAPH: a 4x4 grid with an odd bound partitions
+     * into contiguous panels, every panel electing rep_floor (no bonus), the odd
+     * spare seat unused (Σ = p x rep_floor <= bound).
+     */
+    public function test_contiguity_holds_on_a_larger_graph(): void
+    {
+        $pops = [];
+        $adj  = [];
+        $id = fn (int $r, int $c): string => "r{$r}c{$c}";
+        for ($row = 0; $row < 4; $row++) {
+            for ($col = 0; $col < 4; $col++) {
+                $pops[$id($row, $col)] = 1000;
+            }
+        }
+        for ($row = 0; $row < 4; $row++) {
+            for ($col = 0; $col < 4; $col++) {
+                foreach ([[0, 1], [1, 0]] as [$dr, $dc]) {
+                    $nr = $row + $dr; $nc = $col + $dc;
+                    if ($nr < 4 && $nc < 4) {
+                        $adj[$id($row, $col)][$id($nr, $nc)] = 1.0;
+                        $adj[$id($nr, $nc)][$id($row, $col)] = 1.0;
+                    }
+                }
+            }
+        }
+
+        $r = TypeBDistrictMapper::computePanels($pops, $adj, 7, 16000, 2);
+
+        $this->assertSame(3, $r['panel_count'], 'floor(7/2) = 3 panels');
+        $this->assertSame(6, $r['seats'], '3 x 2 = 6 <= bound 7 (the odd spare seat unused)');
+        $this->assertSame(16, array_sum(array_map('count', $r['panels'])), 'all 16 cells placed');
+        $this->assertSame([2, 2, 2], $r['panel_seats'], 'every panel seats rep_floor — no bonus');
+        foreach ($r['panels'] as $panel) {
+            $this->assertTrue($this->isConnected($panel, $adj), 'each clump is one connected patch');
+        }
+    }
+
+    /**
+     * @param list<string>                      $members
+     * @param array<string,array<string,float>> $adj
+     */
+    private function isConnected(array $members, array $adj): bool
+    {
+        if (count($members) <= 1) {
+            return true;
+        }
+        $set = array_flip($members);
+        $seen = [$members[0] => true];
+        $stack = [$members[0]];
+        while ($stack !== []) {
+            $cur = array_pop($stack);
+            foreach ($adj[$cur] ?? [] as $nbr => $_) {
+                $nbr = (string) $nbr;
+                if (isset($set[$nbr]) && ! isset($seen[$nbr])) {
+                    $seen[$nbr] = true;
+                    $stack[] = $nbr;
+                }
+            }
+        }
+
+        return count($seen) === count($set);
     }
 }

@@ -28,6 +28,7 @@ use App\Http\Controllers\Legislature\ChamberController;
 use App\Http\Controllers\Legislature\ChamberResolverController;
 use App\Http\Controllers\Legislature\SessionController;
 use App\Http\Controllers\Legislature\SettingsController;
+use App\Http\Controllers\Legislature\TypeBMapController;
 use App\Http\Controllers\LegislatureController;
 use App\Http\Controllers\MapsController;
 use App\Http\Controllers\RasterTileController;
@@ -445,6 +446,38 @@ Route::get('/legislatures/{legislature_id}', [LegislatureController::class, 'sho
 // show(); pre-split mapper deep links (?scope/?map/?setup/?compare) on the
 // show route 302 here with the query preserved.
 Route::get('/legislatures/{legislature_id}/districts', [LegislatureController::class, 'districts'])->name('legislatures.districts');
+
+// Type B district mapper VIEW (Phase 1, 2026-09-04) — the flat, read-only
+// clumping inspection surface. Dual-accept (jurisdiction slug|UUID or
+// legislature UUID). No scope stepping: a Type B map is a grouping of the
+// parent's direct children, not a composite.
+Route::get('/legislatures/{legislature_id}/panels', [TypeBMapController::class, 'show'])->name('legislatures.panels');
+// Legacy path — redirect the old /type-b-map URL to /panels so saved links keep working.
+Route::get('/legislatures/{legislature_id}/type-b-map', function (string $legislature_id) {
+    return redirect()->route('legislatures.panels', array_merge(['legislature_id' => $legislature_id], request()->query()));
+});
+
+// Type B mass-ops parity (the cloned mapper's autoseed / status / halt /
+// disband bindings). Type B clumping is synchronous arithmetic, so status is
+// always not-running and halt is a no-op that reports cleared.
+Route::post('/api/legislatures/{legislature_id}/type-b-map/autoseed', [TypeBMapController::class, 'autoseed'])->name('legislatures.type-b-map.autoseed')->middleware('auth');
+Route::get('/api/legislatures/{legislature_id}/type-b-map/status', [TypeBMapController::class, 'status'])->name('legislatures.type-b-map.status');
+Route::post('/api/legislatures/{legislature_id}/type-b-map/halt', [TypeBMapController::class, 'halt'])->name('legislatures.type-b-map.halt')->middleware('auth');
+Route::post('/api/legislatures/{legislature_id}/type-b-map/clear', [TypeBMapController::class, 'clear'])->name('legislatures.type-b-map.clear')->middleware('auth');
+Route::post('/api/legislatures/{legislature_id}/type-b-map/deactivate', [TypeBMapController::class, 'deactivate'])->name('legislatures.type-b-map.deactivate')->middleware('auth');
+Route::get('/api/legislatures/{legislature_id}/type-b-map/revealed.geojson', [TypeBMapController::class, 'revealedGeoJson'])->name('legislatures.type-b-map.revealed');
+
+// Type B grouping ("map") management — parity with the Type A map selector.
+Route::post('/api/legislatures/{legislature_id}/type-b-map/maps', [TypeBMapController::class, 'createMap'])->name('legislatures.type-b-map.maps.create')->middleware('auth');
+Route::patch('/api/legislatures/{legislature_id}/type-b-map/maps/{map_id}', [TypeBMapController::class, 'updateMap'])->name('legislatures.type-b-map.maps.update')->middleware('auth');
+Route::post('/api/legislatures/{legislature_id}/type-b-map/maps/{map_id}/copy', [TypeBMapController::class, 'copyMap'])->name('legislatures.type-b-map.maps.copy')->middleware('auth');
+Route::post('/api/legislatures/{legislature_id}/type-b-map/maps/{map_id}/activate', [TypeBMapController::class, 'activateMap'])->name('legislatures.type-b-map.maps.activate')->middleware('auth');
+Route::delete('/api/legislatures/{legislature_id}/type-b-map/maps/{map_id}', [TypeBMapController::class, 'deleteMap'])->name('legislatures.type-b-map.maps.delete')->middleware('auth');
+
+// Type B panel ("district") editing — DRAFT groupings only (active is seated).
+Route::post('/api/legislatures/{legislature_id}/type-b-map/panels', [TypeBMapController::class, 'createPanel'])->name('legislatures.type-b-map.panels.create')->middleware('auth');
+Route::patch('/api/legislatures/{legislature_id}/type-b-map/panels/{district_id}/members', [TypeBMapController::class, 'updatePanelMembers'])->name('legislatures.type-b-map.panels.members')->middleware('auth');
+Route::delete('/api/legislatures/{legislature_id}/type-b-map/panels/{district_id}', [TypeBMapController::class, 'deletePanel'])->name('legislatures.type-b-map.panels.delete')->middleware('auth');
 
 // Legislature district editing API
 Route::post('/api/legislatures/{legislature_id}/districts', [LegislatureController::class, 'createDistrict'])->name('legislatures.districts.create');

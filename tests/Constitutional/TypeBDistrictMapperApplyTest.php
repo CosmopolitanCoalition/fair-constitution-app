@@ -82,7 +82,7 @@ class TypeBDistrictMapperApplyTest extends TestCase
 
             $this->assertNotNull($result);
             $this->assertSame(2, $result['panel_count'], 'floor(bound 5 / rep_floor 2) = 2 panels');
-            $this->assertSame(4, $result['seats'], '2 panels x 2 = 4 <= Type A 5');
+            $this->assertSame(4, $result['seats'], '2 x 2 = 4 <= bound 5; the odd spare seat is unused, not a bonus');
             $this->assertFalse($result['undercount']);
 
             // Persistence: the trio landed.
@@ -100,7 +100,7 @@ class TypeBDistrictMapperApplyTest extends TestCase
             // The chamber is recomputed and UN-FLAGGED.
             $leg = DB::table('legislatures')->where('id', $legId)->first();
             $this->assertFalse((bool) $leg->type_b_needs_districting, 'the flag is cleared');
-            $this->assertSame(4, (int) $leg->type_b_seats, 'type_b recomputed to panel_count x rep_floor');
+            $this->assertSame(4, (int) $leg->type_b_seats, 'type_b recomputed to Σ panel seats = p x rep_floor');
             $this->assertSame(9, (int) $leg->total_seats, 'type_a 5 + type_b 4');
             $this->assertLessThanOrEqual((int) $leg->type_a_seats, (int) $leg->type_b_seats,
                 'grouped Type B no longer exceeds Type A');
@@ -112,7 +112,7 @@ class TypeBDistrictMapperApplyTest extends TestCase
             $panels = collect($after['kinds']['type_b']['panels']);
             $this->assertCount(2, $panels, 'one race per panel — 2 panels');
             $this->assertSame([2, 2], $panels->map(fn ($p) => (int) $p->seats)->all(),
-                'each panel elects its rep_floor (2) seats');
+                'every panel elects rep_floor (2) — no bonus seat');
 
             // createRaces materialises exactly ONE at-large race per panel, each
             // carrying its type_b_panel_id (the clump key) — never one pooled race.
@@ -122,7 +122,7 @@ class TypeBDistrictMapperApplyTest extends TestCase
             $this->assertCount(2, $typeBRaces, 'two per-clump at-large races, not one pooled race');
             $this->assertSame(0, $typeBRaces->whereNull('type_b_panel_id')->count(),
                 'every per-clump race carries its panel key');
-            $this->assertSame(4, (int) $typeBRaces->sum('seats'), 'sum of per-clump seats = the grouped total');
+            $this->assertSame(4, (int) $typeBRaces->sum('seats'), 'sum of per-clump seats = the grouped total (p x rep_floor)');
             $this->assertSame(0, $typeBRaces->where('district_id', '!=', null)->count(),
                 'per-clump races are at-large (no district_id)');
         });

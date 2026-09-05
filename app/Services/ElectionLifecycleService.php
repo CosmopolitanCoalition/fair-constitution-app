@@ -640,8 +640,9 @@ class ElectionLifecycleService implements ElectionSchedulingDelegate
                 // PER-CLUMP. Each panel elects its OWN rep_floor seats at-large
                 // from the UNION of the panel's constituents' residents
                 // (RaceFootprint LEFT JOINs the panel members). The 5–9 band does
-                // not bind these races; a panel seats rep_floor. Seats are exact
-                // by construction: Σ panel.seats = grouping.seats_total = type_b.
+                // not bind these races; a panel seats rep_floor (no bonus seat —
+                // operator ruling 2026-09-05). Seats are exact by construction:
+                // Σ panel.seats = grouping.seats_total = type_b.
                 // Guarded above: this fires ONLY when the grouping is CURRENT.
                 $panels = DB::table('legislature_type_b_panels')
                     ->where('grouping_id', $activeGrouping->id)
@@ -887,7 +888,7 @@ class ElectionLifecycleService implements ElectionSchedulingDelegate
                 // PER-CLUMP TYPE B (operator ruling 2026-07-29): one at-large
                 // race per panel, keyed by type_b_panel_id so RaceFootprint
                 // enfranchises the UNION of the panel's constituents — never the
-                // whole parent. seats = panel.seats (= the grouping's rep_floor).
+                // whole parent. seats = panel.seats (= rep_floor; no bonus seat).
                 foreach ($spec['panels'] as $panel) {
                     $races[] = ElectionRace::create([
                         'election_id'     => $election->id,

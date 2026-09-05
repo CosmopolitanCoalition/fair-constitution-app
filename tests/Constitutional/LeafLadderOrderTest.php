@@ -15,17 +15,17 @@ use Mockery;
 use Tests\TestCase;
 
 /**
- * PIN — the leaf line-split ladder (fix set 2026-09-02).
+ * PIN — the leaf line-split ladder (shortest-first, operator ruling 2026-09-03).
  *
- *  1. THE BOX LEADS EVERY MULTI-PART SCOPE (operator ruling 2026-09-02):
- *     any scope with more than one polygon part orders the box template
- *     first, regardless of seat budget or area share. A one-part scope
- *     keeps the cutting ladder (requested template first) with the box last.
+ *  1. SHORTEST LEADS, THE BOX IS THE GENERAL FALLBACK: every scope orders
+ *     shortest first, then box, then the cutting tail (community_cells,
+ *     strips, components), regardless of part count. A non-default requested
+ *     template leads, then the standard ladder follows.
  *  2. ONE BLADE POOL PER SCOPE: the ladder opens one counter per scope; a
  *     plan() call under the open pool shares it (no per-template reset); a
  *     plan() call outside the pool owns a fresh counter.
  *  3. EXHAUSTION JUMPS TO THE BOX: once the pool is spent the ladder skips
- *     every remaining rung except the box.
+ *     every remaining cutting rung except the box.
  *
  * Pure and mocked: no live database is touched (the test connection is
  * sqlite :memory:; PostGIS statements are intercepted at the DB facade).
@@ -34,34 +34,43 @@ class LeafLadderOrderTest extends TestCase
 {
     private const CTX = ['floor' => 5, 'ceiling' => 9, 'budget' => 18, 'quota' => 1.0];
 
-    public function test_a_two_part_scope_leads_with_the_box(): void
+    public function test_a_two_part_scope_leads_with_shortest(): void
     {
         $order = LeafGiantResolver::orderTemplates(SubdivisionAutoseedService::TEMPLATE_SHORTEST, 2);
 
-        $this->assertSame(SubdivisionAutoseedService::TEMPLATE_BOX, $order[0]);
-        $this->assertSame(SubdivisionAutoseedService::TEMPLATE_SHORTEST, $order[1]);
+        $this->assertSame(SubdivisionAutoseedService::TEMPLATE_SHORTEST, $order[0]);
+        $this->assertSame(SubdivisionAutoseedService::TEMPLATE_BOX, $order[1], 'the box is the general fallback, second');
         $this->assertCount(count(SubdivisionAutoseedService::TEMPLATES), $order, 'every registry template rides once');
         $this->assertCount(1, array_keys($order, SubdivisionAutoseedService::TEMPLATE_BOX, true), 'the box appears once');
     }
 
-    public function test_the_box_leads_for_any_part_count_above_one(): void
+    public function test_shortest_leads_regardless_of_part_count(): void
     {
-        foreach ([2, 3, 50, 4404] as $parts) {
-            $order = LeafGiantResolver::orderTemplates(SubdivisionAutoseedService::TEMPLATE_VERTICAL_STRIPS, $parts);
-            $this->assertSame(SubdivisionAutoseedService::TEMPLATE_BOX, $order[0], "parts={$parts}");
-            $this->assertSame(SubdivisionAutoseedService::TEMPLATE_VERTICAL_STRIPS, $order[1], "parts={$parts}: the requested template follows");
+        foreach ([1, 2, 3, 50, 4404] as $parts) {
+            $order = LeafGiantResolver::orderTemplates(SubdivisionAutoseedService::TEMPLATE_SHORTEST, $parts);
+            $this->assertSame(SubdivisionAutoseedService::TEMPLATE_SHORTEST, $order[0], "parts={$parts}");
+            $this->assertSame(SubdivisionAutoseedService::TEMPLATE_BOX, $order[1], "parts={$parts}: the box is the general fallback");
         }
     }
 
-    public function test_a_one_part_scope_keeps_the_cutting_ladder_with_the_box_last(): void
+    public function test_the_ladder_is_shortest_then_box_then_cutters_for_every_part_count(): void
     {
-        $order = LeafGiantResolver::orderTemplates(SubdivisionAutoseedService::TEMPLATE_SHORTEST, 1);
-        $this->assertSame(SubdivisionAutoseedService::TEMPLATES, $order);
-        $this->assertSame(SubdivisionAutoseedService::TEMPLATE_BOX, end($order));
+        $expected = [
+            SubdivisionAutoseedService::TEMPLATE_SHORTEST,
+            SubdivisionAutoseedService::TEMPLATE_BOX,
+            SubdivisionAutoseedService::TEMPLATE_COMMUNITY_CELLS,
+            SubdivisionAutoseedService::TEMPLATE_VERTICAL_STRIPS,
+            SubdivisionAutoseedService::TEMPLATE_HORIZONTAL_STRIPS,
+            SubdivisionAutoseedService::TEMPLATE_COMPONENTS,
+        ];
+        foreach ([1, 12] as $parts) {
+            $this->assertSame($expected, LeafGiantResolver::orderTemplates(SubdivisionAutoseedService::TEMPLATE_SHORTEST, $parts), "parts={$parts}: same shortest-first ladder");
+        }
 
+        // A non-default requested template leads, then the standard ladder.
         $order = LeafGiantResolver::orderTemplates(SubdivisionAutoseedService::TEMPLATE_VERTICAL_STRIPS, 1);
         $this->assertSame(SubdivisionAutoseedService::TEMPLATE_VERTICAL_STRIPS, $order[0]);
-        $this->assertSame(SubdivisionAutoseedService::TEMPLATE_BOX, end($order));
+        $this->assertSame(SubdivisionAutoseedService::TEMPLATE_SHORTEST, $order[1]);
     }
 
     public function test_the_blade_pool_is_one_counter_per_scope(): void
@@ -145,24 +154,24 @@ class LeafLadderOrderTest extends TestCase
         $this->assertTrue($result['fallback']);
     }
 
-    public function test_a_multi_part_scope_plans_the_box_first_through_the_ladder(): void
+    public function test_a_multi_part_scope_plans_shortest_first_through_the_ladder(): void
     {
         Log::spy();
         DB::shouldReceive('selectOne')->andReturn((object) ['parts' => 12]);
-        $boxPlan = ['plan_hash' => 'h', 'template' => 'box', 'districts' => []];
+        $shortestPlan = ['plan_hash' => 'h', 'template' => 'shortest', 'districts' => []];
 
         $autoseed = Mockery::mock(SubdivisionAutoseedService::class);
         $autoseed->shouldReceive('openBladePool')->once()->with('s2');
         $autoseed->shouldReceive('closeBladePool')->once();
         $autoseed->shouldReceive('bladeBudgetRemaining')->andReturn(240);
-        $autoseed->shouldReceive('plan')->once()->with('s2', self::CTX, 2023, SubdivisionAutoseedService::TEMPLATE_BOX)->andReturn($boxPlan);
-        $autoseed->shouldReceive('plan')->with('s2', self::CTX, 2023, SubdivisionAutoseedService::TEMPLATE_SHORTEST)->never();
+        $autoseed->shouldReceive('plan')->once()->with('s2', self::CTX, 2023, SubdivisionAutoseedService::TEMPLATE_SHORTEST)->andReturn($shortestPlan);
+        $autoseed->shouldReceive('plan')->with('s2', self::CTX, 2023, SubdivisionAutoseedService::TEMPLATE_BOX)->never();
 
         $resolver = new LeafGiantResolver($autoseed, Mockery::mock(ConstitutionalEngine::class));
         $result = $resolver->planWithFallback('s2', self::CTX, 2023, SubdivisionAutoseedService::TEMPLATE_SHORTEST, true);
 
-        $this->assertSame(SubdivisionAutoseedService::TEMPLATE_BOX, $result['template']);
-        $this->assertFalse($result['fallback'], 'the leading box is the primary rung of a multi-part scope, not a fallback');
+        $this->assertSame(SubdivisionAutoseedService::TEMPLATE_SHORTEST, $result['template']);
+        $this->assertFalse($result['fallback'], 'shortest is the primary rung of every scope, not a fallback');
     }
 
     private function autoseed(PopulationRaster $raster): SubdivisionAutoseedService

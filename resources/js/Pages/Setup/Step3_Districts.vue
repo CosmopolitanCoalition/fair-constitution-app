@@ -661,13 +661,21 @@ function pct(done, total) {
     return Math.min(100, Math.round((done / total) * 1000) / 10)
 }
 
+// Natural level names (operator order 2026-09-04): ADM numbers are developer
+// vocabulary and never display. The lane strip and the lists show the same
+// human labels the layer bars use. Mirrors SetupController::layerBars levelLabels.
+const ADM_LABELS = ['Planet', 'Countries', 'States / Provinces', 'Counties', 'Municipalities', 'Townships', 'Neighborhoods']
+function admLabel(level) {
+    return ADM_LABELS[level] ?? `Level ${level}`
+}
+
 function layerLabel(l) {
     // Collapsed level rows carry their canonical name from the backend
     // (Planet, Countries, States / Provinces, ...). Legacy split rows keep
     // the old form until the payload refreshes.
     if (l.label) return l.label
     const kind = l.kind === 'single' ? 'leaf councils' : 'sweeps'
-    return `ADM${l.adm_level} ${kind}`
+    return `${admLabel(l.adm_level)} ${kind}`
 }
 
 const phaseLabel = computed(() => {
@@ -1007,7 +1015,7 @@ onBeforeUnmount(() => {
                                             <a :href="`/legislatures/${w.map_slug}`" target="_blank" class="text-gray-400 hover:text-gray-200 underline-offset-2 hover:underline">{{ w.map_name }}</a><span class="text-gray-600"> › </span>
                                         </template>
                                         <a :href="`/legislatures/${w.scope_slug}`" target="_blank" class="font-medium underline-offset-2 hover:underline">{{ w.scope_name }}</a>
-                                        <span v-if="w.adm_level != null" class="text-gray-500 ml-1">ADM{{ w.adm_level }}</span>
+                                        <span v-if="w.adm_level != null" class="text-gray-500 ml-1">{{ admLabel(w.adm_level) }}</span>
                                         <span v-if="lanePhase(w)" class="text-gray-400"> · {{ lanePhase(w) }}</span>
                                     </span>
                                     <span v-else-if="w.claim_label" class="font-medium truncate" :class="laneTone[laneLevel(w)].label">{{ w.claim_label }}</span>
@@ -1101,7 +1109,7 @@ onBeforeUnmount(() => {
                                            class="text-amber-300 hover:text-amber-100 underline-offset-2 hover:underline">
                                             {{ it.jurisdiction_name }}
                                         </a>
-                                        <span class="text-gray-500"> ADM{{ it.adm_level }}</span>
+                                        <span class="text-gray-500"> {{ admLabel(it.adm_level) }}</span>
                                     </td>
                                     <td class="py-1.5 pr-2">{{ it.kind === 'sweep' ? 'sweep' : 'single' }}</td>
                                     <td class="py-1.5 pr-2">{{ it.status }}</td>
@@ -1161,7 +1169,7 @@ onBeforeUnmount(() => {
                                            class="text-rose-300 hover:text-rose-100 underline-offset-2 hover:underline">
                                             {{ it.jurisdiction_name }}
                                         </a>
-                                        <span class="text-gray-500"> ADM{{ it.adm_level }}</span>
+                                        <span class="text-gray-500"> {{ admLabel(it.adm_level) }}</span>
                                     </td>
                                     <td class="py-1.5 pr-2">{{ it.seats_expected }}</td>
                                     <td class="py-1.5 pr-2">{{ it.seats_seated }}</td>
