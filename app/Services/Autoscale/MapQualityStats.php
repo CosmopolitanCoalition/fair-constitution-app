@@ -275,7 +275,7 @@ class MapQualityStats
         return [
             'computed_at'  => now()->toIso8601String(),
             'seconds'      => $seconds,
-            'level_labels' => $labels,
+            'level_labels' => (object) $labels,   // keyed by layer as strings, never a list
             'type_a'       => $all['type_a'],
             'type_b'       => $all['type_b'],
             'levels'       => ['all' => $all] + $levels,
