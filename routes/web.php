@@ -193,10 +193,6 @@ Route::post('/api/setup/wizard/step3/recheck-drift', [SetupController::class, 'a
 // -intent gate the CLI's --force represents).
 Route::post('/api/setup/wizard/step3/autoscale-revert', [SetupController::class, 'autoscaleRevert'])
     ->middleware('auth')->name('api.setup.step3.autoscale-revert');
-// The Step-3 "Group Type B chambers" control — UI door to the type-b:district
-// CLI (operator-gated in the controller; same TypeBDistrictMapper service).
-Route::post('/api/setup/wizard/step3/type-b-district', [SetupController::class, 'typeBDistrict'])
-    ->middleware('auth')->name('api.setup.step3.type-b-district');
 // Lane kill controls (operator order 2026-09-02): deadlines are warnings,
 // kills are manual (per lane) or opt-in automatic (per run). Operator-gated
 // in the controller, the same posture as halt / resume.

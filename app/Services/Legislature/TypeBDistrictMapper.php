@@ -126,6 +126,26 @@ class TypeBDistrictMapper
             return self::result([], $repFloor, [], $bound, false);
         }
 
+        // THE UNGROUPED MAP (operator order 2026-09-05, Type B as the last
+        // scope of every composite map): when the ladder already fits at
+        // rep_floor — every constituent seated as TypeBSeatLadder::sumAt seats
+        // it (rep_floor, or min(population, rep_floor) for a tiny constituent
+        // ≤ TINY_POP) sums within the bound — the panel map IS the at-large
+        // ladder: one panel per constituent, in constituent order, each with
+        // that seat count. A hamlet of three never holds five seats; an empty
+        // part holds none. No clumping. Clumped maps keep the settled formula
+        // below: every panel rep_floor.
+        $ungroupedSeats = 0;
+        $ungroupedReps  = [];
+        foreach ($ids as $id) {
+            $pop = (int) ($populations[$id] ?? 0);
+            $ungroupedReps[] = $pop <= TypeBSeatLadder::TINY_POP ? max(0, min($pop, $repFloor)) : $repFloor;
+            $ungroupedSeats += end($ungroupedReps);
+        }
+        if ($ungroupedSeats <= $bound) {
+            return self::result(array_map(static fn ($id) => [$id], $ids), $repFloor, $ungroupedReps, $bound, false);
+        }
+
         // Maximum panels the bound allows; each panel seats at least rep_floor (B1).
         $pMax = intdiv($bound, $repFloor);
         if ($pMax < 1) {

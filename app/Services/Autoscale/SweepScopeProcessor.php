@@ -47,6 +47,14 @@ class SweepScopeProcessor
         $scopeId       = $claim['scope_id'];
         $legislatureId = $claim['legislature_id'];
         $scopeJid      = $claim['scope_jurisdiction_id'];
+        // THE SCOPE KIND (operator order 2026-09-05): 'type_a' draws
+        // districts at this scope; 'type_b' draws the chamber's Type B
+        // panel map — the LAST scope of every composite map. The claim
+        // carries it; a claim shaped before the column reads the row.
+        $scopeKind = (string) ($claim['scope_kind']
+            ?? DB::table('apportionment_ledger_scopes')->where('id', $scopeId)->value('scope_kind')
+            ?? \App\Support\AutoscaleEnumeration::SCOPE_TYPE_A);
+        $isTypeB = $scopeKind === \App\Support\AutoscaleEnumeration::SCOPE_TYPE_B;
 
         // CONNECTION HYGIENE AT THE CLAIM BOUNDARY (operator recycle order
         // 2026-08-31, the Bosnia four-canton 25P02): a scope must start at
@@ -105,7 +113,9 @@ class SweepScopeProcessor
         // map on a re-queued review item, or our own founding map activated
         // by a prior completed pass). ANY active map with districts is
         // accepted work — a founding sweep only ever fills a void.
-        $adopted = DB::table('legislature_district_maps as m')
+        // A Type B scope is never "adopted" by a Type A map: the panel map
+        // is its own work, drawn whether or not the districts exist.
+        $adopted = $isTypeB ? null : DB::table('legislature_district_maps as m')
             ->where('m.legislature_id', $legislatureId)
             ->where('m.status', 'active')
             ->whereNull('m.deleted_at')
@@ -141,10 +151,14 @@ class SweepScopeProcessor
             // accepted work is never archived by a plain requeue.
             if ($header->redraw_requested_at === null) {
 
+            // Adoption closes the TYPE A scopes only (2026-09-05): the
+            // panel scope is its own work — an accepted district map says
+            // nothing about the chamber's Type B panels.
             DB::transaction(function () use ($legislatureId) {
                 DB::table('apportionment_ledger_scopes')
                     ->where('legislature_id', $legislatureId)
                     ->whereIn('status', ['pending', 'running'])
+                    ->where('scope_kind', \App\Support\AutoscaleEnumeration::SCOPE_TYPE_A)
                     ->update([
                         'status'      => 'done',
                         'reason'      => 'adopted: an active map with districts already exists',
@@ -152,6 +166,19 @@ class SweepScopeProcessor
                         'updated_at'  => now(),
                     ]);
             });
+            // A panel scope not yet DONE (open, or parked failed / review):
+            // the header stays RUNNING so the lanes draw it — or the
+            // finalize rung judges the parked one — and the header closes
+            // there, the Type A map adopted as it stands, never re-assessed.
+            $panelOpen = DB::table('apportionment_ledger_scopes')
+                ->where('legislature_id', $legislatureId)
+                ->where('scope_kind', \App\Support\AutoscaleEnumeration::SCOPE_TYPE_B)
+                ->where('status', '<>', 'done')
+                ->exists();
+            if ($panelOpen) {
+                $this->handHeaderToFinalize($legislatureId);
+                return;
+            }
             $this->finishHeader($legislatureId, ['pending', 'running'], 'done', $seated, $expected,
                 'adopted: an active map with districts already exists', $bonus);
             return;
@@ -161,7 +188,11 @@ class SweepScopeProcessor
         // First scope of the map flips its header running (idempotent).
         \App\Models\LedgerHeader::query()->whereKey($legislatureId)
             ->where('map_status', 'pending')
-            ->update(['map_status' => 'running', 'started_at' => now(), 'updated_at' => now()]);
+            // THE START CLOCK IS SET ONCE PER PASS (2026-09-05): a header the
+            // halt reaper returned to pending keeps its start, so finalize's
+            // "drew this pass" reads the scopes this pass closed. A requeue
+            // clears started_at, so the next pass starts its own clock.
+            ->update(['map_status' => 'running', 'started_at' => DB::raw('COALESCE(started_at, now())'), 'updated_at' => now()]);
 
         // A resumed run's stale halt flag must not instantly halt the sweep.
         Cache::forget("legislature.{$legislatureId}.mass_halt");
@@ -212,6 +243,20 @@ class SweepScopeProcessor
                 Log::warning('Autoscale lane lost its scope before the drawing', [
                     'scope_id' => $scopeId, 'legislature_id' => $legislatureId, 'token' => $workerToken,
                 ]);
+                return;
+            }
+
+            // THE TYPE B PANEL SCOPE (operator order 2026-09-05): the last
+            // scope of a composite map clumps the chamber's constituents
+            // into its Type B panels (TypeBDistrictMapper — a graph
+            // grouping, no geometry cut). One active grouping per chamber;
+            // a chamber whose ladder fits (no clumping needed) gets the
+            // trivial map, one panel per constituent, exactly as an
+            // at-large Type A map is still a map. Closes done; the header
+            // finalizes when the Type A scopes and this one are all closed.
+            if ($isTypeB) {
+                $reason = $this->drawTypeBPanels($legislatureId, $header, $leg);
+                $this->closeScopeDone($scopeId, $legislatureId, $scopeJid, (int) $claim['depth'], [], $reason, $workerToken);
                 return;
             }
 
@@ -378,6 +423,26 @@ class SweepScopeProcessor
                 return;
             }
 
+            // THE SCOPE CLOSE THAT EMPTIES A HEADER ARMS ITS FINALIZE
+            // (2026-09-05): the finalize rung claims a running header the
+            // instant its last scope lands — the same lane's next claim —
+            // instead of waiting for the pump's per-minute ready net. Giant
+            // children inserted below re-open the header (pending rows), so
+            // the arm is re-checked after the inserts.
+            $armFinalize = static function () use ($legislatureId): void {
+                DB::update("
+                    UPDATE apportionment_ledger h
+                       SET finalize_ready = NOT EXISTS (SELECT 1 FROM apportionment_ledger_scopes s
+                                                         WHERE s.legislature_id = h.legislature_id
+                                                           AND s.status IN ('pending', 'running')),
+                           updated_at = now()
+                     WHERE h.legislature_id = ? AND h.map_status = 'running'
+                ", [$legislatureId]);
+            };
+            if ($giants === []) {
+                $armFinalize();
+            }
+
             foreach ($giants as $childJid => $budget) {
                 // Sub-scope tier from the CHILD's own bbox (2026-07-22,
                 // the Earth-swarm crash): a geometry-less tier-1 item can
@@ -412,13 +477,16 @@ class SweepScopeProcessor
                                   * (ST_YMax(j.geom) - ST_YMin(j.geom)) * 110.57 AS km2
                       ) bbox ON true
                      WHERE j.id = ?
-                        ON CONFLICT (legislature_id, scope_jurisdiction_id)
+                        ON CONFLICT (legislature_id, scope_jurisdiction_id, scope_kind)
                         DO NOTHING
                 ", [
                     $legislatureId, $scopeJid,
                     $depth + 1, 'pending', (int) $budget,
                     (string) $childJid,
                 ]);
+            }
+            if ($giants !== []) {
+                $armFinalize();
             }
         });
 
@@ -429,6 +497,31 @@ class SweepScopeProcessor
         }
 
         return $owned;
+    }
+
+    /**
+     * Draw the chamber's Type B panel map (operator order 2026-09-05). The
+     * mapper mints an ACTIVE grouping (archiving any prior active one),
+     * writes the panels, recomputes type_b_seats / total_seats / quorum and
+     * clears type_b_needs_districting. Returns the scope's reason text (null
+     * on a clean grouping). A chamber with no Type A seats has a zero Type B
+     * ceiling: no panels, closed with the zero-population reason.
+     */
+    private function drawTypeBPanels(string $legislatureId, object $header, object $leg): ?string
+    {
+        if ((int) $leg->type_a_seats === 0) {
+            return \App\Services\DistrictingService::ZERO_POPULATION_REASON;
+        }
+        $result = app(\App\Services\Legislature\TypeBDistrictMapper::class)->apply($legislatureId, 'active');
+        if ($result === null) {
+            return 'type_b: no constituents — no panel map (a leaf chamber)';
+        }
+        $note = 'type_b: ' . $result['panel_count'] . ' panels, ' . $result['seats'] . ' seats';
+        if ($result['undercount']) {
+            $note .= ' (population-capped undercount: the Type B ceiling holds less than one panel)';
+        }
+
+        return $note;
     }
 
     /**
@@ -539,28 +632,132 @@ class SweepScopeProcessor
                 ->pluck('reason')
                 ->all();
 
-            // MAP-LEVEL ZERO-POP ABSORPTION (2026-07-23): before assessment,
-            // any seated district measuring zero people merges into the
-            // nearest live district on the map — a cross-scope remainder
-            // (all-giant sibling frames) can only heal here, once every
-            // scope has filed. A map absorption cannot help (no live
-            // district, zero-pop root) falls through to the honest review.
-            try {
-                $absorbedCount = app(\App\Services\DistrictingService::class)
-                    ->absorbZeroPopDistricts($legislatureId, $leg, $mapId);
-                if ($absorbedCount > 0) {
-                    $scopeReasons[] = "{$absorbedCount} zero-pop districts absorbed at finalize";
+            // WHICH HALF DREW THIS PASS (operator order 2026-09-05, Type B as
+            // the last scope): a header re-opened ONLY for its Type B panel
+            // scope (the upgrade pass over an already-finalized map) drew no
+            // Type A scope since it re-opened, so the Type A map is not
+            // re-assessed — an accepted active map is never demoted for
+            // work it did not do. A Type A scope closed at or after the
+            // header's start means the districts changed: assess as ever.
+            // An ADOPTED close is not a drawing: adoption accepts whatever
+            // active map exists (any id) and touches no district.
+            $typeADrewThisPass = $header->started_at === null
+                || DB::table('apportionment_ledger_scopes')
+                    ->where('legislature_id', $legislatureId)
+                    ->where('scope_kind', \App\Support\AutoscaleEnumeration::SCOPE_TYPE_A)
+                    ->where('status', 'done')
+                    ->where('finished_at', '>=', $header->started_at)
+                    ->where(function ($q) {
+                        $q->whereNull('reason')->orWhere('reason', 'not like', 'adopted:%');
+                    })
+                    ->exists();
+            // AN ADOPTED PASS: any Type A scope of this header closed
+            // 'adopted:' means the active map was accepted as it stands —
+            // never re-assessed, whatever else drew before the adoption
+            // (every requeue clears scope reasons, so an adopted reason is
+            // always this pass's).
+            $adoptedThisPass = DB::table('apportionment_ledger_scopes')
+                ->where('legislature_id', $legislatureId)
+                ->where('scope_kind', \App\Support\AutoscaleEnumeration::SCOPE_TYPE_A)
+                ->where('reason', 'like', 'adopted:%')
+                ->exists();
+            // THE ACCEPTED MAP means what adoption means: ANY active map
+            // with districts on this legislature (an operator's accepted
+            // map is not always the founding map the header names).
+            $activeMapId = DB::table('legislature_district_maps as m')
+                ->where('m.legislature_id', $legislatureId)
+                ->where('m.status', 'active')
+                ->whereNull('m.deleted_at')
+                ->whereExists(function ($q) {
+                    $q->select(DB::raw(1))->from('legislature_districts as d')
+                      ->whereColumn('d.map_id', 'm.id')->whereNull('d.deleted_at');
+                })
+                ->orderByDesc('m.created_at')
+                ->value('m.id');
+            $assessTypeA = ! $adoptedThisPass && ($typeADrewThisPass || $activeMapId === null);
+            // The seat facts read the map that STANDS: the founding
+            // container when this pass drew and assessed it, else the
+            // accepted active map (what adoption and the revert pre-pass
+            // stamp) — never an empty container beside an accepted map.
+            $seatMapId = ($assessTypeA || $activeMapId === null) ? $mapId : (string) $activeMapId;
+
+            if ($assessTypeA) {
+                // MAP-LEVEL ZERO-POP ABSORPTION (2026-07-23): before assessment,
+                // any seated district measuring zero people merges into the
+                // nearest live district on the map — a cross-scope remainder
+                // (all-giant sibling frames) can only heal here, once every
+                // scope has filed. A map absorption cannot help (no live
+                // district, zero-pop root) falls through to the honest review.
+                try {
+                    $absorbedCount = app(\App\Services\DistrictingService::class)
+                        ->absorbZeroPopDistricts($legislatureId, $leg, $mapId);
+                    if ($absorbedCount > 0) {
+                        $scopeReasons[] = "{$absorbedCount} zero-pop districts absorbed at finalize";
+                    }
+                } catch (\Throwable $e) {
+                    Log::warning('Zero-pop absorption failed (non-fatal): '.$e->getMessage());
                 }
-            } catch (\Throwable $e) {
-                Log::warning('Zero-pop absorption failed (non-fatal): '.$e->getMessage());
+
+                $assessment = $this->assessCompleteness($leg, $mapId, ['errors' => $scopeReasons]);
+            } else {
+                $assessment = ['complete' => true, 'reasons' => [], 'notes' => $scopeReasons];
             }
 
-            $assessment = $this->assessCompleteness($leg, $mapId, ['errors' => $scopeReasons]);
+            // THE TYPE B HALF (operator order 2026-09-05): a chamber with
+            // constituents and Type A seats must hold an ACTIVE Type B
+            // grouping when its map finalizes — the panel scope wrote it.
+            // Missing = the panel scope failed; the header goes to review
+            // with the scope's diagnosis, but the Type A map is NOT demoted
+            // (it is a valid map; the panels are the missing half).
+            $typeBReasons = [];
+            if ((int) $header->child_count > 0 && (int) $leg->type_a_seats > 0) {
+                $panelScope = DB::table('apportionment_ledger_scopes')
+                    ->where('legislature_id', $legislatureId)
+                    ->where('scope_kind', \App\Support\AutoscaleEnumeration::SCOPE_TYPE_B)
+                    ->first(['status', 'reason']);
+                if ($panelScope === null) {
+                    // NO PANEL SCOPE YET (a header that reached the rung
+                    // ahead of the materialization pass): the header is not
+                    // judged for work it was never given — the row is added
+                    // here and the header returns to running so the lanes
+                    // draw it and this rung runs again. A row that cannot be
+                    // added (nothing to draw for) is reported, not looped.
+                    $added = app(AutoscaleRunControl::class)->ensureTypeBScopes([$legislatureId]);
+                    if ($added > 0) {
+                        \App\Models\LedgerHeader::query()->whereKey($legislatureId)
+                            ->where('map_status', 'assessing')
+                            ->when($workerToken !== null, fn ($q) => $q->where('claim_token', $workerToken))
+                            ->update(['map_status' => 'running', 'claim_token' => null, 'finalize_ready' => false, 'updated_at' => now()]);
+                        Log::info('Autoscale finalize: panel scope materialized late, header returned to running', [
+                            'legislature_id' => $legislatureId,
+                        ]);
+                        return;
+                    }
+                    $typeBReasons[] = 'Type B panel map missing (no panel scope could be materialized for this chamber)';
+                } else {
+                    // THE PANEL HALF IS JUDGED BY ITS OWN SCOPE: the scope
+                    // closed done AND the chamber holds a CURRENT active
+                    // grouping (not re-flagged) — a stale grouping left by
+                    // an earlier manual pass does not stand in for a failed
+                    // panel draw.
+                    $hasCurrentGrouping = ! (bool) $leg->type_b_needs_districting
+                        && DB::table('legislature_type_b_groupings')
+                            ->where('legislature_id', $legislatureId)
+                            ->where('status', 'active')
+                            ->whereNull('deleted_at')
+                            ->exists();
+                    if ($panelScope->status !== 'done' || ! $hasCurrentGrouping) {
+                        $typeBReasons[] = 'Type B panel map missing (panel scope ' . $panelScope->status
+                            . ($panelScope->reason !== null ? ': ' . mb_substr((string) $panelScope->reason, 0, 300) : '')
+                            . ($hasCurrentGrouping ? '' : '; no current active grouping') . ')';
+                    }
+                }
+            }
 
             // BONUS NETTING (operator order 2026-08-29): identities compare
             // seats − bonus_seats against the budget, per the 08-28 law.
             $agg = DB::table('legislature_districts')
-                ->where('map_id', $mapId)
+                ->where('map_id', $seatMapId)
                 ->whereNull('deleted_at')
                 ->selectRaw('COALESCE(SUM(seats),0) AS s, COALESCE(SUM(bonus_seats),0) AS b')
                 ->first();
@@ -570,57 +767,71 @@ class SweepScopeProcessor
 
             if ($assessment['complete']) {
                 // Bare activation flip — the founding context needs no board
-                // (same posture as activateMap, which has no guards).
-                DB::transaction(function () use ($legislatureId, $mapId) {
-                    DB::table('legislature_district_maps')
-                        ->where('legislature_id', $legislatureId)
-                        ->where('status', 'active')
-                        ->where('id', '!=', $mapId)
-                        ->whereNull('deleted_at')
-                        ->update([
-                            'status'        => 'archived',
-                            'effective_end' => now()->subDay()->toDateString(),
-                            'updated_at'    => now(),
-                        ]);
-                    DB::table('legislature_district_maps')
-                        ->where('id', $mapId)
-                        ->update([
-                            'status'          => 'active',
-                            'effective_start' => now()->toDateString(),
-                            'updated_at'      => now(),
-                        ]);
-                });
+                // (same posture as activateMap, which has no guards). Runs
+                // whenever the Type A map was assessed this pass (a fresh
+                // draw, a redraw of an active map — the districts changed,
+                // so the generation audit appends as ever). The Type-B-only
+                // pass assessed nothing: no re-flip, no second audit.
+                if ($assessTypeA) {
+                    DB::transaction(function () use ($legislatureId, $mapId) {
+                        DB::table('legislature_district_maps')
+                            ->where('legislature_id', $legislatureId)
+                            ->where('status', 'active')
+                            ->where('id', '!=', $mapId)
+                            ->whereNull('deleted_at')
+                            ->update([
+                                'status'        => 'archived',
+                                'effective_end' => now()->subDay()->toDateString(),
+                                'updated_at'    => now(),
+                            ]);
+                        DB::table('legislature_district_maps')
+                            ->where('id', $mapId)
+                            ->update([
+                                'status'          => 'active',
+                                'effective_start' => now()->toDateString(),
+                                'updated_at'      => now(),
+                            ]);
+                    });
 
-                // ONE summary append per legislature, outside any sweep tx.
-                app(AuditService::class)->append(
-                    module: 'elections',
-                    event: 'district_map.generated',
-                    payload: [
-                        'map_id'          => $mapId,
-                        'legislature_id'  => $legislatureId,
-                        'type_a_seats'    => $expected,
-                        'district_count'  => (int) DB::table('legislature_districts')
-                            ->where('map_id', $mapId)->whereNull('deleted_at')->count(),
-                        'seats_seated'    => $seated,
-                        'bonus_seats'     => $bonus,
-                        'seat_drift'      => ($seated - $bonus) - $expected, // net of lawful bonus lifts
-                        'generator'       => 'SweepScopeProcessor mixed autoseed (pull engine, 2026-07-19)',
-                    ],
-                    ref: 'WF-ELE-02',
-                    jurisdictionId: (string) $leg->jurisdiction_id,
-                );
+                    // ONE summary append per legislature, outside any sweep tx.
+                    app(AuditService::class)->append(
+                        module: 'elections',
+                        event: 'district_map.generated',
+                        payload: [
+                            'map_id'          => $mapId,
+                            'legislature_id'  => $legislatureId,
+                            'type_a_seats'    => $expected,
+                            'district_count'  => (int) DB::table('legislature_districts')
+                                ->where('map_id', $mapId)->whereNull('deleted_at')->count(),
+                            'seats_seated'    => $seated,
+                            'bonus_seats'     => $bonus,
+                            'seat_drift'      => ($seated - $bonus) - $expected, // net of lawful bonus lifts
+                            'generator'       => 'SweepScopeProcessor mixed autoseed (pull engine, 2026-07-19)',
+                        ],
+                        ref: 'WF-ELE-02',
+                        jurisdictionId: (string) $leg->jurisdiction_id,
+                    );
+                }
 
-                $this->finishHeader($legislatureId, ['assessing'], 'done', $seated, $expected,
-                    $assessment['notes'] !== []
-                        ? 'notes: ' . implode(' | ', array_slice($assessment['notes'], 0, 6))
-                        : null, $bonus, $workerToken);
+                if ($typeBReasons !== []) {
+                    // The Type A map stands (active); the header parks in
+                    // review for the missing panel half — never demoted.
+                    $this->closeHeaderAsReview($legislatureId, ['assessing'],
+                        implode(' | ', array_slice(array_merge($typeBReasons, $assessment['notes']), 0, 12)),
+                        $workerToken, demoteMap: false);
+                } else {
+                    $this->finishHeader($legislatureId, ['assessing'], 'done', $seated, $expected,
+                        $assessment['notes'] !== []
+                            ? 'notes: ' . implode(' | ', array_slice($assessment['notes'], 0, 6))
+                            : null, $bonus, $workerToken);
+                }
             } else {
                 // Map stays draft; the operator reviews from the dashboard.
                 // THE ONE REVIEW PATH: closeHeaderAsReview demotes an active
                 // map to draft, stamps seated/drift and flips the header.
                 // The kill and the third reclaim close through it too.
                 $this->closeHeaderAsReview($legislatureId, ['assessing'],
-                    implode(' | ', array_slice($assessment['reasons'], 0, 12)), $workerToken);
+                    implode(' | ', array_slice(array_merge($assessment['reasons'], $typeBReasons), 0, 12)), $workerToken);
             }
 
             try {
@@ -673,7 +884,7 @@ class SweepScopeProcessor
      *
      * @param list<string> $fromStatuses
      */
-    public function closeHeaderAsReview(string $legislatureId, array $fromStatuses, string $reason, ?string $claimToken = null): void
+    public function closeHeaderAsReview(string $legislatureId, array $fromStatuses, string $reason, ?string $claimToken = null, bool $demoteMap = true): void
     {
         $header = \App\Models\LedgerHeader::query()->find($legislatureId);
         if ($header === null) {
@@ -684,10 +895,30 @@ class SweepScopeProcessor
         $expected = null;
         $bonus    = 0;
         if ($mapId !== null) {
-            DB::table('legislature_district_maps')
-                ->where('id', $mapId)
-                ->where('status', 'active')
-                ->update(['status' => 'draft', 'updated_at' => now()]);
+            // demoteMap=false (2026-09-05): a review for the MISSING TYPE B
+            // HALF leaves the valid, active Type A map in place — and reads
+            // its seat facts from the map that STANDS (the accepted active
+            // map, which need not be the founding container).
+            if ($demoteMap) {
+                DB::table('legislature_district_maps')
+                    ->where('id', $mapId)
+                    ->where('status', 'active')
+                    ->update(['status' => 'draft', 'updated_at' => now()]);
+            } else {
+                $standing = DB::table('legislature_district_maps as m')
+                    ->where('m.legislature_id', $legislatureId)
+                    ->where('m.status', 'active')
+                    ->whereNull('m.deleted_at')
+                    ->whereExists(function ($q) {
+                        $q->select(DB::raw(1))->from('legislature_districts as d')
+                          ->whereColumn('d.map_id', 'm.id')->whereNull('d.deleted_at');
+                    })
+                    ->orderByDesc('m.created_at')
+                    ->value('m.id');
+                if ($standing !== null) {
+                    $mapId = (string) $standing;
+                }
+            }
             // BONUS NETTING (operator order 2026-08-29): identities compare
             // seats − bonus_seats against the head.
             $agg = DB::table('legislature_districts')
@@ -724,7 +955,11 @@ class SweepScopeProcessor
     {
         \App\Models\LedgerHeader::query()->whereKey($legislatureId)
             ->where('map_status', 'pending')
-            ->update(['map_status' => 'running', 'started_at' => now(), 'updated_at' => now()]);
+            // THE START CLOCK IS SET ONCE PER PASS (2026-09-05): a header the
+            // halt reaper returned to pending keeps its start, so finalize's
+            // "drew this pass" reads the scopes this pass closed. A requeue
+            // clears started_at, so the next pass starts its own clock.
+            ->update(['map_status' => 'running', 'started_at' => DB::raw('COALESCE(started_at, now())'), 'updated_at' => now()]);
 
         // THE READY FLAG (2026-09-02): true when no scope of this header is
         // pending or running. claimFinalize pops the flag, never the scopes.

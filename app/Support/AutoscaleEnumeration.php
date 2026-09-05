@@ -115,7 +115,44 @@ final class AutoscaleEnumeration
         };
         $walk($rootJid, 0, null, $rootBudget);
 
+        // THE TYPE B PANEL SCOPE (operator order 2026-09-05): every map whose
+        // root has constituents ends with ONE more scope — the Type B panel
+        // map of the whole chamber, keyed on the root, kind 'type_b', walked
+        // LAST (after the Type A root scope). Its budget is the Type B
+        // ceiling min(type_a, pop − type_a) over the children's own rows —
+        // the divisor the clumping reads (TypeBSeatLadder / TypeBDistrictMapper).
+        // A leaf has no Type B: its representation sits in its parent's chamber.
+        if ($gate === null) {
+            $typeB = self::typeBStep($rootJid, $rootBudget);
+            if ($typeB !== null) {
+                $steps[] = $typeB;
+            }
+        }
+
         return ['steps' => $gate === null ? $steps : [], 'gate_reason' => $gate];
+    }
+
+    public const SCOPE_TYPE_A = 'type_a';
+    public const SCOPE_TYPE_B = 'type_b';
+
+    /**
+     * The Type B step tuple for a root with live children, null for a leaf:
+     * [root jid, depth 0, no parent, Type B ceiling, 'type_b'].
+     *
+     * @return array{0:string,1:int,2:null,3:int,4:string}|null
+     */
+    public static function typeBStep(string $rootJid, int $typeA): ?array
+    {
+        $kids = DB::selectOne('
+            SELECT COUNT(*)::int AS n, COALESCE(SUM(GREATEST(population, 0)), 0)::bigint AS pop
+              FROM jurisdictions WHERE parent_id = ? AND deleted_at IS NULL
+        ', [$rootJid]);
+        if ((int) ($kids->n ?? 0) === 0) {
+            return null;
+        }
+        $bound = min($typeA, max(0, (int) $kids->pop - $typeA));
+
+        return [$rootJid, 0, null, $bound, self::SCOPE_TYPE_B];
     }
 
     /** Upsert one legislature's ledger header + scope tree (transactional). */
@@ -145,25 +182,33 @@ final class AutoscaleEnumeration
             // (status, claim, retries, timings) survives. Rows the walk no
             // longer produces are deleted — they are no longer facts.
             $pos = 0;
-            $kept = [];
-            foreach ($computed['steps'] as [$jid, $depth, $parentJid, $budget]) {
+            $kept = [];   // "jid|kind" keys the walk produced
+            foreach ($computed['steps'] as $step) {
+                [$jid, $depth, $parentJid, $budget] = $step;
+                $kind = $step[4] ?? self::SCOPE_TYPE_A;
+                // A Type B scope is light by construction (a graph clumping,
+                // no geometry): tier 1 so the heavy cap never holds it.
                 DB::statement('
                     INSERT INTO apportionment_ledger_scopes
                         (legislature_id, scope_jurisdiction_id, parent_jurisdiction_id,
-                         depth, walk_position, seat_budget, created_at, updated_at)
-                    VALUES (?, ?, ?, ?, ?, ?, now(), now())
-                        ON CONFLICT (legislature_id, scope_jurisdiction_id)
+                         depth, walk_position, seat_budget, scope_kind, area_tier, is_leaf, created_at, updated_at)
+                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, now(), now())
+                        ON CONFLICT (legislature_id, scope_jurisdiction_id, scope_kind)
                         DO UPDATE SET parent_jurisdiction_id = EXCLUDED.parent_jurisdiction_id,
                                       depth = EXCLUDED.depth,
                                       walk_position = EXCLUDED.walk_position,
                                       seat_budget = EXCLUDED.seat_budget,
                                       updated_at = now()
-                ', [$legislatureId, $jid, $parentJid, $depth, $pos++, $budget]);
-                $kept[] = $jid;
+                ', [
+                    $legislatureId, $jid, $parentJid, $depth, $pos++, $budget, $kind,
+                    $kind === self::SCOPE_TYPE_B ? 1 : null,
+                    $kind === self::SCOPE_TYPE_B ? false : null,
+                ]);
+                $kept[] = $jid . '|' . $kind;
             }
             $stale = DB::table('apportionment_ledger_scopes')->where('legislature_id', $legislatureId);
             if ($kept !== []) {
-                $stale->whereNotIn('scope_jurisdiction_id', $kept);
+                $stale->whereNotIn(DB::raw("scope_jurisdiction_id::text || '|' || scope_kind"), $kept);
             }
             $stale->delete();
         });
@@ -412,7 +457,7 @@ final class AutoscaleEnumeration
                                     WHERE s.legislature_id = al.legislature_id
                                       AND s.scope_jurisdiction_id = al.jurisdiction_id)
                  LIMIT " . self::CHUNK . '
-                    ON CONFLICT (legislature_id, scope_jurisdiction_id) DO NOTHING
+                    ON CONFLICT (legislature_id, scope_jurisdiction_id, scope_kind) DO NOTHING
             ');
             $total += $n;
         } while ($n > 0);

@@ -2822,8 +2822,10 @@ class SetupController extends Controller
                 COUNT(*)                                                  AS total,
                 COUNT(*) FILTER (WHERE s.status = 'done')                 AS done,
                 COUNT(*) FILTER (WHERE s.status = 'running')              AS running,
-                COUNT(*) FILTER (WHERE COALESCE(s.is_leaf, h.child_count = 0))                     AS leaf_total,
-                COUNT(*) FILTER (WHERE COALESCE(s.is_leaf, h.child_count = 0) AND s.status = 'done') AS leaf_done,
+                COUNT(*) FILTER (WHERE s.scope_kind = 'type_b')                                       AS panel_total,
+                COUNT(*) FILTER (WHERE s.scope_kind = 'type_b' AND s.status = 'done')                 AS panel_done,
+                COUNT(*) FILTER (WHERE s.scope_kind <> 'type_b' AND COALESCE(s.is_leaf, h.child_count = 0))                     AS leaf_total,
+                COUNT(*) FILTER (WHERE s.scope_kind <> 'type_b' AND COALESCE(s.is_leaf, h.child_count = 0) AND s.status = 'done') AS leaf_done,
                 COUNT(*) FILTER (WHERE s.status IN ('review', 'failed'))                              AS parked
             ")
             ->groupBy('h.adm_level')
@@ -2875,17 +2877,20 @@ class SetupController extends Controller
                 'scopes_done'   => $sc !== null ? (int) $sc->done : 0,
                 'scopes_running'=> $sc !== null ? (int) $sc->running : 0,
                 'scopes_parked' => $sc !== null ? (int) $sc->parked : 0,
-                // THE THREE CLASSES (operator order 2026-09-02): one
-                // bar per level, segmented trivials | line-splits |
-                // composites, each filled by its own done count over
-                // the level's units (trivial maps + drawn scopes); the
-                // void on the right is whatever the level still owes.
+                // THE FOUR CLASSES (operator orders 2026-09-02 / 2026-09-05):
+                // one bar per level, segmented at-large district maps |
+                // constituent-split maps | constituent panel maps (Type B)
+                // | line-split maps, each filled by its own done count over
+                // the level's units (trivial maps + drawn scopes); the void
+                // on the right is whatever the level still owes.
                 'trivial_total' => $c['trivial_total'],
                 'trivial_done'  => $c['trivial_done'],
                 'line_total'    => $sc !== null ? (int) $sc->leaf_total : 0,
                 'line_done'     => $sc !== null ? (int) $sc->leaf_done : 0,
-                'comp_total'    => $sc !== null ? (int) $sc->total - (int) $sc->leaf_total : 0,
-                'comp_done'     => $sc !== null ? (int) $sc->done - (int) $sc->leaf_done : 0,
+                'panel_total'   => $sc !== null ? (int) $sc->panel_total : 0,
+                'panel_done'    => $sc !== null ? (int) $sc->panel_done : 0,
+                'comp_total'    => $sc !== null ? (int) $sc->total - (int) $sc->leaf_total - (int) $sc->panel_total : 0,
+                'comp_done'     => $sc !== null ? (int) $sc->done - (int) $sc->leaf_done - (int) $sc->panel_done : 0,
                 'units_total'   => $c['trivial_total'] + ($sc !== null ? (int) $sc->total : 0),
                 'units_done'    => $c['trivial_done'] + ($sc !== null ? (int) $sc->done : 0),
                 'status'        => $c['done'] >= $c['total']
@@ -2965,9 +2970,6 @@ class SetupController extends Controller
             return response()->json([
                 'run' => null,
                 'world_build' => $this->worldBuildBlock(),
-                'type_b_flagged' => (int) Cache::remember('autoscale.type_b_flagged.none', 5, fn () =>
-                    DB::table('legislatures')
-                        ->where('type_b_needs_districting', true)->whereNull('deleted_at')->count()),
             ]);
         }
 
@@ -3448,12 +3450,6 @@ class SetupController extends Controller
             'review_items'   => $reviewItems,
             'drifted_items'  => $driftedItems,
             'world_build'    => $this->worldBuildBlock(),
-            // Type B districting worklist — the flagged-chamber count the
-            // dashboard's "Group Type B chambers" control acts on. A bitmap
-            // over ~10k flagged rows per poll; one copy per 5 s.
-            'type_b_flagged' => (int) Cache::remember('autoscale.type_b_flagged.'.$run->id, 5, fn () =>
-                DB::table('legislatures')
-                    ->where('type_b_needs_districting', true)->whereNull('deleted_at')->count()),
         ];
     }
 
@@ -3569,59 +3565,6 @@ class SetupController extends Controller
         }
 
         return response()->json(['ok' => true, 'reverted' => true]);
-    }
-
-    /**
-     * POST /api/setup/wizard/step3/type-b-district — the Step-3 dashboard's
-     * "Group Type B chambers" control (UI↔CLI parity with the `type-b:district`
-     * CLI). Groups flagged chambers' constituents into shared panels and clears
-     * type_b_needs_districting so their at-large Type B races can schedule. Same
-     * service (TypeBDistrictMapper), same guards as the CLI; operator-gated. A
-     * bounded batch so one click never sweeps the whole planet unattended — the
-     * response reports what remains for the next click.
-     */
-    public function typeBDistrict(Request $request, \App\Services\Legislature\TypeBDistrictMapper $mapper): JsonResponse
-    {
-        abort_unless((bool) $request->user()?->is_operator, 403);
-
-        $limit = min(500, max(1, (int) $request->integer('limit', 200)));
-        $ids = DB::table('legislatures')
-            ->where('type_b_needs_districting', true)
-            ->whereNull('deleted_at')
-            ->orderBy('id')
-            ->limit($limit)
-            ->pluck('id');
-
-        $grouped = 0;
-        $seats = 0;
-        $undercount = 0;
-        $failures = 0;
-        foreach ($ids as $id) {
-            try {
-                $r = $mapper->apply((string) $id);
-                if ($r) {
-                    $grouped++;
-                    $seats += $r['seats'];
-                    $undercount += $r['undercount'] ? 1 : 0;
-                }
-            } catch (\Throwable $e) {
-                $failures++;
-            }
-        }
-
-        $remaining = (int) DB::table('legislatures')
-            ->where('type_b_needs_districting', true)
-            ->whereNull('deleted_at')
-            ->count();
-
-        return response()->json([
-            'ok'         => $failures === 0,
-            'grouped'    => $grouped,
-            'seats'      => $seats,
-            'undercount' => $undercount,
-            'failures'   => $failures,
-            'remaining'  => $remaining,
-        ]);
     }
 
     /**

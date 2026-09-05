@@ -644,9 +644,14 @@ class ElectionLifecycleService implements ElectionSchedulingDelegate
                 // operator ruling 2026-09-05). Seats are exact by construction:
                 // Σ panel.seats = grouping.seats_total = type_b.
                 // Guarded above: this fires ONLY when the grouping is CURRENT.
+                // A 0-seat panel (an empty constituent's own panel on an
+                // ungrouped map, operator order 2026-09-05 — the ladder
+                // seats an empty part 0) holds no race, exactly as the
+                // per-child branch skips an inert child.
                 $panels = DB::table('legislature_type_b_panels')
                     ->where('grouping_id', $activeGrouping->id)
                     ->whereNull('deleted_at')
+                    ->where('seats', '>', 0)
                     ->orderBy('panel_number')
                     ->get();
 
@@ -890,6 +895,9 @@ class ElectionLifecycleService implements ElectionSchedulingDelegate
                 // enfranchises the UNION of the panel's constituents — never the
                 // whole parent. seats = panel.seats (= rep_floor; no bonus seat).
                 foreach ($spec['panels'] as $panel) {
+                    if ((int) $panel->seats < 1) {
+                        continue;   // an empty constituent's 0-seat panel holds no race
+                    }
                     $races[] = ElectionRace::create([
                         'election_id'     => $election->id,
                         'district_id'     => null,

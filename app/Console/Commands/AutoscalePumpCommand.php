@@ -61,6 +61,13 @@ class AutoscalePumpCommand extends Command
      */
     public const RECLAIM_PARK_AT = 3;
 
+    /**
+     * Type B panel scopes materialized per pump tick on a run that predates
+     * them (operator order 2026-09-05): bounded, chunk-committed, resumable —
+     * the planet's ~37k composite maps take two ticks.
+     */
+    public const TYPE_B_SEED_PER_TICK = 20000;
+
     public function handle(): int
     {
         $this->worldBuildTick();
@@ -248,8 +255,30 @@ class AutoscalePumpCommand extends Command
              WHERE h.kind = 'sweep' AND h.map_status = 'pending'
                AND NOT EXISTS (SELECT 1 FROM apportionment_ledger_scopes s
                                 WHERE s.legislature_id = h.legislature_id)
-                ON CONFLICT (legislature_id, scope_jurisdiction_id) DO NOTHING
+                ON CONFLICT (legislature_id, scope_jurisdiction_id, scope_kind) DO NOTHING
         ");
+
+        // TYPE B PANEL SCOPES (operator order 2026-09-05): every composite
+        // map ends with its Type B panel scope. Maps written before the walk
+        // emitted it get the row here — bounded chunks per tick, latched on
+        // the run once nothing is missing; every resume clears the latch.
+        // The lane top-up below sees the new pending scopes in this same
+        // tick, so the panel maps start drawing the minute the run resumes.
+        if (\Illuminate\Support\Facades\Schema::hasColumn('autoscale_runs', 'type_b_seeded_at')
+            && $run->type_b_seeded_at === null) {
+            $seeded = app(AutoscaleRunControl::class)->seedTypeBScopes($run, self::TYPE_B_SEED_PER_TICK);
+            if ($seeded['inserted'] > 0) {
+                Log::info('Autoscale pump materialized Type B panel scopes', [
+                    'run_id' => $run->id, 'inserted' => $seeded['inserted'],
+                    'reopened' => $seeded['reopened'], 'remaining' => $seeded['remaining'],
+                ]);
+            }
+            if ($seeded['remaining'] === 0) {
+                AutoscaleRun::query()->whereKey($run->id)
+                    ->update(['type_b_seeded_at' => now(), 'updated_at' => now()]);
+                $run->refresh();
+            }
+        }
 
         // ── Worker seeding: keep the fixed pool topped up ──────────────────
         // THE LOCK IS LIVENESS (2026-08-30, the corpse-claims blackout): a
@@ -416,7 +445,33 @@ class AutoscalePumpCommand extends Command
         // ── Counters + completion ──────────────────────────────────────────
         $counts = $this->refreshCounters($run);
 
-        if ((int) $counts->open_headers === 0 && (int) $counts->open_scopes === 0) {
+        // A RUN IS DONE WHEN BOTH HALVES ARE (operator order 2026-09-05): no
+        // open header, no open scope, AND no composite map still owed its
+        // Type B panel scope. The third test runs only when the first two
+        // hold (a handful of times per run), so it costs nothing on a live
+        // pile; a run parked on missing panel scopes waits for the resume
+        // that materializes them instead of flipping done early.
+        $typeBOwed = (int) $counts->open_headers === 0 && (int) $counts->open_scopes === 0
+            && DB::table('apportionment_ledger as h')
+                ->where('h.kind', 'sweep')->where('h.child_count', '>', 0)->whereNull('h.gate_reason')
+                ->where('h.map_status', 'done')
+                ->whereExists(function ($q) {
+                    $q->selectRaw('1')->from('legislatures as l')
+                      ->whereColumn('l.id', 'h.legislature_id')->whereNull('l.deleted_at');
+                })
+                ->whereNotExists(function ($q) {
+                    $q->selectRaw('1')->from('apportionment_ledger_scopes as s')
+                      ->whereColumn('s.legislature_id', 'h.legislature_id')
+                      ->where('s.scope_kind', 'type_b');
+                })
+                ->exists();
+        if ($typeBOwed) {
+            Log::info('Autoscale run holds no open work but composite maps still owe their Type B panel scope — resume materializes them', [
+                'run_id' => $run->id,
+            ]);
+        }
+
+        if ((int) $counts->open_headers === 0 && (int) $counts->open_scopes === 0 && ! $typeBOwed) {
             $run->forceFill(['status' => 'done', 'finished_at' => now()])->save();
 
             // THE EAGER CHAIN (operator, 2026-08-08 — the three activation

@@ -347,6 +347,42 @@ class AutoscalePinTest extends TestCase
             $this->assertSame(5, (int) $q1Row->type_b_rep_floor);
             $this->assertFalse((bool) $q1Row->type_b_needs_districting);
 
+            // ── THE TYPE B PANEL SCOPE PIN (operator order 2026-09-05): every
+            // composite map ends with ONE type_b scope, walked LAST (after
+            // the Type A root scope), closed done by the same lanes; its
+            // chamber then holds exactly one ACTIVE Type B grouping whose
+            // seats equal the ladder's type_b_seats — a ladder-fit chamber's
+            // panel map is one panel per constituent. A leaf owns no panel
+            // scope (its representation sits in its parent's chamber).
+            foreach (['Pinland' => $pinlandLegId, 'Quarter 1' => $q1LegId] as $chamber => $legId) {
+                $scopes = DB::table('apportionment_ledger_scopes')
+                    ->where('legislature_id', $legId)
+                    ->get(['scope_kind', 'status', 'walk_position', 'depth']);
+                $panelScopes = $scopes->where('scope_kind', 'type_b');
+                $this->assertCount(1, $panelScopes, "{$chamber}: exactly one Type B panel scope");
+                $panelScope = $panelScopes->first();
+                $this->assertSame('done', $panelScope->status, "{$chamber}: the panel scope closed done");
+                $this->assertSame(0, (int) $panelScope->depth, 'the panel scope is keyed on the root');
+                $this->assertSame((int) $scopes->max('walk_position'), (int) $panelScope->walk_position,
+                    "{$chamber}: the panel scope is the LAST scope of the walk");
+
+                $groupings = DB::table('legislature_type_b_groupings')
+                    ->where('legislature_id', $legId)->where('status', 'active')->whereNull('deleted_at')->get();
+                $this->assertCount(1, $groupings, "{$chamber}: exactly one active Type B grouping");
+                $leg = DB::table('legislatures')->where('id', $legId)->first();
+                $this->assertSame((int) $leg->type_b_seats, (int) $groupings->first()->seats_total,
+                    "{$chamber}: the panel map seats exactly the ladder's type_b_seats");
+                $childCount = (int) DB::table('jurisdictions')
+                    ->where('parent_id', $leg->jurisdiction_id)->whereNull('deleted_at')->count();
+                $this->assertSame($childCount, (int) $groupings->first()->panel_count,
+                    "{$chamber}: ladder-fit → one panel per constituent");
+                $this->assertSame($childCount, (int) DB::table('legislature_type_b_panel_jurisdictions')
+                    ->where('grouping_id', $groupings->first()->id)->count(), "{$chamber}: every constituent is a panel member");
+            }
+            $this->assertSame(0, (int) DB::table('apportionment_ledger_scopes')
+                ->where('legislature_id', $stripLegId)->where('scope_kind', 'type_b')->count(),
+                'a leaf (the over-ceiling strip) owns no Type B panel scope');
+
             // ── THE ORDERING PIN (cycle-2): simplest-first — est_districts
             // ASC, cascade_height ASC, adm DESC, population ASC. The in-band
             // hamlet leads; Pin Earth (est 7, height 3) is dead last.

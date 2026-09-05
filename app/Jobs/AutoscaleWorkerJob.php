@@ -616,7 +616,11 @@ class AutoscaleWorkerJob implements ShouldQueue
                     $cursor = DB::table('jurisdictions')->where('id', $cursor)->value('parent_id');
                 }
 
-                return implode(' › ', $chain)
+                // The Type B panel scope (2026-09-05) names itself: the
+                // chamber's panel map, the last scope of its composite.
+                $prefix = ($claim['scope_kind'] ?? 'type_a') === 'type_b' ? 'panels: ' : '';
+
+                return $prefix . implode(' › ', $chain)
                     . ($claim['depth'] > 0 ? ' (depth ' . $claim['depth'] . ')' : '');
             })(),
             'finalize'   => 'assessing: ' . $name(

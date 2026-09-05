@@ -461,31 +461,6 @@ async function rewindRun() {
     }
 }
 
-// "Group Type B chambers" — the UI door to `type-b:district` (UI↔CLI parity).
-// Groups flagged chambers' constituents into shared panels and clears
-// type_b_needs_districting so their at-large Type B races can schedule. Same
-// TypeBDistrictMapper service and operator gate as the CLI; a bounded batch so
-// one click never sweeps the planet unattended — press again for the rest.
-const typeBBusy = ref(false)
-const typeBResult = ref(null)
-async function groupTypeB() {
-    if (!confirm('Group the flagged Type B chambers into shared panels?\n\nThis clears type_b_needs_districting so their at-large Type B races can schedule. Runs a bounded batch — press again for the rest.')) return
-    typeBBusy.value = true
-    typeBResult.value = null
-    try {
-        const res = await csrfFetch('/api/setup/wizard/step3/type-b-district', { method: 'POST' })
-        const data = await res.json().catch(() => ({}))
-        if (!res.ok) {
-            autoscaleError.value = data.error || `Type B grouping failed (HTTP ${res.status})`
-            return
-        }
-        typeBResult.value = data
-        await fetchAutoscale()
-    } finally {
-        typeBBusy.value = false
-    }
-}
-
 // ── Lane kill + auto-kill (operator ruling 2026-09-02) ───────────────────
 // A kill is a request: the lane stops at its next boundary and the scope
 // parks in review. Two clicks per kill (arm, then confirm) so one stray
@@ -834,20 +809,24 @@ onBeforeUnmount(() => {
                     </div>
                 </div>
 
-                <!-- Per-ADM-layer bars (operator order 2026-09-02): one bar per
-                     level, segmented by class in a FIXED visual order —
-                     trivials | line-splits | composites — each segment filled
-                     by that class's done count over the level's units; the
-                     void on the right is what the level still owes. The
-                     processing order differs (trivials, then composites, then
-                     line-splits); the picture always fills left to right. -->
+                <!-- Per-ADM-layer bars (operator orders 2026-09-02 / 2026-09-05):
+                     one bar per level, segmented by class in a FIXED visual
+                     order, left to right — at-large district maps |
+                     constituent-split maps | constituent panel maps (Type B)
+                     | line-split maps — each segment filled by that class's
+                     done count over the level's units; the void on the right
+                     is what the level still owes. The processing order
+                     differs (trivials, then composites with their panel map
+                     last, then line-splits); the picture always fills left to
+                     right. -->
                 <div v-if="layers.length" class="mt-4 border-t border-gray-700/50 pt-3">
                     <div class="flex flex-wrap items-center justify-between gap-x-4 gap-y-1 mb-2">
                         <div class="text-gray-400 text-xs uppercase tracking-wide">By layer</div>
-                        <div class="flex items-center gap-3 text-[11px] text-gray-400">
-                            <span class="flex items-center gap-1"><span class="inline-block w-2 h-2 rounded-sm bg-teal-500"></span>At-Large Maps</span>
-                            <span class="flex items-center gap-1"><span class="inline-block w-2 h-2 rounded-sm bg-sky-500"></span>Line-Split Maps</span>
+                        <div class="flex flex-wrap items-center gap-3 text-[11px] text-gray-400">
+                            <span class="flex items-center gap-1"><span class="inline-block w-2 h-2 rounded-sm bg-teal-500"></span>At-Large District Maps</span>
                             <span class="flex items-center gap-1"><span class="inline-block w-2 h-2 rounded-sm bg-violet-500"></span>Constituent-Split Maps</span>
+                            <span class="flex items-center gap-1"><span class="inline-block w-2 h-2 rounded-sm bg-pink-500"></span>Constituent Panel Maps</span>
+                            <span class="flex items-center gap-1"><span class="inline-block w-2 h-2 rounded-sm bg-sky-500"></span>Line-Split Maps</span>
                         </div>
                     </div>
                     <div class="space-y-2">
@@ -867,10 +846,11 @@ onBeforeUnmount(() => {
                                 </span>
                             </div>
                             <div v-if="l.units_total != null" class="h-1.5 bg-gray-800 rounded overflow-hidden flex"
-                                 :title="`${l.trivial_done.toLocaleString()} / ${l.trivial_total.toLocaleString()} at-large maps · ${l.line_done.toLocaleString()} / ${l.line_total.toLocaleString()} line-split maps · ${l.comp_done.toLocaleString()} / ${l.comp_total.toLocaleString()} constituent-split maps`">
+                                 :title="`${l.trivial_done.toLocaleString()} / ${l.trivial_total.toLocaleString()} at-large district maps · ${l.comp_done.toLocaleString()} / ${l.comp_total.toLocaleString()} constituent-split maps · ${(l.panel_done ?? 0).toLocaleString()} / ${(l.panel_total ?? 0).toLocaleString()} constituent panel maps · ${l.line_done.toLocaleString()} / ${l.line_total.toLocaleString()} line-split maps`">
                                 <div class="h-full bg-teal-500 transition-all"   :style="{ width: pct(l.trivial_done, l.units_total) + '%' }"></div>
-                                <div class="h-full bg-sky-500 transition-all"    :style="{ width: pct(l.line_done, l.units_total) + '%' }"></div>
                                 <div class="h-full bg-violet-500 transition-all" :style="{ width: pct(l.comp_done, l.units_total) + '%' }"></div>
+                                <div class="h-full bg-pink-500 transition-all"   :style="{ width: pct(l.panel_done ?? 0, l.units_total) + '%' }"></div>
+                                <div class="h-full bg-sky-500 transition-all"    :style="{ width: pct(l.line_done, l.units_total) + '%' }"></div>
                             </div>
                             <div v-else class="h-1.5 bg-gray-800 rounded overflow-hidden">
                                 <div class="h-full transition-all"
@@ -1240,39 +1220,6 @@ onBeforeUnmount(() => {
                     Phase 2 is complete. Accepting the map data starts the drawing immediately.
                 </p>
             </section>
-
-            <!-- Type B districting — the UI door to `type-b:district` (parity).
-                 Shows whenever chambers are flagged type_b_needs_districting;
-                 the operator groups their constituents into shared panels so the
-                 at-large Type B races can schedule. -->
-            <section
-                v-if="(autoscale?.type_b_flagged ?? 0) > 0 || typeBResult"
-                class="rounded-lg p-5 mb-6 border bg-indigo-900/20 border-indigo-800/50"
-            >
-                <div class="flex items-center justify-between gap-3 mb-2">
-                    <h2 class="font-semibold text-indigo-200">Type B districting</h2>
-                    <button
-                        v-if="(autoscale?.type_b_flagged ?? 0) > 0"
-                        @click="groupTypeB"
-                        :disabled="typeBBusy"
-                        class="text-xs px-3 py-1.5 rounded border border-indigo-600 text-indigo-200 hover:bg-indigo-900/50 transition-colors disabled:opacity-50"
-                        title="Group flagged chambers' constituents into shared panels and clear the districting flag"
-                    >
-                        {{ typeBBusy ? 'Grouping…' : 'Group Type B chambers' }}
-                    </button>
-                </div>
-                <p class="text-sm text-indigo-100/80">
-                    <span class="tabular-nums font-semibold">{{ (autoscale?.type_b_flagged ?? 0).toLocaleString() }}</span>
-                    chamber(s) still flagged — Type B seats exceed the Type A total, so their constituents
-                    must group into shared panels before the at-large race can elect. Equal, compact panels;
-                    no geometry is cut.
-                </p>
-                <p v-if="typeBResult" class="text-xs text-indigo-200/70 mt-2 tabular-nums">
-                    Last run: grouped {{ typeBResult.grouped.toLocaleString() }} ({{ typeBResult.seats.toLocaleString() }} seats),
-                    {{ typeBResult.remaining.toLocaleString() }} remaining<span v-if="typeBResult.undercount"> · {{ typeBResult.undercount }} undercount</span><span v-if="typeBResult.failures"> · {{ typeBResult.failures }} failed</span>.
-                </p>
-            </section>
-
 
             <section class="bg-gray-900 border border-gray-800 rounded-lg p-6 space-y-4">
                 <div v-if="!mapperHref" class="bg-amber-900/30 border border-amber-800 rounded p-4 text-sm text-amber-200">

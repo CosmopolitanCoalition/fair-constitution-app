@@ -193,6 +193,16 @@ final class AutoscaleClaims
         if (DB::table('apportionment_ledger_scopes')->where('status', 'pending')->exists()) {
             return true;
         }
+        // A READY FINALIZE IS CLAIMABLE WORK (operator flag 2026-09-05): a
+        // running header whose scopes all closed is claimed by the finalize
+        // rung — it needs a lane. Left out of this gate, the pump seeded no
+        // lane for it, nobody claimed it, and the run sat one header short
+        // of done for a day (ind-6 Municipal Corporations, 240 seats drawn).
+        if (DB::table('apportionment_ledger')
+                ->where('kind', 'sweep')->where('map_status', 'running')->where('finalize_ready', true)
+                ->exists()) {
+            return true;
+        }
 
         return static::precomputeEnabled()
             && DB::table('jurisdiction_adjacency_parents')->where('status', 'pending')->exists();
@@ -419,7 +429,7 @@ final class AutoscaleClaims
                        -- lock scopes only; never the joined header row.
                        FOR UPDATE OF s2 SKIP LOCKED
                  )
-             RETURNING s.id, s.legislature_id, s.scope_jurisdiction_id, s.depth
+             RETURNING s.id, s.legislature_id, s.scope_jurisdiction_id, s.depth, s.scope_kind
             ", ['running', $token, 'pending', self::HEAVY_TIER]);
         });
 
@@ -433,6 +443,7 @@ final class AutoscaleClaims
             'legislature_id'        => (string) $row->legislature_id,
             'scope_jurisdiction_id' => (string) $row->scope_jurisdiction_id,
             'depth'                 => (int) $row->depth,
+            'scope_kind'            => (string) ($row->scope_kind ?? 'type_a'),
         ];
     }
 
@@ -455,7 +466,7 @@ final class AutoscaleClaims
                    LIMIT 100
                    FOR UPDATE OF s2 SKIP LOCKED
              )
-         RETURNING s.id, s.legislature_id, s.scope_jurisdiction_id, s.depth
+         RETURNING s.id, s.legislature_id, s.scope_jurisdiction_id, s.depth, s.scope_kind
         ", [$token, self::HEAVY_TIER]);
 
         if ($rows === []) {
@@ -470,6 +481,7 @@ final class AutoscaleClaims
                 'legislature_id'        => (string) $r->legislature_id,
                 'scope_jurisdiction_id' => (string) $r->scope_jurisdiction_id,
                 'depth'                 => (int) $r->depth,
+                'scope_kind'            => (string) ($r->scope_kind ?? 'type_a'),
             ], $rows),
         ];
     }

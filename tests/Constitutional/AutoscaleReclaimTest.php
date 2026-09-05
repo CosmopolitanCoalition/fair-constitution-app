@@ -150,6 +150,34 @@ class AutoscaleReclaimTest extends TestCase
         });
     }
 
+    /**
+     * A READY FINALIZE IS CLAIMABLE WORK (operator flag 2026-09-05): the
+     * pump's lane-seeding gate must count a running header armed for
+     * finalize, or no lane spawns to claim it and the run parks one header
+     * short of done (ind-6 Municipal Corporations, 240 seats drawn, a day).
+     */
+    public function test_a_ready_finalize_header_is_claimable_work(): void
+    {
+        $this->onLivePg(function (AutoscaleRun $run): void {
+            [$legId, $scopeId] = $this->mkScope((string) Str::uuid(), retryCount: 0, updatedMinutesAgo: 1);
+            DB::table('apportionment_ledger_scopes')->where('id', $scopeId)
+                ->update(['status' => 'done', 'claim_token' => null, 'finished_at' => now()]);
+            DB::table('apportionment_ledger')->where('legislature_id', $legId)
+                ->update(['finalize_ready' => true]);
+
+            $this->assertTrue(AutoscaleClaims::claimableWork($run),
+                'a running header with finalize_ready set is work a lane must be seeded for');
+
+            $claim = AutoscaleClaims::next($run, (string) Str::uuid());
+            $this->assertNotNull($claim);
+            $this->assertSame('finalize', $claim['type']);
+            $this->assertSame($legId, $claim['legislature_id']);
+
+            $this->assertFalse(AutoscaleClaims::claimableWork($run),
+                'once claimed (assessing) nothing is left to seed a lane for');
+        });
+    }
+
     public function test_a_park_before_the_first_flip_makes_the_header_visible_to_the_finalize_rung(): void
     {
         $this->onLivePg(function (AutoscaleRun $run): void {

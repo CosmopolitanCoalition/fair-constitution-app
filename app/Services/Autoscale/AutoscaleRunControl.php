@@ -79,13 +79,23 @@ class AutoscaleRunControl
                     ->whereIn('legislature_id', $chunk)
                     ->update([
                         'map_status'  => 'pending', 'reason' => null,
-                        'claim_token' => null, 'updated_at' => now(),
+                        'claim_token' => null, 'started_at' => null, 'updated_at' => now(),
                     ]);
+                $this->ensureTypeBScopes($chunk->all());
             }
         }
 
         if ($run->status === 'done') {
             $run->forceFill(['status' => 'mapping', 'finished_at' => null])->save();
+        }
+
+        // THE TYPE B LATCH (operator order 2026-09-05): every resume re-arms
+        // the pump's one-time pass that adds the Type B panel scope to every
+        // composite map lacking one, so a box upgraded under a finished run
+        // draws its panel maps on the next resume. Cheap when nothing is
+        // missing (one indexed anti-join, then the latch sets again).
+        if (\Illuminate\Support\Facades\Schema::hasColumn('autoscale_runs', 'type_b_seeded_at')) {
+            $run->forceFill(['type_b_seeded_at' => null])->save();
         }
 
         // THE FRESH CLOCK (operator rule 2026-08-31, "reset to 0 before
@@ -137,9 +147,12 @@ class AutoscaleRunControl
             $n += DB::table('apportionment_ledger')
                 ->whereIn('legislature_id', $chunk)
                 ->update([
+                    // A requeue is a NEW pass: the start clock resets so
+                    // finalize reads only what this pass closes.
                     'map_status'  => 'pending', 'reason' => null, 'claim_token' => null,
-                    'priority_at' => now(), 'updated_at' => now(),
+                    'started_at'  => null, 'priority_at' => now(), 'updated_at' => now(),
                 ]);
+            $this->ensureTypeBScopes($chunk->all());
         }
         Artisan::call('autoscale:pump');
 
@@ -197,6 +210,7 @@ class AutoscaleRunControl
                     'started_at'          => null, 'finished_at' => null,
                     'updated_at'          => now(),
                 ]);
+            $this->ensureTypeBScopes($chunk->all());
         }
         Artisan::call('autoscale:pump');
 
@@ -554,6 +568,149 @@ class AutoscaleRunControl
                                 WHERE s.legislature_id = h.legislature_id
                                   AND s.status IN ('pending', 'running'))
         ");
+    }
+
+    /**
+     * TYPE B PANEL SCOPES ON EXISTING MAPS (operator order 2026-09-05): every
+     * composite map ends with a Type B panel scope. A run that predates this
+     * (or a map whose tree was written before the walk emitted it) has no
+     * such row. This pass adds the missing rows in bounded chunks and
+     * re-opens each DONE header to running so the panel scope draws and the
+     * header finalizes again (the finalize leaves the accepted Type A map as
+     * it is — only the panel half is new work). Headers in review / failed /
+     * pending / running get the row but no status change: their own path
+     * (requeue, the normal close) carries them. Idempotent; resumable at
+     * chunk granularity; the walk covers every map born after this change,
+     * so on a fresh run the pass finds nothing.
+     *
+     * @return array{inserted:int, reopened:int, remaining:int}
+     */
+    public function seedTypeBScopes(AutoscaleRun $run, int $cap = 20000, int $chunk = 2000): array
+    {
+        $inserted = 0;
+        $reopened = 0;
+        while ($inserted < $cap) {
+            $n = DB::transaction(function () use ($chunk, &$reopened) {
+                $ids = DB::select("
+                    WITH todo AS (
+                        SELECT h.legislature_id, h.jurisdiction_id, l.type_a_seats
+                          FROM apportionment_ledger h
+                          JOIN legislatures l ON l.id = h.legislature_id AND l.deleted_at IS NULL
+                         WHERE h.kind = 'sweep' AND h.child_count > 0 AND h.gate_reason IS NULL
+                           AND h.map_status IN ('done', 'pending', 'running', 'assessing')
+                           AND NOT EXISTS (SELECT 1 FROM apportionment_ledger_scopes s
+                                            WHERE s.legislature_id = h.legislature_id
+                                              AND s.scope_kind = 'type_b')
+                         ORDER BY h.position NULLS LAST
+                         LIMIT ?
+                    )
+                    INSERT INTO apportionment_ledger_scopes
+                        (legislature_id, scope_jurisdiction_id, parent_jurisdiction_id, depth,
+                         walk_position, seat_budget, scope_kind, area_tier, is_leaf, status,
+                         created_at, updated_at)
+                    SELECT t.legislature_id, t.jurisdiction_id, NULL, 0,
+                           (SELECT MAX(s.walk_position) + 1 FROM apportionment_ledger_scopes s
+                             WHERE s.legislature_id = t.legislature_id),
+                           LEAST(t.type_a_seats, GREATEST(0, k.pop - t.type_a_seats)),
+                           'type_b', 1, false, 'pending', now(), now()
+                      FROM todo t
+                      LEFT JOIN LATERAL (
+                           SELECT COALESCE(SUM(GREATEST(c.population, 0)), 0)::bigint AS pop
+                             FROM jurisdictions c
+                            WHERE c.parent_id = t.jurisdiction_id AND c.deleted_at IS NULL
+                      ) k ON TRUE
+                        ON CONFLICT (legislature_id, scope_jurisdiction_id, scope_kind) DO NOTHING
+                    RETURNING legislature_id
+                ", [$chunk]);
+                if ($ids === []) {
+                    return 0;
+                }
+                $legIds = array_map(static fn ($r) => (string) $r->legislature_id, $ids);
+                // A finalized header re-opens for its panel half: running,
+                // a fresh start clock (finalize reads it to know the Type A
+                // scopes are older than this pass), finalize flag down.
+                $reopened += DB::table('apportionment_ledger')
+                    ->whereIn('legislature_id', $legIds)
+                    ->where('map_status', 'done')
+                    ->update([
+                        'map_status'     => 'running',
+                        'started_at'     => now(),
+                        'finished_at'    => null,
+                        'finalize_ready' => false,
+                        'claim_token'    => null,
+                        'updated_at'     => now(),
+                    ]);
+                // A header already running with its Type A scopes closed was
+                // armed for finalize; the new pending panel scope un-arms it
+                // (the pump's ready-flag net re-arms it when the panel closes).
+                DB::table('apportionment_ledger')
+                    ->whereIn('legislature_id', $legIds)
+                    ->where('map_status', 'running')
+                    ->where('finalize_ready', true)
+                    ->update(['finalize_ready' => false, 'updated_at' => now()]);
+
+                return count($ids);
+            });
+            if ($n === 0) {
+                break;
+            }
+            $inserted += $n;
+        }
+
+        $remaining = (int) DB::table('apportionment_ledger as h')
+            ->where('h.kind', 'sweep')->where('h.child_count', '>', 0)->whereNull('h.gate_reason')
+            ->whereIn('h.map_status', ['done', 'pending', 'running', 'assessing'])
+            ->whereExists(function ($q) {
+                $q->selectRaw('1')->from('legislatures as l')
+                  ->whereColumn('l.id', 'h.legislature_id')->whereNull('l.deleted_at');
+            })
+            ->whereNotExists(function ($q) {
+                $q->selectRaw('1')->from('apportionment_ledger_scopes as s')
+                  ->whereColumn('s.legislature_id', 'h.legislature_id')
+                  ->where('s.scope_kind', 'type_b');
+            })
+            ->count();
+
+        return ['inserted' => $inserted, 'reopened' => $reopened, 'remaining' => $remaining];
+    }
+
+    /**
+     * Insert the Type B panel scope row (pending) for the given composite
+     * headers when missing — the requeue paths call this so a review, failed
+     * or drifted map re-drawn under this engine draws its panel half too.
+     * No header status change: the caller owns that.
+     *
+     * @param  iterable<int,string>  $legislatureIds
+     */
+    public function ensureTypeBScopes(iterable $legislatureIds): int
+    {
+        $ids = array_values(array_map('strval', is_array($legislatureIds) ? $legislatureIds : iterator_to_array($legislatureIds, false)));
+        if ($ids === []) {
+            return 0;
+        }
+        $placeholders = implode(',', array_fill(0, count($ids), '?'));
+
+        return DB::affectingStatement("
+            INSERT INTO apportionment_ledger_scopes
+                (legislature_id, scope_jurisdiction_id, parent_jurisdiction_id, depth,
+                 walk_position, seat_budget, scope_kind, area_tier, is_leaf, status,
+                 created_at, updated_at)
+            SELECT h.legislature_id, h.jurisdiction_id, NULL, 0,
+                   (SELECT MAX(s.walk_position) + 1 FROM apportionment_ledger_scopes s
+                     WHERE s.legislature_id = h.legislature_id),
+                   LEAST(l.type_a_seats, GREATEST(0, k.pop - l.type_a_seats)),
+                   'type_b', 1, false, 'pending', now(), now()
+              FROM apportionment_ledger h
+              JOIN legislatures l ON l.id = h.legislature_id AND l.deleted_at IS NULL
+              LEFT JOIN LATERAL (
+                   SELECT COALESCE(SUM(GREATEST(c.population, 0)), 0)::bigint AS pop
+                     FROM jurisdictions c
+                    WHERE c.parent_id = h.jurisdiction_id AND c.deleted_at IS NULL
+              ) k ON TRUE
+             WHERE h.legislature_id IN ({$placeholders})
+               AND h.kind = 'sweep' AND h.child_count > 0 AND h.gate_reason IS NULL
+                ON CONFLICT (legislature_id, scope_jurisdiction_id, scope_kind) DO NOTHING
+        ", $ids);
     }
 
     private static bool $laneControlColumnsPresent = false;

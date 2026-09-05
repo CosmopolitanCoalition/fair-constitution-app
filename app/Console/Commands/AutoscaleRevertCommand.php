@@ -223,6 +223,28 @@ class AutoscaleRevertCommand extends Command
               ) s
              WHERE h.legislature_id = s.legislature_id
                AND h.map_status = 'pending'
+               AND NOT EXISTS (SELECT 1 FROM apportionment_ledger_scopes ps
+                                WHERE ps.legislature_id = h.legislature_id
+                                  AND ps.scope_kind = 'type_b' AND ps.status <> 'done')
+        ");
+        // An adopted map whose Type B PANEL scope is still open (operator
+        // order 2026-09-05) stays RUNNING, not done: the lanes draw the panel
+        // map and the finalize rung closes the header with the adopted map's
+        // seat facts — the same posture as the in-run adoption.
+        DB::statement("
+            UPDATE apportionment_ledger h
+               SET map_status = 'running',
+                   reason = 'adopted: an active map with districts already exists',
+                   started_at = now(), finished_at = NULL, finalize_ready = false,
+                   updated_at = now()
+             WHERE h.map_status = 'pending'
+               AND EXISTS (SELECT 1 FROM legislature_district_maps m
+                            JOIN legislature_districts d ON d.map_id = m.id AND d.deleted_at IS NULL
+                           WHERE m.legislature_id = h.legislature_id
+                             AND m.status = 'active' AND m.deleted_at IS NULL)
+               AND EXISTS (SELECT 1 FROM apportionment_ledger_scopes ps
+                            WHERE ps.legislature_id = h.legislature_id
+                              AND ps.scope_kind = 'type_b' AND ps.status <> 'done')
         ");
         DB::update("
             UPDATE apportionment_ledger_scopes s
@@ -231,8 +253,9 @@ class AutoscaleRevertCommand extends Command
                    finished_at = now(), updated_at = now()
               FROM apportionment_ledger h
              WHERE h.legislature_id = s.legislature_id
-               AND h.map_status = 'done' AND h.reason LIKE 'adopted:%'
+               AND h.map_status IN ('done', 'running') AND h.reason LIKE 'adopted:%'
                AND s.status = 'pending'
+               AND s.scope_kind = 'type_a'
         ");
 
         // Fresh counters; the run parks halted unless --resume (which also

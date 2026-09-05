@@ -119,7 +119,6 @@ class SetupAutoscaleProgressTest extends TestCase
             'scopes left'         => 'where "status" in (?, ?)',
             'drifted list'        => 'abs(h.drift)',
             'layer bars'          => 'leaf_total',
-            'type b flagged'      => 'type_b_needs_districting',
             'precompute worklist' => 'jurisdiction_adjacency_parents',
         ];
         foreach ($fingerprints as $name => $needle) {
@@ -367,6 +366,7 @@ class SetupAutoscaleProgressTest extends TestCase
             $t->timestamp('finished_at')->nullable();
             $t->smallInteger('area_tier')->nullable();
             $t->boolean('is_leaf')->nullable();
+            $t->string('scope_kind', 8)->default('type_a');
         });
         Schema::create('world_builds', function (Blueprint $t) {
             $t->uuid('id')->primary();

@@ -2209,15 +2209,20 @@ const autoseedCommitBusy = ref(false)  // commit POST in-flight
 const autoseedError      = ref('')
 let _autoseedLayers      = null        // L.FeatureGroup — proposal fills + dashed cut lines + seed dots
 
-// Autoseed template picker — the server offers four seeding strategies; the
-// choice persists across sessions like the label toggles. The COMMIT always
-// sends the template stored on the previewed plan, never the picker's live
-// value (the picker may move while a proposal is still open).
+// Autoseed template picker — the SAME line-split tools the auto run's leaf
+// ladder tries, in the SAME order (operator order 2026-09-05; the ladder is
+// LeafGiantResolver::orderTemplates): shortest, box, community cells,
+// vertical strips, horizontal strips, components. The choice persists across
+// sessions like the label toggles. The COMMIT always sends the template
+// stored on the previewed plan, never the picker's live value (the picker may
+// move while a proposal is still open).
 const AUTOSEED_TEMPLATES = [
     { key: 'shortest',          label: 'Shortest lines',    hint: 'neutral, compact' },
+    { key: 'box',               label: 'Box',               hint: 'envelope cuts, fast' },
+    { key: 'community_cells',   label: 'Community cells',   hint: 'keeps towns whole' },
     { key: 'vertical_strips',   label: 'Vertical strips' },
     { key: 'horizontal_strips', label: 'Horizontal strips' },
-    { key: 'community_cells',   label: 'Community cells',   hint: 'keeps towns whole' },
+    { key: 'components',        label: 'Components',        hint: 'whole landmasses, no cut' },
 ]
 const _autoseedTplStored = localStorage.getItem('leg_autoseed_template')
 // The picker STARTS at the constitutional default (Setup Option

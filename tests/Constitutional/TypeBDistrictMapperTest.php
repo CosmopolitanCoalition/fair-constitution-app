@@ -27,6 +27,44 @@ use PHPUnit\Framework\TestCase;
 class TypeBDistrictMapperTest extends TestCase
 {
     /**
+     * THE UNGROUPED MAP (operator order 2026-09-05, Type B as the last scope of
+     * every composite map): a chamber whose ladder already fits gets a panel
+     * map all the same — one panel per constituent, in constituent order, each
+     * seated exactly as the ladder seats the child (rep_floor; min(pop,
+     * rep_floor) for a tiny part; 0 for an empty part). No clumping, and the
+     * grouping's total equals the ladder's type_b_seats to the seat.
+     */
+    public function test_a_ladder_fit_chamber_maps_one_panel_per_constituent_with_the_ladder_seats(): void
+    {
+        $pops = ['a' => 1000, 'b' => 1000, 'c' => 3, 'd' => 0];
+
+        $r = TypeBDistrictMapper::computePanels($pops, [], 34, 2003, 5);
+
+        // bound = min(34, 2003 − 34) = 34; the ladder at 5: 5 + 5 + 3 + 0 = 13 ≤ 34.
+        $this->assertSame(4, $r['panel_count'], 'one panel per constituent');
+        $this->assertSame([['a'], ['b'], ['c'], ['d']], $r['panels'], 'constituent order, nobody clumped');
+        $this->assertSame([5, 5, 3, 0], $r['panel_seats'], 'rep_floor, min(pop, rep_floor) for the tiny part, 0 for the empty part');
+        $this->assertSame(13, $r['seats']);
+        $this->assertFalse($r['undercount']);
+        $ladder = \App\Services\Legislature\TypeBSeatLadder::apportion(34, $pops, 5, 2003);
+        $this->assertSame($ladder['seats'], $r['seats'], 'the panel map seats exactly what the at-large ladder seats');
+        $this->assertFalse($ladder['needs_districting']);
+    }
+
+    /** Clumping begins only where the ladder overflows: 6 parts at 2 = 12 > bound 11. */
+    public function test_clumping_starts_only_when_the_ladder_overflows(): void
+    {
+        $pops = ['a' => 100, 'b' => 100, 'c' => 100, 'd' => 100, 'e' => 100, 'f' => 100];
+
+        $r = TypeBDistrictMapper::computePanels($pops, [], 11, 600, 2);
+
+        $this->assertSame(5, $r['panel_count'], 'floor(11 / 2) = 5 panels');
+        $this->assertSame(10, $r['seats'], '5 × 2; the odd spare seat is unused');
+        $this->assertSame(6, array_sum(array_map('count', $r['panels'])), 'every part placed');
+        $this->assertSame([2, 1, 1, 1, 1], array_map('count', $r['panels']), 'even split: one pair, four singles');
+    }
+
+    /**
      * THE CLAUDE.md WORKED EXAMPLE: 50 states, 1,000 people, Type A 10. At 2
      * apiece Type B is 100; the grouping settles on 5 panels of 10 states x 2 =
      * 10, fitting Type A exactly. Ten states share one panel. No adjacency, so
