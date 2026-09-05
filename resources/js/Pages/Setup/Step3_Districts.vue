@@ -124,9 +124,9 @@ const qualityColumns = computed(() => {
                     ],
                 },
                 {
-                    title: 'Leaf Maps',
+                    title: 'Constituentless Jurisdictions',
                     sub: a.leaves ? `(${qnum(a.leaves.at_large_maps + a.leaves.line_split_maps)} maps)` : '',
-                    tip: 'Jurisdictions with no constituents. Within the seat band a leaf is one at-large district; above the ceiling it is line-split by the leaf ladder, whose rungs are tried in order (shortest split-line, box, community cells, vertical strips, horizontal strips, whole components) until one files. The rows name the rung that filed each map; "unrecorded" maps were drawn before the ladder timings were kept.',
+                    tip: 'Jurisdictions with no constituents. Within the seat band such a jurisdiction is one at-large district; above the ceiling it is line-split by the leaf ladder, whose rungs are tried in order (shortest split-line, box, community cells, vertical strips, horizontal strips, whole components) until one files. The rows name the rung that filed each map; "unrecorded" maps were drawn before the ladder timings were kept.',
                     rows: a.leaves ? [
                         popRow('good', 'At large:', a.leaves.at_large_maps, a.leaves.at_large_maps + a.leaves.line_split_maps, a.leaves.at_large_pop, a.leaves.at_large_pop + a.leaves.line_split_pop),
                         popRow('warn', 'Line-split:', a.leaves.line_split_maps, a.leaves.at_large_maps + a.leaves.line_split_maps, a.leaves.line_split_pop, a.leaves.at_large_pop + a.leaves.line_split_pop),
