@@ -153,9 +153,12 @@ const qualityColumns = computed(() => {
                         // Chamber shapes, in the operator's order (2026-09-05): one panel
                         // per constituent meeting the rep floor; one per constituent with
                         // a part too small to fill its panel (sub floor); clumped; empty.
-                        { dot: 'good', label: 'Meet floor:', value: `${qnum(b.ungrouped_meet_floor ?? b.ungrouped)} (${qpct(b.ungrouped_meet_floor ?? b.ungrouped, b.groupings)})`, right: 'one panel per constituent' },
-                        { dot: 'warn', label: 'Sub floor:', value: `${qnum(b.ungrouped_sub_floor ?? 0)} (${qpct(b.ungrouped_sub_floor ?? 0, b.groupings)})`, right: 'a part seated at its population' },
-                        { dot: 'warn', label: 'Clumped:', value: `${qnum(b.clumped)} (${qpct(b.clumped, b.groupings)})`, right: 'shared panels' },
+                        { dot: 'good', label: `Meet floor (${b.floor ?? 5} seats each):`, value: `${qnum(b.ungrouped_meet_floor ?? b.ungrouped)} (${qpct(b.ungrouped_meet_floor ?? b.ungrouped, b.groupings)})`, right: 'one panel per constituent' },
+                        { dot: 'warn', label: 'Sub floor, 4 seats each:', value: `${qnum(b.ungrouped_rung4 ?? 0)} (${qpct(b.ungrouped_rung4 ?? 0, b.groupings)})`, right: 'ladder rung 4' },
+                        { dot: 'warn', label: 'Sub floor, 3 seats each:', value: `${qnum(b.ungrouped_rung3 ?? 0)} (${qpct(b.ungrouped_rung3 ?? 0, b.groupings)})`, right: 'ladder rung 3' },
+                        { dot: 'warn', label: 'Sub floor, 2 seats each:', value: `${qnum(b.ungrouped_rung2 ?? 0)} (${qpct(b.ungrouped_rung2 ?? 0, b.groupings)})`, right: 'ladder rung 2' },
+                        { dot: 'warn', label: 'Sub floor, tiny constituent:', value: `${qnum(b.ungrouped_tiny ?? 0)} (${qpct(b.ungrouped_tiny ?? 0, b.groupings)})`, right: 'a part seated at its population' },
+                        { dot: 'warn', label: 'Clumped:', value: `${qnum(b.clumped)} (${qpct(b.clumped, b.groupings)})`, right: 'shared panels, 2 seats each' },
                         { dot: 'muted', label: 'Empty:', value: `${qnum(b.zero_panel)} (${qpct(b.zero_panel, b.groupings)})`, right: 'ceiling below one panel' },
                     ],
                 },

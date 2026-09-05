@@ -102,6 +102,7 @@ class MapQualityStats
 
         // ── Type B: groupings, panels, legality, diversity (set-based). ──
         $beat('Type B groupings: aggregating');
+        $floor = \App\Services\ConstitutionalDefaults::floor();   // the constitutional district floor (5)
         $b = DB::selectOne("
             WITH g AS (
                 SELECT g.id, g.legislature_id, g.panel_count, g.seats_total, g.rep_floor, l.type_b_seats, l.type_a_seats, l.jurisdiction_id
@@ -131,12 +132,17 @@ class MapQualityStats
             SELECT COUNT(*)                                                                   AS groupings,
                    COUNT(*) FILTER (WHERE COALESCE(panels.panels, 0) < kids.n AND COALESCE(panels.panels, 0) > 0) AS clumped,
                    COUNT(*) FILTER (WHERE COALESCE(panels.panels, 0) = kids.n)                AS ungrouped,
-                   -- One panel per constituent: every panel seats the full rep floor
-                   -- (meets the floor), or some constituent is too small to fill
-                   -- its panel — the ladder seats a tiny part at its population
-                   -- (sub floor). Operator order 2026-09-05: called out separately.
-                   COUNT(*) FILTER (WHERE COALESCE(panels.panels, 0) = kids.n AND panels.min_seats >= g.rep_floor) AS ungrouped_meet_floor,
-                   COUNT(*) FILTER (WHERE COALESCE(panels.panels, 0) = kids.n AND panels.min_seats <  g.rep_floor) AS ungrouped_sub_floor,
+                   -- One panel per constituent, by the claim ladder's rung (operator
+                   -- order 2026-09-05): MEET FLOOR when the rung is the constitutional
+                   -- floor and every panel seats it; SUB FLOOR when the ladder stepped
+                   -- below the floor (4, 3, 2 seats per constituent) to stay under the
+                   -- cube-root ceiling; TINY when a constituent is too small to fill
+                   -- its panel and is seated at its population.
+                   COUNT(*) FILTER (WHERE COALESCE(panels.panels, 0) = kids.n AND g.rep_floor >= ? AND panels.min_seats >= g.rep_floor) AS ungrouped_meet_floor,
+                   COUNT(*) FILTER (WHERE COALESCE(panels.panels, 0) = kids.n AND g.rep_floor = 4 AND g.rep_floor < ? AND panels.min_seats >= g.rep_floor) AS ungrouped_rung4,
+                   COUNT(*) FILTER (WHERE COALESCE(panels.panels, 0) = kids.n AND g.rep_floor = 3 AND panels.min_seats >= g.rep_floor) AS ungrouped_rung3,
+                   COUNT(*) FILTER (WHERE COALESCE(panels.panels, 0) = kids.n AND g.rep_floor = 2 AND panels.min_seats >= g.rep_floor) AS ungrouped_rung2,
+                   COUNT(*) FILTER (WHERE COALESCE(panels.panels, 0) = kids.n AND panels.min_seats < g.rep_floor) AS ungrouped_tiny,
                    COUNT(*) FILTER (WHERE COALESCE(panels.panels, 0) = 0)                     AS zero_panel,
                    COALESCE(SUM(panels.panels), 0)                                            AS panels,
                    COALESCE(SUM(g.seats_total), 0)                                            AS seats,
@@ -152,7 +158,7 @@ class MapQualityStats
               FROM g JOIN kids ON kids.gid = g.id
               LEFT JOIN panels ON panels.gid = g.id
               LEFT JOIN mem ON mem.gid = g.id
-        ");
+        ", [$floor, $floor]);
 
         // ── Type B contiguity: one chamber at a time, chunked. A panel of one
         // is contiguous by definition; a break is FORCED when the panel spans
@@ -225,8 +231,12 @@ class MapQualityStats
                 'groupings'    => (int) $b->groupings,
                 'clumped'      => (int) $b->clumped,
                 'ungrouped'    => (int) $b->ungrouped,
+                'floor'                => $floor,
                 'ungrouped_meet_floor' => (int) $b->ungrouped_meet_floor,
-                'ungrouped_sub_floor'  => (int) $b->ungrouped_sub_floor,
+                'ungrouped_rung4'      => (int) $b->ungrouped_rung4,
+                'ungrouped_rung3'      => (int) $b->ungrouped_rung3,
+                'ungrouped_rung2'      => (int) $b->ungrouped_rung2,
+                'ungrouped_tiny'       => (int) $b->ungrouped_tiny,
                 'zero_panel'   => (int) $b->zero_panel,
                 'panels'       => (int) $b->panels,
                 'seats'        => (int) $b->seats,
