@@ -88,6 +88,8 @@ function qpop(n) {
 }
 function qnum(n) { return Number(n || 0).toLocaleString() }
 const Q_DOT = { good: 'text-emerald-400', warn: 'text-amber-400', bad: 'text-red-400', muted: 'text-gray-500' }
+const Q_LADDER = ['shortest', 'box', 'community_cells', 'vertical_strips', 'horizontal_strips', 'components', 'mask', 'unrecorded']
+const Q_METHOD_LABELS = { shortest: 'Shortest split-line', box: 'Box', community_cells: 'Community cells', vertical_strips: 'Vertical strips', horizontal_strips: 'Horizontal strips', components: 'Whole components', mask: 'Mask', unrecorded: 'Unrecorded' }
 // The card's two columns as data — one statistic per line, every section
 // with the tooltip the map views carry (operator order 2026-09-05).
 const qualityColumns = computed(() => {
@@ -95,6 +97,7 @@ const qualityColumns = computed(() => {
     if (!q?.type_a || !q?.type_b) return []
     const a = q.type_a, b = q.type_b
     const zeroGood = n => (Number(n) === 0 ? 'good' : 'bad')
+    const shapePop = k => (b.shapes_pop ? `${qpop(b.shapes_pop[k])} pop (${qpct(b.shapes_pop[k], b.shapes_pop.all)})` : undefined)
     const popRow = (dot, label, count, total, pop, popTotal) => ({
         dot, label, value: `${qnum(count)} (${qpct(count, total)})`,
         right: `${qpop(pop)} pop (${qpct(pop, popTotal)})`,
@@ -130,11 +133,21 @@ const qualityColumns = computed(() => {
                     rows: a.leaves ? [
                         popRow('good', 'At large:', a.leaves.at_large_maps, a.leaves.at_large_maps + a.leaves.line_split_maps, a.leaves.at_large_pop, a.leaves.at_large_pop + a.leaves.line_split_pop),
                         popRow('warn', 'Line-split:', a.leaves.line_split_maps, a.leaves.at_large_maps + a.leaves.line_split_maps, a.leaves.line_split_pop, a.leaves.at_large_pop + a.leaves.line_split_pop),
-                        ...Object.entries(a.leaves.methods ?? {}).map(([m, n]) => ({
-                            dot: 'muted',
-                            label: `${({ shortest: 'Shortest split-line', box: 'Box', community_cells: 'Community cells', vertical_strips: 'Vertical strips', horizontal_strips: 'Horizontal strips', components: 'Whole components', mask: 'Mask', unrecorded: 'Unrecorded' })[m] ?? m}:`,
-                            value: `${qnum(n)} (${qpct(n, a.leaves.line_split_maps)})`,
-                        })),
+                        // The filing rungs, indented under Line-split, in the ladder's
+                        // priority (the mapper's picker and the auto ladder share it);
+                        // ordered here because jsonb storage reorders object keys.
+                        ...Object.entries(a.leaves.methods ?? {})
+                            .sort(([x], [y]) => (Q_LADDER.indexOf(x) === -1 ? 99 : Q_LADDER.indexOf(x)) - (Q_LADDER.indexOf(y) === -1 ? 99 : Q_LADDER.indexOf(y)))
+                            .map(([m, v]) => {
+                                const n = typeof v === 'object' ? (v.maps ?? 0) : Number(v || 0)
+                                const pop = typeof v === 'object' ? (v.pop ?? 0) : null
+                                return {
+                                    dot: 'muted', indent: true,
+                                    label: `${Q_METHOD_LABELS[m] ?? m}:`,
+                                    value: `${qnum(n)} (${qpct(n, a.leaves.line_split_maps)})`,
+                                    right: pop != null ? `${qpop(pop)} pop (${qpct(pop, a.leaves.line_split_pop)})` : undefined,
+                                }
+                            }),
                     ] : [{ dot: 'muted', label: 'Not yet computed', value: '' }],
                 },
                 {
@@ -190,10 +203,10 @@ const qualityColumns = computed(() => {
                         // floor (2 = the hard floor, 4 = the floor minus one); a part too
                         // small to fill its panel; clumped. The four legality checks close
                         // the section.
-                        { dot: 'good', label: `Meet floor (${b.floor ?? 5} seats each):`, value: `${qnum(b.ungrouped_meet_floor ?? b.ungrouped)} (${qpct(b.ungrouped_meet_floor ?? b.ungrouped, b.groupings)})` },
-                        { dot: 'warn', label: `Sub floor (2–${(b.floor ?? 5) - 1} seats each):`, value: `${qnum((b.ungrouped_rung4 ?? 0) + (b.ungrouped_rung3 ?? 0) + (b.ungrouped_rung2 ?? 0))} (${qpct((b.ungrouped_rung4 ?? 0) + (b.ungrouped_rung3 ?? 0) + (b.ungrouped_rung2 ?? 0), b.groupings)})` },
-                        { dot: 'warn', label: 'Sub floor, tiny constituent:', value: `${qnum(b.ungrouped_tiny ?? 0)} (${qpct(b.ungrouped_tiny ?? 0, b.groupings)})` },
-                        { dot: 'warn', label: 'Clumped:', value: `${qnum(b.clumped)} (${qpct(b.clumped, b.groupings)})` },
+                        { dot: 'good', label: `Meet floor (${b.floor ?? 5} seats each):`, value: `${qnum(b.ungrouped_meet_floor ?? b.ungrouped)} (${qpct(b.ungrouped_meet_floor ?? b.ungrouped, b.groupings)})`, right: shapePop('meet_floor') },
+                        { dot: 'warn', label: `Sub floor (2–${(b.floor ?? 5) - 1} seats each):`, value: `${qnum((b.ungrouped_rung4 ?? 0) + (b.ungrouped_rung3 ?? 0) + (b.ungrouped_rung2 ?? 0))} (${qpct((b.ungrouped_rung4 ?? 0) + (b.ungrouped_rung3 ?? 0) + (b.ungrouped_rung2 ?? 0), b.groupings)})`, right: shapePop('sub_floor') },
+                        { dot: 'warn', label: 'Sub floor, tiny constituent:', value: `${qnum(b.ungrouped_tiny ?? 0)} (${qpct(b.ungrouped_tiny ?? 0, b.groupings)})`, right: shapePop('tiny') },
+                        { dot: 'warn', label: 'Clumped:', value: `${qnum(b.clumped)} (${qpct(b.clumped, b.groupings)})`, right: shapePop('clumped') },
                         { dot: zeroGood(b.legality.breach), label: 'Seat breaches:', value: qnum(b.legality.breach) },
                         { dot: zeroGood(b.legality.unassigned_parts), label: 'Unassigned constituents:', value: qnum(b.legality.unassigned_parts) },
                         { dot: zeroGood(b.legality.empty_panels), label: 'Empty panels:', value: qnum(b.legality.empty_panels) },
@@ -1442,7 +1455,7 @@ onBeforeUnmount(() => {
                                 </span>
                             </div>
                             <div class="space-y-0.5">
-                                <div v-for="row in sec.rows" :key="row.label" class="flex items-baseline gap-1">
+                                <div v-for="row in sec.rows" :key="row.label" class="flex items-baseline gap-1" :class="row.indent ? 'pl-4' : ''">
                                     <span :class="Q_DOT[row.dot]">&#9632;</span>
                                     <span class="text-gray-400 whitespace-nowrap">{{ row.label }}</span>
                                     <span class="text-gray-200">{{ row.value }}</span>

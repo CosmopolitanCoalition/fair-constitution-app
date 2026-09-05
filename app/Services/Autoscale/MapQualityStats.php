@@ -143,7 +143,8 @@ class MapQualityStats
                      WHEN jsonb_exists(s.step_timings -> 'n', 'leaf.shortest')          THEN 'shortest'
                      ELSE 'unrecorded'
                    END AS method,
-                   COUNT(*) AS maps
+                   COUNT(*) AS maps,
+                   COALESCE(SUM(GREATEST(h.population, 0)), 0) AS pop
               FROM apportionment_ledger_scopes s
               JOIN apportionment_ledger h ON h.legislature_id = s.legislature_id
              WHERE s.scope_kind = 'type_a' AND s.is_leaf IS TRUE AND s.status = 'done'
@@ -190,6 +191,13 @@ class MapQualityStats
                    COUNT(*) FILTER (WHERE COALESCE(panels.panels, 0) = kids.n AND g.rep_floor = 2 AND panels.min_seats >= g.rep_floor) AS ungrouped_rung2,
                    COUNT(*) FILTER (WHERE COALESCE(panels.panels, 0) = kids.n AND panels.min_seats < g.rep_floor) AS ungrouped_tiny,
                    COUNT(*) FILTER (WHERE COALESCE(panels.panels, 0) = 0)                     AS zero_panel,
+                   -- populations per chamber shape (the chamber's constituent population)
+                   COALESCE(SUM(kids.pop), 0)                                                                                                        AS shapes_pop,
+                   COALESCE(SUM(kids.pop) FILTER (WHERE COALESCE(panels.panels, 0) < kids.n AND COALESCE(panels.panels, 0) > 0), 0)                AS clumped_pop,
+                   COALESCE(SUM(kids.pop) FILTER (WHERE COALESCE(panels.panels, 0) = kids.n AND g.rep_floor >= ? AND panels.min_seats >= g.rep_floor), 0) AS meet_floor_pop,
+                   COALESCE(SUM(kids.pop) FILTER (WHERE COALESCE(panels.panels, 0) = kids.n AND g.rep_floor < ? AND panels.min_seats >= g.rep_floor), 0)  AS sub_floor_pop,
+                   COALESCE(SUM(kids.pop) FILTER (WHERE COALESCE(panels.panels, 0) = kids.n AND panels.min_seats < g.rep_floor), 0)                AS tiny_pop,
+                   COALESCE(SUM(kids.pop) FILTER (WHERE COALESCE(panels.panels, 0) = 0), 0)                                                         AS zero_panel_pop,
                    COALESCE(SUM(panels.panels), 0)                                            AS panels,
                    COALESCE(SUM(g.seats_total), 0)                                            AS seats,
                    COUNT(*) FILTER (WHERE g.seats_total > LEAST(g.type_a_seats, GREATEST(0, kids.pop - g.type_a_seats))) AS breach,
@@ -205,7 +213,7 @@ class MapQualityStats
               LEFT JOIN panels ON panels.gid = g.id
               LEFT JOIN mem ON mem.gid = g.id
              GROUP BY g.adm_level
-        ", [$floor, $floor]);
+        ", [$floor, $floor, $floor, $floor]);
 
         // ── Type B contiguity: one chamber at a time, chunked, per layer. ──
         $contig = [];
@@ -247,7 +255,7 @@ class MapQualityStats
         $bBy = $byLevel($bRows);
         $methodsBy = [];
         foreach ($methodRows as $r) {
-            $methodsBy[(int) $r->adm_level][(string) $r->method] = (int) $r->maps;
+            $methodsBy[(int) $r->adm_level][(string) $r->method] = ['maps' => (int) $r->maps, 'pop' => (int) $r->pop];
         }
         $allLevels = array_unique(array_merge(array_keys($aBy), array_keys($lBy), array_keys($bBy), array_keys($contig), array_keys($diversity)));
         sort($allLevels);
@@ -307,7 +315,9 @@ class MapQualityStats
         $out = [];
         foreach ($methodsBy as $m) {
             foreach ($m as $k => $v) {
-                $out[$k] = ($out[$k] ?? 0) + $v;
+                $out[$k] ??= ['maps' => 0, 'pop' => 0];
+                $out[$k]['maps'] += $v['maps'];
+                $out[$k]['pop']  += $v['pop'];
             }
         }
 
@@ -407,6 +417,8 @@ class MapQualityStats
                 'ungrouped_rung2'      => $g($b, 'ungrouped_rung2'),
                 'ungrouped_tiny'       => $g($b, 'ungrouped_tiny'),
                 'zero_panel'   => $g($b, 'zero_panel'),
+                'shapes_pop'   => ['all' => $g($b, 'shapes_pop'), 'meet_floor' => $g($b, 'meet_floor_pop'), 'sub_floor' => $g($b, 'sub_floor_pop'),
+                                   'tiny' => $g($b, 'tiny_pop'), 'clumped' => $g($b, 'clumped_pop'), 'zero_panel' => $g($b, 'zero_panel_pop')],
                 'panels'       => $g($b, 'panels'),
                 'seats'        => $g($b, 'seats'),
                 'constituents' => $g($b, 'constituents'),
