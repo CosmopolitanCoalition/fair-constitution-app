@@ -149,12 +149,12 @@ const qualityColumns = computed(() => {
                         // floor (2 = the hard floor, 4 = the floor minus one); a part too
                         // small to fill its panel; clumped. The four legality checks close
                         // the section.
-                        { dot: 'good', label: `Meet floor (${b.floor ?? 5} seats each):`, value: `${qnum(b.ungrouped_meet_floor ?? b.ungrouped)} (${qpct(b.ungrouped_meet_floor ?? b.ungrouped, b.groupings)})`, right: 'one panel per constituent' },
-                        { dot: 'warn', label: `Sub floor (2–${(b.floor ?? 5) - 1} seats each):`, value: `${qnum((b.ungrouped_rung4 ?? 0) + (b.ungrouped_rung3 ?? 0) + (b.ungrouped_rung2 ?? 0))} (${qpct((b.ungrouped_rung4 ?? 0) + (b.ungrouped_rung3 ?? 0) + (b.ungrouped_rung2 ?? 0), b.groupings)})`, right: 'ladder below the floor, 2 is the hard floor' },
-                        { dot: 'warn', label: 'Sub floor, tiny constituent:', value: `${qnum(b.ungrouped_tiny ?? 0)} (${qpct(b.ungrouped_tiny ?? 0, b.groupings)})`, right: 'a part seated at its population' },
-                        { dot: 'warn', label: 'Clumped:', value: `${qnum(b.clumped)} (${qpct(b.clumped, b.groupings)})`, right: 'shared panels, 2 seats each' },
-                        { dot: zeroGood(b.legality.breach), label: 'Seat breaches:', value: qnum(b.legality.breach), right: 'over the Type B ceiling' },
-                        { dot: zeroGood(b.legality.unassigned_parts), label: 'Unassigned constituents:', value: qnum(b.legality.unassigned_parts), right: `of ${qnum(b.constituents)}` },
+                        { dot: 'good', label: `Meet floor (${b.floor ?? 5} seats each):`, value: `${qnum(b.ungrouped_meet_floor ?? b.ungrouped)} (${qpct(b.ungrouped_meet_floor ?? b.ungrouped, b.groupings)})` },
+                        { dot: 'warn', label: `Sub floor (2–${(b.floor ?? 5) - 1} seats each):`, value: `${qnum((b.ungrouped_rung4 ?? 0) + (b.ungrouped_rung3 ?? 0) + (b.ungrouped_rung2 ?? 0))} (${qpct((b.ungrouped_rung4 ?? 0) + (b.ungrouped_rung3 ?? 0) + (b.ungrouped_rung2 ?? 0), b.groupings)})` },
+                        { dot: 'warn', label: 'Sub floor, tiny constituent:', value: `${qnum(b.ungrouped_tiny ?? 0)} (${qpct(b.ungrouped_tiny ?? 0, b.groupings)})` },
+                        { dot: 'warn', label: 'Clumped:', value: `${qnum(b.clumped)} (${qpct(b.clumped, b.groupings)})` },
+                        { dot: zeroGood(b.legality.breach), label: 'Seat breaches:', value: qnum(b.legality.breach) },
+                        { dot: zeroGood(b.legality.unassigned_parts), label: 'Unassigned constituents:', value: qnum(b.legality.unassigned_parts) },
                         { dot: zeroGood(b.legality.empty_panels), label: 'Empty panels:', value: qnum(b.legality.empty_panels) },
                         { dot: zeroGood(b.legality.identity_mismatch), label: 'Seat mismatches:', value: qnum(b.legality.identity_mismatch) },
                     ],
