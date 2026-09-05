@@ -153,7 +153,7 @@ class MapQualityStats
         // paid for it. ──────────────────────────────────────────────────
         $contig = ['contiguous_count' => 0, 'contiguous_pop' => 0, 'forced_count' => 0, 'forced_pop' => 0,
                    'spread_count' => 0, 'spread_pop' => 0, 'chambers' => 0];
-        $lastId = '';
+        $lastId = '00000000-0000-0000-0000-000000000000';   // keyset start: below every uuid
         while (true) {
             $rows = DB::table('legislature_type_b_groupings as g')
                 ->join('legislatures as l', 'l.id', '=', 'g.legislature_id')
