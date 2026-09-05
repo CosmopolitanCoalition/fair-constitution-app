@@ -92,8 +92,6 @@ const qualityColumns = computed(() => {
                     tip: 'Every district map must seat exactly its apportioned total (no drift), keep every district inside the 5–9 seat band, and record any floor exception (Art. II §2) or ceiling exception (a forced 1- or 0-seat landing lifted to 2 with bonus seats) where the geography forces one.',
                     rows: [
                         { dot: a.legality.sweeps_exact === a.legality.sweeps_done ? 'good' : 'bad', label: 'Exact seat totals:', value: `${qnum(a.legality.sweeps_exact)} (${qpct(a.legality.sweeps_exact, a.legality.sweeps_done)})`, right: `${qnum(a.legality.sweeps_done - a.legality.sweeps_exact)} drift` },
-                        { dot: zeroGood(a.legality.over_ceiling), label: 'Over the ceiling (9):', value: qnum(a.legality.over_ceiling) },
-                        { dot: zeroGood(a.legality.sub_floor_unflagged), label: 'Under the floor (5), unrecorded:', value: qnum(a.legality.sub_floor_unflagged) },
                         { dot: 'warn', label: 'Floor exceptions, recorded:', value: `${qnum(a.legality.floor_overrides)} (${qpct(a.legality.floor_overrides, a.districts)})` },
                         { dot: 'warn', label: 'Ceiling exceptions:', value: `${qnum(a.legality.bonus_maps)} maps`, right: `${qnum(a.legality.bonus_seats)} bonus seats` },
                         { dot: zeroGood(a.legality.maps_review), label: 'Awaiting review:', value: qnum(a.legality.maps_review) },
@@ -146,20 +144,19 @@ const qualityColumns = computed(() => {
                     title: 'Constitutional Legality',
                     tip: 'A panel map may never seat more than the Type B ceiling (the Type A total, capped so seats never exceed people), must place every constituent jurisdiction in exactly one panel, must hold no empty panel, and its panel seats must add up to the chamber\'s Type B seats. A chamber whose ladder already fits keeps one panel per constituent; a chamber whose ceiling holds less than one panel lawfully seats none.',
                     rows: [
+                        // Chamber shapes first, in the operator's order (2026-09-05): one
+                        // panel per constituent at the floor; the claim ladder below the
+                        // floor (2 = the hard floor, 4 = the floor minus one); a part too
+                        // small to fill its panel; clumped. The four legality checks close
+                        // the section.
+                        { dot: 'good', label: `Meet floor (${b.floor ?? 5} seats each):`, value: `${qnum(b.ungrouped_meet_floor ?? b.ungrouped)} (${qpct(b.ungrouped_meet_floor ?? b.ungrouped, b.groupings)})`, right: 'one panel per constituent' },
+                        { dot: 'warn', label: `Sub floor (2–${(b.floor ?? 5) - 1} seats each):`, value: `${qnum((b.ungrouped_rung4 ?? 0) + (b.ungrouped_rung3 ?? 0) + (b.ungrouped_rung2 ?? 0))} (${qpct((b.ungrouped_rung4 ?? 0) + (b.ungrouped_rung3 ?? 0) + (b.ungrouped_rung2 ?? 0), b.groupings)})`, right: 'ladder below the floor, 2 is the hard floor' },
+                        { dot: 'warn', label: 'Sub floor, tiny constituent:', value: `${qnum(b.ungrouped_tiny ?? 0)} (${qpct(b.ungrouped_tiny ?? 0, b.groupings)})`, right: 'a part seated at its population' },
+                        { dot: 'warn', label: 'Clumped:', value: `${qnum(b.clumped)} (${qpct(b.clumped, b.groupings)})`, right: 'shared panels, 2 seats each' },
                         { dot: zeroGood(b.legality.breach), label: 'Seat breaches:', value: qnum(b.legality.breach), right: 'over the Type B ceiling' },
                         { dot: zeroGood(b.legality.unassigned_parts), label: 'Unassigned constituents:', value: qnum(b.legality.unassigned_parts), right: `of ${qnum(b.constituents)}` },
                         { dot: zeroGood(b.legality.empty_panels), label: 'Empty panels:', value: qnum(b.legality.empty_panels) },
                         { dot: zeroGood(b.legality.identity_mismatch), label: 'Seat mismatches:', value: qnum(b.legality.identity_mismatch) },
-                        // Chamber shapes, in the operator's order (2026-09-05): one panel
-                        // per constituent meeting the rep floor; one per constituent with
-                        // a part too small to fill its panel (sub floor); clumped; empty.
-                        { dot: 'good', label: `Meet floor (${b.floor ?? 5} seats each):`, value: `${qnum(b.ungrouped_meet_floor ?? b.ungrouped)} (${qpct(b.ungrouped_meet_floor ?? b.ungrouped, b.groupings)})`, right: 'one panel per constituent' },
-                        { dot: 'warn', label: 'Sub floor, 4 seats each:', value: `${qnum(b.ungrouped_rung4 ?? 0)} (${qpct(b.ungrouped_rung4 ?? 0, b.groupings)})`, right: 'ladder rung 4' },
-                        { dot: 'warn', label: 'Sub floor, 3 seats each:', value: `${qnum(b.ungrouped_rung3 ?? 0)} (${qpct(b.ungrouped_rung3 ?? 0, b.groupings)})`, right: 'ladder rung 3' },
-                        { dot: 'warn', label: 'Sub floor, 2 seats each:', value: `${qnum(b.ungrouped_rung2 ?? 0)} (${qpct(b.ungrouped_rung2 ?? 0, b.groupings)})`, right: 'ladder rung 2' },
-                        { dot: 'warn', label: 'Sub floor, tiny constituent:', value: `${qnum(b.ungrouped_tiny ?? 0)} (${qpct(b.ungrouped_tiny ?? 0, b.groupings)})`, right: 'a part seated at its population' },
-                        { dot: 'warn', label: 'Clumped:', value: `${qnum(b.clumped)} (${qpct(b.clumped, b.groupings)})`, right: 'shared panels, 2 seats each' },
-                        { dot: 'muted', label: 'Empty:', value: `${qnum(b.zero_panel)} (${qpct(b.zero_panel, b.groupings)})`, right: 'ceiling below one panel' },
                     ],
                 },
                 {
