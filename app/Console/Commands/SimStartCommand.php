@@ -35,6 +35,7 @@ class SimStartCommand extends Command
                             {--adm-max=6 : Deepest adm level to populate}
                             {--limit= : Only enumerate the N largest jurisdictions (a smoke run)}
                             {--jurisdiction= : Scope the world to this jurisdiction and its subtree (slug or UUID) — the narrow co-test posture}
+                            {--aspects= : Comma-separated aspects to simulate (elections,governance,civic_life,training,money); prerequisites auto-included; default all}
                             {--resume : Adopt the newest unfinished run instead of starting one}';
 
     protected $description = 'Start a simulated-world populate run and enumerate its worklist';
@@ -100,6 +101,7 @@ class SimStartCommand extends Command
                     'adm_max' => $admMax,
                     'limit' => $limit,
                     'scope_jurisdiction_id' => $scopeRootId,
+                    'scope_aspects' => $this->parseAspects(),
                 ],
                 'phase_timings' => [],
             ]);
@@ -133,6 +135,28 @@ class SimStartCommand extends Command
         $this->info("enumerated {$minted} cohort items — sim:pump will start workers within the minute");
 
         return self::SUCCESS;
+    }
+
+    /**
+     * The chosen scope aspects, validated against the known set. Null (the
+     * default) means run everything; base is always implied by the run.
+     *
+     * @return list<string>|null
+     */
+    private function parseAspects(): ?array
+    {
+        $raw = trim((string) $this->option('aspects'));
+        if ($raw === '') {
+            return null;
+        }
+
+        $known = array_values(array_diff(SimRun::ALL_ASPECTS, ['base']));
+        $chosen = array_values(array_intersect(
+            array_map('trim', explode(',', $raw)),
+            $known
+        ));
+
+        return $chosen === [] ? null : $chosen;
     }
 
     /**

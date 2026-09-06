@@ -483,7 +483,10 @@ class SimPumpCommand extends Command
             return;
         }
 
-        $next = $run->nextPhase();
+        // Skip phases not in the run's chosen scope (dependency-aware). The
+        // closure in nextActivePhase guarantees a selected aspect's prerequisites
+        // are in scope, so skipping never drops something a later phase needs.
+        $next = $run->nextActivePhase();
 
         if ($next === null) {
             return;

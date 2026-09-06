@@ -3738,11 +3738,15 @@ class SetupController extends Controller
             ], 409);
         }
 
+        $known = array_values(array_diff(\App\Models\SimRun::ALL_ASPECTS, ['base']));
+        $aspects = array_values(array_intersect((array) $request->input('aspects', []), $known));
+
         $options = [
             'world-version' => $request->integer('world_version', 1),
             'turnout'       => $request->integer('turnout', 62),
             'adm-max'       => $request->integer('adm_max', 6),
             'limit'         => $request->input('limit'),
+            'aspects'       => $aspects === [] ? null : $aspects,
             'resume'        => $request->boolean('resume'),
         ];
 

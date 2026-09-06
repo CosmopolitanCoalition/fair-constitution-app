@@ -173,8 +173,43 @@ async function post(url, body = {}, label = '') {
     }
 }
 
+// ── Dependency-aware scope (operator 2026-09-06) ─────────────────────────────
+// Pick WHAT to simulate. Prerequisites auto-include and dependents auto-clear,
+// so a required aspect can never be skipped — the same closure the backend
+// enforces. base (people + wallets) is always on and not shown.
+const ASPECT_LABELS = {
+    elections: 'Elections & seating',
+    governance: 'Governance & courts',
+    civic_life: 'Civic life (orgs, CGCs, boards)',
+    training: 'Training',
+    money: 'Money (stipends)',
+}
+const ASPECT_REQUIRES = {
+    elections: [],
+    governance: ['elections'],
+    civic_life: ['governance'],
+    training: ['elections'],
+    money: ['elections'],
+}
+const aspects = ref({ elections: true, governance: true, civic_life: true, training: true, money: true })
+
+function requiresOf(k) {
+    const out = new Set(); const stack = [...(ASPECT_REQUIRES[k] || [])]
+    while (stack.length) { const r = stack.pop(); if (!out.has(r)) { out.add(r); (ASPECT_REQUIRES[r] || []).forEach(x => stack.push(x)) } }
+    return [...out]
+}
+function dependentsOf(k) {
+    return Object.keys(ASPECT_REQUIRES).filter(a => requiresOf(a).includes(k))
+}
+function setAspect(k, val) {
+    aspects.value[k] = val
+    if (val) requiresOf(k).forEach(r => aspects.value[r] = true)
+    else dependentsOf(k).forEach(d => aspects.value[d] = false)
+}
+const selectedAspects = computed(() => Object.keys(aspects.value).filter(k => aspects.value[k]))
+
 async function start(resume = false) {
-    const r = await post('/api/setup/wizard/step5/start', { resume }, 'start')
+    const r = await post('/api/setup/wizard/step5/start', { resume, aspects: selectedAspects.value }, 'start')
     if (r) notice.value = r.resumed ? 'Resuming the unfinished run — re-enumerating cleanly.' : 'Run started. The work-list enumerates first; lanes follow within the minute.'
 }
 async function halt() {
@@ -290,6 +325,22 @@ onBeforeUnmount(() => { if (timer) clearInterval(timer); if (clock) clearInterva
                         class="bg-red-800 hover:bg-red-700 disabled:bg-gray-700 text-white px-4 py-2 rounded-md font-semibold text-sm">
                         {{ busy === 'rollback' ? 'Rolling back…' : 'Roll back run' }}
                     </button>
+                </div>
+            </div>
+
+            <!-- Dependency-aware scope: what to simulate (before a run starts) -->
+            <div v-if="canStart && !refused && !locked" class="mt-4 border-t border-gray-700/50 pt-3">
+                <div class="text-gray-400 text-xs uppercase tracking-wide mb-2">Scope
+                    <span class="text-gray-500 normal-case">· pick what to simulate — prerequisites are pulled in automatically, so nothing a chosen aspect needs can be left out. People and wallets always run.</span>
+                </div>
+                <div class="flex flex-wrap gap-3">
+                    <label v-for="(label, key) in ASPECT_LABELS" :key="key"
+                        class="flex items-center gap-2 text-sm px-2.5 py-1.5 rounded bg-gray-800/60 cursor-pointer select-none"
+                        :class="aspects[key] ? 'text-gray-100 ring-1 ring-blue-700/50' : 'text-gray-400'">
+                        <input type="checkbox" :checked="aspects[key]" @change="setAspect(key, $event.target.checked)"
+                            class="accent-blue-500" />
+                        {{ label }}
+                    </label>
                 </div>
             </div>
 

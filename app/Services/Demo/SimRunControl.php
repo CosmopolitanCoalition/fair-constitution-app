@@ -382,6 +382,9 @@ class SimRunControl
         if (isset($options['limit']) && $options['limit'] !== null && $options['limit'] !== '') {
             $out['--limit'] = max(1, (int) $options['limit']);
         }
+        if (! empty($options['aspects']) && is_array($options['aspects'])) {
+            $out['--aspects'] = implode(',', $options['aspects']);
+        }
         if (! empty($options['resume'])) {
             $out['--resume'] = true;
         }

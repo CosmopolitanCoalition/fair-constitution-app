@@ -113,6 +113,97 @@ class SimRun extends Model
         'done' => [],
     ];
 
+    /**
+     * DEPENDENCY-AWARE SCOPE (operator 2026-09-06). What to simulate, chosen by
+     * ASPECT. Each aspect turns on a set of phases; base (people) is always on.
+     * The dependency graph below makes "skip something another selected aspect
+     * needs" impossible: the closure ALWAYS pulls in an aspect's prerequisites,
+     * so a scope is never internally inconsistent whatever the caller passes.
+     */
+    public const ASPECT_PHASES = [
+        'base'       => ['cohorts', 'identities'],   // people + wallets — always
+        'elections'  => ['elections', 'counting', 'seating'],
+        'governance' => ['governance', 'judiciary'],
+        'civic_life' => ['civics'],                  // orgs, CGCs, boards, endorsements
+        'training'   => ['training'],
+        'money'      => ['stipends'],
+    ];
+
+    /** Each aspect's prerequisite aspects (transitively closed by scopePhases). */
+    public const ASPECT_REQUIRES = [
+        'elections'  => ['base'],
+        'governance' => ['elections'],   // grows/benches a SEATED chamber
+        'civic_life' => ['governance'],  // CGC oversight executive + seated members
+        'training'   => ['elections'],   // seated members to train
+        'money'      => ['elections'],   // seating drives the role bumps
+    ];
+
+    /** The full aspect set — the default when no scope is chosen. */
+    public const ALL_ASPECTS = ['base', 'elections', 'governance', 'civic_life', 'training', 'money'];
+
+    /**
+     * The phases this run actually runs, given its chosen aspects (from
+     * options.scope_aspects). Null/empty ⇒ everything. The result always
+     * includes base and the terminal phases, and every prerequisite of every
+     * chosen aspect — the dependency guarantee.
+     *
+     * @return list<string>
+     */
+    public function activePhases(): array
+    {
+        $chosen = $this->options['scope_aspects'] ?? null;
+
+        if (! is_array($chosen) || $chosen === []) {
+            $chosen = self::ALL_ASPECTS;
+        }
+
+        // Close over prerequisites so a required aspect can never be missing.
+        $active = ['base' => true];
+        $stack = array_values(array_intersect($chosen, self::ALL_ASPECTS));
+        while ($stack !== []) {
+            $a = array_pop($stack);
+            if (isset($active[$a])) {
+                continue;
+            }
+            $active[$a] = true;
+            foreach (self::ASPECT_REQUIRES[$a] ?? [] as $req) {
+                $stack[] = $req;
+            }
+        }
+
+        $phases = ['enumerating', 'profiling'];
+        foreach (self::PHASES as $phase) {
+            foreach ($active as $aspect => $_) {
+                if (in_array($phase, self::ASPECT_PHASES[$aspect] ?? [], true)) {
+                    $phases[] = $phase;
+                }
+            }
+        }
+        $phases[] = 'verifying';
+        $phases[] = 'done';
+
+        return array_values(array_unique($phases));
+    }
+
+    /** The next phase after $this->phase that is in scope (skips inactive ones). */
+    public function nextActivePhase(): ?string
+    {
+        $active = $this->activePhases();
+        $i = array_search($this->phase, self::PHASES, true);
+
+        if ($i === false) {
+            return null;
+        }
+
+        for ($k = $i + 1; $k < count(self::PHASES); $k++) {
+            if (in_array(self::PHASES[$k], $active, true)) {
+                return self::PHASES[$k];
+            }
+        }
+
+        return null;
+    }
+
     public function haltRequested(): bool
     {
         return $this->halt_requested_at !== null;
