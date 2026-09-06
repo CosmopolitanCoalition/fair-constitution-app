@@ -3771,32 +3771,87 @@ class SetupController extends Controller
         $work   = max(0, $ledger['total'] - $ledger['skipped']);
         $totalLegislatures = (int) DB::scalar('SELECT count(*) FROM legislatures WHERE deleted_at IS NULL');
 
-        $world = Cache::remember('setup.step4.world_counts', 10, fn () => $control->worldCounts());
+        // THE PHASE, elapsed, a MEASURED rate and ETA (Step-3 parity 2026-09-06).
+        $shellsActive = $ledger['shells_pending'] + $ledger['shells_running'] > 0;
+        $unitsActive  = $ledger['units_pending'] + $ledger['units_running'] > 0;
+        $phase = $run === null ? null
+            : ($run->ledger_seeded_at === null ? 'seeding'
+            : ($shellsActive ? 'shells'
+            : ($unitsActive ? 'units' : 'done')));
 
-        // THIS RUN'S DELTAS (dry-run fix 2026-09-06): the shell tables carry
-        // pre-existing stub rows, so the raw counts read as progress that this
-        // run did not make. The baseline captured at run start turns them into
-        // "+ created this run".
-        $baseline = is_array($run?->world_baseline) ? $run->world_baseline : [];
-        $delta = [];
-        foreach ($world as $k => $v) {
-            $delta[$k] = max(0, (int) $v - (int) ($baseline[$k] ?? 0));
+        $elapsed   = $run?->started_at !== null ? max(0, (int) now()->diffInSeconds($run->started_at, true)) : null;
+        $eta       = null;
+        $ratePerH  = null;
+        $rateLabel = null;
+        if ($run !== null && $run->status === 'running' && $elapsed !== null && $elapsed > 30) {
+            // The rate is measured over the run so far, never assumed, and is
+            // withheld until a real sample exists (Step 3's honest-ETA rule).
+            if ($shellsActive) {
+                $rate = $ledger['shells_done'] / max(1, $elapsed);
+                if ($ledger['shells_done'] >= 5000 && $rate > 0) {
+                    $eta       = (int) round(($ledger['shells_pending'] + $ledger['shells_running']) / $rate);
+                    $ratePerH  = (int) round($rate * 3600);
+                    $rateLabel = 'shells/h';
+                }
+            } elseif ($ledger['units_done'] >= 50) {
+                $rate = $ledger['units_done'] / max(1, $elapsed);
+                if ($rate > 0) {
+                    $eta       = (int) round(($ledger['units_pending'] + $ledger['units_running']) / $rate);
+                    $ratePerH  = (int) round($rate * 3600);
+                    $rateLabel = 'founded/h';
+                }
+            }
         }
 
-        $elapsed = $run?->started_at !== null ? max(0, (int) now()->diffInSeconds($run->started_at, true)) : null;
-        $eta = null;
-        if ($run !== null && $run->status === 'running' && $elapsed !== null && $elapsed > 30) {
-            // The measured rate over the run so far; nothing before the first
-            // fifty units land.
-            $doneUnits = $ledger['units_done'];
-            if ($ledger['shells_pending'] + $ledger['shells_running'] > 0) {
-                $rate = $ledger['shells_done'] / max(1, $elapsed);
-                $eta  = $ledger['shells_done'] >= 5000 && $rate > 0
-                    ? (int) round(($ledger['shells_pending'] + $ledger['shells_running']) / $rate) : null;
-            } elseif ($doneUnits >= 50) {
-                $rate = $doneUnits / max(1, $elapsed);
-                $eta  = $rate > 0 ? (int) round(($ledger['units_pending'] + $ledger['units_running']) / $rate) : null;
-            }
+        // SEGMENTED PER-LAYER BARS (Step-3 parity 2026-09-06): one bar per ADM
+        // layer over provision_ledger.adm_level, each split seated | shelled |
+        // review, the void the layer still owes. One cheap indexed GROUP BY.
+        $layerRows = DB::table('provision_ledger')
+            ->selectRaw("
+                COALESCE(adm_level, 99) AS adm_level,
+                COUNT(*)                                    AS total,
+                COUNT(*) FILTER (WHERE status = 'skipped')  AS skipped,
+                COUNT(*) FILTER (WHERE stage >= 1)          AS shells_done,
+                COUNT(*) FILTER (WHERE status = 'done')     AS units_done,
+                COUNT(*) FILTER (WHERE status = 'running')  AS running,
+                COUNT(*) FILTER (WHERE status = 'review')   AS review
+            ")
+            ->groupBy(DB::raw('COALESCE(adm_level, 99)'))
+            ->orderBy('adm_level')
+            ->get();
+        $layerLabels = [
+            0 => 'Planet', 1 => 'Countries', 2 => 'States / Provinces',
+            3 => 'Counties', 4 => 'Municipalities', 5 => 'Townships',
+            6 => 'Neighborhoods', 99 => 'Other',
+        ];
+        $layers = [];
+        foreach ($layerRows as $r) {
+            $lvl    = (int) $r->adm_level;
+            $tot    = (int) $r->total;
+            $sk     = (int) $r->skipped;
+            $workL  = max(0, $tot - $sk);
+            $seated = (int) $r->units_done;
+            $review = (int) $r->review;
+            $shelled = max(0, (int) $r->shells_done - $seated - $review);
+            $shelled = min($shelled, max(0, $workL - $seated - $review));
+            $pending = max(0, $workL - $seated - $shelled - $review);
+            $status  = $workL === 0 ? 'skipped'
+                : ($seated >= $workL ? 'done'
+                : ((int) $r->running > 0 || (int) $r->shells_done > 0 ? 'running' : 'pending'));
+            $layers[] = [
+                'key'      => "level:{$lvl}",
+                'adm_level'=> $lvl,
+                'label'    => $layerLabels[$lvl] ?? "Level {$lvl}",
+                'total'    => $tot,
+                'skipped'  => $sk,
+                'work'     => $workL,
+                'seated'   => $seated,
+                'shelled'  => $shelled,
+                'running'  => (int) $r->running,
+                'review'   => $review,
+                'pending'  => $pending,
+                'status'   => $status,
+            ];
         }
 
         $stages = [
@@ -3815,13 +3870,19 @@ class SetupController extends Controller
              'note' => 'One election and its races per legislature; committees to K(S) and departments to D(P) as system acts.'],
         ];
 
+        // THE LANE STRIP (Step-3 parity 2026-09-06): each unit lane breadcrumbs
+        // the legislature it is founding (name, layer, link); a shell lane
+        // shows its batch; elapsed drives the amber/red warn colours on the page.
         $lanes = [];
         if ($run !== null) {
-            $lanes = DB::table('provision_worker_leases')
-                ->where('run_id', (string) $run->id)
-                ->where('last_seen_at', '>', now()->subMinutes(2))
-                ->orderByRaw('claim_started_at ASC NULLS LAST, started_at')
-                ->get()
+            $lanes = DB::table('provision_worker_leases as wl')
+                ->where('wl.run_id', (string) $run->id)
+                ->where('wl.last_seen_at', '>', now()->subMinutes(2))
+                ->leftJoin('legislatures as l', 'l.id', '=', 'wl.current_legislature_id')
+                ->leftJoin('jurisdictions as j', 'j.id', '=', 'l.jurisdiction_id')
+                ->orderByRaw('wl.claim_started_at ASC NULLS LAST, wl.started_at')
+                ->get(['wl.id', 'wl.lane', 'wl.claim_type', 'wl.claim_label', 'wl.claim_started_at', 'wl.claims_done',
+                    'j.name as leg_name', 'j.slug as leg_slug', 'j.adm_level as leg_adm'])
                 ->map(fn ($w) => [
                     'id'          => substr((string) $w->id, 0, 8),
                     'lane'        => $w->lane,
@@ -3830,6 +3891,9 @@ class SetupController extends Controller
                     'claim_secs'  => $w->claim_started_at !== null
                         ? max(0, (int) now()->diffInSeconds(\Illuminate\Support\Carbon::parse($w->claim_started_at), true)) : null,
                     'claims_done' => (int) $w->claims_done,
+                    'leg_name'    => $w->leg_name,
+                    'leg_slug'    => $w->leg_slug,
+                    'adm_level'   => $w->leg_adm !== null ? (int) $w->leg_adm : null,
                 ])->values()->all();
         }
 
@@ -3856,16 +3920,19 @@ class SetupController extends Controller
                 'halt_requested' => $run->halt_requested_at !== null,
                 'ledger_seeded'  => $run->ledger_seeded_at !== null,
                 'rolled_back_at' => $run->rolled_back_at?->toIso8601String(),
-                'baseline'       => $run->baseline,
-                'lanes'          => count($lanes),
-                'pool'           => \App\Support\HostCapacity::provisionWorkers(),
+                'baseline'          => $run->baseline,
+                'lanes'             => count($lanes),
+                'pool'              => \App\Support\HostCapacity::provisionWorkers(),
+                'phase'             => $phase,
+                'rate_per_h'        => $ratePerH,
+                'rate_label'        => $rateLabel,
+                'lane_warn_seconds' => [30, 120],
             ],
             'ledger'  => $ledger,
-            'world'   => $world,
-            'world_delta' => $delta,
             'total_legislatures' => $totalLegislatures,
             'seeded' => $ledger['total'],
             'stages'  => $stages,
+            'layers'  => $layers,
             'lanes'   => $lanes,
             'review'  => $review,
             'maps_running' => DB::table('autoscale_runs')->whereIn('status', ['queued', 'sizing', 'mapping'])->exists(),

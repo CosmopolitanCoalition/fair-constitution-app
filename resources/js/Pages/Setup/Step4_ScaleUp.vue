@@ -6,10 +6,12 @@ import SetupStepper from '@/Components/SetupStepper.vue'
 import StageBars from '@/Components/Progress/StageBars.vue'
 import { csrfFetch } from '@/lib/csrf'
 
-// STEP 4 — SCALE UP INSTITUTIONS (Wave 6). The page triggers the engine
-// (ruling done-flip-vs-pages A); the pump owns liveness; halt, resume and
-// rollback are the operator's controls; the bars follow the ETL paradigm:
-// bounded units, elapsed and a measured ETA, never a fabricated number.
+// STEP 4 — SCALE UP INSTITUTIONS (Wave 6, Step-3 parity 2026-09-06). The page
+// triggers the engine; the pump owns liveness; halt / resume / rollback are
+// the operator's controls. The display follows the Step 3 idiom: overall stage
+// bars, segmented per-layer bars, a lane strip that breadcrumbs each lane's
+// legislature with warn colours, a measured rate and honest ETA, a review
+// drilldown. No fabricated numbers.
 defineOptions({
     layout: (h, page) => h(AppShellV2, { variant: 'wide' }, () => page),
 })
@@ -27,26 +29,19 @@ const busy    = ref('')
 const error   = ref('')
 const notice  = ref('')
 let timer = null
+let clock = null
 
-const run    = computed(() => data.value?.run ?? null)
-const ledger = computed(() => data.value?.ledger ?? {})
-const world  = computed(() => data.value?.world ?? {})
-const delta  = computed(() => data.value?.world_delta ?? {})
-const stages = computed(() => data.value?.stages ?? [])
-const lanes  = computed(() => data.value?.lanes ?? [])
-const review = computed(() => data.value?.review ?? [])
+// A local 1s tick drives the lane elapsed clocks between the 3s polls.
+const nowTick = ref(Date.now())
+
+const run     = computed(() => data.value?.run ?? null)
+const ledger  = computed(() => data.value?.ledger ?? {})
+const stages  = computed(() => data.value?.stages ?? [])
+const layers  = computed(() => data.value?.layers ?? [])
+const lanes   = computed(() => data.value?.lanes ?? [])
+const review  = computed(() => data.value?.review ?? [])
 const totalLeg = computed(() => data.value?.total_legislatures ?? 0)
 const seeded   = computed(() => data.value?.seeded ?? 0)
-
-// The world card shows this run's deltas, not the pre-existing stub rows.
-const worldRows = computed(() => {
-    const w = world.value, d = delta.value
-    return [
-        ['Executives', 'executives'], ['Courts', 'judiciaries'], ['Election boards', 'election_boards'],
-        ['Public treasuries', 'treasuries'], ['Elections', 'elections'], ['Committees', 'committees'],
-        ['Departments', 'departments'], ['Squares & halls', 'social_spaces'],
-    ].map(([label, key]) => ({ label, cur: w[key] || 0, add: d[key] || 0 }))
-})
 
 const runLive   = computed(() => run.value && ['queued', 'running'].includes(run.value.status))
 const runHalted = computed(() => run.value && run.value.status === 'halted')
@@ -60,11 +55,64 @@ function fmtSecs(s) {
     return h > 0 ? `${h}h ${m}m` : m > 0 ? `${m}m ${sec}s` : `${sec}s`
 }
 function n(v) { return (v ?? 0).toLocaleString() }
+function pct(a, b) { return b > 0 ? Math.min(100, Math.max(0, (a / b) * 100)) : 0 }
+
+// ── Per-layer bars ──────────────────────────────────────────────────────────
+function layerHeadline(l) {
+    return `${n(l.seated)} / ${n(l.work)} founded`
+        + (l.skipped ? ` · ${n(l.skipped)} skipped` : '')
+}
+function layerTitle(l) {
+    return `${n(l.seated)} founded · ${n(l.shelled)} shelled (awaiting seats) · `
+        + `${n(l.review)} review · ${n(l.pending)} pending · ${n(l.skipped)} skipped (zero rule)`
+}
+
+// ── Lane strip (Step 3 idiom) ────────────────────────────────────────────────
+const warn = computed(() => run.value?.lane_warn_seconds ?? [30, 120])
+function laneSecs(w) {
+    // Server anchors claim_secs at poll time; the local tick advances it.
+    if (w.claim_secs == null) return null
+    return w.claim_secs + Math.floor((nowTick.value - pollStamp.value) / 1000)
+}
+const pollStamp = ref(Date.now())
+function laneLevel(w) {
+    const s = laneSecs(w)
+    if (s == null || !w.claim_type) return 'normal'
+    if (s >= warn.value[1]) return 'red'
+    if (s >= warn.value[0]) return 'amber'
+    return 'normal'
+}
+const laneTone = {
+    normal: { dot: 'bg-blue-400', label: 'text-gray-200', clock: 'text-gray-500', bar: 'bg-blue-500', pulse: 'bg-blue-500/60' },
+    amber:  { dot: 'bg-amber-400', label: 'text-amber-200', clock: 'text-amber-400', bar: 'bg-amber-500', pulse: 'bg-amber-500/60' },
+    red:    { dot: 'bg-red-400',   label: 'text-red-200',   clock: 'text-red-400',   bar: 'bg-red-500',   pulse: 'bg-red-500/60' },
+}
+function admLabel(a) {
+    return ['Planet', 'Countries', 'States / Provinces', 'Counties', 'Municipalities', 'Townships', 'Neighborhoods'][a] ?? (a != null ? `Level ${a}` : '')
+}
+const laneGroups = computed(() => {
+    const g = { units: [], shells: [], idle: [] }
+    for (const w of lanes.value) {
+        if (w.claim_type === 'unit') g.units.push(w)
+        else if (w.claim_type === 'shell_batch') g.shells.push(w)
+        else g.idle.push(w)
+    }
+    return g
+})
+const laneSections = computed(() => [
+    { key: 'units',  title: 'Founding legislatures', list: laneGroups.value.units },
+    { key: 'shells', title: 'Building shells',        list: laneGroups.value.shells },
+    { key: 'idle',   title: 'Between claims',         list: laneGroups.value.idle },
+].filter(s => s.list.length))
+function shellCount(w) {
+    const m = (w.claim_label || '').match(/(\d[\d,]*)/)
+    return m ? m[1] : ''
+}
 
 async function poll() {
     try {
         const res = await fetch('/api/setup/wizard/step4/progress', { headers: { Accept: 'application/json' }, credentials: 'same-origin' })
-        if (res.ok) data.value = await res.json()
+        if (res.ok) { data.value = await res.json(); pollStamp.value = Date.now() }
     } catch (e) { /* the next tick retries */ }
 }
 
@@ -95,7 +143,7 @@ async function post(url, body = {}, label = '') {
 
 async function start() {
     const r = await post('/api/setup/wizard/step4/start', {}, 'start')
-    if (r) notice.value = r.created ? 'Run started. The ledger seeds first; lanes follow.' : 'Adopted the live run.'
+    if (r) notice.value = r.created ? 'Run started. The work-list seeds first; lanes follow.' : 'Adopted the live run.'
 }
 async function halt() {
     const r = await post('/api/setup/wizard/step4/halt', {}, 'halt')
@@ -107,7 +155,7 @@ async function resume(requeueReview = false) {
 }
 async function rollback(shells) {
     const what = shells
-        ? 'Roll back EVERYTHING this run wrote: seats, acts, treasuries and the institution shells. The ledger returns to the start.'
+        ? 'Roll back EVERYTHING this run wrote: seats, acts, treasuries and the institution shells. The work-list returns to the start.'
         : 'Roll back the seats and the acts (elections, committees, departments, zero-balance treasuries). The shells stay.'
     if (!confirm(what + '\n\nThe run must be halted or done. Continue?')) return
     const r = await post('/api/setup/wizard/step4/rollback', { shells }, 'rollback')
@@ -118,8 +166,11 @@ async function lockAndContinue() {
     if (r?.next) router.visit(r.next)
 }
 
-onMounted(() => { poll(); timer = setInterval(poll, POLL_MS) })
-onBeforeUnmount(() => { if (timer) clearInterval(timer) })
+onMounted(() => {
+    poll(); timer = setInterval(poll, POLL_MS)
+    clock = setInterval(() => { nowTick.value = Date.now() }, 1000)
+})
+onBeforeUnmount(() => { if (timer) clearInterval(timer); if (clock) clearInterval(clock) })
 </script>
 
 <template>
@@ -136,16 +187,21 @@ onBeforeUnmount(() => { if (timer) clearInterval(timer) })
             </p>
         </header>
 
-        <!-- Summary -->
-        <section class="grid grid-cols-2 md:grid-cols-4 gap-3 mb-6">
+        <!-- Summary tiles -->
+        <section class="grid grid-cols-2 md:grid-cols-5 gap-3 mb-6">
             <div class="bg-gray-900 border border-gray-800 rounded-lg p-4">
                 <div class="text-gray-400 text-xs uppercase tracking-wide">Legislatures</div>
                 <div class="text-white text-2xl font-semibold mt-1 tabular-nums">{{ n(summary.legislatures) }}</div>
             </div>
             <div class="bg-gray-900 border border-gray-800 rounded-lg p-4">
-                <div class="text-gray-400 text-xs uppercase tracking-wide">Ledger rows</div>
-                <div class="text-white text-2xl font-semibold mt-1 tabular-nums">{{ n(ledger.total) }}</div>
-                <div class="text-gray-500 text-xs mt-1">{{ n(ledger.skipped) }} skipped by the zero rule</div>
+                <div class="text-gray-400 text-xs uppercase tracking-wide">Founded</div>
+                <div class="text-white text-2xl font-semibold mt-1 tabular-nums">{{ n(ledger.units_done) }}</div>
+                <div class="text-gray-500 text-xs mt-1">{{ n(ledger.review) }} in review</div>
+            </div>
+            <div class="bg-gray-900 border border-gray-800 rounded-lg p-4">
+                <div class="text-gray-400 text-xs uppercase tracking-wide">Rate</div>
+                <div class="text-white text-2xl font-semibold mt-1 tabular-nums">{{ run?.rate_per_h != null ? n(run.rate_per_h) : '—' }}</div>
+                <div class="text-gray-500 text-xs mt-1">{{ run?.rate_per_h != null ? run.rate_label : 'measuring' }}</div>
             </div>
             <div class="bg-gray-900 border border-gray-800 rounded-lg p-4">
                 <div class="text-gray-400 text-xs uppercase tracking-wide">Elapsed</div>
@@ -159,7 +215,7 @@ onBeforeUnmount(() => { if (timer) clearInterval(timer) })
             </div>
         </section>
 
-        <!-- Run card -->
+        <!-- Run card: status, controls, overall stage bars, per-layer bars -->
         <section
             class="rounded-lg p-5 mb-6 border"
             :class="{
@@ -173,18 +229,18 @@ onBeforeUnmount(() => { if (timer) clearInterval(timer) })
                 <div>
                     <div class="text-white font-semibold">
                         <span v-if="!run">No Step 4 run yet</span>
-                        <span v-else>Run {{ run.id.slice(0, 8) }} · {{ run.status }}<span v-if="run.halt_requested && run.status !== 'halted'"> · halting</span></span>
+                        <span v-else>Run {{ run.id.slice(0, 8) }} · {{ run.status }}<span v-if="run.phase && run.status === 'running'"> · {{ run.phase }}</span><span v-if="run.halt_requested && run.status !== 'halted'"> · halting</span></span>
                     </div>
                     <div class="text-gray-400 text-sm mt-1" v-if="run">
                         <span v-if="!run.ledger_seeded">Building the work-list: {{ n(seeded) }} / {{ n(totalLeg) }} legislatures enrolled (resumable, top-down by layer)</span>
                         <span v-else>
-                            shells {{ n(ledger.shells_done) }} · units done {{ n(ledger.units_done) }} ·
+                            shells {{ n(ledger.shells_done) }} · founded {{ n(ledger.units_done) }} ·
                             running {{ n((ledger.shells_running ?? 0) + (ledger.units_running ?? 0)) }} ·
                             review {{ n(ledger.review) }}
                         </span>
                     </div>
                     <div class="text-gray-500 text-xs mt-1" v-if="run?.baseline?.elapsed_seconds != null">
-                        Measured baseline: {{ fmtSecs(run.baseline.elapsed_seconds) }} for {{ n(run.baseline.units_done) }} units on {{ run.baseline.lanes }} lanes.
+                        Measured baseline: {{ fmtSecs(run.baseline.elapsed_seconds) }} for {{ n(run.baseline.units_done) }} legislatures on {{ run.baseline.lanes }} lanes.
                     </div>
                     <div class="text-amber-300 text-xs mt-1" v-if="data?.maps_running">The district maps are still being drawn. Step 4 starts when the map run is done.</div>
                 </div>
@@ -216,47 +272,96 @@ onBeforeUnmount(() => { if (timer) clearInterval(timer) })
                 </div>
             </div>
 
+            <!-- Overall stage bars -->
             <div v-if="run" class="mt-5">
                 <StageBars :stages="stages" :poll-ms="POLL_MS" />
+            </div>
+
+            <!-- Segmented per-layer bars (the Step 3 idiom) -->
+            <div v-if="layers.length" class="mt-4 border-t border-gray-700/50 pt-3">
+                <div class="flex flex-wrap items-center justify-between gap-x-4 gap-y-1 mb-2">
+                    <div class="text-gray-400 text-xs uppercase tracking-wide">By layer</div>
+                    <div class="flex flex-wrap items-center gap-3 text-[11px] text-gray-400">
+                        <span class="flex items-center gap-1"><span class="inline-block w-2 h-2 rounded-sm bg-emerald-500"></span>Founded</span>
+                        <span class="flex items-center gap-1"><span class="inline-block w-2 h-2 rounded-sm bg-sky-500"></span>Shelled</span>
+                        <span class="flex items-center gap-1"><span class="inline-block w-2 h-2 rounded-sm bg-amber-500"></span>Review</span>
+                    </div>
+                </div>
+                <div class="space-y-2">
+                    <div v-for="l in layers" :key="l.key">
+                        <div class="flex justify-between text-xs mb-0.5"
+                             :class="l.status === 'done' ? 'text-gray-500' : 'text-gray-400'">
+                            <span>
+                                <span v-if="l.status === 'done'" class="text-emerald-500 mr-1">✓</span>
+                                <span v-else-if="l.status === 'running'" class="inline-block w-1.5 h-1.5 rounded-full bg-blue-400 animate-pulse mr-1"></span>
+                                {{ l.label }}
+                                <span v-if="l.review" class="text-amber-400 ml-1">· {{ n(l.review) }} review</span>
+                            </span>
+                            <span class="tabular-nums">{{ layerHeadline(l) }}</span>
+                        </div>
+                        <div class="h-1.5 bg-gray-800 rounded overflow-hidden flex" :title="layerTitle(l)">
+                            <div class="h-full bg-emerald-500 transition-all duration-700" :style="{ width: pct(l.seated, l.work) + '%' }"></div>
+                            <div class="h-full bg-sky-500 transition-all duration-700"     :style="{ width: pct(l.shelled, l.work) + '%' }"></div>
+                            <div class="h-full bg-amber-500 transition-all duration-700"   :style="{ width: pct(l.review, l.work) + '%' }"></div>
+                        </div>
+                    </div>
+                </div>
             </div>
         </section>
 
         <div v-if="error" class="bg-red-900/30 border border-red-800 rounded p-4 text-sm text-red-200 mb-6">{{ error }}</div>
         <div v-if="notice" class="bg-gray-800/60 border border-gray-700 rounded p-3 text-sm text-gray-200 mb-6">{{ notice }}</div>
 
-        <!-- World counts: current, with this run's additions -->
-        <section class="bg-gray-900 border border-gray-800 rounded-lg p-5 mb-6">
-            <h2 class="text-white font-semibold mb-1">What exists now</h2>
-            <p class="text-gray-500 text-xs mb-3">Total rows, and <span class="text-emerald-400">+ what this run added</span>. Executives and courts include rows from earlier builds.</p>
-            <div class="grid grid-cols-2 md:grid-cols-4 gap-x-6 gap-y-2 text-sm">
-                <div v-for="r in worldRows" :key="r.label" class="flex justify-between">
-                    <span class="text-gray-400">{{ r.label }}</span>
-                    <span class="text-gray-200 tabular-nums">{{ n(r.cur) }}<span v-if="r.add" class="text-emerald-400 ml-1">+{{ n(r.add) }}</span></span>
-                </div>
-            </div>
-        </section>
-
-        <!-- Lanes -->
+        <!-- Lane strip: grouped, breadcrumbed, warn-coloured -->
         <section v-if="lanes.length" class="bg-gray-900 border border-gray-800 rounded-lg p-5 mb-6">
-            <h2 class="text-white font-semibold mb-3">Lanes <span class="text-gray-500 font-normal text-sm">{{ lanes.length }} live · half top-down, half bottom-up</span></h2>
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-1 text-xs font-mono">
-                <div v-for="w in lanes" :key="w.id" class="flex items-center gap-2 text-gray-300">
-                    <span class="w-2 h-2 rounded-full shrink-0" :class="w.claim_type ? 'bg-blue-400 animate-pulse' : 'bg-gray-600'"></span>
-                    <span class="text-gray-500">{{ w.id }}</span>
-                    <span class="text-gray-500">{{ w.lane }}</span>
-                    <span class="truncate">{{ w.claim_label || 'idle' }}</span>
-                    <span v-if="w.claim_secs != null" class="ml-auto text-gray-500 tabular-nums">{{ fmtSecs(w.claim_secs) }}</span>
-                    <span class="text-gray-600 tabular-nums">· {{ w.claims_done }} done</span>
+            <h2 class="text-white font-semibold mb-3">Lanes
+                <span class="text-gray-500 font-normal text-sm">{{ lanes.length }} live / {{ run?.pool ?? '—' }} · half top-down, half bottom-up</span>
+            </h2>
+            <div class="space-y-3">
+                <div v-for="grp in laneSections" :key="grp.key">
+                    <div class="text-gray-500 text-[11px] uppercase tracking-wide mb-1">{{ grp.title }} <span class="text-gray-600">({{ grp.list.length }})</span></div>
+                    <ul class="space-y-1.5">
+                        <li v-for="w in grp.list" :key="w.id"
+                            class="text-xs bg-gray-800/60 rounded px-2.5 py-2"
+                            :class="{ 'ring-1 ring-amber-700/60': laneLevel(w) === 'amber', 'ring-1 ring-red-700/70': laneLevel(w) === 'red' }">
+                            <div class="flex items-center justify-between gap-3">
+                                <span class="flex items-center gap-2 min-w-0">
+                                    <span class="w-1.5 h-1.5 rounded-full shrink-0"
+                                          :class="w.claim_type ? [laneTone[laneLevel(w)].dot, 'animate-pulse'] : 'bg-gray-600'" aria-hidden="true"></span>
+                                    <!-- Unit lane: the legislature it is founding, linked, with its layer -->
+                                    <span v-if="w.claim_type === 'unit' && w.leg_name" class="truncate min-w-0" :class="laneTone[laneLevel(w)].label">
+                                        <a :href="`/legislatures/${w.leg_slug || ''}`" target="_blank" class="font-medium underline-offset-2 hover:underline">{{ w.leg_name }}</a>
+                                        <span v-if="w.adm_level != null" class="text-gray-500 ml-1">{{ admLabel(w.adm_level) }}</span>
+                                        <span class="text-gray-500"> · founding</span>
+                                    </span>
+                                    <!-- Shell lane: the batch -->
+                                    <span v-else-if="w.claim_type === 'shell_batch'" class="font-medium truncate" :class="laneTone[laneLevel(w)].label">
+                                        Shell batch<span v-if="shellCount(w)" class="text-gray-500"> · {{ shellCount(w) }} places</span>
+                                    </span>
+                                    <span v-else class="text-gray-500 italic">between claims</span>
+                                </span>
+                                <span class="flex items-center gap-2 tabular-nums shrink-0" :class="laneTone[laneLevel(w)].clock">
+                                    <span v-if="w.claim_type">{{ fmtSecs(laneSecs(w)) }} on claim<span v-if="laneLevel(w) !== 'normal'"> ({{ laneLevel(w) }})</span></span>
+                                    <span class="text-gray-600">· {{ n(w.claims_done) }} done</span>
+                                    <span class="font-mono text-gray-600">{{ w.id }}</span>
+                                </span>
+                            </div>
+                            <div class="h-1 bg-gray-900 rounded overflow-hidden mt-1.5">
+                                <div v-if="w.claim_type" class="h-full w-1/4 rounded animate-pulse" :class="laneTone[laneLevel(w)].pulse"></div>
+                                <div v-else class="h-full w-0"></div>
+                            </div>
+                        </li>
+                    </ul>
                 </div>
             </div>
         </section>
 
-        <!-- Review -->
+        <!-- Review drilldown -->
         <section v-if="review.length" class="bg-amber-900/10 border border-amber-900/40 rounded-lg p-5 mb-6">
             <h2 class="text-amber-200 font-semibold mb-3">Review <span class="text-amber-400/70 font-normal text-sm">{{ n(ledger.review) }} rows · largest first</span></h2>
             <div class="space-y-1 text-xs">
                 <div v-for="r in review" :key="r.legislature_id" class="flex gap-3 text-gray-300">
-                    <a :href="`/legislatures/${r.slug || r.legislature_id}`" class="text-blue-300 hover:underline shrink-0">{{ r.name }} <span class="text-gray-500">ADM{{ r.adm_level }}</span></a>
+                    <a :href="`/legislatures/${r.slug || r.legislature_id}`" target="_blank" class="text-blue-300 hover:underline shrink-0">{{ r.name }} <span class="text-gray-500">{{ admLabel(r.adm_level) }}</span></a>
                     <span class="text-gray-400 truncate">{{ r.reason }}</span>
                 </div>
             </div>
