@@ -54,12 +54,19 @@ class SimRun extends Model
 
     /** Which item kinds belong to each phase — the claim ladder's rung map. */
     public const PHASE_KINDS = [
-        // Reserved no-op slots (W7 item 3): enumeration happens in
-        // SimStartCommand (not a stage), and a real acceptance scan is future
-        // work. Empty kinds so nothing ever throws "no stage wired"; the pump
-        // advances straight through them.
+        // Empty slot (W7 item 3): enumeration happens in SimStartCommand, not a
+        // stage — no kind is declared, so nothing throws "no stage wired" and
+        // advancePhase treats it as drained and advances straight through.
         'enumerating' => [],
-        'profiling' => [],
+        // The research lane. profile_research is a LIVE network kind: it carries
+        // the longer reclaim grace (SimClaims::NETWORK_KINDS) so a rate-limited,
+        // paid research call is never duplicated by an early reclaim. No stage
+        // consumes it yet and a run starts at `cohorts`, so production never
+        // enters this phase; the kind stays declared so the grace and its pin
+        // (SimPullEnginePinTest) hold when the research layer lands. With no such
+        // items present, advancePhase still advances (kinds non-empty, pool
+        // empty → drained). profile_inherit was dropped — no stage, no pin.
+        'profiling' => ['profile_research'],
         'cohorts' => ['cohort_scope'],
         'identities' => ['identity_batch'],
         'elections' => ['election_scope'],
@@ -87,6 +94,8 @@ class SimRun extends Model
         // counts in metrics. One item per jurisdiction whose bench item
         // settled.
         'civics' => ['civics_scope'],
+        // Empty slot (W7 item 3): a real acceptance scan is future work. No kind
+        // declared, so advancePhase advances straight through to done.
         'verifying' => [],
         'done' => [],
     ];

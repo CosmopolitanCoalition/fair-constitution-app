@@ -169,7 +169,10 @@ class SimGovernanceWiringTest extends TestCase
         $ref = new \ReflectionMethod($job, 'execute');
         $ref->setAccessible(true);
 
-        return (array) $ref->invoke($job, $run, $item);
+        // Item 1 (W7): execute builds its heartbeat closure from the lease token.
+        // A synthetic token suffices — touch() is a no-op when no lease row
+        // matches, and these tests assert the stage completes, not that it beat.
+        return (array) $ref->invoke($job, $run, $item, (string) Str::uuid());
     }
 
     /**

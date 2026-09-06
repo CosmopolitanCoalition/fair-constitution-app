@@ -116,6 +116,7 @@ final class CivicsStage
                 $j, Organization::TYPE_POLITICAL_PARTY, $target, $target,
                 fn (int $i) => self::PARTY_NAMES[$i % count(self::PARTY_NAMES)].' Party',
                 agentUserId: (string) $seated->first()->user_id,
+                beat: $beat,
             );
         }
 
@@ -130,6 +131,7 @@ final class CivicsStage
                 $trueNp > 0 ? max(1, (int) ceil($trueNp / $sample)) : 0,
                 fn (int $i) => $j->name.' '.self::NONPROFIT_SUFFIXES[$i % count(self::NONPROFIT_SUFFIXES)]
                     .($i >= count(self::NONPROFIT_SUFFIXES) ? ' '.(intdiv($i, count(self::NONPROFIT_SUFFIXES)) + 1) : ''),
+                beat: $beat,
             );
 
             $trueBiz = intdiv($pop, max(1, (int) ($cfg['business_per'] ?? 10)));
@@ -139,6 +141,7 @@ final class CivicsStage
                 fn (int $i) => $j->name.' '.self::BUSINESS_SUFFIXES[$i % count(self::BUSINESS_SUFFIXES)]
                     .($i >= count(self::BUSINESS_SUFFIXES) ? ' '.(intdiv($i, count(self::BUSINESS_SUFFIXES)) + 1) : ''),
                 workers: true,
+                beat: $beat,
             );
         }
 
@@ -169,6 +172,7 @@ final class CivicsStage
     private static function mintOrgs(
         object $j, string $type, int $trueCount, int $mintCount,
         \Closure $nameFor, ?string $agentUserId = null, bool $workers = false,
+        ?\Closure $beat = null,
     ): array {
         $existing = DB::table('organizations')
             ->where('jurisdiction_id', $j->id)->where('type', $type)

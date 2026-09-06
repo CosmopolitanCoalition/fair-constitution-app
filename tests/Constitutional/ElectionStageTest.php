@@ -497,6 +497,54 @@ class ElectionStageTest extends TestCase
         });
     }
 
+    /**
+     * ONE ELECTION PER CHAMBER, RE-RUN SAFE (W7 item 4 — the fast-path adopt).
+     *
+     * Step 4 schedules a chamber's general election; the sim's ElectionStage
+     * only fields candidates against it. Running the stage twice — the resume
+     * case, when a reclaimed item re-runs — must ADOPT the same election, never
+     * mint a second (the Niue two-election regression), and must not fail on the
+     * candidacies it already wrote. The old plain insert threw a unique
+     * violation on the second pass; insertOrIgnore makes the re-field a no-op.
+     */
+    public function test_running_the_stage_twice_adopts_the_same_election_and_does_not_double_field(): void
+    {
+        $this->onLivePg(function () {
+            $jid = $this->world(typeA: 14, typeB: 0, districtSeats: [7, 7]);
+
+            $first = ElectionStage::run($jid, null, 1);
+            $this->assertNotNull($first['election_id']);
+
+            // The second pass must not throw and must land on the SAME election.
+            $second = ElectionStage::run($jid, null, 1);
+            $this->assertSame(
+                $first['election_id'],
+                $second['election_id'],
+                'the re-run adopts Step 4\'s election — it never mints a second'
+            );
+            $this->assertSame($first['races'], $second['races']);
+            $this->assertSame($first['candidacies'], $second['candidacies']);
+
+            $legId = DB::table('legislatures')->where('jurisdiction_id', $jid)->value('id');
+            $this->assertSame(
+                1,
+                DB::table('elections')
+                    ->where('legislature_id', $legId)
+                    ->where('kind', 'general')
+                    ->whereNull('deleted_at')
+                    ->count(),
+                'exactly one general election exists for the chamber after two passes'
+            );
+
+            // insertOrIgnore held: the candidacy field was not doubled.
+            $this->assertSame(
+                $first['candidacies'],
+                DB::table('candidacies')->where('election_id', $first['election_id'])->count(),
+                'the second pass re-fielded nothing — no duplicate candidacies'
+            );
+        });
+    }
+
     // ── fixtures ──────────────────────────────────────────────────────────
 
     /** A jurisdiction with a cohort, a roster and a chamber — the stage's precondition. */

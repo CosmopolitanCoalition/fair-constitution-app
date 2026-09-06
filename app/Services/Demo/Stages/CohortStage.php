@@ -55,7 +55,7 @@ final class CohortStage
         // and are rendered honestly as unpopulated, never silently skipped.
         $electorate = (int) floor($population * $turnoutPct / 100);
 
-        $archetypes = self::archetypes($seed, $j, $population);
+        $archetypes = self::archetypes($seed, $j, $population, $beat);
 
         DB::table('jurisdiction_cohorts')->upsert(
             [[
@@ -103,7 +103,7 @@ final class CohortStage
      *
      * @return array{languages: list<string>, urbanicity: string, clusters: list<array{weight:int}>, civic: array<string,float|int>}
      */
-    private static function archetypes(string $seed, object $j, int $population): array
+    private static function archetypes(string $seed, object $j, int $population, ?\Closure $beat = null): array
     {
         $rng = new HashChainRandom($seed.':archetypes');
 

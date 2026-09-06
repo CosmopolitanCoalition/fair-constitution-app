@@ -116,7 +116,7 @@ final class GovernanceStage
         }
 
         return [
-            'committees' => self::growCommittees($legislature, $serving, $proposerUser),
+            'committees' => self::growCommittees($legislature, $serving, $proposerUser, $beat),
             'departments' => self::growDepartments($legislature, $serving, $proposerUser),
             'skipped' => null,
         ];
@@ -127,7 +127,7 @@ final class GovernanceStage
      *
      * @return array{created:int, target:?int, existing:?int, skipped:?string}
      */
-    private static function growCommittees(Legislature $legislature, Collection $serving, User $proposerUser): array
+    private static function growCommittees(Legislature $legislature, Collection $serving, User $proposerUser, ?\Closure $beat = null): array
     {
         // THE BICAMERAL DEFERRAL. A committee act must satisfy the Art. V §3 kind
         // split, so an unseated Type B half makes it unpassable.

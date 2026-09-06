@@ -3,6 +3,7 @@
 namespace App\Services\Demo\Stages;
 
 use App\Models\Candidacy;
+use App\Models\Election;
 use App\Models\Legislature;
 use App\Services\Demo\HashChainRandom;
 use App\Services\ElectionLifecycleService;
@@ -51,6 +52,51 @@ final class ElectionStage
             // Not every jurisdiction has a chamber. That is an ordinary outcome,
             // not a failure — the item settles done with nothing to report.
             return ['election_id' => null, 'races' => 0, 'candidacies' => 0, 'blocked_kinds' => []];
+        }
+
+        // FAST PATH (W7 item 4): ADOPT STEP 4'S ELECTION, NEVER RE-PLAN IT.
+        //
+        // Step 4 (the provision run) already scheduled every seated chamber's
+        // general election and cut its races from the apportionment walk. The
+        // sim's only remaining election work is to field candidates. So when an
+        // open general election WITH races already exists for this chamber,
+        // adopt it directly: skip racePlan (the apportionment walk, which
+        // scheduleGeneral runs even on adoption — ~900k times across the planet)
+        // and skip scheduleGeneral entirely.
+        //
+        // This selects EXACTLY the election scheduleGeneral would have adopted
+        // (same legislature_id + KIND_GENERAL + SCHEDULED/APPROVAL_OPEN filter,
+        // same newest-first order — lines 153-159 there). An election that
+        // carries races was not fully blocked and had a board when Step 4 cut
+        // them, so the fully_blocked and board guards below are already satisfied
+        // by its existence; adopting manufactures NO second election, which is
+        // the exact thing those guards protect against.
+        $existing = Election::query()
+            ->where('legislature_id', $legislature->id)
+            ->where('kind', Election::KIND_GENERAL)
+            ->whereIn('status', [Election::STATUS_SCHEDULED, Election::STATUS_APPROVAL_OPEN])
+            ->orderByDesc('created_at')
+            ->first();
+
+        if ($existing !== null) {
+            $existingRaces = DB::table('election_races')->where('election_id', $existing->id)->get();
+
+            if ($existingRaces->isNotEmpty()) {
+                $candidacies = self::fieldCandidates(
+                    $jurisdictionId,
+                    (string) $existing->id,
+                    $existingRaces,
+                    $version,
+                    $beat,
+                );
+
+                return [
+                    'election_id' => (string) $existing->id,
+                    'races' => $existingRaces->count(),
+                    'candidacies' => $candidacies,
+                    'blocked_kinds' => [],
+                ];
+            }
         }
 
         $lifecycle = app(ElectionLifecycleService::class);
@@ -108,9 +154,12 @@ final class ElectionStage
             ];
         }
 
-        // THE REAL ENGINE. Creates the election, arms its clocks, and generates
-        // exactly the races the constitution allows.
-        $election = $lifecycle->scheduleGeneral($legislature);
+        // THE REAL ENGINE (fallback — a chamber Step 4 did not schedule, e.g. the
+        // narrow co-test posture). Creates the election, arms its clocks, and
+        // generates exactly the races the constitution allows. The plan computed
+        // above for the block check is handed in so racePlan runs ONCE, not twice
+        // (the same reuse the Step 4 seat path makes — scheduleGeneral docblock).
+        $election = $lifecycle->scheduleGeneral($legislature, plan: $plan);
 
         $races = DB::table('election_races')->where('election_id', $election->id)->get();
 
@@ -118,7 +167,8 @@ final class ElectionStage
             $jurisdictionId,
             (string) $election->id,
             $races,
-            $version
+            $version,
+            $beat,
         );
 
         return [
@@ -157,7 +207,8 @@ final class ElectionStage
         string $jurisdictionId,
         string $electionId,
         $races,
-        int $version
+        int $version,
+        ?\Closure $beat = null
     ): int {
         // Group each race under the jurisdiction whose residents may contest it.
         $byScope = [];
@@ -230,9 +281,15 @@ final class ElectionStage
         }
 
         // Bounded chunks, each its own committed statement (THE ETL RULE).
+        // insertOrIgnore, not insert: a kill mid-loop leaves committed chunks
+        // behind, and the reclaimed item re-runs the whole stage. The roster
+        // draw and slot assignment are deterministic, so the re-run rebuilds the
+        // SAME (election_id, user_id) rows; the unique constraint drops the ones
+        // already committed and lands only the missing ones. Redo costs one
+        // chunk, never a constraint violation (THE ETL RULE: resumable).
         foreach (array_chunk($rows, 500) as $chunk) {
             $beat && $beat();
-            DB::table('candidacies')->insert($chunk);
+            DB::table('candidacies')->insertOrIgnore($chunk);
         }
 
         // Touch the RNG so the seed is genuinely consumed — candidate ordering

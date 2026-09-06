@@ -85,7 +85,7 @@ final class SeatingStage
         // Walk the real phase machine to the certifiable state. F-ELB-004
         // refuses anything that is not `tabulating` or `audit_rerun`, and that
         // guard is the point — the demo does not get to skip the lifecycle.
-        $election = self::advanceToTabulating($election, $lifecycle);
+        $election = self::advanceToTabulating($election, $lifecycle, $beat);
 
         if ($election->status !== Election::STATUS_TABULATING) {
             return [
@@ -115,7 +115,7 @@ final class SeatingStage
      * The demo skips no phase — it just does not wait out the clocks between
      * them. Each call is the same method the corresponding clock job invokes.
      */
-    private static function advanceToTabulating(Election $election, ElectionLifecycleService $lifecycle): Election
+    private static function advanceToTabulating(Election $election, ElectionLifecycleService $lifecycle, ?\Closure $beat = null): Election
     {
         $guard = 0;
 
