@@ -187,7 +187,7 @@ async function resume(requeueReview = false) {
 }
 async function rollback(shells) {
     const what = shells
-        ? 'Roll back EVERYTHING this run wrote: seats, acts, treasuries and the institution shells. The work-list returns to the start.'
+        ? 'Roll back the INSTITUTIONS this run built: seats, acts, treasuries and the institution shells. Maps, districts, panels and geodata are untouched. The work-list returns to the start.'
         : 'Roll back the seats and the acts (elections, committees, departments, zero-balance treasuries). The shells stay.'
     if (!confirm(what + '\n\nThe run must be halted or done. Continue?')) return
     const r = await post('/api/setup/wizard/step4/rollback', { shells }, 'rollback')
@@ -299,7 +299,7 @@ onBeforeUnmount(() => { if (timer) clearInterval(timer); if (clock) clearInterva
                     </button>
                     <button v-if="runHalted || runDone" type="button" :disabled="busy !== '' || locked" @click="rollback(true)"
                         class="bg-red-900 hover:bg-red-800 disabled:bg-gray-700 text-white px-4 py-2 rounded-md font-semibold text-sm">
-                        Roll back everything
+                        Roll back institutions
                     </button>
                 </div>
             </div>
