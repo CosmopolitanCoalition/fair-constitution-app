@@ -4255,7 +4255,8 @@
    "blocker": "",
    "badge": "Desk·W9",
    "lane": "desk",
-   "wave": "W9"
+   "wave": "W9",
+   "ops": true
   },
   {
    "area": "Setup + scale",
