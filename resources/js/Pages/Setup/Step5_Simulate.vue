@@ -37,6 +37,7 @@ const pollStamp = ref(Date.now())
 const run    = computed(() => data.value?.run ?? null)
 const ledger = computed(() => data.value?.ledger ?? {})
 const stages = computed(() => data.value?.stages ?? [])
+const phasePlan = computed(() => data.value?.phase_plan ?? { total: 0, phases: [] })
 const layers = computed(() => data.value?.layers ?? [])
 const lanes  = computed(() => data.value?.lanes ?? [])
 const review = computed(() => data.value?.review ?? [])
@@ -342,6 +343,30 @@ onBeforeUnmount(() => { if (timer) clearInterval(timer); if (clock) clearInterva
                         {{ label }}
                     </label>
                 </div>
+            </div>
+
+            <!-- Phase plan: the whole run in order, so the total scope is visible from the start -->
+            <div v-if="run && phasePlan.phases.length" class="mt-5 border-t border-gray-700/50 pt-3">
+                <div class="flex items-center justify-between mb-2">
+                    <div class="text-gray-400 text-xs uppercase tracking-wide">Phases
+                        <span class="text-gray-500 normal-case">· the full run in order</span>
+                    </div>
+                    <div class="text-gray-500 text-xs tabular-nums">{{ phasePlan.phases.filter(p => p.status === 'done').length }} / {{ phasePlan.total }} done</div>
+                </div>
+                <ol class="flex flex-wrap gap-1.5">
+                    <li v-for="p in phasePlan.phases" :key="p.phase"
+                        class="flex items-center gap-1.5 text-xs px-2 py-1 rounded"
+                        :class="p.status === 'done' ? 'bg-emerald-900/25 text-emerald-300'
+                               : p.status === 'current' ? 'bg-blue-900/30 text-blue-200 ring-1 ring-blue-700/50'
+                               : 'bg-gray-800/60 text-gray-400'">
+                        <span class="tabular-nums opacity-60">{{ p.n }}</span>
+                        <span v-if="p.status === 'done'" class="text-emerald-400">✓</span>
+                        <span v-else-if="p.status === 'current'" class="inline-block w-1.5 h-1.5 rounded-full bg-blue-400 animate-pulse"></span>
+                        <span v-else class="inline-block w-1.5 h-1.5 rounded-full border border-gray-600"></span>
+                        <span>{{ p.label }}</span>
+                        <span v-if="p.status === 'current' && p.total" class="text-blue-300/70 tabular-nums">{{ n(p.done) }} / {{ n(p.total) }}</span>
+                    </li>
+                </ol>
             </div>
 
             <!-- Overall stage bars -->

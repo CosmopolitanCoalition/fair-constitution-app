@@ -4088,6 +4088,7 @@ class SetupController extends Controller
                 'run'     => null,
                 'ledger'  => ['total' => 0, 'done' => 0, 'running' => 0, 'pending' => 0, 'review' => 0],
                 'stages'  => [],
+                'phase_plan' => ['total' => 0, 'phases' => []],
                 'layers'  => [],
                 'lanes'   => [],
                 'review'  => [],
@@ -4098,6 +4099,7 @@ class SetupController extends Controller
         }
 
         $ledger  = $snap->ledger($run);
+        $stages  = $snap->stages($run);
         $lanes   = $snap->lanes($run);
         $elapsed = $run->started_at !== null ? max(0, (int) now()->diffInSeconds($run->started_at, true)) : null;
         $rate    = $snap->windowedRate($run);
@@ -4131,7 +4133,8 @@ class SetupController extends Controller
                 'lane_warn_seconds' => [30, 120],
             ],
             'ledger'  => $ledger,
-            'stages'  => $snap->stages($run),
+            'stages'  => $stages,
+            'phase_plan' => $snap->phaseOverview($run, $stages),
             'layers'  => $snap->layers($run),
             'lanes'   => $lanes,
             'review'  => $snap->reviewItems($run),

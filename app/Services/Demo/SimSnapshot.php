@@ -115,6 +115,70 @@ class SimSnapshot
     }
 
     /**
+     * THE PHASE PLAN — every in-scope phase in DAG order with a status, so the
+     * page shows the whole run ahead, not just the phases that have minted a
+     * worklist. Infrastructure slots (enumerating, profiling) and the terminal
+     * `done` are omitted; `verifying` is kept as the closing check. Status is
+     * read off the DAG index of the run's current phase; counts are grafted
+     * from the stage bars where a phase's kind has minted items.
+     *
+     * @param  list<array<string,mixed>>|null  $stages  precomputed stages() to avoid a second query
+     * @return array{total:int, phases:list<array<string,mixed>>}
+     */
+    public function phaseOverview(SimRun $run, ?array $stages = null): array
+    {
+        $work = array_values(array_filter(
+            $run->activePhases(),
+            static fn ($p) => ! in_array($p, ['enumerating', 'profiling', 'done'], true)
+        ));
+
+        $phaseIndex = array_flip(SimRun::PHASES);
+        $curIdx     = $phaseIndex[$run->phase] ?? -1;
+        $runDone    = $run->status === 'done';
+
+        $byPhase = [];
+        foreach ($stages ?? $this->stages($run) as $s) {
+            $byPhase[$s['phase']] = $s;
+        }
+
+        // A human label per phase: the phase's first kind's stage label, else a
+        // fallback for the kindless closing phase.
+        $fallback = ['verifying' => 'Verifying the world'];
+
+        $phases = [];
+        $n = 0;
+        foreach ($work as $phase) {
+            $n++;
+            $idx = $phaseIndex[$phase] ?? PHP_INT_MAX;
+
+            if ($runDone || $idx < $curIdx) {
+                $status = 'done';
+            } elseif ($idx === $curIdx) {
+                $status = 'current';
+            } else {
+                $status = 'pending';
+            }
+
+            $kinds = SimRun::PHASE_KINDS[$phase] ?? [];
+            $label = $fallback[$phase]
+                ?? (isset($kinds[0]) ? (self::LABELS[$kinds[0]] ?? $phase) : ucfirst($phase));
+
+            $st = $byPhase[$phase] ?? null;
+
+            $phases[] = [
+                'n'      => $n,
+                'phase'  => $phase,
+                'label'  => $label,
+                'status' => $status,
+                'total'  => $st ? (int) $st['total'] : null,
+                'done'   => $st ? (int) $st['done'] : null,
+            ];
+        }
+
+        return ['total' => count($work), 'phases' => $phases];
+    }
+
+    /**
      * One fresh aggregate over the whole worklist — the tiles' Total / Done /
      * Running / Review. Index-only; cheap on every poll.
      *
