@@ -60,6 +60,75 @@ class AuditService
      * append-only + tamper-evident) but by a recorded constitutional
      * acknowledgement — see ChainReconciliationService + verifyChain.
      */
+    /**
+     * THE BATCH COLLECTOR (operator ruling 2026-09-06, "one entry per
+     * legislature"). Mass provisioning files ~20 audited acts per legislature,
+     * each grabbing the global append advisory lock — the serialization that
+     * capped the unit phase at ~3/s. Between beginBatch() and commitBatch()
+     * every append() is BUFFERED, not chained; commitBatch() writes ONE
+     * hash-chained entry whose payload holds the buffered acts, taking the lock
+     * once. Tamper-evidence is preserved at the granularity of the founding.
+     *
+     * The collector is per-process instance state on this singleton: a lane
+     * processes one unit at a time, and the processor's finally always commits,
+     * so no unit's acts leak into another. Public records that need their
+     * chain seq synchronously defer it (deferRecordSeq); commitBatch backfills.
+     *
+     * @var list<array<string,mixed>>|null
+     */
+    private static ?array $batch = null;
+
+    public function isBatching(): bool
+    {
+        return self::$batch !== null;
+    }
+
+    public function beginBatch(): void
+    {
+        self::$batch = [];
+    }
+
+    /** The current buffer length — a checkpoint a caller can truncate back to. */
+    public function batchMark(): int
+    {
+        return self::$batch === null ? 0 : count(self::$batch);
+    }
+
+    /** Drop buffered acts after $mark (a filing rolled back — its acts did not happen). */
+    public function batchTruncate(int $mark): void
+    {
+        if (self::$batch !== null && $mark >= 0 && $mark < count(self::$batch)) {
+            self::$batch = array_slice(self::$batch, 0, $mark);
+        }
+    }
+
+    /**
+     * Write the buffered acts as ONE chained entry, taking the global append
+     * lock once. Returns null when nothing was buffered. Always ends the batch.
+     */
+    public function commitBatch(
+        string $module,
+        string $event,
+        ?string $ref = null,
+        ?string $jurisdictionId = null,
+    ): ?AuditEntry {
+        $acts = self::$batch ?? [];
+        self::$batch = null;
+
+        if ($acts === []) {
+            return null;
+        }
+
+        // The real append now (batching is off), taking the lock once. Each
+        // buffered 'records/published' act carries its record_id, so a batched
+        // record (audit_seq null, like a mirror record) is traceable from here.
+        return $this->append($module, $event, [
+            'batched'   => true,
+            'act_count' => count($acts),
+            'acts'      => $acts,
+        ], $ref, null, $jurisdictionId);
+    }
+
     public function append(
         string $module,
         string $event,
@@ -70,6 +139,30 @@ class AuditService
         bool $rejected = false,
         ?string $blockedReason = null,
     ): AuditEntry {
+        // BATCH MODE: buffer the act instead of chaining it now. The returned
+        // entry is a placeholder (no seq); only PublicRecordService reads a
+        // seq back, and it defers via deferRecordSeq() in batch mode.
+        if (self::$batch !== null) {
+            self::$batch[] = [
+                'module'  => $module,
+                'event'   => $event,
+                'payload' => $payload,
+                'ref'     => $ref,
+                'actor'   => $actorId,
+                'jurisdiction' => $jurisdictionId,
+                'rejected'     => $rejected,
+                'blocked'      => $blockedReason,
+            ];
+
+            return (new AuditEntry)->forceFill([
+                'module'   => $module,
+                'event'    => $event,
+                'seq'      => null,
+                'hash'     => '',
+                'rejected' => $rejected,
+            ]);
+        }
+
         $insert = function () use (
             $module, $event, $payload, $ref, $actorId, $jurisdictionId, $rejected, $blockedReason
         ): AuditEntry {

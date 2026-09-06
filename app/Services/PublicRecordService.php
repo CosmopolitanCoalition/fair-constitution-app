@@ -86,6 +86,14 @@ class PublicRecordService
             // Seal first: the chain entry names the record id; the record
             // row carries the entry's seq. Same transaction — no record
             // without its entry, no entry without its record.
+            //
+            // BATCH MODE (one-entry-per-legislature ruling 2026-09-06): during
+            // mass provisioning the append is buffered into the legislature's
+            // single entry, so the seq is not known yet. The record is created
+            // with a null audit_seq and registered for backfill; commitBatch
+            // sets it to the one committed entry. The forbidden-subject and
+            // same-transaction guarantees are unchanged.
+            $batching = $this->audit->isBatching();
             $entry = $this->audit->append(
                 module: 'records',
                 event: 'published',
@@ -104,7 +112,7 @@ class PublicRecordService
                 jurisdictionId: $attrs['jurisdiction_id'] ?? null,
             );
 
-            return PublicRecord::create([
+            $record = PublicRecord::create([
                 'id'                   => $id,
                 'kind'                 => $kind,
                 'title'                => $title,
@@ -118,11 +126,13 @@ class PublicRecordService
                 'via_clock'            => $attrs['via_clock'] ?? null,
                 'subject_type'         => $subjectType,
                 'subject_id'           => $attrs['subject_id'] ?? null,
-                'audit_seq'            => (int) $entry->seq,
+                'audit_seq'            => $batching ? null : (int) $entry->seq,
                 'translations'         => $attrs['translations'] ?? [],
                 'supersedes_record_id' => $attrs['supersedes_record_id'] ?? null,
                 'published_at'         => now(),
             ]);
+
+            return $record;
         };
 
         return DB::transactionLevel() > 0 ? $insert() : DB::transaction($insert);

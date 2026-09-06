@@ -6,6 +6,7 @@ use App\Domain\Engine\ConstitutionalEngine;
 use App\Models\Department;
 use App\Models\Executive;
 use App\Models\Legislature;
+use App\Services\AuditService;
 use App\Services\Demo\Stages\GovernanceStage;
 use App\Services\ElectionLifecycleService;
 use App\Services\InstitutionScaleService;
@@ -33,6 +34,7 @@ class LegislatureUnitProcessor
     public function __construct(
         private readonly ElectionLifecycleService $lifecycle,
         private readonly ConstitutionalEngine $engine,
+        private readonly AuditService $audit,
     ) {}
 
     /**
@@ -48,31 +50,56 @@ class LegislatureUnitProcessor
         $manifest = ['seat' => null, 'committees' => [], 'departments' => []];
         $review   = null;
 
-        // ── 1. The seat ────────────────────────────────────────────────────
-        $seat = $this->seat($legislature);
-        $manifest['seat'] = $seat;
-        if (($seat['blocked'] ?? false) === true) {
-            $review = 'seat: '.$seat['reason'];
-        }
-        if ($beat !== null) {
-            $beat('seat');
-        }
-
-        // ── 2. Committees to K(S) ──────────────────────────────────────────
+        // ONE ENTRY PER LEGISLATURE (operator ruling 2026-09-06): the founding
+        // acts buffer into one hash-chained entry, taking the global append
+        // lock once instead of ~20 times. Each section is checkpointed so a
+        // rolled-back filing's buffered acts are dropped. commitBatch always
+        // runs in the finally.
+        $this->audit->beginBatch();
         try {
-            $manifest['committees'] = $this->committees($legislature);
-        } catch (\Throwable $e) {
-            $review = ($review !== null ? $review.' | ' : '').'committees: '.self::short($e);
-        }
-        if ($beat !== null) {
-            $beat('committees');
-        }
+            // ── 1. The seat ────────────────────────────────────────────────
+            $mark = $this->audit->batchMark();
+            try {
+                $seat = $this->seat($legislature);
+                $manifest['seat'] = $seat;
+                if (($seat['blocked'] ?? false) === true) {
+                    $review = 'seat: '.$seat['reason'];
+                }
+            } catch (\Throwable $e) {
+                $this->audit->batchTruncate($mark);
+                $review = 'seat: '.self::short($e);
+            }
+            if ($beat !== null) {
+                $beat('seat');
+            }
 
-        // ── 3. Departments to D(P) ─────────────────────────────────────────
-        try {
-            $manifest['departments'] = $this->departments($legislature);
-        } catch (\Throwable $e) {
-            $review = ($review !== null ? $review.' | ' : '').'departments: '.self::short($e);
+            // ── 2. Committees to K(S) ──────────────────────────────────────
+            $mark = $this->audit->batchMark();
+            try {
+                $manifest['committees'] = $this->committees($legislature);
+            } catch (\Throwable $e) {
+                $this->audit->batchTruncate($mark);
+                $review = ($review !== null ? $review.' | ' : '').'committees: '.self::short($e);
+            }
+            if ($beat !== null) {
+                $beat('committees');
+            }
+
+            // ── 3. Departments to D(P) ─────────────────────────────────────
+            $mark = $this->audit->batchMark();
+            try {
+                $manifest['departments'] = $this->departments($legislature);
+            } catch (\Throwable $e) {
+                $this->audit->batchTruncate($mark);
+                $review = ($review !== null ? $review.' | ' : '').'departments: '.self::short($e);
+            }
+        } finally {
+            $this->audit->commitBatch(
+                module: 'jurisdictions',
+                event: 'legislature_founded',
+                ref: 'WF-JUR-01',
+                jurisdictionId: (string) $legislature->jurisdiction_id,
+            );
         }
 
         return [
