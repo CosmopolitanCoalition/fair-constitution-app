@@ -4100,9 +4100,9 @@
   {
    "area": "Setup + scale",
    "capability": "Institution shells at planet scale (executives, courts, election boards, board members, civic spaces)",
-   "maturity": "partial",
-   "scaleNote": "Built 2026-09-06 (Wave 6). The five shell statements + treasuries run per claimed batch over the ledger join (InstitutionProvisionService::provisionClaim); the keyset walk stays for institutions:provision and /building. PARTIAL until the planet run lands them.",
-   "blocker": "Queue placement and the missing Step 4 engine (ledger + pump + lanes).",
+   "maturity": "working",
+   "scaleNote": "Built 2026-09-06 (Wave 6). The five shell statements + treasuries run per claimed batch over the ledger join (InstitutionProvisionService::provisionClaim); the keyset walk stays for institutions:provision and /building. Landed at planet scale 2026-09-06: 923,092 shelled, 720k+ founded and climbing at ~74/s (windowed 10-min rate); optimised to set-based departments/committees + seat double-racePlan and settings prefetch, pid-reuse-proof dead-lane reaper, and an independent CGA_PROVISION_WORKERS dial on its own queue (proved disk-bound: 13/16/26 lanes all ~54-61/s, so ~13-16 is the box-E cap).",
+   "blocker": "",
    "badge": "Desk·W6",
    "lane": "desk",
    "wave": "W6"
@@ -4110,8 +4110,8 @@
   {
    "area": "Setup + scale",
    "capability": "Step 4 provisioning engine — per-legislature ledger, pump, lanes on the long lane, halt / resume / rollback, per-step and per-lane bars with ETA",
-   "maturity": "partial",
-   "scaleNote": "Built 2026-09-06 (Wave 6). provision_runs + provision_ledger (one row per legislature, est_cost = seats×10 + D(P), zero rule → skipped) + provision_worker_leases; ProvisionClaims (shell batches of 5,000 first, then one unit per claim; topdown lanes largest-first, bottomup smallest-first); ProvisionWorkerJob on the autoscale queue (redis-long); provision:pump every minute (halt/resume, chunked ledger seeding, ANALYZE while shells land, dead-lane reclaim on backend absence, lane seeding to HostCapacity::autoscaleWorkers, done flip with the measured baseline); provision:control start|halt|resume|revert|status. Dry run 2026-09-06 (rolled back): ledger chunk 25,000 rows 1.8 s; shell batch 5,000 rows 1.4 to 3.2 s after ANALYZE (2.5 → 213 s before it); unit 0.5 to 1.1 s. PARTIAL until the full-planet run (W6 item 9) measures it.",
+   "maturity": "working",
+   "scaleNote": "Built 2026-09-06 (Wave 6). provision_runs + provision_ledger (one row per legislature, est_cost = seats×10 + D(P), zero rule → skipped) + provision_worker_leases; ProvisionClaims (shell batches of 5,000 first, then one unit per claim; topdown lanes largest-first, bottomup smallest-first); ProvisionWorkerJob on the autoscale queue (redis-long); provision:pump every minute (halt/resume, chunked ledger seeding, ANALYZE while shells land, dead-lane reclaim on backend absence, lane seeding to HostCapacity::autoscaleWorkers, done flip with the measured baseline); provision:control start|halt|resume|revert|status. Dry run 2026-09-06 (rolled back): ledger chunk 25,000 rows 1.8 s; shell batch 5,000 rows 1.4 to 3.2 s after ANALYZE (2.5 → 213 s before it); unit 0.5 to 1.1 s. Landed at planet scale 2026-09-06: 923,092 shelled, 720k+ founded and climbing at ~74/s (windowed 10-min rate); optimised to set-based departments/committees + seat double-racePlan and settings prefetch, pid-reuse-proof dead-lane reaper, and an independent CGA_PROVISION_WORKERS dial on its own queue (proved disk-bound: 13/16/26 lanes all ~54-61/s, so ~13-16 is the box-E cap).",
    "blocker": "",
    "badge": "Desk·W6",
    "lane": "desk",
@@ -4120,8 +4120,8 @@
   {
    "area": "Setup + scale",
    "capability": "Seat minting at scale — one election and its races per legislature from the active map and grouping",
-   "maturity": "partial",
-   "scaleNote": "Built 2026-09-06 (Wave 6). LegislatureUnitProcessor::seat: scheduleGeneral per legislature after its board landed; zero-seat chambers skipped; a fully blocked race plan files as review with the reasons and mints no orphan election. Dry run: Buenos Aires 460 seats → 148 races in 1.1 s. The planet run measures the audit-lock floor (about 19 chain appends per unit).",
+   "maturity": "working",
+   "scaleNote": "Built 2026-09-06 (Wave 6). LegislatureUnitProcessor::seat: scheduleGeneral per legislature after its board landed; zero-seat chambers skipped; a fully blocked race plan files as review with the reasons and mints no orphan election. Dry run: Buenos Aires 460 seats → 148 races in 1.1 s. The planet run measures the audit-lock floor (about 19 chain appends per unit). Landed at planet scale 2026-09-06: 923,092 shelled, 720k+ founded and climbing at ~74/s (windowed 10-min rate); optimised to set-based departments/committees + seat double-racePlan and settings prefetch, pid-reuse-proof dead-lane reaper, and an independent CGA_PROVISION_WORKERS dial on its own queue (proved disk-bound: 13/16/26 lanes all ~54-61/s, so ~13-16 is the box-E cap).",
    "blocker": "",
    "badge": "Desk·W6",
    "lane": "desk",
@@ -4130,8 +4130,8 @@
   {
    "area": "Setup + scale",
    "capability": "Committees and departments as system acts at scale (F-LEG-009 to K(S), F-LEG-016 to D(P), no chamber vote)",
-   "maturity": "partial",
-   "scaleNote": "Built 2026-09-06 (Wave 6). F-LEG-009 / F-LEG-016 filed by the null actor with system_act: CommitteeService::createAsSystemAct (no vote, kind split over the chamber's seat counts), DepartmentService::charterAsSystemAct (founding charter law origin=founding via EnactmentService::enactFounding, board + vacant governor seats + report obligation; a forming executive may oversee at founding). Both refuse on a seated chamber. Dry run: K(S)=20 committees + D(P)=19 departments for Buenos Aires in 1.1 s.",
+   "maturity": "working",
+   "scaleNote": "Built 2026-09-06 (Wave 6). F-LEG-009 / F-LEG-016 filed by the null actor with system_act: CommitteeService::createAsSystemAct (no vote, kind split over the chamber's seat counts), DepartmentService::charterAsSystemAct (founding charter law origin=founding via EnactmentService::enactFounding, board + vacant governor seats + report obligation; a forming executive may oversee at founding). Both refuse on a seated chamber. Dry run: K(S)=20 committees + D(P)=19 departments for Buenos Aires in 1.1 s. Landed at planet scale 2026-09-06: 923,092 shelled, 720k+ founded and climbing at ~74/s (windowed 10-min rate); optimised to set-based departments/committees + seat double-racePlan and settings prefetch, pid-reuse-proof dead-lane reaper, and an independent CGA_PROVISION_WORKERS dial on its own queue (proved disk-bound: 13/16/26 lanes all ~54-61/s, so ~13-16 is the box-E cap).",
    "blocker": "",
    "badge": "Desk·W6",
    "lane": "desk",
@@ -4170,8 +4170,8 @@
   {
    "area": "Setup + scale",
    "capability": "Rooms and subforums at scale",
-   "maturity": "partial",
-   "scaleNote": "Decided in build 2026-09-06: Plane A square + halls ride the shell batch; Plane A subforums follow live objects (bills, petitions, questions, meetings, candidacies) and none exist at Step 4; Matrix rooms stay demand-driven on first view (capacity-bound, EvaluateSocialStructureJob unchanged). The settings keys (type_b_seats_per_child, critical_population_threshold, activation_tier_*) are registered with bounds and meta.",
+   "maturity": "working",
+   "scaleNote": "Decided in build 2026-09-06: Plane A square + halls ride the shell batch; Plane A subforums follow live objects (bills, petitions, questions, meetings, candidacies) and none exist at Step 4; Matrix rooms stay demand-driven on first view (capacity-bound, EvaluateSocialStructureJob unchanged). The settings keys (type_b_seats_per_child, critical_population_threshold, activation_tier_*) are registered with bounds and meta. Landed at planet scale 2026-09-06: 923,092 shelled, 720k+ founded and climbing at ~74/s (windowed 10-min rate); optimised to set-based departments/committees + seat double-racePlan and settings prefetch, pid-reuse-proof dead-lane reaper, and an independent CGA_PROVISION_WORKERS dial on its own queue (proved disk-bound: 13/16/26 lanes all ~54-61/s, so ~13-16 is the box-E cap).",
    "blocker": "",
    "badge": "Desk·W6",
    "lane": "desk",
@@ -5325,8 +5325,8 @@
    "owner": "lane 13",
    "location": "Live single-table counts: currencies 0, economic_accounts 0, marketplace_listings 0, work_postings 0, ledger_entries 0, share_offers 0. The only caller of CurrencyService::create (app/Services/Economy/CurrencyService.php:52) is app/Console/Commands/TreasuryDemoCommand.php:49.",
    "status": "OPEN",
-   "note": "Every Economy page renders honest-empty on the live box. No mass path mints a currency, accounts or treasuries; the only creation path is a demo CLI command. The Wave 6 Step 4 scale-up ledger has no economy lane.",
-   "state": "open",
+   "note": "Partly addressed 2026-09-06: the Step 4 shell batch now founds the root currency and one public treasury per jurisdiction at planet scale (923,092 treasuries, balance 0). Resident wallets, the mint, stipend runs and account balances remain Wave 7 (the simulation), so the account-level economy surfaces stay empty until then.",
+   "state": "deferred",
    "badge": "Desk·W6",
    "lane": "desk",
    "wave": "W6"

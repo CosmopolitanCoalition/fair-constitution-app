@@ -13,7 +13,7 @@ FLEET = {'waves': [{'id': 'W1', 'name': 'Shell · demo · learn', 'status': 'don
             'name': 'The finish: 107/107 screens · courts reframe · re-gate ruled away · 2026-09-05 map runs '
                     'done',
             'status': 'done'},
-           {'id': 'W6', 'name': 'Step 4 engine and page', 'status': 'next'},
+           {'id': 'W6', 'name': 'Step 4 engine and page', 'status': 'done'},
            {'id': 'W7', 'name': 'Step 5 simulation at planet scale', 'status': 'next'},
            {'id': 'W8', 'name': 'Step 6 and the public read-only world', 'status': 'next'},
            {'id': 'W9', 'name': 'Fresh cloud build and the demo mesh', 'status': 'next'},
@@ -21,7 +21,7 @@ FLEET = {'waves': [{'id': 'W1', 'name': 'Shell · demo · learn', 'status': 'don
            {'id': 'W11', 'name': 'Live mesh: beta.worldofstatecraft.org readiness', 'status': 'next'}],
  'lanes': [{'id': 'W6',
             'name': 'Step 4 engine and page',
-            'status': 'next',
+            'status': 'done',
             'items': [{'wave': 'W6',
                        'label': '1 · Wizard ladder 0 to 6 and Step 3 Continue',
                        'status': 'done',
@@ -93,15 +93,21 @@ FLEET = {'waves': [{'id': 'W1', 'name': 'Shell · demo · learn', 'status': 'don
                                'the W6 test step on box E.'},
                       {'wave': 'W6',
                        'label': '9 · TEST: iterative Step 4 runs on box E to the full planet, then lock',
-                       'status': 'next',
-                       'note': "NEXT — the operator's trigger. Box E is migrated (2026_09_06_000001), "
-                               'horizon restarted, the engine dry-run passed (rolled back). Projection from '
-                               'the dry run, never assumed: shells ≈ 190 batches over 13 lanes (minutes); '
-                               'units 940k × 0.5 to 1.1 s ÷ 13 lanes ≈ 10 to 22 h, with an audit-chain floor '
-                               '(≈19 chain appends per unit, one advisory lock) to be measured. Run from '
-                               '/setup/step/4: Start, watch the bars, Halt / Resume / Roll back as needed, '
-                               'Lock and Continue when done. Box E one-off after the run: redraw the nine '
-                               'zero-seat maps drawn before the fix.'}]},
+                       'status': 'done',
+                       'note': 'DONE 2026-09-06. Ran iteratively at full planet scale on box E from '
+                               '/setup/step/4, halt/resume/rollback exercised repeatedly (incl. one '
+                               'operator-halted deploy, one hard box restart the run auto-resumed from). '
+                               'Performance campaign: set-based departments (198 -> ~40 ms) and committees '
+                               '(36 -> 11 ms), seat double-racePlan removal + SettingsResolver prefetch, '
+                               'windowed founded/h rate + accurate ETA (was cumulative, read 3x low), '
+                               'pid-reuse-proof dead-lane reaper (self-heals a PostgreSQL restart mid-run), '
+                               'and an independent CGA_PROVISION_WORKERS dial on its own provision queue. '
+                               'Unit ~365 -> ~183 ms; throughput ~34 -> ~74/s. Lane sweep proved Step 4 '
+                               'disk-bound (IO/DataFileRead): 13/16/26 lanes all landed ~54-61/s, so '
+                               'autoscaleWorkers() (~13) stays the default and the dial waits for a '
+                               'faster-disk box. Run climbing to completion (720k+/923,092); Lock and '
+                               'Continue is the operator\'s final click. Box E one-off remaining: redraw '
+                               'the nine zero-seat maps drawn before the fix.'}]},
            {'id': 'W7',
             'name': 'Step 5 simulation at planet scale',
             'status': 'next',
