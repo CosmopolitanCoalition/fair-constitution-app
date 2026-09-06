@@ -461,7 +461,7 @@ h1{font-size:1.55rem;font-weight:600;margin:0 0 .3rem}
 <h1>Where does the app stand — and what's the road to a playable game?</h1>
 <p class="stamp">%%STAMP%% · verified against live code · click a group, then a row, for the detail · search + filter + expand-all below</p>
 <div class="tiles" id="tiles"></div>
-<div class="note" style="border-inline-start-color:var(--good)"><b>Maps done (2026-09-05):</b> 940,327 Type A maps and 36,810 Type B panel maps, 0 review, map quality card live on Step 3. <b>Wave 6 = the conference demo:</b> a read-only scaled demo mesh with simulated data, public and walkable, for the 25th OIDP Conference, Kraków, 21–23 September 2026 (operator in Kraków by 09-18). Not built: institution shells at scale (boards 1 of 940,327), seat minting, wizard Steps 4 to 6, the read-only lock, the cloud host. The verified deep dive is the page <a href="https://claude.ai/code/artifact/949d44b2-ee67-4a9b-a75a-61bf1ff9529c">Setup Surface Atlas</a>. <b>Open Questions:</b> all 15 wave-6 decisions are ruled (2026-09-05), including the bench law. Screens, capabilities and debt still carry the 2026-08-04 corpus.</div>
+<div class="note" style="border-inline-start-color:var(--good)"><b>Maps done (2026-09-05):</b> 940,327 Type A maps and 36,810 Type B panel maps, 0 review, map quality card live on Step 3. <b>Wave 6 = the conference demo:</b> a read-only scaled demo mesh with simulated data, public and walkable, for the 25th OIDP Conference, Kraków, 21–23 September 2026 (operator in Kraków by 09-18). Not built: institution shells at scale (boards 1 of 940,327), seat minting, wizard Steps 4 to 6, the read-only lock, the cloud host. The verified deep dive is the page <a href="https://claude.ai/code/artifact/949d44b2-ee67-4a9b-a75a-61bf1ff9529c">Setup Surface Atlas</a>. <b>Open Questions:</b> all 15 wave-6 decisions are ruled (2026-09-05), including the bench law. Screens, capabilities and debt were re-verified against the code on 2026-09-05 (33 readers, each checked by a skeptic); the Wave 6 rows are added.</div>
 <div class="views" role="tablist">
   <button class="view-btn" role="tab" data-v="screens" aria-selected="true">UI Screens</button>
   <button class="view-btn" role="tab" data-v="caps" aria-selected="false">Capabilities</button>
@@ -475,7 +475,7 @@ h1{font-size:1.55rem;font-weight:600;margin:0 0 .3rem}
   <span class="expanders"><button class="chip" id="exAll">Expand all</button><button class="chip" id="coAll">Collapse all</button></span>
 </div>
 <div id="body"></div>
-<p class="foot">Generated from <code>v3_gap_data.json</code> + the 8-agent verification workflow + the Wave-4 standing orders. UI screens vs the 107 <code>mockups/v3</code> screens; capabilities, debt, fleet &amp; questions from the live-code sweep and the desk plan.</p>
+<p class="foot">Generated from <code>badged.json</code> (the 107 <code>mockups/v3</code> screens plus the Wave 6 rows; capabilities; debt), <code>wave4_data.py</code> (fleet and waves) and the questions in the generator. Re-verified against the code on 2026-09-05 by 33 readers, each checked by a skeptic.</p>
 </div>
 <script>
 const D=%%DATA%%;
@@ -575,7 +575,7 @@ buildFilters();render();
 </script>
 """
 
-stamp = "As of %s · main @ <code>%s</code> · maps done · Wave 6 conference demo · 15 decisions ruled 2026-09-05 · 0 open · screens/caps/debt corpus dated 2026-08-04" % (DATA['asOf'], DATA['head'])
+stamp = "As of %s · main @ <code>%s</code> · maps done · Wave 6 conference demo · 15 decisions ruled 2026-09-05 · 0 open · screens, capabilities and debt re-verified 2026-09-05" % (DATA['asOf'], DATA['head'])
 html = TEMPLATE.replace('%%DATA%%', json.dumps(DATA, separators=(',', ':'))).replace('%%STAMP%%', stamp)
 # Output next to the script, not a hard-coded box path — the generator now
 # runs on whichever checkout you are in (this regen ran on the GAME box).
