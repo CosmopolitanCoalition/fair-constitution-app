@@ -25,10 +25,13 @@ use Illuminate\Support\Facades\DB;
  */
 final class ProvisionClaims
 {
-    // 2,000, not 5,000 (dry-run fix 2026-09-06): a smaller batch holds index
-    // and buffer locks for a shorter time, so concurrent lanes contend less
-    // and each claim turns over fast enough to keep the bars moving.
-    public const SHELL_BATCH = 2000;
+    // 500, un-bulked (operator order 2026-09-06: avoid bulking single
+    // transactions so all lanes can be leveraged). A smaller set-based insert
+    // holds index and buffer locks for a shorter time, so all lanes run the
+    // shell phase concurrently without the buffer-cache contention a 2,000-row
+    // batch caused. The lane/part timings surface whether the trade of more
+    // claims for lighter transactions pays; tune from there.
+    public const SHELL_BATCH = 500;
 
     public const LANE_TOPDOWN  = 'topdown';
     public const LANE_BOTTOMUP = 'bottomup';
@@ -71,9 +74,13 @@ final class ProvisionClaims
         // bottomup lane the smallest chamber of the lowest layer, meeting in the
         // middle. Rows seeded before adm_level existed sort at the near end and
         // still drain by cost.
-        return $lane === self::LANE_BOTTOMUP
-            ? 'adm_level DESC NULLS LAST, est_cost ASC, legislature_id DESC'
-            : 'adm_level ASC NULLS FIRST, est_cost DESC, legislature_id ASC';
+        // THE STAMPED WALK (operator insight 2026-09-06): the whole order is
+        // folded into ONE integer (walk_position) stamped once at seed
+        // completion, so the claim is an INDEX POP of one column — never a
+        // re-sort of the pending pile. Topdown pops the low end (layer
+        // top-down, biggest chamber first); bottomup pops the high end, the
+        // same pl_walk_idx scanned backward. This is the Step 3 model.
+        return $lane === self::LANE_BOTTOMUP ? 'walk_position DESC' : 'walk_position ASC';
     }
 
     private static function claimShellBatch(string $token, string $lane): ?array

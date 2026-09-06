@@ -10,6 +10,7 @@ use App\Services\AuditService;
 use App\Services\Demo\Stages\GovernanceStage;
 use App\Services\ElectionLifecycleService;
 use App\Services\InstitutionScaleService;
+use App\Support\ProvisionTimer;
 use Illuminate\Support\Facades\DB;
 
 /**
@@ -59,6 +60,7 @@ class LegislatureUnitProcessor
         try {
             // ── 1. The seat ────────────────────────────────────────────────
             $mark = $this->audit->batchMark();
+            ProvisionTimer::open('unit.seat');
             try {
                 $seat = $this->seat($legislature);
                 $manifest['seat'] = $seat;
@@ -69,37 +71,44 @@ class LegislatureUnitProcessor
                 $this->audit->batchTruncate($mark);
                 $review = 'seat: '.self::short($e);
             }
+            ProvisionTimer::close('unit.seat');
             if ($beat !== null) {
                 $beat('seat');
             }
 
             // ── 2. Committees to K(S) ──────────────────────────────────────
             $mark = $this->audit->batchMark();
+            ProvisionTimer::open('unit.committees');
             try {
                 $manifest['committees'] = $this->committees($legislature);
             } catch (\Throwable $e) {
                 $this->audit->batchTruncate($mark);
                 $review = ($review !== null ? $review.' | ' : '').'committees: '.self::short($e);
             }
+            ProvisionTimer::close('unit.committees');
             if ($beat !== null) {
                 $beat('committees');
             }
 
             // ── 3. Departments to D(P) ─────────────────────────────────────
             $mark = $this->audit->batchMark();
+            ProvisionTimer::open('unit.departments');
             try {
                 $manifest['departments'] = $this->departments($legislature);
             } catch (\Throwable $e) {
                 $this->audit->batchTruncate($mark);
                 $review = ($review !== null ? $review.' | ' : '').'departments: '.self::short($e);
             }
+            ProvisionTimer::close('unit.departments');
         } finally {
+            ProvisionTimer::open('unit.commit');
             $this->audit->commitBatch(
                 module: 'jurisdictions',
                 event: 'legislature_founded',
                 ref: 'WF-JUR-01',
                 jurisdictionId: (string) $legislature->jurisdiction_id,
             );
+            ProvisionTimer::close('unit.commit');
         }
 
         return [

@@ -40,8 +40,36 @@ const stages  = computed(() => data.value?.stages ?? [])
 const layers  = computed(() => data.value?.layers ?? [])
 const lanes   = computed(() => data.value?.lanes ?? [])
 const review  = computed(() => data.value?.review ?? [])
+const timings = computed(() => data.value?.timings ?? [])
 const totalLeg = computed(() => data.value?.total_legislatures ?? 0)
 const seeded   = computed(() => data.value?.seeded ?? 0)
+
+// ── Timing panel: where the time goes, and the gap between claims ────────────
+const timingMax = computed(() => Math.max(1, ...timings.value.map(t => t.total_s || 0)))
+const TIMING_LABELS = {
+    'lane.between_claims': 'Between claims (idle + acquire)',
+    'lane.claim_next': 'Claim acquisition',
+    'claim.unit': 'Whole unit claim',
+    'claim.shell_batch': 'Whole shell batch',
+    'unit.seat': '· Seat (election + races)',
+    'unit.committees': '· Committees',
+    'unit.departments': '· Departments',
+    'unit.commit': '· Audit commit',
+    'shell.executives': '· Executives',
+    'shell.judiciaries': '· Courts',
+    'shell.election_boards': '· Election boards',
+    'shell.board_members': '· Board members',
+    'shell.social_spaces': '· Civic spaces',
+    'shell.treasuries': '· Treasuries',
+    'shell.advance': '· Advance to units',
+}
+function timingLabel(p) { return TIMING_LABELS[p] ?? p }
+function timingTone(p) {
+    if (p === 'lane.between_claims') return 'text-amber-300'
+    if (p.startsWith('claim.')) return 'text-gray-200 font-medium'
+    return 'text-gray-400'
+}
+function timingBar(p) { return p === 'lane.between_claims' ? 'bg-amber-500/70' : 'bg-blue-500/70' }
 
 const runLive   = computed(() => run.value && ['queued', 'running'].includes(run.value.status))
 const runHalted = computed(() => run.value && run.value.status === 'halted')
@@ -352,6 +380,26 @@ onBeforeUnmount(() => { if (timer) clearInterval(timer); if (clock) clearInterva
                             </div>
                         </li>
                     </ul>
+                </div>
+            </div>
+        </section>
+
+        <!-- Timing: where the time goes, across all lanes -->
+        <section v-if="timings.length" class="bg-gray-900 border border-gray-800 rounded-lg p-5 mb-6">
+            <h2 class="text-white font-semibold mb-1">Timing
+                <span class="text-gray-500 font-normal text-sm">where the time goes · avg per part, total across all lanes</span>
+            </h2>
+            <p class="text-gray-500 text-xs mb-3">The bar is each part's share of total lane-seconds. Watch <span class="text-amber-300">Between claims</span>: a lane that sits idle is a lane not working.</p>
+            <div class="space-y-1 text-xs">
+                <div v-for="t in timings" :key="t.part" class="flex items-center gap-3">
+                    <span class="w-52 shrink-0 truncate" :class="timingTone(t.part)">{{ timingLabel(t.part) }}</span>
+                    <span class="w-20 text-right tabular-nums text-gray-300">{{ t.avg_ms }} ms</span>
+                    <span class="w-24 text-right tabular-nums text-gray-500 hidden md:inline">max {{ t.max_ms }} ms</span>
+                    <span class="w-20 text-right tabular-nums text-gray-500 hidden md:inline">{{ n(t.count) }}×</span>
+                    <div class="flex-1 h-2 bg-gray-800 rounded overflow-hidden">
+                        <div class="h-full transition-all duration-700" :class="timingBar(t.part)" :style="{ width: pct(t.total_s, timingMax) + '%' }"></div>
+                    </div>
+                    <span class="w-16 text-right tabular-nums text-gray-400">{{ n(t.total_s) }}s</span>
                 </div>
             </div>
         </section>

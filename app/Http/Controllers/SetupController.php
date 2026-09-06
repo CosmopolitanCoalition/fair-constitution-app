@@ -3909,6 +3909,26 @@ class SetupController extends Controller
                 'reason' => $r->reason,
             ])->values()->all();
 
+        // LANE / PART TIMINGS (operator order 2026-09-06): what each part of a
+        // claim took and how long a lane sat between claims, so the slow points
+        // are visible and targetable. One small aggregate per run.
+        $timings = [];
+        if ($run !== null) {
+            $timings = DB::table('provision_timings')
+                ->where('run_id', (string) $run->id)
+                ->get()
+                ->map(fn ($t) => [
+                    'part'    => $t->part,
+                    'count'   => (int) $t->count,
+                    'avg_ms'  => $t->count > 0 ? round($t->total_us / $t->count / 1000, 2) : 0.0,
+                    'max_ms'  => round($t->max_us / 1000, 2),
+                    'total_s' => round($t->total_us / 1_000_000, 1),
+                ])
+                ->sortByDesc('total_s')
+                ->values()
+                ->all();
+        }
+
         return [
             'run' => $run === null ? null : [
                 'id'             => (string) $run->id,
@@ -3935,6 +3955,7 @@ class SetupController extends Controller
             'layers'  => $layers,
             'lanes'   => $lanes,
             'review'  => $review,
+            'timings' => $timings,
             'maps_running' => DB::table('autoscale_runs')->whereIn('status', ['queued', 'sizing', 'mapping'])->exists(),
         ];
     }

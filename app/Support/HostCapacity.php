@@ -80,14 +80,14 @@ class HostCapacity
     }
 
     /**
-     * THE PROVISION POOL (dry-run fix 2026-09-06). Provisioning lanes are
-     * WRITE and buffer-cache bound, not compute bound: they run fast
-     * statements that do not wait on postgres, so the wait-aware compute count
-     * (autoscaleWorkers) over-subscribes a small box's index and shared-buffer
-     * budget (observed live: 13 lanes' shell batches stretched from under a
-     * second to over two minutes each, one lane blocked on LWLock
-     * BufferMapping). Half the compute pool, floored at 2 (a Pi), so batches
-     * turn over fast and progress is visible. CGA_PROVISION_WORKERS overrides.
+     * THE PROVISION POOL (operator order 2026-09-06: run ALL lanes at all
+     * times). Provisioning uses the full wait-aware compute count, like
+     * districting — every lane the host can offer. The earlier write-contention
+     * that forced a half pool is addressed at its cause instead: the shell
+     * batch is un-bulked (ProvisionClaims::SHELL_BATCH), the near-empty shell
+     * tables are analyzed before the dependent pass, and the lane/part timings
+     * (ProvisionTimer) surface any remaining contention to target directly.
+     * CGA_PROVISION_WORKERS overrides.
      */
     public static function provisionWorkers(): int
     {
@@ -96,7 +96,7 @@ class HostCapacity
             return (int) $override;
         }
 
-        return max(2, (int) ceil(self::autoscaleWorkers() / 2));
+        return max(2, self::autoscaleWorkers());
     }
 
     /**

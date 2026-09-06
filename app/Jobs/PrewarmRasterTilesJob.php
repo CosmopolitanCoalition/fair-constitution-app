@@ -77,6 +77,15 @@ class PrewarmRasterTilesJob implements ShouldQueue
 
     public function handle(): void
     {
+        // YIELD TO A LIVE STEP 4 RUN (operator order 2026-09-06): the boot-time
+        // cache prewarm is memory-heavy and competes with the provisioning
+        // lanes for the box. While a Step 4 run is live it defers; a later
+        // dispatch warms the caches once the run is done.
+        if (\App\Models\ProvisionRun::query()->whereIn('status', ['queued', 'running', 'halted'])->exists()) {
+            \Illuminate\Support\Facades\Log::info('Prewarm deferred: a Step 4 provision run is live.');
+            return;
+        }
+
         // The landmask compute fetches ~250 k bbox rows and builds a key
         // map of ~2.7 M entries at z=0-12. With PHP's default 128 MB
         // memory_limit that's a tight squeeze even after the in-place

@@ -63,6 +63,10 @@ class ProvisionPumpCommand extends Command
             $seed = $control->materializeLedger($run, self::SEED_CHUNKS_PER_TICK);
             if ($seed['complete']) {
                 $control->foundMoneyPlane();
+                // STAMP THE WALK ONCE (operator insight 2026-09-06): the whole
+                // order folds into one integer before any lane claims, so the
+                // claim is an index pop, not a re-sort.
+                $control->stampOrder();
                 // The claim plans read the ledger's statistics (the ETL rule:
                 // analyze before the dependent pass).
                 DB::statement('ANALYZE provision_ledger');
@@ -75,12 +79,16 @@ class ProvisionPumpCommand extends Command
             }
         }
 
-        // ── Statistics while shells land (dry run 2026-09-06) ──────────────
+        // ── Statistics while work lands (dry run 2026-09-06) ───────────────
         // The shell tables grow from near empty; without fresh statistics the
-        // NOT EXISTS probes plan as sequential scans and every batch grows
-        // slower than the last. One ANALYZE per table per minute, seconds.
+        // NOT EXISTS probes plan as sequential scans. And provision_ledger
+        // churns heavily as rows complete, so its stats drift and the claim
+        // plan degrades — keep it analyzed each minute while any work is open.
         if (DB::table('provision_ledger')->where('stage', 0)->whereIn('status', ['pending', 'running'])->exists()) {
             \App\Services\Provision\ShellBatchProcessor::analyzeAll();
+        }
+        if (\App\Support\ProvisionClaims::openWork()) {
+            DB::statement('ANALYZE provision_ledger');
         }
 
         // ── Reclaims: rows held by lanes that are certainly gone ───────────

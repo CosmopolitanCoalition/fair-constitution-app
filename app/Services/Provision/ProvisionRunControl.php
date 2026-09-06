@@ -427,6 +427,29 @@ class ProvisionRunControl
         return $c;
     }
 
+    /**
+     * STAMP THE WALK ONCE (operator insight 2026-09-06). Fold the whole
+     * dispatch order into one integer per row so every claim is an index pop,
+     * not a re-sort of the pending pile. Called once at seed completion, before
+     * lanes run. Idempotent (only writes rows whose stamp changed).
+     */
+    public function stampOrder(): void
+    {
+        DB::statement("
+            WITH ordered AS (
+                SELECT legislature_id,
+                       row_number() OVER (ORDER BY adm_level ASC, est_cost DESC, legislature_id ASC) AS wp
+                  FROM provision_ledger
+                 WHERE status <> 'skipped'
+            )
+            UPDATE provision_ledger pl
+               SET walk_position = o.wp
+              FROM ordered o
+             WHERE pl.legislature_id = o.legislature_id
+               AND pl.walk_position IS DISTINCT FROM o.wp
+        ");
+    }
+
     /** Found the money plane once per run (idempotent). */
     public function foundMoneyPlane(): ?string
     {

@@ -6,6 +6,7 @@ use App\Models\ProvisionRun;
 use App\Services\Provision\LegislatureUnitProcessor;
 use App\Services\Provision\ShellBatchProcessor;
 use App\Support\ProvisionClaims;
+use App\Support\ProvisionTimer;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
@@ -77,6 +78,10 @@ class ProvisionWorkerJob implements ShouldQueue
         // finally so a later districting job on this worker keeps full durability.
         DB::statement('SET synchronous_commit = off');
 
+        $sinceFlush = 0;
+        $lastFlush = microtime(true);
+        $gapStart = microtime(true);
+
         try {
             while (true) {
                 if (Cache::get('provision.halt_requested') || $this->haltRequested()) {
@@ -96,10 +101,15 @@ class ProvisionWorkerJob implements ShouldQueue
                     break;
                 }
 
+                ProvisionTimer::open('lane.claim_next');
                 $claim = ProvisionClaims::next($run, $token, $this->lane);
+                ProvisionTimer::close('lane.claim_next');
                 if ($claim === null) {
                     break;
                 }
+                // The whole gap since the previous claim ended: acquisition plus
+                // the touch and gc overhead — how long the lane sat idle.
+                ProvisionTimer::record('lane.between_claims', (int) round((microtime(true) - $gapStart) * 1_000_000));
 
                 $label = $claim['type'] === 'shell_batch'
                     ? "shell batch × {$claim['count']}"
@@ -111,6 +121,7 @@ class ProvisionWorkerJob implements ShouldQueue
                     'current_legislature_id' => $claim['type'] === 'unit' ? $claim['legislature_id'] : null,
                 ]);
 
+                ProvisionTimer::open($claim['type'] === 'shell_batch' ? 'claim.shell_batch' : 'claim.unit');
                 try {
                     if ($claim['type'] === 'shell_batch') {
                         $shells->process($token, fn () => $this->touch($token, []));
@@ -120,6 +131,7 @@ class ProvisionWorkerJob implements ShouldQueue
                 } catch (\Throwable $e) {
                     $this->fail_claim($token, $claim, $e);
                 }
+                ProvisionTimer::close($claim['type'] === 'shell_batch' ? 'claim.shell_batch' : 'claim.unit');
 
                 $this->touch($token, [
                     'claim_type' => null, 'claim_label' => null, 'claim_started_at' => null,
@@ -130,8 +142,19 @@ class ProvisionWorkerJob implements ShouldQueue
                 // so the baseline stays low between claims and one big unit
                 // never starts from a high-water mark.
                 gc_collect_cycles();
+
+                $gapStart = microtime(true);
+                // Flush the timings often so the page reveals them within a
+                // poll or two, even when the rate is slow: every 10 claims or
+                // every 15 seconds, whichever comes first.
+                if (++$sinceFlush >= 10 || microtime(true) - $lastFlush > 15) {
+                    ProvisionTimer::flush($this->runId);
+                    $sinceFlush = 0;
+                    $lastFlush = microtime(true);
+                }
             }
         } finally {
+            ProvisionTimer::flush($this->runId);
             // Restore full durability for whatever this worker runs next.
             try {
                 DB::statement('SET synchronous_commit = on');

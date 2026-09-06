@@ -4,6 +4,7 @@ namespace App\Services\Provision;
 
 use App\Services\AuditService;
 use App\Services\InstitutionProvisionService;
+use App\Support\ProvisionTimer;
 use Illuminate\Support\Facades\DB;
 
 /**
@@ -36,7 +37,9 @@ class ShellBatchProcessor
 
         $created = [];
         foreach (InstitutionProvisionService::STEPS as $step) {
+            ProvisionTimer::open("shell.{$step}");
             $created[$step] = $this->provision->provisionClaim($step, $token);
+            ProvisionTimer::close("shell.{$step}");
             if ($beat !== null) {
                 $beat($step);
             }
@@ -46,11 +49,13 @@ class ShellBatchProcessor
         // for the unit lane. Zero-seat chambers keep their shells (a place is
         // a polity even while its chamber is inactive) and are skipped by the
         // seat step, not here.
+        ProvisionTimer::open('shell.advance');
         $advanced = DB::update("
             UPDATE provision_ledger
                SET stage = 1, status = 'pending', claim_token = NULL, updated_at = now()
              WHERE claim_token = ?::uuid AND status = 'running' AND stage = 0
         ", [$token]);
+        ProvisionTimer::close('shell.advance');
 
         if (array_sum($created) > 0) {
             $this->audit->append(

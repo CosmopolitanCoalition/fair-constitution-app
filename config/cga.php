@@ -150,6 +150,12 @@ return [
     | The ETL law's "derive from host" governs SIZING; the drawing itself must
     | stay host-invariant.
     */
+    'provision' => [
+        // THE STEP 4 LANE TIMER (operator order 2026-09-06): time each part of
+        // a claim and the gap between claims, surfaced on the Step 4 page.
+        'timings' => env('CGA_PROVISION_TIMINGS', true),
+    ],
+
     'districting' => [
         'heartbeat_seconds' => env('CGA_DISTRICTING_HEARTBEAT_SECONDS', 5),
         'step_timings'      => env('CGA_DISTRICTING_STEP_TIMINGS', true),
