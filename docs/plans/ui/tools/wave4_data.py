@@ -113,8 +113,12 @@ FLEET = {'waves': [{'id': 'W1', 'name': 'Shell · demo · learn', 'status': 'don
             'status': 'next',
             'items': [{'wave': 'W7',
                        'label': '1 · Sim worker heartbeat during an item',
-                       'status': 'next',
-                       'note': 'Item and lease rows are touched only at claim and settle '
+                       'status': 'done',
+                       'note': 'DONE (3d82a372, repaired 5d6ef08c). A $beat closure is threaded from '
+                               'SimWorkerJob into all 8 stages and their inner loops (the first cut placed '
+                               'the call in helper scopes that never received it and threw at runtime; fixed '
+                               'in Cohort, Civics, Governance, Seating and ElectionStage). ORIGINAL: '
+                               'Item and lease rows are touched only at claim and settle '
                                '(app/Support/SimClaims.php:121-123; app/Jobs/SimWorkerJob.php:124-160). An '
                                'item over 30 min is reclaimed and re-executed; over 2 min the pump seeds a '
                                'replacement each minute; over 10 min the lease is culled '
@@ -131,8 +135,16 @@ FLEET = {'waves': [{'id': 'W1', 'name': 'Shell · demo · learn', 'status': 'don
                                'SimStartCommand.php:81-83).'},
                       {'wave': 'W7',
                        'label': '3 · The three empty phases and sim:revert',
-                       'status': 'next',
-                       'note': 'enumerating, profiling and verifying are declared in SimRun::PHASES with no '
+                       'status': 'done',
+                       'note': 'DONE (725fe608, repaired 5d6ef08c; sim:revert 21df4ba4). enumerating and '
+                               'verifying carry no kind (advancePhase advances through them); profiling keeps '
+                               'profile_research, the live network kind with its longer reclaim grace and its '
+                               'pin (the first cut emptied it too and broke SimPullEnginePinTest). sim:revert '
+                               'ships the SAFE subset: clears the run worklist + leases in bounded chunks so a '
+                               'fresh run re-enumerates, leaves the produced world in place, refuses a live '
+                               'run unless forced. The full population teardown (~40 FK cascade) is filed as '
+                               'rubric sim-revert-scope. ORIGINAL: '
+                               'enumerating, profiling and verifying are declared in SimRun::PHASES with no '
                                'stage and no mint (app/Models/SimRun.php:40-88; SimPumpCommand.php:329, '
                                '422-460). Implement a verifying acceptance scan or remove the phases. Build '
                                "sim:revert: remove one run's rows (cohorts, sim users and residencies, "
@@ -140,8 +152,14 @@ FLEET = {'waves': [{'id': 'W1', 'name': 'Shell · demo · learn', 'status': 'don
                                'civics rows) so a run can repeat; it is named in four files and absent.'},
                       {'wave': 'W7',
                        'label': '4 · Gate on the locked Step 4 result; adopt the Step 4 election',
-                       'status': 'next',
-                       'note': 'ElectionStage settles done with no election when a jurisdiction has no '
+                       'status': 'done',
+                       'note': 'DONE (5d6ef08c). ElectionStage fast-path adopts Step 4\'s open election with '
+                               'races and skips racePlan (the apportionment walk scheduleGeneral ran even on '
+                               'adoption, ~900k times); candidacy insert is insert-or-ignore so a reclaimed '
+                               'item re-runs clean; the fallback hands its plan to scheduleGeneral so racePlan '
+                               'runs once. step5Start is gated on setup_step_completed >= 5 AND the Step 4 run '
+                               'done. Pinned: one-election-per-chamber, no double-field. ORIGINAL: '
+                               'ElectionStage settles done with no election when a jurisdiction has no '
                                'active board (app/Services/Demo/Stages/ElectionStage.php:96-109) and calls '
                                'scheduleGeneral itself (:113). After W6 the elections exist: ElectionStage '
                                'adopts the open election and fields candidates; JudiciaryStage needs the '
@@ -152,14 +170,25 @@ FLEET = {'waves': [{'id': 'W1', 'name': 'Shell · demo · learn', 'status': 'don
                                'courts forming → operating: re-verify both at planet scale in this wave.'},
                       {'wave': 'W7',
                        'label': '5 · Claim order per row',
-                       'status': 'next',
-                       'note': 'position = the chunk offset, so largest-first holds only per 25,000-row band '
+                       'status': 'done',
+                       'note': 'DONE (17d67180). position = $total + row_number() OVER (population DESC, id) '
+                               'in both enumerate branches, so largest-first holds across the whole worklist, '
+                               'not just per 25,000-row band. ORIGINAL: '
+                               'position = the chunk offset, so largest-first holds only per 25,000-row band '
                                'and a smoke run claims in uuid order (SimClaims.php:120-136; '
                                'SimStartCommand.php:189-207). Write a per-row position.'},
                       {'wave': 'W7',
                        'label': '6 · Step 5 page',
-                       'status': 'next',
-                       'note': 'Rendered only when the world is synthetic-safe. Simulate data? yes / no. '
+                       'status': 'done',
+                       'note': 'DONE (21df4ba4). Step5_Simulate.vue in the Step 4 chrome: header tiles (items '
+                               '/ done / windowed rate / elapsed+ETA / lanes), overall stage bars, segmented '
+                               'per-layer bars, a produced-world summary, a lane strip grouped by kind with '
+                               'warn colours, a review drilldown, and Start / Halt / Resume / Roll back / Lock. '
+                               'SetupController step5 endpoints delegate to SimRunControl and SimSnapshot (the '
+                               'single owner shared with /simworld, world() cached 10s so an open page never '
+                               'taxes the run). --jurisdiction scope pass-through and the console cache remain '
+                               'for a later pass. ORIGINAL: '
+                               'Rendered only when the world is synthetic-safe. Simulate data? yes / no. '
                                'Options: turnout, adm-max, limit, scope (pass --jurisdiction through '
                                'SimRunControl::cliOptions, which drops it today: SimRunControl.php:253-274). '
                                'Stage bars, workers, live and review items reused from /simworld; halt / '
@@ -184,14 +213,24 @@ FLEET = {'waves': [{'id': 'W1', 'name': 'Shell · demo · learn', 'status': 'don
                       {'wave': 'W7',
                        'label': '9 · Organizations and workers at demo scale',
                        'status': 'next',
-                       'note': 'CivicsStage mints parties, nonprofits, businesses and bills census-flavoured '
+                       'note': 'CONFIRMED running (CivicsStageTest, 556104e6): a populated leaf mints sampled '
+                               'businesses (worker_count set) and nonprofits and does not double-mint on a '
+                               're-run. Remaining: verify the civics output feeds co-determination, org board '
+                               'elections, the CGC register and endorsements at scale. ORIGINAL: '
+                               'CivicsStage mints parties, nonprofits, businesses and bills census-flavoured '
                                '(app/Services/Demo/Stages/CivicsStage.php:109-219). Co-determination, org '
                                'board elections, the CGC register and org endorsements have no subject on a '
                                'fresh world until civics runs; verify the civics output feeds them.'},
                       {'wave': 'W7',
                        'label': '10 · Console fixes',
-                       'status': 'next',
-                       'note': 'The 2 s poll runs planet-wide counts (~75 s per the parity test): serve a '
+                       'status': 'done',
+                       'note': 'DONE (556104e6). SimSnapshot::world() is cached 10s and shared by both '
+                               'surfaces (single owner), so the planet-wide counts no longer run per poll; '
+                               'labels for governance / judiciary / civics kinds live once in '
+                               'SimSnapshot::LABELS and both surfaces read them. Remaining minor: the '
+                               'workers-target-minus-live-lanes tile and the banner-beside-Start on the '
+                               'legacy /simworld page. ORIGINAL: '
+                               'The 2 s poll runs planet-wide counts (~75 s per the parity test): serve a '
                                'cached snapshot per minute like Step 3. Labels for governance, judiciary and '
                                'civics kinds; workers target minus live autoscale lanes; the not-scale_demo '
                                'banner beside a working Start '
