@@ -21,6 +21,7 @@ use App\Services\EnactmentService;
 use App\Services\PublicRecordService;
 use Carbon\CarbonImmutable;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Str;
 
 /**
  * Departments (PHASE_D_DESIGN_executive §C/§D) — ESM-17 lifecycle:
@@ -220,6 +221,249 @@ class DepartmentService
         );
 
         return $department;
+    }
+
+    /**
+     * SET-BASED system-act chartering (performance 2026-09-06): the same
+     * product as calling charterAsSystemAct() once per plan — charter law,
+     * department, unified board, vacant governor seats, first report
+     * obligation, public record, and the same buffered audit acts — but for a
+     * whole unit's departments in a fixed number of round trips instead of
+     * ~14 per department. The per-department path was 55% of the Step 4 unit;
+     * this collapses its ~14×N round trips to a constant handful.
+     *
+     * Faithful to the per-filing path, buffered per department in this order:
+     *   1. law.enacted            (enactFoundingMany)
+     *   2. records.published:law  (enactFoundingMany)
+     *   3. records.published:dept (here)
+     *   4. department.creation_proposed (here — the F-LEG-016 handler act the
+     *      engine appended after each filing; replicated so the audit content
+     *      is unchanged).
+     * All acts still commit as the legislature's ONE batched entry.
+     *
+     * The caller (LegislatureUnitProcessor) has already established the
+     * unseated-chamber guard by planning only unseated chambers, and loaded
+     * the one executive; both are re-checked ONCE here, not per department.
+     *
+     * @param  list<array{kind:string,name:string,charter:array,owner_seats?:int}>  $plans
+     * @return list<string> department ids, in plan order
+     */
+    public function charterManyAsSystemAct(Legislature $legislature, Executive $executive, array $plans): array
+    {
+        if ($plans === []) {
+            return [];
+        }
+
+        // Unseated-chamber guard (once): the system act is for unseated
+        // chambers only — a seated chamber charters by vote (F-LEG-016).
+        if (LegislatureMember::query()->where('legislature_id', $legislature->id)
+                ->whereIn('status', LegislatureMember::CURRENT_STATUSES)->exists()) {
+            throw new ConstitutionalViolation(
+                'A seated chamber charters its departments by vote (F-LEG-016); the system act is for unseated chambers only.',
+                'Art. II §9'
+            );
+        }
+
+        // Executive guard (once): oversight is assigned to THIS jurisdiction's
+        // executive, forming or later (founding posture).
+        if ((string) $executive->jurisdiction_id !== (string) $legislature->jurisdiction_id) {
+            throw new ConstitutionalViolation(
+                'Oversight is assigned to THIS jurisdiction\'s executive (named in the act).',
+                'Art. II §9 · Art. III §4'
+            );
+        }
+        $founding = [Executive::STATUS_FORMING, Executive::STATUS_DELEGATED, Executive::STATUS_ELECTED];
+        if (! in_array($executive->status, $founding, true)) {
+            throw new ConstitutionalViolation(
+                "The overseeing executive must be delegated or elected (status: {$executive->status}).",
+                'Art. III §1'
+            );
+        }
+
+        $legislatureId  = (string) $legislature->id;
+        $jurisdictionId = (string) $legislature->jurisdiction_id;
+        $executiveId    = (string) $executive->id;
+
+        // Normalize + validate every plan in memory (no round trips), mirroring
+        // validateCreationPayload's domain checks with the executive already
+        // resolved. Uniqueness of mandatory kinds is guaranteed by the caller's
+        // plan construction (a kind not already held, listed once).
+        $norm = [];
+        foreach ($plans as $plan) {
+            $kind = (string) ($plan['kind'] ?? '');
+            if (! in_array($kind, [...Department::MANDATORY_KINDS, Department::KIND_OTHER], true)) {
+                throw new ConstitutionalViolation("Unknown department kind [{$kind}].", 'Art. II §9');
+            }
+            $name = trim((string) ($plan['name'] ?? ''));
+            if ($name === '') {
+                throw new ConstitutionalViolation('A department creation act names the department.', 'Art. II §9');
+            }
+            $charter  = (array) ($plan['charter'] ?? []);
+            $function = trim((string) ($charter['function_text'] ?? ''));
+            if ($function === '') {
+                throw new ConstitutionalViolation('The charter states the department\'s function.', 'Art. II §9');
+            }
+            $ownerSeats = (int) ($plan['owner_seats'] ?? 1);
+            if ($ownerSeats < 1) {
+                throw new ConstitutionalViolation('The charter fixes at least one governor seat.', 'Art. III §4');
+            }
+            $interval = $charter['reporting_interval_months'] ?? null;
+            $norm[] = [
+                'kind'        => $kind,
+                'name'        => $name,
+                'function'    => $function,
+                'powers'      => (string) ($charter['powers_text'] ?? ''),
+                'interval'    => $interval !== null ? (int) $interval : null,
+                'owner_seats' => $ownerSeats,
+            ];
+        }
+
+        return DB::transaction(function () use ($norm, $legislature, $legislatureId, $jurisdictionId, $executiveId) {
+            $now = now();
+
+            // 1-2. The charter laws, set-based (law.enacted + records:law acts).
+            $lawInputs = array_map(fn ($d) => [
+                'title' => "Department Charter — {$d['name']}",
+                'text'  => trim($d['function'] . "\n\n" . $d['powers']),
+            ], $norm);
+            $enacted = $this->enactments->enactFoundingMany($legislature, 'charter', $lawInputs, 'F-LEG-016');
+
+            $deptRows   = [];
+            $boardRows  = [];
+            $seatRows   = [];
+            $reportRows = [];
+            $recordRows = [];
+            $ids        = [];
+
+            foreach ($norm as $i => $d) {
+                $deptId  = (string) Str::uuid();
+                $boardId = (string) Str::uuid();
+                $lawId   = $enacted[$i]['law_id'];
+                $actNo   = $enacted[$i]['act_number'];
+
+                $deptRows[] = [
+                    'id'                        => $deptId,
+                    'jurisdiction_id'           => $jurisdictionId,
+                    'executive_id'              => $executiveId,
+                    'kind'                      => $d['kind'],
+                    'name'                      => $d['name'],
+                    'charter_law_id'            => $lawId,
+                    'reporting_interval_months' => $d['interval'],
+                    'board_id'                  => $boardId,
+                    'status'                    => Department::STATUS_OVERSIGHT_ASSIGNED,
+                    'created_at'                => $now,
+                    'updated_at'                => $now,
+                ];
+
+                $boardRows[] = [
+                    'id'             => $boardId,
+                    'boardable_type' => Board::BOARDABLE_DEPARTMENTS,
+                    'boardable_id'   => $deptId,
+                    'owner_seats'    => $d['owner_seats'],
+                    'worker_seats'   => 0,
+                    'status'         => Board::STATUS_FORMING,
+                    'created_at'     => $now,
+                    'updated_at'     => $now,
+                ];
+
+                for ($no = 1; $no <= $d['owner_seats']; $no++) {
+                    $seatRows[] = [
+                        'id'         => (string) Str::uuid(),
+                        'board_id'   => $boardId,
+                        'seat_class' => BoardSeat::CLASS_GOVERNOR,
+                        'seat_no'    => $no,
+                        'status'     => BoardSeat::STATUS_VACANT,
+                        'created_at' => $now,
+                        'updated_at' => $now,
+                    ];
+                }
+
+                if ($d['interval'] !== null) {
+                    $due = CarbonImmutable::instance($now)->addMonthsNoOverflow($d['interval']);
+                    $reportRows[] = [
+                        'id'            => (string) Str::uuid(),
+                        'department_id' => $deptId,
+                        'kind'          => DepartmentReport::KIND_PERIODIC,
+                        'period_label'  => $due->format('Y-m'),
+                        'due_on'        => $due->toDateString(),
+                        'status'        => DepartmentReport::STATUS_DUE,
+                        'created_at'    => $now,
+                        'updated_at'    => $now,
+                    ];
+                }
+
+                // 3. The department public record (records.published:dept act).
+                $recordId = (string) Str::uuid();
+                $this->audit->append(
+                    module: 'records',
+                    event: 'published',
+                    payload: [
+                        'record_id'    => $recordId,
+                        'kind'         => 'act',
+                        'title'        => "Department chartered at founding — {$d['name']}",
+                        'subject_type' => 'departments',
+                        'subject_id'   => $deptId,
+                        'via_form'     => 'F-LEG-016',
+                        'via_workflow' => null,
+                        'via_clock'    => null,
+                    ],
+                    ref: 'F-LEG-016',
+                    jurisdictionId: $jurisdictionId,
+                );
+                $recordRows[] = [
+                    'id'              => $recordId,
+                    'kind'            => 'act',
+                    'title'           => "Department chartered at founding — {$d['name']}",
+                    'body'            => sprintf(
+                        'Department %s (%s) chartered by %s at the founding of this jurisdiction; oversight assigned to '
+                        . 'executive %s; %d governor seat(s) await nomination and consent (F-EXE-001 → F-LEG-020).',
+                        $d['name'],
+                        $d['kind'],
+                        $actNo,
+                        $executiveId,
+                        $d['owner_seats']
+                    ),
+                    'jurisdiction_id' => $jurisdictionId,
+                    'legislature_id'  => $legislatureId,
+                    'via_form'        => 'F-LEG-016',
+                    'subject_type'    => 'departments',
+                    'subject_id'      => $deptId,
+                    'audit_seq'       => null,
+                    'published_at'    => $now,
+                ];
+
+                // 4. The engine's F-LEG-016 form-filing act (handler return).
+                $this->audit->append(
+                    module: 'executive',
+                    event: 'department.creation_proposed',
+                    payload: [
+                        'legislature_id' => $legislatureId,
+                        'department_id'  => $deptId,
+                        'charter_law_id' => $lawId,
+                        'name'           => $d['name'],
+                        'kind'           => $d['kind'],
+                        'system_act'     => true,
+                    ],
+                    ref: 'F-LEG-016',
+                    jurisdictionId: $jurisdictionId,
+                );
+
+                $ids[] = $deptId;
+            }
+
+            // FK order: boards before departments (departments.board_id →
+            // boards.id) and before board_seats (board_seats.board_id →
+            // boards.id); departments before department_reports.
+            DB::table('boards')->insert($boardRows);
+            DB::table('board_seats')->insert($seatRows);
+            DB::table('departments')->insert($deptRows);
+            if ($reportRows !== []) {
+                DB::table('department_reports')->insert($reportRows);
+            }
+            DB::table('public_records')->insert($recordRows);
+
+            return $ids;
+        });
     }
 
     /**

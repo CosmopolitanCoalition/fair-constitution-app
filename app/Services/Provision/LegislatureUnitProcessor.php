@@ -9,6 +9,7 @@ use App\Models\Legislature;
 use App\Services\AuditService;
 use App\Services\Demo\Stages\GovernanceStage;
 use App\Services\ElectionLifecycleService;
+use App\Services\Executive\DepartmentService;
 use App\Services\InstitutionScaleService;
 use App\Support\ProvisionTimer;
 use Illuminate\Support\Facades\DB;
@@ -36,6 +37,7 @@ class LegislatureUnitProcessor
         private readonly ElectionLifecycleService $lifecycle,
         private readonly ConstitutionalEngine $engine,
         private readonly AuditService $audit,
+        private readonly DepartmentService $departments,
     ) {}
 
     /**
@@ -245,30 +247,34 @@ class LegislatureUnitProcessor
             $i++;
         }
 
-        $minted = [];
+        // SET-BASED (performance 2026-09-06): one batch charter for the whole
+        // unit's departments instead of one F-LEG-016 filing each. Same product
+        // and same buffered audit acts (charterManyAsSystemAct is faithful to
+        // the per-filing path), a constant handful of round trips instead of
+        // ~14 per department.
+        $wanted = max(0, $target - $existing);
+        $plans  = [];
         foreach ($plan as $dept) {
-            if ($existing + count($minted) >= $target) {
+            if (count($plans) >= $wanted) {
                 break;
             }
-            $result = $this->engine->file('F-LEG-016', null, [
-                'legislature_id'  => (string) $legislature->id,
-                'jurisdiction_id' => (string) $legislature->jurisdiction_id,
-                'executive_id'    => (string) $executive->id,
-                'name'            => $dept['name'],
-                'kind'            => $dept['kind'],
-                'charter'         => [
+            $plans[] = [
+                'kind'    => $dept['kind'],
+                'name'    => $dept['name'],
+                'charter' => [
                     'function_text'             => "Carries the {$dept['name']} function of the executive.",
                     'powers_text'               => 'As chartered at the founding of this jurisdiction.',
                     'reporting_interval_months' => 6,
                 ],
                 'owner_seats' => 1,
-                'nominees'    => [],
-                'system_act'  => true,
-            ]);
-            $minted[] = (string) ($result->recorded['department_id'] ?? '');
+            ];
         }
 
-        return array_values(array_filter($minted));
+        if ($plans === []) {
+            return [];
+        }
+
+        return $this->departments->charterManyAsSystemAct($legislature, $executive, $plans);
     }
 
     private static function short(\Throwable $e): string

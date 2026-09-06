@@ -12,6 +12,7 @@ use App\Models\LawVersion;
 use App\Models\Legislature;
 use App\Models\SettingChange;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Str;
 
 /**
  * C-B1/C-B2 (PHASE_C_DESIGN_votes_laws §C.5) — enactment: bill → law.
@@ -300,6 +301,142 @@ class EnactmentService
         );
     }
 
+    /**
+     * SET-BASED founding enactment (performance 2026-09-06): the same product
+     * as calling enactFounding once per law — one charter law + its v1 version
+     * + the buffered law.enacted audit act + the 'act' public record — but for
+     * a whole unit's laws in a fixed number of round trips. The act-number
+     * block is allocated under ONE advisory lock and ONE max() query; the law
+     * rows, version rows and record rows are each a single multi-row insert.
+     * Audit acts buffer into the open legislature batch exactly as the
+     * per-law path does (in law.enacted then records.published order per law),
+     * so the one committed entry carries the same acts.
+     *
+     * Each input law: ['title'=>string, 'text'=>string]. Shared for all:
+     * kind, origin=founding, scale=[jurisdictionId], source_ref (system_act →
+     * legislatureId), viaForm. Returns, per input in order,
+     * ['law_id'=>string, 'act_number'=>string].
+     *
+     * @param  list<array{title:string,text:string}>  $laws
+     * @return list<array{law_id:string, act_number:string}>
+     */
+    public function enactFoundingMany(
+        Legislature $legislature,
+        string $kind,
+        array $laws,
+        string $viaForm,
+    ): array {
+        if ($laws === []) {
+            return [];
+        }
+
+        $legislatureId  = (string) $legislature->id;
+        $jurisdictionId = (string) $legislature->jurisdiction_id;
+        $now            = now();
+        $scale          = json_encode([$jurisdictionId]);
+
+        $actNumbers = $this->allocateActNumberBlock($legislatureId, count($laws));
+
+        $lawRows     = [];
+        $versionRows = [];
+        $recordRows  = [];
+        $out         = [];
+
+        foreach ($laws as $i => $law) {
+            $lawId     = (string) Str::uuid();
+            $actNumber = $actNumbers[$i];
+            $title     = (string) $law['title'];
+            $text      = (string) $law['text'];
+            $textHash  = hash('sha256', $text);
+
+            $lawRows[] = [
+                'id'                 => $lawId,
+                'jurisdiction_id'    => $jurisdictionId,
+                'legislature_id'     => $legislatureId,
+                'act_number'         => $actNumber,
+                'title'              => $title,
+                'kind'               => $kind,
+                'scale'              => $scale,
+                'origin'             => Law::ORIGIN_FOUNDING,
+                'status'             => Law::STATUS_IN_FORCE,
+                'current_version_no' => 1,
+                'effective_at'       => $now,
+                'enacted_at'         => $now,
+                'created_at'         => $now,
+                'updated_at'         => $now,
+            ];
+
+            $versionRows[] = [
+                'id'              => (string) Str::uuid(),
+                'law_id'          => $lawId,
+                'version_no'      => 1,
+                'text'            => $text,
+                'text_hash'       => $textHash,
+                'source'          => LawVersion::SOURCE_ENACTMENT,
+                'source_ref_type' => 'system_act',
+                'source_ref_id'   => $legislatureId,
+                'created_at'      => $now,
+            ];
+
+            // law.enacted, then the record — the same two-act order the
+            // per-law writeLaw() buffers.
+            $this->audit->append(
+                module: 'legislature',
+                event: 'law.enacted',
+                payload: [
+                    'law_id'     => $lawId,
+                    'act_number' => $actNumber,
+                    'kind'       => $kind,
+                    'title'      => $title,
+                    'text_hash'  => $textHash,
+                    'origin'     => Law::ORIGIN_FOUNDING,
+                    'source'     => ['system_act' => $legislatureId],
+                ],
+                ref: 'WF-LEG-06',
+                jurisdictionId: $jurisdictionId,
+            );
+
+            $recordId = (string) Str::uuid();
+            $this->audit->append(
+                module: 'records',
+                event: 'published',
+                payload: [
+                    'record_id'    => $recordId,
+                    'kind'         => 'act',
+                    'title'        => "{$actNumber} — {$title}",
+                    'subject_type' => 'law',
+                    'subject_id'   => $lawId,
+                    'via_form'     => $viaForm,
+                    'via_workflow' => null,
+                    'via_clock'    => null,
+                ],
+                ref: $viaForm,
+                jurisdictionId: $jurisdictionId,
+            );
+            $recordRows[] = [
+                'id'              => $recordId,
+                'kind'            => 'act',
+                'title'          => "{$actNumber} — {$title}",
+                'body'            => $text,
+                'jurisdiction_id' => $jurisdictionId,
+                'legislature_id'  => $legislatureId,
+                'via_form'        => $viaForm,
+                'subject_type'    => 'law',
+                'subject_id'      => $lawId,
+                'audit_seq'       => null,
+                'published_at'    => $now,
+            ];
+
+            $out[] = ['law_id' => $lawId, 'act_number' => $actNumber];
+        }
+
+        DB::table('laws')->insert($lawRows);
+        DB::table('law_versions')->insert($versionRows);
+        DB::table('public_records')->insert($recordRows);
+
+        return $out;
+    }
+
     // =========================================================================
     // Internals
     // =========================================================================
@@ -418,6 +555,38 @@ class EnactmentService
             ->value('n');
 
         return sprintf('Act %d-%02d', $year, ((int) $highest) + 1);
+    }
+
+    /**
+     * A contiguous block of $count act numbers under ONE advisory lock and ONE
+     * max() query (performance 2026-09-06). Identical result to calling
+     * allocateActNumber() $count times inside one transaction — highest+1,
+     * highest+2, … — with one round trip instead of $count. Same lock key, so
+     * a concurrent single allocation on the same legislature still serializes.
+     *
+     * @return list<string> $count act-number strings in ascending order
+     */
+    private function allocateActNumberBlock(string $legislatureId, int $count): array
+    {
+        DB::statement("SELECT pg_advisory_xact_lock(hashtext('act_number:' || ?))", [$legislatureId]);
+
+        $year = now()->year;
+
+        $highest = Law::query()
+            ->where('legislature_id', $legislatureId)
+            ->where('act_number', 'like', "Act {$year}-%")
+            ->withTrashed()
+            ->selectRaw("MAX(CAST(SUBSTRING(act_number FROM 'Act [0-9]{4}-([0-9]+)$') AS INTEGER)) AS n")
+            ->value('n');
+
+        $next = ((int) $highest) + 1;
+
+        $out = [];
+        for ($k = 0; $k < $count; $k++) {
+            $out[] = sprintf('Act %d-%02d', $year, $next + $k);
+        }
+
+        return $out;
     }
 
     /**
