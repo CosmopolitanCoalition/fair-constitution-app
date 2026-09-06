@@ -71,10 +71,12 @@ class CivicsStageTest extends TestCase
     }
 
     /**
-     * ENDORSEMENTS (W7 item 9): the parties civics mints back candidates in the
-     * open election, so the endorsement graph has real subjects. Idempotent.
+     * ENDORSEMENTS (W7 item 9): a MIX of endorsers — organizations of any type
+     * AND individual residents — back candidates in the open election.
+     * Endorsement is polymorphic (partisanship is mooted under polymorphic STV),
+     * so the graph is never a party-only slate. Idempotent.
      */
-    public function test_parties_endorse_candidates_in_the_open_election(): void
+    public function test_a_mix_of_endorsers_back_candidates_in_the_open_election(): void
     {
         $this->onLivePg(function () {
             $jid = $this->leaf(500_000);
@@ -118,13 +120,34 @@ class CivicsStageTest extends TestCase
                 ]);
             }
 
+            // Individual residents (so the endorser set is a real mix, not just
+            // orgs) — active residency is what makes them eligible to endorse.
+            foreach (['res-a', 'res-b'] as $i => $tag) {
+                $u = (string) Str::uuid();
+                DB::table('users')->insert([
+                    'id' => $u, 'name' => "Resident {$i}", 'email' => 'sim-'.Str::lower(Str::random(10))."-r{$i}@demo.invalid",
+                    'password' => bcrypt(Str::random(20)), 'status' => 'registered', 'terms_accepted_at' => now(),
+                    'timezone' => 'UTC', 'created_at' => now(), 'updated_at' => now(),
+                ]);
+                DB::table('residency_confirmations')->insert([
+                    'id' => (string) Str::uuid(), 'user_id' => $u, 'jurisdiction_id' => $jid,
+                    'days_confirmed' => 30, 'confirmed_at' => now(),
+                    'voting_right_active' => true, 'candidacy_right_active' => true,
+                    'is_active' => true, 'depth' => 0, 'created_at' => now(), 'updated_at' => now(),
+                ]);
+            }
+
             CivicsStage::run($jid, null, 1);
 
             $endorsements = DB::table('endorsements')->where('election_id', $electionId)->count();
-            $this->assertGreaterThan(0, $endorsements, 'the minted parties endorse candidates');
-            $this->assertGreaterThan(0, DB::table('organizations')
-                ->where('jurisdiction_id', $jid)->where('type', 'political_party')->count(),
-                'parties were minted to do the endorsing');
+            $this->assertGreaterThan(0, $endorsements, 'candidates collect endorsements');
+
+            // Polymorphic: BOTH organizations and individuals endorse — no party
+            // slate, no partisan layer between voters and their selections.
+            $types = DB::table('endorsements')->where('election_id', $electionId)
+                ->distinct()->pluck('endorser_type')->all();
+            $this->assertContains('organizations', $types, 'organizations endorse');
+            $this->assertContains('users', $types, 'individuals endorse too');
 
             // Idempotent: a second pass adds none.
             CivicsStage::run($jid, null, 1);

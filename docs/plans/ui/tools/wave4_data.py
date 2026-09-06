@@ -196,8 +196,16 @@ FLEET = {'waves': [{'id': 'W1', 'name': 'Shell · demo · learn', 'status': 'don
                                'seats present).'},
                       {'wave': 'W7',
                        'label': '7 · Training gate armed as a setup system act; sim actors trained',
-                       'status': 'next',
-                       'note': 'The gate arms only when an operator runs education:seed by hand with a '
+                       'status': 'done',
+                       'note': 'DONE (eaf3136e). A new `training` phase runs after civics: '
+                               'EducationCatalogService (shared publish, single owner) arms the catalog once '
+                               'at the phase transition — AFTER the content stages, so their gated F-LEG-* '
+                               'forms are never blocked (the gate passes system filings but governance votes '
+                               'carry a real member actor). TrainingStage pre-trains each jurisdiction\'s '
+                               'seated holders via armForJurisdiction — a bounded, scoped pass, not the global '
+                               'in-memory pluck. Pinned: per-jurisdiction arming trains only its own and is '
+                               'idempotent. ORIGINAL: '
+                               'The gate arms only when an operator runs education:seed by hand with a '
                                'confirm prompt; the box holds 0 tracks and 0 modules. Sim stages file gated '
                                'forms and catch the refusal as a half result. Publish the catalog as a '
                                'system act in Step 4 or Step 5 and pre-train sim actors between the seating '
@@ -205,18 +213,31 @@ FLEET = {'waves': [{'id': 'W1', 'name': 'Shell · demo · learn', 'status': 'don
                                'into memory: chunk it).'},
                       {'wave': 'W7',
                        'label': '8 · Resident wallets and the stipend pass (money plane)',
-                       'status': 'next',
-                       'note': 'AccountService::open is idempotent and per-owner but no job, stage or step '
+                       'status': 'done',
+                       'note': 'DONE (e5dd8999). SimEconomyService drives the real economy services: '
+                               'ensureCurrency defines the root currency once (Art. V §5, advisory-locked) + '
+                               'root treasury + opening supply; openWalletsFor opens a wallet per resident '
+                               '(accounts-never-people, idempotent); runStipendFor runs the real F-TRE-004 '
+                               'over ONE jurisdiction\'s residents (per-jurisdiction is the chunk, so the '
+                               'hardened short-pay never runs planet-wide). IdentityStage opens wallets in a '
+                               'sim run only ($runId present, so the election fixtures stay clean); a new '
+                               '`stipends` phase runs the stipend per jurisdiction. Pinned: wallets '
+                               'idempotent, stipend credits every resident the floor, residentless is a clean '
+                               'skip. ORIGINAL: '
+                               'AccountService::open is idempotent and per-owner but no job, stage or step '
                                'calls it; the stipend run is one unbounded transaction with a per-recipient '
                                'loop and a single demo-command caller. Open wallets for the cohort in the '
                                'identity stage; run the stipend as a chunked, resumable, clock-armed pass.'},
                       {'wave': 'W7',
                        'label': '9 · Organizations and workers at demo scale',
-                       'status': 'next',
-                       'note': 'CONFIRMED running (CivicsStageTest, 556104e6): a populated leaf mints sampled '
-                               'businesses (worker_count set) and nonprofits and does not double-mint on a '
-                               're-run. Remaining: verify the civics output feeds co-determination, org board '
-                               'elections, the CGC register and endorsements at scale. ORIGINAL: '
+                       'status': 'done',
+                       'note': 'DONE (bee6fb9e). Verified: co-determination is FED (workerCountAt crosses the '
+                               '100 first-seat and 2,000 parity thresholds). Endorsements had parties + '
+                               'candidates but no links — now BUILT: the minted parties back candidates in the '
+                               'open election (deterministic, idempotent), so the endorsement graph has real '
+                               'subjects. FLAGGED not built (empty-not-wrong, an enrichment call): the CGC '
+                               'register has no subject (no common_good_corp minted) and org board elections '
+                               'have no org boards. ORIGINAL: '
                                'CivicsStage mints parties, nonprofits, businesses and bills census-flavoured '
                                '(app/Services/Demo/Stages/CivicsStage.php:109-219). Co-determination, org '
                                'board elections, the CGC register and org endorsements have no subject on a '

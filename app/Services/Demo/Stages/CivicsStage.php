@@ -68,8 +68,11 @@ final class CivicsStage
 
     private const CHUNK = 500;
 
-    /** Each party endorses up to this many candidates in the open election. */
-    private const ENDORSEMENTS_PER_PARTY = 3;
+    /** Endorsers sampled PER KIND (orgs of any type; individual residents). */
+    private const ENDORSER_SAMPLE = 8;
+
+    /** Each endorser backs up to this many candidates in the open election. */
+    private const ENDORSEMENTS_PER_ENDORSER = 2;
 
     private function __construct() {}
 
@@ -122,10 +125,11 @@ final class CivicsStage
                 beat: $beat,
             );
 
-            // Endorsements: the parties back candidates in the open election, so
-            // the endorsement graph (any org may endorse any candidate) has real
-            // subjects on the demo rather than parties and candidates that never
-            // meet. Idempotent — skipped once the election already carries them.
+            // Endorsements: a MIX of endorsers — organizations of every type AND
+            // individual residents — back candidates in the open election. Under
+            // polymorphic STV anybody or nobody may endorse any candidate, so
+            // partisanship is mooted; the demo graph reflects that rather than a
+            // party-only slate. Idempotent — skipped once the election carries them.
             $out['endorsements'] = self::mintEndorsements($j, $beat);
         }
 
@@ -233,10 +237,18 @@ final class CivicsStage
     }
 
     /**
-     * The parties (just minted) endorse candidates in the jurisdiction's open
-     * election. Deterministic (parties in id order, candidates in id order), and
-     * idempotent: if the election already carries org endorsements, this is a
-     * no-op. Returns the number of endorsement rows this jurisdiction now has.
+     * A MIX of endorsers back candidates in the jurisdiction's open election.
+     *
+     * Endorsement is polymorphic (endorsements.endorser_type): ANY organization
+     * of ANY type AND any individual resident may endorse any candidate, or
+     * nobody may — partisanship is mooted under polymorphic STV. So the endorser
+     * set is a sample of the jurisdiction's orgs across every type plus a sample
+     * of its residents, NOT a party slate. Candidates are assigned round-robin,
+     * so a popular candidate collects several endorsements from different kinds
+     * of endorser, which is the graph the demo should show.
+     *
+     * Deterministic (id order) and idempotent: if the election already carries
+     * endorsements, this is a no-op. Returns the endorsement count.
      */
     private static function mintEndorsements(object $j, ?\Closure $beat): int
     {
@@ -251,31 +263,37 @@ final class CivicsStage
             return 0;
         }
 
-        $existing = (int) DB::table('endorsements')
-            ->where('election_id', $election->id)
-            ->where('endorser_type', 'organizations')
-            ->count();
+        $existing = (int) DB::table('endorsements')->where('election_id', $election->id)->count();
 
         if ($existing > 0) {
             return $existing; // idempotent: already endorsed this cycle
         }
 
-        $parties = DB::table('organizations')
-            ->where('jurisdiction_id', $j->id)
-            ->where('type', Organization::TYPE_POLITICAL_PARTY)
-            ->whereNull('deleted_at')
-            ->orderBy('id')
-            ->pluck('id')
-            ->all();
+        // Endorsers: organizations of EVERY type, then individual residents — the
+        // polymorphic set, capped per kind so the pass stays bounded.
+        $endorsers = [];
 
-        if ($parties === []) {
+        foreach (DB::table('organizations')
+            ->where('jurisdiction_id', $j->id)->whereNull('deleted_at')
+            ->orderBy('id')->limit(self::ENDORSER_SAMPLE)->pluck('id') as $orgId) {
+            $endorsers[] = ['type' => 'organizations', 'id' => (string) $orgId];
+        }
+
+        foreach (DB::table('residency_confirmations as rc')
+            ->join('users as u', 'u.id', '=', 'rc.user_id')
+            ->where('rc.jurisdiction_id', $j->id)->where('rc.is_active', true)
+            ->where('u.email', 'like', 'sim-%@demo.invalid')
+            ->orderBy('rc.user_id')->limit(self::ENDORSER_SAMPLE)->pluck('rc.user_id') as $userId) {
+            $endorsers[] = ['type' => 'users', 'id' => (string) $userId];
+        }
+
+        if ($endorsers === []) {
             return 0;
         }
 
         $candidates = DB::table('candidacies')
             ->where('election_id', $election->id)
             ->orderBy('id')
-            ->limit(count($parties) * self::ENDORSEMENTS_PER_PARTY)
             ->pluck('id')
             ->all();
 
@@ -283,17 +301,23 @@ final class CivicsStage
             return 0;
         }
 
+        // Never more per endorser than there are candidates — a small field must
+        // not have one endorser back the same candidate twice.
+        $perEndorser = min(self::ENDORSEMENTS_PER_ENDORSER, count($candidates));
+
         $now = now();
         $rows = [];
-        $c = 0;
-        foreach ($parties as $partyId) {
-            for ($k = 0; $k < self::ENDORSEMENTS_PER_PARTY && $c < count($candidates); $k++, $c++) {
+        $pick = 0;
+        foreach ($endorsers as $e) {
+            for ($k = 0; $k < $perEndorser; $k++) {
                 $rows[] = [
                     'id' => (string) Str::uuid(),
                     'election_id' => (string) $election->id,
-                    'candidate_id' => (string) $candidates[$c],
-                    'endorser_type' => 'organizations',
-                    'endorser_id' => (string) $partyId,
+                    // Round-robin: candidates collect endorsements from many
+                    // kinds of endorser, and a small field is not exhausted.
+                    'candidate_id' => (string) $candidates[$pick++ % count($candidates)],
+                    'endorser_type' => $e['type'],
+                    'endorser_id' => $e['id'],
                     'statement' => null,
                     'endorsed_at' => $now,
                     'is_active' => true,
