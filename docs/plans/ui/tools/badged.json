@@ -764,9 +764,9 @@
    "area": "Electoral + executive",
    "bucket": "partial",
    "effort": "none",
-   "badge": "L3W2",
-   "lane": "3",
-   "wave": "W2"
+   "badge": "Desk·W10",
+   "lane": "desk",
+   "wave": "W10"
   },
   {
    "file": "electoral/election-board-console.html",
@@ -819,9 +819,9 @@
    "area": "Electoral + executive",
    "bucket": "partial",
    "effort": "S",
-   "badge": "L3W2",
-   "lane": "3",
-   "wave": "W2"
+   "badge": "Desk·W10",
+   "lane": "desk",
+   "wave": "W10"
   },
   {
    "file": "electoral/open-ballot.html",
@@ -844,9 +844,9 @@
    "area": "Electoral + executive",
    "bucket": "partial",
    "effort": "none",
-   "badge": "L3W2",
-   "lane": "3",
-   "wave": "W2"
+   "badge": "Desk·W10",
+   "lane": "desk",
+   "wave": "W10"
   },
   {
    "file": "electoral/ranked-ballot.html",
@@ -876,9 +876,9 @@
    "area": "Electoral + executive",
    "bucket": "partial",
    "effort": "M",
-   "badge": "L3·W4",
-   "lane": "3",
-   "wave": "W4"
+   "badge": "Desk·W10",
+   "lane": "desk",
+   "wave": "W10"
   },
   {
    "file": "electoral/results.html",
@@ -901,9 +901,9 @@
    "area": "Electoral + executive",
    "bucket": "partial",
    "effort": "none",
-   "badge": "L3W2",
-   "lane": "3",
-   "wave": "W2"
+   "badge": "Desk·W10",
+   "lane": "desk",
+   "wave": "W10"
   },
   {
    "file": "electoral/vacancy-countback.html",
@@ -925,9 +925,9 @@
    "area": "Electoral + executive",
    "bucket": "partial",
    "effort": "none",
-   "badge": "L3W2",
-   "lane": "3",
-   "wave": "W2"
+   "badge": "Desk·W10",
+   "lane": "desk",
+   "wave": "W10"
   },
   {
    "file": "executive/department-detail.html",
@@ -956,9 +956,9 @@
    "area": "Electoral + executive",
    "bucket": "partial",
    "effort": "M",
-   "badge": "L3W3",
-   "lane": "3",
-   "wave": "W3"
+   "badge": "Desk·W10",
+   "lane": "desk",
+   "wave": "W10"
   },
   {
    "file": "executive/department-reporting.html",
@@ -984,9 +984,9 @@
    "area": "Electoral + executive",
    "bucket": "partial",
    "effort": "S",
-   "badge": "L3·W4",
-   "lane": "3",
-   "wave": "W4"
+   "badge": "Desk·W10",
+   "lane": "desk",
+   "wave": "W10"
   },
   {
    "file": "executive/departments.html",
@@ -1146,9 +1146,9 @@
    "area": "Legislature",
    "bucket": "partial",
    "effort": "S",
-   "badge": "L3W2",
-   "lane": "3",
-   "wave": "W2"
+   "badge": "Desk·W8",
+   "lane": "desk",
+   "wave": "W8"
   },
   {
    "file": "legislature/committee-detail.html",
@@ -1170,9 +1170,9 @@
    "area": "Legislature",
    "bucket": "partial",
    "effort": "none",
-   "badge": "L3W2",
-   "lane": "3",
-   "wave": "W2"
+   "badge": "Desk·W8",
+   "lane": "desk",
+   "wave": "W8"
   },
   {
    "file": "legislature/committees.html",
@@ -1527,9 +1527,9 @@
    "area": "Jurisdictions + system",
    "bucket": "partial",
    "effort": "M",
-   "badge": "L2·W4",
-   "lane": "2",
-   "wave": "W4"
+   "badge": "Desk·W6",
+   "lane": "desk",
+   "wave": "W6"
   },
   {
    "file": "system/amendments.html",
@@ -1612,9 +1612,9 @@
    "area": "Jurisdictions + system",
    "bucket": "partial",
    "effort": "S",
-   "badge": "L1W2",
-   "lane": "1",
-   "wave": "W2"
+   "badge": "Desk·W10",
+   "lane": "desk",
+   "wave": "W10"
   },
   {
    "file": "system/term-sync.html",
@@ -1639,9 +1639,9 @@
    "area": "Jurisdictions + system",
    "bucket": "partial",
    "effort": "M",
-   "badge": "L2·W4",
-   "lane": "2",
-   "wave": "W4"
+   "badge": "Desk·W10",
+   "lane": "desk",
+   "wave": "W10"
   },
   {
    "file": "jurisdictions/bootstrap.html",
@@ -1668,9 +1668,9 @@
    "area": "Jurisdictions + system",
    "bucket": "partial",
    "effort": "none",
-   "badge": "L1W2",
-   "lane": "1",
-   "wave": "W2"
+   "badge": "Desk·W11",
+   "lane": "desk",
+   "wave": "W11"
   },
   {
    "file": "jurisdictions/disintermediation.html",
@@ -2358,9 +2358,9 @@
    "area": "Social + groups",
    "bucket": "partial",
    "effort": "S",
-   "badge": "L15W2",
-   "lane": "15",
-   "wave": "W2"
+   "badge": "Desk·W10",
+   "lane": "desk",
+   "wave": "W10"
   },
   {
    "file": "shared/video-player.html",
@@ -2388,9 +2388,9 @@
    "area": "Learn · translation · support",
    "bucket": "partial",
    "effort": "XL",
-   "badge": "L5·W4",
-   "lane": "5",
-   "wave": "W4"
+   "badge": "Desk·W10",
+   "lane": "desk",
+   "wave": "W10"
   },
   {
    "file": "learn/learn-home.html",
@@ -2418,9 +2418,9 @@
    "area": "Learn · translation · support",
    "bucket": "partial",
    "effort": "L",
-   "badge": "L5W3",
-   "lane": "5",
-   "wave": "W3"
+   "badge": "Desk·W10",
+   "lane": "desk",
+   "wave": "W10"
   },
   {
    "file": "learn/lesson.html",
@@ -2446,9 +2446,9 @@
    "area": "Learn · translation · support",
    "bucket": "partial",
    "effort": "L",
-   "badge": "L5W3",
-   "lane": "5",
-   "wave": "W3"
+   "badge": "Desk·W10",
+   "lane": "desk",
+   "wave": "W10"
   },
   {
    "file": "learn/guides.html",
@@ -2472,9 +2472,9 @@
    "area": "Learn · translation · support",
    "bucket": "partial",
    "effort": "L",
-   "badge": "L5W3",
-   "lane": "5",
-   "wave": "W3"
+   "badge": "Desk·W10",
+   "lane": "desk",
+   "wave": "W10"
   },
   {
    "file": "translation/translation-home.html",
@@ -3105,8 +3105,8 @@
    "area": "Jurisdictions + system",
    "bucket": "partial",
    "effort": "S",
-   "badge": "L6·W6",
-   "lane": "6",
+   "badge": "Desk·W6",
+   "lane": "desk",
    "wave": "W6"
   },
   {
@@ -3133,8 +3133,8 @@
    "area": "Jurisdictions + system",
    "bucket": "absent",
    "effort": "L",
-   "badge": "L6·W6",
-   "lane": "6",
+   "badge": "Desk·W6",
+   "lane": "desk",
    "wave": "W6"
   },
   {
@@ -3163,9 +3163,9 @@
    "area": "Jurisdictions + system",
    "bucket": "absent",
    "effort": "M",
-   "badge": "L6·W6",
-   "lane": "6",
-   "wave": "W6"
+   "badge": "Desk·W7",
+   "lane": "desk",
+   "wave": "W7"
   },
   {
    "file": "setup/step6-close.html",
@@ -3191,9 +3191,9 @@
    "area": "Jurisdictions + system",
    "bucket": "absent",
    "effort": "M",
-   "badge": "L6·W6",
-   "lane": "6",
-   "wave": "W6"
+   "badge": "Desk·W8",
+   "lane": "desk",
+   "wave": "W8"
   },
   {
    "file": "system/building.html",
@@ -3214,8 +3214,8 @@
    "area": "Jurisdictions + system",
    "bucket": "partial",
    "effort": "S",
-   "badge": "L3·W6",
-   "lane": "3",
+   "badge": "Desk·W6",
+   "lane": "desk",
    "wave": "W6"
   },
   {
@@ -3241,9 +3241,9 @@
    "area": "Shared front doors",
    "bucket": "absent",
    "effort": "M",
-   "badge": "L2·W6",
-   "lane": "2",
-   "wave": "W6"
+   "badge": "Desk·W8",
+   "lane": "desk",
+   "wave": "W8"
   },
   {
    "file": "demo/simworld.html",
@@ -3265,9 +3265,9 @@
    "area": "Shared front doors",
    "bucket": "partial",
    "effort": "S",
-   "badge": "L4·W6",
-   "lane": "4",
-   "wave": "W6"
+   "badge": "Desk·W8",
+   "lane": "desk",
+   "wave": "W8"
   },
   {
    "file": "operator/read-only-lock.html",
@@ -3289,9 +3289,9 @@
    "area": "Operator plane",
    "bucket": "absent",
    "effort": "S",
-   "badge": "L2·W6",
-   "lane": "2",
-   "wave": "W6"
+   "badge": "Desk·W8",
+   "lane": "desk",
+   "wave": "W8"
   },
   {
    "file": "system/background-jobs.html",
@@ -3311,9 +3311,9 @@
    "area": "Operator plane",
    "bucket": "partial",
    "effort": "S",
-   "badge": "L6·W6",
-   "lane": "6",
-   "wave": "W6"
+   "badge": "Desk·W10",
+   "lane": "desk",
+   "wave": "W10"
   },
   {
    "file": "setup/step3-map-quality.html",
@@ -3451,9 +3451,9 @@
    "area": "Judiciary",
    "bucket": "partial",
    "effort": "M",
-   "badge": "L3·W6",
-   "lane": "3",
-   "wave": "W6"
+   "badge": "Desk·W10",
+   "lane": "desk",
+   "wave": "W10"
   },
   {
    "file": "",
@@ -3471,9 +3471,9 @@
    "area": "Learn · translation · support",
    "bucket": "absent",
    "effort": "M",
-   "badge": "L15·W6",
-   "lane": "15",
-   "wave": "W6"
+   "badge": "Desk·W10",
+   "lane": "desk",
+   "wave": "W10"
   },
   {
    "file": "",
@@ -3491,9 +3491,9 @@
    "area": "Learn · translation · support",
    "bucket": "absent",
    "effort": "M",
-   "badge": "L6·W6",
-   "lane": "6",
-   "wave": "W6"
+   "badge": "Desk·W10",
+   "lane": "desk",
+   "wave": "W10"
   },
   {
    "file": "",
@@ -3511,9 +3511,9 @@
    "area": "Learn · translation · support",
    "bucket": "absent",
    "effort": "M",
-   "badge": "L6·W6",
-   "lane": "6",
-   "wave": "W6"
+   "badge": "Desk·W10",
+   "lane": "desk",
+   "wave": "W10"
   },
   {
    "file": "",
@@ -3531,9 +3531,9 @@
    "area": "Shared front doors",
    "bucket": "partial",
    "effort": "M",
-   "badge": "L6·W6",
-   "lane": "6",
-   "wave": "W6"
+   "badge": "Desk·W8",
+   "lane": "desk",
+   "wave": "W8"
   }
  ],
  "caps": [
@@ -3613,9 +3613,9 @@
    "maturity": "partial",
    "scaleNote": "VERIFIED 2026-09-05: The plan side is drawn planet-wide: 940,315 active district maps and 1,871,459 districts on the box. The race side is empty: 0 elections and 0 election_races across 940,328 legislatures. scheduleGeneral has only per-legislature callers (a clock job, the sim ElectionStage, elections:demo <slug>); no mass mint exists. racePlan also refuses two live shapes it can never schedule: 9 districts sit outside 1..9 seats and 17,250 chambers hold type_a_seats < 1. | skeptic: Keep status partial. Note: the plan side is drawn planet-wide (940,315 active maps, 1,871,459 districts); the race side is empty (0 elections, 0 election_races across 940,328 legislatures). Both mint doors are per-chamber: scheduleGeneral (ElectionLifecycleService.php:136, called by ScheduleGeneralElectionJob.php:72 and ElectionStage.php:113) and generateRaces (ElectionLifecycleService.php:839, called by the F-ELB-001 handler ElectionSchedulingOrder.php:457). No mass mint exists. racePlan also blocks 9 populated chambers whose active map carries a zero-seat district. Drop the 17,250 zero-seat chambers from this row: they are zero-population and lawfully inactive under Class D. | Proven at every scale: Earth 1,999 seats across 282 districts down to a 5-seat leaf. racePlan generates per-district; per-kind blocking keeps Type A alive even when Type B fails.",
    "blocker": "",
-   "badge": "L1·P",
-   "lane": "1",
-   "wave": "P"
+   "badge": "Desk·W10",
+   "lane": "desk",
+   "wave": "W10"
   },
   {
    "area": "Elections",
@@ -3623,9 +3623,9 @@
    "maturity": "partial",
    "scaleNote": "VERIFIED 2026-09-05: Both lawful race shapes are built in racePlan: per-clump panels and per-child at-large. The grouping substrate is now planet-wide (36,810 active groupings, 475,352 panels, 1 chamber still flagged). No Type B race exists: 0 election_races, because nothing mints elections at scale. | Niue cleared LIVE: per-clump races, both chambers elect (L1 seating + L3 counting).",
    "blocker": "",
-   "badge": "L1·W4",
-   "lane": "1",
-   "wave": "W4"
+   "badge": "Desk·W10",
+   "lane": "desk",
+   "wave": "W10"
   },
   {
    "area": "Elections",
@@ -3633,9 +3633,9 @@
    "maturity": "partial",
    "scaleNote": "VERIFIED 2026-09-05: The mass grouping pass has RUN. 36,810 groupings are active and 1 chamber remains flagged, not ~9,708; the corpus note calling this an operator-coordinated deployment is stale. type-b:district walks the worklist in per-chamber committed chunks. What is still missing is the race: racePlan emits panels mode only inside scheduleGeneral, and 0 elections / 0 election_races exist. | skeptic: Keep status partial. Replace the last sentence with: panels mode materializes through createRaces (ElectionLifecycleService.php:849), reached from both per-chamber doors — scheduleGeneral (:136) and generateRaces (:839, the F-ELB-001 handler). Neither is a mass path; 0 elections and 0 election_races exist. | Per-clump mapper proven on Niue; the ~9,708 mass-pass is an operator-coordinated deployment.",
    "blocker": "",
-   "badge": "L1·W4",
-   "lane": "1",
-   "wave": "W4"
+   "badge": "Desk·W10",
+   "lane": "desk",
+   "wave": "W10"
   },
   {
    "area": "Elections",
@@ -3643,9 +3643,9 @@
    "maturity": "partial",
    "scaleNote": "VERIFIED 2026-09-05: countRcv is built and its cost is per race, so the algorithm is scale-free. It cannot run anywhere on the box today. A speaker race needs seated members and legislature_members is 0; an individual executive race needs an election and elections is 0. CertificationService is the only writer of legislature_members and nothing calls it at scale. | Any scale; supermajority-gated where required.",
    "blocker": "",
-   "badge": "L1·P",
-   "lane": "1",
-   "wave": "P"
+   "badge": "Desk·W10",
+   "lane": "desk",
+   "wave": "W10"
   },
   {
    "area": "Elections",
@@ -3653,9 +3653,9 @@
    "maturity": "partial",
    "scaleNote": "VERIFIED 2026-09-05: countback() and the vacancy pipeline are built and per-race cheap. The method re-runs a prior election's ballots, and the box holds none: 0 elections, 0 ballots, 0 seated members. There is nothing to count back from at planet scale. | Any scale.",
    "blocker": "",
-   "badge": "L1·P",
-   "lane": "1",
-   "wave": "P"
+   "badge": "Desk·W10",
+   "lane": "desk",
+   "wave": "W10"
   },
   {
    "area": "Elections",
@@ -3663,9 +3663,9 @@
    "maturity": "partial",
    "scaleNote": "VERIFIED 2026-09-05: The polymorphic endorsement door and ApprovalService are built, but approval season only opens inside an election and 0 elections exist, so 0 endorsements have ever been filed. The standings writer is also unproven at scale: ApprovalStandingsRollupJob is a single daily job on the default queue (tries 1, 60 s worker timeout) with no chunking. | Polymorphic endorsements table + ApprovalService; any scale.",
    "blocker": "",
-   "badge": "L1·P",
-   "lane": "1",
-   "wave": "P"
+   "badge": "Desk·W10",
+   "lane": "desk",
+   "wave": "W10"
   },
   {
    "area": "Elections",
@@ -3673,9 +3673,9 @@
    "maturity": "partial",
    "scaleNote": "VERIFIED 2026-09-05: The commit door is built and secrecy-hardened: F-IND-007 through BallotController::store, with the receipt handed out of band once. It needs an open race to accept a ballot. 0 election_races and 0 ballots exist and no mass path opens one. | Ballot-secrecy hard constraint enforced; decryptForCount forbids any HTTP-stack caller. Any scale.",
    "blocker": "",
-   "badge": "L1·P",
-   "lane": "1",
-   "wave": "P"
+   "badge": "Desk·W10",
+   "lane": "desk",
+   "wave": "W10"
   },
   {
    "area": "Elections",
@@ -3683,9 +3683,9 @@
    "maturity": "partial",
    "scaleNote": "VERIFIED 2026-09-05: The read path is a pure cache read and is safe. The writer breaks the ETL paradigm at planet scale: RankedStandingsRollupJob cursors EVERY ranked_open election, decrypts every race inside one job, has no chunk, no resume and tries = 1, and rides the default queue under a 60 s worker timeout. Zero ranked_open elections exist, so the shape has never been exercised above demo size. | Cache-based daily-frozen standings; no in-request decrypt (secrecy-safe).",
    "blocker": "",
-   "badge": "L3·W4",
-   "lane": "3",
-   "wave": "W4"
+   "badge": "Desk·W10",
+   "lane": "desk",
+   "wave": "W10"
   },
   {
    "area": "Elections",
@@ -3693,9 +3693,9 @@
    "maturity": "partial",
    "scaleNote": "VERIFIED 2026-09-05: CLI parity is now BUILT, so the corpus note calling elections:receipt-check open debt is stale. php artisan elections:receipt-check <64-hex> is the twin of POST /receipt-check and exposes only cast_bucket and counted. The lookup is O(1) per hash at any scale. It has nothing to verify today: 0 ballots on the box, because no election has ever been minted. | skeptic: Keep status partial and the note text; change the evidence line reference from ElectionsReceiptCheckCommand.php:36 to :34. | UI exists; CLI parity (elections:receipt-check) is open debt. Any scale.",
    "blocker": "",
-   "badge": "L1·P",
-   "lane": "1",
-   "wave": "P"
+   "badge": "Desk·W10",
+   "lane": "desk",
+   "wave": "W10"
   },
   {
    "area": "Legislature",
@@ -3703,9 +3703,9 @@
    "maturity": "partial",
    "scaleNote": "VERIFIED 2026-09-05: Bill and law versioning is complete and pinned. No bill can be filed on the live box. BillService::introduce refuses any sponsor that is not a currently seated member, and legislature_members is 0 across all 940,328 legislatures. Missing: seat minting at scale. | Any scale.",
    "blocker": "",
-   "badge": "L3·P",
-   "lane": "3",
-   "wave": "P"
+   "badge": "Desk·W10",
+   "lane": "desk",
+   "wave": "W10"
   },
   {
    "area": "Legislature",
@@ -3713,9 +3713,9 @@
    "maturity": "partial",
    "scaleNote": "VERIFIED 2026-09-05: Assignment and the hearing lifecycle stay pinned. Zero committees exist at planet scale. Creation is a per-chamber supermajority floor vote filed by a seated member; the only mass driver is the sim GovernanceStage, which skips every unseated chamber. Missing: committees as system acts (ruling 2026-09-05). | Assignment (F-SPK-005 rank-order placement) + seating pinned (CommitteeAssignmentTest, 10 unit pins). Hearing LIFECYCLE built + pinned (L3 W5 ①, c947733): F-CHR-005 open (scheduled→open) + F-CHR-006 adjourn (open→adjourned, seals minutes to the append-only record); CommitteeHearingExitWalkTest drives it end-to-end, non-chair refused by the engine gate — 22 passed / 280 assertions. The in-room committee vote is model-only BY DESIGN (a committee reports/refers; it is NOT a ChamberVoteProposal). Committee creation completes now that Type B seats. (Per-item agenda rows = L3 W5 ⑤, a separate keystone-debt enhancement — advance() walks positions today, which functions.)",
    "blocker": "",
-   "badge": "L3·W5",
-   "lane": "3",
-   "wave": "W5"
+   "badge": "Desk·W10",
+   "lane": "desk",
+   "wave": "W10"
   },
   {
    "area": "Legislature",
@@ -3723,9 +3723,9 @@
    "maturity": "partial",
    "scaleNote": "VERIFIED 2026-09-05: The quorum and supermajority arithmetic stays hard-constraint correct. No chamber can open a vote today. laneThresholds reads serving from legislature_members; with 0 serving every lane returns the 'no_members' refusal. Missing: seated members. | Hard-constraint arithmetic; untrained-but-seated members count as serving (withhold-training vector closed). Any scale.",
    "blocker": "",
-   "badge": "L3·P",
-   "lane": "3",
-   "wave": "P"
+   "badge": "Desk·W10",
+   "lane": "desk",
+   "wave": "W10"
   },
   {
    "area": "Legislature",
@@ -3733,9 +3733,9 @@
    "maturity": "partial",
    "scaleNote": "VERIFIED 2026-09-05: The per-kind lane split is built and Type B seats are planned on 36,805 chambers. Neither lane can reach quorum. lanePlan counts serving by seat kind and both counts are 0 planet-wide. Missing: seated members in both kinds. | Unblocked by the Type B fix - a cleared Type B chamber now lets both chambers pass.",
    "blocker": "",
-   "badge": "L1·W4",
-   "lane": "1",
-   "wave": "W4"
+   "badge": "Desk·W10",
+   "lane": "desk",
+   "wave": "W10"
   },
   {
    "area": "Legislature",
@@ -3743,9 +3743,9 @@
    "maturity": "partial",
    "scaleNote": "VERIFIED 2026-09-05: Both entry paths are blocked at scale. The delegated path needs a seated proposer. The ballot path needs an Election to carry the question, and there are none. Missing: seats plus a mass election path. | Any scale.",
    "blocker": "",
-   "badge": "L3·P",
-   "lane": "3",
-   "wave": "P"
+   "badge": "Desk·W10",
+   "lane": "desk",
+   "wave": "W10"
   },
   {
    "area": "Legislature",
@@ -3753,9 +3753,9 @@
    "maturity": "partial",
    "scaleNote": "VERIFIED 2026-09-05: The petition half works at any scale. Creation gates on residency association only, and the 5% threshold snapshot is pure math. The initiative half cannot reach a ballot. The F-ELB-005 signature audit needs an election board and the question needs an election. Missing: boards and elections at scale. | Any scale.",
    "blocker": "",
-   "badge": "L3·P",
-   "lane": "3",
-   "wave": "P"
+   "badge": "Desk·W10",
+   "lane": "desk",
+   "wave": "W10"
   },
   {
    "area": "Legislature",
@@ -3763,9 +3763,9 @@
    "maturity": "partial",
    "scaleNote": "VERIFIED 2026-09-05: The 90-day ceiling, the renewal chain and the judicial review path stay pinned. Invocation needs a seated proposer and a chamber vote, so no chamber can invoke on the live box. | Any scale.",
    "blocker": "",
-   "badge": "L3·P",
-   "lane": "3",
-   "wave": "P"
+   "badge": "Desk·W10",
+   "lane": "desk",
+   "wave": "W10"
   },
   {
    "area": "Legislature",
@@ -3773,9 +3773,9 @@
    "maturity": "partial",
    "scaleNote": "VERIFIED 2026-09-05: The pipeline stays pinned end to end on a seeded world. It refuses on the live box. The handler requires an ACTIVE legislature, and the only forming → active writer is election certification. All 940,328 legislatures are 'forming'. | Pinned end-to-end (L3 W5 ②, c62e3c2): propose F-LEG-031 → peg-quorum floor vote → APPLY (election_interval_months 60→48, setting_changes ledger row, SettingsResolver read-path returns 48); out-of-range refused at the door. Self-seeding live-pg E2E, always runs. Ordinary setting change enacts at the MAJORITY peg (constitutionally correct); the 12 dual-door keys (judiciary_is_elected + 11 monetary levers) + full-article amendments take supermajority + constituent consent.",
    "blocker": "",
-   "badge": "L3·W5",
-   "lane": "3",
-   "wave": "W5"
+   "badge": "Desk·W10",
+   "lane": "desk",
+   "wave": "W10"
   },
   {
    "area": "Executive",
@@ -3783,9 +3783,9 @@
    "maturity": "partial",
    "scaleNote": "VERIFIED 2026-09-05: Built end to end and pinned. Delegation writes at ExecutiveFormationService.php:169 from an adopted chamber vote dispatched at ChamberActService.php:451. Conversion opens a real dual process and the flip to status elected writes at CertificationService.php:474. No mass path exists. The live box holds 923,093 executives and every one reads status forming, with 0 executive_members. The only bulk driver is the simulation, and GovernanceStage.php:213 defers any chamber with 5 or fewer serving members, which covers 120,931 chambers of 5 or fewer total seats. Delegation also needs seated members and the box has 0. The demo CLI refuses for the same reason (PhaseDDemoCommand.php:198). | skeptic: Keep status partial. In the note, replace '120,931 chambers of 5 or fewer total seats' with '138,181 chambers of 5 or fewer total seats', and add that with 0 legislature_members the sim defers every chamber today, not only the small ones. Change the demo-CLI cite from PhaseDDemoCommand.php:198 to PhaseDDemoCommand.php:200-208. Cite the conversion write as CertificationService.php:474-475. | Verified + pinned (L3 W5 ③): ExecConversionDualSupermajority + ExecDelegationProportionality = 16 passed / 187 assertions. Delegation (F-LEG-014, proportional ex-officio seating) + conversion (F-LEG-015, genuine DUAL supermajority — chamber AND constituent MultiJurisdictionVote, both from PROTECTED ConstitutionalValidator) + election scheduling. Committee (5+ PR-STV) and individual (RCV + top-4 advisors) both built. Live-observed flip to status='elected' is a deferred completeness pin (source-pinned today).",
    "blocker": "",
-   "badge": "L3·W5",
-   "lane": "3",
-   "wave": "W5"
+   "badge": "Desk·W10",
+   "lane": "desk",
+   "wave": "W10"
   },
   {
    "area": "Executive",
@@ -3793,9 +3793,9 @@
    "maturity": "partial",
    "scaleNote": "VERIFIED 2026-09-05: The chain is built. F-LEG-016 mints the department, its unified board and vacant governor seats at DepartmentService.php:164-173. F-EXE-001 nomination to F-LEG-020 consent to seating opens the 10 year civil term and arms CLK-09 at BoardGovernorService.php:197. It is not any scale. Provisioning deliberately excludes departments and boards of governors (InstitutionProvisionService.php:40-44) and the creation act refuses unless the executive is delegated or elected (DepartmentService.php:76). The filer must be a seated chamber member (DepartmentCreationAct.php:51-52). Live counts are 0 departments, 0 boards, 0 board_seats and 0 clock_timers. | Any scale.",
    "blocker": "",
-   "badge": "L3·P",
-   "lane": "3",
-   "wave": "P"
+   "badge": "Desk·W10",
+   "lane": "desk",
+   "wave": "W10"
   },
   {
    "area": "Executive",
@@ -3803,9 +3803,9 @@
    "maturity": "partial",
    "scaleNote": "VERIFIED 2026-09-05: The three scope rules and the rejection on record path are built and documented at ExecutiveOrderService.php:15-38, with persistRejection committing the rejected_pre_issuance row before the throw. The mechanism itself is scale free. It is unreachable everywhere today because an order issues only from a delegated or elected executive (ExecutiveOrderService.php:83) and all 923,093 executives are forming. Live executive_orders is 0. The filing route also needs a seated executive member (ExecutiveActionController.php:77) and the page surface 302s to /setup while setup_completed_at is NULL. | skeptic: Keep status partial. Replace the seated-member cite with ExecutiveOrderService.php:90-100 (storeOrder at ExecutiveActionController.php:121-139 delegates with no check of its own; :77 is the read page's canCompose gate). Qualify the last sentence to say the setup lock 302s the page GET only, per RedirectIfSetupIncomplete.php:56. | Any scale.",
    "blocker": "",
-   "badge": "L3·P",
-   "lane": "3",
-   "wave": "P"
+   "badge": "Desk·W10",
+   "lane": "desk",
+   "wave": "W10"
   },
   {
    "area": "Executive",
@@ -3813,9 +3813,9 @@
    "maturity": "partial",
    "scaleNote": "VERIFIED 2026-09-05: The organization track is built and independent of government provisioning. Owner and worker elections open with election_board_id NULL and no legislature dependency (OrgBoardElectionService.php:139) and are reachable at routes/web.php:1026-1029 through F-ORG-003 and F-ORG-004. Live organizations is 0, which is user created and not a scale defect. The governmental half is not an election. Governor seats are appointed by nomination plus consent (BoardSeat.php:21-23, BoardGovernorService.php:25-31), and that half is unreachable because 0 departments and 0 boards exist. | skeptic: Keep status partial. Cite the NULL fields as OrgBoardElectionService.php:137 and :142. Replace 'reachable at routes/web.php:1026-1029' with: the routes exist at routes/web.php:1026-1029 but carry auth and are not in the RedirectIfSetupIncomplete.php:34 ALLOW list, so the page 302s to /setup today. Optionally strengthen the governmental half with DepartmentService.php:167-170 (worker_seats 0), which shows a department board has no elected seat class at all. | Any scale.",
    "blocker": "",
-   "badge": "L3·P",
-   "lane": "3",
-   "wave": "P"
+   "badge": "Desk·W10",
+   "lane": "desk",
+   "wave": "W10"
   },
   {
    "area": "Judiciary",
@@ -3823,9 +3823,9 @@
    "maturity": "partial",
    "scaleNote": "VERIFIED 2026-09-05: Rules are pinned, but no court operates at planet scale. Provisioning minted 400,000 courts against 940,327 legislatures and every one is status 'forming'. Creation is a per-court chamber act (applyCreation) and seating is a per-seat nomination plus a consent vote; both need seated members, and legislature_members = 0. Result: 0 judicial_seats, 0 appointments, 0 terms planet-wide. No mass path creates a court or seats a bench. | Verified + pinned (L3 W5): appointed-is-default-never-elected, equal-per-constituent nomination, dual-supermajority conversion (both lanes) + constituent leg, judicial/civil lockstep — 9 pins / 46 assertions green. Type B seats (per-clump/per-child) so the bicameral act completes at any scale. Live E2E walk exercises once institutions:demo-e is restored at re-gate.",
    "blocker": "",
-   "badge": "L3·W5",
-   "lane": "3",
-   "wave": "W5"
+   "badge": "Desk·W10",
+   "lane": "desk",
+   "wave": "W10"
   },
   {
    "area": "Judiciary",
@@ -3833,9 +3833,9 @@
    "maturity": "blocked",
    "scaleNote": "VERIFIED 2026-09-05: The lifecycle code is complete and pinned, but no case can open today. CaseService::open refuses any filing unless the court status is appointed or elected; all 400,000 courts are 'forming'. DB holds 0 cases, 0 case_filings, 0 panels, 0 juries, 0 advocates. Advocate registration alone does not need an operating court. Court pages are also unreachable in a browser while setup is incomplete: the setup lock allows only setup, operator, legislatures, jurisdictions, federation and auth prefixes. | skeptic: Two fixes to the note and evidence. (1) The ALLOW constant is at app/Http/Middleware/RedirectIfSetupIncomplete.php:34, not :31; line 31 is docblock text. (2) The sentence 'Advocate registration alone does not need an operating court' is true of the code gate but misleading about today. AdvocateService.php:32 register() calls assertAssociation at :100-106, which requires an active residency_confirmations row. The box holds 0 residency_confirmations and 1 user, so advocate registration is unreachable today as well, blocked by residents rather than by court status. Add that clause. | Full lifecycle (mid-lifecycle + closed demo cases). Any scale.",
    "blocker": "",
-   "badge": "L3·P",
-   "lane": "3",
-   "wave": "P"
+   "badge": "Desk·W10",
+   "lane": "desk",
+   "wave": "W10"
   },
   {
    "area": "Judiciary",
@@ -3843,9 +3843,9 @@
    "maturity": "partial",
    "scaleNote": "VERIFIED 2026-09-05: The bar is code-complete, scale-free and pinned: a pre-commit validator check plus the atomic verdict lock. It rides the case-filing path, and that path is blocked planet-wide because no court is operating, so the guard is unexercised on the live box (0 cases). | Any scale.",
    "blocker": "",
-   "badge": "L3·P",
-   "lane": "3",
-   "wave": "P"
+   "badge": "Desk·W10",
+   "lane": "desk",
+   "wave": "W10"
   },
   {
    "area": "Judiciary",
@@ -3853,9 +3853,9 @@
    "maturity": "partial",
    "scaleNote": "VERIFIED 2026-09-05: All three paths exist and are pinned, but nothing can enter them on the planet box. courtFor walks ancestors for an operating court and returns null when none is found, so every challenge would park at 'filed'; all courts are 'forming'. There is also nothing to challenge: laws = 0, law_versions = 0, constitutional_challenges = 0. The challenge index and show pages are auth-only, unlike the three public court read routes. | Driven to judicial_remedy_applied in demo; full history preserved. Any scale.",
    "blocker": "",
-   "badge": "L3·P",
-   "lane": "3",
-   "wave": "P"
+   "badge": "Desk·W10",
+   "lane": "desk",
+   "wave": "W10"
   },
   {
    "area": "Economy",
@@ -3863,9 +3863,9 @@
    "maturity": "partial",
    "scaleNote": "VERIFIED 2026-09-05: Services are built and the ledger balances, but the money plane has no founding path at any scale. The setup wizard stores currency_name/code/symbol as constitutional settings only and never mints a Currency row; CurrencyService::define has exactly one caller, the synthetic-data-guarded demo seeder. Treasury accounts are created by one direct insert in that same demo command, for the root only. InstitutionProvisionService has no economy step. The stipend run has one caller, no clock timer, and executes as a single unbounded transaction with a per-recipient insert loop, against the ETL paradigm. BudgetService has zero callers anywhere in the repo. Live box: 0 currencies, 0 treasury_accounts, 0 economic_accounts, 0 ledger_entries, 0 budgets. | Services-only writes (unbalanced posting fails rather than seeds); ledger append-only. Any scale.",
    "blocker": "",
-   "badge": "L13·P",
-   "lane": "13",
-   "wave": "P"
+   "badge": "Desk·W6",
+   "lane": "desk",
+   "wave": "W6"
   },
   {
    "area": "Economy",
@@ -3873,9 +3873,9 @@
    "maturity": "partial",
    "scaleNote": "VERIFIED 2026-09-05: The dues POLICY read and the honest-absence state work per organization at any scale. The payment half does not exist as described. F-IND-023 hard-codes the ledger kind to 'transfer', so no payment can ever be recorded as dues, and org_contracts carries no 'dues' kind at all. The row's 'recurring org_contract' wording does not match the code: dues are two org settings plus an ordinary transfer, with no contract row and no scheduler. | Any scale.",
    "blocker": "",
-   "badge": "L13W3",
-   "lane": "13",
-   "wave": "W3"
+   "badge": "Desk·W11",
+   "lane": "desk",
+   "wave": "W11"
   },
   {
    "area": "Economy",
@@ -3883,9 +3883,9 @@
    "maturity": "partial",
    "scaleNote": "VERIFIED 2026-09-05: The reader-privacy posture holds: the service reads economic_accounts, treasury_accounts and market_transactions only, and never touches economic_account_bindings or a user row. Two limits at planet scale. topDecileSharePct pulls the top tenth of all funded wallets into PHP and reduces them with bcadd on every render of the units and exchange pages. And the snapshot is null today because no currency exists. | Reader-privacy doctrine enforced; public ledger. Any scale.",
    "blocker": "",
-   "badge": "L13W3",
-   "lane": "13",
-   "wave": "W3"
+   "badge": "Desk·W10",
+   "lane": "desk",
+   "wave": "W10"
   },
   {
    "area": "Economy",
@@ -3893,9 +3893,9 @@
    "maturity": "partial",
    "scaleNote": "VERIFIED 2026-09-05: The floor is complete end to end and its reads are limit-bounded: list, order, settle, plus live secondary share offers with buy and withdraw buttons. It cannot run at planet scale because every settle leg is an AccountService transfer against a wallet in an existing currency, and there are 0 currencies and 0 economic_accounts with no creation path outside the demo seeder. A stale in-code comment on the exchange page still says secondary resale has not opened; the code contradicts it. | Exchange floor + real trade tape + issued-equity + secondary trading (F-IND-021).",
    "blocker": "",
-   "badge": "L13·W4",
-   "lane": "13",
-   "wave": "W4"
+   "badge": "Desk·W10",
+   "lane": "desk",
+   "wave": "W10"
   },
   {
    "area": "Economy",
@@ -3963,9 +3963,9 @@
    "maturity": "partial",
    "scaleNote": "VERIFIED 2026-09-05: The register write path is whole and is the only writer of cgc_ip_register. No CGC can exist at planet scale today: a charter is the legislature act F-LEG-019 and needs R-09, a serving legislature seat, and legislature_members=0 across 940,327 chambers. cgc_ip_register=0. | skeptic: Status partial is right. Note: the register write path is whole and is the only writer of cgc_ip_register (CgcController.php:117-118, CgcIpRegisterService.php:41, entries immutable at CgcIpRegisterEntry.php:68,76,86). No CGC can exist: every mint path runs through a seated legislature — the F-LEG-019 charter (CgcCreationAct.php:35-37) or the F-ORG-006 conversion enacted by law (OrgConversionService.php:292) — and legislature_members=0. The demo charter (institutions:demo-d step 5) fails its serving-members precondition (PhaseDDemoCommand.php:200-208). cgc_ip_register=0. | Born-failing grant revocation pinned. Any scale.",
    "blocker": "",
-   "badge": "L3·P",
-   "lane": "3",
-   "wave": "P"
+   "badge": "Desk·W10",
+   "lane": "desk",
+   "wave": "W10"
   },
   {
    "area": "Social/Orgs",
@@ -3973,9 +3973,9 @@
    "maturity": "partial",
    "scaleNote": "VERIFIED 2026-09-05: One room type is routed: committee. A chamber session has no route — LiveRoomController exposes committee/raiseHand/recognize/advance only. Nothing composes at planet scale: committees=0, committee_meetings=0, legislature_members=0. A meeting exists only after the CommitteeMeetingCall handler runs, and the entry points are the Today-feed deep-link or a direct meeting UUID; there is no room index. | skeptic: Status partial is right. Note: one room type is routed, committee (routes/web.php:864, public read via withoutMiddleware('auth') at :865; the floor writes are auth-gated). A chamber session has no route — LiveRoomController exposes committee/raiseHand/recognize/advance only. Nothing composes: committees=0, committee_meetings=0, legislature_members=0. A meeting exists only after CommitteeMeetingCall.php:54 runs. Entry points are the Today-feed deep-link (TodayFeedService.php:239), a direct meeting UUID, and a tour stop hardcoding a dead UUID (resources/js/registry/surfaces.js:289). There is no room index. | Keystone Live Civic Room proven: committee hearing e2e in one room (exit-walk green).",
    "blocker": "",
-   "badge": "L3·W4",
-   "lane": "3",
-   "wave": "W4"
+   "badge": "Desk·W10",
+   "lane": "desk",
+   "wave": "W10"
   },
   {
    "area": "Social/Orgs",
@@ -3983,9 +3983,9 @@
    "maturity": "partial",
    "scaleNote": "VERIFIED 2026-09-05: Posting is scale-free: the space is created on demand by SocialSpaceService (firstOrCreate) and F-SOC-001 carries no role gate. The STRUCTURE has no scale path. EvaluateSocialStructureJob plucks every active legislature's jurisdiction into one unchunked job and loops firstOrCreate plus a Matrix reconcile per jurisdiction — no ledger, no chunks, no resume, no progress. It also does nothing today: all 940,328 legislature rows are 'forming', so social_spaces=0 and no halls subforum binds to a live governance object. Testimony (F-SOC-002) needs R-03 and residency_confirmations=0. | skeptic: Status partial is right, note must change. Posting is scale-free: SocialSpaceService.php:50-56 creates the space on demand and F-SOC-001 carries no role gate (FormRegistry.php:233). The SPACES do have a planet-scale path — InstitutionProvisionService.php:57,:416-422, chunked at 25,000 with per-chunk commit and progress, driven by institutions:provision (InstitutionsProvisionCommand.php:27) — it has simply never completed, so social_spaces=0. What has NO chunked path is the halls SUBFORUM binding: EvaluateSocialStructureJob.php:39-65 plucks every active legislature (:69-78) into one unchunked loop, no ledger, no cursor, no resume, and does nothing today because all 940,328 legislatures are 'forming'. Testimony (F-SOC-002) needs R-03 and residency_confirmations=0. | Testimony sealed into append-only register. Any scale.",
    "blocker": "",
-   "badge": "L3W3",
-   "lane": "3",
-   "wave": "W3"
+   "badge": "Desk·W10",
+   "lane": "desk",
+   "wave": "W10"
   },
   {
    "area": "Social/Orgs",
@@ -4003,9 +4003,9 @@
    "maturity": "partial",
    "scaleNote": "VERIFIED 2026-09-05: Engine gate built and pinned: the engine consults TrainingGateService on every filing; the completion read is accepted F-EDU-001 audit rows only, indexed on ref and actor, so the per-act check is scale-independent. The gate binds at the first role-authority act AFTER seating, never at seating (F-LEG-001 oath is ungated); the label text 'winners train before taking the seat' does not match the code. Arming is inert on the live box: 0 live tracks, 0 live modules, so assertMayAct passes for everyone. The only arming path is the manual education:seed artisan command with an interactive confirm; no setup step, seeder, job or sim stage calls it. The pre-train pass is one serial process: it plucks every seated user id from six tables unchunked, then files one F-EDU-001 per holder with no ledger, no lanes, no cursor; resume = rerun from the start. Nothing to train today (0 legislature_members). /learn pages 302 to /setup while setup is incomplete (box setup_completed_at NULL). | Pre-train arming: seeders file F-EDU-001, education:seed arms then pre-trains.",
    "blocker": "",
-   "badge": "L15·W4",
-   "lane": "15",
-   "wave": "W4"
+   "badge": "Desk·W7",
+   "lane": "desk",
+   "wave": "W7"
   },
   {
    "area": "Federation",
@@ -4023,9 +4023,9 @@
    "maturity": "partial",
    "scaleNote": "VERIFIED 2026-09-05: Pull is paged and resumable; PUSH is one unbounded statement. pushTo builds the entire tail from the peer watermark into one array and one POST body, and the CLK-20 heartbeat calls it every tick — a first push from this box ships all 2,751,899 audit entries at once. Page the outbound side the way the inbound side is paged. | CLK-20 heartbeat auto-push; trusted-peer only. Federation console reds were pre-existing (route move d69aff0) and are now fixed + green (3a6c542).",
    "blocker": "",
-   "badge": "L2W2",
-   "lane": "2",
-   "wave": "W2"
+   "badge": "Desk·W11",
+   "lane": "desk",
+   "wave": "W11"
   },
   {
    "area": "Federation",
@@ -4053,9 +4053,9 @@
    "maturity": "partial",
    "scaleNote": "VERIFIED 2026-09-05: The machinery and the silent English fallback work. Coverage does not. Only 8 of 131 pages and 6 of 103 components call useI18n, so most page text is hardcoded English in every locale. fr and pt hold no chrome or shell catalog at all. The coverage report is stale — it predates the catalog deletion. | Playtest-adequate (L5 W5, Option A, 6c15a27): the translation machinery works end-to-end; monolithic chrome renders in-language for es/ar/hi/zh-Hans, c_education (848 keys) renders fr; fr/pt shell chrome falls back cleanly to English (zero raw NLLB — 16 confidently-wrong machine catalogs deleted so the fallback holds even once shells wire). Broad page bodies (civic/legislature/elections) await lane 6's markup-wiring parity wave — not a regression.",
    "blocker": "",
-   "badge": "L5·W5",
-   "lane": "5",
-   "wave": "W5"
+   "badge": "Desk·W10",
+   "lane": "desk",
+   "wave": "W10"
   },
   {
    "area": "Federation",
@@ -4063,9 +4063,9 @@
    "maturity": "absent",
    "scaleNote": "Unbuilt at any scale.",
    "blocker": "Phase 6 (Weeks 61–76) — NEXT, not started. Phone GPS (G-V1) parked.",
-   "badge": "L2·P6",
-   "lane": "2",
-   "wave": "P6"
+   "badge": "Desk·W11",
+   "lane": "desk",
+   "wave": "W11"
   },
   {
    "area": "Simulation",
@@ -4073,9 +4073,9 @@
    "maturity": "partial",
    "scaleNote": "VERIFIED 2026-09-05: Enumeration is real and ETL-lawful: bounded 25k chunks, largest-first, NOT-EXISTS-safe (SimStartCommand.php:172-241). Start, halt and resume share one guarded service with CLI and console twins (SimRunControl.php; SimConsole.vue:100-104). It has never run at planet scale on this box: 0 sim_runs, 0 sim_items, 0 jurisdiction_cohorts, 0 worker leases. The console is unreachable today — /simworld sits inside the auth group (routes/web.php:687,699) and the setup lock's ALLOW list omits it while setup_completed_at is NULL (RedirectIfSetupIncomplete.php:34). Three trust gaps at scale: --resume re-enumeration stops at the first already-minted chunk (SimStartCommand.php:239); no mid-item heartbeat, so the pump calls a live worker dead after 2 minutes (SimPumpCommand.php:151-160) and reclaims a live item after 30 (SimPumpCommand.php:400-414); the verifying phase mints nothing, so a run reports done unverified (SimPumpCommand.php:329). | Single-run law enforced; /simworld console drives it (SimRunControl). Scales to planetary cohort via ETL-rule committed chunks.",
    "blocker": "",
-   "badge": "L4W3",
-   "lane": "4",
-   "wave": "W3"
+   "badge": "Desk·W7",
+   "lane": "desk",
+   "wave": "W7"
   },
   {
    "area": "Simulation",
@@ -4093,9 +4093,9 @@
    "maturity": "partial",
    "scaleNote": "VERIFIED 2026-09-05: The growth dial is built as claimed: InstitutionScaleService::committeeTarget (:175) and ::departmentTarget (:199) supply K(S) and D(P), GovernanceStage files F-LEG-009/014/016 through the real ConstitutionalEngine and never writes a row directly, and the pump mints governance_scope from done seat_scope items (SimPumpCommand.php:262-287). It reaches nothing at planet scale. The dial rides the sim chain cohorts -> identities -> elections -> counting -> seating -> governance, and ElectionStage returns no_election_board for any jurisdiction without an active board (ElectionStage.php:96-108). The box holds 1 election board, on Earth, against 940,327 legislatures, and no sim run has ever executed here. | Growth dial drives committee(K)+department(D) via real forms; pump wiring LANDED — matures autonomously as the sim runs (no runaway by construction).",
    "blocker": "",
-   "badge": "L4·W4",
-   "lane": "4",
-   "wave": "W4"
+   "badge": "Desk·W7",
+   "lane": "desk",
+   "wave": "W7"
   },
   {
    "area": "Setup + scale",
@@ -4103,8 +4103,8 @@
    "maturity": "partial",
    "scaleNote": "Live: executives 923,093 of 940,327; judiciaries 400,000; boards 1; members 1; spaces 0. The five SQL steps are set-based, idempotent and live-unique. One queued job walks them on the default queue (retry_after 90 s, tries 1) and failed at 91 s; no ledger, lanes, cursor or progress row.",
    "blocker": "Queue placement and the missing Step 4 engine (ledger + pump + lanes).",
-   "badge": "L3·W6",
-   "lane": "3",
+   "badge": "Desk·W6",
+   "lane": "desk",
    "wave": "W6"
   },
   {
@@ -4113,8 +4113,8 @@
    "maturity": "absent",
    "scaleNote": "The districting engine (apportionment_ledger + AutoscaleClaims + pump + HostCapacity) is the template. Ruled 2026-09-05 (sim-scope B, done-flip-vs-pages A).",
    "blocker": "",
-   "badge": "L3·W6",
-   "lane": "3",
+   "badge": "Desk·W6",
+   "lane": "desk",
    "wave": "W6"
   },
   {
@@ -4123,8 +4123,8 @@
    "maturity": "absent",
    "scaleNote": "scheduleGeneral / racePlan / createRaces exist per legislature with no chunked caller; 0 elections, 0 races, 0 members on the box. Ruled seat-mint-owner A: a Step 4 lane. Skip zero-seat chambers (17,250). Elections pin the constitutional version at creation.",
    "blocker": "",
-   "badge": "L3·W6",
-   "lane": "3",
+   "badge": "Desk·W6",
+   "lane": "desk",
    "wave": "W6"
   },
   {
@@ -4133,8 +4133,8 @@
    "maturity": "absent",
    "scaleNote": "Today both are sim vote targets only (GovernanceStage). Ruled sub-institutions-path B: engine change for a system-actor filing path. Boards of governors: check whether F-LEG-016 creates the department board.",
    "blocker": "",
-   "badge": "L3·W6",
-   "lane": "3",
+   "badge": "Desk·W6",
+   "lane": "desk",
    "wave": "W6"
   },
   {
@@ -4143,8 +4143,8 @@
    "maturity": "absent",
    "scaleNote": "Today: 5/7/9 bands in the provisioning SQL (GREATEST(5, …) hard-coded), 5 in the single-place stub, min_judges read by the sim's judiciary stage. Ruled bench-scaling-law B and bench-and-quorum-law A.",
    "blocker": "",
-   "badge": "L3·W6",
-   "lane": "3",
+   "badge": "Desk·W6",
+   "lane": "desk",
    "wave": "W6"
   },
   {
@@ -4153,9 +4153,9 @@
    "maturity": "partial",
    "scaleNote": "EvaluateCriticalPopulationJob writes the critical_population state and an audit event; nothing calls ActivationService::activate. Effective threshold 1 resident (tier disabled). Ruled population-mode-autoboot A (2026-08-29); needed for the live mesh, not the read-only demo.",
    "blocker": "The missing hop from the crossing to activate().",
-   "badge": "L3·W6",
-   "lane": "3",
-   "wave": "W6"
+   "badge": "Desk·W11",
+   "lane": "desk",
+   "wave": "W11"
   },
   {
    "area": "Setup + scale",
@@ -4163,9 +4163,9 @@
    "maturity": "partial",
    "scaleNote": "Pile and lanes exist; lanes collapse to one after the root wave; a three-strike stuck row pins the depth barrier; no reset; FinishActivationsJob schedules elections in every mode on the default queue. Ruled subtree-activation-shape B+.",
    "blocker": "",
-   "badge": "L3·W6",
-   "lane": "3",
-   "wave": "W6"
+   "badge": "Desk·W11",
+   "lane": "desk",
+   "wave": "W11"
   },
   {
    "area": "Setup + scale",
@@ -4173,8 +4173,8 @@
    "maturity": "absent",
    "scaleNote": "EvaluateSocialStructureJob provisions rooms nightly for legislatures with status active only; all 940,327 are forming; per-institution rooms reconcile on first view.",
    "blocker": "",
-   "badge": "L3·W6",
-   "lane": "3",
+   "badge": "Desk·W6",
+   "lane": "desk",
    "wave": "W6"
   },
   {
@@ -4183,8 +4183,8 @@
    "maturity": "absent",
    "scaleNote": "No provisioning step and no sim phase creates jurisdiction accounts or treasuries; the first-creation path was not read.",
    "blocker": "",
-   "badge": "L13·W6",
-   "lane": "13",
+   "badge": "Desk·W6",
+   "lane": "desk",
    "wave": "W6"
   },
   {
@@ -4193,9 +4193,9 @@
    "maturity": "absent",
    "scaleNote": "Ruled read-only-lock A. Visitors can assume roles and act; nothing persists.",
    "blocker": "",
-   "badge": "L2·W6",
-   "lane": "2",
-   "wave": "W6"
+   "badge": "Desk·W8",
+   "lane": "desk",
+   "wave": "W8"
   },
   {
    "area": "Setup + scale",
@@ -4203,9 +4203,9 @@
    "maturity": "partial",
    "scaleNote": "Most read routes are public today; /simworld and /building sit inside auth groups and behind the setup lock; the sim console drive needs the operator guard. Ruled public-walk A.",
    "blocker": "",
-   "badge": "L2·W6",
-   "lane": "2",
-   "wave": "W6"
+   "badge": "Desk·W8",
+   "lane": "desk",
+   "wave": "W8"
   },
   {
    "area": "Setup + scale",
@@ -4213,9 +4213,9 @@
    "maturity": "absent",
    "scaleNote": "POST /api/import/jurisdictions has no auth and runs pg_restore; pull-option, pull-control and deploy-package lack the operator check; the join API has no user check; /register is on the setup allow list.",
    "blocker": "",
-   "badge": "L2·W6",
-   "lane": "2",
-   "wave": "W6"
+   "badge": "Desk·W8",
+   "lane": "desk",
+   "wave": "W8"
   },
   {
    "area": "Setup + scale",
@@ -4223,9 +4223,9 @@
    "maturity": "partial",
    "scaleNote": "Engine, pump, workers and stages exist. No heartbeat during an item (30-min reclaim re-executes); --resume stops at the first empty chunk and ignores stored options; enumerating/profiling/verifying have no stage; sim:revert absent; ElectionStage needs an active board per jurisdiction. Ruled sim-scope B.",
    "blocker": "",
-   "badge": "L4·W6",
-   "lane": "4",
-   "wave": "W6"
+   "badge": "Desk·W7",
+   "lane": "desk",
+   "wave": "W7"
   },
   {
    "area": "Setup + scale",
@@ -4233,9 +4233,9 @@
    "maturity": "absent",
    "scaleNote": "Named in four files, absent. Needed for the iterative build-test-rollback procedure.",
    "blocker": "",
-   "badge": "L4·W6",
-   "lane": "4",
-   "wave": "W6"
+   "badge": "Desk·W7",
+   "lane": "desk",
+   "wave": "W7"
   },
   {
    "area": "Setup + scale",
@@ -4243,8 +4243,8 @@
    "maturity": "absent",
    "scaleNote": "Pages end at Step 4; Step 3 has no in-page advance; Step 4 stamps completion before work lands; the done flip dispatches provisioning. Ruled wizard-ladder A, done-flip-vs-pages A.",
    "blocker": "",
-   "badge": "L6·W6",
-   "lane": "6",
+   "badge": "Desk·W6",
+   "lane": "desk",
    "wave": "W6"
   },
   {
@@ -4253,9 +4253,9 @@
    "maturity": "absent",
    "scaleNote": "Ruled demo-mesh-host (plan) and europe-node-identity B (mirror). Needs DNS + TLS for both names and a measured baseline per wizard step.",
    "blocker": "",
-   "badge": "L2·W6",
-   "lane": "2",
-   "wave": "W6"
+   "badge": "Desk·W9",
+   "lane": "desk",
+   "wave": "W9"
   },
   {
    "area": "Setup + scale",
@@ -4263,9 +4263,9 @@
    "maturity": "partial",
    "scaleNote": "EvaluateClocksJob and its residency / critical-population / petition sweeps ride the default queue under a 60 s timeout; 9 timeout rows with zero timers armed. Ruled default-queue-sweeps C (keep; measure on the fresh run).",
    "blocker": "",
-   "badge": "L2·W6",
-   "lane": "2",
-   "wave": "W6"
+   "badge": "Desk·W11",
+   "lane": "desk",
+   "wave": "W11"
   },
   {
    "area": "Identity",
@@ -4273,9 +4273,9 @@
    "maturity": "partial",
    "scaleNote": "Per-jurisdiction stage exists and writes users + residency_confirmations directly in committed 500-row chunks sized from racePlan; it runs only inside the sim worker, whose planet run has no mid-item heartbeat and a --resume that stops at the first empty chunk, and it requires a cohort row from the cohorts phase.",
    "blocker": "",
-   "badge": "demo·W6",
-   "lane": "demo",
-   "wave": "W6"
+   "badge": "Desk·W7",
+   "lane": "desk",
+   "wave": "W7"
   },
   {
    "area": "Identity",
@@ -4283,9 +4283,9 @@
    "maturity": "partial",
    "scaleNote": "The CLK-05 sweep walks every ping_monitoring claim in one cursor inside a single job with tries=1 on the default queue (60 s timeout); no chunk, no ledger, no progress row. With 0 claims today it has never failed; the manual confirm path does not depend on it, so this is a scale debt, not a demo gate.",
    "blocker": "",
-   "badge": "L1·W6",
-   "lane": "1",
-   "wave": "W6"
+   "badge": "Desk·W11",
+   "lane": "desk",
+   "wave": "W11"
   },
   {
    "area": "Education",
@@ -4293,9 +4293,9 @@
    "maturity": "absent",
    "scaleNote": "Demo stages file F-LEG-009, F-LEG-014, F-LEG-016 and F-LEG-017 with actor users and catch the refusal as a halved stage result. Nothing pre-trains sim actors or checks arming, so an armed box halves committees, departments and judiciaries in the sim.",
    "blocker": "",
-   "badge": "demo·W6",
-   "lane": "demo",
-   "wave": "W6"
+   "badge": "Desk·W7",
+   "lane": "desk",
+   "wave": "W7"
   },
   {
    "area": "Education",
@@ -4303,9 +4303,9 @@
    "maturity": "absent",
    "scaleNote": "Today the gate arms only when an operator runs education:seed by hand and answers a confirm prompt; no Step 4/5 path publishes the catalog, so a demo box ships with the Learn plane inert.",
    "blocker": "",
-   "badge": "L3·W6",
-   "lane": "3",
-   "wave": "W6"
+   "badge": "Desk·W7",
+   "lane": "desk",
+   "wave": "W7"
   },
   {
    "area": "Education",
@@ -4313,9 +4313,9 @@
    "maturity": "absent",
    "scaleNote": "GovernanceStage and JudiciaryStage file gated forms (F-LEG-009/014/016/017) with a real user actor and catch the refusal as a half result; no Demo stage calls the pre-train, so an armed gate refuses every sim governance act by untrained sim-seated members. Inert today only because the box is unarmed.",
    "blocker": "",
-   "badge": "L4·W6",
-   "lane": "4",
-   "wave": "W6"
+   "badge": "Desk·W7",
+   "lane": "desk",
+   "wave": "W7"
   },
   {
    "area": "Judiciary",
@@ -4323,9 +4323,9 @@
    "maturity": "absent",
    "scaleNote": "Creation and seating run one court at a time through chamber votes. At 940,327 legislatures that is not runnable, so every court stays 'forming' and the whole judiciary area is dark. A Step 4 system-act lane must charter and seat benches in bulk, the way committees and departments are to be minted.",
    "blocker": "",
-   "badge": "L3·W6",
-   "lane": "3",
-   "wave": "W6"
+   "badge": "Desk·W7",
+   "lane": "desk",
+   "wave": "W7"
   },
   {
    "area": "Judiciary",
@@ -4333,9 +4333,9 @@
    "maturity": "blocked",
    "scaleNote": "The Phase E demo seeds a browsable court, bench, cases, jury, advocate and two Art. IV §5 challenges on San Marino. It files chamber acts and needs at least 20 associated residents, so it cannot run while no chamber is seated.",
    "blocker": "",
-   "badge": "demo·W6",
-   "lane": "demo",
-   "wave": "W6"
+   "badge": "Desk·W10",
+   "lane": "desk",
+   "wave": "W10"
   },
   {
    "area": "Elections",
@@ -4343,9 +4343,9 @@
    "maturity": "absent",
    "scaleNote": "No timer is armed anywhere and the sweep cannot carry the load: it fires at most 500 due timers per minute, so one pass over 940,327 chambers would take about 31 hours of sweeps, each fire dispatching a job onto the 60 s default queue.",
    "blocker": "",
-   "badge": "L1·W6",
-   "lane": "1",
-   "wave": "W6"
+   "badge": "Desk·W11",
+   "lane": "desk",
+   "wave": "W11"
   },
   {
    "area": "Elections",
@@ -4353,9 +4353,9 @@
    "maturity": "partial",
    "scaleNote": "Both daily rollups are single unbounded jobs that cursor every open election and decrypt per race with tries = 1 and no resume, on the default queue's 60 s timeout; the ETL paradigm requires bounded committed chunks with progress.",
    "blocker": "",
-   "badge": "L1·W6",
-   "lane": "1",
-   "wave": "W6"
+   "badge": "Desk·W11",
+   "lane": "desk",
+   "wave": "W11"
   },
   {
    "area": "Elections",
@@ -4363,9 +4363,9 @@
    "maturity": "partial",
    "scaleNote": "The only bulk candidacy writer is the sim election stage, which stops short of certification by design and refuses any jurisdiction without an active board; 0 candidacies exist, so even a minted race would be an empty ballot.",
    "blocker": "",
-   "badge": "L4·W6",
-   "lane": "4",
-   "wave": "W6"
+   "badge": "Desk·W7",
+   "lane": "desk",
+   "wave": "W7"
   },
   {
    "area": "Legislature",
@@ -4373,9 +4373,9 @@
    "maturity": "absent",
    "scaleNote": "Every Legislature act handler and read resolver filters on STATUS_ACTIVE. The single writer is election certification, so a Step 4 lane that mints seats without running a certified election leaves every chamber inert.",
    "blocker": "",
-   "badge": "L3·W6",
-   "lane": "3",
-   "wave": "W6"
+   "badge": "Desk·W7",
+   "lane": "desk",
+   "wave": "W7"
   },
   {
    "area": "Legislature",
@@ -4383,9 +4383,9 @@
    "maturity": "absent",
    "scaleNote": "CLK-02 arms only inside SessionService::resetMeetingClock, which runs when a chamber meets or adjourns. A newly seated chamber that has never met carries no timer, so the 90-day ceiling is unenforced until the first session.",
    "blocker": "",
-   "badge": "L3·W6",
-   "lane": "3",
-   "wave": "W6"
+   "badge": "Desk·W11",
+   "lane": "desk",
+   "wave": "W11"
   },
   {
    "area": "Executive",
@@ -4393,9 +4393,9 @@
    "maturity": "absent",
    "scaleNote": "F-LEG-016 mints vacant governor seats only; nothing seats them in bulk and no CLK-09 timer is armed anywhere on the box.",
    "blocker": "",
-   "badge": "L3·W6",
-   "lane": "3",
-   "wave": "W6"
+   "badge": "Desk·W7",
+   "lane": "desk",
+   "wave": "W7"
   },
   {
    "area": "Executive",
@@ -4403,9 +4403,9 @@
    "maturity": "absent",
    "scaleNote": "The jurisdiction page links to the executive, but the setup lock 302s the executive and department pages to /setup, so the every read surface public ruling does not hold during the demo.",
    "blocker": "",
-   "badge": "demo·W6",
-   "lane": "demo",
-   "wave": "W6"
+   "badge": "Desk·W8",
+   "lane": "desk",
+   "wave": "W8"
   },
   {
    "area": "Social/Orgs",
@@ -4413,9 +4413,9 @@
    "maturity": "absent",
    "scaleNote": "The only room route needs a committee-meeting UUID, and committees, meetings and seated members are all zero, so no room can be opened on the box.",
    "blocker": "",
-   "badge": "L3·W6",
-   "lane": "3",
-   "wave": "W6"
+   "badge": "Desk·W10",
+   "lane": "desk",
+   "wave": "W10"
   },
   {
    "area": "Social/Orgs",
@@ -4423,9 +4423,9 @@
    "maturity": "absent",
    "scaleNote": "Co-determination, org board elections, the CGC register and org endorsements have no subject anywhere on the box; the only seeder is a single small-world demo command.",
    "blocker": "",
-   "badge": "demo·W6",
-   "lane": "demo",
-   "wave": "W6"
+   "badge": "Desk·W7",
+   "lane": "desk",
+   "wave": "W7"
   },
   {
    "area": "Economy",
@@ -4433,8 +4433,8 @@
    "maturity": "absent",
    "scaleNote": "Nothing outside the demo seeder ever mints the Currency row or the root treasury, so every money capability in this area is dead on a real world.",
    "blocker": "",
-   "badge": "L13·W6",
-   "lane": "13",
+   "badge": "Desk·W6",
+   "lane": "desk",
    "wave": "W6"
   },
   {
@@ -4443,9 +4443,9 @@
    "maturity": "absent",
    "scaleNote": "AccountService::open is idempotent and per-owner but no job, sim stage or provisioning step calls it, so no resident can hold or move money.",
    "blocker": "",
-   "badge": "L13·W6",
-   "lane": "13",
-   "wave": "W6"
+   "badge": "Desk·W7",
+   "lane": "desk",
+   "wave": "W7"
   },
   {
    "area": "Economy",
@@ -4453,9 +4453,9 @@
    "maturity": "partial",
    "scaleNote": "The run is one unbounded transaction with a per-recipient insert loop, has a single demo-command caller, and no clock ever fires it despite the treasury page showing a next-run date.",
    "blocker": "",
-   "badge": "L13·W6",
-   "lane": "13",
-   "wave": "W6"
+   "badge": "Desk·W7",
+   "lane": "desk",
+   "wave": "W7"
   },
   {
    "area": "Economy",
@@ -4463,9 +4463,9 @@
    "maturity": "absent",
    "scaleNote": "BudgetService::draft and ::enact have zero callers anywhere in the repo and no constitutional form is registered for them, so the treasury page can only ever show an empty budget list.",
    "blocker": "",
-   "badge": "L13·W6",
-   "lane": "13",
-   "wave": "W6"
+   "badge": "Desk·W11",
+   "lane": "desk",
+   "wave": "W11"
   },
   {
    "area": "Economy",
@@ -4473,9 +4473,9 @@
    "maturity": "absent",
    "scaleNote": "The documented dues payment path does not exist: F-IND-023 hard-codes the ledger kind to 'transfer', so a dues payment is indistinguishable from any other transfer.",
    "blocker": "",
-   "badge": "L13·W6",
-   "lane": "13",
-   "wave": "W6"
+   "badge": "Desk·W11",
+   "lane": "desk",
+   "wave": "W11"
   },
   {
    "area": "Economy",
@@ -4483,9 +4483,9 @@
    "maturity": "absent",
    "scaleNote": "An organization can only issue equity from the generic CLI today; both the exchange and the org settings page still render issuance as a future section.",
    "blocker": "",
-   "badge": "L6·W6",
-   "lane": "6",
-   "wave": "W6"
+   "badge": "Desk·W10",
+   "lane": "desk",
+   "wave": "W10"
   },
   {
    "area": "Economy",
@@ -4493,9 +4493,9 @@
    "maturity": "partial",
    "scaleNote": "The treasury page loads every treasury account and every revenue stream with no limit, and the telemetry snapshot pulls the top decile of funded wallets into PHP on each render.",
    "blocker": "",
-   "badge": "L13·W6",
-   "lane": "13",
-   "wave": "W6"
+   "badge": "Desk·W10",
+   "lane": "desk",
+   "wave": "W10"
   }
  ],
  "debt": [
@@ -4546,9 +4546,9 @@
    "location": "review lists across lanes: lane 4 flyout clock advance; lane 15 flyout on 2-3 surfaces; lane 2 flyout mesh state (b785bae, needs columns + demo peers); lane 13 economy surfaces",
    "status": "OPEN — carried across all lanes",
    "note": "Standing rule is SCREENSHOT PROOF AFTER EVERY FIX, but no browser pane composites pixels on this box. Everything is DOM-verified / server-verified; the after-pixel-shot is owed at review time when the operator is present. Every lane carries some form of this debt.",
-   "badge": "L6W4",
-   "lane": "6",
-   "wave": "W4",
+   "badge": "Desk·W10",
+   "lane": "desk",
+   "wave": "W10",
    "state": "deferred"
   },
   {
@@ -4598,9 +4598,9 @@
    "location": "committee_meetings.agenda is a plain string list; Pages/Legislature/LiveCivicRoom.vue floor is ephemeral cache (no schema)",
    "status": "VERIFIED 2026-09-05: NOT BUILT on main. No agenda_items migration exists (database/migrations holds only 2026_07_30_000001_geodata_pull_engine.php); no AgendaService in app/; no AgendaPerItemTest in tests/. The box has no agenda_items table and no migration row. committee_meetings.agenda is jsonb '[]' (database/schema/pgsql-schema.sql:1191). LiveRoomController::advance() only yields the floor and states per-item progression is FLAGGED, not written (app/Http/Controllers/Rooms/LiveRoomController.php:168-171); agendaItems() marks item 0 in_progress by position only (:221). Landing = build the schema + service + test, not run a migration. | Code BUILT + graceful-degrades (AgendaService guarded by Schema::hasTable('agenda_items'); 18 passed/133 with the table absent). Migration agenda_items (2026_07_30_000000, additive) GRANTED but NOT RUN before the credit halt — committee flow uses the JSONB-blob path (functional). Landing = run migration + AgendaPerItemTest.",
    "note": "Per-item progression through a meeting (advance/complete each agenda item) needs a structured agenda, not a flat string array. Blocks the live-room molecule from driving an agenda item-by-item. Lane 3's floor primitive (raise-hand -> FIFO/named recognition -> yield, 3c107cf) is ephemeral and deliberately schema-free for now.",
-   "badge": "L3·W5",
-   "lane": "3",
-   "wave": "W5",
+   "badge": "Desk·W11",
+   "lane": "desk",
+   "wave": "W11",
    "state": "open"
   },
   {
@@ -4741,9 +4741,9 @@
    "location": "social/profile surfaces; F-IND-002 extension; /civic/rooms",
    "status": "PARTIALLY RESOLVED (Wave 4, L15) - profile-edit door + p2p DM built; remainder design-deferred.",
    "note": "Three: (1) per-user DM flow — Message button links to /civic/rooms; NO per-user primitive exists; (2) social-profile self-EDIT write path — handle/bio/visibility have no HTTP door (an F-IND-002 extension decision); (3) record-tab 'open the full record' link. Also: 'jurisdiction' visibility = not-public in v1. Challenge-tracker 'simulate' + judiciary-home consent sliders were DROPPED (a client-side fake contradicts the engine-snapshot rail).",
-   "badge": "L15W4",
-   "lane": "15",
-   "wave": "W4",
+   "badge": "Desk·W11",
+   "lane": "desk",
+   "wave": "W11",
    "state": "deferred"
   },
   {
@@ -4858,9 +4858,9 @@
    "location": "AuditService::APPEND_LOCK_KEY 0x4155444954; instance_settings singleton",
    "status": "MITIGATED (Wave 4) - SUITE TOKEN + freeze is the green-gate procedure; per-lane LIVE_PG_DATABASE post-alpha",
    "note": "Adopted permanently; the 1343/0 gate ran in a quiet window. Per-lane test DB retires the freeze.",
-   "lane": "2",
-   "badge": "L2·W4",
-   "wave": "W4",
+   "lane": "desk",
+   "badge": "Desk·W11",
+   "wave": "W11",
    "state": "deferred"
   },
   {
@@ -4871,9 +4871,9 @@
    "location": "translate_monolith.py output -> review queue",
    "status": "HELD by the rail - mechanism shipped, raw output withheld until a reader/stronger-model pass",
    "note": "Page bodies render for all 6 locales; chrome falls back to English. Refusal-is-the-answer.",
-   "lane": "5",
-   "badge": "L5·W5",
-   "wave": "W5",
+   "lane": "desk",
+   "badge": "Desk·W10",
+   "wave": "W10",
    "state": "deferred"
   },
   {
@@ -4884,9 +4884,9 @@
    "location": "L6W4_SCREEN_GAP_PLAN.md section 5",
    "status": "DEFERRED - a later migration slot (neither blocks batches 1-6)",
    "note": "Surfaced by the 14-agent gap analysis; honest-empty until built.",
-   "lane": "6",
-   "badge": "L6·W4",
-   "wave": "W4",
+   "lane": "desk",
+   "badge": "Desk·W11",
+   "wave": "W11",
    "state": "deferred"
   },
   {
@@ -4897,9 +4897,9 @@
    "location": "PROTECTED AccountService table",
    "status": "OPTIONAL - later slot; app-layer buyer-account row lock already closes the no-overdraft hole",
    "note": "The 8-defect adversarial review closed it at the app layer; a DB CHECK is belt-and-suspenders.",
-   "lane": "13",
-   "badge": "L13·W5",
-   "wave": "W5",
+   "lane": "desk",
+   "badge": "Desk·W11",
+   "wave": "W11",
    "state": "deferred"
   },
   {
@@ -4910,9 +4910,9 @@
    "location": "resources/js/Pages/System/Atlas.vue + atlas-* CSS; findings at docs/plans/ui/L6W5_ATLAS_A11Y_FINDINGS.md (9f0f5e9)",
    "status": "OPEN (non-blocking polish): 1 MEDIUM (vital-signs cards need h3/region) + 3 LOW (th scope, ~24px touch @375, off-toggle opacity) + 1 Phase-N token-contrast. Strong baseline (reduced-motion/aria-pressed/role=status/colour-never-alone all right).",
    "note": "A review, not a rebuild; Atlas.vue untouched. Does not block the walk.",
-   "badge": "L4·W5",
-   "lane": "4",
-   "wave": "W5",
+   "badge": "Desk·W10",
+   "lane": "desk",
+   "wave": "W10",
    "state": "deferred"
   },
   {
@@ -4924,8 +4924,8 @@
    "status": "OPEN — failed 2026-09-05 18:47:36 (MaxAttemptsExceeded) 91 s after the done flip; boards, members and spaces never ran",
    "note": "Superseded by the Step 4 engine (ledger + pump + lanes on the long lane). The done-flip dispatch is removed with it.",
    "state": "open",
-   "badge": "L3·W6",
-   "lane": "3",
+   "badge": "Desk·W6",
+   "lane": "desk",
    "wave": "W6"
   },
   {
@@ -4937,9 +4937,9 @@
    "status": "OPEN — becomes Step 6 Confirm and Close",
    "note": "step() has no completion redirect, so the page stays reachable and a re-POST overwrites the stamps. Page copy references Phase 2.",
    "state": "open",
-   "badge": "L6·W6",
-   "lane": "6",
-   "wave": "W6"
+   "badge": "Desk·W8",
+   "lane": "desk",
+   "wave": "W8"
   },
   {
    "title": "Stepper marks completed+1 reachable while the server needs completed >= n; the deferred field is never defined",
@@ -4950,9 +4950,9 @@
    "status": "OPEN",
    "note": "On the live box Step 4 renders as a link and bounces to Step 3.",
    "state": "open",
-   "badge": "L6·W6",
-   "lane": "6",
-   "wave": "W6"
+   "badge": "Desk·W10",
+   "lane": "desk",
+   "wave": "W10"
   },
   {
    "title": "A zero-population bin under the sub-2 rule writes a district with seats = 0 (9 active maps); racePlan blocks the whole Type A half",
@@ -4963,8 +4963,8 @@
    "status": "OPEN — ruled zero-seat-chambers A: fix the rule, redraw the nine",
    "note": "Recurs on a fresh run until the rule changes.",
    "state": "open",
-   "badge": "L1·W6",
-   "lane": "1",
+   "badge": "Desk·W6",
+   "lane": "desk",
    "wave": "W6"
   },
   {
@@ -4976,8 +4976,8 @@
    "status": "OPEN — ruled dup-legislatures A: delete the two, add the index",
    "note": "Githunguri and Kalmar, both rows 2026-08-29 16:05:47.",
    "state": "open",
-   "badge": "L1·W6",
-   "lane": "1",
+   "badge": "Desk·W6",
+   "lane": "desk",
    "wave": "W6"
   },
   {
@@ -4989,8 +4989,8 @@
    "status": "OPEN — ruled bench-and-quorum-law A: capped everywhere",
    "note": "17 zero-seat chambers hold quorum 3. Votes derive a strict majority from the validator (ChamberVoteService.php:725-738).",
    "state": "open",
-   "badge": "L3·W6",
-   "lane": "3",
+   "badge": "Desk·W6",
+   "lane": "desk",
    "wave": "W6"
   },
   {
@@ -5002,8 +5002,8 @@
    "status": "OPEN — ruled bench-scaling-law B: THE BENCH LAW on every path",
    "note": "bench = max(judiciary_min_judges_per_race, next odd >= Type A seats / 10); minimum multiple for courts with constituents.",
    "state": "open",
-   "badge": "L3·W6",
-   "lane": "3",
+   "badge": "Desk·W6",
+   "lane": "desk",
    "wave": "W6"
   },
   {
@@ -5015,8 +5015,8 @@
    "status": "OPEN",
    "note": "An explicit race list carrying a lawful 2-seat Type B race is rejected while the generator produces the same race unchecked.",
    "state": "open",
-   "badge": "L3·W6",
-   "lane": "3",
+   "badge": "Desk·W6",
+   "lane": "desk",
    "wave": "W6"
   },
   {
@@ -5028,8 +5028,8 @@
    "status": "OPEN",
    "note": "No act can set them.",
    "state": "open",
-   "badge": "L3·W6",
-   "lane": "3",
+   "badge": "Desk·W6",
+   "lane": "desk",
    "wave": "W6"
   },
   {
@@ -5041,9 +5041,9 @@
    "status": "OPEN",
    "note": "The districting lane has a heartbeat connection (HostCapacity.php:57); copy it.",
    "state": "open",
-   "badge": "L4·W6",
-   "lane": "4",
-   "wave": "W6"
+   "badge": "Desk·W7",
+   "lane": "desk",
+   "wave": "W7"
   },
   {
    "title": "sim:start --resume enumerates with LIMIT/OFFSET and stops at the first empty chunk; re-enumerates with the command-line adm-max and limit, not the run's stored options",
@@ -5054,9 +5054,9 @@
    "status": "OPEN",
    "note": "Resume also adopts the newest unfinished run while the pump and console act on the oldest.",
    "state": "open",
-   "badge": "L4·W6",
-   "lane": "4",
-   "wave": "W6"
+   "badge": "Desk·W7",
+   "lane": "desk",
+   "wave": "W7"
   },
   {
    "title": "Sim claim order is by 25,000-row band (position = chunk offset); the counting mint takes every open election in a jurisdiction",
@@ -5067,9 +5067,9 @@
    "status": "OPEN",
    "note": "A --limit smoke run claims in uuid order.",
    "state": "open",
-   "badge": "L4·W6",
-   "lane": "4",
-   "wave": "W6"
+   "badge": "Desk·W7",
+   "lane": "desk",
+   "wave": "W7"
   },
   {
    "title": "Sim phases enumerating, profiling and verifying have no stage and mint nothing; sim:revert is referenced in four files and absent",
@@ -5080,9 +5080,9 @@
    "status": "OPEN",
    "note": "The run passes verifying to done with no acceptance scan.",
    "state": "open",
-   "badge": "L4·W6",
-   "lane": "4",
-   "wave": "W6"
+   "badge": "Desk·W7",
+   "lane": "desk",
+   "wave": "W7"
   },
   {
    "title": "Sim console: 2 s poll runs planet-wide counts (~75 s); governance/judiciary/civics kinds render raw; workers target shows the unsubtracted width; banner tells a sandbox world the engine will refuse",
@@ -5093,9 +5093,9 @@
    "status": "OPEN",
    "note": "Cached snapshot per minute like Step 3.",
    "state": "open",
-   "badge": "L4·W6",
-   "lane": "4",
-   "wave": "W6"
+   "badge": "Desk·W8",
+   "lane": "desk",
+   "wave": "W8"
   },
   {
    "title": "Open write doors inside the setup window: restore upload (no auth, pg_restore), pull-option, pull-control, deploy-package (no operator check), join API (no user check); /register on the allow list",
@@ -5106,9 +5106,9 @@
    "status": "OPEN — must close before the public walk",
    "note": "",
    "state": "open",
-   "badge": "L2·W6",
-   "lane": "2",
-   "wave": "W6"
+   "badge": "Desk·W8",
+   "lane": "desk",
+   "wave": "W8"
   },
   {
    "title": "maps:accept drifted from the acceptance endpoint: no verifier gate, no mode or simulate write, run created as queued without totals",
@@ -5119,9 +5119,9 @@
    "status": "OPEN",
    "note": "",
    "state": "open",
-   "badge": "L2·W6",
-   "lane": "2",
-   "wave": "W6"
+   "badge": "Desk·W9",
+   "lane": "desk",
+   "wave": "W9"
   },
   {
    "title": "Dead dials: time_mode and seconds per year (no reader); cga.critical_population_default and cga.activate_subtree_batch (no reader); cga.autoscale_adm_max (stamp only); instance_class and population_binding (no writer); courtTiers and extraRooms (no caller); cohort clusters and candidacy priors (never read)",
@@ -5132,9 +5132,9 @@
    "status": "OPEN",
    "note": "",
    "state": "open",
-   "badge": "L6·W6",
-   "lane": "6",
-   "wave": "W6"
+   "badge": "Desk·W10",
+   "lane": "desk",
+   "wave": "W10"
   },
   {
    "title": "Doc debt: ElectionTriggerService listed in CLAUDE.md and ConstitutionalVersionService but absent; the scheduler container is missing from the service table; Horizon comment describes the retired 'cores − 2, capped 12' lane law; two docblocks name the retired AutoscaleOrchestratorJob",
@@ -5145,9 +5145,9 @@
    "status": "OPEN",
    "note": "",
    "state": "open",
-   "badge": "L2·W6",
-   "lane": "2",
-   "wave": "W6"
+   "badge": "Desk·W10",
+   "lane": "desk",
+   "wave": "W10"
   },
   {
    "title": "Step 3 engine controls without a surface or bypassing the control service: requeueDriftMaps unreachable; grind shunt config key undefined (120 s always); districting:autoscale --halt and the UI Rewind call Artisan directly; controls act on the newest run while the pump drives the oldest",
@@ -5158,9 +5158,9 @@
    "status": "OPEN",
    "note": "",
    "state": "open",
-   "badge": "L1·W6",
-   "lane": "1",
-   "wave": "W6"
+   "badge": "Desk·W10",
+   "lane": "desk",
+   "wave": "W10"
   },
   {
    "title": "Restore-from-backup lands past Step 2 with map_accepted_at stamped and no run, no world build, no scale mode",
@@ -5171,9 +5171,9 @@
    "status": "OPEN",
    "note": "Stamp the run state and mode from the bundle, or block the branch until a run exists.",
    "state": "open",
-   "badge": "L6·W6",
-   "lane": "6",
-   "wave": "W6"
+   "badge": "Desk·W9",
+   "lane": "desk",
+   "wave": "W9"
   },
   {
    "title": "No test pins institution_scale_mode, simulate_at_scale, ProvisionInstitutionsJob, ActivateSubtreeJob, SubtreeBootLaneJob, FinishActivationsJob, ScheduleFoundingElectionJob, StartSimulationJob, SimulateJurisdictionJob or the wizard state machine; AutoscalePinTest skips itself above 10,000 jurisdictions",
@@ -5184,8 +5184,8 @@
    "status": "OPEN",
    "note": "The Step 4 to 6 build must land with pins.",
    "state": "open",
-   "badge": "L2·W6",
-   "lane": "2",
+   "badge": "Desk·W6",
+   "lane": "desk",
    "wave": "W6"
   },
   {
@@ -5197,9 +5197,9 @@
    "status": "OPEN — ruled subtree-activation-shape B+",
    "note": "",
    "state": "open",
-   "badge": "L3·W6",
-   "lane": "3",
-   "wave": "W6"
+   "badge": "Desk·W11",
+   "lane": "desk",
+   "wave": "W11"
   },
   {
    "title": "Population mode never boots: the CLK-06 crossing writes state and stops; effective threshold is 1 resident while Step 2 copy says 5–9",
@@ -5210,9 +5210,9 @@
    "status": "OPEN — ruled population-mode-autoboot A (2026-08-29)",
    "note": "Needed for the live mesh.",
    "state": "open",
-   "badge": "L3·W6",
-   "lane": "3",
-   "wave": "W6"
+   "badge": "Desk·W11",
+   "lane": "desk",
+   "wave": "W11"
   },
   {
    "title": "Clock job and its three sweeps time out on the default queue (9 rows) with zero timers armed",
@@ -5223,9 +5223,9 @@
    "status": "DEFERRED — ruled default-queue-sweeps C: keep; measure on the fresh cloud run",
    "note": "",
    "state": "deferred",
-   "badge": "L2·W6",
-   "lane": "2",
-   "wave": "W6"
+   "badge": "Desk·W9",
+   "lane": "desk",
+   "wave": "W9"
   },
   {
    "title": "Boot-time prewarm queues a planet raster and geojson warm on every horizon restart (139 ghost failures)",
@@ -5236,9 +5236,9 @@
    "status": "DEFERRED — ruled boot-prewarm C: keep; measure on the fresh cloud box",
    "note": "",
    "state": "deferred",
-   "badge": "L2·W6",
-   "lane": "2",
-   "wave": "W6"
+   "badge": "Desk·W9",
+   "lane": "desk",
+   "wave": "W9"
   },
   {
    "title": "Step 2 dead controls and copy: country scope, fresh, skip population, pause on exception unbound; engine fixed to pull; section numbering 1, 2, 2, 2, 4; Step 1 clamp copy; Step 2 population-mode caption",
@@ -5249,9 +5249,9 @@
    "status": "OPEN",
    "note": "",
    "state": "open",
-   "badge": "L6·W6",
-   "lane": "6",
-   "wave": "W6"
+   "badge": "Desk·W10",
+   "lane": "desk",
+   "wave": "W10"
   },
   {
    "title": "Operator gate on the cluster join / leave doors",
@@ -5262,9 +5262,9 @@
    "status": "OPEN",
    "note": "Any signed-in user can re-point the whole instance as a mirror of an arbitrary host and start a corpus drain; the sibling mesh doors are operator-gated and these two are not.",
    "state": "open",
-   "badge": "L2·W6",
-   "lane": "2",
-   "wave": "W6"
+   "badge": "Desk·W11",
+   "lane": "desk",
+   "wave": "W11"
   },
   {
    "title": "Paged Full-Faith-and-Credit push tail",
@@ -5275,9 +5275,9 @@
    "status": "OPEN",
    "note": "Give pushTo the paging the pull side already has, so the first push to a new peer does not ship 2.75 million audit entries in one body.",
    "state": "open",
-   "badge": "L2·W6",
-   "lane": "2",
-   "wave": "W6"
+   "badge": "Desk·W11",
+   "lane": "desk",
+   "wave": "W11"
   },
   {
    "title": "Chunked authority-flip manifest and subtree update",
@@ -5288,9 +5288,9 @@
    "status": "OPEN",
    "note": "Flipping a real country breaks today: the manifest carries every descendant id and the update binds them in one statement, above the 65,535 bind ceiling for India and Earth.",
    "state": "open",
-   "badge": "L2·W6",
-   "lane": "2",
-   "wave": "W6"
+   "badge": "Desk·W11",
+   "lane": "desk",
+   "wave": "W11"
   },
   {
    "title": "UI federation toggle completes the mint and arms CLK-20",
@@ -5301,9 +5301,9 @@
    "status": "OPEN",
    "note": "The operator console toggle sets federation_enabled alone, producing exactly the enabled-but-unminted, no-heartbeat half-state the CLI command was written to prevent.",
    "state": "open",
-   "badge": "L2·W6",
-   "lane": "2",
-   "wave": "W6"
+   "badge": "Desk·W11",
+   "lane": "desk",
+   "wave": "W11"
   },
   {
    "title": "Federation console read reachable without sign-in",
@@ -5314,9 +5314,9 @@
    "status": "OPEN",
    "note": "The route documents itself as public-read under Art. II §2 but sits in the auth group, so a demo visitor sees a login redirect instead of the mesh state; the 2026-09-05 ruling makes every read surface public.",
    "state": "open",
-   "badge": "demo·W6",
-   "lane": "demo",
-   "wave": "W6"
+   "badge": "Desk·W10",
+   "lane": "desk",
+   "wave": "W10"
   },
   {
    "title": "Economy surfaces hold no data at planet scale",
@@ -5327,8 +5327,8 @@
    "status": "OPEN",
    "note": "Every Economy page renders honest-empty on the live box. No mass path mints a currency, accounts or treasuries; the only creation path is a demo CLI command. The Wave 6 Step 4 scale-up ledger has no economy lane.",
    "state": "open",
-   "badge": "L13·W6",
-   "lane": "13",
+   "badge": "Desk·W6",
+   "lane": "desk",
    "wave": "W6"
   },
   {
@@ -5340,9 +5340,9 @@
    "status": "OPEN",
    "note": "All 13 Economy routes sit in the auth group, and /economy is not on the setup-lock allow list, so every Economy page 302s to the wizard while setup is incomplete. setup_completed_at is NULL on this box.",
    "state": "open",
-   "badge": "L13·W6",
-   "lane": "13",
-   "wave": "W6"
+   "badge": "Desk·W8",
+   "lane": "desk",
+   "wave": "W8"
   },
   {
    "title": "Apply Atlas a11y findings F1/F2 (domain-card headings, th scope)",
@@ -5353,9 +5353,9 @@
    "status": "OPEN",
    "note": "Lane 6's review (docs/plans/ui/L6W5_ATLAS_A11Y_FINDINGS.md) handed lane 4 one medium finding (F1: the 9 domain cards have no heading and no aria-labelledby) and low findings (F2: directory th lack scope=col). The doc states none block the walk. Not applied at HEAD.",
    "state": "open",
-   "badge": "L4·W6",
-   "lane": "4",
-   "wave": "W6"
+   "badge": "Desk·W10",
+   "lane": "desk",
+   "wave": "W10"
   },
   {
    "title": "Retire dead courtTiers(tier) static + InstitutionScaleTest pins (Q4a RETIRE execution)",
@@ -5366,8 +5366,8 @@
    "status": "OPEN",
    "note": "Q4a ruling f4c1a012 says RETIRE, not coexist. The static still exists and still carries the rejected 'provisioning MAY materialise' docblock. Zero production callers; runtime-inert. Remove the method and its five test pins. extraRooms stays (future room-model input, not rejected).",
    "state": "open",
-   "badge": "L3·W6",
-   "lane": "3",
+   "badge": "Desk·W6",
+   "lane": "desk",
    "wave": "W6"
   },
   {
@@ -5379,8 +5379,8 @@
    "status": "OPEN",
    "note": "Ruled RETIRE at f4c1a012 (L3+L4 concurrence): courtTiers = tree-depth read from parent_judiciary_id where needed. The layer-count function is still in code with 5 pins and zero app callers. Work: delete courtTiers(tier) and its InstitutionScaleTest pins; no schema change.",
    "state": "open",
-   "badge": "L3·W6",
-   "lane": "3",
+   "badge": "Desk·W6",
+   "lane": "desk",
    "wave": "W6"
   }
  ]

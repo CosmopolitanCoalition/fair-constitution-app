@@ -461,39 +461,44 @@ h1{font-size:1.55rem;font-weight:600;margin:0 0 .3rem}
 <h1>Where does the app stand — and what's the road to a playable game?</h1>
 <p class="stamp">%%STAMP%% · verified against live code · click a group, then a row, for the detail · search + filter + expand-all below</p>
 <div class="tiles" id="tiles"></div>
-<div class="note" style="border-inline-start-color:var(--good)"><b>Maps done (2026-09-05):</b> 940,327 Type A maps and 36,810 Type B panel maps, 0 review, map quality card live on Step 3. <b>Wave 6 = the conference demo:</b> a read-only scaled demo mesh with simulated data, public and walkable, for the 25th OIDP Conference, Kraków, 21–23 September 2026 (operator in Kraków by 09-18). Not built: institution shells at scale (boards 1 of 940,327), seat minting, wizard Steps 4 to 6, the read-only lock, the cloud host. The verified deep dive is the page <a href="https://claude.ai/code/artifact/949d44b2-ee67-4a9b-a75a-61bf1ff9529c">Setup Surface Atlas</a>. <b>Open Questions:</b> all 15 wave-6 decisions are ruled (2026-09-05), including the bench law. Screens, capabilities and debt were re-verified against the code on 2026-09-05 (33 readers, each checked by a skeptic); the Wave 6 rows are added.</div>
+<div class="note" style="border-inline-start-color:var(--good)"><b>Maps done (2026-09-05):</b> 940,327 Type A maps and 36,810 Type B panel maps, 0 review, map quality card live on Step 3. <b>Wave 6 = the conference demo:</b> a read-only scaled demo mesh with simulated data, public and walkable, for the 25th OIDP Conference, Kraków, 21–23 September 2026 (operator in Kraków by 09-18). Not built: institution shells at scale (boards 1 of 940,327), seat minting, wizard Steps 4 to 6, the read-only lock, the cloud host. The verified deep dive is the page <a href="https://claude.ai/code/artifact/949d44b2-ee67-4a9b-a75a-61bf1ff9529c">Setup Surface Atlas</a>. <b>The Desk work list (operator order 2026-09-05):</b> one lane, the Desk, works Waves W6 to W11 in order to the conference demo. Waves 1 to 5 are history. Every remaining screen, capability and debt row carries its wave badge (Desk · W6 … W11); pick a wave in the selector to see one batch across all tabs. Box E is the development and test box: items describe code to write so the feature runs as intended on any box; counts from box E appear only as evidence; one-off box repairs sit outside the waves. All 15 Wave 6 decisions are ruled. Screens, capabilities and debt were re-verified against the code on 2026-09-05 (33 readers, each checked by a skeptic).</div>
 <div class="views" role="tablist">
   <button class="view-btn" role="tab" data-v="screens" aria-selected="true">UI Screens</button>
   <button class="view-btn" role="tab" data-v="caps" aria-selected="false">Capabilities</button>
   <button class="view-btn" role="tab" data-v="debt" aria-selected="false">Tech Debt</button>
-  <button class="view-btn" role="tab" data-v="fleet" aria-selected="false">Fleet &amp; Waves</button>
+  <button class="view-btn" role="tab" data-v="fleet" aria-selected="false">Desk &amp; Waves</button>
   <button class="view-btn" role="tab" data-v="questions" aria-selected="false">Open Questions</button>
 </div>
 <div class="controls">
   <input type="search" id="q" placeholder="Search…" aria-label="Search">
   <span id="filters"></span>
+  <select id="wave" aria-label="Wave"><option value="all">All waves</option><option value="W6">W6 · Step 4 engine and page</option><option value="W7">W7 · Step 5 simulation</option><option value="W8">W8 · Step 6 + read-only world</option><option value="W9">W9 · Cloud build + demo mesh</option><option value="W10">W10 · Demo polish</option><option value="W11">W11 · Live mesh readiness</option><option value="history">Waves 1–5 (done)</option></select>
   <span class="expanders"><button class="chip" id="exAll">Expand all</button><button class="chip" id="coAll">Collapse all</button></span>
 </div>
 <div id="body"></div>
-<p class="foot">Generated from <code>badged.json</code> (the 107 <code>mockups/v3</code> screens plus the Wave 6 rows; capabilities; debt), <code>wave4_data.py</code> (fleet and waves) and the questions in the generator. Re-verified against the code on 2026-09-05 by 33 readers, each checked by a skeptic.</p>
+<p class="foot">Generated from <code>badged.json</code> (the 107 <code>mockups/v3</code> screens plus the Wave 6 rows; capabilities; debt), <code>wave4_data.py</code> (fleet and waves) and the questions in the generator. Re-verified against the code on 2026-09-05 by 33 readers, each checked by a skeptic. Reorganised the same day into the Desk work list (Waves W6 to W11) by operator order.</p>
 </div>
 <script>
 const D=%%DATA%%;
 const esc=s=>String(s==null?'':s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
-const CO={built:'good',working:'good',partial:'warn',absent:'bad',blocked:'block',high:'bad',medium:'warn',low:'low',done:'good',next:'warn',held:'block',resolved:'good',open:'bad',active:'warn',deferred:'low'};
-const LB={built:'built',working:'working',partial:'partial',absent:'absent',blocked:'blocked',high:'high',medium:'medium',low:'low',done:'done',next:'next',held:'held',resolved:'resolved',open:'open',active:'active',deferred:'deferred'};
-let view='screens',q='',filter='all';
+const CO={superseded:'low',built:'good',working:'good',partial:'warn',absent:'bad',blocked:'block',high:'bad',medium:'warn',low:'low',done:'good',next:'warn',held:'block',resolved:'good',open:'bad',active:'warn',deferred:'low'};
+const LB={superseded:'superseded',built:'built',working:'working',partial:'partial',absent:'absent',blocked:'blocked',high:'high',medium:'medium',low:'low',done:'done',next:'next',held:'held',resolved:'resolved',open:'open',active:'active',deferred:'deferred'};
+let view='screens',q='',filter='all',wave='all';
+const inWave=r=>{if(wave==='all')return true;const w=r.wave||'';if(wave==='history')return !/^W(6|7|8|9|10|11)$/.test(w);return w===wave;};
 let ANS={};try{for(let i=0;i<localStorage.length;i++){const k=localStorage.key(i);if(k&&k.indexOf('cga4qs_')===0){const id=k.slice(7);ANS[id]=ANS[id]||{};ANS[id].sel=localStorage.getItem(k);}if(k&&k.indexOf('cga4qn_')===0){const id=k.slice(7);ANS[id]=ANS[id]||{};ANS[id].notes=localStorage.getItem(k);}}}catch(e){}
 function saveAns(id,f,v){ANS[id]=ANS[id]||{};ANS[id][f]=v;try{localStorage.setItem('cga4q'+(f==='sel'?'s':'n')+'_'+id,v);}catch(e){}}
-const FILTERS={screens:['all','built','partial','absent'],caps:['all','working','partial','blocked','absent'],debt:['all','open','deferred','resolved'],fleet:['all','next','done','held','deferred'],questions:['all','open','resolved']};
+const FILTERS={screens:['all','built','partial','absent'],caps:['all','working','partial','blocked','absent'],debt:['all','open','deferred','resolved'],fleet:['all','next','done','held','deferred','superseded'],questions:['all','open','resolved']};
 const sc=t=>D.screens.filter(r=>r.bucket===t).length,cc=t=>D.caps.filter(r=>r.maturity===t).length,dc=t=>D.debt.filter(r=>r.severity===t).length,ds=t=>D.debt.filter(r=>(r.state||'open')===t).length;
 const qOpen=D.questions.filter(x=>x.status==='open').length,qRes=D.questions.filter(x=>x.status==='resolved').length;
 function meter(parts){return parts.map(p=>p[0]?`<span class="s-${p[1]}" style="flex:${p[0]}"></span>`:'').join('');}
+const remain=w=>D.screens.filter(r=>r.wave===w&&r.bucket!=='built').length+D.caps.filter(r=>r.wave===w&&r.maturity!=='working').length+D.debt.filter(r=>r.wave===w&&(r.state||'open')!=='resolved').length;
+const deskItems=w=>{const l=D.fleet.lanes.find(x=>x.id===w);return l?l.items.filter(i=>i.status==='next').length:0;};
 document.getElementById('tiles').innerHTML=`
  <div class="tile"><p class="lbl">UI Screens</p><div class="num">${sc('built')} / ${D.screens.length}</div><div class="sub">${sc('partial')} partial · ${sc('absent')} absent</div><div class="meter">${meter([[sc('built'),'good'],[sc('partial'),'warn'],[sc('absent'),'bad']])}</div></div>
  <div class="tile"><p class="lbl">Capabilities</p><div class="num">${cc('working')} / ${D.caps.length}</div><div class="sub">${cc('partial')} part · ${cc('blocked')} blocked · ${cc('absent')} absent</div><div class="meter">${meter([[cc('working'),'good'],[cc('partial'),'warn'],[cc('blocked'),'block'],[cc('absent'),'bad']])}</div></div>
  <div class="tile"><p class="lbl">Technical Debt</p><div class="num">${ds('open')+ds('deferred')} outstanding</div><div class="sub">${ds('open')} open · ${ds('deferred')} deferred · ${ds('resolved')} resolved</div><div class="meter">${meter([[ds('open'),'bad'],[ds('deferred'),'warn'],[ds('resolved'),'good']])}</div></div>
- <div class="tile"><p class="lbl">Open Questions</p><div class="num">${qOpen} open</div><div class="sub">${qRes} resolved · Wave 4 green</div><div class="meter">${meter([[qRes,'good'],[qOpen,'bad']])}</div></div>`;
+ <div class="tile"><p class="lbl">Open Questions</p><div class="num">${qOpen} open</div><div class="sub">${qRes} resolved</div><div class="meter">${meter([[qRes,'good'],[qOpen,'bad']])}</div></div>`;
+document.getElementById('tiles').insertAdjacentHTML('afterend',`<p class="stamp" style="margin-top:8px">Remaining rows by wave (screens + capabilities + debt) · Desk items: ${['W6','W7','W8','W9','W10','W11'].map(w=>`<b>${w}</b> ${remain(w)} rows · ${deskItems(w)} items`).join(' &nbsp;·&nbsp; ')}</p>`);
 function hi(t){if(!q)return esc(t);const i=String(t).toLowerCase().indexOf(q);if(i<0)return esc(t);const s=String(t);return esc(s.slice(0,i))+'<mark>'+esc(s.slice(i,i+q.length))+'</mark>'+esc(s.slice(i+q.length));}
 function screenDetail(r){const li=x=>x.map(i=>`<li>${hi(i)}</li>`).join('');let h='<dl>';
   h+=`<dt>Where</dt><dd class="meta">${r.page?esc(r.page):'<em>no page</em>'}${r.route?' · '+esc(r.route):''} · props: ${esc(r.props)} · backend: ${esc(r.backend)}${r.owner?' · owner '+esc(r.owner):''}</dd>`;
@@ -512,13 +517,13 @@ function groupView(items,areaKey,barKeys,matchFn,rowHTML,valKey){
     html+=`<section class="area"><button class="area-head" aria-expanded="false"><span class="area-name">${esc(a)}</span><span class="bar">${bar}</span><span class="counts">${cnt}</span><span class="chev">›</span></button><div class="rows hidden">${vis.map(rowHTML).join('')}</div></section>`;});
   return html;}
 function render(){const b=document.getElementById('body');
-  if(view==='screens'){b.innerHTML=groupView(D.screens,'area',['built','partial','absent'],r=>(filter==='all'||r.bucket===filter)&&(!q||(r.badge+' '+r.file+' '+r.title+' '+r.notes+' '+r.specHas.join(' ')+' '+r.appAhead.join(' ')+' '+r.propsMissing.join(' ')+' '+r.backendMissing.join(' ')).toLowerCase().includes(q)),r=>`<div class="scr"><button class="scr-head" aria-expanded="false"><span class="dot d-${CO[r.bucket]}"></span><span><span class="scr-title">${hi(r.title)}</span><span class="scr-file">${esc(r.file)}</span></span><span class="lwbadge">${esc(r.badge)}</span><span class="pill p-${r.bucket}">${LB[r.bucket]}</span><span class="eff">${r.effort==='none'?'—':r.effort}</span></button><div class="detail hidden">${screenDetail(r)}</div></div>`,'bucket');}
-  else if(view==='caps'){b.innerHTML=groupView(D.caps,'area',['working','partial','blocked','absent'],r=>(filter==='all'||r.maturity===filter)&&(!q||(r.badge+' '+r.capability+' '+r.scaleNote+' '+r.blocker).toLowerCase().includes(q)),r=>{let d='<dl>';if(r.blocker)d+=`<dt class="blk">⛔ Blocker</dt><dd>${hi(r.blocker)}</dd>`;if(r.scaleNote)d+=`<dt>At scale</dt><dd>${hi(r.scaleNote)}</dd>`;if(!r.blocker&&!r.scaleNote)d+='<dd class="ok">Working.</dd>';d+='</dl>';return `<div class="scr"><button class="scr-head" aria-expanded="false"><span class="dot d-${CO[r.maturity]}"></span><span class="scr-title">${hi(r.capability)}</span><span class="lwbadge">${esc(r.badge)}</span><span class="pill p-${r.maturity}">${LB[r.maturity]}</span><span class="eff"></span></button><div class="detail hidden">${d}</div></div>`;},'maturity');}
+  if(view==='screens'){b.innerHTML=groupView(D.screens,'area',['built','partial','absent'],r=>inWave(r)&&(filter==='all'||r.bucket===filter)&&(!q||(r.badge+' '+r.file+' '+r.title+' '+r.notes+' '+r.specHas.join(' ')+' '+r.appAhead.join(' ')+' '+r.propsMissing.join(' ')+' '+r.backendMissing.join(' ')).toLowerCase().includes(q)),r=>`<div class="scr"><button class="scr-head" aria-expanded="false"><span class="dot d-${CO[r.bucket]}"></span><span><span class="scr-title">${hi(r.title)}</span><span class="scr-file">${esc(r.file)}</span></span><span class="lwbadge">${esc(r.badge)}</span><span class="pill p-${r.bucket}">${LB[r.bucket]}</span><span class="eff">${r.effort==='none'?'—':r.effort}</span></button><div class="detail hidden">${screenDetail(r)}</div></div>`,'bucket');}
+  else if(view==='caps'){b.innerHTML=groupView(D.caps,'area',['working','partial','blocked','absent'],r=>inWave(r)&&(filter==='all'||r.maturity===filter)&&(!q||(r.badge+' '+r.capability+' '+r.scaleNote+' '+r.blocker).toLowerCase().includes(q)),r=>{let d='<dl>';if(r.blocker)d+=`<dt class="blk">⛔ Blocker</dt><dd>${hi(r.blocker)}</dd>`;if(r.scaleNote)d+=`<dt>At scale</dt><dd>${hi(r.scaleNote)}</dd>`;if(!r.blocker&&!r.scaleNote)d+='<dd class="ok">Working.</dd>';d+='</dl>';return `<div class="scr"><button class="scr-head" aria-expanded="false"><span class="dot d-${CO[r.maturity]}"></span><span class="scr-title">${hi(r.capability)}</span><span class="lwbadge">${esc(r.badge)}</span><span class="pill p-${r.maturity}">${LB[r.maturity]}</span><span class="eff"></span></button><div class="detail hidden">${d}</div></div>`;},'maturity');}
   else if(view==='debt'){
     const STATES=[['open','Outstanding — not yet addressed'],['deferred','Deferred — intentionally later (post-alpha / a future slot)'],['resolved','Resolved this wave']];
     let html='';
     STATES.forEach(([st,label])=>{
-      const g=D.debt.filter(r=>(r.state||'open')===st&&(filter==='all'||(r.state||'open')===filter)&&(!q||(r.badge+' '+r.title+' '+r.owner+' '+r.location+' '+r.status+' '+(r.note||'')).toLowerCase().includes(q)));
+      const g=D.debt.filter(r=>inWave(r)&&(r.state||'open')===st&&(filter==='all'||(r.state||'open')===filter)&&(!q||(r.badge+' '+r.title+' '+r.owner+' '+r.location+' '+r.status+' '+(r.note||'')).toLowerCase().includes(q)));
       if(!g.length)return;
       const op=st!=='resolved';
       html+=`<section class="area"><button class="area-head" aria-expanded="${op}"><span class="area-name"><span class="pill p-${st}">${LB[st]||st}</span> ${esc(label)}</span><span class="counts">${g.length}</span><span class="chev">›</span></button><div class="rows${op?'':' hidden'}">`+g.map(r=>`<div class="scr"><button class="scr-head" aria-expanded="false"><span class="dot d-${CO[r.state||'open']}"></span><span class="scr-title">${hi(r.title)}</span><span class="lwbadge">${esc(r.badge)}</span><span class="eff">${esc(r.severity)} sev</span></button><div class="detail hidden"><dl><dt>Status</dt><dd>${hi(r.status)}</dd><dt>Owner</dt><dd>${hi(r.owner)}</dd><dt>Where</dt><dd class="meta">${hi(r.location)}</dd>${r.note?`<dt>Note</dt><dd>${hi(r.note)}</dd>`:''}<dt>Severity if unresolved</dt><dd>${esc(r.severity)}</dd></dl></div></div>`).join('')+`</div></section>`;
@@ -527,22 +532,19 @@ function render(){const b=document.getElementById('body');
   }
   else if(view==='fleet'){
     const waves=D.fleet.waves.map(w=>`<span class="wv">${w.id}</span> ${esc(w.name)} <span class="pill p-${w.status}">${LB[w.status]}</span>`).join(' &nbsp;·&nbsp; ');
-    let html=`<div class="note" style="border-inline-start-color:var(--good)"><b>Wave 6 orders (2026-09-05): the conference demo.</b> Items are marked P1 (blocks the demo), P2 (needed for a trustworthy run), P3 (cleanup). Each item names the decision it waits on in <b>Open Questions</b>. Earlier waves collapse under each lane.</div><div class="wavesline"><b>Waves:</b> ${waves}</div>`;
-    const bk=['next','done','held','deferred','active'];
-    D.fleet.lanes.forEach(l=>{const items=l.items||[];
-      const w6=items.filter(it=>it.wave==='W6'),w5=items.filter(it=>it.wave==='W5'),w4=items.filter(it=>it.wave!=='W5'&&it.wave!=='W6');
-      const cur=w6.length?w6:(w5.length?w5:w4);
-      const hist=w6.length?[...w5,...w4]:(w5.length?w4:[]);
-      const vis=cur.filter(it=>(filter==='all'||it.status===filter)&&(!q||('l'+l.id+' '+l.name+' '+it.label+' '+(it.note||'')).toLowerCase().includes(q)));
-      const w4hit=q?w4.filter(it=>(it.label+' '+(it.note||'')).toLowerCase().includes(q)):[];
-      if(!vis.length&&!w4hit.length)return;
-      const c={};bk.forEach(k=>c[k]=0);cur.forEach(it=>{if(it.status in c)c[it.status]++;});
-      const bar=bk.map(k=>c[k]?`<span class="s-${CO[k]}" style="flex:${c[k]}"></span>`:'').join('');
+    let html=`<div class="note" style="border-inline-start-color:var(--good)"><b>The Desk works one wave at a time, top to bottom.</b> Each wave is one ordered batch; the last item of a wave is its test step. Items name the ruling they carry and the code they change. Waves 1 to 5 are history and collapse at the bottom; box E one-offs sit outside the waves.</div><div class="wavesline"><b>Waves:</b> ${waves}</div>`;
+    const bk=['next','done','held','deferred','superseded'];
+    D.fleet.lanes.forEach(l=>{
+      if(wave!=='all'&&!(wave==='history'?l.id==='history':l.id===wave))return;
+      const items=l.items||[];
+      const vis=items.filter(it=>(filter==='all'||it.status===filter)&&(!q||(l.id+' '+l.name+' '+it.label+' '+(it.note||'')).toLowerCase().includes(q)));
+      if(!vis.length)return;
+      const c={};bk.forEach(k=>c[k]=0);items.forEach(it=>{if(it.status in c)c[it.status]++;});
+      const bar=bk.map(k=>c[k]?`<span class="s-${CO[k]||'low'}" style="flex:${c[k]}"></span>`:'').join('');
       const cnt=bk.filter(k=>c[k]).map(k=>c[k]+' '+k).join(' · ')||'—';
-      const wl=w6.length?'W6':(w5.length?'W5':'W4');
-      html+=`<section class="area"><button class="area-head" aria-expanded="false"><span class="area-name"><span class="lwbadge">L${esc(l.id)}·${wl}</span> Lane ${esc(l.id)} · ${esc(l.name)} <span class="pill p-${l.status}">${LB[l.status]||esc(l.status)}</span></span><span class="bar">${bar}</span><span class="counts">${esc(cnt)}</span><span class="chev">›</span></button><div class="rows hidden">`;
-      vis.forEach(it=>{html+=`<div class="scr"><button class="scr-head" aria-expanded="false"><span class="dot d-${CO[it.status]}"></span><span class="scr-title">${hi(it.label)}</span><span class="pill p-${it.status}">${LB[it.status]||esc(it.status)}</span></button><div class="detail hidden"><dl>${it.note?`<dt>Detail</dt><dd>${hi(it.note)}</dd>`:'<dd class="ok">—</dd>'}</dl></div></div>`;});
-      if(hist.length){html+=`<details class="lanehist"><summary>Earlier waves · ${hist.length} items</summary>${hist.map(it=>`<div class="donerow"><span class="dot d-${CO[it.status]}"></span> ${hi(it.label)} <span class="pill p-${it.status}">${LB[it.status]||esc(it.status)}</span></div>`).join('')}</details>`;}
+      const open=/^W(6|7|8|9|10|11)$/.test(l.id)&&l.status==='next'&&(wave!=='all'||l.id==='W6');
+      html+=`<section class="area"><button class="area-head" aria-expanded="${open}"><span class="area-name"><span class="lwbadge">${esc(l.id)}</span> ${esc(l.name)} <span class="pill p-${l.status}">${LB[l.status]||esc(l.status)}</span></span><span class="bar">${bar}</span><span class="counts">${esc(cnt)}</span><span class="chev">›</span></button><div class="rows${open?'':' hidden'}">`;
+      vis.forEach(it=>{html+=`<div class="scr"><button class="scr-head" aria-expanded="false"><span class="dot d-${CO[it.status]||'low'}"></span><span class="scr-title">${hi(it.label)}</span><span class="pill p-${it.status}">${LB[it.status]||esc(it.status)}</span></button><div class="detail hidden"><dl>${it.note?`<dt>Detail</dt><dd>${hi(it.note)}</dd>`:'<dd class="ok">—</dd>'}</dl></div></div>`;});
       html+=`</div></section>`;
     });
     b.innerHTML=html;
@@ -569,13 +571,14 @@ function buildFilters(){document.getElementById('filters').innerHTML=FILTERS[vie
   document.querySelectorAll('.chip[data-f]').forEach(ch=>ch.addEventListener('click',()=>{filter=ch.dataset.f;document.querySelectorAll('.chip[data-f]').forEach(x=>x.setAttribute('aria-pressed',String(x===ch)));render();}));}
 document.querySelectorAll('.view-btn').forEach(vb=>vb.addEventListener('click',()=>{view=vb.dataset.v;filter='all';document.querySelectorAll('.view-btn').forEach(x=>x.setAttribute('aria-selected',String(x===vb)));buildFilters();render();}));
 document.getElementById('q').addEventListener('input',e=>{q=e.target.value.trim().toLowerCase();render();});
+document.getElementById('wave').addEventListener('change',e=>{wave=e.target.value;render();});
 document.getElementById('exAll').addEventListener('click',()=>{document.querySelectorAll('#body .rows,#body .detail').forEach(x=>x.classList.remove('hidden'));document.querySelectorAll('#body .area-head,#body .scr-head').forEach(x=>x.setAttribute('aria-expanded','true'));});
 document.getElementById('coAll').addEventListener('click',()=>{document.querySelectorAll('#body .rows,#body .detail').forEach(x=>x.classList.add('hidden'));document.querySelectorAll('#body .area-head,#body .scr-head').forEach(x=>x.setAttribute('aria-expanded','false'));});
 buildFilters();render();
 </script>
 """
 
-stamp = "As of %s · main @ <code>%s</code> · maps done · Wave 6 conference demo · 15 decisions ruled 2026-09-05 · 0 open · screens, capabilities and debt re-verified 2026-09-05" % (DATA['asOf'], DATA['head'])
+stamp = "As of %s · main @ <code>%s</code> · maps done · the Desk works W6 to W11 in order · 15 decisions ruled 2026-09-05 · corpus re-verified 2026-09-05" % (DATA['asOf'], DATA['head'])
 html = TEMPLATE.replace('%%DATA%%', json.dumps(DATA, separators=(',', ':'))).replace('%%STAMP%%', stamp)
 # Output next to the script, not a hard-coded box path — the generator now
 # runs on whichever checkout you are in (this regen ran on the GAME box).
