@@ -3794,8 +3794,20 @@ class SetupController extends Controller
                     $rateLabel = 'shells/h';
                 }
             } elseif ($ledger['units_done'] >= 50) {
-                $rate = $ledger['units_done'] / max(1, $elapsed);
-                if ($rate > 0) {
+                // WINDOWED rate (operator order 2026-09-06): units founded in
+                // the last 10 minutes, NOT cumulative since the run started.
+                // finished_at is stamped only at unit completion (the shell rung
+                // never sets it), so this counts real recent foundings and is
+                // immune to the slow early code and the halt/resume gaps an
+                // elapsed-based average bakes in. ETA divides remaining units by
+                // it, so it is accurate too. Display-only; picked up next poll.
+                $windowSecs = 600;
+                $winDone = (int) DB::table('provision_ledger')
+                    ->where('status', 'done')
+                    ->where('finished_at', '>', now()->subSeconds($windowSecs))
+                    ->count();
+                $rate = $winDone / $windowSecs;
+                if ($winDone > 0) {
                     $eta       = (int) round(($ledger['units_pending'] + $ledger['units_running']) / $rate);
                     $ratePerH  = (int) round($rate * 3600);
                     $rateLabel = 'founded/h';
