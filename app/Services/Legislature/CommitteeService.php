@@ -20,6 +20,7 @@ use App\Services\PublicRecordService;
 use App\Services\RoleService;
 use App\Services\VoteCountingService;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Str;
 
 /**
  * Committee lifecycle (chamber ops §C): creation kind-split (Art. V §3
@@ -307,6 +308,135 @@ class CommitteeService
         );
 
         return $committee;
+    }
+
+    /**
+     * SET-BASED system-act committee creation (performance 2026-09-06): the
+     * same product as calling createAsSystemAct() once per spec — committee row
+     * + 'act' public record + the two buffered audit acts (records.published
+     * and the engine's F-LEG-009 committee.creation_proposed) — for a whole
+     * unit's committees in a constant handful of round trips instead of ~3 per
+     * committee plus the per-filing engine overhead. Unseated-chamber guard
+     * runs ONCE. Wrapped in DB::transaction so a failure rolls back with the
+     * audit batch truncate in the caller.
+     *
+     * @param  list<array{name:string,purpose:?string,seats:int}>  $specs
+     * @return list<string> committee ids, in spec order
+     */
+    public function createManyAsSystemAct(Legislature $legislature, array $specs): array
+    {
+        if ($specs === []) {
+            return [];
+        }
+
+        if (LegislatureMember::query()->where('legislature_id', $legislature->id)
+                ->whereIn('status', LegislatureMember::CURRENT_STATUSES)->exists()) {
+            throw new ConstitutionalViolation(
+                'A seated chamber creates its committees by vote (F-LEG-009); the system act is for unseated chambers only.',
+                'Art. II §9'
+            );
+        }
+
+        $legislatureId  = (string) $legislature->id;
+        $jurisdictionId = (string) $legislature->jurisdiction_id;
+        $bicameral      = (int) $legislature->type_b_seats > 0;
+        $typeA          = max(1, (int) $legislature->type_a_seats);
+        $typeB          = max(1, (int) $legislature->type_b_seats);
+
+        return DB::transaction(function () use ($specs, $legislature, $legislatureId, $jurisdictionId, $bicameral, $typeA, $typeB) {
+            $now = now();
+
+            $committeeRows = [];
+            $recordRows    = [];
+            $ids           = [];
+
+            foreach ($specs as $spec) {
+                $name = trim((string) ($spec['name'] ?? ''));
+                if ($name === '') {
+                    throw new ConstitutionalViolation('A committee needs a name.', 'CGA Forms Catalog (F-LEG-009)');
+                }
+                $seats = (int) ($spec['seats'] ?? 0);
+                if ($seats < 1) {
+                    throw new ConstitutionalViolation('A committee carries at least one seat.', 'CGA Forms Catalog (F-LEG-009)');
+                }
+                $purpose = isset($spec['purpose']) ? (string) $spec['purpose'] : null;
+
+                $split = null;
+                if ($bicameral) {
+                    $split = self::kindSplit($seats, $typeA, $typeB);
+                    ConstitutionalValidator::assertCommitteeKindSplit($seats, $split['type_a'], $split['type_b'], true);
+                }
+
+                $committeeId = (string) Str::uuid();
+                $committeeRows[] = [
+                    'id'                 => $committeeId,
+                    'legislature_id'     => $legislatureId,
+                    'name'               => $name,
+                    'purpose'            => $purpose,
+                    'seats'              => $seats,
+                    'type_a_seats'       => $split['type_a'] ?? null,
+                    'type_b_seats'       => $split['type_b'] ?? null,
+                    'created_by_vote_id' => null,
+                    'status'             => Committee::STATUS_CREATED,
+                    'created_at'         => $now,
+                    'updated_at'         => $now,
+                ];
+
+                $recordId = (string) Str::uuid();
+                $title = sprintf('Committee created at founding: %s (%d seats)', $name, $seats);
+                $this->audit->append(
+                    module: 'records',
+                    event: 'published',
+                    payload: [
+                        'record_id'    => $recordId,
+                        'kind'         => 'act',
+                        'title'        => $title,
+                        'subject_type' => 'committees',
+                        'subject_id'   => $committeeId,
+                        'via_form'     => 'F-LEG-009',
+                        'via_workflow' => null,
+                        'via_clock'    => null,
+                    ],
+                    ref: 'F-LEG-009',
+                    jurisdictionId: $jurisdictionId,
+                );
+                $recordRows[] = [
+                    'id'              => $recordId,
+                    'kind'            => 'act',
+                    'title'           => $title,
+                    'body'            => $purpose,
+                    'jurisdiction_id' => $jurisdictionId,
+                    'legislature_id'  => $legislatureId,
+                    'via_form'        => 'F-LEG-009',
+                    'subject_type'    => 'committees',
+                    'subject_id'      => $committeeId,
+                    'audit_seq'       => null,
+                    'published_at'    => $now,
+                ];
+
+                // The engine's F-LEG-009 form-filing act (handler return).
+                $this->audit->append(
+                    module: 'legislature',
+                    event: 'committee.creation_proposed',
+                    payload: [
+                        'legislature_id' => $legislatureId,
+                        'committee_id'   => $committeeId,
+                        'name'           => $name,
+                        'seats'          => $seats,
+                        'system_act'     => true,
+                    ],
+                    ref: 'F-LEG-009',
+                    jurisdictionId: $jurisdictionId,
+                );
+
+                $ids[] = $committeeId;
+            }
+
+            DB::table('committees')->insert($committeeRows);
+            DB::table('public_records')->insert($recordRows);
+
+            return $ids;
+        });
     }
 
     /**

@@ -133,11 +133,11 @@ class ElectionLifecycleService implements ElectionSchedulingDelegate
      * cutoff ≥ opens + approval_min_days floor is enforced unless dev
      * compression is configured.
      */
-    public function scheduleGeneral(Legislature $legislature, ?ClockTimer $timer = null, array $dates = []): Election
+    public function scheduleGeneral(Legislature $legislature, ?ClockTimer $timer = null, array $dates = [], ?array $plan = null): Election
     {
         $jurisdictionId = $legislature->jurisdiction_id;
 
-        return DB::transaction(function () use ($legislature, $timer, $dates, $jurisdictionId) {
+        return DB::transaction(function () use ($legislature, $timer, $dates, $jurisdictionId, $plan) {
             $election = Election::query()
                 ->where('legislature_id', $legislature->id)
                 ->where('kind', Election::KIND_GENERAL)
@@ -166,7 +166,11 @@ class ElectionLifecycleService implements ElectionSchedulingDelegate
 
             $this->applySchedule($election, $dates);
 
-            $plan = $this->racePlan($legislature);
+            // Reuse a caller-computed plan when given (the Step 4 seat path
+            // computes racePlan once for its block check, then hands it here so
+            // it is not recomputed — nothing mutates the legislature or its map
+            // between the two points). Falls back to computing it otherwise.
+            $plan ??= $this->racePlan($legislature);
 
             // Record the blocked posture for ANY blocked kind — the flag the
             // operator asked to keep — but only STOP when nothing at all is

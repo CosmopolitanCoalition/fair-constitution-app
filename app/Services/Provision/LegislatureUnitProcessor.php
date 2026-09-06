@@ -11,6 +11,7 @@ use App\Services\Demo\Stages\GovernanceStage;
 use App\Services\ElectionLifecycleService;
 use App\Services\Executive\DepartmentService;
 use App\Services\InstitutionScaleService;
+use App\Services\Legislature\CommitteeService;
 use App\Support\ProvisionTimer;
 use Illuminate\Support\Facades\DB;
 
@@ -38,6 +39,7 @@ class LegislatureUnitProcessor
         private readonly ConstitutionalEngine $engine,
         private readonly AuditService $audit,
         private readonly DepartmentService $departments,
+        private readonly CommitteeService $committees,
     ) {}
 
     /**
@@ -148,7 +150,10 @@ class LegislatureUnitProcessor
             return ['blocked' => true, 'reason' => implode('; ', $reasons) ?: 'race plan fully blocked'];
         }
 
-        $election = $this->lifecycle->scheduleGeneral($legislature);
+        // Hand the already-computed plan to scheduleGeneral so racePlan is not
+        // run a second time (it computed the same plan here for the block
+        // check; nothing mutates the legislature or its map in between).
+        $election = $this->lifecycle->scheduleGeneral($legislature, plan: $plan);
         $races    = (int) DB::table('election_races')->where('election_id', $election->id)->count();
 
         $out = ['election_id' => (string) $election->id, 'races' => $races, 'status' => $election->status];
@@ -183,27 +188,32 @@ class LegislatureUnitProcessor
             return [];
         }
 
-        $seats  = max(1, min(GovernanceStage::SEATS_PER_COMMITTEE, $seatsTotal));
-        $minted = [];
+        $seats = max(1, min(GovernanceStage::SEATS_PER_COMMITTEE, $seatsTotal));
+
+        // SET-BASED (performance 2026-09-06): one batch create for the whole
+        // unit's committees instead of one F-LEG-009 filing each. Same product
+        // and same buffered audit acts (createManyAsSystemAct is faithful to
+        // the per-filing path).
+        $specs = [];
         foreach (GovernanceStage::COMMITTEE_NAMES as $name) {
-            if (count($existing) + count($minted) >= $target) {
+            if (count($existing) + count($specs) >= $target) {
                 break;
             }
             if (in_array($name, $existing, true)) {
                 continue;
             }
-            $result = $this->engine->file('F-LEG-009', null, [
-                'legislature_id'  => (string) $legislature->id,
-                'jurisdiction_id' => (string) $legislature->jurisdiction_id,
-                'name'            => $name,
-                'purpose'         => "Standing committee on {$name}.",
-                'seats'           => $seats,
-                'system_act'      => true,
-            ]);
-            $minted[] = (string) ($result->recorded['committee_id'] ?? '');
+            $specs[] = [
+                'name'    => $name,
+                'purpose' => "Standing committee on {$name}.",
+                'seats'   => $seats,
+            ];
         }
 
-        return array_values(array_filter($minted));
+        if ($specs === []) {
+            return [];
+        }
+
+        return $this->committees->createManyAsSystemAct($legislature, $specs);
     }
 
     /** @return list<string> department ids minted by this unit */
