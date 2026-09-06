@@ -174,7 +174,16 @@ class ProvisionPumpCommand extends Command
                         OR wl.id IS NULL
                         OR (wl.pg_backend_pid IS NOT NULL
                             AND NOT EXISTS (SELECT 1 FROM pg_stat_activity a WHERE a.pid = wl.pg_backend_pid))
-                        OR (wl.pg_backend_pid IS NULL AND wl.last_seen_at < now() - interval '10 minutes'))
+                        -- Heartbeat staleness is the pid-reuse-proof death signal
+                        -- (operator find 2026-09-06, Govinna North): after a
+                        -- PostgreSQL restart the OS reassigns backend pids, so a
+                        -- dead lease's stored pg_backend_pid can match a NEW,
+                        -- unrelated backend and the pid-liveness check above
+                        -- reports it alive forever. A heartbeat older than 10
+                        -- minutes means the lane is dead regardless of pid (no
+                        -- live claim runs that long), so this applies to EVERY
+                        -- lease, not only the pid-null ones.
+                        OR wl.last_seen_at < now() - interval '10 minutes')
                  FOR UPDATE OF pl SKIP LOCKED
             )
             UPDATE provision_ledger pl
