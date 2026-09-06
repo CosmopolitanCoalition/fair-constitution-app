@@ -191,7 +191,8 @@ class SimStartCommand extends Command
                         (id, run_id, kind, status, jurisdiction_id, adm_level, unit_key,
                          position, est_cost, metrics, created_at, updated_at)
                      SELECT gen_random_uuid(), ?, 'cohort_scope', 'pending', j.id, j.adm_level, j.id::text,
-                            ?, COALESCE(j.population, 0), '{}', now(), now()
+                            ? + row_number() OVER (ORDER BY COALESCE(j.population, 0) DESC, j.id),
+                            COALESCE(j.population, 0), '{}', now(), now()
                        FROM (
                             SELECT id, adm_level, population
                               FROM jurisdictions
@@ -203,7 +204,7 @@ class SimStartCommand extends Command
                             SELECT 1 FROM sim_items s
                              WHERE s.run_id = ? AND s.kind = 'cohort_scope' AND s.unit_key = j.id::text
                       )",
-                    [$run->id, $offset, $admMax, $take, $offset, $run->id]
+                    [$run->id, $total, $admMax, $take, $offset, $run->id]
                 );
             } else {
                 $n = DB::affectingStatement(
@@ -212,7 +213,8 @@ class SimStartCommand extends Command
                         (id, run_id, kind, status, jurisdiction_id, adm_level, unit_key,
                          position, est_cost, metrics, created_at, updated_at)
                      SELECT gen_random_uuid(), ?, 'cohort_scope', 'pending', j.id, j.adm_level, j.id::text,
-                            ?, COALESCE(j.population, 0), '{}', now(), now()
+                            ? + row_number() OVER (ORDER BY COALESCE(j.population, 0) DESC, j.id),
+                            COALESCE(j.population, 0), '{}', now(), now()
                        FROM (
                             SELECT j2.id, j2.adm_level, j2.population
                               FROM jurisdictions j2
@@ -225,7 +227,7 @@ class SimStartCommand extends Command
                             SELECT 1 FROM sim_items s
                              WHERE s.run_id = ? AND s.kind = 'cohort_scope' AND s.unit_key = j.id::text
                       )",
-                    [$scopeRootId, $run->id, $offset, $admMax, $take, $offset, $run->id]
+                    [$scopeRootId, $run->id, $total, $admMax, $take, $offset, $run->id]
                 );
             }
 
