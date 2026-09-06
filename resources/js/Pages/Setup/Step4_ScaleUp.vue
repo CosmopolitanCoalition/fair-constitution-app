@@ -31,9 +31,22 @@ let timer = null
 const run    = computed(() => data.value?.run ?? null)
 const ledger = computed(() => data.value?.ledger ?? {})
 const world  = computed(() => data.value?.world ?? {})
+const delta  = computed(() => data.value?.world_delta ?? {})
 const stages = computed(() => data.value?.stages ?? [])
 const lanes  = computed(() => data.value?.lanes ?? [])
 const review = computed(() => data.value?.review ?? [])
+const totalLeg = computed(() => data.value?.total_legislatures ?? 0)
+const seeded   = computed(() => data.value?.seeded ?? 0)
+
+// The world card shows this run's deltas, not the pre-existing stub rows.
+const worldRows = computed(() => {
+    const w = world.value, d = delta.value
+    return [
+        ['Executives', 'executives'], ['Courts', 'judiciaries'], ['Election boards', 'election_boards'],
+        ['Public treasuries', 'treasuries'], ['Elections', 'elections'], ['Committees', 'committees'],
+        ['Departments', 'departments'], ['Squares & halls', 'social_spaces'],
+    ].map(([label, key]) => ({ label, cur: w[key] || 0, add: d[key] || 0 }))
+})
 
 const runLive   = computed(() => run.value && ['queued', 'running'].includes(run.value.status))
 const runHalted = computed(() => run.value && run.value.status === 'halted')
@@ -163,7 +176,7 @@ onBeforeUnmount(() => { if (timer) clearInterval(timer) })
                         <span v-else>Run {{ run.id.slice(0, 8) }} · {{ run.status }}<span v-if="run.halt_requested && run.status !== 'halted'"> · halting</span></span>
                     </div>
                     <div class="text-gray-400 text-sm mt-1" v-if="run">
-                        <span v-if="!run.ledger_seeded">Seeding the ledger in chunks of 25,000…</span>
+                        <span v-if="!run.ledger_seeded">Building the work-list: {{ n(seeded) }} / {{ n(totalLeg) }} legislatures enrolled (resumable, top-down by layer)</span>
                         <span v-else>
                             shells {{ n(ledger.shells_done) }} · units done {{ n(ledger.units_done) }} ·
                             running {{ n((ledger.shells_running ?? 0) + (ledger.units_running ?? 0)) }} ·
@@ -211,17 +224,15 @@ onBeforeUnmount(() => { if (timer) clearInterval(timer) })
         <div v-if="error" class="bg-red-900/30 border border-red-800 rounded p-4 text-sm text-red-200 mb-6">{{ error }}</div>
         <div v-if="notice" class="bg-gray-800/60 border border-gray-700 rounded p-3 text-sm text-gray-200 mb-6">{{ notice }}</div>
 
-        <!-- World counts -->
+        <!-- World counts: current, with this run's additions -->
         <section class="bg-gray-900 border border-gray-800 rounded-lg p-5 mb-6">
-            <h2 class="text-white font-semibold mb-3">What exists now</h2>
+            <h2 class="text-white font-semibold mb-1">What exists now</h2>
+            <p class="text-gray-500 text-xs mb-3">Total rows, and <span class="text-emerald-400">+ what this run added</span>. Executives and courts include rows from earlier builds.</p>
             <div class="grid grid-cols-2 md:grid-cols-4 gap-x-6 gap-y-2 text-sm">
-                <div class="flex justify-between"><span class="text-gray-400">Executives</span><span class="text-gray-200 tabular-nums">{{ n(world.executives) }}</span></div>
-                <div class="flex justify-between"><span class="text-gray-400">Courts</span><span class="text-gray-200 tabular-nums">{{ n(world.judiciaries) }}</span></div>
-                <div class="flex justify-between"><span class="text-gray-400">Election boards</span><span class="text-gray-200 tabular-nums">{{ n(world.election_boards) }}</span></div>
-                <div class="flex justify-between"><span class="text-gray-400">Public treasuries</span><span class="text-gray-200 tabular-nums">{{ n(world.treasuries) }}</span></div>
-                <div class="flex justify-between"><span class="text-gray-400">Elections</span><span class="text-gray-200 tabular-nums">{{ n(world.elections) }}</span></div>
-                <div class="flex justify-between"><span class="text-gray-400">Committees</span><span class="text-gray-200 tabular-nums">{{ n(world.committees) }}</span></div>
-                <div class="flex justify-between"><span class="text-gray-400">Departments</span><span class="text-gray-200 tabular-nums">{{ n(world.departments) }}</span></div>
+                <div v-for="r in worldRows" :key="r.label" class="flex justify-between">
+                    <span class="text-gray-400">{{ r.label }}</span>
+                    <span class="text-gray-200 tabular-nums">{{ n(r.cur) }}<span v-if="r.add" class="text-emerald-400 ml-1">+{{ n(r.add) }}</span></span>
+                </div>
             </div>
         </section>
 

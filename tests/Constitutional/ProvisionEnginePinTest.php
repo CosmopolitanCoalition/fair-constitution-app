@@ -41,6 +41,17 @@ class ProvisionEnginePinTest extends TestCase
             $this->markTestSkipped('provision_ledger not migrated on this box');
         }
 
+        // LIVE-BOX GUARD (mirrors AutoscalePinTest): this pin parks the pending
+        // pile to assert claim order, which deadlocks against a live run's
+        // lanes. Skip while a run is active; it runs clean on CI and a fresh box.
+        $liveRun = ProvisionRun::query()
+            ->whereIn('status', ['queued', 'running', 'halted'])
+            ->exists();
+        if ($liveRun) {
+            DB::setDefaultConnection($original);
+            $this->markTestSkipped('a Step 4 run is live on this box — the claim-order pin needs a quiet ledger');
+        }
+
         $conn->beginTransaction();
         try {
             // A clean synthetic pile: the live rows are parked out of reach.

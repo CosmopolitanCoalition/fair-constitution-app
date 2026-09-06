@@ -28,7 +28,7 @@ class ProvisionPumpCommand extends Command
     protected $description = 'Advance the live Step 4 run: halt/resume, ledger seeding, reclaims, lane seeding, counters, done flip';
 
     /** Chunks of the ledger materialized per tick (25k rows each). */
-    private const SEED_CHUNKS_PER_TICK = 8;
+    private const SEED_CHUNKS_PER_TICK = 12;
 
     public function handle(ProvisionRunControl $control): int
     {
@@ -56,27 +56,22 @@ class ProvisionPumpCommand extends Command
             $run->forceFill(['status' => ProvisionRun::STATUS_RUNNING, 'started_at' => $run->started_at ?? now(), 'updated_at' => now()])->save();
         }
         Cache::forget('provision.halt_requested');
+        $control->captureWorldBaseline($run);
 
-        // ── The ledger (chunked, latched once nothing is missing) ──────────
+        // ── The ledger (chunked, RESUMABLE from the cursor, latched on complete) ──
         if ($run->ledger_seeded_at === null) {
-            $inserted = $control->materializeLedger($run, self::SEED_CHUNKS_PER_TICK);
-            $missing = DB::table('legislatures as l')
-                ->whereNull('l.deleted_at')
-                ->whereNotExists(function ($q) {
-                    $q->selectRaw('1')->from('provision_ledger as pl')->whereColumn('pl.legislature_id', 'l.id');
-                })
-                ->exists();
-            if (! $missing) {
+            $seed = $control->materializeLedger($run, self::SEED_CHUNKS_PER_TICK);
+            if ($seed['complete']) {
                 $control->foundMoneyPlane();
                 // The claim plans read the ledger's statistics (the ETL rule:
                 // analyze before the dependent pass).
                 DB::statement('ANALYZE provision_ledger');
                 $run->forceFill(['ledger_seeded_at' => now(), 'updated_at' => now()])->save();
-                Log::info('Step 4 ledger materialized', ['run_id' => (string) $run->id, 'inserted_this_tick' => $inserted]);
+                Log::info('Step 4 ledger materialized', ['run_id' => (string) $run->id, 'seeded_total' => (int) DB::table('provision_ledger')->count()]);
             } else {
                 $control->refreshCounters($run);
 
-                return self::SUCCESS; // next tick continues the seeding
+                return self::SUCCESS; // next tick resumes the seeding from the cursor
             }
         }
 
@@ -104,7 +99,7 @@ class ProvisionPumpCommand extends Command
 
         // ── Lane seeding: keep the derived pool topped up (two-ended) ──────
         if (! $run->isPaused() && ProvisionClaims::claimableWork()) {
-            $target       = HostCapacity::autoscaleWorkers();
+            $target       = HostCapacity::provisionWorkers();
             $targetBottom = intdiv($target, 2);
             $targetTop    = $target - $targetBottom;
             $fresh = DB::table('provision_worker_leases')
@@ -130,7 +125,7 @@ class ProvisionPumpCommand extends Command
                 'finished_at' => now(),
                 'baseline'    => ['elapsed_seconds' => $elapsed, 'units_done' => (int) $counts->units_done,
                                   'review' => (int) $counts->review_count, 'skipped' => (int) $counts->skipped,
-                                  'lanes' => HostCapacity::autoscaleWorkers()],
+                                  'lanes' => HostCapacity::provisionWorkers()],
                 'updated_at'  => now(),
             ])->save();
 

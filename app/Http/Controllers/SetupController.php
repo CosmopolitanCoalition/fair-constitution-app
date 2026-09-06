@@ -3769,20 +3769,19 @@ class SetupController extends Controller
         ")->first();
         $ledger = array_map('intval', (array) $ledger);
         $work   = max(0, $ledger['total'] - $ledger['skipped']);
+        $totalLegislatures = (int) DB::scalar('SELECT count(*) FROM legislatures WHERE deleted_at IS NULL');
 
-        $world = Cache::remember('setup.step4.world_counts', 10, function () {
-            $c = fn (string $sql): int => (int) DB::scalar($sql);
+        $world = Cache::remember('setup.step4.world_counts', 10, fn () => $control->worldCounts());
 
-            return [
-                'executives'      => $c('SELECT count(*) FROM executives WHERE deleted_at IS NULL'),
-                'judiciaries'     => $c('SELECT count(*) FROM judiciaries WHERE deleted_at IS NULL'),
-                'election_boards' => $c("SELECT count(*) FROM election_boards WHERE deleted_at IS NULL AND status = 'active'"),
-                'treasuries'      => $c("SELECT count(*) FROM treasury_accounts WHERE deleted_at IS NULL AND owner_type = 'jurisdictions'"),
-                'elections'       => $c('SELECT count(*) FROM elections'),
-                'committees'      => $c('SELECT count(*) FROM committees WHERE deleted_at IS NULL'),
-                'departments'     => $c('SELECT count(*) FROM departments WHERE deleted_at IS NULL'),
-            ];
-        });
+        // THIS RUN'S DELTAS (dry-run fix 2026-09-06): the shell tables carry
+        // pre-existing stub rows, so the raw counts read as progress that this
+        // run did not make. The baseline captured at run start turns them into
+        // "+ created this run".
+        $baseline = is_array($run?->world_baseline) ? $run->world_baseline : [];
+        $delta = [];
+        foreach ($world as $k => $v) {
+            $delta[$k] = max(0, (int) $v - (int) ($baseline[$k] ?? 0));
+        }
 
         $elapsed = $run?->started_at !== null ? max(0, (int) now()->diffInSeconds($run->started_at, true)) : null;
         $eta = null;
@@ -3801,6 +3800,10 @@ class SetupController extends Controller
         }
 
         $stages = [
+            ['kind' => 'seeding', 'label' => 'Building the work-list', 'phase' => 'seed',
+             'total' => $totalLegislatures, 'done' => $ledger['total'],
+             'is_current' => $run !== null && $run->ledger_seeded_at === null,
+             'note' => 'One ledger row per legislature (its seats, layer and cost). Resumable, chunked, top-down by layer.'],
             ['kind' => 'shells', 'label' => 'Institution shells', 'phase' => 'shells',
              'total' => $work, 'done' => $ledger['shells_done'], 'running' => $ledger['shells_running'],
              'is_current' => $ledger['shells_pending'] + $ledger['shells_running'] > 0,
@@ -3855,10 +3858,13 @@ class SetupController extends Controller
                 'rolled_back_at' => $run->rolled_back_at?->toIso8601String(),
                 'baseline'       => $run->baseline,
                 'lanes'          => count($lanes),
-                'pool'           => \App\Support\HostCapacity::autoscaleWorkers(),
+                'pool'           => \App\Support\HostCapacity::provisionWorkers(),
             ],
             'ledger'  => $ledger,
             'world'   => $world,
+            'world_delta' => $delta,
+            'total_legislatures' => $totalLegislatures,
+            'seeded' => $ledger['total'],
             'stages'  => $stages,
             'lanes'   => $lanes,
             'review'  => $review,

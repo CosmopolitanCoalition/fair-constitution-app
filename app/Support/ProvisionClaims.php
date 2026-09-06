@@ -25,7 +25,10 @@ use Illuminate\Support\Facades\DB;
  */
 final class ProvisionClaims
 {
-    public const SHELL_BATCH = 5000;
+    // 2,000, not 5,000 (dry-run fix 2026-09-06): a smaller batch holds index
+    // and buffer locks for a shorter time, so concurrent lanes contend less
+    // and each claim turns over fast enough to keep the bars moving.
+    public const SHELL_BATCH = 2000;
 
     public const LANE_TOPDOWN  = 'topdown';
     public const LANE_BOTTOMUP = 'bottomup';
@@ -61,9 +64,16 @@ final class ProvisionClaims
 
     private static function order(string $lane): string
     {
+        // THE LAYER BLOCK (fix 3, 2026-09-06): adm_level is the block, top-down
+        // like the districting block order (planet, then countries, down to
+        // neighborhoods). Within a layer the pile drains TWO-ENDED by est_cost:
+        // a topdown lane takes the biggest chamber of the highest layer, a
+        // bottomup lane the smallest chamber of the lowest layer, meeting in the
+        // middle. Rows seeded before adm_level existed sort at the near end and
+        // still drain by cost.
         return $lane === self::LANE_BOTTOMUP
-            ? 'est_cost ASC, legislature_id ASC'
-            : 'est_cost DESC, legislature_id DESC';
+            ? 'adm_level DESC NULLS LAST, est_cost ASC, legislature_id DESC'
+            : 'adm_level ASC NULLS FIRST, est_cost DESC, legislature_id ASC';
     }
 
     private static function claimShellBatch(string $token, string $lane): ?array

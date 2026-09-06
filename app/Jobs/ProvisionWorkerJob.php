@@ -38,6 +38,14 @@ class ProvisionWorkerJob implements ShouldQueue
 
     public int $tries = 1;
 
+    /**
+     * Recycle the lane (exit; the pump dispatches a fresh process) at 256 MB,
+     * well below the 480 MB districting bound and the PHP limit, so a single
+     * big chamber's unit has room to allocate its hundreds of models without
+     * hitting the fatal. A fresh process reclaims everything.
+     */
+    private const LANE_RECYCLE_BYTES = 256 * 1048576;
+
     public function __construct(private readonly string $runId, private readonly string $lane = ProvisionClaims::LANE_TOPDOWN)
     {
         $this->onQueue('autoscale');
@@ -58,6 +66,17 @@ class ProvisionWorkerJob implements ShouldQueue
             VALUES (?::uuid, ?::uuid, ?, pg_backend_pid(), now(), now())
         ', [$token, $this->runId, $this->lane]);
 
+        // THE BULK-LOAD COMMIT LEVER (dry-run fix 2026-09-06): a unit files its
+        // election, committees and departments as separate audited
+        // transactions, each fsync-committed. On a slow disk that fsync, times
+        // the audit chain's one global appender, capped the unit phase at ~2/s.
+        // Provisioning is idempotent and resumable, so a crash that loses the
+        // last few un-flushed commits costs only a re-run of those units on the
+        // pump's reclaim — never corruption. synchronous_commit off drops the
+        // per-commit fsync; the WAL still flushes within a second. Reset in the
+        // finally so a later districting job on this worker keeps full durability.
+        DB::statement('SET synchronous_commit = off');
+
         try {
             while (true) {
                 if (Cache::get('provision.halt_requested') || $this->haltRequested()) {
@@ -66,7 +85,14 @@ class ProvisionWorkerJob implements ShouldQueue
                 if (microtime(true) - $started > self::CLAIM_BUDGET_SECONDS) {
                     break;
                 }
-                if (memory_get_usage(true) > AutoscaleWorkerJob::MEMORY_RECYCLE_BYTES) {
+                // A PROVISION LANE RECYCLES EARLY (dry-run fix 2026-09-06): a
+                // big chamber's unit files hundreds of races, committees and
+                // departments in one iteration and can allocate a few hundred
+                // MB on top of the baseline. The between-unit check must leave
+                // that much headroom under the PHP limit, so a lane exits (a
+                // fresh process reclaims all of it) well before a big unit can
+                // push it over. gc_collect_cycles below keeps the baseline low.
+                if (memory_get_usage(true) > self::LANE_RECYCLE_BYTES) {
                     break;
                 }
 
@@ -99,9 +125,28 @@ class ProvisionWorkerJob implements ShouldQueue
                     'claim_type' => null, 'claim_label' => null, 'claim_started_at' => null,
                     'current_legislature_id' => null,
                 ], bumpClaims: true);
+
+                // Reclaim the cyclic references a unit's Eloquent models leave,
+                // so the baseline stays low between claims and one big unit
+                // never starts from a high-water mark.
+                gc_collect_cycles();
             }
         } finally {
+            // Restore full durability for whatever this worker runs next.
+            try {
+                DB::statement('SET synchronous_commit = on');
+            } catch (\Throwable) {
+                // A dead connection resets to the default on its own.
+            }
             DB::table('provision_worker_leases')->where('id', $token)->delete();
+        }
+
+        // SELF-RESPAWN (the pull-engine pattern): a lane that exited on its
+        // budget or the memory recycle dispatches its own replacement so the
+        // pool stays full without waiting for the next pump minute. Not after a
+        // halt, and only while claimable work remains — the pump owns the tail.
+        if (! Cache::get('provision.halt_requested') && ! $this->haltRequested() && ProvisionClaims::claimableWork()) {
+            self::dispatch($this->runId, $this->lane);
         }
     }
 

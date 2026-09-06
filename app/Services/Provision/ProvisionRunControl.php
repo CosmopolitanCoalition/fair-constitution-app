@@ -63,6 +63,7 @@ class ProvisionRunControl
         }
 
         $run = ProvisionRun::create(['status' => ProvisionRun::STATUS_QUEUED]);
+        $this->captureWorldBaseline($run);
 
         $this->audit->append(
             module: 'jurisdictions',
@@ -75,22 +76,28 @@ class ProvisionRunControl
     }
 
     /**
-     * Materialize the ledger: one row per live legislature, in keyset chunks
-     * (resumable — ON CONFLICT DO NOTHING). est_cost = seats × 10 + D(P), the
-     * unit's cost proxy. Uninhabited childless places (the zero rule under
-     * real binding) file as skipped. Returns rows inserted this call.
+     * Materialize the ledger: one row per live legislature, in keyset chunks.
+     * RESUMABLE (dry-run fix 2026-09-06): the walk resumes from
+     * provision_runs.ledger_cursor, a high-water mark over legislature id. Every
+     * scanned row is inserted or conflicts, so "all ids <= cursor are enrolled"
+     * holds and the walk never restarts or re-scans a seeded row. est_cost =
+     * seats x 10 + D(P); adm_level is the layer block; the zero rule files
+     * uninhabited childless places as skipped.
+     *
+     * @return array{inserted:int, complete:bool}
      */
-    public function materializeLedger(ProvisionRun $run, int $maxChunks = PHP_INT_MAX): int
+    public function materializeLedger(ProvisionRun $run, int $maxChunks = PHP_INT_MAX): array
     {
         $zeroRule = $this->provision->binding() !== InstitutionScaleService::BINDING_FREE;
         $skipPredicate = $zeroRule
             ? "(COALESCE(j.population, 0) < 1 AND NOT EXISTS (SELECT 1 FROM jurisdictions c WHERE c.parent_id = j.id AND c.deleted_at IS NULL))"
             : 'false';
 
-        $afterId  = '00000000-0000-0000-0000-000000000000';
+        $afterId  = (string) ($run->ledger_cursor ?? '00000000-0000-0000-0000-000000000000');
         $inserted = 0;
+        $complete = false;
         for ($chunk = 0; $chunk < $maxChunks; $chunk++) {
-            $rows = DB::select("
+            $row = DB::selectOne("
                 WITH page AS (
                     SELECT l.id, l.jurisdiction_id
                       FROM legislatures l
@@ -99,8 +106,8 @@ class ProvisionRunControl
                      LIMIT ?
                 ),
                 ins AS (
-                    INSERT INTO provision_ledger (legislature_id, jurisdiction_id, est_cost, stage, status, reason, updated_at)
-                    SELECT p.id, p.jurisdiction_id,
+                    INSERT INTO provision_ledger (legislature_id, jurisdiction_id, adm_level, est_cost, stage, status, reason, updated_at)
+                    SELECT p.id, p.jurisdiction_id, j.adm_level,
                            COALESCE(l.total_seats, 0) * 10
                              + CASE WHEN COALESCE(j.population, 0) < 1 THEN 0
                                     ELSE GREATEST(3, LEAST(30, ROUND(-7.8 + 1.67 * LN(j.population::numeric))::int)) END,
@@ -118,19 +125,52 @@ class ProvisionRunControl
                        (SELECT count(*) FROM ins) AS inserted,
                        (SELECT id FROM page ORDER BY id DESC LIMIT 1) AS last_id
             ", [$afterId, self::LEDGER_CHUNK]);
-            $r = $rows[0] ?? null;
-            $scanned = (int) ($r->scanned ?? 0);
+            $scanned = (int) ($row->scanned ?? 0);
             if ($scanned === 0) {
+                $complete = true;
                 break;
             }
-            $inserted += (int) ($r->inserted ?? 0);
-            $afterId = (string) $r->last_id;
+            $inserted += (int) ($row->inserted ?? 0);
+            $afterId = (string) $row->last_id;
+            // Persist the cursor each chunk — resumable at chunk granularity.
+            $run->forceFill(['ledger_cursor' => $afterId, 'updated_at' => now()])->save();
             if ($scanned < self::LEDGER_CHUNK) {
+                $complete = true;
                 break;
             }
         }
 
-        return $inserted;
+        return ['inserted' => $inserted, 'complete' => $complete];
+    }
+
+    /**
+     * The institution counts, for the world-baseline snapshot and the deltas.
+     *
+     * @return array<string,int>
+     */
+    public function worldCounts(): array
+    {
+        $c = fn (string $sql): int => (int) DB::scalar($sql);
+
+        return [
+            'executives'      => $c('SELECT count(*) FROM executives WHERE deleted_at IS NULL'),
+            'judiciaries'     => $c('SELECT count(*) FROM judiciaries WHERE deleted_at IS NULL'),
+            'election_boards' => $c("SELECT count(*) FROM election_boards WHERE deleted_at IS NULL AND status = 'active'"),
+            'treasuries'      => $c("SELECT count(*) FROM treasury_accounts WHERE deleted_at IS NULL AND owner_type = 'jurisdictions'"),
+            'elections'       => $c('SELECT count(*) FROM elections'),
+            'committees'      => $c('SELECT count(*) FROM committees WHERE deleted_at IS NULL'),
+            'departments'     => $c('SELECT count(*) FROM departments WHERE deleted_at IS NULL'),
+            'social_spaces'   => $c("SELECT count(*) FROM social_spaces WHERE deleted_at IS NULL AND is_private = false"),
+        ];
+    }
+
+    /** Capture the world baseline once per run, so the page shows this run's deltas. */
+    public function captureWorldBaseline(ProvisionRun $run): void
+    {
+        if ($run->world_baseline !== null) {
+            return;
+        }
+        $run->forceFill(['world_baseline' => $this->worldCounts(), 'updated_at' => now()])->save();
     }
 
     /** @return array{ok:bool, error:?string} */
@@ -157,6 +197,17 @@ class ProvisionRunControl
         }
 
         Cache::forget('provision.halt_requested');
+
+        // RECOVER AN IN-FLIGHT SEED (dry-run fix 2026-09-06): a run seeded by the
+        // old restart-from-zero materializer holds a contiguous id prefix but no
+        // cursor. Resume past the prefix instead of re-scanning it.
+        if ($run->ledger_seeded_at === null && $run->ledger_cursor === null) {
+            $maxSeeded = DB::table('provision_ledger')->orderByDesc('legislature_id')->value('legislature_id');
+            if ($maxSeeded !== null) {
+                $run->forceFill(['ledger_cursor' => (string) $maxSeeded, 'updated_at' => now()])->save();
+            }
+        }
+        $this->captureWorldBaseline($run);
 
         if ($requeueReview) {
             DB::update("

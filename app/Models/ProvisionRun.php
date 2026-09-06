@@ -36,6 +36,7 @@ class ProvisionRun extends Model
         'units_done'        => 'integer',
         'review_count'      => 'integer',
         'baseline'          => 'array',
+        'world_baseline'    => 'array',
     ];
 
     public function haltRequested(): bool

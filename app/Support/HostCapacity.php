@@ -80,6 +80,26 @@ class HostCapacity
     }
 
     /**
+     * THE PROVISION POOL (dry-run fix 2026-09-06). Provisioning lanes are
+     * WRITE and buffer-cache bound, not compute bound: they run fast
+     * statements that do not wait on postgres, so the wait-aware compute count
+     * (autoscaleWorkers) over-subscribes a small box's index and shared-buffer
+     * budget (observed live: 13 lanes' shell batches stretched from under a
+     * second to over two minutes each, one lane blocked on LWLock
+     * BufferMapping). Half the compute pool, floored at 2 (a Pi), so batches
+     * turn over fast and progress is visible. CGA_PROVISION_WORKERS overrides.
+     */
+    public static function provisionWorkers(): int
+    {
+        $override = env('CGA_PROVISION_WORKERS');
+        if ($override !== null && (int) $override > 0) {
+            return (int) $override;
+        }
+
+        return max(2, (int) ceil(self::autoscaleWorkers() / 2));
+    }
+
+    /**
      * The Horizon container's memory cap in MB from the budget ledger
      * (MEM_HORIZON, written by get-started as "NNNm" or "NNg"); 0 when unset.
      */
