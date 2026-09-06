@@ -40,7 +40,7 @@ final class ElectionStage
     /**
      * @return array{election_id: ?string, races: int, candidacies: int, blocked_kinds: list<string>}
      */
-    public static function run(string $jurisdictionId, ?string $runId, int $version): array
+    public static function run(string $jurisdictionId, ?string $runId, int $version, ?\Closure $beat = null): array
     {
         $legislature = Legislature::query()
             ->where('jurisdiction_id', $jurisdictionId)
@@ -231,6 +231,7 @@ final class ElectionStage
 
         // Bounded chunks, each its own committed statement (THE ETL RULE).
         foreach (array_chunk($rows, 500) as $chunk) {
+            $beat && $beat();
             DB::table('candidacies')->insert($chunk);
         }
 

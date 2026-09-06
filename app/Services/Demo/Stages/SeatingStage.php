@@ -39,7 +39,7 @@ final class SeatingStage
     /**
      * @return array{certified: bool, seated: int, skipped: ?string}
      */
-    public static function run(string $electionId, ?string $runId, int $version): array
+    public static function run(string $electionId, ?string $runId, int $version, ?\Closure $beat = null): array
     {
         $election = Election::query()->find($electionId);
 
@@ -120,6 +120,7 @@ final class SeatingStage
         $guard = 0;
 
         while ($election->status !== Election::STATUS_TABULATING && $guard++ < 8) {
+            $beat && $beat();
             $election = match ($election->status) {
                 Election::STATUS_SCHEDULED => $lifecycle->openApproval($election),
                 Election::STATUS_APPROVAL_OPEN => $lifecycle->applyFinalistCutoff($election),

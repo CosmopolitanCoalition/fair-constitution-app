@@ -91,7 +91,7 @@ final class GovernanceStage
      *     skipped: ?string
      * }
      */
-    public static function run(string $jurisdictionId, ?string $runId, int $version): array
+    public static function run(string $jurisdictionId, ?string $runId, int $version, ?\Closure $beat = null): array
     {
         $legislature = Legislature::query()
             ->where('jurisdiction_id', $jurisdictionId)
@@ -156,6 +156,7 @@ final class GovernanceStage
         $created = 0;
 
         foreach (self::COMMITTEE_NAMES as $name) {
+            $beat && $beat();
             if ($existing + $created >= $target) {
                 break;
             }

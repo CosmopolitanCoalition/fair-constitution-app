@@ -79,7 +79,7 @@ final class CivicsStage
      *     skipped: ?string
      * }
      */
-    public static function run(string $jurisdictionId, ?string $runId, int $version): array
+    public static function run(string $jurisdictionId, ?string $runId, int $version, ?\Closure $beat = null): array
     {
         $j = DB::table('jurisdictions')
             ->where('id', $jurisdictionId)->whereNull('deleted_at')
@@ -178,6 +178,7 @@ final class CivicsStage
         $now = now();
         $rows = [];
         for ($i = $existing; $i < $existing + $need; $i++) {
+            $beat && $beat();
             $name = $nameFor($i);
             $rows[] = [
                 'id' => (string) Str::uuid(),

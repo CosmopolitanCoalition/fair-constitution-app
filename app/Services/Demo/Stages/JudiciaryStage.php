@@ -57,7 +57,7 @@ final class JudiciaryStage
      *     status:?string, skipped:?string
      * }
      */
-    public static function run(string $jurisdictionId, ?string $runId, int $version): array
+    public static function run(string $jurisdictionId, ?string $runId, int $version, ?\Closure $beat = null): array
     {
         $legislature = Legislature::query()
             ->where('jurisdiction_id', $jurisdictionId)
@@ -159,6 +159,7 @@ final class JudiciaryStage
 
         $deferredSeats = 0;
         foreach ($vacant as $seat) {
+            $beat && $beat();
             // The nominee pool: a constituent-nominated seat draws from ITS
             // constituent's residents (Art. IV §2 — each nominates its own);
             // a committee-nominated seat (leaf court) draws from the

@@ -60,7 +60,7 @@ final class CountingStage
      *
      * @return array{races: int, seats: int, ballots: int, skipped: int}
      */
-    public static function run(string $electionId, ?string $runId, int $version): array
+    public static function run(string $electionId, ?string $runId, int $version, ?\Closure $beat = null): array
     {
         $recorder = app(TabulationRecorder::class);
         $counter = new VoteCountingService;
@@ -77,6 +77,7 @@ final class CountingStage
         $skipped = 0;
 
         foreach ($races as $race) {
+            $beat && $beat();
             // Idempotent: a re-handed item must not count a race twice.
             $already = DB::table('tabulations')
                 ->where('race_id', $race->id)

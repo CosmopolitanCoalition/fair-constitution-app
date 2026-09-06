@@ -129,7 +129,7 @@ class SimWorkerJob implements ShouldQueue
                 ]);
 
                 try {
-                    $metrics = $this->execute($run, $item);
+                    $metrics = $this->execute($run, $item, $token);
                     $this->settle($item->id, SimItem::STATUS_DONE, $metrics);
                     $failures = 0;
                 } catch (\Throwable $e) {
@@ -169,10 +169,16 @@ class SimWorkerJob implements ShouldQueue
     }
 
     /** Dispatch one claimed unit to its stage. */
-    private function execute(SimRun $run, object $item): array
+    private function execute(SimRun $run, object $item, string $token): array
     {
         $options = $run->options ?? [];
         $version = (int) ($options['version'] ?? 1);
+
+        // HEARTBEAT (W7 item 1): a closure the stage calls at each chunk
+        // boundary so a long item keeps its lease fresh. Without it a worker
+        // busy longer than the pump's 2-minute live horizon looks dead and is
+        // double-dispatched. Mirrors ProvisionWorkerJob's $beat.
+        $beat = fn () => $this->touch($token);
 
         return match ($item->kind) {
             'cohort_scope' => CohortStage::run(
@@ -180,16 +186,19 @@ class SimWorkerJob implements ShouldQueue
                 (string) $run->id,
                 $version,
                 (int) ($options['turnout_pct'] ?? CohortStage::DEFAULT_TURNOUT_PCT),
+                $beat,
             ),
             'identity_batch' => IdentityStage::run(
                 (string) $item->jurisdiction_id,
                 (string) $run->id,
                 $version,
+                $beat,
             ),
             'election_scope' => ElectionStage::run(
                 (string) $item->jurisdiction_id,
                 (string) $run->id,
                 $version,
+                $beat,
             ),
             // Counting and seating carry an ELECTION, not a jurisdiction — the
             // election is the unit both the count batches over and
@@ -199,11 +208,13 @@ class SimWorkerJob implements ShouldQueue
                 (string) $item->race_id,
                 (string) $run->id,
                 $version,
+                $beat,
             ),
             'seat_scope' => SeatingStage::run(
                 (string) $item->race_id,
                 (string) $run->id,
                 $version,
+                $beat,
             ),
             // The growth dial matures the PLACE (committees → K, departments →
             // D), so it is jurisdiction-scoped like cohort/seating, not
@@ -213,6 +224,7 @@ class SimWorkerJob implements ShouldQueue
                 (string) $item->jurisdiction_id,
                 (string) $run->id,
                 $version,
+                $beat,
             ),
             // The bench (2026-08-08): F-LEG-017 creation + per-seat F-LEG-021
             // constituent nominations through the real forms — the sim's
@@ -222,6 +234,7 @@ class SimWorkerJob implements ShouldQueue
                 (string) $item->jurisdiction_id,
                 (string) $run->id,
                 $version,
+                $beat,
             ),
             // Census-flavored orgs + bills (2026-08-08, rubric B): real
             // per-capita rates, sampled rows, true counts in metrics.
@@ -229,11 +242,19 @@ class SimWorkerJob implements ShouldQueue
                 (string) $item->jurisdiction_id,
                 (string) $run->id,
                 $version,
+                $beat,
             ),
             // Stages land here as they are built; an unknown kind is a REVIEW
             // row naming itself rather than a crash.
             default => throw new \RuntimeException("No stage is wired for item kind '{$item->kind}'."),
         };
+    }
+
+    /** HEARTBEAT (W7 item 1): keep the lease fresh mid-item so a long claim is
+     * not mistaken for a dead worker. Mirrors ProvisionWorkerJob::touch. */
+    private function touch(string $token): void
+    {
+        DB::table('sim_worker_leases')->where('id', $token)->update(['last_seen_at' => now()]);
     }
 
     private function settle(string $itemId, string $status, array $metrics = [], ?string $reason = null): void

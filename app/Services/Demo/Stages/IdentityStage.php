@@ -59,7 +59,7 @@ final class IdentityStage
     /**
      * @return array{users: int, confirmations: int, reused: int}
      */
-    public static function run(string $jurisdictionId, ?string $runId, int $version): array
+    public static function run(string $jurisdictionId, ?string $runId, int $version, ?\Closure $beat = null): array
     {
         $cohort = DB::table('jurisdiction_cohorts')
             ->where('jurisdiction_id', $jurisdictionId)
@@ -152,6 +152,7 @@ final class IdentityStage
         // Bounded chunks, each its own committed statement (THE ETL RULE), so a
         // large roster is visible while it lands and resumable if it dies.
         foreach (array_chunk($users, 500) as $chunk) {
+            $beat && $beat();
             DB::table('users')->insert($chunk);
         }
 

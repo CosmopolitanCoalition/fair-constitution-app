@@ -34,7 +34,7 @@ final class CohortStage
     /**
      * @return array{cohort_id: string, electorate: int, archetypes: int}
      */
-    public static function run(string $jurisdictionId, ?string $runId, int $version, int $turnoutPct): array
+    public static function run(string $jurisdictionId, ?string $runId, int $version, int $turnoutPct, ?\Closure $beat = null): array
     {
         $j = DB::table('jurisdictions')
             ->select('id', 'name', 'adm_level', 'population', 'official_languages', 'timezone')
@@ -132,6 +132,7 @@ final class CohortStage
 
         $clusters = [];
         for ($i = 0; $i < $clusterCount; $i++) {
+            $beat && $beat();
             $clusters[] = ['weight' => $rng->between(10, 100)];
         }
 
