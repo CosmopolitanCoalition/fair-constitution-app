@@ -91,9 +91,10 @@ class EducationAnswerKeySecrecyTest extends TestCase
             // score, and explain keys — never the key (the §2 architectural
             // layer lives exactly here).
             $root.'/Services/Education/GradingService.php',
-            // The seeder WRITES the server catalog into the server table —
-            // config to DB, nothing client-ward.
-            $root.'/Console/Commands/EducationSeedCommand.php',
+            // The catalog service WRITES the server catalog into the server
+            // table — config to DB, nothing client-ward. education:seed and the
+            // sim's training phase both publish through it (single owner).
+            $root.'/Services/Education/EducationCatalogService.php',
         ];
 
         $iterator = new \RecursiveIteratorIterator(

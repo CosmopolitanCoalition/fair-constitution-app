@@ -2,10 +2,9 @@
 
 namespace App\Console\Commands;
 
+use App\Services\Education\EducationCatalogService;
 use App\Services\Education\SeatedMemberTrainingService;
 use Illuminate\Console\Command;
-use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Str;
 
 /**
  * education:seed — write the server-side content catalog
@@ -43,7 +42,7 @@ class EducationSeedCommand extends Command
 
     protected $description = 'Seed education tracks/modules/questions from the server-side catalog (ARMS the act-gate) and pre-train seated members';
 
-    public function handle(SeatedMemberTrainingService $pretrain): int
+    public function handle(SeatedMemberTrainingService $pretrain, EducationCatalogService $catalog): int
     {
         $content = config('cga.education.content', []);
 
@@ -59,73 +58,12 @@ class EducationSeedCommand extends Command
             return self::FAILURE;
         }
 
-        $tracks = 0;
-        $modules = 0;
-        $questions = 0;
-
-        foreach ($content as $trackKey => $track) {
-            $trackId = DB::table('education_tracks')->where('key', $trackKey)->whereNull('deleted_at')->value('id');
-
-            if ($trackId === null) {
-                $trackId = (string) Str::uuid();
-                DB::table('education_tracks')->insert([
-                    'id' => $trackId, 'key' => $trackKey, 'title' => $track['title'],
-                    'unit_ref' => $track['unit_ref'] ?? null, 'status' => 'live',
-                    'ordering' => $tracks, 'created_at' => now(), 'updated_at' => now(),
-                ]);
-            } else {
-                DB::table('education_tracks')->where('id', $trackId)
-                    ->update(['title' => $track['title'], 'unit_ref' => $track['unit_ref'] ?? null, 'updated_at' => now()]);
-            }
-            $tracks++;
-
-            foreach ($track['modules'] ?? [] as $mIndex => $module) {
-                $moduleId = DB::table('education_modules')
-                    ->where('track_id', $trackId)->where('key', $module['key'])->whereNull('deleted_at')->value('id');
-
-                $moduleRow = [
-                    'title' => $module['title'], 'surface_id' => $module['surface_id'] ?? null,
-                    'minutes' => $module['minutes'] ?? null, 'status' => 'live',
-                    'ordering' => $mIndex, 'updated_at' => now(),
-                ];
-
-                if ($moduleId === null) {
-                    $moduleId = (string) Str::uuid();
-                    DB::table('education_modules')->insert($moduleRow + [
-                        'id' => $moduleId, 'track_id' => $trackId, 'key' => $module['key'], 'created_at' => now(),
-                    ]);
-                } else {
-                    DB::table('education_modules')->where('id', $moduleId)->update($moduleRow);
-                }
-                $modules++;
-
-                foreach ($module['questions'] ?? [] as $qIndex => $q) {
-                    // The corpus weight rule: max(minutes/5, 3).
-                    $weight = max((int) floor(($module['minutes'] ?? 0) / 5), 3);
-
-                    $questionRow = [
-                        'prompt' => $q['prompt'],
-                        'choices' => json_encode($q['choices']),
-                        'correct_keys' => json_encode($q['correct']), // SERVER ONLY — never selected client-ward
-                        'weight' => $weight, 'ordering' => $qIndex, 'updated_at' => now(),
-                    ];
-
-                    $existing = DB::table('education_questions')
-                        ->where('module_id', $moduleId)->where('key', $q['key'])->whereNull('deleted_at')->value('id');
-
-                    if ($existing === null) {
-                        DB::table('education_questions')->insert($questionRow + [
-                            'id' => (string) Str::uuid(), 'module_id' => $moduleId, 'key' => $q['key'], 'created_at' => now(),
-                        ]);
-                    } else {
-                        DB::table('education_questions')->where('id', $existing)->update($questionRow);
-                    }
-                    $questions++;
-                }
-
-                $this->line("  {$trackKey} / {$module['key']} — seeded");
-            }
-        }
+        // Publish through the shared owner so the sim's training phase and this
+        // command cannot drift (ruling 10).
+        $counts = $catalog->publish();
+        $tracks = $counts['tracks'];
+        $modules = $counts['modules'];
+        $questions = $counts['questions'];
 
         $this->info("Seeded {$tracks} tracks, {$modules} modules, {$questions} questions. The act-gate is now ARMED for these tracks.");
 

@@ -326,6 +326,33 @@ class SimPumpCommand extends Command
                     )
                   LIMIT ".self::MINT_CHUNK,
 
+            // TRAINING (W7 item 7): one item per jurisdiction whose seating
+            // landed — DISTINCT ON so a two-chamber place trains once. Keyed on
+            // seat_scope (not civics) so every seated place is covered even
+            // where governance / judiciary / civics deferred; TrainingStage
+            // trains ALL of that jurisdiction's seated holder types.
+            'training' => "INSERT INTO sim_items
+                    (id, run_id, kind, status, jurisdiction_id, adm_level, unit_key,
+                     position, est_cost, metrics, created_at, updated_at)
+                 SELECT gen_random_uuid(), ?, 'training_scope', 'pending',
+                        j.jurisdiction_id, j.adm_level, j.jurisdiction_id::text,
+                        j.position, 0, '{}', now(), now()
+                   FROM (
+                       SELECT DISTINCT ON (e.jurisdiction_id)
+                              e.jurisdiction_id, s.adm_level, s.position
+                         FROM elections e
+                         JOIN sim_items s
+                           ON s.run_id = ? AND s.kind = 'seat_scope'
+                          AND s.unit_key = e.id::text AND s.status = 'done'
+                        ORDER BY e.jurisdiction_id
+                   ) j
+                  WHERE NOT EXISTS (
+                        SELECT 1 FROM sim_items x
+                         WHERE x.run_id = ? AND x.kind = 'training_scope'
+                           AND x.unit_key = j.jurisdiction_id::text
+                    )
+                  LIMIT ".self::MINT_CHUNK,
+
             default => null,
         };
 
@@ -447,6 +474,15 @@ class SimPumpCommand extends Command
         $timings[$next]['started_at'] = now()->toIso8601String();
 
         $run->forceFill(['phase' => $next, 'phase_timings' => $timings])->save();
+
+        // ARM THE GATE ONCE, at the training transition (W7 item 7). Publishing
+        // the catalog makes the tracks live; doing it HERE, after the content
+        // stages, means their gated forms (F-LEG-*, judiciary) were never
+        // blocked. Idempotent — a resumed run re-publishing revises in place.
+        if ($next === 'training') {
+            $counts = app(\App\Services\Education\EducationCatalogService::class)->publish();
+            $this->info("education catalog published: {$counts['tracks']} tracks, {$counts['modules']} modules (gate armed)");
+        }
 
         // Mint the incoming phase's worklist HERE, at the transition, because
         // most stages can only be sized once the previous one has landed: an

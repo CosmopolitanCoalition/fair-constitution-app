@@ -48,6 +48,7 @@ class SimSnapshot
         'governance_scope' => 'Growing chambers',
         'judiciary_scope' => 'Seating courts',
         'civics_scope' => 'Modelling civic life',
+        'training_scope' => 'Training the fleet',
     ];
 
     /** The one unfinished run, else the newest — the same one the pump acts on. */

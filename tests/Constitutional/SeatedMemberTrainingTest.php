@@ -112,6 +112,40 @@ class SeatedMemberTrainingTest extends TestCase
         });
     }
 
+    /**
+     * PER-JURISDICTION arming (W7 item 7 — the sim's TrainingStage door). The
+     * sim trains one jurisdiction at a time so the pass is bounded and
+     * resumable; a scoped pass must train ITS jurisdiction's holders and leave
+     * every other jurisdiction untouched.
+     */
+    public function test_per_jurisdiction_arming_trains_only_that_jurisdictions_holders(): void
+    {
+        $this->onLivePg(function () {
+            $service = app(SeatedMemberTrainingService::class);
+            $gate = app(TrainingGateService::class);
+
+            [$jid, , $member] = $this->seatedMember();
+            [, , $other] = $this->seatedMember(); // a second jurisdiction's seated member
+            $this->publishLegislatureTraining();
+
+            // The scoped enumeration sees only this jurisdiction's holder.
+            $ids = array_column($service->seatedHolderTracksForJurisdiction($jid), 'user_id');
+            $this->assertContains((string) $member->id, $ids);
+            $this->assertNotContains((string) $other->id, $ids, 'a scoped pass sees only its own jurisdiction');
+
+            // Arm just this jurisdiction: its member trains; the other stays untrained.
+            $tally = $service->armForJurisdiction($jid);
+            $this->assertGreaterThanOrEqual(1, $tally['filed']);
+            $this->assertTrue($gate->hasCompleted($member, 'legislature'));
+            $this->assertFalse($gate->hasCompleted($other, 'legislature'), 'the other jurisdiction was untouched');
+
+            // Idempotent: a second scoped pass files nothing new.
+            $again = $service->armForJurisdiction($jid);
+            $this->assertSame(0, $again['filed']);
+            $this->assertGreaterThanOrEqual(1, $again['already']);
+        });
+    }
+
     // ── fixtures (the shape of TrainingGateEndToEndTest) ────────────────────
 
     /** @return array{0: string, 1: string, 2: User} [jurisdictionId, legislatureId, member] */

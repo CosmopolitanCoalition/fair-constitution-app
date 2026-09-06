@@ -48,6 +48,7 @@ class SimRun extends Model
         'governance',
         'judiciary',
         'civics',
+        'training',
         'verifying',
         'done',
     ];
@@ -94,6 +95,12 @@ class SimRun extends Model
         // counts in metrics. One item per jurisdiction whose bench item
         // settled.
         'civics' => ['civics_scope'],
+        // TRAINING (W7 item 7, ruling edu-arming A). AFTER the content stages so
+        // arming the training gate never blocks their gated forms. The catalog
+        // is published once at the transition (SimPumpCommand::advancePhase);
+        // TrainingStage then pre-trains each jurisdiction's seated holders. One
+        // item per jurisdiction whose seating landed — bounded, resumable.
+        'training' => ['training_scope'],
         // Empty slot (W7 item 3): a real acceptance scan is future work. No kind
         // declared, so advancePhase advances straight through to done.
         'verifying' => [],

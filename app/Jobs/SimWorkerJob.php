@@ -9,6 +9,7 @@ use App\Services\Demo\Stages\CountingStage;
 use App\Services\Demo\Stages\ElectionStage;
 use App\Services\Demo\Stages\GovernanceStage;
 use App\Services\Demo\Stages\SeatingStage;
+use App\Services\Demo\Stages\TrainingStage;
 use App\Services\Demo\Stages\IdentityStage;
 use App\Support\SimClaims;
 use App\Support\SimTimer;
@@ -263,6 +264,15 @@ class SimWorkerJob implements ShouldQueue
             // Census-flavored orgs + bills (2026-08-08, rubric B): real
             // per-capita rates, sampled rows, true counts in metrics.
             'civics_scope' => \App\Services\Demo\Stages\CivicsStage::run(
+                (string) $item->jurisdiction_id,
+                (string) $run->id,
+                $version,
+                $beat,
+            ),
+            // Pre-train the jurisdiction's seated holders so the walk shows a
+            // trained fleet (W7 item 7). The catalog was armed at the phase
+            // transition; this files F-EDU-001 per holder, idempotent.
+            'training_scope' => TrainingStage::run(
                 (string) $item->jurisdiction_id,
                 (string) $run->id,
                 $version,

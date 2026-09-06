@@ -59,6 +59,7 @@ const TIMING_LABELS = {
     'stage.governance_scope': 'Governance (committees, departments)',
     'stage.judiciary_scope': 'Judiciary (courts, nominations)',
     'stage.civics_scope': 'Civics (orgs, bills)',
+    'stage.training_scope': 'Training (pre-train the fleet)',
 }
 function timingLabel(p) { return TIMING_LABELS[p] ?? p }
 function timingTone(p) {
@@ -119,6 +120,7 @@ const KIND_LABELS = {
     governance_scope: 'Growing chambers',
     judiciary_scope: 'Seating courts',
     civics_scope: 'Modelling civic life',
+    training_scope: 'Training the fleet',
 }
 function kindLabel(k) { return KIND_LABELS[k] ?? (k || 'between claims') }
 function admLabel(a) {

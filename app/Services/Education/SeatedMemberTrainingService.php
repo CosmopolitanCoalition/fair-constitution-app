@@ -115,6 +115,71 @@ class SeatedMemberTrainingService
     }
 
     /**
+     * The seated holders of ONE jurisdiction, scoped to its own institutions.
+     * The sim trains per jurisdiction so the pass is naturally bounded (a
+     * chamber, a board, an executive, a bench, its advocates — tens of rows,
+     * never the planet's millions in memory: THE ETL RULE, chunked by scope).
+     *
+     * @return list<array{user_id: string, track: string}>
+     */
+    public function seatedHolderTracksForJurisdiction(string $jurisdictionId): array
+    {
+        $rows = [];
+
+        $push = static function (iterable $ids, string $track) use (&$rows): void {
+            foreach ($ids as $uid) {
+                $rows[] = ['user_id' => (string) $uid, 'track' => $track];
+            }
+        };
+
+        $push(DB::table('legislature_members as m')
+            ->join('legislatures as l', 'l.id', '=', 'm.legislature_id')
+            ->where('l.jurisdiction_id', $jurisdictionId)->whereNull('l.deleted_at')
+            ->whereIn('m.status', ['elected', 'seated'])->whereNull('m.deleted_at')
+            ->whereNotNull('m.user_id')->distinct()->pluck('m.user_id'), 'legislature');
+
+        $push(DB::table('election_board_members as m')
+            ->join('election_boards as b', 'b.id', '=', 'm.election_board_id')
+            ->where('b.jurisdiction_id', $jurisdictionId)
+            ->where('m.status', 'seated')->whereNull('m.deleted_at')->whereNotNull('m.user_id')
+            ->where('b.status', 'active')->whereNull('b.deleted_at')
+            ->distinct()->pluck('m.user_id'), 'election_board');
+
+        $push(DB::table('executive_members as em')
+            ->join('executives as e', 'e.id', '=', 'em.executive_id')
+            ->where('e.jurisdiction_id', $jurisdictionId)
+            ->where('em.role', 'principal')->where('em.status', 'seated')->whereNull('em.deleted_at')
+            ->whereNotNull('em.user_id')
+            ->where('e.status', '!=', 'dissolved')->whereNull('e.deleted_at')
+            ->distinct()->pluck('em.user_id'), 'executive');
+
+        $push(DB::table('board_seats as s')
+            ->join('boards as b', 'b.id', '=', 's.board_id')
+            ->join('departments as d', 'd.id', '=', 'b.boardable_id')
+            ->where('d.jurisdiction_id', $jurisdictionId)
+            ->where('b.boardable_type', 'departments')
+            ->where('s.status', 'seated')->whereNull('s.deleted_at')->whereNotNull('s.holder_user_id')
+            ->where('b.status', '!=', 'dissolved')->whereNull('b.deleted_at')
+            ->distinct()->pluck('s.holder_user_id'), 'board_of_governors');
+
+        $push(DB::table('judicial_seats as s')
+            ->join('judiciaries as j', 'j.id', '=', 's.judiciary_id')
+            ->where('j.jurisdiction_id', $jurisdictionId)
+            ->where('s.status', 'seated')->whereNull('s.deleted_at')->whereNotNull('s.user_id')
+            ->where('j.status', '!=', 'dissolved')->whereNull('j.deleted_at')
+            ->distinct()->pluck('s.user_id'), 'judiciary');
+
+        $push(DB::table('advocates as a')
+            ->join('judiciaries as j', 'j.id', '=', 'a.judiciary_id')
+            ->where('j.jurisdiction_id', $jurisdictionId)
+            ->where('a.status', 'registered')->whereNull('a.deleted_at')->whereNotNull('a.user_id')
+            ->where('j.status', '!=', 'dissolved')->whereNull('j.deleted_at')
+            ->distinct()->pluck('a.user_id'), 'advocate');
+
+        return $rows;
+    }
+
+    /**
      * Pre-train every seated holder whose track is armed and not yet
      * completed. Returns the tally; emits per-chunk progress through $emit.
      *
@@ -122,6 +187,30 @@ class SeatedMemberTrainingService
      * @return array{holders:int,filed:int,already:int,unarmed:int,failed:int}
      */
     public function armSeatedMembers(?callable $emit = null): array
+    {
+        return $this->armHolderTracks($this->seatedHolderTracks(), $emit);
+    }
+
+    /**
+     * Pre-train the seated holders of ONE jurisdiction — the sim's per-scope
+     * door, bounded and idempotent (a re-run skips holders already trained).
+     *
+     * @return array{holders:int,filed:int,already:int,unarmed:int,failed:int}
+     */
+    public function armForJurisdiction(string $jurisdictionId, ?callable $emit = null, ?\Closure $beat = null): array
+    {
+        return $this->armHolderTracks($this->seatedHolderTracksForJurisdiction($jurisdictionId), $emit, $beat);
+    }
+
+    /**
+     * Arm a given holder set — the shared engine behind the global and the
+     * per-jurisdiction doors.
+     *
+     * @param  list<array{user_id:string,track:string}>  $holders
+     * @param  callable(string):void|null  $emit
+     * @return array{holders:int,filed:int,already:int,unarmed:int,failed:int}
+     */
+    private function armHolderTracks(array $holders, ?callable $emit = null, ?\Closure $beat = null): array
     {
         $emit ??= static fn (string $line) => null;
 
@@ -131,7 +220,8 @@ class SeatedMemberTrainingService
         $counts = ['holders' => 0, 'filed' => 0, 'already' => 0, 'unarmed' => 0, 'failed' => 0];
         $processed = 0;
 
-        foreach ($this->seatedHolderTracks() as $holder) {
+        foreach ($holders as $holder) {
+            $beat && $beat();
             $key = $holder['user_id'].'|'.$holder['track'];
 
             if (isset($seen[$key])) {
