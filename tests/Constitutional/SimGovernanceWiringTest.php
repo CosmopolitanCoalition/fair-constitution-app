@@ -76,12 +76,18 @@ class SimGovernanceWiringTest extends TestCase
         $training = array_search('training', $phases, true);
         $this->assertNotFalse($training, 'a training phase must exist');
         $this->assertSame($civics + 1, $training, 'training (pre-train the fleet) follows civics');
-        $this->assertSame($training + 1, $verifying, 'verifying (the acceptance scan) runs last, after the fleet is trained');
+        // Stipends (W7 item 8, the money plane): the civic stipend runs after the
+        // fleet is trained and before the acceptance scan.
+        $stipends = array_search('stipends', $phases, true);
+        $this->assertNotFalse($stipends, 'a stipends phase must exist');
+        $this->assertSame($training + 1, $stipends, 'stipends (the money plane) follows training');
+        $this->assertSame($stipends + 1, $verifying, 'verifying (the acceptance scan) runs last, after the money plane');
 
         $this->assertSame(['governance_scope'], SimRun::PHASE_KINDS['governance']);
         $this->assertSame(['judiciary_scope'], SimRun::PHASE_KINDS['judiciary']);
         $this->assertSame(['civics_scope'], SimRun::PHASE_KINDS['civics']);
         $this->assertSame(['training_scope'], SimRun::PHASE_KINDS['training']);
+        $this->assertSame(['stipend_scope'], SimRun::PHASE_KINDS['stipends']);
     }
 
     public function test_the_pump_mints_one_governance_item_per_seated_jurisdiction_and_is_idempotent(): void

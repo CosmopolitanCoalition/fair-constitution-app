@@ -353,6 +353,26 @@ class SimPumpCommand extends Command
                     )
                   LIMIT ".self::MINT_CHUNK,
 
+            // THE MONEY PLANE (W7 item 8): one stipend item per jurisdiction
+            // that minted residents — keyed on identity_batch (wallets were
+            // opened there), so every place with residents pays its civic
+            // stipend, whether or not its chamber seated.
+            'stipends' => "INSERT INTO sim_items
+                    (id, run_id, kind, status, jurisdiction_id, adm_level, unit_key,
+                     position, est_cost, metrics, created_at, updated_at)
+                 SELECT gen_random_uuid(), ?, 'stipend_scope', 'pending',
+                        s.jurisdiction_id, s.adm_level, s.jurisdiction_id::text,
+                        s.position, 0, '{}', now(), now()
+                   FROM sim_items s
+                  WHERE s.run_id = ? AND s.kind = 'identity_batch'
+                    AND s.status = 'done'
+                    AND NOT EXISTS (
+                        SELECT 1 FROM sim_items x
+                         WHERE x.run_id = ? AND x.kind = 'stipend_scope'
+                           AND x.unit_key = s.jurisdiction_id::text
+                    )
+                  LIMIT ".self::MINT_CHUNK,
+
             default => null,
         };
 

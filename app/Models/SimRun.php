@@ -49,6 +49,7 @@ class SimRun extends Model
         'judiciary',
         'civics',
         'training',
+        'stipends',
         'verifying',
         'done',
     ];
@@ -101,6 +102,11 @@ class SimRun extends Model
         // TrainingStage then pre-trains each jurisdiction's seated holders. One
         // item per jurisdiction whose seating landed — bounded, resumable.
         'training' => ['training_scope'],
+        // THE MONEY PLANE (W7 item 8). One stipend item per jurisdiction that
+        // has residents; StipendStage runs the real F-TRE-004 over that
+        // jurisdiction's roster — bounded per scope, so no planet-wide
+        // transaction. Wallets were opened in the identities phase.
+        'stipends' => ['stipend_scope'],
         // Empty slot (W7 item 3): a real acceptance scan is future work. No kind
         // declared, so advancePhase advances straight through to done.
         'verifying' => [],

@@ -60,6 +60,7 @@ const TIMING_LABELS = {
     'stage.judiciary_scope': 'Judiciary (courts, nominations)',
     'stage.civics_scope': 'Civics (orgs, bills)',
     'stage.training_scope': 'Training (pre-train the fleet)',
+    'stage.stipend_scope': 'Stipend (the money plane)',
 }
 function timingLabel(p) { return TIMING_LABELS[p] ?? p }
 function timingTone(p) {
@@ -121,6 +122,7 @@ const KIND_LABELS = {
     judiciary_scope: 'Seating courts',
     civics_scope: 'Modelling civic life',
     training_scope: 'Training the fleet',
+    stipend_scope: 'Paying the civic stipend',
 }
 function kindLabel(k) { return KIND_LABELS[k] ?? (k || 'between claims') }
 function admLabel(a) {

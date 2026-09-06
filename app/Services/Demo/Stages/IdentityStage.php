@@ -160,9 +160,23 @@ final class IdentityStage
             DB::table('residency_confirmations')->insert($chunk);
         }
 
+        // THE MONEY PLANE (W7 item 8): open a wallet for each new resident in
+        // the root currency, so a walker sees a funded person and the stipend
+        // phase has somewhere to credit. Idempotent per owner; bounded by the
+        // roster. Only in a SIM run ($runId present): the identity stage is also
+        // a fixture for the election/counting tests, which call it with a null
+        // run and must not acquire an economy side effect (define a currency,
+        // open wallets) they never asked for.
+        $wallets = 0;
+        if ($runId !== null) {
+            $wallets = app(\App\Services\Demo\SimEconomyService::class)
+                ->openWalletsFor(array_column($users, 'id'), $beat);
+        }
+
         return [
             'users' => count($users),
             'confirmations' => count($confirmations),
+            'wallets' => $wallets,
             'reused' => $existing,
         ];
     }

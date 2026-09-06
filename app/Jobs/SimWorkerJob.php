@@ -278,6 +278,14 @@ class SimWorkerJob implements ShouldQueue
                 $version,
                 $beat,
             ),
+            // The money plane (W7 item 8): the civic stipend for this
+            // jurisdiction's residents, through the real F-TRE-004.
+            'stipend_scope' => \App\Services\Demo\Stages\StipendStage::run(
+                (string) $item->jurisdiction_id,
+                (string) $run->id,
+                $version,
+                $beat,
+            ),
             // Stages land here as they are built; an unknown kind is a REVIEW
             // row naming itself rather than a crash.
             default => throw new \RuntimeException("No stage is wired for item kind '{$item->kind}'."),
