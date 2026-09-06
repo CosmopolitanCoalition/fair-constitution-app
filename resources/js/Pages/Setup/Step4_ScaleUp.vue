@@ -45,6 +45,10 @@ const totalLeg = computed(() => data.value?.total_legislatures ?? 0)
 const seeded   = computed(() => data.value?.seeded ?? 0)
 
 // ── Timing panel: where the time goes, and the gap between claims ────────────
+// HIDDEN on the surface (operator order 2026-09-06): an internal dev / perf
+// instrument, not something a setup operator needs. Backend still serves
+// `timings`; flip this flag to true to restore the panel.
+const SHOW_TIMINGS = false
 const timingMax = computed(() => Math.max(1, ...timings.value.map(t => t.total_s || 0)))
 const TIMING_LABELS = {
     'lane.between_claims': 'Between claims (idle + acquire)',
@@ -385,7 +389,7 @@ onBeforeUnmount(() => { if (timer) clearInterval(timer); if (clock) clearInterva
         </section>
 
         <!-- Timing: where the time goes, across all lanes -->
-        <section v-if="timings.length" class="bg-gray-900 border border-gray-800 rounded-lg p-5 mb-6">
+        <section v-if="SHOW_TIMINGS && timings.length" class="bg-gray-900 border border-gray-800 rounded-lg p-5 mb-6">
             <h2 class="text-white font-semibold mb-1">Timing
                 <span class="text-gray-500 font-normal text-sm">where the time goes · avg per part, total across all lanes</span>
             </h2>
