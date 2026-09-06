@@ -137,6 +137,18 @@ class ElectionLifecycleService implements ElectionSchedulingDelegate
     {
         $jurisdictionId = $legislature->jurisdiction_id;
 
+        // PREFETCH the settings this path resolves (performance 2026-09-06):
+        // one ancestor walk instead of one query per column. The subsequent
+        // votingMethodSnapshot / finalistMultiplier / approvalMinDays /
+        // rankedWindowDays reads become memo hits. Matters at Step 4 scale
+        // where every unit is a fresh jurisdiction the memo has never seen.
+        $this->settings->warm($jurisdictionId, [
+            'voting_method',
+            'finalist_multiplier',
+            'approval_min_days',
+            'ranked_window_days',
+        ]);
+
         return DB::transaction(function () use ($legislature, $timer, $dates, $jurisdictionId, $plan) {
             $election = Election::query()
                 ->where('legislature_id', $legislature->id)
