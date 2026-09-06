@@ -11,6 +11,7 @@ use App\Services\Demo\Stages\GovernanceStage;
 use App\Services\Demo\Stages\SeatingStage;
 use App\Services\Demo\Stages\IdentityStage;
 use App\Support\SimClaims;
+use App\Support\SimTimer;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
@@ -77,6 +78,8 @@ class SimWorkerJob implements ShouldQueue
         $token = (string) Str::uuid();
         $startedAt = microtime(true);
         $failures = 0;
+        $prevEnd = null;          // hrtime mark at the end of the last claim
+        $claimsSinceFlush = 0;    // flush the timer every ~25 claims
 
         DB::table('sim_worker_leases')->insert([
             'id' => $token,
@@ -115,7 +118,15 @@ class SimWorkerJob implements ShouldQueue
                     break;
                 }
 
+                // The gap between one claim's end and the next acquisition — a
+                // lane sitting idle is a lane not working (Step 4's lesson).
+                if ($prevEnd !== null) {
+                    SimTimer::record('lane.between_claims', (int) round((hrtime(true) - $prevEnd) / 1000));
+                }
+
+                SimTimer::open('lane.claim_next');
                 $item = SimClaims::next($run, $token);
+                SimTimer::close('lane.claim_next');
 
                 if ($item === null) {
                     break;
@@ -128,11 +139,17 @@ class SimWorkerJob implements ShouldQueue
                     'last_seen_at' => now(),
                 ]);
 
+                // Per-stage timing: `stage.<kind>` is the whole execute for that
+                // stage, so the page shows which stage owns the run's time.
+                $part = 'stage.'.$item->kind;
+                SimTimer::open($part);
                 try {
                     $metrics = $this->execute($run, $item, $token);
+                    SimTimer::close($part);
                     $this->settle($item->id, SimItem::STATUS_DONE, $metrics);
                     $failures = 0;
                 } catch (\Throwable $e) {
+                    SimTimer::close($part); // no-op if already closed
                     $failures++;
 
                     $this->settle(
@@ -158,8 +175,15 @@ class SimWorkerJob implements ShouldQueue
                     'claim_started_at' => null,
                     'last_seen_at' => now(),
                 ]);
+
+                $prevEnd = hrtime(true);
+                if (++$claimsSinceFlush >= 25) {
+                    SimTimer::flush((string) $run->id);
+                    $claimsSinceFlush = 0;
+                }
             }
         } finally {
+            SimTimer::flush($this->runId); // survive the lane's exit
             // Best effort: if the connection died, the pump culls stale leases.
             try {
                 DB::table('sim_worker_leases')->where('id', $token)->delete();

@@ -4087,6 +4087,7 @@ class SetupController extends Controller
                 'layers'  => [],
                 'lanes'   => [],
                 'review'  => [],
+                'timings' => [],
                 'world'   => $snap->world(),
                 'control' => app(SimRunControl::class)->control(),
             ];
@@ -4130,6 +4131,7 @@ class SetupController extends Controller
             'layers'  => $snap->layers($run),
             'lanes'   => $lanes,
             'review'  => $snap->reviewItems($run),
+            'timings' => $snap->timings($run),
             'world'   => $snap->world(),
             'control' => app(SimRunControl::class)->control(),
         ];

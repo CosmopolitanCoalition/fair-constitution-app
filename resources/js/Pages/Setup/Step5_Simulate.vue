@@ -40,7 +40,33 @@ const stages = computed(() => data.value?.stages ?? [])
 const layers = computed(() => data.value?.layers ?? [])
 const lanes  = computed(() => data.value?.lanes ?? [])
 const review = computed(() => data.value?.review ?? [])
+const timings = computed(() => data.value?.timings ?? [])
 const world  = computed(() => data.value?.world ?? {})
+
+// ── Timing panel: where the time goes, and the gap between claims ────────────
+// VISIBLE during Step 5 perf work (the diagnostic that shows which stage owns
+// the run's time). Flip to false once the sim is tuned, as Step 4 did.
+const SHOW_TIMINGS = true
+const timingMax = computed(() => Math.max(1, ...timings.value.map(t => t.total_s || 0)))
+const TIMING_LABELS = {
+    'lane.between_claims': 'Between claims (idle + acquire)',
+    'lane.claim_next': 'Claim acquisition',
+    'stage.cohort_scope': 'Cohorts (who lives where)',
+    'stage.identity_batch': 'Identities (minting people)',
+    'stage.election_scope': 'Elections (fielding candidates)',
+    'stage.count_election': 'Counting ballots',
+    'stage.seat_scope': 'Seating representatives',
+    'stage.governance_scope': 'Governance (committees, departments)',
+    'stage.judiciary_scope': 'Judiciary (courts, nominations)',
+    'stage.civics_scope': 'Civics (orgs, bills)',
+}
+function timingLabel(p) { return TIMING_LABELS[p] ?? p }
+function timingTone(p) {
+    if (p === 'lane.between_claims') return 'text-amber-300'
+    if (p.startsWith('stage.')) return 'text-gray-200 font-medium'
+    return 'text-gray-400'
+}
+function timingBar(p) { return p === 'lane.between_claims' ? 'bg-amber-500/70' : 'bg-blue-500/70' }
 
 const runLive   = computed(() => run.value && ['queued', 'running'].includes(run.value.status))
 const runHalted = computed(() => run.value && run.value.status === 'halted')
@@ -360,6 +386,26 @@ onBeforeUnmount(() => { if (timer) clearInterval(timer); if (clock) clearInterva
                             </div>
                         </li>
                     </ul>
+                </div>
+            </div>
+        </section>
+
+        <!-- Timing: where the time goes, across all lanes -->
+        <section v-if="SHOW_TIMINGS && timings.length" class="bg-gray-900 border border-gray-800 rounded-lg p-5 mb-6">
+            <h2 class="text-white font-semibold mb-1">Timing
+                <span class="text-gray-500 font-normal text-sm">where the time goes · avg per part, total across all lanes</span>
+            </h2>
+            <p class="text-gray-500 text-xs mb-3">The bar is each part's share of total lane-seconds. Watch <span class="text-amber-300">Between claims</span>: a lane that sits idle is a lane not working. Compare a stage's avg before and after a change to prove it faster or slower.</p>
+            <div class="space-y-1 text-xs">
+                <div v-for="t in timings" :key="t.part" class="flex items-center gap-3">
+                    <span class="w-56 shrink-0 truncate" :class="timingTone(t.part)">{{ timingLabel(t.part) }}</span>
+                    <span class="w-20 text-right tabular-nums text-gray-300">{{ t.avg_ms }} ms</span>
+                    <span class="w-24 text-right tabular-nums text-gray-500 hidden md:inline">max {{ t.max_ms }} ms</span>
+                    <span class="w-20 text-right tabular-nums text-gray-500 hidden md:inline">{{ n(t.count) }}×</span>
+                    <div class="flex-1 h-2 bg-gray-800 rounded overflow-hidden">
+                        <div class="h-full transition-all duration-700" :class="timingBar(t.part)" :style="{ width: pct(t.total_s, timingMax) + '%' }"></div>
+                    </div>
+                    <span class="w-16 text-right tabular-nums text-gray-400">{{ n(t.total_s) }}s</span>
                 </div>
             </div>
         </section>

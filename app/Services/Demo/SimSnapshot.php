@@ -270,6 +270,31 @@ class SimSnapshot
             ->all();
     }
 
+    /**
+     * WHERE THE TIME GOES — per-part timings for this run (SimTimer → sim_timings),
+     * largest total first. The diagnostic that shows which stage owns the run's
+     * time and how long lanes sit between claims, so a code change can be proven
+     * faster or slower part by part (the Step 4 method).
+     *
+     * @return list<array<string,mixed>>
+     */
+    public function timings(SimRun $run): array
+    {
+        return DB::table('sim_timings')
+            ->where('run_id', (string) $run->id)
+            ->get()
+            ->map(fn ($t) => [
+                'part' => $t->part,
+                'count' => (int) $t->count,
+                'avg_ms' => $t->count > 0 ? round($t->total_us / $t->count / 1000, 2) : 0.0,
+                'max_ms' => round($t->max_us / 1000, 2),
+                'total_s' => round($t->total_us / 1_000_000, 1),
+            ])
+            ->sortByDesc('total_s')
+            ->values()
+            ->all();
+    }
+
     /** The sim's worker target for this host (the pool tile). */
     public function pool(): int
     {
