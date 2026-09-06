@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Demo;
 use App\Http\Controllers\Controller;
 use App\Models\SimRun;
 use App\Services\Demo\SimRunControl;
+use App\Services\Demo\SimSnapshot;
 use App\Support\HostCapacity;
 use App\Support\InstanceClass;
 use Illuminate\Http\JsonResponse;
@@ -34,7 +35,10 @@ use Inertia\Response;
  */
 class SimConsoleController extends Controller
 {
-    public function __construct(private readonly SimRunControl $control) {}
+    public function __construct(
+        private readonly SimRunControl $control,
+        private readonly SimSnapshot $snap,
+    ) {}
 
     /** The page shell. Data arrives from the poll below. */
     public function show(): Response
@@ -105,11 +109,11 @@ class SimConsoleController extends Controller
         // operator-only: a non-operator sees the same live bars with control null.
         $control = Auth::guard('operator')->check() ? $this->control->control() : null;
 
-        $run = SimRun::query()
-            ->whereIn('status', ['queued', 'running', 'halted'])
-            ->orderBy('created_at')
-            ->first()
-            ?? SimRun::query()->orderByDesc('created_at')->first();
+        // SimSnapshot is the single owner of the sim's live reads (ruling 10) —
+        // the same numbers the /setup/step/5 page shows, so the two surfaces
+        // cannot drift. The console adds its own honesty rails (over_bound,
+        // seat_gap) and its live-items list on top; those stay here.
+        $run = $this->snap->activeOrLatestRun();
 
         if ($run === null) {
             return [
@@ -140,102 +144,12 @@ class SimConsoleController extends Controller
                 'workers_target' => HostCapacity::autoscaleWorkers(),
                 'phase_timings' => $run->phase_timings,
             ],
-            'stages' => $this->stages($run),
-            'workers' => $this->workers($run),
+            'stages' => $this->snap->stages($run),
+            'workers' => $this->snap->lanes($run),
             'live_items' => $this->liveItems($run),
-            'review_items' => $this->reviewItems($run),
+            'review_items' => $this->snap->reviewItems($run),
             'world' => $this->world(),
         ];
-    }
-
-    /**
-     * One bar per item kind — the fresh GROUP BY that IS the progress store.
-     * Ordered by the phase DAG so the page reads top-to-bottom as the run
-     * actually proceeds.
-     *
-     * @return list<array<string,mixed>>
-     */
-    private function stages(SimRun $run): array
-    {
-        $rows = DB::table('sim_items')
-            ->where('run_id', $run->id)
-            ->selectRaw("
-                kind,
-                COUNT(*)                                              AS total,
-                COUNT(*) FILTER (WHERE status = 'done')               AS done,
-                COUNT(*) FILTER (WHERE status = 'running')            AS running,
-                COUNT(*) FILTER (WHERE status IN ('review','failed')) AS review
-            ")
-            ->groupBy('kind')
-            ->get()
-            ->keyBy('kind');
-
-        $order = [];
-        foreach (SimRun::PHASE_KINDS as $phase => $kinds) {
-            foreach ($kinds as $kind) {
-                $order[$kind] = $phase;
-            }
-        }
-
-        $stages = [];
-
-        foreach ($order as $kind => $phase) {
-            $row = $rows->get($kind);
-
-            if ($row === null) {
-                continue; // a stage with no worklist is not yet minted
-            }
-
-            $stages[] = [
-                'kind' => $kind,
-                'phase' => $phase,
-                'label' => self::LABELS[$kind] ?? $kind,
-                'total' => (int) $row->total,
-                'done' => (int) $row->done,
-                'running' => (int) $row->running,
-                'review' => (int) $row->review,
-                'is_current' => $phase === $run->phase,
-            ];
-        }
-
-        return $stages;
-    }
-
-    private const LABELS = [
-        'manifest' => 'Enumerating the world',
-        'profile_research' => 'Researching localities',
-        'profile_inherit' => 'Inheriting profiles',
-        'cohort_scope' => 'Deciding who lives where',
-        'identity_batch' => 'Minting people',
-        'election_scope' => 'Calling elections',
-        'count_election' => 'Counting ballots',
-        'seat_scope' => 'Seating representatives',
-        'acceptance_scan' => 'Checking the world',
-    ];
-
-    /**
-     * One honest line per live worker — what it is holding and for how long.
-     * Two minutes is the liveness horizon, matching the pump's own seeding rule.
-     *
-     * @return list<array<string,mixed>>
-     */
-    private function workers(SimRun $run): array
-    {
-        return DB::table('sim_worker_leases')
-            ->where('run_id', $run->id)
-            ->where('last_seen_at', '>', now()->subMinutes(2))
-            ->orderBy('started_at')
-            ->get()
-            ->map(fn ($w) => [
-                'id' => substr((string) $w->id, 0, 8),
-                'claim_type' => $w->claim_type,
-                'claim_label' => $w->claim_label,
-                'claim_secs' => $w->claim_started_at
-                    ? now()->diffInSeconds(\Carbon\Carbon::parse($w->claim_started_at))
-                    : null,
-            ])
-            ->values()
-            ->all();
     }
 
     /** What is being worked on RIGHT NOW, by name. */
@@ -257,77 +171,23 @@ class SimConsoleController extends Controller
     }
 
     /**
-     * What REFUSED, and why. A run never dies of a failed item — it settles as
-     * review and keeps going — so this list is the honest record of what the
-     * world could not build, and it is supposed to be readable.
-     */
-    private function reviewItems(SimRun $run): array
-    {
-        return DB::table('sim_items as s')
-            ->leftJoin('jurisdictions as j', 'j.id', '=', 's.jurisdiction_id')
-            ->where('s.run_id', $run->id)
-            ->whereIn('s.status', ['review', 'failed'])
-            ->orderBy('s.position')
-            ->limit(50)
-            ->get(['s.kind', 's.reason', 'j.name as jurisdiction'])
-            ->map(fn ($i) => [
-                'kind' => $i->kind,
-                'jurisdiction' => $i->jurisdiction ?? '—',
-                'reason' => $i->reason,
-            ])
-            ->all();
-    }
-
-    /**
-     * What the run has actually PRODUCED — the point of the whole engine, and
-     * the numbers that make the bars mean something.
+     * What the run has PRODUCED — the shared counts from SimSnapshot (single
+     * owner, cached) PLUS the console's own honesty rails: the active-map count
+     * and the over-bound / seat-gap lists that render by name on this surface.
+     *
+     * BUILT IS NOT GOVERNED. The shared counts already separate chambers from
+     * chambers_governed; these rails add the two ways a built world can still be
+     * wrong — a Type B half over its bound, and drawn seats that cannot be
+     * filled — so the console never lets a defect render as completeness.
      */
     private function world(): array
     {
-        // BUILT IS NOT GOVERNED. A page that counts places, people and
-        // population but never says how many chambers actually hold anybody
-        // lets a visitor read 11 jurisdictions and 183 residents as 11
-        // governments. Activation DECLARES seats; only an election FILLS them,
-        // and seating without one would manufacture members nobody voted for.
-        // So an empty chamber is the CORRECT state on a fresh world — and the
-        // screen has to say so out loud rather than let the absence pass for
-        // completeness. (Lane 3 hit the same defect on /building; this is the
-        // same rule on this surface, deliberately worded the same way.)
-        $chambers = (int) DB::table('legislatures')->whereNull('deleted_at')->count();
-
-        $governed = (int) DB::table('legislatures as l')
-            ->whereNull('l.deleted_at')
-            ->whereExists(function ($q) {
-                $q->select(DB::raw(1))
-                    ->from('legislature_members as m')
-                    ->whereColumn('m.legislature_id', 'l.id')
-                    ->whereIn('m.status', ['elected', 'seated'])
-                    ->whereNull('m.deleted_at');
-            })
-            ->count();
-
-        // A DRAFT map is a proposal, not a boundary — `racePlan()` reads
-        // `active()` only. Counting maps without their status is how nine
-        // drawn-but-unadopted chambers come to look ready to elect.
-        $activeMaps = (int) DB::table('legislature_district_maps')
-            ->where('status', 'active')
-            ->whereNull('deleted_at')
-            ->count();
-
-        return [
-            'chambers' => $chambers,
-            'chambers_governed' => $governed,
-            'chambers_awaiting_election' => max(0, $chambers - $governed),
-            'active_district_maps' => $activeMaps,
-            'jurisdictions' => (int) DB::table('jurisdictions')->whereNull('deleted_at')->count(),
-            'cohorts' => (int) DB::table('jurisdiction_cohorts')->count(),
-            // 'sim-%' not just '@demo.invalid': the reserved namespace is shared
-            // with other fixtures (lane 13's founding operator lives there too),
-            // and a headline number on screen must count only what THIS engine made.
-            'people' => (int) DB::table('users')->where('email', 'like', 'sim-%@demo.invalid')->count(),
-            'residencies' => (int) DB::table('residency_confirmations')->where('is_active', true)->count(),
-            'population_modelled' => (int) DB::table('jurisdiction_cohorts')->sum('population'),
-            'electorate_modelled' => (int) DB::table('jurisdiction_cohorts')->sum('electorate'),
+        return $this->snap->world() + [
+            // A DRAFT map is a proposal, not a boundary — count active() only.
+            'active_district_maps' => (int) DB::table('legislature_district_maps')
+                ->where('status', 'active')
+                ->whereNull('deleted_at')
+                ->count(),
             'over_bound' => $this->overBoundChambers(),
             'seat_gap' => $this->unfillableSeats(),
         ];
