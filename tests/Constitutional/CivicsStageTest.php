@@ -70,6 +70,69 @@ class CivicsStageTest extends TestCase
         });
     }
 
+    /**
+     * ENDORSEMENTS (W7 item 9): the parties civics mints back candidates in the
+     * open election, so the endorsement graph has real subjects. Idempotent.
+     */
+    public function test_parties_endorse_candidates_in_the_open_election(): void
+    {
+        $this->onLivePg(function () {
+            $jid = $this->leaf(500_000);
+
+            // A seated chamber (so parties mint) and an open election with two
+            // candidates (so there is something to endorse).
+            $legId = (string) Str::uuid();
+            DB::table('legislatures')->insert([
+                'id' => $legId, 'jurisdiction_id' => $jid, 'term_number' => 1, 'status' => 'active',
+                'total_seats' => 5, 'type_a_seats' => 5, 'type_b_seats' => 0, 'quorum_required' => 3,
+                'created_at' => now(), 'updated_at' => now(),
+            ]);
+            $memberUser = (string) Str::uuid();
+            DB::table('users')->insert([
+                'id' => $memberUser, 'name' => 'Seated', 'email' => 'sim-'.Str::lower(Str::random(10)).'@demo.invalid',
+                'password' => bcrypt(Str::random(20)), 'status' => 'registered', 'terms_accepted_at' => now(),
+                'timezone' => 'UTC', 'created_at' => now(), 'updated_at' => now(),
+            ]);
+            DB::table('legislature_members')->insert([
+                'id' => (string) Str::uuid(), 'legislature_id' => $legId, 'user_id' => $memberUser,
+                'seat_type' => 'a', 'seat_no' => 1, 'status' => 'elected', 'created_at' => now(), 'updated_at' => now(),
+            ]);
+
+            $electionId = (string) Str::uuid();
+            DB::table('elections')->insert([
+                'id' => $electionId, 'jurisdiction_id' => $jid, 'legislature_id' => $legId,
+                'kind' => 'general', 'status' => 'scheduled', 'created_at' => now(), 'updated_at' => now(),
+            ]);
+            foreach (['cand-a', 'cand-b'] as $i => $tag) {
+                $u = (string) Str::uuid();
+                DB::table('users')->insert([
+                    'id' => $u, 'name' => "Candidate {$i}", 'email' => 'sim-'.Str::lower(Str::random(10))."-{$i}@demo.invalid",
+                    'password' => bcrypt(Str::random(20)), 'status' => 'registered', 'terms_accepted_at' => now(),
+                    'timezone' => 'UTC', 'created_at' => now(), 'updated_at' => now(),
+                ]);
+                DB::table('candidacies')->insert([
+                    'id' => (string) Str::uuid(), 'election_id' => $electionId, 'race_id' => null,
+                    'user_id' => $u, 'status' => 'validated', 'position_tags' => json_encode([]),
+                    'residency_attested_at' => now(), 'validated_at' => now(),
+                    'created_at' => now(), 'updated_at' => now(),
+                ]);
+            }
+
+            CivicsStage::run($jid, null, 1);
+
+            $endorsements = DB::table('endorsements')->where('election_id', $electionId)->count();
+            $this->assertGreaterThan(0, $endorsements, 'the minted parties endorse candidates');
+            $this->assertGreaterThan(0, DB::table('organizations')
+                ->where('jurisdiction_id', $jid)->where('type', 'political_party')->count(),
+                'parties were minted to do the endorsing');
+
+            // Idempotent: a second pass adds none.
+            CivicsStage::run($jid, null, 1);
+            $this->assertSame($endorsements, DB::table('endorsements')->where('election_id', $electionId)->count(),
+                'a second civics pass does not double the endorsements');
+        });
+    }
+
     // ── fixtures ──────────────────────────────────────────────────────────
 
     /** A childless jurisdiction with a population — the leaf org path's precondition. */

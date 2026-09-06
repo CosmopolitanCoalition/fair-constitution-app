@@ -68,6 +68,9 @@ final class CivicsStage
 
     private const CHUNK = 500;
 
+    /** Each party endorses up to this many candidates in the open election. */
+    private const ENDORSEMENTS_PER_PARTY = 3;
+
     private function __construct() {}
 
     /**
@@ -118,6 +121,12 @@ final class CivicsStage
                 agentUserId: (string) $seated->first()->user_id,
                 beat: $beat,
             );
+
+            // Endorsements: the parties back candidates in the open election, so
+            // the endorsement graph (any org may endorse any candidate) has real
+            // subjects on the demo rather than parties and candidates that never
+            // meet. Idempotent — skipped once the election already carries them.
+            $out['endorsements'] = self::mintEndorsements($j, $beat);
         }
 
         // ── Nonprofits + businesses: LEAF grain only (people live at leaves;
@@ -223,6 +232,86 @@ final class CivicsStage
         return self::WORKER_CYCLE[$i % count(self::WORKER_CYCLE)];
     }
 
+    /**
+     * The parties (just minted) endorse candidates in the jurisdiction's open
+     * election. Deterministic (parties in id order, candidates in id order), and
+     * idempotent: if the election already carries org endorsements, this is a
+     * no-op. Returns the number of endorsement rows this jurisdiction now has.
+     */
+    private static function mintEndorsements(object $j, ?\Closure $beat): int
+    {
+        $election = DB::table('elections')
+            ->where('jurisdiction_id', $j->id)
+            ->where('kind', 'general')
+            ->whereNotIn('status', ['certified', 'cancelled', 'final'])
+            ->orderByDesc('created_at')
+            ->first();
+
+        if ($election === null) {
+            return 0;
+        }
+
+        $existing = (int) DB::table('endorsements')
+            ->where('election_id', $election->id)
+            ->where('endorser_type', 'organizations')
+            ->count();
+
+        if ($existing > 0) {
+            return $existing; // idempotent: already endorsed this cycle
+        }
+
+        $parties = DB::table('organizations')
+            ->where('jurisdiction_id', $j->id)
+            ->where('type', Organization::TYPE_POLITICAL_PARTY)
+            ->whereNull('deleted_at')
+            ->orderBy('id')
+            ->pluck('id')
+            ->all();
+
+        if ($parties === []) {
+            return 0;
+        }
+
+        $candidates = DB::table('candidacies')
+            ->where('election_id', $election->id)
+            ->orderBy('id')
+            ->limit(count($parties) * self::ENDORSEMENTS_PER_PARTY)
+            ->pluck('id')
+            ->all();
+
+        if ($candidates === []) {
+            return 0;
+        }
+
+        $now = now();
+        $rows = [];
+        $c = 0;
+        foreach ($parties as $partyId) {
+            for ($k = 0; $k < self::ENDORSEMENTS_PER_PARTY && $c < count($candidates); $k++, $c++) {
+                $rows[] = [
+                    'id' => (string) Str::uuid(),
+                    'election_id' => (string) $election->id,
+                    'candidate_id' => (string) $candidates[$c],
+                    'endorser_type' => 'organizations',
+                    'endorser_id' => (string) $partyId,
+                    'statement' => null,
+                    'endorsed_at' => $now,
+                    'is_active' => true,
+                    'is_public' => true,
+                    'created_at' => $now,
+                    'updated_at' => $now,
+                ];
+            }
+        }
+
+        foreach (array_chunk($rows, self::CHUNK) as $chunk) {
+            $beat && $beat();
+            DB::table('endorsements')->insert($chunk);
+        }
+
+        return count($rows);
+    }
+
     /** @return array{true:int, minted:int} */
     private static function mintBills(
         Legislature $legislature, object $j, $seated, int $trueCount, int $mintCount,
@@ -308,6 +397,6 @@ final class CivicsStage
         $zero = ['true' => 0, 'minted' => 0];
 
         return ['parties' => $zero, 'nonprofits' => $zero, 'businesses' => $zero,
-            'bills' => $zero, 'skipped' => $skipped];
+            'bills' => $zero, 'endorsements' => 0, 'skipped' => $skipped];
     }
 }
