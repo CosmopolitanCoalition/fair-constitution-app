@@ -8,6 +8,69 @@ sys.path.insert(0, _HERE)
 from wave4_data import FLEET
 # Structured, fillable open-questions (options + owning lane). Resolved ones are read-only.
 QUESTIONS = [
+ {"id":"seat-mint-owner","q":"Seat minting at scale: which engine creates the elections and races for 940,327 legislatures?","status":"open","lane":"3",
+  "detail":"Seats exist only as integers on legislatures, districts and panels. Elections and races are created by ElectionLifecycleService::scheduleGeneral (per legislature), by the F-ELB-001 handler, and by openSuccessor at certification. None has a chunked caller. The sim's ElectionStage calls scheduleGeneral per jurisdiction item and needs an active board per jurisdiction; it runs only on a sandbox or scale_demo world. A live mesh has no sim, so it needs a non-sim caller. Members are created only at F-ELB-004 certification, and a legislature flips forming → active only there.","options":[
+   {"k":"A","t":"A Step 4 lane calls scheduleGeneral per legislature after the boards land. Works in every game mode. Needed for the live mesh."},
+   {"k":"B","t":"The sim's election phase mints them (exists today). Sandbox only. Seats depend on a sim run."},
+   {"k":"C","t":"B for the conference demo now; A built after the conference for the live mesh. [desk rec]"}]},
+ {"id":"zero-seat-chambers","q":"Zero-seat chambers and zero-seat districts: what does the seat-minting lane do with them?","status":"open","lane":"3",
+  "detail":"17,250 legislatures hold type_a_seats 0 (zero population, Class D). scheduleGeneral creates the elections row before racePlan runs and keeps the row when the plan is fully blocked, so a mass caller leaves an orphan 'scheduled' election per zero-seat chamber; the F-ELB-001 engine path throws and rolls back instead. Nine ACTIVE maps carry one district with seats = 0 (a zero-population bin under the sub-2 rule); racePlan blocks the whole Type A half of those nine legislatures (type_a 10 to 78).","options":[
+   {"k":"A","t":"Skip every zero-seat chamber (no election row). File the nine maps for redraw so the zero-seat bin is absorbed; those nine elect after the redraw. [desk rec]"},
+   {"k":"B","t":"Skip zero-seat chambers. Leave the nine maps as they are; those nine legislatures elect nothing for the demo."},
+   {"k":"C","t":"Read the nine bins first (population, geometry) and rule after the read."}]},
+ {"id":"bench-and-quorum-law","q":"One bench law and one quorum formula for every mint path?","status":"open","lane":"3",
+  "detail":"Courts: the mass path sizes the bench 5/5/7/9 by tier; the per-jurisdiction activation stub writes 5 for every place. Quorum at mint: min(total, max(3, ceil(total/2))) in two writers, max(3, ceil(total/2)) uncapped in five writers; 17 zero-seat chambers hold quorum 3. The stored quorum column is not read at vote time (chamber votes derive a strict majority from the validator), so the column defect is mint-time only. Cube-root floor: a constant 5 in ActivationService, the planet row in WorldBuildJob, the own row in the seed command and resizeRootSeats.","options":[
+   {"k":"A","t":"Tier bench 5/7/9 on every path; capped quorum on every path; own-row floor on every path. [desk rec]"},
+   {"k":"B","t":"Bench 5 on every path; capped quorum; own-row floor."},
+   {"k":"C","t":"Leave the divergences; document them."}]},
+ {"id":"sub-institutions-path","q":"Committees and departments for the demo: which path delivers them by 09-18? (Ruling scale-committees B, eager, stands.)","status":"open","lane":"3",
+  "detail":"The provisioning steps are executives, judiciaries, election_boards, board_members, social_spaces. Committees K(S) and departments D(P) are sim vote targets: GovernanceStage files F-LEG-009 and F-LEG-016 and every seated member casts a vote. No provisioning step writes them. Boards of governors and rooms have no mass path either (the nightly social-structure sweep touches active legislatures only).","options":[
+   {"k":"A","t":"The sim's governance phase produces them through real votes after seating (exists today). [desk rec]"},
+   {"k":"B","t":"A Step 4 lane files F-LEG-009 and F-LEG-016 as system acts without a chamber vote. Needs an engine change."},
+   {"k":"C","t":"Defer committees and departments past the conference."}]},
+ {"id":"sim-scope-for-demo","q":"What does the demo simulation run cover before 09-18?","status":"open","lane":"4",
+  "detail":"Every constitutional filing appends under one global advisory lock at about 28.6 appends per second (code comment). Seating alone is one F-ELB-004 per election: 940,327 chambers ≈ 9 hours of lock time. Governance adds K(S) + 1 + D(P) filings and one cast per seated member per vote; judiciary adds 1 + 2 per seat. A planet run is days, not hours, and no baseline exists. Jurisdictions by level: 1 / 232 / 3,238 / 49,263 / 104,020 / 83,860 / 699,711 (adm 0 to 6). The sim needs the worker heartbeat and the resume fix before a long run is trustworthy.","options":[
+   {"k":"A","t":"One measured pilot first (one country, all stages), then choose the scope from the measured rate. [desk rec]"},
+   {"k":"B","t":"Full planet, all stages, start when Step 4 lands, accept a multi-day run."},
+   {"k":"C","t":"adm 0 to 3 only (52,734 jurisdictions), all stages; deeper levels as time allows."},
+   {"k":"D","t":"The N largest jurisdictions by population (--limit), all stages."}]},
+ {"id":"read-only-lock","q":"Read-only lock for the demo mesh: what does the lock refuse, and where is it enforced?","status":"open","lane":"demo",
+  "detail":"Your words: once the scaled demo mesh is proven, lock it to read only; the read-only view is public and walkable. No such flag exists. Writes enter through the ConstitutionalEngine (every form), through non-form endpoints (residency pings, registration, orgs), and through the pumps and clocks (the sim, elections advancing).","options":[
+   {"k":"A","t":"A new instance flag. The engine refuses every filing; every write endpoint returns 423; registration closes; the sim and clock pumps pause. Reads and walking stay open. Operator toggles it. [desk rec]"},
+   {"k":"B","t":"Close registration and pause the pumps only; the engine stays open for existing accounts."},
+   {"k":"C","t":"Enforce at PostgreSQL with a read-only role (breaks sessions, queues and caches; not recommended)."}]},
+ {"id":"public-walk","q":"Public walk on the demo mesh: which surfaces open to a guest?","status":"open","lane":"demo",
+  "detail":"After setup completes, the setup redirect lifts. Most read routes (jurisdictions, legislatures, federation, elections views) are public today; /simworld and /building sit inside auth groups; the operator console and dev tools stay gated. A guest can register on /register unless registration is closed.","options":[
+   {"k":"A","t":"Every read surface public, including the sim console as a read-only view; all writes refuse under the lock. [desk rec]"},
+   {"k":"B","t":"Public = the viewer, legislatures, elections and institution pages; the sim console and the build page stay behind login."},
+   {"k":"C","t":"Everything requires an account."}]},
+ {"id":"demo-mesh-host","q":"Where does the demo mesh run for the conference?","status":"open","lane":"00",
+  "detail":"Box E holds the world (940,327 legislatures, 940,315 maps, 36,810 panel maps). The WoS Azure box (project wos, D8als_v7, 10 vCPU) is the cloud target. Memory records the open identity question for Poland access: mirror versus sovereign restore. A mirror keeps box E authoritative and online for the whole conference; a sovereign restore makes WoS the authority and box E a backup.","options":[
+   {"k":"A","t":"Sovereign restore on WoS from a full export bundle of box E; WoS is the authority; box E is the backup. [desk rec]"},
+   {"k":"B","t":"WoS joins as a mirror of box E; box E stays authoritative and must stay online 21–23 Sep."},
+   {"k":"C","t":"Serve from box E only through a tunnel."}]},
+ {"id":"wizard-ladder","q":"Wizard ladder: Steps 0 to 6 as your diagram, or fold the new work into the existing five steps?","status":"open","lane":"ui",
+  "detail":"Today: 0 Cosmic Address, 1 Constitutional Defaults, 2 Map Data, 3 Build Districts, 4 Confirm and Seat Institutions. The route accepts n in 0 to 4 and the stepper renders five steps. The counter convention is 'n done, next is n'; Step 4 already writes 5. Your diagram: Step 4 Scale Up (optional), Step 5 Simulate (optional, sandbox), Step 6 Confirm and Close.","options":[
+   {"k":"A","t":"Steps 0 to 6 as the diagram. Route range and stepper extend; the counter convention stays. [desk rec]"},
+   {"k":"B","t":"Keep 0 to 4. Scale Up and Simulate become sections on the Step 3 page; Step 4 stays Confirm."}]},
+ {"id":"done-flip-vs-pages","q":"Who starts Steps 4 and 5: the map run's done flip, or the wizard pages?","status":"open","lane":"ui",
+  "detail":"Today eager acceptance starts the map run and the run's done flip dispatches provisioning and (with the simulate flag) the sim, with no wizard surface for either. The Step 4 page then re-dispatches provisioning only. The two pages must either observe an automatic chain or trigger the work themselves.","options":[
+   {"k":"A","t":"The pages trigger: Step 4 'Scale institutions? yes/no', Step 5 'Simulate data? yes/no'. The done flip only refreshes the map quality statistics. Eager acceptance ends at maps. [desk rec]"},
+   {"k":"B","t":"Acceptance triggers the whole chain as today; the pages observe and offer halt/resume only."}]},
+ {"id":"boot-prewarm","q":"Boot-time prewarm: keep the planet raster and geojson warm on every horizon restart?","status":"open","lane":"00",
+  "detail":"docker/php/entrypoint.sh queues rasters:prewarm z0-12 and geojson:prewarm on every fc_horizon container start. The deploy recipe is docker restart fc_horizon. Both ride the long lane (retry_after 14400 s, tries 1); 139 of the 343 failed rows are these jobs. They compete with provisioning and the sim for the box.","options":[
+   {"k":"A","t":"Gate on a per-dataset sentinel: warm once after ingest, never on restart. [desk rec]"},
+   {"k":"B","t":"Remove from the entrypoint; run by CLI when wanted."},
+   {"k":"C","t":"Keep as is."}]},
+ {"id":"default-queue-sweeps","q":"Clock sweeps on the default queue: move them to the long lane?","status":"open","lane":"00",
+  "detail":"EvaluateClocksJob runs every minute on the default queue (tries 1, timeout 60), fires up to 500 timers, and dispatches the residency, critical-population and petition sweeps onto the same lane; SnapshotWorldStatsJob runs nightly there. Nine timeout rows exist with zero timers armed. Founding elections armed by Step 4 are advanced by this engine.","options":[
+   {"k":"A","t":"Long lane, chunked, own timeout per job. [desk rec]"},
+   {"k":"B","t":"Raise supervisor-1's timeout for the whole default queue."},
+   {"k":"C","t":"Keep as is."}]},
+ {"id":"dup-legislatures","q":"Two live legislatures share one jurisdiction_id: delete the duplicate?","status":"open","lane":"1",
+  "detail":"count(*) − count(DISTINCT jurisdiction_id) over live legislatures = 2. The sim stages take ->first() per jurisdiction, so the second chamber never elects. The duplicate rows were not inspected beyond the count.","options":[
+   {"k":"A","t":"Read both rows, soft-delete the later duplicate and its dependents, add a live-unique index on legislatures(jurisdiction_id). [desk rec]"},
+   {"k":"B","t":"Keep both; the first chamber elects, the second stays forming."}]},
  {"id":"founding-map-mint-phase","q":"Founding-map minting — stay a run-launch step, or move to the ingest tail beside the ledgers?","status":"open","lane":"map",
   "detail":"From the 2026-08-31 pipeline review (the phase list walk). A founding map is an empty container per legislature. Today the RUN mints it at launch (after the adopt pass), and the run's revert deletes and re-mints — the run owns map lifecycle, and adopt distinguishes run-minted from operator-accepted work. The ingest tail now owns the dataset-shaped precomputes (geometry ledger, apportionment ledger), and the same once-per-dataset argument could cover the empty map containers. Moving it changes ownership: revert must spare tail-minted maps, empty containers exist whether or not a run fills them, and the adopt distinction needs a new marker. Functional order today is correct (adopt before mint prevents minting beside accepted work); this question is only about which phase OWNS the container.","options":[
    {"k":"A","t":"Keep at run launch: the run owns map lifecycle end to end (mint, fill, revert). The mint is chunked and fast; nothing is gained but seconds. [desk rec]"},
@@ -276,7 +339,7 @@ for _q in QUESTIONS:
 # Screens / caps / debt all come from the enriched, badged corpus in this dir (repo-stable).
 _enr = json.load(open(os.path.join(_HERE, 'badged.json'), encoding='utf-8'))
 screens = _enr['screens']; caps = _enr['caps']; debt = _enr['debt']
-DATA = {'asOf': '2026-08-04', 'head': 'ea1ed8e', 'forms': 120,
+DATA = {'asOf': '2026-09-05', 'head': '59b7c4e1', 'forms': 120,
         'screens': screens, 'caps': caps, 'debt': debt, 'fleet': FLEET, 'questions': QUESTIONS}
 
 TEMPLATE = r"""<title>App Progress Rubric — CGA</title>
@@ -372,7 +435,7 @@ h1{font-size:1.55rem;font-weight:600;margin:0 0 .3rem}
 <h1>Where does the app stand — and what's the road to a playable game?</h1>
 <p class="stamp">%%STAMP%% · verified against live code · click a group, then a row, for the detail · search + filter + expand-all below</p>
 <div class="tiles" id="tiles"></div>
-<div class="note" style="border-inline-start-color:var(--good)"><b>✅ Wave 4 concluded GREEN</b> (authoritative suite 1343 / 0). <b>The Type B second-chamber race is RESOLVED</b> — the pooled shape is fully retired; per-clump (grouped) and per-child (ungrouped) chambers now elect, count, seat, and field candidates, hardened and live-verified (Niue cleared). Every open question is ruled. <b>Wave 5 = the finish, now LAUNCHED and in progress:</b> the build lanes are closing the last screens + capabilities → all-green re-gate → arm → the operator's walk. See <b>Fleet &amp; Waves</b> for live W5 status.</div>
+<div class="note" style="border-inline-start-color:var(--good)"><b>Maps done (2026-09-05):</b> 940,327 Type A maps and 36,810 Type B panel maps, 0 review, map quality card live on Step 3. <b>Wave 6 = the conference demo:</b> a read-only scaled demo mesh with simulated data, public and walkable, for the 25th OIDP Conference, Kraków, 21–23 September 2026 (operator in Kraków by 09-18). Not built: institution shells at scale (boards 1 of 940,327), seat minting, wizard Steps 4 to 6, the read-only lock, the cloud host. The verified deep dive is the page <a href="https://claude.ai/code/artifact/949d44b2-ee67-4a9b-a75a-61bf1ff9529c">Setup Surface Atlas</a>. <b>Open Questions</b> holds 13 new decisions for this wave. Screens, capabilities and debt still carry the 2026-08-04 corpus.</div>
 <div class="views" role="tablist">
   <button class="view-btn" role="tab" data-v="screens" aria-selected="true">UI Screens</button>
   <button class="view-btn" role="tab" data-v="caps" aria-selected="false">Capabilities</button>
@@ -438,21 +501,22 @@ function render(){const b=document.getElementById('body');
   }
   else if(view==='fleet'){
     const waves=D.fleet.waves.map(w=>`<span class="wv">${w.id}</span> ${esc(w.name)} <span class="pill p-${w.status}">${LB[w.status]}</span>`).join(' &nbsp;·&nbsp; ');
-    let html=`<div class="note" style="border-inline-start-color:var(--good)">🚀 <b>Wave 5 LAUNCHED (2026-07-30) — finish-line build in progress.</b> Wave 4 is GREEN (authoritative suite 1343/0). The build lanes are closing the last screens + capabilities; each flips to <span class="pill p-done">done</span> as its four-way report lands. Re-gate → arm → the operator's walk to follow. Each lane's W5 orders (<span class="pill p-next">next</span> = finish-line work) are drillable below; completed Wave-4 work collapses under each lane.</div><div class="wavesline"><b>Waves:</b> ${waves}</div>`;
+    let html=`<div class="note" style="border-inline-start-color:var(--good)"><b>Wave 6 orders (2026-09-05): the conference demo.</b> Items are marked P1 (blocks the demo), P2 (needed for a trustworthy run), P3 (cleanup). Each item names the decision it waits on in <b>Open Questions</b>. Earlier waves collapse under each lane.</div><div class="wavesline"><b>Waves:</b> ${waves}</div>`;
     const bk=['next','done','held','deferred','active'];
     D.fleet.lanes.forEach(l=>{const items=l.items||[];
-      const w5=items.filter(it=>it.wave==='W5'),w4=items.filter(it=>it.wave!=='W5');
-      const cur=w5.length?w5:w4;
+      const w6=items.filter(it=>it.wave==='W6'),w5=items.filter(it=>it.wave==='W5'),w4=items.filter(it=>it.wave!=='W5'&&it.wave!=='W6');
+      const cur=w6.length?w6:(w5.length?w5:w4);
+      const hist=w6.length?[...w5,...w4]:(w5.length?w4:[]);
       const vis=cur.filter(it=>(filter==='all'||it.status===filter)&&(!q||('l'+l.id+' '+l.name+' '+it.label+' '+(it.note||'')).toLowerCase().includes(q)));
       const w4hit=q?w4.filter(it=>(it.label+' '+(it.note||'')).toLowerCase().includes(q)):[];
       if(!vis.length&&!w4hit.length)return;
       const c={};bk.forEach(k=>c[k]=0);cur.forEach(it=>{if(it.status in c)c[it.status]++;});
       const bar=bk.map(k=>c[k]?`<span class="s-${CO[k]}" style="flex:${c[k]}"></span>`:'').join('');
       const cnt=bk.filter(k=>c[k]).map(k=>c[k]+' '+k).join(' · ')||'—';
-      const wl=w5.length?'W5':'W4';
+      const wl=w6.length?'W6':(w5.length?'W5':'W4');
       html+=`<section class="area"><button class="area-head" aria-expanded="false"><span class="area-name"><span class="lwbadge">L${esc(l.id)}·${wl}</span> Lane ${esc(l.id)} · ${esc(l.name)} <span class="pill p-${l.status}">${LB[l.status]||esc(l.status)}</span></span><span class="bar">${bar}</span><span class="counts">${esc(cnt)}</span><span class="chev">›</span></button><div class="rows hidden">`;
       vis.forEach(it=>{html+=`<div class="scr"><button class="scr-head" aria-expanded="false"><span class="dot d-${CO[it.status]}"></span><span class="scr-title">${hi(it.label)}</span><span class="pill p-${it.status}">${LB[it.status]||esc(it.status)}</span></button><div class="detail hidden"><dl>${it.note?`<dt>Detail</dt><dd>${hi(it.note)}</dd>`:'<dd class="ok">—</dd>'}</dl></div></div>`;});
-      if(w5.length&&w4.length){html+=`<details class="lanehist"><summary>Wave 4 · ${w4.length} done ✓</summary>${w4.map(it=>`<div class="donerow"><span class="dot d-${CO[it.status]}"></span> ${hi(it.label)}</div>`).join('')}</details>`;}
+      if(hist.length){html+=`<details class="lanehist"><summary>Earlier waves · ${hist.length} items</summary>${hist.map(it=>`<div class="donerow"><span class="dot d-${CO[it.status]}"></span> ${hi(it.label)} <span class="pill p-${it.status}">${LB[it.status]||esc(it.status)}</span></div>`).join('')}</details>`;}
       html+=`</div></section>`;
     });
     b.innerHTML=html;
@@ -485,7 +549,7 @@ buildFilters();render();
 </script>
 """
 
-stamp = "As of %s · main @ <code>%s</code> · Geodata clean (0 orphans) · UI walkthrough resolved · District-mapping INTEGRATION questions OPEN (4, lane scale) — gate the Fable-5 build" % (DATA['asOf'], DATA['head'])
+stamp = "As of %s · main @ <code>%s</code> · maps done · Wave 6 conference demo · 13 open decisions · screens/caps/debt corpus dated 2026-08-04" % (DATA['asOf'], DATA['head'])
 html = TEMPLATE.replace('%%DATA%%', json.dumps(DATA, separators=(',', ':'))).replace('%%STAMP%%', stamp)
 # Output next to the script, not a hard-coded box path — the generator now
 # runs on whichever checkout you are in (this regen ran on the GAME box).
