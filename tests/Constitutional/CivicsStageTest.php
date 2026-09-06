@@ -182,12 +182,51 @@ class CivicsStageTest extends TestCase
                 'id' => (string) Str::uuid(), 'legislature_id' => $legId, 'user_id' => $member,
                 'seat_type' => 'a', 'seat_no' => 1, 'status' => 'elected', 'created_at' => now(), 'updated_at' => now(),
             ]);
+            // Residents to hold the appointed governor and org-board seats.
+            for ($i = 0; $i < 6; $i++) {
+                $u = (string) Str::uuid();
+                DB::table('users')->insert([
+                    'id' => $u, 'name' => "Resident {$i}", 'email' => 'sim-'.Str::lower(Str::random(10))."-b{$i}@demo.invalid",
+                    'password' => bcrypt(Str::random(20)), 'status' => 'registered', 'terms_accepted_at' => now(),
+                    'timezone' => 'UTC', 'created_at' => now(), 'updated_at' => now(),
+                ]);
+                DB::table('residency_confirmations')->insert([
+                    'id' => (string) Str::uuid(), 'user_id' => $u, 'jurisdiction_id' => $jid,
+                    'days_confirmed' => 30, 'confirmed_at' => now(), 'voting_right_active' => true,
+                    'candidacy_right_active' => true, 'is_active' => true, 'depth' => 0,
+                    'created_at' => now(), 'updated_at' => now(),
+                ]);
+            }
 
             CivicsStage::run($jid, null, 1);
 
             $cgcs = DB::table('organizations')
                 ->where('jurisdiction_id', $jid)->where('type', 'common_good_corp')->whereNull('deleted_at')->get();
             $this->assertGreaterThan(0, $cgcs->count(), 'the chamber charters CGCs');
+
+            // The governor (public) side is seated — the board is no longer empty.
+            $govSeated = DB::table('board_seats as s')
+                ->join('boards as b', 'b.id', '=', 's.board_id')
+                ->join('organizations as o', 'o.id', '=', 'b.boardable_id')
+                ->where('o.jurisdiction_id', $jid)->where('o.type', 'common_good_corp')
+                ->where('s.seat_class', 'governor')->where('s.status', 'seated')->count();
+            $this->assertGreaterThan(0, $govSeated, 'CGC governor seats are seated');
+
+            // Business boards: provisioned, employed, and seated.
+            $bizBoards = DB::table('boards as b')
+                ->join('organizations as o', 'o.id', '=', 'b.boardable_id')
+                ->where('o.jurisdiction_id', $jid)->where('o.type', 'business')
+                ->where('b.boardable_type', 'organizations')->count();
+            $this->assertGreaterThan(0, $bizBoards, 'a sample of businesses get boards');
+            $this->assertGreaterThan(0, DB::table('org_workers')
+                ->where('employer_type', 'organizations')->where('status', 'active')->count(),
+                'real org_workers employment rows exist');
+            $this->assertGreaterThan(0, DB::table('board_seats as s')
+                ->join('boards as b', 'b.id', '=', 's.board_id')
+                ->join('organizations as o', 'o.id', '=', 'b.boardable_id')
+                ->where('o.jurisdiction_id', $jid)->where('o.type', 'business')
+                ->where('s.seat_class', 'owner_elected')->where('s.status', 'seated')->count(),
+                'business owner reps are seated');
 
             foreach ($cgcs as $cgc) {
                 $this->assertTrue((bool) $cgc->is_cgc);

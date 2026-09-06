@@ -149,6 +149,11 @@ final class CivicsStage
             // co-determined governor board and the genesis IP dedication all land
             // the same way a live charter would — the register is not empty.
             $out['cgcs'] = self::chartCgcs($j, $legislature, $seated, $beat);
+
+            // Seat the governor (public) side of the CGC boards — the overseeing
+            // executive committee's people, or residents where none stood up.
+            $out['cgc_governors'] = app(\App\Services\Demo\SimBoardService::class)
+                ->seatCgcGovernors((string) $j->id, $beat);
         }
 
         // ── Nonprofits + businesses: LEAF grain only (people live at leaves;
@@ -174,6 +179,13 @@ final class CivicsStage
                 workers: true,
                 beat: $beat,
             );
+
+            // Provision and SEAT boards for a bounded sample of the businesses:
+            // a real employment sample, a co-determination reconcile, and seated
+            // owner + worker representatives, so the board and co-determination
+            // surfaces are not empty. Rows are sampled (the 8 GB box).
+            $out['org_boards'] = app(\App\Services\Demo\SimBoardService::class)
+                ->seedBusinessBoards((string) $j->id, $beat);
         }
 
         // ── Bills: chamber dockets — introduced/referred/in-committee only
@@ -528,6 +540,8 @@ final class CivicsStage
         $zero = ['true' => 0, 'minted' => 0];
 
         return ['parties' => $zero, 'nonprofits' => $zero, 'businesses' => $zero,
-            'bills' => $zero, 'endorsements' => 0, 'cgcs' => 0, 'skipped' => $skipped];
+            'bills' => $zero, 'endorsements' => 0, 'cgcs' => 0, 'cgc_governors' => 0,
+            'org_boards' => ['boards' => 0, 'workers' => 0, 'owner_seats' => 0, 'worker_seats' => 0],
+            'skipped' => $skipped];
     }
 }
