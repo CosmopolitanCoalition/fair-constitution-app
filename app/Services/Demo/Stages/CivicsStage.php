@@ -4,10 +4,13 @@ namespace App\Services\Demo\Stages;
 
 use App\Models\Bill;
 use App\Models\BillVersion;
+use App\Models\ChamberVote;
+use App\Models\ChamberVoteProposal;
 use App\Models\Legislature;
 use App\Models\LegislatureMember;
 use App\Models\Organization;
 use App\Services\AuditService;
+use App\Services\Organizations\CgcService;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 
@@ -74,6 +77,14 @@ final class CivicsStage
     /** Each endorser backs up to this many candidates in the open election. */
     private const ENDORSEMENTS_PER_ENDORSER = 2;
 
+    /** Common Good Corporations chartered per jurisdiction (a public register). */
+    private const CGC_TARGET = 2;
+
+    private const CGC_NAMES = [
+        'Public Works Corporation', 'Community Health Corporation',
+        'Water Authority Corporation', 'Public Media Corporation',
+    ];
+
     private function __construct() {}
 
     /**
@@ -131,6 +142,13 @@ final class CivicsStage
             // partisanship is mooted; the demo graph reflects that rather than a
             // party-only slate. Idempotent — skipped once the election carries them.
             $out['endorsements'] = self::mintEndorsements($j, $beat);
+
+            // Common Good Corporations (Art. III §5): chartered by the chamber,
+            // publicly owned, IP permanently public domain. Driven through the
+            // real CgcService so the CGC register, the public stake, the
+            // co-determined governor board and the genesis IP dedication all land
+            // the same way a live charter would — the register is not empty.
+            $out['cgcs'] = self::chartCgcs($j, $legislature, $seated, $beat);
         }
 
         // ── Nonprofits + businesses: LEAF grain only (people live at leaves;
@@ -234,6 +252,95 @@ final class CivicsStage
         }
 
         return self::WORKER_CYCLE[$i % count(self::WORKER_CYCLE)];
+    }
+
+    /**
+     * Charter Common Good Corporations for this jurisdiction, DRIVEN through the
+     * real CgcService (single owner) so every write a live charter makes lands:
+     * the F-LEG-019 creation act, the public organization, the jurisdiction's
+     * 100% stake (public ownership stands where shareholders would), the
+     * co-determined governor board with its vacant governor seats, the GENESIS
+     * IP dedication (all IP public domain, Art. III §5, irreversible), and the
+     * co-determination watchers.
+     *
+     * The charter is a SYSTEM ACT at sim scale (ruling sub-institutions-path B):
+     * a seated member proposes and a synthetic ADOPTED chamber vote carries it,
+     * rather than a full per-CGC floor vote. Governor seats are left forming —
+     * the overseeing executive committee nominates and the chamber consents in a
+     * later pass; the register shows the CGC, its charter and its public-domain
+     * IP now. Idempotent: skipped once the jurisdiction already holds CGCs.
+     */
+    private static function chartCgcs(object $j, Legislature $legislature, $seated, ?\Closure $beat): int
+    {
+        $existing = (int) DB::table('organizations')
+            ->where('jurisdiction_id', $j->id)
+            ->where('type', Organization::TYPE_COMMON_GOOD_CORP)
+            ->whereNull('deleted_at')
+            ->count();
+
+        if ($existing > 0) {
+            return $existing; // idempotent
+        }
+
+        $proposer = $seated->first();
+        if ($proposer === null || empty($proposer->user_id)) {
+            return 0;
+        }
+
+        // The overseeing executive committee (delegated from this legislature),
+        // if one has been stood up; null is lawful — the charter records it.
+        $execId = DB::table('executives')
+            ->where('jurisdiction_id', $j->id)
+            ->whereNull('deleted_at')
+            ->where('status', '!=', 'dissolved')
+            ->value('id');
+
+        $cgc = app(CgcService::class);
+        $serving = max(1, (int) $legislature->total_seats);
+        $created = 0;
+
+        for ($i = 0; $i < self::CGC_TARGET; $i++) {
+            $beat && $beat();
+
+            $name = $j->name.' '.self::CGC_NAMES[$i % count(self::CGC_NAMES)];
+
+            $vote = ChamberVote::create([
+                'body_type'        => 'legislature',
+                'body_id'          => (string) $legislature->id,
+                'legislature_id'   => (string) $legislature->id,
+                'jurisdiction_id'  => (string) $j->id,
+                'vote_type'        => 'cgc_creation',
+                'vote_method'      => ChamberVote::METHOD_YES_NO,
+                'threshold_basis'  => 'majority',
+                'serving_snapshot' => $serving,
+                'stage'            => 'floor',
+                'status'           => ChamberVote::STATUS_CLOSED,
+                'outcome'          => ChamberVote::OUTCOME_ADOPTED,
+                'opened_at'        => now(),
+                'closed_at'        => now(),
+            ]);
+
+            $proposal = ChamberVoteProposal::create([
+                'legislature_id'        => (string) $legislature->id,
+                'proposal_kind'         => ChamberVoteProposal::KIND_CGC_CREATION,
+                'proposed_by_member_id' => (string) $proposer->id,
+                'vote_id'               => (string) $vote->id,
+                'status'                => ChamberVoteProposal::STATUS_ADOPTED,
+                'payload'               => [
+                    'name'                   => $name,
+                    'charter'                => "Chartered to provide {$name} as a public good. "
+                        .'Public ownership; all intellectual property is permanently in the public domain (Art. III §5).',
+                    'goods_services'         => $name,
+                    'oversight_executive_id' => $execId !== null ? (string) $execId : null,
+                    'owner_seats'            => 3,
+                ],
+            ]);
+
+            $cgc->adoptCreation($vote, $proposal);
+            $created++;
+        }
+
+        return $created;
     }
 
     /**
@@ -421,6 +528,6 @@ final class CivicsStage
         $zero = ['true' => 0, 'minted' => 0];
 
         return ['parties' => $zero, 'nonprofits' => $zero, 'businesses' => $zero,
-            'bills' => $zero, 'endorsements' => 0, 'skipped' => $skipped];
+            'bills' => $zero, 'endorsements' => 0, 'cgcs' => 0, 'skipped' => $skipped];
     }
 }

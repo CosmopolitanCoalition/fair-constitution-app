@@ -156,6 +156,60 @@ class CivicsStageTest extends TestCase
         });
     }
 
+    /**
+     * CGCs (W7 — the CGC register): the chamber charters Common Good
+     * Corporations, driven through the real CgcService, so the register shows
+     * publicly-owned corporations with public-domain IP and a governor board.
+     */
+    public function test_the_chamber_charters_common_good_corporations(): void
+    {
+        $this->onLivePg(function () {
+            $jid = $this->leaf(500_000);
+
+            $legId = (string) Str::uuid();
+            DB::table('legislatures')->insert([
+                'id' => $legId, 'jurisdiction_id' => $jid, 'term_number' => 1, 'status' => 'active',
+                'total_seats' => 5, 'type_a_seats' => 5, 'type_b_seats' => 0, 'quorum_required' => 3,
+                'created_at' => now(), 'updated_at' => now(),
+            ]);
+            $member = (string) Str::uuid();
+            DB::table('users')->insert([
+                'id' => $member, 'name' => 'Seated', 'email' => 'sim-'.Str::lower(Str::random(10)).'@demo.invalid',
+                'password' => bcrypt(Str::random(20)), 'status' => 'registered', 'terms_accepted_at' => now(),
+                'timezone' => 'UTC', 'created_at' => now(), 'updated_at' => now(),
+            ]);
+            DB::table('legislature_members')->insert([
+                'id' => (string) Str::uuid(), 'legislature_id' => $legId, 'user_id' => $member,
+                'seat_type' => 'a', 'seat_no' => 1, 'status' => 'elected', 'created_at' => now(), 'updated_at' => now(),
+            ]);
+
+            CivicsStage::run($jid, null, 1);
+
+            $cgcs = DB::table('organizations')
+                ->where('jurisdiction_id', $jid)->where('type', 'common_good_corp')->whereNull('deleted_at')->get();
+            $this->assertGreaterThan(0, $cgcs->count(), 'the chamber charters CGCs');
+
+            foreach ($cgcs as $cgc) {
+                $this->assertTrue((bool) $cgc->is_cgc);
+                $this->assertTrue((bool) $cgc->ip_is_public_domain, 'CGC IP is public domain (Art. III §5)');
+                $this->assertSame('public', $cgc->ownership_type);
+                // Genesis IP dedication landed in the register.
+                $this->assertGreaterThan(0, DB::table('cgc_ip_register')->where('organization_id', $cgc->id)->count(),
+                    'the genesis IP dedication is on the register');
+                // A governor board with the jurisdiction's 100% stake.
+                $this->assertNotNull($cgc->board_id, 'a governor board was provisioned');
+                $this->assertSame(1, DB::table('org_ownership_stakes')
+                    ->where('organization_id', $cgc->id)->where('holder_type', 'jurisdictions')->count(),
+                    'the jurisdiction holds the single public stake');
+            }
+
+            // Idempotent: a second civics pass charters no more.
+            CivicsStage::run($jid, null, 1);
+            $this->assertSame($cgcs->count(), DB::table('organizations')
+                ->where('jurisdiction_id', $jid)->where('type', 'common_good_corp')->whereNull('deleted_at')->count());
+        });
+    }
+
     // ── fixtures ──────────────────────────────────────────────────────────
 
     /** A childless jurisdiction with a population — the leaf org path's precondition. */
