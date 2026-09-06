@@ -54,8 +54,12 @@ class SimRun extends Model
 
     /** Which item kinds belong to each phase — the claim ladder's rung map. */
     public const PHASE_KINDS = [
-        'enumerating' => ['manifest'],
-        'profiling' => ['profile_research', 'profile_inherit'],
+        // Reserved no-op slots (W7 item 3): enumeration happens in
+        // SimStartCommand (not a stage), and a real acceptance scan is future
+        // work. Empty kinds so nothing ever throws "no stage wired"; the pump
+        // advances straight through them.
+        'enumerating' => [],
+        'profiling' => [],
         'cohorts' => ['cohort_scope'],
         'identities' => ['identity_batch'],
         'elections' => ['election_scope'],
@@ -83,7 +87,7 @@ class SimRun extends Model
         // counts in metrics. One item per jurisdiction whose bench item
         // settled.
         'civics' => ['civics_scope'],
-        'verifying' => ['acceptance_scan'],
+        'verifying' => [],
         'done' => [],
     ];
 

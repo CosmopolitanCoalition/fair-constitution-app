@@ -423,11 +423,10 @@ class SimPumpCommand extends Command
     {
         $kinds = $run->currentKinds();
 
-        if ($kinds === []) {
-            return;
-        }
-
-        $open = DB::table('sim_items')
+        // An empty-kind phase (W7 item 3: enumerating / profiling / verifying)
+        // has nothing to wait for, so it must ADVANCE, not return. Only a phase
+        // with open items of its own kinds blocks the advance.
+        $open = $kinds !== [] && DB::table('sim_items')
             ->where('run_id', $run->id)
             ->whereIn('kind', $kinds)
             ->whereIn('status', SimItem::OPEN)
