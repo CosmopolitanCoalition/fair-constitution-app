@@ -60,6 +60,16 @@ class SettingsController extends Controller
         'judiciary_is_elected',
         'worker_rep_min_employees',
         'worker_rep_parity_employees',
+        // Wave 6 (item 7) — the structural keys the engine reads but no act
+        // could set: the Type B seats per constituent, the activation curve
+        // and the critical-population threshold (CLK-06).
+        'type_b_seats_per_child',
+        'critical_population_threshold',
+        'activation_tier_enabled',
+        'activation_tier_k',
+        'activation_tier_exponent',
+        'activation_tier_floor',
+        'activation_tier_cap',
         // Phase L (slice L-1) — the monetary levers. Until now the register
         // showed 17 keys and NONE of the economy dials, so a founder set a
         // currency and a stipend at setup and no screen ever showed them
@@ -98,6 +108,13 @@ class SettingsController extends Controller
         'judiciary_is_elected'              => 'appointed is the default',
         'worker_rep_min_employees'          => 'first worker board seat · CLK-13',
         'worker_rep_parity_employees'       => 'worker/shareholder parity · CLK-14',
+        'type_b_seats_per_child'            => 'equal seats per constituent · the Type B ladder starts here',
+        'critical_population_threshold'     => 'residents that boot a place · CLK-06',
+        'activation_tier_enabled'           => 'activation curve on (1) or off (0)',
+        'activation_tier_k'                 => 'activation curve k · threshold = clamp(ceil(k · P^(1/exponent)), floor, cap)',
+        'activation_tier_exponent'          => 'activation curve exponent',
+        'activation_tier_floor'             => 'activation curve resident floor',
+        'activation_tier_cap'               => 'activation curve resident cap',
         // Phase L — monetary levers. All dual-door: a chamber cannot vote
         // itself a raise without its constituents' consent.
         'stipend_enabled'                   => 'the civic stipend runs · dual-door',

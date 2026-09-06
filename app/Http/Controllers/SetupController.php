@@ -20,6 +20,8 @@ use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Str;
 use Illuminate\Validation\Rule;
+use App\Services\Provision\ProvisionRunControl;
+use App\Support\SetupLadder;
 use Inertia\Inertia;
 use Inertia\Response;
 
@@ -83,7 +85,9 @@ class SetupController extends Controller
         }
 
         // SOLO. Convention: setup_step_completed = n  →  steps 0..n-1 done, next is step n.
-        $next = min(4, max(0, (int) $settings->setup_step_completed));
+        // THE WIZARD LADDER (ruling wizard-ladder A, 2026-09-05): Steps 0 to 6;
+        // the scale and simulate choices decide whether 4 and 5 open.
+        $next = min(SetupLadder::LAST, SetupLadder::next($settings));
 
         return redirect("/setup/step/{$next}");
     }
@@ -100,7 +104,7 @@ class SetupController extends Controller
             return redirect('/setup/bootstrap');
         }
 
-        if ($n < 0 || $n > 4) {
+        if ($n < SetupLadder::FIRST || $n > SetupLadder::LAST) {
             return redirect('/setup');
         }
 
@@ -115,8 +119,9 @@ class SetupController extends Controller
             return redirect('/setup');
         }
 
-        // Gate forward progression: step n is reachable iff steps 0..n-1 are done.
-        if ((int) $settings->setup_step_completed < $n) {
+        // Gate forward progression: step n is reachable iff every applicable
+        // step before it is done, and n itself applies (a skipped step has no page).
+        if (! SetupLadder::reachable($n, $settings)) {
             return redirect('/setup');
         }
 
@@ -125,7 +130,9 @@ class SetupController extends Controller
             1 => 'Setup/Step1_Constants',
             2 => 'Setup/Step2_MapData',
             3 => 'Setup/Step3_Districts',
-            4 => 'Setup/Step4_Confirm',
+            4 => 'Setup/Step4_ScaleUp',
+            5 => 'Setup/Step5_Simulate',
+            6 => 'Setup/Step6_Confirm',
         ];
 
         $extra = [];
@@ -161,12 +168,16 @@ class SetupController extends Controller
         }
 
         if ($n === 4) {
+            $extra['summary']  = $this->buildStep4Summary();
+            $extra['progress'] = $this->step4ProgressPayload();
+        }
+
+        if ($n === 6) {
             $extra['summary'] = $this->buildStep4Summary();
             // Note: data-quality review lives in Step 2 (post-ETL,
-            // pre-apportionment). Step 4 has nothing to review beyond
-            // confirming institutions can be seated. The review snapshot
-            // still gets captured into setup_completion_notes when the
-            // operator clicks Finish — see completeStep4().
+            // pre-apportionment). The review snapshot is captured into
+            // setup_completion_notes when the operator clicks Finish — see
+            // completeStep6().
         }
 
         return Inertia::render($pages[$n], array_merge([
@@ -2716,12 +2727,33 @@ class SetupController extends Controller
         abort_unless((bool) $request->user()?->is_operator, 403);
 
         $settings = InstanceSettings::current();
-        $settings->setup_step_completed = max((int) $settings->setup_step_completed, 4);
+
+        // Step 3 is done when the districts exist: the map run finished, or
+        // the root legislature holds an ACTIVE map (the manual path).
+        $mapsDone = DB::table('autoscale_runs')->where('status', 'done')->exists();
+        if (! $mapsDone) {
+            $root = $this->resolveRootJurisdiction();
+            $mapsDone = $root !== null && DB::table('legislature_district_maps as m')
+                ->join('legislatures as l', 'l.id', '=', 'm.legislature_id')
+                ->where('l.jurisdiction_id', $root->id)
+                ->whereNull('l.deleted_at')->whereNull('m.deleted_at')
+                ->where('m.status', 'active')
+                ->exists();
+        }
+        if (! $mapsDone && (int) $settings->setup_step_completed < 4) {
+            return response()->json([
+                'ok'    => false,
+                'error' => 'The districts are not built yet. Wait for the map run to finish, or activate the root map in the mapper.',
+            ], 409);
+        }
+
+        $settings->setup_step_completed = SetupLadder::completed(3, $settings);
         $settings->save();
 
         return response()->json([
+            'ok'       => true,
             'settings' => $this->serializeSettings($settings->fresh()),
-            'next'     => '/setup/step/4',
+            'next'     => '/setup/step/'.min(SetupLadder::LAST, SetupLadder::next($settings->fresh())),
         ]);
     }
 
@@ -3572,52 +3604,135 @@ class SetupController extends Controller
         return response()->json(['ok' => true, 'reverted' => true]);
     }
 
+    // ─── Step 4 — Scale Up Institutions (Wave 6, the Step 4 engine) ─────────
+
     /**
-     * POST /api/setup/wizard/step4/complete — finish setup.
-     *
-     * Queues the institution shell set for every jurisdiction that holds a
-     * legislature (executive, court, election board + system member, civic
-     * spaces), records confirmation, and flips setup_completed_at. From this
-     * point /setup redirects home.
-     *
-     * THE ETL RULE (setup-loop audit, 2026-08-23): this used to call
-     * InstitutionStubService::generate(null) inline — one planet-wide pluck of
-     * every legislature's jurisdiction_id rebound as `IN (?,?,?…)`. Above
-     * 65,535 legislatures PostgreSQL refuses the statement outright ("number
-     * of parameters must be between 0 and 65535" — proven live), so an eager
-     * full-scale world could never finish setup. The whole-world case now
-     * rides the same keyset-chunked, committed-per-chunk, idempotent
-     * InstitutionProvisionService the eager chain and /building use, off the
-     * request via ProvisionInstitutionsJob (its own docblock forbids running
-     * it inline). The per-jurisdiction stub path (ActivationService) is
-     * bounded and stays as it is. A world the eager chain already provisioned
-     * simply reports zero pending — the job is a no-op there.
+     * GET /api/setup/wizard/step4/progress — the run, the ledger counters, the
+     * stage bars, the lanes and the review list. Cheap on every poll: the
+     * ledger counters are one indexed aggregate; the world counts are cached
+     * for ten seconds.
      */
-    public function completeStep4(Request $request): JsonResponse
+    public function step4Progress(): JsonResponse
+    {
+        return response()->json($this->step4ProgressPayload());
+    }
+
+    /** POST /api/setup/wizard/step4/start — start (or adopt) the Step 4 run. THE PAGE TRIGGERS. */
+    public function step4Start(Request $request, ProvisionRunControl $control): JsonResponse
+    {
+        abort_unless((bool) $request->user()?->is_operator, 403);
+
+        $result = $control->start();
+        if (! $result['ok']) {
+            return response()->json(['ok' => false, 'error' => $result['error']], 409);
+        }
+        try {
+            // The first pump minute, now rather than in up to sixty seconds.
+            \Illuminate\Support\Facades\Artisan::queue('provision:pump')->onQueue('autoscale');
+        } catch (\Throwable) {
+            // The scheduler's next minute runs it anyway.
+        }
+
+        return response()->json(['ok' => true, 'run_id' => $result['run_id'], 'created' => $result['created']]);
+    }
+
+    /** POST /api/setup/wizard/step4/halt */
+    public function step4Halt(Request $request, ProvisionRunControl $control): JsonResponse
+    {
+        abort_unless((bool) $request->user()?->is_operator, 403);
+        $result = $control->halt();
+
+        return response()->json($result, $result['ok'] ? 200 : 404);
+    }
+
+    /** POST /api/setup/wizard/step4/resume — body: requeue_review (bool). */
+    public function step4Resume(Request $request, ProvisionRunControl $control): JsonResponse
+    {
+        abort_unless((bool) $request->user()?->is_operator, 403);
+        $result = $control->resume($request->boolean('requeue_review'));
+        if ($result['ok']) {
+            try {
+                \Illuminate\Support\Facades\Artisan::queue('provision:pump')->onQueue('autoscale');
+            } catch (\Throwable) {
+            }
+        }
+
+        return response()->json($result, $result['ok'] ? 200 : 404);
+    }
+
+    /** POST /api/setup/wizard/step4/rollback — body: shells (bool). Halt first. */
+    public function step4Rollback(Request $request, ProvisionRunControl $control): JsonResponse
+    {
+        abort_unless((bool) $request->user()?->is_operator, 403);
+        $result = $control->revert($request->boolean('shells'), false);
+
+        return response()->json($result, $result['ok'] ? 200 : 409);
+    }
+
+    /**
+     * POST /api/setup/wizard/step4/complete — LOCK the scaled world: Step 4 is
+     * done when its run is done. Advances the ladder; Step 5 opens when it
+     * applies, else Step 6.
+     */
+    public function completeStep4(Request $request, ProvisionRunControl $control): JsonResponse
+    {
+        abort_unless((bool) $request->user()?->is_operator, 403);
+
+        $settings = InstanceSettings::current();
+        $run = $control->latestRun();
+        if (($run === null || $run->status !== \App\Models\ProvisionRun::STATUS_DONE)
+            && (int) $settings->setup_step_completed < 5) {
+            return response()->json([
+                'ok'    => false,
+                'error' => 'The Step 4 run is not done. Wait for it, or roll it back and start again.',
+            ], 409);
+        }
+
+        $settings->setup_step_completed = SetupLadder::completed(4, $settings);
+        $settings->save();
+
+        return response()->json([
+            'ok'       => true,
+            'settings' => $this->serializeSettings($settings->fresh()),
+            'next'     => '/setup/step/'.min(SetupLadder::LAST, SetupLadder::next($settings->fresh())),
+        ]);
+    }
+
+    /**
+     * POST /api/setup/wizard/step5/complete — Step 5 (Simulate) done. The
+     * simulation page itself is Wave 7's; this closes the step on the ladder.
+     */
+    public function completeStep5(Request $request): JsonResponse
+    {
+        abort_unless((bool) $request->user()?->is_operator, 403);
+
+        $settings = InstanceSettings::current();
+        $settings->setup_step_completed = SetupLadder::completed(5, $settings);
+        $settings->save();
+
+        return response()->json([
+            'ok'       => true,
+            'settings' => $this->serializeSettings($settings->fresh()),
+            'next'     => '/setup/step/'.min(SetupLadder::LAST, SetupLadder::next($settings->fresh())),
+        ]);
+    }
+
+    /**
+     * POST /api/setup/wizard/step6/complete — finish setup (Step 6, Confirm
+     * and Close). Records confirmation and flips setup_completed_at. From
+     * this point /setup redirects home. Institutions are Step 4's (the
+     * engine), never dispatched from here (ruling done-flip-vs-pages A).
+     */
+    public function completeStep6(Request $request): JsonResponse
     {
         // Operator-only (route is auth-gated): finishing setup closes the
         // founding window for good (constants + game mode lock), so a guest on
         // a public box must never be able to end it.
         abort_unless((bool) $request->user()?->is_operator, 403);
 
-        $provision = app(\App\Services\InstitutionProvisionService::class);
-        $pending   = [];
-        foreach (\App\Services\InstitutionProvisionService::STEPS as $step) {
-            $pending[$step] = $provision->pendingTotal($step);
-        }
-        \App\Jobs\ProvisionInstitutionsJob::dispatch();
-
-        $stubs = [
-            // Kept for the Step 4 page's counters (now "queued", not "created").
-            'executives_pending'  => $pending['executives'],
-            'judiciaries_pending' => $pending['judiciaries'],
-            'pending'             => $pending,
-            'queued'              => true,
-        ];
-
         $settings = InstanceSettings::current();
-        $settings->setup_districts_confirmed_at = now();
-        $settings->setup_step_completed         = max((int) $settings->setup_step_completed, 5);
+        $settings->setup_districts_confirmed_at = $settings->setup_districts_confirmed_at ?? now();
+        $settings->setup_step_completed         = SetupLadder::completed(6, $settings);
         $settings->setup_completed_at           = now();
         // Capture the data-quality review snapshot at completion time so a
         // future audit can see what issues were outstanding when the
@@ -3626,10 +3741,129 @@ class SetupController extends Controller
         $settings->save();
 
         return response()->json([
+            'ok'       => true,
             'settings' => $this->serializeSettings($settings->fresh()),
-            'stubs'    => $stubs,
             'next'     => '/',
         ]);
+    }
+
+    /**
+     * The Step 4 page payload: run, ledger, stages (the StageBars contract),
+     * lanes, review rows, ETA from the measured rate (never fabricated).
+     */
+    private function step4ProgressPayload(): array
+    {
+        $control = app(ProvisionRunControl::class);
+        $run     = $control->latestRun();
+
+        $ledger = DB::table('provision_ledger')->selectRaw("
+            COUNT(*) AS total,
+            COUNT(*) FILTER (WHERE status = 'skipped') AS skipped,
+            COUNT(*) FILTER (WHERE stage >= 1) AS shells_done,
+            COUNT(*) FILTER (WHERE status = 'done') AS units_done,
+            COUNT(*) FILTER (WHERE status = 'review') AS review,
+            COUNT(*) FILTER (WHERE status = 'running' AND stage = 0) AS shells_running,
+            COUNT(*) FILTER (WHERE status = 'running' AND stage = 1) AS units_running,
+            COUNT(*) FILTER (WHERE status = 'pending' AND stage = 0) AS shells_pending,
+            COUNT(*) FILTER (WHERE status = 'pending' AND stage = 1) AS units_pending
+        ")->first();
+        $ledger = array_map('intval', (array) $ledger);
+        $work   = max(0, $ledger['total'] - $ledger['skipped']);
+
+        $world = Cache::remember('setup.step4.world_counts', 10, function () {
+            $c = fn (string $sql): int => (int) DB::scalar($sql);
+
+            return [
+                'executives'      => $c('SELECT count(*) FROM executives WHERE deleted_at IS NULL'),
+                'judiciaries'     => $c('SELECT count(*) FROM judiciaries WHERE deleted_at IS NULL'),
+                'election_boards' => $c("SELECT count(*) FROM election_boards WHERE deleted_at IS NULL AND status = 'active'"),
+                'treasuries'      => $c("SELECT count(*) FROM treasury_accounts WHERE deleted_at IS NULL AND owner_type = 'jurisdictions'"),
+                'elections'       => $c('SELECT count(*) FROM elections'),
+                'committees'      => $c('SELECT count(*) FROM committees WHERE deleted_at IS NULL'),
+                'departments'     => $c('SELECT count(*) FROM departments WHERE deleted_at IS NULL'),
+            ];
+        });
+
+        $elapsed = $run?->started_at !== null ? max(0, (int) now()->diffInSeconds($run->started_at, true)) : null;
+        $eta = null;
+        if ($run !== null && $run->status === 'running' && $elapsed !== null && $elapsed > 30) {
+            // The measured rate over the run so far; nothing before the first
+            // fifty units land.
+            $doneUnits = $ledger['units_done'];
+            if ($ledger['shells_pending'] + $ledger['shells_running'] > 0) {
+                $rate = $ledger['shells_done'] / max(1, $elapsed);
+                $eta  = $ledger['shells_done'] >= 5000 && $rate > 0
+                    ? (int) round(($ledger['shells_pending'] + $ledger['shells_running']) / $rate) : null;
+            } elseif ($doneUnits >= 50) {
+                $rate = $doneUnits / max(1, $elapsed);
+                $eta  = $rate > 0 ? (int) round(($ledger['units_pending'] + $ledger['units_running']) / $rate) : null;
+            }
+        }
+
+        $stages = [
+            ['kind' => 'shells', 'label' => 'Institution shells', 'phase' => 'shells',
+             'total' => $work, 'done' => $ledger['shells_done'], 'running' => $ledger['shells_running'],
+             'is_current' => $ledger['shells_pending'] + $ledger['shells_running'] > 0,
+             'note' => 'Executive, court (the bench law), election board and its system member, public square and halls, public treasury. Set-based batches.'],
+            ['kind' => 'units', 'label' => 'Seats, committees, departments', 'phase' => 'units',
+             'total' => $work, 'done' => $ledger['units_done'], 'running' => $ledger['units_running'],
+             'review' => $ledger['review'],
+             'is_current' => $ledger['shells_pending'] + $ledger['shells_running'] === 0 && $ledger['units_pending'] + $ledger['units_running'] > 0,
+             'note' => 'One election and its races per legislature; committees to K(S) and departments to D(P) as system acts.'],
+        ];
+
+        $lanes = [];
+        if ($run !== null) {
+            $lanes = DB::table('provision_worker_leases')
+                ->where('run_id', (string) $run->id)
+                ->where('last_seen_at', '>', now()->subMinutes(2))
+                ->orderByRaw('claim_started_at ASC NULLS LAST, started_at')
+                ->get()
+                ->map(fn ($w) => [
+                    'id'          => substr((string) $w->id, 0, 8),
+                    'lane'        => $w->lane,
+                    'claim_type'  => $w->claim_type,
+                    'claim_label' => $w->claim_label,
+                    'claim_secs'  => $w->claim_started_at !== null
+                        ? max(0, (int) now()->diffInSeconds(\Illuminate\Support\Carbon::parse($w->claim_started_at), true)) : null,
+                    'claims_done' => (int) $w->claims_done,
+                ])->values()->all();
+        }
+
+        $review = DB::table('provision_ledger as pl')
+            ->join('jurisdictions as j', 'j.id', '=', 'pl.jurisdiction_id')
+            ->where('pl.status', 'review')
+            ->orderByDesc('pl.est_cost')
+            ->limit(25)
+            ->get(['pl.legislature_id', 'j.name', 'j.slug', 'j.adm_level', 'pl.reason'])
+            ->map(fn ($r) => [
+                'legislature_id' => (string) $r->legislature_id,
+                'name' => $r->name, 'slug' => $r->slug, 'adm_level' => $r->adm_level,
+                'reason' => $r->reason,
+            ])->values()->all();
+
+        return [
+            'run' => $run === null ? null : [
+                'id'             => (string) $run->id,
+                'status'         => $run->status,
+                'started_at'     => $run->started_at?->toIso8601String(),
+                'finished_at'    => $run->finished_at?->toIso8601String(),
+                'elapsed_s'      => $elapsed,
+                'eta_s'          => $eta,
+                'halt_requested' => $run->halt_requested_at !== null,
+                'ledger_seeded'  => $run->ledger_seeded_at !== null,
+                'rolled_back_at' => $run->rolled_back_at?->toIso8601String(),
+                'baseline'       => $run->baseline,
+                'lanes'          => count($lanes),
+                'pool'           => \App\Support\HostCapacity::autoscaleWorkers(),
+            ],
+            'ledger'  => $ledger,
+            'world'   => $world,
+            'stages'  => $stages,
+            'lanes'   => $lanes,
+            'review'  => $review,
+            'maps_running' => DB::table('autoscale_runs')->whereIn('status', ['queued', 'sizing', 'mapping'])->exists(),
+        ];
     }
 
     /**
@@ -4356,6 +4590,11 @@ class SetupController extends Controller
             'setup_districts_confirmed_at'  => optional($settings->setup_districts_confirmed_at)->toIso8601String(),
             'setup_mode'                    => $settings->setup_mode,
             'game_mode'                     => $settings->game_mode, // production | sandbox | null (not yet chosen)
+            'institution_scale_mode'        => (string) ($settings->institution_scale_mode ?? 'eager'),
+            'simulate_at_scale'             => (bool) $settings->simulate_at_scale,
+            // THE WIZARD LADDER (Wave 6): every step with its status; the pages render the stepper from it.
+            'ladder'                        => SetupLadder::describe($settings),
+            'next_step'                     => min(SetupLadder::LAST, SetupLadder::next($settings)),
             'is_mirror'                     => $settings->isMirror(),
             'server_id'                     => $settings->server_id, // public mesh id (never the private key — that is $hidden)
             'self_url'                      => config('cga.federation_self_url'),

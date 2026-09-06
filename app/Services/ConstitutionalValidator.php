@@ -227,6 +227,16 @@ class ConstitutionalValidator
         // representation below the constitutional floor; lowering is fine.
         'worker_rep_min_employees' => ['min' => 1, 'max' => 100, 'citation' => 'Art. III §6'],
         'worker_rep_parity_employees' => ['min' => 1, 'max' => 2000, 'citation' => 'Art. III §6'],
+        // Wave 6 (item 7) — structural keys. The Type B ladder steps 5 → 2 and
+        // never below 2 (CLAUDE.md Bicameral Support); the activation curve's
+        // rails are ActivationTierService's absolute floor and cap.
+        'type_b_seats_per_child' => ['min' => 2, 'max' => 9, 'citation' => 'Art. V §3 · as implemented'],
+        'critical_population_threshold' => ['min' => 1, 'max' => 1000000000, 'citation' => 'Art. II §1 · as implemented'],
+        'activation_tier_enabled' => ['min' => 0, 'max' => 1, 'citation' => 'Art. II §1 · as implemented'],
+        'activation_tier_k' => ['min' => 1, 'max' => 1000000, 'citation' => 'Art. II §1 · as implemented'],
+        'activation_tier_exponent' => ['min' => 1, 'max' => 10, 'citation' => 'Art. II §1 · as implemented'],
+        'activation_tier_floor' => ['min' => 1, 'max' => 1000000, 'citation' => 'Art. I · as implemented'],
+        'activation_tier_cap' => ['min' => 1, 'max' => 1000000, 'citation' => 'Art. I · as implemented'],
         'residency_confirmation_days' => ['min' => 1, 'max' => 365, 'citation' => 'Art. I · as implemented'],
         'initiative_petition_threshold_pct' => ['min' => 0.01, 'max' => 100, 'citation' => 'Art. II §6'],
         // Phase B (WI-B4) — the open-ballot phase settings (B-12):

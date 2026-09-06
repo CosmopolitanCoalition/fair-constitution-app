@@ -1204,6 +1204,10 @@ class SweepScopeProcessor
                  WHERE j.parent_id = ?
                    AND j.deleted_at IS NULL
                    AND j.geom IS NOT NULL
+                   -- zero is zero (ruling 2026-09-05): an uninhabited atom with no
+                   -- constituents seats nobody and needs no district
+                   AND (COALESCE(j.population, 0) >= 1
+                        OR EXISTS (SELECT 1 FROM jurisdictions cc WHERE cc.parent_id = j.id AND cc.deleted_at IS NULL))
                    {$notIn}
                    AND NOT EXISTS (
                        SELECT 1

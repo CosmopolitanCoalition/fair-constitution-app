@@ -1039,7 +1039,7 @@ class TypeBMapController extends Controller
                 'type_b_seats'             => 0,
                 'type_b_needs_districting' => true,
                 'total_seats'              => $typeA,
-                'quorum_required'          => max(3, (int) ceil($typeA / 2)),
+                'quorum_required'          => \App\Support\QuorumLaw::required($typeA),
                 'updated_at'               => now(),
             ]);
         });
@@ -1183,7 +1183,7 @@ class TypeBMapController extends Controller
                 'type_b_seats'             => $seats,
                 'type_b_needs_districting' => false,
                 'total_seats'              => $total,
-                'quorum_required'          => max(3, (int) ceil($total / 2)),
+                'quorum_required'          => \App\Support\QuorumLaw::required($total),
                 'updated_at'               => now(),
             ]);
         });

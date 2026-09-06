@@ -1,33 +1,53 @@
 <script setup>
 import { computed } from 'vue'
 
+// THE WIZARD LADDER (Wave 6): Steps 0 to 6. The server describes every step
+// (`settings.ladder`: n, label, applies, status) so a step that does not apply
+// to this instance renders as skipped, never as pending. Without a ladder the
+// stepper falls back to the counter convention: completed = n means steps
+// 0..n-1 are done and the next step is n.
 const props = defineProps({
     current: { type: Number, required: true },
     completed: { type: Number, required: true },
+    steps: { type: Array, default: null },
 })
 
-const STEPS = [
+const FALLBACK = [
     { n: 0, label: 'Cosmic Address' },
     { n: 1, label: 'Constitutional Defaults' },
     { n: 2, label: 'Map Data' },
     { n: 3, label: 'Build Districts' },
-    { n: 4, label: 'Confirm & Seat Institutions' },
+    { n: 4, label: 'Scale Up Institutions' },
+    { n: 5, label: 'Simulate' },
+    { n: 6, label: 'Confirm & Close' },
 ]
 
-function statusOf(n) {
-    if (n < props.current) return 'done'
+function fallbackStatus(n) {
     if (n === props.current) return 'current'
-    if (n <= props.completed + 1) return 'reachable'
+    if (n < props.completed) return 'done'
+    if (n === props.completed) return 'reachable'
     return 'locked'
 }
 
-function iconFor(n) {
-    const s = statusOf(n)
-    if (s === 'done') return '✓'
-    return String(n)
+const steps = computed(() => {
+    if (Array.isArray(props.steps) && props.steps.length) {
+        return props.steps.map(s => ({
+            ...s,
+            status: s.n === props.current ? 'current' : s.status,
+        }))
+    }
+    return FALLBACK.map(s => ({ ...s, applies: true, status: fallbackStatus(s.n) }))
+})
+
+function iconFor(s) {
+    if (s.status === 'done') return '✓'
+    if (s.status === 'skipped') return '–'
+    return String(s.n)
 }
 
-const steps = computed(() => STEPS.map(s => ({ ...s, status: statusOf(s.n) })))
+function clickable(s) {
+    return s.status === 'done' || s.status === 'current' || s.status === 'reachable'
+}
 </script>
 
 <template>
@@ -38,17 +58,18 @@ const steps = computed(() => STEPS.map(s => ({ ...s, status: statusOf(s.n) })))
             class="flex items-center flex-1 min-w-0"
         >
             <a
-                :href="s.status === 'locked' || s.deferred ? undefined : `/setup/step/${s.n}`"
+                :href="clickable(s) ? `/setup/step/${s.n}` : undefined"
                 :class="[
                     'flex items-center gap-2 px-3 py-2 rounded-md border text-sm transition-colors w-full',
                     s.status === 'current' && 'bg-blue-600 border-blue-500 text-white',
                     s.status === 'done' && 'bg-emerald-700 border-emerald-600 text-emerald-50 hover:bg-emerald-600',
                     s.status === 'reachable' && 'bg-gray-800 border-gray-700 text-gray-300 hover:bg-gray-700',
-                    (s.status === 'locked' || s.deferred) && 'bg-gray-900 border-gray-800 text-gray-600 cursor-not-allowed',
+                    s.status === 'locked' && 'bg-gray-900 border-gray-800 text-gray-600 cursor-not-allowed',
+                    s.status === 'skipped' && 'bg-gray-900 border-dashed border-gray-800 text-gray-600 cursor-not-allowed',
                 ]"
                 :aria-current="s.status === 'current' ? 'step' : undefined"
-                :aria-disabled="s.status === 'locked' || s.deferred ? 'true' : undefined"
-                :title="s.deferred ? 'Coming in a later release' : undefined"
+                :aria-disabled="clickable(s) ? undefined : 'true'"
+                :title="s.status === 'skipped' ? 'Not part of this setup: the choices at map acceptance skip this step' : undefined"
             >
                 <span
                     :class="[
@@ -56,10 +77,10 @@ const steps = computed(() => STEPS.map(s => ({ ...s, status: statusOf(s.n) })))
                         s.status === 'current' && 'bg-white text-blue-600',
                         s.status === 'done' && 'bg-emerald-300 text-emerald-900',
                         s.status === 'reachable' && 'bg-gray-700 text-gray-200',
-                        (s.status === 'locked' || s.deferred) && 'bg-gray-800 text-gray-600',
+                        (s.status === 'locked' || s.status === 'skipped') && 'bg-gray-800 text-gray-600',
                     ]"
-                >{{ iconFor(s.n) }}</span>
-                <span class="truncate">{{ s.label }}</span>
+                >{{ iconFor(s) }}</span>
+                <span class="truncate">{{ s.label }}<span v-if="s.status === 'skipped'" class="text-gray-600"> (skipped)</span></span>
             </a>
             <span
                 v-if="i < steps.length - 1"

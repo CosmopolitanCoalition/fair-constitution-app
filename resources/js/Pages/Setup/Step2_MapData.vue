@@ -746,7 +746,7 @@ onBeforeUnmount(() => {
 
 <template>
     <div class="max-w-5xl mx-auto px-6 py-8 w-full">
-            <SetupStepper :current="2" :completed="settings.setup_step_completed" />
+            <SetupStepper :current="2" :completed="settings.setup_step_completed" :steps="settings.ladder" />
 
             <header class="mt-8 mb-6">
                 <h1 class="text-3xl font-bold text-white mb-2">

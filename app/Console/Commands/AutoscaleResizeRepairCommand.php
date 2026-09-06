@@ -51,7 +51,7 @@ class AutoscaleResizeRepairCommand extends Command
             UPDATE legislatures l
                SET type_a_seats    = s.seats,
                    total_seats     = s.seats + l.type_b_seats,
-                   quorum_required = GREATEST(3, CEIL((s.seats + l.type_b_seats) / 2.0))::int,
+                   quorum_required = ".\App\Support\QuorumLaw::sql('s.seats + l.type_b_seats').",
                    updated_at      = now()
               FROM jurisdictions j
              CROSS JOIN LATERAL (
@@ -110,7 +110,7 @@ class AutoscaleResizeRepairCommand extends Command
                    type_b_rep_floor         = p.f,
                    type_b_needs_districting = p.needs,
                    total_seats              = l.type_a_seats + p.b,
-                   quorum_required          = GREATEST(3, CEIL((l.type_a_seats + p.b) / 2.0))::int,
+                   quorum_required          = ".\App\Support\QuorumLaw::sql('l.type_a_seats + p.b').",
                    updated_at               = now()
               FROM pick p
              WHERE l.id = p.leg_id

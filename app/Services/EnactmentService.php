@@ -270,6 +270,36 @@ class EnactmentService
         );
     }
 
+    /**
+     * A FOUNDING law (Wave 6): written by the system actor at Step 4 for an
+     * unseated chamber — today the charter of a system-act department
+     * (F-LEG-016). origin = founding, source = the system act. The same
+     * chain entry and public record as every other enactment.
+     */
+    public function enactFounding(
+        Legislature $legislature,
+        string $kind,
+        string $title,
+        string $text,
+        string $viaForm,
+    ): Law {
+        return $this->writeLaw(
+            legislatureId: (string) $legislature->id,
+            jurisdictionId: (string) $legislature->jurisdiction_id,
+            title: $title,
+            kind: $kind,
+            scale: [(string) $legislature->jurisdiction_id],
+            text: $text,
+            origin: Law::ORIGIN_FOUNDING,
+            sourceRefType: 'system_act',
+            sourceRefId: (string) $legislature->id,
+            scopeJudiciaryId: null,
+            enactingBillId: null,
+            effectiveAt: null,
+            viaForm: $viaForm,
+        );
+    }
+
     // =========================================================================
     // Internals
     // =========================================================================

@@ -249,6 +249,67 @@ class CommitteeService
     }
 
     /**
+     * THE SYSTEM ACT (Wave 6, ruling sub-institutions-path B, 2026-09-05):
+     * the Step 4 engine files F-LEG-009 as the system actor for a chamber
+     * that has not seated yet. The committee is created directly, recorded
+     * as an act with no vote id (no chamber voted) and the via_form marked
+     * system. Bicameral chambers take the kind split over the chamber's own
+     * seat counts (no serving members exist yet). A seated chamber never
+     * takes this path: the engine routes a member's filing to
+     * proposeCreation().
+     */
+    public function createAsSystemAct(Legislature $legislature, string $name, ?string $purpose, int $seats): Committee
+    {
+        if (trim($name) === '') {
+            throw new ConstitutionalViolation('A committee needs a name.', 'CGA Forms Catalog (F-LEG-009)');
+        }
+        if ($seats < 1) {
+            throw new ConstitutionalViolation('A committee carries at least one seat.', 'CGA Forms Catalog (F-LEG-009)');
+        }
+        if (LegislatureMember::query()->where('legislature_id', $legislature->id)
+                ->whereIn('status', LegislatureMember::CURRENT_STATUSES)->exists()) {
+            throw new ConstitutionalViolation(
+                'A seated chamber creates its committees by vote (F-LEG-009); the system act is for unseated chambers only.',
+                'Art. II §9'
+            );
+        }
+
+        $bicameral = (int) $legislature->type_b_seats > 0;
+        $split     = null;
+        if ($bicameral) {
+            $split = self::kindSplit($seats, max(1, (int) $legislature->type_a_seats), max(1, (int) $legislature->type_b_seats));
+            ConstitutionalValidator::assertCommitteeKindSplit($seats, $split['type_a'], $split['type_b'], true);
+        }
+
+        $committee = Committee::create([
+            'legislature_id'     => $legislature->id,
+            'name'               => $name,
+            'purpose'            => $purpose,
+            'seats'              => $seats,
+            'type_a_seats'       => $split['type_a'] ?? null,
+            'type_b_seats'       => $split['type_b'] ?? null,
+            'created_by_vote_id' => null,
+            'status'             => Committee::STATUS_CREATED,
+        ]);
+
+        $this->records->publish(
+            kind: 'act',
+            title: sprintf('Committee created at founding: %s (%d seats)', $committee->name, $committee->seats),
+            body: $purpose,
+            attrs: [
+                'jurisdiction_id' => (string) $legislature->jurisdiction_id,
+                'legislature_id'  => (string) $legislature->id,
+                'via_form'        => 'F-LEG-009',
+                'subject_type'    => 'committees',
+                'subject_id'      => (string) $committee->id,
+                'system_act'      => true,
+            ],
+        );
+
+        return $committee;
+    }
+
+    /**
      * Adoption effect (routed by ChamberActService::resolveProposalVote
      * inside the closing transaction).
      */

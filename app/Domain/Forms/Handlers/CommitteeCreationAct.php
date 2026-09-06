@@ -46,7 +46,28 @@ class CommitteeCreationAct implements FormHandler
     public function handle(?User $actor, array $payload): array
     {
         $legislature = ChamberActor::legislature($payload, 'F-LEG-009');
-        $member      = ChamberActor::member($actor, (string) $legislature->id, 'F-LEG-009');
+
+        // THE SYSTEM ACT (Wave 6, ruling sub-institutions-path B): a null
+        // actor with system_act set is the Step 4 engine founding an unseated
+        // chamber's committees. Recorded on the chain by the engine, no vote.
+        if ($actor === null && ! empty($payload['system_act'])) {
+            $committee = $this->committees->createAsSystemAct(
+                $legislature,
+                (string) ($payload['name'] ?? ''),
+                isset($payload['purpose']) ? (string) $payload['purpose'] : null,
+                (int) ($payload['seats'] ?? 0),
+            );
+
+            return [
+                'legislature_id' => (string) $legislature->id,
+                'committee_id'   => (string) $committee->id,
+                'name'           => (string) $committee->name,
+                'seats'          => (int) $committee->seats,
+                'system_act'     => true,
+            ];
+        }
+
+        $member = ChamberActor::member($actor, (string) $legislature->id, 'F-LEG-009');
 
         $result = $this->committees->proposeCreation(
             $legislature,

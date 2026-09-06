@@ -85,39 +85,26 @@ class InstitutionProvisionMirrorParityTest extends TestCase
         });
     }
 
-    public function test_the_sql_bench_mirror_matches_judge_count_and_never_breaks_the_floor(): void
+    public function test_the_sql_bench_mirror_matches_the_bench_law_exactly(): void
     {
         $this->onLivePg(function () {
-            $rows = $this->evaluate($this->sql('judgeCountSql'));
+            // THE BENCH LAW (2026-09-05): seats stand in through the population
+            // column of the matrix, constituents through kids, floor fixed at 5.
+            $rows = $this->evaluate(\App\Support\BenchLaw::sql('COALESCE(j.population, 0)', '5', 'k.kids'));
 
             foreach ($rows as $row) {
-                $tier = InstitutionScaleService::tierFor(
-                    (int) $row->population,
-                    (int) $row->kids,
-                    InstitutionScaleService::BINDING_REAL,
-                );
-
-                // The floor applies even to `none`, whose judgeCount is 0: the
-                // SQL clamps with GREATEST(5, …) so a sub-5 bench cannot exist.
-                $expected = max(5, InstitutionScaleService::judgeCount($tier));
+                $expected = \App\Support\BenchLaw::bench((int) $row->population, 5, (int) $row->kids);
 
                 $this->assertSame(
                     $expected,
                     (int) $row->result,
-                    "bench mismatch at population={$row->population}, constituents={$row->kids} (tier {$tier})"
+                    "bench mismatch at seats={$row->population}, constituents={$row->kids}"
                 );
-
-                $this->assertGreaterThanOrEqual(
-                    5,
-                    (int) $row->result,
-                    'Art. IV §1 floors every bench at 5 — no input may produce fewer'
-                );
+                $this->assertGreaterThanOrEqual(5, (int) $row->result, 'the floor holds for every input');
             }
 
-            // Non-vacuity: the tier bumps must actually appear.
             $benches = array_unique(array_map(fn ($r) => (int) $r->result, $rows));
-            sort($benches);
-            $this->assertSame([5, 7, 9], $benches, 'the 5/5/7/9 bumps must all be reachable');
+            $this->assertGreaterThan(1, count($benches), 'the matrix must reach past the floor');
         });
     }
 

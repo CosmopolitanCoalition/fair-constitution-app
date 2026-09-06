@@ -54,7 +54,7 @@ use Illuminate\Support\Facades\DB;
 final class GovernanceStage
 {
     /** A plausible standing-committee vocabulary; a real chamber names its own. */
-    private const COMMITTEE_NAMES = [
+    public const COMMITTEE_NAMES = [
         'Rules', 'Budget', 'Oversight', 'Judiciary', 'Public Works',
         'Health', 'Education', 'Environment', 'Foreign Relations', 'Ethics',
         'Science', 'Labour', 'Housing', 'Transport', 'Culture',
@@ -63,13 +63,13 @@ final class GovernanceStage
     ];
 
     /** A committee wants about five members (§4.4's staffing clamp). */
-    private const SEATS_PER_COMMITTEE = 5;
+    public const SEATS_PER_COMMITTEE = 5;
 
     /** A committee executive is 5+ members (Art. III) — its principal count. */
     private const EXEC_COMMITTEE_SIZE = 5;
 
     /** The mandatory five (Art. II §9) get human names; the rest are `other`. */
-    private const DEPT_NAMES = [
+    public const DEPT_NAMES = [
         Department::KIND_CHIEF_EXECUTIVE => 'Office of the Chief Executive',
         Department::KIND_TREASURY        => 'Treasury',
         Department::KIND_DEFENSE         => 'Defence',

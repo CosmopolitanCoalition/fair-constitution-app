@@ -58,6 +58,39 @@ class InstitutionStubService
         $existingExecSet = array_flip($existingExec);
         $existingJudSet  = array_flip($existingJud);
 
+        // THE BENCH LAW (ruling bench-scaling-law B, 2026-09-05): the bench is
+        // max(floor, next odd >= type_a_seats / 10), a minimum multiple where
+        // constituents nominate. Inputs gathered in bounded chunks: the
+        // chamber's Type A seats, the jurisdiction's own floor setting (the
+        // root's, then 5, when it has none), and its live constituents.
+        $rootFloor = (int) (DB::table('constitutional_settings as cs')
+            ->join('jurisdictions as r', 'r.id', '=', 'cs.jurisdiction_id')
+            ->whereNull('r.parent_id')->whereNull('r.deleted_at')
+            ->orderBy('r.created_at')
+            ->value('cs.judiciary_min_judges_per_race') ?? 5);
+        $seatsByJur = [];
+        $floorByJur = [];
+        $kidsByJur  = [];
+        foreach (array_chunk($targets, 5000) as $chunk) {
+            foreach (DB::table('legislatures')->whereIn('jurisdiction_id', $chunk)->whereNull('deleted_at')
+                         ->get(['jurisdiction_id', 'type_a_seats']) as $row) {
+                $seatsByJur[(string) $row->jurisdiction_id] = (int) $row->type_a_seats;
+            }
+            foreach (DB::table('constitutional_settings')->whereIn('jurisdiction_id', $chunk)
+                         ->whereNotNull('judiciary_min_judges_per_race')
+                         ->get(['jurisdiction_id', 'judiciary_min_judges_per_race']) as $row) {
+                $floorByJur[(string) $row->jurisdiction_id] = (int) $row->judiciary_min_judges_per_race;
+            }
+            foreach (DB::table('jurisdictions as c')
+                         ->join('legislatures as cl', 'cl.jurisdiction_id', '=', 'c.id')
+                         ->whereIn('c.parent_id', $chunk)->whereNull('c.deleted_at')
+                         ->whereNull('cl.deleted_at')->where('cl.status', '<>', 'dissolved')
+                         ->groupBy('c.parent_id')
+                         ->get([DB::raw('c.parent_id'), DB::raw('count(*) as n')]) as $row) {
+                $kidsByJur[(string) $row->parent_id] = (int) $row->n;
+            }
+        }
+
         $execRows = [];
         $judRows  = [];
 
@@ -83,7 +116,11 @@ class InstitutionStubService
                     'court_name'      => 'Superior Court',
                     // Art. IV §1: appointed by default, 5+ judges, 10-year terms.
                     'type'            => 'appointed',
-                    'min_judges'      => 5,
+                    'min_judges'      => \App\Support\BenchLaw::bench(
+                        $seatsByJur[$jurId] ?? 0,
+                        $floorByJur[$jurId] ?? $rootFloor,
+                        $kidsByJur[$jurId] ?? 0,
+                    ),
                     'term_years'      => 10,
                     'status'          => 'forming',
                     'created_at'      => $now,

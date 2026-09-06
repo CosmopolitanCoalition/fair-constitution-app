@@ -2459,6 +2459,43 @@ class DistrictingService
             $distNumQ->where('map_id', $mapId);
         }
         $nextDistrictNumber = 1 + (int) $distNumQ->max('district_number');
+
+        // THE ZERO BIN (operator ruling 2026-09-05, zero-seat-chambers A): a
+        // bin whose lawful seats and reality-capped bonus are both 0 holds no
+        // residents and never becomes a district — a district with seats = 0
+        // blocks the chamber's whole Type A race plan. Its members fold into
+        // the neighbouring bin (a population of 0 changes no seat identity);
+        // when every bin is zero the scope writes no district at all (zero is
+        // zero, Class D).
+        $zeroBins = [];
+        foreach ($binData as $zi => $zb) {
+            if ((int) $zb['seats'] + $this->ceilingExceptionBonus((int) $zb['seats'], (int) round((float) $zb['pop'])) === 0) {
+                $zeroBins[] = $zi;
+            }
+        }
+        if ($zeroBins !== [] && count($zeroBins) === count($binData)) {
+            $this->stepEnd('step12');
+            $this->publishMassProgress($legislature_id, [
+                'phase' => 'inserted', 'phase_label' => 'Zero is zero: uninhabited scope, no district written',
+            ]);
+            return ['districts_created' => 0, 'error' => null];
+        }
+        if ($zeroBins !== []) {
+            $keep = null;
+            foreach ($binData as $ki => $kb) {
+                if (! in_array($ki, $zeroBins, true) && ($keep === null || $kb['seats'] < $binData[$keep]['seats'])) {
+                    $keep = $ki;
+                }
+            }
+            foreach ($zeroBins as $zi) {
+                $binData[$keep]['jids'] = array_values(array_merge($binData[$keep]['jids'], $binData[$zi]['jids']));
+                $binData[$keep]['pop'] += $binData[$zi]['pop'];
+                unset($binData[$zi]);
+            }
+            $binData        = array_values($binData);
+            $totalDistricts = count($binData);
+        }
+
         foreach ($binData as $binIdx => $bin) {
             // Per-district progress so the operator can tell whether a slow
             // scope is stuck on geometry computation (Step 12, dominant cost)
@@ -6594,6 +6631,18 @@ class DistrictingService
         }
 
         $residuePop = array_sum(array_map(fn ($c) => (int) $c->population, $nonGiantRows));
+        // THE ZERO RESIDUE (operator ruling 2026-09-05, zero-seat-chambers A):
+        // an uninhabited residue seats nobody and is not a district — a
+        // district with seats = 0 blocks the chamber's race plan. Its atoms
+        // stay unassigned; the completeness assessment counts only inhabited
+        // constituents (zero is zero, Class D).
+        if ($residuePop < 1) {
+            $this->publishMassProgress($legislature_id, [
+                'phase' => 'inserted', 'phase_label' => 'Zero is zero: uninhabited residue, no district written',
+            ]);
+
+            return ['districts_created' => 0, 'error' => null];
+        }
         $allPop     = $residuePop + array_sum(array_map(fn ($c) => (int) $c->population, $giantRows));
         $quota      = $allPop > 0 ? $allPop / $seatBudget : 0.0;
         // Reality-capped lift (2026-08-30): an uninhabited residue plane

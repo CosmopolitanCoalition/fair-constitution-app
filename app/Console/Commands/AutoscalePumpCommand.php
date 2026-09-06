@@ -482,35 +482,11 @@ class AutoscalePumpCommand extends Command
                 \App\Jobs\MapQualityStatsJob::dispatch((string) $run->id);
             }
 
-            // THE EAGER CHAIN (operator, 2026-08-08 — the three activation
-            // modes): under 'eager' the full-scale build's completion chains
-            // the institution shell set (idempotent, all steps) and — dev
-            // sandbox + simulate_at_scale only — the simulated world after
-            // it. This flip is the run's single done-transition, so the
-            // chain dispatches exactly once per run.
-            // CONSISTENCY WITH PER-JURISDICTION ACTIVATION (operator question,
-            // 2026-08-08: "I just want to make sure the behavior is both
-            // correct and consistent"). Provisioning runs on EVERY completed
-            // run, in every mode — a planet whose places hold seats and maps
-            // but no election board is the R-08 dead end at planet scale,
-            // exactly what "+ children" was fixed to avoid. The MODE decides
-            // whether the build auto-STARTS at acceptance; it never decides
-            // what a started build produces. Idempotent, set-based, chunked.
-            $instance = \App\Models\InstanceSettings::query()->whereNull('deleted_at')->first();
-            if ($instance !== null
-                && $instance->institution_scale_mode === 'eager'
-                && (bool) $instance->simulate_at_scale
-                && $instance->game_mode === 'sandbox') {
-                \Illuminate\Support\Facades\Bus::chain([
-                    new \App\Jobs\ProvisionInstitutionsJob(),
-                    new \App\Jobs\StartSimulationJob(),
-                ])->dispatch();
-                $this->info('autoscale done → provisioning chain + simulation queued (eager + simulate).');
-            } else {
-                \App\Jobs\ProvisionInstitutionsJob::dispatch();
-                $this->info('autoscale done → institution provisioning queued (all modes).');
-            }
-
+            // THE PAGES TRIGGER (operator ruling 2026-09-05, done-flip-vs-pages
+            // A): the map run's done flip refreshes the map quality statistics
+            // and nothing else. Institutions are the Step 4 page's to start
+            // (the Step 4 engine, provision:pump); the simulation is Step 5's.
+            // Eager acceptance ends at maps.
             app(AuditService::class)->append(
                 module: 'elections',
                 event: 'autoscale.completed',

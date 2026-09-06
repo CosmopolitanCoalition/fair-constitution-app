@@ -108,7 +108,12 @@ final class JudiciaryStage
         if ($judiciary->status === Judiciary::STATUS_FORMING) {
             $constituents = \App\Services\Judiciary\JudiciaryFormationService::constituentJurisdictionIds($legislature);
 
-            $minJudges = max(5, (int) $judiciary->min_judges);
+            // The floor is the jurisdiction's own setting (bench law), never a
+            // literal 5; the court's bench (already the bench law) stands.
+            $minJudges = max(
+                app(\App\Services\SettingsResolver::class)->resolveInt((string) $jurisdictionId, 'judiciary_min_judges_per_race', 5),
+                (int) $judiciary->min_judges,
+            );
             $payload = [
                 'legislature_id' => (string) $legislature->id,
                 'jurisdiction_id' => (string) $jurisdictionId,

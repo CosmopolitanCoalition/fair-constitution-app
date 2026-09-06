@@ -5,6 +5,7 @@ namespace App\Domain\Forms\Handlers;
 use App\Domain\Forms\Contracts\FormHandler;
 use App\Domain\Forms\Support\ChamberActor;
 use App\Models\User;
+use App\Services\Executive\DepartmentService;
 use App\Services\Executive\ExecutiveActService;
 
 /**
@@ -23,6 +24,7 @@ class DepartmentCreationAct implements FormHandler
 {
     public function __construct(
         private readonly ExecutiveActService $acts,
+        private readonly DepartmentService $departments,
     ) {
     }
 
@@ -49,7 +51,24 @@ class DepartmentCreationAct implements FormHandler
     public function handle(?User $actor, array $payload): array
     {
         $legislature = ChamberActor::legislature($payload, 'F-LEG-016');
-        $member      = ChamberActor::member($actor, (string) $legislature->id, 'F-LEG-016');
+
+        // THE SYSTEM ACT (Wave 6, ruling sub-institutions-path B): a null
+        // actor with system_act set is the Step 4 engine chartering an
+        // unseated chamber's departments. Recorded by the engine, no vote.
+        if ($actor === null && ! empty($payload['system_act'])) {
+            $department = $this->departments->charterAsSystemAct($legislature, $payload);
+
+            return [
+                'legislature_id' => (string) $legislature->id,
+                'department_id'  => (string) $department->id,
+                'charter_law_id' => (string) $department->charter_law_id,
+                'name'           => (string) $department->name,
+                'kind'           => (string) $department->kind,
+                'system_act'     => true,
+            ];
+        }
+
+        $member = ChamberActor::member($actor, (string) $legislature->id, 'F-LEG-016');
 
         $result = $this->acts->proposeDepartmentCreation($legislature, $member, $payload);
 

@@ -203,6 +203,15 @@ class BuildProgressController extends Controller
                 'done'  => $count('SELECT count(*) FROM social_spaces WHERE deleted_at IS NULL AND is_private = false'),
                 'note'  => 'Two per place: somewhere to talk, and somewhere to govern.',
             ],
+            [
+                'kind'  => 'treasuries',
+                'label' => 'Public treasuries',
+                'phase' => 'money',
+                // Only once the world has a currency (founded by the Step 4 run).
+                'total' => $svc->currencyId() !== null ? $target : 0,
+                'done'  => $count("SELECT count(*) FROM treasury_accounts WHERE deleted_at IS NULL AND owner_type = 'jurisdictions'"),
+                'note'  => 'One public treasury per place in the founding currency (Art. II §9, Art. V §5).',
+            ],
         ];
 
         foreach ($stages as $i => $s) {

@@ -58,6 +58,13 @@ class ConstitutionalSettings extends Model
         'issuance_rate_bps',
         'inflation_target_bps',
         'type_b_seats_per_child',
+        // Wave 6 (item 7) — the activation curve + CLK-06 threshold, amendable.
+        'critical_population_threshold',
+        'activation_tier_enabled',
+        'activation_tier_k',
+        'activation_tier_exponent',
+        'activation_tier_floor',
+        'activation_tier_cap',
         'last_amended_by_act_id',
         'last_amended_at',
         // Phase E (PHASE_E_DESIGN_challenge_law §E.5) — the two-door amendment
@@ -93,6 +100,12 @@ class ConstitutionalSettings extends Model
         'issuance_rate_bps' => 'integer',
         'inflation_target_bps' => 'integer',
         'type_b_seats_per_child' => 'integer',
+        'critical_population_threshold' => 'integer',
+        'activation_tier_enabled' => 'integer',
+        'activation_tier_k' => 'integer',
+        'activation_tier_exponent' => 'integer',
+        'activation_tier_floor' => 'integer',
+        'activation_tier_cap' => 'integer',
         'last_amended_at' => 'datetime',
     ];
 

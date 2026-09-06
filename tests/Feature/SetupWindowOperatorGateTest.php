@@ -32,7 +32,14 @@ class SetupWindowOperatorGateTest extends TestCase
             '/api/setup/wizard/step2/start',
             '/api/setup/wizard/step2/control',
             '/api/setup/wizard/step3/complete',
+            // Wave 6 — the Step 4 engine controls and the ladder closes.
+            '/api/setup/wizard/step4/start',
+            '/api/setup/wizard/step4/halt',
+            '/api/setup/wizard/step4/resume',
+            '/api/setup/wizard/step4/rollback',
             '/api/setup/wizard/step4/complete',
+            '/api/setup/wizard/step5/complete',
+            '/api/setup/wizard/step6/complete',
             '/api/setup/wizard/step2/review/orphans/00000000-0000-0000-0000-000000000000/decision',
         ];
     }

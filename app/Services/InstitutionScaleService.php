@@ -114,24 +114,16 @@ final class InstitutionScaleService
     }
 
     /**
-     * Judicial bench size for a tier.
-     *
-     * Art. IV §1 floors every bench at 5 and imposes no ceiling. Larger
-     * polities seat more judges; the constituent-per-judge rule in
-     * JudiciaryFormationService remains the law for jurisdictions that hold
-     * constituents, and this is the floor a bench starts from.
+     * The bench a tier's court starts from: the floor. THE BENCH LAW
+     * (operator ruling 2026-09-05, bench-scaling-law B) sizes every bench
+     * from the chamber's Type A seats and the floor setting — see
+     * App\Support\BenchLaw. The 5/7/9 tier bumps are retired; a tier no
+     * longer adds judges. Kept so callers that reason per tier (the zero rule)
+     * still get 0 for `none` and the floor for everything else.
      */
     public static function judgeCount(string $tier, int $minJudges = 5): int
     {
-        $scaled = match ($tier) {
-            self::TIER_NONE     => 0,
-            self::TIER_MINIMAL  => $minJudges,
-            self::TIER_STANDARD => $minJudges,
-            self::TIER_EXTENDED => $minJudges + 2,
-            self::TIER_FULL     => $minJudges + 4,
-        };
-
-        return $scaled === 0 ? 0 : max($minJudges, $scaled);
+        return $tier === self::TIER_NONE ? 0 : max(1, $minJudges);
     }
 
     /**
@@ -207,26 +199,6 @@ final class InstitutionScaleService
         $curve = (int) round(-7.8 + 1.67 * log($pop));
 
         return max(3, min($curve, 30));
-    }
-
-    /**
-     * Court-tier COUNT for a tier (§4.3): trial → +appellate → +supreme /
-     * constitutional as the polity grows. The bench FLOOR stays 5 at every tier
-     * (Art. IV §1, unchanged — see judgeCount()); this counts how many court
-     * LAYERS a place gets, the new scaled thing, distinct from bench size.
-     *
-     * Q4 ruling (a): a provisioning engine MAY materialise these directly — a
-     * court is not an act of self-government.
-     */
-    public static function courtTiers(string $tier): int
-    {
-        return match ($tier) {
-            self::TIER_NONE     => 0,
-            self::TIER_MINIMAL  => 1,
-            self::TIER_STANDARD => 1,
-            self::TIER_EXTENDED => 2,
-            self::TIER_FULL     => 3,
-        };
     }
 
     /**

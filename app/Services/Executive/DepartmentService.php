@@ -13,6 +13,7 @@ use App\Models\DepartmentRule;
 use App\Models\Executive;
 use App\Models\ExecutiveMember;
 use App\Models\Legislature;
+use App\Models\LegislatureMember;
 use App\Models\PolicyProposal;
 use App\Services\AuditService;
 use App\Services\ChamberVoteService;
@@ -49,7 +50,7 @@ class DepartmentService
      * Filing-time payload validation (called by ExecutiveActService
      * before the proposal opens). Returns the normalized payload.
      */
-    public static function validateCreationPayload(Legislature $legislature, array $payload): array
+    public static function validateCreationPayload(Legislature $legislature, array $payload, bool $founding = false): array
     {
         $kind = (string) ($payload['kind'] ?? '');
 
@@ -73,7 +74,14 @@ class DepartmentService
             );
         }
 
-        if (! in_array($executive->status, [Executive::STATUS_DELEGATED, Executive::STATUS_ELECTED], true)) {
+        // At FOUNDING (the Step 4 system act, Wave 6) the executive shell is
+        // still forming: oversight is assigned to it, and the delegation act
+        // (F-LEG-014) follows once the chamber seats. A chamber's own act
+        // keeps the delegated-or-elected rule.
+        $allowed = $founding
+            ? [Executive::STATUS_FORMING, Executive::STATUS_DELEGATED, Executive::STATUS_ELECTED]
+            : [Executive::STATUS_DELEGATED, Executive::STATUS_ELECTED];
+        if (! in_array($executive->status, $allowed, true)) {
             throw new ConstitutionalViolation(
                 "The overseeing executive must be delegated or elected (status: {$executive->status}).",
                 'Art. III §1'
@@ -127,6 +135,91 @@ class DepartmentService
             'owner_seats'  => $ownerSeats,
             'nominees'     => array_values(array_map('strval', (array) ($payload['nominees'] ?? []))),
         ];
+    }
+
+    /**
+     * THE SYSTEM ACT (Wave 6, ruling sub-institutions-path B): the Step 4
+     * engine charters a department for an unseated chamber. Same product as
+     * createFromProposal — founding charter law, department (oversight
+     * assigned to the jurisdiction's executive, forming or not), unified
+     * board, vacant governor seats, first report obligation, public record —
+     * with no vote. Returns the department.
+     */
+    public function charterAsSystemAct(Legislature $legislature, array $payload): Department
+    {
+        if (LegislatureMember::query()->where('legislature_id', $legislature->id)
+                ->whereIn('status', LegislatureMember::CURRENT_STATUSES)->exists()) {
+            throw new ConstitutionalViolation(
+                'A seated chamber charters its departments by vote (F-LEG-016); the system act is for unseated chambers only.',
+                'Art. II §9'
+            );
+        }
+
+        $payload = self::validateCreationPayload($legislature, $payload, founding: true);
+        $charter = (array) $payload['charter'];
+
+        $law = $this->enactments->enactFounding(
+            $legislature,
+            'charter',
+            "Department Charter — {$payload['name']}",
+            trim($charter['function_text'] . "\n\n" . ($charter['powers_text'] ?? '')),
+            'F-LEG-016',
+        );
+
+        $department = Department::create([
+            'jurisdiction_id'           => (string) $legislature->jurisdiction_id,
+            'executive_id'              => (string) $payload['executive_id'],
+            'kind'                      => (string) $payload['kind'],
+            'name'                      => (string) $payload['name'],
+            'charter_law_id'            => (string) $law->id,
+            'reporting_interval_months' => $charter['reporting_interval_months'] ?? null,
+            'status'                    => Department::STATUS_OVERSIGHT_ASSIGNED,
+        ]);
+
+        $board = Board::create([
+            'boardable_type' => Board::BOARDABLE_DEPARTMENTS,
+            'boardable_id'   => (string) $department->id,
+            'owner_seats'    => (int) $payload['owner_seats'],
+            'worker_seats'   => 0,
+            'status'         => Board::STATUS_FORMING,
+        ]);
+        for ($no = 1; $no <= (int) $payload['owner_seats']; $no++) {
+            BoardSeat::create([
+                'board_id'   => (string) $board->id,
+                'seat_class' => BoardSeat::CLASS_GOVERNOR,
+                'seat_no'    => $no,
+                'status'     => BoardSeat::STATUS_VACANT,
+            ]);
+        }
+        $department->forceFill(['board_id' => (string) $board->id])->save();
+
+        if ($department->reporting_interval_months !== null) {
+            $this->seedNextPeriodicReport($department, CarbonImmutable::now('UTC'));
+        }
+
+        $this->records->publish(
+            kind: 'act',
+            title: "Department chartered at founding — {$department->name}",
+            body: sprintf(
+                'Department %s (%s) chartered by %s at the founding of this jurisdiction; oversight assigned to '
+                . 'executive %s; %d governor seat(s) await nomination and consent (F-EXE-001 → F-LEG-020).',
+                $department->name,
+                $department->kind,
+                $law->act_number,
+                (string) $department->executive_id,
+                (int) $payload['owner_seats']
+            ),
+            attrs: [
+                'jurisdiction_id' => (string) $legislature->jurisdiction_id,
+                'legislature_id'  => (string) $legislature->id,
+                'via_form'        => 'F-LEG-016',
+                'subject_type'    => 'departments',
+                'subject_id'      => (string) $department->id,
+                'system_act'      => true,
+            ],
+        );
+
+        return $department;
     }
 
     /**

@@ -2,6 +2,8 @@
 
 namespace App\Support;
 
+use App\Support\QuorumLaw;
+
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 
@@ -45,7 +47,7 @@ final class AutoscaleEnumeration
                  created_at, updated_at)
             SELECT gen_random_uuid(), j.id, 1, 'forming',
                    s.seats, s.seats, 0,
-                   LEAST(s.seats, GREATEST(3, CEIL(s.seats / 2.0)))::int,
+                   ".QuorumLaw::sql('s.seats').",
                    now(), now()
               FROM jurisdictions j
              CROSS JOIN LATERAL (

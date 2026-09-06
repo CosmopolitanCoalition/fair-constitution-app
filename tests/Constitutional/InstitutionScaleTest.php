@@ -84,7 +84,10 @@ class InstitutionScaleTest extends TestCase
             $this->assertGreaterThanOrEqual(5, Scale::judgeCount($tier), "tier {$tier} fell below the Art. IV §1 floor");
         }
 
-        $this->assertGreaterThan(Scale::judgeCount(Scale::TIER_MINIMAL), Scale::judgeCount(Scale::TIER_FULL));
+        // THE BENCH LAW (2026-09-05) sizes the bench from the chamber's seats,
+        // never from the tier: every inhabited tier starts at the floor.
+        $this->assertSame(Scale::judgeCount(Scale::TIER_MINIMAL), Scale::judgeCount(Scale::TIER_FULL));
+        $this->assertSame(7, Scale::judgeCount(Scale::TIER_FULL, 7), 'the floor is the setting, not a literal 5');
     }
 
     /**
@@ -156,21 +159,15 @@ class InstitutionScaleTest extends TestCase
     }
 
     /**
-     * §4.3 — court LAYERS grow trial → +appellate → +supreme, monotone with
-     * tier. This is distinct from bench SIZE (judgeCount), which keeps its
-     * 5/5/7/9 floor untouched (Q2 ruling (a)).
+     * Court LAYERS are the jurisdiction tree's depth (courtTiers = tree-depth
+     * ruling); the retired per-tier layer count no longer exists, and the
+     * bench is THE BENCH LAW's (App\Support\BenchLaw), not a tier bump.
      */
-    public function test_court_tiers_grow_monotonically_with_tier(): void
+    public function test_court_tier_layers_are_retired_and_the_bench_is_the_law(): void
     {
-        $this->assertSame(0, Scale::courtTiers(Scale::TIER_NONE));
-        $this->assertSame(1, Scale::courtTiers(Scale::TIER_MINIMAL));
-        $this->assertSame(1, Scale::courtTiers(Scale::TIER_STANDARD));
-        $this->assertSame(2, Scale::courtTiers(Scale::TIER_EXTENDED));
-        $this->assertSame(3, Scale::courtTiers(Scale::TIER_FULL));
-
-        // The bench floor is NOT touched by the new court-tier count.
-        $this->assertSame(5, Scale::judgeCount(Scale::TIER_STANDARD));
-        $this->assertSame(9, Scale::judgeCount(Scale::TIER_FULL));
+        $this->assertFalse(method_exists(Scale::class, 'courtTiers'), 'courtTiers(tier) is retired — layers are tree depth');
+        $this->assertSame(5, \App\Support\BenchLaw::bench(5, 5));
+        $this->assertSame(45, \App\Support\BenchLaw::bench(439, 5), 'Germany 439 → next odd ≥ 43.9 = 45');
     }
 
     /**

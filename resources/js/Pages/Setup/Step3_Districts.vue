@@ -3,6 +3,7 @@ import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import AppShellV2 from '@/Layouts/AppShellV2.vue'
 import SetupStepper from '@/Components/SetupStepper.vue'
 import { csrfFetch } from '@/lib/csrf'
+import { router } from '@inertiajs/vue3'
 
 // Setup wizard: minimal chrome (header + footer, no sidebar), wide canvas.
 defineOptions({
@@ -433,6 +434,34 @@ const phaseTrail = computed(() => {
 })
 const precompute = computed(() => autoscale.value?.precompute ?? null)
 const runActive = computed(() => run.value && ['queued', 'sizing', 'mapping'].includes(run.value.status))
+
+// THE STEP 3 CONTINUE (Wave 6 item 1): Step 3 is done when the map run is
+// done (or the root map was activated by hand). Posts step3/complete, which
+// advances the ladder counter, and follows the ladder to the next step that
+// applies (4, or 6 when the scale choice skips it).
+const continuing = ref(false)
+const continueError = ref('')
+const canContinue = computed(() =>
+    (run.value && run.value.status === 'done') || (props.settings?.setup_step_completed ?? 0) >= 4)
+async function continueToNext() {
+    if (continuing.value) return
+    continuing.value = true
+    continueError.value = ''
+    try {
+        const res = await csrfFetch('/api/setup/wizard/step3/complete', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
+            body: JSON.stringify({}),
+        })
+        const json = await res.json().catch(() => ({}))
+        if (!res.ok) { continueError.value = json.error || `Refused (HTTP ${res.status}).`; return }
+        router.visit(json.next || '/setup')
+    } catch (e) {
+        continueError.value = String(e)
+    } finally {
+        continuing.value = false
+    }
+}
 const precomputeOpen = computed(() =>
     precompute.value && (precompute.value.done + precompute.value.failed) < precompute.value.total)
 
@@ -876,7 +905,7 @@ onBeforeUnmount(() => {
 
 <template>
     <div class="max-w-4xl mx-auto px-6 py-8 w-full">
-            <SetupStepper :current="3" :completed="settings.setup_step_completed" />
+            <SetupStepper :current="3" :completed="settings.setup_step_completed" :steps="settings.ladder" />
 
             <header class="mt-8 mb-6">
                 <h1 class="text-3xl font-bold text-white mb-2">
@@ -1486,13 +1515,25 @@ onBeforeUnmount(() => {
                         <a href="/setup/step/2" class="text-gray-400 hover:text-gray-200 text-sm px-2 py-2">
                             ← Back
                         </a>
-                        <a
-                            :href="mapperHref"
-                            class="bg-blue-600 hover:bg-blue-500 text-white px-5 py-2 rounded-md font-semibold transition-colors inline-flex items-center gap-2"
-                        >
-                            Go to District Mapper →
-                        </a>
+                        <div class="flex items-center gap-3">
+                            <a
+                                :href="mapperHref"
+                                class="bg-blue-600 hover:bg-blue-500 text-white px-5 py-2 rounded-md font-semibold transition-colors inline-flex items-center gap-2"
+                            >
+                                Go to District Mapper →
+                            </a>
+                            <button
+                                type="button"
+                                :disabled="!canContinue || continuing"
+                                @click="continueToNext"
+                                class="bg-emerald-600 hover:bg-emerald-500 disabled:bg-gray-700 disabled:text-gray-400 text-white px-5 py-2 rounded-md font-semibold transition-colors"
+                                :title="canContinue ? 'Districts are built. Continue to the next step.' : 'Continue opens when the map run is done'"
+                            >
+                                {{ continuing ? 'Continuing…' : 'Continue →' }}
+                            </button>
+                        </div>
                     </div>
+                    <div v-if="continueError" class="mt-3 bg-red-900/30 border border-red-800 rounded p-3 text-sm text-red-200">{{ continueError }}</div>
                 </div>
             </section>
     </div>

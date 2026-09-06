@@ -39,6 +39,14 @@ Schedule::job(new EvaluateClocksJob)->everyMinute()->withoutOverlapping()->onOne
 Schedule::command('autoscale:pump')
     ->everyMinute()->withoutOverlapping(10)->runInBackground()->onOneServer();
 
+// ── Step 4 pump (Wave 6): the institution run's liveness root ─────────────
+// The same posture applied to institutions: halt/resume, chunked ledger
+// seeding, dead-lane reclaims on backend absence, lane seeding to the
+// derived pool, counters, the done flip. No-ops in one query when no run is
+// live.
+Schedule::command('provision:pump')
+    ->everyMinute()->withoutOverlapping(10)->runInBackground()->onOneServer();
+
 // ── Simulated-world pump (Phase O populate engine, 2026-07-25) ───────────
 // The same pattern, third instance (autoscale → geodata plan → simworld).
 // A populate run's ONLY liveness root: phase advance, stale-claim reclaim,

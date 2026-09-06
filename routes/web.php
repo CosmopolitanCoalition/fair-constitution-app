@@ -200,8 +200,23 @@ Route::post('/api/setup/wizard/step3/lanes/{lease}/kill', [AutoscaleLaneControll
     ->middleware('auth')->name('api.setup.step3.lane-kill');
 Route::post('/api/setup/wizard/step3/auto-kill', [AutoscaleLaneController::class, 'autoKill'])
     ->middleware('auth')->name('api.setup.step3.auto-kill');
+// Wave 6 — Step 4 (Scale Up Institutions): the page triggers the engine; the
+// pump owns liveness; halt / resume / rollback are operator controls.
+Route::get('/api/setup/wizard/step4/progress', [SetupController::class, 'step4Progress'])->name('api.setup.step4.progress');
+Route::post('/api/setup/wizard/step4/start', [SetupController::class, 'step4Start'])
+    ->middleware('auth')->name('api.setup.step4.start');
+Route::post('/api/setup/wizard/step4/halt', [SetupController::class, 'step4Halt'])
+    ->middleware('auth')->name('api.setup.step4.halt');
+Route::post('/api/setup/wizard/step4/resume', [SetupController::class, 'step4Resume'])
+    ->middleware('auth')->name('api.setup.step4.resume');
+Route::post('/api/setup/wizard/step4/rollback', [SetupController::class, 'step4Rollback'])
+    ->middleware('auth')->name('api.setup.step4.rollback');
 Route::post('/api/setup/wizard/step4/complete', [SetupController::class, 'completeStep4'])
     ->middleware('auth')->name('api.setup.step4.complete');
+Route::post('/api/setup/wizard/step5/complete', [SetupController::class, 'completeStep5'])
+    ->middleware('auth')->name('api.setup.step5.complete');
+Route::post('/api/setup/wizard/step6/complete', [SetupController::class, 'completeStep6'])
+    ->middleware('auth')->name('api.setup.step6.complete');
 
 // Step 2 manual data review — surfaces post-ETL discrepancies BEFORE the user
 // clicks Continue (which fires apportionment). Reviewing after districting

@@ -342,7 +342,7 @@ class ApportionmentSeedCommand extends Command
         bool $typeBNeedsDistricting = false,
     ): string {
         $totalSeats = $typeASeats + $typeBSeats;
-        $quorum     = max(3, (int) ceil($totalSeats / 2));
+        $quorum     = \App\Support\QuorumLaw::required($totalSeats);
 
         $existing = DB::table('legislatures')
             ->where('jurisdiction_id', $jurisdictionId)
@@ -364,8 +364,13 @@ class ApportionmentSeedCommand extends Command
             return $existing->id;
         }
 
+        // THE LIVE-UNIQUE INSERT (ruling dup-legislatures A, 2026-09-05): the
+        // read above and this insert are two statements, so a parallel sizing
+        // pass could insert twice for one jurisdiction (Githunguri, Kalmar,
+        // 2026-08-29). The partial unique index makes the loser a no-op; the
+        // loser then adopts the winner's row.
         $id = (string) Str::uuid();
-        DB::table('legislatures')->insert([
+        $inserted = DB::table('legislatures')->insertOrIgnore([
             'id'                       => $id,
             'jurisdiction_id'          => $jurisdictionId,
             'term_number'              => 1,
@@ -379,6 +384,12 @@ class ApportionmentSeedCommand extends Command
             'created_at'               => now(),
             'updated_at'               => now(),
         ]);
+        if ($inserted === 0) {
+            return (string) DB::table('legislatures')
+                ->where('jurisdiction_id', $jurisdictionId)
+                ->whereNull('deleted_at')
+                ->value('id');
+        }
         $this->legislaturesCreated++;
         return $id;
     }

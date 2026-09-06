@@ -243,11 +243,9 @@ class ActivationService
         // Reality cap (2026-08-30): quorum can never exceed the chamber —
         // a 1-seat chamber convenes with its 1 member, a 0-seat chamber
         // (inactive space) has no quorum at all.
-        if ($totalSeats <= 0) {
-            return 0;
-        }
-
-        return min($totalSeats, max(3, (int) ceil($totalSeats / 2)));
+        // ONE FORMULA (ruling bench-and-quorum-law A, 2026-09-05): QuorumLaw
+        // owns it; this stays as the name the callers know.
+        return \App\Support\QuorumLaw::required($totalSeats);
     }
 
     // =========================================================================

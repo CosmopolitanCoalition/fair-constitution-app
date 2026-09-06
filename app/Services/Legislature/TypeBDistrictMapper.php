@@ -1422,7 +1422,7 @@ class TypeBDistrictMapper
                     'type_b_seats'             => $plan['seats'],
                     'type_b_needs_districting' => false,
                     'total_seats'              => $totalSeats,
-                    'quorum_required'          => max(3, (int) ceil($totalSeats / 2)),
+                    'quorum_required'          => \App\Support\QuorumLaw::required($totalSeats),
                     'updated_at'               => now(),
                 ]);
             }
