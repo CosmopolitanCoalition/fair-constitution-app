@@ -86,7 +86,7 @@ Route::get('/.well-known/cga-federation', [\App\Http\Controllers\Federation\Well
 // Setup wizard — WordPress-style install flow.
 Route::get('/setup', [SetupController::class, 'index'])->name('setup.index');
 Route::get('/setup/step/{n}', [SetupController::class, 'step'])
-    ->where('n', '[0-4]')
+    ->where('n', '[0-6]')
     ->name('setup.step');
 
 // Roles-campaign Phase 1 — the SOLO/JOIN fork (first question after the operator account) + the
