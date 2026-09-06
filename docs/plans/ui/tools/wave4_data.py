@@ -231,11 +231,12 @@ FLEET = {'waves': [{'id': 'W1', 'name': 'Shell · demo · learn', 'status': 'don
                       {'wave': 'W7',
                        'label': '9 · Organizations and workers at demo scale',
                        'status': 'done',
-                       'note': 'DONE (bee6fb9e). Verified: co-determination is FED (workerCountAt crosses the '
-                               '100 first-seat and 2,000 parity thresholds). Endorsements had parties + '
-                               'candidates but no links — now BUILT: the minted parties back candidates in the '
-                               'open election (deterministic, idempotent), so the endorsement graph has real '
-                               'subjects. FLAGGED not built (empty-not-wrong, an enrichment call): the CGC '
+                       'note': 'DONE (bee6fb9e, b432a1d6). Verified: co-determination is FED (workerCountAt '
+                               'crosses the 100 first-seat and 2,000 parity thresholds). Endorsements BUILT '
+                               'and POLYMORPHIC (operator 2026-09-06: no party/coalition layer — any org of '
+                               'any type OR any individual may endorse any candidate): mintEndorsements draws '
+                               'a mix of orgs and residents, round-robin over candidates, so the graph is no '
+                               'slate. FLAGGED not built (empty-not-wrong, an enrichment call): the CGC '
                                'register has no subject (no common_good_corp minted) and org board elections '
                                'have no org boards. ORIGINAL: '
                                'CivicsStage mints parties, nonprofits, businesses and bills census-flavoured '
