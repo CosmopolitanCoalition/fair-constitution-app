@@ -249,6 +249,71 @@ class CivicsStageTest extends TestCase
         });
     }
 
+    /**
+     * AUDIT BATCHING (operator 2026-09-06 — "one stamp for a bunch of
+     * transactions"). SimWorkerJob wraps each item in an AuditService batch so
+     * the item's many constitutional acts collapse to ONE hash-chained entry.
+     * This pins that the HEAVIEST driven work — CGC charters (CgcService),
+     * co-determination and board seatings — buffers correctly under batch mode
+     * and still lands its rows, rather than tripping on append()'s placeholder
+     * return.
+     */
+    public function test_the_stage_runs_correctly_inside_an_audit_batch(): void
+    {
+        $this->onLivePg(function () {
+            $jid = $this->leaf(500_000);
+
+            $legId = (string) Str::uuid();
+            DB::table('legislatures')->insert([
+                'id' => $legId, 'jurisdiction_id' => $jid, 'term_number' => 1, 'status' => 'active',
+                'total_seats' => 5, 'type_a_seats' => 5, 'type_b_seats' => 0, 'quorum_required' => 3,
+                'created_at' => now(), 'updated_at' => now(),
+            ]);
+            $member = (string) Str::uuid();
+            DB::table('users')->insert([
+                'id' => $member, 'name' => 'Seated', 'email' => 'sim-'.Str::lower(Str::random(10)).'@demo.invalid',
+                'password' => bcrypt(Str::random(20)), 'status' => 'registered', 'terms_accepted_at' => now(),
+                'timezone' => 'UTC', 'created_at' => now(), 'updated_at' => now(),
+            ]);
+            DB::table('legislature_members')->insert([
+                'id' => (string) Str::uuid(), 'legislature_id' => $legId, 'user_id' => $member,
+                'seat_type' => 'a', 'seat_no' => 1, 'status' => 'elected', 'created_at' => now(), 'updated_at' => now(),
+            ]);
+            for ($i = 0; $i < 4; $i++) {
+                $u = (string) Str::uuid();
+                DB::table('users')->insert([
+                    'id' => $u, 'name' => "R{$i}", 'email' => 'sim-'.Str::lower(Str::random(10))."-z{$i}@demo.invalid",
+                    'password' => bcrypt(Str::random(20)), 'status' => 'registered', 'terms_accepted_at' => now(),
+                    'timezone' => 'UTC', 'created_at' => now(), 'updated_at' => now(),
+                ]);
+                DB::table('residency_confirmations')->insert([
+                    'id' => (string) Str::uuid(), 'user_id' => $u, 'jurisdiction_id' => $jid,
+                    'days_confirmed' => 30, 'confirmed_at' => now(), 'voting_right_active' => true,
+                    'candidacy_right_active' => true, 'is_active' => true, 'depth' => 0,
+                    'created_at' => now(), 'updated_at' => now(),
+                ]);
+            }
+
+            $audit = app(\App\Services\AuditService::class);
+            $before = DB::table('audit_log')->count();
+
+            $audit->beginBatch();
+            CivicsStage::run($jid, null, 1);
+            $entry = $audit->commitBatch('simworld', 'sim.civics_scope', 'WF-SYS-04', $jid);
+
+            // The driven services buffered their acts into the one entry.
+            $this->assertNotNull($entry, 'the batch produced one chained entry');
+            $this->assertTrue((bool) ($entry->payload['batched'] ?? false));
+            $this->assertGreaterThan(0, (int) ($entry->payload['act_count'] ?? 0), 'many acts were buffered');
+            // And exactly one chain entry landed for the whole item.
+            $this->assertSame($before + 1, DB::table('audit_log')->count(), 'one stamp for the whole item');
+            // The heavy work still landed.
+            $this->assertGreaterThan(0, DB::table('organizations')
+                ->where('jurisdiction_id', $jid)->where('type', 'common_good_corp')->count(),
+                'the CGC charters ran under batch mode');
+        });
+    }
+
     // ── fixtures ──────────────────────────────────────────────────────────
 
     /** A childless jurisdiction with a population — the leaf org path's precondition. */

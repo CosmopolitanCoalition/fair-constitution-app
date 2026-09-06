@@ -11,6 +11,7 @@ use App\Services\Demo\Stages\GovernanceStage;
 use App\Services\Demo\Stages\SeatingStage;
 use App\Services\Demo\Stages\TrainingStage;
 use App\Services\Demo\Stages\IdentityStage;
+use App\Services\AuditService;
 use App\Support\SimClaims;
 use App\Support\SimTimer;
 use Illuminate\Bus\Queueable;
@@ -205,7 +206,21 @@ class SimWorkerJob implements ShouldQueue
         // double-dispatched. Mirrors ProvisionWorkerJob's $beat.
         $beat = fn () => $this->touch($token);
 
-        return match ($item->kind) {
+        // AUDIT BATCH (perf, operator 2026-09-06 — "one stamp for a bunch of
+        // transactions"). Every constitutional act this item files buffers into
+        // ONE hash-chained entry, taking the global append lock once instead of
+        // once per act. This is the proven Step 4 LegislatureUnitProcessor
+        // pattern; the heavy stages (governance, judiciary, civics with its CGC
+        // charters and board seatings and co-determination) file many acts per
+        // item, so batching them directly cuts the serial audit-chain
+        // bottleneck. A stage that throws discards its buffered acts — the item
+        // settles review and re-runs, re-auditing idempotently — so a partial
+        // filing never leaves a half-batched entry.
+        $audit = app(AuditService::class);
+        $audit->beginBatch();
+
+        try {
+            $result = match ($item->kind) {
             'cohort_scope' => CohortStage::run(
                 (string) $item->jurisdiction_id,
                 (string) $run->id,
@@ -289,7 +304,24 @@ class SimWorkerJob implements ShouldQueue
             // Stages land here as they are built; an unknown kind is a REVIEW
             // row naming itself rather than a crash.
             default => throw new \RuntimeException("No stage is wired for item kind '{$item->kind}'."),
-        };
+            };
+        } catch (\Throwable $e) {
+            // Drop the buffered acts and end the batch cleanly; the item settles
+            // review and its re-run re-audits.
+            $audit->batchTruncate(0);
+            $audit->commitBatch('simworld', 'sim.'.$item->kind.'.aborted');
+            throw $e;
+        }
+
+        // One hash-chained entry for the whole item, the global lock taken once.
+        $audit->commitBatch(
+            'simworld',
+            'sim.'.$item->kind,
+            'WF-SYS-04',
+            ! empty($item->jurisdiction_id) ? (string) $item->jurisdiction_id : null,
+        );
+
+        return $result;
     }
 
     /** HEARTBEAT (W7 item 1): keep the lease fresh mid-item so a long claim is
