@@ -278,6 +278,27 @@ return [
             'nice' => 5,
         ],
 
+        // Step 4 institution provisioning (pull engine) rides its OWN queue and
+        // supervisor so its lane count is INDEPENDENT of Step 3 districting
+        // (operator order 2026-09-06 — do not reuse Step 3's dial). maxProcesses
+        // is THE concurrency limiter (processes = lanes, one claim at a time),
+        // read from CGA_PROVISION_WORKERS via provisionWorkers() (falls back to
+        // autoscaleWorkers() when the dial is unset). Same redis-long posture as
+        // autoscale: a multi-hour claim is never ghost-redelivered, tries=1 so a
+        // failure files a REVIEW row rather than a silent retry.
+        'supervisor-provision' => [
+            'connection' => 'redis-long',
+            'queue' => ['provision'],
+            'balance' => 'simple',
+            'maxProcesses' => \App\Support\HostCapacity::provisionWorkers(),
+            'maxTime' => 0,
+            'maxJobs' => 0,
+            'memory' => \App\Support\HostCapacity::workerRecycleHeavyMb(),
+            'tries' => 1,
+            'timeout' => 2 * \App\Jobs\ProvisionWorkerJob::CLAIM_BUDGET_SECONDS,
+            'nice' => 5,
+        ],
+
         // Boot-time cache prewarms (raster tiles + geojson) ride their own
         // lane: they re-dispatch on every horizon boot and can grind for
         // hours planet-wide, and sharing the single long-running slot parked

@@ -22,8 +22,10 @@ use Illuminate\Support\Str;
  * pile is dry, the halt flag is set, the claim budget is spent or memory
  * grows past the recycle bound, then exits. The pump seeds replacements every
  * minute against claimable work, so a lane never needs to outlive its budget.
- * Rides the autoscale queue (redis-long): its retry_after is hours, so a
- * long batch is never ghost-redelivered.
+ * Rides its OWN `provision` queue (redis-long) so Step 4's lane count is
+ * independent of Step 3 districting (supervisor-provision, maxProcesses =
+ * provisionWorkers() = CGA_PROVISION_WORKERS). redis-long's retry_after is
+ * hours, so a long batch is never ghost-redelivered.
  */
 class ProvisionWorkerJob implements ShouldQueue
 {
@@ -49,7 +51,7 @@ class ProvisionWorkerJob implements ShouldQueue
 
     public function __construct(private readonly string $runId, private readonly string $lane = ProvisionClaims::LANE_TOPDOWN)
     {
-        $this->onQueue('autoscale');
+        $this->onQueue('provision');
     }
 
     public function handle(ShellBatchProcessor $shells, LegislatureUnitProcessor $units): void
