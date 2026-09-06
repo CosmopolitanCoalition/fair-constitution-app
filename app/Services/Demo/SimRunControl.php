@@ -8,6 +8,7 @@ use App\Services\AuditService;
 use App\Support\GameMode;
 use App\Support\InstanceClass;
 use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\DB;
 
 /**
  * DRIVE the simulated-world populate run — start, halt, resume — from ONE code
@@ -230,6 +231,121 @@ class SimRunControl
 
         return ['ok' => true, 'reason' => null, 'status' => $run->status];
     }
+
+    /**
+     * REVERT the run's engine bookkeeping — the SAFE subset (W7 item 3B).
+     *
+     * This abandons THIS run so a fresh `sim:start` re-enumerates cleanly: it
+     * deletes the run's worklist (`sim_items`) and its worker leases in bounded
+     * committed chunks (THE ETL RULE), then the run row. It does NOT touch the
+     * world the run produced — cohorts, people, seated members, civic records —
+     * because that teardown cascades ~40 RESTRICT foreign keys and its scope is
+     * an operator decision (rubric sim-revert-scope), not a default. The Step 4
+     * institutions and every map stay untouched here exactly as they do on the
+     * Step 4 rollback the operator narrowed to "institutions".
+     *
+     * THE ESCAPE-HATCH LAW: a recovery control is never blocked by the state it
+     * recovers from. It refuses only to protect a LIVE run (unless --force), and
+     * even then it SEIZES — culling stale leases first — rather than waiting.
+     *
+     * @return array{ok:bool, error:?string, deleted:array<string,int>}
+     */
+    public function revert(bool $force = false): array
+    {
+        if (($reason = $this->refusalReason()) !== null) {
+            return ['ok' => false, 'error' => $reason, 'deleted' => []];
+        }
+
+        $run = SimRun::query()->orderByDesc('created_at')->first();
+
+        if ($run === null) {
+            return ['ok' => false, 'error' => 'No populate run to roll back.', 'deleted' => []];
+        }
+
+        if (in_array($run->status, ['queued', 'running'], true) && ! $force) {
+            return [
+                'ok' => false,
+                'error' => "Run {$run->id} is {$run->status} — halt it first, then roll back.",
+                'deleted' => [],
+            ];
+        }
+
+        // SEIZE, do not wait: cull leases the reaper's horizon has passed so a
+        // dead worker never keeps the door shut. A genuinely live lane (force)
+        // is culled too — the operator asked for the run to end.
+        $cutoff = $force ? now() : now()->subMinutes(2);
+        $leasesCulled = (int) DB::table('sim_worker_leases')
+            ->where('run_id', $run->id)
+            ->where('last_seen_at', '<=', $cutoff)
+            ->delete();
+
+        if (! $force) {
+            $liveLanes = (int) DB::table('sim_worker_leases')
+                ->where('run_id', $run->id)
+                ->where('last_seen_at', '>', now()->subMinutes(2))
+                ->count();
+            if ($liveLanes > 0) {
+                return [
+                    'ok' => false,
+                    'error' => "{$liveLanes} lane(s) still live — wait for them to park (≤2 min), or force.",
+                    'deleted' => ['sim_worker_leases' => $leasesCulled],
+                ];
+            }
+        } else {
+            $leasesCulled += (int) DB::table('sim_worker_leases')->where('run_id', $run->id)->delete();
+        }
+
+        // Delete the worklist in bounded, committed chunks — a kill mid-revert
+        // costs one chunk, never the pass (THE ETL RULE).
+        $itemsDeleted = 0;
+        do {
+            $n = (int) DB::table('sim_items')
+                ->where('run_id', $run->id)
+                ->whereIn('id', function ($q) use ($run) {
+                    $q->select('id')->from('sim_items')
+                        ->where('run_id', $run->id)
+                        ->limit(self::REVERT_CHUNK);
+                })
+                ->delete();
+            $itemsDeleted += $n;
+        } while ($n > 0);
+
+        DB::table('sim_runs')->where('id', $run->id)->delete();
+
+        $this->putControl([
+            'action' => 'revert',
+            'status' => 'done',
+            'at' => now()->toIso8601String(),
+            'note' => 'Run cleared — worklist and leases removed. A fresh start re-enumerates. '
+                .'The world it produced (cohorts, people, seats) was left in place.',
+        ]);
+
+        $this->audit->append(
+            module: 'simworld',
+            event: 'sim.reverted',
+            payload: [
+                'run_id' => (string) $run->id,
+                'sim_items' => $itemsDeleted,
+                'sim_worker_leases' => $leasesCulled,
+                'forced' => $force,
+                'dev_control' => true,
+            ],
+            ref: 'WF-SYS-04',
+        );
+
+        return [
+            'ok' => true,
+            'error' => null,
+            'deleted' => [
+                'sim_items' => $itemsDeleted,
+                'sim_worker_leases' => $leasesCulled,
+                'sim_runs' => 1,
+            ],
+        ];
+    }
+
+    /** THE ETL RULE chunk size for the revert worklist delete. */
+    private const REVERT_CHUNK = 25000;
 
     /** The last control action, for the console to echo (null once expired). */
     public function control(): ?array

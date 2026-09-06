@@ -73,8 +73,66 @@ class SimControlParityTest extends TestCase
                 $this->assertStringContainsString('synthetic-safe', $result['reason']);
             }
 
+            // Revert carries the same guard (it returns `error`, not `reason`).
+            $rev = $control->revert(false);
+            $this->assertFalse($rev['ok'], 'revert must refuse on a non-demo world');
+            $this->assertStringContainsString('synthetic-safe', $rev['error']);
+
             // The refusal is total: no run was touched and no work was queued.
             Queue::assertNotPushed(RunSimStartJob::class);
+        });
+    }
+
+    /** Revert on a settled run clears its worklist + leases + the run row, and audits. */
+    public function test_revert_clears_the_run_bookkeeping(): void
+    {
+        $this->onLivePg(function () {
+            $this->beScaleDemo();
+            $run = $this->makeRun(['status' => 'done']);
+
+            for ($i = 0; $i < 3; $i++) {
+                DB::table('sim_items')->insert([
+                    'id' => (string) \Illuminate\Support\Str::uuid(), 'run_id' => $run->id,
+                    'kind' => 'cohort_scope', 'status' => 'done', 'unit_key' => "u{$i}",
+                    'position' => $i, 'est_cost' => 0, 'metrics' => '{}',
+                    'created_at' => now(), 'updated_at' => now(),
+                ]);
+            }
+            DB::table('sim_worker_leases')->insert([
+                'id' => (string) \Illuminate\Support\Str::uuid(), 'run_id' => $run->id,
+                'started_at' => now()->subMinutes(30), 'last_seen_at' => now()->subMinutes(30),
+            ]);
+
+            $result = app(SimRunControl::class)->revert(false);
+
+            $this->assertTrue($result['ok']);
+            $this->assertSame(3, $result['deleted']['sim_items']);
+            $this->assertSame(0, DB::table('sim_items')->where('run_id', $run->id)->count(), 'the worklist is gone');
+            $this->assertSame(0, DB::table('sim_worker_leases')->where('run_id', $run->id)->count(), 'the leases are gone');
+            $this->assertNull(SimRun::find($run->id), 'the run row is gone');
+            $this->assertAudited('sim.reverted', (string) $run->id);
+        });
+    }
+
+    /** Revert refuses a LIVE run unless forced; force SEIZES it (the escape-hatch law). */
+    public function test_revert_refuses_a_live_run_but_force_seizes_it(): void
+    {
+        $this->onLivePg(function () {
+            $this->beScaleDemo();
+            $run = $this->makeRun(['status' => 'running']);
+            DB::table('sim_worker_leases')->insert([
+                'id' => (string) \Illuminate\Support\Str::uuid(), 'run_id' => $run->id,
+                'started_at' => now(), 'last_seen_at' => now(), // live
+            ]);
+
+            $refused = app(SimRunControl::class)->revert(false);
+            $this->assertFalse($refused['ok']);
+            $this->assertStringContainsString('halt it first', $refused['error']);
+            $this->assertNotNull(SimRun::find($run->id), 'a refused revert leaves the run untouched');
+
+            $forced = app(SimRunControl::class)->revert(true);
+            $this->assertTrue($forced['ok'], 'force seizes a live run');
+            $this->assertNull(SimRun::find($run->id), 'the seized run is cleared');
         });
     }
 
@@ -147,6 +205,7 @@ class SimControlParityTest extends TestCase
             $this->beProduction();
             $this->assertSame(1, Artisan::call('sim:halt'), 'sim:halt must refuse on a non-demo world');
             $this->assertSame(1, Artisan::call('sim:resume'), 'sim:resume must refuse on a non-demo world');
+            $this->assertSame(1, Artisan::call('sim:revert'), 'sim:revert must refuse on a non-demo world');
 
             // Demo: sim:halt sets the flag the same service the button uses would.
             $this->beScaleDemo();

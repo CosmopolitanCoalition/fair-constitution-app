@@ -213,6 +213,15 @@ Route::post('/api/setup/wizard/step4/rollback', [SetupController::class, 'step4R
     ->middleware('auth')->name('api.setup.step4.rollback');
 Route::post('/api/setup/wizard/step4/complete', [SetupController::class, 'completeStep4'])
     ->middleware('auth')->name('api.setup.step4.complete');
+Route::get('/api/setup/wizard/step5/progress', [SetupController::class, 'step5Progress'])->name('api.setup.step5.progress');
+Route::post('/api/setup/wizard/step5/start', [SetupController::class, 'step5Start'])
+    ->middleware('auth')->name('api.setup.step5.start');
+Route::post('/api/setup/wizard/step5/halt', [SetupController::class, 'step5Halt'])
+    ->middleware('auth')->name('api.setup.step5.halt');
+Route::post('/api/setup/wizard/step5/resume', [SetupController::class, 'step5Resume'])
+    ->middleware('auth')->name('api.setup.step5.resume');
+Route::post('/api/setup/wizard/step5/rollback', [SetupController::class, 'step5Rollback'])
+    ->middleware('auth')->name('api.setup.step5.rollback');
 Route::post('/api/setup/wizard/step5/complete', [SetupController::class, 'completeStep5'])
     ->middleware('auth')->name('api.setup.step5.complete');
 Route::post('/api/setup/wizard/step6/complete', [SetupController::class, 'completeStep6'])

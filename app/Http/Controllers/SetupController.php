@@ -20,6 +20,8 @@ use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Str;
 use Illuminate\Validation\Rule;
+use App\Services\Demo\SimRunControl;
+use App\Services\Demo\SimSnapshot;
 use App\Services\Provision\ProvisionRunControl;
 use App\Support\SetupLadder;
 use Inertia\Inertia;
@@ -170,6 +172,11 @@ class SetupController extends Controller
         if ($n === 4) {
             $extra['summary']  = $this->buildStep4Summary();
             $extra['progress'] = $this->step4ProgressPayload();
+        }
+
+        if ($n === 5) {
+            $extra['progress']        = $this->step5ProgressPayload();
+            $extra['control_refusal'] = app(SimRunControl::class)->refusalReason();
         }
 
         if ($n === 6) {
@@ -3698,6 +3705,94 @@ class SetupController extends Controller
         ]);
     }
 
+    // ─── Step 5 — Simulate (Wave 7, the sim engine) ─────────────────────────
+
+    /**
+     * GET /api/setup/wizard/step5/progress — the sim run, its stage bars, the
+     * lanes and the review list. Cheap on every poll: the stage/lane/ledger
+     * reads are index-only; the produced-world counts are cached for ten seconds
+     * in SimSnapshot (the Step 4 anti-tax lesson).
+     */
+    public function step5Progress(): JsonResponse
+    {
+        return response()->json($this->step5ProgressPayload());
+    }
+
+    /**
+     * POST /api/setup/wizard/step5/start — start (or resume) the sim run.
+     * GATED: the sim populates the institutions Step 4 built, so Step 4 must be
+     * locked and its run done first.
+     */
+    public function step5Start(Request $request, SimRunControl $control, ProvisionRunControl $provision): JsonResponse
+    {
+        abort_unless((bool) $request->user()?->is_operator, 403);
+
+        $settings = InstanceSettings::current();
+        $provRun  = $provision->latestRun();
+        if ((int) $settings->setup_step_completed < 5
+            || $provRun === null
+            || $provRun->status !== \App\Models\ProvisionRun::STATUS_DONE) {
+            return response()->json([
+                'ok'    => false,
+                'error' => 'Lock Step 4 first — the simulation needs the scaled institutions in place before it can populate them.',
+            ], 409);
+        }
+
+        $options = [
+            'world-version' => $request->integer('world_version', 1),
+            'turnout'       => $request->integer('turnout', 62),
+            'adm-max'       => $request->integer('adm_max', 6),
+            'limit'         => $request->input('limit'),
+            'resume'        => $request->boolean('resume'),
+        ];
+
+        $result = $control->start($options, $request->user()?->username ?? 'operator');
+
+        return response()->json($result, $result['ok'] ? 200 : 409);
+    }
+
+    /** POST /api/setup/wizard/step5/halt */
+    public function step5Halt(Request $request, SimRunControl $control): JsonResponse
+    {
+        abort_unless((bool) $request->user()?->is_operator, 403);
+
+        $result = $control->halt($request->user()?->username ?? 'operator');
+
+        return response()->json($result, $result['ok'] ? 200 : 409);
+    }
+
+    /** POST /api/setup/wizard/step5/resume — the pump re-seeds workers within the minute. */
+    public function step5Resume(Request $request, SimRunControl $control): JsonResponse
+    {
+        abort_unless((bool) $request->user()?->is_operator, 403);
+
+        $result = $control->resume($request->user()?->username ?? 'operator');
+        if ($result['ok']) {
+            try {
+                \Illuminate\Support\Facades\Artisan::queue('sim:pump')->onQueue('sim');
+            } catch (\Throwable) {
+                // The scheduler's next minute runs it anyway.
+            }
+        }
+
+        return response()->json($result, $result['ok'] ? 200 : 409);
+    }
+
+    /**
+     * POST /api/setup/wizard/step5/rollback — clear the run's worklist + leases
+     * so a fresh run re-enumerates. Body: force (bool). The world the run
+     * produced (cohorts, people, seats) is left in place — a full teardown is a
+     * separate operator decision (rubric sim-revert-scope). Halt first.
+     */
+    public function step5Rollback(Request $request, SimRunControl $control): JsonResponse
+    {
+        abort_unless((bool) $request->user()?->is_operator, 403);
+
+        $result = $control->revert($request->boolean('force'));
+
+        return response()->json($result, $result['ok'] ? 200 : 409);
+    }
+
     /**
      * POST /api/setup/wizard/step5/complete — Step 5 (Simulate) done. The
      * simulation page itself is Wave 7's; this closes the step on the ladder.
@@ -3969,6 +4064,74 @@ class SetupController extends Controller
             'review'  => $review,
             'timings' => $timings,
             'maps_running' => DB::table('autoscale_runs')->whereIn('status', ['queued', 'sizing', 'mapping'])->exists(),
+        ];
+    }
+
+    /**
+     * The Step 5 (Simulate) progress payload — the sim's run, stage bars, lanes
+     * and review list, shaped like the Step 4 page. Reads through SimSnapshot
+     * (the single owner shared with the /simworld console), so the two surfaces
+     * cannot drift. The cheap parts are fresh per poll; the produced-world
+     * counts are cached in SimSnapshot.
+     */
+    private function step5ProgressPayload(): array
+    {
+        $snap = app(SimSnapshot::class);
+        $run  = $snap->activeOrLatestRun();
+
+        if ($run === null) {
+            return [
+                'run'     => null,
+                'ledger'  => ['total' => 0, 'done' => 0, 'running' => 0, 'pending' => 0, 'review' => 0],
+                'stages'  => [],
+                'layers'  => [],
+                'lanes'   => [],
+                'review'  => [],
+                'world'   => $snap->world(),
+                'control' => app(SimRunControl::class)->control(),
+            ];
+        }
+
+        $ledger  = $snap->ledger($run);
+        $lanes   = $snap->lanes($run);
+        $elapsed = $run->started_at !== null ? max(0, (int) now()->diffInSeconds($run->started_at, true)) : null;
+        $rate    = $snap->windowedRate($run);
+
+        // ETA divides the remaining worklist by the WINDOWED rate — accurate
+        // because the rate itself is real recent throughput, not a since-start
+        // average (the Step 4 rule).
+        $eta = null;
+        if (($rate['rate_per_h'] ?? 0) > 0) {
+            $remaining = max(0, $ledger['total'] - $ledger['done'] - $ledger['review']);
+            $eta = $remaining > 0 ? (int) round($remaining / ($rate['rate_per_h'] / 3600)) : 0;
+        }
+
+        return [
+            'run' => [
+                'id'                => (string) $run->id,
+                'status'            => $run->status,
+                'phase'             => $run->phase,
+                'phases'            => \App\Models\SimRun::PHASES,
+                'started_at'        => $run->started_at?->toIso8601String(),
+                'finished_at'       => $run->finished_at?->toIso8601String(),
+                'elapsed_s'         => $elapsed,
+                'eta_s'             => $eta,
+                'halt_requested'    => $run->haltRequested(),
+                'is_paused'         => $run->isPaused(),
+                'last_error'        => $run->last_error,
+                'lanes'             => count($lanes),
+                'pool'              => $snap->pool(),
+                'rate_per_h'        => $rate['rate_per_h'],
+                'rate_label'        => $rate['rate_label'],
+                'lane_warn_seconds' => [30, 120],
+            ],
+            'ledger'  => $ledger,
+            'stages'  => $snap->stages($run),
+            'layers'  => $snap->layers($run),
+            'lanes'   => $lanes,
+            'review'  => $snap->reviewItems($run),
+            'world'   => $snap->world(),
+            'control' => app(SimRunControl::class)->control(),
         ];
     }
 
