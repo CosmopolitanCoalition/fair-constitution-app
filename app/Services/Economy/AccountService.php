@@ -193,6 +193,61 @@ class AccountService
         });
     }
 
+    /**
+     * BATCH credit from ONE treasury to many accounts (2026-09-07). Same money
+     * as creditFromTreasury per recipient, but the whole set is ONE ledger post
+     * (a single bulk insert + one grouped treasury debit) and one grouped
+     * balance update — the fix for the O(recipients) serial stipend at scale.
+     *
+     * @param  array<int,array{account_id:string,amount:string}>  $credits
+     * @return string|null  the ledger entry_group, or null if nothing to pay
+     */
+    public function creditManyFromTreasury(
+        string $treasuryAccountId,
+        array $credits,
+        string $currencyId,
+        string $kind,
+    ): ?string {
+        $credits = array_values(array_filter(
+            $credits,
+            static fn ($c) => bccomp((string) $c['amount'], '0', 6) === 1
+        ));
+
+        if ($credits === []) {
+            return null;
+        }
+
+        return DB::transaction(function () use ($treasuryAccountId, $credits, $currencyId, $kind) {
+            $legs = [];
+            $sums = [];
+            foreach ($credits as $c) {
+                $amount = (string) $c['amount'];
+                $accountId = (string) $c['account_id'];
+                $legs[] = [
+                    'account_type' => 'treasury_accounts',
+                    'account_id'   => $treasuryAccountId,
+                    'currency_id'  => $currencyId,
+                    'direction'    => LedgerService::DIRECTION_DEBIT,
+                    'amount'       => $amount,
+                ];
+                $legs[] = [
+                    'account_type' => 'economic_accounts',
+                    'account_id'   => $accountId,
+                    'currency_id'  => $currencyId,
+                    'direction'    => LedgerService::DIRECTION_CREDIT,
+                    'amount'       => $amount,
+                ];
+                $sums[$accountId] = bcadd($sums[$accountId] ?? '0', $amount, 6);
+            }
+
+            $entryGroup = $this->ledger->post($kind, $legs);
+
+            $this->applyBalanceMany($sums);
+
+            return $entryGroup;
+        });
+    }
+
     public function balance(string $accountId): string
     {
         return (string) (DB::table('economic_accounts')->where('id', $accountId)->value('balance') ?? '0');
@@ -222,5 +277,40 @@ class AccountService
                 'balance'    => DB::raw('balance + ' . $delta),
                 'updated_at' => now(),
             ]);
+    }
+
+    /**
+     * Batch-apply balance deltas to many accounts in one UPDATE per chunk (a
+     * CASE over the id). Each delta is validated numeric before it is inlined,
+     * exactly as applyBalance does, so there is no injection surface.
+     *
+     * @param  array<string,string>  $deltas  account_id => signed decimal delta
+     */
+    private function applyBalanceMany(array $deltas): void
+    {
+        if ($deltas === []) {
+            return;
+        }
+
+        foreach (array_chunk($deltas, 500, true) as $chunk) {
+            $cases = '';
+            $ids = [];
+            foreach ($chunk as $id => $delta) {
+                if (! preg_match('/^-?\d+(\.\d+)?$/', (string) $delta)) {
+                    throw new InvalidArgumentException("Illegal numeric [{$delta}].");
+                }
+                $cases .= ' WHEN ? THEN balance + '.$delta;
+                $ids[] = $id;
+            }
+            $placeholders = implode(',', array_fill(0, count($ids), '?'));
+
+            DB::update(
+                "UPDATE economic_accounts
+                    SET balance = CASE id{$cases} ELSE balance END,
+                        updated_at = now()
+                  WHERE id IN ({$placeholders})",
+                array_merge($ids, $ids)
+            );
+        }
     }
 }

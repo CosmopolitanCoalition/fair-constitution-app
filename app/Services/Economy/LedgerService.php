@@ -87,6 +87,16 @@ class LedgerService
             $head = DB::selectOne('SELECT hash FROM ledger_entries ORDER BY seq DESC LIMIT 1');
             $prevHash = $head->hash ?? AuditService::GENESIS_PREV_HASH;
 
+            // BATCH APPEND (2026-09-07). The chain is computed in PHP (each
+            // link still anchors on the previous hash, identical to the verify
+            // walk), then the whole set is written in ONE bulk insert instead
+            // of a round-trip per leg. A mass disbursement (a stipend to
+            // thousands) used to be thousands of sequential INSERTs under this
+            // global lock; now it is a single insert, so the lock is held for
+            // a fraction of the time and the ledger stops being the serial
+            // wall. Balances are grouped too (one update per account).
+            $now = now();
+            $rows = [];
             foreach ($legs as $leg) {
                 // Canonicalize the amount on the way IN with the same
                 // function the verify walk uses on the way out. Postgres
@@ -108,7 +118,7 @@ class LedgerService
                 $canonical = AuditService::canonicalJson($payload);
                 $hash      = AuditService::chainHash($prevHash, $canonical);
 
-                DB::table('ledger_entries')->insert([
+                $rows[] = [
                     'id'           => (string) Str::uuid(),
                     'entry_group'  => $entryGroup,
                     'account_type' => $leg['account_type'],
@@ -121,13 +131,17 @@ class LedgerService
                     'ref_id'       => $refId,
                     'prev_hash'    => $prevHash,
                     'hash'         => $hash,
-                    'created_at'   => now(),
-                ]);
-
-                $this->applyToBalance($leg);
+                    'created_at'   => $now,
+                ];
 
                 $prevHash = $hash;
             }
+
+            foreach (array_chunk($rows, 500) as $chunk) {
+                DB::table('ledger_entries')->insert($chunk);
+            }
+
+            $this->applyToBalanceBatch($legs);
 
             return $entryGroup;
         };
@@ -259,6 +273,36 @@ class LedgerService
     }
 
     /** @param array<string, mixed> $leg */
+    /**
+     * Apply a whole batch's treasury balances at once: group every treasury leg
+     * by account and net its signed deltas, so a set that debits one treasury a
+     * thousand times issues ONE update, not a thousand. economic_accounts are
+     * still applied by the caller (AccountService), exactly as before.
+     */
+    private function applyToBalanceBatch(array $legs): void
+    {
+        $deltas = [];
+        foreach ($legs as $leg) {
+            if ($leg['account_type'] !== 'treasury_accounts') {
+                continue;
+            }
+            $signed = $leg['direction'] === self::DIRECTION_CREDIT
+                ? (string) $leg['amount']
+                : '-'.(string) $leg['amount'];
+            $deltas[$leg['account_id']] = bcadd($deltas[$leg['account_id']] ?? '0', $signed, 6);
+        }
+
+        $now = now();
+        foreach ($deltas as $accountId => $delta) {
+            DB::table('treasury_accounts')
+                ->where('id', $accountId)
+                ->update([
+                    'balance'    => DB::raw('balance + '.$this->sqlNumeric($delta)),
+                    'updated_at' => $now,
+                ]);
+        }
+    }
+
     private function applyToBalance(array $leg): void
     {
         if ($leg['account_type'] !== 'treasury_accounts') {

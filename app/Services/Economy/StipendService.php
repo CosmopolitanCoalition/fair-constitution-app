@@ -139,29 +139,41 @@ class StipendService
                 'created_at'      => now(),
             ]);
 
-            // 5. Pay each recipient from the treasury; write the private line.
+            // 5. Pay every recipient from the treasury and write the private
+            // lines — BATCHED (2026-09-07). One creditManyFromTreasury (a single
+            // ledger post + grouped balances) and one bulk receipt insert, in
+            // place of a ledger post + insert PER recipient. This is what stops
+            // the stipend from being an O(recipients) serial grind on the
+            // hash-chained ledger's global lock.
+            $now = now();
+            $credits = [];
+            $receipts = [];
             foreach ($lines as $line) {
                 if (bccomp($line['paid'], '0', 6) !== 1) {
                     continue;
                 }
 
-                $this->accounts->creditFromTreasury(
-                    $treasuryAccountId,
-                    $line['account_id'],
-                    $currency->id,
-                    $line['paid'],
-                    'stipend',
-                );
-
-                DB::table('ubi_receipts')->insert([
+                $credits[] = ['account_id' => $line['account_id'], 'amount' => $line['paid']];
+                $receipts[] = [
                     'id'              => (string) Str::uuid(),
                     'disbursement_id' => $disbursementId,
                     'account_id'      => $line['account_id'],
                     'base'            => $line['base'],
                     'bump'            => $line['bump'],
                     'amount'          => $line['paid'],
-                    'created_at'      => now(),
-                ]);
+                    'created_at'      => $now,
+                ];
+            }
+
+            $this->accounts->creditManyFromTreasury(
+                $treasuryAccountId,
+                $credits,
+                (string) $currency->id,
+                'stipend',
+            );
+
+            foreach (array_chunk($receipts, 500) as $chunk) {
+                DB::table('ubi_receipts')->insert($chunk);
             }
 
             return [
