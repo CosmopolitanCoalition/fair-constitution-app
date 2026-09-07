@@ -78,8 +78,10 @@ final class CivicsStage
     /** Each endorser backs up to this many candidates in the open election. */
     private const ENDORSEMENTS_PER_ENDORSER = 2;
 
-    /** Common Good Corporations chartered per jurisdiction (a public register). */
-    private const CGC_TARGET = 2;
+    /** Common Good Corporations chartered per jurisdiction (a public register).
+     *  1 per jurisdiction: still demonstrates the CGC feature, halves the CGC
+     *  charter + governor-board cost (operator ruling 2026-09-08). */
+    private const CGC_TARGET = 1;
 
     private const CGC_NAMES = [
         'Public Works Corporation', 'Community Health Corporation',
@@ -145,8 +147,16 @@ final class CivicsStage
             // polymorphic STV anybody or nobody may endorse any candidate, so
             // partisanship is mooted; the demo graph reflects that rather than a
             // party-only slate. Idempotent — skipped once the election carries them.
+            // Party-type orgs carry NO special abilities (no-factions); they are
+            // minted through the same org path as nonprofits/businesses, so their
+            // time folds into civics.orgs. The 2-8 band is only how many to seed.
+            SimTimer::record('civics.orgs', (int) ((hrtime(true) - $mParties) / 1000));
+
+            // Endorsements are timed on their OWN part (civics.endorsements) — the
+            // real cost the old 'civics.parties' label hid behind the party mint.
+            $mEndorse = hrtime(true);
             $out['endorsements'] = self::mintEndorsements($j, $beat);
-            SimTimer::record('civics.parties', (int) ((hrtime(true) - $mParties) / 1000));
+            SimTimer::record('civics.endorsements', (int) ((hrtime(true) - $mEndorse) / 1000));
 
             $mCgcs = hrtime(true);
             // Common Good Corporations (Art. III §5): chartered by the chamber,
