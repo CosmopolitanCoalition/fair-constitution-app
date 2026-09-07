@@ -158,6 +158,11 @@ final class JudiciaryStage
 
         // ── 2. Seat the bench: per-seat F-LEG-021 nominate (a real resident of
         //       the nominating constituent) + the consent vote. ───────────────
+        // The nominee pool: a constituent-nominated seat draws from ITS
+        // constituent's residents (Art. IV §2 — each nominates its own); a
+        // committee-nominated seat (leaf court) draws from the jurisdiction's
+        // own residents. Same consent pipeline either way, one consent vote per
+        // seat (the constitutional per-seat consent is unchanged here).
         $mSeat = hrtime(true);
         $vacant = JudicialSeat::query()
             ->where('judiciary_id', $judiciary->id)
@@ -165,16 +170,58 @@ final class JudiciaryStage
             ->orderBy('seat_number')
             ->get();
 
+        // NOMINEE PREFETCH (overhead cut 2026-09-08). Nominee selection reads
+        // the residency roster ONCE per distinct pool jurisdiction and the
+        // already-seated set ONCE for the whole bench, instead of per seat. The
+        // old residentOf() re-plucked the growing `taken` set and ran a fresh
+        // residency lookup on every seat — O(seats^2) reads on a large bench.
+        // Each pool query fetches only as many distinct residents as that pool
+        // has seats to fill, ordered by user_id for a deterministic assignment,
+        // and excludes residents already on this bench. Assignment is otherwise
+        // identical: each seat gets a distinct active resident of its pool, or
+        // defers when the pool is dry. Nothing about the F-LEG-021 nomination or
+        // its consent vote changes; this only removes read overhead.
+        $poolOf = static fn ($seat): string => $seat->seat_class === JudicialSeat::CLASS_CONSTITUENT_NOMINATED
+            ? (string) $seat->nominating_jurisdiction_id
+            : $jurisdictionId;
+
+        $needByPool = [];
+        foreach ($vacant as $seat) {
+            $pool = $poolOf($seat);
+            if ($pool !== '') {
+                $needByPool[$pool] = ($needByPool[$pool] ?? 0) + 1;
+            }
+        }
+
+        // Residents already on this bench — excluded once, not re-read per seat.
+        $taken = JudicialSeat::query()
+            ->where('judiciary_id', $judiciary->id)
+            ->whereNotNull('user_id')
+            ->pluck('user_id')
+            ->map(fn ($id) => (string) $id)
+            ->all();
+
+        // One roster read per pool jurisdiction: its distinct active residents,
+        // capped at the seats that pool must fill.
+        $poolQueues = [];
+        foreach ($needByPool as $pool => $need) {
+            $poolQueues[$pool] = DB::table('residency_confirmations')
+                ->where('jurisdiction_id', $pool)
+                ->where('is_active', true)
+                ->when($taken !== [], fn ($q) => $q->whereNotIn('user_id', $taken))
+                ->distinct()
+                ->orderBy('user_id')
+                ->limit($need)
+                ->pluck('user_id')
+                ->map(fn ($id) => (string) $id)
+                ->all();
+        }
+
+        $assigned = [];
         $deferredSeats = 0;
         foreach ($vacant as $seat) {
             $beat && $beat();
-            // The nominee pool: a constituent-nominated seat draws from ITS
-            // constituent's residents (Art. IV §2 — each nominates its own);
-            // a committee-nominated seat (leaf court) draws from the
-            // jurisdiction's own residents. Same consent pipeline either way.
-            $poolJurisdictionId = $seat->seat_class === JudicialSeat::CLASS_CONSTITUENT_NOMINATED
-                ? (string) $seat->nominating_jurisdiction_id
-                : $jurisdictionId;
+            $poolJurisdictionId = $poolOf($seat);
 
             if ($poolJurisdictionId === '') {
                 $deferredSeats++;
@@ -182,21 +229,34 @@ final class JudiciaryStage
                 continue;
             }
 
-            $nominee = self::residentOf($poolJurisdictionId, $judiciary);
-            if ($nominee === null) {
+            // Next distinct, not-yet-assigned resident of this pool. `$assigned`
+            // guards the rare resident who appears in two pools' rosters.
+            $nomineeId = null;
+            while (! empty($poolQueues[$poolJurisdictionId])) {
+                $cand = array_shift($poolQueues[$poolJurisdictionId]);
+                if (! isset($assigned[$cand])) {
+                    $nomineeId = $cand;
+
+                    break;
+                }
+            }
+
+            if ($nomineeId === null) {
                 $deferredSeats++;   // no resident to nominate yet
 
                 continue;
             }
 
+            $assigned[$nomineeId] = true;
+
             try {
                 $out = $seat->seat_class === JudicialSeat::CLASS_CONSTITUENT_NOMINATED
                     ? $seatsSvc->nominate(
                         $seat,
-                        (string) $nominee->id,
+                        $nomineeId,
                         (string) $seat->nominating_jurisdiction_id,
                     )
-                    : $seatsSvc->committeeNominate($seat, (string) $nominee->id);
+                    : $seatsSvc->committeeNominate($seat, $nomineeId);
                 self::carryVote($votes, $serving, $out['consent_vote_id'] ?? null);
             } catch (\Throwable $e) {
                 $deferredSeats++;
@@ -210,25 +270,6 @@ final class JudiciaryStage
 
         return self::done($judiciary, $filed,
             $deferredSeats > 0 ? "{$deferredSeats} seat(s) deferred" : null);
-    }
-
-    /** A nominee: an active resident of the constituent, not already on this bench. */
-    private static function residentOf(string $jurisdictionId, Judiciary $judiciary): ?User
-    {
-        $taken = JudicialSeat::query()
-            ->where('judiciary_id', $judiciary->id)
-            ->whereNotNull('user_id')
-            ->pluck('user_id')
-            ->map(fn ($id) => (string) $id)
-            ->all();
-
-        $userId = DB::table('residency_confirmations')
-            ->where('jurisdiction_id', $jurisdictionId)
-            ->where('is_active', true)
-            ->when($taken !== [], fn ($q) => $q->whereNotIn('user_id', $taken))
-            ->value('user_id');
-
-        return $userId !== null ? User::query()->find((string) $userId) : null;
     }
 
     private static function carryVote(ChamberVoteService $votes, Collection $serving, ?string $voteId): bool
