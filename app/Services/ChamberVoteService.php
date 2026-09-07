@@ -387,10 +387,12 @@ class ChamberVoteService
             $already = VoteCast::query()->where('vote_id', $fresh->id)
                 ->pluck('member_id')->map(fn ($id) => (string) $id)->flip();
 
-            $now = now();
-            $rows = [];
             $laneCounts = [];
 
+            // First pass: the cast set (serving, non-Speaker, not already cast)
+            // and one public-record spec a cast.
+            $toCast = [];
+            $recordSpecs = [];
             foreach ($members as $member) {
                 if (! in_array($member->status, LegislatureMember::CURRENT_STATUSES, true)) {
                     continue; // only serving members cast
@@ -403,15 +405,17 @@ class ChamberVoteService
                 }
 
                 $lane = $this->laneForMember($fresh, $member);
+                $toCast[] = ['member' => $member, 'lane' => $lane];
+                $laneCounts[$lane] = ($laneCounts[$lane] ?? 0) + 1;
 
-                // PUBLIC by mandate (Art. II §2): one record a cast, kept
-                // per-member so the hardened publish path is unchanged — records
-                // do not serialise on the vote row, so they need no bulking here.
-                $record = $this->records->publish(
-                    kind: 'vote',
-                    title: sprintf('Vote cast on %s — yes', $fresh->vote_type),
-                    body: null,
-                    attrs: [
+                // PUBLIC by mandate (Art. II §2): one record a cast — now BULK
+                // published (publishMany, ids in order) instead of a publish()
+                // round-trip a member, the residual per-cast write.
+                $recordSpecs[] = [
+                    'kind'  => 'vote',
+                    'title' => sprintf('Vote cast on %s — yes', $fresh->vote_type),
+                    'body'  => null,
+                    'attrs' => [
                         'actor_user_id'   => (string) $member->user_id,
                         'jurisdiction_id' => (string) $fresh->jurisdiction_id,
                         'legislature_id'  => $fresh->legislature_id !== null ? (string) $fresh->legislature_id : null,
@@ -419,22 +423,27 @@ class ChamberVoteService
                         'subject_type'    => 'chamber_vote',
                         'subject_id'      => (string) $fresh->id,
                     ],
-                );
+                ];
+            }
 
+            $recordIds = $this->records->publishMany($recordSpecs);
+
+            $now = now();
+            $rows = [];
+            foreach ($toCast as $i => $tc) {
                 $rows[] = [
                     'id'               => (string) Str::uuid(),
                     'vote_id'          => $fresh->id,
-                    'member_id'        => $member->id,
-                    'lane'             => $lane,
+                    'member_id'        => $tc['member']->id,
+                    'lane'             => $tc['lane'],
                     'value'            => VoteCast::VALUE_YES,
                     'rankings'         => null,
                     'explanation'      => null,
                     'cast_via_form'    => $viaForm,
-                    'public_record_id' => $record->id,
+                    'public_record_id' => $recordIds[$i],
                     'is_tiebreak'      => false,
                     'cast_at'          => $now,
                 ];
-                $laneCounts[$lane] = ($laneCounts[$lane] ?? 0) + 1;
             }
 
             if ($rows !== []) {

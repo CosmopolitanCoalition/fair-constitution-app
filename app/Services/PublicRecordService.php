@@ -137,4 +137,100 @@ class PublicRecordService
 
         return DB::transactionLevel() > 0 ? $insert() : DB::transaction($insert);
     }
+
+    /**
+     * BULK publish (2026-09-07). Exactly the rows publish() writes N times —
+     * one buffered audit 'records/published' act a record and one public_records
+     * row a record, same forbidden-subject guard — but the rows land in ONE
+     * chunked bulk insert instead of N model INSERTs. Built for the sim's bulk
+     * vote cast (ChamberVoteService::castManyYes), where a chamber vote publishes
+     * one public record per member. Returns the record ids in INPUT ORDER so the
+     * caller can attach each to its row.
+     *
+     * @param  list<array{kind:string,title:string,body:?string,attrs:array}>  $records
+     * @return list<string>  the created record ids, in order
+     */
+    public function publishMany(array $records): array
+    {
+        if ($records === []) {
+            return [];
+        }
+
+        // Same guards as publish(), for every record, BEFORE any write.
+        foreach ($records as $r) {
+            if (! in_array($r['kind'], PublicRecord::KINDS, true)) {
+                throw new InvalidArgumentException("Unknown public-record kind [{$r['kind']}].");
+            }
+            $st = $r['attrs']['subject_type'] ?? null;
+            if ($st !== null && in_array(strtolower((string) $st), self::FORBIDDEN_SUBJECT_TYPES, true)) {
+                throw new InvalidArgumentException(
+                    "public_records may never carry [{$st}] content — ballot secrecy / location privacy (WF-SYS-03)."
+                );
+            }
+        }
+
+        $insert = function () use ($records): array {
+            $now = now();
+            $ids = [];
+            $rows = [];
+
+            foreach ($records as $r) {
+                $id = (string) Str::uuid();
+                $ids[] = $id;
+                $attrs = $r['attrs'];
+                $subjectType = $attrs['subject_type'] ?? null;
+
+                // Seal each record with its own chain act, exactly as publish()
+                // — buffered by the caller's batch (audit_seq null then), or
+                // sealed inline otherwise.
+                $batching = $this->audit->isBatching();
+                $entry = $this->audit->append(
+                    module: 'records',
+                    event: 'published',
+                    payload: [
+                        'record_id'    => $id,
+                        'kind'         => $r['kind'],
+                        'title'        => $r['title'],
+                        'subject_type' => $subjectType,
+                        'subject_id'   => $attrs['subject_id'] ?? null,
+                        'via_form'     => $attrs['via_form'] ?? null,
+                        'via_workflow' => $attrs['via_workflow'] ?? null,
+                        'via_clock'    => $attrs['via_clock'] ?? null,
+                    ],
+                    ref: $attrs['via_form'] ?? $attrs['via_clock'] ?? $attrs['via_workflow'] ?? null,
+                    actorId: $attrs['actor_user_id'] ?? null,
+                    jurisdictionId: $attrs['jurisdiction_id'] ?? null,
+                );
+
+                $rows[] = [
+                    'id'                   => $id,
+                    'kind'                 => $r['kind'],
+                    'title'                => $r['title'],
+                    'body'                 => $r['body'] ?? null,
+                    'actor_user_id'        => $attrs['actor_user_id'] ?? null,
+                    'actor_display'        => $attrs['actor_display'] ?? null,
+                    'jurisdiction_id'      => $attrs['jurisdiction_id'] ?? null,
+                    'legislature_id'       => $attrs['legislature_id'] ?? null,
+                    'via_form'             => $attrs['via_form'] ?? null,
+                    'via_workflow'         => $attrs['via_workflow'] ?? null,
+                    'via_clock'            => $attrs['via_clock'] ?? null,
+                    'subject_type'         => $subjectType,
+                    'subject_id'           => $attrs['subject_id'] ?? null,
+                    'audit_seq'            => $batching ? null : (int) $entry->seq,
+                    'translations'         => json_encode($attrs['translations'] ?? []),
+                    'supersedes_record_id' => $attrs['supersedes_record_id'] ?? null,
+                    'published_at'         => $now,
+                    'created_at'           => $now,
+                ];
+            }
+
+            foreach (array_chunk($rows, 500) as $chunk) {
+                DB::table('public_records')->insert($chunk);
+            }
+
+            return $ids;
+        };
+
+        return DB::transactionLevel() > 0 ? $insert() : DB::transaction($insert);
+    }
 }
