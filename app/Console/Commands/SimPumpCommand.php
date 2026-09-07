@@ -41,8 +41,16 @@ class SimPumpCommand extends Command
 
     protected $description = 'Advance the active simulated-world run: phase transitions, stale-claim reclaims, counters';
 
-    /** Ordinary items: a worker that has not touched its claim in 30 min is gone. */
-    private const STALE_SECONDS = 1800;
+    /**
+     * ABSOLUTE-AGE BACKSTOP (tuned 2026-09-07, operator order). The primary reap
+     * is the dead-heartbeat check in reclaim() (120 s), which catches a killed
+     * worker fast because a live one heartbeats its lease even mid-item. This
+     * backstop only fires if that heartbeat ever regresses, so it just has to
+     * sit safely above the heaviest real item — measured ~2 s on the Poland run
+     * (counting/identities), so 5 minutes is a ~150x margin. The old 30 minutes
+     * left a run frozen on screen after a worker died.
+     */
+    private const STALE_SECONDS = 300;
 
     /**
      * Network/LLM items get 4 hours: a research call behind a rate limit can

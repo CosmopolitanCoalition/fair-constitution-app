@@ -56,7 +56,13 @@ Schedule::command('provision:pump')
 // advance a phase can advance it twice. No-ops in ~1 query when no run is
 // live, so it is free to leave scheduled on every instance.
 Schedule::command('sim:pump')
-    ->everyMinute()->withoutOverlapping(10)->runInBackground()->onOneServer();
+    // withoutOverlapping expiry TRIMMED 10 -> 2 min (2026-09-07). A background
+    // pump killed mid-run (an operator restart) never releases its lock, and
+    // for the whole expiry EVERY scheduled tick is skipped — the run sits frozen
+    // between phases. The pump finishes in seconds and a double tick is a no-op
+    // (phase advance is idempotent), so a short 2-minute lock is ample and a
+    // stale one clears fast.
+    ->everyMinute()->withoutOverlapping(2)->runInBackground()->onOneServer();
 
 // ── THE MULTITHREADED CHAIN (operator ruling 2026-08-29) ─────────────────
 // A completed official-source download hands off to the MULTITHREADED pull
