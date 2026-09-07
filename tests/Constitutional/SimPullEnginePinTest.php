@@ -141,12 +141,27 @@ class SimPullEnginePinTest extends TestCase
             $run = $this->makeRun(['phase' => 'profiling', 'status' => 'running']);
             $this->items($run, 'profile_research', 1);
 
-            $claim = SimClaims::next($run, (string) Str::uuid());
+            $token = (string) Str::uuid();
+            $claim = SimClaims::next($run, $token);
             $this->assertNotNull($claim);
 
-            // 45 minutes — past the ordinary threshold, inside the network one.
+            // A live claim registers a worker lease (id = the claim token) that
+            // the worker heartbeats mid-item; the reclaim reaps a running item
+            // whose lease has not been seen within its kind's grace (the
+            // dead-heartbeat rule). Model that lease, and age it WITH the item,
+            // so this pins the NETWORK grace (4h) and not the mere absence of a
+            // lease — a research call must not be reclaimed on the ordinary clock.
+            DB::table('sim_worker_leases')->insert([
+                'id' => $token, 'run_id' => $run->id,
+                'started_at' => now(), 'last_seen_at' => now(),
+            ]);
+
+            // 45 minutes without a heartbeat — past the ordinary threshold,
+            // inside the network one.
             DB::table('sim_items')->where('id', $claim->id)
                 ->update(['updated_at' => now()->subMinutes(45)]);
+            DB::table('sim_worker_leases')->where('id', $token)
+                ->update(['last_seen_at' => now()->subMinutes(45)]);
 
             Artisan::call('sim:pump');
 
@@ -156,9 +171,11 @@ class SimPullEnginePinTest extends TestCase
                 'a research claim must survive the ordinary stale clock'
             );
 
-            // 5 hours — past the network threshold too.
+            // 5 hours without a heartbeat — past the network threshold too.
             DB::table('sim_items')->where('id', $claim->id)
                 ->update(['updated_at' => now()->subHours(5)]);
+            DB::table('sim_worker_leases')->where('id', $token)
+                ->update(['last_seen_at' => now()->subHours(5)]);
 
             Artisan::call('sim:pump');
 
