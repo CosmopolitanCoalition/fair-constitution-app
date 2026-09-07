@@ -367,10 +367,15 @@ class SimPumpCommand extends Command
                     )
                   LIMIT ".self::MINT_CHUNK,
 
-            // THE MONEY PLANE (W7 item 8): one stipend item per jurisdiction
-            // that minted residents — keyed on identity_batch (wallets were
-            // opened there), so every place with residents pays its civic
-            // stipend, whether or not its chamber seated.
+            // THE MONEY PLANE (W7 item 8): one stipend item per LEAF jurisdiction
+            // that minted residents. LEAF-ONLY (2026-09-07): with nested
+            // residency a parent's residents ARE its bound-up descendants, so a
+            // per-jurisdiction stipend paid every person once PER ANCESTOR (5-6x
+            // over-disbursement) AND turned the root's item into an O(all
+            // residents) serial hashed-ledger write that hung the phase
+            // (Poland's item disbursed to 70k in one 9-minute transaction,
+            // blocking every lane). A person receives ONE civic stipend, from
+            // the leaf they live in; ancestors do not re-pay their descendants.
             'stipends' => "INSERT INTO sim_items
                     (id, run_id, kind, status, jurisdiction_id, adm_level, unit_key,
                      position, est_cost, metrics, created_at, updated_at)
@@ -380,6 +385,11 @@ class SimPumpCommand extends Command
                    FROM sim_items s
                   WHERE s.run_id = ? AND s.kind = 'identity_batch'
                     AND s.status = 'done'
+                    AND NOT EXISTS (
+                        SELECT 1 FROM jurisdictions ch
+                         WHERE ch.parent_id = s.jurisdiction_id
+                           AND ch.deleted_at IS NULL
+                    )
                     AND NOT EXISTS (
                         SELECT 1 FROM sim_items x
                          WHERE x.run_id = ? AND x.kind = 'stipend_scope'
