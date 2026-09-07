@@ -60,7 +60,7 @@ final class IdentityStage
     /**
      * @return array{users: int, confirmations: int, reused: int}
      */
-    public static function run(string $jurisdictionId, ?string $runId, int $version, ?\Closure $beat = null, float $samplePct = 1.0): array
+    public static function run(string $jurisdictionId, ?string $runId, int $version, ?\Closure $beat = null, float $samplePct = 1.0, int $minFloor = 0): array
     {
         $cohort = DB::table('jurisdiction_cohorts')
             ->where('jurisdiction_id', $jurisdictionId)
@@ -96,7 +96,12 @@ final class IdentityStage
         $popTarget = $isLeaf
             ? min(self::MAX_PER_JURISDICTION, (int) ceil($population * max(0.0, $samplePct) / 100))
             : 0;
-        $needed = max(self::rosterSize($jurisdictionId), $popTarget);
+        // The floor (2026-09-08): a caller that knows the true race-scope need
+        // (ElectionStage, once the races exist) passes it as $minFloor so the
+        // roster covers Σ(seats+1) even where rosterSize under-reports — a
+        // composite parent whose races racePlan scopes to its children while
+        // createRaces scopes them to the parent. Zero when not supplied.
+        $needed = max(self::rosterSize($jurisdictionId), $popTarget, $minFloor);
 
         // Idempotent by construction: a re-handed unit tops the roster up to
         // size rather than minting a second one.

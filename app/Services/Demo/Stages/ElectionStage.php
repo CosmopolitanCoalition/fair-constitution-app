@@ -90,6 +90,7 @@ final class ElectionStage
                 $mField = hrtime(true);
                 $candidacies = self::fieldCandidates(
                     $jurisdictionId,
+                    $runId,
                     (string) $existing->id,
                     $existingRaces,
                     $version,
@@ -177,6 +178,7 @@ final class ElectionStage
         $mField = hrtime(true);
         $candidacies = self::fieldCandidates(
             $jurisdictionId,
+            $runId,
             (string) $election->id,
             $races,
             $version,
@@ -190,6 +192,25 @@ final class ElectionStage
             'candidacies' => $candidacies,
             'blocked_kinds' => $blockedKinds,
         ];
+    }
+
+    /**
+     * The race scope's roster: its active residents in a deterministic order,
+     * capped at what the scope needs. Residency is the eligibility, so this is
+     * the same set the constitution accepts. Shared by the initial draw and the
+     * redraw after a floor top-up.
+     *
+     * @return list<string>
+     */
+    private static function rosterFor(string $scope, int $needed): array
+    {
+        return DB::table('residency_confirmations')
+            ->where('jurisdiction_id', $scope)
+            ->where('is_active', true)
+            ->orderBy('user_id')
+            ->limit($needed)
+            ->pluck('user_id')
+            ->all();
     }
 
     /**
@@ -211,13 +232,16 @@ final class ElectionStage
      * falls back to the election's jurisdiction.
      *
      * A user may hold only ONE candidacy per election (a DB unique constraint on
-     * election_id+user_id). The identities stage writes confirmations at depth 0
-     * — this jurisdiction only, no ancestor sweep — so no user sits in two
-     * jurisdictions' rosters, and the constraint holds across groups by
-     * construction; within a group the cursor prevents reuse.
+     * election_id+user_id). Since the mint-at-leaf rework the identities stage
+     * writes confirmations for the FULL ancestor chain (depth 0 up to the root),
+     * so a person is a resident of every ancestor and may sit in more than one
+     * scope's roster within an election. The per-scope cursor prevents reuse
+     * inside a scope, and the insertOrIgnore below absorbs any cross-scope repeat
+     * (dropping the duplicate), so the constraint always holds.
      */
     private static function fieldCandidates(
         string $jurisdictionId,
+        ?string $runId,
         string $electionId,
         $races,
         int $version,
@@ -247,19 +271,33 @@ final class ElectionStage
 
             // The roster, in a deterministic order — residency is what makes
             // them eligible, so this is the same set the constitution accepts.
-            $roster = DB::table('residency_confirmations')
-                ->where('jurisdiction_id', $scope)
-                ->where('is_active', true)
-                ->orderBy('user_id')
-                ->limit($needed)
-                ->pluck('user_id')
-                ->all();
+            $roster = self::rosterFor($scope, $needed);
+
+            // THE FLOOR (2026-09-08): a scope short of Σ(seats+1) candidates
+            // cannot be contested. The identities stage sizes each jurisdiction,
+            // but a composite parent's roster is the bind-up of its descendants'
+            // 0.1% samples and can fall below the parent's OWN chamber seats
+            // (rosterSize under-reports here — racePlan scopes these races to the
+            // children while createRaces scopes them to the parent). The exact
+            // need is known NOW that the races exist, so mint the shortfall for
+            // THIS scope and redraw. A guaranteed floor at the point of need,
+            // immune to that divergence; it only tops up this scope's own roster
+            // and never pools another jurisdiction's residents into this race.
+            if (count($roster) < $needed) {
+                try {
+                    IdentityStage::run($scope, $runId, $version, $beat, 0.0, $needed);
+                    $roster = self::rosterFor($scope, $needed);
+                } catch (\Throwable) {
+                    // Fall through to the review below (e.g. no cohort for $scope
+                    // — a genuine anomaly the run should surface, not paper over).
+                }
+            }
 
             if (count($roster) < $needed) {
                 throw new \RuntimeException(sprintf(
                     'Roster too small to contest this election: %d residents in jurisdiction %s for %d '
-                    .'seats+1 slots. The identities stage must run first and size to Σ(seats + 1) for '
-                    .'each race-bearing jurisdiction (per-child races draw from each child).',
+                    .'seats+1 slots even after the floor top-up. The identities stage must size to '
+                    .'Σ(seats + 1) for each race-bearing jurisdiction (per-child races draw from each child).',
                     count($roster),
                     $scope,
                     $needed
