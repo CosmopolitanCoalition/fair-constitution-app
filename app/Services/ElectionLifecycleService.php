@@ -1031,11 +1031,22 @@ class ElectionLifecycleService implements ElectionSchedulingDelegate
                 $tieAtLine = $finalists->isNotEmpty() && $rest->isNotEmpty()
                     && ($counts[$finalists->last()->id] ?? 0) === ($counts[$rest->first()->id] ?? 0);
 
-                foreach ($finalists as $candidacy) {
-                    $candidacy->forceFill(['status' => Candidacy::STATUS_FINALIST])->save();
+                // Bulk the status flip: one UPDATE a side instead of a save() a
+                // candidacy (the seat.advance N+1). Same rows, same statuses; the
+                // in-memory models are synced too for any later read.
+                $now = now();
+                $finalistIds = $finalists->pluck('id')->all();
+                $restIds = $rest->pluck('id')->all();
+
+                if ($finalistIds !== []) {
+                    Candidacy::query()->whereIn('id', $finalistIds)
+                        ->update(['status' => Candidacy::STATUS_FINALIST, 'updated_at' => $now]);
+                    $finalists->each(fn (Candidacy $c) => $c->setAttribute('status', Candidacy::STATUS_FINALIST)->syncOriginal());
                 }
-                foreach ($rest as $candidacy) {
-                    $candidacy->forceFill(['status' => Candidacy::STATUS_NON_FINALIST])->save();
+                if ($restIds !== []) {
+                    Candidacy::query()->whereIn('id', $restIds)
+                        ->update(['status' => Candidacy::STATUS_NON_FINALIST, 'updated_at' => $now]);
+                    $rest->each(fn (Candidacy $c) => $c->setAttribute('status', Candidacy::STATUS_NON_FINALIST)->syncOriginal());
                 }
 
                 $this->audit->append(
