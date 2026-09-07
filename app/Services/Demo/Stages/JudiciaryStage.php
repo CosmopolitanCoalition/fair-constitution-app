@@ -242,15 +242,11 @@ final class JudiciaryStage
             return false;
         }
 
-        foreach ($serving as $member) {
-            // Cheap close-check (one column, not a hydrated model) and pass the
-            // ORIGINAL vote — cast() re-reads under lock, so the per-member
-            // fresh() was two redundant SELECTs a cast (2026-09-07 perf).
-            if (ChamberVote::query()->whereKey($voteId)->value('outcome') !== null) {
-                break;
-            }
-            $votes->cast($vote, $member, 'yes');
-        }
+        // Bulk cast — every serving member votes 'yes' in ONE locked pass
+        // (castManyYes is provably tally-identical to the per-member loop, but
+        // locks the vote once and bulk-inserts the casts). Speaker neutrality
+        // and the auto-close at full participation are handled inside.
+        $votes->castManyYes($vote, $serving);
 
         return true;
     }

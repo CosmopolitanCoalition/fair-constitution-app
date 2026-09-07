@@ -17,6 +17,7 @@ use App\Models\VoteCast;
 use DateTimeInterface;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Str;
 use InvalidArgumentException;
 use RuntimeException;
 
@@ -342,6 +343,121 @@ class ChamberVoteService
             }
 
             return $cast;
+        };
+
+        return DB::transactionLevel() > 0 ? $run() : DB::transaction($run);
+    }
+
+    /**
+     * BULK yes/no cast (2026-09-07) for the synthetic sim vote path: every
+     * serving member casts 'yes' at once. Provably tally-identical to N cast()
+     * calls — the same per-member vote_cast row, the same per-member public
+     * record, the same lane, and the yes tally rises by the same count — but the
+     * vote row is locked ONCE (not per cast), the vote_casts are one bulk insert,
+     * the tally is one increment a lane, and the close-check runs once. Speaker
+     * neutrality (never casts yes/no), the already-cast immutability guard, and
+     * the auto-close at full participation are all preserved exactly as cast()
+     * does them. Ranked/RCV votes are NOT this path (it throws) — cast() stays
+     * the single-vote door with the full method/value validation.
+     *
+     * @param  iterable<LegislatureMember>  $members
+     * @return int  the number of casts written
+     */
+    public function castManyYes(ChamberVote $vote, iterable $members, string $viaForm = 'F-LEG-004'): int
+    {
+        $run = function () use ($vote, $members, $viaForm): int {
+            $fresh = ChamberVote::query()->whereKey($vote->id)->lockForUpdate()->firstOrFail();
+
+            if ($fresh->status !== ChamberVote::STATUS_OPEN) {
+                return 0; // already closed — nothing to cast (carryVote's break)
+            }
+
+            if ($fresh->vote_method !== ChamberVote::METHOD_YES_NO) {
+                throw new ConstitutionalViolation(
+                    'castManyYes is the yes/no bulk path — a ranked vote is cast through cast().',
+                    'Art. II §2'
+                );
+            }
+
+            $speakerId = $fresh->legislature_id !== null
+                ? Legislature::query()->whereKey($fresh->legislature_id)->value('speaker_id')
+                : null;
+
+            // The immutability guard, in one query rather than one a member.
+            $already = VoteCast::query()->where('vote_id', $fresh->id)
+                ->pluck('member_id')->map(fn ($id) => (string) $id)->flip();
+
+            $now = now();
+            $rows = [];
+            $laneCounts = [];
+
+            foreach ($members as $member) {
+                if (! in_array($member->status, LegislatureMember::CURRENT_STATUSES, true)) {
+                    continue; // only serving members cast
+                }
+                if ($speakerId !== null && (string) $speakerId === (string) $member->id) {
+                    continue; // Speaker neutrality — never casts yes/no (Art. II §3)
+                }
+                if ($already->has((string) $member->id)) {
+                    continue; // immutable — this member already cast
+                }
+
+                $lane = $this->laneForMember($fresh, $member);
+
+                // PUBLIC by mandate (Art. II §2): one record a cast, kept
+                // per-member so the hardened publish path is unchanged — records
+                // do not serialise on the vote row, so they need no bulking here.
+                $record = $this->records->publish(
+                    kind: 'vote',
+                    title: sprintf('Vote cast on %s — yes', $fresh->vote_type),
+                    body: null,
+                    attrs: [
+                        'actor_user_id'   => (string) $member->user_id,
+                        'jurisdiction_id' => (string) $fresh->jurisdiction_id,
+                        'legislature_id'  => $fresh->legislature_id !== null ? (string) $fresh->legislature_id : null,
+                        'via_form'        => $viaForm,
+                        'subject_type'    => 'chamber_vote',
+                        'subject_id'      => (string) $fresh->id,
+                    ],
+                );
+
+                $rows[] = [
+                    'id'               => (string) Str::uuid(),
+                    'vote_id'          => $fresh->id,
+                    'member_id'        => $member->id,
+                    'lane'             => $lane,
+                    'value'            => VoteCast::VALUE_YES,
+                    'rankings'         => null,
+                    'explanation'      => null,
+                    'cast_via_form'    => $viaForm,
+                    'public_record_id' => $record->id,
+                    'is_tiebreak'      => false,
+                    'cast_at'          => $now,
+                ];
+                $laneCounts[$lane] = ($laneCounts[$lane] ?? 0) + 1;
+            }
+
+            if ($rows !== []) {
+                foreach (array_chunk($rows, 500) as $chunk) {
+                    DB::table('vote_casts')->insert($chunk);
+                }
+                foreach ($laneCounts as $lane => $count) {
+                    ChamberVoteTally::query()->where('vote_id', $fresh->id)->where('lane', $lane)
+                        ->increment('yes', $count);
+                }
+            }
+
+            // Auto-close at full participation — the SAME expected as cast():
+            // yes/no excludes the Speaker from the denominator.
+            $expected = $fresh->serving_snapshot;
+            if ($speakerId !== null && $this->memberBelongsToBody($fresh, (string) $speakerId)) {
+                $expected -= 1;
+            }
+            if (VoteCast::query()->where('vote_id', $fresh->id)->where('is_tiebreak', false)->count() >= $expected) {
+                $this->close($fresh);
+            }
+
+            return count($rows);
         };
 
         return DB::transactionLevel() > 0 ? $run() : DB::transaction($run);
