@@ -20,6 +20,7 @@ use App\Models\Vacancy;
 use Carbon\CarbonImmutable;
 use Carbon\CarbonInterface;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Str;
 
 /**
  * WI-B5 — the certification → seating pipeline (design §B.2.5, counting
@@ -179,6 +180,7 @@ class CertificationService implements CertificationPipeline
         // WHOLE type_b half or a vacancy/countback seat lookup is ambiguous. A
         // single interim-pooled type_b race still yields 1..N exactly as before.
         $typeBSeatNo = 0;
+        $specs = [];
 
         foreach ($election->races()->get() as $race) {
             $tabulation = $this->certifiedTabulation($race);
@@ -191,6 +193,9 @@ class CertificationService implements CertificationPipeline
 
             $winnerIds = [];
 
+            // FIRST PASS: resolve each winner (its seat_no, its candidacy) and
+            // pre-generate its member+term ids, WITHOUT the per-winner member/
+            // term/clock writes — those are bulked below (the seat.certify N+1).
             foreach ($results as $result) {
                 $candidacy = Candidacy::query()->findOrFail($result->candidacy_id);
 
@@ -200,46 +205,32 @@ class CertificationService implements CertificationPipeline
                     ? ($vacatedSeat?->seat_no ?? $result->seat_no)
                     : ($race->seat_kind === ElectionRace::SEAT_KIND_TYPE_B ? ++$typeBSeatNo : $result->seat_no);
 
-                $member = $this->seatWinner(
-                    legislature: $legislature,
-                    race: $race,
-                    election: $election,
-                    candidacy: $candidacy,
-                    seatNo: $seatNo,
-                    voteShareNorm: $result->vote_share_norm,
-                    window: $window,
-                );
-
-                $term = $this->openTerm($member, $election, $window);
-
+                $specs[] = [
+                    'race'       => $race,
+                    'candidacy'  => $candidacy,
+                    'seat_no'    => $seatNo,
+                    'vote_share' => $result->vote_share_norm,
+                    'member_id'  => (string) Str::uuid(),
+                    'term_id'    => (string) Str::uuid(),
+                ];
                 $winnerIds[] = (string) $candidacy->id;
-
-                $winners[] = [
-                    'user_id'         => (string) $candidacy->user_id,
-                    'candidacy_id'    => (string) $candidacy->id,
-                    'race_id'         => (string) $race->id,
-                    'seat_no'         => $member->seat_no,
-                    'member_id'       => (string) $member->id,
-                    'vote_share_norm' => $member->vote_share_norm,
-                ];
-
-                $terms[] = [
-                    'term_id'        => (string) $term->id,
-                    'holder_user_id' => (string) $term->holder_user_id,
-                    'starts_on'      => $term->starts_on->toDateString(),
-                    'ends_on'        => $term->ends_on->toDateString(),
-                    'term_class'     => $term->term_class,
-                ];
             }
 
             // The rest of the public record: standing candidacies of this
-            // race that did not win are defeated (ESM-06 terminal).
+            // race that did not win are defeated (ESM-06 terminal). Unchanged —
+            // one bulk UPDATE a race.
             Candidacy::query()
                 ->where('race_id', $race->id)
                 ->whereIn('status', [Candidacy::STATUS_FINALIST, Candidacy::STATUS_NON_FINALIST])
                 ->whereNotIn('id', $winnerIds)
                 ->update(['status' => Candidacy::STATUS_DEFEATED, 'updated_at' => now()]);
         }
+
+        // SECOND PASS: seat every winner in bulk — members, terms, the elected
+        // flip and the home-jurisdiction lookup all set-based, provably the
+        // same rows seatWinner()/openTerm() write one at a time. The per-term
+        // CLK-10 clock (a derived, deadline-less flag) stays per-winner.
+        [$winners, $terms] = $this->seatWinnersBulk($specs, $legislature, $election, $window);
 
         $nextElectionId = null;
         $referendums    = [];
@@ -963,6 +954,166 @@ class CertificationService implements CertificationPipeline
         );
 
         return $term;
+    }
+
+    /**
+     * Seat a whole chamber's winners in bulk — the set-based equivalent of
+     * calling seatWinner()+openTerm() a winner (2026-09-07, the seat.certify
+     * N+1). Provably the same rows: one legislature_members row and one terms
+     * row a winner (the member carrying its pre-generated term_id, so the
+     * back-fill UPDATE is gone), each winner candidacy flipped to elected, and
+     * the home_jurisdiction resolved by one grouped residency query instead of
+     * a lookup a winner. The per-term CLK-10 flag — derived, deadline-less —
+     * stays per-winner. Returns the same [$winners, $terms] arrays the caller
+     * builds its record from.
+     *
+     * @param  list<array{race:ElectionRace,candidacy:Candidacy,seat_no:?int,vote_share:mixed,member_id:string,term_id:string}>  $specs
+     * @param  array{starts_on: \Carbon\CarbonImmutable, ends_on: \Carbon\CarbonImmutable}  $window
+     * @return array{0: list<array<string,mixed>>, 1: list<array<string,mixed>>}
+     */
+    private function seatWinnersBulk(array $specs, Legislature $legislature, Election $election, array $window): array
+    {
+        if ($specs === []) {
+            return [[], []];
+        }
+
+        $home = $this->deepestAssociations(array_values(array_unique(
+            array_map(static fn (array $s) => (string) $s['candidacy']->user_id, $specs)
+        )));
+
+        $now      = now();
+        $startsOn = $window['starts_on']->toDateString();
+        $endsOn   = $window['ends_on']->toDateString();
+
+        $memberRows = [];
+        $termRows   = [];
+        $electedIds = [];
+        $winners    = [];
+        $terms      = [];
+
+        foreach ($specs as $s) {
+            $race = $s['race'];
+            $c    = $s['candidacy'];
+            $uid  = (string) $c->user_id;
+            $mid  = $s['member_id'];
+            $tid  = $s['term_id'];
+
+            $memberRows[] = [
+                'id'                   => $mid,
+                'legislature_id'       => $legislature->id,
+                'user_id'              => $c->user_id,
+                'seat_type'            => $race->seat_kind === ElectionRace::SEAT_KIND_TYPE_B ? 'b' : 'a',
+                'seat_no'              => $s['seat_no'],
+                'district_id'          => $race->district_id,
+                'elected_in_race_id'   => $race->id,
+                'election_id'          => $election->id,
+                'vote_share_norm'      => $s['vote_share'],
+                'status'               => LegislatureMember::STATUS_ELECTED,
+                'seated_on'            => $startsOn,
+                'term_ends_on'         => $endsOn,
+                'home_jurisdiction_id' => $home[$uid] ?? null,
+                'term_id'              => $tid,
+                'is_speaker'           => false,
+                'created_at'           => $now,
+                'updated_at'           => $now,
+            ];
+
+            $termRows[] = [
+                'id'                 => $tid,
+                'office_kind'        => 'legislature_seat',
+                'office_type'        => 'legislature_members',
+                'office_id'          => $mid,
+                'holder_user_id'     => $c->user_id,
+                'jurisdiction_id'    => $election->jurisdiction_id,
+                'legislature_id'     => $legislature->id,
+                'term_class'         => Term::CLASS_LOCKSTEP,
+                'starts_on'          => $startsOn,
+                'ends_on'            => $endsOn,
+                'source_election_id' => $election->id,
+                'status'             => Term::STATUS_ACTIVE,
+                'created_at'         => $now,
+                'updated_at'         => $now,
+            ];
+
+            $electedIds[] = (string) $c->id;
+
+            $winners[] = [
+                'user_id'         => $uid,
+                'candidacy_id'    => (string) $c->id,
+                'race_id'         => (string) $race->id,
+                'seat_no'         => $s['seat_no'],
+                'member_id'       => $mid,
+                'vote_share_norm' => $s['vote_share'],
+            ];
+            $terms[] = [
+                'term_id'        => $tid,
+                'holder_user_id' => $uid,
+                'starts_on'      => $startsOn,
+                'ends_on'        => $endsOn,
+                'term_class'     => Term::CLASS_LOCKSTEP,
+            ];
+        }
+
+        // Terms FIRST: legislature_members.term_id has a FK to terms, so the
+        // member rows (which carry their term_id) can only land once their term
+        // exists. terms.office_id is polymorphic (no FK), so it may name a member
+        // that is about to be inserted. This is the same end-state as the old
+        // member-then-term-then-backfill order, without the back-fill UPDATE.
+        foreach (array_chunk($termRows, 500) as $chunk) {
+            DB::table('terms')->insert($chunk);
+        }
+        foreach (array_chunk($memberRows, 500) as $chunk) {
+            DB::table('legislature_members')->insert($chunk);
+        }
+        foreach (array_chunk($electedIds, 500) as $chunk) {
+            Candidacy::query()->whereIn('id', $chunk)
+                ->update(['status' => Candidacy::STATUS_ELECTED, 'updated_at' => $now]);
+        }
+
+        // CLK-10 a term (the same call openTerm() makes) — a derived flag,
+        // never a deadline, so it is a cheap per-winner arm, not a bulk write.
+        foreach ($specs as $s) {
+            $this->clocks->arm(
+                'CLK-10',
+                (string) $election->jurisdiction_id,
+                'term',
+                $s['term_id'],
+                null,
+                ['step' => 'lockstep', 'ends_on' => $endsOn],
+            );
+        }
+
+        return [$winners, $terms];
+    }
+
+    /**
+     * The deepest active residency jurisdiction for many users at once — the
+     * bulk form of deepestAssociation() (smallest depth wins, NULLS LAST).
+     *
+     * @param  list<string>  $userIds
+     * @return array<string, ?string>  user_id => jurisdiction_id
+     */
+    private function deepestAssociations(array $userIds): array
+    {
+        $out = [];
+
+        foreach (array_chunk($userIds, 1000) as $chunk) {
+            $rows = DB::table('residency_confirmations')
+                ->select('user_id', 'jurisdiction_id')
+                ->whereIn('user_id', $chunk)
+                ->where('is_active', true)
+                ->orderByRaw('user_id, depth ASC NULLS LAST')
+                ->get();
+
+            foreach ($rows as $r) {
+                // First row a user wins — the rows are ordered depth ASC.
+                if (! array_key_exists((string) $r->user_id, $out)) {
+                    $out[(string) $r->user_id] = $r->jurisdiction_id;
+                }
+            }
+        }
+
+        return $out;
     }
 
     /**
