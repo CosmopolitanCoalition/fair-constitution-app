@@ -342,9 +342,10 @@ class SimPumpCommand extends Command
 
             // TRAINING (W7 item 7): one item per jurisdiction whose seating
             // landed — DISTINCT ON so a two-chamber place trains once. Keyed on
-            // seat_scope (not civics) so every seated place is covered even
-            // where governance / judiciary / civics deferred; TrainingStage
-            // trains ALL of that jurisdiction's seated holder types.
+            // seat_scope so every seated place is trained BEFORE its governance /
+            // judiciary / civics acts run (the phase now sits between seating and
+            // governance); TrainingStage trains ALL of that jurisdiction's
+            // seated holder types that exist at this point — the chamber.
             'training' => "INSERT INTO sim_items
                     (id, run_id, kind, status, jurisdiction_id, adm_level, unit_key,
                      position, est_cost, metrics, created_at, updated_at)
@@ -542,9 +543,12 @@ class SimPumpCommand extends Command
         $run->forceFill(['phase' => $next, 'phase_timings' => $timings])->save();
 
         // ARM THE GATE ONCE, at the training transition (W7 item 7). Publishing
-        // the catalog makes the tracks live; doing it HERE, after the content
-        // stages, means their gated forms (F-LEG-*, judiciary) were never
-        // blocked. Idempotent — a resumed run re-publishing revises in place.
+        // the catalog makes the tracks live; doing it HERE — the training phase
+        // now runs right after seating, BEFORE the content stages — arms the
+        // gate and then TrainingStage trains the seated chamber, so the gated
+        // F-LEG acts that governance / judiciary / civics file are performed by
+        // trained holders (the tutorial-before-you-act model, operator
+        // 2026-09-07). Idempotent — a resumed run re-publishing revises in place.
         if ($next === 'training') {
             $counts = app(\App\Services\Education\EducationCatalogService::class)->publish();
             $this->info("education catalog published: {$counts['tracks']} tracks, {$counts['modules']} modules (gate armed)");

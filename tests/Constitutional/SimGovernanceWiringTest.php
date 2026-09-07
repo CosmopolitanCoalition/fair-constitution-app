@@ -53,16 +53,23 @@ class SimGovernanceWiringTest extends TestCase
         $phases = SimRun::PHASES;
 
         $seating = array_search('seating', $phases, true);
+        $training = array_search('training', $phases, true);
         $governance = array_search('governance', $phases, true);
         $judiciary = array_search('judiciary', $phases, true);
         $verifying = array_search('verifying', $phases, true);
 
+        // Training (W7 item 7) runs FIRST after seating — the seated chamber
+        // completes its tutorial before it exercises role authority (operator
+        // 2026-09-07, the tutorial-before-you-act model). Arming the gate then
+        // trains the chamber, so the gated F-LEG acts the content stages file
+        // pass instead of being refused.
+        $this->assertNotFalse($training, 'a training phase must exist');
+        $this->assertSame($seating + 1, $training, 'training (the seat tutorial) runs immediately after seating');
         $this->assertNotFalse($governance, 'a governance phase must exist');
-        $this->assertSame($seating + 1, $governance, 'governance runs immediately after seating');
-        // The bench phase (operator 2026-08-08 — the courtroom gap): the
-        // matured world now includes the judge pools, so verifying moves to
-        // after JUDICIARY. F-LEG-017 needs seated chambers (governance-era
-        // state), and the scan must see the benches.
+        $this->assertSame($training + 1, $governance, 'governance runs after the chamber is trained');
+        // The bench phase (operator 2026-08-08 — the courtroom gap): F-LEG-017
+        // needs seated chambers (governance-era state), and the scan must see
+        // the benches.
         $this->assertNotFalse($judiciary, 'a judiciary phase must exist');
         $this->assertSame($governance + 1, $judiciary, 'the bench forms immediately after the growth dial');
         // Census-flavored civics (rubric sim-org-bill-rates = B, 2026-08-08):
@@ -71,16 +78,11 @@ class SimGovernanceWiringTest extends TestCase
         $civics = array_search('civics', $phases, true);
         $this->assertNotFalse($civics, 'a civics phase must exist');
         $this->assertSame($judiciary + 1, $civics, 'civics (orgs + bills) follows the bench');
-        // Training (W7 item 7, ruling edu-arming A): pre-train the fleet AFTER
-        // the content stages, so arming the gate never blocks their gated forms.
-        $training = array_search('training', $phases, true);
-        $this->assertNotFalse($training, 'a training phase must exist');
-        $this->assertSame($civics + 1, $training, 'training (pre-train the fleet) follows civics');
         // Stipends (W7 item 8, the money plane): the civic stipend runs after the
-        // fleet is trained and before the acceptance scan.
+        // content stages and before the acceptance scan.
         $stipends = array_search('stipends', $phases, true);
         $this->assertNotFalse($stipends, 'a stipends phase must exist');
-        $this->assertSame($training + 1, $stipends, 'stipends (the money plane) follows training');
+        $this->assertSame($civics + 1, $stipends, 'stipends (the money plane) follows civics');
         $this->assertSame($stipends + 1, $verifying, 'verifying (the acceptance scan) runs last, after the money plane');
 
         $this->assertSame(['governance_scope'], SimRun::PHASE_KINDS['governance']);
@@ -256,6 +258,12 @@ class SimGovernanceWiringTest extends TestCase
             'adm_level' => 2, 'unit_key' => $electionId, 'position' => 1,
             'est_cost' => 0, 'metrics' => '{}', 'created_at' => now(), 'updated_at' => now(),
         ]);
+
+        // The seat tutorial (operator 2026-09-07): the sim's training phase now
+        // runs between seating and governance, so the seated chamber is trained
+        // before it files its gated F-LEG acts. The fixture mirrors that — an
+        // untrained chamber is correctly refused, so the seated run must train.
+        app(\App\Services\Education\SeatedMemberTrainingService::class)->armForJurisdiction($jurId);
 
         return [$runId, $jurId, $legId];
     }

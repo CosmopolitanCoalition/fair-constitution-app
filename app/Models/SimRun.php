@@ -45,10 +45,10 @@ class SimRun extends Model
         'elections',
         'counting',
         'seating',
+        'training',
         'governance',
         'judiciary',
         'civics',
-        'training',
         'stipends',
         'verifying',
         'done',
@@ -96,11 +96,15 @@ class SimRun extends Model
         // counts in metrics. One item per jurisdiction whose bench item
         // settled.
         'civics' => ['civics_scope'],
-        // TRAINING (W7 item 7, ruling edu-arming A). AFTER the content stages so
-        // arming the training gate never blocks their gated forms. The catalog
-        // is published once at the transition (SimPumpCommand::advancePhase);
-        // TrainingStage then pre-trains each jurisdiction's seated holders. One
-        // item per jurisdiction whose seating landed — bounded, resumable.
+        // TRAINING (W7 item 7, ruling edu-arming A). Runs BEFORE the content
+        // stages (governance / judiciary / civics) so each jurisdiction's
+        // seated chamber completes its tutorial before it exercises role
+        // authority — the tutorial-before-you-act model (operator 2026-09-07).
+        // The catalog is published at this transition (SimPumpCommand::
+        // advancePhase), arming the gate; TrainingStage then trains each
+        // jurisdiction's seated holders, so their subsequent F-LEG acts pass
+        // the gate. One item per jurisdiction whose seating landed — bounded,
+        // resumable.
         'training' => ['training_scope'],
         // THE MONEY PLANE (W7 item 8). One stipend item per jurisdiction that
         // has residents; StipendStage runs the real F-TRE-004 over that
@@ -132,7 +136,12 @@ class SimRun extends Model
     /** Each aspect's prerequisite aspects (transitively closed by scopePhases). */
     public const ASPECT_REQUIRES = [
         'elections'  => ['base'],
-        'governance' => ['elections'],   // grows/benches a SEATED chamber
+        // Governing requires TRAINING: the chamber files the gated F-LEG acts
+        // (committee, delegation, department, court creation), and the training
+        // gate refuses a role-authority act by an untrained holder. Training
+        // must be in scope AND ordered before governance so the seated chamber
+        // is trained before it acts — the tutorial-before-you-act model.
+        'governance' => ['elections', 'training'],
         'civic_life' => ['governance'],  // CGC oversight executive + seated members
         'training'   => ['elections'],   // seated members to train
         'money'      => ['elections'],   // seating drives the role bumps

@@ -53,11 +53,12 @@ class SimScopeTest extends TestCase
     {
         $active = $this->mk(['civic_life'])->activePhases();
 
-        // The transitive closure: civic_life → governance → elections → base.
-        foreach (['seating', 'governance', 'judiciary', 'civics'] as $phase) {
+        // The transitive closure: civic_life → governance → {elections, training}
+        // → base. Governance now requires training (the chamber must be trained
+        // before it files its gated F-LEG acts), so civic_life pulls it in too.
+        foreach (['seating', 'training', 'governance', 'judiciary', 'civics'] as $phase) {
             $this->assertContains($phase, $active, "civic_life requires {$phase}");
         }
-        $this->assertNotContains('training', $active);
         $this->assertNotContains('stipends', $active);
     }
 

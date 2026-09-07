@@ -276,6 +276,13 @@ class GovernanceStageGrowthTest extends TestCase
             ]);
         }
 
+        // The seat tutorial (operator 2026-09-07): the chamber trains before it
+        // governs, exactly as the sim's training phase — now ordered between
+        // seating and governance — does. The training gate refuses a committee
+        // act by an untrained chamber, and that refusal is correct; the fixture
+        // must model a TRAINED chamber, never defeat the gate.
+        app(\App\Services\Education\SeatedMemberTrainingService::class)->armForJurisdiction($jurId);
+
         return [$jurId, $legId];
     }
 

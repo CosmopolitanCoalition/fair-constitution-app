@@ -9,12 +9,16 @@ use App\Support\SimTimer;
  * The TRAINING stage (W7 item 7, ruling edu-arming A — "the walk shows a
  * trained fleet").
  *
- * Runs AFTER the content stages (governance / judiciary / civics have filed
- * their gated forms) so arming the training gate never blocks them. The catalog
- * is published once at the phase transition (SimPumpCommand); this stage then
- * pre-trains ONE jurisdiction's seated role-holders — a chamber, a board, an
- * executive, a bench, its advocates — so a walker sees trained members rather
- * than a wall of Learn redirects.
+ * Runs BEFORE the content stages (governance / judiciary / civics), right after
+ * seating, so each jurisdiction's seated chamber completes its tutorial before
+ * it exercises role authority — the tutorial-before-you-act model (operator
+ * 2026-09-07). The training gate refuses a role-authority act by an untrained
+ * holder, and the gated acts those stages file (the F-LEG committee / delegation
+ * / department / court-creation forms) are cast by chamber members; training the
+ * chamber here is what lets them pass. The catalog is published at this phase
+ * transition (SimPumpCommand), arming the gate. This stage then trains ONE
+ * jurisdiction's seated role-holders that exist at seating — its chamber — so a
+ * walker sees trained members rather than a wall of Learn redirects.
  *
  * PER-JURISDICTION IS THE CHUNK (THE ETL RULE). The global pre-train pass loads
  * every seated holder on the planet into memory; scoping to one jurisdiction
