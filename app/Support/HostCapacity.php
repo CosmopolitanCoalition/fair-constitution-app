@@ -100,49 +100,6 @@ class HostCapacity
     }
 
     /**
-     * SUPERVISOR WIDTH WITH IDLE SHED (2026-09-07 — the lane law at the process
-     * plane). The setup engines run in sequence: Step 3 districting (autoscale),
-     * Step 4 provisioning (provision), Step 5 simulate (sim). Each has its own
-     * Horizon supervisor sized to the host. A FINISHED engine kept a full pool
-     * of idle worker processes that starved the running engine (measured
-     * 2026-09-07: two done engines held 13 idle each, the active sim got 5 of
-     * its 13). The fix: a boot-safe control file names a caretaker width for an
-     * engine whose step is done; the running engine then takes the freed slots.
-     *
-     * ABSENT or unreadable file => FULL width, so a fresh box and any re-run of
-     * a prior step keep the full pool — the shed is opt-in per box, never a
-     * silent cap. Read from disk (no DB, no container service) because config
-     * loads before those are safe. Written by the setup step transitions
-     * (SetupController::writeEngineWidths).
-     *
-     * @param  string  $engine  autoscale|provision|sim
-     * @param  int     $full    the active width for this engine
-     */
-    public static function supervisorWidth(string $engine, int $full): int
-    {
-        $path = dirname(__DIR__, 2).'/storage/app/horizon_engine_widths.json';
-        if (! is_file($path)) {
-            return $full;
-        }
-
-        $raw = @file_get_contents($path);
-        if ($raw === false) {
-            return $full;
-        }
-
-        $map = json_decode($raw, true);
-        if (! is_array($map) || ! array_key_exists($engine, $map)) {
-            return $full;
-        }
-
-        $w = (int) $map[$engine];
-
-        // A caretaker floor of 1 keeps the queue serviceable if work reappears
-        // before the next boot; never exceed the host's full width.
-        return $w > 0 ? min($w, $full) : $full;
-    }
-
-    /**
      * The Horizon container's memory cap in MB from the budget ledger
      * (MEM_HORIZON, written by get-started as "NNNm" or "NNg"); 0 when unset.
      */
