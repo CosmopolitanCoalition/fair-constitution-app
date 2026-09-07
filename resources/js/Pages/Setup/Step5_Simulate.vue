@@ -353,59 +353,51 @@ onBeforeUnmount(() => { if (timer) clearInterval(timer); if (clock) clearInterva
                     </div>
                     <div class="text-gray-500 text-xs tabular-nums">{{ phasePlan.phases.filter(p => p.status === 'done').length }} / {{ phasePlan.total }} done</div>
                 </div>
-                <ol class="flex flex-wrap gap-1.5">
-                    <li v-for="p in phasePlan.phases" :key="p.phase"
-                        class="flex items-center gap-1.5 text-xs px-2 py-1 rounded"
-                        :class="p.status === 'done' ? 'bg-emerald-900/25 text-emerald-300'
-                               : p.status === 'current' ? 'bg-blue-900/30 text-blue-200 ring-1 ring-blue-700/50'
-                               : 'bg-gray-800/60 text-gray-400'">
-                        <span class="tabular-nums opacity-60">{{ p.n }}</span>
-                        <span v-if="p.status === 'done'" class="text-emerald-400">✓</span>
-                        <span v-else-if="p.status === 'current'" class="inline-block w-1.5 h-1.5 rounded-full bg-blue-400 animate-pulse"></span>
-                        <span v-else class="inline-block w-1.5 h-1.5 rounded-full border border-gray-600"></span>
-                        <span>{{ p.label }}</span>
-                        <span v-if="p.status === 'current' && p.total" class="text-blue-300/70 tabular-nums">{{ n(p.done) }} / {{ n(p.total) }}</span>
-                    </li>
-                </ol>
-            </div>
-
-            <!-- Overall stage bars -->
-            <div v-if="run && stages.length" class="mt-5">
-                <StageBars :stages="stages" :poll-ms="POLL_MS" />
-            </div>
-            <div v-else-if="run" class="mt-4 text-gray-400 text-sm">
-                Enumerating the work-list — the stage bars come alive within the minute.
-            </div>
-
-            <!-- Segmented per-layer bars -->
-            <div v-if="layers.length" class="mt-4 border-t border-gray-700/50 pt-3">
-                <div class="flex flex-wrap items-center justify-between gap-x-4 gap-y-1 mb-2">
-                    <div class="text-gray-400 text-xs uppercase tracking-wide">By layer</div>
-                    <div class="flex flex-wrap items-center gap-3 text-[11px] text-gray-400">
-                        <span class="flex items-center gap-1"><span class="inline-block w-2 h-2 rounded-sm bg-emerald-500"></span>Done</span>
-                        <span class="flex items-center gap-1"><span class="inline-block w-2 h-2 rounded-sm bg-sky-500"></span>Running</span>
-                        <span class="flex items-center gap-1"><span class="inline-block w-2 h-2 rounded-sm bg-amber-500"></span>Review</span>
-                    </div>
-                </div>
-                <div class="space-y-2">
-                    <div v-for="l in layers" :key="l.key">
-                        <div class="flex justify-between text-xs mb-0.5"
-                             :class="l.status === 'done' ? 'text-gray-500' : 'text-gray-400'">
-                            <span>
-                                <span v-if="l.status === 'done'" class="text-emerald-500 mr-1">✓</span>
-                                <span v-else-if="l.status === 'running'" class="inline-block w-1.5 h-1.5 rounded-full bg-blue-400 animate-pulse mr-1"></span>
-                                {{ l.label }}
-                                <span v-if="l.review" class="text-amber-400 ml-1">· {{ n(l.review) }} review</span>
-                            </span>
-                            <span class="tabular-nums">{{ layerHeadline(l) }}</span>
+                <!-- Accordion: the current phase expands to its OWN layer bars (0->100%,
+                     no rewind); finished phases collapse to a checked row. -->
+                <div class="space-y-1">
+                    <div v-for="p in phasePlan.phases" :key="p.phase"
+                         class="rounded"
+                         :class="p.status === 'current' ? 'bg-blue-900/20 ring-1 ring-blue-700/40 px-2 py-2' : 'px-2 py-1'">
+                        <div class="flex items-center gap-2 text-sm"
+                             :class="p.status === 'done' ? 'text-emerald-300' : p.status === 'current' ? 'text-blue-100' : 'text-gray-500'">
+                            <span class="tabular-nums text-xs opacity-50 w-4 text-right">{{ p.n }}</span>
+                            <span v-if="p.status === 'done'" class="text-emerald-400">✓</span>
+                            <span v-else-if="p.status === 'current'" class="inline-block w-1.5 h-1.5 rounded-full bg-blue-400 animate-pulse"></span>
+                            <span v-else class="inline-block w-1.5 h-1.5 rounded-full border border-gray-600"></span>
+                            <span class="font-medium">{{ p.label }}</span>
+                            <span v-if="p.status === 'current' && p.total" class="text-blue-300/70 tabular-nums text-xs">{{ n(p.done) }} / {{ n(p.total) }}</span>
+                            <div v-if="p.status === 'current' && p.total" class="flex-1 h-1 bg-gray-800 rounded overflow-hidden ml-1" style="max-width:35%">
+                                <div class="h-full bg-emerald-500 transition-all duration-700" :style="{ width: pct(p.done, p.total) + '%' }"></div>
+                            </div>
                         </div>
-                        <div class="h-1.5 bg-gray-800 rounded overflow-hidden flex" :title="layerTitle(l)">
-                            <div class="h-full bg-emerald-500 transition-all duration-700" :style="{ width: pct(l.done, l.total) + '%' }"></div>
-                            <div class="h-full bg-sky-500 transition-all duration-700"     :style="{ width: pct(l.running, l.total) + '%' }"></div>
-                            <div class="h-full bg-amber-500 transition-all duration-700"   :style="{ width: pct(l.review, l.total) + '%' }"></div>
+                        <div v-if="p.status === 'current'" class="mt-2 pl-6 space-y-1.5">
+                            <div v-if="!layers.length" class="text-gray-500 text-xs">Enumerating this phase&apos;s work-list…</div>
+                            <div v-for="l in layers" :key="l.key">
+                                <div class="flex justify-between text-[11px] mb-0.5" :class="l.status === 'done' ? 'text-gray-500' : 'text-gray-400'">
+                                    <span>
+                                        <span v-if="l.status === 'done'" class="text-emerald-500 mr-1">✓</span>
+                                        {{ l.label }}
+                                        <span v-if="l.review" class="text-amber-400 ml-1">· {{ n(l.review) }} review</span>
+                                    </span>
+                                    <span class="tabular-nums">{{ layerHeadline(l) }}</span>
+                                </div>
+                                <div class="h-1.5 bg-gray-800 rounded overflow-hidden flex" :title="layerTitle(l)">
+                                    <div class="h-full bg-emerald-500 transition-all duration-700" :style="{ width: pct(l.done, l.total) + '%' }"></div>
+                                    <div class="h-full bg-sky-500 transition-all duration-700"     :style="{ width: pct(l.running, l.total) + '%' }"></div>
+                                    <div class="h-full bg-amber-500 transition-all duration-700"   :style="{ width: pct(l.review, l.total) + '%' }"></div>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>
+            </div>
+
+            <!-- Colour key for the phase and layer bars above -->
+            <div v-if="run" class="mt-3 flex flex-wrap items-center gap-3 text-[11px] text-gray-500">
+                <span class="flex items-center gap-1"><span class="inline-block w-2 h-2 rounded-sm bg-emerald-500"></span>Done</span>
+                <span class="flex items-center gap-1"><span class="inline-block w-2 h-2 rounded-sm bg-sky-500"></span>Running</span>
+                <span class="flex items-center gap-1"><span class="inline-block w-2 h-2 rounded-sm bg-amber-500"></span>Review</span>
             </div>
         </section>
 

@@ -238,8 +238,18 @@ class SimSnapshot
      */
     public function layers(SimRun $run): array
     {
+        // SCOPED TO THE CURRENT PHASE (2026-09-07). The layer bars show only the
+        // phase now running, so each phase fills 0 -> 100% and the bars never
+        // "rewind" when the next phase mints a fresh, larger worklist. The page
+        // nests these under the current phase and collapses the finished ones.
+        $kinds = $run->currentKinds();
+        if ($kinds === []) {
+            return [];
+        }
+
         $rows = DB::table('sim_items')
             ->where('run_id', $run->id)
+            ->whereIn('kind', $kinds)
             ->selectRaw("
                 COALESCE(adm_level, 99) AS adm_level,
                 COUNT(*)                                              AS total,
