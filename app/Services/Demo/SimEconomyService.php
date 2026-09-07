@@ -174,8 +174,14 @@ class SimEconomyService
             ];
         }
 
+        // Idempotent TOTAL, not newly-opened: the count of these users that
+        // hold a wallet after the call (existing + just-opened). Re-opening a
+        // dedup batch reports the wallets that exist, not 0 — the contract
+        // SimEconomyTest pins ("opening again mints no second wallet" still
+        // returns the full count). count($already) is the distinct owners that
+        // already had one (it is flipped above), so the sum needs no re-query.
         if ($accounts === []) {
-            return 0;
+            return count($already);
         }
 
         // Bounded, committed chunks (THE ETL RULE).
@@ -188,7 +194,7 @@ class SimEconomyService
             DB::table('economic_account_bindings')->insert($chunk);
         }
 
-        return count($accounts);
+        return count($already) + count($accounts);
     }
 
     /**

@@ -243,10 +243,13 @@ final class JudiciaryStage
         }
 
         foreach ($serving as $member) {
-            if ($vote->fresh()?->outcome !== null) {
+            // Cheap close-check (one column, not a hydrated model) and pass the
+            // ORIGINAL vote — cast() re-reads under lock, so the per-member
+            // fresh() was two redundant SELECTs a cast (2026-09-07 perf).
+            if (ChamberVote::query()->whereKey($voteId)->value('outcome') !== null) {
                 break;
             }
-            $votes->cast($vote->fresh(), $member, 'yes');
+            $votes->cast($vote, $member, 'yes');
         }
 
         return true;

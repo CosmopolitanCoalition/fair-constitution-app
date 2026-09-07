@@ -284,26 +284,12 @@ class ChamberVoteService
                 );
             }
 
-            $cast = VoteCast::create([
-                'vote_id'       => $fresh->id,
-                'member_id'     => $member->id,
-                'lane'          => $lane,
-                'value'         => $value,
-                'rankings'      => $rankings,
-                'explanation'   => $explanation,
-                'cast_via_form' => $viaForm,
-                'cast_at'       => now(),
-            ]);
-
-            if ($fresh->vote_method === ChamberVote::METHOD_YES_NO) {
-                ChamberVoteTally::query()
-                    ->where('vote_id', $fresh->id)
-                    ->where('lane', $lane)
-                    ->increment($value); // column name = value (yes|no|abstain)
-            }
-
             // PUBLIC by constitutional mandate (Art. II §2): every cast is
             // a public record — value/rankings + explanation, named member.
+            // Published FIRST (2026-09-07 perf) so its id rides the vote_cast
+            // INSERT below instead of a second UPDATE per cast — the flagged
+            // N+1 on the member-by-member sim vote path. Same rows, same
+            // transaction, same audit entry (buffered by the item's batch).
             $record = $this->records->publish(
                 kind: 'vote',
                 title: sprintf(
@@ -322,7 +308,24 @@ class ChamberVoteService
                 ],
             );
 
-            $cast->forceFill(['public_record_id' => $record->id])->save();
+            $cast = VoteCast::create([
+                'vote_id'          => $fresh->id,
+                'member_id'        => $member->id,
+                'lane'             => $lane,
+                'value'            => $value,
+                'rankings'         => $rankings,
+                'explanation'      => $explanation,
+                'cast_via_form'    => $viaForm,
+                'public_record_id' => $record->id,
+                'cast_at'          => now(),
+            ]);
+
+            if ($fresh->vote_method === ChamberVote::METHOD_YES_NO) {
+                ChamberVoteTally::query()
+                    ->where('vote_id', $fresh->id)
+                    ->where('lane', $lane)
+                    ->increment($value); // column name = value (yes|no|abstain)
+            }
 
             // Auto-close at full participation ("all serving cast"): on
             // yes/no votes the Speaker structurally cannot cast, so the
@@ -418,27 +421,9 @@ class ChamberVoteService
                 );
             }
 
-            $cast = VoteCast::create([
-                'vote_id'       => $fresh->id,
-                'member_id'     => null,
-                'board_seat_id' => $seat->id,
-                'lane'          => ChamberVoteTally::LANE_ALL,
-                'value'         => $value,
-                'rankings'      => $rankings,
-                'explanation'   => $explanation,
-                'cast_via_form' => $viaForm,
-                'cast_at'       => now(),
-            ]);
-
-            if ($fresh->vote_method === ChamberVote::METHOD_YES_NO) {
-                ChamberVoteTally::query()
-                    ->where('vote_id', $fresh->id)
-                    ->where('lane', ChamberVoteTally::LANE_ALL)
-                    ->increment($value);
-            }
-
-            // Board votes are governance acts — PUBLIC, like every
-            // chamber cast (the exact opposite of ballots).
+            // Board votes are governance acts — PUBLIC, like every chamber
+            // cast (the exact opposite of ballots). Published first so the id
+            // rides the INSERT (2026-09-07 perf, no per-cast second UPDATE).
             $record = $this->records->publish(
                 kind: 'vote',
                 title: sprintf(
@@ -456,7 +441,25 @@ class ChamberVoteService
                 ],
             );
 
-            $cast->forceFill(['public_record_id' => $record->id])->save();
+            $cast = VoteCast::create([
+                'vote_id'          => $fresh->id,
+                'member_id'        => null,
+                'board_seat_id'    => $seat->id,
+                'lane'             => ChamberVoteTally::LANE_ALL,
+                'value'            => $value,
+                'rankings'         => $rankings,
+                'explanation'      => $explanation,
+                'cast_via_form'    => $viaForm,
+                'public_record_id' => $record->id,
+                'cast_at'          => now(),
+            ]);
+
+            if ($fresh->vote_method === ChamberVote::METHOD_YES_NO) {
+                ChamberVoteTally::query()
+                    ->where('vote_id', $fresh->id)
+                    ->where('lane', ChamberVoteTally::LANE_ALL)
+                    ->increment($value);
+            }
 
             // Auto-close at full participation (every seated seat cast).
             if (VoteCast::query()->where('vote_id', $fresh->id)->where('is_tiebreak', false)->count() >= $fresh->serving_snapshot) {
@@ -632,19 +635,6 @@ class ChamberVoteService
                 );
             }
 
-            $cast = VoteCast::create([
-                'vote_id'       => $fresh->id,
-                'member_id'     => $speakerMember->id,
-                'lane'          => $lane,
-                'value'         => $value,
-                'explanation'   => $explanation,
-                'is_tiebreak'   => true,
-                'cast_via_form' => 'F-SPK-004',
-                'cast_at'       => now(),
-            ]);
-
-            $tally->increment($value);
-
             $record = $this->records->publish(
                 kind: 'vote',
                 title: "Speaker tie-breaking vote — {$value}",
@@ -658,7 +648,20 @@ class ChamberVoteService
                     'subject_id'      => (string) $fresh->id,
                 ],
             );
-            $cast->forceFill(['public_record_id' => $record->id])->save();
+
+            $cast = VoteCast::create([
+                'vote_id'          => $fresh->id,
+                'member_id'        => $speakerMember->id,
+                'lane'             => $lane,
+                'value'            => $value,
+                'explanation'      => $explanation,
+                'is_tiebreak'      => true,
+                'cast_via_form'    => 'F-SPK-004',
+                'public_record_id' => $record->id,
+                'cast_at'          => now(),
+            ]);
+
+            $tally->increment($value);
 
             // Re-close: recompute every lane against the UNCHANGED peg
             // thresholds (no special outcome math).
