@@ -187,17 +187,32 @@ class SimStartCommand extends Command
                          WHERE c.deleted_at IS NULL
                        )";
 
+        // SUBTREE SCOPE — pre-compute the descendant roster ONCE (the Step 3/4
+        // "index the list once" pattern). The recursive CTE materialises the
+        // WHOLE subtree before any LIMIT bites, so running it per chunk re-walked
+        // India's 661k descendants every chunk and ran Postgres out of lock
+        // memory (2026-09-07). Walk it once into a temp roster and paginate that
+        // flat, indexed table; --resume re-materialises it (a fresh session) and
+        // the NOT EXISTS keeps redo clean. The ROOT scope needs no roster — it
+        // is already a flat paginated index scan.
+        if ($scopeRootId !== null) {
+            DB::statement('DROP TABLE IF EXISTS sim_scope_roster');
+            DB::statement(
+                "CREATE TEMP TABLE sim_scope_roster AS $subtreeCte
+                 SELECT j.id, j.adm_level, COALESCE(j.population, 0) AS population
+                   FROM jurisdictions j JOIN sub ON sub.id = j.id
+                  WHERE j.deleted_at IS NULL AND j.adm_level <= ?",
+                [$scopeRootId, $admMax],
+            );
+            DB::statement('CREATE INDEX ON sim_scope_roster (population DESC, id)');
+        }
+
         $eligible = $scopeRootId === null
             ? DB::table('jurisdictions')
                 ->whereNull('deleted_at')
                 ->where('adm_level', '<=', $admMax)
                 ->count()
-            : (int) DB::selectOne(
-                "$subtreeCte SELECT count(*) AS n FROM jurisdictions j
-                   JOIN sub ON sub.id = j.id
-                  WHERE j.deleted_at IS NULL AND j.adm_level <= ?",
-                [$scopeRootId, $admMax],
-            )->n;
+            : (int) DB::selectOne('SELECT count(*) AS n FROM sim_scope_roster')->n;
 
         $this->line($scopeRootId === null
             ? "eligible jurisdictions (adm ≤ {$admMax}): {$eligible}"
@@ -241,26 +256,23 @@ class SimStartCommand extends Command
                 );
             } else {
                 $n = DB::affectingStatement(
-                    "$subtreeCte
-                     INSERT INTO sim_items
+                    "INSERT INTO sim_items
                         (id, run_id, kind, status, jurisdiction_id, adm_level, unit_key,
                          position, est_cost, metrics, created_at, updated_at)
                      SELECT gen_random_uuid(), ?, 'cohort_scope', 'pending', j.id, j.adm_level, j.id::text,
-                            ? + row_number() OVER (ORDER BY COALESCE(j.population, 0) DESC, j.id),
-                            COALESCE(j.population, 0), '{}', now(), now()
+                            ? + row_number() OVER (ORDER BY j.population DESC, j.id),
+                            j.population, '{}', now(), now()
                        FROM (
-                            SELECT j2.id, j2.adm_level, j2.population
-                              FROM jurisdictions j2
-                              JOIN sub ON sub.id = j2.id
-                             WHERE j2.deleted_at IS NULL AND j2.adm_level <= ?
-                             ORDER BY COALESCE(j2.population, 0) DESC, j2.id
+                            SELECT id, adm_level, population
+                              FROM sim_scope_roster
+                             ORDER BY population DESC, id
                              LIMIT ? OFFSET ?
                        ) j
                       WHERE NOT EXISTS (
                             SELECT 1 FROM sim_items s
                              WHERE s.run_id = ? AND s.kind = 'cohort_scope' AND s.unit_key = j.id::text
                       )",
-                    [$scopeRootId, $run->id, $total, $admMax, $take, $offset, $run->id]
+                    [$run->id, $total, $take, $offset, $run->id]
                 );
             }
 
