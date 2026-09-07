@@ -104,8 +104,17 @@ class SimPumpCommand extends Command
             $this->info('run resumed');
         }
 
+        // A queued run is still ENUMERATING. SimStartCommand commits the run row
+        // before it finishes minting the cohort worklist (bounded, committed
+        // chunks per the ETL rule), so mid-enumeration the cohorts phase can look
+        // empty. Promoting and advancing it here let advancePhase RACE the run
+        // through the whole pipeline with zero work done (observed on the India
+        // start, 2026-09-07: phase reached governance, 2000 cohort items still
+        // pending). SimStartCommand now flips the run to 'running' as its LAST
+        // step, once the worklist is fully minted; only then does the pump touch
+        // it. A start that dies mid-enumeration leaves a queued run for --resume.
         if ($run->status === 'queued') {
-            $run->forceFill(['status' => 'running', 'started_at' => $run->started_at ?? now()])->save();
+            return self::SUCCESS;
         }
 
         // 3. Breaker.

@@ -133,6 +133,13 @@ class SimStartCommand extends Command
             ref: 'WF-SYS-04',
         );
 
+        // RELEASE THE RUN TO THE PUMP — the LAST step, after the worklist is
+        // fully minted and committed. Until now the run is 'queued', which the
+        // pump SKIPS, so a half-enumerated run can never be advanced (the
+        // create-then-enumerate race, 2026-09-07). Both fresh and --resume land
+        // here: a resumed halted run is un-halted, a live one is a no-op.
+        $run->forceFill(['status' => 'running', 'started_at' => $run->started_at ?? now()])->save();
+
         $this->newLine();
         $this->info("enumerated {$minted} cohort items — sim:pump will start workers within the minute");
 
