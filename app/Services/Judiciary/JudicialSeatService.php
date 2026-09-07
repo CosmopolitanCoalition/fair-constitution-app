@@ -299,13 +299,34 @@ class JudicialSeatService
     {
         $legislature = $this->charteringChamber($judiciary);
 
-        return $this->votes->open(
+        $vote = $this->votes->open(
             bodyType: ChamberVote::BODY_LEGISLATURE,
             bodyId: (string) $legislature->id,
             voteType: self::CONSENT_VOTE_TYPE,
             votable: $judiciary,
             stage: ChamberVote::STAGE_FLOOR,
         );
+
+        // Bind every staged appointment to this consent vote — the appointment ->
+        // vote link the per-seat path sets via consent_vote_id (openNomination).
+        // Without it a slate-seated judge's appointment traces only judiciary ->
+        // vote, not appointment -> vote, degrading the certify/review trail. One
+        // bulk update over this bench's nominated appointments restores it.
+        $appointmentIds = JudicialSeat::query()
+            ->where('judiciary_id', $judiciary->id)
+            ->where('status', JudicialSeat::STATUS_NOMINATED)
+            ->whereNotNull('appointment_id')
+            ->pluck('appointment_id')
+            ->all();
+
+        if ($appointmentIds !== []) {
+            Appointment::query()
+                ->whereIn('id', $appointmentIds)
+                ->where('status', Appointment::STATUS_NOMINATED)
+                ->update(['consent_vote_id' => (string) $vote->id]);
+        }
+
+        return $vote;
     }
 
     /**
