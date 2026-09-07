@@ -20,6 +20,7 @@ use App\Services\RoleService;
 use App\Services\SettingsResolver;
 use Carbon\CarbonImmutable;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Str;
 
 /**
  * Judicial nomination consent pipeline (PHASE_E_DESIGN_judiciary §B.2/§B.3)
@@ -340,24 +341,141 @@ class JudicialSeatService
      */
     public function seatSlateOnAdoption(Judiciary $judiciary): int
     {
-        $appointmentIds = JudicialSeat::query()
+        $seats = JudicialSeat::query()
             ->where('judiciary_id', $judiciary->id)
             ->where('status', JudicialSeat::STATUS_NOMINATED)
             ->whereNotNull('appointment_id')
-            ->pluck('appointment_id')
-            ->all();
+            ->get();
 
-        $seated = 0;
-        foreach ($appointmentIds as $appointmentId) {
-            $appointment = Appointment::query()->find((string) $appointmentId);
-            if ($appointment === null || $appointment->status !== Appointment::STATUS_NOMINATED) {
-                continue;
-            }
-            $this->seat($appointment);
-            $seated++;
+        if ($seats->isEmpty()) {
+            return 0;
         }
 
-        return $seated;
+        $appointments = Appointment::query()
+            ->whereIn('id', $seats->pluck('appointment_id')->map(fn ($id) => (string) $id)->all())
+            ->where('status', Appointment::STATUS_NOMINATED)
+            ->get()
+            ->keyBy(fn ($a) => (string) $a->id);
+
+        $legislature = $this->charteringChamber($judiciary);
+        $starts = CarbonImmutable::now('UTC')->startOfDay();
+        $years = $this->settings->resolveInt((string) $judiciary->jurisdiction_id, 'judicial_appointment_years', 10);
+        $ends = $starts->addYears($years);
+        $now = now();
+        $startsOn = $starts->toDateString();
+        $endsOn = $ends->toDateString();
+
+        // Build the term rows and certification specs for the whole bench, then
+        // bulk them (the per-judge seat() pipeline, in bulk). Mirrors
+        // CivilAppointmentService::openCivilTerm (the 10-year civil-appointment
+        // term) and seat()'s certification record — only the write shape changes.
+        $termRows = [];
+        $certSpecs = [];
+        $consentedApptIds = [];
+        $plan = [];
+
+        foreach ($seats as $seat) {
+            $appt = $appointments->get((string) $seat->appointment_id);
+            if ($appt === null) {
+                continue;   // appointment not NOMINATED (idempotent skip on re-run)
+            }
+            $termId = (string) Str::uuid();
+            $uid = (string) $appt->nominee_user_id;
+
+            $termRows[] = [
+                'id'                    => $termId,
+                'office_kind'           => 'judicial_seat',
+                'office_type'           => 'judicial_seats',
+                'office_id'             => (string) $seat->id,
+                'holder_user_id'        => $uid,
+                'jurisdiction_id'       => (string) $judiciary->jurisdiction_id,
+                'legislature_id'        => (string) $legislature->id,
+                'term_class'            => Term::CLASS_CIVIL_APPOINTMENT,
+                'starts_on'             => $startsOn,
+                'ends_on'               => $endsOn,
+                'source_appointment_id' => (string) $appt->id,
+                'status'                => Term::STATUS_ACTIVE,
+                'created_at'            => $now,
+                'updated_at'            => $now,
+            ];
+
+            $certSpecs[] = [
+                'kind'  => 'certification',
+                'title' => sprintf('Judge seated - court %s, seat %d', (string) $judiciary->id, (int) $seat->seat_number),
+                'body'  => sprintf(
+                    'Appointee %s consented by majority of all serving (F-LEG-021) and seated '
+                    .'(judicial appointment, %d years - Art. IV Sec 1 / Art. II Sec 9; CLK-09 armed at %s).',
+                    $uid, $years, $endsOn
+                ),
+                'attrs' => [
+                    'actor_user_id'   => $uid,
+                    'jurisdiction_id' => (string) $judiciary->jurisdiction_id,
+                    'legislature_id'  => (string) $legislature->id,
+                    'via_form'        => 'F-LEG-021',
+                    'subject_type'    => 'judicial_seats',
+                    'subject_id'      => (string) $seat->id,
+                ],
+            ];
+
+            $consentedApptIds[] = (string) $appt->id;
+            $plan[] = ['seat_id' => (string) $seat->id, 'appt_id' => (string) $appt->id, 'term_id' => $termId, 'uid' => $uid];
+        }
+
+        if ($plan === []) {
+            return 0;
+        }
+
+        DB::transaction(function () use ($termRows, $plan, $consentedApptIds, $certSpecs, $judiciary, $starts, $ends, $startsOn, $endsOn, $now) {
+            // Terms FIRST: judicial_seats.term_id and appointments.term_id both FK
+            // to terms; terms.source_appointment_id names the already-staged
+            // appointment (satisfied). One bulk insert per 500.
+            foreach (array_chunk($termRows, 500) as $chunk) {
+                DB::table('terms')->insert($chunk);
+            }
+
+            // Per-seat indexed single-row writes + the CLK-09 expiry arm — cheaper
+            // than terms/certs, so looped rather than bulk-cased. Role flush is an
+            // in-memory cache unset (RoleService::flushUser), so it stays per-user.
+            foreach ($plan as $p) {
+                DB::table('appointments')->where('id', $p['appt_id'])->update([
+                    'status'     => Appointment::STATUS_SEATED,
+                    'term_id'    => $p['term_id'],
+                    'updated_at' => $now,
+                ]);
+                DB::table('judicial_seats')->where('id', $p['seat_id'])->update([
+                    'user_id'        => $p['uid'],
+                    'term_id'        => $p['term_id'],
+                    'term_starts_on' => $startsOn,
+                    'term_ends_on'   => $endsOn,
+                    'status'         => JudicialSeat::STATUS_SEATED,
+                    'updated_at'     => $now,
+                ]);
+                $this->clocks->arm(
+                    'CLK-09',
+                    (string) $judiciary->jurisdiction_id,
+                    'term',
+                    $p['term_id'],
+                    $ends->startOfDay(),
+                    ['step' => 'civil_term_expiry', 'ends_on' => $endsOn],
+                );
+                $this->roles->flushUser($p['uid']);
+            }
+
+            // Bulk: nominations -> consented, and one publishMany for every judge's
+            // certification record (was a publish() per judge).
+            JudicialNomination::query()
+                ->whereIn('appointment_id', $consentedApptIds)
+                ->where('status', JudicialNomination::STATUS_NOMINATED)
+                ->update(['status' => JudicialNomination::STATUS_CONSENTED, 'updated_at' => $now]);
+
+            $this->records->publishMany($certSpecs);
+
+            // Advance the court to appointed ONCE (equal-per-constituent asserted
+            // inside), after the whole bench is seated.
+            $this->maybeAdvanceToAppointed($judiciary->refresh());
+        });
+
+        return count($plan);
     }
 
     // =========================================================================
