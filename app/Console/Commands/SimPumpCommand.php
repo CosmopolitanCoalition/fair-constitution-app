@@ -452,16 +452,35 @@ class SimPumpCommand extends Command
         $network = (int) self::NETWORK_STALE_SECONDS;
         $ordinary = (int) self::STALE_SECONDS;
 
+        // REAP BY DEAD HEARTBEAT (2026-09-07, operator order — Step 3/4 already
+        // do this when a map or an institution gets stuck). A live worker
+        // heartbeats its lease even MID-ITEM, so a running item whose claiming
+        // lease has not been seen within the grace is held by a DEAD worker and
+        // belongs straight back on the pile. This reaps orphans in ~2 minutes
+        // instead of waiting the 30-minute absolute STALE_SECONDS, which left
+        // the run frozen on screen after a worker died. The network lane keeps
+        // its long grace (a blocking LLM call may not heartbeat), and a null
+        // token (a half-written claim) is reaped immediately. The absolute-age
+        // check stays as a backstop should a heartbeat ever regress.
         DB::update(
-            "UPDATE sim_items
+            "UPDATE sim_items s
                 SET status = ?, claim_token = NULL,
                     reason = 'reclaimed: worker died mid-item', updated_at = now()
-              WHERE run_id = ?
-                AND status = ?
-                AND updated_at < now() - make_interval(secs => CASE
-                        WHEN kind IN ({$placeholders}) THEN {$network} ELSE {$ordinary} END)",
+              WHERE s.run_id = ?
+                AND s.status = ?
+                AND (
+                    s.claim_token IS NULL
+                    OR NOT EXISTS (
+                        SELECT 1 FROM sim_worker_leases l
+                         WHERE l.id = s.claim_token
+                           AND l.last_seen_at > now() - make_interval(secs => CASE
+                                 WHEN s.kind IN ({$placeholders}) THEN {$network} ELSE 120 END))
+                    OR s.updated_at < now() - make_interval(secs => CASE
+                            WHEN s.kind IN ({$placeholders}) THEN {$network} ELSE {$ordinary} END)
+                )",
             array_merge(
                 [SimItem::STATUS_PENDING, $run->id, SimItem::STATUS_RUNNING],
+                $networkKinds,
                 $networkKinds
             )
         );
