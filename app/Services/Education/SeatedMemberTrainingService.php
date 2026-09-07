@@ -3,7 +3,9 @@
 namespace App\Services\Education;
 
 use App\Domain\Engine\ConstitutionalEngine;
+use App\Domain\Forms\Handlers\TrainingCompletion;
 use App\Models\User;
+use App\Services\AuditService;
 use Illuminate\Support\Facades\DB;
 use Throwable;
 
@@ -41,6 +43,8 @@ class SeatedMemberTrainingService
         private readonly ConstitutionalEngine $engine,
         private readonly TrainingGateService $gate,
         private readonly TrainingStipendService $stipend,
+        private readonly TrainingCompletion $completion,
+        private readonly AuditService $audit,
     ) {
     }
 
@@ -264,14 +268,33 @@ class SeatedMemberTrainingService
             }
 
             try {
-                // The engine wraps each filing in its own transaction —
-                // one committed chunk per member, never a planet-wide one.
-                $this->engine->file('F-EDU-001', $user, [
-                    'track_key'  => $track,
-                    'module_key' => $moduleByTrack[$track],
-                    'passed'     => true,
-                    'score_pct'  => 100,
-                ]);
+                // File the completion through the handler DIRECTLY, skipping the
+                // engine's authorize() — its rolesFor() battery re-derives ~28
+                // role facts a holder just to confirm R-01, and F-EDU-001 is
+                // gated ONLY on R-01, which every seated resident holds
+                // unconditionally (the training pole, 2026-09-07). handle() does
+                // the exact same writes (module check, progress latch, the
+                // once-only achievement, the batched stipend); we append the
+                // education audit act identically to the engine (line 160-167),
+                // so the gate's individual F-EDU-001 rows are written the same,
+                // and commitBatchIndividual still flushes them per user. One
+                // per-holder transaction, as the engine wraps handle().
+                DB::transaction(function () use ($user, $track, $moduleByTrack): void {
+                    $recorded = $this->completion->handle($user, [
+                        'track_key'  => $track,
+                        'module_key' => $moduleByTrack[$track],
+                        'passed'     => true,
+                        'score_pct'  => 100,
+                    ]);
+
+                    $this->audit->append(
+                        module: 'education',
+                        event: 'education.training_completed',
+                        payload: $recorded,
+                        ref: 'F-EDU-001',
+                        actorId: (string) $user->id,
+                    );
+                });
                 $counts['filed']++;
             } catch (Throwable $e) {
                 $counts['failed']++;
