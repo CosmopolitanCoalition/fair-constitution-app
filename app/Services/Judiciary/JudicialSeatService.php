@@ -202,6 +202,144 @@ class JudicialSeatService
     }
 
     // =========================================================================
+    // Slate consent (SIM BULK PATH ONLY — operator ruling 2026-09-08)
+    // =========================================================================
+    //
+    // A chamber may lawfully consent to a WHOLE bench in one vote, and vote the
+    // slate down to take seats one at a time on objection. The sim's consent is
+    // unanimous by construction, so a slate vote seats the identical bench a
+    // per-seat vote would, but casts once (M members) instead of once per seat
+    // (J seats x M members) — the judiciary performance pole. Ordinary play is
+    // UNTOUCHED: it keeps nominate()/committeeNominate() + the per-seat consent
+    // above. These three methods are called only by the sim's JudiciaryStage.
+
+    /**
+     * Stage ONE seat's nomination without opening a consent vote: the same
+     * artifacts a nomination writes (appointment, dossier record, Judicial
+     * nomination, seat -> nominated), minus the vote. Every check the per-seat
+     * path runs holds here — VACANT seat, nominee association (Art. I). The slate
+     * is consented once by openSlateConsent()/seatSlateOnAdoption().
+     *
+     * @return array{appointment_id: string, seat_id: string}
+     */
+    public function stageSlateNomination(
+        JudicialSeat $seat,
+        string $nomineeUserId,
+        string $mode,
+        ?string $nominatingJurisdictionId = null,
+    ): array {
+        if ($seat->status !== JudicialSeat::STATUS_VACANT) {
+            throw new ConstitutionalViolation(
+                'A judge is nominated onto a VACANT seat of the court.',
+                'Art. IV §2'
+            );
+        }
+
+        $judiciary = Judiciary::query()->whereKey($seat->judiciary_id)->firstOrFail();
+        $legislature = $this->charteringChamber($judiciary);
+
+        // Eligibility = active association ONLY (Art. I), the per-seat posture.
+        $this->assertNomineeAssociation($nomineeUserId, (string) $judiciary->jurisdiction_id);
+
+        $appointment = Appointment::create([
+            'appointable_type' => 'judicial_seats',
+            'appointable_id' => (string) $seat->id,
+            'nominee_user_id' => $nomineeUserId,
+            'nominated_by' => null,
+            'nominated_via_form' => 'F-LEG-021',
+            'status' => Appointment::STATUS_NOMINATED,
+        ]);
+
+        $record = $this->records->publish(
+            kind: 'other',
+            title: sprintf('Judge nominated — court %s, seat %d', (string) $judiciary->id, (int) $seat->seat_number),
+            body: null,
+            attrs: [
+                'actor_user_id' => null,
+                'jurisdiction_id' => (string) $judiciary->jurisdiction_id,
+                'legislature_id' => (string) $legislature->id,
+                'via_form' => 'F-LEG-021',
+                'subject_type' => 'appointments',
+                'subject_id' => (string) $appointment->id,
+            ],
+        );
+
+        JudicialNomination::create([
+            'judiciary_id' => (string) $judiciary->id,
+            'seat_id' => (string) $seat->id,
+            'mode' => $mode,
+            'nominating_jurisdiction_id' => $nominatingJurisdictionId,
+            'nominee_user_id' => $nomineeUserId,
+            'appointment_id' => (string) $appointment->id,
+            'dossier_record_id' => (string) $record->id,
+            'status' => JudicialNomination::STATUS_NOMINATED,
+        ]);
+
+        $seat->forceFill([
+            'appointment_id' => (string) $appointment->id,
+            'status' => JudicialSeat::STATUS_NOMINATED,
+        ])->save();
+
+        return [
+            'appointment_id' => (string) $appointment->id,
+            'seat_id' => (string) $seat->id,
+        ];
+    }
+
+    /**
+     * Open ONE consent vote for the whole bench. The votable is the judiciary,
+     * whose votable_type ('judiciary') has no close handler, so the vote-close
+     * dispatch (ChamberVoteService::dispatchVotableEffects) hits its default
+     * no-op — the per-appointment resolveConsentVote is never routed to. The sim
+     * seats the slate explicitly on adoption via seatSlateOnAdoption(). Ordinary
+     * majority of ALL serving — the same bog_consent threshold the per-seat
+     * consent carries.
+     */
+    public function openSlateConsent(Judiciary $judiciary): ChamberVote
+    {
+        $legislature = $this->charteringChamber($judiciary);
+
+        return $this->votes->open(
+            bodyType: ChamberVote::BODY_LEGISLATURE,
+            bodyId: (string) $legislature->id,
+            voteType: self::CONSENT_VOTE_TYPE,
+            votable: $judiciary,
+            stage: ChamberVote::STAGE_FLOOR,
+        );
+    }
+
+    /**
+     * On slate-consent adoption, seat EVERY nominated seat of the judiciary
+     * through the SAME per-judge seat() pipeline (10-year CLK-09 term,
+     * certification record, equal-constituent advance to appointed). Only the
+     * consent was bulked; each seating is unchanged. Idempotent: a seat already
+     * seated is skipped, so a re-run after a partial seating is safe.
+     *
+     * @return int judges seated
+     */
+    public function seatSlateOnAdoption(Judiciary $judiciary): int
+    {
+        $appointmentIds = JudicialSeat::query()
+            ->where('judiciary_id', $judiciary->id)
+            ->where('status', JudicialSeat::STATUS_NOMINATED)
+            ->whereNotNull('appointment_id')
+            ->pluck('appointment_id')
+            ->all();
+
+        $seated = 0;
+        foreach ($appointmentIds as $appointmentId) {
+            $appointment = Appointment::query()->find((string) $appointmentId);
+            if ($appointment === null || $appointment->status !== Appointment::STATUS_NOMINATED) {
+                continue;
+            }
+            $this->seat($appointment);
+            $seated++;
+        }
+
+        return $seated;
+    }
+
+    // =========================================================================
     // Consent close (ChamberActService::resolveConsentVote dispatch)
     // =========================================================================
 

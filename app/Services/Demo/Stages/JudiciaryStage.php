@@ -5,6 +5,7 @@ namespace App\Services\Demo\Stages;
 use App\Domain\Engine\ConstitutionalEngine;
 use App\Models\ChamberVote;
 use App\Models\Judiciary;
+use App\Models\JudicialNomination;
 use App\Models\JudicialSeat;
 use App\Models\Legislature;
 use App\Models\LegislatureMember;
@@ -249,19 +250,45 @@ final class JudiciaryStage
 
             $assigned[$nomineeId] = true;
 
+            // Stage the nomination (no per-seat vote); the bench consents once
+            // below. The VACANT guard and nominee association are enforced inside.
             try {
-                $out = $seat->seat_class === JudicialSeat::CLASS_CONSTITUENT_NOMINATED
-                    ? $seatsSvc->nominate(
-                        $seat,
-                        $nomineeId,
-                        (string) $seat->nominating_jurisdiction_id,
-                    )
-                    : $seatsSvc->committeeNominate($seat, $nomineeId);
-                self::carryVote($votes, $serving, $out['consent_vote_id'] ?? null);
+                $seatsSvc->stageSlateNomination(
+                    $seat,
+                    $nomineeId,
+                    $seat->seat_class === JudicialSeat::CLASS_CONSTITUENT_NOMINATED
+                        ? JudicialNomination::MODE_CONSTITUENT
+                        : JudicialNomination::MODE_COMMITTEE,
+                    $seat->seat_class === JudicialSeat::CLASS_CONSTITUENT_NOMINATED
+                        ? (string) $seat->nominating_jurisdiction_id
+                        : null,
+                );
             } catch (\Throwable $e) {
                 $deferredSeats++;
 
-                continue;   // this seat defers; the rest keep seating
+                continue;   // this seat defers; the rest keep staging
+            }
+        }
+
+        // ONE consent vote for the whole slate (operator ruling 2026-09-08 — a
+        // chamber may consent to a bench at once and vote it down to go per-seat
+        // on objection). This collapses the J-seats × M-members cast + per-cast
+        // record pole to a single M-member cast. Every check holds: association
+        // at staging, majority of ALL serving on this vote, equal-per-constituent
+        // on advance. Seat only on adoption; a voted-down slate leaves the seats
+        // nominated. The NOMINATED query also recovers a prior partial run's seats.
+        $hasNominated = JudicialSeat::query()
+            ->where('judiciary_id', $judiciary->id)
+            ->where('status', JudicialSeat::STATUS_NOMINATED)
+            ->exists();
+
+        if ($hasNominated) {
+            $slateVote = $seatsSvc->openSlateConsent($judiciary);
+            self::carryVote($votes, $serving, (string) $slateVote->id);
+            $slateVote->refresh();
+
+            if ((string) $slateVote->outcome === ChamberVote::OUTCOME_ADOPTED) {
+                $seatsSvc->seatSlateOnAdoption($judiciary);
             }
         }
         SimTimer::record('judiciary.seat', (int) ((hrtime(true) - $mSeat) / 1000));
