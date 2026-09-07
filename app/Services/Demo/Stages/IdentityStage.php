@@ -3,6 +3,7 @@
 namespace App\Services\Demo\Stages;
 
 use App\Services\Demo\PersonaFactory;
+use App\Support\SimTimer;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 
@@ -86,6 +87,7 @@ final class IdentityStage
         //     the rest — no parent mints a second, disconnected population.
         // The sample is capped at MAX_PER_JURISDICTION so one mega-leaf (a city
         // of millions) never mints an unbounded single item.
+        $mRost = hrtime(true);
         $isLeaf = ! DB::table('jurisdictions')
             ->where('parent_id', $jurisdictionId)
             ->whereNull('deleted_at')
@@ -116,6 +118,7 @@ final class IdentityStage
             ->where('rc.is_active', true)
             ->where('u.email', 'like', 'sim-%@demo.invalid')
             ->count();
+        SimTimer::record('id.roster', (int) ((hrtime(true) - $mRost) / 1000));
 
         if ($existing >= $needed) {
             return ['users' => 0, 'confirmations' => 0, 'reused' => $existing];
@@ -131,6 +134,15 @@ final class IdentityStage
         // from the jurisdiction tree, so it costs one query, not a second pass.
         $chain = self::ancestorChain($jurisdictionId);
 
+        // ONE UNUSABLE PASSWORD PER BATCH (2026-09-07 perf — the pain point). A
+        // synthetic identity never authenticates, so its password only has to be
+        // impossible to guess, not unique. bcrypt is deliberately slow (~60 ms
+        // each) and it ran ONCE PER PERSON — ~24 s for a 400-person leaf, the
+        // dominant cost of the whole stage. One bcrypt of random bytes, shared by
+        // the batch, is exactly as unusable and ~400x cheaper.
+        $deadPassword = bcrypt(Str::random(40));
+
+        $mBuild = hrtime(true);
         for ($i = $existing; $i < $needed; $i++) {
             $persona = PersonaFactory::make($seed, $languages, $urbanicity, $i);
             $userId = (string) Str::uuid();
@@ -143,7 +155,7 @@ final class IdentityStage
                 // Unloggable by construction: a synthetic identity is never a
                 // door into the instance. The @cga.test seeders use a known
                 // password on purpose; a public demo must not.
-                'password' => bcrypt(Str::random(40)),
+                'password' => $deadPassword,
                 'status' => 'registered',
                 'terms_accepted_at' => $now,
                 'languages' => json_encode($persona['languages']),
@@ -177,16 +189,22 @@ final class IdentityStage
             }
         }
 
+        SimTimer::record('id.build', (int) ((hrtime(true) - $mBuild) / 1000));
+
         // Bounded chunks, each its own committed statement (THE ETL RULE), so a
         // large roster is visible while it lands and resumable if it dies.
+        $mIns = hrtime(true);
         foreach (array_chunk($users, 500) as $chunk) {
             $beat && $beat();
             DB::table('users')->insert($chunk);
         }
+        SimTimer::record('id.insert_users', (int) ((hrtime(true) - $mIns) / 1000));
 
+        $mConf = hrtime(true);
         foreach (array_chunk($confirmations, 500) as $chunk) {
             DB::table('residency_confirmations')->insert($chunk);
         }
+        SimTimer::record('id.insert_residency', (int) ((hrtime(true) - $mConf) / 1000));
 
         // THE MONEY PLANE (W7 item 8): open a wallet for each new resident in
         // the root currency, so a walker sees a funded person and the stipend
@@ -197,8 +215,10 @@ final class IdentityStage
         // open wallets) they never asked for.
         $wallets = 0;
         if ($runId !== null) {
+            $mWal = hrtime(true);
             $wallets = app(\App\Services\Demo\SimEconomyService::class)
                 ->openWalletsFor(array_column($users, 'id'), $beat);
+            SimTimer::record('id.wallets', (int) ((hrtime(true) - $mWal) / 1000));
         }
 
         return [

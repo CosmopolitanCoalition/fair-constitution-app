@@ -3,6 +3,7 @@
 namespace App\Services\Demo;
 
 use App\Models\Economy\Currency;
+use App\Models\Economy\EconomicAccount;
 use App\Models\Jurisdiction;
 use App\Services\Economy\AccountService;
 use App\Services\Economy\CurrencyService;
@@ -117,15 +118,66 @@ class SimEconomyService
         }
 
         $currencyId = (string) $this->ensureCurrency()['currency']->id;
-        $opened = 0;
 
+        // SET-BASED OPEN (2026-09-07 perf, the Step-4 un-bulk lever). The per-user
+        // AccountService::open ran a transaction plus ~3 queries EACH (~260 ms a
+        // wallet) — the dominant cost of the identities stage. The whole batch now
+        // opens in two bulk inserts over the users that do not already hold a
+        // wallet in this currency. The link is the same one AccountService writes
+        // (an economic_account of kind 'user' + an economic_account_bindings row),
+        // so ACCOUNTS-NEVER-PEOPLE holds; balance 0 means no ledger event is due.
+        $already = DB::table('economic_account_bindings as b')
+            ->join('economic_accounts as a', 'a.id', '=', 'b.account_id')
+            ->where('b.owner_type', 'users')
+            ->whereIn('b.owner_id', array_map('strval', $userIds))
+            ->where('a.currency_id', $currencyId)
+            ->pluck('b.owner_id')
+            ->all();
+        $already = array_flip(array_map('strval', $already));
+
+        $now = now();
+        $accounts = [];
+        $bindings = [];
         foreach ($userIds as $userId) {
-            $beat && $beat();
-            $this->accounts->open('users', (string) $userId, $currencyId);
-            $opened++;
+            $userId = (string) $userId;
+            if (isset($already[$userId])) {
+                continue;
+            }
+            $accId = (string) Str::uuid();
+            $accounts[] = [
+                'id'          => $accId,
+                'kind'        => 'user',
+                'currency_id' => $currencyId,
+                'balance'     => 0,
+                'status'      => EconomicAccount::STATUS_OPEN,
+                'created_at'  => $now,
+                'updated_at'  => $now,
+            ];
+            $bindings[] = [
+                'id'         => (string) Str::uuid(),
+                'account_id' => $accId,
+                'owner_type' => 'users',
+                'owner_id'   => $userId,
+                'created_at' => $now,
+                'updated_at' => $now,
+            ];
         }
 
-        return $opened;
+        if ($accounts === []) {
+            return 0;
+        }
+
+        // Bounded, committed chunks (THE ETL RULE).
+        foreach (array_chunk($accounts, 500) as $chunk) {
+            $beat && $beat();
+            DB::table('economic_accounts')->insert($chunk);
+        }
+        foreach (array_chunk($bindings, 500) as $chunk) {
+            $beat && $beat();
+            DB::table('economic_account_bindings')->insert($chunk);
+        }
+
+        return count($accounts);
     }
 
     /**
