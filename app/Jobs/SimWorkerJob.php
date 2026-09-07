@@ -19,6 +19,8 @@ use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
 use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Queue\SerializesModels;
+use Illuminate\Support\Facades\Artisan;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
@@ -131,6 +133,16 @@ class SimWorkerJob implements ShouldQueue
                 SimTimer::close('lane.claim_next');
 
                 if ($item === null) {
+                    // Nothing to claim in the current phase — it has drained,
+                    // or every remaining item is running under a sibling worker.
+                    // Kick the pump NOW so the phase advances the instant its
+                    // work finishes, instead of idling up to a scheduled minute
+                    // (that inter-phase wait was ~12 min of a 13-min tiny run).
+                    // The Step 3/4 "last lane free signals the stack" pattern:
+                    // the pump self-serializes, so concurrent kicks collapse to
+                    // one advance, and a premature kick (items still running)
+                    // simply no-ops in advancePhase's own drain check.
+                    $this->kickPump();
                     break;
                 }
 
@@ -334,6 +346,31 @@ class SimWorkerJob implements ShouldQueue
         }
 
         return $result;
+    }
+
+    /**
+     * Advance the phase NOW instead of waiting for the scheduled minute tick.
+     * Best-effort: a short non-blocking lock dedups the sibling workers that
+     * drain together, so one runs the pump and the rest fall through; the
+     * pump's own lock is the real serializer. If Redis or the pump is briefly
+     * unavailable the scheduled tick is still the backstop, so a failed kick is
+     * swallowed — it only ever costs a minute, never correctness.
+     */
+    private function kickPump(): void
+    {
+        $kick = Cache::lock('sim:pump:kick', 30);
+
+        if (! $kick->get()) {
+            return;
+        }
+
+        try {
+            Artisan::call('sim:pump');
+        } catch (\Throwable $e) {
+            // The scheduled pump remains the backstop.
+        } finally {
+            $kick->release();
+        }
     }
 
     /** HEARTBEAT (W7 item 1): keep the lease fresh mid-item so a long claim is

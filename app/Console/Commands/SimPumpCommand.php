@@ -9,6 +9,7 @@ use App\Services\AuditService;
 use App\Support\HostCapacity;
 use App\Support\SimClaims;
 use Illuminate\Console\Command;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 
@@ -70,6 +71,27 @@ class SimPumpCommand extends Command
     }
 
     public function handle(): int
+    {
+        // Serialize EVERY pump run behind one lock — the scheduled minute tick
+        // AND the on-demand kick a worker fires the instant its phase drains
+        // (SimWorkerJob::kickPump). Two advancePhase calls racing would double-
+        // advance a run, so the kick must share the tick's gate. A run that
+        // cannot get the lock just returns: another pump already holds the
+        // engine, and the work it would have done is being done.
+        $lock = Cache::lock('sim:pump:exec', 120);
+
+        if (! $lock->get()) {
+            return self::SUCCESS;
+        }
+
+        try {
+            return $this->runPump();
+        } finally {
+            $lock->release();
+        }
+    }
+
+    private function runPump(): int
     {
         $runs = SimRun::query()
             ->whereIn('status', ['queued', 'running', 'halted'])
