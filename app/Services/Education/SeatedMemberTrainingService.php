@@ -40,6 +40,7 @@ class SeatedMemberTrainingService
     public function __construct(
         private readonly ConstitutionalEngine $engine,
         private readonly TrainingGateService $gate,
+        private readonly TrainingStipendService $stipend,
     ) {
     }
 
@@ -220,6 +221,14 @@ class SeatedMemberTrainingService
         $counts = ['holders' => 0, 'filed' => 0, 'already' => 0, 'unarmed' => 0, 'failed' => 0];
         $processed = 0;
 
+        // Batch the minted training stipends across this whole pass (the
+        // training pole): the per-holder engine->file still files the real
+        // completion, but its inline stipend — a mint + a creditFromTreasury,
+        // two posts on the ledger's one global lock — is buffered and flushed
+        // once at commitBatch below, so a big chamber stops serialising every
+        // lane through that lock.
+        $this->stipend->beginBatch();
+
         foreach ($holders as $holder) {
             $beat && $beat();
             $key = $holder['user_id'].'|'.$holder['track'];
@@ -273,6 +282,9 @@ class SeatedMemberTrainingService
                 $emit("  … {$processed} armed holders processed ({$counts['filed']} newly trained)");
             }
         }
+
+        // Flush the buffered stipends: one mint + one bulk credit a treasury.
+        $this->stipend->commitBatch();
 
         return $counts;
     }

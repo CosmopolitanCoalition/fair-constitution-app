@@ -47,6 +47,33 @@ class TrainingStipendService
     ) {
     }
 
+    /**
+     * BATCH MODE (2026-09-07). The mass pre-train pass pays one training stipend
+     * per newly-trained holder, and each inline payOnce is a mint + a
+     * creditFromTreasury — two posts on the ledger's ONE global advisory lock,
+     * so a big chamber serialized every lane through that lock (the training
+     * pole, ~8.4 s an item on Germany). Between beginBatch() and commitBatch()
+     * the MINTED-funded stipends are BUFFERED (a static, shared across the
+     * handler's and the caller's instances, like AuditService's batch) and paid
+     * as ONE mint + one creditManyFromTreasury per treasury/currency. The
+     * once-per-person rule is unchanged: payOnce is still only reached when the
+     * achievement was newly minted, so the buffer holds one entry a person.
+     * Treasury-draw stipends (the affordability check is per person) still pay
+     * inline — the sim funds from minting, so the batch covers its hot path.
+     */
+    private static ?array $batch = null;
+
+    public function beginBatch(): void
+    {
+        self::$batch = [];
+    }
+
+    /** Drop the buffer without paying — tests roll back the accounts it points at. */
+    public static function resetBatch(): void
+    {
+        self::$batch = null;
+    }
+
     /** Pay the one-time stipend if every prerequisite exists; skip silently otherwise. */
     public function payOnce(User $learner): void
     {
@@ -101,6 +128,21 @@ class TrainingStipendService
         $source = $this->settings->resolve((string) $jurisdictionId, 'stipend_funding_source') ?? 'minted';
         $paid = (string) $amount;
 
+        // BATCH the minted hot path: buffer this credit, deferring the ledger
+        // posts to commitBatch (one mint + one creditManyFromTreasury a
+        // treasury). Same money, same once-per-person gate, one lock hold.
+        if (self::$batch !== null && $source === 'minted') {
+            self::$batch[] = [
+                'treasury_id' => (string) $treasuryId,
+                'currency_id' => (string) $currency->id,
+                'currency'    => $currency,
+                'wallet_id'   => (string) $walletId,
+                'amount'      => $paid,
+            ];
+
+            return;
+        }
+
         if ($source === 'minted') {
             $this->issuance->mint($currency, (string) $treasuryId, $paid, 'training stipend (F-EDU-001, once per person)');
         } else {
@@ -112,5 +154,40 @@ class TrainingStipendService
         }
 
         $this->accounts->creditFromTreasury((string) $treasuryId, $walletId, $currency->id, $paid, 'stipend');
+    }
+
+    /**
+     * Pay the buffered minted stipends: one mint of the total and one
+     * creditManyFromTreasury per (treasury, currency). Ends the batch. The
+     * per-person amounts are unchanged — only the number of ledger posts drops,
+     * from two a holder to two a treasury.
+     */
+    public function commitBatch(): void
+    {
+        $batch = self::$batch ?? [];
+        self::$batch = null;
+
+        if ($batch === []) {
+            return;
+        }
+
+        $groups = [];
+        foreach ($batch as $row) {
+            $g = $row['treasury_id'].'|'.$row['currency_id'];
+            $groups[$g] ??= [
+                'treasury_id' => $row['treasury_id'],
+                'currency_id' => $row['currency_id'],
+                'currency'    => $row['currency'],
+                'total'       => '0',
+                'credits'     => [],
+            ];
+            $groups[$g]['total'] = bcadd($groups[$g]['total'], $row['amount'], 6);
+            $groups[$g]['credits'][] = ['account_id' => $row['wallet_id'], 'amount' => $row['amount']];
+        }
+
+        foreach ($groups as $g) {
+            $this->issuance->mint($g['currency'], $g['treasury_id'], $g['total'], 'training stipend batch (F-EDU-001, once per person)');
+            $this->accounts->creditManyFromTreasury($g['treasury_id'], $g['credits'], $g['currency_id'], 'stipend');
+        }
     }
 }
