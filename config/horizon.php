@@ -264,7 +264,9 @@ return [
             'connection' => 'redis-long',
             'queue' => ['autoscale'],
             'balance' => 'simple',
-            'maxProcesses' => \App\Support\HostCapacity::autoscaleWorkers(),
+            // Sheds to a caretaker width once Step 3 is done so its idle pool
+            // stops starving the running engine (default full; see supervisorWidth).
+            'maxProcesses' => \App\Support\HostCapacity::supervisorWidth('autoscale', \App\Support\HostCapacity::autoscaleWorkers()),
             'maxTime' => 0,
             'maxJobs' => 0,
             'memory' => \App\Support\HostCapacity::workerRecycleHeavyMb(),
@@ -290,7 +292,8 @@ return [
             'connection' => 'redis-long',
             'queue' => ['provision'],
             'balance' => 'simple',
-            'maxProcesses' => \App\Support\HostCapacity::provisionWorkers(),
+            // Sheds to a caretaker width once Step 4 is done (default full).
+            'maxProcesses' => \App\Support\HostCapacity::supervisorWidth('provision', \App\Support\HostCapacity::provisionWorkers()),
             'maxTime' => 0,
             'maxJobs' => 0,
             'memory' => \App\Support\HostCapacity::workerRecycleHeavyMb(),
@@ -357,7 +360,9 @@ return [
                 'maxProcesses' => max(2, min(count(\App\Models\GeodataFlag::CATEGORIES), \App\Support\HostCapacity::autoscaleWorkers())),
             ],
             'supervisor-autoscale' => [
-                'maxProcesses' => \App\Support\HostCapacity::autoscaleWorkers(),
+                // Sheds to a caretaker width once Step 3 is done so its idle pool
+                // stops starving the running engine (default full; supervisorWidth).
+                'maxProcesses' => \App\Support\HostCapacity::supervisorWidth('autoscale', \App\Support\HostCapacity::autoscaleWorkers()),
             ],
             // A supervisor defined ONLY in `defaults` never runs. Horizon starts
             // exactly the supervisors named under the ACTIVE environment, using
@@ -365,7 +370,9 @@ return [
             // sat in defaults for a day while 238 jobs piled up on an unwatched
             // queue and the run sat at 0/26 with no error anywhere.
             'supervisor-sim' => [
-                'maxProcesses' => \App\Support\HostCapacity::autoscaleWorkers(),
+                // Full host width while Step 5 runs; the control file names no cap
+                // for it, so supervisorWidth returns the derived host width.
+                'maxProcesses' => \App\Support\HostCapacity::supervisorWidth('sim', \App\Support\HostCapacity::autoscaleWorkers()),
             ],
             'supervisor-prewarm' => [
                 // See defaults — race fixed, width derives (2026-08-30).
@@ -383,19 +390,20 @@ return [
                 'maxProcesses' => max(2, min(count(\App\Models\GeodataFlag::CATEGORIES), \App\Support\HostCapacity::autoscaleWorkers())),
             ],
             'supervisor-autoscale' => [
-                'maxProcesses' => \App\Support\HostCapacity::autoscaleWorkers(),
+                // Sheds to a caretaker width once Step 3 is done (default full).
+                'maxProcesses' => \App\Support\HostCapacity::supervisorWidth('autoscale', \App\Support\HostCapacity::autoscaleWorkers()),
             ],
-            // FOUR LOCALLY, NOT cores-2. `balance: simple` keeps every process
-            // RESIDENT, so the planet-scale figure meant ~1 GB of idle PHP the
-            // moment this supervisor started working — on a dev box that shares
-            // one 7.6 GiB WSL VM with a SECOND full stack. Measured at 6.32 GiB
-            // in use, and Vite had already died of ENOMEM scanning a controller
-            // directory. The class comment says this pool must never starve real
-            // work; memory is that same rule, and enabling the supervisor is what
-            // made it bite. Production keeps the full pool — it does not host a
-            // second stack.
+            // SIM DERIVES ITS WIDTH LIKE EVERY OTHER SUPERVISOR (2026-09-07). The
+            // old hard cap of 4 dated to a dev VM that shared its 7.6 GiB with a
+            // SECOND full stack; the box no longer does, and the derivation is
+            // already memory-aware through MEM_HORIZON (set the budget ledger on a
+            // memory-shared box and autoscaleWorkers() self-limits). `balance:
+            // simple` keeps processes resident, so the finished engines now shed
+            // to a caretaker (supervisorWidth) instead of holding idle pools that
+            // starved the running one — that, not a sim-only cap, is what protects
+            // memory. Sim gets the full host width while Step 5 runs.
             'supervisor-sim' => [
-                'maxProcesses' => 4,
+                'maxProcesses' => \App\Support\HostCapacity::supervisorWidth('sim', \App\Support\HostCapacity::autoscaleWorkers()),
             ],
             'supervisor-prewarm' => [
                 'maxProcesses' => 1,
