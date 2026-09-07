@@ -129,6 +129,81 @@ class AuditService
         ], $ref, null, $jurisdictionId);
     }
 
+    /**
+     * Flush the buffered acts as INDIVIDUAL chained rows in one bulk insert
+     * (2026-09-07). Same discipline as commitBatch — the global append lock is
+     * taken ONCE and the chain is computed in PHP — but instead of collapsing
+     * every act into one entry's `acts` array, each act becomes its own
+     * audit_log row, identical to what append() would have written unbatched.
+     *
+     * This exists because some acts MUST stay individually queryable: the
+     * training gate reads per-user F-EDU-001 `education.training_completed`
+     * rows, and collapsing them into a batch entry's JSON made every seated
+     * official read as untrained, so the sim's committee/court acts were
+     * refused (San Marino, 2026-09-07). Callers whose acts publish public
+     * records must NOT use this path — it does not backfill deferred record
+     * seqs; the training completions are audit-only, so they are safe.
+     *
+     * @return int the number of rows written
+     */
+    public function commitBatchIndividual(): int
+    {
+        $acts = self::$batch ?? [];
+        self::$batch = null;
+
+        if ($acts === []) {
+            return 0;
+        }
+
+        $write = function () use ($acts): int {
+            // One lock hold for the whole flush — the head read is current and
+            // the chain cannot fork, exactly as append() guarantees per row.
+            DB::statement('SELECT pg_advisory_xact_lock(?)', [self::APPEND_LOCK_KEY]);
+
+            $head = DB::selectOne('SELECT hash FROM audit_log ORDER BY seq DESC LIMIT 1');
+
+            if ($head === null) {
+                throw new RuntimeException('audit_log genesis row missing — run migrations.');
+            }
+
+            $prevHash = $head->hash;
+            $now = now();
+            $rows = [];
+
+            foreach ($acts as $act) {
+                // Hash over the canonical payload, the same bytes append() and
+                // verifyChain() use, so a bulk-written row verifies identically.
+                $canonical = self::canonicalJson($act['payload']);
+                $hash = self::chainHash($prevHash, $canonical);
+
+                $rows[] = [
+                    'occurred_at'     => $now,
+                    'actor_user_id'   => $act['actor'] ?? null,
+                    'module'          => $act['module'],
+                    'event'           => $act['event'],
+                    'ref'             => $act['ref'] ?? null,
+                    'jurisdiction_id' => $act['jurisdiction'] ?? null,
+                    'payload'         => $canonical,
+                    'prev_hash'       => $prevHash,
+                    'hash'            => $hash,
+                    'rejected'        => $act['rejected'] ?? false,
+                    'blocked_reason'  => $act['blocked'] ?? null,
+                    'created_at'      => $now,
+                ];
+
+                $prevHash = $hash;
+            }
+
+            foreach (array_chunk($rows, 500) as $chunk) {
+                DB::table('audit_log')->insert($chunk);
+            }
+
+            return count($rows);
+        };
+
+        return DB::transactionLevel() > 0 ? $write() : DB::transaction($write);
+    }
+
     public function append(
         string $module,
         string $event,

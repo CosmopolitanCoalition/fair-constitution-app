@@ -314,13 +314,24 @@ class SimWorkerJob implements ShouldQueue
             throw $e;
         }
 
-        // One hash-chained entry for the whole item, the global lock taken once.
-        $audit->commitBatch(
-            'simworld',
-            'sim.'.$item->kind,
-            'WF-SYS-04',
-            ! empty($item->jurisdiction_id) ? (string) $item->jurisdiction_id : null,
-        );
+        // Training completions MUST stay individually queryable: the gate reads
+        // per-user F-EDU-001 rows, and the collapsing commitBatch buried them in
+        // one entry's JSON, so every official read as untrained and the sim's
+        // committee/court acts were refused (San Marino, 2026-09-07). Flush this
+        // item's acts as individual chained rows in one bulk insert instead —
+        // same lock-once discipline, same rows append() would have written.
+        // Every other kind keeps the collapsed one-entry-per-item form.
+        if ($item->kind === 'training_scope') {
+            $audit->commitBatchIndividual();
+        } else {
+            // One hash-chained entry for the whole item, the global lock taken once.
+            $audit->commitBatch(
+                'simworld',
+                'sim.'.$item->kind,
+                'WF-SYS-04',
+                ! empty($item->jurisdiction_id) ? (string) $item->jurisdiction_id : null,
+            );
+        }
 
         return $result;
     }
