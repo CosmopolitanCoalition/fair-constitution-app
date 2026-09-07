@@ -11,6 +11,7 @@ use App\Models\LegislatureMember;
 use App\Models\Organization;
 use App\Services\AuditService;
 use App\Services\Organizations\CgcService;
+use App\Support\SimTimer;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 
@@ -107,6 +108,7 @@ final class CivicsStage
             return self::result(skipped: 'jurisdiction gone');
         }
 
+        $mSetup = hrtime(true);
         $cfg = (array) config('cga.sim_civics', []);
         $pop = max(0, (int) $j->population);
         $isLeaf = ! DB::table('jurisdictions')
@@ -119,11 +121,13 @@ final class CivicsStage
             ->whereNull('deleted_at')->where('status', 'elected')
             ->whereNull('vacated_at')->whereNotNull('user_id')
             ->orderBy('id')->get();
+        SimTimer::record('civics.setup', (int) ((hrtime(true) - $mSetup) / 1000));
 
         $out = self::result();
 
         // ── Parties: chamber-level, the 2–8 effective-parties band. ─────────
         if ($legislature !== null && $seated->isNotEmpty()) {
+            $mParties = hrtime(true);
             $seats = max(1, (int) $legislature->total_seats);
             $target = (int) min(
                 (int) ($cfg['parties_max'] ?? 8),
@@ -142,7 +146,9 @@ final class CivicsStage
             // partisanship is mooted; the demo graph reflects that rather than a
             // party-only slate. Idempotent — skipped once the election carries them.
             $out['endorsements'] = self::mintEndorsements($j, $beat);
+            SimTimer::record('civics.parties', (int) ((hrtime(true) - $mParties) / 1000));
 
+            $mCgcs = hrtime(true);
             // Common Good Corporations (Art. III §5): chartered by the chamber,
             // publicly owned, IP permanently public domain. Driven through the
             // real CgcService so the CGC register, the public stake, the
@@ -154,11 +160,13 @@ final class CivicsStage
             // executive committee's people, or residents where none stood up.
             $out['cgc_governors'] = app(\App\Services\Demo\SimBoardService::class)
                 ->seatCgcGovernors((string) $j->id, $beat);
+            SimTimer::record('civics.cgcs', (int) ((hrtime(true) - $mCgcs) / 1000));
         }
 
         // ── Nonprofits + businesses: LEAF grain only (people live at leaves;
         //    the tree carries the aggregate — the 33-billion-people lesson). ──
         if ($isLeaf && $pop > 0) {
+            $mOrgs = hrtime(true);
             $sample = max(1, (int) ($cfg['org_sample'] ?? 1000));
 
             $trueNp = intdiv($pop, max(1, (int) ($cfg['nonprofit_per'] ?? 180)));
@@ -186,18 +194,22 @@ final class CivicsStage
             // surfaces are not empty. Rows are sampled (the 8 GB box).
             $out['org_boards'] = app(\App\Services\Demo\SimBoardService::class)
                 ->seedBusinessBoards((string) $j->id, $beat);
+            SimTimer::record('civics.orgs', (int) ((hrtime(true) - $mOrgs) / 1000));
         }
 
         // ── Bills: chamber dockets — introduced/referred/in-committee only
         //    (statuses with no implied vote history; adoption is the
         //    chambers' business, not a generator's). ──────────────────────────
         if ($legislature !== null && $seated->isNotEmpty()) {
+            $mBills = hrtime(true);
             $trueBills = max(1, (int) $legislature->total_seats)
                 * max(1, (int) ($cfg['bills_per_member'] ?? 20));
             $mintBills = max(3, (int) ceil($trueBills / max(1, (int) ($cfg['bill_sample'] ?? 1000))));
             $out['bills'] = self::mintBills($legislature, $j, $seated, $trueBills, $mintBills);
+            SimTimer::record('civics.bills', (int) ((hrtime(true) - $mBills) / 1000));
         }
 
+        $mAudit = hrtime(true);
         try {
             app(AuditService::class)->append(
                 module: 'elections',
@@ -207,6 +219,7 @@ final class CivicsStage
         } catch (\Throwable) {
             // The mint is committed; a failed audit append must not fail the item.
         }
+        SimTimer::record('civics.audit', (int) ((hrtime(true) - $mAudit) / 1000));
 
         return $out;
     }

@@ -3,6 +3,7 @@
 namespace App\Services\Demo\Stages;
 
 use App\Services\Education\SeatedMemberTrainingService;
+use App\Support\SimTimer;
 
 /**
  * The TRAINING stage (W7 item 7, ruling edu-arming A — "the walk shows a
@@ -30,8 +31,10 @@ final class TrainingStage
      */
     public static function run(string $jurisdictionId, ?string $runId, int $version, ?\Closure $beat = null): array
     {
+        $mArm = hrtime(true);
         $tally = app(SeatedMemberTrainingService::class)
             ->armForJurisdiction($jurisdictionId, null, $beat);
+        SimTimer::record('training.arm', (int) ((hrtime(true) - $mArm) / 1000));
 
         return [
             'holders' => $tally['holders'],

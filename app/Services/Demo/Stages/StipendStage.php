@@ -3,6 +3,7 @@
 namespace App\Services\Demo\Stages;
 
 use App\Services\Demo\SimEconomyService;
+use App\Support\SimTimer;
 
 /**
  * The STIPEND stage (W7 item 8) — the civic stipend for one jurisdiction's
@@ -25,7 +26,9 @@ final class StipendStage
      */
     public static function run(string $jurisdictionId, ?string $runId, int $version, ?\Closure $beat = null): array
     {
+        $mDisburse = hrtime(true);
         $result = app(SimEconomyService::class)->runStipendFor($jurisdictionId, $beat);
+        SimTimer::record('stipend.disburse', (int) ((hrtime(true) - $mDisburse) / 1000));
 
         if ($result === null) {
             return ['ran' => false, 'recipients' => 0, 'total' => '0', 'short_paid' => false, 'skipped' => 'no residents with wallets'];

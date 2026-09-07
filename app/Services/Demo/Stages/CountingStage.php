@@ -9,6 +9,7 @@ use App\Models\ElectionRace;
 use App\Services\Demo\CohortBallotExpander;
 use App\Services\TabulationRecorder;
 use App\Services\VoteCountingService;
+use App\Support\SimTimer;
 use Illuminate\Support\Facades\DB;
 
 /**
@@ -65,10 +66,12 @@ final class CountingStage
         $recorder = app(TabulationRecorder::class);
         $counter = new VoteCountingService;
 
+        $mFetch = hrtime(true);
         $races = ElectionRace::query()
             ->where('election_id', $electionId)
             ->orderBy('id')
             ->get();
+        SimTimer::record('count.fetch', (int) ((hrtime(true) - $mFetch) / 1000));
 
         $batch = [];
         $counted = 0;
@@ -90,7 +93,9 @@ final class CountingStage
                 continue;
             }
 
+            $mCand = hrtime(true);
             $candidacyIds = $recorder->candidacyIds($race);
+            SimTimer::record('count.candidacy', (int) ((hrtime(true) - $mCand) / 1000));
 
             if ($candidacyIds === []) {
                 // A race nobody stood in cannot be counted. Honest, and rare —
@@ -100,7 +105,9 @@ final class CountingStage
                 continue;
             }
 
+            $mElec = hrtime(true);
             $electorate = self::electorateFor($race);
+            SimTimer::record('count.electorate', (int) ((hrtime(true) - $mElec) / 1000));
 
             if ($electorate < 1) {
                 $skipped++;
@@ -110,15 +117,18 @@ final class CountingStage
 
             $seed = self::seed($race, $version);
 
+            $mExp = hrtime(true);
             $groups = CohortBallotExpander::expand(
                 seed: $seed,
                 candidacyIds: $candidacyIds,
                 electorate: $electorate,
                 groups: self::RANKING_GROUPS,
             );
+            SimTimer::record('count.expand', (int) ((hrtime(true) - $mExp) / 1000));
 
             $tabulation = $recorder->begin($race, 'initial');
 
+            $mCount = hrtime(true);
             $result = $counter->countStv(new CountInput(
                 candidacyIds: $candidacyIds,
                 seats: (int) $race->seats,
@@ -126,6 +136,7 @@ final class CountingStage
                 excluded: [],
                 tieSeedBase: self::tieSeedBase($groups, (string) $race->id),
             ));
+            SimTimer::record('count.tabulate', (int) ((hrtime(true) - $mCount) / 1000));
 
             $batch[] = [$tabulation, $race, $result];
             $counted++;
@@ -133,13 +144,17 @@ final class CountingStage
             $ballots += $result->totalValid;
 
             if (count($batch) >= self::BATCH_SIZE) {
+                $mPer = hrtime(true);
                 $recorder->completeBatch($batch, self::provenance($runId, $version));
+                SimTimer::record('count.persist', (int) ((hrtime(true) - $mPer) / 1000));
                 $batch = [];
             }
         }
 
         if ($batch !== []) {
+            $mPer = hrtime(true);
             $recorder->completeBatch($batch, self::provenance($runId, $version));
+            SimTimer::record('count.persist', (int) ((hrtime(true) - $mPer) / 1000));
         }
 
         return ['races' => $counted, 'seats' => $seats, 'ballots' => $ballots, 'skipped' => $skipped];

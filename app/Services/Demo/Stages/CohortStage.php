@@ -3,6 +3,7 @@
 namespace App\Services\Demo\Stages;
 
 use App\Services\Demo\HashChainRandom;
+use App\Support\SimTimer;
 use Illuminate\Support\Facades\DB;
 
 /**
@@ -36,11 +37,13 @@ final class CohortStage
      */
     public static function run(string $jurisdictionId, ?string $runId, int $version, int $turnoutPct, ?\Closure $beat = null): array
     {
+        $mLoad = hrtime(true);
         $j = DB::table('jurisdictions')
             ->select('id', 'name', 'adm_level', 'population', 'official_languages', 'timezone')
             ->where('id', $jurisdictionId)
             ->whereNull('deleted_at')
             ->first();
+        SimTimer::record('cohort.load', (int) ((hrtime(true) - $mLoad) / 1000));
 
         if ($j === null) {
             throw new \RuntimeException("Jurisdiction {$jurisdictionId} not found (or deleted).");
@@ -55,8 +58,11 @@ final class CohortStage
         // and are rendered honestly as unpopulated, never silently skipped.
         $electorate = (int) floor($population * $turnoutPct / 100);
 
+        $mArch = hrtime(true);
         $archetypes = self::archetypes($seed, $j, $population, $beat);
+        SimTimer::record('cohort.archetypes', (int) ((hrtime(true) - $mArch) / 1000));
 
+        $mUpsert = hrtime(true);
         DB::table('jurisdiction_cohorts')->upsert(
             [[
                 'id' => (string) \Illuminate\Support\Str::uuid(),
@@ -74,11 +80,14 @@ final class CohortStage
             ['jurisdiction_id', 'version'],
             ['run_id', 'seed', 'population', 'electorate', 'turnout_pct', 'archetypes', 'updated_at']
         );
+        SimTimer::record('cohort.upsert', (int) ((hrtime(true) - $mUpsert) / 1000));
 
+        $mRead = hrtime(true);
         $cohortId = (string) DB::table('jurisdiction_cohorts')
             ->where('jurisdiction_id', $jurisdictionId)
             ->where('version', $version)
             ->value('id');
+        SimTimer::record('cohort.readback', (int) ((hrtime(true) - $mRead) / 1000));
 
         return [
             'cohort_id' => $cohortId,

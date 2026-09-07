@@ -11,6 +11,7 @@ use App\Models\LegislatureMember;
 use App\Models\User;
 use App\Services\ChamberVoteService;
 use App\Services\Judiciary\JudicialSeatService;
+use App\Support\SimTimer;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
 
@@ -106,6 +107,7 @@ final class JudiciaryStage
         //       equal-per-constituent seat pool. ──────────────────────────────
         $filed = false;
         if ($judiciary->status === Judiciary::STATUS_FORMING) {
+            $mDerive = hrtime(true);
             $constituents = \App\Services\Judiciary\JudiciaryFormationService::constituentJurisdictionIds($legislature);
 
             // The floor is the jurisdiction's own setting (bench law), never a
@@ -130,16 +132,21 @@ final class JudiciaryStage
                 // the act states the bench, floored at min_judges.
                 $payload['committee_judge_count'] = $minJudges;
             }
+            SimTimer::record('judiciary.derive', (int) ((hrtime(true) - $mDerive) / 1000));
 
+            $mFile = hrtime(true);
             try {
                 $result = $engine->file('F-LEG-017', $proposerUser, $payload);
+                SimTimer::record('judiciary.file_creation', (int) ((hrtime(true) - $mFile) / 1000));
             } catch (\Throwable $e) {
                 return self::skip('creation refused: '.$e->getMessage());
             }
 
+            $mVote = hrtime(true);
             if (! self::carryVote($votes, $serving, $result->recorded['vote_id'] ?? null)) {
                 return self::skip('the creation vote did not open');
             }
+            SimTimer::record('judiciary.creation_vote', (int) ((hrtime(true) - $mVote) / 1000));
 
             $judiciary->refresh();
             $filed = true;
@@ -151,6 +158,7 @@ final class JudiciaryStage
 
         // ── 2. Seat the bench: per-seat F-LEG-021 nominate (a real resident of
         //       the nominating constituent) + the consent vote. ───────────────
+        $mSeat = hrtime(true);
         $vacant = JudicialSeat::query()
             ->where('judiciary_id', $judiciary->id)
             ->where('status', JudicialSeat::STATUS_VACANT)
@@ -196,6 +204,7 @@ final class JudiciaryStage
                 continue;   // this seat defers; the rest keep seating
             }
         }
+        SimTimer::record('judiciary.seat', (int) ((hrtime(true) - $mSeat) / 1000));
 
         $judiciary->refresh();
 

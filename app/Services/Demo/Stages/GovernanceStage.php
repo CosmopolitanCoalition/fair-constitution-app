@@ -11,6 +11,7 @@ use App\Models\LegislatureMember;
 use App\Models\User;
 use App\Services\ChamberVoteService;
 use App\Services\InstitutionScaleService;
+use App\Support\SimTimer;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
 
@@ -102,7 +103,9 @@ final class GovernanceStage
             return self::bothSkip('no legislature');
         }
 
+        $mSeated = hrtime(true);
         $serving = self::seatedMembers($legislature);
+        SimTimer::record('gov.seated', (int) ((hrtime(true) - $mSeated) / 1000));
 
         if ($serving->isEmpty()) {
             // Stage 3 has not happened yet. Nothing to grow into.
@@ -155,6 +158,7 @@ final class GovernanceStage
 
         $created = 0;
 
+        $mVote = hrtime(true);
         foreach (self::COMMITTEE_NAMES as $name) {
             $beat && $beat();
             if ($existing + $created >= $target) {
@@ -173,14 +177,20 @@ final class GovernanceStage
                 ]);
 
                 if (! self::carryVote($votes, $serving, $result->recorded['vote_id'] ?? null)) {
+                    SimTimer::record('gov.committee', (int) ((hrtime(true) - $mVote) / 1000));
+
                     return self::half($created, $target, $existing, 'a committee vote did not open');
                 }
 
                 $created++;
             } catch (\Throwable $e) {
+                SimTimer::record('gov.committee', (int) ((hrtime(true) - $mVote) / 1000));
+
                 return self::half($created, $target, $existing, 'refused: '.$e->getMessage());
             }
         }
+
+        SimTimer::record('gov.committee', (int) ((hrtime(true) - $mVote) / 1000));
 
         return self::half($created, $target, $existing, null);
     }
@@ -216,6 +226,7 @@ final class GovernanceStage
                     'too few seated members to delegate an executive committee (wants 5+)');
             }
 
+            $mDelegate = hrtime(true);
             try {
                 $result = $engine->file('F-LEG-014', $proposerUser, [
                     'legislature_id' => (string) $legislature->id,
@@ -227,8 +238,11 @@ final class GovernanceStage
 
                 self::carryVote($votes, $serving, $result->recorded['vote_id'] ?? null);
             } catch (\Throwable $e) {
+                SimTimer::record('gov.delegate', (int) ((hrtime(true) - $mDelegate) / 1000));
+
                 return self::deptHalf(0, null, null, false, 'delegation refused: '.$e->getMessage());
             }
+            SimTimer::record('gov.delegate', (int) ((hrtime(true) - $mDelegate) / 1000));
 
             $executive->refresh();
 
@@ -250,6 +264,7 @@ final class GovernanceStage
 
         $created = 0;
 
+        $mCharter = hrtime(true);
         foreach (self::departmentPlan($legislature->jurisdiction_id, $target - $existing) as $dept) {
             if ($existing + $created >= $target) {
                 break;
@@ -271,14 +286,20 @@ final class GovernanceStage
                 ]);
 
                 if (! self::carryVote($votes, $serving, $result->recorded['vote_id'] ?? null)) {
+                    SimTimer::record('gov.charter', (int) ((hrtime(true) - $mCharter) / 1000));
+
                     return self::deptHalf($created, $target, $existing, true, 'a department vote did not open');
                 }
 
                 $created++;
             } catch (\Throwable $e) {
+                SimTimer::record('gov.charter', (int) ((hrtime(true) - $mCharter) / 1000));
+
                 return self::deptHalf($created, $target, $existing, true, 'refused: '.$e->getMessage());
             }
         }
+
+        SimTimer::record('gov.charter', (int) ((hrtime(true) - $mCharter) / 1000));
 
         return self::deptHalf($created, $target, $existing, true, null);
     }

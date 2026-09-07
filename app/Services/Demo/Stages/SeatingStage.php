@@ -5,6 +5,7 @@ namespace App\Services\Demo\Stages;
 use App\Domain\Engine\ConstitutionalEngine;
 use App\Models\Election;
 use App\Services\ElectionLifecycleService;
+use App\Support\SimTimer;
 use Illuminate\Support\Facades\DB;
 
 /**
@@ -41,7 +42,9 @@ final class SeatingStage
      */
     public static function run(string $electionId, ?string $runId, int $version, ?\Closure $beat = null): array
     {
+        $mLoad = hrtime(true);
         $election = Election::query()->find($electionId);
+        SimTimer::record('seat.load', (int) ((hrtime(true) - $mLoad) / 1000));
 
         if ($election === null) {
             return ['certified' => false, 'seated' => 0, 'skipped' => 'election not found'];
@@ -52,7 +55,9 @@ final class SeatingStage
             return ['certified' => false, 'seated' => 0, 'skipped' => 'already certified'];
         }
 
+        $mRaces = hrtime(true);
         $races = DB::table('election_races')->where('election_id', $election->id)->count();
+        SimTimer::record('seat.races', (int) ((hrtime(true) - $mRaces) / 1000));
 
         if ($races === 0) {
             return ['certified' => false, 'seated' => 0, 'skipped' => 'no races — chamber cannot seat'];
@@ -61,6 +66,7 @@ final class SeatingStage
         // Every race must carry a complete count. `certifiedTabulation()` throws
         // otherwise, and refusing here gives a readable reason instead of an
         // exception trace.
+        $mCheck = hrtime(true);
         $uncounted = DB::table('election_races as r')
             ->where('r.election_id', $election->id)
             ->whereNotExists(function ($q) {
@@ -71,6 +77,7 @@ final class SeatingStage
                     ->whereNotNull('t.record_hash');
             })
             ->count();
+        SimTimer::record('seat.check_counts', (int) ((hrtime(true) - $mCheck) / 1000));
 
         if ($uncounted > 0) {
             return [
@@ -85,7 +92,9 @@ final class SeatingStage
         // Walk the real phase machine to the certifiable state. F-ELB-004
         // refuses anything that is not `tabulating` or `audit_rerun`, and that
         // guard is the point — the demo does not get to skip the lifecycle.
+        $mAdvance = hrtime(true);
         $election = self::advanceToTabulating($election, $lifecycle, $beat);
+        SimTimer::record('seat.advance', (int) ((hrtime(true) - $mAdvance) / 1000));
 
         if ($election->status !== Election::STATUS_TABULATING) {
             return [
@@ -96,15 +105,19 @@ final class SeatingStage
         }
 
         // ONE per-act filing, through the real engine, with its own chain entry.
+        $mCertify = hrtime(true);
         app(ConstitutionalEngine::class)->file('F-ELB-004', null, [
             'election_id' => (string) $election->id,
         ]);
+        SimTimer::record('seat.certify', (int) ((hrtime(true) - $mCertify) / 1000));
 
+        $mSeated = hrtime(true);
         $seated = (int) DB::table('legislature_members')
             ->where('election_id', $election->id)
             ->whereIn('status', ['elected', 'seated'])
             ->whereNull('deleted_at')
             ->count();
+        SimTimer::record('seat.seated', (int) ((hrtime(true) - $mSeated) / 1000));
 
         return ['certified' => true, 'seated' => $seated, 'skipped' => null];
     }

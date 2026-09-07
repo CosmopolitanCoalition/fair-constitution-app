@@ -7,6 +7,7 @@ use App\Models\Election;
 use App\Models\Legislature;
 use App\Services\Demo\HashChainRandom;
 use App\Services\ElectionLifecycleService;
+use App\Support\SimTimer;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 
@@ -43,10 +44,12 @@ final class ElectionStage
      */
     public static function run(string $jurisdictionId, ?string $runId, int $version, ?\Closure $beat = null): array
     {
+        $mLeg = hrtime(true);
         $legislature = Legislature::query()
             ->where('jurisdiction_id', $jurisdictionId)
             ->whereNull('deleted_at')
             ->first();
+        SimTimer::record('election.legislature', (int) ((hrtime(true) - $mLeg) / 1000));
 
         if ($legislature === null) {
             // Not every jurisdiction has a chamber. That is an ordinary outcome,
@@ -71,17 +74,20 @@ final class ElectionStage
         // them, so the fully_blocked and board guards below are already satisfied
         // by its existence; adopting manufactures NO second election, which is
         // the exact thing those guards protect against.
+        $mExist = hrtime(true);
         $existing = Election::query()
             ->where('legislature_id', $legislature->id)
             ->where('kind', Election::KIND_GENERAL)
             ->whereIn('status', [Election::STATUS_SCHEDULED, Election::STATUS_APPROVAL_OPEN])
             ->orderByDesc('created_at')
             ->first();
+        SimTimer::record('election.existing_lookup', (int) ((hrtime(true) - $mExist) / 1000));
 
         if ($existing !== null) {
             $existingRaces = DB::table('election_races')->where('election_id', $existing->id)->get();
 
             if ($existingRaces->isNotEmpty()) {
+                $mField = hrtime(true);
                 $candidacies = self::fieldCandidates(
                     $jurisdictionId,
                     (string) $existing->id,
@@ -89,6 +95,7 @@ final class ElectionStage
                     $version,
                     $beat,
                 );
+                SimTimer::record('election.field', (int) ((hrtime(true) - $mField) / 1000));
 
                 return [
                     'election_id' => (string) $existing->id,
@@ -101,7 +108,9 @@ final class ElectionStage
 
         $lifecycle = app(ElectionLifecycleService::class);
 
+        $mPlan = hrtime(true);
         $plan = $lifecycle->racePlan($legislature);
+        SimTimer::record('election.plan', (int) ((hrtime(true) - $mPlan) / 1000));
         $blockedKinds = collect($plan['kinds'])
             ->filter(fn ($spec) => $spec['mode'] === 'blocked')
             ->keys()
@@ -159,10 +168,13 @@ final class ElectionStage
         // generates exactly the races the constitution allows. The plan computed
         // above for the block check is handed in so racePlan runs ONCE, not twice
         // (the same reuse the Step 4 seat path makes — scheduleGeneral docblock).
+        $mSched = hrtime(true);
         $election = $lifecycle->scheduleGeneral($legislature, plan: $plan);
 
         $races = DB::table('election_races')->where('election_id', $election->id)->get();
+        SimTimer::record('election.schedule', (int) ((hrtime(true) - $mSched) / 1000));
 
+        $mField = hrtime(true);
         $candidacies = self::fieldCandidates(
             $jurisdictionId,
             (string) $election->id,
@@ -170,6 +182,7 @@ final class ElectionStage
             $version,
             $beat,
         );
+        SimTimer::record('election.field', (int) ((hrtime(true) - $mField) / 1000));
 
         return [
             'election_id' => (string) $election->id,
