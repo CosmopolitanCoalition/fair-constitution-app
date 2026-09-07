@@ -38,6 +38,17 @@ class SimEconomyService
     /** Opening supply minted once, so the root treasury shows a balance. */
     private const OPENING_SUPPLY = '100000000';
 
+    /**
+     * DEMO STIPEND SAMPLE (2026-09-07). The civic stipend is illustrative in the
+     * sim: it disburses to a bounded sample of a place's residents, not every
+     * one. Paying ALL of a populous leaf's 0.1% sample (a big US county =
+     * thousands) is O(residents) serial writes on the hash-chained ledger's ONE
+     * global append lock, which turned the stipend phase into an 80-minute-plus
+     * serial grind. A sample shows the money plane working and completes fast.
+     * The full per-resident disbursement is the flagged planet-scale hazard.
+     */
+    private const STIPEND_SAMPLE = 25;
+
     /** Process cache: resolved once per worker, then reused across its items. */
     private static ?array $resolved = null;
 
@@ -205,30 +216,34 @@ class SimEconomyService
 
         // Every sim resident of this jurisdiction with a wallet. Active
         // residency is the whole gate; the wallet is what the credit lands in.
+        // Bounded to STIPEND_SAMPLE per place (see the const): the stipend is a
+        // demo of the money plane, and a full per-resident disbursement is the
+        // O(residents) serial-ledger hazard flagged for planet scale.
         $recipients = [];
-        DB::table('residency_confirmations as rc')
-            ->join('users as u', 'u.id', '=', 'rc.user_id')
-            ->join('economic_account_bindings as b', function ($j) {
-                $j->on('b.owner_id', '=', 'rc.user_id')->where('b.owner_type', '=', 'users');
-            })
-            ->join('economic_accounts as a', function ($j) use ($currencyId) {
-                $j->on('a.id', '=', 'b.account_id')->where('a.currency_id', '=', $currencyId);
-            })
-            ->where('rc.jurisdiction_id', $jurisdictionId)
-            ->where('rc.is_active', true)
-            ->where('u.email', 'like', 'sim-%@demo.invalid')
-            ->whereNull('a.deleted_at')
-            ->select('rc.user_id', 'a.id as account_id')
-            ->orderBy('a.id')
-            ->chunk(1000, function ($rows) use (&$recipients, $officeHolders, $beat) {
-                $beat && $beat();
-                foreach ($rows as $r) {
-                    $recipients[] = [
-                        'account_id' => (string) $r->account_id,
-                        'roles' => $officeHolders->has((string) $r->user_id) ? ['office_holder'] : [],
-                    ];
-                }
-            });
+        $beat && $beat();
+        foreach (
+            DB::table('residency_confirmations as rc')
+                ->join('users as u', 'u.id', '=', 'rc.user_id')
+                ->join('economic_account_bindings as b', function ($j) {
+                    $j->on('b.owner_id', '=', 'rc.user_id')->where('b.owner_type', '=', 'users');
+                })
+                ->join('economic_accounts as a', function ($j) use ($currencyId) {
+                    $j->on('a.id', '=', 'b.account_id')->where('a.currency_id', '=', $currencyId);
+                })
+                ->where('rc.jurisdiction_id', $jurisdictionId)
+                ->where('rc.is_active', true)
+                ->where('u.email', 'like', 'sim-%@demo.invalid')
+                ->whereNull('a.deleted_at')
+                ->select('rc.user_id', 'a.id as account_id')
+                ->orderBy('a.id')
+                ->limit(self::STIPEND_SAMPLE)
+                ->get() as $r
+        ) {
+            $recipients[] = [
+                'account_id' => (string) $r->account_id,
+                'roles' => $officeHolders->has((string) $r->user_id) ? ['office_holder'] : [],
+            ];
+        }
 
         if ($recipients === []) {
             return null;
