@@ -180,7 +180,13 @@ class SimPumpCommand extends Command
                      position, est_cost, metrics, created_at, updated_at)
                  SELECT gen_random_uuid(), ?, 'identity_batch', 'pending',
                         c.jurisdiction_id, s.adm_level, c.jurisdiction_id::text,
-                        s.position, c.electorate, '{}', now(), now()
+                        -- BOTTOM-UP claim order (2026-09-07): deepest adm level
+                        -- first, so a leaf's people are minted and swept up
+                        -- BEFORE its parent's item runs. The parent then sees
+                        -- them in its existing-count and mints none of its own
+                        -- (the bind-up dedup). Claim order is position ASC, so
+                        -- deeper = smaller = claimed first.
+                        (99 - COALESCE(s.adm_level, 6)), c.electorate, '{}', now(), now()
                    FROM jurisdiction_cohorts c
                    JOIN sim_items s
                      ON s.run_id = ? AND s.kind = 'cohort_scope'

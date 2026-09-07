@@ -59,7 +59,7 @@ final class IdentityStage
     /**
      * @return array{users: int, confirmations: int, reused: int}
      */
-    public static function run(string $jurisdictionId, ?string $runId, int $version, ?\Closure $beat = null): array
+    public static function run(string $jurisdictionId, ?string $runId, int $version, ?\Closure $beat = null, float $samplePct = 1.0): array
     {
         $cohort = DB::table('jurisdiction_cohorts')
             ->where('jurisdiction_id', $jurisdictionId)
@@ -76,7 +76,25 @@ final class IdentityStage
         $languages = $archetypes['languages'] ?? ['en'];
         $urbanicity = $archetypes['urbanicity'] ?? 'town';
 
-        $needed = self::rosterSize($jurisdictionId);
+        // THE ROSTER (2026-09-07 rework). Two components, whichever is larger:
+        //   · the RACE FLOOR — enough people to contest this jurisdiction's own
+        //     races (rosterSize; throws only on a genuinely absurd race count).
+        //   · the POPULATION SAMPLE — sample_pct of this place's residents, but
+        //     only at a LEAF. Parents inherit their sample from their bound-up
+        //     children (recursive residency below), so a parent adds only the
+        //     race floor and its existing-count of swept-up descendants covers
+        //     the rest — no parent mints a second, disconnected population.
+        // The sample is capped at MAX_PER_JURISDICTION so one mega-leaf (a city
+        // of millions) never mints an unbounded single item.
+        $isLeaf = ! DB::table('jurisdictions')
+            ->where('parent_id', $jurisdictionId)
+            ->whereNull('deleted_at')
+            ->exists();
+        $population = max(0, (int) ($cohort->population ?? 0));
+        $popTarget = $isLeaf
+            ? min(self::MAX_PER_JURISDICTION, (int) ceil($population * max(0.0, $samplePct) / 100))
+            : 0;
+        $needed = max(self::rosterSize($jurisdictionId), $popTarget);
 
         // Idempotent by construction: a re-handed unit tops the roster up to
         // size rather than minting a second one.
@@ -108,6 +126,11 @@ final class IdentityStage
         $confirmations = [];
         $now = now();
 
+        // The place and every ancestor up to the root — a person minted here is a
+        // resident of ALL of them (the constitution's recursive residency). Known
+        // from the jurisdiction tree, so it costs one query, not a second pass.
+        $chain = self::ancestorChain($jurisdictionId);
+
         for ($i = $existing; $i < $needed; $i++) {
             $persona = PersonaFactory::make($seed, $languages, $urbanicity, $i);
             $userId = (string) Str::uuid();
@@ -131,22 +154,27 @@ final class IdentityStage
                 'updated_at' => $now,
             ];
 
-            $confirmations[] = [
-                'id' => (string) Str::uuid(),
-                'user_id' => $userId,
-                'jurisdiction_id' => $jurisdictionId,
-                'days_confirmed' => 30,
-                'confirmed_at' => $now,
-                'voting_right_active' => true,
-                'candidacy_right_active' => true,
-                'is_active' => true,
-                // depth 0 — this jurisdiction only. The full ancestor sweep is
-                // what turns 8.35B residents into 42.3B rows; the demo's people
-                // are residents of the place they are shown in.
-                'depth' => 0,
-                'created_at' => $now,
-                'updated_at' => $now,
-            ];
+            // One residency row per jurisdiction in the chain — depth 0 is this
+            // place, rising to the root. A leaf person is thereby a resident of
+            // its county, state, nation and Earth, so it can vote up the whole
+            // stack and a parent's electorate is exactly the union of its
+            // descendants' people (the dedup: a parent's existing-count sees
+            // these and mints none of its own).
+            foreach ($chain as $anc) {
+                $confirmations[] = [
+                    'id' => (string) Str::uuid(),
+                    'user_id' => $userId,
+                    'jurisdiction_id' => $anc['jurisdiction_id'],
+                    'days_confirmed' => 30,
+                    'confirmed_at' => $now,
+                    'voting_right_active' => true,
+                    'candidacy_right_active' => true,
+                    'is_active' => true,
+                    'depth' => $anc['depth'],
+                    'created_at' => $now,
+                    'updated_at' => $now,
+                ];
+            }
         }
 
         // Bounded chunks, each its own committed statement (THE ETL RULE), so a
@@ -179,6 +207,35 @@ final class IdentityStage
             'wallets' => $wallets,
             'reused' => $existing,
         ];
+    }
+
+    /**
+     * The jurisdiction and every ancestor up to the root, with depth (0 = self).
+     * The chain is known from the jurisdiction tree, so recursive residency is
+     * materialized once at mint time — no separate ancestor-sweep pass.
+     *
+     * @return list<array{jurisdiction_id: string, depth: int}>
+     */
+    private static function ancestorChain(string $jurisdictionId): array
+    {
+        $rows = DB::select(
+            "WITH RECURSIVE chain AS (
+                SELECT id, parent_id, 0 AS depth
+                  FROM jurisdictions WHERE id = ? AND deleted_at IS NULL
+                UNION ALL
+                SELECT j.id, j.parent_id, c.depth + 1
+                  FROM jurisdictions j
+                  JOIN chain c ON j.id = c.parent_id
+                 WHERE j.deleted_at IS NULL
+             )
+             SELECT id, depth FROM chain ORDER BY depth",
+            [$jurisdictionId]
+        );
+
+        return array_map(
+            static fn ($r) => ['jurisdiction_id' => (string) $r->id, 'depth' => (int) $r->depth],
+            $rows
+        );
     }
 
     /**

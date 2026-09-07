@@ -233,6 +233,7 @@ class SimWorkerJob implements ShouldQueue
                 (string) $run->id,
                 $version,
                 $beat,
+                (float) ($options['sample_pct'] ?? 1.0),
             ),
             'election_scope' => ElectionStage::run(
                 (string) $item->jurisdiction_id,
