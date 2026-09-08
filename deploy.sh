@@ -261,8 +261,12 @@ for db in matrix matrix_auth; do
 done
 
 # Bring the homeserver up now that its DB exists (it crash-loops if it boots first).
+# NON-FATAL: Matrix is never on the web/cert critical path — nginx depends only on `app`
+# and the edge only on nginx — so a Synapse hiccup (e.g. a box that booted once in local
+# mode carries a localhost-baked server_name and refuses the new domain) must never abort
+# the deploy before the interface + TLS edge come up. Matrix login is wired separately.
 echo "→ Starting the Matrix homeserver…"
-"${DC[@]}" up -d matrix
+"${DC[@]}" up -d matrix || echo "  ! Matrix homeserver did not start — continuing (not on the web/cert path; docs/operator/matrix.md)." >&2
 
 # Bring up the Matrix Auth Service (MAS) too. The committed docker/matrix/mas config carries DEV-ONLY
 # secrets — fine for a LAN rig; a PUBLIC deploy should run `php artisan matrix:setup` first to regenerate
@@ -272,7 +276,7 @@ echo "→ Starting the Matrix homeserver…"
 # and a localhost issuer. It is started further down, after `matrix:setup` regenerates both.
 if [[ -z "$PUBLIC_URL" ]]; then
   echo "→ Starting the Matrix Auth Service…"
-  "${DC[@]}" up -d mas
+  "${DC[@]}" up -d mas || echo "  ! MAS did not start — continuing (Matrix login only; not on the web/cert path)." >&2
 fi
 
 # The app entrypoint runs `composer install` on first boot (minutes on a Pi) and
@@ -320,19 +324,27 @@ fi
 #     config.generated.yaml; compose mounts config.yaml, and nothing else copies one to the
 #     other, so we do it here.
 if [[ -n "$PUBLIC_URL" ]]; then
+  # BEST-EFFORT. The Matrix/MAS wiring is not on the web/cert critical path (nginx depends
+  # only on `app`, the edge only on nginx), so nothing here may abort the deploy before the
+  # interface + TLS come up. matrix:setup is pure-local (writes secrets + config), but a box
+  # that booted once in local mode carries a localhost-baked Synapse; that affects Matrix
+  # login only, wired separately (docs/operator/matrix.md), never the app or its certificate.
   echo "→ Regenerating Matrix/MAS/LiveKit secrets for ${PUBLIC_HOST}…"
-  art matrix:setup --server-name="$PUBLIC_HOST" \
-                   --issuer="$PUBLIC_URL" \
-                   --mas-issuer="https://auth.${PUBLIC_HOST}/"
-  if [[ -f docker/matrix/mas/config.generated.yaml ]]; then
-    cp docker/matrix/mas/config.generated.yaml docker/matrix/mas/config.yaml
-    echo "  ✓ MAS config installed (generated secrets)."
+  if art matrix:setup --server-name="$PUBLIC_HOST" \
+                      --issuer="$PUBLIC_URL" \
+                      --mas-issuer="https://auth.${PUBLIC_HOST}/"; then
+    if [[ -f docker/matrix/mas/config.generated.yaml ]]; then
+      cp docker/matrix/mas/config.generated.yaml docker/matrix/mas/config.yaml
+      echo "  ✓ MAS config installed (generated secrets)."
+    else
+      echo "  ! matrix:setup produced no config.generated.yaml — MAS will start on DEV secrets." >&2
+      echo "    Fix before exposing Matrix login: docs/operator/matrix.md" >&2
+    fi
   else
-    echo "  ! matrix:setup produced no config.generated.yaml — MAS will start on DEV secrets." >&2
-    echo "    Fix before exposing the box: docs/operator/matrix.md" >&2
+    echo "  ! matrix:setup failed — continuing (Matrix login only; not on the web/cert path)." >&2
   fi
   echo "→ Starting the Matrix Auth Service…"
-  "${DC[@]}" up -d mas
+  "${DC[@]}" up -d mas || echo "  ! MAS did not start — continuing (Matrix login only)." >&2
 fi
 
 echo "→ Migrating…"
