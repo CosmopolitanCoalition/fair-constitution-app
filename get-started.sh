@@ -222,10 +222,15 @@ configure_host_memory() {
   budget_pct="$(get_env HOST_BUDGET_PCT)"; [ -n "$budget_pct" ] || budget_pct=80
   budget_mb=$(( total_mb * budget_pct / 100 ))
   profile="$(get_env CGA_MEM_PROFILE)"
-  if [ -z "$profile" ]; then
-    # A reachable database holding an autoscale run = a drawing box; a
-    # virgin or ingesting box is geodata-led. Operator override: set
-    # CGA_MEM_PROFILE in .env.
+  # AUTO-DETECT, and RE-DETECT on rederive so a step transition (geodata
+  # ingest -> mapping/districting) flips the profile without a manual .env edit
+  # (operator 2026-09-08: "it doesn't change modes automatically between
+  # steps" — a D64 resize under geodata kept Horizon at the 10 GB geodata share
+  # while districting needed the 43 GB mapping share, starving the lane pool).
+  # A reachable database holding an autoscale run = a drawing box; a virgin or
+  # ingesting box is geodata-led. Only an AUTO profile (geodata/mapping)
+  # re-detects; a hand-pinned 'open' (operator-only) is never clobbered.
+  if [ -z "$profile" ] || { [ "${REDERIVE:-0}" = "1" ] && { [ "$profile" = "geodata" ] || [ "$profile" = "mapping" ]; }; }; then
     if docker compose exec -T postgres psql -U "${DB_USERNAME:-fc_user}" -d "${DB_DATABASE:-fair_constitution}" -t -A -c "SELECT 1 FROM autoscale_runs LIMIT 1" 2>/dev/null | grep -q 1; then
       profile=mapping
     else
@@ -530,6 +535,20 @@ if [ "$UPDATED" = "1" ]; then
   build_interface
   docker compose restart app horizon scheduler || true
   say "Update applied."
+fi
+
+# RE-BAKE THE CONFIG CACHE + RESTART THE WORKERS whenever the derived sizing may
+# have changed (rederive / update / fresh install). Horizon freezes its
+# supervisor widths (maxProcesses = HostCapacity::autoscaleWorkers) INTO the
+# config cache, so a rederive that raised MEM_HORIZON or flipped the profile
+# left the OLD worker count frozen until config:cache + a Horizon restart were
+# run BY HAND (operator 2026-09-08: a D64 profile flip stayed at 19/73 lanes,
+# 76-day ETA, until the cache was rebuilt). Rebuild it here so the pool picks up
+# the new .env on its own; the run self-heals from the worker restart (chunked,
+# resumable). Skipped on a plain re-run so a live pool is never interrupted.
+if [ "${REDERIVE:-0}" = "1" ] || [ "$UPDATED" = "1" ] || [ "$FIRST_RUN" = "1" ] || [ "$JUST_DOWNLOADED" = "1" ]; then
+  docker compose exec -T app php artisan config:cache >/dev/null 2>&1 || true
+  docker compose restart horizon scheduler >/dev/null 2>&1 || true
 fi
 
 PORT="$(grep -E '^[[:space:]]*NGINX_HOST_PORT=' .env | tail -1 | cut -d= -f2 | tr -d '[:space:]' || true)"
