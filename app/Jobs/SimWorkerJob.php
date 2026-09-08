@@ -252,6 +252,7 @@ class SimWorkerJob implements ShouldQueue
                 (string) $run->id,
                 $version,
                 $beat,
+                (bool) ($options['no_floor'] ?? false),
             ),
             // Counting and seating carry an ELECTION, not a jurisdiction — the
             // election is the unit both the count batches over and

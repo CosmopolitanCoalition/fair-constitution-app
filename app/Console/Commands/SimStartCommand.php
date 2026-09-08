@@ -37,6 +37,7 @@ class SimStartCommand extends Command
                             {--limit= : Only enumerate the N largest jurisdictions (a smoke run)}
                             {--jurisdiction= : Scope the world to this jurisdiction and its subtree (slug or UUID) — the narrow co-test posture}
                             {--aspects= : Comma-separated aspects to simulate (elections,governance,civic_life,training,money); prerequisites auto-included; default all}
+                            {--no-floor : Disable the election roster floor top-up (measure the pre-floor-fix behaviour — short scopes file review instead of minting)}
                             {--resume : Adopt the newest unfinished run instead of starting one}';
 
     protected $description = 'Start a simulated-world populate run and enumerate its worklist';
@@ -102,6 +103,7 @@ class SimStartCommand extends Command
                     'sample_pct' => max(0.0, (float) $this->option('sample-pct')),
                     'adm_max' => $admMax,
                     'limit' => $limit,
+                    'no_floor' => (bool) $this->option('no-floor'),
                     'scope_jurisdiction_id' => $scopeRootId,
                     'scope_aspects' => $this->parseAspects(),
                 ],

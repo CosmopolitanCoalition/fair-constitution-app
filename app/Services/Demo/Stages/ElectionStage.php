@@ -42,7 +42,7 @@ final class ElectionStage
     /**
      * @return array{election_id: ?string, races: int, candidacies: int, blocked_kinds: list<string>}
      */
-    public static function run(string $jurisdictionId, ?string $runId, int $version, ?\Closure $beat = null): array
+    public static function run(string $jurisdictionId, ?string $runId, int $version, ?\Closure $beat = null, bool $noFloor = false): array
     {
         $mLeg = hrtime(true);
         $legislature = Legislature::query()
@@ -95,6 +95,7 @@ final class ElectionStage
                     $existingRaces,
                     $version,
                     $beat,
+                    $noFloor,
                 );
                 SimTimer::record('election.field', (int) ((hrtime(true) - $mField) / 1000));
 
@@ -183,6 +184,7 @@ final class ElectionStage
             $races,
             $version,
             $beat,
+            $noFloor,
         );
         SimTimer::record('election.field', (int) ((hrtime(true) - $mField) / 1000));
 
@@ -245,7 +247,8 @@ final class ElectionStage
         string $electionId,
         $races,
         int $version,
-        ?\Closure $beat = null
+        ?\Closure $beat = null,
+        bool $noFloor = false
     ): int {
         // Group each race under the jurisdiction whose residents may contest it.
         $byScope = [];
@@ -283,7 +286,10 @@ final class ElectionStage
             // THIS scope and redraw. A guaranteed floor at the point of need,
             // immune to that divergence; it only tops up this scope's own roster
             // and never pools another jurisdiction's residents into this race.
-            if (count($roster) < $needed) {
+            // The floor top-up is toggleable (--no-floor) so a run can measure
+            // the pre-floor-fix behaviour: with it OFF, a short scope files the
+            // review below instead of minting the shortfall (the China profile).
+            if (! $noFloor && count($roster) < $needed) {
                 try {
                     IdentityStage::run($scope, $runId, $version, $beat, 0.0, $needed);
                     $roster = self::rosterFor($scope, $needed);
