@@ -1381,6 +1381,55 @@ class TypeBDistrictMapper
         }
 
         return DB::transaction(function () use ($leg, $plan, $status, $popSum) {
+            // IDEMPOTENT ON AN IDENTICAL PLAN (WoS 2026-09-08): every recompute and every
+            // review requeue re-ran this and minted a new grouping each time, archiving an
+            // identical predecessor: one legislature carried 18 panel sets (1 active + 17
+            // archived copies of the same plan) plus 18 audit rows. Readers are all scoped
+            // to the active grouping, so seating was right; the churn was not. When the
+            // standing active grouping already IS this plan (same member signature, same
+            // rep_floor / group_size / panel_count / seats), keep it: no archive, no
+            // re-mint, no audit append. Only the chamber row is reconciled (the flag may
+            // still be raised). A genuinely different plan still versions per B7.
+            $signature = self::signature($plan['panels']);
+            if ($status === 'active') {
+                $standing = DB::table('legislature_type_b_groupings')
+                    ->where('legislature_id', $leg->id)
+                    ->where('status', 'active')
+                    ->whereNull('deleted_at')
+                    ->orderByDesc('created_at')
+                    ->first(['id', 'signature', 'rep_floor', 'group_size', 'panel_count', 'seats_total']);
+                if ($standing
+                    && (string) $standing->signature === $signature
+                    && (int) $standing->rep_floor === (int) $plan['rep_floor']
+                    && (int) $standing->group_size === (int) $plan['group_size']
+                    && (int) $standing->panel_count === (int) $plan['panel_count']
+                    && (int) $standing->seats_total === (int) $plan['seats']) {
+                    $totalSeats = (int) $leg->type_a_seats + $plan['seats'];
+                    DB::table('legislatures')->where('id', $leg->id)
+                        ->where(function ($q) use ($plan, $totalSeats) {
+                            $q->where('type_b_seats', '!=', $plan['seats'])
+                              ->orWhere('type_b_needs_districting', true)
+                              ->orWhere('total_seats', '!=', $totalSeats);
+                        })
+                        ->update([
+                            'type_b_seats'             => $plan['seats'],
+                            'type_b_needs_districting' => false,
+                            'total_seats'              => $totalSeats,
+                            'quorum_required'          => \App\Support\QuorumLaw::required($totalSeats),
+                            'updated_at'               => now(),
+                        ]);
+
+                    return [
+                        'legislature_id' => (string) $leg->id,
+                        'grouping_id'    => (string) $standing->id,
+                        'panel_count'    => $plan['panel_count'],
+                        'seats'          => $plan['seats'],
+                        'undercount'     => $plan['undercount'],
+                        'unchanged'      => true,
+                    ];
+                }
+            }
+
             // B7: only one active grouping — archive any prior active plan.
             if ($status === 'active') {
                 DB::table('legislature_type_b_groupings')
@@ -1401,7 +1450,7 @@ class TypeBDistrictMapper
                 'seats_total'     => $plan['seats'],
                 'type_a_bound'    => (int) $leg->type_a_seats,
                 'tie_break_key'   => $plan['tie_break_key'],
-                'signature'       => self::signature($plan['panels']),
+                'signature'       => $signature,
                 'effective_start' => $status === 'active' ? now()->toDateString() : null,
                 'notes'           => $plan['undercount'] ? 'population-capped undercount: bound below one full panel' : null,
                 'created_at'      => now(),
