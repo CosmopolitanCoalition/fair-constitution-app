@@ -209,7 +209,7 @@ if [[ -n "$PUBLIC_URL" ]]; then
     echo "    Re-run with --media-ip <the public address browsers reach> once DNS resolves." >&2
   fi
   if [[ -f docker/livekit/livekit.yaml ]]; then
-    sed -i.bak -E 's/^([[:space:]]*use_external_ip:[[:space:]]*).*/false/' docker/livekit/livekit.yaml       && rm -f docker/livekit/livekit.yaml.bak
+    sed -i.bak -E 's/^([[:space:]]*use_external_ip:[[:space:]]*).*/\1false/' docker/livekit/livekit.yaml       && rm -f docker/livekit/livekit.yaml.bak
   fi
   # Every internal port binds LOOPBACK on a public box. The host half of a compose port
   # spec accepts a bind address, so this needs no compose edit. Postgres (fc_user/fc_password),
