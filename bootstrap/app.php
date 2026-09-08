@@ -40,6 +40,17 @@ return Application::configure(basePath: dirname(__DIR__))
             // needs the citizen's session) is the one OIDC route that stays in the web group.
             Route::middleware('throttle:120,1')
                 ->group(__DIR__.'/../routes/oidc.php');
+
+            // ETL inline pump kick (2026-09-08) — the geodata pull worker POSTs
+            // here the instant its phase drains so geodata:pump advances NOW,
+            // not on the next scheduled minute (the Step 3/4/5 "last actor
+            // signals the pump" pattern, carried across the Python<->PHP
+            // boundary). OUTSIDE the web group (no session/CSRF): a Python
+            // worker has no cookie. The guard is the active run's UUID plus a
+            // bounded, idempotent effect (see SetupController::geodataPumpKick);
+            // the scheduled pump is the backstop. Throttled as a floodwall.
+            Route::middleware('throttle:120,1')
+                ->post('api/etl/geodata/pump-kick', [\App\Http\Controllers\SetupController::class, 'geodataPumpKick']);
         },
     )
     ->withMiddleware(function (Middleware $middleware): void {

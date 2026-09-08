@@ -24,6 +24,8 @@ import subprocess
 import sys
 import threading
 import time
+import urllib.error
+import urllib.request
 from pathlib import Path
 
 sys.path.insert(0, "/etl")
@@ -37,7 +39,35 @@ LOG_FILE = Path("/etl/etl.log")
 CLAIM_BUDGET_SECONDS = 3000   # exit after this; the supervisor re-seeds
 IDLE_SLEEP_SECONDS   = 5      # between-phase wait for the pump to advance
 
+# THE INLINE PUMP KICK (2026-09-08) — the Step 3/4/5 "last actor signals the
+# pump" pattern, carried across the Python<->PHP boundary. When a lane drains
+# its phase it POSTs the run id here so geodata:pump advances the phase NOW,
+# not on the next scheduled minute. Points at the internal nginx service;
+# override with ETL_KICK_URL.
+KICK_URL = os.environ.get("ETL_KICK_URL", "http://nginx/api/etl/geodata/pump-kick")
+
 _STOP = {"v": False}
+
+
+def _kick_pump(run_id: str) -> None:
+    """Fire geodata:pump immediately — this lane's phase just drained.
+
+    Best-effort: a 2 s timeout, every error swallowed. The scheduled pump is
+    the backstop, so a lost kick only costs a tick. The PHP side dedups sibling
+    kicks and the pump self-serializes, so calling on every drain is safe; a
+    premature kick (a peer still running, or a giant gating the phase) simply
+    no-ops in the pump's own drain check.
+    """
+    try:
+        payload = json.dumps({"run_id": run_id}).encode("utf-8")
+        req = urllib.request.Request(
+            KICK_URL, data=payload,
+            headers={"Content-Type": "application/json", "Accept": "application/json"},
+            method="POST",
+        )
+        urllib.request.urlopen(req, timeout=2).close()
+    except Exception:
+        pass  # scheduled geodata:pump is the backstop
 
 
 def _log_line(tag: str, msg: str) -> None:
@@ -274,9 +304,15 @@ def run_worker(run_id: str, worker_tag: str, lane: str = "small",
             claim = claims.claim_next(conn, run_id, ctl["phase"], token, lane=lane,
                                       skip_kinds=active_skips, pref=pref)
             if claim is None:
-                # This phase is drained for us; wait for the pump to advance
-                # (or for peers to open review work). Heartbeat while idle.
+                # This phase is drained for us. Kick the pump NOW so the phase
+                # advances the instant its work finishes, instead of idling up
+                # to the scheduled minute (the Step 3/4/5 "last actor signals
+                # the pump" pattern; SimWorkerJob::kickPump is the PHP twin). A
+                # premature kick — a peer still running, or a giant gating the
+                # phase — simply no-ops in the pump's own drain check. Then
+                # heartbeat and idle for peers/review while the pump advances.
                 claims.touch_lease(conn, token, run_id=run_id)
+                _kick_pump(run_id)
                 time.sleep(IDLE_SLEEP_SECONDS)
                 continue
 

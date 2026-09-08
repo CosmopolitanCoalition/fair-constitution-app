@@ -1538,6 +1538,60 @@ class SetupController extends Controller
     }
 
     /**
+     * POST /api/etl/geodata/pump-kick {run_id} — the ETL worker's inline pump
+     * kick (2026-09-08). THE "LAST ACTOR SIGNALS THE PUMP" PATTERN (Steps
+     * 3/4/5), carried across the Python<->PHP boundary. Phase advance lives
+     * only in geodata:pump; the geodata workers are Python, so a worker that
+     * drains its phase cannot Artisan::call the pump in-process the way
+     * SimWorkerJob::kickPump does. It POSTs here instead the instant its phase
+     * drains, and this runs geodata:pump NOW so the phase advances in seconds
+     * rather than waiting up to a scheduled minute.
+     *
+     * Stateless server-to-server (no session/CSRF). The guard is possession of
+     * the ACTIVE running geodata run's UUID plus a bounded, idempotent effect:
+     * the ONLY thing this does is run the same seconds-long, self-serializing
+     * pump the scheduler runs every minute, and ONLY while a geodata ingest is
+     * actively running (setup time — no running geodata run exists once the
+     * world is live, so the endpoint is inert thereafter). Every other state
+     * no-ops. The scheduled pump remains the backstop, so a lost or refused
+     * kick only ever costs one tick, never correctness.
+     */
+    public function geodataPumpKick(Request $request): JsonResponse
+    {
+        $runId = (string) $request->input('run_id', '');
+
+        // Only an ACTIVE running run advances. A worker whose run just halted or
+        // finished lands here harmlessly — never an error.
+        $active = $runId !== '' && \App\Models\GeodataRun::query()
+            ->where('id', $runId)
+            ->where('status', 'running')
+            ->exists();
+
+        if (! $active) {
+            return response()->json(['kicked' => false], 200);
+        }
+
+        // Dedup the sibling workers that drain together (mirrors
+        // SimWorkerJob::kickPump's sim:pump:kick lock): one runs the pump, the
+        // rest fall through. The pump's own lock is the real serializer, so a
+        // missed dedup is still safe — it just runs an idempotent pump twice.
+        $lock = \Illuminate\Support\Facades\Cache::lock('geodata:pump:kick', 10);
+        if (! $lock->get()) {
+            return response()->json(['kicked' => false, 'deduped' => true], 200);
+        }
+
+        try {
+            \Illuminate\Support\Facades\Artisan::call('geodata:pump');
+        } catch (\Throwable $e) {
+            // The scheduled pump remains the backstop.
+        } finally {
+            $lock->release();
+        }
+
+        return response()->json(['kicked' => true], 200);
+    }
+
+    /**
      * POST /api/setup/wizard/step2/pull-option {auto_scan: bool} — flip the
      * acceptance-scan checkbox on the ACTIVE run while it is still running
      * (operator ruling 2026-08-29: the scan is optional; the choice can be
