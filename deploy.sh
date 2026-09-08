@@ -244,6 +244,9 @@ set_env APP_DEBUG false
 # from .env.example; setting it here also covers an IN-PLACE upgrade whose pre-existing .env
 # predates the key (the cp .env.example above only runs when .env is absent).
 set_env DB_CACHE_CONNECTION pgsql
+# The queue's single home (same default get-started.sh writes). Set only when absent so an
+# operator override stands.
+grep -qE '^REDIS_QUEUE_HOST=' .env || set_env REDIS_QUEUE_HOST redis_queue
 
 echo "→ Bringing up the stack (project=${PROJECT}, prefix=${PREFIX}, nginx :${NGINX_PORT})…"
 # Explicit service list. Always omit `vite` (dev HMR — a deployed box serves the built
@@ -252,7 +255,10 @@ echo "→ Bringing up the stack (project=${PROJECT}, prefix=${PREFIX}, nginx :${
 # amd64 AND arm64/Raspberry Pi); a mirror ingests no geodata and skips it. nginx starts
 # LAST (after the app is healthy + assets built) so compose never aborts the `up` waiting
 # on a php-fpm still mid composer-install.
-SERVICES=(app postgres redis horizon scheduler)
+# redis_queue is the queue's single home (REDIS_QUEUE_HOST=redis_queue) and is NOT behind a
+# profile, yet it was missing here: a --public-url deploy left it down, the app 500ed
+# (getaddrinfo redis_queue) and Horizon looped until a manual `up -d` (WoS 2026-09-08).
+SERVICES=(app postgres redis redis_queue horizon scheduler)
 [[ -n "$WITH_ETL" ]] && SERVICES+=(etl)
 "${DC[@]}" up -d --build "${SERVICES[@]}"
 
@@ -392,9 +398,22 @@ if [[ -n "$PUBLIC_URL" ]]; then
   else
     echo "  ! matrix:setup failed — continuing (Matrix login only; not on the web/cert path)." >&2
   fi
-  echo "→ Starting the Matrix Auth Service…"
-  "${DC[@]}" up -d mas || echo "  ! MAS did not start — continuing (Matrix login only)." >&2
+  # FORCE-RECREATE, not `up -d`: registration.yaml, 20-mas.yaml and the MAS config are bind
+  # mounts, so a running Synapse/MAS keeps the tokens it read at start and `up -d` (no compose
+  # change) never recreates it. Synapse then answers "Token is not active" to the appservice
+  # (WoS 2026-09-08: registration written 16:15:08, fc_matrix started 16:12:12).
+  echo "→ Recreating Synapse + MAS on the freshly minted secrets…"
+  "${DC[@]}" up -d --force-recreate matrix mas || echo "  ! Synapse/MAS did not recreate — continuing (Matrix login only)." >&2
 fi
+
+# Re-bake the config cache AFTER the last .env writer (key:generate, matrix:setup). A cached
+# config overrides .env, and get-started bakes one — so without this the app kept the
+# placeholder cga_dev_* tokens while .env and registration.yaml held the minted ones: every
+# Matrix call 401 M_UNKNOWN_TOKEN, rooms with no channel (WoS 2026-09-08). Every artisan call
+# below (migrate, federation:init, mesh:gates) and the worker restart in step 7 read this cache,
+# so it is rebuilt here, before them.
+echo "→ Re-baking the config cache with the final .env…"
+art config:cache
 
 echo "→ Migrating…"
 art migrate --force
@@ -443,8 +462,19 @@ fi
 #    break when opened from another box). A one-shot run of the vite image (node
 #    toolchain) writes public/build; removing public/hot makes Laravel resolve
 #    assets from that manifest. A dev box uses `docker compose up` → Vite/HMR.
-echo "→ Building production front-end assets (one-shot — minutes on a Pi)…"
-"${DC[@]}" run --rm --build --no-deps --entrypoint sh vite -c "npm install --no-audit --no-fund && npm run build"
+# The one-off build is sized on its OWN, never from the running-service ledger: MEM_VITE in
+# .env is the dev server's share of the closed budget (618m on a 16 GB host) and V8 sizes its
+# heap from what it sees, so Node died "heap out of memory" (rc=134) and aborted the deploy
+# (WoS 2026-09-08). Same derivation as get-started's build_interface: cap = clamp(host/4,
+# 1536m, 4096m), heap = 70% of the cap, both passed explicitly. Override: DEPLOY_BUILD_MB.
+host_mb="$(awk '/^MemTotal:/{printf "%d", $2/1024}' /proc/meminfo 2>/dev/null || true)"
+if [[ -z "$host_mb" ]]; then host_mb="$(( $(sysctl -n hw.memsize 2>/dev/null || echo 4294967296) / 1048576 ))"; fi
+build_mb="${DEPLOY_BUILD_MB:-$(( host_mb / 4 ))}"
+if (( build_mb < 1536 )); then build_mb=1536; fi
+if (( build_mb > 4096 )); then build_mb=4096; fi
+heap_mb=$(( build_mb * 70 / 100 ))
+echo "→ Building production front-end assets (one-shot — cap ${build_mb}m, node heap ${heap_mb}m)…"
+MEM_VITE="${build_mb}m" "${DC[@]}" run --rm --build --no-deps -e NODE_OPTIONS="--max-old-space-size=${heap_mb}" --entrypoint sh vite -c "npm install --no-audit --no-fund && npm run build"
 rm -f public/hot
 
 # 7. Reload the long-lived workers with the FINAL APP_KEY. php-fpm, horizon and
@@ -472,7 +502,7 @@ if [[ -n "$PUBLIC_URL" ]]; then
   # voice is off the web/cert path; a live civic room still works for text/presence/agenda/vote
   # without it (the call tile degrades to a clean 503 until a voice.sfu holder is reachable).
   echo "→ Starting the LiveKit SFU (voice/video, external-IP ICE)…"
-  "${DC[@]}" --profile voice up -d livekit \
+  "${DC[@]}" --profile voice up -d --force-recreate livekit \
     || echo "  ! LiveKit SFU did not start — continuing (voice only; interface + cert unaffected)." >&2
   echo ""
   echo "✓ Instance up — ${PUBLIC_URL}"
