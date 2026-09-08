@@ -42,7 +42,8 @@ class PrivateRoomService
             ]);
 
             // Provision the live Matrix room (text + voice live here). Best-effort: if the homeserver is
-            // down the room still exists on Plane A; comms light up when Matrix returns (roomFor re-checks).
+            // down the room still exists on Plane A; comms light up when Matrix returns because every
+            // open of the room passes through ensureRoom(), which re-provisions a missing channel.
             try {
                 $this->rooms->createPrivateRoom($space->fresh(), $title);
             } catch (Throwable $e) {
@@ -89,6 +90,29 @@ class PrivateRoomService
             ->whereNull('tombstoned_at')
             ->whereNotNull('matrix_room_id')
             ->first();
+    }
+
+    /**
+     * The live Matrix room for a private space, PROVISIONING it when missing. create() provisions
+     * best-effort, so a homeserver outage at that moment left the space with no channel and nothing
+     * ever retried (WoS 2026-09-08: two orphaned rooms). Every open of the room passes through here,
+     * so the channel is backfilled the first time Matrix is reachable again. createPrivateRoom is
+     * idempotent (it returns the existing live room first). Still best-effort: a Matrix failure never
+     * blocks the Plane A page.
+     */
+    public function ensureRoom(SocialSpace $space): ?MatrixRoom
+    {
+        $room = $this->roomFor($space);
+        if ($room !== null) {
+            return $room;
+        }
+        try {
+            $this->rooms->createPrivateRoom($space, (string) $space->title);
+        } catch (Throwable $e) {
+            report($e);
+        }
+
+        return $this->roomFor($space);
     }
 
     /** A member leaves. The owner stays (room deletion is a separate, future action). */

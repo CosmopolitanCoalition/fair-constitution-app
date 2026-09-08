@@ -123,7 +123,7 @@ class PrivateRoomController extends Controller
             ]);
         }
 
-        $room = $this->rooms->roomFor($space);
+        $room = $this->rooms->ensureRoom($space);
 
         // Read-degrade: a down homeserver shows an EMPTY timeline, never a broken page (the commons posture).
         $messages = [];
@@ -173,7 +173,7 @@ class PrivateRoomController extends Controller
     {
         $data = $request->validate(['body' => ['required', 'string', 'max:20000']]);
 
-        $room = $this->rooms->roomFor($space);
+        $room = $this->rooms->ensureRoom($space);
         if ($room === null) {
             return back()->with('status', 'This room has no live channel yet.');
         }
@@ -209,7 +209,7 @@ class PrivateRoomController extends Controller
             return [null, null];
         }
 
-        $room = $this->rooms->roomFor($space);
+        $room = $this->rooms->ensureRoom($space);
         if ($room === null) {
             return [null, null]; // no live channel yet — honest-empty, not a Matrix call
         }
