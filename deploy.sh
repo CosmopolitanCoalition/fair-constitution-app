@@ -223,6 +223,16 @@ if [[ -n "$PUBLIC_URL" ]]; then
   set_env MAS_HOST_PORT      "127.0.0.1:8090"
   set_env LIVEKIT_HOST_PORT  "127.0.0.1:7880"
   set_env PUBLIC_HOSTNAME    "$PUBLIC_HOST"
+  # A public box is a SERVING box (reads, rooms, login; no ingest, no drawing). Pin the closed
+  # 'serving' memory profile so the next `./get-started.sh --rederive` sizes for it: the auto
+  # profiles size for etl-led ingest or horizon-led drawing and starve app/postgres/matrix,
+  # and 'open' uncaps everything (reclaim-livelock with swap=0; WoS 2026-09-08). An operator
+  # pin of 'open' stands. deploy.sh itself never re-derives memory.
+  cur_profile="$(grep -E '^CGA_MEM_PROFILE=' .env | head -1 | cut -d= -f2- | tr -d '"' || true)"
+  if [[ "$cur_profile" != "open" && "$cur_profile" != "serving" ]]; then
+    set_env CGA_MEM_PROFILE serving
+    echo "→ Memory profile pinned to 'serving' (apply the caps with: ./get-started.sh --rederive)"
+  fi
   set_env ACME_EMAIL         "${ACME_EMAIL:-admin@${PUBLIC_HOST#*.}}"
   # Make every bare `docker compose` command in the runbooks pick up the edge proxy too.
   set_env COMPOSE_FILE "docker-compose.yml:docker-compose.public.yml"

@@ -215,8 +215,9 @@ configure_host_memory() {
   # Enforcement is the cgroup OOM killer: app fails, host lives. The live
   # wall stays as the etl's graceful governor; the cap is the guarantee
   # (revises the 2026-08-06 etl-uncapped ruling, operator word 2026-09-01).
-  # Two profiles, because the phases have different heavies: 'geodata'
-  # (etl-led ingest) and 'mapping' (horizon-led drawing). Floors on tiny
+  # Profiles, because the phases have different heavies: 'geodata' (etl-led
+  # ingest) and 'mapping' (horizon-led drawing) auto-detect; 'serving' (a
+  # public box after setup, app/postgres-led) and 'open' are pins. Floors on tiny
   # hosts may overshoot the budget slightly — a Pi runs kill-heavy and
   # slow, never frozen.
   budget_pct="$(get_env HOST_BUDGET_PCT)"; [ -n "$budget_pct" ] || budget_pct=80
@@ -251,6 +252,15 @@ configure_host_memory() {
   elif [ "$profile" = "mapping" ]; then
     sh_pg=260; sh_etl=15;  sh_horizon=430; sh_app=25; sh_vite=70
     sh_rcache=75; sh_rqueue=60; sh_aux=65
+    pg_mb=$(clamp $(( budget_mb * sh_pg / 1000 )) 1024 262144)
+  elif [ "$profile" = "serving" ]; then
+    # 'serving' (a pin; deploy.sh --public-url sets it): a public box after setup: reads,
+    # rooms, login. Postgres and the app side carry the load; Horizon runs background jobs
+    # only; no ingest, built assets. The auto profiles size for etl-led ingest or horizon-led
+    # drawing and starve this side, and 'open' uncaps everything (a reclaim-livelock with
+    # swap=0 on a 16 GB host: WoS 2026-09-08, four hand-pins to survive). Closed, sums to 1000.
+    sh_pg=380; sh_etl=10;  sh_horizon=200; sh_app=140; sh_vite=20
+    sh_rcache=80; sh_rqueue=40; sh_aux=130
     pg_mb=$(clamp $(( budget_mb * sh_pg / 1000 )) 1024 262144)
   else
     sh_pg=340; sh_etl=340; sh_horizon=100; sh_app=30; sh_vite=50
