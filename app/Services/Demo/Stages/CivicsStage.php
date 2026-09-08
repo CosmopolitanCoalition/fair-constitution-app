@@ -72,11 +72,14 @@ final class CivicsStage
 
     private const CHUNK = 500;
 
-    /** Endorsers sampled PER KIND (orgs of any type; individual residents). */
-    private const ENDORSER_SAMPLE = 8;
+    /** Endorsers sampled PER KIND (orgs of any type; individual residents).
+     *  Lowered 8 -> 2 (operator ruling 2026-09-08): endorsements were ~79% of
+     *  civics; a 2-per-kind sample still shows the polymorphic endorsement graph. */
+    private const ENDORSER_SAMPLE = 2;
 
-    /** Each endorser backs up to this many candidates in the open election. */
-    private const ENDORSEMENTS_PER_ENDORSER = 2;
+    /** Each endorser backs up to this many candidates in the open election.
+     *  Lowered 2 -> 1 with ENDORSER_SAMPLE (operator ruling 2026-09-08). */
+    private const ENDORSEMENTS_PER_ENDORSER = 1;
 
     /** Common Good Corporations chartered per jurisdiction (a public register).
      *  1 per jurisdiction: still demonstrates the CGC feature, halves the CGC
@@ -152,11 +155,14 @@ final class CivicsStage
             // time folds into civics.orgs. The 2-8 band is only how many to seed.
             SimTimer::record('civics.orgs', (int) ((hrtime(true) - $mParties) / 1000));
 
-            // Endorsements are timed on their OWN part (civics.endorsements) — the
-            // real cost the old 'civics.parties' label hid behind the party mint.
+            // Endorsements bundle back under civics.orgs (operator ruling
+            // 2026-09-08): the diagnostic split confirmed they were the pole, and
+            // they are now lowered at the source (ENDORSER_SAMPLE/PER_ENDORSER), so
+            // the separate line is retired — endorsements are civic substrate like
+            // the rest of the org mint.
             $mEndorse = hrtime(true);
             $out['endorsements'] = self::mintEndorsements($j, $beat);
-            SimTimer::record('civics.endorsements', (int) ((hrtime(true) - $mEndorse) / 1000));
+            SimTimer::record('civics.orgs', (int) ((hrtime(true) - $mEndorse) / 1000));
 
             $mCgcs = hrtime(true);
             // Common Good Corporations (Art. III §5): chartered by the chamber,
