@@ -8,6 +8,7 @@ use App\Support\AutoscaleEnumeration;
 use App\Support\HostCapacity;
 use App\Support\WorldBuildVerifier;
 use Illuminate\Bus\Queueable;
+use Illuminate\Contracts\Queue\ShouldBeUnique;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
 use Illuminate\Queue\InteractsWithQueue;
@@ -25,13 +26,32 @@ use Illuminate\Support\Facades\Log;
  * re-dispatches a stale build. Acceptance (phase 3) verifies this job's
  * result through WorldBuildVerifier and only then flips to mapping.
  */
-class WorldBuildJob implements ShouldQueue
+class WorldBuildJob implements ShouldQueue, ShouldBeUnique
 {
     use Dispatchable, InteractsWithQueue, Queueable;
 
     public int $timeout = 0;
 
     public int $tries = 1;
+
+    /**
+     * UNIQUE-JOB LOCK (operator ruling 2026-09-08, the held #5 gone LIVE). The
+     * pump and AutoscalePumpCommand::worldBuildTick re-dispatch this job to
+     * resume a dead build, but WITHOUT a unique lock every dispatch ran
+     * concurrently: 18 instances were observed contending on the same
+     * apportionment_ledger stamp rows, freezing the build (maps/block_keys
+     * stuck while backends fought tuple locks). ShouldBeUnique drops a
+     * duplicate dispatch while one build holds the lock, so a re-dispatch
+     * resumes a DEAD build (lock releases on finish/failure or after uniqueFor)
+     * but never stacks on a live one. uniqueFor exceeds the longest
+     * planet-scale build so a slow build is never mistaken for done.
+     */
+    public int $uniqueFor = 7200;
+
+    public function uniqueId(): string
+    {
+        return 'world-build';
+    }
 
     public function __construct(public ?string $geodataRunId = null)
     {
