@@ -124,9 +124,19 @@ class AutoscaleRunControl
      */
     public function requeueReviewMaps(?array $legislatureIds = null): array
     {
-        $run = AutoscaleRun::unfinished();
+        // Requeue must work on a DONE run too (operator ruling 2026-09-09):
+        // review items linger exactly when the run has finished around them
+        // (review never sinks the run), so requeuing them has to REOPEN the run.
+        // Take the newest unfinished run, else revive the newest done run — the
+        // pump then re-processes the requeued maps and the done-flip re-fires
+        // MapQualityStatsJob on re-completion (rerun stats upon requeue results).
+        $run = AutoscaleRun::unfinished()
+            ?? AutoscaleRun::query()->where('status', 'done')->orderByDesc('created_at')->first();
         if ($run === null) {
-            return ['ok' => false, 'error' => 'No active autoscale run.'];
+            return ['ok' => false, 'error' => 'No autoscale run found.'];
+        }
+        if ($run->status === 'done') {
+            $run->forceFill(['status' => 'mapping', 'finished_at' => null])->save();
         }
 
         $ids = DB::table('apportionment_ledger')

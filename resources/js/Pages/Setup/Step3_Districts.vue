@@ -597,17 +597,18 @@ async function resumeRun(requeueReview = false) {
 // until a poll's payload confirms it is gone — then stop, so a map that later
 // returns to review reappears. rowBusy is the row acting now (per-row spinner).
 const rowBusy = ref('')
-const requeuedIds = ref(new Set())       // review maps queued back, hidden until the snapshot drops them
 const clearedDriftIds = ref(new Set())   // drift maps rechecked to 0, hidden until the snapshot drops them
 
-const reviewItems = computed(() =>
-    (autoscale.value?.review_items ?? []).filter(it => !requeuedIds.value.has(it.legislature_id)))
+// NEVER HIDE THE REQUEUE (operator ruling 2026-09-09): show the live review
+// list straight from the snapshot — NO local hiding. A review item stays
+// visible and requeue-able for as long as it is in review, and one that
+// redraws and returns to review reappears on the next poll. (Drift keeps its
+// own transient hide below; the ruling was about review.)
+const reviewItems = computed(() => autoscale.value?.review_items ?? [])
 const driftItems = computed(() =>
     (autoscale.value?.drifted_items ?? []).filter(it => !clearedDriftIds.value.has(it.legislature_id)))
-const reviewCount = computed(() => {
-    const base = run.value?.attention_count ?? run.value?.review_count ?? (autoscale.value?.review_items?.length ?? 0)
-    return Math.max(reviewItems.value.length, base - requeuedIds.value.size)
-})
+const reviewCount = computed(() =>
+    Math.max(reviewItems.value.length, run.value?.attention_count ?? run.value?.review_count ?? 0))
 const driftCount = computed(() => {
     const base = run.value?.drifted_done ?? (autoscale.value?.drifted_items?.length ?? 0)
     return Math.max(driftItems.value.length, base - clearedDriftIds.value.size)
@@ -616,8 +617,6 @@ const driftCount = computed(() => {
 // Stop hiding an id once the fresh payload no longer lists it (snapshot caught up).
 watch(autoscale, (data) => {
     if (!data) return
-    const rev = new Set((data.review_items ?? []).map(i => i.legislature_id))
-    requeuedIds.value.forEach(id => { if (!rev.has(id)) requeuedIds.value.delete(id) })
     const dr = new Set((data.drifted_items ?? []).map(i => i.legislature_id))
     clearedDriftIds.value.forEach(id => { if (!dr.has(id)) clearedDriftIds.value.delete(id) })
 })
@@ -642,9 +641,10 @@ async function postRowAction(url, ids) {
     }
 }
 async function requeueReview(ids = null) {
-    const targets = ids ?? reviewItems.value.map(it => it.legislature_id)
-    const data = await postRowAction('/api/setup/wizard/step3/requeue-review', ids)
-    if (data?.ok) targets.forEach(id => requeuedIds.value.add(id))
+    // No local hide (operator ruling 2026-09-09): the immediate fetch + the
+    // live snapshot govern; a still-in-review item stays visible and
+    // requeue-able. ids=null requeues every review map server-side.
+    await postRowAction('/api/setup/wizard/step3/requeue-review', ids)
 }
 async function recheckDrift(ids = null) {
     const data = await postRowAction('/api/setup/wizard/step3/recheck-drift', ids)
