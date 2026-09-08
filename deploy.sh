@@ -142,6 +142,14 @@ art() { "${DC[@]}" exec -T app php artisan "$@"; }
 # 1. .env from the template on a fresh checkout.
 [[ -f .env ]] || cp .env.example .env
 
+# Capture the pre-existing Matrix server_name BEFORE set_env rewrites it. Synapse bakes
+# server_name at first boot (docker/matrix/entrypoint.sh generates homeserver.yaml only when
+# absent, and its DB binds to that name), so a box that booted once on another domain — e.g. a
+# local `docker compose up` leaves MATRIX_DOMAIN=localhost — must have that state reset or the
+# homeserver serves the OLD name / refuses the new one. The reset happens further down, gated on
+# an ACTUAL change so a same-domain re-deploy never touches Matrix data.
+OLD_MATRIX_DOMAIN="$(grep -E '^MATRIX_DOMAIN=' .env | head -1 | cut -d= -f2- | tr -d '"' 2>/dev/null || true)"
+
 set_env() {
   local key="$1" val="$2"
   if grep -qE "^${key}=" .env; then
@@ -173,6 +181,13 @@ if [[ -n "$PUBLIC_URL" ]]; then
   set_env MATRIX_DELEGATE_SERVER "${PUBLIC_HOST}:443"
   set_env MATRIX_MAS_ISSUER "https://auth.${PUBLIC_HOST}/"
   set_env LIVEKIT_PUBLIC_URL "wss://rtc.${PUBLIC_HOST}"
+  # LiveKit ICE for an internet-facing box: STUN-discover the PUBLIC IP at runtime instead of a
+  # fixed --node-ip (docs/operator/livekit.md — the two are mutually exclusive). The docker-compose
+  # .public.yml overlay drops the --node-ip flag; here we flip use_external_ip on. Idempotent.
+  if [[ -f docker/livekit/livekit.yaml ]]; then
+    sed -i.bak -E 's/^([[:space:]]*use_external_ip:[[:space:]]*).*/\1true/' docker/livekit/livekit.yaml \
+      && rm -f docker/livekit/livekit.yaml.bak
+  fi
   # Every internal port binds LOOPBACK on a public box. The host half of a compose port
   # spec accepts a bind address, so this needs no compose edit. Postgres (fc_user/fc_password),
   # raw Synapse, raw MAS and the Vite dev port must never face the internet; the edge proxy
@@ -248,6 +263,23 @@ for _ in $(seq 1 90); do
   if "${DC[@]}" exec -T postgres pg_isready -h 127.0.0.1 -U fc_user -d fair_constitution >/dev/null 2>&1; then break; fi
   sleep 2
 done
+
+# Matrix domain change → reset the homeserver state so Synapse re-inits on the NEW server_name.
+# The entrypoint generates homeserver.yaml only when absent and Synapse's DB binds to the name it
+# was minted under, so a warm volume/DB from a prior domain makes it serve the OLD name or refuse
+# to boot. SAFE, and gated twice: only on --public-url (which by construction has no live Matrix
+# data — this script refuses --seed and dev-time) and only when the domain ACTUALLY changes (never
+# a same-domain re-deploy). NON-FATAL and Matrix-only — the app/web/cert path is untouched.
+if [[ -n "$PUBLIC_URL" && "$OLD_MATRIX_DOMAIN" != "$PUBLIC_HOST" ]]; then
+  echo "→ Matrix server_name change (${OLD_MATRIX_DOMAIN:-unset} → ${PUBLIC_HOST}): resetting homeserver state…"
+  "${DC[@]}" rm -sf matrix mas >/dev/null 2>&1 || true
+  for db in matrix matrix_auth; do
+    "${DC[@]}" exec -T postgres psql -U fc_user -d fair_constitution \
+      -c "DROP DATABASE IF EXISTS ${db} WITH (FORCE)" >/dev/null 2>&1 || true
+  done
+  docker volume rm "${PROJECT}_matrix_data" >/dev/null 2>&1 || true
+  echo "  ✓ Homeserver state cleared — Synapse will re-init on ${PUBLIC_HOST} (no app/web data touched)."
+fi
 
 # Phase K-3: ensure the Matrix + MAS logical DBs exist before the homeserver boots. init.sql
 # CREATE DATABASE runs ONLY on a fresh postgres volume; an in-place upgrade with a warm volume
@@ -419,6 +451,12 @@ if [[ -n "$PUBLIC_URL" ]]; then
   # so it must start LAST — nginx has to be answering before the ACME challenge is served.
   echo "→ Starting the TLS edge (obtaining certificates — first run takes ~30s)…"
   "${DC[@]}" up -d edge
+  # LiveKit SFU (voice/video). Behind the `voice` profile, so start it explicitly. NON-FATAL —
+  # voice is off the web/cert path; a live civic room still works for text/presence/agenda/vote
+  # without it (the call tile degrades to a clean 503 until a voice.sfu holder is reachable).
+  echo "→ Starting the LiveKit SFU (voice/video, external-IP ICE)…"
+  "${DC[@]}" --profile voice up -d livekit \
+    || echo "  ! LiveKit SFU did not start — continuing (voice only; interface + cert unaffected)." >&2
   echo ""
   echo "✓ Instance up — ${PUBLIC_URL}"
   echo ""
@@ -428,6 +466,12 @@ if [[ -n "$PUBLIC_URL" ]]; then
   echo "  Next: open ${PUBLIC_URL}/setup and complete the wizard."
   echo "  If the page does not load, certificates are still being issued — give it a minute,"
   echo "  then check:  docker compose logs edge"
+  echo ""
+  echo "  LIVE ROOM: Matrix + MAS + LiveKit are wired with fresh in-sync secrets. A civic room"
+  echo "  (text/presence/agenda/vote) works as soon as login is up. For the VOICE tile, establish"
+  echo "  the governed SFU capability once (operator consent):"
+  echo "     docker compose exec app php artisan mesh:role request voice.sfu"
+  echo "     docker compose exec app php artisan mesh:role approve --proposal=<id> --operator=<you>"
 else
   echo "✓ Instance up (production assets) — http://localhost:${NGINX_PORT}"
 fi

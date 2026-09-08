@@ -16,6 +16,15 @@
 # peers under mesh governance.
 
 services:
+  # LiveKit for an internet-facing box: drop the fixed `--node-ip` from the base command so the SFU
+  # STUN-discovers its PUBLIC IP at runtime (paired with use_external_ip:true in
+  # docker/livekit/livekit.yaml, set by deploy.sh --public-url — the two are mutually exclusive per
+  # docs/operator/livekit.md). Signalling is fronted by the edge at rtc.<host>; media stays raw on
+  # 7881/tcp + 7882/udp (host-published in the base compose — those must be open to the internet).
+  # Started by deploy.sh with `--profile voice` (the service keeps its `voice` profile from the base).
+  livekit:
+    command: ["--config", "/etc/livekit.yaml"]
+
   edge:
     image: caddy:2-alpine
     container_name: ${CONTAINER_PREFIX:-fc}_edge

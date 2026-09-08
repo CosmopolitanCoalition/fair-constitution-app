@@ -25,6 +25,9 @@ class MatrixSetupCommand extends Command
         {--server-name= : the Matrix server_name; defaults to matrix.server_name}
         {--env-path= : .env path to update (default: base_path/.env)}
         {--mas-config-path= : MAS config output (default: docker/matrix/mas/config.generated.yaml)}
+        {--registration-path= : appservice registration.yaml (default: docker/matrix/appservice/registration.yaml)}
+        {--mas-synapse-conf-path= : Synapse MAS-delegation conf (default: docker/matrix/conf.d/20-mas.yaml)}
+        {--livekit-config-path= : LiveKit config (default: docker/livekit/livekit.yaml)}
         {--print-only : show the bundle + sibling-file values, write nothing}';
 
     protected $description = 'Generate the matched appservice/MAS/Synapse/LiveKit secret bundle for a deployment (K3-C)';
@@ -58,8 +61,16 @@ class MatrixSetupCommand extends Command
 
         $this->writeFile($masPath, $this->renderMasConfig($b, $issuer, $masIssuer, $serverName));
 
+        // Sync the SAME secrets into the sibling config files Synapse + LiveKit read directly.
+        // Without this the appservice as_token, the Synapse<->MAS secret, and the LiveKit
+        // key/secret stay on their committed dev values while .env + the MAS config carry the
+        // fresh ones — a silent desync that breaks the appservice handshake, MAS login, and
+        // voice-token minting. This is the "in sync across all the config files" the operator
+        // runbook (docs/operator/matrix.md) documents.
+        $this->applySiblingConfigs($b);
+
         $this->report($b, $issuer, $masIssuer, $serverName, dryRun: false);
-        $this->info("[OK] wrote {$envPath} (game vars) and {$masPath} (MAS config).");
+        $this->info("[OK] wrote {$envPath} (game vars) and {$masPath} (MAS config), and synced the sibling config files.");
 
         return self::SUCCESS;
     }
@@ -171,11 +182,60 @@ class MatrixSetupCommand extends Command
         $this->line("  provider id (ULID)   : {$b['provider_ulid']}");
         $this->line("  MAS upstream redirect: {$b['redirect_uri']}");
         $this->line('');
-        $this->comment('Apply these to the sibling config files (matrix:setup does not edit them — avoids YAML clobber):');
+        if ($dryRun) {
+            $this->comment('These would be written into the sibling config files (run without --print-only to apply):');
+        } else {
+            $this->comment('Synced into the sibling config files (Synapse + LiveKit read these directly):');
+        }
         $this->line("  docker/matrix/appservice/registration.yaml  as_token: {$b['as_token']}");
         $this->line("  docker/matrix/appservice/registration.yaml  hs_token: {$b['hs_token']}");
         $this->line("  docker/matrix/conf.d/20-mas.yaml             secret  : {$b['mas_synapse_secret']}  (== MAS matrix.secret)");
         $this->line("  docker/livekit/livekit.yaml                  key/sec : {$b['livekit_key']} / {$b['livekit_secret']}");
+    }
+
+    /**
+     * Write the regenerated secrets into the sibling config files Synapse and LiveKit read directly,
+     * so every side of each handshake carries the SAME value. Targeted per-line replacements (never a
+     * YAML rewrite): the appservice as_token/hs_token, the Synapse<->MAS shared secret, and the
+     * LiveKit key/secret pair. A no-match is reported LOUDLY — a silent skip is the desync this exists
+     * to prevent.
+     *
+     * @param array<string,string> $b
+     */
+    private function applySiblingConfigs(array $b): void
+    {
+        $reg = (string) ($this->option('registration-path') ?: base_path('docker/matrix/appservice/registration.yaml'));
+        $this->rewriteLine($reg, '/^as_token:.*$/m', 'as_token: '.$b['as_token'], 'appservice as_token');
+        $this->rewriteLine($reg, '/^hs_token:.*$/m', 'hs_token: '.$b['hs_token'], 'appservice hs_token');
+
+        // 20-mas.yaml carries exactly one `secret:` (the Synapse<->MAS shared secret); keep its indent.
+        $mas = (string) ($this->option('mas-synapse-conf-path') ?: base_path('docker/matrix/conf.d/20-mas.yaml'));
+        $this->rewriteLine($mas, '/^(\h*)secret:.*$/m', '${1}secret: '.$b['mas_synapse_secret'], 'Synapse<->MAS secret');
+
+        // livekit.yaml `keys:` holds ONE api_key: api_secret mapping — both the key name and the value
+        // change, so rebuild the whole two-line block (2-space indent, matching the committed file).
+        $lk = (string) ($this->option('livekit-config-path') ?: base_path('docker/livekit/livekit.yaml'));
+        $this->rewriteLine($lk, '/^keys:[^\n]*\n\h+\S+:.*$/m', "keys:\n  ".$b['livekit_key'].': '.$b['livekit_secret'], 'LiveKit key/secret');
+    }
+
+    /** Replace exactly one line matching $pattern in $path with $replacement; warn loudly on no match. */
+    private function rewriteLine(string $path, string $pattern, string $replacement, string $label): void
+    {
+        if (! is_file($path)) {
+            $this->warn("  ! {$label}: {$path} not found — NOT synced. Wire it by hand before exposing the box.");
+
+            return;
+        }
+        $orig = (string) file_get_contents($path);
+        $count = 0;
+        $new = (string) preg_replace($pattern, $replacement, $orig, 1, $count);
+        if ($count < 1) {
+            $this->warn("  ! {$label}: no matching line in {$path} — NOT synced (the handshake will desync). Check the file by hand.");
+
+            return;
+        }
+        $this->writeFile($path, $new);
+        $this->line('  [OK] '.$label.' synced -> '.str_replace(base_path().DIRECTORY_SEPARATOR, '', $path));
     }
 
     private function pem(array $opts): string
