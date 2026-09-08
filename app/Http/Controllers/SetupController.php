@@ -1194,6 +1194,14 @@ class SetupController extends Controller
                     'error' => 'Custom data root must be an absolute container path (e.g. /archive/snapshots/2026-05).',
                 ], 422);
             }
+        } elseif ($data['source'] === 'archive') {
+            // ONE ROOT (operator ruling 2026-09-08). The ingestion MUST read the
+            // same place the detector reports, or a download that lands in /data
+            // shows green cards while "Local Archive" enumerates an empty /archive
+            // and false-completes (1 jurisdiction, 0 countries). Resolve the single
+            // root that actually holds the data via the shared owner and pass it as
+            // --data-root so the enumerator (etl_unit GBOPEN_ROOT) reads it.
+            $dataRoot = $this->geodataRoot();
         }
 
         $controlDir = $this->etlControlDir();
@@ -4472,6 +4480,27 @@ class SetupController extends Controller
     }
 
     /**
+     * THE SINGLE GEODATA ROOT (operator ruling 2026-09-08 — one location, not
+     * two detectors). Both the Step-2 detector (mapDataSources) and the ingestion
+     * start (pull-start --data-root for source=archive) resolve the root HERE, so
+     * they can NEVER disagree. A download lands in /data (the etl_geodata volume,
+     * supervisor.DOWNLOAD_DATA_ROOT); a staged archive lives in /archive
+     * (ARCHIVE_PATH). Whichever holds geoBoundaries_repo is THE root the whole
+     * pipeline uses; worldpop_100m_latest rides the same one (fetched together).
+     * Defaults to /archive when neither has it (the canonical "stage it here" hint).
+     */
+    private function geodataRoot(): string
+    {
+        foreach (['/archive', '/data'] as $root) {
+            if (is_dir($root.'/geoBoundaries_repo/releaseData/gbOpen')) {
+                return $root;
+            }
+        }
+
+        return '/archive';
+    }
+
+    /**
      * GET /api/setup/wizard/step2/sources — report which map datasets are
      * actually staged where the ETL will read them.
      *
@@ -4499,46 +4528,18 @@ class SetupController extends Controller
             return $n;
         };
 
-        // Datasets arrive two ways and the detector must see BOTH, or a
-        // completed download reads as missing and the operator re-downloads tens
-        // of GB (WoS 2026-09-08):
-        //   * STAGED archive        -> /archive/...  (the ARCHIVE_PATH bind)
-        //   * DOWNLOAD mode fetches -> /data/...     (etl_geodata volume,
-        //                              supervisor.DOWNLOAD_DATA_ROOT = /data)
-        // The seeder runs against whichever root a run points --data-root at, so
-        // presence in EITHER counts. Both roots use the identical subtree:
-        //   <root>/geoBoundaries_repo/releaseData/gbOpen/<ISO3>/
-        //   <root>/worldpop_100m_latest/<ISO3>/
-        $roots = ['/archive', '/data'];
-        $gbRel = 'geoBoundaries_repo/releaseData/gbOpen';
-        $wpRel = 'worldpop_100m_latest';
+        // ONE ROOT (operator ruling 2026-09-08). The detector reports from the
+        // SAME root the ingestion reads (geodataRoot() — the single owner), so a
+        // green card can never point at a place the enumerator won't read. A
+        // download lands in /data, a staged archive in /archive; whichever holds
+        // geoBoundaries_repo is THE root, and worldpop rides the same one.
+        $root  = $this->geodataRoot();
+        $gbDir = $root.'/geoBoundaries_repo/releaseData/gbOpen';
+        $wpDir = $root.'/worldpop_100m_latest';
         $pmDir = '/var/www/html/public/maps/protomaps';
 
-        $gbDir = null;
-        $wpDir = null;
-        $gbCount = 0;
-        $wpCount = 0;
-        foreach ($roots as $root) {
-            if ($gbCount === 0) {
-                $n = $countIso3Dirs($root.'/'.$gbRel);
-                if ($n > 0) {
-                    $gbCount = $n;
-                    $gbDir = $root.'/'.$gbRel;
-                }
-            }
-            if ($wpCount === 0) {
-                $n = $countIso3Dirs($root.'/'.$wpRel);
-                if ($n > 0) {
-                    $wpCount = $n;
-                    $wpDir = $root.'/'.$wpRel;
-                }
-            }
-        }
-        // Neither root has it yet: show the archive path as the canonical
-        // "stage it here" hint (the pre-fix display).
-        $gbDir = $gbDir ?? '/archive/'.$gbRel;
-        $wpDir = $wpDir ?? '/archive/'.$wpRel;
-
+        $gbCount = $countIso3Dirs($gbDir);
+        $wpCount = $countIso3Dirs($wpDir);
         $pmFiles = is_dir($pmDir) ? array_map('basename', glob($pmDir.'/*.pmtiles') ?: []) : [];
 
         // Half-applied detection: the operator can set ARCHIVE_PATH in .env but
