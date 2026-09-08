@@ -31,6 +31,7 @@ JOIN_URL=""
 JOIN_KEY=""
 WITH_ETL=""
 PUBLIC_URL=""
+MEDIA_IP=""
 
 usage() {
   sed -n '2,24p' "$0" | sed 's/^# \{0,1\}//'
@@ -44,6 +45,7 @@ while [[ $# -gt 0 ]]; do
     --vite-port)   VITE_PORT="$2"; shift 2;;
     --self-url)    SELF_URL="$2"; shift 2;;
     --public-url)  PUBLIC_URL="$2"; shift 2;;
+    --media-ip)    MEDIA_IP="$2"; shift 2;;
     --project)     PROJECT="$2"; shift 2;;
     --seed)        SEED="1"; shift;;
     --join)        JOIN_URL="$2"; shift 2;;
@@ -187,12 +189,27 @@ if [[ -n "$PUBLIC_URL" ]]; then
   set_env MATRIX_DELEGATE_SERVER "${PUBLIC_HOST}:443"
   set_env MATRIX_MAS_ISSUER "https://auth.${PUBLIC_HOST}/"
   set_env LIVEKIT_PUBLIC_URL "wss://rtc.${PUBLIC_HOST}"
-  # LiveKit ICE for an internet-facing box: STUN-discover the PUBLIC IP at runtime instead of a
-  # fixed --node-ip (docs/operator/livekit.md — the two are mutually exclusive). The docker-compose
-  # .public.yml overlay drops the --node-ip flag; here we flip use_external_ip on. Idempotent.
+  # LiveKit ICE on a cloud box: PIN the advertised media address to the public host's own
+  # A-record (the address browsers reach), never STUN. Behind a cloud NAT the VM has no public
+  # address on its NIC and STUN returns the OUTBOUND SNAT address, which never routes inbound:
+  # "could not validate external IP", "Couldn't connect to the voice server" (WoS 2026-09-08,
+  # STUN found 20.25.38.135, inbound is 20.124.10.190). The pin rides the base compose command
+  # (--node-ip ${LIVEKIT_NODE_IP}); use_external_ip stays false (the two are mutually exclusive,
+  # docs/operator/livekit.md). Derived here from DNS; --media-ip overrides. Idempotent.
+  if [[ -z "$MEDIA_IP" ]]; then
+    MEDIA_IP="$(getent ahostsv4 "$PUBLIC_HOST" 2>/dev/null | awk 'NR==1{print $1}')"
+    [[ -z "$MEDIA_IP" ]] && MEDIA_IP="$(dig +short A "$PUBLIC_HOST" 2>/dev/null | grep -E '^[0-9.]+$' | head -1 || true)"
+    [[ -z "$MEDIA_IP" ]] && MEDIA_IP="$(python3 -c "import socket,sys; print(socket.gethostbyname(sys.argv[1]))" "$PUBLIC_HOST" 2>/dev/null || true)"
+  fi
+  if [[ -n "$MEDIA_IP" ]]; then
+    set_env LIVEKIT_NODE_IP "$MEDIA_IP"
+    echo "→ LiveKit media address = ${MEDIA_IP}   (the A-record of ${PUBLIC_HOST}; override with --media-ip)"
+  else
+    echo "  ! Could not resolve ${PUBLIC_HOST} to an IPv4 address. Voice will advertise the default." >&2
+    echo "    Re-run with --media-ip <the public address browsers reach> once DNS resolves." >&2
+  fi
   if [[ -f docker/livekit/livekit.yaml ]]; then
-    sed -i.bak -E 's/^([[:space:]]*use_external_ip:[[:space:]]*).*/\1true/' docker/livekit/livekit.yaml \
-      && rm -f docker/livekit/livekit.yaml.bak
+    sed -i.bak -E 's/^([[:space:]]*use_external_ip:[[:space:]]*).*/false/' docker/livekit/livekit.yaml       && rm -f docker/livekit/livekit.yaml.bak
   fi
   # Every internal port binds LOOPBACK on a public box. The host half of a compose port
   # spec accepts a bind address, so this needs no compose edit. Postgres (fc_user/fc_password),
@@ -501,7 +518,7 @@ if [[ -n "$PUBLIC_URL" ]]; then
   # LiveKit SFU (voice/video). Behind the `voice` profile, so start it explicitly. NON-FATAL —
   # voice is off the web/cert path; a live civic room still works for text/presence/agenda/vote
   # without it (the call tile degrades to a clean 503 until a voice.sfu holder is reachable).
-  echo "→ Starting the LiveKit SFU (voice/video, external-IP ICE)…"
+  echo "→ Starting the LiveKit SFU (voice/video, media address ${MEDIA_IP:-default})…"
   "${DC[@]}" --profile voice up -d --force-recreate livekit \
     || echo "  ! LiveKit SFU did not start — continuing (voice only; interface + cert unaffected)." >&2
   echo ""

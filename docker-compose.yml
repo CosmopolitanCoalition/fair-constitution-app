@@ -400,9 +400,11 @@ services:
     # reload window sub-second; allkeys-lru evicts the coldest regenerable
     # cache entries first.
     # Derived (audit row, 2026-08-30): host/10 with the proven 768mb floor.
-    command: redis-server --appendonly yes --maxmemory ${REDIS_CACHE_MAXMEMORY:-768mb} --maxmemory-policy allkeys-lru
-    volumes:
-      - redis_data:/data                   # persists cache/queue data
+    # EPHEMERAL (WoS 2026-09-08): this is the CACHE redis; every key is regenerable. With AOF/RDB
+    # on, a dump written under a larger cap ("memory usage when created 959.53 Mb") reloaded past
+    # the new 742m cap on every start after a downsize -> OOM loop, 55 restarts. No persistence,
+    # no data volume: a restart starts empty and warms. Durable state lives on redis_queue only.
+    command: redis-server --save "" --appendonly no --maxmemory ${REDIS_CACHE_MAXMEMORY:-768mb} --maxmemory-policy allkeys-lru
     networks:
       - fc_network
 
@@ -610,8 +612,6 @@ volumes:
   postgres_data:
     driver: local
   matrix_data:                 # Phase K-3 — Synapse config, signing key, media store
-    driver: local
-  redis_data:
     driver: local
   redis_queue_data:
     driver: local
