@@ -1363,6 +1363,33 @@ class SweepScopeProcessor
             ]);
         }
 
+        // NULL-POP NORMALIZATION ON REVIEW (operator ruling 2026-09-09). A
+        // constituent whose population is NULL (an ingest gap — e.g. the small
+        // Lakshadweep islands, capital included) trips the unassigned check; the
+        // districting handles 0 but a NULL is the differentiator that sends the
+        // map to review. When a map is kicked to review, normalize every NULL
+        // population in this legislature's jurisdiction subtree to 0 so a
+        // requeue can seat them and complete. Bounded to the subtree; touches
+        // only the anomalous NULL rows (COALESCE already reads NULL as 0
+        // everywhere else, so seat math is unchanged).
+        if ($status === 'review' && $n > 0) {
+            $jid = \App\Models\LedgerHeader::query()->whereKey($legislatureId)->value('jurisdiction_id');
+            if ($jid !== null) {
+                DB::statement("
+                    WITH RECURSIVE sub AS (
+                        SELECT id FROM jurisdictions WHERE id = ? AND deleted_at IS NULL
+                        UNION ALL
+                        SELECT c.id FROM jurisdictions c JOIN sub ON c.parent_id = sub.id
+                         WHERE c.deleted_at IS NULL
+                    )
+                    UPDATE jurisdictions j
+                       SET population = 0, updated_at = now()
+                      FROM sub
+                     WHERE j.id = sub.id AND j.population IS NULL
+                ", [$jid]);
+            }
+        }
+
         // SUPERSEDED-SCOPE CLOSE (2026-09-04): a map that finalizes DONE
         // supersedes any scope still parked in review from an earlier
         // auto-killed or grind-shunted attempt. Left open, that row reads as
