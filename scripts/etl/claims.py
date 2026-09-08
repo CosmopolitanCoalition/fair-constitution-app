@@ -574,6 +574,14 @@ def claim_next(conn, run_id: str, phase: str, token: str,
             continue
         row = _attempt_claim(conn, run_id, try_kind, lane, token)
         if row is not None:
+            # PHASE-POINTER SIGNAL (Step 2 relay audit, 2026-09-08). A claim
+            # from a FALLTHROUGH kind means the phase's OWN kind had nothing
+            # claimable (drained, or every candidate giant-gated), so the pump
+            # can flip the phase pointer to the next phase. worker.py kicks the
+            # pump on this flag (rate-limited) so the pointer advances now
+            # instead of on the scheduled tick. A premature kick (own kind only
+            # giant-gated, not drained) no-ops in the pump's phaseDrained check.
+            row["_fallthrough"] = (try_kind != kind)
             return row
     return None
 

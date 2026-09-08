@@ -277,19 +277,47 @@ class GeodataScanCategoryJob implements ShouldQueue
         $elapsed = isset($m['scan_started'])
             ? round(microtime(true) - (float) $m['scan_started'], 1)
             : null;
-        self::writeWithRetry(fn () => DB::update(
-            "UPDATE geodata_items
-                SET status = ?, reason = ?,
-                    metrics = COALESCE(metrics, '{}'::jsonb) || ?::jsonb,
-                    finished_at = now(), updated_at = now()
-              WHERE run_id = ? AND kind = 'acceptance_scan' AND status = 'running'",
-            [
-                $errors === [] ? 'done' : 'review',
-                $errors === [] ? null
-                    : ('scan detector(s) errored: ' . implode(', ', array_keys($errors))),
-                json_encode(['elapsed' => $elapsed, 'parallel' => true]),
-                $this->runId,
-            ],
-        ));
+        $closed = 0;
+        self::writeWithRetry(function () use (&$closed, $errors, $elapsed) {
+            $closed = DB::update(
+                "UPDATE geodata_items
+                    SET status = ?, reason = ?,
+                        metrics = COALESCE(metrics, '{}'::jsonb) || ?::jsonb,
+                        finished_at = now(), updated_at = now()
+                  WHERE run_id = ? AND kind = 'acceptance_scan' AND status = 'running'",
+                [
+                    $errors === [] ? 'done' : 'review',
+                    $errors === [] ? null
+                        : ('scan detector(s) errored: ' . implode(', ', array_keys($errors))),
+                    json_encode(['elapsed' => $elapsed, 'parallel' => true]),
+                    $this->runId,
+                ],
+            );
+        });
+
+        // THE SCAN-CLOSE KICK (operator ruling 2026-09-08, the Step 2 relay
+        // audit). This worker just closed the acceptance_scan item ($closed>0,
+        // the idempotent WHERE makes only one closer land), so the scanning
+        // phase is drained. The closer is a Laravel job, NOT an ETL worker, so
+        // the worker pump-kick (e63603da) never fires here and scanning -> done
+        // -> WorldBuildJob would wait for an incidental idle-worker kick or the
+        // scheduled minute (up to ~1-2 min on a pool-dead box). Kick
+        // geodata:pump NOW, dedup + self-serialized like
+        // SetupController::geodataPumpKick. Best-effort: the scheduled pump is
+        // the backstop, so a failed kick only costs a tick.
+        if ($closed > 0) {
+            try {
+                $lock = \Illuminate\Support\Facades\Cache::lock('geodata:pump:kick', 10);
+                if ($lock->get()) {
+                    try {
+                        \Illuminate\Support\Facades\Artisan::call('geodata:pump');
+                    } finally {
+                        $lock->release();
+                    }
+                }
+            } catch (\Throwable $e) {
+                // scheduled geodata:pump is the backstop
+            }
+        }
     }
 }

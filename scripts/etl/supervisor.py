@@ -25,8 +25,30 @@ import signal
 import subprocess
 import sys
 import time
+import urllib.request
 from datetime import datetime, timezone
 from pathlib import Path
+
+# THE CHAIN-DOWNLOAD KICK (Step 2 relay audit, 2026-09-08): after a download
+# writes chain_pull.json, POST this so geodata:chain-download runs NOW and the
+# multithreaded pull run starts immediately, instead of waiting up to a minute
+# for the scheduled tick. Points at the internal nginx service; override with
+# ETL_CHAIN_KICK_URL. Best-effort: the scheduled tick is the backstop.
+CHAIN_KICK_URL = os.environ.get("ETL_CHAIN_KICK_URL", "http://nginx/api/etl/geodata/chain-kick")
+
+
+def _kick_chain() -> None:
+    """Fire geodata:chain-download immediately after the marker is written.
+    Best-effort: 2 s timeout, every error swallowed; the scheduled every-minute
+    geodata:chain-download is the backstop, so a lost kick only costs a tick."""
+    try:
+        req = urllib.request.Request(
+            CHAIN_KICK_URL, data=b"{}",
+            headers={"Content-Type": "application/json"}, method="POST",
+        )
+        urllib.request.urlopen(req, timeout=2).close()
+    except Exception:
+        pass  # scheduled geodata:chain-download is the backstop
 
 CONTROL_DIR = Path("/etl/control")
 LOG_FILE    = Path("/etl/etl.log")
@@ -734,6 +756,7 @@ def run_job(request_payload: dict) -> int:
             "request":    request_payload,
         }
         write_atomic(CHAIN_PULL, chain_payload)
+        _kick_chain()   # start the pull run now, not on the next scheduled minute
         finished_at = now_iso()
         log_fh.write("[supervisor] download complete — handing off to the "
                      "MULTITHREADED pull engine (chain_pull.json written; the "

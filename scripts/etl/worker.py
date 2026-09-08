@@ -284,6 +284,13 @@ def run_worker(run_id: str, worker_tag: str, lane: str = "small",
     # the sleep now fires only when nothing anywhere is claimable.
     skip_until: dict[str, float] = {}
     GIANT_YIELD_SKIP_SECONDS = 60
+    # Phase-pointer kick rate-limit (Step 2 relay audit, 2026-09-08): a
+    # fallthrough claim means the phase's own kind drained, so the pump can flip
+    # the pointer. Kick at most once per FT_KICK_COOLDOWN so a long overlap does
+    # not storm the endpoint (the PHP side dedups too, and a premature kick
+    # no-ops in the pump's phaseDrained check).
+    last_ft_kick = 0.0
+    FT_KICK_COOLDOWN = 10
 
     try:
         while True:
@@ -315,6 +322,13 @@ def run_worker(run_id: str, worker_tag: str, lane: str = "small",
                 _kick_pump(run_id)
                 time.sleep(IDLE_SLEEP_SECONDS)
                 continue
+
+            # PHASE-POINTER KICK: this claim came from a fallthrough kind, so
+            # the phase's own kind is drained and the pump can flip the pointer
+            # to the next phase now, not on the scheduled tick. Rate-limited.
+            if claim.get("_fallthrough") and (time.monotonic() - last_ft_kick) > FT_KICK_COOLDOWN:
+                _kick_pump(run_id)
+                last_ft_kick = time.monotonic()
 
             claims.touch_lease(conn, token, claim["kind"], claims.label(claim), run_id=run_id)
             _log_line(worker_tag, f"claim {claim['kind']} {claim.get('iso_code') or ''} "

@@ -1592,6 +1592,35 @@ class SetupController extends Controller
     }
 
     /**
+     * POST /api/etl/geodata/chain-kick — the supervisor's inline chain-download
+     * kick (Step 2 relay audit, 2026-09-08). A finished official-source
+     * download writes control/chain_pull.json, and the scheduled every-minute
+     * geodata:chain-download consumes it to start the multithreaded pull run.
+     * The supervisor POSTs here the instant it writes the marker so the pull
+     * run starts NOW, not up to a minute later. Runs the same idempotent
+     * command the scheduler runs (it self-guards on the marker + no active
+     * run), dedup + self-serialized. Best-effort: the scheduled tick is the
+     * backstop, so a lost or refused kick only ever costs one tick.
+     */
+    public function chainDownloadKick(Request $request): JsonResponse
+    {
+        $lock = \Illuminate\Support\Facades\Cache::lock('geodata:chain-download:kick', 10);
+        if (! $lock->get()) {
+            return response()->json(['kicked' => false, 'deduped' => true], 200);
+        }
+
+        try {
+            \Illuminate\Support\Facades\Artisan::call('geodata:chain-download');
+        } catch (\Throwable $e) {
+            // The scheduled geodata:chain-download remains the backstop.
+        } finally {
+            $lock->release();
+        }
+
+        return response()->json(['kicked' => true], 200);
+    }
+
+    /**
      * POST /api/setup/wizard/step2/pull-option {auto_scan: bool} — flip the
      * acceptance-scan checkbox on the ACTIVE run while it is still running
      * (operator ruling 2026-08-29: the scan is optional; the choice can be

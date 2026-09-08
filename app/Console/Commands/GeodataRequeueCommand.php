@@ -117,9 +117,14 @@ class GeodataRequeueCommand extends Command
             ])->save();
         }
 
+        // Kick the pump inline so the requeue crosses forward NOW, matching the
+        // operator button paths, instead of waiting for the scheduled tick
+        // (Step 2 relay audit, 2026-09-08).
+        \Illuminate\Support\Facades\Artisan::call('geodata:pump');
+
         $this->info("Requeued {$n} item(s) + {$downstream} downstream barrier(s) on run {$run->id}"
             .($earliest !== null ? " — phase rewound to {$earliest}." : '.'));
-        $this->line('The pump advances it within a minute (or run `php artisan geodata:pump` now); '
+        $this->line('Kicked geodata:pump — it advances now; '
             .'start the worker pool from Setup Step 2 if the supervisor is idle.');
 
         return self::SUCCESS;

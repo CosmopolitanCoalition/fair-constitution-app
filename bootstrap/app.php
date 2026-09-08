@@ -51,6 +51,14 @@ return Application::configure(basePath: dirname(__DIR__))
             // the scheduled pump is the backstop. Throttled as a floodwall.
             Route::middleware('throttle:120,1')
                 ->post('api/etl/geodata/pump-kick', [\App\Http\Controllers\SetupController::class, 'geodataPumpKick']);
+
+            // ETL chain-download kick (2026-09-08, Step 2 relay audit) — the
+            // supervisor POSTs here the instant it writes chain_pull.json so the
+            // multithreaded pull run starts now, not on the next scheduled minute
+            // of geodata:chain-download. Same stateless S2S posture as the pump
+            // kick above; the command self-guards and the scheduled tick backstops.
+            Route::middleware('throttle:120,1')
+                ->post('api/etl/geodata/chain-kick', [\App\Http\Controllers\SetupController::class, 'chainDownloadKick']);
         },
     )
     ->withMiddleware(function (Middleware $middleware): void {
