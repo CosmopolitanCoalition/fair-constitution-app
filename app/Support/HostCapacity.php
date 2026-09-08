@@ -134,27 +134,53 @@ class HostCapacity
      * (autoscale/sim/long-running) and light lanes (default queue) scale
      * with the host, floored at today's proven values so no box regresses.
      */
+    /** Measured idle resident RSS of one queue worker, MB (WoS 2026-09-02).
+     *  Only this per-worker UNIT is fixed; the fleet COUNT derives below. */
+    private const PER_WORKER_IDLE_MB = 64;
+
     /**
-     * The idle fleet a closed Horizon cap must fund before any job runs:
-     * nine workers at the supervisor floors (default 2, long-running 2,
-     * autoscale 2, sim 2, prewarm 1) at ~64 MB resident each (WoS 2026-09-02).
+     * The idle worker fleet a closed Horizon cap must fund before any job
+     * runs, DERIVED from the actual supervisor widths (operator ruling
+     * 2026-09-08: a hard-coded 9*64 undercounted the fleet on any host wider
+     * than the clamped-small box, so the heavy-recycle bound below over-granted
+     * and Horizon blew its own cap). Every 'simple'-balance supervisor runs its
+     * maxProcesses at idle, so the fleet scales with autoscaleWorkers(). These
+     * widths MIRROR config/horizon.php (supervisor-1, long-running, autoscale,
+     * sim, prewarm) — keep in lockstep. Acyclic: autoscaleWorkers() reads the
+     * memory CONSTANT (AutoscaleWorkerJob::MEMORY_RECYCLE_BYTES), never this.
+     * On the clamped-small box (autoscaleWorkers()=2) this returns 9*64=576,
+     * matching the retired constant, so no small-box regression.
      */
-    public const IDLE_FLEET_MB = 9 * 64;
+    public static function idleFleetMb(): int
+    {
+        $aw          = self::autoscaleWorkers();
+        $default     = self::defaultQueueWorkers();
+        $longRunning = max(2, min(count(\App\Models\GeodataFlag::CATEGORIES), $aw));
+        $prewarm     = max(1, min(4, (int) ceil($aw / 4)));
+        // default + long-running + autoscale + sim + prewarm
+        $fleet = $default + $longRunning + $aw + $aw + $prewarm;
+
+        return $fleet * self::PER_WORKER_IDLE_MB;
+    }
 
     public static function workerRecycleHeavyMb(): int
     {
         $heavy = (int) max(512, min(2048, self::hostMemoryGb() * 64));
-        // THE CAP BOUNDS THE RECYCLE (WoS 2026-09-02, 41 Horizon restarts on
-        // a 4 GB host): a worker may grow to this bound before Horizon
-        // recycles it, so the bound must fit inside the container cap after
-        // the master and the idle fleet, with room for two such workers at
-        // once. Floor 256 keeps a tiny host working. No cap known (the open
-        // profile writes the host size) leaves the host formula alone. On
-        // the reference box (7.6 GB Docker VM, cap 7.8 GB) this changes nothing: 512.
+        // THE CAP BOUNDS THE RECYCLE (WoS 2026-09-02, 41 Horizon restarts on a
+        // 4 GB host; DERIVED 2026-09-08). A heavy worker is part of the idle
+        // fleet (counted at PER_WORKER_IDLE_MB) and GROWS to this bound when it
+        // runs, so the growth of the whole active pool must fit the room the cap
+        // leaves after the master and the idle fleet:
+        //   active_lanes * (heavy - idle) <= room  =>  heavy <= idle + room/active_lanes
+        // The active step runs ONE heavy pool at autoscaleWorkers() width, so
+        // that is the divisor (was a fixed 2 — an OOM bet the moment more than
+        // two lanes hit the bound). Floor 256 keeps a tiny host working; no cap
+        // known (open profile writes the host size) leaves the host formula alone.
         $capMb = self::horizonMemoryCapMb();
         if ($capMb > 0) {
-            $room  = max(0, $capMb - self::horizonMasterMemoryMb() - self::IDLE_FLEET_MB);
-            $heavy = min($heavy, max(256, intdiv($room, 2)));
+            $room  = max(0, $capMb - self::horizonMasterMemoryMb() - self::idleFleetMb());
+            $lanes = max(2, self::autoscaleWorkers());
+            $heavy = min($heavy, max(256, self::PER_WORKER_IDLE_MB + intdiv($room, $lanes)));
         }
 
         return $heavy;
