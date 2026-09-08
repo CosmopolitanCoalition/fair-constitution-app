@@ -44,6 +44,13 @@ services:
       # not see /archive before, so a correctly-staged D:\ archive read as
       # "missing." Same ${ARCHIVE_PATH} the etl container binds.
       - ${ARCHIVE_PATH:-./data/archive}:/archive:ro
+      # THE DOWNLOAD VOLUME (WoS 2026-09-08): "download" mode writes geodata to
+      # the etl_geodata volume at /data (supervisor.DOWNLOAD_DATA_ROOT), NOT to
+      # /archive. Before this, the setup detector only stat'd /archive, so a
+      # completed download read as "Not detected" and the operator re-downloaded
+      # 10s of GB. Mount the SAME volume the etl writes, read-only, at /data so
+      # the detector can see downloaded datasets where they actually land.
+      - etl_geodata:/data:ro
     environment:
       # Default to dev (local + debug) so Box A's `docker compose up` is unchanged;
       # deploy.sh sets APP_ENV=production / APP_DEBUG=false in .env for a deployed box.

@@ -4489,15 +4489,46 @@ class SetupController extends Controller
             return $n;
         };
 
-        // Canonical container layout (matches D:\fair-constitution-map-files):
-        //   /archive/geoBoundaries_repo/releaseData/gbOpen/<ISO3>/
-        //   /archive/worldpop_100m_latest/<ISO3>/
-        $gbDir = '/archive/geoBoundaries_repo/releaseData/gbOpen';
-        $wpDir = '/archive/worldpop_100m_latest';
+        // Datasets arrive two ways and the detector must see BOTH, or a
+        // completed download reads as missing and the operator re-downloads tens
+        // of GB (WoS 2026-09-08):
+        //   * STAGED archive        -> /archive/...  (the ARCHIVE_PATH bind)
+        //   * DOWNLOAD mode fetches -> /data/...     (etl_geodata volume,
+        //                              supervisor.DOWNLOAD_DATA_ROOT = /data)
+        // The seeder runs against whichever root a run points --data-root at, so
+        // presence in EITHER counts. Both roots use the identical subtree:
+        //   <root>/geoBoundaries_repo/releaseData/gbOpen/<ISO3>/
+        //   <root>/worldpop_100m_latest/<ISO3>/
+        $roots = ['/archive', '/data'];
+        $gbRel = 'geoBoundaries_repo/releaseData/gbOpen';
+        $wpRel = 'worldpop_100m_latest';
         $pmDir = '/var/www/html/public/maps/protomaps';
 
-        $gbCount = $countIso3Dirs($gbDir);
-        $wpCount = $countIso3Dirs($wpDir);
+        $gbDir = null;
+        $wpDir = null;
+        $gbCount = 0;
+        $wpCount = 0;
+        foreach ($roots as $root) {
+            if ($gbCount === 0) {
+                $n = $countIso3Dirs($root.'/'.$gbRel);
+                if ($n > 0) {
+                    $gbCount = $n;
+                    $gbDir = $root.'/'.$gbRel;
+                }
+            }
+            if ($wpCount === 0) {
+                $n = $countIso3Dirs($root.'/'.$wpRel);
+                if ($n > 0) {
+                    $wpCount = $n;
+                    $wpDir = $root.'/'.$wpRel;
+                }
+            }
+        }
+        // Neither root has it yet: show the archive path as the canonical
+        // "stage it here" hint (the pre-fix display).
+        $gbDir = $gbDir ?? '/archive/'.$gbRel;
+        $wpDir = $wpDir ?? '/archive/'.$wpRel;
+
         $pmFiles = is_dir($pmDir) ? array_map('basename', glob($pmDir.'/*.pmtiles') ?: []) : [];
 
         // Half-applied detection: the operator can set ARCHIVE_PATH in .env but
