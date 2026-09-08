@@ -35,17 +35,23 @@ Schedule::job(new EvaluateClocksJob)->everyMinute()->withoutOverlapping()->onOne
 // tops the fixed worker pool back up, and refreshes counters — each duty
 // idempotent and seconds-long. If everything else crashes, the next minute
 // heals it. runInBackground so a slow pump never delays EvaluateClocksJob;
-// withoutOverlapping(10) so a killed pump can't wedge the lock for 24 h.
+// withoutOverlapping(2) bounds a killed pump's stale lock: a background pump
+// OOM-killed mid-run never releases it, and phase advance lives ONLY here, so
+// the run freezes for the whole expiry. The sim:pump lesson (2 min, not 10):
+// each duty is idempotent so a double tick is a no-op, and a stale lock clears
+// in 2 minutes instead of 10.
 Schedule::command('autoscale:pump')
-    ->everyMinute()->withoutOverlapping(10)->runInBackground()->onOneServer();
+    ->everyMinute()->withoutOverlapping(2)->runInBackground()->onOneServer();
 
 // ── Step 4 pump (Wave 6): the institution run's liveness root ─────────────
 // The same posture applied to institutions: halt/resume, chunked ledger
 // seeding, dead-lane reclaims on backend absence, lane seeding to the
 // derived pool, counters, the done flip. No-ops in one query when no run is
-// live.
+// live. withoutOverlapping(2): the sim:pump lesson applied to the Step 4 pump
+// too — a mid-run OOM kill would otherwise wedge phase advance for 10 minutes;
+// each duty is idempotent and seconds-long, so a stale lock clears in 2.
 Schedule::command('provision:pump')
-    ->everyMinute()->withoutOverlapping(10)->runInBackground()->onOneServer();
+    ->everyMinute()->withoutOverlapping(2)->runInBackground()->onOneServer();
 
 // ── Simulated-world pump (Phase O populate engine, 2026-07-25) ───────────
 // The same pattern, third instance (autoscale → geodata plan → simworld).
@@ -69,8 +75,14 @@ Schedule::command('sim:pump')
 // engine via control/chain_pull.json — the legacy single-threaded seeder is
 // unreachable from the download flow. This tick consumes the marker and
 // starts the pull run; guarded, idempotent, ~1 stat call when idle.
+// withoutOverlapping expiry TRIMMED 10 -> 2 min (2026-09-08): the sim:pump
+// lesson (see above), applied to its geodata sibling. A background tick
+// OOM-killed mid-run never releases its lock, so for the whole expiry EVERY
+// scheduled tick is skipped and the run sits frozen. The command is
+// seconds-long and idempotent, so a 2-minute lock is ample and a stale one
+// clears fast.
 Schedule::command('geodata:chain-download')
-    ->everyMinute()->withoutOverlapping(10)->runInBackground()->onOneServer();
+    ->everyMinute()->withoutOverlapping(2)->runInBackground()->onOneServer();
 
 // ── Geodata pull-engine pump (GEODATA_PULL_ENGINE_PLAN.md, 2026-07-20) ────
 // The same pattern, applied to the ETL: a geodata run's DB-side liveness
@@ -78,8 +90,17 @@ Schedule::command('geodata:chain-download')
 // workers), lease cull, counters, acceptance-scan dispatch, completion. The
 // Python supervisor owns the worker pool; this owns the run state. No-ops in
 // ~1 query when no run is live, so it is free to leave scheduled everywhere.
+//
+// withoutOverlapping expiry TRIMMED 10 -> 2 min (2026-09-08, the WoS D2
+// enumerate stall): a geodata:pump OOM-killed mid-run never releases its lock,
+// and phase advance lives ONLY here — so for the whole 10-min expiry the run
+// sat at `enumerating` with 465 items waiting and 4 idle workers, because no
+// tick could advance enumerating -> boundaries. The sim:pump fix above, applied
+// to its geodata twin: each duty is seconds-long and idempotent (phase advance
+// is a no-op on a double tick), so a 2-minute lock is ample and a stale one
+// clears fast.
 Schedule::command('geodata:pump')
-    ->everyMinute()->withoutOverlapping(10)->runInBackground()->onOneServer();
+    ->everyMinute()->withoutOverlapping(2)->runInBackground()->onOneServer();
 
 // ── Step 3 dashboard snapshot (2026-09-03, the post-reboot disk storm) ────
 // Keeps the heavy district-progress aggregates warm off the poll path so a
