@@ -57,6 +57,10 @@ services:
       APP_ENV: ${APP_ENV:-local}
       APP_DEBUG: ${APP_DEBUG:-true}
       PHP_OPCACHE_ENABLE: 0                # disable opcache in dev for live changes
+      # The Horizon memory cap must reach PHP: HostCapacity::autoscaleWorkers() bounds the
+      # lane pool by MEM_HORIZON, and config:cache (run in THIS container) bakes that width.
+      # mem_limit alone never enters the process env (WoS 2026-09-08: memLanes unbounded).
+      MEM_HORIZON: ${MEM_HORIZON:-}
     healthcheck:
       # vendor/autoload.php exists once the entrypoint's composer install finishes —
       # at which point php-fpm is listening. The generous window (start_period +
@@ -499,6 +503,9 @@ services:
       # Same live-entrypoint override as the app service — see the comment
       # there for the rationale.
       - ./docker/php/entrypoint.sh:/usr/local/bin/fc-entrypoint.sh:ro
+    environment:
+      # See the app service: the cap must be IN the env for the lane pool to be memory-bound.
+      MEM_HORIZON: ${MEM_HORIZON:-}
     command: php artisan horizon
     depends_on:
       postgres:
@@ -532,6 +539,8 @@ services:
       # Same live-entrypoint override as the app service — see the comment
       # there for the rationale.
       - ./docker/php/entrypoint.sh:/usr/local/bin/fc-entrypoint.sh:ro
+    environment:
+      MEM_HORIZON: ${MEM_HORIZON:-}
     command: php artisan schedule:work
     depends_on:
       postgres:

@@ -119,9 +119,43 @@ fi
 # (rasters:prewarm → empty land mask → quick exit; geojson:prewarm → "no
 # legislatures" → exit), so a fresh instance still in setup warms nothing. This
 # mirrors the documented "just re-dispatch on restart" recovery recipe.
+# Gate + size the boot prewarm from the Horizon memory ledger. MEM_HORIZON reaches this
+# container's env from docker-compose (it was mem_limit-only before, so autoscaleWorkers()
+# saw no memory bound and the prewarm fan-out worker-stormed a 16 GB host: dozens of ~24 MB
+# php processes, 6 container OOMs a minute at a 2500m cap; WoS 2026-09-08). Each +1 zoom is
+# about 4x the tiles, so zoom is the dial: max zoom = 6 + whole GiB of MEM_HORIZON, floor 6,
+# cap 12 (2g -> 8, 4g -> 10, 6g and up -> 12). Below 2 GiB (Pi class) there is no boot
+# prewarm; live tiles are generated on demand. With no ledger (dev box) the behaviour is
+# unchanged: z0-12. CGA_PREWARM=0 disables, CGA_PREWARM=1 forces (derived zoom);
+# CGA_PREWARM_MAX_ZOOM overrides the zoom.
+prewarm_mem_mb() {
+  raw="$(printf '%s' "${MEM_HORIZON:-}" | tr 'A-Z' 'a-z' | tr -d ' ')"
+  case "$raw" in
+    *g|*gb) printf '%s' "$(( ${raw%%[gb]*} * 1024 ))";;
+    *m|*mb) printf '%s' "${raw%%[mb]*}";;
+    *k|*kb) printf '%s' "$(( ${raw%%[kb]*} / 1024 ))";;
+    ''|*[!0-9]*) printf '0';;
+    *) printf '%s' "$(( raw / 1048576 ))";;
+  esac
+}
 case "$*" in
   *horizon*)
-    (
+    mem_mb="$(prewarm_mem_mb)"
+    gib=$(( mem_mb / 1024 ))
+    run_prewarm=1
+    if [ "${CGA_PREWARM:-}" = "0" ]; then
+      run_prewarm=0
+    elif [ "${CGA_PREWARM:-}" != "1" ] && [ "$mem_mb" -gt 0 ] && [ "$gib" -lt 2 ]; then
+      run_prewarm=0
+    fi
+    max_zoom="${CGA_PREWARM_MAX_ZOOM:-}"
+    if [ -z "$max_zoom" ]; then
+      if [ "$mem_mb" -le 0 ]; then max_zoom=12; else max_zoom=$(( 6 + gib )); fi
+      if [ "$max_zoom" -lt 6 ]; then max_zoom=6; fi
+      if [ "$max_zoom" -gt 12 ]; then max_zoom=12; fi
+    fi
+    if [ "$run_prewarm" = "1" ]; then
+      (
         # Wait until the app serves a request (implies Postgres + Redis online)
         # before dispatching — artisan needs the DB to enumerate scopes.
         for i in $(seq 1 90); do
@@ -129,10 +163,13 @@ case "$*" in
             sleep 1
         done
         cd /var/www/html
-        echo "[entrypoint] dispatching raster (z0-12) + geojson prewarm to Horizon" >&2
-        php artisan rasters:prewarm --min-zoom=0 --max-zoom=12 --land-only --queue 2>/dev/null || true
+        echo "[entrypoint] dispatching raster (z0-${max_zoom}, MEM_HORIZON=${MEM_HORIZON:-unset}) + geojson prewarm to Horizon" >&2
+        php artisan rasters:prewarm --min-zoom=0 --max-zoom="$max_zoom" --land-only --queue 2>/dev/null || true
         php artisan geojson:prewarm --queue 2>/dev/null || true
-    ) &
+      ) &
+    else
+      echo "[entrypoint] boot prewarm skipped (MEM_HORIZON=${MEM_HORIZON:-unset} = ${mem_mb} MB; CGA_PREWARM=1 forces it)" >&2
+    fi
     ;;
 esac
 
