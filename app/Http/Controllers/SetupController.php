@@ -1405,6 +1405,14 @@ class SetupController extends Controller
                     'error' => 'Custom data root must be an absolute container path (e.g. /archive/snapshots/2026-05).',
                 ], 422);
             }
+        } elseif ($source === 'archive') {
+            // ONE ROOT (operator ruling 2026-09-08). The multithreaded ingestion
+            // MUST read the same place the detector reports. This branch was the
+            // gap: pull-start left $dataRoot=null for source=archive, so the
+            // worker fell back to etl env DATA_ROOT=/archive and ignored a
+            // download that landed in /data — a false-complete (1 jurisdiction,
+            // 0 countries). geodataRoot() is the single owner both callers share.
+            $dataRoot = $this->geodataRoot();
         }
 
         // THE FRESH PURGE. Only during setup: after map acceptance the planet
