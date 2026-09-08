@@ -319,6 +319,10 @@ services:
   livekit:
     image: ${LIVEKIT_IMAGE:-livekit/livekit-server:latest}
     container_name: ${CONTAINER_PREFIX:-fc}_livekit
+    # In the closed memory budget (WoS 2026-09-08: it ran with NO cap, LIMIT = the whole host).
+    # Derived by get-started (aux share, floor 256m); idle is ~82 MiB, media sessions add to it.
+    mem_limit: ${MEM_LIVEKIT:-512m}
+    memswap_limit: ${MEM_LIVEKIT:-512m}
     restart: unless-stopped
     profiles: ["voice"]
     # ICE: the SFU must hand clients a concrete reachable IP (it can't say "any" — the client needs a target).

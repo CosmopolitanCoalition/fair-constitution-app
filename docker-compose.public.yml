@@ -26,6 +26,10 @@ services:
   edge:
     image: caddy:2-alpine
     container_name: ${CONTAINER_PREFIX:-fc}_edge
+    # In the closed memory budget (WoS 2026-09-08: it ran with NO cap). Derived by get-started
+    # (aux share, floor 128m); Caddy idles ~94 MiB and peaks during certificate issuance.
+    mem_limit: ${MEM_EDGE:-256m}
+    memswap_limit: ${MEM_EDGE:-256m}
     restart: unless-stopped
     ports:
       - "80:80"       # ACME HTTP-01 challenge + redirect to https

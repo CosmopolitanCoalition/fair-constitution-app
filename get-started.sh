@@ -353,6 +353,8 @@ configure_host_memory() {
     write_derived MEM_SCHEDULER "${total_mb}m"
     write_derived MEM_MAS       "${total_mb}m"
     write_derived MEM_NGINX     "${total_mb}m"
+    write_derived MEM_LIVEKIT   "${total_mb}m"
+    write_derived MEM_EDGE      "${total_mb}m"
   else
     # THE HORIZON FLOOR (WoS 2026-09-02, 41 restarts on a 4 GB host): the
     # idle fleet alone is nine workers (default 2, long-running 2,
@@ -385,10 +387,15 @@ configure_host_memory() {
     rc_mb=$(clamp $(( budget_mb * sh_rcache / 1000 )) 256 16384)
     rq_mb=$(clamp $(( budget_mb * sh_rqueue / 1000 )) 226 1024)
     aux_mb=$(clamp $(( budget_mb * sh_aux / 1000 )) 640 4096)
-    mem_matrix=$(clamp $(( aux_mb * 40 / 100 )) 160 4096)
-    mem_scheduler=$(clamp $(( aux_mb * 35 / 100 )) 384 2048)
-    mem_mas=$(clamp $(( aux_mb * 17 / 100 )) 48 1024)
-    mem_nginx=$(clamp $(( aux_mb * 8 / 100 )) 32 512)
+    # The aux share now also funds the LiveKit SFU and the TLS edge: both ran with NO cap
+    # (LIMIT = the whole host, outside the closed budget; WoS 2026-09-08). Floors from the
+    # measured idle residents on that box (livekit ~82 MiB, edge ~94 MiB) with room to work.
+    mem_matrix=$(clamp $(( aux_mb * 34 / 100 )) 160 4096)
+    mem_scheduler=$(clamp $(( aux_mb * 30 / 100 )) 384 2048)
+    mem_mas=$(clamp $(( aux_mb * 14 / 100 )) 48 1024)
+    mem_nginx=$(clamp $(( aux_mb * 7 / 100 )) 32 512)
+    mem_livekit=$(clamp $(( aux_mb * 10 / 100 )) 256 2048)
+    mem_edge=$(clamp $(( aux_mb * 5 / 100 )) 128 1024)
 
     # THE COLLECTIVE-FIT RECONCILIATION (operator ruling 2026-09-08). If the
     # caps oversubscribe, scale the NON-postgres caps proportionally to fit
@@ -399,7 +406,7 @@ configure_host_memory() {
     # relative priority and always fits the host, so a small box runs
     # kill-heavy, never over-committed (the Pi doctrine). On a host big
     # enough for the floors this is a no-op.
-    svc_sum=$(( mem_horizon + mem_app + mem_vite + mem_etl + rc_mb + rq_mb + mem_matrix + mem_scheduler + mem_mas + mem_nginx ))
+    svc_sum=$(( mem_horizon + mem_app + mem_vite + mem_etl + rc_mb + rq_mb + mem_matrix + mem_scheduler + mem_mas + mem_nginx + mem_livekit + mem_edge ))
     avail=$(( budget_mb - pg_mb ))
     if [ "$avail" -gt 0 ] && [ "$svc_sum" -gt "$avail" ]; then
       say "      caps oversubscribe (${svc_sum}m non-pg + ${pg_mb}m pg > ${budget_mb}m budget) — scaling non-pg caps to fit"
@@ -413,6 +420,8 @@ configure_host_memory() {
       mem_scheduler=$(( mem_scheduler * avail / svc_sum ))
       mem_mas=$(( mem_mas * avail / svc_sum ))
       mem_nginx=$(( mem_nginx * avail / svc_sum ))
+      mem_livekit=$(( mem_livekit * avail / svc_sum ))
+      mem_edge=$(( mem_edge * avail / svc_sum ))
     fi
 
     write_derived MEM_HORIZON "${mem_horizon}m"
@@ -426,7 +435,9 @@ configure_host_memory() {
     write_derived MEM_SCHEDULER "${mem_scheduler}m"
     write_derived MEM_MAS       "${mem_mas}m"
     write_derived MEM_NGINX     "${mem_nginx}m"
-    say "      collective caps: $(( pg_mb + mem_horizon + mem_app + mem_vite + mem_etl + rc_mb + rq_mb + mem_matrix + mem_scheduler + mem_mas + mem_nginx ))m of ${budget_mb}m budget (${profile})"
+    write_derived MEM_LIVEKIT   "${mem_livekit}m"
+    write_derived MEM_EDGE      "${mem_edge}m"
+    say "      collective caps: $(( pg_mb + mem_horizon + mem_app + mem_vite + mem_etl + rc_mb + rq_mb + mem_matrix + mem_scheduler + mem_mas + mem_nginx + mem_livekit + mem_edge ))m of ${budget_mb}m budget (${profile})"
   fi
   # Parallel posture: workers=cores, parallel=cores/2, per_gather small
   # (many concurrent lanes beat wide gathers), maintenance=cores/4.
