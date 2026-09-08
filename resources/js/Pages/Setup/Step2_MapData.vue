@@ -723,12 +723,17 @@ const runOptionsDisabled = computed(() => isRunning.value || submitting.value)
 // Label for the primary "Start" button — download runs read differently.
 const startButtonLabel = computed(() => {
     if (submitting.value) return 'Submitting…'
-    if (isRunning.value)  return 'Run in progress…'
-    if (source.value === 'download') return 'Download + Ingest'
+    // ESCAPE-HATCH LAW (frontend enablement layer). The pull-engine Fresh /
+    // Rewind control SEIZES from any state, so its label must state the action
+    // it will take — never defer to "Run in progress…" because a stale or
+    // halted run still reports lifecycle='running'. That deferral is exactly
+    // what left Fresh looking inert on a halted run.
     if (enginePull.value) {
         return rewindTarget.value === 'fresh'
             ? 'Start Multithreaded Ingestion' : 'Rewind & Re-run'
     }
+    if (isRunning.value)  return 'Run in progress…'
+    if (source.value === 'download') return 'Download + Ingest'
     return 'Start ETL Run'
 })
 
@@ -1205,7 +1210,7 @@ onBeforeUnmount(() => {
                         <button
                             type="button"
                             @click="submitRun"
-                            :disabled="rewindTarget === 'fresh' ? runOptionsDisabled : submitting"
+                            :disabled="enginePull ? submitting : runOptionsDisabled"
                             class="bg-blue-600 hover:bg-blue-500 disabled:bg-gray-700 text-white px-5 py-2 rounded-md font-semibold transition-colors"
                         >
                             {{ startButtonLabel }}
