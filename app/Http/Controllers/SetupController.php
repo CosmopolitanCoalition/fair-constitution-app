@@ -1908,8 +1908,18 @@ class SetupController extends Controller
             return response()->json(['error' => 'No active geodata run.'], 409);
         }
 
-        if ($data['action'] === 'halt' || $data['action'] === 'resume') {
-            $run->update(['halt_requested_at' => $data['action'] === 'halt' ? now() : null]);
+        if ($data['action'] === 'halt') {
+            // SEIZE, do not merely request (escape-hatch law). A run stuck at
+            // enumerating with an OOM-dead pump can never reach the pump's own
+            // halt check (GeodataPumpCommand:58), so a request-only halt left the
+            // Halt control blocked by the very stall it exists to recover. Mark
+            // the run halted DIRECTLY: the inline pump below then no-ops, and any
+            // live workers still stop at their next claim exactly as before.
+            $run->forceFill(['status' => 'halted', 'halt_requested_at' => now(), 'updated_at' => now()])->save();
+        } elseif ($data['action'] === 'resume') {
+            // Clear the flag; the inline pump lifts halted -> running via its own
+            // resume logic and re-derives the phase (unchanged behaviour).
+            $run->update(['halt_requested_at' => null]);
         } else {
             // RETRY / CONTINUE a stuck review. Target the group the operator
             // acted on, defaulting to whichever group is currently held.
