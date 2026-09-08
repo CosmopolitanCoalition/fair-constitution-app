@@ -494,47 +494,13 @@ class AutoscaleRunControl
         return $killed;
     }
 
-    /**
-     * THE GRIND SHUNT (operator order 2026-09-03). A leaf whose blade search
-     * grinds on an uninterruptible PostGIS raster query cannot be stopped by
-     * the in-process wall cap or statement_timeout — only a backend terminate
-     * stops it (proven on Tumaco: pg_terminate_backend killed the stuck query
-     * in 1 s). This per-tick sweep terminates such a lane and requeues its
-     * scope to REDRAW AS A BOX (killLease shuntToBox), so the scope completes
-     * (~4 s on Tumaco) instead of hanging or parking in review. The limit is
-     * SECONDS (grind_box_seconds), tighter than the minutes-based auto_kill,
-     * and generous enough to clear a legitimate slow load. Runs BEFORE
-     * sweepKills so a shunt-eligible lane shunts rather than parks. Returns the
-     * number of lanes shunted.
-     */
-    public function sweepGrindShunts(AutoscaleRun $run): int
-    {
-        if (! self::laneControlColumnsPresent()
-            || ! \Illuminate\Support\Facades\Schema::hasColumn('apportionment_ledger_scopes', 'force_box')) {
-            return 0;
-        }
-
-        $seconds = (int) config('cga.districting.grind_box_seconds', 120);
-        if ($seconds <= 0) {
-            return 0;
-        }
-
-        $shunted = 0;
-        $overdue = DB::table('autoscale_worker_leases')
-            ->where('run_id', $run->id)
-            ->whereIn('claim_type', ['scope', 'scope_batch'])
-            ->whereNotNull('claim_started_at')
-            ->where('claim_started_at', '<', now()->subSeconds($seconds))
-            ->pluck('id');
-        foreach ($overdue as $leaseId) {
-            $res = $this->killLease((string) $leaseId, 'grind shunt', null, true);
-            if ($res !== null && (int) ($res['shunted'] ?? 0) > 0) {
-                $shunted++;
-            }
-        }
-
-        return $shunted;
-    }
+    // The grind-box shunt (sweepGrindShunts) was REMOVED 2026-09-09 (operator
+    // ruling: "turn it off entirely"). Its overdue query fired on ANY scope
+    // held past grind_box_seconds, not just the leaf blade-grinds it targeted,
+    // so heavy composites and Type B panel scopes were shunted to a box-redraw
+    // that left constituents unassigned (or was meaningless for a panel) and
+    // parked them in review. The opt-in UI auto-kill (auto_kill_minutes,
+    // sweepKills) is the only automatic sweep-kill now, fully operator-controlled.
 
     /**
      * FINALIZE-ORPHAN RECOVERY (operator order 2026-09-04): a sweep header can

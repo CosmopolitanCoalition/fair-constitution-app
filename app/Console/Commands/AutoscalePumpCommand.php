@@ -151,17 +151,18 @@ class AutoscalePumpCommand extends Command
         }
 
         // ── Kill controls (operator order 2026-09-02) ──────────────────────
-        // Deadlines are warnings; kills are manual (kill_requested_at) or
-        // opt-in automatic (auto_kill_minutes). A killed scope PARKS in
-        // review. One implementation, AutoscaleRunControl::killLease.
-        // The grind shunt runs FIRST (operator order 2026-09-03): a lane stuck
-        // on an uninterruptible raster query past grind_box_seconds is
-        // terminated and its scope requeued to redraw as a box, instead of
-        // parking in review. sweepKills (the minutes auto-kill) is the backstop.
-        $shunted = app(AutoscaleRunControl::class)->sweepGrindShunts($run);
-        if ($shunted > 0) {
-            Log::warning('Autoscale pump shunted grinding lanes to box', ['run_id' => $run->id, 'count' => $shunted]);
-        }
+        // Deadlines are warnings; the ONLY automatic sweep-kill is the
+        // operator's opt-in UI timer (auto_kill_minutes), alongside the manual
+        // kill_requested_at. A killed scope PARKS in review. One
+        // implementation, AutoscaleRunControl::killLease.
+        //
+        // GRIND SHUNT RETIRED (operator ruling 2026-09-09): the 2-minute
+        // grind-box shunt is removed entirely. Its overdue query fired on ANY
+        // scope held past grind_box_seconds, so heavy composites and Type B
+        // panel scopes were shunted to a box-redraw that left constituents
+        // unassigned (or was meaningless for a panel) and landed them in
+        // review. The operator gets no automatic kill timer he cannot control
+        // in the UI; the UI auto-kill covers this role.
         $killed = app(AutoscaleRunControl::class)->sweepKills($run);
         if ($killed > 0) {
             Log::warning('Autoscale pump killed lanes', ['run_id' => $run->id, 'count' => $killed]);
