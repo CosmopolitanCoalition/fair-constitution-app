@@ -93,6 +93,23 @@ class WorldBuildJob implements ShouldQueue, ShouldBeUnique
                  WHERE id = ?", [$step, $bid]);
         };
 
+        // SINGLE-BUILD LOCK (operator ruling 2026-09-08, the WoS deadlock loop).
+        // ShouldBeUnique above depends on the default CACHE lock, which on the
+        // cloud box was not shared across workers (redis dbsize=0 while builds
+        // ran), so it dropped nothing and 3 concurrent WorldBuildJobs ran the
+        // same apportionment_ledger stamp UPDATEs and deadlocked (SQLSTATE 40P01)
+        // in a fail-retry loop. A POSTGRES session advisory lock is the codebase
+        // idiom (cga_giant_parse) and is cache-INDEPENDENT: postgres is always up
+        // during a build. A second build that cannot take it returns at once, so
+        // exactly one instance runs the stamps. Released in the finally on every
+        // exit (the drain return, completion, the rethrow); a hard kill drops it
+        // with the connection.
+        if (! (bool) DB::selectOne("SELECT pg_try_advisory_lock(hashtext('cga_world_build')) AS got")->got) {
+            Log::info('WorldBuild: another build holds the advisory lock — skipping', ['world_build_id' => $bid]);
+
+            return;
+        }
+
         try {
             if (! $done('parents')) {
                 Artisan::call('apportionment:seed', ['--parents-only' => true]);
@@ -188,6 +205,16 @@ class WorldBuildJob implements ShouldQueue, ShouldBeUnique
             ]);
             Log::error('WorldBuild failed: '.$e->getMessage(), ['world_build_id' => $bid]);
             throw $e;
+        } finally {
+            // Release the single-build advisory lock on EVERY exit (the drain
+            // return, completion, or the rethrow above). A deadlock leaves the
+            // connection usable, so the unlock lands; a hard kill drops the lock
+            // with the connection. Never let a release error mask the real
+            // exception.
+            try {
+                DB::statement("SELECT pg_advisory_unlock(hashtext('cga_world_build'))");
+            } catch (\Throwable) {
+            }
         }
     }
 }
