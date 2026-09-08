@@ -8,7 +8,6 @@ use App\Support\AutoscaleEnumeration;
 use App\Support\HostCapacity;
 use App\Support\WorldBuildVerifier;
 use Illuminate\Bus\Queueable;
-use Illuminate\Contracts\Queue\ShouldBeUnique;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
 use Illuminate\Queue\InteractsWithQueue;
@@ -26,7 +25,7 @@ use Illuminate\Support\Facades\Log;
  * re-dispatches a stale build. Acceptance (phase 3) verifies this job's
  * result through WorldBuildVerifier and only then flips to mapping.
  */
-class WorldBuildJob implements ShouldQueue, ShouldBeUnique
+class WorldBuildJob implements ShouldQueue
 {
     use Dispatchable, InteractsWithQueue, Queueable;
 
@@ -34,24 +33,14 @@ class WorldBuildJob implements ShouldQueue, ShouldBeUnique
 
     public int $tries = 1;
 
-    /**
-     * UNIQUE-JOB LOCK (operator ruling 2026-09-08, the held #5 gone LIVE). The
-     * pump and AutoscalePumpCommand::worldBuildTick re-dispatch this job to
-     * resume a dead build, but WITHOUT a unique lock every dispatch ran
-     * concurrently: 18 instances were observed contending on the same
-     * apportionment_ledger stamp rows, freezing the build (maps/block_keys
-     * stuck while backends fought tuple locks). ShouldBeUnique drops a
-     * duplicate dispatch while one build holds the lock, so a re-dispatch
-     * resumes a DEAD build (lock releases on finish/failure or after uniqueFor)
-     * but never stacks on a live one. uniqueFor exceeds the longest
-     * planet-scale build so a slow build is never mistaken for done.
-     */
-    public int $uniqueFor = 7200;
-
-    public function uniqueId(): string
-    {
-        return 'world-build';
-    }
+    // SERIALIZATION lives in handle() as a POSTGRES advisory lock
+    // (cga_world_build), NOT ShouldBeUnique. ShouldBeUnique's lock is stored in
+    // the default CACHE, which on the cloud box was not shared across Horizon
+    // workers (it dropped nothing, and 3 concurrent builds deadlocked) AND could
+    // STICK for uniqueFor when a Horizon restart killed a job mid-run without
+    // releasing it — dropping every later dispatch and halting the build. The
+    // advisory lock is cache-independent and releases with the DB connection, so
+    // a restart can never wedge it. See handle().
 
     public function __construct(public ?string $geodataRunId = null)
     {

@@ -529,15 +529,18 @@ class AutoscalePumpCommand extends Command
         if (DB::table('autoscale_runs')->whereIn('status', ['queued', 'sizing', 'mapping'])->exists()) {
             return;
         }
-        $stale = DB::table('world_builds')
+        // Re-drive a building world on EVERY tick — NO artificial lease gate
+        // (operator ruling, restated 2026-09-08: kill the 10-minute locks). The
+        // WorldBuildJob's postgres advisory lock (cga_world_build) is the
+        // serialization now, so a per-tick re-dispatch is a cheap no-op while one
+        // build holds the lock and picks the work up the instant the holder
+        // finishes or dies — no 10-minute wait for a stale lease.
+        $building = DB::table('world_builds')
             ->where('status', 'building')
-            ->where(function ($q) {
-                $q->whereNull('lease_at')->orWhere('lease_at', '<', now()->subMinutes(10));
-            })
             ->orderByDesc('created_at')
             ->first(['id']);
-        if ($stale !== null) {
-            DB::table('world_builds')->where('id', $stale->id)->update(['lease_at' => now(), 'updated_at' => now()]);
+        if ($building !== null) {
+            DB::table('world_builds')->where('id', $building->id)->update(['lease_at' => now(), 'updated_at' => now()]);
             \App\Jobs\WorldBuildJob::dispatch();
         }
     }
