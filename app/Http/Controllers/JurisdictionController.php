@@ -690,6 +690,18 @@ class JurisdictionController extends Controller
         // be able to slam it shut (or, via reopen, swing it open).
         abort_unless((bool) $request->user()?->is_operator, 403);
 
+        // NULL-POP NORMALIZATION AT ACCEPTANCE (operator ruling 2026-09-09).
+        // Ingestion should leave every population at 0, never NULL, but a
+        // survivor NULL (a small-island ingest gap — Lakshadweep, capital
+        // included) trips the districting's unassigned-constituents check and
+        // parks the map in review. At map-data acceptance — the end of
+        // ingestion, before any drawing starts — normalize ALL remaining NULL
+        // populations to 0 in one pass, so the districting never sees a NULL.
+        // Idempotent, one-time; touches only the anomalous NULL rows, and no
+        // already-built seat total changes (COALESCE reads NULL as 0 elsewhere).
+        DB::table('jurisdictions')->whereNull('population')
+            ->update(['population' => 0, 'updated_at' => now()]);
+
         // THE ACCEPT GATE (operator plan 2026-08-31): phase 3 is verify +
         // flip. Any request that would START the drawing verifies the world
         // build FIRST — before anything stamps — and an incomplete build
