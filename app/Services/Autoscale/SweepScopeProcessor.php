@@ -1211,7 +1211,7 @@ class SweepScopeProcessor
                    -- landing never bins such a child (DistrictingService, population
                    -- <= 0 skip), so demanding a district for it here can only flag a
                    -- lawful map: Lakshadweep's 7 zero-population islands, each with one
-                   -- zero-population child, sat in review as "7 unassigned" while both
+                   -- zero-population child, sat in review as 7 unassigned while both
                    -- maps were fully seated (WoS 2026-09-08). Type B keeps them
                    -- regardless (TypeBDistrictMapper rule B3: zero-population parts
                    -- included).
