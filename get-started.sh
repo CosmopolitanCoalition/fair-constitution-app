@@ -436,14 +436,7 @@ build_interface() {
   # and the cap floor is 1536 MB: a production build of this interface
   # needs about 1 GB of heap.
   local host_mb="${total_mb:-4096}" build_mb heap_mb
-  # The one-time interface build (rollup render of ~3000 modules) peaks well past
-  # the old 1536 floor and was cgroup-SIGKILLed at 1536m on a 4 GB host (WoS D2,
-  # 2026-09-08 — "Terminated" after 3041 modules transformed). It runs at
-  # setup/update ONLY, when the app services sit idle, so it may take a large
-  # TRANSIENT slice: 70% of the host (clamped 2048-4096), which still leaves the
-  # idle fleet its ~1 GB actual. heap = 70% of that cap. A sub-2 GB box cannot
-  # render this build and must ship pre-built assets instead.
-  build_mb=$(clamp $(( host_mb * 70 / 100 )) 2048 4096)
+  build_mb=$(clamp $(( host_mb / 4 )) 1536 4096)
   heap_mb=$(( build_mb * 70 / 100 ))
   say "  Building the interface (memory cap ${build_mb}m, node heap ${heap_mb}m)..."
   if MEM_VITE="${build_mb}m" docker compose run --rm --no-deps -e NODE_OPTIONS="--max-old-space-size=${heap_mb}" vite npm run build; then
