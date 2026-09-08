@@ -64,6 +64,11 @@ const resolve = computed(() => data.value?.resolve ?? null)
 // the scan reads as one opaque lane when it is actually running 5-6 wide.
 const scan = computed(() => data.value?.scan ?? null)
 const files = computed(() => data.value?.files ?? null)
+// THE WORLD BUILD (Step 2 relay, 2026-09-08): apportionment / borders /
+// founding maps / legislature headers are dispatched at geodata completion
+// (GeodataPumpCommand::completeRun), so they run at THIS step. Surface the
+// same report the Step 3 panel shows, here where the work now happens.
+const worldBuild = computed(() => data.value?.world_build ?? null)
 const resolvePct = computed(() => {
     if (!resolve.value?.total) return 0
     return Math.min(100, Math.round(
@@ -517,6 +522,56 @@ onBeforeUnmount(() => {
                 </div>
             </div>
         </div>
+
+        <!-- WORLD BUILD (Step 2 relay, 2026-09-08). Apportionment / borders /
+             founding maps / legislature headers are dispatched at geodata
+             completion (GeodataPumpCommand::completeRun), so they run at THIS
+             step. Surface the same report the Step 3 panel shows, here where
+             the work now happens, instead of only after Continue. -->
+        <section v-if="worldBuild"
+                 class="mb-5 rounded-lg p-5 border bg-gray-900/60 border-gray-800">
+            <div class="flex items-center justify-between gap-3 mb-3">
+                <h3 class="font-semibold text-white">World build
+                    <span class="text-gray-500 text-xs font-normal">— legislatures sized, maps drawn, shells provisioned</span>
+                </h3>
+                <span :class="worldBuild.status === 'complete' ? 'text-emerald-400' : 'text-blue-300'"
+                      class="text-xs uppercase tracking-wide">{{ worldBuild.status }}</span>
+            </div>
+            <div v-if="worldBuild.report" class="grid grid-cols-2 md:grid-cols-3 gap-3 text-sm">
+                <div class="bg-gray-800/60 rounded p-3">
+                    <div class="text-gray-400 text-xs uppercase mb-1">Apportionment</div>
+                    <div class="text-white">{{ worldBuild.report.apportionment.done.toLocaleString() }} / {{ worldBuild.report.apportionment.total.toLocaleString() }}</div>
+                    <div v-if="worldBuild.report.apportionment.refusals > 0" class="text-amber-300 text-xs mt-1">{{ worldBuild.report.apportionment.refusals }} gate refusals</div>
+                </div>
+                <div class="bg-gray-800/60 rounded p-3">
+                    <div class="text-gray-400 text-xs uppercase mb-1">Borders precomputed</div>
+                    <div class="text-white">{{ (worldBuild.report.adjacency.total - worldBuild.report.adjacency.open).toLocaleString() }} / {{ worldBuild.report.adjacency.total.toLocaleString() }}</div>
+                </div>
+                <div class="bg-gray-800/60 rounded p-3">
+                    <div class="text-gray-400 text-xs uppercase mb-1">Founding maps</div>
+                    <div class="text-white">{{ worldBuild.report.maps.unstamped === 0 ? 'all stamped' : worldBuild.report.maps.unstamped.toLocaleString() + ' unstamped' }}</div>
+                </div>
+                <div class="bg-gray-800/60 rounded p-3">
+                    <div class="text-gray-400 text-xs uppercase mb-1">Legislatures</div>
+                    <div class="text-white">{{ worldBuild.report.legislatures.missing_headers === 0 ? 'all covered' : worldBuild.report.legislatures.missing_headers.toLocaleString() + ' uncovered' }}</div>
+                </div>
+                <div class="bg-gray-800/60 rounded p-3">
+                    <div class="text-gray-400 text-xs uppercase mb-1">Block keys</div>
+                    <div class="text-white">{{ worldBuild.report.block_keys_missing === 0 ? 'stamped' : worldBuild.report.block_keys_missing.toLocaleString() + ' missing' }}</div>
+                </div>
+                <div class="bg-gray-800/60 rounded p-3">
+                    <div class="text-gray-400 text-xs uppercase mb-1">Bootstrap board</div>
+                    <div class="text-white">{{ worldBuild.report.board ? 'seated' : 'missing' }}</div>
+                </div>
+            </div>
+            <p v-if="worldBuild.status === 'complete'" class="text-emerald-300 text-sm mt-3">
+                World build complete — every legislature sized, every map drawn, institution shells provisioned. Continue accepts the map data and starts the drawing.
+            </p>
+            <p v-else class="text-blue-300/80 text-sm mt-3">
+                Building behind the ingest — sizing legislatures, precomputing borders, drawing founding maps. No action needed; this runs after geodata finishes.
+            </p>
+            <p v-if="worldBuild.last_error" class="text-amber-400/80 text-xs mt-2">{{ worldBuild.last_error }}</p>
+        </section>
 
         <!-- Phase pipeline — one bubble per dependency stage:
              Enumerate => [Boundaries + Rasters] => [Resolve + Attribution] => Finalize => Scan -->

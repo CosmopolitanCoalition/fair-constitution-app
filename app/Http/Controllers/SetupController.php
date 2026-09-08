@@ -1846,6 +1846,12 @@ class SetupController extends Controller
             // item and concludes it is single-lane — it is not: cat_started
             // shows five detectors dispatching within ~3s of each other.
             'scan'     => $this->geodataScanDetectors($run),
+            // The world build (apportionment, adjacency, founding maps,
+            // legislature headers) is dispatched at geodata completion
+            // (GeodataPumpCommand::completeRun), so it runs at THIS step. Surface
+            // it here too, mirroring the Step 3 panel, so the moved-in Step-3
+            // work is visible where it now happens. Null until a build exists.
+            'world_build' => $this->worldBuildBlock(),
         ]);
     }
 
