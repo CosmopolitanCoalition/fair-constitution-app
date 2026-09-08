@@ -345,30 +345,73 @@ configure_host_memory() {
     # ~700 MB before any job runs, so a 512 MB cap was a kill loop at
     # idle. 1024 funds the idle fleet plus one heavy job at its recycle
     # bound (HostCapacity::workerRecycleHeavyMb, itself bounded by this cap).
-    write_derived MEM_HORIZON "$(clamp $(( budget_mb * sh_horizon / 1000 )) 1024 65536)m"
-    write_derived MEM_APP     "$(clamp $(( budget_mb * sh_app / 1000 )) 128 8192)m"
-    write_derived MEM_VITE    "$(clamp $(( budget_mb * sh_vite / 1000 )) 256 4096)m"
-    write_derived ETL_MEM_LIMIT "$(clamp $(( budget_mb * sh_etl / 1000 )) 96 262144)m"
+    #
+    # Floors = the measured PEAK need of each service, not its idle need
+    # (WoS 2026-09-02). Matrix idles at ~110 MB. The scheduler idles at
+    # ~74 MB, but schedule:work spawns background artisan children every
+    # minute (autoscale:pump, sim:pump, geodata:chain-download,
+    # geodata:pump) plus horizon:snapshot every five, each a full Laravel
+    # boot at 40 to 60 MB RSS, so its peak is ~375 MB. A cap below the peak
+    # need is a kill loop, not a budget.
+    #
+    # Compute every container cap FIRST, then RECONCILE the collective sum
+    # to the budget (operator ruling 2026-09-08, the derivation audit). The
+    # shares sum to 1000 per mille, but the fixed floors do NOT scale down,
+    # so on a small host the clamp pins caps to their floors and the pinned
+    # sum passes the budget (a 4 GB geodata box oversubscribes once the
+    # pg/etl shares and the horizon/aux floors are added). memswap == mem on
+    # every service, so an over-commit is an OOM loop, not a slowdown. The
+    # reconciliation below turns the closed budget from a hope (shares sum to
+    # 1000) into a GUARANTEE (sum of ACTUAL caps <= budget).
+    mem_horizon=$(clamp $(( budget_mb * sh_horizon / 1000 )) 1024 65536)
+    mem_app=$(clamp $(( budget_mb * sh_app / 1000 )) 128 8192)
+    mem_vite=$(clamp $(( budget_mb * sh_vite / 1000 )) 256 4096)
+    mem_etl=$(clamp $(( budget_mb * sh_etl / 1000 )) 96 262144)
     rc_mb=$(clamp $(( budget_mb * sh_rcache / 1000 )) 256 16384)
     rq_mb=$(clamp $(( budget_mb * sh_rqueue / 1000 )) 226 1024)
+    aux_mb=$(clamp $(( budget_mb * sh_aux / 1000 )) 640 4096)
+    mem_matrix=$(clamp $(( aux_mb * 40 / 100 )) 160 4096)
+    mem_scheduler=$(clamp $(( aux_mb * 35 / 100 )) 384 2048)
+    mem_mas=$(clamp $(( aux_mb * 17 / 100 )) 48 1024)
+    mem_nginx=$(clamp $(( aux_mb * 8 / 100 )) 32 512)
+
+    # THE COLLECTIVE-FIT RECONCILIATION (operator ruling 2026-09-08). If the
+    # caps oversubscribe, scale the NON-postgres caps proportionally to fit
+    # (budget_mb - pg_mb). Postgres is EXEMPT on purpose: its sub-settings
+    # (shared_buffers/work_mem/... above) are already derived from pg_mb, and
+    # THE HEADROOM LAW needs the pg cap whole to fund the largest single
+    # giant-feature insert. Proportional scaling keeps each profile's
+    # relative priority and always fits the host, so a small box runs
+    # kill-heavy, never over-committed (the Pi doctrine). On a host big
+    # enough for the floors this is a no-op.
+    svc_sum=$(( mem_horizon + mem_app + mem_vite + mem_etl + rc_mb + rq_mb + mem_matrix + mem_scheduler + mem_mas + mem_nginx ))
+    avail=$(( budget_mb - pg_mb ))
+    if [ "$avail" -gt 0 ] && [ "$svc_sum" -gt "$avail" ]; then
+      say "      caps oversubscribe (${svc_sum}m non-pg + ${pg_mb}m pg > ${budget_mb}m budget) — scaling non-pg caps to fit"
+      mem_horizon=$(( mem_horizon * avail / svc_sum ))
+      mem_app=$(( mem_app * avail / svc_sum ))
+      mem_vite=$(( mem_vite * avail / svc_sum ))
+      mem_etl=$(( mem_etl * avail / svc_sum ))
+      rc_mb=$(( rc_mb * avail / svc_sum ))
+      rq_mb=$(( rq_mb * avail / svc_sum ))
+      mem_matrix=$(( mem_matrix * avail / svc_sum ))
+      mem_scheduler=$(( mem_scheduler * avail / svc_sum ))
+      mem_mas=$(( mem_mas * avail / svc_sum ))
+      mem_nginx=$(( mem_nginx * avail / svc_sum ))
+    fi
+
+    write_derived MEM_HORIZON "${mem_horizon}m"
+    write_derived MEM_APP     "${mem_app}m"
+    write_derived MEM_VITE    "${mem_vite}m"
+    write_derived ETL_MEM_LIMIT "${mem_etl}m"
     write_derived MEM_REDIS_CACHE "${rc_mb}m"
     write_derived MEM_REDIS_QUEUE "${rq_mb}m"
     write_derived REDIS_CACHE_MAXMEMORY "$(( rc_mb * 85 / 100 ))mb"
-    aux_mb=$(clamp $(( budget_mb * sh_aux / 1000 )) 640 4096)
-    # Floors = the measured PEAK need of each service, not its idle need
-    # (WoS 2026-09-02). Matrix idles at ~110 MB. The scheduler idles at
-    # ~74 MB, but schedule:work spawns four artisan children every minute
-    # (autoscale:pump, sim:pump, geodata:chain-download, geodata:pump)
-    # plus horizon:snapshot every five, each a full Laravel boot at 40 to
-    # 60 MB RSS, so its peak is ~375 MB. The old 96 MB idle floor killed
-    # a child every minute (35 restarts in 35 minutes) and the download
-    # handoff was never consumed. A cap below the peak need is a kill
-    # loop, not a budget. The aux pot floor (640) is the sum of the four
-    # service floors.
-    write_derived MEM_MATRIX    "$(clamp $(( aux_mb * 40 / 100 )) 160 4096)m"
-    write_derived MEM_SCHEDULER "$(clamp $(( aux_mb * 35 / 100 )) 384 2048)m"
-    write_derived MEM_MAS       "$(clamp $(( aux_mb * 17 / 100 )) 48 1024)m"
-    write_derived MEM_NGINX     "$(clamp $(( aux_mb * 8 / 100 )) 32 512)m"
+    write_derived MEM_MATRIX    "${mem_matrix}m"
+    write_derived MEM_SCHEDULER "${mem_scheduler}m"
+    write_derived MEM_MAS       "${mem_mas}m"
+    write_derived MEM_NGINX     "${mem_nginx}m"
+    say "      collective caps: $(( pg_mb + mem_horizon + mem_app + mem_vite + mem_etl + rc_mb + rq_mb + mem_matrix + mem_scheduler + mem_mas + mem_nginx ))m of ${budget_mb}m budget (${profile})"
   fi
   # Parallel posture: workers=cores, parallel=cores/2, per_gather small
   # (many concurrent lanes beat wide gathers), maintenance=cores/4.
