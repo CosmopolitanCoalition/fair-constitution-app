@@ -132,23 +132,29 @@ if [[ -z "$SELF_URL" ]]; then
   fi
 fi
 echo "→ FEDERATION_SELF_URL = ${SELF_URL}   (peers reach this box here; override with --self-url)"
-PROJECT="${PROJECT:-$PREFIX}"
 
 cd "$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+
+# The compose PROJECT names the volumes + network. --project wins. Otherwise REUSE the project
+# this checkout already runs under: the COMPOSE_PROJECT_NAME a prior run pinned in .env, else
+# compose's own default — the directory basename — which is exactly what a bare `docker compose
+# up` (get-started / the dev stack) used to build the world. Defaulting to the container PREFIX
+# (fc) pointed deploy.sh at a DIFFERENT, empty set of volumes: the world looked gone and the Matrix
+# reset below targeted the wrong volume. CONTAINER_PREFIX (container names) stays $PREFIX.
+if [[ -z "$PROJECT" ]]; then
+  if [[ -f .env ]] && grep -qE '^COMPOSE_PROJECT_NAME=' .env; then
+    PROJECT="$(grep -E '^COMPOSE_PROJECT_NAME=' .env | head -1 | cut -d= -f2- | tr -d '"' | tr -d '\r')"
+  fi
+  # compose normalises the dir name: lowercase, [a-z0-9_-] only.
+  PROJECT="${PROJECT:-$(basename "$PWD" | tr '[:upper:]' '[:lower:]' | sed -E 's/[^a-z0-9_-]//g')}"
+fi
+echo "→ compose project = ${PROJECT}   (volumes/network; override with --project)"
 
 DC=(docker compose -p "$PROJECT")
 art() { "${DC[@]}" exec -T app php artisan "$@"; }
 
 # 1. .env from the template on a fresh checkout.
 [[ -f .env ]] || cp .env.example .env
-
-# Capture the pre-existing Matrix server_name BEFORE set_env rewrites it. Synapse bakes
-# server_name at first boot (docker/matrix/entrypoint.sh generates homeserver.yaml only when
-# absent, and its DB binds to that name), so a box that booted once on another domain — e.g. a
-# local `docker compose up` leaves MATRIX_DOMAIN=localhost — must have that state reset or the
-# homeserver serves the OLD name / refuses the new one. The reset happens further down, gated on
-# an ACTUAL change so a same-domain re-deploy never touches Matrix data.
-OLD_MATRIX_DOMAIN="$(grep -E '^MATRIX_DOMAIN=' .env | head -1 | cut -d= -f2- | tr -d '"' 2>/dev/null || true)"
 
 set_env() {
   local key="$1" val="$2"
@@ -264,14 +270,25 @@ for _ in $(seq 1 90); do
   sleep 2
 done
 
-# Matrix domain change → reset the homeserver state so Synapse re-inits on the NEW server_name.
+# Synapse on the wrong server_name → reset the homeserver state so it re-inits on the NEW one.
 # The entrypoint generates homeserver.yaml only when absent and Synapse's DB binds to the name it
 # was minted under, so a warm volume/DB from a prior domain makes it serve the OLD name or refuse
-# to boot. SAFE, and gated twice: only on --public-url (which by construction has no live Matrix
-# data — this script refuses --seed and dev-time) and only when the domain ACTUALLY changes (never
-# a same-domain re-deploy). NON-FATAL and Matrix-only — the app/web/cert path is untouched.
-if [[ -n "$PUBLIC_URL" && "$OLD_MATRIX_DOMAIN" != "$PUBLIC_HOST" ]]; then
-  echo "→ Matrix server_name change (${OLD_MATRIX_DOMAIN:-unset} → ${PUBLIC_HOST}): resetting homeserver state…"
+# to boot. The gate reads the name Synapse ACTUALLY BAKED — /data/homeserver.yaml on the
+# matrix_data volume — never the .env value: a prior deploy can already have advanced .env to the
+# new name while the homeserver itself was never reset (a half-transitioned box says "beta" in
+# .env and still serves localhost; an .env compare skips the reset and rooms stay broken). A
+# one-off run of the matrix image with the real volume mounted reads it: no deps, nothing written.
+# SAFE, gated twice: only on --public-url (no live Matrix data by construction — this script
+# refuses --seed and dev-time) and only when a homeserver IS baked on a DIFFERENT name (a fresh
+# volume needs no reset; a same-name re-deploy is untouched). NON-FATAL, Matrix-only.
+MATRIX_BAKED=""
+if [[ -n "$PUBLIC_URL" ]]; then
+  MATRIX_BAKED="$("${DC[@]}" run --rm --no-deps -T --entrypoint sh matrix \
+      -c "grep -E '^server_name:' /data/homeserver.yaml 2>/dev/null | head -1" 2>/dev/null \
+    | tr -d '\r' || true)"
+fi
+if [[ -n "$PUBLIC_URL" && -n "$MATRIX_BAKED" && "$MATRIX_BAKED" != *"$PUBLIC_HOST"* ]]; then
+  echo "→ Synapse is baked on another server_name (${MATRIX_BAKED#server_name:} → ${PUBLIC_HOST}): resetting homeserver state…"
   "${DC[@]}" rm -sf matrix mas >/dev/null 2>&1 || true
   for db in matrix matrix_auth; do
     "${DC[@]}" exec -T postgres psql -U fc_user -d fair_constitution \
