@@ -1204,10 +1204,21 @@ class SweepScopeProcessor
                  WHERE j.parent_id = ?
                    AND j.deleted_at IS NULL
                    AND j.geom IS NOT NULL
-                   -- zero is zero (ruling 2026-09-05): an uninhabited atom with no
-                   -- constituents seats nobody and needs no district
+                   -- zero is zero (ruling 2026-09-05, Class D: a head of 0 over zero
+                   -- population, CHILDREN INCLUDED, is lawful inactive). A constituent
+                   -- seats nobody in Type A when its own row is 0 AND no direct child's
+                   -- own row is populated (the level law reads one level). The pool
+                   -- landing never bins such a child (DistrictingService, population
+                   -- <= 0 skip), so demanding a district for it here can only flag a
+                   -- lawful map: Lakshadweep's 7 zero-population islands, each with one
+                   -- zero-population child, sat in review as "7 unassigned" while both
+                   -- maps were fully seated (WoS 2026-09-08). Type B keeps them
+                   -- regardless (TypeBDistrictMapper rule B3: zero-population parts
+                   -- included).
                    AND (COALESCE(j.population, 0) >= 1
-                        OR EXISTS (SELECT 1 FROM jurisdictions cc WHERE cc.parent_id = j.id AND cc.deleted_at IS NULL))
+                        OR EXISTS (SELECT 1 FROM jurisdictions cc
+                                    WHERE cc.parent_id = j.id AND cc.deleted_at IS NULL
+                                      AND COALESCE(cc.population, 0) >= 1))
                    {$notIn}
                    AND NOT EXISTS (
                        SELECT 1
