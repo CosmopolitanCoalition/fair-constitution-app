@@ -270,6 +270,13 @@ return [
     */
     'federation_self_url' => env('FEDERATION_SELF_URL'),
 
+    // Residency confirmation posture for a BETA / demo box (operator ruling 2026-09-10:
+    // "the 30 days on residency verification is gating far too much. Since this is Beta
+    // lets make it instant"). true = a declared claim confirms at once; the constitutional
+    // residency_confirmation_days setting (default 30, amendable) is untouched and rules
+    // again the moment this is off. Set CGA_RESIDENCY_INSTANT=true in .env on the beta box.
+    'residency_instant' => filter_var(env('CGA_RESIDENCY_INSTANT', false), FILTER_VALIDATE_BOOL),
+
     /*
     | Peer-signature replay window in seconds (Phase F). A signed peer request
     | whose X-Federation-Timestamp is older/newer than this is rejected before

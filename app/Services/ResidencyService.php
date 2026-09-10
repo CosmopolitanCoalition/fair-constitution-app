@@ -449,6 +449,14 @@ class ResidencyService implements ResidencyHandlerDelegate
      */
     public function thresholdDays(ResidencyClaim $claim): int
     {
+        // BETA POSTURE (operator ruling 2026-09-10): an instant confirmation window. Every
+        // reader of the threshold (the confirm gate, the home/record/relocation cards, the
+        // dev grant) comes through here, so this is the one place the posture applies. The
+        // constitutional setting is not changed; it rules again when the flag is off.
+        if ((bool) config('cga.residency_instant', false)) {
+            return 0;
+        }
+
         $own = DB::table('constitutional_settings')
             ->where('jurisdiction_id', $claim->jurisdiction_id)
             ->value('residency_confirmation_days');
