@@ -94,7 +94,14 @@ class JourneysController extends Controller
             'journey' => [
                 'id'     => $id,
                 'title'  => $journey['title'],
-                'steps'  => $journey['steps'],
+                // Each step carries content (label, what happens, your part, where in the
+                // app, the form filed); a legacy bare label still renders (2026-09-10 overhaul).
+                'steps'  => array_map(
+                    fn ($step) => is_array($step)
+                        ? ['label' => $step['label'] ?? '', 'what' => $step['what'] ?? null, 'you' => $step['you'] ?? null, 'href' => $step['href'] ?? null, 'form' => $step['form'] ?? null]
+                        : ['label' => (string) $step, 'what' => null, 'you' => null, 'href' => null, 'form' => null],
+                    array_values($journey['steps'])
+                ),
                 'status' => $journey['status'],
                 'cls'    => $journey['cls'],
             ],
