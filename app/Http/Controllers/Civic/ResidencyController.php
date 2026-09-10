@@ -196,7 +196,18 @@ class ResidencyController extends Controller
             'ping_consent'    => true,
         ]);
 
-        return back()->with('status', 'Residency declared — ping monitoring started.');
+        // INSTANT POSTURE (operator ruling 2026-09-10, CGA_RESIDENCY_INSTANT): a threshold
+        // of 0 days is met the moment the claim exists, so the confirmation (F-IND-006, the
+        // same verify() the button and the CLK-05 sweep use) files right here. The user
+        // declares once and is a resident; no second click, no waiting.
+        $claim = $this->residency->openClaimFor($request->user());
+        if ($claim !== null && $claim->isMonitoring() && $this->residency->thresholdDays($claim) === 0) {
+            $this->residency->verify($claim);
+
+            return back()->with('status', 'Residency confirmed — you now belong to every place that contains your home.');
+        }
+
+        return back()->with('status', 'Residency declared — check in from home to confirm it.');
     }
 
     /**

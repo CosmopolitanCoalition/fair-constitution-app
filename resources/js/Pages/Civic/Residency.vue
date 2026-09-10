@@ -1,28 +1,31 @@
 <script setup>
 /**
- * Civic/Residency — the Phase A flagship (civic/residency contract,
- * EXPLORE_civic_electoral.md §2; mockups/civic/residency.html).
+ * Civic/Residency — the resident-facing claim lifecycle, written for the
+ * common user (operator order 2026-09-10: "Redesign this page so that it
+ * makes sense for the common user").
  *
- * Sections: Residency-Claim StateStrip (machine PHP-owned, prop-fed) ·
- * F-IND-003 declare/redeclare FormCard — POINT-FIRST: "use my current
- * location" or click the picker map → POST /civic/residency/locate
- * resolves the smallest containing jurisdiction + its full ancestor
- * chain (read-only preview), then the normal declare submit files
- * F-IND-003 with the resolved id; name search remains as a tertiary
- * collapse (it searches jurisdiction NAMES — street-address geocoding
- * needs an offline geocoder, out of scope) · F-IND-005 ping card
- * (ThresholdMeter, manual ping via browser geolocation with lat/lng
- * fallback, dev-only simulator + dev-only instant grant) · declared-
- * boundary Leaflet map (boundary polygon + ping-day count — raw ping
- * coordinates are PRIVATE: encrypted at rest, purged on verification,
- * never sent to the client) · F-IND-006 confirmation panel in its three
- * contract states (locked / pending confirmation / verified).
+ * ONE QUESTION AT A TIME, driven by the PHP-owned `panel`:
+ *   undeclared            → "Where do you live?"            (declare, F-IND-003)
+ *   locked (monitoring)   → "Now show you live there."      (check in, F-IND-005)
+ *   pending_confirmation  → "Is this your home?"            (confirm, F-IND-006)
+ *   verified              → "You live in X."                (the map + every place you belong to)
+ * On an INSTANT posture (threshold 0, CGA_RESIDENCY_INSTANT) the check-in
+ * step does not exist: declaring confirms at once.
+ *
+ * Everything technical — the claim state machine, form ids, roles,
+ * citations, the amendable threshold, the privacy fine print — lives in one
+ * collapsed "How this works" block. Every dev-only control lives in one
+ * collapsed "Developer tools" block (local builds only).
+ *
+ * Endpoints and filings are unchanged: POST /civic/residency/locate (point
+ * preview), GET /civic/jurisdictions/search, POST /civic/residency/declare
+ * and /redeclare (F-IND-003), POST /civic/pings (F-IND-005),
+ * POST /civic/residency/confirm (F-IND-006), the dev simulator + grant.
  */
 import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue';
 import { router, useForm, usePage } from '@inertiajs/vue3';
 import AppShellV2 from '@/Layouts/AppShellV2.vue';
 import PageScaffold from '@/Components/Surface/PageScaffold.vue';
-import FormCard from '@/Components/Surface/FormCard.vue';
 import AdmChip from '@/Components/Ui/AdmChip.vue';
 import AmendableSetting from '@/Components/Ui/AmendableSetting.vue';
 import Banner from '@/Components/Ui/Banner.vue';
@@ -33,10 +36,8 @@ import Field from '@/Components/Ui/Field.vue';
 import FormChip from '@/Components/Ui/FormChip.vue';
 import HardenedChip from '@/Components/Ui/HardenedChip.vue';
 import StateStrip from '@/Components/Ui/StateStrip.vue';
-import StatusBadge from '@/Components/Ui/StatusBadge.vue';
 import ThresholdMeter from '@/Components/Ui/ThresholdMeter.vue';
 
-/* Phase-2 restyle wave: the v3 player chrome (MASTER_PLAN). */
 defineOptions({ layout: AppShellV2 });
 
 const props = defineProps({
@@ -56,8 +57,21 @@ const errors = computed(() => page.props.errors ?? {});
 const hasClaim = computed(() => props.claim !== null);
 const thresholdDays = computed(() => props.threshold ?? props.defaultThreshold);
 const qualifyingDays = computed(() => props.claim?.qualifying_days ?? 0);
+const isInstant = computed(() => thresholdDays.value === 0);
+const homeName = computed(() => props.claim?.jurisdiction?.name ?? null);
+const isUndeclared = computed(() => props.panel === 'undeclared');
 
-const formMeta = (id) => props.surface.forms.find((f) => f.id === id);
+/* The declare form is the page itself before any claim; afterwards it hides
+   behind "Change my home". */
+const showDeclare = ref(false);
+const declareVisible = computed(() => isUndeclared.value || showDeclare.value);
+const declareCardEl = ref(null);
+function openDeclare() {
+    showDeclare.value = true;
+    nextTick(() => declareCardEl.value?.scrollIntoView?.({ behavior: 'smooth', block: 'start' }));
+}
+
+const csrfToken = () => document.querySelector('meta[name="csrf-token"]')?.content ?? '';
 
 /* ─────────────────────────────────── F-IND-003 — declare / redeclare */
 
@@ -65,8 +79,6 @@ const declareForm = useForm({
     jurisdiction_id: '',
     ping_consent: false,
 });
-
-const csrfToken = () => document.querySelector('meta[name="csrf-token"]')?.content ?? '';
 
 /* Point-first declare: browser geolocation or a picker-map click resolves
    the SMALLEST containing jurisdiction + its root-first ancestor chain via
@@ -102,10 +114,10 @@ async function locatePoint(lat, lng) {
             located.value = null;
             declareForm.jurisdiction_id = '';
             locateError.value =
-                data?.message ?? `Could not resolve a jurisdiction for this point (${res.status}).`;
+                data?.message ?? `Could not find a place for this point (${res.status}).`;
         }
     } catch {
-        if (seq === locateSeq) locateError.value = 'Locate failed — network error.';
+        if (seq === locateSeq) locateError.value = 'Could not reach the server. Check your connection and try again.';
     } finally {
         if (seq === locateSeq) locatingPoint.value = false;
     }
@@ -116,7 +128,7 @@ const geolocating = ref(false);
 function useMyLocation() {
     locateError.value = null;
     if (!('geolocation' in navigator)) {
-        locateError.value = 'Browser geolocation unavailable — click your home on the map instead.';
+        locateError.value = 'Your browser cannot share your location. Click your home on the map instead.';
         return;
     }
     geolocating.value = true;
@@ -130,7 +142,7 @@ function useMyLocation() {
         },
         () => {
             geolocating.value = false;
-            locateError.value = 'Could not read your location — click your home on the map instead.';
+            locateError.value = 'Could not read your location. Click your home on the map instead.';
         },
         { enableHighAccuracy: false, timeout: 10000 },
     );
@@ -178,23 +190,23 @@ function pick(jurisdiction) {
     search.value = '';
 }
 
+/* The place the form will file, whichever way it was chosen. */
+const chosenName = computed(() => located.value?.jurisdiction?.name ?? selected.value?.name ?? null);
+
 function submitDeclare() {
     const url = hasClaim.value ? '/civic/residency/redeclare' : '/civic/residency/declare';
     declareForm.post(url, {
         preserveScroll: true,
         onSuccess: () => {
             selected.value = null;
+            located.value = null;
+            showDeclare.value = false;
             declareForm.reset();
         },
     });
 }
 
-const declareFormEl = ref(null);
-function scrollToDeclare() {
-    declareFormEl.value?.$el?.scrollIntoView?.({ behavior: 'smooth', block: 'start' });
-}
-
-/* ───────────────────────────────────────── F-IND-005 — manual ping */
+/* ───────────────────────────────────────── F-IND-005 — check in */
 
 const pingForm = useForm({ latitude: '', longitude: '' });
 const showManualCoords = ref(false);
@@ -204,7 +216,7 @@ const geoError = ref(null);
 function pingHere() {
     geoError.value = null;
     if (!('geolocation' in navigator)) {
-        geoError.value = 'Browser geolocation unavailable — enter coordinates below.';
+        geoError.value = 'Your browser cannot share your location. Enter your coordinates below.';
         showManualCoords.value = true;
         return;
     }
@@ -218,7 +230,7 @@ function pingHere() {
         },
         () => {
             locating.value = false;
-            geoError.value = 'Could not read your location — enter coordinates below.';
+            geoError.value = 'Could not read your location. Enter your coordinates below.';
             showManualCoords.value = true;
         },
         { enableHighAccuracy: false, timeout: 10000 },
@@ -232,7 +244,15 @@ function submitPing() {
     });
 }
 
-/* Dev-only simulator (POST /dev/pings/simulate — WI-4-gated routes). */
+/* ─────────────────────────────── F-IND-006 — "yes, this is my home" */
+
+const confirmForm = useForm({});
+function submitConfirm() {
+    confirmForm.post('/civic/residency/confirm', { preserveScroll: true });
+}
+
+/* ──────────────────────────────── Developer tools (local builds only) */
+
 const isDev = import.meta.env.DEV;
 const simulating = ref(false);
 const simulateResult = ref(null);
@@ -263,10 +283,6 @@ async function simulate(days = 30) {
     }
 }
 
-/* Dev-only instant grant (POST /dev/residency/grant — same WI-4 gate):
-   declare → simulated pings → verify, all through the real engine, in one
-   request. Targets the located/picked jurisdiction; falls back to the pin
-   coordinates, then to the already-declared boundary. */
 const granting = ref(false);
 const grantResult = ref(null);
 
@@ -274,7 +290,7 @@ const devGrantTarget = computed(() => {
     if (declareForm.jurisdiction_id) {
         return {
             payload: { jurisdiction_id: declareForm.jurisdiction_id },
-            name: located.value?.jurisdiction?.name ?? selected.value?.name ?? 'the selected boundary',
+            name: chosenName.value ?? 'the selected place',
         };
     }
     if (pickerLatLng.value) {
@@ -323,16 +339,10 @@ async function devGrant() {
     }
 }
 
-/* ─────────────────────────────────── F-IND-006 — confirm / correct */
-
-const confirmForm = useForm({});
-function submitConfirm() {
-    confirmForm.post('/civic/residency/confirm', { preserveScroll: true });
-}
-
 /* ──────────────────────────── Leaflet maps (lazy) — shared basemap */
 
 let leaflet = null; // cached module after first dynamic import
+const basemapMissing = ref(false);
 
 async function loadLeaflet() {
     if (!leaflet) {
@@ -343,7 +353,8 @@ async function loadLeaflet() {
 }
 
 /* Basemap: same dated-PMTiles lookup the jurisdiction viewer uses; maps
-   degrade to polygon-on-blue when no bundle is configured. */
+   degrade to polygon-on-blue when no bundle is configured, and the picker
+   map says so instead of showing an empty box. */
 async function addBasemap(target) {
     try {
         const res = await fetch('/api/maps/latest-pmtiles', { credentials: 'same-origin' });
@@ -355,9 +366,11 @@ async function addBasemap(target) {
             protomaps
                 .leafletLayer({ url: data.url, flavor, attribution: 'Basemap © <a href="https://protomaps.com">Protomaps</a> · © OpenStreetMap' })
                 .addTo(target);
+        } else {
+            basemapMissing.value = true;
         }
     } catch {
-        /* no basemap — the map still works */
+        basemapMissing.value = true;
     }
 }
 
@@ -391,6 +404,7 @@ async function mountPickerMap() {
     if (!pickerEl.value || pickerMap) return;
 
     const L = await loadLeaflet();
+    if (!pickerEl.value || pickerMap) return; // the form closed while Leaflet loaded
 
     pickerMap = L.map(pickerEl.value, {
         zoomControl: true,
@@ -410,6 +424,12 @@ async function mountPickerMap() {
     });
 }
 
+function unmountPickerMap() {
+    if (pickerMap) pickerMap.remove();
+    pickerMap = null;
+    pickerPin = null;
+}
+
 /* ──────────────────────────── Declared-boundary map (Leaflet, lazy) */
 
 const mapEl = ref(null);
@@ -420,6 +440,7 @@ async function mountMap() {
     if (!props.claim?.jurisdiction?.id || !mapEl.value || map) return;
 
     const L = await loadLeaflet();
+    if (!mapEl.value || map) return;
 
     map = L.map(mapEl.value, {
         zoomControl: true,
@@ -460,406 +481,347 @@ async function mountMap() {
     }
 }
 
+function unmountMap() {
+    if (map) map.remove();
+    map = null;
+    boundaryLayer = null;
+}
+
 onMounted(() =>
     nextTick(() => {
         mountMap();
         mountPickerMap();
     }),
 );
+/* The picker map lives only while the declare form is on screen. */
+watch(declareVisible, async () => {
+    await nextTick();
+    if (pickerEl.value) mountPickerMap();
+    else unmountPickerMap();
+});
+/* The boundary map re-mounts when the declared place changes or the
+   verified card appears. */
 watch(
-    () => props.claim?.jurisdiction?.id,
+    () => [props.claim?.jurisdiction?.id, props.panel],
     async () => {
-        if (map) {
-            map.remove();
-            map = null;
-            boundaryLayer = null;
-        }
+        unmountMap();
         await nextTick();
         mountMap();
     },
 );
 onBeforeUnmount(() => {
-    if (map) map.remove();
-    map = null;
-    if (pickerMap) pickerMap.remove();
-    pickerMap = null;
-    pickerPin = null;
+    unmountMap();
+    unmountPickerMap();
 });
 </script>
 
 <template>
     <PageScaffold :surface="surface">
         <template #intro>
-            Declare where you live, and living there does the rest — nothing else is checked.
-            The moment your residency is confirmed, you belong to <strong>every</strong> place
-            that contains your home at once, and voting and candidacy unlock automatically with
-            no other requirements.
+            Tell us where you live. That is the only requirement. Once your home is confirmed you
+            belong to every place that contains it, and you can vote and stand for office in each
+            of them.
         </template>
         <template #about>
             <p>
-                WF-CIV-02 residency establishment — declaration, ping monitoring, threshold,
+                WF-CIV-02 residency establishment — declaration, check-in monitoring, threshold,
                 verification, and the association sweep all land on this surface. Entity machines:
                 Residency Claim ({{ machine.join(' → ') }}) and Individual (R-02 → R-03).
             </p>
         </template>
 
         <Banner v-if="flash" tone="info">{{ flash }}</Banner>
-        <Banner v-if="errors.constitution" tone="warning" title="Filing rejected by the constitutional engine">
-            {{ errors.constitution }} — the rejection itself is on the audit chain (append-only).
+        <Banner v-if="errors.constitution" tone="warning" title="This filing was refused">
+            {{ errors.constitution }}
         </Banner>
         <Banner v-if="errors.claim" tone="warning">{{ errors.claim }}</Banner>
 
-        <!-- ─────────────────────────────────────── Residency claim state -->
-        <Card as="section" title="Your residency claim">
-            <template v-if="hasClaim">
-                <StateStrip :states="machine" :current="claim.status" />
-                <p class="gloss" style="margin-block-start: var(--space-2)">
-                    Declared boundary:
-                    <AdmChip :level="claim.jurisdiction?.adm_level ?? 0" :label="claim.jurisdiction?.name ?? '—'" />
-                    · declared {{ claim.declared_at ? new Date(claim.declared_at).toLocaleDateString() : '—' }}
-                </p>
+        <!-- ═══════════════════ The one question for the current state ═══════════════════ -->
+
+        <!-- Monitoring: show you live there -->
+        <Card v-if="panel === 'locked'" as="section" class="hero" eyebrow="Step 2 of 2">
+            <template #title>
+                <h2>You declared {{ homeName }}. Now show you live there.</h2>
             </template>
-            <template v-else>
-                <StateStrip :states="machine" :current="null" />
-                <p class="gloss" style="margin-block-start: var(--space-2)">
-                    No claim yet — declare below to start ping monitoring.
-                </p>
-            </template>
-            <p class="gloss">Threshold days is an amendable setting; pings are encrypted at rest.</p>
+            <ThresholdMeter
+                :value="qualifyingDays"
+                :max="thresholdDays"
+                :threshold="thresholdDays"
+                label="Days checked in from home"
+            >
+                {{ qualifyingDays }} of {{ thresholdDays }} days checked in
+                <template #note>one check-in per day, from inside {{ homeName }}</template>
+            </ThresholdMeter>
+            <p style="margin-block-start: var(--space-3)">
+                Open this page while you are at home and check in. Each day counts once. Your
+                location stays private; only the number of days is kept. When you reach
+                {{ thresholdDays }} days you will be asked to confirm.
+            </p>
+            <div class="cluster" style="margin-block-start: var(--space-3)">
+                <Btn variant="primary" icon="map-pin" :disabled="locating || pingForm.processing" @click="pingHere">
+                    {{ locating ? 'Finding you…' : pingForm.processing ? 'Recording…' : 'Check in from here' }}
+                </Btn>
+                <Btn variant="ghost" size="sm" :pressed="showManualCoords" @click="showManualCoords = !showManualCoords">
+                    Enter coordinates instead
+                </Btn>
+            </div>
+            <p v-if="geoError" class="field-error" role="alert" style="margin-block-start: var(--space-2)">{{ geoError }}</p>
+            <form v-if="showManualCoords" novalidate style="margin-block-start: var(--space-3)" @submit.prevent="submitPing">
+                <div class="cluster" style="align-items: flex-end">
+                    <Field label="Latitude" :error="pingForm.errors.latitude">
+                        <template #control="{ id }">
+                            <input :id="id" v-model="pingForm.latitude" class="field-input" type="text" inputmode="decimal" style="inline-size: 9rem" />
+                        </template>
+                    </Field>
+                    <Field label="Longitude" :error="pingForm.errors.longitude">
+                        <template #control="{ id }">
+                            <input :id="id" v-model="pingForm.longitude" class="field-input" type="text" inputmode="decimal" style="inline-size: 9rem" />
+                        </template>
+                    </Field>
+                    <Btn type="submit" variant="secondary" :disabled="pingForm.processing">Record check-in</Btn>
+                </div>
+            </form>
+            <p class="gloss" style="margin-block-start: var(--space-3)">
+                Wrong place?
+                <button type="button" class="link-btn" @click="openDeclare">Change my home</button>
+            </p>
         </Card>
 
-        <!-- ───────────────────────────────── F-IND-003 declare / redeclare -->
-        <FormCard
-            ref="declareFormEl"
-            :form="formMeta('F-IND-003')"
-            :inertia-form="declareForm"
-            :submit-label="hasClaim ? 'Redeclare — correct the boundary' : located ? 'Declare residency here' : 'Declare residency'"
-            processing-label="Filing F-IND-003…"
-            @submit="submitDeclare"
-        >
-            <p v-if="hasClaim" class="cc-small" style="margin-block-end: var(--space-3)">
-                Redeclaring supersedes your open claim and restarts ping monitoring inside the new
-                boundary — qualifying days do not transfer (containment must be re-proven).
+        <!-- Threshold met: is this your home? -->
+        <Card v-else-if="panel === 'pending_confirmation'" as="section" class="hero" eyebrow="Last step">
+            <template #title>
+                <h2>Is {{ homeName }} your home?</h2>
+            </template>
+            <p>
+                <template v-if="isInstant">You declared {{ homeName }}.</template>
+                <template v-else>You checked in from {{ homeName }} on {{ qualifyingDays }} days.</template>
+                Confirm and you belong to every place that contains it.
             </p>
-
-            <!-- POINT-FIRST: where you ARE resolves where you live. The point
-                 itself never leaves this preview — only the resolved
-                 jurisdiction_id is filed with F-IND-003. -->
-            <div class="cluster" style="margin-block-end: var(--space-2)">
-                <Btn
-                    variant="primary"
-                    icon="map-pin"
-                    :disabled="geolocating || locatingPoint"
-                    @click="useMyLocation"
-                >
-                    {{ geolocating ? 'Locating…' : 'Use my current location' }}
+            <div class="cluster" style="margin-block-start: var(--space-3)">
+                <Btn variant="primary" icon="check" :disabled="confirmForm.processing" @click="submitConfirm">
+                    {{ confirmForm.processing ? 'Confirming…' : 'Yes, this is my home' }}
                 </Btn>
-                <span class="gloss">or click your home on the map below</span>
+                <Btn variant="secondary" @click="openDeclare">No, change my home</Btn>
             </div>
+        </Card>
 
+        <!-- Verified: you live in X -->
+        <Card v-else-if="panel === 'verified'" as="section" class="hero" eyebrow="Confirmed">
+            <template #title>
+                <h2>You live in {{ homeName }}.</h2>
+            </template>
             <div
-                ref="pickerEl"
+                ref="mapEl"
                 class="boundary-map"
-                aria-label="Map — click to drop a pin on where you live"
-                style="margin-block-end: var(--space-3)"
+                role="img"
+                :aria-label="`Map of ${homeName}`"
             ></div>
-
-            <p v-if="locatingPoint" class="gloss" role="status">Resolving the smallest containing boundary…</p>
-            <p v-if="locateError" class="field-error" role="alert">{{ locateError }}</p>
-
-            <!-- Resolved chain preview: root-first, smallest boundary last — the
-                 declared boundary; every enclosing level associates on verify. -->
-            <div v-if="located" class="locate-preview" role="status">
-                <p class="cc-small" style="margin-block-end: var(--space-1)">
-                    You appear to live in
-                    <strong>{{ located.jurisdiction.name }}</strong> — the smallest boundary
-                    containing your point. Its full chain:
-                </p>
-                <div class="cluster">
-                    <template v-for="(level, i) in located.chain" :key="level.id">
-                        <span v-if="i > 0" aria-hidden="true">→</span>
-                        <AdmChip :level="level.adm_level" :label="level.name" />
-                    </template>
-                </div>
-            </div>
-
-            <!-- Tertiary: search jurisdiction NAMES (not street addresses). -->
-            <details class="search-collapse" style="margin-block-end: var(--space-3)">
-                <summary>Or search by place name</summary>
-                <Field
-                    label="Jurisdiction of residence"
-                    hint="Searches jurisdiction names (e.g. Serravalle, New York) — not street addresses; address geocoding needs an offline geocoder and is out of scope for now. Declare the smallest boundary you live inside."
-                    :error="declareForm.errors.jurisdiction_id"
-                >
-                    <template #control="{ id, invalid, describedBy }">
-                        <input
-                            :id="id"
-                            v-model="search"
-                            class="field-input"
-                            type="search"
-                            placeholder="Search by name — e.g. New York, Serravalle…"
-                            autocomplete="off"
-                            :aria-invalid="invalid ? 'true' : undefined"
-                            :aria-describedby="describedBy"
-                        />
-                    </template>
-                </Field>
-
-                <p v-if="searching" class="gloss" role="status">Searching…</p>
-                <ul v-if="results.length" class="search-results" role="listbox" aria-label="Matching jurisdictions">
-                    <li v-for="result in results" :key="result.id">
-                        <button type="button" class="search-result" role="option" aria-selected="false" @click="pick(result)">
-                            <AdmChip :level="result.adm_level" :label="result.name" />
-                            <span class="citation">
-                                {{ result.parent_name ? `in ${result.parent_name} · ` : '' }}{{ result.slug }}
-                            </span>
-                        </button>
-                    </li>
-                </ul>
-            </details>
-
-            <p v-if="selected" style="margin-block-end: var(--space-3)">
-                Selected:
-                <AdmChip :level="selected.adm_level" :label="selected.name" />
-                <span v-if="selected.parent_name" class="citation"> in {{ selected.parent_name }}</span>
+            <p style="margin-block-start: var(--space-3)">
+                You belong to {{ associations.length }} place{{ associations.length === 1 ? '' : 's' }} at once,
+                and you can vote and stand for office in every one of them:
             </p>
-            <p v-if="declareForm.errors.jurisdiction_id && !located && !selected" class="field-error">
-                {{ declareForm.errors.jurisdiction_id }}
+            <div class="cluster" style="margin-block-start: var(--space-2)">
+                <AdmChip
+                    v-for="assoc in associations"
+                    :key="assoc.id"
+                    :level="assoc.adm_level"
+                    :label="assoc.name"
+                />
+            </div>
+            <p class="gloss" style="margin-block-start: var(--space-3)">
+                Moved?
+                <button type="button" class="link-btn" @click="openDeclare">Change my home</button>
             </p>
+        </Card>
 
-            <div class="field" :class="{ 'field--invalid': declareForm.errors.ping_consent }">
-                <CheckboxField v-model="declareForm.ping_consent" name="ping_consent">
-                    Start collecting periodic location pings to establish my residency pattern.
-                    Pings are encrypted at rest and never shown to anyone — only the derived
-                    day-count is ever visible, and raw locations purge on verification.
-                </CheckboxField>
-                <span v-if="declareForm.errors.ping_consent" class="field-error">
-                    {{ declareForm.errors.ping_consent }}
-                </span>
-            </div>
-
-            <!-- Dev-only instant grant: declare → pings → verify in one click,
-                 all real engine filings (gated exactly like the simulator). -->
-            <div v-if="isDev" style="margin-block-start: var(--space-3)">
-                <div class="cluster">
-                    <Btn
-                        variant="gold"
-                        size="sm"
-                        icon="map-pin"
-                        :disabled="!devGrantTarget || granting"
-                        @click="devGrant"
-                    >
-                        {{ granting ? 'Granting…' : 'Dev: grant residency here instantly' }}
-                    </Btn>
-                    <span class="citation">local only · real F-IND-003/005/006 filings · relocates if already verified</span>
-                </div>
-                <p v-if="grantResult" class="gloss" role="status" style="margin-block-start: var(--space-2)">
-                    {{ grantResult }}
-                </p>
-            </div>
-        </FormCard>
-
-        <div class="grid-2">
-            <!-- ────────────────────────────────── F-IND-005 ping monitoring -->
-            <Card as="section">
+        <!-- ═══════════════════ Declare / change my home (F-IND-003) ═══════════════════ -->
+        <div v-if="declareVisible" ref="declareCardEl">
+            <Card as="section" class="hero" :eyebrow="isUndeclared ? (isInstant ? 'One step' : 'Step 1 of 2') : 'Change my home'">
                 <template #title>
-                    <h2>GPS residency ping <FormChip form-id="F-IND-005" /></h2>
+                    <h2>{{ isUndeclared ? 'Where do you live?' : 'Where do you live now?' }}</h2>
                 </template>
-                <p class="cc-small">
-                    Periodic location check-in for residency pattern establishment.
-                    <span class="citation" style="display: block">
-                        available to R-01 Individual · appends to the residency ping log · Art. I; Art. V §1
-                    </span>
+                <form novalidate @submit.prevent="submitDeclare">
+                    <p>
+                        Use your current location, or click your home on the map. Only the place you
+                        live in is recorded, never the exact point.
+                        <template v-if="!isUndeclared && !isInstant">
+                            Changing your home starts the check-in days again inside the new place.
+                        </template>
+                    </p>
+
+                    <div class="cluster" style="margin-block: var(--space-3) var(--space-2)">
+                        <Btn
+                            type="button"
+                            variant="primary"
+                            icon="map-pin"
+                            :disabled="geolocating || locatingPoint"
+                            @click="useMyLocation"
+                        >
+                            {{ geolocating ? 'Finding you…' : 'Use my current location' }}
+                        </Btn>
+                        <span class="gloss">or click your home on the map</span>
+                    </div>
+
+                    <div class="map-wrap" style="margin-block-end: var(--space-3)">
+                        <div ref="pickerEl" class="boundary-map" aria-label="Map — click where you live"></div>
+                        <p v-if="basemapMissing" class="map-note">
+                            No map tiles are loaded on this box. Use your current location or search by name below.
+                        </p>
+                    </div>
+
+                    <p v-if="locatingPoint" class="gloss" role="status">Finding the place at that point…</p>
+                    <p v-if="locateError" class="field-error" role="alert">{{ locateError }}</p>
+
+                    <div v-if="located" class="locate-preview" role="status">
+                        <p class="cc-small" style="margin-block-end: var(--space-1)">
+                            Your home is in <strong>{{ located.jurisdiction.name }}</strong>. It sits inside:
+                        </p>
+                        <div class="cluster">
+                            <template v-for="(level, i) in located.chain" :key="level.id">
+                                <span v-if="i > 0" aria-hidden="true">→</span>
+                                <AdmChip :level="level.adm_level" :label="level.name" />
+                            </template>
+                        </div>
+                    </div>
+                    <p v-else-if="selected" class="locate-preview" role="status">
+                        Your home:
+                        <AdmChip :level="selected.adm_level" :label="selected.name" />
+                        <span v-if="selected.parent_name" class="citation"> in {{ selected.parent_name }}</span>
+                    </p>
+
+                    <details class="search-collapse" style="margin-block-end: var(--space-3)">
+                        <summary>Search by place name instead</summary>
+                        <Field
+                            label="Place name"
+                            hint="Type the name of the town, county, region or country you live in. Street addresses are not searched."
+                            :error="declareForm.errors.jurisdiction_id"
+                        >
+                            <template #control="{ id, invalid, describedBy }">
+                                <input
+                                    :id="id"
+                                    v-model="search"
+                                    class="field-input"
+                                    type="search"
+                                    placeholder="e.g. Anne Arundel, New York, Serravalle"
+                                    autocomplete="off"
+                                    :aria-invalid="invalid ? 'true' : undefined"
+                                    :aria-describedby="describedBy"
+                                />
+                            </template>
+                        </Field>
+                        <p v-if="searching" class="gloss" role="status">Searching…</p>
+                        <ul v-if="results.length" class="search-results" role="listbox" aria-label="Matching places">
+                            <li v-for="result in results" :key="result.id">
+                                <button type="button" class="search-result" role="option" aria-selected="false" @click="pick(result)">
+                                    <AdmChip :level="result.adm_level" :label="result.name" />
+                                    <span class="citation">
+                                        {{ result.parent_name ? `in ${result.parent_name}` : '' }}
+                                    </span>
+                                </button>
+                            </li>
+                        </ul>
+                    </details>
+
+                    <p v-if="declareForm.errors.jurisdiction_id && !located && !selected" class="field-error">
+                        Choose the place you live in first.
+                    </p>
+
+                    <div class="field" :class="{ 'field--invalid': declareForm.errors.ping_consent }">
+                        <CheckboxField v-model="declareForm.ping_consent" name="ping_consent">
+                            <template v-if="isInstant">
+                                I confirm this is where I live. My location is private and is used only to
+                                place me here.
+                            </template>
+                            <template v-else>
+                                I agree to check in from home over the next {{ thresholdDays }} days so my
+                                residency can be confirmed. Check-ins are private; only the number of days
+                                is kept, and the locations are deleted once I am confirmed.
+                            </template>
+                        </CheckboxField>
+                        <span v-if="declareForm.errors.ping_consent" class="field-error">
+                            Please tick the box to continue.
+                        </span>
+                    </div>
+
+                    <div class="cluster" style="margin-block-start: var(--space-3)">
+                        <Btn type="submit" variant="primary" icon="check" :disabled="declareForm.processing || !declareForm.jurisdiction_id">
+                            {{ declareForm.processing ? 'Saving…' : isInstant ? 'Confirm my home' : (isUndeclared ? 'Declare my home' : 'Change my home') }}
+                        </Btn>
+                        <Btn v-if="!isUndeclared" type="button" variant="ghost" @click="showDeclare = false">Keep my current home</Btn>
+                    </div>
+                    <p class="gloss" style="margin-block-start: var(--space-2)">
+                        <template v-if="isInstant">You are confirmed the moment you declare.</template>
+                        <template v-else>Then check in from home on {{ thresholdDays }} days and you are confirmed.</template>
+                    </p>
+                </form>
+            </Card>
+        </div>
+
+        <!-- ═══════════════════ How this works (the fine print) ═══════════════════ -->
+        <details class="more">
+            <summary>How this works, and the fine print</summary>
+            <Card as="section" title="Your residency claim">
+                <StateStrip :states="machine" :current="claim?.status ?? null" />
+                <p v-if="hasClaim" class="gloss" style="margin-block-start: var(--space-2)">
+                    Declared:
+                    <AdmChip :level="claim.jurisdiction?.adm_level ?? 0" :label="claim.jurisdiction?.name ?? '—'" />
+                    · {{ claim.declared_at ? new Date(claim.declared_at).toLocaleDateString() : '—' }}
                 </p>
-
-                <ThresholdMeter
-                    :value="qualifyingDays"
-                    :max="thresholdDays"
-                    :threshold="thresholdDays"
-                    label="Qualifying days toward the residency threshold"
-                >
-                    {{ qualifyingDays }} of {{ thresholdDays }} qualifying days
-                    <template #note>distinct days pinged inside the declared boundary</template>
-                </ThresholdMeter>
-
                 <p style="margin-block-start: var(--space-3)">
                     <AmendableSetting
-                        :value="`${thresholdDays} days`"
+                        :value="isInstant ? 'instant' : `${thresholdDays} days`"
                         setting-key="residency_confirmation_days"
                         citation="CLK-05 · Art. I; Art. V §1"
                     />
                 </p>
-
-                <div class="cluster" style="margin-block-start: var(--space-3)">
-                    <Btn
-                        variant="primary"
-                        icon="map-pin"
-                        :disabled="!hasClaim || locating || pingForm.processing"
-                        @click="pingHere"
-                    >
-                        {{ locating ? 'Locating…' : pingForm.processing ? 'Recording…' : 'Ping my location now' }}
-                    </Btn>
-                    <Btn variant="ghost" size="sm" :pressed="showManualCoords" @click="showManualCoords = !showManualCoords">
-                        Enter coordinates manually
-                    </Btn>
-                </div>
-                <p v-if="!hasClaim" class="gloss" style="margin-block-start: var(--space-2)">
-                    Declare residency first — pings need a declared boundary to count toward.
+                <p class="cc-small" style="margin-block-start: var(--space-3)">
+                    Declaration <FormChip form-id="F-IND-003" /> · Check-in <FormChip form-id="F-IND-005" /> ·
+                    Confirmation <FormChip form-id="F-IND-006" /> <HardenedChip />
+                    <span class="citation" style="display: block">
+                        available to R-01 Individual · the confirmation creates verified residency and every
+                        jurisdictional association (R-03) · Art. I; Art. V §1
+                    </span>
                 </p>
-                <p v-if="geoError" class="field-error" role="alert" style="margin-block-start: var(--space-2)">{{ geoError }}</p>
-
-                <form v-if="showManualCoords" novalidate style="margin-block-start: var(--space-3)" @submit.prevent="submitPing">
-                    <div class="cluster" style="align-items: flex-end">
-                        <Field label="Latitude" :error="pingForm.errors.latitude">
-                            <template #control="{ id }">
-                                <input :id="id" v-model="pingForm.latitude" class="field-input" type="text" inputmode="decimal" style="inline-size: 9rem" />
-                            </template>
-                        </Field>
-                        <Field label="Longitude" :error="pingForm.errors.longitude">
-                            <template #control="{ id }">
-                                <input :id="id" v-model="pingForm.longitude" class="field-input" type="text" inputmode="decimal" style="inline-size: 9rem" />
-                            </template>
-                        </Field>
-                        <Btn type="submit" variant="secondary" :disabled="pingForm.processing">Record ping</Btn>
-                    </div>
-                </form>
-
-                <div v-if="isDev" style="margin-block-start: var(--space-3)">
-                    <div class="cluster">
-                        <Btn variant="gold" size="sm" icon="clock" :disabled="!hasClaim || simulating" @click="simulate(30)">
-                            {{ simulating ? 'Simulating…' : 'Dev: simulate 30 days of pings' }}
-                        </Btn>
-                        <span class="citation">local only · files 30 real F-IND-005 entries</span>
-                    </div>
-                    <p v-if="simulateResult" class="gloss" role="status" style="margin-block-start: var(--space-2)">
-                        {{ simulateResult }}
-                    </p>
-                </div>
-
-                <Banner tone="info" title="Pings are encrypted at rest." style="margin-block-start: var(--space-3)">
-                    Only the derived day-count is ever visible — to you or to anyone. Raw locations
-                    are never published, never shared, and purge on verification.
+                <Banner tone="info" title="Check-ins are private." style="margin-block-start: var(--space-3)">
+                    Locations are encrypted at rest, never shown to anyone, and deleted once you are
+                    confirmed. Only the number of days is ever visible.
                     <span class="citation">location_pings · private · Art. I</span>
                 </Banner>
             </Card>
+        </details>
 
-            <!-- ─────────────────────────────────────── Declared boundary map -->
-            <Card as="section" title="Declared boundary">
-                <div
-                    v-if="hasClaim"
-                    ref="mapEl"
-                    class="boundary-map"
-                    role="img"
-                    :aria-label="`Map of the declared ${claim.jurisdiction?.name ?? ''} boundary`"
-                ></div>
-                <p v-else class="gloss">The declared boundary renders here once you declare residency.</p>
-                <p v-if="hasClaim" class="gloss" style="margin-block-start: var(--space-2)">
-                    {{ qualifyingDays }} qualifying ping day{{ qualifyingDays === 1 ? '' : 's' }} recorded inside this
-                    boundary. Individual ping locations are private and are never drawn.
-                </p>
-            </Card>
-        </div>
-
-        <!-- ─────────────────────────── F-IND-006 verification confirmation -->
-        <Card as="section">
-            <template #title>
-                <h2>Residency verification confirmation <FormChip form-id="F-IND-006" /></h2>
-            </template>
-            <p class="cc-small">
-                System auto-generates when the ping threshold is met; you confirm or correct.
-                <span class="citation" style="display: block">
-                    available to R-02 Resident (pending) · creates verified residency + all jurisdictional associations (R-03) · Art. I; Art. V §1
-                </span>
-            </p>
-
-            <!-- State 1 — locked below threshold -->
-            <template v-if="panel === 'undeclared' || panel === 'locked'">
-                <ThresholdMeter
-                    :value="qualifyingDays"
-                    :max="thresholdDays"
-                    :threshold="thresholdDays"
-                    label="Days toward unlocking the confirmation"
-                >
-                    Locked — {{ qualifyingDays }} of {{ thresholdDays }} qualifying days
-                    <template #note>unlocks automatically at the threshold · CLK-05</template>
-                </ThresholdMeter>
-                <p class="gloss" style="margin-block-start: var(--space-2)">
-                    <template v-if="panel === 'undeclared'">Declare residency to begin.</template>
-                    <template v-else>
-                        Keep pinging inside your declared boundary — the confirmation unlocks the
-                        moment the threshold is met, and the clock job can also verify it for you.
-                    </template>
-                </p>
-            </template>
-
-            <!-- State 2 — threshold met, awaiting the resident's word -->
-            <template v-else-if="panel === 'pending_confirmation'">
-                <StatusBadge tone="warning" icon="clock">Threshold met — awaiting your confirmation</StatusBadge>
-                <p style="margin-block: var(--space-3)">
-                    Your presence pattern reached {{ qualifyingDays }} qualifying days inside
-                    <strong>{{ claim?.jurisdiction?.name }}</strong>. Confirm this is your residence, or
-                    correct the boundary if you declared the wrong one.
-                </p>
+        <!-- ═══════════════════ Developer tools (local builds only) ═══════════════════ -->
+        <details v-if="isDev" class="more">
+            <summary>Developer tools (local only)</summary>
+            <Card as="section" title="Shortcuts through the real engine">
                 <div class="cluster">
-                    <Btn variant="primary" icon="check" :disabled="confirmForm.processing" @click="submitConfirm">
-                        {{ confirmForm.processing ? 'Verifying…' : 'Confirm — this is my residence' }}
+                    <Btn variant="gold" size="sm" icon="map-pin" :disabled="!devGrantTarget || granting" @click="devGrant">
+                        {{ granting ? 'Granting…' : 'Grant residency instantly' }}
                     </Btn>
-                    <Btn variant="secondary" @click="scrollToDeclare">Correct the boundary</Btn>
+                    <span class="citation">
+                        targets {{ devGrantTarget?.name ?? '—' }} · real F-IND-003/005/006 filings · relocates if already verified
+                    </span>
                 </div>
-            </template>
-
-            <!-- State 3 — verified: the rights-unlock moment -->
-            <template v-else-if="panel === 'verified'">
-                <div class="cluster" style="gap: var(--space-4)">
-                    <StatusBadge tone="success" icon="check">Voting unlocked</StatusBadge>
-                    <StatusBadge tone="success" icon="check">Candidacy unlocked</StatusBadge>
-                    <HardenedChip />
+                <p v-if="grantResult" class="gloss" role="status" style="margin-block-start: var(--space-2)">{{ grantResult }}</p>
+                <div class="cluster" style="margin-block-start: var(--space-3)">
+                    <Btn variant="gold" size="sm" icon="clock" :disabled="!hasClaim || isInstant || simulating" @click="simulate(30)">
+                        {{ simulating ? 'Simulating…' : 'Simulate 30 days of check-ins' }}
+                    </Btn>
+                    <span class="citation">files 30 real F-IND-005 entries on the open claim</span>
                 </div>
-                <p style="margin-block: var(--space-3)">
-                    Residency verified. You are associated with every enclosing jurisdiction
-                    simultaneously — {{ associations.length }} level{{ associations.length === 1 ? '' : 's' }}:
-                </p>
-                <div class="cluster">
-                    <AdmChip
-                        v-for="assoc in associations"
-                        :key="assoc.id"
-                        :level="assoc.adm_level"
-                        :label="assoc.name"
-                    />
-                </div>
-                <p class="citation" style="margin-block-start: var(--space-3)">
-                    Residency verified → all associations → rights unlocked · Art. I; Art. V §1
-                </p>
-
-                <!-- Dev-only relocation: pick a new point in the declare card
-                     (or leave it — re-granting the declared boundary is a
-                     no-op) and become a verified resident there in one click. -->
-                <div v-if="isDev" style="margin-block-start: var(--space-3)">
-                    <div class="cluster">
-                        <Btn
-                            variant="gold"
-                            size="sm"
-                            icon="map-pin"
-                            :disabled="!devGrantTarget || granting"
-                            @click="devGrant"
-                        >
-                            {{ granting ? 'Granting…' : 'Dev: grant residency here instantly' }}
-                        </Btn>
-                        <span class="citation">
-                            targets {{ devGrantTarget?.name ?? '—' }} · dev-only relocation
-                            (deactivates the old associations, then real F-IND filings)
-                        </span>
-                    </div>
-                    <p v-if="grantResult" class="gloss" role="status" style="margin-block-start: var(--space-2)">
-                        {{ grantResult }}
-                    </p>
-                </div>
-            </template>
-        </Card>
+                <p v-if="simulateResult" class="gloss" role="status" style="margin-block-start: var(--space-2)">{{ simulateResult }}</p>
+            </Card>
+        </details>
     </PageScaffold>
 </template>
 
 <style scoped>
+.hero :deep(h2) {
+    font-size: 1.5rem;
+    line-height: 1.25;
+    text-wrap: balance;
+}
+
 .boundary-map {
     inline-size: 100%;
     block-size: 18rem;
@@ -868,12 +830,50 @@ onBeforeUnmount(() => {
     overflow: hidden;
 }
 
+.map-wrap {
+    position: relative;
+}
+
+.map-note {
+    position: absolute;
+    inset-block-end: var(--space-2);
+    inset-inline: var(--space-2);
+    margin: 0;
+    padding: var(--space-2) var(--space-3);
+    border-radius: var(--radius-md, 8px);
+    background: var(--gov-surface, #fff);
+    border: 1px solid var(--gov-border, #d6d9de);
+    font-size: 0.875rem;
+    pointer-events: none;
+    z-index: 500;
+}
+
 .locate-preview {
     margin-block-end: var(--space-3);
     padding: var(--space-2) var(--space-3);
     border: 1px solid var(--gov-border, #d6d9de);
     border-radius: var(--radius-md, 8px);
     background: var(--gov-surface-2, #eef0f3);
+}
+
+.link-btn {
+    background: none;
+    border: 0;
+    padding: 0;
+    font: inherit;
+    color: var(--gov-link, inherit);
+    text-decoration: underline;
+    cursor: pointer;
+}
+
+.more {
+    margin-block-start: var(--space-4);
+}
+
+.more > summary {
+    cursor: pointer;
+    color: var(--gov-link, inherit);
+    margin-block-end: var(--space-2);
 }
 
 .search-collapse > summary {
