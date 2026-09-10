@@ -32,7 +32,8 @@ defineOptions({ layout: AppShellV2 });
 
 const props = defineProps({
     surface: { type: Object, required: true },
-    board: { type: Object, required: true },
+    board: { type: Object, default: null },
+    can_act: { type: Boolean, default: false },
     boards: { type: Array, default: () => [] },
     stats: { type: Object, required: true },
     schedulable: { type: Array, default: () => [] },
@@ -175,7 +176,7 @@ function runPetitionAudit(row) {
 <template>
     <!-- Bootstrap posture — pinned above the page header (real flag). -->
     <Banner
-        v-if="board.is_bootstrap"
+        v-if="board && board.is_bootstrap"
         tone="warning"
         role="status"
         title="Bootstrap election board — temporary · replacement queued."
@@ -193,6 +194,8 @@ function runPetitionAudit(row) {
         </template>
 
         <p class="citation">Establish independent election boards · Art. II §2</p>
+        <p v-if="!board" class="citation">No election board is standing for you. This console is readable by everyone; its actions belong to seated board members (R-08).</p>
+        <p v-else-if="!can_act" class="citation">You are viewing this board. Its actions belong to seated board members (R-08).</p>
         <p class="citation">
             Board members:
             <template v-for="(member, i) in board.members" :key="i">
@@ -332,13 +335,13 @@ function runPetitionAudit(row) {
                         <Btn
                             variant="secondary"
                             size="sm"
-                            :disabled="!!decideBusy[row.candidacy_id]"
+                            :disabled="!can_act || !!decideBusy[row.candidacy_id]"
                             @click="decide(row, 'validate')"
                         >Validate</Btn>
                         <Btn
                             variant="ghost"
                             size="sm"
-                            :disabled="!!decideBusy[row.candidacy_id]"
+                            :disabled="!can_act || !!decideBusy[row.candidacy_id]"
                             @click="decide(row, 'reject')"
                         >Reject</Btn>
                     </span>
@@ -414,7 +417,7 @@ function runPetitionAudit(row) {
                             v-else
                             variant="primary"
                             size="sm"
-                            :disabled="!row.tabulation_complete || !!certBusy[row.election_id]"
+                            :disabled="!can_act || !row.tabulation_complete || !!certBusy[row.election_id]"
                             @click="certify(row.election_id)"
                         >Certify results</Btn>
                     </div>
@@ -428,7 +431,7 @@ function runPetitionAudit(row) {
                             <Btn
                                 variant="danger"
                                 size="sm"
-                                :disabled="!row.certified"
+                                :disabled="!can_act || !row.certified"
                                 :title="row.certified ? undefined : 'Requires certification first'"
                                 @click="recountFor = row.election_id"
                             >Order recount</Btn>
@@ -446,7 +449,7 @@ function runPetitionAudit(row) {
                             <Btn
                                 variant="danger"
                                 size="sm"
-                                :disabled="!recountCause.trim() || !!certBusy[row.election_id]"
+                                :disabled="!can_act || !recountCause.trim() || !!certBusy[row.election_id]"
                                 @click="orderRecount(row.election_id)"
                             >Confirm recount order</Btn>
                             <Btn variant="ghost" size="sm" @click="recountFor = null; recountCause = ''">Cancel</Btn>
@@ -491,7 +494,7 @@ function runPetitionAudit(row) {
                             v-if="row.due"
                             variant="primary"
                             size="sm"
-                            :disabled="auditingPetition === row.petition_id"
+                            :disabled="!can_act || auditingPetition === row.petition_id"
                             @click="runPetitionAudit(row)"
                         >Run signature audit (F-ELB-005)</Btn>
                     </div>

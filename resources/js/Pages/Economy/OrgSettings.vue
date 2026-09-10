@@ -29,6 +29,7 @@ const props = defineProps({
     surface: { type: Object, required: true },
     currency: { type: Object, default: null },
     org: { type: Object, required: true },
+    can_steer: { type: Boolean, default: false },
     dues: { type: Object, required: true },
     shares: { type: Object, required: true },
     /** The org's own ledger (money plane — counterparties are accounts). */
@@ -95,7 +96,7 @@ const savePeriod = () => periodForm.post(settingsPath, { preserveScroll: true })
                     <label :for="'dues-amount'">Dues amount ({{ currency?.symbol ?? 'units' }})</label>
                     <div class="dues-dial-row">
                         <input id="dues-amount" v-model="amountForm.value" type="number" min="0" step="0.000001" inputmode="decimal" />
-                        <button type="submit" :disabled="amountForm.processing">Save</button>
+                        <button type="submit" :disabled="!can_steer || amountForm.processing">Save</button>
                     </div>
                     <p v-if="amountForm.errors.constitution" class="dues-err">{{ amountForm.errors.constitution }}</p>
                 </form>
@@ -104,7 +105,7 @@ const savePeriod = () => periodForm.post(settingsPath, { preserveScroll: true })
                     <label :for="'dues-period'">Period (days)</label>
                     <div class="dues-dial-row">
                         <input id="dues-period" v-model="periodForm.value" type="number" min="1" max="3650" step="1" inputmode="numeric" />
-                        <button type="submit" :disabled="periodForm.processing">Save</button>
+                        <button type="submit" :disabled="!can_steer || periodForm.processing">Save</button>
                     </div>
                     <p v-if="periodForm.errors.constitution" class="dues-err">{{ periodForm.errors.constitution }}</p>
                 </form>
@@ -153,6 +154,7 @@ const savePeriod = () => periodForm.post(settingsPath, { preserveScroll: true })
                 counterparty is shown as an <strong>account</strong>, never a person — even to the
                 org's own steward.
             </p>
+            <p v-if="ledger.restricted" class="muted">The wallet ledger and levies are visible to the organization's agent and its seated board.</p>
             <template v-if="ledger.has_account">
                 <dl class="econ-facts">
                     <div><dt>Balance</dt><dd>{{ formatMoney(ledger.balance, currency) }}</dd></div>

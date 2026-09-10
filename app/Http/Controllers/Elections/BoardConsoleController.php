@@ -51,7 +51,11 @@ class BoardConsoleController extends Controller
 
     public function show(Request $request): Response
     {
-        Gate::authorize('access-board');
+        // READ EVERYWHERE (operator ruling 2026-09-10): a page never 403s on a role. The
+        // console renders for every signed-in user; R-08 board standing becomes the
+        // can_act prop so the actions disable. Every mutating endpoint (validate,
+        // certify, recount, schedule, audit) keeps its own R-08 gate.
+        $canAct = Gate::check('access-board');
 
         $user = $request->user();
         $userId = (string) $user->getKey();
@@ -70,7 +74,22 @@ class BoardConsoleController extends Controller
             ->sortBy(fn (ElectionBoard $b) => $b->jurisdiction?->name ?? '')
             ->values();
 
-        abort_if($boards->isEmpty(), 403, 'No active election board standing.');
+        if ($boards->isEmpty()) {
+            // No board standing: the page still renders (the ruling), empty and read-only.
+            return Inertia::render('Elections/BoardConsole', [
+                'surface'           => SurfaceMeta::for('elections/board-console'),
+                'can_act'           => false,
+                'board'             => null,
+                'boards'            => [],
+                'stats'             => ['electionsAdministered' => 0, 'validationsPending' => 0, 'countbacksRunning' => 0, 'petitionAuditsDue' => 0],
+                'schedulable'       => [],
+                'validationQueue'   => [],
+                'districtOversight' => [],
+                'certifiable'       => [],
+                'petitionAudits'    => [],
+                'vacancies'         => [],
+            ]);
+        }
 
         $board = $boards->firstWhere('id', $request->query('board')) ?? $boards->first();
 
@@ -118,6 +137,7 @@ class BoardConsoleController extends Controller
 
         return Inertia::render('Elections/BoardConsole', [
             'surface' => SurfaceMeta::for('elections/board-console'),
+            'can_act' => $canAct,
             'board' => [
                 'id'                => (string) $board->id,
                 'jurisdiction_name' => $board->jurisdiction?->name,

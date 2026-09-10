@@ -40,10 +40,12 @@ class OrgEconomyController extends Controller
 
     public function show(Request $request, Organization $organization): Response
     {
-        // A control panel, not a public record: only the people who steer the
-        // org's economics may see them. Others are told the page is not theirs
-        // rather than shown a half-view.
-        abort_unless($this->maySteer($organization, $request), 403);
+        // READ EVERYWHERE (operator ruling 2026-09-10): the page renders for every
+        // signed-in user. The org's identity, dues policy, cap table and conversions
+        // are public; the money-plane ledger and levies are the owner-privacy
+        // carve-out and stay behind can_steer (the agent and the seated board), as
+        // do the write controls.
+        $canSteer = $this->maySteer($organization, $request);
 
         $currency = $this->rootCurrency();
 
@@ -51,6 +53,7 @@ class OrgEconomyController extends Controller
 
         return Inertia::render('Economy/OrgSettings', [
             'surface'    => SurfaceMeta::for('economy/org-settings'),
+            'can_steer'  => $canSteer,
             'currency'   => $this->currencyProp($currency),
             'org'        => [
                 'id'        => (string) $organization->id,
@@ -64,8 +67,10 @@ class OrgEconomyController extends Controller
             // Design Round 2 ② — the economy half, filled from records that
             // already exist: the org's own ledger, what it owes in levies, and
             // any conversion that fixed a fair-market price for its equity.
-            'ledger'      => $this->ledgerProp($accountIds),
-            'taxes'       => $this->taxesProp($accountIds),
+            'ledger'      => $canSteer
+                ? $this->ledgerProp($accountIds)
+                : ['has_account' => false, 'balance' => null, 'movements' => [], 'restricted' => true],
+            'taxes'       => $canSteer ? $this->taxesProp($accountIds) : [],
             'conversions' => $this->conversionsProp($organization),
         ]);
     }
