@@ -54,6 +54,7 @@ class JudiciaryController extends Controller
         $judiciary->loadMissing(['jurisdiction', 'sourceLegislature', 'creationLaw', 'conversionLaw']);
 
         return Inertia::render('Judiciary/Home', [
+            'jurisdictionContext' => $judiciary->jurisdiction ? \App\Support\JurisdictionContext::for($judiciary->jurisdiction) : null,
             'surface' => SurfaceMeta::for('judiciary/judiciary-home'),
             'judiciary' => $this->judiciaryHeader($judiciary),
             'machine' => $this->machine(),

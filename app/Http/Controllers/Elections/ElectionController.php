@@ -251,6 +251,7 @@ class ElectionController extends Controller
         }
 
         return Inertia::render('Elections/ElectionDetail', [
+            'jurisdictionContext' => $model->jurisdiction ? \App\Support\JurisdictionContext::for($model->jurisdiction) : null,
             'surface' => SurfaceMeta::for('elections/detail'),
             'election' => [
                 'id' => (string) $model->id,
@@ -381,6 +382,7 @@ class ElectionController extends Controller
         }
 
         return Inertia::render('Elections/ElectionDetail', [
+            'jurisdictionContext' => $model->jurisdiction ? \App\Support\JurisdictionContext::for($model->jurisdiction) : null,
             'surface' => SurfaceMeta::for('elections/detail'),
             'election' => null,
             'machine' => self::machine(),

@@ -55,6 +55,8 @@ class TypeBMapController extends Controller
         $props = $this->buildProps($legId, $request->query('map'));
         abort_unless($props !== null, 404, 'This jurisdiction has no Type B chamber — a leaf has no constituents to group.');
 
+        $props['jurisdictionContext'] = ($ctxJ = \App\Models\Legislature::find($legId)?->jurisdiction) ? \App\Support\JurisdictionContext::for($ctxJ) : null;
+
         return Inertia::render('Legislature/TypeBDistricts', $props);
     }
 

@@ -18,7 +18,7 @@
  * Exit ends it — operator-settled semantics, verified in the mockups.
  */
 import { computed, onBeforeUnmount, onMounted, provide, watch } from 'vue';
-import { router, usePage } from '@inertiajs/vue3';
+import { Link, router, usePage } from '@inertiajs/vue3';
 import { useI18n } from 'vue-i18n';
 import AppFooter from '@/Components/Shell/AppFooter.vue';
 import EmergencyBanner from '@/Components/Shell/EmergencyBanner.vue';
@@ -55,7 +55,26 @@ const auth = computed(() => page.props.auth ?? {});
 const user = computed(() => auth.value.user ?? null);
 const roles = computed(() => auth.value.roles ?? ['R-00']);
 const instance = computed(() => page.props.instance ?? {});
-const jurisdiction = computed(() => page.props.jurisdiction ?? null);
+/* The header chain shows the VIEWED place when the page provides one
+   (App\Support\JurisdictionContext::for -> `jurisdictionContext`), else the
+   viewer's home chain (`homeJurisdiction`); the legacy `jurisdiction` shared
+   prop is read last because a page's own `jurisdiction` model prop shadows
+   it (operator 2026-09-10: the chain vanished on every place page). */
+const jurisdiction = computed(() => {
+    const ctx = page.props.jurisdictionContext;
+    if (ctx?.current) return ctx;
+    const home = page.props.homeJurisdiction;
+    if (home?.current) return home;
+    const legacy = page.props.jurisdiction;
+    return legacy?.current ? legacy : null;
+});
+/* The viewer's own place when the chain is showing somewhere else. */
+const homeAway = computed(() => {
+    const ctx = page.props.jurisdictionContext;
+    const home = page.props.homeJurisdiction?.current;
+    if (!ctx?.current || !home?.slug) return null;
+    return ctx.current.id === home.id ? null : home;
+});
 // Shared by HandleInertiaRequests as auth.impersonating (not a top-level prop).
 const impersonation = computed(() => auth.value.impersonating ?? null);
 const surface = computed(() => page.props.surface ?? null);
@@ -236,6 +255,19 @@ onBeforeUnmount(() => {
                     :cosmic-prefix="jurisdiction.cosmicPrefix ?? ''"
                     @switch="onSwitchJurisdiction"
                 />
+
+                <!-- The chain shows the VIEWED place; this is the way back to
+                     the viewer's own place when they differ (design panel graft,
+                     2026-09-10). -->
+                <Link
+                    v-if="homeAway"
+                    :href="`/jurisdictions/${homeAway.slug}`"
+                    class="btn btn--ghost btn--sm"
+                    :title="`Back to ${homeAway.name}, where you live`"
+                >
+                    <Icon name="home" size="sm" />
+                    <span>{{ homeAway.name }}</span>
+                </Link>
 
                 <span class="header-spacer"></span>
 

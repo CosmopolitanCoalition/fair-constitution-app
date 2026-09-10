@@ -68,7 +68,19 @@ const auth = computed(() => page.props.auth ?? {});
 const user = computed(() => auth.value.user ?? null);
 const roles = computed(() => auth.value.roles ?? ['R-00']);
 const instance = computed(() => page.props.instance ?? {});
-const jurisdiction = computed(() => page.props.jurisdiction ?? null);
+/* The header chain shows the VIEWED place when the page provides one
+   (App\Support\JurisdictionContext::for -> `jurisdictionContext`), else the
+   viewer's home chain (`homeJurisdiction`); the legacy `jurisdiction` shared
+   prop is read last because a page's own `jurisdiction` model prop shadows
+   it (operator 2026-09-10: the chain vanished on every place page). */
+const jurisdiction = computed(() => {
+    const ctx = page.props.jurisdictionContext;
+    if (ctx?.current) return ctx;
+    const home = page.props.homeJurisdiction;
+    if (home?.current) return home;
+    const legacy = page.props.jurisdiction;
+    return legacy?.current ? legacy : null;
+});
 const impersonation = computed(() => page.props.impersonation ?? null);
 const surface = computed(() => page.props.surface ?? null);
 const phasesLive = computed(() => page.props.app?.phasesLive ?? ['A']);

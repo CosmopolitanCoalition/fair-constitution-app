@@ -82,6 +82,11 @@ class HandleInertiaRequests extends Middleware
                 'impersonating' => fn () => $this->impersonationProps($request),
             ],
             'jurisdiction' => fn () => $this->jurisdictionProps($user),
+            // The same home chain under a key no page prop shadows (a place
+            // page's own `jurisdiction` prop hid the shell's chain, operator
+            // 2026-09-10). The shell prefers a page's `jurisdictionContext`
+            // (App\Support\JurisdictionContext::for) and falls back to this.
+            'homeJurisdiction' => fn () => $this->jurisdictionProps($user),
             'instance' => fn () => $this->instanceProps(),
             // Live roadmap phases — the sidebar renders items from later
             // phases as "Planned · Phase X" until their phase ships here.
@@ -157,8 +162,13 @@ class HandleInertiaRequests extends Middleware
                     'adm_level' => (int) $row->adm_level,
                 ];
 
-                // Root-first ancestors (excluding current) — ≤ 7 levels.
-                $chain = Jurisdiction::find($row->id)?->ancestors ?? [];
+                // Root-first ancestors, then the home place itself, in the
+                // switcher's chip shape ({id,name,slug,admLevel}).
+                $chain = array_values(array_filter(array_map(
+                    [\App\Support\JurisdictionContext::class, 'chip'],
+                    Jurisdiction::find($row->id)?->ancestors ?? []
+                )));
+                $chain[] = \App\Support\JurisdictionContext::chip($current);
             }
         }
 
@@ -238,26 +248,9 @@ class HandleInertiaRequests extends Middleware
      */
     private function cosmicPrefix(): ?string
     {
-        if (! Schema::hasTable('cosmic_addresses')) {
-            return null;
-        }
+        $p = \App\Support\JurisdictionContext::cosmicPrefix();
 
-        $leaf = CosmicAddress::query()
-            ->where('type', 'world')
-            ->where('enabled', true)
-            ->orderBy('sort_order')
-            ->first();
-
-        if ($leaf === null) {
-            return null;
-        }
-
-        $labels = collect($leaf->pathFromRoot())
-            ->reject(fn ($row) => ($row['type'] ?? null) === 'multiverse')
-            ->pluck('label')
-            ->filter();
-
-        return $labels->isEmpty() ? null : $labels->implode(' · ');
+        return $p === '' ? null : $p;
     }
 
     /**

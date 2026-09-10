@@ -323,6 +323,7 @@ class LegislatureController extends Controller
             : null;
 
         return Inertia::render('Legislature/Show', [
+            'jurisdictionContext' => ($ctxJ = \App\Models\Jurisdiction::find($leg->jurisdiction_id)) ? \App\Support\JurisdictionContext::for($ctxJ) : null,
             'surface' => \App\Support\SurfaceMeta::for('legislature/overview'),
             'legislature' => [
                 'id'             => (string) $leg->id,
@@ -1373,6 +1374,7 @@ class LegislatureController extends Controller
         }
 
         return Inertia::render('Legislature/Districts', [
+            'jurisdictionContext' => ($ctxJ = \App\Models\Jurisdiction::find($leg->jurisdiction_id)) ? \App\Support\JurisdictionContext::for($ctxJ) : null,
             'surface' => \App\Support\SurfaceMeta::for('legislature/districts'),
             'legislature' => [
                 'id'                   => $leg->id,

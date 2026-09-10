@@ -50,6 +50,7 @@ class ExecutiveController extends Controller
         $sourceLegislature = $executive->sourceLegislature;
 
         return Inertia::render('Executive/Home', [
+            'jurisdictionContext' => $executive->jurisdiction ? \App\Support\JurisdictionContext::for($executive->jurisdiction) : null,
             'surface' => SurfaceMeta::for('executive/executive-home'),
             'executive' => $this->executiveHeader($executive),
             'machine' => config('cga.state_machines.executive_office'),

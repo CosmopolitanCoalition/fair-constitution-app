@@ -59,6 +59,7 @@ class ChamberController extends Controller
             ->get();
 
         return Inertia::render('Legislature/Chamber', [
+            'jurisdictionContext' => $legislature->jurisdiction ? \App\Support\JurisdictionContext::for($legislature->jurisdiction) : null,
             'surface'       => SurfaceMeta::for('legislature/legislature-home'),
             'legislature'   => $this->legislatureProps($legislature),
             'members'       => $this->memberRows($legislature, $members),

@@ -303,6 +303,8 @@ class JurisdictionController extends Controller
             ];
 
         return [
+            // The shell's persistent chain follows the VIEWED place (operator 2026-09-10).
+            'jurisdictionContext' => \App\Support\JurisdictionContext::for($jurisdiction),
             // Phase 3e reshape: the viewer joins the v2 shell + PageScaffold,
             // which reads the surface record for eyebrow/citation.
             'surface' => \App\Support\SurfaceMeta::for('jurisdictions/viewer'),
@@ -365,6 +367,31 @@ class JurisdictionController extends Controller
             // snapshot read above). Feeds the sidebar block that links out to
             // the full /reach panel.
             'reach' => $reach,
+            // The place page's bands (operator 2026-09-10): the chamber's seats,
+            // a BOUNDED preview of the largest places inside (never enumerate
+            // the 951k), and the rail's tool list from the gates above.
+            'seats' => $legislatureId !== null
+                ? (int) (DB::table('legislatures')->where('id', $legislatureId)->value('total_seats') ?? 0)
+                : null,
+            'children_preview' => $childCount > 0
+                ? DB::table('jurisdictions')
+                    ->where('parent_id', $jurisdiction->id)->whereNull('deleted_at')
+                    ->orderByDesc('population')->orderBy('name')->limit(12)
+                    ->get(['id', 'name', 'slug', 'adm_level', 'population'])
+                    ->map(fn ($c) => ['id' => (string) $c->id, 'name' => $c->name, 'slug' => $c->slug, 'adm_level' => (int) $c->adm_level, 'population' => (int) ($c->population ?? 0)])
+                    ->all()
+                : [],
+            'tools' => \App\Support\JurisdictionContext::tools([
+                'slug'             => $jurisdiction->slug,
+                'legislature_id'   => $legislatureId !== null ? (string) $legislatureId : null,
+                'executive_id'     => $executiveId !== null ? (string) $executiveId : null,
+                'judiciary_id'     => $judiciaryId !== null ? (string) $judiciaryId : null,
+                'has_district_map' => $hasDistrictMap,
+                'chamber_seated'   => $chamberSeated,
+                'current_election' => $currentElection ? ['id' => (string) $currentElection->id, 'status' => $currentElection->status] : null,
+                'childCount'       => $childCount,
+                'parent_name'      => $jurisdiction->parent?->name,
+            ]),
         ];
     }
 
