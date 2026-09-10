@@ -197,11 +197,9 @@ function switchRace(raceId) {
 <template>
     <PageScaffold :surface="surface" :title="race ? `Open ballot — ${race.label}` : 'Open ballot'">
         <template #intro>
-            The continuous approval phase: anyone who lives here can run, and any voter can
-            approve — and un-approve — at any time. The top
-            {{ finalistX || 'X' }} candidates when the phase closes lock onto the ranked
-            ballot. Approving here costs you nothing on election day: you will still rank
-            freely among the finalists, and write-ins always remain open.
+            Approve the candidates you trust. You can change your mind any time until the
+            phase closes; the top {{ finalistX || 'X' }} then go on the ranked ballot, where
+            you rank freely and write-ins stay open.
         </template>
         <template #about>
             <p>
@@ -247,20 +245,22 @@ function switchRace(raceId) {
         </template>
 
         <template v-else>
-            <!-- race picker (multi-race elections only — §B race-resolution rule) -->
-            <Card v-if="races.length" as="section" title="Race">
-                <div class="cluster" role="group" aria-label="Choose a race to view">
-                    <ChipToggle
-                        v-for="option in races"
-                        :key="option.id"
-                        :pressed="option.id === race.id"
-                        @update:pressed="switchRace(option.id)"
-                    >{{ option.label }}</ChipToggle>
+            <!-- Your race is pre-selected from where you live (server-side race
+                 resolution). Other races are public to read, so they sit in one
+                 select, never a wall of chips (operator 2026-09-10). -->
+            <Card v-if="races.length" as="section">
+                <div class="cluster" style="justify-content: space-between; align-items: center">
+                    <p style="margin: 0">
+                        <template v-if="inFootprint"><strong>Your race:</strong> {{ race.label }}.</template>
+                        <template v-else><strong>Viewing:</strong> {{ race.label }}. This is not your race, so you can read it but not approve here.</template>
+                    </p>
+                    <label class="cluster" style="gap: var(--space-2); align-items: center">
+                        <span class="gloss">See another race</span>
+                        <select class="select" :value="race.id" aria-label="See another race" @change="switchRace($event.target.value)">
+                            <option v-for="option in races" :key="option.id" :value="option.id">{{ option.label }}</option>
+                        </select>
+                    </label>
                 </div>
-                <p class="gloss" style="margin-block-start: var(--space-2)">
-                    Your own race is pre-selected from your associations; browsing other races is
-                    public — approving in them is not (Art. I).
-                </p>
             </Card>
 
             <div class="cluster" style="gap: var(--space-6)">
