@@ -37,6 +37,7 @@ import FormChip from '@/Components/Ui/FormChip.vue';
 import HardenedChip from '@/Components/Ui/HardenedChip.vue';
 import StateStrip from '@/Components/Ui/StateStrip.vue';
 import ThresholdMeter from '@/Components/Ui/ThresholdMeter.vue';
+import { addProtomapsBasemap } from '@/lib/protomapsBasemap.js';
 
 defineOptions({ layout: AppShellV2 });
 
@@ -352,26 +353,11 @@ async function loadLeaflet() {
     return leaflet;
 }
 
-/* Basemap: same dated-PMTiles lookup the jurisdiction viewer uses; maps
-   degrade to polygon-on-blue when no bundle is configured, and the picker
-   map says so instead of showing an empty box. */
+/* Basemap: the shared Protomaps helper (the same cartography as the
+   jurisdiction viewer). No bundle configured -> the picker map says so. */
 async function addBasemap(target) {
-    try {
-        const res = await fetch('/api/maps/latest-pmtiles', { credentials: 'same-origin' });
-        const data = res.ok ? await res.json() : null;
-        if (data?.url) {
-            const protomaps = await import('protomaps-leaflet');
-            const basemaps = await import('@protomaps/basemaps');
-            const flavor = basemaps.namedFlavor('light');
-            protomaps
-                .leafletLayer({ url: data.url, flavor, attribution: 'Basemap © <a href="https://protomaps.com">Protomaps</a> · © OpenStreetMap' })
-                .addTo(target);
-        } else {
-            basemapMissing.value = true;
-        }
-    } catch {
-        basemapMissing.value = true;
-    }
+    const ok = await addProtomapsBasemap(target);
+    if (!ok) basemapMissing.value = true;
 }
 
 /* ───────────────── Declare-card picker map (point-first declare) */
