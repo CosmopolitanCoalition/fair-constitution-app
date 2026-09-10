@@ -29,6 +29,27 @@ export const EDUCATION_BY_SURFACE = {
         ],
         why: "c_education.education_auth_register.why"
     },
+    "build/progress": {
+        learn: "c_education.education_build_progress.learn",
+        steps: [
+            {
+                do: "c_education.education_build_progress.s1_do",
+                detail: "c_education.education_build_progress.s1_detail",
+                cite: "CLK-06; Art. II §2"
+            },
+            {
+                do: "c_education.education_build_progress.s2_do",
+                detail: "c_education.education_build_progress.s2_detail",
+                cite: "WF-JUR-01"
+            },
+            {
+                do: "c_education.education_build_progress.s3_do",
+                detail: "c_education.education_build_progress.s3_detail",
+                cite: "CLK-06"
+            }
+        ],
+        why: "c_education.education_build_progress.why"
+    },
     "civic/commons-halls": {
         learn: "c_education.education_civic_commons_halls.learn",
         steps: [
@@ -593,6 +614,27 @@ export const EDUCATION_BY_SURFACE = {
         ],
         why: "c_education.education_economy_request_detail.why"
     },
+    "economy/resident-agreements": {
+        learn: "c_education.education_economy_resident_agreements.learn",
+        steps: [
+            {
+                do: "c_education.education_economy_resident_agreements.s1_do",
+                detail: "c_education.education_economy_resident_agreements.s1_detail",
+                cite: "F-IND-020"
+            },
+            {
+                do: "c_education.education_economy_resident_agreements.s2_do",
+                detail: "c_education.education_economy_resident_agreements.s2_detail",
+                cite: "F-IND-020"
+            },
+            {
+                do: "c_education.education_economy_resident_agreements.s3_do",
+                detail: "c_education.education_economy_resident_agreements.s3_detail",
+                cite: "F-IND-020 · Art. I"
+            }
+        ],
+        why: "c_education.education_economy_resident_agreements.why"
+    },
     "economy/stipend": {
         learn: "c_education.education_economy_stipend.learn",
         steps: [
@@ -728,27 +770,6 @@ export const EDUCATION_BY_SURFACE = {
             }
         ],
         why: "c_education.education_elections_candidacy_registration.why"
-    },
-    "elections/candidate-profile": {
-        learn: "c_education.education_elections_candidate_profile.learn",
-        steps: [
-            {
-                do: "c_education.education_elections_candidate_profile.s1_do",
-                detail: "c_education.education_elections_candidate_profile.s1_detail",
-                cite: "F-CAN-001 · Art. I"
-            },
-            {
-                do: "c_education.education_elections_candidate_profile.s2_do",
-                detail: "c_education.education_elections_candidate_profile.s2_detail",
-                cite: "F-CAN-002"
-            },
-            {
-                do: "c_education.education_elections_candidate_profile.s3_do",
-                detail: "c_education.education_elections_candidate_profile.s3_detail",
-                cite: "F-CAN-003"
-            }
-        ],
-        why: "c_education.education_elections_candidate_profile.why"
     },
     "elections/detail": {
         learn: "c_education.education_elections_detail.learn",
@@ -1221,6 +1242,32 @@ export const EDUCATION_BY_SURFACE = {
             }
         ],
         why: null
+    },
+    "jurisdictions/place": {
+        learn: "c_education.education_jurisdictions_place.learn",
+        steps: [
+            {
+                do: "c_education.education_jurisdictions_place.s1_do",
+                detail: "c_education.education_jurisdictions_place.s1_detail",
+                cite: "Art. I"
+            },
+            {
+                do: "c_education.education_jurisdictions_place.s2_do",
+                detail: "c_education.education_jurisdictions_place.s2_detail",
+                cite: "Art. II §2 · Art. III · Art. IV"
+            },
+            {
+                do: "c_education.education_jurisdictions_place.s3_do",
+                detail: "c_education.education_jurisdictions_place.s3_detail",
+                cite: "WF-JUR-01"
+            },
+            {
+                do: "c_education.education_jurisdictions_place.s4_do",
+                detail: "c_education.education_jurisdictions_place.s4_detail",
+                cite: "Art. I; F-IND-003"
+            }
+        ],
+        why: "c_education.education_jurisdictions_place.why"
     },
     "jurisdictions/restoration": {
         learn: "c_education.education_jurisdictions_restoration.learn",
@@ -2061,6 +2108,48 @@ export const EDUCATION_BY_SURFACE = {
         ],
         why: "c_education.education_shared_constitutional_questions.why"
     },
+    "shared/coverage": {
+        learn: "c_education.education_shared_coverage.learn",
+        steps: [
+            {
+                do: "c_education.education_shared_coverage.s1_do",
+                detail: "c_education.education_shared_coverage.s1_detail",
+                cite: "R-01"
+            },
+            {
+                do: "c_education.education_shared_coverage.s2_do",
+                detail: "c_education.education_shared_coverage.s2_detail",
+                cite: "R-01"
+            },
+            {
+                do: "c_education.education_shared_coverage.s3_do",
+                detail: "c_education.education_shared_coverage.s3_detail",
+                cite: "R-01"
+            }
+        ],
+        why: "c_education.education_shared_coverage.why"
+    },
+    "shared/coverage-ops": {
+        learn: "c_education.education_shared_coverage_ops.learn",
+        steps: [
+            {
+                do: "c_education.education_shared_coverage_ops.s1_do",
+                detail: "c_education.education_shared_coverage_ops.s1_detail",
+                cite: "R-01"
+            },
+            {
+                do: "c_education.education_shared_coverage_ops.s2_do",
+                detail: "c_education.education_shared_coverage_ops.s2_detail",
+                cite: "R-01"
+            },
+            {
+                do: "c_education.education_shared_coverage_ops.s3_do",
+                detail: "c_education.education_shared_coverage_ops.s3_detail",
+                cite: "R-01"
+            }
+        ],
+        why: "c_education.education_shared_coverage_ops.why"
+    },
     "shared/launchpad": {
         learn: "c_education.education_shared_launchpad.learn",
         steps: [
@@ -2133,6 +2222,27 @@ export const EDUCATION_BY_SURFACE = {
             }
         ],
         why: "c_education.education_social_achievements.why"
+    },
+    "social/legitimacy": {
+        learn: "c_education.education_social_legitimacy.learn",
+        steps: [
+            {
+                do: "c_education.education_social_legitimacy.s1_do",
+                detail: "c_education.education_social_legitimacy.s1_detail",
+                cite: "Art. I; F-IND-006"
+            },
+            {
+                do: "c_education.education_social_legitimacy.s2_do",
+                detail: "c_education.education_social_legitimacy.s2_detail",
+                cite: "Art. V §1"
+            },
+            {
+                do: "c_education.education_social_legitimacy.s3_do",
+                detail: "c_education.education_social_legitimacy.s3_detail",
+                cite: "Art. I"
+            }
+        ],
+        why: "c_education.education_social_legitimacy.why"
     },
     "social/profile": {
         learn: "c_education.education_social_profile.learn",
@@ -2253,6 +2363,27 @@ export const EDUCATION_BY_SURFACE = {
             }
         ],
         why: null
+    },
+    "system/atlas": {
+        learn: "c_education.education_system_atlas.learn",
+        steps: [
+            {
+                do: "c_education.education_system_atlas.s1_do",
+                detail: "c_education.education_system_atlas.s1_detail",
+                cite: "Art. II §2"
+            },
+            {
+                do: "c_education.education_system_atlas.s2_do",
+                detail: "c_education.education_system_atlas.s2_detail",
+                cite: "Art. I; F-IND-005"
+            },
+            {
+                do: "c_education.education_system_atlas.s3_do",
+                detail: "c_education.education_system_atlas.s3_detail",
+                cite: "Art. I"
+            }
+        ],
+        why: "c_education.education_system_atlas.why"
     },
     "system/audit-chain": {
         learn: "c_education.education_system_audit_chain.learn",

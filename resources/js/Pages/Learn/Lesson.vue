@@ -57,20 +57,20 @@ const next = computed(() => {
 <template>
     <PageScaffold :surface="surface" :title="t(module.title)">
         <template #intro>
-            <Link href="/learn">{{ t('c_education.learn.ui.back_to_learn') }}</Link>
+            <Link href="/learn">{{ t('c_learn.ui.back_to_learn') }}</Link>
             · <span class="citation">{{ t(track.title) }}</span>
         </template>
 
-        <Banner v-if="required" tone="warn">{{ t('c_education.learn.ui.required_banner') }}</Banner>
-        <StatusBadge v-if="module.completed" tone="success">{{ t('c_education.learn.ui.completed') }}</StatusBadge>
+        <Banner v-if="required" tone="warn">{{ t('c_learn.ui.required_banner') }}</Banner>
+        <StatusBadge v-if="module.completed" tone="success">{{ t('c_learn.ui.completed') }}</StatusBadge>
 
         <section aria-labelledby="check-h" class="stack">
-            <h2 id="check-h">{{ t('c_education.learn.ui.check_heading') }}</h2>
-            <p class="gloss">{{ t('c_education.learn.ui.check_intro') }}</p>
+            <h2 id="check-h">{{ t('c_learn.ui.check_heading') }}</h2>
+            <p class="gloss">{{ t('c_learn.ui.check_intro') }}</p>
 
             <Banner v-if="result" :tone="result.passed ? 'success' : 'warn'">
-                {{ result.passed ? t('c_education.learn.ui.passed') : t('c_education.learn.ui.failed') }}
-                ({{ t('c_education.learn.ui.score') }}: {{ result.score_pct }}%)
+                {{ result.passed ? t('c_learn.ui.passed') : t('c_learn.ui.failed') }}
+                ({{ t('c_learn.ui.score') }}: {{ result.score_pct }}%)
             </Banner>
 
             <Card v-for="q in questions" :key="q.key">
@@ -94,10 +94,10 @@ const next = computed(() => {
                 </Banner>
             </Card>
 
-            <p v-if="!signedIn" class="gloss">{{ t('c_education.learn.ui.sign_in_to_complete') }}</p>
+            <p v-if="!signedIn" class="gloss">{{ t('c_learn.ui.sign_in_to_complete') }}</p>
             <p v-else>
                 <button class="btn btn--primary" :disabled="!allAnswered" @click="submit">
-                    {{ result && !result.passed ? t('c_education.learn.ui.retake') : t('c_education.learn.ui.submit_answers') }}
+                    {{ result && !result.passed ? t('c_learn.ui.retake') : t('c_learn.ui.submit_answers') }}
                 </button>
             </p>
         </section>

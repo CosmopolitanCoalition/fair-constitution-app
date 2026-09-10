@@ -318,13 +318,17 @@
                          sidebar keeps only the picker, autoseed/clear and the
                          district tools. Mobile-first: the strip is a compact
                          pill bottom-right (above the Menu bar), the panel is
-                         near-full-width; md+ centers both in/under the top bar. -->
+                         near-full-width. md+: pill and panel sit at the map's
+                         BOTTOM-RIGHT (above the dock) — the floating header's
+                         middle now carries the jurisdiction chain, and a top-
+                         centred pill covered its chips (operator 2026-09-10:
+                         "the map quality is in the way of the bread crumbs"). -->
                     <Teleport to="body">
                     <template v-if="(props.stats && (districtsRef.length > 0 || (props.stats.population_equality?.district_count ?? 0) > 0)) || hasAnyFlag || optimalLabel">
                         <button @click="statsPanelCollapsed = !statsPanelCollapsed"
                                 class="fixed z-[1100] flex items-center gap-2 rounded border bg-gray-900/95 px-2.5 py-1 text-[11px] shadow-lg backdrop-blur select-none
                                        bottom-20 right-2
-                                       md:bottom-auto md:right-auto md:top-2 md:left-1/2 md:-translate-x-1/2"
+                                       md:bottom-36 md:right-3"
                                 :class="hardFlagCount > 0 ? 'border-red-800' : hasAnyFlag ? 'border-amber-800' : 'border-cyan-900'">
                             <span class="font-semibold text-cyan-400 uppercase tracking-wide">Map Quality</span>
                             <span v-if="hardFlagCount > 0" class="text-red-400">⛔ {{ hardFlagCount }}</span>
@@ -342,7 +346,7 @@
                         <div v-if="!statsPanelCollapsed"
                              class="fixed z-[1100] rounded border bg-gray-900/95 shadow-2xl backdrop-blur
                                     bottom-28 left-2 right-2
-                                    md:bottom-auto md:left-1/2 md:right-auto md:top-10 md:w-[400px] md:-translate-x-1/2"
+                                    md:bottom-44 md:left-auto md:right-3 md:w-[400px]"
                              :class="hardFlagCount > 0 ? 'border-red-800' : hasAnyFlag ? 'border-amber-800' : 'border-cyan-900'">
                             <div class="flex items-center justify-between px-3 py-1.5 border-b border-gray-800">
                                 <span class="text-xs font-semibold text-cyan-400 uppercase tracking-wide">Map Quality</span>

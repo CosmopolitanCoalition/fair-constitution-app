@@ -436,61 +436,6 @@ export const FLOWS_BY_SURFACE = {
       ]
     }
   ],
-  "elections/candidate-profile": [
-    {
-      "wf": "WF-ORG-02",
-      "wfName": "Candidate Endorsement",
-      "familyLabel": "Organizations",
-      "total": 2,
-      "minStep": 1,
-      "trigger": "Candidate requests / org offers endorsement",
-      "terminal": "Endorsement recorded; candidate gains R-07; faction linkage used for proportionality math",
-      "steps": [
-        {
-          "n": 1,
-          "action": "Endorsement requested or offered during open registration window",
-          "prev": null,
-          "next": "Record endorsement; grant R-07; bind faction linkage",
-          "branches": []
-        }
-      ]
-    },
-    {
-      "wf": "WF-CIV-05",
-      "wfName": "Candidacy Lifecycle",
-      "familyLabel": "Civic life",
-      "total": 7,
-      "minStep": 3,
-      "trigger": "Previous election certified — registration opens immediately",
-      "terminal": "Candidate in approval pool with live standing; top X (X = f(seats in race)) advance as finalists to ranked ballot; non-finalists remain write-in eligible (right to stand preserved); or withdrawn",
-      "steps": [
-        {
-          "n": 3,
-          "action": "Build campaign profile; positions stated; public record auto-attached (legislative votes, civic actions, statements)",
-          "prev": "Validate eligibility (jurisdictional association only)",
-          "next": "Gather endorsements (organizations AND individuals) throughout the phase",
-          "branches": []
-        },
-        {
-          "n": 4,
-          "action": "Gather endorsements (organizations AND individuals) throughout the phase",
-          "prev": "Build campaign profile; positions stated; public record auto-attached (legislative votes, civic actions, statements)",
-          "next": "Accumulate revocable approvals; live standing vs. finalist line",
-          "branches": []
-        },
-        {
-          "n": 7,
-          "action": "Optional withdrawal before ballot lock",
-          "prev": "At cutoff: top X per race (X = f(seats), CLK-21) become finalists on the ranked ballot",
-          "next": null,
-          "branches": [
-            "withdrawn → removed from pool/ballot",
-            "else → proceeds"
-          ]
-        }
-      ]
-    }
-  ],
   "civic/petitions": [
     {
       "wf": "WF-CIV-06",

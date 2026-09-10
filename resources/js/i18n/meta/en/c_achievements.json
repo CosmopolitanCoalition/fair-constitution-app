@@ -161,6 +161,12 @@
     "file": "docs/plans/education/K2_ACHIEVEMENT_LIBRARY.md",
     "status": "source"
   },
+  "achievement.ach_edu_001": {
+    "source_hash": "78280e56549e27bb8b7ddd14c2468cdb7e37ffcd6ef5598721c0fa8e4ac29d7e",
+    "shape": "static",
+    "file": "docs/plans/education/K2_ACHIEVEMENT_LIBRARY.md",
+    "status": "source"
+  },
   "achievement.ach_elb_001": {
     "source_hash": "83e1597872b95fd8843eeeead17b7869d98fdb974a8b2ade7bded319bc146c9e",
     "shape": "static",

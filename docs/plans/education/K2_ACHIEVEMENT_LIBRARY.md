@@ -398,6 +398,11 @@ value — they explain how the world works — and stop borrowing the verified t
 
 ---
 
+### Arc 14 — Learning (F-EDU) · 1
+| Code | Achievement | Trigger | Earner | Tier |
+|---|---|---|---|---|
+| `ACH-EDU-001` | Completed a civic training | `ref=F-EDU-001` | self | V |
+
 ## 5. JURISDICTION CATALOG — 22 milestones (Plane B, no `user_id`)
 
 Published through `PublicRecordService::publish()`, k-anon floored, never person-attributed.

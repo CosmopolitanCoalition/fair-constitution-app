@@ -22,8 +22,8 @@ const { t } = useI18n({ useScope: 'global' });
 </script>
 
 <template>
-    <PageScaffold :surface="surface" :title="t('c_education.learn.ui.guides_title')">
-        <template #intro>{{ t('c_education.learn.ui.guides_intro') }}</template>
+    <PageScaffold :surface="surface" :title="t('c_learn.ui.guides_title')">
+        <template #intro>{{ t('c_learn.ui.guides_intro') }}</template>
 
         <div class="stack">
             <Card v-for="j in journeys" :key="j.key">
@@ -38,7 +38,7 @@ const { t } = useI18n({ useScope: 'global' });
 
         <p>
             <Link href="/learn" class="btn">
-                <Icon name="graduation-cap" size="sm" /> {{ t('c_education.learn.ui.back_to_learn') }}
+                <Icon name="graduation-cap" size="sm" /> {{ t('c_learn.ui.back_to_learn') }}
             </Link>
         </p>
     </PageScaffold>
