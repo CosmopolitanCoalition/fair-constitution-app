@@ -444,6 +444,9 @@ art config:cache
 
 echo "→ Migrating…"
 art migrate --force
+# Demo-session row capture (scale_demo boxes): a table added by a later migration
+# needs the trigger too, so re-run the installer after every migrate. Non-fatal.
+art demo:void-expired --install || echo "demo capture install skipped (command missing or failed)"
 
 # A fresh instance needs the constitutional clock registry (CLK-01…21) seeded —
 # the scheduler + federation:init's CLK-20 arming depend on it. (DatabaseSeeder
