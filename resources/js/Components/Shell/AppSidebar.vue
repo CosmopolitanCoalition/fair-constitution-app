@@ -31,14 +31,13 @@ const { t } = useI18n({ useScope: 'global' });
 
 const intersects = (a, b) => a.some((x) => b.includes(x));
 
-const sectionVisible = (section) =>
-    (!section.requiresSandbox || props.sandbox)
-    && (section.visibility === 'all' || intersects(props.roles, section.roles ?? []));
+/* A role never hides a section or gates a page (operator ruling 2026-09-10);
+   only the sandbox-only dev sections and unbuilt ("Planned") items are withheld. */
+const sectionVisible = (section) => !section.requiresSandbox || props.sandbox;
 
 const itemPlanned = (item) => Boolean(item.phase) && !props.phasesLive.includes(item.phase);
 
-const itemEnabled = (item) =>
-    !itemPlanned(item) && (!item.enabledRoles || intersects(props.roles, item.enabledRoles));
+const itemEnabled = (item) => !itemPlanned(item);
 </script>
 
 <template>

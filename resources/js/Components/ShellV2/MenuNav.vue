@@ -10,7 +10,13 @@
  *   href === 'tour:start'    → the tour TOGGLE — arms the mode IN PLACE on the
  *                              current page (A2 ruling); no navigation, toggle
  *                              again to exit. Every page is a valid stop.
- *   item.roles ∌ user roles  → disabled with a "Requires R-xx" hint
+ *   item.roles               → INFORMATIONAL only: the link stays live and shows
+ *                              who acts there ("R-xx acts here"). A role never
+ *                              gates a page (operator ruling 2026-09-10: "Even if
+ *                              someone doesn't have a given role that doesn't
+ *                              mean the user shouldn't be able to see the page");
+ *                              the actions on the page disable for those who
+ *                              cannot take them.
  */
 import { computed } from 'vue';
 import { Link } from '@inertiajs/vue3';
@@ -67,10 +73,11 @@ function unlockedDuringSetup(item) {
 function isTour(item) {
     return item.href === 'tour:start';
 }
+/* A page is reachable by everyone; only the setup lock (above) and a missing
+   route ("Planned") withhold a link. Roles are shown, never enforced, here. */
 function allowed(item) {
     if (props.setupIncomplete && ! unlockedDuringSetup(item)) return false;
-    if (!item.roles) return true;
-    return item.roles.some((r) => roleSet.value.has(r));
+    return true;
 }
 function prereq(item) {
     return item.roles ? item.roles[item.roles.length - 1] : null;
@@ -129,17 +136,14 @@ function prereq(item) {
                         class="sidebar-link"
                         :href="item.href"
                         :aria-current="currentNavId === item.id ? 'page' : undefined"
+                        :title="prereq(item) ? prereq(item) + ' acts here' : undefined"
                     >
                         <Icon :name="item.icon" size="sm" /> {{ item.label }}
+                        <span v-if="prereq(item)" class="prereq-hint">{{ prereq(item) }} acts here</span>
                     </Link>
-                    <span
-                        v-else-if="item.href"
-                        class="sidebar-link sidebar-link--disabled"
-                        aria-disabled="true"
-                        :title="'Requires ' + prereq(item)"
-                    >
+                    <span v-else-if="item.href" class="sidebar-link sidebar-link--disabled" aria-disabled="true">
                         <Icon :name="item.icon" size="sm" /> {{ item.label }}
-                        <span class="prereq-hint">Requires {{ prereq(item) }}</span>
+                        <span class="planned-flag">Available after setup</span>
                     </span>
                     <span v-else class="sidebar-link sidebar-link--disabled" aria-disabled="true">
                         <Icon :name="item.icon" size="sm" /> {{ item.label }}

@@ -114,7 +114,8 @@ export const SITEMAP = [
         { id: 'org-registry', label: 'The registry', icon: 'building', href: '/organizations', contract: 'organizations/org-registry.html' },
         { id: 'co-determination', label: 'Worker seats on the board', icon: 'users', href: '/organizations/co-determination', contract: 'organizations/co-determination.html' },
         { id: 'transfers-conversions', label: 'Ownership changes', icon: 'refresh-cw', href: '/organizations/transfers-conversions', contract: 'organizations/transfers-conversions.html' },
-        { id: 'board-elections', label: 'Board elections', icon: 'vote', href: null, contract: 'organizations/board-elections.html', phase: 2 },
+        /* BUILT (FE-D8): GET /organizations/{organization}/board-elections is per organization, so the menu lands on the registry, where each organization's board elections are one link away (operator 2026-09-10: it was shown as Planned in error). */
+        { id: 'board-elections', label: 'Board elections', icon: 'vote', href: '/organizations', contract: 'organizations/board-elections.html' },
     ] },
     { key: 'places', title: 'Places & their processes', items: [
         { id: 'jurisdiction-browser', label: 'Places', icon: 'globe', href: '/jurisdictions', contract: 'jurisdictions/jurisdiction-browser.html' },
@@ -139,7 +140,7 @@ export const SITEMAP = [
        `joint-ledgers` (tables exist, no read surface). `stipend` has no route
        of its own — it reads on the economy home page. */
     { key: 'market', title: 'Market', items: [
-        { id: 'exchange', label: 'The exchange', icon: 'bar-chart', href: null, contract: 'economy/exchange.html', phase: 8 },
+        { id: 'exchange', label: 'The exchange', icon: 'bar-chart', href: '/economy/exchange', contract: 'economy/exchange.html' },
         { id: 'marketplace', label: 'The open market', icon: 'building', href: '/economy/market', contract: 'economy/marketplace.html' },
         { id: 'agreements', label: 'Agreements', icon: 'file-text', href: '/economy/agreements', contract: 'economy/agreements.html' },
         { id: 'wallet', label: 'My wallet', icon: 'lock', href: '/economy/wallet', contract: 'economy/wallet.html' },
@@ -147,7 +148,8 @@ export const SITEMAP = [
         { id: 'units', label: 'Units & money', icon: 'sliders', href: '/economy/units', contract: 'economy/units.html' },
         { id: 'stipend', label: 'The civic stipend', icon: 'refresh-cw', href: '/economy/stipend', contract: 'economy/stipend.html' },
         { id: 'treasury', label: 'Public finance', icon: 'bar-chart', href: '/economy/treasury', contract: 'economy/treasury.html' },
-        { id: 'org-settings', label: 'Org economics', icon: 'building', href: null, contract: 'economy/org-settings.html', phase: 8 },
+        /* BUILT: GET /organizations/{organization}/economy is per organization; the menu lands on the registry, where each organization's economics page is one link away. */
+        { id: 'org-settings', label: 'Org economics', icon: 'building', href: '/organizations', contract: 'economy/org-settings.html' },
     ] },
     { key: 'help', title: 'Learn & help', items: [
         { id: 'learn', label: 'Learn & lessons', icon: 'graduation-cap', href: '/learn', contract: 'learn/learn-home.html' },

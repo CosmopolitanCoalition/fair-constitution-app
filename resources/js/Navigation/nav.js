@@ -18,8 +18,9 @@
 
    Role gating (direct port of renderSidebar()):
      • section hidden unless visibility 'all' or persona roles ∩ section.roles;
-     • item disabled with a .prereq-hint ("Requires R-09") unless roles ∩
-       item.enabledRoles. Roles are ALWAYS server-derived (shared props).
+     • item.enabledRoles is INFORMATIONAL (operator ruling 2026-09-10: a role
+       never gates a page); MenuNav shows "R-xx acts here" and keeps the link live.
+       Roles are ALWAYS server-derived (shared props).
    ============================================================================ */
 
 export const NAV = [
