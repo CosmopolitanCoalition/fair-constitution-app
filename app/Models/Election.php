@@ -43,6 +43,22 @@ class Election extends Model
     public const KIND_ORG_BOARD_WORKER = 'org_board_worker';
     public const KIND_RESTORATION     = 'restoration';
 
+    /** The kind in plain words, for titles and lists (never the raw enum on a page). */
+    public static function kindLabel(?string $kind): string
+    {
+        return match ($kind) {
+            self::KIND_GENERAL          => 'general election',
+            self::KIND_SPECIAL          => 'special election',
+            self::KIND_EXECUTIVE        => 'executive election',
+            self::KIND_JUDICIAL         => 'judicial election',
+            self::KIND_REFERENDUM       => 'referendum',
+            self::KIND_ORG_BOARD_OWNER  => 'board election (owner seats)',
+            self::KIND_ORG_BOARD_WORKER => 'board election (worker seats)',
+            self::KIND_RESTORATION      => 'restoration election',
+            default                     => str_replace('_', ' ', (string) $kind).' election',
+        };
+    }
+
     public const STATUS_SCHEDULED       = 'scheduled';
     public const STATUS_APPROVAL_OPEN   = 'approval_open';
     public const STATUS_FINALIST_CUTOFF = 'finalist_cutoff';

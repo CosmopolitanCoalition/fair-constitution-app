@@ -37,12 +37,12 @@
                      clicking "Earth" leave the map view entirely. -->
                 <div class="px-4 py-3 border-b border-gray-800 text-xs text-gray-400 flex flex-wrap gap-1 items-center">
                     <template v-if="jurisdiction.ancestors.length > 0">
-                        <a :href="`/jurisdictions/${jurisdiction.ancestors[0].slug}`" class="hover:text-white transition-colors">
+                        <a :href="`/jurisdictions/${jurisdiction.ancestors[0].slug}/map`" class="hover:text-white transition-colors">
                             {{ jurisdiction.ancestors[0].name }}
                         </a>
                         <template v-for="ancestor in jurisdiction.ancestors.slice(1)" :key="ancestor.id">
                             <span class="text-gray-600">›</span>
-                            <a :href="`/jurisdictions/${ancestor.slug}`" class="hover:text-white transition-colors">
+                            <a :href="`/jurisdictions/${ancestor.slug}/map`" class="hover:text-white transition-colors">
                                 {{ ancestor.name }}
                             </a>
                         </template>
@@ -147,7 +147,7 @@
                     <div v-if="!map_acceptance.is_planet_scope && relatedOpenFlagCount > 0"
                          class="bg-gray-800 rounded-lg p-3">
                         <div class="text-xs text-gray-400 mb-1.5">Data flags</div>
-                        <a :href="planetSlug ? `/jurisdictions/${planetSlug}` : '/jurisdictions'"
+                        <a :href="planetSlug ? `/jurisdictions/${planetSlug}/map` : '/jurisdictions'"
                            class="inline-block px-2 py-0.5 rounded text-xs bg-amber-900 text-amber-200 border border-amber-700
                                   hover:bg-amber-800 transition-colors">
                             ⚑ {{ relatedOpenFlagCount }} open data flag{{ relatedOpenFlagCount === 1 ? '' : 's' }} — review at planet scope →

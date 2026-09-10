@@ -143,7 +143,24 @@ class JurisdictionController extends Controller
      * by migration 2026_05_22_000002_apportionment_cleanup.php —
      * apportionment lives only at the district level now.)
      */
+    /** GET /jurisdictions/{slug} — the PLACE's own page (operator 2026-09-10). */
+    public function home(Jurisdiction $jurisdiction): Response
+    {
+        $props = $this->viewerProps($jurisdiction);
+        $props['surface']  = \App\Support\SurfaceMeta::for('jurisdictions/place');
+        $props['map_href'] = '/jurisdictions/'.$jurisdiction->slug.'/map';
+
+        return Inertia::render('Jurisdictions/Home', $props);
+    }
+
+    /** GET /jurisdictions/{slug}/map — the full-bleed map viewer (the setup-era surface). */
     public function show(Jurisdiction $jurisdiction): Response
+    {
+        return Inertia::render('Jurisdictions/Show', $this->viewerProps($jurisdiction));
+    }
+
+    /** Everything both pages read: identity, chain, institutions, the map gates. */
+    private function viewerProps(Jurisdiction $jurisdiction): array
     {
         $childCount = $jurisdiction->children()->count();
 
@@ -285,7 +302,7 @@ class JurisdictionController extends Controller
                 'ratio_micro'         => null,
             ];
 
-        return Inertia::render('Jurisdictions/Show', [
+        return [
             // Phase 3e reshape: the viewer joins the v2 shell + PageScaffold,
             // which reads the surface record for eyebrow/citation.
             'surface' => \App\Support\SurfaceMeta::for('jurisdictions/viewer'),
@@ -348,7 +365,7 @@ class JurisdictionController extends Controller
             // snapshot read above). Feeds the sidebar block that links out to
             // the full /reach panel.
             'reach' => $reach,
-        ]);
+        ];
     }
 
     /**

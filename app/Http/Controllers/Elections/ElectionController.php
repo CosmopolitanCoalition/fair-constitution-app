@@ -18,6 +18,7 @@ use App\Support\SurfaceMeta;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use App\Domain\Forms\Support\RaceFootprint;
 use Inertia\Inertia;
 use Inertia\Response;
 
@@ -232,11 +233,29 @@ class ElectionController extends Controller
 
         $boardMember = $this->isBoardMember($user, $model);
 
+        // The viewer's OWN race (from where they live), so the page speaks in
+        // their terms before the chamber-wide totals (operator 2026-09-10: "How
+        // are there 86 seats in a single race and 258 finalist positions?").
+        $myRace = null;
+        if ($user !== null) {
+            $best = RaceFootprint::bestRaceForUser((string) $user->getKey(), (string) $model->id);
+            $own  = $best !== null ? $races->firstWhere('id', (string) $best->race_id) : null;
+            if ($own !== null) {
+                $myRace = [
+                    'id'             => (string) $own->id,
+                    'label'          => self::raceLabel($own),
+                    'seats'          => (int) $own->seats,
+                    'finalist_count' => (int) $own->finalist_count,
+                ];
+            }
+        }
+
         return Inertia::render('Elections/ElectionDetail', [
             'surface' => SurfaceMeta::for('elections/detail'),
             'election' => [
                 'id' => (string) $model->id,
                 'kind' => $model->kind,
+                'kind_label' => Election::kindLabel($model->kind),
                 'status' => $model->status,
                 'phase' => $phase,
                 'certSubStep' => self::certSubStep($model->status),
@@ -245,6 +264,7 @@ class ElectionController extends Controller
                     'id' => $jid,
                     'name' => $model->jurisdiction?->name,
                     'adm_level' => (int) ($model->jurisdiction?->adm_level ?? 0),
+                    'adm_label' => $model->jurisdiction?->adm_label,
                 ],
                 'schedule' => $this->scheduleRows($model),
                 'interval' => [
@@ -270,7 +290,9 @@ class ElectionController extends Controller
                 'finalistPlaces' => (int) $races->sum('finalist_count'),
                 'validatedCandidates' => $validatedCandidates,
                 'stage' => $phase,
+                'races' => $races->count(),
             ],
+            'myRace' => $myRace,
             'races' => $races->map(fn (ElectionRace $r) => [
                 'id' => (string) $r->id,
                 'label' => self::raceLabel($r),

@@ -1223,6 +1223,14 @@ return [
         'citation'  => 'Districts partition the jurisdiction; every district seats 5–9 · nearest rounding · Art. II §2',
     ],
 
+    'jurisdictions/place' => [
+        'title'     => 'A place',
+        'module'    => 'jurisdictions',
+        'nav'       => 'jurisdiction-browser',
+        'roles'     => [],
+        'workflows' => ['WF-JUR-01'],
+        'forms'     => [],
+    ],
     'jurisdictions/viewer' => [
         'title'     => 'A jurisdiction',
         'module'    => 'jurisdictions',

@@ -27,6 +27,9 @@ import Field from '@/Components/Ui/Field.vue';
 import FormChip from '@/Components/Ui/FormChip.vue';
 import HardenedChip from '@/Components/Ui/HardenedChip.vue';
 import Stat from '@/Components/Ui/Stat.vue';
+import { electionKindLabel } from '@/lib/electionKind.js';
+
+const titleCase = (t) => (t ? t.charAt(0).toUpperCase() + t.slice(1) : t);
 import StateStrip from '@/Components/Ui/StateStrip.vue';
 import StatusBadge from '@/Components/Ui/StatusBadge.vue';
 
@@ -40,6 +43,7 @@ const props = defineProps({
     machine: { type: Array, default: () => [] },
     currentState: { type: String, default: null },
     stats: { type: Object, default: null },
+    myRace: { type: Object, default: null },
     races: { type: Array, default: () => [] },
     blockers: { type: Array, default: () => [] },
     others: { type: Array, default: () => [] },
@@ -174,12 +178,17 @@ const hasDistricts = computed(() => props.races.some((race) => !race.at_large));
 <template>
     <PageScaffold
         :surface="surface"
-        :title="election ? `Election — ${election.jurisdiction.name}` : 'Elections'"
+        :title="election ? `${titleCase(election.kind_label ?? electionKindLabel(election.kind))} — ${election.jurisdiction.name}` : 'Elections'"
     >
         <template #intro>
-            Elections fire from clocks, never from official discretion. Every cycle runs the
-            two-phase open ballot: an approval phase that anyone associated can enter as a
-            candidate, a finalist cutoff at the pre-published X, then the ranked (STV) window.
+            <template v-if="election">
+                This is the {{ election.kind_label ?? electionKindLabel(election.kind) }} for
+                {{ election.jurisdiction.name }}<template v-if="election.jurisdiction.adm_label">, a {{ election.jurisdiction.adm_label.toLowerCase() }}</template>.
+            </template>
+            Elections run on the clock, never on anyone's say-so. Anyone who lives here can put
+            their name forward and everyone can approve the people they trust; the top
+            {{ election?.finalistMultiplier?.value ?? 3 }}× seats go on the ranked ballot, and
+            the count seats the winners.
         </template>
         <template #about>
             <p>
@@ -221,7 +230,7 @@ const hasDistricts = computed(() => props.races.some((race) => !race.at_large));
                     <li v-for="other in others" :key="other.election_id">
                         <Link :href="`/elections/${other.election_id}`">{{ other.jurisdiction_name }}</Link>
                         <span class="citation">
-                            {{ other.kind }} · {{ other.seats }} seats · X = {{ other.finalist_count }} ·
+                            {{ electionKindLabel(other.kind) }} · {{ other.seats }} seats · {{ other.finalist_count }} finalist places ·
                             {{ other.phase }}
                         </span>
                     </li>
@@ -256,14 +265,21 @@ const hasDistricts = computed(() => props.races.some((race) => !race.at_large));
                         <StatusBadge :tone="phase === 'approval' ? 'info' : phase === 'ranked' ? 'warning' : 'neutral'">
                             phase: {{ phase }}<template v-if="election.certSubStep"> · {{ election.certSubStep }}</template>
                         </StatusBadge>
-                        <StatusBadge tone="neutral">{{ election.kind }}</StatusBadge>
+                        <StatusBadge tone="neutral">{{ election.kind_label ?? electionKindLabel(election.kind) }}</StatusBadge>
                     </h2>
                 </template>
                 <StateStrip :states="machine" :current="currentState" />
+                <template v-if="myRace">
+                    <p style="margin-block-start: var(--space-3)"><strong>Your district:</strong> {{ myRace.label }}</p>
+                    <div class="cluster" style="gap: var(--space-6)">
+                        <Stat :value="myRace.seats" label="seats in your district" />
+                        <Stat :value="myRace.finalist_count" label="finalist places in your district" accent />
+                    </div>
+                </template>
                 <div v-if="stats" class="cluster" style="gap: var(--space-6); margin-block-start: var(--space-3)">
-                    <Stat :value="stats.seats" label="seats in this election" />
-                    <Stat :value="stats.finalistPlaces" label="finalist places (X) — pre-published" accent />
-                    <Stat :value="stats.validatedCandidates" label="validated candidates" />
+                    <Stat :value="stats.seats" :label="stats.races > 1 ? `seats across all ${stats.races} districts` : 'seats'" />
+                    <Stat :value="stats.finalistPlaces" :label="stats.races > 1 ? 'finalist places across all districts' : 'finalist places'" accent />
+                    <Stat :value="stats.validatedCandidates" label="candidates so far" />
                     <Stat :value="stats.stage" label="current stage" />
                 </div>
 
@@ -369,7 +385,7 @@ const hasDistricts = computed(() => props.races.some((race) => !race.at_large));
                         <li v-for="other in others" :key="other.election_id">
                             <Link :href="`/elections/${other.election_id}`">{{ other.jurisdiction_name }}</Link>
                             <span class="citation">
-                                {{ other.kind }} · {{ other.seats }} seats · X = {{ other.finalist_count }} ·
+                                {{ electionKindLabel(other.kind) }} · {{ other.seats }} seats · {{ other.finalist_count }} finalist places ·
                                 {{ other.phase }}
                             </span>
                         </li>

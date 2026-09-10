@@ -273,7 +273,11 @@ button, [role="button"], a.btn, input, select, summary,
 /* Main */
 .main-content {
   grid-area: main;
-  inline-size: 100%; max-inline-size: 56rem;
+  /* 120rem (1920px): a desktop uses its width (operator 2026-09-10: "a LOT of
+     void space ... fixed ACROSS the board"; measured 56rem = 37% of a 2390px
+     viewport). Running text keeps its 44rem measure via .page-intro below, and
+     .grid-2 flows into more columns as the room grows. */
+  inline-size: 100%; max-inline-size: 120rem;
   margin-inline: auto;
   padding-block: var(--space-8) var(--space-12); padding-inline: var(--space-6);
   /* emergency break for long unbroken runs (hashes, compound words, IDs) —
@@ -281,7 +285,7 @@ button, [role="button"], a.btn, input, select, summary,
   overflow-wrap: break-word;
 }
 /* Map-led and table-led surfaces opt into the full canvas on large monitors. */
-.main-content.main--wide { max-inline-size: 96rem; }
+.main-content.main--wide { max-inline-size: 140rem; }
 /* Full-bleed tool surfaces (Leaflet viewers, district mapper, jurisdiction
    table). Reproduces the legacy AppLayout contract the running tools size
    against: a flex column filling the grid track exactly (min-block-size: 0 +

@@ -290,7 +290,10 @@ Route::middleware('auth')->group(function () {
         ->name('jurisdictions.disintermediation.propose');
 });
 
-Route::get('/jurisdictions/{jurisdiction:slug}', [JurisdictionController::class, 'show'])->name('jurisdictions.show');
+// A place's own page; the full-bleed map viewer moved to /map (operator 2026-09-10:
+// the breadcrumb and every jurisdiction link land on the place, not the map).
+Route::get('/jurisdictions/{jurisdiction:slug}', [JurisdictionController::class, 'home'])->name('jurisdictions.show');
+Route::get('/jurisdictions/{jurisdiction:slug}/map', [JurisdictionController::class, 'show'])->name('jurisdictions.map');
 
 // ── The build screen — how much of this world exists yet ────────────────────────────────
 // Watched while a fresh box builds itself, the way Step-3 is watched while the district
