@@ -172,3 +172,7 @@ Schedule::job(new \App\Jobs\SnapshotWorldStatsJob)->dailyAt('00:50')->withoutOve
 
 // Keep Horizon's dashboard metrics fresh.
 Schedule::command('horizon:snapshot')->everyFiveMinutes()->onOneServer();
+
+// Demo sessions whose Laravel session expired are voided like a logout
+// (DemoMode ruling C). The command is inert off a scale_demo box.
+Schedule::command('demo:void-expired')->everyFiveMinutes()->withoutOverlapping()->onOneServer();

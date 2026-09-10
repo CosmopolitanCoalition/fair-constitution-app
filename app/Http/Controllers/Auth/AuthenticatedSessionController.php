@@ -92,6 +92,10 @@ class AuthenticatedSessionController extends Controller
     /** POST /logout */
     public function destroy(Request $request): RedirectResponse
     {
+        // Demo box: the session's civic acts are voided before it ends
+        // (DemoMode ruling C, the compensating purge). Inert elsewhere.
+        app(\App\Services\Demo\DemoSessionService::class)->endCurrent('logout');
+
         Auth::guard('web')->logout();
 
         $request->session()->invalidate();

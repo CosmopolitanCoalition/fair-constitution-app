@@ -270,6 +270,11 @@ return [
     */
     'federation_self_url' => env('FEDERATION_SELF_URL'),
 
+    // Demo-session capture on a scale_demo box (operator rulings 2026-09-10,
+    // DemoMode C + A): a signed-in user's filings are real writes, voided at
+    // session end. Off = a scale_demo box behaves like production for filings.
+    'demo_session_capture' => filter_var(env('CGA_DEMO_SESSION_CAPTURE', true), FILTER_VALIDATE_BOOL),
+
     // Residency confirmation posture for a BETA / demo box (operator ruling 2026-09-10:
     // "the 30 days on residency verification is gating far too much. Since this is Beta
     // lets make it instant"). true = a declared claim confirms at once; the constitutional

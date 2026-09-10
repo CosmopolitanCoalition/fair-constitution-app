@@ -10,6 +10,9 @@ use App\Models\User;
 use App\Services\AuditService;
 use App\Services\ConstitutionalValidator;
 use App\Services\Education\TrainingGateService;
+use App\Services\Demo\DemoSessionService;
+use App\Support\DemoMode;
+use App\Domain\Engine\TrainingRequired;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 use RuntimeException;
@@ -90,6 +93,7 @@ class ConstitutionalEngine
         private readonly ConstitutionalValidator $validator,
         private readonly ResolvesRoles $roles,
         private readonly TrainingGateService $trainingGate,
+        private readonly ?DemoSessionService $demoSessions = null,
     ) {}
 
     /**
@@ -131,7 +135,27 @@ class ConstitutionalEngine
                 );
             }
 
-            $this->authorize($handler, $canonical, $actor);
+            // DEMO MODE (operator rulings 2026-09-10, DemoMode C + A): on a
+            // scale_demo box a signed-in user's filing belongs to their demo
+            // session. The role gate and the training gate do not block it
+            // ("go through the motions"); what was waived is written into the
+            // act's own audit payload, the mutation lands for real, and
+            // DemoSessionService voids it when the session ends. A null actor
+            // (system filing) is never a demo act; a systemOnly form is never
+            // waived.
+            $demoId   = $actor !== null && DemoMode::active()
+                ? ($this->demoSessions ?? app(DemoSessionService::class))->currentId($actorId)
+                : null;
+            $bypassed = [];
+
+            try {
+                $this->authorize($handler, $canonical, $actor);
+            } catch (ConstitutionalViolation $gate) {
+                if ($demoId === null || $handler->systemOnly()) {
+                    throw $gate;
+                }
+                $bypassed[] = 'role';
+            }
 
             // The act-gate (ruling A5 — K2_ENGINE_PLAN §5.2): a role-holder's
             // first ROLE-AUTHORITY act asks for the role's training. One rule,
@@ -139,12 +163,29 @@ class ConstitutionalEngine
             // gate, which never can, what a completion is). Null actors
             // (system filings) and ungated forms pass straight through, so
             // this line is inert for everything the gate never touches.
-            $this->trainingGate->assertMayAct($actor, $canonical);
+            try {
+                $this->trainingGate->assertMayAct($actor, $canonical);
+            } catch (TrainingRequired $gate) {
+                if ($demoId === null) {
+                    throw $gate;
+                }
+                $bypassed[] = 'training';
+            }
 
             $this->validator->check($canonical, $payload);
 
-            return DB::transaction(function () use ($canonical, $handler, $actor, $payload, $actorId, $jurisdictionId): EngineResult {
+            return DB::transaction(function () use ($canonical, $handler, $actor, $payload, $actorId, $jurisdictionId, $demoId, $bypassed): EngineResult {
+                if ($demoId !== null) {
+                    // Transaction-local: every row the handler writes is captured
+                    // against this demo session (the cga_demo_capture trigger).
+                    DB::statement('SELECT set_config(?, ?, true)', [DemoMode::GUC, $demoId]);
+                }
+
                 $recorded = $handler->handle($actor, $payload);
+
+                if ($demoId !== null) {
+                    $recorded['_demo'] = ['session' => $demoId, 'bypassed' => $bypassed];
+                }
 
                 // Self-creating filings (F-IND-001): the actor does not exist
                 // until the handler creates them. Adopt the created individual
