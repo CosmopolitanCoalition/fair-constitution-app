@@ -185,7 +185,22 @@ class TypeBDistrictMapperApplyTest extends TestCase
             $mapper = new TypeBDistrictMapper();
 
             $mapper->apply($legId, 'active');
-            $mapper->apply($legId, 'active'); // re-apply: prior must archive
+
+            // A DIFFERENT plan (one more constituent changes the signature)
+            // re-applied as active: the prior must archive. An IDENTICAL
+            // re-apply keeps the standing plan (171bca97) — pinned below.
+            $extra = (string) Str::uuid();
+            $parentId = DB::table('legislatures')->where('id', $legId)->value('jurisdiction_id');
+            DB::table('jurisdictions')->insert([
+                'id' => $extra, 'name' => "{$tag}-c8", 'slug' => "{$tag}-c8",
+                'parent_id' => $parentId, 'adm_level' => 2, 'population' => 10,
+                'created_at' => now(), 'updated_at' => now(),
+            ]);
+            DB::table('jurisdiction_adjacency')->insert([
+                'parent_id' => $parentId, 'j1' => $childIds[7], 'j2' => $extra,
+                'dim' => 1, 'border_len' => 1.0, 'computed_at' => now(),
+            ]);
+            $mapper->apply($legId, 'active'); // re-apply a changed plan: prior must archive
 
             $this->assertSame(1, DB::table('legislature_type_b_groupings')
                 ->where('legislature_id', $legId)->where('status', 'active')->count(),
@@ -200,6 +215,42 @@ class TypeBDistrictMapperApplyTest extends TestCase
                 'the draft does not disturb the sitting active plan');
             $this->assertSame(1, DB::table('legislature_type_b_groupings')
                 ->where('legislature_id', $legId)->where('status', 'draft')->count());
+        });
+    }
+
+    /**
+     * IDEMPOTENCE (171bca97, the cloud box's requeue 2026-09-08): re-applying
+     * an IDENTICAL plan as active keeps the standing grouping — no re-mint, no
+     * archive churn, no new audit act — and reports unchanged=true. Counts on
+     * a box stay the same after a requeue of every chamber.
+     */
+    public function test_reapplying_an_identical_active_plan_keeps_the_standing_grouping(): void
+    {
+        $this->onLivePg(function (): void {
+            $tag = 'tbtest-' . Str::lower(Str::random(6));
+            $legId = $this->seedFlagged($tag, 8, 5, $childIds);
+            $mapper = new TypeBDistrictMapper();
+
+            $first = $mapper->apply($legId, 'active');
+            $this->assertNotNull($first);
+            $this->assertArrayNotHasKey('unchanged', $first, 'the first apply mints');
+            $groupingId = $first['grouping_id'];
+            $panels = DB::table('legislature_type_b_panels')->where('grouping_id', $groupingId)->orderBy('id')->pluck('id')->all();
+            $audits = (int) DB::table('audit_log')->where('module', 'legislature')->count();
+
+            $second = $mapper->apply($legId, 'active');
+            $this->assertNotNull($second);
+            $this->assertTrue($second['unchanged'] ?? false, 'an identical re-apply reports unchanged');
+            $this->assertSame($groupingId, $second['grouping_id'], 'the standing grouping id is kept');
+            $this->assertSame(1, DB::table('legislature_type_b_groupings')->where('legislature_id', $legId)->where('status', 'active')->count());
+            $this->assertSame(0, DB::table('legislature_type_b_groupings')->where('legislature_id', $legId)->where('status', 'archived')->count(),
+                'nothing is archived');
+            $this->assertSame($panels, DB::table('legislature_type_b_panels')->where('grouping_id', $groupingId)->orderBy('id')->pluck('id')->all(),
+                'the panel rows are the same rows');
+            $this->assertSame($audits, (int) DB::table('audit_log')->where('module', 'legislature')->count(),
+                'no new audit act for a no-op');
+            $this->assertFalse((bool) DB::table('legislatures')->where('id', $legId)->value('type_b_needs_districting'),
+                'the chamber row stays reconciled');
         });
     }
 

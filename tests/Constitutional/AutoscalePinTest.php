@@ -513,6 +513,33 @@ class AutoscalePinTest extends TestCase
             $this->assertTrue($a['complete'],
                 'the fully drawn (drifting, pin 4) Pinland map assesses complete — the structural checks never flag lawful drift');
 
+            // ── Pin 8-0: ZERO IS ZERO at the assessor (93d48370, Lakshadweep
+            // 2026-09-08): a zero-population constituent whose direct children
+            // are ALL zero-population is lawful inactive — the pool landing never
+            // bins it, so the assessor must not count it as unassigned. The same
+            // constituent with ONE populated child is a real gap and is flagged.
+            $ghostId = (string) Str::uuid();
+            $ghostKidId = (string) Str::uuid();
+            $anySibling = DB::table('jurisdictions')->where('parent_id', $ctx['pinland_id'])
+                ->whereNull('deleted_at')->whereNotNull('geom')->orderBy('id')->value('id');
+            DB::statement('INSERT INTO jurisdictions (id, name, slug, parent_id, adm_level, population, geom, created_at, updated_at)
+                           SELECT ?, ?, ?, ?, adm_level, 0, geom, now(), now() FROM jurisdictions WHERE id = ?',
+                [$ghostId, 'pin-ghost', 'pin-ghost-'.Str::lower(Str::random(4)), $ctx['pinland_id'], $anySibling]);
+            DB::table('jurisdictions')->insert([
+                'id' => $ghostKidId, 'name' => 'pin-ghost-kid', 'slug' => 'pin-ghost-kid-'.Str::lower(Str::random(4)),
+                'parent_id' => $ghostId, 'adm_level' => 3, 'population' => 0, 'created_at' => now(), 'updated_at' => now(),
+            ]);
+            $a = $assess->invoke($proc, $pinlandLeg, (string) $pinlandMap->id, ['errors' => []]);
+            $this->assertStringNotContainsString('unassigned constituents', implode(' | ', $a['reasons']),
+                'a zero-pop constituent with only zero-pop children is never an unassigned constituent');
+            DB::table('jurisdictions')->where('id', $ghostKidId)->update(['population' => 5]);
+            $a = $assess->invoke($proc, $pinlandLeg, (string) $pinlandMap->id, ['errors' => []]);
+            $this->assertStringContainsString('1 unassigned constituents', implode(' | ', $a['reasons']),
+                'the same constituent with ONE populated child is a real gap');
+            DB::table('jurisdictions')->whereIn('id', [$ghostKidId, $ghostId])->delete();
+            $a = $assess->invoke($proc, $pinlandLeg, (string) $pinlandMap->id, ['errors' => []]);
+            $this->assertTrue($a['complete'], 'the fixture is restored');
+
             $halfId = DB::table('district_subdivisions')
                 ->where('map_id', $pinlandMap->id)
                 ->where('parent_jurisdiction_id', $ctx['pin_giant_id'])
