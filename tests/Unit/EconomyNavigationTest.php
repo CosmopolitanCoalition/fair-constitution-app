@@ -248,18 +248,23 @@ final class EconomyNavigationTest extends TestCase
         self::assertSame('Private organization terms 8', $detail['agreement']['terms_full']);
     }
 
-    public function test_composer_loads_candidates_without_loading_any_agreement(): void
+    public function test_composer_waits_for_search_without_loading_people_or_agreements(): void
     {
         $this->resident(1);
         $this->logging();
         $props = $this->props($this->controller->residentAgreements($this->request('/economy/resident-agreements?new=1')));
         self::assertTrue($props['compose']);
         self::assertSame([], $props['agreements']);
-        self::assertNotContains('viewer', array_column($props['candidates'], 'id'));
-        self::assertCount(2, DB::getQueryLog());
-        self::assertStringContainsString('limit 50', DB::getQueryLog()[0]['query']);
-        self::assertStringContainsString('order by "id"', DB::getQueryLog()[0]['query']);
-        self::assertStringNotContainsString('order by "name"', DB::getQueryLog()[0]['query']);
+        self::assertSame([], $props['candidates']);
+        self::assertFalse($props['party_directory']['searched']);
+        self::assertSame([], DB::getQueryLog());
+
+        $searched = $this->props($this->controller->residentAgreements($this->request('/economy/resident-agreements?new=1&party_q=Other')));
+        self::assertTrue($searched['party_directory']['searched']);
+        self::assertSame([], $searched['agreements']);
+        self::assertCount(1, DB::getQueryLog());
+        self::assertStringContainsString('limit 21', DB::getQueryLog()[0]['query']);
+        self::assertStringContainsString('from "users"', DB::getQueryLog()[0]['query']);
     }
 
     public function test_exchange_pages_offers_before_metadata_and_never_reads_world_telemetry(): void
@@ -339,17 +344,18 @@ final class EconomyNavigationTest extends TestCase
             DB::table('marketplace_listings')->insert(['id' => $this->id($i), 'title' => 'Listing '.$i, 'price' => '99.123456', 'quantity' => '1.000000', 'seller_account_id' => 'private-account', 'asset_id' => 'asset', 'created_at' => '2026-01-01']);
         }
         $this->logging();
-        $offers = (new \ReflectionMethod($this->controller, 'offers'))->invoke($this->controller);
-        self::assertCount(100, $offers);
+        $page = (new \App\Support\MarketDirectory)->page($this->request('/economy/market'));
+        $offers = (new \ReflectionMethod($this->controller, 'offers'))->invoke($this->controller, null, $page['offer_ids']);
+        self::assertCount(25, $offers);
         self::assertSame($this->id(105), $offers[0]['id']);
         self::assertSame('Registered item', $offers[0]['asset']['name']);
         self::assertSame('99.123456', $offers[0]['price']);
         $queries = DB::getQueryLog();
         self::assertCount(2, $queries);
-        self::assertStringContainsString('limit 100', $queries[0]['query']);
+        self::assertStringContainsString('limit 26', $queries[0]['query']);
         self::assertStringNotContainsString('join', $queries[0]['query']);
         self::assertStringContainsString('"l"."id" in', $queries[1]['query']);
-        self::assertCount(101, $queries[1]['bindings']); // 100 IDs plus status.
+        self::assertCount(26, $queries[1]['bindings']); // 25 IDs plus status.
     }
 
     private function request(string $url, ?string $user = 'viewer'): Request

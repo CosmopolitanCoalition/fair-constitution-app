@@ -170,43 +170,24 @@ class EconomyController extends Controller
 
     public function market(Request $request): Response
     {
-        $offers = $this->offers();
+        $directory = (new \App\Support\MarketDirectory)->page($request);
+        $offers = $directory['tab'] === 'offers' ? $this->offers(pageIds: $directory['offer_ids']) : [];
         $orgSellers = $this->orgSellers(array_column($offers, 'seller_account_id'));
 
         return Inertia::render('Economy/Market', [
             'surface'    => SurfaceMeta::for('economy/marketplace'),
             'currency'   => $this->currencyProp($this->currency()),
+            'tab'        => $directory['tab'],
+            'pagination' => $directory['pagination'],
             'offers'     => array_map(
                 fn ($o) => $o + ['seller_org' => $orgSellers[$o['seller_account_id']] ?? null],
                 $offers
             ),
             // Things you hold that are not already on the market, so the
             // "offer something" form can only point at what you actually have.
-            'my_assets'  => $this->unlistedAssets($request),
-            'work'       => DB::table('work_postings')
-                ->where('status', 'open')->whereNull('deleted_at')
-                ->orderByDesc('created_at')->limit(50)->get()
-                ->map(fn ($p) => [
-                    'id'              => (string) $p->id,
-                    'title'           => (string) $p->title,
-                    'terms'           => (string) $p->terms,
-                    'rate'            => $p->rate === null ? null : (string) $p->rate,
-                    'status'          => (string) $p->status,
-                    'organization_id' => (string) $p->organization_id,
-                    'applications'    => DB::table('work_applications')->where('posting_id', $p->id)->count(),
-                ])->all(),
-            // PRIVACY: 'private' assistance requests never leave the node's
-            // owner. Mutual aid is Art. I association, private by default.
-            'assistance' => DB::table('assistance_requests')
-                ->where('status', 'open')->where('privacy', '!=', 'private')->whereNull('deleted_at')
-                ->orderByDesc('created_at')->limit(50)->get()
-                ->map(fn ($a) => [
-                    'id'      => (string) $a->id,
-                    'title'   => (string) $a->title,
-                    'need'    => (string) $a->need,
-                    'privacy' => (string) $a->privacy,
-                    'status'  => (string) $a->status,
-                ])->all(),
+            'my_assets'  => fn () => $directory['tab'] === 'offers' ? $this->unlistedAssets($request) : [],
+            'work'       => $directory['work'],
+            'assistance' => $directory['assistance'],
         ]);
     }
 
@@ -646,18 +627,15 @@ class EconomyController extends Controller
                 ];
             })->all();
 
-        // Select at most 50 IDs through the primary index before resolving
-        // consent-plane labels. Never sort the world's people by name.
-        $candidateIds = ! $compose ? collect() : DB::table('users')
-            ->where('id', '!=', $myId)->whereNull('deleted_at')->orderBy('id')->limit(50)->pluck('id');
-        $candidates = $candidateIds->isEmpty() ? [] : DB::table('users')->whereIn('id', $candidateIds)
-            ->get(['id', 'name'])->sortBy('name')
-            ->map(fn ($u) => ['id' => (string) $u->id, 'name' => (string) $u->name])->values()->all();
+        $partyDirectory = $compose
+            ? (new \App\Support\AgreementPartyDirectory)->page($request, $myId)
+            : \App\Support\AgreementPartyDirectory::empty();
 
         return Inertia::render('Economy/ResidentAgreements', [
             'surface'    => $surface,
             'agreements' => $agreements,
-            'candidates' => $candidates,
+            'candidates' => $partyDirectory['candidates'],
+            'party_directory' => $partyDirectory,
             'my_id'      => $myId,
             'compose'    => $compose,
         ]);
@@ -1136,16 +1114,13 @@ class EconomyController extends Controller
     // ── helpers ──────────────────────────────────────────────────────────
 
     /** @return array<int, array<string, mixed>> */
-    private function offers(?string $onlyId = null): array
+    private function offers(?string $onlyId = null, array $pageIds = []): array
     {
         // Bound listing input before joining the optional registered asset.
-        $ids = DB::table('marketplace_listings')->whereNull('deleted_at');
+        $ids = collect($pageIds);
         if ($onlyId !== null) {
-            $ids->where('id', $onlyId);
-        } else {
-            $ids->where('status', 'open')->orderByDesc('created_at')->orderByDesc('id');
+            $ids = DB::table('marketplace_listings')->whereNull('deleted_at')->where('id', $onlyId)->limit(1)->pluck('id');
         }
-        $ids = $ids->limit($onlyId === null ? 100 : 1)->pluck('id');
         if ($ids->isEmpty()) {
             return [];
         }
@@ -1162,7 +1137,7 @@ class EconomyController extends Controller
         if ($onlyId !== null) {
             $query->where('l.id', $onlyId);
         } else {
-            $query->where('l.status', 'open')->orderByDesc('l.created_at')->orderByDesc('l.id');
+            $query->where('l.status', 'open')->orderByRaw("COALESCE(l.created_at, '1970-01-01 00:00:00+00') DESC")->orderByDesc('l.id');
         }
 
         return $query->get()->map(fn ($l) => [

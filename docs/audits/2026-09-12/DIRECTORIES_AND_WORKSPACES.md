@@ -42,6 +42,8 @@ Public display names are used in the changed legislature presenters. Speaker wor
 
 ## Remaining work
 
+The maintained [demo action plan](DEMO_ACTION_PLAN.md) presents this work as phases, actions, statuses and completion checks. Its B1/B2 follow-up now replaces the market/work/help and agreement-party caps described in this earlier pass with paginated browsing and indexed search.
+
 The consolidation families listed as outstanding in the preceding follow-up are implemented. Continue checking navigation while adding the remaining institutional room wiring and economic actions, then rehearse civic scenarios. Complete language, educational-content and accessibility coverage after those paths settle, as the operator requested.
 
 Known follow-ups include paginating/searching the remaining market, work/help and person-picker caps; employer posting and decisions, help participation and share issuance; independent-participant room calls; broader Speaker role exploration and session archives; remaining term-sync/telemetry read costs; and the previously recorded board-action audit. This pass establishes bounded organization browsing and clearer workspaces, not complete planet-scale load certification or end-to-end demo readiness.

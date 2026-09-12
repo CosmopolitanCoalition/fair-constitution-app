@@ -32,6 +32,8 @@ import { formatMoney, formatCount, formatQuantity } from '@/lib/money.js';
 defineOptions({ layout: AppShellV2 });
 
 const props = defineProps({
+    tab: { type: String, default: 'offers' },
+    pagination: { type: Object, default: () => ({}) },
     currency: { type: Object, default: null },
     offers: { type: Array, default: () => [] },
     work: { type: Array, default: () => [] },
@@ -63,16 +65,8 @@ const TABS = [
     { key: 'assistance', label: 'Requests for help' },
 ];
 
-const tab = computed(() => {
-    const t = new URLSearchParams((page.url ?? '').split('?')[1] ?? '').get('tab');
-    return TABS.some((x) => x.key === t) ? t : 'offers';
-});
-
-const counts = computed(() => ({
-    offers: props.offers?.length ?? 0,
-    work: props.work?.length ?? 0,
-    assistance: props.assistance?.length ?? 0,
-}));
+const tab = computed(() => props.tab);
+const pageCount = computed(() => (props[tab.value] ?? []).length);
 </script>
 
 <template>
@@ -159,17 +153,19 @@ const counts = computed(() => ({
                 v-for="t in TABS"
                 :key="t.key"
                 :href="`/economy/market?tab=${t.key}`"
+                :only="['offers', 'work', 'assistance', 'tab', 'pagination', 'my_assets']"
+                preserve-state
                 class="mkt-tab"
                 :class="{ 'mkt-tab--on': tab === t.key }"
                 :aria-current="tab === t.key ? 'page' : undefined"
             >
                 {{ t.label }}
-                <span class="mkt-count">{{ formatCount(counts[t.key]) }}</span>
             </Link>
         </nav>
+        <p role="status" aria-live="polite">{{ formatCount(pageCount) }} entries on this page</p>
 
         <!-- ------------------------------------------------------ for sale -->
-        <section v-show="tab === 'offers'" aria-label="Things and services for sale">
+        <section v-if="tab === 'offers'" aria-label="Things and services for sale">
             <p v-if="!offers.length" class="econ-empty">
                 Nothing is for sale right now.
             </p>
@@ -194,7 +190,7 @@ const counts = computed(() => ({
         </section>
 
         <!-- ---------------------------------------------------------- work -->
-        <section v-show="tab === 'work'" aria-label="Work on offer">
+        <section v-if="tab === 'work'" aria-label="Work on offer">
             <p v-if="!work.length" class="econ-empty">No work is being offered right now.</p>
             <Card v-for="w in work" :key="w.id" as="article" inset class="mkt-row">
                 <div class="mkt-head">
@@ -213,7 +209,7 @@ const counts = computed(() => ({
         </section>
 
         <!-- ---------------------------------------------------- assistance -->
-        <section v-show="tab === 'assistance'" aria-label="Requests for help">
+        <section v-if="tab === 'assistance'" aria-label="Requests for help">
             <p v-if="!assistance.length" class="econ-empty">Nobody is asking for help right now.</p>
             <Card v-for="a in assistance" :key="a.id" as="article" inset class="mkt-row">
                 <h3 class="mkt-title">{{ a.title }}</h3>
@@ -221,10 +217,17 @@ const counts = computed(() => ({
                 <p class="mkt-meta"><span>{{ a.status }}</span></p>
             </Card>
         </section>
+        <nav v-if="pagination.previous || pagination.next" class="mkt-pages" aria-label="Market pages">
+            <Link v-if="pagination.previous" :href="pagination.previous" :only="['offers', 'work', 'assistance', 'tab', 'pagination']" preserve-state rel="prev">Previous entries</Link>
+            <Link v-if="pagination.next" :href="pagination.next" :only="['offers', 'work', 'assistance', 'tab', 'pagination']" preserve-state rel="next">Next entries</Link>
+        </nav>
     </PageScaffold>
 </template>
 
 <style scoped>
+.mkt-pages { display: flex; flex-wrap: wrap; gap: 1rem; margin-block-start: 1rem; }
+.mkt-pages a { display: inline-flex; align-items: center; min-block-size: 44px; padding: .5rem 1rem; border: 1px solid var(--gov-border); border-radius: .4rem; }
+.mkt-pages a:focus-visible { outline: 3px solid var(--gov-accent); outline-offset: 3px; }
 .mkt-compose summary { cursor: pointer; padding: .75rem; min-block-size: 44px; border: 1px solid var(--gov-border); border-radius: .4rem; font-weight: 600; }
 .mkt-compose[open] summary { margin-block-end: .75rem; }
 .mkt-compose summary:focus-visible, .mkt-tab:focus-visible { outline: 3px solid var(--gov-accent); outline-offset: 3px; }
