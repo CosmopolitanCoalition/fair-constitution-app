@@ -3,6 +3,8 @@
 namespace App\Services\Matrix;
 
 use App\Models\CommitteeMeeting;
+use App\Models\CourtCase;
+use App\Models\Legislature;
 use App\Models\MatrixRoom;
 use App\Models\User;
 
@@ -37,6 +39,15 @@ class PublicVoiceRoomAccess
                 ->whereHas('committee.legislature', fn ($query) => $query->where('jurisdiction_id', $jurisdictionId))
                 ->exists()) {
             return;
+        }
+
+        if ($room->room_type === MatrixRoom::ROOM_INSTITUTION) {
+            $institution = match ($room->entity_type) {
+                MatrixRoom::ENTITY_LEGISLATURE => Legislature::query(),
+                MatrixRoom::ENTITY_CASE => CourtCase::query(),
+                default => null,
+            };
+            if ($institution?->whereKey($room->entity_id)->where('jurisdiction_id', $jurisdictionId)->exists()) return;
         }
 
         // Private calls use their existing membership-gated endpoint. Unknown institution

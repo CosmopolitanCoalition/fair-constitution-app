@@ -94,10 +94,57 @@ class MatrixClientService
 
     public function sendMessage(string $roomId, array $content, ?string $asUser = null, string $type = 'm.room.message'): array
     {
+        // The posting gate has already checked the actor and this exact room.
+        // Registration in the application DB alone does not create a Matrix
+        // virtual user or make that user a room member.
+        if ($asUser !== null) {
+            $this->ensureSenderJoined($roomId, $asUser);
+        }
+
         $txn = (string) Str::uuid();
         $path = '/_matrix/client/v3/rooms/'.rawurlencode($roomId).'/send/'.rawurlencode($type).'/'.$txn;
 
         return $this->http()->withQueryParameters($this->asUser($asUser))->put($path, $content)->throw()->json();
+    }
+
+    /** Called only from an authorized send, never from timeline reads. */
+    private function ensureSenderJoined(string $roomId, string $mxid): void
+    {
+        [$localpart, $server] = explode(':', substr($mxid, 1), 2) + [1 => ''];
+        if (! str_starts_with($mxid, '@') || ! preg_match('/^u-[a-z0-9._=\-]*$/D', $localpart)
+            || $server !== (string) config('matrix.server_name')) {
+            throw new \InvalidArgumentException('Message sender must be a local application-service user.');
+        }
+
+        // Appservice registration bypasses human login. inhibit_login is also
+        // required by homeservers using delegated authentication such as MAS.
+        // Existing users (including a concurrent registration) are harmless.
+        $registration = $this->http()->post('/_matrix/client/v3/register', [
+            'type' => 'm.login.application_service', 'username' => $localpart, 'inhibit_login' => true,
+        ]);
+        if (! ($registration->status() === 400 && $registration->json('errcode') === 'M_USER_IN_USE')) {
+            $registration->throw();
+        }
+
+        $path = '/_matrix/client/v3/rooms/'.rawurlencode($roomId);
+        $join = $this->http()->withQueryParameters($this->asUser($mxid))->post($path.'/join', (object) []);
+        if ($join->status() === 403 && $join->json('errcode') === 'M_FORBIDDEN') {
+            // Only invite-only rooms need the governor's invitation. Never
+            // change a ban, join rule, or power level to force admission.
+            $rules = $this->http()->get($path.'/state/m.room.join_rules')->throw()->json();
+            if (($rules['join_rule'] ?? null) !== 'invite') {
+                $join->throw();
+            }
+            $invite = $this->http()->post($path.'/invite', ['user_id' => $mxid]);
+            if (! ($invite->status() === 403 && $invite->json('errcode') === 'M_FORBIDDEN')) {
+                $invite->throw();
+            }
+            // A concurrent request may already have joined, making its second
+            // invite forbidden. Joining is idempotent; a real denial still
+            // fails here, before any message is sent.
+            $join = $this->http()->withQueryParameters($this->asUser($mxid))->post($path.'/join', (object) []);
+        }
+        $join->throw();
     }
 
     /** Best-effort UI removal (Art. I §5.7 — never "erased"); the durable artifact is the carve-out log. */

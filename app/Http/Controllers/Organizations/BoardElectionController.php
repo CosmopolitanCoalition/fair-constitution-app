@@ -17,6 +17,7 @@ use App\Models\OrgWorker;
 use App\Models\Tabulation;
 use App\Models\User;
 use App\Services\Organizations\OrgSettingsService;
+use App\Services\Rooms\BoardRoomAccess;
 use App\Support\SurfaceMeta;
 use Inertia\Inertia;
 use Inertia\Response;
@@ -79,6 +80,8 @@ class BoardElectionController extends Controller
             ),
             'chair' => $this->chair($board),
             'seated' => $this->seated($board),
+            'roomHref' => $board && app(BoardRoomAccess::class)->allows($request->user(), $board)
+                ? '/rooms/board/'.$board->id : null,
             'can' => [
                 // The same R-23 gate the F-ORG-003/004 handlers enforce; the
                 // engine re-asserts on POST — the UI flag is UX only. Worker

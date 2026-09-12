@@ -28,7 +28,7 @@ class SocialTopologyReconcilerService
     /** isActivated is the Phase-I activation-tier seam (below tier ⇒ #square but no #halls); default true. */
     public function reconcileJurisdiction(string $jurisdictionId, bool $isSeated, bool $isActivated = true): void
     {
-        $jur = Jurisdiction::query()->find($jurisdictionId);
+        $jur = Jurisdiction::query()->find($jurisdictionId, ['id', 'name']);
         if ($jur === null) {
             return;
         }
@@ -83,7 +83,7 @@ class SocialTopologyReconcilerService
         if ($jurisdictionId === null) {
             return null;
         }
-        $jur = Jurisdiction::query()->find($jurisdictionId);
+        $jur = Jurisdiction::query()->find($jurisdictionId, ['id', 'name']);
         if ($jur === null) {
             return null;
         }

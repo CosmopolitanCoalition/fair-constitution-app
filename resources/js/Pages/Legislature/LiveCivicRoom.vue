@@ -1,6 +1,6 @@
 <script setup>
 import { computed, ref, watch } from 'vue';
-import { Link, router, usePage } from '@inertiajs/vue3';
+import { Link, router, usePage, useForm } from '@inertiajs/vue3';
 import { useI18n } from 'vue-i18n';
 import AppShellV2 from '@/Layouts/AppShellV2.vue';
 import PageScaffold from '@/Components/Surface/PageScaffold.vue';
@@ -33,6 +33,7 @@ const props = defineProps({
     displayNames: { type: Object, default: () => ({}) },
     voice: { type: Object, default: () => ({}) },
     chat: { type: Array, default: () => [] },
+    chatAvailable: { type: Boolean, default: false },
     record: { type: Array, default: () => [] },
     can: { type: Object, default: () => ({}) },
     urls: { type: Object, default: () => ({}) },
@@ -41,6 +42,11 @@ const page = usePage();
 const { t } = useI18n();
 const text = (key, fallback) => t('c_rooms.' + key, fallback);
 const busy = ref(false);
+const compose = useForm({ body: '' });
+function sendMessage() {
+    if (!props.urls.messages || !compose.body.trim()) return;
+    compose.post(props.urls.messages, { preserveScroll: true, onSuccess: () => compose.reset('body') });
+}
 const flashStatus = computed(() => page.props.flash?.status ?? null);
 const isLive = computed(() => props.status?.state === 'open');
 const labelFor = (handle) => personLabel({ identity: handle, display_name: props.displayNames[handle] });
@@ -52,9 +58,9 @@ const seating = computed(() => {
     return seats;
 });
 const { isStale } = useLiveRoom({
-    keys: ['status', 'agenda', 'vote', 'presence', 'queue', 'floorHolder', 'displayNames', 'voice', 'chat', 'record', 'clocks'],
+    keys: ['status', 'agenda', 'vote', 'presence', 'queue', 'floorHolder', 'displayNames', 'voice', 'chat', 'chatAvailable', 'record', 'clocks'],
     isLive: () => props.status?.state ?? 'open',
-    busy: () => busy.value,
+    busy: () => busy.value || compose.processing,
     cadenceMs: 5000,
 });
 const { announce } = useAnnounce();
@@ -87,6 +93,7 @@ function floorAction(action) {
                 <span v-if="jurisdiction" class="citation">{{ jurisdiction }}</span>
                 <StatusBadge v-if="isStale" tone="warning">{{ text('reconnecting', 'Reconnecting') }}</StatusBadge>
             </div>
+            <Link v-if="urls.rooms" :href="urls.rooms" class="btn btn--secondary btn--sm">Browse rooms</Link>
             <Link v-if="urls.chamber" :href="urls.chamber" class="btn btn--secondary btn--sm">{{ text('committee_workspace', 'Committee workspace') }}</Link>
         </header>
         <Banner v-if="flashStatus" tone="info" role="status">{{ flashStatus }}</Banner>
@@ -144,12 +151,21 @@ function floorAction(action) {
                     <p v-else-if="voice.enabled" class="gloss">{{ text('sign_in_call', 'Sign in to join the hearing’s call. The seating and public record remain open to visitors.') }}</p>
                     <p v-else class="gloss">{{ text('call_not_ready', 'The hearing’s call is not available yet. You can follow the floor and speaking queue here.') }}</p>
                     <Link v-if="urls.commons" :href="urls.commons" class="btn btn--secondary btn--sm">{{ text('open_halls', 'Open the halls') }}</Link>
+                    <p v-if="!chatAvailable" role="status">Room messages are temporarily unavailable.</p>
+                    <p v-else-if="!chat.length">No messages in this hearing yet.</p>
                     <ul v-if="chat.length" class="room-list">
                         <li v-for="(message, index) in chat" :key="message.event_id || index">
                             <strong>{{ labelFor(message.sender || message.handle) }}</strong>
                             <p style="white-space: pre-wrap">{{ message.body }}</p>
                         </li>
                     </ul>
+                    <form v-if="voice.myUserId && voice.roomId" @submit.prevent="sendMessage" class="stack">
+                        <label for="hearing-message">Message to this hearing</label>
+                        <textarea id="hearing-message" v-model="compose.body" rows="3" maxlength="20000" :aria-invalid="!!compose.errors.body" :aria-describedby="compose.errors.body ? 'hearing-message-note hearing-message-error' : 'hearing-message-note'" />
+                        <small id="hearing-message-note">Discussion only. File formal testimony through the committee workspace.</small>
+                        <p id="hearing-message-error" v-if="compose.errors.body" role="alert">{{ compose.errors.body }}</p>
+                        <Btn type="submit" :disabled="compose.processing || !compose.body.trim()">Send message</Btn>
+                    </form>
                 </Card>
             </aside>
         </div>

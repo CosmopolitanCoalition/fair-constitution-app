@@ -2,17 +2,18 @@
 /**
  * Civic/MatrixCommons — Phase K-3 (K3-L), the embedded client for the LIVE commons over the Matrix
  * mesh (Plane B), the counterpart to the K-1 Plane-A record views. Reads the appservice-backed
- * timeline; posting is residency-only + pseudonymous; in the halls you may file your OWN message as
+ * timeline; posting is open to signed-in players + pseudonymous; in the halls you may file your OWN message as
  * testimony (the Plane B → Plane A seal). Senders are pseudonymous @u-<handle> mxids by construction —
  * never a legal name. A down homeserver degrades to an empty timeline (a notice, never a broken page).
  * Everything here is the SELF-HOSTED in-app client — there is no external Matrix client in this system.
  */
-import { computed } from 'vue';
-import { router, useForm, usePage } from '@inertiajs/vue3';
+import { computed, watch } from 'vue';
+import { Link, router, useForm, usePage } from '@inertiajs/vue3';
+import { useI18n } from 'vue-i18n';
 import { useLiveRoom } from '@/composables/useLiveRoom';
 import AppShellV2 from '@/Layouts/AppShellV2.vue';
 import PageScaffold from '@/Components/Surface/PageScaffold.vue';
-import FormCard from '@/Components/Surface/FormCard.vue';
+
 import LiveRoom from '@/Components/Civic/Room/LiveRoom.vue';
 import InviteButton from '@/Components/Invite/InviteButton.vue';
 import Banner from '@/Components/Ui/Banner.vue';
@@ -31,6 +32,8 @@ const props = defineProps({
     spaceType: { type: String, required: true },
     isHalls: { type: Boolean, default: false },
     jurisdictionId: { type: String, default: '' },
+    selectedPlace: { type: Object, default: null },
+    roomState: { type: String, default: 'not_ready' },
     roomId: { type: String, default: null },
     reachable: { type: Boolean, default: true },
     messages: { type: Array, default: () => [] },
@@ -41,20 +44,29 @@ const props = defineProps({
 });
 
 const page = usePage();
+const { t } = useI18n();
+const text = (key, values = {}) => t('c_live_commons.' + key, values);
 const flashStatus = computed(() => page.props.flash?.status ?? null);
-const constitutionError = computed(() => page.props.errors?.constitution ?? null);
+const constitutionError = computed(() => page.props.errors?.constitution ?? page.props.errors?.room ?? null);
 // The player's OWN id — the device signs the voice request over it (deviceIdentity).
 const myUserId = computed(() => page.props.auth?.user?.id ?? null);
 
 const basePath = computed(() => (props.isHalls ? '/civic/commons/halls' : '/civic/commons/square'));
+const roomHref = computed(() => basePath.value + (props.jurisdictionId ? '?jurisdiction=' + encodeURIComponent(props.jurisdictionId) : ''));
+const roomsHref = computed(() => '/rooms' + (props.jurisdictionId ? '?jurisdiction=' + encodeURIComponent(props.jurisdictionId) : ''));
 
 function switchJurisdiction(id) {
+    if (!id) return;
     router.get(basePath.value, { jurisdiction: id }, { preserveState: false, preserveScroll: true });
 }
 
 const compose = useForm({ jurisdiction_id: props.jurisdictionId, room_id: props.roomId, body: '' });
+watch(() => [props.jurisdictionId, props.roomId], ([jurisdictionId, roomId]) => {
+    compose.jurisdiction_id = jurisdictionId;
+    compose.room_id = roomId;
+});
 function submit() {
-    if (!props.roomId) return;
+    if (!props.roomId || !myUserId.value) return;
     compose.post('/civic/commons/post', { preserveScroll: true, onSuccess: () => compose.reset('body') });
 }
 
@@ -80,7 +92,7 @@ function mine(message) {
 // in flight. Consolidated onto the shared store (W4 ⑦) — this IS the pattern
 // useLiveRoom was extracted from, so behaviour is unchanged.
 useLiveRoom({
-    keys: ['messages', 'reachable', 'displayNames'],
+    keys: ['messages', 'reachable', 'displayNames', 'roomId', 'roomState'],
     // The mount guard: no room ⇒ nothing to poll ('adjourned' never arms).
     isLive: () => (props.roomId ? 'open' : 'adjourned'),
     busy: () => compose.processing,
@@ -92,40 +104,50 @@ useLiveRoom({
     <PageScaffold :surface="surface">
         <CommunityNav :jurisdiction-id="jurisdictionId" />
         <template #intro>
-            The <strong>live commons</strong> runs over the Matrix mesh (Plane B) and is <strong>open</strong> —
-            any player may read, speak, and join the call (Art. I free movement &amp; equal treatment), always
-            under a pseudonymous handle, never a legal name. Residency unlocks the governance powers, not the
-            doorway: voting, candidacy, and sealing a statement as testimony.
-            <template v-if="isHalls">
-                In the halls, you can file your own message as <em>testimony</em> to seal it into the
-                append-only record (Art. II §2) — that seal is residency-gated.
-            </template>
+            {{ text('intro') }}
+            <template v-if="isHalls">{{ text('halls_intro') }}</template>
         </template>
+
+        <nav v-if="selectedPlace" class="commons-context" :aria-label="text('place_navigation')">
+            <strong>{{ selectedPlace.name }}</strong>
+            <Link :href="roomsHref">{{ text('back_rooms') }}</Link>
+            <Link :href="`/jurisdictions/${selectedPlace.slug}`">{{ text('place_overview') }}</Link>
+            <Link href="/jurisdictions">{{ text('browse_world') }}</Link>
+        </nav>
 
         <Banner v-if="flashStatus" tone="success" class="mb-4">{{ flashStatus }}</Banner>
         <Banner v-if="constitutionError" tone="danger" class="mb-4">{{ constitutionError }}</Banner>
 
-        <Card v-if="jurisdictions.length > 1" class="mb-4">
-            <label class="block text-sm font-medium mb-1">Jurisdiction</label>
-            <select class="form-select w-full" :value="jurisdictionId" @change="switchJurisdiction($event.target.value)">
+        <Card v-if="jurisdictions.length" class="mb-4">
+            <label for="commons-residence" class="block text-sm font-medium mb-1">{{ text('residence_shortcut') }}</label>
+            <select id="commons-residence" class="form-select w-full" value="" @change="switchJurisdiction($event.target.value)">
+                <option value="">{{ text('choose_residence') }}</option>
                 <option v-for="j in jurisdictions" :key="j.id" :value="j.id">{{ j.name }}</option>
             </select>
         </Card>
 
-        <Banner v-if="!isAssociated" tone="info" class="mb-4">
-            You have no residency association yet — confirm residency to enter a jurisdiction's commons.
-            Voting, candidacy, and the testimony seal unlock with residency.
+        <Banner v-if="!selectedPlace" tone="info" class="mb-4">
+            {{ text('choose_place') }}
+            <Link href="/jurisdictions">{{ text('browse_world') }}</Link>
         </Banner>
-        <Banner v-else-if="!roomId" tone="info" class="mb-4">
-            This jurisdiction has no live {{ isHalls ? 'halls' : 'square' }} room yet (it provisions when the
-            jurisdiction activates{{ isHalls ? ' and seats a legislature' : '' }}).
+        <Banner v-else-if="roomState === 'waiting_for_government'" tone="info" class="mb-4">
+            {{ text('waiting_for_government') }}
+            <Link :href="`/civic/commons/square?jurisdiction=${encodeURIComponent(jurisdictionId)}`">{{ text('open_square') }}</Link>
         </Banner>
         <Banner v-else-if="!reachable" tone="warning" class="mb-4">
-            The homeserver is unreachable right now — the live timeline is temporarily empty. Your posts and
-            the record plane are unaffected.
+            {{ text('unavailable') }}
+            <Link :href="roomHref" preserve-state preserve-scroll>{{ text('retry') }}</Link>
+        </Banner>
+        <Banner v-else-if="!roomId" tone="info" class="mb-4">
+            {{ text('not_ready') }}
+            <Link :href="roomHref" preserve-state preserve-scroll>{{ text('retry') }}</Link>
+        </Banner>
+        <Banner v-if="selectedPlace && !myUserId" tone="info" class="mb-4">
+            {{ text('guest') }}
+            <Link href="/login">{{ text('sign_in') }}</Link>
         </Banner>
 
-        <Card v-if="roomId" class="mb-4">
+        <Card v-if="roomId && myUserId" class="mb-4">
             <div class="flex items-center justify-between gap-3 flex-wrap">
                 <div>
                     <h3 class="text-base font-semibold">Invite someone to join you</h3>
@@ -174,7 +196,7 @@ useLiveRoom({
             </ul>
         </Card>
 
-        <FormCard v-if="roomId" title="Post to the live commons">
+        <Card as="section" v-if="roomId && myUserId" title="Post to the live commons">
             <form @submit.prevent="submit" class="space-y-3">
                 <Field label="Message" :error="compose.errors.body">
                     <template #control="{ id, invalid, describedBy }">
@@ -192,6 +214,12 @@ useLiveRoom({
                 </Field>
                 <Btn type="submit" :disabled="compose.processing || !compose.body.trim()">Post</Btn>
             </form>
-        </FormCard>
+        </Card>
     </PageScaffold>
 </template>
+
+<style scoped>
+.commons-context { display: flex; align-items: center; flex-wrap: wrap; gap: .5rem 1rem; margin-block-end: 1rem; }
+.commons-context a { display: inline-flex; align-items: center; min-height: 44px; }
+.commons-context a:focus-visible { outline: 2px solid var(--gov-primary); outline-offset: 3px; }
+</style>

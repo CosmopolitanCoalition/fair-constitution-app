@@ -54,6 +54,9 @@ class VoiceReachService
 
         // We host the SFU → mint locally with our own secret. Coarse-open: the commons is open.
         if ($pointer['local']) {
+            // Persist the canonical pseudonym only after room authorization. The name resolver
+            // can now find a first-time caller's chosen public display name on this same join.
+            $pseudonym = app(MatrixIdentityProvisioner::class)->ensureFor($player)->matrix_user_id;
             $minted = $this->livekit->mintAccessToken($pseudonym, $room);
 
             return [

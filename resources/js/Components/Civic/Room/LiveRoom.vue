@@ -30,9 +30,9 @@ const props = defineProps({
 });
 
 const {
-    connectionState, degraded, error, micEnabled, cameraEnabled, screenShareEnabled,
+    connectionState, degraded, error, micEnabled, cameraEnabled, screenShareEnabled, mediaPending, audioBlocked,
     participants, devices, selectedDevices,
-    join, leave, toggleMic, toggleCamera, toggleScreenShare, selectDevice,
+    join, leave, toggleMic, toggleCamera, toggleScreenShare, selectDevice, startAudio,
 } = useVoiceRoom();
 const { t } = useI18n();
 const text = (key, fallback) => t('c_rooms.' + key, fallback);
@@ -51,6 +51,21 @@ const ERROR_COPY = {
     action_signature_invalid: 'Your device couldn’t be verified for voice.',
     sfu_connect_failed: 'Couldn’t connect to the voice server.',
     room_not_accessible: 'This call is not available through this public room.',
+    room_disconnected: 'The call disconnected. You can join again.',
+    mic_permission_denied: 'Microphone access was denied. Allow microphone access in your browser to speak; you can keep listening.',
+    mic_unavailable: 'No microphone is available. Connect one to speak; you can keep listening.',
+    mic_in_use: 'The microphone could not start. Check whether another app is using it; you can keep listening.',
+    mic_failed: 'The microphone could not be changed. You are still in the call.',
+    camera_permission_denied: 'Camera access was denied. Allow camera access in your browser to share video; you can keep listening.',
+    camera_unavailable: 'No camera is available. Connect one to share video; you can keep listening.',
+    camera_in_use: 'The camera could not start. Check whether another app is using it; you can keep listening.',
+    camera_failed: 'The camera could not be changed. You are still in the call.',
+    screen_permission_denied: 'Screen sharing was not started. Choose a screen and allow sharing, or keep listening.',
+    screen_unavailable: 'Screen sharing is not available in this browser. You can keep listening.',
+    screen_in_use: 'The screen could not be shared. Try again or keep listening.',
+    screen_failed: 'Screen sharing could not be changed. You are still in the call.',
+    speaker_failed: 'The speaker could not be changed. Check your browser and system audio output settings.',
+    audio_playback_failed: 'Your browser could not play room audio. Check its audio permissions, then select Enable room audio again.',
 };
 const errorMessage = computed(() => {
     if (!error.value) return null;
@@ -79,7 +94,7 @@ async function onJoin() {
         <Banner v-if="degraded" tone="warning">
             {{ text('voice_unavailable', 'Voice is not available right now. You can keep using the room.') }}
         </Banner>
-        <Banner v-else-if="error" tone="danger">
+        <Banner v-else-if="error" tone="warning">
             {{ errorMessage }} {{ text('room_open', 'The room remains open.') }}
         </Banner>
 
@@ -90,6 +105,8 @@ async function onJoin() {
             :mic-enabled="micEnabled"
             :camera-enabled="cameraEnabled"
             :screen-share-enabled="screenShareEnabled"
+            :media-pending="mediaPending"
+            :audio-blocked="audioBlocked"
             :devices="devices"
             :selected-devices="selectedDevices"
             @join="onJoin"
@@ -98,6 +115,7 @@ async function onJoin() {
             @toggle-camera="toggleCamera"
             @toggle-screen="toggleScreenShare"
             @select-device="selectDevice"
+            @start-audio="startAudio"
         />
     </div>
 </template>

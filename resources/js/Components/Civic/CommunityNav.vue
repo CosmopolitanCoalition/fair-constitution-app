@@ -20,8 +20,7 @@ const liveHref = (path) => scope.value ? path + '?jurisdiction=' + encodeURIComp
 const links = computed(() => [
     { label: text('public', 'Public discussions'), path: '/civic/square', href: liveHref('/civic/square') },
     { label: text('governance', 'Governance discussions'), path: '/civic/halls', href: liveHref('/civic/halls') },
-    { label: text('live_square', 'Live square'), path: '/civic/commons/square', href: liveHref('/civic/commons/square') },
-    { label: text('live_halls', 'Live halls'), path: '/civic/commons/halls', href: liveHref('/civic/commons/halls') },
+    { label: text('live_rooms', 'Live rooms'), path: '/rooms', href: liveHref('/rooms') },
     { label: text('messages', 'Messages'), path: '/civic/rooms', href: '/civic/rooms' },
 ]);
 const active = (path) => current.value === path || (path === '/civic/rooms' && current.value.startsWith(path + '/'));

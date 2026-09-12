@@ -5,6 +5,7 @@ namespace Tests\Unit;
 use App\Models\MatrixRoom;
 use App\Models\User;
 use App\Services\Matrix\MatrixPostingGateService;
+use App\Services\Matrix\MatrixIdentityProvisioner;
 use App\Services\Matrix\PublicVoiceRoomAccess;
 use App\Services\Matrix\VoiceReachFailed;
 use App\Services\Matrix\VoiceReachService;
@@ -49,6 +50,11 @@ class PublicVoiceRoomAccessTest extends TestCase
         Schema::create('committee_meetings', function (Blueprint $table) {
             $table->string('id')->primary();
             $table->string('committee_id');
+        });
+        Schema::create('cases', function (Blueprint $table) {
+            $table->string('id')->primary();
+            $table->string('jurisdiction_id');
+            $table->softDeletes();
         });
         DB::table('legislatures')->insert(['id' => 'legislature', 'jurisdiction_id' => 'poland']);
         DB::table('committees')->insert(['id' => 'committee', 'legislature_id' => 'legislature']);
@@ -108,8 +114,25 @@ class PublicVoiceRoomAccessTest extends TestCase
     public function test_reach_checks_access_before_local_or_peer_service_discovery(): void
     {
         $this->mock(ServiceReachService::class, fn ($mock) => $mock->shouldNotReceive('reachLiveService'));
+        $this->mock(MatrixIdentityProvisioner::class, fn ($mock) => $mock->shouldNotReceive('ensureFor'));
         $this->expectException(VoiceReachFailed::class);
         app(VoiceReachService::class)->tokenFor($this->visitor(), 'france', '!hearing:example.test', []);
+    }
+
+    public function test_local_voice_uses_the_provisioned_identity_after_room_authorization(): void
+    {
+        $this->mock(ServiceReachService::class, fn ($mock) => $mock->shouldReceive('reachLiveService')
+            ->once()->with('voice.sfu', 'poland')->andReturn(['local' => true]));
+        $this->mock(MatrixPostingGateService::class, fn ($mock) => $mock->shouldReceive('matrixUserId')
+            ->once()->andReturn('@u-unprovisioned:fixture'));
+        $this->mock(MatrixIdentityProvisioner::class, fn ($mock) => $mock->shouldReceive('ensureFor')->once()
+            ->andReturn((new \App\Models\MatrixIdentity())->forceFill(['matrix_user_id' => '@u-stored:fixture'])));
+        $this->mock(\App\Services\Matrix\LiveKitTokenService::class, fn ($mock) => $mock->shouldReceive('mintAccessToken')
+            ->once()->with('@u-stored:fixture', '!hearing:example.test')
+            ->andReturn(['token' => 'fixture', 'url' => 'wss://fixture.invalid', 'room' => '!hearing:example.test']));
+        $result = app(VoiceReachService::class)->tokenFor($this->visitor(), 'poland', '!hearing:example.test', []);
+        self::assertSame('@u-stored:fixture', $result['identity']);
+        self::assertSame('local', $result['via']);
     }
 
     public function test_encrypted_room_is_rejected_on_the_public_path(): void
@@ -129,5 +152,30 @@ class PublicVoiceRoomAccessTest extends TestCase
         $posting->shouldReceive('assertMayAccessCommons')->once()
             ->with(\Mockery::type(User::class), 'poland', '!hearing:example.test');
         (new PublicVoiceRoomAccess($posting))->assertMayJoin($this->visitor(), 'poland', '!hearing:example.test');
+    }
+
+    public function test_public_chamber_and_court_accept_visitors_only_for_their_exact_jurisdiction(): void
+    {
+        DB::table('cases')->insert(['id' => 'case', 'jurisdiction_id' => 'poland']);
+        foreach ([MatrixRoom::ENTITY_LEGISLATURE => 'legislature', MatrixRoom::ENTITY_CASE => 'case'] as $type => $id) {
+            DB::table('matrix_rooms')->update(['entity_type' => $type, 'entity_id' => $id]);
+            $this->access()->assertMayJoin($this->visitor(), 'poland', '!hearing:example.test');
+            try {
+                $this->access()->assertMayJoin($this->visitor(), 'france', '!hearing:example.test');
+                self::fail('A foreign jurisdiction cannot be substituted.');
+            } catch (VoiceReachFailed $error) { self::assertSame(403, $error->status()); }
+        }
+    }
+
+    public function test_deleted_or_unknown_institution_and_board_mapping_are_refused(): void
+    {
+        DB::table('cases')->insert(['id' => 'case', 'jurisdiction_id' => 'poland', 'deleted_at' => now()]);
+        foreach ([[MatrixRoom::ENTITY_CASE, 'case'], [MatrixRoom::ENTITY_LEGISLATURE, 'missing'], [MatrixRoom::ENTITY_BOARD, 'board']] as [$type, $id]) {
+            DB::table('matrix_rooms')->update(['entity_type' => $type, 'entity_id' => $id]);
+            try {
+                $this->access()->assertMayJoin($this->visitor(), 'poland', '!hearing:example.test');
+                self::fail('An unavailable or private institution cannot use the public token path.');
+            } catch (VoiceReachFailed $error) { self::assertSame(403, $error->status()); }
+        }
     }
 }

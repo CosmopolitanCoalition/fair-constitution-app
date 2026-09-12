@@ -38,6 +38,23 @@ final class JurisdictionContext
             ->firstOrFail(['id', 'name', 'slug', 'parent_id', 'adm_level']);
     }
 
+    /** Room navigation needs ancestor labels, never boundary geometry. */
+    public static function forRoom(Jurisdiction $place): array
+    {
+        $parent = $place;
+        $seen = [(string) $place->id => true];
+        for ($depth = 0; $parent->parent_id && $depth < 32; $depth++) {
+            if (isset($seen[(string) $parent->parent_id])) break;
+            $ancestor = Jurisdiction::query()->find($parent->parent_id, ['id', 'name', 'slug', 'parent_id', 'adm_level']);
+            $parent->setRelation('parent', $ancestor);
+            if ($ancestor === null) break;
+            $seen[(string) $ancestor->id] = true;
+            $parent = $ancestor;
+        }
+        $parent->setRelation('parent', null);
+        return self::for($place);
+    }
+
     /**
      * @return array{current: array{id:string,name:string,slug:string,admLevel:int}, chain: list<array{id:string,name:string,slug:string,admLevel:int}>, cosmicPrefix: string}
      */
@@ -128,7 +145,7 @@ final class JurisdictionContext
         $tools[] = $link('square', 'Take part', 'The public square', '/civic/square?jurisdiction='.rawurlencode($slug), null, 'message-square');
         $tools[] = $link('organizations', 'Take part', 'Organizations', '/organizations?jurisdiction='.rawurlencode($slug), null, 'building');
         $tools[] = $link('petitions', 'Take part', 'Petitions', '/civic/petitions?jurisdiction='.rawurlencode($slug), null, 'file-text');
-        $tools[] = $link('rooms', 'Take part', 'Live rooms', '/civic/commons/square'.(! empty($g['id']) ? '?jurisdiction='.rawurlencode($g['id']) : ''), null, 'users');
+        $tools[] = $link('rooms', 'Take part', 'Live rooms', '/rooms?jurisdiction='.rawurlencode($slug), null, 'users');
 
         return $tools;
     }

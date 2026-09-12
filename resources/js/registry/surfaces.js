@@ -22,6 +22,7 @@
 /* ---------------------------------------------------------------- tier 1
    The player tier — where you actually go. Mirrors the mockups' "Go". */
 export const PLAYER_NAV = [
+    { id: 'live-rooms', label: 'Live rooms', icon: 'users', href: '/rooms' },
     { id: 'home', label: 'Today', icon: 'home', href: '/civic', contract: 'civic/today.html', phase: 3 },
     { id: 'jurisdiction-browser', label: 'Places', icon: 'map', href: '/jurisdictions', contract: 'jurisdictions/jurisdiction-browser.html', phase: 5 },
     { id: 'public-square', label: 'Community', icon: 'users', href: '/civic/square', contract: 'social/social-home.html', phase: 3 },

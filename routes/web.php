@@ -891,11 +891,29 @@ Route::middleware('auth')->group(function () {
         ->whereUuid('committee')->name('committees.show');
     // Slice 6 — THE LIVE CIVIC ROOM (committee variant; the exit-test path). Public
     // gallery read — a committee hearing is a public proceeding (Art. II §2).
+    Route::get('/rooms', [\App\Http\Controllers\Rooms\RoomDirectoryController::class, 'index'])
+        ->name('rooms.index')->withoutMiddleware('auth');
+    Route::get('/rooms/chamber/{legislature}', [\App\Http\Controllers\Rooms\InstitutionRoomController::class, 'chamber'])
+        ->whereUuid('legislature')->name('rooms.chamber')->withoutMiddleware('auth');
+    Route::get('/rooms/court/{case}', [\App\Http\Controllers\Rooms\InstitutionRoomController::class, 'court'])
+        ->whereUuid('case')->name('rooms.court')->withoutMiddleware('auth');
+    Route::get('/rooms/board/{board}', [\App\Http\Controllers\Rooms\InstitutionRoomController::class, 'board'])
+        ->whereUuid('board')->name('rooms.board');
+    Route::post('/rooms/board/{board}/call-token', [\App\Http\Controllers\Rooms\InstitutionRoomController::class, 'boardToken'])
+        ->whereUuid('board')->name('rooms.board.call-token');
+    Route::post('/rooms/chamber/{legislature}/messages', [\App\Http\Controllers\Rooms\InstitutionRoomController::class, 'chamberMessages'])
+        ->whereUuid('legislature')->name('rooms.chamber.messages');
+    Route::post('/rooms/court/{case}/messages', [\App\Http\Controllers\Rooms\InstitutionRoomController::class, 'courtMessages'])
+        ->whereUuid('case')->name('rooms.court.messages');
+    Route::post('/rooms/board/{board}/messages', [\App\Http\Controllers\Rooms\InstitutionRoomController::class, 'boardMessages'])
+        ->whereUuid('board')->name('rooms.board.messages');
     Route::get('/rooms/committee/{meeting}', [\App\Http\Controllers\Rooms\LiveRoomController::class, 'committee'])
         ->whereUuid('meeting')->name('rooms.committee')->withoutMiddleware('auth');
     // The live floor — recognition write-path (auth-gated; a resident raises, the chair recognizes).
     Route::post('/rooms/committee/{meeting}/raise-hand', [\App\Http\Controllers\Rooms\LiveRoomController::class, 'raiseHand'])
         ->whereUuid('meeting')->name('rooms.committee.raise-hand');
+    Route::post('/rooms/committee/{meeting}/messages', [\App\Http\Controllers\Rooms\LiveRoomController::class, 'messages'])
+        ->whereUuid('meeting')->name('rooms.committee.messages');
     Route::post('/rooms/committee/{meeting}/recognize', [\App\Http\Controllers\Rooms\LiveRoomController::class, 'recognize'])
         ->whereUuid('meeting')->name('rooms.committee.recognize');
     Route::post('/rooms/committee/{meeting}/advance', [\App\Http\Controllers\Rooms\LiveRoomController::class, 'advance'])
@@ -1165,8 +1183,8 @@ Route::middleware('auth')->prefix('civic')->name('civic.')->group(function () {
     // appservice-backed + degrade to empty when the homeserver is down; posting is OPEN to any player
     // (room-scoped to the jurisdiction's square/halls), testimony stays residency-gated — same rule as
     // the Plane-A views (corrected 2026-06-27).
-    Route::get('/commons/square', [\App\Http\Controllers\Civic\MatrixCommonsController::class, 'square'])->name('commons.square');
-    Route::get('/commons/halls', [\App\Http\Controllers\Civic\MatrixCommonsController::class, 'halls'])->name('commons.halls');
+    Route::get('/commons/square', [\App\Http\Controllers\Civic\MatrixCommonsController::class, 'square'])->name('commons.square')->withoutMiddleware('auth');
+    Route::get('/commons/halls', [\App\Http\Controllers\Civic\MatrixCommonsController::class, 'halls'])->name('commons.halls')->withoutMiddleware('auth');
     Route::post('/commons/post', [\App\Http\Controllers\Civic\MatrixCommonsController::class, 'post'])->name('commons.post');
     Route::post('/commons/testimony', [\App\Http\Controllers\Civic\MatrixCommonsController::class, 'fileTestimony'])->name('commons.testimony');
 

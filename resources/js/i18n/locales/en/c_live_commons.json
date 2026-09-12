@@ -1,0 +1,18 @@
+{
+  "intro": "Read the public conversation in this place. Sign in to speak or join the call, whether you live here or are visiting.",
+  "halls_intro": " You can file your own message as testimony when you hold the required residency standing.",
+  "place_navigation": "Selected place and live rooms",
+  "back_rooms": "Back to live rooms",
+  "place_overview": "Place overview",
+  "browse_world": "Browse the world",
+  "residence_shortcut": "Your residency places",
+  "choose_residence": "Switch to a residency place",
+  "choose_place": "Choose a place to open its live square or halls.",
+  "waiting_for_government": "The halls open when this place has an active legislature. Its public square is available to visitors.",
+  "open_square": "Open the live square",
+  "unavailable": "The live room is unavailable right now. Try connecting again.",
+  "not_ready": "This live room is not ready yet.",
+  "retry": "Try again",
+  "guest": "The public timeline is open to visitors. Sign in to post a message, invite someone, or join the call.",
+  "sign_in": "Sign in"
+}

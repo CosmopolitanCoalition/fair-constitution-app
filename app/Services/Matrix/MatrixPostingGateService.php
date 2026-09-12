@@ -47,7 +47,8 @@ class MatrixPostingGateService
             $content['cga.acting_seat'] = $seat;   // derived LIVE, stripped if the role isn't held now
         }
 
-        return $this->client->sendMessage($roomId, $content, $this->matrixUserId($actor));
+        $identity = app(MatrixIdentityProvisioner::class)->ensureFor($actor)->matrix_user_id;
+        return $this->client->sendMessage($roomId, $content, $identity);
     }
 
     /**
@@ -61,7 +62,8 @@ class MatrixPostingGateService
 
         $content = ['msgtype' => 'm.text', 'body' => $body];
 
-        return $this->client->sendMessage($matrixRoomId, $content, $this->matrixUserId($actor));
+        $identity = app(MatrixIdentityProvisioner::class)->ensureFor($actor)->matrix_user_id;
+        return $this->client->sendMessage($matrixRoomId, $content, $identity);
     }
 
     /**
@@ -184,6 +186,22 @@ class MatrixPostingGateService
         return '@'.$this->localpartFor($actor).':'.config('matrix.server_name');
     }
 
+    /** Resolve a bounded institution roster using the same identity rules without per-seat queries. */
+    public function matrixUserIdsFor(array $userIds): array
+    {
+        $userIds = array_values(array_unique(array_filter($userIds)));
+        if ($userIds === []) return [];
+        $stored = MatrixIdentity::query()->whereIn('user_id', $userIds)->pluck('matrix_localpart', 'user_id')->all();
+        $missing = array_values(array_filter($userIds, fn ($id) => empty($stored[$id])));
+        $handles = $missing === [] ? [] : SocialProfile::query()->whereIn('user_id', $missing)->pluck('handle', 'user_id')->all();
+        $out = [];
+        foreach ($userIds as $id) {
+            $localpart = ! empty($stored[$id]) ? $stored[$id] : $this->formatLocalpart((string) $id, $handles[$id] ?? null);
+            $out[(string) $id] = '@'.$localpart.':'.config('matrix.server_name');
+        }
+        return $out;
+    }
+
     /**
      * The pseudonymous LOCALPART (`u-<handle>`) — the single source of truth for a user's Matrix identity,
      * reused by the OIDC provider (K3-C) so the id_token's preferred_username, the provisioned
@@ -214,9 +232,12 @@ class MatrixPostingGateService
     public function deriveLocalpart(User $actor): string
     {
         $profile = SocialProfile::query()->where('user_id', (string) $actor->getKey())->first();
-        $base = ! empty($profile?->handle)
-            ? (string) $profile->handle
-            : substr(hash('sha256', (string) $actor->getKey()), 0, 32);
+        return $this->formatLocalpart((string) $actor->getKey(), $profile?->handle);
+    }
+
+    private function formatLocalpart(string $userId, ?string $handle): string
+    {
+        $base = ! empty($handle) ? $handle : substr(hash('sha256', $userId), 0, 32);
 
         return 'u-'.preg_replace('/[^a-z0-9._=\-]/', '', strtolower($base));
     }

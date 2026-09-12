@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Matrix;
 use App\Domain\Engine\ConstitutionalViolation;
 use App\Http\Controllers\Controller;
 use App\Services\Matrix\LiveKitTokenService;
+use App\Services\Matrix\MatrixIdentityProvisioner;
 use App\Services\Matrix\MatrixPostingGateService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -29,7 +30,7 @@ class PrivateCallTokenController extends Controller
             return response()->json(['error' => $e->getMessage(), 'citation' => $e->citation], 403);
         }
 
-        $identity = $gate->matrixUserId($request->user());          // pseudonym — never the legal name
+        $identity = app(MatrixIdentityProvisioner::class)->ensureFor($request->user())->matrix_user_id;
         $minted = $tokens->mintAccessToken($identity, $data['room_id']);
 
         // The browser client reads `sfu_url`; mintAccessToken returns the browser-reachable url under `url`.

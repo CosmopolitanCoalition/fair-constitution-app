@@ -8,8 +8,10 @@ use App\Models\Committee;
 use App\Models\CommitteeMeeting;
 use App\Models\CommitteeSeat;
 use App\Models\PublicRecord;
+use App\Models\MatrixRoom;
 use App\Models\User;
 use App\Services\Matrix\MatrixPostingGateService;
+use App\Services\Matrix\VoiceReachFailed;
 use App\Services\Matrix\SocialTopologyReconcilerService;
 use App\Services\Rooms\LiveFloorService;
 use App\Services\Rooms\PublicRoomNames;
@@ -46,19 +48,38 @@ class LiveRoomController extends Controller
     public function committee(Request $request, CommitteeMeeting $meeting): Response
     {
         /** @var Committee $committee */
-        $committee = $meeting->committee()->with('legislature.jurisdiction:id,name')->firstOrFail();
+        $committee = $meeting->committee()->with('legislature.jurisdiction:id,name,slug,parent_id,adm_level')->firstOrFail();
         $legislature = $committee->legislature;
         $jurisdiction = $legislature?->jurisdiction;
 
-        // Lazily provision the room's Matrix home (idempotent — safe on every view).
+        // Lazily provision only the selected meeting on an initial page view.
         // A Matrix hiccup must DEGRADE, never block: the durable civic record —
         // agenda, the vote, the sealed record — is Plane A (Postgres) and never
         // depends on the homeserver being up.
-        $matrixRoom = null;
+        $matrixRoom = $this->existingMeetingRoom($meeting);
         try {
-            $matrixRoom = $this->rooms->reconcileCommitteeMeeting($meeting);
+            if ($matrixRoom === null && $request->isMethod('GET')
+                && ! $request->headers->has('X-Inertia-Partial-Data')
+                && ! $request->headers->has('X-Inertia-Partial-Component')
+                && ! str_contains(strtolower($request->header('Purpose', '').' '.$request->header('Sec-Purpose', '')), 'prefetch')) {
+                $matrixRoom = $this->rooms->reconcileCommitteeMeeting($meeting);
+            }
         } catch (\Throwable $e) {
             report($e);
+        }
+
+        if (! $this->validMeetingRoom($matrixRoom, $meeting)) $matrixRoom = null;
+        $chat = [];
+        $chatAvailable = false;
+        if ($matrixRoom) {
+            try {
+                $events = app(\App\Services\Matrix\MatrixClientService::class)->getMessages($matrixRoom->matrix_room_id, 'b', null, 30)['chunk'] ?? [];
+                foreach (array_reverse(array_slice($events, 0, 30)) as $event) {
+                    if (($event['type'] ?? '') !== 'm.room.message') continue;
+                    $chat[] = ['event_id' => $event['event_id'], 'sender' => $event['sender'], 'body' => $event['content']['body'] ?? ''];
+                }
+                $chatAvailable = true;
+            } catch (\Throwable $error) { report($error); }
         }
 
         $seats = CommitteeSeat::query()
@@ -79,7 +100,7 @@ class LiveRoomController extends Controller
         $floorState = $this->floor->state($floorKey);
         $presence = $this->presence($seats, $committee, $floorState);
         $displayNames = $this->names->forHandles(array_filter(array_merge(
-            array_column($floorState['queue'], 'handle'), [$floorState['floorHolder']]
+            array_column($floorState['queue'], 'handle'), [$floorState['floorHolder']], array_column($chat, 'sender')
         )));
         foreach ($presence as $person) {
             if ($person['display_name']) {
@@ -93,6 +114,7 @@ class LiveRoomController extends Controller
             'entity'    => ['type' => 'committee_meeting', 'id' => (string) $meeting->id],
             'title'     => $committee->name.' — hearing',
             'jurisdiction' => $jurisdiction?->name ?? '',
+            'jurisdictionContext' => $jurisdiction ? \App\Support\JurisdictionContext::forRoom($jurisdiction) : null,
             'status'    => $this->statusOf($meeting->status),
             'chairRole' => 'chair',
             'chair'     => $this->chairCard($committee, $seats),
@@ -115,7 +137,8 @@ class LiveRoomController extends Controller
             'displayNames' => $displayNames,
             'queue'     => $this->queueRows($floorState),
             'floorHolder' => $floorState['floorHolder'],
-            'chat'      => [], // the live Matrix timeline reads in step 4 (empty on a fresh room); useLiveRoom refreshes it
+            'chat'      => $chat,
+            'chatAvailable' => $chatAvailable,
             'voice'     => [
                 'enabled' => $matrixRoom !== null,
                 'roomId' => $matrixRoom?->matrix_room_id,
@@ -124,7 +147,7 @@ class LiveRoomController extends Controller
                 'myUserId' => $viewer?->id,
             ],
             'translation' => ['from' => 'en', 'to' => 'en', 'isPrivate' => false, 'rail' => 'server-local'],
-            'record'    => $this->recordRows($committee),
+            'record'    => $this->recordRows($meeting),
             'residencyGated' => true,
             'galleryNote' => 'Anyone may watch a committee hearing (Art. II §2). Residents may raise a hand and testify; the seated members vote.',
             'forms'     => ['F-CHR-001', 'F-CHR-002', 'F-SOC-002'],
@@ -143,6 +166,8 @@ class LiveRoomController extends Controller
                 'isGallery' => $viewer === null || ! $isMember,
             ],
             'urls' => [
+                'messages' => "/rooms/committee/{$meeting->id}/messages",
+                'rooms' => '/rooms?'.http_build_query(['jurisdiction' => $jurisdiction?->slug, 'section' => 'committees']),
                 'raiseHand' => "/rooms/committee/{$meeting->id}/raise-hand",
                 'recognize' => "/rooms/committee/{$meeting->id}/recognize",
                 'advance'   => "/rooms/committee/{$meeting->id}/advance",
@@ -156,6 +181,48 @@ class LiveRoomController extends Controller
     // =========================================================================
     // The live floor — recognition write-path (ephemeral; LiveFloorService)
     // =========================================================================
+
+    /** Informal discussion, distinct from testimony and official records. */
+    public function messages(Request $request, CommitteeMeeting $meeting): RedirectResponse
+    {
+        abort_unless($request->user(), 403);
+        $data = $request->validate(['body' => ['required', 'string', 'max:20000']]);
+        $room = $this->existingMeetingRoom($meeting);
+        abort_unless($this->validMeetingRoom($room, $meeting), 403, 'This hearing discussion is not available.');
+        $jid = $meeting->committee()->firstOrFail()->legislature()->value('jurisdiction_id');
+        abort_unless($jid, 403, 'This hearing discussion is not available.');
+        try {
+            app(\App\Services\Matrix\PublicVoiceRoomAccess::class)->assertMayJoin($request->user(), (string) $jid, $room->matrix_room_id);
+        } catch (VoiceReachFailed $error) {
+            abort(403, 'This hearing discussion is not available.');
+        }
+        try {
+            $identity = app(\App\Services\Matrix\MatrixIdentityProvisioner::class)->ensureFor($request->user());
+            app(\App\Services\Matrix\MatrixClientService::class)->sendMessage($room->matrix_room_id,
+                ['msgtype' => 'm.text', 'body' => $data['body']], $identity->matrix_user_id);
+        } catch (\Throwable $error) {
+            report($error);
+            return back()->withErrors(['body' => 'The message could not be confirmed. Check the conversation before retrying.']);
+        }
+        return back()->with('status', 'Message sent to the hearing discussion.');
+    }
+
+    private function existingMeetingRoom(CommitteeMeeting $meeting): ?MatrixRoom
+    {
+        // Retired or malformed mappings must not cause a public GET to create
+        // a replacement or change the original room's privacy.
+        return MatrixRoom::query()->where('entity_type', MatrixRoom::ENTITY_COMMITTEE_MEETING)
+            ->where('entity_id', $meeting->id)->first();
+    }
+
+    private function validMeetingRoom(?MatrixRoom $room, CommitteeMeeting $meeting): bool
+    {
+        return $room !== null && ! $room->trashed() && $room->tombstoned_at === null
+            && $room->is_public && ! $room->is_encrypted && ! empty($room->matrix_room_id)
+            && $room->room_type === MatrixRoom::ROOM_INSTITUTION && $room->space_type === null
+            && $room->entity_type === MatrixRoom::ENTITY_COMMITTEE_MEETING
+            && (string) $room->entity_id === (string) $meeting->id;
+    }
 
     /** A resident raises a hand to speak (any authenticated player — Art. I). */
     public function raiseHand(Request $request, CommitteeMeeting $meeting): RedirectResponse
@@ -309,14 +376,14 @@ class LiveRoomController extends Controller
     }
 
     /** The sealed record — testimony + reports published from this committee. */
-    private function recordRows(Committee $committee): array
+    private function recordRows(CommitteeMeeting $meeting): array
     {
         return PublicRecord::query()
             ->where('subject_type', 'committee_meetings')
-            ->whereIn('subject_id', CommitteeMeeting::query()->where('committee_id', $committee->id)->pluck('id'))
+            ->where('subject_id', $meeting->id)
             ->orderByDesc('audit_seq')
             ->limit(50)
-            ->get()
+            ->get(['title', 'audit_seq'])
             ->map(fn (PublicRecord $r) => [
                 'handle'    => '@u-record',
                 'body'      => $r->title ?? 'Sealed to the record',

@@ -103,6 +103,7 @@ function stepBadge(step) {
         :title="legislature ? `Chamber — ${legislature.name}` : 'Chamber'"
     >
         <LegislatureWorkspaceNav v-if="workspace" :workspace="workspace" active="chamber" />
+        <Link v-if="legislature" :href="'/rooms/chamber/' + legislature.id" class="btn">{{ t('c_rooms.open_chamber', 'Enter live chamber') }}</Link>
 
         <Banner v-if="flashStatus" tone="info" role="status">{{ flashStatus }}</Banner>
         <Banner v-if="constitutionError" tone="emergency">{{ constitutionError }}</Banner>

@@ -8,8 +8,8 @@
 |---|---|---|---|
 | 0. Consolidate | Give each task a clear home; preserve place and institution context. | Completed for the identified overlapping families | Shared arrival, learning, bill, organization, legislature, host and agreement paths are implemented and checked. |
 | 1. Finish browsing | Reach eligible records without loading a world-sized list. | In progress | Remaining directories/selectors offer bounded pages or search; selected records and draft work survive navigation. |
-| 2A. Institutional rooms | Make civic meetings usable and recognizable. | Next; parallel with 2B | Institution-specific calls, floor positions, names and reconnect behavior pass independent-participant checks. |
-| 2B. Economic actions | Give participants useful work, trade and help activities. | Next; parallel with 2A | Missing actions work through their existing authority and consent rules, with readable results and recovery. |
+| 2A. Institutional rooms | Make civic meetings usable and recognizable. | Current priority; local media verified | Institution-specific calls, floor positions, names and reconnect behavior pass independent-participant checks. |
+| 2B. Economic actions | Give participants useful work, trade and help activities. | Paused while rooms are prioritized | Missing actions work through their existing authority and consent rules, with readable results and recovery. |
 | 3. Civic scenario rehearsal | Prove complete attendee journeys through the settled paths. | After required Phase 2 actions | Independent actors complete and repeat each scenario, including refusals and recovery. |
 | 4. Language, teaching and accessibility | Cover the settled flows across languages and modalities. | After scenario fixes | Translations, lessons, keyboard/screen-reader use, narrow displays and media alternatives pass the coverage review. |
 | 5. Conference dress rehearsal | Verify the final demo presentation. | Last release check | The chosen demo sequence runs on the intended host and participant devices, with a known recovery route. |
@@ -25,8 +25,8 @@ Performance fixes accompany the affected screen throughout these phases. Basic a
 | B3 | 1 | Finish remaining asset selectors and long record lists. | Asset selectors completed and tested; histories remain | Older eligible assets/history are reachable; empty and loading states are truthful; private data remains scoped to its owner or institution. |
 | P1 | Alongside affected phases | Replace world-wide term-sync reads and expensive monetary-report calculations. | Completed for Term schedules and Units & money | Institutional records page within scope; large aggregates resume in bounded work units; reports display freshness/progress without recalculating the world during page entry. |
 | P2 | 1 | Finish treasury and long-history reads. | Next browsing pass | Treasury entry avoids world supply aggregation; wallet payments/stipends, seller pending orders and institution histories are paged with indexed scope and usable return paths. |
-| R1 | 2A | Connect chamber, court and board live rooms. | Shared layouts/names and committee integration exist | Actual institution rosters, presider, current speaker/witness and media participants occupy the appropriate positions; exact room-to-institution access is enforced. |
-| R2 | 2A | Rehearse calls with independent participants. | Pending | Separate accounts/devices verify microphone/camera prompts, display names, floor changes, audio continuity, disconnect/rejoin and denied access to unrelated private rooms. |
+| R1 | 2A | Connect chamber, court and board live rooms. | Directory and institution calls/discussion implemented; witness state remains | Actual institution rosters, presider, current speaker/witness and media participants occupy the appropriate positions; exact room-to-institution access is enforced. |
+| R2 | 2A | Rehearse calls with independent participants. | Local two-identity audio/video and rejoin passed; separate devices remain | Separate accounts/devices verify microphone/camera prompts, display names, floor changes, audio continuity, disconnect/rejoin and denied access to unrelated private rooms. |
 | R3 | 2A | Extend role exploration and add session archives. | Role previews exist; Speaker remains member-only; session view selects the latest session | Visitors can inspect role responsibilities and available actions without receiving authority; older sessions open directly with agenda, votes and records. |
 | E1 | 2B | Add employer posting, application review and decisions. | Applying works; employer services lack the complete UI/action path | Authorized employers manage postings and privately review applications; the applicant account is verified; worker consent and organization countersign finish the existing contract chain. |
 | E2 | 2B | Add usable requests for help and participation. | Schema/public list exist; action workflow is missing | Requesters and responders can create, respond, withdraw and resolve requests under explicit ownership/visibility checks; private requests are protected. |
@@ -39,7 +39,7 @@ Performance fixes accompany the affected screen throughout these phases. Basic a
 ## Verified dependencies and boundaries
 
 - The organization directory, share offers and both agreement families already have cursor pagination. [Directories and workspaces](DIRECTORIES_AND_WORKSPACES.md) records their implementation and tests.
-- `PublicVoiceRoomAccess` currently recognizes public commons and committee-meeting rooms. Floor layout components alone do not establish live chamber/court/board call readiness.
+- `PublicVoiceRoomAccess` now recognizes public commons, committee, chamber and court rooms with exact place checks. Board rooms use current seated-member checks. See [live room evidence and remaining checks](LIVE_ROOMS.md).
 - `LaborBoardService::accept` accepts a supplied user. An employer-facing endpoint must verify the application/account binding and preserve the worker's separate consent; it must not simply supply the employer as that user.
 - `BoardElectionController` currently uses the agent check for generic administration flags, including CGCs. Review the controller and engine together before declaring those actions ready.
 - Session archives and reporting costs are grounded in `SessionController`, `TermSyncController` and `CurrencyTelemetryService`, not in historical planning claims.
@@ -73,3 +73,7 @@ Remaining boundaries:
 - An additional existing `TermLockstepTest` source-whitelist check fails on `ends_on` serializers in `SimBoardService.php` and `JudicialSeatService.php`. Those files were unchanged; the new scoped term suite passes. This separate failure is recorded, not treated as a passing check.
 
 Pulling hosts must apply the three additive migrations, refresh cached routes/configuration and restart Horizon before exercising report collection. Existing worlds are retained; no reset is required.
+
+## Room priority update
+
+The operator prioritized LiveKit/Matrix rooms to conserve remaining usage. Economic action work and unrelated browsing are paused. Room delivery, local transport evidence, deployment steps and remaining physical-device checks are recorded in [LIVE_ROOMS.md](LIVE_ROOMS.md).

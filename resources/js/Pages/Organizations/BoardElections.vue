@@ -46,6 +46,7 @@ const props = defineProps({
     workerTrack: { type: Object, required: true },
     chair: { type: Object, default: null },
     seated: { type: Object, default: null },
+    roomHref: { type: String, default: null },
     can: { type: Object, default: () => ({ administerOwner: false, administerWorker: false }) },
     /** The open-nomination window dial (org setting) — read-only on this surface. */
     nominationWindow: { type: Object, default: () => ({ window_days: null, is_set: false, min: 1, max: 90, settings_href: '#' }) },
@@ -141,6 +142,7 @@ const nominationStrips = computed(() => {
         </template>
 
         <OrganizationNav :organization="organization" current="board" />
+        <Link v-if="roomHref" :href="roomHref" class="btn">{{ t('c_rooms.open_board', 'Enter boardroom') }}</Link>
 
         <Banner v-if="flashStatus" tone="info" role="status"><ReferenceText>{{ flashStatus }}</ReferenceText></Banner>
         <Banner v-if="constitutionError" tone="emergency"><ReferenceText>{{ constitutionError }}</ReferenceText></Banner>

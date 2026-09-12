@@ -51,6 +51,9 @@ export function useLiveRoom(options = {}) {
     const lastSyncedAt = ref(null);
     const isPolling = ref(false);
     const timers = new Map(); // channel index -> setTimeout handle
+    let mounted = false;
+    let running = false;
+    let generation = 0; // stop/unmount invalidates callbacks from pending reloads
 
     // Q1: normalise into channels. A number ⇒ one uniform channel over all keys
     // (the default we ship). A map ⇒ one channel per group with its own keys/ms.
@@ -71,30 +74,45 @@ export function useLiveRoom(options = {}) {
     // server snapshot of the given keys. Read-only — never .post/.put/.delete,
     // never a decrypt. A future Reverb/SSE strategy replaces this one function
     // with the same merge (see the store contract's transport seam).
-    function merge(reloadKeys, onMerged) {
-        if (strategy !== 'poll') return; // seam: other strategies wire in here
-        router.reload({
-            only: reloadKeys,
-            preserveScroll: true,
-            preserveState: true,
-            onSuccess: () => {
-                lastSyncedAt.value = Date.now();
-                if (typeof onMerged === 'function') onMerged();
-            },
-        });
+    function merge(reloadKeys, onComplete) {
+        if (!mounted || strategy !== 'poll') return; // seam: other strategies wire in here
+        const attempt = generation;
+        let finished = false;
+        const current = () => mounted && attempt === generation;
+        const finish = () => {
+            if (finished) return;
+            finished = true;
+            if (current() && typeof onComplete === 'function') onComplete();
+        };
+        try {
+            router.reload({
+                only: reloadKeys,
+                preserveScroll: true,
+                preserveState: true,
+                onSuccess: () => {
+                    if (current()) lastSyncedAt.value = Date.now();
+                },
+                // Success, network failure, and cancellation all complete a
+                // tick. Only success advances the last-snapshot timestamp.
+                onFinish: finish,
+            });
+        } catch {
+            finish(); // a synchronous transport failure must not freeze polling
+        }
     }
 
     function tick(index) {
+        if (!mounted || !running) return;
         const channel = channels[index];
-        if (typeof document !== 'undefined' && document.hidden) return; // paused; the visibility handler re-arms
+        if (typeof document !== 'undefined' && document.hidden) { stopChannel(index); return; } // paused; visibility re-arms
         const before = nextInterval(state(), channel.ms, HEARTBEAT_MS);
         if (before === null) { stopChannel(index); return; } // already terminal before this tick — nothing to poll
         if (busy()) { schedule(index, before); return; } // never cancel an in-flight write — retry next interval
 
         merge(channel.keys, () => {
-            // POST-MERGE (the desk pin): the closing snapshot that announced
-            // adjournment is now merged. ONLY here do we decide the stop — on the
-            // just-merged state — so the final state always shows before the halt.
+            // POST-MERGE (the desk pin): successful reloads have merged before
+            // completion. Decide whether to stop using that final snapshot;
+            // failed/cancelled reloads simply retry from the existing state.
             const after = nextInterval(state(), channel.ms, HEARTBEAT_MS);
             if (after === null) { stopChannel(index); return; }
             schedule(index, after);
@@ -103,8 +121,11 @@ export function useLiveRoom(options = {}) {
 
     function schedule(index, ms) {
         stopChannel(index);
-        if (typeof window === 'undefined') return;
-        timers.set(index, window.setTimeout(() => tick(index), ms));
+        if (!mounted || !running || typeof window === 'undefined') return;
+        const attempt = generation;
+        timers.set(index, window.setTimeout(() => {
+            if (attempt === generation) tick(index);
+        }, ms));
         isPolling.value = timers.size > 0;
     }
 
@@ -118,7 +139,9 @@ export function useLiveRoom(options = {}) {
     }
 
     function start() {
-        if (typeof window === 'undefined') return;
+        if (!mounted || typeof window === 'undefined' || strategy !== 'poll') return;
+        stop();
+        running = true;
         channels.forEach((c, i) => {
             const ms = nextInterval(state(), c.ms, HEARTBEAT_MS);
             if (ms !== null) schedule(i, ms); // a concluded room never arms — refresh() is the manual check
@@ -126,6 +149,8 @@ export function useLiveRoom(options = {}) {
     }
 
     function stop() {
+        running = false;
+        ++generation;
         channels.forEach((_, i) => stopChannel(i));
     }
 
@@ -138,18 +163,21 @@ export function useLiveRoom(options = {}) {
     }
 
     function onVisibility() {
+        if (!mounted) return;
         if (document.hidden) { stop(); return; }
-        refresh();
         start();
+        refresh();
     }
 
     onMounted(() => {
+        mounted = true;
         start();
         if (typeof document !== 'undefined') {
             document.addEventListener('visibilitychange', onVisibility);
         }
     });
     onBeforeUnmount(() => {
+        mounted = false;
         stop();
         if (typeof document !== 'undefined') {
             document.removeEventListener('visibilitychange', onVisibility);

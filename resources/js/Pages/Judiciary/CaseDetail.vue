@@ -25,6 +25,7 @@
  */
 import { computed } from 'vue';
 import { Link, useForm, usePage } from '@inertiajs/vue3';
+import { useI18n } from 'vue-i18n';
 import AppShellV2 from '@/Layouts/AppShellV2.vue';
 import PageScaffold from '@/Components/Surface/PageScaffold.vue';
 import FormCard from '@/Components/Surface/FormCard.vue';
@@ -63,6 +64,7 @@ const props = defineProps({
 });
 
 const page = usePage();
+const { t } = useI18n();
 /* Demo-mode worlds get the playable Back/Advance cursor (D6, §10 item 4 —
    world-keyed via instance.sandbox, never build-keyed). Display-only either
    way: the cursor previews stages; the record still never POSTs from here. */
@@ -175,6 +177,8 @@ function submitWarrant() {
             that hears it. This page renders the live record and the surrounding context; the court
             advances the append-only record by acting through the engine, never a toggle.
         </template>
+
+        <Link :href="'/rooms/court/' + kase.id" class="btn">{{ t('c_rooms.open_court', 'Enter live courtroom') }}</Link>
 
         <Banner v-if="constitutionError" tone="emergency" role="alert" title="The court action was rejected.">
             {{ constitutionError }}

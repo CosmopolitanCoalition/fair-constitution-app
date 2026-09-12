@@ -103,7 +103,7 @@ return [
         // The EXTERNALLY-reachable SFU URL a remote browser dials (typically wss://…) — distinct from the
         // Docker-internal `url`. A capable peer returns THIS with a cross-node voice token (the mixed
         // environment); a light node's traveling player dials it directly so media bypasses its home node.
-        'public_url' => env('LIVEKIT_PUBLIC_URL', env('LIVEKIT_URL', 'http://livekit:7880')),
+        'public_url' => env('LIVEKIT_PUBLIC_URL', 'ws://localhost:7880'),
         'api_key'    => env('LIVEKIT_API_KEY', 'cga_dev_livekit_key'),
         'api_secret' => env('LIVEKIT_API_SECRET', 'cga_dev_livekit_secret_5c1d8e3a9f47026b'),
     ],
