@@ -16,6 +16,7 @@
  */
 import { computed, ref } from 'vue';
 import { Link, router, useForm, usePage } from '@inertiajs/vue3';
+import { useI18n } from 'vue-i18n';
 import AppShellV2 from '@/Layouts/AppShellV2.vue';
 import PageScaffold from '@/Components/Surface/PageScaffold.vue';
 import Banner from '@/Components/Ui/Banner.vue';
@@ -25,8 +26,7 @@ import DataTable from '@/Components/Ui/DataTable.vue';
 import FormChip from '@/Components/Ui/FormChip.vue';
 import LawDiff from '@/Components/Ui/LawDiff.vue';
 import LifecycleTracker from '@/Components/Ui/LifecycleTracker.vue';
-import PersonaChip from '@/Components/Ui/PersonaChip.vue';
-import StatusBadge from '@/Components/Ui/StatusBadge.vue';
+import BillWorkspaceNav from '@/Components/Legislature/BillWorkspaceNav.vue';
 import ConstituentConsentPanel from '@/Components/Legislature/ConstituentConsentPanel.vue';
 import VoteCastList from '@/Components/Legislature/VoteCastList.vue';
 import VoteTally from '@/Components/Legislature/VoteTally.vue';
@@ -36,6 +36,7 @@ defineOptions({ layout: AppShellV2 });
 
 const props = defineProps({
     surface: { type: Object, required: true },
+    workspace: { type: Object, required: true },
     legislature: { type: Object, required: true },
     bill: { type: Object, required: true },
     machine: { type: Array, default: () => [] },
@@ -52,6 +53,8 @@ const props = defineProps({
 });
 
 const page = usePage();
+const { t } = useI18n();
+const text = (key) => t('c_bill.' + key);
 const flashStatus = computed(() => page.props.flash?.status ?? null);
 const constitutionError = computed(() => page.props.errors?.constitution ?? null);
 
@@ -64,15 +67,6 @@ const lifecycle = computed(() =>
         ? HAPPY_PATH
         : [...HAPPY_PATH.slice(0, 5), props.bill.status],
 );
-
-const STATUS_TONES = {
-    enacted: 'success',
-    passed: 'success',
-    failed: 'danger',
-    tabled: 'neutral',
-    withdrawn: 'neutral',
-    on_floor: 'warning',
-};
 
 function fmt(iso) {
     return iso ? new Date(iso).toLocaleString() : '—';
@@ -110,36 +104,12 @@ function chairReferToFloor() {
 
 <template>
     <PageScaffold :surface="surface" :title="bill.title">
-        <template #intro>
-            One bill, end to end: the committee gate, the floor gate, and — in a bicameral
-            chamber — both seat kinds independently agreeing at each. An absent member counts
-            the same as a no; the denominator never shrinks.
-        </template>
+        <BillWorkspaceNav :workspace="workspace" active="record" />
 
         <Banner v-if="flashStatus" tone="info" role="status">{{ flashStatus }}</Banner>
         <Banner v-if="constitutionError" tone="emergency" title="Rejected by the Constitutional Engine.">
             {{ constitutionError }}
         </Banner>
-
-        <!-- ============================================== header ======== -->
-        <Card as="section">
-            <template #title>
-                <h2>
-                    {{ bill.title }}
-                    <StatusBadge :tone="STATUS_TONES[bill.status] ?? 'info'" style="margin-inline-start: var(--space-2)">
-                        {{ bill.status.replaceAll('_', ' ') }}
-                    </StatusBadge>
-                </h2>
-            </template>
-            <p class="cluster" style="gap: var(--space-3)">
-                <PersonaChip :name="bill.sponsor.name" />
-                <span class="mono">{{ bill.act_type }}</span>
-                <span class="citation">introduced {{ fmt(bill.introduced_at) }} · stored as UTC</span>
-                <Link :href="`/legislatures/${legislature.id}/bills`">← all bills</Link>
-                <Link :href="`/bills/${bill.id}/conversation`">Join the conversation on this bill →</Link>
-            </p>
-            <LifecycleTracker :stages="lifecycle" :current="bill.status" style="margin-block-start: var(--space-3)" />
-        </Card>
 
         <!-- ======================================== scale & scope ======= -->
         <Card as="section" title="Scale & scope — declared at introduction">
@@ -166,40 +136,13 @@ function chairReferToFloor() {
         </Card>
 
         <!-- ============================================ law text ======== -->
-        <Card as="section" :title="`Law text — version ${versions.length ? versions[versions.length - 1].version_no : 1}`">
-            <pre class="mono" data-no-i18n style="white-space: pre-wrap; margin: 0; font-size: var(--text-sm)">{{ lawText }}</pre>
-            <template v-if="versions.length > 1">
-                <h3 style="margin-block-start: var(--space-4)">Versions</h3>
-                <DataTable
-                    :columns="[
-                        { key: 'version_no', label: 'v', mono: true, align: 'right' },
-                        { key: 'change_kind', label: 'Change' },
-                        { key: 'changed_by', label: 'By' },
-                        { key: 'created_at', label: 'At' },
-                    ]"
-                    :rows="versions"
-                    row-key="version_no"
-                    caption="Bill versions — append-only"
-                >
-                    <template #cell-created_at="{ row }">{{ fmt(row.created_at) }}</template>
-                </DataTable>
-            </template>
-            <template v-if="diff">
-                <h3 style="margin-block-start: var(--space-4)">
-                    Amended — v{{ diff.from_version }} → v{{ diff.to_version }}
-                </h3>
-                <Card inset>
-                    <LawDiff :segments="diff.segments" :label="`Law text changes v${diff.from_version} → v${diff.to_version}`" />
-                </Card>
-                <p class="gloss">
-                    Server-computed segments — what you see is exactly the text the audit
-                    chain hashed (law_versions.text_hash).
-                </p>
-            </template>
+        <Card id="bill-text" class="bill-record-section" as="section" :title="t('c_bill.law_text', { version: bill.current_version_no })">
+            <pre v-if="lawText" class="mono bill-law-text" data-no-i18n>{{ lawText }}</pre>
+            <p v-else class="gloss">{{ text('no_text') }}</p>
         </Card>
 
         <!-- ============================== committee + floor stages ====== -->
-        <div class="grid-2">
+        <div id="bill-votes" class="grid-2 bill-record-section">
             <Card as="section">
                 <template #title>
                     <h2>Committee stage <FormChip form-id="F-LEG-005" /></h2>
@@ -317,6 +260,30 @@ function chairReferToFloor() {
             />
         </Card>
 
+        <Card id="bill-history" class="bill-record-section" as="section" :title="text('history_title')">
+            <LifecycleTracker :stages="lifecycle" :current="bill.status" />
+            <DataTable
+                v-if="versions.length"
+                style="margin-block-start: var(--space-3)"
+                :columns="[
+                    { key: 'version_no', label: text('version'), mono: true, align: 'right' },
+                    { key: 'change_kind', label: text('change') },
+                    { key: 'changed_by', label: text('changed_by') },
+                    { key: 'created_at', label: text('date') },
+                ]"
+                :rows="versions"
+                row-key="version_no"
+                :caption="text('version_caption')"
+            >
+                <template #cell-created_at="{ row }">{{ fmt(row.created_at) }}</template>
+            </DataTable>
+            <p v-else class="gloss">{{ text('no_versions') }}</p>
+            <template v-if="diff">
+                <h3 style="margin-block-start: var(--space-4)">{{ t('c_bill.changes', { from: diff.from_version, to: diff.to_version }) }}</h3>
+                <LawDiff :segments="diff.segments" :label="t('c_bill.changes', { from: diff.from_version, to: diff.to_version })" />
+            </template>
+        </Card>
+
         <!-- ===================================== enactment / failure ==== -->
         <Card v-if="enactment" as="section" title="Enacted">
             <p>
@@ -356,3 +323,8 @@ function chairReferToFloor() {
         </template>
     </PageScaffold>
 </template>
+
+<style scoped>
+.bill-record-section { scroll-margin-block-start: 8rem; }
+.bill-law-text { white-space: pre-wrap; overflow-wrap: anywhere; margin: 0; font-size: var(--text-sm); }
+</style>

@@ -4,6 +4,8 @@
  */
 import { computed } from 'vue';
 import Avatar from '@/Components/Ui/Avatar.vue';
+import { useI18n } from 'vue-i18n';
+import { referenceLabel } from '@/lib/referenceLabels.js';
 
 const props = defineProps({
     name: { type: String, required: true },
@@ -22,12 +24,14 @@ const resolvedInitials = computed(
             .slice(0, 2)
             .toUpperCase(),
 );
+const { t } = useI18n();
+const roleLabels = computed(() => props.roles.map((role) => referenceLabel(role, { translate: (key, fallback) => t(key, fallback) })));
 </script>
 
 <template>
     <span class="persona-chip">
         <Avatar :initials="resolvedInitials" />
         {{ name }}
-        <span v-if="roles.length" class="persona-roles">{{ roles.join(' ') }}</span>
+        <span v-if="roles.length" class="persona-roles">{{ roleLabels.join(', ') }}</span>
     </span>
 </template>

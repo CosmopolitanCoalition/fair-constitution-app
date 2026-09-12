@@ -2,6 +2,8 @@
 
 12 September 2026. Approved by the operator; Claude paused for this pass.
 
+The subsequent [usability and consolidation follow-up](CONSOLIDATION.md) records the loading/map repairs, shared institution workspaces, and the operator's clarified remaining priorities.
+
 ## What changed
 
 - Six everyday destinations: Today, Places, Community, Work & trade, Learn & help, My profile. Legislative maps and role exploration have direct shortcuts. Host/development tools and deeper activities are collapsed separately. Navigation closes after moving to a page.

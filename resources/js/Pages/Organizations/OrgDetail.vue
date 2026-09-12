@@ -7,7 +7,7 @@
  * handshake (F-CAN-002 request → F-ORG-002 grant → R-07) · the join cards
  * (F-IND-013 membership → R-24; F-IND-014 worker → R-25, THE headcount
  * feed) · document packages · contracts with the two-signature co-sign gate ·
- * OwnershipPanel · the board summary (compact BoardStrip + static CoDetScale)
+ * OwnershipPanel · the current board summary and compact roster
  * when a board exists · the ESM-18 StateStrip.
  *
  * Public read; actions gate by `can.*` + engine 422 (the bootstrap
@@ -31,8 +31,8 @@ import StateStrip from '@/Components/Ui/StateStrip.vue';
 import StatusBadge from '@/Components/Ui/StatusBadge.vue';
 import TagChip from '@/Components/Ui/TagChip.vue';
 import BoardStrip from '@/Components/Organizations/BoardStrip.vue';
-import CoDetScale from '@/Components/Organizations/CoDetScale.vue';
 import OwnershipPanel from '@/Components/Organizations/OwnershipPanel.vue';
+import OrganizationNav from '@/Components/Organizations/OrganizationNav.vue';
 
 /* Phase-2 restyle wave: the v3 player chrome (MASTER_PLAN). */
 defineOptions({ layout: AppShellV2 });
@@ -114,8 +114,6 @@ const statusTone = computed(() =>
     props.organization.status === 'active' ? 'success' : props.organization.status === 'registered' ? 'info' : 'neutral',
 );
 
-const min = computed(() => props.board?.codet?.thresholds?.min ?? 100);
-
 /* ---------------------------------------------- profile edit (F-ORG-001) */
 const profileForm = useForm({
     name: props.organization.name,
@@ -189,11 +187,10 @@ const documentColumns = [
 <template>
     <PageScaffold :surface="surface" :title="organization.name">
         <template #intro>
-            An organization's public profile — ownership, board, endorsements, and the join
-            paths. Endorsement linkage feeds proportionality, never a faction layer; the worker
-            headcount feeds the co-determination scale. Everything here is a public record
-            (Art. II §2 · Art. III).
+            Get to know this organization, find its work, or join its activities.
         </template>
+
+        <OrganizationNav :organization="organization" current="overview" />
 
         <Banner v-if="flashStatus" tone="info" role="status">{{ flashStatus }}</Banner>
         <Banner v-if="constitutionError" tone="emergency" role="alert">{{ constitutionError }}</Banner>
@@ -215,10 +212,6 @@ const documentColumns = [
                 <Stat v-if="board?.exists" :value="board.strip?.seats?.length ?? 0" label="Board seats" />
             </div>
 
-            <!-- Economy console — shown only to those maySteer actually admits. -->
-            <p v-if="can.steerEconomy" style="margin-block-start: var(--space-3)">
-                <Link :href="`/organizations/${organization.id}/economy`">Economics, shares &amp; dues →</Link>
-            </p>
             <dl class="cluster" style="gap: var(--space-6); margin-block-start: var(--space-3)">
                 <div>
                     <dt class="cc-small">Jurisdiction</dt>
@@ -229,7 +222,7 @@ const documentColumns = [
                     <dd style="margin: 0">{{ fmtDate(organization.registered_at) }}</dd>
                 </div>
                 <div>
-                    <dt class="cc-small">Agent (R-23)</dt>
+                    <dt class="cc-small">Organization representative</dt>
                     <dd style="margin: 0">
                         {{ organization.agent?.name ?? '—' }}
                         <span v-if="organization.agent?.is_viewer" class="citation"> · you</span>
@@ -239,7 +232,7 @@ const documentColumns = [
             <p v-if="organization.purpose" style="margin-block-start: var(--space-2)">{{ organization.purpose }}</p>
 
             <details v-if="can.manage" style="margin-block-start: var(--space-3)">
-                <summary>Edit profile (R-23)</summary>
+                <summary>Edit profile</summary>
                 <form class="stack" style="gap: var(--space-2); margin-block-start: var(--space-2)" novalidate @submit.prevent="submitProfile">
                     <input type="hidden" name="form_id" value="F-ORG-001" />
                     <Field label="Name" :error="profileForm.errors.name">
@@ -302,11 +295,8 @@ const documentColumns = [
 
         <!-- ======================================== endorsements ======== -->
         <Card as="section" title="Endorsements">
-            <Banner tone="info" role="status" title="Endorsement linkage feeds proportionality — not a faction layer.">
-                A candidate requests (F-CAN-002); the agent grants (F-ORG-002), which is forced public and
-                confers R-07 on the candidate. There is no faction registration — endorsements are
-                polymorphic rows · ledger #q1.
-            </Banner>
+            <p class="gloss">Candidates can ask for this organization’s endorsement. Its representative
+                reviews requests, and granted endorsements become public.</p>
 
             <template v-if="can.manage && endorsements.incoming.length">
                 <h3 style="margin-block: var(--space-3) var(--space-1)">Pending requests</h3>
@@ -338,9 +328,7 @@ const documentColumns = [
         <!-- ============================================ job board ======= -->
         <Card as="section" title="Job board">
             <p class="gloss">
-                Open roles this organization has posted. Applying is a person-to-person work
-                application (F-IND-019) — the organization decides; nothing here is a gate on
-                anyone's rights.
+                Explore this organization’s open roles and apply for work. The organization reviews applications.
             </p>
             <ul v-if="jobs.length" class="offer-grid" style="margin-block-start: var(--space-3); list-style: none; padding: 0">
                 <li v-for="job in jobs" :key="job.id" class="card card--inset">
@@ -373,8 +361,7 @@ const documentColumns = [
                 </template>
                 <template v-else-if="can.join">
                     <p class="cc-small" style="margin-block-end: var(--space-2)">
-                        Apply for this organization's ownership class — the organization accepts per its bylaws;
-                        R-24 derives on acceptance.
+                        Apply to join this organization. Membership begins when your request is accepted under its bylaws.
                     </p>
                     <form novalidate @submit.prevent="submitMembership">
                         <input type="hidden" name="form_id" value="F-IND-013" />
@@ -392,7 +379,7 @@ const documentColumns = [
 
             <Card as="section" title="Register as a worker">
                 <p class="citation" style="margin-block-end: var(--space-2)">
-                    Worker headcount feeds the co-determination scale · CLK-13 / CLK-14.
+                    Registered workers count toward the organization’s worker representation.
                 </p>
                 <template v-if="myWorker">
                     <Banner tone="info" role="status" title="You are registered as a worker.">
@@ -434,32 +421,25 @@ const documentColumns = [
         </Card>
 
         <!-- ============================================ the board ======= -->
-        <Card as="section" title="Board & co-determination">
+        <Card as="section" title="Board">
             <template v-if="board && board.exists">
+                <div v-if="board.codet" class="cluster" style="gap: var(--space-5); margin-block-end: var(--space-3)">
+                    <Stat :value="board.codet.ownerSeats" label="Owner-side seats" />
+                    <Stat :value="board.codet.workerSeats" label="Worker seats required" />
+                </div>
                 <BoardStrip
                     :seats="board.strip.seats"
                     :composition-valid="board.strip.compositionValid"
                     :required-worker-seats="board.strip.requiredWorkerSeats"
                     compact
                 />
-                <hr />
-                <CoDetScale
-                    :workers="board.codet.workers"
-                    :owner-seats="board.codet.ownerSeats"
-                    :worker-seats="board.codet.workerSeats"
-                    :thresholds="board.codet.thresholds"
-                    :next-step-at="board.codet.nextStepAt"
-                    :entity-label="organization.name"
-                />
-                <div class="cluster" style="margin-block-start: var(--space-3)">
-                    <Link :href="board.elections_href">Board elections →</Link>
-                    <Link :href="board.codet_href">Co-determination explorer →</Link>
-                </div>
             </template>
             <Banner v-else tone="info" role="status" title="No board constituted.">
-                Co-determination begins at {{ min.toLocaleString() }} workers (CLK-13); until then ownership
-                governs per its structure rules.
+                No board has been constituted yet.
             </Banner>
+            <p style="margin-block-start: var(--space-3)">
+                <Link :href="`/organizations/co-determination?org=${organization.id}`">How worker representation is determined →</Link>
+            </p>
         </Card>
 
         <!-- ============================================ documents ======= -->
@@ -483,7 +463,7 @@ const documentColumns = [
             </p>
 
             <details v-if="can.manage" style="margin-block-start: var(--space-3)">
-                <summary>Upload a new version (R-23)</summary>
+                <summary>Upload a new version</summary>
                 <form class="stack" style="gap: var(--space-2); margin-block-start: var(--space-2)" novalidate @submit.prevent="submitDocument">
                     <input type="hidden" name="form_id" value="F-ORG-001" />
                     <Field label="Key" :error="documentForm.errors.key" hint="A stable identifier for the package (e.g. bylaws-2031).">
@@ -542,7 +522,7 @@ const documentColumns = [
         </Card>
 
         <!-- ============================================ ESM-18 ========== -->
-        <Card as="section" title="Lifecycle (ESM-18)">
+        <Card as="section" title="Organization status">
             <StateStrip :states="machine" :current="organization.status" />
         </Card>
 

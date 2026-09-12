@@ -10,7 +10,7 @@
  * journey nudges, it never blocks, and a medal grants nothing.
  */
 import { computed } from 'vue';
-import { Link } from '@inertiajs/vue3';
+import { Link, usePage } from '@inertiajs/vue3';
 import AppShellV2 from '@/Layouts/AppShellV2.vue';
 import PageScaffold from '@/Components/Surface/PageScaffold.vue';
 import Btn from '@/Components/Ui/Btn.vue';
@@ -26,6 +26,8 @@ const props = defineProps({
     /** config/cga/journeys.php merged with the viewer's progress. */
     journeys: { type: Array, default: () => [] },
 });
+const page = usePage();
+const signedIn = computed(() => !!page.props.auth?.user);
 
 /* Group by interaction class, in the §7 display order; display data
    (clsLabel, flagship) rides in from the client registry by id. */
@@ -33,7 +35,7 @@ const groups = computed(() =>
     CLASSES.map((cls) => ({
         ...cls,
         journeys: props.journeys
-            .filter((j) => j.cls === cls.id)
+            .filter((j) => j.cls === cls.id && j.status === 'live')
             .map((j) => ({ ...j, display: JOURNEYS_BY_ID[j.id] ?? null })),
     })).filter((group) => group.journeys.length > 0),
 );
@@ -54,6 +56,8 @@ const groups = computed(() =>
             </p>
         </template>
 
+        <p><Link href="/learn">← Learn & help</Link></p>
+        <p v-if="!groups.length">No guided journeys are available yet. You can explore the lessons in Learn & help.</p>
         <section v-for="group in groups" :key="group.id" :aria-labelledby="`jcls-${group.id}`">
             <h2 :id="`jcls-${group.id}`">{{ group.label }}</h2>
 
@@ -61,7 +65,6 @@ const groups = computed(() =>
                 <div v-for="j in group.journeys" :key="j.id" class="card stack" style="gap: var(--space-2)">
                     <div class="cluster" style="justify-content: space-between; align-items: baseline">
                         <h3 style="margin: 0">{{ j.title }}</h3>
-                        <StatusBadge v-if="j.display?.flagship" tone="info" icon="award">Flagship</StatusBadge>
                     </div>
 
                     <!-- steps-done meter — n of N -->
@@ -69,12 +72,14 @@ const groups = computed(() =>
                         <span v-if="j.completed" class="cc-small">
                             <Icon name="award" size="sm" /> Journey complete
                         </span>
-                        <span v-else class="cc-small">{{ j.steps_done }} of {{ j.steps_total }} steps</span>
+                        <span v-else-if="signedIn" class="cc-small">{{ j.steps_done }} of {{ j.steps_total }} steps</span>
+                        <span v-else class="cc-small">{{ j.steps_total }} steps</span>
                         <StatusBadge v-if="j.status === 'planned'" tone="neutral" icon="clock">
                             Planned
                         </StatusBadge>
                     </div>
                     <div
+                        v-if="signedIn && j.steps_total > 0"
                         class="meter"
                         role="meter"
                         aria-valuemin="0"

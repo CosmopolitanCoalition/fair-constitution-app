@@ -1200,14 +1200,14 @@ Route::middleware('auth')->prefix('civic')->name('civic.')->group(function () {
 });
 
 // mockups-v3-wiring Phase 3c — the journeys engine: guided learn-by-doing
-// arcs with durable per-user completion + profile medals. Auth-gated (progress
-// is personal); writes validate against config/cga/journeys.php in
+// arcs with durable per-user completion + profile medals. Reading is public;
+// personal progress writes require auth and validate config/cga/journeys.php in
 // JourneyService (planned journeys reject; completed journeys freeze).
+Route::get('/journeys', [\App\Http\Controllers\Civic\JourneysController::class, 'index'])
+    ->name('journeys.index');
+Route::get('/journeys/{id}', [\App\Http\Controllers\Civic\JourneysController::class, 'show'])
+    ->where('id', '[a-z0-9\-]+')->name('journeys.show');
 Route::middleware('auth')->group(function () {
-    Route::get('/journeys', [\App\Http\Controllers\Civic\JourneysController::class, 'index'])
-        ->name('journeys.index');
-    Route::get('/journeys/{id}', [\App\Http\Controllers\Civic\JourneysController::class, 'show'])
-        ->where('id', '[a-z0-9\-]+')->name('journeys.show');
     Route::post('/journeys/{id}/steps', [\App\Http\Controllers\Civic\JourneysController::class, 'step'])
         ->where('id', '[a-z0-9\-]+')->name('journeys.step');
     Route::delete('/journeys/{id}/steps', [\App\Http\Controllers\Civic\JourneysController::class, 'unstep'])

@@ -5,8 +5,7 @@
  *
  * The Common Good Corporation detail: charter (legislature creates) +
  * oversight (executive oversees) with the identical-regulation HardenedChip,
- * the co-determination scale (governors stand where shareholders would —
- * ledger #12), the board strip, and THE public-domain IP register — a
+ * the current board summary and roster, and the public-domain IP register — a
  * DataTable whose status column carries one value (public_domain) plus an
  * add-asset FormCard with NO status field at all (the absence of the
  * affordance is the UI statement of irreversibility; the engine enforces it
@@ -17,9 +16,10 @@
  * Nothing here is computed.
  */
 import { computed } from 'vue';
-import { Link, router, useForm, usePage } from '@inertiajs/vue3';
+import { Link, useForm, usePage } from '@inertiajs/vue3';
 import AppShellV2 from '@/Layouts/AppShellV2.vue';
 import PageScaffold from '@/Components/Surface/PageScaffold.vue';
+import OrganizationNav from '@/Components/Organizations/OrganizationNav.vue';
 import Banner from '@/Components/Ui/Banner.vue';
 import Card from '@/Components/Ui/Card.vue';
 import DataTable from '@/Components/Ui/DataTable.vue';
@@ -29,10 +29,8 @@ import HardenedChip from '@/Components/Ui/HardenedChip.vue';
 import LifecycleTracker from '@/Components/Ui/LifecycleTracker.vue';
 import Stat from '@/Components/Ui/Stat.vue';
 import StatusBadge from '@/Components/Ui/StatusBadge.vue';
-import TagChip from '@/Components/Ui/TagChip.vue';
 import FormCard from '@/Components/Surface/FormCard.vue';
 import BoardStrip from '@/Components/Organizations/BoardStrip.vue';
-import CoDetScale from '@/Components/Organizations/CoDetScale.vue';
 
 /* Phase-2 restyle wave: the v3 player chrome (MASTER_PLAN). */
 defineOptions({ layout: AppShellV2 });
@@ -102,30 +100,18 @@ function submitIp() {
             private peers — with one permanent difference: everything it creates belongs to everyone.
         </template>
 
+        <OrganizationNav :organization="{ ...organization, is_cgc: true }" current="overview" />
+
         <Banner v-if="flashStatus" tone="info" role="status">{{ flashStatus }}</Banner>
         <Banner v-if="constitutionError" tone="emergency">{{ constitutionError }}</Banner>
 
-        <!-- ===================================== header / links ========= -->
-        <div class="cluster">
-            <Link href="/organizations">← Organization registry</Link>
-            <Link
-                v-if="oversight?.department"
-                :href="oversight.department.href"
-            >Overseeing department →</Link>
-            <Link href="/organizations/co-determination">Co-determination scaling →</Link>
-            <Link
-                :href="`/organizations/${organization.id}/board-elections`"
-            >Board elections →</Link>
-        </div>
-
         <div class="cluster" style="gap: var(--space-5); align-items: flex-start">
-            <Stat :value="organization.worker_count.toLocaleString()" label="workers (R-25)" accent />
-            <Stat :value="organization.status.replaceAll('_', ' ')" label="status (ESM-18)" />
-            <span><TagChip data-no-i18n>type: common good corp</TagChip></span>
+            <Stat :value="organization.worker_count.toLocaleString()" label="Workers" accent />
+            <Stat :value="organization.status.replaceAll('_', ' ')" label="Status" />
         </div>
 
         <!-- ========================================= charter card ======= -->
-        <Card as="section" title="Charter — the legislature creates">
+        <Card as="section" title="Charter">
             <p v-if="charter?.purpose" style="margin-block-end: var(--space-2)">{{ charter.purpose }}</p>
             <p v-else class="gloss">No charter purpose recorded.</p>
             <p class="citation">
@@ -144,7 +130,7 @@ function submitIp() {
         </Card>
 
         <!-- ========================================= oversight card ===== -->
-        <Card as="section" title="Oversight — the executive oversees">
+        <Card as="section" title="Oversight">
             <template v-if="oversight">
                 <p>
                     Overseen by
@@ -158,7 +144,7 @@ function submitIp() {
             </template>
             <p v-else class="gloss">No overseeing executive assigned yet.</p>
             <p style="margin-block-start: var(--space-2)">
-                <HardenedChip>Regulated identically to private peers — hardened</HardenedChip>
+                <HardenedChip>Same regulation as private organizations</HardenedChip>
             </p>
             <p class="citation" style="margin-block-start: var(--space-1)">
                 A CGC is subject to the same regulation as any private peer; its public ownership confers no
@@ -166,35 +152,22 @@ function submitIp() {
             </p>
         </Card>
 
-        <!-- ============================ co-determination + board ======== -->
-        <Card as="section" title="Co-determination — the Board of Governors stands where shareholders would">
-            <CoDetScale
-                v-if="codet"
-                :workers="codet.workers"
-                :owner-seats="codet.ownerSeats"
-                :worker-seats="codet.workerSeats"
-                :thresholds="codet.thresholds"
-                :next-step-at="codet.nextStepAt"
-                :entity-label="codet.entityLabel"
-            />
-            <p v-else class="gloss">No board constituted yet.</p>
-            <div class="card card--inset" style="margin-block-start: var(--space-3)">
-                <p style="margin: 0">
-                    In a Common Good Corporation the Board of Governors stands where shareholders would — the
-                    owner side runs on the share system everywhere else.
-                </p>
-                <p class="citation" style="margin-block-start: var(--space-1)">
-                    Art. III §5–6 · as implemented (ledger #12)
-                </p>
+        <!-- The detailed scale belongs to the Worker representation workspace. -->
+        <Card as="section" title="Board">
+            <div v-if="codet" class="cluster" style="gap: var(--space-5); margin-block-end: var(--space-3)">
+                <Stat :value="codet.ownerSeats" label="Appointed governor seats" />
+                <Stat :value="codet.workerSeats" label="Worker seats required" />
             </div>
-        </Card>
-
-        <Card v-if="board" as="section" title="Board composition">
             <BoardStrip
+                v-if="board"
                 :seats="board.seats"
                 :composition-valid="board.compositionValid"
                 :required-worker-seats="board.requiredWorkerSeats"
             />
+            <p v-else class="gloss">No board constituted yet.</p>
+            <p style="margin-block-start: var(--space-3)">
+                <Link :href="`/organizations/co-determination?org=${organization.id}`">How worker representation is determined →</Link>
+            </p>
         </Card>
 
         <!-- ================================ public-domain IP register === -->
@@ -213,7 +186,7 @@ function submitIp() {
                 v-if="ipRegister.length"
                 :columns="ipColumns"
                 :rows="ipRegister"
-                caption="Public-domain dedications — status is always public domain (append-only, irreversible)"
+                caption="Public-domain works"
             >
                 <template #cell-kind="{ row }">
                     <span data-no-i18n>{{ ipKindLabel(row.kind) }}</span>
@@ -268,7 +241,7 @@ function submitIp() {
                     </Field>
                     <Field
                         label="Description"
-                        hint="There is no status field — public domain is the only value. Dedication is irreversible."
+                        hint="Describe the work being dedicated. A public-domain dedication cannot be revoked."
                         :error="ipForm.errors.description"
                     >
                         <template #control="{ id, describedBy }">
@@ -288,9 +261,8 @@ function submitIp() {
         <!-- ================== reorganization / sale / dissolution ======= -->
         <Card as="section" title="Reorganization, sale, and dissolution">
             <p>
-                Only the legislature may reorganize, sell, or dissolve a CGC
-                (<FormChip form-id="F-LEG-027" /> · WF-ORG-09); existing public-domain IP status survives any
-                sale.
+                Only the legislature may reorganize, sell, or dissolve this public corporation.
+                Its existing works remain public domain after a sale.
             </p>
             <p v-if="actionsDeepLinks.reorganize" class="cluster" style="margin-block-start: var(--space-2)">
                 <Link :href="actionsDeepLinks.reorganize">Introduce a reorganization/sale bill →</Link>

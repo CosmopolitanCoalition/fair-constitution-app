@@ -30,6 +30,9 @@ import StvRound from '@/Components/Electoral/StvRound.vue';
 import VoteTally from '@/Components/Legislature/VoteTally.vue';
 import BoardStrip from '@/Components/Organizations/BoardStrip.vue';
 import StateStrip from '@/Components/Ui/StateStrip.vue';
+import OrganizationNav from '@/Components/Organizations/OrganizationNav.vue';
+import ReferenceText from '@/Components/Ui/ReferenceText.vue';
+import { useI18n } from 'vue-i18n';
 
 /* Phase-2 restyle wave: the v3 player chrome (MASTER_PLAN). */
 defineOptions({ layout: AppShellV2 });
@@ -49,6 +52,15 @@ const props = defineProps({
 });
 
 const page = usePage();
+const { t } = useI18n();
+const text = (key, fallback) => t('c_references.board_elections.' + key, fallback);
+const isCgc = computed(() => Boolean(props.organization.is_cgc));
+const ownerSeatLabel = computed(() => isCgc.value
+    ? text('governor_seats', 'Appointed governor seats')
+    : text('owner_seats', 'Owner-elected seats'));
+const intro = computed(() => isCgc.value
+    ? text('cgc_intro', 'Appointed governors and elected worker representatives serve together on this board. Follow worker elections, view the seated members, and see how the entire board elects its chair.')
+    : text('intro', 'Follow elections for the owner and worker seats, view the seated members, and see how the entire board elects its chair. Open an active election to vote on its ballot.'));
 const flashStatus = computed(() => page.props.flash?.status ?? null);
 const constitutionError = computed(() => page.props.errors?.constitution ?? null);
 
@@ -125,21 +137,20 @@ const nominationStrips = computed(() => {
 <template>
     <PageScaffold :surface="surface" :title="`Board elections — ${organization.name}`">
         <template #intro>
-            Three counts seat one board: shareholders elect the owner track by STV, workers elect
-            the worker track by STV, and then the entire board jointly elects its chair by ranked
-            choice. Voting itself happens on the public ballot surfaces — the counts published
-            here are the record.
+            {{ intro }}
         </template>
 
-        <Banner v-if="flashStatus" tone="info" role="status">{{ flashStatus }}</Banner>
-        <Banner v-if="constitutionError" tone="emergency">{{ constitutionError }}</Banner>
+        <OrganizationNav :organization="organization" current="board" />
+
+        <Banner v-if="flashStatus" tone="info" role="status"><ReferenceText>{{ flashStatus }}</ReferenceText></Banner>
+        <Banner v-if="constitutionError" tone="emergency"><ReferenceText>{{ constitutionError }}</ReferenceText></Banner>
 
         <!-- ===================================== no board yet =========== -->
         <Card v-if="!composition" as="section" title="No board constituted">
             <Banner tone="info" role="status" title="This organization has no board yet.">
-                Co-determination provisions a board on the owner track first (F-ORG-003); the worker
-                track and its seats appear once the organization crosses the first-seat threshold
-                (CLK-13). The owner-track administration form below provisions it.
+                {{ isCgc
+                    ? text('cgc_no_board', 'No governing board has been established for this organization yet. Governor appointments and worker elections will appear here when available.')
+                    : text('no_board', 'No governing board has been established for this organization yet. Worker seats become available as the workforce reaches the required size.') }}
             </Banner>
         </Card>
 
@@ -147,9 +158,9 @@ const nominationStrips = computed(() => {
             <!-- ====================================== stat cluster ====== -->
             <Card as="section" title="The board">
                 <div class="cluster" style="gap: var(--space-5); align-items: flex-start">
-                    <Stat :value="composition.ownerSeats" label="owner-side seats · R-26" />
-                    <Stat :value="composition.workerSeats" label="worker-elected seats · R-27" accent />
-                    <Stat :value="composition.chair?.name ?? 'unfilled'" label="joint chair · R-28" />
+                    <Stat :value="composition.ownerSeats" :label="ownerSeatLabel" />
+                    <Stat :value="composition.workerSeats" :label="text('worker_seats', 'Worker-elected seats')" accent />
+                    <Stat :value="composition.chair?.name ?? 'Unfilled'" :label="text('chair', 'Board chair')" />
                 </div>
                 <p v-if="!composition.compositionValid" style="margin-block-start: var(--space-3)">
                     <StatusBadge tone="warning" icon="alert-triangle">
@@ -159,31 +170,21 @@ const nominationStrips = computed(() => {
             </Card>
 
             <!-- ============================== nomination window ========= -->
-            <Card as="section" title="Before the count — the open nomination window">
+            <Card as="section" :title="text('nominations', 'Nominations and schedule')">
                 <p>
-                    Ranking never starts cold. Before ballots open, nominations run in the open: any
-                    eligible owner (owner track) or worker (worker track) can nominate — or stand —
-                    and each nominee accepts or declines in public. The field forms where everyone
-                    can see it before anyone ranks a name.
+                    {{ text('nominations_intro', 'Candidates are nominated before voting begins. Each scheduled election shows its nomination, ranking, and counting stages below.') }}
                 </p>
 
                 <div class="lr-note" style="margin-block: var(--space-3)">
                     <div>
-                        <strong style="color: var(--gov-fg)">The window is a setting, not a
-                        constitutional rule.</strong>
-                        The organization sets how many days nominations stay open before ranking
-                        begins — a role-gated dial on
-                        <Link :href="nominationWindow.settings_href">org settings</Link>
-                        ({{ nominationWindow.min }}–{{ nominationWindow.max }} days), never a
-                        constitutional value.
                         <template v-if="nominationWindow.is_set">
-                            Currently <strong>{{ nominationWindow.window_days }} days</strong>.
+                            {{ t('c_references.board_elections.nomination_days', { count: nominationWindow.window_days }, 'Nominations stay open for {count} days.') }}
                         </template>
                         <template v-else>
-                            Unset — the jurisdiction's default election schedule stands.
+                            {{ text('default_schedule', 'This organization uses the jurisdiction’s election schedule.') }}
                         </template>
-                        Public elections don't use this dial: their candidacy windows are
-                        constitutional clockwork.
+                        {{ ' ' }}
+                        <Link :href="nominationWindow.settings_href">{{ text('settings', 'Organization settings') }}</Link>
                     </div>
                 </div>
 
@@ -212,18 +213,19 @@ const nominationStrips = computed(() => {
             </Card>
 
             <!-- ======================================= owner track ====== -->
-            <Card as="section" title="Owner track — PR-STV">
+            <Card as="section" :title="isCgc ? text('appointments_records', 'Governor appointments and election records') : text('owner_election', 'Owner-seat election')">
                 <p class="citation">
-                    shareholders elect the owner side · the same Droop-quota STV as a public
-                    election · Art. III §4, §6
+                    {{ isCgc
+                        ? text('appointments_explained', 'Appointed governors hold the common-good side of this board. The seated board shows the current appointments; any election records below are preserved for reference.')
+                        : text('owner_election_explained', 'Eligible owners or members elect these seats by proportional ranked-choice voting, according to the organization’s structure.') }}
                 </p>
 
                 <div class="cluster" style="gap: var(--space-4); margin-block: var(--space-2)">
-                    <Stat :value="ownerTrack.electorate_count" label="eligible owners (active shareholdings · R-24)" />
+                    <Stat v-if="!isCgc || ownerTrack.election" :value="ownerTrack.electorate_count" :label="text('eligible_owners', 'Eligible owners or members')" />
                     <Stat
                         v-if="ownerTrack.result"
                         :value="ownerTrack.result.quota.toLocaleString()"
-                        label="Droop quota = floor(votes ÷ (seats+1)) + 1"
+                        :label="text('quota', 'Votes needed for election')"
                         accent
                     />
                 </div>
@@ -251,38 +253,37 @@ const nominationStrips = computed(() => {
                         default-open
                     />
                     <p v-if="ownerTrack.result.certified_at" class="citation" data-no-i18n style="margin-block-start: var(--space-2)">
-                        certified {{ new Date(ownerTrack.result.certified_at).toLocaleString() }} · F-ORG-003
+                        certified {{ new Date(ownerTrack.result.certified_at).toLocaleString() }}
                     </p>
                 </template>
                 <p v-else-if="!ownerTrack.election" class="gloss" style="margin-block-start: var(--space-2)">
-                    No owner-track election has run — schedule one to fill the vacant owner seats.
+                    {{ isCgc
+                        ? text('no_owner_election_record', 'No owner-seat election is on record. Governor appointments appear in the seated board below.')
+                        : text('no_owner_election', 'No owner-seat election is on record yet.') }}
                 </p>
 
                 <!-- administration (R-23) -->
                 <div v-if="can.administerOwner && !ownerTrack.election?.live" class="cluster" style="margin-block-start: var(--space-3)">
                     <Btn variant="primary" size="sm" :disabled="ownerForm.processing" @click="scheduleOwner">
-                        Schedule owner-track election — F-ORG-003
+                        {{ text('schedule_owner', 'Schedule owner-seat election') }}
                     </Btn>
-                    <span class="citation">opens the same two-phase open ballot as a public election</span>
                 </div>
             </Card>
 
             <!-- ===================================== worker track ======= -->
-            <Card as="section" title="Worker track — PR-STV">
+            <Card as="section" :title="text('worker_election', 'Worker-seat election')">
                 <template v-if="workerTrack.exists">
                     <p class="citation">
-                        this track exists because the organization crossed the first-seat threshold ·
-                        CLK-13; its {{ composition.workerSeats }} seat(s) come from the uniform
-                        co-determination scale · CLK-14
-                        · <Link :href="organization.codet_href">co-determination scaling →</Link>
+                        {{ t('c_references.board_elections.worker_seats_explained', { count: composition.workerSeats }, 'The workforce currently has {count} board seats.') }}
+                        <Link :href="organization.codet_href">{{ text('worker_representation', 'Worker representation') }}</Link>
                     </p>
 
                     <div class="cluster" style="gap: var(--space-4); margin-block: var(--space-2)">
-                        <Stat :value="workerTrack.electorate_count" label="eligible workers (active F-IND-014 registrations · R-25)" />
+                        <Stat :value="workerTrack.electorate_count" :label="text('eligible_workers', 'Eligible workers')" />
                         <Stat
                             v-if="workerTrack.result"
                             :value="workerTrack.result.quota.toLocaleString()"
-                            label="Droop quota = floor(votes ÷ (seats+1)) + 1"
+                            :label="text('quota', 'Votes needed for election')"
                             accent
                         />
                     </div>
@@ -307,33 +308,29 @@ const nominationStrips = computed(() => {
                             default-open
                         />
                         <p v-if="workerTrack.result.certified_at" class="citation" data-no-i18n style="margin-block-start: var(--space-2)">
-                            certified {{ new Date(workerTrack.result.certified_at).toLocaleString() }} · F-ORG-004
+                            certified {{ new Date(workerTrack.result.certified_at).toLocaleString() }}
                         </p>
                     </template>
                     <p v-else-if="!workerTrack.election" class="gloss" style="margin-block-start: var(--space-2)">
-                        No worker-track election has run yet — the vacant worker seats await the count.
-                        The system opens this election automatically when the scale adds a seat (CLK-13).
+                        {{ text('no_worker_election', 'No worker-seat election is on record yet. An election opens when growth in the workforce requires a new seat.') }}
                     </p>
 
                     <div v-if="can.administerWorker && !workerTrack.election?.live" class="cluster" style="margin-block-start: var(--space-3)">
                         <Btn variant="primary" size="sm" :disabled="workerForm.processing" @click="scheduleWorker">
-                            Schedule worker-track election — F-ORG-004
+                            {{ text('schedule_worker', 'Schedule worker-seat election') }}
                         </Btn>
-                        <span class="citation">also fired system-side from CLK-13 — R-23 absence never stalls a required seat</span>
                     </div>
                 </template>
 
                 <!-- below the threshold: no worker track at all -->
-                <Banner v-else tone="info" role="status" title="No worker track yet.">
-                    No worker track — the first worker seat appears at the CLK-13 minimum headcount.
-                    Below that threshold the owner side governs per the organization's structure rules
-                    (the live value and the scale are on the
-                    <Link :href="organization.codet_href">co-determination page</Link>).
+                <Banner v-else tone="info" role="status" :title="text('no_worker_seats', 'No worker seats yet')">
+                    {{ text('worker_threshold', 'Worker seats become available when the workforce reaches the required size. See the current workforce and thresholds on') }}
+                    <Link :href="organization.codet_href">{{ text('worker_representation', 'Worker representation') }}</Link>.
                 </Banner>
             </Card>
 
             <!-- ===================================== joint chair ======== -->
-            <Card as="section" title="Joint chair — elected by the entire board (RCV)">
+            <Card as="section" :title="text('chair_election', 'Board chair election')">
                 <p style="margin-block-end: var(--space-2)">
                     <HardenedChip>Chair elected jointly by the entire Board · Art. III §6</HardenedChip>
                 </p>
@@ -344,9 +341,7 @@ const nominationStrips = computed(() => {
                     tone="warning"
                     title="Composition changed — a fresh joint chair election is required before the board acts."
                 >
-                    Any composition change — a seat added by the scale, a vacancy, a transfer —
-                    clears the chair and re-triggers the joint election by the full board ·
-                    Art. III §6 · WF-ORG-05.
+                    {{ text('chair_re_election', 'When the board’s membership changes, the entire board elects its chair again.') }}
                 </Banner>
 
                 <template v-if="chair?.vote">
@@ -369,7 +364,7 @@ const nominationStrips = computed(() => {
 
                     <!-- the round-by-round record (protected counting engine) -->
                     <template v-if="chairRounds.length">
-                        <h3 style="margin-block-start: var(--space-3)">Round record (protected counting engine)</h3>
+                        <h3 style="margin-block-start: var(--space-3)">{{ text('count_rounds', 'Counting rounds') }}</h3>
                         <div
                             v-for="round in chairRounds"
                             :key="round.round"
@@ -386,7 +381,7 @@ const nominationStrips = computed(() => {
                             </p>
                         </div>
                         <p v-if="chair.rounds?.winner" class="citation">
-                            chair: {{ chair.rounds.winner }} — seated as joint chair · public record kind certification
+                            {{ text('chair', 'Board chair') }}: {{ chair.rounds.winner }}
                         </p>
                     </template>
                 </template>
@@ -405,24 +400,19 @@ const nominationStrips = computed(() => {
                     :required-worker-seats="seated.requiredWorkerSeats"
                 />
                 <p class="citation" style="margin-block-start: var(--space-3)">
-                    Any composition change — a seat added by the scale, a vacancy, a transfer —
-                    re-triggers the joint chair election · Art. III §6 · WF-ORG-04 → WF-ORG-05.
+                    {{ text('chair_re_election', 'When the board’s membership changes, the entire board elects its chair again.') }}
                 </p>
             </Card>
             <Card v-else as="section" title="The seated board">
                 <p class="gloss">
-                    No seats filled yet — winners of the owner and worker tracks seat here, then the
-                    board elects its chair.
+                    {{ text('no_seated_members', 'No seats have been filled yet. Members appear here after their election or appointment.') }}
                 </p>
             </Card>
         </template>
 
         <template #about>
             <p>
-                Board elections reuse the public-election engine end to end — owner and worker races
-                carry an <code>electorate_type</code> (owners / workers) and run the same protected
-                STV count. The chair is the one board-internal vote: a ranked-choice ballot of the
-                entire seated board, won at a majority of all seated seats.
+                {{ text('elections_explained', 'Board-seat elections use proportional ranked-choice voting. All seated board members take part in choosing the chair, who must receive a majority of the full board.') }}
             </p>
         </template>
     </PageScaffold>

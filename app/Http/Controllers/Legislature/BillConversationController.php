@@ -5,64 +5,31 @@ namespace App\Http\Controllers\Legislature;
 use App\Domain\Engine\ConstitutionalEngine;
 use App\Http\Controllers\Controller;
 use App\Models\Bill;
-use App\Models\BillVersion;
 use App\Models\SocialPost;
 use App\Models\SocialSubforum;
 use App\Models\SocialThread;
+use App\Support\BillWorkspace;
+use App\Support\JurisdictionContext;
+use App\Support\SurfaceMeta;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Inertia\Response;
 
 /**
- * A bill — the conversation (mockups/v3/shared/bill.html contract). The v3 mockup split a bill into
- * two faces: the CONVERSATION (people talking it over, working its meaning) and the formal record
- * (the lifecycle + the vote math, at /bills/{bill}). This is the conversation face; the formal half
- * stays BillController.
- *
- * The mockup's per-clause "accept / reject" negotiation is DELIBERATELY NOT built. A bill's words
- * change only through amendments the chamber VOTES on (committee_amendment, then floor_amendment →
- * new BillVersions) — never by any one group editing the text, which would defeat the bicameral
- * dual-agreement of Art. V §3. This page explains that path and links to the formal record where the
- * versions and the vote math live; it offers no redline editor.
- *
- * Comments RIDE the bill's auto-bound hall subforum (SubforumReconciler binds every live bill). A
- * comment is an F-SOC-001 post targeting that subforum_id — read straight off the subforum, written
- * through the one canonical post door. Bills carry NO `summary` column, so the page shows the bill's
- * real current text, never a fabricated summary (honest-empty when a version carries no text).
+ * The discussion section of the selected-bill workspace. Text, votes and version history
+ * have one owner in BillController; BillWorkspace shares the bill's context and navigation.
+ * Public comments remain F-SOC-001 posts in the bill's bound hall subforum. Commenting
+ * grants no authority to amend text or cast a legislative vote.
  */
 class BillConversationController extends Controller
 {
-    /** introduced → … → enacted — the ordered spine; the three terminal outcomes are handled apart. */
-    private const MAIN_PATH = [
-        'introduced'   => 'Introduced',
-        'referred'     => 'Referred',
-        'in_committee' => 'In committee',
-        'reported'     => 'Reported out',
-        'on_floor'     => 'On the floor',
-        'passed'       => 'Passed',
-        'enacted'      => 'Enacted',
-    ];
-
-    private const TERMINAL = [
-        'tabled'    => 'Tabled',
-        'failed'    => 'Failed',
-        'withdrawn' => 'Withdrawn',
-    ];
-
     public function __construct(private readonly ConstitutionalEngine $engine) {}
 
     /** GET /bills/{bill}/conversation — public read (the conversation face). */
     public function show(Request $request, Bill $bill): Response
     {
-        $bill->loadMissing(['legislature.jurisdiction', 'sponsor.user:id,name,display_name']);
-
-        $current = BillVersion::query()
-            ->where('bill_id', $bill->id)
-            ->orderByDesc('version_no')
-            ->first(['version_no', 'law_text', 'change_kind']);
-
-        $versionCount = BillVersion::query()->where('bill_id', $bill->id)->count();
+        $bill->loadMissing(['legislature.jurisdiction:id,name,slug,parent_id,adm_level', 'sponsor.user:id,display_name']);
 
         $subforum = SocialSubforum::query()
             ->where('governing_object_type', SocialSubforum::OBJECT_BILL)
@@ -70,39 +37,35 @@ class BillConversationController extends Controller
             ->first();
 
         $comments = [];
+        $commentPages = null;
         if ($subforum !== null) {
-            $threadIds = SocialThread::query()->where('subforum_id', $subforum->id)->pluck('id');
-            if ($threadIds->isNotEmpty()) {
-                $comments = SocialPost::query()
-                    ->whereIn('thread_id', $threadIds)
-                    ->orderBy('created_at')
-                    ->limit(200)
-                    ->get(['id', 'author_display', 'body', 'created_at'])
-                    ->map(fn (SocialPost $p) => [
-                        'id'             => (string) $p->id,
-                        'author_display' => $p->author_display, // pseudonym snapshot only (Art. I)
-                        'body'           => $p->body,
-                        'at'             => $p->created_at?->toDayDateTimeString(),
-                    ])->all();
-            }
+            // Bound the input to this bill's subforum. Older comments remain reachable
+            // without loading every thread ID or silently dropping posts after 200.
+            $posts = SocialPost::query()
+                ->whereIn('thread_id', SocialThread::query()->where('subforum_id', $subforum->id)->select('id'))
+                ->orderByDesc('created_at')
+                ->orderByDesc('id')
+                ->simplePaginate(50, ['id', 'author_display', 'body', 'created_at'])
+                ->withQueryString();
+            $commentPages = [
+                'newerHref' => $posts->previousPageUrl(),
+                'olderHref' => $posts->nextPageUrl(),
+            ];
+            $comments = $posts->getCollection()->reverse()->values()
+                ->map(fn (SocialPost $p) => [
+                    'id'             => (string) $p->id,
+                    'author_display' => $p->author_display, // pseudonym snapshot only (Art. I)
+                    'body'           => $p->body,
+                    'at'             => $p->created_at?->toDayDateTimeString(),
+                ])->all();
         }
 
         return Inertia::render('Legislature/BillConversation', [
-            'surface' => ['title' => 'A bill — the conversation', 'nav' => 'bills'],
-            'bill'    => [
-                'id'               => (string) $bill->id,
-                'title'            => $bill->title,
-                'sponsor'          => $this->sponsorName($bill),
-                'jurisdiction'     => $bill->legislature?->jurisdiction?->name,
-                'status'           => $bill->status,
-                'text'             => $current?->law_text ?? '',
-                'versionCount'     => $versionCount,
-                'latestChangeKind' => $current?->change_kind,
-                'formalHref'       => "/bills/{$bill->id}",
-                'chamberHref'      => $bill->legislature !== null ? "/legislatures/{$bill->legislature->id}/chamber" : null,
-            ],
-            'stages'   => $this->stages($bill->status),
+            'surface' => SurfaceMeta::for('legislature/bill-detail'),
+            'workspace' => BillWorkspace::for($bill),
+            'jurisdictionContext' => $bill->legislature?->jurisdiction ? JurisdictionContext::for($bill->legislature->jurisdiction) : null,
             'comments' => $comments,
+            'commentPages' => $commentPages,
             // 'open' = you can comment; 'needs_auth' = sign in first; 'no_space' = the bill has no
             // bound hall subforum yet (honest-empty — never a faked composer).
             'commentState' => $subforum === null
@@ -144,39 +107,6 @@ class BillConversationController extends Controller
             'thread_id'       => $thread?->id,
         ]);
 
-        return back()->with('status', 'Comment posted — it rides this bill’s hall thread (F-SOC-001).');
-    }
-
-    private function sponsorName(Bill $bill): string
-    {
-        $u = $bill->sponsor?->user;
-
-        return $u?->display_name ?: ($u?->name ?? 'A member');
-    }
-
-    /**
-     * The bill's progress as a stage strip. A status on the main path marks position
-     * (done / current / pending); a terminal status shows the spine neutral with the outcome badge.
-     *
-     * @return array{path: list<array{label:string,state:string}>, terminal: ?array{label:string}}
-     */
-    private function stages(string $status): array
-    {
-        $keys = array_keys(self::MAIN_PATH);
-        $currentIndex = array_search($status, $keys, true);
-
-        $path = [];
-        foreach ($keys as $i => $key) {
-            $state = 'pending';
-            if ($currentIndex !== false) {
-                $state = $i < $currentIndex ? 'done' : ($i === $currentIndex ? 'current' : 'pending');
-            }
-            $path[] = ['label' => self::MAIN_PATH[$key], 'state' => $state];
-        }
-
-        return [
-            'path'     => $path,
-            'terminal' => isset(self::TERMINAL[$status]) ? ['label' => self::TERMINAL[$status]] : null,
-        ];
+        return back()->with('status', 'Comment posted in this bill’s discussion.');
     }
 }

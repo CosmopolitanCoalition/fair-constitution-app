@@ -41,9 +41,11 @@ export function nextStepFromThresholds(seats, ownerSeats, thresholds) {
 
 <script setup>
 import { computed, ref, useId, watch } from 'vue';
+import { useI18n } from 'vue-i18n';
 import Btn from '@/Components/Ui/Btn.vue';
 import Stat from '@/Components/Ui/Stat.vue';
 import StatusBadge from '@/Components/Ui/StatusBadge.vue';
+import ReferenceText from '@/Components/Ui/ReferenceText.vue';
 
 const props = defineProps({
     /** Live headcount: COUNT(org_workers WHERE ended_at IS NULL) — server. */
@@ -62,6 +64,8 @@ const props = defineProps({
 });
 
 const fmt = (n) => (n === null || n === undefined ? '—' : Number(n).toLocaleString());
+const { t } = useI18n();
+const text = (key, fallback) => t('c_references.' + key, fallback);
 
 /* ---------------------------------------------------------- the track --- */
 /* Track maximum = parity × 1.2 (the mockup's 2,400 for parity 2,000). */
@@ -95,20 +99,19 @@ const shownNextStep = computed(() =>
 const fillPct = computed(() => pctOf(shownWorkers.value));
 const atParity = computed(() => shownWorkers.value >= props.thresholds.parity);
 
-/* Status badge grammar verbatim from co-determination.html lines 196–199
-   (threshold values live from props — never literals). THE LIVE BADGE
+/* Readable live status (threshold values live from props — never literals). THE LIVE BADGE
    IGNORES SLIDER STATE (§A.2 pin): it always reflects the server
    headcount; the explorer's moved state is conveyed by the projection
    flag + recomputed stats, never by this badge. */
 const badge = computed(() => {
     const w = props.workers;
     if (w < props.thresholds.min) {
-        return { tone: 'neutral', icon: null, text: `no worker seats yet — first seat at ${fmt(props.thresholds.min)} · CLK-13` };
+        return { tone: 'neutral', icon: null, text: t('c_references.worker_seats_start', { count: fmt(props.thresholds.min) }, 'Worker representation begins at {count} workers') };
     }
     if (w >= props.thresholds.parity) {
-        return { tone: 'success', icon: 'users', text: 'parity — worker seats equal owner seats · CLK-14' };
+        return { tone: 'success', icon: 'users', text: text('equal_board_seats', 'Workers and owners have equal board representation') };
     }
-    return { tone: 'info', icon: 'users', text: 'scaling between CLK-13 and CLK-14' };
+    return { tone: 'info', icon: 'users', text: text('growing_board_representation', 'Worker representation grows with the workforce') };
 });
 
 /* The receipt formula block — substituted live numbers, data-no-i18n. */
@@ -166,23 +169,23 @@ function resetToLive() {
                     :class="{ 'meter-fill--met': atParity }"
                     :style="{ 'inline-size': `${fillPct}%` }"
                 ></span>
-                <span class="meter-threshold" :style="{ 'inset-inline-start': `${minMarkPct}%` }" title="CLK-13 first worker seat"></span>
-                <span class="meter-threshold" :style="{ 'inset-inline-start': `${parityMarkPct}%` }" title="CLK-14 parity"></span>
+                <span class="meter-threshold" :style="{ 'inset-inline-start': `${minMarkPct}%` }" :title="text('first_worker_seat', 'First worker seat')"></span>
+                <span class="meter-threshold" :style="{ 'inset-inline-start': `${parityMarkPct}%` }" :title="text('equal_representation', 'Equal representation')"></span>
             </div>
             <div class="meter-caption">
                 <span>0</span>
-                <span>{{ fmt(thresholds.min) }} · first worker seat · CLK-13</span>
-                <span>{{ fmt(thresholds.parity) }} · parity · CLK-14</span>
+                <span>{{ fmt(thresholds.min) }} · {{ text('first_worker_seat', 'First worker seat') }}</span>
+                <span>{{ fmt(thresholds.parity) }} · {{ text('equal_representation', 'Equal representation') }}</span>
             </div>
         </div>
 
         <!-- readout -->
         <div :id="readoutId" class="cluster" style="gap: var(--space-6)" aria-live="polite">
-            <Stat :value="fmt(shownWorkers)" label="workers (R-25)" />
-            <Stat :value="shownSeats" label="worker-elected seats (R-27)" accent />
-            <Stat :value="ownerSeats" label="owner-elected seats (R-26)" />
+            <Stat :value="fmt(shownWorkers)" :label="text('workers', 'Workers')" />
+            <Stat :value="shownSeats" :label="text('worker_seats', 'Worker-elected seats')" accent />
+            <Stat :value="ownerSeats" :label="text('owner_seats', 'Owner-elected seats')" />
             <div>
-                <StatusBadge :tone="badge.tone" :icon="badge.icon">{{ badge.text }}</StatusBadge>
+                <StatusBadge :tone="badge.tone" :icon="badge.icon"><ReferenceText>{{ badge.text }}</ReferenceText></StatusBadge>
                 <span
                     v-if="shownNextStep !== null && shownWorkers >= thresholds.min"
                     class="citation"
@@ -194,21 +197,30 @@ function resetToLive() {
         <!-- projection flag — everything moved off the live value -->
         <div v-if="exploring" class="cluster" role="status">
             <StatusBadge tone="warning" icon="sliders">
-                projection — the engine recomputes on real headcount change · WF-ORG-04
+                {{ text('workforce_projection', 'Projection — live seats update when the workforce changes') }}
             </StatusBadge>
             <Btn variant="secondary" size="sm" icon="refresh-cw" @click="resetToLive">
                 Reset to live ({{ fmt(workers) }} workers · {{ workerSeats }} seats)
             </Btn>
         </div>
 
-        <!-- the published formula, substituted -->
-        <div class="receipt" data-no-i18n>
-            {{ formulaGeneric }}<br />
-            {{ formulaSubstituted }}
-        </div>
-        <p class="citation" style="margin: 0">
-            Scales uniformly between the first seat ({{ fmt(thresholds.min) }}) and parity
-            ({{ fmt(thresholds.parity) }}) · Art. III §6 · CLK-13 / CLK-14
-        </p>
+        <!-- The published calculation remains available without dominating the readout. -->
+        <details class="seat-calculation">
+            <summary>{{ text('how_seats_calculated', 'How seats are calculated') }}</summary>
+            <div class="receipt" data-no-i18n>
+                <ReferenceText>{{ formulaGeneric }}<br />{{ formulaSubstituted }}</ReferenceText>
+            </div>
+            <p class="citation" style="margin: 0">
+                <ReferenceText>
+                    Scales uniformly between the first seat ({{ fmt(thresholds.min) }}) and parity
+                    ({{ fmt(thresholds.parity) }}) · Art. III §6
+                </ReferenceText>
+            </p>
+        </details>
     </div>
 </template>
+
+<style scoped>
+.seat-calculation summary { cursor: pointer; }
+.seat-calculation .receipt { margin-block: var(--space-3); overflow-wrap: anywhere; }
+</style>

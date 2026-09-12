@@ -11,6 +11,7 @@
  */
 import { useI18n } from 'vue-i18n';
 import Avatar from '@/Components/Ui/Avatar.vue';
+import { referenceLabel } from '@/lib/referenceLabels.js';
 
 defineProps({
     appName: { type: String, default: 'World of Statecraft' },
@@ -22,6 +23,7 @@ defineProps({
 });
 
 const { t } = useI18n({ useScope: 'global' });
+const roleLabel = (role) => referenceLabel(role.id, { name: role.label, translate: (key, fallback) => t(key, fallback) });
 </script>
 
 <template>
@@ -42,7 +44,7 @@ const { t } = useI18n({ useScope: 'global' });
             <span v-if="user" class="role-badge" :title="t('header.persona')">
                 <Avatar :initials="user.initials ?? ''" />
                 <span>{{ user.name }}</span>
-                <span v-if="role" class="citation">{{ role.id }} · {{ role.label }}</span>
+                <span v-if="role" class="citation">{{ roleLabel(role) }}</span>
             </span>
         </slot>
     </header>

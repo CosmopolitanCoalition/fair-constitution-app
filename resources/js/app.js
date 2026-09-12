@@ -3,9 +3,12 @@ import { createApp, h } from 'vue';
 import { createInertiaApp } from '@inertiajs/vue3';
 import { resolvePageComponent } from 'laravel-vite-plugin/inertia-helpers';
 import AppShellV2 from '@/Layouts/AppShellV2.vue';
+import NavigationProgress from '@/Components/Shell/NavigationProgress.vue';
 import { i18n } from '@/i18n/index.js';
 
 createInertiaApp({
+    // One accessible indicator handles both Inertia and ordinary page links.
+    progress: false,
     resolve: async (name) => {
         const page = await resolvePageComponent(`./Pages/${name}.vue`, import.meta.glob('./Pages/**/*.vue'));
         /* AppShellV2 — the v3 shell — is the DEFAULT persistent layout
@@ -29,9 +32,22 @@ createInertiaApp({
             i18n.global.locale.value = initialLocale;
         }
 
-        createApp({ render: () => h(App, props) })
+        createApp({ render: () => [h(NavigationProgress), h(App, props)] })
             .use(plugin)
             .use(i18n)
             .mount(el);
+
+        document.getElementById('initial-page-loading')?.remove();
     },
+}).catch((error) => {
+    const notice = document.getElementById('initial-page-loading');
+    if (notice) {
+        notice.textContent = i18n.global.t('c_loading.start_failed');
+        const retry = document.createElement('a');
+        retry.href = window.location.href;
+        retry.textContent = i18n.global.t('c_loading.refresh');
+        notice.append(retry);
+        notice.setAttribute('role', 'alert');
+    }
+    console.error('Unable to open the application', error);
 });

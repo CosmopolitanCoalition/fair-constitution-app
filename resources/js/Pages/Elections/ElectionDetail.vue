@@ -28,6 +28,7 @@ import FormChip from '@/Components/Ui/FormChip.vue';
 import HardenedChip from '@/Components/Ui/HardenedChip.vue';
 import Stat from '@/Components/Ui/Stat.vue';
 import { electionKindLabel } from '@/lib/electionKind.js';
+import { addProtomapsBasemap } from '@/lib/protomapsBasemap.js';
 
 const titleCase = (t) => (t ? t.charAt(0).toUpperCase() + t.slice(1) : t);
 import StateStrip from '@/Components/Ui/StateStrip.vue';
@@ -73,7 +74,6 @@ const fmtDate = (iso) => (iso ? new Date(iso).toLocaleDateString() : '—');
 const scheduleColumns = [
     { key: 'stage', label: 'Stage' },
     { key: 'when', label: 'When (your timezone)' },
-    { key: 'key', label: 'Clock / form', mono: true },
     { key: 'status', label: 'Status' },
 ];
 
@@ -87,7 +87,7 @@ const scheduleRows = computed(() =>
 const raceColumns = [
     { key: 'label', label: 'Race' },
     { key: 'seats', label: 'Seats', align: 'right' },
-    { key: 'finalist_count', label: 'X — pre-published finalists', align: 'right' },
+    { key: 'finalist_count', label: 'Finalist places', align: 'right' },
     { key: 'candidate_count', label: 'Candidates', align: 'right' },
     { key: 'links', label: '' },
 ];
@@ -114,13 +114,18 @@ function submitRecount() {
 /* ─────────────────────────────── jurisdiction boundary map (Leaflet) */
 
 const mapEl = ref(null);
+const basemapUnavailable = ref(false);
+const boundaryUnavailable = ref(false);
 let map = null;
+let mapDisposed = false;
+const boundaryRequest = new AbortController();
 
 async function mountMap() {
     if (!props.election?.jurisdiction?.id || !mapEl.value || map) return;
 
     const L = (await import('leaflet')).default;
     await import('leaflet/dist/leaflet.css');
+    if (mapDisposed || !mapEl.value) return;
 
     map = L.map(mapEl.value, { zoomControl: true, attributionControl: true, worldCopyJump: true });
     map.attributionControl.setPrefix(
@@ -130,44 +135,38 @@ async function mountMap() {
         'Boundaries &copy; <a href="https://www.geoboundaries.org/" target="_blank" rel="noopener">geoBoundaries</a>',
     );
     map.setView([20, 0], 2);
+    const target = map;
 
-    try {
-        const res = await fetch('/api/maps/latest-pmtiles', { credentials: 'same-origin' });
-        const data = res.ok ? await res.json() : null;
-        if (data?.url) {
-            const protomaps = await import('protomaps-leaflet');
-            const basemaps = await import('@protomaps/basemaps');
-            protomaps
-                .leafletLayer({
-                    url: data.url,
-                    flavor: basemaps.namedFlavor('light'),
-                    attribution: 'Basemap © <a href="https://protomaps.com">Protomaps</a> · © OpenStreetMap',
-                })
-                .addTo(map);
-        }
-    } catch {
-        /* no basemap — boundary still renders */
-    }
+    // Use the app's cartography, source fallback and attribution. Protomaps
+    // needs paintRules + labelRules; a URL and flavor alone paint no geography.
+    // Start this independently so a missing tile archive cannot hide the outline.
+    addProtomapsBasemap(target).then((available) => {
+        if (!mapDisposed && map === target) basemapUnavailable.value = !available;
+    });
 
     try {
         const res = await fetch(
             `/api/jurisdictions/${props.election.jurisdiction.id}/self.geojson?zoom=8`,
-            { credentials: 'same-origin' },
+            { credentials: 'same-origin', signal: boundaryRequest.signal },
         );
-        if (!res.ok) return;
+        if (!res.ok) throw new Error('Boundary unavailable');
         const geojson = await res.json();
-        if (!geojson?.features?.length) return;
+        if (mapDisposed || map !== target) return;
+        if (!geojson?.features?.length) throw new Error('Boundary unavailable');
         const layer = L.geoJSON(geojson, {
             style: { color: '#56b4e9', weight: 2, fillColor: '#56b4e9', fillOpacity: 0.18 },
-        }).addTo(map);
-        map.fitBounds(layer.getBounds(), { padding: [16, 16] });
+        }).addTo(target);
+        if (!layer.getBounds().isValid()) throw new Error('Boundary unavailable');
+        target.fitBounds(layer.getBounds(), { padding: [16, 16] });
     } catch {
-        /* boundary fetch failed — map stays at world view */
+        if (!mapDisposed) boundaryUnavailable.value = true;
     }
 }
 
 onMounted(() => nextTick(mountMap));
 onBeforeUnmount(() => {
+    mapDisposed = true;
+    boundaryRequest.abort();
     if (map) map.remove();
     map = null;
 });
@@ -185,16 +184,14 @@ const hasDistricts = computed(() => props.races.some((race) => !race.at_large));
                 This is the {{ election.kind_label ?? electionKindLabel(election.kind) }} for
                 {{ election.jurisdiction.name }}<template v-if="election.jurisdiction.adm_label">, a {{ election.jurisdiction.adm_label.toLowerCase() }}</template>.
             </template>
-            Elections run on the clock, never on anyone's say-so. Anyone who lives here can put
-            their name forward and everyone can approve the people they trust; the top
-            {{ election?.finalistMultiplier?.value ?? 3 }}× seats go on the ranked ballot, and
-            the count seats the winners.
+            Review the schedule, explore the districts, and open a ballot. Residents can stand
+            for office, approve candidates, and rank the finalists when ranked voting opens.
         </template>
         <template #about>
             <p>
-                WF-ELE-01 general election cycle. Entity machine ESM-03:
-                {{ machine.join(' → ') }}. Phase vocabulary approval | ranked | certifying is
-                server-derived — this page never recomputes it.
+                Approval voting identifies the finalists for each race. Voters then rank those
+                finalists, and the election board counts and certifies the result. The published
+                schedule below shows the current stage.
             </p>
         </template>
 
@@ -211,21 +208,20 @@ const hasDistricts = computed(() => props.races.some((race) => !race.at_large));
 
         <!-- ───────────────────────────────────── empty mode (resolver) -->
         <template v-if="!election">
-            <Card as="section" title="No election scheduled">
+            <Card as="section" :title="empty?.place ? 'No open election' : 'Explore elections'">
                 <p>
-                    No election is scheduled for your jurisdiction. Elections fire from clocks
-                    (CLK-01 · every {{ empty?.interval ?? 60 }} months), never from official
-                    discretion.
+                    {{ empty?.place ? `No open election was found for ${empty.place.name}.` : 'Choose a place to explore its elections.' }}
+                    <template v-if="empty?.interval">The configured election interval is {{ empty.interval }} months.</template>
                 </p>
                 <p v-if="empty?.clk01DueAt" style="margin-block-start: var(--space-2)">
-                    Next general-election clock fires
+                    Next general election is due
                     <strong>{{ fmt(empty.clk01DueAt) }}</strong>
-                    <span class="citation"> · CLK-01 armed · stored as UTC</span>
+                    <span class="citation"> · shown in your timezone</span>
                 </p>
-                <p style="margin-block-start: var(--space-3)"><HardenedChip /></p>
+                <p style="margin-block-start: var(--space-3)"><Btn :as="Link" href="/jurisdictions">Choose a place</Btn></p>
             </Card>
 
-            <Card v-if="others.length" as="section" title="Elections elsewhere">
+            <Card v-if="others.length" as="section" title="Election records for this place">
                 <ul class="others-list">
                     <li v-for="other in others" :key="other.election_id">
                         <Link :href="`/elections/${other.election_id}`">{{ other.jurisdiction_name }}</Link>
@@ -244,10 +240,10 @@ const hasDistricts = computed(() => props.races.some((race) => !race.at_large));
             <Banner
                 v-if="blocked"
                 tone="warning"
-                title="This chamber is above the 9-seat ceiling — subdivision required."
+                title="District boundaries must be completed before voting opens."
             >
-                A district map (5–9 seats each) must be activated before this election can open
-                its approval phase.
+                A district map meeting this jurisdiction's configured seat limits must be activated
+                before this election can open its approval phase.
                 <span v-for="blocker in blockers" :key="blocker.detail" style="display: block">
                     {{ blocker.detail }}
                 </span>
@@ -255,7 +251,7 @@ const hasDistricts = computed(() => props.races.some((race) => !race.at_large));
                     v-if="election.legislature_id"
                     :href="`/legislatures/${election.legislature_id}`"
                 >Open the Legislature browser build mode →</Link>
-                <span class="citation" style="display: block">Art. II §8 · CLK-07 · F-ELB-003</span>
+                <span class="citation" style="display: block">District boundaries must be settled before voting opens · Art. II §8</span>
             </Banner>
 
             <Card as="section">
@@ -295,7 +291,7 @@ const hasDistricts = computed(() => props.races.some((race) => !race.at_large));
                             — not yet issued; the schedule below carries the clock-armed defaults.
                         </template>
                         <span class="citation" style="display: block">
-                            X per race is pre-published with this order · CLK-21 · Art. II §2
+                            Each race's number of finalist places is published before the cutoff · Art. II §2
                         </span>
                     </p>
                 </Card>
@@ -306,8 +302,8 @@ const hasDistricts = computed(() => props.races.some((race) => !race.at_large));
                 <DataTable
                     :columns="scheduleColumns"
                     :rows="scheduleRows"
-                    row-key="key"
-                    caption="Election schedule stages with their clocks and status"
+                    row-key="stage"
+                    caption="Election schedule and current stage"
                 >
                     <template #cell-status="{ row }">
                         <StatusBadge
@@ -323,23 +319,23 @@ const hasDistricts = computed(() => props.races.some((race) => !race.at_large));
                         :value="`${election.interval.value} ${election.interval.unit}`"
                         :setting-key="election.interval.settingKey"
                         :citation="election.interval.citation"
-                        :default-value="60"
+                        label="Election interval"
                     />
                     {{ ' ' }}
                     <AmendableSetting
                         :value="`${election.finalistMultiplier.value}× seats`"
                         :setting-key="election.finalistMultiplier.settingKey"
-                        :citation="`finalists X = multiplier × seats · ${election.finalistMultiplier.clock}`"
-                        :default-value="3"
+                        label="Finalist places per seat"
+                        citation="The multiplier sets how many candidates advance to ranked voting."
                     />
                 </p>
             </Card>
 
             <!-- ─────────────────────────────────── races + boundary -->
-            <Card as="section" title="Races & pre-published X">
+            <Card as="section" title="Districts & finalist places">
                 <p class="gloss">
-                    X — the number of finalists who advance to the ranked ballot — is published
-                    <strong>before</strong> the cutoff, never derived after the fact.
+                    Each race publishes how many candidates can advance to its ranked ballot
+                    <strong>before</strong> approval voting closes.
                 </p>
                 <DataTable
                     v-if="races.length"
@@ -363,9 +359,15 @@ const hasDistricts = computed(() => props.races.some((race) => !race.at_large));
                     <div
                         ref="mapEl"
                         class="boundary-map"
-                        role="img"
+                        role="region"
                         :aria-label="`Map of the ${election.jurisdiction.name} election boundary`"
                     ></div>
+                    <p v-if="basemapUnavailable" class="gloss" role="status">
+                        {{ $t('c_elections.map.tiles_unavailable', 'Geographic map tiles are unavailable. The boundary outline can still be viewed.') }}
+                    </p>
+                    <p v-if="boundaryUnavailable" class="gloss" role="status">
+                        {{ $t('c_elections.map.boundary_unavailable', 'The boundary outline is unavailable for this place.') }}
+                    </p>
                     <p class="gloss" style="margin-block-start: var(--space-2)">
                         <template v-if="hasDistricts">
                             This chamber is subdivided —
@@ -374,13 +376,12 @@ const hasDistricts = computed(() => props.races.some((race) => !race.at_large));
                             </Link>
                         </template>
                         <template v-else>
-                            Single at-large footprint — the constitutional default for chambers of
-                            9 seats or fewer (Art. II §8).
+                            This election uses a single at-large footprint.
                         </template>
                     </p>
                 </Card>
 
-                <Card as="section" title="Other elections">
+                <Card as="section" title="More elections in this place">
                     <ul v-if="others.length" class="others-list">
                         <li v-for="other in others" :key="other.election_id">
                             <Link :href="`/elections/${other.election_id}`">{{ other.jurisdiction_name }}</Link>
@@ -390,7 +391,8 @@ const hasDistricts = computed(() => props.races.some((race) => !race.at_large));
                             </span>
                         </li>
                     </ul>
-                    <p v-else class="gloss">No other elections on this instance right now.</p>
+                    <p v-else class="gloss">No other elections are recorded for this place.</p>
+                    <Link href="/jurisdictions">Explore elections in another place →</Link>
                 </Card>
             </div>
 
@@ -402,12 +404,12 @@ const hasDistricts = computed(() => props.races.some((race) => !race.at_large));
                             Open ballot — approve candidates
                         </Btn>
                         <Btn :as="Link" :href="`/elections/${election.id}/candidacy`" variant="secondary" icon="user">
-                            Stand for office — F-IND-011
+                            Stand for office
                         </Btn>
                     </template>
                     <template v-else-if="phase === 'ranked'">
                         <Btn :as="Link" :href="`/elections/${election.id}/ranked-ballot`" variant="gold" icon="check">
-                            Rank your ballot — F-IND-007
+                            Rank your ballot
                         </Btn>
                     </template>
                     <template v-else-if="phase === 'certifying'">
@@ -417,7 +419,7 @@ const hasDistricts = computed(() => props.races.some((race) => !race.at_large));
                     </template>
                     <span v-if="scheduled" class="gloss">
                         The approval phase has not opened yet — participation unlocks the moment it
-                        does (CLK-18).
+                        does.
                     </span>
                 </div>
 
@@ -431,7 +433,7 @@ const hasDistricts = computed(() => props.races.some((race) => !race.at_large));
                             :disabled="certifyForm.processing || certification !== null"
                             @click="submitCertify"
                         >
-                            {{ certifyForm.processing ? 'Certifying…' : 'Certify results — F-ELB-004' }}
+                            {{ certifyForm.processing ? 'Certifying…' : 'Certify results' }}
                         </Btn>
                         <Btn
                             v-if="can.recount"
@@ -441,7 +443,7 @@ const hasDistricts = computed(() => props.races.some((race) => !race.at_large));
                             :title="certification === null ? 'Requires certification first' : null"
                             @click="recountConfirming = !recountConfirming"
                         >
-                            Order recount — F-ELB-006
+                            Order recount
                         </Btn>
                     </div>
                     <form v-if="recountConfirming" novalidate style="margin-block-start: var(--space-3)" @submit.prevent="submitRecount">

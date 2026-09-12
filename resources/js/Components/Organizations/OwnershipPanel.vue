@@ -48,10 +48,10 @@ const structureLabel = computed(() =>
 const rule = computed(() => (props.isCgc ? null : STRUCTURE_RULES[props.structure] ?? null));
 
 const COUNT_LABELS = {
-    members: 'members (R-24)',
-    shareholders: 'shareholders (R-24)',
-    partners: 'partners (R-24)',
-    workers: 'workers (R-25)',
+    members: 'members',
+    shareholders: 'shareholders',
+    partners: 'partners',
+    workers: 'workers',
 };
 const counts = computed(() =>
     Object.entries(props.memberCounts ?? {})

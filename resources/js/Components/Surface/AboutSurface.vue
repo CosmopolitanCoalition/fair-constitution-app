@@ -6,19 +6,21 @@
  */
 import CitationLine from '@/Components/Ui/CitationLine.vue';
 import Icon from '@/Components/Ui/Icon.vue';
+import { useI18n } from 'vue-i18n';
 
 defineProps({
     citation: { type: String, default: null },
-    summaryLabel: { type: String, default: 'About this surface' },
+    summaryLabel: { type: String, default: null },
     open: { type: Boolean, default: false },
 });
+const { t } = useI18n();
 </script>
 
 <template>
     <details class="about-surface" :open="open">
         <summary>
             <Icon name="chevron-right" size="sm" />
-            {{ summaryLabel }}
+            {{ summaryLabel ?? t('c_references.how_page_works', 'How this page works') }}
         </summary>
         <div class="about-surface-body">
             <slot />

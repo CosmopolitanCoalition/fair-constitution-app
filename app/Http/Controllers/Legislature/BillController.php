@@ -19,6 +19,8 @@ use App\Models\SettingChange;
 use App\Services\ConstitutionalValidator;
 use App\Services\SettingsResolver;
 use App\Support\SurfaceMeta;
+use App\Support\BillWorkspace;
+use App\Support\JurisdictionContext;
 use App\Support\TextDiff;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
@@ -265,14 +267,14 @@ class BillController extends Controller
 
     public function show(Request $request, Bill $bill): Response
     {
-        $bill->loadMissing(['legislature.jurisdiction', 'sponsor.user:id,name,display_name', 'enactedLaw']);
+        $bill->loadMissing(['legislature.jurisdiction:id,name,slug,parent_id,adm_level', 'sponsor.user:id,display_name', 'enactedLaw']);
 
         $legislature = $bill->legislature;
         $viewer      = $this->viewerMember($legislature, $request->user());
 
         $versions = BillVersion::query()
             ->where('bill_id', $bill->id)
-            ->with('changedBy.user:id,name,display_name')
+            ->with('changedBy.user:id,display_name')
             ->orderBy('version_no')
             ->get();
 
@@ -310,14 +312,17 @@ class BillController extends Controller
 
         return Inertia::render('Legislature/BillDetail', [
             'surface' => SurfaceMeta::for('legislature/bill-detail'),
+            'workspace' => BillWorkspace::for($bill),
+            'jurisdictionContext' => $legislature->jurisdiction ? JurisdictionContext::for($legislature->jurisdiction) : null,
             'legislature' => $this->legislatureProps($legislature),
             'bill' => [
                 'id'              => (string) $bill->id,
                 'title'           => $bill->title,
-                'sponsor'         => ['name' => $this->memberDisplayName($bill->sponsor)],
+                'sponsor'         => ['name' => $bill->sponsor?->user?->display_name ?: 'Member'],
                 'status'          => $bill->status,
                 'act_type'        => $bill->act_type,
                 'introduced_at'   => $bill->introduced_at?->toIso8601String(),
+                'current_version_no' => (int) ($current?->version_no ?? $bill->current_version_no ?? 1),
                 'scale'           => $this->scaleEntries($bill),
                 'scope'           => ['label' => $this->scopeLabel($bill)],
                 'committee'       => $committee !== null
@@ -329,7 +334,7 @@ class BillController extends Controller
             'versions' => $versions->map(fn (BillVersion $version) => [
                 'version_no'  => (int) $version->version_no,
                 'change_kind' => $version->change_kind,
-                'changed_by'  => $this->memberDisplayName($version->changedBy),
+                'changed_by'  => $version->changedBy?->user?->display_name ?: 'Member',
                 'created_at'  => $version->created_at?->toIso8601String(),
             ])->values()->all(),
             'diff'    => $diff,

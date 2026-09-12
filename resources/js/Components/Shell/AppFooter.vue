@@ -13,6 +13,7 @@
 import { computed, inject } from 'vue';
 import { useI18n } from 'vue-i18n';
 import Icon from '@/Components/Ui/Icon.vue';
+import ReferenceText from '@/Components/Ui/ReferenceText.vue';
 
 const props = defineProps({
     /** The surface's constitutional citation line (mono). */
@@ -42,7 +43,7 @@ const reportHref = computed(() => {
 
 <template>
     <footer class="app-footer">
-        <span v-if="citation" class="footer-citation">{{ citation }}</span>
+        <span v-if="citation" class="footer-citation"><ReferenceText>{{ citation }}</ReferenceText></span>
         <span class="header-spacer"></span>
         <slot />
         <!-- Accessibility statement — the page landed in Wave 2 (/system/accessibility). -->

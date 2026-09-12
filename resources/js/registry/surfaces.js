@@ -44,7 +44,7 @@ export const SITEMAP = [
         { id: 'petitions', label: 'Petitions', icon: 'file-text', href: '/civic/petitions', contract: 'civic/petitions.html' },
     ] },
     { key: 'me', title: 'Me & my account', items: [
-        { id: 'launchpad', label: 'Launchpad (the cover)', icon: 'globe', href: '/launchpad', contract: 'index.html' },
+        { id: 'launchpad', label: 'Welcome', icon: 'globe', href: '/launchpad', contract: 'index.html' },
         { id: 'join', label: 'You’re invited (arrival)', icon: 'user', href: null, contract: 'civic/join.html', phase: 3 },
         { id: 'onboarding', label: 'Create your account', icon: 'user', href: '/register', contract: 'civic/onboarding.html' },
         { id: 'residency', label: 'Say where you live', icon: 'map-pin', href: '/civic/residency', contract: 'civic/residency.html' },
@@ -202,7 +202,7 @@ export const SITEMAP = [
    any signed-in player (no role-gated pages). */
 export const TOUR = [
     { act: 'Arrive', href: '/register', title: 'Create your account', blurb: 'A name and a way back in. Nothing here is asked to prove you deserve a vote — living somewhere is the whole test.' },
-    { act: 'Arrive', href: '/launchpad', title: 'The four doors', blurb: 'The whole world, four ways in: be a resident, watch a government work, run an organization, or run a node.' },
+    { act: 'Arrive', href: '/launchpad', title: 'Explore the world', blurb: 'Choose a place or civic role, then continue into community, work, or learning.' },
     { act: 'Arrive', href: '/civic', title: 'Home', blurb: 'What’s happening now, and what’s yours to act on.' },
     { act: 'Arrive', href: '/civic/record', title: 'My record', blurb: 'Your civic life in one place — residency, votes cast (never how), and your public acts.' },
     { act: 'Arrive', href: '/journeys', title: 'Journeys', blurb: 'Learn by doing — each journey walks one real process; finishing one goes on your profile.' },

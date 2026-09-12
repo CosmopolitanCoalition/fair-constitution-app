@@ -32,10 +32,9 @@ class JourneysController extends Controller
 
     public function index(Request $request): Response
     {
-        $userId = (string) $request->user()->id;
-
-        $progressByJourney = JourneyProgress::query()
-            ->where('user_id', $userId)
+        $user = $request->user();
+        $progressByJourney = $user === null ? collect() : JourneyProgress::query()
+            ->where('user_id', (string) $user->id)
             ->get()
             ->keyBy('journey_id');
 
@@ -69,9 +68,9 @@ class JourneysController extends Controller
         abort_if(! is_array($journey), 404);
 
         $user     = $request->user();
-        $progress = $this->journeys->progress($user, $id);
+        $progress = $user === null ? null : $this->journeys->progress($user, $id);
 
-        $achievement = Achievement::query()
+        $achievement = $user === null ? null : Achievement::query()
             ->where('user_id', (string) $user->id)
             ->where('award_key', $id)
             ->first();

@@ -9,8 +9,8 @@
 
    The v3 idiom (plain-language chrome): the CHIP shows the plain label only
    ("Voter"); the R-xx code belongs in the tooltip / Learn layer, not in the
-   player chrome. Unknown ids fall back to the id itself — never invent a
-   label for a role this file does not know.
+   player chrome. Unknown ids use a generic civic-role label while retaining
+   their exact identifier internally.
    ============================================================================ */
 
 /* Names follow the constitutional roles chart (docs/ roles_forms_chart)
@@ -24,14 +24,31 @@ export const ROLE_LABELS = {
     'R-03': 'Jurisdictionally Associated',
     'R-04': 'Voter',
     'R-05': 'Petitioner',
+    'R-06': 'Candidate',
+    'R-07': 'Endorsed candidate',
     'R-08': 'Election Board Member',
     'R-09': 'Legislative Representative',
     'R-10': 'Speaker of the Legislature',
+    'R-11': 'Committee member',
+    'R-12': 'Committee chair',
+    'R-13': 'Alternate committee chair',
     'R-14': 'Executive Committee Member',
+    'R-15': 'Elected executive committee member',
+    'R-16': 'Individual executive',
+    'R-17': 'Executive advisor',
+    'R-18': 'Department governor',
     'R-19': 'Judge',
     'R-20': 'Judge',
     'R-21': 'Advocate',
     'R-22': 'Juror',
+    'R-23': 'Organization agent',
+    'R-24': 'Organization member',
+    'R-25': 'Worker',
+    'R-26': 'Owner-elected board member',
+    'R-27': 'Worker-elected board member',
+    'R-28': 'Board chair',
+    'R-29': 'Administrative staff',
+    'R-30': 'Civil officer',
 };
 
 /** Highest-numbered role the user holds, with its plain label.
@@ -42,5 +59,5 @@ export function highestRole(roles) {
         (a, b) => (parseInt(a.slice(2), 10) || 0) - (parseInt(b.slice(2), 10) || 0),
     );
     const id = sorted[sorted.length - 1] ?? 'R-00';
-    return { id, label: ROLE_LABELS[id] ?? id };
+    return { id, label: ROLE_LABELS[id] ?? 'Civic role' };
 }

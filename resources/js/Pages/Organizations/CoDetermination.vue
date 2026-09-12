@@ -29,6 +29,8 @@ import FormChip from '@/Components/Ui/FormChip.vue';
 import HardenedChip from '@/Components/Ui/HardenedChip.vue';
 import StatusBadge from '@/Components/Ui/StatusBadge.vue';
 import CoDetScale from '@/Components/Organizations/CoDetScale.vue';
+import OrganizationNav from '@/Components/Organizations/OrganizationNav.vue';
+import ReferenceText from '@/Components/Ui/ReferenceText.vue';
 
 /* Phase-2 restyle wave: the v3 player chrome (MASTER_PLAN). */
 defineOptions({ layout: AppShellV2 });
@@ -37,8 +39,10 @@ const props = defineProps({
     surface: { type: Object, required: true },
     /** Bound org/department (CoDetScale props), or null = generic explorer. */
     focus: { type: Object, default: null },
+    organization: { type: Object, default: null },
+    pagination: { type: Object, default: null },
     /**
-     * Every LIVE board row joined to its boardable:
+     * The focused board, or one bounded page of the live register:
      * [{ entity:{name,href}, kind, workers, owner_side:{seats,label}|null,
      *    worker_seats, state:'below'|'scaling'|'parity', composition_valid,
      *    election:{status, href}|null }]
@@ -88,7 +92,7 @@ function stateBadge(row) {
 </script>
 
 <template>
-    <PageScaffold :surface="surface" title="Co-determination scaling">
+    <PageScaffold :surface="surface" :title="focus ? `Worker representation — ${focus.entity.name}` : 'Worker representation'">
         <template #intro>
             When a company employs {{ clk13.value.toLocaleString() }} or more people, its workers
             start electing seats on its board. The first worker seat arrives at that threshold,
@@ -98,20 +102,22 @@ function stateBadge(row) {
             Corporations, and government departments.
         </template>
 
+        <OrganizationNav v-if="organization" :organization="organization" current="representation" />
+        <p v-else-if="focus"><Link :href="focus.entity.href">Back to {{ focus.entity.name }}</Link></p>
+
         <!-- ============================== the CoDetScale explorer ======== -->
-        <Card as="section" :title="focus ? `On the scale — ${focus.entity.name}` : 'The scale — explorer'">
-            <p v-if="focus" class="citation" style="margin-block-end: var(--space-3)">
-                {{ focus.entity.kind }} ·
-                <Link :href="focus.entity.href">open the entity →</Link>
+        <Card as="section" :title="focus?.scale ? `On the scale — ${focus.entity.name}` : 'Explore the representation scale'">
+            <p v-if="focus && !focus.scale" class="gloss" style="margin-block-end: var(--space-3)">
+                {{ focus.entity.name }} has no active board recorded. The explorer below illustrates
+                the applicable rules; it does not show a seated board.
             </p>
-            <p v-else class="gloss" style="margin-block-end: var(--space-3)">
-                No entity bound — drag the slider to explore the published formula at this
-                instance's resolved thresholds. Append <span class="mono">?org=&lt;id&gt;</span>
-                (or follow a row below) to bind the meter to a live organization's own numbers.
+            <p v-else-if="!focus" class="gloss" style="margin-block-end: var(--space-3)">
+                Explore how worker representation changes with headcount, or choose a board
+                from the register below to see its recorded numbers.
             </p>
 
             <CoDetScale
-                v-if="focus"
+                v-if="focus?.scale"
                 v-bind="focus.scale"
                 :entity-label="focus.entity.name"
                 interactive
@@ -120,7 +126,7 @@ function stateBadge(row) {
         </Card>
 
         <!-- ===================== composition change → joint chair ======== -->
-        <Card as="section" title="Composition change re-triggers the joint chair election">
+        <Card as="section" title="Choosing a chair after board changes">
             <p style="margin-block-end: var(--space-2)">
                 <HardenedChip>chair elected jointly by the entire board · Art. III §6</HardenedChip>
             </p>
@@ -133,39 +139,37 @@ function stateBadge(row) {
 
             <div v-if="jointChairForm" class="card card--inset" style="margin-block-start: var(--space-3)">
                 <p style="margin-block-end: var(--space-1)">
-                    <strong style="color: var(--gov-fg)">{{ jointChairForm.name }}</strong>
-                    {{ ' ' }}
-                    <FormChip :form-id="jointChairForm.id" :alias="jointChairForm.alias" />
+                    <FormChip :form-id="jointChairForm.id" :name="jointChairForm.name" :alias="jointChairForm.alias" />
                 </p>
                 <p class="citation" style="margin-block-end: var(--space-2)">
-                    <template v-if="jointChairForm.availableTo?.length">available to {{ jointChairForm.availableTo.join(', ') }}</template>
+                    <ReferenceText v-if="jointChairForm.availableTo?.length">Available to {{ jointChairForm.availableTo.join(', ') }}</ReferenceText>
                     <template v-if="jointChairForm.availableTo?.length && jointChairForm.citation"> · </template>
                     <template v-if="jointChairForm.citation">{{ jointChairForm.citation }}</template>
                 </p>
                 <p class="cc-small" style="margin: 0">
-                    The worker track and the joint chair election run on the elections machinery —
-                    administered from a board's
-                    <Link href="/organizations">board-elections page</Link>.
+                    Manage worker elections and elect the chair in the
+                    <Link v-if="organization" :href="`/organizations/${organization.id}/board-elections`">Board &amp; elections workspace</Link>
+                    <Link v-else :href="focus?.entity.href ?? '/organizations'">organization or department</Link>.
                 </p>
             </div>
         </Card>
 
         <!-- ============================ the applies-equally table ======== -->
-        <Card as="section" title="The scale applies equally — every board, one engine">
+        <Card as="section" :title="focus ? 'This board’s representation' : 'Browse recorded boards'">
             <p class="citation" style="margin-block-end: var(--space-3)">
-                one row per live board across private enterprises, Common Good Corporations, and
-                executive departments · the owner side runs shareholder-elected or appointed
-                governors, but the worker-side scale is identical · Art. III §6
+                Worker representation follows the same scale in private enterprises, Common Good
+                Corporations, and executive departments. The numbers below are recorded board values.
             </p>
+            <p v-if="focus"><Link href="/organizations/co-determination">Compare with other boards</Link></p>
 
             <template v-if="appliesTable.length">
                 <DataTable
                     :columns="appliesColumns"
                     :rows="appliesTable"
-                    caption="Co-determination state of every live board"
+                    :caption="focus ? `Worker representation at ${focus.entity.name}` : 'Worker representation — current page of boards'"
                 >
                     <template #cell-entity="{ row }">
-                        <Link v-if="row.entity.href" :href="row.entity.href">
+                        <Link v-if="row.entity.representation_href" :href="row.entity.representation_href">
                             <strong>{{ row.entity.name }}</strong>
                         </Link>
                         <strong v-else>{{ row.entity.name }}</strong>
@@ -197,32 +201,35 @@ function stateBadge(row) {
                             class="citation"
                             style="display: block; margin-block-start: var(--space-1)"
                         >
-                            worker-track election
+                            Worker election
                             <template v-if="row.election">
-                                <Link :href="row.election.href">open ({{ row.election.status.replaceAll('_', ' ') }}) →</Link>
+                                <Link :href="row.election.href">view record ({{ row.election.status.replaceAll('_', ' ') }}) →</Link>
                             </template>
-                            <template v-else>required · WF-ORG-04 → WF-ORG-05</template>
+                            <template v-else>required; no election is recorded yet.</template>
                         </span>
                     </template>
                 </DataTable>
             </template>
 
-            <Banner v-else tone="info" role="status" title="No board has reached the first-seat threshold yet.">
-                The scale binds from the first qualifying organization — the first time an
-                employer's active worker headcount crosses the CLK-13 minimum
-                ({{ clk13.value.toLocaleString() }}), its row appears here flipping
-                <span class="mono">below → scaling · 1 seat</span> with composition_valid=false and
-                a worker-track election. The explorer above is fully functional in the meantime.
+            <Banner v-else tone="info" role="status" :title="focus ? 'No active board is recorded for this entity.' : 'No active boards on this page.'">
+                You can explore the representation scale above or
+                <Link href="/organizations">choose an organization</Link>.
             </Banner>
+
+            <nav v-if="pagination?.previous || pagination?.next" aria-label="Board register pages" class="board-pagination">
+                <Link v-if="pagination.previous" :href="pagination.previous" rel="prev">Previous boards</Link>
+                <Link v-if="pagination.next" :href="pagination.next" rel="next">Next boards</Link>
+            </nav>
         </Card>
 
         <!-- ===================== CLK-13 / CLK-14 amendable cards ========= -->
         <div class="grid-2">
-            <Card as="section" title="CLK-13 — first worker seat">
+            <Card as="section" title="First worker seat">
                 <p style="margin-block-end: var(--space-2)">
                     <AmendableSetting
                         :value="clk13.value.toLocaleString()"
                         setting-key="worker_rep_min_employees"
+                        label="Workers needed for the first board seat"
                         :default-value="clk13.default.toLocaleString()"
                         :citation="clk13.basis"
                     />
@@ -240,11 +247,12 @@ function stateBadge(row) {
                 </p>
             </Card>
 
-            <Card as="section" title="CLK-14 — worker / owner parity">
+            <Card as="section" title="Equal worker and owner representation">
                 <p style="margin-block-end: var(--space-2)">
                     <AmendableSetting
                         :value="clk14.value.toLocaleString()"
                         setting-key="worker_rep_parity_employees"
+                        label="Workers needed for equal representation"
                         :default-value="clk14.default.toLocaleString()"
                         :citation="clk14.basis"
                     />
@@ -265,13 +273,16 @@ function stateBadge(row) {
 
         <template #about>
             <p>
-                One boards table, one co-determination engine. The worker-side seat count is a
-                stored snapshot written only by the protected co-determination service — this
-                surface renders it, never recomputes it. The owner side differs by entity (a
-                stock company's shareholders elect their seats; a Common Good Corporation's and a
-                department's governors are appointed), but the worker-side scale is byte-for-byte
-                identical, which is exactly what the applies-equally table proves.
+                Workers elect representatives to share in their organization’s decisions.
+                This page shows the required worker seats and recorded board composition.
+                Use the explorer to see how representation changes as the workforce grows.
             </p>
         </template>
     </PageScaffold>
 </template>
+
+<style scoped>
+.board-pagination { display: flex; flex-wrap: wrap; gap: var(--space-3); margin-block-start: var(--space-4); }
+.board-pagination a { display: inline-flex; align-items: center; min-block-size: 44px; padding: .5rem .75rem; border: 1px solid var(--gov-border); border-radius: var(--radius-md, .5rem); }
+.board-pagination a:focus-visible { outline: 3px solid var(--gov-accent); outline-offset: 2px; }
+</style>

@@ -17,10 +17,11 @@
  * (F-ORG-008 share issuance) grows the Shares section; it is honest-absence
  * until then.
  */
-import { Link, useForm } from '@inertiajs/vue3';
+import { useForm } from '@inertiajs/vue3';
 import AppShellV2 from '@/Layouts/AppShellV2.vue';
 import PageScaffold from '@/Components/Surface/PageScaffold.vue';
 import Card from '@/Components/Ui/Card.vue';
+import OrganizationNav from '@/Components/Organizations/OrganizationNav.vue';
 import { formatMoney, formatCount, formatWhen, shortId } from '@/lib/money.js';
 
 defineOptions({ layout: AppShellV2 });
@@ -53,12 +54,13 @@ const savePeriod = () => periodForm.post(settingsPath, { preserveScroll: true })
 </script>
 
 <template>
-    <PageScaffold :title="`${org.name} — economics`">
+    <PageScaffold :title="`${org.name} — finances`">
         <template #intro>
-            How this organization holds its shares and charges its dues. These are the org's own
-            rules about itself — steered by its agent or a seated board member, recorded on the
-            audit chain — never constitutional values.
+            Review this organization's dues, shares, and financial records. Its agent and seated
+            board members can update the dues policy.
         </template>
+
+        <OrganizationNav :organization="org" current="finances" />
 
         <!-- ------------------------------------------------------- dues -->
         <Card as="section" title="Dues">
@@ -87,7 +89,7 @@ const savePeriod = () => periodForm.post(settingsPath, { preserveScroll: true })
             <ul class="dues-rails">
                 <li><strong>Always opt-in.</strong> A member joins and leaves freely; if dues lapse the membership ends — no right is ever withheld.</li>
                 <li><strong>Never a gate on a right.</strong> No due may attach to voting, candidacy, residency, or petitioning (Art. I · Art. II §8).</li>
-                <li><strong>No engine, no scheduler.</strong> A member pays each period themselves — a transfer with kind <code>dues</code>, on the ledger like any other.</li>
+                <li><strong>Paid by the member.</strong> Members make a dues payment each period. Payments are not automatic.</li>
             </ul>
 
             <!-- write: the org's own dial (F-ORG-001 update_settings) -->
@@ -111,8 +113,7 @@ const savePeriod = () => periodForm.post(settingsPath, { preserveScroll: true })
                 </form>
             </div>
             <p class="econ-note">
-                Saving files an F-ORG-001 setting change — the org's own rule about itself, on the
-                audit chain, never a constitutional value. Clear the amount to charge no dues.
+                Changes are recorded in this organization's history. Clear the amount to charge no dues.
             </p>
         </Card>
 
@@ -150,9 +151,8 @@ const savePeriod = () => periodForm.post(settingsPath, { preserveScroll: true })
         <!-- ------------------------------------------------- org ledger -->
         <Card as="section" title="This organization's ledger">
             <p class="econ-desc">
-                What the organization holds and how it has moved. This is the money plane: a
-                counterparty is shown as an <strong>account</strong>, never a person — even to the
-                org's own steward.
+                Review the organization's balance and recent payments. Other parties are identified
+                by account to protect their financial privacy.
             </p>
             <p v-if="ledger.restricted" class="muted">The wallet ledger and levies are visible to the organization's agent and its seated board.</p>
             <template v-if="ledger.has_account">
@@ -176,7 +176,7 @@ const savePeriod = () => periodForm.post(settingsPath, { preserveScroll: true })
                 </table>
                 <p v-else class="econ-note">No movements yet.</p>
             </template>
-            <p v-else class="econ-absent">
+            <p v-else-if="!ledger.restricted" class="econ-absent">
                 This organization holds no economic account yet — it opens when the org first
                 transacts.
             </p>
@@ -206,6 +206,9 @@ const savePeriod = () => periodForm.post(settingsPath, { preserveScroll: true })
                     </tr>
                 </tbody>
             </table>
+            <p v-else-if="ledger.restricted" class="econ-absent">
+                Levy filings are visible to the organization's agent and its seated board.
+            </p>
             <p v-else class="econ-absent">
                 This organization has no levy filings on record.
             </p>
@@ -214,9 +217,8 @@ const savePeriod = () => periodForm.post(settingsPath, { preserveScroll: true })
         <!-- ------------------------------------- fair-market / conversions -->
         <Card as="section" title="Fair-market &amp; conversions">
             <p class="econ-desc">
-                When ownership changes form, a conversion fixes the <strong>floor</strong> and the
-                <strong>basis</strong> for what the org's equity is worth (Art. III §5) — a public
-                fact on the named ownership plane, decided by act, never here.
+                When ownership changes form, the authorizing act records the minimum fair-market
+                value and how it was calculated (Art. III §5). Those records appear here.
             </p>
             <table v-if="conversions.length" class="cap-table">
                 <thead>
@@ -237,9 +239,6 @@ const savePeriod = () => periodForm.post(settingsPath, { preserveScroll: true })
             </p>
         </Card>
 
-        <p>
-            <Link :href="`/organizations/${org.id}`" class="econ-back">Back to the organization</Link>
-        </p>
     </PageScaffold>
 </template>
 

@@ -33,7 +33,8 @@ const shortcuts = [
 const label = item => t('c_navigation.' + item.id, item.label);
 function target(item) {
     const place = page.props.jurisdictionContext?.current?.id;
-    const scoped = ['/explore', '/civic/square', '/civic/halls', '/civic/petitions', '/civic/commons/square', '/civic/commons/halls'];
+    const scoped = ['/explore', '/civic/square', '/civic/halls', '/civic/petitions', '/civic/commons/square', '/civic/commons/halls',
+        '/elections', '/elections/open-ballot', '/elections/candidacy', '/elections/ranked-ballot', '/elections/results'];
     return place && scoped.includes(item.href) ? item.href + '?jurisdiction=' + encodeURIComponent(place) : item.href;
 }
 function allowed(item) {

@@ -19,10 +19,9 @@ use Tests\Concerns\LivePgConnection;
 use Tests\TestCase;
 
 /**
- * A bill — the conversation (mockups/v3/shared/bill.html): /bills/{bill}/conversation is the
- * conversation face of a bill (progress + the real text + the amendment path + comments) composed
- * over the formal record. Comments RIDE the bill's auto-bound hall subforum via F-SOC-001; there is
- * no per-clause redline (the Art. V §3 violation the engine rejects) and no fabricated summary.
+ * /bills/{bill}/conversation shares context with the bill's formal record. Comments
+ * ride the bill's auto-bound hall subforum via F-SOC-001; text and votes remain on
+ * the canonical bill record.
  *
  * The MessagesInboxTest posture: DB-backed on the guarded live-pg connection, everything in a
  * rolled-back transaction; SKIPS when pg is unreachable.
@@ -33,7 +32,7 @@ class BillConversationTest extends TestCase
 
     private const LIVE_CONNECTION = 'pgsql_bill_convo';
 
-    public function test_the_conversation_page_renders_with_stages_text_and_honest_empty_comments(): void
+    public function test_the_conversation_page_keeps_selected_bill_context_and_honest_empty_comments(): void
     {
         $this->onLivePg(function () {
             ['bill' => $bill] = $this->aBillWithSubforum('Clean Air Act '.Str::random(4), 'No smoking within 50m of a school.');
@@ -43,15 +42,12 @@ class BillConversationTest extends TestCase
                 ->assertOk()
                 ->assertInertia(fn (Assert $page) => $page
                     ->component('Legislature/BillConversation')
-                    ->where('bill.id', (string) $bill->id)
-                    ->where('bill.title', $bill->title)
-                    ->where('bill.text', 'No smoking within 50m of a school.') // the REAL text — no fabricated summary
-                    ->where('bill.versionCount', 1)
-                    ->where('bill.formalHref', "/bills/{$bill->id}")
-                    ->has('stages.path', 7)
-                    ->where('stages.path.0.label', 'Introduced')
-                    ->where('stages.path.0.state', 'current')
-                    ->where('stages.terminal', null)
+                    ->where('workspace.id', (string) $bill->id)
+                    ->where('workspace.title', $bill->title)
+                    ->where('workspace.status', 'introduced')
+                    ->where('workspace.recordHref', "/bills/{$bill->id}")
+                    ->where('workspace.discussionHref', "/bills/{$bill->id}/conversation")
+                    ->where('jurisdictionContext.current.id', (string) $bill->jurisdiction_id)
                     ->where('comments', [])              // honest-empty: no comments yet
                     ->where('commentState', 'needs_auth')); // subforum exists, guest not signed in
         });

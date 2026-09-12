@@ -2,6 +2,8 @@
 
 12 September 2026. E: checkout. This review precedes application changes.
 
+Implementation updates: [first iteration](ITERATION.md) and [usability / consolidation follow-up](CONSOLIDATION.md). The inventory below is the original review snapshot; the follow-up records completed changes and the operator's current priority order.
+
 ## Assessment
 
 The main problem is the relationship between pages, not simply the number of pages. The application exposes implementation modules, workflow steps, public reference material and host operations as competing destinations. Many screens do have real data and action handlers. Several important user journeys still stop before completion or lose the selected place along the way.

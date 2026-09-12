@@ -10,11 +10,13 @@ use App\Models\Election;
 use App\Models\ElectionCertification;
 use App\Models\ElectionRace;
 use App\Models\LegislatureDistrict;
+use App\Models\Jurisdiction;
 use App\Models\User;
 use App\Services\ElectionLifecycleService;
 use App\Services\RoleService;
 use App\Services\SettingsResolver;
 use App\Support\SurfaceMeta;
+use App\Support\JurisdictionContext;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -150,22 +152,24 @@ class ElectionController extends Controller
 
     public function index(Request $request): Response|RedirectResponse
     {
-        $election = $this->resolveViewerElection($request->user());
+        $place = JurisdictionContext::requested($request);
+        $election = $this->resolveViewerElection($request->user(), $place);
 
         if ($election !== null) {
             return redirect()->route('elections.show', $election->id);
         }
 
-        return $this->renderEmptyState($request);
+        return $this->renderEmptyState($request, $place);
     }
 
     /** Nav entry points: resolve the viewer's election, forward to the target page. */
     public function entry(Request $request, string $target): Response|RedirectResponse
     {
-        $election = $this->resolveViewerElection($request->user());
+        $place = JurisdictionContext::requested($request);
+        $election = $this->resolveViewerElection($request->user(), $place);
 
         if ($election === null) {
-            return $this->renderEmptyState($request);
+            return $this->renderEmptyState($request, $place);
         }
 
         return match ($target) {
@@ -184,7 +188,7 @@ class ElectionController extends Controller
     public function show(Request $request, string $election): Response
     {
         $model = Election::query()
-            ->with(['jurisdiction', 'legislature', 'races.jurisdiction', 'races.district'])
+            ->with(['jurisdiction:id,name,slug,parent_id,adm_level', 'legislature', 'races.jurisdiction:id,name', 'races.district'])
             ->findOrFail($election);
 
         $user = $request->user();
@@ -272,7 +276,7 @@ class ElectionController extends Controller
                     'value' => $this->settings->resolveInt($jid, 'election_interval_months', 60),
                     'unit' => 'months',
                     'settingKey' => 'election_interval_months',
-                    'citation' => 'Art. II §2 · five-year default · CLK-01',
+                    'citation' => 'Art. II §2',
                 ],
                 'finalistMultiplier' => [
                     'value' => max(1, $this->settings->resolveInt($jid, 'finalist_multiplier', 3)),
@@ -324,25 +328,33 @@ class ElectionController extends Controller
 
     /**
      * The viewer's election: most recent open-cycle election whose
-     * jurisdiction is in the viewer's active association chain. Falls back
-     * to ANY open election (records are public — a pre-residency viewer
-     * still gets the browse experience) before the empty state.
+     * jurisdiction is in the viewer's active association chain. An explicit
+     * viewed place takes precedence. Guests choose a place through Places;
+     * never silently substitute an unrelated election from across the world.
      */
-    private function resolveViewerElection(?User $user): ?Election
+    private function resolveViewerElection(?User $user, ?Jurisdiction $place = null): ?Election
     {
+        if ($place === null && $user === null) return null;
+
         $open = Election::query()
-            ->whereNotIn('status', [Election::STATUS_FINAL, Election::STATUS_CANCELLED])
+            ->select('elections.*')
+            ->whereNotIn('elections.status', [Election::STATUS_FINAL, Election::STATUS_CANCELLED])
             // Org board elections (org_board_owner/org_board_worker) are
             // org-INTERNAL — a worker/owner electorate + class-gated candidacy,
             // reached via the Organizations board-elections surface. They are
             // NOT public "Right to Stand" races (Art. I), so the general
             // election entry resolver never routes a resident to one.
-            ->whereNotIn('kind', [Election::KIND_ORG_BOARD_OWNER, Election::KIND_ORG_BOARD_WORKER])
-            ->orderByDesc('created_at');
+            ->whereNotIn('elections.kind', [Election::KIND_ORG_BOARD_OWNER, Election::KIND_ORG_BOARD_WORKER]);
+
+        if ($place !== null) {
+            return $open->where('elections.jurisdiction_id', $place->id)->latest('elections.created_at')->first();
+        }
 
         if ($user !== null) {
-            $associated = (clone $open)
-                ->whereIn('jurisdiction_id', function ($q) use ($user) {
+            return $open
+                ->join('jurisdictions as place', 'place.id', '=', 'elections.jurisdiction_id')
+                ->whereNull('place.deleted_at')
+                ->whereIn('elections.jurisdiction_id', function ($q) use ($user) {
                     $q->select('jurisdiction_id')
                         ->from('residency_confirmations')
                         ->where('user_id', (string) $user->getKey())
@@ -350,39 +362,37 @@ class ElectionController extends Controller
                 })
                 // Deepest footprint first: a Serravalle resident's "my
                 // election" is San Marino's, not Earth's.
-                ->get()
-                ->sortByDesc(fn (Election $e) => (int) ($e->jurisdiction?->adm_level ?? 0))
+                ->orderByDesc('place.adm_level')
+                ->latest('elections.created_at')
                 ->first();
-
-            if ($associated !== null) {
-                return $associated;
-            }
         }
 
-        return $open->first();
+        return null;
     }
 
-    private function renderEmptyState(Request $request): Response
+    private function renderEmptyState(Request $request, ?Jurisdiction $place = null): Response
     {
-        // The armed CLK-01 cycle timer, when one exists (next general fire).
-        $timer = ClockTimer::query()
+        $jid = $place?->id;
+        if ($jid === null && $request->user() !== null) {
+            $jid = DB::table('residency_confirmations')
+                ->where('user_id', (string) $request->user()->getKey())
+                ->where('is_active', true)
+                ->orderByRaw('depth ASC NULLS LAST')
+                ->value('jurisdiction_id');
+            $place = $jid ? Jurisdiction::query()->find($jid, ['id', 'name', 'slug', 'parent_id', 'adm_level']) : null;
+        }
+
+        // An empty place must not display another jurisdiction's next election.
+        $timer = $jid === null ? null : ClockTimer::query()
+            ->where('jurisdiction_id', $jid)
             ->where('clock_id', 'CLK-01')
             ->where('state', 'armed')
             ->where('payload->step', 'schedule_general')
             ->orderBy('fires_at')
             ->first();
 
-        $jid = null;
-        if ($request->user() !== null) {
-            $jid = DB::table('residency_confirmations')
-                ->where('user_id', (string) $request->user()->getKey())
-                ->where('is_active', true)
-                ->orderByRaw('depth ASC NULLS LAST')
-                ->value('jurisdiction_id');
-        }
-
         return Inertia::render('Elections/ElectionDetail', [
-            'jurisdictionContext' => $model->jurisdiction ? \App\Support\JurisdictionContext::for($model->jurisdiction) : null,
+            'jurisdictionContext' => $place ? JurisdictionContext::for($place) : null,
             'surface' => SurfaceMeta::for('elections/detail'),
             'election' => null,
             'machine' => self::machine(),
@@ -390,13 +400,14 @@ class ElectionController extends Controller
             'stats' => null,
             'races' => [],
             'blockers' => [],
-            'others' => $this->otherElections(null),
+            'others' => $this->otherElections(null, $jid),
             'can' => ['certify' => false, 'recount' => false],
             'certification' => null,
             'empty' => [
                 'interval' => $jid !== null
                     ? $this->settings->resolveInt((string) $jid, 'election_interval_months', 60)
-                    : 60,
+                    : null,
+                'place' => $place ? ['name' => $place->name, 'slug' => $place->slug] : null,
                 'clk01DueAt' => $timer?->fires_at?->toIso8601String(),
             ],
         ]);
@@ -422,8 +433,8 @@ class ElectionController extends Controller
 
         $rows = [
             ['stage' => 'Approval phase opens — registration + open ballot', 'at' => $election->approval_opens_at,  'key' => 'CLK-18', 'ordinal' => 1],
-            ['stage' => 'Finalist cutoff — top X locked, ballot frozen',     'at' => $election->finalist_cutoff_at, 'key' => 'CLK-21', 'ordinal' => 2],
-            ['stage' => 'Ranked window opens — F-IND-007 ballots commit',    'at' => $election->ranked_opens_at,    'key' => 'CLK-01', 'ordinal' => 3],
+            ['stage' => 'Finalists confirmed — ranked ballot finalized',     'at' => $election->finalist_cutoff_at, 'key' => 'CLK-21', 'ordinal' => 2],
+            ['stage' => 'Ranked voting opens',                              'at' => $election->ranked_opens_at,    'key' => 'CLK-01', 'ordinal' => 3],
             ['stage' => 'Ranked window closes',                              'at' => $election->ranked_closes_at,   'key' => 'CLK-01', 'ordinal' => 4],
             ['stage' => 'Tabulation & certification — winners seated',       'at' => $election->certified_at,       'key' => 'F-ELB-004', 'ordinal' => 5],
         ];
@@ -471,10 +482,17 @@ class ElectionController extends Controller
     }
 
     /** @return list<array<string, mixed>> */
-    private function otherElections(?Election $current): array
+    private function otherElections(?Election $current, ?string $jurisdictionId = null): array
     {
+        $jurisdictionId ??= $current?->jurisdiction_id;
+        if ($jurisdictionId === null) return [];
+
         return Election::query()
-            ->with(['jurisdiction', 'races'])
+            ->select(['id', 'jurisdiction_id', 'kind', 'status'])
+            ->where('jurisdiction_id', $jurisdictionId)
+            ->with('jurisdiction:id,name')
+            ->withSum('races', 'seats')
+            ->withSum('races', 'finalist_count')
             ->whereNotIn('status', [Election::STATUS_CANCELLED])
             // Public population elections only — org board races live on the
             // Organizations board-elections surface, not the general list.
@@ -487,8 +505,8 @@ class ElectionController extends Controller
                 'election_id' => (string) $e->id,
                 'jurisdiction_name' => $e->jurisdiction?->name,
                 'kind' => $e->kind,
-                'seats' => (int) $e->races->sum('seats'),
-                'finalist_count' => (int) $e->races->sum('finalist_count'),
+                'seats' => (int) $e->races_sum_seats,
+                'finalist_count' => (int) $e->races_sum_finalist_count,
                 'phase' => self::phase($e->status),
             ])
             ->all();

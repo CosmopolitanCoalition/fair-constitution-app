@@ -31,6 +31,7 @@ import FormChip from '@/Components/Ui/FormChip.vue';
 import HardenedChip from '@/Components/Ui/HardenedChip.vue';
 import Icon from '@/Components/Ui/Icon.vue';
 import { achievementTitle } from '@/lib/achievementTitle.js';
+import { referenceLabel } from '@/lib/referenceLabels.js';
 import { useI18n } from 'vue-i18n';
 import LogRow from '@/Components/Ui/LogRow.vue';
 import Stat from '@/Components/Ui/Stat.vue';
@@ -68,15 +69,7 @@ const flash = computed(() => page.props.flash?.status ?? null);
 const errors = computed(() => page.props.errors ?? {});
 const roles = computed(() => page.props.auth?.roles ?? []);
 
-/* Mirrors AppShell — display labels only, never a gate. */
-const ROLE_LABELS = {
-    'R-00': 'Visitor',
-    'R-01': 'Individual',
-    'R-02': 'Resident',
-    'R-03': 'Jurisdictionally Associated',
-    'R-04': 'Voter',
-    'R-05': 'Petitioner',
-};
+const roleLabel = (role) => referenceLabel(role, { translate: (key, fallback) => t(key, fallback) });
 
 /* ──────────────────────────────────────────────────────────── the tabs */
 
@@ -406,15 +399,12 @@ const associationRows = computed(() =>
             <Card as="section" title="Roles held">
                 <div class="cluster" style="gap: var(--space-3)">
                     <StatusBadge v-for="role in roles" :key="role" tone="info" icon="user">
-                        {{ role }} · {{ ROLE_LABELS[role] ?? role }}
+                        {{ roleLabel(role) }}
                     </StatusBadge>
                     <HardenedChip />
                 </div>
                 <p style="margin-block-start: var(--space-3)">
-                    Roles are derived from residency facts at read time — never stored, never
-                    granted. The chain is R-01 Individual → R-02 Resident → R-03 Jurisdictionally
-                    Associated → R-04 Voter, and jurisdictional association is the
-                    <strong>only</strong> gate on voting and candidacy.
+                    {{ t('c_references.roles_explained', 'Your roles follow your residency, elections, and appointments. Residency determines where you can vote and stand for office.') }}
                 </p>
                 <p class="citation">Rights derive from residency alone · Art. I; Art. V §1</p>
             </Card>

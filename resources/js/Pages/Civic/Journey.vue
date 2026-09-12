@@ -13,7 +13,7 @@
  * Soft-gate rule: a medal never changes a vote, a seat, or what you may do.
  */
 import { computed } from 'vue';
-import { Link, router } from '@inertiajs/vue3';
+import { Link, router, usePage } from '@inertiajs/vue3';
 import AppShellV2 from '@/Layouts/AppShellV2.vue';
 import PageScaffold from '@/Components/Surface/PageScaffold.vue';
 import Banner from '@/Components/Ui/Banner.vue';
@@ -40,6 +40,8 @@ const props = defineProps({
 });
 
 const { announce } = useAnnounce();
+const page = usePage();
+const signedIn = computed(() => !!page.props.auth?.user);
 
 const learnLabel = computed(() => {
     const track = props.learn?.track;
@@ -72,7 +74,7 @@ const nextIndex = computed(() => steps.value.findIndex((_, i) => !isDone(i)));
 const isDone = (index) => stepsDone.value.includes(index);
 
 function toggleStep(index) {
-    if (!live.value) return;
+    if (!live.value || !signedIn.value) return;
     if (complete.value && isDone(index)) return; // frozen after completion (server rejects too)
     const marking = !isDone(index);
     const options = {
@@ -107,6 +109,10 @@ function toggleStep(index) {
         <Banner v-if="!live" tone="info">
             This journey is not live in this world yet. Its steps are shown for reading and cannot be marked.
         </Banner>
+        <p v-if="!signedIn" class="gloss">
+            You can read every step without an account.
+            <Link :href="`/continue?to=${encodeURIComponent('/journeys/' + journey.id)}`">Sign in to save your progress.</Link>
+        </p>
 
         <p style="margin: 0">
             <strong>Your part:</strong> {{ yourPart }}.
@@ -141,7 +147,7 @@ function toggleStep(index) {
                         <div class="cluster journey-actions">
                             <Btn v-if="step.href" :as="Link" :href="step.href" variant="secondary" size="sm" icon="arrow-right">Go there</Btn>
                             <FormChip v-if="step.form" :form-id="step.form" />
-                            <template v-if="live">
+                            <template v-if="live && signedIn">
                                 <Btn v-if="!isDone(index)" variant="ghost" size="sm" @click="toggleStep(index)">Mark done</Btn>
                                 <Btn v-else-if="!complete" variant="ghost" size="sm" icon="check" @click="toggleStep(index)">Done · undo</Btn>
                                 <span v-else class="citation"><Icon name="check" size="sm" /> Done</span>

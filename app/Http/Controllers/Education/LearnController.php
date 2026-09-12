@@ -149,17 +149,10 @@ class LearnController extends Controller
         ]);
     }
 
-    /** GET /learn/guides — the walkthrough index (journeys are the live half). */
-    public function guides(): Response
+    /** The old guide directory is an alias of the complete journey directory. */
+    public function guides(): RedirectResponse
     {
-        $journeys = collect(config('cga.journeys', []))
-            ->map(fn ($j, $key) => ['key' => $key, 'title' => $j['title'] ?? $key, 'href' => '/journeys/'.$key])
-            ->values();
-
-        return Inertia::render('Learn/Guides', [
-            'surface' => SurfaceMeta::for('learn/guides'),
-            'journeys' => $journeys,
-        ]);
+        return redirect()->route('journeys.index');
     }
 
     // ----------------------------------------------------------------------

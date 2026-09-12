@@ -11,7 +11,7 @@
  * strip renders a text legend.
  *
  * Roster grammar from mockups/executive/department-detail.html lines
- * 49–88 (the two clock regimes visible: governors 10-yr CLK-09 terms
+ * 49–88 (the two clock regimes visible: governors appointed CLK-09 terms
  * beside worker seats ending with the legislative term · CLK-10); stat
  * grammar from board-elections.html lines 26–30.
  *
@@ -22,6 +22,8 @@ import { computed } from 'vue';
 import Banner from '@/Components/Ui/Banner.vue';
 import DataTable from '@/Components/Ui/DataTable.vue';
 import StatusBadge from '@/Components/Ui/StatusBadge.vue';
+import { useI18n } from 'vue-i18n';
+import { referenceLabel } from '@/lib/referenceLabels.js';
 
 const props = defineProps({
     /**
@@ -44,6 +46,8 @@ const CLASS_LABELS = {
     owner_elected: 'Owner-elected',
     worker_elected: 'Worker-elected',
 };
+const { t } = useI18n();
+const clockLabel = (id) => referenceLabel(id, { translate: (key, fallback) => t(key, fallback) });
 
 const ownerSide = computed(() => props.seats.filter((s) => s.seat_class !== 'worker_elected'));
 const workerSide = computed(() => props.seats.filter((s) => s.seat_class === 'worker_elected'));
@@ -87,7 +91,7 @@ const invalidBanner = computed(
         `Board composition no longer matches the co-determination scale (${seatedWorkerSeats.value} of ` +
         `${props.requiredWorkerSeats} worker seats) — the board is valid only while composition matches the ` +
         'scale; a worker-track election is required, and any composition change re-triggers the joint chair ' +
-        'election · Art. III §6 · WF-ORG-04 → WF-ORG-05',
+        'election · Art. III §6',
 );
 </script>
 
@@ -137,7 +141,7 @@ const invalidBanner = computed(
             ]"
             :rows="seats"
             row-key="id"
-            caption="Board roster — governors on 10-yr CLK-09 civil terms; worker seats end with the legislative term (CLK-10)"
+            :caption="t('c_references.board_roster', 'Board members and their current term dates')"
         >
             <template #cell-member="{ row }">
                 <template v-if="row.holder">{{ row.holder.name }}</template>
@@ -147,7 +151,7 @@ const invalidBanner = computed(
             <template #cell-term="{ row }">
                 <template v-if="row.term">
                     <span data-no-i18n>{{ row.term.starts_on }} → {{ row.term.ends_on }}</span>
-                    <span v-if="row.term.clock" class="citation" style="display: block" data-no-i18n>{{ row.term.clock }}</span>
+                    <span v-if="row.term.clock" class="citation" style="display: block">{{ clockLabel(row.term.clock) }}</span>
                 </template>
                 <span v-else class="gloss">—</span>
             </template>

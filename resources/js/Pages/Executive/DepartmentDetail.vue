@@ -9,7 +9,7 @@
  *   • charter & oversight card (charter + Act chip; oversight executive +
  *     "full and equal investigative power"; oversees-CGC links + the
  *     perpetual-public-domain note)
- *   • BoardStrip FULL — the two-clock roster (governors 10-yr CLK-09 beside
+ *   • BoardStrip FULL — the two-clock roster (appointed CLK-09 terms beside
  *     worker seats on the legislative-term CLK-10; chair joint-elected)
  *   • nomination dossier FormCard (F-EXE-001) + per-nomination cards with the
  *     Stepper and, once the consent vote opens, the chamber VoteTally
@@ -27,6 +27,7 @@
  */
 import { computed } from 'vue';
 import { Link, useForm, usePage } from '@inertiajs/vue3';
+import { useI18n } from 'vue-i18n';
 import AppShellV2 from '@/Layouts/AppShellV2.vue';
 import PageScaffold from '@/Components/Surface/PageScaffold.vue';
 import FormCard from '@/Components/Surface/FormCard.vue';
@@ -63,6 +64,8 @@ const props = defineProps({
 });
 
 const page = usePage();
+const { t } = useI18n();
+const text = (key, fallback) => t('c_references.department.' + key, fallback);
 const flashStatus = computed(() => page.props.flash?.status ?? null);
 const constitutionError = computed(() => page.props.errors?.constitution ?? null);
 
@@ -102,7 +105,7 @@ const NOM_TONES = {
     nominated: ['info', 'clock', 'Nominated · consent pending'],
     consented: ['success', 'check', 'Consented'],
     seated: ['success', 'check', 'Seated'],
-    rejected: ['danger', 'x', 'Consent failed · renominate (WF-EXE-05)'],
+    rejected: ['danger', 'x', 'Consent failed · nomination reopened'],
     ended: ['neutral', 'minus', 'Ended'],
 };
 function nomBadge(status) {
@@ -165,9 +168,7 @@ function fmtDate(value) {
 <template>
     <PageScaffold :surface="surface" :title="department.name">
         <template #intro>
-            A chartered department, its Board of Governors, and the consent pipeline that seats it.
-            The governors hold 10-year civil terms (CLK-09); the worker-elected seats run on the
-            legislative-term clock (CLK-10) — the two clocks sit side by side in the roster below.
+            {{ text('intro', 'Manage this department’s board, review nominations, and follow its reports. The roster shows each member’s current term dates.') }}
         </template>
 
         <Banner v-if="flashStatus" tone="info" role="status">{{ flashStatus }}</Banner>
@@ -244,13 +245,11 @@ function fmtDate(value) {
                     :required-worker-seats="board.requiredWorkerSeats"
                 />
                 <p class="citation" style="margin-block-start: var(--space-2)">
-                    Governors: 10-year civil appointments · CLK-09. Worker-elected seats end with the
-                    legislative term · CLK-10. Chair: joint-elected by the entire board · Art. III §6.
+                    {{ text('terms', 'Governors serve civil appointments. Worker-elected members serve until the legislative term ends. The entire board elects its chair.') }}
                 </p>
             </template>
             <Banner v-else tone="info" role="status" title="No board constituted yet.">
-                The board and its governor seats are created when the department is chartered
-                (F-LEG-016); governors are nominated (F-EXE-001) and consented (F-LEG-020) onto them.
+                {{ text('board_not_formed', 'The department charter creates the board and its governor seats. Governors take their seats after nomination and legislative consent.') }}
             </Banner>
         </Card>
 
@@ -275,7 +274,7 @@ function fmtDate(value) {
 
                     <!-- the chamber consent vote, rendered HERE on the executive surface -->
                     <div v-if="nom.consent_vote" style="margin-block-start: var(--space-3)">
-                        <p class="eyebrow">Consent vote · F-LEG-020 · majority of all serving</p>
+                        <p class="eyebrow">Consent vote · majority of all serving</p>
                         <VoteTally v-bind="nom.consent_vote.tally" basis="Art. III §4 · peg-quorum majority" />
                         <details v-if="nom.consent_vote.casts.length" style="margin-block-start: var(--space-2)">
                             <summary class="citation" style="cursor: pointer">Published positions →</summary>
@@ -285,12 +284,12 @@ function fmtDate(value) {
                         </details>
                     </div>
 
-                    <!-- seated term dates (10-yr CLK-09) -->
+                    <!-- seated term dates from the governing appointment -->
                     <p v-if="nom.term" class="citation" style="margin-block-start: var(--space-2)" data-no-i18n>
-                        term {{ fmtDate(nom.term.starts_on) }} → {{ fmtDate(nom.term.ends_on) }} · CLK-09 (10 years)
+                        {{ text('term', 'Term') }} {{ fmtDate(nom.term.starts_on) }} → {{ fmtDate(nom.term.ends_on) }}
                     </p>
                     <p v-if="nom.status === 'rejected'" class="citation" style="margin-block-start: var(--space-2)">
-                        Consent failed — the seat reopens for renomination (WF-EXE-05).
+                        {{ text('nomination_reopened', 'Consent failed. The seat is open for a new nomination.') }}
                     </p>
                 </div>
             </template>
@@ -345,16 +344,15 @@ function fmtDate(value) {
             </Field>
 
             <p class="citation" style="margin-block-start: var(--space-2)">
-                opens the F-LEG-020 consent vote in the legislature · majority of all serving · Art. III §4.
+                Opens a consent vote in the legislature, requiring a majority of all serving members · Art. III §4.
             </p>
         </FormCard>
 
         <!-- ============================================ removals ========= -->
         <Card as="section" title="Removal requests">
             <p class="gloss" style="margin-block-end: var(--space-3)">
-                Governor removal is an <strong>ordinary majority of all serving</strong> — hiring and
-                firing (owner ruling #14). This is deliberately <strong>not</strong> the supermajority
-                machinery used to remove elected officeholders.
+                Removing a governor requires an <strong>ordinary majority of all serving members</strong>.
+                Requests and their voting records appear below.
             </p>
 
             <template v-if="removals.length">
@@ -375,7 +373,7 @@ function fmtDate(value) {
                     <p class="cc-small" style="white-space: pre-line">{{ rem.grounds_published }}</p>
                     <div v-if="rem.vote" style="margin-block-start: var(--space-3)">
                         <p class="eyebrow">Removal vote · majority of all serving</p>
-                        <VoteTally v-bind="rem.vote.tally" basis="Art. III §4 · ordinary majority · owner ruling #14" />
+                        <VoteTally v-bind="rem.vote.tally" basis="Art. III §4 · ordinary majority of all serving members" />
                         <details v-if="rem.vote.casts.length" style="margin-block-start: var(--space-2)">
                             <summary class="citation" style="cursor: pointer">Published positions →</summary>
                             <div style="margin-block-start: var(--space-2)">
@@ -440,7 +438,7 @@ function fmtDate(value) {
             </Field>
 
             <p class="citation" style="margin-block-start: var(--space-2)">
-                opens an ordinary-majority chamber vote (NOT supermajority) · owner ruling #14 · Art. III §4.
+                Opens a chamber vote requiring an ordinary majority of all serving members · Art. III §4.
             </p>
             <Banner
                 v-if="!removableSeats.length"
@@ -476,11 +474,8 @@ function fmtDate(value) {
 
         <template #about>
             <p>
-                A department's board is the same co-determination engine as any organization
-                (Art. III §6): worker seats arrive through the uniform scale and the board is valid
-                only while its composition matches that scale. The governors' 10-year terms run
-                independently of the worker seats' legislative lockstep.
-                <HardenedChip>two clocks · CLK-09 governors · CLK-10 worker seats</HardenedChip>
+                {{ text('board_explained', 'Workers gain board representation as the workforce grows, under the same rules used by other organizations. The board’s membership must match that scale. Appointed governors and worker-elected members follow their respective term schedules.') }}
+                <HardenedChip>{{ text('term_schedules', 'Appointed and worker-elected members have different term schedules') }}</HardenedChip>
             </p>
         </template>
     </PageScaffold>

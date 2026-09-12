@@ -23,6 +23,7 @@ import { computed } from 'vue';
 import { Link, router, useForm, usePage } from '@inertiajs/vue3';
 import AppShellV2 from '@/Layouts/AppShellV2.vue';
 import PageScaffold from '@/Components/Surface/PageScaffold.vue';
+import OrganizationNav from '@/Components/Organizations/OrganizationNav.vue';
 import Banner from '@/Components/Ui/Banner.vue';
 import Card from '@/Components/Ui/Card.vue';
 import DataTable from '@/Components/Ui/DataTable.vue';
@@ -117,14 +118,9 @@ function consentBadge(at) {
         <Banner v-if="flashStatus" tone="info" role="status">{{ flashStatus }}</Banner>
         <Banner v-if="constitutionError" tone="emergency">{{ constitutionError }}</Banner>
 
-        <Banner v-if="focus" tone="info" role="status" :title="`Focused on ${focus.name}.`">
-            Showing the transfer/conversion register for
-            <Link :href="focus.href">{{ focus.name }}</Link>. Drop the <code data-no-i18n>?org=</code> query
-            to see the whole registry.
-        </Banner>
-        <Banner v-else tone="info" role="status" title="Whole-instance registry.">
-            Open this page with <code data-no-i18n>?org={id}</code> to file a transfer, conversion request, or
-            dissolution against a specific organization.
+        <OrganizationNav v-if="focus" :organization="focus" current="ownership" />
+        <Banner v-else tone="info" role="status" title="Choose an organization to manage ownership changes.">
+            <Link href="/organizations">Find an organization</Link> and open its Ownership changes workspace.
         </Banner>
 
         <!-- ============================ 1. mutual transfer ============== -->

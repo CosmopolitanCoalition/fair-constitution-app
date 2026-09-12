@@ -92,14 +92,11 @@ class LearnPagesTest extends TestCase
         });
     }
 
-    public function test_guides_render(): void
+    public function test_guides_resolve_to_the_canonical_journey_directory(): void
     {
         $this->onLivePg(function () {
             $this->get('/learn/guides')
-                ->assertOk()
-                ->assertInertia(fn (Assert $page) => $page
-                    ->component('Learn/Guides')
-                    ->has('journeys'));
+                ->assertRedirect('/journeys');
         });
     }
 

@@ -4,6 +4,8 @@
  * `implemented` appends an honest "as implemented" link to the constitutional
  * questions ledger (use `anchor` for the specific entry).
  */
+import ReferenceText from './ReferenceText.vue';
+
 defineProps({
     text: { type: String, required: true },
     /** The implementation intentionally supersedes the cited mechanism. */
@@ -15,7 +17,7 @@ defineProps({
 
 <template>
     <span class="citation" :class="{ 'citation--implemented': implemented }">
-        {{ text }}<template v-if="implemented">
+        <ReferenceText>{{ text }}</ReferenceText><template v-if="implemented">
             ·
             <a :href="anchor || '#'">as implemented</a>
         </template>

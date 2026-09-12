@@ -26,6 +26,11 @@
         <meta charset="utf-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0" />
         <meta name="csrf-token" content="{{ csrf_token() }}" />
+        {{-- Visible even while the frontend modules are still downloading. --}}
+        <style>
+            #initial-page-loading { position: fixed; inset: 0 0 auto; z-index: 10000; padding: .6rem .8rem; text-align: end; color: #fff; background: #101827; font: 14px system-ui, sans-serif; border-top: 3px solid #f6c453; }
+            #initial-page-loading a { margin-inline-start: .75rem; color: #f6c453; }
+        </style>
         @foreach ($preloadFonts as $font)
         <link rel="preload" href="{{ $font }}" as="font" type="font/woff2" crossorigin />
         @endforeach
@@ -33,6 +38,7 @@
         @inertiaHead
     </head>
     <body>
+        <div id="initial-page-loading" role="status">{{ __('Loading…') }}</div>
         @inertia
     </body>
 </html>

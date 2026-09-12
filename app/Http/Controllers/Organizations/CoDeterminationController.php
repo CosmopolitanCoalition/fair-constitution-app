@@ -12,6 +12,7 @@ use App\Models\SettingChange;
 use App\Services\Organizations\CoDeterminationService;
 use App\Services\SettingsResolver;
 use App\Support\SurfaceMeta;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Inertia\Inertia;
@@ -22,7 +23,7 @@ use Inertia\Response;
  * surface organizations/co-determination) ← the CLK-13 exit surface.
  *
  *   GET /organizations/co-determination          — the explorer + the
- *        applies-equally table (every LIVE boards row, all three kinds).
+ *        cursor-paginated board register, across all three kinds.
  *   GET /organizations/co-determination?org={id} — binds the CoDetScale
  *        meter to one live org/department's published numbers.
  *
@@ -43,22 +44,50 @@ class CoDeterminationController extends Controller
 
     public function show(Request $request): Response
     {
-        // The thresholds backing the explorer's default render resolve
-        // against the root jurisdiction (the instance's amended floor /
-        // parity); per-board rows resolve their OWN jurisdiction below.
-        $rootJurisdictionId = $this->rootJurisdictionId();
-        $explorerThresholds = $this->thresholds($rootJurisdictionId);
+        $request->validate(['org' => ['nullable', 'uuid']]);
+        $entity = $request->filled('org') ? $this->entity($request->query('org')) : null;
+        $jurisdictionId = $entity?->jurisdiction_id ?? $this->rootJurisdictionId();
+        $explorerThresholds = $this->thresholds($jurisdictionId);
+        $pagination = null;
+        $focus = null;
 
-        $boards = $this->liveBoards();
-
-        $focus = $this->focus($request->query('org'), $boards, $explorerThresholds);
+        if ($entity !== null) {
+            // Resolve the selected entity before querying boards. No unrelated
+            // board or seat is loaded to display this workspace.
+            $board = $this->liveBoards()
+                ->where('boardable_type', $entity instanceof Organization ? Board::BOARDABLE_ORGANIZATIONS : Board::BOARDABLE_DEPARTMENTS)
+                ->where('boardable_id', $entity->id)
+                ->orderBy('id')->first();
+            $boards = collect($board ? [$board] : []);
+            $focus = [
+                'entity' => [
+                    'id' => (string) $entity->id,
+                    'name' => $entity->name,
+                    'href' => ($entity instanceof Organization ? '/organizations/' : '/departments/').$entity->id,
+                    'kind' => $entity instanceof Organization
+                        ? ($entity->is_cgc ? 'Common Good Corporation' : ($entity->type ?? 'Organization'))
+                        : 'Executive department',
+                ],
+                'scale' => $board ? $this->scaleProps($board) : null,
+            ];
+        } else {
+            // A directory visit is bounded too. Cursor navigation avoids both
+            // a world-wide count and increasingly expensive offset scans.
+            $page = $this->liveBoards()->orderBy('id')->cursorPaginate(20)->withQueryString();
+            $boards = $page->getCollection();
+            $pagination = ['previous' => $page->previousPageUrl(), 'next' => $page->nextPageUrl()];
+        }
 
         return Inertia::render('Organizations/CoDetermination', [
             'surface' => SurfaceMeta::for('organizations/co-determination'),
             'focus' => $focus,
+            'organization' => $entity instanceof Organization ? [
+                'id' => (string) $entity->id, 'name' => $entity->name, 'is_cgc' => (bool) $entity->is_cgc,
+            ] : null,
+            'pagination' => $pagination,
             'appliesTable' => $boards->map(fn (Board $board) => $this->appliesRow($board))->values()->all(),
             'clk13' => $this->amendableCard(
-                $rootJurisdictionId,
+                $jurisdictionId,
                 'worker_rep_min_employees',
                 $explorerThresholds['min'],
                 100,
@@ -66,7 +95,7 @@ class CoDeterminationController extends Controller
                 'must stay below the parity threshold',
             ),
             'clk14' => $this->amendableCard(
-                $rootJurisdictionId,
+                $jurisdictionId,
                 'worker_rep_parity_employees',
                 $explorerThresholds['parity'],
                 2000,
@@ -80,84 +109,30 @@ class CoDeterminationController extends Controller
     // -------------------------------------------------------------------------
 
     /**
-     * Every LIVE board — one row per `boards` row that is not dissolved,
-     * across all three boardable kinds (private orgs, CGCs, departments).
-     * Eager-loads seats so the owner-side / worker-side counts and the
-     * owner-side label come from real board_seats rows, not a recompute.
+     * The caller must select one entity or paginate before loading rows.
+     * Only seat classes are needed to label the owner side; names and terms
+     * belong to the selected organization's board page.
      */
-    private function liveBoards(): \Illuminate\Support\Collection
+    private function liveBoards(): Builder
     {
         return Board::query()
             ->whereNull('deleted_at')
             ->where('status', '!=', Board::STATUS_DISSOLVED)
-            ->with(['seats' => fn ($q) => $q->orderBy('seat_no')])
-            ->orderBy('boardable_type')
-            ->get();
+            ->with('seats:board_id,seat_class');
     }
 
     /**
-     * The CoDetScale-bound focus: the org/department named by ?org, else
-     * null (the page renders the generic explorer at the resolved
-     * thresholds). The org may also be a board's boardable_id — we resolve
-     * org first, then any department by the same id, so the meter binds to
-     * whichever entity actually carries a board.
+     * Existing department deep links remain supported. An invalid selection
+     * must not silently become an unscoped directory visit.
      */
-    private function focus(?string $orgId, \Illuminate\Support\Collection $boards, array $explorerThresholds): ?array
+    private function entity(string $orgId): Organization|Department
     {
-        if ($orgId === null || $orgId === '') {
-            return null;
-        }
-
         $org = Organization::query()->whereKey($orgId)->first();
         if ($org !== null) {
-            return $this->focusFor(
-                Board::BOARDABLE_ORGANIZATIONS,
-                (string) $org->id,
-                $org->name,
-                '/organizations/'.$org->id,
-                $org->is_cgc ? 'Common Good Corporation' : ($org->type ?? 'organization'),
-                $boards,
-            );
+            return $org;
         }
 
-        $department = Department::query()->whereKey($orgId)->first();
-        if ($department !== null) {
-            return $this->focusFor(
-                Board::BOARDABLE_DEPARTMENTS,
-                (string) $department->id,
-                $department->name,
-                '/departments/'.$department->id,
-                'Executive department',
-                $boards,
-            );
-        }
-
-        return null;
-    }
-
-    private function focusFor(
-        string $boardableType,
-        string $boardableId,
-        string $name,
-        string $href,
-        string $kind,
-        \Illuminate\Support\Collection $boards,
-    ): ?array {
-        $board = $boards->first(
-            fn (Board $b) => $b->boardable_type === $boardableType && (string) $b->boardable_id === $boardableId,
-        );
-
-        if ($board === null) {
-            // The entity exists but has no board yet — no published
-            // co-determination numbers to bind. The explorer renders the
-            // generic default; the focus stays null.
-            return null;
-        }
-
-        return [
-            'entity' => ['name' => $name, 'href' => $href, 'kind' => $kind],
-            'scale' => $this->scaleProps($board),
-        ];
+        return Department::query()->whereKey($orgId)->firstOrFail();
     }
 
     /**
@@ -205,7 +180,11 @@ class CoDeterminationController extends Controller
         $workerSeats = (int) $board->worker_seats;
 
         return [
-            'entity' => ['name' => $name, 'href' => $href],
+            'entity' => [
+                'name' => $name,
+                'href' => $href,
+                'representation_href' => $href !== null ? '/organizations/co-determination?org='.$board->boardable_id : null,
+            ],
             'kind' => $kind,
             'workers' => $workers,
             'owner_side' => [

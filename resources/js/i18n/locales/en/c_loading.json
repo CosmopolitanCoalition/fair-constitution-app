@@ -1,0 +1,8 @@
+{
+  "loading": "Loading…",
+  "slow": "Still loading…",
+  "failed": "The request could not be completed. Please try again.",
+  "dismiss": "Dismiss",
+  "start_failed": "The page could not be opened.",
+  "refresh": "Refresh to try again"
+}
