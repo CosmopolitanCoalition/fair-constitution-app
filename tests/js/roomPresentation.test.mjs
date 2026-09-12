@@ -41,4 +41,22 @@ assert.equal(visibleRoomPeople(largeRoster).length, 14, 'only disconnected assig
 assert.ok(visibleRoomPeople(largeRoster).some((person) => person.identity === '24'), 'participant audio stays mounted beyond the visual seat limit');
 assert.ok(visibleRoomPeople(largeRoster).some((person) => person.identity === '29'), 'recognized speaker remains visible');
 assert.equal(visibleRoomPeople(largeRoster, true).length, 30);
+
+const witnessTrack = { id: 'witness-video' };
+const hearingRoster = [{ handle: 'presider', role: 'presiding_judge' }, { handle: 'party', role: 'claimant', display_name: 'Waiting participant' }];
+const hearingPeople = [{ identity: 'party', videoTrack: witnessTrack }, { identity: 'visitor', activeWitness: 'visitor', role: 'witness' }];
+const liveHearing = roomSeating({ variant: 'court', roster: hearingRoster, participants: hearingPeople, floorHolder: 'party', activeWitness: 'party' });
+const stand = liveHearing.find(zone => zone.id === 'floor').people;
+assert.equal(stand.length, 1, 'only the server-selected witness enters the stand');
+assert.equal(stand[0].identity, 'party');
+assert.equal(stand[0].videoTrack, witnessTrack, 'the same live track follows the witness');
+assert.equal(liveHearing.flatMap(zone => zone.people).filter(person => person.identity === 'party').length, 1, 'witness media is not duplicated');
+assert.equal(liveHearing.find(zone => zone.id === 'gallery').people[0].identity, 'visitor', 'a caller cannot appoint itself witness');
+const yieldedHearing = roomSeating({ variant: 'court', roster: hearingRoster, participants: hearingPeople });
+assert.equal(yieldedHearing.find(zone => zone.id === 'floor').people.length, 0);
+assert.equal(yieldedHearing.find(zone => zone.id === 'counsel').people[0].identity, 'party', 'yielding restores the authoritative original role');
+assert.equal(hearingRoster[1].role, 'claimant', 'witness positioning never changes official assignments');
+const questioning = roomSeating({ variant: 'court', roster: hearingRoster, participants: hearingPeople, floorHolder: 'presider', activeWitness: 'party' });
+assert.equal(questioning.find(zone => zone.id === 'floor').people[0].videoTrack, witnessTrack, 'the witness stays on the stand while questioned');
+assert.equal(questioning.find(zone => zone.id === 'dais').people[0].holdsFloor, true, 'the questioning judge speaks from the bench');
 console.log('Room seating and public-name checks passed.');

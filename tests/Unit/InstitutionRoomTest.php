@@ -71,6 +71,10 @@ final class InstitutionRoomTest extends TestCase
         $this->names = $this->createMock(PublicRoomNames::class);
         $this->provisioner = $this->createMock(MatrixIdentityProvisioner::class);
         app()->instance(MatrixIdentityProvisioner::class, $this->provisioner);
+        $roomFloor = $this->createMock(\App\Services\Rooms\RoomFloorService::class);
+        $roomFloor->method('view')->willReturn(['queue' => [], 'floorHolder' => null, 'activeWitness' => null,
+            'canRequest' => false, 'canPreside' => false, 'myHandRaised' => false, 'displayNames' => []]);
+        app()->instance(\App\Services\Rooms\RoomFloorService::class, $roomFloor);
         $floor = $this->createMock(LiveFloorService::class);
         $floor->method('key')->willReturn('fixture-floor');
         $floor->method('state')->willReturn(['floorHolder' => null, 'queue' => [], 'speaking' => null]);

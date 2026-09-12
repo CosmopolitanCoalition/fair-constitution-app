@@ -13,6 +13,7 @@ import { computed } from 'vue';
 import { useI18n } from 'vue-i18n';
 import Banner from '@/Components/Ui/Banner.vue';
 import { useVoiceRoom } from '@/composables/useVoiceRoom.js';
+import { useRoomParticipants } from '@/composables/useRoomParticipants.js';
 import ChamberStage from './ChamberStage.vue';
 import VoiceControls from './VoiceControls.vue';
 
@@ -25,7 +26,9 @@ const props = defineProps({
     tokenRequester: { type: Function, default: null },
     variant: { type: String, default: 'commons' },
     roster: { type: Array, default: () => [] },
+    rosterUrl: { type: String, default: null },
     floorHolder: { type: String, default: null },
+    activeWitness: { type: String, default: null },
     displayNames: { type: Object, default: () => ({}) },
 });
 
@@ -34,6 +37,10 @@ const {
     participants, devices, selectedDevices,
     join, leave, toggleMic, toggleCamera, toggleScreenShare, selectDevice, startAudio,
 } = useVoiceRoom();
+const { roster: currentRoster } = useRoomParticipants({
+    url: () => props.rosterUrl, room: () => props.room,
+    participants: () => participants.value, preview: () => props.roster,
+});
 const { t } = useI18n();
 const text = (key, fallback) => t('c_rooms.' + key, fallback);
 const namedParticipants = computed(() => participants.value.map((participant) => ({
@@ -98,7 +105,7 @@ async function onJoin() {
             {{ errorMessage }} {{ text('room_open', 'The room remains open.') }}
         </Banner>
 
-        <ChamberStage :participants="namedParticipants" :connection-state="connectionState" :selected-devices="selectedDevices" :variant="variant" :roster="roster" :floor-holder="floorHolder" />
+        <ChamberStage :participants="namedParticipants" :connection-state="connectionState" :selected-devices="selectedDevices" :variant="variant" :roster="currentRoster" :floor-holder="floorHolder" :active-witness="activeWitness" />
 
         <VoiceControls
             :connection-state="connectionState"

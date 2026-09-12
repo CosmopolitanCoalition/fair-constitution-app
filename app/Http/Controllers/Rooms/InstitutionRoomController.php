@@ -13,6 +13,7 @@ use App\Models\JuryMember;
 use App\Models\Legislature;
 use App\Models\LegislatureMember;
 use App\Models\MatrixRoom;
+use App\Models\Panel;
 use App\Models\PanelJudge;
 use App\Services\Matrix\LiveKitTokenService;
 use App\Services\Matrix\MatrixClientService;
@@ -64,7 +65,7 @@ class InstitutionRoomController extends Controller
 
     public function court(Request $request, CourtCase $case): Response
     {
-        $judges = PanelJudge::query()->whereHas('panel', fn ($q) => $q->where('case_id', $case->id))
+        $judges = PanelJudge::query()->whereHas('panel', fn ($q) => $q->where('case_id', $case->id)->where('status', Panel::STATUS_SEATED))
             ->where('status', PanelJudge::STATUS_SEATED)->where('screening_result', PanelJudge::SCREENING_CLEARED)
             ->orderByDesc('is_presiding')->orderBy('id')->limit(self::ROSTER_LIMIT + 1)
             ->get(['user_id', 'is_presiding']);
@@ -216,7 +217,8 @@ class InstitutionRoomController extends Controller
         $displayNames = $this->names->forHandles(array_column($timeline, 'sender'));
         foreach ($roster as $handle => $person) if ($person['display_name']) $displayNames[$handle] = $person['display_name'];
         $place = $jurisdictionId ? Jurisdiction::query()->find($jurisdictionId, ['id', 'name', 'slug', 'adm_level', 'parent_id']) : null;
-        $floor = $this->floor->state($this->floor->key($variant === 'court' ? 'case' : $variant, $entityId));
+        $floor = app(\App\Services\Rooms\RoomFloorService::class)->view($variant, $entityId, $request->user());
+        $displayNames = array_replace($displayNames, $floor['displayNames']);
         $roomHref = '/rooms/'.($variant === 'legislature' ? 'chamber' : $variant).'/'.$entityId;
         return Inertia::render('Rooms/Institution', [
             'title' => $title, 'variant' => $variant, 'private' => $tokenUrl !== null,
@@ -224,12 +226,14 @@ class InstitutionRoomController extends Controller
             'jurisdictionContext' => $place ? JurisdictionContext::forRoom($place) : null,
             'roster' => array_values($roster), 'rosterTruncated' => $truncated, 'rosterLimit' => self::ROSTER_LIMIT,
             'displayNames' => $displayNames, 'floorHolder' => $floor['floorHolder'],
+            'activeWitness' => $floor['activeWitness'], 'floorControls' => $floor,
             'messages' => $timeline, 'timelineAvailable' => $timelineAvailable,
             'voice' => ['roomId' => $room?->matrix_room_id, 'jurisdictionId' => $jurisdictionId,
                 'myMxid' => $request->user() ? $this->posting->matrixUserId($request->user()) : null,
                 'myUserId' => $request->user()?->getKey(), 'tokenUrl' => $tokenUrl],
             'recordHref' => $record,
             'roomHref' => $roomHref, 'messagesHref' => $roomHref.'/messages',
+            'rosterUrl' => $roomHref.'/participants',
         ]);
     }
 }

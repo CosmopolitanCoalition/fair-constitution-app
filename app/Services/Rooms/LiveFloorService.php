@@ -3,6 +3,8 @@
 namespace App\Services\Rooms;
 
 use Illuminate\Support\Facades\Cache;
+use Illuminate\Contracts\Cache\LockTimeoutException;
+use Illuminate\Validation\ValidationException;
 
 /**
  * The live-room FLOOR — ephemeral recognition state (who holds the floor, the
@@ -33,30 +35,32 @@ class LiveFloorService
     /** @return array{floorHolder: ?string, queue: list<array{handle:string, reason:?string}>, speaking: ?array{seconds:int}} */
     public function state(string $key): array
     {
-        return Cache::get($key, ['floorHolder' => null, 'queue' => [], 'speaking' => null]);
+        return array_merge(['floorHolder' => null, 'queue' => [], 'speaking' => null, 'activeWitness' => null], Cache::get($key, []));
     }
 
     /** A resident raises a hand — idempotent (already-queued is a no-op). */
     public function raiseHand(string $key, string $handle, ?string $reason = null): array
     {
-        $s = $this->state($key);
-        foreach ($s['queue'] as $q) {
-            if ($q['handle'] === $handle) {
-                return $s;
+        return $this->mutate($key, function (array $s) use ($handle, $reason) {
+            foreach ($s['queue'] as $q) {
+                if ($q['handle'] === $handle) return $s;
             }
-        }
-        $s['queue'][] = ['handle' => $handle, 'reason' => $reason];
-
-        return $this->put($key, $s);
+            // An operational payload bound, not a limit on institutional membership.
+            if (count($s['queue']) >= 200) {
+                throw ValidationException::withMessages(['floor' => 'The speaking queue is full. Please try again after a speaker is recognized.']);
+            }
+            $s['queue'][] = ['handle' => $handle, 'reason' => $reason];
+            return $s;
+        });
     }
 
     /** A resident lowers their own hand (leaves the queue). */
     public function lowerHand(string $key, string $handle): array
     {
-        $s = $this->state($key);
-        $s['queue'] = array_values(array_filter($s['queue'], fn ($q) => $q['handle'] !== $handle));
-
-        return $this->put($key, $s);
+        return $this->mutate($key, function (array $s) use ($handle) {
+            $s['queue'] = array_values(array_filter($s['queue'], fn ($q) => $q['handle'] !== $handle));
+            return $s;
+        });
     }
 
     /**
@@ -66,40 +70,64 @@ class LiveFloorService
      */
     public function recognize(string $key, ?string $handle = null, int $speakingSeconds = 120): array
     {
-        $s = $this->state($key);
-        if ($handle === null) {
-            $handle = $s['queue'][0]['handle'] ?? null;
-            if ($handle === null) {
-                return $s; // no hands raised — nothing to recognize
-            }
-        }
-        $s['queue'] = array_values(array_filter($s['queue'], fn ($q) => $q['handle'] !== $handle));
-        $s['floorHolder'] = $handle;
-        $s['speaking'] = ['seconds' => $speakingSeconds];
+        return $this->mutate($key, fn (array $s) => $this->recognition($s, $handle, $speakingSeconds, false));
+    }
 
-        return $this->put($key, $s);
+    /** Court room positioning only; this does not file or seal testimony. */
+    public function recognizeWitness(string $key, string $handle): array
+    {
+        return $this->mutate($key, fn (array $s) => $this->recognition($s, $handle, 0, true));
     }
 
     /** The floor is yielded (the speaker finished or the chair moved on). */
     public function yieldFloor(string $key): array
     {
-        $s = $this->state($key);
-        $s['floorHolder'] = null;
-        $s['speaking'] = null;
-
-        return $this->put($key, $s);
+        return $this->mutate($key, function (array $s) {
+            $s['floorHolder'] = null;
+            $s['speaking'] = null;
+            $s['activeWitness'] = null;
+            return $s;
+        });
     }
 
     /** Clear the whole floor (on adjournment — the live state is discarded). */
     public function clear(string $key): void
     {
-        Cache::forget($key);
+        $this->locked($key, fn () => Cache::forget($key));
     }
 
-    private function put(string $key, array $s): array
+    private function recognition(array $s, ?string $handle, int $seconds, bool $witness): array
     {
-        Cache::put($key, $s, self::TTL_SECONDS);
-
+        $handle ??= $s['queue'][0]['handle'] ?? null;
+        if ($handle === null) return $s;
+        if (! in_array($handle, array_column($s['queue'], 'handle'), true)) {
+            throw ValidationException::withMessages(['floor' => 'That person is no longer waiting in this room. Refresh the queue and try again.']);
+        }
+        $s['queue'] = array_values(array_filter($s['queue'], fn ($q) => $q['handle'] !== $handle));
+        $s['floorHolder'] = $handle;
+        $s['speaking'] = $seconds > 0 ? ['seconds' => $seconds] : null;
+        // A witness remains on the stand while counsel or a judge speaks.
+        // The presider dismisses that position by yielding the floor.
+        if ($witness) $s['activeWitness'] = $handle;
         return $s;
+    }
+
+    private function mutate(string $key, callable $change): array
+    {
+        return $this->locked($key, function () use ($key, $change) {
+            $state = $change($this->state($key));
+            Cache::put($key, $state, self::TTL_SECONDS);
+            return $state;
+        });
+    }
+
+    private function locked(string $key, callable $change): mixed
+    {
+        try {
+            // One shared-cache lock per room: concurrent hands cannot overwrite each other.
+            return Cache::lock($key.':lock', 5)->block(2, $change);
+        } catch (LockTimeoutException) {
+            throw ValidationException::withMessages(['floor' => 'The room is updating its speaking queue. Please try again.']);
+        }
     }
 }

@@ -899,6 +899,18 @@ Route::middleware('auth')->group(function () {
         ->whereUuid('case')->name('rooms.court')->withoutMiddleware('auth');
     Route::get('/rooms/board/{board}', [\App\Http\Controllers\Rooms\InstitutionRoomController::class, 'board'])
         ->whereUuid('board')->name('rooms.board');
+    Route::post('/rooms/chamber/{legislature}/floor', [\App\Http\Controllers\Rooms\RoomFloorController::class, 'chamber'])
+        ->whereUuid('legislature')->name('rooms.chamber.floor');
+    Route::post('/rooms/court/{case}/floor', [\App\Http\Controllers\Rooms\RoomFloorController::class, 'court'])
+        ->whereUuid('case')->name('rooms.court.floor');
+    Route::post('/rooms/board/{board}/floor', [\App\Http\Controllers\Rooms\RoomFloorController::class, 'board'])
+        ->whereUuid('board')->name('rooms.board.floor');
+    Route::post('/rooms/chamber/{legislature}/participants', [\App\Http\Controllers\Rooms\RoomParticipantController::class, 'chamber'])
+        ->whereUuid('legislature')->name('rooms.chamber.participants');
+    Route::post('/rooms/court/{case}/participants', [\App\Http\Controllers\Rooms\RoomParticipantController::class, 'court'])
+        ->whereUuid('case')->name('rooms.court.participants');
+    Route::post('/rooms/board/{board}/participants', [\App\Http\Controllers\Rooms\RoomParticipantController::class, 'board'])
+        ->whereUuid('board')->name('rooms.board.participants');
     Route::post('/rooms/board/{board}/call-token', [\App\Http\Controllers\Rooms\InstitutionRoomController::class, 'boardToken'])
         ->whereUuid('board')->name('rooms.board.call-token');
     Route::post('/rooms/chamber/{legislature}/messages', [\App\Http\Controllers\Rooms\InstitutionRoomController::class, 'chamberMessages'])

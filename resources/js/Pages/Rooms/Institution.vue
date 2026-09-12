@@ -13,7 +13,8 @@ defineOptions({ layout: AppShellV2 });
 const props = defineProps({
     title: String, variant: String, private: Boolean, jurisdiction: Object,
     roster: { type: Array, default: () => [] }, rosterTruncated: Boolean, rosterLimit: Number,
-    displayNames: { type: Object, default: () => ({}) }, floorHolder: String,
+    displayNames: { type: Object, default: () => ({}) }, floorHolder: String, activeWitness: String,
+    floorControls: { type: Object, default: () => ({}) }, rosterUrl: String,
     messages: { type: Array, default: () => [] }, timelineAvailable: Boolean,
     voice: { type: Object, default: () => ({}) }, recordHref: String, roomHref: String, messagesHref: String,
 });
@@ -21,6 +22,22 @@ const { t } = useI18n();
 const text = (key, fallback) => t('c_rooms.' + key, fallback);
 const canJoin = computed(() => props.voice.roomId && props.voice.myMxid && props.voice.myUserId);
 const compose = useForm({ body: '' });
+const floorForm = useForm({ action: '', handle: null });
+function floorAction(action, handle = null) {
+    if (floorForm.processing) return;
+    floorForm.action = action;
+    floorForm.handle = handle;
+    floorForm.post(props.roomHref + '/floor', { preserveScroll: true });
+}
+const floorName = computed(() => props.floorHolder ? personLabel({ identity: props.floorHolder, display_name: props.displayNames[props.floorHolder] }) : null);
+const witnessName = computed(() => props.activeWitness ? personLabel({ identity: props.activeWitness, display_name: props.displayNames[props.activeWitness] }) : null);
+const seating = computed(() => {
+    const rows = props.roster.map(person => ({ ...person, display_name: props.displayNames[person.handle] || person.display_name }));
+    for (const handle of [props.floorHolder, props.activeWitness].filter(Boolean)) {
+        if (!rows.some(person => person.handle === handle)) rows.push({ handle, display_name: props.displayNames[handle], role: 'guest' });
+    }
+    return rows;
+});
 function send() {
     if (!compose.body.trim() || !canJoin.value) return;
     compose.post(props.messagesHref, { preserveScroll: true, onSuccess: () => compose.reset('body') });
@@ -33,8 +50,8 @@ const tokenRequester = computed(() => props.voice.tokenUrl ? async () => {
     if (!response.ok) throw new Error('room_not_accessible');
     return response.json();
 } : null);
-useLiveRoom({ keys: ['roster', 'rosterTruncated', 'displayNames', 'floorHolder', 'voice', 'messages', 'timelineAvailable'],
-    isLive: () => 'open', busy: () => compose.processing, cadenceMs: 10000 });
+useLiveRoom({ keys: ['roster', 'rosterTruncated', 'displayNames', 'floorHolder', 'activeWitness', 'floorControls', 'voice', 'messages', 'timelineAvailable'],
+    isLive: () => 'open', busy: () => compose.processing || floorForm.processing, cadenceMs: 5000 });
 </script>
 
 <template>
@@ -50,10 +67,34 @@ useLiveRoom({ keys: ['roster', 'rosterTruncated', 'displayNames', 'floorHolder',
         <p v-if="!voice.roomId" class="room-note" role="status">{{ text('room_unavailable_retry', 'The call room is not available yet. Its seats and official workspace remain available.') }} <a :href="roomHref">{{ text('retry_room', 'Retry room') }}</a></p>
         <LiveRoom v-if="canJoin" :key="voice.roomId" :jurisdiction-id="voice.jurisdictionId || ''"
             :room="voice.roomId" :pseudonym="voice.myMxid" :subject-user-id="voice.myUserId"
-            :token-requester="tokenRequester" :variant="variant" :roster="roster"
-            :floor-holder="floorHolder" :display-names="displayNames" />
-        <CivicFloor v-else :variant="variant" :roster="roster" :floor-holder="floorHolder" />
+            :token-requester="tokenRequester" :variant="variant" :roster="seating" :roster-url="rosterUrl"
+            :floor-holder="floorHolder" :active-witness="activeWitness" :display-names="displayNames" />
+        <CivicFloor v-else :variant="variant" :roster="seating" :floor-holder="floorHolder" :active-witness="activeWitness" />
         <p v-if="rosterTruncated" class="room-note">{{ t('c_rooms.roster_preview', { count: rosterLimit }, 'This view shows up to {count} assigned seats. Open the official workspace for the full membership. Other callers appear as they join.') }}</p>
+        <section class="room-floor-controls" aria-labelledby="room-floor-heading">
+            <h2 id="room-floor-heading">{{ text('floor_heading', 'Speaking floor') }}</h2>
+            <p role="status">{{ floorName ? text('recognized_speaker', 'Recognized to speak: ') + floorName : text('floor_open', 'The floor is open.') }}</p>
+            <p v-if="witnessName" role="status">{{ text('active_witness', 'At the witness stand: ') + witnessName }}</p>
+            <p v-if="variant === 'court'" class="room-note">{{ text('witness_position_note', 'The presiding judge can invite a waiting participant to the witness stand. Formal testimony is recorded through the case workspace.') }}</p>
+            <div class="room-links">
+                <button v-if="floorControls.canRequest" type="button" class="btn btn--secondary" :disabled="floorForm.processing" @click="floorAction(floorControls.myHandRaised ? 'lower' : 'raise')">{{ floorControls.myHandRaised ? text('lower_hand', 'Lower my hand') : text('raise_hand', 'Raise my hand') }}</button>
+                <template v-if="floorControls.canPreside">
+                    <button type="button" class="btn btn--primary" :disabled="floorForm.processing || !floorControls.queue?.length" @click="floorAction('recognize')">{{ text('recognize_next', 'Recognize next speaker') }}</button>
+                    <button type="button" class="btn btn--secondary" :disabled="floorForm.processing || !floorHolder" @click="floorAction('yield')">{{ text('yield_floor', 'Yield the floor') }}</button>
+                </template>
+            </div>
+            <p v-for="(error, key) in floorForm.errors" :key="key" role="alert">{{ error }}</p>
+            <ol v-if="floorControls.queue?.length" class="room-messages" aria-label="Waiting to speak">
+                <li v-for="person in floorControls.queue" :key="person.handle">
+                    <strong>{{ person.display_name || senderName(person.handle) }}</strong>
+                    <div v-if="floorControls.canPreside" class="room-links">
+                        <button type="button" class="btn btn--secondary" :disabled="floorForm.processing" :aria-label="'Recognize ' + (person.display_name || senderName(person.handle))" @click="floorAction('recognize', person.handle)">{{ text('recognize_person', 'Recognize') }}</button>
+                        <button v-if="variant === 'court'" type="button" class="btn btn--secondary" :disabled="floorForm.processing" :aria-label="'Invite ' + (person.display_name || senderName(person.handle)) + ' to witness stand'" @click="floorAction('witness', person.handle)">{{ text('call_witness', 'Invite to witness stand') }}</button>
+                    </div>
+                </li>
+            </ol>
+            <p v-else class="room-note">{{ text('no_queue', 'No one is waiting to speak.') }}</p>
+        </section>
         <section class="room-timeline" aria-labelledby="room-timeline-heading">
             <h2 id="room-timeline-heading">{{ text('room_discussion', 'Room discussion') }}</h2>
             <p class="room-note">{{ text('timeline_recent', 'The latest text messages from this room. Formal actions and filings belong in the official workspace.') }}</p>

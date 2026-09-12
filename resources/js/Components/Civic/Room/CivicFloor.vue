@@ -10,6 +10,7 @@ const props = defineProps({
     roster: { type: Array, default: () => [] },
     participants: { type: Array, default: () => [] },
     floorHolder: { type: String, default: null },
+    activeWitness: { type: String, default: null },
     audioOutput: { type: String, default: '' },
 });
 const linear = ref(false);

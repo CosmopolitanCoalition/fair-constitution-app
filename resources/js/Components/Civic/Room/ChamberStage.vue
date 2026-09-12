@@ -18,6 +18,7 @@ const props = defineProps({
     variant: { type: String, default: 'commons' },
     roster: { type: Array, default: () => [] },
     floorHolder: { type: String, default: null },
+    activeWitness: { type: String, default: null },
 });
 const { t } = useI18n();
 const text = (key, fallback) => t('c_rooms.' + key, fallback);
@@ -62,6 +63,6 @@ const presenters = computed(() => props.participants.filter((p) => p.screenTrack
             />
         </div>
 
-        <CivicFloor :variant="variant" :roster="roster" :participants="participants" :floor-holder="floorHolder" :audio-output="selectedDevices.speaker" />
+        <CivicFloor :variant="variant" :roster="roster" :participants="participants" :floor-holder="floorHolder" :active-witness="activeWitness" :audio-output="selectedDevices.speaker" />
     </section>
 </template>

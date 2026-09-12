@@ -35,9 +35,10 @@ export function visibleRoomPeople(people, expanded = false) {
     return expanded ? people : people.filter((person, index) => index < 12 || person.inCall || person.holdsFloor);
 }
 
-function zoneFor(kind, person, floorHolder) {
+function zoneFor(kind, person, floorHolder, activeWitness) {
     const role = person.role ?? '';
     if (kind === 'commons') return 'floor';
+    if (kind === 'court' && person.identity === activeWitness) return 'floor';
     if (['chair', 'speaker', 'presiding_judge', 'judge', 'facilitator'].includes(role)) return 'dais';
     if (kind === 'court') {
         if (role === 'witness') return 'floor';
@@ -54,7 +55,7 @@ function zoneFor(kind, person, floorHolder) {
  * The roster supplies roles. Live media supplies presence, never office authority.
  * A seated member without a call connection remains an assigned seat, not "online".
  */
-export function roomSeating({ variant = 'commons', roster = [], participants = [], floorHolder = null } = {}) {
+export function roomSeating({ variant = 'commons', roster = [], participants = [], floorHolder = null, activeWitness = null } = {}) {
     const kind = roomKind(variant);
     const people = new Map();
     roster.forEach((person, index) => {
@@ -77,9 +78,12 @@ export function roomSeating({ variant = 'commons', roster = [], participants = [
     if (floorHolder && !people.has(floorHolder)) {
         people.set(floorHolder, { identity: floorHolder, role: 'guest', inCall: false });
     }
+    if (kind === 'court' && activeWitness && !people.has(activeWitness)) {
+        people.set(activeWitness, { identity: activeWitness, role: 'guest', inCall: false });
+    }
     return ROOM_LAYOUTS[kind].zones.map(([id, label]) => ({
         id, label, people: [...people.values()]
-            .filter((person) => zoneFor(kind, person, floorHolder) === id)
+            .filter((person) => zoneFor(kind, person, floorHolder, activeWitness) === id)
             .map((person) => ({ ...person, holdsFloor: person.identity === floorHolder })),
     }));
 }
