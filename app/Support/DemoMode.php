@@ -12,8 +12,9 @@ namespace App\Support;
  *      ("I like this because this will allow multiuser interaction"): every
  *      user sees every other user's acts while their sessions live; when a
  *      session ends (logout, or expiry) the engine reverses that session's
- *      row writes in reverse order and appends ONE `demo.session.voided`
- *      entry to the audit chain. The chain itself is never edited.
+ *      unchanged, unreferenced row writes in reverse order and appends ONE `demo.session.voided`
+ *      entry to the audit chain. Conflicting later edits are preserved and
+ *      named in that entry. The chain itself is never edited.
  *
  * What "going through the motions" means on a demo box:
  *   - a role gate (FormHandler::requiredRoles) and the role-training gate do

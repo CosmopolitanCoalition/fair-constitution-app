@@ -1,279 +1,167 @@
 <script setup>
-/**
- * LiveCivicRoom — Slice 6, THE KEYSTONE. One page renders every meeting type
- * from the MANIFEST §1 config (variant-agnostic); the controller builds the
- * config from the real domain. The room FUSES the governance form (agenda, the
- * vote tile, the record) with the live social floor (presence, the hands-raised
- * queue, the timeline, the call).
- *
- * Freshness is poll-first (store contract c6399aa, desk-ruled Q1=A/Q2=B): this
- * page mounts useLiveRoom, which re-requests the volatile props on a cadence —
- * server snapshots stay the truth, and it stops when the room adjourns. The four
- * required aria-live announcements fire through useAnnounce.
- *
- * Step 3 (this landing): the composed shell over real committee data + the store
- * + the announcer. The live VOICE call mount, the recognition write-path, and
- * the Matrix timeline read land in step 4; the room already live-refreshes.
- */
 import { computed, ref, watch } from 'vue';
-import { router, usePage } from '@inertiajs/vue3';
+import { Link, router, usePage } from '@inertiajs/vue3';
+import { useI18n } from 'vue-i18n';
 import AppShellV2 from '@/Layouts/AppShellV2.vue';
 import PageScaffold from '@/Components/Surface/PageScaffold.vue';
 import Card from '@/Components/Ui/Card.vue';
 import Banner from '@/Components/Ui/Banner.vue';
 import Btn from '@/Components/Ui/Btn.vue';
 import StatusBadge from '@/Components/Ui/StatusBadge.vue';
-import HardenedChip from '@/Components/Ui/HardenedChip.vue';
 import AgendaStrip from '@/Components/Legislature/AgendaStrip.vue';
 import VoteTally from '@/Components/Legislature/VoteTally.vue';
+import CivicFloor from '@/Components/Civic/Room/CivicFloor.vue';
+import LiveRoom from '@/Components/Civic/Room/LiveRoom.vue';
+import { personLabel } from '@/Components/Civic/Room/roomPresentation.js';
 import { useLiveRoom } from '@/composables/useLiveRoom';
 import useAnnounce from '@/composables/useAnnounce';
 
-defineOptions({ layout: AppShellV2 });
-
+defineOptions({ layout: AppShellV2, inheritAttrs: false });
 const props = defineProps({
     surface: { type: Object, required: true },
     variant: { type: String, default: 'committee' },
     entity: { type: Object, required: true },
     title: { type: String, required: true },
     jurisdiction: { type: String, default: '' },
-    status: { type: Object, required: true }, // { state, label }
-    chairRole: { type: String, default: 'chair' },
-    chair: { type: Object, default: () => ({}) },
-    clocks: { type: Object, default: () => ({ agendaItem: 0, speaking: 120 }) },
-    constitutionalOrder: { type: Boolean, default: false },
+    status: { type: Object, required: true },
     agenda: { type: Array, default: () => [] },
     floor: { type: Object, default: () => ({}) },
     vote: { type: Object, default: null },
     presence: { type: Array, default: () => [] },
     queue: { type: Array, default: () => [] },
     floorHolder: { type: String, default: null },
+    displayNames: { type: Object, default: () => ({}) },
+    voice: { type: Object, default: () => ({}) },
     chat: { type: Array, default: () => [] },
-    voice: { type: Object, default: () => ({ enabled: false, participants: [], residencyGated: true }) },
-    translation: { type: Object, default: () => ({}) },
     record: { type: Array, default: () => [] },
-    residencyGated: { type: Boolean, default: true },
-    galleryNote: { type: String, default: '' },
-    forms: { type: Array, default: () => [] },
-    chairControls: { type: Array, default: () => [] },
     can: { type: Object, default: () => ({}) },
     urls: { type: Object, default: () => ({}) },
 });
-
 const page = usePage();
+const { t } = useI18n();
+const text = (key, fallback) => t('c_rooms.' + key, fallback);
+const busy = ref(false);
 const flashStatus = computed(() => page.props.flash?.status ?? null);
-
-/* ---- the freshness store (poll-first; stops on adjourned) ---- */
-const busy = ref(false); // a floor write is in flight — the poll skips a tick
+const isLive = computed(() => props.status?.state === 'open');
+const labelFor = (handle) => personLabel({ identity: handle, display_name: props.displayNames[handle] });
+const seating = computed(() => {
+    const seats = props.presence.map((person) => ({ ...person, display_name: props.displayNames[person.handle] || person.display_name }));
+    if (props.floorHolder && !seats.some((person) => person.handle === props.floorHolder)) {
+        seats.push({ handle: props.floorHolder, display_name: props.displayNames[props.floorHolder], role: 'guest' });
+    }
+    return seats;
+});
 const { isStale } = useLiveRoom({
-    keys: ['status', 'agenda', 'vote', 'presence', 'queue', 'floorHolder', 'chat', 'record', 'clocks'],
+    keys: ['status', 'agenda', 'vote', 'presence', 'queue', 'floorHolder', 'displayNames', 'voice', 'chat', 'record', 'clocks'],
     isLive: () => props.status?.state ?? 'open',
     busy: () => busy.value,
     cadenceMs: 5000,
 });
-
-/* ---- the four required aria-live announcements ---- */
 const { announce } = useAnnounce();
-watch(() => props.floorHolder, (h) => {
-    if (h) announce(`${h} now holds the floor`);
+watch(() => props.floorHolder, (holder) => {
+    announce(holder ? t('c_rooms.floor_announcement', { name: labelFor(holder) }, '{name} now holds the floor') : text('floor_open', 'The floor is open'));
 });
-watch(() => props.vote?.tallies, (t, prev) => {
-    if (t && !prev) announce('The vote is called');
+watch(() => props.vote?.tallies, (tallies, previous) => {
+    if (tallies && !previous) announce(text('vote_called', 'The vote is called'));
 });
-watch(() => props.vote?.outcome, (o) => {
-    if (o === 'adopted') announce('Vote result — adopted');
-    else if (o === 'failed') announce('Vote result — failed');
+watch(() => props.vote?.outcome, (outcome) => {
+    if (outcome === 'adopted') announce(text('vote_adopted', 'Vote result: adopted'));
+    else if (outcome === 'failed') announce(text('vote_failed', 'Vote result: failed'));
 });
-
-const CHAIR_LABEL = {
-    speaker: 'Speaker', chair: 'Chair', presiding_judge: 'Presiding judge',
-    facilitator: 'Facilitator', moderator: 'Moderator',
-};
-const chairLabel = computed(() => CHAIR_LABEL[props.chairRole] ?? 'Chair');
-const isGallery = computed(() => props.can?.isGallery ?? false);
-const isLive = computed(() => props.status?.state === 'open');
-const mmss = (s) => `${Math.floor((s ?? 0) / 60)}:${String((s ?? 0) % 60).padStart(2, '0')}`;
-const floorHolderRow = computed(() => props.presence.find((p) => p.handle === props.floorHolder) ?? null);
-
-/* ---- the floor write-path (ephemeral recognition; the poll refreshes it) ---- */
-function raiseHand() {
-    router.post(props.urls.raiseHand, {}, { preserveScroll: true, onStart: () => (busy.value = true), onFinish: () => (busy.value = false) });
-}
-function recognize() {
-    router.post(props.urls.recognize, {}, { preserveScroll: true, onStart: () => (busy.value = true), onFinish: () => (busy.value = false) });
-}
-function advance() {
-    router.post(props.urls.advance, {}, { preserveScroll: true, onStart: () => (busy.value = true), onFinish: () => (busy.value = false) });
+function floorAction(action) {
+    if (!props.urls[action] || busy.value) return;
+    router.post(props.urls[action], {}, {
+        preserveScroll: true,
+        onStart: () => (busy.value = true),
+        onFinish: () => (busy.value = false),
+    });
 }
 </script>
 
 <template>
     <PageScaffold :surface="surface" :title="title">
-        <template #intro>
-            The <strong>live civic room</strong> — the governance form and the live social floor, fused.
-            The agenda, the vote, and the record are the proceeding; presence, the queue, the timeline,
-            and the call are the room. What is said here is public (Art. II §2), under a pseudonymous
-            handle — never a legal name.
-        </template>
-
-        <!-- band: identity + status + clocks -->
-        <div class="cluster" style="justify-content: space-between; align-items: baseline; gap: var(--space-3)">
-            <div class="cluster" style="gap: var(--space-2)">
-                <StatusBadge :tone="isLive ? 'success' : 'neutral'">{{ status.label }}</StatusBadge>
+        <template #intro>{{ text('hearing_intro', 'Follow the hearing, see who has the floor, and read the public record.') }}</template>
+        <header class="room-heading">
+            <div class="cluster">
+                <StatusBadge :tone="isLive ? 'success' : 'neutral'">{{ text('status.' + status.state, status.label) }}</StatusBadge>
                 <span v-if="jurisdiction" class="citation">{{ jurisdiction }}</span>
+                <StatusBadge v-if="isStale" tone="warning">{{ text('reconnecting', 'Reconnecting') }}</StatusBadge>
             </div>
-            <div class="cluster" style="gap: var(--space-3)">
-                <span class="citation">Item {{ mmss(clocks.agendaItem) }}</span>
-                <span class="citation">Speaking {{ mmss(clocks.speaking) }}</span>
-                <StatusBadge v-if="isStale" tone="warning" title="reconnecting…">reconnecting…</StatusBadge>
-            </div>
-        </div>
-
-        <Banner v-if="isGallery" tone="neutral" role="status">{{ galleryNote }}</Banner>
+            <Link v-if="urls.chamber" :href="urls.chamber" class="btn btn--secondary btn--sm">{{ text('committee_workspace', 'Committee workspace') }}</Link>
+        </header>
         <Banner v-if="flashStatus" tone="info" role="status">{{ flashStatus }}</Banner>
 
-        <!-- agenda -->
-        <Card as="section" :title="`Agenda — ${constitutionalOrder ? 'constitutional order' : 'order of business'}`">
-            <p class="citation">
-                {{ constitutionalOrder
-                    ? 'slots 1–2 are locked: outstanding emergency powers first, constitutional matters second — cannot be reordered'
-                    : 'the chair sets the order; a committee carries no constitutional lock (Art. II §4)' }}
-            </p>
-            <AgendaStrip v-if="agenda.length" :items="agenda" :editable="false" />
-            <p v-else class="gloss">No agenda set yet.</p>
-        </Card>
+        <LiveRoom v-if="voice.enabled && voice.roomId && voice.myMxid && voice.myUserId"
+            :key="voice.roomId" :jurisdiction-id="voice.jurisdictionId" :room="voice.roomId"
+            :pseudonym="voice.myMxid" :subject-user-id="voice.myUserId"
+            :variant="variant" :roster="seating" :floor-holder="floorHolder" :display-names="displayNames" />
+        <CivicFloor v-else :variant="variant" :roster="seating" :floor-holder="floorHolder" />
 
-        <div class="lr-body">
-            <!-- stage: floor + vote + chair controls -->
-            <div class="lr-stage stack" style="gap: var(--space-3)">
-                <section class="card">
-                    <span class="eyebrow">On the floor · {{ (floor.kind || 'business').replace(/_/g, ' ') }}</span>
-                    <h2 style="margin-block: var(--space-1)">{{ floor.title }}</h2>
-                    <p v-if="floorHolderRow" class="cc-small">
-                        <StatusBadge tone="success">{{ floorHolder }} holds the floor</StatusBadge>
-                    </p>
-                    <p v-else class="gloss">No one holds the floor right now.</p>
-                    <details class="about-surface" style="margin-block-start: var(--space-2)">
-                        <summary>How this works</summary>
-                        <div class="about-surface-body">
-                            <p>{{ floor.body }}</p>
-                            <p class="citation">{{ floor.citation }}</p>
-                            <p v-if="urls.chamber">
-                                <a class="btn btn--secondary btn--sm" :href="urls.chamber">Open the formal screen →</a>
-                            </p>
-                        </div>
-                    </details>
-                </section>
-
-                <!-- the vote tile (only when a vote is in the room) -->
-                <section v-if="vote" class="card">
-                    <span class="eyebrow">The committee vote</span>
-                    <VoteTally
-                        v-bind="vote"
-                        stage="committee"
-                        :can-cast="false"
-                        basis="Art. II §4"
-                    />
-                    <p class="citation">The vote numbers come from the counting engine — this page never does its own math.</p>
-                </section>
-                <section v-else class="card">
-                    <span class="eyebrow">No vote in this room yet</span>
-                    <p class="gloss">The chair calls the committee vote when the hearing is ready to decide.</p>
-                </section>
-
-                <!-- chair controls (wired to the write-path in step 4) -->
-                <section class="card">
-                    <div class="cluster" style="justify-content: space-between">
-                        <span class="eyebrow">{{ chairLabel }} controls</span>
-                        <StatusBadge :tone="can.recognize ? 'success' : 'info'">
-                            {{ can.recognize ? 'You hold the gavel' : 'Observing' }}
-                        </StatusBadge>
+        <div class="room-panels">
+            <div class="stack">
+                <Card as="section" :title="text('on_floor', 'On the floor')">
+                    <h2 class="room-subtitle">{{ floor.title || text('hearing', 'Committee hearing') }}</h2>
+                    <p v-if="floorHolder">{{ t('c_rooms.recognized_name', { name: labelFor(floorHolder) }, '{name} has been recognized to speak.') }}</p>
+                    <p v-else class="gloss">{{ text('floor_open', 'The floor is open') }}</p>
+                    <div class="cluster" style="margin-top: var(--space-3)">
+                        <Btn v-if="can.recognize" variant="secondary" size="sm" :disabled="busy || !queue.length" @click="floorAction('recognize')">{{ text('recognize_next', 'Recognize next speaker') }}</Btn>
+                        <Btn v-if="can.advance" variant="secondary" size="sm" :disabled="busy || !floorHolder" @click="floorAction('advance')">{{ text('yield_floor', 'Yield the floor') }}</Btn>
+                        <Link :href="'/explore?role=chair' + (voice.jurisdictionId ? '&jurisdiction=' + encodeURIComponent(voice.jurisdictionId) : '')" class="btn btn--ghost btn--sm">{{ text('explore_chair', 'Explore the chair’s role') }}</Link>
                     </div>
-                    <div class="cluster" style="gap: var(--space-1); margin-block-start: var(--space-2)">
-                        <Btn variant="secondary" size="sm" :disabled="!can.recognize || busy" @click="recognize">Recognize the next speaker</Btn>
-                        <Btn variant="secondary" size="sm" :disabled="!can.advance || busy" @click="advance">Open the floor / advance</Btn>
-                        <Btn variant="secondary" size="sm" disabled title="a client-side speaking timer wires next">Start the speaking clock</Btn>
-                        <Btn variant="secondary" size="sm" disabled title="the referral vote wires with the exit test">Call the committee vote</Btn>
-                    </div>
-                    <p class="citation" style="margin-block-start: var(--space-2)">
-                        The chair runs the room (recognize, timers, call the question); quorum checks, tabulation,
-                        and record-sealing are automatic. <HardenedChip>chair acts · F-CHR / F-SPK</HardenedChip>
-                    </p>
-                </section>
-            </div>
-
-            <!-- rail: presence + queue + timeline + voice -->
-            <div class="lr-rail stack" style="gap: var(--space-3)">
-                <Card as="section" :title="`Who's here (${presence.length})`">
-                    <div v-for="(p, i) in presence" :key="i" class="cluster" style="gap: var(--space-1); justify-content: space-between">
-                        <span class="handle">{{ p.handle }}</span>
-                        <span class="citation">
-                            <template v-if="p.role === 'chair'">{{ chairLabel }}</template>
-                            <template v-else-if="p.seat">seat · {{ p.seat }}</template>
-                            <template v-if="p.speaking"> · speaking</template>
-                        </span>
-                    </div>
-                    <p v-if="!presence.length" class="gloss">No one seated yet.</p>
                 </Card>
-
-                <Card as="section" :title="`Hands raised (${queue.length})`">
-                    <div v-for="(q, i) in queue" :key="i" class="cluster" style="gap: var(--space-1)">
-                        <span class="citation">{{ i + 1 }}</span>
-                        <span class="handle">{{ q.handle }}</span>
-                        <span v-if="q.reason" class="gloss">{{ q.reason }}</span>
-                    </div>
-                    <p v-if="!queue.length" class="gloss">No hands raised right now.</p>
-                    <Btn v-if="can.raiseHand" variant="primary" size="sm" :disabled="busy" style="margin-block-start: var(--space-2)" @click="raiseHand">
-                        Raise my hand
-                    </Btn>
-                    <p v-else class="citation" style="margin-block-start: var(--space-2)">Sign in as a resident to raise your hand.</p>
+                <Card as="section" :title="text('agenda', 'Agenda')">
+                    <AgendaStrip v-if="agenda.length" :items="agenda" :editable="false" />
+                    <p v-else class="gloss">{{ text('no_agenda', 'No agenda has been set.') }}</p>
                 </Card>
-
-                <Card as="section" :title="`Conversation (${chat.length})`">
-                    <div v-for="(m, i) in chat" :key="m.event_id || i" class="stack" style="gap: 2px; margin-block-end: var(--space-2)">
-                        <div class="cluster" style="gap: var(--space-1)">
-                            <span class="handle">{{ m.sender || m.handle }}</span>
-                            <StatusBadge v-if="m.seat" tone="info">{{ m.seat }}</StatusBadge>
-                        </div>
-                        <p class="cc-small" style="white-space: pre-wrap">{{ m.body }}</p>
-                    </div>
-                    <p v-if="!chat.length" class="gloss">The room is quiet. The live timeline appears here.</p>
+                <Card v-if="vote" as="section" :title="text('committee_vote', 'Committee vote')">
+                    <VoteTally v-bind="vote" stage="committee" :can-cast="false" basis="Art. II §4" />
                 </Card>
-
-                <Card as="section" title="The call">
-                    <p class="cc-small">
-                        <StatusBadge tone="neutral">Voice</StatusBadge>
-                        {{ voice.residencyGated ? 'Residents may take the floor; anyone may listen.' : 'Open to members.' }}
-                    </p>
-                    <p class="citation">The wired room runs a real call on your node's own media server (LiveKit); nothing routes through an outside service.</p>
+                <Card as="section" :title="text('public_record', 'Public record')">
+                    <ul v-if="record.length" class="room-list">
+                        <li v-for="(item, index) in record" :key="index">
+                            <a v-if="item.recordHref" :href="item.recordHref">{{ item.body }}</a>
+                            <span v-else>{{ item.body }}</span>
+                        </li>
+                    </ul>
+                    <p v-else class="gloss">{{ text('no_record', 'No statements or reports have been sealed to this committee’s record.') }}</p>
+                    <Link v-if="urls.chamber" :href="urls.chamber" class="btn btn--secondary btn--sm">{{ text('testimony_votes_reports', 'Testimony, votes and reports') }}</Link>
                 </Card>
             </div>
+            <aside class="stack">
+                <Card as="section" :title="text('hands_raised', 'Hands raised') + ' (' + queue.length + ')'">
+                    <ol v-if="queue.length" class="room-list">
+                        <li v-for="person in queue" :key="person.handle">
+                            <strong>{{ labelFor(person.handle) }}</strong>
+                            <span v-if="person.reason" class="gloss"> · {{ person.reason }}</span>
+                        </li>
+                    </ol>
+                    <p v-else class="gloss">{{ text('no_queue', 'No one is waiting to speak.') }}</p>
+                    <Btn v-if="can.raiseHand" variant="primary" size="sm" :disabled="busy" @click="floorAction('raiseHand')">{{ text('raise_hand', 'Raise my hand') }}</Btn>
+                    <Link v-else href="/login" class="btn btn--secondary btn--sm">{{ text('sign_in_hand', 'Sign in to raise your hand') }}</Link>
+                </Card>
+                <Card as="section" :title="text('conversation_call', 'Conversation and call')">
+                    <p v-if="voice.enabled && voice.myUserId" class="gloss">{{ text('hearing_call_hint', 'Join the hearing’s call above. Your camera or avatar appears in your assigned position. Use the halls for the jurisdiction’s wider conversation.') }}</p>
+                    <p v-else-if="voice.enabled" class="gloss">{{ text('sign_in_call', 'Sign in to join the hearing’s call. The seating and public record remain open to visitors.') }}</p>
+                    <p v-else class="gloss">{{ text('call_not_ready', 'The hearing’s call is not available yet. You can follow the floor and speaking queue here.') }}</p>
+                    <Link v-if="urls.commons" :href="urls.commons" class="btn btn--secondary btn--sm">{{ text('open_halls', 'Open the halls') }}</Link>
+                    <ul v-if="chat.length" class="room-list">
+                        <li v-for="(message, index) in chat" :key="message.event_id || index">
+                            <strong>{{ labelFor(message.sender || message.handle) }}</strong>
+                            <p style="white-space: pre-wrap">{{ message.body }}</p>
+                        </li>
+                    </ul>
+                </Card>
+            </aside>
         </div>
-
-        <!-- the record -->
-        <Card as="section" title="The record">
-            <p class="citation">Statements sealed here go to the permanent public record — under your handle, never your legal name.</p>
-            <div v-for="(r, i) in record" :key="i" class="cluster" style="gap: var(--space-1); justify-content: space-between">
-                <span class="cc-small">{{ r.body }}</span>
-                <a v-if="r.recordHref" class="citation" :href="r.recordHref">view in the public record →</a>
-            </div>
-            <p v-if="!record.length" class="gloss">Nothing sealed to the record yet.</p>
-        </Card>
     </PageScaffold>
 </template>
 
 <style scoped>
-.lr-body {
-    display: grid;
-    grid-template-columns: minmax(0, 2fr) minmax(0, 1fr);
-    gap: var(--space-3);
-    margin-block-start: var(--space-3);
-}
-@media (max-width: 900px) {
-    .lr-body { grid-template-columns: minmax(0, 1fr); }
-}
-.handle {
-    font-family: var(--font-mono, monospace);
-    font-size: var(--text-sm);
-}
+.room-heading { display: flex; justify-content: space-between; align-items: center; gap: var(--space-2); flex-wrap: wrap; margin-bottom: var(--space-3); }
+.room-panels { display: grid; grid-template-columns: minmax(0, 2fr) minmax(0, 1fr); gap: var(--space-3); margin-top: var(--space-3); }
+.room-panels .stack { gap: var(--space-3); }
+.room-subtitle { font-size: var(--text-base); }
+.room-list { margin: 0 0 var(--space-3); padding-inline-start: 1.25rem; }
+.room-list li + li { margin-top: var(--space-2); }
+@media (max-width: 900px) { .room-panels { grid-template-columns: minmax(0, 1fr); } }
 </style>

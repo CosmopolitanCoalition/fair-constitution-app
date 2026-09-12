@@ -20,6 +20,8 @@ import Btn from '@/Components/Ui/Btn.vue';
 import Card from '@/Components/Ui/Card.vue';
 import Field from '@/Components/Ui/Field.vue';
 import StatusBadge from '@/Components/Ui/StatusBadge.vue';
+import { personLabel } from '@/Components/Civic/Room/roomPresentation.js';
+import CommunityNav from '@/Components/Civic/CommunityNav.vue';
 
 /* Phase-2 restyle wave: the v3 player chrome (MASTER_PLAN). */
 defineOptions({ layout: AppShellV2 });
@@ -35,6 +37,7 @@ const props = defineProps({
     jurisdictions: { type: Array, default: () => [] },
     isAssociated: { type: Boolean, default: false },
     myMxid: { type: String, default: null },
+    displayNames: { type: Object, default: () => ({}) },
 });
 
 const page = usePage();
@@ -64,8 +67,7 @@ function fileTestimony(message) {
 
 // The pseudonymous localpart for display (@u-handle:domain -> u-handle). Never a legal name.
 function senderLabel(sender) {
-    if (!sender) return 'resident';
-    return String(sender).replace(/^@/, '').split(':')[0];
+    return personLabel({ identity: sender, display_name: props.displayNames[sender] });
 }
 function mine(message) {
     return props.myMxid !== null && message.sender === props.myMxid;
@@ -78,7 +80,7 @@ function mine(message) {
 // in flight. Consolidated onto the shared store (W4 ⑦) — this IS the pattern
 // useLiveRoom was extracted from, so behaviour is unchanged.
 useLiveRoom({
-    keys: ['messages', 'reachable'],
+    keys: ['messages', 'reachable', 'displayNames'],
     // The mount guard: no room ⇒ nothing to poll ('adjourned' never arms).
     isLive: () => (props.roomId ? 'open' : 'adjourned'),
     busy: () => compose.processing,
@@ -88,6 +90,7 @@ useLiveRoom({
 
 <template>
     <PageScaffold :surface="surface">
+        <CommunityNav :jurisdiction-id="jurisdictionId" />
         <template #intro>
             The <strong>live commons</strong> runs over the Matrix mesh (Plane B) and is <strong>open</strong> —
             any player may read, speak, and join the call (Art. I free movement &amp; equal treatment), always
@@ -143,6 +146,7 @@ useLiveRoom({
             :room="roomId"
             :pseudonym="myMxid"
             :subject-user-id="myUserId"
+            :display-names="displayNames"
             class="mb-4"
         />
 

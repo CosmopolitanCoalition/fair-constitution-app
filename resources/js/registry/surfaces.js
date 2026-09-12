@@ -22,19 +22,12 @@
 /* ---------------------------------------------------------------- tier 1
    The player tier — where you actually go. Mirrors the mockups' "Go". */
 export const PLAYER_NAV = [
-    { id: 'home', label: 'Home', icon: 'home', href: '/civic', contract: 'civic/today.html', phase: 3 },
-    { id: 'atlas', label: 'The Atlas', icon: 'globe', href: '/atlas', contract: 'atlas.html', phase: 7 },
-    { id: 'public-square', label: 'The square', icon: 'users', href: '/civic/square', contract: 'social/social-home.html', phase: 3 },
-    { id: 'rooms', label: 'Messages', icon: 'message-square', href: '/civic/rooms', contract: 'groups/groups-home.html', phase: 3 },
-    { id: 'commons-square', label: 'Live rooms', icon: 'landmark', href: '/civic/commons/square', contract: 'shared/live-room.html?variant=group', phase: 6 },
+    { id: 'home', label: 'Today', icon: 'home', href: '/civic', contract: 'civic/today.html', phase: 3 },
     { id: 'jurisdiction-browser', label: 'Places', icon: 'map', href: '/jurisdictions', contract: 'jurisdictions/jurisdiction-browser.html', phase: 5 },
-    { id: 'market', label: 'Market', icon: 'bar-chart', href: '/economy', contract: 'economy/economy-home.html' },
-    { id: 'my-record', label: 'My profile', icon: 'user', href: '/civic/record', contract: 'civic/my-civic-life.html' },
-    { id: 'journeys', label: 'Journeys', icon: 'list-checks', href: '/journeys', contract: 'index.html#journeys-h' },
+    { id: 'public-square', label: 'Community', icon: 'users', href: '/civic/square', contract: 'social/social-home.html', phase: 3 },
+    { id: 'market', label: 'Work & trade', icon: 'briefcase', href: '/economy', contract: 'economy/economy-home.html' },
     { id: 'learn', label: 'Learn & help', icon: 'graduation-cap', href: '/learn', contract: 'learn/learn-home.html' },
-    /* 'tour' is special-cased by the menu: the sentinel 'tour:start' renders a
-       TOGGLE that arms the tour MODE in place (A2) — it does not navigate. */
-    { id: 'tour', label: 'Guided tour', icon: 'map', href: 'tour:start', contract: 'tour.html', phase: 1 },
+    { id: 'my-record', label: 'My profile', icon: 'user', href: '/civic/record', contract: 'civic/my-civic-life.html' },
 ];
 
 /* ---------------------------------------------------------------- tier 2
@@ -118,6 +111,7 @@ export const SITEMAP = [
         { id: 'board-elections', label: 'Board elections', icon: 'vote', href: '/organizations', contract: 'organizations/board-elections.html' },
     ] },
     { key: 'places', title: 'Places & their processes', items: [
+        { id: 'atlas', label: 'The Atlas', icon: 'globe', href: '/atlas', contract: 'atlas.html', phase: 7 },
         { id: 'jurisdiction-browser', label: 'Places', icon: 'globe', href: '/jurisdictions', contract: 'jurisdictions/jurisdiction-browser.html' },
         { id: 'legislatures', label: 'Legislatures & districts', icon: 'map', href: '/legislatures', contract: 'jurisdictions/district-mapper.html', phase: 5 },
         { id: 'reach', label: 'Reach', icon: 'bar-chart', href: '/reach', contract: 'social/legitimacy.html', phase: 7 },
@@ -152,6 +146,9 @@ export const SITEMAP = [
         { id: 'org-settings', label: 'Org economics', icon: 'building', href: '/organizations', contract: 'economy/org-settings.html' },
     ] },
     { key: 'help', title: 'Learn & help', items: [
+        { id: 'role-explorer', label: 'Explore civic roles', icon: 'users', href: '/explore', contract: null },
+        { id: 'journeys', label: 'Journeys', icon: 'list-checks', href: '/journeys', contract: 'index.html#journeys-h' },
+        { id: 'tour', label: 'Guided tour', icon: 'map', href: 'tour:start', contract: 'tour.html', phase: 1 },
         { id: 'learn', label: 'Learn & lessons', icon: 'graduation-cap', href: '/learn', contract: 'learn/learn-home.html' },
         { id: 'support-report', label: 'Report an issue', icon: 'flag', href: '/support/report', contract: 'support/report.html' },
         { id: 'support-tickets', label: 'Your reports', icon: 'list-checks', href: '/support/tickets', contract: 'support/tickets.html' },

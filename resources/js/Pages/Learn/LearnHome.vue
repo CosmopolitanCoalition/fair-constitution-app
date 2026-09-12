@@ -37,6 +37,12 @@ const otherTracks = computed(() =>
     <PageScaffold :surface="surface" :title="t('c_learn.ui.title')">
         <template #intro>{{ t('c_learn.ui.intro') }}</template>
 
+        <nav class="learning-paths" :aria-label="t('c_learn.ui.learning_paths', 'Ways to learn')">
+            <Link href="/explore" class="btn"><Icon name="users" size="sm" />{{ t('c_navigation.role-explorer', 'Explore civic roles') }}</Link>
+            <Link href="/journeys" class="btn"><Icon name="list-checks" size="sm" />{{ t('c_learn.ui.guided_journeys', 'Guided journeys') }}</Link>
+            <Link href="/videos" class="btn"><Icon name="play" size="sm" />{{ t('c_learn.ui.watch_videos', 'Watch videos') }}</Link>
+        </nav>
+
         <section v-if="recommendedTracks.length" aria-labelledby="rec-h" class="stack">
             <h2 id="rec-h">{{ t('c_learn.ui.recommended') }}</h2>
             <Banner tone="info">{{ t('c_learn.ui.notice') }}</Banner>
@@ -73,12 +79,9 @@ const otherTracks = computed(() =>
             </Card>
         </section>
 
-        <section aria-labelledby="more-h" class="stack">
-            <h2 id="more-h">{{ t('c_learn.ui.open_journeys') }}</h2>
-            <p>
-                <Link href="/learn/guides" class="btn"><Icon name="list-checks" size="sm" /> {{ t('c_learn.ui.guides_title') }}</Link>
-                <Link href="/journeys" class="btn">Journeys <Icon name="arrow-right" size="sm" /></Link>
-            </p>
-        </section>
     </PageScaffold>
 </template>
+
+<style scoped>
+.learning-paths { display: flex; flex-wrap: wrap; gap: .75rem; }
+</style>

@@ -15,12 +15,60 @@ class JurisdictionController extends Controller
     /** Rows-per-page choices for the jurisdictions list (2026-08-08). */
     private const PER_PAGE_OPTIONS = [25, 50, 100, 200];
 
-    /**
-     * Searchable, filterable, paginated list of all jurisdictions.
-     * Replaces the old world-map index — legislative data is visible here
-     * without needing to navigate into each jurisdiction.
-     */
+    /** Public, paged traversal of the complete place tree, one parent at a time. */
     public function index(Request $request): Response
+    {
+        if ($request->query('view') === 'operations') {
+            abort_unless((bool) $request->user()?->is_operator, 403);
+
+            return $this->operationsIndex($request);
+        }
+
+        $request->validate([
+            'parent' => ['nullable', 'string', 'max:255'],
+            'search' => ['nullable', 'string', 'max:120'],
+        ]);
+        $identity = ['id', 'parent_id', 'name', 'slug', 'adm_level', 'population'];
+        $parent = $request->filled('parent')
+            ? Jurisdiction::query()->where('slug', $request->string('parent')->toString())->firstOrFail($identity)
+            : ($request->query('scope') === 'roots' ? null : Jurisdiction::query()
+                ->whereNull('parent_id')->where('adm_level', 0)->orderBy('id')->first($identity));
+        $search = trim($request->string('search')->toString());
+
+        // Browse one indexed parent at a time. No whole-world search, count,
+        // geometry, descendant traversal or institution join precedes paging.
+        // Page size is a presentation choice, not an ETL resource setting.
+        $places = DB::table('jurisdictions')
+            ->whereNull('deleted_at')
+            ->when($parent, fn ($q) => $q->where('parent_id', $parent->id), fn ($q) => $q->whereNull('parent_id'))
+            ->when($search !== '', fn ($q) => $q->where('name', 'ilike', '%'.addcslashes($search, '%_\\').'%'))
+            ->orderBy('name')->orderBy('id')
+            ->simplePaginate(24, $identity)
+            ->withQueryString();
+
+        $ids = $places->getCollection()->pluck('id')->all();
+        $legislatures = $ids === [] ? collect() : DB::table('legislatures')
+            ->whereIn('jurisdiction_id', $ids)->whereNull('deleted_at')
+            ->orderBy('id')->get(['id', 'jurisdiction_id'])->keyBy('jurisdiction_id');
+        $places->getCollection()->transform(function ($place) use ($legislatures) {
+            $place->legislature_id = $legislatures->get($place->id)?->id;
+            $place->has_children = DB::table('jurisdictions')
+                ->where('parent_id', $place->id)->whereNull('deleted_at')->exists();
+
+            return $place;
+        });
+
+        return Inertia::render('Jurisdictions/Browse', [
+            'places' => $places,
+            'parent' => $parent ? \App\Support\JurisdictionContext::chip($parent) : null,
+            'jurisdictionContext' => $parent ? \App\Support\JurisdictionContext::for($parent) : null,
+            'filters' => ['search' => $search],
+            'scope' => $parent ? null : 'roots',
+        ]);
+    }
+
+    /** Existing activation and import registry, kept inside host operations. */
+    private function operationsIndex(Request $request): Response
     {
         $jurisdictions = DB::table('jurisdictions')
             ->whereNull('deleted_at')
@@ -382,6 +430,7 @@ class JurisdictionController extends Controller
                     ->all()
                 : [],
             'tools' => \App\Support\JurisdictionContext::tools([
+                'id'               => (string) $jurisdiction->id,
                 'slug'             => $jurisdiction->slug,
                 'legislature_id'   => $legislatureId !== null ? (string) $legislatureId : null,
                 'executive_id'     => $executiveId !== null ? (string) $executiveId : null,

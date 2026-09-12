@@ -8,6 +8,7 @@ use App\Services\Matrix\MatrixClientService;
 use App\Services\Matrix\MatrixPostingGateService;
 use App\Services\Matrix\TestimonyBridgeService;
 use App\Services\RoleService;
+use App\Services\Rooms\PublicRoomNames;
 use App\Support\SurfaceMeta;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -31,6 +32,7 @@ class MatrixCommonsController extends Controller
         private readonly MatrixClientService $client,
         private readonly MatrixPostingGateService $posting,
         private readonly TestimonyBridgeService $testimony,
+        private readonly PublicRoomNames $names,
     ) {}
 
     public function square(Request $request): Response
@@ -70,6 +72,15 @@ class MatrixCommonsController extends Controller
             }
         }
 
+        $myMxid = $user !== null ? $this->posting->matrixUserId($user) : null;
+        $displayNames = $this->names->forHandles(array_column($messages, 'sender'));
+        if ($myMxid !== null) {
+            $ownName = $this->names->forUsers([(string) $user->id])[(string) $user->id] ?? null;
+            if ($ownName !== null) {
+                $displayNames[$myMxid] = $ownName;
+            }
+        }
+
         return Inertia::render('Civic/MatrixCommons', [
             'surface' => SurfaceMeta::for($surfaceId),
             'spaceType' => $spaceType,
@@ -83,7 +94,8 @@ class MatrixCommonsController extends Controller
                 $associations
             ),
             'isAssociated' => $associations !== [],
-            'myMxid' => $user !== null ? $this->posting->matrixUserId($user) : null,
+            'myMxid' => $myMxid,
+            'displayNames' => $displayNames,
         ]);
     }
 

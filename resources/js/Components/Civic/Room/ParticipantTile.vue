@@ -9,12 +9,15 @@
  * LiveKit Track objects attach to a DOM element via track.attach(el); we
  * attach/detach on track or element change and on unmount.
  */
-import { onBeforeUnmount, ref, watch } from 'vue';
+import { computed, onBeforeUnmount, ref, watch } from 'vue';
+import { useI18n } from 'vue-i18n';
 import { MicOff, ScreenShare } from 'lucide-vue-next';
 import Avatar from '@/Components/Ui/Avatar.vue';
+import { personInitials, personLabel } from './roomPresentation.js';
 
 const props = defineProps({
     identity: { type: String, required: true }, // @u-<handle>:domain
+    displayName: { type: String, default: '' },
     isLocal: { type: Boolean, default: false },
     isSpeaking: { type: Boolean, default: false },
     audioTrack: { type: Object, default: null },
@@ -28,6 +31,8 @@ const props = defineProps({
 });
 
 const videoEl = ref(null);
+const { t } = useI18n();
+const text = (key, fallback) => t('c_rooms.' + key, fallback);
 const audioEl = ref(null);
 let boundVideo = null;
 let boundAudio = null;
@@ -40,12 +45,8 @@ function applySink() {
     }
 }
 
-function handle(identity) {
-    return String(identity || '').replace(/^@/, '').split(':')[0].replace(/^u-/, '');
-}
-function initials(identity) {
-    return (handle(identity).slice(0, 2) || '··').toUpperCase();
-}
+const label = computed(() => personLabel(props));
+const initials = computed(() => personInitials(props));
 const muted = () => props.audioTrack === null || props.audioTrack?.isMuted;
 
 // Always detach from the SPECIFIC element — never the no-arg track.detach(), which
@@ -76,7 +77,7 @@ onBeforeUnmount(() => {
             class="h-full w-full" :class="presenting ? 'bg-black object-contain' : 'object-cover'"></video>
 
         <div v-show="!videoTrack" class="flex h-full w-full items-center justify-center">
-            <Avatar :initials="initials(identity)" :title="identity" />
+            <Avatar :initials="initials" :title="label" />
         </div>
 
         <!-- remote audio only; the local mic / own screen audio is never played back. On a camera tile this
@@ -84,10 +85,10 @@ onBeforeUnmount(() => {
         <audio v-if="!isLocal" ref="audioEl" autoplay></audio>
 
         <div class="absolute inset-x-0 bottom-0 flex items-center gap-1.5 bg-gradient-to-t from-black/70 to-transparent px-2 py-1.5 text-xs text-white">
-            <ScreenShare v-if="presenting" :size="14" class="shrink-0 opacity-90" aria-label="screen share" />
-            <MicOff v-else-if="muted()" :size="14" class="shrink-0 opacity-90" aria-label="muted" />
-            <span class="truncate">@u-{{ handle(identity) }}{{ presenting ? ' · screen' : '' }}</span>
-            <span v-if="isLocal" class="ml-auto rounded bg-white/20 px-1 text-[10px] uppercase tracking-wide">you</span>
+            <ScreenShare v-if="presenting" :size="14" class="shrink-0 opacity-90" :aria-label="text('screen_share', 'Screen share')" />
+            <MicOff v-else-if="muted()" :size="14" class="shrink-0 opacity-90" :aria-label="text('muted', 'Muted')" />
+            <span class="truncate" :title="label">{{ label }}{{ presenting ? ' · ' + text('screen', 'screen') : '' }}</span>
+            <span v-if="isLocal" class="ml-auto rounded bg-white/20 px-1 text-[10px] uppercase tracking-wide">{{ text('you', 'you') }}</span>
         </div>
     </div>
 </template>

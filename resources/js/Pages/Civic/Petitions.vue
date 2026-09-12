@@ -23,6 +23,7 @@ import StateStrip from '@/Components/Ui/StateStrip.vue';
 import Stat from '@/Components/Ui/Stat.vue';
 import StatusBadge from '@/Components/Ui/StatusBadge.vue';
 import SignatureMeter from '@/Components/Civic/SignatureMeter.vue';
+import CommunityNav from '@/Components/Civic/CommunityNav.vue';
 
 /* Phase-2 restyle wave: the v3 player chrome (MASTER_PLAN). */
 defineOptions({ layout: AppShellV2 });
@@ -34,6 +35,7 @@ const props = defineProps({
     thresholdSetting: { type: Object, required: true },
     createForm: { type: Object, required: true },
     isAssociated: { type: Boolean, default: false },
+    selectedPlace: { type: Object, default: null },
 });
 
 const page = usePage();
@@ -97,7 +99,8 @@ function submitCreate() {
 </script>
 
 <template>
-    <PageScaffold :surface="surface">
+    <PageScaffold :surface="surface" :title="selectedPlace ? $t('places.petitions_in', { name: selectedPlace.name }) : undefined">
+        <CommunityNav :jurisdiction-id="selectedPlace?.id || ''" />
         <template #intro>
             Anyone who lives here can draft a law and put it to a vote. Reach the signature
             threshold, pass an independent check and a constitutionality review, and your
@@ -108,7 +111,7 @@ function submitCreate() {
         <Banner v-if="constitutionError" tone="emergency">{{ constitutionError }}</Banner>
 
         <div class="cluster" style="gap: var(--space-6)">
-            <Stat :value="petitions.length" label="petitions in your association chain" />
+            <Stat :value="petitions.length" :label="$t('places.petitions_in_view')" />
             <Stat :value="`${thresholdSetting.pct}%`" label="signature threshold · CLK-17" accent />
             <Stat :value="mySignatures" label="your live signatures" />
         </div>
@@ -119,7 +122,7 @@ function submitCreate() {
 
         <!-- ==================================== list ===================== -->
         <Card as="section" title="Open petitions">
-            <p class="citation" style="margin-block-end: var(--space-3)">scoped to your association chain</p>
+            <p class="citation" style="margin-block-end: var(--space-3)">{{ selectedPlace ? $t('places.viewing', { name: selectedPlace.name }) : $t('places.association_view') }}</p>
 
             <div v-if="petitions.length" class="stack" style="gap: var(--space-3)">
                 <Card v-for="petition in petitions" :key="petition.id" inset>
@@ -153,7 +156,7 @@ function submitCreate() {
                 </Card>
             </div>
             <p v-else class="cc-small gloss">
-                No open petitions in your association chain — any associated resident can create one.
+                {{ $t('places.no_petitions') }}
             </p>
 
             <p class="cc-small" style="margin-block-start: var(--space-3)">
@@ -165,6 +168,7 @@ function submitCreate() {
         </Card>
 
         <!-- ==================================== create (F-IND-009) ======= -->
+        <p v-if="selectedPlace && isAssociated" class="gloss">{{ $t('places.filing_choices') }}</p>
         <FormCard
             v-if="isAssociated && formMeta('F-IND-009')"
             :form="formMeta('F-IND-009')"

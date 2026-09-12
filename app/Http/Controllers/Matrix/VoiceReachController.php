@@ -21,7 +21,7 @@ class VoiceReachController extends Controller
     public function __invoke(Request $request, VoiceReachService $voice): JsonResponse
     {
         $data = $request->validate([
-            'jurisdiction_id'   => ['required', 'string', 'max:64'],
+            'jurisdiction_id'   => ['required', 'uuid'],
             'room'              => ['required', 'string', 'max:255'],
             'device_public_key' => ['required', 'string', 'max:255'],
             'action_signature'  => ['required', 'string', 'max:512'],

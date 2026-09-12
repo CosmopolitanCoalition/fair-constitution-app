@@ -58,6 +58,11 @@ class HandleInertiaRequests extends Middleware
             $user = null;
         }
 
+        $instance = null;
+        $shellInstance = function () use (&$instance): array {
+            return $instance ??= $this->instanceProps();
+        };
+
         return array_merge(parent::share($request), [
             'auth' => [
                 'user' => $user ? [
@@ -87,7 +92,10 @@ class HandleInertiaRequests extends Middleware
             // 2026-09-10). The shell prefers a page's `jurisdictionContext`
             // (App\Support\JurisdictionContext::for) and falls back to this.
             'homeJurisdiction' => fn () => $this->jurisdictionProps($user),
-            'instance' => fn () => $this->instanceProps(),
+            'instance' => $shellInstance,
+            // Atlas and federation have their own `instance` page payload.
+            // Navigation must retain the box's mode on those pages too.
+            'shellInstance' => $shellInstance,
             // Live roadmap phases — the sidebar renders items from later
             // phases as "Planned · Phase X" until their phase ships here.
             // C flipped live with the final FE-C9/C10/C11 batch.
@@ -284,6 +292,9 @@ class HandleInertiaRequests extends Middleware
             // `docker compose up` before a mode was chosen.
             'sandbox' => $gameMode === \App\Support\GameMode::SANDBOX,
             'gameMode' => $gameMode,
+            'demo' => \App\Support\InstanceClass::isScaleDemo(),
+            'residencyInstant' => (bool) config('cga.residency_instant', false),
+            'localTools' => app()->environment('local') && $gameMode === \App\Support\GameMode::SANDBOX,
         ];
     }
 }

@@ -43,6 +43,15 @@ function mergeNamespaces(base) {
         if (!merged[code]) merged[code] = {};
         merged[code][ns] = { ...(merged[code][ns] || {}), ...(NS_MODULES[path].default ?? NS_MODULES[path]) };
     }
+    // Early seeded curricula used c_education.learn.*. Keep those stored
+    // display keys readable without rewriting an existing world's records.
+    for (const messages of Object.values(merged)) {
+        if (!messages.c_learn) continue;
+        messages.c_education ??= {};
+        for (const [key, value] of Object.entries(messages.c_learn)) {
+            messages.c_education['learn.' + key] ??= value;
+        }
+    }
     return merged;
 }
 

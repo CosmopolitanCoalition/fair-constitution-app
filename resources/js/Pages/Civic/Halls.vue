@@ -16,6 +16,7 @@ import Btn from '@/Components/Ui/Btn.vue';
 import Card from '@/Components/Ui/Card.vue';
 import Field from '@/Components/Ui/Field.vue';
 import Stat from '@/Components/Ui/Stat.vue';
+import CommunityNav from '@/Components/Civic/CommunityNav.vue';
 import StatusBadge from '@/Components/Ui/StatusBadge.vue';
 
 /* Phase-2 restyle wave: the v3 player chrome (MASTER_PLAN). */
@@ -26,6 +27,7 @@ const props = defineProps({
     threads: { type: Array, default: () => [] },
     jurisdictions: { type: Array, default: () => [] },
     isAssociated: { type: Boolean, default: false },
+    selectedPlace: { type: Object, default: null },
 });
 
 const page = usePage();
@@ -58,7 +60,8 @@ function fileTestimony(thread, post) {
 </script>
 
 <template>
-    <PageScaffold :surface="surface">
+    <PageScaffold :surface="surface" :title="selectedPlace ? $t('places.halls_in', { name: selectedPlace.name }) : undefined">
+        <CommunityNav :jurisdiction-id="selectedPlace?.id || create.jurisdiction_id || ''" />
         <template #intro>
             The halls are where residents deliberate on bills, referendums, petitions, and
             committees. Filing your own post as <em>testimony</em> seals it into the append-only
@@ -70,7 +73,7 @@ function fileTestimony(thread, post) {
         <Banner v-if="constitutionError" tone="emergency">{{ constitutionError }}</Banner>
 
         <div class="cluster" style="gap: var(--space-6)">
-            <Stat :value="threads.length" label="hall threads in your chain" />
+            <Stat :value="threads.length" :label="$t('places.threads_in_view')" />
             <Stat value="Art. II §2" label="append-only record" accent />
         </div>
 
@@ -97,7 +100,7 @@ function fileTestimony(thread, post) {
                     </div>
                 </Card>
             </div>
-            <p v-else class="cc-small gloss">No hall threads yet in your association chain.</p>
+            <p v-else class="cc-small gloss">{{ $t('places.no_discussions') }}</p>
             <p class="cc-small" style="margin-block-start: var(--space-3)">
                 Filing testimony uses
                 <span class="form-chip"><span class="form-id" data-no-i18n>F-SOC-002</span></span>
@@ -105,6 +108,7 @@ function fileTestimony(thread, post) {
             </p>
         </Card>
 
+        <p v-if="selectedPlace && isAssociated" class="gloss">{{ $t('places.filing_choices') }}</p>
         <FormCard
             v-if="isAssociated && formMeta('F-SOC-001')"
             :form="formMeta('F-SOC-001')"

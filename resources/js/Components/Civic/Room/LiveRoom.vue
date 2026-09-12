@@ -10,6 +10,7 @@
  * text-only (never an error).
  */
 import { computed } from 'vue';
+import { useI18n } from 'vue-i18n';
 import Banner from '@/Components/Ui/Banner.vue';
 import { useVoiceRoom } from '@/composables/useVoiceRoom.js';
 import ChamberStage from './ChamberStage.vue';
@@ -22,6 +23,10 @@ const props = defineProps({
     subjectUserId: { type: String, required: true }, // the player's OWN user id
     // Optional: a member-gated token requester for a PRIVATE room. Null → the commons device-signed default.
     tokenRequester: { type: Function, default: null },
+    variant: { type: String, default: 'commons' },
+    roster: { type: Array, default: () => [] },
+    floorHolder: { type: String, default: null },
+    displayNames: { type: Object, default: () => ({}) },
 });
 
 const {
@@ -29,6 +34,12 @@ const {
     participants, devices, selectedDevices,
     join, leave, toggleMic, toggleCamera, toggleScreenShare, selectDevice,
 } = useVoiceRoom();
+const { t } = useI18n();
+const text = (key, fallback) => t('c_rooms.' + key, fallback);
+const namedParticipants = computed(() => participants.value.map((participant) => ({
+    ...participant,
+    display_name: props.displayNames[participant.identity] || participant.display_name,
+})));
 
 // Map known error codes to friendly copy — never render a raw server string (it could carry
 // internal topology, e.g. an unreachable peer's hostname). Unknown codes fall back to generic.
@@ -39,12 +50,13 @@ const ERROR_COPY = {
     peer_unreachable: 'The voice host can’t be reached right now.',
     action_signature_invalid: 'Your device couldn’t be verified for voice.',
     sfu_connect_failed: 'Couldn’t connect to the voice server.',
+    room_not_accessible: 'This call is not available through this public room.',
 };
 const errorMessage = computed(() => {
     if (!error.value) return null;
     // Server codes may be prefixed (e.g. "peer_unreachable: …"); match on the leading token only.
     const code = String(error.value).split(':')[0].trim();
-    return ERROR_COPY[code] ?? 'Couldn’t join the call.';
+    return text('error.' + code, ERROR_COPY[code] ?? 'Couldn’t join the call.');
 });
 
 async function onJoin() {
@@ -65,14 +77,13 @@ async function onJoin() {
 <template>
     <div class="space-y-3">
         <Banner v-if="degraded" tone="warning">
-            No voice host is reachable from here right now — the room stays text-only. Your posts and the
-            record plane are unaffected.
+            {{ text('voice_unavailable', 'Voice is not available right now. You can keep using the room.') }}
         </Banner>
         <Banner v-else-if="error" tone="danger">
-            {{ errorMessage }} You can still take part in text below.
+            {{ errorMessage }} {{ text('room_open', 'The room remains open.') }}
         </Banner>
 
-        <ChamberStage :participants="participants" :connection-state="connectionState" :selected-devices="selectedDevices" />
+        <ChamberStage :participants="namedParticipants" :connection-state="connectionState" :selected-devices="selectedDevices" :variant="variant" :roster="roster" :floor-holder="floorHolder" />
 
         <VoiceControls
             :connection-state="connectionState"

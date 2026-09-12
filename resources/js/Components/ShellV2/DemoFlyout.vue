@@ -27,6 +27,7 @@
  * when the shell says the world is in demo mode, but the 404s are the gate.
  */
 import { computed, ref } from 'vue';
+import { Link, usePage } from '@inertiajs/vue3';
 import { useI18n } from 'vue-i18n';
 import { LOCALES } from '@/i18n/index.js';
 import DevPersonaSwitcher from '@/Components/Shell/DevPersonaSwitcher.vue';
@@ -42,6 +43,14 @@ const props = defineProps({
 });
 
 const { t, locale } = useI18n({ useScope: 'global' });
+const page = usePage();
+const instance = computed(() => page.props.shellInstance ?? page.props.instance ?? {});
+const hostTools = computed(() => instance.value.localTools === true
+    && (page.props.auth?.user?.is_operator === true || props.impersonating));
+const exploreHref = computed(() => {
+    const place = (page.props.jurisdictionContext ?? page.props.homeJurisdiction)?.current?.slug;
+    return place ? '/explore?jurisdiction=' + encodeURIComponent(place) : '/explore';
+});
 
 /* ------------------------------------------------ RTL / pseudo QA toggles
    Ported from the v1 shell (AppShell.vue dev-bar slot). RTL flip forces
@@ -70,31 +79,26 @@ function onPseudoToggle(event) {
 <template>
     <div class="demo-flyout">
         <p class="cmdbar-panel-title eyebrow">
-            Demo controls — not part of the application
+            {{ t('c_explore.demo_title', 'Explore this world') }}
             <span v-if="impersonating">
                 · Impersonating {{ impersonating.name
                 }}<template v-if="realUser"> (really {{ realUser.name }})</template>
             </span>
         </p>
 
-        <DevPersonaSwitcher :impersonating="impersonating" />
-
-        <a class="dev-control" href="/civic/residency">Residency tool → /civic/residency</a>
-
-        <span v-if="roles.length" class="dev-control">
-            Roles (derived): <span class="citation">{{ roles.join(' · ') }}</span>
-        </span>
-
-        <!-- ================= lane 4 mounts the demo semantics here =================
-             Clock controls (advance-N-days, dry-run plan rendered before apply),
-             the chamber-cast console, assume-a-resident-of-a-place, scenario
-             presets (V3_SYNTHESIS_PLAN §3 D1–D7). Keep each occupant a
-             .dev-control row (or a block that opens with one). -->
-        <!-- lane 4 (D1+D2+D3): one wrapper, one state read; D4/D5 join it
-             behind their design notes. -->
-        <DevPlaytestPanels />
-
-        <span class="demo-sep" aria-hidden="true">·</span>
+        <Link class="btn btn--primary" :href="exploreHref">{{ t('c_navigation.role-explorer', 'Explore civic roles') }}</Link>
+        <Link class="btn" href="/jurisdictions">{{ t('c_explore.browse_places', 'Browse places') }}</Link>
+        <Link class="btn" href="/legislatures">{{ t('c_navigation.legislatures', 'Legislative maps') }}</Link>
+        <p v-if="instance.residencyInstant" class="demo-note">
+            {{ t('c_explore.instant', 'Residency confirmation is immediate in this beta. You can explore every place and role.') }}
+        </p>
+        <details v-if="hostTools" class="demo-host">
+            <summary>{{ t('c_explore.host_controls', 'Facilitator controls') }}</summary>
+            <DevPersonaSwitcher :impersonating="impersonating" />
+            <DevPlaytestPanels />
+        </details>
+        <details class="demo-host">
+        <summary>{{ t('c_explore.display_checks', 'Display checks') }}</summary>
         <label class="dev-control">
             <input type="checkbox" :checked="rtlFlipped" @change="onRtlFlip" />
             {{ t('demo.rtl') }}
@@ -103,6 +107,7 @@ function onPseudoToggle(event) {
             <input type="checkbox" :checked="pseudoOn" @change="onPseudoToggle" />
             {{ t('demo.pseudo') }}
         </label>
+        </details>
     </div>
 </template>
 
@@ -118,4 +123,6 @@ function onPseudoToggle(event) {
 .demo-flyout > .persona {
     flex: 1 1 100%;
 }
+.demo-note, .demo-host { flex-basis: 100%; }
+.demo-host > summary { cursor: pointer; min-height: 44px; padding-block: .65rem; }
 </style>

@@ -116,5 +116,9 @@
   "q.advocacy_basics.q2.a": "Any time before the verdict",
   "q.advocacy_basics.q2.b": "Only at the first hearing",
   "q.advocacy_basics.q2.c": "Inside the case's attach window, onto the docket",
-  "q.advocacy_basics.q2.explain": "F-ADV-002/003/004 ride the attach-window gate — the docket is complete when the window closes, so nobody is ambushed at the bench."
+  "q.advocacy_basics.q2.explain": "F-ADV-002/003/004 ride the attach-window gate — the docket is complete when the window closes, so nobody is ambushed at the bench.",
+  "ui.learning_paths": "Ways to learn",
+  "ui.guided_journeys": "Guided journeys",
+  "ui.watch_videos": "Watch videos",
+  "ui.lesson_heading": "Before you begin"
 }

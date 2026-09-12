@@ -263,7 +263,7 @@ class AtlasController extends Controller
             'state' => $latest->state ?? null,
             'reachPct' => $this->pctFromMicro($latest->ratio_micro ?? null),
             'provenance' => $latest->population_provenance ?? null,
-            'populationYear' => $latest->population_year !== null ? (int) $latest->population_year : null,
+            'populationYear' => $latest?->population_year !== null ? (int) $latest->population_year : null,
             'snapshots' => $series
                 ->map(fn ($r) => [
                     'date' => (string) $r->as_of_date,

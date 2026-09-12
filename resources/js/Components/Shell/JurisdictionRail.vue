@@ -15,6 +15,7 @@
  */
 import { computed } from 'vue';
 import { Link, usePage } from '@inertiajs/vue3';
+import { useI18n } from 'vue-i18n';
 import Icon from '@/Components/Ui/Icon.vue';
 import StatusBadge from '@/Components/Ui/StatusBadge.vue';
 
@@ -26,6 +27,9 @@ const props = defineProps({
 });
 
 const page = usePage();
+const { t } = useI18n({ useScope: 'global' });
+const labelKey = { map: 'boundary_map', places: 'places_inside', world: 'browse_world', districts: 'legislative_maps', roles: 'explore_roles' };
+const toolLabel = tool => labelKey[tool.key] ? t(`places.${labelKey[tool.key]}`) : tool.label;
 const path = computed(() => String(page.url ?? '/').split('?')[0]);
 
 const groups = computed(() => {
@@ -35,7 +39,7 @@ const groups = computed(() => {
     return order.filter((g) => by[g]).map((g) => ({ name: g, items: by[g] }));
 });
 
-const isCurrent = (t) => t.href && (path.value === t.href || (t.href !== '/' && path.value.startsWith(`${t.href}/`)));
+const isCurrent = (t) => t.href && path.value === t.href;
 const people = computed(() => (Number(props.place.population ?? 0) > 0 ? Number(props.place.population).toLocaleString() : null));
 </script>
 
@@ -59,12 +63,12 @@ const people = computed(() => (Number(props.place.population ?? 0) > 0 ? Number(
                         :aria-current="isCurrent(t) ? 'page' : undefined"
                     >
                         <Icon v-if="t.icon" :name="t.icon" size="sm" />
-                        <span class="jur-rail__label">{{ t.label }}</span>
+                        <span class="jur-rail__label">{{ toolLabel(t) }}</span>
                         <span v-if="t.hint" class="jur-rail__hint">{{ t.hint }}</span>
                     </Link>
                     <span v-else class="jur-rail__link jur-rail__link--muted" :title="t.hint || undefined">
                         <Icon v-if="t.icon" :name="t.icon" size="sm" />
-                        <span class="jur-rail__label">{{ t.label }}</span>
+                        <span class="jur-rail__label">{{ toolLabel(t) }}</span>
                         <span v-if="t.hint" class="jur-rail__hint">{{ t.hint }}</span>
                     </span>
                 </li>

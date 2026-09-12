@@ -16,6 +16,7 @@ use App\Services\RoleService;
 use App\Services\SettingsResolver;
 use App\Support\CivicPopulation;
 use App\Support\SurfaceMeta;
+use App\Support\JurisdictionContext;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
@@ -48,21 +49,28 @@ class PetitionController extends Controller
     public function index(Request $request): Response
     {
         $user         = $request->user();
-        $associations = $this->roles->associationsFor($user);
+        $associations = $user === null ? [] : $this->roles->associationsFor($user);
         $chainIds     = array_column($associations, 'id');
+        $selectedPlace = JurisdictionContext::requested($request);
 
         // Scoped to the association chain; an un-associated viewer still
         // reads (public record) — the instance-wide recent list.
         $petitions = Petition::query()
-            ->when($chainIds !== [], fn ($q) => $q->whereIn('jurisdiction_id', $chainIds))
+            ->when($selectedPlace !== null,
+                fn ($q) => $q->where('jurisdiction_id', $selectedPlace->id),
+                fn ($q) => $q->when($chainIds !== [], fn ($q) => $q->whereIn('jurisdiction_id', $chainIds)))
             ->with('jurisdiction:id,name,slug,adm_level')
             ->orderByDesc('created_at')
             ->limit(50)
             ->get();
 
-        $thresholdPct = $this->resolvedPct($associations);
+        $thresholdPct = $this->resolvedPct($selectedPlace !== null
+            ? [['id' => (string) $selectedPlace->id]]
+            : $associations);
 
         return Inertia::render('Civic/Petitions', [
+            'jurisdictionContext' => $selectedPlace ? JurisdictionContext::for($selectedPlace) : null,
+            'selectedPlace' => $selectedPlace ? JurisdictionContext::chip($selectedPlace) : null,
             'surface'   => SurfaceMeta::for('civic/petitions'),
             'petitions' => $petitions
                 ->map(fn (Petition $petition) => $this->listRow($petition, $user))
@@ -226,7 +234,7 @@ class PetitionController extends Controller
     // Presentation internals
     // =========================================================================
 
-    private function listRow(Petition $petition, User $user): array
+    private function listRow(Petition $petition, ?User $user): array
     {
         $signatures = $petition->liveSignatureCount();
 

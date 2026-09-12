@@ -1,207 +1,156 @@
 <script setup>
-/**
- * Economy/Home — the economy's front door (design contract:
- * mockups/v3/economy/economy-home.html).
- *
- * READ-ONLY. Every lever on the money supply moves through F-LEG-031's dual
- * door, never from a page — see Economy/Units.
- *
- * Props are lane 13's published contract
- * (docs/plans/economy/ECONOMY_PROP_CONTRACT.md, pinned by
- * EconomyPropContractTest). Money arrives as STRINGS and is formatted, never
- * computed. `currency` is null on a world whose root has not defined one —
- * a normal state this page renders rather than assumes away.
- */
 import { Link } from '@inertiajs/vue3';
+import { useI18n } from 'vue-i18n';
+import { Store, BriefcaseBusiness, Wallet, ArrowRight, Users, Handshake, HeartHandshake, Landmark } from 'lucide-vue-next';
 import AppShellV2 from '@/Layouts/AppShellV2.vue';
 import PageScaffold from '@/Components/Surface/PageScaffold.vue';
-import Card from '@/Components/Ui/Card.vue';
-import Stat from '@/Components/Ui/Stat.vue';
 import Banner from '@/Components/Ui/Banner.vue';
-import { formatMoney, formatCount, formatWhen, isZeroMoney } from '@/lib/money.js';
+import { formatMoney } from '@/lib/money.js';
 
 defineOptions({ layout: AppShellV2 });
-
-const props = defineProps({
+defineProps({
     currency: { type: Object, default: null },
-    supply: { type: String, default: '0.000000' },
-    ledger: { type: Object, default: () => ({ entries: 0, verified: false, residual: '0.000000' }) },
-    counts: { type: Object, default: () => ({}) },
-    stipend: { type: Object, default: () => ({}) },
-    /** The economic clock — stipend cycle, derived; next_run null pre-first-run. */
-    clock: { type: Object, default: () => ({}) },
+    account: { type: Object, default: null },
 });
 
-/* The economy's rooms, one hub grid instead of scattered hardlinks. */
-const rooms = [
-    { href: '/economy/market', label: 'The market', hint: 'Buy, sell, offer work' },
-    { href: '/economy/exchange', label: 'The exchange', hint: 'Instruments & shares' },
-    { href: '/economy/wallet', label: 'My wallet', hint: 'What you hold — private' },
-    { href: '/economy/treasury', label: 'Public finance', hint: 'The open ledger' },
-    { href: '/economy/units', label: 'Units & money', hint: 'The currency and its levers' },
-    { href: '/economy/stipend', label: 'The civic stipend', hint: 'UBI + role differential' },
-    { href: '/economy/agreements', label: 'Agreements', hint: 'Instruments you are party to' },
-    { href: '/economy/joint-ledgers', label: 'Joint ledgers', hint: 'Co-owned, agreement-gated' },
-];
+// Inherit the selected language; untranslated messages fall back to English.
+const { t } = useI18n({
+    useScope: 'local',
+    fallbackLocale: 'en',
+    messages: { en: {
+        title: 'Work & trade',
+        intro: 'Find useful work, trade goods and services, and organize with others.',
+        start: 'What would you like to do?',
+        market: 'Buy or sell',
+        marketHint: 'Browse goods and services, or offer something of your own.',
+        marketAction: 'Open the market',
+        work: 'Find work',
+        workHint: 'Explore open jobs and see what organizations need.',
+        workAction: 'Browse work',
+        wallet: 'My wallet',
+        walletHint: 'Your balance, payments, and items in one place.',
+        balance: 'Your balance',
+        noWallet: 'No wallet is linked to your account in this currency.',
+        walletAction: 'Open my wallet',
+        currencyMissing: 'A currency has not been defined yet',
+        currencyMissingHint: 'You can explore organizations and work. Priced transactions become available after the currency is defined.',
+        together: 'Work together',
+        organizations: 'Organizations',
+        organizationsHint: 'Find a group, join its work, or manage an organization.',
+        agreements: 'My agreements',
+        agreementsHint: 'Review terms, negotiate changes, and sign agreements.',
+        assistance: 'Give or find help',
+        assistanceHint: 'Browse public requests for support.',
+        finance: 'Public money & shared funds',
+        financeHint: 'Accounts, currency rules, and other financial tools',
+        treasury: 'Public accounts',
+        units: 'Currency & monetary policy',
+        stipend: 'Civic stipend',
+        exchange: 'Shares & instruments',
+        joint: 'Shared funds',
+        unit: 'Currency',
+    } },
+});
 
-/* A healthy ledger sits at exactly zero: issuance is the only lawful way for
-   value to enter, and every movement after that conserves. */
-const ledgerHealthy = () => props.ledger?.verified === true && isZeroMoney(props.ledger?.residual);
+const sharedActions = [
+    { href: '/organizations', key: 'organizations', icon: Users },
+    { href: '/economy/agreements', key: 'agreements', icon: Handshake },
+    { href: '/economy/market?tab=assistance', key: 'assistance', icon: HeartHandshake },
+];
+const financeActions = [
+    { href: '/economy/treasury', key: 'treasury' },
+    { href: '/economy/units', key: 'units' },
+    { href: '/economy/stipend', key: 'stipend' },
+    { href: '/economy/exchange', key: 'exchange' },
+    { href: '/economy/joint-ledgers', key: 'joint' },
+];
 </script>
 
 <template>
-    <PageScaffold title="The economy">
-        <template #intro>
-            Money here is public where it should be and private where it must be. The ledger below
-            is open to everyone; what any one person holds is theirs alone to see.
-        </template>
-
-        <Banner v-if="!currency" tone="info" title="No currency yet">
-            This world's root legislature hasn't defined one. Everything below stays empty until it
-            does — that's the expected state, not a fault.
+    <PageScaffold :title="t('title')">
+        <template #intro>{{ t('intro') }}</template>
+        <Banner v-if="!currency" tone="info" :title="t('currencyMissing')">
+            {{ t('currencyMissingHint') }}
         </Banner>
 
-        <Card v-if="currency" as="section" title="The currency">
-            <dl class="econ-grid">
-                <div><dt>Name</dt><dd>{{ currency.name }}</dd></div>
-                <div><dt>Code</dt><dd>{{ currency.code }}</dd></div>
-                <div><dt>Symbol</dt><dd>{{ currency.symbol }}</dd></div>
-                <div><dt>In circulation</dt><dd>{{ formatMoney(supply, currency) }}</dd></div>
-            </dl>
-            <p class="econ-note">
-                Only the root legislature can issue currency, and only by an act on the record.
-            </p>
-        </Card>
-
-        <Card as="section" title="The public ledger">
-            <div class="econ-stats">
-                <Stat :value="formatCount(ledger.entries)" label="Entries" />
-                <Stat :value="ledger.verified ? 'Verified' : 'Not verified'" label="Chain" :accent="ledger.verified === true" />
-                <Stat :value="formatMoney(ledger.residual, currency)" label="Residual" :accent="isZeroMoney(ledger.residual)" />
-            </div>
-            <p class="econ-note" :class="{ 'econ-note--warn': !ledgerHealthy() }">
-                <template v-if="ledgerHealthy()">
-                    Every entry balances and the chain is intact. A healthy ledger reads exactly zero
-                    here — issuance is the only way value enters, and everything after it conserves.
-                </template>
-                <template v-else>
-                    This should read zero against a verified chain. It doesn't — worth reporting.
-                </template>
-            </p>
-            <p><Link href="/economy/treasury">Open the public accounts →</Link></p>
-        </Card>
-
-        <Card as="section" title="What's happening">
-            <div class="econ-stats">
-                <Stat :value="formatCount(counts.wallets)" label="Wallets" />
-                <Stat :value="formatCount(counts.listings)" label="For sale" />
-                <Stat :value="formatCount(counts.postings)" label="Jobs offered" />
-                <Stat :value="formatCount(counts.assistance)" label="Requests for help" />
-                <Stat :value="formatCount(counts.assets)" label="Registered items" />
-            </div>
-            <p v-if="clock.next_run" class="econ-note">
-                The economic clock runs {{ clock.interval }}; the next civic-stipend disbursement is
-                due {{ formatWhen(clock.next_run) }}.
-            </p>
-        </Card>
-
-        <Card as="section" title="The economy's rooms">
-            <div class="econ-hub">
-                <Link v-for="r in rooms" :key="r.href" :href="r.href" class="econ-hub-card">
-                    <span class="econ-hub-label">{{ r.label }}</span>
-                    <span class="econ-hub-hint">{{ r.hint }}</span>
+        <section aria-labelledby="economy-start">
+            <h2 id="economy-start" class="econ-section-title">{{ t('start') }}</h2>
+            <div class="econ-primary">
+                <Link href="/economy/market" class="econ-action">
+                    <Store class="econ-icon" :size="26" aria-hidden="true" />
+                    <h3>{{ t('market') }}</h3>
+                    <p>{{ t('marketHint') }}</p>
+                    <span class="econ-action-label">{{ t('marketAction') }} <ArrowRight :size="17" aria-hidden="true" /></span>
+                </Link>
+                <Link href="/economy/market?tab=work" class="econ-action">
+                    <BriefcaseBusiness class="econ-icon" :size="26" aria-hidden="true" />
+                    <h3>{{ t('work') }}</h3>
+                    <p>{{ t('workHint') }}</p>
+                    <span class="econ-action-label">{{ t('workAction') }} <ArrowRight :size="17" aria-hidden="true" /></span>
+                </Link>
+                <Link href="/economy/wallet" class="econ-action econ-action--wallet">
+                    <Wallet class="econ-icon" :size="26" aria-hidden="true" />
+                    <h3>{{ t('wallet') }}</h3>
+                    <template v-if="account">
+                        <span class="econ-balance-label">{{ t('balance') }}</span>
+                        <strong class="econ-balance">{{ formatMoney(account.balance, currency) }}</strong>
+                    </template>
+                    <p v-else>{{ currency ? t('noWallet') : t('walletHint') }}</p>
+                    <span class="econ-action-label">{{ t('walletAction') }} <ArrowRight :size="17" aria-hidden="true" /></span>
                 </Link>
             </div>
-        </Card>
+        </section>
 
-        <Card as="section" title="The civic stipend">
-            <p v-if="stipend.enabled === false" class="econ-note">
-                The stipend is switched off in this world.
-            </p>
-            <template v-else>
-                <dl class="econ-grid">
-                    <div><dt>Everyone receives at least</dt><dd>{{ formatMoney(stipend.floor, currency) }}</dd></div>
-                    <div><dt>Extra for serving roles, up to</dt><dd>{{ formatMoney(stipend.cap, currency) }}</dd></div>
-                    <div><dt>Paid</dt><dd>{{ stipend.interval || '—' }}</dd></div>
-                    <div>
-                        <dt>Funded by</dt>
-                        <dd>{{ stipend.funding_source === 'treasury_draw' ? 'the treasury' : 'new issuance' }}</dd>
-                    </div>
-                </dl>
-                <div v-if="stipend.last_run" class="econ-run">
-                    <p>
-                        Last paid {{ formatWhen(stipend.last_run.ran_at) }} —
-                        <strong>{{ formatCount(stipend.last_run.recipients) }}</strong> people,
-                        <strong>{{ formatMoney(stipend.last_run.total, currency) }}</strong> in total.
-                    </p>
-                    <p v-if="stipend.last_run.short_paid" class="econ-note econ-note--warn">
-                        The treasury couldn't cover it in full, so everyone was paid the same reduced
-                        share. Nobody was skipped — the constitution treats them identically, so a
-                        shortfall is shared rather than handed to whoever came first.
-                    </p>
-                </div>
-                <p v-else class="econ-note">No payment run yet.</p>
-            </template>
-        </Card>
+        <section aria-labelledby="economy-together">
+            <h2 id="economy-together" class="econ-section-title">{{ t('together') }}</h2>
+            <div class="econ-shared">
+                <Link v-for="action in sharedActions" :key="action.key" :href="action.href" class="econ-shared-action">
+                    <component :is="action.icon" :size="22" class="econ-icon" aria-hidden="true" />
+                    <span><strong>{{ t(action.key) }}</strong><span class="econ-hint">{{ t(`${action.key}Hint`) }}</span></span>
+                    <ArrowRight :size="16" aria-hidden="true" />
+                </Link>
+            </div>
+        </section>
+
+        <details class="econ-finance">
+            <summary>
+                <Landmark :size="22" class="econ-icon" aria-hidden="true" />
+                <span><strong>{{ t('finance') }}</strong><span class="econ-hint">{{ t('financeHint') }}</span></span>
+            </summary>
+            <p v-if="currency" class="econ-currency">{{ t('unit') }}: {{ currency.name }} · {{ currency.code }}</p>
+            <nav :aria-label="t('finance')" class="econ-finance-links">
+                <Link v-for="action in financeActions" :key="action.key" :href="action.href">
+                    {{ t(action.key) }} <ArrowRight :size="16" aria-hidden="true" />
+                </Link>
+            </nav>
+        </details>
     </PageScaffold>
 </template>
 
 <style scoped>
-.econ-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(12rem, 1fr));
-    gap: var(--space-3);
-    margin: 0;
-}
-.econ-grid dt {
-    font-size: 0.8125rem;
-    color: var(--gov-text-muted);
-}
-.econ-grid dd {
-    margin: 0;
-    font-weight: 600;
-}
-.econ-stats {
-    display: flex;
-    flex-wrap: wrap;
-    gap: var(--space-4);
-}
-.econ-note {
-    font-size: 0.875rem;
-    color: var(--gov-text-muted);
-}
-.econ-note--warn {
-    color: var(--gov-danger, #b3261e);
-    font-weight: 600;
-}
-.econ-run {
-    margin-block-start: var(--space-3);
-}
-.econ-hub {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(11rem, 1fr));
-    gap: var(--space-3);
-}
-.econ-hub-card {
-    display: flex;
-    flex-direction: column;
-    gap: 0.15rem;
-    padding: var(--space-3);
-    border: 1px solid var(--gov-border);
-    border-radius: var(--radius-md, 0.5rem);
-    text-decoration: none;
-    color: inherit;
-    transition: border-color 0.15s ease, background 0.15s ease;
-}
-.econ-hub-card:hover {
-    border-color: var(--gov-accent, #2456b3);
-    background: var(--gov-accent-soft, #e6f0ff);
-}
-.econ-hub-label {
-    font-weight: 600;
-}
-.econ-hub-hint {
-    font-size: 0.8125rem;
-    color: var(--gov-text-muted);
-}
+.econ-section-title { margin: 0 0 var(--space-3); font-size: 1.05rem; }
+.econ-primary { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: var(--space-4); }
+.econ-action { display: flex; flex-direction: column; align-items: flex-start; gap: var(--space-3); padding: var(--space-5, 1.25rem); border: 1px solid var(--gov-border); border-radius: var(--radius-md, .5rem); background: var(--gov-surface, #fff); color: inherit; text-decoration: none; }
+.econ-action h3 { margin: 0; font-size: 1.25rem; }
+.econ-action p { margin: 0; color: var(--gov-fg-muted); font-size: .9rem; line-height: 1.6; }
+.econ-icon { flex-shrink: 0; color: var(--gov-accent, #2456b3); }
+.econ-action-label { display: flex; align-items: center; gap: .5rem; margin-block-start: auto; padding-block-start: var(--space-3); font-weight: 600; color: var(--gov-accent, #2456b3); }
+.econ-action--wallet { background: color-mix(in oklch, var(--gov-accent) 8%, var(--gov-surface)); }
+.econ-balance-label { color: var(--gov-fg-muted); font-size: .8rem; }
+.econ-balance { font-size: clamp(1.25rem, 2.4vw, 2rem); overflow-wrap: anywhere; font-variant-numeric: tabular-nums; }
+.econ-shared { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: var(--space-3); }
+.econ-shared-action { display: flex; align-items: flex-start; gap: var(--space-3); padding: var(--space-4); color: inherit; text-decoration: none; border: 1px solid var(--gov-border); border-radius: var(--radius-md, .5rem); }
+.econ-shared-action > span { flex: 1; }
+.econ-hint { display: block; margin-block-start: .3rem; color: var(--gov-fg-muted); font-size: .8125rem; line-height: 1.5; font-weight: 400; }
+.econ-action:hover, .econ-shared-action:hover { border-color: var(--gov-accent, #2456b3); }
+.econ-action:focus-visible, .econ-shared-action:focus-visible, .econ-finance summary:focus-visible, .econ-finance a:focus-visible { outline: 3px solid var(--gov-accent, #2456b3); outline-offset: 3px; }
+.econ-finance { border-block-start: 1px solid var(--gov-border); padding-block-start: var(--space-4); }
+.econ-finance summary { display: flex; align-items: center; gap: var(--space-3); cursor: pointer; }
+.econ-finance summary::after { content: '+'; margin-inline-start: auto; font-size: 1.5rem; }
+.econ-finance[open] summary::after { content: '−'; }
+.econ-finance-links { display: flex; flex-wrap: wrap; gap: var(--space-3); margin-block-start: var(--space-4); }
+.econ-finance-links a { display: inline-flex; align-items: center; gap: .5rem; padding: var(--space-2) var(--space-3); border: 1px solid var(--gov-border); border-radius: var(--radius-md, .5rem); text-decoration: none; }
+.econ-currency { margin-block: var(--space-4) 0; color: var(--gov-fg-muted); font-size: .875rem; }
+@media (max-width: 900px) { .econ-shared { grid-template-columns: 1fr; } }
+@media (max-width: 650px) { .econ-primary { grid-template-columns: 1fr; } .econ-action { gap: var(--space-2); } }
 </style>

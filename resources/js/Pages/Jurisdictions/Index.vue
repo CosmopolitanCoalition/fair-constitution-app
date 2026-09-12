@@ -646,6 +646,7 @@ function onFilter() {
 
 function applyFilters() {
     router.get('/jurisdictions', {
+        view: 'operations',
         search:    search.value || undefined,
         adm_level: admLevel.value !== '' ? admLevel.value : undefined,
         active:    activeFilter.value !== '' ? activeFilter.value : undefined,

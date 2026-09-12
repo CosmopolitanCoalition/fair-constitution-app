@@ -12,6 +12,7 @@
  */
 import { computed } from 'vue';
 import { Link } from '@inertiajs/vue3';
+import { useI18n } from 'vue-i18n';
 import AppShellV2 from '@/Layouts/AppShellV2.vue';
 import PageScaffold from '@/Components/Surface/PageScaffold.vue';
 import JurisdictionRail from '@/Components/Shell/JurisdictionRail.vue';
@@ -23,6 +24,7 @@ import Stat from '@/Components/Ui/Stat.vue';
 import StatusBadge from '@/Components/Ui/StatusBadge.vue';
 
 defineOptions({ layout: AppShellV2 });
+const { t } = useI18n({ useScope: 'global' });
 
 const props = defineProps({
     surface: { type: Object, required: true },
@@ -100,6 +102,16 @@ const fmt = (n) => Number(n ?? 0).toLocaleString();
             <JurisdictionRail :place="railPlace" :tools="tools" />
 
             <div class="stack place-body">
+                <Card as="section" :title="t('places.legislative_maps')" class="place-maps">
+                    <p class="gloss">{{ legislature_id ? t('places.map_intro') : t('places.parent_map_hint') }}</p>
+                    <div class="cluster">
+                        <Btn v-if="legislature_id" :as="Link" :href="`/legislatures/${legislature_id}/districts`" variant="primary" icon="map">{{ t('places.district_map') }}</Btn>
+                        <Btn v-if="legislature_id && hasChildren" :as="Link" :href="`/legislatures/${legislature_id}/panels`" variant="secondary">{{ t('places.panels_map') }}</Btn>
+                        <Btn v-if="!legislature_id && parent" :as="Link" :href="`/jurisdictions/${parent.slug}`" variant="primary">{{ t('places.parent_map', { name: parent.name }) }}</Btn>
+                        <Btn :as="Link" :href="map_href" variant="ghost" icon="map-pin">{{ t('places.boundary_map') }}</Btn>
+                    </div>
+                </Card>
+
                 <!-- at a glance -->
                 <div class="cluster place-stats" aria-label="At a glance">
                     <Stat :value="people ?? '—'" label="people" />
@@ -119,7 +131,7 @@ const fmt = (n) => Number(n ?? 0).toLocaleString();
                                     <strong>Legislature</strong>
                                     <template v-if="legislature_id && chamber_seated">
                                         <span class="gloss">seated<template v-if="seats"> · {{ fmt(seats) }} seats</template></span>
-                                        <div class="cluster"><Link :href="`/legislatures/${legislature_id}/chamber`">The chamber</Link><Link :href="`/legislatures/${legislature_id}/districts`">Districts</Link></div>
+                                        <div class="cluster"><Link :href="`/legislatures/${legislature_id}/chamber`">The chamber</Link><Link :href="`/legislatures/${legislature_id}/districts`">{{ t('places.legislative_maps') }}</Link></div>
                                     </template>
                                     <template v-else-if="legislature_id && has_district_map">
                                         <span class="gloss">districts drawn, seats not yet filled<template v-if="seats"> · {{ fmt(seats) }} seats</template></span>
@@ -127,6 +139,7 @@ const fmt = (n) => Number(n ?? 0).toLocaleString();
                                     </template>
                                     <template v-else-if="legislature_id">
                                         <span class="gloss">forming</span>
+                                        <Link :href="`/legislatures/${legislature_id}/chamber`">The chamber</Link>
                                     </template>
                                     <span v-else class="gloss">none (a leaf place; it is represented in {{ parent?.name ?? 'its parent' }})</span>
                                 </div>
@@ -163,10 +176,11 @@ const fmt = (n) => Number(n ?? 0).toLocaleString();
 
                     <!-- take part -->
                     <Card as="section" title="Take part">
+                        <p style="margin-block-end: var(--space-3)"><Btn :as="Link" :href="`/explore?jurisdiction=${encodeURIComponent(j.slug)}`" variant="secondary" icon="users">{{ t('places.explore_roles') }}</Btn></p>
                         <ul class="gov">
-                            <li><Icon name="message-square" size="sm" /><div><Link href="/civic/square">The public square</Link><span class="gloss">what people here are saying</span></div></li>
-                            <li><Icon name="file-text" size="sm" /><div><Link href="/civic/petitions">Petitions</Link><span class="gloss">start one or sign one</span></div></li>
-                            <li><Icon name="users" size="sm" /><div><Link href="/civic/commons/square">Live rooms</Link><span class="gloss">meet, talk, vote together</span></div></li>
+                            <li><Icon name="message-square" size="sm" /><div><Link :href="`/civic/square?jurisdiction=${j.id}`">The public square</Link><span class="gloss">what people here are saying</span></div></li>
+                            <li><Icon name="file-text" size="sm" /><div><Link :href="`/civic/petitions?jurisdiction=${j.id}`">Petitions</Link><span class="gloss">start one or sign one</span></div></li>
+                            <li><Icon name="users" size="sm" /><div><Link :href="`/civic/commons/square?jurisdiction=${j.id}`">Live rooms</Link><span class="gloss">meet, talk, vote together</span></div></li>
                             <li><Icon name="globe" size="sm" /><div><Link :href="map_href">The map</Link><span class="gloss">{{ hasChildren ? `${fmt(childCount)} places inside` : 'the boundary' }}</span></div></li>
                         </ul>
                         <div class="cluster" style="margin-block-start: var(--space-3)">
@@ -183,9 +197,10 @@ const fmt = (n) => Number(n ?? 0).toLocaleString();
                                 <span class="gloss">{{ c.population > 0 ? `${fmt(c.population)} people` : 'population not measured' }}</span>
                             </li>
                         </ul>
-                        <p v-if="childCount > children_preview.length" class="gloss" style="margin-block-start: var(--space-2)">
-                            {{ fmt(children_preview.length) }} of {{ fmt(childCount) }} shown. <Link :href="map_href">See them all on the map.</Link>
-                        </p>
+                        <div class="cluster" style="margin-block-start: var(--space-3)">
+                            <Btn :as="Link" :href="`/jurisdictions?parent=${encodeURIComponent(j.slug)}`" variant="secondary">{{ t('places.browse_all_inside', { count: fmt(childCount) }) }}</Btn>
+                            <Link href="/jurisdictions">{{ t('places.browse_world') }}</Link>
+                        </div>
                     </Card>
 
                     <!-- region and dataset -->
@@ -218,6 +233,8 @@ const fmt = (n) => Number(n ?? 0).toLocaleString();
     .place-layout { grid-template-columns: minmax(0, 1fr); }
 }
 .place-body { gap: var(--space-6); }
+.place-maps { border-inline-start: 3px solid var(--gov-primary); }
+.place-maps .cluster { margin-block-start: var(--space-3); }
 .place-stats { gap: var(--space-6); align-items: end; }
 
 .gov, .places {

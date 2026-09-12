@@ -60,6 +60,7 @@ Route::get('/', function (Request $request) {
 // hub reachable signed-in too. No surface prop — cover pages, like Home.
 Route::get('/launchpad', fn () => Inertia::render('Launchpad'))->name('launchpad');
 Route::get('/tour', fn () => Inertia::render('Tour/Index'))->name('tour');
+Route::get('/explore', \App\Http\Controllers\Civic\RoleExplorerController::class)->name('roles.explore');
 
 // Video library (design contract: mockups/v3/shared/video-player.html). Public,
 // no auth — the app port of the operator's Coalition multi-track player: one

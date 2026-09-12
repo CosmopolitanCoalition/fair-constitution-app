@@ -10,6 +10,7 @@ use App\Models\Candidacy;
 use App\Models\Election;
 use App\Models\ElectionAudit;
 use App\Models\ElectionBoard;
+use App\Models\ElectionBoardMember;
 use App\Models\ElectionCertification;
 use App\Models\ElectionRace;
 use App\Models\LegislatureMember;
@@ -20,7 +21,6 @@ use App\Support\SurfaceMeta;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Gate;
 use Inertia\Inertia;
 use Inertia\Response;
 
@@ -55,24 +55,33 @@ class BoardConsoleController extends Controller
         // console renders for every signed-in user; R-08 board standing becomes the
         // can_act prop so the actions disable. Every mutating endpoint (validate,
         // certify, recount, schedule, audit) keeps its own R-08 gate.
-        $canAct = Gate::check('access-board');
-
+        $request->validate(['board' => ['nullable', 'uuid']]);
         $user = $request->user();
-        $userId = (string) $user->getKey();
 
-        $boards = ElectionBoard::query()
-            ->active()
-            ->where(function ($query) use ($userId, $user) {
-                $query->whereHas('members', fn ($m) => $m->seated()->where('user_id', $userId));
-
-                if ((bool) $user->is_operator) {
-                    $query->orWhere('is_bootstrap', true);
+        if ($request->filled('board')) {
+            // The named board is a public workspace. Observation does not
+            // require membership; action standing is resolved below for THIS
+            // board using the same helper as the mutating endpoints.
+            $boards = collect([ElectionBoard::query()->active()
+                ->with('jurisdiction:id,name,parent_id,slug,adm_level')
+                ->findOrFail($request->string('board')->toString())]);
+        } else {
+            // Start from this user's indexed memberships, never enumerate all
+            // bootstrap boards in the simulated world for a dropdown.
+            $boardIds = $user === null ? [] : ElectionBoardMember::query()
+                ->where('user_id', (string) $user->getKey())->seated()
+                ->orderBy('id')->limit(50)->pluck('election_board_id')->all();
+            $boards = $boardIds === [] ? collect() : ElectionBoard::query()->active()
+                ->whereIn('id', $boardIds)->with('jurisdiction:id,name,parent_id,slug,adm_level')
+                ->get()->sortBy(fn (ElectionBoard $b) => $b->jurisdiction?->name ?? '')->values();
+            if ($boards->isEmpty() && (bool) $user?->is_operator) {
+                $bootstrap = ElectionBoard::query()->active()->where('is_bootstrap', true)
+                    ->orderBy('id')->with('jurisdiction:id,name,parent_id,slug,adm_level')->first();
+                if ($bootstrap !== null) {
+                    $boards->push($bootstrap);
                 }
-            })
-            ->with(['jurisdiction:id,name', 'members.user:id,name,display_name'])
-            ->get()
-            ->sortBy(fn (ElectionBoard $b) => $b->jurisdiction?->name ?? '')
-            ->values();
+            }
+        }
 
         if ($boards->isEmpty()) {
             // No board standing: the page still renders (the ruling), empty and read-only.
@@ -92,6 +101,8 @@ class BoardConsoleController extends Controller
         }
 
         $board = $boards->firstWhere('id', $request->query('board')) ?? $boards->first();
+        $board->load('members.user:id,name,display_name');
+        $canAct = $this->boardActorFor($user, $board) !== false;
 
         $elections = Election::query()
             ->where(function ($query) use ($board) {
@@ -136,6 +147,7 @@ class BoardConsoleController extends Controller
             ->get();
 
         return Inertia::render('Elections/BoardConsole', [
+            'jurisdictionContext' => $board->jurisdiction ? \App\Support\JurisdictionContext::for($board->jurisdiction) : null,
             'surface' => SurfaceMeta::for('elections/board-console'),
             'can_act' => $canAct,
             'board' => [

@@ -5,9 +5,11 @@ namespace App\Http\Controllers\Civic;
 use App\Domain\Engine\ConstitutionalEngine;
 use App\Http\Controllers\Controller;
 use App\Models\SocialSpace;
+use App\Models\SocialSubforum;
 use App\Models\SocialThread;
 use App\Services\RoleService;
 use App\Support\SurfaceMeta;
+use App\Support\JurisdictionContext;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
@@ -78,21 +80,32 @@ class PublicSquareController extends Controller
     public function index(Request $request): Response
     {
         $user = $request->user();
-        $associations = $this->roles->associationsFor($user);
+        $associations = $user === null ? [] : $this->roles->associationsFor($user);
         $chainIds = array_column($associations, 'id');
+        $selectedPlace = JurisdictionContext::requested($request);
 
         $threads = SocialThread::query()
-            ->whereHas('subforum.space', function ($q) use ($chainIds) {
+            ->when($selectedPlace !== null, function ($q) use ($selectedPlace) {
+                // A public square is unique per place. Bound the input to its
+                // subforums before reading threads; private spaces never enter.
+                $spaceId = SocialSpace::query()->where('jurisdiction_id', $selectedPlace->id)
+                    ->where('space_type', SocialSpace::TYPE_PUBLIC_SQUARE)->where('is_private', false)->value('id');
+
+                return $spaceId === null ? $q->whereRaw('1 = 0') : $q->whereIn('subforum_id',
+                    SocialSubforum::query()->where('space_id', $spaceId)->select('id'));
+            }, fn ($query) => $query->whereHas('subforum.space', function ($q) use ($chainIds) {
                 $q->where('space_type', SocialSpace::TYPE_PUBLIC_SQUARE)
                     ->where('is_private', false)
                     ->when($chainIds !== [], fn ($qq) => $qq->whereIn('jurisdiction_id', $chainIds));
-            })
+            }))
             ->with(['posts' => fn ($q) => $q->orderBy('created_at')->limit(20)])
             ->orderByDesc('created_at')
             ->limit(30)
             ->get();
 
         return Inertia::render('Civic/PublicSquare', [
+            'jurisdictionContext' => $selectedPlace ? JurisdictionContext::for($selectedPlace) : null,
+            'selectedPlace' => $selectedPlace ? JurisdictionContext::chip($selectedPlace) : null,
             'surface'       => SurfaceMeta::for('civic/public-square'),
             'threads'       => $threads->map(fn (SocialThread $t) => $this->threadRow($t))->all(),
             'jurisdictions' => array_map(fn ($a) => [

@@ -56,6 +56,7 @@ export function useVoiceRoom() {
     function viewModel(participant) {
         return {
             identity: participant.identity, // @u-<handle> pseudonym, never a legal name
+            display_name: participant.name || '', // public label carried by the room token
             isLocal: participant.isLocal,
             isSpeaking: participant.isSpeaking,
             audioTrack: participant.getTrackPublication(LK.Track.Source.Microphone)?.track ?? null,
@@ -84,6 +85,7 @@ export function useVoiceRoom() {
         for (const ev of [
             E.ParticipantConnected,
             E.ParticipantDisconnected,
+            E.ParticipantNameChanged,
             E.TrackSubscribed,
             E.TrackUnsubscribed,
             E.TrackUnpublished, // a REMOTE participant stopping screen-share — clears their presenter tile

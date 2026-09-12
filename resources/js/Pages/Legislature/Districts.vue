@@ -27,13 +27,18 @@
                 <div class="px-4 py-3 border-b border-gray-800 shrink-0">
                     <div class="flex items-center justify-between gap-2">
                         <div class="min-w-0">
-                            <div class="text-xs text-gray-500 mb-0.5">Legislature Browser</div>
+                            <div class="text-xs text-gray-500 mb-0.5">{{ $t('places.legislative_maps') }} · {{ $t('places.district_map') }}</div>
                             <h1 class="text-base font-bold text-white leading-tight truncate">{{ scope.name }}</h1>
                         </div>
                         <div class="text-right shrink-0">
                             <div class="text-xs text-gray-500 leading-tight">Legislature Seats</div>
                             <div class="text-base font-bold text-emerald-400">{{ legislatureSeats.toLocaleString() }}</div>
                         </div>
+                    </div>
+                    <div class="flex flex-wrap items-center gap-3 mt-2 text-xs text-blue-200">
+                        <a v-if="scope.slug" :href="`/jurisdictions/${scope.slug}`" class="hover:text-white">{{ $t('places.open_place', { name: scope.name }) }}</a>
+                        <a v-if="scope.slug" :href="`/jurisdictions?parent=${encodeURIComponent(scope.slug)}`" class="hover:text-white">{{ $t('places.places_inside') }}</a>
+                        <a href="/jurisdictions" class="hover:text-white">{{ $t('places.browse_world') }}</a>
                     </div>
                     <!-- Cross-navigation to this legislature's Type B panels map —
                          only at the root scope (where the breadcrumb is absent) and

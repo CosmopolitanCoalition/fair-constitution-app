@@ -17,6 +17,7 @@ import Btn from '@/Components/Ui/Btn.vue';
 import Card from '@/Components/Ui/Card.vue';
 import Field from '@/Components/Ui/Field.vue';
 import Stat from '@/Components/Ui/Stat.vue';
+import CommunityNav from '@/Components/Civic/CommunityNav.vue';
 
 /* Phase-2 restyle wave: the v3 player chrome (MASTER_PLAN). */
 defineOptions({ layout: AppShellV2 });
@@ -26,6 +27,7 @@ const props = defineProps({
     threads: { type: Array, default: () => [] },
     jurisdictions: { type: Array, default: () => [] },
     isAssociated: { type: Boolean, default: false },
+    selectedPlace: { type: Object, default: null },
     /** §③ lane 15 educational slice — community standards (own key). */
     standards: { type: Object, default: null },
 });
@@ -49,7 +51,8 @@ function submitCreate() {
 </script>
 
 <template>
-    <PageScaffold :surface="surface">
+    <PageScaffold :surface="surface" :title="selectedPlace ? $t('places.square_in', { name: selectedPlace.name }) : undefined">
+        <CommunityNav :jurisdiction-id="selectedPlace?.id || create.jurisdiction_id || ''" />
         <template #intro>
             The public square is open to every resident of the jurisdiction. Anyone associated may
             post; no one — operator, legislator, or judge — may remove a post on viewpoint. The only
@@ -60,12 +63,12 @@ function submitCreate() {
         <Banner v-if="constitutionError" tone="emergency">{{ constitutionError }}</Banner>
 
         <div class="cluster" style="gap: var(--space-6)">
-            <Stat :value="threads.length" label="threads in your association chain" />
+            <Stat :value="threads.length" :label="$t('places.threads_in_view')" />
             <Stat value="Art. I" label="uncensorable" accent />
         </div>
 
         <Card as="section" title="Recent threads">
-            <p class="citation" style="margin-block-end: var(--space-3)">scoped to your association chain</p>
+            <p class="citation" style="margin-block-end: var(--space-3)">{{ selectedPlace ? $t('places.viewing', { name: selectedPlace.name }) : $t('places.association_view') }}</p>
             <div v-if="threads.length" class="stack" style="gap: var(--space-3)">
                 <Card v-for="thread in threads" :key="thread.id" inset>
                     <strong>{{ thread.title }}</strong>
@@ -81,6 +84,7 @@ function submitCreate() {
             <p v-else class="cc-small gloss">No threads yet — any associated resident can open one.</p>
         </Card>
 
+        <p v-if="selectedPlace && isAssociated" class="gloss">{{ $t('places.filing_choices') }}</p>
         <FormCard
             v-if="isAssociated && formMeta('F-SOC-001')"
             :form="formMeta('F-SOC-001')"

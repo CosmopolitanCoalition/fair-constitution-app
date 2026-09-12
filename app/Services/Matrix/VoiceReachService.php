@@ -36,6 +36,7 @@ class VoiceReachService
         private readonly LiveKitTokenService $livekit,
         private readonly MatrixPostingGateService $posting,
         private readonly MultiplexClient $mux,
+        private readonly PublicVoiceRoomAccess $rooms,
     ) {}
 
     /**
@@ -47,6 +48,7 @@ class VoiceReachService
      */
     public function tokenFor(User $player, string $jurisdictionId, string $room, array $device): array
     {
+        $this->rooms->assertMayJoin($player, $jurisdictionId, $room);
         $pointer = $this->reach->reachLiveService('voice.sfu', $jurisdictionId);
         $pseudonym = $this->posting->matrixUserId($player); // @u-<handle>:domain — the home-vouched identity
 

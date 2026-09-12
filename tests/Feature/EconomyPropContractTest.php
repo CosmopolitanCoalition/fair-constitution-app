@@ -39,7 +39,7 @@ class EconomyPropContractTest extends TestCase
      * shell, the Learn flyout and the footer citation all read.
      */
     private const CONTRACT = [
-        '/economy'                => ['surface', 'currency', 'supply', 'ledger', 'counts', 'stipend', 'clock'],
+        '/economy'                => ['surface', 'currency', 'account', 'supply', 'ledger', 'counts', 'stipend', 'clock'],
         // `assets` / `my_assets` arrived with the write path (F-IND-022/024):
         // a page cannot offer a thing without knowing what you hold.
         '/economy/wallet'         => ['surface', 'currency', 'account', 'transactions', 'receipts', 'assets'],
@@ -125,10 +125,12 @@ class EconomyPropContractTest extends TestCase
 
         $home = $this->actingAs($user)->get('/economy')->assertOk()->viewData('page')['props'];
 
-        $this->assertIsString($home['supply'], 'supply must be a string');
-        $this->assertIsString($home['ledger']['residual'], 'residual must be a string');
-        $this->assertIsString($home['stipend']['floor'], 'stipend.floor must be a string');
-        $this->assertIsString($home['stipend']['cap'], 'stipend.cap must be a string');
+        // The action hub does not aggregate or verify the world ledger on GET.
+        $this->assertNull($home['supply']);
+        $this->assertNull($home['ledger']['residual']);
+        if ($home['account'] !== null) {
+            $this->assertIsString($home['account']['balance'], 'the existing wallet balance remains a precise string');
+        }
 
         $treasury = $this->actingAs($user)->get('/economy/treasury')->assertOk()->viewData('page')['props'];
 
@@ -189,21 +191,20 @@ class EconomyPropContractTest extends TestCase
     }
 
     /**
-     * The ledger's own invariant, surfaced. If this reads anything but zero on
-     * a live box, value has entered or left outside an issuance event.
+     * Loading a navigation hub is not a ledger verification. Integrity itself
+     * remains pinned by LedgerIntegrityTest; unmeasured totals must stay null.
      */
-    public function test_the_home_surface_reports_a_conserved_ledger(): void
+    public function test_the_home_surface_does_not_claim_unperformed_ledger_verification(): void
     {
         $user = $this->actor();
 
         $props = $this->actingAs($user)->get('/economy')->assertOk()->viewData('page')['props'];
 
-        $this->assertTrue($props['ledger']['verified'], 'the ledger hash chain must verify');
-        $this->assertSame(
-            0,
-            bccomp($props['ledger']['residual'], '0', 6),
-            'residual = Σdebits − Σcredits + minted supply, and must be zero: issuance is the only lawful way for value to enter.'
-        );
+        $this->assertSame('not_checked', $props['ledger']['status']);
+        $this->assertNull($props['ledger']['verified']);
+        $this->assertNull($props['ledger']['residual']);
+        $this->assertNull($props['ledger']['entries']);
+        $this->assertNull($props['supply']);
     }
 
     /** Private mutual-aid requests never cross the boundary. */

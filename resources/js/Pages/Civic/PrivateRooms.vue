@@ -18,6 +18,7 @@ import AppShellV2 from '@/Layouts/AppShellV2.vue';
 import Card from '@/Components/Ui/Card.vue';
 import Icon from '@/Components/Ui/Icon.vue';
 import InviteButton from '@/Components/Invite/InviteButton.vue';
+import CommunityNav from '@/Components/Civic/CommunityNav.vue';
 
 /* Phase-2 restyle wave: the v3 player chrome (MASTER_PLAN). */
 defineOptions({ layout: AppShellV2 });
@@ -59,6 +60,7 @@ function whenLabel(iso) {
     <Head title="Messages" />
 
     <div class="stack" style="gap: var(--space-4)">
+        <CommunityNav />
         <header>
             <p class="eyebrow">People, together · direct &amp; group messages</p>
             <h1>Messages</h1>

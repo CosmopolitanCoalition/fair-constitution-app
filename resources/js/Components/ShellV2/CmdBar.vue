@@ -12,6 +12,7 @@
  * closes and refocuses the summary; clicking outside closes.
  */
 import { onBeforeUnmount, onMounted, ref } from 'vue';
+import { router } from '@inertiajs/vue3';
 import Icon from '@/Components/Ui/Icon.vue';
 import MenuNav from '@/Components/ShellV2/MenuNav.vue';
 import LearnFlyout from '@/Components/ShellV2/LearnFlyout.vue';
@@ -32,6 +33,7 @@ defineProps({
 });
 
 const rootEl = ref(null);
+let stopNavigation;
 
 function flies() {
     return rootEl.value ? Array.from(rootEl.value.querySelectorAll('.cmdbar-fly')) : [];
@@ -55,10 +57,14 @@ function onDocClick(ev) {
     }
 }
 onMounted(() => {
+    stopNavigation = router.on('navigate', () => {
+        for (const flyout of flies()) flyout.removeAttribute('open');
+    });
     document.addEventListener('keydown', onKeydown);
     document.addEventListener('click', onDocClick);
 });
 onBeforeUnmount(() => {
+    stopNavigation?.();
     document.removeEventListener('keydown', onKeydown);
     document.removeEventListener('click', onDocClick);
 });

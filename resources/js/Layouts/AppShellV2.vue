@@ -54,7 +54,7 @@ const { t, locale } = useI18n({ useScope: 'global' });
 const auth = computed(() => page.props.auth ?? {});
 const user = computed(() => auth.value.user ?? null);
 const roles = computed(() => auth.value.roles ?? ['R-00']);
-const instance = computed(() => page.props.instance ?? {});
+const instance = computed(() => page.props.shellInstance ?? page.props.instance ?? {});
 /* The header chain shows the VIEWED place when the page provides one
    (App\Support\JurisdictionContext::for -> `jurisdictionContext`), else the
    viewer's home chain (`homeJurisdiction`); the legacy `jurisdiction` shared
@@ -189,12 +189,12 @@ function onScroll() {
 // prop) — not keyed on import.meta.env.DEV. Successor of the DevBar strip,
 // retired from this shell by V3 synthesis S3: the dock is Demo's one home.
 const demoOn = computed(
-    () => page.props.devBar === true || impersonation.value?.active === true || instance.value.sandbox === true,
+    () => page.props.devBar === true || impersonation.value?.active === true || instance.value.sandbox === true || instance.value.demo === true,
 );
 const impersonatingUser = computed(() =>
     impersonation.value?.active ? (user.value ? { name: user.value.display_name || user.value.name } : null) : null,
 );
-const realUser = computed(() => impersonation.value?.realUser ?? null);
+const realUser = computed(() => impersonation.value?.realUser ?? (impersonation.value?.realName ? { name: impersonation.value.realName } : null));
 
 function logout() {
     router.post('/logout');

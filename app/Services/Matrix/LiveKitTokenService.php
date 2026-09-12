@@ -3,6 +3,7 @@
 namespace App\Services\Matrix;
 
 use App\Models\User;
+use App\Services\Rooms\PublicRoomNames;
 
 /**
  * Phase K-3 (K3-J) / Phase 5 — the LiveKit (MatrixRTC SFU) access-token minter. Voice/video in a
@@ -23,7 +24,10 @@ class LiveKitTokenService
 
     public const DEFAULT_TTL_SECONDS = 3600; // 1h
 
-    public function __construct(private readonly MatrixPostingGateService $posting) {}
+    public function __construct(
+        private readonly MatrixPostingGateService $posting,
+        private readonly PublicRoomNames $names,
+    ) {}
 
     /**
      * Mint a room-scoped LiveKit join token for a player in $jurisdictionId's OPEN public commons.
@@ -83,7 +87,8 @@ class LiveKitTokenService
         $claims = [
             'iss' => $apiKey,           // LiveKit identifies the signer by api_key
             'sub' => $identity,         // the participant identity = the pseudonym
-            'name' => $identity,
+            // The public social pseudonym is a label, never the token's identity or a legal name.
+            'name' => $this->names->forHandles([$identity])[$identity] ?? $identity,
             'nbf' => $now,
             'exp' => $now + $ttl,       // bounded — a join grant, not a session
             'video' => [                  // the VideoGrant: ONE room, join only, no admin/record rights

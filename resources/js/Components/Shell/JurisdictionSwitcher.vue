@@ -8,6 +8,8 @@
  * Emits `switch(jurisdictionId)` when a chain entry is chosen.
  */
 import { useI18n } from 'vue-i18n';
+import { ref } from 'vue';
+import { Link } from '@inertiajs/vue3';
 import AdmChip from '@/Components/Ui/AdmChip.vue';
 import Icon from '@/Components/Ui/Icon.vue';
 
@@ -24,6 +26,9 @@ defineProps({
 });
 
 const emit = defineEmits(['switch']);
+const popover = ref(null);
+const close = () => { if (popover.value) popover.value.open = false; };
+const choose = id => { close(); emit('switch', id); };
 
 const { t } = useI18n({ useScope: 'global' });
 
@@ -31,7 +36,7 @@ const admLabel = (level) => ADM_LABELS[Math.min(level, 6)];
 </script>
 
 <template>
-    <details class="popover jur-switcher">
+    <details ref="popover" class="popover jur-switcher">
         <summary :aria-label="t('header.jurisdiction')">
             <span v-if="cosmicPrefix" class="cosmic-prefix">{{ cosmicPrefix }}</span>
             <template v-for="(jur, i) in chain" :key="jur.id">
@@ -50,7 +55,7 @@ const admLabel = (level) => ADM_LABELS[Math.min(level, 6)];
                         class="btn btn--ghost btn--sm"
                         style="inline-size: 100%; justify-content: flex-start"
                         :aria-current="jur.id === current.id ? 'true' : undefined"
-                        @click="emit('switch', jur.id)"
+                        @click="choose(jur.id)"
                     >
                         <AdmChip :level="jur.admLevel" dot-only />
                         {{ jur.name }}
@@ -58,8 +63,16 @@ const admLabel = (level) => ADM_LABELS[Math.min(level, 6)];
                     </button>
                 </li>
             </ul>
+            <div class="jur-switcher__browse">
+                <Link v-if="current.slug" :href="`/jurisdictions?parent=${encodeURIComponent(current.slug)}`" class="btn btn--secondary btn--sm" @click="close">{{ t('places.places_inside') }}</Link>
+                <Link href="/jurisdictions" class="btn btn--ghost btn--sm" @click="close">{{ t('places.browse_world') }}</Link>
+            </div>
             <!-- Search-driven sibling/children lookup mounts here (layout WI). -->
             <slot />
         </div>
     </details>
 </template>
+
+<style scoped>
+.jur-switcher__browse { display: flex; flex-wrap: wrap; gap: var(--space-2); border-block-start: 1px solid var(--gov-border); margin-block-start: var(--space-2); padding-block-start: var(--space-3); }
+</style>

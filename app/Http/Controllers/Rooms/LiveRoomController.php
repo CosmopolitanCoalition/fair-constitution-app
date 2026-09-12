@@ -7,10 +7,12 @@ use App\Http\Presenters\ChamberVotePresenter;
 use App\Models\Committee;
 use App\Models\CommitteeMeeting;
 use App\Models\CommitteeSeat;
-use App\Models\MatrixIdentity;
 use App\Models\PublicRecord;
+use App\Models\User;
+use App\Services\Matrix\MatrixPostingGateService;
 use App\Services\Matrix\SocialTopologyReconcilerService;
 use App\Services\Rooms\LiveFloorService;
+use App\Services\Rooms\PublicRoomNames;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
@@ -36,6 +38,8 @@ class LiveRoomController extends Controller
         private readonly SocialTopologyReconcilerService $rooms,
         private readonly LiveFloorService $floor,
         private readonly ChamberVotePresenter $votes,
+        private readonly PublicRoomNames $names,
+        private readonly MatrixPostingGateService $posting,
     ) {
     }
 
@@ -50,8 +54,9 @@ class LiveRoomController extends Controller
         // A Matrix hiccup must DEGRADE, never block: the durable civic record —
         // agenda, the vote, the sealed record — is Plane A (Postgres) and never
         // depends on the homeserver being up.
+        $matrixRoom = null;
         try {
-            $this->rooms->reconcileCommitteeMeeting($meeting);
+            $matrixRoom = $this->rooms->reconcileCommitteeMeeting($meeting);
         } catch (\Throwable $e) {
             report($e);
         }
@@ -59,7 +64,7 @@ class LiveRoomController extends Controller
         $seats = CommitteeSeat::query()
             ->where('committee_id', $committee->id)
             ->live()
-            ->with('member.user:id,name,display_name')
+            ->with('member:id,user_id')
             ->get();
 
         $viewer = $request->user();
@@ -72,6 +77,15 @@ class LiveRoomController extends Controller
 
         $floorKey = $this->floor->key('committee_meeting', (string) $meeting->id);
         $floorState = $this->floor->state($floorKey);
+        $presence = $this->presence($seats, $committee, $floorState);
+        $displayNames = $this->names->forHandles(array_filter(array_merge(
+            array_column($floorState['queue'], 'handle'), [$floorState['floorHolder']]
+        )));
+        foreach ($presence as $person) {
+            if ($person['display_name']) {
+                $displayNames[$person['handle']] = $person['display_name'];
+            }
+        }
 
         return Inertia::render('Legislature/LiveCivicRoom', [
             'surface'   => \App\Support\SurfaceMeta::for('legislature/committee-detail'),
@@ -97,11 +111,18 @@ class LiveRoomController extends Controller
                 'deepLink' => "/committees/{$committee->id}",
             ],
             'vote'      => $this->openCommitteeVote($committee),
-            'presence'  => $this->presence($seats, $committee, $floorState),
+            'presence'  => $presence,
+            'displayNames' => $displayNames,
             'queue'     => $this->queueRows($floorState),
             'floorHolder' => $floorState['floorHolder'],
             'chat'      => [], // the live Matrix timeline reads in step 4 (empty on a fresh room); useLiveRoom refreshes it
-            'voice'     => ['enabled' => true, 'participants' => [], 'residencyGated' => true],
+            'voice'     => [
+                'enabled' => $matrixRoom !== null,
+                'roomId' => $matrixRoom?->matrix_room_id,
+                'jurisdictionId' => $jurisdiction?->id,
+                'myMxid' => $viewer !== null ? $this->posting->matrixUserId($viewer) : null,
+                'myUserId' => $viewer?->id,
+            ],
             'translation' => ['from' => 'en', 'to' => 'en', 'isPrivate' => false, 'rail' => 'server-local'],
             'record'    => $this->recordRows($committee),
             'residencyGated' => true,
@@ -127,6 +148,7 @@ class LiveRoomController extends Controller
                 'advance'   => "/rooms/committee/{$meeting->id}/advance",
                 'testify'   => "/committees/{$committee->id}/reports",
                 'chamber'   => "/committees/{$committee->id}",
+                'commons'   => '/civic/commons/halls?jurisdiction='.$jurisdiction?->id,
             ],
         ]);
     }
@@ -155,8 +177,12 @@ class LiveRoomController extends Controller
         $handle = $request->input('handle'); // null → the next hand in the queue (FIFO)
         $state = $this->floor->recognize($key, is_string($handle) ? $handle : null);
 
+        $label = $state['floorHolder'] !== null
+            ? ($this->names->forHandles([$state['floorHolder']])[$state['floorHolder']] ?? 'The next speaker')
+            : null;
+
         return back()->with('status', $state['floorHolder'] !== null
-            ? "{$state['floorHolder']} now holds the floor."
+            ? "{$label} now holds the floor."
             : 'No hands are raised to recognize.');
     }
 
@@ -246,12 +272,14 @@ class LiveRoomController extends Controller
     /** Presence = the committee's seated members, pseudonymous + seat-tagged. */
     private function presence($seats, Committee $committee, array $floorState): array
     {
-        return $seats->map(function (CommitteeSeat $seat) use ($committee, $floorState) {
+        $names = $this->names->forUsers($seats->map(fn ($seat) => $seat->member?->user_id)->filter()->all());
+
+        return $seats->map(function (CommitteeSeat $seat) use ($committee, $floorState, $names) {
             $handle = $this->pseudonym($seat->member?->user_id);
 
             return [
                 'handle'   => $handle,
-                'name'     => null, // pseudonymous by construction (MANIFEST) — never a legal name
+                'display_name' => $names[(string) $seat->member?->user_id] ?? null,
                 'seat'     => $seat->seat_kind,
                 'role'     => (string) $committee->chair_member_id === (string) $seat->member_id ? 'chair' : 'member',
                 'online'   => false, // liveness is the call's business (LiveKit); the poll refreshes it
@@ -309,17 +337,9 @@ class LiveRoomController extends Controller
             return '@u-anon';
         }
 
-        $identity = MatrixIdentity::query()->where('user_id', $userId)->first();
-        if ($identity !== null && $identity->matrix_user_id !== null) {
-            return (string) $identity->matrix_user_id;
-        }
-        if ($identity !== null && $identity->matrix_localpart !== null) {
-            return '@'.$identity->matrix_localpart;
-        }
-
-        // No Matrix identity yet — a STABLE anonymous token derived from the id,
-        // never the legal name (MANIFEST: handles are pseudonymous by construction).
-        return '@u-'.substr(hash('sha256', $userId), 0, 8);
+        // Use the same identity as text and voice, including before first Matrix login.
+        // A second truncated hash here would split one participant into two seats.
+        return $this->posting->matrixUserId((new User())->forceFill(['id' => $userId]));
     }
 
     private function viewerCommitteeMemberId(Committee $committee, $seats, $user): ?string

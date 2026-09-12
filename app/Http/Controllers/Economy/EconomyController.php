@@ -50,56 +50,37 @@ class EconomyController extends Controller
         private CurrencyTelemetryService $telemetry,
     ) {}
 
-    public function home(): Response
+    public function home(Request $request): Response
     {
         $currency = $this->currency();
-        $rootId   = $this->rootId();
-
-        $lastRun = $currency === null ? null : DB::table('ubi_disbursements')
-            ->where('currency_id', $currency->id)
-            ->orderByDesc('ran_at')
-            ->first();
-
-        $supply = $currency === null ? '0.000000' : $this->issuance->supply($currency->id);
-        $imbalance = $currency === null
-            ? '0.000000'
-            : ($this->ledger->imbalanceByCurrency()[$currency->id] ?? '0.000000');
+        $accountId = $currency === null || $request->user() === null
+            ? null
+            : $this->accounts->accountIdFor('users', (string) $request->user()->id, $currency->id);
+        // Read the existing wallet only. Opening a hub must not mint an account
+        // or walk the world ledger. Its balance is already stored on this row.
+        $account = $accountId === null ? null : DB::table('economic_accounts')
+            ->where('id', $accountId)->whereNull('deleted_at')->first(['id', 'balance', 'status']);
 
         return Inertia::render('Economy/Home', [
             'surface'  => SurfaceMeta::for('economy/home'),
             'currency' => $this->currencyProp($currency),
-            'supply'   => $supply,
-            'ledger'   => [
-                'entries'  => DB::table('ledger_entries')->count(),
-                'verified' => $this->ledger->verifyChain() === true,
-                // A healthy ledger sits at exactly −supply: issuance is the
-                // only lawful way for value to enter, everything else
-                // conserves. The residual is what must read zero.
-                'residual' => bcadd($imbalance, $supply, 6),
+            'account'  => $account === null ? null : [
+                'id' => (string) $account->id,
+                'balance' => (string) $account->balance,
+                'status' => (string) $account->status,
             ],
+            // Preserve rollout keys, but do not label an unchecked ledger
+            // healthy or present unavailable world totals as zero.
+            'supply' => null,
+            'ledger' => ['entries' => null, 'verified' => null, 'residual' => null, 'status' => 'not_checked'],
             'counts' => [
-                'wallets'    => DB::table('economic_accounts')->whereNull('deleted_at')->count(),
-                'listings'   => DB::table('marketplace_listings')->where('status', 'open')->whereNull('deleted_at')->count(),
-                'postings'   => DB::table('work_postings')->where('status', 'open')->whereNull('deleted_at')->count(),
-                'assistance' => DB::table('assistance_requests')->where('status', 'open')->whereNull('deleted_at')->count(),
-                'assets'     => DB::table('assets')->whereNull('deleted_at')->count(),
+                'wallets' => null, 'listings' => null, 'postings' => null, 'assistance' => null, 'assets' => null,
             ],
             'stipend' => [
-                'enabled'        => $rootId === null ? true : ($this->settings->resolve($rootId, 'stipend_enabled') ?? true) == true,
-                'floor'          => $this->settingString($rootId, 'civic_stipend_floor', '50'),
-                'cap'            => $this->settingString($rootId, 'stipend_bump_cap', '20'),
-                'interval'       => (string) ($rootId === null ? 'monthly' : ($this->settings->resolve($rootId, 'stipend_interval') ?? 'monthly')),
-                'funding_source' => (string) ($rootId === null ? 'minted' : ($this->settings->resolve($rootId, 'stipend_funding_source') ?? 'minted')),
-                'last_run'       => $lastRun === null ? null : [
-                    'ran_at'     => $this->iso($lastRun->ran_at),
-                    'recipients' => (int) $lastRun->recipients,
-                    'total'      => (string) $lastRun->total,
-                    'short_paid' => (bool) $lastRun->short_paid,
-                ],
+                'enabled' => null, 'floor' => null, 'cap' => null, 'interval' => null,
+                'funding_source' => null, 'last_run' => null, 'status' => 'not_loaded',
             ],
-            // The economic clock, shared with treasury + units — the front door
-            // should say when the next disbursement is due.
-            'clock' => $this->economicClock(),
+            'clock' => ['interval' => null, 'period_days' => null, 'last_run' => null, 'next_run' => null],
         ]);
     }
 

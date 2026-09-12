@@ -5,6 +5,8 @@ namespace App\Support;
 use App\Models\Jurisdiction;
 use App\Models\CosmicAddress;
 use Illuminate\Support\Facades\Schema;
+use Illuminate\Http\Request;
+use Illuminate\Support\Str;
 
 /**
  * THE VIEWED PLACE — the shell's persistent jurisdiction context (operator
@@ -23,6 +25,19 @@ use Illuminate\Support\Facades\Schema;
  */
 final class JurisdictionContext
 {
+    /** Explicit observation scope. This never establishes residency or action standing. */
+    public static function requested(Request $request): ?Jurisdiction
+    {
+        $request->validate(['jurisdiction' => ['nullable', 'string', 'max:255']]);
+        if (! $request->filled('jurisdiction')) {
+            return null;
+        }
+        $key = trim($request->string('jurisdiction')->toString());
+
+        return Jurisdiction::query()->where(Str::isUuid($key) ? 'id' : 'slug', $key)
+            ->firstOrFail(['id', 'name', 'slug', 'parent_id', 'adm_level']);
+    }
+
     /**
      * @return array{current: array{id:string,name:string,slug:string,admLevel:int}, chain: list<array{id:string,name:string,slug:string,admLevel:int}>, cosmicPrefix: string}
      */
@@ -55,7 +70,7 @@ final class JurisdictionContext
      * a link; one that does not is a muted row with the reason in plain
      * words — present, never hidden (complete lists).
      *
-     * @param  array{slug:string, legislature_id?:?string, executive_id?:?string, judiciary_id?:?string,
+     * @param  array{slug:string, id?:string, legislature_id?:?string, executive_id?:?string, judiciary_id?:?string,
      *               has_district_map?:bool, chamber_seated?:bool, current_election?:?array,
      *               childCount?:int, parent_name?:?string}  $g
      * @return list<array{key:string, group:string, label:string, href:?string, state:string, hint:?string, icon:?string}>
@@ -75,22 +90,20 @@ final class JurisdictionContext
 
         $tools = [
             $link('overview', 'This place', 'Overview', "/jurisdictions/{$slug}", null, 'landmark'),
-            $link('map', 'This place', 'Map', "/jurisdictions/{$slug}/map", $isLeaf ? 'the boundary' : 'the places inside', 'map-pin'),
+            $link('map', 'This place', 'Boundary map', "/jurisdictions/{$slug}/map", $isLeaf ? 'the boundary' : 'the places inside', 'map-pin'),
+            $link('places', 'This place', 'Places inside', '/jurisdictions?parent='.rawurlencode($slug), null, 'globe'),
+            $link('world', 'This place', 'Browse the world', '/jurisdictions', null, 'globe'),
         ];
 
         // Its government
-        if ($legId !== null && ! empty($g['chamber_seated'])) {
-            $tools[] = $link('chamber', 'Its government', 'Legislature', "/legislatures/{$legId}/chamber", 'seated', 'landmark');
-        } elseif ($legId !== null && ! empty($g['has_district_map'])) {
-            $tools[] = $muted('chamber', 'Its government', 'Legislature', 'districts drawn, seats not yet filled', 'landmark');
-        } elseif ($legId !== null) {
-            $tools[] = $muted('chamber', 'Its government', 'Legislature', 'forming', 'landmark');
+        if ($legId !== null) {
+            $tools[] = $link('chamber', 'Its government', 'Legislature', "/legislatures/{$legId}/chamber", ! empty($g['chamber_seated']) ? 'seated' : 'forming', 'landmark');
         } else {
             $tools[] = $muted('chamber', 'Its government', 'Legislature', $isLeaf ? $leafNote : 'none yet', 'landmark');
         }
-        $tools[] = $legId !== null && ! empty($g['has_district_map'])
-            ? $link('districts', 'Its government', 'Districts', "/legislatures/{$legId}/districts", null, 'map')
-            : $muted('districts', 'Its government', 'Districts', $legId !== null ? 'not yet drawn' : ($isLeaf ? $leafNote : 'none yet'), 'map');
+        $tools[] = $legId !== null
+            ? $link('districts', 'Its government', 'Legislative maps', "/legislatures/{$legId}/districts", ! empty($g['has_district_map']) ? null : 'not yet drawn', 'map')
+            : $muted('districts', 'Its government', 'Legislative maps', $isLeaf ? $leafNote : 'none yet', 'map');
         if (! $isLeaf) {
             $tools[] = $legId !== null
                 ? $link('panels', 'Its government', 'Panels', "/legislatures/{$legId}/panels", 'equal seats per constituent', 'building')
@@ -108,9 +121,10 @@ final class JurisdictionContext
             : $muted('election', 'Its government', 'Elections', 'none scheduled', 'vote');
 
         // Take part (open to everyone; filing needs residency)
-        $tools[] = $link('square', 'Take part', 'The public square', '/civic/square', null, 'message-square');
-        $tools[] = $link('petitions', 'Take part', 'Petitions', '/civic/petitions', null, 'file-text');
-        $tools[] = $link('rooms', 'Take part', 'Live rooms', '/civic/commons/square', null, 'users');
+        $tools[] = $link('roles', 'Take part', 'Explore civic roles', '/explore?jurisdiction='.rawurlencode($slug), null, 'users');
+        $tools[] = $link('square', 'Take part', 'The public square', '/civic/square?jurisdiction='.rawurlencode($slug), null, 'message-square');
+        $tools[] = $link('petitions', 'Take part', 'Petitions', '/civic/petitions?jurisdiction='.rawurlencode($slug), null, 'file-text');
+        $tools[] = $link('rooms', 'Take part', 'Live rooms', '/civic/commons/square'.(! empty($g['id']) ? '?jurisdiction='.rawurlencode($g['id']) : ''), null, 'users');
 
         return $tools;
     }

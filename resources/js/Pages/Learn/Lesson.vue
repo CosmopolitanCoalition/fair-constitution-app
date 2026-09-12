@@ -9,7 +9,7 @@
  * choices only; grading is a POST, a wrong answer gets the explain text,
  * and the correct choice is never revealed by a fail. Retakes unlimited.
  */
-import { computed, reactive } from 'vue';
+import { computed, reactive, watch } from 'vue';
 import { Link, router } from '@inertiajs/vue3';
 import { useI18n } from 'vue-i18n';
 import AppShellV2 from '@/Layouts/AppShellV2.vue';
@@ -18,6 +18,7 @@ import Banner from '@/Components/Ui/Banner.vue';
 import Card from '@/Components/Ui/Card.vue';
 import Icon from '@/Components/Ui/Icon.vue';
 import StatusBadge from '@/Components/Ui/StatusBadge.vue';
+import { lessonContentFor } from '@/composables/lessonContent.js';
 
 defineOptions({ layout: AppShellV2 });
 
@@ -35,6 +36,10 @@ const props = defineProps({
 const { t } = useI18n({ useScope: 'global' });
 
 const chosen = reactive({});
+const lesson = computed(() => lessonContentFor(props.module.surface_id));
+watch(() => props.module.key, () => {
+    for (const key of Object.keys(chosen)) delete chosen[key];
+});
 const signedIn = computed(() => Boolean(props.auth?.user));
 const result = computed(() =>
     props.quiz && props.quiz.module_key === props.module.key ? props.quiz : null);
@@ -63,6 +68,19 @@ const next = computed(() => {
 
         <Banner v-if="required" tone="warn">{{ t('c_learn.ui.required_banner') }}</Banner>
         <StatusBadge v-if="module.completed" tone="success">{{ t('c_learn.ui.completed') }}</StatusBadge>
+
+        <section v-if="lesson" class="stack" aria-labelledby="lesson-h">
+            <h2 id="lesson-h">{{ t('c_learn.ui.lesson_heading', 'Before you begin') }}</h2>
+            <p>{{ t(lesson.learn) }}</p>
+            <ol class="stack">
+                <li v-for="step in lesson.steps" :key="step.do">
+                    <strong>{{ t(step.do) }}</strong>
+                    <p>{{ t(step.detail) }}</p>
+                    <small v-if="step.cite" class="citation">{{ step.cite }}</small>
+                </li>
+            </ol>
+            <p v-if="lesson.why">{{ t(lesson.why) }}</p>
+        </section>
 
         <section aria-labelledby="check-h" class="stack">
             <h2 id="check-h">{{ t('c_learn.ui.check_heading') }}</h2>

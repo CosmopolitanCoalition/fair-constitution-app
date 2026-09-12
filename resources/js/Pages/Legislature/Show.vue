@@ -154,6 +154,7 @@ function fmtNum(n) {
         <!-- ================================================= doors ====== -->
         <Card as="section" title="Inside this legislature">
             <div class="cluster">
+                <Link :href="`/legislatures/${legislature.id}/districts`">{{ $t('places.legislative_maps') }} →</Link>
                 <Link v-if="legislature.chamber_seated" :href="`/legislatures/${legislature.id}/chamber`">Chamber →</Link>
                 <Link :href="`/legislatures/${legislature.id}/bills`">Bills →</Link>
                 <Link :href="`/legislatures/${legislature.id}/committees`">Committees →</Link>

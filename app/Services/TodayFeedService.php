@@ -143,7 +143,7 @@ class TodayFeedService
                 'jurisdiction' => $name,
                 'pill'         => ['tone' => 'vote', 'label' => $phase],
                 'target'       => $target,
-                'href'         => '/elections',
+                'href'         => '/elections/'.$election->id,
             ];
         })->all();
     }
@@ -287,7 +287,7 @@ class TodayFeedService
         $questions = ReferendumQuestion::query()
             ->whereIn('jurisdiction_id', $jurisdictionIds)
             ->whereIn('status', [ReferendumQuestion::STATUS_SCHEDULED, ReferendumQuestion::STATUS_VOTED])
-            ->with('jurisdiction:id,name')
+            ->with('jurisdiction:id,name,slug')
             ->orderByDesc('created_at')
             ->limit(self::ROW_CAP)
             ->get();
@@ -312,7 +312,9 @@ class TodayFeedService
                     ? ['tone' => 'info', 'label' => 'Awaiting certification']
                     : ['tone' => 'wait', 'label' => 'On the ballot'],
                 'target'       => null,
-                'href'         => '/legislature/referendums',
+                'href'         => $question->election_id
+                    ? '/elections/'.$question->election_id
+                    : ($question->jurisdiction?->slug ? '/jurisdictions/'.$question->jurisdiction->slug : '/jurisdictions'),
             ];
         })->all();
     }
@@ -354,7 +356,7 @@ class TodayFeedService
             foreach ($phaseLabels as $column => $label) {
                 $at = $election->{$column};
                 if ($at !== null && $at->gt($now)) {
-                    $events[] = $this->calendarEvent($now, $at, "{$label} — {$name}", $name, '/elections');
+                    $events[] = $this->calendarEvent($now, $at, "{$label} — {$name}", $name, '/elections/'.$election->id);
                 }
             }
         }
@@ -386,7 +388,7 @@ class TodayFeedService
             ->whereIn('jurisdiction_id', $jurisdictionIds)
             ->whereNotNull('fires_at')
             ->where('fires_at', '>', $now)
-            ->with('jurisdiction:id,name')
+            ->with('jurisdiction:id,name,slug')
             ->orderBy('fires_at')
             ->limit(self::CALENDAR_CAP)
             ->get();
@@ -398,7 +400,7 @@ class TodayFeedService
                 $timer->fires_at,
                 "Next general election — {$name}",
                 $name,
-                '/elections',
+                $timer->jurisdiction?->slug ? '/jurisdictions/'.$timer->jurisdiction->slug : '/jurisdictions',
             );
         }
 
