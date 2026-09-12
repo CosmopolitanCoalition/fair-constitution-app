@@ -554,7 +554,7 @@ return [
     ],
 
     'system/term-sync' => [
-        'title'     => 'Term lockstep',
+        'title'     => 'Term schedules',
         'module'    => 'system',
         'nav'       => 'term-sync',
         'roles'     => [],

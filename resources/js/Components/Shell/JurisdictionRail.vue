@@ -29,7 +29,7 @@ const props = defineProps({
 const page = usePage();
 const { t } = useI18n({ useScope: 'global' });
 const labelKey = { map: 'boundary_map', places: 'places_inside', world: 'browse_world', districts: 'legislative_maps', roles: 'explore_roles' };
-const toolLabel = tool => labelKey[tool.key] ? t(`places.${labelKey[tool.key]}`) : tool.label;
+const toolLabel = tool => tool.key === 'terms' ? t('c_term_sync.title') : labelKey[tool.key] ? t(`places.${labelKey[tool.key]}`) : tool.label;
 const path = computed(() => String(page.url ?? '/').split('?')[0]);
 
 const groups = computed(() => {

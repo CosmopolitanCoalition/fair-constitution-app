@@ -302,7 +302,7 @@ function chairReferToFloor() {
                 </p>
                 <p class="citation">
                     dependent clocks re-derived after commit ·
-                    <Link href="/system/term-sync">the re-armed timer renders on Term sync →</Link> ·
+                    <Link :href="`/system/term-sync?legislature=${legislature.id}`">{{ t('c_term_sync.title') }}</Link> ·
                     <Link :href="`/legislatures/${legislature.id}/settings`">settings register →</Link>
                 </p>
             </Card>

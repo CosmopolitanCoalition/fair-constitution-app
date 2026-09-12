@@ -816,6 +816,8 @@ Route::middleware('auth')->group(function () {
         ->whereUuid('listing')->name('economy.listing');
     Route::get('/economy/treasury', [\App\Http\Controllers\Economy\EconomyController::class, 'treasury'])->name('economy.treasury');
     Route::get('/economy/units', [\App\Http\Controllers\Economy\EconomyController::class, 'units'])->name('economy.units');
+    Route::post('/economy/units/report', [\App\Http\Controllers\Economy\EconomyController::class, 'refreshReport'])
+        ->middleware('throttle:6,1')->name('economy.units.report');
     Route::get('/economy/stipend', [\App\Http\Controllers\Economy\EconomyController::class, 'stipend'])->name('economy.stipend');
     Route::get('/economy/requests/{posting}', [\App\Http\Controllers\Economy\EconomyController::class, 'workPosting'])
         ->whereUuid('posting')->name('economy.request');
@@ -971,7 +973,7 @@ Route::middleware('auth')->group(function () {
     Route::post('/system/public-records/statements', [\App\Http\Controllers\System\PublicRecordsController::class, 'statement'])
         ->name('system.public-records.statements');                           // F-LEG-006
     Route::get('/system/term-sync', [\App\Http\Controllers\System\TermSyncController::class, 'show'])
-        ->name('system.term-sync');
+        ->name('system.term-sync')->withoutMiddleware('auth');
 
     // ════════════════════════════════════════════════════════════════════════
     // PHASE D — Executive & Organizations (FE-D2..D9). Public read across the

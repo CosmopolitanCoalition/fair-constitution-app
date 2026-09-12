@@ -18,8 +18,8 @@
  * economy has no overdraft. The page renders that message rather than
  * treating it as a failed request.
  */
-import { computed } from 'vue';
-import { useForm, usePage } from '@inertiajs/vue3';
+import { computed, ref, watch } from 'vue';
+import { Link, router, useForm, usePage } from '@inertiajs/vue3';
 import AppShellV2 from '@/Layouts/AppShellV2.vue';
 import PageScaffold from '@/Components/Surface/PageScaffold.vue';
 import WorkTradeNav from '@/Components/Economy/WorkTradeNav.vue';
@@ -42,11 +42,27 @@ const props = defineProps({
     receipts: { type: Array, default: () => [] },
     /** Things you hold — physical and virtual alike, one flag apart. */
     assets: { type: Array, default: () => [] },
+    asset_directory: { type: Object, default: () => ({ query: '', previous: null, next: null, available: false }) },
 });
 
 const page = usePage();
 const flashStatus = computed(() => page.props.flash?.status ?? null);
 const constitutionError = computed(() => page.props.errors?.constitution ?? null);
+const assetSearch = ref(props.asset_directory.query ?? '');
+const assetSearching = ref(false);
+const assetSearchError = ref('');
+watch(() => props.asset_directory.query, query => { assetSearch.value = query ?? ''; });
+const assetVisitOptions = () => ({
+    only: ['assets', 'asset_directory'],
+    preserveState: true,
+    preserveScroll: true,
+    onStart: () => { assetSearching.value = true; assetSearchError.value = ''; },
+    onFinish: () => { assetSearching.value = false; },
+    onError: errors => { assetSearchError.value = errors.asset_q ?? errors.asset_cursor ?? 'The item search could not be completed. Try again.'; },
+});
+function searchAssets() {
+    router.get('/economy/wallet', { asset_q: assetSearch.value.trim() }, assetVisitOptions());
+}
 
 // F-IND-023. The recipient is an ACCOUNT — there is no person picker here and
 // there must not be one: resolving an account to a human is deliberately
@@ -264,14 +280,28 @@ const assetRows = () =>
             </Card>
 
             <Card as="section" title="Things you hold">
+                <form class="wallet-asset-search" @submit.prevent="searchAssets">
+                    <label for="wallet-asset-search">Find an item by the beginning of its name</label>
+                    <div>
+                        <input id="wallet-asset-search" v-model="assetSearch" type="search" maxlength="120" />
+                        <button type="submit" :disabled="assetSearching">{{ assetSearching ? 'Searching…' : 'Search items' }}</button>
+                    </div>
+                </form>
+                <p v-if="assetSearchError" class="wallet-asset-error" role="alert">{{ assetSearchError }}</p>
+                <p v-if="assets.length" class="econ-note" role="status">{{ assets.length }} items on this page.</p>
                 <DataTable
                     v-if="assets.length"
                     :columns="assetColumns"
                     :rows="assetRows()"
                     row-key="id"
-                    caption="Everything registered to your account, newest first"
+                    caption="Items in your account on this page, in name order"
+                    :aria-busy="assetSearching"
                 />
-                <p v-else class="econ-note">You haven't registered anything yet.</p>
+                <p v-else class="econ-note" role="status">{{ asset_directory.query ? `No items start with “${asset_directory.query}”. Try another beginning or clear the search.` : 'You are not holding any registered items.' }}</p>
+                <nav v-if="asset_directory.previous || asset_directory.next" class="wallet-asset-pages" aria-label="Your item pages">
+                    <Link v-if="asset_directory.previous" :href="asset_directory.previous" v-bind="assetVisitOptions()">Previous items</Link>
+                    <Link v-if="asset_directory.next" :href="asset_directory.next" v-bind="assetVisitOptions()">More items</Link>
+                </nav>
             </Card>
 
             <Card as="section" title="Activity">
@@ -300,6 +330,13 @@ const assetRows = () =>
 </template>
 
 <style scoped>
+.wallet-asset-search label { display: block; margin-block-end: .4rem; }
+.wallet-asset-search > div, .wallet-asset-pages { display: flex; flex-wrap: wrap; gap: .5rem 1rem; align-items: center; }
+.wallet-asset-search input { flex: 1; min-inline-size: 12rem; }
+.wallet-asset-search button, .wallet-asset-pages a { min-block-size: 44px; padding: .5rem .75rem; }
+.wallet-asset-pages { margin-block-start: .75rem; }
+.wallet-asset-error { color: var(--gov-danger); font-size: .875rem; }
+.wallet-asset-search button:focus-visible, .wallet-asset-search input:focus-visible, .wallet-asset-pages a:focus-visible { outline: 3px solid var(--gov-accent); outline-offset: 3px; }
 .econ-stats {
     display: flex;
     flex-wrap: wrap;

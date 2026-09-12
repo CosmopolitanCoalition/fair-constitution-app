@@ -173,6 +173,10 @@ Schedule::job(new \App\Jobs\SnapshotWorldStatsJob)->dailyAt('00:50')->withoutOve
 // Keep Horizon's dashboard metrics fresh.
 Schedule::command('horizon:snapshot')->everyFiveMinutes()->onOneServer();
 
+// Resume only requested reports with stalled checkpoints; never start a world report on a timer.
+Schedule::call(fn () => app(\App\Services\Economy\CurrencyReportService::class)->resumeStalled())
+    ->name('resume-currency-reports')->everyMinute()->withoutOverlapping()->onOneServer();
+
 // Demo sessions whose Laravel session expired are voided like a logout
 // (DemoMode ruling C). The command is inert off a scale_demo box.
 Schedule::command('demo:void-expired')->everyFiveMinutes()->withoutOverlapping()->onOneServer();

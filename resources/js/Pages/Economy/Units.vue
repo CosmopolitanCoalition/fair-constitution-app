@@ -3,16 +3,17 @@
  * Economy/Units — the currency and its levers (design contract:
  * mockups/v3/economy/units.html).
  *
- * READ-ONLY BY DESIGN, and that is the teaching point of the page rather than
- * a limitation of it. Every monetary lever moves through F-LEG-031's dual
- * door — an act of a legislature, within bounds the constitution fixes. There
- * is deliberately no admin knob for any of them, so this page shows values and
- * their citation and offers no controls at all.
+ * Monetary rules remain read-only: each lever moves through the existing
+ * legislative process. The report control collects account observations in
+ * bounded background chunks; it does not change balances or monetary rules.
  *
  * The same posture as System/Amendments: show what can change, and by what
  * route, without pretending a screen can do it.
  */
+import { computed, onMounted, onBeforeUnmount, ref } from 'vue';
+import { router } from '@inertiajs/vue3';
 import AppShellV2 from '@/Layouts/AppShellV2.vue';
+import WorkTradeNav from '@/Components/Economy/WorkTradeNav.vue';
 import PageScaffold from '@/Components/Surface/PageScaffold.vue';
 import Card from '@/Components/Ui/Card.vue';
 import Stat from '@/Components/Ui/Stat.vue';
@@ -25,7 +26,8 @@ defineOptions({ layout: AppShellV2 });
 const props = defineProps({
     currency: { type: Object, default: null },
     levers: { type: Array, default: () => [] },
-    supply: { type: String, default: '0.000000' },
+    supply: { type: String, default: null },
+    report: { type: Object, default: null },
     issuance_rate_bps: { type: Number, default: null },
     inflation_target_bps: { type: Number, default: null },
     /** The issuing authority (root jurisdiction, by name); null pre-currency. */
@@ -35,6 +37,23 @@ const props = defineProps({
     /** Account-clean distribution telemetry (Design Round 2 ④); null pre-currency. */
     telemetry: { type: Object, default: null },
 });
+
+const requesting = ref(false);
+let poll;
+let polling = false;
+const phases = { issuance: 'Counting issued money', wallets: 'Collecting account balances', treasuries: 'Collecting treasury balances', transactions: 'Counting recorded transfers', concentration: 'Calculating distribution', cleanup: 'Finishing the report' };
+const reportStatus = computed(() => props.report?.status ?? 'not_started');
+function refreshReport() {
+    router.post('/economy/units/report', {}, { preserveScroll: true, onStart: () => { requesting.value = true; }, onFinish: () => { requesting.value = false; } });
+}
+onMounted(() => {
+    poll = setInterval(() => {
+        if (reportStatus.value !== 'running' || polling || document.hidden) return;
+        polling = true;
+        router.reload({ only: ['report', 'telemetry', 'supply'], async: true, showProgress: false, onFinish: () => { polling = false; } });
+    }, 5000);
+});
+onBeforeUnmount(() => clearInterval(poll));
 
 /* An enacting act, as a short label: "Act 12" when numbered, else the title. */
 const actLabel = (a) => (!a ? null : a.act_number ? `Act ${a.act_number}` : a.title);
@@ -71,9 +90,9 @@ const bounds = (b) => {
 <template>
     <PageScaffold title="Units &amp; money">
         <template #intro>
-            What the money is, and the few things about it a legislature is allowed to change.
-            Nothing on this page is adjustable here — that is the design, not a gap.
+            Review the currency, its recorded rules and the latest completed money report.
         </template>
+        <WorkTradeNav />
 
         <Banner v-if="!currency" tone="info" title="No currency yet">
             This world's root legislature hasn't defined one.
@@ -84,7 +103,7 @@ const bounds = (b) => {
                 <Stat :value="currency.name" label="Name" />
                 <Stat :value="currency.code" label="Code" />
                 <Stat :value="currency.symbol" label="Symbol" />
-                <Stat :value="formatMoney(supply, currency)" label="In circulation" accent />
+                <Stat :value="supply === null ? 'Not reported yet' : formatMoney(supply, currency)" label="Issued supply in latest report" accent />
             </div>
             <p class="econ-note">
                 Shown to {{ currency.precision }} decimal places. The ledger keeps more than that
@@ -135,27 +154,23 @@ const bounds = (b) => {
             </p>
         </Card>
 
-        <Card v-if="telemetry" as="section" title="Where the money is">
+        <Card v-if="currency" as="section" title="Money report">
+            <p v-if="reportStatus === 'not_started'" role="status">No report has been collected yet.</p>
+            <p v-else-if="reportStatus === 'running'" role="status" aria-live="polite">{{ phases[report.phase] ?? 'Collecting the report' }} · {{ Number(report.rows ?? 0).toLocaleString() }} records processed.</p>
+            <p v-else-if="reportStatus === 'failed'" role="alert">Collection stopped. Resume to continue from the last saved step.</p>
+            <p v-if="report?.completed_at" class="econ-note">Collected from {{ formatWhen(report.started_at) }} to {{ formatWhen(report.completed_at) }}. A refresh keeps this completed report visible until the replacement is ready.</p>
+            <button type="button" class="report-refresh" :disabled="requesting || reportStatus === 'running'" @click="refreshReport">{{ requesting ? 'Requesting…' : reportStatus === 'running' ? 'Collecting…' : reportStatus === 'failed' ? 'Resume report' : telemetry ? 'Refresh report' : 'Collect report' }}</button>
             <p class="econ-desc">
-                A read-only picture of how the currency is distributed. Every figure is counted over
-                <strong>accounts, never people</strong> — a spread of balances says nothing about
-                who holds them. Nothing here adjusts a rate: the levers above still move only by act.
+                These figures describe accounts. Balances are collected over time while transactions can continue; they are not an instant ledger reconciliation. The report does not change money or rates.
             </p>
-            <div class="econ-stats">
+            <div v-if="telemetry" class="econ-stats">
                 <Stat :value="formatMoney(telemetry.in_circulation, currency)" label="In wallets" accent />
                 <Stat :value="formatMoney(telemetry.treasury_held, currency)" label="In treasuries" />
                 <Stat :value="String(telemetry.funded_wallets) + ' / ' + String(telemetry.wallets)" label="Wallets funded / total" />
                 <Stat :value="telemetry.top_decile_share_pct ? telemetry.top_decile_share_pct + '%' : '—'" label="Held by the top tenth" />
                 <Stat :value="telemetry.velocity_30d ? telemetry.velocity_30d + '×' : '—'" label="Turned over (30 days)" />
             </div>
-            <p class="econ-note">
-                <strong>Not shown, and why.</strong> There is no per-jurisdiction or per-person
-                holdings map: an account carries no location, and the only path to one would cross
-                the privacy wall. There is no supply-over-time chart yet either — that needs a
-                periodic snapshot. Auto-managing a rate from these numbers is a separate design round
-                the operator reserved; today the reading informs a human, who still acts by the dual
-                door.
-            </p>
+            <p class="econ-note">The top tenth uses the funded balances collected for this report. Turnover uses recorded transfers in the 30 days ending when collection began. No account holder or location is disclosed.</p>
         </Card>
 
         <Card as="section" title="The levers">
@@ -186,6 +201,8 @@ const bounds = (b) => {
 </template>
 
 <style scoped>
+.report-refresh { min-block-size: 44px; padding: .5rem 1rem; border: 1px solid var(--gov-accent); border-radius: .4rem; background: var(--gov-surface); color: var(--gov-accent); }
+.report-refresh:focus-visible { outline: 3px solid var(--gov-accent); outline-offset: 3px; }
 .econ-stats {
     display: flex;
     flex-wrap: wrap;

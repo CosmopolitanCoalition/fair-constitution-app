@@ -42,10 +42,10 @@ class EconomyPropContractTest extends TestCase
         '/economy'                => ['surface', 'currency', 'account', 'supply', 'ledger', 'counts', 'stipend', 'clock'],
         // `assets` / `my_assets` arrived with the write path (F-IND-022/024):
         // a page cannot offer a thing without knowing what you hold.
-        '/economy/wallet'         => ['surface', 'currency', 'account', 'transactions', 'receipts', 'assets'],
-        '/economy/market'         => ['surface', 'currency', 'offers', 'work', 'assistance', 'my_assets'],
+        '/economy/wallet'         => ['surface', 'currency', 'account', 'transactions', 'receipts', 'assets', 'asset_directory'],
+        '/economy/market'         => ['surface', 'currency', 'offers', 'work', 'assistance', 'my_assets', 'asset_directory', 'tab', 'pagination'],
         '/economy/treasury'       => ['surface', 'currency', 'accounts', 'ledger', 'issuance', 'budgets', 'revenue', 'borrowings', 'clock', 'totals'],
-        '/economy/units'          => ['surface', 'currency', 'levers', 'supply', 'issuance_rate_bps', 'inflation_target_bps', 'issuer', 'clock', 'telemetry'],
+        '/economy/units'          => ['surface', 'currency', 'levers', 'supply', 'issuance_rate_bps', 'inflation_target_bps', 'issuer', 'clock', 'telemetry', 'report'],
         '/economy/stipend'        => ['surface', 'currency', 'stipend', 'clock', 'k_anon_floor', 'examples'],
         '/economy/agreements'     => ['surface', 'agreements'],
         '/economy/joint-ledgers'  => ['surface', 'currency', 'ledgers', 'can_open', 'my_account_id'],

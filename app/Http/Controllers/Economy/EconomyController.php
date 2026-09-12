@@ -97,11 +97,14 @@ class EconomyController extends Controller
 
         $account = $accountId === null ? null : DB::table('economic_accounts')->where('id', $accountId)->first();
 
-        $transactions = [];
-        $receipts = [];
-        $assets = [];
+        $assetDirectory = null;
+        $assetPage = function () use (&$assetDirectory, $request, $accountId) {
+            return $assetDirectory ??= (new \App\Support\OwnedAssetDirectory)->page($request, $accountId);
+        };
 
-        if ($accountId !== null) {
+        $transactions = function () use ($accountId) {
+            if ($accountId === null) return [];
+            $transactions = [];
             $rows = DB::table('market_transactions')
                 ->where(fn ($q) => $q->where('from_account_id', $accountId)->orWhere('to_account_id', $accountId))
                 ->orderByDesc('created_at')
@@ -122,7 +125,11 @@ class EconomyController extends Controller
                 ];
             }
 
-            $receipts = DB::table('ubi_receipts')
+            return $transactions;
+        };
+        $receipts = function () use ($accountId) {
+            if ($accountId === null) return [];
+            return DB::table('ubi_receipts')
                 ->where('account_id', $accountId)
                 ->orderByDesc('created_at')
                 ->limit(12)
@@ -135,24 +142,7 @@ class EconomyController extends Controller
                     'at'     => $this->iso($r->created_at),
                 ])->all();
 
-            // What you hold. An asset is physical or virtual by ONE FLAG —
-            // a hand-woven blanket and a map-maker's compass are the same
-            // kind of record, which is what lets one market carry both.
-            $assets = DB::table('assets')
-                ->where('owner_account_id', $accountId)
-                ->whereNull('deleted_at')
-                ->orderByDesc('created_at')
-                ->limit(50)
-                ->get()
-                ->map(fn ($a) => [
-                    'id'       => (string) $a->id,
-                    'name'     => (string) $a->name,
-                    'kind'     => (string) $a->kind,
-                    'quantity' => (string) $a->quantity,
-                    'origin'   => (string) $a->origin,
-                    'at'       => $this->iso($a->created_at),
-                ])->all();
-        }
+        };
 
         return Inertia::render('Economy/Wallet', [
             'surface'      => SurfaceMeta::for('economy/wallet'),
@@ -164,30 +154,44 @@ class EconomyController extends Controller
             ],
             'transactions' => $transactions,
             'receipts'     => $receipts,
-            'assets'       => $assets,
+            'assets'       => fn () => $assetPage()['assets'],
+            'asset_directory' => $assetPage,
         ]);
     }
 
     public function market(Request $request): Response
     {
-        $directory = (new \App\Support\MarketDirectory)->page($request);
-        $offers = $directory['tab'] === 'offers' ? $this->offers(pageIds: $directory['offer_ids']) : [];
-        $orgSellers = $this->orgSellers(array_column($offers, 'seller_account_id'));
+        $directory = null;
+        $directoryPage = function () use (&$directory, $request) {
+            return $directory ??= (new \App\Support\MarketDirectory)->page($request);
+        };
+        $currency = $this->currency();
+        $accountId = $currency === null || $request->user() === null ? null
+            : $this->accounts->accountIdFor('users', (string) $request->user()->id, $currency->id);
+        $assets = null;
+        $assetPage = function () use (&$assets, $request, $accountId) {
+            return $assets ??= (($request->query('tab') ?? 'offers') === 'offers'
+                ? (new \App\Support\OwnedAssetDirectory)->page($request, $accountId, true)
+                : \App\Support\OwnedAssetDirectory::empty());
+        };
 
         return Inertia::render('Economy/Market', [
             'surface'    => SurfaceMeta::for('economy/marketplace'),
-            'currency'   => $this->currencyProp($this->currency()),
-            'tab'        => $directory['tab'],
-            'pagination' => $directory['pagination'],
-            'offers'     => array_map(
-                fn ($o) => $o + ['seller_org' => $orgSellers[$o['seller_account_id']] ?? null],
-                $offers
-            ),
+            'currency'   => $this->currencyProp($currency),
+            'tab'        => fn () => $directoryPage()['tab'],
+            'pagination' => fn () => $directoryPage()['pagination'],
+            'offers'     => function () use ($directoryPage) {
+                $directory = $directoryPage();
+                $offers = $directory['tab'] === 'offers' ? $this->offers(pageIds: $directory['offer_ids']) : [];
+                $sellers = $this->orgSellers(array_column($offers, 'seller_account_id'));
+                return array_map(fn ($offer) => $offer + ['seller_org' => $sellers[$offer['seller_account_id']] ?? null], $offers);
+            },
             // Things you hold that are not already on the market, so the
             // "offer something" form can only point at what you actually have.
-            'my_assets'  => fn () => $directory['tab'] === 'offers' ? $this->unlistedAssets($request) : [],
-            'work'       => $directory['work'],
-            'assistance' => $directory['assistance'],
+            'my_assets'  => fn () => $assetPage()['assets'],
+            'asset_directory' => $assetPage,
+            'work'       => fn () => $directoryPage()['work'],
+            'assistance' => fn () => $directoryPage()['assistance'],
         ]);
     }
 
@@ -234,42 +238,6 @@ class EconomyController extends Controller
             'is_seller'       => $isSeller,
             'pending_orders'  => $pending,
         ]);
-    }
-
-    /**
-     * Things the viewer holds that are not already listed — the only things
-     * they can lawfully offer. Empty for a guest or a person with no wallet,
-     * which is a normal state and not an error.
-     */
-    private function unlistedAssets(Request $request): array
-    {
-        $currency = $this->currency();
-
-        if ($currency === null || $request->user() === null) {
-            return [];
-        }
-
-        $accountId = $this->accounts->accountIdFor('users', (string) $request->user()->id, $currency->id);
-
-        if ($accountId === null) {
-            return [];
-        }
-
-        return DB::table('assets')
-            ->where('owner_account_id', $accountId)
-            ->whereNull('deleted_at')
-            ->whereNotIn('id', DB::table('marketplace_listings')
-                ->where('status', 'open')
-                ->whereNotNull('asset_id')
-                ->select('asset_id'))
-            ->orderByDesc('created_at')
-            ->limit(50)
-            ->get()
-            ->map(fn ($a) => [
-                'id'   => (string) $a->id,
-                'name' => (string) $a->name,
-                'kind' => (string) $a->kind,
-            ])->all();
     }
 
     public function treasury(): Response
@@ -370,6 +338,7 @@ class EconomyController extends Controller
     public function units(): Response
     {
         $currency = $this->currency();
+        $report = $currency === null ? null : app(\App\Services\Economy\CurrencyReportService::class)->read($currency->id);
         $rootId   = $this->rootId();
         $bounds   = ConstitutionalValidator::SETTING_BOUNDS;
 
@@ -398,7 +367,7 @@ class EconomyController extends Controller
             'surface'              => SurfaceMeta::for('economy/units'),
             'currency'             => $this->currencyProp($currency),
             'levers'               => $levers,
-            'supply'               => $currency === null ? '0.000000' : $this->issuance->supply($currency->id),
+            'supply'               => $report['data']['supply'] ?? null,
             'issuance_rate_bps'    => $rootId === null ? null : $this->nullableInt($this->settings->resolve($rootId, 'issuance_rate_bps')),
             'inflation_target_bps' => $rootId === null ? null : $this->nullableInt($this->settings->resolve($rootId, 'inflation_target_bps')),
             // Who issues the unit — the standards authority behind it (Art. V §5:
@@ -410,8 +379,20 @@ class EconomyController extends Controller
             // Account-clean distribution telemetry (Design Round 2 ④): read
             // only, aggregated over accounts and never people. The levers above
             // still move only by dual-door act — nothing here adjusts a rate.
-            'telemetry'            => $currency === null ? null : $this->telemetry->snapshot($currency->id),
+            'telemetry'            => $report['data'] ?? null,
+            'report'               => $report,
         ]);
+    }
+
+    public function refreshReport(Request $request, \App\Services\Economy\CurrencyReportService $reports): RedirectResponse
+    {
+        abort_unless($request->user(), 403);
+        $currency = $this->currency();
+        abort_unless($currency, 404);
+        $runId = $reports->start($currency->id);
+        $reports->dispatch($currency->id, $runId);
+
+        return redirect()->route('economy.units');
     }
 
     /**

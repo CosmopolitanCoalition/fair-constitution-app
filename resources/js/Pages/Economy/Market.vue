@@ -16,8 +16,8 @@
  * identical terms to private enterprise (Art. III §5). The badge is
  * informational; it is never a different rule.
  */
-import { computed } from 'vue';
-import { Link, useForm, usePage } from '@inertiajs/vue3';
+import { computed, reactive, ref, watch } from 'vue';
+import { Link, router, useForm, usePage, useRemember } from '@inertiajs/vue3';
 import AppShellV2 from '@/Layouts/AppShellV2.vue';
 import PageScaffold from '@/Components/Surface/PageScaffold.vue';
 import Card from '@/Components/Ui/Card.vue';
@@ -40,6 +40,7 @@ const props = defineProps({
     assistance: { type: Array, default: () => [] },
     /** Things you hold that aren't already listed. [] for a guest. */
     my_assets: { type: Array, default: () => [] },
+    asset_directory: { type: Object, default: () => ({ query: '', previous: null, next: null, available: false }) },
 });
 
 const page = usePage();
@@ -48,13 +49,48 @@ const constitutionError = computed(() => page.props.errors?.constitution ?? null
 
 // F-IND-022 (list). A service needs no asset; a good may point at something
 // you registered. Either way the engine decides whether it is lawful.
-const offer = useForm({ title: '', kind: 'service', price: '', asset_id: '', description: '' });
+const draftKey = `market-offer:${page.props.auth?.user?.id ?? 'guest'}:${props.currency?.id ?? 'none'}`;
+const offer = useForm(draftKey, { title: '', kind: 'service', price: '', asset_id: '', description: '' });
+const selectedAsset = useRemember(reactive({ id: '', name: '', kind: '', quantity: '' }), `${draftKey}:asset`);
+const composer = useRemember(reactive({ open: new URLSearchParams((page.url ?? '').split('?')[1] ?? '').has('asset_picker') }), `${draftKey}:composer`);
+const assetSearch = ref(props.asset_directory.query ?? '');
+const assetSearching = ref(false);
+const assetSearchError = ref('');
+watch(() => props.asset_directory.query, query => { assetSearch.value = query ?? ''; });
+watch(() => props.my_assets, assets => {
+    const selected = assets.find(asset => asset.id === offer.asset_id);
+    if (selected) Object.assign(selectedAsset, selected);
+}, { immediate: true });
+
+function chooseAsset(asset) {
+    offer.asset_id = asset.id;
+    Object.assign(selectedAsset, asset);
+}
+function clearAsset() {
+    offer.asset_id = '';
+    Object.assign(selectedAsset, { id: '', name: '', kind: '', quantity: '' });
+}
+const assetVisitOptions = () => ({
+    only: ['my_assets', 'asset_directory'],
+    preserveState: true,
+    preserveScroll: true,
+    onStart: () => { assetSearching.value = true; assetSearchError.value = ''; },
+    onFinish: () => { assetSearching.value = false; },
+    onError: errors => { assetSearchError.value = errors.asset_q ?? errors.asset_cursor ?? 'The item search could not be completed. Try again.'; },
+});
+function searchAssets() {
+    const marketCursor = new URLSearchParams((page.url ?? '').split('?')[1] ?? '').get('cursor');
+    router.get('/economy/market', {
+        tab: 'offers', asset_picker: 1, asset_q: assetSearch.value.trim(),
+        ...(marketCursor ? { cursor: marketCursor } : {}),
+    }, assetVisitOptions());
+}
 
 function submitOffer() {
     offer.transform((d) => ({ ...d, asset_id: d.kind === 'good' && d.asset_id ? d.asset_id : null }))
         .post('/economy/market', {
             preserveScroll: true,
-            onSuccess: () => offer.reset(),
+            onSuccess: () => { offer.reset(); clearAsset(); },
         });
 }
 
@@ -84,7 +120,7 @@ const pageCount = computed(() => (props[tab.value] ?? []).length);
         <Banner v-if="flashStatus" tone="info" role="status">{{ flashStatus }}</Banner>
         <Banner v-if="constitutionError" tone="emergency">{{ constitutionError }}</Banner>
 
-        <details v-if="currency && tab === 'offers'" class="mkt-compose">
+        <details v-if="currency && tab === 'offers'" class="mkt-compose" :open="composer.open" @toggle="composer.open = $event.target.open">
             <summary>Sell a good or offer a service</summary>
         <Card as="section">
             <template #title>
@@ -109,21 +145,41 @@ const pageCount = computed(() => (props[tab.value] ?? []).length);
                     </template>
                 </Field>
 
-                <Field v-if="offer.kind === 'good'" label="Which thing" :error="offer.errors.asset_id">
-                    <template #control="{ id }">
-                        <select :id="id" v-model="offer.asset_id" class="select">
-                            <option value="">— none, just describe it —</option>
-                            <option v-for="a in my_assets" :key="a.id" :value="a.id">
-                                {{ a.name }} ({{ a.kind === 'virtual' ? 'digital' : 'physical' }})
-                            </option>
-                        </select>
+                <fieldset v-if="offer.kind === 'good'" class="mkt-asset-picker">
+                    <legend>Choose a registered item</legend>
+                    <p v-if="offer.asset_id" class="mkt-selected-asset">
+                        <span><strong>Selected: {{ selectedAsset.name || 'Previously selected item' }}</strong>
+                            <span v-if="selectedAsset.quantity"> · {{ formatQuantity(selectedAsset.quantity) }} held</span>
+                        </span>
+                        <button type="button" @click="clearAsset">Clear selection</button>
+                    </p>
+                    <p class="econ-note">Goods must use an item you hold. Items with an open listing are excluded.</p>
+                    <p v-if="!asset_directory.available" class="econ-note">Check <Link href="/economy/wallet">My wallet</Link> to see or register your items.</p>
+                    <template v-else>
+                        <label for="market-asset-search">Find an item by the beginning of its name</label>
+                        <div class="mkt-asset-search">
+                            <input id="market-asset-search" v-model="assetSearch" type="search" maxlength="120" @keydown.enter.prevent="searchAssets" />
+                            <button type="button" :disabled="assetSearching" @click="searchAssets">{{ assetSearching ? 'Searching…' : 'Search items' }}</button>
+                        </div>
+                        <p v-if="assetSearchError" class="mkt-asset-error" role="alert">{{ assetSearchError }}</p>
+                        <div :aria-busy="assetSearching">
+                            <p v-if="!my_assets.length" class="econ-note" role="status">
+                                {{ asset_directory.query ? `No available items start with “${asset_directory.query}”.` : 'No unlisted items are available.' }}
+                                You can register an item in <Link href="/economy/wallet">My wallet</Link>.
+                            </p>
+                            <p v-else class="econ-note" role="status">{{ my_assets.length }} available items on this page. Your selection stays selected when you browse.</p>
+                            <label v-for="asset in my_assets" :key="asset.id" class="mkt-asset-option">
+                                <input type="radio" name="market-asset" :value="asset.id" :checked="offer.asset_id === asset.id" @change="chooseAsset(asset)" />
+                                <span>{{ asset.name }} · {{ asset.kind === 'virtual' ? 'Digital' : 'Physical' }} · {{ formatQuantity(asset.quantity) }} held</span>
+                            </label>
+                        </div>
+                        <nav v-if="asset_directory.previous || asset_directory.next" class="mkt-asset-pages" aria-label="Available item pages">
+                            <Link v-if="asset_directory.previous" :href="asset_directory.previous" v-bind="assetVisitOptions()">Previous items</Link>
+                            <Link v-if="asset_directory.next" :href="asset_directory.next" v-bind="assetVisitOptions()">More items</Link>
+                        </nav>
                     </template>
-                </Field>
-
-                <p v-if="offer.kind === 'good' && !my_assets.length" class="econ-note">
-                    You haven't registered anything yet. Register it on
-                    <Link href="/economy/wallet">your wallet</Link> first and it can travel with the sale.
-                </p>
+                    <p v-if="offer.errors.asset_id" class="mkt-asset-error">{{ offer.errors.asset_id }}</p>
+                </fieldset>
 
                 <Field label="Price" :error="offer.errors.price" required>
                     <template #control="{ id, invalid, describedBy }">
@@ -140,7 +196,7 @@ const pageCount = computed(() => (props[tab.value] ?? []).length);
                     </template>
                 </Field>
 
-                <Btn type="submit" variant="primary" :disabled="offer.processing">
+                <Btn type="submit" variant="primary" :disabled="offer.processing || (offer.kind === 'good' && !offer.asset_id)">
                     {{ offer.processing ? 'Listing…' : 'Put it on the market' }}
                 </Btn>
             </form>
@@ -153,7 +209,7 @@ const pageCount = computed(() => (props[tab.value] ?? []).length);
                 v-for="t in TABS"
                 :key="t.key"
                 :href="`/economy/market?tab=${t.key}`"
-                :only="['offers', 'work', 'assistance', 'tab', 'pagination', 'my_assets']"
+                :only="['offers', 'work', 'assistance', 'tab', 'pagination', 'my_assets', 'asset_directory']"
                 preserve-state
                 class="mkt-tab"
                 :class="{ 'mkt-tab--on': tab === t.key }"
@@ -225,6 +281,15 @@ const pageCount = computed(() => (props[tab.value] ?? []).length);
 </template>
 
 <style scoped>
+.mkt-asset-picker { min-inline-size: 0; margin-block: 1rem; }
+.mkt-selected-asset, .mkt-asset-search, .mkt-asset-pages { display: flex; flex-wrap: wrap; align-items: center; gap: .5rem 1rem; }
+.mkt-selected-asset { padding: .75rem; background: var(--gov-surface-subtle); }
+.mkt-asset-search input { flex: 1; min-inline-size: 12rem; }
+.mkt-asset-search button, .mkt-selected-asset button, .mkt-asset-pages a { min-block-size: 44px; padding: .5rem .75rem; }
+.mkt-asset-option { display: flex; align-items: center; gap: .5rem; padding-block: .5rem; min-block-size: 44px; }
+.mkt-asset-pages { margin-block-start: .75rem; }
+.mkt-asset-error { color: var(--gov-danger); font-size: .875rem; }
+.mkt-asset-picker button:focus-visible, .mkt-asset-picker input:focus-visible, .mkt-asset-picker a:focus-visible { outline: 3px solid var(--gov-accent); outline-offset: 3px; }
 .mkt-pages { display: flex; flex-wrap: wrap; gap: 1rem; margin-block-start: 1rem; }
 .mkt-pages a { display: inline-flex; align-items: center; min-block-size: 44px; padding: .5rem 1rem; border: 1px solid var(--gov-border); border-radius: .4rem; }
 .mkt-pages a:focus-visible { outline: 3px solid var(--gov-accent); outline-offset: 3px; }

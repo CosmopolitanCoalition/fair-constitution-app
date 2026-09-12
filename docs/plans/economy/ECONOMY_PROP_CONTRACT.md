@@ -19,7 +19,7 @@ the live controller output carries exactly the keys published here.
 | Rule | Why |
 |---|---|
 | **Money is a STRING**, never a float — `"45.000000"` | `numeric(24,6)`. A float would silently lose precision on a ledger. Format it, don't arithmetic it. |
-| **Every money field can be `"0.000000"`, never `null`** | so a formatter never sees undefined |
+| **Measured money is a decimal string; unavailable reports are `null`** | Uncollected data must not be presented as zero. |
 | **Nullable fields are explicitly listed below** and are the ONLY ones that can be null | everything else is guaranteed present |
 | **Ids are uuid strings** | |
 | **Timestamps are ISO-8601 strings**, or null where marked | |
@@ -37,24 +37,19 @@ the live controller output carries exactly the keys published here.
 currency: null | {
   id: string, name: string, code: string, symbol: string, precision: number
 }
-supply: string            // minted − burned, "0.000000" when none
+supply: null              // hub does not collect world totals
+account: null | { id: string, balance: string, status: string }
 ledger: {
-  entries: number,        // integer count
-  verified: boolean,      // hash chain intact
-  residual: string        // MUST read "0.000000" on a healthy ledger
+  entries: null, verified: null, residual: null, status: "not_checked"
 }
 counts: {
-  wallets: number, listings: number, postings: number,
-  assistance: number, assets: number
+  wallets: null, listings: null, postings: null, assistance: null, assets: null
 }
 stipend: {
-  enabled: boolean,
-  floor: string, cap: string, interval: string,
-  funding_source: string, // "minted" | "treasury_draw"
-  last_run: null | { ran_at: string, recipients: number, total: string, short_paid: boolean }
+  enabled: null, floor: null, cap: null, interval: null,
+  funding_source: null, last_run: null, status: "not_loaded"
 }
-clock: { interval: string, period_days: number|null,     // Wave 4: the economic clock, derived
-         last_run: string|null, next_run: string|null }
+clock: { interval: null, period_days: null, last_run: null, next_run: null }
 ```
 
 ## `GET /economy/wallet` → `Economy/Wallet`
@@ -73,11 +68,19 @@ transactions: [                       // newest first, max 50
 receipts: [                           // stipend receipts, newest first, max 12
   { id: string, base: string, bump: string, amount: string, at: string }
 ]
-assets: [                             // things you hold, newest first, max 50
+assets: [                             // things you hold, alphabetic, max 20
   { id: string, name: string, kind: "physical"|"virtual",
     quantity: string, origin: string, at: string }
 ]
+asset_directory: {
+  assets: […same page…], query: string, previous: string|null, next: string|null,
+  pageSize: 20, available: boolean
+}
 ```
+
+`asset_q` is a literal name prefix; `asset_cursor` traverses owned items. Item-only
+Inertia partial requests omit transaction and stipend-history reads. Those histories
+still have their existing 50/12 caps and need a separate pagination pass.
 
 ## `GET /economy/market` → `Economy/Market`
 
@@ -85,6 +88,8 @@ Both sides of the board, because a market with only sellers is a catalogue.
 
 ```
 currency: null | {…}
+tab: "offers"|"work"|"assistance"
+pagination: { previous: string|null, next: string|null }
 offers: [
   { id: string, kind: "good"|"service", title: string, description: string|null,
     price: string, quantity: string, status: string,
@@ -99,10 +104,14 @@ work: [
 assistance: [                         // PRIVACY-FILTERED: 'private' rows never appear here
   { id: string, title: string, need: string, privacy: string, status: string }
 ]
-my_assets: [                          // yours, NOT already listed — what F-IND-022 may point at
-  { id: string, name: string, kind: "physical"|"virtual" }
+my_assets: [                          // eligible owned items, alphabetic, max 20
+  { id: string, name: string, kind: "physical"|"virtual", quantity: string, origin: string, at: string|null }
 ]                                     // [] for a guest or anyone without a wallet
+asset_directory: {…as wallet…}
 ```
+
+Only the selected public section is queried, with 25 rows per page. Item-search
+partial requests query the owned selector without reloading the public board.
 
 ## `GET /economy/market/{listing}` → `Economy/Listing`
 
@@ -168,13 +177,25 @@ levers: [
     bounds: null | { min?: number, max?: number, allowed?: array },
     enacting_act: null | {act_number: string|null, title: string} }  // Wave 4: which act last moved it
 ]
-supply: string
+supply: string|null              // latest completed report; null until collected
 issuance_rate_bps: number|null
 inflation_target_bps: number|null
 issuer: string|null              // Wave 4: the issuing authority (root jurisdiction, by name)
 clock: {…as home…}               // Wave 4: the shared economic clock
-telemetry: null | {…}            // Design Round 2 ④, account-clean; null pre-currency
+telemetry: null | {…}            // latest completed account-only report
+report: null | {
+  status: "not_started"|"running"|"failed"|"complete", phase: string|null, rows: number,
+  data: null | {…telemetry…}, started_at: string|null, completed_at: string|null,
+  collection_started_at?: string, updated_at?: string
+}
 ```
+
+`GET` reads the saved report by currency ID. Authenticated `POST /economy/units/report`
+starts or resumes bounded queue work; refreshing preserves the previous publication.
+Balances are observations collected over an interval, not a transactionally simultaneous
+ledger reconciliation. `started_at`/`completed_at` describe the published interval;
+`collection_started_at` describes the current attempt. Source IDs and checkpoints are
+not returned to the browser. The 30-day transfer window ends at collection start.
 
 **Wave 4 (partial → built):** per-lever `enacting_act` (from `setting_changes`
 → `laws`; null while a lever sits at its constitutional default), the `issuer`

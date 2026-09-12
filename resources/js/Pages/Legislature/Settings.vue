@@ -15,6 +15,7 @@
  */
 import { computed, ref, watch } from 'vue';
 import { Link, useForm, usePage } from '@inertiajs/vue3';
+import { useI18n } from 'vue-i18n';
 import AppShellV2 from '@/Layouts/AppShellV2.vue';
 import PageScaffold from '@/Components/Surface/PageScaffold.vue';
 import AmendableSetting from '@/Components/Ui/AmendableSetting.vue';
@@ -39,6 +40,7 @@ const props = defineProps({
 });
 
 const page = usePage();
+const { t } = useI18n();
 const flashStatus = computed(() => page.props.flash?.status ?? null);
 
 function displayValue(setting) {
@@ -311,7 +313,7 @@ function fmt(iso) {
                     <span class="mono" data-no-i18n>{{ row.old_value }} → {{ row.new_value }}</span>
                     <span class="citation" style="display: block">
                         dependent clocks re-derived ·
-                        <Link href="/system/term-sync">re-armed timer on Term sync →</Link>
+                        <Link :href="`/system/term-sync?legislature=${legislature.id}`">{{ t('c_term_sync.title') }}</Link>
                     </span>
                 </template>
                 <template #cell-act_number="{ row }">

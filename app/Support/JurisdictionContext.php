@@ -104,6 +104,9 @@ final class JurisdictionContext
         $tools[] = $legId !== null
             ? $link('districts', 'Its government', 'Legislative maps', "/legislatures/{$legId}/districts", ! empty($g['has_district_map']) ? null : 'not yet drawn', 'map')
             : $muted('districts', 'Its government', 'Legislative maps', $isLeaf ? $leafNote : 'none yet', 'map');
+        $tools[] = $link('terms', 'Its government', 'Term schedules', '/system/term-sync?'.http_build_query(
+            array_filter(['jurisdiction' => $slug, 'legislature' => $legId], fn ($value) => $value !== null)
+        ), null, 'clock');
         if (! $isLeaf) {
             $tools[] = $legId !== null
                 ? $link('panels', 'Its government', 'Panels', "/legislatures/{$legId}/panels", 'equal seats per constituent', 'building')

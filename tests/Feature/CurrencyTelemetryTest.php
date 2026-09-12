@@ -39,7 +39,7 @@ class CurrencyTelemetryTest extends TestCase
             // 500 moved in the last 30 days → velocity 0.5 of the stock.
             $this->transfer($currencyId, '500');
 
-            $snap = app(CurrencyTelemetryService::class)->snapshot($currencyId);
+            $snap = $this->collectReport($currencyId);
 
             $this->assertSame(0, bccomp($snap['supply'], '1000', 6), 'supply = mint − burn');
             $this->assertSame(0, bccomp($snap['in_circulation'], '1000', 6));
@@ -60,7 +60,7 @@ class CurrencyTelemetryTest extends TestCase
         $this->onLivePg(function () {
             $currencyId = $this->currency();
 
-            $snap = app(CurrencyTelemetryService::class)->snapshot($currencyId);
+            $snap = $this->collectReport($currencyId);
 
             $this->assertSame(0, $snap['wallets']);
             $this->assertNull($snap['top_decile_share_pct'], 'no funded wallets → no concentration, not a crash');
@@ -77,6 +77,7 @@ class CurrencyTelemetryTest extends TestCase
     public function test_the_service_never_queries_an_identity_table(): void
     {
         $src = file_get_contents(app_path('Services/Economy/CurrencyTelemetryService.php'));
+        $src .= file_get_contents(app_path('Services/Economy/CurrencyReportService.php'));
 
         $this->assertStringNotContainsString("table('economic_account_bindings'", $src);
         $this->assertStringNotContainsString("table('users'", $src);
@@ -85,6 +86,18 @@ class CurrencyTelemetryTest extends TestCase
     }
 
     // ── helpers ──────────────────────────────────────────────────────────
+
+    private function collectReport(string $currencyId): array
+    {
+        $reports = app(\App\Services\Economy\CurrencyReportService::class);
+        $this->assertNull(app(CurrencyTelemetryService::class)->snapshot($currencyId));
+        $runId = $reports->start($currencyId);
+        for ($step = 0; $step < 100; $step++) {
+            if (! $reports->advance($currencyId, $runId, 2)) break;
+        }
+        $this->assertSame('complete', $reports->read($currencyId)['status']);
+        return app(CurrencyTelemetryService::class)->snapshot($currencyId);
+    }
 
     private function currency(): string
     {
