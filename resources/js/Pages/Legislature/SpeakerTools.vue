@@ -32,6 +32,7 @@ const props = defineProps({
     legislature: { type: Object, required: true },
     speaker: { type: Object, required: true },
     readOnly: { type: Boolean, default: true },
+    preview: { type: Boolean, default: false },
     tieBreaks: { type: Array, default: () => [] },
     priorities: { type: Array, default: () => [] },
     priorityPages: { type: Object, default: null },
@@ -91,13 +92,19 @@ const priorityColumns = [
         <Banner v-if="flashStatus" tone="info" role="status">{{ flashStatus }}</Banner>
         <Banner v-if="constitutionError" tone="emergency">{{ constitutionError }}</Banner>
 
-        <Banner v-if="readOnly" tone="info" role="status" title="Read-only view">
+        <Banner v-if="preview" tone="info" role="status" title="Explore the Speaker’s role">
+            Follow this office through the public chamber, live room and session records. Official actions use the current officeholder’s account.
+        </Banner>
+        <Banner v-else-if="readOnly" tone="info" role="status" title="Read-only view">
             {{ text('speaker_read_only') }}
         </Banner>
 
         <!-- ================================== neutrality =============== -->
         <Card as="section" title="Neutral chair">
-            <p class="cc-small">
+            <p v-if="preview && workspace.hasSpeaker" class="cc-small">
+                Find the current Speaker in the <Link :href="workspace.chamber">chamber roster</Link>.
+            </p>
+            <p v-else class="cc-small">
                 Speaker: <strong>{{ speaker.name }}</strong>
                 <StatusBadge v-if="speaker.is_viewer" tone="warning" icon="landmark">you</StatusBadge>
             </p>
@@ -111,7 +118,18 @@ const priorityColumns = [
             </p>
         </Card>
 
-        <div class="grid-2">
+        <section class="card" aria-labelledby="speaker-work-h">
+            <h2 id="speaker-work-h">Follow the Speaker’s work</h2>
+            <div class="stack">
+                <Link :href="workspace.rooms">Enter the live chamber — recognize speakers and follow the speaking queue</Link>
+                <Link :href="urls.session">Open the session workspace — attendance, quorum, agenda and minutes</Link>
+                <Link :href="workspace.sessions">Browse session records — past agendas, votes and public statements</Link>
+                <Link :href="urls.committees">Follow committee work — hearings, evidence and reports</Link>
+                <Link :href="urls.oversight">Open oversight — removal proceedings and presiding responsibilities</Link>
+            </div>
+        </section>
+
+        <div v-if="!preview" class="grid-2">
             <!-- ============================== tie-break record ========= -->
             <section class="card" aria-labelledby="tiebreak-h">
                 <h2 id="tiebreak-h">
@@ -169,7 +187,7 @@ const priorityColumns = [
         </div>
 
         <!-- ================================== priorities queue ========= -->
-        <Card as="section" title="Member priorities queue (F-SPK-006)">
+        <Card v-if="!preview" as="section" title="Member priorities queue (F-SPK-006)">
             <p class="gloss">
                 Members hand the Speaker their priorities; facilitation appends each to the next
                 session's unlocked agenda tail. The filing itself is the priorities log — slots

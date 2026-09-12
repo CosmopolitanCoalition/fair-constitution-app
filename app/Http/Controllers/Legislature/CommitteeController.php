@@ -251,7 +251,18 @@ class CommitteeController extends Controller
 
     public function show(Request $request, Committee $committee): Response
     {
+        $input = $request->validate(['meeting' => ['nullable', 'uuid']]);
+        $selectedMeeting = ! empty($input['meeting']);
+        // Resolve the explicit hearing first, including historical meetings.
+        // A foreign meeting must never silently substitute this committee's latest.
+        $meeting = $selectedMeeting
+            ? CommitteeMeeting::query()->where('committee_id', $committee->id)->whereKey($input['meeting'])->firstOrFail()
+            : CommitteeMeeting::query()->where('committee_id', $committee->id)
+                ->whereIn('status', [CommitteeMeeting::STATUS_SCHEDULED, CommitteeMeeting::STATUS_OPEN])
+                ->orderByDesc('scheduled_for')->orderByDesc('id')->first();
         $legislature = $committee->legislature()->with('jurisdiction:id,name')->firstOrFail();
+        $readOnly = ($meeting !== null && ! in_array($meeting->status, [CommitteeMeeting::STATUS_SCHEDULED, CommitteeMeeting::STATUS_OPEN], true))
+            || $committee->status === Committee::STATUS_DISSOLVED || $legislature->status === Legislature::STATUS_DISSOLVED;
 
         $viewer      = $this->viewerMember($legislature, $request->user());
         $isSpeaker   = $this->viewerIsSpeaker($legislature, $viewer);
@@ -264,12 +275,6 @@ class CommitteeController extends Controller
         $isMember    = $viewer !== null && in_array((string) $viewer->id, $memberIds, true);
         $isChair     = $viewer !== null && (string) $committee->chair_member_id === (string) $viewer->id;
         $isAlternate = $viewer !== null && (string) $committee->alternate_member_id === (string) $viewer->id;
-
-        $meeting = CommitteeMeeting::query()
-            ->where('committee_id', $committee->id)
-            ->whereIn('status', [CommitteeMeeting::STATUS_SCHEDULED, CommitteeMeeting::STATUS_OPEN])
-            ->orderByDesc('scheduled_for')
-            ->first();
 
         $bills = Bill::query()
             ->where('committee_id', $committee->id)
@@ -318,20 +323,23 @@ class CommitteeController extends Controller
                 'scheduled_for' => $meeting->scheduled_for?->toIso8601String(),
                 'agenda'        => array_values((array) $meeting->agenda),
             ] : null,
+            'meetingContext' => ['explicit' => $selectedMeeting, 'readOnly' => $readOnly],
             'bills'     => $bills->map(fn (Bill $bill) => $this->billCard($bill, $committee, $viewer, $reports, $recordSeqs))->all(),
-            'testimony' => $this->testimonyRows($committee),
+            'testimony' => $this->testimonyRows($committee, $selectedMeeting ? $meeting : null),
             'can'       => [
-                'call'         => $isChair || $isAlternate,
-                'setAgenda'    => $isChair || $isAlternate,
-                'vote'         => $isMember || ($isSpeaker && $isMember),
-                'refer'        => $isChair || $isAlternate,
-                'fileReport'   => $isChair || $isAlternate,
-                'testify'      => $request->user() !== null,
+                'call'         => ! $readOnly && ($isChair || $isAlternate),
+                'setAgenda'    => ! $readOnly && ($isChair || $isAlternate),
+                'vote'         => ! $readOnly && ($isMember || ($isSpeaker && $isMember)),
+                'refer'        => ! $readOnly && ($isChair || $isAlternate),
+                'fileReport'   => ! $readOnly && ($isChair || $isAlternate),
+                'testify'      => ! $readOnly && $request->user() !== null,
             ],
             'urls' => [
                 'meetings' => "/committees/{$committee->id}/meetings",
                 'reports'  => "/committees/{$committee->id}/reports",
                 'cast'     => "/committees/{$committee->id}/votes",  // + /{vote}/cast
+                'room'     => $meeting ? "/rooms/committee/{$meeting->id}" : null,
+                'current'  => "/committees/{$committee->id}",
             ],
         ]);
     }
@@ -761,25 +769,16 @@ class CommitteeController extends Controller
     }
 
     /** Testimony rows for this committee's meetings (public record reads). */
-    private function testimonyRows(Committee $committee): array
+    private function testimonyRows(Committee $committee, ?CommitteeMeeting $meeting = null): array
     {
-        $meetingIds = CommitteeMeeting::query()
-            ->where('committee_id', $committee->id)
-            ->pluck('id')
-            ->map(fn ($id) => (string) $id)
-            ->all();
-
-        if ($meetingIds === []) {
-            return [];
-        }
-
         return PublicRecord::query()
             ->where('kind', 'testimony')
             ->where('subject_type', 'committee_meetings')
-            ->whereIn('subject_id', $meetingIds)
+            ->when($meeting !== null, fn ($query) => $query->where('subject_id', $meeting->id),
+                fn ($query) => $query->whereIn('subject_id', CommitteeMeeting::query()->select('id')->where('committee_id', $committee->id)))
             ->orderByDesc('seq')
             ->limit(50)
-            ->get()
+            ->get(['actor_display', 'body', 'published_at', 'seq', 'audit_seq'])
             ->map(fn (PublicRecord $record) => [
                 'who'         => $record->actor_display ?? 'Resident',
                 'text'        => $record->body,

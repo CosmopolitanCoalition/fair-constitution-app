@@ -4,9 +4,9 @@ import { useI18n } from 'vue-i18n';
 
 defineProps({ workspace: { type: Object, required: true }, active: { type: String, required: true } });
 const { t } = useI18n();
-const text = key => t('c_legislature_workspace.' + key);
+const text = key => t('c_legislature_workspace.' + key, key === 'sessions' ? 'Session archive' : key);
 const tabs = ['overview', 'chamber', 'session', 'speaker'];
-const more = ['committees', 'oversight', 'referendums', 'settings', 'rooms'];
+const more = ['sessions', 'committees', 'oversight', 'referendums', 'settings', 'rooms'];
 </script>
 
 <template>

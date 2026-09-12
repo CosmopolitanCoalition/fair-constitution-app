@@ -32,6 +32,7 @@ final class CommitteeRoomDiscussionTest extends TestCase
     private $matrix;
     private $topology;
     private $provisioner;
+    private $floor;
     private LiveRoomController $controller;
 
     protected function setUp(): void
@@ -48,10 +49,11 @@ final class CommitteeRoomDiscussionTest extends TestCase
             $t->string('parent_id')->nullable(); $t->softDeletes();
         });
         $schema->create('legislatures', function (Blueprint $t) {
-            $t->string('id')->primary(); $t->string('jurisdiction_id'); $t->softDeletes();
+            $t->string('id')->primary(); $t->string('jurisdiction_id'); $t->string('status')->default('active'); $t->softDeletes();
         });
         $schema->create('committees', function (Blueprint $t) {
             $t->string('id')->primary(); $t->string('legislature_id'); $t->string('name');
+            $t->string('status')->default('seated');
             $t->string('chair_member_id')->nullable(); $t->string('alternate_member_id')->nullable(); $t->softDeletes();
         });
         $schema->create('committee_meetings', function (Blueprint $t) {
@@ -83,6 +85,7 @@ final class CommitteeRoomDiscussionTest extends TestCase
         $posting = $this->createMock(MatrixPostingGateService::class);
         $posting->method('matrixUserId')->willReturn('@u-viewer:fixture');
         $floor = $this->createMock(LiveFloorService::class);
+        $this->floor = $floor;
         $floor->method('key')->willReturn('fixture-floor');
         $floor->method('state')->willReturn(['floorHolder' => null, 'queue' => [], 'speaking' => null]);
         $names = $this->createMock(PublicRoomNames::class);
@@ -123,6 +126,8 @@ final class CommitteeRoomDiscussionTest extends TestCase
         self::assertTrue($props['chatAvailable']);
         self::assertSame('Public display name', $props['displayNames']['@u-person:fixture']);
         self::assertSame('/rooms/committee/meeting/messages', $props['urls']['messages']);
+        self::assertSame('/committees/committee?meeting=meeting', $props['urls']['chamber']);
+        self::assertSame('/meetings/meeting/testimony', $props['urls']['testify']);
         self::assertCount(50, $props['record']);
         self::assertSame(array_map(fn ($i) => 'Record '.$i, range(55, 6)), array_column($props['record'], 'body'));
         $query = collect(DB::getQueryLog())->first(fn ($q) => str_contains($q['query'], 'from "public_records"'));
@@ -229,6 +234,82 @@ final class CommitteeRoomDiscussionTest extends TestCase
         $response = $this->controller->committee($request, $this->meeting());
         return (new ReflectionProperty($response, 'props'))->getValue($response);
     }
+    public function test_first_hand_raise_uses_the_provisioned_identity_instead_of_a_preview_handle(): void
+    {
+        $this->provisioner->expects($this->once())->method('ensureFor')->with($this->callback(fn ($user) => $user->id === 'viewer'))
+            ->willReturn((new MatrixIdentity())->forceFill(['matrix_user_id' => '@u-canonical-person:fixture']));
+        $this->floor->expects($this->once())->method('raiseHand')->with('fixture-floor', '@u-canonical-person:fixture', 'To speak')->willReturn([]);
+        $this->controller->raiseHand($this->postRequest(), $this->meeting());
+    }
+
+    public function test_lowering_own_hand_cannot_remove_another_participant_even_with_a_supplied_handle(): void
+    {
+        config(['cache.default' => 'array']);
+        self::assertSame('array', \Illuminate\Support\Facades\Cache::getDefaultDriver());
+        $floor = new LiveFloorService();
+        $key = $floor->key('committee_meeting', 'meeting');
+        $floor->raiseHand($key, '@u-own:fixture');
+        $floor->raiseHand($key, '@u-other:fixture');
+        $this->provisioner->expects($this->once())->method('ensureFor')->willReturn((new MatrixIdentity())->forceFill(['matrix_user_id' => '@u-own:fixture']));
+        $controller = new LiveRoomController($this->topology, $floor, $this->createMock(ChamberVotePresenter::class),
+            $this->createMock(PublicRoomNames::class), $this->createMock(MatrixPostingGateService::class));
+        $request = $this->postRequest();
+        $request->merge(['action' => 'lower', 'handle' => '@u-other:fixture']);
+        $response = $controller->raiseHand($request, $this->meeting());
+        self::assertSame(['@u-other:fixture'], array_column($floor->state($key)['queue'], 'handle'));
+        self::assertSame('Your hand is lowered.', $response->getSession()->get('status'));
+    }
+
+    public function test_unknown_hand_action_is_rejected_before_identity_or_floor_mutation(): void
+    {
+        $this->provisioner->expects($this->never())->method('ensureFor');
+        $this->floor->expects($this->never())->method('raiseHand');
+        $this->floor->expects($this->never())->method('lowerHand');
+        $request = $this->postRequest();
+        $request->merge(['action' => 'recognize']);
+        try { $this->controller->raiseHand($request, $this->meeting()); self::fail('Invalid hand action accepted.'); }
+        catch (\Illuminate\Validation\ValidationException $error) { self::assertArrayHasKey('action', $error->errors()); }
+    }
+
+    public function test_adjourned_hearing_keeps_discussion_but_disables_and_rejects_formal_floor_actions(): void
+    {
+        $this->room();
+        DB::table('committee_meetings')->where('id', 'meeting')->update(['status' => 'adjourned']);
+        $this->matrix->method('getMessages')->willReturn(['chunk' => []]);
+        $this->provisioner->expects($this->never())->method('ensureFor');
+        $this->floor->expects($this->never())->method('raiseHand');
+        $this->floor->expects($this->never())->method('recognize');
+        $this->floor->expects($this->never())->method('yieldFloor');
+        $props = $this->page($this->postRequest());
+        self::assertTrue($props['chatAvailable']);
+        self::assertTrue($props['voice']['enabled']);
+        foreach (['recognize', 'advance', 'raiseHand', 'testify', 'cast'] as $action) self::assertFalse($props['can'][$action]);
+        foreach (['raiseHand', 'recognize', 'advance'] as $action) {
+            try { $this->controller->{$action}($this->postRequest(), $this->meeting()); self::fail('Closed hearing floor action accepted.'); }
+            catch (\Illuminate\Validation\ValidationException $error) { self::assertArrayHasKey('floor', $error->errors()); }
+        }
+    }
+
+    public function test_dissolved_committee_or_legislature_disables_and_rejects_hearing_floor_actions(): void
+    {
+        $this->room();
+        $this->matrix->method('getMessages')->willReturn(['chunk' => []]);
+        $this->provisioner->expects($this->never())->method('ensureFor');
+        $this->floor->expects($this->never())->method('raiseHand');
+        $this->floor->expects($this->never())->method('recognize');
+        $this->floor->expects($this->never())->method('yieldFloor');
+        foreach (['committees' => 'seated', 'legislatures' => 'active'] as $table => $previous) {
+            DB::table($table)->update(['status' => 'dissolved']);
+            $props = $this->page($this->postRequest());
+            foreach (['recognize', 'advance', 'raiseHand', 'testify', 'cast'] as $action) self::assertFalse($props['can'][$action]);
+            foreach (['raiseHand', 'recognize', 'advance'] as $action) {
+                try { $this->controller->{$action}($this->postRequest(), $this->meeting()); self::fail('Dissolved institution floor action accepted.'); }
+                catch (\Illuminate\Validation\ValidationException $error) { self::assertArrayHasKey('floor', $error->errors()); }
+            }
+            DB::table($table)->update(['status' => $previous]);
+        }
+    }
+
     private function meeting(): CommitteeMeeting { return CommitteeMeeting::query()->findOrFail('meeting'); }
     private function postRequest(): Request
     {

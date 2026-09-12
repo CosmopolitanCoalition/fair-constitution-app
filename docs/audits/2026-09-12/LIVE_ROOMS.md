@@ -45,4 +45,19 @@ This code-only follow-up adds institution floor controls and current-office look
 
 Validation: **48 focused PHP tests / 334 assertions**, **27 JavaScript checks**, and four Vue components compiled individually. Coverage includes 205 connected identities requested in 100/100/5 batches, permission denials, current-office changes, polling recovery, witness video following its position without duplication, and continued media lifecycle behavior. The updated Anne Arundel room joined LiveKit in listen-only mode and left successfully with no browser errors. The operator's test hand was lowered, restoring the empty queue. Its public label was the resident fallback because no chosen public room name resolved.
 
-No migration, simulation operation, official civic record, production frontend build or remote deployment was required. Pulling hosts need the new code and their route cache refreshed (`php artisan route:clear`). Session archives and expanded role exploration remain separate planned room work; physical-device/conference-host rehearsal remains unverified here.
+No migration, simulation operation, official civic record, production frontend build or remote deployment was required. Pulling hosts need the new code and their route cache refreshed (`php artisan route:clear`). Physical-device/conference-host rehearsal remains unverified here.
+
+## Archives, role exploration and hearing continuity
+
+| Item | Delivered |
+|---|---|
+| Session archive | Public `/legislatures/{id}/sessions` uses 20-row cursors. An exact `session?session={id}` record pages attendance, motions, published statements/minutes and a selected motion's votes independently. Other sessions/chambers cannot substitute for the requested record; current ballots and filing controls are excluded. |
+| Speaker and role previews | Visitors can open the Speaker workspace and follow links to the actual chamber, sessions, committees and oversight. Member-only office records remain outside the public preview. Role exploration adds labeled seating examples and direct chamber/committee/court room links. Shared legislature navigation now opens the institution's own live room. |
+| Committee continuity | Room-to-workspace links retain the exact hearing. The workspace validates committee ownership, displays that hearing's testimony and links back to the same room. Closed/dissolved contexts disable formal controls. Informal Matrix discussion continues refreshing after adjournment in one polling stream. |
+| Hand requests | Committee requests provision the same canonical local identity as calls/messages, so chosen public names resolve before a first call. Participants can raise and lower only their own hands. |
+
+Live browser checks reached the public Speaker preview, the archive empty state for Anne Arundel, and the labeled courtroom role guide. Anne Arundel has no recorded sessions, so populated archives were exercised with isolated fixtures rather than fabricated live proceedings. Existing legislature/session and session/vote indexes scope the new readers; composite indexes remain a future optimization for very large histories within one session.
+
+Final regression: **33 focused PHP tests / 454 assertions**, **10 JavaScript checks**, and **nine Vue components compiled individually**. Archive fixtures traverse 42 sessions, page each record section forward/backward, reject cross-session/chamber selections and exclude current action props. Committee fixtures pin exact-hearing submissions, closed/dissolved guards, continued discussion polling, chosen identity resolution and lowering only the caller's own hand. Changed PHP and routes pass syntax checks.
+
+No new migration, frontend production build, simulation control, official record or deployment was required. Pull the code and refresh route caches. This completes the identified R3 build work; independent participant rehearsal on the intended host remains outstanding.

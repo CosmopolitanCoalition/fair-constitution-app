@@ -49,6 +49,12 @@ class SessionController extends Controller
 
     public function show(Request $request, Legislature $legislature): Response
     {
+        if ($request->has('session')) {
+            return Inertia::render('Legislature/SessionRecord', array_merge(
+                $this->archiveFrame($legislature),
+                app(\App\Services\Legislature\SessionArchive::class)->record($request, (string) $legislature->id),
+            ));
+        }
         $legislature->loadMissing('jurisdiction:id,name,slug,parent_id,adm_level');
 
         $viewer = $this->viewerMember($legislature, $request->user());
@@ -113,6 +119,24 @@ class SessionController extends Controller
                 'isGallery'     => $isGallery,
             ],
         ]);
+    }
+
+    /** Public bounded archive for this legislature, including direct session record links. */
+    public function index(Request $request, Legislature $legislature): Response
+    {
+        return Inertia::render('Legislature/SessionArchive', array_merge($this->archiveFrame($legislature), [
+            'sessions' => app(\App\Services\Legislature\SessionArchive::class)->listing($request, (string) $legislature->id),
+        ]));
+    }
+
+    private function archiveFrame(Legislature $legislature): array
+    {
+        $legislature->loadMissing('jurisdiction:id,name,slug,parent_id,adm_level');
+        return [
+            'legislature' => ['id' => (string) $legislature->id, 'name' => ($legislature->jurisdiction?->name ?? 'Legislature').' sessions'],
+            'workspace' => \App\Support\LegislatureWorkspace::for($legislature, $legislature->jurisdiction, false),
+            'jurisdictionContext' => $legislature->jurisdiction ? \App\Support\JurisdictionContext::forRoom($legislature->jurisdiction) : null,
+        ];
     }
 
     // =========================================================================

@@ -10,7 +10,7 @@
  * (WF-LEG-08) · report filing (F-CHR-004).
  */
 import { computed, ref } from 'vue';
-import { router, useForm, usePage } from '@inertiajs/vue3';
+import { Link, router, useForm, usePage } from '@inertiajs/vue3';
 import AppShellV2 from '@/Layouts/AppShellV2.vue';
 import PageScaffold from '@/Components/Surface/PageScaffold.vue';
 import FormCard from '@/Components/Surface/FormCard.vue';
@@ -32,6 +32,7 @@ const props = defineProps({
     surface: { type: Object, required: true },
     committee: { type: Object, required: true },
     meeting: { type: Object, default: null },
+    meetingContext: { type: Object, default: () => ({}) },
     bills: { type: Array, default: () => [] },
     testimony: { type: Array, default: () => [] },
     can: { type: Object, default: () => ({}) },
@@ -141,6 +142,11 @@ function submitReport() {
         <p class="cc-small">
             <a :href="committee.legislature.href">← {{ committee.legislature.name }} committees</a>
         </p>
+        <nav class="cluster" aria-label="Hearing navigation">
+            <Link v-if="urls.room" :href="urls.room" class="btn btn--secondary">Open this hearing’s room</Link>
+            <Link v-if="meetingContext.explicit" :href="urls.current" class="btn btn--ghost">Current committee work</Link>
+        </nav>
+        <Banner v-if="meetingContext.readOnly" tone="info">You are reading a closed hearing or committee. Filing controls are unavailable in this view.</Banner>
 
         <Banner v-if="flashStatus" tone="info" role="status">{{ flashStatus }}</Banner>
         <Banner v-if="constitutionError" tone="emergency">{{ constitutionError }}</Banner>
@@ -193,7 +199,7 @@ function submitReport() {
         <Card as="section" title="Meeting">
             <template v-if="meeting">
                 <p class="cc-small">
-                    {{ meeting.status === 'open' ? 'In session' : 'Scheduled' }} —
+                    {{ meeting.status === 'open' ? 'In session' : meeting.status === 'adjourned' ? 'Adjourned' : 'Scheduled' }} —
                     {{ fmt(meeting.scheduled_for) }} · hearings are public record.
                 </p>
                 <ol v-if="meeting.agenda.length" class="agenda-list">
@@ -264,6 +270,7 @@ function submitReport() {
 
         <!-- ================================== bills ==================== -->
         <Card as="section" title="Bills before the committee">
+            <p v-if="meetingContext.explicit" class="gloss">These bills and reports belong to the committee as a whole. The hearing and testimony shown here belong to the selected meeting.</p>
             <p v-if="!bills.length" class="gloss">No bills referred to this committee.</p>
 
             <div class="stack" style="gap: var(--space-3)">
@@ -325,7 +332,7 @@ function submitReport() {
         <div class="grid-2">
             <!-- ============================== testimony ================ -->
             <section class="card" aria-labelledby="testimony-h">
-                <h2 id="testimony-h">Testimony</h2>
+                <h2 id="testimony-h">{{ meetingContext.explicit ? 'Testimony for this hearing' : 'Committee testimony' }}</h2>
                 <p class="gloss">
                     Hearings take testimony from any resident; entries publish verbatim to the
                     immutable public record · WF-LEG-08 · WF-SYS-03.

@@ -49,6 +49,7 @@ function sendMessage() {
 }
 const flashStatus = computed(() => page.props.flash?.status ?? null);
 const isLive = computed(() => props.status?.state === 'open');
+const myHandRaised = computed(() => !!props.voice?.myMxid && (props.queue ?? []).some(person => person.handle === props.voice.myMxid));
 const labelFor = (handle) => personLabel({ identity: handle, display_name: props.displayNames[handle] });
 const seating = computed(() => {
     const seats = props.presence.map((person) => ({ ...person, display_name: props.displayNames[person.handle] || person.display_name }));
@@ -58,8 +59,10 @@ const seating = computed(() => {
     return seats;
 });
 const { isStale } = useLiveRoom({
-    keys: ['status', 'agenda', 'vote', 'presence', 'queue', 'floorHolder', 'displayNames', 'voice', 'chat', 'chatAvailable', 'record', 'clocks'],
-    isLive: () => props.status?.state ?? 'open',
+    keys: ['status', 'agenda', 'vote', 'presence', 'queue', 'floorHolder', 'displayNames', 'voice', 'chat', 'chatAvailable', 'record', 'clocks', 'can'],
+    // Informal discussion and calls outlive the formal hearing. Keep one
+    // snapshot stream; the meeting's own status controls its formal actions.
+    isLive: () => 'open',
     busy: () => busy.value || compose.processing,
     cadenceMs: 5000,
 });
@@ -74,13 +77,16 @@ watch(() => props.vote?.outcome, (outcome) => {
     if (outcome === 'adopted') announce(text('vote_adopted', 'Vote result: adopted'));
     else if (outcome === 'failed') announce(text('vote_failed', 'Vote result: failed'));
 });
-function floorAction(action) {
+function floorAction(action, payload = {}) {
     if (!props.urls[action] || busy.value) return;
-    router.post(props.urls[action], {}, {
+    router.post(props.urls[action], payload, {
         preserveScroll: true,
         onStart: () => (busy.value = true),
         onFinish: () => (busy.value = false),
     });
+}
+function toggleHand() {
+    floorAction('raiseHand', { action: myHandRaised.value ? 'lower' : 'raise' });
 }
 </script>
 
@@ -97,6 +103,8 @@ function floorAction(action) {
             <Link v-if="urls.chamber" :href="urls.chamber" class="btn btn--secondary btn--sm">{{ text('committee_workspace', 'Committee workspace') }}</Link>
         </header>
         <Banner v-if="flashStatus" tone="info" role="status">{{ flashStatus }}</Banner>
+        <Banner v-if="page.props.errors?.floor" tone="warning" role="alert">{{ page.props.errors.floor }}</Banner>
+        <p v-if="status.state === 'adjourned'" class="gloss">This hearing has adjourned. Its public record is closed; informal discussion and the call remain available.</p>
 
         <LiveRoom v-if="voice.enabled && voice.roomId && voice.myMxid && voice.myUserId"
             :key="voice.roomId" :jurisdiction-id="voice.jurisdictionId" :room="voice.roomId"
@@ -143,8 +151,8 @@ function floorAction(action) {
                         </li>
                     </ol>
                     <p v-else class="gloss">{{ text('no_queue', 'No one is waiting to speak.') }}</p>
-                    <Btn v-if="can.raiseHand" variant="primary" size="sm" :disabled="busy" @click="floorAction('raiseHand')">{{ text('raise_hand', 'Raise my hand') }}</Btn>
-                    <Link v-else href="/login" class="btn btn--secondary btn--sm">{{ text('sign_in_hand', 'Sign in to raise your hand') }}</Link>
+                    <Btn v-if="can.raiseHand" variant="primary" size="sm" :disabled="busy" :pressed="myHandRaised" @click="toggleHand">{{ myHandRaised ? text('lower_hand', 'Lower my hand') : text('raise_hand', 'Raise my hand') }}</Btn>
+                    <Link v-else-if="!voice.myUserId && status.state !== 'adjourned'" href="/login" class="btn btn--secondary btn--sm">{{ text('sign_in_hand', 'Sign in to raise your hand') }}</Link>
                 </Card>
                 <Card as="section" :title="text('conversation_call', 'Conversation and call')">
                     <p v-if="voice.enabled && voice.myUserId" class="gloss">{{ text('hearing_call_hint', 'Join the hearing’s call above. Your camera or avatar appears in your assigned position. Use the halls for the jurisdiction’s wider conversation.') }}</p>

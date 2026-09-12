@@ -6,7 +6,7 @@ import AppShellV2 from '@/Layouts/AppShellV2.vue';
 import PageScaffold from '@/Components/Surface/PageScaffold.vue';
 import Icon from '@/Components/Ui/Icon.vue';
 import CivicFloor from '@/Components/Civic/Room/CivicFloor.vue';
-import { CIVIC_ROLES, EXPLORER_LINKS, EXPLORER_GLOBAL_LINKS } from '@/registry/roleExplorer.js';
+import { CIVIC_ROLES, EXPLORER_LINKS, EXPLORER_GLOBAL_LINKS, ROOM_GUIDES } from '@/registry/roleExplorer.js';
 
 defineOptions({ layout: AppShellV2 });
 const props = defineProps({ place: { type: Object, default: null }, destinations: { type: Object, default: () => ({}) } });
@@ -14,6 +14,7 @@ const page = usePage();
 const { t } = useI18n();
 const selected = computed(() => new URL(page.url, 'http://localhost').searchParams.get('role'));
 const role = computed(() => CIVIC_ROLES.find(r => r.id === selected.value) ?? CIVIC_ROLES[0]);
+const guide = computed(() => ROOM_GUIDES[role.value.room] ?? {});
 const text = (key, fallback) => t('c_explore.' + key, fallback);
 const roleTitle = r => text(r.id + '.title', r.title);
 function selectRole(id) {
@@ -63,8 +64,8 @@ const home = computed(() => page.props.homeJurisdiction?.current);
             </div>
             <div v-if="role.room" class="role-floor">
                 <h3>{{ text('room_heading', 'How the room is arranged') }}</h3>
-                <p class="gloss">{{ text('room_note', 'This is a seating guide. Enter a live room to see its participants and current speaker.') }}</p>
-                <CivicFloor :key="role.room" :variant="role.room" />
+                <p class="gloss">{{ text('room_guide_examples', 'These labeled seats are examples for learning the room. Enter a live room to see its actual participants and current speaker.') }}</p>
+                <CivicFloor :key="role.room" :variant="role.room" :roster="guide.roster" :floor-holder="guide.floorHolder" :active-witness="guide.activeWitness" />
             </div>
         </section>
         <p class="gloss">{{ text('perspective_note', 'You can explore every perspective. Your account and public identity stay with you as you move between workspaces.') }}</p>

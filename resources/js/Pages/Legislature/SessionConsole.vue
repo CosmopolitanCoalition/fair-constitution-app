@@ -14,7 +14,7 @@
  * filing — 422s surface verbatim as errors.constitution.
  */
 import { computed, ref } from 'vue';
-import { router, useForm, usePage } from '@inertiajs/vue3';
+import { Link, router, useForm, usePage } from '@inertiajs/vue3';
 import { useI18n } from 'vue-i18n';
 import LegislatureWorkspaceNav from '@/Components/Legislature/LegislatureWorkspaceNav.vue';
 import AppShellV2 from '@/Layouts/AppShellV2.vue';
@@ -224,6 +224,10 @@ function adjourn() {
 <template>
     <PageScaffold :surface="surface" :title="`Session console — ${legislature.name}`">
         <LegislatureWorkspaceNav :workspace="workspace" active="session" />
+        <nav class="cluster" aria-label="Session history">
+            <Link :href="`/legislatures/${legislature.id}/sessions`">All sessions</Link>
+            <Link v-if="session" :href="`/legislatures/${legislature.id}/session?session=${session.id}`">Browse this session’s full record</Link>
+        </nav>
         <nav v-if="session && live" class="cluster" :aria-label="text('session_sections')">
             <a href="#session-attendance">{{ text('attendance') }}</a>
             <a href="#session-agenda">{{ text('agenda') }}</a>

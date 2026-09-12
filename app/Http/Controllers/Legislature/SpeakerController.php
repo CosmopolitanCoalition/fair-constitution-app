@@ -27,12 +27,9 @@ use Inertia\Response;
  *   GET  /legislatures/{legislature}/speaker             show
  *   POST /legislatures/{legislature}/priorities          storePriority  F-SPK-006
  *
- * Gating (§B.7): members of this chamber only — R-10 gets the live
- * launchpad, R-09 the read-only "what the Speaker can do" variant
- * (actions hidden; the engine rejects them anyway). Non-members 302 to
- * the chamber page. No Speaker elected → 302 to the session console's
- * speaker-election state (the chamber cannot conduct business it has no
- * neutral chair for).
+ * Visitors can explore the office and reach public proceedings. Member-only
+ * office records remain separate from that preview; only the current Speaker
+ * receives action controls, and every filing retains engine authorization.
  */
 class SpeakerController extends Controller
 {
@@ -49,14 +46,19 @@ class SpeakerController extends Controller
 
         $viewer = $this->viewerMember($legislature, $request->user());
 
-        if ($viewer === null) {
-            return redirect("/legislatures/{$legislature->id}/chamber")
-                ->with('status', 'Speaker tools are a member surface — chamber business publishes to the public record.');
-        }
-
-        if ($legislature->speaker_id === null) {
-            return redirect("/legislatures/{$legislature->id}/session")
-                ->with('status', 'No Speaker is seated — the Speaker election is the first order of the first session (F-LEG-008).');
+        if ($viewer === null || $legislature->speaker_id === null) {
+            // A preview never queries private priorities, proceedings or member selectors.
+            return Inertia::render('Legislature/SpeakerTools', [
+                'workspace' => \App\Support\LegislatureWorkspace::for($legislature, $legislature->jurisdiction, false),
+                'jurisdictionContext' => $legislature->jurisdiction ? \App\Support\JurisdictionContext::for($legislature->jurisdiction) : null,
+                'surface' => SurfaceMeta::for('legislature/speaker-tools'),
+                'legislature' => ['id' => (string) $legislature->id, 'name' => ($legislature->jurisdiction?->name ?? 'Selected place').' legislature'],
+                'speaker' => ['name' => $legislature->speaker_id ? 'See the chamber roster' : 'No Speaker seated yet', 'is_viewer' => false],
+                'preview' => true, 'readOnly' => true, 'can' => ['facilitate' => false, 'preside' => false],
+                'urls' => ['session' => "/legislatures/{$legislature->id}/session",
+                    'committees' => "/legislatures/{$legislature->id}/committees",
+                    'oversight' => "/legislatures/{$legislature->id}/oversight"],
+            ]);
         }
 
         $isSpeaker = $this->viewerIsSpeaker($legislature, $viewer);

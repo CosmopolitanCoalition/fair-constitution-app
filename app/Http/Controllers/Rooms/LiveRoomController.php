@@ -7,6 +7,7 @@ use App\Http\Presenters\ChamberVotePresenter;
 use App\Models\Committee;
 use App\Models\CommitteeMeeting;
 use App\Models\CommitteeSeat;
+use App\Models\Legislature;
 use App\Models\PublicRecord;
 use App\Models\MatrixRoom;
 use App\Models\User;
@@ -95,6 +96,9 @@ class LiveRoomController extends Controller
         $isAlternate = $viewerMemberId !== null
             && (string) $committee->alternate_member_id === $viewerMemberId;
         $isMember = $viewerMemberId !== null;
+        $floorOpen = in_array($meeting->status, [CommitteeMeeting::STATUS_SCHEDULED, CommitteeMeeting::STATUS_OPEN], true)
+            && $committee->status !== Committee::STATUS_DISSOLVED
+            && $legislature !== null && $legislature->status !== Legislature::STATUS_DISSOLVED;
 
         $floorKey = $this->floor->key('committee_meeting', (string) $meeting->id);
         $floorState = $this->floor->state($floorKey);
@@ -158,11 +162,11 @@ class LiveRoomController extends Controller
                 'Call the committee vote',
             ],
             'can' => [
-                'recognize' => $isChair || $isAlternate,
-                'advance'   => $isChair || $isAlternate,
-                'raiseHand' => $viewer !== null,
-                'testify'   => $viewer !== null,
-                'cast'      => $isMember,
+                'recognize' => $floorOpen && ($isChair || $isAlternate),
+                'advance'   => $floorOpen && ($isChair || $isAlternate),
+                'raiseHand' => $floorOpen && $viewer !== null,
+                'testify'   => $floorOpen && $viewer !== null,
+                'cast'      => $floorOpen && $isMember,
                 'isGallery' => $viewer === null || ! $isMember,
             ],
             'urls' => [
@@ -171,8 +175,8 @@ class LiveRoomController extends Controller
                 'raiseHand' => "/rooms/committee/{$meeting->id}/raise-hand",
                 'recognize' => "/rooms/committee/{$meeting->id}/recognize",
                 'advance'   => "/rooms/committee/{$meeting->id}/advance",
-                'testify'   => "/committees/{$committee->id}/reports",
-                'chamber'   => "/committees/{$committee->id}",
+                'testify'   => "/meetings/{$meeting->id}/testimony",
+                'chamber'   => "/committees/{$committee->id}?".http_build_query(['meeting' => (string) $meeting->id]),
                 'commons'   => '/civic/commons/halls?jurisdiction='.$jurisdiction?->id,
             ],
         ]);
@@ -224,15 +228,23 @@ class LiveRoomController extends Controller
             && (string) $room->entity_id === (string) $meeting->id;
     }
 
-    /** A resident raises a hand to speak (any authenticated player — Art. I). */
+    /** A player raises or lowers only their own hand; omitted action preserves older clients. */
     public function raiseHand(Request $request, CommitteeMeeting $meeting): RedirectResponse
     {
         abort_if($request->user() === null, 403);
+        $data = $request->validate(['action' => ['sometimes', 'required', 'string', 'in:raise,lower']]);
+        $action = $data['action'] ?? 'raise';
+        $this->assertFloorOpen($meeting);
 
         $key = $this->floor->key('committee_meeting', (string) $meeting->id);
-        $this->floor->raiseHand($key, $this->pseudonym((string) $request->user()->id), 'To speak');
+        $identity = app(\App\Services\Matrix\MatrixIdentityProvisioner::class)->ensureFor($request->user());
+        if ($action === 'lower') {
+            $this->floor->lowerHand($key, $identity->matrix_user_id);
+        } else {
+            $this->floor->raiseHand($key, $identity->matrix_user_id, 'To speak');
+        }
 
-        return back()->with('status', 'Your hand is raised — the chair recognizes speakers in turn.');
+        return back()->with('status', $action === 'lower' ? 'Your hand is lowered.' : 'Your hand is raised — the chair recognizes speakers in turn.');
     }
 
     /** The chair recognizes the next hand (or a named handle) → the floor. */
@@ -272,6 +284,7 @@ class LiveRoomController extends Controller
     {
         $user = $request->user();
         abort_if($user === null, 403);
+        $this->assertFloorOpen($meeting);
 
         $committee = $meeting->committee()->firstOrFail();
         $seats = CommitteeSeat::query()
@@ -285,6 +298,16 @@ class LiveRoomController extends Controller
         $isAlternate = $memberId !== null && (string) $committee->alternate_member_id === $memberId;
 
         abort_unless($isChair || $isAlternate, 403, 'Only the committee chair (or alternate) runs the floor.');
+    }
+
+    private function assertFloorOpen(CommitteeMeeting $meeting): void
+    {
+        $committee = $meeting->committee()->with('legislature:id,status')->first();
+        if (! in_array($meeting->status, [CommitteeMeeting::STATUS_SCHEDULED, CommitteeMeeting::STATUS_OPEN], true)
+            || $committee === null || $committee->status === Committee::STATUS_DISSOLVED
+            || $committee->legislature === null || $committee->legislature->status === Legislature::STATUS_DISSOLVED) {
+            throw \Illuminate\Validation\ValidationException::withMessages(['floor' => 'This hearing or institution is closed. Its record and informal discussion remain available.']);
+        }
     }
 
     // =========================================================================

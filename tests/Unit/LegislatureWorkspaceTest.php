@@ -48,11 +48,11 @@ final class LegislatureWorkspaceTest extends TestCase
         });
     }
 
-    public function test_navigation_keeps_the_selected_legislature_and_existing_speaker_read_boundary(): void
+    public function test_navigation_keeps_the_selected_legislature_and_speaker_preview_never_reads_office_records(): void
     {
         $legislature = $this->legislature();
         $workspace = LegislatureWorkspace::for($legislature, $legislature->jurisdiction, true);
-        foreach (['overview', 'chamber', 'session', 'speaker', 'maps', 'bills', 'committees', 'oversight', 'referendums', 'settings', 'rooms'] as $key) {
+        foreach (['overview', 'chamber', 'session', 'sessions', 'speaker', 'maps', 'bills', 'committees', 'oversight', 'referendums', 'settings', 'rooms'] as $key) {
             $route = Route::getRoutes()->match(Request::create($workspace[$key]));
             self::assertContains('GET', $route->methods(), $key);
             if (! in_array($key, ['overview', 'rooms'], true)) {
@@ -60,15 +60,25 @@ final class LegislatureWorkspaceTest extends TestCase
             }
         }
         self::assertSame('/legislatures/viewed-place', $workspace['overview']);
-        self::assertSame('/civic/commons/halls?jurisdiction='.self::PLACE, $workspace['rooms']);
-        self::assertNull(LegislatureWorkspace::for($legislature, $legislature->jurisdiction, false)['speaker']);
+        self::assertSame('/rooms/chamber/'.self::LEGISLATURE, $workspace['rooms']);
+        self::assertSame('/legislatures/'.self::LEGISLATURE.'/speaker', LegislatureWorkspace::for($legislature, $legislature->jurisdiction, false)['speaker']);
 
         DB::enableQueryLog();
         $request = Request::create('/legislatures/'.self::LEGISLATURE.'/speaker');
         $request->setUserResolver(fn () => null);
-        $response = $this->controller()->show($request, $legislature);
-        self::assertSame(url('/legislatures/'.self::LEGISLATURE.'/chamber'), $response->getTargetUrl());
-        self::assertSame([], DB::getQueryLog(), 'Guest speaker redirects must not read private office records.');
+        // Null place avoids unrelated breadcrumb lookups; both vacant and occupied
+        // offices expose the same preview, without loading private office data.
+        $legislature->setRelation('jurisdiction', null);
+        foreach ([null, 'a-current-speaker-seat'] as $speaker) {
+            $legislature->speaker_id = $speaker;
+            $response = $this->controller()->show($request, $legislature);
+            $props = (new \ReflectionProperty($response, 'props'))->getValue($response);
+            self::assertTrue($props['preview']);
+            self::assertTrue($props['readOnly']);
+            self::assertSame(['facilitate' => false, 'preside' => false], $props['can']);
+            foreach (['members', 'priorities', 'tieBreaks', 'pendingProceedings'] as $key) self::assertArrayNotHasKey($key, $props);
+        }
+        self::assertSame([], DB::getQueryLog(), 'Guest speaker previews must not read private office records.');
     }
 
     public function test_priority_history_is_scoped_before_paging_and_keeps_older_records_reachable(): void

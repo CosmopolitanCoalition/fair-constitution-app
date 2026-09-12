@@ -759,6 +759,8 @@ Route::middleware('auth')->group(function () {
     // ── FE-C3 — SessionConsole (legislature/session-console) ────────────────
     Route::get('/legislatures/{legislature}/session', [SessionController::class, 'show'])
         ->whereUuid('legislature')->name('session.show')->withoutMiddleware('auth'); // §10-1 public read — a session is a civic proceeding (gallery)
+    Route::get('/legislatures/{legislature}/sessions', [SessionController::class, 'index'])
+        ->whereUuid('legislature')->name('sessions.index')->withoutMiddleware('auth');
     Route::post('/legislatures/{legislature}/sessions', [SessionController::class, 'store'])
         ->whereUuid('legislature')->name('sessions.store');                   // F-SPK-001
     Route::post('/legislatures/{legislature}/speaker-ballot', [SessionController::class, 'launchSpeakerBallot'])
@@ -949,7 +951,7 @@ Route::middleware('auth')->group(function () {
 
     // ── FE-C7 — SpeakerTools (parallel batch) ───────────────────────────────
     Route::get('/legislatures/{legislature}/speaker', [\App\Http\Controllers\Legislature\SpeakerController::class, 'show'])
-        ->whereUuid('legislature')->name('speaker.show');
+        ->whereUuid('legislature')->name('speaker.show')->withoutMiddleware('auth');
     Route::post('/legislatures/{legislature}/priorities', [\App\Http\Controllers\Legislature\SpeakerController::class, 'storePriority'])
         ->whereUuid('legislature')->name('speaker.priorities');               // F-SPK-006
 
