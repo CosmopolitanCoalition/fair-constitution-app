@@ -1,0 +1,82 @@
+<div id="wos-inventory">
+  <style>
+    #wos-inventory { color: var(--foreground); }
+    #wos-inventory .inventory-meta { margin-block: .5rem 1rem; }
+    #wos-inventory .inventory-tree { margin-block: 1rem; }
+    #wos-inventory details { padding-block: .65rem; border-bottom: 1px solid var(--border); }
+    #wos-inventory summary { cursor: pointer; }
+    #wos-inventory .page-list { padding-inline-start: 1rem; }
+    #wos-inventory .page-detail { padding: .5rem 0 .25rem 1rem; }
+    #wos-inventory .page-detail p { margin-block: .35rem; }
+    #wos-inventory .page-detail code { overflow-wrap: anywhere; }
+    #wos-inventory .count { float: inline-end; font-variant-numeric: tabular-nums; }
+    #wos-inventory .tree-label { font-weight: 500; }
+    #wos-inventory .page-badge { margin-inline-start: .5rem; }
+    #wos-inventory .evidence { overflow-wrap: anywhere; }
+    #wos-inventory .proposed-grid { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: 1rem 2rem; margin-block: 1rem; }
+    #wos-inventory .proposed-grid h3 { margin-block: .25rem; }
+    #wos-inventory .proposed-grid ul { margin-block: .5rem; padding-inline-start: 1.2rem; }
+    @media (max-width: 520px) { #wos-inventory .proposed-grid { grid-template-columns: 1fr; } }
+    @media (pointer: coarse) { #wos-inventory summary { min-height: 44px; } }
+  </style>
+  <h2>World of Statecraft · feature map</h2>
+  <div class="inventory-meta text-small">134 page components · 88 full-menu entries · 60 tour stops · reviewed 12 September 2026</div>
+  <div class="nav nav-pills" role="tablist" aria-label="Inventory views">
+    <button type="button" class="nav-link active" id="wos-all-tab" role="tab" aria-controls="wos-all" aria-selected="true">All surfaces</button>
+    <button type="button" class="nav-link" id="wos-gaps-tab" role="tab" aria-controls="wos-gaps" aria-selected="false">Overlap & gaps</button>
+    <button type="button" class="nav-link" id="wos-proposed-tab" role="tab" aria-controls="wos-proposed" aria-selected="false">Proposed navigation</button>
+  </div>
+  <div id="wos-all" role="tabpanel" aria-labelledby="wos-all-tab">
+    <div class="viz-row inventory-meta">
+      <span class="text-small">Code evidence; selected browser checks. Actions were not submitted.</span>
+      <button type="button" class="btn btn-ghost" id="wos-expand" aria-expanded="false">Expand feature groups</button>
+    </div>
+    <div id="wos-tree" class="inventory-tree"></div>
+    <details>
+      <summary>Current full menu · 13 sections</summary>
+      <div id="wos-current-menu" class="page-list"></div>
+    </details>
+  </div>
+  <div id="wos-gaps" role="tabpanel" aria-labelledby="wos-gaps-tab" hidden>
+    <div id="wos-issues" class="inventory-tree"></div>
+    <details>
+      <summary>Repeated destinations · navigation repetition, not proof of duplicate features</summary>
+      <div id="wos-repeats" class="page-list"></div>
+    </details>
+  </div>
+  <div id="wos-proposed" role="tabpanel" aria-labelledby="wos-proposed-tab" hidden>
+    <div class="proposed-grid">
+      <section><h3>Today</h3><ul><li>Things to act on</li><li>Upcoming events</li><li>Continue a scenario</li></ul></section>
+      <section><h3>Places</h3><ul><li>World and jurisdiction maps</li><li>Government, elections and courts</li><li>Public records and institutional work</li></ul></section>
+      <section><h3>Community</h3><ul><li>Public discussion and petitions</li><li>Messages and live meetings</li><li>Organizations and membership</li></ul></section>
+      <section><h3>Work & trade</h3><ul><li>Jobs, goods and services</li><li>Offers, applications and agreements</li><li>Wallet and exchange</li></ul></section>
+      <section><h3>Learn</h3><ul><li>Guided scenarios</li><li>Lessons and videos</li><li>Help and reference</li></ul></section>
+      <section><h3>My profile</h3><ul><li>Residency and roles</li><li>Activity and achievements</li><li>Preferences and reports</li></ul></section>
+    </div>
+    <hr>
+    <div class="text-small">Contextual tools stay publicly browsable. Permissions control actions.</div>
+    <details><summary>Place → institution → work item</summary><ul><li>Place → election → candidate or ballot</li><li>Place → legislature → bill, committee or session</li><li>Place → court → case, challenge or jury work</li><li>Organization → board, membership or finances</li></ul></details>
+    <details><summary>Host tools and developer tools</summary><ul><li>Host tools: setup, queues, mesh, identity, upgrades</li><li>Developer tools: fixtures, coverage, build progress</li><li>Separate entry points from everyday player navigation</li></ul></details>
+  </div>
+  <script type="application/json" id="wos-data">__INVENTORY_JSON__</script>
+  <script>
+    (() => {
+      const root = document.getElementById('wos-inventory');
+      const data = JSON.parse(root.querySelector('#wos-data').textContent);
+      const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+      const badge = value => ({keep:'Keep',contextualize:'Place in context',merge:'Merge entry points',complete:'Complete flow',repair:'Repair',reference:'Reference',operator:'Host tools',developer:'Developer tools'}[value] ?? value);
+      const pageMarkup = p => `<details><summary><span>${esc(p.label)}</span><span class="text-small page-badge">${esc(badge(p.recommendation))}</span></summary><div class="page-detail"><p>${esc(p.purpose)}</p><p class="text-small">${esc(p.behavior)}</p><p>${esc(p.detail)}</p>${p.routes.length?`<p class="text-small">${p.routes.map(r=>`<code>${esc(r)}</code>`).join(' · ')}</p>`:''}<p class="text-small evidence">${esc(p.file)}${p.evidence.length?' · '+p.evidence.map(esc).join(' · '):''}</p></div></details>`;
+      root.querySelector('#wos-tree').innerHTML = data.families.map(f => `<details data-family><summary><span class="tree-label">${esc(f.name)}</span><span class="count">${f.pages.length}</span></summary><div class="page-list">${f.pages.map(pageMarkup).join('')}</div></details>`).join('');
+      root.querySelector('#wos-current-menu').innerHTML = data.menu.map(g=>`<details><summary>${esc(g.title)} <span class="count">${g.items.length}</span></summary><ul>${g.items.map(i=>`<li>${esc(i.label)} <span class="text-small">${esc(i.href ?? 'Planned')}</span></li>`).join('')}</ul></details>`).join('');
+      root.querySelector('#wos-issues').innerHTML = data.issues.map(i=>`<details><summary><span class="tree-label">${esc(i.title)}</span><span class="text-small page-badge">${esc(i.kind)}</span></summary><div class="page-detail"><p>${esc(i.problem)}</p><p>${esc(i.proposal)}</p><p class="text-small evidence">${i.evidence.map(esc).join(' · ')}</p></div></details>`).join('');
+      root.querySelector('#wos-repeats').innerHTML = data.repeatedDestinations.map(d=>`<details><summary><code>${esc(d.href)}</code></summary><ul>${d.entries.map(e=>`<li>${esc(e.section)} → ${esc(e.label)}</li>`).join('')}</ul></details>`).join('');
+      const expand = root.querySelector('#wos-expand');
+      expand.addEventListener('click', () => {
+        const value = expand.getAttribute('aria-expanded') !== 'true';
+        root.querySelectorAll('[data-family]').forEach(d => { d.open = value; });
+        expand.setAttribute('aria-expanded', String(value));
+        expand.textContent = value ? 'Collapse feature groups' : 'Expand feature groups';
+      });
+    })();
+  </script>
+</div>

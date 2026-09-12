@@ -1,0 +1,3991 @@
+{
+  "generatedAt": "2026-09-12T15:05:23.698Z",
+  "evidenceLevel": "Source inventory. Static render mapping is best effort; dynamic renderers and redirects need review.",
+  "counts": {
+    "pages": 134,
+    "routes": 547,
+    "playerNavEntries": 11,
+    "sitemapEntries": 88,
+    "sitemapSections": 13,
+    "tourStops": 60
+  },
+  "groups": [
+    {
+      "name": "Auth",
+      "count": 3
+    },
+    {
+      "name": "Build",
+      "count": 1
+    },
+    {
+      "name": "Civic",
+      "count": 15
+    },
+    {
+      "name": "Demo",
+      "count": 1
+    },
+    {
+      "name": "Dev",
+      "count": 4
+    },
+    {
+      "name": "Economy",
+      "count": 14
+    },
+    {
+      "name": "Elections",
+      "count": 7
+    },
+    {
+      "name": "Executive",
+      "count": 5
+    },
+    {
+      "name": "Arrival",
+      "count": 2
+    },
+    {
+      "name": "Invite",
+      "count": 1
+    },
+    {
+      "name": "Judiciary",
+      "count": 6
+    },
+    {
+      "name": "Jurisdictions",
+      "count": 9
+    },
+    {
+      "name": "Learn",
+      "count": 4
+    },
+    {
+      "name": "Legislature",
+      "count": 17
+    },
+    {
+      "name": "Operator",
+      "count": 9
+    },
+    {
+      "name": "Organizations",
+      "count": 6
+    },
+    {
+      "name": "Setup",
+      "count": 11
+    },
+    {
+      "name": "Social",
+      "count": 3
+    },
+    {
+      "name": "Support",
+      "count": 3
+    },
+    {
+      "name": "System",
+      "count": 12
+    },
+    {
+      "name": "Tour",
+      "count": 1
+    }
+  ],
+  "nav": [
+    {
+      "id": "home",
+      "label": "Home",
+      "icon": "home",
+      "href": "/civic",
+      "contract": "civic/today.html",
+      "phase": 3,
+      "section": "Go"
+    },
+    {
+      "id": "atlas",
+      "label": "The Atlas",
+      "icon": "globe",
+      "href": "/atlas",
+      "contract": "atlas.html",
+      "phase": 7,
+      "section": "Go"
+    },
+    {
+      "id": "public-square",
+      "label": "The square",
+      "icon": "users",
+      "href": "/civic/square",
+      "contract": "social/social-home.html",
+      "phase": 3,
+      "section": "Go"
+    },
+    {
+      "id": "rooms",
+      "label": "Messages",
+      "icon": "message-square",
+      "href": "/civic/rooms",
+      "contract": "groups/groups-home.html",
+      "phase": 3,
+      "section": "Go"
+    },
+    {
+      "id": "commons-square",
+      "label": "Live rooms",
+      "icon": "landmark",
+      "href": "/civic/commons/square",
+      "contract": "shared/live-room.html?variant=group",
+      "phase": 6,
+      "section": "Go"
+    },
+    {
+      "id": "jurisdiction-browser",
+      "label": "Places",
+      "icon": "map",
+      "href": "/jurisdictions",
+      "contract": "jurisdictions/jurisdiction-browser.html",
+      "phase": 5,
+      "section": "Go"
+    },
+    {
+      "id": "market",
+      "label": "Market",
+      "icon": "bar-chart",
+      "href": "/economy",
+      "contract": "economy/economy-home.html",
+      "section": "Go"
+    },
+    {
+      "id": "my-record",
+      "label": "My profile",
+      "icon": "user",
+      "href": "/civic/record",
+      "contract": "civic/my-civic-life.html",
+      "section": "Go"
+    },
+    {
+      "id": "journeys",
+      "label": "Journeys",
+      "icon": "list-checks",
+      "href": "/journeys",
+      "contract": "index.html#journeys-h",
+      "section": "Go"
+    },
+    {
+      "id": "learn",
+      "label": "Learn & help",
+      "icon": "graduation-cap",
+      "href": "/learn",
+      "contract": "learn/learn-home.html",
+      "section": "Go"
+    },
+    {
+      "id": "tour",
+      "label": "Guided tour",
+      "icon": "map",
+      "href": "tour:start",
+      "contract": "tour.html",
+      "phase": 1,
+      "section": "Go"
+    },
+    {
+      "id": "public-square",
+      "label": "The public square",
+      "icon": "users",
+      "href": "/civic/square",
+      "contract": "social/social-home.html",
+      "section": "Rooms & the square"
+    },
+    {
+      "id": "halls",
+      "label": "The halls (testimony)",
+      "icon": "landmark",
+      "href": "/civic/halls",
+      "contract": "shared/live-room.html?variant=townhall",
+      "phase": 6,
+      "section": "Rooms & the square"
+    },
+    {
+      "id": "commons-square",
+      "label": "The live square",
+      "icon": "message-square",
+      "href": "/civic/commons/square",
+      "contract": "shared/live-room.html?variant=group",
+      "phase": 6,
+      "section": "Rooms & the square"
+    },
+    {
+      "id": "commons-halls",
+      "label": "Live halls",
+      "icon": "landmark",
+      "href": "/civic/commons/halls",
+      "contract": "shared/live-room.html?variant=committee",
+      "phase": 6,
+      "section": "Rooms & the square"
+    },
+    {
+      "id": "rooms",
+      "label": "Private rooms & messages",
+      "icon": "lock",
+      "href": "/civic/rooms",
+      "contract": "groups/groups-home.html",
+      "phase": 3,
+      "section": "Rooms & the square"
+    },
+    {
+      "id": "petitions",
+      "label": "Petitions",
+      "icon": "file-text",
+      "href": "/civic/petitions",
+      "contract": "civic/petitions.html",
+      "section": "Rooms & the square"
+    },
+    {
+      "id": "launchpad",
+      "label": "Launchpad (the cover)",
+      "icon": "globe",
+      "href": "/launchpad",
+      "contract": "index.html",
+      "section": "Me & my account"
+    },
+    {
+      "id": "join",
+      "label": "You’re invited (arrival)",
+      "icon": "user",
+      "href": null,
+      "contract": "civic/join.html",
+      "phase": 3,
+      "section": "Me & my account"
+    },
+    {
+      "id": "onboarding",
+      "label": "Create your account",
+      "icon": "user",
+      "href": "/register",
+      "contract": "civic/onboarding.html",
+      "section": "Me & my account"
+    },
+    {
+      "id": "residency",
+      "label": "Say where you live",
+      "icon": "map-pin",
+      "href": "/civic/residency",
+      "contract": "civic/residency.html",
+      "section": "Me & my account"
+    },
+    {
+      "id": "relocation",
+      "label": "Move somewhere new",
+      "icon": "map",
+      "href": "/civic/relocation",
+      "contract": "civic/relocation.html",
+      "section": "Me & my account"
+    },
+    {
+      "id": "my-record",
+      "label": "My record",
+      "icon": "file-text",
+      "href": "/civic/record",
+      "contract": "civic/my-civic-life.html",
+      "section": "Me & my account"
+    },
+    {
+      "id": "achievements",
+      "label": "Achievements",
+      "icon": "award",
+      "href": "/achievements",
+      "contract": "social/achievements.html",
+      "section": "Me & my account"
+    },
+    {
+      "id": "candidacy",
+      "label": "Stand for office",
+      "icon": "user",
+      "href": "/elections/candidacy",
+      "contract": "electoral/candidacy-registration.html",
+      "section": "A place’s elections"
+    },
+    {
+      "id": "elections",
+      "label": "An election",
+      "icon": "clock",
+      "href": "/elections",
+      "contract": "electoral/election-detail.html",
+      "section": "A place’s elections"
+    },
+    {
+      "id": "open-ballot",
+      "label": "Open ballot",
+      "icon": "vote",
+      "href": "/elections/open-ballot",
+      "contract": "electoral/open-ballot.html",
+      "section": "A place’s elections"
+    },
+    {
+      "id": "ranked-ballot",
+      "label": "Ranked ballot",
+      "icon": "check",
+      "href": "/elections/ranked-ballot",
+      "contract": "electoral/ranked-ballot.html",
+      "section": "A place’s elections"
+    },
+    {
+      "id": "results",
+      "label": "Results",
+      "icon": "bar-chart",
+      "href": "/elections/results",
+      "contract": "electoral/results.html",
+      "section": "A place’s elections"
+    },
+    {
+      "id": "vacancy-countback",
+      "label": "Filling an empty seat",
+      "icon": "refresh-cw",
+      "href": "/elections/countback",
+      "contract": "electoral/vacancy-countback.html",
+      "roles": [
+        "R-08"
+      ],
+      "section": "A place’s elections"
+    },
+    {
+      "id": "election-board-console",
+      "label": "The election board",
+      "icon": "shield",
+      "href": "/elections/board",
+      "contract": "electoral/election-board-console.html",
+      "roles": [
+        "R-08"
+      ],
+      "section": "A place’s elections"
+    },
+    {
+      "id": "legislature-home",
+      "label": "The chamber",
+      "icon": "landmark",
+      "href": "/legislature",
+      "contract": "legislature/legislature-home.html",
+      "roles": [
+        "R-09",
+        "R-10",
+        "R-11",
+        "R-12",
+        "R-13",
+        "R-29"
+      ],
+      "section": "A place’s chamber"
+    },
+    {
+      "id": "bills",
+      "label": "Bills",
+      "icon": "file-text",
+      "href": "/legislature/bills",
+      "contract": "legislature/bills.html",
+      "roles": [
+        "R-09",
+        "R-10",
+        "R-11",
+        "R-12",
+        "R-13"
+      ],
+      "section": "A place’s chamber"
+    },
+    {
+      "id": "committees",
+      "label": "Committees",
+      "icon": "users",
+      "href": "/legislature/committees",
+      "contract": "legislature/committees.html",
+      "roles": [
+        "R-09",
+        "R-10",
+        "R-11",
+        "R-12",
+        "R-13"
+      ],
+      "section": "A place’s chamber"
+    },
+    {
+      "id": "referendums",
+      "label": "Referendums",
+      "icon": "vote",
+      "href": "/legislature/referendums",
+      "contract": "legislature/referendums.html",
+      "roles": [
+        "R-09",
+        "R-10"
+      ],
+      "section": "A place’s chamber"
+    },
+    {
+      "id": "emergency-powers",
+      "label": "Emergency powers",
+      "icon": "alert-triangle",
+      "href": "/legislature/emergency-powers",
+      "contract": "legislature/emergency-powers.html",
+      "roles": [
+        "R-09",
+        "R-10"
+      ],
+      "section": "A place’s chamber"
+    },
+    {
+      "id": "oversight",
+      "label": "Ethics & removals",
+      "icon": "shield",
+      "href": "/legislature/oversight",
+      "contract": "legislature/oversight.html",
+      "roles": [
+        "R-09",
+        "R-10",
+        "R-29"
+      ],
+      "section": "A place’s chamber"
+    },
+    {
+      "id": "session-console",
+      "label": "Run a session (Speaker)",
+      "icon": "users",
+      "href": "/legislature/session",
+      "contract": "legislature/session-console.html",
+      "roles": [
+        "R-09",
+        "R-10"
+      ],
+      "section": "A place’s chamber"
+    },
+    {
+      "id": "speaker-tools",
+      "label": "The Speaker",
+      "icon": "landmark",
+      "href": "/legislature/speaker-tools",
+      "contract": "legislature/speaker-tools.html",
+      "roles": [
+        "R-10"
+      ],
+      "section": "A place’s chamber"
+    },
+    {
+      "id": "settings",
+      "label": "The chamber’s rules",
+      "icon": "sliders",
+      "href": "/legislature/settings",
+      "contract": "legislature/settings.html",
+      "roles": [
+        "R-09",
+        "R-10"
+      ],
+      "section": "A place’s chamber"
+    },
+    {
+      "id": "executive-home",
+      "label": "The executive",
+      "icon": "briefcase",
+      "href": "/executive",
+      "contract": "executive/executive-home.html",
+      "roles": [
+        "R-14",
+        "R-15",
+        "R-16",
+        "R-17"
+      ],
+      "section": "A place’s executive"
+    },
+    {
+      "id": "departments",
+      "label": "Departments",
+      "icon": "building",
+      "href": "/executive/departments",
+      "contract": "executive/departments.html",
+      "roles": [
+        "R-14",
+        "R-15",
+        "R-16",
+        "R-18",
+        "R-30"
+      ],
+      "section": "A place’s executive"
+    },
+    {
+      "id": "executive-actions",
+      "label": "Executive actions",
+      "icon": "file-text",
+      "href": "/executive/actions",
+      "contract": "executive/executive-actions.html",
+      "roles": [
+        "R-14",
+        "R-15",
+        "R-16"
+      ],
+      "section": "A place’s executive"
+    },
+    {
+      "id": "department-reporting",
+      "label": "Department reporting",
+      "icon": "bar-chart",
+      "href": "/executive/reporting",
+      "contract": "executive/department-reporting.html",
+      "roles": [
+        "R-18"
+      ],
+      "section": "A place’s executive"
+    },
+    {
+      "id": "public-docket",
+      "label": "The docket",
+      "icon": "scale",
+      "href": "/judiciary/docket",
+      "contract": "judiciary/case-docket.html",
+      "section": "A place’s courts"
+    },
+    {
+      "id": "judiciary-home",
+      "label": "The courts",
+      "icon": "scale",
+      "href": "/judiciary",
+      "contract": "judiciary/judiciary-home.html",
+      "roles": [
+        "R-19",
+        "R-20",
+        "R-21",
+        "R-22"
+      ],
+      "section": "A place’s courts"
+    },
+    {
+      "id": "constitutional-challenge",
+      "label": "Challenge a law",
+      "icon": "scale",
+      "href": "/judiciary/challenges",
+      "contract": "judiciary/constitutional-challenge.html",
+      "roles": [
+        "R-03",
+        "R-09",
+        "R-19",
+        "R-20"
+      ],
+      "section": "A place’s courts"
+    },
+    {
+      "id": "advocate-console",
+      "label": "Advocates — register & file",
+      "icon": "briefcase",
+      "href": "/judiciary/advocate",
+      "contract": "judiciary/advocate-console.html",
+      "roles": [
+        "R-21",
+        "R-03"
+      ],
+      "section": "A place’s courts"
+    },
+    {
+      "id": "juror-view",
+      "label": "A juror’s view",
+      "icon": "users",
+      "href": "/judiciary/jury",
+      "contract": "judiciary/juror-view.html",
+      "roles": [
+        "R-22"
+      ],
+      "section": "A place’s courts"
+    },
+    {
+      "id": "org-registry",
+      "label": "The registry",
+      "icon": "building",
+      "href": "/organizations",
+      "contract": "organizations/org-registry.html",
+      "section": "Organizations"
+    },
+    {
+      "id": "co-determination",
+      "label": "Worker seats on the board",
+      "icon": "users",
+      "href": "/organizations/co-determination",
+      "contract": "organizations/co-determination.html",
+      "section": "Organizations"
+    },
+    {
+      "id": "transfers-conversions",
+      "label": "Ownership changes",
+      "icon": "refresh-cw",
+      "href": "/organizations/transfers-conversions",
+      "contract": "organizations/transfers-conversions.html",
+      "section": "Organizations"
+    },
+    {
+      "id": "board-elections",
+      "label": "Board elections",
+      "icon": "vote",
+      "href": "/organizations",
+      "contract": "organizations/board-elections.html",
+      "section": "Organizations"
+    },
+    {
+      "id": "jurisdiction-browser",
+      "label": "Places",
+      "icon": "globe",
+      "href": "/jurisdictions",
+      "contract": "jurisdictions/jurisdiction-browser.html",
+      "section": "Places & their processes"
+    },
+    {
+      "id": "legislatures",
+      "label": "Legislatures & districts",
+      "icon": "map",
+      "href": "/legislatures",
+      "contract": "jurisdictions/district-mapper.html",
+      "phase": 5,
+      "section": "Places & their processes"
+    },
+    {
+      "id": "reach",
+      "label": "Reach",
+      "icon": "bar-chart",
+      "href": "/reach",
+      "contract": "social/legitimacy.html",
+      "phase": 7,
+      "section": "Places & their processes"
+    },
+    {
+      "id": "bootstrap",
+      "label": "Wake a place up",
+      "icon": "globe",
+      "href": "/jurisdictions/bootstrap",
+      "contract": "jurisdictions/bootstrap.html",
+      "section": "Places & their processes"
+    },
+    {
+      "id": "union-formation",
+      "label": "Merge places into a union",
+      "icon": "users",
+      "href": "/jurisdictions/union-formation",
+      "contract": "jurisdictions/union-formation.html",
+      "section": "Places & their processes"
+    },
+    {
+      "id": "disintermediation",
+      "label": "Remove a middle layer",
+      "icon": "globe",
+      "href": "/jurisdictions/disintermediation",
+      "contract": "jurisdictions/disintermediation.html",
+      "section": "Places & their processes"
+    },
+    {
+      "id": "restoration",
+      "label": "Rebuild a lost government",
+      "icon": "refresh-cw",
+      "href": "/jurisdictions/restoration",
+      "contract": "jurisdictions/restoration.html",
+      "section": "Places & their processes"
+    },
+    {
+      "id": "federation",
+      "label": "Between governments",
+      "icon": "globe",
+      "href": "/federation",
+      "contract": "jurisdictions/federation.html",
+      "phase": 4,
+      "section": "Places & their processes"
+    },
+    {
+      "id": "exchange",
+      "label": "The exchange",
+      "icon": "bar-chart",
+      "href": "/economy/exchange",
+      "contract": "economy/exchange.html",
+      "section": "Market"
+    },
+    {
+      "id": "marketplace",
+      "label": "The open market",
+      "icon": "building",
+      "href": "/economy/market",
+      "contract": "economy/marketplace.html",
+      "section": "Market"
+    },
+    {
+      "id": "agreements",
+      "label": "Agreements",
+      "icon": "file-text",
+      "href": "/economy/agreements",
+      "contract": "economy/agreements.html",
+      "section": "Market"
+    },
+    {
+      "id": "wallet",
+      "label": "My wallet",
+      "icon": "lock",
+      "href": "/economy/wallet",
+      "contract": "economy/wallet.html",
+      "section": "Market"
+    },
+    {
+      "id": "joint-ledgers",
+      "label": "Joint ledgers",
+      "icon": "users",
+      "href": "/economy/joint-ledgers",
+      "contract": "economy/joint-ledgers.html",
+      "section": "Market"
+    },
+    {
+      "id": "units",
+      "label": "Units & money",
+      "icon": "sliders",
+      "href": "/economy/units",
+      "contract": "economy/units.html",
+      "section": "Market"
+    },
+    {
+      "id": "stipend",
+      "label": "The civic stipend",
+      "icon": "refresh-cw",
+      "href": "/economy/stipend",
+      "contract": "economy/stipend.html",
+      "section": "Market"
+    },
+    {
+      "id": "treasury",
+      "label": "Public finance",
+      "icon": "bar-chart",
+      "href": "/economy/treasury",
+      "contract": "economy/treasury.html",
+      "section": "Market"
+    },
+    {
+      "id": "org-settings",
+      "label": "Org economics",
+      "icon": "building",
+      "href": "/organizations",
+      "contract": "economy/org-settings.html",
+      "section": "Market"
+    },
+    {
+      "id": "learn",
+      "label": "Learn & lessons",
+      "icon": "graduation-cap",
+      "href": "/learn",
+      "contract": "learn/learn-home.html",
+      "section": "Learn & help"
+    },
+    {
+      "id": "support-report",
+      "label": "Report an issue",
+      "icon": "flag",
+      "href": "/support/report",
+      "contract": "support/report.html",
+      "section": "Learn & help"
+    },
+    {
+      "id": "support-tickets",
+      "label": "Your reports",
+      "icon": "list-checks",
+      "href": "/support/tickets",
+      "contract": "support/tickets.html",
+      "section": "Learn & help"
+    },
+    {
+      "id": "accessibility",
+      "label": "Accessibility",
+      "icon": "shield",
+      "href": "/system/accessibility",
+      "contract": "shared/accessibility.html",
+      "section": "Learn & help"
+    },
+    {
+      "id": "constitutional-questions",
+      "label": "Constitutional questions",
+      "icon": "file-text",
+      "href": "/system/constitutional-questions",
+      "contract": "shared/constitutional-questions.html",
+      "section": "Learn & help"
+    },
+    {
+      "id": "public-records",
+      "label": "Public records",
+      "icon": "file-text",
+      "href": "/system/public-records",
+      "contract": "system/public-records.html",
+      "section": "Records & the clock"
+    },
+    {
+      "id": "audit-chain",
+      "label": "The audit chain",
+      "icon": "lock",
+      "href": "/system/audit-chain",
+      "contract": "system/audit-chain.html",
+      "section": "Records & the clock"
+    },
+    {
+      "id": "amendments",
+      "label": "Amendments",
+      "icon": "file-text",
+      "href": "/system/amendments",
+      "contract": "system/amendments.html",
+      "section": "Records & the clock"
+    },
+    {
+      "id": "term-sync",
+      "label": "Terms end together",
+      "icon": "refresh-cw",
+      "href": "/system/term-sync",
+      "contract": "system/term-sync.html",
+      "section": "Records & the clock"
+    },
+    {
+      "id": "clocks",
+      "label": "The clocks",
+      "icon": "clock",
+      "href": "/system/clocks",
+      "contract": "shared/clocks.html",
+      "public": true,
+      "section": "Records & the clock"
+    },
+    {
+      "id": "setup-wizard",
+      "label": "Found the instance",
+      "icon": "sliders",
+      "href": "/setup",
+      "contract": "system/setup.html",
+      "section": "Run a node"
+    },
+    {
+      "id": "operator-home",
+      "label": "The operator plane",
+      "icon": "sliders",
+      "href": "/operator",
+      "contract": "operator/operator-home.html",
+      "section": "Run a node"
+    },
+    {
+      "id": "operator-console",
+      "label": "The console",
+      "icon": "landmark",
+      "href": "/operator/console",
+      "contract": "operator/console.html",
+      "section": "Run a node"
+    },
+    {
+      "id": "operator-roles",
+      "label": "Roles & channels",
+      "icon": "users",
+      "href": "/operator/roles",
+      "contract": "operator/roles.html",
+      "section": "Run a node"
+    },
+    {
+      "id": "operator-mesh",
+      "label": "Mesh & peers",
+      "icon": "globe",
+      "href": "/operator/mesh",
+      "contract": "operator/mesh.html",
+      "section": "Run a node"
+    },
+    {
+      "id": "operator-identity",
+      "label": "Identity",
+      "icon": "lock",
+      "href": "/operator/identity",
+      "contract": "operator/identity.html",
+      "section": "Run a node"
+    },
+    {
+      "id": "operator-versioning",
+      "label": "Versions & upgrades",
+      "icon": "refresh-cw",
+      "href": "/operator/versioning",
+      "contract": "operator/versioning.html",
+      "section": "Run a node"
+    },
+    {
+      "id": "operator-dns",
+      "label": "DNS & certificates",
+      "icon": "lock",
+      "href": "/operator/dns",
+      "contract": "operator/dns.html",
+      "section": "Run a node"
+    },
+    {
+      "id": "operator-moderation",
+      "label": "Moderation & the legal floor",
+      "icon": "shield",
+      "href": "/operator/moderation",
+      "contract": "operator/moderation.html",
+      "section": "Run a node"
+    },
+    {
+      "id": "operator-operations",
+      "label": "Operations (legacy console)",
+      "icon": "sliders",
+      "href": "/operator/operations",
+      "contract": "operator/console.html",
+      "section": "Run a node"
+    },
+    {
+      "id": "federation-console",
+      "label": "Federation console",
+      "icon": "globe",
+      "href": "/operator/federation",
+      "contract": "operator/mesh.html",
+      "section": "Run a node"
+    },
+    {
+      "id": "coverage",
+      "label": "Coverage",
+      "icon": "check",
+      "href": "/coverage",
+      "contract": "shared/coverage.html",
+      "section": "For the build team"
+    },
+    {
+      "id": "coverage-ops",
+      "label": "Coverage matrix",
+      "icon": "check",
+      "href": "/coverage-ops",
+      "contract": "shared/coverage-ops.html",
+      "section": "For the build team"
+    },
+    {
+      "id": "styleguide",
+      "label": "Style guide",
+      "icon": "sliders",
+      "href": null,
+      "contract": "shared/styleguide.html",
+      "section": "For the build team"
+    },
+    {
+      "id": "electoral-kit",
+      "label": "Electoral kit",
+      "icon": "vote",
+      "href": "/dev/electoral-kit",
+      "contract": null,
+      "sandbox": true,
+      "section": "For the build team"
+    },
+    {
+      "id": "legislature-kit",
+      "label": "Legislature kit",
+      "icon": "landmark",
+      "href": "/dev/legislature-kit",
+      "contract": null,
+      "sandbox": true,
+      "section": "For the build team"
+    },
+    {
+      "id": "executive-kit",
+      "label": "Executive & orgs kit",
+      "icon": "briefcase",
+      "href": "/dev/executive-kit",
+      "contract": null,
+      "sandbox": true,
+      "section": "For the build team"
+    },
+    {
+      "id": "judiciary-kit",
+      "label": "Judiciary kit",
+      "icon": "scale",
+      "href": "/dev/judiciary-kit",
+      "contract": null,
+      "sandbox": true,
+      "section": "For the build team"
+    },
+    {
+      "id": "building",
+      "label": "Build progress",
+      "icon": "check",
+      "href": "/building",
+      "contract": null,
+      "section": "For the build team"
+    }
+  ],
+  "tour": [
+    {
+      "act": "Arrive",
+      "href": "/register",
+      "title": "Create your account",
+      "blurb": "A name and a way back in. Nothing here is asked to prove you deserve a vote — living somewhere is the whole test."
+    },
+    {
+      "act": "Arrive",
+      "href": "/launchpad",
+      "title": "The four doors",
+      "blurb": "The whole world, four ways in: be a resident, watch a government work, run an organization, or run a node."
+    },
+    {
+      "act": "Arrive",
+      "href": "/civic",
+      "title": "Home",
+      "blurb": "What’s happening now, and what’s yours to act on."
+    },
+    {
+      "act": "Arrive",
+      "href": "/civic/record",
+      "title": "My record",
+      "blurb": "Your civic life in one place — residency, votes cast (never how), and your public acts."
+    },
+    {
+      "act": "Arrive",
+      "href": "/journeys",
+      "title": "Journeys",
+      "blurb": "Learn by doing — each journey walks one real process; finishing one goes on your profile."
+    },
+    {
+      "act": "Arrive",
+      "href": "/learn",
+      "title": "Learn",
+      "blurb": "Plain-language explanations of how any of this works. Reading costs nothing and unlocks nothing — knowing is not a qualification."
+    },
+    {
+      "act": "Arrive",
+      "href": "/civic/residency",
+      "title": "Say where you live",
+      "blurb": "Living in a place is the only requirement for every right here."
+    },
+    {
+      "act": "Your place",
+      "href": "/jurisdictions",
+      "title": "Places",
+      "blurb": "Every place on Earth, planet to neighborhood — each governs itself."
+    },
+    {
+      "act": "Your place",
+      "href": "/legislatures",
+      "title": "Legislatures",
+      "blurb": "Every chamber, sized by population — seats follow people."
+    },
+    {
+      "act": "Speak & gather",
+      "href": "/civic/square",
+      "title": "The public square",
+      "blurb": "Open speech on the public record — no one can quietly remove it."
+    },
+    {
+      "act": "Speak & gather",
+      "href": "/civic/rooms",
+      "title": "Messages",
+      "blurb": "Direct and group messages — private, like a ballot."
+    },
+    {
+      "act": "Speak & gather",
+      "href": "/civic/petitions",
+      "title": "Petitions",
+      "blurb": "Gather signatures to put a question to everyone."
+    },
+    {
+      "act": "Speak & gather",
+      "href": "/civic/halls",
+      "title": "The halls",
+      "blurb": "Where a place talks to itself — threads bound to the bills, candidacies and petitions actually in front of it."
+    },
+    {
+      "act": "Speak & gather",
+      "href": "/civic/commons/square",
+      "title": "A place’s commons — the square",
+      "blurb": "The square scoped to one jurisdiction: the same open record, only about here."
+    },
+    {
+      "act": "Speak & gather",
+      "href": "/civic/commons/halls",
+      "title": "A place’s commons — the halls",
+      "blurb": "Testimony that can be sealed into the permanent record — speech that becomes evidence."
+    },
+    {
+      "act": "An election",
+      "href": "/elections",
+      "title": "An election",
+      "blurb": "The race, its phase, and the clock."
+    },
+    {
+      "act": "An election",
+      "href": "/elections/open-ballot",
+      "title": "Open ballot",
+      "blurb": "The approval phase — quietly approve the people you’d want on the ballot."
+    },
+    {
+      "act": "An election",
+      "href": "/elections/ranked-ballot",
+      "title": "Ranked ballot",
+      "blurb": "Rank your choices — seats go out in fair shares, and no vote is wasted."
+    },
+    {
+      "act": "An election",
+      "href": "/elections/results",
+      "title": "Results",
+      "blurb": "The count, round by round — watch votes move until every seat is filled."
+    },
+    {
+      "act": "An election",
+      "href": "/elections/candidacy",
+      "title": "Stand for office",
+      "blurb": "If you live there, you can run — that’s the whole requirement."
+    },
+    {
+      "act": "Organizations",
+      "href": "/organizations",
+      "title": "Organizations",
+      "blurb": "Parties, businesses, nonprofits — one open registry, no party machinery."
+    },
+    {
+      "act": "The courts",
+      "href": "/judiciary/docket",
+      "title": "The docket",
+      "blurb": "Every case is public record — panels of judges, juries of residents."
+    },
+    {
+      "act": "The record",
+      "href": "/system/public-records",
+      "title": "Public records",
+      "blurb": "The permanent public record — it cannot be quietly edited."
+    },
+    {
+      "act": "The record",
+      "href": "/system/audit-chain",
+      "title": "The audit chain",
+      "blurb": "Every act, hash-chained — verify it yourself."
+    },
+    {
+      "act": "The record",
+      "href": "/system/amendments",
+      "title": "Amendments",
+      "blurb": "The constitution changes through exactly two doors — both in the open."
+    },
+    {
+      "act": "The record",
+      "href": "/system/clocks",
+      "title": "The clocks",
+      "blurb": "Every interval, deadline, and threshold that starts a process without anyone asking."
+    },
+    {
+      "act": "Help",
+      "href": "/support/report",
+      "title": "Report an issue",
+      "blurb": "A bug, a question, or something that needs review — file it here."
+    },
+    {
+      "act": "Your place",
+      "href": "/jurisdictions/bootstrap",
+      "title": "How a place wakes up",
+      "blurb": "The critical-population threshold and the seven-step activation that brings a place to life."
+    },
+    {
+      "act": "Your place",
+      "href": "/jurisdictions/union-formation",
+      "title": "Union formation",
+      "blurb": "How places join into one — by dual supermajority, with join and exit mirrored."
+    },
+    {
+      "act": "Your place",
+      "href": "/jurisdictions/disintermediation",
+      "title": "Removing a middle layer",
+      "blurb": "Constituents fold up one level and keep governing themselves."
+    },
+    {
+      "act": "Your place",
+      "href": "/jurisdictions/restoration",
+      "title": "Rebuilding a lost government",
+      "blurb": "The restoration cascade, legitimacy scoring, and the defense of a place brought back."
+    },
+    {
+      "act": "Between governments",
+      "href": "/federation",
+      "title": "Between governments",
+      "blurb": "Federation, borders settled by supermajority, and how instances stay one world."
+    },
+    {
+      "act": "The economy",
+      "href": "/economy/stipend",
+      "title": "The civic stipend",
+      "blurb": "A modest, unconditional share for taking part — paid to people, never to accounts."
+    },
+    {
+      "act": "The economy",
+      "href": "/economy/agreements",
+      "title": "Agreements",
+      "blurb": "Every contract has a floor of terms — open one to see its signatures and the deal."
+    },
+    {
+      "act": "The record",
+      "href": "/achievements",
+      "title": "Achievements",
+      "blurb": "Civic firsts, guided journeys, and a place’s milestones, sealed to an append-only record."
+    },
+    {
+      "act": "The economy",
+      "href": "/economy",
+      "title": "The market",
+      "blurb": "Your money, the open market, and public finance — the whole economy in one place."
+    },
+    {
+      "act": "The economy",
+      "href": "/economy/wallet",
+      "title": "My wallet",
+      "blurb": "What you hold and what has moved — private to you, like a ballot."
+    },
+    {
+      "act": "The economy",
+      "href": "/economy/market",
+      "title": "The open market",
+      "blurb": "Offers and requests between people — a two-sided market, settled in the open."
+    },
+    {
+      "act": "The economy",
+      "href": "/economy/units",
+      "title": "Units & money",
+      "blurb": "What a unit is and how money is issued — abstract, with no payment rails."
+    },
+    {
+      "act": "The economy",
+      "href": "/economy/treasury",
+      "title": "Public finance",
+      "blurb": "A place’s treasury, in the open — what came in, what went out, and why."
+    },
+    {
+      "act": "The economy",
+      "href": "/economy/joint-ledgers",
+      "title": "Joint ledgers",
+      "blurb": "Shared accounts that move only when the people who share them agree."
+    },
+    {
+      "act": "Organizations",
+      "href": "/organizations/co-determination",
+      "title": "Worker seats on the board",
+      "blurb": "Past a threshold of employees, workers elect seats on the board — by the same fair count."
+    },
+    {
+      "act": "Organizations",
+      "href": "/organizations/transfers-conversions",
+      "title": "Ownership changes",
+      "blurb": "How an organization changes hands or converts type — every step on the record."
+    },
+    {
+      "act": "Your place",
+      "href": "/civic/relocation",
+      "title": "Move somewhere new",
+      "blurb": "Change where you live and your rights follow you — residency is the only key."
+    },
+    {
+      "act": "The record",
+      "href": "/system/term-sync",
+      "title": "Terms end together",
+      "blurb": "Why civil and judicial terms move in lockstep — ten years, synchronized."
+    },
+    {
+      "act": "The record",
+      "href": "/reach",
+      "title": "Reach",
+      "blurb": "How many have taken part — a gauge that measures, never a lever that rules."
+    },
+    {
+      "act": "Help",
+      "href": "/support/tickets",
+      "title": "Your reports",
+      "blurb": "Everything you’ve filed and where it went — a bug, a question, or a call for review."
+    },
+    {
+      "act": "Help",
+      "href": "/system/accessibility",
+      "title": "Accessibility",
+      "blurb": "What’s built in, what’s still coming, and how to tell us where it falls short."
+    },
+    {
+      "act": "Help",
+      "href": "/system/constitutional-questions",
+      "title": "The hard questions",
+      "blurb": "The design decisions people ask about most, answered against the Template."
+    },
+    {
+      "act": "Run a node",
+      "href": "/operator",
+      "title": "The operator plane",
+      "blurb": "The volunteer servers the world runs on — keeping one online buys no vote and no seat."
+    },
+    {
+      "act": "Run a node",
+      "href": "/operator/dns",
+      "title": "DNS & certificates",
+      "blurb": "How a node is reached on the network, and how it proves it’s really itself."
+    },
+    {
+      "act": "Run a node",
+      "href": "/operator/moderation",
+      "title": "Moderation & the legal floor",
+      "blurb": "The only removals allowed — four narrow carve-outs, never a viewpoint."
+    },
+    {
+      "act": "Run a node",
+      "href": "/operator/console",
+      "title": "The node console",
+      "blurb": "One node’s own health and state. Everything here is a gauge, never a lever over anybody’s rights."
+    },
+    {
+      "act": "Run a node",
+      "href": "/operator/roles",
+      "title": "Who runs this node",
+      "blurb": "The people trusted with the machine — a separate question from who holds office, and it confers none."
+    },
+    {
+      "act": "Run a node",
+      "href": "/operator/mesh",
+      "title": "The mesh",
+      "blurb": "Which other instances this one has met, and what it accepts from them."
+    },
+    {
+      "act": "Run a node",
+      "href": "/operator/identity",
+      "title": "Identity & keys",
+      "blurb": "How this node proves it is itself, and how it recognises its neighbours."
+    },
+    {
+      "act": "Run a node",
+      "href": "/operator/versioning",
+      "title": "Versions & upgrades",
+      "blurb": "What code this node is running — one world can span versions, so it has to be legible."
+    },
+    {
+      "act": "Run a node",
+      "href": "/operator/operations",
+      "title": "Day-to-day operations",
+      "blurb": "Backups, queues and the jobs that keep the clocks turning."
+    },
+    {
+      "act": "Run a node",
+      "href": "/operator/federation",
+      "title": "Federation console",
+      "blurb": "Peering, Full Faith & Credit, and which instance is authoritative for what."
+    },
+    {
+      "act": "Live rooms",
+      "href": "/rooms/committee/019fae79-aceb-73a8-a87a-8e25969f1e62",
+      "title": "A live committee hearing",
+      "blurb": "A committee meets in the open — anyone may watch, residents may testify, and every word goes on the permanent record. The chair runs the room; the system runs the bureaucracy."
+    }
+  ],
+  "firstVisit": [
+    "/civic",
+    "/civic/residency",
+    "/jurisdictions",
+    "/civic/square",
+    "/civic/petitions",
+    "/elections",
+    "/elections/ranked-ballot",
+    "/journeys",
+    "/system/audit-chain",
+    "/support/report"
+  ],
+  "repeatedDestinations": [
+    {
+      "href": "/civic/square",
+      "entries": [
+        {
+          "section": "Go",
+          "label": "The square"
+        },
+        {
+          "section": "Rooms & the square",
+          "label": "The public square"
+        }
+      ]
+    },
+    {
+      "href": "/civic/rooms",
+      "entries": [
+        {
+          "section": "Go",
+          "label": "Messages"
+        },
+        {
+          "section": "Rooms & the square",
+          "label": "Private rooms & messages"
+        }
+      ]
+    },
+    {
+      "href": "/civic/commons/square",
+      "entries": [
+        {
+          "section": "Go",
+          "label": "Live rooms"
+        },
+        {
+          "section": "Rooms & the square",
+          "label": "The live square"
+        }
+      ]
+    },
+    {
+      "href": "/jurisdictions",
+      "entries": [
+        {
+          "section": "Go",
+          "label": "Places"
+        },
+        {
+          "section": "Places & their processes",
+          "label": "Places"
+        }
+      ]
+    },
+    {
+      "href": "/civic/record",
+      "entries": [
+        {
+          "section": "Go",
+          "label": "My profile"
+        },
+        {
+          "section": "Me & my account",
+          "label": "My record"
+        }
+      ]
+    },
+    {
+      "href": "/learn",
+      "entries": [
+        {
+          "section": "Go",
+          "label": "Learn & help"
+        },
+        {
+          "section": "Learn & help",
+          "label": "Learn & lessons"
+        }
+      ]
+    },
+    {
+      "href": "/organizations",
+      "entries": [
+        {
+          "section": "Organizations",
+          "label": "The registry"
+        },
+        {
+          "section": "Organizations",
+          "label": "Board elections"
+        },
+        {
+          "section": "Market",
+          "label": "Org economics"
+        }
+      ]
+    }
+  ],
+  "pages": [
+    {
+      "page": "Auth/Login",
+      "file": "resources/js/Pages/Auth/Login.vue",
+      "group": "Auth",
+      "references": [
+        {
+          "page": "Auth/Login",
+          "file": "app/Http/Controllers/Auth/AuthenticatedSessionController.php",
+          "line": 34,
+          "action": "App\\Http\\Controllers\\Auth\\AuthenticatedSessionController@create",
+          "routes": [
+            "/login"
+          ]
+        }
+      ],
+      "routes": [
+        "/login"
+      ]
+    },
+    {
+      "page": "Auth/OperatorLogin",
+      "file": "resources/js/Pages/Auth/OperatorLogin.vue",
+      "group": "Auth",
+      "references": [
+        {
+          "page": "Auth/OperatorLogin",
+          "file": "app/Http/Controllers/Auth/OperatorSessionController.php",
+          "line": 35,
+          "action": "App\\Http\\Controllers\\Auth\\OperatorSessionController@create",
+          "routes": [
+            "/operator/login"
+          ]
+        }
+      ],
+      "routes": [
+        "/operator/login"
+      ]
+    },
+    {
+      "page": "Auth/Register",
+      "file": "resources/js/Pages/Auth/Register.vue",
+      "group": "Auth",
+      "references": [
+        {
+          "page": "Auth/Register",
+          "file": "app/Http/Controllers/Auth/RegisteredUserController.php",
+          "line": 45,
+          "action": "App\\Http\\Controllers\\Auth\\RegisteredUserController@create",
+          "routes": [
+            "/register"
+          ]
+        }
+      ],
+      "routes": [
+        "/register"
+      ]
+    },
+    {
+      "page": "Build/Progress",
+      "file": "resources/js/Pages/Build/Progress.vue",
+      "group": "Build",
+      "references": [
+        {
+          "page": "Build/Progress",
+          "file": "app/Http/Controllers/BuildProgressController.php",
+          "line": 47,
+          "action": "App\\Http\\Controllers\\BuildProgressController@show",
+          "routes": [
+            "/building"
+          ]
+        }
+      ],
+      "routes": [
+        "/building"
+      ]
+    },
+    {
+      "page": "Civic/Halls",
+      "file": "resources/js/Pages/Civic/Halls.vue",
+      "group": "Civic",
+      "references": [
+        {
+          "page": "Civic/Halls",
+          "file": "app/Http/Controllers/Civic/HallsController.php",
+          "line": 47,
+          "action": "App\\Http\\Controllers\\Civic\\HallsController@index",
+          "routes": [
+            "/civic/halls"
+          ]
+        }
+      ],
+      "routes": [
+        "/civic/halls"
+      ]
+    },
+    {
+      "page": "Civic/Home",
+      "file": "resources/js/Pages/Civic/Home.vue",
+      "group": "Civic",
+      "references": [
+        {
+          "page": "Civic/Home",
+          "file": "app/Http/Controllers/Civic/HomeController.php",
+          "line": 114,
+          "action": "App\\Http\\Controllers\\Civic\\HomeController@show",
+          "routes": [
+            "/civic"
+          ]
+        }
+      ],
+      "routes": [
+        "/civic"
+      ]
+    },
+    {
+      "page": "Civic/IdentityVerification",
+      "file": "resources/js/Pages/Civic/IdentityVerification.vue",
+      "group": "Civic",
+      "references": [
+        {
+          "page": "Civic/IdentityVerification",
+          "file": "app/Http/Controllers/Civic/IdentityVerificationController.php",
+          "line": 62,
+          "action": "App\\Http\\Controllers\\Civic\\IdentityVerificationController@show",
+          "routes": [
+            "/civic/identity"
+          ]
+        }
+      ],
+      "routes": [
+        "/civic/identity"
+      ]
+    },
+    {
+      "page": "Civic/Journey",
+      "file": "resources/js/Pages/Civic/Journey.vue",
+      "group": "Civic",
+      "references": [
+        {
+          "page": "Civic/Journey",
+          "file": "app/Http/Controllers/Civic/JourneysController.php",
+          "line": 92,
+          "action": "App\\Http\\Controllers\\Civic\\JourneysController@show",
+          "routes": [
+            "/journeys/{id}"
+          ]
+        }
+      ],
+      "routes": [
+        "/journeys/{id}"
+      ]
+    },
+    {
+      "page": "Civic/Journeys",
+      "file": "resources/js/Pages/Civic/Journeys.vue",
+      "group": "Civic",
+      "references": [
+        {
+          "page": "Civic/Journeys",
+          "file": "app/Http/Controllers/Civic/JourneysController.php",
+          "line": 60,
+          "action": "App\\Http\\Controllers\\Civic\\JourneysController@index",
+          "routes": [
+            "/journeys"
+          ]
+        }
+      ],
+      "routes": [
+        "/journeys"
+      ]
+    },
+    {
+      "page": "Civic/MatrixCommons",
+      "file": "resources/js/Pages/Civic/MatrixCommons.vue",
+      "group": "Civic",
+      "references": [
+        {
+          "page": "Civic/MatrixCommons",
+          "file": "app/Http/Controllers/Civic/MatrixCommonsController.php",
+          "line": 73,
+          "action": "App\\Http\\Controllers\\Civic\\MatrixCommonsController@render",
+          "routes": []
+        }
+      ],
+      "routes": []
+    },
+    {
+      "page": "Civic/MyRecord",
+      "file": "resources/js/Pages/Civic/MyRecord.vue",
+      "group": "Civic",
+      "references": [
+        {
+          "page": "Civic/MyRecord",
+          "file": "app/Http/Controllers/Civic/MyRecordController.php",
+          "line": 159,
+          "action": "App\\Http\\Controllers\\Civic\\MyRecordController@show",
+          "routes": [
+            "/civic/record"
+          ]
+        }
+      ],
+      "routes": [
+        "/civic/record"
+      ]
+    },
+    {
+      "page": "Civic/PetitionDetail",
+      "file": "resources/js/Pages/Civic/PetitionDetail.vue",
+      "group": "Civic",
+      "references": [
+        {
+          "page": "Civic/PetitionDetail",
+          "file": "app/Http/Controllers/Civic/PetitionController.php",
+          "line": 152,
+          "action": "App\\Http\\Controllers\\Civic\\PetitionController@show",
+          "routes": [
+            "/civic/petitions/{petition}"
+          ]
+        }
+      ],
+      "routes": [
+        "/civic/petitions/{petition}"
+      ]
+    },
+    {
+      "page": "Civic/Petitions",
+      "file": "resources/js/Pages/Civic/Petitions.vue",
+      "group": "Civic",
+      "references": [
+        {
+          "page": "Civic/Petitions",
+          "file": "app/Http/Controllers/Civic/PetitionController.php",
+          "line": 65,
+          "action": "App\\Http\\Controllers\\Civic\\PetitionController@index",
+          "routes": [
+            "/civic/petitions"
+          ]
+        }
+      ],
+      "routes": [
+        "/civic/petitions"
+      ]
+    },
+    {
+      "page": "Civic/PrivateRoom",
+      "file": "resources/js/Pages/Civic/PrivateRoom.vue",
+      "group": "Civic",
+      "references": [
+        {
+          "page": "Civic/PrivateRoom",
+          "file": "app/Http/Controllers/Civic/PrivateRoomController.php",
+          "line": 119,
+          "action": "App\\Http\\Controllers\\Civic\\PrivateRoomController@show",
+          "routes": [
+            "/civic/rooms/{space}"
+          ]
+        },
+        {
+          "page": "Civic/PrivateRoom",
+          "file": "app/Http/Controllers/Civic/PrivateRoomController.php",
+          "line": 146,
+          "action": "App\\Http\\Controllers\\Civic\\PrivateRoomController@show",
+          "routes": [
+            "/civic/rooms/{space}"
+          ]
+        }
+      ],
+      "routes": [
+        "/civic/rooms/{space}"
+      ]
+    },
+    {
+      "page": "Civic/PrivateRoomCreate",
+      "file": "resources/js/Pages/Civic/PrivateRoomCreate.vue",
+      "group": "Civic",
+      "references": [
+        {
+          "page": "Civic/PrivateRoomCreate",
+          "file": "app/Http/Controllers/Civic/PrivateRoomController.php",
+          "line": 94,
+          "action": "App\\Http\\Controllers\\Civic\\PrivateRoomController@create",
+          "routes": [
+            "/civic/rooms/new"
+          ]
+        }
+      ],
+      "routes": [
+        "/civic/rooms/new"
+      ]
+    },
+    {
+      "page": "Civic/PrivateRooms",
+      "file": "resources/js/Pages/Civic/PrivateRooms.vue",
+      "group": "Civic",
+      "references": [
+        {
+          "page": "Civic/PrivateRooms",
+          "file": "app/Http/Controllers/Civic/PrivateRoomController.php",
+          "line": 80,
+          "action": "App\\Http\\Controllers\\Civic\\PrivateRoomController@index",
+          "routes": [
+            "/civic/rooms"
+          ]
+        }
+      ],
+      "routes": [
+        "/civic/rooms"
+      ]
+    },
+    {
+      "page": "Civic/PublicSquare",
+      "file": "resources/js/Pages/Civic/PublicSquare.vue",
+      "group": "Civic",
+      "references": [
+        {
+          "page": "Civic/PublicSquare",
+          "file": "app/Http/Controllers/Civic/PublicSquareController.php",
+          "line": 95,
+          "action": "App\\Http\\Controllers\\Civic\\PublicSquareController@index",
+          "routes": [
+            "/civic/square"
+          ]
+        }
+      ],
+      "routes": [
+        "/civic/square"
+      ]
+    },
+    {
+      "page": "Civic/Relocation",
+      "file": "resources/js/Pages/Civic/Relocation.vue",
+      "group": "Civic",
+      "references": [
+        {
+          "page": "Civic/Relocation",
+          "file": "app/Http/Controllers/Civic/RelocationController.php",
+          "line": 65,
+          "action": "App\\Http\\Controllers\\Civic\\RelocationController@show",
+          "routes": [
+            "/civic/relocation"
+          ]
+        }
+      ],
+      "routes": [
+        "/civic/relocation"
+      ]
+    },
+    {
+      "page": "Civic/Residency",
+      "file": "resources/js/Pages/Civic/Residency.vue",
+      "group": "Civic",
+      "references": [
+        {
+          "page": "Civic/Residency",
+          "file": "app/Http/Controllers/Civic/ResidencyController.php",
+          "line": 81,
+          "action": "App\\Http\\Controllers\\Civic\\ResidencyController@show",
+          "routes": [
+            "/civic/residency"
+          ]
+        }
+      ],
+      "routes": [
+        "/civic/residency"
+      ]
+    },
+    {
+      "page": "Demo/SimConsole",
+      "file": "resources/js/Pages/Demo/SimConsole.vue",
+      "group": "Demo",
+      "references": [
+        {
+          "page": "Demo/SimConsole",
+          "file": "app/Http/Controllers/Demo/SimConsoleController.php",
+          "line": 51,
+          "action": "App\\Http\\Controllers\\Demo\\SimConsoleController@show",
+          "routes": [
+            "/simworld"
+          ]
+        }
+      ],
+      "routes": [
+        "/simworld"
+      ]
+    },
+    {
+      "page": "Dev/ElectoralKit",
+      "file": "resources/js/Pages/Dev/ElectoralKit.vue",
+      "group": "Dev",
+      "references": [
+        {
+          "page": "Dev/ElectoralKit",
+          "file": "app/Http/Controllers/Dev/ElectoralKitController.php",
+          "line": 27,
+          "action": "App\\Http\\Controllers\\Dev\\ElectoralKitController@show",
+          "routes": [
+            "/dev/electoral-kit"
+          ]
+        }
+      ],
+      "routes": [
+        "/dev/electoral-kit"
+      ]
+    },
+    {
+      "page": "Dev/ExecutiveOrgKit",
+      "file": "resources/js/Pages/Dev/ExecutiveOrgKit.vue",
+      "group": "Dev",
+      "references": [
+        {
+          "page": "Dev/ExecutiveOrgKit",
+          "file": "app/Http/Controllers/Dev/ExecutiveOrgKitController.php",
+          "line": 31,
+          "action": "App\\Http\\Controllers\\Dev\\ExecutiveOrgKitController@show",
+          "routes": [
+            "/dev/executive-kit"
+          ]
+        }
+      ],
+      "routes": [
+        "/dev/executive-kit"
+      ]
+    },
+    {
+      "page": "Dev/JudiciaryKit",
+      "file": "resources/js/Pages/Dev/JudiciaryKit.vue",
+      "group": "Dev",
+      "references": [
+        {
+          "page": "Dev/JudiciaryKit",
+          "file": "app/Http/Controllers/Dev/JudiciaryKitController.php",
+          "line": 32,
+          "action": "App\\Http\\Controllers\\Dev\\JudiciaryKitController@show",
+          "routes": [
+            "/dev/judiciary-kit"
+          ]
+        }
+      ],
+      "routes": [
+        "/dev/judiciary-kit"
+      ]
+    },
+    {
+      "page": "Dev/LegislatureKit",
+      "file": "resources/js/Pages/Dev/LegislatureKit.vue",
+      "group": "Dev",
+      "references": [
+        {
+          "page": "Dev/LegislatureKit",
+          "file": "app/Http/Controllers/Dev/LegislatureKitController.php",
+          "line": 29,
+          "action": "App\\Http\\Controllers\\Dev\\LegislatureKitController@show",
+          "routes": [
+            "/dev/legislature-kit"
+          ]
+        }
+      ],
+      "routes": [
+        "/dev/legislature-kit"
+      ]
+    },
+    {
+      "page": "Economy/AgreementDetail",
+      "file": "resources/js/Pages/Economy/AgreementDetail.vue",
+      "group": "Economy",
+      "references": [
+        {
+          "page": "Economy/AgreementDetail",
+          "file": "app/Http/Controllers/Economy/EconomyController.php",
+          "line": 1015,
+          "action": "App\\Http\\Controllers\\Economy\\EconomyController@agreement",
+          "routes": [
+            "/economy/agreements/{contract}"
+          ]
+        }
+      ],
+      "routes": [
+        "/economy/agreements/{contract}"
+      ]
+    },
+    {
+      "page": "Economy/Agreements",
+      "file": "resources/js/Pages/Economy/Agreements.vue",
+      "group": "Economy",
+      "references": [
+        {
+          "page": "Economy/Agreements",
+          "file": "app/Http/Controllers/Economy/EconomyController.php",
+          "line": 949,
+          "action": "App\\Http\\Controllers\\Economy\\EconomyController@agreements",
+          "routes": [
+            "/economy/agreements"
+          ]
+        }
+      ],
+      "routes": [
+        "/economy/agreements"
+      ]
+    },
+    {
+      "page": "Economy/Exchange",
+      "file": "resources/js/Pages/Economy/Exchange.vue",
+      "group": "Economy",
+      "references": [
+        {
+          "page": "Economy/Exchange",
+          "file": "app/Http/Controllers/Economy/EconomyController.php",
+          "line": 515,
+          "action": "App\\Http\\Controllers\\Economy\\EconomyController@exchange",
+          "routes": [
+            "/economy/exchange"
+          ]
+        }
+      ],
+      "routes": [
+        "/economy/exchange"
+      ]
+    },
+    {
+      "page": "Economy/Home",
+      "file": "resources/js/Pages/Economy/Home.vue",
+      "group": "Economy",
+      "references": [
+        {
+          "page": "Economy/Home",
+          "file": "app/Http/Controllers/Economy/EconomyController.php",
+          "line": 68,
+          "action": "App\\Http\\Controllers\\Economy\\EconomyController@home",
+          "routes": [
+            "/economy"
+          ]
+        }
+      ],
+      "routes": [
+        "/economy"
+      ]
+    },
+    {
+      "page": "Economy/JointLedgers",
+      "file": "resources/js/Pages/Economy/JointLedgers.vue",
+      "group": "Economy",
+      "references": [
+        {
+          "page": "Economy/JointLedgers",
+          "file": "app/Http/Controllers/Economy/EconomyController.php",
+          "line": 1147,
+          "action": "App\\Http\\Controllers\\Economy\\EconomyController@jointLedgers",
+          "routes": [
+            "/economy/joint-ledgers"
+          ]
+        }
+      ],
+      "routes": [
+        "/economy/joint-ledgers"
+      ]
+    },
+    {
+      "page": "Economy/Listing",
+      "file": "resources/js/Pages/Economy/Listing.vue",
+      "group": "Economy",
+      "references": [
+        {
+          "page": "Economy/Listing",
+          "file": "app/Http/Controllers/Economy/EconomyController.php",
+          "line": 260,
+          "action": "App\\Http\\Controllers\\Economy\\EconomyController@listing",
+          "routes": [
+            "/economy/market/{listing}"
+          ]
+        }
+      ],
+      "routes": [
+        "/economy/market/{listing}"
+      ]
+    },
+    {
+      "page": "Economy/Market",
+      "file": "resources/js/Pages/Economy/Market.vue",
+      "group": "Economy",
+      "references": [
+        {
+          "page": "Economy/Market",
+          "file": "app/Http/Controllers/Economy/EconomyController.php",
+          "line": 193,
+          "action": "App\\Http\\Controllers\\Economy\\EconomyController@market",
+          "routes": [
+            "/economy/market"
+          ]
+        }
+      ],
+      "routes": [
+        "/economy/market"
+      ]
+    },
+    {
+      "page": "Economy/OrgSettings",
+      "file": "resources/js/Pages/Economy/OrgSettings.vue",
+      "group": "Economy",
+      "references": [
+        {
+          "page": "Economy/OrgSettings",
+          "file": "app/Http/Controllers/Organizations/OrgEconomyController.php",
+          "line": 54,
+          "action": "App\\Http\\Controllers\\Organizations\\OrgEconomyController@show",
+          "routes": [
+            "/organizations/{organization}/economy"
+          ]
+        }
+      ],
+      "routes": [
+        "/organizations/{organization}/economy"
+      ]
+    },
+    {
+      "page": "Economy/RequestDetail",
+      "file": "resources/js/Pages/Economy/RequestDetail.vue",
+      "group": "Economy",
+      "references": [
+        {
+          "page": "Economy/RequestDetail",
+          "file": "app/Http/Controllers/Economy/EconomyController.php",
+          "line": 811,
+          "action": "App\\Http\\Controllers\\Economy\\EconomyController@workPosting",
+          "routes": [
+            "/economy/requests/{posting}"
+          ]
+        }
+      ],
+      "routes": [
+        "/economy/requests/{posting}"
+      ]
+    },
+    {
+      "page": "Economy/ResidentAgreements",
+      "file": "resources/js/Pages/Economy/ResidentAgreements.vue",
+      "group": "Economy",
+      "references": [
+        {
+          "page": "Economy/ResidentAgreements",
+          "file": "app/Http/Controllers/Economy/EconomyController.php",
+          "line": 714,
+          "action": "App\\Http\\Controllers\\Economy\\EconomyController@residentAgreements",
+          "routes": [
+            "/economy/resident-agreements"
+          ]
+        },
+        {
+          "page": "Economy/ResidentAgreements",
+          "file": "app/Http/Controllers/Economy/EconomyController.php",
+          "line": 772,
+          "action": "App\\Http\\Controllers\\Economy\\EconomyController@residentAgreements",
+          "routes": [
+            "/economy/resident-agreements"
+          ]
+        }
+      ],
+      "routes": [
+        "/economy/resident-agreements"
+      ]
+    },
+    {
+      "page": "Economy/Stipend",
+      "file": "resources/js/Pages/Economy/Stipend.vue",
+      "group": "Economy",
+      "references": [
+        {
+          "page": "Economy/Stipend",
+          "file": "app/Http/Controllers/Economy/EconomyController.php",
+          "line": 889,
+          "action": "App\\Http\\Controllers\\Economy\\EconomyController@stipend",
+          "routes": [
+            "/economy/stipend"
+          ]
+        }
+      ],
+      "routes": [
+        "/economy/stipend"
+      ]
+    },
+    {
+      "page": "Economy/Treasury",
+      "file": "resources/js/Pages/Economy/Treasury.vue",
+      "group": "Economy",
+      "references": [
+        {
+          "page": "Economy/Treasury",
+          "file": "app/Http/Controllers/Economy/EconomyController.php",
+          "line": 315,
+          "action": "App\\Http\\Controllers\\Economy\\EconomyController@treasury",
+          "routes": [
+            "/economy/treasury"
+          ]
+        }
+      ],
+      "routes": [
+        "/economy/treasury"
+      ]
+    },
+    {
+      "page": "Economy/Units",
+      "file": "resources/js/Pages/Economy/Units.vue",
+      "group": "Economy",
+      "references": [
+        {
+          "page": "Economy/Units",
+          "file": "app/Http/Controllers/Economy/EconomyController.php",
+          "line": 433,
+          "action": "App\\Http\\Controllers\\Economy\\EconomyController@units",
+          "routes": [
+            "/economy/units"
+          ]
+        }
+      ],
+      "routes": [
+        "/economy/units"
+      ]
+    },
+    {
+      "page": "Economy/Wallet",
+      "file": "resources/js/Pages/Economy/Wallet.vue",
+      "group": "Economy",
+      "references": [
+        {
+          "page": "Economy/Wallet",
+          "file": "app/Http/Controllers/Economy/EconomyController.php",
+          "line": 174,
+          "action": "App\\Http\\Controllers\\Economy\\EconomyController@wallet",
+          "routes": [
+            "/economy/wallet"
+          ]
+        }
+      ],
+      "routes": [
+        "/economy/wallet"
+      ]
+    },
+    {
+      "page": "Elections/BoardConsole",
+      "file": "resources/js/Pages/Elections/BoardConsole.vue",
+      "group": "Elections",
+      "references": [
+        {
+          "page": "Elections/BoardConsole",
+          "file": "app/Http/Controllers/Elections/BoardConsoleController.php",
+          "line": 79,
+          "action": "App\\Http\\Controllers\\Elections\\BoardConsoleController@show",
+          "routes": [
+            "/board"
+          ]
+        },
+        {
+          "page": "Elections/BoardConsole",
+          "file": "app/Http/Controllers/Elections/BoardConsoleController.php",
+          "line": 138,
+          "action": "App\\Http\\Controllers\\Elections\\BoardConsoleController@show",
+          "routes": [
+            "/board"
+          ]
+        }
+      ],
+      "routes": [
+        "/board"
+      ]
+    },
+    {
+      "page": "Elections/CandidacyRegistration",
+      "file": "resources/js/Pages/Elections/CandidacyRegistration.vue",
+      "group": "Elections",
+      "references": [
+        {
+          "page": "Elections/CandidacyRegistration",
+          "file": "app/Http/Controllers/Elections/CandidacyController.php",
+          "line": 109,
+          "action": "App\\Http\\Controllers\\Elections\\CandidacyController@create",
+          "routes": [
+            "/elections/{election}/candidacy"
+          ]
+        }
+      ],
+      "routes": [
+        "/elections/{election}/candidacy"
+      ]
+    },
+    {
+      "page": "Elections/ElectionDetail",
+      "file": "resources/js/Pages/Elections/ElectionDetail.vue",
+      "group": "Elections",
+      "references": [
+        {
+          "page": "Elections/ElectionDetail",
+          "file": "app/Http/Controllers/Elections/ElectionController.php",
+          "line": 253,
+          "action": "App\\Http\\Controllers\\Elections\\ElectionController@show",
+          "routes": [
+            "/elections/{election}"
+          ]
+        },
+        {
+          "page": "Elections/ElectionDetail",
+          "file": "app/Http/Controllers/Elections/ElectionController.php",
+          "line": 384,
+          "action": "App\\Http\\Controllers\\Elections\\ElectionController@renderEmptyState",
+          "routes": []
+        }
+      ],
+      "routes": [
+        "/elections/{election}"
+      ]
+    },
+    {
+      "page": "Elections/OpenBallot",
+      "file": "resources/js/Pages/Elections/OpenBallot.vue",
+      "group": "Elections",
+      "references": [
+        {
+          "page": "Elections/OpenBallot",
+          "file": "app/Http/Controllers/Elections/ApprovalController.php",
+          "line": 94,
+          "action": "App\\Http\\Controllers\\Elections\\ApprovalController@show",
+          "routes": [
+            "/elections/{election}/open-ballot"
+          ]
+        }
+      ],
+      "routes": [
+        "/elections/{election}/open-ballot"
+      ]
+    },
+    {
+      "page": "Elections/RankedBallot",
+      "file": "resources/js/Pages/Elections/RankedBallot.vue",
+      "group": "Elections",
+      "references": [
+        {
+          "page": "Elections/RankedBallot",
+          "file": "app/Http/Controllers/Elections/BallotController.php",
+          "line": 87,
+          "action": "App\\Http\\Controllers\\Elections\\BallotController@show",
+          "routes": [
+            "/elections/{election}/ranked-ballot"
+          ]
+        }
+      ],
+      "routes": [
+        "/elections/{election}/ranked-ballot"
+      ]
+    },
+    {
+      "page": "Elections/Results",
+      "file": "resources/js/Pages/Elections/Results.vue",
+      "group": "Elections",
+      "references": [
+        {
+          "page": "Elections/Results",
+          "file": "app/Http/Controllers/Elections/ResultsController.php",
+          "line": 101,
+          "action": "App\\Http\\Controllers\\Elections\\ResultsController@show",
+          "routes": [
+            "/elections/{election}/results"
+          ]
+        }
+      ],
+      "routes": [
+        "/elections/{election}/results"
+      ]
+    },
+    {
+      "page": "Elections/VacancyCountback",
+      "file": "resources/js/Pages/Elections/VacancyCountback.vue",
+      "group": "Elections",
+      "references": [
+        {
+          "page": "Elections/VacancyCountback",
+          "file": "app/Http/Controllers/Elections/VacancyController.php",
+          "line": 83,
+          "action": "App\\Http\\Controllers\\Elections\\VacancyController@show",
+          "routes": [
+            "/vacancies/{vacancy}"
+          ]
+        }
+      ],
+      "routes": [
+        "/vacancies/{vacancy}"
+      ]
+    },
+    {
+      "page": "Executive/Actions",
+      "file": "resources/js/Pages/Executive/Actions.vue",
+      "group": "Executive",
+      "references": [
+        {
+          "page": "Executive/Actions",
+          "file": "app/Http/Controllers/Executive/ExecutiveActionController.php",
+          "line": 81,
+          "action": "App\\Http\\Controllers\\Executive\\ExecutiveActionController@index",
+          "routes": [
+            "/executives/{executive}/actions"
+          ]
+        }
+      ],
+      "routes": [
+        "/executives/{executive}/actions"
+      ]
+    },
+    {
+      "page": "Executive/DepartmentDetail",
+      "file": "resources/js/Pages/Executive/DepartmentDetail.vue",
+      "group": "Executive",
+      "references": [
+        {
+          "page": "Executive/DepartmentDetail",
+          "file": "app/Http/Controllers/Executive/DepartmentController.php",
+          "line": 110,
+          "action": "App\\Http\\Controllers\\Executive\\DepartmentController@show",
+          "routes": [
+            "/departments/{department}"
+          ]
+        }
+      ],
+      "routes": [
+        "/departments/{department}"
+      ]
+    },
+    {
+      "page": "Executive/DepartmentReporting",
+      "file": "resources/js/Pages/Executive/DepartmentReporting.vue",
+      "group": "Executive",
+      "references": [
+        {
+          "page": "Executive/DepartmentReporting",
+          "file": "app/Http/Controllers/Executive/DepartmentReportingController.php",
+          "line": 55,
+          "action": "App\\Http\\Controllers\\Executive\\DepartmentReportingController@show",
+          "routes": [
+            "/departments/{department}/reporting"
+          ]
+        }
+      ],
+      "routes": [
+        "/departments/{department}/reporting"
+      ]
+    },
+    {
+      "page": "Executive/Departments",
+      "file": "resources/js/Pages/Executive/Departments.vue",
+      "group": "Executive",
+      "references": [
+        {
+          "page": "Executive/Departments",
+          "file": "app/Http/Controllers/Executive/DepartmentController.php",
+          "line": 77,
+          "action": "App\\Http\\Controllers\\Executive\\DepartmentController@index",
+          "routes": [
+            "/executives/{executive}/departments"
+          ]
+        }
+      ],
+      "routes": [
+        "/executives/{executive}/departments"
+      ]
+    },
+    {
+      "page": "Executive/Home",
+      "file": "resources/js/Pages/Executive/Home.vue",
+      "group": "Executive",
+      "references": [
+        {
+          "page": "Executive/Home",
+          "file": "app/Http/Controllers/Executive/ExecutiveController.php",
+          "line": 52,
+          "action": "App\\Http\\Controllers\\Executive\\ExecutiveController@show",
+          "routes": [
+            "/executives/{executive}"
+          ]
+        }
+      ],
+      "routes": [
+        "/executives/{executive}"
+      ]
+    },
+    {
+      "page": "Home",
+      "file": "resources/js/Pages/Home.vue",
+      "group": "Arrival",
+      "references": [
+        {
+          "page": "Home",
+          "file": "routes/web.php",
+          "line": 53,
+          "action": null,
+          "routes": [
+            "/"
+          ]
+        }
+      ],
+      "routes": [
+        "/"
+      ]
+    },
+    {
+      "page": "Invite/Landing",
+      "file": "resources/js/Pages/Invite/Landing.vue",
+      "group": "Invite",
+      "references": [
+        {
+          "page": "Invite/Landing",
+          "file": "app/Http/Controllers/Invites/InviteController.php",
+          "line": 42,
+          "action": "App\\Http\\Controllers\\Invites\\InviteController@land",
+          "routes": [
+            "/i/{token}"
+          ]
+        },
+        {
+          "page": "Invite/Landing",
+          "file": "app/Http/Controllers/Invites/InviteController.php",
+          "line": 59,
+          "action": "App\\Http\\Controllers\\Invites\\InviteController@land",
+          "routes": [
+            "/i/{token}"
+          ]
+        }
+      ],
+      "routes": [
+        "/i/{token}"
+      ]
+    },
+    {
+      "page": "Judiciary/AdvocateConsole",
+      "file": "resources/js/Pages/Judiciary/AdvocateConsole.vue",
+      "group": "Judiciary",
+      "references": [
+        {
+          "page": "Judiciary/AdvocateConsole",
+          "file": "app/Http/Controllers/Judiciary/AdvocateController.php",
+          "line": 105,
+          "action": "App\\Http\\Controllers\\Judiciary\\AdvocateController@show",
+          "routes": [
+            "/judiciary/advocate"
+          ]
+        }
+      ],
+      "routes": [
+        "/judiciary/advocate"
+      ]
+    },
+    {
+      "page": "Judiciary/CaseDetail",
+      "file": "resources/js/Pages/Judiciary/CaseDetail.vue",
+      "group": "Judiciary",
+      "references": [
+        {
+          "page": "Judiciary/CaseDetail",
+          "file": "app/Http/Controllers/Judiciary/CaseController.php",
+          "line": 120,
+          "action": "App\\Http\\Controllers\\Judiciary\\CaseController@show",
+          "routes": [
+            "/cases/{case}"
+          ]
+        }
+      ],
+      "routes": [
+        "/cases/{case}"
+      ]
+    },
+    {
+      "page": "Judiciary/CaseDocket",
+      "file": "resources/js/Pages/Judiciary/CaseDocket.vue",
+      "group": "Judiciary",
+      "references": [
+        {
+          "page": "Judiciary/CaseDocket",
+          "file": "app/Http/Controllers/Judiciary/DocketController.php",
+          "line": 90,
+          "action": "App\\Http\\Controllers\\Judiciary\\DocketController@index",
+          "routes": [
+            "/judiciaries/{judiciary}/docket"
+          ]
+        },
+        {
+          "page": "Judiciary/CaseDocket",
+          "file": "app/Http/Controllers/Judiciary/DocketController.php",
+          "line": 183,
+          "action": "App\\Http\\Controllers\\Judiciary\\DocketController@mine",
+          "routes": [
+            "/judiciary/docket"
+          ]
+        }
+      ],
+      "routes": [
+        "/judiciaries/{judiciary}/docket",
+        "/judiciary/docket"
+      ]
+    },
+    {
+      "page": "Judiciary/ConstitutionalChallenge",
+      "file": "resources/js/Pages/Judiciary/ConstitutionalChallenge.vue",
+      "group": "Judiciary",
+      "references": [
+        {
+          "page": "Judiciary/ConstitutionalChallenge",
+          "file": "app/Http/Controllers/Judiciary/ChallengeController.php",
+          "line": 133,
+          "action": "App\\Http\\Controllers\\Judiciary\\ChallengeController@renderSurface",
+          "routes": []
+        }
+      ],
+      "routes": []
+    },
+    {
+      "page": "Judiciary/Home",
+      "file": "resources/js/Pages/Judiciary/Home.vue",
+      "group": "Judiciary",
+      "references": [
+        {
+          "page": "Judiciary/Home",
+          "file": "app/Http/Controllers/Judiciary/JudiciaryController.php",
+          "line": 56,
+          "action": "App\\Http\\Controllers\\Judiciary\\JudiciaryController@show",
+          "routes": [
+            "/judiciaries/{judiciary}"
+          ]
+        }
+      ],
+      "routes": [
+        "/judiciaries/{judiciary}"
+      ]
+    },
+    {
+      "page": "Judiciary/JurorView",
+      "file": "resources/js/Pages/Judiciary/JurorView.vue",
+      "group": "Judiciary",
+      "references": [
+        {
+          "page": "Judiciary/JurorView",
+          "file": "app/Http/Controllers/Judiciary/JurorController.php",
+          "line": 104,
+          "action": "App\\Http\\Controllers\\Judiciary\\JurorController@show",
+          "routes": [
+            "/judiciary/jury/{summons}"
+          ]
+        }
+      ],
+      "routes": [
+        "/judiciary/jury/{summons}"
+      ]
+    },
+    {
+      "page": "Jurisdictions/BetweenGovernments",
+      "file": "resources/js/Pages/Jurisdictions/BetweenGovernments.vue",
+      "group": "Jurisdictions",
+      "references": [
+        {
+          "page": "Jurisdictions/BetweenGovernments",
+          "file": "app/Http/Controllers/Jurisdictions/LifecycleController.php",
+          "line": 221,
+          "action": "App\\Http\\Controllers\\Jurisdictions\\LifecycleController@federation",
+          "routes": [
+            "/federation"
+          ]
+        }
+      ],
+      "routes": [
+        "/federation"
+      ]
+    },
+    {
+      "page": "Jurisdictions/Bootstrap",
+      "file": "resources/js/Pages/Jurisdictions/Bootstrap.vue",
+      "group": "Jurisdictions",
+      "references": [
+        {
+          "page": "Jurisdictions/Bootstrap",
+          "file": "app/Http/Controllers/Jurisdictions/LifecycleController.php",
+          "line": 64,
+          "action": "App\\Http\\Controllers\\Jurisdictions\\LifecycleController@bootstrap",
+          "routes": [
+            "/jurisdictions/bootstrap"
+          ]
+        }
+      ],
+      "routes": [
+        "/jurisdictions/bootstrap"
+      ]
+    },
+    {
+      "page": "Jurisdictions/Disintermediation",
+      "file": "resources/js/Pages/Jurisdictions/Disintermediation.vue",
+      "group": "Jurisdictions",
+      "references": [
+        {
+          "page": "Jurisdictions/Disintermediation",
+          "file": "app/Http/Controllers/Jurisdictions/LifecycleController.php",
+          "line": 171,
+          "action": "App\\Http\\Controllers\\Jurisdictions\\LifecycleController@disintermediation",
+          "routes": [
+            "/jurisdictions/disintermediation"
+          ]
+        }
+      ],
+      "routes": [
+        "/jurisdictions/disintermediation"
+      ]
+    },
+    {
+      "page": "Jurisdictions/Federation",
+      "file": "resources/js/Pages/Jurisdictions/Federation.vue",
+      "group": "Jurisdictions",
+      "references": [
+        {
+          "page": "Jurisdictions/Federation",
+          "file": "app/Http/Controllers/Federation/FederationConsoleController.php",
+          "line": 87,
+          "action": "App\\Http\\Controllers\\Federation\\FederationConsoleController@show",
+          "routes": [
+            "/operator/federation"
+          ]
+        }
+      ],
+      "routes": [
+        "/operator/federation"
+      ]
+    },
+    {
+      "page": "Jurisdictions/Home",
+      "file": "resources/js/Pages/Jurisdictions/Home.vue",
+      "group": "Jurisdictions",
+      "references": [
+        {
+          "page": "Jurisdictions/Home",
+          "file": "app/Http/Controllers/JurisdictionController.php",
+          "line": 153,
+          "action": "App\\Http\\Controllers\\JurisdictionController@home",
+          "routes": [
+            "/jurisdictions/{jurisdiction}"
+          ]
+        }
+      ],
+      "routes": [
+        "/jurisdictions/{jurisdiction}"
+      ]
+    },
+    {
+      "page": "Jurisdictions/Index",
+      "file": "resources/js/Pages/Jurisdictions/Index.vue",
+      "group": "Jurisdictions",
+      "references": [
+        {
+          "page": "Jurisdictions/Index",
+          "file": "app/Http/Controllers/JurisdictionController.php",
+          "line": 112,
+          "action": "App\\Http\\Controllers\\JurisdictionController@index",
+          "routes": [
+            "/jurisdictions"
+          ]
+        }
+      ],
+      "routes": [
+        "/jurisdictions"
+      ]
+    },
+    {
+      "page": "Jurisdictions/Restoration",
+      "file": "resources/js/Pages/Jurisdictions/Restoration.vue",
+      "group": "Jurisdictions",
+      "references": [
+        {
+          "page": "Jurisdictions/Restoration",
+          "file": "app/Http/Controllers/Jurisdictions/LifecycleController.php",
+          "line": 246,
+          "action": "App\\Http\\Controllers\\Jurisdictions\\LifecycleController@restoration",
+          "routes": [
+            "/jurisdictions/restoration"
+          ]
+        }
+      ],
+      "routes": [
+        "/jurisdictions/restoration"
+      ]
+    },
+    {
+      "page": "Jurisdictions/Show",
+      "file": "resources/js/Pages/Jurisdictions/Show.vue",
+      "group": "Jurisdictions",
+      "references": [
+        {
+          "page": "Jurisdictions/Show",
+          "file": "app/Http/Controllers/JurisdictionController.php",
+          "line": 159,
+          "action": "App\\Http\\Controllers\\JurisdictionController@show",
+          "routes": [
+            "/jurisdictions/{jurisdiction}/map"
+          ]
+        }
+      ],
+      "routes": [
+        "/jurisdictions/{jurisdiction}/map"
+      ]
+    },
+    {
+      "page": "Jurisdictions/UnionFormation",
+      "file": "resources/js/Pages/Jurisdictions/UnionFormation.vue",
+      "group": "Jurisdictions",
+      "references": [
+        {
+          "page": "Jurisdictions/UnionFormation",
+          "file": "app/Http/Controllers/Jurisdictions/LifecycleController.php",
+          "line": 106,
+          "action": "App\\Http\\Controllers\\Jurisdictions\\LifecycleController@union",
+          "routes": [
+            "/jurisdictions/union-formation"
+          ]
+        }
+      ],
+      "routes": [
+        "/jurisdictions/union-formation"
+      ]
+    },
+    {
+      "page": "Launchpad",
+      "file": "resources/js/Pages/Launchpad.vue",
+      "group": "Arrival",
+      "references": [
+        {
+          "page": "Launchpad",
+          "file": "routes/web.php",
+          "line": 61,
+          "action": null,
+          "routes": [
+            "/launchpad"
+          ]
+        }
+      ],
+      "routes": [
+        "/launchpad"
+      ]
+    },
+    {
+      "page": "Learn/Guides",
+      "file": "resources/js/Pages/Learn/Guides.vue",
+      "group": "Learn",
+      "references": [
+        {
+          "page": "Learn/Guides",
+          "file": "app/Http/Controllers/Education/LearnController.php",
+          "line": 159,
+          "action": "App\\Http\\Controllers\\Education\\LearnController@guides",
+          "routes": [
+            "/learn/guides"
+          ]
+        }
+      ],
+      "routes": [
+        "/learn/guides"
+      ]
+    },
+    {
+      "page": "Learn/LearnHome",
+      "file": "resources/js/Pages/Learn/LearnHome.vue",
+      "group": "Learn",
+      "references": [
+        {
+          "page": "Learn/LearnHome",
+          "file": "app/Http/Controllers/Education/LearnController.php",
+          "line": 50,
+          "action": "App\\Http\\Controllers\\Education\\LearnController@home",
+          "routes": [
+            "/learn"
+          ]
+        }
+      ],
+      "routes": [
+        "/learn"
+      ]
+    },
+    {
+      "page": "Learn/Lesson",
+      "file": "resources/js/Pages/Learn/Lesson.vue",
+      "group": "Learn",
+      "references": [
+        {
+          "page": "Learn/Lesson",
+          "file": "app/Http/Controllers/Education/LearnController.php",
+          "line": 101,
+          "action": "App\\Http\\Controllers\\Education\\LearnController@lesson",
+          "routes": [
+            "/learn/{track}/{module?}"
+          ]
+        }
+      ],
+      "routes": [
+        "/learn/{track}/{module?}"
+      ]
+    },
+    {
+      "page": "Learn/VideoLibrary",
+      "file": "resources/js/Pages/Learn/VideoLibrary.vue",
+      "group": "Learn",
+      "references": [
+        {
+          "page": "Learn/VideoLibrary",
+          "file": "app/Http/Controllers/Media/VideoLibraryController.php",
+          "line": 28,
+          "action": "App\\Http\\Controllers\\Media\\VideoLibraryController@index",
+          "routes": [
+            "/videos"
+          ]
+        }
+      ],
+      "routes": [
+        "/videos"
+      ]
+    },
+    {
+      "page": "Legislature/BillConversation",
+      "file": "resources/js/Pages/Legislature/BillConversation.vue",
+      "group": "Legislature",
+      "references": [
+        {
+          "page": "Legislature/BillConversation",
+          "file": "app/Http/Controllers/Legislature/BillConversationController.php",
+          "line": 90,
+          "action": "App\\Http\\Controllers\\Legislature\\BillConversationController@show",
+          "routes": [
+            "/bills/{bill}/conversation"
+          ]
+        }
+      ],
+      "routes": [
+        "/bills/{bill}/conversation"
+      ]
+    },
+    {
+      "page": "Legislature/BillDetail",
+      "file": "resources/js/Pages/Legislature/BillDetail.vue",
+      "group": "Legislature",
+      "references": [
+        {
+          "page": "Legislature/BillDetail",
+          "file": "app/Http/Controllers/Legislature/BillController.php",
+          "line": 311,
+          "action": "App\\Http\\Controllers\\Legislature\\BillController@show",
+          "routes": [
+            "/bills/{bill}"
+          ]
+        }
+      ],
+      "routes": [
+        "/bills/{bill}"
+      ]
+    },
+    {
+      "page": "Legislature/Bills",
+      "file": "resources/js/Pages/Legislature/Bills.vue",
+      "group": "Legislature",
+      "references": [
+        {
+          "page": "Legislature/Bills",
+          "file": "app/Http/Controllers/Legislature/BillController.php",
+          "line": 83,
+          "action": "App\\Http\\Controllers\\Legislature\\BillController@index",
+          "routes": [
+            "/legislatures/{legislature}/bills"
+          ]
+        }
+      ],
+      "routes": [
+        "/legislatures/{legislature}/bills"
+      ]
+    },
+    {
+      "page": "Legislature/Chamber",
+      "file": "resources/js/Pages/Legislature/Chamber.vue",
+      "group": "Legislature",
+      "references": [
+        {
+          "page": "Legislature/Chamber",
+          "file": "app/Http/Controllers/Legislature/ChamberController.php",
+          "line": 61,
+          "action": "App\\Http\\Controllers\\Legislature\\ChamberController@show",
+          "routes": [
+            "/legislatures/{legislature}/chamber"
+          ]
+        },
+        {
+          "page": "Legislature/Chamber",
+          "file": "app/Http/Controllers/Legislature/ChamberResolverController.php",
+          "line": 89,
+          "action": "App\\Http\\Controllers\\Legislature\\ChamberResolverController@__invoke",
+          "routes": []
+        }
+      ],
+      "routes": [
+        "/legislatures/{legislature}/chamber"
+      ]
+    },
+    {
+      "page": "Legislature/CommitteeDetail",
+      "file": "resources/js/Pages/Legislature/CommitteeDetail.vue",
+      "group": "Legislature",
+      "references": [
+        {
+          "page": "Legislature/CommitteeDetail",
+          "file": "app/Http/Controllers/Legislature/CommitteeController.php",
+          "line": 288,
+          "action": "App\\Http\\Controllers\\Legislature\\CommitteeController@show",
+          "routes": [
+            "/committees/{committee}"
+          ]
+        }
+      ],
+      "routes": [
+        "/committees/{committee}"
+      ]
+    },
+    {
+      "page": "Legislature/Committees",
+      "file": "resources/js/Pages/Legislature/Committees.vue",
+      "group": "Legislature",
+      "references": [
+        {
+          "page": "Legislature/Committees",
+          "file": "app/Http/Controllers/Legislature/CommitteeController.php",
+          "line": 105,
+          "action": "App\\Http\\Controllers\\Legislature\\CommitteeController@index",
+          "routes": [
+            "/legislatures/{legislature}/committees"
+          ]
+        }
+      ],
+      "routes": [
+        "/legislatures/{legislature}/committees"
+      ]
+    },
+    {
+      "page": "Legislature/Districts",
+      "file": "resources/js/Pages/Legislature/Districts.vue",
+      "group": "Legislature",
+      "references": [
+        {
+          "page": "Legislature/Districts",
+          "file": "app/Http/Controllers/LegislatureController.php",
+          "line": 1376,
+          "action": "App\\Http\\Controllers\\LegislatureController@districts",
+          "routes": [
+            "/legislatures/{legislature_id}/districts"
+          ]
+        }
+      ],
+      "routes": [
+        "/legislatures/{legislature_id}/districts"
+      ]
+    },
+    {
+      "page": "Legislature/EmergencyPowers",
+      "file": "resources/js/Pages/Legislature/EmergencyPowers.vue",
+      "group": "Legislature",
+      "references": [
+        {
+          "page": "Legislature/EmergencyPowers",
+          "file": "app/Http/Controllers/Legislature/EmergencyPowerController.php",
+          "line": 57,
+          "action": "App\\Http\\Controllers\\Legislature\\EmergencyPowerController@index",
+          "routes": [
+            "/legislatures/{legislature}/emergency-powers"
+          ]
+        }
+      ],
+      "routes": [
+        "/legislatures/{legislature}/emergency-powers"
+      ]
+    },
+    {
+      "page": "Legislature/Index",
+      "file": "resources/js/Pages/Legislature/Index.vue",
+      "group": "Legislature",
+      "references": [
+        {
+          "page": "Legislature/Index",
+          "file": "app/Http/Controllers/LegislatureController.php",
+          "line": 204,
+          "action": "App\\Http\\Controllers\\LegislatureController@index",
+          "routes": [
+            "/legislatures"
+          ]
+        }
+      ],
+      "routes": [
+        "/legislatures"
+      ]
+    },
+    {
+      "page": "Legislature/LiveCivicRoom",
+      "file": "resources/js/Pages/Legislature/LiveCivicRoom.vue",
+      "group": "Legislature",
+      "references": [
+        {
+          "page": "Legislature/LiveCivicRoom",
+          "file": "app/Http/Controllers/Rooms/LiveRoomController.php",
+          "line": 76,
+          "action": "App\\Http\\Controllers\\Rooms\\LiveRoomController@committee",
+          "routes": [
+            "/rooms/committee/{meeting}"
+          ]
+        }
+      ],
+      "routes": [
+        "/rooms/committee/{meeting}"
+      ]
+    },
+    {
+      "page": "Legislature/Oversight",
+      "file": "resources/js/Pages/Legislature/Oversight.vue",
+      "group": "Legislature",
+      "references": [
+        {
+          "page": "Legislature/Oversight",
+          "file": "app/Http/Controllers/Legislature/OversightController.php",
+          "line": 110,
+          "action": "App\\Http\\Controllers\\Legislature\\OversightController@show",
+          "routes": [
+            "/legislatures/{legislature}/oversight"
+          ]
+        }
+      ],
+      "routes": [
+        "/legislatures/{legislature}/oversight"
+      ]
+    },
+    {
+      "page": "Legislature/Referendums",
+      "file": "resources/js/Pages/Legislature/Referendums.vue",
+      "group": "Legislature",
+      "references": [
+        {
+          "page": "Legislature/Referendums",
+          "file": "app/Http/Controllers/Legislature/ReferendumController.php",
+          "line": 54,
+          "action": "App\\Http\\Controllers\\Legislature\\ReferendumController@index",
+          "routes": [
+            "/legislatures/{legislature}/referendums"
+          ]
+        }
+      ],
+      "routes": [
+        "/legislatures/{legislature}/referendums"
+      ]
+    },
+    {
+      "page": "Legislature/SessionConsole",
+      "file": "resources/js/Pages/Legislature/SessionConsole.vue",
+      "group": "Legislature",
+      "references": [
+        {
+          "page": "Legislature/SessionConsole",
+          "file": "app/Http/Controllers/Legislature/SessionController.php",
+          "line": 87,
+          "action": "App\\Http\\Controllers\\Legislature\\SessionController@show",
+          "routes": [
+            "/legislatures/{legislature}/session"
+          ]
+        }
+      ],
+      "routes": [
+        "/legislatures/{legislature}/session"
+      ]
+    },
+    {
+      "page": "Legislature/Settings",
+      "file": "resources/js/Pages/Legislature/Settings.vue",
+      "group": "Legislature",
+      "references": [
+        {
+          "page": "Legislature/Settings",
+          "file": "app/Http/Controllers/Legislature/SettingsController.php",
+          "line": 143,
+          "action": "App\\Http\\Controllers\\Legislature\\SettingsController@show",
+          "routes": [
+            "/legislatures/{legislature}/settings"
+          ]
+        }
+      ],
+      "routes": [
+        "/legislatures/{legislature}/settings"
+      ]
+    },
+    {
+      "page": "Legislature/Show",
+      "file": "resources/js/Pages/Legislature/Show.vue",
+      "group": "Legislature",
+      "references": [
+        {
+          "page": "Legislature/Show",
+          "file": "app/Http/Controllers/LegislatureController.php",
+          "line": 325,
+          "action": "App\\Http\\Controllers\\LegislatureController@show",
+          "routes": [
+            "/legislatures/{legislature_id}"
+          ]
+        }
+      ],
+      "routes": [
+        "/legislatures/{legislature_id}"
+      ]
+    },
+    {
+      "page": "Legislature/SpeakerTools",
+      "file": "resources/js/Pages/Legislature/SpeakerTools.vue",
+      "group": "Legislature",
+      "references": [
+        {
+          "page": "Legislature/SpeakerTools",
+          "file": "app/Http/Controllers/Legislature/SpeakerController.php",
+          "line": 94,
+          "action": "App\\Http\\Controllers\\Legislature\\SpeakerController@show",
+          "routes": [
+            "/legislatures/{legislature}/speaker"
+          ]
+        }
+      ],
+      "routes": [
+        "/legislatures/{legislature}/speaker"
+      ]
+    },
+    {
+      "page": "Legislature/TypeBDistricts",
+      "file": "resources/js/Pages/Legislature/TypeBDistricts.vue",
+      "group": "Legislature",
+      "references": [
+        {
+          "page": "Legislature/TypeBDistricts",
+          "file": "app/Http/Controllers/Legislature/TypeBMapController.php",
+          "line": 60,
+          "action": "App\\Http\\Controllers\\Legislature\\TypeBMapController@show",
+          "routes": [
+            "/legislatures/{legislature_id}/panels"
+          ]
+        }
+      ],
+      "routes": [
+        "/legislatures/{legislature_id}/panels"
+      ]
+    },
+    {
+      "page": "Operator/Console",
+      "file": "resources/js/Pages/Operator/Console.vue",
+      "group": "Operator",
+      "references": [
+        {
+          "page": "Operator/Console",
+          "file": "app/Http/Controllers/Operator/MeshConsoleController.php",
+          "line": 63,
+          "action": "App\\Http\\Controllers\\Operator\\MeshConsoleController@console",
+          "routes": [
+            "/operator/console"
+          ]
+        }
+      ],
+      "routes": [
+        "/operator/console"
+      ]
+    },
+    {
+      "page": "Operator/Dns",
+      "file": "resources/js/Pages/Operator/Dns.vue",
+      "group": "Operator",
+      "references": [
+        {
+          "page": "Operator/Dns",
+          "file": "app/Http/Controllers/Operator/DnsConsoleController.php",
+          "line": 43,
+          "action": "App\\Http\\Controllers\\Operator\\DnsConsoleController@dns",
+          "routes": [
+            "/operator/dns"
+          ]
+        }
+      ],
+      "routes": [
+        "/operator/dns"
+      ]
+    },
+    {
+      "page": "Operator/Home",
+      "file": "resources/js/Pages/Operator/Home.vue",
+      "group": "Operator",
+      "references": [
+        {
+          "page": "Operator/Home",
+          "file": "app/Http/Controllers/Operator/MeshConsoleController.php",
+          "line": 49,
+          "action": "App\\Http\\Controllers\\Operator\\MeshConsoleController@home",
+          "routes": [
+            "/operator"
+          ]
+        }
+      ],
+      "routes": [
+        "/operator"
+      ]
+    },
+    {
+      "page": "Operator/Identity",
+      "file": "resources/js/Pages/Operator/Identity.vue",
+      "group": "Operator",
+      "references": [
+        {
+          "page": "Operator/Identity",
+          "file": "app/Http/Controllers/Operator/MeshConsoleController.php",
+          "line": 110,
+          "action": "App\\Http\\Controllers\\Operator\\MeshConsoleController@identity",
+          "routes": [
+            "/operator/identity"
+          ]
+        }
+      ],
+      "routes": [
+        "/operator/identity"
+      ]
+    },
+    {
+      "page": "Operator/Mesh",
+      "file": "resources/js/Pages/Operator/Mesh.vue",
+      "group": "Operator",
+      "references": [
+        {
+          "page": "Operator/Mesh",
+          "file": "app/Http/Controllers/Operator/MeshConsoleController.php",
+          "line": 96,
+          "action": "App\\Http\\Controllers\\Operator\\MeshConsoleController@mesh",
+          "routes": [
+            "/operator/mesh"
+          ]
+        }
+      ],
+      "routes": [
+        "/operator/mesh"
+      ]
+    },
+    {
+      "page": "Operator/Moderation",
+      "file": "resources/js/Pages/Operator/Moderation.vue",
+      "group": "Operator",
+      "references": [
+        {
+          "page": "Operator/Moderation",
+          "file": "app/Http/Controllers/Operator/ModerationConsoleController.php",
+          "line": 32,
+          "action": "App\\Http\\Controllers\\Operator\\ModerationConsoleController@moderation",
+          "routes": [
+            "/operator/moderation"
+          ]
+        }
+      ],
+      "routes": [
+        "/operator/moderation"
+      ]
+    },
+    {
+      "page": "Operator/Operations",
+      "file": "resources/js/Pages/Operator/Operations.vue",
+      "group": "Operator",
+      "references": [
+        {
+          "page": "Operator/Operations",
+          "file": "app/Http/Controllers/Operator/OperatorConsoleController.php",
+          "line": 37,
+          "action": "App\\Http\\Controllers\\Operator\\OperatorConsoleController@operations",
+          "routes": [
+            "/operator/operations"
+          ]
+        }
+      ],
+      "routes": [
+        "/operator/operations"
+      ]
+    },
+    {
+      "page": "Operator/Roles",
+      "file": "resources/js/Pages/Operator/Roles.vue",
+      "group": "Operator",
+      "references": [
+        {
+          "page": "Operator/Roles",
+          "file": "app/Http/Controllers/Operator/MeshConsoleController.php",
+          "line": 77,
+          "action": "App\\Http\\Controllers\\Operator\\MeshConsoleController@roles",
+          "routes": [
+            "/operator/roles"
+          ]
+        }
+      ],
+      "routes": [
+        "/operator/roles"
+      ]
+    },
+    {
+      "page": "Operator/Versioning",
+      "file": "resources/js/Pages/Operator/Versioning.vue",
+      "group": "Operator",
+      "references": [
+        {
+          "page": "Operator/Versioning",
+          "file": "app/Http/Controllers/Operator/MeshConsoleController.php",
+          "line": 124,
+          "action": "App\\Http\\Controllers\\Operator\\MeshConsoleController@versioning",
+          "routes": [
+            "/operator/versioning"
+          ]
+        }
+      ],
+      "routes": [
+        "/operator/versioning"
+      ]
+    },
+    {
+      "page": "Organizations/BoardElections",
+      "file": "resources/js/Pages/Organizations/BoardElections.vue",
+      "group": "Organizations",
+      "references": [
+        {
+          "page": "Organizations/BoardElections",
+          "file": "app/Http/Controllers/Organizations/BoardElectionController.php",
+          "line": 61,
+          "action": "App\\Http\\Controllers\\Organizations\\BoardElectionController@show",
+          "routes": [
+            "/organizations/{organization}/board-elections"
+          ]
+        }
+      ],
+      "routes": [
+        "/organizations/{organization}/board-elections"
+      ]
+    },
+    {
+      "page": "Organizations/CgcDetail",
+      "file": "resources/js/Pages/Organizations/CgcDetail.vue",
+      "group": "Organizations",
+      "references": [
+        {
+          "page": "Organizations/CgcDetail",
+          "file": "app/Http/Controllers/Organizations/CgcController.php",
+          "line": 73,
+          "action": "App\\Http\\Controllers\\Organizations\\CgcController@show",
+          "routes": [
+            "/organizations/{organization}/cgc"
+          ]
+        }
+      ],
+      "routes": [
+        "/organizations/{organization}/cgc"
+      ]
+    },
+    {
+      "page": "Organizations/CoDetermination",
+      "file": "resources/js/Pages/Organizations/CoDetermination.vue",
+      "group": "Organizations",
+      "references": [
+        {
+          "page": "Organizations/CoDetermination",
+          "file": "app/Http/Controllers/Organizations/CoDeterminationController.php",
+          "line": 56,
+          "action": "App\\Http\\Controllers\\Organizations\\CoDeterminationController@show",
+          "routes": [
+            "/organizations/co-determination"
+          ]
+        }
+      ],
+      "routes": [
+        "/organizations/co-determination"
+      ]
+    },
+    {
+      "page": "Organizations/OrgDetail",
+      "file": "resources/js/Pages/Organizations/OrgDetail.vue",
+      "group": "Organizations",
+      "references": [
+        {
+          "page": "Organizations/OrgDetail",
+          "file": "app/Http/Controllers/Organizations/OrganizationController.php",
+          "line": 189,
+          "action": "App\\Http\\Controllers\\Organizations\\OrganizationController@show",
+          "routes": [
+            "/organizations/{organization}"
+          ]
+        }
+      ],
+      "routes": [
+        "/organizations/{organization}"
+      ]
+    },
+    {
+      "page": "Organizations/Registry",
+      "file": "resources/js/Pages/Organizations/Registry.vue",
+      "group": "Organizations",
+      "references": [
+        {
+          "page": "Organizations/Registry",
+          "file": "app/Http/Controllers/Organizations/OrganizationController.php",
+          "line": 115,
+          "action": "App\\Http\\Controllers\\Organizations\\OrganizationController@index",
+          "routes": [
+            "/organizations"
+          ]
+        }
+      ],
+      "routes": [
+        "/organizations"
+      ]
+    },
+    {
+      "page": "Organizations/TransfersConversions",
+      "file": "resources/js/Pages/Organizations/TransfersConversions.vue",
+      "group": "Organizations",
+      "references": [
+        {
+          "page": "Organizations/TransfersConversions",
+          "file": "app/Http/Controllers/Organizations/TransferController.php",
+          "line": 68,
+          "action": "App\\Http\\Controllers\\Organizations\\TransferController@index",
+          "routes": [
+            "/organizations/transfers-conversions"
+          ]
+        }
+      ],
+      "routes": [
+        "/organizations/transfers-conversions"
+      ]
+    },
+    {
+      "page": "Setup/Bootstrap",
+      "file": "resources/js/Pages/Setup/Bootstrap.vue",
+      "group": "Setup",
+      "references": [
+        {
+          "page": "Setup/Bootstrap",
+          "file": "app/Http/Controllers/SetupController.php",
+          "line": 484,
+          "action": "App\\Http\\Controllers\\SetupController@bootstrapPage",
+          "routes": [
+            "/setup/bootstrap"
+          ]
+        }
+      ],
+      "routes": [
+        "/setup/bootstrap"
+      ]
+    },
+    {
+      "page": "Setup/JoinHost",
+      "file": "resources/js/Pages/Setup/JoinHost.vue",
+      "group": "Setup",
+      "references": [
+        {
+          "page": "Setup/JoinHost",
+          "file": "app/Http/Controllers/SetupController.php",
+          "line": 337,
+          "action": "App\\Http\\Controllers\\SetupController@join",
+          "routes": [
+            "/setup/join"
+          ]
+        }
+      ],
+      "routes": [
+        "/setup/join"
+      ]
+    },
+    {
+      "page": "Setup/ModeFork",
+      "file": "resources/js/Pages/Setup/ModeFork.vue",
+      "group": "Setup",
+      "references": [
+        {
+          "page": "Setup/ModeFork",
+          "file": "app/Http/Controllers/SetupController.php",
+          "line": 230,
+          "action": "App\\Http\\Controllers\\SetupController@mode",
+          "routes": [
+            "/setup/mode"
+          ]
+        }
+      ],
+      "routes": [
+        "/setup/mode"
+      ]
+    },
+    {
+      "page": "Setup/OperatorSetup",
+      "file": "resources/js/Pages/Setup/OperatorSetup.vue",
+      "group": "Setup",
+      "references": [
+        {
+          "page": "Setup/OperatorSetup",
+          "file": "app/Http/Controllers/SetupController.php",
+          "line": 267,
+          "action": "App\\Http\\Controllers\\SetupController@operatorSetupPage",
+          "routes": [
+            "/setup/operator"
+          ]
+        }
+      ],
+      "routes": [
+        "/setup/operator"
+      ]
+    },
+    {
+      "page": "Setup/Step0_CosmicAddress",
+      "file": "resources/js/Pages/Setup/Step0_CosmicAddress.vue",
+      "group": "Setup",
+      "references": [],
+      "routes": []
+    },
+    {
+      "page": "Setup/Step1_Constants",
+      "file": "resources/js/Pages/Setup/Step1_Constants.vue",
+      "group": "Setup",
+      "references": [],
+      "routes": []
+    },
+    {
+      "page": "Setup/Step2_MapData",
+      "file": "resources/js/Pages/Setup/Step2_MapData.vue",
+      "group": "Setup",
+      "references": [],
+      "routes": []
+    },
+    {
+      "page": "Setup/Step3_Districts",
+      "file": "resources/js/Pages/Setup/Step3_Districts.vue",
+      "group": "Setup",
+      "references": [],
+      "routes": []
+    },
+    {
+      "page": "Setup/Step4_ScaleUp",
+      "file": "resources/js/Pages/Setup/Step4_ScaleUp.vue",
+      "group": "Setup",
+      "references": [],
+      "routes": []
+    },
+    {
+      "page": "Setup/Step5_Simulate",
+      "file": "resources/js/Pages/Setup/Step5_Simulate.vue",
+      "group": "Setup",
+      "references": [],
+      "routes": []
+    },
+    {
+      "page": "Setup/Step6_Confirm",
+      "file": "resources/js/Pages/Setup/Step6_Confirm.vue",
+      "group": "Setup",
+      "references": [],
+      "routes": []
+    },
+    {
+      "page": "Social/Achievements",
+      "file": "resources/js/Pages/Social/Achievements.vue",
+      "group": "Social",
+      "references": [
+        {
+          "page": "Social/Achievements",
+          "file": "app/Http/Controllers/Social/AchievementsController.php",
+          "line": 49,
+          "action": "App\\Http\\Controllers\\Social\\AchievementsController@index",
+          "routes": [
+            "/achievements"
+          ]
+        }
+      ],
+      "routes": [
+        "/achievements"
+      ]
+    },
+    {
+      "page": "Social/PersonProfile",
+      "file": "resources/js/Pages/Social/PersonProfile.vue",
+      "group": "Social",
+      "references": [
+        {
+          "page": "Social/PersonProfile",
+          "file": "app/Http/Controllers/Social/PersonProfileController.php",
+          "line": 127,
+          "action": "App\\Http\\Controllers\\Social\\PersonProfileController@show",
+          "routes": [
+            "/people"
+          ]
+        }
+      ],
+      "routes": [
+        "/people"
+      ]
+    },
+    {
+      "page": "Social/Reach",
+      "file": "resources/js/Pages/Social/Reach.vue",
+      "group": "Social",
+      "references": [
+        {
+          "page": "Social/Reach",
+          "file": "app/Http/Controllers/ReachController.php",
+          "line": 51,
+          "action": "App\\Http\\Controllers\\ReachController@index",
+          "routes": [
+            "/reach"
+          ]
+        }
+      ],
+      "routes": [
+        "/reach"
+      ]
+    },
+    {
+      "page": "Support/Report",
+      "file": "resources/js/Pages/Support/Report.vue",
+      "group": "Support",
+      "references": [
+        {
+          "page": "Support/Report",
+          "file": "app/Http/Controllers/Support/SupportReportController.php",
+          "line": 50,
+          "action": "App\\Http\\Controllers\\Support\\SupportReportController@create",
+          "routes": [
+            "/support/report"
+          ]
+        }
+      ],
+      "routes": [
+        "/support/report"
+      ]
+    },
+    {
+      "page": "Support/Ticket",
+      "file": "resources/js/Pages/Support/Ticket.vue",
+      "group": "Support",
+      "references": [
+        {
+          "page": "Support/Ticket",
+          "file": "app/Http/Controllers/Support/SupportReportController.php",
+          "line": 139,
+          "action": "App\\Http\\Controllers\\Support\\SupportReportController@show",
+          "routes": [
+            "/support/ticket/{ref}"
+          ]
+        }
+      ],
+      "routes": [
+        "/support/ticket/{ref}"
+      ]
+    },
+    {
+      "page": "Support/Tickets",
+      "file": "resources/js/Pages/Support/Tickets.vue",
+      "group": "Support",
+      "references": [
+        {
+          "page": "Support/Tickets",
+          "file": "app/Http/Controllers/Support/SupportReportController.php",
+          "line": 117,
+          "action": "App\\Http\\Controllers\\Support\\SupportReportController@index",
+          "routes": [
+            "/support/tickets"
+          ]
+        }
+      ],
+      "routes": [
+        "/support/tickets"
+      ]
+    },
+    {
+      "page": "System/Accessibility",
+      "file": "resources/js/Pages/System/Accessibility.vue",
+      "group": "System",
+      "references": [
+        {
+          "page": "System/Accessibility",
+          "file": "app/Http/Controllers/System/AccessibilityController.php",
+          "line": 26,
+          "action": "App\\Http\\Controllers\\System\\AccessibilityController@show",
+          "routes": [
+            "/system/accessibility"
+          ]
+        }
+      ],
+      "routes": [
+        "/system/accessibility"
+      ]
+    },
+    {
+      "page": "System/Amendments",
+      "file": "resources/js/Pages/System/Amendments.vue",
+      "group": "System",
+      "references": [
+        {
+          "page": "System/Amendments",
+          "file": "app/Http/Controllers/System/AmendmentsController.php",
+          "line": 38,
+          "action": "App\\Http\\Controllers\\System\\AmendmentsController@show",
+          "routes": [
+            "/system/amendments"
+          ]
+        }
+      ],
+      "routes": [
+        "/system/amendments"
+      ]
+    },
+    {
+      "page": "System/Atlas",
+      "file": "resources/js/Pages/System/Atlas.vue",
+      "group": "System",
+      "references": [
+        {
+          "page": "System/Atlas",
+          "file": "app/Http/Controllers/System/AtlasController.php",
+          "line": 58,
+          "action": "App\\Http\\Controllers\\System\\AtlasController@index",
+          "routes": [
+            "/atlas"
+          ]
+        }
+      ],
+      "routes": [
+        "/atlas"
+      ]
+    },
+    {
+      "page": "System/AuditChain",
+      "file": "resources/js/Pages/System/AuditChain.vue",
+      "group": "System",
+      "references": [
+        {
+          "page": "System/AuditChain",
+          "file": "app/Http/Controllers/System/AuditChainController.php",
+          "line": 51,
+          "action": "App\\Http\\Controllers\\System\\AuditChainController@show",
+          "routes": [
+            "/system/audit-chain"
+          ]
+        }
+      ],
+      "routes": [
+        "/system/audit-chain"
+      ]
+    },
+    {
+      "page": "System/Clocks",
+      "file": "resources/js/Pages/System/Clocks.vue",
+      "group": "System",
+      "references": [
+        {
+          "page": "System/Clocks",
+          "file": "app/Http/Controllers/System/ClocksController.php",
+          "line": 35,
+          "action": "App\\Http\\Controllers\\System\\ClocksController@show",
+          "routes": [
+            "/system/clocks"
+          ]
+        }
+      ],
+      "routes": [
+        "/system/clocks"
+      ]
+    },
+    {
+      "page": "System/ConstitutionalQuestions",
+      "file": "resources/js/Pages/System/ConstitutionalQuestions.vue",
+      "group": "System",
+      "references": [
+        {
+          "page": "System/ConstitutionalQuestions",
+          "file": "app/Http/Controllers/System/ConstitutionalQuestionsController.php",
+          "line": 27,
+          "action": "App\\Http\\Controllers\\System\\ConstitutionalQuestionsController@show",
+          "routes": [
+            "/system/constitutional-questions"
+          ]
+        }
+      ],
+      "routes": [
+        "/system/constitutional-questions"
+      ]
+    },
+    {
+      "page": "System/Coverage",
+      "file": "resources/js/Pages/System/Coverage.vue",
+      "group": "System",
+      "references": [
+        {
+          "page": "System/Coverage",
+          "file": "app/Http/Controllers/System/CoverageController.php",
+          "line": 31,
+          "action": "App\\Http\\Controllers\\System\\CoverageController@index",
+          "routes": [
+            "/coverage"
+          ]
+        }
+      ],
+      "routes": [
+        "/coverage"
+      ]
+    },
+    {
+      "page": "System/CoverageOps",
+      "file": "resources/js/Pages/System/CoverageOps.vue",
+      "group": "System",
+      "references": [
+        {
+          "page": "System/CoverageOps",
+          "file": "app/Http/Controllers/System/CoverageController.php",
+          "line": 40,
+          "action": "App\\Http\\Controllers\\System\\CoverageController@ops",
+          "routes": [
+            "/coverage-ops"
+          ]
+        }
+      ],
+      "routes": [
+        "/coverage-ops"
+      ]
+    },
+    {
+      "page": "System/PublicRecords",
+      "file": "resources/js/Pages/System/PublicRecords.vue",
+      "group": "System",
+      "references": [
+        {
+          "page": "System/PublicRecords",
+          "file": "app/Http/Controllers/System/PublicRecordsController.php",
+          "line": 77,
+          "action": "App\\Http\\Controllers\\System\\PublicRecordsController@index",
+          "routes": [
+            "/system/public-records"
+          ]
+        }
+      ],
+      "routes": [
+        "/system/public-records"
+      ]
+    },
+    {
+      "page": "System/TermSync",
+      "file": "resources/js/Pages/System/TermSync.vue",
+      "group": "System",
+      "references": [
+        {
+          "page": "System/TermSync",
+          "file": "app/Http/Controllers/System/TermSyncController.php",
+          "line": 35,
+          "action": "App\\Http\\Controllers\\System\\TermSyncController@show",
+          "routes": [
+            "/system/term-sync"
+          ]
+        }
+      ],
+      "routes": [
+        "/system/term-sync"
+      ]
+    },
+    {
+      "page": "System/TranslationReview",
+      "file": "resources/js/Pages/System/TranslationReview.vue",
+      "group": "System",
+      "references": [
+        {
+          "page": "System/TranslationReview",
+          "file": "app/Http/Controllers/System/TranslationReviewController.php",
+          "line": 54,
+          "action": "App\\Http\\Controllers\\System\\TranslationReviewController@show",
+          "routes": [
+            "/system/translations/review/{locale}"
+          ]
+        }
+      ],
+      "routes": [
+        "/system/translations/review/{locale}"
+      ]
+    },
+    {
+      "page": "System/Translations",
+      "file": "resources/js/Pages/System/Translations.vue",
+      "group": "System",
+      "references": [
+        {
+          "page": "System/Translations",
+          "file": "app/Http/Controllers/System/TranslationCoverageController.php",
+          "line": 67,
+          "action": "App\\Http\\Controllers\\System\\TranslationCoverageController@show",
+          "routes": [
+            "/system/translations"
+          ]
+        }
+      ],
+      "routes": [
+        "/system/translations"
+      ]
+    },
+    {
+      "page": "Tour/Index",
+      "file": "resources/js/Pages/Tour/Index.vue",
+      "group": "Tour",
+      "references": [
+        {
+          "page": "Tour/Index",
+          "file": "routes/web.php",
+          "line": 62,
+          "action": null,
+          "routes": [
+            "/tour"
+          ]
+        }
+      ],
+      "routes": [
+        "/tour"
+      ]
+    }
+  ]
+}

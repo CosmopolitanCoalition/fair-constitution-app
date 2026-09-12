@@ -1,0 +1,750 @@
+{
+  "audit_date": "2026-09-12",
+  "scope": "Economy, Organizations, Learn, Social and Media",
+  "method": "Source review only; 27 page components traced to routes, controllers and selected shared components/services. No DB queries, browser interactions, app edits, builds or tests performed by this lane. One live learning defect was reported by the parent audit and is explicitly attributed.",
+  "limits": [
+    "Action-backed means implementation exists in source, not that a live-world happy path passed.",
+    "No constitutional policy change proposed; recommendations reorganize discovery and repair missing integration.",
+    "Media host and real content availability were not inspected."
+  ],
+  "counts": {
+    "action-backed": 11,
+    "read-backed": 9,
+    "partial": 5,
+    "navigation-only": 1,
+    "media-dependent": 1
+  },
+  "surfaces": [
+    {
+      "component": "Economy/Home",
+      "path": "/economy",
+      "purpose": "Economy navigation plus currency, ledger and stipend summary",
+      "status": "read-backed",
+      "reads": "Currency, supply, full ledger verification, counts and last stipend run",
+      "writes": [],
+      "overlap_group": "economy-finance",
+      "recommendation": "complete",
+      "rationale": "Use an action-first landing with Wallet and Market. Move finance telemetry behind context and make request reads bounded before demo.",
+      "evidence": [
+        "app/Http/Controllers/Economy/EconomyController.php:53",
+        "resources/js/Pages/Economy/Home.vue:37",
+        "app/Services/Economy/LedgerService.php:158"
+      ],
+      "confidence": "high for source implementation; runtime untested",
+      "page": "Economy/Home"
+    },
+    {
+      "component": "Economy/Wallet",
+      "path": "/economy/wallet",
+      "purpose": "Personal money, receipts, assets and transfers",
+      "status": "action-backed",
+      "reads": "Viewer account, latest movements, stipend receipts, owned assets",
+      "writes": [
+        "Send funds",
+        "Register physical or digital asset"
+      ],
+      "overlap_group": "personal-economy",
+      "recommendation": "keep",
+      "rationale": "Useful resident activity. Improve account-address exchange so sending does not require manually entering UUIDs.",
+      "evidence": [
+        "app/Http/Controllers/Economy/EconomyController.php:106",
+        "app/Http/Controllers/Economy/EconomyActionController.php:41",
+        "resources/js/Pages/Economy/Wallet.vue:53",
+        "resources/js/Pages/Economy/Wallet.vue:183"
+      ],
+      "confidence": "high for source implementation; runtime untested",
+      "page": "Economy/Wallet"
+    },
+    {
+      "component": "Economy/Market",
+      "path": "/economy/market",
+      "purpose": "Offer goods/services, find work, browse help requests",
+      "status": "partial",
+      "reads": "Open offers, work postings and public assistance requests",
+      "writes": [
+        "List good/service",
+        "Navigate to order or work application"
+      ],
+      "overlap_group": "market-exchange",
+      "recommendation": "complete",
+      "rationale": "Keep one market. Work posting/acceptance and help-request participation need user-facing paths before those activities are promised.",
+      "evidence": [
+        "app/Http/Controllers/Economy/EconomyController.php:188",
+        "app/Http/Controllers/Economy/EconomyActionController.php:199",
+        "resources/js/Pages/Economy/Market.vue:48",
+        "resources/js/Pages/Economy/Market.vue:223"
+      ],
+      "confidence": "high for source implementation; runtime untested",
+      "page": "Economy/Market"
+    },
+    {
+      "component": "Economy/Listing",
+      "path": "/economy/market/{listing}",
+      "purpose": "Offer detail and buyer/seller settlement",
+      "status": "action-backed",
+      "reads": "Listing, provenance, order counts and seller's pending orders",
+      "writes": [
+        "Buyer orders",
+        "Seller accepts and settles"
+      ],
+      "overlap_group": "market-exchange",
+      "recommendation": "keep",
+      "rationale": "Use for a complete two-person trade demonstration after verifying account funding and both user roles.",
+      "evidence": [
+        "app/Http/Controllers/Economy/EconomyController.php:230",
+        "app/Http/Controllers/Economy/EconomyActionController.php:222",
+        "resources/js/Pages/Economy/Listing.vue:47"
+      ],
+      "confidence": "high for source implementation; runtime untested",
+      "page": "Economy/Listing"
+    },
+    {
+      "component": "Economy/RequestDetail",
+      "path": "/economy/requests/{posting}",
+      "purpose": "Work terms, organization context and application",
+      "status": "partial",
+      "reads": "Posting, own application state, organization and worker representation",
+      "writes": [
+        "Submit work application"
+      ],
+      "overlap_group": "work",
+      "recommendation": "complete",
+      "rationale": "Application is real. Employer review/accept/decline is not exposed in the inspected route/controller/UI graph; finish the round trip.",
+      "evidence": [
+        "app/Http/Controllers/Economy/EconomyController.php:787",
+        "app/Http/Controllers/Economy/EconomyActionController.php:254",
+        "resources/js/Pages/Economy/RequestDetail.vue:44",
+        "app/Services/Economy/LaborBoardService.php:111"
+      ],
+      "confidence": "high for source implementation; runtime untested",
+      "page": "Economy/RequestDetail"
+    },
+    {
+      "component": "Economy/Treasury",
+      "path": "/economy/treasury",
+      "purpose": "Public finances and monetary audit record",
+      "status": "read-backed",
+      "reads": "Treasury accounts, recent entries/issuance, budgets, borrowing and revenue",
+      "writes": [],
+      "overlap_group": "economy-finance",
+      "recommendation": "contextualize",
+      "rationale": "Keep as public observation within Government > Finance. Global account/revenue queries need bounded access as the world grows.",
+      "evidence": [
+        "app/Http/Controllers/Economy/EconomyController.php:311",
+        "resources/js/Pages/Economy/Treasury.vue:25"
+      ],
+      "confidence": "high for source implementation; runtime untested",
+      "page": "Economy/Treasury"
+    },
+    {
+      "component": "Economy/Units",
+      "path": "/economy/units",
+      "purpose": "Currency properties, distribution and monetary rules",
+      "status": "read-backed",
+      "reads": "Settings, issuer, rates, bounds, enacting acts and telemetry",
+      "writes": [],
+      "overlap_group": "economy-finance",
+      "recommendation": "merge",
+      "rationale": "Place under Public finance as a Currency tab. These values need legislative acts; add a contextual lawful proposal link rather than direct sliders.",
+      "evidence": [
+        "app/Http/Controllers/Economy/EconomyController.php:406",
+        "resources/js/Pages/Economy/Units.vue:72",
+        "resources/js/Pages/Economy/Units.vue:167"
+      ],
+      "confidence": "high for source implementation; runtime untested",
+      "page": "Economy/Units"
+    },
+    {
+      "component": "Economy/Stipend",
+      "path": "/economy/stipend",
+      "purpose": "Explain and inspect civic income policy and payments",
+      "status": "read-backed",
+      "reads": "Current stipend settings, role differentials and last disbursement",
+      "writes": [
+        "Navigate to legislative settings or own wallet"
+      ],
+      "overlap_group": "economy-finance",
+      "recommendation": "contextualize",
+      "rationale": "Put personal receipts in Wallet and policy detail in Public finance; avoid a primary navigation item competing with both.",
+      "evidence": [
+        "app/Http/Controllers/Economy/EconomyController.php:850",
+        "resources/js/Pages/Economy/Stipend.vue:30",
+        "resources/js/Pages/Economy/Stipend.vue:142"
+      ],
+      "confidence": "high for source implementation; runtime untested",
+      "page": "Economy/Stipend"
+    },
+    {
+      "component": "Economy/Agreements",
+      "path": "/economy/agreements",
+      "purpose": "Unified register of the viewer's organization and resident agreements",
+      "status": "read-backed",
+      "reads": "Party-scoped org contracts and resident agreements",
+      "writes": [
+        "Open agreement"
+      ],
+      "overlap_group": "agreements",
+      "recommendation": "keep",
+      "rationale": "Make this the single agreements entry point. Resident rows currently all link to a second full register without focusing the chosen agreement.",
+      "evidence": [
+        "app/Http/Controllers/Economy/EconomyController.php:932",
+        "app/Http/Controllers/Economy/EconomyController.php:995",
+        "resources/js/Pages/Economy/Agreements.vue:115"
+      ],
+      "confidence": "high for source implementation; runtime untested",
+      "page": "Economy/Agreements"
+    },
+    {
+      "component": "Economy/AgreementDetail",
+      "path": "/economy/agreements/{contract}",
+      "purpose": "Read and negotiate an organization contract",
+      "status": "action-backed",
+      "reads": "Party-scoped terms, signatures, clauses and pending redlines",
+      "writes": [
+        "Propose clause changes",
+        "Accept/reject/withdraw redlines"
+      ],
+      "overlap_group": "agreements",
+      "recommendation": "keep",
+      "rationale": "Use a shared agreement detail component with resident agreements while preserving each kind's parties and consent rules.",
+      "evidence": [
+        "app/Http/Controllers/Economy/EconomyController.php:1003",
+        "app/Http/Controllers/Economy/EconomyActionController.php:94",
+        "resources/js/Pages/Economy/AgreementDetail.vue:36"
+      ],
+      "confidence": "high for source implementation; runtime untested",
+      "page": "Economy/AgreementDetail"
+    },
+    {
+      "component": "Economy/ResidentAgreements",
+      "path": "/economy/resident-agreements",
+      "purpose": "Draft, sign and negotiate person-to-person agreements",
+      "status": "action-backed",
+      "reads": "Viewer's agreements, signers, clauses and redlines",
+      "writes": [
+        "Create agreement",
+        "Sign",
+        "Propose and resolve redlines"
+      ],
+      "overlap_group": "agreements",
+      "recommendation": "merge",
+      "rationale": "Move creation and resident detail into the unified Agreements flow. Current signer choice is the first 50 users, not a complete consent/contact selector.",
+      "evidence": [
+        "app/Http/Controllers/Economy/EconomyController.php:708",
+        "app/Http/Controllers/Economy/EconomyController.php:766",
+        "app/Http/Controllers/Economy/EconomyActionController.php:63",
+        "resources/js/Pages/Economy/ResidentAgreements.vue:27"
+      ],
+      "confidence": "high for source implementation; runtime untested",
+      "page": "Economy/ResidentAgreements"
+    },
+    {
+      "component": "Economy/JointLedgers",
+      "path": "/economy/joint-ledgers",
+      "purpose": "Co-owned accounts with agreed approval rules",
+      "status": "action-backed",
+      "reads": "Public or viewer-party joint ledgers, parties, balances and recent proposals",
+      "writes": [
+        "Open ledger",
+        "Propose payment",
+        "Approve payment"
+      ],
+      "overlap_group": "personal-economy",
+      "recommendation": "contextualize",
+      "rationale": "Present as Shared wallets from Wallet and relevant agreement context. Preserve public ledger browsing.",
+      "evidence": [
+        "app/Http/Controllers/Economy/EconomyController.php:1058",
+        "app/Http/Controllers/Economy/EconomyActionController.php:269",
+        "resources/js/Pages/Economy/JointLedgers.vue:47"
+      ],
+      "confidence": "high for source implementation; runtime untested",
+      "page": "Economy/JointLedgers"
+    },
+    {
+      "component": "Economy/Exchange",
+      "path": "/economy/exchange",
+      "purpose": "Instrument listings, ownership holdings and fixed-price share offers",
+      "status": "partial",
+      "reads": "Marketplace instruments, org stakes, share offers and recent trades",
+      "writes": [
+        "Offer owned shares",
+        "Buy whole offer",
+        "Withdraw own offer"
+      ],
+      "overlap_group": "market-exchange",
+      "recommendation": "merge",
+      "rationale": "Make instruments and shares a Market section. Trading is real, but issuing initial shares has no user-facing invocation found.",
+      "evidence": [
+        "app/Http/Controllers/Economy/EconomyController.php:482",
+        "app/Http/Controllers/Economy/EconomyActionController.php:137",
+        "resources/js/Pages/Economy/Exchange.vue:48",
+        "app/Domain/Forms/Handlers/OrganizationMarketParticipation.php:74"
+      ],
+      "confidence": "high for source implementation; runtime untested",
+      "page": "Economy/Exchange"
+    },
+    {
+      "component": "Economy/OrgSettings",
+      "path": "/organizations/{organization}/economy",
+      "purpose": "Organization dues, shares, ledger, taxes and conversion valuation",
+      "status": "partial",
+      "reads": "Dues/settings, cap table, permission-scoped wallet and tax/conversion rows",
+      "writes": [
+        "Set dues amount",
+        "Set dues period"
+      ],
+      "overlap_group": "organization-detail",
+      "recommendation": "contextualize",
+      "rationale": "Keep inside the organization workspace as Finance. Add the existing share-issuance engine action to the owning organization's UI if exchange participates in demo.",
+      "evidence": [
+        "app/Http/Controllers/Organizations/OrgEconomyController.php:41",
+        "app/Http/Controllers/Organizations/OrganizationController.php:304",
+        "resources/js/Pages/Economy/OrgSettings.vue:48",
+        "resources/js/Pages/Economy/OrgSettings.vue:121"
+      ],
+      "confidence": "high for source implementation; runtime untested",
+      "page": "Economy/OrgSettings"
+    },
+    {
+      "component": "Organizations/Registry",
+      "path": "/organizations",
+      "purpose": "Find organizations or create one",
+      "status": "action-backed",
+      "reads": "Organizations with filters, roles and registration options",
+      "writes": [
+        "Register organization",
+        "Create informal club using same registration endpoint"
+      ],
+      "overlap_group": "organization-detail",
+      "recommendation": "keep",
+      "rationale": "One useful entry point for businesses, civic groups and clubs. Do not reintroduce partisan separation.",
+      "evidence": [
+        "app/Http/Controllers/Organizations/OrganizationController.php:82",
+        "app/Http/Controllers/Organizations/OrganizationController.php:145",
+        "resources/js/Pages/Organizations/Registry.vue:122"
+      ],
+      "confidence": "high for source implementation; runtime untested",
+      "page": "Organizations/Registry"
+    },
+    {
+      "component": "Organizations/OrgDetail",
+      "path": "/organizations/{organization}",
+      "purpose": "Organization workspace and public record",
+      "status": "action-backed",
+      "reads": "Profile, endorsements, jobs, membership, workers, ownership, board, documents and contracts",
+      "writes": [
+        "Edit profile/settings",
+        "Grant/decline endorsements",
+        "Join",
+        "Register worker",
+        "Apply for job",
+        "File document version",
+        "Cosign contract"
+      ],
+      "overlap_group": "organization-detail",
+      "recommendation": "keep",
+      "rationale": "Use as the organization parent with tabs. Large linear card stack and overlaps with Finance/Board/Agreements should be organized by user task.",
+      "evidence": [
+        "app/Http/Controllers/Organizations/OrganizationController.php:162",
+        "app/Http/Controllers/Organizations/OrganizationController.php:284",
+        "resources/js/Pages/Organizations/OrgDetail.vue:120",
+        "resources/js/Pages/Organizations/OrgDetail.vue:427"
+      ],
+      "confidence": "high for source implementation; runtime untested",
+      "page": "Organizations/OrgDetail"
+    },
+    {
+      "component": "Organizations/BoardElections",
+      "path": "/organizations/{organization}/board-elections",
+      "purpose": "Owner and worker board elections and seated representation",
+      "status": "action-backed",
+      "reads": "Board composition, tracks, electorate, results and seated members",
+      "writes": [
+        "Schedule owner/worker election",
+        "Navigate to shared ballot"
+      ],
+      "overlap_group": "organization-board",
+      "recommendation": "contextualize",
+      "rationale": "Keep within the organization Board tab. Reusing the shared election/ballot pages is correct and avoids a duplicate voting implementation.",
+      "evidence": [
+        "app/Http/Controllers/Organizations/BoardElectionController.php:52",
+        "app/Http/Controllers/Organizations/BoardElectionController.php:101",
+        "resources/js/Pages/Organizations/BoardElections.vue:73",
+        "resources/js/Pages/Organizations/BoardElections.vue:234"
+      ],
+      "confidence": "high for source implementation; runtime untested",
+      "page": "Organizations/BoardElections"
+    },
+    {
+      "component": "Organizations/CoDetermination",
+      "path": "/organizations/co-determination?org={id}",
+      "purpose": "Explore worker representation and inspect boards",
+      "status": "read-backed",
+      "reads": "Actual live boards/seats, current worker thresholds and focused organization",
+      "writes": [
+        "Local hypothetical scale exploration",
+        "Navigate to entity/election"
+      ],
+      "overlap_group": "organization-board",
+      "recommendation": "contextualize",
+      "rationale": "Embed the useful scale and board facts within organization context and Learn. Bound the live-board query before exposing this at world scale.",
+      "evidence": [
+        "app/Http/Controllers/Organizations/CoDeterminationController.php:44",
+        "app/Http/Controllers/Organizations/CoDeterminationController.php:89",
+        "resources/js/Pages/Organizations/CoDetermination.vue:101"
+      ],
+      "confidence": "high for source implementation; runtime untested",
+      "page": "Organizations/CoDetermination"
+    },
+    {
+      "component": "Organizations/CgcDetail",
+      "path": "/organizations/{organization}/cgc",
+      "purpose": "Common Good Corporation charter, oversight, board and public-domain assets",
+      "status": "action-backed",
+      "reads": "CGC charter/oversight, co-determination, board, IP and conversions",
+      "writes": [
+        "Register public-domain IP dedication",
+        "Navigate to board elections or legislative reorganization"
+      ],
+      "overlap_group": "organization-detail",
+      "recommendation": "contextualize",
+      "rationale": "Keep CGC-specific obligations inside a common organization layout; preserve the differences in ownership and public-domain rules.",
+      "evidence": [
+        "app/Http/Controllers/Organizations/CgcController.php:51",
+        "app/Http/Controllers/Organizations/CgcController.php:123",
+        "resources/js/Pages/Organizations/CgcDetail.vue:90"
+      ],
+      "confidence": "high for source implementation; runtime untested",
+      "page": "Organizations/CgcDetail"
+    },
+    {
+      "component": "Organizations/TransfersConversions",
+      "path": "/organizations/transfers-conversions?org={id}",
+      "purpose": "Ownership transfers, conversions, restructuring and dissolution",
+      "status": "action-backed",
+      "reads": "Focused or global transfers/acquisitions/conversions/restructures/dissolutions",
+      "writes": [
+        "Propose transfer",
+        "Consent",
+        "Request conversion",
+        "Restructure",
+        "Dissolve",
+        "Navigate to legislative acts"
+      ],
+      "overlap_group": "organization-detail",
+      "recommendation": "contextualize",
+      "rationale": "Expose actions from the affected organization; a context-free visit has no action URLs and mostly teaches the model.",
+      "evidence": [
+        "app/Http/Controllers/Organizations/TransferController.php:54",
+        "app/Http/Controllers/Organizations/TransferController.php:98",
+        "app/Http/Controllers/Organizations/TransferController.php:111",
+        "resources/js/Pages/Organizations/TransfersConversions.vue:58"
+      ],
+      "confidence": "high for source implementation; runtime untested",
+      "page": "Organizations/TransfersConversions"
+    },
+    {
+      "component": "Learn/LearnHome",
+      "path": "/learn",
+      "purpose": "Training catalog, progress and role recommendations",
+      "status": "read-backed",
+      "reads": "Live education tracks/modules, viewer completions and role recommendations",
+      "writes": [
+        "Open module",
+        "Open guides/journeys"
+      ],
+      "overlap_group": "learn-journeys",
+      "recommendation": "keep",
+      "rationale": "One learning entry point. Recommend a next lesson or practical exercise, with the whole catalog still available.",
+      "evidence": [
+        "app/Http/Controllers/Education/LearnController.php:35",
+        "resources/js/Pages/Learn/LearnHome.vue:29"
+      ],
+      "confidence": "high for source implementation; runtime untested",
+      "page": "Learn/LearnHome"
+    },
+    {
+      "component": "Learn/Lesson",
+      "path": "/learn/{track}/{module?}",
+      "purpose": "Comprehension quiz and completion record",
+      "status": "partial",
+      "reads": "Live module title, question choices, completion and latest quiz result",
+      "writes": [
+        "Submit answers",
+        "Server grading",
+        "File successful completion F-EDU-001"
+      ],
+      "overlap_group": "learn-journeys",
+      "recommendation": "complete",
+      "rationale": "Quiz works in source but no module lesson body is rendered. Render the module's educational content before asking questions and show its practical next action.",
+      "evidence": [
+        "app/Http/Controllers/Education/LearnController.php:54",
+        "app/Http/Controllers/Education/LearnController.php:110",
+        "app/Http/Controllers/Education/LearnController.php:122",
+        "resources/js/Pages/Learn/Lesson.vue:67",
+        "resources/js/Components/ShellV2/LearnFlyout.vue:38"
+      ],
+      "confidence": "high for source implementation; runtime untested",
+      "page": "Learn/Lesson"
+    },
+    {
+      "component": "Learn/Guides",
+      "path": "/learn/guides",
+      "purpose": "List walkthrough links",
+      "status": "navigation-only",
+      "reads": "Configured journeys mapped to title/href",
+      "writes": [
+        "Navigate to journey"
+      ],
+      "overlap_group": "learn-journeys",
+      "recommendation": "merge",
+      "rationale": "Duplicate journey catalog. Merge into Learn/Journeys while preserving public guide reading; current actual journeys require sign-in.",
+      "evidence": [
+        "app/Http/Controllers/Education/LearnController.php:172",
+        "resources/js/Pages/Learn/Guides.vue:28",
+        "routes/web.php:1205"
+      ],
+      "confidence": "high for source implementation; runtime untested",
+      "page": "Learn/Guides"
+    },
+    {
+      "component": "Learn/VideoLibrary",
+      "path": "/videos",
+      "purpose": "Multilingual learning video library",
+      "status": "media-dependent",
+      "reads": "Config catalog and optional media host",
+      "writes": [
+        "Choose video",
+        "Choose audio/caption language",
+        "Play/pause/seek if host configured"
+      ],
+      "overlap_group": "learn-journeys",
+      "recommendation": "contextualize",
+      "rationale": "Keep as Learn media and module-linked videos. Remove internal file-format/sync architecture from primary player space. Verify host and real tracks before promising playback.",
+      "evidence": [
+        "app/Http/Controllers/Media/VideoLibraryController.php:25",
+        "app/Support/MediaMeta.php:24",
+        "resources/js/Pages/Learn/VideoLibrary.vue:74",
+        "resources/js/Components/Media/MultiTrackVideoPlayer.vue:47"
+      ],
+      "confidence": "high for source implementation; runtime untested",
+      "page": "Learn/VideoLibrary"
+    },
+    {
+      "component": "Social/PersonProfile",
+      "path": "/people?who={person}",
+      "purpose": "Public profile, candidacy, office and civic record",
+      "status": "action-backed",
+      "reads": "Selected person's allowed profile, candidacies, offices, record and optional achievements",
+      "writes": [
+        "Follow/unfollow",
+        "Open private message",
+        "Edit own profile",
+        "Edit/withdraw candidacy",
+        "Request org endorsement"
+      ],
+      "overlap_group": "profile-record",
+      "recommendation": "keep",
+      "rationale": "Use one person profile reached from public acts and candidates. Keep personal private record distinct; avoid another global directory.",
+      "evidence": [
+        "app/Http/Controllers/Social/PersonProfileController.php:71",
+        "app/Http/Controllers/Social/PersonProfileController.php:162",
+        "app/Http/Controllers/Social/PersonProfileController.php:271",
+        "resources/js/Pages/Social/PersonProfile.vue:110"
+      ],
+      "confidence": "high for source implementation; runtime untested",
+      "page": "Social/PersonProfile"
+    },
+    {
+      "component": "Social/Achievements",
+      "path": "/achievements",
+      "purpose": "Catalog of civic achievements with earned state",
+      "status": "read-backed",
+      "reads": "Catalog across personal/jurisdiction/system scopes and viewer's earned rows",
+      "writes": [
+        "Navigate to journeys or own record"
+      ],
+      "overlap_group": "profile-record",
+      "recommendation": "contextualize",
+      "rationale": "Place under Learn or My record. Suppress catalog implementation triggers from default view and distinguish future entries from achievable demo outcomes.",
+      "evidence": [
+        "app/Http/Controllers/Social/AchievementsController.php:34",
+        "resources/js/Pages/Social/Achievements.vue:96",
+        "resources/js/Pages/Social/Achievements.vue:101",
+        "resources/js/Pages/Social/Achievements.vue:174"
+      ],
+      "confidence": "high for source implementation; runtime untested",
+      "page": "Social/Achievements"
+    },
+    {
+      "component": "Social/Reach",
+      "path": "/reach?jurisdiction={id}",
+      "purpose": "Published participation gauge and activation context for a place",
+      "status": "read-backed",
+      "reads": "Published legitimacy snapshots, historical series and activation tier",
+      "writes": [
+        "Choose jurisdiction"
+      ],
+      "overlap_group": "jurisdiction-observation",
+      "recommendation": "contextualize",
+      "rationale": "Put inside jurisdiction overview/insights. A gauge is a legitimate feature without a write; preserve snapshot privacy and avoid presenting no measurement as zero.",
+      "evidence": [
+        "app/Http/Controllers/ReachController.php:31",
+        "app/Http/Controllers/ReachController.php:65",
+        "resources/js/Pages/Social/Reach.vue:76"
+      ],
+      "confidence": "high for source implementation; runtime untested",
+      "page": "Social/Reach"
+    }
+  ],
+  "overlaps": [
+    {
+      "id": "learn-journeys",
+      "finding": "Learn home offers both Guides and Journeys. Guides is another journey-link catalog, while lessons are separate graded checks and the shell supplies another help drawer.",
+      "recommendation": "One Learn entry with lessons, practical journeys and media; contextual help remains attached to tasks.",
+      "evidence": [
+        "resources/js/Pages/Learn/LearnHome.vue:79",
+        "app/Http/Controllers/Education/LearnController.php:172"
+      ]
+    },
+    {
+      "id": "market-exchange",
+      "finding": "Market and Exchange both list marketplace_listings. Exchange also has distinct secondary share trading.",
+      "recommendation": "One market with clearly labeled Goods/services, Work, and Shares sections. Retain specialized detail pages.",
+      "evidence": [
+        "app/Http/Controllers/Economy/EconomyController.php:188",
+        "app/Http/Controllers/Economy/EconomyController.php:488"
+      ]
+    },
+    {
+      "id": "agreements",
+      "finding": "Unified agreement register links resident rows to an entire second resident register; organization detail separately shows contracts.",
+      "recommendation": "One register and focused detail, sharing negotiation components without flattening consent rules.",
+      "evidence": [
+        "app/Http/Controllers/Economy/EconomyController.php:932",
+        "app/Http/Controllers/Economy/EconomyController.php:995"
+      ]
+    },
+    {
+      "id": "economy-finance",
+      "finding": "Economy Home, Treasury, Units and Stipend repeat currency/public finance or stipend context across four doors.",
+      "recommendation": "Personal activity in Wallet/Market; public finance inside government context with currency/stipend tabs and lawful act links.",
+      "evidence": [
+        "resources/js/Pages/Economy/Home.vue:37",
+        "resources/js/Pages/Economy/Home.vue:65",
+        "resources/js/Pages/Economy/Stipend.vue:142"
+      ]
+    },
+    {
+      "id": "organization-detail",
+      "finding": "Organization detail, CGC detail, finance, co-determination, board elections and transfers share organization data but are exposed as separate destination concepts.",
+      "recommendation": "One organization workspace, contextual tabs and actions; retain legitimate CGC/board distinctions.",
+      "evidence": [
+        "resources/js/Pages/Organizations/OrgDetail.vue:220",
+        "resources/js/Pages/Organizations/OrgDetail.vue:455",
+        "app/Http/Controllers/Organizations/TransferController.php:98"
+      ]
+    }
+  ],
+  "demo_gaps": [
+    {
+      "id": "economy-home-request-cost",
+      "severity": "high",
+      "finding": "Economy Home synchronously walks the entire ledger hash chain and groups the full ledger on each request, plus whole-table counts.",
+      "next_step": "Precompute or incrementally verify in bounded resumable jobs; serve a timestamped snapshot. Do not exercise this route against a large world merely to inspect it.",
+      "evidence": [
+        "app/Http/Controllers/Economy/EconomyController.php:64",
+        "app/Http/Controllers/Economy/EconomyController.php:74",
+        "app/Services/Economy/LedgerService.php:158",
+        "app/Services/Economy/LedgerService.php:203"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "all-boards-read",
+      "severity": "high",
+      "finding": "CoDeterminationController loads every live board with seats before applying optional organization focus.",
+      "next_step": "Load focused board directly and paginate separately bounded observation listings.",
+      "evidence": [
+        "app/Http/Controllers/Organizations/CoDeterminationController.php:52",
+        "app/Http/Controllers/Organizations/CoDeterminationController.php:89"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "lesson-before-check",
+      "severity": "high",
+      "finding": "Lesson page renders quiz and next-module links, but module.surface_id is never used for educational content; global LearnFlyout resolves the generic learn/lesson surface.",
+      "next_step": "Render educational content for the current module before the quiz and connect to a relevant real exercise.",
+      "evidence": [
+        "app/Http/Controllers/Education/LearnController.php:110",
+        "resources/js/Pages/Learn/Lesson.vue:67",
+        "resources/js/Components/ShellV2/LearnFlyout.vue:38"
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "employment-round-trip",
+      "severity": "high",
+      "finding": "Applying is implemented. LaborBoardService implements post/accept/decline, but no employer route/controller/UI calls were found; service callers found in app are the demo command and application handler.",
+      "next_step": "Add employer posting and applicant decision flows using existing services, then verify hire/countersign/worker representation end to end.",
+      "evidence": [
+        "app/Http/Controllers/Economy/EconomyActionController.php:254",
+        "app/Services/Economy/LaborBoardService.php:44",
+        "app/Services/Economy/LaborBoardService.php:111",
+        "app/Console/Commands/TreasuryDemoCommand.php:182",
+        "app/Domain/Forms/Handlers/WorkApplication.php:82"
+      ],
+      "confidence": "high within inspected route/controller/service graph"
+    },
+    {
+      "id": "assistance-read-only",
+      "severity": "medium",
+      "finding": "Market shows help requests, but app call-site search finds only demo command insertion and read controller; no request/respond/resolve UI path found.",
+      "next_step": "Complete the participant flow if included in demo; otherwise omit this section from promoted demo activities without deleting the records.",
+      "evidence": [
+        "resources/js/Pages/Economy/Market.vue:223",
+        "app/Http/Controllers/Economy/EconomyController.php:217",
+        "app/Console/Commands/TreasuryDemoCommand.php:191"
+      ],
+      "confidence": "high within inspected app graph"
+    },
+    {
+      "id": "share-issuance-door",
+      "severity": "medium",
+      "finding": "F-ORG-008 implements issue_shares, but org finance shows a cap table only; no controller/UI invocation found. Secondary offers can trade pre-existing holdings.",
+      "next_step": "Expose issuance to the permitted organization role, or choose an existing populated organization for a read/trade demo.",
+      "evidence": [
+        "app/Domain/Forms/Handlers/OrganizationMarketParticipation.php:74",
+        "resources/js/Pages/Economy/OrgSettings.vue:121",
+        "app/Http/Controllers/Organizations/OrgEconomyController.php:227",
+        "resources/js/Pages/Economy/Exchange.vue:48"
+      ],
+      "confidence": "high within inspected app graph"
+    },
+    {
+      "id": "media-host-dependent",
+      "severity": "medium",
+      "finding": "The video player deliberately renders a labeled placeholder when the optional base URL is absent. Runtime configuration is unverified.",
+      "next_step": "Verify one actual lesson in target conference languages, including caption/audio fallback.",
+      "evidence": [
+        "app/Support/MediaMeta.php:24",
+        "resources/js/Components/Media/MultiTrackVideoPlayer.vue:47",
+        "resources/js/Components/Media/MultiTrackVideoPlayer.vue:261"
+      ],
+      "confidence": "high for fallback code; unknown runtime"
+    },
+    {
+      "id": "untranslated-lesson-quiz",
+      "severity": "high",
+      "finding": "Parent audit live browser observation: /learn/election_board displays literal c_education.learn.modules.running_elections.title and question/choice keys instead of readable lesson text while the shell is English.",
+      "next_step": "Repair education translation loading/key resolution and verify the complete lesson in conference languages before using learning as an onboarding step.",
+      "evidence": [
+        "live browser observation by root audit: /learn/election_board, 2026-09-12",
+        "resources/js/Pages/Learn/Lesson.vue:57",
+        "resources/js/Pages/Learn/Lesson.vue:76"
+      ],
+      "confidence": "live defect confirmed by root; resolver cause not investigated"
+    }
+  ]
+}

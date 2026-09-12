@@ -1,0 +1,988 @@
+{
+  "date": "2026-09-12",
+  "scope": "Civic, Elections, Legislature, Executive, Judiciary",
+  "page_count": 50,
+  "method": "Read-only source inventory in E:/fair-constitution-app. Read CLAUDE.md, reference-document excerpts, Vue pages, routes, controllers and selected shared components/handlers. No builds, application mutations, DB queries or end-to-end workflow execution. Author-created JSON artifact only.",
+  "status_definitions": {
+    "real": "Source exposes actual model/service/engine reads or writes; does not assert live success",
+    "partial": "A specific unfinished user action verified in page plus handler/controller",
+    "merge": "Proposed information architecture consolidation; preserve distinct data, access rules and legal functions",
+    "contextualize": "Retain as task/entity/role detail reached from a clear hub rather than default top-level choice"
+  },
+  "shared_findings": [
+    {
+      "finding": "Most civic/government pages are implemented domain workflows, not empty explainers. Role eligibility, empty context and repeated exposition can mask that implementation.",
+      "evidence": [
+        "app/Http/Controllers/Legislature/SessionController.php:268",
+        "app/Http/Controllers/Judiciary/CaseController.php:144",
+        "app/Http/Controllers/Executive/ExecutiveActionController.php:121"
+      ],
+      "confidence": "high for source, no live execution"
+    },
+    {
+      "finding": "PublicSquare/Halls and MatrixCommons are different record/live layers but create competing discussion entrances.",
+      "evidence": [
+        "app/Http/Controllers/Civic/PublicSquareController.php:84",
+        "app/Http/Controllers/Civic/HallsController.php:36",
+        "app/Http/Controllers/Civic/MatrixCommonsController.php:53"
+      ],
+      "recommendation": "Single discussion destination with context and conversation/record views; preserve formal testimony bridge."
+    },
+    {
+      "finding": "Generic institution resolvers discard absent context and can show empty or different destinations; they are aliases, not independent pages.",
+      "evidence": [
+        "app/Http/Controllers/Legislature/ChamberResolverController.php:43",
+        "app/Http/Controllers/Executive/ExecutiveResolverController.php:44",
+        "app/Http/Controllers/Judiciary/JudiciaryResolverController.php:32",
+        "app/Http/Controllers/Elections/ElectionController.php:163"
+      ],
+      "recommendation": "Persist selected jurisdiction/entity in navigation. Enter specific workflow from entity-aware links."
+    },
+    {
+      "finding": "Civic Home names specific elections but sends every item and election calendar event to generic /elections, losing the selected event.",
+      "evidence": [
+        "app/Services/TodayFeedService.php:146",
+        "app/Services/TodayFeedService.php:357",
+        "resources/js/Pages/Civic/Home.vue:221",
+        "resources/js/Pages/Civic/Home.vue:248",
+        "app/Http/Controllers/Elections/ElectionController.php:151"
+      ],
+      "recommendation": "Use concrete election hrefs. Apply same check to referendum rows/calendar and session links.",
+      "confidence": "high; source confirmed, parent agent also observed live links"
+    },
+    {
+      "finding": "LiveCivicRoom is partially implemented and should not be demoed as a complete live committee workspace.",
+      "evidence": [
+        "app/Http/Controllers/Rooms/LiveRoomController.php:103",
+        "resources/js/Pages/Legislature/LiveCivicRoom.vue:175",
+        "resources/js/Pages/Legislature/LiveCivicRoom.vue:195",
+        "resources/js/Pages/Legislature/LiveCivicRoom.vue:243"
+      ],
+      "recommendation": "Consolidate with CommitteeDetail and existing shared live-room implementation."
+    },
+    {
+      "finding": "Juror deliberation entry is an inert button when it becomes enabled.",
+      "evidence": [
+        "resources/js/Pages/Judiciary/JurorView.vue:264",
+        "resources/js/Components/Ui/Btn.vue:19"
+      ],
+      "recommendation": "Connect an actual authorized room before including deliberation in demo.",
+      "confidence": "high"
+    },
+    {
+      "finding": "Identity attestation currently records a request without completing verification.",
+      "evidence": [
+        "app/Domain/Forms/Handlers/IdentityVerificationSubmission.php:46",
+        "resources/js/Pages/Civic/IdentityVerification.vue:170"
+      ],
+      "recommendation": "Keep optional and outside main demo onboarding; label request outcome accurately."
+    }
+  ],
+  "demo_sequence_proposal": [
+    "Select a prepared jurisdiction and actor context",
+    "See a specific actionable election/petition item in Civic Home",
+    "Complete approval vote or petition signature with existing engine write",
+    "Show persisted result and public/personal record",
+    "Observe concrete legislature/session or committee detail",
+    "Use representative/judge/governor role workspaces only in later guided scenarios"
+  ],
+  "pages": [
+    {
+      "page": "resources/js/Pages/Civic/Home.vue",
+      "routes": [
+        "/civic"
+      ],
+      "purpose": "Personal civic feed, calendar, residency and participation summary",
+      "implementation": "Real association-scoped read model; several item links discard context",
+      "recommendation": "complete",
+      "overlap_group": "personal-home",
+      "evidence": [
+        "app/Http/Controllers/Civic/HomeController.php:114",
+        "app/Services/TodayFeedService.php:146",
+        "app/Services/TodayFeedService.php:357",
+        "resources/js/Pages/Civic/Home.vue:221"
+      ],
+      "note": "Keep as action inbox. Election cards/calendar point to /elections instead of their election; resolver chooses viewer election. Referendum cards similarly use generic resolver. Context repair precedes visual pruning.",
+      "confidence": "high for cited source behavior; live workflow untested"
+    },
+    {
+      "page": "resources/js/Pages/Civic/MyRecord.vue",
+      "routes": [
+        "/civic/record"
+      ],
+      "purpose": "Personal record, associations, candidacies, achievements and account preferences",
+      "implementation": "Real per-user audit pagination and engine-backed profile edit",
+      "recommendation": "keep",
+      "overlap_group": "personal-home",
+      "evidence": [
+        "app/Http/Controllers/Civic/MyRecordController.php:85",
+        "app/Http/Controllers/Civic/MyRecordController.php:197",
+        "resources/js/Pages/Civic/MyRecord.vue:288"
+      ],
+      "note": "Keep as profile destination; minimize repeated counters in Home.",
+      "confidence": "high for cited source behavior; live workflow untested"
+    },
+    {
+      "page": "resources/js/Pages/Civic/Residency.vue",
+      "routes": [
+        "/civic/residency"
+      ],
+      "purpose": "Locate or select jurisdiction, declare residency, collect check-ins and confirm",
+      "implementation": "Real location lookup and residency service/engine actions",
+      "recommendation": "keep",
+      "overlap_group": "residency",
+      "evidence": [
+        "app/Http/Controllers/Civic/ResidencyController.php:104",
+        "app/Http/Controllers/Civic/ResidencyController.php:187",
+        "app/Http/Controllers/Civic/ResidencyController.php:218",
+        "resources/js/Pages/Civic/Residency.vue:733"
+      ],
+      "note": "Core player setup. Demo must provide a coherent accelerated residency path without changing rules.",
+      "confidence": "high for cited source behavior; live workflow untested"
+    },
+    {
+      "page": "resources/js/Pages/Civic/Relocation.vue",
+      "routes": [
+        "/civic/relocation"
+      ],
+      "purpose": "View residency transitions and mark travel",
+      "implementation": "Real claims and current seats; travelling action delegates residency operation",
+      "recommendation": "contextualize",
+      "overlap_group": "residency",
+      "evidence": [
+        "app/Http/Controllers/Civic/RelocationController.php:43",
+        "app/Http/Controllers/Civic/RelocationController.php:94",
+        "resources/js/Pages/Civic/Relocation.vue:57"
+      ],
+      "note": "Expose from residency as moving/travel task.",
+      "confidence": "high for cited source behavior; live workflow untested"
+    },
+    {
+      "page": "resources/js/Pages/Civic/IdentityVerification.vue",
+      "routes": [
+        "/civic/identity"
+      ],
+      "purpose": "Optional request for government identity attestation",
+      "implementation": "Partial: records request only; handler does not verify identity",
+      "recommendation": "contextualize",
+      "overlap_group": "residency",
+      "evidence": [
+        "app/Http/Controllers/Civic/IdentityVerificationController.php:85",
+        "app/Domain/Forms/Handlers/IdentityVerificationSubmission.php:46",
+        "resources/js/Pages/Civic/IdentityVerification.vue:170"
+      ],
+      "note": "Keep optional request clearly scoped. Remove future external-ID explainer from primary onboarding; no verified-identity completion path in this handler.",
+      "confidence": "high for cited source behavior; live workflow untested"
+    },
+    {
+      "page": "resources/js/Pages/Civic/Petitions.vue",
+      "routes": [
+        "/civic/petitions"
+      ],
+      "purpose": "Find, create, sign and revoke signatures on petitions",
+      "implementation": "Real petition reads and constitutional engine writes",
+      "recommendation": "keep",
+      "overlap_group": "petition",
+      "evidence": [
+        "app/Http/Controllers/Civic/PetitionController.php:48",
+        "app/Http/Controllers/Civic/PetitionController.php:101",
+        "app/Http/Controllers/Civic/PetitionController.php:202",
+        "resources/js/Pages/Civic/Petitions.vue:71"
+      ],
+      "note": "Good bounded player action once eligibility and jurisdiction are established.",
+      "confidence": "high for cited source behavior; live workflow untested"
+    },
+    {
+      "page": "resources/js/Pages/Civic/PetitionDetail.vue",
+      "routes": [
+        "/civic/petitions/{petition}"
+      ],
+      "purpose": "Inspect petition lifecycle, signatures and referendum handoff",
+      "implementation": "Real petition, public-record and referendum reads; sign/revoke actions",
+      "recommendation": "contextualize",
+      "overlap_group": "petition",
+      "evidence": [
+        "app/Http/Controllers/Civic/PetitionController.php:133",
+        "resources/js/Pages/Civic/PetitionDetail.vue:60"
+      ],
+      "note": "Entity detail, not duplicate feature; enter from petition list/feed.",
+      "confidence": "high for cited source behavior; live workflow untested"
+    },
+    {
+      "page": "resources/js/Pages/Civic/PublicSquare.vue",
+      "routes": [
+        "/civic/square"
+      ],
+      "purpose": "Jurisdiction public record threads and posting",
+      "implementation": "Real SocialThread reads and F-SOC-001 filing",
+      "recommendation": "merge",
+      "overlap_group": "public-discussion",
+      "evidence": [
+        "app/Http/Controllers/Civic/PublicSquareController.php:78",
+        "app/Http/Controllers/Civic/PublicSquareController.php:109",
+        "resources/js/Pages/Civic/PublicSquare.vue:47"
+      ],
+      "note": "Combine navigation with live commons, preserving distinction between informal live conversation and durable record.",
+      "confidence": "high for cited source behavior; live workflow untested"
+    },
+    {
+      "page": "resources/js/Pages/Civic/Halls.vue",
+      "routes": [
+        "/civic/halls"
+      ],
+      "purpose": "Deliberation records, posting and sealing testimony",
+      "implementation": "Real SocialThread reads, F-SOC-001 posting and F-SOC-002 testimony",
+      "recommendation": "merge",
+      "overlap_group": "public-discussion",
+      "evidence": [
+        "app/Http/Controllers/Civic/HallsController.php:30",
+        "app/Http/Controllers/Civic/HallsController.php:71",
+        "app/Http/Controllers/Civic/HallsController.php:92",
+        "resources/js/Pages/Civic/Halls.vue:51"
+      ],
+      "note": "Combine navigation with commons/halls as conversation and record views, not a deletion of public records.",
+      "confidence": "high for cited source behavior; live workflow untested"
+    },
+    {
+      "page": "resources/js/Pages/Civic/MatrixCommons.vue",
+      "routes": [
+        "/civic/commons/square",
+        "/civic/commons/halls"
+      ],
+      "purpose": "Live jurisdiction discussion, calls and testimony bridge",
+      "implementation": "Real Matrix message reads/posting with shared LiveRoom; unavailable-server fallback",
+      "recommendation": "merge",
+      "overlap_group": "public-discussion",
+      "evidence": [
+        "app/Http/Controllers/Civic/MatrixCommonsController.php:49",
+        "app/Http/Controllers/Civic/MatrixCommonsController.php:112",
+        "app/Http/Controllers/Civic/MatrixCommonsController.php:126",
+        "resources/js/Pages/Civic/MatrixCommons.vue:140"
+      ],
+      "note": "Two route variants use one component. Unify with square/halls record navigation; Matrix availability still requires live verification.",
+      "confidence": "high for cited source behavior; live workflow untested"
+    },
+    {
+      "page": "resources/js/Pages/Civic/PrivateRooms.vue",
+      "routes": [
+        "/civic/rooms"
+      ],
+      "purpose": "Private conversation inbox, invitations and previews",
+      "implementation": "Real membership-filtered spaces and Matrix preview reads",
+      "recommendation": "keep",
+      "overlap_group": "private-messages",
+      "evidence": [
+        "app/Http/Controllers/Civic/PrivateRoomController.php:34",
+        "app/Http/Controllers/Civic/PrivateRoomController.php:80",
+        "resources/js/Pages/Civic/PrivateRooms.vue:20"
+      ],
+      "note": "One messages entry; private rooms are semantically distinct from public civic testimony.",
+      "confidence": "high for cited source behavior; live workflow untested"
+    },
+    {
+      "page": "resources/js/Pages/Civic/PrivateRoomCreate.vue",
+      "routes": [
+        "/civic/rooms/new"
+      ],
+      "purpose": "Create private group/direct conversation",
+      "implementation": "Real room service creation then invitation handoff",
+      "recommendation": "contextualize",
+      "overlap_group": "private-messages",
+      "evidence": [
+        "app/Http/Controllers/Civic/PrivateRoomController.php:100",
+        "resources/js/Pages/Civic/PrivateRoomCreate.vue:26"
+      ],
+      "note": "Create action inside Messages, not separate major navigation.",
+      "confidence": "high for cited source behavior; live workflow untested"
+    },
+    {
+      "page": "resources/js/Pages/Civic/PrivateRoom.vue",
+      "routes": [
+        "/civic/rooms/{space}"
+      ],
+      "purpose": "Member-only messages, voice and leaving a private room",
+      "implementation": "Real membership gate, Matrix reads/post, leave action and LiveRoom mount",
+      "recommendation": "contextualize",
+      "overlap_group": "private-messages",
+      "evidence": [
+        "app/Http/Controllers/Civic/PrivateRoomController.php:113",
+        "app/Http/Controllers/Civic/PrivateRoomController.php:172",
+        "app/Http/Controllers/Civic/PrivateRoomController.php:191",
+        "resources/js/Pages/Civic/PrivateRoom.vue:135"
+      ],
+      "note": "Live transport untested; keep entered from inbox/invite.",
+      "confidence": "high for cited source behavior; live workflow untested"
+    },
+    {
+      "page": "resources/js/Pages/Civic/Journeys.vue",
+      "routes": [
+        "/journeys"
+      ],
+      "purpose": "Choose guided civic workflow with progress",
+      "implementation": "Real per-user progress joined to server journey configuration and client display registry",
+      "recommendation": "merge",
+      "overlap_group": "learning-journeys",
+      "evidence": [
+        "app/Http/Controllers/Civic/JourneysController.php:33",
+        "resources/js/Pages/Civic/Journeys.vue:19"
+      ],
+      "note": "Use as practice section of learning or player next steps; separate registry duplicates display data.",
+      "confidence": "high for cited source behavior; live workflow untested"
+    },
+    {
+      "page": "resources/js/Pages/Civic/Journey.vue",
+      "routes": [
+        "/journeys/{id}"
+      ],
+      "purpose": "Read workflow steps, follow links, mark completion and earn achievement",
+      "implementation": "Real JourneyService progress and mark/unmark actions; manual checklists",
+      "recommendation": "contextualize",
+      "overlap_group": "learning-journeys",
+      "evidence": [
+        "app/Http/Controllers/Civic/JourneysController.php:66",
+        "app/Http/Controllers/Civic/JourneysController.php:122",
+        "resources/js/Pages/Civic/Journey.vue:83"
+      ],
+      "note": "Manual completion is not proof the civic action occurred. Page conditionally supports planned journeys but all 14 current config entries are live; do not infer current placeholder journeys from conditional text.",
+      "confidence": "high for cited source behavior; live workflow untested"
+    },
+    {
+      "page": "resources/js/Pages/Elections/ElectionDetail.vue",
+      "routes": [
+        "/elections",
+        "/elections/{election}"
+      ],
+      "purpose": "Election state, races and participation paths; certification/recount for board",
+      "implementation": "Real election read model, authorized board actions; generic entry resolves by viewer",
+      "recommendation": "keep",
+      "overlap_group": "election",
+      "evidence": [
+        "app/Http/Controllers/Elections/ElectionController.php:151",
+        "app/Http/Controllers/Elections/ElectionController.php:184",
+        "resources/js/Pages/Elections/ElectionDetail.vue:99"
+      ],
+      "note": "Election becomes primary contextual hub. Phase controls should follow selected election.",
+      "confidence": "high for cited source behavior; live workflow untested"
+    },
+    {
+      "page": "resources/js/Pages/Elections/OpenBallot.vue",
+      "routes": [
+        "/elections/{election}/open-ballot",
+        "/elections/open-ballot"
+      ],
+      "purpose": "Review candidates and cast/revoke approval before finalist cutoff",
+      "implementation": "Real ApprovalService cast/revoke with footprint checks; extra questionnaire is disabled future feature",
+      "recommendation": "complete",
+      "overlap_group": "election",
+      "evidence": [
+        "app/Http/Controllers/Elections/ApprovalController.php:134",
+        "app/Http/Controllers/Elections/ApprovalController.php:157",
+        "resources/js/Pages/Elections/OpenBallot.vue:104",
+        "resources/js/Pages/Elections/OpenBallot.vue:383"
+      ],
+      "note": "Keep working approval flow. Remove deferred alignment questionnaire card from demo or implement separately after core demo.",
+      "confidence": "high for cited source behavior; live workflow untested"
+    },
+    {
+      "page": "resources/js/Pages/Elections/RankedBallot.vue",
+      "routes": [
+        "/elections/{election}/ranked-ballot",
+        "/elections/ranked-ballot"
+      ],
+      "purpose": "Rank finalists, commit ballot and check receipt",
+      "implementation": "Real F-IND-007 submission and receipt check endpoint; shared RankList/BallotReceipt",
+      "recommendation": "contextualize",
+      "overlap_group": "election",
+      "evidence": [
+        "app/Http/Controllers/Elections/BallotController.php:58",
+        "app/Http/Controllers/Elections/BallotController.php:163",
+        "app/Http/Controllers/Elections/BallotController.php:239",
+        "resources/js/Pages/Elections/RankedBallot.vue:118"
+      ],
+      "note": "Distinct election phase; not duplicate approval voting.",
+      "confidence": "high for cited source behavior; live workflow untested"
+    },
+    {
+      "page": "resources/js/Pages/Elections/CandidacyRegistration.vue",
+      "routes": [
+        "/elections/{election}/candidacy",
+        "/elections/candidacy"
+      ],
+      "purpose": "Register candidacy in an available race",
+      "implementation": "Real F-IND-011 write with registration/race state",
+      "recommendation": "contextualize",
+      "overlap_group": "election",
+      "evidence": [
+        "app/Http/Controllers/Elections/CandidacyController.php:83",
+        "app/Http/Controllers/Elections/CandidacyController.php:136",
+        "resources/js/Pages/Elections/CandidacyRegistration.vue:69"
+      ],
+      "note": "Show as election action. Update/endorsement/withdraw handlers also exist, but separate workflow not live exercised.",
+      "confidence": "high for cited source behavior; live workflow untested"
+    },
+    {
+      "page": "resources/js/Pages/Elections/Results.vue",
+      "routes": [
+        "/elections/{election}/results",
+        "/elections/results"
+      ],
+      "purpose": "Inspect counts, rounds and winners; download CSV",
+      "implementation": "Real count/read model, CSV export and shared board certify/recount actions",
+      "recommendation": "contextualize",
+      "overlap_group": "election",
+      "evidence": [
+        "app/Http/Controllers/Elections/ResultsController.php:44",
+        "app/Http/Controllers/Elections/ResultsController.php:154",
+        "resources/js/Pages/Elections/Results.vue:114"
+      ],
+      "note": "Results and ElectionDetail repeat board actions; retain convenient contextual access using shared control implementation.",
+      "confidence": "high for cited source behavior; live workflow untested"
+    },
+    {
+      "page": "resources/js/Pages/Elections/BoardConsole.vue",
+      "routes": [
+        "/board"
+      ],
+      "purpose": "Election board scheduling, candidate validation, certification, recounts and petition audit",
+      "implementation": "Real board-scoped read model and F-ELB engine writes",
+      "recommendation": "contextualize",
+      "overlap_group": "election-admin",
+      "evidence": [
+        "app/Http/Controllers/Elections/BoardConsoleController.php:52",
+        "app/Http/Controllers/Elections/BoardConsoleController.php:232",
+        "app/Http/Controllers/Elections/BoardConsoleController.php:283",
+        "resources/js/Pages/Elections/BoardConsole.vue:96"
+      ],
+      "note": "Role workspace, not a default task for every new resident.",
+      "confidence": "high for cited source behavior; live workflow untested"
+    },
+    {
+      "page": "resources/js/Pages/Elections/VacancyCountback.vue",
+      "routes": [
+        "/vacancies/{vacancy}"
+      ],
+      "purpose": "Inspect vacancy countback; certify successor or schedule special election",
+      "implementation": "Real vacancy/countback reads and certification/scheduling actions",
+      "recommendation": "contextualize",
+      "overlap_group": "election-admin",
+      "evidence": [
+        "app/Http/Controllers/Elections/VacancyController.php:59",
+        "app/Http/Controllers/Elections/VacancyController.php:139",
+        "app/Http/Controllers/Elections/VacancyController.php:176",
+        "resources/js/Pages/Elections/VacancyCountback.vue:83"
+      ],
+      "note": "Open from vacancy, not generic top-level navigation; disabled certification may reflect lawful state, not missing implementation.",
+      "confidence": "high for cited source behavior; live workflow untested"
+    },
+    {
+      "page": "resources/js/Pages/Legislature/Index.vue",
+      "routes": [
+        "/legislatures"
+      ],
+      "purpose": "Choose a legislature and inspect seating/election status",
+      "implementation": "Real legislature overview query and navigation",
+      "recommendation": "contextualize",
+      "overlap_group": "government-overviews",
+      "evidence": [
+        "app/Http/Controllers/LegislatureController.php:112",
+        "app/Http/Controllers/LegislatureController.php:204",
+        "resources/js/Pages/Legislature/Index.vue:163"
+      ],
+      "note": "Keep chooser for multi-jurisdiction scope; avoid making new players browse it before meaningful tasks.",
+      "confidence": "high for cited source behavior; live workflow untested"
+    },
+    {
+      "page": "resources/js/Pages/Legislature/Show.vue",
+      "routes": [
+        "/legislatures/{legislature_id}"
+      ],
+      "purpose": "Legislature population, district overview and links to chamber/business",
+      "implementation": "Real legislature and district read model; navigation-only overview",
+      "recommendation": "merge",
+      "overlap_group": "government-overviews",
+      "evidence": [
+        "app/Http/Controllers/LegislatureController.php:225",
+        "app/Http/Controllers/LegislatureController.php:325",
+        "resources/js/Pages/Legislature/Show.vue:157"
+      ],
+      "note": "Candidate consolidation with Chamber as one legislature overview; retain unique mapping/statistics and URL compatibility.",
+      "confidence": "high for cited source behavior; live workflow untested"
+    },
+    {
+      "page": "resources/js/Pages/Legislature/Chamber.vue",
+      "routes": [
+        "/legislature",
+        "/legislatures/{legislature}/chamber"
+      ],
+      "purpose": "Representatives, seat map, vacancies, oath and sessions",
+      "implementation": "Real member read model and F-LEG-001 oath",
+      "recommendation": "keep",
+      "overlap_group": "government-overviews",
+      "evidence": [
+        "app/Http/Controllers/Legislature/ChamberController.php:47",
+        "app/Http/Controllers/Legislature/ChamberController.php:81",
+        "resources/js/Pages/Legislature/Chamber.vue:78"
+      ],
+      "note": "Useful government hub. Generic /legislature can render empty state for users without association.",
+      "confidence": "high for cited source behavior; live workflow untested"
+    },
+    {
+      "page": "resources/js/Pages/Legislature/SessionConsole.vue",
+      "routes": [
+        "/legislature/session",
+        "/legislatures/{legislature}/session"
+      ],
+      "purpose": "Call and run legislative session, attendance/quorum, agenda, motions, votes and statements",
+      "implementation": "Extensive real ConstitutionalEngine session writes",
+      "recommendation": "keep",
+      "overlap_group": "meetings",
+      "evidence": [
+        "app/Http/Controllers/Legislature/SessionController.php:51",
+        "app/Http/Controllers/Legislature/SessionController.php:122",
+        "app/Http/Controllers/Legislature/SessionController.php:268",
+        "resources/js/Pages/Legislature/SessionConsole.vue:104"
+      ],
+      "note": "Role-aware controls are necessary. Simplify around current agenda item and actor; retain all legal operations.",
+      "confidence": "high for cited source behavior; live workflow untested"
+    },
+    {
+      "page": "resources/js/Pages/Legislature/SpeakerTools.vue",
+      "routes": [
+        "/legislature/speaker-tools",
+        "/legislatures/{legislature}/speaker"
+      ],
+      "purpose": "Speaker priorities and links to session, committees and oversight",
+      "implementation": "Real member/speaker-gated read model and F-SPK-006 priority filing",
+      "recommendation": "merge",
+      "overlap_group": "meetings",
+      "evidence": [
+        "app/Http/Controllers/Legislature/SpeakerController.php:59",
+        "app/Http/Controllers/Legislature/SpeakerController.php:130",
+        "resources/js/Pages/Legislature/SpeakerTools.vue:67"
+      ],
+      "note": "Bring active speaker actions into session workspace; retain priority filing and related links.",
+      "confidence": "high for cited source behavior; live workflow untested"
+    },
+    {
+      "page": "resources/js/Pages/Legislature/Bills.vue",
+      "routes": [
+        "/legislature/bills",
+        "/legislatures/{legislature}/bills"
+      ],
+      "purpose": "List and introduce bills, including settings/cultural institution proposals",
+      "implementation": "Real bill reads, engine filing and preflight validation",
+      "recommendation": "keep",
+      "overlap_group": "legislation",
+      "evidence": [
+        "app/Http/Controllers/Legislature/BillController.php:63",
+        "app/Http/Controllers/Legislature/BillController.php:182",
+        "resources/js/Pages/Legislature/Bills.vue:159"
+      ],
+      "note": "List and create are one feature, not duplicates.",
+      "confidence": "high for cited source behavior; live workflow untested"
+    },
+    {
+      "page": "resources/js/Pages/Legislature/BillDetail.vue",
+      "routes": [
+        "/bills/{bill}"
+      ],
+      "purpose": "Inspect bill text, committee/floor stage votes, referral and enactment",
+      "implementation": "Real bill/stage data, unified vote cast and referral writes",
+      "recommendation": "keep",
+      "overlap_group": "legislation",
+      "evidence": [
+        "app/Http/Controllers/Legislature/BillController.php:266",
+        "app/Http/Controllers/Legislature/BillController.php:378",
+        "resources/js/Pages/Legislature/BillDetail.vue:85"
+      ],
+      "note": "Preserve as canonical bill workspace; link discussion as tab or section.",
+      "confidence": "high for cited source behavior; live workflow untested"
+    },
+    {
+      "page": "resources/js/Pages/Legislature/BillConversation.vue",
+      "routes": [
+        "/bills/{bill}/conversation"
+      ],
+      "purpose": "Discuss bill and inspect simplified progress",
+      "implementation": "Real bill-bound SocialThread reads and F-SOC-001 comments",
+      "recommendation": "merge",
+      "overlap_group": "legislation",
+      "evidence": [
+        "app/Http/Controllers/Legislature/BillConversationController.php:56",
+        "app/Http/Controllers/Legislature/BillConversationController.php:115",
+        "resources/js/Pages/Legislature/BillConversation.vue:37"
+      ],
+      "note": "Conversation is real but should remain in same bill context, with details tab instead of competing bill front pages.",
+      "confidence": "high for cited source behavior; live workflow untested"
+    },
+    {
+      "page": "resources/js/Pages/Legislature/Committees.vue",
+      "routes": [
+        "/legislature/committees",
+        "/legislatures/{legislature}/committees"
+      ],
+      "purpose": "Create committees, rank preferences, assign members and elect chairs",
+      "implementation": "Real creation/preference/assignment/chair election writes",
+      "recommendation": "contextualize",
+      "overlap_group": "committees",
+      "evidence": [
+        "app/Http/Controllers/Legislature/CommitteeController.php:72",
+        "app/Http/Controllers/Legislature/CommitteeController.php:142",
+        "app/Http/Controllers/Legislature/CommitteeController.php:165",
+        "resources/js/Pages/Legislature/Committees.vue:152"
+      ],
+      "note": "Keep under legislature; tailor actions to member/speaker state.",
+      "confidence": "high for cited source behavior; live workflow untested"
+    },
+    {
+      "page": "resources/js/Pages/Legislature/CommitteeDetail.vue",
+      "routes": [
+        "/committees/{committee}"
+      ],
+      "purpose": "Meetings, agenda, testimony, referral votes and committee reports",
+      "implementation": "Real meetings/testimony/votes/referrals/reports",
+      "recommendation": "keep",
+      "overlap_group": "meetings",
+      "evidence": [
+        "app/Http/Controllers/Legislature/CommitteeController.php:252",
+        "app/Http/Controllers/Legislature/CommitteeController.php:340",
+        "app/Http/Controllers/Legislature/CommitteeController.php:461",
+        "resources/js/Pages/Legislature/CommitteeDetail.vue:89"
+      ],
+      "note": "Stronger functional base than separate LiveCivicRoom. Consolidate hearing navigation around this workflow.",
+      "confidence": "high for cited source behavior; live workflow untested"
+    },
+    {
+      "page": "resources/js/Pages/Legislature/LiveCivicRoom.vue",
+      "routes": [
+        "/rooms/committee/{meeting}"
+      ],
+      "purpose": "Live committee floor, raised hands, agenda, vote view and purported call",
+      "implementation": "Partial: real floor queue actions; empty chat, display-only vote, disabled clock/vote controls and no call mount",
+      "recommendation": "complete",
+      "overlap_group": "meetings",
+      "evidence": [
+        "app/Http/Controllers/Rooms/LiveRoomController.php:103",
+        "app/Http/Controllers/Rooms/LiveRoomController.php:139",
+        "resources/js/Pages/Legislature/LiveCivicRoom.vue:175",
+        "resources/js/Pages/Legislature/LiveCivicRoom.vue:195",
+        "resources/js/Pages/Legislature/LiveCivicRoom.vue:243"
+      ],
+      "note": "Do not present as complete hearing experience. Merge functioning floor controls with CommitteeDetail and shared live room infrastructure before featured demo.",
+      "confidence": "high for cited source behavior; live workflow untested"
+    },
+    {
+      "page": "resources/js/Pages/Legislature/Referendums.vue",
+      "routes": [
+        "/legislature/referendums",
+        "/legislatures/{legislature}/referendums"
+      ],
+      "purpose": "Delegate referendum, inspect stages and modify eligible referendum laws",
+      "implementation": "Real F-LEG-023 and F-LEG-034 actions plus unified chamber votes",
+      "recommendation": "contextualize",
+      "overlap_group": "legislation",
+      "evidence": [
+        "app/Http/Controllers/Legislature/ReferendumController.php:48",
+        "app/Http/Controllers/Legislature/ReferendumController.php:79",
+        "app/Http/Controllers/Legislature/ReferendumController.php:108",
+        "resources/js/Pages/Legislature/Referendums.vue:93"
+      ],
+      "note": "Legislative management complements voter ballot; preserve distinct legal task under legislature.",
+      "confidence": "high for cited source behavior; live workflow untested"
+    },
+    {
+      "page": "resources/js/Pages/Legislature/EmergencyPowers.vue",
+      "routes": [
+        "/legislature/emergency-powers",
+        "/legislatures/{legislature}/emergency-powers"
+      ],
+      "purpose": "Invoke, vote on and renew bounded emergency powers",
+      "implementation": "Real F-LEG-024/F-LEG-025 writes and state-based renewal controls",
+      "recommendation": "contextualize",
+      "overlap_group": "special-governance",
+      "evidence": [
+        "app/Http/Controllers/Legislature/EmergencyPowerController.php:50",
+        "app/Http/Controllers/Legislature/EmergencyPowerController.php:88",
+        "app/Http/Controllers/Legislature/EmergencyPowerController.php:116",
+        "resources/js/Pages/Legislature/EmergencyPowers.vue:111"
+      ],
+      "note": "Expose when relevant, with public observability; low-frequency power does not need resident's default menu prominence.",
+      "confidence": "high for cited source behavior; live workflow untested"
+    },
+    {
+      "page": "resources/js/Pages/Legislature/Oversight.vue",
+      "routes": [
+        "/legislature/oversight",
+        "/legislatures/{legislature}/oversight"
+      ],
+      "purpose": "Administrative office, misconduct intake, investigations/proceedings and vacancies",
+      "implementation": "Real intake/referral and constitutional office/proceeding/vacancy writes",
+      "recommendation": "contextualize",
+      "overlap_group": "special-governance",
+      "evidence": [
+        "app/Http/Controllers/Legislature/OversightController.php:72",
+        "app/Http/Controllers/Legislature/OversightController.php:156",
+        "app/Http/Controllers/Legislature/OversightController.php:254",
+        "resources/js/Pages/Legislature/Oversight.vue:80"
+      ],
+      "note": "Use task entry from relevant person/proceeding; not unused shell.",
+      "confidence": "high for cited source behavior; live workflow untested"
+    },
+    {
+      "page": "resources/js/Pages/Legislature/Settings.vue",
+      "routes": [
+        "/legislature/settings",
+        "/legislatures/{legislature}/settings"
+      ],
+      "purpose": "Read settings, validate proposed value and initiate amendment",
+      "implementation": "Real setting values and F-LEG-031 amendment or bill handoff",
+      "recommendation": "contextualize",
+      "overlap_group": "legislation",
+      "evidence": [
+        "app/Http/Controllers/Legislature/SettingsController.php:136",
+        "app/Http/Controllers/Legislature/SettingsController.php:173",
+        "resources/js/Pages/Legislature/Settings.vue:137"
+      ],
+      "note": "Keep separate register under government, reuse bill proposal flow where required. Do not hardcode user-changeable defaults.",
+      "confidence": "high for cited source behavior; live workflow untested"
+    },
+    {
+      "page": "resources/js/Pages/Legislature/Districts.vue",
+      "routes": [
+        "/legislatures/{legislature_id}/districts"
+      ],
+      "purpose": "Population-proportional district map editing and version management",
+      "implementation": "Extensive real map CRUD, geometry APIs, seeding and status operations",
+      "recommendation": "contextualize",
+      "overlap_group": "district-mapping",
+      "evidence": [
+        "app/Http/Controllers/LegislatureController.php:397",
+        "app/Http/Controllers/LegislatureController.php:1481",
+        "app/Http/Controllers/LegislatureController.php:3715",
+        "resources/js/Pages/Legislature/Districts.vue:3557"
+      ],
+      "note": "Protect mature capability. Distinguish map viewing from role-specific editing; no mapper changes during inventory.",
+      "confidence": "high for cited source behavior; live workflow untested"
+    },
+    {
+      "page": "resources/js/Pages/Legislature/TypeBDistricts.vue",
+      "routes": [
+        "/legislatures/{legislature_id}/panels",
+        "/legislatures/{legislature_id}/type-b-map"
+      ],
+      "purpose": "Equal constituent representation panel grouping and map versions",
+      "implementation": "Real TypeBMapController map/panel CRUD and autoseeding",
+      "recommendation": "contextualize",
+      "overlap_group": "district-mapping",
+      "evidence": [
+        "app/Http/Controllers/Legislature/TypeBMapController.php:50",
+        "app/Http/Controllers/Legislature/TypeBMapController.php:441",
+        "app/Http/Controllers/Legislature/TypeBMapController.php:653",
+        "resources/js/Pages/Legislature/TypeBDistricts.vue:2231"
+      ],
+      "note": "Visually similar mapper, constitutionally different function. Unify shared map controls only after preserving both models.",
+      "confidence": "high for cited source behavior; live workflow untested"
+    },
+    {
+      "page": "resources/js/Pages/Executive/Home.vue",
+      "routes": [
+        "/executive",
+        "/executives/{executive}"
+      ],
+      "purpose": "Office type, delegation/conversion, officeholders and department summary",
+      "implementation": "Real executive relationships and presenter read model",
+      "recommendation": "keep",
+      "overlap_group": "executive",
+      "evidence": [
+        "app/Http/Controllers/Executive/ExecutiveController.php:46",
+        "app/Http/Controllers/Executive/ExecutiveController.php:52"
+      ],
+      "note": "Useful office overview. Generic resolver redirects to /civic with note if no associated executive.",
+      "confidence": "high for cited source behavior; live workflow untested"
+    },
+    {
+      "page": "resources/js/Pages/Executive/Departments.vue",
+      "routes": [
+        "/executive/departments",
+        "/executives/{executive}/departments"
+      ],
+      "purpose": "Browse departments, board appointments and civil officers",
+      "implementation": "Real executive-scoped department/board read model and creation deep link",
+      "recommendation": "contextualize",
+      "overlap_group": "departments",
+      "evidence": [
+        "app/Http/Controllers/Executive/DepartmentController.php:64",
+        "app/Http/Controllers/Executive/DepartmentController.php:77",
+        "resources/js/Pages/Executive/Departments.vue:31"
+      ],
+      "note": "Directory complements detail; not duplicate capability.",
+      "confidence": "high for cited source behavior; live workflow untested"
+    },
+    {
+      "page": "resources/js/Pages/Executive/DepartmentDetail.vue",
+      "routes": [
+        "/departments/{department}"
+      ],
+      "purpose": "Department charter, board, nominations, removals and reporting summary",
+      "implementation": "Real department/board reads; F-EXE-001 nominations and F-EXE-003 removal requests",
+      "recommendation": "keep",
+      "overlap_group": "departments",
+      "evidence": [
+        "app/Http/Controllers/Executive/DepartmentController.php:98",
+        "app/Http/Controllers/Executive/DepartmentController.php:159",
+        "app/Http/Controllers/Executive/DepartmentController.php:176",
+        "resources/js/Pages/Executive/DepartmentDetail.vue:130"
+      ],
+      "note": "Canonical department workspace.",
+      "confidence": "high for cited source behavior; live workflow untested"
+    },
+    {
+      "page": "resources/js/Pages/Executive/DepartmentReporting.vue",
+      "routes": [
+        "/executive/reporting",
+        "/departments/{department}/reporting"
+      ],
+      "purpose": "Publish department rules and file reports under enabling instruments",
+      "implementation": "Real F-BOG-001/F-BOG-002 writes",
+      "recommendation": "contextualize",
+      "overlap_group": "departments",
+      "evidence": [
+        "app/Http/Controllers/Executive/DepartmentReportingController.php:48",
+        "app/Http/Controllers/Executive/DepartmentReportingController.php:74",
+        "app/Http/Controllers/Executive/DepartmentReportingController.php:102",
+        "resources/js/Pages/Executive/DepartmentReporting.vue:142"
+      ],
+      "note": "Department tab for governor tasks. Generic resolver sends non-governor to departments rather than actual reporting page.",
+      "confidence": "high for cited source behavior; live workflow untested"
+    },
+    {
+      "page": "resources/js/Pages/Executive/Actions.vue",
+      "routes": [
+        "/executive/actions",
+        "/executives/{executive}/actions"
+      ],
+      "purpose": "Executive orders, policy proposals, investigations and grant applications",
+      "implementation": "Real F-EXE-005/002/004 writes plus appropriation application service",
+      "recommendation": "keep",
+      "overlap_group": "executive",
+      "evidence": [
+        "app/Http/Controllers/Executive/ExecutiveActionController.php:62",
+        "app/Http/Controllers/Executive/ExecutiveActionController.php:121",
+        "app/Http/Controllers/Executive/ExecutiveActionController.php:181",
+        "resources/js/Pages/Executive/Actions.vue:164"
+      ],
+      "note": "Display task choices by actor and selected executive; grant application also connects citizen/economy path.",
+      "confidence": "high for cited source behavior; live workflow untested"
+    },
+    {
+      "page": "resources/js/Pages/Judiciary/Home.vue",
+      "routes": [
+        "/judiciary",
+        "/judiciaries/{judiciary}"
+      ],
+      "purpose": "Court formation, nominations, bench/term and conversion",
+      "implementation": "Real court/law/nomination read model",
+      "recommendation": "keep",
+      "overlap_group": "judiciary",
+      "evidence": [
+        "app/Http/Controllers/Judiciary/JudiciaryController.php:52",
+        "app/Http/Controllers/Judiciary/JudiciaryController.php:56"
+      ],
+      "note": "Court overview; data-only view is functional civic transparency.",
+      "confidence": "high for cited source behavior; live workflow untested"
+    },
+    {
+      "page": "resources/js/Pages/Judiciary/CaseDocket.vue",
+      "routes": [
+        "/judiciary/docket",
+        "/judiciaries/{judiciary}/docket"
+      ],
+      "purpose": "Personal or court case list and case filing",
+      "implementation": "Real personal/court scoped read models; F-IND-017 or F-ADV-001 filing",
+      "recommendation": "keep",
+      "overlap_group": "cases",
+      "evidence": [
+        "app/Http/Controllers/Judiciary/DocketController.php:77",
+        "app/Http/Controllers/Judiciary/DocketController.php:140",
+        "app/Http/Controllers/Judiciary/DocketController.php:222",
+        "resources/js/Pages/Judiciary/CaseDocket.vue:144"
+      ],
+      "note": "Two contexts share one page; make personal/court scope explicit.",
+      "confidence": "high for cited source behavior; live workflow untested"
+    },
+    {
+      "page": "resources/js/Pages/Judiciary/CaseDetail.vue",
+      "routes": [
+        "/cases/{case}"
+      ],
+      "purpose": "Case history, panel, accept/dismiss, jury order, opinion, sentence and warrant",
+      "implementation": "Real case data and F-JDG/advocate engine writes",
+      "recommendation": "keep",
+      "overlap_group": "cases",
+      "evidence": [
+        "app/Http/Controllers/Judiciary/CaseController.php:107",
+        "app/Http/Controllers/Judiciary/CaseController.php:144",
+        "app/Http/Controllers/Judiciary/CaseController.php:239",
+        "resources/js/Pages/Judiciary/CaseDetail.vue:138"
+      ],
+      "note": "Canonical case workspace; emphasize current stage/role instead of every possible stage.",
+      "confidence": "high for cited source behavior; live workflow untested"
+    },
+    {
+      "page": "resources/js/Pages/Judiciary/AdvocateConsole.vue",
+      "routes": [
+        "/judiciary/advocate"
+      ],
+      "purpose": "Register as advocate, review cases and make filings",
+      "implementation": "Real advocate registration and case-filing actions",
+      "recommendation": "contextualize",
+      "overlap_group": "cases",
+      "evidence": [
+        "app/Http/Controllers/Judiciary/AdvocateController.php:82",
+        "app/Http/Controllers/Judiciary/AdvocateController.php:95",
+        "resources/js/Pages/Judiciary/AdvocateConsole.vue:87",
+        "resources/js/Pages/Judiciary/AdvocateConsole.vue:114"
+      ],
+      "note": "Role workspace; filing controls overlap case/docket by task convenience.",
+      "confidence": "high for cited source behavior; live workflow untested"
+    },
+    {
+      "page": "resources/js/Pages/Judiciary/ConstitutionalChallenge.vue",
+      "routes": [
+        "/judiciary/challenges",
+        "/constitutional-challenges",
+        "/constitutional-challenges/{challenge}"
+      ],
+      "purpose": "File and track a constitutional law challenge",
+      "implementation": "Real F-IND-016 filing, law options and selected challenge tracker",
+      "recommendation": "contextualize",
+      "overlap_group": "cases",
+      "evidence": [
+        "app/Http/Controllers/Judiciary/ChallengeController.php:65",
+        "app/Http/Controllers/Judiciary/ChallengeController.php:105",
+        "app/Http/Controllers/Judiciary/ChallengeController.php:133",
+        "resources/js/Pages/Judiciary/ConstitutionalChallenge.vue:65"
+      ],
+      "note": "Open from relevant law/public record while retaining discoverable rights path; not an ordinary duplicate case form.",
+      "confidence": "high for cited source behavior; live workflow untested"
+    },
+    {
+      "page": "resources/js/Pages/Judiciary/JurorView.vue",
+      "routes": [
+        "/judiciary/jury",
+        "/judiciary/jury/{summons}"
+      ],
+      "purpose": "Summons, conflict screening and purported private deliberation room",
+      "implementation": "Partial: real screening state/audit write; deliberation enter button has no action",
+      "recommendation": "complete",
+      "overlap_group": "cases",
+      "evidence": [
+        "app/Http/Controllers/Judiciary/JurorController.php:134",
+        "resources/js/Pages/Judiciary/JurorView.vue:264",
+        "resources/js/Components/Ui/Btn.vue:19"
+      ],
+      "note": "Enabled Enter deliberation room has no href or click handler even when unlocked. Connect authorized private room or remove active promise until implemented.",
+      "confidence": "high for cited source behavior; live workflow untested"
+    }
+  ]
+}

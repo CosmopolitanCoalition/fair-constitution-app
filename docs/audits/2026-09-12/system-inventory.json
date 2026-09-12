@@ -1,0 +1,1365 @@
+{
+  "generated_at": "2026-09-12",
+  "scope": "50 Vue pages in Setup, Operator, System, Jurisdictions, Build, Support, Demo and Dev. No Federation page directory exists; the federation console is Jurisdictions/Federation.vue.",
+  "verification": "Source audit of page scripts/templates, route registrations, controller read/write paths and selected shared components/services. No live DB queries, browser requests, mutations, builds or application edits. Behavior means wired in source, not a completed live interaction.",
+  "classifications": {
+    "wired_read": "Live data or generated measurement is displayed; no citizen write is expected on this page.",
+    "wired_action": "A control reaches a registered endpoint with a backing controller/service.",
+    "partial_action": "Useful live reads/actions exist but specific promised actions are unavailable on this surface.",
+    "reference": "Static explanatory/reference content.",
+    "developer_fixture": "Synthetic component harness, not live world data.",
+    "resolver": "A directory or overview routes the player into a specific place or workflow."
+  },
+  "surfaces": [
+    {
+      "page": "Setup/Bootstrap.vue",
+      "routes": [
+        "/setup/bootstrap"
+      ],
+      "audience": "operator",
+      "behavior": "wired_action",
+      "reads": "Schema/bootstrap readiness.",
+      "writes": "Runs migrations through guarded bootstrap endpoint.",
+      "recommendation": "Retain in installation flow; omit from attendee navigation.",
+      "components": [
+        "csrfFetch"
+      ],
+      "evidence": [
+        "resources/js/Pages/Setup/Bootstrap.vue:37",
+        "resources/js/Pages/Setup/Bootstrap.vue:51",
+        "app/Http/Controllers/SetupController.php:509",
+        "routes/web.php:111"
+      ]
+    },
+    {
+      "page": "Setup/ModeFork.vue",
+      "routes": [
+        "/setup/mode"
+      ],
+      "audience": "operator",
+      "behavior": "wired_action",
+      "reads": "Current installation mode.",
+      "writes": "Saves Solo/Join choice and follows returned next step.",
+      "recommendation": "Retain as install choice; distinguish joining a server from joining as a player.",
+      "evidence": [
+        "resources/js/Pages/Setup/ModeFork.vue:29",
+        "app/Http/Controllers/SetupController.php:283",
+        "routes/web.php:94"
+      ]
+    },
+    {
+      "page": "Setup/JoinHost.vue",
+      "routes": [
+        "/setup/join"
+      ],
+      "audience": "operator",
+      "behavior": "wired_action",
+      "reads": "Host discovery and synchronization progress.",
+      "writes": "Discovers and joins an existing mesh through setup endpoints.",
+      "recommendation": "Retain installation flow; share joining controls with existing operator federation console where possible.",
+      "components": [
+        "SyncProgress"
+      ],
+      "evidence": [
+        "resources/js/Pages/Setup/JoinHost.vue:64",
+        "resources/js/Pages/Setup/JoinHost.vue:98",
+        "app/Http/Controllers/SetupController.php:350",
+        "routes/web.php:97"
+      ]
+    },
+    {
+      "page": "Setup/OperatorSetup.vue",
+      "routes": [
+        "/setup/operator"
+      ],
+      "audience": "operator",
+      "behavior": "wired_action",
+      "reads": "Founder, channels, instance address and role state.",
+      "writes": "Creates founder, saves operator profile, establishes founding roles and downloads deployment package.",
+      "recommendation": "Retain installation flow; centralize identity/role controls with operator tools.",
+      "evidence": [
+        "resources/js/Pages/Setup/OperatorSetup.vue:65",
+        "resources/js/Pages/Setup/OperatorSetup.vue:115",
+        "resources/js/Pages/Setup/OperatorSetup.vue:184",
+        "app/Http/Controllers/SetupController.php:568",
+        "app/Http/Controllers/SetupController.php:4766",
+        "app/Http/Controllers/SetupController.php:4900"
+      ]
+    },
+    {
+      "page": "Setup/Step0_CosmicAddress.vue",
+      "routes": [
+        "/setup/step/0"
+      ],
+      "audience": "operator",
+      "behavior": "wired_action",
+      "reads": "Installation settings and cosmic location picker.",
+      "writes": "Saves cosmic address; shared backup import component.",
+      "recommendation": "Retain in setup only. Do not expose restore as a normal player action.",
+      "components": [
+        "SetupStepper",
+        "CosmicAddressPicker",
+        "ImportBackupPanel"
+      ],
+      "evidence": [
+        "resources/js/Pages/Setup/Step0_CosmicAddress.vue:66",
+        "resources/js/Pages/Setup/Step0_CosmicAddress.vue:121",
+        "app/Http/Controllers/SetupController.php:760",
+        "app/Http/Controllers/SetupController.php:131"
+      ]
+    },
+    {
+      "page": "Setup/Step1_Constants.vue",
+      "routes": [
+        "/setup/step/1"
+      ],
+      "audience": "operator",
+      "behavior": "wired_action",
+      "reads": "Saved constitutional defaults, game mode and economy defaults.",
+      "writes": "Saves game mode and constitutional settings.",
+      "recommendation": "Retain authoritative setup owner for configurable defaults. Avoid duplicating editable settings into player overview.",
+      "components": [
+        "SetupStepper"
+      ],
+      "evidence": [
+        "resources/js/Pages/Setup/Step1_Constants.vue:117",
+        "resources/js/Pages/Setup/Step1_Constants.vue:206",
+        "resources/js/Pages/Setup/Step1_Constants.vue:710",
+        "app/Http/Controllers/SetupController.php:142",
+        "app/Http/Controllers/SetupController.php:856"
+      ]
+    },
+    {
+      "page": "Setup/Step2_MapData.vue",
+      "routes": [
+        "/setup/step/2"
+      ],
+      "audience": "operator",
+      "behavior": "wired_action",
+      "reads": "Sources, download/ingestion progress, review flags and acceptance state.",
+      "writes": "Starts/controls ingestion, saves archive path, accepts maps and advances activation.",
+      "recommendation": "Retain technical tool. Share review/accept controls with jurisdiction map viewer; keep out of conference player rail.",
+      "components": [
+        "SetupStepper",
+        "ReviewIssuesSection",
+        "GeodataPullPanel",
+        "StackedProgressBars",
+        "ScanDetectorBars"
+      ],
+      "evidence": [
+        "resources/js/Pages/Setup/Step2_MapData.vue:219",
+        "resources/js/Pages/Setup/Step2_MapData.vue:496",
+        "resources/js/Pages/Setup/Step2_MapData.vue:577",
+        "app/Http/Controllers/SetupController.php:1104",
+        "routes/web.php:153"
+      ]
+    },
+    {
+      "page": "Setup/Step3_Districts.vue",
+      "routes": [
+        "/setup/step/3"
+      ],
+      "audience": "operator",
+      "behavior": "wired_action",
+      "reads": "Autoscale run, lanes, map quality, review queues and root map links.",
+      "writes": "Halt/resume/retry/recheck/revert/lane-control and complete step.",
+      "recommendation": "Retain advanced districting operations. Use same progress/control ownership as map workbench; not a game home screen.",
+      "components": [
+        "SetupStepper"
+      ],
+      "evidence": [
+        "resources/js/Pages/Setup/Step3_Districts.vue:492",
+        "resources/js/Pages/Setup/Step3_Districts.vue:564",
+        "resources/js/Pages/Setup/Step3_Districts.vue:647",
+        "app/Http/Controllers/SetupController.php:3622",
+        "routes/web.php:180"
+      ]
+    },
+    {
+      "page": "Setup/Step4_ScaleUp.vue",
+      "routes": [
+        "/setup/step/4"
+      ],
+      "audience": "operator",
+      "behavior": "wired_action",
+      "reads": "Provision stages, lanes, timing and review ledger.",
+      "writes": "Start/halt/resume/rollback institutional provisioning and advance step.",
+      "recommendation": "Retain setup workflow; unify presentation with Building the world and keep their different purposes clear.",
+      "components": [
+        "SetupStepper",
+        "StageBars"
+      ],
+      "evidence": [
+        "resources/js/Pages/Setup/Step4_ScaleUp.vue:146",
+        "resources/js/Pages/Setup/Step4_ScaleUp.vue:177",
+        "app/Http/Controllers/SetupController.php:3743",
+        "routes/web.php:205"
+      ]
+    },
+    {
+      "page": "Setup/Step5_Simulate.vue",
+      "routes": [
+        "/setup/step/5"
+      ],
+      "audience": "operator",
+      "behavior": "wired_action",
+      "reads": "Simulation run, lanes, timing, review and control refusal.",
+      "writes": "Select aspects, start/halt/resume/rollback simulation and advance step.",
+      "recommendation": "Retain setup workflow; share simulation controls with SimConsole. Never start simulation as an audit action.",
+      "components": [
+        "SetupStepper",
+        "StageBars"
+      ],
+      "evidence": [
+        "resources/js/Pages/Setup/Step5_Simulate.vue:147",
+        "resources/js/Pages/Setup/Step5_Simulate.vue:213",
+        "app/Http/Controllers/SetupController.php:3841",
+        "routes/web.php:216"
+      ]
+    },
+    {
+      "page": "Setup/Step6_Confirm.vue",
+      "routes": [
+        "/setup/step/6"
+      ],
+      "audience": "operator",
+      "behavior": "wired_action",
+      "reads": "Setup completion summary.",
+      "writes": "Completes setup; shared export-backup control.",
+      "recommendation": "Retain setup closeout; keep backup operations in operator context.",
+      "components": [
+        "SetupStepper",
+        "ExportBackupPanel"
+      ],
+      "evidence": [
+        "resources/js/Pages/Setup/Step6_Confirm.vue:30",
+        "resources/js/Pages/Setup/Step6_Confirm.vue:107",
+        "app/Http/Controllers/SetupController.php:3940",
+        "app/Http/Controllers/SetupController.php:137"
+      ]
+    },
+    {
+      "page": "Operator/Home.vue",
+      "routes": [
+        "/operator"
+      ],
+      "audience": "operator",
+      "behavior": "resolver",
+      "reads": "Readiness gates, owned places, peer status, roles and channels from live services.",
+      "writes": "Navigation only.",
+      "recommendation": "Make this the single operator landing page. Fold overlapping Console overview into it.",
+      "components": [
+        "PageScaffold"
+      ],
+      "evidence": [
+        "resources/js/Pages/Operator/Home.vue:228",
+        "resources/js/Pages/Operator/Home.vue:289",
+        "app/Http/Controllers/Operator/MeshConsoleController.php:44",
+        "routes/web.php:1454"
+      ]
+    },
+    {
+      "page": "Operator/Console.vue",
+      "routes": [
+        "/operator/console"
+      ],
+      "audience": "operator",
+      "behavior": "wired_read",
+      "reads": "Peer/sync overview, roles, channels, approval meters and proposal counts.",
+      "writes": "Navigation to Roles, Versioning and Mesh; no direct console mutations.",
+      "recommendation": "Consolidate with Operator Home; retain detailed controls at task destinations.",
+      "components": [
+        "PageScaffold",
+        "AboutSurface"
+      ],
+      "evidence": [
+        "resources/js/Pages/Operator/Console.vue:202",
+        "resources/js/Pages/Operator/Console.vue:236",
+        "resources/js/Pages/Operator/Console.vue:417",
+        "app/Http/Controllers/Operator/MeshConsoleController.php:58",
+        "routes/web.php:1456"
+      ]
+    },
+    {
+      "page": "Operator/Roles.vue",
+      "routes": [
+        "/operator/roles"
+      ],
+      "audience": "operator",
+      "behavior": "wired_action",
+      "reads": "Capability channels, existing grants, founding context, pending approvals and qualify results.",
+      "writes": "Qualify/request/approve/revoke role capabilities.",
+      "recommendation": "Retain as role lifecycle owner; consolidate parallel role board in legacy federation console.",
+      "components": [
+        "PageScaffold"
+      ],
+      "evidence": [
+        "resources/js/Pages/Operator/Roles.vue:120",
+        "resources/js/Pages/Operator/Roles.vue:132",
+        "app/Http/Controllers/Operator/MeshRolesController.php:1",
+        "app/Http/Controllers/Operator/MeshConsoleController.php:72",
+        "routes/web.php:1483"
+      ]
+    },
+    {
+      "page": "Operator/Mesh.vue",
+      "routes": [
+        "/operator/mesh"
+      ],
+      "audience": "operator",
+      "behavior": "wired_read",
+      "reads": "Peers, transport advertisements, mesh gates and sync ledger.",
+      "writes": "Links to federation console for mesh actions and Roles for capability lifecycle.",
+      "recommendation": "Merge peer readouts with actionable federation tooling under one operator destination.",
+      "components": [
+        "PageScaffold"
+      ],
+      "evidence": [
+        "resources/js/Pages/Operator/Mesh.vue:208",
+        "resources/js/Pages/Operator/Mesh.vue:316",
+        "resources/js/Pages/Operator/Mesh.vue:372",
+        "app/Http/Controllers/Operator/MeshConsoleController.php:91",
+        "routes/web.php:1460"
+      ]
+    },
+    {
+      "page": "Operator/Identity.vue",
+      "routes": [
+        "/operator/identity"
+      ],
+      "audience": "operator",
+      "behavior": "wired_read",
+      "reads": "Node identity, operator account and enrolled device keys.",
+      "writes": "No enrollment/link form on this page; identity linking endpoint exists elsewhere.",
+      "recommendation": "Keep identity data but add an actionable enrollment/link journey when operator polish is scheduled.",
+      "components": [
+        "PageScaffold"
+      ],
+      "evidence": [
+        "resources/js/Pages/Operator/Identity.vue:283",
+        "resources/js/Pages/Operator/Identity.vue:310",
+        "app/Http/Controllers/Operator/MeshConsoleController.php:105",
+        "routes/web.php:1443",
+        "routes/web.php:1462"
+      ]
+    },
+    {
+      "page": "Operator/Versioning.vue",
+      "routes": [
+        "/operator/versioning"
+      ],
+      "audience": "operator",
+      "behavior": "wired_read",
+      "reads": "Node/peer versions, running-game freeze and upgrade proposal meters.",
+      "writes": "No version change/consent form; actual agreement machinery is backend federation service/API.",
+      "recommendation": "Retain status/reference view in advanced operator area, link to actionable next step for each proposal.",
+      "components": [
+        "PageScaffold"
+      ],
+      "evidence": [
+        "resources/js/Pages/Operator/Versioning.vue:243",
+        "resources/js/Pages/Operator/Versioning.vue:321",
+        "app/Http/Controllers/Operator/MeshConsoleController.php:119",
+        "routes/web.php:1464"
+      ]
+    },
+    {
+      "page": "Operator/Dns.vue",
+      "routes": [
+        "/operator/dns"
+      ],
+      "audience": "operator",
+      "behavior": "partial_action",
+      "reads": "Broker credentials status, routing authorizations, received certificates and issuance ledger.",
+      "writes": "Set/forget broker credentials through federation endpoints.",
+      "recommendation": "Retain implemented credential/certificate functions; collapse explicitly future DDNS/wildcard/budget material into reference.",
+      "components": [
+        "PageScaffold"
+      ],
+      "evidence": [
+        "resources/js/Pages/Operator/Dns.vue:45",
+        "resources/js/Pages/Operator/Dns.vue:57",
+        "resources/js/Pages/Operator/Dns.vue:214",
+        "app/Http/Controllers/Operator/DnsConsoleController.php:58",
+        "routes/web.php:1436"
+      ]
+    },
+    {
+      "page": "Operator/Moderation.vue",
+      "routes": [
+        "/operator/moderation"
+      ],
+      "audience": "operator",
+      "behavior": "wired_read",
+      "reads": "Legitimacy count and actual carve-out/legal-removal ledger rows.",
+      "writes": "None. This is a rule explanation and sealed trail, not a moderation action queue.",
+      "recommendation": "Retain audit/reference view; support triage and actual case work need separate clearly named destinations.",
+      "components": [
+        "PageScaffold"
+      ],
+      "evidence": [
+        "resources/js/Pages/Operator/Moderation.vue:65",
+        "resources/js/Pages/Operator/Moderation.vue:145",
+        "app/Http/Controllers/Operator/ModerationConsoleController.php:43",
+        "routes/web.php:1470"
+      ]
+    },
+    {
+      "page": "Operator/Operations.vue",
+      "routes": [
+        "/operator/operations"
+      ],
+      "audience": "operator",
+      "behavior": "wired_action",
+      "reads": "Infrastructure inventory and apply lifecycle.",
+      "writes": "Updates/resets tuning overrides and queues restart-tier infrastructure apply.",
+      "recommendation": "Retain actual controls; bring into shared operator styling after player demo work.",
+      "evidence": [
+        "resources/js/Pages/Operator/Operations.vue:32",
+        "resources/js/Pages/Operator/Operations.vue:71",
+        "app/Http/Controllers/Operator/OperatorConsoleController.php:50",
+        "app/Http/Controllers/Operator/OperatorConsoleController.php:91",
+        "routes/web.php:1381"
+      ]
+    },
+    {
+      "page": "Jurisdictions/Index.vue",
+      "routes": [
+        "/jurisdictions"
+      ],
+      "audience": "player + operator",
+      "behavior": "wired_action",
+      "reads": "Searchable/paginated jurisdictions, ancestors, legislature/board status and activation progress.",
+      "writes": "Operator activation, finish-activation and sandbox simulation controls.",
+      "recommendation": "Split player place finding from operational activation columns. Preserve searchable geography.",
+      "evidence": [
+        "resources/js/Pages/Jurisdictions/Index.vue:59",
+        "resources/js/Pages/Jurisdictions/Index.vue:169",
+        "resources/js/Pages/Jurisdictions/Index.vue:648",
+        "app/Http/Controllers/JurisdictionController.php:21",
+        "routes/web.php:295"
+      ]
+    },
+    {
+      "page": "Jurisdictions/Home.vue",
+      "routes": [
+        "/jurisdictions/{slug}"
+      ],
+      "audience": "player",
+      "behavior": "resolver",
+      "reads": "Place identity, government, population, children and participation links.",
+      "writes": "Navigation to institution and civic task pages.",
+      "recommendation": "Primary place hub for a demo. Remove duplicated rail/body links while preserving clear next actions.",
+      "components": [
+        "PageScaffold",
+        "JurisdictionRail"
+      ],
+      "evidence": [
+        "resources/js/Pages/Jurisdictions/Home.vue:114",
+        "resources/js/Pages/Jurisdictions/Home.vue:165",
+        "resources/js/Pages/Jurisdictions/Home.vue:179",
+        "app/Http/Controllers/JurisdictionController.php:147",
+        "routes/web.php:295"
+      ]
+    },
+    {
+      "page": "Jurisdictions/Show.vue",
+      "routes": [
+        "/jurisdictions/{slug}/map"
+      ],
+      "audience": "player + operator",
+      "behavior": "wired_action",
+      "reads": "Map geometry, siblings/children/ancestors, population overlay, data review flags and institution links.",
+      "writes": "Operator activation, acceptance/reopening and shared geodata-repair controls.",
+      "recommendation": "Keep map exploration; move data repair/acceptance behind explicit operator workspace.",
+      "components": [
+        "GeodataFlagQueue"
+      ],
+      "evidence": [
+        "resources/js/Pages/Jurisdictions/Show.vue:620",
+        "resources/js/Pages/Jurisdictions/Show.vue:696",
+        "resources/js/Pages/Jurisdictions/Show.vue:973",
+        "resources/js/Pages/Jurisdictions/Show.vue:1529",
+        "app/Http/Controllers/JurisdictionController.php:157",
+        "routes/web.php:296"
+      ]
+    },
+    {
+      "page": "Jurisdictions/Bootstrap.vue",
+      "routes": [
+        "/jurisdictions/bootstrap"
+      ],
+      "audience": "player context",
+      "behavior": "wired_read",
+      "reads": "Focused jurisdiction activation, actual threshold, wake-up stages and rollup.",
+      "writes": "None; normal activation follows population/engine state.",
+      "recommendation": "Keep as contextual government-formation status, reached from an inactive place; collapse general doctrine.",
+      "components": [
+        "PageScaffold",
+        "StateStrip",
+        "ThresholdMeter"
+      ],
+      "evidence": [
+        "resources/js/Pages/Jurisdictions/Bootstrap.vue:47",
+        "app/Http/Controllers/Jurisdictions/LifecycleController.php:45",
+        "app/Http/Controllers/Jurisdictions/LifecycleController.php:64",
+        "routes/web.php:278"
+      ]
+    },
+    {
+      "page": "Jurisdictions/UnionFormation.vue",
+      "routes": [
+        "/jurisdictions/union-formation"
+      ],
+      "audience": "player, legislative role",
+      "behavior": "partial_action",
+      "reads": "Live union processes, compatibility differences and consent meters.",
+      "writes": "Seated representative can open a formation proposal; controller accepts formation/join/exit but UI submits formation only.",
+      "recommendation": "Keep advanced civic workflow. Link proposal/result to chamber and add join/exit UI only after core demo journey.",
+      "components": [
+        "PageScaffold",
+        "ThresholdMeter"
+      ],
+      "evidence": [
+        "resources/js/Pages/Jurisdictions/UnionFormation.vue:38",
+        "resources/js/Pages/Jurisdictions/UnionFormation.vue:41",
+        "resources/js/Pages/Jurisdictions/UnionFormation.vue:157",
+        "app/Http/Controllers/Jurisdictions/LifecycleController.php:121",
+        "routes/web.php:287"
+      ]
+    },
+    {
+      "page": "Jurisdictions/Disintermediation.vue",
+      "routes": [
+        "/jurisdictions/disintermediation"
+      ],
+      "audience": "player, legislative role",
+      "behavior": "wired_action",
+      "reads": "Live dissolutions, consent status and inherited-law records.",
+      "writes": "Eligible seated representative opens a dissolution proposal with derived parties.",
+      "recommendation": "Keep advanced civic workflow; place inside jurisdiction restructuring, with chamber follow-through.",
+      "components": [
+        "PageScaffold",
+        "ThresholdMeter"
+      ],
+      "evidence": [
+        "resources/js/Pages/Jurisdictions/Disintermediation.vue:37",
+        "resources/js/Pages/Jurisdictions/Disintermediation.vue:148",
+        "app/Http/Controllers/Jurisdictions/LifecycleController.php:186",
+        "routes/web.php:289"
+      ]
+    },
+    {
+      "page": "Jurisdictions/BetweenGovernments.vue",
+      "routes": [
+        "/federation"
+      ],
+      "audience": "player context",
+      "behavior": "partial_action",
+      "reads": "Live border settlement list and status.",
+      "writes": "No proposal, vote or case-detail control. Backend BorderSettlementService exists.",
+      "recommendation": "Retain as contextual status/reference until linked to an end-to-end boundary-change workflow. Do not present as a complete playable action.",
+      "components": [
+        "PageScaffold",
+        "Stepper"
+      ],
+      "evidence": [
+        "resources/js/Pages/Jurisdictions/BetweenGovernments.vue:30",
+        "resources/js/Pages/Jurisdictions/BetweenGovernments.vue:75",
+        "app/Http/Controllers/Jurisdictions/LifecycleController.php:209",
+        "app/Services/Jurisdictions/BorderSettlementService.php:26",
+        "routes/web.php:711"
+      ]
+    },
+    {
+      "page": "Jurisdictions/Restoration.vue",
+      "routes": [
+        "/jurisdictions/restoration"
+      ],
+      "audience": "player context",
+      "behavior": "wired_read",
+      "reads": "Restoration events and condition/tier summaries.",
+      "writes": "None on page. RestorationService has declare/confirm/advanceTier methods; controller sends review_case_id but page does not link to the case.",
+      "recommendation": "Keep as advanced scenario/reference; add case/election links before calling it a playable training scenario.",
+      "components": [
+        "PageScaffold"
+      ],
+      "evidence": [
+        "resources/js/Pages/Jurisdictions/Restoration.vue:68",
+        "resources/js/Pages/Jurisdictions/Restoration.vue:128",
+        "app/Http/Controllers/Jurisdictions/LifecycleController.php:255",
+        "app/Services/Jurisdictions/RestorationService.php:24",
+        "routes/web.php:284"
+      ]
+    },
+    {
+      "page": "Jurisdictions/Federation.vue",
+      "routes": [
+        "/operator/federation"
+      ],
+      "audience": "operator",
+      "behavior": "wired_action",
+      "reads": "Instance roles, peer/host state, cluster membership, sync, authority claims and checkpoints.",
+      "writes": "Cluster join/leave; host keys and approval; peer discovery/handshake/probe; role lifecycle; transport registration; broker credentials.",
+      "recommendation": "Preserve functional controls while consolidating with Operator Mesh/Roles/Dns. This is legacy styling, not a dead feature.",
+      "components": [
+        "SyncProgress"
+      ],
+      "evidence": [
+        "resources/js/Pages/Jurisdictions/Federation.vue:51",
+        "resources/js/Pages/Jurisdictions/Federation.vue:88",
+        "resources/js/Pages/Jurisdictions/Federation.vue:126",
+        "app/Http/Controllers/Federation/FederationConsoleController.php:87",
+        "routes/web.php:719"
+      ]
+    },
+    {
+      "page": "System/Atlas.vue",
+      "routes": [
+        "/atlas"
+      ],
+      "audience": "player",
+      "behavior": "partial_action",
+      "reads": "World rollups, place gauge, point map, trends, directory and activity links.",
+      "writes": "Map opt-in disabled by controller with null URL.",
+      "recommendation": "Retain world overview; audit null snapshots and replace unavailable opt-in promotion. Do after navigation inventory.",
+      "components": [
+        "PageScaffold"
+      ],
+      "evidence": [
+        "resources/js/Pages/System/Atlas.vue:465",
+        "app/Http/Controllers/System/AtlasController.php:58",
+        "app/Http/Controllers/System/AtlasController.php:86",
+        "routes/web.php:326"
+      ]
+    },
+    {
+      "page": "System/Accessibility.vue",
+      "routes": [
+        "/system/accessibility"
+      ],
+      "audience": "player reference",
+      "behavior": "reference",
+      "reads": "Static accessibility statement, known limitations and feedback link.",
+      "writes": "None.",
+      "recommendation": "Retain footer/reference page, not a primary game destination.",
+      "components": [
+        "PageScaffold"
+      ],
+      "evidence": [
+        "resources/js/Pages/System/Accessibility.vue:42",
+        "resources/js/Pages/System/Accessibility.vue:112",
+        "app/Http/Controllers/System/AccessibilityController.php:26",
+        "routes/web.php:1234"
+      ]
+    },
+    {
+      "page": "System/ConstitutionalQuestions.vue",
+      "routes": [
+        "/system/constitutional-questions"
+      ],
+      "audience": "player reference",
+      "behavior": "reference",
+      "reads": "Static seven-entry record of implemented constitutional interpretations.",
+      "writes": "None.",
+      "recommendation": "Retain cited reference; expose from relevant learning/citation contexts.",
+      "components": [
+        "PageScaffold"
+      ],
+      "evidence": [
+        "resources/js/Pages/System/ConstitutionalQuestions.vue:72",
+        "resources/js/Pages/System/ConstitutionalQuestions.vue:272",
+        "app/Http/Controllers/System/ConstitutionalQuestionsController.php:27",
+        "routes/web.php:1236"
+      ]
+    },
+    {
+      "page": "System/Amendments.vue",
+      "routes": [
+        "/system/amendments"
+      ],
+      "audience": "player context",
+      "behavior": "wired_read",
+      "reads": "Resolved root settings plus cross-instance latest change metadata and 50-entry change ledger; client-side proposed-value checker.",
+      "writes": "None. Enactment belongs to legislative settings amendment workflow.",
+      "recommendation": "Keep register context; link legislative action prominently. Fix mismatched jurisdiction provenance and unbounded change scan before broad demo access.",
+      "components": [
+        "PageScaffold"
+      ],
+      "evidence": [
+        "resources/js/Pages/System/Amendments.vue:156",
+        "resources/js/Pages/System/Amendments.vue:211",
+        "app/Http/Controllers/System/AmendmentsController.php:58",
+        "app/Http/Controllers/System/AmendmentsController.php:66",
+        "routes/web.php:1228"
+      ]
+    },
+    {
+      "page": "System/AuditChain.vue",
+      "routes": [
+        "/system/audit-chain"
+      ],
+      "audience": "player context + operator",
+      "behavior": "wired_action",
+      "reads": "Paginated chain entries and verification/reconciliation state.",
+      "writes": "Operator verify and reconcile endpoints.",
+      "recommendation": "Retain inspectable action receipt/record, with operator controls disclosed only in their context.",
+      "components": [
+        "PageScaffold"
+      ],
+      "evidence": [
+        "resources/js/Pages/System/AuditChain.vue:63",
+        "resources/js/Pages/System/AuditChain.vue:73",
+        "app/Http/Controllers/System/AuditChainController.php:35",
+        "app/Http/Controllers/System/AuditChainController.php:65",
+        "routes/web.php:1219"
+      ]
+    },
+    {
+      "page": "System/Clocks.vue",
+      "routes": [
+        "/system/clocks"
+      ],
+      "audience": "player context + operator",
+      "behavior": "wired_action",
+      "reads": "Clock definitions, grouped armed/deadline counts, due state and optional playtest preview.",
+      "writes": "Shared DevClockControls expose gated playtest advancement.",
+      "recommendation": "Keep player deadline information near tasks; full scheduler registry and time controls belong in advanced/reference mode.",
+      "components": [
+        "PageScaffold",
+        "DevClockControls"
+      ],
+      "evidence": [
+        "resources/js/Pages/System/Clocks.vue:156",
+        "app/Http/Controllers/System/ClocksController.php:35",
+        "app/Http/Controllers/System/ClocksController.php:66",
+        "app/Http/Controllers/System/ClocksController.php:90",
+        "routes/web.php:1226"
+      ]
+    },
+    {
+      "page": "System/TermSync.vue",
+      "routes": [
+        "/system/term-sync"
+      ],
+      "audience": "player context",
+      "behavior": "wired_read",
+      "reads": "All active legislatures with timer/election lookups, grouped terms and rejection log.",
+      "writes": "None. No term-rescheduling action is intended.",
+      "recommendation": "Move under place election calendar/reference. Bound data before loading on this world.",
+      "components": [
+        "PageScaffold"
+      ],
+      "evidence": [
+        "resources/js/Pages/System/TermSync.vue:139",
+        "app/Http/Controllers/System/TermSyncController.php:50",
+        "app/Http/Controllers/System/TermSyncController.php:60",
+        "app/Http/Controllers/System/TermSyncController.php:68",
+        "routes/web.php:972"
+      ]
+    },
+    {
+      "page": "System/PublicRecords.vue",
+      "routes": [
+        "/system/public-records"
+      ],
+      "audience": "player",
+      "behavior": "wired_action",
+      "reads": "Search/filter public records with subjects, actors and provenance.",
+      "writes": "Current legislative member can file an attributed public statement through ConstitutionalEngine.",
+      "recommendation": "Keep as player evidence/result destination. Collapse explanation and replace global legislature picker/query counts with scoped/search choices.",
+      "components": [
+        "PageScaffold",
+        "FormCard"
+      ],
+      "evidence": [
+        "resources/js/Pages/System/PublicRecords.vue:62",
+        "resources/js/Pages/System/PublicRecords.vue:113",
+        "app/Http/Controllers/System/PublicRecordsController.php:48",
+        "app/Http/Controllers/System/PublicRecordsController.php:121",
+        "routes/web.php:968"
+      ]
+    },
+    {
+      "page": "System/Translations.vue",
+      "routes": [
+        "/system/translations"
+      ],
+      "audience": "player contributor + operator",
+      "behavior": "wired_action",
+      "reads": "Catalog coverage artifact, six-modality language matrix and translation worker progress.",
+      "writes": "Links to language review; operator halt/resume calls.",
+      "recommendation": "Separate contributor language selection/review entry from technical build metrics; preserve language work as a meaningful civic contribution.",
+      "components": [
+        "PageScaffold"
+      ],
+      "evidence": [
+        "resources/js/Pages/System/Translations.vue:94",
+        "resources/js/Pages/System/Translations.vue:271",
+        "resources/js/Pages/System/Translations.vue:498",
+        "app/Http/Controllers/System/TranslationCoverageController.php:67",
+        "app/Http/Controllers/System/TranslationCoverageController.php:159",
+        "routes/web.php:1241"
+      ]
+    },
+    {
+      "page": "System/TranslationReview.vue",
+      "routes": [
+        "/system/translations/review/{locale}"
+      ],
+      "audience": "player contributor",
+      "behavior": "wired_action",
+      "reads": "Original/machine strings, review queues, terms and contributors.",
+      "writes": "Eligible language reader/operator records approval or corrected wording.",
+      "recommendation": "Retain as a real contribution workflow; verify a small known language queue before using it in demo.",
+      "components": [
+        "PageScaffold"
+      ],
+      "evidence": [
+        "resources/js/Pages/System/TranslationReview.vue:74",
+        "resources/js/Pages/System/TranslationReview.vue:91",
+        "app/Http/Controllers/System/TranslationReviewController.php:76",
+        "app/Http/Controllers/System/TranslationReviewController.php:110",
+        "routes/web.php:1251"
+      ]
+    },
+    {
+      "page": "System/Coverage.vue",
+      "routes": [
+        "/coverage"
+      ],
+      "audience": "developer",
+      "behavior": "wired_read",
+      "reads": "Actual GET route patterns, registered surface ids, nav and tour coverage drift.",
+      "writes": "Navigation only.",
+      "recommendation": "Keep as developer QA tool; do not count this as gameplay or a player training feature.",
+      "components": [
+        "PageScaffold",
+        "computeCoverageDrift"
+      ],
+      "evidence": [
+        "resources/js/Pages/System/Coverage.vue:26",
+        "resources/js/Pages/System/Coverage.vue:169",
+        "app/Http/Controllers/System/CoverageController.php:29",
+        "routes/web.php:74"
+      ]
+    },
+    {
+      "page": "System/CoverageOps.vue",
+      "routes": [
+        "/coverage-ops"
+      ],
+      "audience": "developer",
+      "behavior": "wired_read",
+      "reads": "Dense route/surface/nav/tour drift matrix over same data as Coverage.",
+      "writes": "Navigation only.",
+      "recommendation": "Consolidate with Coverage as a detailed tab; keep outside attendee navigation.",
+      "components": [
+        "PageScaffold",
+        "computeCoverageDrift"
+      ],
+      "evidence": [
+        "resources/js/Pages/System/CoverageOps.vue:20",
+        "resources/js/Pages/System/CoverageOps.vue:96",
+        "app/Http/Controllers/System/CoverageController.php:38",
+        "routes/web.php:75"
+      ]
+    },
+    {
+      "page": "Build/Progress.vue",
+      "routes": [
+        "/building"
+      ],
+      "audience": "operator + public observer",
+      "behavior": "wired_action",
+      "reads": "Global world/institution completion counts refreshed every two seconds.",
+      "writes": "Operator previews or queues missing institutional provisioning.",
+      "recommendation": "Retain operational view; review global query cost and make status snapshots bounded before placing in an attendee path.",
+      "components": [
+        "PageScaffold",
+        "StageBars"
+      ],
+      "evidence": [
+        "resources/js/Pages/Build/Progress.vue:48",
+        "resources/js/Pages/Build/Progress.vue:61",
+        "app/Http/Controllers/BuildProgressController.php:43",
+        "app/Http/Controllers/BuildProgressController.php:102",
+        "routes/web.php:307"
+      ]
+    },
+    {
+      "page": "Demo/SimConsole.vue",
+      "routes": [
+        "/simworld"
+      ],
+      "audience": "operator + public observer",
+      "behavior": "wired_action",
+      "reads": "Real simulation run stages, workers, review, world counts and timing.",
+      "writes": "Separate operator guard starts/halts/resumes synthetic-safe runs.",
+      "recommendation": "Retain as simulation operations monitor, not the attendee demo itself. Share controls with setup Step 5.",
+      "components": [
+        "StageBars"
+      ],
+      "evidence": [
+        "resources/js/Pages/Demo/SimConsole.vue:125",
+        "resources/js/Pages/Demo/SimConsole.vue:194",
+        "app/Http/Controllers/Demo/SimConsoleController.php:72",
+        "app/Http/Controllers/Demo/SimConsoleController.php:115",
+        "routes/web.php:726",
+        "routes/web.php:1502"
+      ]
+    },
+    {
+      "page": "Support/Report.vue",
+      "routes": [
+        "/support/report"
+      ],
+      "audience": "player",
+      "behavior": "wired_action",
+      "reads": "Six report categories and routing labels.",
+      "writes": "Authenticated report stored with public reference and route_target.",
+      "recommendation": "Retain reachable feedback form during demo. Routing metadata is not evidence of completed moderation/court dispatch.",
+      "components": [
+        "PageScaffold"
+      ],
+      "evidence": [
+        "resources/js/Pages/Support/Report.vue:50",
+        "app/Http/Controllers/Support/SupportReportController.php:65",
+        "app/Http/Controllers/Support/SupportReportController.php:74",
+        "routes/web.php:1260"
+      ]
+    },
+    {
+      "page": "Support/Tickets.vue",
+      "routes": [
+        "/support/tickets"
+      ],
+      "audience": "player + operator",
+      "behavior": "wired_read",
+      "reads": "Owner's reports or operator queue with status/category filters; list limited to 200.",
+      "writes": "Navigation to ticket detail.",
+      "recommendation": "Retain report tracking. Add pagination when queue grows; reported totals can exceed displayed list.",
+      "components": [
+        "PageScaffold"
+      ],
+      "evidence": [
+        "resources/js/Pages/Support/Tickets.vue:39",
+        "app/Http/Controllers/Support/SupportReportController.php:94",
+        "app/Http/Controllers/Support/SupportReportController.php:115",
+        "routes/web.php:1267"
+      ]
+    },
+    {
+      "page": "Support/Ticket.vue",
+      "routes": [
+        "/support/ticket/{ref}"
+      ],
+      "audience": "player + operator",
+      "behavior": "wired_action",
+      "reads": "Report detail visible to author or operator.",
+      "writes": "Operator status/severity triage.",
+      "recommendation": "Retain functional support loop; not a substitute for judicial/content-removal workflow.",
+      "components": [
+        "PageScaffold"
+      ],
+      "evidence": [
+        "resources/js/Pages/Support/Ticket.vue:57",
+        "app/Http/Controllers/Support/SupportReportController.php:130",
+        "app/Http/Controllers/Support/SupportReportController.php:151",
+        "routes/web.php:1269"
+      ]
+    },
+    {
+      "page": "Dev/ElectoralKit.vue",
+      "routes": [
+        "/dev/electoral-kit"
+      ],
+      "audience": "developer",
+      "behavior": "developer_fixture",
+      "reads": "Static electoral fixtures for ballot, approval, ranking, receipts and STV components.",
+      "writes": "Local UI state only.",
+      "recommendation": "Retain visual/component testing; omit from attendee map. Local environment and DevToolsEnabled gate exist.",
+      "components": [
+        "ApproveSwitch",
+        "BallotReceipt",
+        "CandidateRow",
+        "RankList",
+        "StvRound"
+      ],
+      "evidence": [
+        "resources/js/Pages/Dev/ElectoralKit.vue:185",
+        "app/Http/Controllers/Dev/ElectoralKitController.php:25",
+        "routes/web.php:1280",
+        "routes/web.php:1326"
+      ]
+    },
+    {
+      "page": "Dev/LegislatureKit.vue",
+      "routes": [
+        "/dev/legislature-kit"
+      ],
+      "audience": "developer",
+      "behavior": "developer_fixture",
+      "reads": "Static legislature fixtures for seats, tallies, agendas, laws and petitions.",
+      "writes": "Local UI events only.",
+      "recommendation": "Retain component test harness; omit from attendee map.",
+      "components": [
+        "SeatMap",
+        "VoteTally",
+        "AgendaStrip",
+        "LawDiff",
+        "SignatureMeter"
+      ],
+      "evidence": [
+        "resources/js/Pages/Dev/LegislatureKit.vue:114",
+        "app/Http/Controllers/Dev/LegislatureKitController.php:27",
+        "routes/web.php:1280",
+        "routes/web.php:1328"
+      ]
+    },
+    {
+      "page": "Dev/ExecutiveOrgKit.vue",
+      "routes": [
+        "/dev/executive-kit"
+      ],
+      "audience": "developer",
+      "behavior": "developer_fixture",
+      "reads": "Static executive/organization fixtures and co-determination explorer.",
+      "writes": "Local explorer state only.",
+      "recommendation": "Retain harness; reuse suitable training illustration inside lessons if desired rather than exposing whole fixture page.",
+      "components": [
+        "ConstituentConsentPanel",
+        "CoDetScale",
+        "BoardStrip",
+        "OwnershipPanel"
+      ],
+      "evidence": [
+        "resources/js/Pages/Dev/ExecutiveOrgKit.vue:67",
+        "resources/js/Pages/Dev/ExecutiveOrgKit.vue:155",
+        "app/Http/Controllers/Dev/ExecutiveOrgKitController.php:29",
+        "routes/web.php:1330"
+      ]
+    },
+    {
+      "page": "Dev/JudiciaryKit.vue",
+      "routes": [
+        "/dev/judiciary-kit"
+      ],
+      "audience": "developer",
+      "behavior": "developer_fixture",
+      "reads": "Static court panel, case lifecycle, remedy and juror-screening fixtures.",
+      "writes": "Local UI state only.",
+      "recommendation": "Retain harness; omit from player/demo navigation.",
+      "components": [
+        "PanelTable",
+        "CaseLifecycle",
+        "Art4Section5Tracker",
+        "JurorScreening"
+      ],
+      "evidence": [
+        "resources/js/Pages/Dev/JudiciaryKit.vue:75",
+        "app/Http/Controllers/Dev/JudiciaryKitController.php:30",
+        "routes/web.php:1280",
+        "routes/web.php:1332"
+      ]
+    }
+  ],
+  "findings": [
+    {
+      "id": "SYS-01",
+      "priority": "high",
+      "kind": "demo reliability",
+      "finding": "Term Sync materializes every active legislature and then performs separate timer, successor-election and settings work per row. The UI renders one card per legislature. On a populated world this is an unbounded page and N+1 query path.",
+      "recommendation": "Require a place or bounded page/search input. Reuse scoped schedule data; do not load this route for exploratory QA on the live world.",
+      "evidence": [
+        "app/Http/Controllers/System/TermSyncController.php:50",
+        "app/Http/Controllers/System/TermSyncController.php:60",
+        "app/Http/Controllers/System/TermSyncController.php:68",
+        "resources/js/Pages/System/TermSync.vue:137"
+      ]
+    },
+    {
+      "id": "SYS-02",
+      "priority": "high",
+      "kind": "demo reliability",
+      "finding": "Building the world recomputes global counts and joins for each snapshot and polls every two seconds. The adopted-map queries hard-code type_a_seats > 9 instead of obtaining the configured district ceiling.",
+      "recommendation": "Move heavy totals to bounded resumable snapshot production, serve measured freshness, and derive threshold from active settings. No query/load testing was attempted.",
+      "evidence": [
+        "app/Http/Controllers/BuildProgressController.php:43",
+        "app/Http/Controllers/BuildProgressController.php:102",
+        "app/Http/Controllers/BuildProgressController.php:116",
+        "app/Http/Controllers/BuildProgressController.php:144"
+      ]
+    },
+    {
+      "id": "SYS-03",
+      "priority": "medium",
+      "kind": "data coherence",
+      "finding": "Amendments reads setting values from a root jurisdiction but latest enacting changes are selected across all jurisdictions, then reduced by setting_key. A child setting change can therefore provide the enacting metadata for an unrelated root value.",
+      "recommendation": "Scope values and provenance to the same jurisdiction; bound latest-change retrieval instead of loading every change.",
+      "evidence": [
+        "app/Http/Controllers/System/AmendmentsController.php:58",
+        "app/Http/Controllers/System/AmendmentsController.php:66",
+        "app/Http/Controllers/System/AmendmentsController.php:78"
+      ]
+    },
+    {
+      "id": "SYS-04",
+      "priority": "medium",
+      "kind": "unavailable action",
+      "finding": "Atlas explicitly sets optIn.available=false and optIn.url=null. A visible privacy/map participation narrative therefore cannot end in the advertised action.",
+      "recommendation": "Remove unavailable CTA from core demo or implement the consent-backed preference separately. World observation remains useful.",
+      "evidence": [
+        "app/Http/Controllers/System/AtlasController.php:86",
+        "resources/js/Pages/System/Atlas.vue:458"
+      ]
+    },
+    {
+      "id": "SYS-05",
+      "priority": "medium",
+      "kind": "incomplete journey",
+      "finding": "Between governments is a live border-settlement report but has no proposal/vote/detail action. Its Stepper always marks deliberation done and referendum active, independent of actual settlement rows or empty state.",
+      "recommendation": "Label static process diagram clearly, derive live progression from a selected case, and link to the actual participatory workflow before featuring it as playable.",
+      "evidence": [
+        "resources/js/Pages/Jurisdictions/BetweenGovernments.vue:30",
+        "resources/js/Pages/Jurisdictions/BetweenGovernments.vue:68",
+        "resources/js/Pages/Jurisdictions/BetweenGovernments.vue:75",
+        "app/Services/Jurisdictions/BorderSettlementService.php:26"
+      ]
+    },
+    {
+      "id": "SYS-06",
+      "priority": "medium",
+      "kind": "incomplete journey",
+      "finding": "Union page posts only kind=formation, while its controller accepts formation/join/exit and page text explains join/exit. The readouts lack a direct new-proposal continuation into the relevant chamber.",
+      "recommendation": "For initial demo, contextualize as advanced formation. Later complete join/exit controls and explicit chamber/result links.",
+      "evidence": [
+        "resources/js/Pages/Jurisdictions/UnionFormation.vue:41",
+        "resources/js/Pages/Jurisdictions/UnionFormation.vue:157",
+        "app/Http/Controllers/Jurisdictions/LifecycleController.php:123"
+      ]
+    },
+    {
+      "id": "SYS-07",
+      "priority": "medium",
+      "kind": "incomplete journey",
+      "finding": "Restoration controller includes review_case_id but the event table has no corresponding case link. Source service methods exist for declaration/confirmation/tier advancement, while the page is a standing drill and status read.",
+      "recommendation": "Keep advanced reference until a bounded training scenario connects evidence, judicial finding and rebuilding elections.",
+      "evidence": [
+        "app/Http/Controllers/Jurisdictions/LifecycleController.php:255",
+        "resources/js/Pages/Jurisdictions/Restoration.vue:128",
+        "app/Services/Jurisdictions/RestorationService.php:24"
+      ]
+    },
+    {
+      "id": "SYS-08",
+      "priority": "medium",
+      "kind": "public read scaling",
+      "finding": "Public Records has a bounded record list but also loads the full legislature selector and runs multiple global counts; page-size alone does not bound all controller work.",
+      "recommendation": "Use current place and searchable choices, plus precomputed totals where needed.",
+      "evidence": [
+        "app/Http/Controllers/System/PublicRecordsController.php:87",
+        "app/Http/Controllers/System/PublicRecordsController.php:93",
+        "app/Http/Controllers/System/PublicRecordsController.php:100"
+      ]
+    },
+    {
+      "id": "SYS-09",
+      "priority": "low",
+      "kind": "reference placement",
+      "finding": "Coverage/CoverageOps and four Dev kits are genuine developer instruments. Accessibility and ConstitutionalQuestions are reference documents. Treating all as equal features exaggerates the apparent number of things a player must learn.",
+      "recommendation": "Keep developer tools, public reference and player tasks as separate navigation layers.",
+      "evidence": [
+        "app/Http/Controllers/System/CoverageController.php:29",
+        "resources/js/Pages/Dev/ElectoralKit.vue:185",
+        "app/Http/Controllers/System/AccessibilityController.php:26",
+        "app/Http/Controllers/System/ConstitutionalQuestionsController.php:27"
+      ]
+    }
+  ],
+  "overlaps": [
+    {
+      "pages": [
+        "Operator/Home.vue",
+        "Operator/Console.vue",
+        "Operator/Roles.vue"
+      ],
+      "overlap": "Readiness/roles/channels repeated; role writes belong to Roles.",
+      "action": "One operator landing plus role task page."
+    },
+    {
+      "pages": [
+        "Operator/Mesh.vue",
+        "Operator/Roles.vue",
+        "Operator/Dns.vue",
+        "Jurisdictions/Federation.vue"
+      ],
+      "overlap": "New styled read pages coexist with legacy federation page that retains broad working mutation controls.",
+      "action": "Consolidate controls deliberately; do not prune legacy page before migrating its actions."
+    },
+    {
+      "pages": [
+        "Setup/Step4_ScaleUp.vue",
+        "Build/Progress.vue"
+      ],
+      "overlap": "Institution building shown as setup run progress versus world-completeness progress.",
+      "action": "Share controls/components; retain different meanings of run progress and world completeness."
+    },
+    {
+      "pages": [
+        "Setup/Step5_Simulate.vue",
+        "Demo/SimConsole.vue"
+      ],
+      "overlap": "Same SimSnapshot/SimRunControl owners feed two simulation-control surfaces.",
+      "action": "Shared simulation console in setup wrapper and operator workspace."
+    },
+    {
+      "pages": [
+        "Setup/Step2_MapData.vue",
+        "Jurisdictions/Show.vue",
+        "Jurisdictions/Index.vue"
+      ],
+      "overlap": "Acceptance/activation/repair workflow spans setup, list and map viewer.",
+      "action": "Player place/map flow plus explicit operator maintenance mode."
+    },
+    {
+      "pages": [
+        "System/Coverage.vue",
+        "System/CoverageOps.vue"
+      ],
+      "overlap": "Same route/registry drift data at summary and detailed levels.",
+      "action": "One developer tool with summary/detail views."
+    },
+    {
+      "pages": [
+        "System/Amendments.vue",
+        "System/Clocks.vue",
+        "System/TermSync.vue",
+        "System/ConstitutionalQuestions.vue"
+      ],
+      "overlap": "Related governance-rule education across several full pages, with live registers mixed into explanations.",
+      "action": "Preserve specialist records but link in context from settings, elections and Learn; remove them from first-task emphasis."
+    }
+  ],
+  "demo_mode_verification": {
+  "status": "Implemented in source; live instance classification, applied trigger migration and behavior not verified.",
+  "implemented": [
+    {
+      "feature": "Box-level demo posture",
+      "detail": "DemoMode::active requires instance_class=scale_demo and cga.demo_session_capture. InstanceClass fails closed to production if class resolution fails.",
+      "evidence": [
+        "app/Support/DemoMode.php:70",
+        "app/Support/InstanceClass.php:42",
+        "config/cga.php:276"
+      ]
+    },
+    {
+      "feature": "Real tagged constitutional writes",
+      "detail": "ConstitutionalEngine opens an HTTP demo session, bypasses engine role/training refusals except system-only forms, sets a transaction-local capture setting around the handler, and records _demo metadata.",
+      "evidence": [
+        "app/Domain/Engine/ConstitutionalEngine.php:146",
+        "app/Domain/Engine/ConstitutionalEngine.php:177",
+        "app/Domain/Engine/ConstitutionalEngine.php:183"
+      ]
+    },
+    {
+      "feature": "Compensating void",
+      "detail": "Capture migration installs triggers. Logout calls endCurrent; expired sessions are checked every five minutes. Reversal records skipped writes and one demo.session.voided audit entry. Identity, residency, education and audit/public-record tables are excluded.",
+      "evidence": [
+        "database/migrations/2026_09_10_120000_demo_sessions_and_capture.php:42",
+        "app/Http/Controllers/Auth/AuthenticatedSessionController.php:97",
+        "routes/console.php:178",
+        "app/Services/Demo/DemoSessionService.php:128",
+        "app/Support/DemoMode.php:50"
+      ]
+    },
+    {
+      "feature": "Instant beta residency",
+      "detail": "cga.residency_instant sets threshold to zero. Civic ResidencyController immediately verifies a newly declared monitoring claim when its threshold is zero. This is code, not only a rubric choice.",
+      "evidence": [
+        "config/cga.php:283",
+        "app/Services/ResidencyService.php:456",
+        "app/Http/Controllers/Civic/ResidencyController.php:204"
+      ]
+    },
+    {
+      "feature": "Existing tests",
+      "detail": "DemoSessionVoidTest contains capture/reversal, engine role bypass, production isolation and expiry cases. These tests were inspected, not run.",
+      "evidence": [
+        "tests/Constitutional/DemoSessionVoidTest.php:39",
+        "tests/Constitutional/DemoSessionVoidTest.php:85",
+        "tests/Constitutional/DemoSessionVoidTest.php:116",
+        "tests/Constitutional/DemoSessionVoidTest.php:138"
+      ]
+    }
+  ],
+  "boundaries": [
+    {
+      "detail": "Engine role bypass does not make every screen actionable. Union/dissolution controllers require an actual seat before calling the engine/service; UI controls also require door.seat.",
+      "evidence": [
+        "app/Http/Controllers/Jurisdictions/LifecycleController.php:500",
+        "resources/js/Pages/Jurisdictions/UnionFormation.vue:168",
+        "resources/js/Pages/Jurisdictions/Disintermediation.vue:159"
+      ]
+    },
+    {
+      "detail": "Demo dock visibility uses sandbox/devBar/impersonation rather than DemoMode's scale_demo+capture gate. A demo box classification alone does not imply a visible demo dock.",
+      "evidence": [
+        "resources/js/Layouts/AppShellV2.vue:191",
+        "app/Support/DemoMode.php:70"
+      ]
+    },
+    {
+      "detail": "Capture wraps ConstitutionalEngine handler transactions. Direct controller writes such as support reports and translation verification are outside that capture scope; do not promise all site activity disappears on logout.",
+      "evidence": [
+        "app/Domain/Engine/ConstitutionalEngine.php:177",
+        "app/Http/Controllers/Support/SupportReportController.php:74",
+        "app/Http/Controllers/System/TranslationReviewController.php:110"
+      ]
+    },
+    {
+      "detail": "UPDATE reversal restores every non-PK column from the before-image using only primary-key matching. It has no comparison against later writes by another active session. This deserves a two-user shared-record case before conference cleanup is trusted.",
+      "evidence": [
+        "app/Services/Demo/DemoSessionService.php:224",
+        "app/Services/Demo/DemoSessionService.php:235"
+      ]
+    },
+    {
+      "detail": "Capture triggers are installed over tables present at migration time. New civic tables need capture installation maintained as part of additive schema work.",
+      "evidence": [
+        "database/migrations/2026_09_10_120000_demo_sessions_and_capture.php:42",
+        "app/Services/Demo/DemoSessionService.php:307"
+      ]
+    }
+  ],
+  "demo_milestone": "Use a dedicated classified demo instance and test the actual attendee personas/routes, persistence while two sessions are active, logout/expiry reversal, skipped-write reporting and stable return state. Verify the beta's instant residency setting separately. No instance changes, logout, simulated actions or cleanup were triggered by this inventory."
+},
+  "proposed_demo_scope": {
+    "primary": [
+      "Place finding and jurisdiction home",
+      "Observe one working institution/election",
+      "Perform one role-appropriate civic action",
+      "Inspect resulting public record or audit receipt",
+      "File and track feedback"
+    ],
+    "optional": [
+      "Language review contribution",
+      "Map exploration",
+      "World overview after its null-data issues are repaired"
+    ],
+    "context_only": [
+      "Government activation",
+      "Clocks and term rules",
+      "Amendments",
+      "Union/dissolution/restoration/border procedures"
+    ],
+    "operator_only": [
+      "Installation",
+      "Geodata acceptance/repair",
+      "Provision/simulation driving",
+      "Federation/credentials/infrastructure",
+      "Developer coverage and fixture kits"
+    ],
+    "acceptance": "Before declaring demoable, execute a small representative attendee journey with a known persona/place and verify every selected action's persisted result. This audit does not claim those live checks were completed."
+  }
+}
