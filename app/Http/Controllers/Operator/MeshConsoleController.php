@@ -9,13 +9,13 @@ use App\Models\OperatorAccount;
 use App\Models\PeerUpgradeProposal;
 use App\Models\SyncLogEntry;
 use App\Services\Federation\CapabilityProber;
-use App\Services\Federation\CapabilityService;
 use App\Services\Federation\MeshGateService;
 use App\Services\Federation\TransportService;
 use App\Services\PeerUpgradeAgreementService;
 use App\Support\SurfaceMeta;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Http\RedirectResponse;
 use Inertia\Inertia;
 use Inertia\Response;
 
@@ -40,8 +40,8 @@ use Inertia\Response;
  */
 class MeshConsoleController extends Controller
 {
-    /** GET /operator — the readiness rollup + named-role chips (Operator/Home). */
-    public function home(MeshGateService $gates, CapabilityService $capabilities): Response
+    /** GET /operator — the single host overview; detailed controls retain their own pages. */
+    public function home(MeshGateService $gates, PeerUpgradeAgreementService $upgrades): Response
     {
         $operator = Auth::guard('operator')->user();
         $authed = $operator !== null;
@@ -50,22 +50,14 @@ class MeshConsoleController extends Controller
             'surface' => SurfaceMeta::for('operator/home'),
             'authed' => $authed,
             'operator' => $authed ? ($operator->username ?? null) : null,
-            'readiness' => $authed ? $this->readiness($gates, $capabilities) : null,
+            'console' => $authed ? $this->consoleData($gates, $upgrades) : null,
         ]);
     }
 
-    /** GET /operator/console — health + role cards + channel grid + the three meters (Operator/Console). */
-    public function console(MeshGateService $gates, PeerUpgradeAgreementService $upgrades): Response
+    /** Preserve the old entrance without building a second overview or reading host data. */
+    public function console(): RedirectResponse
     {
-        $operator = Auth::guard('operator')->user();
-        $authed = $operator !== null;
-
-        return Inertia::render('Operator/Console', [
-            'surface' => SurfaceMeta::for('operator/console'),
-            'authed' => $authed,
-            'operator' => $authed ? ($operator->username ?? null) : null,
-            'console' => $authed ? $this->consoleData($gates, $upgrades) : null,
-        ]);
+        return redirect()->route('operator.home');
     }
 
     /** GET /operator/roles — the qualify → request → approve → join board (Operator/Roles). */
@@ -132,53 +124,6 @@ class MeshConsoleController extends Controller
     // -------------------------------------------------------------------------
     // prop builders (operator-only)
     // -------------------------------------------------------------------------
-
-    /** @return array<string,mixed> */
-    private function readiness(MeshGateService $gates, CapabilityService $capabilities): array
-    {
-        $gateRows = $gates->evaluate();
-
-        // Authority the settled way: a count of PLACES whose home copy lives here
-        // (AuthorityResolver::OURS ⇔ authoritative_server_id IS NULL) — never a node rank.
-        $total = (int) DB::table('jurisdictions')->whereNull('deleted_at')->count();
-        $peerHeld = (int) DB::table('jurisdictions')->whereNull('deleted_at')
-            ->whereNotNull('authoritative_server_id')->count();
-
-        $lastSync = SyncLogEntry::query()->orderByDesc('seq')->first();
-
-        return [
-            'ready' => ! in_array(MeshGateService::FAIL, array_column($gateRows, 'status'), true),
-            'gates' => $gateRows,
-            'peers' => [
-                'total' => FederationPeer::query()->whereNull('deleted_at')->count(),
-                'trusted' => FederationPeer::query()->whereNull('deleted_at')
-                    ->whereIn('status', [
-                        FederationPeer::STATUS_TRUST_ESTABLISHED, FederationPeer::STATUS_SYNCING,
-                        FederationPeer::STATUS_CONFLICT_RESOLUTION, FederationPeer::STATUS_BORDER_SETTLED,
-                    ])->count(),
-                'last_heartbeat_at' => FederationPeer::query()->whereNull('deleted_at')
-                    ->max('last_heartbeat_at'),
-                'last_sync' => $lastSync === null ? null : [
-                    'seq' => (int) $lastSync->seq,
-                    'direction' => $lastSync->direction,
-                    'result' => $lastSync->result,
-                    'created_at' => $lastSync->created_at?->toIso8601String(),
-                ],
-            ],
-            'channels' => array_map(fn (array $c) => [
-                'capability' => $c['capability'],
-                'kind' => \App\Models\InstanceCapability::isGoverned($c['capability']) ? 'governed' : 'self-asserted',
-                'priority' => $c['priority'],
-                'granted_by_server_id' => $c['granted_by_server_id'],
-            ], $capabilities->selfCapabilities()),
-            'roles' => $gates->roles($this->rootScope()),
-            'authority' => [
-                'home_copies' => $total - $peerHeld,
-                'peer_held' => $peerHeld,
-                'total' => $total,
-            ],
-        ];
-    }
 
     /** @return array<string,mixed> */
     private function consoleData(MeshGateService $gates, PeerUpgradeAgreementService $upgrades): array

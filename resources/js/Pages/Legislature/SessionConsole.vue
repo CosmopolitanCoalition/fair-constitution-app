@@ -10,11 +10,13 @@
  * statements (F-LEG-006) · adjourn & minutes (F-SPK-009 — re-arms CLK-02,
  * the receipt renders in the flash).
  *
- * Route-gated server-side to chamber members + R-29; every POST is one
- * engine filing — 422s surface verbatim as errors.constitution.
+ * Public gallery with role-scoped controls; every POST is one engine
+ * filing — 422s surface verbatim as errors.constitution.
  */
 import { computed, ref } from 'vue';
 import { router, useForm, usePage } from '@inertiajs/vue3';
+import { useI18n } from 'vue-i18n';
+import LegislatureWorkspaceNav from '@/Components/Legislature/LegislatureWorkspaceNav.vue';
 import AppShellV2 from '@/Layouts/AppShellV2.vue';
 import PageScaffold from '@/Components/Surface/PageScaffold.vue';
 import FormCard from '@/Components/Surface/FormCard.vue';
@@ -36,6 +38,7 @@ defineOptions({ layout: AppShellV2 });
 
 const props = defineProps({
     surface: { type: Object, required: true },
+    workspace: { type: Object, required: true },
     legislature: { type: Object, required: true },
     session: { type: Object, default: null },
     dueBanner: { type: Object, default: null },
@@ -46,6 +49,8 @@ const props = defineProps({
 });
 
 const page = usePage();
+const { t } = useI18n();
+const text = key => t('c_legislature_workspace.' + key);
 const flashStatus = computed(() => page.props.flash?.status ?? null);
 const constitutionError = computed(() => page.props.errors?.constitution ?? null);
 
@@ -55,7 +60,7 @@ const live = computed(
     () => props.session !== null && ['scheduled', 'open', 'failed_quorum'].includes(props.session.status),
 );
 const bicameral = computed(() => props.legislature.mode === 'bicameral');
-const noSpeaker = computed(() => props.can.launchSpeakerBallot);
+const noSpeaker = computed(() => !props.workspace.hasSpeaker);
 
 function fmt(iso) {
     return iso ? new Date(iso).toLocaleString() : '—';
@@ -218,18 +223,17 @@ function adjourn() {
 
 <template>
     <PageScaffold :surface="surface" :title="`Session console — ${legislature.name}`">
-        <template #intro>
-            Call → attendance → the published quorum count → the constitutional agenda →
-            motions and votes → statements → adjournment with sealed minutes. The quorum
-            denominator is every serving member, never those present — and adjourning
-            re-arms the 90-day meeting clock (CLK-02).
-        </template>
+        <LegislatureWorkspaceNav :workspace="workspace" active="session" />
+        <nav v-if="session && live" class="cluster" :aria-label="text('session_sections')">
+            <a href="#session-attendance">{{ text('attendance') }}</a>
+            <a href="#session-agenda">{{ text('agenda') }}</a>
+            <a href="#session-motions">{{ text('motions') }}</a>
+            <a href="#session-minutes">{{ text('minutes') }}</a>
+        </nav>
 
         <!-- §10-1 gallery: a session is a civic proceeding, public to watch. -->
         <Banner v-if="can.isGallery" tone="info" role="status">
-            You are watching this session in the public gallery — a legislature session
-            is a civic proceeding, open to everyone. This is a read-only view; taking part
-            is reserved to the chamber's members. <span class="citation">Art. II §2</span>
+            {{ text('gallery') }}
         </Banner>
 
         <Banner v-if="flashStatus" tone="info" role="status">{{ flashStatus }}</Banner>
@@ -243,13 +247,8 @@ function adjourn() {
         </Banner>
 
         <!-- ================================== speaker balloting ========= -->
-        <Card v-if="noSpeaker" as="section" title="Speaker election — the first order of the first session">
-            <p class="cc-small">
-                Until the chamber elects its Speaker there is no R-10: sessions cannot be
-                humanly called and general business cannot open. The balloting is a
-                supermajority ranked-choice vote of ALL serving members — non-casters stay
-                in the denominator. <span class="citation">F-LEG-008 · Art. II §3 · WF-LEG-02</span>
-            </p>
+        <Card v-if="noSpeaker" as="section" :title="text('speaker_election')">
+            <p class="cc-small">{{ text('speaker_election_waiting') }}</p>
 
             <template v-if="speakerBallot?.vote && speakerBallot.vote.status === 'open'">
                 <p class="citation" style="margin-block: var(--space-2)">
@@ -265,9 +264,9 @@ function adjourn() {
                     :quorum="speakerBallot.vote.quorum"
                     :outcome="speakerBallot.vote.outcome"
                 />
-                <h3 style="margin-block-start: var(--space-3)">Your ranking</h3>
-                <RankList v-model="speakerRanking" :seats="speakerRanking.length" :removable="false" />
-                <div class="cluster">
+                <h3 v-if="can.vote" style="margin-block-start: var(--space-3)">Your ranking</h3>
+                <RankList v-if="can.vote" v-model="speakerRanking" :seats="speakerRanking.length" :removable="false" />
+                <div v-if="can.vote" class="cluster">
                     <Btn variant="primary" :disabled="castingBallot" @click="castSpeakerRanking">
                         File my ranking (F-LEG-008)
                     </Btn>
@@ -276,7 +275,7 @@ function adjourn() {
             </template>
 
             <template v-else>
-                <div class="cluster" style="margin-block-start: var(--space-2)">
+                <div v-if="can.launchSpeakerBallot" class="cluster" style="margin-block-start: var(--space-2)">
                     <Btn variant="primary" :disabled="launching" @click="launchBallot">Open the speaker balloting</Btn>
                     <FormChip form-id="F-LEG-008" name="Speaker nomination/election vote" />
                 </div>
@@ -347,7 +346,7 @@ function adjourn() {
             </Card>
 
             <!-- ================================ attendance & quorum ===== -->
-            <Card as="section" title="Attendance & the quorum call">
+            <Card id="session-attendance" as="section" title="Attendance & the quorum call">
                 <div class="cluster" style="margin-block-end: var(--space-3)">
                     <Btn
                         v-if="can.attendance && !myAttendanceMarked"
@@ -442,7 +441,7 @@ function adjourn() {
             </Card>
 
             <!-- ============================================ agenda ====== -->
-            <Card as="section" title="Agenda — constitutional order">
+            <Card id="session-agenda" as="section" title="Agenda — constitutional order">
                 <p class="citation">
                     slots 1–2 locked: outstanding emergency powers first, constitutional matters
                     second — cannot be reordered or removed · Art. II §2; §7 · hardened
@@ -455,7 +454,7 @@ function adjourn() {
             </Card>
 
             <!-- =========================================== motions ====== -->
-            <Card as="section" title="Motions">
+            <Card id="session-motions" as="section" title="Motions">
                 <div v-if="motions.length" class="stack" style="gap: var(--space-4); margin-block-end: var(--space-4)">
                     <div v-for="motion in motions" :key="motion.id" class="card card--inset">
                         <p style="margin-block-end: var(--space-1)">
@@ -552,7 +551,7 @@ function adjourn() {
             </Card>
 
             <!-- =========================== statements + adjournment ===== -->
-            <div class="grid-2">
+            <div id="session-minutes" class="grid-2">
                 <Card as="section" title="Statements — into the public record">
                     <FormCard
                         v-if="can.statement && formMeta('F-LEG-006')"
@@ -579,6 +578,7 @@ function adjourn() {
                             </template>
                         </Field>
                     </FormCard>
+                    <p v-else class="gloss">{{ text('statement_empty') }}</p>
                 </Card>
 
                 <Card as="section" title="Adjourn & seal the minutes">
@@ -644,6 +644,29 @@ function adjourn() {
                     >{{ ATTENDANCE_BADGES[row.status]?.text ?? row.status }}</StatusBadge>
                 </template>
             </DataTable>
+            <h3 style="margin-block-start: var(--space-4)">{{ text('agenda') }}</h3>
+            <AgendaStrip :items="session.agenda" :editable="false" />
+            <h3 style="margin-block-start: var(--space-4)">{{ text('motions') }}</h3>
+            <p v-if="!motions.length" class="gloss">No motions this session.</p>
+            <details v-for="motion in motions" :key="motion.id" class="session-record-motion">
+                <summary>{{ motion.text }} · {{ motion.status }}</summary>
+                <p class="citation">{{ motion.moved_by }} <a v-if="motion.bill_id" :href="`/bills/${motion.bill_id}`"> · {{ $t('c_legislature_workspace.bills') }}</a></p>
+                <VoteTally
+                    v-if="motion.vote"
+                    :mode="motion.vote.mode"
+                    :stage="motion.vote.stage"
+                    :threshold-class="motion.vote.thresholdClass"
+                    :serving="motion.vote.serving"
+                    :required-yes="motion.vote.requiredYes"
+                    :tallies="motion.vote.tallies"
+                    :quorum="motion.vote.quorum"
+                    :kinds="motion.vote.kinds"
+                    :outcome="motion.vote.outcome"
+                    :speaker-tiebreak="motion.vote.speakerTiebreak"
+                    :can-cast="false"
+                />
+                <VoteCastList v-if="motion.casts?.length" :casts="motion.casts" :group-by-kind="bicameral" />
+            </details>
         </Card>
 
         <template #about>
@@ -655,3 +678,9 @@ function adjourn() {
         </template>
     </PageScaffold>
 </template>
+
+<style scoped>
+[id^="session-"] { scroll-margin-block-start: 8rem; }
+.session-record-motion { margin-block: var(--space-3); }
+.session-record-motion summary { cursor: pointer; padding-block: .6rem; }
+</style>

@@ -2,17 +2,17 @@
 /**
  * Legislature/SpeakerTools — FE-C7 (PHASE_C_DESIGN_frontend.md §B.7).
  *
- * The Speaker's launchpad, not a duplicate console: the 9 F-SPK cards
- * rendered from the registry (name first, ID second), each linking to
- * the surface where the live control lives. Neutrality card (hardened),
- * tie-break record (F-SPK-004), member-priorities queue (F-SPK-006),
- * and the presiding card with the own-case block surfaced.
+ * Office records and the member-priorities queue, within the selected
+ * legislature workspace. Session/committee/oversight controls retain
+ * their own destinations; form references remain in the shared disclosure.
  *
  * R-10 sees the live variant; R-09 the read-only "what the Speaker can
  * do" variant — actions hidden, and the engine rejects them regardless.
  */
 import { computed } from 'vue';
-import { useForm, usePage } from '@inertiajs/vue3';
+import { Link, useForm, usePage } from '@inertiajs/vue3';
+import { useI18n } from 'vue-i18n';
+import LegislatureWorkspaceNav from '@/Components/Legislature/LegislatureWorkspaceNav.vue';
 import AppShellV2 from '@/Layouts/AppShellV2.vue';
 import PageScaffold from '@/Components/Surface/PageScaffold.vue';
 import FormCard from '@/Components/Surface/FormCard.vue';
@@ -20,7 +20,6 @@ import Banner from '@/Components/Ui/Banner.vue';
 import Card from '@/Components/Ui/Card.vue';
 import DataTable from '@/Components/Ui/DataTable.vue';
 import Field from '@/Components/Ui/Field.vue';
-import FormChip from '@/Components/Ui/FormChip.vue';
 import HardenedChip from '@/Components/Ui/HardenedChip.vue';
 import StatusBadge from '@/Components/Ui/StatusBadge.vue';
 
@@ -29,12 +28,13 @@ defineOptions({ layout: AppShellV2 });
 
 const props = defineProps({
     surface: { type: Object, required: true },
+    workspace: { type: Object, required: true },
     legislature: { type: Object, required: true },
     speaker: { type: Object, required: true },
     readOnly: { type: Boolean, default: true },
-    forms: { type: Array, default: () => [] },
     tieBreaks: { type: Array, default: () => [] },
     priorities: { type: Array, default: () => [] },
+    priorityPages: { type: Object, default: null },
     prioritySession: { type: Object, default: null },
     members: { type: Array, default: () => [] },
     pendingProceedings: { type: Array, default: () => [] },
@@ -43,6 +43,8 @@ const props = defineProps({
 });
 
 const page = usePage();
+const { t } = useI18n();
+const text = key => t('c_legislature_workspace.' + key);
 const flashStatus = computed(() => page.props.flash?.status ?? null);
 const constitutionError = computed(() => page.props.errors?.constitution ?? null);
 
@@ -51,13 +53,6 @@ const formMeta = (id) => props.surface.forms.find((f) => f.id === id);
 function fmt(iso) {
     return iso ? new Date(iso).toLocaleString() : '—';
 }
-
-const SURFACE_LABELS = {
-    session: 'Session console',
-    committees: 'Committees',
-    oversight: 'Oversight',
-    speaker: 'this page — the priorities queue below',
-};
 
 /* ----------------------------------------------- priorities (F-SPK-006) */
 const priorityForm = useForm({ session_id: '', member_id: '', text: '' });
@@ -91,20 +86,13 @@ const priorityColumns = [
 
 <template>
     <PageScaffold :surface="surface" :title="`Speaker tools — ${legislature.name}`">
-        <template #intro>
-            The Speaker facilitates and stays politically neutral: they remain a serving member in
-            every denominator, vote only to break ties, and preside over removal proceedings —
-            never their own. This page is the launchpad for the nine Speaker forms; each control
-            lives on its working surface.
-        </template>
+        <LegislatureWorkspaceNav :workspace="workspace" active="speaker" />
 
         <Banner v-if="flashStatus" tone="info" role="status">{{ flashStatus }}</Banner>
         <Banner v-if="constitutionError" tone="emergency">{{ constitutionError }}</Banner>
 
         <Banner v-if="readOnly" tone="info" role="status" title="Read-only view">
-            You hold a seat in this chamber (R-09) but are not its Speaker — this is the "what the
-            Speaker can do" view. Actions are hidden here, and the engine rejects them regardless
-            (the role gate is the handler's, never the page's).
+            {{ text('speaker_read_only') }}
         </Banner>
 
         <!-- ================================== neutrality =============== -->
@@ -121,29 +109,6 @@ const priorityColumns = [
                 Speaker cast is rejected pre-commit unless the vote stands tied — and a tie-break
                 never manufactures a supermajority (Art. VII).
             </p>
-        </Card>
-
-        <!-- ================================== the 9 F-SPK cards ======== -->
-        <Card as="section" title="The Speaker's nine forms">
-            <div class="grid-2">
-                <Card v-for="form in forms" :key="form.id" inset>
-                    <p style="margin-block-end: var(--space-1)">
-                        <strong>{{ form.name }}</strong>
-                        {{ ' ' }}
-                        <FormChip :form-id="form.id" :alias="form.alias" />
-                    </p>
-                    <p class="citation" style="margin-block-end: var(--space-1)">
-                        available to {{ (form.availableTo?.length ? form.availableTo : ['R-10']).join(', ') }}
-                        <template v-if="form.citation"> · {{ form.citation }}</template>
-                    </p>
-                    <p class="cc-small">
-                        <a v-if="form.surface_href" :href="form.surface_href">
-                            Go to {{ SURFACE_LABELS[form.surface] ?? form.surface }} →
-                        </a>
-                        <span v-else class="gloss">{{ SURFACE_LABELS[form.surface] }}</span>
-                    </p>
-                </Card>
-            </div>
         </Card>
 
         <div class="grid-2">
@@ -164,6 +129,11 @@ const priorityColumns = [
                     row-key="vote_id"
                     caption="Speaker tie-breaking votes"
                 >
+                    <template #cell-context="{ row }">
+                        <Link v-if="row.vote_href" :href="row.vote_href">{{ row.context }}</Link>
+                        <span v-else>{{ row.context }}</span>
+                        <p v-if="row.explanation" class="gloss" data-no-i18n>{{ row.explanation }}</p>
+                    </template>
                     <template #cell-cast="{ row }">
                         <StatusBadge tone="warning" icon="landmark">{{ row.cast }} · F-SPK-004</StatusBadge>
                     </template>
@@ -214,6 +184,10 @@ const priorityColumns = [
                 caption="Facilitated member priorities"
             />
             <p v-else class="cc-small gloss">No priorities facilitated yet.</p>
+            <nav v-if="priorityPages?.older || priorityPages?.newer" class="cluster" :aria-label="text('priority_pages')">
+                <Link v-if="priorityPages.older" :href="priorityPages.older">{{ text('older') }}</Link>
+                <Link v-if="priorityPages.newer" :href="priorityPages.newer">{{ text('newer') }}</Link>
+            </nav>
 
             <template v-if="!readOnly">
                 <FormCard

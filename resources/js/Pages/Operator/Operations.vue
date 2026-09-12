@@ -7,6 +7,7 @@
 import { computed, reactive, ref, onMounted, onBeforeUnmount } from 'vue';
 import { Head, router, usePage } from '@inertiajs/vue3';
 import AppShell from '@/Layouts/AppShell.vue';
+import HostNav from '@/Components/Operator/HostNav.vue';
 
 /* KEEP-class (V3 synthesis S1): pinned to the v1 shell when AppShellV2 became
    the app-wide default — legacy operations console; zero change intended. */
@@ -105,17 +106,17 @@ const fmtDate = (iso) => (iso ? new Date(iso).toLocaleDateString() : '—');
 </script>
 
 <template>
-    <Head title="Operator operations" />
+    <Head title="Host resources and services" />
 
     <div class="mx-auto max-w-5xl space-y-6 p-6">
         <header>
-            <h1 class="text-lg font-semibold text-slate-900">Operator operations</h1>
+            <h1 class="text-lg font-semibold text-slate-900">Host resources and services</h1>
             <p class="mt-1 max-w-3xl text-sm text-slate-600">
-                The infrastructure &amp; identity plane for this box — certificates, DNS, voice, and Matrix.
-                Separate from the constitution: the operator manages the box, the constitution governs the polity.
-                This view is read-only; the documentation links explain how to change each knob today.
+                Review this host’s infrastructure and edit supported settings. Each setting shows whether
+                it applies immediately, requires a service restart, or is managed elsewhere.
             </p>
         </header>
+        <HostNav current="operations" />
 
         <p v-if="flash" class="rounded border border-emerald-200 bg-emerald-50 px-3 py-2 text-sm text-emerald-800">{{ flash }}</p>
         <p v-if="tuningError" class="rounded border border-rose-200 bg-rose-50 px-3 py-2 text-sm text-rose-700">{{ tuningError }}</p>

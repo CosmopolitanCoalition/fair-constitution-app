@@ -46,7 +46,7 @@ const { t } = useI18n({
         treasury: 'Public accounts',
         units: 'Currency & monetary policy',
         stipend: 'Civic stipend',
-        exchange: 'Shares & instruments',
+        exchange: 'Buy or sell shares',
         joint: 'Shared funds',
         unit: 'Currency',
     } },

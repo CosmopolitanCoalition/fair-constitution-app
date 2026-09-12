@@ -24,9 +24,8 @@ use Inertia\Response;
  * FE-C3 — SessionConsole (PHASE_C_DESIGN_frontend.md §B.2; surface
  * legislature/session-console).
  *
- * Route-gated to chamber members (R-09..R-13 derive through the member
- * row) + R-29 admin staff; everyone else 302s to the Chamber — sessions
- * are run by members; the minutes publish to the public record.
+ * Sessions are public to read. Chamber membership and admin roles resolve
+ * controls separately, and the engine validates each filing.
  *
  * Every POST is one engine filing (F-SPK-001/002/003/008/009,
  * F-LEG-002/006/007, F-LEG-004/005/008/011 casts, F-SPK-004 tie-break);
@@ -50,7 +49,7 @@ class SessionController extends Controller
 
     public function show(Request $request, Legislature $legislature): Response
     {
-        $legislature->loadMissing('jurisdiction');
+        $legislature->loadMissing('jurisdiction:id,name,slug,parent_id,adm_level');
 
         $viewer = $this->viewerMember($legislature, $request->user());
         $isAdminStaff = in_array('R-29', $this->roles->rolesFor($request->user()), true);
@@ -85,6 +84,8 @@ class SessionController extends Controller
         ], true);
 
         return Inertia::render('Legislature/SessionConsole', [
+            'workspace' => \App\Support\LegislatureWorkspace::for($legislature, $legislature->jurisdiction, $viewer !== null),
+            'jurisdictionContext' => $legislature->jurisdiction ? \App\Support\JurisdictionContext::for($legislature->jurisdiction) : null,
             'surface'       => SurfaceMeta::for('legislature/session-console'),
             'legislature'   => $this->legislatureProps($legislature),
             'session'       => $session !== null ? $this->sessionProps($session) : null,
@@ -328,13 +329,13 @@ class SessionController extends Controller
 
         $attendance = SessionAttendance::query()
             ->where('session_id', $session->id)
-            ->with('member.user:id,name,display_name')
+            ->with('member.user:id,display_name')
             ->get()
             ->sortBy(fn (SessionAttendance $row) => $row->member?->seat_no ?? 999)
             ->values()
             ->map(fn (SessionAttendance $row) => [
                 'member_id' => (string) $row->member_id,
-                'name'      => $this->memberDisplayName($row->member),
+                'name'      => ($row->member?->user?->display_name ?: 'Member'),
                 'seat_no'   => $row->member?->seat_no,
                 'seat_kind' => $row->member?->seatKind(),
                 'status'    => $row->status,
@@ -446,7 +447,7 @@ class SessionController extends Controller
     {
         return Motion::query()
             ->where('session_id', $session->id)
-            ->with(['movedBy.user:id,name,display_name', 'vote.tallies'])
+            ->with(['movedBy.user:id,display_name', 'vote.tallies'])
             ->orderByDesc('created_at')
             ->get()
             ->map(fn (Motion $motion) => [
@@ -455,7 +456,7 @@ class SessionController extends Controller
                 'text'    => $motion->text,
                 'status'  => $motion->status,
                 'bill_id' => $motion->bill_id !== null ? (string) $motion->bill_id : null,
-                'moved_by' => $this->memberDisplayName($motion->movedBy),
+                'moved_by' => ($motion->movedBy?->user?->display_name ?: 'Member'),
                 'vote'    => $motion->vote !== null ? $this->votes->tallyProps($motion->vote) : null,
                 'casts'   => $motion->vote !== null ? $this->votes->casts($motion->vote) : null,
             ])
@@ -480,12 +481,12 @@ class SessionController extends Controller
         $candidates = \App\Models\LegislatureMember::query()
             ->where('legislature_id', $legislature->id)
             ->whereIn('status', \App\Models\LegislatureMember::CURRENT_STATUSES)
-            ->with('user:id,name,display_name')
+            ->with('user:id,display_name')
             ->orderBy('seat_no')
             ->get()
             ->map(fn ($member) => [
                 'id'   => (string) $member->id,
-                'name' => $this->memberDisplayName($member),
+                'name' => ($member?->user?->display_name ?: 'Member'),
             ])
             ->values()
             ->all();

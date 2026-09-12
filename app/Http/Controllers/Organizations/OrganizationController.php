@@ -18,6 +18,8 @@ use App\Services\Organizations\CoDeterminationService;
 use App\Services\RoleService;
 use App\Services\SettingsResolver;
 use App\Support\SurfaceMeta;
+use App\Support\OrganizationDirectory;
+use App\Support\JurisdictionContext;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -54,7 +56,7 @@ class OrganizationController extends Controller
 {
     /** ESM-18 ownership-structure rule glosses (the registration select hints). */
     private const STRUCTURE_GLOSS = [
-        Organization::STRUCTURE_STOCK => 'Shares decide the owner side; members are shareholders (R-24).',
+        Organization::STRUCTURE_STOCK => 'Shares decide the owner side; members are shareholders.',
         Organization::STRUCTURE_PARTNERSHIP => 'Partners are the owners; changes follow the partnership agreement.',
         Organization::STRUCTURE_EQUAL_PARTNERSHIP => 'Equal partners; partnership changes require unanimity.',
         Organization::STRUCTURE_MEMBER_OWNED => 'Member-owned; the membership governs per its adopted rules.',
@@ -81,63 +83,38 @@ class OrganizationController extends Controller
 
     public function index(Request $request): Response
     {
+        $selected = OrganizationDirectory::filters($request);
+        $place = JurisdictionContext::requested($request);
+        $selected['jurisdiction'] = $place ? (string) $place->id : '';
         $viewer = $request->user();
-        $roles = $this->roles->rolesFor($viewer);
-
         $associations = $viewer !== null ? $this->roles->associationsFor($viewer) : [];
-
-        $orgs = Organization::query()
-            ->whereNull('deleted_at')
-            ->whereNot('status', Organization::STATUS_DISSOLVED)
-            ->with('jurisdiction:id,name,adm_level')
-            ->orderBy('name')
-            ->get();
-
-        // ESM-18 thresholds resolve per the viewer's nearest association
-        // (the co-determination cell legend) — CLK-13/14 are amendable, so
-        // the constants are NEVER hardcoded client-side.
-        [$min, $parity] = $this->resolveThresholds($associations);
-
-        // A pending monopoly-acquisition conversion (Art. III §5) flags a row.
-        // One query for the whole list, not per row; in-flight = not yet
-        // completed or abandoned. Empty when none is pending (honest absence).
-        $monopolyPending = DB::table('org_conversions')
-            ->where('via', OrgConversion::VIA_MONOPOLY_ACQUISITION)
-            ->whereNotIn('status', [OrgConversion::STATUS_COMPLETED, OrgConversion::STATUS_ABANDONED])
-            ->whereNull('deleted_at')
-            ->distinct()
-            ->pluck('organization_id')
-            ->map(fn ($id) => (string) $id)
-            ->all();
-
-        $rows = $orgs->map(fn (Organization $org) => $this->registryRow($org, $min, $parity, $monopolyPending))->all();
+        $places = array_map(fn (array $a) => ['id' => $a['id'], 'name' => $a['name'], 'adm_level' => $a['adm_level']], $associations);
+        if ($place !== null && ! in_array($place->id, array_column($places, 'id'), true)) {
+            $places[] = ['id' => (string) $place->id, 'name' => $place->name, 'adm_level' => $place->adm_level];
+        }
 
         return Inertia::render('Organizations/Registry', [
             'surface' => SurfaceMeta::for('organizations/org-registry'),
-            'stats' => $this->registryStats($orgs, $min, $parity),
-            'organizations' => $rows,
+            'jurisdictionContext' => $place ? JurisdictionContext::for($place) : null,
+            'directory' => fn () => app(OrganizationDirectory::class)->page($request, $selected, $place?->id),
             'filters' => [
-                'types' => self::TYPES,
+                'types' => OrganizationDirectory::TYPES,
                 'structures' => Organization::STRUCTURES,
-                'jurisdictions' => array_map(
-                    fn (array $a) => ['id' => $a['id'], 'name' => $a['name'], 'adm_level' => $a['adm_level']],
-                    $associations,
-                ),
+                'jurisdictions' => $places,
+                'selected' => $selected,
             ],
-            'machine' => config('cga.state_machines.organization', []),
             'createForm' => [
                 'types' => self::TYPES,
-                'structures' => array_map(
-                    fn (string $s) => ['value' => $s, 'label' => str_replace('_', ' ', $s), 'rule_gloss' => self::STRUCTURE_GLOSS[$s] ?? null],
-                    Organization::STRUCTURES,
-                ),
-                'jurisdictionOptions' => array_map(
-                    fn (array $a) => ['id' => $a['id'], 'name' => $a['name'], 'adm_level' => $a['adm_level']],
-                    $associations,
-                ),
+                'structures' => array_map(fn (string $s) => [
+                    'value' => $s, 'label' => str_replace('_', ' ', $s),
+                    'rule_gloss' => self::STRUCTURE_GLOSS[$s] ?? null,
+                ], Organization::STRUCTURES),
+                // Observation of another place must never create action standing.
+                'jurisdictionOptions' => array_map(fn (array $a) => [
+                    'id' => $a['id'], 'name' => $a['name'], 'adm_level' => $a['adm_level'],
+                ], $associations),
             ],
-            'isAssociated' => in_array('R-03', $roles, true),
-            'thresholds' => ['min' => $min, 'parity' => $parity],
+            'isAssociated' => in_array('R-03', $this->roles->rolesFor($viewer), true),
         ]);
     }
 
@@ -378,82 +355,6 @@ class OrganizationController extends Controller
         ]);
 
         return back()->with('status', 'Endorsement decided (F-ORG-002) — a grant is forced public and confers R-07 on the candidate.');
-    }
-
-    // -------------------------------------------------------------------------
-    // Registry helpers (§B.6)
-    // -------------------------------------------------------------------------
-
-    /** @return array<string, mixed> */
-    /** @param  list<string>  $monopolyPending  org ids with an in-flight monopoly-acquisition conversion */
-    private function registryRow(Organization $org, int $min, int $parity, array $monopolyPending = []): array
-    {
-        $endorsementCount = DB::table('endorsements')
-            ->where('endorser_type', 'organization')
-            ->where('endorser_id', (string) $org->id)
-            ->where('is_active', true)
-            ->count();
-
-        return [
-            'id' => (string) $org->id,
-            'name' => $org->name,
-            'type' => $org->type,
-            'structure' => $org->structure,
-            'jurisdiction' => $org->jurisdiction !== null
-                ? ['name' => $org->jurisdiction->name, 'adm_level' => (int) $org->jurisdiction->adm_level]
-                : null,
-            'workers' => (int) $org->worker_count,
-            'endorsement_count' => $endorsementCount,
-            // The co-det cell reads the ENGINE seat snapshot from the board
-            // row; absent a board there is no scaling state to show.
-            'codet' => $this->codetCell($org, $min, $parity),
-            'is_cgc' => (bool) $org->is_cgc,
-            'status' => $org->status,
-            // Art. III §5 — a pending monopoly-acquisition conversion the
-            // registry flags on the row (honest-absent when none is in flight).
-            'monopoly_pending' => in_array((string) $org->id, $monopolyPending, true),
-            'href' => '/organizations/'.$org->id,
-        ];
-    }
-
-    /**
-     * The co-determination cell: state from the live headcount against the
-     * resolved thresholds; worker_seats is the engine's board snapshot
-     * (never recomputed here). Null when no board exists yet.
-     *
-     * @return array{state: string, worker_seats: int}|null
-     */
-    private function codetCell(Organization $org, int $min, int $parity): ?array
-    {
-        if ($org->board_id === null) {
-            return null;
-        }
-
-        $workerSeats = (int) (Board::query()->whereKey($org->board_id)->value('worker_seats') ?? 0);
-        $workers = (int) $org->worker_count;
-
-        $state = $workers >= $parity ? 'parity' : ($workers >= $min ? 'scaling' : 'below');
-
-        return ['state' => $state, 'worker_seats' => $workerSeats];
-    }
-
-    /** @return array{total: int, endorsing: int, in_codetermination: int, cgcs: int} */
-    private function registryStats($orgs, int $min, int $parity): array
-    {
-        $endorserIds = DB::table('endorsements')
-            ->where('endorser_type', 'organization')
-            ->where('is_active', true)
-            ->distinct()
-            ->pluck('endorser_id')
-            ->map(fn ($id) => (string) $id)
-            ->all();
-
-        return [
-            'total' => $orgs->count(),
-            'endorsing' => $orgs->filter(fn (Organization $o) => in_array((string) $o->id, $endorserIds, true))->count(),
-            'in_codetermination' => $orgs->filter(fn (Organization $o) => (int) $o->worker_count >= $min)->count(),
-            'cgcs' => $orgs->filter(fn (Organization $o) => (bool) $o->is_cgc)->count(),
-        ];
     }
 
     // -------------------------------------------------------------------------

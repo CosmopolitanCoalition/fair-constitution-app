@@ -24,7 +24,8 @@ const sections = computed(() => SITEMAP.filter(s => !['node', 'build-team'].incl
         && !['legislatures', 'role-explorer'].includes(i.id)),
 })).filter(s => s.items.length));
 const hostSections = computed(() => SITEMAP.filter(s => ['node', 'build-team'].includes(s.key)).map(s => ({
-    ...s, items: s.items.filter(i => i.href && (!i.sandbox || instance.value.localTools === true)),
+    ...s, items: s.items.filter(i => i.href && (!i.sandbox || instance.value.localTools === true)
+        && (s.key !== 'node' || ['setup-wizard', 'operator-home'].includes(i.id))),
 })));
 const shortcuts = [
     { id: 'legislatures', label: 'Legislative maps', href: '/legislatures', icon: 'map' },
@@ -34,7 +35,7 @@ const label = item => t('c_navigation.' + item.id, item.label);
 function target(item) {
     const place = page.props.jurisdictionContext?.current?.id;
     const scoped = ['/explore', '/civic/square', '/civic/halls', '/civic/petitions', '/civic/commons/square', '/civic/commons/halls',
-        '/elections', '/elections/open-ballot', '/elections/candidacy', '/elections/ranked-ballot', '/elections/results'];
+        '/elections', '/elections/open-ballot', '/elections/candidacy', '/elections/ranked-ballot', '/elections/results', '/organizations'];
     return place && scoped.includes(item.href) ? item.href + '?jurisdiction=' + encodeURIComponent(place) : item.href;
 }
 function allowed(item) {

@@ -1,254 +1,75 @@
 <script setup>
-/**
- * Economy/Agreements — the instruments register (design contract:
- * mockups/v3/economy/agreements.html).
- *
- * PARTY-SCOPED BY CONSTRUCTION. A contract is consent between parties, so
- * parties see each other by name — that is what a signature is. But the
- * instrument itself is private: this register lists only agreements the
- * viewer is a party to, and the controller never ships terms to anyone
- * else. No raw user ids cross the boundary — names only.
- *
- * THE FLOOR RENDERS ON EVERY INSTRUMENT because it holds on every
- * instrument: no clause may waive a right, and both sides must sign —
- * the second rule is enforced by the DATABASE (a contract cannot reach
- * 'active' without both signatures; org_contracts_cosign_check).
- *
- * READ-ONLY v1. Drafting free-form agreements arrives with the
- * negotiation/redline model (Wave 3, design-gated). Today an instrument
- * comes into existence through the acts that imply it: a hire records a
- * labor agreement (F-IND-014 chain), a market settlement records a
- * commercial one (F-IND-022).
- */
+import { computed } from 'vue';
 import { Link } from '@inertiajs/vue3';
 import AppShellV2 from '@/Layouts/AppShellV2.vue';
 import PageScaffold from '@/Components/Surface/PageScaffold.vue';
 import Card from '@/Components/Ui/Card.vue';
-import FormChip from '@/Components/Ui/FormChip.vue';
-import { formatWhen } from '@/lib/money.js';
+import WorkTradeNav from '@/Components/Economy/WorkTradeNav.vue';
 
 defineOptions({ layout: AppShellV2 });
-
-defineProps({
+const props = defineProps({
     agreements: { type: Array, default: () => [] },
+    pagination: { type: Object, default: () => ({}) },
 });
-
-const KIND_LABEL = {
-    labor_recurring: 'Labor — recurring',
-    labor_single: 'Labor — one-off',
-    commercial: 'Commercial',
-    other: 'Free-form',
-};
-
-const STATUS_LABEL = {
-    draft: 'Draft',
-    offered: 'Offered — awaiting a signature',
-    active: 'Active — signed by both parties',
-    ended: 'Ended',
-    voided: 'Voided',
-};
-
-const KINDS_REFERENCE = [
-    {
-        kind: 'Labor',
-        note: 'Recurring or one-off work between a worker and an organization. Feeds co-determination headcount.',
-        formId: 'F-IND-014',
-        formName: 'Worker Registration',
-    },
-    {
-        kind: 'Commercial',
-        note: 'A sale settled on the open market — money and thing moved together, and the agreement records it.',
-        formId: 'F-IND-022',
-        formName: 'Marketplace Listing / Order',
-    },
-    {
-        kind: 'Free-form',
-        note: 'Any other agreement parties freely enter — still bound by the constitutional floor. Drafting arrives with the negotiation model.',
-        formId: null,
-        formName: null,
-    },
-];
+const groups = computed(() => [
+    { key: 'org', title: 'Work & sales', hint: 'Agreements with organizations you work with or belong to.', rows: props.agreements.filter(a => a.family === 'org') },
+    { key: 'resident', title: 'Between people', hint: 'Agreements you offered or were invited to sign.', rows: props.agreements.filter(a => a.family === 'resident') },
+]);
+const kinds = { labor_recurring: 'Ongoing work', labor_single: 'One-off work', commercial: 'Sale', other: 'Other agreement' };
+const status = { draft: 'Draft', offered: 'Awaiting signatures', active: 'Active', ended: 'Ended', voided: 'Voided' };
 </script>
 
 <template>
-    <PageScaffold title="Agreements">
-        <template #intro>
-            Contracts here are an expression of the freedom to contract — parties freely set terms
-            between themselves. But every agreement sits on a floor: no clause may waive, sell, or
-            sign away a constitutional right. A contract that tries to is void in that part; the
-            rest stands.
-        </template>
+    <PageScaffold title="My agreements">
+        <template #intro>Review terms, signatures and proposed changes in the agreements available to you.</template>
+        <WorkTradeNav active="agreements" />
+        <div class="agreement-actions">
+            <Link href="/economy/resident-agreements?new=1" class="agreement-primary">Offer an agreement between people</Link>
+            <Link href="/economy/joint-ledgers">Manage shared funds</Link>
+        </div>
+        <p class="agreement-note">Agreement terms are private. Work and sale agreements appear when the corresponding transaction is recorded.</p>
 
-        <p class="econ-note">
-            The terms of an agreement are private to its parties — like a ballot, nobody else can
-            read them. This page shows only agreements you are a party to.
-        </p>
-
-        <Card as="section" title="Your agreements">
-            <p v-if="!agreements.length" class="econ-empty">
-                You are not a party to any agreement yet. A hire records a labor agreement; a
-                settled sale records a commercial one; a resident agreement is one you offer another
-                person directly.
-            </p>
-
-            <template v-for="a in agreements" :key="a.id">
-                <!-- organization contract (labor / commercial / free-form) -->
-                <article v-if="a.family === 'org'" class="agr-card">
-                    <p class="agr-kind">{{ KIND_LABEL[a.kind] ?? a.kind }}</p>
-                    <div class="agr-head">
-                        <h3>{{ a.org_name }} ↔ {{ a.counterparty }}</h3>
-                        <span class="agr-status" :data-status="a.status">{{ STATUS_LABEL[a.status] ?? a.status }}</span>
+        <Card v-for="group in groups" :key="group.key" as="section" :title="group.title">
+            <p class="agreement-note">{{ group.hint }}</p>
+            <p v-if="!group.rows.length">No agreements in this section.</p>
+            <ul v-else class="agreement-list">
+                <li v-for="agreement in group.rows" :key="agreement.id">
+                    <div class="agreement-row">
+                        <div>
+                            <span class="agreement-kind">{{ agreement.family === 'org' ? (kinds[agreement.kind] ?? 'Agreement') : 'Personal agreement' }}</span>
+                            <h3><Link :href="agreement.href">{{ agreement.family === 'org' ? `${agreement.org_name} — ${agreement.counterparty}` : agreement.title }}</Link></h3>
+                        </div>
+                        <span>{{ status[agreement.status] ?? agreement.status }}</span>
                     </div>
-                    <p class="agr-terms">{{ a.terms }}</p>
-                    <p class="agr-signatures">
-                        <span :class="a.signed_by_org ? 'agr-signed' : 'agr-unsigned'">
-                            {{ a.org_name }}: {{ a.signed_by_org ? `signed ${formatWhen(a.signed_by_org_at)}` : 'not yet signed' }}
-                        </span>
-                        <span :class="a.signed_by_counterparty ? 'agr-signed' : 'agr-unsigned'">
-                            {{ a.counterparty }}: {{ a.signed_by_counterparty ? `signed ${formatWhen(a.signed_by_counterparty_at)}` : 'not yet signed' }}
-                        </span>
+                    <p v-if="agreement.family === 'org'" class="agreement-note">
+                        {{ agreement.org_name }}: {{ agreement.signed_by_org ? 'signed' : 'awaiting signature' }} ·
+                        {{ agreement.counterparty }}: {{ agreement.signed_by_counterparty ? 'signed' : 'awaiting signature' }}
                     </p>
-                    <p class="agr-floor">
-                        No clause may waive a right. Both parties sign — a one-sided contract never
-                        takes effect.
-                    </p>
-                    <p><Link :href="a.href" class="econ-back">Open this agreement</Link></p>
-                </article>
-
-                <!-- person-to-person resident agreement (F-IND-020) -->
-                <article v-else class="agr-card">
-                    <p class="agr-kind">Person to person</p>
-                    <div class="agr-head">
-                        <h3>{{ a.title }}</h3>
-                        <span class="agr-status" :data-status="a.status">{{ STATUS_LABEL[a.status] ?? a.status }}</span>
-                    </div>
-                    <p class="agr-signatures">
-                        <span v-for="(s, i) in a.signers" :key="i" :class="s.signed ? 'agr-signed' : 'agr-unsigned'">
-                            {{ s.signed ? '✓' : '○' }} {{ s.name }}<template v-if="s.is_me"> (you)</template>
+                    <p v-else class="agreement-note">
+                        <span v-for="(signer, index) in agreement.signers" :key="index">
+                            <template v-if="index"> · </template>{{ signer.name }}{{ signer.is_me ? ' (you)' : '' }}: {{ signer.signed ? 'signed' : 'awaiting signature' }}
                         </span>
                     </p>
-                    <p class="agr-floor">
-                        Takes effect only when every party signs — no clause may waive a right.
-                    </p>
-                    <p><Link :href="a.href" class="econ-back">Open in resident agreements</Link></p>
-                </article>
-            </template>
-        </Card>
-
-        <Card as="section" title="The floor under every agreement">
-            <ul class="agr-rules">
-                <li>
-                    <strong>No clause can waive a right.</strong> An agreement may not touch voting,
-                    candidacy, residency, petitioning, due process, or any constitutional right.
-                </li>
-                <li>
-                    <strong>Both sides must sign.</strong> Consent of every party is on the record —
-                    a one-sided contract never takes effect. The database itself refuses an active
-                    contract with a missing signature.
-                </li>
-                <li>
-                    <strong>No paywall on a civic act.</strong> No agreement may attach a fee or
-                    cost to exercising a civic right or obligation.
-                </li>
-                <li>
-                    <strong>Shared resources stay jointly controlled.</strong> A joint ledger moves
-                    only by the agreement of its co-owners.
                 </li>
             </ul>
-            <p class="econ-note">No law, panel, or clause can lower this floor.</p>
-        </Card>
-
-        <Card as="section" title="The kinds of agreement">
-            <table class="agr-kinds">
-                <thead>
-                    <tr><th scope="col">Kind</th><th scope="col">What it does</th><th scope="col">Recorded by</th></tr>
-                </thead>
-                <tbody>
-                    <tr v-for="k in KINDS_REFERENCE" :key="k.kind">
-                        <td>{{ k.kind }}</td>
-                        <td>{{ k.note }}</td>
-                        <td>
-                            <FormChip v-if="k.formId" :form-id="k.formId" :name="k.formName" />
-                            <span v-else>Free-form (the floor still binds)</span>
-                        </td>
-                    </tr>
-                </tbody>
-            </table>
+            <nav v-if="pagination[group.key]?.previous || pagination[group.key]?.next" class="agreement-pager" :aria-label="`${group.title} pages`">
+                <Link v-if="pagination[group.key].previous" :href="pagination[group.key].previous" preserve-scroll>Newer agreements</Link>
+                <Link v-if="pagination[group.key].next" :href="pagination[group.key].next" preserve-scroll>Older agreements</Link>
+            </nav>
         </Card>
     </PageScaffold>
 </template>
 
 <style scoped>
-.agr-card {
-    border: 1px solid var(--gov-border, #dde);
-    border-radius: 0.5rem;
-    padding: var(--space-3, 1rem);
-    margin-block-end: var(--space-3, 1rem);
-}
-.agr-kind {
-    margin: 0;
-    font-size: var(--text-sm, 0.875rem);
-    color: var(--gov-fg-muted, #667);
-    text-transform: uppercase;
-    letter-spacing: 0.04em;
-}
-.agr-head {
-    display: flex;
-    justify-content: space-between;
-    align-items: baseline;
-    gap: var(--space-2, 0.5rem);
-    flex-wrap: wrap;
-}
-.agr-head h3 {
-    margin: 0;
-    color: var(--gov-fg, #223);
-}
-.agr-status {
-    font-size: var(--text-sm, 0.875rem);
-    color: var(--gov-fg-muted, #667);
-}
-.agr-status[data-status='active'] {
-    color: var(--gov-fg, #223);
-    font-weight: 600;
-}
-.agr-terms {
-    margin-block: var(--space-2, 0.5rem);
-}
-.agr-signatures {
-    display: flex;
-    gap: var(--space-3, 1rem);
-    flex-wrap: wrap;
-    margin: 0;
-    font-size: var(--text-sm, 0.875rem);
-}
-.agr-signed {
-    color: var(--gov-fg, #223);
-}
-.agr-unsigned {
-    color: var(--gov-fg-muted, #667);
-}
-.agr-floor {
-    background: var(--gov-surface-subtle, #eef);
-    border-radius: 0.5rem;
-    padding: var(--space-2, 0.5rem) var(--space-3, 1rem);
-    font-size: var(--text-sm, 0.875rem);
-    margin-block: var(--space-2, 0.5rem);
-}
-.agr-rules {
-    margin: 0;
-    padding-inline-start: 1.25rem;
-    display: flex;
-    flex-direction: column;
-    gap: var(--space-2, 0.5rem);
-}
-.agr-kinds {
-    inline-size: 100%;
-    border-collapse: collapse;
-}
-.agr-kinds th,
-.agr-kinds td {
-    text-align: start;
-    padding: var(--space-2, 0.5rem);
-    border-block-end: 1px solid var(--gov-border, #dde);
-}
+.agreement-actions, .agreement-row, .agreement-pager { display: flex; flex-wrap: wrap; align-items: center; gap: .75rem 1rem; }
+.agreement-actions a, .agreement-pager a { display: inline-flex; align-items: center; min-block-size: 44px; padding: .5rem .75rem; }
+.agreement-primary { border: 1px solid var(--gov-accent); border-radius: .4rem; font-weight: 600; }
+.agreement-note, .agreement-kind { color: var(--gov-fg-muted); font-size: .875rem; }
+.agreement-list { padding: 0; margin: 0; list-style: none; }
+.agreement-list li { padding-block: 1rem; border-block-start: 1px solid var(--gov-border); }
+.agreement-row { justify-content: space-between; align-items: baseline; }
+.agreement-row h3 { margin: .3rem 0; font-size: 1rem; }
+.agreement-row h3 a { display: inline-block; padding-block: .4rem; }
+.agreement-pager { justify-content: space-between; margin-block-start: .75rem; }
+a:focus-visible { outline: 3px solid var(--gov-accent); outline-offset: 3px; }
 </style>

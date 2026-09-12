@@ -1,321 +1,407 @@
 <script setup>
 /**
- * Operator/Home — the operator plane's front door (mockups-v3-wiring Phase 4;
- * design contract mockups/v3/operator/operator-home.html; PHASE_4_DESIGN_peerage.md §3.1).
+ * Operator/Home — canonical host overview, consolidated from the former console (design contract:
+ * mockups/v3/operator/console.html; PHASE_4_DESIGN_peerage.md §3.1).
  *
- * A pure READ surface over MeshConsoleController::home() — the readiness
- * rollup (MeshGateService::evaluate), the four named roles as chips
- * (MeshGateService::roles), the enabled-channel manifest, the peers-&-sync
- * line, and the authority count the settled way: "this node holds the home
- * copy of N places" — authority attaches to a PLACE, never to a node as rank.
- * The G3c read-write petition ladder is deliberately absent (design flag 1 —
- * the legacy /federation page keeps it).
+ * READ-ONLY BY DESIGN — a pure render of MeshConsoleController@home, which
+ * itself only wraps MeshGateService (gates / roles / channels) and
+ * PeerUpgradeAgreementService (the three consent meters). Nothing here
+ * re-computes a meter, a probe, or an authority rule; the CTAs navigate to
+ * /operator/roles where the lifecycle actions live.
  *
- * Gating mirrors /operator/operations exactly: the shell renders for any
- * authenticated user; the operator data block (`readiness`) arrives only for
- * an auth:operator session — a citizen sees the sign-in prompt.
+ * Gating mirrors /operator/operations exactly: the page shell is reachable by
+ * any signed-in user, but the console data block arrives ONLY for an
+ * authenticated operator — a citizen sees `authed: false`, a null `console`
+ * prop, and the operator sign-in prompt.
+ *
+ * Settled language (design §3.4, binding): "authority" attaches to a
+ * JURISDICTION — never to a node as a rank; "become a peer" is one process
+ * (a cert + clients); role elevation is the separate trust-gated ladder. The
+ * G3c read-write petition ladder is NOT presented here (design flag 1 — the
+ * legacy /federation page keeps it).
  */
 import { computed } from 'vue';
 import { Link, usePage } from '@inertiajs/vue3';
 import AppShellV2 from '@/Layouts/AppShellV2.vue';
 import PageScaffold from '@/Components/Surface/PageScaffold.vue';
+import AboutSurface from '@/Components/Surface/AboutSurface.vue';
 import Banner from '@/Components/Ui/Banner.vue';
 import Btn from '@/Components/Ui/Btn.vue';
 import Card from '@/Components/Ui/Card.vue';
+import DataTable from '@/Components/Ui/DataTable.vue';
 import Icon from '@/Components/Ui/Icon.vue';
 import Stat from '@/Components/Ui/Stat.vue';
 import StatusBadge from '@/Components/Ui/StatusBadge.vue';
+import HostNav from '@/Components/Operator/HostNav.vue';
+import { HOST_PAGES } from '@/Components/Operator/hostNavigation.js';
+import { useI18n } from 'vue-i18n';
 
-/* v3 player chrome (MASTER_PLAN Phase 2 idiom). */
+/* Phase-4 restyle: the v3 player chrome (MASTER_PLAN). */
 defineOptions({ layout: AppShellV2 });
 
 const props = defineProps({
     surface: { type: Object, required: true },
-    /** True only for an auth:operator session (the /operator/operations gate). */
     authed: { type: Boolean, default: false },
-    /** The signed-in operator's username (null for citizens). */
     operator: { type: String, default: null },
-    /** MeshConsoleController::readiness() — null unless an operator is signed in. */
-    readiness: { type: Object, default: null },
+    /** Operator-only data block (null for citizens): health + roles + channels + meters. */
+    console: { type: Object, default: null },
 });
 
 const page = usePage();
+const { t } = useI18n();
+const text = (key, fallback) => t('c_host.' + key, fallback);
+const tasks = [
+    { key: 'roles', title: 'Manage capabilities', note: 'Choose the services this host provides and review capability requests.' },
+    { key: 'mesh', title: 'Connect with other hosts', note: 'Check peers and synchronization, then open connection and access controls.' },
+    { key: 'operations', title: 'Manage host settings', note: 'Review resources and services, DNS, devices, upgrades, and moderation.' },
+];
 const flash = computed(() => page.props.flash?.status ?? null);
 
-const gates = computed(() => props.readiness?.gates ?? []);
-const attention = computed(() => gates.value.filter((g) => g?.status !== 'pass'));
+/* Alias the `console` prop so the template never collides with the global. */
+const data = computed(() => props.console ?? null);
+
+/* ------------------------------------------------------------------ health */
+const gates = computed(() => data.value?.health?.gates ?? []);
+
+/** The mockup's rollup dot: red = a hard blocker, amber = a gate wants attention. */
 const rollup = computed(() => {
-    if (gates.value.some((g) => g?.status === 'fail')) return 'red';
-    if (gates.value.some((g) => g?.status === 'warn')) return 'amber';
-    return gates.value.length ? 'green' : 'amber';
+    if (gates.value.some((g) => g.status === 'fail')) return 'red';
+    if (gates.value.some((g) => g.status === 'warn')) return 'amber';
+    return gates.value.length > 0 ? 'green' : 'amber';
 });
 
-const peers = computed(() => props.readiness?.peers ?? null);
-const channels = computed(() => props.readiness?.channels ?? []);
-const roles = computed(() => props.readiness?.roles ?? []);
-const authority = computed(() => props.readiness?.authority ?? null);
-const homeCopies = computed(() => authority.value?.home_copies ?? 0);
+const rollupNote = computed(
+    () =>
+        ({
+            green: 'All readiness checks pass.',
+            amber: gates.value.length ? 'Some readiness checks need attention.' : 'Readiness has not been reported.',
+            red: 'A readiness check failed. Review the details below.',
+        })[rollup.value],
+);
 
-/** state → plain pill (the operator-console simplification, fixtures-operator.js). */
+/** Gates that want attention, with their one-line details. */
+const attention = computed(() => gates.value.filter((g) => g.status !== 'pass'));
+
+/* ---------------------------------------------------- roles + channel grid */
+const roles = computed(() => data.value?.roles ?? []);
+const channels = computed(() => data.value?.channels ?? []);
+
+/* state → plain pill (the mockup's STATE_PILL, + the roles() `partial` rollup). */
 const STATE_PILL = {
     established: { pill: 'live', label: 'Active' },
-    partial: { pill: 'vote', label: 'Partly on' },
-    requested: { pill: 'wait', label: 'Waiting for approval' },
+    partial: { pill: 'vote', label: 'Partly active' },
     qualifiable: { pill: 'wait', label: 'Ready to turn on' },
     'needs-config': { pill: 'info', label: 'Needs setup' },
+    requested: { pill: 'wait', label: 'Waiting for approval' },
     lapsed: { pill: 'closed', label: 'Stopped' },
 };
-const statePill = (state) => STATE_PILL[state] ?? STATE_PILL['needs-config'];
+const pillOf = (state) => STATE_PILL[state] ?? STATE_PILL['needs-config'];
 
-/** Defensive date text — heartbeat comes as a raw DB timestamp, sync as ISO. */
-const fmtWhen = (value) => {
-    if (!value) return null;
-    const d = new Date(String(value).replace(' ', 'T'));
-    return Number.isNaN(d.getTime())
-        ? String(value)
-        : d.toLocaleString([], { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' });
+/** The first non-pass gate detail for a channel — the plain "why not yet" line. */
+const channelHint = (ch) => {
+    if (ch.state === 'established') return null;
+    const gate = (ch.gates ?? []).find((g) => g.status !== 'pass');
+    return gate?.detail ?? null;
 };
 
-const lastSyncText = computed(() => {
-    const s = peers.value?.last_sync;
-    if (!s) return 'no sync yet';
-    const when = fmtWhen(s.created_at);
-    return `${s.result} · ${s.direction} · seq ${s.seq}${when ? ` · ${when}` : ''}`;
+const channelColumns = [
+    { key: 'capability', label: 'Channel', mono: true },
+    { key: 'kind', label: 'Consent' },
+    { key: 'what', label: 'What it does' },
+    { key: 'state', label: 'State' },
+];
+
+/* ------------------------------------------------------------- the meters */
+const meters = computed(() => data.value?.meters ?? null);
+
+const meterCards = computed(() => {
+    const m = meters.value;
+    if (!m) return [];
+    return [
+        { id: 'A', ...(m.a ?? {}), count: m.a?.active_operators ?? null },
+        { id: 'B', ...(m.b ?? {}), count: null },
+        { id: 'C', ...(m.c ?? {}), count: m.c?.co_affected_peers ?? null },
+    ];
 });
 
-/**
- * The 8 surface doors (the mockup's entry grid). DNS rides the Operations
- * console for now; Moderation is a designed placeholder (Phase I service).
- */
-const doors = [
-    {
-        href: '/setup', icon: 'sliders', title: 'Set up your node',
-        note: 'Claim an operator account, name the instance, pick a role, and go — the first-run wizard.',
-    },
-    {
-        href: '/operator/console', icon: 'landmark', title: 'The operator console',
-        note: 'Your roles at a glance, the health line, and everything advanced behind one toggle.',
-    },
-    {
-        href: '/operator/roles', icon: 'users', title: 'Roles & channels',
-        note: 'The four named roles over the nine capability channels, and how a channel goes live.',
-    },
-    {
-        href: '/operator/mesh', icon: 'globe', title: 'Mesh & federation',
-        note: 'Join a cluster, your peers, sync between nodes, transports, and becoming a full peer.',
-    },
-    {
-        href: '/operator/operations', icon: 'globe', title: 'DNS & certificates',
-        note: 'The Identity Broker: DNS-before-cert, per-name + wildcard backup, DDNS, providers, the budget.',
-        hint: 'Lives in the Operations console for now.',
-    },
-    {
-        href: '/operator/identity', icon: 'lock', title: 'Identity',
-        note: "Your devices and mesh identity; how a player's standing travels with them across nodes.",
-    },
-    {
-        href: null, icon: 'shield', title: 'Moderation & the legal floor',
-        note: 'The legitimacy flip (operator relay → judicial), the four carve-outs, and the legal floor.',
-    },
-    {
-        href: '/operator/versioning', icon: 'refresh-cw', title: 'Versions & upgrades',
-        note: 'Peer version tracking and the dual-meter upgrade agreement; the game-in-progress freeze.',
-    },
-];
+const consentLegNote = computed(() => {
+    const leg = meters.value?.consent_leg ?? null;
+    if (leg === 'seated')
+        return 'A government is seated for this scope — Meter B holds consent, and the operator board can no longer attest on its behalf.';
+    if (leg === 'operator')
+        return 'No government is seated for this scope yet — consent runs through Meter A, the operator board.';
+    return null;
+});
+
+/* open proposals — live counts, straight off peer_upgrade_proposals. */
+const KIND_LABEL = {
+    constitutional_bump: 'constitution bump',
+    schema_bump: 'schema bump',
+    app_release: 'app release',
+    role_grant: 'role grant',
+};
+const openTotal = computed(() => meters.value?.open_proposals?.total ?? 0);
+const openKinds = computed(() =>
+    Object.entries(meters.value?.open_proposals?.by_kind ?? {}).map(([kind, n]) => ({
+        kind,
+        n,
+        label: `${KIND_LABEL[kind] ?? kind.replaceAll('_', ' ')}${n === 1 ? '' : 's'}`,
+    })),
+);
+
+const scope = computed(() => data.value?.scope ?? null);
 </script>
 
 <template>
-    <PageScaffold :surface="surface" title="Run a node">
+    <PageScaffold :surface="surface" :title="text('overview_title', 'Host overview')">
         <template #intro>
-            Run a node and your computer becomes part of the world — holding the record,
-            naming peers, hosting the live rooms. This is the infrastructure the citizen
-            game runs on, and it is deliberately separate from the constitutional game itself.
+            {{ text('intro', 'Check this host’s readiness, manage its services, and connect it with other hosts.') }}
         </template>
-        <template #about>
-            <p>
-                The operator plane's front door: is this box ready to meet the mesh, which
-                of the four named roles it runs, and one door to every operator surface.
-                "Become a peer" is one process — a node that can get a certificate and take
-                clients is a full, equal peer; role elevation is the separate, trust-gated
-                ladder on Roles &amp; channels.
-            </p>
-        </template>
+        <HostNav current="overview" />
 
         <Banner v-if="flash" tone="info">{{ flash }}</Banner>
 
-        <!-- The plane wall — the ground rule, shown to every viewer. -->
-        <div class="plane-wall">
-            <Icon name="shield" size="sm" />
-            <div>
-                <strong>Off the constitutional plane.</strong>
-                Running a node is infrastructure, not a citizen privilege — it buys you no
-                extra vote, no seat, no say in any constitutional act. Operator vocabulary
-                is "capability", never "role", so it can never collide with the citizen
-                role system.
-                <br />
-                <span class="citation">
-                    Operators are an overlapping de-facto board, answerable to the in-game
-                    government — the moment a legislature seats itself, it supersedes the
-                    operator board automatically. Authority ≠ leadership.
-                </span>
-            </div>
-        </div>
-
-        <!-- Not an operator → the sign-in gate (the /operator/operations mechanism). -->
-        <Card v-if="!authed" as="section" title="Operator sign-in required">
-            <p>
-                The readiness rollup and the mesh controls are shown only to a signed-in
-                operator. You don't need anything here to play — the game lives on the
-                civic pages.
+        <!-- ============================== citizen → sign-in gate ========= -->
+        <Card v-if="!authed" as="section">
+            <template #title><h2>Operator sign-in required</h2></template>
+            <p class="cc-small">
+                The mesh console is shown only to a signed-in operator. Operator accounts
+                live on their own plane — they are not citizen users, and signing in here
+                grants no citizen power.
             </p>
-            <div class="cluster" style="margin-block-start: var(--space-3)">
-                <Btn as="a" href="/operator/login" variant="primary">
-                    Sign in as an operator
-                    <Icon name="arrow-right" size="sm" />
-                </Btn>
-            </div>
+            <Btn as="a" href="/operator/login" variant="primary" icon="arrow-right">
+                Sign in as an operator
+            </Btn>
         </Card>
 
         <template v-else>
-            <!-- ─────────────────────────────── Readiness rollup + gate chips -->
-            <div class="health-line">
-                <span class="health-dot" :class="`health-dot--${rollup}`" aria-hidden="true"></span>
-                <strong>Peers &amp; sync at a glance</strong>
-                <span class="citation">
-                    {{ peers?.trusted ?? 0 }} trusted of {{ peers?.total ?? 0 }}
-                    peer{{ (peers?.total ?? 0) === 1 ? '' : 's' }}
-                    · last sync {{ lastSyncText }}
-                    <template v-if="fmtWhen(peers?.last_heartbeat_at)">
-                        · last heartbeat {{ fmtWhen(peers?.last_heartbeat_at) }}
-                    </template>
-                </span>
-                <span style="flex-basis: 100%"></span>
-                <span
-                    v-for="g in gates"
-                    :key="g.key"
-                    class="gate-chip"
-                    :class="`gate-chip--${g.status}`"
-                    :title="g.detail"
-                >
-                    <Icon :name="g.status === 'pass' ? 'check' : 'alert-triangle'" size="sm" />
-                    {{ g.label }}
-                </span>
+            <p class="citation">{{ text('signed_in', 'Signed in as') }} <span data-no-i18n>{{ operator }}</span></p>
+            <div class="host-tasks">
+                <Link v-for="task in tasks" :key="task.key" :href="HOST_PAGES[task.key].href" class="host-task">
+                    <strong>{{ text('task.' + task.key + '.title', task.title) }}</strong>
+                    <span>{{ text('task.' + task.key + '.note', task.note) }}</span>
+                </Link>
             </div>
 
-            <!-- ──────────────────────────────────────────── The gate checklist -->
-            <Banner v-if="attention.length === 0" tone="info" icon="check" title="Ready to meet the mesh">
-                Every gate passes — this box can federate.
-            </Banner>
-            <Card v-else as="section" title="Between you and ready">
+            <!-- ========================== tier 1 — the health line ======= -->
+            <Card as="section">
+                <template #title><h2>{{ text('readiness', 'Host readiness') }}</h2></template>
+                <div class="health-line">
+                    <span class="health-dot" :class="`health-dot--${rollup}`" aria-hidden="true"></span>
+                    <strong style="color: var(--gov-fg)">Node readiness</strong>
+                    <span class="citation">{{ gates.length }} readiness checks</span>
+                    <span style="flex-basis: 100%"></span>
+                    <span
+                        v-for="g in gates"
+                        :key="g.key"
+                        class="gate-chip"
+                        :class="`gate-chip--${g.status}`"
+                        :title="g.detail"
+                    >
+                        <Icon :name="g.status === 'pass' ? 'check' : 'alert-triangle'" size="sm" />
+                        {{ g.label }}
+                    </span>
+                </div>
                 <p class="gloss">
-                    Each line says what to do next. A red gate blocks federation outright;
-                    an amber one just narrows what this box can offer.
+                    {{ rollupNote }}
                 </p>
-                <ul class="stack" style="gap: var(--space-2); list-style: none; margin: 0; padding: 0">
-                    <li v-for="g in attention" :key="g.key" class="cluster" style="align-items: baseline">
+                <ul v-if="attention.length" style="margin: 0">
+                    <li v-for="g in attention" :key="g.key" class="cc-small">
                         <StatusBadge :tone="g.status === 'fail' ? 'danger' : 'warning'" icon="alert-triangle">
-                            {{ g.status === 'fail' ? 'Blocked' : 'Heads-up' }}
+                            {{ g.status === 'fail' ? 'Blocked' : 'To do' }}
                         </StatusBadge>
-                        <span>
-                            <strong>{{ g.label }}</strong>
-                            <span class="gloss"> — {{ g.detail }}</span>
-                        </span>
+                        {{ g.label }} — <span data-no-i18n>{{ g.detail }}</span>
                     </li>
                 </ul>
             </Card>
 
-            <!-- ─────────────────────── Authority the settled way: places, not rank -->
-            <Card as="section" title="Places on this node">
-                <p>
-                    This node holds the home copy of
-                    <strong>{{ homeCopies }}</strong> place{{ homeCopies === 1 ? '' : 's' }}.
-                    Authority is a fact about where a place's home copy lives — never a
-                    rank of node: every peer holds the same record, and each place's home
-                    copy decides its writes.
-                </p>
-                <div class="cluster" style="gap: var(--space-6); margin-block-start: var(--space-3)">
-                    <Stat :value="homeCopies" label="home copies here" accent />
-                    <Stat :value="authority?.peer_held ?? 0" label="home copies with peers" />
-                    <Stat :value="authority?.total ?? 0" label="places in the record" />
-                </div>
-                <p class="citation">Full faith &amp; credit — one record, many holders · Art. V</p>
+            <Card as="section" :title="text('capability_summary', 'Capability status')">
+                <ul class="host-capabilities">
+                    <li v-for="role in roles" :key="role.role">
+                        <strong>{{ role.label }}</strong>
+                        <span class="pill" :class="`pill--${pillOf(role.state).pill}`">{{ pillOf(role.state).label }}</span>
+                    </li>
+                </ul>
+                <Link href="/operator/roles">{{ text('manage_capabilities', 'Manage capabilities and requests') }}</Link>
             </Card>
 
-            <!-- ───────────────────────────────────── The enabled-channel manifest -->
-            <Card as="section" title="Live channels on this box">
-                <p class="gloss">
-                    The capability channels this box currently runs — a box's "role" is
-                    just this set. A governed channel went through the dual-meter consent;
-                    a self-asserted one is turned on by you alone.
-                </p>
-                <p v-if="channels.length === 0" class="gloss">
-                    None yet — a fresh box starts quiet. Record Keeper is the recommended
-                    first turn-on: both of its channels are self-asserted.
-                </p>
-                <div v-else class="cluster" style="flex-wrap: wrap; gap: var(--space-2)">
-                    <span v-for="c in channels" :key="c.capability" class="form-chip">
-                        <span class="form-id">{{ c.capability }}</span>
-                        <span class="pill" :class="c.kind === 'governed' ? 'pill--vote' : 'pill--info'">
-                            {{ c.kind === 'governed' ? 'governed' : 'self-asserted' }}
-                        </span>
-                    </span>
-                </div>
+            <!-- ========================== tier 2 — Advanced =============== -->
+            <Card as="section">
+                <template #title><h2>Advanced</h2></template>
+
+                <AboutSurface :summary-label="text('technical_details', 'Technical details and approval rules')">
+                    <div class="stack" style="margin-block-start: var(--space-4)">
+                        <!-- the full channel grid -->
+                        <section aria-labelledby="op-console-channels-h">
+                            <h3 id="op-console-channels-h">The nine capability channels</h3>
+                            <p class="gloss">
+                                A box's "role" is just the set of channels it runs. Self-asserted
+                                channels turn on with one click; governed channels are requested,
+                                then approved by the dual-meter.
+                            </p>
+                            <DataTable
+                                :columns="channelColumns"
+                                :rows="channels"
+                                row-key="capability"
+                                caption="The capability channels"
+                            >
+                                <template #cell-capability="{ row }">
+                                    <span
+                                        class="channel-chip"
+                                        :class="row.kind === 'self-asserted' ? 'channel-chip--self' : 'channel-chip--governed'"
+                                        data-no-i18n
+                                    >{{ row.capability }}</span>
+                                </template>
+                                <template #cell-kind="{ row }">
+                                    <StatusBadge v-if="row.kind === 'self-asserted'" tone="success" icon="check">
+                                        self-asserted
+                                    </StatusBadge>
+                                    <StatusBadge v-else tone="warning" icon="shield">governed</StatusBadge>
+                                    <span v-if="row.affects_peer_subtree" class="relation-chip" title="Acts under a peer's own zone — every co-affected peer must consent">
+                                        Meter C
+                                    </span>
+                                </template>
+                                <template #cell-what="{ row }">
+                                    {{ row.what }}
+                                    <span v-if="row.label && row.label !== row.capability" class="citation" style="display: block">
+                                        {{ row.label }}
+                                    </span>
+                                </template>
+                                <template #cell-state="{ row }">
+                                    <span class="pill" :class="`pill--${pillOf(row.state).pill}`">
+                                        {{ pillOf(row.state).label }}
+                                    </span>
+                                    <span
+                                        v-if="channelHint(row)"
+                                        class="citation"
+                                        style="display: block"
+                                        data-no-i18n
+                                    >{{ channelHint(row) }}</span>
+                                </template>
+                            </DataTable>
+                        </section>
+
+                        <!-- the dual-meter consent -->
+                        <section aria-labelledby="op-console-meters-h">
+                            <h3 id="op-console-meters-h">The dual-meter consent</h3>
+                            <p class="gloss">
+                                Governed channels need approval. Meter A runs the bootstrap path;
+                                the moment a legislature seats itself, Meter B supersedes it
+                                automatically. Meter C only attaches to channels that act under a
+                                peer's own zone.
+                            </p>
+                            <p v-if="consentLegNote" class="cc-small">{{ consentLegNote }}</p>
+                            <p v-if="scope" class="citation" data-no-i18n>
+                                Scope: the root jurisdiction · {{ scope }}
+                            </p>
+                            <p v-else class="citation">
+                                No root jurisdiction yet — the meters attach to a scope once the
+                                world is seeded.
+                            </p>
+                            <div class="meter-abc">
+                                <div
+                                    v-for="m in meterCards"
+                                    :key="m.id"
+                                    class="meter-card"
+                                    :class="{ 'meter-card--super': m.id === 'B' }"
+                                >
+                                    <div class="cluster" style="align-items: center; gap: var(--space-2)">
+                                        <span class="mc-id" data-no-i18n>{{ m.id }}</span>
+                                        <strong style="color: var(--gov-fg)">{{ m.label }}</strong>
+                                        <span v-if="m.id === 'B'" class="pill pill--live">Supersedes A</span>
+                                    </div>
+                                    <p style="font-size: var(--text-sm)">{{ m.explain }}</p>
+                                    <p class="cc-small">
+                                        <StatusBadge v-if="m.applies" tone="success" icon="check">
+                                            Applies now
+                                        </StatusBadge>
+                                        <StatusBadge v-else tone="neutral">Not in play</StatusBadge>
+                                    </p>
+                                    <p v-if="m.id === 'A' && m.count !== null" class="cc-small">
+                                        <strong data-no-i18n>{{ m.count }}</strong>
+                                        active operator{{ m.count === 1 ? '' : 's' }} on the board.
+                                    </p>
+                                    <p v-if="m.id === 'C'" class="cc-small">
+                                        <template v-if="(m.count ?? 0) > 0">
+                                            <strong data-no-i18n>{{ m.count }}</strong>
+                                            co-affected peer{{ m.count === 1 ? '' : 's' }} must consent
+                                            (unanimity).
+                                        </template>
+                                        <template v-else>
+                                            No co-affected peers — Meter C auto-passes.
+                                        </template>
+                                    </p>
+                                </div>
+                            </div>
+                        </section>
+
+                        <!-- open proposals — live counts -->
+                        <section aria-labelledby="op-console-proposals-h">
+                            <h3 id="op-console-proposals-h">Open proposals</h3>
+                            <div class="cluster" style="gap: var(--space-6)">
+                                <Stat :value="openTotal" label="open proposals" accent />
+                                <Stat v-for="k in openKinds" :key="k.kind" :value="k.n" :label="k.label" />
+                            </div>
+                            <p class="gloss">
+                                <template v-if="openTotal === 0">
+                                    Nothing is waiting on a meter right now.
+                                </template>
+                                <template v-else>
+                                    Each open proposal shows its meters, kind by kind, on
+                                    <Link href="/operator/versioning">Versioning</Link>; role-grant
+                                    approvals live on <Link href="/operator/roles">Roles</Link>.
+                                </template>
+                            </p>
+                        </section>
+
+                        <!-- peers, sync & transports — one pointer, tables live on Mesh -->
+                        <section aria-labelledby="op-console-mesh-h">
+                            <h3 id="op-console-mesh-h">Peers, sync &amp; transports</h3>
+                            <p class="gloss">
+                                The full tables — every peer, the sync ledger, and the transport
+                                ladder — live in one place:
+                                <Link href="/operator/mesh">Mesh &amp; federation</Link>.
+                            </p>
+                        </section>
+
+                        <!-- CLI hints -->
+                        <section aria-labelledby="op-console-cli-h">
+                            <h3 id="op-console-cli-h">CLI hints</h3>
+                            <p class="gloss">
+                                Everything on this console is also a command. These are the
+                                operator-plane verbs the console wraps.
+                            </p>
+                            <div class="cluster" style="flex-wrap: wrap; gap: var(--space-2)">
+                                <code class="channel-chip" data-no-i18n>mesh:gates</code>
+                                <code class="channel-chip" data-no-i18n>mesh:doctor [target]</code>
+                                <code class="channel-chip" data-no-i18n>mesh:role [list|qualify|request|approve|revoke] &lt;capability&gt;</code>
+                                <code class="channel-chip" data-no-i18n>federation:sync:push</code>
+                            </div>
+                        </section>
+                    </div>
+                </AboutSurface>
             </Card>
+        </template>
 
-            <!-- ───────────────────────────────────────── The 4 named-role chips -->
-            <section aria-labelledby="roles-h" class="stack" style="gap: var(--space-2)">
-                <h2 id="roles-h">Your roles</h2>
-                <p class="gloss">
-                    A box's "role" is just the set of capability channels it runs — four
-                    friendly names group them. The full cards live on
-                    <Link href="/operator/roles">Roles &amp; channels</Link>; turn them on
-                    from <Link href="/operator/console">the console</Link>.
-                </p>
-                <div class="cluster" style="gap: var(--space-2); flex-wrap: wrap">
-                    <Link v-for="r in roles" :key="r.role" class="form-chip" href="/operator/roles">
-                        {{ r.label }}
-                        <span class="pill" :class="`pill--${statePill(r.state).pill}`">
-                            {{ statePill(r.state).label }}
-                        </span>
-                        <span v-if="r.recommended && r.state !== 'established'" class="pill pill--planned">
-                            Recommended first
-                        </span>
-                    </Link>
-                </div>
-            </section>
-
-            <!-- ──────────────────────────────────────────── The 8 surface doors -->
-            <section aria-labelledby="go-h" class="stack" style="gap: var(--space-2)">
-                <h2 id="go-h">Operator surfaces</h2>
-                <div class="role-grid">
-                    <template v-for="door in doors" :key="door.title">
-                        <Link v-if="door.href" class="role-card" :href="door.href">
-                            <Icon :name="door.icon" />
-                            <span class="role-name">{{ door.title }}</span>
-                            <span>{{ door.note }}</span>
-                            <span v-if="door.hint" class="gloss">{{ door.hint }}</span>
-                            <span class="enter-as">
-                                Open
-                                <Icon name="arrow-right" size="sm" />
-                            </span>
-                        </Link>
-                        <div v-else class="role-card role-card--planned">
-                            <Icon :name="door.icon" />
-                            <span class="role-name">{{ door.title }}</span>
-                            <span>{{ door.note }}</span>
-                            <span class="pill pill--planned">Planned · Phase I</span>
-                        </div>
-                    </template>
-                </div>
-            </section>
-
-            <!-- ───────────────────────────────────────────── Low-key legacy doors -->
-            <p class="gloss">
-                The older consoles stay reachable while the campaign proves parity:
-                <Link href="/operator/operations">Operations (legacy console)</Link> ·
-                <Link href="/operator/federation">Federation console</Link>.
-                Signed in as <strong>{{ operator }}</strong>.
+        <template #about>
+            <p>
+                This console is the read surface over the node's mesh services — the same
+                gates the <span data-no-i18n>mesh:gates</span> command prints, the same
+                role and channel states the roles board acts on, and the same three
+                consent meters that govern every capability grant and upgrade. Authority
+                here always means a fact about a place — which node holds a
+                jurisdiction's home copy — never a rank of node.
             </p>
         </template>
     </PageScaffold>
 </template>
+
+<style scoped>
+.host-tasks { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 15rem), 1fr)); gap: var(--space-3); }
+.host-task { display: flex; flex-direction: column; gap: var(--space-2); padding: var(--space-4); border: 1px solid var(--gov-border); border-radius: var(--radius-sm); color: var(--gov-fg); text-decoration: none; }
+.host-task:hover { background: var(--gov-surface-2); }
+.host-task:focus-visible { outline: 2px solid var(--gov-primary); outline-offset: 2px; }
+.host-task span { color: var(--gov-fg-subtle); font-size: var(--text-sm); }
+.host-capabilities { list-style: none; padding: 0; display: flex; flex-wrap: wrap; gap: var(--space-4); }
+.host-capabilities li { display: flex; flex-wrap: wrap; gap: var(--space-2); align-items: center; }
+</style>

@@ -46,19 +46,19 @@ class ChamberController extends Controller
 
     public function show(Request $request, Legislature $legislature): Response
     {
-        $legislature->loadMissing('jurisdiction');
+        $legislature->loadMissing('jurisdiction:id,name,slug,parent_id,adm_level');
 
-        $forming = $legislature->status !== Legislature::STATUS_ACTIVE;
         $viewer  = $this->viewerMember($legislature, $request->user());
 
-        $members = $forming ? collect() : LegislatureMember::query()
+        $members = LegislatureMember::query()
             ->where('legislature_id', $legislature->id)
             ->whereIn('status', LegislatureMember::CURRENT_STATUSES)
-            ->with(['user:id,name,display_name', 'district:id,district_number'])
+            ->with(['user:id,display_name', 'district:id,district_number'])
             ->orderBy('seat_no')
             ->get();
 
         return Inertia::render('Legislature/Chamber', [
+            'workspace' => \App\Support\LegislatureWorkspace::for($legislature, $legislature->jurisdiction, $viewer !== null),
             'jurisdictionContext' => $legislature->jurisdiction ? \App\Support\JurisdictionContext::for($legislature->jurisdiction) : null,
             'surface'       => SurfaceMeta::for('legislature/legislature-home'),
             'legislature'   => $this->legislatureProps($legislature),
@@ -127,7 +127,7 @@ class ChamberController extends Controller
             return [
                 'id'              => (string) $member->id,
                 'seat_no'         => (int) $member->seat_no,
-                'name'            => $this->memberDisplayName($member),
+                'name'            => $member->user?->display_name ?: 'Member',
                 'speaker'         => $speakerId !== null && (string) $member->id === $speakerId,
                 'vacant'          => false,
                 'seat_kind'       => $member->seatKind(),
@@ -137,6 +137,8 @@ class ChamberController extends Controller
                     ? "District {$member->district->district_number}"
                     : null,
                 'status'          => $member->status,
+                'seated_on'       => $member->seated_on?->toDateString(),
+                'term_ends_on'    => $member->term_ends_on?->toDateString(),
                 'note'            => $member->status === LegislatureMember::STATUS_ELECTED
                     ? 'elected — oath pending (F-LEG-001)'
                     : null,
@@ -187,13 +189,13 @@ class ChamberController extends Controller
             ->get()
             ->map(function (Vacancy $vacancy) {
                 $member = $vacancy->seat_type === 'legislature_members'
-                    ? LegislatureMember::query()->with('user:id,name,display_name')->find($vacancy->seat_id)
+                    ? LegislatureMember::query()->with('user:id,display_name')->find($vacancy->seat_id)
                     : null;
 
                 return [
                     'id'           => (string) $vacancy->id,
                     'seat_no'      => $member?->seat_no,
-                    'member_name'  => $this->memberDisplayName($member),
+                    'member_name'  => $member?->user?->display_name ?: 'Member',
                     'status'       => $vacancy->status,
                     'declared_via' => $vacancy->declared_via_form,
                     'href'         => "/vacancies/{$vacancy->id}",

@@ -52,7 +52,7 @@ class EconomyPropContractTest extends TestCase
         // Design Round 2 build: the exchange (① instruments venue) and the
         // resident consent plane (③ person-to-person / N-party agreements).
         '/economy/exchange'            => ['surface', 'currency', 'instruments', 'shares', 'kpis', 'tape', 'offers', 'my_holdings', 'my_id', 'order_book'],
-        '/economy/resident-agreements' => ['surface', 'agreements', 'candidates', 'my_id'],
+        '/economy/resident-agreements?new=1' => ['surface', 'agreements', 'candidates', 'my_id'],
     ];
 
     private const ALWAYS_ARRAY = [
@@ -66,7 +66,7 @@ class EconomyPropContractTest extends TestCase
         '/economy/agreements' => ['agreements'],
         '/economy/joint-ledgers' => ['ledgers'],
         '/economy/exchange' => ['instruments', 'shares', 'tape', 'offers', 'my_holdings'],
-        '/economy/resident-agreements' => ['agreements', 'candidates'],
+        '/economy/resident-agreements?new=1' => ['agreements', 'candidates'],
     ];
 
     private function actor(): ?User

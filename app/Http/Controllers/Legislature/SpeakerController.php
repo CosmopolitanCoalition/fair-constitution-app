@@ -38,19 +38,6 @@ class SpeakerController extends Controller
 {
     use ResolvesChamber;
 
-    /** F-SPK form id → the surface where the live control lives (§B.7). */
-    private const FORM_SURFACES = [
-        'F-SPK-001' => 'session',
-        'F-SPK-002' => 'session',
-        'F-SPK-003' => 'session',
-        'F-SPK-004' => 'session',
-        'F-SPK-005' => 'committees',
-        'F-SPK-006' => 'speaker',     // this page's queue
-        'F-SPK-007' => 'oversight',
-        'F-SPK-008' => 'session',
-        'F-SPK-009' => 'session',
-    ];
-
     public function __construct(
         private readonly ConstitutionalEngine $engine,
     ) {
@@ -58,7 +45,7 @@ class SpeakerController extends Controller
 
     public function show(Request $request, Legislature $legislature)
     {
-        $legislature->loadMissing('jurisdiction:id,name');
+        $legislature->loadMissing('jurisdiction:id,name,slug,parent_id,adm_level');
 
         $viewer = $this->viewerMember($legislature, $request->user());
 
@@ -81,28 +68,32 @@ class SpeakerController extends Controller
             ->first();
 
         $speakerMember = LegislatureMember::query()
-            ->with('user:id,name,display_name')
+            ->with('user:id,display_name')
             ->find($legislature->speaker_id);
 
         $members = LegislatureMember::query()
             ->where('legislature_id', $legislature->id)
             ->current()
-            ->with('user:id,name,display_name')
+            ->with('user:id,display_name')
             ->orderBy('seat_no')
             ->get();
 
+        $priorityRecord = $this->priorities($legislature, $members);
+
         return Inertia::render('Legislature/SpeakerTools', [
+            'workspace' => \App\Support\LegislatureWorkspace::for($legislature, $legislature->jurisdiction, true),
+            'jurisdictionContext' => $legislature->jurisdiction ? \App\Support\JurisdictionContext::for($legislature->jurisdiction) : null,
             'surface'     => SurfaceMeta::for('legislature/speaker-tools'),
             'legislature' => $this->legislatureProps($legislature),
             'speaker'     => [
                 'member_id' => (string) $legislature->speaker_id,
-                'name'      => $this->memberDisplayName($speakerMember),
+                'name'      => ($speakerMember?->user?->display_name ?: 'Member'),
                 'is_viewer' => $isSpeaker,
             ],
             'readOnly' => ! $isSpeaker,
-            'forms'    => $this->formCards($legislature),
             'tieBreaks' => $this->tieBreaks($legislature),
-            'priorities' => $this->priorities($legislature, $members),
+            'priorities' => $priorityRecord['rows'],
+            'priorityPages' => $priorityRecord['pages'],
             'prioritySession' => $targetSession !== null ? [
                 'id'         => (string) $targetSession->id,
                 'session_no' => (int) $targetSession->session_no,
@@ -110,7 +101,7 @@ class SpeakerController extends Controller
             ] : null,
             'members' => $members->map(fn (LegislatureMember $m) => [
                 'id'   => (string) $m->id,
-                'name' => $this->memberDisplayName($m),
+                'name' => ($m?->user?->display_name ?: 'Member'),
             ])->values()->all(),
             'pendingProceedings' => $this->pendingProceedings($legislature),
             'can' => [
@@ -151,32 +142,6 @@ class SpeakerController extends Controller
     // =========================================================================
     // Presentation internals
     // =========================================================================
-
-    /**
-     * The 9 F-SPK cards: registry name/roles/citation from SurfaceMeta
-     * (FormRegistry-backed), plus the launchpad target — this page links
-     * to where each control actually lives, never duplicating a console.
-     */
-    private function formCards(Legislature $legislature): array
-    {
-        $surfaceForms = SurfaceMeta::for('legislature/speaker-tools')['forms'];
-
-        $hrefs = [
-            'session'    => "/legislatures/{$legislature->id}/session",
-            'committees' => "/legislatures/{$legislature->id}/committees",
-            'oversight'  => "/legislatures/{$legislature->id}/oversight",
-            'speaker'    => null, // this page
-        ];
-
-        return array_values(array_map(function (array $form) use ($hrefs) {
-            $target = self::FORM_SURFACES[$form['id']] ?? 'session';
-
-            return $form + [
-                'surface'      => $target,
-                'surface_href' => $hrefs[$target],
-            ];
-        }, $surfaceForms));
-    }
 
     /**
      * The tie-break record — every F-SPK-004 cast this chamber has seen
@@ -229,26 +194,24 @@ class SpeakerController extends Controller
     private function priorities(Legislature $legislature, $members): array
     {
         $names = $members->mapWithKeys(fn (LegislatureMember $m) => [
-            (string) $m->id => $this->memberDisplayName($m),
+            (string) $m->id => ($m?->user?->display_name ?: 'Member'),
         ]);
 
         $sessions = LegislatureSession::query()
             ->where('legislature_id', $legislature->id)
-            ->get()
+            ->get(['id', 'session_no', 'status'])
             ->keyBy(fn (LegislatureSession $s) => (string) $s->id);
 
-        return AuditEntry::query()
+        $entries = AuditEntry::query()
             ->where('module', 'legislature')
             ->where('event', 'session.member_priority')
+            ->whereIn('payload->session_id', $sessions->keys())
             ->where('rejected', false)
             ->orderByDesc('seq')
-            ->limit(50)
-            ->get()
-            ->filter(function (AuditEntry $entry) use ($sessions) {
-                $sessionId = (string) (((array) $entry->payload)['session_id'] ?? '');
+            ->simplePaginate(50, ['seq', 'payload', 'occurred_at'], 'priorities_page')
+            ->withQueryString();
 
-                return $sessionId !== '' && $sessions->has($sessionId);
-            })
+        $rows = $entries->getCollection()
             ->map(function (AuditEntry $entry) use ($names, $sessions) {
                 $payload = (array) $entry->payload;
                 $session = $sessions->get((string) ($payload['session_id'] ?? ''));
@@ -264,6 +227,8 @@ class SpeakerController extends Controller
             })
             ->values()
             ->all();
+
+        return ['rows' => $rows, 'pages' => ['newer' => $entries->previousPageUrl(), 'older' => $entries->nextPageUrl()]];
     }
 
     /**
@@ -285,9 +250,9 @@ class SpeakerController extends Controller
 
                 if ($proceeding->subject_type === 'legislature_members') {
                     $subject = LegislatureMember::query()
-                        ->with('user:id,name,display_name')
+                        ->with('user:id,display_name')
                         ->find($proceeding->subject_id);
-                    $subjectName = $this->memberDisplayName($subject);
+                    $subjectName = ($subject?->user?->display_name ?: 'Member');
                 }
 
                 return [

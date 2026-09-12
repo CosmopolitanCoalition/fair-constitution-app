@@ -2,6 +2,8 @@
 
 12 September 2026. Continues the approved [first iteration](ITERATION.md).
 
+The subsequent [directories and workspaces pass](DIRECTORIES_AND_WORKSPACES.md) implements the remaining consolidation families listed below and fixes the All Organizations loading issue. This document preserves the earlier pass's verification record.
+
 ## Operator's clarified order
 
 1. Consolidate overlapping screens and settle their navigation.

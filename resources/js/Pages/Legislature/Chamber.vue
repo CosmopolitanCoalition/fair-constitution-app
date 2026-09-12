@@ -15,6 +15,8 @@
  */
 import { computed, ref } from 'vue';
 import { Link, router, usePage } from '@inertiajs/vue3';
+import { useI18n } from 'vue-i18n';
+import LegislatureWorkspaceNav from '@/Components/Legislature/LegislatureWorkspaceNav.vue';
 import AppShellV2 from '@/Layouts/AppShellV2.vue';
 import PageScaffold from '@/Components/Surface/PageScaffold.vue';
 import Banner from '@/Components/Ui/Banner.vue';
@@ -33,6 +35,7 @@ defineOptions({ layout: AppShellV2 });
 
 const props = defineProps({
     surface: { type: Object, required: true },
+    workspace: { type: Object, default: null },
     /** §B.1 legislature block; null = resolver empty state. */
     legislature: { type: Object, default: null },
     members: { type: Array, default: () => [] },
@@ -44,6 +47,8 @@ const props = defineProps({
 });
 
 const page = usePage();
+const { t } = useI18n();
+const text = key => t('c_legislature_workspace.' + key);
 const flashStatus = computed(() => page.props.flash?.status ?? null);
 const constitutionError = computed(() => page.props.errors?.constitution ?? null);
 
@@ -51,13 +56,15 @@ const forming = computed(() => props.legislature !== null && props.legislature.s
 const bicameral = computed(() => props.legislature?.mode === 'bicameral');
 const highlightId = ref(null);
 
-const rosterColumns = [
+const rosterColumns = computed(() => [
     { key: 'seat_no', label: 'Seat', align: 'right' },
     { key: 'name', label: 'Member' },
     { key: 'endorsements', label: 'Endorsements' },
     { key: 'vote_share_norm', label: 'Share (norm)', mono: true, align: 'right' },
     { key: 'status', label: 'Status' },
-];
+    { key: 'seated_on', label: text('member_seated') },
+    { key: 'term_ends_on', label: text('member_term_ends') },
+]);
 
 const serving = computed(() => props.members.filter((m) => !m.vacant));
 
@@ -95,11 +102,7 @@ function stepBadge(step) {
         :surface="surface"
         :title="legislature ? `Chamber — ${legislature.name}` : 'Chamber'"
     >
-        <template #intro>
-            The chamber itself: who serves, who presides, what the peg thresholds are, and
-            what a freshly constituted legislature must do first. Every threshold here is the
-            engine's arithmetic over ALL serving seats — never over those present.
-        </template>
+        <LegislatureWorkspaceNav v-if="workspace" :workspace="workspace" active="chamber" />
 
         <Banner v-if="flashStatus" tone="info" role="status">{{ flashStatus }}</Banner>
         <Banner v-if="constitutionError" tone="emergency">{{ constitutionError }}</Banner>
@@ -116,26 +119,18 @@ function stepBadge(step) {
         </Card>
 
         <template v-else>
-            <!-- ======================================= header links ====== -->
-            <div class="cluster">
-                <Link :href="mapperHref">Districts &amp; maps →</Link>
-                <Link :href="`/legislatures/${legislature.id}/bills`">Bills →</Link>
-                <Link v-if="can.isMember" :href="`/legislatures/${legislature.id}/session`">Session console →</Link>
-                <Link :href="`/legislatures/${legislature.id}/settings`">Settings register →</Link>
-            </div>
-
             <!-- ========================================== stat row ====== -->
-            <Card as="section" title="The peg numbers">
+            <Card as="section" :title="text('thresholds')">
                 <div class="cluster" style="gap: var(--space-5); align-items: flex-start">
                     <Stat :value="legislature.seats" label="seats" />
                     <Stat :value="legislature.serving" label="serving" />
                     <Stat
                         :value="legislature.quorum ?? '—'"
-                        label="quorum — of all serving, never of those present"
+                        :label="text('quorum')"
                     />
                     <Stat
                         :value="legislature.supermajority ?? '—'"
-                        :label="`supermajority = ceil(${legislature.serving} × 2/3)`"
+                        :label="text('supermajority')"
                         accent
                     />
                     <template v-if="bicameral && legislature.by_kind">
@@ -149,35 +144,28 @@ function stepBadge(step) {
                         />
                     </template>
                 </div>
-                <p class="gloss" style="margin-block-start: var(--space-2)">
-                    A vacant seat is simply not serving; an absent member counts the same as a
-                    no. Thresholds resolve through the protected functions — hardened.
-                </p>
+                <p class="gloss" style="margin-block-start: var(--space-2)">{{ text('threshold_note') }}</p>
             </Card>
 
             <!-- ===================================== forming state ====== -->
-            <Banner v-if="forming" tone="info" role="status" title="Forming — seats fill at certification (WF-ELE-01).">
+            <Banner v-if="forming && !members.length" tone="info" role="status" title="Forming — seats fill at certification (WF-ELE-01).">
                 This legislature has no seated members yet. The seat map appears when the
                 first general election certifies; the first-sessions checklist below is the
                 constituting to-do list.
             </Banner>
 
             <!-- ========================================== seat map ====== -->
-            <Card v-if="!forming && members.length" as="section" title="The chamber — circular, no head of the room">
+            <Card v-if="members.length" as="section" :title="text('chamber_title')">
                 <p class="citation">
                     seniority-alternating seating · vacancies join at the junior-most position ·
                     seniority = days served, ties by normalized vote share (ledger #q2)
                 </p>
                 <SeatMap :members="members" :highlight-id="highlightId" :max-width="members.length > 12 ? '30rem' : '22rem'" />
-                <p v-if="bicameral" class="gloss">
-                    {{ legislature.by_kind.type_a.seats }} type A across the districts +
-                    {{ legislature.by_kind.type_b.seats }} type B, one per constituent —
-                    both kinds must independently agree · Art. V §3.
-                </p>
+                <p v-if="bicameral" class="gloss">{{ text('bicameral_note') }}</p>
             </Card>
 
             <!-- ============================================ roster ====== -->
-            <Card v-if="!forming && serving.length" as="section" title="Roster">
+            <Card v-if="serving.length" id="members" as="section" title="Members">
                 <DataTable :columns="rosterColumns" :rows="serving" row-key="id" caption="Serving members">
                     <template #cell-seat_no="{ row }">
                         <span
@@ -218,18 +206,13 @@ function stepBadge(step) {
                         <StatusBadge :tone="row.status === 'seated' ? 'success' : 'info'">{{ row.status }}</StatusBadge>
                         <span v-if="row.note" class="citation" style="display: block">{{ row.note }}</span>
                     </template>
+                    <template #cell-seated_on="{ value }">{{ fmtDate(value) }}</template>
+                    <template #cell-term_ends_on="{ value }">{{ fmtDate(value) }}</template>
                 </DataTable>
                 <p class="citation" style="margin-block-start: var(--space-2)">
                     normalized vote share = the certification's quota-normalized support ·
                     committee tie-break currency · ledger #q2
                 </p>
-                <div v-if="can.takeOath" class="cluster" style="margin-block-start: var(--space-3)">
-                    <Btn variant="primary" :disabled="swearing" @click="takeOath">
-                        Take the oath of office
-                    </Btn>
-                    <FormChip form-id="F-LEG-001" name="Oath of office / seating acceptance" />
-                    <span class="citation">flips your seat elected → seated · Art. II §1</span>
-                </div>
             </Card>
 
             <!-- =========================== term lockstep + vacancies ===== -->
@@ -280,7 +263,7 @@ function stepBadge(step) {
             </div>
 
             <!-- ========================== first-sessions checklist ======= -->
-            <Card as="section" title="First sessions — constituting the chamber (WF-LEG-01)">
+            <Card id="first-sessions" as="section" title="First sessions — constituting the chamber (WF-LEG-01)">
                 <ol class="agenda-list">
                     <li v-for="(step, i) in firstSessions" :key="step.form_id" class="agenda-slot">
                         <span class="flow-step-n">{{ i + 1 }}</span>

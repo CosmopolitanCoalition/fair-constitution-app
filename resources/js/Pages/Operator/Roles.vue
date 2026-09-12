@@ -25,6 +25,7 @@
 import { computed, ref } from 'vue';
 import { router, useForm, usePage } from '@inertiajs/vue3';
 import AppShellV2 from '@/Layouts/AppShellV2.vue';
+import HostNav from '@/Components/Operator/HostNav.vue';
 import PageScaffold from '@/Components/Surface/PageScaffold.vue';
 import Banner from '@/Components/Ui/Banner.vue';
 import Btn from '@/Components/Ui/Btn.vue';
@@ -194,7 +195,8 @@ const METERS = [
 </script>
 
 <template>
-    <PageScaffold :surface="surface">
+    <PageScaffold :surface="surface" title="Host capabilities">
+        <HostNav current="roles" />
         <template #intro>
             A box’s “role” is nothing more than the set of capability channels it runs.
             Trust here is composable — you add the channels you can serve, one at a time.

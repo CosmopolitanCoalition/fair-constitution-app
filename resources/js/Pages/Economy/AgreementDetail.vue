@@ -17,6 +17,7 @@ import { Link, useForm, router } from '@inertiajs/vue3';
 import AppShellV2 from '@/Layouts/AppShellV2.vue';
 import PageScaffold from '@/Components/Surface/PageScaffold.vue';
 import Card from '@/Components/Ui/Card.vue';
+import WorkTradeNav from '@/Components/Economy/WorkTradeNav.vue';
 import StatusBadge from '@/Components/Ui/StatusBadge.vue';
 import { formatWhen } from '@/lib/money.js';
 
@@ -72,6 +73,7 @@ const STATUS_LABEL = {
 
 <template>
     <PageScaffold title="Agreement">
+        <WorkTradeNav active="agreements" back-href="/economy/agreements" back-label="My agreements" />
         <template #intro>
             One instrument, on the record: the parties, the terms, and both signatures. The floor
             beneath it cannot be lowered by any clause.
@@ -173,18 +175,15 @@ const STATUS_LABEL = {
             </p>
         </Card>
 
-        <Card as="section" title="The floor">
+        <details class="agr-propose">
+            <summary>Rights protected in every agreement</summary>
             <p>
                 No clause in this or any agreement can waive, sell, or sign away a constitutional
                 right — voting, candidacy, residency, petitioning, due process. A clause that tries
                 is void in that part; the rest stands. No agreement may attach a fee or cost to
                 exercising a civic right.
             </p>
-        </Card>
-
-        <p>
-            <Link href="/economy/agreements" class="econ-back">Back to your agreements</Link>
-        </p>
+        </details>
     </PageScaffold>
 </template>
 

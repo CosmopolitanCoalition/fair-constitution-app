@@ -22,6 +22,7 @@ import { computed } from 'vue';
 import { useForm, usePage } from '@inertiajs/vue3';
 import AppShellV2 from '@/Layouts/AppShellV2.vue';
 import PageScaffold from '@/Components/Surface/PageScaffold.vue';
+import WorkTradeNav from '@/Components/Economy/WorkTradeNav.vue';
 import Card from '@/Components/Ui/Card.vue';
 import Stat from '@/Components/Ui/Stat.vue';
 import Banner from '@/Components/Ui/Banner.vue';
@@ -128,6 +129,7 @@ const assetRows = () =>
 
 <template>
     <PageScaffold title="My wallet">
+        <WorkTradeNav active="wallet" />
         <template #intro>
             What you hold, and where it came from. This page is yours alone — balances are private
             in the same way a ballot is, and no one else can look yours up.

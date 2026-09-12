@@ -14,7 +14,9 @@ use App\Services\Economy\StipendService;
 use App\Services\SettingsResolver;
 use App\Support\SurfaceMeta;
 use Illuminate\Http\Request;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Str;
 use Inertia\Inertia;
 use Inertia\Response;
 
@@ -466,54 +468,21 @@ class EconomyController extends Controller
         $myId = (string) ($request->user()?->id ?? '');
         $myId = $myId === '' ? null : $myId;
 
-        $rows = $currency === null ? collect() : DB::table('marketplace_listings as l')
-            ->join('assets as a', 'a.id', '=', 'l.asset_id')
-            ->where('l.currency_id', $currency->id)
-            ->where('l.status', 'open')
-            ->whereNull('l.deleted_at')
-            ->whereNull('a.deleted_at')
-            ->orderByDesc('l.created_at')
-            ->limit(100)
-            ->get([
-                'l.id', 'l.seller_account_id', 'l.title', 'l.description', 'l.price', 'l.quantity',
-                'a.kind as asset_kind', 'a.name as asset_name', 'a.quantity as asset_quantity',
-            ]);
-
-        $sellers = $this->orgSellers($rows->pluck('seller_account_id')->map(fn ($id) => (string) $id)->all());
-
-        $instruments = $rows->map(fn ($r) => [
-            'id'          => (string) $r->id,
-            'title'       => (string) $r->title,
-            'description' => $r->description === null ? null : (string) $r->description,
-            'price'       => (string) $r->price,
-            'quantity'    => (string) $r->quantity,
-            'asset_kind'  => (string) $r->asset_kind,
-            'asset_name'  => (string) $r->asset_name,
-            'fungibility' => bccomp((string) $r->asset_quantity, '1', 6) > 0 ? 'fungible' : 'unique',
-            'seller_org'  => $sellers[(string) $r->seller_account_id] ?? null,
-        ])->all();
+        $offers = $this->openShareOffers($request, $myId);
 
         return Inertia::render('Economy/Exchange', [
             'surface'     => SurfaceMeta::for('economy/exchange'),
             'currency'    => $this->currencyProp($currency),
-            'instruments' => $instruments,
-            // The equity floor — the issued-share REGISTER (what exists to own),
-            // on the named ownership plane (Ruling B). Holder-to-holder RESALE
-            // opens with secondary trading (Wave 4 ②); until then this shows
-            // what has been issued, not active sell-offers.
-            'shares'      => $this->equityFloor(),
-            // Market-health KPIs, account-clean (Design Round 2 ④): counted over
-            // accounts, never people. Null before a currency exists.
-            'kpis'        => $currency === null ? null : $this->telemetry->snapshot($currency->id),
-            // The trade tape — instruments that have actually SETTLED, newest
-            // first. Real history, not a simulated ticker; account-scoped (a
-            // trade is a price and a quantity, not a pair of names).
-            'tape'        => $currency === null ? [] : $this->tradeTape(),
-            // Wave 4 ② — the shares floor, now POPULATED: open sell-offers a
-            // buyer can take (F-IND-021), and the viewer's own holdings they can
-            // offer. Equity is the NAMED plane (Ruling B), so a seller resolves
-            // to a name; the money that changes hands stays on the wallet ledger.
-            'offers'      => $this->openShareOffers($myId),
+            // Goods/assets have one home in Market. Ownership registers live
+            // with each organization. Keep rollout keys truthful without
+            // calculating world telemetry or ownership totals on a GET.
+            'instruments' => [],
+            'shares'      => [],
+            'kpis'        => null,
+            'telemetry_status' => 'not_loaded',
+            'tape'        => [],
+            'offers'      => $offers['rows'],
+            'pagination'  => $offers['pagination'],
             'my_holdings' => $this->viewerHoldings($myId),
             'my_id'       => $myId,
             // The continuous order book is deliberately not built; trades
@@ -530,28 +499,33 @@ class EconomyController extends Controller
      *
      * @return list<array<string, mixed>>
      */
-    private function openShareOffers(?string $myId): array
+    private function openShareOffers(Request $request, ?string $myId): array
     {
-        return DB::table('share_offers as so')
-            ->join('organizations as o', 'o.id', '=', 'so.organization_id')
-            ->where('so.status', 'open')
-            ->whereNull('so.deleted_at')
-            ->whereNull('o.deleted_at')
-            ->orderByDesc('so.created_at')->limit(100)
-            ->get(['so.id', 'so.organization_id', 'so.seller_holder_type', 'so.seller_holder_id',
-                'so.units', 'so.price_per_unit', 'o.name as org_name', 'o.type as org_type'])
+        // Select a small offer page before resolving organizations or people.
+        $page = DB::table('share_offers')->where('status', 'open')->whereNull('deleted_at')
+            ->whereExists(fn ($q) => $q->from('organizations')->whereColumn('organizations.id', 'share_offers.organization_id')->whereNull('organizations.deleted_at'))
+            ->orderByDesc('created_at')->orderByDesc('id')
+            ->cursorPaginate(20, ['*'], 'cursor', $request->query('cursor'))
+            ->withPath('/economy/exchange');
+        $organizations = DB::table('organizations')->whereIn('id', $page->getCollection()->pluck('organization_id'))
+            ->whereNull('deleted_at')
+            ->get(['id', 'name', 'type'])->keyBy('id');
+        $rows = $page->getCollection()
+            ->filter(fn ($r) => $organizations->has($r->organization_id))
             ->map(fn ($r) => [
                 'id'             => (string) $r->id,
                 'org_id'         => (string) $r->organization_id,
-                'org_name'       => (string) $r->org_name,
-                'is_cgc'         => $r->org_type === 'common_good_corp',
+                'org_name'       => (string) $organizations[$r->organization_id]->name,
+                'is_cgc'         => $organizations[$r->organization_id]->type === 'common_good_corp',
                 'units'          => (string) $r->units,
                 'price_per_unit' => (string) $r->price_per_unit,
                 'seller'         => $this->holderName((string) $r->seller_holder_type, (string) $r->seller_holder_id),
                 'is_mine'        => $myId !== null
                     && $r->seller_holder_type === 'users'
                     && (string) $r->seller_holder_id === $myId,
-            ])->all();
+            ])->values()->all();
+
+        return ['rows' => $rows, 'pagination' => ['previous' => $page->previousPageUrl(), 'next' => $page->nextPageUrl()]];
     }
 
     /**
@@ -602,83 +576,6 @@ class EconomyController extends Controller
     }
 
     /**
-     * The equity floor — issued shares aggregated per STOCK organisation
-     * (member-owned/nonprofit/partnership have no shares). Names are public
-     * (Ruling B: who owns a company is a public fact); the money that moves on
-     * a trade is not, and never appears here. A fair-market floor is shown when
-     * a conversion has fixed one.
-     *
-     * @return list<array<string, mixed>>
-     */
-    private function equityFloor(): array
-    {
-        $rows = DB::table('org_ownership_stakes as s')
-            ->join('organizations as o', 'o.id', '=', 's.organization_id')
-            ->whereNull('s.ended_at')
-            ->whereNull('o.deleted_at')
-            ->where('o.structure', Organization::STRUCTURE_STOCK)
-            ->groupBy('o.id', 'o.name', 'o.type')
-            ->orderByRaw('sum(s.units) desc')
-            ->limit(50)
-            ->get(['o.id', 'o.name', 'o.type',
-                DB::raw('sum(s.units) as total_units'),
-                DB::raw('count(*) as holder_count')]);
-
-        if ($rows->isEmpty()) {
-            return [];
-        }
-
-        // One query for every floor, newest per org — no N+1.
-        $floors = DB::table('org_conversions')
-            ->whereIn('organization_id', $rows->pluck('id'))
-            ->whereNotNull('fair_market_floor')
-            ->whereNull('deleted_at')
-            ->orderByDesc('created_at')
-            ->get(['organization_id', 'fair_market_floor'])
-            ->groupBy('organization_id')
-            ->map(fn ($g) => (string) $g->first()->fair_market_floor);
-
-        return $rows->map(fn ($r) => [
-            'org_id'            => (string) $r->id,
-            'org_name'          => (string) $r->name,
-            'is_cgc'            => $r->type === 'common_good_corp',
-            'total_units'       => (string) $r->total_units,
-            'holder_count'      => (int) $r->holder_count,
-            'fair_market_floor' => $floors[$r->id] ?? null,
-        ])->all();
-    }
-
-    /**
-     * The trade tape — instrument orders that have SETTLED, newest first. Only
-     * asset-backed listings count (this venue is for holdings with their own
-     * identity; goods/services are the open market). A tape row is a price and
-     * a quantity on an instrument — no party is named (the money plane).
-     *
-     * @return list<array<string, mixed>>
-     */
-    private function tradeTape(): array
-    {
-        return DB::table('marketplace_orders as ord')
-            ->join('marketplace_listings as l', 'l.id', '=', 'ord.listing_id')
-            ->leftJoin('assets as a', 'a.id', '=', 'l.asset_id')
-            ->where('ord.status', 'settled')
-            ->whereNotNull('l.asset_id')
-            ->orderByDesc('ord.updated_at')
-            ->limit(30)
-            ->get(['ord.id', 'ord.quantity', 'ord.price', 'ord.updated_at',
-                'l.title', 'a.kind as asset_kind', 'a.name as asset_name'])
-            ->map(fn ($t) => [
-                'id'         => (string) $t->id,
-                'title'      => (string) $t->title,
-                'asset_kind' => $t->asset_kind === null ? null : (string) $t->asset_kind,
-                'asset_name' => $t->asset_name === null ? null : (string) $t->asset_name,
-                'price'      => (string) $t->price,
-                'quantity'   => (string) $t->quantity,
-                'at'         => $this->iso($t->updated_at),
-            ])->all();
-    }
-
-    /**
      * Resident agreements — the person-to-person / N-party consent plane
      * (Design Round 2 ③, F-IND-020). PARTY-SCOPED: a resident sees only the
      * agreements they are a party to. Parties are shown BY NAME (a signature
@@ -686,24 +583,31 @@ class EconomyController extends Controller
      * plane). Each agreement carries its signer roster, the clause overlay,
      * and any pending redlines to resolve.
      */
-    public function residentAgreements(Request $request): Response
+    public function residentAgreements(Request $request): Response|RedirectResponse
     {
+        $selected = $request->query('agreement');
+        $compose = $selected === null && $request->boolean('new');
+        if ($selected === null && ! $compose) {
+            return redirect('/economy/agreements');
+        }
+        abort_if($selected !== null && (! is_string($selected) || ! Str::isUuid($selected)), 404);
         $me = $request->user();
         $surface = SurfaceMeta::for('economy/resident-agreements');
 
         if ($me === null) {
+            abort_if($selected !== null, 404);
             return Inertia::render('Economy/ResidentAgreements', [
-                'surface' => $surface, 'agreements' => [], 'candidates' => [], 'my_id' => null,
+                'surface' => $surface, 'agreements' => [], 'candidates' => [], 'my_id' => null, 'compose' => true,
             ]);
         }
 
         $myId = (string) $me->id;
 
-        $ids = DB::table('resident_agreement_signers')->where('signer_user_id', $myId)->pluck('agreement_id');
-
-        $agreements = DB::table('resident_agreements')
-            ->whereIn('id', $ids)->whereNull('deleted_at')
-            ->orderByDesc('created_at')->get()
+        // A detail request resolves one authorized agreement before its terms,
+        // signers or negotiation records. The composer loads no agreements.
+        $rows = $compose ? collect() : $this->residentAgreementQuery($myId)->where('id', $selected)->limit(1)->get();
+        abort_if(! $compose && $rows->isEmpty(), 404);
+        $agreements = $rows
             ->map(function ($a) use ($myId) {
                 $signers = DB::table('resident_agreement_signers as s')
                     ->join('users as u', 'u.id', '=', 's.signer_user_id')
@@ -742,19 +646,20 @@ class EconomyController extends Controller
                 ];
             })->all();
 
-        // The consent plane: other residents one may contract with, by name.
-        // Capped — a picker, not a directory dump.
-        $candidates = DB::table('users')
-            ->where('id', '!=', $myId)->whereNull('deleted_at')
-            ->orderBy('name')->limit(50)
-            ->get(['id', 'name'])
-            ->map(fn ($u) => ['id' => (string) $u->id, 'name' => (string) $u->name])->all();
+        // Select at most 50 IDs through the primary index before resolving
+        // consent-plane labels. Never sort the world's people by name.
+        $candidateIds = ! $compose ? collect() : DB::table('users')
+            ->where('id', '!=', $myId)->whereNull('deleted_at')->orderBy('id')->limit(50)->pluck('id');
+        $candidates = $candidateIds->isEmpty() ? [] : DB::table('users')->whereIn('id', $candidateIds)
+            ->get(['id', 'name'])->sortBy('name')
+            ->map(fn ($u) => ['id' => (string) $u->id, 'name' => (string) $u->name])->values()->all();
 
         return Inertia::render('Economy/ResidentAgreements', [
             'surface'    => $surface,
             'agreements' => $agreements,
             'candidates' => $candidates,
             'my_id'      => $myId,
+            'compose'    => $compose,
         ]);
     }
 
@@ -799,6 +704,8 @@ class EconomyController extends Controller
                 'rate'         => $row->rate === null ? null : (string) $row->rate,
                 'status'       => (string) $row->status,
                 'org_name'     => $org === null ? 'An organization' : (string) $org->name,
+                'org_id'       => $org === null ? null : (string) $org->id,
+                'org_href'     => $org === null ? null : '/organizations/' . rawurlencode((string) $org->id) . ($org->type === 'common_good_corp' ? '/cgc' : ''),
                 'applications' => DB::table('work_applications')->where('posting_id', $row->id)->count(),
                 'at'           => $this->iso($row->created_at),
             ],
@@ -912,24 +819,36 @@ class EconomyController extends Controller
      */
     public function agreements(Request $request): Response
     {
-        // The UNIFIED register (Wave 4): every kind of agreement the viewer is
-        // party to, newest first. An org contract and a person-to-person
-        // resident agreement are different families but one register — each row
-        // links to the detail surface that can act on it.
-        $org = $this->visibleContracts($request)->map(fn ($c) => $this->contractCard($c, $request) + [
-            'family'  => 'org',
-            'href'    => "/economy/agreements/{$c->id}",
-            'sort_at' => $this->iso($c->created_at) ?? '',
-        ])->all();
-
-        $resident = $this->visibleResidentAgreements($request);
-
-        $all = array_merge($org, $resident);
-        usort($all, fn ($a, $b) => strcmp((string) ($b['sort_at'] ?? ''), (string) ($a['sort_at'] ?? '')));
+        $all = [];
+        $pagination = ['org' => ['previous' => null, 'next' => null], 'resident' => ['previous' => null, 'next' => null]];
+        if ($request->user() !== null) {
+            // Both consent families have one directory, with independent
+            // cursors so no history is lost and neither requires a count.
+            $orgPage = $this->visibleContractQuery((string) $request->user()->id)
+                ->orderByDesc('c.created_at')->orderByDesc('c.id')
+                ->cursorPaginate(20, ['c.*'], 'org_cursor', $request->query('org_cursor'))
+                ->withPath('/economy/agreements')->appends($request->only('resident_cursor'));
+            $org = $this->withContractOrganizations($orgPage->getCollection())
+                ->map(fn ($c) => $this->contractCard($c, $request) + [
+                    'family' => 'org', 'href' => "/economy/agreements/{$c->id}",
+                    'sort_at' => $this->iso($c->created_at) ?? '',
+                ])->all();
+            $residentPage = $this->residentAgreementQuery((string) $request->user()->id)
+                ->orderByDesc('created_at')->orderByDesc('id')
+                ->cursorPaginate(20, ['id', 'title', 'status', 'created_at'], 'resident_cursor', $request->query('resident_cursor'))
+                ->withPath('/economy/agreements')->appends($request->only('org_cursor'));
+            $resident = $this->visibleResidentAgreements($request, $residentPage->getCollection());
+            $all = array_merge($org, $resident);
+            $pagination = [
+                'org' => ['previous' => $orgPage->previousPageUrl(), 'next' => $orgPage->nextPageUrl()],
+                'resident' => ['previous' => $residentPage->previousPageUrl(), 'next' => $residentPage->nextPageUrl()],
+            ];
+        }
 
         return Inertia::render('Economy/Agreements', [
             'surface'    => SurfaceMeta::for('economy/agreements'),
             'agreements' => $all,
+            'pagination' => $pagination,
         ]);
     }
 
@@ -940,7 +859,7 @@ class EconomyController extends Controller
      *
      * @return list<array<string, mixed>>
      */
-    private function visibleResidentAgreements(Request $request): array
+    private function visibleResidentAgreements(Request $request, \Illuminate\Support\Collection $rows): array
     {
         $user = $request->user();
         if ($user === null) {
@@ -949,14 +868,7 @@ class EconomyController extends Controller
 
         $myId = (string) $user->id;
 
-        $ids = DB::table('resident_agreement_signers')->where('signer_user_id', $myId)->pluck('agreement_id');
-        if ($ids->isEmpty()) {
-            return [];
-        }
-
-        return DB::table('resident_agreements')
-            ->whereIn('id', $ids)->whereNull('deleted_at')
-            ->orderByDesc('created_at')->get()
+        return $rows
             ->map(function ($a) use ($myId) {
                 $signers = DB::table('resident_agreement_signers as s')
                     ->join('users as u', 'u.id', '=', 's.signer_user_id')
@@ -974,10 +886,16 @@ class EconomyController extends Controller
                     'title'   => (string) $a->title,
                     'status'  => (string) $a->status,
                     'signers' => $signers,
-                    'href'    => '/economy/resident-agreements',
+                    'href'    => '/economy/resident-agreements?agreement=' . rawurlencode((string) $a->id),
                     'sort_at' => $this->iso($a->created_at) ?? '',
                 ];
             })->all();
+    }
+
+    private function residentAgreementQuery(string $userId): \Illuminate\Database\Query\Builder
+    {
+        return DB::table('resident_agreements')->whereNull('deleted_at')
+            ->whereIn('id', DB::table('resident_agreement_signers')->select('agreement_id')->where('signer_user_id', $userId));
     }
 
     /** One instrument, in full — parties only (404 to anyone else). */
@@ -1148,27 +1066,46 @@ class EconomyController extends Controller
             return collect();
         }
 
-        $uid = (string) $user->id;
+        $query = $this->visibleContractQuery((string) $user->id, $onlyId);
 
-        $query = DB::table('org_contracts as c')
-            ->join('organizations as o', 'o.id', '=', 'c.organization_id')
-            ->whereNull('c.deleted_at')
-            ->where(function ($q) use ($uid) {
-                $q->where(fn ($w) => $w->where('c.counterparty_type', 'users')->where('c.counterparty_id', $uid))
-                    ->orWhere('c.signed_by_org_user_id', $uid)
-                    ->orWhereExists(fn ($m) => $m->from('org_memberships')
-                        ->whereColumn('org_memberships.organization_id', 'c.organization_id')
-                        ->where('org_memberships.user_id', $uid)
-                        ->where('org_memberships.status', 'active')
-                        ->whereNull('org_memberships.deleted_at'));
-            })
-            ->select(['c.*', 'o.name as org_name']);
+        return $this->withContractOrganizations($query->orderByDesc('c.created_at')->limit($onlyId === null ? 20 : 1)->get(['c.*']));
+    }
 
+    private function visibleContractQuery(string $uid, ?string $onlyId = null): \Illuminate\Database\Query\Builder
+    {
+        // Start each visibility lane from its indexed person/org input. A
+        // correlated OR over the world contract register cannot stop cheaply
+        // for someone with no agreements, even with a final LIMIT.
+        $counterparty = DB::table('org_contracts')->select('id')->whereNull('deleted_at')
+            ->where('counterparty_type', 'users')->where('counterparty_id', $uid);
+        $signed = DB::table('org_contracts')->select('id')->whereNull('deleted_at')->where('signed_by_org_user_id', $uid);
+        $membership = DB::table('org_memberships as m')->join('org_contracts as owned', 'owned.organization_id', '=', 'm.organization_id')
+            ->select('owned.id')->where('m.user_id', $uid)->where('m.status', 'active')
+            ->whereNull('m.deleted_at')->whereNull('owned.deleted_at');
         if ($onlyId !== null) {
-            $query->where('c.id', $onlyId);
+            $counterparty->where('id', $onlyId);
+            $signed->where('id', $onlyId);
+            $membership->where('owned.id', $onlyId);
         }
 
-        return $query->orderByDesc('c.created_at')->limit(100)->get();
+        return DB::table('org_contracts as c')
+            ->whereNull('c.deleted_at')
+            ->whereExists(fn ($q) => $q->from('organizations')->whereColumn('organizations.id', 'c.organization_id'))
+            ->whereIn('c.id', $counterparty->union($signed)->union($membership));
+    }
+
+    private function withContractOrganizations(\Illuminate\Support\Collection $rows): \Illuminate\Support\Collection
+    {
+        if ($rows->isEmpty()) {
+            return $rows;
+        }
+        $names = DB::table('organizations')->whereIn('id', $rows->pluck('organization_id'))->pluck('name', 'id');
+
+        return $rows->map(function ($row) use ($names) {
+            $row->org_name = $names[$row->organization_id] ?? 'An organization';
+
+            return $row;
+        });
     }
 
     /** @return array<string, mixed> */
@@ -1201,9 +1138,21 @@ class EconomyController extends Controller
     /** @return array<int, array<string, mixed>> */
     private function offers(?string $onlyId = null): array
     {
+        // Bound listing input before joining the optional registered asset.
+        $ids = DB::table('marketplace_listings')->whereNull('deleted_at');
+        if ($onlyId !== null) {
+            $ids->where('id', $onlyId);
+        } else {
+            $ids->where('status', 'open')->orderByDesc('created_at')->orderByDesc('id');
+        }
+        $ids = $ids->limit($onlyId === null ? 100 : 1)->pluck('id');
+        if ($ids->isEmpty()) {
+            return [];
+        }
         $query = DB::table('marketplace_listings as l')
             ->leftJoin('assets as a', 'a.id', '=', 'l.asset_id')
             ->whereNull('l.deleted_at')
+            ->whereIn('l.id', $ids)
             ->select([
                 'l.id', 'l.kind', 'l.title', 'l.description', 'l.price', 'l.quantity',
                 'l.status', 'l.seller_account_id',
@@ -1213,7 +1162,7 @@ class EconomyController extends Controller
         if ($onlyId !== null) {
             $query->where('l.id', $onlyId);
         } else {
-            $query->where('l.status', 'open')->orderByDesc('l.created_at')->limit(100);
+            $query->where('l.status', 'open')->orderByDesc('l.created_at')->orderByDesc('l.id');
         }
 
         return $query->get()->map(fn ($l) => [

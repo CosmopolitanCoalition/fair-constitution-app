@@ -1,21 +1,6 @@
 <script setup>
-/**
- * Organizations/Registry — FE-D6 (PHASE_D_DESIGN_frontend.md §B.6; surface
- * organizations/org-registry). The one registry, no faction layer.
- *
- * Stat tiles · FilterBar (type ChipToggles, structure select, jurisdiction
- * select, search) · the registry DataTable with the CO-DETERMINATION CELL
- * (server-computed state + the engine's worker_seats snapshot — never
- * recomputed client-side) · the F-IND-012 registration FormCard (with the
- * CGC carve-out stated verbatim) · the ESM-18 StateStrip legend.
- *
- * Public read (visibility 'all'); registration requires R-03 — the page
- * explains and shows a residency CTA, it never 403s (CandidacyRegistration
- * pattern). Every threshold here (min / parity) is a server-resolved
- * CLK-13/14 value — the constants are never hardcoded.
- */
-import { computed, ref } from 'vue';
-import { Link, useForm, usePage } from '@inertiajs/vue3';
+import { computed, ref, watch } from 'vue';
+import { Link, router, useForm, usePage } from '@inertiajs/vue3';
 import AppShellV2 from '@/Layouts/AppShellV2.vue';
 import PageScaffold from '@/Components/Surface/PageScaffold.vue';
 import FormCard from '@/Components/Surface/FormCard.vue';
@@ -23,290 +8,103 @@ import AdmChip from '@/Components/Ui/AdmChip.vue';
 import Banner from '@/Components/Ui/Banner.vue';
 import Btn from '@/Components/Ui/Btn.vue';
 import Card from '@/Components/Ui/Card.vue';
-import ChipToggle from '@/Components/Ui/ChipToggle.vue';
 import DataTable from '@/Components/Ui/DataTable.vue';
 import Field from '@/Components/Ui/Field.vue';
-import FilterBar from '@/Components/Ui/FilterBar.vue';
-import StateStrip from '@/Components/Ui/StateStrip.vue';
 import StatusBadge from '@/Components/Ui/StatusBadge.vue';
-import Stat from '@/Components/Ui/Stat.vue';
 import TagChip from '@/Components/Ui/TagChip.vue';
+import ReferenceText from '@/Components/Ui/ReferenceText.vue';
 
-/* Phase-2 restyle wave: the v3 player chrome (MASTER_PLAN). */
 defineOptions({ layout: AppShellV2 });
-
 const props = defineProps({
     surface: { type: Object, required: true },
-    stats: { type: Object, required: () => ({ total: 0, endorsing: 0, in_codetermination: 0, cgcs: 0 }) },
-    organizations: { type: Array, default: () => [] },
-    filters: { type: Object, default: () => ({ types: [], structures: [], jurisdictions: [] }) },
-    machine: { type: Array, default: () => [] },
-    createForm: { type: Object, default: () => ({ types: [], structures: [], jurisdictionOptions: [] }) },
+    directory: { type: Object, required: true },
+    filters: { type: Object, required: true },
+    createForm: { type: Object, required: true },
     isAssociated: { type: Boolean, default: false },
-    thresholds: { type: Object, default: () => ({ min: 100, parity: 2000 }) },
 });
-
 const page = usePage();
 const flashStatus = computed(() => page.props.flash?.status ?? null);
 const constitutionError = computed(() => page.props.errors?.constitution ?? null);
-
 const formMeta = (id) => props.surface.forms.find((f) => f.id === id);
-
-const titleize = (s) => (s ? String(s).replaceAll('_', ' ') : '—');
+const titleize = (s) => s === 'common_good_corp' ? 'Common Good Corporation' : s ? String(s).replaceAll('_', ' ') : '—';
 const fmt = (n) => Number(n ?? 0).toLocaleString();
-
-/* ------------------------------------------------------ client filters -- */
-const q = ref('');
-const activeTypes = ref([]);
-const structure = ref('');
-const jurisdiction = ref('');
-const endorsingOnly = ref(false);
-
-function toggleType(type) {
-    activeTypes.value = activeTypes.value.includes(type)
-        ? activeTypes.value.filter((t) => t !== type)
-        : [...activeTypes.value, type];
+const search = ref({ ...props.filters.selected });
+const loading = ref(false);
+const registrationOpen = ref(false);
+watch(() => props.filters.selected, (value) => { search.value = { ...value }; });
+function visit(url, data = {}) {
+    router.get(url, data, {
+        only: ['directory', 'filters', 'jurisdictionContext'], preserveState: true,
+        onStart: () => { loading.value = true; },
+        onFinish: () => { loading.value = false; },
+    });
 }
-
-const filtered = computed(() =>
-    props.organizations.filter((org) => {
-        if (activeTypes.value.length && !activeTypes.value.includes(org.type)) return false;
-        if (structure.value && org.structure !== structure.value) return false;
-        if (jurisdiction.value && org.jurisdiction?.name !== jurisdiction.value) return false;
-        if (endorsingOnly.value && !(org.endorsement_count > 0)) return false;
-        if (q.value && !org.name.toLowerCase().includes(q.value.toLowerCase())) return false;
-        return true;
-    }),
-);
-
-const hasFilters = computed(
-    () =>
-        q.value !== '' ||
-        activeTypes.value.length > 0 ||
-        structure.value !== '' ||
-        jurisdiction.value !== '' ||
-        endorsingOnly.value,
-);
-
-function clearFilters() {
-    q.value = '';
-    activeTypes.value = [];
-    structure.value = '';
-    jurisdiction.value = '';
-    endorsingOnly.value = false;
+function applyFilters() {
+    visit('/organizations', Object.fromEntries(Object.entries(search.value).filter(([,value]) => value !== '')));
 }
-
-/* ------------------------------------------------- co-determination cell */
-function codetBadge(org) {
-    if (!org.codet) {
-        return { tone: 'neutral', text: 'no board', citation: null };
-    }
-    if (org.codet.state === 'parity') {
-        return { tone: 'success', text: 'parity', citation: 'worker seats equal owner seats · CLK-14' };
-    }
-    if (org.codet.state === 'scaling') {
-        return {
-            tone: 'info',
-            text: `${org.codet.worker_seats} worker seat${org.codet.worker_seats === 1 ? '' : 's'} · scaling`,
-            citation: 'first seat at the CLK-13 minimum · Art. III §6',
-        };
-    }
-    return { tone: 'neutral', text: 'below threshold', citation: null };
-}
-
-function statusTone(status) {
-    return status === 'active' ? 'success' : status === 'registered' ? 'info' : 'neutral';
-}
-
-/* ------------------------------------------------- registration form ---- */
+function clearFilters() { search.value = {q:'',type:'',structure:'',jurisdiction:''}; applyFilters(); }
+const hasFilters = computed(() => Object.values(props.filters.selected).some(Boolean));
 const registerForm = useForm({
     type: props.createForm.types[0] ?? 'business',
     structure: props.createForm.structures[0]?.value ?? null,
-    name: '',
-    jurisdiction_id: props.createForm.jurisdictionOptions[0]?.id ?? null,
-    purpose: '',
+    name: '', jurisdiction_id: props.createForm.jurisdictionOptions[0]?.id ?? null, purpose: '',
 });
-
-const selectedStructureGloss = computed(
-    () => props.createForm.structures.find((s) => s.value === registerForm.structure)?.rule_gloss ?? null,
-);
-
-function submitRegistration() {
-    registerForm.post('/organizations', { preserveScroll: true });
-}
-
-/* "Start a club" — the lightest path: an informal association takes only a
-   name and a purpose. The same F-IND-012 write door as the full form, with
-   the type fixed to informal and no ownership structure. The jurisdiction is
-   the viewer's nearest association (an associated resident always has one). */
-const clubForm = useForm({
-    type: 'informal',
-    structure: null,
-    name: '',
-    jurisdiction_id: props.createForm.jurisdictionOptions[0]?.id ?? null,
-    purpose: '',
+watch(() => registerForm.type, type => {
+    registerForm.structure = type === 'informal' ? null : registerForm.structure ?? props.createForm.structures[0]?.value ?? null;
 });
-
-function submitClub() {
-    clubForm.post('/organizations', { preserveScroll: true });
-}
-
+const selectedStructureGloss = computed(() => props.createForm.structures.find(s => s.value === registerForm.structure)?.rule_gloss ?? null);
+function submitRegistration() { registerForm.post('/organizations', {preserveScroll: true}); }
 const columns = [
-    { key: 'name', label: 'Organization' },
-    { key: 'type', label: 'Type / structure' },
-    { key: 'workers', label: 'Workers', mono: true, align: 'right' },
-    { key: 'codet', label: 'Co-determination' },
-    { key: 'endorsement_count', label: 'Endorsements', mono: true, align: 'right' },
-    { key: 'status', label: 'Status' },
+    {key:'name',label:'Organization'}, {key:'type',label:'Type / structure'},
+    {key:'workers',label:'Workers',mono:true,align:'right'},
+    {key:'board',label:'Worker representation'},
+    {key:'endorsement_count',label:'Endorsements',mono:true,align:'right'},
 ];
 </script>
 
 <template>
-    <PageScaffold :surface="surface" title="Organization registry">
-        <template #intro>
-            Every registered organization where you live — parties, businesses, nonprofits, and
-            public companies share one open list. Anyone who lives here can start one.
-        </template>
-
-        <Banner v-if="flashStatus" tone="info" role="status">{{ flashStatus }}</Banner>
-        <Banner v-if="constitutionError" tone="emergency" role="alert">{{ constitutionError }}</Banner>
-
-        <!-- ============================================ stat tiles ======= -->
-        <Card as="section" title="The registry at a glance">
-            <div class="cluster" style="gap: var(--space-5); align-items: flex-start">
-                <Stat :value="fmt(stats.total)" label="organizations" />
-                <Stat :value="fmt(stats.endorsing)" label="currently endorsing a candidate" />
-                <Stat
-                    :value="fmt(stats.in_codetermination)"
-                    :label="`in co-determination — workers ≥ ${fmt(thresholds.min)} (CLK-13)`"
-                    accent
-                />
-                <Stat :value="fmt(stats.cgcs)" label="Common Good Corporations" />
+    <PageScaffold :surface="surface" title="Organizations">
+        <template #intro>Find an organization, review its work, or start one. Browse the world or narrow the list to a place.</template>
+        <Banner v-if="flashStatus" tone="info" role="status"><ReferenceText>{{ flashStatus }}</ReferenceText></Banner>
+        <Banner v-if="constitutionError" tone="emergency" role="alert"><ReferenceText>{{ constitutionError }}</ReferenceText></Banner>
+        <Card as="section" title="Find an organization">
+            <form class="directory-filters" @submit.prevent="applyFilters">
+                <label>Name begins with<input v-model="search.q" type="search" maxlength="120" placeholder="e.g. Anne Arundel" class="field-input" /></label>
+                <label>Type<select v-model="search.type" class="select"><option value="">All types</option><option v-for="type in filters.types" :key="type" :value="type">{{ titleize(type) }}</option></select></label>
+                <label>Structure<select v-model="search.structure" class="select"><option value="">All structures</option><option v-for="type in filters.structures" :key="type" :value="type">{{ titleize(type) }}</option></select></label>
+                <label>Place<select v-model="search.jurisdiction" class="select"><option value="">Worldwide</option><option v-for="place in filters.jurisdictions" :key="place.id" :value="place.id">{{ place.name }}</option></select></label>
+                <Btn type="submit" :disabled="loading">Search</Btn>
+                <Btn v-if="hasFilters" variant="ghost" :disabled="loading" @click="clearFilters">Clear filters</Btn>
+            </form>
+            <p class="cc-small">Search by the start of a name. <Link href="/jurisdictions">Browse places around the world</Link> to explore organizations elsewhere.</p>
+            <div :aria-busy="loading" class="directory-results">
+                <p role="status" aria-live="polite">{{ loading ? 'Loading organizations…' : directory.organizations.length + ' organizations on this page' }}</p>
+                <DataTable v-if="directory.organizations.length" :columns="columns" :rows="directory.organizations" row-key="id" caption="Organizations on this page">
+                    <template #cell-name="{row}">
+                        <Link :href="row.href"><strong>{{ row.name }}</strong></Link>
+                        <StatusBadge v-if="row.monopoly_pending" tone="warning">Acquisition under review</StatusBadge>
+                        <span v-if="row.jurisdiction" class="directory-place"><AdmChip :level="row.jurisdiction.adm_level" :label="row.jurisdiction.name" /></span>
+                    </template>
+                    <template #cell-type="{row}"><TagChip>{{ titleize(row.type) }}</TagChip><span v-if="row.structure" class="directory-place">{{ titleize(row.structure) }}</span></template>
+                    <template #cell-workers="{row}">{{ fmt(row.workers) }}</template>
+                    <template #cell-board="{row}">
+                        <Link v-if="row.board" :href="'/organizations/co-determination?org=' + row.id">{{ fmt(row.board.worker_seats) }} worker seats required</Link>
+                        <span v-else>No board recorded</span>
+                    </template>
+                    <template #cell-endorsement_count="{row}">{{ fmt(row.endorsement_count) }}</template>
+                </DataTable>
+                <Banner v-else tone="info" role="status" title="No organizations match this search.">Try another name prefix or clear a filter.</Banner>
+                <nav class="directory-pages" aria-label="Organization directory pages">
+                    <Link v-if="directory.previous" :href="directory.previous" :only="['directory','filters','jurisdictionContext']" rel="prev">Previous organizations</Link>
+                    <Link v-if="directory.next" :href="directory.next" :only="['directory','filters','jurisdictionContext']" rel="next">Next organizations</Link>
+                </nav>
             </div>
         </Card>
-
-        <!-- ================================= no party privileges ======= -->
-        <Banner tone="info" role="note" title="There are no special party privileges here.">
-            A party is just an organization — anyone, an organization or a person, can endorse any
-            candidate, and nothing here treats a party differently.
-            <Link href="/constitutional-questions">How endorsements replace factions →</Link>
-        </Banner>
-
-        <!-- ============================================== registry ======= -->
-        <Card as="section" title="Registered organizations">
-            <FilterBar label="Filter organizations">
-                <ChipToggle
-                    v-for="type in filters.types"
-                    :key="type"
-                    :pressed="activeTypes.includes(type)"
-                    @update:pressed="toggleType(type)"
-                >{{ titleize(type) }}</ChipToggle>
-
-                <label class="field" style="margin: 0">
-                    <span class="visually-hidden">Structure</span>
-                    <select v-model="structure" class="select">
-                        <option value="">All structures</option>
-                        <option v-for="s in filters.structures" :key="s" :value="s">{{ titleize(s) }}</option>
-                    </select>
-                </label>
-
-                <label v-if="filters.jurisdictions.length" class="field" style="margin: 0">
-                    <span class="visually-hidden">Jurisdiction</span>
-                    <select v-model="jurisdiction" class="select">
-                        <option value="">All jurisdictions</option>
-                        <option v-for="j in filters.jurisdictions" :key="j.id" :value="j.name">{{ j.name }}</option>
-                    </select>
-                </label>
-
-                <input v-model="q" type="search" class="field-input" placeholder="Search by name" style="inline-size: 14rem" />
-
-                <ChipToggle :pressed="endorsingOnly" @update:pressed="endorsingOnly = !endorsingOnly">
-                    Endorsing only
-                </ChipToggle>
-            </FilterBar>
-
-            <template v-if="organizations.length">
-                <DataTable :columns="columns" :rows="filtered" row-key="id" caption="Registered organizations">
-                    <template #cell-name="{ row }">
-                        <Link :href="row.href"><strong style="color: var(--gov-fg)">{{ row.name }}</strong></Link>
-                        <TagChip v-if="row.is_cgc" style="margin-inline-start: var(--space-1)" data-no-i18n>CGC</TagChip>
-                        <StatusBadge
-                            v-if="row.monopoly_pending"
-                            tone="warning"
-                            icon="alert-triangle"
-                            style="margin-inline-start: var(--space-1)"
-                        >monopoly finding pending</StatusBadge>
-                        <span v-if="row.jurisdiction" class="cc-small" style="display: block">
-                            <AdmChip :level="row.jurisdiction.adm_level" :label="row.jurisdiction.name" />
-                        </span>
-                    </template>
-                    <template #cell-type="{ row }">
-                        <TagChip data-no-i18n>{{ titleize(row.type) }}</TagChip>
-                        <TagChip v-if="row.structure" style="margin-inline-start: var(--space-1)" data-no-i18n>{{ titleize(row.structure) }}</TagChip>
-                    </template>
-                    <template #cell-workers="{ row }">{{ fmt(row.workers) }}</template>
-                    <template #cell-codet="{ row }">
-                        <StatusBadge :tone="codetBadge(row).tone" icon="users">{{ codetBadge(row).text }}</StatusBadge>
-                        <span v-if="codetBadge(row).citation" class="citation" style="display: block">{{ codetBadge(row).citation }}</span>
-                    </template>
-                    <template #cell-endorsement_count="{ row }">{{ fmt(row.endorsement_count) }}</template>
-                    <template #cell-status="{ row }">
-                        <StatusBadge :tone="statusTone(row.status)">{{ row.status }}</StatusBadge>
-                    </template>
-                </DataTable>
-                <div v-if="!filtered.length" class="cluster" style="margin-block-start: var(--space-2)">
-                    <span class="gloss">No organizations match the current filters.</span>
-                    <Btn v-if="hasFilters" variant="ghost" size="sm" @click="clearFilters">Clear filters</Btn>
-                </div>
-            </template>
-            <Banner v-else tone="info" role="status" title="No organizations registered in your association chain.">
-                Any associated resident may register one — association is the only requirement (Art. I).
-            </Banner>
-        </Card>
-
-        <!-- ===================================== start a club ========== -->
-        <Card v-if="isAssociated" as="section" title="Start a club">
-            <p class="cc-small">
-                A book circle, a cleanup crew, a neighborhood band — a club is the lightest kind of
-                organization. A name and a purpose are all it takes; it registers as an informal
-                association and can grow into a business or party later.
-            </p>
-            <form
-                class="stack"
-                style="gap: var(--space-3); margin-block-start: var(--space-3)"
-                @submit.prevent="submitClub"
-            >
-                <Field label="Club name" :error="clubForm.errors.name" required>
-                    <template #control="{ id, describedBy, invalid }">
-                        <input
-                            :id="id"
-                            v-model="clubForm.name"
-                            class="field-input"
-                            :aria-invalid="invalid || undefined"
-                            :aria-describedby="describedBy"
-                        />
-                    </template>
-                </Field>
-                <Field label="What it's for" :error="clubForm.errors.purpose">
-                    <template #control="{ id }">
-                        <input
-                            :id="id"
-                            v-model="clubForm.purpose"
-                            class="field-input"
-                            placeholder="e.g. monthly book discussion"
-                        />
-                    </template>
-                </Field>
-                <div class="cluster">
-                    <Btn type="submit" variant="primary" size="sm" :disabled="clubForm.processing">Start the club</Btn>
-                    <span class="citation">Registers as an informal association — F-IND-012 · Art. I.</span>
-                </div>
-            </form>
-        </Card>
-
-        <!-- ============================== registration / residency CTA == -->
+        <details v-if="isAssociated" class="registration-disclosure" @toggle="registrationOpen = $event.target.open">
+            <summary>Start an organization or club</summary>
+            <p>Choose informal for a club. Other organization types can specify their ownership structure.</p>
         <FormCard
-            v-if="isAssociated"
+            v-if="isAssociated && registrationOpen"
             :form="formMeta('F-IND-012')"
             :inertia-form="registerForm"
             submit-label="Register organization"
@@ -327,7 +125,7 @@ const columns = [
                 </template>
             </Field>
 
-            <Field label="Ownership structure" :error="registerForm.errors.structure" :hint="selectedStructureGloss">
+            <Field v-if="registerForm.type !== 'informal'" label="Ownership structure" :error="registerForm.errors.structure" :hint="selectedStructureGloss">
                 <template #control="{ id, describedBy }">
                     <select :id="id" v-model="registerForm.structure" class="select" :aria-describedby="describedBy">
                         <option v-for="s in createForm.structures" :key="s.value" :value="s.value">{{ s.label }}</option>
@@ -352,12 +150,13 @@ const columns = [
             <template #actions>
                 <span class="citation">
                     Common Good Corporations are not self-registered — the legislature creates them by act
-                    (F-LEG-019 · WF-ORG-08).
+                    under the public-service creation process.
                 </span>
             </template>
         </FormCard>
 
-        <Card v-else as="section" title="Registering an organization">
+        </details>
+        <Card v-if="!isAssociated" as="section" title="Registering an organization">
             <Banner tone="info" role="status" title="Confirm residency to register.">
                 Registration is an absolute right of any associated resident (Art. I, Economic Freedom) —
                 you just need an active residency association first.
@@ -367,15 +166,18 @@ const columns = [
             </p>
         </Card>
 
-        <!-- ============================================ ESM-18 legend ==== -->
-        <Card as="section" title="Organization lifecycle (ESM-18)">
-            <StateStrip :states="machine" />
-            <p class="gloss" style="margin-block-start: var(--space-2)">
-                "Endorsing" and the co-determination tiers are derived display states — read from
-                live endorsement rows and the worker headcount against the CLK-13 / CLK-14 thresholds —
-                never stored statuses. The stored machine is registration → active, with the transfer,
-                conversion, and dissolution branches.
-            </p>
-        </Card>
+        <template #about><p>Any person or organization can endorse a candidate. Organization types do not confer special election privileges. Open an organization to see its board, finances and membership options.</p></template>
     </PageScaffold>
 </template>
+
+<style scoped>
+.directory-filters { display: flex; flex-wrap: wrap; align-items: end; gap: 1rem; }
+.directory-filters label { display: grid; gap: .4rem; flex: 1 1 12rem; min-inline-size: 0; }
+.directory-filters input, .directory-filters select { inline-size: 100%; min-inline-size: 0; }
+.directory-place { display: block; margin-block-start: .25rem; }
+.directory-pages { display: flex; flex-wrap: wrap; gap: 1rem; margin-block-start: 1rem; }
+.directory-pages a { display: inline-flex; align-items: center; min-block-size: 44px; padding: .5rem 1rem; border: 1px solid var(--gov-border); border-radius: .5rem; }
+.registration-disclosure { border: 1px solid var(--gov-border); border-radius: .5rem; padding: 1rem; }
+.registration-disclosure summary { cursor: pointer; font-weight: 600; min-block-size: 44px; }
+.directory-pages a:focus-visible, .registration-disclosure summary:focus-visible { outline: 3px solid var(--gov-accent); outline-offset: 3px; }
+</style>

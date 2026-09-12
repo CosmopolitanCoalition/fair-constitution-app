@@ -104,7 +104,7 @@ export const SITEMAP = [
         { id: 'juror-view', label: 'A juror’s view', icon: 'users', href: '/judiciary/jury', contract: 'judiciary/juror-view.html', roles: ['R-22'] },
     ] },
     { key: 'organizations', title: 'Organizations', items: [
-        { id: 'org-registry', label: 'The registry', icon: 'building', href: '/organizations', contract: 'organizations/org-registry.html' },
+        { id: 'org-registry', label: 'Organizations', icon: 'building', href: '/organizations', contract: 'organizations/org-registry.html' },
         { id: 'co-determination', label: 'Worker seats on the board', icon: 'users', href: '/organizations/co-determination', contract: 'organizations/co-determination.html' },
         { id: 'transfers-conversions', label: 'Ownership changes', icon: 'refresh-cw', href: '/organizations/transfers-conversions', contract: 'organizations/transfers-conversions.html' },
         /* BUILT (FE-D8): GET /organizations/{organization}/board-elections is per organization, so the menu lands on the registry, where each organization's board elections are one link away (operator 2026-09-10: it was shown as Planned in error). */
@@ -164,8 +164,8 @@ export const SITEMAP = [
     ] },
     { key: 'node', title: 'Run a node', items: [
         { id: 'setup-wizard', label: 'Found the instance', icon: 'sliders', href: '/setup', contract: 'system/setup.html' },
-        { id: 'operator-home', label: 'The operator plane', icon: 'sliders', href: '/operator', contract: 'operator/operator-home.html' },
-        { id: 'operator-console', label: 'The console', icon: 'landmark', href: '/operator/console', contract: 'operator/console.html' },
+        { id: 'operator-home', label: 'Host overview', icon: 'sliders', href: '/operator', contract: 'operator/operator-home.html' },
+        { id: 'operator-console', label: 'Host overview', icon: 'landmark', href: '/operator', contract: 'operator/console.html' },
         { id: 'operator-roles', label: 'Roles & channels', icon: 'users', href: '/operator/roles', contract: 'operator/roles.html' },
         { id: 'operator-mesh', label: 'Mesh & peers', icon: 'globe', href: '/operator/mesh', contract: 'operator/mesh.html' },
         { id: 'operator-identity', label: 'Identity', icon: 'lock', href: '/operator/identity', contract: 'operator/identity.html' },
@@ -268,10 +268,9 @@ export const TOUR = [
     { act: 'Help', href: '/support/tickets', title: 'Your reports', blurb: 'Everything you’ve filed and where it went — a bug, a question, or a call for review.' },
     { act: 'Help', href: '/system/accessibility', title: 'Accessibility', blurb: 'What’s built in, what’s still coming, and how to tell us where it falls short.' },
     { act: 'Help', href: '/system/constitutional-questions', title: 'The hard questions', blurb: 'The design decisions people ask about most, answered against the Template.' },
-    { act: 'Run a node', href: '/operator', title: 'The operator plane', blurb: 'The volunteer servers the world runs on — keeping one online buys no vote and no seat.' },
+    { act: 'Run a node', href: '/operator', title: 'Host overview', blurb: 'Review this node’s health and open its hosting controls.' },
     { act: 'Run a node', href: '/operator/dns', title: 'DNS & certificates', blurb: 'How a node is reached on the network, and how it proves it’s really itself.' },
     { act: 'Run a node', href: '/operator/moderation', title: 'Moderation & the legal floor', blurb: 'The only removals allowed — four narrow carve-outs, never a viewpoint.' },
-    { act: 'Run a node', href: '/operator/console', title: 'The node console', blurb: 'One node’s own health and state. Everything here is a gauge, never a lever over anybody’s rights.' },
     { act: 'Run a node', href: '/operator/roles', title: 'Who runs this node', blurb: 'The people trusted with the machine — a separate question from who holds office, and it confers none.' },
     { act: 'Run a node', href: '/operator/mesh', title: 'The mesh', blurb: 'Which other instances this one has met, and what it accepts from them.' },
     { act: 'Run a node', href: '/operator/identity', title: 'Identity & keys', blurb: 'How this node proves it is itself, and how it recognises its neighbours.' },

@@ -21,6 +21,7 @@
 import { computed } from 'vue';
 import { Link, usePage } from '@inertiajs/vue3';
 import AppShellV2 from '@/Layouts/AppShellV2.vue';
+import HostNav from '@/Components/Operator/HostNav.vue';
 import PageScaffold from '@/Components/Surface/PageScaffold.vue';
 import Banner from '@/Components/Ui/Banner.vue';
 import Btn from '@/Components/Ui/Btn.vue';
@@ -143,7 +144,9 @@ const syncColumns = [
 </script>
 
 <template>
-    <PageScaffold :surface="surface">
+    <PageScaffold :surface="surface" title="Peers and sync">
+        <HostNav current="mesh" />
+        <p><Link href="/operator/federation">Open connection, invitation, and access controls</Link></p>
         <template #intro>
             How your node finds its peers, carries their records, and survives a hostile
             network — the federation layer the citizen game rides on.
@@ -204,8 +207,8 @@ const syncColumns = [
 
                 <p v-if="peers.length === 0" class="gloss">
                     No peers yet — this box stands alone. Joining a cluster starts with a
-                    one-shot join-key minted by a host operator; the join wizard runs on the
-                    <Link href="/operator/federation">federation console</Link> this campaign.
+                    one-shot join-key minted by a host operator; the join wizard is on
+                    <Link href="/operator/federation">Connections and access</Link>.
                     Joining never moves authority: which box holds a place's home copy stays
                     exactly where it was.
                 </p>

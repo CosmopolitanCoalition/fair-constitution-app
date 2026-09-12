@@ -45,7 +45,8 @@ class MonolithSplitTest extends TestCase
                     ->where('legislature.slug', $leg->slug)
                     ->where('districtsHref', "/legislatures/{$leg->slug}/districts")
                     ->has('legislature.type_a_seats')
-                    ->has('members')
+                    ->where('workspace.chamber', "/legislatures/{$leg->id}/chamber")
+                    ->missing('members') // The full roster has one home on Members & chamber.
                     ->has('maps.total')
                     // The mapper's prop surface is GONE from the overview —
                     // the split's designed shape change.

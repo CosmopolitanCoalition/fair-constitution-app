@@ -16,6 +16,7 @@
 import { ref } from 'vue';
 import { router } from '@inertiajs/vue3';
 import AppShellV2 from '@/Layouts/AppShellV2.vue';
+import HostNav from '@/Components/Operator/HostNav.vue';
 import PageScaffold from '@/Components/Surface/PageScaffold.vue';
 import Banner from '@/Components/Ui/Banner.vue';
 import Btn from '@/Components/Ui/Btn.vue';
@@ -65,6 +66,7 @@ const fmtEpoch = (n) => (n ? new Date(n * 1000).toLocaleDateString() : '—');
 
 <template>
     <PageScaffold :surface="surface" title="DNS & certificates">
+        <HostNav current="dns" />
         <template #intro>
             Real names and real certificates for mesh nodes: an authority grants, a broker
             writes the record and proves the name, and the node serves on a real cert. The

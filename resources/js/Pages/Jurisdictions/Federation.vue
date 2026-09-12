@@ -2,6 +2,7 @@
 import { computed, ref } from 'vue';
 import { Head, router, useForm, usePage } from '@inertiajs/vue3';
 import AppShellV2 from '@/Layouts/AppShellV2.vue';
+import HostNav from '@/Components/Operator/HostNav.vue';
 import SyncProgress from '@/Components/Federation/SyncProgress.vue';
 
 /* Phase-2 restyle wave: the v3 player chrome (MASTER_PLAN). */
@@ -151,18 +152,17 @@ const forgetBrokerCred = (domain) => {
 </script>
 
 <template>
-    <Head title="Federation" />
+    <Head title="Host connections and access" />
 
     <div class="mx-auto max-w-5xl space-y-6 p-6">
         <header>
-            <p class="text-xs font-semibold uppercase tracking-wide text-slate-500">Phase F · WF-JUR-06 · Art. V §2</p>
-            <h1 class="text-2xl font-semibold text-slate-900">Federation</h1>
+            <h1 class="text-2xl font-semibold text-slate-900">Host connections and access</h1>
             <p class="mt-1 max-w-2xl text-sm text-slate-600">
-                The peer mesh and the Full-Faith-&-Credit record. Peers authenticate by Ed25519 signature; every
-                synced tail is verified against the peer's chain before it is applied, and a record for a jurisdiction
-                this instance is authoritative for is never overwritten.
+                Connect this host to the network, manage invitations and access requests, and verify peer connections.
+                For the current peer list and synchronization record, open Peers and sync.
             </p>
         </header>
+        <HostNav current="federation" />
 
         <!-- This instance's identity -->
         <section class="rounded-lg border border-slate-200 bg-white p-5">

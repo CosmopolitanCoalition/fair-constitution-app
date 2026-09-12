@@ -99,12 +99,9 @@ class PhaseCGroupBControllersTest extends TestCase
             $this->assertContains(sprintf('F-SPK-%03d', $n), $ids);
         }
 
-        // The launchpad map covers all nine (private const — reflection pin).
-        $surfaces = (new ReflectionClass(SpeakerController::class))
-            ->getConstant('FORM_SURFACES');
-
-        $this->assertSame(9, count($surfaces));
-        $this->assertSame([], array_diff(array_keys($surfaces), $ids));
+        // All powers remain in the surface reference disclosure. The old
+        // nine-card launchpad is consolidated into tested workspace links.
+        $this->assertCount(9, array_filter($ids, fn ($id) => str_starts_with($id, 'F-SPK-')));
     }
 
     /**

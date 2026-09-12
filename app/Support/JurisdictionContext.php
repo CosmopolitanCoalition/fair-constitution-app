@@ -123,6 +123,7 @@ final class JurisdictionContext
         // Take part (open to everyone; filing needs residency)
         $tools[] = $link('roles', 'Take part', 'Explore civic roles', '/explore?jurisdiction='.rawurlencode($slug), null, 'users');
         $tools[] = $link('square', 'Take part', 'The public square', '/civic/square?jurisdiction='.rawurlencode($slug), null, 'message-square');
+        $tools[] = $link('organizations', 'Take part', 'Organizations', '/organizations?jurisdiction='.rawurlencode($slug), null, 'building');
         $tools[] = $link('petitions', 'Take part', 'Petitions', '/civic/petitions?jurisdiction='.rawurlencode($slug), null, 'file-text');
         $tools[] = $link('rooms', 'Take part', 'Live rooms', '/civic/commons/square'.(! empty($g['id']) ? '?jurisdiction='.rawurlencode($g['id']) : ''), null, 'users');
 

@@ -14,6 +14,7 @@ import AppShellV2 from '@/Layouts/AppShellV2.vue';
 import PageScaffold from '@/Components/Surface/PageScaffold.vue';
 import Card from '@/Components/Ui/Card.vue';
 import StatusBadge from '@/Components/Ui/StatusBadge.vue';
+import WorkTradeNav from '@/Components/Economy/WorkTradeNav.vue';
 
 defineOptions({ layout: AppShellV2 });
 
@@ -22,12 +23,13 @@ const props = defineProps({
     agreements: { type: Array, default: () => [] },
     candidates: { type: Array, default: () => [] },
     my_id: { type: String, default: null },
+    compose: { type: Boolean, default: false },
 });
 
 const draft = useForm({ title: '', terms: '', signers: [] });
 const submit = () => draft.post('/economy/resident-agreements', {
     preserveScroll: true,
-    onSuccess: () => draft.reset(),
+    onSuccess: () => { draft.reset(); router.visit('/economy/agreements'); },
 });
 
 const sign = (id) => router.post(`/economy/resident-agreements/${id}/sign`, {}, { preserveScroll: true });
@@ -43,15 +45,15 @@ const proposeOn = (agreementId, clauseId) => {
 </script>
 
 <template>
-    <PageScaffold title="Resident agreements">
+    <PageScaffold :title="compose ? 'Offer an agreement' : (agreements[0]?.title ?? 'Agreement')">
         <template #intro>
-            Agreements between people — no organization involved. Freedom to contract, on a floor no
-            clause can lower: an agreement takes effect only when every party has signed, and no term
-            may sign away a constitutional right.
+            {{ compose ? 'Write terms and invite the other people to sign.' : 'Review the terms, signatures and proposed changes with the other parties.' }}
         </template>
+        <WorkTradeNav active="agreements" back-href="/economy/agreements" back-label="My agreements" />
+        <p class="econ-note">Terms are private to the parties. Every party must sign, and no term may waive a constitutional right.</p>
 
         <!-- ------------------------------------------------- new agreement -->
-        <Card as="section" title="Offer an agreement">
+        <Card v-if="compose" as="section" title="Terms & parties">
             <form class="ra-form" @submit.prevent="submit">
                 <label>Title<input v-model="draft.title" type="text" maxlength="200" required /></label>
                 <label>Terms<textarea v-model="draft.terms" rows="3" maxlength="10000" required /></label>
@@ -68,7 +70,7 @@ const proposeOn = (agreementId, clauseId) => {
         </Card>
 
         <!-- ---------------------------------------------------- my agreements -->
-        <Card v-for="a in agreements" :key="a.id" as="section" :title="a.title">
+        <Card v-for="a in agreements" :key="a.id" as="section" title="Agreement record">
             <p class="ra-status">
                 <StatusBadge>{{ a.status }}</StatusBadge>
                 <span v-if="a.is_initiator" class="econ-note">· you offered this</span>
@@ -108,8 +110,8 @@ const proposeOn = (agreementId, clauseId) => {
                 <div v-for="c in a.clauses" :key="c.id" class="ra-clause">
                     <p class="econ-note">{{ c.heading || 'Clause' }}: {{ c.body }}</p>
                     <div class="ra-propose-row">
-                        <select v-model="redline.kind"><option value="edit">Edit</option><option value="strike">Strike</option></select>
-                        <input v-model="redline.body" type="text" placeholder="Your language" />
+                        <select v-model="redline.kind" aria-label="Kind of change"><option value="edit">Edit</option><option value="strike">Strike</option></select>
+                        <input v-model="redline.body" type="text" placeholder="Your language" aria-label="Proposed wording" />
                         <button @click="proposeOn(a.id, c.id)">Propose</button>
                     </div>
                 </div>
@@ -117,7 +119,6 @@ const proposeOn = (agreementId, clauseId) => {
             </details>
         </Card>
 
-        <p v-if="!agreements.length" class="econ-absent">You are not party to any resident agreements yet.</p>
     </PageScaffold>
 </template>
 

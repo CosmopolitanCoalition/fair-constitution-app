@@ -51,19 +51,20 @@ class TransferController extends Controller
         private readonly ChamberVotePresenter $votes,
     ) {}
 
-    public function index(Request $request): Response
+    public function index(Request $request): Response|RedirectResponse
     {
-        $focusOrgId = $request->query('org');
+        // Ownership actions and records belong to an organization. The shared
+        // directory is the selection step, never an unbounded transfer register.
+        if (! $request->filled('org')) {
+            return redirect('/organizations');
+        }
+        $validated = $request->validate(['org' => ['required', 'uuid']]);
 
-        $focusOrg = $focusOrgId !== null
-            ? Organization::query()->find($focusOrgId)
-            : null;
+        // Dissolved organizations retain their public history. Unknown IDs
+        // fail locally rather than silently falling back to every organization.
+        $focusOrg = Organization::query()->findOrFail($validated['org']);
 
-        // Scope every register to the focused org when ?org= is present,
-        // else show the whole (typically empty on day one) registry.
-        $orgFilter = fn ($query) => $focusOrg !== null
-            ? $query->where('organization_id', $focusOrg->id)
-            : $query;
+        $orgFilter = fn ($query) => $query->where('organization_id', $focusOrg->id);
 
         return Inertia::render('Organizations/TransfersConversions', [
             'surface' => SurfaceMeta::for('organizations/transfers-conversions'),

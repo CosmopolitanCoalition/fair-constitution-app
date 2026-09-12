@@ -10,6 +10,7 @@
  * is logged" is shown, not asserted.
  */
 import AppShellV2 from '@/Layouts/AppShellV2.vue';
+import HostNav from '@/Components/Operator/HostNav.vue';
 import PageScaffold from '@/Components/Surface/PageScaffold.vue';
 import Banner from '@/Components/Ui/Banner.vue';
 import Btn from '@/Components/Ui/Btn.vue';
@@ -45,6 +46,7 @@ const legalBases = [
 
 <template>
     <PageScaffold :surface="surface" title="Moderation & the legal floor">
+        <HostNav current="moderation" />
         <template #intro>
             The operator holds no power to remove on viewpoint — hosting buys no say. Below
             the flip an operator can only relay narrow protections, everything logged; the

@@ -26,6 +26,7 @@ import Banner from '@/Components/Ui/Banner.vue';
 import Btn from '@/Components/Ui/Btn.vue';
 import FormChip from '@/Components/Ui/FormChip.vue';
 import StatusBadge from '@/Components/Ui/StatusBadge.vue';
+import WorkTradeNav from '@/Components/Economy/WorkTradeNav.vue';
 import { formatMoney, formatCount, formatQuantity, formatWhen, shortId } from '@/lib/money.js';
 
 defineOptions({ layout: AppShellV2 });
@@ -58,6 +59,7 @@ function settle(orderId) {
 
 <template>
     <PageScaffold :title="listing?.title || 'A listing'">
+        <WorkTradeNav active="market" back-href="/economy/market?tab=offers" back-label="For sale" />
         <p v-if="!listing" class="econ-note">This listing is no longer available.</p>
 
         <template v-else>
@@ -134,7 +136,6 @@ function settle(orderId) {
                     This listing is closed, or you don't have a wallet in this currency yet.
                 </p>
 
-                <p><Link href="/economy/market">← Back to the market</Link></p>
             </Card>
 
             <Card v-if="is_seller" as="section">

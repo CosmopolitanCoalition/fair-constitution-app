@@ -85,7 +85,8 @@ class PhaseDPageSmokeTest extends TestCase
                 ['/organizations', 200, 'Organizations/Registry'],
                 ["/organizations/{$org->id}", 200, 'Organizations/OrgDetail'],
                 ['/organizations/co-determination', 200, 'Organizations/CoDetermination'],
-                ['/organizations/transfers-conversions', 200, 'Organizations/TransfersConversions'],
+                ['/organizations/transfers-conversions', 302, null],
+                ["/organizations/transfers-conversions?org={$org->id}", 200, 'Organizations/TransfersConversions'],
                 ["/organizations/{$org->id}/board-elections", 200, 'Organizations/BoardElections'],
                 ["/organizations/{$cgc->id}/cgc", 200, 'Organizations/CgcDetail'],
             ];

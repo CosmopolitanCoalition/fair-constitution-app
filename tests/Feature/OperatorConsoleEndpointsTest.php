@@ -39,8 +39,7 @@ class OperatorConsoleEndpointsTest extends TestCase
 
     /** @var array<string, array{component: string, data: string}> */
     private const PAGES = [
-        '/operator' => ['component' => 'Operator/Home', 'data' => 'readiness'],
-        '/operator/console' => ['component' => 'Operator/Console', 'data' => 'console'],
+        '/operator' => ['component' => 'Operator/Home', 'data' => 'console'],
         '/operator/roles' => ['component' => 'Operator/Roles', 'data' => 'roles'],
         '/operator/mesh' => ['component' => 'Operator/Mesh', 'data' => 'mesh'],
         '/operator/identity' => ['component' => 'Operator/Identity', 'data' => 'identity'],

@@ -16,7 +16,7 @@
  * identical terms to private enterprise (Art. III §5). The badge is
  * informational; it is never a different rule.
  */
-import { ref, computed } from 'vue';
+import { computed } from 'vue';
 import { Link, useForm, usePage } from '@inertiajs/vue3';
 import AppShellV2 from '@/Layouts/AppShellV2.vue';
 import PageScaffold from '@/Components/Surface/PageScaffold.vue';
@@ -26,6 +26,7 @@ import Btn from '@/Components/Ui/Btn.vue';
 import Field from '@/Components/Ui/Field.vue';
 import FormChip from '@/Components/Ui/FormChip.vue';
 import StatusBadge from '@/Components/Ui/StatusBadge.vue';
+import WorkTradeNav from '@/Components/Economy/WorkTradeNav.vue';
 import { formatMoney, formatCount, formatQuantity } from '@/lib/money.js';
 
 defineOptions({ layout: AppShellV2 });
@@ -62,11 +63,10 @@ const TABS = [
     { key: 'assistance', label: 'Requests for help' },
 ];
 
-const initialTab = () => {
-    const t = new URLSearchParams(window.location.search).get('tab');
+const tab = computed(() => {
+    const t = new URLSearchParams((page.url ?? '').split('?')[1] ?? '').get('tab');
     return TABS.some((x) => x.key === t) ? t : 'offers';
-};
-const tab = ref(initialTab());
+});
 
 const counts = computed(() => ({
     offers: props.offers?.length ?? 0,
@@ -76,11 +76,12 @@ const counts = computed(() => ({
 </script>
 
 <template>
-    <PageScaffold title="The open market">
+    <PageScaffold title="Market & work">
         <template #intro>
             Things and services for sale, work on offer, and neighbours asking for help — one board,
             open to everyone who lives here.
         </template>
+        <WorkTradeNav active="market" />
 
         <Banner v-if="!currency" tone="info" title="No currency yet">
             Nothing can be priced until this world's root legislature defines a currency.
@@ -89,7 +90,9 @@ const counts = computed(() => ({
         <Banner v-if="flashStatus" tone="info" role="status">{{ flashStatus }}</Banner>
         <Banner v-if="constitutionError" tone="emergency">{{ constitutionError }}</Banner>
 
-        <Card v-if="currency" as="section">
+        <details v-if="currency && tab === 'offers'" class="mkt-compose">
+            <summary>Sell a good or offer a service</summary>
+        <Card as="section">
             <template #title>
                 <h2>Offer something <FormChip form-id="F-IND-022" name="Marketplace Listing" /></h2>
             </template>
@@ -148,27 +151,22 @@ const counts = computed(() => ({
                 </Btn>
             </form>
 
-            <p class="econ-note">
-                Anyone who lives here can offer anything — there is no seller's licence and no fee for
-                listing. A common-good corporation trades on identical terms to anyone else.
-            </p>
         </Card>
+        </details>
 
-        <div class="mkt-tabs" role="tablist" aria-label="Market sections">
-            <button
+        <nav class="mkt-tabs" aria-label="Market sections">
+            <Link
                 v-for="t in TABS"
                 :key="t.key"
-                type="button"
-                role="tab"
+                :href="`/economy/market?tab=${t.key}`"
                 class="mkt-tab"
                 :class="{ 'mkt-tab--on': tab === t.key }"
-                :aria-selected="tab === t.key"
-                @click="tab = t.key"
+                :aria-current="tab === t.key ? 'page' : undefined"
             >
                 {{ t.label }}
                 <span class="mkt-count">{{ formatCount(counts[t.key]) }}</span>
-            </button>
-        </div>
+            </Link>
+        </nav>
 
         <!-- ------------------------------------------------------ for sale -->
         <section v-show="tab === 'offers'" aria-label="Things and services for sale">
@@ -212,10 +210,6 @@ const counts = computed(() => ({
                     <Link :href="`/economy/requests/${w.id}`">View &amp; apply</Link>
                 </p>
             </Card>
-            <p class="econ-note">
-                Taking a job is what eventually gives workers a seat on the board of the
-                organisation they work for — at a hundred workers a seat appears on its own.
-            </p>
         </section>
 
         <!-- ---------------------------------------------------- assistance -->
@@ -226,15 +220,14 @@ const counts = computed(() => ({
                 <p class="mkt-desc">{{ a.need }}</p>
                 <p class="mkt-meta"><span>{{ a.status }}</span></p>
             </Card>
-            <p class="econ-note">
-                Requests marked private are never shown here, to anyone — they don't leave the
-                server.
-            </p>
         </section>
     </PageScaffold>
 </template>
 
 <style scoped>
+.mkt-compose summary { cursor: pointer; padding: .75rem; min-block-size: 44px; border: 1px solid var(--gov-border); border-radius: .4rem; font-weight: 600; }
+.mkt-compose[open] summary { margin-block-end: .75rem; }
+.mkt-compose summary:focus-visible, .mkt-tab:focus-visible { outline: 3px solid var(--gov-accent); outline-offset: 3px; }
 .mkt-tabs {
     display: flex;
     flex-wrap: wrap;
@@ -242,6 +235,7 @@ const counts = computed(() => ({
     margin-block-end: var(--space-4);
 }
 .mkt-tab {
+    text-decoration: none;
     /* 44px min target — WCAG 2.2 AA pointer target size at 375px. */
     min-height: 44px;
     padding: 0 var(--space-3);

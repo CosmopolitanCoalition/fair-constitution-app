@@ -269,31 +269,14 @@ class LegislatureController extends Controller
             ->whereNull('deleted_at')
             ->first(['id', 'name', 'slug']);
 
-        // Current members (elected|seated) with the display name + district
-        // label — the overview roster. Ordered by seat.
-        $members = DB::table('legislature_members as m')
-            ->leftJoin('users as u', 'u.id', '=', 'm.user_id')
-            ->leftJoin('legislature_districts as d', 'd.id', '=', 'm.district_id')
-            ->where('m.legislature_id', $legislature_id)
-            ->whereIn('m.status', ['elected', 'seated'])
-            ->whereNull('m.deleted_at')
-            ->orderBy('m.seat_no')
-            ->get([
-                'm.id', 'm.seat_no', 'm.status', 'm.seated_on', 'm.term_ends_on',
-                'u.name as user_name', 'u.display_name as user_display_name',
-                'd.district_number',
-            ])
-            ->map(fn ($m) => [
-                'id'             => (string) $m->id,
-                'seat_no'        => $m->seat_no !== null ? (int) $m->seat_no : null,
-                'name'           => $m->user_display_name ?: ($m->user_name ?: '—'),
-                'district_label' => $m->district_number !== null ? "District {$m->district_number}" : '—',
-                'status'         => $m->status,
-                'seated_on'      => $m->seated_on,
-                'term_ends_on'   => $m->term_ends_on,
-            ])
-            ->values()
-            ->all();
+        // The full roster lives on Members & chamber. Overview needs only its count.
+        $currentMembers = DB::table('legislature_members')
+            ->where('legislature_id', $legislature_id)
+            ->whereIn('status', ['elected', 'seated'])
+            ->whereNull('deleted_at');
+        $serving = (clone $currentMembers)->count();
+        $canReadSpeaker = $request->user() !== null
+            && (clone $currentMembers)->where('user_id', (string) $request->user()->id)->exists();
 
         // District-map summary — count + the active map (with its district
         // count) power the "Districts & maps" card.
@@ -319,11 +302,14 @@ class LegislatureController extends Controller
             ? DB::table('legislature_members as m')
                 ->leftJoin('users as u', 'u.id', '=', 'm.user_id')
                 ->where('m.id', $leg->speaker_id)
-                ->value(DB::raw('COALESCE(u.display_name, u.name)'))
+                ->value('u.display_name')
             : null;
 
+        $ctxJ = \App\Models\Jurisdiction::query()->find($leg->jurisdiction_id, ['id', 'name', 'slug', 'parent_id', 'adm_level']);
+
         return Inertia::render('Legislature/Show', [
-            'jurisdictionContext' => ($ctxJ = \App\Models\Jurisdiction::find($leg->jurisdiction_id)) ? \App\Support\JurisdictionContext::for($ctxJ) : null,
+            'jurisdictionContext' => $ctxJ ? \App\Support\JurisdictionContext::for($ctxJ) : null,
+            'workspace' => \App\Support\LegislatureWorkspace::for($leg, $ctxJ, $canReadSpeaker),
             'surface' => \App\Support\SurfaceMeta::for('legislature/overview'),
             'legislature' => [
                 'id'             => (string) $leg->id,
@@ -335,11 +321,10 @@ class LegislatureController extends Controller
                 'term_ends_on'   => $leg->term_ends_on,
                 'type_a_seats'   => (int) $leg->type_a_seats,
                 'type_b_seats'   => (int) ($leg->type_b_seats ?? 0),
-                'serving'        => count($members),
+                'serving'        => $serving,
                 'speaker_name'   => $speakerName,
-                'chamber_seated' => count($members) > 0,
+                'chamber_seated' => $serving > 0,
             ],
-            'members' => $members,
             'maps' => [
                 'total'  => $mapsTotal,
                 'active' => $activeMap ? [

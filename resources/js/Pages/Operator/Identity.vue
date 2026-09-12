@@ -18,6 +18,7 @@
 import { computed, ref } from 'vue';
 import { usePage } from '@inertiajs/vue3';
 import AppShellV2 from '@/Layouts/AppShellV2.vue';
+import HostNav from '@/Components/Operator/HostNav.vue';
 import PageScaffold from '@/Components/Surface/PageScaffold.vue';
 import Banner from '@/Components/Ui/Banner.vue';
 import Btn from '@/Components/Ui/Btn.vue';
@@ -131,6 +132,7 @@ const checkSteps = forwardedChecks.map((c, i) => ({
 
 <template>
     <PageScaffold :surface="surface">
+        <HostNav current="identity" />
         <template #intro>
             The identity layer that lets a server know who you are across the mesh, and lets a
             citizen’s public standing travel with them onto a server that isn’t home. Two separate
