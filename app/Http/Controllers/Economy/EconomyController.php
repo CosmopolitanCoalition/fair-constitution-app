@@ -127,21 +127,9 @@ class EconomyController extends Controller
 
             return $transactions;
         };
-        $receipts = function () use ($accountId) {
-            if ($accountId === null) return [];
-            return DB::table('ubi_receipts')
-                ->where('account_id', $accountId)
-                ->orderByDesc('created_at')
-                ->limit(12)
-                ->get()
-                ->map(fn ($r) => [
-                    'id'     => (string) $r->id,
-                    'base'   => (string) $r->base,
-                    'bump'   => (string) $r->bump,
-                    'amount' => (string) $r->amount,
-                    'at'     => $this->iso($r->created_at),
-                ])->all();
-
+        $receiptDirectory = null;
+        $receiptPage = function () use (&$receiptDirectory, $request, $accountId) {
+            return $receiptDirectory ??= (new \App\Support\StipendReceiptDirectory)->page($request, $accountId);
         };
 
         return Inertia::render('Economy/Wallet', [
@@ -153,7 +141,8 @@ class EconomyController extends Controller
                 'status'  => (string) $account->status,
             ],
             'transactions' => $transactions,
-            'receipts'     => $receipts,
+            'receipts'     => fn () => $receiptPage()['receipts'],
+            'receipt_pages' => fn () => $receiptPage()['pagination'],
             'assets'       => fn () => $assetPage()['assets'],
             'asset_directory' => $assetPage,
         ]);

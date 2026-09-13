@@ -166,13 +166,33 @@ final class EconomyAssetPartialTest extends TestCase
         }
     }
 
-    private function partial(string $method, string $url, ?string $userId = 'viewer'): array
+    public function test_receipt_partial_keeps_private_scope_and_skips_other_wallet_sections(): void
+    {
+        DB::connection()->getSchemaBuilder()->create('ubi_receipts', function (Blueprint $table) {
+            $table->string('id')->primary();
+            foreach (['account_id', 'base', 'bump', 'amount'] as $column) $table->string($column);
+            $table->timestamp('created_at')->nullable();
+        });
+        foreach ([900, 901] as $owner) DB::table('ubi_receipts')->insert([
+            'id' => $this->id($owner + 100), 'account_id' => $this->id($owner),
+            'base' => '5.000000', 'bump' => '1.000000', 'amount' => '6.000000', 'created_at' => null,
+        ]);
+        $props = $this->partial('wallet', '/economy/wallet?account_id='.$this->id(901), 'viewer', 'receipts,receipt_pages');
+        self::assertSame(['receipts', 'receipt_pages'], array_keys($props));
+        self::assertSame([$this->id(1000)], array_column($props['receipts'], 'id'));
+        self::assertSame('6.000000', $props['receipts'][0]['amount']);
+        $reads = array_filter(DB::getQueryLog(), fn ($q) => str_contains($q['query'], 'ubi_receipts'));
+        self::assertCount(1, $reads, 'Both receipt props share one query.');
+        foreach (DB::getQueryLog() as $query) self::assertDoesNotMatchRegularExpression('/"(assets|market_transactions)"/', $query['query']);
+    }
+
+    private function partial(string $method, string $url, ?string $userId = 'viewer', ?string $only = null): array
     {
         $request = Request::create($url);
         $request->setUserResolver(fn () => $userId === null ? null : (new User)->forceFill(['id' => $userId]));
         $request->headers->set('X-Inertia', 'true');
         $request->headers->set('X-Inertia-Partial-Component', 'Economy/'.ucfirst($method));
-        $request->headers->set('X-Inertia-Partial-Data', ($method === 'wallet' ? 'assets' : 'my_assets').',asset_directory');
+        $request->headers->set('X-Inertia-Partial-Data', $only ?? (($method === 'wallet' ? 'assets' : 'my_assets').',asset_directory'));
         DB::enableQueryLog();
         DB::flushQueryLog();
 

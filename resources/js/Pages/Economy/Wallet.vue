@@ -40,6 +40,7 @@ const props = defineProps({
     account: { type: Object, default: null },
     transactions: { type: Array, default: () => [] },
     receipts: { type: Array, default: () => [] },
+    receipt_pages: { type: Object, default: () => ({ previous: null, next: null }) },
     /** Things you hold — physical and virtual alike, one flag apart. */
     assets: { type: Array, default: () => [] },
     asset_directory: { type: Object, default: () => ({ query: '', previous: null, next: null, available: false }) },
@@ -321,9 +322,13 @@ const assetRows = () =>
                     :columns="receiptColumns"
                     :rows="receiptRows()"
                     row-key="id"
-                    caption="Civic stipend payments you have received, newest first"
+                    caption="Your recorded civic stipend payments"
                 />
-                <p v-else class="econ-note">You haven't received a stipend payment yet.</p>
+                <p v-else class="econ-note">No stipend receipts on this page.</p>
+                <nav class="wallet-asset-pages" aria-label="Stipend receipt pages">
+                    <Link v-if="receipt_pages.previous" :href="receipt_pages.previous" :only="['receipts', 'receipt_pages']" preserve-state preserve-scroll rel="prev">Previous receipts</Link>
+                    <Link v-if="receipt_pages.next" :href="receipt_pages.next" :only="['receipts', 'receipt_pages']" preserve-state preserve-scroll rel="next">Next receipts</Link>
+                </nav>
             </Card>
         </template>
     </PageScaffold>
