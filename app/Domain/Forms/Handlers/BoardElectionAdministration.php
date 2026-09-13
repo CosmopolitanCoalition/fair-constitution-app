@@ -95,11 +95,20 @@ class BoardElectionAdministration implements FormHandler
                 return ['election_id' => (string) $election->id, 'kind' => (string) $election->kind];
             })(),
 
-            'certify' => (function () use ($payload) {
-                $election = Election::query()->find($payload['election_id'] ?? null);
+            'certify' => (function () use ($org, $payload) {
+                $board = $this->requireBoard($org);
+                $election = Election::query()
+                    ->where('board_id', $board->id)
+                    ->where('kind', Election::KIND_ORG_BOARD_OWNER)
+                    ->find($payload['election_id'] ?? null);
 
-                if ($election === null) {
-                    throw new ConstitutionalViolation('certify names an unknown election.', 'CGA Forms Catalog (F-ORG-003)');
+                if ($election === null
+                    || $board->boardable_type !== Board::BOARDABLE_ORGANIZATIONS
+                    || (string) $board->boardable_id !== (string) $org->id) {
+                    throw new ConstitutionalViolation(
+                        'Select an owner-seat election for this organization\'s board.',
+                        'CGA Forms Catalog (F-ORG-003)'
+                    );
                 }
 
                 return $this->seating->certify($election);

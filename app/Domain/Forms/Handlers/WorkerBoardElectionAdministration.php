@@ -84,11 +84,17 @@ class WorkerBoardElectionAdministration implements FormHandler
                 ];
             })(),
 
-            'certify' => (function () use ($payload) {
-                $election = Election::query()->find($payload['election_id'] ?? null);
+            'certify' => (function () use ($board, $payload) {
+                $election = Election::query()
+                    ->where('board_id', $board->id)
+                    ->where('kind', Election::KIND_ORG_BOARD_WORKER)
+                    ->find($payload['election_id'] ?? null);
 
                 if ($election === null) {
-                    throw new ConstitutionalViolation('certify names an unknown election.', 'CGA Forms Catalog (F-ORG-004)');
+                    throw new ConstitutionalViolation(
+                        'Select a worker-seat election for this board.',
+                        'CGA Forms Catalog (F-ORG-004)'
+                    );
                 }
 
                 return $this->seating->certify($election);
