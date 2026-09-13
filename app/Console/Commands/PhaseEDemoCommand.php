@@ -519,10 +519,13 @@ class PhaseEDemoCommand extends Command
         $cases = app(\App\Services\Judiciary\CaseService::class);
         $cases->advanceToHearing($caseB->refresh());
         $cases->enterDeliberation($caseB->refresh());
+        // The panel vote must sum to the seated panel size and carry the
+        // outcome by a majority (operator ruling 2026-09-13).
+        $panelSize = (int) $caseB->refresh()->panel->size;
         $cases->recordVerdict($caseB->refresh(), [
             'decided_by' => 'panel',
             'outcome' => 'guilty',
-            'panel_vote_for' => 3,
+            'panel_vote_for' => $panelSize,
             'panel_vote_against' => 0,
             'summary' => 'Guilty on all counts (Phase E demo verdict).',
         ]);

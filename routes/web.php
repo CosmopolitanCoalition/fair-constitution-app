@@ -1199,6 +1199,16 @@ Route::middleware('auth')->group(function () {
         ->whereUuid('case')->name('judiciary.cases.warrants');                    // F-JDG-010
     Route::post('/cases/{case}/filings', [\App\Http\Controllers\Judiciary\CaseController::class, 'filing'])
         ->whereUuid('case')->name('judiciary.cases.filings.store');               // F-ADV-002/003/004
+    Route::post('/cases/{case}/hearing', [\App\Http\Controllers\Judiciary\CaseController::class, 'hearing'])
+        ->whereUuid('case')->name('judiciary.cases.hearing');                     // F-JDG-011
+    Route::post('/cases/{case}/deliberation', [\App\Http\Controllers\Judiciary\CaseController::class, 'deliberation'])
+        ->whereUuid('case')->name('judiciary.cases.deliberation');               // F-JDG-012
+    Route::post('/cases/{case}/dismissal', [\App\Http\Controllers\Judiciary\CaseController::class, 'dismissal'])
+        ->whereUuid('case')->name('judiciary.cases.dismissal');                  // F-JDG-013
+    Route::post('/cases/{case}/rulings', [\App\Http\Controllers\Judiciary\CaseController::class, 'ruling'])
+        ->whereUuid('case')->name('judiciary.cases.rulings');                    // F-JDG-014
+    Route::post('/cases/{case}/verdict', [\App\Http\Controllers\Judiciary\CaseController::class, 'verdict'])
+        ->whereUuid('case')->name('judiciary.cases.verdict');                    // verdict transition (judge-only; not a form)
 
     // ── FE-E5 — Constitutional challenges (Art. IV §5 — the exit surface) ────
     Route::get('/constitutional-challenges', [\App\Http\Controllers\Judiciary\ChallengeController::class, 'index'])

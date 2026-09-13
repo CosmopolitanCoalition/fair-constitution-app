@@ -120,7 +120,16 @@ class DoubleJeopardyTest extends TestCase
             $engine->file('F-JDG-001', $judge, ['case_id' => (string) $case->id, 'court_severity' => 'minor']);
             $cases->advanceToHearing($case->refresh());
             $cases->enterDeliberation($case->refresh());
-            $cases->recordVerdict($case->refresh(), ['decided_by' => 'jury', 'outcome' => 'not_guilty', 'jury_unanimous' => true]);
+            // This case seated a panel and never empaneled a jury, so the
+            // terminal verdict is a PANEL verdict: for + against == the panel
+            // size, the majority carries the outcome (not_guilty is negative,
+            // so "against" carries it). A jury verdict is unlawful here (no
+            // jury sat) — operator ruling 2026-09-13.
+            $panelSize = (int) $case->refresh()->panel->size;
+            $cases->recordVerdict($case->refresh(), [
+                'decided_by' => 'panel', 'outcome' => 'not_guilty',
+                'panel_vote_for' => 0, 'panel_vote_against' => $panelSize,
+            ]);
 
             $case->refresh();
             $this->assertTrue((bool) $case->double_jeopardy_locked, 'Art. II §8 — the criminal verdict locks double jeopardy.');

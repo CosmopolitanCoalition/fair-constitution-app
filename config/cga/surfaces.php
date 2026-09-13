@@ -847,10 +847,16 @@ return [
             ['id' => 'F-ADV-002', 'availableTo' => ['R-21'], 'citation' => 'Art. IV §4 — motion filing'],
             ['id' => 'F-ADV-003', 'availableTo' => ['R-21'], 'citation' => 'Art. IV §4 — evidence submission'],
             ['id' => 'F-JDG-003', 'availableTo' => ['R-19', 'R-20'], 'citation' => 'Art. IV §4–§5 — opinion / ruling, commentary on the law as written or edited'],
+            ['id' => 'F-JDG-011', 'availableTo' => ['R-19', 'R-20'], 'citation' => 'Art. IV §4 — hearing order; opens arguments (paneled/jury_empaneled → heard)'],
+            ['id' => 'F-JDG-012', 'availableTo' => ['R-19', 'R-20'], 'citation' => 'Art. IV §4 — deliberation order; submits the case (heard → deliberation)'],
+            ['id' => 'F-JDG-013', 'availableTo' => ['R-19', 'R-20'], 'citation' => 'Art. IV §4 — dismissal order; not justiciable or withdrawn, with a stated reason'],
+            ['id' => 'F-JDG-014', 'availableTo' => ['R-19', 'R-20'], 'citation' => 'Art. IV §4 — motion / evidence ruling; an appended follow-up with a written reason'],
             ['id' => 'F-JDG-009', 'availableTo' => ['R-19', 'R-20'], 'citation' => 'Art. II §8 — sentencing order; criminal outcome carries the double-jeopardy flag'],
             ['id' => 'F-JDG-010', 'availableTo' => ['R-19', 'R-20'], 'citation' => 'Art. I — warrant; stated reason and duration required'],
         ],
         'clocks'    => ['CLK-16'],
+        // The verdict (deliberation → decided) is a judge-only CaseService transition, not a form —
+        // it is recorded by a judge seated on the case's panel, and a criminal verdict locks double jeopardy.
         'citation'  => 'Case lifecycle · panel ≥3 odd · Art. IV §4 · CLK-16 — double jeopardy barred · Art. II §8',
     ],
 

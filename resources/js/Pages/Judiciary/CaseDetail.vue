@@ -23,8 +23,8 @@
  * `panel.panelSize` / `panel.isFullCourt` are ENGINE SNAPSHOTS (the CLK-16
  * hard constraint), passed straight to PanelTable — never recomputed here.
  */
-import { computed } from 'vue';
-import { Link, useForm, usePage } from '@inertiajs/vue3';
+import { computed, ref } from 'vue';
+import { Link, router, useForm, usePage } from '@inertiajs/vue3';
 import { useI18n } from 'vue-i18n';
 import AppShellV2 from '@/Layouts/AppShellV2.vue';
 import PageScaffold from '@/Components/Surface/PageScaffold.vue';
@@ -99,6 +99,17 @@ const hasCourtAction = computed(
     () => canAccept.value || canOrderJury.value || canSentence.value || canWarrant.value || canOpine.value,
 );
 
+/* IO-1 lifecycle controls (operator ruling 2026-09-13). These render whenever
+   the viewer is the court (`orderCourt`) and are DISABLED, not hidden, at the
+   wrong state — the engine re-asserts the legal ESM edge on every POST. A
+   non-court viewer never sees them. */
+const isCourt = computed(() => props.can.orderCourt);
+const canAdvanceHearing = computed(() => isCourt.value && ['paneled', 'jury_empaneled'].includes(state.value));
+const canDeliberate = computed(() => isCourt.value && state.value === 'heard');
+const canRecordVerdict = computed(() => isCourt.value && state.value === 'deliberation');
+const canDismiss = computed(() => isCourt.value && ['filed', 'accepted'].includes(state.value));
+const canRuleFilings = computed(() => isCourt.value && ['accepted', 'paneled', 'jury_empaneled', 'heard'].includes(state.value));
+
 /* The kind/severity header badge tone (mockup case-detail.html header). */
 const SEVERITY_TONE = {
     Minor: 'neutral',
@@ -167,6 +178,92 @@ function submitWarrant() {
         preserveScroll: true,
         onSuccess: () => warrantForm.reset('stated_reason'),
     });
+}
+
+/* ---------------------------------- IO-1 lifecycle controls ------------ */
+const hearingForm = useForm({});
+function submitHearing() {
+    hearingForm.post(`/cases/${props.case.id}/hearing`, { preserveScroll: true });
+}
+
+const deliberationForm = useForm({});
+function submitDeliberation() {
+    deliberationForm.post(`/cases/${props.case.id}/deliberation`, { preserveScroll: true });
+}
+
+const dismissForm = useForm({ reason: '' });
+function submitDismiss() {
+    dismissForm.post(`/cases/${props.case.id}/dismissal`, {
+        preserveScroll: true,
+        onSuccess: () => dismissForm.reset('reason'),
+    });
+}
+
+/* The verdict is NOT a form — it posts its own judge-only route. Outcomes are
+   keyed on the case kind; a panel verdict records the vote counts, a jury
+   verdict records unanimity. */
+const CRIMINAL_OUTCOMES = [
+    { value: 'guilty', label: 'Guilty' },
+    { value: 'not_guilty', label: 'Not guilty' },
+];
+const CIVIL_OUTCOMES = [
+    { value: 'liable', label: 'Liable' },
+    { value: 'not_liable', label: 'Not liable' },
+    { value: 'for_petitioner', label: 'For the petitioner' },
+    { value: 'for_respondent', label: 'For the respondent' },
+    { value: 'dismissed', label: 'Dismissed' },
+];
+const outcomeOptions = computed(() => (isCriminal.value ? CRIMINAL_OUTCOMES : CIVIL_OUTCOMES));
+const verdictForm = useForm({
+    decided_by: 'panel',
+    outcome: isCriminal.value ? 'guilty' : 'liable',
+    panel_vote_for: props.panel?.panelSize ?? 3,
+    panel_vote_against: 0,
+    jury_unanimous: true,
+    summary: '',
+});
+function submitVerdict() {
+    verdictForm.post(`/cases/${props.case.id}/verdict`, {
+        preserveScroll: true,
+        onSuccess: () => verdictForm.reset('summary'),
+    });
+}
+
+/* Motion / evidence rulings (F-JDG-014) — a single inline draft, targeted at
+   the row being ruled (JudicialNominations' router.post pattern). */
+const rulingRow = ref(null);
+const rulingChoice = ref('granted');
+const rulingReason = ref('');
+const rulingBusy = ref(false);
+const rulingError = ref('');
+const rulingNotice = ref('');
+function openRuling(row, kind) {
+    rulingRow.value = { key: `${kind}:${row.id ?? row.title}`, id: row.id ?? null, kind };
+    rulingChoice.value = kind === 'evidence' ? 'admitted' : 'granted';
+    rulingReason.value = '';
+    rulingError.value = '';
+    rulingNotice.value = '';
+}
+function submitRuling() {
+    if (rulingBusy.value || !rulingRow.value || !rulingReason.value.trim()) {
+        return;
+    }
+    router.post(
+        `/cases/${props.case.id}/rulings`,
+        {
+            filing_kind: rulingRow.value.kind,
+            references_filing_id: rulingRow.value.id,
+            ruling: rulingChoice.value,
+            ruling_reason: rulingReason.value.trim(),
+        },
+        {
+            preserveScroll: true,
+            onStart: () => { rulingBusy.value = true; rulingError.value = ''; rulingNotice.value = ''; },
+            onFinish: () => { rulingBusy.value = false; },
+            onError: (errors) => { rulingError.value = Object.values(errors)[0] || 'The ruling could not be filed. Please retry.'; },
+            onSuccess: () => { rulingNotice.value = 'Ruling filed to the docket.'; rulingRow.value = null; rulingReason.value = ''; },
+        },
+    );
 }
 </script>
 
@@ -242,9 +339,32 @@ function submitWarrant() {
                             </StatusBadge>
                             <span v-else class="gloss">pending</span>
                             <span v-if="row.ruling_reason" class="citation" style="display: block">{{ row.ruling_reason }}</span>
+                            <!-- F-JDG-014 — the court rules on this motion (appends a follow-up) -->
+                            <template v-if="canRuleFilings && !row.ruling">
+                                <button
+                                    v-if="!rulingRow || rulingRow.key !== 'motion:' + (row.id ?? row.title)"
+                                    type="button"
+                                    class="ruling-toggle"
+                                    @click="openRuling(row, 'motion')"
+                                >
+                                    Rule on this motion
+                                </button>
+                                <form v-else class="ruling-form" :aria-busy="rulingBusy" @submit.prevent="submitRuling">
+                                    <label :for="'motion-ruling-' + (row.id ?? row.title)">Ruling</label>
+                                    <select :id="'motion-ruling-' + (row.id ?? row.title)" v-model="rulingChoice">
+                                        <option value="granted">Grant</option>
+                                        <option value="denied">Deny</option>
+                                    </select>
+                                    <label :for="'motion-reason-' + (row.id ?? row.title)">Written reason</label>
+                                    <textarea :id="'motion-reason-' + (row.id ?? row.title)" v-model="rulingReason" rows="2" required />
+                                    <button type="submit" :disabled="rulingBusy || !rulingReason.trim()">File ruling</button>
+                                </form>
+                            </template>
                         </template>
                     </DataTable>
                     <p v-else class="gloss">No pre-trial motions on the docket.</p>
+                    <p v-if="rulingNotice" role="status">{{ rulingNotice }}</p>
+                    <p v-if="rulingError" role="alert">{{ rulingError }}</p>
                 </template>
 
                 <!-- Stage 5 — evidence docket -->
@@ -261,6 +381,27 @@ function submitWarrant() {
                             </StatusBadge>
                             <span v-else class="gloss">pending</span>
                             <span v-if="row.ruling_reason" class="citation" style="display: block">{{ row.ruling_reason }}</span>
+                            <!-- F-JDG-014 — the court rules on this exhibit's admissibility -->
+                            <template v-if="canRuleFilings && !row.ruling">
+                                <button
+                                    v-if="!rulingRow || rulingRow.key !== 'evidence:' + (row.id ?? row.title)"
+                                    type="button"
+                                    class="ruling-toggle"
+                                    @click="openRuling(row, 'evidence')"
+                                >
+                                    Rule on admissibility
+                                </button>
+                                <form v-else class="ruling-form" :aria-busy="rulingBusy" @submit.prevent="submitRuling">
+                                    <label :for="'evidence-ruling-' + (row.id ?? row.title)">Admissibility</label>
+                                    <select :id="'evidence-ruling-' + (row.id ?? row.title)" v-model="rulingChoice">
+                                        <option value="admitted">Admit</option>
+                                        <option value="excluded">Exclude</option>
+                                    </select>
+                                    <label :for="'evidence-reason-' + (row.id ?? row.title)">Written reason</label>
+                                    <textarea :id="'evidence-reason-' + (row.id ?? row.title)" v-model="rulingReason" rows="2" required />
+                                    <button type="submit" :disabled="rulingBusy || !rulingReason.trim()">File ruling</button>
+                                </form>
+                            </template>
                         </template>
                     </DataTable>
                     <p v-else class="gloss">No exhibits on the evidence docket.</p>
@@ -344,6 +485,114 @@ function submitWarrant() {
                     </p>
                 </template>
             </CaseLifecycle>
+        </Card>
+
+        <!-- ================= case proceedings (IO-1, R-19/R-20) ========== -->
+        <Card v-if="isCourt" as="section" title="Case proceedings" class="proceedings">
+            <p class="citation" style="margin-block-end: var(--space-3)">
+                The court advances the case through its lifecycle — each control is enabled only at the
+                state where the act is legal; the engine re-asserts the edge on every filing. Art. IV §4.
+            </p>
+            <div class="stack" style="gap: var(--space-4)">
+                <!-- F-JDG-011 — open the hearing (paneled/jury_empaneled → heard) -->
+                <FormCard
+                    v-if="surfaceForm('F-JDG-011')"
+                    :form="surfaceForm('F-JDG-011')"
+                    :inertia-form="hearingForm"
+                    :disabled="!canAdvanceHearing"
+                    submit-label="Open the hearing"
+                    @submit="submitHearing"
+                >
+                    <p class="citation">Opens arguments once the panel (and any jury) is seated · Art. IV §4.</p>
+                    <p v-if="!canAdvanceHearing" class="gloss" role="status">Available once the case is paneled (and any jury empaneled).</p>
+                </FormCard>
+
+                <!-- F-JDG-012 — submit to deliberation (heard → deliberation) -->
+                <FormCard
+                    v-if="surfaceForm('F-JDG-012')"
+                    :form="surfaceForm('F-JDG-012')"
+                    :inertia-form="deliberationForm"
+                    :disabled="!canDeliberate"
+                    submit-label="Send to deliberation"
+                    @submit="submitDeliberation"
+                >
+                    <p class="citation">Closes arguments; chambers and the jury room open. Deliberation is the only unrecorded space · Art. IV §4.</p>
+                    <p v-if="!canDeliberate" class="gloss" role="status">Available once the hearing is under way.</p>
+                </FormCard>
+
+                <!-- The VERDICT — a judge-only CaseService transition, not a form -->
+                <Card inset as="section" title="Record the verdict" class="verdict-form">
+                    <p class="citation" style="margin-block-end: var(--space-2)">
+                        The verdict is recorded by a judge seated on this case's panel — a judge-only act, not a form.
+                        A criminal verdict locks double jeopardy · Art. II §8 · Art. IV §4.
+                    </p>
+                    <form novalidate :aria-busy="verdictForm.processing" @submit.prevent="submitVerdict">
+                        <div class="grid-2">
+                            <Field label="Recorded by" :error="verdictForm.errors.decided_by">
+                                <template #control="{ id, describedBy }">
+                                    <select :id="id" v-model="verdictForm.decided_by" class="select" :aria-describedby="describedBy">
+                                        <option value="panel">Panel</option>
+                                        <!-- Jury verdict only when a jury actually sat; the server refuses it otherwise · Art. IV §4. -->
+                                        <option v-if="jury" value="jury">Jury</option>
+                                    </select>
+                                </template>
+                            </Field>
+                            <Field label="Outcome" :error="verdictForm.errors.outcome">
+                                <template #control="{ id, describedBy }">
+                                    <select :id="id" v-model="verdictForm.outcome" class="select" :aria-describedby="describedBy">
+                                        <option v-for="opt in outcomeOptions" :key="opt.value" :value="opt.value">{{ opt.label }}</option>
+                                    </select>
+                                </template>
+                            </Field>
+                        </div>
+                        <div v-if="verdictForm.decided_by === 'panel'" class="grid-2">
+                            <Field label="Votes for" hint="For + against must equal the panel size; the majority carries the outcome." :error="verdictForm.errors.panel_vote_for">
+                                <template #control="{ id, describedBy }">
+                                    <input :id="id" v-model.number="verdictForm.panel_vote_for" type="number" min="0" class="field-input" :aria-describedby="describedBy" />
+                                </template>
+                            </Field>
+                            <Field label="Votes against" :error="verdictForm.errors.panel_vote_against">
+                                <template #control="{ id, describedBy }">
+                                    <input :id="id" v-model.number="verdictForm.panel_vote_against" type="number" min="0" class="field-input" :aria-describedby="describedBy" />
+                                </template>
+                            </Field>
+                        </div>
+                        <Field v-else label="Jury unanimous" hint="A jury verdict is recorded only when the jury is unanimous." :error="verdictForm.errors.jury_unanimous">
+                            <template #control="{ id, describedBy }">
+                                <input :id="id" v-model="verdictForm.jury_unanimous" type="checkbox" :aria-describedby="describedBy" />
+                            </template>
+                        </Field>
+                        <Field label="Summary (optional)" :error="verdictForm.errors.summary">
+                            <template #control="{ id, describedBy }">
+                                <textarea :id="id" v-model="verdictForm.summary" class="field-input" rows="2" :aria-describedby="describedBy" />
+                            </template>
+                        </Field>
+                        <div class="cluster">
+                            <button type="submit" class="btn btn-primary" :disabled="!canRecordVerdict || verdictForm.processing">
+                                {{ verdictForm.processing ? 'Recording…' : 'Record verdict' }}
+                            </button>
+                        </div>
+                        <p v-if="!canRecordVerdict" class="gloss" role="status">Available once the case is in deliberation.</p>
+                    </form>
+                </Card>
+
+                <!-- F-JDG-013 — dismiss (filed/accepted → dismissed) -->
+                <FormCard
+                    v-if="surfaceForm('F-JDG-013')"
+                    :form="surfaceForm('F-JDG-013')"
+                    :inertia-form="dismissForm"
+                    :disabled="!canDismiss"
+                    submit-label="Dismiss the case"
+                    @submit="submitDismiss"
+                >
+                    <Field label="Reason for dismissal" hint="The public record names why the case ended." :error="dismissForm.errors.reason">
+                        <template #control="{ id, describedBy }">
+                            <textarea :id="id" v-model="dismissForm.reason" class="field-input" rows="2" :aria-describedby="describedBy" />
+                        </template>
+                    </Field>
+                    <p v-if="!canDismiss" class="gloss" role="status">Available before the panel is seated (filed or accepted).</p>
+                </FormCard>
+            </div>
         </Card>
 
         <!-- ====================== court actions (R-19/R-20) ============== -->
@@ -495,3 +744,19 @@ function submitWarrant() {
         </template>
     </PageScaffold>
 </template>
+
+<style scoped>
+/* IO-1 controls — 44px targets (matching JudicialNominations.vue). */
+.verdict-form form { display: grid; gap: 0.65rem; }
+.verdict-form button,
+.verdict-form select,
+.verdict-form input,
+.verdict-form textarea,
+.ruling-form button,
+.ruling-form select,
+.ruling-form input,
+.ruling-form textarea,
+.ruling-toggle { min-block-size: 44px; font: inherit; }
+.ruling-form { display: grid; gap: 0.5rem; margin-block-start: 0.5rem; max-inline-size: 28rem; }
+.ruling-toggle { inline-size: fit-content; cursor: pointer; margin-block-start: 0.5rem; }
+</style>

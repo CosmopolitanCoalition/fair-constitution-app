@@ -5,7 +5,7 @@ namespace App\Domain\Forms;
 use InvalidArgumentException;
 
 /**
- * Canonical registry of the constitutional forms — 125 total: the 103 Template forms +
+ * Canonical registry of the constitutional forms — 129 total: the 103 Template forms +
  * F-ELB-008 (Manual District Draw, Phase H) + the Phase K-1 civic-commons trio
  * F-SOC-001/002/003 (public square / halls testimony / carve-out removal) + the Phase K-3
  * F-SOC-004 (M-5 physical-law legal-compliance removal, operator-plane) + the Phase M
@@ -16,7 +16,7 @@ use InvalidArgumentException;
  * + F-IND-020 (Resident Agreement — person-to-person / N-party agreements +
  * clause redlines) + the Wave 4 economy build F-IND-021 (Share Trade —
  * holder-to-holder secondary share resale on the exchange), F-CHR-005/006
- * (committee meeting lifecycle), F-ORG-010 (joint board-chair participation), F-LEG-037/038 (judicial nomination authorization and committee designation), and the EO-5 individual-endorsement pair F-IND-025/026 (an individual's own public endorsement of a candidacy, and its withdrawal — distinct from the secret approval vote and from the organization endorsement handshake).
+ * (committee meeting lifecycle), F-ORG-010 (joint board-chair participation), F-LEG-037/038 (judicial nomination authorization and committee designation), the EO-5 individual-endorsement pair F-IND-025/026 (an individual's own public endorsement of a candidacy, and its withdrawal — distinct from the secret approval vote and from the organization endorsement handshake), and the IO-1 case-lifecycle quartet F-JDG-011/012/013/014 (hearing order, deliberation order, dismissal order, motion/evidence ruling — operator ruling 2026-09-13, case-lifecycle-controls-shape A; the VERDICT stays a CaseService transition, not a form).
  *
  * Source of truth: CGA_Constitutional_Roles_Forms_Chart.xlsx sheet
  * "3. Forms Catalog" (transcribed in docs/plans/institutions/
@@ -52,7 +52,7 @@ use InvalidArgumentException;
 class FormRegistry
 {
     /**
-     * All 125 canonical forms: id => [name, roles allowed to file].
+     * All 129 canonical forms: id => [name, roles allowed to file].
      * Roles per the catalog's "Filed by" column; 'roles' lists the role
      * codes whose holders may file (any one suffices). F-IND-006 is
      * additionally system-filed (see its handler's systemOnly()).
@@ -221,7 +221,7 @@ class FormRegistry
         'F-BOG-001' => ['name' => 'Department Rule Implementation',             'roles' => ['R-18']],
         'F-BOG-002' => ['name' => 'Department Report Filing',                   'roles' => ['R-18']],
 
-        // ── F-JDG — Judicial Forms (10) ─────────────────────────────────────
+        // ── F-JDG — Judicial Forms (14) ─────────────────────────────────────
         'F-JDG-001' => ['name' => 'Case Acceptance / Panel Assignment',         'roles' => ['R-19', 'R-20']],
         'F-JDG-002' => ['name' => 'Jury Selection Order',                       'roles' => ['R-19', 'R-20']],
         'F-JDG-003' => ['name' => 'Opinion / Ruling Filing',                    'roles' => ['R-19', 'R-20']],
@@ -232,6 +232,12 @@ class FormRegistry
         'F-JDG-008' => ['name' => 'Petition Constitutional Review',             'roles' => ['R-19', 'R-20']],
         'F-JDG-009' => ['name' => 'Sentencing Order',                           'roles' => ['R-19', 'R-20']],
         'F-JDG-010' => ['name' => 'Warrant Issuance',                           'roles' => ['R-19', 'R-20']],
+        // IO-1 case-lifecycle controls (operator ruling 2026-09-13, shape A).
+        // The verdict is NOT here — it is a CaseService transition (see below).
+        'F-JDG-011' => ['name' => 'Hearing Order',                              'roles' => ['R-19', 'R-20']],
+        'F-JDG-012' => ['name' => 'Deliberation Order',                         'roles' => ['R-19', 'R-20']],
+        'F-JDG-013' => ['name' => 'Dismissal Order',                            'roles' => ['R-19', 'R-20']],
+        'F-JDG-014' => ['name' => 'Motion or Evidence Ruling',                  'roles' => ['R-19', 'R-20']],
 
         // ── F-ADV — Advocate Forms (4) ──────────────────────────────────────
         'F-ADV-001' => ['name' => 'Case Filing (on behalf of client)',          'roles' => ['R-21']],
@@ -445,8 +451,11 @@ class FormRegistry
         // are advocate hearing filings under the attach-window gate; F-JDG-001
         // accepts + panels (odd ≥3, en-banc), F-JDG-002 empanels the jury,
         // F-JDG-003 publishes the opinion + closes, F-JDG-009 sentences a
-        // guilty verdict, F-JDG-010 issues a warrant (Art. II §8 facts). The
-        // VERDICT is NOT a form — it is a CaseService transition.)
+        // guilty verdict, F-JDG-010 issues a warrant (Art. II §8 facts).
+        // F-JDG-011/012/013 advance hearing/deliberation/dismissal and
+        // F-JDG-014 rules on a motion or evidence (IO-1, operator ruling
+        // 2026-09-13). The VERDICT is NOT a form — it is a CaseService
+        // transition behind a judge-only route (CaseController::verdict).)
         'F-IND-015' => Handlers\AdvocateRegistration::class,
         'F-IND-017' => Handlers\CaseFiling::class,
         'F-IND-019' => Handlers\WorkApplication::class,
@@ -464,6 +473,10 @@ class FormRegistry
         'F-JDG-003' => Handlers\OpinionRulingFiling::class,
         'F-JDG-009' => Handlers\SentencingOrder::class,
         'F-JDG-010' => Handlers\WarrantIssuance::class,
+        'F-JDG-011' => Handlers\HearingOrder::class,
+        'F-JDG-012' => Handlers\DeliberationOrder::class,
+        'F-JDG-013' => Handlers\DismissalOrder::class,
+        'F-JDG-014' => Handlers\MotionEvidenceRuling::class,
 
         // ── Phase E — challenge & law scope (PHASE_E_DESIGN_challenge_law §B/§D:
         // the Art. IV §5 machine — F-IND-016 absolute-right filing → F-JDG-004
@@ -581,7 +594,7 @@ class FormRegistry
         return self::HANDLERS[$canonicalId] ?? null;
     }
 
-    /** @return list<string> all 118 canonical form IDs. */
+    /** @return list<string> all 129 canonical form IDs. */
     public static function ids(): array
     {
         return array_keys(self::FORMS);

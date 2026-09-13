@@ -5,7 +5,9 @@ namespace App\Services\Judiciary;
 use App\Domain\Engine\ConstitutionalViolation;
 use App\Models\CaseParty;
 use App\Models\CourtCase;
+use App\Models\JudicialSeat;
 use App\Models\Judiciary;
+use App\Models\PanelJudge;
 use App\Models\SentencingOrder;
 use App\Models\Verdict;
 use App\Services\AuditService;
@@ -252,6 +254,10 @@ class CaseService
     public function recordVerdict(CourtCase $case, array $attrs): Verdict
     {
         $this->assertTransition($case, CourtCase::STATUS_DECIDED);
+        // The verdict math lives HERE so no caller can bypass it (operator
+        // ruling 2026-09-13): the panel vote must sum to the panel size and
+        // carry the outcome by a majority; a jury verdict must be unanimous.
+        $this->assertVerdictRecordable($case, $attrs);
 
         return DB::transaction(function () use ($case, $attrs): Verdict {
             $isCriminal = $case->kind === CourtCase::KIND_CRIMINAL;
@@ -330,6 +336,187 @@ class CaseService
         $this->seal('case.closed', $case, []);
 
         return $case;
+    }
+
+    // =========================================================================
+    // verdict guards (operator ruling 2026-09-13 — the verdict is not a form,
+    // so the recordability rules live on the service the route calls)
+    // =========================================================================
+
+    /** Outcomes that AFFIRM the accusation/claim (the "for" side carries them). */
+    private const AFFIRMATIVE_OUTCOMES = [
+        Verdict::OUTCOME_GUILTY,
+        Verdict::OUTCOME_LIABLE,
+        Verdict::OUTCOME_FOR_PETITIONER,
+    ];
+
+    /** Outcomes that DENY the accusation/claim (the "against" side carries them). */
+    private const NEGATIVE_OUTCOMES = [
+        Verdict::OUTCOME_NOT_GUILTY,
+        Verdict::OUTCOME_NOT_LIABLE,
+        Verdict::OUTCOME_FOR_RESPONDENT,
+        Verdict::OUTCOME_DISMISSED,
+    ];
+
+    /**
+     * The verdict recordability rules (operator ruling 2026-09-13). Called at
+     * the top of recordVerdict, so the route AND any future caller are held to
+     * the same law:
+     *   - decided_by is panel or jury;
+     *   - outcome is a Verdict outcome consistent with the case kind
+     *     (criminal: guilty/not_guilty; otherwise the civil set);
+     *   - a PANEL verdict records for + against == the panel size, with the
+     *     outcome carried by the majority side;
+     *   - a JURY verdict records unanimity, and the outcome as recorded.
+     *
+     * @param  array{decided_by?:mixed, outcome?:mixed, panel_vote_for?:mixed,
+     *     panel_vote_against?:mixed, jury_unanimous?:mixed}  $attrs
+     */
+    public function assertVerdictRecordable(CourtCase $case, array $attrs): void
+    {
+        $decidedBy = (string) ($attrs['decided_by'] ?? '');
+
+        if (! in_array($decidedBy, [Verdict::BY_PANEL, Verdict::BY_JURY], true)) {
+            throw new ConstitutionalViolation(
+                'A verdict is recorded by the panel or by the jury.',
+                'Art. IV §4'
+            );
+        }
+
+        $outcome = (string) ($attrs['outcome'] ?? '');
+        $criminal = $case->kind === CourtCase::KIND_CRIMINAL;
+
+        $allowed = $criminal
+            ? [Verdict::OUTCOME_GUILTY, Verdict::OUTCOME_NOT_GUILTY]
+            : [
+                Verdict::OUTCOME_LIABLE, Verdict::OUTCOME_NOT_LIABLE,
+                Verdict::OUTCOME_FOR_PETITIONER, Verdict::OUTCOME_FOR_RESPONDENT,
+                Verdict::OUTCOME_DISMISSED,
+            ];
+
+        if (! in_array($outcome, $allowed, true)) {
+            throw new ConstitutionalViolation(
+                sprintf('Outcome [%s] is not a lawful %s verdict.', $outcome, $case->kind),
+                'Art. IV §4'
+            );
+        }
+
+        if ($decidedBy === Verdict::BY_PANEL) {
+            $this->assertPanelVerdict($case, $outcome, $attrs);
+
+            return;
+        }
+
+        // A jury verdict is recorded only for a case that actually empaneled a
+        // jury (mirrors the panel branch's presence guard). jury_id is set only
+        // by markJuryEmpaneled, which itself enforces jury_entitled && !waived,
+        // so a null jury_id proves no jury sat — decided_by=jury cannot then be
+        // used to bypass the panel majority math or fabricate a jury unanimity.
+        if ($case->jury_id === null) {
+            throw new ConstitutionalViolation(
+                'A jury verdict is recorded only for a case that empaneled a jury.',
+                'Art. IV §4'
+            );
+        }
+
+        // A jury verdict must be unanimous (the recorded fact).
+        if (($attrs['jury_unanimous'] ?? null) !== true) {
+            throw new ConstitutionalViolation(
+                'A jury verdict is recorded only when the jury is unanimous.',
+                'Art. IV §4'
+            );
+        }
+    }
+
+    /**
+     * A panel verdict: for + against == the seated panel size, no tie (panels
+     * are odd), and the outcome matches the winning side — "for" carries the
+     * affirmative outcome (guilty/liable/for_petitioner), "against" the
+     * negative.
+     */
+    private function assertPanelVerdict(CourtCase $case, string $outcome, array $attrs): void
+    {
+        $panel = $case->panel;
+
+        if ($panel === null) {
+            throw new ConstitutionalViolation(
+                'A panel verdict is recorded by the panel that heard the case.',
+                'Art. IV §4'
+            );
+        }
+
+        if (! array_key_exists('panel_vote_for', $attrs) || $attrs['panel_vote_for'] === null
+            || ! array_key_exists('panel_vote_against', $attrs) || $attrs['panel_vote_against'] === null) {
+            throw new ConstitutionalViolation(
+                'A panel verdict records the votes for and against.',
+                'Art. IV §4'
+            );
+        }
+
+        $for = (int) $attrs['panel_vote_for'];
+        $against = (int) $attrs['panel_vote_against'];
+        $size = (int) $panel->size;
+
+        if ($for + $against !== $size) {
+            throw new ConstitutionalViolation(
+                sprintf('The panel vote (%d for, %d against) must sum to the panel size of %d.', $for, $against, $size),
+                'Art. IV §4'
+            );
+        }
+
+        if ($for === $against) {
+            throw new ConstitutionalViolation(
+                'A panel verdict is carried by a majority — an odd panel never ties.',
+                'Art. IV §4'
+            );
+        }
+
+        $affirmative = $for > $against;
+        $carries = $affirmative ? self::AFFIRMATIVE_OUTCOMES : self::NEGATIVE_OUTCOMES;
+
+        if (! in_array($outcome, $carries, true)) {
+            throw new ConstitutionalViolation(
+                sprintf(
+                    'Outcome [%s] is not the one the majority carried (%d for, %d against).',
+                    $outcome,
+                    $for,
+                    $against
+                ),
+                'Art. IV §4'
+            );
+        }
+    }
+
+    /**
+     * The verdict actor must sit on THIS case's panel — a seat on the court is
+     * not enough (JudicialActor::seat proves the court seat; this proves the
+     * panel membership). The entry layer (CaseController::verdict) calls this
+     * before recordVerdict.
+     */
+    public function assertActorOnPanel(CourtCase $case, JudicialSeat $seat): void
+    {
+        $panel = $case->panel;
+
+        if ($panel === null) {
+            throw new ConstitutionalViolation(
+                'A verdict is recorded by a judge on the panel that heard the case — no panel is seated.',
+                'Art. IV §4'
+            );
+        }
+
+        $onPanel = PanelJudge::query()
+            ->where('panel_id', (string) $panel->id)
+            ->where('judicial_seat_id', (string) $seat->id)
+            ->where('status', PanelJudge::STATUS_SEATED)
+            ->whereNull('deleted_at')
+            ->exists();
+
+        if (! $onPanel) {
+            throw new ConstitutionalViolation(
+                'A verdict is recorded by a judge seated on THIS case\'s panel (Art. IV §4).',
+                'Art. IV §4'
+            );
+        }
     }
 
     // =========================================================================

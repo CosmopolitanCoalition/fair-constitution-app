@@ -1159,7 +1159,32 @@ export const EDUCATION_BY_SURFACE = {
             {
                 do: "c_education.education_judiciary_case_detail.s3_do",
                 detail: "c_education.education_judiciary_case_detail.s3_detail",
+                cite: "F-JDG-011"
+            },
+            {
+                do: "c_education.education_judiciary_case_detail.s4_do",
+                detail: "c_education.education_judiciary_case_detail.s4_detail",
+                cite: "F-JDG-014"
+            },
+            {
+                do: "c_education.education_judiciary_case_detail.s5_do",
+                detail: "c_education.education_judiciary_case_detail.s5_detail",
+                cite: "F-JDG-012"
+            },
+            {
+                do: "c_education.education_judiciary_case_detail.s6_do",
+                detail: "c_education.education_judiciary_case_detail.s6_detail",
+                cite: "Art. IV §4 · Art. II §8"
+            },
+            {
+                do: "c_education.education_judiciary_case_detail.s7_do",
+                detail: "c_education.education_judiciary_case_detail.s7_detail",
                 cite: "F-JDG-003 · F-JDG-009 · F-JDG-010"
+            },
+            {
+                do: "c_education.education_judiciary_case_detail.s8_do",
+                detail: "c_education.education_judiciary_case_detail.s8_detail",
+                cite: "F-JDG-013"
             }
         ],
         why: "c_education.education_judiciary_case_detail.why"

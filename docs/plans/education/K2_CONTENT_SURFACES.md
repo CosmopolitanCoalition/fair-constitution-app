@@ -606,7 +606,12 @@ are chosen.
 |---|---|---|---|
 | 1 | Follow the panel and the jury | Judges are assigned to a panel; jurors are summoned by order. | F-JDG-001 · F-JDG-002 |
 | 2 | Read the filings | Motions, evidence and arguments are on the record as they are submitted. | F-ADV-002 · F-ADV-003 |
-| 3 | Read the ruling | Opinions, sentences and warrants are all published acts. | F-JDG-003 · F-JDG-009 · F-JDG-010 |
+| 3 | Watch the hearing open | The court opens arguments once the panel and any jury are seated. | F-JDG-011 |
+| 4 | See the court rule on motions and evidence | The bench grants or denies a motion, or admits or excludes evidence, with a written reason appended to the docket. | F-JDG-014 |
+| 5 | Follow the case into deliberation | Arguments close and the case is submitted; deliberation is the only unrecorded space. | F-JDG-012 |
+| 6 | Read the verdict | A judge on the panel records the outcome. A panel vote sums to the panel size and the majority carries; a jury verdict is unanimous. A criminal verdict locks double jeopardy. | Art. IV §4 · Art. II §8 |
+| 7 | Read the ruling | Opinions, sentences and warrants are all published acts. | F-JDG-003 · F-JDG-009 · F-JDG-010 |
+| 8 | See a case dismissed | A case that is not justiciable, or is withdrawn, is dismissed with a stated reason. | F-JDG-013 |
 
 > **The why:** you cannot be tried twice for the same thing. Double jeopardy is enforced by the
 > engine, not by a judge remembering.

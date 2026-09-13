@@ -3,15 +3,18 @@
 namespace App\Http\Controllers\Judiciary;
 
 use App\Domain\Engine\ConstitutionalEngine;
+use App\Domain\Forms\Support\JudicialActor;
 use App\Http\Controllers\Controller;
 use App\Models\CaseFiling;
 use App\Models\CourtCase;
 use App\Models\JudicialSeat;
 use App\Models\PanelJudge;
 use App\Models\User;
+use App\Services\Judiciary\CaseService;
 use App\Support\SurfaceMeta;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Inertia\Inertia;
 use Inertia\Response;
 
@@ -98,7 +101,10 @@ class CaseController extends Controller
         CourtCase::KIND_ADMINISTRATIVE => 'Administrative',
     ];
 
-    public function __construct(private readonly ConstitutionalEngine $engine) {}
+    public function __construct(
+        private readonly ConstitutionalEngine $engine,
+        private readonly CaseService $cases,
+    ) {}
 
     // =========================================================================
     // GET /cases/{case}
@@ -254,6 +260,95 @@ class CaseController extends Controller
         return back()->with('status', 'Filing added to the case docket under the attach-window (Art. IV §4).');
     }
 
+    /** F-JDG-011 — open arguments (paneled/jury_empaneled → heard). */
+    public function hearing(Request $request, CourtCase $case): RedirectResponse
+    {
+        $this->engine->file('F-JDG-011', $request->user(), [
+            'case_id' => (string) $case->id,
+            'judiciary_id' => (string) $case->judiciary_id,
+        ]);
+
+        return back()->with('status', 'Hearing ordered — arguments are open on the record (F-JDG-011 · Art. IV §4).');
+    }
+
+    /** F-JDG-012 — submit the case (heard → deliberation). */
+    public function deliberation(Request $request, CourtCase $case): RedirectResponse
+    {
+        $this->engine->file('F-JDG-012', $request->user(), [
+            'case_id' => (string) $case->id,
+            'judiciary_id' => (string) $case->judiciary_id,
+        ]);
+
+        return back()->with('status', 'Case submitted to deliberation — the only unrecorded space; the verdict is recorded (F-JDG-012 · Art. IV §4).');
+    }
+
+    /** F-JDG-013 — dismiss a case not justiciable or withdrawn (filed/accepted → dismissed). */
+    public function dismissal(Request $request, CourtCase $case): RedirectResponse
+    {
+        $this->engine->file('F-JDG-013', $request->user(), [
+            'case_id' => (string) $case->id,
+            'judiciary_id' => (string) $case->judiciary_id,
+            'reason' => (string) $request->input('reason', ''),
+        ]);
+
+        return back()->with('status', 'Case dismissed — the public record names the reason (F-JDG-013 · Art. IV §4).');
+    }
+
+    /** F-JDG-014 — rule on a motion or evidence filing (an appended follow-up). */
+    public function ruling(Request $request, CourtCase $case): RedirectResponse
+    {
+        $this->engine->file('F-JDG-014', $request->user(), [
+            'case_id' => (string) $case->id,
+            'judiciary_id' => (string) $case->judiciary_id,
+            'filing_kind' => (string) $request->input('filing_kind', CaseFiling::KIND_MOTION),
+            'ruling' => (string) $request->input('ruling', ''),
+            'ruling_reason' => (string) $request->input('ruling_reason', ''),
+            'title' => (string) $request->input('title', ''),
+            'references_filing_id' => $request->input('references_filing_id'),
+        ]);
+
+        return back()->with('status', 'Ruling appended to the docket with its written reason (F-JDG-014 · Art. IV §4).');
+    }
+
+    /**
+     * The VERDICT — deliberation → decided. NOT a form (two design notes:
+     * CaseService::recordVerdict and FormRegistry). A judge-only route: the
+     * actor must hold a SEATED judicial seat on THIS court AND sit on THIS
+     * case's panel. The panel/majority/unanimity rules live in
+     * CaseService::assertVerdictRecordable (inside recordVerdict, unbypassable);
+     * the case row is locked for the write. Double jeopardy is set exactly as
+     * CaseService already does it (Art. II §8).
+     */
+    public function verdict(Request $request, CourtCase $case): RedirectResponse
+    {
+        // R-19/R-20 seated judge of THIS court (engine 422, never a page 403).
+        $seat = JudicialActor::seat($request->user(), (string) $case->judiciary_id, 'court.verdict');
+        // ... and seated on THIS case's panel (a court seat is not enough).
+        $this->cases->assertActorOnPanel($case, $seat);
+
+        $attrs = [
+            'decided_by' => (string) $request->input('decided_by', ''),
+            'outcome' => (string) $request->input('outcome', ''),
+            'summary' => $request->filled('summary') ? (string) $request->input('summary') : null,
+            'panel_vote_for' => $request->filled('panel_vote_for') ? (int) $request->input('panel_vote_for') : null,
+            'panel_vote_against' => $request->filled('panel_vote_against') ? (int) $request->input('panel_vote_against') : null,
+            'jury_unanimous' => $request->filled('jury_unanimous') ? $request->boolean('jury_unanimous') : null,
+        ];
+
+        DB::transaction(function () use ($case, $attrs): void {
+            // Lock the case row for the write (DB-agnostic; sqlite ignores the
+            // clause but the transaction still frames recordVerdict).
+            CourtCase::query()->whereKey($case->getKey())->lockForUpdate()->first();
+            $this->cases->recordVerdict($case->refresh(), $attrs);
+        });
+
+        return back()->with(
+            'status',
+            'Verdict recorded — the outcome is on the public record'
+            .' (a criminal verdict locks double jeopardy · Art. II §8; Art. IV §4).'
+        );
+    }
+
     // =========================================================================
     // Props assembly
     // =========================================================================
@@ -352,6 +447,7 @@ class CaseController extends Controller
             ->orderBy('seq')
             ->get()
             ->map(fn (CaseFiling $filing) => [
+                'id' => (string) $filing->id,
                 'title' => $filing->title ?? ucfirst($kind),
                 'filed_by' => $filing->filed_by_role ?? '—',
                 'ruling' => $filing->ruling,

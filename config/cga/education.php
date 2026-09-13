@@ -103,6 +103,10 @@ return [
         'F-JDG-005' => 'judiciary', 'F-JDG-006' => 'judiciary',
         'F-JDG-007' => 'judiciary', 'F-JDG-008' => 'judiciary',
         'F-JDG-009' => 'judiciary', 'F-JDG-010' => 'judiciary',
+        // IO-1 case-lifecycle quartet (operator ruling 2026-09-13). The gate
+        // is a per-id map, not an F-JDG prefix, so these need explicit entries.
+        'F-JDG-011' => 'judiciary', 'F-JDG-012' => 'judiciary',
+        'F-JDG-013' => 'judiciary', 'F-JDG-014' => 'judiciary',
 
         // Advocates.
         'F-ADV-001' => 'advocate', 'F-ADV-002' => 'advocate',
