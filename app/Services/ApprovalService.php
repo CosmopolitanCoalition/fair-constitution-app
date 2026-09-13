@@ -32,7 +32,7 @@ use Illuminate\Support\Facades\DB;
  * are read EXCLUSIVELY from `approval_standings`, the daily aggregate
  * written by ApprovalStandingsRollupJob (+ the frozen cutoff snapshot).
  * No controller or page may COUNT(*) the `approvals` table per request —
- * standings() below is the only read surface, and it never touches the
+ * standings and bounded profile summaries never touch the
  * `approvals` table. The `Approval` model's owner global scope enforces
  * row secrecy; this service is one of the two legitimate cross-user
  * readers (the rollup is the other) and opts out explicitly, releasing
@@ -142,6 +142,19 @@ class ApprovalService
     // Standings (the ONLY public read surface — aggregates, never rows)
     // =========================================================================
 
+    /** Snapshot selection is shared by the full race and bounded person-profile readers. */
+    public function standingsDate(ElectionRace $race): ?string
+    {
+        $frozenDate = ApprovalStanding::query()
+            ->where('race_id', $race->id)
+            ->frozen()
+            ->max('as_of_date');
+
+        return $frozenDate ?? ApprovalStanding::query()
+            ->where('race_id', $race->id)
+            ->max('as_of_date');
+    }
+
     /**
      * Public standings for a race: the most recent `approval_standings`
      * day (or the frozen cutoff snapshot once it exists). NEVER a live
@@ -151,14 +164,7 @@ class ApprovalService
      */
     public function standings(ElectionRace $race): Collection
     {
-        $frozenDate = ApprovalStanding::query()
-            ->where('race_id', $race->id)
-            ->frozen()
-            ->max('as_of_date');
-
-        $date = $frozenDate ?? ApprovalStanding::query()
-            ->where('race_id', $race->id)
-            ->max('as_of_date');
+        $date = $this->standingsDate($race);
 
         if ($date === null) {
             return collect();

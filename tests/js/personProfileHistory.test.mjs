@@ -21,7 +21,7 @@ async function fixture(t) {
     props.publications.rows = [{ id: 'document', seq: '42', title: 'Published decision', kind: 'opinion', date: '2020-01-01', body: 'Full public text' }];
     props.officeHistory.rows = [{ record_key: 'term:old', title: 'Judge', jurisdiction: 'Public place', status: 'removed', starts: '2010-01-01', scheduled_end: '2020-01-01', left_on: '2015-01-01', href: '/judiciaries/court' }];
     const context = vm.createContext({ URL, console, document: { activeElement: null } });
-    const cache = new Map(), real = new Set(['Pages/Social/PersonProfile.vue', 'Components/Social/OfficeHistory.vue', 'Components/Ui/HistoryPager.vue']);
+    const cache = new Map(), real = new Set(['Pages/Social/PersonProfile.vue', 'Components/Social/OfficeHistory.vue', 'Components/Ui/HistoryPager.vue', 'Components/Social/CandidacyEndorsements.vue']);
     const generic = { setup: (props, { slots, attrs }) => () => Vue.h('section', attrs, [slots.title?.(), slots.default?.()]) };
     const Link = { props: ['href'], setup: (props, { slots, attrs }) => () => Vue.h('a', { ...attrs, href: props.href }, slots.default?.()) };
     const Btn = { setup: (props, { slots, attrs }) => () => Vue.h('button', attrs, slots.default?.()) };
@@ -82,7 +82,7 @@ test('candidacy opens within the same profile and initializes its existing state
     const f = await fixture(t);
     f.button('Candidacy').props.onClick();
     const [url, , opts] = f.visits[0]; assert.match(url, /^\/people\?who=person&tab=candidacy/); assert.match(url, /candidacy=race/);
-    assert.deepEqual(copy(opts.only), ['tab', 'candidacyPanel']);
+    assert.deepEqual(copy(opts.only), ['tab', 'candidacyPanel', 'endorsementOrganizations', 'endorsementIndividuals', 'endorsementWeb', 'endorsementRequests']);
     opts.onStart(); await flush(); assert.match(f.text(), /Loading profile section/);
     opts.onError({ candidacy: 'Please retry the candidacy section.' }); opts.onFinish(); await flush(); assert.match(f.text(), /Please retry/);
     f.props.candidacyPanel = { candidacy: { id: 'race', name: 'River', statement: 'Existing public statement', position_tags: [], race: null },
@@ -91,4 +91,38 @@ test('candidacy opens within the same profile and initializes its existing state
     const form = f.forms.find(form => 'platform_statement' in form); assert.equal(form.platform_statement, 'Existing public statement');
     form.platform_statement = 'Unsaved change'; f.props.actionHistory = { ...f.props.actionHistory, rows: [] }; await flush(); assert.equal(form.platform_statement, 'Unsaved change');
     assert.match(f.text(), /Candidacy record for River/);
+});
+
+
+test('endorsement pages and selected connections keep the same profile, independent cursors and unsaved statement', async t => {
+    const f = await fixture(t);
+    const directory = kind => ({ rows: [], pages: { next: '/people?who=person&tab=candidacy&candidacy=race&endorsement_' + kind + '_cursor=next', first: '/people?who=person&tab=candidacy&candidacy=race' } });
+    f.page.url = '/people?who=person&tab=candidacy&candidacy=race&endorsement_orgs_cursor=org-page&profile_actions_cursor=saved';
+    f.props.tab = 'candidacy';
+    f.props.candidacyPanel = { candidacy: { id: 'race', name: 'River', statement: 'Existing statement', position_tags: [], race: null }, isOwner: false, machine: [], currentState: 'elected', can: {} };
+    f.props.endorsementOrganizations = { ...directory('orgs'), rows: [{ id: 'org', name: 'Public organization', href: '/organizations/org' }] };
+    f.props.endorsementIndividuals = { ...directory('people'), counts: { total: 22, public: 21, private: 1 }, rows: [{ user_id: 'endorser', name: 'Public supporter', alsoCandidate: true }] };
+    await flush();
+    const form = f.forms.find(form => 'platform_statement' in form); form.platform_statement = 'Unsaved statement';
+    assert.match(f.text(), /Public organization/); assert.match(f.text(), /Public supporter/); assert.match(f.text(), /21 public \/ 1 private/);
+    assert.ok(f.nodes().some(el => el.tag === 'a' && el.props.href === '/people?who=endorser'));
+    assert.equal(f.visits.length, 0, 'connections must not load eagerly');
+    const expand = f.nodes().find(el => el.tag === 'button' && el.props['aria-controls'] === 'public-endorsement-connections');
+    expand.props.onClick();
+    assert.match(f.visits[0][0], /public_endorser=endorser/); assert.match(f.visits[0][0], /endorsement_orgs_cursor=org-page/);
+    assert.deepEqual(copy(f.visits[0][2].only), ['endorsementWeb']);
+    f.visits[0][2].onStart(); await flush(); assert.match(f.text(), /Loading public connections/); assert.equal(expand.props.disabled, true);
+    f.visits[0][2].onError({ web: 'Connection unavailable, retry.' }); f.visits[0][2].onFinish(); await flush(); assert.match(f.text(), /Connection unavailable/);
+    f.props.endorsementWeb = { ...directory('web'), endorser: { user_id: 'endorser', name: 'Public supporter' }, rows: [{ candidacy_id: 'other-race', user_id: 'other-person', name: 'Other candidate' }] };
+    f.page.url = f.visits[0][0]; await flush();
+    assert.ok(f.nodes().some(el => el.tag === 'a' && el.props.href === '/people?who=other-person&tab=candidacy&candidacy=other-race'));
+    assert.equal(expand.props['aria-expanded'], true);
+    f.next('Public connection pages').props.onClick();
+    assert.match(f.visits[1][0], /public_endorser=endorser/); assert.match(f.visits[1][0], /endorsement_web_cursor=next/);
+    assert.deepEqual(copy(f.visits[1][2].only), ['endorsementWeb']);
+    f.next('Individual endorsement pages').props.onClick();
+    assert.deepEqual(copy(f.visits[2][2].only), ['endorsementIndividuals']);
+    assert.match(f.visits[2][0], /endorsement_orgs_cursor=org-page/);
+    assert.equal(form.platform_statement, 'Unsaved statement');
+    f.button('Close connections').props.onClick(); assert.doesNotMatch(f.visits[3][0], /public_endorser=/);
 });

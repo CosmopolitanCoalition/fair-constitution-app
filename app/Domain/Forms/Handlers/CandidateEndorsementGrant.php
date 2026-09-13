@@ -118,13 +118,10 @@ class CandidateEndorsementGrant implements FormHandler
             );
         }
 
-        $endorsement = Endorsement::query()->create([
-            'election_id'   => (string) $candidacy->election_id,
-            'candidate_id'  => (string) $candidacy->id,
-            'endorser_type' => Endorsement::ENDORSER_ORGANIZATION,
-            'endorser_id'   => (string) $organization->id,
+        $endorsement = Endorsement::recordFor($candidacy, Endorsement::ENDORSER_ORGANIZATION, (string) $organization->id, [
             'statement'     => isset($payload['statement']) ? (string) $payload['statement'] : null,
             'endorsed_at'   => now(),
+            'withdrawn_at'  => null,
             'is_active'     => true,
             'is_public'     => true, // org endorsements are forced public
         ]);

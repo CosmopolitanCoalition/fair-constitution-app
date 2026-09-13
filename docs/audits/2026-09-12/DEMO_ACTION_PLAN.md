@@ -12,22 +12,12 @@ Fixed baseline: commit `8bf59184`, immediately before this development batch. Cl
 
 | List | At baseline | New confirmed items | Closed | Remaining |
 |---|---:|---:|---:|---:|
-| Build punch list | 29 | 4 | 13 | 20 |
+| Build punch list | 29 | 4 | 14 | 19 |
 | Internal review register | 29 | 0 | 2 | 27 |
 
-The thirteen closed builds are B3, P2, B4, EO-6, LE-1, EO-7, B5, EO-1, E5, IO-6, EO-8, EO-2 and EO-3. The two closed reviews are S3 ownership concurrency and L1 lesson completion/awards/stipends. Added builds are B5 and EO-8 (already closed), B6 and IO-7, each tied to a demonstrated defect or missing action. EO-4 confirmation is integrated, but its nomination entry remains open and the item is not counted as closed. The separately requested map-sidebar cleanup is completed extra work, outside this fixed baseline. These are item counts, not a percentage of effort or a cost forecast. Earlier completed work remains in the archive and is excluded from this fixed-baseline comparison.
+The fourteen closed builds are B3, P2, B4, EO-6, LE-1, EO-7, B5, EO-1, E5, IO-6, EO-8, EO-2, EO-3 and B6. The two closed reviews are S3 ownership concurrency and L1 lesson completion/awards/stipends. Added builds are B5, EO-8 and B6 (already closed), and IO-7 (open), each tied to a demonstrated defect or missing action. EO-4 confirmation is integrated, but its nomination entry remains open and the item is not counted as closed. The separately requested map-sidebar cleanup is completed extra work, outside this fixed baseline. These are item counts, not a percentage of effort or a cost forecast. Earlier completed work remains in the archive and is excluded from this fixed-baseline comparison.
 
-## 1. Candidacy-tab performance within the shared public profile
-
-| ID | Confirmed build / repair | Done when development and internal tests establish |
-|---|---|---|
-| B6 | Bound the shared public profile's candidacy standings, endorsements and public-web expansion; recognize existing endorsement type spellings. | One profile does not materialize its whole race, all endorsers or their election-wide web. Independent pages and selected-person expansion preserve all public records and individual privacy; existing simulated endorsements remain visible without duplicate logical endorsements. There remains one public profile per person, with all candidacies and offices as sections of it. |
-
-Evidence: [candidate profile readers](../2026-09-13/CANDIDATE_PROFILE_READERS.md). This newly identified consumer is separate from the completed open-ballot directory. CGC appointments are complete. Repair this reader alongside EO-5 controls after the current election lifecycle repairs.
-
-The separately requested public-history repair is completed: older civic actions, published documents and past offices are reachable through the same profile. See [public history](../2026-09-13/PERSON_PUBLIC_HISTORY.md). That repair does not close B6's remaining standing/endorsement expansion work or add another punch-list row.
-
-## 2. Complete the institutional action paths
+## 1. Complete the institutional action paths
 
 | ID | Confirmed build / repair | Done when development and internal tests establish |
 |---|---|---|
@@ -43,7 +33,7 @@ The separately requested public-history repair is completed: older civic actions
 
 Evidence: [board audit](ORGANIZATION_BOARD_AUDIT.md), [election and institutional checks](../2026-09-13/ELECTION_OFFICE_CHECKS.md), [interjurisdictional/setup audit](SETUP_AND_SCENARIO_AUDIT.md). E4 board-chair participation is completed and has moved to the archive.
 
-## 3. Education management and achievement integration
+## 2. Education management and achievement integration
 
 | ID | Confirmed build / repair | Done when development and internal tests establish |
 |---|---|---|
@@ -53,7 +43,7 @@ Evidence: [board audit](ORGANIZATION_BOARD_AUDIT.md), [election and institutiona
 
 Evidence: [education/achievement checks](../2026-09-13/EDUCATION_ACHIEVEMENT_CHECKS.md). The existing profile tab, catalog, lesson registry and video selectors are recorded as implemented and checked where evidence supports it. Do not rebuild them. Full language, lesson accuracy and accessibility checking is in the review register; demonstrated failures become specific repairs here.
 
-## 4. Setup, mesh and scale
+## 3. Setup, mesh and scale
 
 | ID | Confirmed build / repair | Done when development and internal tests establish |
 |---|---|---|

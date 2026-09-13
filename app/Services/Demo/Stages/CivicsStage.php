@@ -424,7 +424,7 @@ final class CivicsStage
         foreach (DB::table('organizations')
             ->where('jurisdiction_id', $j->id)->whereNull('deleted_at')
             ->orderBy('id')->limit(self::ENDORSER_SAMPLE)->pluck('id') as $orgId) {
-            $endorsers[] = ['type' => 'organizations', 'id' => (string) $orgId];
+            $endorsers[] = ['type' => 'organization', 'id' => (string) $orgId];
         }
 
         foreach (DB::table('residency_confirmations as rc')
@@ -432,7 +432,7 @@ final class CivicsStage
             ->where('rc.jurisdiction_id', $j->id)->where('rc.is_active', true)
             ->where('u.email', 'like', 'sim-%@demo.invalid')
             ->orderBy('rc.user_id')->limit(self::ENDORSER_SAMPLE)->pluck('rc.user_id') as $userId) {
-            $endorsers[] = ['type' => 'users', 'id' => (string) $userId];
+            $endorsers[] = ['type' => 'user', 'id' => (string) $userId];
         }
 
         if ($endorsers === []) {

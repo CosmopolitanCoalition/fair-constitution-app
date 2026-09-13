@@ -27,7 +27,6 @@ import CitationLine from '@/Components/Ui/CitationLine.vue';
 import DataTable from '@/Components/Ui/DataTable.vue';
 import Field from '@/Components/Ui/Field.vue';
 import LogRow from '@/Components/Ui/LogRow.vue';
-import OrgChip from '@/Components/Ui/OrgChip.vue';
 import Stat from '@/Components/Ui/Stat.vue';
 import StateStrip from '@/Components/Ui/StateStrip.vue';
 import StatusBadge from '@/Components/Ui/StatusBadge.vue';
@@ -37,6 +36,7 @@ import Icon from '@/Components/Ui/Icon.vue';
 import { achievementTitle } from '@/lib/achievementTitle';
 import HistoryPager from '@/Components/Ui/HistoryPager.vue';
 import OfficeHistory from '@/Components/Social/OfficeHistory.vue';
+import CandidacyEndorsements from '@/Components/Social/CandidacyEndorsements.vue';
 
 defineOptions({ layout: AppShellV2 });
 
@@ -51,6 +51,11 @@ const props = defineProps({
     follow: { type: Object, default: () => ({ canFollow: false, isFollowing: false }) },
     candidacies: { type: Array, default: () => [] },
     candidacyPanel: { type: Object, default: null },
+    endorsementOrganizations: { type: Object, default: null },
+    endorsementIndividuals: { type: Object, default: null },
+    endorsementWeb: { type: Object, default: null },
+    endorsementRequests: { type: Object, default: null },
+    endorsementsGiven: { type: Object, default: null },
     offices: { type: Array, default: () => [] },
     record: { type: Object, default: () => ({ actions: [], associations: [], endorsementsGiven: [] }) },
     achievements: { type: Array, default: null },
@@ -90,7 +95,7 @@ function selectTab(key, focus = false) {
     url.searchParams.set('who', props.person.id);
     url.searchParams.set('tab', key);
     router.get(url.pathname + url.search, {}, {
-        only: key === 'candidacy' ? ['tab', 'candidacyPanel'] : ['tab'],
+        only: key === 'candidacy' ? ['tab', 'candidacyPanel', 'endorsementOrganizations', 'endorsementIndividuals', 'endorsementWeb', 'endorsementRequests'] : ['tab'],
         preserveState: true, preserveScroll: true,
         onStart: () => { tabBusy.value = true; tabError.value = ''; },
         onFinish: () => { tabBusy.value = false; },
@@ -160,10 +165,7 @@ const cand = computed(() => props.candidacyPanel?.candidacy ?? null);
 const standing = computed(() => props.candidacyPanel?.standing ?? null);
 const race = computed(() => cand.value?.race ?? null);
 const isOwner = computed(() => !!props.candidacyPanel?.isOwner);
-const noEndorsements = computed(() => {
-    const e = props.candidacyPanel?.endorsements;
-    return e ? e.orgs.length === 0 && e.individual.total === 0 : true;
-});
+const givenEndorsements = computed(() => props.endorsementsGiven?.rows ?? props.record.endorsementsGiven);
 
 const fmtDate = iso => {
     if (!iso) return '—';
@@ -465,16 +467,21 @@ function submitRequest() {
                 </section>
 
                 <h3 style="margin-block-start: var(--space-3)">Endorsements given — public by their choice</h3>
-                <template v-if="record.endorsementsGiven.length">
+                <template v-if="givenEndorsements.length">
                     <p class="cluster" style="gap: var(--space-1)">
                         <Link
-                            v-for="en in record.endorsementsGiven"
+                            v-for="en in givenEndorsements"
                             :key="en.candidacy_id"
                             :href="`/people?who=${en.user_id}&tab=candidacy&candidacy=${en.candidacy_id}`"
                         >{{ en.name }}</Link>
                     </p>
                 </template>
-                <p v-else class="gloss">No public endorsements given.</p>
+                <p v-else class="gloss">No public endorsements on this page.</p>
+                <template v-if="endorsementsGiven">
+                    <p v-if="endorsementsGiven.notice" role="status">{{ endorsementsGiven.notice }}</p>
+                    <HistoryPager :pages="endorsementsGiven.pages" :first="endorsementsGiven.pages.first" :only="['endorsementsGiven']"
+                        cursor-key="endorsement_given_cursor" label="Endorsements given pages" />
+                </template>
 
                 <p class="citation" style="margin-block-start: var(--space-2)">
                     Participation is public; ballot choices are secret. The record can only ever be
@@ -582,39 +589,7 @@ function submitRequest() {
 
                 <div class="grid-2">
                     <Card as="section" title="Endorsements">
-                        <p class="cluster" style="gap: var(--space-1)">
-                            <OrgChip v-for="org in candidacyPanel.endorsements.orgs" :key="org.id" :name="org.name" :org-type="org.type" />
-                            <TagChip v-if="candidacyPanel.endorsements.individual.total">
-                                {{ candidacyPanel.endorsements.individual.total }} individual endorsements ·
-                                {{ candidacyPanel.endorsements.individual.public }} public / {{ candidacyPanel.endorsements.individual.private }} private
-                            </TagChip>
-                            <TagChip v-if="noEndorsements">no organizational endorsements — running unendorsed is first-class</TagChip>
-                        </p>
-                        <details v-if="candidacyPanel.endorsements.publicWeb.length" class="about-surface" style="margin-block-start: var(--space-3)">
-                            <summary>Public endorsement web — {{ candidacyPanel.endorsements.publicWeb.length }} public individual endorsers</summary>
-                            <div class="about-surface-body">
-                                <ul style="margin: 0; padding-inline-start: var(--space-5)">
-                                    <li v-for="endorser in candidacyPanel.endorsements.publicWeb" :key="endorser.user_id">
-                                        <Link :href="`/people?who=${endorser.user_id}`">{{ endorser.name }}</Link>
-                                        <StatusBadge v-if="endorser.alsoCandidate" tone="neutral">also a candidate</StatusBadge>
-                                        <template v-if="endorser.endorses.length">
-                                            — also endorses:
-                                            <template v-for="(target, i) in endorser.endorses" :key="target.candidacy_id">
-                                                <template v-if="i > 0">, </template>
-                                                <Link :href="`/people?who=${target.user_id}&tab=candidacy&candidacy=${target.candidacy_id}`">{{ target.name }}</Link>
-                                            </template>
-                                        </template>
-                                    </li>
-                                </ul>
-                                <p class="citation">
-                                    individual endorsers disclose by choice · org endorsements are always
-                                    public · polymorphic endorsements table
-                                </p>
-                            </div>
-                        </details>
-                        <p class="citation" style="margin-block-start: var(--space-2)">
-                            Endorsements inform — they never gate. Art. I; Art. II §2.
-                        </p>
+                        <CandidacyEndorsements :organizations="endorsementOrganizations" :individuals="endorsementIndividuals" :web="endorsementWeb" />
                     </Card>
 
                     <Card as="section" title="The record rides along">
@@ -627,9 +602,9 @@ function submitRequest() {
                         <template v-if="isOwner">
                             <h3 style="margin-block-start: var(--space-3)">Endorsement requests <span class="citation">visible only to you</span></h3>
                             <DataTable
-                                v-if="candidacyPanel.requests.length"
+                                v-if="endorsementRequests?.rows.length"
                                 :columns="requestColumns"
-                                :rows="candidacyPanel.requests"
+                                :rows="endorsementRequests.rows"
                                 caption="Endorsement requests filed by this candidacy"
                             >
                                 <template #cell-requested_at="{ value }">{{ fmtDate(value) }}</template>
@@ -639,7 +614,12 @@ function submitRequest() {
                                     </StatusBadge>
                                 </template>
                             </DataTable>
-                            <p v-else class="gloss">No requests yet.</p>
+                            <p v-else class="gloss">No requests on this page.</p>
+                            <template v-if="endorsementRequests">
+                                <p v-if="endorsementRequests.notice" role="status">{{ endorsementRequests.notice }}</p>
+                                <HistoryPager :pages="endorsementRequests.pages" :first="endorsementRequests.pages.first" :only="['endorsementRequests']"
+                                    cursor-key="endorsement_requests_cursor" label="Endorsement request pages" />
+                            </template>
 
                             <form novalidate style="margin-block-start: var(--space-3)" @submit.prevent="submitRequest">
                                 <Field

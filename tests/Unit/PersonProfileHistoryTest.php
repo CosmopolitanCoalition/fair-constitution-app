@@ -118,7 +118,7 @@ class PersonProfileHistoryTest extends TestCase
             $t->timestamps();
             $t->softDeletes();
         });
-        $s->create('endorsements', function (Blueprint $t) {
+        $s->create('endorsements', function (Blueprint $t) { $t->uuid('id')->primary(); $t->uuid('election_id');
             $t->uuid('candidate_id');
             $t->uuid('endorser_id');
             $t->string('endorser_type');

@@ -105,7 +105,7 @@ final class LearnProfileReadFixtureTest extends TestCase
         $schema->create('jurisdictions', function (Blueprint $t) { $t->uuid('id'); $t->string('name'); $t->integer('adm_level'); $t->softDeletes(); });
         $schema->create('residency_confirmations', function (Blueprint $t) { $t->uuid('user_id'); $t->uuid('jurisdiction_id'); $t->boolean('is_active'); });
         $schema->create('audit_log', function (Blueprint $t) { $t->integer('seq'); $t->uuid('actor_user_id'); $t->boolean('rejected'); $t->string('module'); $t->string('event'); });
-        $schema->create('endorsements', function (Blueprint $t) { $t->uuid('candidate_id'); $t->boolean('is_active'); $t->boolean('is_public'); $t->string('endorser_type'); $t->uuid('endorser_id'); $t->timestamp('withdrawn_at')->nullable(); $t->timestamp('endorsed_at'); $t->softDeletes(); });
+        $schema->create('endorsements', function (Blueprint $t) { $t->uuid('id')->primary(); $t->uuid('election_id'); $t->uuid('candidate_id'); $t->boolean('is_active'); $t->boolean('is_public'); $t->string('endorser_type'); $t->uuid('endorser_id'); $t->timestamp('withdrawn_at')->nullable(); $t->timestamp('endorsed_at'); $t->softDeletes(); });
         $schema->create('achievements', function (Blueprint $t) { $t->uuid('id'); $t->uuid('user_id'); $t->string('award_key'); $t->string('title'); $t->timestamp('earned_at'); });
         DB::table('users')->insert(['id' => $this->id(1), 'display_name' => 'River', 'name' => 'Private legal name', 'email' => 'private@example.invalid']);
         DB::table('social_profiles')->insert(['id' => $this->id(10), 'user_id' => $this->id(1), 'visibility' => 'public', 'handle' => 'river', 'bio' => 'Learning together']);

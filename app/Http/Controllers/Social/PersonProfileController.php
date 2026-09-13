@@ -7,7 +7,6 @@ use App\Http\Controllers\Controller;
 use App\Http\Controllers\Elections\ElectionController;
 use App\Http\Presenters\CandidacyPanel;
 use App\Models\Candidacy;
-use App\Models\Endorsement;
 use App\Models\SocialFollow;
 use App\Models\SocialMembership;
 use App\Models\SocialProfile;
@@ -18,6 +17,7 @@ use App\Services\OfficesHeldResolver;
 use App\Services\Social\PrivateRoomService;
 use App\Support\SurfaceMeta;
 use App\Support\PersonProfileHistory;
+use App\Support\CandidacyEndorsementDirectory;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -110,6 +110,21 @@ class PersonProfileController extends Controller
         $offices = function () use (&$officeRows, $subject) { return $officeRows ??= $this->officesFor($subject); };
         $actions = function () use (&$actionRows, $history, $request, $subject) { return $actionRows ??= $history->actions($request, (string) $subject->id); };
 
+        $endorsements = app(CandidacyEndorsementDirectory::class);
+        $selectedModel = null;
+        $selectedResolved = false;
+        $selected = function () use ($request, $subject, &$selectedModel, &$selectedResolved) {
+            if (! $selectedResolved) {
+                $selectedModel = $request->query('tab') === 'candidacy' ? $this->focusedCandidacy($request, $subject) : null;
+                $selectedResolved = true;
+            }
+            return $selectedModel;
+        };
+        $givenRows = null;
+        $given = function () use (&$givenRows, $endorsements, $request, $subject) {
+            return $givenRows ??= $endorsements->given($request, (string) $subject->id);
+        };
+
         // Tab availability mirrors the mockup: candidacy/office tabs exist
         // only when there is something to show; ?tab= off the contract (or
         // pointing at an absent tab) falls back to overview.
@@ -148,10 +163,14 @@ class PersonProfileController extends Controller
                     ->exists(),
             ],
             'candidacies' => $candidacies,
-            'candidacyPanel' => fn () => $request->query('tab') === 'candidacy'
-                ? $this->focusedPanel($request, $subject, $candidacies(), $viewer) : null,
+            'candidacyPanel' => fn () => ($model = $selected()) ? $this->candidacyPanel->for($model, $viewer) + ['focus' => (string) $model->id] : null,
+            'endorsementOrganizations' => fn () => ($model = $selected()) ? $endorsements->organizations($request, $model) : null,
+            'endorsementIndividuals' => fn () => ($model = $selected()) ? $endorsements->individuals($request, $model) : null,
+            'endorsementWeb' => fn () => ($model = $selected()) ? $endorsements->web($request, $model) : null,
+            'endorsementRequests' => fn () => ($model = $selected()) ? $endorsements->requests($request, $model, $viewer) : null,
+            'endorsementsGiven' => $given,
             'offices' => $offices,
-            'record' => fn () => $this->recordFor($subject, $isSelf, $isPublicProfile, $actions()),
+            'record' => fn () => $this->recordFor($subject, $isSelf, $isPublicProfile, $actions(), $given()),
             'actionHistory' => $actions,
             'publications' => fn () => $history->publications($request, (string) $subject->id),
             'officeHistory' => fn () => $history->offices($request, (string) $subject->id),
@@ -445,20 +464,14 @@ class PersonProfileController extends Controller
             ->all();
     }
 
-    /** The focused candidacy's full panel: ?candidacy=<uuid>, else the newest. */
-    private function focusedPanel(Request $request, User $subject, array $candidacies, ?User $viewer): ?array
+    /** Resolve only this person's selected candidacy; partial pages need no history enumeration. */
+    private function focusedCandidacy(Request $request, User $subject): ?Candidacy
     {
-        if ($candidacies === []) {
-            return null;
-        }
-
+        $query = Candidacy::query()->where('user_id', $subject->id);
         $requested = self::queryString($request, 'candidacy');
-        $ids = array_column($candidacies, 'id');
-        $focus = in_array($requested, $ids, true) ? $requested : $ids[0];
+        if (Str::isUuid($requested) && ($selected = (clone $query)->whereKey($requested)->first())) return $selected;
 
-        $model = Candidacy::query()->find($focus);
-
-        return $model === null ? null : $this->candidacyPanel->for($model, $viewer) + ['focus' => $focus];
+        return $query->orderByDesc('created_at')->orderByDesc('id')->first();
     }
 
     /**
@@ -492,7 +505,7 @@ class PersonProfileController extends Controller
      * from home, timestamped" is exactly what Art. I refuses to publish
      * about a private person.
      */
-    private function recordFor(User $subject, bool $isSelf, bool $isPublicProfile, array $actions): array
+    private function recordFor(User $subject, bool $isSelf, bool $isPublicProfile, array $actions, array $given): array
     {
         $userId = (string) $subject->getKey();
 
@@ -508,31 +521,12 @@ class PersonProfileController extends Controller
             ->map(fn ($row) => ['id' => (string) $row->id, 'name' => $row->name, 'adm_level' => (int) $row->adm_level])
             ->all() : [];
 
-        $given = Endorsement::query()
-            // Qualified by hand — candidacies also carries withdrawn_at, so
-            // the active() scope would be ambiguous across this join.
-            ->where('endorsements.is_active', true)
-            ->whereNull('endorsements.withdrawn_at')
-            ->where('endorsements.is_public', true)
-            ->where('endorsements.endorser_type', Endorsement::ENDORSER_USER)
-            ->where('endorsements.endorser_id', $userId)
-            ->join('candidacies as c', 'c.id', '=', 'endorsements.candidate_id')
-            ->orderByDesc('endorsements.endorsed_at')
-            ->get(['c.id as candidacy_id', 'c.user_id as candidate_user_id', 'endorsements.endorsed_at']);
-
-        $names = CandidacyPanel::displayNames($given->pluck('candidate_user_id')->map(fn ($id) => (string) $id)->all());
-
         return [
             'actions' => $actions['rows'],
             'actionPages' => $actions['pages'],
             'notice' => $actions['notice'],
             'associations' => $associations,
-            'endorsementsGiven' => $given->map(fn ($row) => [
-                'candidacy_id' => (string) $row->candidacy_id,
-                'user_id' => (string) $row->candidate_user_id,
-                'name' => $names[(string) $row->candidate_user_id] ?? 'Candidate',
-                'endorsed_at' => $row->endorsed_at,
-            ])->all(),
+            'endorsementsGiven' => $given['rows'],
         ];
     }
 
