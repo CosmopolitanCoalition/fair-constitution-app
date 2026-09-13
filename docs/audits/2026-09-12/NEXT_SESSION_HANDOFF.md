@@ -71,3 +71,10 @@ AuditChainController was found to ignore exact receipt sequence links and count 
 ## Phase 1 closure — audit receipt reader
 
 B5 is complete: exact sequence receipts and all audit history are reachable with bounded indexed reads, metadata-only projection, no live whole-chain count, and loading/retry/invalid-link feedback. Seven private SQLite tests / 225 assertions and eight compiled Vue tests passed; root browser opened exact receipt #5596582 and returned to history successfully. Operator verify/reconcile actions were neither changed nor invoked. All phase 1 build rows moved to Completed; the active punch list begins at phase 2. E5/IO6 backend and UI development are underway in disjoint ownership.
+
+
+## Legislative rollover and combined room application pass
+
+EO-1 is complete: outgoing committee placements, chairs and Speaker state retire on general certification; retained committees allocate to incoming members. Four new actual certification/clock/assignment fixtures plus allocation/preference regressions pass (16 tests / 154 assertions). See LEGISLATIVE_ROLLOVER.md for doubles and scope. No new migration; existing Horizon workers need the updated certification service. Audit-corrected same-election recertification is being checked separately; do not assume it is a fresh general election.
+
+R2 combined application workflow is complete (3 PHP tests / 460 assertions and 4 JS seating tests fed the resulting controller snapshots). No production defect found. Actual joined Matrix/SFU transport, grant/connection revocation and reconnect remain in R2. Read ROOM_WORKFLOW_REVIEW.md; synthetic HTTP/track objects are not real media. E5/IO-6 CGC appointment and expiry implementation continues in separate owned files.

@@ -6,7 +6,10 @@ use App\Domain\Engine\ConstitutionalViolation;
 use App\Domain\Forms\Contracts\CertificationPipeline;
 use App\Jobs\Elections\TabulateElectionJob;
 use App\Models\Candidacy;
+use App\Models\ChamberVote;
 use App\Models\ClockTimer;
+use App\Models\Committee;
+use App\Models\CommitteeSeat;
 use App\Models\Election;
 use App\Models\ElectionAudit;
 use App\Models\ElectionCertification;
@@ -1141,6 +1144,50 @@ class CertificationService implements CertificationPipeline
             ->where('legislature_id', $legislature->id)
             ->whereIn('status', LegislatureMember::CURRENT_STATUSES)
             ->update(['status' => LegislatureMember::STATUS_TERM_ENDED, 'updated_at' => now()]);
+
+        // Committee placements and presiding offices belong to this chamber
+        // term. Preserve their history, but let the incoming members organize
+        // the retained committees through the normal assignment/ballot paths.
+        CommitteeSeat::query()
+            ->whereIn('committee_id', Committee::withTrashed()
+                ->select('id')->where('legislature_id', $legislature->id))
+            ->live()
+            ->update([
+                'status' => CommitteeSeat::STATUS_VACATED,
+                'vacated_at' => now(),
+                'vacated_reason' => 'chamber_turnover',
+                'updated_at' => now(),
+            ]);
+
+        Committee::query()
+            ->where('legislature_id', $legislature->id)
+            ->live()
+            ->update([
+                'status' => Committee::STATUS_CREATED,
+                'chair_member_id' => null,
+                'alternate_member_id' => null,
+                'updated_at' => now(),
+            ]);
+
+        $legislature->forceFill(['speaker_id' => null])->save();
+        LegislatureMember::query()
+            ->where('legislature_id', $legislature->id)
+            ->where('is_speaker', true)
+            ->update(['is_speaker' => false, 'updated_at' => now()]);
+
+        // These open ballots snapshot the outgoing electorate. Keeping one
+        // open blocks the incoming chamber's first speaker/chair election.
+        // Closed decisions and their public casts remain historical records.
+        ChamberVote::query()
+            ->where('body_type', ChamberVote::BODY_LEGISLATURE)
+            ->where('body_id', $legislature->id)
+            ->whereIn('vote_type', ['speaker_elect', 'speaker_replace', 'committee_chair'])
+            ->where('status', ChamberVote::STATUS_OPEN)
+            ->update([
+                'status' => ChamberVote::STATUS_VOID,
+                'decided_at' => now(),
+                'updated_at' => now(),
+            ]);
 
         // Phase D (design §B.1.5): delegated executive members are ex
         // officio — their executive seat ends with their legislative one.

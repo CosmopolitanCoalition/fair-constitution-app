@@ -350,6 +350,7 @@ class CommitteeAssignmentService
 
         $preferenceRows = CommitteePreference::query()
             ->where('legislature_id', $legislature->id)
+            ->whereIn('member_id', $memberRows->pluck('id'))
             ->get();
 
         $preferenceInput = [];

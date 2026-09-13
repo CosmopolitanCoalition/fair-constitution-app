@@ -12,7 +12,6 @@ Finish the current build before starting the next. Consolidation comes first, th
 |---|---|---|
 | E5 | Add CGC governor nomination and legislative consent against the CGC's own board. | Its actual overseeing executive and creating legislature complete nomination, consent and seating; wrong-institution actions refuse and department appointments still work. |
 | IO-6 | Complete CGC governor expiry and replacement consequences. | The armed civil-term timer retires the correct organization-board seat and enters its replacement path. Repeated expiry is safe; department/judicial expiry stays intact. |
-| EO-1 | Repair legislative rollover for committee membership and speaker state. | Old committee seats/chairs and speaker pointers retire; retained committees can allocate seats to the incoming legislature. |
 | EO-2 | Finish recurring elected executive/judicial cycles and outgoing-seat closure. | Successor elections are scheduled, old elected seats lose authority when their terms end, and certified successors replace them consistently. |
 | EO-3 | Replace generic bill links for institution creation/conversion with real institution filings. Include CGC creation. | The UI collects and submits the intended creation/conversion/delegation payload to its actual handler, with authority and refusal cases. |
 | EO-4 | Add judicial nomination and confirmation controls. | Authorized court/legislature actors can nominate, consent/refuse and seat judges through the existing services. |
