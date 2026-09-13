@@ -68,11 +68,12 @@ final class AgreementPartyDirectory
         $page = $query->orderBy('directory_name')->orderBy('id')
             ->cursorPaginate(self::PAGE_SIZE, cursorName: 'party_cursor', cursor: $cursor)
             ->withPath('/economy/resident-agreements')->appends(['new' => 1, 'party_q' => $search]);
+        $contexts = PublicPersonSelectionContext::forIds($page->getCollection()->pluck('id')->all());
 
         return [
             'query' => $search,
             'searched' => true,
-            'candidates' => $page->getCollection()->map(fn ($row) => ['id' => (string) $row->id, 'name' => (string) $row->name])->all(),
+            'candidates' => $page->getCollection()->map(fn ($row) => ['id' => (string) $row->id, 'name' => (string) $row->name] + $contexts[(string) $row->id])->all(),
             'previous' => $page->previousPageUrl(),
             'next' => $page->nextPageUrl(),
             'pageSize' => self::PAGE_SIZE,

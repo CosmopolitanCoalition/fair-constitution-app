@@ -1585,6 +1585,31 @@ return [
         'citation'  => 'Instruments and holdings, on the open market\'s terms — no privileged floor · Art. III §5',
     ],
 
+    'economy/work' => [
+        'title' => 'My work & hiring', 'module' => 'economy', 'nav' => 'market',
+        'roles' => [], 'workflows' => [], 'forms' => [], 'clocks' => [], 'citation' => null,
+    ],
+
+    'economy/help' => [
+        'title' => 'Give & find help', 'module' => 'economy', 'nav' => 'market',
+        'roles' => [], 'workflows' => [], 'forms' => [], 'clocks' => [], 'citation' => null,
+    ],
+
+    'economy/help-detail' => [
+        'title' => 'Help request', 'module' => 'economy', 'nav' => 'market',
+        'roles' => [], 'workflows' => [], 'forms' => [], 'clocks' => [], 'citation' => null,
+    ],
+
+    'rooms/directory' => [
+        'title' => 'Live rooms', 'module' => 'rooms', 'nav' => 'live-rooms',
+        'roles' => [], 'workflows' => [], 'forms' => [], 'clocks' => [], 'citation' => null,
+    ],
+
+    'learn/video-library' => [
+        'title' => 'Video library', 'module' => 'learn', 'nav' => 'learn',
+        'roles' => [], 'workflows' => [], 'forms' => [], 'clocks' => [], 'citation' => null,
+    ],
+
     'economy/resident-agreements' => [
         'title'     => 'Resident agreements',
         'module'    => 'economy',

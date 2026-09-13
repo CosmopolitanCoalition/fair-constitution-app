@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Economy;
 
 use App\Http\Controllers\Controller;
 use App\Services\Economy\AssistanceService;
+use App\Support\SurfaceMeta;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Pagination\Cursor;
@@ -28,6 +29,7 @@ class AssistanceController extends Controller
         $owned = $this->help->ownedAccounts($actor);
         if ($tab !== 'public' && ! (clone $owned)->exists()) {
             return Inertia::render('Economy/Help', [
+                'surface' => SurfaceMeta::for('economy/help'),
                 'tab' => $tab, 'requests' => ['data' => [], 'previous' => null, 'next' => null],
                 ...$this->participation($request),
             ]);
@@ -49,6 +51,7 @@ class AssistanceController extends Controller
         $page = $query->select(['id', 'title', 'need', 'privacy', 'status', 'created_at'])
             ->orderByDesc('id')->cursorPaginate(20, ['*'], 'cursor', $cursor)->withPath('/economy/help')->appends(['tab' => $tab]);
         return Inertia::render('Economy/Help', [
+            'surface' => SurfaceMeta::for('economy/help'),
             'tab' => $tab, 'requests' => $this->page($page, fn ($row) => $this->requestRow($row) + ['href' => '/economy/help/'.$row->id]),
             ...$this->participation($request),
         ]);
@@ -68,6 +71,7 @@ class AssistanceController extends Controller
         $page = $responses->select(['id', 'message', 'status', 'created_at'])->orderByDesc('id')
             ->cursorPaginate(20, ['*'], 'cursor', $cursor)->withPath('/economy/help/'.$assistance);
         return Inertia::render('Economy/HelpDetail', [
+            'surface' => SurfaceMeta::for('economy/help-detail'),
             'assistance' => $this->requestRow($row), 'isOwner' => $owner, ...$participation,
             'canPublish' => $owner && $row->privacy === 'private' && $row->status === 'open',
             'canWithdraw' => $owner && $unfinished, 'canResolve' => $owner && $unfinished,

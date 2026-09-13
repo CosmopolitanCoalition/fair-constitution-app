@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Economy;
 use App\Domain\Engine\ConstitutionalViolation;
 use App\Http\Controllers\Controller;
 use App\Services\Economy\LaborBoardService;
+use App\Support\SurfaceMeta;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Pagination\Cursor;
@@ -34,7 +35,7 @@ class WorkController extends Controller
         $paginate = fn ($query, string $name, array $columns) => $query->select($columns)->orderByDesc('id')->cursorPaginate(20, ['*'], $name.'_cursor', $cursors[$name])
             ->withPath('/economy/work')->appends($params);
         $empty = ['data' => [], 'next' => null, 'previous' => null];
-        $props = ['tab' => $tab, 'organizations' => $empty, 'organization' => null, 'postings' => $empty, 'posting' => null, 'applications' => $empty];
+        $props = ['surface' => SurfaceMeta::for('economy/work'), 'tab' => $tab, 'organizations' => $empty, 'organization' => null, 'postings' => $empty, 'posting' => null, 'applications' => $empty];
 
         if ($tab === 'hiring') {
             $orgs = $paginate(DB::table('organizations')->where('agent_user_id', $uid)->where('status', 'active')->whereNull('deleted_at'), 'organizations', ['id', 'name']);

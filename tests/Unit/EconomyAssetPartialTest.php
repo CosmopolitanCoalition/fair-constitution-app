@@ -186,6 +186,30 @@ final class EconomyAssetPartialTest extends TestCase
         foreach (DB::getQueryLog() as $query) self::assertDoesNotMatchRegularExpression('/"(assets|market_transactions)"/', $query['query']);
     }
 
+    public function test_transaction_partial_pages_only_the_authenticated_wallet(): void
+    {
+        DB::connection()->getSchemaBuilder()->create('market_transactions', function (Blueprint $t) {
+            $t->uuid('id')->primary(); $t->uuid('from_account_id')->nullable(); $t->uuid('to_account_id')->nullable();
+            $t->string('amount'); $t->string('kind'); $t->string('memo')->nullable(); $t->timestamp('created_at');
+        });
+        foreach (range(1, 25) as $n) DB::table('market_transactions')->insert([
+            'id' => $this->id(100 + $n), 'from_account_id' => $this->id(900), 'to_account_id' => $this->id(901),
+            'amount' => '99.123456', 'kind' => 'transfer', 'created_at' => '2026-09-13 12:00:00',
+        ]);
+        DB::table('market_transactions')->insert(['id' => $this->id(126), 'from_account_id' => $this->id(901), 'to_account_id' => $this->id(901), 'amount' => '1.000000', 'kind' => 'transfer', 'created_at' => '2026-09-13 12:00:00']);
+        $a = $this->partial('wallet', '/economy/wallet?account_id='.$this->id(901), 'viewer', 'transactions,transaction_pages');
+        self::assertCount(20, $a['transactions']); self::assertSame($this->id(125), $a['transactions'][0]['id']);
+        self::assertSame('99.123456', $a['transactions'][0]['amount']);
+        self::assertCount(2, array_filter(DB::getQueryLog(), fn ($q) => str_contains($q['query'], 'from "market_transactions"')));
+        foreach (DB::getQueryLog() as $q) self::assertDoesNotMatchRegularExpression('/"(assets|ubi_receipts)"/', $q['query']);
+        $b = $this->partial('wallet', $a['transaction_pages']['next'], 'viewer', 'transactions,transaction_pages');
+        self::assertCount(5, $b['transactions']); self::assertNull($b['transaction_pages']['next']);
+        self::assertSame($a['transactions'], $this->partial('wallet', $b['transaction_pages']['previous'], 'viewer', 'transactions,transaction_pages')['transactions']);
+        $guest = $this->partial('wallet', '/economy/wallet', null, 'transactions,transaction_pages');
+        self::assertSame([], $guest['transactions']);
+        foreach (DB::getQueryLog() as $q) self::assertStringNotContainsString('market_transactions', $q['query']);
+    }
+
     private function partial(string $method, string $url, ?string $userId = 'viewer', ?string $only = null): array
     {
         $request = Request::create($url);

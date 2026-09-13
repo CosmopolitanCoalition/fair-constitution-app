@@ -32,6 +32,7 @@ import Card from '@/Components/Ui/Card.vue';
 import Field from '@/Components/Ui/Field.vue';
 import FormChip from '@/Components/Ui/FormChip.vue';
 import LogRow from '@/Components/Ui/LogRow.vue';
+import HistoryPager from '@/Components/Ui/HistoryPager.vue';
 import StatusBadge from '@/Components/Ui/StatusBadge.vue';
 
 /* Phase-2 restyle wave: the v3 player chrome (MASTER_PLAN). */
@@ -45,6 +46,7 @@ const props = defineProps({
     myCases: { type: Array, default: () => [] },
     /** The viewer's own docketed filings (append-only), newest first. */
     filings: { type: Array, default: () => [] },
+    filing_pages: { type: Object, default: () => ({ previous: null, next: null, first: '/judiciary/advocate' }) },
     /** { types:[{id,label,hint}], casesForClient:[{id,title,label}] }. */
     composer: { type: Object, default: () => ({ types: [], casesForClient: [] }) },
     /** Unregistered viewer: the judiciary the F-IND-015 form registers with. */
@@ -407,22 +409,22 @@ function submitFiling() {
         </Card>
 
         <!-- =========================================== recent filings ==== -->
-        <Card as="section" title="Recent filings">
+        <Card as="section" title="Filing history">
             <div v-if="filings.length" class="stack" style="gap: 0; margin-block-start: var(--space-2)">
                 <LogRow v-for="g in filings" :key="g.seq" :seq="g.seq">
                     <FormChip :form-id="g.form" />
                     <span style="flex: 1 1 12rem">
                         {{ g.text }}
-                        <span v-if="g.case" class="citation">{{ g.case.title }}</span>
+                        <Link v-if="g.case" :href="g.case.href" class="citation">{{ g.case.title }}</Link>
                     </span>
                     <span class="citation">{{ fmtDate(g.when) }}</span>
                     <StatusBadge tone="success" icon="check">Accepted · docketed</StatusBadge>
                 </LogRow>
             </div>
             <p v-else class="gloss" style="margin-block-start: var(--space-2)">
-                Your docketed filings appear here — the docket is append-only; nothing is ever sealed
-                retroactively (Art. IV §4).
+                No docketed filings on this page.
             </p>
+            <HistoryPager :pages="filing_pages" :only="['filings', 'filing_pages']" :first="filing_pages.first" label="Advocate filing history pages" />
         </Card>
 
         <!-- ========================================= four instruments ==== -->

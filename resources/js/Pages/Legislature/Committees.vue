@@ -5,8 +5,8 @@
  * Creation FormCard (F-LEG-009 → supermajority VoteTally) · allocation
  * formula card (faction-independent, ledger #q1) · preference ranker
  * (F-LEG-010 — RankList removable=false, every member ranks every
- * committee) · F-SPK-005 run affordance (Speaker-gated, disabled until
- * all serving members submitted) + the assignment tie-break table showing
+ * committee) · F-SPK-005 run affordance (Speaker-gated, with defaults for
+ * members who have not submitted) + the assignment tie-break table showing
  * BOTH normalized vote shares on contested seats (ledger #q2 transparency)
  * · committee register with kind-ratio seat strips and chair-RCV cards.
  *
@@ -81,7 +81,7 @@ function castProposal(proposal, { value, explanation }) {
 }
 
 /* --------------------------------------------- preferences (F-LEG-010) */
-const prefsLocked = computed(() => props.myPreferences?.submitted_at != null);
+const prefsSubmitted = computed(() => props.myPreferences?.submitted_at != null);
 
 function defaultRankItems() {
     const byId = new Map(props.committees.map((c) => [c.id, c]));
@@ -112,9 +112,6 @@ function submitPreferences() {
 
 /* ---------------------------------------------- assignment (F-SPK-005) */
 const assignForm = useForm({});
-const allSubmitted = computed(
-    () => props.preferencesState.submitted >= props.preferencesState.serving,
-);
 function runAssignment() {
     assignForm.post(props.urls.assign, { preserveScroll: true });
 }
@@ -283,7 +280,7 @@ const STATUS_TONES = { created: 'info', seated: 'success', dissolved: 'neutral' 
             <section class="card" aria-labelledby="prefs-h">
                 <h2 id="prefs-h">
                     Your committee preferences
-                    <StatusBadge v-if="prefsLocked" tone="success" icon="check">
+                    <StatusBadge v-if="prefsSubmitted" tone="success" icon="check">
                         Submitted {{ fmt(myPreferences.submitted_at) }}
                     </StatusBadge>
                 </h2>
@@ -297,18 +294,17 @@ const STATUS_TONES = { created: 'info', seated: 'success', dissolved: 'neutral' 
                         v-model="prefItems"
                         :seats="committees.length"
                         :removable="false"
-                        :disabled="prefsLocked"
+                        :disabled="prefsForm.processing"
                     />
                     <div class="cluster" style="margin-block-start: var(--space-3)">
                         <Btn
-                            v-if="!prefsLocked"
                             variant="primary"
                             size="sm"
                             :disabled="prefsForm.processing"
                             @click="submitPreferences"
-                        >Submit preferences (F-LEG-010)</Btn>
-                        <span v-else class="citation">
-                            Locked — an F-SPK-005 run snapshots all inputs; later edits affect only future runs.
+                        >{{ prefsSubmitted ? 'Update preferences' : 'Submit preferences' }}</Btn>
+                        <span class="citation">
+                            You can revise your preferences. Changes apply to future assignments; recorded assignments stay unchanged.
                         </span>
                     </div>
                 </template>
@@ -329,13 +325,11 @@ const STATUS_TONES = { created: 'info', seated: 'success', dissolved: 'neutral' 
                     <Btn
                         variant="primary"
                         size="sm"
-                        :disabled="assignForm.processing || !allSubmitted"
-                        :title="allSubmitted ? undefined : `Waiting on: ${preferencesState.pending.join(', ')}`"
+                        :disabled="assignForm.processing"
                         @click="runAssignment"
-                    >Run assignment (F-SPK-005)</Btn>
-                    <span v-if="!allSubmitted" class="citation">
-                        enabled when all serving members have submitted — the Speaker may also run
-                        with defaults applied (engine-validated)
+                    >Run assignment</Btn>
+                    <span v-if="preferencesState.pending.length" class="citation">
+                        Members who have not submitted preferences use committee creation order.
                     </span>
                 </div>
                 <p v-else class="citation">The assignment run is the Speaker's administration (F-SPK-005 · R-10).</p>

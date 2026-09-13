@@ -28,7 +28,7 @@
  * `app.phasesLive` and `devBar` ship from a parallel work item — every read
  * has a null fallback so the shell renders before and after they land.
  */
-import { computed, onBeforeUnmount, onMounted, provide, watch } from 'vue';
+import { computed, onBeforeUnmount, onMounted, provide, useId, watch } from 'vue';
 import { router, usePage } from '@inertiajs/vue3';
 import { useI18n } from 'vue-i18n';
 import AppHeader from '@/Components/Shell/AppHeader.vue';
@@ -42,6 +42,7 @@ import SchemaUpdateBanner from '@/Components/SchemaUpdateBanner.vue';
 import Banner from '@/Components/Ui/Banner.vue';
 import Btn from '@/Components/Ui/Btn.vue';
 import Icon from '@/Components/Ui/Icon.vue';
+import CmdBar from '@/Components/ShellV2/CmdBar.vue';
 import { NAV } from '@/Navigation/nav.js';
 import { LOCALES } from '@/i18n/index.js';
 
@@ -97,6 +98,7 @@ const continueHref = computed(() => '/continue?to=' + encodeURIComponent(page.ur
 /* Pages below (PageScaffold, AboutSurface consumers) can inject the surface
    without re-reading page props. */
 provide('cga:surface', surface);
+provide('cga:learn-target', '#learn-content-' + useId());
 
 /* ------------------------------------------------------------------ chrome */
 const minimal = computed(() => props.chrome === 'minimal');
@@ -383,6 +385,8 @@ onBeforeUnmount(() => {
             :audit-seq="auditSeq"
         />
 
+        <CmdBar learn-only />
+
         <DevBar
             v-if="devBarOn"
             :impersonating="impersonatingUser"
@@ -403,3 +407,9 @@ onBeforeUnmount(() => {
         </DevBar>
     </div>
 </template>
+
+<style scoped>
+/* Keep legacy footers and dev controls above the shared fixed Learn bar. */
+.app-shell { padding-block-end: calc(var(--cmdbar-h) + var(--space-2)); }
+.app-shell :deep(.dev-bar) { inset-block-end: calc(var(--cmdbar-h) + var(--space-2)); }
+</style>

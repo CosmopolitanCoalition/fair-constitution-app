@@ -139,11 +139,15 @@ class SettingsController extends Controller
 
         $viewer = $this->viewerMember($legislature, $request->user());
         $jid    = (string) $legislature->jurisdiction_id;
+        $history = null;
+        $historyPage = function () use (&$history, $request, $jid, $legislature) {
+            return $history ??= (new \App\Support\CivicHistoryDirectory)->page($request, 'changes', $jid, '/legislatures/'.$legislature->id.'/settings');
+        };
 
         return Inertia::render('Legislature/Settings', [
             'surface'       => SurfaceMeta::for('legislature/settings'),
-            'legislature'   => $this->legislatureProps($legislature),
-            'settings'      => $this->register($jid),
+            'legislature'   => fn () => $this->legislatureProps($legislature),
+            'settings'      => fn () => $this->register($jid),
             'lockstepKeys'  => self::LOCKSTEP_KEYS,
             'hardenedFloor' => [
                 'supermajority_floor'     => 'majority + 1',
@@ -151,7 +155,8 @@ class SettingsController extends Controller
                 'note'                    => 'No UI, admin panel, or legislative act can carry an out-of-range value — '
                     . 'the engine rejects pre-vote with citation, and the rejection itself is chained.',
             ],
-            'changes'       => $this->changesHistory($jid),
+            'changes'       => fn () => $historyPage()['records'],
+            'change_pages'  => fn () => $historyPage()['pagination'],
             'can'           => ['propose' => $viewer !== null],
         ]);
     }
@@ -294,32 +299,4 @@ class SettingsController extends Controller
         return $register;
     }
 
-    /**
-     * The exit-criterion receipt: every setting_changes row for this
-     * jurisdiction with act + applied date + the TermSync cross-link
-     * (where the re-derived CLK-01 timer's real due_at renders).
-     *
-     * @return list<array<string, mixed>>
-     */
-    private function changesHistory(string $jurisdictionId): array
-    {
-        return SettingChange::query()
-            ->where('jurisdiction_id', $jurisdictionId)
-            ->with('law:id,act_number,enacting_bill_id')
-            ->orderByDesc('applied_at')
-            ->limit(50)
-            ->get()
-            ->map(fn (SettingChange $change) => [
-                'setting_key' => $change->setting_key,
-                'old_value'   => $change->old_value,
-                'new_value'   => $change->new_value,
-                'act_number'  => $change->law?->act_number,
-                'bill_href'   => $change->law?->enacting_bill_id !== null
-                    ? "/bills/{$change->law->enacting_bill_id}"
-                    : null,
-                'applied_at'  => $change->applied_at?->toIso8601String(),
-            ])
-            ->values()
-            ->all();
-    }
 }

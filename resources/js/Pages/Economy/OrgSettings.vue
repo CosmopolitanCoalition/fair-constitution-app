@@ -16,13 +16,15 @@
  * handlers require the exact agent; private ledger access also includes
  * seated board members. Recipient searches and ownership pages load alone.
  */
-import { ref, watch } from 'vue';
+import { computed, ref, watch } from 'vue';
 import { router, useForm, usePage, useRemember } from '@inertiajs/vue3';
 import AppShellV2 from '@/Layouts/AppShellV2.vue';
 import PageScaffold from '@/Components/Surface/PageScaffold.vue';
 import Card from '@/Components/Ui/Card.vue';
+import HistoryPager from '@/Components/Ui/HistoryPager.vue';
 import Banner from '@/Components/Ui/Banner.vue';
 import OrganizationNav from '@/Components/Organizations/OrganizationNav.vue';
+import SelectionIdentity from '@/Components/Ui/SelectionIdentity.vue';
 import { formatMoney, formatQuantity, formatCount, formatWhen, shortId } from '@/lib/money.js';
 
 defineOptions({ layout: AppShellV2 });
@@ -42,8 +44,10 @@ const props = defineProps({
     ledger: { type: Object, default: () => ({ has_account: false, balance: '0.000000', movements: [] }) },
     /** Levies filed (Art. V §4); [] when the org has filed none. */
     taxes: { type: Array, default: () => [] },
+    tax_pages: { type: Object, default: () => ({ previous: null, next: null }) },
     /** Fair-market conversions on the org's equity (named ownership plane). */
     conversions: { type: Array, default: () => [] },
+    conversion_pages: { type: Object, default: () => ({ previous: null, next: null }) },
 });
 
 const settingsPath = `/organizations/${props.org.id}/settings`;
@@ -63,6 +67,11 @@ const draftKey = `share-issue:${page.props.auth?.user?.id ?? 'guest'}:${props.or
 const issueOpen = useRemember(ref(props.compose), `${draftKey}:open`);
 const shareForm = useForm(draftKey, { holder_type: 'users', holder_id: '', units: '' });
 const chosenName = useRemember(ref(''), `${draftKey}:holder`);
+const chosenContext = useRemember(ref(null), `${draftKey}:holder-context`);
+const chosenRecipient = computed(() => ({
+    ...(chosenContext.value?.id === shareForm.holder_id && chosenContext.value?.type === shareForm.holder_type ? chosenContext.value : {}),
+    id: shareForm.holder_id, type: shareForm.holder_type, name: chosenName.value || 'Selected recipient',
+}));
 const recipientQuery = ref(props.recipient_directory.query);
 const recipientType = ref(props.recipient_directory.type);
 const searching = ref(false);
@@ -71,6 +80,10 @@ const searchError = ref('');
 const sharePageError = ref('');
 watch(() => props.recipient_directory.query, value => { recipientQuery.value = value; });
 watch(() => props.recipient_directory.type, value => { recipientType.value = value; });
+watch(() => props.recipient_directory.candidates, candidates => {
+    const selected = candidates.find(person => person.id === shareForm.holder_id && person.type === shareForm.holder_type);
+    if (selected) { chosenName.value = selected.name; chosenContext.value = { ...selected }; }
+}, { immediate: true });
 
 function searchOptions() {
     return {
@@ -88,11 +101,13 @@ function chooseRecipient(person) {
     shareForm.holder_type = person.type;
     shareForm.holder_id = person.id;
     chosenName.value = person.name;
+    chosenContext.value = { ...person };
     shareForm.clearErrors('holder_id', 'holder_type');
 }
 function clearRecipient() {
     shareForm.holder_id = '';
     chosenName.value = '';
+    chosenContext.value = null;
 }
 function pageShares(url) {
     router.get(url, {}, {
@@ -105,7 +120,7 @@ function pageShares(url) {
 function issueShares() {
     shareForm.post(`/organizations/${props.org.id}/shares`, {
         preserveScroll: true,
-        onSuccess: () => { shareForm.reset(); chosenName.value = ''; issueOpen.value = false; },
+        onSuccess: () => { shareForm.reset(); chosenName.value = ''; chosenContext.value = null; issueOpen.value = false; },
     });
 }
 </script>
@@ -233,8 +248,8 @@ function issueShares() {
                     <p v-else-if="!recipient_directory.candidates.length" role="status">No matching recipients on this page.</p>
                     <ul v-if="recipient_directory.candidates.length" class="recipient-results">
                         <li v-for="person in recipient_directory.candidates" :key="`${person.type}:${person.id}`">
-                            <span>{{ person.name }}</span>
-                            <button type="button" :disabled="shareForm.holder_id === person.id && shareForm.holder_type === person.type" @click="chooseRecipient(person)">Select<span class="sr-only"> {{ person.name }}</span></button>
+                            <SelectionIdentity :person="person" />
+                            <button type="button" :disabled="shareForm.holder_id === person.id && shareForm.holder_type === person.type" :aria-label="`Select ${person.name}, reference ${person.id}`" @click="chooseRecipient(person)">Select</button>
                         </li>
                     </ul>
                     <nav class="share-pages" aria-label="Recipient search pages">
@@ -243,7 +258,7 @@ function issueShares() {
                     </nav>
                 </div>
                 <form class="share-issue" @submit.prevent="issueShares">
-                    <p v-if="shareForm.holder_id" class="selected-recipient">Recipient: <strong>{{ chosenName || 'Selected recipient' }}</strong> ({{ shareForm.holder_type === 'users' ? 'person' : 'organization' }}) <button type="button" @click="clearRecipient">Change</button></p>
+                    <div v-if="shareForm.holder_id" class="selected-recipient"><p>Selected recipient</p><SelectionIdentity :person="chosenRecipient" /><button type="button" @click="clearRecipient">Change</button></div>
                     <label for="share-units">New share units</label>
                     <input id="share-units" v-model="shareForm.units" type="text" inputmode="decimal" maxlength="21" required pattern="[0-9]{1,14}(\.[0-9]{1,6})?" aria-describedby="share-units-help" />
                     <p id="share-units-help" class="econ-note">A positive amount with up to six decimal places. This action does not collect payment.</p>
@@ -256,14 +271,14 @@ function issueShares() {
         <!-- ------------------------------------------------- org ledger -->
         <Card as="section" title="This organization's ledger">
             <p class="econ-desc">
-                Review the organization's balance and recent payments. Other parties are identified
+                Review the organization's balance and payment history. Other parties are identified
                 by account to protect their financial privacy.
             </p>
             <p v-if="ledger.restricted" class="muted">The wallet ledger and levies are visible to the organization's agent and its seated board.</p>
             <template v-if="ledger.has_account">
                 <dl class="econ-facts">
                     <div><dt>Balance</dt><dd>{{ formatMoney(ledger.balance, currency) }}</dd></div>
-                    <div><dt>Recent movements</dt><dd>{{ formatCount(ledger.movements.length) }}</dd></div>
+                    <div><dt>Movements on this page</dt><dd>{{ formatCount(ledger.movements.length) }}</dd></div>
                 </dl>
                 <table v-if="ledger.movements.length" class="cap-table">
                     <thead>
@@ -279,7 +294,8 @@ function issueShares() {
                         </tr>
                     </tbody>
                 </table>
-                <p v-else class="econ-note">No movements yet.</p>
+                <p v-else class="econ-note">No movements on this page.</p>
+                <HistoryPager :pages="ledger.pagination" :only="['ledger']" :first="economyPath" label="Organization payment pages" />
             </template>
             <p v-else-if="!ledger.restricted" class="econ-absent">
                 This organization holds no economic account yet — it opens when the org first
@@ -315,8 +331,9 @@ function issueShares() {
                 Levy filings are visible to the organization's agent and its seated board.
             </p>
             <p v-else class="econ-absent">
-                This organization has no levy filings on record.
+                No levy filings on this page.
             </p>
+            <HistoryPager v-if="!ledger.restricted" :pages="tax_pages" :only="['taxes', 'tax_pages']" :first="economyPath" label="Levy filing pages" />
         </Card>
 
         <!-- ------------------------------------- fair-market / conversions -->
@@ -340,8 +357,9 @@ function issueShares() {
                 </tbody>
             </table>
             <p v-else class="econ-absent">
-                No conversion has fixed a fair-market price for this organization's equity.
+                No ownership conversions on this page.
             </p>
+            <HistoryPager :pages="conversion_pages" :only="['conversions', 'conversion_pages']" :first="economyPath" label="Ownership conversion pages" />
         </Card>
 
     </PageScaffold>

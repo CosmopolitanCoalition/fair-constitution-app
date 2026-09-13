@@ -16,6 +16,7 @@ import PageScaffold from '@/Components/Surface/PageScaffold.vue';
 import Card from '@/Components/Ui/Card.vue';
 import StatusBadge from '@/Components/Ui/StatusBadge.vue';
 import WorkTradeNav from '@/Components/Economy/WorkTradeNav.vue';
+import SelectionIdentity from '@/Components/Ui/SelectionIdentity.vue';
 
 defineOptions({ layout: AppShellV2 });
 
@@ -30,15 +31,16 @@ const props = defineProps({
 
 const draft = useForm(`resident-agreement-draft:${props.my_id ?? 'guest'}`, { title: '', terms: '', signers: [] });
 const selectedNames = useRemember(reactive({}), `resident-agreement-parties:${props.my_id ?? 'guest'}`);
+const selectedContexts = useRemember(reactive({}), `resident-agreement-party-context:${props.my_id ?? 'guest'}`);
 const searchInput = ref(props.party_directory.query ?? '');
 const searching = ref(false);
 const searchError = ref('');
-const selectedParties = computed(() => draft.signers.map(id => ({ id, name: selectedNames[id] ?? 'Previously selected party' })));
+const selectedParties = computed(() => draft.signers.map(id => ({ ...selectedContexts[id], id, name: selectedNames[id] ?? 'Previously selected party' })));
 
 watch(() => props.party_directory.query, query => { searchInput.value = query ?? ''; });
 watch(() => props.candidates, candidates => {
     for (const person of candidates) {
-        if (draft.signers.includes(person.id)) selectedNames[person.id] = person.name;
+        if (draft.signers.includes(person.id)) { selectedNames[person.id] = person.name; selectedContexts[person.id] = { ...person }; }
     }
 }, { immediate: true });
 
@@ -46,6 +48,7 @@ function chooseParty(person, selected) {
     if (selected) {
         if (!draft.signers.includes(person.id)) draft.signers.push(person.id);
         selectedNames[person.id] = person.name;
+        selectedContexts[person.id] = { ...person };
     } else {
         removeParty(person.id);
     }
@@ -53,6 +56,7 @@ function chooseParty(person, selected) {
 function removeParty(id) {
     draft.signers = draft.signers.filter(signer => signer !== id);
     delete selectedNames[id];
+    delete selectedContexts[id];
 }
 const searchOptions = () => ({
     preserveState: true,
@@ -70,6 +74,7 @@ const submit = () => draft.post('/economy/resident-agreements', {
     onSuccess: () => {
         draft.reset();
         for (const id of Object.keys(selectedNames)) delete selectedNames[id];
+        for (const id of Object.keys(selectedContexts)) delete selectedContexts[id];
         router.visit('/economy/agreements');
     },
 });
@@ -105,8 +110,8 @@ const proposeOn = (agreementId, clauseId) => {
                         <h3>Selected parties ({{ selectedParties.length }})</h3>
                         <ul>
                             <li v-for="person in selectedParties" :key="person.id">
-                                <span>{{ person.name }}</span>
-                                <button type="button" :aria-label="`Remove ${person.name}`" @click="removeParty(person.id)">Remove</button>
+                                <SelectionIdentity :person="person" />
+                                <button type="button" :aria-label="`Remove ${person.name}, reference ${person.id}`" @click="removeParty(person.id)">Remove</button>
                             </li>
                         </ul>
                     </div>
@@ -122,10 +127,11 @@ const proposeOn = (agreementId, clauseId) => {
                         <p v-if="!party_directory.searched" class="econ-note" role="status">Search to find people to invite.</p>
                         <p v-else-if="!candidates.length" class="econ-note" role="status">No matching people for “{{ party_directory.query }}”. Try another beginning.</p>
                         <p v-else class="econ-note" role="status">{{ candidates.length }} results on this page for “{{ party_directory.query }}”.</p>
-                        <label v-for="person in candidates" :key="person.id" class="ra-check">
+                        <div v-for="person in candidates" :key="person.id" class="ra-check">
                             <input type="checkbox" :checked="draft.signers.includes(person.id)" :value="person.id"
-                                @change="chooseParty(person, $event.target.checked)" /> {{ person.name }}
-                        </label>
+                                :aria-label="`Invite ${person.name}, profile reference ${person.id}`" @change="chooseParty(person, $event.target.checked)" />
+                            <SelectionIdentity :person="person" />
+                        </div>
                         <nav v-if="party_directory.previous || party_directory.next" class="ra-search-pages" aria-label="People search pages">
                             <Link v-if="party_directory.previous" :href="party_directory.previous" v-bind="searchOptions()">Previous people</Link>
                             <Link v-if="party_directory.next" :href="party_directory.next" v-bind="searchOptions()">More people</Link>

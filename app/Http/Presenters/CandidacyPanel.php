@@ -6,9 +6,9 @@ use App\Http\Controllers\Elections\CandidacyController;
 use App\Http\Controllers\Elections\ElectionController;
 use App\Models\Candidacy;
 use App\Models\Election;
+use App\Models\ElectionRace;
 use App\Models\Endorsement;
 use App\Models\EndorsementRequest;
-use App\Models\ElectionRace;
 use App\Models\Organization;
 use App\Models\SocialProfile;
 use App\Models\User;
@@ -30,13 +30,11 @@ use Illuminate\Support\Facades\DB;
  *
  * Pseudonymity (Art. I): every person named here resolves through
  * displayName() — users.display_name (the F-IND-002 choice), else the
- * social pseudonym, else a stable Resident-hash. NEVER users.name.
+ * public social pseudonym, else a stable Resident-hash. NEVER users.name.
  */
 class CandidacyPanel
 {
-    public function __construct(private readonly ApprovalService $approvals)
-    {
-    }
+    public function __construct(private readonly ApprovalService $approvals) {}
 
     /**
      * The full panel for one candidacy, viewer-aware.
@@ -108,7 +106,7 @@ class CandidacyPanel
     /**
      * Art. I display resolution — the one rule for every name on the person
      * profile: the F-IND-002 chosen display name, else the social-plane
-     * pseudonym (social_profiles display_name / @handle), else a stable
+     * public pseudonym (social_profiles display_name / @handle), else a stable
      * non-PII hash. users.name (legal) is structurally unreachable here.
      */
     public static function displayName(?User $user): string
@@ -121,7 +119,8 @@ class CandidacyPanel
             return (string) $user->display_name;
         }
 
-        $profile = SocialProfile::query()->where('user_id', (string) $user->getKey())->first();
+        $profile = SocialProfile::query()->where('user_id', (string) $user->getKey())
+            ->where('visibility', SocialProfile::VISIBILITY_PUBLIC)->first();
 
         if (! empty($profile?->display_name)) {
             return (string) $profile->display_name;
@@ -145,6 +144,7 @@ class CandidacyPanel
 
         $users = User::query()->whereIn('id', $userIds)->get(['id', 'display_name'])->keyBy('id');
         $profiles = SocialProfile::query()->whereIn('user_id', $userIds)
+            ->where('visibility', SocialProfile::VISIBILITY_PUBLIC)
             ->get(['user_id', 'display_name', 'handle'])->keyBy('user_id');
 
         $out = [];

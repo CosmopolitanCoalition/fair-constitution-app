@@ -1,5 +1,9 @@
 {
   "ui.title": "Learn",
+  "ui.resources": "Learning resources",
+  "ui.full_lessons": "Full lessons",
+  "ui.video_library": "Video library",
+  "ui.related_actions": "Related actions and references",
   "ui.intro": "Every training is open to everyone — whether or not you hold, or want, the role it teaches. Lessons are free, in-app, and minutes long.",
   "ui.recommended": "Recommended for the roles you hold",
   "ui.notice": "Your first act in this role will ask for this training — presence never does, and nothing here is a condition on your rights.",

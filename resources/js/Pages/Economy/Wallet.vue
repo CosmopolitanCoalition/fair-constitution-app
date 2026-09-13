@@ -30,6 +30,7 @@ import Btn from '@/Components/Ui/Btn.vue';
 import Field from '@/Components/Ui/Field.vue';
 import FormChip from '@/Components/Ui/FormChip.vue';
 import DataTable from '@/Components/Ui/DataTable.vue';
+import HistoryPager from '@/Components/Ui/HistoryPager.vue';
 import { formatMoney, formatQuantity, formatWhen, shortId } from '@/lib/money.js';
 
 defineOptions({ layout: AppShellV2 });
@@ -39,6 +40,7 @@ const props = defineProps({
     /** null when they have no wallet yet — a normal state, not an error. */
     account: { type: Object, default: null },
     transactions: { type: Array, default: () => [] },
+    transaction_pages: { type: Object, default: () => ({ previous: null, next: null }) },
     receipts: { type: Array, default: () => [] },
     receipt_pages: { type: Object, default: () => ({ previous: null, next: null }) },
     /** Things you hold — physical and virtual alike, one flag apart. */
@@ -311,9 +313,10 @@ const assetRows = () =>
                     :columns="txColumns"
                     :rows="txRows()"
                     row-key="id"
-                    caption="Your most recent transactions, newest first"
+                    caption="Your transactions, newest first — 20 per page"
                 />
-                <p v-else class="econ-note">Nothing has moved in or out yet.</p>
+                <p v-else class="econ-note">No transactions on this page.</p>
+                <HistoryPager :pages="transaction_pages" :only="['transactions', 'transaction_pages']" first="/economy/wallet" label="Transaction history pages" />
             </Card>
 
             <Card as="section" title="Stipend receipts">

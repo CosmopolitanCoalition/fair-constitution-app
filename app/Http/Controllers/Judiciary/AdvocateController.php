@@ -5,7 +5,6 @@ namespace App\Http\Controllers\Judiciary;
 use App\Domain\Engine\ConstitutionalEngine;
 use App\Http\Controllers\Controller;
 use App\Models\Advocate;
-use App\Models\CaseFiling;
 use App\Models\CourtCase;
 use App\Models\Judiciary;
 use App\Models\User;
@@ -101,13 +100,18 @@ class AdvocateController extends Controller
         $context = $advocate === null && $user !== null
             ? $this->registrationContext($user)
             : ['targetId' => null, 'prerequisites' => null, 'practiceOptions' => []];
+        $history = null;
+        $historyPage = function () use (&$history, $request, $advocate) {
+            return $history ??= (new \App\Support\CivicHistoryDirectory)->page($request, 'filings', $advocate === null ? null : (string) $advocate->id, '/judiciary/advocate');
+        };
 
         return Inertia::render('Judiciary/AdvocateConsole', [
             'surface' => SurfaceMeta::for('judiciary/advocate-console'),
-            'advocate' => $this->advocateProps($advocate),
-            'myCases' => $advocate !== null ? $this->myCaseRows($advocate) : [],
-            'filings' => $advocate !== null ? $this->filingRows($advocate) : [],
-            'composer' => $this->composerProps($advocate),
+            'advocate' => fn () => $this->advocateProps($advocate),
+            'myCases' => fn () => $advocate !== null ? $this->myCaseRows($advocate) : [],
+            'filings' => fn () => $historyPage()['records'],
+            'filing_pages' => fn () => $historyPage()['pagination'],
+            'composer' => fn () => $this->composerProps($advocate),
             'registerTargetId' => $context['targetId'],
             // The mockup's prerequisites checklist + jurisdiction-of-practice
             // selector, both built from the SAME join that used to be collapsed
@@ -213,36 +217,6 @@ class AdvocateController extends Controller
         $base = "{$panel->size} judges";
 
         return $case->jury_entitled ? "{$base} + jury" : $base;
-    }
-
-    /**
-     * The viewer's own docketed filings (append-only), newest first — the
-     * recent-filings LogRow list. case_filings is append-only; we render the
-     * record verbatim.
-     *
-     * @return list<array<string, mixed>>
-     */
-    private function filingRows(Advocate $advocate): array
-    {
-        return CaseFiling::query()
-            ->with('case:id,title,docket_no')
-            ->where('advocate_id', (string) $advocate->id)
-            ->orderByDesc('seq')
-            ->limit(50)
-            ->get()
-            ->map(fn (CaseFiling $filing) => [
-                'seq' => (int) $filing->seq,
-                'form' => $filing->filing_form,
-                'kind' => $filing->filing_kind,
-                'case' => $filing->case !== null
-                    ? ['id' => (string) $filing->case->id, 'title' => $filing->case->title, 'href' => "/cases/{$filing->case->id}"]
-                    : null,
-                'text' => $filing->title ?? $filing->body ?? $filing->filing_kind,
-                'when' => $filing->created_at?->toIso8601String(),
-                'status' => 'docketed',
-            ])
-            ->values()
-            ->all();
     }
 
     /**

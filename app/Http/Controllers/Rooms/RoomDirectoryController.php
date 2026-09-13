@@ -12,6 +12,7 @@ use App\Models\Department;
 use App\Models\Legislature;
 use App\Models\Organization;
 use App\Support\JurisdictionContext;
+use App\Support\SurfaceMeta;
 use Illuminate\Http\Request;
 use Illuminate\Pagination\Cursor;
 use Illuminate\Support\Str;
@@ -99,6 +100,7 @@ class RoomDirectoryController extends Controller
             $pagination = ['previous' => $page->previousPageUrl(), 'next' => $page->nextPageUrl()];
         }
         return Inertia::render('Rooms/Directory', [
+            'surface' => SurfaceMeta::for('rooms/directory'),
             'selectedPlace' => $place ? JurisdictionContext::chip($place) : null,
             'jurisdictionContext' => $place ? JurisdictionContext::forRoom($place) : null,
             'section' => $section, 'rooms' => $rows, 'commons' => $commons, 'pagination' => $pagination,

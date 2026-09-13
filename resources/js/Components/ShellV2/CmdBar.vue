@@ -19,6 +19,8 @@ import LearnFlyout from '@/Components/ShellV2/LearnFlyout.vue';
 import DemoFlyout from '@/Components/ShellV2/DemoFlyout.vue';
 
 defineProps({
+    /** Legacy operator/dev shells keep their own menu but share Learn. */
+    learnOnly: { type: Boolean, default: false },
     roles: { type: Array, default: () => ['R-00'] },
     currentNavId: { type: String, default: null },
     /** Demo/Dev mode is ON for this world (instance.sandbox — or an
@@ -71,9 +73,9 @@ onBeforeUnmount(() => {
 </script>
 
 <template>
-    <div ref="rootEl" class="cmdbar" aria-label="Navigation and learn" @toggle.capture="onToggle">
+    <div ref="rootEl" class="cmdbar" :aria-label="learnOnly ? 'Learn' : 'Navigation and learn'" @toggle.capture="onToggle">
         <div class="cmdbar-flies">
-            <details class="cmdbar-fly" id="cmd-menu">
+            <details v-if="!learnOnly" class="cmdbar-fly" id="cmd-menu">
                 <summary class="cmdbar-btn">
                     <Icon name="menu" size="sm" /><span class="cmdbar-lbl">Menu</span>
                     <Icon name="chevron-down" size="sm" class="cmdbar-caret" />
@@ -94,7 +96,7 @@ onBeforeUnmount(() => {
                 </div>
             </details>
 
-            <details v-if="demo" class="cmdbar-fly" id="cmd-demo">
+            <details v-if="demo && !learnOnly" class="cmdbar-fly" id="cmd-demo">
                 <summary class="cmdbar-btn" :title="impersonating ? `Impersonating ${impersonating.name}` : undefined">
                     <Icon name="sliders" size="sm" /><span class="cmdbar-lbl">Demo<template v-if="impersonating"> · as {{ impersonating.name }}</template></span>
                     <Icon name="chevron-down" size="sm" class="cmdbar-caret" />

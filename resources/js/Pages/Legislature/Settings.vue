@@ -23,6 +23,7 @@ import Banner from '@/Components/Ui/Banner.vue';
 import Btn from '@/Components/Ui/Btn.vue';
 import Card from '@/Components/Ui/Card.vue';
 import DataTable from '@/Components/Ui/DataTable.vue';
+import HistoryPager from '@/Components/Ui/HistoryPager.vue';
 import HardenedChip from '@/Components/Ui/HardenedChip.vue';
 import StatusBadge from '@/Components/Ui/StatusBadge.vue';
 
@@ -36,6 +37,7 @@ const props = defineProps({
     lockstepKeys: { type: Array, default: () => [] },
     hardenedFloor: { type: Object, required: true },
     changes: { type: Array, default: () => [] },
+    change_pages: { type: Object, default: () => ({ previous: null, next: null, first: '' }) },
     can: { type: Object, default: () => ({ propose: false }) },
 });
 
@@ -295,8 +297,7 @@ function fmt(iso) {
         <!-- ======================================= changes history ====== -->
         <Card as="section" title="Changes history — the enactment receipts">
             <p v-if="!changes.length" class="gloss">
-                No setting has been amended in this jurisdiction — every value is a founding
-                (or inherited) default.
+                No setting changes on this page.
             </p>
             <DataTable
                 v-else
@@ -306,7 +307,7 @@ function fmt(iso) {
                     { key: 'act_number', label: 'Act' },
                     { key: 'applied_at', label: 'Effective' },
                 ]"
-                :rows="changes"
+                :rows="changes" row-key="id"
                 caption="Setting changes — enacting acts"
             >
                 <template #cell-change="{ row }">
@@ -322,6 +323,7 @@ function fmt(iso) {
                 </template>
                 <template #cell-applied_at="{ row }">{{ fmt(row.applied_at) }}</template>
             </DataTable>
+            <HistoryPager :pages="change_pages" :only="['changes', 'change_pages']" :first="change_pages.first || `/legislatures/${legislature.id}/settings`" label="Setting change history pages" />
         </Card>
 
         <template #about>

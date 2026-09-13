@@ -47,6 +47,9 @@ final class OrgShareDirectoriesTest extends TestCase
             $table->string('acquired_via');
             $table->timestamp('ended_at')->nullable();
         });
+        $schema->create('social_profiles', function (Blueprint $table) {
+            $table->uuid('user_id'); $table->string('handle')->nullable(); $table->string('visibility'); $table->softDeletes();
+        });
         $this->organization = new Organization(['id' => $this->id(900), 'structure' => Organization::STRUCTURE_STOCK]);
     }
 
@@ -185,10 +188,10 @@ final class OrgShareDirectoriesTest extends TestCase
         self::assertSame([$this->id(2), $this->id(900), $this->id(3), $this->id(1)], array_column($page['candidates'], 'id'));
         self::assertSame(['Ann Fallback', 'Ann Self', 'Ann Spaces', 'Anna Public'], array_column($page['candidates'], 'name'));
         foreach ($page['candidates'] as $candidate) {
-            self::assertSame(['id', 'name', 'type'], array_keys($candidate));
+            self::assertSame(['id', 'name', 'type', 'profile_href', 'public_handle'], array_keys($candidate));
             self::assertSame('users', $candidate['type']);
         }
-        self::assertCount(1, DB::getQueryLog());
+        self::assertCount(2, DB::getQueryLog());
         $query = DB::getQueryLog()[0];
         self::assertStringContainsString('limit 21', $query['query']);
         self::assertStringNotContainsString('email', $query['query']);
@@ -212,6 +215,30 @@ final class OrgShareDirectoriesTest extends TestCase
         self::assertSame(['organizations', 'organizations'], array_column($page['candidates'], 'type'));
         self::assertCount(1, DB::getQueryLog());
         self::assertStringContainsString('from "organizations"', DB::getQueryLog()[0]['query']);
+        self::assertSame('/organizations/'.$this->id(900), $page['candidates'][0]['profile_href']);
+        self::assertNull($page['candidates'][0]['public_handle']);
+    }
+
+    public function test_named_recipient_context_only_enriches_the_current_page_with_public_handles(): void
+    {
+        for ($i = 1; $i <= 24; $i++) $this->person($i, 'Existing consent name', 'Same Public Name');
+        DB::table('social_profiles')->insert([
+            ['user_id' => $this->id(1), 'handle' => 'chosen-public', 'visibility' => 'public', 'deleted_at' => null],
+            ['user_id' => $this->id(2), 'handle' => 'private-handle', 'visibility' => 'private', 'deleted_at' => null],
+            ['user_id' => $this->id(24), 'handle' => 'later-page', 'visibility' => 'public', 'deleted_at' => null],
+        ]);
+        $this->logging();
+        $first = $this->search('Same');
+        self::assertSame('@chosen-public', $first['candidates'][0]['public_handle']);
+        self::assertNull($first['candidates'][1]['public_handle']);
+        self::assertCount(21, DB::getQueryLog()[1]['bindings']);
+        self::assertNotContains($this->id(24), DB::getQueryLog()[1]['bindings']);
+        $second = $this->recipients($first['next']);
+        self::assertSame('@later-page', $second['candidates'][3]['public_handle']);
+        $all = array_merge($first['candidates'], $second['candidates']);
+        self::assertCount(24, array_unique(array_column($all, 'profile_href')));
+        self::assertStringNotContainsString('private-handle', json_encode($all));
+        self::assertSame($first['candidates'], $this->recipients($second['previous'])['candidates']);
     }
 
     public function test_recipient_name_pages_seek_stably_across_duplicates_and_preserve_composer_state(): void
@@ -231,7 +258,7 @@ final class OrgShareDirectoriesTest extends TestCase
         $second = $this->recipients($first['next']);
         self::assertStringContainsString('('.OrgShareRecipientDirectory::USER_NAME.', id) > (?, ?)', DB::getQueryLog()[0]['query']);
         self::assertStringNotContainsString('offset', DB::getQueryLog()[0]['query']);
-        self::assertCount(1, DB::getQueryLog());
+        self::assertCount(2, DB::getQueryLog());
         $third = $this->recipients($second['next']);
         self::assertCount(20, $second['candidates']);
         self::assertCount(7, $third['candidates']);

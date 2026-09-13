@@ -17,7 +17,7 @@
  * The tour is a MODE (useTour): session-persistent, follows navigation,
  * Exit ends it — operator-settled semantics, verified in the mockups.
  */
-import { computed, onBeforeUnmount, onMounted, provide, watch } from 'vue';
+import { computed, onBeforeUnmount, onMounted, provide, useId, watch } from 'vue';
 import { Link, router, usePage } from '@inertiajs/vue3';
 import { useI18n } from 'vue-i18n';
 import AppFooter from '@/Components/Shell/AppFooter.vue';
@@ -86,6 +86,7 @@ const activeEmergencies = computed(() => page.props.app?.activeEmergencies ?? []
 const setupIncomplete = computed(() => instance.value.setupComplete === false);
 
 provide('cga:surface', surface);
+provide('cga:learn-target', '#learn-content-' + useId());
 
 const continueHref = computed(() => '/continue?to=' + encodeURIComponent(page.url ?? '/'));
 

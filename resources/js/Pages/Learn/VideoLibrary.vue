@@ -10,8 +10,7 @@
  * media host is configured the player shows the labelled poster placeholder,
  * and lights up with real playback the moment CGA_MEDIA_BASE_URL is set.
  *
- * A new lane-5 surface (never an edit to a lane-6 page). Bare inline surface —
- * no config/cga/surfaces.php entry needed.
+ * The registered surface connects playback guidance to the Learn flyout.
  */
 import { ref, computed } from 'vue';
 import { Head, Link, usePage } from '@inertiajs/vue3';
@@ -35,9 +34,6 @@ const locale = computed(() => page.props.locale || 'en');
 const currentId = ref(props.videos[0]?.id ?? null);
 const current = computed(() => props.videos.find((v) => v.id === currentId.value) ?? null);
 
-/* The language coverage headline — how many the library speaks. */
-const langCount = computed(() => current.value?.captions?.length ?? 0);
-
 function fmt(s) {
     if (!s) return '';
     s = Math.round(s);
@@ -56,8 +52,12 @@ function pick(id) {
     <Head title="Video library" />
     <PageScaffold :surface="surface">
         <template #intro>
-            A short film for every journey, tool, and workflow — narrated and captioned in many
-            languages from one master recording. Your language choice follows you from video to video.
+            Choose a film and the audio and subtitle languages you prefer.
+        </template>
+
+        <template #about>
+            <p>Audio and subtitles can use the same language or different languages. Your choices are remembered in this browser.</p>
+            <p>To review language coverage, open the <Link href="/system/translations">translation workspace</Link>.</p>
         </template>
 
         <!-- Featured player -->
@@ -72,37 +72,9 @@ function pick(id) {
             <Card v-else><p class="gloss">The video catalog is empty.</p></Card>
         </div>
 
-        <!-- How the player works -->
-        <Card>
-            <h2>How the player works</h2>
-            <p class="gloss">
-                Every guide has a short video — and every video speaks {{ langCount }} languages without
-                rendering {{ langCount }} separate films. One <strong style="color: var(--gov-fg)">silent
-                master</strong> plus a cheap audio and caption track per language.
-            </p>
-            <div class="grid-2">
-                <Card inset>
-                    <span class="eyebrow">The pieces</span>
-                    <ul>
-                        <li><strong style="color: var(--gov-fg)">One silent master</strong> — <code>{Subject}-Silent.mp4</code>, muted, shared by every language.</li>
-                        <li><strong style="color: var(--gov-fg)">Audio tracks</strong> — <code>{Subject}-{Language}.m4a</code>, time-synced to the master.</li>
-                        <li><strong style="color: var(--gov-fg)">Caption tracks</strong> — <code>{Subject}-{Language}.vtt</code>, the searchable, translatable transcript.</li>
-                    </ul>
-                </Card>
-                <Card inset>
-                    <span class="eyebrow">What it does for you</span>
-                    <ul>
-                        <li><strong style="color: var(--gov-fg)">Link audio &amp; subtitles</strong> — one control sets both to your language; unlink to mix.</li>
-                        <li><strong style="color: var(--gov-fg)">Stays in sync</strong> — the hidden audio is corrected back to the master whenever it drifts past 0.3 seconds.</li>
-                        <li><strong style="color: var(--gov-fg)">Remembers you</strong> — your language choice carries to every other video.</li>
-                    </ul>
-                </Card>
-            </div>
-        </Card>
-
         <!-- Library list -->
         <section aria-labelledby="lib-h">
-            <h2 id="lib-h">Every guide</h2>
+            <h2 id="lib-h">Films</h2>
             <p class="page-intro">{{ videos.length }} videos so far. Pick one to load it above — your language choice follows you.</p>
             <div class="lesson-list">
                 <button
@@ -124,14 +96,5 @@ function pick(id) {
             </div>
         </section>
 
-        <!-- Cross-link to the translation interface -->
-        <Card inset>
-            <h2>Many languages, tracked</h2>
-            <p>
-                Audio and captions are two of the kinds of content the
-                <Link href="/system/translations">translation interface</Link> tracks per language —
-                a language is only offered here once its tracks exist, so nothing ever plays to a 404.
-            </p>
-        </Card>
     </PageScaffold>
 </template>

@@ -44,7 +44,9 @@ class EconomyPropContractTest extends TestCase
         // a page cannot offer a thing without knowing what you hold.
         '/economy/wallet'         => ['surface', 'currency', 'account', 'transactions', 'receipts', 'assets', 'asset_directory'],
         '/economy/market'         => ['surface', 'currency', 'offers', 'work', 'assistance', 'my_assets', 'asset_directory', 'tab', 'pagination'],
-        '/economy/treasury'       => ['surface', 'currency', 'accounts', 'ledger', 'issuance', 'budgets', 'revenue', 'borrowings', 'clock', 'totals'],
+        '/economy/treasury'       => ['surface', 'currency', 'accounts', 'ledger', 'issuance', 'budgets', 'revenue', 'borrowings', 'clock', 'totals',
+            'jurisdictionContext', 'finance_scope', 'report', 'budget_lines', 'levies', 'places',
+            'accounts_pages', 'ledger_pages', 'issuance_pages', 'budgets_pages', 'revenue_pages', 'borrowings_pages', 'budget_lines_pages', 'levies_pages', 'places_pages'],
         '/economy/units'          => ['surface', 'currency', 'levers', 'supply', 'issuance_rate_bps', 'inflation_target_bps', 'issuer', 'clock', 'telemetry', 'report'],
         '/economy/stipend'        => ['surface', 'currency', 'stipend', 'clock', 'k_anon_floor', 'examples'],
         '/economy/agreements'     => ['surface', 'agreements'],
@@ -134,8 +136,10 @@ class EconomyPropContractTest extends TestCase
 
         $treasury = $this->actingAs($user)->get('/economy/treasury')->assertOk()->viewData('page')['props'];
 
-        $this->assertIsString($treasury['totals']['supply']);
-        $this->assertIsString($treasury['totals']['treasury_balance']);
+        // A visit reads the last saved currency report; absence is not zero.
+        foreach (['supply', 'treasury_balance'] as $key) {
+            $this->assertTrue($treasury['totals'][$key] === null || is_string($treasury['totals'][$key]));
+        }
 
         foreach ($treasury['accounts'] as $account) {
             $this->assertIsString($account['balance'], 'every treasury balance must be a string');
@@ -146,6 +150,8 @@ class EconomyPropContractTest extends TestCase
                 $this->assertIsString($line['amount'], 'a budget line amount is money, and money is a string');
             }
         }
+        foreach ($treasury['budget_lines'] as $line) $this->assertIsString($line['amount']);
+        foreach ($treasury['levies'] as $levy) $this->assertIsString($levy['rate']);
 
         foreach ($treasury['borrowings'] as $borrowing) {
             $this->assertIsString($borrowing['principal'], 'a borrowing principal is money, and money is a string');

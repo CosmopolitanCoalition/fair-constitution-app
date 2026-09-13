@@ -10,13 +10,9 @@ Finish the current build before starting the next. Consolidation comes first, th
 
 | ID | Confirmed build / repair | Done when development and internal tests establish |
 |---|---|---|
-| B3 | Page committee testimony beyond the latest 50 and the remaining capped civic histories. | Older records remain reachable in both directions within the selected institution/hearing. |
-| P2 | Finish wallet transaction, organization ledger/tax/conversion and treasury readers. | Authorized histories page; treasury entry uses bounded sources/saved reports and does not load all accounts, revenues or levies. Private money records stay private. |
-| B4 | Distinguish repeated public names in person selectors. | Public profile context identifies the selected person across search pages without exposing residency or wallet ownership. Board-chair choices now include seat context; other selectors remain. |
-| EO-6 | Page and search approval-ballot candidates on the server. | The controller no longer materializes every candidate/endorsement before truncation; `full=1` cannot remove the bound. Every candidate remains reachable. |
-| LE-1 | Finish moving page education into Learn and connect the existing lessons. | Main-page `PageScaffold` teaching disclosures move into the dedicated flyout; the obsolete disabled lessons link reaches `/learn`. Work, help, room-directory and video-library pages have their own useful Learn context. |
+| B3 | Bound the remaining committee bills/reports and advocate case/composer collections. | Entry and selection load bounded pages with every record reachable; independent history navigation preserves forms. Committee testimony, settings changes and advocate filings are complete. Interjurisdictional history remains with S2. |
 
-Evidence: [directory work](DIRECTORIES_AND_WORKSPACES.md), [election/office checks](../2026-09-13/ELECTION_OFFICE_CHECKS.md), [education checks](../2026-09-13/EDUCATION_ACHIEVEMENT_CHECKS.md).
+Evidence for the remaining B3 readers: [committee inventory](../2026-09-13/COMMITTEE_WORKSPACE.md), [advocate archive inspection](../2026-09-13/CIVIC_HISTORIES.md). Completed P2, B4, EO-6 and LE-1 have moved to the archive. Large-race performance and full workflow acceptance remain internal reviews, not claims of completion.
 
 ## 2. Complete the institutional action paths
 
@@ -29,7 +25,6 @@ Evidence: [directory work](DIRECTORIES_AND_WORKSPACES.md), [election/office chec
 | EO-3 | Replace generic bill links for institution creation/conversion with real institution filings. Include CGC creation. | The UI collects and submits the intended creation/conversion/delegation payload to its actual handler, with authority and refusal cases. |
 | EO-4 | Add judicial nomination and confirmation controls. | Authorized court/legislature actors can nominate, consent/refuse and seat judges through the existing services. |
 | EO-5 | Add individual endorsement and withdrawal controls. | Individuals can publish/manage their own endorsements; organization endorsement and secret approval voting remain distinct. |
-| EO-7 | Correct committee preference controls. | Members can revise preferences while permitted; assignment remains available when some members have not filed, using the service's existing defaults. |
 | IO-1 | Add court hearing, deliberation and verdict controls. | Authorized actors can complete the case lifecycle through the UI, with state, panel, actor and repeated-submission checks. |
 | IO-2 | Build the appeals workflow beyond its existing status/foreign key. | Appeal filing, review and outcome history work while preserving the original case and criminal reprosecution protection. |
 | IO-3 | Connect constitutional findings, recommendations, legislative response/override and remedy application. | The existing judicial and legislative handlers are reachable from the tracker; each outcome preserves law versions and refuses premature or repeated application. |

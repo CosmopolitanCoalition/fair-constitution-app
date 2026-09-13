@@ -21,6 +21,7 @@ use App\Models\PublicRecord;
 use App\Models\VoteCast;
 use App\Services\Legislature\CommitteeAssignmentService;
 use App\Services\PublicRecordService;
+use App\Support\CommitteeTestimonyDirectory;
 use App\Support\SurfaceMeta;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -253,6 +254,8 @@ class CommitteeController extends Controller
     {
         $input = $request->validate(['meeting' => ['nullable', 'uuid']]);
         $selectedMeeting = ! empty($input['meeting']);
+        $testimonyDirectory = app(CommitteeTestimonyDirectory::class);
+        $testimonyCursor = $testimonyDirectory->cursor($request, (string) $committee->id, $selectedMeeting ? $input['meeting'] : null);
         // Resolve the explicit hearing first, including historical meetings.
         // A foreign meeting must never silently substitute this committee's latest.
         $meeting = $selectedMeeting
@@ -290,6 +293,8 @@ class CommitteeController extends Controller
             ->whereIn('id', $reports->pluck('report_record_id')->filter()->all())
             ->pluck('audit_seq', 'id');
 
+        $testimony = $testimonyDirectory->page($request, (string) $committee->id, $selectedMeeting ? (string) $meeting->id : null, $testimonyCursor);
+
         return Inertia::render('Legislature/CommitteeDetail', [
             'surface'   => SurfaceMeta::for('legislature/committee-detail'),
             'committee' => [
@@ -325,7 +330,8 @@ class CommitteeController extends Controller
             ] : null,
             'meetingContext' => ['explicit' => $selectedMeeting, 'readOnly' => $readOnly],
             'bills'     => $bills->map(fn (Bill $bill) => $this->billCard($bill, $committee, $viewer, $reports, $recordSeqs))->all(),
-            'testimony' => $this->testimonyRows($committee, $selectedMeeting ? $meeting : null),
+            'testimony' => $testimony['rows'],
+            'testimonyPages' => $testimony['pages'],
             'can'       => [
                 'call'         => ! $readOnly && ($isChair || $isAlternate),
                 'setAgenda'    => ! $readOnly && ($isChair || $isAlternate),
@@ -766,27 +772,6 @@ class CommitteeController extends Controller
                 'record_href' => $reportSeq !== null ? '/system/audit-chain?seq=' . (int) $reportSeq : null,
             ] : null,
         ];
-    }
-
-    /** Testimony rows for this committee's meetings (public record reads). */
-    private function testimonyRows(Committee $committee, ?CommitteeMeeting $meeting = null): array
-    {
-        return PublicRecord::query()
-            ->where('kind', 'testimony')
-            ->where('subject_type', 'committee_meetings')
-            ->when($meeting !== null, fn ($query) => $query->where('subject_id', $meeting->id),
-                fn ($query) => $query->whereIn('subject_id', CommitteeMeeting::query()->select('id')->where('committee_id', $committee->id)))
-            ->orderByDesc('seq')
-            ->limit(50)
-            ->get(['actor_display', 'body', 'published_at', 'seq', 'audit_seq'])
-            ->map(fn (PublicRecord $record) => [
-                'who'         => $record->actor_display ?? 'Resident',
-                'text'        => $record->body,
-                'recorded_at' => $record->published_at?->toIso8601String(),
-                'seq'         => (int) $record->seq,
-                'record_href' => '/system/audit-chain?seq=' . (int) $record->audit_seq,
-            ])
-            ->all();
     }
 
     /** Whether the member row IS the chamber's Speaker (authoritative pointer). */

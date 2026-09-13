@@ -81,7 +81,7 @@ final class CommitteeMeetingContextTest extends TestCase
         self::assertSame(array_map(fn ($n) => 'Selected '.$n, range(60, 11)), array_column($props['testimony'], 'text'));
         $query = collect(DB::getQueryLog())->first(fn ($q) => in_array('testimony', $q['bindings'], true));
         self::assertSame(['testimony', 'committee_meetings', self::SELECTED], $query['bindings']);
-        self::assertStringContainsString('limit 50', $query['query']);
+        self::assertStringContainsString('limit 51', $query['query']);
         self::assertStringNotContainsString('select *', $query['query']);
     }
 
@@ -118,9 +118,62 @@ final class CommitteeMeetingContextTest extends TestCase
         self::assertTrue($props['can']['fileReport']);
     }
 
-    private function page(?string $meeting = null): array
+    public function test_selected_hearing_pages_round_trip_and_keep_place_and_return_context(): void
     {
-        $request = Request::create('/committees/committee'.($meeting === null ? '' : '?meeting='.$meeting));
+        $first = $this->page(self::SELECTED, ['jurisdiction' => 'place', 'return_to' => '/rooms/committee/'.self::SELECTED]);
+        self::assertNull($first['testimonyPages']['previous']);
+        parse_str(parse_url($first['testimonyPages']['next'], PHP_URL_QUERY), $query);
+        self::assertSame(self::SELECTED, $query['meeting']);
+        self::assertSame('place', $query['jurisdiction']);
+        self::assertSame('/rooms/committee/'.self::SELECTED, $query['return_to']);
+        $second = $this->page(self::SELECTED, $query);
+        self::assertSame(array_map(fn ($n) => 'Selected '.$n, range(10, 1)), array_column($second['testimony'], 'text'));
+        self::assertNull($second['testimonyPages']['next']);
+        self::assertSame($first['urls']['room'], $second['urls']['room']);
+        parse_str(parse_url($second['testimonyPages']['previous'], PHP_URL_QUERY), $previous);
+        self::assertSame($first['testimony'], $this->page(self::SELECTED, $previous)['testimony']);
+    }
+
+    public function test_older_page_is_stable_when_new_testimony_arrives_and_excludes_other_hearings(): void
+    {
+        $first = $this->page(self::SELECTED);
+        parse_str(parse_url($first['testimonyPages']['next'], PHP_URL_QUERY), $query);
+        $this->row('public_records', 'new', ['seq' => 62, 'kind' => 'testimony', 'subject_type' => 'committee_meetings', 'subject_id' => self::SELECTED, 'body' => 'New testimony']);
+        DB::table('public_records')->where('id', 'record5')->update(['subject_id' => self::FOREIGN, 'body' => 'Foreign testimony']);
+        $second = $this->page(self::SELECTED, $query);
+        self::assertSame([10, 9, 8, 7, 6, 4, 3, 2, 1], array_column($second['testimony'], 'seq'));
+        self::assertSame([], array_intersect(array_column($first['testimony'], 'seq'), array_column($second['testimony'], 'seq')));
+    }
+
+    public function test_whole_committee_pages_all_hearings_but_scope_tokens_cannot_move_to_another_view(): void
+    {
+        $first = $this->page();
+        parse_str(parse_url($first['testimonyPages']['next'], PHP_URL_QUERY), $query);
+        self::assertSame(range(11, 1), array_column($this->page(null, $query)['testimony'], 'seq'));
+        DB::enableQueryLog(); DB::flushQueryLog();
+        try { $this->page(self::SELECTED, $query); self::fail('Cross-view cursor accepted.'); }
+        catch (ValidationException) { self::assertSame([], DB::getQueryLog()); }
+    }
+
+    public function test_invalid_testimony_tokens_are_rejected_before_queries(): void
+    {
+        foreach (['not-base64', base64_encode(json_encode(['seq' => [], 'committee' => 'committee', 'meeting' => self::SELECTED, '_pointsToNextItems' => true])), base64_encode(json_encode(['seq' => 10, 'committee' => 'foreign', 'meeting' => self::SELECTED, '_pointsToNextItems' => true]))] as $token) {
+            DB::enableQueryLog(); DB::flushQueryLog();
+            try { $this->page(self::SELECTED, ['testimony_cursor' => $token]); self::fail('Invalid testimony token accepted.'); }
+            catch (ValidationException) { self::assertSame([], DB::getQueryLog()); }
+        }
+    }
+
+    public function test_empty_optional_meeting_filter_keeps_the_committee_page_scope(): void
+    {
+        $first = $this->page(null, ['meeting' => '']);
+        parse_str(parse_url($first['testimonyPages']['next'], PHP_URL_QUERY), $query);
+        self::assertSame(range(11, 1), array_column($this->page(null, $query)['testimony'], 'seq'));
+    }
+
+    private function page(?string $meeting = null, array $query = []): array
+    {
+        $request = Request::create('/committees/committee', 'GET', array_merge($query, $meeting === null ? [] : ['meeting' => $meeting]));
         $request->setUserResolver(fn () => (new User())->forceFill(['id' => 'viewer']));
         $committee = (new Committee())->forceFill(['id' => 'committee', 'legislature_id' => 'leg', 'status' => 'seated', 'chair_member_id' => 'member']);
         $response = $this->controller->show($request, $committee);

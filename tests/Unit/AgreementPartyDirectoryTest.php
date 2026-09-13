@@ -29,6 +29,9 @@ final class AgreementPartyDirectoryTest extends TestCase
             $table->string('display_name')->default('Unrelated public display name');
             $table->timestamp('deleted_at')->nullable();
         });
+        DB::connection()->getSchemaBuilder()->create('social_profiles', function (Blueprint $table) {
+            $table->uuid('user_id'); $table->string('handle')->nullable(); $table->string('visibility'); $table->softDeletes();
+        });
     }
 
     protected function tearDown(): void
@@ -61,10 +64,11 @@ final class AgreementPartyDirectoryTest extends TestCase
         self::assertSame('aNn', $page['query']);
         self::assertSame([$this->id(2), $this->id(1)], array_column($page['candidates'], 'id'));
         foreach ($page['candidates'] as $candidate) {
-            self::assertSame(['id', 'name'], array_keys($candidate));
+            self::assertSame(['id', 'name', 'profile_href', 'public_handle'], array_keys($candidate));
+            self::assertSame('/people?who='.$candidate['id'], $candidate['profile_href']);
         }
         $queries = DB::getQueryLog();
-        self::assertCount(1, $queries);
+        self::assertCount(2, $queries);
         self::assertStringContainsString('limit 21', $queries[0]['query']);
         self::assertStringContainsString('from "users"', $queries[0]['query']);
         self::assertStringNotContainsString('email', $queries[0]['query']);
@@ -89,7 +93,7 @@ final class AgreementPartyDirectoryTest extends TestCase
         $second = $this->page($first['next']);
         self::assertStringContainsString('(lower(name), id) > (?, ?)', DB::getQueryLog()[0]['query']);
         self::assertStringNotContainsString('offset', DB::getQueryLog()[0]['query']);
-        self::assertCount(1, DB::getQueryLog());
+        self::assertCount(2, DB::getQueryLog());
         $third = $this->page($second['next']);
         self::assertCount(20, $second['candidates']);
         self::assertCount(7, $third['candidates']);
@@ -112,6 +116,34 @@ final class AgreementPartyDirectoryTest extends TestCase
         self::assertSame([$this->id(2)], array_column($this->search('A_')['candidates'], 'id'));
         self::assertSame([$this->id(3)], array_column($this->search('A!')['candidates'], 'id'));
         self::assertSame([$this->id(5)], array_column($this->search('山')['candidates'], 'id'));
+    }
+
+    public function test_repeated_names_have_distinct_profile_links_with_only_public_handle_context(): void
+    {
+        for ($i = 1; $i <= 24; $i++) $this->person($i, 'Same Name');
+        DB::table('social_profiles')->insert([
+            ['user_id' => $this->id(1), 'handle' => 'public-one', 'visibility' => 'public', 'deleted_at' => null],
+            ['user_id' => $this->id(2), 'handle' => 'private-two', 'visibility' => 'private', 'deleted_at' => null],
+            ['user_id' => $this->id(3), 'handle' => 'nearby-three', 'visibility' => 'jurisdiction', 'deleted_at' => null],
+            ['user_id' => $this->id(4), 'handle' => 'deleted-four', 'visibility' => 'public', 'deleted_at' => '2026-09-01'],
+            ['user_id' => $this->id(24), 'handle' => 'last-page', 'visibility' => 'public', 'deleted_at' => null],
+        ]);
+        $this->logging();
+        $first = $this->search('Same');
+        self::assertSame('@public-one', $first['candidates'][0]['public_handle']);
+        foreach ([1, 2, 3] as $at) self::assertNull($first['candidates'][$at]['public_handle']);
+        $lookup = DB::getQueryLog()[1];
+        self::assertStringContainsString('"user_id" in', $lookup['query']);
+        self::assertCount(21, $lookup['bindings']); // At most one context lookup per 20-row page.
+        self::assertNotContains($this->id(24), $lookup['bindings']);
+        $second = $this->page($first['next']);
+        self::assertSame('@last-page', $second['candidates'][3]['public_handle']);
+        $all = array_merge($first['candidates'], $second['candidates']);
+        self::assertCount(24, array_unique(array_column($all, 'profile_href')));
+        self::assertSame($first['candidates'], $this->page($second['previous'])['candidates']);
+        foreach (['private-two', 'nearby-three', 'deleted-four', 'email', 'wallet', 'residency'] as $private) {
+            self::assertStringNotContainsString($private, json_encode($all));
+        }
     }
 
     public function test_valid_search_without_matches_is_distinct_from_idle(): void

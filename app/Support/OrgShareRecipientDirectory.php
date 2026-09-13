@@ -52,6 +52,7 @@ final class OrgShareRecipientDirectory
         }
         $page = $query->orderBy('directory_name')->orderBy('id')
             ->cursorPaginate(self::PAGE_SIZE, cursorName: 'recipient_cursor', cursor: $cursor);
+        $contexts = $type === 'users' ? PublicPersonSelectionContext::forIds($page->getCollection()->pluck('id')->all()) : [];
 
         return [
             'query' => $search, 'type' => $type, 'searched' => true,
@@ -59,7 +60,7 @@ final class OrgShareRecipientDirectory
                 'id' => (string) $row->id,
                 'name' => $type === 'users' && trim((string) $row->display_name) !== '' ? trim((string) $row->display_name) : (string) $row->name,
                 'type' => $type,
-            ])->all(),
+            ] + ($contexts[(string) $row->id] ?? ['profile_href' => '/organizations/'.$row->id, 'public_handle' => null]))->all(),
             'previous' => $this->url($page->previousCursor(), (string) $org->id, $type, $search, $scope),
             'next' => $this->url($page->nextCursor(), (string) $org->id, $type, $search, $scope),
             'pageSize' => self::PAGE_SIZE,

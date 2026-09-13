@@ -15,7 +15,7 @@
  *   • the surface's machinery — the constitutional forms in play and the
  *     citation (from the injected SurfaceMeta, config/cga/surfaces.php);
  *   • Report an issue → /support/report?ref=<surface id> (the Phase-1 intake);
- *   • Full lessons — Planned · Phase 7 (learn ships static then).
+ *   • Full lessons and the existing video library.
  *
  * Pages without an authored entry fall back to the module-level line
  * (LEARN_BY_MODULE), so the drawer is never empty on any screen.
@@ -27,10 +27,14 @@ import Icon from '@/Components/Ui/Icon.vue';
 import { LEARN_BY_MODULE } from '@/registry/surfaces.js';
 import { EDUCATION_BY_SURFACE } from '@/registry/education.js';
 import { FLOWS_BY_SURFACE } from '@/registry/flows.js';
+import { referenceLabel } from '@/lib/referenceLabels.js';
 
 const { t } = useI18n();
 const page = usePage();
 const surface = inject('cga:surface', computed(() => page.props.surface ?? null));
+const contentTarget = inject('cga:learn-target', null);
+const text = (key, fallback) => t('c_learn.ui.' + key, fallback);
+const label = (code, name = null) => referenceLabel(code, { name, translate: (key, fallback) => t(key, fallback) });
 
 /* The authored K-2 payload for this surface, when it exists. */
 const education = computed(() => {
@@ -63,6 +67,7 @@ const URL_MODULE = {
     executive: 'executive', judiciary: 'judiciary', organizations: 'organizations',
     jurisdictions: 'jurisdictions', legislatures: 'jurisdictions', system: 'system',
     federation: 'federation', operator: 'operator', support: 'support',
+    economy: 'economy', rooms: 'rooms', learn: 'learn', videos: 'learn',
 };
 const about = computed(() => {
     const s = surface.value;
@@ -85,9 +90,15 @@ const reportHref = computed(() => {
 
 <template>
     <div class="ld-body">
+        <nav class="cluster" :aria-label="text('resources', 'Learning resources')" style="gap: var(--space-1)">
+            <Link class="form-chip" href="/learn"><Icon name="graduation-cap" size="sm" /> {{ text('full_lessons', 'Full lessons') }}</Link>
+            <Link class="form-chip" href="/videos"><Icon name="play" size="sm" /> {{ text('video_library', 'Video library') }}</Link>
+        </nav>
         <!-- The learn sentence (authored) — or the module fallback line. -->
         <p v-if="education" class="ld-learn">{{ t(education.learn) }}</p>
         <p v-else class="gloss">{{ about }}</p>
+
+        <div v-if="contentTarget" :id="contentTarget.slice(1)" class="ld-page-content"></div>
 
         <!-- How to use this page — the mockups' sop idiom, verbatim classes. -->
         <section v-if="education && education.steps.length" class="sop">
@@ -115,7 +126,7 @@ const reportHref = computed(() => {
                     {{ primaryFlow.wfName }}
                     <span class="ld-flow-fam">· {{ primaryFlow.familyLabel }}</span>
                 </span>
-                <span class="ld-flow-pos">Step {{ stepLabel(primaryFlow) }} of {{ primaryFlow.total }} · {{ primaryFlow.wf }}</span>
+                <span class="ld-flow-pos">Step {{ stepLabel(primaryFlow) }} of {{ primaryFlow.total }}</span>
                 <span v-if="prevOf(primaryFlow)" class="ld-flow-adj">← before this: {{ prevOf(primaryFlow) }}</span>
                 <span v-if="nextOf(primaryFlow)" class="ld-flow-adj">→ after this: {{ nextOf(primaryFlow) }}</span>
             </div>
@@ -123,24 +134,33 @@ const reportHref = computed(() => {
                 <summary>Also part of {{ moreFlows.length }} other process{{ moreFlows.length === 1 ? '' : 'es' }}</summary>
                 <div v-for="f in moreFlows" :key="f.wf" class="ld-flow-row">
                     <span class="ld-flow-name">{{ f.wfName }} <span class="ld-flow-fam">· {{ f.familyLabel }}</span></span>
-                    <span class="ld-flow-pos">Step {{ stepLabel(f) }} of {{ f.total }} · {{ f.wf }}</span>
+                    <span class="ld-flow-pos">Step {{ stepLabel(f) }} of {{ f.total }}</span>
                 </div>
             </details>
         </section>
 
         <div v-if="forms.length || citation" class="ld-context">
-            <span class="ld-context-h"><Icon name="scale" size="sm" /> The machinery behind this screen</span>
+            <span class="ld-context-h"><Icon name="scale" size="sm" /> {{ text('related_actions', 'Related actions and references') }}</span>
             <p v-if="forms.length" class="cluster" style="gap: var(--space-1)">
-                <span v-for="f in forms" :key="f.id ?? f" class="form-chip">{{ f.name ?? f.id ?? f }}</span>
+                <span v-for="f in forms" :key="f.id ?? f" class="form-chip">{{ label(f.id ?? f, f.name) }}</span>
             </p>
             <p v-if="citation" class="citation">{{ citation }}</p>
         </div>
 
+        <details v-if="surface?.workflows?.length || forms.length || surface?.roles?.length || surface?.clocks?.length" class="ld-flow-more">
+            <summary>{{ t('c_references.reference_codes', 'Reference codes') }}</summary>
+            <ul>
+                <li v-for="wf in surface.workflows || []" :key="wf">{{ label(wf) }} · <code>{{ wf }}</code></li>
+                <li v-for="form in forms" :key="form.id ?? form">
+                    {{ label(form.id ?? form, form.name) }} · <code>{{ form.id ?? form }}</code>
+                    <template v-if="form.alias"> · {{ t('c_references.catalog_reference', 'Catalog reference') }} <code>{{ form.alias }}</code></template>
+                </li>
+                <li v-for="clock in surface.clocks || []" :key="clock">{{ label(clock) }} · <code>{{ clock }}</code></li>
+                <li v-for="role in surface.roles || []" :key="role">{{ label(role) }} · <code>{{ role }}</code></li>
+            </ul>
+        </details>
+
         <div class="cluster" style="gap: var(--space-1)">
-            <span class="form-chip" aria-disabled="true" style="opacity: 0.65">
-                <Icon name="graduation-cap" size="sm" /> Full lessons
-                <span class="planned-flag">Planned · Phase 7</span>
-            </span>
             <Link class="form-chip form-chip--report" :href="reportHref">
                 <Icon name="flag" size="sm" /> Report an issue
             </Link>
@@ -156,6 +176,8 @@ const reportHref = computed(() => {
     color: var(--gov-fg);
     margin: 0;
 }
+.ld-page-content { display: grid; gap: var(--space-3); }
+.ld-page-content:empty { display: none; }
 .ld-why {
     display: flex;
     gap: var(--space-2);

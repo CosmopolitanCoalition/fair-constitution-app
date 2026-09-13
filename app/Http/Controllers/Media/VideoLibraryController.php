@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Media;
 
 use App\Http\Controllers\Controller;
 use App\Support\MediaMeta;
+use App\Support\SurfaceMeta;
 use Inertia\Inertia;
 use Inertia\Response;
 
@@ -17,26 +18,14 @@ use Inertia\Response;
  * env-driven and passed to the client so the player renders the labelled poster
  * placeholder until a host is configured, then lights up with real playback.
  *
- * The surface is inline (not a config/cga/surfaces.php entry) — this is a new
- * lane-5 surface and needs no registry row for the scaffold, footer citation,
- * or Learn drawer to work.
+ * Registered surface metadata connects the library to its Learn guidance.
  */
 class VideoLibraryController extends Controller
 {
     public function index(): Response
     {
         return Inertia::render('Learn/VideoLibrary', [
-            'surface' => [
-                'id'        => 'learn/video-library',
-                'title'     => 'Video library',
-                'module'    => 'learn',
-                'nav'       => 'video-library',
-                'roles'     => [],
-                'workflows' => [],
-                'forms'     => [],
-                'clocks'    => [],
-                'citation'  => 'One film, narrated and captioned in many languages · from one silent master',
-            ],
+            'surface' => SurfaceMeta::for('learn/video-library'),
             'videos'  => MediaMeta::all(),
             'baseUrl' => MediaMeta::baseUrl(),
         ]);

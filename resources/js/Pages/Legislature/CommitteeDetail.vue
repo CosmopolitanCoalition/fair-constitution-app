@@ -35,6 +35,7 @@ const props = defineProps({
     meetingContext: { type: Object, default: () => ({}) },
     bills: { type: Array, default: () => [] },
     testimony: { type: Array, default: () => [] },
+    testimonyPages: { type: Object, default: () => ({}) },
     can: { type: Object, default: () => ({}) },
     urls: { type: Object, required: true },
 });
@@ -347,6 +348,10 @@ function submitReport() {
                     </LogRow>
                 </div>
                 <p v-else class="cc-small gloss">No testimony recorded yet.</p>
+                <nav v-if="testimonyPages.previous || testimonyPages.next" class="cluster" aria-label="Testimony pages">
+                    <Link v-if="testimonyPages.previous" :href="testimonyPages.previous" class="btn btn--ghost" preserve-scroll preserve-state>Newer testimony</Link>
+                    <Link v-if="testimonyPages.next" :href="testimonyPages.next" class="btn btn--ghost" preserve-scroll preserve-state>Older testimony</Link>
+                </nav>
 
                 <template v-if="meeting && can.testify">
                     <Field

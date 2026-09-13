@@ -26,7 +26,7 @@ const props = defineProps({
      */
     candidacy: { type: Object, required: true },
     /** Full-race rank (the FinalistLine positions by this). */
-    rank: { type: Number, required: true },
+    rank: { type: Number, default: null },
     /** Aggregate, daily (approval_standings.approvals_count). */
     approvals: { type: Number, required: true },
     /** approval_standings.delta (signed). */
@@ -55,7 +55,7 @@ const tags = computed(() => props.candidacy.position_tags ?? []);
 
 const linkTitle = computed(
     () =>
-        `${props.candidacy.name} — open public profile · rank ${props.rank} · ` +
+        `${props.candidacy.name} — open public profile · ${props.rank === null ? 'awaiting daily ranking' : `rank ${props.rank}`} · ` +
         `${props.approvals.toLocaleString()} approvals`,
 );
 </script>
@@ -65,7 +65,7 @@ const linkTitle = computed(
         <ApproveSwitch
             v-if="showSwitch"
             :pressed="approved"
-            :candidate-name="candidacy.name"
+            :candidate-name="candidacy.name + (candidacy.profile_reference ? `, public profile ${candidacy.public_handle || candidacy.profile_reference}` : '')"
             :disabled="!approvable"
             :busy="busy"
             @update:pressed="(next) => emit('toggle-approve', candidacy.id, next)"
@@ -74,11 +74,17 @@ const linkTitle = computed(
         <span v-else aria-hidden="true"></span>
 
         <div class="candidate-main">
-            <span class="citation" style="margin-inline-end: var(--space-2)">#{{ rank }}</span>
+            <span class="citation" style="margin-inline-end: var(--space-2)">{{ rank === null ? 'Awaiting daily ranking' : `#${rank}` }}</span>
             <Link class="candidate-name" :href="candidacy.profile_href" :title="linkTitle">{{
                 candidacy.name
             }}</Link>
             {{ ' ' }}
+            <Link v-if="candidacy.profile_reference" class="citation" :href="candidacy.profile_href"
+                :title="`Public candidacy reference: ${candidacy.profile_reference}`"
+                :aria-label="`Open ${candidacy.name}'s candidate profile, reference ${candidacy.profile_reference}`"
+                style="margin-inline: var(--space-2)">
+                {{ candidacy.public_handle || `Profile …${candidacy.profile_reference.slice(-12)}` }}
+            </Link>
             <StatusBadge v-if="candidacy.incumbent" tone="neutral">incumbent</StatusBadge>
             <span
                 v-if="candidacy.statement"
@@ -102,8 +108,9 @@ const linkTitle = computed(
         </div>
 
         <div class="standing">
-            <span class="standing-approvals">{{ approvals.toLocaleString() }}</span>
-            <span v-if="delta > 0" class="standing-delta standing-delta--up">▲ {{ delta }} since yesterday</span>
+            <span class="standing-approvals">{{ rank === null ? '—' : approvals.toLocaleString() }}</span>
+            <span v-if="rank === null" class="standing-delta">First daily count pending</span>
+            <span v-else-if="delta > 0" class="standing-delta standing-delta--up">▲ {{ delta }} since yesterday</span>
             <span v-else-if="delta < 0" class="standing-delta standing-delta--down">▼ {{ Math.abs(delta) }} since yesterday</span>
             <span v-else class="standing-delta standing-delta--flat">— steady<span class="visually-hidden"> since yesterday</span></span>
         </div>

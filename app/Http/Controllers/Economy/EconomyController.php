@@ -102,30 +102,10 @@ class EconomyController extends Controller
             return $assetDirectory ??= (new \App\Support\OwnedAssetDirectory)->page($request, $accountId);
         };
 
-        $transactions = function () use ($accountId) {
-            if ($accountId === null) return [];
-            $transactions = [];
-            $rows = DB::table('market_transactions')
-                ->where(fn ($q) => $q->where('from_account_id', $accountId)->orWhere('to_account_id', $accountId))
-                ->orderByDesc('created_at')
-                ->limit(50)
-                ->get();
-
-            foreach ($rows as $row) {
-                $out = $row->from_account_id === $accountId;
-
-                $transactions[] = [
-                    'id'                      => (string) $row->id,
-                    'direction'               => $out ? 'out' : 'in',
-                    'amount'                  => (string) $row->amount,
-                    'kind'                    => (string) $row->kind,
-                    'memo'                    => $row->memo,
-                    'at'                      => $this->iso($row->created_at),
-                    'counterparty_account_id' => $out ? $row->to_account_id : $row->from_account_id,
-                ];
-            }
-
-            return $transactions;
+        $transactionDirectory = null;
+        $transactionPage = function () use (&$transactionDirectory, $request, $accountId) {
+            return $transactionDirectory ??= (new \App\Support\TransactionHistory)->page(
+                $request, $accountId === null ? [] : [$accountId], '/economy/wallet');
         };
         $receiptDirectory = null;
         $receiptPage = function () use (&$receiptDirectory, $request, $accountId) {
@@ -140,7 +120,8 @@ class EconomyController extends Controller
                 'balance' => (string) $account->balance,
                 'status'  => (string) $account->status,
             ],
-            'transactions' => $transactions,
+            'transactions' => fn () => $transactionPage()['transactions'],
+            'transaction_pages' => fn () => $transactionPage()['pagination'],
             'receipts'     => fn () => $receiptPage()['receipts'],
             'receipt_pages' => fn () => $receiptPage()['pagination'],
             'assets'       => fn () => $assetPage()['assets'],
@@ -222,99 +203,38 @@ class EconomyController extends Controller
         ]);
     }
 
-    public function treasury(): Response
+    public function treasury(Request $request): Response
     {
         $currency = $this->currency();
-
-        return Inertia::render('Economy/Treasury', [
-            'surface'  => SurfaceMeta::for('economy/treasury'),
+        $directory = new \App\Support\PublicFinanceDirectory($request, $currency?->id, $currency?->jurisdiction_id ?? $this->rootId());
+        $pages = [];
+        $page = function (string $method) use (&$pages, $directory) {
+            return $pages[$method] ??= $directory->$method();
+        };
+        $report = null;
+        $reportRead = function () use (&$report, $currency) {
+            return $report ??= ($currency === null ? ['status' => 'not_started', 'data' => null, 'completed_at' => null]
+                : app(\App\Services\Economy\CurrencyReportService::class)->read($currency->id));
+        };
+        $props = [
+            'surface' => SurfaceMeta::for('economy/treasury'),
             'currency' => $this->currencyProp($currency),
-            'accounts' => DB::table('treasury_accounts')->whereNull('deleted_at')->orderBy('label')->get()
-                ->map(fn ($a) => [
-                    'id'         => (string) $a->id,
-                    'owner_type' => (string) $a->owner_type,
-                    'owner_id'   => (string) $a->owner_id,
-                    'label'      => $a->label,
-                    'balance'    => (string) $a->balance,
-                    'public'     => (bool) $a->public,
-                ])->all(),
-            'ledger' => DB::table('ledger_entries')->orderByDesc('seq')->limit(50)->get()
-                ->map(fn ($e) => [
-                    'seq'          => (int) $e->seq,
-                    'at'           => $this->iso($e->created_at),
-                    'direction'    => (string) $e->direction,
-                    'amount'       => (string) $e->amount,
-                    'kind'         => (string) $e->kind,
-                    'account_type' => (string) $e->account_type,
-                    'account_id'   => (string) $e->account_id,
-                    'hash'         => (string) $e->hash,
-                ])->all(),
-            'issuance' => DB::table('issuance_events')->orderByDesc('created_at')->limit(20)->get()
-                ->map(fn ($i) => [
-                    'id'        => (string) $i->id,
-                    'direction' => (string) $i->direction,
-                    'amount'    => (string) $i->amount,
-                    'reason'    => (string) $i->reason,
-                    'at'        => $this->iso($i->created_at),
-                ])->all(),
-            'budgets' => DB::table('budgets')->whereNull('deleted_at')->orderByDesc('created_at')->limit(20)->get()
-                ->map(fn ($b) => [
-                    'id'           => (string) $b->id,
-                    'fiscal_label' => (string) $b->fiscal_label,
-                    'total'        => (string) $b->total,
-                    'status'       => (string) $b->status,
-                    // The cycle state, in the open: a budget is enacted or it
-                    // is not, and only an enacted one is directing money now.
-                    'is_current'   => $b->status === 'enacted',
-                    'enacted_at'   => $this->iso($b->enacted_at),
-                    'enacting_act' => $this->actLabel($b->enacting_act_id === null ? null : (string) $b->enacting_act_id),
-                    'lines'        => DB::table('budget_lines')->where('budget_id', $b->id)->count(),
-                    // The lines themselves — where public money is DIRECTED,
-                    // which is the half a count cannot show.
-                    'line_items'   => DB::table('budget_lines')->where('budget_id', $b->id)->orderBy('line')->limit(50)->get()
-                        ->map(fn ($l) => [
-                            'line'   => (string) $l->line,
-                            'amount' => (string) $l->amount,
-                        ])->all(),
-                ])->all(),
-            // Art. V §4 — borrowing is a JURISDICTION instrument (there is no
-            // personal credit anywhere in this economy). Lenders appear as
-            // accounts, never people.
-            'borrowings' => DB::table('borrowings')->orderByDesc('created_at')->limit(20)->get()
-                ->map(fn ($b) => [
-                    'id'                => (string) $b->id,
-                    'principal'         => (string) $b->principal,
-                    'terms'             => (string) $b->terms,
-                    'status'            => (string) $b->status,
-                    'lender_account_id' => $b->lender_account_id === null ? null : (string) $b->lender_account_id,
-                    'at'                => $this->iso($b->created_at),
-                ])->all(),
-            'revenue' => DB::table('revenue_streams')->whereNull('deleted_at')->orderBy('name')->get()
-                ->map(fn ($r) => [
-                    'id'     => (string) $r->id,
-                    'name'   => (string) $r->name,
-                    'kind'   => (string) $r->kind,
-                    'status' => (string) $r->status,
-                    // Art. V §4 — how public money is RAISED is public: each
-                    // levy's base and rate, and whether civic use is exempt.
-                    // A rate is a ratio, not money, but it crosses as a string
-                    // for the same reason money does — never a lossy float.
-                    'levies' => DB::table('levies')->where('revenue_stream_id', $r->id)->orderBy('created_at')->get()
-                        ->map(fn ($l) => [
-                            'base'         => (string) $l->base,
-                            'rate'         => (string) $l->rate,
-                            'civic_exempt' => (bool) $l->civic_exempt,
-                        ])->all(),
-                    'enacting_act' => $this->actLabel($r->enacting_act_id === null ? null : (string) $r->enacting_act_id),
-                ])->all(),
-            // The economic clock — when the next stipend disbursement is due.
-            // Derived, shared with the overview and the units page.
-            'clock'  => $this->economicClock(),
-            'totals' => [
-                'supply'           => $currency === null ? '0.000000' : $this->issuance->supply($currency->id),
-                'treasury_balance' => (string) (DB::table('treasury_accounts')->whereNull('deleted_at')->sum('balance') ?: '0.000000'),
-            ],
-        ]);
+            'jurisdictionContext' => fn () => $directory->context(),
+            'finance_scope' => fn () => ['place' => $directory->place(), 'account' => $directory->selectedAccount(),
+                'budget' => $directory->selectedBudget(), 'revenue_source' => $directory->selectedRevenue(),
+                'ledger_scope' => $directory->ledgerScope()],
+            'clock' => fn () => $this->economicClock(),
+            'report' => $reportRead,
+            // Read the last completed report. Visiting finance never schedules or scans the world.
+            'totals' => fn () => ['supply' => $reportRead()['data']['supply'] ?? null,
+                'treasury_balance' => $reportRead()['data']['treasury_held'] ?? null],
+        ];
+        foreach (['accounts' => 'accounts', 'ledger' => 'ledger', 'issuance' => 'issuance', 'budgets' => 'budgets',
+            'borrowings' => 'borrowings', 'revenue' => 'revenue', 'budget_lines' => 'lines', 'levies' => 'levies', 'places' => 'children'] as $prop => $method) {
+            $props[$prop] = fn () => $page($method)['records'];
+            $props[$prop.'_pages'] = fn () => $page($method)['pagination'] + ['first' => $page($method)['first']];
+        }
+        return Inertia::render('Economy/Treasury', $props);
     }
 
     public function units(): Response

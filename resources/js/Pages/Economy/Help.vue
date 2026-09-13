@@ -12,6 +12,7 @@ import { formatWhen } from '@/lib/money.js';
 
 defineOptions({ layout: AppShellV2 });
 const props = defineProps({
+    surface: { type: Object, default: null },
     tab: { type: String, default: 'public' },
     requests: { type: Object, default: () => ({ data: [], previous: null, next: null }) },
     canParticipate: { type: Boolean, default: false },
@@ -29,7 +30,7 @@ function create() {
 </script>
 
 <template>
-    <PageScaffold title="Give & find help">
+    <PageScaffold :surface="surface" title="Give & find help">
         <template #intro>Ask for support, offer your time or skills, and agree with someone on the help they need.</template>
         <WorkTradeNav active="help" back-href="/economy/market?tab=assistance" back-label="Market requests" />
         <Banner v-if="page.props.flash?.status" tone="info" role="status">{{ page.props.flash.status }}</Banner>

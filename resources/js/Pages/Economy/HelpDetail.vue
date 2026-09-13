@@ -12,6 +12,7 @@ import { formatWhen } from '@/lib/money.js';
 
 defineOptions({ layout: AppShellV2 });
 const props = defineProps({
+    surface: { type: Object, default: null },
     assistance: { type: Object, required: true },
     isOwner: { type: Boolean, default: false },
     canParticipate: { type: Boolean, default: false },
@@ -41,7 +42,7 @@ function respond() {
 </script>
 
 <template>
-    <PageScaffold :title="assistance.title">
+    <PageScaffold :surface="surface" :title="assistance.title">
         <template #intro>{{ status }}</template>
         <WorkTradeNav active="help" :back-href="isOwner ? '/economy/help?tab=mine' : '/economy/help'" :back-label="isOwner ? 'My requests' : 'Requests for help'" />
         <Banner v-if="page.props.flash?.status" tone="info" role="status">{{ page.props.flash.status }}</Banner>

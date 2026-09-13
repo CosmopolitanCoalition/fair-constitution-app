@@ -133,35 +133,38 @@ knowing who bought your blanket, and only the first is necessary.
 
 ## `GET /economy/treasury` → `Economy/Treasury`
 
-Public money. Everything here is public by construction (Art. III §4).
+Updated 2026-09-13: public finance selects a place and public account. `jurisdiction` accepts an exact ID or slug, defaulting to the currency issuer. Department accounts must belong to that place; explicit invalid, deleted, nonpublic or foreign account/budget/revenue selections return 404. This is viewing scope, never residency or action authority.
 
 ```
 currency: null | {…}
-accounts: [ { id: string, owner_type: string, owner_id: string,
-              label: string|null, balance: string, public: boolean } ]
-ledger: [ { seq: number, at: string, direction: "debit"|"credit",
-            amount: string, kind: string, account_type: string,
-            account_id: string, hash: string } ]     // newest first, max 50
-issuance: [ { id: string, direction: "mint"|"burn", amount: string,
-              reason: string, at: string } ]         // newest first, max 20
-budgets: [ { id: string, fiscal_label: string, total: string, status: string,
-             is_current: boolean, enacted_at: string|null, lines: number,
-             enacting_act: null | {act_number: string|null, title: string},
-             line_items: [ {line, amount} ] } ]        // is_current = status 'enacted'
-revenue: [ { id: string, name: string, kind: string, status: string,
-             levies: [ {base: string, rate: string, civic_exempt: boolean} ],
-             enacting_act: null | {act_number: string|null, title: string} } ]
-clock: { interval: string, period_days: number|null,
-         last_run: string|null, next_run: string|null }  // Wave 4: the economic clock, derived
-totals: { supply: string, treasury_balance: string }
+jurisdictionContext: null | { current, chain, cosmicPrefix }
+finance_scope: { place: null | {id,name,slug,admLevel}, account: null | accounts[] element,
+                 budget: null | {id,fiscal_label}, revenue_source: null | {id,name},
+                 ledger_scope: 'account' | 'currency' }
+accounts: [{id,owner_type,owner_id,label,balance:string,public:boolean}]
+ledger: [{seq:number,at,direction,amount:string,kind,account_type,account_id,hash}]
+issuance: [{id,direction,amount:string,reason,at}]
+budgets: [{id,fiscal_label,total:string,status,is_current:boolean,enacted_at,
+           enacting_act:null|{act_number,title}, lines:null, line_items:[]}]
+revenue: [{id,name,kind,status,enacting_act:null|{act_number,title},levies:[]}]
+borrowings: [{id,principal:string,terms,status,lender_account_id:null|string,at}]
+budget_lines: [{id,line,amount:string}]
+levies: [{id,base,rate:string,civic_exempt:boolean}]
+places: [{id,name,slug,admLevel}]
+// Each array above has an independent companion prop:
+<array>_pages: {previous:null|string,next:null|string,first:string}
+clock: {interval,period_days,last_run,next_run}
+totals: {supply:null|string,treasury_balance:null|string}
+report: {status,data,completed_at,…} // saved CurrencyReportService read
 ```
 
-**Wave 4 (partial → built):** `revenue[].levies` (Art. V §4 — how money is
-raised is public: base, rate, civic-exempt), `revenue[].enacting_act` +
-`budgets[].enacting_act`/`is_current`, and the shared `clock` (the stipend
-disbursement cycle, derived from `ubi_disbursements` + `stipend_period_days`;
-both `last_run`/`next_run` null before a world's first run). A levy **rate is a
-ratio, not money**, but crosses as a string for the same anti-float reason.
+All arrays have seek pages (20 rows, ledger 50); no count or offset pagination. `places` lists immediate children only. Its ancestor/child links keep finance reachable throughout the jurisdiction tree. `account` selects a public account; `budget` and `revenue_source` select independently paged spending lines and levies. Legacy `budgets[].line_items` / `revenue[].levies` remain empty arrays, and `budgets[].lines` is honestly null rather than a synchronous count. New clients use the separate child arrays.
+
+The default ledger follows the selected public treasury account. `ledger_scope=currency` keeps the whole currency ledger publicly browsable by pseudonymous account IDs, including economic-account legs. Neither mode resolves account bindings to people. Issuance and report totals cover the currency, independently of the selected place. Totals are from the last completed report, with its completion time; absent results are null. A finance GET never starts report work, scans for global aggregates, or verifies the world chain.
+
+Inertia partial visits request only their array and `<array>_pages`; selection visits also request `finance_scope` and selected child arrays. See `tests/Unit/PublicFinanceDirectoryTest.php` for isolated reader, controller, scope, privacy and paging evidence.
+
+---
 
 ## `GET /economy/units` → `Economy/Units`
 

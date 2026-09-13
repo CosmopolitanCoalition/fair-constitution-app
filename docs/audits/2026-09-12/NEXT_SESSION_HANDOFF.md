@@ -19,10 +19,10 @@ This is a continuation aid, not authority over the implementation. Read `CLAUDE.
 | Hiring (2B/E1) | `d7698dd2`: paginated employer posting/review, immutable offers, exact applicant acceptance, existing organization countersign entry. | Full independent-actor scenario rehearsal. The acceptance fixture mocks the engine boundary; do not report a live completed hire. See `HIRING_WORKFLOW.md`. |
 | Help (2B/E2) | Private draft/publication, private offers, helper selection, withdrawal/reopening and completion; scoped pagination and simulated multi-actor tests. See `HELP_WORKFLOW.md`. | Full browser scenario remains part of S1; no live request was created as the operator. |
 | Organization powers (2B/E3) | Share issuance with named recipient search, current-stake pages and exact-agent/decimal validation; certification scope repair, explicit completed-count certification controls and first-board/CGC presentation fixes. See `SHARE_ISSUANCE.md` and `ORGANIZATION_BOARD_AUDIT.md`. | E5 CGC governor nomination/consent entry. E4 chair ballots/retry are now complete; see BOARD_CHAIR_WORKFLOW.md in the 2026-09-13 audit folder. Existing department nominations target a different board; do not link them as a substitute. Full organization election rehearsal remains. |
-| Browsing (1/B3/P2) | Market, organizations, agreements, asset selectors, session archives, hiring, seller pending orders and stipend receipts have bounded readers. | Wallet transaction history, committee testimony beyond latest 50, other older institutional records, and public-finance/treasury readers. |
+| Browsing (1/B3/P2) | Wallet/organization financial histories, treasury and nested public-finance records, approval candidates/endorsements, committee testimony, settings changes and advocate filings are now paged. | B3 committee bills/reports and advocate case/composer collections; S2 interjurisdictional histories/actions. |
 | Rehearsal and coverage | Targeted evidence recorded in audit files. | Complete simulated civic/economic journeys, then settled translations, teaching and accessibility; setup/world-generation review and final simulated demo run follow. |
 
-Treasury needs a deliberate scoped redesign: `EconomyController::treasury()` still has unbounded accounts/revenue/levies and aggregate reads. Review public/private treasury account and ledger visibility while fixing it. Reuse saved `CurrencyReportService` publications where appropriate; never call world supply calculations during page entry. Do not declare P2 finished from the money-report improvement alone.
+P2 treasury is complete: public accounts and records are place/account-scoped and independently paged, with an explicit currency-ledger view retaining pseudonymous public records. Totals read saved CurrencyReportService publications. The fresh-instance empty state and nested histories passed isolated tests. Full financial journeys and large populated-history performance remain reviews, not delivered throughput guarantees.
 
 ## Rollout and validation
 
@@ -50,3 +50,12 @@ The share pass adds `2026_09_13_010000_org_share_directory_indexes.php`, applied
 - The main punch list has four build phases; the separate review register preserves every unfinished internal scenario, language/accessibility, scale and deployment check. Human testing is the only deferred category. No full end-to-end election, case, volunteer join or planet benchmark is claimed.
 
 This pass needs no new migration. Pulling hosts must refresh route/configuration caches and existing Horizon workers after the shared-service changes. No simulation controls or existing-world records were changed.
+
+
+## Consolidation and archive pass — 13 September
+
+LE-1, EO-6, EO-7, identified B4 person selectors and all remaining P2 finance readers are complete with targeted internal testing. B3 committee/hearing testimony, settings-change and advocate-filing archives are also complete; its remaining row is specifically committee bills/reports and advocate case/composer collections. All four tracking documents retain their established build/internal-review/human-only distinction.
+
+Read the 2026-09-13 audits LEARN_CONSOLIDATION, PERSON_SELECTOR_CONTEXT, APPROVAL_DIRECTORY, COMMITTEE_WORKSPACE, CIVIC_HISTORIES, FINANCIAL_HISTORIES and PUBLIC_FINANCE_DIRECTORY for exact executed scopes. Public-profile names no longer fall back to private social fields in CandidacyPanel. Existing legal-consent/ownership name-search contracts are preserved; optional naming-policy alignment is distinct from repeated-name disambiguation.
+
+Migrations 2026_09_13_040000_financial_history_indexes, 050000_public_finance_history_indexes and 060000_civic_history_indexes are applied locally. Pulling hosts must apply them normally; all are additive concurrent seek indexes. Refresh configuration for the five new surface registry entries. No existing-world civic/economic action or simulation was run. Browser read checks reached wallet/help and their correct Learn drawers; the operator persona had no personal wallet, so those checks do not establish populated-wallet UI acceptance. The private fixtures exercise populated histories.

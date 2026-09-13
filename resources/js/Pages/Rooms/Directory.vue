@@ -2,7 +2,7 @@
 import { Head, Link } from '@inertiajs/vue3';
 import AppShellV2 from '@/Layouts/AppShellV2.vue';
 defineOptions({ layout: AppShellV2 });
-const props = defineProps({ selectedPlace: Object, section: String, rooms: Array, commons: Array, pagination: Object });
+const props = defineProps({ surface: Object, selectedPlace: Object, section: String, rooms: Array, commons: Array, pagination: Object });
 const tabs = [['chambers', 'Chambers'], ['committees', 'Committees'], ['courts', 'Court hearings'], ['boards', 'My board rooms']];
 const scope = () => props.selectedPlace ? '&jurisdiction=' + encodeURIComponent(props.selectedPlace.slug) : '';
 </script>

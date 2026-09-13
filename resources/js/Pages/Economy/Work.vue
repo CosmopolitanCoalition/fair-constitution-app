@@ -12,6 +12,7 @@ import { formatWhen } from '@/lib/money.js';
 
 defineOptions({ layout: AppShellV2 });
 const props = defineProps({
+    surface: { type: Object, default: null },
     tab: { type: String, default: 'applications' },
     organizations: { type: Object, default: () => ({ data: [], previous: null, next: null }) },
     organization: { type: Object, default: null },
@@ -64,7 +65,7 @@ function statusLabel(application) {
 </script>
 
 <template>
-    <PageScaffold title="My work & hiring">
+    <PageScaffold :surface="surface" title="My work & hiring">
         <template #intro>Review applications, agree on terms and follow each work agreement through both signatures.</template>
         <WorkTradeNav active="work" back-href="/economy/market?tab=work" back-label="Find work" />
         <Banner v-if="page.props.flash?.status" tone="info" role="status">{{ page.props.flash.status }}</Banner>

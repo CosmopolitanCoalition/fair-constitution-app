@@ -463,6 +463,58 @@ export const EDUCATION_BY_SURFACE = {
         ],
         why: null
     },
+    "economy/help": {
+        learn: "c_education.education_economy_help.learn",
+        steps: [
+            {
+                do: "c_education.education_economy_help.s1_do",
+                detail: "c_education.education_economy_help.s1_detail",
+                cite: null
+            },
+            {
+                do: "c_education.education_economy_help.s2_do",
+                detail: "c_education.education_economy_help.s2_detail",
+                cite: null
+            },
+            {
+                do: "c_education.education_economy_help.s3_do",
+                detail: "c_education.education_economy_help.s3_detail",
+                cite: null
+            },
+            {
+                do: "c_education.education_economy_help.s4_do",
+                detail: "c_education.education_economy_help.s4_detail",
+                cite: null
+            }
+        ],
+        why: null
+    },
+    "economy/help-detail": {
+        learn: "c_education.education_economy_help_detail.learn",
+        steps: [
+            {
+                do: "c_education.education_economy_help_detail.s1_do",
+                detail: "c_education.education_economy_help_detail.s1_detail",
+                cite: null
+            },
+            {
+                do: "c_education.education_economy_help_detail.s2_do",
+                detail: "c_education.education_economy_help_detail.s2_detail",
+                cite: null
+            },
+            {
+                do: "c_education.education_economy_help_detail.s3_do",
+                detail: "c_education.education_economy_help_detail.s3_detail",
+                cite: null
+            },
+            {
+                do: "c_education.education_economy_help_detail.s4_do",
+                detail: "c_education.education_economy_help_detail.s4_detail",
+                cite: null
+            }
+        ],
+        why: null
+    },
     "economy/home": {
         learn: "c_education.education_economy_home.learn",
         steps: [
@@ -733,6 +785,32 @@ export const EDUCATION_BY_SURFACE = {
             }
         ],
         why: "c_education.education_economy_wallet.why"
+    },
+    "economy/work": {
+        learn: "c_education.education_economy_work.learn",
+        steps: [
+            {
+                do: "c_education.education_economy_work.s1_do",
+                detail: "c_education.education_economy_work.s1_detail",
+                cite: null
+            },
+            {
+                do: "c_education.education_economy_work.s2_do",
+                detail: "c_education.education_economy_work.s2_detail",
+                cite: null
+            },
+            {
+                do: "c_education.education_economy_work.s3_do",
+                detail: "c_education.education_economy_work.s3_detail",
+                cite: null
+            },
+            {
+                do: "c_education.education_economy_work.s4_do",
+                detail: "c_education.education_economy_work.s4_detail",
+                cite: null
+            }
+        ],
+        why: "c_education.education_economy_work.why"
     },
     "elections/board-console": {
         learn: "c_education.education_elections_board_console.learn",
@@ -1415,6 +1493,32 @@ export const EDUCATION_BY_SURFACE = {
         ],
         why: "c_education.education_learn_lesson.why"
     },
+    "learn/video-library": {
+        learn: "c_education.education_learn_video_library.learn",
+        steps: [
+            {
+                do: "c_education.education_learn_video_library.s1_do",
+                detail: "c_education.education_learn_video_library.s1_detail",
+                cite: null
+            },
+            {
+                do: "c_education.education_learn_video_library.s2_do",
+                detail: "c_education.education_learn_video_library.s2_detail",
+                cite: null
+            },
+            {
+                do: "c_education.education_learn_video_library.s3_do",
+                detail: "c_education.education_learn_video_library.s3_detail",
+                cite: null
+            },
+            {
+                do: "c_education.education_learn_video_library.s4_do",
+                detail: "c_education.education_learn_video_library.s4_detail",
+                cite: null
+            }
+        ],
+        why: null
+    },
     "legislature/bill-conversation": {
         learn: "c_education.education_legislature_bill_conversation.learn",
         steps: [
@@ -2036,6 +2140,32 @@ export const EDUCATION_BY_SURFACE = {
                 do: "c_education.education_organizations_transfers_conversions.s3_do",
                 detail: "c_education.education_organizations_transfers_conversions.s3_detail",
                 cite: "F-ORG-007"
+            }
+        ],
+        why: null
+    },
+    "rooms/directory": {
+        learn: "c_education.education_rooms_directory.learn",
+        steps: [
+            {
+                do: "c_education.education_rooms_directory.s1_do",
+                detail: "c_education.education_rooms_directory.s1_detail",
+                cite: null
+            },
+            {
+                do: "c_education.education_rooms_directory.s2_do",
+                detail: "c_education.education_rooms_directory.s2_detail",
+                cite: null
+            },
+            {
+                do: "c_education.education_rooms_directory.s3_do",
+                detail: "c_education.education_rooms_directory.s3_detail",
+                cite: null
+            },
+            {
+                do: "c_education.education_rooms_directory.s4_do",
+                detail: "c_education.education_rooms_directory.s4_detail",
+                cite: null
             }
         ],
         why: null

@@ -333,6 +333,9 @@ export const LEARN_BY_MODULE = {
     federation: 'Between governments — how instances discover each other, peer, and stay one world.',
     support: 'Getting help and reporting anything that’s wrong.',
     social: 'How the social layer works — the square, groups, and reaching people.',
+    economy: 'Find work, exchange goods and services, and review agreements before consenting to them.',
+    rooms: 'Browse public meetings by place, or open a room for an institution you serve in.',
+    learn: 'Choose a lesson, guided journey, or video. Learning is open to everyone.',
 };
 
 /* Convenience: the tour entry href (stop 1 with the mode armed). */

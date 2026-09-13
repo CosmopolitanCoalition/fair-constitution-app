@@ -44,6 +44,9 @@ final class OrgShareSurfaceTest extends TestCase
             $t->uuid('id')->primary(); $t->uuid('board_id'); $t->uuid('holder_user_id');
             $t->string('status'); $t->softDeletes();
         });
+        $schema->create('social_profiles', function (Blueprint $t) {
+            $t->uuid('user_id')->primary(); $t->string('handle'); $t->string('visibility'); $t->softDeletes();
+        });
         $schema->create('org_ownership_stakes', function (Blueprint $t) {
             $t->uuid('id')->primary(); $t->uuid('organization_id'); $t->uuid('holder_id');
             $t->string('holder_type'); $t->string('units'); $t->string('pct');
@@ -57,6 +60,10 @@ final class OrgShareSurfaceTest extends TestCase
             ]);
         }
         DB::table('organizations')->insert(['id' => $this->id(2), 'name' => 'Recipient organization']);
+        DB::table('social_profiles')->insert([
+            ['user_id' => $this->id(101), 'handle' => 'public-recipient', 'visibility' => 'public'],
+            ['user_id' => $this->id(102), 'handle' => 'private-recipient', 'visibility' => 'private'],
+        ]);
         DB::table('board_seats')->insert(['id' => $this->id(300), 'board_id' => $this->id(10), 'holder_user_id' => $this->id(102), 'status' => 'seated']);
         // All currency, ledger, account-binding, levy and conversion tables are
         // deliberately absent: partial navigation must not resolve those props.
@@ -91,6 +98,9 @@ final class OrgShareSurfaceTest extends TestCase
         self::assertCount(20, $first['recipient_directory']['candidates']);
         self::assertSame('Member 01', $first['recipient_directory']['candidates'][0]['name']);
         self::assertSame($this->id(101), $first['recipient_directory']['candidates'][0]['id']);
+        self::assertSame('@public-recipient', $first['recipient_directory']['candidates'][0]['public_handle']);
+        self::assertNull($first['recipient_directory']['candidates'][1]['public_handle']);
+        self::assertStringNotContainsString('private-recipient', json_encode($first));
         self::assertCount(5, $this->partial($first['recipient_directory']['next'], 'recipient_directory')['recipient_directory']['candidates']);
     }
 
