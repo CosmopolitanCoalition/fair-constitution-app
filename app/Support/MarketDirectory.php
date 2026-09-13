@@ -37,7 +37,7 @@ final class MarketDirectory
             ->select($columns)->selectRaw(self::DATE_KEY.' as directory_created_at');
         if ($tab === 'assistance') {
             // Preserve the existing privacy boundary before selecting any page.
-            $query->where('privacy', '<>', 'private');
+            $query->where('privacy', 'public');
         }
         if ($cursor !== null) {
             $query->whereRaw('('.self::DATE_KEY.', id) '.($cursor->pointsToNextItems() ? '<' : '>').' (?, ?)', [

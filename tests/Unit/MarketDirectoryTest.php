@@ -149,6 +149,7 @@ final class MarketDirectoryTest extends TestCase
             $this->entry('assistance', 100 + $i, ['privacy' => 'private']);
             $this->entry('assistance', 200 + $i, ['deleted_at' => '2026-09-12 11:00:00+00']);
             $this->entry('assistance', 300 + $i, ['status' => 'closed']);
+            $this->entry('assistance', 400 + $i, ['privacy' => 'jurisdiction']);
         }
 
         $first = $this->page('/economy/market?tab=assistance');

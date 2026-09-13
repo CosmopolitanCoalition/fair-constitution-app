@@ -270,9 +270,10 @@ const pageCount = computed(() => (props[tab.value] ?? []).length);
 
         <!-- ---------------------------------------------------- assistance -->
         <section v-if="tab === 'assistance'" aria-label="Requests for help">
+            <nav class="mkt-pages" aria-label="Manage requests for help"><Link href="/economy/help">Give &amp; find help</Link><Link href="/economy/help?tab=mine">My requests</Link></nav>
             <p v-if="!assistance.length" class="econ-empty">Nobody is asking for help right now.</p>
             <Card v-for="a in assistance" :key="a.id" as="article" inset class="mkt-row">
-                <h3 class="mkt-title">{{ a.title }}</h3>
+                <h3 class="mkt-title"><Link :href="`/economy/help/${a.id}`">{{ a.title }}</Link></h3>
                 <p class="mkt-desc">{{ a.need }}</p>
                 <p class="mkt-meta"><span>{{ a.status }}</span></p>
             </Card>

@@ -815,6 +815,15 @@ Route::middleware('auth')->group(function () {
     Route::get('/economy/wallet', [\App\Http\Controllers\Economy\EconomyController::class, 'wallet'])->name('economy.wallet');
     Route::get('/economy/market', [\App\Http\Controllers\Economy\EconomyController::class, 'market'])->name('economy.market');
     Route::get('/economy/work', [\App\Http\Controllers\Economy\WorkController::class, 'index'])->name('economy.work');
+    Route::get('/economy/help', [\App\Http\Controllers\Economy\AssistanceController::class, 'index'])->name('economy.help');
+    Route::post('/economy/help', [\App\Http\Controllers\Economy\AssistanceController::class, 'store'])->name('economy.help.store');
+    Route::get('/economy/help/{assistance}', [\App\Http\Controllers\Economy\AssistanceController::class, 'show'])->whereUuid('assistance')->name('economy.help.show');
+    Route::post('/economy/help/{assistance}/publish', [\App\Http\Controllers\Economy\AssistanceController::class, 'publish'])->whereUuid('assistance')->name('economy.help.publish');
+    Route::post('/economy/help/{assistance}/withdraw', [\App\Http\Controllers\Economy\AssistanceController::class, 'withdraw'])->whereUuid('assistance')->name('economy.help.withdraw');
+    Route::post('/economy/help/{assistance}/resolve', [\App\Http\Controllers\Economy\AssistanceController::class, 'resolve'])->whereUuid('assistance')->name('economy.help.resolve');
+    Route::post('/economy/help/{assistance}/responses', [\App\Http\Controllers\Economy\AssistanceController::class, 'respond'])->whereUuid('assistance')->name('economy.help.respond');
+    Route::post('/economy/help/{assistance}/responses/{response}/accept', [\App\Http\Controllers\Economy\AssistanceController::class, 'match'])->whereUuid(['assistance', 'response'])->name('economy.help.match');
+    Route::post('/economy/help/{assistance}/responses/{response}/withdraw', [\App\Http\Controllers\Economy\AssistanceController::class, 'withdrawResponse'])->whereUuid(['assistance', 'response'])->name('economy.help.response-withdraw');
     Route::post('/economy/work/organizations/{organization}/postings', [\App\Http\Controllers\Economy\WorkController::class, 'postJob'])
         ->whereUuid('organization')->name('economy.work.post');
     Route::post('/economy/work/postings/{posting}/close', [\App\Http\Controllers\Economy\WorkController::class, 'closePosting'])
