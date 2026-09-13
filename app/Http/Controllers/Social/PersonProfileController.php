@@ -6,7 +6,6 @@ use App\Domain\Engine\ConstitutionalEngine;
 use App\Http\Controllers\Controller;
 use App\Http\Controllers\Elections\ElectionController;
 use App\Http\Presenters\CandidacyPanel;
-use App\Models\AuditEntry;
 use App\Models\Candidacy;
 use App\Models\Endorsement;
 use App\Models\SocialFollow;
@@ -18,6 +17,7 @@ use App\Services\JourneyService;
 use App\Services\OfficesHeldResolver;
 use App\Services\Social\PrivateRoomService;
 use App\Support\SurfaceMeta;
+use App\Support\PersonProfileHistory;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -104,25 +104,23 @@ class PersonProfileController extends Controller
         $profile = SocialProfile::query()->where('user_id', (string) $subject->getKey())->first();
         $isPublicProfile = $profile !== null && $profile->visibility === SocialProfile::VISIBILITY_PUBLIC;
 
-        $candidacies = $this->candidaciesFor($subject);
-        $offices = $this->officesFor($subject);
+        $history = app(PersonProfileHistory::class);
+        $candidacyRows = $officeRows = $actionRows = null;
+        $candidacies = function () use (&$candidacyRows, $subject) { return $candidacyRows ??= $this->candidaciesFor($subject); };
+        $offices = function () use (&$officeRows, $subject) { return $officeRows ??= $this->officesFor($subject); };
+        $actions = function () use (&$actionRows, $history, $request, $subject) { return $actionRows ??= $history->actions($request, (string) $subject->id); };
 
         // Tab availability mirrors the mockup: candidacy/office tabs exist
         // only when there is something to show; ?tab= off the contract (or
         // pointing at an absent tab) falls back to overview.
-        $tabs = ['overview', 'record'];
-        if ($candidacies !== []) {
-            $tabs[] = 'candidacy';
-        }
-        if ($offices !== []) {
-            $tabs[] = 'office';
-        }
-        if ($isSelf || $isPublicProfile) {
-            $tabs[] = 'achievements';
-        }
-
-        $tab = $request->query('tab');
-        $tab = in_array($tab, $tabs, true) ? $tab : 'overview';
+        $tabs = function () use ($subject, $history, $isSelf, $isPublicProfile) {
+            $result = ['overview', 'record'];
+            if (Candidacy::query()->where('user_id', $subject->id)->exists()) $result[] = 'candidacy';
+            if ($history->hasOffices((string) $subject->id)) $result[] = 'office';
+            if ($isSelf || $isPublicProfile) $result[] = 'achievements';
+            return $result;
+        };
+        $tab = fn () => in_array($request->query('tab'), $tabs(), true) ? $request->query('tab') : 'overview';
 
         return Inertia::render('Social/PersonProfile', [
             'surface' => SurfaceMeta::for('social/profile'),
@@ -140,8 +138,8 @@ class PersonProfileController extends Controller
                 'bio'          => $profile?->bio,
                 'visibility'   => $profile?->visibility ?? SocialProfile::VISIBILITY_PUBLIC,
             ] : null,
-            'person' => $this->personFor($subject, $profile, $offices, $isSelf, $isPublicProfile),
-            'follow' => [
+            'person' => fn () => $this->personFor($subject, $profile, $offices(), $isSelf, $isPublicProfile),
+            'follow' => fn () => [
                 'canFollow' => $viewer !== null && ! $isSelf,
                 'isFollowing' => $viewer !== null && ! $isSelf && SocialFollow::query()
                     ->where('follower_user_id', (string) $viewer->getKey())
@@ -150,11 +148,15 @@ class PersonProfileController extends Controller
                     ->exists(),
             ],
             'candidacies' => $candidacies,
-            'candidacyPanel' => $this->focusedPanel($request, $subject, $candidacies, $viewer),
+            'candidacyPanel' => fn () => $request->query('tab') === 'candidacy'
+                ? $this->focusedPanel($request, $subject, $candidacies(), $viewer) : null,
             'offices' => $offices,
-            'record' => $this->recordFor($subject, $isSelf, $isPublicProfile),
+            'record' => fn () => $this->recordFor($subject, $isSelf, $isPublicProfile, $actions()),
+            'actionHistory' => $actions,
+            'publications' => fn () => $history->publications($request, (string) $subject->id),
+            'officeHistory' => fn () => $history->offices($request, (string) $subject->id),
             // null = the subject has not chosen to show them (distinct from []).
-            'achievements' => ($isSelf || $isPublicProfile) ? $this->journeys->achievementsFor($subject) : null,
+            'achievements' => fn () => ($isSelf || $isPublicProfile) ? $this->journeys->achievementsFor($subject) : null,
         ]);
     }
 
@@ -490,26 +492,9 @@ class PersonProfileController extends Controller
      * from home, timestamped" is exactly what Art. I refuses to publish
      * about a private person.
      */
-    private function recordFor(User $subject, bool $isSelf, bool $isPublicProfile): array
+    private function recordFor(User $subject, bool $isSelf, bool $isPublicProfile, array $actions): array
     {
         $userId = (string) $subject->getKey();
-
-        $actions = AuditEntry::query()
-            ->where('actor_user_id', $userId)
-            ->where('rejected', false)
-            ->whereIn('module', ['elections', 'residency', 'legislature', 'judiciary', 'executive'])
-            ->where('event', 'not like', '%ping%')
-            ->where('event', 'not like', '%travel%')
-            ->where('event', 'not like', '%relocat%')
-            ->orderByDesc('seq')
-            ->limit(20)
-            ->get()
-            ->map(fn (AuditEntry $entry) => [
-                'seq' => $entry->seq,
-                'date' => $entry->occurred_at?->toIso8601String(),
-                'label' => $entry->event.($entry->ref !== null ? " · {$entry->ref}" : ''),
-            ])
-            ->all();
 
         // The full named residency chain is the "your choice to show"
         // class, same gate as the head-card home (Art. I).
@@ -538,7 +523,9 @@ class PersonProfileController extends Controller
         $names = CandidacyPanel::displayNames($given->pluck('candidate_user_id')->map(fn ($id) => (string) $id)->all());
 
         return [
-            'actions' => $actions,
+            'actions' => $actions['rows'],
+            'actionPages' => $actions['pages'],
+            'notice' => $actions['notice'],
             'associations' => $associations,
             'endorsementsGiven' => $given->map(fn ($row) => [
                 'candidacy_id' => (string) $row->candidacy_id,

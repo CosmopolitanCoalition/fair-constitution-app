@@ -1,6 +1,8 @@
-# Remaining candidate-profile reader repairs
+# Remaining candidacy-tab reader repairs within the one public profile
 
 13 September 2026. These findings are from running application source, not completed performance tests. They add a concrete reader repair alongside EO-5 individual endorsement controls.
+
+There is **one public profile per person** at `/people?who=...`. Candidate links redirect to that person's Candidacy tab; no separate candidate identity or profile is proposed. The operator reiterated that all public activity, candidacies and current/past office must be reachable together. The additional [public history repair](PERSON_PUBLIC_HISTORY.md) now pages old civic actions, published documents and recorded office history. The performance findings below concern that same profile's remaining candidacy-tab queries.
 
 `CandidacyPanel::standingFor` calls `ApprovalService::standings` and materializes a whole race to display one candidate's position, finalist line and leader. The open-ballot directory was already repaired; this separate profile consumer still uses the full collection.
 

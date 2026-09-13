@@ -55,7 +55,7 @@ final class LearnProfileReadFixtureTest extends TestCase
     }
 
     private function id(int $n): string { return sprintf('40000000-0000-4000-8000-%012d', $n); }
-    private function props($response): array { return (new \ReflectionClass($response))->getProperty('props')->getValue($response); }
+    private function props($response): array { return array_map(fn ($value) => $value instanceof \Closure ? $value() : $value, (new \ReflectionClass($response))->getProperty('props')->getValue($response)); }
     private function request(string $path, ?User $viewer = null): Request
     {
         $request = Request::create($path);
@@ -119,6 +119,10 @@ final class LearnProfileReadFixtureTest extends TestCase
         $offices = $this->createMock(OfficesHeldResolver::class);
         $offices->method('forUser')->willReturn([]);
         app()->instance(OfficesHeldResolver::class, $offices);
+        $history = $this->createMock(\App\Support\PersonProfileHistory::class);
+        $history->method('hasOffices')->willReturn(false);
+        foreach (['actions', 'publications', 'offices'] as $method) $history->method($method)->willReturn(['rows' => [], 'pages' => [], 'notice' => null]);
+        app()->instance(\App\Support\PersonProfileHistory::class, $history);
         $controller = new PersonProfileController(
             $this->createMock(CandidacyPanel::class),
             new JourneyService($this->createMock(AuditService::class), $this->createMock(AchievementService::class)),

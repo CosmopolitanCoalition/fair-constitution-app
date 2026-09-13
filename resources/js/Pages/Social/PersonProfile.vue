@@ -15,7 +15,7 @@
  * nothing here counts, ranks or percentages a person); follows are private
  * notes, never records.
  */
-import { computed, nextTick, ref } from 'vue';
+import { computed, nextTick, ref, watch } from 'vue';
 import { Link, router, useForm, usePage } from '@inertiajs/vue3';
 import { useI18n } from 'vue-i18n';
 import AppShellV2 from '@/Layouts/AppShellV2.vue';
@@ -35,6 +35,8 @@ import TagChip from '@/Components/Ui/TagChip.vue';
 import ThresholdMeter from '@/Components/Ui/ThresholdMeter.vue';
 import Icon from '@/Components/Ui/Icon.vue';
 import { achievementTitle } from '@/lib/achievementTitle';
+import HistoryPager from '@/Components/Ui/HistoryPager.vue';
+import OfficeHistory from '@/Components/Social/OfficeHistory.vue';
 
 defineOptions({ layout: AppShellV2 });
 
@@ -52,6 +54,9 @@ const props = defineProps({
     offices: { type: Array, default: () => [] },
     record: { type: Object, default: () => ({ actions: [], associations: [], endorsementsGiven: [] }) },
     achievements: { type: Array, default: null },
+    actionHistory: { type: Object, default: null },
+    publications: { type: Object, default: null },
+    officeHistory: { type: Object, default: null },
 });
 
 const { t } = useI18n({ useScope: 'global' });
@@ -73,17 +78,24 @@ const TAB_LABELS = {
 const validKeys = computed(() => props.tabs);
 const activeTab = ref(validKeys.value.includes(props.tab) ? props.tab : 'overview');
 const tablistEl = ref(null);
+const tabBusy = ref(false);
+const tabError = ref('');
+const actions = computed(() => props.actionHistory?.rows ?? props.record.actions);
+watch(() => props.tab, tab => { if (validKeys.value.includes(tab)) activeTab.value = tab; });
 
 function selectTab(key, focus = false) {
+    if (tabBusy.value) return;
     activeTab.value = key;
-    try {
-        const url = new URL(window.location.href);
-        if (key === 'overview') url.searchParams.delete('tab');
-        else url.searchParams.set('tab', key);
-        window.history.replaceState(window.history.state, '', url.toString());
-    } catch {
-        /* URL/History unavailable — tab state is local anyway. */
-    }
+    const url = new URL(page.url || '/people', 'http://profile.invalid');
+    url.searchParams.set('who', props.person.id);
+    url.searchParams.set('tab', key);
+    router.get(url.pathname + url.search, {}, {
+        only: key === 'candidacy' ? ['tab', 'candidacyPanel'] : ['tab'],
+        preserveState: true, preserveScroll: true,
+        onStart: () => { tabBusy.value = true; tabError.value = ''; },
+        onFinish: () => { tabBusy.value = false; },
+        onError: errors => { tabError.value = Object.values(errors)[0] || 'This tab could not load. Select it again to retry.'; },
+    });
     if (focus) {
         nextTick(() => tablistEl.value?.querySelector(`#ptab-${key}`)?.focus());
     }
@@ -153,7 +165,12 @@ const noEndorsements = computed(() => {
     return e ? e.orgs.length === 0 && e.individual.total === 0 : true;
 });
 
-const fmtDate = (iso) => (iso ? new Date(iso).toLocaleDateString() : '—');
+const fmtDate = iso => {
+    if (!iso) return '—';
+    // A civil calendar date has no UTC offset and must not move to the preceding day.
+    const date = /^\d{4}-\d{2}-\d{2}$/.test(iso) ? new Date(...iso.split('-').map((n, i) => Number(n) - (i === 1 ? 1 : 0))) : new Date(iso);
+    return date.toLocaleDateString();
+};
 
 const requestColumns = [
     { key: 'org_name', label: 'Organization' },
@@ -168,6 +185,10 @@ function focusCandidacy(id) {
 
 /* F-CAN-001 — manage statement (existing endpoint; the tab is a view). */
 const statementForm = useForm({ platform_statement: cand.value?.statement ?? '' });
+// Opening Candidacy from another tab loads its panel lazily. Initialize the owner's editor once that candidacy arrives.
+watch(() => cand.value?.id, id => {
+    if (id) { statementForm.defaults({ platform_statement: cand.value.statement ?? '' }); statementForm.reset(); }
+});
 function submitStatement() {
     statementForm.patch(`/candidates/${cand.value.id}`, { preserveScroll: true });
 }
@@ -194,6 +215,8 @@ function submitRequest() {
 
 <template>
     <PageScaffold :surface="surface" :title="person.display">
+        <p v-if="tabBusy" role="status">Loading profile section…</p>
+        <p v-if="tabError" role="alert">{{ tabError }}</p>
         <template #intro>
             <template v-if="isSelf">
                 Your public profile — exactly what everyone else sees. Settings, wallet and the
@@ -336,7 +359,7 @@ function submitRequest() {
         </p>
 
         <!-- ──────────────────────────────────────────────────────── tabs -->
-        <div ref="tablistEl" class="profile-tabs" role="tablist" aria-label="Profile sections">
+        <div ref="tablistEl" class="profile-tabs" role="tablist" aria-label="Profile sections" :aria-busy="tabBusy">
             <button
                 v-for="key in tabs"
                 :id="`ptab-${key}`"
@@ -414,13 +437,32 @@ function submitRequest() {
                 </p>
 
                 <h3 style="margin-block-start: var(--space-3)">Civic actions</h3>
-                <template v-if="record.actions.length">
-                    <LogRow v-for="action in record.actions" :key="action.seq" :seq="action.seq">
+                <p v-if="actionHistory?.notice" role="status">{{ actionHistory.notice }}</p>
+                <template v-if="actions.length">
+                    <LogRow v-for="action in actions" :key="action.seq" :seq="action.seq">
                         {{ action.label }}
                         <span class="citation">{{ fmtDate(action.date) }}</span>
+                        <Link v-if="action.href" :href="action.href">Audit receipt</Link>
                     </LogRow>
                 </template>
-                <p v-else class="gloss">No public record entries yet — participation appears here as it happens.</p>
+                <p v-else class="gloss">No additional civic activity entries on this page.</p>
+                <HistoryPager v-if="actionHistory" :pages="actionHistory.pages" :first="actionHistory.pages.first"
+                    :only="['actionHistory']" cursor-key="profile_actions_cursor" label="Public activity pages" />
+
+                <section v-if="publications" aria-labelledby="profile-publications-title">
+                    <h3 id="profile-publications-title">Published records</h3>
+                    <p v-if="publications.notice" role="status">{{ publications.notice }}</p>
+                    <article v-for="publication in publications.rows" :key="publication.id" class="profile-publication">
+                        <h4>{{ publication.title }}</h4>
+                        <p class="citation">{{ publication.kind }} · {{ fmtDate(publication.date) }} · Publication #{{ publication.seq }}</p>
+                        <p v-if="publication.corrects">Corrects an earlier publication ({{ publication.corrects }}).</p>
+                        <details v-if="publication.body"><summary>Read published text</summary><p style="white-space: pre-wrap">{{ publication.body }}</p></details>
+                        <Link v-if="publication.audit_href" :href="publication.audit_href">Audit receipt →</Link>
+                    </article>
+                    <p v-if="!publications.rows.length">No published documents on this page.</p>
+                    <HistoryPager :pages="publications.pages" :first="publications.pages.first" :only="['publications']"
+                        cursor-key="profile_publications_cursor" label="Published record pages" />
+                </section>
 
                 <h3 style="margin-block-start: var(--space-3)">Endorsements given — public by their choice</h3>
                 <template v-if="record.endorsementsGiven.length">
@@ -450,7 +492,7 @@ function submitRequest() {
             aria-labelledby="ptab-candidacy"
         >
             <Banner v-if="cand" tone="info">
-                {{ person.display }} is standing for election
+                Candidacy record for {{ person.display }}
                 <template v-if="race"> — {{ race.label }} · {{ race.seats }} seats</template>.
                 A candidacy is not a separate identity: it is this same profile, carried onto the ballot.
             </Banner>
@@ -699,26 +741,7 @@ function submitRequest() {
             role="tabpanel"
             aria-labelledby="ptab-office"
         >
-            <Card v-for="(office, i) in offices" :key="i" as="section">
-                <template #title>
-                    <h2>
-                        {{ office.title }}
-                        <StatusBadge v-if="office.is_speaker" tone="success">Speaker</StatusBadge>
-                        <StatusBadge tone="neutral">{{ office.status }}</StatusBadge>
-                    </h2>
-                </template>
-                <p class="gloss">
-                    Elected by every resident of {{ office.jurisdiction }} through STV — this seat
-                    answers to all of them equally, not to a party or a donor.
-                </p>
-                <p class="citation">
-                    <template v-if="office.since">seated {{ fmtDate(office.since) }}</template>
-                    <template v-if="office.until"> · term ends {{ fmtDate(office.until) }}</template>
-                </p>
-                <Btn v-if="office.href" :as="Link" :href="office.href" variant="secondary" size="sm">
-                    Open the {{ office.kind === 'legislature' ? 'chamber' : office.kind }} page
-                </Btn>
-            </Card>
+            <Card v-if="officeHistory" as="section"><OfficeHistory :history="officeHistory" /></Card>
             <p class="citation">
                 Every act taken in office is public and uneditable — it lives on the
                 <a href="#ppanel-record" @click.prevent="selectTab('record', true)">Record tab</a>
