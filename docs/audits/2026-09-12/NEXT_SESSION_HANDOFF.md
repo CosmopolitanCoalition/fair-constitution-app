@@ -78,3 +78,12 @@ B5 is complete: exact sequence receipts and all audit history are reachable with
 EO-1 is complete: outgoing committee placements, chairs and Speaker state retire on general certification; retained committees allocate to incoming members. Four new actual certification/clock/assignment fixtures plus allocation/preference regressions pass (16 tests / 154 assertions). See LEGISLATIVE_ROLLOVER.md for doubles and scope. No new migration; existing Horizon workers need the updated certification service. Audit-corrected same-election recertification is being checked separately; do not assume it is a fresh general election.
 
 R2 combined application workflow is complete (3 PHP tests / 460 assertions and 4 JS seating tests fed the resulting controller snapshots). No production defect found. Actual joined Matrix/SFU transport, grant/connection revocation and reconnect remain in R2. Read ROOM_WORKFLOW_REVIEW.md; synthetic HTTP/track objects are not real media. E5/IO-6 CGC appointment and expiry implementation continues in separate owned files.
+
+
+## CGC appointment and expiry closure — 13 September
+
+E5 and IO-6 development and required internal tests are complete; see the two CGC evidence files in the 2026-09-13 audit directory. The actual existing CGC board page was browsed locally, including worldwide directory navigation, institution links, current governor records and the nomination role preview. No live nomination, vote or role grant was submitted.
+
+The additive `2026_09_13_101000_governor_nominee_directory_indexes` migration is applied locally, all three indexes verified valid, and routes cleared. Horizon restart is pending completion and rollout of the concurrently developing EO-2 schema/service changes; do not restart workers into a partially written or unmigrated application. Pulling hosts must apply additive migrations and refresh workers through their deployment process.
+
+The action plan now carries a fixed-baseline progress table: 10 build items closed / 23 remaining, 2 whole internal reviews closed / 27 remaining. E5/IO-6 are included in those closures. EO-2 and EO-8 are the current bounded builds. B6 belongs with EO-5; IO-7 governor removal remains separate from completed nomination/expiry. Do not restart exploratory inventories or count partial reviews as closed.

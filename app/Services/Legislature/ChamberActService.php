@@ -279,6 +279,12 @@ class ChamberActService
             return; // idempotent
         }
 
+        // Governor consents must still own their exact current seat and vote.
+        // Keep judicial slate and the other existing consent contracts separate.
+        if ($appointment->appointable_type === 'board_seats') {
+            app(\App\Services\Executive\BoardGovernorService::class)->assertConsentVote($appointment, $vote, $outcome);
+        }
+
         if ($outcome !== ChamberVote::OUTCOME_ADOPTED) {
             $appointment->forceFill(['status' => Appointment::STATUS_REJECTED])->save();
 

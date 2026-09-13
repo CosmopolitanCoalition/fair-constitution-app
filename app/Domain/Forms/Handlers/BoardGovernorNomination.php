@@ -6,8 +6,10 @@ use App\Domain\Engine\ConstitutionalViolation;
 use App\Domain\Forms\Contracts\FormHandler;
 use App\Domain\Forms\Support\ExecutiveActor;
 use App\Models\Department;
+use App\Models\Organization;
 use App\Models\User;
 use App\Services\Executive\BoardGovernorService;
+use Illuminate\Support\Str;
 
 /**
  * F-EXE-001 — Board of Governors Nomination (WF-EXE-05).
@@ -23,8 +25,7 @@ class BoardGovernorNomination implements FormHandler
 {
     public function __construct(
         private readonly BoardGovernorService $governors,
-    ) {
-    }
+    ) {}
 
     public function module(): string
     {
@@ -48,30 +49,42 @@ class BoardGovernorNomination implements FormHandler
 
     public function handle(?User $actor, array $payload): array
     {
-        $department = Department::query()->find((string) ($payload['department_id'] ?? ''));
-
-        if ($department === null) {
-            throw new ConstitutionalViolation('F-EXE-001 names a chartered department.', 'Art. III §4');
+        $departmentId = $payload['department_id'] ?? null;
+        $organizationId = $payload['organization_id'] ?? null;
+        if (($departmentId === null) === ($organizationId === null)) {
+            throw new ConstitutionalViolation('Select one department or Common Good Corporation for this nomination.', 'Art. III §4/§5');
         }
-
-        $member = ExecutiveActor::member($actor, (string) $department->executive_id, 'F-EXE-001');
-
-        $nominee = (string) ($payload['nominee_user_id'] ?? '');
-
-        if ($nominee === '') {
+        $id = $organizationId ?? $departmentId;
+        $owner = is_string($id) && Str::isUuid($id)
+            ? ($organizationId !== null ? Organization::query() : Department::query())->whereKey($id)->lockForUpdate()->first()
+            : null;
+        if ($owner === null) {
+            throw new ConstitutionalViolation('Select an existing department or Common Good Corporation.', 'Art. III §4/§5');
+        }
+        if (isset($payload['jurisdiction_id']) && (! is_string($payload['jurisdiction_id']) || $payload['jurisdiction_id'] !== (string) $owner->jurisdiction_id)) {
+            throw new ConstitutionalViolation('The nomination must use this institution\'s jurisdiction.', 'Art. III §4/§5');
+        }
+        $executiveId = $owner instanceof Organization ? $owner->overseen_by_executive_id : $owner->executive_id;
+        if (! is_string($executiveId) || ! Str::isUuid($executiveId)) {
+            throw new ConstitutionalViolation('This institution needs an overseeing executive before governors can be nominated.', 'Art. III §4/§5');
+        }
+        $member = ExecutiveActor::member($actor, (string) $executiveId, 'F-EXE-001');
+        $nominee = $payload['nominee_user_id'] ?? null;
+        if (! is_string($nominee) || ! Str::isUuid($nominee)) {
             throw new ConstitutionalViolation('F-EXE-001 names the nominee.', 'Art. III §4');
         }
-
-        $result = $this->governors->nominate(
-            $department,
-            $member,
-            $nominee,
-            isset($payload['dossier']) ? (string) $payload['dossier'] : null,
-        );
+        $dossier = $payload['dossier'] ?? null;
+        if ($dossier !== null && (! is_string($dossier) || mb_strlen($dossier) > 20000)) {
+            throw new ConstitutionalViolation('Keep the nomination dossier within 20,000 characters.', 'CGA Forms Catalog (F-EXE-001)');
+        }
+        $result = $owner instanceof Organization
+            ? $this->governors->nominateCgc($owner, $member, $nominee, $dossier)
+            : $this->governors->nominate($owner, $member, $nominee, $dossier);
 
         return [
-            'department_id'   => (string) $department->id,
-            'nominated_by'    => (string) $member->id,
+            $owner instanceof Organization ? 'organization_id' : 'department_id' => (string) $owner->id,
+            'jurisdiction_id' => (string) $owner->jurisdiction_id,
+            'nominated_by' => (string) $member->id,
             'nominee_user_id' => $nominee,
         ] + $result;
     }

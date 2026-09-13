@@ -32,6 +32,7 @@ import BoardStrip from '@/Components/Organizations/BoardStrip.vue';
 import StateStrip from '@/Components/Ui/StateStrip.vue';
 import OrganizationNav from '@/Components/Organizations/OrganizationNav.vue';
 import ReferenceText from '@/Components/Ui/ReferenceText.vue';
+import CgcGovernors from '@/Components/Organizations/CgcGovernors.vue';
 import { useI18n } from 'vue-i18n';
 
 /* Phase-2 restyle wave: the v3 player chrome (MASTER_PLAN). */
@@ -51,6 +52,9 @@ const props = defineProps({
     /** The open-nomination window dial (org setting) — read-only on this surface. */
     nominationWindow: { type: Object, default: () => ({ window_days: null, is_set: false, min: 1, max: 90, settings_href: '#' }) },
     appointmentContext: { type: Object, default: null },
+    governorAppointments: { type: Array, default: () => [] },
+    governorPages: { type: Object, default: () => ({}) },
+    nomineeDirectory: { type: Object, default: () => ({ query: '', by: 'name', candidates: [], searched: false }) },
 });
 
 const page = usePage();
@@ -197,13 +201,7 @@ const nominationStrips = computed(() => {
         <Banner v-if="flashStatus" tone="info" role="status"><ReferenceText>{{ flashStatus }}</ReferenceText></Banner>
         <Banner v-if="constitutionError" tone="emergency"><ReferenceText>{{ constitutionError }}</ReferenceText></Banner>
 
-        <Card v-if="isCgc" as="section" :title="text('governor_appointments', 'Governor appointments')">
-            <p>{{ text('governor_appointment_path', 'Governors take office through executive nomination and legislative consent. These seats are not filled by an owner election.') }}</p>
-            <p class="cluster" style="margin-block-start: var(--space-2)">
-                <Link v-if="appointmentContext?.executive_href" :href="appointmentContext.executive_href">{{ text('overseeing_executive', 'Overseeing executive') }}</Link>
-                <Link v-if="appointmentContext?.legislature_href" :href="appointmentContext.legislature_href">{{ text('creating_legislature', 'Creating legislature') }}</Link>
-            </p>
-        </Card>
+        <CgcGovernors v-if="isCgc && appointmentContext" :organization="organization" :context="appointmentContext" :appointments="governorAppointments" :pages="governorPages" :directory="nomineeDirectory" />
 
         <!-- ===================================== no board yet =========== -->
         <Card v-if="!composition" as="section" title="No board constituted">

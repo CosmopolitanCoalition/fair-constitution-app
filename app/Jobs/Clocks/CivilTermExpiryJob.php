@@ -36,18 +36,22 @@ class CivilTermExpiryJob implements ShouldQueue
     {
         $timer = ClockTimer::query()->find($this->timerId);
 
-        if ($timer === null || $timer->subject_type !== 'term' || $timer->subject_id === null) {
+        if ($timer === null || $timer->clock_id !== 'CLK-09' || $timer->state !== ClockTimer::STATE_FIRED
+            || $timer->subject_type !== 'term' || $timer->subject_id === null
+            || $timer->fires_at === null || $timer->fires_at->isFuture()) {
             return;
         }
 
         $term = Term::query()->find($timer->subject_id);
 
-        if ($term === null) {
+        if ($term === null || (string) $term->jurisdiction_id !== (string) $timer->jurisdiction_id) {
             return;
         }
 
         match ($term->office_kind) {
-            'board_governor' => $governors->expireGovernorTerm($term),
+            // SimBoardService's older CGC civil terms use board_seat. The
+            // service verifies the governor class and current CGC ownership.
+            'board_governor', 'board_seat' => $governors->expireGovernorTerm($term),
             'judicial_seat' => $judges->expireJudicialTerm($term),
             default => null, // other office kinds: fire recorded; flows land later
         };

@@ -24,6 +24,7 @@ import RadioGroup from '@/Components/Ui/RadioGroup.vue';
 import StateStrip from '@/Components/Ui/StateStrip.vue';
 import StatusBadge from '@/Components/Ui/StatusBadge.vue';
 import VoteTally from '@/Components/Legislature/VoteTally.vue';
+import ConsentVoteCard from '@/Components/Legislature/ConsentVoteCard.vue';
 import VoteCastList from '@/Components/Legislature/VoteCastList.vue';
 
 /* Phase-2 restyle wave: the v3 player chrome (MASTER_PLAN). */
@@ -160,17 +161,6 @@ function castRemoval(proceeding, { value, explanation }) {
     });
 }
 
-const castingConsent = ref(null);
-function castConsent(target, { value, explanation }) {
-    castingConsent.value = target.cast_url;
-    router.post(target.cast_url, { value, explanation }, {
-        preserveScroll: true,
-        onFinish: () => {
-            castingConsent.value = null;
-        },
-    });
-}
-
 /* -------------------------------------------------- vacancy (F-LEG-036) */
 const vacancyForm = useForm({ member_id: '', reason: 'resigned' });
 function submitVacancy() {
@@ -227,13 +217,7 @@ const PROCEEDING_MACHINE = ['opened', 'presiding_designated', 'voted', 'closed']
                 <!-- creation act vote (pending office) -->
                 <template v-if="adminOffice.pending">
                     <h3 style="font-size: var(--text-base)">Creation act vote — majority of all serving</h3>
-                    <VoteTally
-                        v-bind="adminOffice.pending.tally"
-                        basis="Art. II §2"
-                        :can-cast="can.vote && !adminOffice.pending.my_cast"
-                        :casting="castingConsent === adminOffice.pending.cast_url"
-                        @cast="castConsent(adminOffice.pending, $event)"
-                    />
+                    <ConsentVoteCard :consent="adminOffice.pending" :can-cast="can.vote" />
                 </template>
 
                 <!-- staffing consents -->
@@ -244,13 +228,7 @@ const PROCEEDING_MACHINE = ['opened', 'presiding_designated', 'voted', 'closed']
                     <div class="stack" style="gap: var(--space-3)">
                         <Card v-for="consent in adminOffice.consents" :key="consent.cast_url" inset>
                             <p style="margin-block-end: var(--space-1)"><strong>{{ consent.nominee }}</strong> — consent vote</p>
-                            <VoteTally
-                                v-if="consent.tally"
-                                v-bind="consent.tally"
-                                :can-cast="can.vote && !consent.my_cast"
-                                :casting="castingConsent === consent.cast_url"
-                                @cast="castConsent(consent, $event)"
-                            />
+                            <ConsentVoteCard :consent="consent" :can-cast="can.vote" />
                         </Card>
                     </div>
                 </template>

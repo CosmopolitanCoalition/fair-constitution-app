@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Organizations;
 
 use App\Domain\Engine\ConstitutionalEngine;
 use App\Http\Controllers\Controller;
+use App\Http\Presenters\CandidacyPanel;
 use App\Http\Presenters\ChamberVotePresenter;
 use App\Http\Presenters\StvRoundPresenter;
 use App\Models\Board;
@@ -11,8 +12,6 @@ use App\Models\BoardSeat;
 use App\Models\ChamberVote;
 use App\Models\Election;
 use App\Models\ElectionRace;
-use App\Models\Executive;
-use App\Models\Legislature;
 use App\Models\Organization;
 use App\Models\OrgMembership;
 use App\Models\OrgWorker;
@@ -21,6 +20,8 @@ use App\Models\User;
 use App\Models\VoteCast;
 use App\Services\Organizations\OrgSettingsService;
 use App\Services\Rooms\BoardRoomAccess;
+use App\Support\CgcGovernorWorkspace;
+use App\Support\GovernorNomineeDirectory;
 use App\Support\SurfaceMeta;
 use Inertia\Inertia;
 use Inertia\Response;
@@ -47,6 +48,8 @@ use Inertia\Response;
  */
 class BoardElectionController extends Controller
 {
+    private array $holderNames = [];
+
     public function __construct(
         private readonly ConstitutionalEngine $engine,
         private readonly StvRoundPresenter $stv,
@@ -55,8 +58,9 @@ class BoardElectionController extends Controller
 
     public function show(\Illuminate\Http\Request $request, Organization $organization): Response
     {
+        $this->holderNames = [];
         $board = $organization->board_id !== null
-            ? Board::query()->with('seats.holder:id,name,display_name')->find($organization->board_id)
+            ? Board::query()->with('seats.holder:id,display_name')->find($organization->board_id)
             : null;
 
         $viewerIsAgent = $request->user() !== null
@@ -66,6 +70,12 @@ class BoardElectionController extends Controller
             && $board->boardable_type === Board::BOARDABLE_ORGANIZATIONS
             && (string) $board->boardable_id === (string) $organization->id;
         $vacancies = $board?->seats->where('status', BoardSeat::STATUS_VACANT);
+        $governors = new CgcGovernorWorkspace($organization, $board, $request->user(), $this->votes);
+        $appointmentContext = $governors->context();
+        $appointmentDirectory = null;
+        $appointmentPage = function () use (&$appointmentDirectory, $governors, $request) {
+            return $appointmentDirectory ??= $governors->appointments($request);
+        };
 
         return Inertia::render('Organizations/BoardElections', [
             'surface' => SurfaceMeta::for('organizations/board-elections'),
@@ -74,7 +84,12 @@ class BoardElectionController extends Controller
             // The open-nomination window DIAL (operator v3.2 item 0d) — the
             // org's own setting, read and linked here (it is set on org detail).
             'nominationWindow' => $this->nominationWindow($organization),
-            'appointmentContext' => $this->appointmentContext($organization),
+            'appointmentContext' => $appointmentContext,
+            'governorAppointments' => fn () => $appointmentPage()['rows'],
+            'governorPages' => fn () => $appointmentPage()['pages'],
+            'nomineeDirectory' => Inertia::optional(fn () => ($appointmentContext['canNominate'] ?? false)
+                ? app(GovernorNomineeDirectory::class)->page($request, (string) $organization->id, (string) $organization->jurisdiction_id)
+                : GovernorNomineeDirectory::empty()),
             'ownerTrack' => $this->track(
                 $organization,
                 $board,
@@ -169,21 +184,18 @@ class BoardElectionController extends Controller
     // Prop builders — all read straight off the rows
     // =========================================================================
 
-    /** Oversight links only: the existing department nomination form cannot nominate a CGC governor. */
-    private function appointmentContext(Organization $organization): ?array
+    /** The route selects the organization; no actor or target override comes from the browser. */
+    public function nominateGovernor(\Illuminate\Http\Request $request, Organization $organization): \Illuminate\Http\RedirectResponse
     {
-        if (! $organization->is_cgc) {
-            return null;
-        }
+        abort_unless($request->user(), 403);
+        $data = $request->validate(['nominee_user_id' => ['required', 'uuid'], 'dossier' => ['nullable', 'string', 'max:20000']]);
+        $this->engine->file('F-EXE-001', $request->user(), [
+            'organization_id' => (string) $organization->id, 'jurisdiction_id' => (string) $organization->jurisdiction_id,
+            'nominee_user_id' => $data['nominee_user_id'], 'dossier' => $data['dossier'] ?? null,
+        ]);
 
-        return [
-            'executive_href' => $organization->overseen_by_executive_id !== null
-                && Executive::query()->whereKey($organization->overseen_by_executive_id)->exists()
-                    ? '/executives/'.$organization->overseen_by_executive_id : null,
-            'legislature_href' => $organization->created_by_legislature_id !== null
-                && Legislature::query()->whereKey($organization->created_by_legislature_id)->exists()
-                    ? '/legislatures/'.$organization->created_by_legislature_id.'/chamber' : null,
-        ];
+        return redirect('/organizations/'.$organization->id.'/board-elections#governor-appointments')
+            ->with('status', 'Governor nominated. The dossier is public and the creating legislature’s consent vote is open below.');
     }
 
     /** @return array<string, mixed> */
@@ -414,6 +426,7 @@ class BoardElectionController extends Controller
             'organization_id' => (string) $organization->id,
             'jurisdiction_id' => (string) $organization->jurisdiction_id,
         ]);
+
         return back()->with('status', $validated['action'] === 'open' ? 'Chair ballot is open.' : 'Your chair ranking has been recorded.');
     }
 
@@ -499,10 +512,10 @@ class BoardElectionController extends Controller
 
     private function holderName(BoardSeat $seat): string
     {
-        $seat->loadMissing('holder:id,name,display_name');
+        $seat->loadMissing('holder:id,display_name');
         $user = $seat->holder;
 
-        return $user?->display_name ?: ($user?->name ?? 'Seated member');
+        return $user === null ? 'Seated member' : ($this->holderNames[$user->id] ??= CandidacyPanel::displayName($user));
     }
 
     /**

@@ -22,7 +22,6 @@ use App\Http\Controllers\Elections\ResultsController;
 use App\Http\Controllers\Elections\VacancyController;
 use App\Http\Controllers\Invites\InviteController;
 use App\Http\Controllers\JurisdictionController;
-use App\Http\Controllers\Oidc\OidcAuthorizationController;
 use App\Http\Controllers\Legislature\BillController;
 use App\Http\Controllers\Legislature\ChamberController;
 use App\Http\Controllers\Legislature\ChamberResolverController;
@@ -31,6 +30,7 @@ use App\Http\Controllers\Legislature\SettingsController;
 use App\Http\Controllers\Legislature\TypeBMapController;
 use App\Http\Controllers\LegislatureController;
 use App\Http\Controllers\MapsController;
+use App\Http\Controllers\Oidc\OidcAuthorizationController;
 use App\Http\Controllers\RasterTileController;
 use App\Http\Controllers\SetupController;
 use App\Http\Controllers\System\AuditChainController;
@@ -1115,6 +1115,8 @@ Route::middleware('auth')->group(function () {
         ->whereUuid('organization')->name('organizations.board-elections.store');  // F-ORG-003 / F-ORG-004
     Route::post('/organizations/{organization}/board-chair', [\App\Http\Controllers\Organizations\BoardElectionController::class, 'chairAction'])
         ->whereUuid('organization')->name('organizations.board-chair');
+    Route::post('/organizations/{organization}/governor-nominations', [\App\Http\Controllers\Organizations\BoardElectionController::class, 'nominateGovernor'])
+        ->whereUuid('organization')->name('organizations.governor-nominations');
 
     // ── FE-D9 — Transfers / conversions / dissolution ───────────────────────
     Route::post('/organizations/{organization}/transfers', [\App\Http\Controllers\Organizations\TransferController::class, 'transfer'])

@@ -28,7 +28,9 @@ use Tests\TestCase;
 final class BoardElectionSurfaceTest extends TestCase
 {
     private string $originalConnection;
+
     private ConstitutionalEngine $engine;
+
     private BoardElectionController $controller;
 
     protected function setUp(): void
@@ -43,47 +45,78 @@ final class BoardElectionSurfaceTest extends TestCase
         self::assertSame(':memory:', DB::connection()->getDatabaseName());
         $schema = DB::connection()->getSchemaBuilder();
         $schema->create('boards', function (Blueprint $t) {
-            $t->uuid('id')->primary(); $t->string('boardable_type'); $t->uuid('boardable_id');
-            $t->string('status')->default('active'); $t->integer('owner_seats')->default(1);
-            $t->integer('worker_seats')->default(1); $t->boolean('composition_valid')->default(false);
-            $t->uuid('chair_seat_id')->nullable(); $t->softDeletes();
+            $t->uuid('id')->primary();
+            $t->string('boardable_type');
+            $t->uuid('boardable_id');
+            $t->string('status')->default('active');
+            $t->integer('owner_seats')->default(1);
+            $t->integer('worker_seats')->default(1);
+            $t->boolean('composition_valid')->default(false);
+            $t->uuid('chair_seat_id')->nullable();
+            $t->softDeletes();
         });
         $schema->create('board_seats', function (Blueprint $t) {
-            $t->uuid('id')->primary(); $t->uuid('board_id'); $t->string('seat_class');
-            $t->string('status')->default('vacant'); $t->integer('seat_no');
-            $t->uuid('holder_user_id')->nullable(); $t->uuid('term_id')->nullable();
-            $t->boolean('is_chair')->default(false); $t->softDeletes();
+            $t->uuid('id')->primary();
+            $t->uuid('board_id');
+            $t->string('seat_class');
+            $t->string('status')->default('vacant');
+            $t->integer('seat_no');
+            $t->uuid('holder_user_id')->nullable();
+            $t->uuid('term_id')->nullable();
+            $t->boolean('is_chair')->default(false);
+            $t->softDeletes();
         });
         $schema->create('org_memberships', function (Blueprint $t) {
-            $t->uuid('id')->primary(); $t->uuid('organization_id'); $t->string('kind');
-            $t->string('status'); $t->softDeletes();
+            $t->uuid('id')->primary();
+            $t->uuid('organization_id');
+            $t->string('kind');
+            $t->string('status');
+            $t->softDeletes();
         });
         $schema->create('org_workers', function (Blueprint $t) {
-            $t->uuid('id')->primary(); $t->uuid('employer_id'); $t->string('employer_type');
-            $t->string('status'); $t->softDeletes();
+            $t->uuid('id')->primary();
+            $t->uuid('employer_id');
+            $t->string('employer_type');
+            $t->string('status');
+            $t->softDeletes();
         });
         $schema->create('elections', function (Blueprint $t) {
-            $t->uuid('id')->primary(); $t->uuid('board_id'); $t->string('kind');
+            $t->uuid('id')->primary();
+            $t->uuid('board_id');
+            $t->string('kind');
             $t->string('status')->default('voting_closed');
-            foreach (['approval_opens_at', 'finalist_cutoff_at', 'ranked_opens_at', 'ranked_closes_at', 'certified_at'] as $column) $t->timestamp($column)->nullable();
-            $t->timestamp('created_at')->nullable(); $t->softDeletes();
+            foreach (['approval_opens_at', 'finalist_cutoff_at', 'ranked_opens_at', 'ranked_closes_at', 'certified_at'] as $column) {
+                $t->timestamp($column)->nullable();
+            }
+            $t->timestamp('created_at')->nullable();
+            $t->softDeletes();
         });
         $schema->create('election_races', function (Blueprint $t) {
-            $t->uuid('id')->primary(); $t->uuid('election_id');
-            $t->timestamp('created_at')->nullable(); $t->softDeletes();
+            $t->uuid('id')->primary();
+            $t->uuid('election_id');
+            $t->timestamp('created_at')->nullable();
+            $t->softDeletes();
         });
         $schema->create('tabulations', function (Blueprint $t) {
-            $t->uuid('id')->primary(); $t->uuid('race_id');
-            $t->string('kind')->default('initial'); $t->string('status');
-            $t->string('record_hash')->nullable(); $t->timestamp('completed_at')->nullable();
+            $t->uuid('id')->primary();
+            $t->uuid('race_id');
+            $t->string('kind')->default('initial');
+            $t->string('status');
+            $t->string('record_hash')->nullable();
+            $t->timestamp('completed_at')->nullable();
         });
         $schema->create('chamber_votes', function (Blueprint $t) {
-            $t->uuid('id')->primary(); $t->uuid('body_id'); $t->string('body_type');
-            $t->string('vote_type'); $t->timestamp('opened_at')->nullable(); $t->softDeletes();
+            $t->uuid('id')->primary();
+            $t->uuid('body_id');
+            $t->string('body_type');
+            $t->string('vote_type');
+            $t->timestamp('opened_at')->nullable();
+            $t->softDeletes();
         });
         foreach (['executives', 'legislatures'] as $table) {
             $schema->create($table, function (Blueprint $t) {
-                $t->uuid('id')->primary(); $t->softDeletes();
+                $t->uuid('id')->primary();
+                $t->softDeletes();
             });
         }
         $settings = $this->createMock(OrgSettingsService::class);
@@ -127,10 +160,9 @@ final class BoardElectionSurfaceTest extends TestCase
         DB::table('legislatures')->insert(['id' => $this->id(31)]);
         $props = $this->page($org);
         self::assertSame(['provisionBoard' => false, 'administerOwner' => false, 'administerWorker' => true], $props['can']);
-        self::assertSame([
-            'executive_href' => '/executives/'.$this->id(21),
-            'legislature_href' => '/legislatures/'.$this->id(31).'/chamber',
-        ], $props['appointmentContext']);
+        self::assertSame('/executives/'.$this->id(21), $props['appointmentContext']['executive_href']);
+        self::assertSame('/legislatures/'.$this->id(31).'/chamber', $props['appointmentContext']['legislature_href']);
+        self::assertFalse($props['appointmentContext']['canNominate']);
         self::assertSame(BoardSeat::CLASS_GOVERNOR, $props['seated']['seats'][0]['seat_class']);
         self::assertSame($props['appointmentContext'], $this->page($org, $this->user(102))['appointmentContext']);
         self::assertFalse($this->page($org, $this->user(102))['can']['administerWorker']);
@@ -143,7 +175,8 @@ final class BoardElectionSurfaceTest extends TestCase
             'created_by_legislature_id' => $this->id(31),
         ]);
         DB::table('executives')->insert(['id' => $this->id(21), 'deleted_at' => now()]);
-        self::assertSame(['executive_href' => null, 'legislature_href' => null], $this->page($org)['appointmentContext']);
+        self::assertNull($this->page($org)['appointmentContext']['executive_href']);
+        self::assertNull($this->page($org)['appointmentContext']['legislature_href']);
         self::assertNull($this->page($this->organization())['appointmentContext']);
     }
 
@@ -267,6 +300,7 @@ final class BoardElectionSurfaceTest extends TestCase
         $request = Request::create('/organizations/'.$org->id.'/board-elections');
         $request->setUserResolver(fn () => $user ?? $this->user());
         $response = $this->controller->show($request, $org);
+
         return (new ReflectionProperty($response, 'props'))->getValue($response);
     }
 
@@ -279,6 +313,7 @@ final class BoardElectionSurfaceTest extends TestCase
             'agent_user_id' => $this->id(101), 'board_id' => null,
             'overseen_by_executive_id' => null, 'created_by_legislature_id' => null,
         ]);
+
         return $org;
     }
 
@@ -298,6 +333,7 @@ final class BoardElectionSurfaceTest extends TestCase
     {
         $user = new User;
         $user->setRawAttributes(['id' => $this->id($id)]);
+
         return $user;
     }
 
