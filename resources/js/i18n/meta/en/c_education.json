@@ -4269,6 +4269,62 @@
     "line": 951,
     "status": "source"
   },
+  "education_legislature_institution_acts.learn": {
+    "source_hash": "b81b727ca787d4b3e73964aeb296f67ecddd76ad0cc018e36592175f39af49e2",
+    "shape": "static",
+    "file": "docs/plans/education/K2_CONTENT_INSTITUTION_ACTS.md",
+    "line": 6,
+    "status": "source"
+  },
+  "education_legislature_institution_acts.s1_detail": {
+    "source_hash": "53fea961ed7137579eaf5d1594d5f5593cbfc10edcbbae8f227f67a4deb66ef4",
+    "shape": "static",
+    "file": "docs/plans/education/K2_CONTENT_INSTITUTION_ACTS.md",
+    "line": 10,
+    "status": "source"
+  },
+  "education_legislature_institution_acts.s1_do": {
+    "source_hash": "052a31e86efa8a4328b4263c55b42dcee2aa0d776d574a7d894c23883e7c64d0",
+    "shape": "static",
+    "file": "docs/plans/education/K2_CONTENT_INSTITUTION_ACTS.md",
+    "line": 10,
+    "status": "source"
+  },
+  "education_legislature_institution_acts.s2_detail": {
+    "source_hash": "cc6a52b201cdcfd8e2add8351d51c62486083de7f011e0bc9ac4860636c49fc0",
+    "shape": "static",
+    "file": "docs/plans/education/K2_CONTENT_INSTITUTION_ACTS.md",
+    "line": 11,
+    "status": "source"
+  },
+  "education_legislature_institution_acts.s2_do": {
+    "source_hash": "f571b2ffff8d9e75f04869db4ae8f7dfc69be7d1bcc845d08cc35be41388c007",
+    "shape": "static",
+    "file": "docs/plans/education/K2_CONTENT_INSTITUTION_ACTS.md",
+    "line": 11,
+    "status": "source"
+  },
+  "education_legislature_institution_acts.s3_detail": {
+    "source_hash": "7108ef88eadd212885c35aa5fb1df0b64d2a9d34711402c426c7cbeaae5edf71",
+    "shape": "static",
+    "file": "docs/plans/education/K2_CONTENT_INSTITUTION_ACTS.md",
+    "line": 12,
+    "status": "source"
+  },
+  "education_legislature_institution_acts.s3_do": {
+    "source_hash": "a81469faf7b65a9e00424ace0d5a3e89a279ba08ab362329e5f698535177aa09",
+    "shape": "static",
+    "file": "docs/plans/education/K2_CONTENT_INSTITUTION_ACTS.md",
+    "line": 12,
+    "status": "source"
+  },
+  "education_legislature_institution_acts.why": {
+    "source_hash": "8e203a65f6ff4d04e8e5bf7582fe4c6e53f80027105bedf0ad6a071a389a786a",
+    "shape": "static",
+    "file": "docs/plans/education/K2_CONTENT_INSTITUTION_ACTS.md",
+    "line": 14,
+    "status": "source"
+  },
   "education_legislature_legislature_home.learn": {
     "source_hash": "371184b0f4eeb4e1956a4ce8b5da8552dd8991dd1f54f7d084458d28bebc1dc8",
     "shape": "static",

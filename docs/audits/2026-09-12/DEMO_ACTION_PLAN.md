@@ -12,10 +12,10 @@ Fixed baseline: commit `8bf59184`, immediately before this development batch. Cl
 
 | List | At baseline | New confirmed items | Closed | Remaining |
 |---|---:|---:|---:|---:|
-| Build punch list | 29 | 4 | 11 | 22 |
+| Build punch list | 29 | 4 | 13 | 20 |
 | Internal review register | 29 | 0 | 2 | 27 |
 
-The eleven closed builds are B3, P2, B4, EO-6, LE-1, EO-7, B5, EO-1, E5, IO-6 and EO-8. The two closed reviews are S3 ownership concurrency and L1 lesson completion/awards/stipends. Added builds are B5 and EO-8 (already closed), B6 and IO-7, each tied to a demonstrated defect or missing action. These are item counts, not a percentage of effort or a cost forecast. Earlier completed work remains in the archive and is excluded from this fixed-baseline comparison.
+The thirteen closed builds are B3, P2, B4, EO-6, LE-1, EO-7, B5, EO-1, E5, IO-6, EO-8, EO-2 and EO-3. The two closed reviews are S3 ownership concurrency and L1 lesson completion/awards/stipends. Added builds are B5 and EO-8 (already closed), B6 and IO-7, each tied to a demonstrated defect or missing action. EO-4 confirmation is integrated, but its nomination entry remains open and the item is not counted as closed. The separately requested map-sidebar cleanup is completed extra work, outside this fixed baseline. These are item counts, not a percentage of effort or a cost forecast. Earlier completed work remains in the archive and is excluded from this fixed-baseline comparison.
 
 ## 1. Additional candidate-profile reader repair
 
@@ -29,9 +29,7 @@ Evidence: [candidate profile readers](../2026-09-13/CANDIDATE_PROFILE_READERS.md
 
 | ID | Confirmed build / repair | Done when development and internal tests establish |
 |---|---|---|
-| EO-2 | Finish recurring elected executive/judicial cycles and outgoing-seat closure. | Successor elections are scheduled, old elected seats lose authority when their terms end, and certified successors replace them consistently. |
-| EO-3 | Replace generic bill links for institution creation/conversion with real institution filings. Include CGC creation. | The UI collects and submits the intended creation/conversion/delegation payload to its actual handler, with authority and refusal cases. |
-| EO-4 | Add judicial nomination and confirmation controls. | Authorized court/legislature actors can nominate, consent/refuse and seat judges through the existing services. |
+| EO-4 | Add the player judicial nomination entry after resolving the nominating actor/body and committee designation. Confirmation, refusal and seating controls are completed. | The settled nomination authority is enforced through actual proposal/decision handlers and bounded nominee selection; isolated actor tests reach the existing confirmation/seating path. See the [remaining nomination decision](../2026-09-13/JUDICIAL_APPOINTMENT_SURFACE.md#remaining-eo-4-nomination-decision). |
 | EO-5 | Add individual endorsement and withdrawal controls. | Individuals can publish/manage their own endorsements; organization endorsement and secret approval voting remain distinct. |
 | IO-1 | Add court hearing, deliberation and verdict controls. | Authorized actors can complete the case lifecycle through the UI, with state, panel, actor and repeated-submission checks. |
 | IO-2 | Build the appeals workflow beyond its existing status/foreign key. | Appeal filing, review and outcome history work while preserving the original case and criminal reprosecution protection. |

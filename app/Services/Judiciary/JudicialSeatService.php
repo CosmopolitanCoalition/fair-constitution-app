@@ -493,6 +493,12 @@ class JudicialSeatService
      */
     public function seat(Appointment $appointment): array
     {
+        $appointment = Appointment::query()->whereKey($appointment->id)->lockForUpdate()->firstOrFail();
+        $vote = ChamberVote::query()->whereKey($appointment->consent_vote_id)->first();
+        if ($vote === null) {
+            throw new ConstitutionalViolation('Judicial seating requires its recorded consent vote.', 'Art. IV §2');
+        }
+        $this->assertConsentVote($appointment, $vote, ChamberVote::OUTCOME_ADOPTED);
         $seat = JudicialSeat::query()->whereKey($appointment->appointable_id)->lockForUpdate()->firstOrFail();
         $judiciary = Judiciary::query()->whereKey($seat->judiciary_id)->firstOrFail();
 
@@ -565,7 +571,8 @@ class JudicialSeatService
     {
         $seat = JudicialSeat::query()->whereKey($appointment->appointable_id)->first();
 
-        if ($seat === null || $seat->status !== JudicialSeat::STATUS_NOMINATED) {
+        if ($seat === null || $seat->status !== JudicialSeat::STATUS_NOMINATED
+            || (string) $seat->appointment_id !== (string) $appointment->id) {
             return;
         }
 
@@ -575,6 +582,35 @@ class JudicialSeatService
             ->update(['status' => JudicialNomination::STATUS_REJECTED, 'updated_at' => now()]);
 
         $seat->forceFill(['appointment_id' => null, 'status' => JudicialSeat::STATUS_VACANT])->save();
+    }
+
+    /** Validate the exact recorded per-seat consent before seating or reopening a seat. Slate simulation has its separate path. */
+    public function assertConsentVote(Appointment $appointment, ChamberVote $vote, string $outcome): void
+    {
+        $seat = $appointment->appointable_type === 'judicial_seats'
+            ? JudicialSeat::query()->whereKey($appointment->appointable_id)->lockForUpdate()->first() : null;
+        $court = $seat ? Judiciary::query()->whereKey($seat->judiciary_id)->first() : null;
+        $source = $court?->source_legislature_id ? Legislature::query()->find($court->source_legislature_id) : null;
+        $nomination = JudicialNomination::query()->where('appointment_id', $appointment->id)->first();
+        if (! $court || ! $source || ! $nomination || $court->type !== Judiciary::TYPE_APPOINTED
+            || ! in_array($court->status, [Judiciary::STATUS_CREATING, Judiciary::STATUS_APPOINTED, Judiciary::STATUS_CONVERSION_VOTED, Judiciary::STATUS_REVERTED], true)
+            || (string) $source->jurisdiction_id !== (string) $court->jurisdiction_id
+            || ! in_array($source->status, [Legislature::STATUS_ACTIVE, Legislature::STATUS_FORMING], true)
+            || (string) $seat->appointment_id !== (string) $appointment->id || $seat->status !== JudicialSeat::STATUS_NOMINATED
+            || $seat->user_id !== null || $seat->term_id !== null
+            || (string) $nomination->seat_id !== (string) $seat->id || (string) $nomination->judiciary_id !== (string) $court->id
+            || (string) $nomination->nominee_user_id !== (string) $appointment->nominee_user_id || $nomination->status !== JudicialNomination::STATUS_NOMINATED
+            || $appointment->status !== Appointment::STATUS_NOMINATED || $appointment->term_id !== null || $appointment->nominated_via_form !== 'F-LEG-021'
+            || (string) $appointment->consent_vote_id !== (string) $vote->id
+            || $vote->votable_type !== 'appointment_consent' || (string) $vote->votable_id !== (string) $appointment->id
+            || $vote->vote_type !== self::CONSENT_VOTE_TYPE || $vote->vote_method !== ChamberVote::METHOD_YES_NO
+            || $vote->threshold_basis !== ChamberVote::BASIS_MAJORITY || $vote->stage !== ChamberVote::STAGE_FLOOR
+            || $vote->body_type !== ChamberVote::BODY_LEGISLATURE || (string) $vote->body_id !== (string) $source->id
+            || (string) $vote->legislature_id !== (string) $source->id || (string) $vote->jurisdiction_id !== (string) $court->jurisdiction_id
+            || $vote->status !== ChamberVote::STATUS_CLOSED || $vote->outcome !== $outcome
+            || ! in_array($outcome, [ChamberVote::OUTCOME_ADOPTED, ChamberVote::OUTCOME_FAILED], true)) {
+            throw new ConstitutionalViolation('Judicial confirmation must resolve the current nomination through its source legislature’s recorded consent.', 'Art. IV §2');
+        }
     }
 
     /**

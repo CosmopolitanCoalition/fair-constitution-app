@@ -86,6 +86,7 @@ class Election extends Model
         'ranked_closes_at',
         'certified_at',
         'prior_election_id',
+        'general_cycle_election_id',
         'triggered_by_timer_id',
         'vacancy_id',
         'ballot_key_wrapped',
@@ -134,6 +135,12 @@ class Election extends Model
     public function legislature(): BelongsTo
     {
         return $this->belongsTo(Legislature::class, 'legislature_id');
+    }
+
+    /** Exact legislative cycle filled by a recurring elected office contest. */
+    public function generalCycleElection(): BelongsTo
+    {
+        return $this->belongsTo(self::class, 'general_cycle_election_id');
     }
 
     public function districtMap(): BelongsTo

@@ -21,6 +21,7 @@ const more = ['sessions', 'committees', 'oversight', 'referendums', 'settings', 
         <nav class="leg-tools" :aria-label="text('related_work')">
             <Link class="leg-map-link" :href="workspace.maps">{{ text('maps') }}</Link>
             <Link :href="workspace.bills">{{ text('bills') }}</Link>
+            <Link v-if="workspace.institutions" :href="workspace.institutions" :aria-current="active === 'institutions' ? 'page' : undefined">Institutions</Link>
             <details>
                 <summary>{{ text('more') }}</summary>
                 <div class="leg-more">

@@ -4,10 +4,8 @@ namespace App\Http\Controllers\Judiciary;
 
 use App\Http\Controllers\Controller;
 use App\Http\Presenters\ChamberVotePresenter;
-use App\Models\Appointment;
 use App\Models\ChamberVote;
 use App\Models\ConstituentConsent;
-use App\Models\JudicialNomination;
 use App\Models\JudicialSeat;
 use App\Models\Judiciary;
 use App\Models\Law;
@@ -34,12 +32,12 @@ use Inertia\Response;
  *   ConstituentConsentPanel Phase D built for executive conversion (the
  *   Art. IV §3 dual supermajority).
  *
- * PURE READER of engine snapshots — every threshold/required number is read
+ * Reader of engine snapshots — every threshold/required number is read
  * from the chamber_votes / multi_jurisdiction_votes rows through the
  * ChamberVotePresenter; the panel-size table cites the CLK-16 rule, never
  * recomputed here. PUBLIC READ (Art. II §2 — judicial structure is public
- * record); the only "actions" are R-09 deep-links into the bill flow — this
- * page never originates a vote.
+ * record). JudicialConfirmationDirectory supplies bounded nomination records
+ * and the existing exact-source legislative consent and Speaker controls.
  *
  * Sibling of Executive\ExecutiveController; the conversion machinery
  * (processProps / consentVoteSummaries / voteForLaw) is the EXACT executive
@@ -52,18 +50,24 @@ class JudiciaryController extends Controller
     public function show(Request $request, Judiciary $judiciary): Response
     {
         $judiciary->loadMissing(['jurisdiction', 'sourceLegislature', 'creationLaw', 'conversionLaw']);
+        $confirmationData = null;
+        $confirmations = function () use (&$confirmationData, $request, $judiciary) {
+            return $confirmationData ??= app(\App\Support\JudicialConfirmationDirectory::class)->page($request, $judiciary, $request->user());
+        };
 
         return Inertia::render('Judiciary/Home', [
-            'jurisdictionContext' => $judiciary->jurisdiction ? \App\Support\JurisdictionContext::for($judiciary->jurisdiction) : null,
+            'jurisdictionContext' => fn () => $judiciary->jurisdiction ? \App\Support\JurisdictionContext::for($judiciary->jurisdiction) : null,
             'surface' => SurfaceMeta::for('judiciary/judiciary-home'),
-            'judiciary' => $this->judiciaryHeader($judiciary),
+            'judiciary' => fn () => $this->judiciaryHeader($judiciary),
             'machine' => $this->machine(),
             'panelRule' => $this->panelRule(),
-            'creation' => $this->creationProps($judiciary),
-            'nominations' => $this->nominationRows($judiciary),
-            'conversion' => $this->conversionProps($judiciary),
+            'creation' => fn () => $this->creationProps($judiciary),
+            'nominations' => fn () => $confirmations()['rows'],
+            'confirmationPages' => fn () => $confirmations()['pages'],
+            'confirmationContext' => fn () => $confirmations()['context'],
+            'conversion' => fn () => $this->conversionProps($judiciary),
             'term' => $this->termProps($judiciary),
-            'can' => $this->can($request->user(), $judiciary),
+            'can' => fn () => $this->can($request->user(), $judiciary),
         ]);
     }
 
@@ -178,66 +182,6 @@ class JudiciaryController extends Controller
     }
 
     /**
-     * F-LEG-021 confirmation record — one row per nomination, carrying the
-     * nominee, who nominated (constituent jurisdiction, or "judicial
-     * committee fallback"), the consent-vote summary ("{yes} of {serving}
-     * serving" read straight off the closed chamber_vote_tallies — engine
-     * snapshot, never recomputed), the consented/not-consented outcome, and
-     * the 10-yr CLK-09 term dates off the seated seat.
-     *
-     * @return list<array<string, mixed>>
-     */
-    private function nominationRows(Judiciary $judiciary): array
-    {
-        $nominations = JudicialNomination::query()
-            ->where('judiciary_id', $judiciary->id)
-            ->with(['nominee:id,name,display_name', 'nominatingJurisdiction:id,name', 'seat', 'appointment'])
-            ->get();
-
-        if ($nominations->isEmpty()) {
-            return [];
-        }
-
-        $voteIds = $nominations
-            ->map(fn (JudicialNomination $n) => $n->appointment?->consent_vote_id)
-            ->filter()
-            ->map(fn ($id) => (string) $id)
-            ->all();
-
-        $summaries = $this->consentVoteSummaries($voteIds);
-
-        return $nominations->map(function (JudicialNomination $nomination) use ($summaries) {
-            $seat = $nomination->seat;
-            $appointment = $nomination->appointment;
-
-            $voteId = $appointment?->consent_vote_id !== null ? (string) $appointment->consent_vote_id : null;
-
-            $nominatedBy = $nomination->mode === JudicialNomination::MODE_COMMITTEE
-                ? 'Judicial committee fallback'
-                : ($nomination->nominatingJurisdiction?->name ?? '—');
-
-            $consented = $nomination->status === JudicialNomination::STATUS_CONSENTED;
-
-            return [
-                'nominee' => [
-                    'name' => $nomination->nominee?->display_name
-                        ?: ($nomination->nominee?->name ?? 'Unnamed nominee'),
-                ],
-                'nominated_by' => $nominatedBy,
-                'mode' => $nomination->mode,
-                'consent' => [
-                    'summary' => $voteId !== null ? ($summaries[$voteId] ?? 'consent vote') : '—',
-                    'outcome' => $consented ? 'confirmed' : 'not_confirmed',
-                ],
-                'term' => ($consented && $seat?->term_starts_on !== null) ? [
-                    'starts_on' => $seat->term_starts_on?->toDateString(),
-                    'ends_on' => $seat->term_ends_on?->toDateString(),
-                ] : null,
-            ];
-        })->values()->all();
-    }
-
-    /**
      * F-LEG-018 conversion. When a constituent process exists (or ran), the
      * ConstituentConsentPanel renders it (the chartering chamber's own
      * supermajority PAIRED with the constituent-jurisdiction supermajority —
@@ -323,10 +267,9 @@ class JudiciaryController extends Controller
     }
 
     /**
-     * "{yes} of {serving} serving" summaries for each chamber vote, read off
+     * "{yes} of {serving} serving" summaries for each conversion chamber vote, read off
      * the closed chamber_vote_tallies (LANE_ALL) — engine snapshots, never
-     * recomputed. Shared by the F-LEG-021 confirmation table and the
-     * F-LEG-018 constituent-consent panel.
+     * recomputed. Used by the F-LEG-018 constituent-consent panel.
      *
      * @param  list<string>  $voteIds
      * @return array<string, string>

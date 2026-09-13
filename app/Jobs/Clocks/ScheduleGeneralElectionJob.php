@@ -15,6 +15,7 @@ use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
 use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Queue\SerializesModels;
+use Illuminate\Support\Facades\DB;
 
 /**
  * CLK-01 'schedule_general' — General Election Interval (Art. II §2,
@@ -45,8 +46,7 @@ class ScheduleGeneralElectionJob implements ShouldQueue
     public function __construct(
         public readonly ?string $timerId = null,
         public readonly ?string $legislatureId = null,
-    ) {
-    }
+    ) {}
 
     public function handle(ElectionLifecycleService $lifecycle): void
     {
@@ -65,42 +65,61 @@ class ScheduleGeneralElectionJob implements ShouldQueue
             return;
         }
 
-        $delegateLive = FormRegistry::handlerFor('F-ELB-001') !== null
-            && ! (app(ElectionSchedulingDelegate::class) instanceof NoopElectionSchedulingDelegate);
+        DB::transaction(function () use ($lifecycle, $timer, $legislature) {
+            Legislature::query()->whereKey($legislature->id)->lockForUpdate()->firstOrFail();
+            if ($timer !== null) {
+                $delivered = Election::query()->where('legislature_id', $legislature->id)->where('kind', Election::KIND_GENERAL)
+                    ->where('triggered_by_timer_id', $timer->id)->first();
+                if ($delivered !== null && $delivered->ranked_closes_at !== null) {
+                    $lifecycle->syncGeneralCompanions($delivered);
 
-        if (! $delegateLive) {
-            $lifecycle->scheduleGeneral($legislature, $timer);
+                    return;
+                }
+            }
 
-            return;
-        }
+            $delegateLive = FormRegistry::handlerFor('F-ELB-001') !== null
+                && ! (app(ElectionSchedulingDelegate::class) instanceof NoopElectionSchedulingDelegate);
 
-        // Engine path: adopt the open-cycle election when it exists and
-        // confirm the per-jurisdiction default schedule.
-        $existing = Election::query()
-            ->where('legislature_id', $legislature->id)
-            ->where('kind', Election::KIND_GENERAL)
-            ->whereIn('status', [Election::STATUS_SCHEDULED, Election::STATUS_APPROVAL_OPEN])
-            ->orderByDesc('created_at')
-            ->first();
+            if (! $delegateLive) {
+                $lifecycle->scheduleGeneral($legislature, $timer);
 
-        $dates = $lifecycle->defaultDates($legislature->jurisdiction_id, $existing?->approval_opens_at);
+                return;
+            }
 
-        $payload = [
-            'jurisdiction_id'       => $legislature->jurisdiction_id,
-            'legislature_id'        => $legislature->id,
-            'kind'                  => Election::KIND_GENERAL,
-            'trigger'               => 'scheduled',
-            'triggered_by_timer_id' => $timer?->id,
-            'approval_opens_at'     => $dates['approval_opens_at']->toIso8601String(),
-            'finalist_cutoff_at'    => $dates['finalist_cutoff_at']->toIso8601String(),
-            'ranked_opens_at'       => $dates['ranked_opens_at']->toIso8601String(),
-            'ranked_closes_at'      => $dates['ranked_closes_at']->toIso8601String(),
-        ];
+            // Engine path: adopt the open-cycle election when it exists and
+            // confirm the per-jurisdiction default schedule.
+            $existing = Election::query()
+                ->where('legislature_id', $legislature->id)
+                ->where('kind', Election::KIND_GENERAL)
+                ->whereIn('status', [Election::STATUS_SCHEDULED, Election::STATUS_APPROVAL_OPEN])
+                ->orderByDesc('created_at')
+                ->first();
 
-        if ($existing !== null) {
-            $payload['election_id'] = $existing->id;
-        }
+            $dates = $lifecycle->defaultDates($legislature->jurisdiction_id, $existing?->approval_opens_at);
 
-        app(ConstitutionalEngine::class)->file('F-ELB-001', null, $payload);
+            $payload = [
+                'jurisdiction_id' => $legislature->jurisdiction_id,
+                'legislature_id' => $legislature->id,
+                'kind' => Election::KIND_GENERAL,
+                'trigger' => 'scheduled',
+                'triggered_by_timer_id' => $timer?->id,
+                'approval_opens_at' => $dates['approval_opens_at']->toIso8601String(),
+                'finalist_cutoff_at' => $dates['finalist_cutoff_at']->toIso8601String(),
+                'ranked_opens_at' => $dates['ranked_opens_at']->toIso8601String(),
+                'ranked_closes_at' => $dates['ranked_closes_at']->toIso8601String(),
+            ];
+
+            if ($existing !== null) {
+                $payload['election_id'] = $existing->id;
+            }
+
+            $result = app(ConstitutionalEngine::class)->file('F-ELB-001', null, $payload);
+            // Confirmation of an existing open successor retains its timer key.
+            // The handler already stores it when creating a bootstrap election.
+            if ($timer !== null) {
+                Election::query()->whereKey($result->recorded['election_id'])->whereNull('triggered_by_timer_id')
+                    ->update(['triggered_by_timer_id' => $timer->id]);
+            }
+        });
     }
 }

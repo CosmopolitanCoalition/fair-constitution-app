@@ -323,8 +323,8 @@ class CertificationService implements CertificationPipeline
      */
     private function certifyExecutive(Election $election, ElectionCertification $certification): array
     {
-        $legislature = $election->legislature;
-        $executive   = $election->executive;
+        $legislature = Legislature::query()->whereKey($election->legislature_id)->lockForUpdate()->first();
+        $executive   = $election->executive()->lockForUpdate()->first();
 
         if ($legislature === null || $executive === null) {
             throw new ConstitutionalViolation(
@@ -344,7 +344,8 @@ class CertificationService implements CertificationPipeline
             ? CarbonImmutable::parse($certification->certified_at)
             : CarbonImmutable::now('UTC');
 
-        $window = self::inheritedWindow($certifiedAt, CarbonImmutable::parse($legislature->term_ends_on));
+        $window = $this->electedOfficeWindow($election, $legislature, $executive, $certifiedAt);
+        $this->retirePreviousElectedOffice($election, $legislature, 'executive_members', 'executive_id', $executive->id);
 
         $winners = [];
         $terms   = [];
@@ -468,12 +469,13 @@ class CertificationService implements CertificationPipeline
         $executive->forceFill([
             'status'         => 'elected',
             'type'           => $type,
-            'converted_at'   => now(),
+            'converted_at'   => $executive->converted_at ?? now(),
             'term_number'    => ((int) $executive->term_number) + ($executive->converted_at !== null ? 1 : 0),
             'term_starts_on' => $window['starts_on']->toDateString(),
             'term_ends_on'   => $window['ends_on']->toDateString(),
         ])->save();
 
+        $this->syncUpcomingOfficeCycle($legislature);
         $this->roles->flush();
 
         return [
@@ -482,7 +484,7 @@ class CertificationService implements CertificationPipeline
             'term_window' => [
                 'starts_on' => $window['starts_on']->toDateString(),
                 'ends_on'   => $window['ends_on']->toDateString(),
-                'inherited' => true,
+                'inherited' => $election->general_cycle_election_id === null,
             ],
             'executive'   => [
                 'id'     => (string) $executive->id,
@@ -510,6 +512,7 @@ class CertificationService implements CertificationPipeline
         array $window,
     ): array {
         $member = \App\Models\ExecutiveMember::create([
+            'id'                => (string) Str::uuid(),
             'executive_id'       => (string) $executive->id,
             'user_id'            => (string) $candidacy->user_id,
             'role'               => $role,
@@ -575,9 +578,9 @@ class CertificationService implements CertificationPipeline
      */
     private function certifyJudicial(Election $election, ElectionCertification $certification): array
     {
-        $legislature = $election->legislature;
+        $legislature = Legislature::query()->whereKey($election->legislature_id)->lockForUpdate()->first();
         $judiciary   = $election->judiciary_id !== null
-            ? \App\Models\Judiciary::query()->find((string) $election->judiciary_id)
+            ? \App\Models\Judiciary::query()->whereKey((string) $election->judiciary_id)->lockForUpdate()->first()
             : null;
 
         if ($legislature === null || $judiciary === null) {
@@ -600,7 +603,8 @@ class CertificationService implements CertificationPipeline
 
         // First election after conversion inherits the chamber's remaining
         // lockstep window (conversion never resets lockstep — CLK-10).
-        $window = self::inheritedWindow($certifiedAt, CarbonImmutable::parse($legislature->term_ends_on));
+        $window = $this->electedOfficeWindow($election, $legislature, $judiciary, $certifiedAt);
+        $this->retirePreviousElectedOffice($election, $legislature, 'judicial_seats', 'judiciary_id', $judiciary->id);
 
         $winners   = [];
         $terms     = [];
@@ -664,10 +668,12 @@ class CertificationService implements CertificationPipeline
         $judiciary->forceFill([
             'status'       => \App\Models\Judiciary::STATUS_ELECTED,
             'type'         => \App\Models\Judiciary::TYPE_ELECTED,
-            'converted_at' => now(),
-            'judge_count'  => $seatCount,
+            'converted_at' => $judiciary->converted_at ?? now(),
+            // Preserve the act's published seats even when some are unfilled.
+            'judge_count'  => (int) $election->races()->sum('seats'),
         ])->save();
 
+        $this->syncUpcomingOfficeCycle($legislature);
         $this->roles->flush();
 
         return [
@@ -676,7 +682,7 @@ class CertificationService implements CertificationPipeline
             'term_window' => [
                 'starts_on' => $window['starts_on']->toDateString(),
                 'ends_on'   => $window['ends_on']->toDateString(),
-                'inherited' => true,
+                'inherited' => $election->general_cycle_election_id === null,
             ],
             'judiciary'   => [
                 'id'     => (string) $judiciary->id,
@@ -780,6 +786,95 @@ class CertificationService implements CertificationPipeline
                 $this->roles->flushUser($holder);
             }
         }
+    }
+
+    /** Conversion keeps the remaining term; later contests fill their exact general cycle. */
+    private function electedOfficeWindow(Election $election, Legislature $legislature, \Illuminate\Database\Eloquent\Model $office, CarbonImmutable $certifiedAt): array
+    {
+        if ((string) $office->jurisdiction_id !== (string) $election->jurisdiction_id
+            || (string) $legislature->jurisdiction_id !== (string) $election->jurisdiction_id
+            || (string) $office->source_legislature_id !== (string) $legislature->id
+            || ! in_array($office->status, ['elected', 'conversion_voted'], true)) {
+            throw new ConstitutionalViolation('The election does not match the current elected office and its creating legislature.', 'CLK-10');
+        }
+        if ($election->general_cycle_election_id === null) {
+            return self::inheritedWindow($certifiedAt, CarbonImmutable::parse($legislature->term_ends_on));
+        }
+        $general = Election::query()->whereKey($election->general_cycle_election_id)->first();
+        if ($general === null || $general->kind !== Election::KIND_GENERAL
+            || (string) $general->legislature_id !== (string) $legislature->id
+            || (string) $general->jurisdiction_id !== (string) $election->jurisdiction_id
+            || ! in_array($general->status, [Election::STATUS_CERTIFIED, Election::STATUS_FINAL], true)
+            || $general->certified_at === null) {
+            throw new ConstitutionalViolation('Certify the linked general election before its elected office contest.', 'CLK-10');
+        }
+        // Immutable term rows are the historical source. Current settings must
+        // never recalculate the expiry of a cycle already certified.
+        $sourceTerms = Term::query()->where('source_election_id', $general->id)->where('legislature_id', $legislature->id)
+            ->where('jurisdiction_id', $election->jurisdiction_id)->where('term_class', Term::CLASS_LOCKSTEP)
+            ->where('office_kind', 'legislature_seat')->where('office_type', 'legislature_members');
+        $original = (clone $sourceTerms)->orderBy('starts_on')->first(['starts_on', 'ends_on']);
+        $expiries = (clone $sourceTerms)->selectRaw('DATE(ends_on) as ends_on')->distinct()->limit(2)->get();
+        // A corrected-count replacement starts later but retains the original
+        // expiry; its starts_on does not create another legislative cycle.
+        if ($original === null || $original->starts_on === null || $original->ends_on === null || $expiries->count() !== 1
+            || $legislature->term_starts_on === null || $legislature->term_ends_on === null
+            || ! $original->starts_on->equalTo($legislature->term_starts_on)
+            || ! $original->ends_on->equalTo($legislature->term_ends_on)
+            || $certifiedAt->startOfDay()->lt($original->starts_on)
+            || $certifiedAt->startOfDay()->gte($original->ends_on)) {
+            throw new ConstitutionalViolation('The linked general election is not the legislature\'s current certified term. An older result cannot displace a later cycle.', 'CLK-10');
+        }
+
+        return ['starts_on' => CarbonImmutable::instance($original->starts_on), 'ends_on' => CarbonImmutable::instance($original->ends_on)];
+    }
+
+    /** Seat history closes only through its own lockstep term, never by holder alone. */
+    private function retireElectedTermSeat(Term $term): void
+    {
+        if ($term->office_kind === 'executive_seat' && $term->office_type === 'executive_members') {
+            \App\Models\ExecutiveMember::query()->whereKey($term->office_id)->where('term_id', $term->id)
+                ->where('user_id', $term->holder_user_id)->where('status', 'seated')
+                ->whereIn('selection', ['elected_stv', 'elected_rcv', 'advisor_derivation', 'succession'])
+                ->whereIn('executive_id', \App\Models\Executive::query()->select('id')->where('source_legislature_id', $term->legislature_id)
+                    ->where('jurisdiction_id', $term->jurisdiction_id))
+                ->update(['status' => 'term_ended', 'left_at' => now()->toDateString(), 'updated_at' => now()]);
+        } elseif ($term->office_kind === 'judicial_seat' && $term->office_type === 'judicial_seats') {
+            \App\Models\JudicialSeat::query()->whereKey($term->office_id)->where('term_id', $term->id)
+                ->where('user_id', $term->holder_user_id)->where('status', 'seated')->where('seat_class', 'elected')
+                ->whereIn('judiciary_id', \App\Models\Judiciary::query()->select('id')->where('source_legislature_id', $term->legislature_id)
+                    ->where('jurisdiction_id', $term->jurisdiction_id))
+                ->update(['status' => 'term_ended', 'updated_at' => now()]);
+        }
+    }
+
+    private function retirePreviousElectedOffice(Election $election, Legislature $legislature, string $table, string $ownerKey, string $ownerId): void
+    {
+        $terms = Term::query()->where('legislature_id', $legislature->id)->where('jurisdiction_id', $election->jurisdiction_id)
+            ->where('term_class', Term::CLASS_LOCKSTEP)->where('office_type', $table)
+            ->where('office_kind', $table === 'executive_members' ? 'executive_seat' : 'judicial_seat')
+            ->whereIn('status', [Term::STATUS_ACTIVE, Term::STATUS_COMPLETED])
+            ->where('source_election_id', '!=', $election->id)
+            ->whereExists(fn ($query) => $query->selectRaw('1')->from($table)->whereColumn($table.'.term_id', 'terms.id')
+                ->whereColumn($table.'.id', 'terms.office_id')->whereColumn($table.'.user_id', 'terms.holder_user_id')
+                ->where($ownerKey, $ownerId)->where('status', 'seated')->whereNull('deleted_at')
+                ->when($table === 'executive_members', fn ($q) => $q->whereIn('selection', ['elected_stv', 'elected_rcv', 'advisor_derivation', 'succession']),
+                    fn ($q) => $q->where('seat_class', 'elected')))
+            ->lockForUpdate()->get();
+        foreach ($terms as $term) {
+            $this->retireElectedTermSeat($term);
+            if ($term->status === Term::STATUS_ACTIVE) {
+                $term->forceFill(['status' => Term::STATUS_COMPLETED])->save();
+                foreach ($this->armedTimers('term', $term->id, 'CLK-10') as $flag) $this->clocks->cancel($flag, 'elected office succeeded');
+            }
+        }
+    }
+
+    private function syncUpcomingOfficeCycle(Legislature $legislature): void
+    {
+        $next = Election::query()->where('legislature_id', $legislature->id)->where('kind', Election::KIND_GENERAL)
+            ->whereIn('status', [Election::STATUS_SCHEDULED, Election::STATUS_APPROVAL_OPEN])->orderByDesc('created_at')->first();
+        if ($next !== null) $this->lifecycle->syncGeneralCompanions($next);
     }
 
     // =========================================================================
@@ -1133,6 +1228,7 @@ class CertificationService implements CertificationPipeline
             ->get();
 
         foreach ($outgoing as $term) {
+            $this->retireElectedTermSeat($term);
             $term->forceFill(['status' => Term::STATUS_COMPLETED])->save();
 
             foreach ($this->armedTimers('term', (string) $term->id, 'CLK-10') as $flag) {

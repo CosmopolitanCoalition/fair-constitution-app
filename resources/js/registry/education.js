@@ -1692,6 +1692,27 @@ export const EDUCATION_BY_SURFACE = {
         ],
         why: null
     },
+    "legislature/institution-acts": {
+        learn: "c_education.education_legislature_institution_acts.learn",
+        steps: [
+            {
+                do: "c_education.education_legislature_institution_acts.s1_do",
+                detail: "c_education.education_legislature_institution_acts.s1_detail",
+                cite: "F-LEG-014 · F-LEG-015 · F-LEG-016 · F-LEG-017 · F-LEG-018 · F-LEG-019"
+            },
+            {
+                do: "c_education.education_legislature_institution_acts.s2_do",
+                detail: "c_education.education_legislature_institution_acts.s2_detail",
+                cite: "F-LEG-004 · F-SPK-004"
+            },
+            {
+                do: "c_education.education_legislature_institution_acts.s3_do",
+                detail: "c_education.education_legislature_institution_acts.s3_detail",
+                cite: "F-LEG-015 · F-LEG-018"
+            }
+        ],
+        why: "c_education.education_legislature_institution_acts.why"
+    },
     "legislature/legislature-home": {
         learn: "c_education.education_legislature_legislature_home.learn",
         steps: [

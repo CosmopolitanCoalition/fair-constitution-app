@@ -150,6 +150,18 @@ class ElectionLifecycleService implements ElectionSchedulingDelegate
         ]);
 
         return DB::transaction(function () use ($legislature, $timer, $dates, $jurisdictionId, $plan) {
+            // Serialize the empty-row case too; a retried CLK-01 must confirm
+            // its original cycle, never create another election after it moves on.
+            Legislature::query()->whereKey($legislature->id)->lockForUpdate()->firstOrFail();
+            if ($timer !== null) {
+                $delivered = Election::query()->where('legislature_id', $legislature->id)
+                    ->where('kind', Election::KIND_GENERAL)->where('triggered_by_timer_id', $timer->id)->first();
+                if ($delivered !== null && $delivered->ranked_closes_at !== null) {
+                    $this->syncGeneralCompanions($delivered);
+
+                    return $delivered;
+                }
+            }
             $election = Election::query()
                 ->where('legislature_id', $legislature->id)
                 ->where('kind', Election::KIND_GENERAL)
@@ -234,6 +246,8 @@ class ElectionLifecycleService implements ElectionSchedulingDelegate
             // set/confirmed (idempotent; the CLK-18 cutoff re-checks).
             app(ReferendumService::class)->attachQueued($election->refresh());
 
+            $this->syncGeneralCompanions($election);
+
             return $election->refresh();
         });
     }
@@ -257,6 +271,14 @@ class ElectionLifecycleService implements ElectionSchedulingDelegate
         }
 
         return DB::transaction(function () use ($certified, $legislature) {
+            Legislature::query()->whereKey($legislature->id)->lockForUpdate()->firstOrFail();
+            $existing = Election::query()->where('prior_election_id', $certified->id)
+                ->where('legislature_id', $legislature->id)->where('kind', Election::KIND_GENERAL)->first();
+            if ($existing !== null) {
+                $this->syncGeneralCompanions($existing);
+
+                return $existing;
+            }
             $successor = Election::create([
                 'jurisdiction_id'   => $certified->jurisdiction_id,
                 'legislature_id'    => $legislature->id,
@@ -282,8 +304,92 @@ class ElectionLifecycleService implements ElectionSchedulingDelegate
             // the fresh successor immediately (C-R1, votes_laws §D).
             app(ReferendumService::class)->attachQueued($successor->refresh());
 
+            $this->syncGeneralCompanions($successor);
+
             return $successor->refresh();
         });
+    }
+
+    /**
+     * Recurring office ballots share this exact general cycle's public dates.
+     * Creation is scoped to its jurisdiction and serialized on the anchor row;
+     * unique owner/anchor indexes also protect against concurrent delivery.
+     * Conversion elections retain their existing, separate scheduling path.
+     */
+    public function syncGeneralCompanions(Election $general): void
+    {
+        DB::transaction(function () use ($general) {
+            $general = Election::query()->whereKey($general->id)->lockForUpdate()->firstOrFail();
+            if ($general->kind !== Election::KIND_GENERAL
+                || ! in_array($general->status, [Election::STATUS_SCHEDULED, Election::STATUS_APPROVAL_OPEN], true)) {
+                return;
+            }
+            foreach (\App\Models\Executive::query()->where('jurisdiction_id', $general->jurisdiction_id)
+                ->where('source_legislature_id', $general->legislature_id)->where('status', \App\Models\Executive::STATUS_ELECTED)->lazyById(20) as $office) {
+                $kind = $office->type === \App\Models\Executive::TYPE_INDIVIDUAL ? ElectionRace::SEAT_KIND_SINGLE : ElectionRace::SEAT_KIND_EXEC_COMMITTEE;
+                $seats = $kind === ElectionRace::SEAT_KIND_SINGLE ? 1 : $this->publishedOfficeSeats('executive_id', $office->id, $kind);
+                $this->syncGeneralCompanion($general, 'executive_id', $office->id, Election::KIND_EXECUTIVE, $kind, $seats);
+            }
+            foreach (\App\Models\Judiciary::query()->where('jurisdiction_id', $general->jurisdiction_id)
+                ->where('source_legislature_id', $general->legislature_id)->where('status', \App\Models\Judiciary::STATUS_ELECTED)
+                ->where('type', \App\Models\Judiciary::TYPE_ELECTED)->lazyById(20) as $office) {
+                $seats = $this->publishedOfficeSeats('judiciary_id', $office->id, ElectionRace::SEAT_KIND_JUDICIAL_GROUP, (int) $office->judge_count);
+                $this->syncGeneralCompanion($general, 'judiciary_id', $office->id, Election::KIND_JUDICIAL, ElectionRace::SEAT_KIND_JUDICIAL_GROUP, $seats);
+            }
+        });
+    }
+
+    private function publishedOfficeSeats(string $ownerKey, string $ownerId, string $seatKind, int $fallback = 0): int
+    {
+        $seats = (int) (ElectionRace::query()->join('elections as owner_election', 'owner_election.id', '=', 'election_races.election_id')
+            ->where('owner_election.'.$ownerKey, $ownerId)->whereNull('owner_election.deleted_at')
+            ->whereIn('owner_election.status', [Election::STATUS_CERTIFIED, Election::STATUS_FINAL])
+            ->where('election_races.seat_kind', $seatKind)->orderByDesc('owner_election.created_at')->orderByDesc('owner_election.id')
+            ->value('election_races.seats') ?? $fallback);
+        if ($seats < 1) {
+            throw new ConstitutionalViolation('The elected office has no published seat count for its next election.', 'CLK-01 · CLK-10');
+        }
+
+        return $seats;
+    }
+
+    private function syncGeneralCompanion(Election $general, string $ownerKey, string $ownerId, string $kind, string $seatKind, int $seats): void
+    {
+        $companion = Election::query()->where('general_cycle_election_id', $general->id)->where($ownerKey, $ownerId)->first();
+        if ($companion !== null && ! in_array($companion->status, [Election::STATUS_SCHEDULED, Election::STATUS_APPROVAL_OPEN], true)) {
+            foreach (['approval_opens_at', 'finalist_cutoff_at', 'ranked_opens_at', 'ranked_closes_at'] as $field) {
+                if ($companion->getAttribute($field)?->toIso8601String() !== $general->getAttribute($field)?->toIso8601String()) {
+                    throw new ConstitutionalViolation('A linked office ballot is already frozen; its general cycle dates cannot be changed.', 'CLK-18 · CLK-21');
+                }
+            }
+            return;
+        }
+        if ($companion === null) {
+            $companion = Election::create([
+                'jurisdiction_id' => $general->jurisdiction_id, 'legislature_id' => $general->legislature_id,
+                'general_cycle_election_id' => $general->id, $ownerKey => $ownerId, 'kind' => $kind,
+                'status' => Election::STATUS_SCHEDULED, 'trigger' => 'scheduled',
+                'voting_method' => $general->voting_method, 'constitutional_version' => $general->constitutional_version,
+                'election_board_id' => $general->election_board_id,
+            ]);
+            ElectionRace::create([
+                'election_id' => $companion->id, 'jurisdiction_id' => $general->jurisdiction_id, 'district_id' => null,
+                'seat_kind' => $seatKind, 'seats' => $seats, 'finalist_count' => $this->finalistMultiplier($general->jurisdiction_id) * $seats,
+                'electorate_type' => ElectionRace::ELECTORATE_RESIDENTS, 'status' => Election::STATUS_SCHEDULED,
+            ]);
+            $this->audit->append(module: 'elections', event: 'election.general_companion_created',
+                payload: ['election_id' => $companion->id, 'general_cycle_election_id' => $general->id, $ownerKey => $ownerId, 'seats' => $seats],
+                ref: 'CLK-01 · CLK-10', jurisdictionId: $general->jurisdiction_id);
+        }
+        foreach (['approval_opens_at', 'finalist_cutoff_at', 'ranked_opens_at', 'ranked_closes_at'] as $field) {
+            $companion->setAttribute($field, $general->getAttribute($field));
+        }
+        $changed = $companion->isDirty();
+        if ($changed) $companion->save();
+        if ($general->status === Election::STATUS_APPROVAL_OPEN && $companion->status === Election::STATUS_SCHEDULED) {
+            $this->openApproval($companion);
+        }
+        if ($changed && $general->ranked_closes_at !== null) $this->armPhaseTimers($companion);
     }
 
     /**
@@ -1188,6 +1294,8 @@ class ElectionLifecycleService implements ElectionSchedulingDelegate
                 ['step' => 'ranked_close'],
             );
         }
+        // F-ELB-001 calls this delegate directly, including date refinements.
+        if ($election->kind === Election::KIND_GENERAL) $this->syncGeneralCompanions($election);
     }
 
     /**

@@ -284,6 +284,9 @@ class ChamberActService
         if ($appointment->appointable_type === 'board_seats') {
             app(\App\Services\Executive\BoardGovernorService::class)->assertConsentVote($appointment, $vote, $outcome);
         }
+        if ($appointment->appointable_type === 'judicial_seats') {
+            app(\App\Services\Judiciary\JudicialSeatService::class)->assertConsentVote($appointment, $vote, $outcome);
+        }
 
         if ($outcome !== ChamberVote::OUTCOME_ADOPTED) {
             $appointment->forceFill(['status' => Appointment::STATUS_REJECTED])->save();

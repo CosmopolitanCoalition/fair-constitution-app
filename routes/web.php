@@ -788,6 +788,13 @@ Route::middleware('auth')->group(function () {
     Route::post('/votes/{vote}/tiebreak', [SessionController::class, 'tiebreak'])
         ->whereUuid('vote')->name('votes.tiebreak');                          // F-SPK-004
 
+    Route::get('/legislatures/{legislature}/institution-acts', [\App\Http\Controllers\Legislature\InstitutionActController::class, 'show'])
+        ->whereUuid('legislature')->name('institution-acts.show')->withoutMiddleware('auth');
+    Route::post('/legislatures/{legislature}/institution-acts', [\App\Http\Controllers\Legislature\InstitutionActController::class, 'store'])
+        ->whereUuid('legislature')->name('institution-acts.store');
+    Route::post('/legislatures/{legislature}/institution-acts/consents/{process}', [\App\Http\Controllers\Legislature\InstitutionActController::class, 'consent'])
+        ->whereUuid('legislature')->whereUuid('process')->name('institution-acts.consent');
+
     // ── FE-C4 — Bills + BillDetail (legislature/bills, bill-detail) ─────────
     Route::get('/legislatures/{legislature}/bills', [BillController::class, 'index'])
         ->whereUuid('legislature')->name('bills.index')->withoutMiddleware('auth'); // public read — Art. II §2

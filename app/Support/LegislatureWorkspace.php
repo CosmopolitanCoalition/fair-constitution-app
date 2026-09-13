@@ -26,6 +26,7 @@ final class LegislatureWorkspace
             'speaker' => $base.'/speaker',
             'maps' => $base.'/districts',
             'bills' => $base.'/bills',
+            'institutions' => $base.'/institution-acts',
             'committees' => $base.'/committees',
             'oversight' => $base.'/oversight',
             'referendums' => $base.'/referendums',

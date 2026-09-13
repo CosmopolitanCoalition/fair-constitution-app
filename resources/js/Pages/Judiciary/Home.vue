@@ -13,17 +13,16 @@
  *     the severity→panel DataTable (CLK-16 rule citations, NOT computed sizes)
  *   - "How this court was created": F-LEG-017 FormChip + the creation-act
  *     card + the supermajority VoteTally that chartered it
- *   - "Confirmation record": F-LEG-021 FormChip + the consent-vote DataTable
- *     (nominee, nominated-by, "{yes} of {serving} serving", confirmed/not,
- *     10-yr CLK-09 term dates)
+ *   - JudicialConfirmations: bounded nomination records and existing
+ *     legislative consent / Speaker tie controls, with public names and terms.
  *   - "Conversion to an elected judiciary": F-LEG-018 FormChip +
  *     ConstituentConsentPanel (the SAME Phase D component — Art. IV §3 dual
  *     supermajority) when a process exists, else the reference + deep-link
  *   - "Term length": AmendableSetting (10 yrs · CLK-09 · lockstep CLK-10)
  *
  * Every threshold/required number is an engine snapshot; nothing is computed
- * in the Vue. PUBLIC READ — the only "actions" are R-09 deep-links into the
- * bill flow; this page renders the record, it never originates a vote.
+ * in the Vue. Records are public; confirmation actions follow the exact
+ * source legislature's member and Speaker context.
  */
 import { computed } from 'vue';
 import { Link, usePage } from '@inertiajs/vue3';
@@ -35,12 +34,12 @@ import Card from '@/Components/Ui/Card.vue';
 import DataTable from '@/Components/Ui/DataTable.vue';
 import FormChip from '@/Components/Ui/FormChip.vue';
 import HardenedChip from '@/Components/Ui/HardenedChip.vue';
-import Stat from '@/Components/Ui/Stat.vue';
 import StateStrip from '@/Components/Ui/StateStrip.vue';
 import StatusBadge from '@/Components/Ui/StatusBadge.vue';
 import TagChip from '@/Components/Ui/TagChip.vue';
 import VoteTally from '@/Components/Legislature/VoteTally.vue';
 import ConstituentConsentPanel from '@/Components/Legislature/ConstituentConsentPanel.vue';
+import JudicialConfirmations from '@/Components/Judiciary/JudicialConfirmations.vue';
 
 /* Phase-2 restyle wave: the v3 player chrome (MASTER_PLAN). */
 defineOptions({ layout: AppShellV2 });
@@ -62,6 +61,8 @@ const props = defineProps({
     creation: { type: Object, default: null },
     /** F-LEG-021 ×N consent rows. */
     nominations: { type: Array, default: () => [] },
+    confirmationPages: { type: Object, default: () => ({}) },
+    confirmationContext: { type: Object, default: () => ({ preview: true }) },
     /** { subjectLabel, act, legislatureVote: VoteTallyProps|null, process: ConstituentConsentPanelProps|null } | null. */
     conversion: { type: Object, default: null },
     /** { years, clk, civilLockstep, amendable }. */
@@ -79,16 +80,14 @@ const typeLabel = computed(() => TYPE_LABELS[props.judiciary.type] ?? props.judi
 const isAppointed = computed(() => props.judiciary.type === 'appointed');
 
 const creationForm = computed(() => props.surface.forms?.find((f) => f.id === 'F-LEG-017') ?? null);
-const consentForm = computed(() => props.surface.forms?.find((f) => f.id === 'F-LEG-021') ?? null);
 const conversionForm = computed(() => props.surface.forms?.find((f) => f.id === 'F-LEG-018') ?? null);
 
-/* Dual-supermajority acts ride the Phase C bill flow; the legislature votes
-   and the engine opens the constituent leg (same idiom as the executive). */
+/* Institution acts are filed in the court's exact source legislature. */
 const creationDeepLink = computed(
-    () => `/legislature/bills?intro=1&subject=judiciary_creation&judiciary=${props.judiciary.id}`,
+    () => props.judiciary.legislature ? `/legislatures/${props.judiciary.legislature.id}/institution-acts?action=create-court` : null,
 );
 const conversionDeepLink = computed(
-    () => `/legislature/bills?intro=1&subject=judiciary_conversion&judiciary=${props.judiciary.id}`,
+    () => props.judiciary.legislature ? `/legislatures/${props.judiciary.legislature.id}/institution-acts?action=elect-court` : null,
 );
 
 const MODE_LABELS = {
@@ -98,14 +97,6 @@ const MODE_LABELS = {
 const nominationModeLabel = computed(
     () => MODE_LABELS[props.creation?.nomination_mode] ?? props.creation?.nomination_mode ?? null,
 );
-
-const consentColumns = [
-    { key: 'nominee', label: 'Nominee' },
-    { key: 'nominated_by', label: 'Nominated by' },
-    { key: 'consent', label: 'Consent vote', mono: true },
-    { key: 'outcome', label: 'Outcome' },
-    { key: 'term', label: 'Term', mono: true },
-];
 
 const panelColumns = [
     { key: 'severity', label: 'Case severity' },
@@ -229,55 +220,15 @@ const panelColumns = [
                 </p>
                 <p class="cluster" style="gap: var(--space-2); margin-block-start: var(--space-2)">
                     <FormChip form-id="F-LEG-017" :name="creationForm?.name" :alias="creationForm?.alias" />
-                    <Link v-if="can.proposeCreationBill" :href="creationDeepLink">
-                        Introduce a creation bill →
+                    <Link v-if="creationDeepLink" :href="creationDeepLink">
+                        Propose court creation →
                     </Link>
                     <span v-else class="citation">filed by a member of the source legislature (R-09)</span>
                 </p>
             </template>
         </Card>
 
-        <!-- ===================================== confirmation ========= -->
-        <Card as="section" title="Confirmation record — consent votes for the bench">
-            <p class="cluster" style="gap: var(--space-2)">
-                <FormChip form-id="F-LEG-021" :name="consentForm?.name" :alias="consentForm?.alias" />
-            </p>
-            <template v-if="nominations.length">
-                <div style="margin-block-start: var(--space-3)">
-                    <DataTable
-                        :columns="consentColumns"
-                        :rows="nominations"
-                        caption="Judicial nomination consent votes, one per nominee"
-                    >
-                        <template #cell-nominee="{ row }">{{ row.nominee.name }}</template>
-                        <template #cell-consent="{ row }">{{ row.consent.summary }}</template>
-                        <template #cell-outcome="{ row }">
-                            <StatusBadge
-                                :tone="row.consent.outcome === 'confirmed' ? 'success' : 'neutral'"
-                                :icon="row.consent.outcome === 'confirmed' ? 'check' : 'x'"
-                            >
-                                {{ row.consent.outcome === 'confirmed' ? 'Confirmed' : 'Not confirmed' }}
-                            </StatusBadge>
-                        </template>
-                        <template #cell-term="{ row }">
-                            <template v-if="row.term">{{ row.term.starts_on }} → {{ row.term.ends_on }}</template>
-                            <template v-else>—</template>
-                        </template>
-                    </DataTable>
-                </div>
-                <p class="gloss" style="margin-block-start: var(--space-2)">
-                    Confirmation needs the same threshold the creation act met; one consent vote is
-                    held per nominee. Constituents keep their nomination rights; replacement nominees
-                    go to a fresh consent vote when a seat next opens (WF-JUD-07).
-                </p>
-            </template>
-            <p v-else class="gloss" style="margin-block-start: var(--space-2)">
-                No nominations on record yet. Once the creation act passes, each constituent (or the
-                judicial committee) nominates a judge onto a vacant seat, and each nomination flows
-                into its own F-LEG-021 consent vote.
-            </p>
-            <p class="citation">Judicial nomination consent vote, one per nominee · F-LEG-021 · Art. IV §2</p>
-        </Card>
+        <JudicialConfirmations :judiciary="judiciary" :nominations="nominations" :pages="confirmationPages" :context="confirmationContext" />
 
         <!-- ===================================== conversion =========== -->
         <Card as="section" title="Conversion to an elected judiciary">
@@ -340,8 +291,8 @@ const panelColumns = [
                     terms sync to the general election clock (Art. IV §3 · CLK-15 · CLK-10).
                 </p>
                 <p class="cluster" style="gap: var(--space-2); margin-block-start: var(--space-2)">
-                    <Link v-if="can.proposeConversionBill" :href="conversionDeepLink">
-                        Introduce a conversion bill →
+                    <Link v-if="conversionDeepLink" :href="conversionDeepLink">
+                        Propose elected court →
                     </Link>
                     <span v-else class="citation">filed by a member of the source legislature (R-09)</span>
                 </p>

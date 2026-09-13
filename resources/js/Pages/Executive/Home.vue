@@ -16,7 +16,7 @@
  * Every threshold/required number on this page is an engine snapshot read
  * by the controller from the chamber_votes / multi_jurisdiction_votes rows
  * (ChamberVotePresenter); nothing is computed in the Vue. Public read —
- * the only "actions" are R-09 deep-links into the bill flow; this page
+ * institution acts link to their source legislature's filing workspace; this page
  * renders the conversion process, it never originates a vote.
  */
 import { computed } from 'vue';
@@ -78,13 +78,12 @@ const advisors = computed(() =>
     props.members.filter((m) => m.role === 'advisor').slice().sort((a, b) => a.rank - b.rank),
 );
 
-/* The conversion bill deep-link (dual-supermajority acts ride the Phase C
-   bill flow; the legislature votes, the engine opens the constituent leg). */
+/* Institution proposals use their existing constitutional handlers. */
 const conversionDeepLink = computed(
-    () => `/legislature/bills?intro=1&subject=executive_conversion&executive=${props.executive.id}`,
+    () => props.executive.legislature ? `/legislatures/${props.executive.legislature.id}/institution-acts?action=elect-executive` : null,
 );
 const delegationDeepLink = computed(
-    () => `/legislature/bills?intro=1&subject=executive_delegation&executive=${props.executive.id}`,
+    () => props.executive.legislature ? `/legislatures/${props.executive.legislature.id}/institution-acts?action=delegate-executive` : null,
 );
 
 const delegationForm = computed(() => props.surface.forms?.find((f) => f.id === 'F-LEG-014') ?? null);
@@ -315,10 +314,10 @@ const typeLabel = computed(() => TYPE_LABELS[props.executive.type] ?? props.exec
                         :name="delegationForm.name"
                         :alias="delegationForm.alias"
                     />
-                    <Link v-if="can.proposeDelegationBill" :href="delegationDeepLink">
-                        Introduce a delegation bill →
+                    <Link v-if="delegationDeepLink" :href="delegationDeepLink">
+                        Propose executive delegation →
                     </Link>
-                    <span v-else class="citation">filed by a member of the source legislature (R-09)</span>
+                    <span v-else class="citation">Open the jurisdiction’s legislature to propose its institution act.</span>
                 </p>
             </template>
         </Card>
@@ -380,14 +379,13 @@ const typeLabel = computed(() => TYPE_LABELS[props.executive.type] ?? props.exec
                         :name="conversionForm.name"
                         :alias="conversionForm.alias"
                     />
-                    <Link v-if="can.proposeConversionBill" :href="conversionDeepLink">
-                        Introduce a conversion bill →
+                    <Link v-if="conversionDeepLink" :href="conversionDeepLink">
+                        Propose an elected executive →
                     </Link>
-                    <span v-else class="citation">filed by a member of the source legislature (R-09)</span>
+                    <span v-else class="citation">Open the jurisdiction’s legislature to propose its institution act.</span>
                 </p>
                 <p class="citation" style="margin-block-start: var(--space-1)">
-                    Dual-supermajority acts ride the bill flow; the legislature votes and the engine
-                    opens the constituent leg. This page renders the process, it never originates a vote.
+                    The institution-act workspace holds the proposal vote and any constituent decisions.
                 </p>
             </template>
         </Card>
@@ -421,6 +419,7 @@ const typeLabel = computed(() => TYPE_LABELS[props.executive.type] ?? props.exec
 
         <!-- ===================================== departments ========== -->
         <Card as="section" title="Departments">
+            <p v-if="executive.legislature"><Link :href="`/legislatures/${executive.legislature.id}/institution-acts?action=create-department`">Propose a department →</Link></p>
             <template v-if="departmentsSummary.cards.length">
                 <div class="grid-2">
                     <DepartmentCard

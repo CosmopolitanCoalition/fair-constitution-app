@@ -391,6 +391,13 @@ return [
         'citation'  => 'Politically neutral · votes only to break ties · Art. II §3',
     ],
 
+    'legislature/institution-acts' => [
+        'title' => 'Institution acts', 'module' => 'legislature', 'nav' => 'legislature-home',
+        'roles' => ['R-09', 'R-10'], 'workflows' => ['WF-EXE-01', 'WF-EXE-02', 'WF-EXE-04', 'WF-JUD-01', 'WF-JUD-02'],
+        'forms' => [['id' => 'F-LEG-014'], ['id' => 'F-LEG-015'], ['id' => 'F-LEG-016'], ['id' => 'F-LEG-017'], ['id' => 'F-LEG-018'], ['id' => 'F-LEG-019'], ['id' => 'F-LEG-004'], ['id' => 'F-SPK-004']],
+        'clocks' => [], 'citation' => 'Art. II §9 · Art. III §2–6 · Art. IV §2–3',
+    ],
+
     'legislature/oversight' => [
         'title'     => 'Oversight & ethics',
         'module'    => 'legislature',
@@ -802,7 +809,7 @@ return [
         'workflows' => ['WF-JUD-01', 'WF-JUD-02', 'WF-JUD-07'],
         'forms'     => [
             ['id' => 'F-LEG-017', 'availableTo' => ['R-09'], 'citation' => 'Art. IV §2 — judiciary creation by supermajority act of the legislature'],
-            ['id' => 'F-LEG-021', 'availableTo' => ['R-09'], 'citation' => 'Art. IV §2 — judicial nomination consent vote, same supermajority as creation'],
+            ['id' => 'F-LEG-021', 'availableTo' => ['R-09'], 'citation' => 'Art. IV §2 — judicial nomination confirmed by a majority of all serving members'],
             ['id' => 'F-LEG-018', 'availableTo' => ['R-09'], 'citation' => 'Art. IV §3 — conversion to elected, dual supermajority (legislature + constituent jurisdictions)'],
         ],
         'clocks'    => ['CLK-09', 'CLK-10', 'CLK-15', 'CLK-16'],

@@ -36,11 +36,11 @@
                      `/jurisdictions` (the table-list index), which made
                      clicking "Earth" leave the map view entirely. -->
                 <div class="px-4 py-3 border-b border-gray-800 text-xs text-gray-400 flex flex-wrap gap-1 items-center">
-                    <template v-if="jurisdiction.ancestors.length > 0">
-                        <a :href="`/jurisdictions/${jurisdiction.ancestors[0].slug}/map`" class="hover:text-white transition-colors">
-                            {{ jurisdiction.ancestors[0].name }}
+                    <template v-if="ancestors.length > 0">
+                        <a :href="`/jurisdictions/${ancestors[0].slug}/map`" class="hover:text-white transition-colors">
+                            {{ ancestors[0].name }}
                         </a>
-                        <template v-for="ancestor in jurisdiction.ancestors.slice(1)" :key="ancestor.id">
+                        <template v-for="ancestor in ancestors.slice(1)" :key="ancestor.id">
                             <span class="text-gray-600">›</span>
                             <a :href="`/jurisdictions/${ancestor.slug}/map`" class="hover:text-white transition-colors">
                                 {{ ancestor.name }}
@@ -83,10 +83,15 @@
                             </div>
                             <div>
                                 <span class="text-lg font-semibold tabular-nums" style="color: #56B4E9">{{ childCount.toLocaleString() }}</span>
-                                <span class="text-xs text-gray-500 ml-1">members</span>
+                                <span class="text-xs text-gray-500 ml-1">places within</span>
                             </div>
                         </div>
                     </div>
+
+                    <Link :href="`/jurisdictions/${jurisdiction.slug}`"
+                          class="block w-full text-center text-sm font-medium px-3 py-2 rounded bg-blue-700 hover:bg-blue-600 text-white transition-colors">
+                        Jurisdiction overview →
+                    </Link>
 
                     <!-- Primary legislature entry (operator 2026-09-05): "View
                          Legislature" directly under the name, defaulting to the
@@ -97,14 +102,14 @@
                        :href="`/legislatures/${jurisdiction.slug}/districts`"
                        class="block w-full text-center text-xs font-medium px-3 py-2 rounded
                               bg-emerald-800 hover:bg-emerald-700 text-emerald-100 transition-colors">
-                        View Legislature →
+                        Legislative maps →
                     </a>
 
                     <!-- P.6 — Review-issue badges. Lights up when this row
                          shows up in any DataReviewService category so the
                          operator can audit specific jurisdictions during
                          the acceptance pass. -->
-                    <div v-if="hasAnyReviewBadge" class="bg-gray-800 rounded-lg p-3 space-y-1.5">
+                    <div v-if="setupToolsVisible && hasAnyReviewBadge" class="bg-gray-800 rounded-lg p-3 space-y-1.5">
                         <div class="text-xs text-gray-400 mb-1">Review issues</div>
                         <div class="flex flex-wrap gap-1.5">
                             <span v-if="review.is_orphan"
@@ -144,7 +149,7 @@
                          jurisdiction appears in any open geodata flag; the full
                          Data Review & Repair queue lives at planet scope, so
                          the chip links there. Setup-window only. -->
-                    <div v-if="!map_acceptance.is_planet_scope && relatedOpenFlagCount > 0"
+                    <div v-if="setupToolsVisible && !map_acceptance.is_planet_scope && relatedOpenFlagCount > 0"
                          class="bg-gray-800 rounded-lg p-3">
                         <div class="text-xs text-gray-400 mb-1.5">Data flags</div>
                         <a :href="planetSlug ? `/jurisdictions/${planetSlug}/map` : '/jurisdictions'"
@@ -161,9 +166,9 @@
                          The card always renders for non-planet rows; planet
                          (no iso meta) hides the meta-derived lines but still
                          shows the data-source line. -->
-                    <div v-if="meta || jurisdiction.adm_level > 0 || jurisdiction.source"
+                    <details v-if="meta || jurisdiction.adm_level > 0 || jurisdiction.source"
                          class="bg-gray-800 rounded-lg p-3 space-y-1.5">
-                        <div class="text-xs text-gray-400 mb-1">Region &amp; dataset</div>
+                        <summary class="text-xs text-gray-300 cursor-pointer py-1">Geographic details</summary>
                         <div v-if="meta?.boundary_canonical && meta.boundary_canonical !== jurisdiction.name"
                              class="text-xs text-gray-300 italic">
                             {{ meta.boundary_canonical }}
@@ -200,83 +205,7 @@
                             Source: <span class="text-gray-400 capitalize">{{ jurisdiction.source.replace(/_/g, ' ') }}</span>
                             <span v-if="meta?.year_represented"> · geoBoundaries year {{ meta.year_represented }}</span>
                         </div>
-                    </div>
-
-                    <!-- WI-9 — Activation status line (WF-JUR-01 bootstrap
-                         tracker). Reads jurisdiction_activations: no row =
-                         dormant boundary; planet root special-cased as
-                         founded-at-setup. Styled like the review-issue
-                         badges above. -->
-                    <div class="bg-gray-800 rounded-lg p-3">
-                        <div class="text-xs text-gray-400 mb-1.5">Activation</div>
-                        <div class="flex items-baseline flex-wrap gap-1.5">
-                            <span class="px-2 py-0.5 rounded text-xs" :class="activationDisplay.chip">
-                                {{ activationDisplay.label }}
-                            </span>
-                            <span v-if="activationDisplay.detail" class="text-[11px] text-gray-400">
-                                {{ activationDisplay.detail }}
-                            </span>
-                        </div>
-                        <!-- Dev-only: activate this jurisdiction (jurisdiction:activate twin). -->
-                        <button
-                            v-if="canActivate"
-                            type="button"
-                            :disabled="activateForm.processing"
-                            class="mt-2 px-2 py-0.5 rounded text-xs bg-blue-600 hover:bg-blue-500 disabled:opacity-50 transition-colors"
-                            @click="activateNow"
-                        >
-                            {{ activateForm.processing ? 'Activating…' : 'Activate now (dev)' }}
-                        </button>
-                        <p v-if="page.props.errors?.activate" class="text-[11px] text-red-400 mt-1">
-                            {{ page.props.errors.activate }}
-                        </p>
-                    </div>
-
-                    <!-- S-grade (V3 gap matrix, jurisdiction-browser row):
-                         Reach & participation — the enrolment gauge (verified
-                         residents ÷ population). Reads the nightly SUPPRESSED
-                         snapshot (k-anonymity); `reach.state` is the contract —
-                         we switch on it and never infer from the raw numbers.
-                         A gauge, never a lever (CI-1). Links out to the full
-                         /reach panel. -->
-                    <div class="bg-gray-800 rounded-lg p-3">
-                        <div class="flex items-center justify-between mb-1.5">
-                            <span class="text-xs text-gray-400">Reach &amp; participation</span>
-                            <a :href="`/reach?jurisdiction=${jurisdiction.id}`"
-                               class="text-[11px] text-sky-400 hover:text-sky-300 transition-colors">Detail →</a>
-                        </div>
-
-                        <template v-if="(reach.state === 'measured' || reach.state === 'capped') && reach.ratio_micro !== null">
-                            <div class="flex items-baseline gap-2">
-                                <span class="text-lg font-semibold tabular-nums text-emerald-300">
-                                    {{ Math.round(reach.ratio_micro / 10000) }}%
-                                </span>
-                                <span class="text-[11px] text-gray-500">
-                                    {{ (reach.verified_residents ?? 0).toLocaleString() }} verified
-                                    of {{ (reach.population_estimate ?? 0).toLocaleString() }}
-                                </span>
-                            </div>
-                            <div class="mt-1.5 h-1.5 rounded-full bg-gray-700 overflow-hidden">
-                                <div class="h-full rounded-full bg-emerald-500"
-                                     :style="{ width: Math.min(100, reach.ratio_micro / 10000) + '%' }"></div>
-                            </div>
-                            <p v-if="reach.state === 'capped'" class="text-[10px] text-amber-400 mt-1">
-                                More verified than the estimate admits — the population figure lags this place.
-                            </p>
-                        </template>
-
-                        <template v-else-if="reach.state === 'activating'">
-                            <span class="inline-block px-2 py-0.5 rounded text-xs bg-indigo-900 text-indigo-300">Enrolling</span>
-                            <p class="text-[11px] text-gray-500 mt-1">
-                                Verified count hidden below the privacy floor — published once enough residents enroll.
-                            </p>
-                        </template>
-
-                        <template v-else>
-                            <span class="inline-block px-2 py-0.5 rounded text-xs bg-gray-700 text-gray-400">Not measured yet</span>
-                            <p class="text-[11px] text-gray-500 mt-1">No enrolment snapshot for this place yet.</p>
-                        </template>
-                    </div>
+                    </details>
 
                     <!-- "Powers at this level" removed (operator, 2026-08-04).
                          It was a HARD-CODED reference table — `const powersAtLevel`
@@ -317,7 +246,7 @@
                         <!-- The Districts link moved UP to "View Legislature" under
                              the jurisdiction name (operator 2026-09-05). Only the
                              no-map "Create first district map" CTA remains here. -->
-                        <a v-if="!has_district_map"
+                        <a v-if="setupToolsVisible && !has_district_map"
                            :href="`/legislatures/${jurisdiction.slug}/districts`"
                            class="block w-full text-center text-xs font-medium px-3 py-2 rounded
                                   bg-violet-800 hover:bg-violet-700 text-violet-100 transition-colors">
@@ -337,7 +266,7 @@
                          now activates THIS jurisdiction's legislature here —
                          one at a time — and the buttons above appear on
                          reload. The UI face of apportionment:seed. -->
-                    <button v-else-if="isOperator"
+                    <button v-else-if="setupToolsVisible"
                             type="button"
                             :disabled="activatingLeg"
                             @click="activateLegislature"
@@ -374,7 +303,7 @@
                          Read-only once the maps are accepted; the Accept gate
                          below refuses to stamp while open flags exist unless
                          explicitly acknowledged. -->
-                    <div v-if="map_acceptance.is_planet_scope" class="border-t border-gray-700 pt-3 mt-2">
+                    <div v-if="setupToolsVisible && map_acceptance.is_planet_scope" class="border-t border-gray-700 pt-3 mt-2">
                         <GeodataFlagQueue
                             ref="flagQueue"
                             :read-only="!!map_acceptance.map_accepted_at"
@@ -386,7 +315,7 @@
                          hasn't already accepted. Click stamps map_accepted_at
                          and starts the full-scale autoscale run (every
                          jurisdiction gets a legislature + founding map). -->
-                    <div v-if="map_acceptance.is_planet_scope" class="border-t border-gray-700 pt-3 mt-2">
+                    <div v-if="setupToolsVisible && map_acceptance.is_planet_scope" class="border-t border-gray-700 pt-3 mt-2">
                         <div v-if="map_acceptance.map_accepted_at"
                              class="bg-emerald-900/40 border border-emerald-700 rounded-lg p-3 text-emerald-200">
                             <div class="text-xs uppercase tracking-wider mb-1">Maps accepted</div>
@@ -558,7 +487,7 @@
     <!-- Acknowledge-open-flags modal — shown when accept-maps 422s with
          requires_acknowledgment. The operator can accept anyway, but only
          after explicitly ticking the acknowledgment. -->
-    <div v-if="showAckModal"
+    <div v-if="setupToolsVisible && showAckModal"
          class="fixed inset-0 z-[2000] flex items-center justify-center bg-gray-950/80 px-4"
          @click.self="showAckModal = false">
         <div class="w-full max-w-md bg-gray-900 border border-gray-700 rounded-lg shadow-2xl">
@@ -613,9 +542,8 @@
 </template>
 
 <script setup>
-import { computed, onMounted, ref, watch } from 'vue'
-import { router, useForm, usePage } from '@inertiajs/vue3'
-import { useDemoMode } from '@/composables/useDemoMode'
+import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue'
+import { Link, router, usePage } from '@inertiajs/vue3'
 import AppShellV2 from '@/Layouts/AppShellV2.vue'
 import GeodataFlagQueue from '@/Components/Geodata/GeodataFlagQueue.vue'
 import { csrfFetch } from '@/lib/csrf'
@@ -655,14 +583,6 @@ const props = defineProps({
     // Current election for this jurisdiction's legislature ({ id, status })
     // or null — drives the "Election" CTA under the legislature link.
     current_election:    { type: Object, default: null },
-    // WI-9 — WF-JUR-01 bootstrap-tracker row { state, critical_population_at,
-    // activated_at } or null (= dormant boundary).
-    activation:          { type: Object, default: null },
-    // S-grade (V3 gap matrix) — Reach & participation gauge from the nightly
-    // suppressed snapshot: { state, as_of_date, verified_residents,
-    // population_estimate, ratio_micro }. state ∈ unmeasurable | activating |
-    // measured | capped; we switch on state and never infer from the numbers.
-    reach:               { type: Object, default: () => ({ state: 'unmeasurable', ratio_micro: null }) },
 })
 
 // `powersAtLevel` deleted with its panel (operator, 2026-08-04). It was a
@@ -670,7 +590,6 @@ const props = defineProps({
 // it and none consumed it — so it could not describe the jurisdiction on
 // screen. See the note where the panel used to render.
 
-props.jurisdiction.ancestors = props.ancestors
 
 const loading        = ref(true)
 const hoveredFeature = ref(null)
@@ -689,7 +608,7 @@ const activatingLeg    = ref(false)
 const activateLegError = ref('')
 
 async function activateLegislature() {
-    if (activatingLeg.value) return
+    if (!setupToolsVisible.value || activatingLeg.value) return
     activatingLeg.value = true
     activateLegError.value = ''
     try {
@@ -724,7 +643,7 @@ const rehooking = ref(false)
 const rehookMsg = ref('')
 
 async function startPlanetGeneration() {
-    if (rehooking.value) return
+    if (!setupToolsVisible.value || rehooking.value) return
     rehooking.value = true
     rehookMsg.value = ''
     try {
@@ -763,22 +682,14 @@ const reopenError   = ref('')
 // Setup completeness from the shared Inertia 'instance' prop — the repair
 // window (and the reopen affordance) only exists while setup is incomplete.
 const page = usePage()
-const setupComplete = computed(() => page.props.instance?.setupComplete ?? false)
+const setupComplete = computed(() => Boolean(props.map_acceptance.setup_completed_at)
+    || page.props.shellInstance?.setupComplete === true || page.props.instance?.setupComplete === true)
+// Setup tools require an explicit unfinished setup, not simply missing state.
+const setupToolsVisible = computed(() => isOperator.value && !setupComplete.value
+    && (page.props.shellInstance ?? page.props.instance)?.setupComplete === false)
 
-/* Dev-only: the UI twin of jurisdiction:activate. Visibility is a CLARITY gate
-   (isDemoMode); the server DevToolsEnabled 404 is the real boundary. Shown only
-   for a place that has not booted yet — dormant (no activation row) or
-   critical_population — never for one already self-governing. Force is the
-   default here because this is the dev bootstrap door (--force rides the gate). */
-const { isDemoMode } = useDemoMode()
-const activateForm = useForm({ force: true })
-const canActivate = computed(() => {
-    if (!isDemoMode.value) return false
-    const state = props.activation?.state ?? 'dormant'
-    return state === 'dormant' || state === 'critical_population'
-})
-function activateNow() {
-    activateForm.post(`/dev/jurisdictions/${props.jurisdiction.slug}/activate`, { preserveScroll: true })
+function openMap(slug) {
+    if (slug) router.visit(`/jurisdictions/${encodeURIComponent(slug)}/map`, { preserveState: false })
 }
 
 const ackOpenTotal = computed(() => {
@@ -861,46 +772,8 @@ const ELECTION_PHASE_LABELS = {
 const electionPhaseLabel = computed(() =>
     ELECTION_PHASE_LABELS[props.current_election?.status] ?? props.current_election?.status ?? '')
 
-const activationDisplay = computed(() => {
-    const a = props.activation
-    if (a?.state === 'self_governing') {
-        return {
-            label:  'Self-governing',
-            chip:   'bg-emerald-900 text-emerald-200 border border-emerald-700',
-            detail: a.activated_at ? `since ${formatTime(a.activated_at)}` : '',
-        }
-    }
-    if (a?.state === 'bootstrapping') {
-        return {
-            label:  'Bootstrapping',
-            chip:   'bg-violet-900 text-violet-200 border border-violet-700',
-            detail: 'institutions being seated',
-        }
-    }
-    if (a?.state === 'critical_population') {
-        return {
-            label:  'Critical population',
-            chip:   'bg-amber-900 text-amber-200 border border-amber-700',
-            detail: a.critical_population_at ? `reached ${formatTime(a.critical_population_at)}` : 'reached',
-        }
-    }
-    // boundary_loaded row, or no row at all.
-    if (!a && props.jurisdiction.adm_level === 0 && props.legislature_id) {
-        return {
-            label:  'Self-governing',
-            chip:   'bg-emerald-900 text-emerald-200 border border-emerald-700',
-            detail: 'founded at instance setup',
-        }
-    }
-    return {
-        label:  'Dormant',
-        chip:   'bg-gray-700 text-gray-300 border border-gray-600',
-        detail: 'activates at critical population',
-    }
-})
-
 async function acceptMaps(acknowledge = false) {
-    if (acceptingMaps.value) return
+    if (!setupToolsVisible.value || acceptingMaps.value) return
     acceptingMaps.value = true
     acceptError.value   = ''
     try {
@@ -966,7 +839,7 @@ async function acceptMaps(acknowledge = false) {
 // setup is complete). The full-prop reload flips the acceptance card back to
 // the button and unlocks the repair queue in one pass.
 async function reopenMaps() {
-    if (reopening.value) return
+    if (!setupToolsVisible.value || reopening.value) return
     reopening.value  = true
     reopenError.value = ''
     try {
@@ -996,7 +869,7 @@ async function reopenMaps() {
 const relatedOpenFlagCount = ref(0)
 async function fetchRelatedOpenFlags() {
     try {
-        const res = await fetch('/api/geodata/flags?status=open', {
+        const res = await fetchMap('/api/geodata/flags?status=open', {
             credentials: 'same-origin',
             headers: { 'Accept': 'application/json' },
         })
@@ -1051,6 +924,13 @@ const leafOutlineStyle = { fillColor: '#4a7c59', fillOpacity: 0.15, color: '#2d4
 // Map ref hoisted to module scope so the raster-overlay watcher can mutate
 // layers after onMounted. Initialised inside onMounted; layers added after.
 let mapInstance = null
+const mapRequests = new AbortController()
+const fetchMap = (url, options = {}) => fetch(url, { ...options, signal: mapRequests.signal })
+onBeforeUnmount(() => {
+    mapRequests.abort()
+    mapInstance?.remove()
+    mapInstance = null
+})
 let rasterLayer = null   // L.TileLayer — see P.6.x.1
 
 function applyRasterOverlay() {
@@ -1105,7 +985,7 @@ watch(showRaster, () => applyRasterOverlay())
 
 onMounted(async () => {
     // Sub-scope repair-queue chip (planet scope mounts the full queue instead).
-    if (!props.map_acceptance.is_planet_scope && !setupComplete.value) {
+    if (setupToolsVisible.value && !props.map_acceptance.is_planet_scope) {
         fetchRelatedOpenFlags()
     }
 
@@ -1204,11 +1084,12 @@ onMounted(async () => {
         // it here gives us the Flavor object that paintRules / labelRules
         // need; without it the basemap layer silently fails to initialise.
         const basemaps = await import('@protomaps/basemaps')
+        if (mapRequests.signal.aborted) return
         let pmtilesUrl = null
 
         // 1. Dated-bundle directory via the backend scan.
         try {
-            const res = await fetch('/api/maps/latest-pmtiles', { credentials: 'same-origin' })
+            const res = await fetchMap('/api/maps/latest-pmtiles', { credentials: 'same-origin' })
             if (res.ok) {
                 const data = await res.json()
                 if (data?.url) pmtilesUrl = data.url
@@ -1218,7 +1099,7 @@ onMounted(async () => {
         // 2. Legacy fixed-filename probe.
         if (!pmtilesUrl) {
             try {
-                const head = await fetch('/maps/world.pmtiles', { method: 'HEAD' })
+                const head = await fetchMap('/maps/world.pmtiles', { method: 'HEAD' })
                 if (head.ok) pmtilesUrl = '/maps/world.pmtiles'
             } catch (e) { /* ignore network errors */ }
         }
@@ -1229,6 +1110,7 @@ onMounted(async () => {
             if (remote) pmtilesUrl = remote
         }
 
+        if (mapRequests.signal.aborted) return
         if (pmtilesUrl) {
             // Bilingual label rendering: local name (always) PLUS user's
             // browser-language translation when it differs. Protomaps v5
@@ -1500,7 +1382,7 @@ onMounted(async () => {
                 }
                 if (hoveredFeature.value?.name === p.name) hoveredFeature.value = null
             })
-            featureLayer.on('click', () => router.visit(`/jurisdictions/${p.slug}`))
+            featureLayer.on('click', () => openMap(p.slug))
         }
 
         L.geoJSON(geojson, { style, onEachFeature: bindFeature }).addTo(map)
@@ -1519,6 +1401,8 @@ onMounted(async () => {
         })
     }
 
+    if (mapRequests.signal.aborted) return
+
     // ── Data fetch & render ──────────────────────────────────────────────────
     const jurisdictionId  = props.jurisdiction.id
     const hasSiblings     = props.ancestors.length > 0
@@ -1526,17 +1410,19 @@ onMounted(async () => {
 
     try {
         const [selfGeojson, siblingGeojson, ...ancestorGeojsons] = await Promise.all([
-            fetch(`/api/jurisdictions/${jurisdictionId}/self.geojson`).then(r => r.json()),
+            fetchMap(`/api/jurisdictions/${jurisdictionId}/self.geojson`).then(r => r.json()),
             hasSiblings
-                ? fetch(`/api/jurisdictions/${jurisdictionId}/siblings.geojson`).then(r => r.json())
+                ? fetchMap(`/api/jurisdictions/${jurisdictionId}/siblings.geojson`).then(r => r.json())
                 : Promise.resolve(null),
             ...ancestorsToLoad.map(a =>
-                fetch(`/api/jurisdictions/${a.id}/siblings.geojson`).then(r => r.json())
+                fetchMap(`/api/jurisdictions/${a.id}/siblings.geojson`).then(r => r.json())
             ),
         ])
 
+        if (mapRequests.signal.aborted) return
         if (props.hasChildren) {
-            const childGeojson = await fetch(`/api/jurisdictions/${jurisdictionId}/children.geojson`).then(r => r.json())
+            const childGeojson = await fetchMap(`/api/jurisdictions/${jurisdictionId}/children.geojson`).then(r => r.json())
+            if (mapRequests.signal.aborted) return
 
             ancestorsToLoad.forEach((ancestor, i) => {
                 addContextLayer(ancestorGeojsons[i], ancestorsToLoad.length - i)
@@ -1563,7 +1449,7 @@ onMounted(async () => {
                     }
                     if (hoveredChild.value?.name === p.name) hoveredChild.value = null
                 })
-                featureLayer.on('click', () => router.visit(`/jurisdictions/${p.slug}`))
+                featureLayer.on('click', () => openMap(p.slug))
             }
 
             const childLayer = L.geoJSON(childGeojson, {
