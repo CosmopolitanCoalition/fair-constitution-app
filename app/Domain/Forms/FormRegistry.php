@@ -5,7 +5,7 @@ namespace App\Domain\Forms;
 use InvalidArgumentException;
 
 /**
- * Canonical registry of the constitutional forms — 123 total: the 103 Template forms +
+ * Canonical registry of the constitutional forms — 125 total: the 103 Template forms +
  * F-ELB-008 (Manual District Draw, Phase H) + the Phase K-1 civic-commons trio
  * F-SOC-001/002/003 (public square / halls testimony / carve-out removal) + the Phase K-3
  * F-SOC-004 (M-5 physical-law legal-compliance removal, operator-plane) + the Phase M
@@ -16,7 +16,7 @@ use InvalidArgumentException;
  * + F-IND-020 (Resident Agreement — person-to-person / N-party agreements +
  * clause redlines) + the Wave 4 economy build F-IND-021 (Share Trade —
  * holder-to-holder secondary share resale on the exchange), F-CHR-005/006
- * (committee meeting lifecycle), F-ORG-010 (joint board-chair participation), and F-LEG-037/038 (judicial nomination authorization and committee designation).
+ * (committee meeting lifecycle), F-ORG-010 (joint board-chair participation), F-LEG-037/038 (judicial nomination authorization and committee designation), and the EO-5 individual-endorsement pair F-IND-025/026 (an individual's own public endorsement of a candidacy, and its withdrawal — distinct from the secret approval vote and from the organization endorsement handshake).
  *
  * Source of truth: CGA_Constitutional_Roles_Forms_Chart.xlsx sheet
  * "3. Forms Catalog" (transcribed in docs/plans/institutions/
@@ -52,7 +52,7 @@ use InvalidArgumentException;
 class FormRegistry
 {
     /**
-     * All 123 canonical forms: id => [name, roles allowed to file].
+     * All 125 canonical forms: id => [name, roles allowed to file].
      * Roles per the catalog's "Filed by" column; 'roles' lists the role
      * codes whose holders may file (any one suffices). F-IND-006 is
      * additionally system-filed (see its handler's systemOnly()).
@@ -110,6 +110,12 @@ class FormRegistry
         'F-IND-022' => ['name' => 'Marketplace Listing / Order',                'roles' => ['R-01']],
         'F-IND-023' => ['name' => 'Funds Transfer',                             'roles' => ['R-01']],
         'F-IND-024' => ['name' => 'Asset Registration / Transfer',              'roles' => ['R-01']],
+        // F-IND-025/026 — EO-5 individual endorsement pair. A resident's OWN
+        // public act of support for a candidacy (default private, opt-in
+        // public) and its withdrawal. R-04 (voter) is the filer — Art. I's
+        // absolute right. NOT the secret approval vote, NOT the org handshake.
+        'F-IND-025' => ['name' => 'Individual Endorsement',                     'roles' => ['R-04']],
+        'F-IND-026' => ['name' => 'Individual Endorsement Withdrawal',          'roles' => ['R-04']],
 
         // ── F-CAN — Candidate Forms (3) ─────────────────────────────────────
         'F-CAN-001' => ['name' => 'Campaign Profile Setup',                     'roles' => ['R-06']],
@@ -325,6 +331,9 @@ class FormRegistry
         'F-CAN-002' => Handlers\EndorsementRequest::class,
         'F-CAN-003' => Handlers\CandidacyWithdrawal::class,
         'F-ORG-002' => Handlers\CandidateEndorsementGrant::class,
+        // EO-5 — the individual's own endorsement of a candidacy + withdrawal.
+        'F-IND-025' => Handlers\IndividualEndorsement::class,
+        'F-IND-026' => Handlers\IndividualEndorsementWithdrawal::class,
 
         // ── Phase C — legislature operations, votes-laws scope ──────────────
         // (PHASE_C_DESIGN_votes_laws §G. The chamber-ops scope registers:

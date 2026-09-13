@@ -628,6 +628,11 @@ Route::middleware('auth')->group(function () {
         ->whereUuid('candidacy')->name('candidates.withdraw');                   // F-CAN-003
     Route::post('/candidates/{candidacy}/endorsement-requests', [CandidacyController::class, 'requestEndorsement'])
         ->whereUuid('candidacy')->name('candidates.endorsement-requests.store'); // F-CAN-002
+    // EO-5 — a resident's own endorsement of a candidacy (default private) and its withdrawal.
+    Route::post('/candidates/{candidacy}/endorsement', [CandidacyController::class, 'endorse'])
+        ->whereUuid('candidacy')->name('candidates.endorsement.store');          // F-IND-025
+    Route::post('/candidates/{candidacy}/endorsement/withdraw', [CandidacyController::class, 'withdrawEndorsement'])
+        ->whereUuid('candidacy')->name('candidates.endorsement.withdraw');       // F-IND-026
 
     // FE-B4 — OpenBallot + approve/revoke (engine actions, no F-ID — design §C)
     Route::get('/elections/{election}/open-ballot', [ApprovalController::class, 'show'])
@@ -1112,6 +1117,10 @@ Route::middleware('auth')->group(function () {
         ->whereUuid('organization')->name('organizations.documents.store');        // F-ORG-001
     Route::post('/organizations/{organization}/endorsements/{endorsementRequest}/grant', [\App\Http\Controllers\Organizations\OrganizationController::class, 'grantEndorsement'])
         ->whereUuid('organization')->whereUuid('endorsementRequest')->name('organizations.endorsements.grant'); // F-ORG-002
+    Route::post('/organizations/{organization}/endorsements/{endorsementRequest}/withdraw', [\App\Http\Controllers\Organizations\OrganizationController::class, 'withdrawEndorsement'])
+        ->whereUuid('organization')->whereUuid('endorsementRequest')->name('organizations.endorsements.withdraw'); // F-ORG-002 withdraw
+    Route::post('/organizations/{organization}/endorsements/{endorsementRequest}/re-endorse', [\App\Http\Controllers\Organizations\OrganizationController::class, 'reEndorse'])
+        ->whereUuid('organization')->whereUuid('endorsementRequest')->name('organizations.endorsements.re-endorse'); // F-ORG-002 re-endorse
     Route::post('/contracts/{contract}/cosign', [\App\Http\Controllers\Organizations\OrganizationController::class, 'cosignContract'])
         ->whereUuid('contract')->name('contracts.cosign');                         // F-ORG-001 (countersign)
 

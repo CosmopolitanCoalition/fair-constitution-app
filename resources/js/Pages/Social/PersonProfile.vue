@@ -213,6 +213,40 @@ function submitRequest() {
         onSuccess: () => requestForm.reset(),
     });
 }
+
+/* EO-5 — the viewer's OWN endorsement (F-IND-025) and its withdrawal
+ * (F-IND-026). A resident's public act, default private. Separate from the
+ * secret approval vote and from the organization handshake above. */
+const viewerEndorsement = computed(() => props.candidacyPanel?.viewerEndorsement ?? null);
+const canEndorse = computed(() => !!props.candidacyPanel?.can?.endorse);
+const canWithdrawEndorsement = computed(() => !!props.candidacyPanel?.can?.withdraw_endorsement);
+const endorsesNow = computed(() => !!viewerEndorsement.value && !viewerEndorsement.value.withdrawn);
+const endorsePublic = ref(false);
+const endorseBusy = ref(false);
+const endorseError = ref('');
+const endorseNotice = ref('');
+// A different candidacy loading in resets the local control state.
+watch(() => cand.value?.id, () => { endorsePublic.value = false; endorseError.value = ''; endorseNotice.value = ''; });
+function submitEndorse() {
+    if (endorseBusy.value || !cand.value) return;
+    router.post(`/candidates/${cand.value.id}/endorsement`, { is_public: endorsePublic.value }, {
+        preserveScroll: true,
+        onStart: () => { endorseBusy.value = true; endorseError.value = ''; endorseNotice.value = ''; },
+        onFinish: () => { endorseBusy.value = false; },
+        onError: errs => { endorseError.value = Object.values(errs)[0] || 'The endorsement could not be filed. Please retry.'; },
+        onSuccess: () => { endorseNotice.value = endorsePublic.value ? 'Public endorsement recorded.' : 'Private endorsement recorded.'; },
+    });
+}
+function submitWithdrawEndorsement() {
+    if (endorseBusy.value || !cand.value) return;
+    router.post(`/candidates/${cand.value.id}/endorsement/withdraw`, {}, {
+        preserveScroll: true,
+        onStart: () => { endorseBusy.value = true; endorseError.value = ''; endorseNotice.value = ''; },
+        onFinish: () => { endorseBusy.value = false; },
+        onError: errs => { endorseError.value = Object.values(errs)[0] || 'The withdrawal could not be filed. Please retry.'; },
+        onSuccess: () => { endorseNotice.value = 'Endorsement withdrawn.'; },
+    });
+}
 </script>
 
 <template>
@@ -590,6 +624,57 @@ function submitRequest() {
                 <div class="grid-2">
                     <Card as="section" title="Endorsements">
                         <CandidacyEndorsements :organizations="endorsementOrganizations" :individuals="endorsementIndividuals" :web="endorsementWeb" />
+
+                        <!-- EO-5 — your own endorsement (F-IND-025/026). Never shown to the candidate. -->
+                        <section v-if="!isOwner" class="endorse-control" style="border-block-start: 1px solid var(--border, #344054); margin-block-start: var(--space-3); padding-block-start: var(--space-3)">
+                            <h3>Your endorsement</h3>
+                            <p class="citation">
+                                An endorsement is your own public act — separate from the secret approval vote,
+                                which is anonymous, and from an organisation's endorsement, which its agent grants.
+                            </p>
+
+                            <p v-if="!signedIn" class="citation" role="note">
+                                Residents of this race can endorse this candidate. Sign in to add yours.
+                            </p>
+
+                            <template v-else-if="endorsesNow">
+                                <p role="status">
+                                    You endorse this candidate — {{ viewerEndorsement.is_public ? 'public on the record' : 'private (only you can see it)' }}.
+                                </p>
+                                <Btn
+                                    v-if="canWithdrawEndorsement"
+                                    variant="secondary"
+                                    size="sm"
+                                    :disabled="endorseBusy"
+                                    @click="submitWithdrawEndorsement"
+                                >{{ endorseBusy ? 'Withdrawing…' : 'Withdraw my endorsement' }}</Btn>
+                                <p v-else class="citation">You can withdraw this endorsement while the candidacy stands and you remain in this race.</p>
+                            </template>
+
+                            <div v-else-if="canEndorse" class="endorse-choice">
+                                <p class="citation">
+                                    Your endorsement is private by default. Choose to make it public before you file.
+                                </p>
+                                <Btn
+                                    variant="ghost"
+                                    size="sm"
+                                    :pressed="endorsePublic"
+                                    :disabled="endorseBusy"
+                                    @click="endorsePublic = !endorsePublic"
+                                >{{ endorsePublic ? 'Public endorsement' : 'Private endorsement' }}</Btn>
+                                <Btn variant="primary" size="sm" :disabled="endorseBusy" @click="submitEndorse">
+                                    {{ endorseBusy ? 'Filing F-IND-025…' : 'Endorse this candidate' }}
+                                </Btn>
+                            </div>
+
+                            <p v-else class="citation" role="note">
+                                Endorsing requires an active association in this race, while the candidacy stands.
+                                You can endorse, withdraw and endorse again at any time.
+                            </p>
+
+                            <p v-if="endorseNotice" role="status">{{ endorseNotice }}</p>
+                            <p v-if="endorseError" role="alert">{{ endorseError }}</p>
+                        </section>
                     </Card>
 
                     <Card as="section" title="The record rides along">

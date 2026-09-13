@@ -845,6 +845,11 @@ export const EDUCATION_BY_SURFACE = {
                 do: "c_education.education_elections_candidacy_registration.s2_do",
                 detail: "c_education.education_elections_candidacy_registration.s2_detail",
                 cite: "F-ELB-002"
+            },
+            {
+                do: "c_education.education_elections_candidacy_registration.s3_do",
+                detail: "c_education.education_elections_candidacy_registration.s3_detail",
+                cite: "F-IND-025 · Art. I"
             }
         ],
         why: "c_education.education_elections_candidacy_registration.why"

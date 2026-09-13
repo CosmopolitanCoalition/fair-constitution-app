@@ -482,6 +482,7 @@ and when each stage closes.
 |---|---|---|---|
 | 1 | Register your candidacy | If you are associated with the jurisdiction, you may stand. **No fee, no signatures, no endorsement, no approval.** | F-IND-011 · Art. I |
 | 2 | Wait for validation | The board checks one thing: that you are actually associated here. It is a check, not a judgement. | F-ELB-002 |
+| 3 | Individuals may endorse you, by choice | Any resident of your race may publish an endorsement of your candidacy from your profile. It is their own public act, **default private until they opt in**, and it changes nothing about your right to stand. An endorsement can be **made, withdrawn and made again at any time while your candidacy stands** — there is no deadline. It is **not** the secret approval vote, which is anonymous and picks the finalists, and **not** the organisation handshake (a candidate requests, an agent grants), which is forced public and confers R-07. | F-IND-025 · Art. I |
 
 > **The why:** Art. I gives the right to stand for office *"regardless of any characteristic except
 > jurisdictional association."* The validator refuses any filing that tries to attach a fee or an

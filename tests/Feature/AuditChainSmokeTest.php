@@ -114,7 +114,7 @@ class AuditChainSmokeTest extends TestCase
     // FormRegistry
     // -------------------------------------------------------------------------
 
-    public function test_registry_holds_exactly_123_canonical_forms(): void
+    public function test_registry_holds_exactly_125_canonical_forms(): void
     {
         // 103 Template forms + F-ELB-008 (Manual District Draw, Phase H) + the
         // Phase K-1 civic-commons trio F-SOC-001/002/003 (public square / halls
@@ -156,8 +156,11 @@ class AuditChainSmokeTest extends TestCase
         // + F-ORG-010: the seated member's joint board-chair ballot (WF-ORG-05).
         // + F-LEG-037/038: judicial nomination proposal + judicial committee
         //   designation (operator ruling 2026-09-13; F-LEG-021 stays consent).
-        $this->assertCount(123, FormRegistry::FORMS);
-        $this->assertCount(123, FormRegistry::ids());
+        // + F-IND-025/026 (EO-5): a resident's own public endorsement of a
+        //   candidacy and its withdrawal — distinct from the secret approval
+        //   vote and from the organization endorsement handshake.
+        $this->assertCount(125, FormRegistry::FORMS);
+        $this->assertCount(125, FormRegistry::ids());
     }
 
     public function test_pure_aliases_resolve_to_canonical_ids(): void

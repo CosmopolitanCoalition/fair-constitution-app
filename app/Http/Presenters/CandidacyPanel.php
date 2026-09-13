@@ -2,12 +2,14 @@
 
 namespace App\Http\Presenters;
 
+use App\Domain\Forms\Support\RaceFootprint;
 use App\Http\Controllers\Elections\CandidacyController;
 use App\Http\Controllers\Elections\ElectionController;
 use App\Models\Candidacy;
 use App\Models\Election;
 use App\Models\ElectionRace;
 use App\Models\ApprovalStanding;
+use App\Models\Endorsement;
 use App\Models\Organization;
 use App\Models\SocialProfile;
 use App\Models\User;
@@ -53,6 +55,30 @@ class CandidacyPanel
 
         ['machine' => $machine, 'current' => $current] = CandidacyController::machineFor($model->status);
 
+        // EO-5 — the viewer's own endorsement of this candidacy and whether
+        // they may endorse or withdraw now. The individual endorsement is the
+        // endorser's public choice; it is neither the secret approval vote nor
+        // the organization handshake. There is no election-phase window
+        // (operator ruling 2026-09-13): eligibility mirrors the handler's
+        // standing + footprint gates only, in any election status. Never
+        // computed for a signed-out viewer.
+        $viewerEndorsement = $this->viewerEndorsementFor($model, $viewer);
+        $endorseEligible = $viewer !== null
+            && ! $isOwner
+            && $race !== null
+            && in_array($model->status, [
+                Candidacy::STATUS_REGISTERED,
+                Candidacy::STATUS_VALIDATED,
+                Candidacy::STATUS_IN_POOL,
+                Candidacy::STATUS_FINALIST,
+            ], true)
+            && RaceFootprint::bestRaceForUser(
+                (string) $viewer->getKey(),
+                (string) $election->id,
+                (string) $race->id,
+            ) !== null;
+        $endorsesNow = $viewerEndorsement !== null && ! $viewerEndorsement['withdrawn'];
+
         return [
             'candidacy' => [
                 'id' => (string) $model->id,
@@ -88,7 +114,13 @@ class CandidacyPanel
                         Candidacy::STATUS_FINALIST,
                     ], true)
                     && ($election->finalist_cutoff_at === null || $election->finalist_cutoff_at->isFuture()),
+                // EO-5: endorse when eligible and not currently endorsing;
+                // withdraw when eligible and currently endorsing. The engine
+                // (F-IND-025/026) is the boundary — these only shape the UI.
+                'endorse' => $endorseEligible && ! $endorsesNow,
+                'withdraw_endorsement' => $endorseEligible && $endorsesNow,
             ],
+            'viewerEndorsement' => $viewerEndorsement,
             'organizations' => $isOwner
                 ? Organization::query()
                     ->where('is_active', true)
@@ -192,6 +224,37 @@ class CandidacyPanel
             'topApprovals' => (int) ($topApprovals ?? $mine->approvals_count),
             'frozen' => (bool) $mine->is_frozen,
             'asOf' => $mine->as_of_date?->toDateString(),
+        ];
+    }
+
+    /**
+     * The viewer's own endorsement of this candidacy, or null. One bounded
+     * single-row lookup that respects canonical precedence over the legacy
+     * spelling (same shape as CandidacyEndorsementDirectory::hasPublicEdge).
+     * Scoped to the viewer's own id — it never reads another endorser's row.
+     *
+     * @return array{is_public: bool, withdrawn: bool, endorsed_at: ?string}|null
+     */
+    private function viewerEndorsementFor(Candidacy $candidacy, ?User $viewer): ?array
+    {
+        if ($viewer === null) {
+            return null;
+        }
+
+        $query = Endorsement::query()->where('election_id', $candidacy->election_id)
+            ->where('candidate_id', $candidacy->id)->where('endorser_id', (string) $viewer->getKey());
+        $columns = ['is_public', 'withdrawn_at', 'endorsed_at'];
+        $edge = (clone $query)->where('endorser_type', Endorsement::ENDORSER_USER)->first($columns)
+            ?? (clone $query)->where('endorser_type', 'users')->first($columns);
+
+        if ($edge === null) {
+            return null;
+        }
+
+        return [
+            'is_public'   => (bool) $edge->is_public,
+            'withdrawn'   => $edge->withdrawn_at !== null,
+            'endorsed_at' => $edge->endorsed_at?->toIso8601String(),
         ];
     }
 

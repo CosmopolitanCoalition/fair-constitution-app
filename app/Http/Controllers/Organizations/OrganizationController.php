@@ -357,6 +357,37 @@ class OrganizationController extends Controller
         return back()->with('status', 'Endorsement decided (F-ORG-002) — a grant is forced public and confers R-07 on the candidate.');
     }
 
+    /**
+     * POST /organizations/{o}/endorsements/{request}/withdraw — F-ORG-002
+     * 'withdraw' (R-23). The org retracts a granted endorsement; the row is
+     * kept so it can be re-endorsed. No election-phase window (operator
+     * ruling 2026-09-13).
+     */
+    public function withdrawEndorsement(Request $request, Organization $organization, EndorsementRequest $endorsementRequest): RedirectResponse
+    {
+        $this->engine->file('F-ORG-002', $request->user(), [
+            'action' => 'withdraw',
+            'request_id' => (string) $endorsementRequest->id,
+        ]);
+
+        return back()->with('status', 'Endorsement withdrawn (F-ORG-002) — R-07 no longer derives from it; the organization may re-endorse at any time while the candidacy stands.');
+    }
+
+    /**
+     * POST /organizations/{o}/endorsements/{request}/re-endorse — F-ORG-002
+     * 're-endorse' (R-23). The org re-activates a previously withdrawn
+     * endorsement on the same logical row, forced public again.
+     */
+    public function reEndorse(Request $request, Organization $organization, EndorsementRequest $endorsementRequest): RedirectResponse
+    {
+        $this->engine->file('F-ORG-002', $request->user(), [
+            'action' => 're-endorse',
+            'request_id' => (string) $endorsementRequest->id,
+        ]);
+
+        return back()->with('status', 'Endorsement re-made (F-ORG-002) — forced public and confers R-07 on the candidate again.');
+    }
+
     // -------------------------------------------------------------------------
     // OrgDetail helpers (§B.7)
     // -------------------------------------------------------------------------
@@ -510,7 +541,7 @@ class OrganizationController extends Controller
     {
         $requests = EndorsementRequest::query()
             ->where('organization_id', $org->id)
-            ->with(['candidacy.user:id,name,display_name', 'candidacy.race:id,election_id'])
+            ->with(['candidacy.user:id,name,display_name', 'candidacy.race:id,election_id', 'endorsement:id,is_active,withdrawn_at'])
             ->orderByDesc('requested_at')
             ->get();
 
@@ -530,19 +561,29 @@ class OrganizationController extends Controller
         $granted = $requests
             ->where('status', EndorsementRequest::STATUS_GRANTED)
             ->map(fn (EndorsementRequest $r) => [
+                'id' => (string) $r->id,
+                'candidacy_id' => $r->candidacy_id !== null ? (string) $r->candidacy_id : null,
                 'candidate' => [
                     'name' => $r->candidacy?->user?->display_name ?? $r->candidacy?->user?->name ?? 'Candidate',
                     'href' => $r->candidacy_id !== null ? '/candidacies/'.$r->candidacy_id : null,
                 ],
                 'granted_at' => $r->decided_at?->toIso8601String(),
+                // The live row may have been withdrawn (operator ruling
+                // 2026-09-13): the request stays granted, but the endorsement
+                // is inactive until re-endorsed.
+                'active' => $r->endorsement !== null
+                    && (bool) $r->endorsement->is_active
+                    && $r->endorsement->withdrawn_at === null,
             ])
             ->values()
             ->all();
 
+        $activeGranted = array_values(array_filter($granted, fn (array $g) => $g['active']));
+
         return [
             'incoming' => $incoming,
             'granted' => $granted,
-            'total' => count($granted),
+            'total' => count($activeGranted),
         ];
     }
 

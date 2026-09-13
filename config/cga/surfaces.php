@@ -1164,6 +1164,8 @@ return [
             ['id' => 'F-CAN-001', 'availableTo' => ['R-06'], 'citation' => 'Art. II §2 (campaign statement — self-managed, every edit on the record)'],
             ['id' => 'F-CAN-002', 'availableTo' => ['R-06'], 'citation' => 'Art. II §2 (endorsement request — the org\'s agent decides via F-ORG-002)'],
             ['id' => 'F-CAN-003', 'availableTo' => ['R-06'], 'citation' => 'Art. II §2 · CLK-21 (withdrawal until the ballot lock)'],
+            ['id' => 'F-IND-025', 'availableTo' => ['R-04'], 'citation' => 'Art. I (a resident\'s own public endorsement of a candidacy — the endorser\'s choice, distinct from the secret approval vote and the organization handshake)'],
+            ['id' => 'F-IND-026', 'availableTo' => ['R-04'], 'citation' => 'Art. I (withdraw your own endorsement while the candidacy stands and voting has not opened)'],
         ],
         'clocks'    => ['CLK-21'],
         'citation'  => 'One person, one profile — candidacy and office are tabs, never separate identities; '

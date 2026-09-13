@@ -240,6 +240,39 @@ class CandidacyController extends Controller
         return back()->with('status', 'Endorsement requested — the organization\'s agent decides via F-ORG-002.');
     }
 
+    /** POST /candidates/{candidacy}/endorsement — F-IND-025 (a resident's own public endorsement; default private). */
+    public function endorse(Request $request, string $candidacy): RedirectResponse
+    {
+        $model = Candidacy::query()->findOrFail($candidacy);
+
+        $validated = $request->validate([
+            'is_public' => ['sometimes', 'boolean'],
+            'statement' => ['nullable', 'string', 'max:2000'],
+        ]);
+
+        $this->engine->file('F-IND-025', $request->user(), [
+            'candidacy_id' => (string) $model->id,
+            'is_public' => (bool) ($validated['is_public'] ?? false),
+            'statement' => $validated['statement'] ?? null,
+            'jurisdiction_id' => (string) $model->election?->jurisdiction_id,
+        ]);
+
+        return back()->with('status', 'Endorsement recorded — private unless you chose to make it public.');
+    }
+
+    /** POST /candidates/{candidacy}/endorsement/withdraw — F-IND-026 (retract your own endorsement). */
+    public function withdrawEndorsement(Request $request, string $candidacy): RedirectResponse
+    {
+        $model = Candidacy::query()->findOrFail($candidacy);
+
+        $this->engine->file('F-IND-026', $request->user(), [
+            'candidacy_id' => (string) $model->id,
+            'jurisdiction_id' => (string) $model->election?->jurisdiction_id,
+        ]);
+
+        return back()->with('status', 'Endorsement withdrawn — you may endorse again while the candidacy stands.');
+    }
+
     // =========================================================================
     // Internals
     // =========================================================================

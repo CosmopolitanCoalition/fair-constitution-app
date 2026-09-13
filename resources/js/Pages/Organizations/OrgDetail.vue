@@ -16,7 +16,7 @@
  * here recomputes the co-determination scale.
  */
 import { computed, ref } from 'vue';
-import { Link, useForm, usePage } from '@inertiajs/vue3';
+import { Link, router, useForm, usePage } from '@inertiajs/vue3';
 import AppShellV2 from '@/Layouts/AppShellV2.vue';
 import PageScaffold from '@/Components/Surface/PageScaffold.vue';
 import FormCard from '@/Components/Surface/FormCard.vue';
@@ -128,6 +128,35 @@ function decide(requestId, decision) {
         `/organizations/${props.organization.id}/endorsements/${requestId}/grant`,
         { preserveScroll: true, onSuccess: () => grantForm.reset('statement') },
     );
+}
+
+/* F-ORG-002 withdraw / re-endorse (operator ruling 2026-09-13 — an
+ * organization may withdraw and re-endorse at any time while the candidacy
+ * stands). Per-row busy tracking, with error/success feedback. */
+const endorseBusyId = ref(null);
+const endorseNotice = ref('');
+const endorseError = ref('');
+
+function withdrawEndorsement(requestId) {
+    if (endorseBusyId.value) return;
+    router.post(`/organizations/${props.organization.id}/endorsements/${requestId}/withdraw`, {}, {
+        preserveScroll: true,
+        onStart: () => { endorseBusyId.value = requestId; endorseError.value = ''; endorseNotice.value = ''; },
+        onFinish: () => { endorseBusyId.value = null; },
+        onError: (errs) => { endorseError.value = Object.values(errs)[0] || 'The withdrawal could not be filed. Please retry.'; },
+        onSuccess: () => { endorseNotice.value = 'Endorsement withdrawn.'; },
+    });
+}
+
+function reEndorse(requestId) {
+    if (endorseBusyId.value) return;
+    router.post(`/organizations/${props.organization.id}/endorsements/${requestId}/re-endorse`, {}, {
+        preserveScroll: true,
+        onStart: () => { endorseBusyId.value = requestId; endorseError.value = ''; endorseNotice.value = ''; },
+        onFinish: () => { endorseBusyId.value = null; },
+        onError: (errs) => { endorseError.value = Object.values(errs)[0] || 'The re-endorsement could not be filed. Please retry.'; },
+        onSuccess: () => { endorseNotice.value = 'Endorsement re-made.'; },
+    });
 }
 
 /* ---------------------------------------------- join (F-IND-013 / F-IND-014) */
@@ -302,14 +331,34 @@ const documentColumns = [
             </template>
 
             <h3 style="margin-block: var(--space-3) var(--space-1)">Granted endorsements ({{ endorsements.total }})</h3>
-            <ul v-if="endorsements.granted.length" class="stack" style="gap: var(--space-1); list-style: none; padding: 0; margin: 0">
-                <li v-for="(grant, i) in endorsements.granted" :key="i">
+            <ul v-if="endorsements.granted.length" class="stack" style="gap: var(--space-2); list-style: none; padding: 0; margin: 0">
+                <li v-for="grant in endorsements.granted" :key="grant.id ?? grant.candidate.href">
                     <Link v-if="grant.candidate.href" :href="grant.candidate.href">{{ grant.candidate.name }}</Link>
                     <span v-else>{{ grant.candidate.name }}</span>
                     <span class="citation"> · granted {{ fmtDate(grant.granted_at) }}</span>
+                    <span v-if="grant.active === false" class="citation"> · withdrawn</span>
+                    <!-- Withdraw / re-endorse at any time while the candidacy stands (F-ORG-002). -->
+                    <span v-if="can.manage && grant.id" class="cluster" style="margin-inline-start: var(--space-2)">
+                        <Btn
+                            v-if="grant.active !== false"
+                            variant="secondary"
+                            size="sm"
+                            :disabled="endorseBusyId === grant.id"
+                            @click="withdrawEndorsement(grant.id)"
+                        >{{ endorseBusyId === grant.id ? 'Withdrawing…' : 'Withdraw' }}</Btn>
+                        <Btn
+                            v-else
+                            variant="primary"
+                            size="sm"
+                            :disabled="endorseBusyId === grant.id"
+                            @click="reEndorse(grant.id)"
+                        >{{ endorseBusyId === grant.id ? 'Re-endorsing…' : 'Re-endorse' }}</Btn>
+                    </span>
                 </li>
             </ul>
             <p v-else class="gloss">No endorsements granted yet.</p>
+            <p v-if="endorseNotice" role="status">{{ endorseNotice }}</p>
+            <p v-if="endorseError" role="alert">{{ endorseError }}</p>
         </Card>
 
         <!-- ============================================ job board ======= -->
