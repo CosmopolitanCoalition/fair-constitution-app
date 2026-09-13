@@ -5,7 +5,7 @@ namespace App\Domain\Forms;
 use InvalidArgumentException;
 
 /**
- * Canonical registry of the constitutional forms — 121 total: the 103 Template forms +
+ * Canonical registry of the constitutional forms — 123 total: the 103 Template forms +
  * F-ELB-008 (Manual District Draw, Phase H) + the Phase K-1 civic-commons trio
  * F-SOC-001/002/003 (public square / halls testimony / carve-out removal) + the Phase K-3
  * F-SOC-004 (M-5 physical-law legal-compliance removal, operator-plane) + the Phase M
@@ -16,7 +16,7 @@ use InvalidArgumentException;
  * + F-IND-020 (Resident Agreement — person-to-person / N-party agreements +
  * clause redlines) + the Wave 4 economy build F-IND-021 (Share Trade —
  * holder-to-holder secondary share resale on the exchange), F-CHR-005/006
- * (committee meeting lifecycle), and F-ORG-010 (joint board-chair participation).
+ * (committee meeting lifecycle), F-ORG-010 (joint board-chair participation), and F-LEG-037/038 (judicial nomination authorization and committee designation).
  *
  * Source of truth: CGA_Constitutional_Roles_Forms_Chart.xlsx sheet
  * "3. Forms Catalog" (transcribed in docs/plans/institutions/
@@ -52,12 +52,15 @@ use InvalidArgumentException;
 class FormRegistry
 {
     /**
-     * All 121 canonical forms: id => [name, roles allowed to file].
+     * All 123 canonical forms: id => [name, roles allowed to file].
      * Roles per the catalog's "Filed by" column; 'roles' lists the role
      * codes whose holders may file (any one suffices). F-IND-006 is
      * additionally system-filed (see its handler's systemOnly()).
      */
     public const FORMS = [
+        // Operator-set nomination authority, 2026-09-13. F-LEG-021 remains consent.
+        'F-LEG-037' => ['name' => 'Judicial Nomination Proposal', 'roles' => ['R-09', 'R-10', 'R-11']],
+        'F-LEG-038' => ['name' => 'Judicial Committee Designation', 'roles' => ['R-09', 'R-10']],
         // ── F-IND — Individual Forms (18) ───────────────────────────────────
         'F-IND-001' => ['name' => 'Individual Registration',                    'roles' => ['R-01']],
         'F-IND-002' => ['name' => 'Profile Management',                         'roles' => ['R-01']],
@@ -422,6 +425,8 @@ class FormRegistry
         // subject_type 'judicial_seats') and F-JDG-*/F-ADV-* are sibling /
         // cases-agent scope.)
         'F-LEG-017' => Handlers\JudiciaryCreationAct::class,
+        'F-LEG-037' => Handlers\JudicialNominationProposal::class,
+        'F-LEG-038' => Handlers\JudicialCommitteeDesignation::class,
         'F-LEG-018' => Handlers\JudiciaryConversionAct::class,
 
         // ── Phase E — cases / juries / advocates scope

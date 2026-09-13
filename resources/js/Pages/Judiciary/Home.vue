@@ -40,6 +40,7 @@ import TagChip from '@/Components/Ui/TagChip.vue';
 import VoteTally from '@/Components/Legislature/VoteTally.vue';
 import ConstituentConsentPanel from '@/Components/Legislature/ConstituentConsentPanel.vue';
 import JudicialConfirmations from '@/Components/Judiciary/JudicialConfirmations.vue';
+import JudicialNominations from '@/Components/Judiciary/JudicialNominations.vue';
 
 /* Phase-2 restyle wave: the v3 player chrome (MASTER_PLAN). */
 defineOptions({ layout: AppShellV2 });
@@ -61,6 +62,11 @@ const props = defineProps({
     creation: { type: Object, default: null },
     /** F-LEG-021 ×N consent rows. */
     nominations: { type: Array, default: () => [] },
+    nominationContext: { type: Object, default: () => ({}) },
+    vacantSeats: { type: Object, default: () => ({ rows: [], pages: {} }) },
+    judicialCommittees: { type: Object, default: () => ({ rows: [], pages: {} }) },
+    judicialProposals: { type: Object, default: () => ({ rows: [], pages: {} }) },
+    judicialNominees: { type: Object, default: () => ({ candidates: [] }) },
     confirmationPages: { type: Object, default: () => ({}) },
     confirmationContext: { type: Object, default: () => ({ preview: true }) },
     /** { subjectLabel, act, legislatureVote: VoteTallyProps|null, process: ConstituentConsentPanelProps|null } | null. */
@@ -228,6 +234,7 @@ const panelColumns = [
             </template>
         </Card>
 
+        <JudicialNominations :judiciary="judiciary" :context="nominationContext" :seats="vacantSeats" :committees="judicialCommittees" :proposals="judicialProposals" :nominees="judicialNominees" />
         <JudicialConfirmations :judiciary="judiciary" :nominations="nominations" :pages="confirmationPages" :context="confirmationContext" />
 
         <!-- ===================================== conversion =========== -->

@@ -80,6 +80,8 @@ class Judiciary extends Model
         'converted_at',
         'judge_count',
         'source_legislature_id',
+        'judicial_committee_id',
+        'judicial_committee_vote_id',
     ];
 
     protected $casts = [

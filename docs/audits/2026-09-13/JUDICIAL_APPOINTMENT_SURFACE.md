@@ -1,6 +1,6 @@
 # Judicial appointment surface
 
-Date: 2026-09-13. Scope: EO-4. **Confirmation controls and their internal tests are complete. Player nomination still requires the authority decision below.** No live civic actions, world resets or production frontend build were performed.
+Date: 2026-09-13. Scope: EO-4. **EO-4 is complete: nomination, committee designation, confirmation and seating are implemented and internally tested.** No live civic actions, world resets or production frontend build were performed.
 
 ## Completed confirmation development
 
@@ -19,7 +19,7 @@ The old confirmation text incorrectly claimed the creation supermajority also go
 
 ## Passed internal checks
 
-**Root integration completed later on 13 September:** the combined 117 PHP tests / 1,731 assertions and 20 compiled Vue tests passed; both directory indexes were applied and verified valid, workers refreshed, and five actual confirmed nominees read in the existing court's browser page. See [integration receipt](INTEGRATION_AND_MAP_CLEANUP.md). The earlier subtask's unapplied-migration statement below is superseded; the nomination decision remains open.
+**Root integration completed later on 13 September:** the combined 117 PHP tests / 1,731 assertions and 20 compiled Vue tests passed; both directory indexes were applied and verified valid, workers refreshed, and five actual confirmed nominees read in the existing court's browser page. See [integration receipt](INTEGRATION_AND_MAP_CLEANUP.md). The earlier subtask's unapplied-migration statement below is superseded; the nomination decision was subsequently settled and implemented below.
 
 | Run | Result |
 | --- | --- |
@@ -39,32 +39,38 @@ docker exec fc_app php vendor/bin/phpunit tests/Unit/JudicialConfirmationSurface
 docker exec fc_vite node --experimental-vm-modules --test tests/js/judicialConfirmations.test.mjs
 ```
 
-## Remaining EO-4 nomination decision
+## Settled nomination authority and completed implementation
 
-This is a concrete missing player entry point, not a failing confirmation test or a human-test deferral.
+The operator settled all four decisions on 13 September:
 
-| Established in code | Missing authority definition |
-| --- | --- |
-| `JudicialSeatService::nominate` accepts only the seat's allocated constituent jurisdiction. It validates active association with the court jurisdiction as the nominee's sole eligibility requirement. | No runtime role identifies the constituent's nominating agent. The method accepts an optional user ID for attribution and does not authorize that user. No controller or form handler invokes it for players. |
-| `committeeNominate` fills committee-nominated seats. Its comment says a passed committee-supermajority vote gates it upstream. `ChamberVoteService` already supports committee electorates and supermajority votes. | No judicial nomination proposal/decision handler performs that upstream step. No court field or committee field designates which committee is the judicial committee. Arbitrary committee names and purposes are not an authority assignment. |
-| Each accepted nomination opens an individual `bog_consent` vote in the source legislature. Existing F-LEG-004 and F-SPK-004 perform voting; the civil appointment service opens the configured term. | `F-LEG-021` deliberately names this consent vote and remains unregistered in `FormRegistry`. Registering it as a new nomination/cast handler would contradict the existing form contract. |
+| Path | Who proposes | Authorization | Next step |
+|---|---|---|---|
+| Constituent nomination | Any current member of that constituent’s legislature | Ordinary majority of all serving members of that legislature | Separate confirmation in the legislature that created the court |
+| Committee designation | A current member of the court’s creating legislature selects an existing committee, or creates one through the existing committee process first | Recorded legislative supermajority act | The designated committee may nominate |
+| Committee nomination | Any serving member of the designated committee, including its chair | Committee supermajority | Separate confirmation in the creating legislature |
 
-Proposed player contract for the operator to settle:
+`JudicialNominationService` implements these as `ChamberVoteProposal` records, using the existing voting engine and its configured thresholds and bicameral lanes. F-LEG-037 files nomination proposals; F-LEG-038 files committee designations. F-LEG-021 remains the separate consent contract, unregistered as a filing handler. Actual casts use the existing floor/committee forms and Speaker tie endpoint. The existing court seat allocation, nominee association requirement, simulation slate path and configured term service are preserved.
 
-1. A current member of the **exact constituent legislature** proposes a nominee for that constituent's allocated seat. A recorded decision by that legislature authorizes the nomination, which then enters the existing separate source-legislature confirmation. The choice of this actor/body and its nomination-decision threshold are not defined by current code.
-2. For committee-mode courts, the source legislature **explicitly designates its judicial committee**. A member or chair of that exact committee proposes the nominee; a recorded committee supermajority authorizes `committeeNominate`, followed by the existing source-legislature confirmation. The designation method and proposer role still need to be settled; neither is inferred from a committee's name.
+The existing court page now has vacancy selection, public-name/profile-reference nominee search, committee designation, proposal decisions and confirmation history. All selectors/history pages use independent 20-row seeks. Search begins only after input; it reuses the existing privacy-safe nominee directory. Every nominee links to the same `/people?who=…` public profile. Loading, empty, failure and retry states are visible; previewing a role grants no filing authority. The dedicated Learn content records the settled process.
 
-No player nomination POST, broad resident picker, new role, eligibility requirement, allocation rule or term rule has been introduced while this decision remains open. Once settled, the remaining implementation is the authorized nomination proposal/decision entry point, its bounded nominee selector and isolated end-to-end actor tests. The existing confirmation work above can be reviewed independently.
+Exact committee, court, legislature, seat, nominee and vote bindings are checked. Identical filing retries reuse the proposal. Changed committee designations or intervening nominations invalidate earlier pending proposals; an invalid final cast rolls back. Rejected confirmation leaves the allocated seat vacant for a fresh proposal. No existing committee is silently assigned by migration.
 
-## Changed files
+The real committee fixture exposed a shared voting defect: unicameral committee members retained `type_a` seat kinds but the vote expected the `all` tally. The repair uses the vote’s stored lane structure after membership verification; bicameral votes retain separate kind lanes.
 
-- `app/Http/Controllers/Judiciary/JudiciaryController.php`
-- `app/Support/JudicialConfirmationDirectory.php`
-- `app/Services/Judiciary/JudicialSeatService.php`
-- `app/Services/Legislature/ChamberActService.php` (judicial consent guard call only)
-- `config/cga/surfaces.php` (one confirmation citation)
-- `resources/js/Pages/Judiciary/Home.vue`
-- `resources/js/Components/Judiciary/JudicialConfirmations.vue`
-- `database/migrations/2026_09_13_102000_judicial_confirmation_directory_index.php`
-- `tests/Unit/JudicialConfirmationSurfaceTest.php`
-- `tests/js/judicialConfirmations.test.mjs`
+### Final internal evidence
+
+- **61 targeted PHP tests / 1,618 assertions passed**, covering the actual filing controllers/forms, nomination authorization, separate confirmation and configured seven-year seating; majority of all serving; failed committee/designation votes; a configured 3/4 supermajority; bicameral lanes; former/foreign actors; dissolved courts; committee reassignment; stale competing proposals; duplicate filings; corrupted vote links; privacy and independent 43-row directory traversal. Existing judicial confirmation, governor selector, vote registry and immutable term checks are included.
+- **Nine compiled Vue tests passed** across nomination and confirmation controls: exact submissions, profile links, committee/seat/person selection, preview restrictions, configured tally display, independent pagination, busy states, errors and retries.
+- The **disposable PostgreSQL migration probe passed** with 3,000 synthetic rows in each indexed collection. All four selected-scope plans used their intended indexes. The migration was rerunnable and preserved existing records and a prior proposal-kind extension. The nonce-guarded fixture database was removed. This is not a planet-throughput or concurrent-vote benchmark.
+- Migration `2026_09_13_150000_judicial_nomination_authorization.php` was applied locally. Configuration and routes were refreshed and the existing Horizon worker restarted. Pulling hosts must apply this additive migration, refresh configuration/routes and restart their existing workers. Never reset an existing world.
+- Browser verification: the existing Superior Court page rendered the new nomination workspace, its Oversight/Budget/Rules committee choices, public preview controls, and its five existing confirmed judges and their full-profile links. No nomination, designation or vote was filed against the live world.
+
+Reproduce the new checks with the explicit isolated fixtures:
+
+```text
+docker exec fc_app php vendor/bin/phpunit tests/Unit/JudicialNominationAuthorizationTest.php tests/Unit/JudicialConfirmationSurfaceTest.php tests/Unit/CgcGovernorSurfaceTest.php tests/Constitutional/VoteTypeRegistryTest.php tests/Constitutional/TermLockstepTest.php
+docker exec fc_vite node --experimental-vm-modules --test tests/js/judicialNominations.test.mjs tests/js/judicialConfirmations.test.mjs
+docker exec fc_app php tests/concurrency/judicial_nomination_migration.php --run
+```
+
+EO-4 is removed from the build punch list. The broader formation-to-appointment-to-conversion rehearsal remains in the internal review register; no full review item is closed by this targeted build.

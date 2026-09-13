@@ -232,7 +232,7 @@ final class BoardChairWorkflowTest extends TestCase
         self::assertFalse($props['canCast']);
         self::assertTrue($props['submitted']);
         self::assertSame([$this->id(11)], $props['memberSeats'][0]['rankings']);
-        self::assertCount(121, FormRegistry::FORMS);
+        self::assertCount(123, FormRegistry::FORMS); // EO-4 adds two nomination authority forms.
     }
 
     public function test_member_with_two_seats_can_cast_each_seat_and_finish_the_ballot(): void

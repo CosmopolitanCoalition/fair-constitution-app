@@ -2475,6 +2475,14 @@ class DistrictingService
         }
         if ($zeroBins !== [] && count($zeroBins) === count($binData)) {
             $this->stepEnd('step12');
+            // This return sits inside the write-phase transaction opened at
+            // Step 9. The Step 9 clear stands (a scope over nobody keeps no
+            // stale districts), so COMMIT here: the lane must never leave with
+            // an open transaction (2026-09-13, CompositeTransactionSplitPinTest
+            // caught the missing commit; every later scope on the connection
+            // was nesting a savepoint under it).
+            DB::commit();
+            Cache::tags(["revealed.{$legislature_id}"])->flush();
             $this->publishMassProgress($legislature_id, [
                 'phase' => 'inserted', 'phase_label' => 'Zero is zero: uninhabited scope, no district written',
             ]);

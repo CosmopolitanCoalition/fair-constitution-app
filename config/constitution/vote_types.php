@@ -44,6 +44,23 @@
 
 return [
 
+    // EO-4 operator decisions, 2026-09-13: separate upstream authorization and final consent.
+    'judicial_nominate' => [
+        'label' => 'Authorize a constituent judicial nomination', 'category' => 'simple_majority',
+        'engine' => 'chamber', 'basis' => 'majority', 'denominator' => 'serving',
+        'bicameral' => 'per_kind', 'dual' => null, 'phase' => 'E', 'citation' => 'Art. IV §2; operator judicial nomination ruling, 2026-09-13',
+    ],
+    'judicial_committee_nominate' => [
+        'label' => 'Authorize a committee judicial nomination', 'category' => 'supermajority',
+        'engine' => 'chamber', 'basis' => 'supermajority', 'denominator' => 'committee_serving',
+        'bicameral' => 'per_kind', 'dual' => null, 'phase' => 'E', 'citation' => 'Art. IV §2; operator judicial nomination ruling, 2026-09-13',
+    ],
+    'judicial_committee_designate' => [
+        'label' => 'Designate the judicial nominating committee', 'category' => 'supermajority',
+        'engine' => 'chamber', 'basis' => 'supermajority', 'denominator' => 'serving',
+        'bicameral' => 'per_kind', 'dual' => null, 'phase' => 'E', 'citation' => 'Art. IV §2; operator judicial nomination ruling, 2026-09-13',
+    ],
+
     // ── Simple Majority (3) ─────────────────────────────────────────────────
 
     'bill_pass' => [

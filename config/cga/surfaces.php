@@ -810,6 +810,8 @@ return [
         'forms'     => [
             ['id' => 'F-LEG-017', 'availableTo' => ['R-09'], 'citation' => 'Art. IV §2 — judiciary creation by supermajority act of the legislature'],
             ['id' => 'F-LEG-021', 'availableTo' => ['R-09'], 'citation' => 'Art. IV §2 — judicial nomination confirmed by a majority of all serving members'],
+            ['id' => 'F-LEG-037', 'availableTo' => ['R-09', 'R-10', 'R-11'], 'citation' => 'Constituent legislative majority or designated committee supermajority authorizes nomination before separate confirmation'],
+            ['id' => 'F-LEG-038', 'availableTo' => ['R-09', 'R-10'], 'citation' => 'The creating legislature designates its judicial committee through a recorded supermajority act'],
             ['id' => 'F-LEG-018', 'availableTo' => ['R-09'], 'citation' => 'Art. IV §3 — conversion to elected, dual supermajority (legislature + constituent jurisdictions)'],
         ],
         'clocks'    => ['CLK-09', 'CLK-10', 'CLK-15', 'CLK-16'],

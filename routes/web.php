@@ -1166,6 +1166,11 @@ Route::middleware('auth')->group(function () {
     Route::get('/judiciaries/{judiciary}', [\App\Http\Controllers\Judiciary\JudiciaryController::class, 'show'])
         ->whereUuid('judiciary')->name('judiciaries.show')->withoutMiddleware('auth'); // public read — Art. II §2
 
+    Route::post('/judiciaries/{judiciary}/nomination-proposals', [\App\Http\Controllers\Judiciary\JudicialNominationController::class, 'nominate'])
+        ->whereUuid('judiciary')->name('judiciaries.nominate');
+    Route::post('/judiciaries/{judiciary}/judicial-committee', [\App\Http\Controllers\Judiciary\JudicialNominationController::class, 'designate'])
+        ->whereUuid('judiciary')->name('judiciaries.designate-committee');
+
     // ── FE-E3 — Docket + CaseDetail ─────────────────────────────────────────
     Route::get('/judiciaries/{judiciary}/docket', [\App\Http\Controllers\Judiciary\DocketController::class, 'index'])
         ->whereUuid('judiciary')->name('judiciary.docket')->withoutMiddleware('auth'); // public read — Art. II §2

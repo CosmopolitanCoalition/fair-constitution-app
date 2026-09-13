@@ -1132,7 +1132,9 @@ class ChamberVoteService
                 );
             }
 
-            $lane = $this->roster->laneOf($vote->body_id, (string) $member->id);
+            // Committee seats retain their constitutional kind even in a
+            // unicameral body. An unsplit vote counts every member in `all`.
+            $lane = $vote->bicameral ? $this->roster->laneOf($vote->body_id, (string) $member->id) : ChamberVoteTally::LANE_ALL;
 
             if ($lane === null || ! $vote->tallies()->where('lane', $lane)->exists()) {
                 throw new ConstitutionalViolation('Member has no lane on this committee vote.', 'Art. V §3');

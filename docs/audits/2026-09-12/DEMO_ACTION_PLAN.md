@@ -12,16 +12,15 @@ Fixed baseline: commit `8bf59184`, immediately before this development batch. Cl
 
 | List | At baseline | New confirmed items | Closed | Remaining |
 |---|---:|---:|---:|---:|
-| Build punch list | 29 | 4 | 14 | 19 |
+| Build punch list | 29 | 4 | 15 | 18 |
 | Internal review register | 29 | 0 | 2 | 27 |
 
-The fourteen closed builds are B3, P2, B4, EO-6, LE-1, EO-7, B5, EO-1, E5, IO-6, EO-8, EO-2, EO-3 and B6. The two closed reviews are S3 ownership concurrency and L1 lesson completion/awards/stipends. Added builds are B5, EO-8 and B6 (already closed), and IO-7 (open), each tied to a demonstrated defect or missing action. EO-4 confirmation is integrated, but its nomination entry remains open and the item is not counted as closed. The separately requested map-sidebar cleanup is completed extra work, outside this fixed baseline. These are item counts, not a percentage of effort or a cost forecast. Earlier completed work remains in the archive and is excluded from this fixed-baseline comparison.
+The fifteen closed builds are B3, P2, B4, EO-6, LE-1, EO-7, B5, EO-1, E5, IO-6, EO-8, EO-2, EO-3, B6 and EO-4. The two closed reviews are S3 ownership concurrency and L1 lesson completion/awards/stipends. Added builds are B5, EO-8 and B6 (already closed), and IO-7 (open), each tied to a demonstrated defect or missing action. EO-4 nomination, committee designation, confirmation and seating are now integrated and internally tested. The separately requested map-sidebar cleanup is completed extra work, outside this fixed baseline. These are item counts, not a percentage of effort or a cost forecast. Earlier completed work remains in the archive and is excluded from this fixed-baseline comparison.
 
 ## 1. Complete the institutional action paths
 
 | ID | Confirmed build / repair | Done when development and internal tests establish |
 |---|---|---|
-| EO-4 | Add the player judicial nomination entry after resolving the nominating actor/body and committee designation. Confirmation, refusal and seating controls are completed. | The settled nomination authority is enforced through actual proposal/decision handlers and bounded nominee selection; isolated actor tests reach the existing confirmation/seating path. See the [remaining nomination decision](../2026-09-13/JUDICIAL_APPOINTMENT_SURFACE.md#remaining-eo-4-nomination-decision). |
 | EO-5 | Add individual endorsement and withdrawal controls. | Individuals can publish/manage their own endorsements; organization endorsement and secret approval voting remain distinct. |
 | IO-1 | Add court hearing, deliberation and verdict controls. | Authorized actors can complete the case lifecycle through the UI, with state, panel, actor and repeated-submission checks. |
 | IO-2 | Build the appeals workflow beyond its existing status/foreign key. | Appeal filing, review and outcome history work while preserving the original case and criminal reprosecution protection. |

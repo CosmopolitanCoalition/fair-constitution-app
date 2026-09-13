@@ -74,6 +74,10 @@ class ChamberVoteProposal extends Model
     // mutation happens only on adoption.
     public const KIND_JUDICIARY_CREATION = 'judiciary_creation';
 
+    public const KIND_JUDICIAL_NOMINATION = 'judicial_nomination';
+
+    public const KIND_JUDICIAL_COMMITTEE_DESIGNATION = 'judicial_committee_designation';
+
     public const KIND_JUDICIARY_CONVERSION = 'judiciary_conversion';
 
     public const KIND_JUDICIARY_DISSOLUTION = 'judiciary_dissolution';

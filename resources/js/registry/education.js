@@ -1217,7 +1217,7 @@ export const EDUCATION_BY_SURFACE = {
             {
                 do: "c_education.education_judiciary_judiciary_home.s2_do",
                 detail: "c_education.education_judiciary_judiciary_home.s2_detail",
-                cite: "F-LEG-021"
+                cite: "F-LEG-037 · F-LEG-038 · F-LEG-021"
             },
             {
                 do: "c_education.education_judiciary_judiciary_home.s3_do",

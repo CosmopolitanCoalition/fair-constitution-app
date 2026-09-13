@@ -579,7 +579,7 @@ are chosen.
 | # | do | detail | cite |
 |---|---|---|---|
 | 1 | See how this judiciary exists | A legislature creates it by supermajority act. | F-LEG-017 · Art. IV §2 |
-| 2 | See how judges got there | Appointed by default, for **ten-year terms**. Nominations are consented to by the chamber. | F-LEG-021 |
+| 2 | See how judges got there | Appointed by default, for **ten-year terms**. For a constituent seat, any serving member of that constituent's legislature may propose a person, and a majority of all serving members authorizes the nomination. Otherwise the creating legislature designates a judicial committee by supermajority act; any serving committee member, including its chair, may propose, and the committee authorizes by supermajority. Each authorized nomination then gets a separate confirmation vote in the creating legislature. Term length and thresholds come from this game's constitutional settings (operator ruling 2026-09-13). | F-LEG-037 · F-LEG-038 · F-LEG-021 |
 | 3 | Note it can be converted | A judiciary can be made elected instead — but that takes a supermajority *and* the constituents' agreement. | F-LEG-018 |
 
 > **The why:** appointment is the default because a judge who must campaign has an incentive to

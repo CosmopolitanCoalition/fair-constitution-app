@@ -22,6 +22,15 @@
     </source>
     <php>
         <env name="APP_ENV" value="testing"/>
+        <!-- A deployed box carries `config:cache` / `route:cache` output in bootstrap/cache.
+             Laravel loads a cached config BEFORE this block's env values are consulted, so
+             every test's default connection silently became the LIVE PostgreSQL world
+             (box E, 2026-09-13: default=pgsql, db=fair_constitution under phpunit). Pointing
+             the cache lookups at paths that never exist makes the test process compile its
+             config from config/ + these env values, exactly as an uncached box would. -->
+        <env name="APP_CONFIG_CACHE" value="storage/framework/testing/never-cached-config.php"/>
+        <env name="APP_ROUTES_CACHE" value="storage/framework/testing/never-cached-routes.php"/>
+        <env name="APP_EVENTS_CACHE" value="storage/framework/testing/never-cached-events.php"/>
         <env name="APP_MAINTENANCE_DRIVER" value="file"/>
         <env name="BCRYPT_ROUNDS" value="4"/>
         <env name="BROADCAST_CONNECTION" value="null"/>

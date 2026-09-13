@@ -38,6 +38,8 @@ class VoteTypeRegistryTest extends TestCase
         'board_chair_elect',
         // The implicit 33rd (owner ruling: unstated = majority of all serving)
         'procedural_motion',
+        // EO-4 settled operator rules, 2026-09-13.
+        'judicial_nominate', 'judicial_committee_nominate', 'judicial_committee_designate',
     ];
 
     private const CATEGORIES   = ['simple_majority', 'supermajority', 'population', 'bicameral', 'rcv_stv'];
@@ -58,8 +60,8 @@ class VoteTypeRegistryTest extends TestCase
 
         $this->assertIsArray($config);
         // 33 registry rows + the Phase D board-chair addition (additive
-        // registry change under constitutional review — design §C.3).
-        $this->assertCount(34, $config);
+        // registry change under constitutional review — design §C.3), plus the three EO-4 operator-authorized vote types.
+        $this->assertCount(37, $config);
         $this->assertSame([], array_diff(self::KEYS, array_keys($config)), 'missing registry keys');
         $this->assertSame([], array_diff(array_keys($config), self::KEYS), 'keys not in the registry');
     }

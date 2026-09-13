@@ -436,7 +436,7 @@
   "education_judiciary_judiciary_home.learn": "The courts for this jurisdiction: how they were created, who sits on them, and how they are chosen.",
   "education_judiciary_judiciary_home.s1_detail": "A legislature creates it by supermajority act.",
   "education_judiciary_judiciary_home.s1_do": "See how this judiciary exists",
-  "education_judiciary_judiciary_home.s2_detail": "Appointed by default, for ten-year terms. Nominations are consented to by the chamber.",
+  "education_judiciary_judiciary_home.s2_detail": "Appointed by default, for ten-year terms. For a constituent seat, any serving member of that constituent's legislature may propose a person, and a majority of all serving members authorizes the nomination. Otherwise the creating legislature designates a judicial committee by supermajority act; any serving committee member, including its chair, may propose, and the committee authorizes by supermajority. Each authorized nomination then gets a separate confirmation vote in the creating legislature. Term length and thresholds come from this game's constitutional settings (operator ruling 2026-09-13).",
   "education_judiciary_judiciary_home.s2_do": "See how judges got there",
   "education_judiciary_judiciary_home.s3_detail": "A judiciary can be made elected instead — but that takes a supermajority and the constituents' agreement.",
   "education_judiciary_judiciary_home.s3_do": "Note it can be converted",

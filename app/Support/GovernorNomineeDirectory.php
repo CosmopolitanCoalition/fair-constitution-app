@@ -19,7 +19,7 @@ final class GovernorNomineeDirectory
         return ['query' => '', 'by' => 'name', 'searched' => false, 'candidates' => [], 'previous' => null, 'next' => null];
     }
 
-    public function page(Request $request, string $organizationId, string $jurisdictionId): array
+    public function page(Request $request, string $organizationId, string $jurisdictionId, ?string $basePath = null): array
     {
         $data = $request->validate([
             'nominee_q' => ['nullable', 'string', 'max:120'],
@@ -83,13 +83,13 @@ final class GovernorNomineeDirectory
             if (! $forward) {
                 $rows = array_reverse($rows);
             }
-            $link = function ($row, bool $next) use ($organizationId, $search, $by, $scope) {
+            $link = function ($row, bool $next) use ($organizationId, $search, $by, $scope, $basePath) {
                 if (! $row) {
                     return null;
                 }
                 $encoded = rtrim(strtr(base64_encode(json_encode(['scope' => $scope, 'name' => $row->directory_name, 'id' => $row->id, 'forward' => $next])), '+/', '-_'), '=');
 
-                return '/organizations/'.$organizationId.'/board-elections?'.http_build_query([
+                return ($basePath ?? '/organizations/'.$organizationId.'/board-elections').'?'.http_build_query([
                     'nominee_q' => $search, 'nominee_by' => $by, 'nominee_cursor' => $encoded,
                 ]);
             };

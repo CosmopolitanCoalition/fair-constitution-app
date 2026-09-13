@@ -42,6 +42,14 @@ final class EconomyNavigationTest extends TestCase
             $t->string('parent_id')->nullable();
             $t->timestamp('deleted_at')->nullable();
         });
+        // PublicPersonSelectionContext (B6, 99298fe1) reads public handles for
+        // every selected party page; the composer's party search reaches it.
+        $schema->create('social_profiles', function (Blueprint $t) {
+            $t->string('user_id');
+            $t->string('handle')->nullable();
+            $t->string('visibility');
+            $t->timestamp('deleted_at')->nullable();
+        });
         $schema->create('organizations', function (Blueprint $t) {
             $t->string('id')->primary();
             $t->string('name');
@@ -310,9 +318,14 @@ final class EconomyNavigationTest extends TestCase
         $searched = $this->props($this->controller->residentAgreements($this->request('/economy/resident-agreements?new=1&party_q=Other')));
         self::assertTrue($searched['party_directory']['searched']);
         self::assertSame([], $searched['agreements']);
-        self::assertCount(1, DB::getQueryLog());
+        // Two bounded reads per search page: the 21-row seek on users, then the
+        // public-handle lookup for exactly that page's ids (B6, 99298fe1:
+        // PublicPersonSelectionContext). Never a third, never unbounded.
+        self::assertCount(2, DB::getQueryLog());
         self::assertStringContainsString('limit 21', DB::getQueryLog()[0]['query']);
         self::assertStringContainsString('from "users"', DB::getQueryLog()[0]['query']);
+        self::assertStringContainsString('from "social_profiles"', DB::getQueryLog()[1]['query']);
+        self::assertStringContainsString('"user_id" in (', DB::getQueryLog()[1]['query']);
     }
 
     public function test_exchange_pages_offers_before_metadata_and_never_reads_world_telemetry(): void

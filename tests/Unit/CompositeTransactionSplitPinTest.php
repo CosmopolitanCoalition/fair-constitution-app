@@ -46,7 +46,10 @@ class CompositeTransactionSplitPinTest extends TestCase
         // 'step12' is the whole Step 12 loop timer; it closes right before
         // DB::commit(). ('step12.geometry' names the PostGIS union+hull time
         // and lives inside recomputeDistrict, outside this body.)
-        $step12End = strpos($body, "\$this->stepEnd('step12');");
+        // The LAST 'step12' close: the all-zero-bins path (operator ruling
+        // 2026-09-05, zero-seat chambers A) closes the timer early and returns
+        // from inside the transaction; the pins below hold it to a commit.
+        $step12End = strrpos($body, "\$this->stepEnd('step12');");
         $this->assertNotFalse($marker);
         $this->assertNotFalse($step9);
         $this->assertNotFalse($step12End);
@@ -56,10 +59,17 @@ class CompositeTransactionSplitPinTest extends TestCase
         $planner = substr($body, 0, $marker);
         $this->assertStringNotContainsString('DB::beginTransaction()', $planner,
             'Steps 1-8 open no transaction');
-        $this->assertSame(1, substr_count($planner, 'DB::transaction('),
-            'the early residue plane is the one write inside Steps 1-8 and wraps itself');
-        $this->assertStringContainsString('insertZeroBudgetResidueDistrict(',
-            substr($planner, strpos($planner, 'DB::transaction(')));
+        // Two early writes, each wrapping ITSELF (never the draw): the Step 1b
+        // zero-population clear (operator ruling 2026-09-02, cb2234b9: a head
+        // of 0 over nobody disbands its stale districts and returns) and the
+        // zero-budget residue plane. Both return before Step 9.
+        $this->assertSame(2, substr_count($planner, 'DB::transaction('),
+            'the zero-population clear and the early residue plane are the only writes inside Steps 1-8, each wrapped by itself');
+        $first  = strpos($planner, 'DB::transaction(');
+        $second = strpos($planner, 'DB::transaction(', $first + 1);
+        $this->assertStringContainsString("'legislature_districts'", substr($planner, $first, $second - $first),
+            'the first early write is the Step 1b zero-population clear of stale districts');
+        $this->assertStringContainsString('insertZeroBudgetResidueDistrict(', substr($planner, $second));
 
         $opening = substr($body, $marker, $step9 - $marker);
         $this->assertStringContainsString('DB::beginTransaction();', $opening);
@@ -68,7 +78,22 @@ class CompositeTransactionSplitPinTest extends TestCase
         $writePhase = substr($body, $step9, $step12End - $step9);
         $this->assertStringNotContainsString('DB::beginTransaction()', $writePhase,
             'one transaction for the whole write phase, no nested opens');
-        $this->assertStringNotContainsString('DB::commit()', $writePhase);
+        // The one commit inside the write phase is the zero-is-zero early END
+        // of the phase (all bins zero: nothing to write, the Step 9 clear
+        // stands). It closes the timer, commits, and returns at once, so the
+        // lane never leaves a transaction open (the 2026-09-13 defect: the
+        // return had no commit and every later scope nested a savepoint).
+        $this->assertSame(1, substr_count($writePhase, 'DB::commit();'),
+            'the only commit inside the write phase is the zero-is-zero early end');
+        $earlyEnd = strpos($writePhase, 'DB::commit();');
+        $window   = substr($writePhase, max(0, $earlyEnd - 600), 1000);
+        $this->assertStringContainsString("\$this->stepEnd('step12');", substr($window, 0, 600),
+            'the early end closes the step12 timer before it commits');
+        $this->assertStringContainsString('Zero is zero', $window);
+        $this->assertStringContainsString("return ['districts_created' => 0, 'error' => null];", substr($window, 600),
+            'the early end returns right after its commit: no write follows a commit inside the phase');
+        $this->assertStringNotContainsString('DB::rollBack()', $writePhase,
+            'the write phase never rolls itself back; the catch below owns that');
 
         $closing = substr($body, $step12End, 400);
         $this->assertStringContainsString('DB::commit();', $closing);

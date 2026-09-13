@@ -252,6 +252,9 @@ class ChamberActService
         }
 
         if ($outcome !== ChamberVote::OUTCOME_ADOPTED) {
+            if (in_array($proposal->proposal_kind, \App\Services\Judiciary\JudicialNominationService::KINDS, true)) {
+                app(\App\Services\Judiciary\JudicialNominationService::class)->assertVote($proposal, $vote, $outcome);
+            }
             $proposal->forceFill([
                 'status' => ChamberVoteProposal::STATUS_REJECTED,
                 'decided_at' => now(),
@@ -476,6 +479,9 @@ class ChamberActService
             // (the EXEC_KINDS precedent — dispatched to
             // JudiciaryFormationService) ────────────────────────────────
             ChamberVoteProposal::KIND_JUDICIARY_CREATION => app(\App\Services\Judiciary\JudiciaryFormationService::class)->applyCreation($proposal, $vote),
+
+            ChamberVoteProposal::KIND_JUDICIAL_NOMINATION,
+            ChamberVoteProposal::KIND_JUDICIAL_COMMITTEE_DESIGNATION => app(\App\Services\Judiciary\JudicialNominationService::class)->adopt($proposal, $vote),
 
             ChamberVoteProposal::KIND_JUDICIARY_CONVERSION => app(\App\Services\Judiciary\JudiciaryFormationService::class)->applyConversionAdoption($proposal, $vote),
 

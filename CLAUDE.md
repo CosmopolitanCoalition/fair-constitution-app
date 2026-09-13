@@ -107,6 +107,10 @@ docker compose exec app npm run build
 
 ---
 
+## Judicial nomination authority — operator ruling 2026-09-13
+
+For constituent-nominated court seats, any current member of that constituent's legislature may propose a person. An ordinary majority of all serving members authorizes nomination, followed by a separate confirmation vote in the legislature that created the court. For committee-mode courts, that creating legislature explicitly assigns nomination responsibility to an existing or newly created committee through a recorded supermajority legislative act. Any serving member of the designated committee, including its chair, may propose; committee supermajority authorizes nomination, followed by separate creating-legislature confirmation. Threshold fractions and term lengths remain resolved from the game's constitutional settings. Implemented by F-LEG-037/038; F-LEG-021 remains the separate consent contract.
+
 ## Constitutional Hard Constraints (NEVER MODIFY)
 
 These are immutable rules enforced at the application layer. No UI, admin panel, or legislative act can change them.
@@ -597,7 +601,7 @@ database/schema/pgsql-schema.sql   (baseline DDL for jurisdictions / constitutio
 **Phases 0–5 COMPLETE** (Foundation → Judiciary & Law). All live, constitutionally
 tested (suite green, zero skips), each with standing browsable demo data
 (`elections:demo`, `institutions:demo-d`, `institutions:demo-e`). Detailed phase
-plans + designs in `docs/plans/institutions/PHASE_{A..E}_*.md`. The 118-form
+plans + designs in `docs/plans/institutions/PHASE_{A..E}_*.md`. The 123-form
 ConstitutionalEngine (103 through Phase 5 + F-ELB-008 Manual District Draw from
 Phase H + F-SOC-001..004 from the G/K social-mesh work + F-IND-022/023/024, the
 Phase M economy write path + F-IND-019 Work Application and F-ORG-009 Internal
@@ -607,7 +611,10 @@ pair minted in the Wave 3 engine build (operator ruling 6) + F-ORG-008
 Organization Market Participation (share issuance) and F-IND-020 Resident
 Agreement (person-to-person / N-party agreements + clause redlines), the
 Economy Design Round 2 build + F-IND-021 Share Trade (holder-to-holder
-secondary share resale on the exchange), the Wave 4 economy build; FormRegistry also
+secondary share resale on the exchange), the Wave 4 economy build + F-CHR-005/006
+(committee meeting lifecycle) and F-ORG-010 (joint board-chair ballot), the 2026-09-12
+demo build + F-LEG-037/038 (judicial nomination proposal / judicial committee
+designation, operator ruling 2026-09-13); FormRegistry also
 resolves 6 legacy alias IDs —
 F-COM-*→F-CHR-*, F-GOV-*→F-BOG-*), the PROTECTED hardened layer, and the
 hash-chained audit log span every phase. The count is pinned exactly in
