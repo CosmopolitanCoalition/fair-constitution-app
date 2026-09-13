@@ -307,7 +307,9 @@ const overridePin = {
             <p class="gloss" style="margin-block-start: var(--space-2)">
                 The three challenge resolution terminals (amended_by_legislature | overridden |
                 judicial_remedy_applied) are mutually exclusive — judicial_remedy_applied → closed is
-                the exit criterion. The case 'appealed' state re-enters at a wider panel (deferred surface).
+                the exit criterion. The case 'appealed' state is the resting state of an appealed
+                judgement (IO-2): the appeal is a new linked case heard by the parent court or the same
+                court en banc, and the original rests with its verdict preserved (Art. II §8).
             </p>
         </Card>
 

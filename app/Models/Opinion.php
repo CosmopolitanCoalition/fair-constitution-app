@@ -24,6 +24,25 @@ class Opinion extends Model
 
     public const KIND_DISSENT = 'dissent';
 
+    // IO-2 appellate outcomes (operator ruling 2026-09-13, appeals-workflow-rules
+    // = B). Carried ONLY on an appeal case's opinion (a case with
+    // appeal_of_case_id). A criminal appeal may only affirm or vacate — never a
+    // re-trial (Art. II §8).
+    public const APPEAL_AFFIRM = 'affirm';
+
+    public const APPEAL_REVERSE = 'reverse';
+
+    public const APPEAL_REMAND = 'remand';
+
+    public const APPEAL_VACATE = 'vacate';
+
+    /** Lawful appellate outcomes by the appeal case's kind (its original's kind). */
+    public const APPEAL_OUTCOMES = [
+        'civil' => [self::APPEAL_AFFIRM, self::APPEAL_REVERSE, self::APPEAL_REMAND],
+        'administrative' => [self::APPEAL_AFFIRM, self::APPEAL_REVERSE, self::APPEAL_REMAND],
+        'criminal' => [self::APPEAL_AFFIRM, self::APPEAL_VACATE],
+    ];
+
     protected $fillable = [
         'id',
         'case_id',
@@ -32,6 +51,7 @@ class Opinion extends Model
         'kind',
         'title',
         'body',
+        'appeal_outcome',
         'record_id',
         'published_at',
     ];

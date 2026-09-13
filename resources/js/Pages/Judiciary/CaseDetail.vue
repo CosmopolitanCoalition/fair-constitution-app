@@ -156,7 +156,23 @@ function submitJury() {
     juryForm.post(`/cases/${props.case.id}/jury-orders`, { preserveScroll: true });
 }
 
-const opinionForm = useForm({ kind: 'majority', title: '', body: '' });
+/* IO-2 — on an appeal case the opinion also records the appellate outcome
+   (civil affirm/reverse/remand, criminal affirm/vacate). `appeal_outcomes` is
+   the server's lawful list for this case's kind; empty on a first-instance case. */
+const isAppeal = computed(() => Boolean(props.case.is_appeal));
+const appealOutcomes = computed(() => props.case.appeal_outcomes ?? []);
+const APPEAL_OUTCOME_LABEL = {
+    affirm: 'Affirm the judgement',
+    reverse: 'Reverse the judgement',
+    remand: 'Remand for further proceedings',
+    vacate: 'Vacate the conviction (the accused is acquitted)',
+};
+const opinionForm = useForm({
+    kind: 'majority',
+    title: '',
+    body: '',
+    appeal_outcome: isAppeal.value ? appealOutcomes.value[0] ?? '' : '',
+});
 function submitOpinion() {
     opinionForm.post(`/cases/${props.case.id}/opinions`, {
         preserveScroll: true,
@@ -196,6 +212,32 @@ function submitDismiss() {
     dismissForm.post(`/cases/${props.case.id}/dismissal`, {
         preserveScroll: true,
         onSuccess: () => dismissForm.reset('reason'),
+    });
+}
+
+/* ---------------------------------- IO-2 appeal (F-IND-027) ------------ */
+/* A party to a decided/sentenced judgement may appeal. The control renders on
+   a decided/sentenced original and is DISABLED (not hidden) with a status
+   reason when the viewer is not a party. An appealed original shows its appeal
+   link(s); an appeal case shows a link back to the original + the en-banc note. */
+const canAppeal = computed(() => Boolean(props.can.appeal));
+const isDecidedOrSentenced = computed(() => ['decided', 'sentenced'].includes(state.value));
+const showAppealFiling = computed(() => !isAppeal.value && isDecidedOrSentenced.value);
+const appealReason = computed(() =>
+    canAppeal.value ? '' : 'Only a party to this case may appeal this judgement.',
+);
+const appealLinks = computed(() => props.case.appeals ?? []);
+const APPEAL_OUTCOME_BADGE = {
+    affirm: 'Affirmed',
+    reverse: 'Reversed',
+    remand: 'Remanded',
+    vacate: 'Vacated — acquitted',
+};
+const appealForm = useForm({ grounds: '', statement: '' });
+function submitAppeal() {
+    appealForm.post(`/cases/${props.case.id}/appeals`, {
+        preserveScroll: true,
+        onSuccess: () => appealForm.reset('grounds', 'statement'),
     });
 }
 
@@ -487,6 +529,59 @@ function submitRuling() {
             </CaseLifecycle>
         </Card>
 
+        <!-- ========================= appeal (IO-2, Art. II §8) ========== -->
+        <Card v-if="isAppeal || showAppealFiling || appealLinks.length" as="section" title="Appeal" class="appeal">
+            <!-- This case IS an appeal — link back to the original + en-banc note -->
+            <template v-if="isAppeal">
+                <p>
+                    This case is an appeal of
+                    <Link v-if="kase.appeal_of" :href="kase.appeal_of.href">{{ kase.appeal_of.docket_number }}</Link><span v-else>the original case</span>.
+                    <template v-if="kase.en_banc"> It is heard by the same court sitting en banc — there is no parent court.</template>
+                    <template v-else> It is heard by the parent court.</template>
+                </p>
+                <p class="citation">A criminal appeal may only affirm or vacate — never a re-trial · Art. II §8.</p>
+            </template>
+
+            <!-- A decided/sentenced original — the party's appeal-filing control -->
+            <template v-else-if="showAppealFiling">
+                <p>
+                    A party to this judgement may appeal on a proven contradiction in law, or an error in the
+                    case that made the judgement invalid. The appeal opens a new case at the parent court (or the
+                    same court en banc); this judgement rests as appealed and its verdict is preserved · Art. II §8.
+                </p>
+                <form class="appeal-form" novalidate :aria-busy="appealForm.processing" @submit.prevent="submitAppeal">
+                    <Field label="Grounds for appeal" hint="The contradiction in law, or the error in the case." :error="appealForm.errors.grounds">
+                        <template #control="{ id, describedBy }">
+                            <textarea :id="id" v-model="appealForm.grounds" class="field-input" rows="3" :aria-describedby="describedBy" />
+                        </template>
+                    </Field>
+                    <Field label="Statement (optional)" :error="appealForm.errors.statement">
+                        <template #control="{ id, describedBy }">
+                            <textarea :id="id" v-model="appealForm.statement" class="field-input" rows="2" :aria-describedby="describedBy" />
+                        </template>
+                    </Field>
+                    <div class="cluster">
+                        <button type="submit" class="btn btn-primary" :disabled="!canAppeal || appealForm.processing || !appealForm.grounds.trim()">
+                            {{ appealForm.processing ? 'Filing…' : 'Appeal this judgement' }}
+                        </button>
+                    </div>
+                    <p v-if="appealReason" class="gloss" role="status">{{ appealReason }}</p>
+                </form>
+            </template>
+
+            <!-- An appealed original — link to its appeal case(s) -->
+            <template v-if="appealLinks.length">
+                <p style="margin-block-start: var(--space-3)">This judgement has been appealed:</p>
+                <ul class="appeal-list">
+                    <li v-for="a in appealLinks" :key="a.id">
+                        <Link :href="a.href">{{ a.docket_number }}</Link>
+                        <StatusBadge tone="neutral">{{ a.status }}</StatusBadge>
+                        <StatusBadge v-if="a.outcome" tone="info">{{ APPEAL_OUTCOME_BADGE[a.outcome] ?? a.outcome }}</StatusBadge>
+                    </li>
+                </ul>
+            </template>
+        </Card>
+
         <!-- ================= case proceedings (IO-1, R-19/R-20) ========== -->
         <Card v-if="isCourt" as="section" title="Case proceedings" class="proceedings">
             <p class="citation" style="margin-block-end: var(--space-3)">
@@ -730,6 +825,19 @@ function submitRuling() {
                             <textarea :id="id" v-model="opinionForm.body" class="field-input" rows="4" :aria-describedby="describedBy" />
                         </template>
                     </Field>
+                    <!-- IO-2 — on an appeal case the opinion records the appellate outcome. -->
+                    <Field
+                        v-if="isAppeal"
+                        label="Appellate outcome"
+                        hint="Civil: affirm, reverse or remand. Criminal: affirm or vacate only — never a re-trial (Art. II §8)."
+                        :error="opinionForm.errors.appeal_outcome"
+                    >
+                        <template #control="{ id, describedBy }">
+                            <select :id="id" v-model="opinionForm.appeal_outcome" class="select" :aria-describedby="describedBy">
+                                <option v-for="o in appealOutcomes" :key="o" :value="o">{{ APPEAL_OUTCOME_LABEL[o] ?? o }}</option>
+                            </select>
+                        </template>
+                    </Field>
                     <p class="citation">Commentary on the law as written or edited; only the Art. IV §5 process changes a law's text.</p>
                 </FormCard>
             </div>
@@ -756,7 +864,13 @@ function submitRuling() {
 .ruling-form select,
 .ruling-form input,
 .ruling-form textarea,
+.appeal-form button,
+.appeal-form select,
+.appeal-form input,
+.appeal-form textarea,
 .ruling-toggle { min-block-size: 44px; font: inherit; }
 .ruling-form { display: grid; gap: 0.5rem; margin-block-start: 0.5rem; max-inline-size: 28rem; }
 .ruling-toggle { inline-size: fit-content; cursor: pointer; margin-block-start: 0.5rem; }
+.appeal-form { display: grid; gap: 0.65rem; margin-block-start: 0.5rem; }
+.appeal-list { display: grid; gap: 0.35rem; margin-block-start: 0.5rem; padding-inline-start: 1.1rem; }
 </style>

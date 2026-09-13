@@ -5,7 +5,7 @@ namespace App\Domain\Forms;
 use InvalidArgumentException;
 
 /**
- * Canonical registry of the constitutional forms — 129 total: the 103 Template forms +
+ * Canonical registry of the constitutional forms — 130 total: the 103 Template forms +
  * F-ELB-008 (Manual District Draw, Phase H) + the Phase K-1 civic-commons trio
  * F-SOC-001/002/003 (public square / halls testimony / carve-out removal) + the Phase K-3
  * F-SOC-004 (M-5 physical-law legal-compliance removal, operator-plane) + the Phase M
@@ -16,7 +16,7 @@ use InvalidArgumentException;
  * + F-IND-020 (Resident Agreement — person-to-person / N-party agreements +
  * clause redlines) + the Wave 4 economy build F-IND-021 (Share Trade —
  * holder-to-holder secondary share resale on the exchange), F-CHR-005/006
- * (committee meeting lifecycle), F-ORG-010 (joint board-chair participation), F-LEG-037/038 (judicial nomination authorization and committee designation), the EO-5 individual-endorsement pair F-IND-025/026 (an individual's own public endorsement of a candidacy, and its withdrawal — distinct from the secret approval vote and from the organization endorsement handshake), and the IO-1 case-lifecycle quartet F-JDG-011/012/013/014 (hearing order, deliberation order, dismissal order, motion/evidence ruling — operator ruling 2026-09-13, case-lifecycle-controls-shape A; the VERDICT stays a CaseService transition, not a form).
+ * (committee meeting lifecycle), F-ORG-010 (joint board-chair participation), F-LEG-037/038 (judicial nomination authorization and committee designation), the EO-5 individual-endorsement pair F-IND-025/026 (an individual's own public endorsement of a candidacy, and its withdrawal — distinct from the secret approval vote and from the organization endorsement handshake), and the IO-1 case-lifecycle quartet F-JDG-011/012/013/014 (hearing order, deliberation order, dismissal order, motion/evidence ruling — operator ruling 2026-09-13, case-lifecycle-controls-shape A; the VERDICT stays a CaseService transition, not a form), and the IO-2 appeal form F-IND-027 (Appeal Filing — a party appeals a decided/sentenced judgement to the parent judiciary or the same court en banc; the appellate outcome rides on the appeal panel's F-JDG-003 opinion; operator ruling 2026-09-13, appeals-workflow-rules = B).
  *
  * Source of truth: CGA_Constitutional_Roles_Forms_Chart.xlsx sheet
  * "3. Forms Catalog" (transcribed in docs/plans/institutions/
@@ -52,7 +52,7 @@ use InvalidArgumentException;
 class FormRegistry
 {
     /**
-     * All 129 canonical forms: id => [name, roles allowed to file].
+     * All 130 canonical forms: id => [name, roles allowed to file].
      * Roles per the catalog's "Filed by" column; 'roles' lists the role
      * codes whose holders may file (any one suffices). F-IND-006 is
      * additionally system-filed (see its handler's systemOnly()).
@@ -116,6 +116,14 @@ class FormRegistry
         // absolute right. NOT the secret approval vote, NOT the org handshake.
         'F-IND-025' => ['name' => 'Individual Endorsement',                     'roles' => ['R-04']],
         'F-IND-026' => ['name' => 'Individual Endorsement Withdrawal',          'roles' => ['R-04']],
+        // F-IND-027 — Appeal Filing (IO-2; operator ruling 2026-09-13,
+        // appeals-workflow-rules = B). A party to a decided/sentenced case
+        // appeals the judgement; the appeal is a NEW linked case heard by the
+        // parent judiciary (or the same court en banc). Association standing,
+        // the same R-03/R-21 gate a case filing uses; the handler also checks
+        // the actor is a party to the original. Criminal appeals affirm or
+        // vacate only — no re-trial (Art. II §8).
+        'F-IND-027' => ['name' => 'Appeal Filing',                              'roles' => ['R-03', 'R-21']],
 
         // ── F-CAN — Candidate Forms (3) ─────────────────────────────────────
         'F-CAN-001' => ['name' => 'Campaign Profile Setup',                     'roles' => ['R-06']],
@@ -458,6 +466,9 @@ class FormRegistry
         // transition behind a judge-only route (CaseController::verdict).)
         'F-IND-015' => Handlers\AdvocateRegistration::class,
         'F-IND-017' => Handlers\CaseFiling::class,
+        // F-IND-027 — Appeal Filing (IO-2): opens the appeal case + moves the
+        // original decided|sentenced → appealed (CaseService::openAppeal).
+        'F-IND-027' => Handlers\AppealFiling::class,
         'F-IND-019' => Handlers\WorkApplication::class,
         'F-IND-020' => Handlers\ResidentAgreement::class,
         'F-IND-021' => Handlers\ShareTrade::class,
@@ -594,7 +605,7 @@ class FormRegistry
         return self::HANDLERS[$canonicalId] ?? null;
     }
 
-    /** @return list<string> all 129 canonical form IDs. */
+    /** @return list<string> all 130 canonical form IDs. */
     public static function ids(): array
     {
         return array_keys(self::FORMS);

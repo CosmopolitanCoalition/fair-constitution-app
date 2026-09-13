@@ -20,7 +20,9 @@ use Illuminate\Support\Facades\DB;
  * and sets the presiding judge.
  *
  * En-banc path: when severity is `constitutional_major`, is_en_banc=true and
- * the panel = every non-recused seated seat (CLK-16 hardened).
+ * the panel = every non-recused seated seat (CLK-16 hardened). A same-court
+ * appeal (no parent judiciary) is also seated en banc — the full court hears
+ * its own appeals (IO-2 operator ruling 2026-09-13, appeals-workflow-rules = B).
  *
  * The seed is published so the draw is REPRODUCIBLE — anyone can verify it.
  */
@@ -68,6 +70,19 @@ class PanelService
         }
 
         ['size' => $size, 'en_banc' => $enBanc] = PanelSizing::sizeFor($severity, $seatedCount);
+
+        // IO-2 (operator ruling 2026-09-13, appeals-workflow-rules = B): an
+        // appeal heard by the SAME court (no parent judiciary) is decided by the
+        // full court EN BANC — never a severity-scaled sub-panel. The ruling,
+        // not the accepting judge's classification, governs an appeal panel, so
+        // force the full odd bench here (identical to the constitutional_major
+        // en-banc sizing). A parent-court appeal is unaffected — it is a normal
+        // severity-scaled panel of the parent, as the ruling directs.
+        if ($this->isSameCourtAppeal($case)) {
+            $size = $seatedCount % 2 === 1 ? $seatedCount : $seatedCount - 1;
+            $size = max(3, $size);
+            $enBanc = true;
+        }
 
         // Re-assert the hardened invariants at seating (the DB belt is behind).
         ConstitutionalValidator::assertPanelSize($size, $enBanc, $severity, $seatedCount);
@@ -164,6 +179,29 @@ class PanelService
 
             return $panel;
         });
+    }
+
+    /**
+     * True when this case is an appeal (appeal_of_case_id set) heard by the
+     * SAME court that decided the original — i.e. the original's court has no
+     * parent judiciary, so the appeal opened at the original's own court. Such
+     * an appeal is heard EN BANC (IO-2 operator ruling 2026-09-13). A
+     * parent-court appeal (appeal.judiciary_id != original.judiciary_id) is not
+     * en banc.
+     */
+    private function isSameCourtAppeal(CourtCase $case): bool
+    {
+        if ($case->appeal_of_case_id === null) {
+            return false;
+        }
+
+        $original = CourtCase::query()
+            ->select(['id', 'judiciary_id'])
+            ->whereKey((string) $case->appeal_of_case_id)
+            ->first();
+
+        return $original !== null
+            && (string) $original->judiciary_id === (string) $case->judiciary_id;
     }
 
     /**

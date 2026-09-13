@@ -612,9 +612,13 @@ are chosen.
 | 6 | Read the verdict | A judge on the panel records the outcome. A panel vote sums to the panel size and the majority carries; a jury verdict is unanimous. A criminal verdict locks double jeopardy. | Art. IV §4 · Art. II §8 |
 | 7 | Read the ruling | Opinions, sentences and warrants are all published acts. | F-JDG-003 · F-JDG-009 · F-JDG-010 |
 | 8 | See a case dismissed | A case that is not justiciable, or is withdrawn, is dismissed with a stated reason. | F-JDG-013 |
+| 9 | File an appeal | A party to a decided or sentenced case may appeal. The grounds are a proven contradiction in law, or an error in the case that made the judgement invalid. | F-IND-027 · Art. II §8 |
+| 10 | Follow the appeal to the right court | The appeal is a new case, linked to the original. It is heard by the parent court, or by the same court sitting en banc when there is no parent court. | Art. IV §4 |
+| 11 | Read the appellate outcome | A civil appeal affirms, reverses, or remands. A criminal appeal may only affirm or vacate — never a re-trial. The original judgement, verdict and opinion are preserved either way. | Art. II §8 |
 
 > **The why:** you cannot be tried twice for the same thing. Double jeopardy is enforced by the
-> engine, not by a judge remembering.
+> engine, not by a judge remembering. An appeal can correct an error, but a criminal appeal can only
+> clear the accused — it can never send them back for another prosecution.
 
 ---
 

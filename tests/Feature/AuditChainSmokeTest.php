@@ -114,7 +114,7 @@ class AuditChainSmokeTest extends TestCase
     // FormRegistry
     // -------------------------------------------------------------------------
 
-    public function test_registry_holds_exactly_129_canonical_forms(): void
+    public function test_registry_holds_exactly_130_canonical_forms(): void
     {
         // 103 Template forms + F-ELB-008 (Manual District Draw, Phase H) + the
         // Phase K-1 civic-commons trio F-SOC-001/002/003 (public square / halls
@@ -164,8 +164,14 @@ class AuditChainSmokeTest extends TestCase
         //   order, dismissal order and motion/evidence ruling. The VERDICT
         //   (deliberation → decided) stays a CaseService transition behind a
         //   judge-only route — it is NOT a form and is NOT counted here.
-        $this->assertCount(129, FormRegistry::FORMS);
-        $this->assertCount(129, FormRegistry::ids());
+        // + F-IND-027 (IO-2, operator ruling 2026-09-13, appeals-workflow-rules
+        //   = B): Appeal Filing. A party appeals a decided/sentenced judgement;
+        //   the appeal is a NEW linked case at the parent court (or the same
+        //   court en banc) and the appellate outcome rides on the appeal
+        //   panel's F-JDG-003 opinion (affirm/reverse/remand; criminal
+        //   affirm/vacate only — no re-trial, Art. II §8).
+        $this->assertCount(130, FormRegistry::FORMS);
+        $this->assertCount(130, FormRegistry::ids());
     }
 
     public function test_pure_aliases_resolve_to_canonical_ids(): void

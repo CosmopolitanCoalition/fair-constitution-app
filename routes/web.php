@@ -1209,6 +1209,8 @@ Route::middleware('auth')->group(function () {
         ->whereUuid('case')->name('judiciary.cases.rulings');                    // F-JDG-014
     Route::post('/cases/{case}/verdict', [\App\Http\Controllers\Judiciary\CaseController::class, 'verdict'])
         ->whereUuid('case')->name('judiciary.cases.verdict');                    // verdict transition (judge-only; not a form)
+    Route::post('/cases/{case}/appeals', [\App\Http\Controllers\Judiciary\CaseController::class, 'appeal'])
+        ->whereUuid('case')->name('judiciary.cases.appeals.store');              // F-IND-027 (IO-2)
 
     // ── FE-E5 — Constitutional challenges (Art. IV §5 — the exit surface) ────
     Route::get('/constitutional-challenges', [\App\Http\Controllers\Judiciary\ChallengeController::class, 'index'])

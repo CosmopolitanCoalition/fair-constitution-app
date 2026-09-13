@@ -6,8 +6,10 @@ use App\Domain\Engine\ConstitutionalEngine;
 use App\Domain\Forms\Support\JudicialActor;
 use App\Http\Controllers\Controller;
 use App\Models\CaseFiling;
+use App\Models\CaseParty;
 use App\Models\CourtCase;
 use App\Models\JudicialSeat;
+use App\Models\Opinion;
 use App\Models\PanelJudge;
 use App\Models\User;
 use App\Services\Judiciary\CaseService;
@@ -119,6 +121,7 @@ class CaseController extends Controller
             'panel.judges.seat:id,seat_number',
             'jury.eligibleJurisdiction:id,name',
             'verdict',
+            'appealOf:id,docket_no,judiciary_id',
         ]);
 
         $isJudge = $this->isSeatedJudge($request->user(), $case);
@@ -138,6 +141,15 @@ class CaseController extends Controller
                 // The engine (JudicialActor::seat) is the boundary — this drives
                 // the form's enabled state, never a page 403.
                 'orderCourt' => $isJudge,
+                // IO-2 — a party to a decided/sentenced case may appeal (the
+                // engine re-asserts the party check + the ESM edge on POST).
+                'appeal' => in_array($case->status, [CourtCase::STATUS_DECIDED, CourtCase::STATUS_SENTENCED], true)
+                    && $this->isPartyTo($request->user(), $case),
+                // A seated judge of an appeal case's court may record the
+                // appellate outcome once the appeal case is decided/sentenced
+                // (the F-JDG-003 opinion close gate).
+                'record_appeal_outcome' => $isJudge && $case->isAppeal()
+                    && in_array($case->status, [CourtCase::STATUS_DECIDED, CourtCase::STATUS_SENTENCED], true),
             ],
         ]);
     }
@@ -182,7 +194,12 @@ class CaseController extends Controller
         );
     }
 
-    /** F-JDG-003 — publish the opinion (commentary on the law); closes the case. */
+    /**
+     * F-JDG-003 — publish the opinion (commentary on the law); closes the case.
+     * On an APPEAL case the opinion also carries the appellate outcome (IO-2):
+     * civil affirm/reverse/remand, criminal affirm/vacate — never a re-trial
+     * (Art. II §8). The engine refuses an appeal_outcome on a first-instance case.
+     */
     public function opinion(Request $request, CourtCase $case): RedirectResponse
     {
         $this->engine->file('F-JDG-003', $request->user(), [
@@ -191,12 +208,36 @@ class CaseController extends Controller
             'kind' => (string) $request->input('kind', 'majority'),
             'title' => (string) $request->input('title', ''),
             'body' => (string) $request->input('body', ''),
+            'appeal_outcome' => (string) $request->input('appeal_outcome', ''),
         ]);
 
         return back()->with(
             'status',
             'Opinion published to the public record — commentary on the law as written or edited; '
             .'only the Art. IV §5 process can change a law\'s text (F-JDG-003 · Art. IV §4–§5).'
+        );
+    }
+
+    /**
+     * F-IND-027 — appeal a decided/sentenced judgement (IO-2). Files through
+     * the engine: the actor must be a PARTY to the original (the handler
+     * re-asserts it) and the original must be decided or sentenced. The appeal
+     * is a NEW linked case at the parent judiciary (or the same court en banc);
+     * the original moves to `appealed` untouched. A criminal appeal may only
+     * affirm or vacate — double jeopardy is never disturbed (Art. II §8).
+     */
+    public function appeal(Request $request, CourtCase $case): RedirectResponse
+    {
+        $this->engine->file('F-IND-027', $request->user(), [
+            'case_id' => (string) $case->id,
+            'grounds' => (string) $request->input('grounds', ''),
+            'statement' => (string) $request->input('statement', ''),
+        ]);
+
+        return back()->with(
+            'status',
+            'Appeal filed — a new case opens at the appellate court and the original judgement rests '
+            .'as appealed; its verdict and opinion are preserved (F-IND-027 · Art. II §8).'
         );
     }
 
@@ -379,7 +420,61 @@ class CaseController extends Controller
             'filed_by_label' => $case->filed_via_form !== null
                 ? "filed via {$case->filed_via_form}"
                 : null,
+            // IO-2 — appeal links (both directions) + the en-banc fact.
+            'is_appeal' => $case->isAppeal(),
+            // Heard by the same court en banc when the appeal court IS the
+            // original's court (no parent judiciary existed).
+            'en_banc' => $case->isAppeal()
+                && $case->appealOf !== null
+                && (string) $case->judiciary_id === (string) $case->appealOf->judiciary_id,
+            'appeal_of' => $case->isAppeal() && $case->appealOf !== null ? [
+                'id' => (string) $case->appealOf->id,
+                'docket_number' => $case->appealOf->docket_no,
+                'href' => "/cases/{$case->appealOf->id}",
+            ] : null,
+            'appeals' => $this->appealRows($case),
+            // The lawful appellate outcomes for THIS case's kind (the appeal
+            // opinion's select). Empty for a first-instance case.
+            'appeal_outcomes' => $case->isAppeal()
+                ? array_values(Opinion::APPEAL_OUTCOMES[$case->kind] ?? Opinion::APPEAL_OUTCOMES['civil'])
+                : [],
         ];
+    }
+
+    /**
+     * The appeal cases filed against THIS case (IO-2). Bounded to the latest 20
+     * by id desc; each row carries the appeal case's status and its recorded
+     * appellate outcome (the opinion's appeal_outcome, once ruled).
+     *
+     * @return list<array<string, mixed>>
+     */
+    private function appealRows(CourtCase $case): array
+    {
+        $appeals = $case->appeals()
+            ->orderByDesc('id')
+            ->limit(20)
+            ->get(['id', 'docket_no', 'status', 'appeal_of_case_id']);
+
+        if ($appeals->isEmpty()) {
+            return [];
+        }
+
+        // The recorded appellate outcome lives on the appeal case's opinion.
+        $outcomes = Opinion::query()
+            ->whereIn('case_id', $appeals->pluck('id')->map('strval')->all())
+            ->whereNotNull('appeal_outcome')
+            ->orderByDesc('published_at')
+            ->get(['case_id', 'appeal_outcome'])
+            ->groupBy('case_id')
+            ->map(fn ($rows) => (string) $rows->first()->appeal_outcome);
+
+        return $appeals->map(fn (CourtCase $appeal) => [
+            'id' => (string) $appeal->id,
+            'docket_number' => $appeal->docket_no,
+            'status' => $appeal->status,
+            'outcome' => $outcomes[(string) $appeal->id] ?? null,
+            'href' => "/cases/{$appeal->id}",
+        ])->values()->all();
     }
 
     /**
@@ -511,6 +606,24 @@ class CaseController extends Controller
             ->where('judiciary_id', (string) $case->judiciary_id)
             ->where('user_id', (string) $user->getKey())
             ->where('status', JudicialSeat::STATUS_SEATED)
+            ->exists();
+    }
+
+    /**
+     * Whether the viewer is an active PARTY to the case (IO-2 appeal standing).
+     * Mirrors the AppealFiling handler's check — the engine re-asserts it on
+     * POST; this only drives the control's enabled state, never a page 403.
+     */
+    private function isPartyTo(?User $user, CourtCase $case): bool
+    {
+        if ($user === null) {
+            return false;
+        }
+
+        return CaseParty::query()
+            ->where('case_id', (string) $case->id)
+            ->where('party_user_id', (string) $user->getKey())
+            ->where('status', CaseParty::STATUS_ACTIVE)
             ->exists();
     }
 }

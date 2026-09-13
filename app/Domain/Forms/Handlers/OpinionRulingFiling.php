@@ -6,6 +6,7 @@ use App\Domain\Engine\ConstitutionalViolation;
 use App\Domain\Forms\Contracts\FormHandler;
 use App\Domain\Forms\Support\JudicialActor;
 use App\Models\CaseFiling;
+use App\Models\CourtCase;
 use App\Models\Opinion;
 use App\Models\OpinionLawLink;
 use App\Models\User;
@@ -70,7 +71,41 @@ class OpinionRulingFiling implements FormHandler
             throw new ConstitutionalViolation('F-JDG-003 names a title and the opinion body.', 'CGA Forms Catalog');
         }
 
-        return DB::transaction(function () use ($case, $seat, $panel, $kind, $title, $body, $payload, $actor) {
+        // IO-2 — the appellate outcome (operator ruling 2026-09-13,
+        // appeals-workflow-rules = B). It is accepted ONLY on an appeal case (a
+        // case with appeal_of_case_id), where it is REQUIRED and must be lawful
+        // for the case kind: civil affirm/reverse/remand, criminal affirm/vacate
+        // — a criminal appeal never orders a re-trial (Art. II §8). On a
+        // first-instance opinion an appeal_outcome is refused.
+        $appealOutcome = trim((string) ($payload['appeal_outcome'] ?? ''));
+        $isAppeal = $case->isAppeal();
+
+        if (! $isAppeal) {
+            if ($appealOutcome !== '') {
+                throw new ConstitutionalViolation(
+                    'An appeal outcome is recorded only on an appeal case (one that appeals another).',
+                    'Art. II §8'
+                );
+            }
+        } else {
+            $allowed = Opinion::APPEAL_OUTCOMES[$case->kind] ?? Opinion::APPEAL_OUTCOMES['civil'];
+
+            if (! in_array($appealOutcome, $allowed, true)) {
+                throw new ConstitutionalViolation(
+                    sprintf(
+                        'A %s appeal is recorded as %s — a criminal appeal may only affirm or vacate, never order a re-trial.',
+                        $case->kind,
+                        implode(' / ', $allowed)
+                    ),
+                    'Art. II §8'
+                );
+            }
+        }
+
+        // The original this appeal decides (untouched but for a public record).
+        $original = $isAppeal ? CourtCase::query()->find((string) $case->appeal_of_case_id) : null;
+
+        return DB::transaction(function () use ($case, $seat, $panel, $kind, $title, $body, $payload, $actor, $appealOutcome, $isAppeal, $original) {
             $record = $this->records->publish(
                 kind: 'opinion',
                 title: $title,
@@ -91,6 +126,7 @@ class OpinionRulingFiling implements FormHandler
                 'kind' => $kind,
                 'title' => $title,
                 'body' => $body,
+                'appeal_outcome' => $appealOutcome !== '' ? $appealOutcome : null,
                 'record_id' => (string) $record->id,
                 'published_at' => now(),
             ]);
@@ -125,10 +161,19 @@ class OpinionRulingFiling implements FormHandler
             // The opinion is terminal — the case closes (decided/sentenced → closed).
             $this->cases->close($case->refresh());
 
+            // IO-2 — record the appellate ruling's effect on the ORIGINAL as a
+            // public record. The original's verdict / opinion / sentencing rows
+            // are NEVER edited; a criminal vacate keeps double_jeopardy_locked.
+            if ($isAppeal && $original !== null) {
+                $this->cases->recordAppealEffectOnOriginal($original, $appealOutcome);
+            }
+
             return [
                 'case_id' => (string) $case->id,
                 'opinion_id' => (string) $opinion->id,
                 'kind' => $kind,
+                'appeal_outcome' => $appealOutcome !== '' ? $appealOutcome : null,
+                'appeal_of_case_id' => $isAppeal ? (string) $case->appeal_of_case_id : null,
                 'law_links' => $opinion->lawLinks()->count(),
                 'record_id' => (string) $record->id,
             ];

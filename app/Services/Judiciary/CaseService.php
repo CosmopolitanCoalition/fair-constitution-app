@@ -42,6 +42,9 @@ class CaseService
         CourtCase::STATUS_SENTENCED => [CourtCase::STATUS_CLOSED, CourtCase::STATUS_APPEALED],
     ];
 
+    /** The two states a decided case may be appealed from (IO-2). */
+    public const APPEALABLE_STATUSES = [CourtCase::STATUS_DECIDED, CourtCase::STATUS_SENTENCED];
+
     public function __construct(
         private readonly PublicRecordService $records,
         private readonly AuditService $audit,
@@ -61,7 +64,8 @@ class CaseService
      *     statement_of_claim?:?string, claimed_severity?:?string,
      *     filed_via_form:string, filed_by_user_id?:?string,
      *     filed_on_behalf_of_user_id?:?string, advocate_id?:?string,
-     *     parties?:list<array<string,mixed>>
+     *     appeal_of_case_id?:?string, parties?:list<array<string,mixed>>,
+     *     record_title?:string, audit_event?:string, audit_extra?:array<string,mixed>
      * } $attrs
      */
     public function open(array $attrs): CourtCase
@@ -90,6 +94,9 @@ class CaseService
             'filed_by_user_id' => $attrs['filed_by_user_id'] ?? null,
             'filed_on_behalf_of_user_id' => $attrs['filed_on_behalf_of_user_id'] ?? null,
             'advocate_id' => $attrs['advocate_id'] ?? null,
+            // IO-2 — an appeal case links to the original it appeals (null for a
+            // first-instance filing). The original rests at `appealed`.
+            'appeal_of_case_id' => $attrs['appeal_of_case_id'] ?? null,
             'status' => CourtCase::STATUS_FILED,
         ]);
 
@@ -100,9 +107,12 @@ class CaseService
             ));
         }
 
+        // The genesis record/audit strings default to first-instance filing
+        // semantics; openAppeal overrides them so an appeal reads "Appeal
+        // filed" / case.appealed, never the case.filed semantics.
         $this->records->publish(
             kind: 'other',
-            title: sprintf('Case filed — %s (%s)', $case->title, $case->docket_no),
+            title: $attrs['record_title'] ?? sprintf('Case filed — %s (%s)', $case->title, $case->docket_no),
             body: $case->statement_of_claim,
             attrs: [
                 'jurisdiction_id' => (string) $case->jurisdiction_id,
@@ -112,9 +122,97 @@ class CaseService
             ],
         );
 
-        $this->seal('case.filed', $case, ['docket_no' => $docketNo, 'kind' => $case->kind]);
+        $this->seal(
+            $attrs['audit_event'] ?? 'case.filed',
+            $case,
+            array_merge(['docket_no' => $docketNo, 'kind' => $case->kind], $attrs['audit_extra'] ?? []),
+        );
 
         return $case;
+    }
+
+    // =========================================================================
+    // openAppeal (IO-2 — the appeal filing seam, operator ruling 2026-09-13,
+    // appeals-workflow-rules = B)
+    // =========================================================================
+
+    /**
+     * File an appeal of a DECIDED or SENTENCED case. The original moves
+     * decided|sentenced → appealed through the ESM (its verdict, opinion and
+     * sentencing rows are NEVER touched); the appeal is a NEW `cases` row
+     * linked by appeal_of_case_id, opened at the appellate court with its own
+     * lifecycle. Double jeopardy is untouched — an appeal is not a new
+     * prosecution, and a criminal appeal may only affirm or vacate (Art. II §8),
+     * so no new criminal filing is ever created here.
+     *
+     * @param  array{
+     *     judiciary_id:string, jurisdiction_id:string, kind:string, title:string,
+     *     statement_of_claim?:?string, filed_via_form:string,
+     *     filed_by_user_id?:?string, en_banc?:bool, parties?:list<array<string,mixed>>
+     * } $attrs  the appellate court + the appeal case attributes
+     */
+    public function openAppeal(CourtCase $original, array $attrs): CourtCase
+    {
+        // Guard the ESM edge on the ORIGINAL before any write (decided|sentenced
+        // → appealed). A dismissed / closed / already-appealed case refuses.
+        $this->assertTransition($original, CourtCase::STATUS_APPEALED);
+
+        $enBanc = (bool) ($attrs['en_banc'] ?? false);
+
+        // The appeal case — a distinct filing at the appellate court, opened
+        // with the appeal genesis strings (never case.filed semantics).
+        $appeal = $this->open(array_merge($attrs, [
+            'appeal_of_case_id' => (string) $original->id,
+            'record_title' => sprintf('Appeal filed — %s (appeal of %s)', (string) $attrs['title'], $original->docket_no),
+            'audit_event' => 'case.appealed',
+            'audit_extra' => [
+                'appeal_of_case_id' => (string) $original->id,
+                'appeal_of_docket_no' => (string) $original->docket_no,
+                'en_banc' => $enBanc,
+            ],
+        ]));
+
+        // Move the original to `appealed` (status only). Its verdict, opinion
+        // and sentencing rows are left exactly as they were.
+        $original->forceFill(['status' => CourtCase::STATUS_APPEALED])->save();
+        $this->seal('case.appealed', $original, [
+            'appeal_case_id' => (string) $appeal->id,
+            'appeal_docket_no' => (string) $appeal->docket_no,
+            'appellate_judiciary_id' => (string) $appeal->judiciary_id,
+            'en_banc' => $enBanc,
+        ]);
+
+        return $appeal;
+    }
+
+    /**
+     * Record the effect of an appellate ruling on the ORIGINAL case as a public
+     * record (IO-2). The original's verdict / opinion / sentencing rows are
+     * NEVER edited — only a record is appended. For a criminal vacate the
+     * original stays double_jeopardy_locked; no re-prosecution is ever allowed.
+     */
+    public function recordAppealEffectOnOriginal(CourtCase $original, string $appealOutcome): void
+    {
+        $line = match ($appealOutcome) {
+            'affirm' => 'Verdict affirmed',
+            'reverse' => 'Verdict reversed',
+            'remand' => 'Case remanded',
+            'vacate' => 'Conviction vacated, the accused is acquitted',
+            default => 'Appeal decided',
+        };
+
+        $this->records->publish(
+            kind: 'other',
+            title: sprintf('%s — %s (%s)', $line, $original->title, $original->docket_no),
+            body: null,
+            attrs: [
+                'jurisdiction_id' => (string) $original->jurisdiction_id,
+                'subject_type' => 'cases',
+                'subject_id' => (string) $original->id,
+            ],
+        );
+
+        $this->seal('case.appeal_decided', $original, ['appeal_outcome' => $appealOutcome]);
     }
 
     // =========================================================================
@@ -554,7 +652,12 @@ class CaseService
      */
     private function allocateDocketNumber(string $judiciaryId): string
     {
-        DB::statement("SELECT pg_advisory_xact_lock(hashtext('case_docket:' || ?))", [$judiciaryId]);
+        // The advisory lock serialises concurrent allocation on Postgres; the
+        // unique (judiciary_id, docket_no) index is the DB backstop either way.
+        // sqlite (test fixtures) has no advisory locks — skip the lock there.
+        if (DB::getDriverName() === 'pgsql') {
+            DB::statement("SELECT pg_advisory_xact_lock(hashtext('case_docket:' || ?))", [$judiciaryId]);
+        }
 
         $year = now()->year;
 

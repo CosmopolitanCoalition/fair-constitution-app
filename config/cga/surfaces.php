@@ -846,7 +846,8 @@ return [
             ['id' => 'F-JDG-002', 'availableTo' => ['R-19', 'R-20'], 'citation' => 'Art. IV §4 — jury selection order; random draw, seed published to the audit chain'],
             ['id' => 'F-ADV-002', 'availableTo' => ['R-21'], 'citation' => 'Art. IV §4 — motion filing'],
             ['id' => 'F-ADV-003', 'availableTo' => ['R-21'], 'citation' => 'Art. IV §4 — evidence submission'],
-            ['id' => 'F-JDG-003', 'availableTo' => ['R-19', 'R-20'], 'citation' => 'Art. IV §4–§5 — opinion / ruling, commentary on the law as written or edited'],
+            ['id' => 'F-JDG-003', 'availableTo' => ['R-19', 'R-20'], 'citation' => 'Art. IV §4–§5 — opinion / ruling, commentary on the law as written or edited; on an appeal case it carries the appellate outcome (IO-2)'],
+            ['id' => 'F-IND-027', 'availableTo' => ['R-03', 'R-21'], 'citation' => 'Art. II §8 — appeal a decided/sentenced judgement; a party files, the parent court (or the same court en banc) hears it; criminal appeals affirm or vacate only'],
             ['id' => 'F-JDG-011', 'availableTo' => ['R-19', 'R-20'], 'citation' => 'Art. IV §4 — hearing order; opens arguments (paneled/jury_empaneled → heard)'],
             ['id' => 'F-JDG-012', 'availableTo' => ['R-19', 'R-20'], 'citation' => 'Art. IV §4 — deliberation order; submits the case (heard → deliberation)'],
             ['id' => 'F-JDG-013', 'availableTo' => ['R-19', 'R-20'], 'citation' => 'Art. IV §4 — dismissal order; not justiciable or withdrawn, with a stated reason'],
@@ -857,6 +858,8 @@ return [
         'clocks'    => ['CLK-16'],
         // The verdict (deliberation → decided) is a judge-only CaseService transition, not a form —
         // it is recorded by a judge seated on the case's panel, and a criminal verdict locks double jeopardy.
+        // IO-2: a party may appeal a decided/sentenced judgement (F-IND-027) — the appeal is a new linked
+        // case; a criminal appeal may only affirm or vacate, and double jeopardy is never lifted (Art. II §8).
         'citation'  => 'Case lifecycle · panel ≥3 odd · Art. IV §4 · CLK-16 — double jeopardy barred · Art. II §8',
     ],
 

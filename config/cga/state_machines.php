@@ -124,9 +124,11 @@ return [
     // ESM-CASE — cases (PHASE_E_DESIGN_schema; App\Models\CourtCase, the
     // WF-JUD-03 spine). DB status strings (the CourtCase::STATUS_* CHECK).
     // 'jury_empaneled' is the optional pass for jury-entitled criminal cases
-    // (Art. IV §4); 'appealed' re-enters the lifecycle at a wider panel
-    // (deferred surface, the case-detail stage-10 cross-link). CaseService
-    // is the only writer of `status` — the page renders, never advances.
+    // (Art. IV §4); 'appealed' is the resting state of an appealed judgement
+    // (IO-2) — the appeal is a NEW linked case (appeal_of_case_id) heard by the
+    // parent judiciary or the same court en banc, and the original rests here
+    // with its verdict untouched (Art. II §8). CaseService is the only writer
+    // of `status` — the page renders, never advances.
     'case' => [
         'filed', 'accepted', 'paneled', 'jury_empaneled', 'heard',
         'deliberation', 'decided', 'sentenced', 'closed',

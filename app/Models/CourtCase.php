@@ -121,6 +121,22 @@ class CourtCase extends Model
         return $this->belongsTo(self::class, 'appeal_of_case_id');
     }
 
+    /**
+     * The appeal cases filed against THIS case (IO-2). An appeal is a new
+     * `cases` row linked by `appeal_of_case_id`; the original rests at
+     * `appealed` and is never otherwise mutated (Art. II §8).
+     */
+    public function appeals(): HasMany
+    {
+        return $this->hasMany(self::class, 'appeal_of_case_id');
+    }
+
+    /** Whether this case IS an appeal of another (has appeal_of_case_id). */
+    public function isAppeal(): bool
+    {
+        return $this->appeal_of_case_id !== null;
+    }
+
     public function parties(): HasMany
     {
         return $this->hasMany(CaseParty::class, 'case_id');
