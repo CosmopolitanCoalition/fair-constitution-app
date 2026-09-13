@@ -39,6 +39,7 @@ const props = defineProps({
     is_seller: { type: Boolean, default: false },
     /** Seller-only, and buyers appear as accounts. [] for everyone else. */
     pending_orders: { type: Array, default: () => [] },
+    pending_order_pages: { type: Object, default: () => ({ previous: null, next: null }) },
 });
 
 const page = usePage();
@@ -161,13 +162,21 @@ function settle(orderId) {
                     </p>
                 </template>
 
-                <p v-else class="econ-note">No one is waiting on you — nothing to accept.</p>
+                <p v-else class="econ-note">No pending orders on this page.</p>
+                <nav class="lst-pages" aria-label="Pending order pages">
+                    <Link v-if="pending_order_pages.previous" :href="pending_order_pages.previous" preserve-scroll rel="prev">Previous orders</Link>
+                    <Link v-if="pending_order_pages.next" :href="pending_order_pages.next" preserve-scroll rel="next">Next orders</Link>
+                    <Link :href="`/economy/market/${listing.id}`" preserve-scroll>First page</Link>
+                </nav>
             </Card>
         </template>
     </PageScaffold>
 </template>
 
 <style scoped>
+.lst-pages { display: flex; flex-wrap: wrap; gap: .5rem 1rem; margin-block-start: 1rem; }
+.lst-pages a { display: inline-flex; align-items: center; min-block-size: 44px; padding: .4rem .6rem; }
+.lst-pages a:focus-visible { outline: 3px solid var(--gov-accent); outline-offset: 3px; }
 .econ-stats {
     display: flex;
     flex-wrap: wrap;

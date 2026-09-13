@@ -197,6 +197,8 @@ class EconomyController extends Controller
 
     public function listing(Request $request, string $listing): Response
     {
+        $pendingDirectory = new \App\Support\PendingOrderDirectory();
+        $pendingDirectory->cursor($request);
         $offers = $this->offers($listing);
         abort_if($offers === [], 404);
 
@@ -213,17 +215,7 @@ class EconomyController extends Controller
         // Orders awaiting acceptance. SELLER ONLY, and even then the buyer
         // appears as an ACCOUNT — the seller needs to know which order to
         // settle, which is not the same as being told who bought it.
-        $pending = ! $isSeller ? [] : DB::table('marketplace_orders')
-            ->where('listing_id', $listing)
-            ->where('status', 'placed')
-            ->orderBy('created_at')
-            ->get()
-            ->map(fn ($o) => [
-                'id'               => (string) $o->id,
-                'buyer_account_id' => (string) $o->buyer_account_id,
-                'quantity'         => (string) $o->quantity,
-                'at'               => $this->iso($o->created_at),
-            ])->all();
+        $pending = $pendingDirectory->page($request, $listing, $myAccountId);
 
         return Inertia::render('Economy/Listing', [
             'surface'   => SurfaceMeta::for('economy/listing-detail'),
@@ -236,7 +228,8 @@ class EconomyController extends Controller
                 && $myAccountId !== null
                 && $myAccountId !== $row['seller_account_id'],
             'is_seller'       => $isSeller,
-            'pending_orders'  => $pending,
+            'pending_orders'  => $pending['orders'],
+            'pending_order_pages' => $pending['pagination'],
         ]);
     }
 
