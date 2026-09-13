@@ -50,6 +50,7 @@ const props = defineProps({
     can: { type: Object, default: () => ({ administerOwner: false, administerWorker: false }) },
     /** The open-nomination window dial (org setting) — read-only on this surface. */
     nominationWindow: { type: Object, default: () => ({ window_days: null, is_set: false, min: 1, max: 90, settings_href: '#' }) },
+    appointmentContext: { type: Object, default: null },
 });
 
 const page = usePage();
@@ -85,6 +86,20 @@ function electedRoundMap(result) {
 /* ----------------------------------------------------------- POST ------ */
 const ownerForm = useForm({ track: 'owner', action: 'open_owner_election' });
 const workerForm = useForm({ track: 'worker', action: 'open_worker_election' });
+const ownerCertification = useForm({ track: 'owner', action: 'certify', election_id: '' });
+const workerCertification = useForm({ track: 'worker', action: 'certify', election_id: '' });
+const provisionForm = useForm({ track: 'owner', action: 'provision_board', owner_seats: '', cycle_months: '' });
+
+function certify(track, form) {
+    if (!track.canCertify || !track.election?.id || form.processing) return;
+    form.election_id = track.election.id;
+    form.post(`/organizations/${props.organization.id}/board-elections`, { preserveScroll: true });
+}
+
+function provisionBoard() {
+    provisionForm.transform((data) => ({ ...data, cycle_months: data.cycle_months === '' ? null : data.cycle_months }))
+        .post(`/organizations/${props.organization.id}/board-elections`, { preserveScroll: true });
+}
 
 function scheduleOwner() {
     ownerForm.post(`/organizations/${props.organization.id}/board-elections`, { preserveScroll: true });
@@ -147,6 +162,14 @@ const nominationStrips = computed(() => {
         <Banner v-if="flashStatus" tone="info" role="status"><ReferenceText>{{ flashStatus }}</ReferenceText></Banner>
         <Banner v-if="constitutionError" tone="emergency"><ReferenceText>{{ constitutionError }}</ReferenceText></Banner>
 
+        <Card v-if="isCgc" as="section" :title="text('governor_appointments', 'Governor appointments')">
+            <p>{{ text('governor_appointment_path', 'Governors take office through executive nomination and legislative consent. These seats are not filled by an owner election.') }}</p>
+            <p class="cluster" style="margin-block-start: var(--space-2)">
+                <Link v-if="appointmentContext?.executive_href" :href="appointmentContext.executive_href">{{ text('overseeing_executive', 'Overseeing executive') }}</Link>
+                <Link v-if="appointmentContext?.legislature_href" :href="appointmentContext.legislature_href">{{ text('creating_legislature', 'Creating legislature') }}</Link>
+            </p>
+        </Card>
+
         <!-- ===================================== no board yet =========== -->
         <Card v-if="!composition" as="section" title="No board constituted">
             <Banner tone="info" role="status" title="This organization has no board yet.">
@@ -154,6 +177,16 @@ const nominationStrips = computed(() => {
                     ? text('cgc_no_board', 'No governing board has been established for this organization yet. Governor appointments and worker elections will appear here when available.')
                     : text('no_board', 'No governing board has been established for this organization yet. Worker seats become available as the workforce reaches the required size.') }}
             </Banner>
+            <form v-if="can.provisionBoard" class="stack" style="margin-block-start: var(--space-3)" @submit.prevent="provisionBoard">
+                <label for="board-owner-seats">{{ text('initial_owner_seats', 'Owner or member seats') }}</label>
+                <input id="board-owner-seats" v-model="provisionForm.owner_seats" type="number" min="1" max="99" step="1" required :aria-invalid="Boolean(provisionForm.errors.owner_seats)" aria-describedby="board-owner-seats-error" />
+                <p v-if="provisionForm.errors.owner_seats" id="board-owner-seats-error" role="alert">{{ provisionForm.errors.owner_seats }}</p>
+                <label for="board-cycle-months">{{ text('board_cycle_months', 'Board election cycle in months (optional)') }}</label>
+                <input id="board-cycle-months" v-model="provisionForm.cycle_months" type="number" min="1" step="1" :aria-invalid="Boolean(provisionForm.errors.cycle_months)" aria-describedby="board-cycle-hint board-cycle-error" />
+                <p id="board-cycle-hint" class="gloss">{{ text('board_cycle_default', 'Leave blank to use the default board election cycle.') }}</p>
+                <p v-if="provisionForm.errors.cycle_months" id="board-cycle-error" role="alert">{{ provisionForm.errors.cycle_months }}</p>
+                <Btn type="submit" variant="primary" :disabled="provisionForm.processing">{{ provisionForm.processing ? text('establishing_board', 'Establishing board…') : text('establish_board', 'Establish board') }}</Btn>
+            </form>
         </Card>
 
         <template v-else>
@@ -215,7 +248,7 @@ const nominationStrips = computed(() => {
             </Card>
 
             <!-- ======================================= owner track ====== -->
-            <Card as="section" :title="isCgc ? text('appointments_records', 'Governor appointments and election records') : text('owner_election', 'Owner-seat election')">
+            <Card v-if="!isCgc || ownerTrack.election" as="section" :title="text('owner_election', 'Owner-seat election')">
                 <p class="citation">
                     {{ isCgc
                         ? text('appointments_explained', 'Appointed governors hold the common-good side of this board. The seated board shows the current appointments; any election records below are preserved for reference.')
@@ -270,6 +303,11 @@ const nominationStrips = computed(() => {
                         {{ text('schedule_owner', 'Schedule owner-seat election') }}
                     </Btn>
                 </div>
+                <form v-if="ownerTrack.canCertify" style="margin-block-start: var(--space-3)" @submit.prevent="certify(ownerTrack, ownerCertification)">
+                    <p class="gloss">{{ text('certification_explained', 'Review the count before certifying. Certification records the result and seats the elected representatives.') }}</p>
+                    <Btn type="submit" variant="primary" :disabled="ownerCertification.processing">{{ ownerCertification.processing ? text('certifying', 'Certifying…') : text('certify_owner', 'Certify owner-seat result') }}</Btn>
+                    <p v-for="(error, key) in ownerCertification.errors" :key="key" role="alert"><ReferenceText>{{ error }}</ReferenceText></p>
+                </form>
             </Card>
 
             <!-- ===================================== worker track ======= -->
@@ -329,6 +367,11 @@ const nominationStrips = computed(() => {
                     {{ text('worker_threshold', 'Worker seats become available when the workforce reaches the required size. See the current workforce and thresholds on') }}
                     <Link :href="organization.codet_href">{{ text('worker_representation', 'Worker representation') }}</Link>.
                 </Banner>
+                <form v-if="workerTrack.canCertify" style="margin-block-start: var(--space-3)" @submit.prevent="certify(workerTrack, workerCertification)">
+                    <p class="gloss">{{ text('certification_explained', 'Review the count before certifying. Certification records the result and seats the elected representatives.') }}</p>
+                    <Btn type="submit" variant="primary" :disabled="workerCertification.processing">{{ workerCertification.processing ? text('certifying', 'Certifying…') : text('certify_worker', 'Certify worker-seat result') }}</Btn>
+                    <p v-for="(error, key) in workerCertification.errors" :key="key" role="alert"><ReferenceText>{{ error }}</ReferenceText></p>
+                </form>
             </Card>
 
             <!-- ===================================== joint chair ======== -->

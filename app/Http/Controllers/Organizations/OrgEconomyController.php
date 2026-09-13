@@ -2,13 +2,20 @@
 
 namespace App\Http\Controllers\Organizations;
 
+use App\Domain\Engine\ConstitutionalEngine;
 use App\Http\Controllers\Controller;
 use App\Models\Economy\Currency;
 use App\Models\Organization;
 use App\Services\Organizations\OrgSettingsService;
+use App\Services\Organizations\OrgOwnershipService;
+use App\Support\OrgShareDirectory;
+use App\Support\OrgShareRecipientDirectory;
 use App\Support\SurfaceMeta;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Validation\Rule;
+use Illuminate\Validation\ValidationException;
 use Inertia\Inertia;
 use Inertia\Response;
 
@@ -30,9 +37,9 @@ use Inertia\Response;
  * civic right: they are voluntary, and a lapse ends membership without
  * withholding any right (Art. I · Art. II §8).
  *
- * Piece 4 (share issuance, F-ORG-008) grows the Shares section here; for now
- * it renders honest-absence. Every value shown is READ from a row — nothing
- * is computed as policy in this controller.
+ * Share issuance uses F-ORG-008. Both issuance and the current settings
+ * handler require the exact agent; seated board members retain private
+ * ledger access. Ownership and recipient directories load independently.
  */
 class OrgEconomyController extends Controller
 {
@@ -40,21 +47,25 @@ class OrgEconomyController extends Controller
 
     public function show(Request $request, Organization $organization): Response
     {
-        // READ EVERYWHERE (operator ruling 2026-09-10): the page renders for every
-        // signed-in user. The org's identity, dues policy, cap table and conversions
-        // are public; the money-plane ledger and levies are the owner-privacy
-        // carve-out and stay behind can_steer (the agent and the seated board), as
-        // do the write controls.
+        abort_unless($request->user(), 403);
+        // Public ownership and private wallet access are separate from the
+        // exact-agent authority used by the existing settings/issuance forms.
         $canSteer = $this->maySteer($organization, $request);
-
-        $currency = $this->rootCurrency();
-
-        $accountIds = $this->orgAccountIds($organization);
+        $isAgent = (string) $organization->agent_user_id === (string) $request->user()->getKey();
+        $canIssue = $isAgent && $organization->structure === Organization::STRUCTURE_STOCK
+            && $organization->status !== Organization::STATUS_DISSOLVED;
+        $accountIds = null;
+        $accounts = function () use ($organization, &$accountIds) {
+            return $accountIds ??= $this->orgAccountIds($organization);
+        };
 
         return Inertia::render('Economy/OrgSettings', [
             'surface'    => SurfaceMeta::for('economy/org-settings'),
             'can_steer'  => $canSteer,
-            'currency'   => $this->currencyProp($currency),
+            'can_update_dues' => $isAgent,
+            'can_issue_shares' => $canIssue,
+            'compose' => $request->boolean('issue'),
+            'currency'   => fn () => $this->currencyProp($this->rootCurrency()),
             'org'        => [
                 'id'        => (string) $organization->id,
                 'name'      => (string) $organization->name,
@@ -62,17 +73,50 @@ class OrgEconomyController extends Controller
                 'structure' => $organization->structure === null ? null : (string) $organization->structure,
                 'is_cgc'    => (bool) $organization->is_cgc,
             ],
-            'dues'        => $this->duesProp($organization),
-            'shares'      => $this->sharesProp($organization),
+            'dues'        => fn () => $this->duesProp($organization),
+            'shares'      => fn () => app(OrgShareDirectory::class)->page($request, $organization),
+            'recipient_directory' => fn () => $canIssue
+                ? app(OrgShareRecipientDirectory::class)->page($request, $organization)
+                : OrgShareRecipientDirectory::empty(),
             // Design Round 2 ② — the economy half, filled from records that
             // already exist: the org's own ledger, what it owes in levies, and
             // any conversion that fixed a fair-market price for its equity.
-            'ledger'      => $canSteer
-                ? $this->ledgerProp($accountIds)
+            'ledger'      => fn () => $canSteer
+                ? $this->ledgerProp($accounts())
                 : ['has_account' => false, 'balance' => null, 'movements' => [], 'restricted' => true],
-            'taxes'       => $canSteer ? $this->taxesProp($accountIds) : [],
-            'conversions' => $this->conversionsProp($organization),
+            'taxes'       => fn () => $canSteer ? $this->taxesProp($accounts()) : [],
+            'conversions' => fn () => $this->conversionsProp($organization),
         ]);
+    }
+
+    public function issueShares(Request $request, Organization $organization, ConstitutionalEngine $engine): RedirectResponse
+    {
+        abort_unless($request->user()
+            && (string) $organization->agent_user_id === (string) $request->user()->getKey(), 403);
+        abort_unless($organization->structure === Organization::STRUCTURE_STOCK, 422, 'Only stock organizations issue shares.');
+        abort_if($organization->status === Organization::STATUS_DISSOLVED, 422, 'A dissolved organization cannot issue shares.');
+        $data = $request->validate([
+            'holder_type' => ['required', Rule::in(['users', 'organizations'])],
+            'holder_id' => ['required', 'uuid'],
+            'units' => ['required', 'string', 'regex:/\A\d{1,14}(?:\.\d{1,6})?\z/'],
+        ]);
+        $request->validate(['holder_id' => [Rule::exists($data['holder_type'], 'id')->whereNull('deleted_at')]]);
+        try {
+            $units = OrgOwnershipService::normalizeUnits($data['units']);
+        } catch (\InvalidArgumentException $error) {
+            throw ValidationException::withMessages(['units' => $error->getMessage()]);
+        }
+        $engine->file('F-ORG-008', $request->user(), [
+            'action' => 'issue_shares', 'organization_id' => (string) $organization->id,
+            'holder_type' => $data['holder_type'], 'holder_id' => $data['holder_id'], 'units' => $units,
+        ]);
+
+        $recipient = DB::table($data['holder_type'])->where('id', $data['holder_id'])->whereNull('deleted_at')
+            ->first($data['holder_type'] === 'users' ? ['display_name', 'name'] : ['name']);
+        $name = trim((string) ($recipient->display_name ?? '')) ?: ($recipient->name ?? 'the selected recipient');
+
+        return redirect('/organizations/'.$organization->id.'/economy')
+            ->with('status', 'Shares issued: '.$units.' units to '.$name.'. Public ownership is recorded; no payment was made.');
     }
 
     /**
@@ -218,61 +262,6 @@ class OrgEconomyController extends Controller
             'amount'      => $amount === null ? null : (string) $amount,
             'period_days' => $period === null ? null : (int) $period,
         ];
-    }
-
-    /**
-     * The cap table, on the NAMED ownership plane (Ruling B). Who owns a
-     * company is a public fact — equity holders appear by name here, which is
-     * NOT the pseudonymous money plane. Only a STOCK organization issues
-     * shares (F-ORG-008); elsewhere ownership is by membership, and this
-     * renders honest-absence.
-     *
-     * @return array{issued: bool, issuable: bool, holders: list<array<string, mixed>>, total_units: string, note: string}
-     */
-    private function sharesProp(Organization $organization): array
-    {
-        $issuable = (string) $organization->structure === Organization::STRUCTURE_STOCK;
-
-        $stakes = DB::table('org_ownership_stakes')
-            ->where('organization_id', $organization->id)
-            ->whereNull('ended_at')
-            ->orderByDesc('units')
-            ->get(['holder_type', 'holder_id', 'units', 'pct', 'acquired_via']);
-
-        $holders = $stakes->map(fn ($s) => [
-            'holder' => $this->holderName((string) $s->holder_type, (string) $s->holder_id),
-            'units'  => (string) $s->units,
-            'pct'    => $s->pct === null ? null : (string) $s->pct,
-            'via'    => (string) $s->acquired_via,
-        ])->all();
-
-        $total = $stakes->reduce(fn ($c, $s) => bcadd((string) $c, (string) $s->units, 6), '0');
-
-        return [
-            'issued'      => count($holders) > 0,
-            'issuable'    => $issuable,
-            'holders'     => $holders,
-            'total_units' => $total,
-            'note'        => $issuable
-                ? 'Equity shares are a public ownership fact, recorded by name. The money that changes hands when a share trades stays on the private wallet ledger.'
-                : 'Ownership here is by membership, not shares — only a stock organization issues equity (Art. III §5).',
-        ];
-    }
-
-    private function holderName(string $type, string $id): string
-    {
-        if ($type === 'organizations') {
-            return (string) (DB::table('organizations')->where('id', $id)->value('name') ?? 'An organization');
-        }
-        if ($type === 'jurisdictions') {
-            return (string) (DB::table('jurisdictions')->where('id', $id)->value('name') ?? 'A jurisdiction');
-        }
-
-        // users — the named ownership plane (Ruling B), never the money plane.
-        // The chosen PUBLIC name (display_name), never the legal name.
-        $u = DB::table('users')->where('id', $id)->first(['display_name', 'name']);
-
-        return (string) ($u->display_name ?? $u->name ?? 'A holder');
     }
 
     private function maySteer(Organization $org, Request $request): bool

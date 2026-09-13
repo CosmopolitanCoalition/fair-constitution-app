@@ -11,6 +11,8 @@ use App\Models\BoardSeat;
 use App\Models\ChamberVote;
 use App\Models\Election;
 use App\Models\ElectionRace;
+use App\Models\Executive;
+use App\Models\Legislature;
 use App\Models\Organization;
 use App\Models\OrgMembership;
 use App\Models\OrgWorker;
@@ -58,6 +60,11 @@ class BoardElectionController extends Controller
 
         $viewerIsAgent = $request->user() !== null
             && (string) $organization->agent_user_id === (string) $request->user()->getKey();
+        $canAdminister = $viewerIsAgent && $organization->status === Organization::STATUS_ACTIVE;
+        $boardIsCurrent = $board !== null && $board->status !== Board::STATUS_DISSOLVED
+            && $board->boardable_type === Board::BOARDABLE_ORGANIZATIONS
+            && (string) $board->boardable_id === (string) $organization->id;
+        $vacancies = $board?->seats->where('status', BoardSeat::STATUS_VACANT);
 
         return Inertia::render('Organizations/BoardElections', [
             'surface' => SurfaceMeta::for('organizations/board-elections'),
@@ -66,17 +73,20 @@ class BoardElectionController extends Controller
             // The open-nomination window DIAL (operator v3.2 item 0d) — the
             // org's own setting, read and linked here (it is set on org detail).
             'nominationWindow' => $this->nominationWindow($organization),
+            'appointmentContext' => $this->appointmentContext($organization),
             'ownerTrack' => $this->track(
                 $organization,
                 $board,
                 Election::KIND_ORG_BOARD_OWNER,
                 ElectionRace::ELECTORATE_OWNERS,
+                $canAdminister && $boardIsCurrent && ! $organization->is_cgc,
             ),
             'workerTrack' => $this->track(
                 $organization,
                 $board,
                 Election::KIND_ORG_BOARD_WORKER,
                 ElectionRace::ELECTORATE_WORKERS,
+                $canAdminister && $boardIsCurrent,
             ),
             'chair' => $this->chair($board),
             'seated' => $this->seated($board),
@@ -87,8 +97,12 @@ class BoardElectionController extends Controller
                 // engine re-asserts on POST — the UI flag is UX only. Worker
                 // track also fires system-side from CLK-13 (never blocked by
                 // a missing agent).
-                'administerOwner' => $viewerIsAgent,
-                'administerWorker' => $viewerIsAgent,
+                'provisionBoard' => $canAdminister && ! $organization->is_cgc && $organization->board_id === null,
+                'administerOwner' => $canAdminister && $boardIsCurrent && ! $organization->is_cgc
+                    && $vacancies->contains('seat_class', BoardSeat::CLASS_OWNER_ELECTED),
+                'administerWorker' => $canAdminister && $boardIsCurrent
+                    && (int) $board->worker_seats > 0
+                    && $vacancies->contains('seat_class', BoardSeat::CLASS_WORKER_ELECTED),
             ],
         ]);
     }
@@ -108,7 +122,7 @@ class BoardElectionController extends Controller
             'action' => ['required', 'string', 'in:provision_board,open_owner_election,open_worker_election,certify'],
             'owner_seats' => ['nullable', 'integer', 'min:1', 'max:99'],
             'cycle_months' => ['nullable', 'integer', 'min:1'],
-            'election_id' => ['nullable', 'uuid'],
+            'election_id' => ['required_if:action,certify', 'nullable', 'uuid'],
         ]);
 
         if ($validated['track'] === 'owner') {
@@ -121,7 +135,11 @@ class BoardElectionController extends Controller
                 'election_id' => $validated['election_id'] ?? null,
             ], fn ($v) => $v !== null));
 
-            return back()->with('status', 'Owner-track board election administered (F-ORG-003) — counts publish on the public ballot surfaces · Art. III §4, §6.');
+            return back()->with('status', match ($validated['action']) {
+                'provision_board' => 'Board established. Its seats can now be filled through the applicable elections.',
+                'open_owner_election' => 'Owner-seat election opened. Eligible owners or members can now nominate candidates and vote.',
+                default => 'Owner-seat election result certified.',
+            });
         }
 
         // F-ORG-004 keys on the board (open worker / certify). The worker
@@ -141,12 +159,31 @@ class BoardElectionController extends Controller
             'election_id' => $validated['election_id'] ?? null,
         ], fn ($v) => $v !== null));
 
-        return back()->with('status', 'Worker-track board election administered (F-ORG-004) — the worker seats come from the uniform co-determination scale · Art. III §6.');
+        return back()->with('status', $validated['action'] === 'certify'
+            ? 'Worker-seat election result certified.'
+            : 'Worker-seat election opened. Eligible workers can now nominate candidates and vote.');
     }
 
     // =========================================================================
     // Prop builders — all read straight off the rows
     // =========================================================================
+
+    /** Oversight links only: the existing department nomination form cannot nominate a CGC governor. */
+    private function appointmentContext(Organization $organization): ?array
+    {
+        if (! $organization->is_cgc) {
+            return null;
+        }
+
+        return [
+            'executive_href' => $organization->overseen_by_executive_id !== null
+                && Executive::query()->whereKey($organization->overseen_by_executive_id)->exists()
+                    ? '/executives/'.$organization->overseen_by_executive_id : null,
+            'legislature_href' => $organization->created_by_legislature_id !== null
+                && Legislature::query()->whereKey($organization->created_by_legislature_id)->exists()
+                    ? '/legislatures/'.$organization->created_by_legislature_id.'/chamber' : null,
+        ];
+    }
 
     /** @return array<string, mixed> */
     private function header(Organization $organization, ?Board $board): array
@@ -200,7 +237,7 @@ class BoardElectionController extends Controller
      *
      * @return array<string, mixed>
      */
-    private function track(Organization $organization, ?Board $board, string $kind, string $electorate): array
+    private function track(Organization $organization, ?Board $board, string $kind, string $electorate, bool $mayCertify): array
     {
         $form = $kind === Election::KIND_ORG_BOARD_OWNER ? 'F-ORG-003' : 'F-ORG-004';
 
@@ -215,12 +252,15 @@ class BoardElectionController extends Controller
             ->where('kind', $kind)
             ->orderByDesc('created_at')
             ->first();
+        $certificationReady = $this->readyToCertify($election);
 
         return [
             'form' => $form,
             'electorate_type' => $electorate,
             'electorate_count' => $this->electorateCount($organization, $electorate),
-            'exists' => $workerTrackExists,
+            'exists' => $workerTrackExists || $election !== null,
+            'certificationReady' => $certificationReady,
+            'canCertify' => $mayCertify && $certificationReady,
             'election' => $election !== null ? [
                 'id' => (string) $election->id,
                 'status' => $election->status,
@@ -247,6 +287,23 @@ class BoardElectionController extends Controller
                 ? 'scale'
                 : null,
         ];
+    }
+
+    /** Readiness mirrors the seating service's state and complete, sealed count checks. */
+    private function readyToCertify(?Election $election): bool
+    {
+        if ($election === null || ! in_array($election->status, [
+            Election::STATUS_VOTING_CLOSED, Election::STATUS_TABULATING,
+        ], true)) {
+            return false;
+        }
+
+        // Exists queries stay scoped to this election; never materialize all races or count records.
+        return $election->races()->exists()
+            && ! $election->races()->whereDoesntHave('tabulations', fn ($query) => $query
+                ->where('status', Tabulation::STATUS_COMPLETE)
+                ->whereNotNull('record_hash'))
+                ->exists();
     }
 
     /**

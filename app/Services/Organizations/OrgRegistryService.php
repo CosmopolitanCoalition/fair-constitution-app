@@ -11,6 +11,7 @@ use App\Models\OrgWorker;
 use App\Models\User;
 use App\Services\PublicRecordService;
 use App\Services\RoleService;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 
 /**
@@ -180,6 +181,17 @@ class OrgRegistryService
      * @return array<string, mixed>
      */
     public function dissolve(Organization $org, ?User $actor, ?string $reason): array
+    {
+        return DB::transaction(function () use ($org, $actor, $reason) {
+            // Match issuance and resale: lock the organization before touching
+            // memberships or stakes, and recheck lifecycle state under that lock.
+            $locked = Organization::query()->whereKey($org->id)->lockForUpdate()->firstOrFail();
+
+            return $this->dissolveLocked($locked, $actor, $reason);
+        });
+    }
+
+    private function dissolveLocked(Organization $org, ?User $actor, ?string $reason): array
     {
         if ($org->is_cgc) {
             throw new ConstitutionalViolation(

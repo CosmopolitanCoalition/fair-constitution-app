@@ -154,6 +154,9 @@ class ShareTradeService
             $buyerAccount  = (string) $this->accounts->open('users', (string) $buyer->id, $currencyId)->id;
             $sellerAccount = (string) $this->accounts->open('users', $sellerId, $currencyId)->id;
             DB::table('economic_accounts')->where('id', $buyerAccount)->lockForUpdate()->first();
+            // Every cap-table writer takes the organization before its stake
+            // rows. Taking it afterward would deadlock a trade against issuance.
+            $org = Organization::query()->whereKey($orgId)->lockForUpdate()->firstOrFail();
             DB::table('org_ownership_stakes')
                 ->where('organization_id', $orgId)
                 ->where('holder_type', OrgOwnershipStake::HOLDER_USERS)
@@ -164,7 +167,6 @@ class ShareTradeService
             // Re-check the org is STILL a stock enterprise — a restructure between
             // offer and buy must not let equity settle on an org that no longer
             // has shares.
-            $org = Organization::query()->findOrFail($orgId);
             if ((string) $org->structure !== Organization::STRUCTURE_STOCK) {
                 throw new \App\Domain\Engine\ConstitutionalViolation(
                     'Only a stock organization has shares to trade — this organization no longer does.',

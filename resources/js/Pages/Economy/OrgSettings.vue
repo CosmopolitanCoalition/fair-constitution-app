@@ -12,17 +12,18 @@
  * A due can never gate a civic right: it is voluntary, and a lapse ends
  * membership without withholding any right (Art. I · Art. II §8).
  *
- * The dues policy is set through F-ORG-001 'update_settings' — an org's own
- * rule about itself, on the audit chain, never a constitutional value. Piece 4
- * (F-ORG-008 share issuance) grows the Shares section; it is honest-absence
- * until then.
+ * Dues use F-ORG-001 and share issuance uses F-ORG-008. Their current
+ * handlers require the exact agent; private ledger access also includes
+ * seated board members. Recipient searches and ownership pages load alone.
  */
-import { useForm } from '@inertiajs/vue3';
+import { ref, watch } from 'vue';
+import { router, useForm, usePage, useRemember } from '@inertiajs/vue3';
 import AppShellV2 from '@/Layouts/AppShellV2.vue';
 import PageScaffold from '@/Components/Surface/PageScaffold.vue';
 import Card from '@/Components/Ui/Card.vue';
+import Banner from '@/Components/Ui/Banner.vue';
 import OrganizationNav from '@/Components/Organizations/OrganizationNav.vue';
-import { formatMoney, formatCount, formatWhen, shortId } from '@/lib/money.js';
+import { formatMoney, formatQuantity, formatCount, formatWhen, shortId } from '@/lib/money.js';
 
 defineOptions({ layout: AppShellV2 });
 
@@ -31,8 +32,12 @@ const props = defineProps({
     currency: { type: Object, default: null },
     org: { type: Object, required: true },
     can_steer: { type: Boolean, default: false },
+    can_update_dues: { type: Boolean, default: false },
+    can_issue_shares: { type: Boolean, default: false },
+    compose: { type: Boolean, default: false },
     dues: { type: Object, required: true },
     shares: { type: Object, required: true },
+    recipient_directory: { type: Object, default: () => ({ query: '', type: 'users', candidates: [], searched: false, previous: null, next: null }) },
     /** The org's own ledger (money plane — counterparties are accounts). */
     ledger: { type: Object, default: () => ({ has_account: false, balance: '0.000000', movements: [] }) },
     /** Levies filed (Art. V §4); [] when the org has filed none. */
@@ -51,16 +56,69 @@ const periodForm = useForm({ key: 'dues_period_days', value: props.dues.period_d
 
 const saveAmount = () => amountForm.post(settingsPath, { preserveScroll: true });
 const savePeriod = () => periodForm.post(settingsPath, { preserveScroll: true });
+
+const economyPath = `/organizations/${props.org.id}/economy`;
+const page = usePage();
+const draftKey = `share-issue:${page.props.auth?.user?.id ?? 'guest'}:${props.org.id}`;
+const issueOpen = useRemember(ref(props.compose), `${draftKey}:open`);
+const shareForm = useForm(draftKey, { holder_type: 'users', holder_id: '', units: '' });
+const chosenName = useRemember(ref(''), `${draftKey}:holder`);
+const recipientQuery = ref(props.recipient_directory.query);
+const recipientType = ref(props.recipient_directory.type);
+const searching = ref(false);
+const pagingShares = ref(false);
+const searchError = ref('');
+const sharePageError = ref('');
+watch(() => props.recipient_directory.query, value => { recipientQuery.value = value; });
+watch(() => props.recipient_directory.type, value => { recipientType.value = value; });
+
+function searchOptions() {
+    return {
+        only: ['recipient_directory'], preserveState: true, preserveScroll: true,
+        onStart: () => { searching.value = true; searchError.value = ''; },
+        onFinish: () => { searching.value = false; },
+        onError: errors => { searchError.value = Object.values(errors)[0] ?? 'The search could not be completed.'; },
+    };
+}
+function searchRecipients(url = null) {
+    if (url) router.get(url, {}, searchOptions());
+    else router.get(economyPath, { issue: 1, recipient_q: recipientQuery.value.trim(), recipient_type: recipientType.value }, searchOptions());
+}
+function chooseRecipient(person) {
+    shareForm.holder_type = person.type;
+    shareForm.holder_id = person.id;
+    chosenName.value = person.name;
+    shareForm.clearErrors('holder_id', 'holder_type');
+}
+function clearRecipient() {
+    shareForm.holder_id = '';
+    chosenName.value = '';
+}
+function pageShares(url) {
+    router.get(url, {}, {
+        only: ['shares'], preserveState: true, preserveScroll: true,
+        onStart: () => { pagingShares.value = true; sharePageError.value = ''; },
+        onFinish: () => { pagingShares.value = false; },
+        onError: errors => { sharePageError.value = Object.values(errors)[0] ?? 'The ownership records could not be loaded.'; },
+    });
+}
+function issueShares() {
+    shareForm.post(`/organizations/${props.org.id}/shares`, {
+        preserveScroll: true,
+        onSuccess: () => { shareForm.reset(); chosenName.value = ''; issueOpen.value = false; },
+    });
+}
 </script>
 
 <template>
     <PageScaffold :title="`${org.name} — finances`">
         <template #intro>
-            Review this organization's dues, shares, and financial records. Its agent and seated
-            board members can update the dues policy.
+            Review this organization's dues, shares, and financial records. Its agent can update
+            dues and issue shares for a stock organization.
         </template>
 
         <OrganizationNav :organization="org" current="finances" />
+        <Banner v-if="page.props.flash?.status" tone="info" role="status">{{ page.props.flash.status }}</Banner>
 
         <!-- ------------------------------------------------------- dues -->
         <Card as="section" title="Dues">
@@ -98,22 +156,24 @@ const savePeriod = () => periodForm.post(settingsPath, { preserveScroll: true })
                     <label :for="'dues-amount'">Dues amount ({{ currency?.symbol ?? 'units' }})</label>
                     <div class="dues-dial-row">
                         <input id="dues-amount" v-model="amountForm.value" type="number" min="0" step="0.000001" inputmode="decimal" />
-                        <button type="submit" :disabled="!can_steer || amountForm.processing">Save</button>
+                        <button type="submit" :disabled="!can_update_dues || amountForm.processing">{{ amountForm.processing ? 'Saving…' : 'Save' }}</button>
                     </div>
                     <p v-if="amountForm.errors.constitution" class="dues-err">{{ amountForm.errors.constitution }}</p>
+                    <p v-if="amountForm.errors.value" class="dues-err" role="alert">{{ amountForm.errors.value }}</p>
                 </form>
 
                 <form class="dues-dial" @submit.prevent="savePeriod">
                     <label :for="'dues-period'">Period (days)</label>
                     <div class="dues-dial-row">
                         <input id="dues-period" v-model="periodForm.value" type="number" min="1" max="3650" step="1" inputmode="numeric" />
-                        <button type="submit" :disabled="!can_steer || periodForm.processing">Save</button>
+                        <button type="submit" :disabled="!can_update_dues || periodForm.processing">{{ periodForm.processing ? 'Saving…' : 'Save' }}</button>
                     </div>
                     <p v-if="periodForm.errors.constitution" class="dues-err">{{ periodForm.errors.constitution }}</p>
+                    <p v-if="periodForm.errors.value" class="dues-err" role="alert">{{ periodForm.errors.value }}</p>
                 </form>
             </div>
             <p class="econ-note">
-                Changes are recorded in this organization's history. Clear the amount to charge no dues.
+                Changes are recorded in this organization's history. Set the amount to zero to charge no dues.
             </p>
         </Card>
 
@@ -123,29 +183,74 @@ const savePeriod = () => periodForm.post(settingsPath, { preserveScroll: true })
                 {{ shares.issuable ? 'No shares issued yet.' : shares.note }}
             </p>
             <template v-else>
-                <dl class="econ-facts">
-                    <div><dt>Total issued</dt><dd>{{ formatMoney(shares.total_units, null) }} units</dd></div>
-                    <div><dt>Holders</dt><dd>{{ shares.holders.length }}</dd></div>
-                </dl>
+                <p class="econ-note">Each entry is one recorded ownership stake. A holder may have several entries.</p>
                 <table class="cap-table">
                     <thead>
                         <tr><th scope="col">Holder</th><th scope="col">Units</th><th scope="col">Share</th></tr>
                     </thead>
                     <tbody>
-                        <tr v-for="(h, i) in shares.holders" :key="i">
+                        <tr v-for="h in shares.holders" :key="h.id">
                             <td>{{ h.holder }}</td>
-                            <td>{{ formatMoney(h.units, null) }}</td>
+                            <td>{{ formatQuantity(h.units) }}</td>
                             <td>{{ h.pct !== null ? h.pct + '%' : '—' }}</td>
                         </tr>
                     </tbody>
                 </table>
+                <p v-if="!shares.holders.length" class="econ-note">No ownership entries on this page. Return to the first page to refresh.</p>
+                <nav class="share-pages" aria-label="Ownership pages" :aria-busy="pagingShares">
+                    <button v-if="shares.previous" :disabled="pagingShares" @click="pageShares(shares.previous)">Previous</button>
+                    <button v-if="shares.next" :disabled="pagingShares" @click="pageShares(shares.next)">Next</button>
+                    <button v-if="shares.previous || !shares.holders.length" :disabled="pagingShares" @click="pageShares(economyPath)">First page</button>
+                    <span role="status">{{ pagingShares ? 'Loading ownership…' : `${shares.holders.length} entries on this page` }}</span>
+                </nav>
             </template>
+            <p v-if="sharePageError" class="dues-err" role="alert">{{ sharePageError }}</p>
             <p class="econ-note">
                 An organization may issue equity <strong>shares</strong> — never a currency (that is
                 reserved to the most-encompassing jurisdiction, Art. V §5). Ownership is a public
                 fact recorded by name; the money that changes hands when a share trades stays on the
                 private wallet ledger.
             </p>
+
+            <button v-if="can_issue_shares" type="button" :aria-expanded="issueOpen" aria-controls="share-composer" @click="issueOpen = !issueOpen">
+                {{ issueOpen ? 'Close share form' : 'Issue shares' }}
+            </button>
+            <div v-if="can_issue_shares && issueOpen" id="share-composer" class="share-composer">
+                <h3>Issue shares</h3>
+                <p class="econ-note">Select a recipient and enter the new units. This adds public ownership and changes existing ownership percentages.</p>
+                <form class="recipient-search" @submit.prevent="searchRecipients()">
+                    <label for="share-recipient-type">Recipient type</label>
+                    <select id="share-recipient-type" v-model="recipientType">
+                        <option value="users">Person</option><option value="organizations">Organization</option>
+                    </select>
+                    <label for="share-recipient-query">Name starts with</label>
+                    <input id="share-recipient-query" v-model="recipientQuery" maxlength="120" autocomplete="off" />
+                    <button type="submit" :disabled="searching">{{ searching ? 'Searching…' : 'Search' }}</button>
+                </form>
+                <div :aria-busy="searching">
+                    <p v-if="searchError" class="dues-err" role="alert">{{ searchError }}</p>
+                    <p v-if="!recipient_directory.searched" class="econ-note">Search by public name to select a person or organization.</p>
+                    <p v-else-if="!recipient_directory.candidates.length" role="status">No matching recipients on this page.</p>
+                    <ul v-if="recipient_directory.candidates.length" class="recipient-results">
+                        <li v-for="person in recipient_directory.candidates" :key="`${person.type}:${person.id}`">
+                            <span>{{ person.name }}</span>
+                            <button type="button" :disabled="shareForm.holder_id === person.id && shareForm.holder_type === person.type" @click="chooseRecipient(person)">Select<span class="sr-only"> {{ person.name }}</span></button>
+                        </li>
+                    </ul>
+                    <nav class="share-pages" aria-label="Recipient search pages">
+                        <button v-if="recipient_directory.previous" :disabled="searching" @click="searchRecipients(recipient_directory.previous)">Previous</button>
+                        <button v-if="recipient_directory.next" :disabled="searching" @click="searchRecipients(recipient_directory.next)">Next</button>
+                    </nav>
+                </div>
+                <form class="share-issue" @submit.prevent="issueShares">
+                    <p v-if="shareForm.holder_id" class="selected-recipient">Recipient: <strong>{{ chosenName || 'Selected recipient' }}</strong> ({{ shareForm.holder_type === 'users' ? 'person' : 'organization' }}) <button type="button" @click="clearRecipient">Change</button></p>
+                    <label for="share-units">New share units</label>
+                    <input id="share-units" v-model="shareForm.units" type="text" inputmode="decimal" maxlength="21" required pattern="[0-9]{1,14}(\.[0-9]{1,6})?" aria-describedby="share-units-help" />
+                    <p id="share-units-help" class="econ-note">A positive amount with up to six decimal places. This action does not collect payment.</p>
+                    <p v-for="(error, key) in shareForm.errors" :key="key" class="dues-err" role="alert">{{ error }}</p>
+                    <button type="submit" :disabled="!shareForm.holder_id || shareForm.processing">{{ shareForm.processing ? 'Issuing…' : 'Issue shares to selected recipient' }}</button>
+                </form>
+            </div>
         </Card>
 
         <!-- ------------------------------------------------- org ledger -->
@@ -266,4 +371,14 @@ const savePeriod = () => periodForm.post(settingsPath, { preserveScroll: true })
 .cap-table { inline-size: 100%; border-collapse: collapse; margin-block: var(--space-3, 1rem); }
 .cap-table th, .cap-table td { text-align: start; padding: var(--space-2, 0.5rem); border-block-end: 1px solid var(--gov-border, #dde); }
 .mono { font-family: var(--font-mono, ui-monospace, monospace); }
+.share-pages { display: flex; align-items: center; flex-wrap: wrap; gap: 0.75rem; margin-block: 1rem; }
+.share-composer { margin-block-start: 1rem; padding: 1rem; border: 1px solid var(--gov-border, #445); border-radius: 0.5rem; }
+.recipient-search, .share-issue { display: grid; gap: 0.5rem; }
+.recipient-search input, .recipient-search select, .share-issue input { inline-size: 100%; max-inline-size: 30rem; min-inline-size: 0; }
+.recipient-search button, .share-issue > button { justify-self: start; }
+.recipient-results { list-style: none; padding: 0; }
+.recipient-results li { display: flex; justify-content: space-between; align-items: center; gap: 1rem; padding-block: 0.5rem; border-block-end: 1px solid var(--gov-border, #445); }
+.recipient-results span, .selected-recipient { overflow-wrap: anywhere; }
+.share-issue { margin-block-start: 1.5rem; }
+.dues-dial-row input { min-inline-size: 0; }
 </style>

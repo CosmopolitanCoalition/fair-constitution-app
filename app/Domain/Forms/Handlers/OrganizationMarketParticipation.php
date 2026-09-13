@@ -8,6 +8,9 @@ use App\Models\Organization;
 use App\Models\OrgOwnershipStake;
 use App\Models\User;
 use App\Services\Organizations\OrgOwnershipService;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Str;
+use InvalidArgumentException;
 
 /**
  * F-ORG-008 — Organization Market Participation (R-23).
@@ -53,7 +56,19 @@ class OrganizationMarketParticipation implements FormHandler
 
     public function handle(?User $actor, array $payload): array
     {
-        $org = Organization::query()->find($payload['organization_id'] ?? null);
+        return DB::transaction(fn () => $this->issueForOrganization($actor, $payload));
+    }
+
+    private function issueForOrganization(?User $actor, array $payload): array
+    {
+        $organizationId = $payload['organization_id'] ?? null;
+        if (! is_string($organizationId) || ! Str::isUuid($organizationId)) {
+            throw new ConstitutionalViolation('Choose an existing organization.', 'CGA Forms Catalog (F-ORG-008)');
+        }
+
+        // Keep the authority/structure checks and the ownership write under
+        // the same organization lock as other cap-table changes.
+        $org = Organization::query()->lockForUpdate()->find($organizationId);
 
         if ($org === null) {
             throw new ConstitutionalViolation('F-ORG-008 targets an unknown organization.', 'CGA Forms Catalog (F-ORG-008)');
@@ -68,7 +83,7 @@ class OrganizationMarketParticipation implements FormHandler
             );
         }
 
-        $action = (string) ($payload['action'] ?? '');
+        $action = is_string($payload['action'] ?? null) ? $payload['action'] : '';
 
         $result = match ($action) {
             'issue_shares' => $this->issueShares($org, $payload),
@@ -84,6 +99,10 @@ class OrganizationMarketParticipation implements FormHandler
     /** @return array<string, mixed> */
     private function issueShares(Organization $org, array $payload): array
     {
+        if ($org->status === Organization::STATUS_DISSOLVED) {
+            throw new ConstitutionalViolation('A dissolved organization cannot issue new shares.', 'CGA Forms Catalog (F-ORG-008)');
+        }
+
         // Shares are equity in a stock enterprise (Art. III §5). An org owned
         // by its members, partners or no one (nonprofit) has no shares.
         if ((string) $org->structure !== Organization::STRUCTURE_STOCK) {
@@ -93,7 +112,7 @@ class OrganizationMarketParticipation implements FormHandler
             );
         }
 
-        $holderType = (string) ($payload['holder_type'] ?? '');
+        $holderType = $payload['holder_type'] ?? null;
         if (! in_array($holderType, [OrgOwnershipStake::HOLDER_USERS, OrgOwnershipStake::HOLDER_ORGANIZATIONS], true)) {
             throw new ConstitutionalViolation(
                 'A share is issued to a person or an organization.',
@@ -101,14 +120,20 @@ class OrganizationMarketParticipation implements FormHandler
             );
         }
 
-        $holderId = (string) ($payload['holder_id'] ?? '');
-        if ($holderId === '') {
-            throw new ConstitutionalViolation('issue_shares names no holder.', 'CGA Forms Catalog (F-ORG-008)');
+        $holderId = $payload['holder_id'] ?? null;
+        if (! is_string($holderId) || ! Str::isUuid($holderId)) {
+            throw new ConstitutionalViolation('Choose an existing person or organization to receive the shares.', 'CGA Forms Catalog (F-ORG-008)');
         }
 
-        $units = (float) ($payload['units'] ?? 0);
-        if ($units <= 0) {
-            throw new ConstitutionalViolation('Shares are issued in a positive number of units.', 'CGA Forms Catalog (F-ORG-008)');
+        $holder = $holderType === OrgOwnershipStake::HOLDER_USERS ? User::query() : Organization::query();
+        if (! $holder->whereKey($holderId)->exists()) {
+            throw new ConstitutionalViolation('The selected share recipient no longer exists.', 'CGA Forms Catalog (F-ORG-008)');
+        }
+
+        try {
+            $units = OrgOwnershipService::normalizeUnits($payload['units'] ?? null);
+        } catch (InvalidArgumentException $error) {
+            throw new ConstitutionalViolation($error->getMessage(), 'CGA Forms Catalog (F-ORG-008)');
         }
 
         $stake = $this->ownership->openStake($org, $holderType, $holderId, $units, OrgOwnershipStake::VIA_ISSUE);
@@ -118,7 +143,7 @@ class OrganizationMarketParticipation implements FormHandler
             'holder_type' => $holderType,
             'holder_id'   => $holderId,
             'units'       => (string) $stake->units,
-            'pct'         => (string) ($stake->refresh()->pct ?? '0'),
+            'pct'         => (string) ($stake->pct ?? '0'),
         ];
     }
 }

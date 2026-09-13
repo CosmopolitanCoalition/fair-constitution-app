@@ -1089,6 +1089,8 @@ Route::middleware('auth')->group(function () {
     // Design Round 2 ② — the org's economic control panel (dues policy + cap table).
     Route::get('/organizations/{organization}/economy', [\App\Http\Controllers\Organizations\OrgEconomyController::class, 'show'])
         ->whereUuid('organization')->name('organizations.economy');
+    Route::post('/organizations/{organization}/shares', [\App\Http\Controllers\Organizations\OrgEconomyController::class, 'issueShares'])
+        ->whereUuid('organization')->name('organizations.shares.issue');
     Route::patch('/organizations/{organization}', [\App\Http\Controllers\Organizations\OrganizationController::class, 'update'])
         ->whereUuid('organization')->name('organizations.update');                 // F-ORG-001
     Route::get('/organizations/{organization}/cgc', [\App\Http\Controllers\Organizations\CgcController::class, 'show'])
