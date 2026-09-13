@@ -9,8 +9,8 @@
  * Rejections are part of the chain: append-only means the rejection itself
  * is appended.
  */
-import { computed } from 'vue';
-import { Link, useForm, usePage } from '@inertiajs/vue3';
+import { computed, ref, watch } from 'vue';
+import { router, useForm, usePage } from '@inertiajs/vue3';
 import AppShellV2 from '@/Layouts/AppShellV2.vue';
 import PageScaffold from '@/Components/Surface/PageScaffold.vue';
 import Banner from '@/Components/Ui/Banner.vue';
@@ -27,9 +27,9 @@ defineOptions({ layout: AppShellV2 });
 
 const props = defineProps({
     surface: { type: Object, required: true },
-    /** Laravel paginator over audit_log, latest-first. */
+    /** Bounded history page or one exact receipt, with published metadata only. */
     entries: { type: Object, required: true },
-    /** { head_seq, count, genesis } */
+    /** { head_seq, genesis }; a sequence number is not an entry count. */
     chain: { type: Object, required: true },
     canVerify: { type: Boolean, default: false },
 });
@@ -37,6 +37,28 @@ const props = defineProps({
 const page = usePage();
 const flash = computed(() => page.props.flash?.status ?? null);
 const errors = computed(() => page.props.errors ?? {});
+const busy = ref(false);
+const loadError = ref('');
+const failedUrl = ref('');
+const lookup = ref(props.entries.selection.seq ?? '');
+const selection = computed(() => props.entries.selection);
+watch(() => props.entries.selection.seq, seq => { lookup.value = seq ?? ''; });
+const receiptUrl = seq => `${props.entries.latest_url}${props.entries.latest_url.includes('?') ? '&' : '?'}seq=${encodeURIComponent(seq)}`;
+
+function visit(url) {
+    if (busy.value) return;
+    let completed = false;
+    let cancelled = false;
+    const failed = () => { loadError.value = 'The history could not be loaded. Try again or return to the latest entries.'; };
+    router.get(url, {}, {
+        only: ['entries', 'chain'], preserveState: true, preserveScroll: true,
+        onStart: () => { busy.value = true; loadError.value = ''; failedUrl.value = url; },
+        onSuccess: () => { completed = true; },
+        onCancel: () => { cancelled = true; },
+        onFinish: () => { busy.value = false; if (!completed && !cancelled) failed(); },
+        onError: failed,
+    });
+}
 
 /* The chain stores UTC; this systems surface shows it as UTC, explicitly. */
 const utcFormatter = new Intl.DateTimeFormat(undefined, {
@@ -67,8 +89,6 @@ function verify() {
    (the UI twin of `audit:reconcile`). The chain is tamper-EVIDENT, never
    rewritten — the acknowledgement is what verifyChain then treats as grounded. */
 const reconcileForm = useForm({ reason: '' });
-const reconcileOpen = computed(() => Boolean(reconcileForm.reason) || reconcileForm.processing);
-
 function reconcile() {
     reconcileForm.post('/system/audit-chain/reconcile', {
         preserveScroll: true,
@@ -80,17 +100,24 @@ function reconcile() {
 <template>
     <PageScaffold :surface="surface">
         <template #intro>
-            Everything that happens here — every vote, ruling, election, and rule change — is
-            written into one permanent history that no one, not an operator, a legislator, or a
-            judge, can quietly change. Moves the rules forbid are refused, and the refusal itself
-            is recorded. Nothing is ever removed.
+            Browse recorded actions and open the receipt for a specific entry.
         </template>
         <template #about>
+            <h2>How the chain works</h2>
             <p>
-                WF-SYS-04 — the constitutional engine intercepts every transition pre-commit;
-                accepted ones are appended here, invalid ones are rejected with their citation and
-                the rejection is appended too. Ballot and residency identities are never written in
-                clear — commitments and day-counts only.
+                Each entry's hash covers the previous entry's hash plus its own payload, making
+                changes detectable. Rejected filings are recorded too, with the reason for refusal.
+                Existing entries cannot be edited or deleted. <HardenedChip />
+            </p>
+            <p>
+                This viewer shows published metadata. It does not expose the underlying payload
+                or participant identities. Sequence numbers can have gaps, so the latest sequence
+                number is not a count of entries.
+            </p>
+            <p>
+                The chain begins with the genesis previous hash <code>{{ chain.genesis }}</code>.
+                Each link follows <code>hash(n) = H(hash(n−1) ∥ payload(n))</code>.
+                Full verification recalculates the links; browsing a receipt does not verify it.
             </p>
         </template>
 
@@ -102,20 +129,14 @@ function reconcile() {
         <!-- ─────────────────────────────────────────────── Chain head -->
         <Card as="section">
             <div class="cluster" style="gap: var(--space-6)">
-                <Stat :value="`#${chain.head_seq}`" label="chain head" accent />
-                <Stat :value="chain.count" label="entries" />
+                <Stat :value="chain.head_seq === null ? 'No entries yet' : `#${chain.head_seq}`" label="Latest sequence" accent />
             </div>
-            <p class="cc-small" style="margin-block-start: var(--space-3)">
-                Genesis prev-hash: <code>{{ shortHash(chain.genesis) }}</code> ·
-                every link satisfies
-                <code>hash(n) = H(hash(n−1) ∥ payload(n))</code>.
-            </p>
             <div class="cluster" style="margin-block-start: var(--space-3); align-items: baseline">
                 <template v-if="canVerify">
                     <Btn variant="primary" icon="refresh-cw" :disabled="verifyForm.processing" @click="verify">
                         {{ verifyForm.processing ? 'Recomputing every link…' : 'Verify the full chain' }}
                     </Btn>
-                    <span class="cc-small">Recomputes all {{ chain.count }} link hashes against the head.</span>
+                    <span class="cc-small">Recomputes every link. This may take time on a large instance.</span>
                 </template>
                 <p v-else class="gloss" style="margin: 0">
                     Full-chain verification recomputes every link and is operator-triggered; the
@@ -153,28 +174,29 @@ function reconcile() {
             </div>
         </Card>
 
-        <!-- ─────────────────────────────────────── How the chain works -->
-        <Card as="section" title="How the chain works">
-            <p>
-                Each entry's hash covers the previous entry's hash plus its own payload, so the
-                whole history is a single tamper-evident chain anchored at the genesis hash.
-                <strong>Rejections are appended too</strong> — an unconstitutional filing leaves a
-                permanent record of having been refused, with its citation. UPDATE and DELETE on
-                the table raise at the database level.
-                <HardenedChip />
-            </p>
-            <p class="citation" style="margin-block-start: var(--space-2)">
-                Invalid transitions rejected pre-commit; complete tamper-evident history · Art. VII · CGA §6.2, §6.4
-            </p>
-        </Card>
-
         <!-- ───────────────────────────────────────────── Latest entries -->
-        <Card as="section" title="Latest entries">
-            <p class="cc-small">Latest first · stored as UTC, shown as UTC.</p>
+        <Card as="section" :title="selection.status === 'found' ? `Receipt #${selection.seq}` : 'Audit history'">
+            <form class="cluster" @submit.prevent="visit(receiptUrl(lookup))">
+                <label for="audit-sequence">Entry number</label>
+                <input id="audit-sequence" v-model="lookup" class="field-input" type="text" inputmode="numeric" pattern="[1-9][0-9]{0,18}" required style="inline-size: 14rem" />
+                <button type="submit" :disabled="busy">Open receipt</button>
+            </form>
+            <nav class="cluster" aria-label="Audit history navigation" :aria-busy="busy" style="margin-block: var(--space-3)">
+                <button v-if="entries.pages.previous" type="button" :disabled="busy" @click="visit(entries.pages.previous)">Newer entries</button>
+                <button v-if="entries.pages.next" type="button" :disabled="busy" @click="visit(entries.pages.next)">Older entries</button>
+                <button type="button" :disabled="busy" @click="visit(entries.latest_url)">Browse latest history</button>
+                <span role="status">{{ busy ? 'Loading history…' : '' }}</span>
+            </nav>
+            <div v-if="loadError" role="alert">
+                {{ loadError }} <button type="button" :disabled="busy" @click="visit(failedUrl)">Try again</button>
+            </div>
+            <p v-if="selection.status === 'invalid'" role="alert">This entry number is invalid. Use a positive whole number or browse the latest history.</p>
+            <p v-else-if="selection.status === 'invalid_cursor'" role="alert">This history page link is invalid. Browse the latest history to continue.</p>
+            <p v-else-if="selection.status === 'missing'" role="status">Entry #{{ selection.seq }} was not found on this instance. Sequence numbers can have gaps.</p>
+            <p v-else-if="entries.data.length === 0" class="gloss">No entries on this page. Browse the latest history to check for new records.</p>
+            <p class="cc-small">{{ selection.status === 'history' ? 'Newest first · ' : '' }}Times are shown in UTC.</p>
 
-            <p v-if="entries.data.length === 0" class="gloss">The chain is empty — no filings yet.</p>
-
-            <div v-else>
+            <div v-if="entries.data.length">
                 <LogRow
                     v-for="entry in entries.data"
                     :key="entry.seq"
@@ -184,6 +206,7 @@ function reconcile() {
                 >
                     <code class="cc-small">{{ formatUtc(entry.occurred_at) }}</code>
                     <span>{{ entry.module }} · {{ entry.event }}</span>
+                    <a v-if="selection.status === 'history'" :href="receiptUrl(entry.seq)" :aria-disabled="busy" @click.prevent="visit(receiptUrl(entry.seq))">Open receipt #{{ entry.seq }}</a>
                     <FormChip v-if="isFormRef(entry.ref)" :form-id="entry.ref" />
                     <span v-else-if="entry.ref" class="form-chip"><span class="form-id">{{ entry.ref }}</span></span>
                     <StatusBadge v-if="entry.rejected" tone="danger" icon="x">rejected</StatusBadge>
@@ -192,33 +215,15 @@ function reconcile() {
                     </span>
                 </LogRow>
 
-                <div class="cluster" style="margin-block-start: var(--space-3); align-items: baseline">
-                    <Btn
-                        v-if="entries.prev_page_url"
-                        :as="Link"
-                        :href="entries.prev_page_url"
-                        preserve-scroll
-                        variant="secondary"
-                        size="sm"
-                    >
-                        Newer
-                    </Btn>
-                    <Btn
-                        v-if="entries.next_page_url"
-                        :as="Link"
-                        :href="entries.next_page_url"
-                        preserve-scroll
-                        variant="secondary"
-                        size="sm"
-                    >
-                        Older
-                    </Btn>
-                    <span class="cc-small">
-                        Page {{ entries.current_page }} of {{ entries.last_page }} ·
-                        {{ entries.total }} entr{{ entries.total === 1 ? 'y' : 'ies' }}
-                    </span>
-                </div>
+                <dl v-if="selection.status === 'found'" class="receipt-hashes">
+                    <dt>Entry hash</dt><dd><code>{{ entries.data[0].hash }}</code></dd>
+                    <dt>Previous entry hash</dt><dd><code>{{ entries.data[0].prev_hash }}</code></dd>
+                </dl>
             </div>
         </Card>
     </PageScaffold>
 </template>
+
+<style scoped>
+.receipt-hashes dd { margin-inline-start: 0; margin-block-end: 1rem; overflow-wrap: anywhere; }
+</style>

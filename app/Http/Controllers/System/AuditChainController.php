@@ -9,9 +9,11 @@ use App\Models\OperatorAccount;
 use App\Models\User;
 use App\Services\AuditService;
 use App\Services\ChainReconciliationService;
+use App\Support\FinancialHistoryCursor;
 use App\Support\SurfaceMeta;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Validation\ValidationException;
 use Inertia\Inertia;
 use Inertia\Response;
 
@@ -32,12 +34,11 @@ class AuditChainController extends Controller
 
     public function show(Request $request): Response
     {
-        $entries = AuditEntry::query()
-            ->orderByDesc('seq')
-            ->paginate(25)
-            ->withQueryString()
-            ->through(fn (AuditEntry $entry) => [
-                'seq'            => $entry->seq,
+        // Only published metadata belongs in this reader, including exact receipts.
+        // Never load the payload/actor columns simply to discard them afterwards.
+        $columns = ['seq', 'occurred_at', 'module', 'event', 'ref', 'hash', 'prev_hash', 'rejected', 'blocked_reason'];
+        $present = fn (AuditEntry $entry) => [
+                'seq'            => (string) $entry->seq,
                 'occurred_at'    => $entry->occurred_at?->toIso8601String(),
                 'module'         => $entry->module,
                 'event'          => $entry->event,
@@ -46,14 +47,46 @@ class AuditChainController extends Controller
                 'prev_hash'      => $entry->prev_hash,
                 'rejected'       => $entry->rejected,
                 'blocked_reason' => $entry->blocked_reason,
-            ]);
+            ];
+        $context = [];
+        $place = $request->query('jurisdiction');
+        if (is_string($place) && $place !== '' && strlen($place) <= 255) $context['jurisdiction'] = $place;
+        $path = '/system/audit-chain';
+        $latest = $path.($context ? '?'.http_build_query($context) : '');
+        $entries = function () use ($request, $columns, $present, $context, $path, $latest): array {
+            $result = ['data' => [], 'pages' => ['previous' => null, 'next' => null], 'latest_url' => $latest, 'selection' => ['status' => 'history', 'seq' => null]];
+            if ($request->query->has('seq')) {
+                $seq = $request->query('seq');
+                // Preserve BIGINT receipts as decimal strings across the browser boundary.
+                if (! is_string($seq) || ! preg_match('/\A[1-9][0-9]{0,18}\z/', $seq)
+                    || strlen($seq) === 19 && strcmp($seq, (string) PHP_INT_MAX) > 0) {
+                    $result['selection']['status'] = 'invalid';
+                    return $result;
+                }
+                $entry = AuditEntry::query()->where('seq', $seq)->first($columns);
+                $result['selection'] = ['status' => $entry ? 'found' : 'missing', 'seq' => $seq];
+                $result['data'] = $entry ? [$present($entry)] : [];
+                return $result;
+            }
+            try {
+                $cursor = FinancialHistoryCursor::read($request, 'entries_cursor', 'seq');
+            } catch (ValidationException) {
+                $result['selection']['status'] = 'invalid_cursor';
+                return $result;
+            }
+            $page = AuditEntry::query()->orderByDesc('seq')->cursorPaginate(25, $columns, 'entries_cursor', $cursor);
+            $page->withPath($path)->appends($context);
+            $result['data'] = $page->getCollection()->map($present)->all();
+            $result['pages'] = FinancialHistoryCursor::links($page);
+            return $result;
+        };
 
         return Inertia::render('System/AuditChain', [
             'surface' => SurfaceMeta::for('system/audit-chain'),
             'entries' => $entries,
-            'chain'   => [
-                'head_seq' => $this->audit->latestSeq(),
-                'count'    => $this->audit->count(),
+            'chain'   => fn () => [
+                // A sequence can have gaps; this is a bounded head lookup, not a count.
+                'head_seq' => ($head = AuditEntry::query()->orderByDesc('seq')->value('seq')) === null ? null : (string) $head,
                 'genesis'  => AuditService::GENESIS_PREV_HASH,
             ],
             // Full-chain verification is operator-triggered (expensive walk).

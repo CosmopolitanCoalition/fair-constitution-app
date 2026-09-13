@@ -6,14 +6,6 @@ Updated 13 September 2026. **This list contains confirmed missing features and r
 
 Finish the current build before starting the next. Consolidation comes first, then the remaining institutional actions and supporting features. Rehearse the completed flows with simulated participants before the final language/accessibility review. Setup must then produce both a walkable demo and a player-ready beta. Performance repairs accompany the affected feature.
 
-## 1. Consolidation and bounded browsing
-
-| ID | Confirmed build / repair | Done when development and internal tests establish |
-|---|---|---|
-| B5 | Repair audit receipt destinations and bound audit-history browsing. | Existing `?seq=` links display that exact entry, all history is cursor-browsable without whole-chain counts, and metadata privacy/loading/recovery remain intact. Full verification/reconciliation remain explicit operator actions. |
-
-Evidence for the remaining B3 readers: [committee inventory](../2026-09-13/COMMITTEE_WORKSPACE.md), [advocate archive inspection](../2026-09-13/CIVIC_HISTORIES.md). Completed P2, B4, EO-6 and LE-1 have moved to the archive. Large-race performance and full workflow acceptance remain internal reviews, not claims of completion.
-
 ## 2. Complete the institutional action paths
 
 | ID | Confirmed build / repair | Done when development and internal tests establish |
