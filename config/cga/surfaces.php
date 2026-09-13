@@ -724,6 +724,7 @@ return [
         'forms'     => [
             ['id' => 'F-ORG-003', 'citation' => 'Art. III §4, §6 — owner track; the same PR-STV engine as public elections'],
             ['id' => 'F-ORG-004', 'citation' => 'Art. III §6 — worker track; also fired system-side by CLK-13'],
+            ['id' => 'F-ORG-010', 'citation' => 'Art. III §6 — seated members jointly elect the board chair'],
         ],
         'clocks'    => ['CLK-13', 'CLK-14'],
         'citation'  => 'Owner STV + worker STV + joint chair RCV · Art. III §4, §6',

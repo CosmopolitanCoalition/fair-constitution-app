@@ -8,7 +8,9 @@ use App\Models\Organization;
 use App\Models\Term;
 use App\Services\Organizations\CoDeterminationService;
 use App\Services\Organizations\OrgBoardService;
+use App\Services\ClockService;
 use App\Services\RoleService;
+use App\Services\SettingsResolver;
 use Illuminate\Support\Facades\DB;
 
 /**
@@ -44,6 +46,8 @@ class SimBoardService
         private readonly OrgBoardService $boards,
         private readonly CoDeterminationService $coDetermination,
         private readonly RoleService $roles,
+        private readonly SettingsResolver $settings,
+        private readonly ClockService $clocks,
     ) {}
 
     /**
@@ -79,6 +83,7 @@ class SimBoardService
 
         $seated = 0;
         $cursor = 0;
+        $years = $this->settings->resolveInt($jurisdictionId, 'civil_appointment_years', 10);
 
         foreach ($boards as $board) {
             $beat && $beat();
@@ -90,7 +95,7 @@ class SimBoardService
                 ->get();
 
             foreach ($vacant as $seat) {
-                $this->seatSeat($seat, $holders[$cursor++ % count($holders)], $jurisdictionId, Term::CLASS_CIVIL_APPOINTMENT, 10);
+                $this->seatSeat($seat, $holders[$cursor++ % count($holders)], $jurisdictionId, Term::CLASS_CIVIL_APPOINTMENT, $years);
                 $seated++;
             }
 
@@ -209,23 +214,36 @@ class SimBoardService
         $now = now();
         $ends = $years !== null ? $now->copy()->addYears($years) : $now->copy()->addMonthsNoOverflow($months ?? 48);
 
-        $term = Term::create([
-            'office_kind' => 'board_seat',
-            'office_type' => 'board_seats',
-            'office_id' => (string) $seat->id,
-            'holder_user_id' => $userId,
-            'jurisdiction_id' => $jurisdictionId,
-            'term_class' => $termClass,
-            'starts_on' => $now->toDateString(),
-            'ends_on' => $ends->toDateString(),
-            'status' => Term::STATUS_ACTIVE,
-        ]);
+        DB::transaction(function () use ($seat, $userId, $jurisdictionId, $termClass, $now, $ends) {
+            $term = Term::create([
+                'office_kind' => 'board_seat',
+                'office_type' => 'board_seats',
+                'office_id' => (string) $seat->id,
+                'holder_user_id' => $userId,
+                'jurisdiction_id' => $jurisdictionId,
+                'term_class' => $termClass,
+                'starts_on' => $now->toDateString(),
+                'ends_on' => $ends->toDateString(),
+                'status' => Term::STATUS_ACTIVE,
+            ]);
 
-        $seat->forceFill([
-            'holder_user_id' => $userId,
-            'term_id' => (string) $term->id,
-            'status' => BoardSeat::STATUS_SEATED,
-        ])->save();
+            $seat->forceFill([
+                'holder_user_id' => $userId,
+                'term_id' => (string) $term->id,
+                'status' => BoardSeat::STATUS_SEATED,
+            ])->save();
+
+            if ($termClass === Term::CLASS_CIVIL_APPOINTMENT) {
+                $this->clocks->arm(
+                    'CLK-09',
+                    $jurisdictionId,
+                    'term',
+                    (string) $term->id,
+                    $ends->copy()->startOfDay(),
+                    ['step' => 'civil_term_expiry', 'ends_on' => $ends->toDateString()],
+                );
+            }
+        });
 
         $this->roles->flushUser($userId);
     }

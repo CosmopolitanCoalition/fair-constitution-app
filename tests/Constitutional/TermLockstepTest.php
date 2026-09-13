@@ -182,6 +182,16 @@ class TermLockstepTest extends TestCase
             // certified + cycle_months) plus window-math/clock-metadata reads
             // of the same key. Write-once at creation; never mutated.
             $this->normalize($this->appPath().'/Services/Organizations/OrgBoardSeatingService.php'),
+            // The judicial slate writer batches the same creation-only civil
+            // terms as seat(): resolved judicial_appointment_years, immutable
+            // expiry, and one CLK-09 arm per new term. No expiry is updated.
+            $this->normalize($this->appPath().'/Services/Judiciary/JudicialSeatService.php'),
+            // Simulated board seating also creates terms only. Civil years
+            // resolve per jurisdiction and CLK-09 is armed in the same seat
+            // transaction; org-cycle terms use the board's cycle. Private
+            // fixture coverage lives in SimBoardTermTest. The no-update pin
+            // above continues to inspect both writers without exceptions.
+            $this->normalize($this->appPath().'/Services/Demo/SimBoardService.php'),
             // FE-C2: READ-shaped display prop — the Chamber page's term card
             // serializes legislatures.term_ends_on into an Inertia array
             // ('ends_on' => …->toDateString()); no Term row is touched. The

@@ -12,7 +12,7 @@
  *              drift-corrected back to the master whenever it slips past 0.3s,
  *              and captions are the chosen language's .vtt cues.
  *   • POSTER — no base URL (dev/demo): the labelled poster stage stands in, the
- *              controls stay live, and the caption bar shows a sample line. The
+ *              language controls stay live, and the caption bar shows a sample line. The
  *              same component lights up with real playback the moment the
  *              operator points it at the media host.
  *
@@ -26,7 +26,7 @@ import { ref, computed, watch, onMounted, onBeforeUnmount } from 'vue';
    (pause/captions/volume). lucide-vue-next is already the engine behind
    Ui/Icon; importing three glyphs directly keeps this player self-contained
    without widening the shared Icon component. */
-import { Play, Pause, Captions, Volume2, Check } from 'lucide-vue-next';
+import { Play, Pause, Captions, Volume2 } from 'lucide-vue-next';
 
 const props = defineProps({
     /** An enriched MediaMeta record: {id, subject, master, title, summary,
@@ -67,7 +67,13 @@ const captionsOn = ref(stored.captionsOn !== false);
 const playing = ref(false);
 const currentTime = ref(0);
 const duration = ref(props.video.seconds ?? 0);
-const mediaError = ref(false);
+const videoState = ref('loading');
+const audioState = ref('loading');
+const captionState = ref('loading');
+let disposed = false;
+let videoAttempt = 0;
+let audioAttempt = 0;
+let resumeAt = null;
 
 /* ── Track metadata lookups ──────────────────────────────────────────────── */
 function has(tracks, code) { return !!code && tracks.some((t) => t.code === code); }
@@ -106,16 +112,27 @@ function sampleLine(code) {
     return `Subtitles shown in ${m?.native ?? code}.`;
 }
 
+let captionRequest = 0;
+let captionController;
 async function loadCaptions() {
+    const request = ++captionRequest;
+    captionController?.abort();
     cues.value = [];
+    captionState.value = 'loading';
     const url = capUrl(selCap.value);
-    if (!url) return;
+    if (!url) { captionState.value = 'unavailable'; return; }
+    captionController = new AbortController();
     try {
-        const res = await fetch(url);
+        const res = await fetch(url, { signal: captionController.signal });
         if (!res.ok) throw new Error(String(res.status));
-        cues.value = parseVtt(await res.text());
+        const text = await res.text();
+        if (disposed || request !== captionRequest) return;
+        cues.value = parseVtt(text);
+        captionState.value = 'ready';
     } catch {
-        cues.value = []; // fall back to no live cues; the bar shows nothing
+        if (disposed || request !== captionRequest) return;
+        cues.value = [];
+        captionState.value = 'error';
     }
 }
 
@@ -136,12 +153,32 @@ function toSecs(ts) {
 }
 
 /* ── Transport ───────────────────────────────────────────────────────────── */
-function togglePlay() {
-    if (!hasMedia.value) { playing.value = !playing.value; return; }
+function playAudio() {
+    const a = audioEl.value;
+    const v = videoEl.value;
+    if (!a || !v || v.paused || v.ended || !audioUrl(selAudio.value) || audioState.value === 'error') return;
+    const attempt = ++audioAttempt;
+    Promise.resolve(a.play()).catch(() => {
+        if (!disposed && attempt === audioAttempt && !v.paused && !v.ended) onAudioError();
+    });
+}
+
+function startPlayback() {
     const v = videoEl.value;
     if (!v) return;
-    if (v.paused) { v.play(); audioEl.value?.play(); }
-    else { v.pause(); audioEl.value?.pause(); }
+    const attempt = ++videoAttempt;
+    Promise.resolve(v.play()).catch(() => {
+        if (!disposed && attempt === videoAttempt) onVideoError();
+    });
+    playAudio();
+}
+
+function togglePlay() {
+    if (!hasMedia.value || videoState.value === 'error') return;
+    const v = videoEl.value;
+    if (!v) return;
+    if (v.paused) startPlayback();
+    else { v.pause(); onPause(); }
 }
 
 function onTimeUpdate() {
@@ -149,20 +186,58 @@ function onTimeUpdate() {
     if (!v) return;
     currentTime.value = v.currentTime;
     const a = audioEl.value;
-    if (a && Math.abs(a.currentTime - v.currentTime) > 0.3) {
+    if (a && a.readyState > 0 && audioState.value !== 'error' && Math.abs(a.currentTime - v.currentTime) > 0.3) {
         a.currentTime = v.currentTime; // the hidden audio corrected back to the master
     }
 }
-function onLoaded() { if (videoEl.value) duration.value = videoEl.value.duration || duration.value; }
+function onLoaded() {
+    const v = videoEl.value;
+    if (!v) return;
+    duration.value = Number.isFinite(v.duration) ? v.duration : duration.value;
+    if (resumeAt !== null) { v.currentTime = Math.min(resumeAt, duration.value || resumeAt); resumeAt = null; }
+}
+function onVideoReady() { if (videoState.value !== 'error') videoState.value = playing.value ? 'playing' : 'ready'; }
 function onPlay() { playing.value = true; }
-function onPause() { playing.value = false; }
+function onPlaying() {
+    playing.value = true;
+    videoState.value = 'playing';
+    syncAudio();
+    playAudio();
+}
+function onPause() {
+    playing.value = false;
+    ++videoAttempt;
+    ++audioAttempt;
+    audioEl.value?.pause();
+    if (!['error', 'ended'].includes(videoState.value)) videoState.value = 'ready';
+}
+function onWaiting() { videoState.value = 'buffering'; ++audioAttempt; audioEl.value?.pause(); }
+function onEnded() { onPause(); videoState.value = 'ended'; }
+function onVideoError() { onPause(); videoState.value = 'error'; }
+function onAudioError() { ++audioAttempt; audioState.value = 'error'; audioEl.value?.pause(); }
+function syncAudio() {
+    if (audioEl.value?.readyState > 0 && videoEl.value) audioEl.value.currentTime = videoEl.value.currentTime;
+}
+function retryVideo() {
+    if (!videoEl.value) return;
+    resumeAt = currentTime.value;
+    videoState.value = 'loading';
+    videoEl.value.load();
+    startPlayback();
+}
+function retryAudio() {
+    if (!audioEl.value) return;
+    audioState.value = 'loading';
+    audioEl.value.load();
+    playAudio();
+}
 
 function onSeek(ev) {
     const pct = Number(ev.target.value) / 100;
     const at = (duration.value || 0) * pct;
     currentTime.value = at;
     if (videoEl.value) videoEl.value.currentTime = at;
-    if (audioEl.value) audioEl.value.currentTime = at;
+    syncAudio();
 }
 
 const seekPct = computed(() => (duration.value ? Math.round((currentTime.value / duration.value) * 100) : 0));
@@ -197,17 +272,16 @@ function onLinkChange() {
    resume if the film is playing, so an audio- or linked-caption switch never
    drops to silence or a wrong position. */
 function onAudioLoaded() {
-    const a = audioEl.value;
-    const v = videoEl.value;
-    if (!a || !v) return;
-    a.currentTime = v.currentTime;
-    if (playing.value) a.play().catch(() => {});
+    audioState.value = 'ready';
+    syncAudio();
+    if (playing.value && videoState.value !== 'buffering') playAudio();
 }
 
 watch([selAudio, selCap, linked, captionsOn], () => {
     writePrefs({ audio: selAudio.value, cap: selCap.value, linked: linked.value, captionsOn: captionsOn.value });
 });
 watch(selCap, loadCaptions);
+watch(selAudio, () => { ++audioAttempt; audioState.value = 'loading'; });
 
 function readPrefs() {
     try { return JSON.parse(localStorage.getItem(PREF_KEY) || '{}') || {}; }
@@ -227,8 +301,29 @@ const statusLine = computed(() => {
     };
 });
 
+const playbackStatus = computed(() => {
+    if (!hasMedia.value) return 'Video not available yet';
+    if (videoState.value === 'error') return 'Video unavailable';
+    if (videoState.value === 'loading') return 'Loading video';
+    if (videoState.value === 'buffering') return 'Buffering video';
+    if (videoState.value === 'ended') return 'Video finished';
+    if (!playing.value) return 'Ready to play';
+    if (audioState.value === 'error' || !audioTracks.value.length) return 'Playing without audio';
+    if (audioState.value === 'loading') return 'Video playing; audio loading';
+    if (audioState.value === 'buffering') return 'Video playing; audio buffering';
+    return 'Playing';
+});
+
 onMounted(loadCaptions);
-onBeforeUnmount(() => { videoEl.value?.pause(); audioEl.value?.pause(); });
+onBeforeUnmount(() => {
+    disposed = true;
+    ++captionRequest;
+    ++videoAttempt;
+    ++audioAttempt;
+    captionController?.abort();
+    videoEl.value?.pause();
+    audioEl.value?.pause();
+});
 </script>
 
 <template>
@@ -244,12 +339,18 @@ onBeforeUnmount(() => { videoEl.value?.pause(); audioEl.value?.pause(); });
                 :src="masterUrl"
                 @timeupdate="onTimeUpdate"
                 @loadedmetadata="onLoaded"
+                @loadeddata="onVideoReady"
                 @play="onPlay"
+                @playing="onPlaying"
                 @pause="onPause"
-                @error="mediaError = true"
+                @waiting="onWaiting"
+                @ended="onEnded"
+                @error="onVideoError"
                 style="inline-size: 100%; block-size: 100%; object-fit: contain; background: #000"
             ></video>
-            <audio ref="audioEl" :src="audioUrl(selAudio)" preload="metadata" @loadeddata="onAudioLoaded"></audio>
+            <audio ref="audioEl" :src="audioUrl(selAudio)" preload="metadata"
+                @loadeddata="onAudioLoaded" @playing="audioState = 'playing'"
+                @waiting="audioState = 'buffering'" @error="onAudioError"></audio>
             <div v-if="captionsOn && activeCue" class="vplayer-cc" :dir="capDir">{{ activeCue }}</div>
         </div>
 
@@ -258,18 +359,16 @@ onBeforeUnmount(() => { videoEl.value?.pause(); audioEl.value?.pause(); });
             class="vplayer-stage"
             :class="`vposter--${video.poster}`"
             role="img"
-            :aria-label="`Video guide: ${video.title} (no media in this build — labelled placeholder)`"
+            :aria-label="`Video guide: ${video.title}. Video not available yet.`"
         >
-            <button type="button" class="vplayer-play" aria-label="Play (placeholder — no media in this build)" @click="togglePlay">
-                <component :is="playing ? Pause : Play" :size="28" />
-            </button>
+            <span class="vplayer-play" aria-hidden="true"><Play :size="28" /></span>
             <span class="vplayer-dur">{{ fmt(duration) }}</span>
             <div v-if="captionsOn" class="vplayer-cc" :dir="capDir">{{ activeCue }}</div>
         </div>
 
         <!-- Transport -->
         <div class="vplayer-transport">
-            <button type="button" class="iconbtn" aria-label="Play or pause" @click="togglePlay">
+            <button type="button" class="iconbtn" :disabled="!hasMedia || videoState === 'error'" aria-label="Play or pause" @click="togglePlay">
                 <component :is="playing ? Pause : Play" :size="18" />
             </button>
             <span class="vplayer-time">{{ fmt(currentTime) }} / {{ fmt(duration) }}</span>
@@ -279,6 +378,7 @@ onBeforeUnmount(() => { videoEl.value?.pause(); audioEl.value?.pause(); });
                 min="0"
                 max="100"
                 :value="seekPct"
+                :disabled="!hasMedia || videoState === 'error'"
                 aria-label="Seek"
                 @input="onSeek"
             />
@@ -292,6 +392,18 @@ onBeforeUnmount(() => { videoEl.value?.pause(); audioEl.value?.pause(); });
             >
                 <Captions :size="18" />
             </button>
+        </div>
+
+        <div v-if="videoState === 'error'" class="vplayer-status" role="alert">
+            The video could not play. <button type="button" class="form-chip" @click="retryVideo">Retry video</button>
+        </div>
+        <div v-if="audioState === 'error'" class="vplayer-status" role="alert">
+            The selected audio could not play. You can keep watching, choose another language or
+            <button type="button" class="form-chip" @click="retryAudio">Retry audio</button>.
+        </div>
+        <div v-if="captionsOn && captionState === 'error'" class="vplayer-status" role="alert">
+            The selected captions could not load. You can choose another language or
+            <button type="button" class="form-chip" @click="loadCaptions">Retry captions</button>.
         </div>
 
         <!-- Track pickers -->
@@ -314,10 +426,10 @@ onBeforeUnmount(() => { videoEl.value?.pause(); audioEl.value?.pause(); });
             </label>
         </div>
 
-        <div class="vplayer-status">
-            <Check :size="14" />
-            In sync · audio <strong>{{ statusLine.audio }}</strong>
+        <div class="vplayer-status" role="status" aria-live="polite">
+            {{ playbackStatus }} · audio <strong>{{ statusLine.audio }}</strong>
             · captions <template v-if="statusLine.cap"><strong>{{ statusLine.cap }}</strong></template><span v-else class="gloss">off</span>
+            <span v-if="hasMedia && captionsOn && captionState === 'loading'"> · loading captions</span>
             · <span class="gloss">{{ statusLine.linked ? 'linked' : 'unlinked' }}</span>
         </div>
 

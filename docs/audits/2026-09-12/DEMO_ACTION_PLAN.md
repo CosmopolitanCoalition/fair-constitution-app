@@ -1,54 +1,66 @@
-# Demo punch list
+# Demo build punch list
 
-Updated 13 September 2026. **Only unfinished development and internal testing appear here.** Work proceeds in the phase order below; performance repairs accompany the affected feature.
+Updated 13 September 2026. **This list contains confirmed missing features and repairs only.** Each row includes the internal test required to finish that build. Checking whether something works is tracked separately; it is not itself a build item.
 
-**Done means development and the required internal tests for that scope have passed.** Move a finished scope out of this list immediately. For a partly finished item, retain only the unfinished work. Human-only checks do not keep development open. All multi-user internal tests use simulated participants.
+[Completed work and passed checks](DEMO_COMPLETED_WORK.md) · [Pending internal checks](DEMO_REVIEW_REGISTER.md) · [Human-dependent checks](DEMO_DEFERRED_CHECKS.md) · [Deployment handoff](NEXT_SESSION_HANDOFF.md)
 
-Reference only: [completed work and evidence](DEMO_COMPLETED_WORK.md) · [deferred human/device and deployment checks](DEMO_DEFERRED_CHECKS.md) · [operator/deployment handoff](NEXT_SESSION_HANDOFF.md).
+Finish the current build before starting the next. Consolidation comes first, then the remaining institutional actions and supporting features. Rehearse the completed flows with simulated participants before the final language/accessibility review. Setup must then produce both a walkable demo and a player-ready beta. Performance repairs accompany the affected feature.
 
-## 1. Finish remaining development
+## 1. Consolidation and bounded browsing
 
-| ID | Remaining action | Internal completion check |
+| ID | Confirmed build / repair | Done when development and internal tests establish |
 |---|---|---|
-| E4 | Add organization board-chair ballots and retry controls. | The authenticated current seat can submit a ranking on its own board. Wrong-board, removed-seat, duplicate and closed-ballot attempts refuse. Chair selection and retry complete under the existing board rules. |
-| E5 | Add CGC governor nomination and consent against the CGC's own board. | The actual overseeing executive and creating legislature complete nomination, consent and seating. Rejection and cross-institution attempts refuse; department appointments still work. |
-| B3 | Page committee testimony beyond the latest 50 and remaining long civic institution histories. | Older records are reachable in both directions, remain scoped to the selected institution/hearing, and retain usable return paths. |
-| P2 | Finish wallet transaction history, organization ledger/tax/conversion histories and treasury readers. | Histories page within authorized scope. Treasury entry avoids world-wide aggregation and full account/revenue/levy loads; private financial records remain private. |
-| B4 | Distinguish people with the same public name in selectors. | Appropriate public profile context identifies the selected person across search pages, without exposing private residency or wallet ownership. |
-| S2 | Finish interjurisdictional proposal/consent/completion controls and page lifecycle histories beyond 25. | Union, disintermediation, border settlement and restoration have reachable actions using their actual services and authority checks, with refusal and recovery fixtures. |
-| Q1 | Resolve the previously recorded TermLockstepTest failure involving term-end serializers. | Check SimBoardService and JudicialSeatService against current term rules; correct the defect or obsolete test restriction and pass the targeted check without weakening constitutional requirements. |
+| B3 | Page committee testimony beyond the latest 50 and the remaining capped civic histories. | Older records remain reachable in both directions within the selected institution/hearing. |
+| P2 | Finish wallet transaction, organization ledger/tax/conversion and treasury readers. | Authorized histories page; treasury entry uses bounded sources/saved reports and does not load all accounts, revenues or levies. Private money records stay private. |
+| B4 | Distinguish repeated public names in person selectors. | Public profile context identifies the selected person across search pages without exposing residency or wallet ownership. Board-chair choices now include seat context; other selectors remain. |
+| EO-6 | Page and search approval-ballot candidates on the server. | The controller no longer materializes every candidate/endorsement before truncation; `full=1` cannot remove the bound. Every candidate remains reachable. |
+| LE-1 | Finish moving page education into Learn and connect the existing lessons. | Main-page `PageScaffold` teaching disclosures move into the dedicated flyout; the obsolete disabled lessons link reaches `/learn`. Work, help, room-directory and video-library pages have their own useful Learn context. |
 
-Board details: [organization board audit](ORGANIZATION_BOARD_AUDIT.md). Civic and setup details: [setup/scenario audit](SETUP_AND_SCENARIO_AUDIT.md).
+Evidence: [directory work](DIRECTORIES_AND_WORKSPACES.md), [election/office checks](../2026-09-13/ELECTION_OFFICE_CHECKS.md), [education checks](../2026-09-13/EDUCATION_ACHIEVEMENT_CHECKS.md).
 
-## 2. Complete internal scenario testing
+## 2. Complete the institutional action paths
 
-| ID | Remaining action | Internal completion check |
+| ID | Confirmed build / repair | Done when development and internal tests establish |
 |---|---|---|
-| R2 | Run complete institutional room journeys with separate simulated participants and generated media. | Actual fixture presiders/members exercise recognition, witness positioning, names, audio continuity, disconnect/rejoin and the private-board journey. Unrelated identities cannot enter private rooms. No human participants are required. |
-| S1 | Run complete civic and economic journeys through the application. | Separate simulated actors navigate places/maps and complete elections, legislature business, court proceedings, executive actions, interjurisdictional decisions, hiring, help and share issuance. Exercise real form/engine/audit boundaries, outcomes, refusals and recovery; do not substitute mocked engine success for a finished journey. |
-| S3 | Check ownership changes with separate PostgreSQL connections and representative large-organization fixtures. | Concurrent issuance, resale and dissolution preserve consistent stakes and membership or roll back cleanly. Measure the synchronous percentage recalculation's latency and memory; repair demonstrated failures or overload. |
+| E5 | Add CGC governor nomination and legislative consent against the CGC's own board. | Its actual overseeing executive and creating legislature complete nomination, consent and seating; wrong-institution actions refuse and department appointments still work. |
+| IO-6 | Complete CGC governor expiry and replacement consequences. | The armed civil-term timer retires the correct organization-board seat and enters its replacement path. Repeated expiry is safe; department/judicial expiry stays intact. |
+| EO-1 | Repair legislative rollover for committee membership and speaker state. | Old committee seats/chairs and speaker pointers retire; retained committees can allocate seats to the incoming legislature. |
+| EO-2 | Finish recurring elected executive/judicial cycles and outgoing-seat closure. | Successor elections are scheduled, old elected seats lose authority when their terms end, and certified successors replace them consistently. |
+| EO-3 | Replace generic bill links for institution creation/conversion with real institution filings. Include CGC creation. | The UI collects and submits the intended creation/conversion/delegation payload to its actual handler, with authority and refusal cases. |
+| EO-4 | Add judicial nomination and confirmation controls. | Authorized court/legislature actors can nominate, consent/refuse and seat judges through the existing services. |
+| EO-5 | Add individual endorsement and withdrawal controls. | Individuals can publish/manage their own endorsements; organization endorsement and secret approval voting remain distinct. |
+| EO-7 | Correct committee preference controls. | Members can revise preferences while permitted; assignment remains available when some members have not filed, using the service's existing defaults. |
+| IO-1 | Add court hearing, deliberation and verdict controls. | Authorized actors can complete the case lifecycle through the UI, with state, panel, actor and repeated-submission checks. |
+| IO-2 | Build the appeals workflow beyond its existing status/foreign key. | Appeal filing, review and outcome history work while preserving the original case and criminal reprosecution protection. |
+| IO-3 | Connect constitutional findings, recommendations, legislative response/override and remedy application. | The existing judicial and legislative handlers are reachable from the tracker; each outcome preserves law versions and refuses premature or repeated application. |
+| IO-4 | Add organization membership review and agent reassignment controls. | The actual agent can page pending applications, accept/decline and transfer agency; unrelated users cannot. |
+| IO-5 | Add scoped organization staff delegation. | Task-specific grant/revoke controls enforce the selected organization's permissions without granting constitutional office powers. |
+| S2 | Complete interjurisdictional actions and lifecycle history pagination. | Union, disintermediation, border settlement and restoration have actual proposal/consent/completion controls, scoped history beyond 25, and refusal/recovery coverage. |
 
-Use isolated databases, queues and test rooms. Reuse Step 5/Dev scenario sequences inside those fixtures; do not rerun or reset the existing simulated world. Record actual passes, failures and skips. Reopen a finished feature only when these checks expose a defect.
+Evidence: [board audit](ORGANIZATION_BOARD_AUDIT.md), [election and institutional checks](../2026-09-13/ELECTION_OFFICE_CHECKS.md), [interjurisdictional/setup audit](SETUP_AND_SCENARIO_AUDIT.md). E4 board-chair participation is completed and has moved to the archive.
 
-## 3. Finish language, teaching and accessibility coverage
+## 3. Education management and achievement integration
 
-| ID | Remaining action | Internal completion check |
+| ID | Confirmed build / repair | Done when development and internal tests establish |
 |---|---|---|
-| L1 | Translate settled strings and connect lessons to the working actions. | Review missing/fallback strings and lesson accuracy. Complete the selected conference-language scenario coverage after feature and scenario fixes. |
-| L2 | Complete accessibility and modality checks across the settled flows. | Keyboard, screen-reader semantics, narrow layouts, contrast, media alternatives and language/audio fallbacks pass internal checks; fix the failures. |
+| LE-2 | Build educational material management and persistent publication. | Authorized editors can save/manage lessons and publish retrievable content through the existing publication boundary; it does more than return an audit payload. |
+| LE-3 | Associate lessons/surfaces with multilingual videos. | Learn can play the relevant library material with its audio/subtitle choices; absent media has useful feedback. The player and its caption/error repairs already exist. |
+| AC-1 | Wire the broader achievement catalog to actual civic/economic actions and state changes. | Successful actions award once, rejected/rolled-back actions do not, and earned items appear under profile privacy rules. Update stale catalog availability flags after their triggers work. |
 
-## 4. Validate and improve setup/world generation
+Evidence: [education/achievement checks](../2026-09-13/EDUCATION_ACHIEVEMENT_CHECKS.md). The existing profile tab, catalog, lesson registry and video selectors are recorded as implemented and checked where evidence supports it. Do not rebuild them. Full language, lesson accuracy and accessibility checking is in the review register; demonstrated failures become specific repairs here.
 
-| ID | Remaining action | Internal completion check |
+## 4. Setup, mesh and scale
+
+| ID | Confirmed build / repair | Done when development and internal tests establish |
 |---|---|---|
-| G1 | Implement honest world-readiness verification and Step 5 completion checks. | Bounded checks record required artifacts and unresolved scopes. Validate demo and player-ready beta outcomes separately, including usable representatives, ownership structures, board chairs and scenario prerequisites. Step 5 cannot silently claim an unverified world is ready. |
-| G2 | Repair simulation resume enumeration. | Stable cursor/scanned-row progress reaches later missing cohorts even when the first page already exists. Repeated resumes neither skip work nor duplicate it. |
-| G3 | Reduce measured geodata, map, provisioning and simulation costs; bound progress polling and board backstops. | Replace expensive global preparation/polling with resumable bounded work and saved progress. Check cold start, resume and reuse with host-derived capacity. Make certification-backstop failures visible and review its 48-hour delay against demo timing. Preserve apportionment and ordinary-world rules. |
+| G1 | Implement real world-readiness verification and Step 5 completion guards. | Bounded verification records required artifacts and unresolved scopes. Step 5 cannot claim readiness without them. Demo and beta outcomes cover usable institutions, representatives, ownership structures, chairs and scenario prerequisites. |
+| G2 | Repair simulation resume enumeration. | Stable scanned-row/cursor progress reaches missing later cohorts even when earlier pages were already inserted; repeat resumes do not skip or duplicate work. |
+| G3 | Bound expensive preparation, progress polling and board backstops. | Whole-world preparation/polling statements and eager backstop loads become bounded/resumable work with saved progress. Failures are visible; demo timing uses configured clocks. Host-derived capacity and apportionment rules are preserved. |
+| M3 | Preserve identity during Linux/Windows join reruns. | Ordinary update/resume retains APP_KEY and federation identity and resumes the current membership without reusing a consumed join key. Explicit clone re-key remains separate. |
+| M4 | Use the resolved Compose project throughout Linux bootstrap. | Deployment and subsequent registration target the same project, including custom and previously configured project names; failures cannot report success. |
+| M5 | Bring up join progress while foundation transfer runs asynchronously. | The node serves its UI while resumable sync proceeds, preserves admission state and recovers interruptions without replaying completed pages. |
+| M6 | Bound foundation import finalization and progress totals. | Authority stamping and completion verification run in bounded pages/checkpoints; total progress does not require repeated world-table scans. Mirrors claim no authority. |
 
-## 5. Final internal release check
+Evidence: [setup/scenario audit](SETUP_AND_SCENARIO_AUDIT.md), [mesh/setup checks](../2026-09-13/MESH_SETUP_CHECKS.md). The public Matrix state/configuration repairs M1/M2 and term-creation repair Q1 are archived after their targeted passes; full fresh-install and two-node acceptance remain internal checks.
 
-| ID | Remaining action | Internal completion check |
-|---|---|---|
-| D1 | Run the complete demo presentation with simulated participants after all preceding fixes. | Final navigation, maps, civic/economic actions, room connections, loading feedback and recovery work together on the intended demo setup. Record the results and fix failures. |
-
-Human attendance, physical-device testing and access to the remote conference box are tracked separately. They are not blockers for completing this development punch list.
+All tests use isolated fixtures, queues and rooms. Step 5/Dev sequences may seed those fixtures; do not rerun, reset or revert the existing completed world. Move each completed build immediately to the archive. A remote-host dependency is an internal check dependency, not a human-only deferral.

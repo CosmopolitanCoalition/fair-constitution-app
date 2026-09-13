@@ -5,7 +5,7 @@ namespace App\Domain\Forms;
 use InvalidArgumentException;
 
 /**
- * Canonical registry of the constitutional forms — 118 total: the 103 Template forms +
+ * Canonical registry of the constitutional forms — 121 total: the 103 Template forms +
  * F-ELB-008 (Manual District Draw, Phase H) + the Phase K-1 civic-commons trio
  * F-SOC-001/002/003 (public square / halls testimony / carve-out removal) + the Phase K-3
  * F-SOC-004 (M-5 physical-law legal-compliance removal, operator-plane) + the Phase M
@@ -15,7 +15,8 @@ use InvalidArgumentException;
  * Round 2 build: F-ORG-008 (Organization Market Participation — share issuance)
  * + F-IND-020 (Resident Agreement — person-to-person / N-party agreements +
  * clause redlines) + the Wave 4 economy build F-IND-021 (Share Trade —
- * holder-to-holder secondary share resale on the exchange).
+ * holder-to-holder secondary share resale on the exchange), F-CHR-005/006
+ * (committee meeting lifecycle), and F-ORG-010 (joint board-chair participation).
  *
  * Source of truth: CGA_Constitutional_Roles_Forms_Chart.xlsx sheet
  * "3. Forms Catalog" (transcribed in docs/plans/institutions/
@@ -51,7 +52,7 @@ use InvalidArgumentException;
 class FormRegistry
 {
     /**
-     * All 118 canonical forms: id => [name, roles allowed to file].
+     * All 121 canonical forms: id => [name, roles allowed to file].
      * Roles per the catalog's "Filed by" column; 'roles' lists the role
      * codes whose holders may file (any one suffices). F-IND-006 is
      * additionally system-filed (see its handler's systemOnly()).
@@ -130,6 +131,9 @@ class FormRegistry
         // thresholds per the CURRENT structure's own rules. R-01 proves
         // personhood; the stake gate lives in OrgRestructureService.
         'F-ORG-009' => ['name' => 'Internal Restructuring',                     'roles' => ['R-01']],
+        // Joint chair participation by a current board member (WF-ORG-05).
+        // This is separate from the agent's owner/worker election administration.
+        'F-ORG-010' => ['name' => 'Board Chair Election',                       'roles' => ['R-01']],
 
         // ── F-ELB — Election Board Forms (6) ────────────────────────────────
         'F-ELB-001' => ['name' => 'Election Scheduling Order',                  'roles' => ['R-08']],
@@ -383,6 +387,7 @@ class FormRegistry
         'F-ORG-001' => Handlers\OrganizationProfileManagement::class,
         'F-ORG-003' => Handlers\BoardElectionAdministration::class,
         'F-ORG-004' => Handlers\WorkerBoardElectionAdministration::class,
+        'F-ORG-010' => Handlers\BoardChairElection::class,
         'F-ORG-005' => Handlers\OwnershipTransferInitiation::class,
         'F-ORG-006' => Handlers\PublicPrivateConversionRequest::class,
         'F-ORG-007' => Handlers\OrganizationDissolution::class,

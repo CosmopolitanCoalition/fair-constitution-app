@@ -268,9 +268,21 @@ class OrgBoardService
      */
     public function openChairElection(Board $board): ChamberVote
     {
+        // A composition change supersedes unfinished chair ballots. Keeping
+        // them open lets an old electorate install a chair over the new one.
+        foreach (ChamberVote::query()->where('body_type', ChamberVote::BODY_BOARD)
+            ->where('body_id', $board->id)->where('vote_type', 'board_chair_elect')
+            ->where('status', ChamberVote::STATUS_OPEN)->cursor() as $previous) {
+            $previous->forceFill(['status' => ChamberVote::STATUS_VOID, 'decided_at' => now()])->save();
+            $this->audit->append(module: 'organizations', event: 'board.chair.vote.superseded',
+                payload: ['board_id' => (string) $board->id, 'vote_id' => (string) $previous->id],
+                ref: 'WF-ORG-05', jurisdictionId: $board->jurisdictionId());
+        }
         if ($board->chair_seat_id !== null) {
+            $previousHolder = BoardSeat::query()->whereKey($board->chair_seat_id)->value('holder_user_id');
             BoardSeat::query()->whereKey($board->chair_seat_id)->update(['is_chair' => false]);
             $board->forceFill(['chair_seat_id' => null])->save();
+            if ($previousHolder !== null) $this->roles->flushUser((string) $previousHolder);
         }
 
         $seated = $board->seats()->seated()->count();

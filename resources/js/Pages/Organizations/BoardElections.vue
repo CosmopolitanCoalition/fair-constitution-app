@@ -16,7 +16,7 @@
  * size are ENGINE SNAPSHOTS off rows (boards / tabulations /
  * chamber_vote_tallies). Nothing is computed here.
  */
-import { computed } from 'vue';
+import { computed, watch } from 'vue';
 import { Link, router, useForm, usePage } from '@inertiajs/vue3';
 import AppShellV2 from '@/Layouts/AppShellV2.vue';
 import PageScaffold from '@/Components/Surface/PageScaffold.vue';
@@ -89,6 +89,41 @@ const workerForm = useForm({ track: 'worker', action: 'open_worker_election' });
 const ownerCertification = useForm({ track: 'owner', action: 'certify', election_id: '' });
 const workerCertification = useForm({ track: 'worker', action: 'certify', election_id: '' });
 const provisionForm = useForm({ track: 'owner', action: 'provision_board', owner_seats: '', cycle_months: '' });
+const chairOpen = useForm({ action: 'open' });
+const chairBallot = useForm({ action: 'cast', vote_id: props.chair?.id, board_seat_id: '', rankings: [], explanation: '' });
+watch(() => props.chair?.id, (id) => {
+    chairBallot.reset();
+    chairBallot.vote_id = id;
+    chairBallot.clearErrors();
+});
+const pendingChairSeats = computed(() => (props.chair?.memberSeats ?? []).filter((seat) => !seat.submitted));
+const submittedChairSeats = computed(() => (props.chair?.memberSeats ?? []).filter((seat) => seat.submitted));
+watch(pendingChairSeats, (seats) => {
+    if (!seats.some((seat) => seat.id === chairBallot.board_seat_id)) {
+        chairBallot.board_seat_id = seats[0]?.id ?? '';
+        chairBallot.rankings = [];
+        chairBallot.explanation = '';
+    }
+}, { immediate: true });
+const chairSeatLabel = (seat) => `${text('seat', 'Seat')} ${seat.seatNumber} · ${seat.seatClass === 'worker_elected'
+    ? text('worker_representative', 'Worker representative') : seat.seatClass === 'governor'
+        ? text('appointed_governor', 'Appointed governor') : text('owner_representative', 'Owner representative')}`;
+const chairCandidates = computed(() => props.chair?.candidates ?? []);
+const unrankedChairCandidates = computed(() => chairCandidates.value.filter((member) => !chairBallot.rankings.includes(member.id)));
+const chairName = (id) => {
+    const member = chairCandidates.value.find((candidate) => candidate.id === id);
+    return member ? `${member.name} · ${chairSeatLabel(member)}` : text('board_member', 'Board member');
+};
+function moveChairRank(index, offset) {
+    const next = index + offset;
+    if (next < 0 || next >= chairBallot.rankings.length) return;
+    const ranks = [...chairBallot.rankings];
+    [ranks[index], ranks[next]] = [ranks[next], ranks[index]];
+    chairBallot.rankings = ranks;
+}
+function submitChair(form) {
+    form.post(`/organizations/${props.organization.id}/board-chair`, { preserveScroll: true });
+}
 
 function certify(track, form) {
     if (!track.canCertify || !track.election?.id || form.processing) return;
@@ -390,6 +425,42 @@ const nominationStrips = computed(() => {
                 </Banner>
 
                 <template v-if="chair?.vote">
+                    <form v-if="chair.canCast" class="chair-ballot" @submit.prevent="submitChair(chairBallot)">
+                        <h3>{{ text('your_chair_ranking', 'Your choice of board chair') }}</h3>
+                        <p>{{ text('rank_chair_help', 'Add members in your preferred order, starting with your first choice. You may rank one, several, or all members.') }}</p>
+                        <p>{{ text('public_chair_ballot', 'Your ranking and explanation are public. A submitted ranking cannot be changed. The result is counted when every seated member has voted.') }}</p>
+                        <fieldset :disabled="chairBallot.processing">
+                            <legend>{{ text('add_to_ranking', 'Add to your ranking') }}</legend>
+                            <label for="chair-member-seat">{{ text('voting_seat', 'Seat you are voting for') }}</label>
+                            <select id="chair-member-seat" v-model="chairBallot.board_seat_id">
+                                <option v-for="seat in pendingChairSeats" :key="seat.id" :value="seat.id">{{ chairSeatLabel(seat) }}</option>
+                            </select>
+                            <div class="chair-candidates">
+                                <button v-for="member in unrankedChairCandidates" :key="member.id" type="button" class="btn" @click="chairBallot.rankings.push(member.id)">
+                                    {{ text('rank_member', 'Rank') }} {{ chairName(member.id) }}
+                                </button>
+                            </div>
+                            <ol class="chair-ranking" aria-live="polite">
+                                <li v-for="(id, index) in chairBallot.rankings" :key="id">
+                                    <span>{{ index + 1 }}. {{ chairName(id) }}</span>
+                                    <button type="button" :disabled="index === 0" :aria-label="text('move_up', 'Move up') + ': ' + chairName(id)" @click="moveChairRank(index, -1)">↑</button>
+                                    <button type="button" :disabled="index === chairBallot.rankings.length - 1" :aria-label="text('move_down', 'Move down') + ': ' + chairName(id)" @click="moveChairRank(index, 1)">↓</button>
+                                    <button type="button" :aria-label="text('remove', 'Remove') + ': ' + chairName(id)" @click="chairBallot.rankings.splice(index, 1)">{{ text('remove', 'Remove') }}</button>
+                                </li>
+                            </ol>
+                            <label for="chair-explanation">{{ text('explanation_optional', 'Explanation (optional, public)') }}</label>
+                            <textarea id="chair-explanation" v-model="chairBallot.explanation" maxlength="2000" rows="3" />
+                            <Btn type="submit" variant="primary" :disabled="chairBallot.processing || !chairBallot.rankings.length">{{ chairBallot.processing ? text('submitting', 'Submitting…') : text('submit_ranking', 'Submit public ranking') }}</Btn>
+                        </fieldset>
+                        <p v-for="(error, key) in chairBallot.errors" :key="key" role="alert"><ReferenceText>{{ error }}</ReferenceText></p>
+                    </form>
+                    <div v-if="chair.submitted" role="status">
+                        <p>{{ text('chair_ranking_recorded', 'Your ranking is recorded.') }}</p>
+                        <div v-for="seat in submittedChairSeats" :key="seat.id">
+                            <p>{{ chairSeatLabel(seat) }}</p>
+                            <ol><li v-for="id in seat.rankings" :key="id">{{ chairName(id) }}</li></ol>
+                        </div>
+                    </div>
                     <p class="citation" style="margin-block: var(--space-2)">
                         majority of the full board:
                         <template v-if="chair.required != null">{{ chair.required }} of {{ chair.board_size }} seated</template>
@@ -435,6 +506,11 @@ const nominationStrips = computed(() => {
                     The joint chair election opens once the board has at least two seated members
                     (Art. III §6). It re-triggers on any composition change.
                 </Banner>
+                <form v-if="chair?.canOpen" @submit.prevent="submitChair(chairOpen)">
+                    <p>{{ text('chair_retry_help', 'The chair is unfilled. Open a ballot so all seated members can submit a new ranking.') }}</p>
+                    <Btn type="submit" variant="primary" :disabled="chairOpen.processing">{{ chairOpen.processing ? text('opening_ballot', 'Opening ballot…') : text('open_chair_ballot', 'Open chair ballot') }}</Btn>
+                    <p v-for="(error, key) in chairOpen.errors" :key="key" role="alert"><ReferenceText>{{ error }}</ReferenceText></p>
+                </form>
             </Card>
 
             <!-- ===================================== seated board ======= -->
@@ -462,3 +538,14 @@ const nominationStrips = computed(() => {
         </template>
     </PageScaffold>
 </template>
+
+<style scoped>
+.chair-ballot { margin-block: var(--space-3); }
+.chair-ballot fieldset { border: 0; padding: 0; display: grid; gap: var(--space-2); }
+.chair-ballot textarea { width: 100%; }
+.chair-candidates { display: flex; flex-wrap: wrap; gap: var(--space-2); }
+.chair-ranking { list-style: none; padding: 0; }
+.chair-ranking li { display: flex; align-items: center; gap: var(--space-2); margin-block: var(--space-2); flex-wrap: wrap; }
+.chair-ranking li span { flex: 1; min-width: 8rem; }
+.chair-ranking button { min-width: 2.75rem; min-height: 2.75rem; }
+</style>

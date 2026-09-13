@@ -141,8 +141,8 @@ cd "$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 # this checkout already runs under: the COMPOSE_PROJECT_NAME a prior run pinned in .env, else
 # compose's own default — the directory basename — which is exactly what a bare `docker compose
 # up` (get-started / the dev stack) used to build the world. Defaulting to the container PREFIX
-# (fc) pointed deploy.sh at a DIFFERENT, empty set of volumes: the world looked gone and the Matrix
-# reset below targeted the wrong volume. CONTAINER_PREFIX (container names) stays $PREFIX.
+# (fc) pointed deploy.sh at a DIFFERENT, empty set of volumes: the world looked gone.
+# CONTAINER_PREFIX (container names) stays $PREFIX.
 if [[ -z "$PROJECT" ]]; then
   if [[ -f .env ]] && grep -qE '^COMPOSE_PROJECT_NAME=' .env; then
     PROJECT="$(grep -E '^COMPOSE_PROJECT_NAME=' .env | head -1 | cut -d= -f2- | tr -d '"' | tr -d '\r')"
@@ -154,6 +154,39 @@ echo "→ compose project = ${PROJECT}   (volumes/network; override with --proje
 
 DC=(docker compose -p "$PROJECT")
 art() { "${DC[@]}" exec -T app php artisan "$@"; }
+
+# Check the stored Matrix identity BEFORE changing .env or starting any services.
+# A different public hostname cannot rename a homeserver. Never erase its databases
+# or volume as a deployment recovery step. The probe mounts existing state read-only.
+MATRIX_EXISTING="fresh"
+PUBLIC_MATRIX_IMAGE="ghcr.io/element-hq/synapse:latest"
+if [[ -n "$PUBLIC_URL" ]]; then
+  MATRIX_VOLUMES="$(docker volume ls --format '{{.Name}}')" || {
+    echo "ERROR: Cannot inspect existing Matrix storage. No deployment changes made." >&2; exit 1;
+  }
+  if printf '%s\n' "$MATRIX_VOLUMES" | grep -Fxq "${PROJECT}_matrix_data"; then
+    MATRIX_EXISTING="$(docker run --rm --network none --read-only --user 0:0 \
+      --mount "type=volume,src=${PROJECT}_matrix_data,dst=/matrix-state,readonly" \
+      --mount "type=bind,src=$PWD/scripts/deploy/check_public_matrix.py,dst=/deploy-check.py,readonly" \
+      --entrypoint python "$PUBLIC_MATRIX_IMAGE" /deploy-check.py name \
+      /matrix-state/homeserver.yaml "$PUBLIC_HOST")" || {
+      echo "ERROR: Matrix identity check failed. Existing configuration and room data were preserved." >&2
+      echo "       Re-run with the original public hostname or use a separate empty installation." >&2
+      exit 1
+    }
+    case "$MATRIX_EXISTING" in
+      fresh|existing) ;;
+      *) echo "ERROR: Matrix identity inspection returned an unknown state. No deployment changes made." >&2; exit 1;;
+    esac
+  fi
+fi
+
+check_public_matrix_bundle() {
+  docker run --rm --network none --read-only --user 0:0 \
+    --mount "type=bind,src=$PWD/scripts/deploy/check_public_matrix.py,dst=/deploy-check.py,readonly" \
+    --mount "type=bind,src=$1,dst=/bundle,readonly" \
+    --entrypoint python "$PUBLIC_MATRIX_IMAGE" /deploy-check.py bundle /bundle "$PUBLIC_HOST" "$PUBLIC_URL"
+}
 
 # 1. .env from the template on a fresh checkout.
 [[ -f .env ]] || cp .env.example .env
@@ -303,34 +336,6 @@ for _ in $(seq 1 90); do
   sleep 2
 done
 
-# Synapse on the wrong server_name → reset the homeserver state so it re-inits on the NEW one.
-# The entrypoint generates homeserver.yaml only when absent and Synapse's DB binds to the name it
-# was minted under, so a warm volume/DB from a prior domain makes it serve the OLD name or refuse
-# to boot. The gate reads the name Synapse ACTUALLY BAKED — /data/homeserver.yaml on the
-# matrix_data volume — never the .env value: a prior deploy can already have advanced .env to the
-# new name while the homeserver itself was never reset (a half-transitioned box says "beta" in
-# .env and still serves localhost; an .env compare skips the reset and rooms stay broken). A
-# one-off run of the matrix image with the real volume mounted reads it: no deps, nothing written.
-# SAFE, gated twice: only on --public-url (no live Matrix data by construction — this script
-# refuses --seed and dev-time) and only when a homeserver IS baked on a DIFFERENT name (a fresh
-# volume needs no reset; a same-name re-deploy is untouched). NON-FATAL, Matrix-only.
-MATRIX_BAKED=""
-if [[ -n "$PUBLIC_URL" ]]; then
-  MATRIX_BAKED="$("${DC[@]}" run --rm --no-deps -T --entrypoint sh matrix \
-      -c "grep -E '^server_name:' /data/homeserver.yaml 2>/dev/null | head -1" 2>/dev/null \
-    | tr -d '\r' || true)"
-fi
-if [[ -n "$PUBLIC_URL" && -n "$MATRIX_BAKED" && "$MATRIX_BAKED" != *"$PUBLIC_HOST"* ]]; then
-  echo "→ Synapse is baked on another server_name (${MATRIX_BAKED#server_name:} → ${PUBLIC_HOST}): resetting homeserver state…"
-  "${DC[@]}" rm -sf matrix mas >/dev/null 2>&1 || true
-  for db in matrix matrix_auth; do
-    "${DC[@]}" exec -T postgres psql -U fc_user -d fair_constitution \
-      -c "DROP DATABASE IF EXISTS ${db} WITH (FORCE)" >/dev/null 2>&1 || true
-  done
-  docker volume rm "${PROJECT}_matrix_data" >/dev/null 2>&1 || true
-  echo "  ✓ Homeserver state cleared — Synapse will re-init on ${PUBLIC_HOST} (no app/web data touched)."
-fi
-
 # Phase K-3: ensure the Matrix + MAS logical DBs exist before the homeserver boots. init.sql
 # CREATE DATABASE runs ONLY on a fresh postgres volume; an in-place upgrade with a warm volume
 # needs this idempotent guard. Synapse REQUIRES C collation (the server-wide --locale=C gives it).
@@ -347,8 +352,10 @@ done
 # and the edge only on nginx — so a Synapse hiccup (e.g. a box that booted once in local
 # mode carries a localhost-baked server_name and refuses the new domain) must never abort
 # the deploy before the interface + TLS edge come up. Matrix login is wired separately.
-echo "→ Starting the Matrix homeserver…"
-"${DC[@]}" up -d matrix || echo "  ! Matrix homeserver did not start — continuing (not on the web/cert path; docs/operator/matrix.md)." >&2
+if [[ -z "$PUBLIC_URL" ]]; then
+  echo "→ Starting the Matrix homeserver…"
+  "${DC[@]}" up -d matrix || echo "  ! Matrix homeserver did not start — continuing (docs/operator/matrix.md)." >&2
+fi
 
 # Bring up the Matrix Auth Service (MAS) too. The committed docker/matrix/mas config carries DEV-ONLY
 # secrets — fine for a LAN rig; a PUBLIC deploy should run `php artisan matrix:setup` first to regenerate
@@ -399,38 +406,55 @@ else
   echo "→ Preserving the existing APP_KEY (federation identity intact)."
 fi
 
-# 2b. PUBLIC boxes: regenerate every Matrix/MAS/LiveKit secret and point the OIDC issuer at
-#     the real hostname, THEN start MAS. The committed docker/matrix/mas/config.yaml ships
-#     dev placeholders (cga_dev_*) and a localhost issuer — shipping those to the internet
-#     would mean a publicly-known appservice token and an unusable login. matrix:setup writes
-#     config.generated.yaml; compose mounts config.yaml, and nothing else copies one to the
-#     other, so we do it here.
+# 2b. Public rooms start only with a validated matched bundle. Reuse a valid
+# bundle on updates: regenerating MAS's encryption key would break existing auth
+# records. A fresh install generates into a temporary directory and installs only
+# after every sibling file passes; warnings from matrix:setup are not readiness.
 if [[ -n "$PUBLIC_URL" ]]; then
-  # BEST-EFFORT. The Matrix/MAS wiring is not on the web/cert critical path (nginx depends
-  # only on `app`, the edge only on nginx), so nothing here may abort the deploy before the
-  # interface + TLS come up. matrix:setup is pure-local (writes secrets + config), but a box
-  # that booted once in local mode carries a localhost-baked Synapse; that affects Matrix
-  # login only, wired separately (docs/operator/matrix.md), never the app or its certificate.
-  echo "→ Regenerating Matrix/MAS/LiveKit secrets for ${PUBLIC_HOST}…"
-  if art matrix:setup --server-name="$PUBLIC_HOST" \
-                      --issuer="$PUBLIC_URL" \
-                      --mas-issuer="https://auth.${PUBLIC_HOST}/"; then
-    if [[ -f docker/matrix/mas/config.generated.yaml ]]; then
-      cp docker/matrix/mas/config.generated.yaml docker/matrix/mas/config.yaml
-      echo "  ✓ MAS config installed (generated secrets)."
-    else
-      echo "  ! matrix:setup produced no config.generated.yaml — MAS will start on DEV secrets." >&2
-      echo "    Fix before exposing Matrix login: docs/operator/matrix.md" >&2
-    fi
+  if check_public_matrix_bundle "$PWD"; then
+    echo "→ Preserving the existing matched Matrix/MAS/LiveKit credentials."
   else
-    echo "  ! matrix:setup failed — continuing (Matrix login only; not on the web/cert path)." >&2
+    if [[ "$MATRIX_EXISTING" == "existing" ]]; then
+      echo "ERROR: Existing Matrix configuration needs repair. Its encryption keys and room data were preserved." >&2
+      echo "       Restore the matched configuration from this installation before re-running deploy." >&2
+      exit 1
+    fi
+    MATRIX_STAGE="$(mktemp -d "$PWD/.matrix-deploy.XXXXXX")"
+    cleanup_matrix_stage() {
+      case "${MATRIX_STAGE:-}" in "$PWD"/.matrix-deploy.*) rm -rf -- "$MATRIX_STAGE";; esac
+    }
+    trap cleanup_matrix_stage EXIT
+    mkdir -p "$MATRIX_STAGE/docker/matrix/mas" "$MATRIX_STAGE/docker/matrix/appservice" \
+      "$MATRIX_STAGE/docker/matrix/conf.d" "$MATRIX_STAGE/docker/livekit"
+    cp .env "$MATRIX_STAGE/.env"
+    cp docker/matrix/appservice/registration.yaml "$MATRIX_STAGE/docker/matrix/appservice/registration.yaml"
+    cp docker/matrix/conf.d/20-mas.yaml "$MATRIX_STAGE/docker/matrix/conf.d/20-mas.yaml"
+    cp docker/livekit/livekit.yaml "$MATRIX_STAGE/docker/livekit/livekit.yaml"
+    MATRIX_CONTAINER_STAGE="/var/www/html/${MATRIX_STAGE##*/}"
+    echo "→ Preparing the public Matrix/MAS/LiveKit configuration…"
+    if ! art matrix:setup --server-name="$PUBLIC_HOST" --issuer="$PUBLIC_URL" \
+        --mas-issuer="https://auth.${PUBLIC_HOST}/" \
+        --env-path="$MATRIX_CONTAINER_STAGE/.env" \
+        --mas-config-path="$MATRIX_CONTAINER_STAGE/docker/matrix/mas/config.yaml" \
+        --registration-path="$MATRIX_CONTAINER_STAGE/docker/matrix/appservice/registration.yaml" \
+        --mas-synapse-conf-path="$MATRIX_CONTAINER_STAGE/docker/matrix/conf.d/20-mas.yaml" \
+        --livekit-config-path="$MATRIX_CONTAINER_STAGE/docker/livekit/livekit.yaml" \
+        > "$MATRIX_STAGE/generate.log" 2>&1; then
+      echo "ERROR: Public Matrix configuration generation failed. Matrix and MAS were not started." >&2
+      exit 1
+    fi
+    if ! check_public_matrix_bundle "$MATRIX_STAGE"; then
+      echo "ERROR: Public Matrix configuration did not pass validation. Matrix and MAS were not started." >&2
+      exit 1
+    fi
+    cp "$MATRIX_STAGE/.env" .env
+    cp "$MATRIX_STAGE/docker/matrix/mas/config.yaml" docker/matrix/mas/config.yaml
+    cp "$MATRIX_STAGE/docker/matrix/appservice/registration.yaml" docker/matrix/appservice/registration.yaml
+    cp "$MATRIX_STAGE/docker/matrix/conf.d/20-mas.yaml" docker/matrix/conf.d/20-mas.yaml
+    cp "$MATRIX_STAGE/docker/livekit/livekit.yaml" docker/livekit/livekit.yaml
+    cleanup_matrix_stage
+    MATRIX_STAGE=""
   fi
-  # FORCE-RECREATE, not `up -d`: registration.yaml, 20-mas.yaml and the MAS config are bind
-  # mounts, so a running Synapse/MAS keeps the tokens it read at start and `up -d` (no compose
-  # change) never recreates it. Synapse then answers "Token is not active" to the appservice
-  # (WoS 2026-09-08: registration written 16:15:08, fc_matrix started 16:12:12).
-  echo "→ Recreating Synapse + MAS on the freshly minted secrets…"
-  "${DC[@]}" up -d --force-recreate matrix mas || echo "  ! Synapse/MAS did not recreate — continuing (Matrix login only)." >&2
 fi
 
 # Re-bake the config cache AFTER the last .env writer (key:generate, matrix:setup). A cached
@@ -441,6 +465,11 @@ fi
 # so it is rebuilt here, before them.
 echo "→ Re-baking the config cache with the final .env…"
 art config:cache
+
+if [[ -n "$PUBLIC_URL" ]]; then
+  echo "→ Starting Synapse + MAS with the validated public configuration…"
+  "${DC[@]}" up -d --force-recreate matrix mas
+fi
 
 echo "→ Migrating…"
 art migrate --force
@@ -544,7 +573,7 @@ if [[ -n "$PUBLIC_URL" ]]; then
   echo "  If the page does not load, certificates are still being issued — give it a minute,"
   echo "  then check:  docker compose logs edge"
   echo ""
-  echo "  LIVE ROOM: Matrix + MAS + LiveKit are wired with fresh in-sync secrets. A civic room"
+  echo "  LIVE ROOM: Matrix + MAS + LiveKit use validated matching credentials. A civic room"
   echo "  (text/presence/agenda/vote) works as soon as login is up. For the VOICE tile, establish"
   echo "  the governed SFU capability once (operator consent):"
   echo "     docker compose exec app php artisan mesh:role request voice.sfu"

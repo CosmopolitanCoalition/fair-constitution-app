@@ -175,7 +175,7 @@ class ChamberVotePresenter
                 $vote->rcv_record['winner_member_id'] ?? null,
             ]))
             ->unique()
-            ->values());
+            ->values(), $vote->body_type === ChamberVote::BODY_BOARD);
 
         $rounds = collect($vote->rcv_record['rounds'] ?? [])->map(fn (array $round, int $i) => [
             'round'   => (int) ($round['round_no'] ?? $i + 1),
@@ -209,10 +209,17 @@ class ChamberVotePresenter
     // -------------------------------------------------------------------------
 
     /** @return array<string, string> member id → display name */
-    private function memberNames(Collection $memberIds): array
+    private function memberNames(Collection $memberIds, bool $board = false): array
     {
         if ($memberIds->isEmpty()) {
             return [];
+        }
+
+        if ($board) {
+            return \App\Models\BoardSeat::withTrashed()->whereIn('id', $memberIds)
+                ->with('holder:id,name,display_name')->get()
+                ->mapWithKeys(fn ($seat) => [(string) $seat->id =>
+                    $seat->holder?->display_name ?: ($seat->holder?->name ?? 'Board member')])->all();
         }
 
         return LegislatureMember::query()

@@ -484,9 +484,9 @@ class ChamberVoteService
      * record, auto-close at full participation. No Speaker logic — boards
      * have no presiding neutrality rule; every seated seat casts.
      *
-     * `cast_via_form` records 'WF-ORG-05' — FLAGGED REGISTRY GAP: the
-     * catalog carries no board-member ballot form; the workflow ref keeps
-     * the record honest until the registry grows one.
+     * Organization chair participation files F-ORG-010. Existing system
+     * callers may retain WF-ORG-05; public records distinguish the canonical
+     * form from the workflow that the vote belongs to.
      */
     public function castBoardSeat(
         ChamberVote $vote,
@@ -560,7 +560,8 @@ class ChamberVoteService
                 attrs: [
                     'actor_user_id'   => $seat->holder_user_id !== null ? (string) $seat->holder_user_id : null,
                     'jurisdiction_id' => (string) $fresh->jurisdiction_id,
-                    'via_workflow'    => $viaForm,
+                    'via_form'        => str_starts_with($viaForm, 'F-') ? $viaForm : null,
+                    'via_workflow'    => str_starts_with($viaForm, 'WF-') ? $viaForm : 'WF-ORG-05',
                     'subject_type'    => 'chamber_vote',
                     'subject_id'      => (string) $fresh->id,
                 ],

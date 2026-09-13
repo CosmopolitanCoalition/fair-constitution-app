@@ -18,6 +18,7 @@ use App\Models\OrgMembership;
 use App\Models\OrgWorker;
 use App\Models\Tabulation;
 use App\Models\User;
+use App\Models\VoteCast;
 use App\Services\Organizations\OrgSettingsService;
 use App\Services\Rooms\BoardRoomAccess;
 use App\Support\SurfaceMeta;
@@ -55,7 +56,7 @@ class BoardElectionController extends Controller
     public function show(\Illuminate\Http\Request $request, Organization $organization): Response
     {
         $board = $organization->board_id !== null
-            ? Board::query()->with('seats')->find($organization->board_id)
+            ? Board::query()->with('seats.holder:id,name,display_name')->find($organization->board_id)
             : null;
 
         $viewerIsAgent = $request->user() !== null
@@ -88,7 +89,7 @@ class BoardElectionController extends Controller
                 ElectionRace::ELECTORATE_WORKERS,
                 $canAdminister && $boardIsCurrent,
             ),
-            'chair' => $this->chair($board),
+            'chair' => $this->chair($board, $boardIsCurrent && $organization->status === Organization::STATUS_ACTIVE ? $request->user() : null),
             'seated' => $this->seated($board),
             'roomHref' => $board && app(BoardRoomAccess::class)->allows($request->user(), $board)
                 ? '/rooms/board/'.$board->id : null,
@@ -346,7 +347,7 @@ class BoardElectionController extends Controller
      *
      * @return array<string, mixed>|null
      */
-    private function chair(?Board $board): ?array
+    private function chair(?Board $board, ?User $viewer = null): ?array
     {
         if ($board === null) {
             return null;
@@ -358,11 +359,30 @@ class BoardElectionController extends Controller
             ->where('body_id', (string) $board->id)
             ->where('vote_type', 'board_chair_elect')
             ->orderByDesc('opened_at')
+            ->orderByDesc('id')
             ->first();
 
         $seatedCount = $board->seats->where('status', BoardSeat::STATUS_SEATED)->count();
+        $viewerSeats = $viewer === null ? collect() : $board->seats
+            ->where('status', BoardSeat::STATUS_SEATED)->where('holder_user_id', $viewer->id);
+        $casts = $vote && $viewerSeats->isNotEmpty() ? VoteCast::query()->where('vote_id', $vote->id)
+            ->whereIn('board_seat_id', $viewerSeats->pluck('id'))->get()->keyBy('board_seat_id') : collect();
+        $memberSeats = $viewerSeats->map(fn (BoardSeat $seat) => [
+            'id' => (string) $seat->id, 'seatNumber' => (int) $seat->seat_no, 'seatClass' => $seat->seat_class,
+            'submitted' => $casts->has($seat->id), 'rankings' => $casts->get($seat->id)?->rankings ?? [],
+        ])->values()->all();
+        $open = $vote?->status === ChamberVote::STATUS_OPEN;
 
         return [
+            'id' => $vote?->id,
+            'status' => $vote?->status,
+            'canOpen' => $viewerSeats->isNotEmpty() && $board->chair_seat_id === null && ! $open && $seatedCount >= 2,
+            'canCast' => $viewerSeats->count() > $casts->count() && $board->chair_seat_id === null && $open,
+            'submitted' => $casts->isNotEmpty(),
+            'memberSeats' => $memberSeats,
+            'candidates' => $board->seats->where('status', BoardSeat::STATUS_SEATED)->sortBy('seat_no')
+                ->map(fn (BoardSeat $seat) => ['id' => (string) $seat->id, 'name' => $this->holderName($seat),
+                    'seatNumber' => (int) $seat->seat_no, 'seatClass' => $seat->seat_class])->values()->all(),
             'vote' => $vote !== null ? $this->votes->tallyProps($vote) : null,
             // The full-board threshold + size — engine snapshots off the
             // chamber_vote row (serving_snapshot) / its lane (required_yes).
@@ -377,6 +397,24 @@ class BoardElectionController extends Controller
                 ? 'composition_changed'
                 : null,
         ];
+    }
+
+    public function chairAction(\Illuminate\Http\Request $request, Organization $organization): \Illuminate\Http\RedirectResponse
+    {
+        $validated = $request->validate([
+            'action' => ['required', 'in:open,cast'],
+            'vote_id' => ['required_if:action,cast', 'nullable', 'uuid'],
+            'board_seat_id' => ['required_if:action,cast', 'nullable', 'uuid'],
+            'rankings' => ['required_if:action,cast', 'array', 'min:1'],
+            'rankings.*' => ['required', 'uuid', 'distinct'],
+            'explanation' => ['nullable', 'string', 'max:2000'],
+        ]);
+        abort_unless($request->user(), 403);
+        $this->engine->file('F-ORG-010', $request->user(), $validated + [
+            'organization_id' => (string) $organization->id,
+            'jurisdiction_id' => (string) $organization->jurisdiction_id,
+        ]);
+        return back()->with('status', $validated['action'] === 'open' ? 'Chair ballot is open.' : 'Your chair ranking has been recorded.');
     }
 
     /**
@@ -461,9 +499,8 @@ class BoardElectionController extends Controller
 
     private function holderName(BoardSeat $seat): string
     {
-        $user = $seat->holder_user_id !== null
-            ? User::query()->find($seat->holder_user_id)
-            : null;
+        $seat->loadMissing('holder:id,name,display_name');
+        $user = $seat->holder;
 
         return $user?->display_name ?: ($user?->name ?? 'Seated member');
     }

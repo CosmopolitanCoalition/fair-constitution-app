@@ -114,7 +114,7 @@ class AuditChainSmokeTest extends TestCase
     // FormRegistry
     // -------------------------------------------------------------------------
 
-    public function test_registry_holds_exactly_120_canonical_forms(): void
+    public function test_registry_holds_exactly_121_canonical_forms(): void
     {
         // 103 Template forms + F-ELB-008 (Manual District Draw, Phase H) + the
         // Phase K-1 civic-commons trio F-SOC-001/002/003 (public square / halls
@@ -153,8 +153,9 @@ class AuditChainSmokeTest extends TestCase
         // without meaning to fails here loudly. Raising the number is the
         // deliberate half of adding one — if you are editing this line, check
         // that you meant to add a form, not that the test is in your way.
-        $this->assertCount(120, FormRegistry::FORMS);
-        $this->assertCount(120, FormRegistry::ids());
+        // + F-ORG-010: the seated member's joint board-chair ballot (WF-ORG-05).
+        $this->assertCount(121, FormRegistry::FORMS);
+        $this->assertCount(121, FormRegistry::ids());
     }
 
     public function test_pure_aliases_resolve_to_canonical_ids(): void

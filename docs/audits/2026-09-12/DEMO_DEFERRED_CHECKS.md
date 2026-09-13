@@ -1,22 +1,14 @@
-# Deferred human, device and deployment checks
+# Deferred human checks
 
-Updated 13 September 2026. These checks are outside the [development/internal-testing punch list](DEMO_ACTION_PLAN.md). They do not keep internally completed development open. They remain explicitly unperformed until evidence exists.
+Updated 13 September 2026. **Only checks requiring human participation, judgment or physical-device experience appear here.** They do not keep internally completed development open. All required multi-user development checks use simulated participants. These human checks remain unperformed until evidence exists.
 
-## Human or physical-device checks
+| Human-dependent check | Dependency | What people will assess |
+|---|---|---|
+| Real microphone, camera, headphones and screen sharing on separate physical devices | Attendee hardware/browser combinations and participants available | Physical device selection/permission prompts, actual audio/video quality, comfort and recovery on that hardware. Synthetic transport and automated permission/error checks remain internal. |
+| Human demo dress rehearsal | Final scenarios and willing participants | Whether people can follow the presentation and complete tasks; clarity, pacing and comprehension. The required final development rehearsal uses simulated participants. |
+| Human usability and assistive-device feedback | Internally checked navigation, keyboard/focus, screen-reader semantics, narrow layouts and media alternatives | Practical use with personal assistive devices and actual user needs. Feedback complements internal accessibility checks; it does not replace them. |
+| Human review of educational explanations and translations | Settled teaching content and technical language coverage | Explanation quality, translation naturalness and learner comprehension. Missing strings, wrong action links and missing media alternatives remain internal checks/build defects. |
 
-| Check | When available |
-|---|---|
-| Real microphone, camera, headphones and screen sharing on separate physical devices | Verify permission prompts, device selection, audio quality and recovery on the attendee hardware/browser combinations. |
-| Human demo dress rehearsal | Have people follow the final scenarios and assess clarity and pacing. All required development rehearsals use simulated participants in the meantime. |
-| Human usability and assistive-device feedback | Collect feedback after the internally checked language, keyboard, screen-reader semantics and media-alternative work. This does not replace those internal checks. |
+The [internal review register](DEMO_REVIEW_REGISTER.md) contains simulated civic/economic/room journeys, automated language/accessibility/media checks, fresh installation, volunteer mesh joining, scale measurements, final simulated rehearsal and conference-host deployment/connectivity verification. Remote-host access is a dependency, not a reason to label an automatable check human-only. An “actual member” in a scenario can be a simulated identity with the actual fixture office.
 
-## Conference-host deployment verification
-
-| Check | Dependency |
-|---|---|
-| Pull/install the release on the separate Linux conference host; apply additive migrations and refresh caches/workers | Access to that host and its deployment owner. See [deployment handoff](NEXT_SESSION_HANDOFF.md). |
-| Verify public secure signaling, Matrix, ICE/TURN and internet participant connectivity | The conference host's public URLs, certificates and network configuration. This can use synthetic clients once the host is available; it is an external-host check, not inherently a human test. |
-
-Synthetic presider/member roles, private-board access, witness/floor behavior, full hiring and other civic/economic journeys remain **internal** work under R2/S1. They must not be moved here just because older notes called for an “actual member” or “actual participant.”
-
-Completion of the development list does not claim remote deployment or physical hardware was verified. Any concrete defect discovered here becomes a new repair in the active list; the deployment check itself stays here.
+Record evidence when a human check is performed. Move a passed scope to [completed work](DEMO_COMPLETED_WORK.md). Put a concrete defect requiring development on the [build punch list](DEMO_ACTION_PLAN.md). Completion of the development list does not claim unperformed physical-device or human checks passed.

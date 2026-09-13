@@ -1113,6 +1113,8 @@ Route::middleware('auth')->group(function () {
         ->whereUuid('organization')->name('organizations.board-elections');
     Route::post('/organizations/{organization}/board-elections', [\App\Http\Controllers\Organizations\BoardElectionController::class, 'store'])
         ->whereUuid('organization')->name('organizations.board-elections.store');  // F-ORG-003 / F-ORG-004
+    Route::post('/organizations/{organization}/board-chair', [\App\Http\Controllers\Organizations\BoardElectionController::class, 'chairAction'])
+        ->whereUuid('organization')->name('organizations.board-chair');
 
     // ── FE-D9 — Transfers / conversions / dissolution ───────────────────────
     Route::post('/organizations/{organization}/transfers', [\App\Http\Controllers\Organizations\TransferController::class, 'transfer'])
